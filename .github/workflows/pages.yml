@@ -1,23 +1,23 @@
-# Builds the Blazor WebAssembly game, runs the tests, and publishes it to GitHub Pages.
-name: Publish to GitHub Pages
+# Builds and tests the game on every pull request; publishes it to GitHub Pages only from main.
+name: Build, test and publish
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
+# A newer push to the same pull request replaces the older run; deploys from main always finish.
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +32,7 @@ jobs:
         run: dotnet publish src/Amarna.Web --configuration Release --output publish
 
       - name: Prepare for Pages
+        if: github.ref == 'refs/heads/main'
         run: |
           site=publish/wwwroot
           # The site lives under /<repository>/, so the app's base path must match.
@@ -42,12 +43,20 @@ jobs:
           touch "$site/.nojekyll"
 
       - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
         with:
           path: publish/wwwroot
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
