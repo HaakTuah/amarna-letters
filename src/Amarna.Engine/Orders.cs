@@ -1,0 +1,178 @@
+using System.Text.Json.Serialization;
+
+namespace Amarna.Engine;
+
+/// <summary>
+/// Every state change a seat can ask for. Units are named by the province they stand in, as in
+/// Diplomacy ("A memphis -> sinai"). Text never changes state: only these orders do, and only
+/// after <see cref="OrderValidator"/> accepts them.
+/// </summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(HoldOrder), "hold")]
+[JsonDerivedType(typeof(MoveOrder), "move")]
+[JsonDerivedType(typeof(SupportOrder), "support")]
+[JsonDerivedType(typeof(ConvoyOrder), "convoy")]
+[JsonDerivedType(typeof(RaiseOrder), "raise")]
+[JsonDerivedType(typeof(DisbandOrder), "disband")]
+[JsonDerivedType(typeof(BuyProvinceOrder), "buy")]
+[JsonDerivedType(typeof(CedeProvinceOrder), "cede")]
+[JsonDerivedType(typeof(GiftUnitOrder), "giftUnit")]
+[JsonDerivedType(typeof(DispatchOrder), "dispatch")]
+[JsonDerivedType(typeof(ReleaseOrder), "release")]
+[JsonDerivedType(typeof(SeekCandidatesOrder), "seekCandidates")]
+[JsonDerivedType(typeof(HireOrder), "hire")]
+[JsonDerivedType(typeof(DismissOrder), "dismiss")]
+[JsonDerivedType(typeof(BackgroundCheckOrder), "check")]
+[JsonDerivedType(typeof(PlaceSpyOrder), "spy")]
+[JsonDerivedType(typeof(RecallSpyOrder), "recall")]
+[JsonDerivedType(typeof(CounterIntelOrder), "counterIntel")]
+[JsonDerivedType(typeof(AssayOrder), "assay")]
+[JsonDerivedType(typeof(AuthenticateOrder), "authenticate")]
+[JsonDerivedType(typeof(ForgeOrder), "forge")]
+[JsonDerivedType(typeof(CaptiveOrder), "captive")]
+[JsonDerivedType(typeof(PayRansomOrder), "payRansom")]
+public abstract record Order
+{
+    public abstract string Describe();
+}
+
+public sealed record HoldOrder(string Unit) : Order
+{
+    public override string Describe() => $"{Unit} holds";
+}
+
+public sealed record MoveOrder(string Unit, string To) : Order
+{
+    public override string Describe() => $"{Unit} -> {To}";
+}
+
+/// <summary>Support a unit standing in <paramref name="Supported"/>: to hold if To is null, else its move to To.</summary>
+public sealed record SupportOrder(string Unit, string Supported, string? To = null) : Order
+{
+    public override string Describe() => To is null ? $"{Unit} supports {Supported} holding" : $"{Unit} supports {Supported} -> {To}";
+}
+
+public sealed record ConvoyOrder(string Unit, string Army, string To) : Order
+{
+    public override string Describe() => $"{Unit} convoys {Army} -> {To}";
+}
+
+public sealed record RaiseOrder(string Province, UnitKind Kind) : Order
+{
+    public override string Describe() => $"raise {(Kind == UnitKind.Army ? "army" : "fleet")} in {Province}";
+}
+
+public sealed record DisbandOrder(string Unit) : Order
+{
+    public override string Describe() => $"disband {Unit}";
+}
+
+public sealed record BuyProvinceOrder(string Province) : Order
+{
+    public override string Describe() => $"buy the city-state of {Province}";
+}
+
+public sealed record CedeProvinceOrder(string Province, Power To) : Order
+{
+    public override string Describe() => $"cede {Province} to {To}";
+}
+
+public sealed record GiftUnitOrder(string Unit, Power To) : Order
+{
+    public override string Describe() => $"give {Unit} to {To}";
+}
+
+/// <summary>Send an envoy abroad with a spoken message, a mandate, gold and tablets.</summary>
+public sealed record DispatchOrder(
+    string Envoy,
+    Power To,
+    string Letter,
+    string Mandate = "",
+    GreetingOptions? Greeting = null,
+    int Gold = 0,
+    int PurityPercent = 100,
+    TabletProposal? Proposal = null,
+    List<string>? Copies = null) : Order
+{
+    public override string Describe() =>
+        $"send {Envoy} to {To}" + (Gold > 0 ? $" with {Gold} shekels" : "") + (Proposal is not null ? " bearing a tablet to seal" : "");
+}
+
+/// <summary>Let a detained envoy (or captive) go home, optionally with a spoken reply.</summary>
+public sealed record ReleaseOrder(string Character, string Reply = "") : Order
+{
+    public override string Describe() => $"release {Character}";
+}
+
+public sealed record SeekCandidatesOrder() : Order
+{
+    public override string Describe() => "ask for candidates";
+}
+
+public sealed record HireOrder(string Character, int Wage, int Term = 6) : Order
+{
+    public override string Describe() => $"hire {Character} at {Wage} a season";
+}
+
+public sealed record DismissOrder(string Character) : Order
+{
+    public override string Describe() => $"dismiss {Character}";
+}
+
+public sealed record BackgroundCheckOrder(string Character, int Spend) : Order
+{
+    public override string Describe() => $"check the background of {Character} ({Spend} shekels)";
+}
+
+/// <summary>Place a spy at a foreign court, or in a province.</summary>
+public sealed record PlaceSpyOrder(string Character, Power? Court = null, string? Province = null) : Order
+{
+    public override string Describe() => $"send {Character} to spy on {Court?.ToString() ?? Province}";
+}
+
+public sealed record RecallSpyOrder(string Character) : Order
+{
+    public override string Describe() => $"recall {Character}";
+}
+
+public sealed record CounterIntelOrder(int Spend) : Order
+{
+    public override string Describe() => $"spend {Spend} on watching for spies";
+}
+
+public sealed record AssayOrder(string Lot) : Order
+{
+    public override string Describe() => $"assay gold lot {Lot}";
+}
+
+public sealed record AuthenticateOrder(string Copy, int Spend) : Order
+{
+    public override string Describe() => $"authenticate tablet {Copy} ({Spend} shekels)";
+}
+
+public sealed record ForgeOrder(string Character, string Text, List<Power> Seals) : Order
+{
+    public override string Describe() => $"have {Character} forge a tablet sealed by {string.Join(", ", Seals)}";
+}
+
+public enum CaptiveFate { Execute, Ransom, Turn, Release }
+
+/// <summary>Decide the fate of a caught spy held at this court.</summary>
+public sealed record CaptiveOrder(string Character, CaptiveFate Fate, int Ransom = 0, string Poison = "") : Order
+{
+    public override string Describe() => $"{Fate.ToString().ToLowerInvariant()} the captive {Character}";
+}
+
+public sealed record PayRansomOrder(string Character) : Order
+{
+    public override string Describe() => $"pay the ransom for {Character}";
+}
+
+/// <summary>Everything one seat submits in one season. Notes are a private journal for the seat itself.</summary>
+public sealed class TurnSubmission
+{
+    public List<Order> Orders { get; set; } = new();
+    public string Notes { get; set; } = "";
+}
+
+public sealed record RejectedOrder(Order Order, string Reason);
