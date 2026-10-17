@@ -56,8 +56,8 @@ With `ANTHROPIC_API_KEY` set it can run model games too (`--preset budget`, or p
 such game costs real money. `--no-primer` runs the
 customs-primer experiment; `--out logs` keeps every game's log.
 
-Every push to `main` runs the tests and publishes the browser game to GitHub Pages
-(`.github/workflows/pages.yml`). To publish the static files somewhere else, such as S3:
+Changes go in through pull requests: every pull request builds and runs the tests
+(`.github/workflows/pages.yml`), and merging into `main` publishes the browser game to GitHub Pages. To publish the static files somewhere else, such as S3:
 
 ```bash
 dotnet publish src/Amarna.Web -c Release -o publish
