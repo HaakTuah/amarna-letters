@@ -7,11 +7,12 @@ Branch `round/sleep-and-simulation`, 18 October 2026. The prompt is in `docs/ROU
 - **Part 0.** `DESIGN-NOTES.md` now documents every rule the script kings follow, with its numbers, including the five you named. While documenting them, ten quirks turned up. They are left in place because balance is frozen, and are fixed with the bots' next change, before any new benchmark is quoted. The customs primer now teaches the language of accusation (the Habiru). Balance tuning against bots has stopped.
 - **Part 1.** Sleeping seats work behind a switch in the batch runner and the web app. Model and file seats can sleep for up to 6 seasons; script and human seats play every season. Wake-ups follow the design document's default triggers plus five triggers of the seat's own. Scheduled orders are secret and re-validated when they run, and a failed one wakes the seat. Replay is exact. A code review (four reviewers, each checked by a skeptic) found about a dozen real defects in the first version; all are fixed and covered by tests. 25 new tests, 18 for sleeping seats and 7 for the file seat; with the 86 from the base commit, all 111 pass.
 - **Part 2.** The file seat writes exactly what a model king sees and plays the reply. The kit in `sim/` walls each king in by construction: per-king agent types with only Read and Write, a hook that blocks every path outside its folder, unguessable folder names, a pre-game isolation test, and a transcript audit. Start it from `docs/SIMULATION-PROMPT.md` in a new session.
-- **Before the simulation, two decisions for you.** Both would distort what the simulation shows, and both are fixes, not rule changes (questions 25 and 27):
-  - A seat can work out its true gold from the "Strength" line of its view, which defeats debased gold and assays.
-  - This simulation uses script envoys. A timid one (courage below 35), or one fond of the host (sympathy for that court of 50 or more), drops every sentence containing "war", "march" and similar words as substrings, so "toward" and "warm" count too. Other script envoys keep those sentences.
+- **Fixed before the simulation** (18 October, on your go-ahead, one commit each). The answers below describe the code before these fixes; each one notes the change.
+  - A seat could work out its true gold from the "Strength" line of its view, which defeated debased gold and assays. The strength shown to a seat is now reckoned from its ledger; the final score still uses true gold (question 25).
+  - A timid script envoy (courage below 35), or one fond of the host (sympathy for that court of 50 or more), dropped every sentence containing "war", "march" and similar words as substrings, so "toward" and "warm" counted too. Threat words are now matched as whole words (question 13).
+  - Shared victory is off by default and kept as a house rule. The rulebook and the order schema mention it only when it is on, so model kings never read it (question 23). Script games play out exactly as before, but Alashiya, whose wins were all shared, no longer wins against script kings.
 
-  I left both alone because part 3 is plan-only; say if you want them fixed first.
+  The other bugs found (resignations from season 11, captured servants shown as ready, repeated ransoms, coalition tablets read only by the exact name) are the first item of the next round.
 - **Part 3.** The headline: between neighbouring capitals a letter and its reply take two seasons, about as long as a capital takes to fall once an army stands at its border. From any power able to help, the answer takes four seasons, so war outruns help. An army moves a link a season, and an empty homeland province falls to one army and a held one to two; Hatti can take Arzawa's capital by the end of season 3. Sieges, walls and terrain belong in the prototype. The prioritized list is at the end.
 
 ## Part 0: wrap-up after the balance work
@@ -578,7 +579,7 @@ Delayed income is enough as a first step, but it does little alone. A steady inc
 It fits the long-term tree of trust, which is about how fast information moves and who can read it. Joint roads are a good trust object. Tablets are never enforced (pillar 1), so shared use must be a standing permission each side grants by order and can withdraw. The forts of the Ways of Horus belong to walls (question 5), and its wells to a desert supply rule for Sinai.
 
 **With sieges and sleeping seats.**
-- The order: sieges first, travelling news once they work (step 8 of "What to do next"), the delay inside the realm after. Messages under siege come with sieges.
+- The order: sieges first, travelling news once they work (step 7 of "What to do next"), the delay inside the realm after. Messages under siege come with sieges.
 - The delay makes scheduled orders essential, which the sleeping seats already provide. But a scheduled order names a province, so it must learn to follow its unit.
 - Wake triggers must fire when the news reaches the court, not when the event happens. Otherwise the wake-up itself leaks the news. Step 1 must switch "a province changes hands" to the known owner.
 - Sieges need new wake triggers; question 5 gives the one list ("Assessment (game length and sleeping seats)"). A captured envoy's king wakes only when the news reaches him, so nothing leaks.
@@ -586,7 +587,7 @@ It fits the long-term tree of trust, which is about how fast information moves a
 
 **Plan:**
 
-**News of who holds what (once sieges work, step 8 of "What to do next").**
+**News of who holds what (once sieges work, step 7 of "What to do next").**
 1. Each power keeps a map of known owners, each entry stamped with the season it was true.
 2. Changes inside its sight show at once. Changes elsewhere arrive after `TravelTurns(province, court)` seasons, 1-3 with today's bands. "A kingdom falls" travels the same way.
 3. Province spies report with delay instead of adding live sight, as the design document's "Spies and intelligence" intends.
@@ -621,7 +622,7 @@ It fits the long-term tree of trust, which is about how fast information moves a
 5. Joint use is a standing order, "P may use my stations", often written into a tablet. The host decides by standing order whether his keepers open passing letters. An opened letter shows a broken envelope with a set chance, so reading is a choice with a risk, not a dice roll.
 6. New wake trigger: a station is cut or captured.
 
-**Core hypothesis:** Travelling news of who holds what serves it directly: it gives envoys' and spies' reports value, and room to lie. Build it once sieges work (step 8 of "What to do next"). Messages under siege serve it once sieges exist; the delay inside the realm, delayed income and roads serve pillar 8 and belong later.
+**Core hypothesis:** Travelling news of who holds what serves it directly: it gives envoys' and spies' reports value, and room to lie. Build it once sieges work (step 7 of "What to do next"). Messages under siege serve it once sieges exist; the delay inside the realm, delayed income and roads serve pillar 8 and belong later.
 
 **Simulation could change this:** yes: for news, messages under siege and the tablet fee, not for gold or roads. The 10-season runs use today's rules, so they cannot test a delay; they can change priorities.
 - Count orders to units 3 or more hops from their capital, and kings' notes that cite the public map about distant wars. If kings follow far wars from the map, step 1 moves up. If they rarely act beyond 2 hops, the delay matters little early.
@@ -679,7 +680,7 @@ Interactions:
 - **Sleeping seats.** Script generals let seats sleep long at no model cost. New wake triggers: a general disobeys or defects, the court is threatened, the king is captured. All fire when the news arrives, not when the event happens.
 
 Verdict: the depth is worth the complexity after the prototype, not inside it. Make it the first expansion if trust between kings emerges. Inside the prototype, take only the pieces that pay for themselves:
-- news of who holds what travels (question 6), once sieges work (step 8 of "What to do next");
+- news of who holds what travels (question 6), once sieges work (step 7 of "What to do next");
 - the automatic court move when a capital falls, which the siege package already has (question 5, step 17);
 - the delay with default commanders, only if model games after sieges still show size deciding too much.
 
@@ -695,7 +696,7 @@ Generals with traits, desertion, defection and succession wait. They add a secon
 7. Mandates come from wherever the king is. New instructions to an envoy abroad travel from the court. An envoy may follow a foreign king on campaign. The rule: an envoy who arrives to find the host king away from his court follows him if competence + courage is at least 100, the test in step 3, and otherwise waits at the court. It applies only once kings have a location (step 3), and only while the host king himself is away, not his generals.
 8. The pool grows from 18 to about 40. Generals' personas come from templates. At most a few key generals get model-written reports.
 
-**Core hypothesis:** Later: it carries mediation into the realm, but the prototype must first show trust forming between kings. Only travelling news, once sieges work (step 8 of "What to do next"), and the automatic court move of question 5 belong in it.
+**Core hypothesis:** Later: it carries mediation into the realm, but the prototype must first show trust forming between kings. Only travelling news, once sieges work (step 7 of "What to do next"), and the automatic court move of question 5 belong in it.
 
 **Simulation could change this:** yes: the runs can change the build order and timing, not the facts about today's code.
 - Many invalid orders or misread views would mean intents, generals and moving courts overload model kings now.
@@ -1023,7 +1024,7 @@ No script king's letter or audience speech contains one of the 14 words, in the 
 
 Three defects matter most:
 
-- **The threat filter is untargeted and matches substrings.** "war" matches "warm", "toward" and "reward" (`TextKit.cs:17`). A timid envoy carrying "Hatti is our common enemy; let us march together" deletes the proposal and adds a wish for peace. That inverts the letter, and its cause looks like noise to the player, against pillar 3. Model kings will write such sentences often.
+- **The threat filter is untargeted and matches substrings.** "war" matches "warm", "toward" and "reward" (`TextKit.cs:17`; matched as whole words since 18 October, still untargeted). A timid envoy carrying "Hatti is our common enemy; let us march together" deletes the proposal and adds a wish for peace. That inverts the letter, and its cause looks like noise to the player, against pillar 3. Model kings will write such sentences often.
 - **A bribe buys nothing specific.** The host's request is ignored, so bribing a script envoy always yields the same friendly line. Buying a specific lie is the strongest motive a host has.
 - **Envoys have no memory that matters.** Apart from the slow trait drift above, an envoy behaves the same on its first mission and its tenth. It bears no grudge against a court that detained it.
 
@@ -1033,13 +1034,13 @@ For model envoys the risk is the design document's top one: a helpful Haiku envo
 
 **Plan:**
 
-1. Make the threat filter whole-word and aimed at the host: soften only sentences that name the host or "you" next to a threat word. Small.
+1. Make the threat filter whole-word and aimed at the host: soften only sentences that name the host or "you" next to a threat word. Small. *Whole-word matching done 18 October; aiming it at the host is not.*
 2. A bribed envoy repeats the host's request as its own observation. Small, and it gives bribery a point.
 3. Hybrid envoys. The engine rolls gift, job, skim, how far to shade and whether to overreach from traits, for script and model envoys alike. A model (Haiku) writes the words around that outcome. This also gives real paraphrase; a deterministic rewriter of free text is not worth building.
 4. Memory that changes behaviour: a grudge against a court that detained it, more caution after a capture.
 5. Unit tests for every `ScriptMind` threshold, and one for the delivered-speech cap.
 
-Do 1 and 2 now, and 4 and 5 alongside. Build 3 next if the first Haiku-envoy games show envoys relaying too faithfully or refusing every bribe ("What to do next", step 3).
+Do 1 and 2 now, and 4 and 5 alongside. Build 3 next if the first Haiku-envoy games show envoys relaying too faithfully or refusing every bribe ("What to do next", step 2).
 
 **Core hypothesis:** Serves it now. The envoy's motivated distortion is the mechanism under test, and today's script envoys distort too little and too crudely to test it.
 
@@ -1158,7 +1159,7 @@ Recommendation: the hybrid the risk table already names. The engine decides, wit
 3. Add `CharacterDecisions = Engine | Model` to `GameConfig`, logged in the header, for an A/B comparison.
 4. Pick minds per role instead of one setting: envoys, spies, candidates, memory. Default: envoys on a model, the rest script.
 5. Measure distortion from the message trail for both settings: sentences dropped or added between letter, speech and report, and bribes taken per trait band.
-6. If script envoys stay common: a few paraphrase templates, and whole-word threat matching.
+6. If script envoys stay common: a few paraphrase templates, and whole-word threat matching (done 18 October).
 
 About a day for steps 1-3 with tests. It depends on nothing else.
 
@@ -1572,7 +1573,7 @@ Steps 4–7 depend on nothing else.
 
 ### 23. Shared victory
 
-**Status:** implemented, on by default, and already capped at two powers.
+**Status:** implemented and capped at two powers. **Done 18 October:** off by default, kept as a house rule (`--shared-victory`, or Customize in the browser), as recommended below. Plan steps 1-5 are done; step 6 does not apply.
 
 **Today:** `GameConfig.SharedVictory` is `true` (`src/Amarna.Engine/GameConfig.cs:12`; web default `src/Amarna.Web/Services/GameSettings.cs:12`). The batch switch `--no-shared-victory` turns it off (`src/Amarna.Batch/Program.cs:54`).
 
@@ -1619,7 +1620,7 @@ Effort: about two hours, plus batch time.
 
 **Core hypothesis:** Serves it now. Today the score pays for a sealed flag, not for kept trust, and hands the leader's ally a win for bandwagoning. Without it, alliances hold or break only on what each king expects of the other.
 
-**Simulation could change this:** yes: the simulation runs with shared victory on and `--max-turns 10`. So `DecideWinners` runs after season 10 (`TurnEngine.cs:449`) and can award a shared win. The kings believe no game ends before turn 15, so end-game manoeuvring will not show. The game can show whether model kings tick `sworn_alliance`, put it on coalition tablets, and use "seal and we both win" as a bargaining chip. Heavy use argues for a discounted version. No use means removal costs nothing.
+**Simulation could change this:** yes. *Since 18 October the simulation runs with shared victory off, so the kings never read the rule; the rest of this paragraph was written for it on.* The simulation runs with shared victory on and `--max-turns 10`. So `DecideWinners` runs after season 10 (`TurnEngine.cs:449`) and can award a shared win. The kings believe no game ends before turn 15, so end-game manoeuvring will not show. The game can show whether model kings tick `sworn_alliance`, put it on coalition tablets, and use "seal and we both win" as a bargaining chip. Heavy use argues for a discounted version. No use means removal costs nothing.
 
 ### 24. Security threat and victory threat in the script kings
 
@@ -1716,7 +1717,7 @@ The measured bias runs the other way. In 200 script games the three strong power
 
 The copies agree only while `ProvinceWeight`, `NeutralPriceFactor` and the 10 hard-coded in `Board.Value` are all equal. Rivals are judged from the court's own estimates. A court's own strength is the exact engine value.
 
-**A leak.** `SeatView.Gold` is the ledger, which counts unassayed lots at their weighed value (`Views.cs:122`; `src/Amarna.Engine/GameState.cs:104`). `SeatView.Strength` uses true gold (`Views.cs:127`). The prompt prints both on one line (`Prompts.cs:115`). Strength minus 10 × land yield is true gold. So any seat learns its total shortfall from debased gold without paying the 10-shekel assay (`GameConfig.cs:30`). With one unassayed lot, it learns that lot's exact purity. File seats get the same text.
+**A leak.** `SeatView.Gold` is the ledger, which counts unassayed lots at their weighed value (`Views.cs:122`; `src/Amarna.Engine/GameState.cs:104`). `SeatView.Strength` uses true gold (`Views.cs:127`). The prompt prints both on one line (`Prompts.cs:115`). Strength minus 10 × land yield is true gold. *(Fixed 18 October: the strength shown to a seat is reckoned from its ledger.)* So any seat learns its total shortfall from debased gold without paying the 10-shekel assay (`GameConfig.cs:30`). With one unassayed lot, it learns that lot's exact purity. File seats get the same text.
 
 **Assessment:**
 
@@ -1738,7 +1739,7 @@ Now:
 1. Add a pure `Scoring` class in `Amarna.Engine`: strength from land yield and gold, and growth from strength and start, taking inputs only. `TurnEngine` calls it with true values. `Board` calls it with the court's estimates. `Board.Value` reads the same weight.
 2. Put `ProvinceWeight`, and any later K, into `SeatView`, so bots read the real numbers.
 3. Derive the city price from the weight. Add an engine test that a purchase leaves strength unchanged.
-4. Fix the leak: compute the strength shown to a seat from its ledger (`Views.cs:127`). The final score still uses true gold, so debasement shows at the end.
+4. Fix the leak: compute the strength shown to a seat from its ledger (`Views.cs:127`). The final score still uses true gold, so debasement shows at the end. *Done 18 October.*
 5. Improve rival estimates: fleet upkeep at 35, and wages from the known size of each court.
 6. Batch report only: add mean growth per power (the par table), and the winner under par and under K = 1000. The real winner does not change, but the data accumulates.
 
@@ -1837,11 +1838,11 @@ Steps 1-3 belong with the web display of sleeping seats. Steps 4 and 6 can come 
 
 - **No model has played.** The model path runs only against simulated replies (`tests/Amarna.Game.Tests/PresetTests.cs:61` and the ModelLayerTests). Cost is estimated, not measured: $0.55, $9 and $18 for 20 seasons (DESIGN-NOTES.md "Models"). There are no UI tests.
 - **War outruns letters** (question 5). A letter and its reply take 2 seasons for 8 of the 21 capital pairs, and 4 for the other 13 (`TurnEngine.cs:194-203`; `GameConfig.cs:25`). An army takes an undefended province every season, and capitals have no walls (`src/Amarna.Engine/GameState.cs:18`). Before the Arzawa fleet, Hatti won 41 of 100 script games. Each time it held most of Arzawa, usually taken within eight seasons (DESIGN-NOTES.md "Balance (script kings)").
-- **Script envoys relay almost verbatim**, inside 'He says: "..."' (`src/Amarna.Game/Bots/ScriptMind.cs:38`). Their distortions are fixed rules on traits and keywords. A timid or fond envoy drops every sentence containing one of 14 strings, such as "war", "enemy" or "march" (`ScriptMind.cs:24-31`; `src/Amarna.Game/Bots/TextKit.cs:8-9`). The match is on substrings, so "toward", "reward" and "warm" count too. An envoy of competence below 35 drops the last sentence of any letter over two sentences (`ScriptMind.cs:32`).
+- **Script envoys relay almost verbatim**, inside 'He says: "..."' (`src/Amarna.Game/Bots/ScriptMind.cs:38`). Their distortions are fixed rules on traits and keywords. A timid or fond envoy drops every sentence containing one of 14 strings, such as "war", "enemy" or "march" (`ScriptMind.cs:24-31`; `src/Amarna.Game/Bots/TextKit.cs:8-9`). The match was on substrings, so "toward", "reward" and "warm" counted too (whole words since 18 October). An envoy of competence below 35 drops the last sentence of any letter over two sentences (`ScriptMind.cs:32`).
 - **Script kings read text by keyword.** They see a coalition only if a tablet they hold or are asked to seal contains "against " plus the enum name, case-sensitive (`src/Amarna.Game/Bots/Brain.cs:112`; `src/Amarna.Game/Bots/Statecraft.cs:618`). "against Babylon" is missed, and the rulebook never teaches the wording. Letter tone is a tally of 9 warm and 10 cold substrings (`Brain.cs:286-291`).
 - **The free-text signals are heuristics:** substrings and regexes (`src/Amarna.Game/Signals.cs:42-48,74-81`; `TextKit.cs:11-12`). "I received your messenger with joy" counts as an accusation. Only broken promises and coalitions come from engine events.
 - **Leader memory** is the last 5 order calls in full, plus notes from the 8 before, capped at 300 characters each (`src/Amarna.Llm/LlmLeaderSeat.cs:84-86`). Awake every season, that covers 13 seasons. There is no per-court ledger of promises, as the design document's risk table proposes.
-- **A seat can read its own true gold.** `SeatView.Strength` uses true gold, `Gold` the ledger, and the prompt prints both (`src/Amarna.Engine/Views.cs:122,127`; `Prompts.cs:115`). Strength minus 10 × land yield exposes debased gold without an assay.
+- **A seat can read its own true gold.** `SeatView.Strength` uses true gold, `Gold` the ledger, and the prompt prints both (`src/Amarna.Engine/Views.cs:122,127`; `Prompts.cs:115`). Strength minus 10 × land yield exposes debased gold without an assay. *Fixed 18 October.*
 - **Scoring.** Buying a city is already score-neutral when it happens. The price is 10 × yield, and strength counts 10 × yield (`TurnEngine.cs:378,421-422`). Growth comes only from the city's later income. But the neutrality rests on two separate settings that happen to match, and the bots keep their own copy of the score (`src/Amarna.Game/Bots/Board.cs:78-102`; question 25). Shared victory is on by default and needs only a flag on a sealed tablet. The engine never checks whether the oath was kept (question 23).
 - **Mobile.** Panels stack below 980 px (`src/Amarna.Web/wwwroot/css/app.css:147-152`). There is no installable app and no province list.
 
@@ -1860,7 +1861,7 @@ The weaknesses, most serious first:
 - **War outruns letters.** A capital can fall by season 3 (question 5). A plea to a court more than four steps away (13 of the 21 pairs) is answered 4 seasons after it is sent. A model king may sensibly ignore envoys and fight. We would then wrongly conclude that the hypothesis failed. The Arzawa fleet treated one symptom.
 - **Script envoys under-test mediation.** A host reads nearly what the king wrote, minus keyword deletions. A model will learn those tells fast. The filter can also invert a letter. A timid envoy deletes "let us march together against our common enemy" and adds a wish for peace.
 - **Measurement is not ready for model prose.** Signals written against bot templates will count every polite "your messenger". Ten games without a fixed rubric cannot be compared.
-- **Small bugs would mislead model kings.** True gold is readable from Strength. A captured spy still shows in its master's prompt as "at court, ready for a mission" (question 19). An estimated 9 in 10 starting envoys resign by formula from season 11 (question 22).
+- **Small bugs would mislead model kings.** True gold was readable from Strength (fixed 18 October). A captured spy still shows in its master's prompt as "at court, ready for a mission" (question 19). An estimated 9 in 10 starting envoys resign by formula from season 11 (question 22).
 - **Shared victory rewards a flag, not a kept oath** (question 23). The score itself is sound, but its neutrality is accidental (question 25).
 - **Memory is short for the game's length.** Leader memory spans about 13 seasons; a game lasts about 21 on average. Reputation for early events rests on the model's own notes.
 - **Dates and mobile** are only partly done (question 26).
@@ -1882,17 +1883,18 @@ The run has limits. The game stops after season 10, while the kings are told no 
 
 ## What to do next
 
-Revisit this order after the simulation; the signs to watch for are under question 27.
+**Done this round, before the simulation:** the true-gold leak (question 25), whole-word threat matching (question 13), and shared victory switched off (question 23), each in its own commit.
 
-1. **Run the agent simulation.** It is ready: the kit is in `sim/` and the start prompt in `docs/SIMULATION-PROMPT.md`. It is the first look at model kings, at no API cost, and it tests whether the seat view is understood. I would first switch `TextKit.cs:8-19` to whole-word matching. That is a bug fix, not a rule change, and without it the run distorts the very letters it is meant to show. Script benchmarks will shift slightly; report them, do not retune. If you leave it, record it as a known confound. Either way, read the trail by hand, not the signal counts.
-2. **Fix what would distort any model game** (about 2-3 days). Each of these makes a game read wrong, whatever the kings do:
-   - the true-gold leak (`Views.cs:127`), which breaks "truth is expensive" (question 25)
-   - the season-11 contract cliff (question 22)
-   - repeated ransom payments, and a captured spy shown as ready for a mission (question 19, steps 1-3)
-   - coalition tablets matched by any name of the foe (`Brain.cs:112`, `Statecraft.cs:618`), so fallback kings read model tablets (question 17)
+**Still in this round: run the agent simulation.** The kit is in `sim/` and the start prompt in `docs/SIMULATION-PROMPT.md`. It is the first look at model kings, at no API cost, and it tests whether the seat view is understood. It runs with the bugs in item 1 still in place. Its ten seasons keep the contract cliff out of view (it starts in season 11), but a captured spy or a repeated ransom can show; record any that do. Read the trail by hand, not the signal counts. Its results go in "Simulation results" above and may reorder the list below; the signs to watch for are under question 27.
+
+**Next round**, in order:
+
+1. **Fix the bugs that would still mislead model kings** (about 2-3 days). Each of these makes a game read wrong, whatever the kings do:
+   - starting envoys resigning by formula from season 11, the contract cliff: about 9 in 10 quit (question 22, plan steps 1-3)
+   - a captured servant shown in its master's view as at court and ready for a mission (question 19, plan step 2)
+   - repeated ransoms: a host re-issues the demand every season, and a payment is accepted for any open demand, even after the captive is free (question 19, plan step 1)
+   - coalition tablets read only when they say "against " plus the exact enum name, case-sensitive, so "against Babylon" or "the Hittites" is missed: match any name of the foe, ignoring case (`Brain.cs:112`, `Statecraft.cs:618`), so fallback kings read model tablets (question 17)
    - every power's opening positions and treasury in the rulebook, so models know what bots know (question 16)
-   - whole-word matching, if step 1 skipped it
-   - the shared-victory decision: I recommend switching it off (question 23). Model kings read the rule, so decide before they play.
    - the small fixes the answers call "now" or "next", about 2 days more:
      - allies who broke an oath stop being friends (`IsFriend`, question 16 step 1; Part 0 quirk 3), with the bots' next change, before any new benchmark is quoted
      - a test that hidden state outside the seat view leaves bot orders unchanged (question 16 step 2)
@@ -1903,15 +1905,16 @@ Revisit this order after the simulation; the signs to watch for are under questi
      - the court-list leak: the sender sees only what it could know of its envoys (question 8 step 1)
      - no catastrophe rumour reaching every court without a carrier (question 9 step 3)
      - a bribed envoy repeating the host's request (question 13 step 2)
+     - aiming the threat filter at the host (question 13 step 1, the part not done)
      - telling the host when a captive order does nothing (question 19 step 4)
      - the dismissal edge cases (question 20 step 5)
-3. **First live games on a spend-limited key** ($3 cap, as the design document's process notes say). Play one with Sonnet kings and script characters, then one with Haiku envoys. The simulation uses script envoys, so the Haiku envoy, which carries the core mechanic, has never run. These games also measure real cost, fallback rate and turn time. Play them on today's rules, as the baseline for what sieges change. The hybrid envoy (question 15): build it next, before sieges, if Haiku envoys relay too faithfully or refuse every bribe.
-4. **Sieges, walls and terrain as one package** (question 5), with slow absorption (question 9) and envoys leaving a besieged city (question 5, step 12). This is pillar 8. A capital must hold out longer than a plea for help takes to be answered. Until then letters cannot change a war, and a failed test proves nothing. It is the largest build: several days across engine, adjudicator, bots, prompts and tests. Tune it against model games, not bots, and watch for stalemate. Set the new game length from data.
-5. **Make measurement ready** (about a day). Write a fixed rubric per success signal, scored by a model judge, checked against about 20 hand-labelled messages. Ten games cannot be compared if each is read differently.
-6. **One score function** (question 25). A shared scoring function for engine and bots, with the city price derived from the score weight. Then put the bots' victory threat on the same function (question 24). Kings chase the score, so the bots must chase the same one. Leave the normalisation until about 50 model games.
-7. **Sleeping seats, second step.** Add conditional orders, and set the sleep cap from the lengths seats chose. Show dates as season plus turn, with an ending indicator (question 26). Siege-paced games run longer, and sleep is what makes them affordable.
-8. **Next layer, once sieges work:** mandates with authority to seal (question 14), passage grants (question 3), and news that travels (question 6, step 1). Each is a trust bet carried by mediated, delayed communication. Each matters more once wars take time.
-9. **The experiment itself:** at least 10 full model games read against the success signals, the primer on and off, and one model comparison. That is what the prototype is for.
+2. **First live games on a spend-limited key** ($3 cap, as the design document's process notes say). Play one with Sonnet kings and script characters, then one with Haiku envoys. The simulation uses script envoys, so the Haiku envoy, which carries the core mechanic, has never run. These games also measure real cost, fallback rate and turn time. Play them on today's rules, as the baseline for what sieges change. The hybrid envoy (question 15): build it next, before sieges, if Haiku envoys relay too faithfully or refuse every bribe.
+3. **Sieges, walls and terrain as one package** (question 5), with slow absorption (question 9) and envoys leaving a besieged city (question 5, step 12). This is pillar 8. A capital must hold out longer than a plea for help takes to be answered. Until then letters cannot change a war, and a failed test proves nothing. It is the largest build: several days across engine, adjudicator, bots, prompts and tests. Tune it against model games, not bots, and watch for stalemate. Alashiya is one check: with shared victory off it never wins against script kings (DESIGN-NOTES.md, "Balance (script kings)"). Set the new game length from data.
+4. **Make measurement ready** (about a day). Write a fixed rubric per success signal, scored by a model judge, checked against about 20 hand-labelled messages. Ten games cannot be compared if each is read differently.
+5. **One score function** (question 25). A shared scoring function for engine and bots, with the city price derived from the score weight. Then put the bots' victory threat on the same function (question 24). Kings chase the score, so the bots must chase the same one. Leave the normalisation until about 50 model games.
+6. **Sleeping seats, second step.** Add conditional orders, and set the sleep cap from the lengths seats chose. Show dates as season plus turn, with an ending indicator (question 26). Siege-paced games run longer, and sleep is what makes them affordable.
+7. **Next layer, once sieges work:** mandates with authority to seal (question 14), passage grants (question 3), and news that travels (question 6, step 1). Each is a trust bet carried by mediated, delayed communication. Each matters more once wars take time.
+8. **The experiment itself:** at least 10 full model games read against the success signals, the primer on and off, and one model comparison. That is what the prototype is for.
 
 ### What should wait
 
