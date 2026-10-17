@@ -291,6 +291,9 @@ public sealed partial class TurnEngine
         }
 
         foreach (var p in S.Alive)
+            S.LastSeen[p] = result.Outcomes.Where(o => o.Power == p || sightBefore[p].Contains(o.Province) || (o.Target is { } t && sightBefore[p].Contains(t))).ToList();
+
+        foreach (var p in S.Alive)
         {
             var sight = sightBefore[p];
             var mine = result.Lines.Where(l => l.Power == p).Select(l => l.Text).ToList();

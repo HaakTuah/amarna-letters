@@ -32,6 +32,8 @@ public sealed class GameState
     public Dictionary<Power, int> CounterIntel { get; set; } = new();
 
     public Dictionary<Power, List<InboxItem>> Inbox { get; set; } = new();
+    /// <summary>The orders each power could see resolve last season (its own and those in sight).</summary>
+    public Dictionary<Power, List<OrderOutcome>> LastSeen { get; set; } = new();
     public List<MessageTrail> Trails { get; set; } = new();
     public List<GameEvent> Events { get; set; } = new();
     public List<ScoreRow> Scores { get; set; } = new();

@@ -22,6 +22,27 @@
     </tbody>
 </table>
 
+@if (known)
+{
+    <h4 style="margin-top:1rem">The kings</h4>
+    <p class="muted">Script kings play by temperament: each power has its own, varied a little in every game. A model king falls back on the same script temperament whenever a call to the model fails.</p>
+    <ul class="kings">
+        @foreach (var p in Powers.All)
+        {
+            var seat = Seats?.GetValueOrDefault(p) ?? "";
+            var t = Amarna.Game.Bots.ScriptLeader.Temperament(p, State.Seed);
+            <li>
+                <span class="dot" style="background:@Ui.Color(p)"></span>
+                <strong>@p.Name()</strong> <span class="muted">@seat</span>
+                @if (seat != "Human")
+                {
+                    <div>@(seat.EndsWith("leader") ? "Stand-in: " : "")<em>@t.Epithet</em> (@string.Join(", ", t.Highlights())). <span class="muted">@t.Description</span></div>
+                }
+            </li>
+        }
+    </ul>
+}
+
 @if (known && latest > 0)
 {
     var max = Math.Max(1.5, State.Scores.Max(s => s.Growth));
@@ -45,6 +66,8 @@
 @code {
     [Parameter, EditorRequired] public GameState State { get; set; } = default!;
     [Parameter] public Power? Viewer { get; set; }
+    /// <summary>Who sits in each seat (log header labels), to show script kings' temperaments in god view.</summary>
+    [Parameter] public Dictionary<Power, string>? Seats { get; set; }
 
     private static double X(int turn, int last, double w) => last <= 1 ? 0 : (turn - 1) * w / (last - 1);
     private static double Y(double g, double max, double h) => h - g / max * h + 4;

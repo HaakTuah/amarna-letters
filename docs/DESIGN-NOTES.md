@@ -64,6 +64,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   characters are model-played, a deterministic condensation for script characters. The summary
   is recorded like any decision, so replays stay exact. Prompts carry the summary and the most
   recent ten entries; memory travels with the character to a new employer.
+- **Prisoners**: an envoy held at a foreign court whose own kingdom falls becomes a free agent but
+  stays a prisoner; only the court holding them can hire them.
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth.
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.
@@ -106,30 +108,108 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Leader memory** is a private journal of its own notes and orders. A resumed game's model
   leaders start their journal afresh.
 
-## Balance (script bots)
+## Script kings
 
-Script bots exist to exercise the engine; their balance is only a rough guide to how models or
-people will play. Starting positions were tuned with the batch runner until every power wins some
-games. Changes from the first draft: Hatti starts with three armies (one in Kizzuwatna) instead of
-a fleet; Egypt's second army starts in Akhetaten; Mitanni (Terqa) and Assyria (Ekallatum) each
-start with a third army; Susa (Elam) was added as a free city for Babylonia and Assyria, with a
-route from Ekallatum to Mari; the southern Levant cities yield less; starting wages were lowered.
-Small kingdoms' bots bank gold for cities instead of raising troops they cannot feed.
+A script king sees exactly what any seat sees (its `SeatView`) and nothing more. The same bot
+plays every script seat, and stands in for a model seat whenever a call to the model fails,
+playing that king's temperament.
+
+- **Temperament.** Ten weights from 0 to 1: aggression, caution, honesty, greed, generosity,
+  pride, diplomacy, cunning, vengeance and commerce. Each power has a historical archetype
+  (Egypt, "Pharaoh of the gilded gifts"; Hatti, "the conqueror of Anatolia"; Babylonia, "keeper of
+  the old order"; Mitanni, "seeker of a patron"; Assyria, "the upstart who would be brother";
+  Arzawa, "the western opportunist"; Alashiya, "the copper merchant"), and every game nudges each
+  weight by up to 0.15 from the seed. The weights decide whether it starts wars and whom it
+  attacks, how much risk a plan may carry, its gold reserve, whether it buys or conquers, how
+  often it writes and seals, what it gives, whether it debases its gifts or breaks an oath, and how
+  it greets: Babylon will not call Assyria brother or Great King. The god view lists each king's
+  temperament under Standings.
+- **Memory.** Trust and grudges for every other king, learned from what reaches its court: land
+  taken, attacks and supports seen last season, sealed tablets and broken oaths, gold that weighed
+  light or assayed false, overdue envoys, spies who confess, gifts, and the tone of letters and
+  envoy reports. Grudges fade at a rate set by vengeance. It also remembers where it last saw
+  foreign troops it can no longer see (starting from the public opening positions) for three
+  seasons, and roughly how many troops each king has.
+- **Strategy.** A war is worth what it can win this year: each of the rival's provinces within
+  reach, by the chance our troops there beat what can hold it (a unit and its supports, walls, and
+  troops we cannot see), times the odds of the two armies, minus the risk from other neighbours
+  while we are busy. Treaties, trust, gifts and supports given weigh against war; grudges and a
+  runaway leader weigh for it. In the first year only the warlike or the wronged start one.
+  Betrayal is rare: only for the faithless, only for a real prize, never in the first year and
+  never against a king who has supported us.
+- **Tactics** draws a plan from operations (defend with supports, block, cut supports, attacks
+  sized to beat the likely defence, convoys, approach), then **looks ahead**. It pictures each
+  rival's orders: the plan that rival would draw from its side of the board, with its archetype's
+  temperament and a mirror of our dealings with it; a harder plan aimed at us; and all-in strikes
+  (every unit it has in reach of one of our provinces). Eight seasons are pictured: everyone calm;
+  the most hostile king striking, or attacking by plan; and five mixes drawn by each king's
+  hostility, with some units wandering at random. Candidate plans (its own, a bolder one, a safer
+  one, everyone holding) and then every single-unit change (hold, each legal move, each support, a
+  move with a supporter) are resolved against all eight with the engine's own adjudicator. A
+  resolved season scores the land held (10 × yield, plus the yield for each season the game is
+  still expected to run; capitals and homeland count extra), 90 a unit, and harm done to enemies,
+  minus what lies open to a hostile neighbour next season, plus troops placed to strike. A plan's
+  worth is the average, pulled towards the worst case by caution. It never orders troops into the
+  land of a king it is unwilling to fight. Budget: 720 adjudications per king per season, about
+  20 ms natively; a season of six script kings takes well under a second in the browser.
+- **Treasury and court.** A reserve sized to upkeep and caution; disbanding before troops desert;
+  levies where a plan fell short and the unit pays for itself; cities bought when the price leaves
+  the reserve intact, preferring cities no rival can bid for. Servants beyond two only while the
+  treasury carries their wages; checks before hiring for the careful; assays of doubtful gold;
+  watchmen after a spy is caught; tablets examined only when they could turn it against a friend.
+- **Letters.** Coalitions against the leader, peace with neighbours (the weak with tribute),
+  alliance with trusted partners, small gifts to friends (one a season), grievances, copies of
+  tablets that prove a broken oath, and forgeries from the cunning.
+
+### Benchmarks
+
+`BaselineLeader` is a frozen copy of the first script bot. `--versus solo` plays each king on the
+current bot against six baselines and compares it with the same seed played all-baseline;
+`--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
+current bot. Seeds 1–40, one current king against six baselines:
+
+| Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
+|---|---|---|---|---|
+| Egypt | 2.96 | 1.33 | 84% | 16% |
+| Hatti | 3.29 | 0.87 | 75% | 10% |
+| Babylonia | 2.51 | 1.14 | 69% | 10% |
+| Mitanni | 1.54 | 1.34 | 35% | 31% |
+| Assyria | 3.56 | 0.96 | 51% | 8% |
+| Arzawa | 2.79 | 1.24 | 59% | 18% |
+| Alashiya | 1.68 | 0.99 | 36% | 8% |
+
+The batch runner plays script games side by side on every core; model games run one at a time,
+within the budget.
+
+## Balance (script kings)
+
+Script kings are only a rough guide to how models or people will play, but they now play well
+enough that geography and gold decide a great deal, so the starting positions were tuned again
+with the batch runner until every power wins some games. Changes from the first draft: Egypt's
+second army starts in Akhetaten; Assyria (Ekallatum) starts with a third army; Susa (Elam) was
+added as a free city for Babylonia and Assyria, with a route from Ekallatum to Mari; the southern
+Levant cities yield less; starting wages were lowered. For the current bots: Hatti keeps a fleet
+in Kizzuwatna (the first bots needed a third army there) and starts with 300 gold, not 550, since
+with only weak kingdoms on its borders it otherwise took more than half the games; Mitanni's
+third army starts in Taidu, facing Nineveh, its heartland yields more (Washukanni 50, Harran 35)
+and it starts with 500 gold; Arzawa has two armies (Mira and Apasa; its coast still lets it buy
+across the sea), Seha and Mira yield 30, and it starts with 300 gold.
 
 Two runs of 100 games, all replays exact:
 
-| Power | Tier | Wins, seeds 1–100 | Wins, seeds 101–200 |
-|---|---|---|---|
-| Egypt | Strong | 34% | 25% |
-| Hatti | Strong | 23% | 27% |
-| Babylonia | Strong | 22% | 27% |
-| Mitanni | Middle | 11% | 16% |
-| Assyria | Middle | 9% | 11% |
-| Arzawa | Weak | 12% | 14% |
-| Alashiya | Weak | 18% | 20% |
+| Power | Tier | Wins, seeds 1–100 | Wins, seeds 101–200 | Mean growth |
+|---|---|---|---|---|
+| Egypt | Strong | 25% | 31% | 2.38 |
+| Hatti | Strong | 45% | 46% | 2.13 |
+| Babylonia | Strong | 28% | 34% | 2.23 |
+| Mitanni | Middle | 4% | 6% | 0.91 |
+| Assyria | Middle | 22% | 16% | 1.53 |
+| Arzawa | Weak | 15% | 10% | 0.98 |
+| Alashiya | Weak | 7% | 8% | 1.15 |
 
-Shared wins count for both partners, so columns add up to more than 100%. Alashiya, which won 2%
-before sea-reach purchases and walls that hold for their buyer, now grows by buying coastal cities.
+Shared wins count for both partners (about half the games end in one), so columns add up to more
+than 100%. Mitanni, squeezed between Hatti and Assyria, wins least, mostly as Hatti's sworn ally;
+Alashiya wins only by sharing a victory.
 
 Signal counts from script games are mostly artefacts of the bots' templates (their letters
 complain, their tablets name consequences). The signals are meant to be read from model and human
