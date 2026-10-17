@@ -97,6 +97,7 @@ public sealed class ScriptMind : ICharacterMind
         MindTask.EnvoyReport => Report(ctx),
         MindTask.Pitch => Pitch(ctx),
         MindTask.SpyReport => SpyReport(ctx),
+        MindTask.SummarizeMemory => Summary(ctx),
         _ => new MindReply { Text = "" },
     });
 
@@ -171,6 +172,21 @@ public sealed class ScriptMind : ICharacterMind
         if (defected is not null) price -= 5;
         if (t.Ambition >= 65) price += 4;
         return new MindReply { Text = TextKit.Join(lines), Number = Math.Max(5, price) };
+    }
+
+    /// <summary>Old memories condensed to their first sentence each, newest kept when space runs out.</summary>
+    private static MindReply Summary(MindContext ctx)
+    {
+        var parts = new List<string>();
+        if (ctx.Self.MemorySummary.Length > 0) parts.Add(ctx.Self.MemorySummary);
+        foreach (var entry in ctx.Request.Facts)
+        {
+            var first = TextKit.Sentences(entry).FirstOrDefault() ?? entry;
+            parts.Add(first.Length > 110 ? first[..110].TrimEnd() + "…" : first);
+        }
+        var text = string.Join(" ", parts);
+        if (text.Length > 1200) text = "…" + text[^1199..];
+        return new MindReply { Text = text };
     }
 
     private static MindReply SpyReport(MindContext ctx)

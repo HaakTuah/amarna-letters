@@ -37,6 +37,7 @@ else
             </ul>
             <details><summary><small>Persona and memory</small></summary>
                 <p><small>@c.Persona</small></p>
+                @if (c.MemorySummary.Length > 0) { <p><small class="muted">Older memories:</small> <small>@c.MemorySummary</small></p> }
                 @foreach (var m in c.Memory.TakeLast(6)) { <div><small class="muted">t@(m.Turn):</small> <small>@m.Text</small></div> }
             </details>
         </div>

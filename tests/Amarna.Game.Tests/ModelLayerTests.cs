@@ -159,6 +159,26 @@ public class ModelLayerTests
     }
 
     [Fact]
+    public async Task Haiku_summarizes_only_the_characters_own_memories()
+    {
+        var (runner, fake) = Build(new SeatChoices { HaikuCharacters = true });
+        var c = runner.State.Characters[3];
+        var other = runner.State.Characters[4];
+        for (var i = 1; i <= 13; i++) c.Remember(0, $"zq-own-memory-{i}");
+        other.Remember(0, "zq-someone-elses-memory");
+        await runner.PlayTurnAsync();
+
+        var calls = fake.Requests.Where(r => r.Body["output_config"]!["format"]!["schema"]!["properties"]!.AsObject().ContainsKey("summary")).ToList();
+        var mine = Assert.Single(calls);
+        Assert.Equal(ModelIds.Haiku, mine.Body["model"]!.GetValue<string>());
+        var text = mine.Body.ToJsonString();
+        Assert.Contains("zq-own-memory-1", text);
+        Assert.DoesNotContain("zq-someone-elses-memory", text);
+        Assert.Equal("I have carried many messages and kept my own counsel.", c.MemorySummary);
+        Assert.True(c.Memory.Count <= runner.State.Config.MemoryKeep / 2 + 2);
+    }
+
+    [Fact]
     public void Leader_output_becomes_ordinary_orders()
     {
         var json = JsonNode.Parse("""

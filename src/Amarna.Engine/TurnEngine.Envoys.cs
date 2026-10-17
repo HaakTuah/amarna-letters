@@ -467,6 +467,11 @@ public sealed partial class TurnEngine
             case MindTask.SpyReport:
                 S.Notify(req.Court, InboxKind.SpyReport, $"Word from {c?.Name ?? "your agent"}", text, req.CharacterId);
                 break;
+            case MindTask.SummarizeMemory:
+                if (c is null || text.Trim().Length == 0) return;
+                c.MemorySummary = Greeting.Cap(text.Trim(), 1500);
+                c.Memory.RemoveRange(0, Math.Min(req.Fold, c.Memory.Count));
+                break;
         }
     }
 

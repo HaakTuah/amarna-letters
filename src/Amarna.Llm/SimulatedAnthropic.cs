@@ -78,6 +78,8 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o = new JsonObject { ["pitch"] = "I know every road from Ugarit to Babylon.", ["asking_price"] = 20 };
         else if (Has("persona"))
             o = new JsonObject { ["persona"] = "You are a careful messenger who has seen many courts and trusts none of them entirely. You speak softly." };
+        else if (Has("summary"))
+            o = new JsonObject { ["summary"] = "I have carried many messages and kept my own counsel." };
         else if (Has("chronicle"))
             o = new JsonObject { ["chronicle"] = "Year 1. His Majesty triumphed in all things." };
         else if (Has("report"))

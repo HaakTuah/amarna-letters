@@ -27,6 +27,19 @@ public class RunnerTests
     }
 
     [Fact]
+    public async Task Script_characters_summarize_their_memories_and_replays_still_match()
+    {
+        var summary = await BatchRunner.PlayAsync(14, s => new GameRunner(s, Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(14)), new ScriptMind(), new TemplateNarrator()), verifyReplay: true,
+            config: new GameConfig { MinTurns = 30, EndChance = 1.0 });
+        Assert.True(summary.ReplayMatches);
+
+        var r = Scripted(14);
+        for (var i = 0; i < 30 && !r.State.Ended; i++) await r.PlayTurnAsync();
+        Assert.All(r.State.Characters, c => Assert.True(c.Memory.Count <= r.State.Config.MemoryKeep + 8));
+        Assert.Contains(r.State.Characters, c => c.MemorySummary.Length > 0);
+    }
+
+    [Fact]
     public async Task Snapshots_allow_rewinding_to_any_turn()
     {
         var r = Scripted(9);

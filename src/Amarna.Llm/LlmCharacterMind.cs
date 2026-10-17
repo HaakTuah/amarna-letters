@@ -145,6 +145,16 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 var json = await Ask($"t{ctx.Turn}/spy/{c.Id}", ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct);
                 return new MindReply { Text = Parse.Field(json, "report") };
             }
+            case MindTask.SummarizeMemory:
+            {
+                var user = new StringBuilder();
+                user.AppendLine("Your memory is growing long. Fold your older memories into a short summary, in your own voice, of what you want to remember about your life: whom you serve and have served, who paid you and for what, debts, promises and grudges, secrets you learned, courts you liked or feared. Under 150 words. Keep names, amounts and seasons that matter to you.");
+                if (c.MemorySummary.Length > 0) user.AppendLine($"Your summary so far: {c.MemorySummary}");
+                user.AppendLine("Older memories to fold in:");
+                foreach (var m in req.Facts) user.AppendLine("- " + Greeting.Cap(m, 500));
+                var json = await Ask($"t{ctx.Turn}/memory/{c.Id}", ctx.Turn, $"memory:{c.Id}", c, user.ToString(), Schemas.Text("summary", "The new summary of your older memories."), ct);
+                return new MindReply { Text = Parse.Field(json, "summary") };
+            }
         }
         return new MindReply();
     }

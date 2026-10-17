@@ -10,12 +10,19 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   autumn as in Diplomacy.
 - **Free city-states have walls** that hold with strength 1 and never move, so taking one needs a
   supported attack. They can also be bought for 10 × yield by a power whose land or troops touch
-  them. Rival bids in the same season bounce.
+  them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
+  season bounce.
+- **A bought city keeps its walls**, which then hold for its owner: the owner cannot station troops
+  inside but may support the walls holding; a rival still needs a supported attack, and conquest
+  tears the walls down. Buying is the durable way to grow, conquest the fast one.
 - **Levies** are raised only in an unoccupied province of the power's own homeland that it holds.
   Army 100, fleet 120; upkeep 30 and 35 a season.
 - **Strength** = 10 × (sum of base yields of provinces held) + true gold. Growth is strength over
   starting strength. Units are not counted; they cost upkeep and are the means to land.
 - **Ending.** Not before turn 15; then 15% at the end of each season; hard cap at 60 turns.
+- **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
+  version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
+  with a regression test.)
 - **Shared victory** (on by default, switchable): two powers holding a sealed tablet marked as a
   sworn alliance win together if their combined growth beats every other power's growth.
 - **Convoys** follow Diplomacy, with Kruijswijk's guess-and-check adjudication; circular movement
@@ -52,8 +59,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - Traits 0–100 (loyalty, greed, competence, ambition, courage, an optional sympathy) and discrete
   facts at three secrecy levels. Persona text is written once (template, or Sonnet narrator) and
   frozen.
-- **Memory** is an episodic list; prompts carry the most recent ten entries. Older entries are not
-  yet summarized by a model (the `MemorySummary` field exists for that).
+- **Memory** is an episodic list. When it grows past 12 entries, the engine asks the character to
+  fold its oldest entries (all but the newest six) into its summary, in its own voice: Haiku when
+  characters are model-played, a deterministic condensation for script characters. The summary
+  is recorded like any decision, so replays stay exact. Prompts carry the summary and the most
+  recent ten entries; memory travels with the character to a new employer.
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth.
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.
@@ -93,24 +103,25 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 Script bots exist to exercise the engine; their balance is only a rough guide to how models or
 people will play. Starting positions were tuned with the batch runner until every power wins some
 games. Changes from the first draft: Hatti starts with three armies (one in Kizzuwatna) instead of
-a fleet; Egypt's second army starts in Akhetaten; Susa (Elam) was added as a free city for
-Babylonia and Assyria, with a route from Ekallatum to Mari; the southern Levant cities yield
-less; starting wages were lowered.
+a fleet; Egypt's second army starts in Akhetaten; Mitanni (Terqa) and Assyria (Ekallatum) each
+start with a third army; Susa (Elam) was added as a free city for Babylonia and Assyria, with a
+route from Ekallatum to Mari; the southern Levant cities yield less; starting wages were lowered.
+Small kingdoms' bots bank gold for cities instead of raising troops they cannot feed.
 
-60 games (seeds 1–60), all replays exact:
+Two runs of 100 games, all replays exact:
 
-| Power | Tier | Wins (shared count for both) |
-|---|---|---|
-| Egypt | Strong | 25% |
-| Hatti | Strong | 23% |
-| Babylonia | Strong | 27% |
-| Mitanni | Middle | 15% |
-| Assyria | Middle | 37% |
-| Arzawa | Weak | 22% |
-| Alashiya | Weak | 2% |
+| Power | Tier | Wins, seeds 1–100 | Wins, seeds 101–200 |
+|---|---|---|---|
+| Egypt | Strong | 34% | 25% |
+| Hatti | Strong | 23% | 27% |
+| Babylonia | Strong | 22% | 27% |
+| Mitanni | Middle | 11% | 16% |
+| Assyria | Middle | 9% | 11% |
+| Arzawa | Weak | 12% | 14% |
+| Alashiya | Weak | 18% | 20% |
 
-Alashiya is still too weak against script bots: an island with one fleet cannot grow without
-allies. It is the first thing to tune once model games are running.
+Shared wins count for both partners, so columns add up to more than 100%. Alashiya, which won 2%
+before sea-reach purchases and walls that hold for their buyer, now grows by buying coastal cities.
 
 Signal counts from script games are mostly artefacts of the bots' templates (their letters
 complain, their tablets name consequences). The signals are meant to be read from model and human
@@ -119,6 +130,5 @@ games.
 ## Not built yet
 
 - Multiplayer (stages 2 and 3 of the design document): the engine runs in one browser.
-- Model-written memory summaries; character memory is truncated instead.
 - Shareable spectator links; the log file is the way to share a game.
 - Art, animation, sound.

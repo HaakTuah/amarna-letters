@@ -35,6 +35,26 @@ public sealed partial class TurnEngine
         IncomeAndUpkeep();
         Arrivals();
         TasksDue();
+        MemoriesDue();
+    }
+
+    /// <summary>Characters whose memory has grown long fold their oldest memories into a summary, written in their own voice.</summary>
+    private void MemoriesDue()
+    {
+        var keep = Math.Max(4, S.Config.MemoryKeep);
+        foreach (var c in S.Characters.Where(c => c.Status != CharacterStatus.Dead && c.Memory.Count > keep).OrderBy(c => IdNumber(c.Id)))
+        {
+            var fold = c.Memory.Count - keep / 2;
+            MindRequests.Add(new MindRequest
+            {
+                Id = S.NewId("r"),
+                Task = MindTask.SummarizeMemory,
+                CharacterId = c.Id,
+                Court = c.Employer ?? c.At ?? Power.Egypt,
+                Facts = c.Memory.Take(fold).Select(m => $"season {m.Turn}: {m.Text}").ToList(),
+                Fold = fold,
+            });
+        }
     }
 
     private void IncomeAndUpkeep()

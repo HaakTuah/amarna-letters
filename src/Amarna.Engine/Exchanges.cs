@@ -1,7 +1,7 @@
 namespace Amarna.Engine;
 
 /// <summary>Text the engine needs written by a character or the narrator before it can be delivered.</summary>
-public enum MindTask { EnvoyReport, Pitch, CheckReport, SpyReport }
+public enum MindTask { EnvoyReport, Pitch, CheckReport, SpyReport, SummarizeMemory }
 
 public sealed class MindRequest
 {
@@ -14,8 +14,10 @@ public sealed class MindRequest
     public string? TaskId { get; set; }
     public HomeCargo? Cargo { get; set; }
     public SpyReport? Report { get; set; }
-    /// <summary>Facts the engine has already chosen to release (background checks).</summary>
+    /// <summary>Facts the engine has already chosen to release (background checks), or the memories to summarize.</summary>
     public List<string> Facts { get; set; } = new();
+    /// <summary>For a memory summary: how many of the oldest memories it replaces.</summary>
+    public int Fold { get; set; }
 }
 
 public sealed class MindReply
