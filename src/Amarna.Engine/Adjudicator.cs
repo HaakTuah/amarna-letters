@@ -2,6 +2,24 @@ namespace Amarna.Engine;
 
 public sealed record MoveResult(string From, string To, bool Succeeded);
 
+/// <summary>One order as it resolved: who, where, what, and whether it worked.</summary>
+public sealed class OrderOutcome
+{
+    public Power Power { get; set; }
+    public UnitKind UnitKind { get; set; }
+    public string Province { get; set; } = "";
+    /// <summary>hold, move, support or convoy.</summary>
+    public string Order { get; set; } = "hold";
+    /// <summary>Move: destination. Support or convoy: the province of the unit helped.</summary>
+    public string? Target { get; set; }
+    /// <summary>Support of a move, or convoy: where the helped unit was going.</summary>
+    public string? To { get; set; }
+    /// <summary>Support: the power of the unit helped.</summary>
+    public Power? Helped { get; set; }
+    public bool Succeeded { get; set; }
+    public bool Destroyed { get; set; }
+}
+
 public sealed class AdjudicationResult
 {
     /// <summary>Unit id -> province it ends in (for units that survive).</summary>
@@ -14,6 +32,7 @@ public sealed class AdjudicationResult
     public List<(Power Supporter, Power? Supported, string Province)> GivenSupports { get; } = new();
     /// <summary>Order description per unit province, with its outcome, for reports.</summary>
     public List<(string Province, Power? Power, string Text, bool Ok)> Lines { get; } = new();
+    public List<OrderOutcome> Outcomes { get; } = new();
 }
 
 /// <summary>
@@ -359,6 +378,19 @@ public sealed class Adjudicator
             else r.NewPositions[o.UnitId] = moved ? o.Target! : o.At;
 
             var label = $"{(o.UnitKind == UnitKind.Army ? "A" : "F")} {o.At}";
+            var outcome = new OrderOutcome
+            {
+                Power = o.Power!.Value,
+                UnitKind = o.UnitKind,
+                Province = o.At,
+                Order = o.Kind.ToString().ToLowerInvariant(),
+                Target = o.Target,
+                To = o.To,
+                Helped = o.Kind == Kind.Support && _at.TryGetValue(o.Target!, out var helpedAt) ? _orders[helpedAt].Power : null,
+                Succeeded = o.Kind switch { Kind.Move => moved, Kind.Hold => !dislodged, _ => _result[o.Index] },
+                Destroyed = dislodged,
+            };
+            r.Outcomes.Add(outcome);
             switch (o.Kind)
             {
                 case Kind.Move:

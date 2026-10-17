@@ -49,6 +49,80 @@ public static class BatchRunner
         };
     }
 
+    /// <summary>
+    /// Each king in turn plays the current bot against six baselines, compared with the same seed played
+    /// all-baseline: how much better does a king do, alone, with the new brain?
+    /// </summary>
+    public static async Task<string> SoloAsync(ulong firstSeed, int seeds, GameConfig? config = null)
+    {
+        var lines = new List<string> { $"One current king against six baselines, {seeds} seeds:" , "  Power       growth alone / all-baseline   wins alone / all-baseline" };
+        var baseGrowth = Powers.All.ToDictionary(p => p, _ => new List<double>());
+        var soloGrowth = Powers.All.ToDictionary(p => p, _ => new List<double>());
+        var baseWins = Powers.All.ToDictionary(p => p, _ => 0.0);
+        var soloWins = Powers.All.ToDictionary(p => p, _ => 0.0);
+        // Every (seed, focus) game is independent: play them side by side, then add up in seed order.
+        var jobs = Enumerable.Range(0, seeds).SelectMany(i => Powers.All.Select(p => (Seed: firstSeed + (ulong)i, Focus: (Power?)p)).Prepend((firstSeed + (ulong)i, null))).ToList();
+        var done = new GameSummary[jobs.Count];
+        await Parallel.ForEachAsync(Enumerable.Range(0, jobs.Count), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, async (j, ct) =>
+        {
+            var (s, focus) = jobs[j];
+            done[j] = await PlayAsync(s, st =>
+            {
+                var baseline = new Bots.BaselineLeader(st.Seed);
+                var seats = Powers.All.ToDictionary(x => x, x => x == focus ? (ISeat)new Bots.ScriptLeader(st.Seed) : baseline);
+                return new GameRunner(st, seats, new Bots.ScriptMind(), new Bots.TemplateNarrator()) { WriteChronicles = false };
+            }, false, ct, config: config);
+        });
+        for (var j = 0; j < jobs.Count; j++)
+        {
+            var g = done[j];
+            if (jobs[j].Focus is not { } p)
+            {
+                foreach (var x in Powers.All)
+                {
+                    baseGrowth[x].Add(g.Growth[x]);
+                    if (g.Winners.Contains(x.ToString())) baseWins[x] += 1.0 / g.Winners.Count;
+                }
+                continue;
+            }
+            soloGrowth[p].Add(g.Growth[p]);
+            if (g.Winners.Contains(p.ToString())) soloWins[p] += 1.0 / g.Winners.Count;
+        }
+        foreach (var p in Powers.All)
+            lines.Add($"  {p,-10}  {soloGrowth[p].Average(),5:0.00} / {baseGrowth[p].Average(),4:0.00}                  {100 * soloWins[p] / seeds,3:0}% / {100 * baseWins[p] / seeds,3:0}%");
+        lines.Add($"  All kings   {Powers.All.Average(p => soloGrowth[p].Average()),5:0.00} / {Powers.All.Average(p => baseGrowth[p].Average()),4:0.00}                  {100 * soloWins.Values.Sum() / (seeds * 7),3:0}% / {100 * baseWins.Values.Sum() / (seeds * 7),3:0}%");
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    /// <summary>Current bot against the frozen baseline: growth and wins for each side, overall and per power.</summary>
+    public static string Versus(IReadOnlyList<GameSummary> games, IReadOnlyList<HashSet<Power>> current)
+    {
+        var lines = new List<string> { "", "Current bot against the baseline (the same kings play both sides across seeds):" };
+        double Mean(IEnumerable<double> xs) { var l = xs.ToList(); return l.Count == 0 ? 0 : l.Average(); }
+        var newGrowth = new List<double>();
+        var oldGrowth = new List<double>();
+        double newWins = 0, oldWins = 0;
+        for (var i = 0; i < games.Count; i++)
+        {
+            foreach (var p in Powers.All)
+                (current[i].Contains(p) ? newGrowth : oldGrowth).Add(games[i].Growth[p]);
+            foreach (var w in games[i].Winners)
+                if (Powers.TryParse(w, out var p)) { if (current[i].Contains(p)) newWins += 1.0 / games[i].Winners.Count; else oldWins += 1.0 / games[i].Winners.Count; }
+        }
+        var newSeats = current.Sum(c => c.Count);
+        var oldSeats = games.Count * 7 - newSeats;
+        lines.Add($"  Current bot: mean growth {Mean(newGrowth):0.00}, wins {newWins:0.0} of {games.Count} ({100 * newWins / games.Count:0}%) from {100.0 * newSeats / (games.Count * 7):0}% of the seats");
+        lines.Add($"  Baseline:    mean growth {Mean(oldGrowth):0.00}, wins {oldWins:0.0} of {games.Count} ({100 * oldWins / games.Count:0}%) from {100.0 * oldSeats / (games.Count * 7):0}% of the seats");
+        lines.Add("  Per power, mean growth as current / as baseline:");
+        foreach (var p in Powers.All)
+        {
+            var asNew = Mean(Enumerable.Range(0, games.Count).Where(i => current[i].Contains(p)).Select(i => games[i].Growth[p]));
+            var asOld = Mean(Enumerable.Range(0, games.Count).Where(i => !current[i].Contains(p)).Select(i => games[i].Growth[p]));
+            lines.Add($"    {p,-10} {asNew:0.00} / {asOld:0.00}");
+        }
+        return string.Join(Environment.NewLine, lines);
+    }
+
     public static string Report(IReadOnlyList<GameSummary> games)
     {
         var lines = new List<string>();

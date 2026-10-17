@@ -116,6 +116,9 @@ th { font-size: .82rem; color: var(--muted); font-weight: 600; }
     border: 1px solid var(--line); font-size: .8rem; background: var(--surface-2);
 }
 .dot { width: .7rem; height: .7rem; border-radius: 50%; display: inline-block; flex: none; }
+.kings { list-style: none; padding: 0; margin: .25rem 0 0; }
+.kings li { margin: .55rem 0; line-height: 1.4; }
+.kings li > div { margin-left: 1.15rem; }
 
 .notice { border-left: 4px solid var(--accent); background: var(--surface-2); padding: .5rem .8rem; border-radius: 6px; margin: .5rem 0; }
 .error { border-left-color: var(--danger); }

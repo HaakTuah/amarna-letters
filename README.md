@@ -24,7 +24,7 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 
 | Preset | Kings | Envoys and spies | Narrator | Rough cost per 20-season game |
 |---|---|---|---|---|
-| **Free** | Script bots | Script | Template | $0, no key needed |
+| **Free** | Script kings | Script | Template | $0, no key needed |
 | **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | under $1 |
 | **Standard** | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $9 |
 | **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $20 |
@@ -54,7 +54,9 @@ The batch runner plays games unattended and prints wins by power and the success
 With `ANTHROPIC_API_KEY` set it can run model games too (`--preset budget`, or per role:
 `--leaders sonnet --characters haiku --narrator sonnet`), stopping at `--budget` dollars; every
 such game costs real money. `--no-primer` runs the
-customs-primer experiment; `--out logs` keeps every game's log.
+customs-primer experiment; `--out logs` keeps every game's log. `--versus solo` measures the
+script king against the frozen first version (one king at a time, against six of the old), and
+`--versus baseline` and `--focus <Power>` mix the two. Script games run on every core.
 
 Changes go in through pull requests: every pull request builds and runs the tests
 (`.github/workflows/pages.yml`), and merging into `main` publishes the browser game to GitHub Pages. To publish the static files somewhere else, such as S3:
@@ -71,7 +73,7 @@ The site is `publish/wwwroot`. If it is served from a sub-path, set `<base href>
 | Project | What it is |
 |---|---|
 | `src/Amarna.Engine` | The deterministic engine: map, state, orders, validator, adjudicator, economy, envoys, tablets, spies, catastrophes, scoring. Pure C#, no I/O. |
-| `src/Amarna.Game` | Seats, character minds and the narrator as interfaces; the runner that records every decision; script leader bots and script characters; signal detection; batch runner. |
+| `src/Amarna.Game` | Seats, character minds and the narrator as interfaces; the runner that records every decision; script kings (temperaments, memory, a look-ahead over likely rival orders) and script characters; signal detection; batch runner. |
 | `src/Amarna.Llm` | Claude leaders (Sonnet 5.5 / Opus 5.5), characters (Haiku 5.5) and narrator (Sonnet 5.5): prompts, JSON schemas, parsing, cost accounting, the API simulator. |
 | `src/Amarna.Web` | Blazor WebAssembly app: setup, SVG map, human orders and audiences, spectator views, timeline, chronicles, IndexedDB saves. |
 | `src/Amarna.Batch` | Console runner for unattended games. |
@@ -90,6 +92,16 @@ The site is `publish/wwwroot`. If it is served from a sub-path, set `<base href>
 
 The winner is whoever grew most relative to their own start. No game ends before turn 15; after
 that each season ends the age with a 15% chance.
+
+## Script kings
+
+Without a key, every king is a script king, and a script king also stands in for a model king
+whenever a call fails. Each power plays a temperament of its own (Hatti the conqueror, Egypt the
+gift-giver, Babylon the proud keeper of the old order, Alashiya the copper merchant, and so on),
+varied a little in every game. A script king sees only what its seat sees, remembers who wronged
+it and who kept faith, and checks its orders against what its rivals are likely to do by playing
+the season out with the engine's own adjudicator. The god view lists each king's temperament
+under **Standings**.
 
 ## Spectator mode
 

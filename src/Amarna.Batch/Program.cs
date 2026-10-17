@@ -2,6 +2,7 @@
 using Amarna.Engine;
 using Amarna.Game;
 using Amarna.Game.Batch;
+using Amarna.Game.Bots;
 using Amarna.Llm;
 
 // Runs many games unattended and prints winners and signal counts.
@@ -12,6 +13,9 @@ using Amarna.Llm;
 //   --effort low|medium|high
 //   --budget 5   (stop when total spend reaches this many dollars)
 // Experiments: --no-primer (leaders without the customs primer), --no-shared-victory
+// Benchmark:   --versus baseline (half the kings are the frozen first bot, alternating by seed)
+//              --versus solo (each king in turn plays the current bot against six baselines)
+//              --focus Mitanni (only that king plays the current bot; add --detail to follow it)
 
 var games = 20;
 ulong seed = 1;
@@ -22,6 +26,9 @@ var choices = new SeatChoices();
 var budget = 5.0;
 var noChronicles = false;
 var config = new GameConfig();
+var versus = false;
+var solo = false;
+Power? focus = null;
 
 for (var i = 0; i < args.Length; i++)
 {
@@ -34,6 +41,15 @@ for (var i = 0; i < args.Length; i++)
         case "--detail": detail = true; break;
         case "--budget": budget = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
         case "--no-chronicles": noChronicles = true; break;
+        case "--versus":
+            var mode = args[++i];
+            if (mode is not ("baseline" or "solo")) throw new ArgumentException("Use --versus baseline or --versus solo.");
+            versus = mode == "baseline";
+            solo = mode == "solo";
+            break;
+        case "--focus":
+            focus = Enum.Parse<Power>(args[++i], ignoreCase: true);
+            break;
         case "--no-primer": config = config with { CustomsPrimer = false }; break;
         case "--no-shared-victory": config = config with { SharedVictory = false }; break;
         case "--effort": choices.LeaderEffort = args[++i]; break;
@@ -48,7 +64,7 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --no-shared-victory");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --no-shared-victory --versus baseline|solo");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
@@ -66,26 +82,63 @@ if (outDir is not null) Directory.CreateDirectory(outDir);
 if (choices.UsesModels)
     Console.WriteLine($"Estimated model cost: {CostEstimate.Describe(CostEstimate.PerGame(choices))} per {CostEstimate.TypicalSeasons}-season game; stopping at ${budget:0.00} in total.");
 
+if (solo)
+{
+    Console.WriteLine(await BatchRunner.SoloAsync(seed, games, config));
+    return;
+}
+
 var results = new List<GameSummary>();
+var sides = new List<HashSet<Power>>();
 var clock = Stopwatch.StartNew();
 var spent = 0.0;
-for (var g = 0; g < games; g++)
+
+async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Play(int g)
 {
-    if (choices.UsesModels && spent >= budget)
-    {
-        Console.WriteLine($"Stopping: ${spent:0.00} spent, budget ${budget:0.00}.");
-        break;
-    }
     var s = seed + (ulong)g;
     GameRunner? last = null;
+    // In a benchmark, these kings play the current bot and the rest the frozen baseline.
+    var current = focus is { } only ? new HashSet<Power> { only } : Powers.All.Where((p, i) => !versus || (i + (int)(s % 2)) % 2 == 0).ToHashSet();
     var summary = await BatchRunner.PlayAsync(s, state =>
     {
         var set = SeatSetup.Build(choices, state, key, browser: false, () => last!.Log);
-        last = new GameRunner(state, set.Seats, set.Minds, set.Narrator) { WriteChronicles = !noChronicles };
+        var seats = set.Seats;
+        if (versus || focus is not null)
+        {
+            var baseline = new BaselineLeader(state.Seed);
+            seats = Powers.All.ToDictionary(p => p, p => current.Contains(p) ? set.Seats[p] : (ISeat)baseline);
+        }
+        last = new GameRunner(state, seats, set.Minds, set.Narrator) { WriteChronicles = !noChronicles };
         return last;
     }, verify, log: Console.Error.WriteLine, config: config);
+    return (summary, outDir is not null || detail ? last : null, current);
+}
+
+// Script games are independent and run side by side; model games run one at a time, within the budget.
+var played = new (GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)?[games];
+if (choices.UsesModels)
+{
+    for (var g = 0; g < games; g++)
+    {
+        if (spent >= budget)
+        {
+            Console.WriteLine($"Stopping: ${spent:0.00} spent, budget ${budget:0.00}.");
+            break;
+        }
+        played[g] = await Play(g);
+        spent += played[g]!.Value.Summary.CostUsd;
+    }
+}
+else await Parallel.ForEachAsync(Enumerable.Range(0, games), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
+    async (g, _) => played[g] = await Play(g));
+
+foreach (var outcome in played)
+{
+    if (outcome is not { } o) break;
+    var (summary, last, current) = o;
+    var s = summary.Seed;
     results.Add(summary);
-    spent += summary.CostUsd;
+    sides.Add(current);
     if (outDir is not null && last is not null)
         await File.WriteAllTextAsync(Path.Combine(outDir, $"game-{s}.jsonl"), last.Log.ToJsonl());
     Console.WriteLine($"seed {s}: {summary.Turns} turns, winner {string.Join(" & ", summary.Winners)}"
@@ -108,4 +161,5 @@ for (var g = 0; g < games; g++)
 }
 Console.WriteLine();
 if (results.Count > 0) Console.WriteLine(BatchRunner.Report(results));
+if (versus && results.Count > 0) Console.WriteLine(BatchRunner.Versus(results, sides));
 Console.WriteLine($"\n{clock.Elapsed.TotalSeconds:0.0}s");

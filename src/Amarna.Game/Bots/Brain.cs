@@ -1,0 +1,263 @@
+using System.Text.RegularExpressions;
+using Amarna.Engine;
+
+namespace Amarna.Game.Bots;
+
+/// <summary>What a king thinks of another king, learned only from what reached its court.</summary>
+internal sealed class Relation
+{
+    /// <summary>-1 (expects betrayal) to 1 (would bet the kingdom on them).</summary>
+    public double Trust;
+    /// <summary>Accumulated wrongs; fades at a rate set by the king's vengefulness.</summary>
+    public double Grudge;
+    public int LastAttackedUs = -99;
+    public int LastWeAttacked = -99;
+    public int OathsBroken;
+    public int SupportsGiven;
+    public bool Treaty;
+    public bool Allied;
+    public int ProposedTurn = -99;
+
+    public bool Hostile => Grudge >= 3 || Trust <= -0.5;
+}
+
+/// <summary>
+/// A script king's memory and judgement: relations with every other king, the war it has chosen,
+/// the people it has checked, the evidence it has sent. One per power, kept across seasons.
+/// </summary>
+internal sealed partial class Brain
+{
+    public Power Me { get; }
+    public Personality P { get; }
+    public ulong Seed { get; }
+    public Dictionary<Power, Relation> Rel { get; } = new();
+    public Dictionary<string, Power?> LastOwner = new();
+    public Dictionary<Power, (int Units, int Turn)> ArmySeen = new();
+    /// <summary>Where foreign troops were last seen, for provinces out of sight.</summary>
+    public Dictionary<string, (Power Power, UnitKind Kind, int Turn)> Sightings = new();
+    /// <summary>Recent conquests by each king, from anyone, fading by a third each season.</summary>
+    public Dictionary<Power, double> Belligerence = new();
+    public HashSet<string> Checked = new();
+    public HashSet<string> SentCopies = new();
+    public Dictionary<string, int> HeldSince = new();
+    public HashSet<string> Authenticating = new();
+    public int LastSeek = -10;
+    public int LastSpyCaught = -10;
+    public Power? WarTarget;
+    public int WarSince;
+    public Power? Betraying;
+    /// <summary>Gold left over after troops, levies and cities this season: what gifts, bribes and spies may spend.</summary>
+    public double SpareGold;
+    public int GiftTurn = -1;
+    public int Turn;
+
+    /// <summary>How this king pictures each rival, for guessing their orders (see <see cref="Search"/>).</summary>
+    public Dictionary<Power, Brain> Models { get; } = new();
+
+    public Brain(Power me, ulong seed) : this(me, seed, Personality.For(me, seed)) { }
+
+    public Brain(Power me, ulong seed, Personality p)
+    {
+        Me = me;
+        Seed = seed;
+        P = p;
+        foreach (var x in Powers.All.Where(x => x != me)) Rel[x] = new Relation();
+        // Every court knows how many troops each king marched out with.
+        foreach (var g in MapData.StartUnits.Where(u => u.Power != me).GroupBy(u => u.Power)) ArmySeen[g.Key] = (g.Count(), 1);
+        foreach (var u in MapData.StartUnits.Where(u => u.Power != me)) Sightings[u.Province] = (u.Power, u.Kind, 1);
+    }
+
+    public Rng R(int turn, string purpose) => Rng.For(Seed, turn, "bot:" + purpose, Me.ToString());
+
+    /// <summary>Reads the season's news and updates trust and grudges. Called once per season, before deciding.</summary>
+    public void Learn(SeatView v, Board b)
+    {
+        if (v.Turn == Turn) return;
+        Turn = v.Turn;
+
+        // Wrongs fade; trust drifts back towards indifference.
+        foreach (var r in Rel.Values)
+        {
+            r.Grudge *= 1 - 0.12 * (1 - P.Vengeance);
+            r.Trust += (0 - r.Trust) * 0.05;
+            r.Treaty = false;
+            r.Allied = false;
+        }
+
+        // Sealed tablets we hold with another king (unless shown to be forged).
+        foreach (var t in v.Tablets.Where(t => t.SealedTurn is not null && t.Seals.Contains(Me) && t.Seals.Count >= 2 && t.AuthResult?.Contains("forgery") != true))
+            foreach (var other in t.Seals.Where(s => s != Me && Rel.ContainsKey(s)))
+            {
+                Rel[other].Treaty = true;
+                if (t.AllianceOath) Rel[other].Allied = true;
+            }
+
+        // Land taken from us.
+        var previous = LastOwner;
+        foreach (var (prov, was) in previous)
+        {
+            if (was != Me || b.OwnerOf(prov) is not { } taker || taker == Me || !Rel.ContainsKey(taker)) continue;
+            Wronged(taker, 2 + Board.Map[prov].Yield / 20.0, -0.4, v.Turn);
+        }
+        // Conquests anywhere on the public map (a purchase keeps the walls; a conquest tears them down).
+        foreach (var k in Belligerence.Keys.ToList()) Belligerence[k] *= 0.7;
+        foreach (var (prov, was) in previous)
+        {
+            if (b.OwnerOf(prov) is not { } now || now == was || now == Me) continue;
+            if (was is null && b.Walls(prov)) continue;
+            Belligerence[now] = Belligerence.GetValueOrDefault(now) + (was is null ? 1 : 1.5);
+        }
+        LastOwner = new Dictionary<string, Power?>(v.Owner);
+
+        // What we saw happen last season.
+        foreach (var o in v.LastSeason)
+        {
+            if (o.Power == Me || !Rel.ContainsKey(o.Power)) continue;
+            var r = Rel[o.Power];
+            if (o.Order == "move" && o.Target is { } t && (b.IsMine(t) || previous.GetValueOrDefault(t) == Me))
+                Wronged(o.Power, 1, -0.25, v.Turn);
+            if (o.Order == "support" && o.Helped == Me && o.Succeeded)
+            {
+                r.SupportsGiven++;
+                r.Trust = Math.Min(1, r.Trust + 0.15);
+            }
+            if (o.Order == "support" && o.Helped != Me && o.To is { } into && previous.GetValueOrDefault(into) == Me)
+                r.Grudge += 0.5;
+        }
+
+        foreach (var item in v.Inbox)
+        {
+            foreach (var other in Rel.Keys)
+            {
+                var name = other.ToString();
+                switch (item.Kind)
+                {
+                    case InboxKind.Assay when item.Body.Contains("from " + name):
+                        if (item.Body.Contains("(100%)")) Rel[other].Trust = Math.Min(1, Rel[other].Trust + 0.05);
+                        else Wronged(other, 1.5, -0.3, -99);
+                        break;
+                    case InboxKind.Rumor when item.Body.Contains("has not returned from the court of " + name):
+                        Wronged(other, 1, -0.3, -99);
+                        break;
+                    case InboxKind.Rumor when item.Body.Contains("forged by") && item.Body.Contains("of " + name):
+                        Rel[other].Trust -= 0.4;
+                        break;
+                    case InboxKind.Notice when item.Body.Contains("confesses to serving " + name):
+                        Wronged(other, 1, -0.3, -99);
+                        LastSpyCaught = v.Turn;
+                        break;
+                    case InboxKind.Audience when item.Title.EndsWith("envoy of " + name):
+                        var weighed = Weighed().Match(item.Body);
+                        if (weighed.Success && Shekels(weighed.Groups[1].Value) is var w && w > 0)
+                            Rel[other].Trust = Math.Min(1, Rel[other].Trust + Math.Min(0.25, w / 400.0));
+                        Rel[other].Trust += Sentiment(item.Body) * 0.05;
+                        break;
+                    case InboxKind.EnvoyReport when item.Body.Contains("court of " + other.Land()):
+                        Rel[other].Trust += Sentiment(item.Body) * 0.08;
+                        break;
+                }
+            }
+            if (item.Kind == InboxKind.Notice && item.Title == "A spy is caught") LastSpyCaught = v.Turn;
+        }
+
+        // Troops seen, for judging each king's strength.
+        foreach (var prov in v.Visible) Sightings.Remove(prov);
+        foreach (var u in v.Units.Where(u => u.Power != Me)) Sightings[u.Province] = (u.Power, u.Kind, v.Turn);
+
+        // What we cannot see we keep in mind, forgetting a troop a year once it is out of sight.
+        foreach (var x in Rel.Keys)
+        {
+            var seen = v.Units.Count(u => u.Power == x);
+            var (known, when) = ArmySeen.GetValueOrDefault(x);
+            if (seen >= known) ArmySeen[x] = (seen, v.Turn);
+            else if (v.Turn - when >= 3) ArmySeen[x] = (Math.Max(seen, known - 1), v.Turn);
+            if (b.Provinces(x) == 0 && seen == 0) ArmySeen[x] = (0, v.Turn);
+        }
+        foreach (var item in v.Inbox.Where(i => i.Kind == InboxKind.SpyReport))
+            foreach (var g in SpiedUnit().Matches(item.Body).GroupBy(m => m.Groups[1].Value))
+                if (Powers.TryParse(g.Key, out var spied) && spied != Me)
+                    ArmySeen[spied] = (Math.Max(g.Count(), ArmySeen.GetValueOrDefault(spied).Units), v.Turn);
+
+        foreach (var r in Rel.Values) r.Trust = Math.Clamp(r.Trust, -1, 1);
+    }
+
+    /// <summary>Troops out of sight that are probably still where we last saw them: recent sightings, no more than each king is thought to have.</summary>
+    public List<UnitView> Remembered(SeatView v)
+    {
+        var list = new List<UnitView>();
+        foreach (var g in Sightings.Where(s => v.Turn - s.Value.Turn <= 3 && !v.Visible.Contains(s.Key) && !v.Fallen.Contains(s.Value.Power))
+                     .GroupBy(s => s.Value.Power))
+        {
+            var room = Math.Max(0, ArmySeen.GetValueOrDefault(g.Key).Units - v.Units.Count(u => u.Power == g.Key));
+            list.AddRange(g.OrderByDescending(s => s.Value.Turn).ThenBy(s => s.Key, StringComparer.Ordinal).Take(room)
+                .Select(s => new UnitView { Power = g.Key, Kind = s.Value.Kind, Province = s.Key }));
+        }
+        return list;
+    }
+
+    private void Wronged(Power who, double grudge, double trust, int turn)
+    {
+        var r = Rel[who];
+        r.Grudge += grudge * (0.6 + P.Vengeance);
+        r.Trust = Math.Max(-1, r.Trust + trust);
+        if (turn > 0) r.LastAttackedUs = turn;
+        if (r.Treaty && turn > 0)
+        {
+            r.OathsBroken++;
+            r.Trust = Math.Max(-1, r.Trust - 0.5);
+            r.Grudge += 2;
+        }
+    }
+
+    /// <summary>Crude reading of a letter's warmth: +1 friendly, -1 hostile.</summary>
+    private static double Sentiment(string text)
+    {
+        var t = text.ToLowerInvariant();
+        string[] warm = ["brother", "love", "friend", "peace", "sealed", "gift", "rejoice", "gracious", "kindly"];
+        string[] cold = ["not forgotten", "regret", "withdraw", "war", "punish", "liar", "false", "broke", "detain", "will not seal"];
+        return Math.Clamp(warm.Count(t.Contains) * 0.5 - cold.Count(t.Contains), -2, 2) / 2;
+    }
+
+    /// <summary>How likely another king is to attack us this season.</summary>
+    public double Hostility(Power other, Board b)
+    {
+        var r = Rel[other];
+        var h = 0.3;
+        // A king who has been taking land lately, anyone's, may take ours next.
+        h += Math.Min(0.3, Belligerence.GetValueOrDefault(other) * 0.08);
+        // Troops massed on our border say more than letters.
+        var mine = b.V.Owner.Where(x => x.Value == Me).Select(x => x.Key).ToHashSet();
+        var posture = b.Others.Count(u => u.Power == other && Board.Map.Neighbors(u.Province).Any(mine.Contains));
+        h += Math.Min(6, posture) * 0.04;
+        if (r.LastAttackedUs >= Turn - 3) h += 0.35;
+        if (r.LastWeAttacked >= Turn - 3) h += 0.3;
+        h += Math.Min(0.3, r.Grudge * 0.04);
+        h -= r.Trust * 0.3;
+        if (r.Treaty && r.OathsBroken == 0) h -= 0.3;
+        if (r.Allied && r.OathsBroken == 0) h -= 0.2;
+        if (b.Leader() == Me) h += 0.15;
+        return Math.Clamp(h, 0.05, 0.95);
+    }
+
+    public bool IsFriend(Power other) => Rel[other].Allied || (Rel[other].Treaty && Rel[other].Trust > -0.2 && Rel[other].OathsBroken == 0);
+
+    /// <summary>Reads an amount written as "2 minas 15 shekels", "1 mina" or "45 shekels".</summary>
+    public static int Shekels(string text)
+    {
+        var minas = MinasPart().Match(text);
+        var shekels = ShekelsPart().Match(text);
+        return (minas.Success ? int.Parse(minas.Groups[1].Value) * 60 : 0) + (shekels.Success ? int.Parse(shekels.Groups[1].Value) : 0);
+    }
+
+    [GeneratedRegex(@"weighers found ([^.]+)\.")]
+    private static partial Regex Weighed();
+
+    [GeneratedRegex(@"(\d+) minas?")]
+    private static partial Regex MinasPart();
+
+    [GeneratedRegex(@"(\d+) shekels?")]
+    private static partial Regex ShekelsPart();
+
+    [GeneratedRegex(@"(\w+) has (?:an army|a fleet) in")]
+    private static partial Regex SpiedUnit();
+}

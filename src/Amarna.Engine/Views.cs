@@ -84,6 +84,8 @@ public sealed class SeatView
     public List<TabletView> Tablets { get; set; } = new();
     public List<InboxItem> Inbox { get; set; } = new();
     public List<string> TravelTimes { get; set; } = new();
+    /// <summary>Last season's orders as they resolved, for every unit this court could see.</summary>
+    public List<OrderOutcome> LastSeason { get; set; } = new();
     public Dictionary<string, int> Prices { get; set; } = new();
 }
 
@@ -131,6 +133,7 @@ public static class Views
             Visible = map.Provinces.Where(x => sight.Contains(x.Id)).Select(x => x.Id).ToList(),
             Fallen = s.Eliminated.ToList(),
             Inbox = s.InboxOf(p).Where(i => i.Turn == s.Turn).ToList(),
+            LastSeason = s.LastSeen.GetValueOrDefault(p)?.ToList() ?? new(),
         };
 
         foreach (var c in s.Characters)

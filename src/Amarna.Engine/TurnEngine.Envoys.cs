@@ -401,7 +401,7 @@ public sealed partial class TurnEngine
     private void ReleaseEnvoy(Power host, ReleaseOrder r)
     {
         var c = S.Char(r.Character);
-        if (c.HeldBy != host) return;
+        if (c.HeldBy != host || (c.Duty != Duty.Detained && c.Status != CharacterStatus.Captured)) return;
         if (c.Status == CharacterStatus.Captured)
         {
             ReleaseCaptive(host, c);
@@ -512,7 +512,8 @@ public sealed partial class TurnEngine
         {
             var c = S.Char(group.Key);
             if (!c.IsAvailableForHire) continue;
-            var bids = group.Where(b => b.H.Wage >= AskingPrice(c, b.P)).OrderByDescending(b => b.H.Wage)
+            // Someone held at a court can only take service with the king who holds them.
+            var bids = group.Where(b => b.H.Wage >= AskingPrice(c, b.P) && (c.HeldBy is null || c.HeldBy == b.P)).OrderByDescending(b => b.H.Wage)
                 .ThenByDescending(b => c.Traits.Sympathy == b.P).ThenBy(b => b.P).ToList();
             foreach (var lost in group.Where(b => bids.Count == 0 || b.P != bids[0].P))
                 S.Notify(lost.P, InboxKind.Notice, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season.", c.Id);
@@ -523,6 +524,7 @@ public sealed partial class TurnEngine
             c.Contract = new Contract { Wage = hire.Wage, StartTurn = S.Turn, UntilTurn = S.Turn + Math.Clamp(hire.Term, 1, 30) };
             c.At = winner;
             c.Duty = Duty.None;
+            c.HeldBy = null;
             c.Pitches.Clear();
             c.Reputation[winner] = c.Reputation.GetValueOrDefault(winner) + 5;
             c.Remember(S.Turn, $"I entered the service of {winner.Land()} for {Money.Format(hire.Wage)} a season.");

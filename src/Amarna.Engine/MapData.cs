@@ -17,9 +17,9 @@ public static class MapData
         var provinces = new List<Province>
         {
             // Arzawa (weak): western Anatolia
-            new("seha", "Seha River Land", C, Power.Arzawa, 25, false, 85, 95),
+            new("seha", "Seha River Land", C, Power.Arzawa, 30, false, 85, 95),
             new("apasa", "Apasa", C, Power.Arzawa, 40, true, 70, 200),
-            new("mira", "Mira", L, Power.Arzawa, 25, false, 170, 150),
+            new("mira", "Mira", L, Power.Arzawa, 30, false, 170, 150),
 
             // Hatti (strong): central Anatolia
             new("tuwanuwa", "Tuwanuwa", L, Power.Hatti, 30, false, 275, 150),
@@ -29,8 +29,8 @@ public static class MapData
             new("kizzuwatna", "Kizzuwatna", C, Power.Hatti, 35, false, 390, 255),
 
             // Mitanni (middle): upper Khabur
-            new("harran", "Harran", L, Power.Mitanni, 30, false, 615, 200),
-            new("washukanni", "Washukanni", L, Power.Mitanni, 45, true, 700, 145),
+            new("harran", "Harran", L, Power.Mitanni, 35, false, 615, 200),
+            new("washukanni", "Washukanni", L, Power.Mitanni, 50, true, 700, 145),
             new("taidu", "Taidu", L, Power.Mitanni, 30, false, 775, 75),
             new("terqa", "Terqa", L, Power.Mitanni, 30, false, 705, 275),
 
@@ -164,29 +164,29 @@ public static class MapData
         new(Power.Egypt, UnitKind.Fleet, "delta"),
         new(Power.Hatti, UnitKind.Army, "hattusa"),
         new(Power.Hatti, UnitKind.Army, "kanesh"),
-        new(Power.Hatti, UnitKind.Army, "kizzuwatna"),
+        new(Power.Hatti, UnitKind.Fleet, "kizzuwatna"),
         new(Power.Babylonia, UnitKind.Army, "babylon"),
         new(Power.Babylonia, UnitKind.Army, "sippar"),
         new(Power.Babylonia, UnitKind.Army, "durkurigalzu"),
         new(Power.Mitanni, UnitKind.Army, "washukanni"),
-        new(Power.Mitanni, UnitKind.Army, "harran"),
+        new(Power.Mitanni, UnitKind.Army, "taidu"),
         new(Power.Mitanni, UnitKind.Army, "terqa"),
         new(Power.Assyria, UnitKind.Army, "ashur"),
         new(Power.Assyria, UnitKind.Army, "nineveh"),
         new(Power.Assyria, UnitKind.Army, "ekallatum"),
         new(Power.Arzawa, UnitKind.Army, "mira"),
-        new(Power.Arzawa, UnitKind.Fleet, "apasa"),
+        new(Power.Arzawa, UnitKind.Army, "apasa"),
         new(Power.Alashiya, UnitKind.Fleet, "enkomi"),
     };
 
     public static readonly IReadOnlyDictionary<Power, int> StartGold = new Dictionary<Power, int>
     {
         [Power.Egypt] = 600,
-        [Power.Hatti] = 550,
+        [Power.Hatti] = 300,
         [Power.Babylonia] = 650,
-        [Power.Mitanni] = 400,
+        [Power.Mitanni] = 500,
         [Power.Assyria] = 350,
-        [Power.Arzawa] = 250,
+        [Power.Arzawa] = 300,
         [Power.Alashiya] = 350,
     };
 }
