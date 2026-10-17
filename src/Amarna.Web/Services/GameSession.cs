@@ -60,7 +60,9 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
         Notice = null;
         ReadOnly = false;
         var state = GameFactory.NewGame(settings.Seed, settings.ToConfig());
-        var built = factory.Build(settings, state.Seed, apiKey);
+        BuiltSeats built;
+        try { built = factory.Build(settings, state, apiKey, () => Runner!.Log); }
+        catch (Exception ex) { Error = ex.Message; Notify(); return; }
         Humans.Clear();
         foreach (var (p, seat) in built.Seats)
             if (seat is HumanSeat h) { Humans[p] = h; h.Changed += Notify; }
@@ -98,7 +100,7 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
             if (continuePlay)
             {
                 Settings = factory.SettingsFromHeader(log.Header);
-                var built = factory.Build(Settings, log.Header.Seed, apiKey);
+                var built = factory.Build(Settings, GameFactory.NewGame(log.Header.Seed, log.Header.Config), apiKey, () => Runner!.Log);
                 foreach (var (p, seat) in built.Seats)
                     if (seat is HumanSeat h) { Humans[p] = h; h.Changed += Notify; }
                 Runner = GameRunner.Resume(log, built.Seats, built.Minds, built.Narrator);

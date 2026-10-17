@@ -1,0 +1,81 @@
+using Amarna.Engine;
+using Amarna.Game;
+using Amarna.Game.Batch;
+using Amarna.Game.Bots;
+
+namespace Amarna.Game.Tests;
+
+public class RunnerTests
+{
+    private static GameRunner Scripted(ulong seed)
+    {
+        var state = GameFactory.NewGame(seed);
+        var seats = Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(seed));
+        return new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator());
+    }
+
+    [Fact]
+    public async Task Script_games_finish_and_replay_exactly()
+    {
+        for (ulong seed = 1; seed <= 5; seed++)
+        {
+            var summary = await BatchRunner.PlayAsync(seed, s => new GameRunner(s, Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(seed)), new ScriptMind(), new TemplateNarrator()), verifyReplay: true);
+            Assert.True(summary.ReplayMatches, $"seed {seed}");
+            Assert.True(summary.Turns >= 15);
+            Assert.NotEmpty(summary.Winners);
+        }
+    }
+
+    [Fact]
+    public async Task Snapshots_allow_rewinding_to_any_turn()
+    {
+        var r = Scripted(9);
+        await r.PrepareAsync();
+        for (var i = 0; i < 5; i++) await r.PlayTurnAsync();
+        Assert.Equal(6, r.Snapshots.Count);
+        Assert.Equal(1, r.StateAt(0)!.Turn);
+        Assert.Equal(4, r.StateAt(3)!.Turn);
+    }
+
+    [Fact]
+    public async Task A_saved_game_resumes_with_live_seats()
+    {
+        var r = Scripted(12);
+        await r.PrepareAsync();
+        for (var i = 0; i < 4; i++) await r.PlayTurnAsync();
+        var log = GameLog.FromJsonl(r.Log.ToJsonl());
+
+        var seats = Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(12));
+        var resumed = GameRunner.Resume(log, seats, new ScriptMind(), new TemplateNarrator());
+        await resumed.PrepareAsync();
+        for (var i = 0; i < 4; i++) await resumed.PlayTurnAsync();
+        Assert.Equal(Json.Hash(r.State), Json.Hash(resumed.State));
+        await resumed.PlayTurnAsync();
+        Assert.Equal(6, resumed.State.Turn);
+    }
+
+    [Fact]
+    public async Task A_human_seat_waits_for_orders_and_answers()
+    {
+        var state = GameFactory.NewGame(21);
+        var human = new HumanSeat(Power.Egypt);
+        var seats = Powers.All.ToDictionary(p => p, p => p == Power.Egypt ? human : (ISeat)new ScriptLeader(21));
+        var r = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator());
+        var turn = r.PlayTurnAsync();
+        for (var i = 0; i < 100 && human.PendingOrders is null; i++) await Task.Delay(10);
+        Assert.NotNull(human.PendingOrders);
+        Assert.False(turn.IsCompleted);
+        human.SubmitOrders(new TurnSubmission { Orders = [new MoveOrder("memphis", "sinai")] });
+        await turn;
+        Assert.Equal(Power.Egypt, state.UnitAt("sinai")?.Power);
+    }
+
+    [Fact]
+    public async Task Signals_are_detected_in_script_games()
+    {
+        var r = Scripted(3);
+        while (await r.PlayTurnAsync()) { }
+        var counts = SignalDetector.Count(r.State);
+        Assert.True(counts.GetValueOrDefault("tablet-sealed") > 0);
+    }
+}

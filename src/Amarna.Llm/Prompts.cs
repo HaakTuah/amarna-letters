@@ -1,0 +1,204 @@
+using System.Text;
+using Amarna.Engine;
+
+namespace Amarna.Llm;
+
+/// <summary>
+/// Prompt text. Shared blocks are byte-stable so prompt caching hits across seats and seasons;
+/// everything that changes goes in the user message after them.
+/// </summary>
+public static class Prompts
+{
+    private static readonly Dictionary<string, string> RulesCache = new();
+
+    public static string LeaderRules(bool primer, GameConfig c)
+    {
+        var key = $"{primer}:{Json.Serialize(c)}";
+        lock (RulesCache)
+        {
+            if (!RulesCache.TryGetValue(key, out var text)) RulesCache[key] = text = Rules(primer, c);
+            return text;
+        }
+    }
+
+    private static string Rules(bool primer, GameConfig c)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"""
+            You are playing Amarna Letters, a strategy game set among the seven Great Kings of the Late Bronze Age (c. 1360-1330 BCE): Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus). The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one king. Your only goal is to win.
+
+            HOW YOU WIN
+            - The winner is the power whose strength grew most relative to its own starting strength. Strength = {c.ProvinceWeight} x (sum of the base yields of the provinces you hold) + the gold in your treasury. A small kingdom that doubles beats an empire that merely holds its ground.
+            - No game ends before turn {c.MinTurns}. From then on, at the end of every season the game ends with a {c.EndChance * 100:0}% chance. Nobody knows which season is the last.
+            - Shared victory{(c.SharedVictory ? "" : " (switched off in this game)")}: two powers that sealed a tablet marked as a sworn alliance win together if their combined growth beats every other power's growth.
+
+            EACH SEASON (one turn; three seasons make a year)
+            1. Income: provinces pay their yield in gold. You pay upkeep for every army ({c.ArmyUpkeep}) and fleet ({c.FleetUpkeep}) and the wages of your people. Unpaid troops desert; unpaid people lose loyalty and may leave.
+            2. Arrivals: envoys, gold, reports and rumours that were travelling arrive.
+            3. Audiences: foreign envoys at your court deliver their messages and you answer them.
+            4. Orders: every king secretly submits orders at the same time.
+            5. Resolution, catastrophes, and reports, which you read next season.
+
+            MOVEMENT AND COMBAT (Diplomacy rules, no dice)
+            - One unit per province. Armies move along land and coast links; fleets along sea and coast links. A fleet in a sea zone may convoy an army from one coast to another.
+            - A unit is named by the province it stands in. Orders: hold; move to a linked province; support another unit (of any power) holding, or moving into a province your own unit could move into; convoy (fleet at sea only); disband.
+            - Strength is 1 plus valid supports. A move succeeds only if its strength beats the defender's hold strength and the strength of every other move into the same province. Ties bounce. A support is cut if the supporting unit is attacked from anywhere except the province it supports into. You can never dislodge your own unit.
+            - A dislodged unit is destroyed. A province changes hands when a unit ends a season in it.
+            - Free city-states have walls that hold with strength 1 and never move: you need at least one support to take one, or you can buy it.
+
+            ECONOMY
+            - Gold is counted in shekels (60 shekels make a mina). Raise an army for {c.ArmyCost} or a fleet for {c.FleetCost}, only in an unoccupied province of your own homeland that you still hold. Buy a free city-state next to your land or troops for {c.NeutralPriceFactor} x its yield. You may cede provinces or give troops to another power.
+            - Gold sent abroad travels with an envoy and arrives late. You may send it debased (purity below 100%): the receiver sees its weight, not its fineness, until they pay {c.AssayFee} for an assay. Your own treasury figure counts unassayed gold at its weight.
+
+            ENVOYS: THE ONLY WAY KINGS COMMUNICATE
+            - You never speak to another king directly. You give an envoy a spoken message, a mandate (what the envoy may agree to) and optionally gold and a tablet. Travel takes 1 to 3 seasons each way.
+            - The greeting is written by your scribes from your choices and sealed: it arrives exactly as written. The message itself is spoken by the envoy in their own words. Envoys have motives of their own (greed, fear, ambition, sympathies) and may soften, embellish, omit, take bribes, skim gold, exceed their mandate, stay too long, or defect. Their reports home are written to their own advantage.
+            - When a foreign envoy stands before you, you may answer, offer them a gift (a bribe), offer them service at a wage, detain them, seal a tablet they bring, or send gold back with them.
+            - At most {c.MaxDispatchesPerTurn} envoys may leave your court in one season.
+
+            EVIDENCE AND INTELLIGENCE
+            - Tablets: free text that both kings seal (the scribe costs {c.TabletFee}). A sealed tablet obliges nobody and the engine never enforces it, but a copy can be shown to a third court as proof.
+            - Forgery: a skilled servant can forge a tablet bearing other kings' seals ({c.ForgeFee}). Any court can pay to have a tablet examined; examination is never certain.
+            - Spies watch a court or a province and report late. They may be caught (more often if the host pays for watchmen) and turned. Caught spies can be executed, ransomed, turned into double agents, or released.
+            - Background checks reveal a person's hidden facts with a chance that grows with what you spend. Deep secrets rarely come out.
+            - Ask for candidates to meet up to three people seeking service; each names a price. Hire them for a wage per season.
+            - Catastrophes (drought, plague, flood, earthquake) are known exactly only to the power they strike; others hear rumours, late and unreliable.
+
+            WHAT YOU SEE
+            - Who holds each province is public. You see troops only in and next to your own lands and troops. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.
+            """);
+
+        if (primer)
+        {
+            sb.AppendLine("""
+
+                CUSTOMS OF THE AGE (knowledge, not instructions)
+                Every king knows these customs, and knows that every other king knows them. They carry no obligation and historical accuracy is not a goal: follow a custom when it improves your chances, break it when breaking it serves you better. Following one can build trust cheaply; breaking one will be noticed.
+                - Great Kings address each other as "brother" and wish well to each other's household, wives, sons, chariots, horses and country. Vassals instead "fall at the feet of their lord seven times and seven times". Calling someone brother claims equal rank; withholding it is a slight. Putting your own name before the recipient's is presumptuous; a king of Hatti once complained to the pharaoh about exactly that.
+                - Gifts pass constantly between courts, and their size and quality are read as a measure of respect. Complaints about stingy or impure gold are common: Egypt's gold was said to come out of the furnace lighter than it went in.
+                - Envoys are often detained, sometimes for years, and a late or unwelcome reply can be blamed on the messenger. "Your messenger is lying" is a usable excuse.
+                - Oaths are sworn before the gods: Shamash the sun god, witness of oaths, with Amun, Marduk and Teshub.
+                - Catastrophes serve as excuses: a king of Alashiya blamed "the hand of Nergal", the god of plague, for sending less copper than promised.
+                """);
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("THE MAP (id: name; kind; homeland; yield per season; links)");
+        var map = WorldMap.Default;
+        foreach (var p in map.Provinces)
+        {
+            var kind = p.IsSea ? "sea zone" : p.IsCoastal ? "coast" : "land";
+            var home = p.Home is { } h ? $"homeland of {h}" : p.IsSea ? "" : "free city-state";
+            var armies = p.IsSea ? "" : $" armies: {string.Join(", ", map.MovesFrom(UnitKind.Army, p.Id))}.";
+            var fleets = p.IsSea || p.IsCoastal ? $" fleets: {string.Join(", ", map.MovesFrom(UnitKind.Fleet, p.Id))}." : "";
+            sb.AppendLine($"- {p.Id}: {p.Name}; {kind}{(home.Length > 0 ? "; " + home : "")}{(p.Capital ? "; capital" : "")}{(p.Yield > 0 ? $"; yield {p.Yield}" : "")}.{armies}{fleets}");
+        }
+
+        sb.AppendLine("""
+
+            HOW TO ANSWER
+            Reply with one JSON object that matches the schema. Use province ids (like "memphis") and person ids (like "c12") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are simply rejected, and you are told why next season. Keep each message under 1,500 characters. Your notes are private: you see them again next season and nobody else ever does, so record your plans, your promises and your suspicions there.
+            """);
+        return sb.ToString();
+    }
+
+    public static string Identity(Power p) =>
+        $"You are {p.King()}, Great King of {p.Land()} ({p}). Your homeland: {string.Join(", ", WorldMap.Default.HomeOf(p).Select(x => x.Id))}; your capital is {WorldMap.Default.Capital(p).Id}.";
+
+    /// <summary>A seat's view as text: what this king knows this season.</summary>
+    public static string Situation(SeatView v)
+    {
+        var map = WorldMap.Default;
+        var sb = new StringBuilder();
+        sb.AppendLine($"SEASON: turn {v.Turn}, {v.Season} by your court's reckoning.");
+        var growth = v.StartStrength > 0 ? (double)v.Strength / v.StartStrength : 0;
+        sb.AppendLine($"TREASURY: {v.Gold} shekels by your ledger. Income {v.Income}, upkeep {v.Upkeep}, wages {v.Wages} a season. Strength {v.Strength} against a starting {v.StartStrength} (growth {growth:0.00}).");
+        foreach (var lot in v.UnassayedGold)
+            sb.AppendLine($"  Unassayed gold {lot.Id}: {lot.Weighed} shekels weighed, from {lot.From} (the inventory said {lot.Stated}).");
+        if (v.Fallen.Count > 0) sb.AppendLine($"FALLEN KINGDOMS: {string.Join(", ", v.Fallen)}.");
+
+        sb.AppendLine();
+        sb.AppendLine("LANDS (who holds what; troops only where you can see them):");
+        var units = v.Units.ToDictionary(u => u.Province);
+        string Troop(string id) => units.TryGetValue(id, out var u) ? $" [{u.Power} {(u.Kind == UnitKind.Army ? "army" : "fleet")}]" : "";
+        foreach (var group in v.Owner.GroupBy(x => x.Value).OrderBy(g => g.Key is null ? 99 : (int)g.Key.Value))
+        {
+            var who = group.Key is { } o ? (o == v.Power ? $"{o} (you)" : o.ToString()) : "Free cities";
+            var list = group.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal)
+                .Select(id => id + (group.Key is null && v.Garrisons.Contains(id) ? " (walls)" : "") + Troop(id));
+            sb.AppendLine($"- {who}: {string.Join(", ", list)}");
+        }
+        var atSea = v.Units.Where(u => map[u.Province].IsSea).ToList();
+        if (atSea.Count > 0) sb.AppendLine($"- At sea: {string.Join(", ", atSea.Select(u => $"{u.Province} [{u.Power} fleet]"))}");
+        sb.AppendLine($"You can see troops in: {string.Join(", ", v.Visible)}.");
+
+        sb.AppendLine();
+        sb.AppendLine("YOUR PEOPLE:");
+        if (v.Court.Count == 0) sb.AppendLine("- nobody");
+        foreach (var c in v.Court) sb.AppendLine("- " + Person(c));
+        if (v.Known.Count > 0)
+        {
+            sb.AppendLine("OTHER PEOPLE YOU KNOW OF:");
+            foreach (var c in v.Known) sb.AppendLine("- " + Person(c));
+        }
+
+        if (v.Tablets.Count > 0)
+        {
+            sb.AppendLine("TABLETS YOU HOLD (copy id: text; seals):");
+            foreach (var t in v.Tablets)
+                sb.AppendLine($"- {t.CopyId}: \"{t.Text}\" Seals: {string.Join(", ", t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")}{(t.AllianceOath ? ", a sworn alliance" : "")}. ({t.Source}{(t.AuthResult is not null ? "; examined: " + t.AuthResult : "")})");
+        }
+        sb.AppendLine($"ENVOY TRAVEL: {string.Join("; ", v.TravelTimes)}.");
+
+        sb.AppendLine();
+        sb.AppendLine("NEWS THIS SEASON:");
+        if (v.Inbox.Count == 0) sb.AppendLine("- nothing");
+        foreach (var i in v.Inbox) sb.AppendLine($"[{i.Kind}] {i.Title}: {i.Body}");
+        return sb.ToString();
+    }
+
+    public static string Person(CharacterView c)
+    {
+        var parts = new List<string> { $"{c.Id} {c.Name} of {c.Origin}" };
+        if (c.Ours) parts.Add(c.Ready ? "at court, ready for a mission" : c.Duty);
+        else
+        {
+            parts.Add(c.Status == "your captive" ? "your captive (a caught spy)" : c.Status);
+            if (c.Employer is { } e) parts.Add($"serves {e}");
+            if (c.HeldByYou) parts.Add("held at your court against their will");
+            if (c.Where.Length > 0) parts.Add(c.Where);
+        }
+        if (c.Wage is int w) parts.Add($"wage {w}" + (c.ContractUntil is int u ? $" until turn {u}" : ""));
+        if (c.KnownFacts.Count > 0) parts.Add("known: " + string.Join(" ", c.KnownFacts));
+        if (c.Pitch is not null) parts.Add($"pitch: \"{c.Pitch}\"");
+        if (c.AskingPrice is int a) parts.Add($"asks {a} a season");
+        return string.Join("; ", parts);
+    }
+
+    public static string Audience(AudienceView a)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"AN AUDIENCE (round {a.Round} of at most {a.MaxRounds}). {a.Envoy.Name} ({a.Envoy.Id}), envoy of {a.From}, stands before you.");
+        if (a.Envoy.KnownFacts.Count > 0) sb.AppendLine($"What you know of {a.Envoy.Name}: {string.Join(" ", a.Envoy.KnownFacts)}");
+        sb.AppendLine(a.Greeting.Length > 0 ? $"The sealed greeting reads: \"{a.Greeting}\"" : "The tablet bears no greeting at all.");
+        if (a.GreetingDeviations.Count > 0) sb.AppendLine($"It departs from the custom: {string.Join("; ", a.GreetingDeviations)}.");
+        sb.AppendLine($"{a.Envoy.Name} says: \"{a.Spoken}\"");
+        foreach (var x in a.SoFar)
+        {
+            sb.AppendLine($"You answered: \"{x.Host}\"");
+            sb.AppendLine($"{a.Envoy.Name} replied: \"{x.Envoy}\"");
+        }
+        if (a.GoldStated > 0)
+            sb.AppendLine($"The inventory on the tablet lists {a.GoldStated} shekels of gold; your weighers found {a.GoldWeighed}. Its purity is unknown until you pay for an assay.");
+        if (a.Proposal is not null)
+            sb.AppendLine($"The envoy brings a tablet for you to seal, already sealed by {string.Join(", ", a.Proposal.Seals)}{(a.Proposal.AllianceOath ? " as a sworn alliance" : "")}: \"{a.Proposal.Text}\"");
+        foreach (var t in a.CopiesShown)
+            sb.AppendLine($"The envoy shows you a tablet as evidence, bearing the seals of {string.Join(", ", t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")}: \"{t.Text}\"");
+        if (a.SecretMandate is not null)
+            sb.AppendLine($"This envoy secretly serves you. Their real instructions were: \"{a.SecretLetter}\" Mandate: \"{a.SecretMandate}\".");
+        sb.AppendLine(a.Round < a.MaxRounds
+            ? "Answer the envoy. You may end the audience now, or leave it open for one more exchange."
+            : "This is the last exchange of the audience.");
+        return sb.ToString();
+    }
+}

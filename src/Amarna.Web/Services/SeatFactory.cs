@@ -1,32 +1,38 @@
 using Amarna.Engine;
 using Amarna.Game;
-using Amarna.Game.Bots;
+using Amarna.Llm;
 
 namespace Amarna.Web.Services;
 
 public sealed record BuiltSeats(Dictionary<Power, ISeat> Seats, ICharacterMind Minds, INarrator Narrator);
 
-/// <summary>Turns setup choices into seats, character minds and a narrator.</summary>
+/// <summary>Turns setup choices into seats, character minds and a narrator. Model calls go from this browser with the player's key.</summary>
 public sealed class SeatFactory
 {
-    public BuiltSeats Build(GameSettings settings, ulong seed, string? apiKey)
+    public BuiltSeats Build(GameSettings settings, GameState state, string? apiKey, Func<GameLog> log)
     {
-        var script = new ScriptLeader(seed);
-        var seats = new Dictionary<Power, ISeat>();
-        foreach (var p in Powers.All)
+        var choices = new SeatChoices
         {
-            seats[p] = settings.Seats[p] switch
+            Leaders = settings.Seats.ToDictionary(x => x.Key, x => x.Value switch
             {
-                SeatKind.Human => new HumanSeat(p),
-                _ => script,
-            };
-        }
-        return new BuiltSeats(seats, new ScriptMind(), new TemplateNarrator());
+                SeatKind.Human => LeaderKind.Human,
+                SeatKind.Sonnet => LeaderKind.Sonnet,
+                SeatKind.Opus => LeaderKind.Opus,
+                _ => LeaderKind.Script,
+            }),
+            HaikuCharacters = settings.Minds == MindKind.Haiku,
+            SonnetNarrator = settings.Narrator == NarratorKind.Sonnet,
+            LeaderEffort = settings.LeaderEffort,
+        };
+        var set = settings.SimulateApi
+            ? SeatSetup.Build(choices, state, "simulated", browser: true, log, new SimulatedAnthropic { ReportUsage = false })
+            : SeatSetup.Build(choices, state, apiKey, browser: true, log);
+        return new BuiltSeats(set.Seats, set.Minds, set.Narrator);
     }
 
     public GameSettings SettingsFromHeader(LogHeader header)
     {
-        var s = new GameSettings { Seed = header.Seed, Chronicles = true, CustomsPrimer = header.Config.CustomsPrimer, SharedVictory = header.Config.SharedVictory };
+        var s = new GameSettings { Seed = header.Seed, Chronicles = true, CustomsPrimer = header.Config.CustomsPrimer, SharedVictory = header.Config.SharedVictory, MessagesPerTurn = header.Config.MaxDispatchesPerTurn };
         foreach (var p in Powers.All)
         {
             var label = header.Seats.GetValueOrDefault(p) ?? "";

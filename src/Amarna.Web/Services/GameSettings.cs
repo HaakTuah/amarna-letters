@@ -18,6 +18,8 @@ public sealed class GameSettings
     public string LeaderEffort { get; set; } = "medium";
     public double BudgetUsd { get; set; } = 5;
     public int MessagesPerTurn { get; set; } = 3;
+    /// <summary>Answer model calls inside the browser with canned replies: for trying the app without a key or cost.</summary>
+    public bool SimulateApi { get; set; }
 
     public bool UsesModels => Seats.Values.Any(s => s is SeatKind.Sonnet or SeatKind.Opus) || Minds == MindKind.Haiku || Narrator == NarratorKind.Sonnet;
 

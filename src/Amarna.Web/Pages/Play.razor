@@ -7,6 +7,7 @@
 @if (Session.Runner is null)
 {
     <div class="page">
+        @if (Session.Error is not null) { <div class="notice error">The game could not start: @Session.Error</div> }
         @if (Session.Busy) { <p>Preparing the game…</p> }
         else { <p>No game is running. <a href="">Start one</a> or load a saved log.</p> }
     </div>

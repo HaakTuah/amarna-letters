@@ -94,6 +94,7 @@
                 <label><input type="checkbox" @bind="Keys.Remember" /> Keep for this tab</label>
                 <label>Budget per game ($) <input type="number" min="0.5" step="0.5" @bind="Settings.BudgetUsd" /></label>
             </div>
+            <label style="margin-top:.5rem"><input type="checkbox" @bind="Settings.SimulateApi" /> Simulate the API instead (canned replies, nothing leaves the browser, no cost: for trying the app)</label>
             <p class="muted" style="margin-top:.5rem">The game pauses when its spend reaches the budget. A full all-model game typically costs a few dollars; the meter shows the real figure as you go.</p>
         </div>
     }
@@ -189,7 +190,7 @@
     private async Task<bool> KeyReady()
     {
         Problem = null;
-        if (!Settings.UsesModels) return true;
+        if (!Settings.UsesModels || Settings.SimulateApi) return true;
         if (string.IsNullOrWhiteSpace(Keys.Key))
         {
             Problem = "Model seats need your Anthropic API key.";
@@ -204,7 +205,7 @@
         if (!await KeyReady()) return;
         Starting = true;
         var settings = Settings;
-        Settings = new GameSettings { Seats = settings.Seats.ToDictionary(x => x.Key, x => x.Value), Minds = settings.Minds, Narrator = settings.Narrator };
+        Settings = new GameSettings { Seats = settings.Seats.ToDictionary(x => x.Key, x => x.Value), Minds = settings.Minds, Narrator = settings.Narrator, SimulateApi = settings.SimulateApi };
         Nav.NavigateTo("play");
         await Session.StartAsync(settings, Keys.Key);
         Starting = false;
