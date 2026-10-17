@@ -115,7 +115,7 @@ internal static class Statecraft
 
     /// <summary>
     /// Two great kings of a size, both among the three strongest: rivals for the crown. They may keep the peace,
-    /// but neither swears the alliance that would let them share the victory and leave the rest of us nothing.
+    /// but neither swears a full alliance (under the shared-victory house rule it would let them share the victory and leave the rest nothing).
     /// </summary>
     private static bool Rivals(Board b, Power a, Power c)
     {
@@ -490,11 +490,11 @@ internal static class Statecraft
             }
             case "alliance":
                 return new DispatchOrder(envoy, to,
-                    $"We have kept the peace between us, as brothers should. Let us go further and swear to stand together, so that the victory of one is the victory of both. {flavour}",
+                    $"We have kept the peace between us, as brothers should. Let us go further and swear to stand together, so that the enemy of one is the enemy of both. {flavour}",
                     "You may swear a full alliance. Promise no land.", greet,
                     Proposal: new TabletProposal
                     {
-                        Text = $"{Oath}: {me} and {to} are allies. Each shall stand with the other against any enemy, and they shall share in the victory. If one breaks this oath, may the gods destroy his name and his seed.",
+                        Text = $"{Oath}: {me} and {to} are allies. Each shall stand with the other against any enemy, and the friend of one shall be the friend of the other. If one breaks this oath, may the gods destroy his name and his seed.",
                         AllianceOath = true,
                     });
             case "peace":

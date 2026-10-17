@@ -196,6 +196,21 @@ public class IntelligenceTests
     }
 
     [Fact]
+    public void Sworn_allies_do_not_share_the_victory_unless_the_house_rule_is_on()
+    {
+        var s = GameFactory.NewGame(10, new GameConfig { MinTurns = 1, EndChance = 1.0 });
+        Assert.False(s.Config.SharedVictory);
+        s.Tablets.Add(new Tablet { Id = "t901", Text = "Alliance.", ProposedBy = Power.Arzawa, Partner = Power.Alashiya, Seals = [Power.Arzawa, Power.Alashiya], CreatedTurn = 1, SealedTurn = 1, AllianceOath = true });
+        s.Treasuries[Power.Arzawa].Gold += 2000;
+        s.Treasuries[Power.Alashiya].Gold += 2000;
+        var e = Begin(s);
+        e.Resolve(new Dictionary<Power, TurnSubmission>());
+        Assert.True(s.Ended);
+        Assert.Single(s.Winners);
+        Assert.DoesNotContain(s.Events, x => x.Signal == "shared-victory");
+    }
+
+    [Fact]
     public void Catastrophes_are_exact_at_home_and_rumoured_abroad()
     {
         var s = GameFactory.NewGame(13, new GameConfig { CatastropheChance = 1.0 });

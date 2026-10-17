@@ -24,13 +24,16 @@ public static class Prompts
     private static string Rules(bool primer, GameConfig c)
     {
         var sb = new StringBuilder();
+        // A house rule: the kings read it only in games that use it.
+        var sharedVictory = c.SharedVictory
+            ? "\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their combined growth beats every other power's growth."
+            : "";
         sb.AppendLine($"""
             You are playing Amarna Letters, a strategy game set among the seven Great Kings of the Late Bronze Age (c. 1360-1330 BCE): Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus). The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one king. Your only goal is to win.
 
             HOW YOU WIN
             - The winner is the power whose strength grew most relative to its own starting strength. Strength = {c.ProvinceWeight} x (sum of the base yields of the provinces you hold) + the gold in your treasury. A small kingdom that doubles beats an empire that merely holds its ground.
-            - No game ends before turn {c.MinTurns}. From then on, at the end of every season the game ends with a {c.EndChance * 100:0}% chance. Nobody knows which season is the last.
-            - Shared victory{(c.SharedVictory ? "" : " (switched off in this game)")}: two powers that sealed a tablet marked as a sworn alliance win together if their combined growth beats every other power's growth.
+            - No game ends before turn {c.MinTurns}. From then on, at the end of every season the game ends with a {c.EndChance * 100:0}% chance. Nobody knows which season is the last.{sharedVictory}
 
             EACH SEASON (one turn; three seasons make a year)
             1. Income: provinces pay their yield in gold. You pay upkeep for every army ({c.ArmyUpkeep}) and fleet ({c.FleetUpkeep}) and the wages of your people. Unpaid troops desert; unpaid people lose loyalty and may leave.

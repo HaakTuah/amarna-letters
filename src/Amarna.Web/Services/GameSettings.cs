@@ -9,7 +9,7 @@ public sealed class GameSettings
     public SeatChoices Choices { get; set; } = new();
     public bool Chronicles { get; set; } = true;
     public bool CustomsPrimer { get; set; } = true;
-    public bool SharedVictory { get; set; } = true;
+    public bool SharedVictory { get; set; }
     /// <summary>Model kings are asked only when something concerns them (script and human kings play every season).</summary>
     public bool SleepingSeats { get; set; }
     public int MaxSleep { get; set; } = 6;

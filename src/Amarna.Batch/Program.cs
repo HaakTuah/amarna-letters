@@ -12,7 +12,7 @@ using Amarna.Llm;
 //   --leaders script|haiku|sonnet|opus   --characters script|haiku|sonnet   --narrator template|haiku|sonnet|opus
 //   --effort low|medium|high
 //   --budget 5   (stop when total spend reaches this many dollars)
-// Experiments: --no-primer (leaders without the customs primer), --no-shared-victory
+// Experiments: --no-primer (leaders without the customs primer), --shared-victory (the house rule, off by default)
 // Benchmark:   --versus baseline (half the kings are the frozen first bot, alternating by seed)
 //              --versus solo (each king in turn plays the current bot against six baselines)
 //              --focus Mitanni (only that king plays the current bot; add --detail to follow it)
@@ -57,6 +57,7 @@ for (var i = 0; i < args.Length; i++)
             focus = Enum.Parse<Power>(args[++i], ignoreCase: true);
             break;
         case "--no-primer": config = config with { CustomsPrimer = false }; break;
+        case "--shared-victory": config = config with { SharedVictory = true }; break;
         case "--no-shared-victory": config = config with { SharedVictory = false }; break;
         case "--sleep": config = config with { SleepingSeats = args[++i] is "on" or "true" or "1" }; break;
         case "--sleep-cap": config = config with { MaxSleep = int.Parse(args[++i]) }; break;
@@ -75,7 +76,7 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --no-shared-victory --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-timeout MINUTES");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-timeout MINUTES");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");

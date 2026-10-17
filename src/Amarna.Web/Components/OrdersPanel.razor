@@ -150,7 +150,7 @@
                 </div>
                 <div class="field" style="margin-top:.4rem"><span>A tablet for both kings to seal (optional, @Ui.Shekels(v.Prices["tabletFee"]) for the scribe)</span>
                     <textarea maxlength="1200" @bind="TabletText" placeholder="By Shamash: ..."></textarea>
-                    <label><input type="checkbox" @bind="Oath" /> a sworn alliance (counts for a shared victory)</label>
+                    <label><input type="checkbox" @bind="Oath" /> a sworn alliance@(State.Config.SharedVictory ? " (counts for a shared victory)" : "")</label>
                 </div>
                 @if (v.Tablets.Count > 0)
                 {

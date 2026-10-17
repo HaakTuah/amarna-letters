@@ -65,7 +65,7 @@ public static class Schemas
     /// <summary>A king's orders. With sleeping seats on, it may also choose to sleep and schedule orders for later seasons.</summary>
     public static JsonObject LeaderOrders(GameConfig? c = null)
     {
-        var o = LeaderOrdersBase();
+        var o = LeaderOrdersBase(c?.SharedVictory ?? false);
         if (c is not { SleepingSeats: true }) return o;
         var props = (JsonObject)o["properties"]!;
         var required = (JsonArray)o["required"]!;
@@ -88,7 +88,7 @@ public static class Schemas
         return o;
     }
 
-    private static JsonObject LeaderOrdersBase() => Object(
+    private static JsonObject LeaderOrdersBase(bool sharedVictory) => Object(
         ("notes", Str("Private notes to yourself for next season: plans, promises made, suspicions.")),
         ("units", Array(UnitOrder())),
         ("letters", Array(Object(
@@ -104,7 +104,7 @@ public static class Schemas
             ("your_name_first", Bool()),
             ("omit_greeting", Bool()),
             ("tablet_to_seal", Str("Text for both kings to seal, or empty.")),
-            ("sworn_alliance", Bool("Mark the tablet as a sworn alliance (counts for a shared victory).")),
+            ("sworn_alliance", Bool(sharedVictory ? "Mark the tablet as a sworn alliance (counts for a shared victory)." : "Mark the tablet as a sworn alliance.")),
             ("show_tablet_copies", Array(Str(), "Ids of tablet copies you hold to show as evidence."))))),
         ("other_orders", Array(OtherOrder())));
 

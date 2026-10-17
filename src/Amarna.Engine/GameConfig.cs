@@ -9,7 +9,8 @@ public sealed record GameConfig
     public int MaxTurns { get; init; } = 60;
     /// <summary>Strength = ProvinceWeight x (sum of owned base yields) + gold.</summary>
     public int ProvinceWeight { get; init; } = 10;
-    public bool SharedVictory { get; init; } = true;
+    /// <summary>Off by default (since 18 October 2026): a house rule for experiments, never in a king's rulebook unless switched on.</summary>
+    public bool SharedVictory { get; init; }
 
     // Economy and military
     public int ArmyCost { get; init; } = 100;

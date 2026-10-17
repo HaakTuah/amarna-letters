@@ -23,11 +23,13 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
-- **Shared victory** (on by default, switchable; under review in the design document): two powers
-  holding a sealed tablet marked as a sworn alliance win together if their combined growth beats
-  every other power's growth. Only pairs count, never three or more. The script kings' coalition
-  and defence pacts are not marked as sworn alliances, so they never share a win, but a model or
-  human king may mark any tablet as one. The options under review are in `docs/ROUND-REPORT.md` (E23).
+- **Shared victory is off** (since 18 October 2026; see `docs/ROUND-REPORT.md`, question 23). One
+  power wins: the one with the highest growth. A tablet can still be marked as a sworn alliance,
+  and the script kings still treat it as a full alliance, but it shares nothing. The rulebook and
+  the order schema mention shared victory only when the house rule is on (`--shared-victory` in the
+  batch runner, "Customize" in the browser). With it on, two powers holding a sealed tablet marked
+  as a sworn alliance win together if their combined growth beats every other power's growth; only
+  pairs count, never three or more.
 - **Convoys** follow Diplomacy, with Kruijswijk's guess-and-check adjudication; circular movement
   succeeds, and convoy paradoxes are resolved by the Szykman rule (the convoyed army stays put).
 - **News of a season is read the next season.** Battles, purchases, rejected orders and notices
@@ -594,7 +596,7 @@ What script kings never do, and how they treat oaths:
   - A peace letter carries gold only if the sender holds less land yield than the recipient, or its generosity is above 0.6.
 - **Tablets.**
   - Peace: "brothers. Neither king shall send troops into the lands of the other."
-  - Full alliance: "allies. Each shall stand with the other against any enemy, and they shall share in the victory." This is an alliance oath.
+  - Full alliance: "allies. Each shall stand with the other against any enemy, and the friend of one shall be the friend of the other." This is an alliance oath. (Until 18 October 2026 it ended "and they shall share in the victory".)
   - Coalition: see Coalitions.
 - **Instructions.** Peace, alliance, coalition and evidence envoys are told to promise no land. Gift and lulling envoys are told to promise nothing. Grievance envoys demand withdrawal and gifts. Mission letters include the power's own line, such as Egypt's gold "as plentiful as dust" (at the end, except in peace letters); evidence letters do not.
 
@@ -684,7 +686,8 @@ Mira yield 30, and it starts with 300 gold. The fleet came with the coalition bo
 eight seasons, before a letter from anyone who could help had arrived; with Arzawa able to hold
 its coast, Hatti takes under a third.
 
-Two runs of 100 games, all replays exact (mean growth over both):
+Two runs of 100 games with shared victory on, as it was when balance was frozen, all replays exact
+(mean growth over both):
 
 | Power | Tier | Wins, seeds 1–100 | Wins, seeds 101–200 | Mean growth |
 |---|---|---|---|---|
@@ -700,6 +703,24 @@ Shared wins count for both partners (about one game in seven ends in one, down f
 before rivals for the crown stopped allying), so columns add up to more than 100%. Mitanni,
 squeezed between Hatti and Assyria, and Alashiya, which neither conquers nor can outbuy Egypt,
 still win least, Alashiya only by sharing a victory with a great king it has bandwagoned with.
+
+With shared victory off (the default since 18 October 2026), the same seeds, all replays exact:
+
+| Power | Wins, seeds 1–100 | Wins, seeds 101–200 | Mean growth |
+|---|---|---|---|
+| Egypt | 23% | 22% | 2.33 |
+| Hatti | 29% | 28% | 1.92 |
+| Babylonia | 16% | 12% | 2.23 |
+| Mitanni | 3% | 4% | 0.86 |
+| Assyria | 16% | 20% | 1.58 |
+| Arzawa | 13% | 14% | 1.32 |
+| Alashiya | 0% | 0% | 1.12 |
+
+The games play out as before (no script king's decision depends on the rule; mean growth and the
+coalition counts are the same); only the winner changes, and a win that was shared now goes to the
+power with the highest growth. Alashiya, whose wins were all shared, no longer wins at all against
+script kings. Balance stays frozen, so this is recorded, not tuned; it is the first thing to look
+at once model kings have played (see the round report).
 
 The coalition signal (two kings supporting each other into the leader's land, or holding against
 his attack) fires in about one game in ten: 27 times in 15 of seeds 1–100 and 9 times in 8 of
@@ -719,8 +740,8 @@ The design document records intent; these notes record what is built. Where they
   so a letter and its reply take two seasons between neighbouring capitals and four otherwise.
   Sieges, walls that vary, terrain and the other tempo ideas are not built (see
   `docs/ROUND-REPORT.md`, question 5).
-- **Shared victory and scoring are under review** in the document; the code is as described in
-  "Rules as implemented". Buying a city is score-neutral at the moment of purchase: its price is
+- **Shared victory is off by default**, as recommended in `docs/ROUND-REPORT.md` (question 23),
+  and kept as a house rule. Scoring is as described in "Rules as implemented". Buying a city is score-neutral at the moment of purchase: its price is
   10 × yield in gold, and it counts 10 × yield in strength. The growth comes afterwards, from its
   income.
 - **Two kinds of threat.** The script kings already weigh a security threat (hostility, troops on
