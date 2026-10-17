@@ -1,0 +1,48 @@
+@{
+    var items = State.InboxOf(Power);
+    var turns = items.Select(i => i.Turn).Distinct().OrderByDescending(t => t).ToList();
+    var shown = ShowAll ? turns : turns.Take(1).ToList();
+    var t = State.Treasuries[Power];
+}
+<div class="row" style="justify-content:space-between;margin-bottom:.5rem">
+    <h3 style="margin:0">@Power.Name()'s court</h3>
+    <label><input type="checkbox" @bind="ShowAll" /> Earlier seasons</label>
+</div>
+<p class="muted">Treasury (by your ledger): @Ui.Shekels(t.Ledger)@(t.Lots.Count > 0 ? $", including {t.Lots.Count} unassayed shipment(s)" : "").</p>
+
+@if (items.Count == 0)
+{
+    <p class="muted">Nothing has arrived yet.</p>
+}
+@foreach (var turn in shown)
+{
+    <h4 class="muted" style="margin:.8rem 0 .3rem">@Calendar.Season(turn, Power)</h4>
+    @foreach (var item in items.Where(i => i.Turn == turn).OrderBy(i => Order(i.Kind)))
+    {
+        <div class="item">
+            <h4>@item.Title <span class="pill">@Kind(item.Kind)</span></h4>
+            <div class="body">@item.Body</div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public GameState State { get; set; } = default!;
+    [Parameter, EditorRequired] public Power Power { get; set; }
+    private bool ShowAll;
+
+    private static int Order(InboxKind k) => k switch
+    {
+        InboxKind.Catastrophe => 0, InboxKind.EnvoyReport => 1, InboxKind.Audience => 2, InboxKind.SpyReport => 3,
+        InboxKind.Rumor => 4, InboxKind.Battle => 5, InboxKind.Rejected => 6, InboxKind.Notice => 9, _ => 7,
+    };
+
+    private static string Kind(InboxKind k) => k switch
+    {
+        InboxKind.EnvoyReport => "envoy report",
+        InboxKind.SpyReport => "agent",
+        InboxKind.CheckResult => "inquiry",
+        InboxKind.Rejected => "rejected",
+        _ => k.ToString().ToLowerInvariant(),
+    };
+}

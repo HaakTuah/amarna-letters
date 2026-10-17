@@ -1,0 +1,198 @@
+@page "/play"
+@implements IDisposable
+@inject GameSession Session
+
+<PageTitle>Amarna Letters — @(Session.Runner is null ? "no game" : $"turn {Session.Runner.State.Turn}")</PageTitle>
+
+@if (Session.Runner is null)
+{
+    <div class="page">
+        @if (Session.Busy) { <p>Preparing the game…</p> }
+        else { <p>No game is running. <a href="">Start one</a> or load a saved log.</p> }
+    </div>
+}
+else
+{
+    var runner = Session.Runner;
+    var state = Session.Displayed!;
+    var viewer = Viewer;
+    var view = viewer is { } vp ? Views.For(state, vp) : null;
+    var pendingOrders = Session.HistoryTurn is null ? Session.Humans.Values.FirstOrDefault(h => h.PendingOrders is not null) : null;
+    var pendingAudience = Session.HistoryTurn is null ? Session.Humans.Values.FirstOrDefault(h => h.PendingAudience is not null) : null;
+    EnsureDraft(pendingOrders);
+    var useDraft = Tab == "orders" && Draft is not null;
+
+    <div class="game">
+        <div class="controls">
+            <span class="season">@(viewer is { } sv ? Calendar.Season(state.Turn, sv) : Calendar.Neutral(state.Turn))</span>
+            <span class="phase">@(Session.HistoryTurn is int ht ? $"History: after turn {ht}" : runner.Phase)</span>
+            <span class="spacer"></span>
+            <button disabled="@(Session.Busy || Session.ReadOnly || runner.State.Ended || Session.Auto)" @onclick="Session.StepAsync">Play one season</button>
+            @if (Session.Auto)
+            {
+                <button @onclick="() => Session.SetAuto(false)">Pause</button>
+            }
+            else
+            {
+                <button class="primary" disabled="@(Session.ReadOnly || runner.State.Ended)" @onclick="() => Session.SetAuto(true)">Auto-play</button>
+            }
+            <select @bind="Session.DelayMs" title="Pause between seasons">
+                <option value="50">Fast</option>
+                <option value="400">Normal</option>
+                <option value="1500">Slow</option>
+            </select>
+            <select value="@(Session.ViewAs?.ToString() ?? "")" @onchange="ChangeView">
+                @if (Session.CanSeeAll)
+                {
+                    <option value="">God view (everything)</option>
+                    @foreach (var p in Powers.All) { <option value="@p">As @p.Name() sees it</option> }
+                }
+                else
+                {
+                    @foreach (var p in Session.Humans.Keys) { <option value="@p">@p.Name() (you)</option> }
+                }
+            </select>
+            @if (Session.HasHumans)
+            {
+                <label title="Shows everything the engine knows: spoils the game"><input type="checkbox" @bind="Session.Reveal" /> Reveal all</label>
+            }
+            @if (Session.Settings.UsesModels || Session.Cost > 0)
+            {
+                <span class="pill" title="Model spend for this game">$@Session.Cost.ToString("0.00") / $@Session.Settings.BudgetUsd.ToString("0.00")</span>
+            }
+            <button @onclick="Session.ExportAsync">Export log</button>
+        </div>
+
+        <div class="board">
+            <div class="mapwrap">
+                @if (Session.Error is not null) { <div class="notice error">@Session.Error <button class="small" @onclick="Session.ClearMessages">Dismiss</button></div> }
+                @if (Session.Notice is not null)
+                {
+                    <div class="notice">@Session.Notice
+                        @if (Session.Notice.StartsWith("Paused")) { <button class="small" @onclick="() => Session.RaiseBudget(5)">Add $5</button> }
+                    </div>
+                }
+                @if (runner.Errors.Count > 0 && (Session.GodView || !Session.HasHumans))
+                {
+                    <details class="notice"><summary>@runner.Errors.Count call(s) failed and used script fallbacks</summary>
+                        @foreach (var e in runner.Errors.TakeLast(8)) { <div><small>@e</small></div> }
+                    </details>
+                }
+                @if (state.Ended)
+                {
+                    <div class="notice"><strong>The age has ended</strong> (@state.EndReason). Winner: @string.Join(" and ", state.Winners).</div>
+                }
+                <MapView State="state" SeatUnits="view?.Units" Visible="@(view is null ? null : view.Visible.ToHashSet())"
+                         Selected="@(useDraft ? Draft!.Selected : SelectedProvince)" Targets="@(useDraft ? Draft!.Targets() : null)"
+                         Arrows="@(useDraft ? Draft!.Arrows() : null)" OnProvince="Clicked" />
+                @if (SelectedProvince is not null && !useDraft)
+                {
+                    <ProvinceInfo State="state" Id="@SelectedProvince" View="view" />
+                }
+            </div>
+
+            <div class="panel">
+                <div class="tabs">
+                    @if (pendingAudience is not null) { <button class="@TabClass("audience", true)" @onclick='() => Tab = "audience"'>Audience!</button> }
+                    @if (pendingOrders is not null) { <button class="@TabClass("orders", true)" @onclick='() => Tab = "orders"'>Your orders</button> }
+                    @if (view is not null) { <button class="@TabClass("inbox")" @onclick='() => Tab = "inbox"'>Inbox</button> }
+                    @if (Session.GodView) { <button class="@TabClass("trail")" @onclick='() => Tab = "trail"'>Message trail</button> }
+                    <button class="@TabClass("people")" @onclick='() => Tab = "people"'>People</button>
+                    <button class="@TabClass("standings")" @onclick='() => Tab = "standings"'>Standings</button>
+                    <button class="@TabClass("events")" @onclick='() => Tab = "events"'>Events</button>
+                    @if (state.Ended && runner.Chronicles.Count > 0) { <button class="@TabClass("chronicle")" @onclick='() => Tab = "chronicle"'>Chronicles</button> }
+                </div>
+                <div class="panelbody">
+                    @switch (EffectiveTab(pendingOrders, pendingAudience, view))
+                    {
+                        case "audience":
+                            <AudiencePanel Seat="pendingAudience!" />
+                            break;
+                        case "orders":
+                            <OrdersPanel Draft="Draft!" Seat="pendingOrders!" State="runner.State" OnChanged="StateHasChanged" />
+                            break;
+                        case "inbox":
+                            <InboxPanel State="state" Power="viewer!.Value" />
+                            break;
+                        case "trail":
+                            <TrailPanel State="state" />
+                            break;
+                        case "people":
+                            <PeoplePanel State="state" Viewer="viewer" />
+                            break;
+                        case "standings":
+                            <StandingsPanel State="state" Viewer="viewer" />
+                            break;
+                        case "chronicle":
+                            <ChroniclePanel Runner="runner" />
+                            break;
+                        default:
+                            <EventsPanel State="state" Viewer="viewer" />
+                            break;
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline">
+            <small>Start</small>
+            <input type="range" min="0" max="@Math.Max(0, runner.Snapshots.Count - 1)" value="@(Session.HistoryTurn ?? Math.Max(0, runner.Snapshots.Count - 1))"
+                   @onchange="e => Session.ShowTurn(int.Parse((string)e.Value!))" disabled="@(runner.Snapshots.Count < 2)" />
+            <small>@(Session.HistoryTurn is int t ? $"after turn {t}" : "now")</small>
+            <button class="small" disabled="@(Session.HistoryTurn is null)" @onclick="() => Session.ShowTurn(null)">Back to now</button>
+        </div>
+    </div>
+}
+
+@code {
+    private string Tab { get; set; } = "";
+    private string? SelectedProvince;
+    private OrderDraft? Draft;
+    private SeatView? _draftFor;
+
+    private Power? Viewer => Session.GodView ? null : Session.ViewAs ?? Session.Humans.Keys.Cast<Power?>().FirstOrDefault();
+
+    protected override void OnInitialized() => Session.Changed += Refresh;
+
+    public void Dispose() => Session.Changed -= Refresh;
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    private void EnsureDraft(HumanSeat? seat)
+    {
+        var view = seat?.PendingOrders;
+        if (view is null) { Draft = null; _draftFor = null; return; }
+        if (!ReferenceEquals(view, _draftFor))
+        {
+            Draft = new OrderDraft(view);
+            _draftFor = view;
+            Tab = "orders";
+        }
+    }
+
+    private string EffectiveTab(HumanSeat? orders, HumanSeat? audience, SeatView? view)
+    {
+        if (Tab == "audience" && audience is null) Tab = "";
+        if (Tab == "orders" && orders is null) Tab = "";
+        if (Tab == "inbox" && view is null) Tab = "";
+        if (Tab == "trail" && !Session.GodView) Tab = "";
+        if (Tab == "" || Tab is null)
+            Tab = audience is not null ? "audience" : orders is not null ? "orders" : view is not null ? "inbox" : Session.GodView ? "trail" : "events";
+        return Tab;
+    }
+
+    private string TabClass(string tab, bool alert = false) => (Tab == tab ? "on " : "") + (alert && Tab != tab ? "alert" : "");
+
+    private void ChangeView(ChangeEventArgs e)
+    {
+        var s = (string?)e.Value;
+        Session.ViewAs = string.IsNullOrEmpty(s) ? null : Enum.Parse<Power>(s);
+        Tab = "";
+    }
+
+    private void Clicked(string province)
+    {
+        if (Tab == "orders" && Draft is not null) Draft.Click(province);
+        else SelectedProvince = SelectedProvince == province ? null : province;
+    }
+}

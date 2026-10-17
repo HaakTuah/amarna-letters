@@ -1,0 +1,52 @@
+@{
+    var engine = new TurnEngine(State);
+    var latest = State.Scores.Count == 0 ? 0 : State.Scores.Max(s => s.Turn);
+    var known = Viewer is null;
+}
+<h3>Standings</h3>
+<p class="muted">The winner is whoever grew most relative to where they began. @(known ? "" : "You see only your own figures; rivals' treasuries are private.")</p>
+<table>
+    <thead><tr><th>Power</th><th>Growth</th><th>Lands</th><th>Units</th><th>Gold</th></tr></thead>
+    <tbody>
+        @foreach (var p in Powers.All.OrderByDescending(p => known || p == Viewer ? engine.Growth(p) : -1))
+        {
+            var mine = known || p == Viewer;
+            <tr>
+                <td><span class="dot" style="background:@Ui.Color(p)"></span> @p.Name() @(State.IsAlive(p) ? "" : "(fallen)")</td>
+                <td>@(mine ? engine.Growth(p).ToString("0.00") : "?")</td>
+                <td>@State.OwnedBy(p).Count()</td>
+                <td>@(mine ? State.Units.Count(u => u.Power == p).ToString() : "?")</td>
+                <td>@(mine ? Ui.Shekels(State.Treasuries[p].Gold) : "?")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (known && latest > 0)
+{
+    var max = Math.Max(1.5, State.Scores.Max(s => s.Growth));
+    var w = 600.0;
+    var h = 200.0;
+    <h4 style="margin-top:1rem">Growth over time</h4>
+    <svg viewBox="0 0 @w @(h + 20)" style="width:100%;height:auto" role="img" aria-label="Growth of each power by turn">
+        <line x1="0" y1="@Y(1, max, h)" x2="@w" y2="@Y(1, max, h)" stroke="var(--line)" stroke-dasharray="4 4" />
+        <text x="2" y="@(Y(1, max, h) - 4)" font-size="11" fill="var(--muted)">start</text>
+        @foreach (var p in Powers.All)
+        {
+            var rows = State.Scores.Where(s => s.Power == p).OrderBy(s => s.Turn).ToList();
+            var pts = string.Join(" ", rows.Select(r => $"{F(X(r.Turn, latest, w))},{F(Y(r.Growth, max, h))}"));
+            <polyline points="@pts" fill="none" stroke="@Ui.Color(p)" stroke-width="2.2" />
+        }
+        <text x="@w" y="@(h + 16)" font-size="11" fill="var(--muted)" text-anchor="end">turn @latest</text>
+    </svg>
+    <div class="row">@foreach (var p in Powers.All) { <span class="pill"><span class="dot" style="background:@Ui.Color(p)"></span>@p.Name()</span> }</div>
+}
+
+@code {
+    [Parameter, EditorRequired] public GameState State { get; set; } = default!;
+    [Parameter] public Power? Viewer { get; set; }
+
+    private static double X(int turn, int last, double w) => last <= 1 ? 0 : (turn - 1) * w / (last - 1);
+    private static double Y(double g, double max, double h) => h - g / max * h + 4;
+    private static string F(double v) => v.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+}

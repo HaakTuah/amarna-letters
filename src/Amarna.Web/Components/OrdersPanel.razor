@@ -1,0 +1,327 @@
+@* A human seat's orders for one season: units, treasury, envoys, court and tablets. *@
+@{
+    var v = Draft.View;
+    var me = v.Power;
+    var map = WorldMap.Default;
+    var visibleUnits = v.Units.OrderBy(u => u.Power).ThenBy(u => Ui.Province(u.Province)).ToList();
+    var ready = v.Court.Where(c => c.Ready).ToList();
+    var reserved = Draft.Other.Select(o => o switch { DispatchOrder d => d.Envoy, PlaceSpyOrder p => p.Character, ForgeOrder f => f.Character, _ => null }).Where(x => x is not null).ToHashSet();
+}
+<div class="orders">
+    <div class="section">
+        <h3>Orders for @v.Season</h3>
+        <p class="muted">
+            Treasury @Ui.Shekels(v.Gold) · income @Ui.Shekels(v.Income) · upkeep @Ui.Shekels(v.Upkeep) · wages @Ui.Shekels(v.Wages).
+            Growth so far: @(v.StartStrength > 0 ? (v.Strength / (double)v.StartStrength).ToString("0.00") : "-").
+        </p>
+        <p class="muted"><small>Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take: @string.Join("; ", v.TravelTimes).</small></p>
+    </div>
+
+    <div class="section">
+        <h3>Troops</h3>
+        @if (Draft.Units.Count == 0) { <p class="muted">You have no troops.</p> }
+        @foreach (var (at, d) in Draft.Units.OrderBy(x => Ui.Province(x.Key)))
+        {
+            var unit = Draft.UnitAt(at)!;
+            <div class="unitrow">
+                <span><span class="dot" style="background:@Ui.Color(me)"></span> @(unit.Kind == UnitKind.Army ? "Army" : "Fleet") @Ui.Province(at)</span>
+                <select value="@d.Kind" @onchange="e => { d.Kind = (string)e.Value!; d.Target = null; d.To = null; Changed(); }">
+                    <option value="hold">Hold</option>
+                    <option value="move">Move</option>
+                    <option value="support">Support</option>
+                    @if (unit.Kind == UnitKind.Fleet && map[at].IsSea) { <option value="convoy">Convoy</option> }
+                    <option value="disband">Disband</option>
+                </select>
+                <span class="row" style="gap:.3rem">
+                    @if (d.Kind == "move")
+                    {
+                        <select value="@(d.Target ?? "")" @onchange="e => { d.Target = (string)e.Value!; Changed(); }">
+                            <option value="">— where? —</option>
+                            @foreach (var to in Draft.MovesFor(at)) { <option value="@to">@Ui.Province(to)@(map.CanMove(unit.Kind, at, to) ? "" : " (by sea)")</option> }
+                        </select>
+                    }
+                    else if (d.Kind == "support")
+                    {
+                        <select value="@(d.Target ?? "")" @onchange="e => { d.Target = (string)e.Value!; d.To = null; Changed(); }">
+                            <option value="">— whom? —</option>
+                            @foreach (var u in visibleUnits.Where(u => u.Province != at)) { <option value="@u.Province">@u.Power.Name() @(u.Kind == UnitKind.Army ? "A" : "F") @Ui.Province(u.Province)</option> }
+                        </select>
+                        @if (d.Target is not null)
+                        {
+                            <select value="@(d.To ?? "")" @onchange="e => { d.To = (string)e.Value!; Changed(); }">
+                                <option value="">to hold</option>
+                                @foreach (var to in map.MovesFrom(unit.Kind, at).Where(x => x != d.Target)) { <option value="@to">into @Ui.Province(to)</option> }
+                            </select>
+                        }
+                    }
+                    else if (d.Kind == "convoy")
+                    {
+                        <select value="@(d.Target ?? "")" @onchange="e => { d.Target = (string)e.Value!; Changed(); }">
+                            <option value="">— which army? —</option>
+                            @foreach (var u in visibleUnits.Where(u => u.Kind == UnitKind.Army && map[u.Province].IsCoastal)) { <option value="@u.Province">@u.Power.Name() A @Ui.Province(u.Province)</option> }
+                        </select>
+                        <select value="@(d.To ?? "")" @onchange="e => { d.To = (string)e.Value!; Changed(); }">
+                            <option value="">— to? —</option>
+                            @foreach (var p in map.LandProvinces.Where(p => p.IsCoastal).OrderBy(p => p.Name)) { <option value="@p.Id">@p.Name</option> }
+                        </select>
+                    }
+                </span>
+            </div>
+        }
+    </div>
+
+    <div class="section">
+        <h3>Treasury and land</h3>
+        <div class="row">
+            <select @bind="RaiseAt">
+                <option value="">Raise troops in…</option>
+                @foreach (var p in map.HomeOf(me).Where(p => v.Owner.GetValueOrDefault(p.Id) == me && v.Units.All(u => u.Province != p.Id))) { <option value="@p.Id">@p.Name</option> }
+            </select>
+            <select @bind="RaiseKind"><option value="Army">army (@Ui.Shekels(v.Prices["army"]))</option><option value="Fleet">fleet (@Ui.Shekels(v.Prices["fleet"]))</option></select>
+            <button class="small" disabled="@(RaiseAt == "")" @onclick="() => Add(new RaiseOrder(RaiseAt, Enum.Parse<UnitKind>(RaiseKind)))">Add</button>
+        </div>
+        <div class="row" style="margin-top:.4rem">
+            <select @bind="BuyCity">
+                <option value="">Buy a free city…</option>
+                @foreach (var g in v.Garrisons.Where(g => v.Owner.GetValueOrDefault(g) is null && map.Neighbors(g).Any(n => v.Owner.GetValueOrDefault(n) == me || v.Units.Any(u => u.Power == me && u.Province == n))).OrderBy(Ui.Province)) { <option value="@g">@Ui.Province(g) (@Ui.Shekels(map[g].Yield * v.Prices["cityPricePerYield"]))</option> }
+            </select>
+            <button class="small" disabled="@(BuyCity == "")" @onclick="() => Add(new BuyProvinceOrder(BuyCity))">Add</button>
+        </div>
+        <div class="row" style="margin-top:.4rem">
+            <select @bind="CedeWhat">
+                <option value="">Cede a province…</option>
+                @foreach (var (id, _) in v.Owner.Where(x => x.Value == me).OrderBy(x => Ui.Province(x.Key))) { <option value="@id">@Ui.Province(id)</option> }
+            </select>
+            <select @bind="CedeTo">@foreach (var p in Powers.All.Where(p => p != me && !v.Fallen.Contains(p))) { <option value="@p">to @p.Name()</option> }</select>
+            <button class="small" disabled="@(CedeWhat == "")" @onclick="() => Add(new CedeProvinceOrder(CedeWhat, Enum.Parse<Power>(CedeTo)))">Add</button>
+        </div>
+        <div class="row" style="margin-top:.4rem">
+            <select @bind="GiftUnit">
+                <option value="">Give troops…</option>
+                @foreach (var at in Draft.Units.Keys) { <option value="@at">@Ui.Province(at)</option> }
+            </select>
+            <select @bind="GiftTo">@foreach (var p in Powers.All.Where(p => p != me && !v.Fallen.Contains(p))) { <option value="@p">to @p.Name()</option> }</select>
+            <button class="small" disabled="@(GiftUnit == "")" @onclick="() => Add(new GiftUnitOrder(GiftUnit, Enum.Parse<Power>(GiftTo)))">Add</button>
+        </div>
+        @foreach (var lot in v.UnassayedGold)
+        {
+            <div class="row" style="margin-top:.4rem">
+                <small>@Ui.Shekels(lot.Weighed) from @lot.From.Name() (inventory said @Ui.Shekels(lot.Stated)), not yet assayed</small>
+                <button class="small" @onclick="() => Add(new AssayOrder(lot.Id))">Assay (@Ui.Shekels(v.Prices["assay"]))</button>
+            </div>
+        }
+    </div>
+
+    <div class="section">
+        <h3>Envoys</h3>
+        @if (ready.Count == 0) { <p class="muted">No envoy is at court and free this season.</p> }
+        else
+        {
+            <div class="field"><span>Envoy</span>
+                <select @bind="Envoy">
+                    <option value="">— choose —</option>
+                    @foreach (var c in ready.Where(c => !reserved.Contains(c.Id))) { <option value="@c.Id">@c.Name</option> }
+                </select>
+            </div>
+            @if (Envoy != "")
+            {
+                <div class="field"><span>To the court of</span>
+                    <select @bind="SendTo">@foreach (var p in Powers.All.Where(p => p != me && !v.Fallen.Contains(p))) { <option value="@p">@p.Name()</option> }</select>
+                </div>
+                <div class="field"><span>Greeting (sealed on the tablet: the envoy cannot change it)</span>
+                    <div class="row">
+                        <label><input type="checkbox" @bind="G.CallBrother" /> call them brother</label>
+                        <label><input type="checkbox" @bind="G.GrantGreatKing" /> call them Great King</label>
+                        <label><input type="checkbox" @bind="G.ClaimGreatKing" /> claim Great King yourself</label>
+                        <label><input type="checkbox" @bind="G.SenderFirst" /> your name first</label>
+                        <label><input type="checkbox" @bind="G.Omit" /> no greeting</label>
+                    </div>
+                    <div class="tablet" style="font-size:.88rem;margin-top:.3rem">@(Greeting.Render(me, Enum.Parse<Power>(SendTo), G) is { Length: > 0 } g ? g : "(no greeting)")</div>
+                </div>
+                <div class="field"><span>Your message (the envoy will speak it in their own words)</span>
+                    <textarea maxlength="1500" @bind="Letter" placeholder="What should your envoy say?"></textarea>
+                </div>
+                <div class="field"><span>Mandate: what the envoy may agree to</span>
+                    <input @bind="Mandate" placeholder="e.g. peace and an exchange of gifts; no land" />
+                </div>
+                <div class="row">
+                    <label>Gold <input type="number" min="0" @bind="Gold" /></label>
+                    <label title="Below 100% the gold is debased: the receiver sees only its weight until they pay for an assay">purity % <input type="number" min="10" max="100" @bind="Purity" /></label>
+                </div>
+                <div class="field" style="margin-top:.4rem"><span>A tablet for both kings to seal (optional, @Ui.Shekels(v.Prices["tabletFee"]) for the scribe)</span>
+                    <textarea maxlength="1200" @bind="TabletText" placeholder="By Shamash: ..."></textarea>
+                    <label><input type="checkbox" @bind="Oath" /> a sworn alliance (counts for a shared victory)</label>
+                </div>
+                @if (v.Tablets.Count > 0)
+                {
+                    <div class="field"><span>Show tablets you hold as evidence</span>
+                        @foreach (var t in v.Tablets) { <label><input type="checkbox" checked="@Copies.Contains(t.CopyId)" @onchange="e => Toggle(Copies, t.CopyId, (bool)e.Value!)" /> @Greeting.Cap(t.Text, 70)</label> }
+                    </div>
+                }
+                <button class="primary small" disabled="@(Letter.Trim().Length == 0)" @onclick="AddDispatch">Send this envoy</button>
+            }
+        }
+    </div>
+
+    <div class="section">
+        <h3>Court</h3>
+        <div class="row">
+            <button class="small" disabled="@Draft.Other.Any(o => o is SeekCandidatesOrder)" @onclick="() => Add(new SeekCandidatesOrder())">Ask for candidates</button>
+            <label>Watch for spies: <input type="number" min="0" @bind="Watch" /></label>
+            <button class="small" disabled="@(Watch <= 0)" @onclick="() => Add(new CounterIntelOrder(Watch))">Add</button>
+        </div>
+        @foreach (var c in v.Known.Where(c => c.Status == "free" && c.Pitch is not null))
+        {
+            <div class="item">
+                <Person C="c" />
+                <div class="row">
+                    <label>Wage <input type="number" min="1" @bind="Wages[c.Id]" /></label>
+                    <button class="small" @onclick="() => Add(new HireOrder(c.Id, Wages.GetValueOrDefault(c.Id, c.AskingPrice ?? 15), 6))">Hire for 6 seasons</button>
+                </div>
+            </div>
+        }
+        <div class="row" style="margin-top:.4rem">
+            <select @bind="CheckWho">
+                <option value="">Inquire into…</option>
+                @foreach (var c in v.Court.Concat(v.Known)) { <option value="@c.Id">@c.Name</option> }
+            </select>
+            <label>spend <input type="number" min="10" @bind="CheckSpend" /></label>
+            <button class="small" disabled="@(CheckWho == "")" @onclick="() => Add(new BackgroundCheckOrder(CheckWho, CheckSpend))">Add</button>
+        </div>
+        <div class="row" style="margin-top:.4rem">
+            <select @bind="SpyWho">
+                <option value="">Send a spy…</option>
+                @foreach (var c in ready.Where(c => !reserved.Contains(c.Id))) { <option value="@c.Id">@c.Name</option> }
+            </select>
+            <select @bind="SpyAt">
+                @foreach (var p in Powers.All.Where(p => p != me && !v.Fallen.Contains(p))) { <option value="@p">to the court of @p.Name()</option> }
+                @foreach (var p in map.LandProvinces.OrderBy(p => p.Name)) { <option value="@("@" + p.Id)">to watch @p.Name</option> }
+            </select>
+            <button class="small" disabled="@(SpyWho == "")" @onclick="AddSpy">Add</button>
+        </div>
+        @foreach (var c in v.Court.Where(c => c.Duty.StartsWith("watching")))
+        {
+            <div class="row" style="margin-top:.3rem"><small>@c.Name is @c.Duty.</small> <button class="small" @onclick="() => Add(new RecallSpyOrder(c.Id))">Recall</button></div>
+        }
+        @foreach (var c in v.Court.Where(c => c.Ready))
+        {
+            <div class="row" style="margin-top:.3rem"><small>@c.Name</small> <button class="small danger" @onclick="() => Add(new DismissOrder(c.Id))">Dismiss</button></div>
+        }
+        @foreach (var c in v.Court.Where(c => c.Status == "captured"))
+        {
+            <div class="row" style="margin-top:.3rem"><small>@c.Name is held abroad.</small> <button class="small" @onclick="() => Add(new PayRansomOrder(c.Id))">Pay the ransom demanded</button></div>
+        }
+        @foreach (var c in v.Known.Where(c => c.Status == "your captive"))
+        {
+            <div class="item">
+                <strong>@c.Name</strong>, a spy you caught.
+                <div class="row">
+                    <button class="small" @onclick="() => Add(new CaptiveOrder(c.Id, CaptiveFate.Ransom, Ransom))">Ransom for</button>
+                    <input type="number" min="1" @bind="Ransom" />
+                    <button class="small" @onclick="() => Add(new CaptiveOrder(c.Id, CaptiveFate.Turn, Poison: PoisonText))">Turn them</button>
+                    <button class="small" @onclick="() => Add(new CaptiveOrder(c.Id, CaptiveFate.Release))">Release</button>
+                    <button class="small danger" @onclick="() => Add(new CaptiveOrder(c.Id, CaptiveFate.Execute))">Execute</button>
+                </div>
+                <input style="width:100%;margin-top:.3rem" @bind="PoisonText" placeholder="If turned: what they should report home" />
+            </div>
+        }
+        @foreach (var c in v.Known.Where(c => c.HeldByYou && c.Status == "employed"))
+        {
+            <div class="row" style="margin-top:.3rem">
+                <small>You are holding @c.Name, envoy of @c.Employer?.Name().</small>
+                <input @bind="ReleaseWords" placeholder="Words to send with them" />
+                <button class="small" @onclick="() => Add(new ReleaseOrder(c.Id, ReleaseWords))">Release</button>
+            </div>
+        }
+    </div>
+
+    <div class="section">
+        <h3>Tablets</h3>
+        @if (v.Tablets.Count == 0) { <p class="muted">You hold no tablets.</p> }
+        @foreach (var t in v.Tablets)
+        {
+            <div class="item">
+                <div class="tablet">@t.Text</div>
+                <small>Seals: @string.Join(", ", t.Seals)@(t.SealedTurn is int st ? $" · sealed turn {st}" : "") · @t.Source@(t.AuthResult is not null ? $" · examined: {t.AuthResult}" : "")</small>
+                <div class="row"><button class="small" @onclick="() => Add(new AuthenticateOrder(t.CopyId, AuthSpend))">Have it examined</button> <label>spend <input type="number" min="10" @bind="AuthSpend" /></label></div>
+            </div>
+        }
+        <details>
+            <summary><small>Commission a forgery</small></summary>
+            <div class="field"><span>Forger (needs real skill; you will not know theirs until they try)</span>
+                <select @bind="ForgeWho"><option value="">— choose —</option>@foreach (var c in ready.Where(c => !reserved.Contains(c.Id))) { <option value="@c.Id">@c.Name</option> }</select>
+            </div>
+            <textarea @bind="ForgeText" placeholder="The text of the false tablet"></textarea>
+            <div class="row">@foreach (var p in Powers.All) { <label><input type="checkbox" checked="@ForgeSeals.Contains(p)" @onchange="e => Toggle(ForgeSeals, p, (bool)e.Value!)" /> @p.Name()</label> }</div>
+            <button class="small" disabled="@(ForgeWho == "" || ForgeText.Trim() == "" || ForgeSeals.Count == 0)" @onclick="() => Add(new ForgeOrder(ForgeWho, ForgeText, ForgeSeals.ToList()))">Add (@Ui.Shekels(v.Prices["forgery"]))</button>
+        </details>
+    </div>
+
+    <div class="section">
+        <h3>This season's other orders</h3>
+        @if (Draft.Other.Count == 0) { <p class="muted">None yet.</p> }
+        @foreach (var o in Draft.Other.ToList())
+        {
+            <div class="row"><small>@Ui.Describe(o, v)</small> <button class="small" @onclick="() => { Draft.Other.Remove(o); Changed(); }">Remove</button></div>
+        }
+        <div class="field" style="margin-top:.6rem"><span>Private notes (only you see these)</span><textarea @bind="Draft.Notes"></textarea></div>
+        <button class="primary" @onclick="Submit">Seal the orders for this season</button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public OrderDraft Draft { get; set; } = default!;
+    [Parameter, EditorRequired] public HumanSeat Seat { get; set; } = default!;
+    [Parameter, EditorRequired] public GameState State { get; set; } = default!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private string RaiseAt = "", RaiseKind = "Army", BuyCity = "", CedeWhat = "", CedeTo = "Egypt", GiftUnit = "", GiftTo = "Egypt";
+    private string Envoy = "", SendTo = "Hatti", Letter = "", Mandate = "", TabletText = "";
+    private int Gold, Purity = 100, Watch, CheckSpend = 30, AuthSpend = 40, Ransom = 80;
+    private bool Oath;
+    private GreetingOptions G = new();
+    private HashSet<string> Copies = new();
+    private Dictionary<string, int> Wages = new();
+    private string CheckWho = "", SpyWho = "", SpyAt = "Hatti", PoisonText = "", ReleaseWords = "", ForgeWho = "", ForgeText = "";
+    private HashSet<Power> ForgeSeals = new();
+
+    protected override void OnParametersSet()
+    {
+        var others = Powers.All.Where(p => p != Draft.View.Power).ToList();
+        if (Enum.TryParse<Power>(SendTo, out var s) && s == Draft.View.Power) SendTo = others[0].ToString();
+        if (CedeTo == Draft.View.Power.ToString()) CedeTo = others[0].ToString();
+        if (GiftTo == Draft.View.Power.ToString()) GiftTo = others[0].ToString();
+        if (SpyAt == Draft.View.Power.ToString()) SpyAt = others[0].ToString();
+        foreach (var c in Draft.View.Known.Where(c => c.AskingPrice is not null)) Wages.TryAdd(c.Id, c.AskingPrice!.Value);
+    }
+
+    private void Changed() => OnChanged.InvokeAsync();
+
+    private void Add(Order o)
+    {
+        Draft.Other.Add(o);
+        Changed();
+    }
+
+    private static void Toggle<T>(HashSet<T> set, T item, bool on)
+    {
+        if (on) set.Add(item); else set.Remove(item);
+    }
+
+    private void AddDispatch()
+    {
+        var proposal = string.IsNullOrWhiteSpace(TabletText) ? null : new TabletProposal { Text = TabletText.Trim(), AllianceOath = Oath };
+        Add(new DispatchOrder(Envoy, Enum.Parse<Power>(SendTo), Letter.Trim(), Mandate.Trim(),
+            new GreetingOptions { CallBrother = G.CallBrother, GrantGreatKing = G.GrantGreatKing, ClaimGreatKing = G.ClaimGreatKing, SenderFirst = G.SenderFirst, Omit = G.Omit },
+            Math.Max(0, Gold), Math.Clamp(Purity, 10, 100), proposal, Copies.Count > 0 ? Copies.ToList() : null));
+        Envoy = ""; Letter = ""; Mandate = ""; TabletText = ""; Gold = 0; Purity = 100; Oath = false; Copies = new(); G = new();
+    }
+
+    private void AddSpy()
+    {
+        Add(SpyAt.StartsWith("@") ? new PlaceSpyOrder(SpyWho, Province: SpyAt[1..]) : new PlaceSpyOrder(SpyWho, Court: Enum.Parse<Power>(SpyAt)));
+        SpyWho = "";
+    }
+
+    private void Submit() => Seat.SubmitOrders(Draft.Build());
+}

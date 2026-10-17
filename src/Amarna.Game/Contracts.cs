@@ -1,0 +1,85 @@
+using Amarna.Engine;
+
+namespace Amarna.Game;
+
+/// <summary>
+/// One contract for every seat: humans, language-model leaders and script bots receive the same
+/// view and return the same structured decisions. The engine never knows who sits in a seat.
+/// </summary>
+public interface ISeat
+{
+    string Label { get; }
+    Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct);
+    Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct);
+}
+
+/// <summary>A character's voice: envoys, spies and candidates. The engine keeps the authoritative copy.</summary>
+public interface ICharacterMind
+{
+    string Label { get; }
+    Task<PresentResult> PresentAsync(EnvoyContext ctx, CancellationToken ct);
+    Task<EnvoyReaction> ReactAsync(EnvoyContext ctx, HostReply host, CancellationToken ct);
+    /// <summary>Envoy reports, recruitment pitches and spy reports.</summary>
+    Task<MindReply> WriteAsync(MindContext ctx, CancellationToken ct);
+}
+
+/// <summary>The narrator only phrases: it receives facts the engine has already released.</summary>
+public interface INarrator
+{
+    string Label { get; }
+    Task<string> PersonaAsync(Character c, CancellationToken ct);
+    Task<string> CheckReportAsync(CheckContext ctx, CancellationToken ct);
+    Task<string> ChronicleAsync(ChronicleContext ctx, CancellationToken ct);
+}
+
+public sealed class PresentResult
+{
+    public string Speech { get; set; } = "";
+    public int Skim { get; set; }
+}
+
+/// <summary>What an envoy has in front of it at a foreign court.</summary>
+public sealed class EnvoyContext
+{
+    public required Character Self { get; init; }
+    public required Power Sender { get; init; }
+    public required Power Host { get; init; }
+    public required Dispatch Dispatch { get; init; }
+    public required int Turn { get; init; }
+    public required ulong Seed { get; init; }
+    public int Round { get; init; }
+    public int MaxRounds { get; init; }
+    public List<Exchange> SoFar { get; init; } = new();
+    public string Delivered { get; init; } = "";
+    public int Skim { get; init; }
+}
+
+public sealed class MindContext
+{
+    public required MindRequest Request { get; init; }
+    public required Character Self { get; init; }
+    public required int Turn { get; init; }
+    public required ulong Seed { get; init; }
+    public MessageTrail? Trail { get; init; }
+    /// <summary>For pitches: what the character asks by default (the engine's base price).</summary>
+    public int BasePrice { get; init; }
+    /// <summary>For pitches: how many courts are looking for people right now.</summary>
+    public int Demand { get; init; }
+}
+
+public sealed class CheckContext
+{
+    public required Character Subject { get; init; }
+    public required Power Court { get; init; }
+    public required List<string> Facts { get; init; }
+    public required int Turn { get; init; }
+}
+
+public sealed class ChronicleContext
+{
+    public required Power Power { get; init; }
+    public required List<GameEvent> Known { get; init; }
+    public required List<ScoreRow> Scores { get; init; }
+    public required List<string> Winners { get; init; }
+    public required int LastTurn { get; init; }
+}

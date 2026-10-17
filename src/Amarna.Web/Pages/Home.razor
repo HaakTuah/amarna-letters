@@ -1,7 +1,248 @@
 ﻿@page "/"
+@inject GameSession Session
+@inject Storage Store
+@inject KeyHolder Keys
+@inject NavigationManager Nav
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Amarna Letters</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="page">
+    <h1>Amarna Letters</h1>
+    <p class="muted" style="max-width:46rem">
+        Seven Great Kings of the Late Bronze Age. The engine enforces movement, combat and gold; every treaty,
+        alliance and betrayal is invented by the players. Kings never speak to each other directly: every word
+        travels with an envoy, who has motives of their own.
+    </p>
 
-Welcome to your new app.
+    <div class="grid2">
+        <div class="card">
+            <h2>Seats</h2>
+            <div class="row" style="margin-bottom:.6rem">
+                <button class="small" @onclick="WatchScripts">Watch script bots</button>
+                <button class="small" @onclick="PlayEgypt">Play Egypt vs bots</button>
+                <button class="small" @onclick="AllSonnet">All Sonnet 5.5 (live)</button>
+            </div>
+            <table>
+                <thead><tr><th>Power</th><th>Tier</th><th>Seat</th></tr></thead>
+                <tbody>
+                    @foreach (var p in Powers.All)
+                    {
+                        <tr>
+                            <td><span class="dot" style="background:@Ui.Color(p)"></span> @p.Name()</td>
+                            <td class="muted">@p.Tier()</td>
+                            <td>
+                                <select value="@Settings.Seats[p]" @onchange="e => Settings.Seats[p] = Enum.Parse<SeatKind>((string)e.Value!)">
+                                    <option value="@SeatKind.Script">Script bot</option>
+                                    <option value="@SeatKind.Human">Human (you)</option>
+                                    <option value="@SeatKind.Sonnet">Sonnet 5.5</option>
+                                    <option value="@SeatKind.Opus">Opus 5.5</option>
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Characters and narrator</h2>
+            <div class="field">
+                <span>Envoys, spies and candidates</span>
+                <select @bind="Settings.Minds">
+                    <option value="@MindKind.Script">Script characters (offline, free)</option>
+                    <option value="@MindKind.Haiku">Haiku 5.5 (live)</option>
+                </select>
+            </div>
+            <div class="field">
+                <span>Narrator (personas, check reports, chronicles)</span>
+                <select @bind="Settings.Narrator">
+                    <option value="@NarratorKind.Template">Template narrator (offline, free)</option>
+                    <option value="@NarratorKind.Sonnet">Sonnet 5.5 (live)</option>
+                </select>
+            </div>
+            <div class="field">
+                <span>Leader thinking effort (model seats)</span>
+                <select @bind="Settings.LeaderEffort">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <div class="row">
+                <label><input type="checkbox" @bind="Settings.Chronicles" /> Chronicles at the end</label>
+                <label><input type="checkbox" @bind="Settings.CustomsPrimer" /> Customs primer for leaders</label>
+                <label><input type="checkbox" @bind="Settings.SharedVictory" /> Shared victory for sworn allies</label>
+            </div>
+            <div class="row" style="margin-top:.6rem">
+                <label>Envoys per season <input type="number" min="1" max="6" @bind="Settings.MessagesPerTurn" /></label>
+                <label>Seed <input type="number" min="1" @bind="SeedText" /></label>
+            </div>
+        </div>
+    </div>
+
+    @if (Settings.UsesModels)
+    {
+        <div class="card">
+            <h2>Your Anthropic API key</h2>
+            <p class="muted">
+                Model calls go straight from this page to the Anthropic API with your own key. The key stays in this tab's
+                memory (and, if you tick the box, in this tab's session storage); it is never written to local storage, a
+                cookie or any server. Use a dedicated key with a spend limit set in the Anthropic Console.
+            </p>
+            <div class="row">
+                <input type="password" style="width:28rem" placeholder="sk-ant-..." autocomplete="off" @bind="Keys.Key" />
+                <label><input type="checkbox" @bind="Keys.Remember" /> Keep for this tab</label>
+                <label>Budget per game ($) <input type="number" min="0.5" step="0.5" @bind="Settings.BudgetUsd" /></label>
+            </div>
+            <p class="muted" style="margin-top:.5rem">The game pauses when its spend reaches the budget. A full all-model game typically costs a few dollars; the meter shows the real figure as you go.</p>
+        </div>
+    }
+
+    @if (Problem is not null)
+    {
+        <div class="notice error">@Problem</div>
+    }
+    <div class="row" style="margin-bottom:1.5rem">
+        <button class="primary" disabled="@Starting" @onclick="Start">Begin the age</button>
+        @if (Session.Runner is not null)
+        {
+            <button @onclick='() => Nav.NavigateTo("play")'>Return to the current game</button>
+        }
+    </div>
+
+    <div class="card">
+        <h2>Saved games and replays</h2>
+        <p class="muted">Every game is saved in this browser as an event log. A log replays the game exactly, season by season.</p>
+        <div class="row" style="margin-bottom:.6rem">
+            <InputFile OnChange="Picked" accept=".jsonl,.json,.txt" />
+            @if (LoadedText is not null)
+            {
+                <button @onclick="() => Load(LoadedText, false)">Watch replay</button>
+                <button @onclick="() => Load(LoadedText, true)">Continue playing</button>
+            }
+        </div>
+        @if (Saved.Count == 0)
+        {
+            <p class="muted">No saved games yet.</p>
+        }
+        else
+        {
+            <table>
+                <tbody>
+                    @foreach (var s in Saved.Take(15))
+                    {
+                        <tr>
+                            <td>@s.Meta<br /><small>@DateTimeOffset.FromUnixTimeMilliseconds((long)s.Saved).LocalDateTime.ToString("yyyy-MM-dd HH:mm")</small></td>
+                            <td style="text-align:right">
+                                <button class="small" @onclick="() => LoadSaved(s.Id, false)">Replay</button>
+                                <button class="small" @onclick="() => LoadSaved(s.Id, true)">Continue</button>
+                                <button class="small danger" @onclick="() => Delete(s.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    private GameSettings Settings { get; set; } = new();
+    private List<SavedLog> Saved { get; set; } = new();
+    private string? LoadedText;
+    private string? Problem;
+    private bool Starting;
+
+    private long SeedText
+    {
+        get => (long)Settings.Seed;
+        set => Settings.Seed = (ulong)Math.Max(1, value);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Keys.Key ??= await Store.GetSessionKeyAsync();
+        if (Keys.Key is not null) Keys.Remember = true;
+        Saved = await Store.ListAsync();
+    }
+
+    private void WatchScripts()
+    {
+        foreach (var p in Powers.All) Settings.Seats[p] = SeatKind.Script;
+        Settings.Minds = MindKind.Script;
+        Settings.Narrator = NarratorKind.Template;
+    }
+
+    private void PlayEgypt()
+    {
+        WatchScripts();
+        Settings.Seats[Power.Egypt] = SeatKind.Human;
+    }
+
+    private void AllSonnet()
+    {
+        foreach (var p in Powers.All) Settings.Seats[p] = SeatKind.Sonnet;
+        Settings.Minds = MindKind.Haiku;
+        Settings.Narrator = NarratorKind.Sonnet;
+    }
+
+    private async Task<bool> KeyReady()
+    {
+        Problem = null;
+        if (!Settings.UsesModels) return true;
+        if (string.IsNullOrWhiteSpace(Keys.Key))
+        {
+            Problem = "Model seats need your Anthropic API key.";
+            return false;
+        }
+        await Store.SetSessionKeyAsync(Keys.Remember ? Keys.Key : null);
+        return true;
+    }
+
+    private async Task Start()
+    {
+        if (!await KeyReady()) return;
+        Starting = true;
+        var settings = Settings;
+        Settings = new GameSettings { Seats = settings.Seats.ToDictionary(x => x.Key, x => x.Value), Minds = settings.Minds, Narrator = settings.Narrator };
+        Nav.NavigateTo("play");
+        await Session.StartAsync(settings, Keys.Key);
+        Starting = false;
+    }
+
+    private async Task Picked(InputFileChangeEventArgs e)
+    {
+        using var stream = e.File.OpenReadStream(maxAllowedSize: 64 * 1024 * 1024);
+        using var reader = new StreamReader(stream);
+        LoadedText = await reader.ReadToEndAsync();
+    }
+
+    private async Task Load(string text, bool continuePlay)
+    {
+        if (continuePlay)
+        {
+            var header = GameLog.FromJsonl(text).Header;
+            var needsKey = header.Seats.Values.Any(v => v.Contains("Sonnet") || v.Contains("Opus")) || header.Minds.Contains("Haiku") || header.Narrator.Contains("Sonnet");
+            if (needsKey && string.IsNullOrWhiteSpace(Keys.Key))
+            {
+                Problem = "This game used model seats; enter your API key above (choose any model seat to show the field), then continue.";
+                return;
+            }
+        }
+        Nav.NavigateTo("play");
+        await Session.LoadAsync(text, continuePlay, Keys.Key);
+    }
+
+    private async Task LoadSaved(string id, bool continuePlay)
+    {
+        var text = await Store.LoadAsync(id);
+        if (text is null) { Problem = "That saved game could not be read."; return; }
+        await Load(text, continuePlay);
+    }
+
+    private async Task Delete(string id)
+    {
+        await Store.DeleteAsync(id);
+        Saved = await Store.ListAsync();
+    }
+}

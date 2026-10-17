@@ -60,8 +60,12 @@ public sealed class GameState
         return list;
     }
 
+    /// <summary>While a season resolves, news is stamped for the next season, when the courts read it.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public int DeliveryOffset { get; set; }
+
     public void Notify(Power p, InboxKind kind, string title, string body, string? subject = null)
-        => InboxOf(p).Add(new InboxItem { Turn = Turn, Kind = kind, Title = title, Body = body, Subject = subject });
+        => InboxOf(p).Add(new InboxItem { Turn = Turn + DeliveryOffset, Kind = kind, Title = title, Body = body, Subject = subject });
 
     public GameEvent Log(string kind, string text, IEnumerable<Power>? visibleTo = null, string? signal = null)
     {

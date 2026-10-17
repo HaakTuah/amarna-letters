@@ -1,0 +1,99 @@
+@* A foreign envoy stands before you. You hear the envoy, never the king who sent it. *@
+@{
+    var a = Seat.PendingAudience!;
+    var court = Seat.AudienceCourt!;
+}
+<h3>An envoy of @a.From.Name() before your throne</h3>
+<p class="muted">Round @a.Round of @a.MaxRounds · @a.Envoy.Name of @a.Envoy.Origin @(a.Envoy.KnownFacts.Count > 0 ? "· " + string.Join(" ", a.Envoy.KnownFacts) : "")</p>
+
+@if (a.Greeting.Length > 0)
+{
+    <div class="tablet">@a.Greeting</div>
+}
+else
+{
+    <div class="tablet"><em>The tablet bears no greeting at all.</em></div>
+}
+@if (a.GreetingDeviations.Count > 0)
+{
+    <p><small>Departs from the custom: @string.Join("; ", a.GreetingDeviations).</small></p>
+}
+
+<h4 style="margin-top:.7rem">@a.Envoy.Name says</h4>
+<div class="speech">@a.Spoken</div>
+@foreach (var x in a.SoFar)
+{
+    <p style="margin-top:.5rem"><small class="muted">You said:</small> @x.Host</p>
+    <div class="speech">@x.Envoy</div>
+}
+
+@if (a.GoldStated > 0)
+{
+    <p class="notice">The tablet's inventory lists @Ui.Shekels(a.GoldStated) of gold. Your weighers find @Ui.Shekels(a.GoldWeighed)@(a.GoldWeighed < a.GoldStated ? ": less than promised." : ".") Its purity you will only know if you pay for an assay.</p>
+}
+@if (a.Proposal is not null)
+{
+    <h4>A tablet for you to seal</h4>
+    <div class="tablet">@a.Proposal.Text</div>
+    <small>Already sealed by @string.Join(", ", a.Proposal.Seals)@(a.Proposal.AllianceOath ? " · a sworn alliance" : "").</small>
+}
+@foreach (var t in a.CopiesShown)
+{
+    <h4>Shown to you as evidence</h4>
+    <div class="tablet">@t.Text</div>
+    <small>Bearing the seals of @string.Join(", ", t.Seals)@(t.SealedTurn is int st ? $", dated turn {st}" : "").</small>
+}
+@if (a.SecretMandate is not null)
+{
+    <div class="notice"><strong>This envoy secretly serves you.</strong> Their real instructions: “@a.SecretLetter” Mandate: @(a.SecretMandate.Length > 0 ? a.SecretMandate : "none given").</div>
+}
+
+<div class="section">
+    <h4>Your answer</h4>
+    <textarea maxlength="1500" @bind="Speech" placeholder="Speak to the envoy; they will carry it home (in their own words)."></textarea>
+    <div class="row" style="margin-top:.4rem">
+        @if (a.Proposal is not null) { <label><input type="checkbox" @bind="Seal" /> Seal the tablet</label> }
+        <label>Gift to the envoy <input type="number" min="0" @bind="Bribe" /></label>
+        <input @bind="BribeAsk" placeholder="…in return for" style="flex:1" />
+    </div>
+    <div class="row" style="margin-top:.4rem">
+        <label>Offer them service at <input type="number" min="0" @bind="Job" /> a season</label>
+        <label>Send gold back <input type="number" min="0" @bind="GoldBack" /></label>
+        <label>purity % <input type="number" min="10" max="100" @bind="GoldPurity" /></label>
+    </div>
+    <div class="row" style="margin-top:.4rem">
+        <label><input type="checkbox" @bind="Detain" /> Detain the envoy</label>
+        @if (a.Round < a.MaxRounds) { <label><input type="checkbox" @bind="End" /> End the audience after this</label> }
+    </div>
+    <p class="muted"><small>Treasury: @Ui.Shekels(court.Gold). Gifts and gold sent back are paid at once.</small></p>
+    <button class="primary" @onclick="Answer">Answer</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public HumanSeat Seat { get; set; } = default!;
+    private string Speech = "", BribeAsk = "";
+    private int Bribe, Job, GoldBack, GoldPurity = 100;
+    private bool Seal, Detain, End = true;
+    private string? _for;
+
+    protected override void OnParametersSet()
+    {
+        var key = $"{Seat.PendingAudience?.AudienceId}:{Seat.PendingAudience?.Round}";
+        if (key == _for) return;
+        _for = key;
+        Speech = ""; BribeAsk = ""; Bribe = 0; Job = 0; GoldBack = 0; GoldPurity = 100; Seal = false; Detain = false; End = true;
+    }
+
+    private void Answer() => Seat.Answer(new HostReply
+    {
+        Speech = Speech.Trim(),
+        Bribe = Math.Max(0, Bribe),
+        BribeAsk = BribeAsk.Trim(),
+        JobOffer = Math.Max(0, Job),
+        SealProposal = Seal,
+        Detain = Detain,
+        GoldBack = Math.Max(0, GoldBack),
+        GoldBackPurity = Math.Clamp(GoldPurity, 10, 100),
+        End = End || Detain,
+    });
+}

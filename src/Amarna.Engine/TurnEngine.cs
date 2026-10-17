@@ -187,6 +187,13 @@ public sealed partial class TurnEngine
     /// <summary>Resolves the season from every seat's secret orders. Seats with no submission hold.</summary>
     public Dictionary<Power, ValidationResult> Resolve(IReadOnlyDictionary<Power, TurnSubmission> submissions)
     {
+        S.DeliveryOffset = 1;
+        try { return ResolveSeason(submissions); }
+        finally { S.DeliveryOffset = 0; }
+    }
+
+    private Dictionary<Power, ValidationResult> ResolveSeason(IReadOnlyDictionary<Power, TurnSubmission> submissions)
+    {
         var validator = new OrderValidator(S, Map);
         var valid = new Dictionary<Power, ValidationResult>();
         foreach (var p in S.Alive.ToList())
@@ -239,6 +246,14 @@ public sealed partial class TurnEngine
 
         // Which provinces could each power see before the moves? Battles there are reported to it.
         var sightBefore = Powers.All.ToDictionary(p => p, p => Views.Sight(S, Map, p));
+
+        foreach (var (supporter, supported, province) in result.GivenSupports)
+        {
+            if (supported is not { } other || other == supporter) continue;
+            var owner = S.Owner.GetValueOrDefault(province);
+            S.Log("support", $"{supporter} supported {other} at {Map[province].Name}" + (owner is { } o && o != other ? $" (held by {o})" : "") + ".",
+                [supporter, other], owner is { } target && target != other && target != supporter ? $"foreign-support:{target}" : "foreign-support");
+        }
 
         foreach (var id in result.DislodgedUnitIds)
         {

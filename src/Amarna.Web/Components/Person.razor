@@ -1,0 +1,16 @@
+<div class="item">
+    <h4>@C.Name <small class="muted">of @C.Origin</small> <span class="pill">@C.Status</span> @if (C.HeldByYou) { <span class="pill">held by you</span> }</h4>
+    @if (C.Duty.Length > 0 || C.Where.Length > 0)
+    {
+        <div><small>@C.Duty@(C.Where.Length > 0 ? $" · {C.Where}" : "")@(C.Wage is int w ? $" · wage {Ui.Shekels(w)}" : "")@(C.ContractUntil is int u ? $" until turn {u}" : "")</small></div>
+    }
+    @if (C.Employer is { } e && !C.Ours) { <div><small>Serves @e.Name()</small></div> }
+    @if (C.KnownFacts.Count > 0) { <div><small>Known: @string.Join(" ", C.KnownFacts)</small></div> }
+    @if (C.Pitch is not null) { <div class="speech" style="margin-top:.3rem;font-size:.92rem">“@C.Pitch”</div> }
+    @if (C.AskingPrice is int a) { <div><small>Asks @Ui.Shekels(a) a season.</small></div> }
+    <small class="muted">@C.Id</small>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public CharacterView C { get; set; } = default!;
+}

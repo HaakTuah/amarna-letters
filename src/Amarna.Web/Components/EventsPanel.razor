@@ -1,0 +1,38 @@
+@{
+    var events = State.Events.Where(e => Viewer is null || e.VisibleTo.Contains(Viewer.Value)).ToList();
+    var signals = Viewer is null ? SignalDetector.Detect(State) : new List<Signal>();
+}
+@if (Viewer is null)
+{
+    <h3>Signals of the hypothesis</h3>
+    <p class="muted">Markers read from the record: none of these is a rule in the game.</p>
+    <div class="row" style="margin-bottom:.6rem">
+        @foreach (var g in signals.GroupBy(s => s.Kind).OrderByDescending(g => g.Count()))
+        {
+            <button class="small @(Kind == g.Key ? "primary" : "")" @onclick="() => Kind = Kind == g.Key ? null : g.Key">@g.Key · @g.Count()</button>
+        }
+    </div>
+    @if (Kind is not null)
+    {
+        @foreach (var s in signals.Where(s => s.Kind == Kind).TakeLast(40).Reverse())
+        {
+            <div class="item"><small class="muted">turn @s.Turn</small> @s.Text</div>
+        }
+    }
+}
+<h3 style="margin-top:.8rem">@(Viewer is null ? "Everything that happened" : "What your court heard of")</h3>
+@foreach (var e in events.TakeLast(Limit).Reverse())
+{
+    <div style="padding:.2rem 0;border-bottom:1px solid var(--line)">
+        <small class="muted">t@(e.Turn) · @e.Kind</small> @e.Text
+        @if (Viewer is null && e.VisibleTo.Count < 7) { <small class="muted"> (known to @(e.VisibleTo.Count == 0 ? "nobody" : string.Join(", ", e.VisibleTo)))</small> }
+    </div>
+}
+@if (events.Count > Limit) { <button style="margin-top:.5rem" @onclick="() => Limit += 100">Show more</button> }
+
+@code {
+    [Parameter, EditorRequired] public GameState State { get; set; } = default!;
+    [Parameter] public Power? Viewer { get; set; }
+    private string? Kind;
+    private int Limit = 120;
+}

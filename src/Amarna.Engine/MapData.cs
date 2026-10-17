@@ -1,7 +1,7 @@
 namespace Amarna.Engine;
 
 /// <summary>
-/// The Late Bronze Age board: 40 land provinces and 5 sea zones. Coordinates are for a
+/// The Late Bronze Age board: 41 land provinces and 5 sea zones. Coordinates are for a
 /// 1000x720 SVG view. Yields are shekels of gold per season. Historical geography serves the
 /// dynamics, not the reverse.
 /// </summary>
@@ -64,13 +64,14 @@ public static class MapData
             new("carchemish", "Carchemish", L, none, 35, false, 555, 225),
             new("ugarit", "Ugarit", C, none, 40, false, 480, 305),
             new("qadesh", "Qadesh", L, none, 30, false, 575, 345),
-            new("amurru", "Amurru", C, none, 25, false, 490, 380),
+            new("amurru", "Amurru", C, none, 20, false, 490, 380),
             new("mari", "Mari", L, none, 35, false, 690, 395),
-            new("byblos", "Byblos", C, none, 35, false, 475, 450),
-            new("damascus", "Damascus", L, none, 30, false, 580, 450),
-            new("tyre", "Tyre", C, none, 30, false, 470, 520),
-            new("megiddo", "Megiddo", L, none, 25, false, 550, 545),
-            new("gaza", "Gaza", C, none, 25, false, 455, 590),
+            new("byblos", "Byblos", C, none, 30, false, 475, 450),
+            new("damascus", "Damascus", L, none, 25, false, 580, 450),
+            new("tyre", "Tyre", C, none, 25, false, 470, 520),
+            new("megiddo", "Megiddo", L, none, 20, false, 550, 545),
+            new("gaza", "Gaza", C, none, 20, false, 455, 590),
+            new("susa", "Susa", L, none, 35, false, 975, 470),
 
             // Sea zones
             new("westsea", "Western Sea", S, none, 0, false, 45, 330),
@@ -111,8 +112,9 @@ public static class MapData
         Land("arbela", "ashur", "ekallatum");
         Land("ashur", "ekallatum");
 
-        // Babylonia
-        Land("ekallatum", "sippar", "durkurigalzu");
+        // Babylonia and Elam
+        Land("ekallatum", "sippar", "durkurigalzu", "mari");
+        Land("susa", "durkurigalzu", "nippur", "arbela", "ur");
         Land("sippar", "durkurigalzu", "babylon", "mari");
         Land("durkurigalzu", "babylon", "nippur");
         Land("babylon", "nippur");
@@ -158,11 +160,11 @@ public static class MapData
     public static readonly IReadOnlyList<StartUnit> StartUnits = new List<StartUnit>
     {
         new(Power.Egypt, UnitKind.Army, "memphis"),
-        new(Power.Egypt, UnitKind.Army, "sinai"),
+        new(Power.Egypt, UnitKind.Army, "akhetaten"),
         new(Power.Egypt, UnitKind.Fleet, "delta"),
         new(Power.Hatti, UnitKind.Army, "hattusa"),
         new(Power.Hatti, UnitKind.Army, "kanesh"),
-        new(Power.Hatti, UnitKind.Fleet, "kizzuwatna"),
+        new(Power.Hatti, UnitKind.Army, "kizzuwatna"),
         new(Power.Babylonia, UnitKind.Army, "babylon"),
         new(Power.Babylonia, UnitKind.Army, "sippar"),
         new(Power.Babylonia, UnitKind.Army, "durkurigalzu"),

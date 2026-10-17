@@ -31,6 +31,10 @@ public sealed class CharacterView
     public List<string> KnownFacts { get; set; } = new();
     public string? Pitch { get; set; }
     public int? AskingPrice { get; set; }
+    /// <summary>In your service, at your court, with no task: can be sent somewhere this season.</summary>
+    public bool Ready { get; set; }
+    /// <summary>An envoy or spy you are holding against their will.</summary>
+    public bool HeldByYou { get; set; }
 }
 
 public sealed class TabletView
@@ -177,6 +181,8 @@ public static class Views
             KnownFacts = c.FactsKnownTo(viewer).Select(f => f.Text).ToList(),
             Pitch = c.Pitches.GetValueOrDefault(viewer),
             AskingPrice = c.AskingPrice.TryGetValue(viewer, out var price) ? price : null,
+            Ready = ours && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == viewer,
+            HeldByYou = c.HeldBy == viewer,
         };
     }
 

@@ -1,0 +1,101 @@
+@* The province graph as SVG. In a seat view only that seat's sight is shown; the god view shows everything. *@
+
+<svg class="map" viewBox="0 0 1000 720" role="img" aria-label="Map of the Late Bronze Age kingdoms">
+    <defs>
+        <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+        </marker>
+    </defs>
+
+    @foreach (var e in Map.Edges)
+    {
+        var a = Map[e.A];
+        var b = Map[e.B];
+        <line class="@($"edge-{e.Kind.ToString().ToLowerInvariant()}")" x1="@a.X" y1="@a.Y" x2="@b.X" y2="@b.Y" />
+    }
+
+    @foreach (var p in Map.Provinces.Where(p => p.IsSea))
+    {
+        <g @onclick="() => Click(p.Id)">
+            <ellipse class="sea" cx="@p.X" cy="@p.Y" rx="46" ry="24" />
+            <text class="sea-label" x="@p.X" y="@(p.Y + 4)">@p.Name</text>
+        </g>
+    }
+
+    @foreach (var p in Map.Provinces.Where(p => !p.IsSea))
+    {
+        var owner = State.Owner.GetValueOrDefault(p.Id);
+        var r = 9 + p.Yield / 6;
+        var dim = Visible is not null && !Visible.Contains(p.Id);
+        <g @onclick="() => Click(p.Id)">
+            <title>@($"{p.Name} — {(owner is { } o ? o.Name() : "free city-state")}, yields {p.Yield} shekels a season")</title>
+            <circle class="@($"prov {(owner is null ? "neutral" : "")} {(dim ? "dim" : "")}")" cx="@p.X" cy="@p.Y" r="@r" style="@(owner is null ? "" : $"fill:{Ui.Color(owner)}")" />
+            @if (p.Capital)
+            {
+                <circle class="capital-ring" cx="@p.X" cy="@p.Y" r="@(r + 4)" />
+            }
+            @if (State.Garrisons.Contains(p.Id))
+            {
+                <circle class="walls" cx="@p.X" cy="@p.Y" r="@(r - 3)" />
+            }
+            @if (Selected == p.Id)
+            {
+                <circle class="sel" cx="@p.X" cy="@p.Y" r="@(r + 7)" />
+            }
+            else if (Targets?.Contains(p.Id) == true)
+            {
+                <circle class="target" cx="@p.X" cy="@p.Y" r="@(r + 6)" />
+            }
+            <text class="label" x="@p.X" y="@(p.Y + r + 15)">@p.Name</text>
+        </g>
+    }
+
+    @foreach (var p in Map.Provinces.Where(p => p.IsSea && Selected == p.Id))
+    {
+        <ellipse class="sel" cx="@p.X" cy="@p.Y" rx="50" ry="28" />
+    }
+    @foreach (var p in Map.Provinces.Where(p => p.IsSea && Selected != p.Id && Targets?.Contains(p.Id) == true))
+    {
+        <ellipse class="target" cx="@p.X" cy="@p.Y" rx="50" ry="28" />
+    }
+
+    @foreach (var u in Units)
+    {
+        var p = Map[u.Province];
+        <g class="unit" @onclick="() => Click(u.Province)">
+            <rect x="@(p.X - 10)" y="@(p.Y - 10)" width="20" height="20" rx="@(u.Kind == UnitKind.Fleet ? 10 : 3)" style="@($"fill:{Ui.Color(u.Power)}")" />
+            <text x="@p.X" y="@p.Y">@(u.Kind == UnitKind.Army ? "A" : "F")</text>
+        </g>
+    }
+
+    @if (Arrows is not null)
+    {
+        @foreach (var (from, to, support) in Arrows)
+        {
+            var a = Map[from];
+            var b = Map[to];
+            var len = Math.Sqrt(Math.Pow(b.X - a.X, 2) + Math.Pow(b.Y - a.Y, 2));
+            if (len < 1) continue;
+            var ex = b.X - (b.X - a.X) / len * 16;
+            var ey = b.Y - (b.Y - a.Y) / len * 16;
+            <line class="@($"arrow {(support ? "support" : "")}")" x1="@a.X" y1="@a.Y" x2="@ex.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)" y2="@ey.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)" marker-end="url(#arrowhead)" style="color:var(--ink)" />
+        }
+    }
+</svg>
+
+@code {
+    private static readonly WorldMap Map = WorldMap.Default;
+
+    [Parameter, EditorRequired] public GameState State { get; set; } = default!;
+    /// <summary>When set, only these units are drawn (a seat's view).</summary>
+    [Parameter] public List<UnitView>? SeatUnits { get; set; }
+    [Parameter] public HashSet<string>? Visible { get; set; }
+    [Parameter] public string? Selected { get; set; }
+    [Parameter] public HashSet<string>? Targets { get; set; }
+    [Parameter] public List<(string From, string To, bool Support)>? Arrows { get; set; }
+    [Parameter] public EventCallback<string> OnProvince { get; set; }
+
+    private IEnumerable<UnitView> Units => SeatUnits ?? State.Units.Select(u => new UnitView { Power = u.Power, Kind = u.Kind, Province = u.Province });
+
+    private Task Click(string id) => OnProvince.InvokeAsync(id);
+}

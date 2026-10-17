@@ -10,6 +10,8 @@ public sealed class AdjudicationResult
     public List<string> FallenGarrisons { get; } = new();
     public List<MoveResult> Moves { get; } = new();
     public List<string> CutSupports { get; } = new();
+    /// <summary>Supports that held: (supporter, supported power, province acted on).</summary>
+    public List<(Power Supporter, Power? Supported, string Province)> GivenSupports { get; } = new();
     /// <summary>Order description per unit province, with its outcome, for reports.</summary>
     public List<(string Province, Power? Power, string Text, bool Ok)> Lines { get; } = new();
 }
@@ -365,6 +367,8 @@ public sealed class Adjudicator
                 case Kind.Support:
                     var given = _result[o.Index];
                     if (!given) r.CutSupports.Add(o.At);
+                    else if (o.Power is { } supporter && _at.TryGetValue(o.Target!, out var sIdx))
+                        r.GivenSupports.Add((supporter, _orders[sIdx].Power, o.To ?? o.Target!));
                     r.Lines.Add((o.At, o.Power, $"{label} supports {o.Target}{(o.To is null ? " holding" : " -> " + o.To)}: {(given ? "given" : "cut")}", given));
                     break;
                 case Kind.Convoy:

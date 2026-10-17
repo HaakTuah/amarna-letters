@@ -43,9 +43,24 @@ public sealed class OrderValidator
 
         foreach (var order in submission.Orders.Take(MaxOrders))
         {
+            var budgetBefore = budget;
             var error = Check(order);
-            if (error is null) result.Accepted.Add(order);
-            else result.Rejected.Add(new(order, error));
+            if (error is null)
+            {
+                result.Accepted.Add(order);
+                if (UnitOf(order) is { } u) orderedUnits.Add(u);
+                if (CharacterOf(order) is { } c) busyCharacters.Add(c);
+                if (order is DispatchOrder) dispatches++;
+                if (order is SeekCandidatesOrder) seekCount++;
+                if (order is CounterIntelOrder) counterIntel = true;
+                if (order is RaiseOrder r) raisedIn.Add(r.Province);
+                if (order is BuyProvinceOrder b) bought.Add(b.Province);
+            }
+            else
+            {
+                budget = budgetBefore;
+                result.Rejected.Add(new(order, error));
+            }
         }
         foreach (var o in submission.Orders.Skip(MaxOrders)) result.Rejected.Add(new(o, "too many orders this season"));
         return result;
@@ -64,9 +79,22 @@ public sealed class OrderValidator
             if (!_map.Exists(province)) return $"there is no province called '{province}'";
             if (unit is null) return $"you have no unit in {province}";
             if (unit.Power != power) return $"the unit in {province} is not yours";
-            if (!orderedUnits.Add(province)) return $"the unit in {province} already has an order";
+            if (orderedUnits.Contains(province)) return $"the unit in {province} already has an order";
             return null;
         }
+
+        static string? UnitOf(Order o) => o switch
+        {
+            HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit,
+            DisbandOrder d => d.Unit, GiftUnitOrder g => g.Unit, _ => null,
+        };
+
+        static string? CharacterOf(Order o) => o switch
+        {
+            DispatchOrder d => d.Envoy, ReleaseOrder r => r.Character, HireOrder h => h.Character, DismissOrder dm => dm.Character,
+            PlaceSpyOrder p => p.Character, RecallSpyOrder rc => rc.Character, ForgeOrder f => f.Character, CaptiveOrder c => c.Character,
+            _ => null,
+        };
 
         string? OwnCharacter(string id, out Character? c, bool mustBeHome = true)
         {
@@ -74,7 +102,7 @@ public sealed class OrderValidator
             if (c is null) return $"there is nobody called '{id}'";
             if (c.Employer != power || c.Status != CharacterStatus.Employed) return $"{c.Name} is not in your service";
             if (mustBeHome && (c.Duty != Duty.None || c.At != power)) return $"{c.Name} is not at your court";
-            if (!busyCharacters.Add(c.Id)) return $"{c.Name} already has a task this season";
+            if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
             return null;
         }
 
@@ -124,7 +152,7 @@ public sealed class OrderValidator
                     if (p.Home != power) return $"{p.Name} is not part of your homeland";
                     if (_s.Owner.GetValueOrDefault(p.Id) != power) return $"you do not hold {p.Name}";
                     if (r.Kind == UnitKind.Fleet && !p.IsCoastal) return $"{p.Name} has no harbour for a fleet";
-                    if (!raisedIn.Add(p.Id)) return $"you already raise a unit in {p.Name}";
+                    if (raisedIn.Contains(p.Id)) return $"you already raise a unit in {p.Name}";
                     return Spend(r.Kind == UnitKind.Army ? _s.Config.ArmyCost : _s.Config.FleetCost);
                 }
 
@@ -137,7 +165,7 @@ public sealed class OrderValidator
                     if (_s.Owner.GetValueOrDefault(b.Province) is not null) return $"{_map[b.Province].Name} is not a free city-state";
                     var near = _map.Neighbors(b.Province).Any(n => _s.Owner.GetValueOrDefault(n) == power || _s.UnitAt(n)?.Power == power);
                     if (!near) return $"{_map[b.Province].Name} lies beyond your reach";
-                    if (!bought.Add(b.Province)) return "you already bid for that city";
+                    if (bought.Contains(b.Province)) return "you already bid for that city";
                     return Spend(_map[b.Province].Yield * _s.Config.NeutralPriceFactor);
                 }
 
@@ -156,7 +184,7 @@ public sealed class OrderValidator
                 {
                     if (OwnCharacter(d.Envoy, out var c) is { } e) return e;
                     if (d.To == power || !_s.IsAlive(d.To)) return $"you cannot send an envoy to {d.To}";
-                    if (++dispatches > _s.Config.MaxDispatchesPerTurn) return $"at most {_s.Config.MaxDispatchesPerTurn} envoys may leave in one season";
+                    if (dispatches >= _s.Config.MaxDispatchesPerTurn) return $"at most {_s.Config.MaxDispatchesPerTurn} envoys may leave in one season";
                     if (d.Gold < 0) return "gold cannot be negative";
                     if (d.PurityPercent is < 10 or > 100) return "purity must be between 10 and 100 percent";
                     if (d.Copies is { Count: > 0 })
@@ -172,12 +200,12 @@ public sealed class OrderValidator
                     var c = _s.FindCharacter(rl.Character);
                     if (c is null) return $"there is nobody called '{rl.Character}'";
                     if (c.HeldBy != power) return $"you are not holding {c.Name}";
-                    if (!busyCharacters.Add(c.Id)) return $"{c.Name} already has a task this season";
+                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
                     return null;
                 }
 
                 case SeekCandidatesOrder:
-                    return ++seekCount > 1 ? "you already asked for candidates this season" : null;
+                    return seekCount > 0 ? "you already asked for candidates this season" : null;
 
                 case HireOrder h:
                 {
@@ -186,7 +214,7 @@ public sealed class OrderValidator
                     if (!c.IsAvailableForHire) return $"{c.Name} is not available for hire";
                     if (!c.Pitches.ContainsKey(power) && c.At != power) return $"{c.Name} has not presented themselves to your court";
                     if (h.Wage <= 0 || h.Term <= 0) return "wage and term must be positive";
-                    if (!busyCharacters.Add(c.Id)) return $"{c.Name} already has a task this season";
+                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
                     return null;
                 }
 
@@ -214,13 +242,12 @@ public sealed class OrderValidator
                     var c = _s.FindCharacter(rs.Character);
                     if (c is null || c.Employer != power) return $"{rs.Character} is not in your service";
                     if (c.Duty != Duty.SpyPosted) return $"{c.Name} is not on a mission";
-                    if (!busyCharacters.Add(c.Id)) return $"{c.Name} already has a task this season";
+                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
                     return null;
                 }
 
                 case CounterIntelOrder ci:
                     if (counterIntel) return "you already set your watch this season";
-                    counterIntel = true;
                     return Spend(ci.Spend);
 
                 case AssayOrder a:
@@ -244,7 +271,7 @@ public sealed class OrderValidator
                 {
                     var c = _s.FindCharacter(co.Character);
                     if (c is null || c.Status != CharacterStatus.Captured || c.HeldBy != power) return $"you hold no captive '{co.Character}'";
-                    if (!busyCharacters.Add(c.Id)) return $"{c.Name} already has a task this season";
+                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
                     if (co.Fate == CaptiveFate.Ransom && co.Ransom <= 0) return "name a ransom";
                     return null;
                 }

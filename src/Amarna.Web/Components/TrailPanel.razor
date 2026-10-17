@@ -1,0 +1,44 @@
+@* The spectator's message trail: what the leader wrote, what the envoy said abroad, what it reported home. *@
+@{
+    var trails = State.Trails.Where(t => Filter is null || t.From == Filter || t.To == Filter).OrderByDescending(t => t.Turn).ThenByDescending(t => TurnEngine.IdNumber(t.Id)).ToList();
+}
+<div class="row" style="justify-content:space-between;margin-bottom:.5rem">
+    <h3 style="margin:0">Message trail</h3>
+    <select value="@(Filter?.ToString() ?? "")" @onchange="e => Filter = string.IsNullOrEmpty((string?)e.Value) ? null : Enum.Parse<Power>((string)e.Value!)">
+        <option value="">All powers</option>
+        @foreach (var p in Powers.All) { <option value="@p">@p.Name()</option> }
+    </select>
+</div>
+<p class="muted">Three versions of every message. The gaps between them are the game.</p>
+@if (trails.Count == 0) { <p class="muted">No envoy has set out yet.</p> }
+@foreach (var t in trails.Take(Limit))
+{
+    var envoy = State.FindCharacter(t.EnvoyId);
+    <div class="card" style="padding:.7rem .8rem">
+        <div class="row" style="justify-content:space-between">
+            <strong><span class="dot" style="background:@Ui.Color(t.From)"></span> @t.From.Name() → <span class="dot" style="background:@Ui.Color(t.To)"></span> @t.To.Name()</strong>
+            <small class="muted">sent turn @t.Turn@(t.AudienceTurn is int a ? $", heard turn {a}" : ", on the road")@(t.ReportTurn is int r ? $", reported turn {r}" : "") · envoy @t.EnvoyName</small>
+        </div>
+        @if (t.GreetingText.Length > 0) { <div class="tablet" style="margin:.4rem 0;font-size:.88rem">@t.GreetingText</div> }
+        else { <p class="muted"><em>The tablet carried no greeting.</em></p> }
+        <div class="trail">
+            <div><h5>The king wrote</h5>@t.LeaderLetter@if (t.Mandate.Length > 0) {<br /><br /><small class="muted">Mandate: @t.Mandate</small>}@if (t.GoldStated > 0) {<br /><small class="muted">Gold: @Ui.Shekels(t.GoldStated) stated</small>}@if (t.ProposalText is not null) {<br /><small class="muted">Tablet to seal: @t.ProposalText</small>}</div>
+            <div><h5>The envoy said abroad</h5>@(t.Delivered.Length > 0 ? t.Delivered : "—")@foreach (var x in t.Exchanges) {<br /><br /><small class="muted">Host:</small> @x.Host@if (x.Envoy.Length > 0) {<br /><small class="muted">Envoy:</small> @x.Envoy}}@if (t.GoldStated > 0 && t.AudienceTurn is not null) {<br /><br /><small class="muted">Weighed @Ui.Shekels(t.GoldDelivered), fine gold @Ui.Shekels(t.GoldFine)</small>}</div>
+            <div><h5>The envoy reported home</h5>@(t.Report.Length > 0 ? t.Report : t.ReportTurn is null ? "—" : "")</div>
+        </div>
+        @if (t.Outcomes.Count > 0) { <p style="margin:.4rem 0 0"><small><strong>What happened:</strong> @string.Join("; ", t.Outcomes)</small></p> }
+        @if (envoy is not null)
+        {
+            <details><summary><small>@envoy.Name's hidden traits</small></summary>
+                <small>Loyalty @envoy.Traits.Loyalty · greed @envoy.Traits.Greed · competence @envoy.Traits.Competence · ambition @envoy.Traits.Ambition · courage @envoy.Traits.Courage@(envoy.Traits.Sympathy is { } s ? $" · sympathy for {s} ({envoy.Traits.SympathyStrength})" : "")@(envoy.SecretMaster is { } sm ? $" · secretly serves {sm}" : "")</small>
+            </details>
+        }
+    </div>
+}
+@if (trails.Count > Limit) { <button @onclick="() => Limit += 20">Show more</button> }
+
+@code {
+    [Parameter, EditorRequired] public GameState State { get; set; } = default!;
+    private Power? Filter;
+    private int Limit = 20;
+}

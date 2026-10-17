@@ -1,3 +1,12 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@inject NavigationManager Nav
 
+<header class="topbar">
+    <a class="brand" href="">Amarna <span>Letters</span></a>
+    <nav>
+        <NavLink href="" Match="NavLinkMatch.All">New game</NavLink>
+        <NavLink href="play">Play &amp; watch</NavLink>
+        <NavLink href="about">How it works</NavLink>
+    </nav>
+</header>
 @Body

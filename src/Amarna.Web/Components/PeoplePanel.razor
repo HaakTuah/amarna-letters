@@ -1,0 +1,55 @@
+@if (Viewer is { } me)
+{
+    var view = Views.For(State, me);
+    <h3>Your people</h3>
+    @if (view.Court.Count == 0) { <p class="muted">Nobody serves you.</p> }
+    @foreach (var c in view.Court) { <Person C="c" /> }
+    <h3 style="margin-top:1rem">Others you know of</h3>
+    @if (view.Known.Count == 0) { <p class="muted">Nobody else has come to your notice.</p> }
+    @foreach (var c in view.Known) { <Person C="c" /> }
+}
+else
+{
+    <h3>Every character (god view)</h3>
+    <p class="muted">Traits and facts are hidden from the players; here you see the engine's record.</p>
+    @foreach (var c in State.Characters.OrderBy(c => c.Employer?.ToString() ?? "~").ThenBy(c => c.Name))
+    {
+        <div class="item">
+            <h4>
+                @if (c.Employer is { } e) { <span class="dot" style="background:@Ui.Color(e)"></span> }
+                @c.Name <small class="muted">of @c.Origin, @c.Calling</small>
+                <span class="pill">@c.Status.ToString().ToLowerInvariant()@(c.Employer is { } emp ? $" · {emp.Name()}" : "")</span>
+                @if (c.SecretMaster is { } sm) { <span class="pill" style="color:var(--danger)">secretly serves @sm.Name()</span> }
+            </h4>
+            <div><small>@Views.DutyText(c)@(c.At is { } at ? $" · at {at.Name()}" : "")@(c.HeldBy is { } hb ? $" · held by {hb.Name()}" : "") · purse @Ui.Shekels(c.Purse)@(c.Contract is { } k ? $" · wage {Ui.Shekels(k.Wage)} until turn {k.UntilTurn}" : "")</small></div>
+            <div class="row" style="margin:.3rem 0">
+                @foreach (var (name, v) in Traits(c))
+                {
+                    <span style="width:7.5rem"><small>@name @v</small><span class="bar"><i style="width:@(v)%;background:var(--accent)"></i></span></span>
+                }
+            </div>
+            @if (c.Traits.Sympathy is { } s) { <div><small>Sympathy for @s.Name() (@c.Traits.SympathyStrength)</small></div> }
+            <ul style="margin:.2rem 0 .2rem 1rem;padding:0">
+                @foreach (var f in c.Facts)
+                {
+                    <li><small><span class="pill">@f.Secrecy.ToString().ToLowerInvariant()</span> @f.Text @(f.KnownBy.Count > 0 ? $"(known to {string.Join(", ", f.KnownBy)})" : "")</small></li>
+                }
+            </ul>
+            <details><summary><small>Persona and memory</small></summary>
+                <p><small>@c.Persona</small></p>
+                @foreach (var m in c.Memory.TakeLast(6)) { <div><small class="muted">t@(m.Turn):</small> <small>@m.Text</small></div> }
+            </details>
+        </div>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public GameState State { get; set; } = default!;
+    [Parameter] public Power? Viewer { get; set; }
+
+    private static IEnumerable<(string, int)> Traits(Character c) =>
+    [
+        ("Loyalty", c.Traits.Loyalty), ("Greed", c.Traits.Greed), ("Competence", c.Traits.Competence),
+        ("Ambition", c.Traits.Ambition), ("Courage", c.Traits.Courage),
+    ];
+}

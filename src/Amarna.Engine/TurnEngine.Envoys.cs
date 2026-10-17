@@ -536,7 +536,7 @@ public sealed partial class TurnEngine
     public int BasePrice(Character c, Power court)
     {
         var rep = c.Reputation.Values.DefaultIfEmpty(0).Average();
-        var price = 10 + c.Traits.Competence / 6 + c.Traits.Greed / 6 + (int)(rep / 5);
+        var price = 6 + c.Traits.Competence / 8 + c.Traits.Greed / 8 + (int)(rep / 5);
         if (c.Traits.Sympathy == court) price -= 4;
         return Math.Max(5, price);
     }

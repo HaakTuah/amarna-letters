@@ -73,7 +73,7 @@ public static class CharacterFactory
                 c.Status = CharacterStatus.Employed;
                 c.Employer = p;
                 c.At = p;
-                c.Contract = new Contract { Wage = 12 + c.Traits.Competence / 8, StartTurn = 1, UntilTurn = 1 + 9 };
+                c.Contract = new Contract { Wage = 6 + c.Traits.Competence / 10, StartTurn = 1, UntilTurn = 1 + 9 };
                 c.Reputation[p] = 10;
                 if (plantSlots.Contains(slot))
                 {

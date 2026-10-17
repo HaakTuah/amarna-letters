@@ -66,7 +66,7 @@ public class EngineTests
         var s = GameFactory.NewGame(1);
         var e = new TurnEngine(s);
         Assert.Equal(16, s.Units.Count);
-        Assert.Equal(12, s.Garrisons.Count);
+        Assert.Equal(13, s.Garrisons.Count);
         Assert.Equal(18, s.Characters.Count);
         Assert.All(Powers.All, p => Assert.Equal(2, s.Characters.Count(c => c.Employer == p)));
         Assert.True(e.Strength(Power.Egypt) > e.Strength(Power.Mitanni));
@@ -114,6 +114,7 @@ public class EngineTests
     public void Validator_rejects_illegal_and_unaffordable_orders()
     {
         var s = GameFactory.NewGame(1);
+        s.Treasuries[Power.Egypt].Gold = 450;
         var v = new OrderValidator(s);
         var result = v.Validate(Power.Egypt, new TurnSubmission
         {
@@ -123,12 +124,12 @@ public class EngineTests
                 new MoveOrder("hattusa", "kanesh"),           // not Egypt's unit
                 new RaiseOrder("babylon", UnitKind.Army),     // not Egypt's homeland
                 new RaiseOrder("akhetaten", UnitKind.Fleet),  // no harbour
-                new MoveOrder("sinai", "gaza"),
-                new MoveOrder("sinai", "megiddo"),            // second order for the same unit
+                new MoveOrder("memphis", "sinai"),
+                new MoveOrder("memphis", "delta"),            // second order for the same unit
                 new RaiseOrder("thebes", UnitKind.Army),
                 new RaiseOrder("akhetaten", UnitKind.Army),
-                new BuyProvinceOrder("gaza"),                 // 250 shekels: leaves 150
-                new BuyProvinceOrder("megiddo"),              // 250 more: more than is left
+                new BuyProvinceOrder("gaza"),                 // 200 shekels: leaves 50
+                new BuyProvinceOrder("megiddo"),              // 200 more: more than is left
             ],
         });
         Assert.Equal(4, result.Accepted.Count);
