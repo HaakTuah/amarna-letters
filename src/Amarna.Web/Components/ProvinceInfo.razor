@@ -16,7 +16,8 @@
         <p>
             @(owner is { } o ? $"Held by {o.Name()}." : "A free city-state.")
             Yields @Ui.Shekels(p.Yield) a season@(p.Home is { } h && h != owner ? $"; part of the homeland of {h.Name()}" : "").
-            @if (State.Garrisons.Contains(Id)) { <span> Its walls hold against a single army: take it with support, or buy it for @Ui.Shekels(p.Yield * State.Config.NeutralPriceFactor).</span> }
+            @if (State.Garrisons.Contains(Id) && owner is null) { <span> Its walls hold against a single army: take it with support, or buy it for @Ui.Shekels(p.Yield * State.Config.NeutralPriceFactor).</span> }
+            else if (State.Garrisons.Contains(Id)) { <span> It accepted @owner?.Name()'s gold, and its walls hold for its owner.</span> }
         </p>
     }
     @if (unit is not null)

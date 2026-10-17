@@ -72,6 +72,21 @@ public sealed class WorldMap
 
     public bool AreAdjacent(string a, string b) => _adj[a].Any(x => x.To == b);
 
+    /// <summary>Two coastal provinces on the same sea zone: one short voyage apart.</summary>
+    public bool SharesSea(string a, string b) =>
+        a != b && this[a].IsCoastal && this[b].IsCoastal && _adj[a].Any(x => this[x.To].IsSea && AreAdjacent(x.To, b));
+
+    /// <summary>
+    /// Can a power buy this free city? It must border the power's land or troops, or lie across
+    /// one sea zone from one of the power's coasts: islands trade by ship.
+    /// </summary>
+    public bool WithinReach(string city, Power power, IReadOnlyDictionary<string, Power?> owner, IEnumerable<string> ownUnitProvinces)
+    {
+        var units = ownUnitProvinces as ICollection<string> ?? ownUnitProvinces.ToList();
+        if (Neighbors(city).Any(n => owner.GetValueOrDefault(n) == power || units.Contains(n))) return true;
+        return this[city].IsCoastal && owner.Any(o => o.Value == power && SharesSea(o.Key, city));
+    }
+
     /// <summary>Is there a chain of sea zones linking two coastal provinces (ignoring fleets)?</summary>
     public bool SeaRouteExists(string from, string to)
     {

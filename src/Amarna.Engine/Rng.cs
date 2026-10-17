@@ -19,8 +19,10 @@ public sealed class Rng
 
     public static Rng For(ulong seed, int turn, string purpose, string subject = "")
     {
-        var h = seed ^ 0x9E3779B97F4A7C15UL;
-        h = Mix(h ^ (ulong)(uint)turn);
+        // Hash the seed before mixing in the turn: a plain seed ^ turn would give seed 1 at turn 5
+        // the same stream as seed 2 at turn 6, so neighbouring games would share their dice.
+        var h = Mix(seed ^ 0x9E3779B97F4A7C15UL);
+        h = Mix(h ^ ((ulong)(uint)turn * 0xD6E8FEB86659FD93UL));
         h = Mix(h ^ Fnv(purpose));
         h = Mix(h ^ Fnv(subject));
         return new Rng(h);

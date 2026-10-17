@@ -44,10 +44,10 @@ public static class Prompts
             - A unit is named by the province it stands in. Orders: hold; move to a linked province; support another unit (of any power) holding, or moving into a province your own unit could move into; convoy (fleet at sea only); disband.
             - Strength is 1 plus valid supports. A move succeeds only if its strength beats the defender's hold strength and the strength of every other move into the same province. Ties bounce. A support is cut if the supporting unit is attacked from anywhere except the province it supports into. You can never dislodge your own unit.
             - A dislodged unit is destroyed. A province changes hands when a unit ends a season in it.
-            - Free city-states have walls that hold with strength 1 and never move: you need at least one support to take one, or you can buy it.
+            - Free city-states have walls that hold with strength 1 and never move: you need at least one support to take one, or you can buy it. A city that accepts a buyer keeps its walls, which then hold for its new owner: the owner cannot station troops inside, but may support its walls holding.
 
             ECONOMY
-            - Gold is counted in shekels (60 shekels make a mina). Raise an army for {c.ArmyCost} or a fleet for {c.FleetCost}, only in an unoccupied province of your own homeland that you still hold. Buy a free city-state next to your land or troops for {c.NeutralPriceFactor} x its yield. You may cede provinces or give troops to another power.
+            - Gold is counted in shekels (60 shekels make a mina). Raise an army for {c.ArmyCost} or a fleet for {c.FleetCost}, only in an unoccupied province of your own homeland that you still hold. Buy a free city-state for {c.NeutralPriceFactor} x its yield if it borders your land or troops, or shares a sea zone with one of your coasts. You may cede provinces or give troops to another power.
             - Gold sent abroad travels with an envoy and arrives late. You may send it debased (purity below 100%): the receiver sees its weight, not its fineness, until they pay {c.AssayFee} for an assay. Your own treasury figure counts unassayed gold at its weight.
 
             ENVOYS: THE ONLY WAY KINGS COMMUNICATE
@@ -125,7 +125,7 @@ public static class Prompts
         {
             var who = group.Key is { } o ? (o == v.Power ? $"{o} (you)" : o.ToString()) : "Free cities";
             var list = group.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal)
-                .Select(id => id + (group.Key is null && v.Garrisons.Contains(id) ? " (walls)" : "") + Troop(id));
+                .Select(id => id + (v.Garrisons.Contains(id) ? " (walls)" : "") + Troop(id));
             sb.AppendLine($"- {who}: {string.Join(", ", list)}");
         }
         var atSea = v.Units.Where(u => map[u.Province].IsSea).ToList();

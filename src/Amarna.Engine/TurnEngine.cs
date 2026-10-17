@@ -242,7 +242,7 @@ public sealed partial class TurnEngine
             if (at is not null) byProvince[at] = o;
         }
 
-        var result = new Adjudicator(Map).Run(S.Units, S.Garrisons, byProvince);
+        var result = new Adjudicator(Map).Run(S.Units, S.Garrisons, byProvince, S.Owner);
 
         // Which provinces could each power see before the moves? Battles there are reported to it.
         var sightBefore = Powers.All.ToDictionary(p => p, p => Views.Sight(S, Map, p));
@@ -347,8 +347,7 @@ public sealed partial class TurnEngine
             var price = prov.Yield * S.Config.NeutralPriceFactor;
             if (!Pay(buyer, price, $"the city of {prov.Name}")) continue;
             S.Owner[prov.Id] = buyer;
-            S.Garrisons.Remove(prov.Id);
-            S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule.");
+            S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule. Its walls now hold for you.");
             S.Log("purchase", $"{buyer} bought {prov.Name} for {Money.Format(price)}.", Powers.All.Where(p => Views.Sight(S, Map, p).Contains(prov.Id)).Append(buyer));
         }
     }

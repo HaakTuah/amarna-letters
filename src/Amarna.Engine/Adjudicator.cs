@@ -20,7 +20,7 @@ public sealed class AdjudicationResult
 /// Diplomacy-style resolution with no dice: strength is one plus supports and ties bounce.
 /// Implements Lucas Kruijswijk's guess-and-check algorithm (from "The Math of Adjudication"),
 /// with circular movement resolved as success and convoy paradoxes by the Szykman rule.
-/// Neutral garrisons act as units that always hold and belong to nobody.
+/// City walls act as units that always hold: a free city's belong to nobody, a bought city's to its owner.
 /// </summary>
 public sealed class Adjudicator
 {
@@ -51,7 +51,8 @@ public sealed class Adjudicator
 
     public Adjudicator(WorldMap map) => _map = map;
 
-    public AdjudicationResult Run(IReadOnlyList<Unit> units, IEnumerable<string> garrisons, IReadOnlyDictionary<string, Order> ordersByProvince)
+    public AdjudicationResult Run(IReadOnlyList<Unit> units, IEnumerable<string> garrisons, IReadOnlyDictionary<string, Order> ordersByProvince,
+        IReadOnlyDictionary<string, Power?>? owners = null)
     {
         _orders.Clear();
         _at.Clear();
@@ -81,7 +82,7 @@ public sealed class Adjudicator
         }
         foreach (var g in garrisons)
             if (!_at.ContainsKey(g))
-                Add(new O { At = g, Power = null, UnitKind = UnitKind.Army, Kind = Kind.Hold });
+                Add(new O { At = g, Power = owners?.GetValueOrDefault(g), UnitKind = UnitKind.Army, Kind = Kind.Hold });
 
         VoidMismatched();
 
@@ -111,7 +112,7 @@ public sealed class Adjudicator
                 if (ok)
                 {
                     var sup = _orders[t];
-                    if (sup.Power is null) ok = false; // garrisons cannot be supported
+                    if (sup.Power is null) ok = false; // a free city's walls take no help
                     else if (o.To is null) ok = sup.Kind != Kind.Move;
                     else ok = sup.Kind == Kind.Move && sup.Target == o.To;
                 }

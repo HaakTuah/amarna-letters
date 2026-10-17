@@ -65,7 +65,7 @@ public class EngineTests
     {
         var s = GameFactory.NewGame(1);
         var e = new TurnEngine(s);
-        Assert.Equal(16, s.Units.Count);
+        Assert.Equal(18, s.Units.Count);
         Assert.Equal(13, s.Garrisons.Count);
         Assert.Equal(18, s.Characters.Count);
         Assert.All(Powers.All, p => Assert.Equal(2, s.Characters.Count(c => c.Employer == p)));
@@ -157,6 +157,50 @@ public class EngineTests
         e.BeginTurn();
         e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Egypt] = new() { Orders = [new BuyProvinceOrder("gaza")] } });
         Assert.Equal(Power.Egypt, s.Owner["gaza"]);
+        Assert.Contains("gaza", s.Garrisons); // a bought city keeps its walls, now for its owner
+    }
+
+    [Fact]
+    public void Islands_can_buy_across_the_sea_but_not_inland()
+    {
+        var s = GameFactory.NewGame(1);
+        s.Units.RemoveAll(u => u.Power == Power.Alashiya);
+        var v = new OrderValidator(s).Validate(Power.Alashiya, new TurnSubmission { Orders = [new BuyProvinceOrder("amurru"), new BuyProvinceOrder("mari")] });
+        Assert.Single(v.Accepted);
+        Assert.Contains(v.Rejected, r => r.Order is BuyProvinceOrder { Province: "mari" });
+    }
+
+    [Fact]
+    public void Bought_walls_hold_for_their_owner()
+    {
+        var s = GameFactory.NewGame(1);
+        s.Owner["gaza"] = Power.Egypt; // bought: the walls stay
+        s.Units.Clear();
+        s.Units.Add(new Unit { Id = "u1", Power = Power.Egypt, Kind = UnitKind.Army, Province = "sinai" });
+        s.Units.Add(new Unit { Id = "u2", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "megiddo" });
+        s.Units.Add(new Unit { Id = "u3", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "tyre" });
+        s.Garrisons.Remove("megiddo"); s.Garrisons.Remove("tyre");
+
+        // The owner cannot march into its own walled city.
+        var own = new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new MoveOrder("sinai", "gaza")] });
+        Assert.Single(own.Rejected);
+
+        // One supported attack beats the walls alone, but not walls the owner supports.
+        var e = new TurnEngine(s);
+        e.Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Egypt] = new() { Orders = [new SupportOrder("sinai", "gaza")] },
+            [Power.Babylonia] = new() { Orders = [new MoveOrder("megiddo", "gaza"), new SupportOrder("tyre", "megiddo", "gaza")] },
+        });
+        Assert.Equal(Power.Egypt, s.Owner["gaza"]);
+        Assert.Contains("gaza", s.Garrisons);
+
+        e = new TurnEngine(s);
+        e.Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Babylonia] = new() { Orders = [new MoveOrder("megiddo", "gaza"), new SupportOrder("tyre", "megiddo", "gaza")] },
+        });
+        Assert.Equal(Power.Babylonia, s.Owner["gaza"]);
         Assert.DoesNotContain("gaza", s.Garrisons);
     }
 
@@ -199,6 +243,16 @@ public class EngineTests
         var cold = Greeting.Render(Power.Assyria, Power.Babylonia, new GreetingOptions { CallBrother = false, GrantGreatKing = false, SenderFirst = true });
         Assert.StartsWith("Thus says Ashur-uballit, Great King, king of Assyria: say to Burna-Buriash, king of Karduniash.", cold);
         Assert.Equal("", Greeting.Render(Power.Egypt, Power.Hatti, new GreetingOptions { Omit = true }));
+    }
+
+    [Fact]
+    public void Neighbouring_seeds_and_turns_never_share_a_random_stream()
+    {
+        // Regression: streams were once keyed by seed ^ turn, so seed 1 turn 5 equalled seed 2 turn 6.
+        var seen = new HashSet<ulong>();
+        for (ulong seed = 1; seed <= 200; seed++)
+            for (var turn = 1; turn <= 60; turn++)
+                Assert.True(seen.Add(Rng.For(seed, turn, "catastrophe", "Alashiya").NextULong()), $"seed {seed} turn {turn}");
     }
 
     [Fact]

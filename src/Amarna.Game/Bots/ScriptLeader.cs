@@ -127,6 +127,16 @@ public sealed class ScriptLeader : ISeat
             }
         }
 
+        // Help the walls of our own cities hold when enemies stand next to them.
+        foreach (var city in v.Garrisons.Where(g => v.Owner.GetValueOrDefault(g) == me).OrderBy(g => g, StringComparer.Ordinal))
+        {
+            if (!others.Any(o => !Friendly(o.Power) && Map.CanMove(o.Kind, o.Province, city))) continue;
+            var helper = free.Values.Where(u => Map.CanMove(u.Kind, u.Province, city)).OrderBy(u => u.Province, StringComparer.Ordinal).FirstOrDefault();
+            if (helper is null) continue;
+            orders.Add(new SupportOrder(helper.Province, city));
+            free.Remove(helper.Province);
+        }
+
         // Pick targets and gather enough strength for each.
         var targets = new List<(string Id, int Need, int Value)>();
         foreach (var t in free.Values.SelectMany(u => Map.MovesFrom(u.Kind, u.Province)).Distinct().Where(id => !Map[id].IsSea))
@@ -138,7 +148,7 @@ public sealed class ScriptLeader : ISeat
             if (owner is null) need = occ is null ? (v.Garrisons.Contains(t) ? 2 : 1) : (Willing(occ.Power) ? 2 : 0);
             else if (owner == me) need = occ is null ? 0 : 2;
             else if (!Willing(owner.Value)) need = 0;
-            else need = occ is null ? 1 : 2 + (m.Aggression < 0.5 ? 1 : 0);
+            else need = occ is null ? (v.Garrisons.Contains(t) ? 2 : 1) : 2 + (m.Aggression < 0.5 ? 1 : 0);
             if (need == 0) continue;
             var prov = Map[t];
             var value = prov.Yield + (prov.Capital ? 25 : 0) + (owner is null ? 5 : 0) + (prov.Home == me ? 30 : 0)
@@ -219,6 +229,7 @@ public sealed class ScriptLeader : ISeat
         var provinces = v.Owner.Count(x => x.Value == me);
         var units = v.Units.Count(u => u.Power == me);
         var maritime = me is Power.Alashiya or Power.Arzawa;
+        var weak = me.Tier() == Tier.Weak;
         var fleets = v.Units.Count(u => u.Power == me && u.Kind == UnitKind.Fleet);
 
         var spots = Map.HomeOf(me)
@@ -228,11 +239,12 @@ public sealed class ScriptLeader : ISeat
         var surplus = v.Income - v.Upkeep - v.Wages;
         foreach (var spot in spots)
         {
-            if (units + raised >= provinces + 1) break;
+            // Small kingdoms keep their gold for buying cities rather than for troops they cannot feed.
+            if (units + raised >= provinces + (weak ? 0 : 1)) break;
             var fleet = spot.IsCoastal && (maritime ? fleets < 2 : fleets == 0 && rng.Chance(0.3));
             var cost = fleet ? v.Prices["fleet"] : v.Prices["army"];
             var upkeep = fleet ? v.Prices["fleetUpkeep"] : v.Prices["armyUpkeep"];
-            if (gold - cost < reserve || surplus - upkeep < -5) break;
+            if (gold - cost < reserve || surplus - upkeep < (weak ? 15 : -5)) break;
             surplus -= upkeep;
             orders.Add(new RaiseOrder(spot.Id, fleet ? UnitKind.Fleet : UnitKind.Army));
             gold -= cost;
@@ -241,12 +253,13 @@ public sealed class ScriptLeader : ISeat
             if (gold < reserve * 2) break;
         }
 
-        var near = new HashSet<string>(v.Owner.Where(x => x.Value == me).Select(x => x.Key).Concat(v.Units.Where(u => u.Power == me).Select(u => u.Province)));
+        var myUnits = v.Units.Where(u => u.Power == me).Select(u => u.Province).ToList();
         var buy = v.Garrisons
-            .Where(g => v.Owner.GetValueOrDefault(g) is null && !destinations.Contains(g) && Map.Neighbors(g).Any(near.Contains))
+            .Where(g => v.Owner.GetValueOrDefault(g) is null && !destinations.Contains(g) && Map.WithinReach(g, me, v.Owner, myUnits))
             .OrderByDescending(g => Map[g].Yield).ThenBy(g => g, StringComparer.Ordinal)
-            .FirstOrDefault(g => gold - Map[g].Yield * v.Prices["cityPricePerYield"] >= reserve + 50);
-        if (buy is not null && rng.Chance(0.35 + m.Greed * 0.25)) orders.Add(new BuyProvinceOrder(buy));
+            .FirstOrDefault(g => gold - Map[g].Yield * v.Prices["cityPricePerYield"] >= reserve + (weak ? 20 : 50));
+        // Small kingdoms grow by gold rather than by conquest.
+        if (buy is not null && rng.Chance(weak ? 0.8 : 0.35 + m.Greed * 0.25)) orders.Add(new BuyProvinceOrder(buy));
     }
 
     // ================================================================= letters

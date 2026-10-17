@@ -118,6 +118,8 @@ public sealed class OrderValidator
                     if (OwnUnit(m.Unit, out var u) is { } e) return e;
                     if (!_map.Exists(m.To)) return $"there is no province called '{m.To}'";
                     if (m.To == m.Unit) return "a unit cannot move to where it stands";
+                    if (_s.Garrisons.Contains(m.To) && _s.Owner.GetValueOrDefault(m.To) == power)
+                        return $"{_map[m.To].Name} is held by its own walls for you; your troops cannot enter it";
                     if (u!.Kind == UnitKind.Fleet)
                         return _map.CanMove(UnitKind.Fleet, m.Unit, m.To) ? null : $"a fleet in {m.Unit} cannot reach {m.To}";
                     if (_map.CanMove(UnitKind.Army, m.Unit, m.To)) return null;
@@ -127,7 +129,10 @@ public sealed class OrderValidator
                 case SupportOrder sp:
                 {
                     if (OwnUnit(sp.Unit, out var u) is { } e) return e;
-                    if (!_map.Exists(sp.Supported) || _s.UnitAt(sp.Supported) is null) return $"there is no unit in {sp.Supported} to support";
+                    if (!_map.Exists(sp.Supported)) return $"there is no province called '{sp.Supported}'";
+                    var walls = _s.Garrisons.Contains(sp.Supported) && _s.Owner.GetValueOrDefault(sp.Supported) is not null;
+                    if (_s.UnitAt(sp.Supported) is null && !walls) return $"there is no unit in {sp.Supported} to support";
+                    if (walls && sp.To is not null) return "city walls never move; they can only be supported holding";
                     if (sp.Supported == sp.Unit) return "a unit cannot support itself";
                     var into = sp.To ?? sp.Supported;
                     if (!_map.Exists(into)) return $"there is no province called '{into}'";
@@ -163,8 +168,8 @@ public sealed class OrderValidator
                 {
                     if (!_map.Exists(b.Province) || _map[b.Province].IsSea) return $"there is no city called '{b.Province}'";
                     if (_s.Owner.GetValueOrDefault(b.Province) is not null) return $"{_map[b.Province].Name} is not a free city-state";
-                    var near = _map.Neighbors(b.Province).Any(n => _s.Owner.GetValueOrDefault(n) == power || _s.UnitAt(n)?.Power == power);
-                    if (!near) return $"{_map[b.Province].Name} lies beyond your reach";
+                    var near = _map.WithinReach(b.Province, power, _s.Owner, _s.Units.Where(u => u.Power == power).Select(u => u.Province));
+                    if (!near) return $"{_map[b.Province].Name} lies beyond your reach (it must border your land or troops, or share a sea with one of your coasts)";
                     if (bought.Contains(b.Province)) return "you already bid for that city";
                     return Spend(_map[b.Province].Yield * _s.Config.NeutralPriceFactor);
                 }

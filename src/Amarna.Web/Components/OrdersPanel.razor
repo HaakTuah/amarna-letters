@@ -83,7 +83,7 @@
         <div class="row" style="margin-top:.4rem">
             <select @bind="BuyCity">
                 <option value="">Buy a free city…</option>
-                @foreach (var g in v.Garrisons.Where(g => v.Owner.GetValueOrDefault(g) is null && map.Neighbors(g).Any(n => v.Owner.GetValueOrDefault(n) == me || v.Units.Any(u => u.Power == me && u.Province == n))).OrderBy(Ui.Province)) { <option value="@g">@Ui.Province(g) (@Ui.Shekels(map[g].Yield * v.Prices["cityPricePerYield"]))</option> }
+                @foreach (var g in v.Garrisons.Where(g => v.Owner.GetValueOrDefault(g) is null && map.WithinReach(g, me, v.Owner, v.Units.Where(u => u.Power == me).Select(u => u.Province))).OrderBy(Ui.Province)) { <option value="@g">@Ui.Province(g) (@Ui.Shekels(map[g].Yield * v.Prices["cityPricePerYield"]))</option> }
             </select>
             <button class="small" disabled="@(BuyCity == "")" @onclick="() => Add(new BuyProvinceOrder(BuyCity))">Add</button>
         </div>

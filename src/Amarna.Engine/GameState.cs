@@ -15,7 +15,7 @@ public sealed class GameState
     public string? EndReason { get; set; }
 
     public Dictionary<string, Power?> Owner { get; set; } = new();
-    /// <summary>Neutral city-states still defended by their own walls (hold strength 1).</summary>
+    /// <summary>Cities still defended by their own walls (hold strength 1): free city-states, and cities that accepted a buyer, whose walls then hold for the owner.</summary>
     public List<string> Garrisons { get; set; } = new();
     public List<Unit> Units { get; set; } = new();
     public Dictionary<Power, Treasury> Treasuries { get; set; } = new();
