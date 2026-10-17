@@ -116,7 +116,7 @@ public sealed partial class TurnEngine
                 report.Poison = c.PoisonText;
                 report.Observations = report.Observations.Take(1).ToList();
             }
-            var from = c.MissionTarget is { } court ? Map.Capital(court).Id : c.WatchProvince!;
+            var from = c.MissionTarget is { } court ? Map.Capital(court).Id : c.WatchProvince ?? Map.Capital(employer).Id;
             S.Journeys.Add(new Journey
             {
                 Id = S.NewId("j"),

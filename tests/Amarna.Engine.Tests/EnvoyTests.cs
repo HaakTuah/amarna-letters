@@ -106,6 +106,35 @@ public class EnvoyTests
     }
 
     [Fact]
+    public void A_prisoner_whose_king_falls_can_take_service_only_with_the_king_who_holds_them()
+    {
+        var (s, envoy) = Start();
+        var e = Begin(s);
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Egypt] = new() { Orders = [new DispatchOrder(envoy.Id, Power.Alashiya, "Hello.")] } });
+        while (s.Audiences.Count == 0) { e = Begin(s); if (s.Audiences.Count == 0) e.Resolve(new Dictionary<Power, TurnSubmission>()); }
+        e.ApplyAudience(new AudienceRecord { AudienceId = s.Audiences.Single().Id, Rounds = [new AudienceRound { Host = new HostReply { Detain = true } }] });
+
+        // As when the envoy's own kingdom falls: no master, free for hire, still held.
+        envoy.Employer = null;
+        envoy.Contract = null;
+        envoy.Status = CharacterStatus.Free;
+        envoy.Pitches[Power.Assyria] = "I can serve you well.";
+
+        var rejected = new OrderValidator(s).Validate(Power.Assyria, new TurnSubmission { Orders = [new HireOrder(envoy.Id, 100, 6)] }).Rejected;
+        Assert.Contains(rejected, r => r.Reason.Contains("held at the court of Alashiya"));
+
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Alashiya] = new() { Orders = [new HireOrder(envoy.Id, 100, 6)] } });
+        Assert.Equal(Power.Alashiya, envoy.Employer);
+        Assert.Null(envoy.HeldBy);
+        Assert.Equal(Duty.None, envoy.Duty);
+
+        // A release order for someone no longer held does nothing.
+        e = Begin(s);
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Alashiya] = new() { Orders = [new ReleaseOrder(envoy.Id, "Go.")] } });
+        Assert.DoesNotContain(s.Journeys, j => j.CharacterId == envoy.Id && j.Kind == JourneyKind.EnvoyHomebound);
+    }
+
+    [Fact]
     public void Poached_envoy_changes_masters()
     {
         var (s, envoy) = Start();

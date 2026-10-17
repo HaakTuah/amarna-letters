@@ -217,6 +217,7 @@ public sealed class OrderValidator
                     var c = _s.FindCharacter(h.Character);
                     if (c is null) return $"there is nobody called '{h.Character}'";
                     if (!c.IsAvailableForHire) return $"{c.Name} is not available for hire";
+                    if (c.HeldBy is { } holder && holder != power) return $"{c.Name} is held at the court of {holder} and cannot come to yours";
                     if (!c.Pitches.ContainsKey(power) && c.At != power) return $"{c.Name} has not presented themselves to your court";
                     if (h.Wage <= 0 || h.Term <= 0) return "wage and term must be positive";
                     if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
