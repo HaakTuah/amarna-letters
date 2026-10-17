@@ -21,6 +21,7 @@ else
     var pendingOrders = Session.HistoryTurn is null ? Session.Humans.Values.FirstOrDefault(h => h.PendingOrders is not null) : null;
     var pendingAudience = Session.HistoryTurn is null ? Session.Humans.Values.FirstOrDefault(h => h.PendingAudience is not null) : null;
     EnsureDraft(pendingOrders);
+    EnsureAudienceTab(pendingAudience);
     var useDraft = Tab == "orders" && Draft is not null;
 
     <div class="game">
@@ -169,6 +170,17 @@ else
             _draftFor = view;
             Tab = "orders";
         }
+    }
+
+    private string? _audienceKey;
+
+    /// <summary>A new envoy before the throne takes the panel, once.</summary>
+    private void EnsureAudienceTab(HumanSeat? seat)
+    {
+        var a = seat?.PendingAudience;
+        var key = a is null ? null : $"{a.AudienceId}:{a.Round}";
+        if (key is not null && key != _audienceKey) Tab = "audience";
+        _audienceKey = key;
     }
 
     private string EffectiveTab(HumanSeat? orders, HumanSeat? audience, SeatView? view)
