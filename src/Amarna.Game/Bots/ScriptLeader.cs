@@ -37,7 +37,7 @@ public sealed class ScriptLeader : ISeat
         lock (brain)
         {
             brain.Learn(view, new Board(view));
-            var board = new Board(view, brain.Remembered(view));
+            var board = new Board(view, brain.Remembered(view), brain.Treasury);
             var rng = brain.R(view.Turn, "decide");
 
             Statecraft.Strategy(board, brain, rng);
@@ -59,8 +59,27 @@ public sealed class ScriptLeader : ISeat
             Statecraft.Letters(board, brain, orders, busy, rng);
 
             var notes = $"War on {brain.WarTarget?.ToString() ?? "nobody"}" + (brain.Betraying is { } t ? $"; turning on {t}" : "")
+                        + (board.Leader() is { } top ? $"; {top} leads" : "") + string.Concat(Pacts(board, brain, plan).Select(s => "; " + s))
                         + $". Trust: {string.Join(", ", brain.Rel.Where(x => Math.Abs(x.Value.Trust) > 0.15).Select(x => $"{x.Key} {x.Value.Trust:+0.0;-0.0}"))}.";
             return Task.FromResult(new TurnSubmission { Orders = orders, Notes = notes });
+        }
+    }
+
+    /// <summary>For the notes: the coalitions in force, and the joint blows this season's orders strike.</summary>
+    private static IEnumerable<string> Pacts(Board board, Brain brain, MilitaryPlan plan)
+    {
+        foreach (var g in brain.Coalitions(board).GroupBy(c => c.Against))
+            yield return $"sworn against {g.Key} with {string.Join(" and ", g.Select(c => c.Partner))}";
+        foreach (var j in Tactics.Joints(board, brain))
+        {
+            var place = Board.Map[j.Target].Name;
+            if (j.Lead.Power == board.Me)
+            {
+                if (plan.Orders.GetValueOrDefault(j.Lead.Province) is MoveOrder m && m.To == j.Target)
+                    yield return $"joint blow on {place}: going in, {string.Join(" and ", j.Support.Select(s => s.Power).Where(x => x != board.Me).Distinct())} supporting";
+            }
+            else if (j.Support.Any(s => s.Power == board.Me && plan.Orders.GetValueOrDefault(s.Province) is SupportOrder o && o.To == j.Target))
+                yield return $"joint blow on {place}: supporting {j.Lead.Power}";
         }
     }
 
@@ -69,8 +88,8 @@ public sealed class ScriptLeader : ISeat
         var brain = Brain(view.Host);
         lock (brain)
         {
-            var board = new Board(court);
-            brain.Learn(court, board);
+            brain.Learn(court, new Board(court));
+            var board = new Board(court, treasuries: brain.Treasury);
             var rng = Rng.For(_seed, view.Turn, "bot:host", $"{view.Host}:{view.AudienceId}:{view.Round}");
             return Task.FromResult(Statecraft.Host(view, board, brain, rng));
         }

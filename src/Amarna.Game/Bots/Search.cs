@@ -28,6 +28,9 @@ internal static class Search
         public required Func<Power?, bool> Prey;
         public required Func<Power, bool> Willing;
         public Power? Leader;
+        public required HashSet<Power> Sworn;
+        public required List<Tactics.Joint> Joints;
+        public required List<(Power Partner, Power Against)> Coalitions;
         public int Runs;
     }
 
@@ -89,14 +92,28 @@ internal static class Search
             foes.Add(orders);
         }
 
+        // Sworn partners keep to the rule for joint blows (see Tactics.Joints) in every season but the two
+        // where the most hostile king comes for us: their troops go in or support as the rule says.
+        var joints = Tactics.Joints(b, brain);
+        for (var s = 0; s < Samples; s++)
+        {
+            if (s is 1 or 2) continue;
+            foreach (var j in joints)
+            {
+                if (j.Lead.Power != me) foes[s][j.Lead.Province] = new MoveOrder(j.Lead.Province, j.Target);
+                foreach (var h in j.Support.Where(u => u.Power != me)) foes[s][h.Province] = new SupportOrder(h.Province, j.Lead.Province, j.Target);
+            }
+        }
+
+        var sworn = brain.SwornFoes(b);
         var ctx = new Ctx
         {
-            B = b, Brain = brain, P = p, Hostility = hostility, Leader = leader, Foes = foes,
+            B = b, Brain = brain, P = p, Hostility = hostility, Leader = leader, Foes = foes, Sworn = sworn, Joints = joints, Coalitions = brain.Coalitions(b).ToList(),
             Adj = new Adjudicator(Board.Map),
             Units = b.Units.Select(u => new Unit { Id = u.Province, Power = u.Power, Kind = u.Kind, Province = u.Province }).ToList(),
             Willing = x => Tactics.Willing(b, brain, x, leader),
             Prey = owner => owner is null || owner == brain.WarTarget || owner == brain.Betraying || owner == leader
-                            || (owner is { } o && o != me && brain.Rel[o].Hostile),
+                            || (owner is { } o && o != me && (brain.Rel[o].Hostile || sworn.Contains(o))),
         };
 
         // Candidate plans: the king's own, a bolder one, a safer one, and standing fast.
@@ -123,7 +140,7 @@ internal static class Search
             var improved = false;
             foreach (var u in mine)
             {
-                foreach (var change in Alternatives(b, best, u, ctx.Willing))
+                foreach (var change in Alternatives(b, best, u, ctx.Willing, ctx.Joints))
                 {
                     if (ctx.Runs + Samples > Budget) break;
                     var trial = new Dictionary<string, Order>(best);
@@ -164,7 +181,7 @@ internal static class Search
             Turn = v.Turn, Season = v.Season, Power = x, MinTurns = v.MinTurns, EndChance = v.EndChance,
             Owner = v.Owner, Garrisons = v.Garrisons, Units = b.Units, Visible = v.Visible, Fallen = v.Fallen, Prices = v.Prices,
         };
-        var their = new Board(view);
+        var their = new Board(view, treasuries: brain.Treasury);
         if (!brain.Models.TryGetValue(x, out var model))
             brain.Models[x] = model = new Brain(x, brain.Seed ^ 0xA5A5_5A5A_0F0F_F0F0UL, Personality.Archetype(x));
 
@@ -226,7 +243,7 @@ internal static class Search
         a.Count == b.Count && a.All(x => b.TryGetValue(x.Key, out var o) && o == x.Value);
 
     /// <summary>Other orders for one unit: hold, each legal move, each support it could give, or a move with a supporter.</summary>
-    private static IEnumerable<Order[]> Alternatives(Board b, Dictionary<string, Order> plan, string u, Func<Power, bool> willing)
+    private static IEnumerable<Order[]> Alternatives(Board b, Dictionary<string, Order> plan, string u, Func<Power, bool> willing, List<Tactics.Joint> joints)
     {
         // Never into the land or troops of a king we are not willing to fight.
         bool Open(string to) =>
@@ -257,6 +274,9 @@ internal static class Search
         // Our own walls can be supported holding too.
         foreach (var w in moves.Where(w => b.Walls(w) && b.IsMine(w) && !plan.ContainsKey(w)))
             yield return [new SupportOrder(u, w)];
+        // And a sworn partner's troop going in on a joint blow (see Tactics.Joints).
+        foreach (var j in joints.Where(j => j.Lead.Power != b.Me && j.Support.Any(s => s.Province == u)))
+            yield return [new SupportOrder(u, j.Lead.Province, j.Target)];
     }
 
     // ------------------------------------------------------------------ judging
@@ -307,11 +327,19 @@ internal static class Search
         // Harm done to the kings we fight.
         foreach (var x in c.Hostility.Keys)
         {
-            var w = x == c.Brain.WarTarget || x == c.Brain.Betraying ? 0.35 : x == c.Leader ? 0.3 : c.Brain.Rel[x].Hostile ? 0.2 : 0;
+            // A king we have sworn with others to hold back counts most: what he loses to a partner is our gain too.
+            var w = c.Sworn.Contains(x) ? 0.45 : x == c.Brain.WarTarget || x == c.Brain.Betraying ? 0.35 : x == c.Leader ? 0.3 : c.Brain.Rel[x].Hostile ? 0.2 : 0;
             if (w == 0) continue;
             foreach (var (p, o) in b.V.Owner)
                 if (o == x && Owner(p) != x) score += w * b.Value(p);
             score += w * 100 * c.Units.Count(u => u.Power == x && lost.Contains(u.Id));
+        }
+        // And what a sworn partner loses to him.
+        foreach (var (partner, foe) in c.Coalitions)
+        {
+            foreach (var (p, o) in b.V.Owner)
+                if (o == partner && Owner(p) == foe) score -= 0.25 * b.Value(p);
+            score -= 25 * c.Units.Count(u => u.Power == partner && lost.Contains(u.Id));
         }
 
         // What lies open next season: land that a hostile neighbour could walk into.
@@ -323,8 +351,11 @@ internal static class Search
             var helpers = mineAfter.Count(x => x.Key != p && Board.Map.CanMove(x.Value.Kind, x.Key, p));
             var defence = here || walls ? 1 + helpers : Math.Min(1, helpers);
             var risk = 0.0;
-            foreach (var (x, h) in c.Hostility)
+            var capital = Board.Map[p].Capital && Board.Map[p].Home == me;
+            foreach (var (x, fear) in c.Hostility)
             {
+                // A capital is trusted only to a sworn ally (see Tactics.Make).
+                var h = capital && !c.Brain.Rel[x].Allied ? Math.Max(fear, 0.3) : fear;
                 if (h < 0.15) continue;
                 var attackers = at.Count(y => y.Value.Power == x && Board.Map.CanMove(y.Value.Kind, y.Key, p));
                 if (attackers == 0) continue;

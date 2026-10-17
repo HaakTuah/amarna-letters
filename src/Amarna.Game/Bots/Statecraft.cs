@@ -35,10 +35,16 @@ internal static class Statecraft
         });
         var ours = b.Mine.Count;
         var neighbours = b.Neighbours().ToList();
+        var sworn = brain.SwornFoes(b);
+        // How far the leader stands above the rest of us: the further, the more urgent it is to hold him back.
+        var lead = leader is { } top && top != me ? b.Growth(top) - b.Alive.Where(x => x != top).Select(b.Growth).DefaultIfEmpty(1).Max() : 0;
 
         // War target: keep it while it still makes sense, otherwise pick the best.
         if (brain.WarTarget is { } current && (!b.Alive.Contains(current) || brain.IsFriend(current) || Prize(current) <= 0 || b.Turn() - brain.WarSince > 8
-                                               || (Force(current) > ours + 1 && brain.Rel[current].LastAttackedUs < b.Turn() - 2)))
+                                               // Too strong to fight alone, unless we do not fight him alone.
+                                               || (Force(current) > ours + 1 && brain.Rel[current].LastAttackedUs < b.Turn() - 2 && !sworn.Contains(current))
+                                               // A war of choice on one of the rest, while the leader runs away: think again.
+                                               || (current != leader && lead >= 0.2 && !sworn.Contains(current) && brain.Rel[current].LastAttackedUs < b.Turn() - 2)))
             brain.WarTarget = null;
         if (brain.WarTarget is null)
         {
@@ -51,11 +57,20 @@ internal static class Statecraft
                 if (!reach.Any(t => b.OwnerOf(t) == x)) return (X: x, Score: double.MinValue);
                 // and the kings who could fall on us while we are busy with him.
                 var flank = neighbours.Where(y => y != x && !brain.IsFriend(y)).Sum(y => Math.Max(0, Force(y) - ours + 1) * 40.0) * (0.5 + p.Caution);
+                // A runaway leader, and above all one we have sworn with others to stand against, is everyone's war.
+                // While he runs away, a war among the rest of us only helps him.
+                var balance = (x == leader ? 160 + 400 * Math.Min(0.5, lead) : leader is { } ahead && ahead != me ? -300 * Math.Min(0.5, lead) * (0.5 + p.Diplomacy) : 0)
+                              + (sworn.Contains(x) ? 120 + 160 * p.Honesty : 0);
+                // A tablet we sent him binds us until his answer is back (our copy comes home with the envoy): no
+                // king offers peace one season and marches the next, unless he was attacked in between.
+                var since = b.Turn() - r.ProposedTurn;
+                var pending = !r.Treaty && since <= 3 && r.LastAttackedUs < r.ProposedTurn;
+                if (pending && since <= 2) return (X: x, Score: double.MinValue);
                 var score = Prize(x) * odds * (0.4 + p.Aggression)
                             + r.Grudge * p.Vengeance * 40
-                            + (x == leader ? 160 : 0)
+                            + balance
                             - flank
-                            - (r.Treaty ? 400 * p.Honesty : 0)
+                            - (r.Treaty || pending ? 400 * p.Honesty : 0)
                             - (r.Allied ? 800 : 0)
                             // A king who courts us (gifts, oaths, supports) is worth more as a friend than as prey.
                             - Math.Max(0, r.Trust) * 350
@@ -88,6 +103,32 @@ internal static class Statecraft
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Whether a king is worth a coalition of these two: more than either of them could hold back alone, judged by
+    /// strength, not growth. A small kingdom that has grown fast leads the race, but two great kings who swear
+    /// against it only make themselves the pair to beat.
+    /// </summary>
+    private static bool Outweighs(Board b, Power top, Power a, Power c) =>
+        b.Strength(top) >= 0.85 * Math.Max(b.Strength(a), b.Strength(c)) && b.Growth(top) > Math.Max(b.Growth(a), b.Growth(c));
+
+    /// <summary>
+    /// Two great kings of a size, both among the three strongest: rivals for the crown. They may keep the peace,
+    /// but neither swears the alliance that would let them share the victory and leave the rest of us nothing.
+    /// </summary>
+    private static bool Rivals(Board b, Power a, Power c)
+    {
+        var top = b.Alive.OrderByDescending(b.Strength).ThenBy(x => x).Take(3).ToHashSet();
+        var (sa, sc) = (b.Strength(a), b.Strength(c));
+        return top.Contains(a) && top.Contains(c) && Math.Min(sa, sc) >= 0.7 * Math.Max(sa, sc);
+    }
+
+    /// <summary>Whether one king's land borders another's, by land or across a sea.</summary>
+    private static bool Touches(Board b, Power x, Power y)
+    {
+        var theirs = b.V.Owner.Where(o => o.Value == y).Select(o => o.Key).ToHashSet();
+        return b.V.Owner.Any(o => o.Value == x && (Board.Map.Neighbors(o.Key).Any(theirs.Contains) || theirs.Any(t => Board.Map.SharesSea(o.Key, t))));
     }
 
     private static HashSet<string> ReachableLand(Board b) =>
@@ -169,6 +210,8 @@ internal static class Statecraft
         {
             if (buys >= (p.Commerce > 0.45 ? 2 : 1)) break;
             if (gold - o.Price < margin) continue;
+            // Two kings who both bid every season never get the city: after a refusal, bid again only half the time.
+            if (brain.Outbid.TryGetValue(o.Id, out var refused) && v.Turn - refused <= 3 && !rng.Chance(0.5)) continue;
             orders.Add(new BuyProvinceOrder(o.Id));
             gold -= o.Price;
             buys++;
@@ -191,8 +234,9 @@ internal static class Statecraft
         var staff = v.Court.Where(c => c.Status == "employed").ToList();
         var flow = v.Income - v.Upkeep - v.Wages;
         // More people only while the treasury can carry their wages.
-        // A third or fourth servant costs a wage every season: only for a king with letters (or plots) to fill it, and the gold to spare.
-        var wanted = flow < 25 ? 2 : 2 + (p.Diplomacy > 0.8 ? 1 : 0) + (p.Cunning > 0.7 && flow > 50 ? 1 : 0);
+        // A third or fourth servant costs a wage every season: only for a king with letters (or plots) to fill it, and a
+        // surplus to match the size of his kingdom (a small court for a small kingdom).
+        var wanted = flow < 25 + 0.25 * v.Income ? 2 : 2 + (p.Diplomacy > 0.8 ? 1 : 0) + (p.Cunning > 0.7 && flow > 50 + 0.25 * v.Income ? 1 : 0);
 
         if (staff.Count < wanted && v.Turn - brain.LastSeek >= 2 && spare > 40)
         {
@@ -206,7 +250,7 @@ internal static class Statecraft
         {
             var best = candidates[0];
             var careful = (p.Caution + p.Cunning) / 2 > 0.5;
-            if (careful && !brain.Checked.Contains(best.Id) && spare > 30)
+            if (careful && !brain.Checked.Contains(best.Id) && spare > 30 + v.Income / 2)
             {
                 orders.Add(new BackgroundCheckOrder(best.Id, 25));
                 brain.Checked.Add(best.Id);
@@ -270,11 +314,11 @@ internal static class Statecraft
         if (p.Cunning > 0.7 && p.Honesty < 0.4 && leader is { } top && top != b.Me && ready.Count >= 2 && spare > 100 && rng.Chance(0.15))
         {
             var friendOfTop = b.Alive.Where(x => x != b.Me && x != top).OrderBy(x => brain.Rel[x].Trust).First();
-            var victim = b.Alive.Where(x => x != b.Me && x != top && x != friendOfTop).OrderByDescending(x => b.Neighbours().Contains(x)).ThenBy(x => x).FirstOrDefault();
-            if (victim != default)
+            var victim = b.Alive.Where(x => x != b.Me && x != top && x != friendOfTop).OrderByDescending(x => b.Neighbours().Contains(x)).ThenBy(x => x).Cast<Power?>().FirstOrDefault();
+            if (victim is { } prey)
             {
                 var forger = ready[0];
-                orders.Add(new ForgeOrder(forger.Id, $"{top} swears to {friendOfTop}: when the harvest is in, we shall march together against {victim} and divide its land.", [top, friendOfTop]));
+                orders.Add(new ForgeOrder(forger.Id, $"{top} swears to {friendOfTop}: when the harvest is in, we shall march together against {prey} and divide its land.", [top, friendOfTop]));
                 busy.Add(forger.Id);
             }
         }
@@ -312,7 +356,8 @@ internal static class Statecraft
 
     // ================================================================= letters
 
-    private sealed record Mission(Power To, string Kind, double Score);
+    /// <param name="Against">The king a coalition is sworn against.</param>
+    private sealed record Mission(Power To, string Kind, double Score, Power? Against = null);
 
     public static void Letters(Board b, Brain brain, List<Order> orders, HashSet<string> busy, Rng rng)
     {
@@ -325,12 +370,20 @@ internal static class Statecraft
         var leader = b.Leader();
         var neighbours = b.Neighbours().ToHashSet();
         var missions = new List<Mission>();
+        // A neighbour taking our land who is too strong for us alone: we ask the other kings on his borders to stand with us.
+        var aggressor = brain.Rel.Where(kv => b.Alive.Contains(kv.Key) && kv.Value.Hostile && kv.Value.LastAttackedUs >= v.Turn - 2 && !kv.Value.Allied
+                                              && b.Strength(kv.Key) >= 0.8 * b.Strength(me))
+            .OrderByDescending(kv => kv.Value.Grudge).ThenBy(kv => kv.Key).Select(kv => (Power?)kv.Key).FirstOrDefault();
         foreach (var x in b.Alive.Where(x => x != me))
         {
             var r = brain.Rel[x];
             var fresh = v.Turn - r.ProposedTurn >= 4;
-            if (leader is { } top && top != me && x != top && !r.Allied && r.Trust > -0.3 && fresh && !brain.Rel[top].Allied)
-                missions.Add(new(x, "coalition", p.Diplomacy * (b.LandGrowth(top) - 0.6) * (neighbours.Contains(x) ? 1.3 : 1)));
+            // A coalition against the leader, if he outweighs us both, best with a king whose land touches his and can strike at it too.
+            if (leader is { } top && top != me && x != top && x != brain.WarTarget && r.Against != top && r.Trust > -0.3 && fresh && !brain.Rel[top].Allied && !r.Hostile
+                && Outweighs(b, top, me, x))
+                missions.Add(new(x, "coalition", p.Diplomacy * (b.Growth(top) - 0.6) * (Touches(b, x, top) ? 1.4 : 1) * (neighbours.Contains(x) ? 1.2 : 1), top));
+            else if (aggressor is { } foe && x != foe && x != brain.WarTarget && r.Against != foe && r.Trust > -0.3 && fresh && !r.Hostile && Touches(b, x, foe))
+                missions.Add(new(x, "coalition", p.Diplomacy * 0.55 + 0.2 * (1 - p.Pride), foe));
             if (x == brain.WarTarget)
             {
                 if (p.Cunning * (1 - p.Honesty) > 0.3 && fresh) missions.Add(new(x, "lull", p.Cunning * (1 - p.Honesty)));
@@ -339,11 +392,15 @@ internal static class Statecraft
             if (r.Grudge >= 3 && fresh) missions.Add(new(x, "grievance", 0.3 + 0.5 * p.Vengeance));
             if (!r.Treaty && neighbours.Contains(x) && fresh && !r.Hostile)
                 missions.Add(new(x, "peace", (0.3 + p.Caution) * brain.Hostility(x, b) + 0.2 * p.Diplomacy + (me.Tier() == Tier.Weak ? 0.3 : 0)));
-            if (r.Treaty && !r.Allied && r.Trust > 0.2 && fresh && x != leader)
-                missions.Add(new(x, "alliance", 0.5 * p.Diplomacy + 0.2 * r.Trust));
+            // Alliance with a trusted partner; never with a rival for the crown, and with the leader only for a small
+            // kingdom, which has more to gain from his protection than to fear from his rise.
+            var small = b.Strength(me) < 0.6 * b.Strength(x);
+            if (r.Treaty && !r.Allied && r.Trust > 0.2 && fresh && (x != leader || small) && !Rivals(b, me, x))
+                missions.Add(new(x, "alliance", 0.5 * p.Diplomacy + 0.2 * r.Trust + (small ? 0.15 : 0)));
             if (brain.IsFriend(x) && brain.SpareGold > 150 && rng.Chance(0.3))
                 missions.Add(new(x, "gift", 0.4 * p.Generosity));
-            if (me.Tier() == Tier.Weak && x.Tier() != Tier.Weak && neighbours.Contains(x) && brain.SpareGold > 100 && fresh && !r.Hostile)
+            // Tribute, to a great neighbour who looks ready to march.
+            if (me.Tier() == Tier.Weak && x.Tier() != Tier.Weak && neighbours.Contains(x) && brain.SpareGold > 100 && fresh && !r.Hostile && brain.Hostility(x, b) > 0.35)
                 missions.Add(new(x, "gift", 0.35 + 0.4 * p.Caution));
         }
         // Evidence of broken oaths for a third court.
@@ -368,8 +425,8 @@ internal static class Statecraft
 
         if (forged is not null && budget > 0 && ready.Count > 0)
         {
-            var audience = b.Alive.Where(x => x != me && !forged.Seals.Contains(x)).OrderByDescending(x => neighbours.Contains(x)).ThenBy(x => x).FirstOrDefault();
-            if (audience != default)
+            var shown = b.Alive.Where(x => x != me && !forged.Seals.Contains(x)).OrderByDescending(x => neighbours.Contains(x)).ThenBy(x => x).Cast<Power?>().FirstOrDefault();
+            if (shown is { } audience)
                 Send(new DispatchOrder(ready[^1].Id, audience,
                     $"My brother, see what {string.Join(" and ", forged.Seals)} have sealed in secret. I send you the tablet itself. Judge for yourself who are your friends.",
                     "Show the tablet. Promise nothing.", Greet(brain, audience), Copies: [forged.CopyId]), forged.CopyId);
@@ -377,8 +434,8 @@ internal static class Statecraft
         if (broken is not null && budget > 0 && ready.Count > 0)
         {
             var breaker = broken.Seals.First(s => s != me && brain.Rel.TryGetValue(s, out var r) && r.OathsBroken > 0);
-            var third = b.Alive.Where(x => x != me && x != breaker && !sentTo.Contains(x)).OrderByDescending(x => neighbours.Contains(x)).ThenBy(x => x).FirstOrDefault();
-            if (third != default)
+            var told = b.Alive.Where(x => x != me && x != breaker && !sentTo.Contains(x)).OrderByDescending(x => neighbours.Contains(x)).ThenBy(x => x).Cast<Power?>().FirstOrDefault();
+            if (told is { } third)
                 Send(new DispatchOrder(ready[0].Id, third,
                     $"{breaker} sealed this tablet with me before the gods, and then broke it. See for yourself what an oath of {breaker} is worth. Stand with me, and {breaker} will learn the price of a broken oath.",
                     $"You may agree to act together against {breaker}. Promise no land.", Greet(brain, third), Copies: [broken.CopyId]), broken.CopyId);
@@ -408,7 +465,8 @@ internal static class Statecraft
         {
             if (brain.SpareGold < 100 || brain.GiftTurn == b.V.Turn) return 0;
             brain.GiftTurn = b.V.Turn;
-            return (int)Math.Clamp(10 + brain.SpareGold * share * 0.5, 20, 60) / 10 * 10;
+            // No more than a third of a season's income: a small kingdom's gifts are small.
+            return (int)Math.Clamp(10 + brain.SpareGold * share * 0.5, 20, Math.Max(20, Math.Min(60, b.V.Income / 3))) / 10 * 10;
         }
         int Purity() => p.Honesty < 0.45 ? rng.Range(55, 85) : 100;
 
@@ -416,14 +474,18 @@ internal static class Statecraft
         {
             case "coalition":
             {
-                var top = b.Leader()!.Value;
+                var top = m.Against!.Value;
+                var why = top == b.Leader()
+                    ? $"{top} grows like the flood of the river and swallows the cities one by one. If we stand apart, it will swallow us both."
+                    : $"{top} has sent his troops into my land, and what he takes from me today he will take from you tomorrow.";
                 return new DispatchOrder(envoy, to,
-                    $"{top} grows like the flood of the river and swallows the cities one by one. If we stand apart, it will swallow us both. Let us stand together and hold it back: where your troops face {top}, mine will support them. {flavour}",
+                    $"{why} Let us stand together and hold him back: where your troops face {top}, mine will support them. {flavour}",
                     $"You may swear alliance against {top} and agree to support each other's troops. Promise no land.", greet,
                     Proposal: new TabletProposal
                     {
                         Text = $"{Oath}: {me} and {to} swear to stand together against {top}. Neither shall make peace with {top} alone, and each shall support the other's troops against {top}. If one breaks this oath, may the gods destroy his name and his seed.",
-                        AllianceOath = true,
+                        // A pact against one king, not an alliance: it does not make the two of them partners in victory.
+                        AllianceOath = false,
                     });
             }
             case "alliance":
@@ -552,15 +614,35 @@ internal static class Statecraft
 
         if (view.Proposal is { } proposal)
         {
-            var against = Powers.All.FirstOrDefault(x => x != me && x != sender && proposal.Text.Contains("against " + x));
-            var coalition = proposal.Text.Contains("against ") && against != default;
+            // (Nullable: Egypt is the enum's default value.)
+            var named = Powers.All.Where(x => x != me && x != sender && proposal.Text.Contains("against " + x)).Cast<Power?>().FirstOrDefault();
             bool seal;
-            if (coalition) seal = (against == leader || against == brain.WarTarget || (brain.Rel.TryGetValue(against, out var ra) && ra.Trust < 0)) && !brain.IsFriend(against);
-            else seal = !hostile && (sender != brain.WarTarget || p.Cunning * (1 - p.Honesty) > 0.35);
+            if (named is { } against)
+            {
+                // Worth swearing against the king who leads (or stands at the top as we reckon it, since the envoy
+                // has been on the road) if he outweighs us both; or against one on our own borders who is taking
+                // land and is too strong for the sender alone. Never against an ally. A peace with him does not
+                // forbid it: supporting a partner sends no troops into his land.
+                var ra = brain.Rel[against];
+                var ahead = b.Growth(against) >= Board.LeadFloor - 0.05 && b.Alive.Where(x => x != against).All(x => b.Growth(against) >= b.Growth(x));
+                var race = (against == leader || ahead) && Outweighs(b, against, me, sender);
+                var defence = Touches(b, me, against) && b.Strength(against) >= 0.8 * b.Strength(sender)
+                              && (brain.Belligerence.GetValueOrDefault(against) >= 1 || ra.Hostile || against == brain.WarTarget || ra.Trust < 0);
+                // And never with a king who is taking our own land, whoever he names.
+                seal = !ra.Allied && !hostile && (race || defence);
+            }
+            else seal = !hostile && (sender != brain.WarTarget || p.Cunning * (1 - p.Honesty) > 0.35) && !(proposal.AllianceOath && Rivals(b, me, sender));
             if (sender == leader && !friend && p.Caution < 0.6) seal = false;
             reply.SealProposal = seal;
             speech.Add(seal ? "I have sealed the tablet before the gods." : "I will not seal this tablet now.");
-            if (seal) r.Trust += 0.1;
+            if (seal)
+            {
+                r.Trust += 0.1;
+                // What we swore binds us from now, not from when we next read our tablets: this season's orders are still to come.
+                r.Treaty = true;
+                if (proposal.AllianceOath) r.Allied = true;
+                if (named is { } foe) r.Against = foe;
+            }
         }
 
         speech.Add(friend ? "Tell my brother that my love for him is great."

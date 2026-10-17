@@ -212,6 +212,8 @@ public sealed partial class TurnEngine
                 Rumor(payer, host, $"{host} holds {c.Name} and demands {Money.Format(co.Ransom)} for their return (order payRansom for {c.Id}).");
                 break;
             case CaptiveFate.Turn:
+                // A captive whose kingdom has fallen has no court left to deceive: they stay a captive.
+                if (employer is not { } master || !S.IsAlive(master)) break;
                 c.Status = CharacterStatus.Employed;
                 c.SecretMaster = host;
                 c.PoisonText = Greeting.Cap(co.Poison, 600);

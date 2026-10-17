@@ -56,7 +56,8 @@ public static partial class SignalDetector
                 list.Add(new Signal(e.Turn, "broken-promise", e.Text));
         }
 
-        // Coalitions: two other powers supporting each other against whoever leads at the time.
+        // Coalitions: two other powers supporting each other against whoever leads at the time, into his land
+        // or holding against his attack.
         foreach (var e in s.Events.Where(e => e.Signal?.StartsWith("foreign-support:") == true))
         {
             if (!Powers.TryParse(e.Signal!["foreign-support:".Length..], out var target)) continue;

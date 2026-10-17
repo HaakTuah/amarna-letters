@@ -16,6 +16,8 @@ internal sealed class Relation
     public int SupportsGiven;
     public bool Treaty;
     public bool Allied;
+    /// <summary>The king this partner and we have sworn, on a sealed tablet, to stand together against.</summary>
+    public Power? Against;
     public int ProposedTurn = -99;
 
     public bool Hostile => Grudge >= 3 || Trust <= -0.5;
@@ -50,6 +52,18 @@ internal sealed partial class Brain
     public double SpareGold;
     public int GiftTurn = -1;
     public int Turn;
+    /// <summary>Free cities whose elders would not choose between us and a rival buyer, and when.</summary>
+    public Dictionary<string, int> Outbid = new();
+
+    /// <summary>
+    /// Each king's treasury as this court reckons it (our own exactly): what he started with, plus each
+    /// season's income from the land he holds, less the upkeep of the troops we think he has and a servant's
+    /// wages, less what the cities he bought and the troops he raised cost him.
+    /// </summary>
+    public Dictionary<Power, double> Treasury { get; } = new();
+    /// <summary>The most troops we have known each king to have at once: more than that means he raised some.</summary>
+    private readonly Dictionary<Power, int> _mostSeen = new();
+    private const double WagesGuess = 25;
 
     /// <summary>How this king pictures each rival, for guessing their orders (see <see cref="Search"/>).</summary>
     public Dictionary<Power, Brain> Models { get; } = new();
@@ -62,9 +76,14 @@ internal sealed partial class Brain
         Seed = seed;
         P = p;
         foreach (var x in Powers.All.Where(x => x != me)) Rel[x] = new Relation();
-        // Every court knows how many troops each king marched out with.
-        foreach (var g in MapData.StartUnits.Where(u => u.Power != me).GroupBy(u => u.Power)) ArmySeen[g.Key] = (g.Count(), 1);
+        // Every court knows how many troops and how much gold each king started with.
+        foreach (var g in MapData.StartUnits.Where(u => u.Power != me).GroupBy(u => u.Power))
+        {
+            ArmySeen[g.Key] = (g.Count(), 1);
+            _mostSeen[g.Key] = g.Count();
+        }
         foreach (var u in MapData.StartUnits.Where(u => u.Power != me)) Sightings[u.Province] = (u.Power, u.Kind, 1);
+        foreach (var x in Powers.All) Treasury[x] = MapData.StartGold[x];
     }
 
     public Rng R(int turn, string purpose) => Rng.For(Seed, turn, "bot:" + purpose, Me.ToString());
@@ -82,15 +101,22 @@ internal sealed partial class Brain
             r.Trust += (0 - r.Trust) * 0.05;
             r.Treaty = false;
             r.Allied = false;
+            r.Against = null;
         }
 
-        // Sealed tablets we hold with another king (unless shown to be forged).
-        foreach (var t in v.Tablets.Where(t => t.SealedTurn is not null && t.Seals.Contains(Me) && t.Seals.Count >= 2 && t.AuthResult?.Contains("forgery") != true))
+        // Sealed tablets we hold with another king (unless shown to be forged), the latest last.
+        foreach (var t in v.Tablets.Where(t => t.SealedTurn is not null && t.Seals.Contains(Me) && t.Seals.Count >= 2 && t.AuthResult?.Contains("forgery") != true)
+                     .OrderBy(t => t.SealedTurn))
+        {
+            // A coalition names the king it stands against.
+            var against = Powers.All.Where(x => !t.Seals.Contains(x) && t.Text.Contains("against " + x)).Cast<Power?>().FirstOrDefault();
             foreach (var other in t.Seals.Where(s => s != Me && Rel.ContainsKey(s)))
             {
                 Rel[other].Treaty = true;
                 if (t.AllianceOath) Rel[other].Allied = true;
+                if (against is not null) Rel[other].Against = against;
             }
+        }
 
         // Land taken from us.
         var previous = LastOwner;
@@ -104,7 +130,11 @@ internal sealed partial class Brain
         foreach (var (prov, was) in previous)
         {
             if (b.OwnerOf(prov) is not { } now || now == was || now == Me) continue;
-            if (was is null && b.Walls(prov)) continue;
+            if (was is null && b.Walls(prov))
+            {
+                Treasury[now] -= Board.Map[prov].Yield * b.YieldWorth;
+                continue;
+            }
             Belligerence[now] = Belligerence.GetValueOrDefault(now) + (was is null ? 1 : 1.5);
         }
         LastOwner = new Dictionary<string, Power?>(v.Owner);
@@ -158,6 +188,8 @@ internal sealed partial class Brain
                 }
             }
             if (item.Kind == InboxKind.Notice && item.Title == "A spy is caught") LastSpyCaught = v.Turn;
+            if (item.Title == "Purchase failed" && Board.Map.Provinces.FirstOrDefault(x => item.Body.Contains($"elders of {x.Name} would not")) is { } city)
+                Outbid[city.Id] = v.Turn;
         }
 
         // Troops seen, for judging each king's strength.
@@ -178,8 +210,49 @@ internal sealed partial class Brain
                 if (Powers.TryParse(g.Key, out var spied) && spied != Me)
                     ArmySeen[spied] = (Math.Max(g.Count(), ArmySeen.GetValueOrDefault(spied).Units), v.Turn);
 
+        // The season's accounts, as far as they can be guessed: income in, upkeep and wages out, levies paid for.
+        foreach (var x in Rel.Keys)
+        {
+            if (v.Fallen.Contains(x)) { Treasury[x] = 0; continue; }
+            var troops = ArmySeen.GetValueOrDefault(x).Units;
+            var raised = Math.Max(0, troops - _mostSeen.GetValueOrDefault(x));
+            _mostSeen[x] = Math.Max(troops, _mostSeen.GetValueOrDefault(x));
+            var income = v.Owner.Where(o => o.Value == x).Sum(o => Board.Map[o.Key].Yield);
+            var flow = income - troops * v.Prices.GetValueOrDefault("armyUpkeep", 30) - WagesGuess - raised * v.Prices.GetValueOrDefault("army", 100);
+            // Troops that cannot be paid desert: a treasury runs dry, it does not go into debt.
+            Treasury[x] = Math.Max(0, Treasury[x] + flow);
+        }
+        Treasury[Me] = v.Gold;
+
         foreach (var r in Rel.Values) r.Trust = Math.Clamp(r.Trust, -1, 1);
     }
+
+    /// <summary>
+    /// Partners who swore with us against a king, while he is still worth standing against (alive, and at or
+    /// near the top as we reckon it, or still taking land), with the king they swore against.
+    /// </summary>
+    public IEnumerable<(Power Partner, Power Against)> Coalitions(Board b)
+    {
+        var top = b.Alive.Select(b.Growth).DefaultIfEmpty(0).Max();
+        foreach (var (x, r) in Rel.OrderBy(r => r.Key))
+        {
+            if (r.Against is not { } foe || foe == Me || !r.Treaty || r.OathsBroken > 0 || !b.Alive.Contains(x) || !b.Alive.Contains(foe)) continue;
+            var racing = b.Growth(foe) >= top - 0.2 && b.Growth(foe) >= 1;
+            var marching = Belligerence.GetValueOrDefault(foe) >= 0.8 || Rel[foe].Hostile;
+            if (!racing && !marching) continue;
+            yield return (x, foe);
+        }
+    }
+
+    /// <summary>The kings we stand against with sworn partners this season.</summary>
+    public HashSet<Power> SwornFoes(Board b)
+    {
+        if (_swornFor != b) (_swornFor, _sworn) = (b, Coalitions(b).Select(c => c.Against).ToHashSet());
+        return _sworn;
+    }
+
+    private Board? _swornFor;
+    private HashSet<Power> _sworn = new();
 
     /// <summary>Troops out of sight that are probably still where we last saw them: recent sightings, no more than each king is thought to have.</summary>
     public List<UnitView> Remembered(SeatView v)

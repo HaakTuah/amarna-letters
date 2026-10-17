@@ -65,7 +65,7 @@ public class EngineTests
     {
         var s = GameFactory.NewGame(1);
         var e = new TurnEngine(s);
-        Assert.Equal(18, s.Units.Count);
+        Assert.Equal(19, s.Units.Count);
         Assert.Equal(13, s.Garrisons.Count);
         Assert.Equal(18, s.Characters.Count);
         Assert.All(Powers.All, p => Assert.Equal(2, s.Characters.Count(c => c.Employer == p)));
@@ -202,6 +202,26 @@ public class EngineTests
         });
         Assert.Equal(Power.Babylonia, s.Owner["gaza"]);
         Assert.DoesNotContain("gaza", s.Garrisons);
+    }
+
+    [Fact]
+    public void A_support_against_a_third_king_is_logged_against_him()
+    {
+        // Assyria supports Mitanni's Washukanni, holding, against Hatti's attack from Isuwa.
+        var s = GameFactory.NewGame(1);
+        s.Owner["isuwa"] = Power.Hatti; s.Garrisons.Remove("isuwa");
+        s.Units.RemoveAll(u => u.Province == "taidu");
+        s.Units.Add(new Unit { Id = "u90", Power = Power.Hatti, Kind = UnitKind.Army, Province = "isuwa" });
+        s.Units.Add(new Unit { Id = "u91", Power = Power.Assyria, Kind = UnitKind.Army, Province = "taidu" });
+        new TurnEngine(s).Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Hatti] = new() { Orders = [new MoveOrder("isuwa", "washukanni")] },
+            [Power.Assyria] = new() { Orders = [new SupportOrder("taidu", "washukanni")] },
+        });
+        var held = s.Events.Single(e => e.Kind == "support");
+        Assert.Equal("foreign-support:Hatti", held.Signal);
+        Assert.Contains("against Hatti", held.Text);
+        Assert.Equal(Power.Mitanni, s.UnitAt("washukanni")?.Power);
     }
 
     [Fact]

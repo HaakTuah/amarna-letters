@@ -113,6 +113,98 @@ public class BotTests
     }
 
     [Fact]
+    public void A_king_who_buys_cities_is_not_taken_for_a_conqueror()
+    {
+        var s = GameFactory.NewGame(3);
+        var brain = new Brain(Power.Hatti, 3);
+        var first = Views.For(s, Power.Hatti);
+        brain.Learn(first, new Board(first));
+
+        // Egypt buys two cities of the Levant: its land grows by a quarter, its treasury shrinks by as much.
+        foreach (var city in new[] { "megiddo", "tyre" })
+        {
+            s.Owner[city] = Power.Egypt;
+            s.Treasuries[Power.Egypt].Gold -= WorldMap.Default[city].Yield * s.Config.NeutralPriceFactor;
+        }
+        s.Turn = 6;
+        var view = Views.For(s, Power.Hatti);
+        brain.Learn(view, new Board(view));
+        var board = new Board(view, brain.Remembered(view), brain.Treasury);
+
+        Assert.True(board.LandGrowth(Power.Egypt) >= 1.2, "by land alone Egypt would seem to run away with the game");
+        Assert.InRange(board.Growth(Power.Egypt), 0.95, 1.15);
+        Assert.NotEqual(Power.Egypt, board.Leader());
+    }
+
+    [Fact]
+    public void Sworn_partners_work_out_the_same_joint_blow_and_the_supporter_gives_the_support()
+    {
+        // Mitanni (Carchemish) and Egypt (Ugarit) have sworn against Hatti; both stand next to Hatti's Kizzuwatna, which lies empty.
+        var s = GameFactory.NewGame(11);
+        foreach (var (city, owner) in new[] { ("carchemish", Power.Mitanni), ("ugarit", Power.Egypt) })
+        {
+            s.Owner[city] = owner;
+            s.Garrisons.Remove(city);
+        }
+        s.Units.RemoveAll(u => u.Province is "kizzuwatna" or "terqa" or "memphis");
+        s.Units.Add(new Unit { Id = "u90", Power = Power.Mitanni, Kind = UnitKind.Army, Province = "carchemish" });
+        s.Units.Add(new Unit { Id = "u91", Power = Power.Egypt, Kind = UnitKind.Army, Province = "ugarit" });
+        s.Tablets.Add(new Tablet
+        {
+            Id = "t90", Text = "Mitanni and Egypt swear to stand together against Hatti.", ProposedBy = Power.Mitanni, Partner = Power.Egypt,
+            Seals = [Power.Mitanni, Power.Egypt], CreatedTurn = 1, SealedTurn = 1,
+        });
+        foreach (var holder in new[] { Power.Mitanni, Power.Egypt })
+            s.Copies.Add(new TabletCopy { Id = $"k9{(int)holder}", TabletId = "t90", Holder = holder, AcquiredTurn = 1, Source = "sealed at audience" });
+        s.Turn = 5;
+
+        (Board Board, Brain Brain) Court(Power p)
+        {
+            var view = Views.For(s, p);
+            var brain = new Brain(p, 11);
+            brain.Learn(view, new Board(view));
+            return (new Board(view, brain.Remembered(view), brain.Treasury), brain);
+        }
+        var (mb, mitanni) = Court(Power.Mitanni);
+        var (eb, egypt) = Court(Power.Egypt);
+
+        var seen = new[] { Tactics.Joints(mb, mitanni), Tactics.Joints(eb, egypt) }
+            .Select(js => js.Single(j => j.Target == "kizzuwatna")).ToList();
+        Assert.All(seen, j =>
+        {
+            Assert.Equal(Power.Hatti, j.Against);
+            // Mitanni holds less land, so Mitanni goes in and Egypt supports.
+            Assert.Equal("carchemish", j.Lead.Province);
+            Assert.Equal(["ugarit"], j.Support.Select(u => u.Province));
+        });
+
+        var plan = Tactics.Make(eb, egypt);
+        Search.Improve(eb, egypt, plan, egypt.R(5, "search"));
+        Assert.Equal(new SupportOrder("ugarit", "carchemish", "kizzuwatna"), plan.Orders["ugarit"]);
+    }
+
+    [Fact]
+    public void A_king_who_seals_a_peace_at_an_audience_keeps_it_that_same_season()
+    {
+        var s = GameFactory.NewGame(5);
+        var court = Views.For(s, Power.Hatti);
+        var brain = new Brain(Power.Hatti, 5);
+        brain.Learn(court, new Board(court));
+        var board = new Board(court, treasuries: brain.Treasury);
+        var audience = new AudienceView
+        {
+            AudienceId = "a1", Turn = 1, Round = 1, MaxRounds = 2, From = Power.Arzawa, Host = Power.Hatti,
+            Proposal = new TabletView { Text = "Arzawa and Hatti are brothers. Neither king shall send troops into the lands of the other.", ProposedBy = Power.Arzawa, Partner = Power.Hatti },
+        };
+
+        var reply = Statecraft.Host(audience, board, brain, Rng.For(5, 1, "test", "host"));
+
+        Assert.True(reply.SealProposal);
+        Assert.True(brain.Rel[Power.Arzawa].Treaty);
+        Assert.False(Tactics.Willing(board, brain, Power.Arzawa, board.Leader()));
+    }
+
+    [Fact]
     public void Babylon_will_not_call_Assyria_brother()
     {
         for (ulong seed = 1; seed <= 10; seed++)
