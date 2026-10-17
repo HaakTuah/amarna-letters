@@ -38,6 +38,11 @@
                 {
                     <div>@(seat.EndsWith("leader") ? "Stand-in: " : "")<em>@t.Epithet</em> (@string.Join(", ", t.Highlights())). <span class="muted">@t.Description</span></div>
                 }
+                @if (State.Config.SleepingSeats && State.Sleep.TryGetValue(p, out var sleep))
+                {
+                    var spells = sleep.History.Count;
+                    <div class="muted">@(sleep.Asleep ? $"Asleep since turn {sleep.LastCalled + 1}, wakes by turn {sleep.WakeAt}." : "Awake.") @(spells > 0 ? $"Has slept {spells} time{(spells == 1 ? "" : "s")}; asked for {string.Join(", ", sleep.History.Select(h => h.Requested))} seasons." : "Has not slept yet.")</div>
+                }
             </li>
         }
     </ul>

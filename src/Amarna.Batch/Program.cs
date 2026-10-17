@@ -12,10 +12,14 @@ using Amarna.Llm;
 //   --leaders script|haiku|sonnet|opus   --characters script|haiku|sonnet   --narrator template|haiku|sonnet|opus
 //   --effort low|medium|high
 //   --budget 5   (stop when total spend reaches this many dollars)
-// Experiments: --no-primer (leaders without the customs primer), --no-shared-victory
+// Experiments: --no-primer (leaders without the customs primer), --shared-victory (the house rule, off by default)
 // Benchmark:   --versus baseline (half the kings are the frozen first bot, alternating by seed)
 //              --versus solo (each king in turn plays the current bot against six baselines)
 //              --focus Mitanni (only that king plays the current bot; add --detail to follow it)
+// Pacing:      --sleep on|off (model and file seats are asked only when something concerns them), --sleep-cap 6,
+//              --max-turns 10 (end the game after this season, whatever the random end)
+// File seats:  --file-seats DIR|map.json (each king writes its request to its own folder and waits for a reply file;
+//              DIR gives one folder per king, a JSON map {"Egypt": "path", ...} names them), --file-timeout 120 (minutes)
 
 var games = 20;
 ulong seed = 1;
@@ -29,6 +33,8 @@ var config = new GameConfig();
 var versus = false;
 var solo = false;
 Power? focus = null;
+string? fileSeats = null;
+var fileTimeout = 120.0;
 
 for (var i = 0; i < args.Length; i++)
 {
@@ -51,7 +57,13 @@ for (var i = 0; i < args.Length; i++)
             focus = Enum.Parse<Power>(args[++i], ignoreCase: true);
             break;
         case "--no-primer": config = config with { CustomsPrimer = false }; break;
+        case "--shared-victory": config = config with { SharedVictory = true }; break;
         case "--no-shared-victory": config = config with { SharedVictory = false }; break;
+        case "--sleep": config = config with { SleepingSeats = args[++i] is "on" or "true" or "1" }; break;
+        case "--sleep-cap": config = config with { MaxSleep = int.Parse(args[++i]) }; break;
+        case "--max-turns": config = config with { MaxTurns = int.Parse(args[++i]) }; break;
+        case "--file-seats": fileSeats = args[++i]; break;
+        case "--file-timeout": fileTimeout = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
         case "--effort": choices.LeaderEffort = args[++i]; break;
         case "--preset":
             var preset = Presets.Find(args[++i]) ?? throw new ArgumentException($"Unknown preset; choose {string.Join(", ", Presets.All.Select(x => x.Id))}.");
@@ -64,12 +76,42 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --no-shared-victory --versus baseline|solo");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-timeout MINUTES");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
             return;
     }
+}
+
+// File seats: one folder per king. A folder name the others cannot guess is the setup script's job.
+var folders = new Dictionary<Power, string>();
+if (fileSeats is not null)
+{
+    if (games != 1) { Console.Error.WriteLine("File seats play one game at a time: use --games 1."); return; }
+    if (fileSeats.EndsWith(".json", StringComparison.OrdinalIgnoreCase) && !File.Exists(fileSeats))
+    {
+        Console.Error.WriteLine($"No seat map at {fileSeats}.");
+        return;
+    }
+    if (File.Exists(fileSeats))
+    {
+        var map = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(fileSeats))!;
+        foreach (var (name, path) in map) folders[Enum.Parse<Power>(name, ignoreCase: true)] = path;
+    }
+    else foreach (var p in Powers.All) folders[p] = Path.Combine(fileSeats, p.ToString().ToLowerInvariant());
+    // Requests and replies left by an earlier game would look live: move them aside before this one starts.
+    foreach (var (p, folder) in folders.OrderBy(x => x.Key))
+    {
+        Directory.CreateDirectory(folder);
+        var old = Directory.GetFiles(folder).Where(f => System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(f), @"^t\d+_.*\.(request\.md|reply\.json|tmp)$")).ToList();
+        if (old.Count == 0) continue;
+        var aside = Path.Combine(folder, $"earlier-{DateTime.Now:yyyyMMdd-HHmmss}");
+        Directory.CreateDirectory(aside);
+        foreach (var f in old) File.Move(f, Path.Combine(aside, Path.GetFileName(f)));
+        Console.WriteLine($"{p}: moved {old.Count} files from an earlier game to {aside}");
+    }
+    Console.WriteLine($"File seats: {string.Join(", ", folders.OrderBy(x => x.Key).Select(x => x.Key))}.");
 }
 
 var key = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY");
@@ -103,6 +145,11 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
     {
         var set = SeatSetup.Build(choices, state, key, browser: false, () => last!.Log);
         var seats = set.Seats;
+        foreach (var (p, folder) in folders)
+        {
+            var exchange = new FileExchange(folder, TimeSpan.FromMinutes(fileTimeout), call => last!.Log.AddCall(call), Console.WriteLine);
+            seats[p] = new LlmLeaderSeat(p, exchange, "file", choices.LeaderEffort, state.Config.CustomsPrimer, state.Config, label: "File seat");
+        }
         if (versus || focus is not null)
         {
             var baseline = new BaselineLeader(state.Seed);
@@ -111,7 +158,7 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
         last = new GameRunner(state, seats, set.Minds, set.Narrator) { WriteChronicles = !noChronicles };
         return last;
     }, verify, log: Console.Error.WriteLine, config: config);
-    return (summary, outDir is not null || detail ? last : null, current);
+    return (summary, outDir is not null || detail || fileSeats is not null || config.SleepingSeats || choices.UsesModels ? last : null, current);
 }
 
 // Script games are independent and run side by side; model games run one at a time, within the budget.
@@ -141,10 +188,14 @@ foreach (var outcome in played)
     sides.Add(current);
     if (outDir is not null && last is not null)
         await File.WriteAllTextAsync(Path.Combine(outDir, $"game-{s}.jsonl"), last.Log.ToJsonl());
+    if (outDir is not null && last is not null)
+        await File.WriteAllTextAsync(Path.Combine(outDir, $"game-{s}.final.json"), Json.Serialize(last.State));
     Console.WriteLine($"seed {s}: {summary.Turns} turns, winner {string.Join(" & ", summary.Winners)}"
         + (verify ? summary.ReplayMatches ? ", replay ok" : ", REPLAY MISMATCH" : "")
         + (summary.CostUsd > 0 ? $", ${summary.CostUsd:0.00}" : "")
         + (summary.Errors > 0 ? $", {summary.Errors} fallbacks" : ""));
+    if (last is not null && (fileSeats is not null || config.SleepingSeats || choices.UsesModels))
+        Console.WriteLine(BatchRunner.SeatReport(last));
     if (detail && last is not null)
     {
         var st = last.State;

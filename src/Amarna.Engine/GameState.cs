@@ -30,6 +30,8 @@ public sealed class GameState
     public List<Catastrophe> Catastrophes { get; set; } = new();
     public List<PendingTask> Tasks { get; set; } = new();
     public Dictionary<Power, int> CounterIntel { get; set; } = new();
+    /// <summary>Seats that may sleep (model and file seats, when <see cref="GameConfig.SleepingSeats"/> is on). Each sees only its own.</summary>
+    public Dictionary<Power, SleepState> Sleep { get; set; } = new();
 
     public Dictionary<Power, List<InboxItem>> Inbox { get; set; } = new();
     /// <summary>The orders each power could see resolve last season (its own and those in sight).</summary>

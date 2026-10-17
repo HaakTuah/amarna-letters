@@ -108,6 +108,13 @@
                         <label><input type="checkbox" @bind="Settings.SharedVictory" /> Shared victory for sworn allies</label>
                     </div>
                     <div class="row" style="margin-top:.6rem">
+                        <label title="The world still moves every season; a model king is called only when something concerns it, or when the time it chose has come. Script and human kings play every season."><input type="checkbox" @bind="Settings.SleepingSeats" /> Sleeping seats for model kings</label>
+                        @if (Settings.SleepingSeats)
+                        {
+                            <label>Longest sleep (seasons) <input type="number" min="1" max="30" @bind="Settings.MaxSleep" /></label>
+                        }
+                    </div>
+                    <div class="row" style="margin-top:.6rem">
                         <label>Envoys per season <input type="number" min="1" max="6" @bind="Settings.MessagesPerTurn" /></label>
                         <label>Seed <input type="number" min="1" @bind="SeedText" /></label>
                     </div>

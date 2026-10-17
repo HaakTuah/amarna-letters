@@ -70,6 +70,7 @@ public sealed class SeatView
     public int Income { get; set; }
     public int Upkeep { get; set; }
     public int Wages { get; set; }
+    /// <summary>Strength by the seat's own ledger (unassayed gold at its weight), never the true figure.</summary>
     public int Strength { get; set; }
     public int StartStrength { get; set; }
 
@@ -86,6 +87,19 @@ public sealed class SeatView
     public List<string> TravelTimes { get; set; } = new();
     /// <summary>Last season's orders as they resolved, for every unit this court could see.</summary>
     public List<OrderOutcome> LastSeason { get; set; } = new();
+
+    /// <summary>The most seasons this seat may sleep, or 0 when it cannot sleep (see <see cref="GameConfig.SleepingSeats"/>).</summary>
+    public int MaxSleep { get; set; }
+    /// <summary>Why this seat was woken this season; empty when it was awake anyway.</summary>
+    public List<string> WokenBecause { get; set; } = new();
+    /// <summary>The last season this seat gave orders before this one.</summary>
+    public int LastCalled { get; set; }
+    /// <summary>News delivered while this seat slept, oldest first.</summary>
+    public List<InboxItem> WhileAsleep { get; set; } = new();
+    /// <summary>Distant movements seen while it slept.</summary>
+    public List<string> Digest { get; set; } = new();
+    /// <summary>Its own orders queued for later seasons.</summary>
+    public List<ScheduledOrders> Scheduled { get; set; } = new();
     public Dictionary<string, int> Prices { get; set; } = new();
 }
 
@@ -124,7 +138,7 @@ public static class Views
             Income = engine.Income(p),
             Upkeep = engine.Upkeep(p),
             Wages = engine.Wages(p),
-            Strength = engine.Strength(p),
+            Strength = engine.LedgerStrength(p),
             StartStrength = s.StartStrength.GetValueOrDefault(p),
             Owner = new Dictionary<string, Power?>(s.Owner),
             Garrisons = s.Garrisons.ToList(),
@@ -135,6 +149,16 @@ public static class Views
             Inbox = s.InboxOf(p).Where(i => i.Turn == s.Turn).ToList(),
             LastSeason = s.LastSeen.GetValueOrDefault(p)?.ToList() ?? new(),
         };
+
+        if (s.Config.SleepingSeats && s.Sleep.TryGetValue(p, out var sleep))
+        {
+            v.MaxSleep = s.Config.MaxSleep;
+            v.WokenBecause = sleep.WokenBecause.ToList();
+            v.LastCalled = sleep.LastCalled;
+            v.WhileAsleep = s.InboxOf(p).Where(i => i.Turn > sleep.LastCalled && i.Turn < s.Turn).ToList();
+            v.Digest = sleep.Digest.ToList();
+            v.Scheduled = sleep.Scheduled.Select(x => new ScheduledOrders { Turn = x.Turn, Orders = x.Orders.ToList() }).ToList();
+        }
 
         foreach (var c in s.Characters)
         {

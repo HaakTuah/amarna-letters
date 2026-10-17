@@ -25,6 +25,8 @@ public sealed class SeatFactory
             Choices = SeatSetup.FromHeader(header),
             CustomsPrimer = header.Config.CustomsPrimer,
             SharedVictory = header.Config.SharedVictory,
+            SleepingSeats = header.Config.SleepingSeats,
+            MaxSleep = header.Config.MaxSleep,
             MessagesPerTurn = header.Config.MaxDispatchesPerTurn,
         };
         s.BudgetUsd = CostEstimate.SuggestedBudget(s.Estimate);

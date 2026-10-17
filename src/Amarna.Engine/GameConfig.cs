@@ -9,7 +9,8 @@ public sealed record GameConfig
     public int MaxTurns { get; init; } = 60;
     /// <summary>Strength = ProvinceWeight x (sum of owned base yields) + gold.</summary>
     public int ProvinceWeight { get; init; } = 10;
-    public bool SharedVictory { get; init; } = true;
+    /// <summary>Off by default (since 18 October 2026): a house rule for experiments, never in a king's rulebook unless switched on.</summary>
+    public bool SharedVictory { get; init; }
 
     // Economy and military
     public int ArmyCost { get; init; } = 100;
@@ -31,6 +32,12 @@ public sealed record GameConfig
     public int ForgeFee { get; init; } = 40;
     public int ForgeMinCompetence { get; init; } = 55;
     public bool CustomsPrimer { get; init; } = true;
+
+    // Pacing
+    /// <summary>Model and file seats are asked for orders only when something concerns them, or when the time they chose has come.</summary>
+    public bool SleepingSeats { get; init; }
+    /// <summary>The most seasons a seat may skip in one sleep. A placeholder: set it from the sleep lengths seats actually choose.</summary>
+    public int MaxSleep { get; init; } = 6;
 
     // Characters
     public int StartEnvoysPerPower { get; init; } = 2;

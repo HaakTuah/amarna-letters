@@ -34,23 +34,8 @@ public static class Parse
     public static TurnSubmission Orders(JsonObject o)
     {
         var sub = new TurnSubmission { Notes = S(o, "notes") };
-
         foreach (var u in (o["units"] as JsonArray) ?? new JsonArray())
-        {
-            var unit = Prov(S(u, "unit"));
-            var target = Empty(S(u, "target")) is { } t ? Prov(t) : null;
-            var to = Empty(S(u, "to")) is { } d ? Prov(d) : null;
-            Order? order = S(u, "order") switch
-            {
-                "move" when target is not null => new MoveOrder(unit, target),
-                "support" when target is not null => new SupportOrder(unit, target, to),
-                "convoy" when target is not null && to is not null => new ConvoyOrder(unit, target, to),
-                "disband" => new DisbandOrder(unit),
-                "hold" => new HoldOrder(unit),
-                _ => null,
-            };
-            if (order is not null) sub.Orders.Add(order);
-        }
+            if (Unit(u) is { } order) sub.Orders.Add(order);
 
         foreach (var l in (o["letters"] as JsonArray) ?? new JsonArray())
         {
@@ -76,40 +61,97 @@ public static class Parse
         }
 
         foreach (var x in (o["other_orders"] as JsonArray) ?? new JsonArray())
+            if (Other(x) is { } order) sub.Orders.Add(order);
+
+        // Sleeping seats: how long to sleep, what should wake it, and orders for later seasons.
+        if (o["sleep"] is JsonObject sleep)
         {
-            var person = S(x, "person");
-            var amount = I(x, "amount");
-            var province = Empty(S(x, "province")) is { } pr ? Prov(pr) : "";
-            var power = P(S(x, "power"));
-            Order? order = S(x, "action") switch
+            var req = new SleepRequest { Seasons = Math.Max(0, I(sleep, "seasons")) };
+            foreach (var w in (sleep["wake_on"] as JsonArray) ?? new JsonArray())
             {
-                "raise_army" => new RaiseOrder(province, UnitKind.Army),
-                "raise_fleet" => new RaiseOrder(province, UnitKind.Fleet),
-                "buy_city" => new BuyProvinceOrder(province),
-                "cede_province" when power is { } cp => new CedeProvinceOrder(province, cp),
-                "give_unit" when power is { } gp => new GiftUnitOrder(province, gp),
-                "seek_candidates" => new SeekCandidatesOrder(),
-                "hire" => new HireOrder(person, amount, 6),
-                "dismiss" => new DismissOrder(person),
-                "background_check" => new BackgroundCheckOrder(person, amount),
-                "place_spy" when power is { } court => new PlaceSpyOrder(person, Court: court),
-                "place_spy" when province.Length > 0 => new PlaceSpyOrder(person, Province: province),
-                "recall_spy" => new RecallSpyOrder(person),
-                "counter_intelligence" => new CounterIntelOrder(amount),
-                "assay" => new AssayOrder(S(x, "item")),
-                "authenticate" => new AuthenticateOrder(S(x, "item"), amount),
-                "forge" => new ForgeOrder(person, S(x, "text"), L(x, "seals").Select(P).OfType<Power>().ToList()),
-                "captive_execute" => new CaptiveOrder(person, CaptiveFate.Execute),
-                "captive_ransom" => new CaptiveOrder(person, CaptiveFate.Ransom, amount),
-                "captive_turn" => new CaptiveOrder(person, CaptiveFate.Turn, Poison: S(x, "text")),
-                "captive_release" => new CaptiveOrder(person, CaptiveFate.Release),
-                "release_detained" => new ReleaseOrder(person, S(x, "text")),
-                "pay_ransom" => new PayRansomOrder(person),
-                _ => null,
-            };
-            if (order is not null) sub.Orders.Add(order);
+                WakeKind? kind = S(w, "trigger") switch
+                {
+                    "unit_moves" => WakeKind.UnitMoves,
+                    "envoy_returns" => WakeKind.EnvoyReturns,
+                    "treasury_below" => WakeKind.TreasuryBelow,
+                    "troops_enter" => WakeKind.TroopsEnter,
+                    "province_changes_hands" => WakeKind.ProvinceChangesHands,
+                    _ => null,
+                };
+                if (kind is not { } k) continue;
+                req.WakeOn.Add(new WakeTrigger
+                {
+                    Kind = k,
+                    Province = Empty(S(w, "province")) is { } wp ? Prov(wp) : null,
+                    Character = Empty(S(w, "person")),
+                    Amount = Math.Max(0, I(w, "amount")),
+                    Power = P(S(w, "power")),
+                });
+            }
+            sub.Sleep = req;
+        }
+        foreach (var plan in (o["schedule"] as JsonArray) ?? new JsonArray())
+        {
+            var scheduled = new ScheduledOrders { Turn = I(plan, "turn") };
+            foreach (var u in (plan?["units"] as JsonArray) ?? new JsonArray())
+                if (Unit(u) is { } order) scheduled.Orders.Add(order);
+            foreach (var x in (plan?["other_orders"] as JsonArray) ?? new JsonArray())
+                if (Other(x) is { } order) scheduled.Orders.Add(order);
+            if (scheduled.Turn > 0) sub.Scheduled.Add(scheduled);
         }
         return sub;
+    }
+
+    private static Order? Unit(JsonNode? u)
+    {
+        var unit = Prov(S(u, "unit"));
+        var target = Empty(S(u, "target")) is { } t ? Prov(t) : null;
+        var to = Empty(S(u, "to")) is { } d ? Prov(d) : null;
+        Order? order = S(u, "order") switch
+        {
+            "move" when target is not null => new MoveOrder(unit, target),
+            "support" when target is not null => new SupportOrder(unit, target, to),
+            "convoy" when target is not null && to is not null => new ConvoyOrder(unit, target, to),
+            "disband" => new DisbandOrder(unit),
+            "hold" => new HoldOrder(unit),
+            _ => null,
+        };
+        return order;
+    }
+
+    private static Order? Other(JsonNode? x)
+    {
+        var person = S(x, "person");
+        var amount = I(x, "amount");
+        var province = Empty(S(x, "province")) is { } pr ? Prov(pr) : "";
+        var power = P(S(x, "power"));
+        Order? order = S(x, "action") switch
+        {
+            "raise_army" => new RaiseOrder(province, UnitKind.Army),
+            "raise_fleet" => new RaiseOrder(province, UnitKind.Fleet),
+            "buy_city" => new BuyProvinceOrder(province),
+            "cede_province" when power is { } cp => new CedeProvinceOrder(province, cp),
+            "give_unit" when power is { } gp => new GiftUnitOrder(province, gp),
+            "seek_candidates" => new SeekCandidatesOrder(),
+            "hire" => new HireOrder(person, amount, 6),
+            "dismiss" => new DismissOrder(person),
+            "background_check" => new BackgroundCheckOrder(person, amount),
+            "place_spy" when power is { } court => new PlaceSpyOrder(person, Court: court),
+            "place_spy" when province.Length > 0 => new PlaceSpyOrder(person, Province: province),
+            "recall_spy" => new RecallSpyOrder(person),
+            "counter_intelligence" => new CounterIntelOrder(amount),
+            "assay" => new AssayOrder(S(x, "item")),
+            "authenticate" => new AuthenticateOrder(S(x, "item"), amount),
+            "forge" => new ForgeOrder(person, S(x, "text"), L(x, "seals").Select(P).OfType<Power>().ToList()),
+            "captive_execute" => new CaptiveOrder(person, CaptiveFate.Execute),
+            "captive_ransom" => new CaptiveOrder(person, CaptiveFate.Ransom, amount),
+            "captive_turn" => new CaptiveOrder(person, CaptiveFate.Turn, Poison: S(x, "text")),
+            "captive_release" => new CaptiveOrder(person, CaptiveFate.Release),
+            "release_detained" => new ReleaseOrder(person, S(x, "text")),
+            "pay_ransom" => new PayRansomOrder(person),
+            _ => null,
+        };
+        return order;
     }
 
     public static HostReply Host(JsonObject o) => new()

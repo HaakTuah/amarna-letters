@@ -11,6 +11,8 @@ public sealed class LogHeader
     public ulong Seed { get; set; }
     public GameConfig Config { get; set; } = new();
     public Dictionary<Power, string> Seats { get; set; } = new();
+    /// <summary>Seats that may sleep in this game (when the config allows sleeping seats).</summary>
+    public List<Power> Sleepers { get; set; } = new();
     public string Minds { get; set; } = "";
     public string Narrator { get; set; } = "";
     public string Note { get; set; } = "";

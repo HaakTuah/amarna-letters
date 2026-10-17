@@ -36,7 +36,7 @@ public sealed class CallSpec
 /// prompt, output, usage and cost. Output is constrained by a JSON schema; an unreadable reply
 /// is retried once with the error, then the caller falls back to a script decision.
 /// </summary>
-public sealed class ClaudeClient
+public sealed class ClaudeClient : IJsonAsker
 {
     public const string FallbackBeta = "server-side-fallback-2026-07-01";
     public const string ApiVersion = "2023-06-01";
@@ -69,6 +69,8 @@ public sealed class ClaudeClient
     }
 
     public bool UsesSdk => _sdk is not null;
+
+    public Task<JsonObject> AskJsonAsync(CallSpec spec, CancellationToken ct) => CallJsonAsync(spec, ct);
 
     public async Task<JsonObject> CallJsonAsync(CallSpec spec, CancellationToken ct)
     {

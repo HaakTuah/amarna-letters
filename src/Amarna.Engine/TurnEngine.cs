@@ -216,14 +216,16 @@ public sealed partial class TurnEngine
     {
         var validator = new OrderValidator(S, Map);
         var valid = new Dictionary<Power, ValidationResult>();
+        _scheduledNow.Clear();
         foreach (var p in S.Alive.ToList())
         {
-            var sub = submissions.GetValueOrDefault(p) ?? new TurnSubmission();
+            var sub = WithScheduled(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission(), out var scheduled);
             var v = validator.Validate(p, sub);
             valid[p] = v;
             if (v.Rejected.Count > 0)
                 S.Notify(p, InboxKind.Rejected, "Orders that could not be carried out",
                     string.Join("\n", v.Rejected.Select(r => $"- {r.Order.Describe()}: {r.Reason}")));
+            AfterValidation(p, sub, v, scheduled);
         }
 
         IEnumerable<(Power P, T O)> All<T>() where T : Order =>
@@ -338,10 +340,11 @@ public sealed partial class TurnEngine
     {
         foreach (var (p, c) in cessions)
         {
-            if (S.Owner.GetValueOrDefault(c.Province) != p) continue;
+            if (S.Owner.GetValueOrDefault(c.Province) != p) { ScheduledFailed(p, c, "you no longer hold it"); continue; }
             if (S.UnitAt(c.Province) is { } u && u.Power == p)
             {
                 S.Notify(p, InboxKind.Rejected, "Cession failed", $"Your own troops still stand in {Map[c.Province].Name}; it cannot be handed over.");
+                ScheduledFailed(p, c, "your own troops stand there");
                 continue;
             }
             S.Owner[c.Province] = c.To;
@@ -352,7 +355,7 @@ public sealed partial class TurnEngine
         foreach (var (p, g) in gifts)
         {
             var u = S.UnitAt(g.Unit);
-            if (u is null || u.Power != p) continue;
+            if (u is null || u.Power != p) { ScheduledFailed(p, g, "the unit is gone"); continue; }
             u.Power = g.To;
             S.Notify(p, InboxKind.Resolution, "Troops given", $"{u.Label} now serves {g.To}.");
             S.Notify(g.To, InboxKind.Resolution, "Troops received", $"{p} has placed {u.Label} under your command.");
@@ -371,12 +374,14 @@ public sealed partial class TurnEngine
             {
                 foreach (var b in bidders)
                     S.Notify(b, InboxKind.Resolution, "Purchase failed", $"The elders of {prov.Name} would not choose between rival buyers this season.");
+                foreach (var (b, o) in group) ScheduledFailed(b, o, "rival buyers bid for it");
                 continue;
             }
             var buyer = bidders[0];
-            if (S.UnitAt(prov.Id) is { } occupant && occupant.Power != buyer) continue;
+            var bid = group.First().O;
+            if (S.UnitAt(prov.Id) is { } occupant && occupant.Power != buyer) { ScheduledFailed(buyer, bid, "foreign troops stand in it"); continue; }
             var price = prov.Yield * S.Config.NeutralPriceFactor;
-            if (!Pay(buyer, price, $"the city of {prov.Name}")) continue;
+            if (!Pay(buyer, price, $"the city of {prov.Name}")) { ScheduledFailed(buyer, bid, "not enough gold"); continue; }
             S.Owner[prov.Id] = buyer;
             S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule. Its walls now hold for you.");
             S.Log("purchase", $"{buyer} bought {prov.Name} for {Money.Format(price)}.", Powers.All.Where(p => Views.Sight(S, Map, p).Contains(prov.Id)).Append(buyer));
@@ -389,10 +394,11 @@ public sealed partial class TurnEngine
         if (S.Owner.GetValueOrDefault(prov.Id) != p || S.UnitAt(prov.Id) is not null)
         {
             S.Notify(p, InboxKind.Rejected, "Levy failed", $"{prov.Name} is no longer free for a new {r.Kind.ToString().ToLowerInvariant()}.");
+            ScheduledFailed(p, r, "the province is not free");
             return;
         }
         var cost = r.Kind == UnitKind.Army ? S.Config.ArmyCost : S.Config.FleetCost;
-        if (!Pay(p, cost, $"a new {r.Kind.ToString().ToLowerInvariant()}")) return;
+        if (!Pay(p, cost, $"a new {r.Kind.ToString().ToLowerInvariant()}")) { ScheduledFailed(p, r, "not enough gold"); return; }
         var u = new Unit { Id = S.NewId("u"), Power = p, Kind = r.Kind, Province = prov.Id };
         S.Units.Add(u);
         S.Notify(p, InboxKind.Resolution, "Levy raised", $"A new {r.Kind.ToString().ToLowerInvariant()} stands in {prov.Name}.");
@@ -404,6 +410,7 @@ public sealed partial class TurnEngine
         {
             if (S.OwnedBy(p).Any()) continue;
             S.Eliminated.Add(p);
+            EndSleep(p);
             S.Units.RemoveAll(u => u.Power == p);
             foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
             {
@@ -420,6 +427,13 @@ public sealed partial class TurnEngine
 
     public int Strength(Power p) =>
         S.Config.ProvinceWeight * S.OwnedBy(p).Sum(id => Map[id].Yield) + S.Treasuries[p].Gold;
+
+    /// <summary>
+    /// Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at
+    /// their weight. A seat must never see true strength, or it could read debased gold off the difference.
+    /// </summary>
+    public int LedgerStrength(Power p) =>
+        S.Config.ProvinceWeight * S.OwnedBy(p).Sum(id => Map[id].Yield) + S.Treasuries[p].Ledger;
 
     public double Growth(Power p)
     {

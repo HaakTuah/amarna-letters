@@ -44,13 +44,53 @@ public static class Schemas
         "captive_execute", "captive_ransom", "captive_turn", "captive_release", "release_detained", "pay_ransom",
     ];
 
-    public static JsonObject LeaderOrders() => Object(
+    public static readonly string[] WakeTriggers = ["unit_moves", "envoy_returns", "treasury_below", "troops_enter", "province_changes_hands"];
+
+    private static JsonObject UnitOrder() => Object(
+        ("unit", Str("Province id where your unit stands.")),
+        ("order", Enum(["hold", "move", "support", "convoy", "disband"])),
+        ("target", Str("move: destination. support: province of the unit supported. convoy: province of the army. Otherwise empty.")),
+        ("to", Str("support of a move, or convoy: the destination. Support to hold: empty.")));
+
+    private static JsonObject OtherOrder() => Object(
+        ("action", Enum(OtherActions)),
+        ("province", Str("For raise, buy_city, cede_province, give_unit, or a province to spy on.")),
+        ("power", Str("For cede_province, give_unit, or a court to spy on.")),
+        ("person", Str("Person id, for hire, dismiss, checks, spies, captives, release, ransom, forge.")),
+        ("amount", Int("Wage, spend or ransom in shekels, as the action needs; else 0.")),
+        ("text", Str("Forgery text, words for a released envoy, or what a turned spy should report.")),
+        ("item", Str("Gold lot id for assay, tablet copy id for authenticate.")),
+        ("seals", Array(Str(), "Powers whose seals a forgery bears.")));
+
+    /// <summary>A king's orders. With sleeping seats on, it may also choose to sleep and schedule orders for later seasons.</summary>
+    public static JsonObject LeaderOrders(GameConfig? c = null)
+    {
+        var o = LeaderOrdersBase(c?.SharedVictory ?? false);
+        if (c is not { SleepingSeats: true }) return o;
+        var props = (JsonObject)o["properties"]!;
+        var required = (JsonArray)o["required"]!;
+        props["sleep"] = Object(
+            ("seasons", Int($"Seasons to skip before you are asked again: 0 = next season as usual, at most {c.MaxSleep}.")),
+            ("wake_on", Array(Object(
+                ("trigger", Enum(WakeTriggers)),
+                ("province", Str("unit_moves: where the unit stands now. troops_enter, province_changes_hands: the province. Otherwise empty.")),
+                ("person", Str("envoy_returns: the person id. Otherwise empty.")),
+                ("amount", Int("treasury_below: shekels. Otherwise 0.")),
+                ("power", Str("troops_enter: whose troops, or empty for any foreign power's."))),
+                "Your own reasons to be woken sooner, on top of the usual ones.")));
+        props["schedule"] = Array(Object(
+            ("turn", Int("The season (turn number) these orders run in.")),
+            ("units", Array(UnitOrder(), "Name each unit by the province it will stand in that season, after any earlier moves.")),
+            ("other_orders", Array(OtherOrder()))),
+            "Orders for later seasons (or this one). Secret, and checked when they run. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it.");
+        required.Add("sleep");
+        required.Add("schedule");
+        return o;
+    }
+
+    private static JsonObject LeaderOrdersBase(bool sharedVictory) => Object(
         ("notes", Str("Private notes to yourself for next season: plans, promises made, suspicions.")),
-        ("units", Array(Object(
-            ("unit", Str("Province id where your unit stands.")),
-            ("order", Enum(["hold", "move", "support", "convoy", "disband"])),
-            ("target", Str("move: destination. support: province of the unit supported. convoy: province of the army. Otherwise empty.")),
-            ("to", Str("support of a move, or convoy: the destination. Support to hold: empty."))))),
+        ("units", Array(UnitOrder())),
         ("letters", Array(Object(
             ("envoy", Str("Id of one of your people who is at court and ready.")),
             ("to", Enum(PowerNames)),
@@ -64,17 +104,9 @@ public static class Schemas
             ("your_name_first", Bool()),
             ("omit_greeting", Bool()),
             ("tablet_to_seal", Str("Text for both kings to seal, or empty.")),
-            ("sworn_alliance", Bool("Mark the tablet as a sworn alliance (counts for a shared victory).")),
+            ("sworn_alliance", Bool(sharedVictory ? "Mark the tablet as a sworn alliance (counts for a shared victory)." : "Mark the tablet as a sworn alliance.")),
             ("show_tablet_copies", Array(Str(), "Ids of tablet copies you hold to show as evidence."))))),
-        ("other_orders", Array(Object(
-            ("action", Enum(OtherActions)),
-            ("province", Str("For raise, buy_city, cede_province, give_unit, or a province to spy on.")),
-            ("power", Str("For cede_province, give_unit, or a court to spy on.")),
-            ("person", Str("Person id, for hire, dismiss, checks, spies, captives, release, ransom, forge.")),
-            ("amount", Int("Wage, spend or ransom in shekels, as the action needs; else 0.")),
-            ("text", Str("Forgery text, words for a released envoy, or what a turned spy should report.")),
-            ("item", Str("Gold lot id for assay, tablet copy id for authenticate.")),
-            ("seals", Array(Str(), "Powers whose seals a forgery bears."))))));
+        ("other_orders", Array(OtherOrder())));
 
     public static JsonObject HostReply() => Object(
         ("speech", Str("What you say to the envoy, to carry home.")),

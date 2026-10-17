@@ -9,6 +9,8 @@ namespace Amarna.Game;
 public interface ISeat
 {
     string Label { get; }
+    /// <summary>Whether this seat may sleep when the game allows it (model and file seats). Script and human seats play every season.</summary>
+    bool CanSleep => false;
     Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct);
     Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct);
 }

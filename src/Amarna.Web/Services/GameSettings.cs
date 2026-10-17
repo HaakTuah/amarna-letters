@@ -9,7 +9,10 @@ public sealed class GameSettings
     public SeatChoices Choices { get; set; } = new();
     public bool Chronicles { get; set; } = true;
     public bool CustomsPrimer { get; set; } = true;
-    public bool SharedVictory { get; set; } = true;
+    public bool SharedVictory { get; set; }
+    /// <summary>Model kings are asked only when something concerns them (script and human kings play every season).</summary>
+    public bool SleepingSeats { get; set; }
+    public int MaxSleep { get; set; } = 6;
     /// <summary>The game pauses when its model spend reaches this. Set from the cost estimate unless the player changes it.</summary>
     public double BudgetUsd { get; set; }
     public int MessagesPerTurn { get; set; } = 3;
@@ -27,6 +30,8 @@ public sealed class GameSettings
         Chronicles = Chronicles,
         CustomsPrimer = CustomsPrimer,
         SharedVictory = SharedVictory,
+        SleepingSeats = SleepingSeats,
+        MaxSleep = MaxSleep,
         BudgetUsd = BudgetUsd,
         MessagesPerTurn = MessagesPerTurn,
         SimulateApi = SimulateApi,
@@ -36,6 +41,8 @@ public sealed class GameSettings
     {
         CustomsPrimer = CustomsPrimer,
         SharedVictory = SharedVictory,
+        SleepingSeats = SleepingSeats,
+        MaxSleep = Math.Clamp(MaxSleep, 1, 30),
         MaxDispatchesPerTurn = MessagesPerTurn,
     };
 }

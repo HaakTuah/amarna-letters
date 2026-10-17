@@ -172,6 +172,19 @@ public class EnvoyTests
     }
 
     [Fact]
+    public void A_seat_cannot_read_debased_gold_off_its_strength()
+    {
+        var (s, _) = Start();
+        s.Treasuries[Power.Egypt].Lots.Add(new GoldLot { Id = "g1", From = Power.Babylonia, Stated = 120, Face = 100, True = 50, ArrivedTurn = 1 });
+        var engine = new TurnEngine(s);
+        var view = Views.For(s, Power.Egypt);
+        var land = s.Config.ProvinceWeight * s.OwnedBy(Power.Egypt).Sum(id => WorldMap.Default[id].Yield);
+        // The view counts the lot at its weight, everywhere: gold and strength agree, and neither shows the 50 missing.
+        Assert.Equal(view.Gold, view.Strength - land);
+        Assert.Equal(engine.Strength(Power.Egypt) + 50, view.Strength);
+    }
+
+    [Fact]
     public void Assay_reveals_debased_gold()
     {
         var s = GameFactory.NewGame(5);

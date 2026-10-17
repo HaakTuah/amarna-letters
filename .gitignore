@@ -482,3 +482,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Simulation kit: per-run folders, secret words and the king agent types made by sim/setup.js
+/sim/kings/
+/sim/runs/
+/.claude/agents/king-*.md

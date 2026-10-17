@@ -1,0 +1,167 @@
+using Amarna.Engine;
+using Amarna.Game;
+using Amarna.Game.Bots;
+using Amarna.Llm;
+
+namespace Amarna.Game.Tests;
+
+public class FileSeatTests
+{
+    private static string NewFolder() => Directory.CreateTempSubdirectory("amarna-fileseat-").FullName;
+
+    /// <summary>Answers every request that appears in a folder, until stopped: the stand-in for a king agent.</summary>
+    private static async Task Answer(string folder, Func<string, string, string?> reply, CancellationToken ct)
+    {
+        var answered = new HashSet<string>();
+        while (!ct.IsCancellationRequested)
+        {
+            foreach (var request in Directory.GetFiles(folder, "*.request.md"))
+            {
+                if (!answered.Add(request)) continue;
+                var stem = Path.GetFileName(request)[..^".request.md".Length];
+                var text = await File.ReadAllTextAsync(request, ct);
+                if (reply(stem, text) is { } json) await File.WriteAllTextAsync(Path.Combine(folder, stem + ".reply.json"), json, ct);
+            }
+            try { await Task.Delay(50, ct); } catch (OperationCanceledException) { }
+        }
+    }
+
+    private const string HoldEverything = """{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}""";
+
+    private static (GameRunner Runner, string Folder) Game(GameConfig? config = null, int timeoutSeconds = 30)
+    {
+        var folder = NewFolder();
+        var state = GameFactory.NewGame(8, config ?? new GameConfig { CatastropheChance = 0 });
+        var bot = new ScriptLeader(8);
+        GameRunner? runner = null;
+        var exchange = new FileExchange(folder, TimeSpan.FromSeconds(timeoutSeconds), call => runner!.Log.AddCall(call));
+        var seats = Powers.All.ToDictionary(p => p, p => p == Power.Alashiya
+            ? new LlmLeaderSeat(p, exchange, "file", "medium", state.Config.CustomsPrimer, state.Config, label: "File seat")
+            : (ISeat)bot);
+        runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
+        return (runner, folder);
+    }
+
+    [Fact]
+    public async Task A_file_seat_writes_what_a_model_king_sees_and_plays_the_reply()
+    {
+        var (runner, folder) = Game();
+        using var stop = new CancellationTokenSource();
+        var seen = new List<string>();
+        var answering = Answer(folder, (stem, text) =>
+        {
+            lock (seen) seen.Add(text);
+            return stem.Contains("orders")
+                ? """{"notes":"Buy the copper coast.","units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[]}"""
+                : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
+        }, stop.Token);
+        await runner.PlayTurnAsync();
+        stop.Cancel();
+        await answering;
+
+        var request = seen.First(t => t.StartsWith("# t1/orders/Alashiya"));
+        Assert.Contains("You are playing Amarna Letters", request);
+        Assert.Contains("CUSTOMS OF THE AGE", request);
+        Assert.Contains("Habiru", request);
+        Assert.Contains("Great King of Alashiya", request);
+        Assert.Contains("TREASURY:", request);
+        Assert.Contains("\"other_orders\"", request);
+        Assert.Contains("t1_orders_Alashiya.reply.json", request);
+        Assert.Contains(runner.State.Units, u => u.Power == Power.Alashiya && u.Province == "cilicia");
+        Assert.Empty(runner.Errors);
+        Assert.Contains(runner.Log.Calls, c => c.Key == "t1/orders/Alashiya" && c.Model == "file seat" && c.Output.Contains("copper coast"));
+    }
+
+    [Fact]
+    public async Task An_unreadable_reply_gets_one_retry_and_then_the_script_king_stands_in()
+    {
+        var (runner, folder) = Game();
+        using var stop = new CancellationTokenSource();
+        var answering = Answer(folder, (stem, _) => stem switch
+        {
+            "t1_orders_Alashiya" => "this is not json",
+            "t1_orders_Alashiya.retry" => HoldEverything,
+            "t2_orders_Alashiya" => "still not json",
+            "t2_orders_Alashiya.retry" => "{ broken",
+            _ => HoldEverything,
+        }, stop.Token);
+        await runner.PlayTurnAsync();
+        Assert.Empty(runner.Errors);
+        Assert.True(File.Exists(Path.Combine(folder, "t1_orders_Alashiya.retry.request.md")));
+        Assert.Contains("could not be read", await File.ReadAllTextAsync(Path.Combine(folder, "t1_orders_Alashiya.retry.request.md")));
+
+        await runner.PlayTurnAsync();
+        stop.Cancel();
+        await answering;
+        Assert.Contains(runner.Errors, e => e.StartsWith("t2/orders/Alashiya:"));
+    }
+
+    [Fact]
+    public async Task An_empty_reply_file_does_not_hang_the_game()
+    {
+        var (runner, folder) = Game();
+        using var stop = new CancellationTokenSource();
+        var answering = Answer(folder, (stem, _) => stem.StartsWith("t1_orders_Alashiya") ? "" : HoldEverything, stop.Token);
+        await runner.PlayTurnAsync();
+        stop.Cancel();
+        await answering;
+        Assert.Contains(runner.Errors, e => e.StartsWith("t1/orders/Alashiya:"));
+    }
+
+    [Fact]
+    public async Task A_reply_with_the_wrong_types_gets_the_retry_with_what_was_wrong()
+    {
+        var (runner, folder) = Game();
+        using var stop = new CancellationTokenSource();
+        var answering = Answer(folder, (stem, _) => stem == "t1_orders_Alashiya"
+            ? """{"notes":"x","units":["enkomi -> cilicia"],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[]}]}"""
+            : HoldEverything, stop.Token);
+        await runner.PlayTurnAsync();
+        stop.Cancel();
+        await answering;
+        Assert.Empty(runner.Errors);
+        var retry = await File.ReadAllTextAsync(Path.Combine(folder, "t1_orders_Alashiya.retry.request.md"));
+        Assert.Contains("reply.units[0] should be an object", retry);
+        Assert.Contains("reply.other_orders[0].action must be one of", retry);
+    }
+
+    [Fact]
+    public void A_reply_wrapped_in_a_code_fence_or_a_stray_line_is_still_read()
+    {
+        Assert.NotNull(FileExchange.Lenient("```json\n" + HoldEverything + "\n```"));
+        Assert.NotNull(FileExchange.Lenient("Here are my orders:\n" + HoldEverything));
+        Assert.Null(FileExchange.Lenient("no orders this season"));
+        Assert.Null(FileExchange.Lenient("{ broken"));
+    }
+
+    [Fact]
+    public async Task A_seat_that_never_answers_times_out_into_the_script_king()
+    {
+        var (runner, _) = Game(timeoutSeconds: 1);
+        await runner.PlayTurnAsync();
+        Assert.Contains(runner.Errors, e => e.StartsWith("t1/orders/Alashiya:") && e.Contains("no reply"));
+    }
+
+    [Fact]
+    public async Task File_seat_games_replay_exactly_with_sleeping_on()
+    {
+        var (runner, folder) = Game(new GameConfig { SleepingSeats = true, CatastropheChance = 0 });
+        using var stop = new CancellationTokenSource();
+        var answering = Answer(folder, (stem, text) =>
+        {
+            Assert.Contains("SLEEPING (this game lets you skip seasons)", text);
+            return stem.Contains("orders")
+                ? """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"sleep":{"seasons":2,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[]}"""
+                : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
+        }, stop.Token);
+        for (var i = 0; i < 7; i++) await runner.PlayTurnAsync();
+        stop.Cancel();
+        await answering;
+
+        Assert.NotEmpty(runner.State.Sleep[Power.Alashiya].History);
+        var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));
+        await replay.PrepareAsync();
+        for (var i = 0; i < 7; i++) await replay.PlayTurnAsync();
+        Assert.Equal(Json.Hash(runner.State), Json.Hash(replay.State));
+    }
+}
