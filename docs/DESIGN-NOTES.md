@@ -44,7 +44,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   what is left after any skimming. Purity is hidden until an assay.
 - **Debasement is a ledger, not a coin type.** A power's displayed treasury counts unassayed lots
   at their weight. True gold is what is actually spent; a payment the true treasury cannot cover
-  fails and exposes all debased lots at once.
+  fails and exposes all debased lots at once. A seat's view shows its strength by the ledger too, so the gap
+  cannot be read off the difference between strength and gold.
 - **Envoys go out and come back.** An audience has at most two exchanges. Detention is the host's
   choice; detained envoys grow attached to the host court over time. The sender hears that the
   envoy is overdue a season after it should have returned.

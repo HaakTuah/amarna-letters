@@ -127,7 +127,7 @@ public static class Prompts
         if (v.WokenBecause.Count > 0)
             sb.AppendLine($"YOU WERE WOKEN (you last gave orders in turn {v.LastCalled}): {string.Join("; ", v.WokenBecause)}.");
         var growth = v.StartStrength > 0 ? (double)v.Strength / v.StartStrength : 0;
-        sb.AppendLine($"TREASURY: {v.Gold} shekels by your ledger. Income {v.Income}, upkeep {v.Upkeep}, wages {v.Wages} a season. Strength {v.Strength} against a starting {v.StartStrength} (growth {growth:0.00}).");
+        sb.AppendLine($"TREASURY: {v.Gold} shekels by your ledger. Income {v.Income}, upkeep {v.Upkeep}, wages {v.Wages} a season. Strength {v.Strength} by your ledger, against a starting {v.StartStrength} (growth {growth:0.00}).");
         foreach (var lot in v.UnassayedGold)
             sb.AppendLine($"  Unassayed gold {lot.Id}: {lot.Weighed} shekels weighed, from {lot.From} (the inventory said {lot.Stated}).");
         if (v.Fallen.Count > 0) sb.AppendLine($"FALLEN KINGDOMS: {string.Join(", ", v.Fallen)}.");

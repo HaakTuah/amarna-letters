@@ -70,6 +70,7 @@ public sealed class SeatView
     public int Income { get; set; }
     public int Upkeep { get; set; }
     public int Wages { get; set; }
+    /// <summary>Strength by the seat's own ledger (unassayed gold at its weight), never the true figure.</summary>
     public int Strength { get; set; }
     public int StartStrength { get; set; }
 
@@ -137,7 +138,7 @@ public static class Views
             Income = engine.Income(p),
             Upkeep = engine.Upkeep(p),
             Wages = engine.Wages(p),
-            Strength = engine.Strength(p),
+            Strength = engine.LedgerStrength(p),
             StartStrength = s.StartStrength.GetValueOrDefault(p),
             Owner = new Dictionary<string, Power?>(s.Owner),
             Garrisons = s.Garrisons.ToList(),

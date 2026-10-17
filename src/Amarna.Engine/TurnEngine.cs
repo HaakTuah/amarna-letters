@@ -428,6 +428,13 @@ public sealed partial class TurnEngine
     public int Strength(Power p) =>
         S.Config.ProvinceWeight * S.OwnedBy(p).Sum(id => Map[id].Yield) + S.Treasuries[p].Gold;
 
+    /// <summary>
+    /// Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at
+    /// their weight. A seat must never see true strength, or it could read debased gold off the difference.
+    /// </summary>
+    public int LedgerStrength(Power p) =>
+        S.Config.ProvinceWeight * S.OwnedBy(p).Sum(id => Map[id].Yield) + S.Treasuries[p].Ledger;
+
     public double Growth(Power p)
     {
         var start = S.StartStrength.GetValueOrDefault(p);
