@@ -20,11 +20,17 @@ internal sealed class Board
     public List<UnitView> Others { get; }
     public double Horizon { get; }
     public HashSet<Power> Alive { get; }
+    private readonly IReadOnlyDictionary<Power, double>? _treasuries;
+    private readonly Dictionary<Power, double> _growth = new();
+    private Power? _leader;
+    private bool _ranked;
 
-    public Board(SeatView v, IEnumerable<UnitView>? remembered = null)
+    /// <param name="treasuries">What this court reckons each rival holds in gold (see <see cref="Brain.Treasury"/>).</param>
+    public Board(SeatView v, IEnumerable<UnitView>? remembered = null, IReadOnlyDictionary<Power, double>? treasuries = null)
     {
         V = v;
         Me = v.Power;
+        _treasuries = treasuries;
         Units = v.Units.Concat((remembered ?? []).Where(g => v.Units.All(u => u.Province != g.Province))).ToList();
         UnitAt = Units.GroupBy(u => u.Province).ToDictionary(g => g.Key, g => g.First());
         Mine = Units.Where(u => u.Power == Me).OrderBy(u => u.Province, StringComparer.Ordinal).ToList();
@@ -69,14 +75,53 @@ internal sealed class Board
 
     public int Provinces(Power p) => V.Owner.Count(x => x.Value == p);
 
-    /// <summary>Who seems to be running away with the game, judged by land (treasuries are private).</summary>
+    /// <summary>Gold a city costs per shekel of yield, which is also what a shekel of yield adds to a king's strength.</summary>
+    public double YieldWorth => V.Prices.GetValueOrDefault("cityPricePerYield", 10);
+
+    /// <summary>
+    /// A king's strength as this court reckons it: land at the price of a city, plus gold (our own exactly, a
+    /// rival's as estimated from what is public). Buying a city turns gold into the same strength in land, so
+    /// unlike land alone this does not mistake a buyer for a conqueror.
+    /// </summary>
+    public double Strength(Power p)
+    {
+        // A pictured board (see Search) has no treasury of its own: estimate it like any other.
+        if (p == Me && V.StartStrength > 0) return V.Strength;
+        var land = V.Owner.Where(x => x.Value == p).Sum(x => Map[x.Key].Yield);
+        var gold = _treasuries is not null && _treasuries.TryGetValue(p, out var g) ? g : MapData.StartGold[p];
+        return YieldWorth * land + Math.Max(0, gold);
+    }
+
+    public double StartStrength(Power p) => p == Me && V.StartStrength > 0 ? V.StartStrength : YieldWorth * Map.HomeOf(p).Sum(x => x.Yield) + MapData.StartGold[p];
+
+    /// <summary>Strength against what the king started with: the measure the game is won by.</summary>
+    public double Growth(Power p)
+    {
+        if (!_growth.TryGetValue(p, out var g)) _growth[p] = g = Alive.Contains(p) ? Strength(p) / StartStrength(p) : 0;
+        return g;
+    }
+
+    /// <summary>
+    /// Who seems to be running away with the game: the king whose growth, as this court reckons it, stands
+    /// clearly above both the start and the next king, once the first year is out (a city or two decides
+    /// nothing yet), and who has the weight to be feared: a small kingdom that has grown fast leads the race,
+    /// but is no threat to the great kings around it.
+    /// </summary>
     public Power? Leader()
     {
-        var ranked = Alive.Select(p => (P: p, G: LandGrowth(p))).OrderByDescending(x => x.G).ThenBy(x => x.P).ToList();
-        if (ranked.Count < 2) return null;
+        if (_ranked) return _leader;
+        _ranked = true;
+        var ranked = Alive.Select(p => (P: p, G: Growth(p))).OrderByDescending(x => x.G).ThenBy(x => x.P).ToList();
+        if (ranked.Count < 2 || V.Turn <= 3) return null;
         var (top, g) = ranked[0];
-        return g >= 1.2 && g >= ranked[1].G + 0.15 ? top : null;
+        var strengths = Alive.Select(Strength).OrderBy(x => x).ToList();
+        var median = strengths[strengths.Count / 2];
+        _leader = g >= LeadFloor && g >= ranked[1].G + LeadMargin && Strength(top) >= 0.8 * median ? top : null;
+        return _leader;
     }
+
+    /// <summary>The growth a leader must reach, and the margin by which he must stand above the next king.</summary>
+    public const double LeadFloor = 1.15, LeadMargin = 0.1;
 
     /// <summary>Kings whose land borders ours or shares a sea with our coasts, or whose troops are within two moves of us.</summary>
     public IEnumerable<Power> Neighbours()

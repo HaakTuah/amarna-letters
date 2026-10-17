@@ -271,8 +271,16 @@ public sealed partial class TurnEngine
         {
             if (supported is not { } other || other == supporter) continue;
             var owner = S.Owner.GetValueOrDefault(province);
-            S.Log("support", $"{supporter} supported {other} at {Map[province].Name}" + (owner is { } o && o != other ? $" (held by {o})" : "") + ".",
-                [supporter, other], owner is { } target && target != other && target != supporter ? $"foreign-support:{target}" : "foreign-support");
+            // Who the support was given against: the king whose land the move went into, or, for a unit
+            // supported where it stands, the king who attacked it there.
+            var holding = S.UnitAt(province)?.Power == other;
+            var attacker = holding
+                ? result.Outcomes.Where(x => x.Order == "move" && x.Target == province && x.Power != other && x.Power != supporter).Select(x => (Power?)x.Power).FirstOrDefault()
+                : null;
+            var against = owner is { } target && target != other && target != supporter ? target : attacker;
+            S.Log("support", $"{supporter} supported {other} at {Map[province].Name}"
+                             + (owner is { } o && o != other ? $" (held by {o})" : attacker is { } a ? $" against {a}" : "") + ".",
+                [supporter, other], against is { } foe ? $"foreign-support:{foe}" : "foreign-support");
         }
 
         foreach (var id in result.DislodgedUnitIds)

@@ -21,7 +21,48 @@ internal sealed class MilitaryPlan
 /// </summary>
 internal static class Tactics
 {
-    private sealed record Op(string Kind, double Net, string Target, string Lead, List<string> Helpers, string? ConvoyFleet = null);
+    /// <param name="Other">The fleet that carries a convoy, or the partner's troop an assist supports.</param>
+    private sealed record Op(string Kind, double Net, string Target, string Lead, List<string> Helpers, string? Other = null);
+
+    /// <summary>A blow struck together at the land of a king sworn against: one troop goes in, the others support it.</summary>
+    internal sealed record Joint(string Target, Power Against, UnitView Lead, List<UnitView> Support);
+
+    /// <summary>
+    /// Attacks on the land of a king we have sworn with partners to stand against, made by a rule each of them can
+    /// work out from its own side of the board, so that no letter has to settle who does what: next to each of
+    /// his provinces (the richest first, each troop once), the troops of the partner with the least land go in
+    /// (an army before a fleet, then by province) and every other sworn troop there supports them. Only troops in
+    /// sight count, and only blows that could land: more troops than he can hold the province with.
+    /// </summary>
+    public static List<Joint> Joints(Board b, Brain brain)
+    {
+        var list = new List<Joint>();
+        var coalitions = brain.Coalitions(b).ToList();
+        if (coalitions.Count == 0) return list;
+        var used = new HashSet<string>();
+        double Land(Power x) => b.V.Owner.Where(o => o.Value == x).Sum(o => Board.Map[o.Key].Yield);
+        foreach (var foe in coalitions.Select(c => c.Against).Distinct().OrderBy(x => x))
+        {
+            var side = coalitions.Where(c => c.Against == foe).Select(c => c.Partner).Append(b.Me).ToHashSet();
+            var targets = b.V.Owner.Where(o => o.Value == foe && b.V.Visible.Contains(o.Key)).Select(o => o.Key)
+                .OrderByDescending(t => Board.Map[t].Yield).ThenBy(t => t, StringComparer.Ordinal).ToList();
+            foreach (var t in targets)
+            {
+                var near = b.V.Units.Where(u => side.Contains(u.Power) && !used.Contains(u.Province) && Board.Map.CanMove(u.Kind, u.Province, t)).ToList();
+                if (!near.Any(u => u.Power == b.Me) || near.All(u => u.Power == b.Me)) continue;
+                var lead = near.OrderBy(u => Land(u.Power)).ThenBy(u => u.Power).ThenBy(u => u.Kind == UnitKind.Army ? 0 : 1)
+                    .ThenBy(u => u.Province, StringComparer.Ordinal).First();
+                var support = near.Where(u => u != lead).ToList();
+                var held = b.UnitAt.GetValueOrDefault(t)?.Power == foe || b.Walls(t) ? 1 : 0;
+                var backers = b.Units.Count(u => u.Power == foe && u.Province != t && Board.Map.CanMove(u.Kind, u.Province, t));
+                if (1 + support.Count <= held + (backers + 1) / 2) continue;
+                used.Add(lead.Province);
+                foreach (var s in support) used.Add(s.Province);
+                list.Add(new Joint(t, foe, lead, support));
+            }
+        }
+        return list;
+    }
 
     /// <param name="temper">Plays the season with these weights instead of the king's own (to draw alternative plans).</param>
     public static MilitaryPlan Make(Board b, Brain brain, Personality? temper = null)
@@ -36,6 +77,7 @@ internal static class Tactics
         var hostility = b.Alive.Where(x => x != me).ToDictionary(x => x, x => brain.Hostility(x, b) * (brain.IsFriend(x) && brain.Betraying != x ? 0.25 : 1));
 
         bool Willing(Power owner) => Tactics.Willing(b, brain, owner, leader);
+        var sworn = brain.SwornFoes(b);
 
         double Multiplier(Power? owner)
         {
@@ -43,11 +85,15 @@ internal static class Tactics
             var o = owner.Value;
             if (o == me) return 1;
             if (o == brain.Betraying) return 1.1;
-            if (o == brain.WarTarget) return 1.3;
+            if (o == brain.WarTarget || sworn.Contains(o)) return 1.3;
             if (o == leader) return 1.2;
             if (brain.Rel[o].Hostile) return 1.0 + 0.3 * p.Vengeance;
             return 0.55 + 0.45 * p.Aggression;
         }
+
+        var capital = Board.Map.Capital(me).Id;
+        // Gifts and fair words may lull a court, but it trusts its capital only to a sworn ally.
+        double Fear(Power x, string province) => province == capital && !brain.Rel[x].Allied ? Math.Max(hostility[x], 0.3) : hostility[x];
 
         // ---- Threats: the strongest attack any one king could bring, weighted by how likely he is to bring it.
         (int Strength, double Chance) Danger(string province)
@@ -57,7 +103,7 @@ internal static class Tactics
             {
                 var m = b.Muster(x, province);
                 if (m == 0) continue;
-                var chance = hostility[x];
+                var chance = Fear(x, province);
                 if (chance < 0.25) continue;
                 if (m > best.Item1 || (m == best.Item1 && chance > best.Item2)) best = (m, chance);
             }
@@ -77,10 +123,11 @@ internal static class Tactics
             var best = 0.0;
             foreach (var u in b.Others)
             {
-                if (hostility.GetValueOrDefault(u.Power) < 0.25) continue;
+                var fear = Fear(u.Power, province);
+                if (fear < 0.25) continue;
                 var close = Board.Map.CanMove(u.Kind, u.Province, province)
                             || Board.Map.MovesFrom(u.Kind, u.Province).Any(n => Board.Map.CanMove(u.Kind, n, province));
-                if (close) best = Math.Max(best, hostility[u.Power] * 0.6);
+                if (close) best = Math.Max(best, fear * 0.6);
             }
             return best;
         }
@@ -96,8 +143,7 @@ internal static class Tactics
         }
 
         // The capital keeps its garrison while enemies are near.
-        var capital = Board.Map.Capital(me).Id;
-        if (free.Contains(capital) && Nearby(capital) >= 0.2 && (b.Mine.Count <= 2 || p.Caution > 0.5))
+        if (free.Contains(capital) && Nearby(capital) >= (b.Mine.Count <= 2 ? 0.15 : 0.2) && (b.Mine.Count <= 2 || p.Caution > 0.5))
             stay.Add(capital);
 
         IEnumerable<string> Helpers(string target, string exclude) =>
@@ -193,14 +239,34 @@ internal static class Tactics
                     ops.Add(new Op("convoy", 0.75 * b.Value(target) * Multiplier(owner) - Exposure(army), target, army, helpers, fleet));
                 }
 
+        // ---- Joint blows with sworn partners (see Joints): go in when it is our turn, support when it is theirs.
+        foreach (var j in Joints(b, brain))
+        {
+            var taken = b.Value(j.Target) * (b.UnitAt.ContainsKey(j.Target) ? 1 : 0.85);
+            if (j.Lead.Power == me)
+            {
+                // At peace with him, we leave the blow to a partner rather than break the oath.
+                if (!Willing(j.Against)) continue;
+                var helpers = j.Support.Where(u => u.Power == me).Select(u => u.Province).ToList();
+                var gain = b.Value(j.Target) * Multiplier(j.Against) + (b.UnitAt.ContainsKey(j.Target) ? 120 : 0);
+                ops.Add(new Op("attack", 0.85 * gain + 40 - Exposure(j.Lead.Province) - 6 * helpers.Count, j.Target, j.Lead.Province, helpers));
+            }
+            else
+            {
+                // A support sends no troops into his land, so even a king at peace with him may give it.
+                foreach (var s in j.Support.Where(u => u.Power == me))
+                    ops.Add(new Op("assist", (0.25 + 0.25 * p.Honesty) * taken + 40, j.Target, s.Province, new(), j.Lead.Province));
+            }
+        }
+
         // ---- Commit: best value first, each unit once.
         foreach (var op in ops.OrderByDescending(o => o.Net).ThenBy(o => o.Target, StringComparer.Ordinal))
         {
             if (op.Net <= 0) break;
             if (op.Lead.Length > 0 && !free.Contains(op.Lead)) continue;
-            if (op.Kind is not "defend" && stay.Contains(op.Lead)) continue;
-            if (op.Kind is "attack" or "block" or "convoy" && plan.Destinations.Contains(op.Target)) continue;
-            if (op.ConvoyFleet is not null && !free.Contains(op.ConvoyFleet)) continue;
+            if (op.Kind is not ("defend" or "assist") && stay.Contains(op.Lead)) continue;
+            if (op.Kind is "attack" or "block" or "convoy" or "assist" && plan.Destinations.Contains(op.Target)) continue;
+            if (op.Kind == "convoy" && !free.Contains(op.Other!)) continue;
             var helpers = op.Helpers.Where(free.Contains).ToList();
             if (op.Kind == "attack")
             {
@@ -226,19 +292,26 @@ internal static class Tactics
                     break;
                 case "convoy":
                     Assign(plan, free, op.Lead, new MoveOrder(op.Lead, op.Target), "attack");
-                    Assign(plan, free, op.ConvoyFleet!, new ConvoyOrder(op.ConvoyFleet!, op.Lead, op.Target), "convoy");
+                    Assign(plan, free, op.Other!, new ConvoyOrder(op.Other!, op.Lead, op.Target), "convoy");
                     foreach (var h in helpers) Assign(plan, free, h, new SupportOrder(h, op.Lead, op.Target), "support");
+                    plan.Destinations.Add(op.Target);
+                    break;
+                case "assist":
+                    // A unit that supports stays where it is, so one kept home (or defended) may still do it.
+                    Assign(plan, free, op.Lead, new SupportOrder(op.Lead, op.Other!, op.Target), "assist");
                     plan.Destinations.Add(op.Target);
                     break;
             }
         }
 
-        // ---- Help allies hold against a common enemy.
+        // ---- Help allies hold against a common enemy: first against a king we are sworn against, then the leader.
+        double Menace(Power x) => sworn.Contains(x) ? 2 : x == leader ? 1.5 : hostility.GetValueOrDefault(x) > 0.4 ? 1 : 0;
         foreach (var u in free.ToList())
         {
             // Only troops in sight: support for a remembered unit that has moved on would be refused.
-            var ally = b.V.Units.FirstOrDefault(o => o.Power != me && brain.IsFriend(o.Power) && Board.Map.CanMove(b.UnitAt[u].Kind, u, o.Province)
-                && b.Alive.Any(x => x != me && x != o.Power && hostility.GetValueOrDefault(x) > 0.4 && b.Muster(x, o.Province) > 0));
+            var ally = b.V.Units.Where(o => o.Power != me && brain.IsFriend(o.Power) && Board.Map.CanMove(b.UnitAt[u].Kind, u, o.Province))
+                .Select(o => (Unit: o, Menace: b.Alive.Where(x => x != me && x != o.Power && !brain.IsFriend(x) && b.Muster(x, o.Province) > 0).Select(Menace).DefaultIfEmpty(0).Max()))
+                .Where(x => x.Menace > 0).OrderByDescending(x => x.Menace).ThenBy(x => x.Unit.Province, StringComparer.Ordinal).Select(x => x.Unit).FirstOrDefault();
             if (ally is null || threat.ContainsKey(u)) continue;
             Assign(plan, free, u, new SupportOrder(u, ally.Province), "ally-support");
         }
@@ -264,9 +337,10 @@ internal static class Tactics
         if (owner == b.Me) return false;
         if (owner == brain.Betraying) return true;
         if (brain.IsFriend(owner)) return false;
-        if (owner == brain.WarTarget || brain.Rel[owner].Hostile) return true;
+        if (owner == brain.WarTarget || brain.Rel[owner].Hostile || brain.SwornFoes(b).Contains(owner)) return true;
         if (owner == leader) return brain.P.Aggression > 0.25;
-        return brain.P.Aggression > 0.55;
+        // While another king runs away with the game, only the most warlike still pick fights among the rest.
+        return brain.P.Aggression > (leader is { } l && l != b.Me ? 0.8 : 0.55);
     }
 
     private static void Assign(MilitaryPlan plan, HashSet<string> free, string unit, Order order, string role)

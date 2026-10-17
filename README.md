@@ -100,8 +100,9 @@ whenever a call fails. Each power plays a temperament of its own (Hatti the conq
 gift-giver, Babylon the proud keeper of the old order, Alashiya the copper merchant, and so on),
 varied a little in every game. A script king sees only what its seat sees, remembers who wronged
 it and who kept faith, and checks its orders against what its rivals are likely to do by playing
-the season out with the engine's own adjudicator. The god view lists each king's temperament
-under **Standings**.
+the season out with the engine's own adjudicator. When one king runs away with the game, the
+others swear coalitions against him and strike at his land together. The god view lists each
+king's temperament under **Standings**.
 
 ## Spectator mode
 

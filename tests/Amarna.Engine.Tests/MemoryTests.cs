@@ -40,7 +40,7 @@ public class MemoryTests
     [Fact]
     public void Memory_stays_bounded_over_a_long_game()
     {
-        var s = EngineTests.PlayRandom(31, 40);
+        var s = EngineTests.PlayRandom(34, 40);
         Assert.All(s.Characters, c => Assert.True(c.Memory.Count <= s.Config.MemoryKeep + 8, $"{c.Name} remembers {c.Memory.Count} things"));
         Assert.Contains(s.Characters, c => c.MemorySummary.Length > 0);
     }
