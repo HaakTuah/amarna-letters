@@ -1,0 +1,56 @@
+# Builds the Blazor WebAssembly game, runs the tests, and publishes it to GitHub Pages.
+name: Publish to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test --configuration Release
+
+      - name: Publish
+        run: dotnet publish src/Amarna.Web --configuration Release --output publish
+
+      - name: Prepare for Pages
+        run: |
+          site=publish/wwwroot
+          # The site lives under /<repository>/, so the app's base path must match.
+          sed -i "s|<base href=\"/\" />|<base href=\"/${GITHUB_REPOSITORY#*/}/\" />|" "$site/index.html"
+          # Deep links such as /play are served the app, whose router takes over.
+          cp "$site/index.html" "$site/404.html"
+          # Without this, Pages' Jekyll step drops folders starting with an underscore (_framework).
+          touch "$site/.nojekyll"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

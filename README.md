@@ -10,6 +10,8 @@ Its job is to test one hypothesis: if communication is delayed, mediated by peop
 motives, and impossible to verify fully, then norms of trust, reputation and enforcement emerge
 on their own.
 
+**Play it in your browser:** <https://haaktuah.github.io/amarna-letters/>
+
 ## Run it
 
 You need the .NET 10 SDK.
@@ -43,11 +45,15 @@ With `ANTHROPIC_API_KEY` set it can run model games too (`--leaders sonnet --cha
 --narrator sonnet --budget 10`); every such game costs real money. `--no-primer` runs the
 customs-primer experiment; `--out logs` keeps every game's log.
 
-To publish the browser game as static files (for example on GitHub Pages or S3):
+Every push to `main` runs the tests and publishes the browser game to GitHub Pages
+(`.github/workflows/pages.yml`). To publish the static files somewhere else, such as S3:
 
 ```bash
 dotnet publish src/Amarna.Web -c Release -o publish
 ```
+
+The site is `publish/wwwroot`. If it is served from a sub-path, set `<base href>` in its
+`index.html` to that path.
 
 ## What is in the box
 
