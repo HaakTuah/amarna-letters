@@ -441,6 +441,15 @@ public sealed class ScriptLeader : ISeat
 
         if (gold > 450 && rng.Chance(0.5)) { orders.Add(new CounterIntelOrder(20)); gold -= 20; }
 
+        // Evidence shown by another court is worth checking before believing it.
+        foreach (var t in v.Tablets.Where(t => t.Source.StartsWith("shown by") && t.AuthResult is null && !m.Checked.Contains(t.CopyId)).Take(1))
+            if (gold > 250 && rng.Chance(0.5))
+            {
+                orders.Add(new AuthenticateOrder(t.CopyId, 40));
+                m.Checked.Add(t.CopyId);
+                gold -= 40;
+            }
+
         var idle = staff.Where(c => c.Ready && !busy.Contains(c.Id)).ToList();
         if (gold > 450 && idle.Count >= 2 && rng.Chance(0.12))
         {

@@ -17,9 +17,9 @@ public sealed class GameSummary
 /// <summary>Plays many games unattended and summarizes winners and signals across them.</summary>
 public static class BatchRunner
 {
-    public static async Task<GameSummary> PlayAsync(ulong seed, Func<GameState, GameRunner> build, bool verifyReplay, CancellationToken ct = default, Action<string>? log = null)
+    public static async Task<GameSummary> PlayAsync(ulong seed, Func<GameState, GameRunner> build, bool verifyReplay, CancellationToken ct = default, Action<string>? log = null, GameConfig? config = null)
     {
-        var runner = build(GameFactory.NewGame(seed));
+        var runner = build(GameFactory.NewGame(seed, config));
         await runner.PrepareAsync(ct);
         while (await runner.PlayTurnAsync(ct)) { }
         var s = runner.State;

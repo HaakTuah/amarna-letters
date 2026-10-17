@@ -9,6 +9,7 @@ using Amarna.Llm;
 // Model seats (reads ANTHROPIC_API_KEY; every call costs money):
 //   --leaders sonnet|opus|script   --characters haiku|script   --narrator sonnet|template   --effort low|medium|high
 //   --budget 5   (stop when total spend reaches this many dollars)
+// Experiments: --no-primer (leaders without the customs primer), --no-shared-victory
 
 var games = 20;
 ulong seed = 1;
@@ -18,6 +19,7 @@ var detail = false;
 var choices = new SeatChoices();
 var budget = 5.0;
 var noChronicles = false;
+var config = new GameConfig();
 
 for (var i = 0; i < args.Length; i++)
 {
@@ -30,6 +32,8 @@ for (var i = 0; i < args.Length; i++)
         case "--detail": detail = true; break;
         case "--budget": budget = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
         case "--no-chronicles": noChronicles = true; break;
+        case "--no-primer": config = config with { CustomsPrimer = false }; break;
+        case "--no-shared-victory": config = config with { SharedVictory = false }; break;
         case "--effort": choices.LeaderEffort = args[++i]; break;
         case "--leaders":
             var kind = args[++i] switch { "sonnet" => LeaderKind.Sonnet, "opus" => LeaderKind.Opus, _ => LeaderKind.Script };
@@ -38,7 +42,7 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.HaikuCharacters = args[++i] == "haiku"; break;
         case "--narrator": choices.SonnetNarrator = args[++i] == "sonnet"; break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --leaders sonnet|opus|script --characters haiku|script --narrator sonnet|template --effort low|medium|high --budget USD --no-chronicles");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --leaders sonnet|opus|script --characters haiku|script --narrator sonnet|template --effort low|medium|high --budget USD --no-chronicles --no-primer --no-shared-victory");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
@@ -71,7 +75,7 @@ for (var g = 0; g < games; g++)
         var set = SeatSetup.Build(choices, state, key, browser: false, () => last!.Log);
         last = new GameRunner(state, set.Seats, set.Minds, set.Narrator) { WriteChronicles = !noChronicles };
         return last;
-    }, verify, log: Console.Error.WriteLine);
+    }, verify, log: Console.Error.WriteLine, config: config);
     results.Add(summary);
     spent += summary.CostUsd;
     if (outDir is not null && last is not null)
