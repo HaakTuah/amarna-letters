@@ -212,3 +212,17 @@ svg.map { width: 100%; height: auto; display: block; user-select: none; }
 @container (max-width: 620px) {
     .trail { grid-template-columns: 1fr !important; }
 }
+
+/* Setup presets */
+.presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .7rem; }
+.preset {
+    display: flex; flex-direction: column; gap: .35rem; text-align: left; white-space: normal;
+    padding: .75rem .85rem; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface-2);
+}
+.preset.on { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 1px var(--accent); }
+.preset-head { display: flex; align-items: center; justify-content: space-between; gap: .4rem; font-family: var(--serif); font-size: 1.08rem; }
+.preset-models { font-size: .8rem; color: var(--muted); }
+.preset-text { font-size: .9rem; flex: 1; }
+.preset-foot { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-top: .2rem; }
+.customize { margin-top: .9rem; }
+.customize summary { cursor: pointer; color: var(--accent); }

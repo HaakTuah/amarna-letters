@@ -78,8 +78,16 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 
 ## Models
 
-- Leaders: Sonnet 5.5 by default, Opus 5.5 optional, at a chosen effort (medium by default; host
-  audiences run one level lower). Characters: Haiku 5.5 at low effort. Narrator: Sonnet 5.5.
+- **Presets**: Free (all script, no key), Budget (every role on Haiku 5.5), Standard (the design
+  document's table: Sonnet 5.5 kings and narrator, Haiku 5.5 envoys) and Showcase (Opus 5.5 kings
+  and narrator, Haiku 5.5 envoys). Any seat can be set separately, envoys can be Sonnet 5.5, and the
+  narrator any of the three. Kings think at a chosen effort (medium by default; host audiences run
+  one level lower); characters run at low effort.
+- **Cost estimates** (`CostEstimate`) come from average token counts per call: a king's orders
+  read the 5,000-token rulebook from cache and add about 5,000 fresh tokens and 3,000 out; about one
+  audience a season; some 15 character calls a season; the narrator's personas and chronicles.
+  For 20 seasons that is roughly $0.55 (Budget), $9 (Standard) and $18 (Showcase). The spending cap
+  defaults to one and a half times the estimate.
 - Every state-changing output uses structured output (a JSON schema). Orders face the same
   validator as any seat. An unreadable reply is retried once with the error; then the runner
   uses a script decision for that call and logs the failure.

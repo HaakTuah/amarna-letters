@@ -20,8 +20,8 @@ public class ModelLayerTests
     private static SeatChoices AllModels() => new()
     {
         Leaders = Powers.All.ToDictionary(p => p, p => p == Power.Egypt ? LeaderKind.Opus : LeaderKind.Sonnet),
-        HaikuCharacters = true,
-        SonnetNarrator = true,
+        Characters = CharacterKind.Haiku,
+        Narrator = NarratorKind.Sonnet,
     };
 
     [Fact]
@@ -142,7 +142,7 @@ public class ModelLayerTests
     [Fact]
     public async Task Envoy_requests_never_mention_other_characters_hidden_facts()
     {
-        var choices = new SeatChoices { HaikuCharacters = true };
+        var choices = new SeatChoices { Characters = CharacterKind.Haiku };
         var (runner, fake) = Build(choices, seed: 4);
         for (var i = 0; i < 6 && !runner.State.Ended; i++) await runner.PlayTurnAsync();
         var haiku = fake.Requests.Where(r => r.Body["model"]!.GetValue<string>() == ModelIds.Haiku).ToList();
@@ -161,7 +161,7 @@ public class ModelLayerTests
     [Fact]
     public async Task Haiku_summarizes_only_the_characters_own_memories()
     {
-        var (runner, fake) = Build(new SeatChoices { HaikuCharacters = true });
+        var (runner, fake) = Build(new SeatChoices { Characters = CharacterKind.Haiku });
         var c = runner.State.Characters[3];
         var other = runner.State.Characters[4];
         for (var i = 1; i <= 13; i++) c.Remember(0, $"zq-own-memory-{i}");

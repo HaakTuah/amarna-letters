@@ -20,15 +20,25 @@ You need the .NET 10 SDK.
 dotnet run --project src/Amarna.Web --launch-profile http
 ```
 
-Then open <http://localhost:5183>. Choose a seat for each of the seven powers (script bot, human,
-Sonnet 5.5 or Opus 5.5), pick script or Haiku characters and a narrator, and begin.
+Then open <http://localhost:5183>, pick a preset, choose whether to watch or take a seat, and begin.
 
-- **Watch script bots**: free, offline, a full game in about ten seconds on Fast.
-- **Play Egypt vs bots**: you take one seat; fog of war hides what Egypt cannot see.
-- **Model seats**: paste your own Anthropic API key. Calls go straight from the page to the
-  Anthropic API; the key is never stored outside this tab. Use a dedicated key with a spend
-  limit set in the Anthropic Console. The game pauses at the per-game budget you set.
-- **Simulate the API**: try model seats with canned replies; nothing leaves the browser.
+| Preset | Kings | Envoys and spies | Narrator | Rough cost per 20-season game |
+|---|---|---|---|---|
+| **Free** | Script bots | Script | Template | $0, no key needed |
+| **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | under $1 |
+| **Standard** | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $9 |
+| **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $20 |
+
+Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
+messengers. **Customize the table** sets each king separately (script, human, Haiku, Sonnet or
+Opus, for model-against-model experiments), Sonnet envoys, the narrator, thinking effort and the
+house rules. The estimates are rough; the meter in the game shows the real spend, and the game
+pauses at a spending cap set from the estimate (you can change it).
+
+Model seats use your own Anthropic API key: calls go straight from the page to the Anthropic
+API, and the key is never stored outside this tab. Use a dedicated key with a spend limit set in
+the Anthropic Console. **Simulate the API** (under Customize) tries model seats with canned
+replies; nothing leaves the browser.
 
 Tests and batch runs:
 
@@ -41,8 +51,9 @@ dotnet run --project src/Amarna.Batch -- --games 50 --seed 1 --verify-replay
 ```
 
 The batch runner plays games unattended and prints wins by power and the success signals.
-With `ANTHROPIC_API_KEY` set it can run model games too (`--leaders sonnet --characters haiku
---narrator sonnet --budget 10`); every such game costs real money. `--no-primer` runs the
+With `ANTHROPIC_API_KEY` set it can run model games too (`--preset budget`, or per role:
+`--leaders sonnet --characters haiku --narrator sonnet`), stopping at `--budget` dollars; every
+such game costs real money. `--no-primer` runs the
 customs-primer experiment; `--out logs` keeps every game's log.
 
 Every push to `main` runs the tests and publishes the browser game to GitHub Pages

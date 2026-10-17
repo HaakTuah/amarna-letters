@@ -1,27 +1,36 @@
 using Amarna.Engine;
+using Amarna.Llm;
 
 namespace Amarna.Web.Services;
-
-public enum SeatKind { Script, Human, Sonnet, Opus }
-public enum MindKind { Script, Haiku }
-public enum NarratorKind { Template, Sonnet }
 
 public sealed class GameSettings
 {
     public ulong Seed { get; set; } = (ulong)Random.Shared.Next(1, 1_000_000);
-    public Dictionary<Power, SeatKind> Seats { get; set; } = Powers.All.ToDictionary(p => p, _ => SeatKind.Script);
-    public MindKind Minds { get; set; } = MindKind.Script;
-    public NarratorKind Narrator { get; set; } = NarratorKind.Template;
+    public SeatChoices Choices { get; set; } = new();
     public bool Chronicles { get; set; } = true;
     public bool CustomsPrimer { get; set; } = true;
     public bool SharedVictory { get; set; } = true;
-    public string LeaderEffort { get; set; } = "medium";
-    public double BudgetUsd { get; set; } = 5;
+    /// <summary>The game pauses when its model spend reaches this. Set from the cost estimate unless the player changes it.</summary>
+    public double BudgetUsd { get; set; }
     public int MessagesPerTurn { get; set; } = 3;
     /// <summary>Answer model calls inside the browser with canned replies: for trying the app without a key or cost.</summary>
     public bool SimulateApi { get; set; }
 
-    public bool UsesModels => Seats.Values.Any(s => s is SeatKind.Sonnet or SeatKind.Opus) || Minds == MindKind.Haiku || Narrator == NarratorKind.Sonnet;
+    public bool UsesModels => Choices.UsesModels;
+
+    public double Estimate => CostEstimate.PerGame(Choices);
+
+    public GameSettings Copy() => new()
+    {
+        Seed = Seed,
+        Choices = Choices.Copy(),
+        Chronicles = Chronicles,
+        CustomsPrimer = CustomsPrimer,
+        SharedVictory = SharedVictory,
+        BudgetUsd = BudgetUsd,
+        MessagesPerTurn = MessagesPerTurn,
+        SimulateApi = SimulateApi,
+    };
 
     public GameConfig ToConfig() => new()
     {

@@ -7,7 +7,9 @@ using Amarna.Llm;
 // Runs many games unattended and prints winners and signal counts.
 //   dotnet run --project src/Amarna.Batch -- --games 50 --seed 1 [--out logs] [--verify-replay] [--detail]
 // Model seats (reads ANTHROPIC_API_KEY; every call costs money):
-//   --leaders sonnet|opus|script   --characters haiku|script   --narrator sonnet|template   --effort low|medium|high
+//   --preset free|budget|standard|showcase
+//   --leaders script|haiku|sonnet|opus   --characters script|haiku|sonnet   --narrator template|haiku|sonnet|opus
+//   --effort low|medium|high
 //   --budget 5   (stop when total spend reaches this many dollars)
 // Experiments: --no-primer (leaders without the customs primer), --no-shared-victory
 
@@ -35,14 +37,18 @@ for (var i = 0; i < args.Length; i++)
         case "--no-primer": config = config with { CustomsPrimer = false }; break;
         case "--no-shared-victory": config = config with { SharedVictory = false }; break;
         case "--effort": choices.LeaderEffort = args[++i]; break;
+        case "--preset":
+            var preset = Presets.Find(args[++i]) ?? throw new ArgumentException($"Unknown preset; choose {string.Join(", ", Presets.All.Select(x => x.Id))}.");
+            preset.ApplyTo(choices);
+            break;
         case "--leaders":
-            var kind = args[++i] switch { "sonnet" => LeaderKind.Sonnet, "opus" => LeaderKind.Opus, _ => LeaderKind.Script };
+            var kind = Enum.Parse<LeaderKind>(args[++i], ignoreCase: true);
             foreach (var p in Powers.All) choices.Leaders[p] = kind;
             break;
-        case "--characters": choices.HaikuCharacters = args[++i] == "haiku"; break;
-        case "--narrator": choices.SonnetNarrator = args[++i] == "sonnet"; break;
+        case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
+        case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --leaders sonnet|opus|script --characters haiku|script --narrator sonnet|template --effort low|medium|high --budget USD --no-chronicles --no-primer --no-shared-victory");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --no-shared-victory");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
@@ -57,6 +63,8 @@ if (choices.UsesModels && string.IsNullOrWhiteSpace(key))
     return;
 }
 if (outDir is not null) Directory.CreateDirectory(outDir);
+if (choices.UsesModels)
+    Console.WriteLine($"Estimated model cost: {CostEstimate.Describe(CostEstimate.PerGame(choices))} per {CostEstimate.TypicalSeasons}-season game; stopping at ${budget:0.00} in total.");
 
 var results = new List<GameSummary>();
 var clock = Stopwatch.StartNew();
