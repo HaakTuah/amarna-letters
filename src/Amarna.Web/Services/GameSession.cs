@@ -109,7 +109,7 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
                 await Runner.PrepareAsync(_cts.Token);
                 Notice = "Replaying the saved seasons…";
                 // Fast-forward through the logged seasons; live seats take over where the log ends.
-                while (!Runner.State.Ended && log.Decisions.Any(d => d.Key.StartsWith($"t{Runner.State.Turn}/orders/")))
+                while (!Runner.State.Ended && log.Decisions.Any(d => d.Key == $"t{Runner.State.Turn}/season" || d.Key.StartsWith($"t{Runner.State.Turn}/orders/")))
                     await Runner.PlayTurnAsync(_cts.Token);
                 Notice = null;
                 ViewAs = Humans.Keys.Cast<Power?>().FirstOrDefault();

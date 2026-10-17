@@ -169,10 +169,33 @@ public sealed record PayRansomOrder(string Character) : Order
 }
 
 /// <summary>Everything one seat submits in one season. Notes are a private journal for the seat itself.</summary>
+/// <summary>Which unit or person an order acts on: one order each per season.</summary>
+public static class OrderKeys
+{
+    public static string? UnitOf(Order o) => o switch
+    {
+        HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit,
+        DisbandOrder d => d.Unit, GiftUnitOrder g => g.Unit, _ => null,
+    };
+
+    public static string? CharacterOf(Order o) => o switch
+    {
+        DispatchOrder d => d.Envoy, ReleaseOrder r => r.Character, HireOrder h => h.Character, DismissOrder dm => dm.Character,
+        PlaceSpyOrder p => p.Character, RecallSpyOrder rc => rc.Character, ForgeOrder f => f.Character, CaptiveOrder c => c.Character,
+        _ => null,
+    };
+}
+
 public sealed class TurnSubmission
 {
     public List<Order> Orders { get; set; } = new();
     public string Notes { get; set; } = "";
+    /// <summary>Seats that may sleep: how long to sleep and what should wake them. Ignored for other seats.</summary>
+    public SleepRequest? Sleep { get; set; }
+    /// <summary>Seats that may sleep: orders queued for later seasons (one entry per season replaces any earlier one).</summary>
+    public List<ScheduledOrders> Scheduled { get; set; } = new();
+    /// <summary>Set by the runner when the script king stood in for a seat whose call failed: the seat has not seen this season.</summary>
+    public bool FromFallback { get; set; }
 }
 
 public sealed record RejectedOrder(Order Order, string Reason);

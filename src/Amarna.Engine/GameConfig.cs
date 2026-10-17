@@ -32,6 +32,12 @@ public sealed record GameConfig
     public int ForgeMinCompetence { get; init; } = 55;
     public bool CustomsPrimer { get; init; } = true;
 
+    // Pacing
+    /// <summary>Model and file seats are asked for orders only when something concerns them, or when the time they chose has come.</summary>
+    public bool SleepingSeats { get; init; }
+    /// <summary>The most seasons a seat may skip in one sleep. A placeholder: set it from the sleep lengths seats actually choose.</summary>
+    public int MaxSleep { get; init; } = 6;
+
     // Characters
     public int StartEnvoysPerPower { get; init; } = 2;
     public int CharacterPoolSize { get; init; } = 18;

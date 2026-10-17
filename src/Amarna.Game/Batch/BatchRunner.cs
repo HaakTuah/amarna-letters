@@ -94,6 +94,41 @@ public static class BatchRunner
         return string.Join(Environment.NewLine, lines);
     }
 
+    /// <summary>
+    /// Per seat: how often it was asked (orders and audiences), how many of its orders the engine
+    /// rejected, how many decisions fell back to the script king, and, for seats that may sleep, how
+    /// long they asked to sleep, how long they slept and what woke them.
+    /// </summary>
+    public static string SeatReport(GameRunner runner)
+    {
+        var s = runner.State;
+        var lines = new List<string> { "  Power       seat                 orders  audiences  invalid  fallbacks  sleeps (asked/slept)  woken by" };
+        foreach (var p in Powers.All)
+        {
+            var label = runner.Log.Header.Seats.GetValueOrDefault(p) ?? "?";
+            var orders = runner.Log.Decisions.Count(d => d.Key.StartsWith("t", StringComparison.Ordinal) && d.Key.EndsWith($"/orders/{p}", StringComparison.Ordinal));
+            // Audiences answered by a model or file seat: one per logged key (a retry is the same audience). Script seats log no calls.
+            var hostKeys = runner.Log.Calls.Where(c => c.Role == $"host:{p}").Select(c => c.Key).Distinct().Count();
+            var hosted = runner.Log.Calls.Any(c => c.Role == $"leader:{p}" || c.Role == $"host:{p}") ? hostKeys.ToString() : "-";
+            var invalid = s.InboxOf(p).Where(i => i.Kind == InboxKind.Rejected).Sum(i => i.Body.Split('\n').Count(l => l.StartsWith("- ", StringComparison.Ordinal)));
+            int fallbacks;
+            lock (runner.Errors) fallbacks = runner.Errors.Count(e => e.Contains($"/orders/{p}:", StringComparison.Ordinal)
+                || (e.Contains("/host/", StringComparison.Ordinal) && runner.Log.Calls.Any(c => c.Role == $"host:{p}" && e.StartsWith(c.Key, StringComparison.Ordinal))));
+            var sleeps = "";
+            var woken = "";
+            if (s.Sleep.TryGetValue(p, out var sl) && sl.History.Count > 0)
+            {
+                // A spell still open at the end counts the seasons slept so far.
+                sleeps = string.Join(" ", sl.History.Select(h => $"{h.Requested}/{(h.WokeAt > 0 ? h.WokeAt - h.From : s.Turn - h.From + 1)}{(h.WokeAt > 0 ? "" : "+")}"));
+                woken = string.Join("; ", sl.History.Where(h => h.Reasons.Count > 0).SelectMany(h => h.Reasons.Take(1)).GroupBy(r => r.Split('(')[0].Trim()).Select(g => $"{g.Key} x{g.Count()}"));
+            }
+            lines.Add($"  {p,-10}  {Cap(label, 19),-19}  {orders,6}  {hosted,9}  {invalid,7}  {fallbacks,9}  {sleeps,-20}  {woken}");
+        }
+        return string.Join(Environment.NewLine, lines);
+
+        static string Cap(string t, int n) => t.Length <= n ? t : t[..n];
+    }
+
     /// <summary>Current bot against the frozen baseline: growth and wins for each side, overall and per power.</summary>
     public static string Versus(IReadOnlyList<GameSummary> games, IReadOnlyList<HashSet<Power>> current)
     {

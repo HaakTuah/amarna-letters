@@ -41,12 +41,17 @@ public sealed class GameRunner
         Narrator = narrator;
         _replay = replay;
         _fallbackSeat = new ScriptLeader(state.Seed);
+        // Who may sleep: on replay, whoever could in the recorded game; live, the seats that can.
+        var sleepers = !state.Config.SleepingSeats ? new List<Power>()
+            : replay?.Header.Sleepers.ToList() ?? seats.Where(x => x.Value.CanSleep).Select(x => x.Key).OrderBy(p => p).ToList();
+        foreach (var p in sleepers) state.Sleep.TryAdd(p, new SleepState());
         Log = log ?? new GameLog();
         Log.Header = new LogHeader
         {
             Seed = state.Seed,
             Config = state.Config,
             Seats = seats.ToDictionary(x => x.Key, x => x.Value.Label),
+            Sleepers = sleepers,
             Minds = minds.Label,
             Narrator = narrator.Label,
         };
@@ -62,6 +67,15 @@ public sealed class GameRunner
     /// <summary>Continues a saved game: decisions in the log are replayed, then live seats take over.</summary>
     public static GameRunner Resume(GameLog log, IReadOnlyDictionary<Power, ISeat> seats, ICharacterMind minds, INarrator narrator)
     {
+        // Who may sleep is part of the game: the seats that take over must be the ones that could sleep before.
+        if (log.Header.Config.SleepingSeats)
+        {
+            var could = log.Header.Sleepers.OrderBy(p => p).ToList();
+            var can = seats.Where(x => x.Value.CanSleep).Select(x => x.Key).OrderBy(p => p).ToList();
+            if (!could.SequenceEqual(can))
+                throw new InvalidOperationException($"This game was played with sleeping seats for {(could.Count == 0 ? "nobody" : string.Join(", ", could))}; "
+                    + $"continue it with seats that can sleep for exactly those kings (now: {(can.Count == 0 ? "none" : string.Join(", ", can))}).");
+        }
         var state = GameFactory.NewGame(log.Header.Seed, log.Header.Config);
         return new GameRunner(state, seats, minds, narrator, replay: log, strictReplay: false);
     }
@@ -130,11 +144,16 @@ public sealed class GameRunner
         var turn = State.Turn;
         var engine = new TurnEngine(State);
 
+        // With sleeping seats a season can pass with no seat asked at all; mark every season so a replay
+        // or a continued game knows how far the log goes.
+        if (State.Config.SleepingSeats) await Recorded($"t{turn}/season", () => Task.FromResult(true));
+
         SetPhase($"Turn {turn}: income and arrivals");
         engine.BeginTurn();
 
         SetPhase($"Turn {turn}: reports and pitches");
         await FulfilAsync(engine, turn, ct);
+        engine.WakeCheck();
 
         SetPhase($"Turn {turn}: audiences");
         await AudiencesAsync(engine, turn, ct);
@@ -250,11 +269,19 @@ public sealed class GameRunner
 
     private async Task<Dictionary<Power, TurnSubmission>> OrdersAsync(int turn, CancellationToken ct)
     {
-        var alive = State.Alive.ToList();
+        // A sleeping seat is not asked: its units hold and its scheduled orders run (the engine folds them in).
+        var engine = new TurnEngine(State);
+        var alive = State.Alive.Where(p => !engine.IsAsleep(p)).ToList();
         var views = alive.ToDictionary(p => p, p => Views.For(State, p));
         var results = await Task.WhenAll(alive.Select(p => Recorded($"t{turn}/orders/{p}",
             () => Seats[p].DecideAsync(views[p], ct),
-            () => _fallbackSeat.DecideAsync(views[p], ct))));
+            async () =>
+            {
+                // The script king stands in; the seat itself has not seen this season (its digest is kept for it).
+                var stand = await _fallbackSeat.DecideAsync(views[p], ct);
+                stand.FromFallback = true;
+                return stand;
+            })));
         return alive.Select((p, i) => (p, results[i])).ToDictionary(x => x.p, x => x.Item2);
     }
 

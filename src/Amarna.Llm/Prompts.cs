@@ -68,6 +68,18 @@ public static class Prompts
             - Who holds each province is public. You see troops only in and next to your own lands and troops. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.
             """);
 
+        if (c.SleepingSeats)
+        {
+            sb.AppendLine($"""
+
+                SLEEPING (this game lets you skip seasons)
+                - With your orders you may choose to sleep: skip up to {c.MaxSleep} seasons before you are asked again. The world goes on while you sleep. Your units hold unless you scheduled orders for them, and nobody is told that you sleep.
+                - You are woken early when something concerns you: an envoy waits to be received, one of your envoys comes home or a report arrives, foreign troops move into or next to your land, you are attacked or lose land or troops, a catastrophe strikes you, a ransom is demanded or a spy is caught at your court, or orders you scheduled fail. Distant movements and other news wait for your next waking.
+                - You may add your own reasons to be woken: a unit moves (name the province it stands in), one of your people is back at court, your treasury falls below an amount, foreign troops (of one power, or any) are seen in a province, or a province changes hands.
+                - You may schedule orders for later seasons, up to {c.MaxSleep + 1} seasons ahead. They are secret and are checked when they run; name each unit by where it will stand in that season. In a season when you are awake, your scheduled orders for it still run, except where you give the same units or people other orders. To change or cancel them, send an entry for that season: it replaces everything scheduled for it, and an empty one cancels it.
+                """);
+        }
+
         if (primer)
         {
             sb.AppendLine("""
@@ -79,6 +91,7 @@ public static class Prompts
                 - Envoys are often detained, sometimes for years, and a late or unwelcome reply can be blamed on the messenger. "Your messenger is lying" is a usable excuse.
                 - Oaths are sworn before the gods: Shamash the sun god, witness of oaths, with Amun, Marduk and Teshub.
                 - Catastrophes serve as excuses: a king of Alashiya blamed "the hand of Nergal", the god of plague, for sending less copper than promised.
+                - Blame has its own vocabulary. "Habiru" (Egyptian 'Apiru) means outlaws, runaways and mercenaries living outside any city's control: a status, not a people. Vassals used the word as a weapon. Rib-Hadda of Byblos warned that the whole land was going over to the Habiru, and calling a rival "in league with the Habiru" branded him a traitor to his lord.
                 """);
         }
 
@@ -91,7 +104,6 @@ public static class Prompts
             var home = p.Home is { } h ? $"homeland of {h}" : p.IsSea ? "" : "free city-state";
             var armies = p.IsSea ? "" : $" armies: {string.Join(", ", map.MovesFrom(UnitKind.Army, p.Id))}.";
             var fleets = p.IsSea || p.IsCoastal ? $" fleets: {string.Join(", ", map.MovesFrom(UnitKind.Fleet, p.Id))}." : "";
-                - Blame has its own vocabulary. "Habiru" (Egyptian 'Apiru) means outlaws, runaways and mercenaries living outside any city's control: a status, not a people. Vassals used the word as a weapon. Rib-Hadda of Byblos warned that the whole land was going over to the Habiru, and calling a rival "in league with the Habiru" branded him a traitor to his lord.
             sb.AppendLine($"- {p.Id}: {p.Name}; {kind}{(home.Length > 0 ? "; " + home : "")}{(p.Capital ? "; capital" : "")}{(p.Yield > 0 ? $"; yield {p.Yield}" : "")}.{armies}{fleets}");
         }
 
@@ -112,6 +124,8 @@ public static class Prompts
         var map = WorldMap.Default;
         var sb = new StringBuilder();
         sb.AppendLine($"SEASON: turn {v.Turn}, {v.Season} by your court's reckoning.");
+        if (v.WokenBecause.Count > 0)
+            sb.AppendLine($"YOU WERE WOKEN (you last gave orders in turn {v.LastCalled}): {string.Join("; ", v.WokenBecause)}.");
         var growth = v.StartStrength > 0 ? (double)v.Strength / v.StartStrength : 0;
         sb.AppendLine($"TREASURY: {v.Gold} shekels by your ledger. Income {v.Income}, upkeep {v.Upkeep}, wages {v.Wages} a season. Strength {v.Strength} against a starting {v.StartStrength} (growth {growth:0.00}).");
         foreach (var lot in v.UnassayedGold)
@@ -150,6 +164,20 @@ public static class Prompts
                 sb.AppendLine($"- {t.CopyId}: \"{t.Text}\" Seals: {string.Join(", ", t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")}{(t.AllianceOath ? ", a sworn alliance" : "")}. ({t.Source}{(t.AuthResult is not null ? "; examined: " + t.AuthResult : "")})");
         }
         sb.AppendLine($"ENVOY TRAVEL: {string.Join("; ", v.TravelTimes)}.");
+
+        if (v.Scheduled.Count > 0)
+        {
+            sb.AppendLine("ORDERS YOU HAVE SCHEDULED (they run in their season unless you give the same units or people other orders, or send an entry for that season to replace them):");
+            foreach (var plan in v.Scheduled) sb.AppendLine($"- turn {plan.Turn}: {string.Join("; ", plan.Orders.Select(o => o.Describe()))}");
+        }
+
+        if (v.WhileAsleep.Count > 0 || v.Digest.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine($"WHILE YOU SLEPT (since turn {v.LastCalled}):");
+            foreach (var i in v.WhileAsleep) sb.AppendLine($"[turn {i.Turn}] [{i.Kind}] {i.Title}: {i.Body}");
+            foreach (var d in v.Digest) sb.AppendLine($"- {d}");
+        }
 
         sb.AppendLine();
         sb.AppendLine("NEWS THIS SEASON:");

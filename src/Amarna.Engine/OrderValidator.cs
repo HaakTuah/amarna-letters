@@ -83,18 +83,9 @@ public sealed class OrderValidator
             return null;
         }
 
-        static string? UnitOf(Order o) => o switch
-        {
-            HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit,
-            DisbandOrder d => d.Unit, GiftUnitOrder g => g.Unit, _ => null,
-        };
+        static string? UnitOf(Order o) => OrderKeys.UnitOf(o);
 
-        static string? CharacterOf(Order o) => o switch
-        {
-            DispatchOrder d => d.Envoy, ReleaseOrder r => r.Character, HireOrder h => h.Character, DismissOrder dm => dm.Character,
-            PlaceSpyOrder p => p.Character, RecallSpyOrder rc => rc.Character, ForgeOrder f => f.Character, CaptiveOrder c => c.Character,
-            _ => null,
-        };
+        static string? CharacterOf(Order o) => OrderKeys.CharacterOf(o);
 
         string? OwnCharacter(string id, out Character? c, bool mustBeHome = true)
         {
