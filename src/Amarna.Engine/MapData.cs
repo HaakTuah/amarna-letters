@@ -176,6 +176,7 @@ public static class MapData
         new(Power.Assyria, UnitKind.Army, "ekallatum"),
         new(Power.Arzawa, UnitKind.Army, "mira"),
         new(Power.Arzawa, UnitKind.Army, "apasa"),
+        new(Power.Arzawa, UnitKind.Fleet, "seha"),
         new(Power.Alashiya, UnitKind.Fleet, "enkomi"),
     };
 

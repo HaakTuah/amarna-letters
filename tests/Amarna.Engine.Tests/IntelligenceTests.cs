@@ -71,6 +71,24 @@ public class IntelligenceTests
     }
 
     [Fact]
+    public void A_captive_whose_kingdom_has_fallen_cannot_be_turned()
+    {
+        // As when the spy's own kingdom falls while they are held: no master, still a captive.
+        var s = GameFactory.NewGame(4);
+        var spy = s.Characters.First(c => c.Employer == Power.Hatti);
+        spy.Status = CharacterStatus.Captured;
+        spy.HeldBy = Power.Mitanni;
+        spy.At = Power.Mitanni;
+        spy.Employer = null;
+        spy.Contract = null;
+        var e = Begin(s);
+        e.Resolve(Orders(Power.Mitanni, new CaptiveOrder(spy.Id, CaptiveFate.Turn, Poison: "Nothing stirs.")));
+        Assert.Equal(CharacterStatus.Captured, spy.Status);
+        Assert.DoesNotContain(s.Events, x => x.Signal == "double-agent");
+        Advance(s, 2);
+    }
+
+    [Fact]
     public void Ransomed_captives_come_home_once_paid()
     {
         var s = GameFactory.NewGame(4);
