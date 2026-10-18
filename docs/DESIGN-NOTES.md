@@ -622,7 +622,7 @@ What script kings never do, and how they treat oaths:
   - The tablet says the leader swears to a king Y to "march together against Z and divide its land", sealed by both.
   - Y is the king the forger trusts least. Z is a third king, neighbours first.
   - The most reliable envoy forges it, and it is shown with a later letter.
-- **Captives.** A king with cunning above 0.65 turns them, planting "The armies of A are scattered and tired; they will not march this year." Otherwise, vengeance above 0.75 executes them. Otherwise, honesty or greed above 0.5 asks a ransom of 60 + 60 × greed. Otherwise the captive is released.
+- **Captives.** A king with cunning above 0.65 turns them, planting "The armies of A are scattered and tired; they will not march this year." Otherwise, vengeance above 0.75 executes them. Otherwise, honesty or greed above 0.5 asks a ransom of 60 + 60 × greed. Otherwise the captive is released. A ransom demand stands: the king does not ask again for the same captive until it hears that the demand lapsed unpaid ("No ransom came"), or, if that word never comes, six seasons after asking.
 - **Detained envoys** go home after round(1 + 3 × vengeance) seasons.
 - **Ransoms.** The king's own people held abroad are ransomed if honesty is at least 0.3 and spare is above 150.
 

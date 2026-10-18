@@ -43,6 +43,8 @@ internal sealed partial class Brain
     public HashSet<string> SentCopies = new();
     public Dictionary<string, int> HeldSince = new();
     public HashSet<string> Authenticating = new();
+    /// <summary>Captives we have asked a ransom for, and when: a demand stands until it is paid or lapses.</summary>
+    public Dictionary<string, int> RansomAsked = new();
     public int LastSeek = -10;
     public int LastSpyCaught = -10;
     public Power? WarTarget;
