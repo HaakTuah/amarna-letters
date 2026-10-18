@@ -4,7 +4,7 @@ Branch `round/simulation-fixes`, from `main` after PR #6, 18 October 2026. The p
 The previous round's report, which holds the plans for all 27 Part 3 questions, is now
 `docs/rounds/2026-10-18-sleep-and-simulation.md`; "question N" below means that report.
 
-*Work in progress: this report is saved as the round goes. Done so far: Parts A, B, C and F.*
+*Work in progress: this report is saved as the round goes. Done so far: Parts A, B, C, D and F; Parts G, E and H are under way. The owner's later instructions for this round are in `docs/ROUND-PROMPT-ADDITIONS.md`, word for word.*
 
 ## How I read the prompt
 
@@ -124,3 +124,64 @@ All built (five commits, then review fixes). The new rulebook section "HOW A SEA
 **The rest of the simulation's view table, also done:** each servant away shows when it set out and is due back ("set out in turn 1 for Hatti; due there about turn 3; due back about turn 5", with the same words under a cover); the sight line explains "one link of any kind" and that troops two links away can arrive unseen; the odds and fees of checks, spies, examinations and assays are in the rulebook; the schema describes supporting a city's walls and every greeting flag; audience requests carry the host's land, troops and the season's news. Beyond the scope, the web app gained a Rules tab with the same rulebook, since human seats had none.
 
 Deviations: refusals are read the season after they are given, so they say "that season"; the travel line is computed rather than hard-coded; the spy-odds sentence says a spy watching a free or one's own province is never caught (the engine rolls no catch there).
+
+## Part D: default sleep
+
+All built, in two halves, each reviewed by three adversarial reviewers (engine, the king's text, hidden information and cost) and fixed. Parts G and H later change the wake list and what an envoy does; the final text a king reads is quoted under "What a king now reads".
+
+1. **Sleep after every orders call.** `SleepingSeats` is on by default (the batch runner's `--sleep off` and the web checkbox still switch it off, so every-season play can be compared). After every set of orders a model or file seat sleeps until something wakes it or the cap is reached; its scheduled orders run in between. It may name a season to be woken (`wake_in_turn`), and is told that a named season lapses if something wakes it first (it names it again with its next orders). A seat whose model call failed, and for which the script stand-in played, is not put to sleep: it is asked again the next season, with the reasons it was woken carried over.
+2. **The hidden cap** is 12 seasons (`MaxSleep`, still `--sleep-cap N`), absent from the rulebook, the schema and the view; when it fires the reason reads "your counsellors woke you after a long sleep". A king that reaches it can count the seasons it slept; that is recorded in DESIGN-NOTES. Scheduled orders have no horizon tied to the cap: any later season, at most 24 orders a season and 40 seasons. A first version dropped orders scheduled past the game's hard end (`MaxTurns`) in silence; a reviewer showed the missing entries would reveal the hard end, so they are now kept and listed like any other.
+3. **Orders follow their unit.** In a schedule or a standing order the king names each of its units by the province it stands in now; the engine binds the order to that unit (and to its own unit named as the one supported or the army convoyed) and gives it from wherever the unit then stands. An order naming a province where the king has no unit is refused when given. Orders for a unit that is lost are dropped, and the king is told and woken. **A march survives a bounce:** a scheduled move that is stopped is tried again the next season, and the unit's later scheduled orders each wait a season ("A march is held up"); a second failure in a row, or a move the validator refuses, ends the march and drops the unit's remaining orders ("A march ends").
+4. **Standing orders**, at most 12, kept until they fire or are cancelled (`cancel_standing`, by id or "all"): `unit_enters` (a unit of the named power, or any foreign unit, seen moving into a province) and `unit_attacked` (a foreign move into the province where one of the king's units stands, the unit still there afterwards). They fire once, the season after the event, before the scheduled orders; orders given that season override them, and they override scheduled orders. Firing does not wake the king (it reads it in its news and the digest); a fired order that fails does. Not shrunk to steps 1-3: the whole of item 4 was built.
+5. **The wake list** (as Part D left it, before Parts G and H): an envoy waiting; foreign troops entering its land; land lost; troops lost (destroyed, deserted, killed by plague); a scheduled or standing order refused or failed (a stopped move and a cut support included); a ransom demand; a servant's notice; its own triggers; the season it named; the cap; its kingdom falling. Everything else goes to a digest that is bounded (60 brief lines, 40 news items, with counts of what was left out) and shown when it wakes ("WHILE YOU SLEPT", in brief and then in full; routine treasury notices left out). The batch seat report shows the length of each sleep and groups the wake reasons by kind.
+6. **What the kings are told.** The decided paragraph sits right after HOW YOU WIN ("YOU SLEEP BETWEEN YOUR ORDERS"), followed by "PLANNING AHEAD (how sleeping works)" with the mechanics; both are quoted in full under "What a king now reads". One wording change from the prompt: "a failed order" became "a scheduled or standing order that failed", because orders given for the season at hand that fail are read in the next news, not woken for. Every orders and audience request opens with the sleep line ("You slept 3 seasons (you last gave orders in turn 5). You were woken because: …"; "You gave orders last season (turn 5)…" when no whole season was slept; "This is your first season."). Audience requests after a sleep also carry the "while you slept" account.
+
+**Cost noted by the reviewers.** With sleep on, the orders schema grew to about 11,000 characters (compact) because `schedule` and `standing_orders` repeat the unit and other-order shapes; sharing them through `$defs` was not tried, since whether the API's structured output accepts internal references could not be checked without a live call. The file seat now prints the schema more compactly (one line per field). The request-size section below measures the whole request.
+
+**Deviations.** A move refused by the validator ends a march rather than being retried (the brief said retry "refused or bounced"; retrying a refused move cannot succeed). Orders refused when given (no unit there, a limit passed, an unreadable order) wake the king next season, as "a scheduled order refused". There is no web UI for scheduled or standing orders, since human seats never sleep.
+
+### Wake-ups under the new triggers: both seed-7 games replayed
+
+Both recorded games were replayed exactly on the old code (`main` before this round; the final states match `game-7.final.json` byte for byte), and for every king and every season I asked whether a king that slept after every orders call would have been woken there. The harness first reproduced the old analysts' numbers with the old engine's own wake check (56 of 58 and 61 of 62 seat-seasons woken, seasons 2-10 of living seats), so the method is the same.
+
+| | Run 1 (sleep on) | Run 2 (sleep off) | Both |
+|---|---|---|---|
+| Seat-seasons (seasons 2-10, living seats) | 58 | 62 | 120 |
+| Old triggers: woken | 56 (3% quiet) | 61 (2% quiet) | 117 |
+| **New triggers: woken** | **43 (26% quiet)** | **44 (29% quiet)** | **87 (28% quiet)** |
+| Orders calls, season 1 included: as played / new triggers | 65 / 50 | 69 / 51 | 134 / 101 |
+| Longest sleep | 3 | 3 | |
+| With Part G's capital trigger added: woken | 43 | 44 | 87 (unchanged) |
+| Variant, an envoy waiting does not wake the host (capital trigger included): woken | 18 (69% quiet) | 11 (82% quiet) | 29 |
+
+Seasons each seat would have slept under the new triggers (season 1 is always an orders call):
+
+| Seat | Run 1: called / slept | Run 2: called / slept |
+|---|---|---|
+| Egypt | 8 / 2 | 10 / 0 |
+| Hatti | 9 / 1 | 6 / 3 (fell after season 9) |
+| Babylonia | 6 / 4 | 7 / 3 |
+| Mitanni | 8 / 2 | 9 / 1 |
+| Assyria | 5 / 0 (fell after season 5) | 7 / 3 |
+| Arzawa | 6 / 4 | 6 / 4 |
+| Alashiya | 8 / 2 | 6 / 4 |
+| **All** | **50 / 15** | **51 / 18** |
+
+What woke the kings, over both runs (seat-seasons in which each reason fired; in brackets, where it was the only reason):
+
+| Reason | Fired |
+|---|---|
+| An envoy waits to be received | 75 (61) |
+| Land lost | 22 (0) |
+| Foreign troops entered its land | 22 (0), always with land lost |
+| Troops lost (destroyed 11, desertion 1, plague 2) | 14 (2) |
+| A servant gives notice (with the staggered terms) | 1 (1) |
+| Ransom demanded | 0 |
+| Foreign troops ended a move next to the capital (Part G) | 12 (0); alone only in the variant (3) |
+
+- **Sleeping now saves something: about a quarter of the orders calls** in these games (33 of 134), against none before. At the measured 37-38k tokens an orders call, that is about 0.55M and 0.68M king tokens, 16-18% of each run.
+- **An envoy waiting is almost the whole remaining load**: it fired in 75 of the 87 wakes and was the only reason in 61. Letters go out in odd seasons and are heard in even ones, so most courts are woken every other season, and Egypt, the most visited court, nearly every season. If an audience did not wake the host (it is answered in its own call), three quarters of seat-seasons would be quiet, and four kings (Egypt, Babylonia and Arzawa in run 1, Egypt in run 2) would have given orders once in season 1 and slept through the war. That is the user's call; this round keeps the prompt's rule (an envoy waiting wakes the host).
+- **Foreign troops entering its land always came with land lost**: under today's rules a province changes hands as soon as a foreign unit stands in it after the moves.
+- **Caveats.** These are the games as played: the kings were called every season and sent envoys nearly every season. A king that really slept would send fewer envoys, so there would be fewer audiences elsewhere, and the quiet share would be higher. The wars would also go differently: a sleeping king is woken only once it has lost land or troops. Scheduled and standing orders, the kings' own triggers and a named wake season are not modelled (the games had one sleep request between them). The cap of 12 cannot fire within 10 seasons.
+
+The harness and its full output (per-season grids and every wake event) are in the session scratchpad, not in the repository (`analysis/wake-replay.md`).
