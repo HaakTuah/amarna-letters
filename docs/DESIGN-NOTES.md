@@ -273,7 +273,7 @@ A script king sees exactly what any seat sees (its `SeatView`) and nothing more.
 - **Neighbours**: kings whose land borders our land or troops, or shares a sea zone with one of our coasts. Kings whose troops (seen or remembered) are within two moves of our land or troops also count.
 - **Touches**: one king's land borders another's, by land or across one sea zone.
 - **Hostile**: a grudge of at least 3, or trust of at most −0.5.
-- **Friend**: a full ally, or a treaty partner with trust above −0.2 and no broken oath.
+- **Friend**: a full ally, or a treaty partner with trust above −0.2; either way, one who has broken no oath to us.
 - **Hostility** is the chance a king attacks us this season, clamped to 0.05–0.95. Start at 0.3, then:
   - + belligerence × 0.08 (at most 0.3);
   - + 0.04 for each of his troops next to our land (at most six);
@@ -692,7 +692,7 @@ These are in the code as written, and they affect the balance numbers:
 
 - **The tone of foreign letters is never read.** `Brain.Learn` reads audience transcripts, but a host has already learned for the season before its audiences are recorded, and the next season's inbox no longer holds them. A gift counts once, at the audience. A foreign letter's tone does not count at all; only the king's own envoys' reports change trust by tone. (A stand-in for a model seat that did not host that season does read them.)
 - **A traced forgery also blames the wrong kings.** The rumour reads "The scribes of R declare that a tablet bearing the seal of S and T was forged by F of C". The bot matches "of X", so the court that found the forgery (R) and the first king whose seal was forged (S) lose 0.4 trust, as well as the culprit (C).
-- **A full ally who breaks an oath stays a friend.** For a full ally, friendship does not depend on broken oaths. The bot is never willing to attack him and counts his hostility a quarter. He can still be named war target, despite the −800, but no troops follow. Only partners without an alliance oath lose friendship by breaking one.
+- **An alliance oath outlasts its breach in a few rules.** A full ally who breaks an oath is no friend (so the king will fight him and counts his hostility in full), but the rules that read the oath itself still treat him as an ally: the king keeps trusting him with its capital (no 0.3 floor), counts −800 against choosing him as war target, never swears against him, never proposes a coalition against him while he leads, and does not count him as an aggressor for a defence pact.
 - **Support cuts ignore willingness.** A cut moves into the supporting troop's province, whoever owns it. A peaceable king can march this way into the land of a king it is unwilling to fight, or, next to its capital, into a treaty partner's land. The victim reads it as an attack.
 - **Partners' attacks count harshly.** A partner's conquest counts as two broken oaths, and a move into our land that bounced counts as one.
 - **Joint blows can misfire.** Each partner counts only the troops in its own sight, so partners may name different troops to go in. When the rule names a king who is at peace with the foe, that king does not go in (his troop does something else), and his partners' supports are wasted.
