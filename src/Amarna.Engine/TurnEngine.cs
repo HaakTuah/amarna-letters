@@ -101,7 +101,8 @@ public sealed partial class TurnEngine
                 }
             }
 
-            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}, wages {Money.Format(wages)}. The treasury holds {Money.Format(t.Ledger)}." };
+            // Written before the season's audiences and envoys' returns: their gold comes after this figure.
+            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}, wages {Money.Format(wages)}. After income, upkeep and wages, the treasury holds {Money.Format(t.Ledger)}; gold received at audiences or brought home by your envoys this season is added later." };
             if (deserted.Count > 0) lines.Add($"Unpaid troops deserted: {string.Join(", ", deserted)}.");
             if (unpaid.Count > 0) lines.Add($"Could not pay: {string.Join(", ", unpaid)}.");
             S.Notify(p, InboxKind.Notice, "The treasury", string.Join(" ", lines));
@@ -158,7 +159,8 @@ public sealed partial class TurnEngine
                 $"Paying for {what}, your treasurers found the treasury lighter than the ledger: {Money.Format(missing)} of gold received from {sources} was never fine gold.");
             S.Log("debasement", $"{p} discovers {Money.Format(missing)} of debased gold from {sources}.", [p], "debasement-found");
         }
-        else S.Notify(p, InboxKind.Notice, "Not enough gold", $"There was not enough gold to pay for {what}.");
+        // Every order that fails for want of gold is reported as a failure, whether or not debased gold was found.
+        S.Notify(p, InboxKind.Rejected, "Not enough gold", $"There was not enough gold to pay for {what}.");
         return false;
     }
 
@@ -315,7 +317,7 @@ public sealed partial class TurnEngine
             var body = string.Join("\n", mine.Select(x => "- " + x));
             if (seen.Count > 0) body += "\nSeen nearby:\n" + string.Join("\n", seen.Select(x => "- " + x));
             if (fallen.Count > 0) body += "\n" + string.Join("\n", fallen);
-            S.Notify(p, InboxKind.Battle, "Movements this season", body.Trim());
+            S.Notify(p, InboxKind.Battle, "Movements last season", body.Trim());
         }
     }
 

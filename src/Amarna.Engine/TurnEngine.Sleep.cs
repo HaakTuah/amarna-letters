@@ -89,8 +89,8 @@ public sealed partial class TurnEngine
             }
             if (o.Order != "move" || o.Target is not { } t) continue;
             if (land.Contains(t) || troops.Contains(t)) Add($"{o.Power} attacked {t}");
-            else if (o.Succeeded && !Map[t].IsSea && Map.Neighbors(t).Any(land.Contains)) Add($"{o.Power} troops came to your border ({o.Province} -> {t})");
-            else if (o.Succeeded && Map[t].IsSea && Map.Neighbors(t).Any(land.Contains)) Add($"a {o.Power} fleet came into waters off your coast ({t})");
+            else if (o.Succeeded && !Map[t].IsSea && Map.Neighbors(t).Any(land.Contains)) Add($"{o.Power}'s {Kind(o.UnitKind)} came to your border ({o.Province} -> {t})");
+            else if (o.Succeeded && Map[t].IsSea && Map.Neighbors(t).Any(land.Contains)) Add($"{o.Power}'s fleet came into waters off your coast ({t})");
         }
 
         // Its own triggers.
@@ -121,7 +121,7 @@ public sealed partial class TurnEngine
         foreach (var o in S.LastSeen.GetValueOrDefault(p) ?? [])
         {
             if (o.Power == p || o.Order != "move" || o.Target is null) continue;
-            sl.Digest.Add($"turn {S.Turn - 1}: a {o.Power} {Kind(o.UnitKind)} moved {o.Province} -> {o.Target}{(o.Succeeded ? "" : " (it failed)")}");
+            sl.Digest.Add($"turn {S.Turn - 1}: {o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {o.Target}{(o.Succeeded ? "" : " (it failed)")}");
         }
         if (sl.Digest.Count > 60) sl.Digest.RemoveRange(0, sl.Digest.Count - 60);
     }

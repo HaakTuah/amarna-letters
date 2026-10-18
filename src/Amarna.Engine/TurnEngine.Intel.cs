@@ -49,7 +49,7 @@ public sealed partial class TurnEngine
             CharacterId = c.Id,
         });
         c.Remember(S.Turn, $"My lord of {p.Land()} sent me quietly to watch {ps.Court?.Land() ?? Map[ps.Province!].Name}.");
-        S.Notify(p, InboxKind.Notice, "Agent sent", $"{c.Name} has left to watch {ps.Court?.ToString() ?? Map[ps.Province!].Name}; arrival in {travel} season(s).", c.Id);
+        S.Notify(p, InboxKind.Notice, "Agent sent", $"{c.Name} left last season to watch {ps.Court?.ToString() ?? Map[ps.Province!].Name}; the journey takes {travel} season(s).", c.Id);
     }
 
     private void SpyArrives(Journey j)

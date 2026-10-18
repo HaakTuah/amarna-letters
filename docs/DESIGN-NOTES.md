@@ -30,7 +30,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   inside but may support the walls holding; a rival still needs a supported attack, and conquest
   tears the walls down. Buying is the durable way to grow, conquest the fast one.
 - **Levies** are raised only in an unoccupied province of the power's own homeland that it holds.
-  Army 100, fleet 120; upkeep 30 and 35 a season.
+  Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
+  start of the season, the one farthest from the capital first (the rulebook says so).
 - **Strength** = 10 × (sum of base yields of provinces held) + true gold. Growth is strength over
   starting strength. Units are not counted; they cost upkeep and are the means to land.
 - **Ending.** Not before turn 15; then 15% at the end of each season; hard cap at 60 turns.
@@ -47,7 +48,15 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Convoys** follow Diplomacy, with Kruijswijk's guess-and-check adjudication; circular movement
   succeeds, and convoy paradoxes are resolved by the Szykman rule (the convoyed army stays put).
 - **News of a season is read the next season.** Battles, purchases, rejected orders and notices
-  produced while a season resolves are delivered with the next season's reports.
+  produced while a season resolves are delivered with the next season's reports, and say so:
+  "Movements last season"; "Mane set out for Hatti last season; the journey takes 2 season(s)".
+  The treasury notice is written at the start of the season, before audiences: it gives the
+  treasury "after income, upkeep and wages" and says that gold received at audiences or brought
+  home by envoys that season is added later.
+- **Failures are rejection notices.** Every order refused by the validator, and every order that
+  could not go through as the season resolved (a levy, cession or purchase, a payment the treasury
+  could not make, a hire the person declined), is reported with the kind `Rejected`. The batch
+  seat report's "invalid" column counts each of them (the validator's list once per order).
 - **Save version.** The state and the log header carry the version of the rules
   (`GameState.CurrentVersion`, 2 since the simulation-fixes round). A log saved under another version
   is refused, both for replay and for continuing it: "This game was saved under an earlier version of
@@ -194,7 +203,7 @@ before. There is never a global skip, and each seat sees only its own wake-ups.
 - **The cap** is a placeholder: `MaxSleep` = 6 seasons (two years), against "such as eight" in the
   design document. Batch and web reports record what each seat asked for and how long it slept,
   so the cap can be set from data. The batch seat report prints, per seat, the sleeps asked/slept
-  and what woke it.
+  and every reason it was woken, counted over its spells.
 - **Replay.** Sleep state lives in `GameState`, and the log header records which seats may sleep,
   so replays stay exact (tested). With sleeping seats on, every season is also marked in the log
   (`t<turn>/season`), since a season can pass with no seat asked. A saved game with sleeping seats

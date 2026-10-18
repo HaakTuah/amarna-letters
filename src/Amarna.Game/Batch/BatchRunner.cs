@@ -96,8 +96,9 @@ public static class BatchRunner
 
     /// <summary>
     /// Per seat: how often it was asked (orders and audiences), how many of its orders the engine
-    /// rejected, how many decisions fell back to the script king, and, for seats that may sleep, how
-    /// long they asked to sleep, how long they slept and what woke them.
+    /// rejected or could not carry out as the season resolved, how many decisions fell back to the
+    /// script king, and, for seats that may sleep, how long they asked to sleep, how long they slept and
+    /// every reason they were woken.
     /// </summary>
     public static string SeatReport(GameRunner runner)
     {
@@ -110,7 +111,7 @@ public static class BatchRunner
             // Audiences answered by a model or file seat: one per logged key (a retry is the same audience). Script seats log no calls.
             var hostKeys = runner.Log.Calls.Where(c => c.Role == $"host:{p}").Select(c => c.Key).Distinct().Count();
             var hosted = runner.Log.Calls.Any(c => c.Role == $"leader:{p}" || c.Role == $"host:{p}") ? hostKeys.ToString() : "-";
-            var invalid = s.InboxOf(p).Where(i => i.Kind == InboxKind.Rejected).Sum(i => i.Body.Split('\n').Count(l => l.StartsWith("- ", StringComparison.Ordinal)));
+            var invalid = s.InboxOf(p).Sum(FailedOrders);
             int fallbacks;
             lock (runner.Errors) fallbacks = runner.Errors.Count(e => e.Contains($"/orders/{p}:", StringComparison.Ordinal)
                 || (e.Contains("/host/", StringComparison.Ordinal) && runner.Log.Calls.Any(c => c.Role == $"host:{p}" && e.StartsWith(c.Key, StringComparison.Ordinal))));
@@ -120,7 +121,8 @@ public static class BatchRunner
             {
                 // A spell still open at the end counts the seasons slept so far.
                 sleeps = string.Join(" ", sl.History.Select(h => $"{h.Requested}/{(h.WokeAt > 0 ? h.WokeAt - h.From : s.Turn - h.From + 1)}{(h.WokeAt > 0 ? "" : "+")}"));
-                woken = string.Join("; ", sl.History.Where(h => h.Reasons.Count > 0).SelectMany(h => h.Reasons.Take(1)).GroupBy(r => r.Split('(')[0].Trim()).Select(g => $"{g.Key} x{g.Count()}"));
+                // Every reason a seat was woken, not only the first, counted over its spells.
+                woken = string.Join("; ", sl.History.SelectMany(h => h.Reasons).GroupBy(r => r.Split('(')[0].Trim()).Select(g => $"{g.Key} x{g.Count()}"));
             }
             lines.Add($"  {p,-10}  {Cap(label, 19),-19}  {orders,6}  {hosted,9}  {invalid,7}  {fallbacks,9}  {sleeps,-20}  {woken}");
         }
@@ -128,6 +130,14 @@ public static class BatchRunner
 
         static string Cap(string t, int n) => t.Length <= n ? t : t[..n];
     }
+
+    /// <summary>
+    /// Orders a notice reports as refused or failed: every rejection notice counts, the validator's list
+    /// once per order it names ("- ..."), and any other refusal or failure (a levy, cession, purchase,
+    /// payment or hire that could not go through) once.
+    /// </summary>
+    public static int FailedOrders(InboxItem item) => item.Kind != InboxKind.Rejected ? 0
+        : Math.Max(1, item.Body.Split('\n').Count(l => l.StartsWith("- ", StringComparison.Ordinal)));
 
     /// <summary>Current bot against the frozen baseline: growth and wins for each side, overall and per power.</summary>
     public static string Versus(IReadOnlyList<GameSummary> games, IReadOnlyList<HashSet<Power>> current)

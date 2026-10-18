@@ -83,7 +83,7 @@ public sealed partial class TurnEngine
             + (mandate.Length > 0 ? $" I may agree to: {mandate}." : "")
             + (d.Gold > 0 ? $" I carry gold, said to be {Money.Format(d.Gold)}." : "")
             + (d.Proposal is not null ? " I carry a tablet for their king to seal." : ""));
-        S.Notify(p, InboxKind.Notice, "Envoy dispatched", $"{c.Name} has set out for {d.To}; the journey takes {travel} season(s).", c.Id);
+        S.Notify(p, InboxKind.Notice, "Envoy dispatched", $"{c.Name} set out for {d.To} last season; the journey takes {travel} season(s).", c.Id);
     }
 
     private void EnvoyArrivesAbroad(Journey j)
@@ -531,7 +531,7 @@ public sealed partial class TurnEngine
             var bids = group.Where(b => b.H.Wage >= AskingPrice(c, b.P) && (c.HeldBy is null || c.HeldBy == b.P)).OrderByDescending(b => b.H.Wage)
                 .ThenByDescending(b => c.Traits.Sympathy == b.P).ThenBy(b => b.P).ToList();
             foreach (var lost in group.Where(b => bids.Count == 0 || b.P != bids[0].P))
-                S.Notify(lost.P, InboxKind.Notice, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season.", c.Id);
+                S.Notify(lost.P, InboxKind.Rejected, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season.", c.Id);
             if (bids.Count == 0) continue;
             var (winner, hire) = bids[0];
             c.Status = CharacterStatus.Employed;

@@ -112,7 +112,7 @@ public class SleepTests
         await Play(Power.Babylonia, sleeper, 5, others: new() { [Power.Assyria] = assyria });
         Assert.Equal([1, 5], sleeper.Calls);
         var woke = sleeper.Views[1];
-        Assert.Contains(woke.Digest, d => d.Contains("Assyria army moved ekallatum -> arbela"));
+        Assert.Contains(woke.Digest, d => d.Contains("Assyria's army moved ekallatum -> arbela"));
         Assert.Contains(woke.WhileAsleep, i => i.Title == "The treasury" && i.Turn == 2);
         Assert.Contains(woke.WhileAsleep, i => i.Title == "The treasury" && i.Turn == 4);
         Assert.DoesNotContain(woke.WhileAsleep, i => i.Turn == 5);

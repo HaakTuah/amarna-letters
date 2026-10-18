@@ -36,7 +36,7 @@ public static class Prompts
             - No game ends before turn {c.MinTurns}. From then on, at the end of every season the game ends with a {c.EndChance * 100:0}% chance. Nobody knows which season is the last.{sharedVictory}
 
             EACH SEASON (one turn; three seasons make a year)
-            1. Income: provinces pay their yield in gold. You pay upkeep for every army ({c.ArmyUpkeep}) and fleet ({c.FleetUpkeep}) and the wages of your people. Unpaid troops desert; unpaid people lose loyalty and may leave.
+            1. Income: provinces pay their yield in gold. You pay upkeep for every army ({c.ArmyUpkeep}) and fleet ({c.FleetUpkeep}) and the wages of your people. If you cannot pay upkeep, troops desert, the one farthest from your capital first; unpaid people lose loyalty and may leave.
             2. Arrivals: envoys, gold, reports and rumours that were travelling arrive.
             3. Audiences: foreign envoys at your court deliver their messages and you answer them.
             4. Orders: every king secretly submits orders at the same time.
