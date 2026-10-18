@@ -182,7 +182,13 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   employer with chance 30% + spend/400 (30–80%), which is announced to every court.
 - **Catastrophes**: 3.5% per power per season. Drought halves income for three seasons; plague cuts
   a quarter for two and kills a unit; floods and earthquakes zero one province for two or four
-  seasons. Other courts hear rumours that are accurate, exaggerated or understated.
+  seasons. The stricken power is told exactly. A court whose sight (before the catastrophe) covers
+  the stricken land hears of it the next season as a plain fact, a notice "News from nearby"
+  ("Travellers say the harvest has failed in Hatti."): for a drought or plague, any province of the
+  stricken realm in sight; for a flood or earthquake, that province. Distant courts learn of it only
+  through their envoys and spies, who observe catastrophes at the courts they visit or watch. The
+  rulebook says so. (Until the simulation-fixes round every other court got a rumour, capital to
+  capital, worded accurately, exaggerated or understated at random, with no carrier and no motive.)
 
 ## Models
 

@@ -67,7 +67,7 @@ public static class Prompts
             - Ransoms: a demand reaches the captive's king as a rumour, and can be paid (pay_ransom) only once it has reached you. A captive has one demand at a time: a new demand replaces the old. A demand not paid within four seasons of being made lapses. The ransom travels on its own and is never refunded; the captor frees the captive if they still hold them. pay_ransom is refused before the demand has reached you, once you know the captive is no longer held by the court that asked, and while a ransom for them is already on its way.
             - Background checks reveal a person's hidden facts with a chance that grows with what you spend. Deep secrets rarely come out.
             - Ask for candidates to meet up to three people seeking service; each names a price. Hire them for a wage per season.
-            - Catastrophes (drought, plague, flood, earthquake) are known exactly only to the power they strike; others hear rumours, late and unreliable.
+            - Catastrophes (drought, plague, flood, earthquake) are known exactly only to the power they strike. A court that can see the stricken land hears of it the next season (a drought or plague: any province of that realm in sight; a flood or earthquake: that province in sight). Other courts learn of it only from their envoys and spies.
 
             WHAT YOU SEE
             - Who holds each province is public. You see troops only in and next to your own lands and troops. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.

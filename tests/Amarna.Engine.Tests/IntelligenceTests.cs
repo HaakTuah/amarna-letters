@@ -211,13 +211,31 @@ public class IntelligenceTests
     }
 
     [Fact]
-    public void Catastrophes_are_exact_at_home_and_rumoured_abroad()
+    public void Catastrophes_are_exact_at_home_and_heard_next_season_only_by_courts_that_can_see_them()
     {
         var s = GameFactory.NewGame(13, new GameConfig { CatastropheChance = 1.0 });
         var e = Begin(s);
+        var map = WorldMap.Default;
+        var sight = Powers.All.ToDictionary(p => p, p => Views.Sight(s, map, p));
+        var owned = Powers.All.ToDictionary(p => p, p => s.OwnedBy(p).ToList());
         e.Resolve(new Dictionary<Power, TurnSubmission>());
         Assert.All(Powers.All, p => Assert.Contains(s.InboxOf(p), i => i.Kind == InboxKind.Catastrophe));
+
+        var (heard, unheard) = (0, 0);
+        foreach (var cat in s.Catastrophes)
+            foreach (var other in Powers.All.Where(o => o != cat.Power))
+            {
+                // A drought or plague is seen from any province of the realm; a flood or earthquake only from its own.
+                var seen = cat.Province is { } one ? sight[other].Contains(one) : owned[cat.Power].Any(sight[other].Contains);
+                var news = s.InboxOf(other).Where(i => i.Title == "News from nearby" && i.Body.EndsWith($"in {cat.Power.Land()}.")).ToList();
+                Assert.All(news, i => Assert.Equal((s.Turn, InboxKind.Notice), (i.Turn, i.Kind)));
+                Assert.Equal(seen ? 1 : 0, news.Count);
+                if (seen) heard++; else unheard++;
+            }
+        Assert.True(heard > 0 && unheard > 0, $"heard {heard}, unheard {unheard}");
+
+        // No rumour of it reaches any court later: distant courts learn only through envoys and spies.
         Advance(s, 3);
-        Assert.Contains(s.InboxOf(Power.Egypt), i => i.Kind == InboxKind.Rumor);
+        Assert.All(Powers.All, p => Assert.DoesNotContain(s.InboxOf(p), i => i.Kind == InboxKind.Rumor));
     }
 }
