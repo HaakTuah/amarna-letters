@@ -245,7 +245,7 @@ public class ContractTests
     public void A_servant_giving_notice_wakes_a_sleeping_seat()
     {
         var (s, c) = Servant(config: new GameConfig { CatastropheChance = 0, SleepingSeats = true });
-        s.Sleep[Power.Egypt] = new SleepState { Asleep = true, WakeAt = 50, History = [new SleepSpell { From = 1, Requested = 6 }] };
+        s.Sleep[Power.Egypt] = new SleepState { Asleep = true, WakeAt = 50, History = [new SleepSpell { From = 1 }] };
         Begin(s).Resolve(None());
         var e = Begin(s);
         e.WakeCheck();

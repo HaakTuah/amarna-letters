@@ -28,7 +28,9 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
         var user = new StringBuilder();
         user.AppendLine(Prompts.Situation(view));
         user.AppendLine(Journal());
-        user.AppendLine("Now give your orders for this season: your troops, your envoys and letters, and anything else.");
+        user.AppendLine(view.Sleeps
+            ? "Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, and anything else. You sleep after them."
+            : "Now give your orders for this season: your troops, your envoys and letters, and anything else.");
         var json = await client.AskJsonAsync(new CallSpec
         {
             Key = $"t{view.Turn}/orders/{power}",
@@ -54,6 +56,8 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
     public async Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct)
     {
         var user = new StringBuilder();
+        // Like every request to a king that sleeps, it opens with how long the king slept and what woke it.
+        if (Prompts.SleepLine(court) is { Length: > 0 } woke) user.AppendLine(woke);
         user.AppendLine($"SEASON: turn {view.Turn}. You hold court. Treasury {court.Gold} shekels by your ledger.");
         user.AppendLine($"Lands now: {string.Join("; ", court.Owner.GroupBy(x => x.Value).Where(g => g.Key is not null).Select(g => $"{g.Key} {g.Count()}"))}.");
         // What has reached the court this season, so that the host does not speak to an envoy against its own news.

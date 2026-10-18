@@ -1,13 +1,13 @@
 namespace Amarna.Engine;
 
 /// <summary>
-/// What a seat that may sleep asks for with its orders: how many seasons to skip before it is
-/// asked again, and what should wake it sooner. The engine's own wake triggers apply as well.
+/// What a seat that may sleep adds to its orders. It always sleeps after them; it may name a season to be woken
+/// in and its own reasons to be woken sooner. The engine's own wake reasons apply as well.
 /// </summary>
 public sealed class SleepRequest
 {
-    /// <summary>Seasons to skip before the seat is asked again (0 = next season, as usual). Capped by <see cref="GameConfig.MaxSleep"/>.</summary>
-    public int Seasons { get; set; }
+    /// <summary>The season (turn number) the seat asks to be woken in, or 0 for none. The hidden cap still applies (<see cref="GameConfig.MaxSleep"/>).</summary>
+    public int WakeTurn { get; set; }
     public List<WakeTrigger> WakeOn { get; set; } = new();
 }
 
@@ -58,14 +58,16 @@ public sealed class ScheduledOrders
 public sealed class SleepState
 {
     public bool Asleep { get; set; }
-    /// <summary>The last season the seat was asked for orders.</summary>
+    /// <summary>The last season the seat was asked for orders (and answered itself, not through the stand-in).</summary>
     public int LastCalled { get; set; }
-    /// <summary>The season it wakes at the latest (its own choice, within the cap).</summary>
+    /// <summary>The season it wakes at the latest: the one it named, or else the hidden cap.</summary>
     public int WakeAt { get; set; }
     public List<WakeTrigger> Triggers { get; set; } = new();
     public List<ScheduledOrders> Scheduled { get; set; } = new();
-    /// <summary>Distant news from the seasons it slept through, shown when it wakes.</summary>
+    /// <summary>What happened in the seasons it slept through that did not wake it, one line each, shown when it wakes.</summary>
     public List<string> Digest { get; set; } = new();
+    /// <summary>Digest lines left out because the digest was full (the oldest go first).</summary>
+    public int DigestLeftOut { get; set; }
     /// <summary>Why it was woken this season (empty if it was awake anyway).</summary>
     public List<string> WokenBecause { get; set; } = new();
     /// <summary>Reasons found while resolving a season, applied at the next wake check (a scheduled order that failed).</summary>
@@ -73,11 +75,11 @@ public sealed class SleepState
     public List<SleepSpell> History { get; set; } = new();
 }
 
-/// <summary>One stretch of sleep, for the reports: how long the seat asked for and how long it slept.</summary>
+/// <summary>One stretch of sleep, for the reports: when it began, the season the seat named (0 for none), when and why it woke.</summary>
 public sealed class SleepSpell
 {
     public int From { get; set; }
-    public int Requested { get; set; }
+    public int Named { get; set; }
     public int WokeAt { get; set; }
     public List<string> Reasons { get; set; } = new();
 }

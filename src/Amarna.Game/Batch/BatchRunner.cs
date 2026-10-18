@@ -97,13 +97,13 @@ public static class BatchRunner
     /// <summary>
     /// Per seat: how often it was asked (orders and audiences), how many of its orders the engine
     /// rejected or could not carry out as the season resolved, how many decisions fell back to the
-    /// script king, and, for seats that may sleep, how long they asked to sleep, how long they slept and
-    /// every reason they were woken.
+    /// script king, and, for seats that may sleep, how many seasons each sleep lasted (n: it woke in the
+    /// season it named; +: still asleep at the end) and every reason they were woken.
     /// </summary>
     public static string SeatReport(GameRunner runner)
     {
         var s = runner.State;
-        var lines = new List<string> { "  Power       seat                 orders  audiences  invalid  fallbacks  sleeps (asked/slept)  woken by" };
+        var lines = new List<string> { "  Power       seat                 orders  audiences  invalid  fallbacks  slept (seasons)       woken by" };
         foreach (var p in Powers.All)
         {
             var label = runner.Log.Header.Seats.GetValueOrDefault(p) ?? "?";
@@ -120,9 +120,11 @@ public static class BatchRunner
             if (s.Sleep.TryGetValue(p, out var sl) && sl.History.Count > 0)
             {
                 // A spell still open at the end counts the seasons slept so far.
-                sleeps = string.Join(" ", sl.History.Select(h => $"{h.Requested}/{(h.WokeAt > 0 ? h.WokeAt - h.From : s.Turn - h.From + 1)}{(h.WokeAt > 0 ? "" : "+")}"));
+                sleeps = string.Join(" ", sl.History.Select(h => h.WokeAt > 0
+                    ? $"{h.WokeAt - h.From}{(h.Named > 0 && h.Named == h.WokeAt ? "n" : "")}"
+                    : $"{s.Turn - h.From + 1}+"));
                 // Every reason a seat was woken, not only the first, counted over its spells.
-                woken = string.Join("; ", sl.History.SelectMany(h => h.Reasons).GroupBy(r => r.Split('(')[0].Trim()).Select(g => $"{g.Key} x{g.Count()}"));
+                woken = string.Join("; ", sl.History.SelectMany(h => h.Reasons).GroupBy(ReasonKind).Select(g => $"{g.Key} x{g.Count()}"));
             }
             lines.Add($"  {p,-10}  {Cap(label, 19),-19}  {orders,6}  {hosted,9}  {invalid,7}  {fallbacks,9}  {sleeps,-20}  {woken}");
         }
@@ -130,6 +132,10 @@ public static class BatchRunner
 
         static string Cap(string t, int n) => t.Length <= n ? t : t[..n];
     }
+
+    /// <summary>A wake reason without its particulars, to count reasons of one kind together ("land lost: Gaza ..." is "land lost").</summary>
+    public static string ReasonKind(string reason) =>
+        reason.StartsWith("you asked to be woken in turn", StringComparison.Ordinal) ? "the season it named" : reason.Split(':', '(')[0].Trim();
 
     /// <summary>
     /// Orders a notice reports as refused or failed: every rejection notice counts, the validator's list

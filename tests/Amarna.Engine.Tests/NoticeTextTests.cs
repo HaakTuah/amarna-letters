@@ -68,7 +68,9 @@ public class NoticeTextTests
         e.BeginTurn();
         e.WakeCheck();
 
-        Assert.Contains("Egypt's fleet came into waters off your coast (levantsea)", s.Sleep[Power.Alashiya].WokenBecause);
+        // A fleet off its coast no longer wakes a sleeper: it waits in the digest, like any move it saw.
+        Assert.Empty(s.Sleep[Power.Alashiya].WokenBecause);
+        Assert.Contains("turn 1: Egypt's fleet moved delta -> levantsea", s.Sleep[Power.Alashiya].Digest);
         Assert.Contains("turn 1: Assyria's army moved ekallatum -> arbela", s.Sleep[Power.Babylonia].Digest);
     }
 }

@@ -34,10 +34,16 @@ public sealed record GameConfig
     public bool CustomsPrimer { get; init; } = true;
 
     // Pacing
-    /// <summary>Model and file seats are asked for orders only when something concerns them, or when the time they chose has come.</summary>
-    public bool SleepingSeats { get; init; }
-    /// <summary>The most seasons a seat may skip in one sleep. A placeholder: set it from the sleep lengths seats actually choose.</summary>
-    public int MaxSleep { get; init; } = 6;
+    /// <summary>
+    /// On by default (since 18 October 2026): after every set of orders a model or file seat sleeps, and is asked again
+    /// only when something concerns it, the season it named comes, or the hidden cap is reached. Off, every seat is asked every season.
+    /// </summary>
+    public bool SleepingSeats { get; init; } = true;
+    /// <summary>
+    /// The hidden safety cap: a seat that gave orders in turn T is woken by turn T + 1 + this at the latest. Kings are never
+    /// told it (not in the rulebook, the schema or the view), so it does not anchor their planning. A placeholder.
+    /// </summary>
+    public int MaxSleep { get; init; } = 12;
 
     // Characters
     public int StartEnvoysPerPower { get; init; } = 2;

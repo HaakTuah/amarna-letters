@@ -63,34 +63,38 @@ public static class Schemas
         ("item", Str("Gold lot id for assay, tablet copy id for authenticate.")),
         ("seals", Array(Str(), "Powers whose seals a forgery bears.")));
 
-    /// <summary>A king's orders. With sleeping seats on, it may also choose to sleep and schedule orders for later seasons.</summary>
+    /// <summary>
+    /// A king's orders. With sleeping seats on, it sleeps after them: it may name a season to be woken in, add its own
+    /// reasons to be woken, and schedule orders for later seasons. Nothing here names the cap on its sleep.
+    /// </summary>
     public static JsonObject LeaderOrders(GameConfig? c = null)
     {
         var o = LeaderOrdersBase(c?.SharedVictory ?? false);
         if (c is not { SleepingSeats: true }) return o;
         var props = (JsonObject)o["properties"]!;
         var required = (JsonArray)o["required"]!;
-        props["sleep"] = Object(
-            ("seasons", Int($"Seasons to skip before you are asked again: 0 = next season as usual, at most {c.MaxSleep}.")),
+        props["sleep"] = With(Object(
+            ("wake_in_turn", Int("The season (turn number) to be woken in, or 0 for none. Something that concerns you may wake you sooner.")),
             ("wake_on", Array(Object(
                 ("trigger", Enum(WakeTriggers)),
                 ("province", Str("unit_moves: where the unit stands now. troops_enter, province_changes_hands: the province. Otherwise empty.")),
                 ("person", Str("envoy_returns: the person id. Otherwise empty.")),
                 ("amount", Int("treasury_below: shekels. Otherwise 0.")),
                 ("power", Str("troops_enter: whose troops, or empty for any foreign power's."))),
-                "Your own reasons to be woken sooner, on top of the usual ones.")));
+                "Your own reasons to be woken, on top of the usual ones (at most 8). They hold until you are next woken."))),
+            "You sleep after these orders, until something concerns you. What else should wake you.");
         props["schedule"] = Array(Object(
-            ("turn", Int("The season (turn number) these orders run in.")),
+            ("turn", Int("The season (turn number) these orders run in: any later season, or this one.")),
             ("units", Array(UnitOrder(), "Name each unit by the province it will stand in that season, after any earlier moves.")),
             ("other_orders", Array(OtherOrder()))),
-            "Orders for later seasons (or this one). Secret, and checked when they run. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it.");
+            $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order that is refused or fails wakes you.");
         required.Add("sleep");
         required.Add("schedule");
         return o;
     }
 
     private static JsonObject LeaderOrdersBase(bool sharedVictory) => Object(
-        ("notes", Str("Private notes to yourself for next season: plans, promises made, suspicions.")),
+        ("notes", Str("Private notes to yourself, shown to you the next time you give orders: plans, promises made, suspicions.")),
         ("units", Array(UnitOrder())),
         ("letters", Array(Object(
             ("envoy", Str("Id of one of your people who is at court and ready.")),

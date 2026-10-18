@@ -111,7 +111,8 @@ public class FileSeatTests
     [Fact]
     public async Task An_unreadable_reply_gets_one_retry_and_then_the_script_king_stands_in()
     {
-        var (runner, folder) = Game();
+        // Asked every season, so that the second season's call comes whatever the first decided.
+        var (runner, folder) = Game(new GameConfig { CatastropheChance = 0, SleepingSeats = false });
         using var stop = new CancellationTokenSource();
         var answering = Answer(folder, (stem, _) => stem switch
         {
@@ -179,22 +180,37 @@ public class FileSeatTests
     }
 
     [Fact]
-    public async Task File_seat_games_replay_exactly_with_sleeping_on()
+    public async Task A_file_seat_sleeps_by_default_and_replays_exactly()
     {
-        var (runner, folder) = Game(new GameConfig { SleepingSeats = true, CatastropheChance = 0 });
+        // Sleeping seats are on by default: nothing here switches them on.
+        var (runner, folder) = Game(new GameConfig { CatastropheChance = 0 });
         using var stop = new CancellationTokenSource();
+        var requests = new Dictionary<string, string>();
         var answering = Answer(folder, (stem, text) =>
         {
-            Assert.Contains("SLEEPING (this game lets you skip seasons)", text);
+            lock (requests) requests[stem] = text;
             return stem.Contains("orders")
-                ? """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"sleep":{"seasons":2,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[]}"""
+                ? stem.StartsWith("t2_")
+                    ? """{"notes":"Wake me next season.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[]}"""
+                    : """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":0,"wake_on":[]},"schedule":[]}"""
                 : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
         }, stop.Token);
         for (var i = 0; i < 7; i++) await runner.PlayTurnAsync();
         stop.Cancel();
         await answering;
 
-        Assert.NotEmpty(runner.State.Sleep[Power.Alashiya].History);
+        // The script kings of seed 8 send Egypt's envoy to Alashiya at once: it wakes the sleeping king in turn 2. The
+        // king then names turn 3, and nothing concerns it in turn 5.
+        string Decision(string stem) => requests[stem].ReplaceLineEndings("\n").Split("## THIS DECISION\n\n")[1];
+        Assert.Contains("YOU SLEEP BETWEEN YOUR ORDERS", requests["t1_orders_Alashiya"]);
+        Assert.Contains("\"wake_in_turn\"", requests["t1_orders_Alashiya"]);
+        Assert.StartsWith("This is your first season.\n", Decision("t1_orders_Alashiya"));
+        const string woken = "You slept 0 seasons (you last gave orders in turn 1). You were woken because: an envoy of Egypt waits to be received.\n";
+        Assert.StartsWith(woken, Decision(requests.Keys.First(k => k.StartsWith("t2_aud_", StringComparison.Ordinal))));
+        Assert.StartsWith(woken, Decision("t2_orders_Alashiya"));
+        Assert.StartsWith("You slept 0 seasons (you last gave orders in turn 2). You were woken because: you asked to be woken in turn 3.\n", Decision("t3_orders_Alashiya"));
+        Assert.DoesNotContain("t5_orders_Alashiya", requests.Keys);
+
         var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));
         await replay.PrepareAsync();
         for (var i = 0; i < 7; i++) await replay.PlayTurnAsync();

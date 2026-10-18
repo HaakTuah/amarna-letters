@@ -61,9 +61,10 @@ public class StandInTests
     [Fact]
     public async Task The_stand_in_learns_while_the_model_seat_sleeps()
     {
-        // Egypt sleeps three seasons among kings who do nothing to wake it; the stand-in reads its view every season all the same.
-        var model = new Flaky(failFrom: 99, v => v.Turn == 1 ? new TurnSubmission { Sleep = new SleepRequest { Seasons = 3 } } : new TurnSubmission());
-        var state = GameFactory.NewGame(31, new GameConfig { SleepingSeats = true, MaxSleep = 6, MinTurns = 40, CatastropheChance = 0 });
+        // Egypt sleeps after its orders (sleeping seats are on by default) among kings who do nothing to wake it; the
+        // stand-in reads its view every season all the same.
+        var model = new Flaky(failFrom: 99);
+        var state = GameFactory.NewGame(31, new GameConfig { MaxSleep = 6, MinTurns = 40, CatastropheChance = 0 });
         var seats = Powers.All.ToDictionary(p => p, p => p == Power.Egypt ? model : (ISeat)new Idle());
         var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
         for (var turn = 1; turn <= 5; turn++)
@@ -71,7 +72,7 @@ public class StandInTests
             await runner.PlayTurnAsync();
             Assert.Equal(turn, runner.StandIn.BrainOf(Power.Egypt)!.Turn);
         }
-        Assert.True(model.Seen.Count < 5, $"Egypt was asked in turns {string.Join(", ", model.Seen.Select(v => v.Turn))}");
+        Assert.Equal([1], model.Seen.Select(v => v.Turn));
         // Script and idle seats are not watched: they never fall back on the stand-in.
         Assert.Null(runner.StandIn.BrainOf(Power.Hatti));
     }

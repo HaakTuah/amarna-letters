@@ -86,10 +86,10 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o = new JsonObject { ["report"] = "Nothing of note." };
         else
             o = new JsonObject();
-        // With sleeping seats on, a simulated king sleeps a season at a time, so the path is exercised.
+        // With sleeping seats on, a simulated king sleeps after its orders like any model king, naming no season.
         if (Has("units") && Has("sleep"))
         {
-            o["sleep"] = new JsonObject { ["seasons"] = 1, ["wake_on"] = new JsonArray() };
+            o["sleep"] = new JsonObject { ["wake_in_turn"] = 0, ["wake_on"] = new JsonArray() };
             o["schedule"] = new JsonArray();
         }
         return o.ToJsonString();

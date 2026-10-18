@@ -16,7 +16,8 @@ using Amarna.Llm;
 // Benchmark:   --versus baseline (half the kings are the frozen first bot, alternating by seed)
 //              --versus solo (each king in turn plays the current bot against six baselines)
 //              --focus Mitanni (only that king plays the current bot; add --detail to follow it)
-// Pacing:      --sleep on|off (model and file seats are asked only when something concerns them), --sleep-cap 6,
+// Pacing:      --sleep on|off (on by default: a model or file seat sleeps after its orders until something concerns it;
+//              off asks every seat every season), --sleep-cap 12 (the hidden safety cap on one sleep; kings are never told it),
 //              --max-turns 10 (end the game after this season, whatever the random end)
 // File seats:  --file-seats DIR|map.json (each king writes its request to its own folder and waits for a reply file;
 //              DIR gives one folder per king, a JSON map {"Egypt": "path", ...} names them), --file-timeout 120 (minutes)
@@ -158,7 +159,9 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
         last = new GameRunner(state, seats, set.Minds, set.Narrator) { WriteChronicles = !noChronicles };
         return last;
     }, verify, log: Console.Error.WriteLine, config: config);
-    return (summary, outDir is not null || detail || fileSeats is not null || config.SleepingSeats || choices.UsesModels ? last : null, current);
+    // Sleeping seats are on by default, but only model and file seats sleep: a game of script kings keeps no runner for them.
+    var sleepers = last?.State.Sleep.Count > 0;
+    return (summary, outDir is not null || detail || fileSeats is not null || sleepers || choices.UsesModels ? last : null, current);
 }
 
 // Script games are independent and run side by side; model games run one at a time, within the budget.
@@ -194,7 +197,7 @@ foreach (var outcome in played)
         + (verify ? summary.ReplayMatches ? ", replay ok" : ", REPLAY MISMATCH" : "")
         + (summary.CostUsd > 0 ? $", ${summary.CostUsd:0.00}" : "")
         + (summary.Errors > 0 ? $", {summary.Errors} fallbacks" : ""));
-    if (last is not null && (fileSeats is not null || config.SleepingSeats || choices.UsesModels))
+    if (last is not null && (fileSeats is not null || last.State.Sleep.Count > 0 || choices.UsesModels))
         Console.WriteLine(BatchRunner.SeatReport(last));
     if (detail && last is not null)
     {

@@ -1,14 +1,26 @@
 namespace Amarna.Engine;
 
 /// <summary>
-/// Sleeping seats. The world advances every season, but a seat that may sleep is asked for orders
-/// only when something concerns it, or when the time it chose has come. There is never a global
-/// skip: each seat sees only its own wake-ups, and everything it is told comes from its own view.
+/// Sleeping seats. The world advances every season, but a seat that may sleep sleeps after every set of orders, and
+/// is asked again only when something concerns it, the season it named comes, or the hidden cap is reached. There
+/// is never a global skip: each seat sees only its own wake-ups, and everything it is told comes from its own view.
 /// </summary>
 public sealed partial class TurnEngine
 {
-    /// <summary>How many seasons ahead a seat may schedule orders: as far as it may sleep, and one more.</summary>
-    private int ScheduleHorizon => S.Config.MaxSleep + 1;
+    /// <summary>The most orders a seat may schedule for one season.</summary>
+    public const int MaxScheduledPerSeason = 24;
+
+    /// <summary>The most seasons a seat may have orders scheduled for at once.</summary>
+    public const int MaxScheduledSeasons = 40;
+
+    /// <summary>The digest keeps this many lines; the oldest go first.</summary>
+    public const int MaxDigest = 60;
+
+    /// <summary>Why a seat is woken when the hidden cap is reached: it says nothing of the cap.</summary>
+    public const string CapReason = "your counsellors woke you after a long sleep";
+
+    /// <summary>Why a seat whose last call failed (the stand-in played that season) is asked again, when nothing else concerns it.</summary>
+    public const string AskedAgainReason = "your counsellors woke you";
 
     public bool IsAsleep(Power p) => S.Config.SleepingSeats && S.IsAlive(p) && S.Sleep.TryGetValue(p, out var sl) && sl.Asleep;
 
@@ -22,7 +34,15 @@ public sealed partial class TurnEngine
         foreach (var (p, sl) in S.Sleep.OrderBy(x => x.Key))
         {
             sl.WokenBecause.Clear();
-            if (!S.IsAlive(p) || !sl.Asleep) continue;
+            if (!S.IsAlive(p)) continue;
+            if (!sl.Asleep)
+            {
+                // Awake although it gave orders before: its last call failed and the stand-in played. It is asked again,
+                // and told what concerns it as if it had been woken.
+                if (sl.LastCalled > 0 && sl.LastCalled < S.Turn - 1)
+                    sl.WokenBecause = WakeReasons(p, sl) is { Count: > 0 } why ? why : [AskedAgainReason];
+                continue;
+            }
             var reasons = WakeReasons(p, sl);
             if (reasons.Count == 0)
             {
@@ -41,6 +61,11 @@ public sealed partial class TurnEngine
         }
     }
 
+    /// <summary>
+    /// What wakes a seat, and nothing else: an envoy waiting to be received; foreign troops in its land; land or troops
+    /// lost; a scheduled order that failed; a ransom demanded; a servant giving notice; one of its own triggers; the
+    /// season it named; the hidden cap. (A kingdom that falls ends its sleep in <see cref="EndSleep"/>.)
+    /// </summary>
     private List<string> WakeReasons(Power p, SleepState sl)
     {
         var why = new List<string>();
@@ -50,51 +75,26 @@ public sealed partial class TurnEngine
         }
 
         foreach (var r in sl.PendingWake) Add(r);
-        if (S.Turn >= sl.WakeAt)
-            Add(sl.History.LastOrDefault() is { } last && last.Requested > S.Config.MaxSleep
-                ? $"you have slept {S.Config.MaxSleep} seasons, the longest a king may sleep"
-                : "the season you chose to wake has come");
+        if (sl.Asleep && S.Turn >= sl.WakeAt)
+            Add(sl.History.LastOrDefault() is { Named: > 0 } spell && spell.Named == sl.WakeAt
+                ? $"you asked to be woken in turn {spell.Named}"
+                : CapReason);
 
-        // Envoys waiting to be received, and news that needs an answer.
         foreach (var a in S.Audiences.Where(a => a.Host == p).OrderBy(a => IdNumber(a.Id)))
             Add($"an envoy of {a.From} waits to be received");
-        foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
-        {
-            var reason = i.Kind switch
-            {
-                InboxKind.EnvoyReport => $"an envoy has come home ({i.Title})",
-                InboxKind.SpyReport => "a spy's report has arrived",
-                InboxKind.CheckResult or InboxKind.Assay or InboxKind.Authentication => $"a report has arrived: {i.Title}",
-                InboxKind.Candidates => "people seeking service have presented themselves",
-                InboxKind.Catastrophe => $"a catastrophe: {i.Title}",
-                InboxKind.Tablet => $"a tablet: {i.Title}",
-                InboxKind.Battle when i.Title == "Land lost" => $"land lost: {i.Body}",
-                InboxKind.Notice when i.Title == "A spy is caught" => "a spy has been caught at your court",
-                InboxKind.Notice when i.Title == NoticeTitle => "a servant gives notice: " + (S.FindCharacter(i.Subject) is { Contract.NoticePrice: { } ask } c
-                    ? $"{c.Name} asks {Money.Format(ask)} a season to serve on"
-                    : i.Body),
-                InboxKind.Notice when i.Title == "The treasury" && i.Body.Contains("deserted", StringComparison.Ordinal) => "your unpaid troops deserted",
-                InboxKind.Rumor when i.Body.Contains("order pay_ransom", StringComparison.Ordinal) => "a ransom is demanded for one of your people",
-                _ => null,
-            };
-            if (reason is not null) Add(reason);
-        }
 
-        // What it saw happen last season: attacks on its land or troops, foreign troops arriving at its borders.
-        var land = S.OwnedBy(p).ToHashSet();
-        var troops = S.Units.Where(u => u.Power == p).Select(u => u.Province).ToHashSet();
+        // Last season's moves as it saw them: foreign troops that entered its land, its own troops destroyed.
         foreach (var o in S.LastSeen.GetValueOrDefault(p) ?? [])
         {
             if (o.Power == p)
             {
                 if (o.Destroyed) Add($"your {Kind(o.UnitKind)} in {o.Province} was destroyed");
-                continue;
             }
-            if (o.Order != "move" || o.Target is not { } t) continue;
-            if (land.Contains(t) || troops.Contains(t)) Add($"{o.Power} attacked {t}");
-            else if (o.Succeeded && !Map[t].IsSea && Map.Neighbors(t).Any(land.Contains)) Add($"{o.Power}'s {Kind(o.UnitKind)} came to your border ({o.Province} -> {t})");
-            else if (o.Succeeded && Map[t].IsSea && Map.Neighbors(t).Any(land.Contains)) Add($"{o.Power}'s fleet came into waters off your coast ({t})");
+            else if (o.Order == "move" && o.Succeeded && o.TargetOwner == p)
+                Add($"foreign troops entered your land: {o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {o.Target}");
         }
+        foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
+            if (WakeReason(i) is { } reason) Add(reason);
 
         // Its own triggers.
         var sight = Views.Sight(S, Map, p);
@@ -118,16 +118,57 @@ public sealed partial class TurnEngine
         return why;
     }
 
-    /// <summary>Distant movements seen while asleep: shown when the seat next wakes instead of waking it now.</summary>
+    /// <summary>The news this season that wakes a seat: land lost, troops lost to desertion or plague, a ransom demanded, a servant's notice.</summary>
+    private string? WakeReason(InboxItem i) => i.Kind switch
+    {
+        InboxKind.Battle when i.Title == "Land lost" => $"land lost: {i.Body}",
+        InboxKind.Catastrophe when i.Body.Contains("it has destroyed your", StringComparison.Ordinal) => "plague destroyed troops of yours",
+        InboxKind.Notice when i.Title == NoticeTitle => "a servant gives notice: " + (S.FindCharacter(i.Subject) is { Contract.NoticePrice: { } ask } c
+            ? $"{c.Name} asks {Money.Format(ask)} a season to serve on"
+            : i.Body),
+        InboxKind.Notice when i.Title == "The treasury" && i.Body.Contains("deserted", StringComparison.Ordinal) => "your unpaid troops deserted",
+        InboxKind.Rumor when i.Body.Contains("order pay_ransom", StringComparison.Ordinal) => "a ransom is demanded for one of your people",
+        _ => null,
+    };
+
+    /// <summary>
+    /// What happened this season that did not wake a sleeping seat, one line each, for the digest it reads when it wakes:
+    /// troop movements it saw (failed attacks on its land or troops among them), and a line for each report, catastrophe,
+    /// forgery, caught spy and refused order whose full text waits in its news.
+    /// </summary>
     private void CollectDigest(Power p, SleepState sl)
     {
-        foreach (var o in S.LastSeen.GetValueOrDefault(p) ?? [])
+        var seen = S.LastSeen.GetValueOrDefault(p) ?? [];
+        var mine = seen.Where(o => o.Power == p).Select(o => o.Province).ToHashSet();
+        foreach (var o in seen)
         {
-            if (o.Power == p || o.Order != "move" || o.Target is null) continue;
-            sl.Digest.Add($"turn {S.Turn - 1}: {o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {o.Target}{(o.Succeeded ? "" : " (it failed)")}");
+            if (o.Power == p || o.Order != "move" || o.Target is not { } t) continue;
+            var who = $"{o.Power}'s {Kind(o.UnitKind)}";
+            sl.Digest.Add(o.Succeeded
+                ? $"turn {S.Turn - 1}: {who} moved {o.Province} -> {t}"
+                : $"turn {S.Turn - 1}: {who} tried to move {o.Province} -> {t}{(mine.Contains(t) ? " (against your troops)" : o.TargetOwner == p ? " (into your land)" : "")} and failed");
         }
-        if (sl.Digest.Count > 60) sl.Digest.RemoveRange(0, sl.Digest.Count - 60);
+        foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
+            if (DigestLine(i) is { } line) sl.Digest.Add($"turn {S.Turn}: {line}");
+        if (sl.Digest.Count > MaxDigest)
+        {
+            sl.DigestLeftOut += sl.Digest.Count - MaxDigest;
+            sl.Digest.RemoveRange(0, sl.Digest.Count - MaxDigest);
+        }
     }
+
+    private string? DigestLine(InboxItem i) => i.Kind switch
+    {
+        InboxKind.EnvoyReport => $"your envoy {S.FindCharacter(i.Subject)?.Name ?? "?"} came home with a report",
+        InboxKind.SpyReport => $"a spy's report arrived ({i.Title})",
+        InboxKind.CheckResult or InboxKind.Assay or InboxKind.Authentication => $"a report arrived ({i.Title})",
+        InboxKind.Candidates => i.Title == "No candidates" ? "nobody came forward to seek service" : $"a candidate presented themselves ({i.Title})",
+        InboxKind.Catastrophe => $"a catastrophe struck your land ({i.Title})",
+        InboxKind.Tablet => $"a tablet you ordered is ready ({i.Title})",
+        InboxKind.Notice when i.Title == "A spy is caught" => "a spy was caught at your court",
+        InboxKind.Rejected => $"an order was refused or failed ({i.Title})",
+        _ => null,
+    };
 
     /// <summary>
     /// A seat's orders for this season with its scheduled orders folded in. An entry for this season in
@@ -163,14 +204,21 @@ public sealed partial class TurnEngine
     /// <summary>The scheduled orders running this season, per seat, to tell their failures from the seat's fresh ones.</summary>
     private readonly Dictionary<Power, List<Order>> _scheduledNow = new();
 
-    /// <summary>A scheduled order that failed while the season resolved (a levy, cession or purchase that could not go through) wakes its seat.</summary>
+    /// <summary>
+    /// A scheduled order that failed while the season resolved (a move that was stopped, or a levy, cession or purchase
+    /// that could not go through) wakes its seat next season.
+    /// </summary>
     private void ScheduledFailed(Power p, Order order, string why)
     {
         if (!_scheduledNow.TryGetValue(p, out var list) || !list.Any(o => ReferenceEquals(o, order)) || !S.Sleep.TryGetValue(p, out var sl)) return;
         sl.PendingWake.Add($"orders you scheduled could not be carried out: {order.Describe()} ({why})");
     }
 
-    /// <summary>After validation: failed scheduled orders wake the seat next season; seats that were asked this season may go to sleep.</summary>
+    /// <summary>
+    /// After validation: failed scheduled orders wake the seat next season. A seat that was asked this season (and
+    /// answered itself, not through the stand-in) keeps the orders it scheduled and goes to sleep: until a reason
+    /// wakes it, the season it named, or the hidden cap, turn + 1 + <see cref="GameConfig.MaxSleep"/>.
+    /// </summary>
     private void AfterValidation(Power p, TurnSubmission sub, ValidationResult v, List<Order> scheduled)
     {
         if (!S.Config.SleepingSeats || !S.Sleep.TryGetValue(p, out var sl)) return;
@@ -180,26 +228,22 @@ public sealed partial class TurnEngine
         var failed = v.Rejected.Where(r => scheduled.Any(o => ReferenceEquals(o, r.Order))).ToList();
         if (failed.Count > 0)
             sl.PendingWake.Add("orders you scheduled could not be carried out: " + string.Join("; ", failed.Select(f => $"{f.Order.Describe()} ({f.Reason})")));
-        // Asleep, or the script king stood in after the seat's call failed: the seat has not seen this season yet.
+        // Asleep, or the script king stood in after the seat's call failed: the seat has not seen this season yet,
+        // and it is asked again next season.
         if (!asked) return;
 
-        // The seat was asked this season: it has now seen its digest, and may queue orders and go to sleep.
+        // The seat was asked this season: it has now seen its digest, keeps what it scheduled, and sleeps.
         sl.LastCalled = S.Turn;
         sl.Digest.Clear();
-        foreach (var plan in sub.Scheduled.Where(x => x.Turn > S.Turn && x.Turn <= S.Turn + ScheduleHorizon).GroupBy(x => x.Turn).Select(g => g.Last()))
-        {
-            sl.Scheduled.RemoveAll(x => x.Turn == plan.Turn);
-            if (plan.Orders.Count > 0) sl.Scheduled.Add(new ScheduledOrders { Turn = plan.Turn, Orders = plan.Orders.Take(24).ToList() });
-        }
-        sl.Scheduled.Sort((a, b) => a.Turn.CompareTo(b.Turn));
-        if (sub.Sleep is not { Seasons: > 0 } req) return;
-        var skip = Math.Min(req.Seasons, S.Config.MaxSleep);
-        if (skip <= 0) return;
+        sl.DigestLeftOut = 0;
+        KeepScheduled(p, sl, sub.Scheduled);
 
+        var cap = S.Turn + 1 + Math.Max(0, S.Config.MaxSleep);
+        var named = sub.Sleep is { WakeTurn: var w } && w > S.Turn ? w : 0;
         var sight = Views.Sight(S, Map, p);
         sl.Asleep = true;
-        sl.WakeAt = S.Turn + 1 + skip;
-        sl.Triggers = req.WakeOn.Take(8).Select(t => new WakeTrigger
+        sl.WakeAt = named > 0 && named <= cap ? named : cap;
+        sl.Triggers = (sub.Sleep?.WakeOn ?? []).Take(8).Select(t => new WakeTrigger
         {
             Kind = t.Kind,
             Province = t.Province,
@@ -213,7 +257,41 @@ public sealed partial class TurnEngine
                 _ => null,
             },
         }).ToList();
-        sl.History.Add(new SleepSpell { From = S.Turn + 1, Requested = req.Seasons });
+        sl.History.Add(new SleepSpell { From = S.Turn + 1, Named = named });
+    }
+
+    /// <summary>
+    /// Keeps the orders a seat scheduled for later seasons: any season up to the game's last, at most
+    /// <see cref="MaxScheduledPerSeason"/> orders a season, for at most <see cref="MaxScheduledSeasons"/> seasons. One
+    /// entry per season replaces everything scheduled for it, and an empty entry cancels it. What is not kept is reported.
+    /// </summary>
+    private void KeepScheduled(Power p, SleepState sl, List<ScheduledOrders> plans)
+    {
+        var notKept = new List<string>();
+        foreach (var plan in plans.Where(x => x.Turn != S.Turn).GroupBy(x => x.Turn).Select(g => g.Last()).OrderBy(x => x.Turn))
+        {
+            if (plan.Turn < S.Turn)
+            {
+                if (plan.Orders.Count > 0) notKept.Add($"turn {plan.Turn}: that season has passed");
+                continue;
+            }
+            // A season after the game's last never comes. Nothing is said, so the king learns nothing of when the game must end.
+            if (plan.Turn > S.Config.MaxTurns) continue;
+            sl.Scheduled.RemoveAll(x => x.Turn == plan.Turn);
+            if (plan.Orders.Count == 0) continue;
+            if (plan.Orders.Count > MaxScheduledPerSeason)
+                notKept.Add($"turn {plan.Turn}: only the first {MaxScheduledPerSeason} of its {plan.Orders.Count} orders were kept; at most {MaxScheduledPerSeason} orders may be scheduled for one season");
+            sl.Scheduled.Add(new ScheduledOrders { Turn = plan.Turn, Orders = plan.Orders.Take(MaxScheduledPerSeason).ToList() });
+        }
+        sl.Scheduled.Sort((a, b) => a.Turn.CompareTo(b.Turn));
+        if (sl.Scheduled.Count > MaxScheduledSeasons)
+        {
+            var late = sl.Scheduled.Skip(MaxScheduledSeasons).Select(x => x.Turn).ToList();
+            notKept.Add($"turn{(late.Count == 1 ? "" : "s")} {string.Join(", ", late)}: orders may be scheduled for at most {MaxScheduledSeasons} seasons, so those for the latest were not kept");
+            sl.Scheduled.RemoveRange(MaxScheduledSeasons, late.Count);
+        }
+        if (notKept.Count > 0)
+            S.Notify(p, InboxKind.Rejected, "Scheduled orders not kept", string.Join("\n", notKept.Select(x => "- " + x)));
     }
 
     /// <summary>A sleeping seat whose kingdom falls stops sleeping: its last spell ends that season.</summary>

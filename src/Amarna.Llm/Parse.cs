@@ -68,10 +68,10 @@ public static class Parse
         foreach (var x in (o["other_orders"] as JsonArray) ?? new JsonArray())
             if (Other(x) is { } order) sub.Orders.Add(order);
 
-        // Sleeping seats: how long to sleep, what should wake it, and orders for later seasons.
+        // Sleeping seats: the season to be woken in, what else should wake it, and orders for later seasons.
         if (o["sleep"] is JsonObject sleep)
         {
-            var req = new SleepRequest { Seasons = Math.Max(0, I(sleep, "seasons")) };
+            var req = new SleepRequest { WakeTurn = Math.Max(0, I(sleep, "wake_in_turn")) };
             foreach (var w in (sleep["wake_on"] as JsonArray) ?? new JsonArray())
             {
                 WakeKind? kind = S(w, "trigger") switch

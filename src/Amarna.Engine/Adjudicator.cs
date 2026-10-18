@@ -56,6 +56,8 @@ public sealed class OrderOutcome
     public Power? Helped { get; set; }
     public bool Succeeded { get; set; }
     public bool Destroyed { get; set; }
+    /// <summary>Move: who held the destination before the moves (set by the engine; ownership is public).</summary>
+    public Power? TargetOwner { get; set; }
 }
 
 public sealed class AdjudicationResult

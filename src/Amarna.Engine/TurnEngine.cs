@@ -305,6 +305,9 @@ public sealed partial class TurnEngine
         }
 
         var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
+        // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
+        foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
+            o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
 
         // Which provinces could each power see before the moves? Battles there are reported to it.
         var sightBefore = Powers.All.ToDictionary(p => p, p => Views.Sight(S, Map, p));
@@ -347,10 +350,18 @@ public sealed partial class TurnEngine
         {
             var sight = sightBefore[p];
             // Its own orders, each failed move and void support with the reason; foreign orders where the unit stood, or moved to, in sight before the moves.
-            var mine = result.Lines.Where(l => l.Power == p).Select(l =>
-                l.Failure is { } f ? $"{l.Text}: {WhyMoveFailed(p, l.Province, l.Target!, f, sight)}"
-                : l.Void is { } v ? $"{l.Text}: {v}"
-                : l.Text).ToList();
+            var mine = new List<string>();
+            foreach (var l in result.Lines.Where(l => l.Power == p))
+            {
+                if (l.Failure is { } f)
+                {
+                    var why = WhyMoveFailed(p, l.Province, l.Target!, f, sight);
+                    // A scheduled move that was stopped wakes its sleeping seat, with the reason.
+                    if (byProvince.TryGetValue(l.Province, out var move)) ScheduledFailed(p, move, why);
+                    mine.Add($"{l.Text}: {why}");
+                }
+                else mine.Add(l.Void is { } v ? $"{l.Text}: {v}" : l.Text);
+            }
             var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && (sight.Contains(l.Province) || l.Target is { } t && sight.Contains(t)))
                 .Select(l => $"{l.Power}: {l.Text}").ToList();
             var fallen = result.FallenGarrisons.Where(sight.Contains).Select(g => $"The walls of {Map[g].Name} fell.").ToList();

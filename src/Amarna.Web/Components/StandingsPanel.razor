@@ -66,7 +66,9 @@
                 @if (State.Config.SleepingSeats && State.Sleep.TryGetValue(p, out var sleep))
                 {
                     var spells = sleep.History.Count;
-                    <div class="muted">@(sleep.Asleep ? $"Asleep since turn {sleep.LastCalled + 1}, wakes by turn {sleep.WakeAt}." : "Awake.") @(spells > 0 ? $"Has slept {spells} time{(spells == 1 ? "" : "s")}; asked for {string.Join(", ", sleep.History.Select(h => h.Requested))} seasons." : "Has not slept yet.")</div>
+                    var lengths = sleep.History.Where(h => h.WokeAt > 0).Select(h => h.WokeAt - h.From).ToList();
+                    var last = sleep.History.LastOrDefault(h => h.WokeAt > 0);
+                    <div class="muted">@(sleep.Asleep ? $"Asleep since turn {sleep.LastCalled + 1}, wakes by turn {sleep.WakeAt}{(sleep.History.LastOrDefault() is { Named: > 0 } open ? $" (named turn {open.Named})" : "")}." : "Awake.") @(lengths.Count > 0 ? $"Has slept {lengths.Count} time{(lengths.Count == 1 ? "" : "s")}, for {string.Join(", ", lengths)} season{(lengths.Count == 1 && lengths[0] == 1 ? "" : "s")}; last woken by: {string.Join("; ", last!.Reasons)}." : spells > 0 ? "Sleeping for the first time." : "Has not slept yet.")</div>
                 }
             </li>
         }

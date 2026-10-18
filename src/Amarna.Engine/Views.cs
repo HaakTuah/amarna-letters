@@ -100,16 +100,23 @@ public sealed class SeatView
     /// <summary>Last season's orders as they resolved, for every unit this court could see.</summary>
     public List<OrderOutcome> LastSeason { get; set; } = new();
 
-    /// <summary>The most seasons this seat may sleep, or 0 when it cannot sleep (see <see cref="GameConfig.SleepingSeats"/>).</summary>
-    public int MaxSleep { get; set; }
+    /// <summary>Whether this seat sleeps after its orders (see <see cref="GameConfig.SleepingSeats"/>). The cap on its sleep is never shown.</summary>
+    public bool Sleeps { get; set; }
     /// <summary>Why this seat was woken this season; empty when it was awake anyway.</summary>
     public List<string> WokenBecause { get; set; } = new();
-    /// <summary>The last season this seat gave orders before this one.</summary>
+    /// <summary>The last season this seat gave orders before this one (0 if it never has).</summary>
     public int LastCalled { get; set; }
-    /// <summary>News delivered while this seat slept, oldest first.</summary>
+    /// <summary>
+    /// News delivered while this seat slept, oldest first: routine treasury notices left out (this season's is in its
+    /// news), and at most <see cref="Views.MaxWhileAsleep"/> items, the latest.
+    /// </summary>
     public List<InboxItem> WhileAsleep { get; set; } = new();
-    /// <summary>Distant movements seen while it slept.</summary>
+    /// <summary>Older news of the seasons it slept that did not fit.</summary>
+    public int WhileAsleepLeftOut { get; set; }
+    /// <summary>What happened while it slept that did not wake it, in brief, one line each.</summary>
     public List<string> Digest { get; set; } = new();
+    /// <summary>Older digest lines that did not fit.</summary>
+    public int DigestLeftOut { get; set; }
     /// <summary>Its own orders queued for later seasons.</summary>
     public List<ScheduledOrders> Scheduled { get; set; } = new();
     public Dictionary<string, int> Prices { get; set; } = new();
@@ -159,6 +166,16 @@ public static class Views
         return all;
     }
 
+    /// <summary>A sleeping seat wakes to at most this many items of the news of the seasons it slept.</summary>
+    public const int MaxWhileAsleep = 40;
+
+    /// <summary>
+    /// A treasury notice that only gives the season's figures: stale once another season has passed (the latest is in
+    /// this season's news). One that says troops deserted or people went unpaid is kept.
+    /// </summary>
+    private static bool RoutineTreasury(InboxItem i) =>
+        i.Kind == InboxKind.Notice && i.Title == "The treasury" && !i.Body.Contains("deserted", StringComparison.Ordinal) && !i.Body.Contains("Could not pay", StringComparison.Ordinal);
+
     public static SeatView For(GameState s, Power p, WorldMap? map = null)
     {
         map ??= WorldMap.Default;
@@ -193,11 +210,14 @@ public static class Views
 
         if (s.Config.SleepingSeats && s.Sleep.TryGetValue(p, out var sleep))
         {
-            v.MaxSleep = s.Config.MaxSleep;
+            v.Sleeps = true;
             v.WokenBecause = sleep.WokenBecause.ToList();
             v.LastCalled = sleep.LastCalled;
-            v.WhileAsleep = s.InboxOf(p).Where(i => i.Turn > sleep.LastCalled && i.Turn < s.Turn).ToList();
+            var slept = s.InboxOf(p).Where(i => i.Turn > sleep.LastCalled && i.Turn < s.Turn && !RoutineTreasury(i)).ToList();
+            v.WhileAsleepLeftOut = Math.Max(0, slept.Count - MaxWhileAsleep);
+            v.WhileAsleep = slept.Skip(v.WhileAsleepLeftOut).ToList();
             v.Digest = sleep.Digest.ToList();
+            v.DigestLeftOut = sleep.DigestLeftOut;
             v.Scheduled = sleep.Scheduled.Select(x => new ScheduledOrders { Turn = x.Turn, Orders = x.Orders.ToList() }).ToList();
         }
 
