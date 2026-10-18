@@ -12,7 +12,8 @@ public sealed class GameRunner
 {
     private readonly GameLog? _replay;
     private readonly bool _strict;
-    private readonly ISeat _fallbackSeat;
+    /// <summary>The script king that stands in when a seat's call fails. It keeps up with every model and file seat (see OrdersAsync).</summary>
+    private readonly ScriptLeader _fallbackSeat;
     private readonly ICharacterMind _fallbackMind = new ScriptMind();
 
     public GameState State { get; private set; }
@@ -81,6 +82,9 @@ public sealed class GameRunner
     }
 
     public bool IsReplay => _replay is not null && _strict;
+
+    /// <summary>The stand-in script king, for tests.</summary>
+    internal ScriptLeader StandIn => _fallbackSeat;
 
     private void SetPhase(string phase)
     {
@@ -273,6 +277,12 @@ public sealed class GameRunner
         var engine = new TurnEngine(State);
         var alive = State.Alive.Where(p => !engine.IsAsleep(p)).ToList();
         var views = alive.ToDictionary(p => p, p => Views.For(State, p));
+        // A shadow brain: the stand-in reads every model or file seat's view each season, asleep or awake, so that when a
+        // call fails it plays a king who remembers. It learns once a season (if it stood in at an audience, it learned
+        // then). Its reading changes nothing in the game, so replays stay exact; a strict replay asks no seat and skips it.
+        if (!IsReplay)
+            foreach (var p in State.Alive.Where(p => Seats[p].CanSleep))
+                _fallbackSeat.Observe(views.GetValueOrDefault(p) ?? Views.For(State, p));
         var results = await Task.WhenAll(alive.Select(p => Recorded($"t{turn}/orders/{p}",
             () => Seats[p].DecideAsync(views[p], ct),
             async () =>
