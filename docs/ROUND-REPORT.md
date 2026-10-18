@@ -295,7 +295,7 @@ By seat, run 1 / run 2: Egypt 2 / 3, Hatti 4 / 1, Babylonia 2 / 5, Mitanni 7 / 7
 | Weekly limit (all models) | 54% → 58% | 58% → 63% |
 
 - **Growth.** An orders call cost about 27k tokens in season 1 and 40-52k by seasons 9-10, mostly because the journal grows. Odd seasons, when letters are written, cost more. The journal is capped at five full seasons plus eight short notes, so growth should flatten from about season 14.
-- **All in:** 8.6M king tokens for the isolation test, both runs and both debriefs, about 9 points of the weekly limit, roughly 1 point per million. The 5-hour window rose 13 points during run 1 and reset during run 2. The orchestrator's own use is inside these figures.
+- **All in:** 8.6M king tokens for the isolation test, both runs and both debriefs, about 9 points of the weekly limit, roughly 1 point per million. The 5-hour window rose 13 points during run 1 and reset during run 2. The orchestrator's own use is inside these figures. Reading the runs for this report took about 6 more weekly points: eight analysts and eight checkers on the orchestrator's model, about 3.7M tokens (63% to 69%). Budget for that too.
 - **A full game** (about 21 seasons, the expected length after season 15) would cost about 9-10M king tokens with a debrief, about 10 weekly points, 35 points of a 5-hour window, and 2.5 to 3.5 hours. That is twice the estimate in Part 2 above, because each call costs more than expected.
 - **Realistic?** One full game a week, yes. A sleep on/off pair at full length would take about a fifth of the week, and several seeds are out of reach this way. Sleeping, as it works today, does not change that.
 
