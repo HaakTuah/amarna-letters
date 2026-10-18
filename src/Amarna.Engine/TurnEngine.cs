@@ -264,7 +264,7 @@ public sealed partial class TurnEngine
             if (at is not null) byProvince[at] = o;
         }
 
-        var result = new Adjudicator(Map).Run(S.Units, S.Garrisons, byProvince, S.Owner);
+        var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
 
         // Which provinces could each power see before the moves? Battles there are reported to it.
         var sightBefore = Powers.All.ToDictionary(p => p, p => Views.Sight(S, Map, p));
@@ -306,8 +306,10 @@ public sealed partial class TurnEngine
         foreach (var p in S.Alive)
         {
             var sight = sightBefore[p];
-            var mine = result.Lines.Where(l => l.Power == p).Select(l => l.Text).ToList();
-            var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && sight.Contains(l.Province)).Select(l => $"{l.Power}: {l.Text}").ToList();
+            // Its own orders, each failed move with the reason; foreign orders where the unit stood, or moved to, in sight before the moves.
+            var mine = result.Lines.Where(l => l.Power == p).Select(l => l.Failure is { } f ? $"{l.Text}: {WhyMoveFailed(p, l.Province, l.Target!, f, sight)}" : l.Text).ToList();
+            var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && (sight.Contains(l.Province) || l.Target is { } t && sight.Contains(t)))
+                .Select(l => $"{l.Power}: {l.Text}").ToList();
             var fallen = result.FallenGarrisons.Where(sight.Contains).Select(g => $"The walls of {Map[g].Name} fell.").ToList();
             if (mine.Count + seen.Count + fallen.Count == 0) continue;
             var body = string.Join("\n", mine.Select(x => "- " + x));
@@ -315,6 +317,32 @@ public sealed partial class TurnEngine
             if (fallen.Count > 0) body += "\n" + string.Join("\n", fallen);
             S.Notify(p, InboxKind.Battle, "Movements this season", body.Trim());
         }
+    }
+
+    /// <summary>
+    /// Why one of the viewer's own moves failed, in plain words, with the strengths the engine compared.
+    /// The other side's power is named only when the viewer could see that unit before the moves (where it
+    /// stood, or where it was going); the province it acted from is always named.
+    /// </summary>
+    private static string WhyMoveFailed(Power viewer, string from, string to, MoveFailure f, HashSet<string> sight)
+    {
+        var seen = f.Power is not null && (sight.Contains(f.Province) || f.MovingTo is { } t && sight.Contains(t));
+        var kind = f.Kind == UnitKind.Army ? "army" : "fleet";
+        var whose = f.Power == viewer ? $"your own {kind}" : $"{f.Power}'s {kind}";
+        var strengths = $"; your strength {f.Strength} against {f.Against}";
+        return f.Stop switch
+        {
+            MoveStop.NoConvoy => "no convoy carried it across the sea",
+            MoveStop.OwnUnit => f.MovingTo == from
+                ? $"your own {kind} in {f.Province} was moving the other way, and you cannot dislodge your own unit"
+                : $"your own {kind} in {f.Province} did not leave, and you cannot dislodge your own unit",
+            MoveStop.HeadToHead => $"it met the unit from {f.Province}{(seen ? $" ({whose})" : "")} coming the other way{strengths}",
+            MoveStop.Held => $"the unit holding {f.Province}{(seen ? $" ({whose})" : "")} kept its place{strengths}",
+            MoveStop.Stayed => $"the unit in {f.Province}{(seen ? $" ({whose})" : "")} could not leave, so it kept its place{strengths}",
+            MoveStop.Walls => $"the walls of {f.Province} held{(f.Power is { } owner ? $" for {owner}" : "")}{strengths}",
+            MoveStop.Bounced => $"it met a move into {to} from {f.Province}{(seen ? $" by {whose}" : "")}{strengths}",
+            _ => "it was stopped",
+        };
     }
 
     private void UpdateOwnership()

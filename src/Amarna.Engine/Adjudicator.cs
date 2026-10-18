@@ -2,6 +2,39 @@ namespace Amarna.Engine;
 
 public sealed record MoveResult(string From, string To, bool Succeeded);
 
+/// <summary>What stopped a move, in the order the adjudicator checks.</summary>
+public enum MoveStop
+{
+    /// <summary>The army went by sea and no convoy carried it.</summary>
+    NoConvoy,
+    /// <summary>The province held the mover's own unit, which stayed: no unit dislodges its own side.</summary>
+    OwnUnit,
+    /// <summary>The unit in the target was moving into the mover's province and held it off.</summary>
+    HeadToHead,
+    /// <summary>The unit in the target held (or supported, or convoyed) and kept its place.</summary>
+    Held,
+    /// <summary>The unit in the target tried to leave, failed, and so kept its place.</summary>
+    Stayed,
+    /// <summary>City walls held the target.</summary>
+    Walls,
+    /// <summary>Another move into the same province was at least as strong.</summary>
+    Bounced,
+}
+
+/// <summary>
+/// Why a move failed, as the adjudicator resolved it: what stopped it, where the unit (or walls) that
+/// stopped it stood, its power and kind, where that unit was itself moving, and the strengths compared
+/// (the move's own, and what it had to beat).
+/// </summary>
+public sealed record MoveFailure(MoveStop Stop, string Province, Power? Power, UnitKind Kind, string? MovingTo, int Strength, int Against);
+
+/// <summary>One line of a battle report: the unit's province, its power, the order as resolved, and for a move its target and why it failed.</summary>
+public sealed record ReportLine(string Province, Power? Power, string Text, bool Ok)
+{
+    public string? Target { get; init; }
+    public MoveFailure? Failure { get; init; }
+}
+
 /// <summary>One order as it resolved: who, where, what, and whether it worked.</summary>
 public sealed class OrderOutcome
 {
@@ -31,7 +64,7 @@ public sealed class AdjudicationResult
     /// <summary>Supports that held: (supporter, supported power, province acted on).</summary>
     public List<(Power Supporter, Power? Supported, string Province)> GivenSupports { get; } = new();
     /// <summary>Order description per unit province, with its outcome, for reports.</summary>
-    public List<(string Province, Power? Power, string Text, bool Ok)> Lines { get; } = new();
+    public List<ReportLine> Lines { get; } = new();
     public List<OrderOutcome> Outcomes { get; } = new();
 }
 
@@ -62,13 +95,19 @@ public sealed class Adjudicator
     }
 
     private readonly WorldMap _map;
+    private readonly bool _explain;
     private readonly List<O> _orders = new();
     private readonly Dictionary<string, int> _at = new();
     private RState[] _state = [];
     private bool[] _result = [];
     private readonly List<int> _deps = new();
 
-    public Adjudicator(WorldMap map) => _map = map;
+    /// <param name="explain">Also work out why each failed move failed and where each cut came from, for battle reports.</param>
+    public Adjudicator(WorldMap map, bool explain = false)
+    {
+        _map = map;
+        _explain = explain;
+    }
 
     public AdjudicationResult Run(IReadOnlyList<Unit> units, IEnumerable<string> garrisons, IReadOnlyDictionary<string, Order> ordersByProvince,
         IReadOnlyDictionary<string, Power?>? owners = null)
@@ -395,24 +434,71 @@ public sealed class Adjudicator
             {
                 case Kind.Move:
                     r.Moves.Add(new MoveResult(o.At, o.Target!, moved));
-                    r.Lines.Add((o.At, o.Power, $"{label} -> {o.Target}{(o.ViaConvoy ? " (by sea)" : "")}: {(moved ? "succeeds" : "fails")}", moved));
+                    r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} -> {o.Target}{(o.ViaConvoy ? " (by sea)" : "")}: {(moved ? "succeeds" : "fails")}", moved)
+                    {
+                        Target = o.Target,
+                        Failure = _explain && !moved ? WhyFailed(o) : null,
+                    });
                     break;
                 case Kind.Support:
                     var given = _result[o.Index];
                     if (!given) r.CutSupports.Add(o.At);
                     else if (o.Power is { } supporter && _at.TryGetValue(o.Target!, out var sIdx))
                         r.GivenSupports.Add((supporter, _orders[sIdx].Power, o.To ?? o.Target!));
-                    r.Lines.Add((o.At, o.Power, $"{label} supports {o.Target}{(o.To is null ? " holding" : " -> " + o.To)}: {(given ? "given" : "cut")}", given));
+                    // A unit that is destroyed gives no support: that is not a cut.
+                    var failed = dislodged ? "void: the supporting unit was destroyed"
+                        : _explain && CutBy(o) is { } cut ? $"cut (attacked from {cut.At})" : "cut";
+                    r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} supports {o.Target}{(o.To is null ? " holding" : " -> " + o.To)}: {(given ? "given" : failed)}", given));
                     break;
                 case Kind.Convoy:
-                    r.Lines.Add((o.At, o.Power, $"{label} convoys {o.Target} -> {o.To}", _result[o.Index]));
+                    r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} convoys {o.Target} -> {o.To}", _result[o.Index]));
                     break;
                 default:
-                    r.Lines.Add((o.At, o.Power, $"{label} holds", true));
+                    r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} holds", true));
                     break;
             }
-            if (dislodged) r.Lines.Add((o.At, o.Power, $"{label} is destroyed", false));
+            if (dislodged) r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} is destroyed", false));
         }
         return r;
     }
+
+    /// <summary>
+    /// Why a resolved move failed, from the same checks <see cref="Adjudicate"/> made, in the same order:
+    /// the convoy, the mover's own unit, the head-to-head defence or the hold, then every other move into the province.
+    /// </summary>
+    private MoveFailure? WhyFailed(O move)
+    {
+        if (!PathOk(move)) return new(MoveStop.NoConvoy, move.Target!, null, UnitKind.Army, null, 0, 0);
+        var attack = AttackStrength(move);
+        var occ = _at.TryGetValue(move.Target!, out var i) ? _orders[i] : null;
+        if (attack == 0 && occ is { Power: { } own } && own == move.Power)
+            return new(MoveStop.OwnUnit, occ.At, occ.Power, occ.UnitKind, occ.Kind == Kind.Move ? occ.Target : null, 0, 0);
+
+        if (HeadToHeadOpponent(move) is { } opp)
+        {
+            var defend = DefendStrength(opp);
+            if (attack <= defend) return new(MoveStop.HeadToHead, opp.At, opp.Power, opp.UnitKind, opp.Target, attack, defend);
+        }
+        else if (occ is not null)
+        {
+            var hold = HoldStrength(move.Target!);
+            if (attack <= hold)
+            {
+                var stop = occ.UnitId is null ? MoveStop.Walls : occ.Kind == Kind.Move ? MoveStop.Stayed : MoveStop.Held;
+                return new(stop, occ.At, occ.Power, occ.UnitKind, occ.Kind == Kind.Move ? occ.Target : null, attack, hold);
+            }
+        }
+
+        foreach (var other in MovesTo(move.Target!))
+        {
+            if (other == move) continue;
+            var prevent = PreventStrength(other);
+            if (attack <= prevent) return new(MoveStop.Bounced, other.At, other.Power, other.UnitKind, other.Target, attack, prevent);
+        }
+        return null;
+    }
+
+    /// <summary>The move that cut a support, by the same test <see cref="Adjudicate"/> used.</summary>
+    private O? CutBy(O support) => MovesTo(support.At).FirstOrDefault(m =>
+        m.Power != support.Power && !(support.To is not null && m.At == support.To) && PathOk(m));
 }

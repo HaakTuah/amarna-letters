@@ -6,6 +6,16 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 ## Rules as implemented
 
 - **No retreat phase.** A dislodged unit is destroyed. This keeps one order round per season.
+- **Battle reports.** Next season each king reads its own orders as they resolved, and every
+  foreign order whose unit stood, or moved to, a province it could see before the moves. Each of
+  its own failed moves says why, from the adjudicator's own checks in their order: no convoy carried
+  it; its own unit did not leave; the unit from the target was coming the other way; the unit holding
+  the target kept its place (or could not leave); the walls held; or it met another move into the
+  target from a named province. The strengths compared follow ("your strength 2 against 2"). The other
+  side's power is named only if that unit was in sight. A support whose unit was destroyed reads
+  "void: the supporting unit was destroyed", not "cut"; a cut support says where the attack came
+  from. (Until the simulation-fixes round, foreign lines were kept by the moving unit's origin
+  only, so a move from out of sight that bounced a king's move was never shown.)
 - **Ownership changes every season**, whenever a unit ends a season in a province, not only in
   autumn as in Diplomacy.
 - **Free city-states have walls** that hold with strength 1 and never move, so taking one needs a
