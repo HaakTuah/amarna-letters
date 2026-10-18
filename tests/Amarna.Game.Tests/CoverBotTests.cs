@@ -36,7 +36,7 @@ public class CoverBotTests
 
         // A model king reads the same: the caught spy at its post, never "at court, ready".
         var text = Amarna.Llm.Prompts.Situation(view);
-        Assert.Contains($"{caught.Id} {caught.Name} of {caught.Origin}; watching Hatti; wage {caught.Contract.Wage} until turn {caught.Contract.UntilTurn}", text);
+        Assert.Contains($"{caught.Id} {caught.Name} of {caught.Origin}; watching Hatti; serves at {caught.Contract.Wage} a season through turn {caught.Contract.UntilTurn};", text);
         Assert.Contains($"{gone.Id} {gone.Name} of {gone.Origin}; on the road home;", text);
 
         var king = new ScriptLeader(11);

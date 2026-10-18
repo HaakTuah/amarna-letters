@@ -512,7 +512,7 @@ public class CoverTests
 
         string Refusal(GameState g) => new OrderValidator(g).Validate(Power.Egypt, new TurnSubmission { Orders = [new HireOrder(defector.Id, 30)] }).Rejected.Single().Reason;
         Assert.Equal(Refusal(home), Refusal(s));
-        Assert.Equal($"{defector.Name} is not available for hire", Refusal(s));
+        Assert.Equal($"{defector.Name} is already in your service; to keep them on, order renew", Refusal(s));
 
         // It comes before Egypt's king seeking service: the cover ends, and it is a candidate like any other.
         new TurnEngine(s).Fulfil(new MindRequest { Id = "r900", Task = MindTask.Pitch, CharacterId = defector.Id, Court = Power.Egypt }, new MindReply { Text = "I would serve you again.", Number = 25 });

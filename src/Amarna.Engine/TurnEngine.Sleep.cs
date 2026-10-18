@@ -70,6 +70,9 @@ public sealed partial class TurnEngine
                 InboxKind.Tablet => $"a tablet: {i.Title}",
                 InboxKind.Battle when i.Title == "Land lost" => $"land lost: {i.Body}",
                 InboxKind.Notice when i.Title == "A spy is caught" => "a spy has been caught at your court",
+                InboxKind.Notice when i.Title == NoticeTitle => "a servant gives notice: " + (S.FindCharacter(i.Subject) is { Contract.NoticePrice: { } ask } c
+                    ? $"{c.Name} asks {Money.Format(ask)} a season to serve on"
+                    : i.Body),
                 InboxKind.Notice when i.Title == "The treasury" && i.Body.Contains("deserted", StringComparison.Ordinal) => "your unpaid troops deserted",
                 InboxKind.Rumor when i.Body.Contains("order pay_ransom", StringComparison.Ordinal) => "a ransom is demanded for one of your people",
                 _ => null,

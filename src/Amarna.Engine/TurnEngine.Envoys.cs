@@ -571,6 +571,50 @@ public sealed partial class TurnEngine
             S.Notify(winner, InboxKind.Notice, "Hired", $"{c.Name} has entered your service at {Money.Format(hire.Wage)} a season.", c.Id);
             S.Log("hire", $"{winner} hired {c.Name}.", [winner]);
         }
+
+        // Renewals, settled with hiring.
+        foreach (var (p, o) in orders)
+            if (o is RenewOrder rn) Renew(p, rn);
+    }
+
+    /// <summary>
+    /// A servant kept on: accepted if the wage reaches its renewal price (what it asked when it gave notice, else the
+    /// renewal formula). The new contract runs from this season for the term named, and any notice ends. A servant
+    /// abroad whose fate its master has not heard of is renewed as the master believes it, so nothing is betrayed.
+    /// </summary>
+    private void Renew(Power p, RenewOrder r)
+    {
+        var c = S.Char(r.Character);
+        var cover = c.CoverOf(p);
+        var serves = c.Employer == p && c.Status is (CharacterStatus.Employed or CharacterStatus.Captured) && c.Contract is not null;
+        if (cover is null && !serves)
+        {
+            // Dismissed earlier this season.
+            S.Notify(p, InboxKind.Rejected, "Not renewed", $"{c.Name} is no longer in your service, so could not be renewed.", c.Id);
+            ScheduledFailed(p, r, "no longer in your service");
+            return;
+        }
+        var price = cover is not null ? cover.NoticePrice ?? cover.Wage : RenewalPrice(c, p);
+        if (r.Wage < price)
+        {
+            S.Notify(p, InboxKind.Rejected, "Not renewed", $"{c.Name} will not serve on for {Money.Format(r.Wage)} a season; they ask {Money.Format(price)}.", c.Id);
+            ScheduledFailed(p, r, $"they ask {price}");
+            return;
+        }
+        var until = S.Turn + Math.Clamp(r.Term, 1, 30);
+        if (cover is not null)
+        {
+            cover.Wage = r.Wage;
+            cover.ContractUntil = until;
+            cover.NoticePrice = null;
+            cover.LeavesTurn = null;
+        }
+        if (serves)
+        {
+            c.Contract = new Contract { Wage = r.Wage, StartTurn = S.Turn, UntilTurn = until };
+            c.Remember(S.Turn, $"The king of {p.Land()} renewed my service at {Money.Format(r.Wage)} a season.");
+        }
+        S.Notify(p, InboxKind.Notice, "Contract renewed", $"{c.Name} stays in your service at {Money.Format(r.Wage)} a season through turn {until}.", c.Id);
     }
 
     /// <summary>
@@ -628,19 +672,23 @@ public sealed partial class TurnEngine
     }
 
     /// <summary>What a character asks a court. Set by the character's own pitch when it gave one.</summary>
-    public int AskingPrice(Character c, Power court)
+    public static int AskingPrice(Character c, Power court)
     {
         if (c.AskingPrice.TryGetValue(court, out var price)) return price;
         return BasePrice(c, court);
     }
 
-    public int BasePrice(Character c, Power court)
+    public static int BasePrice(Character c, Power court)
     {
         var rep = c.Reputation.Values.DefaultIfEmpty(0).Average();
         var price = 6 + c.Traits.Competence / 8 + c.Traits.Greed / 8 + (int)(rep / 5);
         if (c.Traits.Sympathy == court) price -= 4;
         return Math.Max(5, price);
     }
+
+    /// <summary>What a servant asks its master to serve on: the price it named when it gave notice, else what it would ask at the end of its term.</summary>
+    public static int RenewalPrice(Character c, Power court) =>
+        c.Contract?.NoticePrice ?? BasePrice(c, court) + (c.Traits.Greed > 60 ? 5 : 0) - (c.Traits.Loyalty > 70 ? 5 : 0);
 
     private void TasksDue()
     {
@@ -698,24 +746,50 @@ public sealed partial class TurnEngine
             }
         }
 
-        // Contracts that ran out are renewed if the character is still content with the wage.
-        foreach (var c in S.Characters.Where(c => c.Status == CharacterStatus.Employed && c.Contract is { } k && k.UntilTurn < S.Turn && c.Duty == Duty.None).OrderBy(c => c.Id).ToList())
+        // Servants on notice who came home this season leave now.
+        NoticesRunOut();
+
+        // Terms that have ended, for servants at court with no task: one still content with the wage serves on; one who
+        // wants more gives a season's notice and names its price.
+        foreach (var c in S.Characters.Where(c => c.Status == CharacterStatus.Employed && c.Contract is { NoticePrice: null } k && k.UntilTurn < S.Turn && c.Duty == Duty.None).OrderBy(c => c.Id).ToList())
         {
             var emp = c.Employer!.Value;
-            var ask = BasePrice(c, emp) + (c.Traits.Greed > 60 ? 5 : 0) - (c.Traits.Loyalty > 70 ? 5 : 0);
+            var ask = RenewalPrice(c, emp);
             if (ask <= c.Contract!.Wage * 1.2)
             {
                 c.Contract.UntilTurn = S.Turn + 6;
-                S.Notify(emp, InboxKind.Notice, "Contract renewed", $"{c.Name} stays in your service at {Money.Format(c.Contract.Wage)} a season.", c.Id);
+                S.Notify(emp, InboxKind.Notice, "Contract renewed", $"{c.Name} stays in your service at {Money.Format(c.Contract.Wage)} a season through turn {c.Contract.UntilTurn}.", c.Id);
             }
             else
             {
-                c.AskingPrice[emp] = ask;
-                c.Pitches[emp] = $"My term has ended. I would serve again for {Money.Format(ask)} a season.";
-                c.Remember(S.Turn, $"My term with {emp.Land()} ended; I asked for more and left.");
-                Quit(c, $"{c.Name}'s term has ended. They ask {Money.Format(ask)} a season to serve again.");
-                c.At = emp;
+                c.Contract.NoticePrice = ask;
+                c.Contract.LeavesTurn = S.Turn + 1;
+                c.Remember(S.Turn, $"My term with {emp.Land()} has ended. I asked {Money.Format(ask)} a season to serve on.");
+                S.Notify(emp, InboxKind.Notice, NoticeTitle,
+                    $"{c.Name}'s term has ended. They ask {Money.Format(ask)} a season to serve on: renew them this season (order renew), or they leave at the start of turn {S.Turn + 1}.", c.Id);
             }
+        }
+    }
+
+    /// <summary>The title of the notice a servant gives when its term has ended and it wants more: it wakes a sleeping seat.</summary>
+    public const string NoticeTitle = "A servant gives notice";
+
+    /// <summary>
+    /// Servants whose notice has run out and who were not renewed leave, if they are at court with no task (one away
+    /// leaves when it is next at court): free at the court they served, asking the price they named. Checked at the
+    /// start of a season, before wages, and again once the season's travellers have arrived.
+    /// </summary>
+    private void NoticesRunOut()
+    {
+        foreach (var c in S.Characters.Where(c => c.Status == CharacterStatus.Employed && c.Contract is { LeavesTurn: { } t } && t <= S.Turn && c.Duty == Duty.None).OrderBy(c => c.Id).ToList())
+        {
+            var emp = c.Employer!.Value;
+            var ask = c.Contract!.NoticePrice!.Value;
+            c.AskingPrice[emp] = ask;
+            c.Pitches[emp] = $"My term has ended. I would serve again for {Money.Format(ask)} a season.";
+            c.Remember(S.Turn, $"My term with {emp.Land()} ended; I asked for more and was not kept on, so I left.");
+            Quit(c, $"{c.Name}'s term has ended and they were not renewed. They ask {Money.Format(ask)} a season to serve again.");
+            c.At = emp;
         }
     }
 }

@@ -39,7 +39,7 @@ public static class Schemas
 
     public static readonly string[] OtherActions =
     [
-        "raise_army", "raise_fleet", "buy_city", "cede_province", "give_unit", "seek_candidates", "hire", "dismiss",
+        "raise_army", "raise_fleet", "buy_city", "cede_province", "give_unit", "seek_candidates", "hire", "renew", "dismiss",
         "background_check", "place_spy", "recall_spy", "counter_intelligence", "assay", "authenticate", "forge",
         "captive_execute", "captive_ransom", "captive_turn", "captive_release", "release_detained", "pay_ransom",
     ];
@@ -56,8 +56,9 @@ public static class Schemas
         ("action", Enum(OtherActions)),
         ("province", Str("For raise, buy_city, cede_province, give_unit, or a province to spy on.")),
         ("power", Str("For cede_province, give_unit, or a court to spy on.")),
-        ("person", Str("Person id, for hire, dismiss, checks, spies, captives, release, ransom, forge.")),
-        ("amount", Int("Wage, spend or ransom in shekels, as the action needs; else 0.")),
+        ("person", Str("Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge.")),
+        ("amount", Int("Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0.")),
+        ("term", Int("hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice.")),
         ("text", Str("Forgery text, words for a released envoy, or what a turned spy should report.")),
         ("item", Str("Gold lot id for assay, tablet copy id for authenticate.")),
         ("seals", Array(Str(), "Powers whose seals a forgery bears.")));

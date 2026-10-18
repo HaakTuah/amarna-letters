@@ -157,7 +157,15 @@ public sealed class Contract
 {
     public int Wage { get; set; }
     public int StartTurn { get; set; }
+    /// <summary>The last season of the term.</summary>
     public int UntilTurn { get; set; }
+    /// <summary>
+    /// Set when the term has ended and the servant, wanting more than its wage, has given notice: the wage it asks
+    /// to serve on. Its master may renew it at that price or more; otherwise it leaves at <see cref="LeavesTurn"/>.
+    /// </summary>
+    public int? NoticePrice { get; set; }
+    /// <summary>With a notice: the season at whose start it leaves unless renewed (if it is away then, when it is next at court with no task).</summary>
+    public int? LeavesTurn { get; set; }
 }
 
 public enum CharacterStatus { Free, Employed, Captured, Dead }
@@ -238,6 +246,9 @@ public sealed class Cover
     public string WhereText { get; set; } = "";
     public int Wage { get; set; }
     public int? ContractUntil { get; set; }
+    /// <summary>The notice the master believes the servant has given (the price it asks to serve on, and when it leaves), if any.</summary>
+    public int? NoticePrice { get; set; }
+    public int? LeavesTurn { get; set; }
     /// <summary>
     /// The facts the master knew of the servant then, and public ones its inquiries have found since. A public fact
     /// added meanwhile, such as a defection, stays unseen until an inquiry finds it; hidden facts the master learns

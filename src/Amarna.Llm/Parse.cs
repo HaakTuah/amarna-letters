@@ -125,6 +125,8 @@ public static class Parse
         var amount = I(x, "amount");
         var province = Empty(S(x, "province")) is { } pr ? Prov(pr) : "";
         var power = P(S(x, "power"));
+        // Seasons of service for hire and renew: 0 (or none given) means the usual 6; the engine keeps it to 1-30.
+        var term = I(x, "term") is var t && t > 0 ? t : 6;
         Order? order = S(x, "action") switch
         {
             "raise_army" => new RaiseOrder(province, UnitKind.Army),
@@ -133,7 +135,8 @@ public static class Parse
             "cede_province" when power is { } cp => new CedeProvinceOrder(province, cp),
             "give_unit" when power is { } gp => new GiftUnitOrder(province, gp),
             "seek_candidates" => new SeekCandidatesOrder(),
-            "hire" => new HireOrder(person, amount, 6),
+            "hire" => new HireOrder(person, amount, term),
+            "renew" => new RenewOrder(person, amount, term),
             "dismiss" => new DismissOrder(person),
             "background_check" => new BackgroundCheckOrder(person, amount),
             "place_spy" when power is { } court => new PlaceSpyOrder(person, Court: court),

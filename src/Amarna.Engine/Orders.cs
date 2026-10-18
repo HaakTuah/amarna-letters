@@ -21,6 +21,7 @@ namespace Amarna.Engine;
 [JsonDerivedType(typeof(ReleaseOrder), "release")]
 [JsonDerivedType(typeof(SeekCandidatesOrder), "seekCandidates")]
 [JsonDerivedType(typeof(HireOrder), "hire")]
+[JsonDerivedType(typeof(RenewOrder), "renew")]
 [JsonDerivedType(typeof(DismissOrder), "dismiss")]
 [JsonDerivedType(typeof(BackgroundCheckOrder), "check")]
 [JsonDerivedType(typeof(PlaceSpyOrder), "spy")]
@@ -114,6 +115,15 @@ public sealed record HireOrder(string Character, int Wage, int Term = 6) : Order
     public override string Describe() => $"hire {Character} at {Wage} a season";
 }
 
+/// <summary>
+/// Keep one of your own people on at a new wage, for a new term. Not a task: the servant may be renewed and sent on
+/// an errand in the same season.
+/// </summary>
+public sealed record RenewOrder(string Character, int Wage, int Term = 6) : Order
+{
+    public override string Describe() => $"renew {Character} at {Wage} a season for {Term} seasons";
+}
+
 public sealed record DismissOrder(string Character) : Order
 {
     public override string Describe() => $"dismiss {Character}";
@@ -178,6 +188,7 @@ public static class OrderKeys
         DisbandOrder d => d.Unit, GiftUnitOrder g => g.Unit, _ => null,
     };
 
+    /// <summary>The person an order gives a task to. A renewal is not a task, so it is not counted here.</summary>
     public static string? CharacterOf(Order o) => o switch
     {
         DispatchOrder d => d.Envoy, ReleaseOrder r => r.Character, HireOrder h => h.Character, DismissOrder dm => dm.Character,

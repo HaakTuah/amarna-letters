@@ -32,6 +32,7 @@ public sealed class OrderValidator
         var bought = new HashSet<string>();
         var busyCharacters = new HashSet<string>();
         var ransomed = new HashSet<string>();
+        var renewed = new HashSet<string>();
         var dispatches = 0;
         var seekCount = 0;
         var counterIntel = false;
@@ -56,6 +57,7 @@ public sealed class OrderValidator
                 if (order is CounterIntelOrder) counterIntel = true;
                 if (order is RaiseOrder r) raisedIn.Add(r.Province);
                 if (order is BuyProvinceOrder b) bought.Add(b.Province);
+                if (order is RenewOrder rn) renewed.Add(rn.Character);
             }
             else
             {
@@ -214,7 +216,9 @@ public sealed class OrderValidator
                     var c = _s.FindCharacter(h.Character);
                     if (c is null) return $"there is nobody called '{h.Character}'";
                     // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
-                    if (!c.IsAvailableForHire || Covered(c)) return $"{c.Name} is not available for hire";
+                    if (Covered(c) || c.Employer == power && c.Status is CharacterStatus.Employed or CharacterStatus.Captured)
+                        return $"{c.Name} is already in your service; to keep them on, order renew";
+                    if (!c.IsAvailableForHire) return $"{c.Name} is not available for hire";
                     if (c.HeldBy is { } holder && holder != power) return $"{c.Name} is held at the court of {holder} and cannot come to yours";
                     if (!c.Pitches.ContainsKey(power) && c.At != power) return $"{c.Name} has not presented themselves to your court";
                     if (h.Wage <= 0 || h.Term <= 0) return "wage and term must be positive";
@@ -224,6 +228,24 @@ public sealed class OrderValidator
 
                 case DismissOrder dm:
                     return OwnCharacter(dm.Character, out _, mustBeHome: false);
+
+                case RenewOrder rn:
+                {
+                    // Not a task: a servant may be renewed and sent on an errand in the same season.
+                    var c = _s.FindCharacter(rn.Character);
+                    if (c is null) return $"there is nobody called '{rn.Character}'";
+                    var cover = c.CoverOf(power);
+                    if (cover is null && (c.Employer != power || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured)))
+                        return $"{c.Name} is not in your service";
+                    // One who has given notice may be renewed wherever they are; anyone else only at your court. A servant
+                    // abroad whose fate this court has not heard of counts as it believes.
+                    var notice = cover is not null ? cover.NoticePrice is not null : c.Contract?.NoticePrice is not null;
+                    var home = cover is null && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == power;
+                    if (!notice && !home) return $"{c.Name} is not at your court and has not given notice";
+                    if (rn.Wage <= 0 || rn.Term <= 0) return "wage and term must be positive";
+                    if (renewed.Contains(c.Id)) return $"{c.Name} was already renewed by an earlier order";
+                    return null;
+                }
 
                 case BackgroundCheckOrder bc:
                 {

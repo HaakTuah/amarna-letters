@@ -3,7 +3,7 @@ namespace Amarna.Engine;
 /// <summary>
 /// Pure, synchronous phase functions over a <see cref="GameState"/>. A turn is one season:
 /// <list type="number">
-/// <item><see cref="BeginTurn"/>: income and upkeep, arrivals, tasks that fall due.</item>
+/// <item><see cref="BeginTurn"/>: servants whose notice ran out leave, income and upkeep, arrivals, tasks and contracts that fall due.</item>
 /// <item>The caller fulfils <see cref="MindRequests"/> (reports, pitches) and runs audiences, then calls <see cref="ApplyAudience"/>.</item>
 /// <item>Seats read <see cref="Views.For"/> and submit secret, simultaneous orders.</item>
 /// <item><see cref="Resolve"/>: combat, transfers, dispatches, intelligence, world events, scoring, the end roll.</item>
@@ -32,6 +32,8 @@ public sealed partial class TurnEngine
         MindRequests.Clear();
         S.Audiences.Clear();
         S.CounterIntel.Clear();
+        // A servant whose notice has run out leaves before it is paid again.
+        NoticesRunOut();
         IncomeAndUpkeep();
         Arrivals();
         TasksDue();

@@ -70,7 +70,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Failures are rejection notices.** These are reported with the kind `Rejected`: every order the
   validator refused; a levy whose province was no longer free; a purchase that failed; a payment the
   treasury could not make; a ransom that could not be sent; a captive order that could no longer be
-  carried out ("Captive order failed"); a hire the person declined; and a cession blocked by the
+  carried out ("Captive order failed"); a hire the person declined; a renewal below the servant's
+  price, or of one dismissed that season ("Not renewed"); and a cession blocked by the
   king's own troops. The batch seat report's "invalid" column counts each of them (the validator's list once
   per order). Some failures at resolution still send no notice at all: a cession of land no longer
   held, a gift of troops whose unit is gone, and a disband of a unit that is gone (a scheduled order
@@ -154,6 +155,47 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   the simulation-fixes round a dismissed traveller was set at home at once and the gold it carried
   out was lost, a dismissed detained envoy could not be released, and a captive could not be
   dismissed.)
+- **Contracts** (one line in the rulebook). Every servant serves for a term (`Contract.UntilTurn` is
+  its last season). Starting envoys earn 6 + competence/10 (8–15); a hired servant serves the term
+  its king named (`term`, 1–30 seasons, 6 if none) at the wage agreed, from the season after it was
+  hired. A person asks a court its base price, 6 + competence/8 + greed/8 + average reputation/5,
+  −4 at the court it favours, at least 5, unless it named another in a pitch.
+  - **Term end.** Once the term has ended and the servant is at court with no task (one away serves
+    on until it is next at court), it reckons what it would ask to serve on: its base price, +5 if
+    greed is above 60, −5 if loyalty is above 70. If that is at most 1.2 × its wage it serves
+    another 6 seasons at the same wage ("Contract renewed": "Mane stays in your service at 12 shekels
+    a season through turn 17."). Otherwise it gives **notice** (`Contract.NoticePrice`,
+    `LeavesTurn`): it names that price and stays one more season at the old wage, and its master is
+    told, "Mane's term has ended. They ask 20 shekels a season to serve on: renew them this season
+    (order renew), or they leave at the start of turn 12." The notice wakes a sleeping seat. A
+    servant on notice can still be sent on errands. Unless renewed, it leaves at the start of turn
+    T, before that season's wages, so the king pays exactly one season past the term: it is free at
+    the court, asking that price, with a pitch that says so, and its old master may hire it back. If
+    it is away at T, it leaves when it is next at court with no task (an envoy reports first).
+  - **Renewal** (`renew`: person, wage, term). Valid for one of the king's own people at court, at
+    any time, or for one who has given notice, wherever it is. It is not a task: the servant may be
+    renewed and sent out in the same season. It is settled with hiring at the end of the season:
+    accepted if the wage reaches the servant's price (what it named in its notice, else what it
+    would ask at the end of its term); a new contract then runs from that season for the term named
+    (1–30, 6 if none), paid from the next season, and any notice ends ("Contract renewed", with the
+    last season of the new term). Below the price it is refused, with the price, as a rejection
+    notice ("Not renewed": "Mane will not serve on for 15 shekels a season; they ask 20 shekels.").
+    `hire` naming one's own servant is refused: "Mane is already in your service; to keep them on,
+    order renew". A servant abroad whose fate its master has not heard of is renewed as its master
+    believes it (its cover keeps the notice it gave): at the price it named, the master pays the new
+    wage from then on, and the real contract changes too if it truly still serves (a captive).
+  - **What the king reads.** Each servant's term in plain words: "serves at 12 a season through turn
+    10; if content they then renew themselves, otherwise they give a season's notice and name a
+    price"; once the term has passed while it is away, "serves at 12 a season; the term ended with
+    turn 10: when next at your court, if content they renew themselves, otherwise …"; on notice,
+    "serves at 12 a season; has given notice: asks 20 a season to serve on; leaves at the start of
+    turn 12 unless renewed" (or "leaves when next at your court unless renewed"). The web app's
+    people lists use the same words. A free person at the court shows what it asks there (its
+    pitch's price, or its base price), whether or not it pitched; one's own servants show no
+    asking price.
+  (Until the simulation-fixes round a servant who wanted more quit at once, the view read "wage 12
+  until turn 10" with no word of what came then, no order could renew a contract, models could not
+  name a term, and kings who tried to rehire their own envoys were told "not available for hire".)
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth.
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.
@@ -195,7 +237,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     meanwhile goes, and the captor keeps it. One its master did not know was caught goes back to
     its post as believed, or, if its master had recalled it, comes home.
   - **Orders.** Orders for a covered servant read as for any servant away ("Mane is not at your
-    court"; "Mane is not available for hire", even once it has gone free elsewhere; recalling a
+    court"; "Mane is already in your service; to keep them on, order renew" for a hire, even once
+    it has gone free elsewhere; a renewal is accepted if it had given notice; recalling a
     caught spy is accepted, and its master then believes it on the road home and hears a season
     after it was due that it has not returned). Dismissing it is accepted and ends the cover and the
     wage; a dismissed captive stays a captive.
@@ -311,6 +354,8 @@ before. There is never a global skip, and each seat sees only its own wake-ups.
   - one of its units was destroyed
   - a spy is caught at its court
   - a ransom is demanded for one of its people
+  - a servant gives notice ("a servant gives notice: Mane asks 20 shekels a season to serve on"):
+    the season of the notice is the one in which it can be renewed before it leaves
   - orders it scheduled could not be carried out, whether the validator rejected them or they
     failed as the season resolved (a levy, cession, gift or purchase that could not go through)
   - the cap is reached

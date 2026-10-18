@@ -225,7 +225,7 @@ public sealed class GameRunner
             Turn = turn,
             Seed = State.Seed,
             Trail = engine.Trail(req.TrailId),
-            BasePrice = engine.BasePrice(c, req.Court),
+            BasePrice = TurnEngine.BasePrice(c, req.Court),
             Demand = State.Tasks.Count(t => t.Kind == TaskKind.Candidates) + engine.MindRequests.Count(r => r.Task == MindTask.Pitch && r.CharacterId == c.Id),
         };
     }

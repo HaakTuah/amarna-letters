@@ -32,6 +32,8 @@ public sealed partial class TurnEngine
             // A captive's view shows no wage (none is paid while it is held); its contract's wage is kept for when it is free.
             Wage = seen.Wage ?? c.Contract?.Wage ?? 0,
             ContractUntil = seen.ContractUntil,
+            NoticePrice = seen.NoticePrice,
+            LeavesTurn = seen.LeavesTurn,
             FactIds = factIds ?? c.FactsKnownTo(master).Select(f => f.Id).ToList(),
         });
     }

@@ -27,9 +27,17 @@ public sealed class CharacterView
     public string Duty { get; set; } = "";
     public string Where { get; set; } = "";
     public int? Wage { get; set; }
+    /// <summary>The last season of your servant's term.</summary>
     public int? ContractUntil { get; set; }
+    /// <summary>One of your people who has given notice: the wage they ask to serve on.</summary>
+    public int? NoticePrice { get; set; }
+    /// <summary>With a notice: the season at whose start they leave unless renewed.</summary>
+    public int? LeavesTurn { get; set; }
+    /// <summary>Your servant's term in plain words: the wage, until when, and what happens then (see <see cref="Views.TermText"/>).</summary>
+    public string Term { get; set; } = "";
     public List<string> KnownFacts { get; set; } = new();
     public string? Pitch { get; set; }
+    /// <summary>What someone not in your service asks you a season: named in a pitch, or asked by a free person at your court.</summary>
     public int? AskingPrice { get; set; }
     /// <summary>In your service, at your court, with no task: can be sent somewhere this season.</summary>
     public bool Ready { get; set; }
@@ -203,6 +211,9 @@ public static class Views
         if (c.CoverOf(viewer) is { } cover) return Covered(s, c, cover);
         var ours = c.Employer == viewer;
         var captive = ours && c.Status == CharacterStatus.Captured && c.HeldBy is not null;
+        // A free person at your court (not held by another) can be hired there at what they ask, whether or not they pitched.
+        var freeHere = c.Status == CharacterStatus.Free && c.At == viewer && (c.HeldBy is null || c.HeldBy == viewer);
+        var k = ours ? c.Contract : null;
         return new CharacterView
         {
             Id = c.Id,
@@ -214,11 +225,15 @@ public static class Views
             Duty = captive ? CaptiveText(s, c.Id, c.HeldBy!.Value, viewer) : ours ? DutyText(c) : "",
             Where = ours || c.At == viewer ? WhereText(c, viewer) : "",
             // A captive draws no wage while it is held.
-            Wage = ours && !captive ? c.Contract?.Wage : null,
-            ContractUntil = ours ? c.Contract?.UntilTurn : null,
+            Wage = captive ? null : k?.Wage,
+            ContractUntil = k?.UntilTurn,
+            NoticePrice = k?.NoticePrice,
+            LeavesTurn = k?.LeavesTurn,
+            Term = k is null || captive ? "" : TermText(k.Wage, k.UntilTurn, k.NoticePrice, k.LeavesTurn, s.Turn),
             KnownFacts = c.FactsKnownTo(viewer).Select(f => f.Text).ToList(),
             Pitch = c.Pitches.GetValueOrDefault(viewer),
-            AskingPrice = c.AskingPrice.TryGetValue(viewer, out var price) ? price : null,
+            // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
+            AskingPrice = ours ? null : c.AskingPrice.TryGetValue(viewer, out var price) ? price : freeHere ? TurnEngine.BasePrice(c, viewer) : null,
             Ready = ours && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == viewer,
             HeldByYou = c.HeldBy == viewer,
             RansomDemand = captive ? KnownDemand(s, c.Id, c.HeldBy!.Value, viewer)?.Spend : null,
@@ -238,12 +253,31 @@ public static class Views
         Where = cover.HeldAt is { } at ? $"at the court of {at}" : cover.WhereText,
         Wage = cover.HeldAt is null ? cover.Wage : null,
         ContractUntil = cover.ContractUntil,
+        NoticePrice = cover.NoticePrice,
+        LeavesTurn = cover.LeavesTurn,
+        Term = cover.HeldAt is null ? TermText(cover.Wage, cover.ContractUntil, cover.NoticePrice, cover.LeavesTurn, s.Turn) : "",
         // What it knew then and what its inquiries have found since, as for a servant really away.
         KnownFacts = c.Facts.Where(f => cover.FactIds.Contains(f.Id) || f.Secrecy != Secrecy.Public && f.KnownBy.Contains(cover.For)).Select(f => f.Text).ToList(),
         Pitch = c.Pitches.GetValueOrDefault(cover.For),
-        AskingPrice = c.AskingPrice.TryGetValue(cover.For, out var price) ? price : null,
         RansomDemand = cover.HeldAt is { } h ? KnownDemand(s, c.Id, h, cover.For)?.Spend : null,
     };
+
+    /// <summary>
+    /// A servant's term in plain words, as its master reads it: the wage, the last season of the term and what happens
+    /// then, or, once it has given notice, its price to serve on and when it leaves.
+    /// </summary>
+    public static string TermText(int wage, int? until, int? noticePrice, int? leavesTurn, int turn)
+    {
+        var serves = $"serves at {wage} a season";
+        if (noticePrice is int ask)
+            return $"{serves}; has given notice: asks {ask} a season to serve on; "
+                   + (leavesTurn is int t && t > turn ? $"leaves at the start of turn {t} unless renewed" : "leaves when next at your court unless renewed");
+        if (until is not int u) return serves;
+        const string notice = "otherwise they give a season's notice and name a price";
+        return u >= turn
+            ? $"{serves} through turn {u}; if content they then renew themselves, {notice}"
+            : $"{serves}; the term ended with turn {u}: when next at your court, if content they renew themselves, {notice}";
+    }
 
     /// <summary>One of the viewer's people held captive abroad, with the ransom demanded if that word has reached it.</summary>
     private static string CaptiveText(GameState s, string id, Power heldAt, Power viewer) =>
