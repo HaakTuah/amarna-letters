@@ -39,6 +39,9 @@ internal static class Names
     /// <summary>The names a king and his land go by.</summary>
     public static IReadOnlyList<string> Of(Power p) => Table[p];
 
+    /// <summary>His names as alternatives for a pattern (longest first, any run of spaces between words), with no edges of its own.</summary>
+    public static string Pattern(Power p) => Alternatives(p);
+
     /// <summary>Whether a text names this king, his land or his people.</summary>
     public static bool Mentions(string text, Power p) => Named[p].IsMatch(text);
 
