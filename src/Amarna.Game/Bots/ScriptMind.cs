@@ -13,6 +13,9 @@ public sealed class ScriptMind : ICharacterMind
 
     private static Rng R(ulong seed, int turn, string what, string id) => Rng.For(seed, turn, "mind:" + what, id);
 
+    /// <summary>What an envoy promises when it overreaches its mandate.</summary>
+    private const string Overreach = "promised that my lord will agree to whatever the king asks";
+
     public Task<PresentResult> PresentAsync(EnvoyContext ctx, CancellationToken ct)
     {
         var c = ctx.Self;
@@ -23,9 +26,10 @@ public sealed class ScriptMind : ICharacterMind
 
         var fearful = t.Courage < 35;
         var fond = t.Sympathy == host && t.SympathyStrength >= 50;
-        if ((fearful || fond) && sentences.Any(TextKit.IsThreat))
+        // The timid and the fond soften only what is aimed at the king before them, not threats against a third king.
+        if ((fearful || fond) && sentences.Any(s => TextKit.IsThreatTo(s, host)))
         {
-            var kept = sentences.Where(s => !TextKit.IsThreat(s)).ToList();
+            var kept = sentences.Where(s => !TextKit.IsThreatTo(s, host)).ToList();
             kept.Add("My lord hopes that no quarrel will ever come between your houses.");
             sentences = kept;
         }
@@ -80,9 +84,7 @@ public sealed class ScriptMind : ICharacterMind
             if (ctx.Dispatch.Mandate.Length > 0 && (host.Speech.Contains("agree", StringComparison.OrdinalIgnoreCase) || host.Speech.Contains("swear", StringComparison.OrdinalIgnoreCase)))
             {
                 var overreach = t.Ambition > 70 && t.Loyalty < 50;
-                reaction.Commitments = overreach
-                    ? "promised that my lord will agree to whatever the king asks"
-                    : "said my lord will consider these words";
+                reaction.Commitments = overreach ? Overreach : "said my lord will consider these words";
                 speech.Add(overreach ? "My lord will agree to all of it, I promise you." : "I will carry your words to my lord faithfully.");
             }
             else if (speech.Count == 0) speech.Add(t.Courage < 35 ? "As you say, Great King. I will repeat every word." : "I will carry your words to my lord.");
@@ -112,6 +114,8 @@ public sealed class ScriptMind : ICharacterMind
         var bribed = host is not null && bribedBy is not null && bribedBy.Contains(host.Value.Land());
         var fearful = t.Courage < 35;
         var faithful = t.Loyalty >= 60 && t.Competence >= 50 && !bribed;
+        // The envoy's lord, whom the host's threats would be aimed at.
+        var lord = trail?.From ?? ctx.Request.Court;
         var lines = new List<string>();
 
         if (trail is null || host is null)
@@ -129,7 +133,7 @@ public sealed class ScriptMind : ICharacterMind
                 if (faithful) lines.Add($"The king said: \"{TextKit.Join(sentences)}\"");
                 else if (bribed || fearful)
                 {
-                    var soft = sentences.Where(s => !TextKit.IsThreat(s)).ToList();
+                    var soft = sentences.Where(s => !TextKit.IsThreatTo(s, lord)).ToList();
                     lines.Add(soft.Count > 0 ? $"The king spoke kindly: \"{TextKit.Join(soft)}\"" : "The king spoke of his friendship for you.");
                 }
                 else
@@ -142,16 +146,31 @@ public sealed class ScriptMind : ICharacterMind
             if (t.Ambition >= 65) lines.Add("It was my words that won his favour; no other envoy could have done as much.");
             if (fearful && !bribed) lines.Add("All is well between your houses, I am certain of it.");
             if (trail.Outcomes.Any(o => o.Contains("sealed"))) lines.Add("He sealed the tablet, and I bring your copy.");
-            if (!string.IsNullOrEmpty(trail.Outcomes.FirstOrDefault(o => o.StartsWith("the envoy committed")))) lines.Add(t.Ambition > 70 ? "I gave him such assurances as you would wish." : "");
+            // An envoy that promised more than it was told owns up to it only vaguely, and only if ambitious enough to boast.
+            if (t.Ambition > 70 && trail.Outcomes.Any(o => o.StartsWith("the envoy committed") && o.EndsWith(Overreach)))
+                lines.Add("I gave him such assurances as you would wish.");
         }
 
         var observations = cargo.Observations.Where(o => !(bribed && host is not null && o.StartsWith(host.Value.ToString()))).ToList();
+        // A bribed envoy passes on what the host asked it to tell its lord, as something it saw for itself.
+        if (bribed && host is { } paid && trail is not null && TextKit.Claim(Asked(trail)) is { } claim)
+            observations.Insert(0, $"At the court of {paid.Land()} I saw for myself that {claim}.");
         if (observations.Count > 0) lines.Add("What I saw: " + string.Join(" ", observations));
 
         var skim = 0;
         if (cargo.Gold > 0 && t.Greed > 60 && t.Loyalty < 60) skim = (int)(cargo.Gold * (t.Greed - 50) / 250.0) / 5 * 5;
         if (cargo.Gold > 0) lines.Add("I bring the gifts the king sent you.");
         return new MindReply { Text = TextKit.Join(lines), Number = skim };
+    }
+
+    /// <summary>What the host asked in return for a gift this envoy took on this mission ("accepted 40 shekels from Hatti (asked: …)").</summary>
+    private static string Asked(MessageTrail trail)
+    {
+        const string marker = " (asked: ";
+        var outcome = trail.Outcomes.LastOrDefault(o => o.StartsWith("accepted ") && o.Contains(marker));
+        if (outcome is null) return "";
+        var ask = outcome[(outcome.IndexOf(marker, StringComparison.Ordinal) + marker.Length)..];
+        return ask.EndsWith(')') ? ask[..^1] : ask;
     }
 
     private static MindReply Pitch(MindContext ctx)

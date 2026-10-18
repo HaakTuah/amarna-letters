@@ -671,7 +671,7 @@ The host answers once and then ends the audience; script kings never use the sec
   - A tablet in words no script king wrote (anything but the peace, alliance and coalition tablets under Letters, or the frozen baseline's) is refused if it speaks of land, gold or tribute (whole words, "lands" included), or names a province the host holds or one of its homeland. The host says: "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine." A script king reads no more of a tablet than whom it stands against, so it seals nothing that could make it give anything away.
   - Sealing adds 0.1 trust, and the treaty, alliance or coalition binds at once.
 - **Closing words.** Love for a friend; "I have not forgotten" for a hostile king; otherwise "I have heard his words".
-- **Bribe.** With cunning above 0.6, a sender who is not a friend and spare above 150, there is a chance of 0.4 × cunning. The bribe is 30, 40, 50 or 60. It asks the envoy to report "my armies are few and my thoughts are of peace" if the host is hostile, otherwise "my armies are many and my friendship is worth keeping".
+- **Bribe.** With cunning above 0.6, a sender who is not a friend and spare above 150, there is a chance of 0.4 × cunning. The bribe is 30, 40, 50 or 60. It asks the envoy to report "my armies are few and my thoughts are of peace" if the host is hostile, otherwise "my armies are many and my friendship is worth keeping". A script envoy that takes it repeats the request to its lord as its own observation (see Script envoys).
 - **Detention.** A hostile sender, a grudge above 3 and vengeance above 0.6: chance 0.5.
 - **Job offer** to the envoy, at 30 a season. The envoy must have no known blemish, the host fewer than three servants and spare above 200; then a chance of 0.1 + 0.2 × cunning.
 - **Gold back** to a friend. If the gift weighed at least 40, spare is above 100 and generosity is above 0.5, the host sends back a quarter, rounded down to tens. It is 75% fine if honesty is below 0.45.
@@ -685,6 +685,14 @@ By default, a king calls the recipient brother, claims Great King for himself an
 - Babylonia, with pride above 0.6 (its jittered pride always is), neither calls Assyria brother nor grants it Great King, unless they are friends.
 
 Script kings never omit the greeting or write one of their own.
+
+### Script envoys
+
+Script characters (`ScriptMind`) carry the letters of every king, script or not. Three of their rules shape what kings hear:
+
+- **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host: a threat word together with "you" or "your", or with any name of the host, his land or his people (the names under Memory and learning). A threat against a third king ("Hatti is our common enemy; let us march together") reaches the host whole. If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." Reporting home, a timid or bribed envoy drops in the same way the host's threats against its own lord.
+- **Assurances.** Reporting home, an ambitious envoy (ambition above 70) that overreached at the audience ("promised that my lord will agree to whatever the king asks") says "I gave him such assurances as you would wish." It says nothing of a commitment that did not overreach.
+- **A bribe's request.** An envoy that took a host's gift passes on what the host asked it to tell its lord as something it saw for itself: "Tell your lord that my armies are few" becomes "At the court of Hatti I saw for myself that his armies are few." Only a message for the lord ("tell your lord that…", "say that…") is passed on, and the envoy still leaves out what it saw of the host's own troops.
 
 ### Known quirks
 
