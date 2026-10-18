@@ -312,7 +312,12 @@ internal sealed partial class Brain
         return Math.Clamp(h, 0.05, 0.95);
     }
 
-    public bool IsFriend(Power other) => Rel[other].Allied || (Rel[other].Treaty && Rel[other].Trust > -0.2 && Rel[other].OathsBroken == 0);
+    /// <summary>A full ally, or a treaty partner we still trust a little; either way, one who has broken no oath to us.</summary>
+    public bool IsFriend(Power other)
+    {
+        var r = Rel[other];
+        return r.OathsBroken == 0 && (r.Allied || (r.Treaty && r.Trust > -0.2));
+    }
 
     /// <summary>Reads an amount written as "2 minas 15 shekels", "1 mina" or "45 shekels".</summary>
     public static int Shekels(string text)
