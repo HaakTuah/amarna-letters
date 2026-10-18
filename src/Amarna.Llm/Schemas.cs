@@ -97,7 +97,7 @@ public static class Schemas
             ("power", Str("unit_enters: whose troops, or empty for any foreign power's. Otherwise empty.")),
             ("units", Array(UnitOrder(described: false), "As in schedule: your units named by where they stand now.")),
             ("other_orders", Array(OtherOrder(described: false), "As in other_orders."))),
-            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all). When you see the event, the orders run the next season, once, before your scheduled orders; orders you give that season replace them. Firing does not wake you; an order of it that fails does.");
+            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the event, the orders run the next season, once, before your scheduled orders; orders you give that season replace them. Firing does not wake you; an order of it that fails does.");
         props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\".");
         required.Add("sleep");
         required.Add("schedule");

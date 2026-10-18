@@ -23,6 +23,13 @@ public sealed class OrderValidator
 
     public const int MaxOrders = 80;
 
+    /// <summary>
+    /// Why an order for a unit in <paramref name="province"/> is refused when no unit of the seat's stands there: a foreign
+    /// unit is named as such only where the seat can see it, so that the refusal says nothing of troops out of its sight.
+    /// </summary>
+    public static string NotYours(Unit? unit, string province, IReadOnlySet<string> sight) =>
+        unit is not null && sight.Contains(province) ? $"the unit in {province} is not yours" : $"you have no unit in {province}";
+
     public ValidationResult Validate(Power power, TurnSubmission submission)
     {
         var result = new ValidationResult();
@@ -43,6 +50,7 @@ public sealed class OrderValidator
         var dispatches = 0;
         var seekCount = 0;
         var counterIntel = false;
+        HashSet<string>? sight = null;
 
         if (!_s.IsAlive(power))
         {
@@ -96,11 +104,13 @@ public sealed class OrderValidator
         {
             unit = _s.UnitAt(province);
             if (!_map.Exists(province)) return $"there is no province called '{province}'";
-            if (unit is null) return $"you have no unit in {province}";
-            if (unit.Power != power) return $"the unit in {province} is not yours";
+            if (unit is null || unit.Power != power) return NotYours(unit, province, Sight());
             if (orderedUnits.Contains(province)) return $"the unit in {province} already has an order";
             return null;
         }
+
+        // What this seat can see: a refusal says nothing of troops out of its sight.
+        HashSet<string> Sight() => sight ??= Views.Sight(_s, _map, power);
 
         static string? UnitOf(Order o) => OrderKeys.UnitOf(o);
 
@@ -172,7 +182,8 @@ public sealed class OrderValidator
                     if (string.IsNullOrWhiteSpace(sp.Supported)) return "name the unit to support, by the province it stands in";
                     if (!_map.Exists(sp.Supported)) return $"there is no province called '{sp.Supported}'";
                     var walls = _s.Garrisons.Contains(sp.Supported) && _s.Owner.GetValueOrDefault(sp.Supported) is not null;
-                    if (_s.UnitAt(sp.Supported) is null && !walls) return $"there is no unit in {sp.Supported} to support";
+                    // Out of sight, a province's troops are unknown: the support is given, and is void if no unit there acts as it names.
+                    if (_s.UnitAt(sp.Supported) is null && !walls && Sight().Contains(sp.Supported)) return $"there is no unit in {sp.Supported} to support";
                     if (walls && sp.To is not null) return "city walls never move; they can only be supported holding";
                     if (sp.Supported == sp.Unit) return "a unit cannot support itself";
                     var into = sp.To ?? sp.Supported;
@@ -187,8 +198,10 @@ public sealed class OrderValidator
                     if (u!.Kind != UnitKind.Fleet || !_map[c.Unit].IsSea) return "only a fleet at sea can convoy";
                     if (string.IsNullOrWhiteSpace(c.Army)) return "name the army to convoy, by the province it stands in";
                     if (string.IsNullOrWhiteSpace(c.To)) return "name the coast where the army should land";
+                    if (!_map.Exists(c.Army)) return $"there is no province called '{c.Army}'";
                     var army = _s.UnitAt(c.Army);
-                    if (army is null || army.Kind != UnitKind.Army) return $"there is no army in {c.Army}";
+                    // As for a support: out of sight, the convoy is given, and is void if no army there sails as it names.
+                    if ((army is null || army.Kind != UnitKind.Army) && Sight().Contains(c.Army)) return $"there is no army in {c.Army}";
                     if (!_map.Exists(c.To) || !_map[c.To].IsCoastal) return $"{c.To} is not a coast an army can land on";
                     return null;
                 }

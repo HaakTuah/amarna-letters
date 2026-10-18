@@ -29,7 +29,16 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   its post, so the capture cannot be read off the sight line before word comes. The rulebook
   and the view's sight line say so, and that troops two links away, or an army carried across the
   sea, can arrive next season unseen. (Until the simulation-fixes round they said only "in and next
-  to your own lands and troops", and empty seas were read as safety.)
+  to your own lands and troops", and empty seas were read as safety.) A refusal says nothing of
+  troops out of sight: an order for a unit in a province where the king has none reads "you have no
+  unit in ashur" whether the province is empty or holds a foreign unit, and "the unit in ekallatum is
+  not yours" only where it can see; a support or convoy naming a province out of sight is never
+  refused for what stands there ("there is no unit in X to support", "there is no army in X" only in
+  sight), and is void at resolution if no unit there does what it helps (the rulebook says so). The
+  scheduled and standing orders a sleeping king gives are refused in the same words. (Until the
+  review of the simulation-fixes round's Part D, both refusals named a foreign unit anywhere, so an
+  order for any province told whether a foreign unit stood there, and the support check told whether
+  an unseen province was empty.)
 - **Ownership changes every season**, whenever a unit ends a season in a province, not only in
   autumn as in Diplomacy.
 - **How a season resolves.** The rulebook's section of that name lists the engine's own order
@@ -490,9 +499,12 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     whose unit was destroyed is not counted again: the lost troops already wake the seat. An order
     of a standing order that fired reads "a standing order of yours could not be carried out: s3:
     ...". So do orders refused when given ("orders you scheduled were refused: turn 7: nippur -> ur:
-    you have no unit in nippur"; "standing orders you gave were refused: ..."), and orders dropped
-    because their unit is lost ("orders you scheduled could not be carried out: the troops they were
-    for are lost (...)"; see "Orders follow their unit").
+    you have no unit in nippur"; "standing orders you gave were refused: ..."), orders past the
+    schedule's limits or for a season already past (refused like any other), and orders dropped
+    because their unit is lost ("orders you gave for later could not be carried out: the troops they
+    were for are lost (...)"; see "Orders follow their unit"). A reason that lists orders names the
+    first three and counts the rest ("...; and 4 more, listed in the notice "Orders for lost troops
+    dropped""): the notice in the same request lists every one, so the opening line stays short.
   - a ransom is demanded for one of its people
   - a servant gives notice ("a servant gives notice: Mane asks 20 shekels a season to serve on"):
     the season of the notice is the one in which it can be renewed before it leaves
@@ -516,7 +528,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   for each envoy home with its report, spy, check, assay or examination report, candidate,
   catastrophe that killed no unit, forgery ready, spy caught at its court, refused or failed
   order, and standing order that fired ("turn 5: your envoy Mane came home with a report"; "turn 6:
-  your standing order s1 fired"); then the news of those seasons in
+  your standing order s1 fired", dated by the season it fired, as movements are by the season they
+  were made, while the other lines carry the season their news came); then the news of those seasons in
   full, oldest first. Rumours and notices are only in the news. To stay readable over a long
   sleep, the routine treasury notices of the seasons it slept are left out (this season's is in
   its news; one that says troops deserted or people went unpaid stays), the brief keeps the latest
@@ -560,7 +573,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   is kept, listed and counted like any other and simply never runs, because the game ends first:
   what the king reads and the notices it gets are the same whatever `MaxTurns` is, so nothing tells
   it when the game must end (tested). What is not kept (a season already past, orders past the
-  24th, seasons past the 40th) is reported as "Scheduled orders not kept". One entry per season
+  24th, seasons past the 40th) is reported as "Scheduled orders not kept", and wakes the seat like
+  any other refusal (the rulebook: "orders past these limits are refused"). One entry per season
   replaces everything scheduled for it, and an empty entry cancels it; that works for the current
   season too, and then its orders count as given now (they are not bound to units, and a failure
   among them does not wake the seat, as the rulebook says of the orders given for the season the
@@ -582,13 +596,14 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   the order runs it is given from where its units then stand (`TurnEngine.AsItStands`). An order
   naming a province where the seat has no unit, or a unit not its own, is refused when given, in the
   validator's words ("- turn 7: nippur -> ur: you have no unit in nippur", in "Scheduled orders not
-  kept"), and that wakes the seat next season; so a unit not yet raised cannot be given orders
-  ahead. When a unit is lost (destroyed, deserted, killed by plague, disbanded or given away), every
+  kept"; "the unit in X is not yours" only where the seat can see, see "Sight"), and that wakes the
+  seat next season; so a unit not yet raised cannot be given orders ahead. An order the reply named
+  but left unreadable is refused when given in the same way. When a unit is lost (destroyed, deserted, killed by plague, disbanded or given away), every
   scheduled order bound to it is dropped, and so is a standing order that waited on it or has no
   orders left (a standing order's other orders stay). This is checked at the start of each season,
   before the wake check: the seat reads "Orders for lost troops dropped", listing each order as it
-  gave it, and is woken ("orders you scheduled could not be carried out: the troops they were for
-  are lost (...)").
+  gave it, and is woken ("orders you gave for later could not be carried out: the troops they were
+  for are lost (...)").
 - **The march.** A unit's scheduled moves are its march. After movement, a scheduled move whose
   unit still stands but did not reach its destination (stopped for any reason) is tried again the
   next season, and each of that unit's own later scheduled orders moves a season later (orders of
@@ -600,7 +615,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   remaining scheduled orders were dropped: turn 4: babylon -> nippur."). A scheduled move refused by
   the validator is not tried again (it would be refused again from the same place) and ends the
   march the same way. Each failure is a failed scheduled order and wakes the seat, which sees the
-  shifted plan in its view. Only scheduled moves form a march: a move given for the season the seat
+  shifted plan in its view. A refused move with no later orders to drop is told only as refused (no
+  "A march ends" notice). Only scheduled moves form a march: a move given for the season the seat
   is awake (or in the schedule's entry for that season) that is stopped is not tried again, and the
   unit's scheduled orders run from where it stands. Shifted orders are not counted again against
   the limit of 40 seasons. (The brief allowed a refused move to be tried again too; the round's
@@ -610,20 +626,30 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   not cancelled"). Each has an id per seat ("s1", "s2", ...), one event and up to 24 orders, unit
   orders and other orders in the same shapes as the schedule, bound to units as scheduled orders
   are. The events, checked after movement from what the seat saw (its `LastSeen`): `unit_enters`, a
-  unit of the power named (any foreign power's if none is named) moved into the province named;
-  `unit_attacked`, a foreign move was made into the province where the seat's unit stood (named by
-  where it stands when the order is given), and the unit was still there after the moves (not
-  destroyed, not moved away). A standing order sees only events after it was given. It fires once,
+  unit of the power named (any foreign power's if none is named; never the seat's own then) moved
+  into the province named and got there; `unit_attacked`, a foreign move was made into the province
+  where the seat's unit stood (named by where it stands when the order is given), and the unit was
+  still there after the moves (not destroyed, not moved away); a move of the seat's own does not
+  count (tested, each filter). A standing order sees only events after it was given. It fires once,
   in the season after its event, before that season's orders: its orders are given from where
   their units then stand, replace scheduled orders for the same units or people, and give way to
-  fresh orders the seat gives that season (cancelled in that season, it does not fire). It is then
-  removed, and the seat reads "Standing order s1 fired": "Your standing order s1 (when Assyria's
-  troops enter arbela) fired: Assyria's army moved ekallatum -> arbela in turn 2. Its orders ran in
-  turn 3: babylon -> nippur." Firing does not wake the seat (the digest has "your standing order s1
-  fired"); an order of it that is refused or fails does. A standing order that cannot be kept (a
+  fresh orders the seat gives that season (cancelled in that season, it does not fire). Two that
+  fire in the same season go by id: the lower id's orders replace the other's for the same units or
+  people, so they never reach the validator as two orders for one unit (the rulebook says so). A
+  fired move that is stopped is a failed order, but not a march: it is not tried again. It is then
+  removed, and once the season's orders are checked the seat reads "Standing order s1 fired", saying
+  what became of each of its orders: "Your standing order s2 (when Assyria's troops enter arbela)
+  fired: Assyria's army moved ekallatum -> arbela in turn 2. In turn 3 it gave these orders:
+  durkurigalzu holds. Replaced by standing order s1, which fired in the same season: babylon
+  holds.", with "Refused: sippar -> ur (an army in sippar cannot reach ur)." and "Replaced by the
+  orders you gave for turn 3: ..." where they apply. Firing does not wake the seat (the digest has
+  "turn 3: your standing order s1 fired"); an order of it that is refused or fails does ("a
+  standing order of yours could not be carried out: s1: babylon -> durkurigalzu (it met a move into
+  durkurigalzu from ekallatum ...)", tested). A standing order that cannot be kept (a
   province that does not exist, no unit of the seat's where `unit_attacked` names, no orders or more
   than 24, an order naming a province where the seat has no unit, a power nobody knows, or a
-  thirteenth) is refused whole ("Standing orders not kept"), which wakes the seat next season.
+  thirteenth) is refused whole ("Standing orders not kept"), which wakes the seat next season; the
+  rulebook and the schema give both limits.
   Cancellation is applied before the season's standing orders fire, new standing orders after the
   season's orders are checked. The design document's wider vocabulary ("unless" conditions,
   treasury below, envoy returned, tablet sealed) is not built.
@@ -631,7 +657,13 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
   again next season, told why it was woken in the season it missed (it never read that) and what
   concerns it now, as if woken, or, if nothing does, "your counsellors woke you". Those reasons are
-  carried, without repeats, until the seat answers itself.
+  carried, without repeats, until the seat answers itself. The stand-in is not the seat: the seat's
+  own plans for that season go first (the standing orders that fire, the scheduled orders due, a
+  march's step tried again), and the stand-in's orders only fill the units and people they leave
+  free; it neither replaces the schedule nor cancels standing orders. (Until the review of Part D its
+  orders counted as the seat's own fresh orders, so the script king's holds used up a standing order
+  that fired that season and dropped the scheduled moves due, and the seat was told that "the orders
+  you gave" replaced them.)
 - **What a human player can tell.** No seat's view and no event carries another seat's sleep (the
   web app shows it only in the God view, which with humans playing needs Reveal all). But the web
   app's model-spend pill, shown to the operator and so to a human at the table, rises only when a
@@ -660,6 +692,16 @@ Requests and replies left in a folder by an earlier game are moved aside when a 
 Only a file seat's request ends with a footer for the agent answering it (`FileExchange.Footer`):
 its final message must be the single word "done", and earlier reply files cannot be read, so its
 record of earlier seasons is in the request. A model king called through the API never sees it.
+The request prints the schema indented, but with each field (an object that holds no other object:
+its type, enum and description) on one line, and without escaping apostrophes
+(`FileExchange.Readable`): the same schema, 13,535 characters in 205 lines for the orders schema
+with sleeping seats on, against 19,878 fully indented, and no line longer than 414 characters, well
+under the 2,000 past which an agent's file reader cuts a line (a one-line compact schema would be
+cut). The schema itself grew with Part D's schedule and standing orders, which repeat the unit and
+other-order shapes (standing orders' copy without field descriptions): 11,066 characters compact
+with sleeping seats on (schedule 3,041, standing orders 1,949), 4,560 off. Sharing the shapes through
+`$defs`/`$ref` would cut that further, but is not done: it is untried against the API's structured
+output, and the file seat's own schema check would have to follow references.
 
 `sim/` holds a kit that plays a game with one Claude Code agent per king, with isolation enforced
 by construction, not by instruction: see `sim/README.md` and `docs/SIMULATION-PROMPT.md`. Starting

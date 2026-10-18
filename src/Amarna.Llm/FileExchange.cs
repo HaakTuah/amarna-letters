@@ -135,12 +135,35 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
         sb.AppendLine($"Write exactly one JSON object that matches this schema, and nothing else, to: {replyPath.Replace('\\', '/')}");
         sb.AppendLine();
         sb.AppendLine("```json");
-        sb.AppendLine(spec.Schema.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        sb.AppendLine(Readable(spec.Schema));
         sb.AppendLine("```");
         sb.AppendLine();
         sb.AppendLine(Footer);
         return sb.ToString();
     }
+
+    /// <summary>
+    /// The schema as the request prints it: indented, but each object that holds no other object (a field: its type, enum
+    /// and description) on one line, and apostrophes left as they are. About two thirds of the length of a fully indented
+    /// schema, and no line grows long enough for a file reader to cut it, as one compact line would.
+    /// </summary>
+    public static string Readable(JsonNode? node, int depth = 0)
+    {
+        bool Nested(JsonNode? x) => x is JsonObject || x is JsonArray a && a.Any(Nested);
+        var pad = new string(' ', 2 * depth);
+        var inner = new string(' ', 2 * (depth + 1));
+        return node switch
+        {
+            JsonObject o when o.Any(kv => Nested(kv.Value)) =>
+                "{\n" + string.Join(",\n", o.Select(kv => $"{inner}{JsonSerializer.Serialize(kv.Key, Plain)}: {Readable(kv.Value, depth + 1)}")) + $"\n{pad}}}",
+            JsonArray a when a.Any(Nested) => "[\n" + string.Join(",\n", a.Select(x => inner + Readable(x, depth + 1))) + $"\n{pad}]",
+            null => "null",
+            _ => node.ToJsonString(Plain),
+        };
+    }
+
+    /// <summary>JSON as a reader reads it: no character escaped that JSON does not require (the request is not a web page).</summary>
+    private static readonly JsonSerializerOptions Plain = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     /// <summary>
     /// Only file seats get this: an agent answering the request ends with a message to whoever started it,

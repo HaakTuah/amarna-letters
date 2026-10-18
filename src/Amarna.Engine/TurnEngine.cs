@@ -255,6 +255,7 @@ public sealed partial class TurnEngine
         var valid = new Dictionary<Power, ValidationResult>();
         _scheduledNow.Clear();
         _standingNow.Clear();
+        _firedNow.Clear();
         _marchNow.Clear();
         _cededNow.Clear();
         foreach (var p in S.Alive.ToList())

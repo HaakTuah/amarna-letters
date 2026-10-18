@@ -109,6 +109,24 @@ public class FileSeatTests
     }
 
     [Fact]
+    public void The_request_prints_the_schema_short_with_no_line_a_file_reader_would_cut()
+    {
+        // Each field (its type, enum and description) on one line: the same schema, about two thirds of the length of a fully
+        // indented one, and no line near the 2,000 characters past which a file reader cuts a line.
+        var schema = Schemas.LeaderOrders(new GameConfig());
+        var text = FileExchange.Readable(schema);
+        Assert.True(System.Text.Json.Nodes.JsonNode.DeepEquals(schema, System.Text.Json.Nodes.JsonNode.Parse(text)));
+        Assert.True(text.Split('\n').Max(l => l.Length) < 1000);
+        var indented = schema.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }).Length;
+        Assert.True(text.Length < indented * 0.75, $"{text.Length} against {indented}");
+        Assert.Contains("    \"notes\": {\"type\":\"string\",\"description\":", text);
+        Assert.Contains("another king's", text);
+        var spec = new CallSpec { Key = "t1/orders/Egypt", Turn = 1, Role = "leader", Model = "file seat", SharedSystem = "Rules.", User = "Your view.", Schema = schema };
+        var request = FileExchange.Request(spec, "x.reply.json", "");
+        Assert.Contains("```json\n" + text + "\n```", request.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
     public async Task An_unreadable_reply_gets_one_retry_and_then_the_script_king_stands_in()
     {
         // Asked every season, so that the second season's call comes whatever the first decided.
