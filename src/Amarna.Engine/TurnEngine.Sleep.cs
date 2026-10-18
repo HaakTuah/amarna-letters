@@ -159,7 +159,7 @@ public sealed partial class TurnEngine
 
     private string? DigestLine(InboxItem i) => i.Kind switch
     {
-        InboxKind.EnvoyReport => $"your envoy {S.FindCharacter(i.Subject)?.Name ?? "?"} came home with a report",
+        InboxKind.EnvoyReport => S.FindCharacter(i.Subject) is { } envoy ? $"your envoy {envoy.Name} came home with a report" : $"an envoy came home with a report ({i.Title})",
         InboxKind.SpyReport => $"a spy's report arrived ({i.Title})",
         InboxKind.CheckResult or InboxKind.Assay or InboxKind.Authentication => $"a report arrived ({i.Title})",
         InboxKind.Candidates => i.Title == "No candidates" ? "nobody came forward to seek service" : $"a candidate presented themselves ({i.Title})",

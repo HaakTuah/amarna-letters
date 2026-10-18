@@ -441,7 +441,7 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   with a note of where a human's game differs: orders are given with the controls rather than as
   JSON, and checked units first, then the other orders in the order the human added them (not
   "units, then letters, then other orders"); and, with sleeping seats on, a human seat never sleeps,
-  so the sleeping section does not apply to it.
+  so the sections on sleeping and planning ahead do not apply to it.
 - **The customs primer** (on by default; `--no-primer` turns it off) covers the forms of address,
   gifts as a measure of respect, detained envoys and blaming the messenger, oaths before the gods,
   catastrophes as excuses, and the language of accusation: "Habiru" for outlaws and mercenaries,
