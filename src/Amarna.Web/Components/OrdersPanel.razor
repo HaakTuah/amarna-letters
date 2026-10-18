@@ -203,9 +203,10 @@
         {
             <div class="row" style="margin-top:.3rem"><small>@c.Name is @c.Duty.</small> <button class="small" @onclick="() => Add(new RecallSpyOrder(c.Id))">Recall</button></div>
         }
-        @foreach (var c in v.Court.Where(c => c.Ready))
+        @* Anyone in your service, at court or away: whoever is away keeps going where they were going, and is free when they get there. *@
+        @foreach (var c in v.Court)
         {
-            <div class="row" style="margin-top:.3rem"><small>@c.Name</small> <button class="small danger" @onclick="() => Add(new DismissOrder(c.Id))">Dismiss</button></div>
+            <div class="row" style="margin-top:.3rem"><small>@c.Name@(c.Ready ? "" : $" ({c.Duty})")</small> <button class="small danger" @onclick="() => Add(new DismissOrder(c.Id))">Dismiss</button></div>
         }
         @* Only once the demand has reached this court: until then a captive appears at its post, as its master believes. *@
         @foreach (var c in v.Court.Where(c => c.RansomDemand is not null))

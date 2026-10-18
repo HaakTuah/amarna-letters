@@ -141,7 +141,7 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   held (see Prisoners). A captive stays a captive; a captor that then asks a ransom for it, or tries
   to turn it, is told "Mane serves no king now: nobody is left to pay. Mane remains your captive."
   Someone taken into another court's service while still on the road stays with its new master when
-  the old journey ends. (Until the simulation-fixes round a dismissed traveller was set at home at
+  the old journey ends. The web app offers dismissal for every servant, at court or away. (Until the simulation-fixes round a dismissed traveller was set at home at
   once and the gold it carried out was lost, a dismissed detained envoy could not be released, and a
   captive could not be dismissed.)
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
