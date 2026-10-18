@@ -391,7 +391,7 @@ While betraying:
 - **The race.** X is the leader as the host reckons it, or X's growth is at least 1.10 and no lower than any other king's. X must also outweigh both host and sender.
 - **Defence.** X's land touches the host's, X has at least 0.8 × the sender's strength, and X is taking land (belligerence of 1 or more), is hostile, is the host's war target, or is trusted below 0.
 
-The host never seals it when it is X's full ally, or when the sender is hostile or its war target. A peace with X does not forbid sealing it.
+The host never seals it when it is X's full ally, or when the sender is hostile or its war target. A peace with X does not forbid sealing it. The guard against tablets that give something away (see Audiences) applies here too.
 
 **In force.** A coalition counts only while all of these hold:
 
@@ -611,6 +611,7 @@ The host answers once and then ends the audience; script kings never use the sec
   - Coalition tablets follow the rules under Coalitions.
   - Any other tablet is sealed unless the sender is hostile or the host's war target, or it is a full alliance with a rival for the crown.
   - A host with caution below 0.6 refuses the leader unless they are friends.
+  - A tablet in words no script king wrote (anything but the peace, alliance and coalition tablets under Letters, or the frozen baseline's) is refused if it speaks of land, gold or tribute (whole words, "lands" included), or names a province the host holds or one of its homeland. The host says: "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine." A script king reads no more of a tablet than whom it stands against, so it seals nothing that could make it give anything away.
   - Sealing adds 0.1 trust, and the treaty, alliance or coalition binds at once.
 - **Closing words.** Love for a friend; "I have not forgotten" for a hostile king; otherwise "I have heard his words".
 - **Bribe.** With cunning above 0.6, a sender who is not a friend and spare above 150, there is a chance of 0.4 × cunning. The bribe is 30, 40, 50 or 60. It asks the envoy to report "my armies are few and my thoughts are of peace" if the host is hostile, otherwise "my armies are many and my friendship is worth keeping".
@@ -637,7 +638,6 @@ These are in the code as written, and they affect the balance numbers:
 - **A full ally who breaks an oath stays a friend.** For a full ally, friendship does not depend on broken oaths. The bot is never willing to attack him and counts his hostility a quarter. He can still be named war target, despite the −800, but no troops follow. Only partners without an alliance oath lose friendship by breaking one.
 - **Support cuts ignore willingness.** A cut moves into the supporting troop's province, whoever owns it. A peaceable king can march this way into the land of a king it is unwilling to fight, or, next to its capital, into a treaty partner's land. The victim reads it as an attack.
 - **Partners' attacks count harshly.** A partner's conquest counts as two broken oaths, and a move into our land that bounced counts as one.
-- **The host's lull exception is dead.** A faithless host was meant to seal a tablet from its war target (when cunning × (1 − honesty) is above 0.35). But the war target always counts as hostile, so the host never seals it.
 - **Joint blows can misfire.** Each partner counts only the troops in its own sight, so partners may name different troops to go in. When the rule names a king who is at peace with the foe, that king does not go in (his troop does something else), and his partners' supports are wasted.
 - **Separate peace is allowed**, although the coalition tablet forbids it (see Good faith).
 - **A captive of a fallen kingdom is stuck with a cunning captor.** The captor orders "turn" every season, the engine leaves the captive a captive, and the captor never ransoms or releases him.
