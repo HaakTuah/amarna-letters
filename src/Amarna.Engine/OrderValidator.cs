@@ -278,7 +278,12 @@ public sealed class OrderValidator
                     if (co.Fate == CaptiveFate.Ransom && co.Ransom <= 0) return "name a ransom";
                     // A ransom or a turning needs a living court on the other side.
                     if (co.Fate is CaptiveFate.Ransom or CaptiveFate.Turn && (c.Employer is not { } master || !_s.IsAlive(master)))
-                        return $"{c.Name}'s kingdom has fallen: nobody is left to {(co.Fate == CaptiveFate.Ransom ? "pay" : "deceive")}. {c.Name} remains your captive";
+                    {
+                        var nobody = $"nobody is left to {(co.Fate == CaptiveFate.Ransom ? "pay" : "deceive")}. {c.Name} remains your captive";
+                        return c.FormerEmployer is { } former && _s.IsAlive(former)
+                            ? $"{c.Name} serves no king now: {nobody}"
+                            : $"{c.Name}'s kingdom has fallen: {nobody}";
+                    }
                     return null;
                 }
 

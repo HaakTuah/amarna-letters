@@ -128,8 +128,22 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   characters are model-played, a deterministic condensation for script characters. The summary
   is recorded like any decision, so replays stay exact. Prompts carry the summary and the most
   recent ten entries; memory travels with the character to a new employer.
-- **Prisoners**: an envoy held at a foreign court whose own kingdom falls becomes a free agent but
-  stays a prisoner; only the court holding them can hire them.
+- **Prisoners**: an envoy held at a foreign court whose own kingdom falls, or whose king dismisses
+  them, becomes a free agent but stays a prisoner; only the court holding them can hire them, and
+  its release frees them at that court.
+- **Dismissal** (one line in the rulebook) ends the wage at once, wherever the servant is, and moves
+  nobody. An envoy dismissed on the way out goes on to the court it was sent to and arrives there a
+  free person, with no audience; the gold it carried becomes its own, and the notice says so ("Mane
+  has been dismissed. The 1 mina 40 shekels of gold they carried is now theirs."). One on the way
+  home still arrives, reports and hands over what it carries, and is then free at its old court. A
+  spy watching a court is free at that court; one watching a province walks back to its old court
+  and is free there; one on its way to its post is free when it gets there. A detained envoy stays
+  held (see Prisoners). A captive stays a captive; a captor that then asks a ransom for it, or tries
+  to turn it, is told "Mane serves no king now: nobody is left to pay. Mane remains your captive."
+  Someone taken into another court's service while still on the road stays with its new master when
+  the old journey ends. (Until the simulation-fixes round a dismissed traveller was set at home at
+  once and the gold it carried out was lost, a dismissed detained envoy could not be released, and a
+  captive could not be dismissed.)
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth.
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.

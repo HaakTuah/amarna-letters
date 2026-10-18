@@ -65,7 +65,21 @@ public sealed partial class TurnEngine
     private void SpyArrives(Journey j)
     {
         var c = S.Char(j.CharacterId!);
-        if (c.Status != CharacterStatus.Employed) return;
+        if (c.Status == CharacterStatus.Free)
+        {
+            // Dismissed on the way, or its kingdom fell: free at the court it was going to watch, or back from the province.
+            if (c.MissionTarget is { } court)
+            {
+                c.Duty = Duty.None;
+                c.At = court;
+                c.MissionTarget = null;
+                c.WatchProvince = null;
+            }
+            else Recall(j.From, c);
+            return;
+        }
+        // Taken into another court's service on the way: it is there already.
+        if (c.Status != CharacterStatus.Employed || c.Employer != j.From) return;
         c.Duty = Duty.SpyPosted;
         c.At = c.MissionTarget;
     }
@@ -90,13 +104,15 @@ public sealed partial class TurnEngine
     private void SpyComesHome(Journey j)
     {
         var c = S.Char(j.CharacterId!);
-        if (c.Status != CharacterStatus.Employed || c.Employer != j.To) return;
+        // Dismissed on the way: free at the court it came back to. Taken into another court's service: it is there already.
+        var free = c.Status == CharacterStatus.Free;
+        if (!free && (c.Status != CharacterStatus.Employed || c.Employer != j.To)) return;
         c.Duty = Duty.None;
         c.At = j.To;
         c.MissionTarget = null;
         c.WatchProvince = null;
         c.TurnsAbroad = 0;
-        S.Notify(j.To, InboxKind.Notice, "Agent returns", $"{c.Name} is back at court.", c.Id);
+        if (!free) S.Notify(j.To, InboxKind.Notice, "Agent returns", $"{c.Name} is back at court.", c.Id);
     }
 
     /// <summary>Every posted spy risks detection, then observes what its competence allows and sends word home.</summary>

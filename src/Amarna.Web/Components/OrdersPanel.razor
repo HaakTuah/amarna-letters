@@ -226,10 +226,11 @@
                 <input style="width:100%;margin-top:.3rem" @bind="PoisonText" placeholder="If turned: what they should report home" />
             </div>
         }
-        @foreach (var c in v.Known.Where(c => c.HeldByYou && c.Status == "employed"))
+        @* An envoy you hold whose king has dismissed them, or fallen, is free but still held: you may let them go. *@
+        @foreach (var c in v.Known.Where(c => c.HeldByYou && c.Status is "employed" or "free"))
         {
             <div class="row" style="margin-top:.3rem">
-                <small>You are holding @c.Name, envoy of @c.Employer?.Name().</small>
+                <small>You are holding @c.Name@(c.Employer is { } lord ? $", envoy of {lord.Name()}" : "").</small>
                 <input @bind="ReleaseWords" placeholder="Words to send with them" />
                 <button class="small" @onclick="() => Add(new ReleaseOrder(c.Id, ReleaseWords))">Release</button>
             </div>

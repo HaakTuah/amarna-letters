@@ -89,10 +89,14 @@ public sealed partial class TurnEngine
     private void EnvoyArrivesAbroad(Journey j)
     {
         var c = S.Char(j.CharacterId!);
-        if (c.Status != CharacterStatus.Employed || c.Employer != j.From)
+        // Taken into another court's service on the way: it is there already.
+        if (c.Status == CharacterStatus.Employed && c.Employer != j.From) return;
+        if (c.Status != CharacterStatus.Employed)
         {
+            // Dismissed on the way, or its kingdom fell: it arrives a free person, with no audience.
             c.At = j.To;
             c.Duty = Duty.None;
+            c.MissionTarget = null;
             return;
         }
         if (!S.IsAlive(j.To))
@@ -405,6 +409,8 @@ public sealed partial class TurnEngine
     private void EnvoyArrivesHome(Journey j)
     {
         var c = S.Char(j.CharacterId!);
+        // Taken into another court's service on the way: it is there already. One dismissed on the way still comes home and reports.
+        if (c.Status == CharacterStatus.Employed && c.Employer != j.To) return;
         c.At = j.To;
         c.Duty = Duty.None;
         c.HeldBy = null;
@@ -551,23 +557,58 @@ public sealed partial class TurnEngine
         }
     }
 
-    /// <summary>A servant dismissed: its wage ends, and so does whatever its master still believed of it.</summary>
+    /// <summary>
+    /// A servant dismissed: its wage ends, and so does whatever its master still believed of it. Nobody is moved:
+    /// one dismissed while away keeps going where it was going and is free when it gets there, and one who is
+    /// held stays held.
+    /// </summary>
     private void Dismiss(Power p, Character c)
     {
         if (c.Cover is { } cover && cover.For == p) c.Cover = null;
         else if (c.Employer != p) return;
+        var notice = $"{c.Name} has been dismissed.";
         if (c.Employer != p || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured))
         {
             // Gone over to another court, or dead, unknown to its master: the court only stops paying what it believed it owed.
-            S.Notify(p, InboxKind.Notice, "A servant leaves", $"{c.Name} has been dismissed.", c.Id);
+            S.Notify(p, InboxKind.Notice, "A servant leaves", notice, c.Id);
             return;
         }
         c.Remember(S.Turn, $"The king of {p.Land()} dismissed me.");
-        var captive = c.Status == CharacterStatus.Captured;
-        Quit(c, $"{c.Name} has been dismissed.");
+        c.FormerEmployer = p;
+        c.Employer = null;
+        c.Contract = null;
         // A dismissed captive stays a captive: only the court that holds them can let them go.
-        if (captive) c.Status = CharacterStatus.Captured;
-        c.At ??= p;
+        if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
+        switch (c.Duty)
+        {
+            case Duty.EnvoyOutbound:
+                // It goes on to the court it was sent to and arrives there free, with no audience: the gold it carried is its own.
+                if (S.Journeys.FirstOrDefault(j => j.Kind == JourneyKind.EnvoyOutbound && j.CharacterId == c.Id)?.Dispatch is { Gold: > 0 } d)
+                {
+                    c.Purse += (int)Math.Round(d.Gold * d.PurityPercent / 100.0);
+                    c.Remember(S.Turn, $"I keep the gold I carried, said to be {Money.Format(d.Gold)}.");
+                    notice += $" The {Money.Format(d.Gold)} of gold they carried is now theirs.";
+                    d.Gold = 0;
+                }
+                break;
+            case Duty.SpyPosted when c.MissionTarget is { } court:
+                // Free at the court it watched.
+                c.Duty = Duty.None;
+                c.At = court;
+                c.MissionTarget = null;
+                c.WatchProvince = null;
+                break;
+            case Duty.SpyPosted:
+                // A province watcher walks back to the court it left, and is free there.
+                Recall(p, c);
+                break;
+            case Duty.None or Duty.EnvoyAtCourt:
+                c.Duty = Duty.None;
+                c.At ??= p;
+                break;
+            // On the road home or to its post it keeps going (see the arrivals); a held envoy stays held until the jailer lets it go.
+        }
+        S.Notify(p, InboxKind.Notice, "A servant leaves", notice, c.Id);
     }
 
     /// <summary>What a character asks a court. Set by the character's own pitch when it gave one.</summary>

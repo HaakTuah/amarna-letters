@@ -200,6 +200,8 @@ public sealed class Character
     public Dictionary<Power, string> Pitches { get; set; } = new();
     /// <summary>What its master still believes of it, after something happened abroad that the master cannot see.</summary>
     public Cover? Cover { get; set; }
+    /// <summary>The court it last served, once that service ended by dismissal or by the court's fall.</summary>
+    public Power? FormerEmployer { get; set; }
 
     public bool IsAvailableForHire => Status == CharacterStatus.Free;
 

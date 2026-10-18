@@ -475,6 +475,7 @@ public sealed partial class TurnEngine
             foreach (var c in S.Characters.Where(c => c.Cover?.For == p)) c.Cover = null;
             foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
             {
+                c.FormerEmployer = p;
                 c.Employer = null;
                 c.Contract = null;
                 if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
