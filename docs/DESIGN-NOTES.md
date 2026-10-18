@@ -141,9 +141,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   held (see Prisoners). A captive stays a captive; a captor that then asks a ransom for it, or tries
   to turn it, is told "Mane serves no king now: nobody is left to pay. Mane remains your captive."
   Someone taken into another court's service while still on the road stays with its new master when
-  the old journey ends. The web app offers dismissal for every servant, at court or away. (Until the simulation-fixes round a dismissed traveller was set at home at
-  once and the gold it carried out was lost, a dismissed detained envoy could not be released, and a
-  captive could not be dismissed.)
+  the old journey ends. The web app offers dismissal for every servant, at court or away. (Until
+  the simulation-fixes round a dismissed traveller was set at home at once and the gold it carried
+  out was lost, a dismissed detained envoy could not be released, and a captive could not be
+  dismissed.)
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth.
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.
@@ -168,9 +169,13 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   court"; recalling a caught spy is accepted, and its master then believes it on the road home).
   Dismissing it is accepted and ends the cover and the wage; a dismissed captive stays a captive. A
   captive whose master has heard of it reads "held captive at the court of Assyria; Assyria demands
-  90 shekels for their return (order pay_ransom)" (the demand once its word has arrived), never "at court,
-  ready", and draws no wage; the web app offers the ransom button only then. Script kings read the
-  same view and are fooled the same way. (Until the simulation-fixes round the master's list showed
+  90 shekels for their return (order pay_ransom)" (the demand once its word has arrived), never "at
+  court, ready", and draws no wage; the web app offers the ransom button only then. Script kings
+  read the same view and are fooled the same way: a script king never dismisses, so it pays an
+  envoy that went over to the host for as long as the cover holds. What a cover cannot hide: a
+  caught spy's reports stop coming, and a caught province watcher no longer adds its province to
+  its master's sight; a background check on the servant finds a defection's public fact as usual.
+  (Until the simulation-fixes round the master's list showed
   the truth at once: a caught spy "at court, ready for a mission", a detained envoy "has not
   returned" the same season, a defector dropped off the list and its wage stopped, an executed spy
   vanished.)
