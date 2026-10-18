@@ -365,21 +365,36 @@ public sealed partial class TurnEngine
 
     private void ResolvePurchases(List<(Power P, BuyProvinceOrder O)> buys)
     {
+        // Gold for a purchase is only reserved when the orders are checked; it leaves the treasury only when the city accepts.
         foreach (var group in buys.GroupBy(b => b.O.Province))
         {
             var prov = Map[group.Key];
-            if (S.Owner.GetValueOrDefault(prov.Id) is not null) continue;
             var bidders = group.Select(b => b.P).Distinct().ToList();
+            // Troops took the city earlier in this season's resolution: its elders sell to nobody, and nobody pays.
+            if (S.Owner.GetValueOrDefault(prov.Id) is { } taker)
+            {
+                foreach (var b in bidders)
+                    S.Notify(b, InboxKind.Rejected, "Purchase failed", b == taker
+                        ? $"Your own troops took {prov.Name} last season; no gold was paid."
+                        : $"{prov.Name} was taken by {taker}'s troops last season before its elders could accept your gold. No gold was paid.");
+                foreach (var (b, o) in group) ScheduledFailed(b, o, b == taker ? "your own troops took it" : $"{taker}'s troops took it");
+                continue;
+            }
             if (bidders.Count > 1)
             {
                 foreach (var b in bidders)
-                    S.Notify(b, InboxKind.Resolution, "Purchase failed", $"The elders of {prov.Name} would not choose between rival buyers this season.");
+                    S.Notify(b, InboxKind.Rejected, "Purchase failed", $"The elders of {prov.Name} would not choose between rival buyers last season. No gold was paid.");
                 foreach (var (b, o) in group) ScheduledFailed(b, o, "rival buyers bid for it");
                 continue;
             }
             var buyer = bidders[0];
             var bid = group.First().O;
-            if (S.UnitAt(prov.Id) is { } occupant && occupant.Power != buyer) { ScheduledFailed(buyer, bid, "foreign troops stand in it"); continue; }
+            if (S.UnitAt(prov.Id) is { } occupant && occupant.Power != buyer)
+            {
+                S.Notify(buyer, InboxKind.Rejected, "Purchase failed", $"Foreign troops stood in {prov.Name}, and its elders would not sell. No gold was paid.");
+                ScheduledFailed(buyer, bid, "foreign troops stand in it");
+                continue;
+            }
             var price = prov.Yield * S.Config.NeutralPriceFactor;
             if (!Pay(buyer, price, $"the city of {prov.Name}")) { ScheduledFailed(buyer, bid, "not enough gold"); continue; }
             S.Owner[prov.Id] = buyer;

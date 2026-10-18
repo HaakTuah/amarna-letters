@@ -11,7 +11,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Free city-states have walls** that hold with strength 1 and never move, so taking one needs a
   supported attack. They can also be bought for 10 × yield by a power whose land or troops touch
   them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
-  season bounce.
+  season bounce. A city that troops take in the season of a bid is not sold: every bidder is told
+  ("Gaza was taken by Babylonia's troops last season before its elders could accept your gold. No
+  gold was paid.", or "Your own troops took Gaza last season; no gold was paid."), nobody pays (gold
+  is only reserved when orders are checked), and a scheduled bid that fails this way wakes its seat.
+  (Until the simulation-fixes round such a bid vanished without a word.)
 - **A bought city keeps its walls**, which then hold for its owner: the owner cannot station troops
   inside but may support the walls holding; a rival still needs a supported attack, and conquest
   tears the walls down. Buying is the durable way to grow, conquest the fast one.
