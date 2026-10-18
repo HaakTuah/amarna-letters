@@ -12,23 +12,38 @@ namespace Amarna.Game.Bots;
 /// </summary>
 public sealed class ScriptLeader : ISeat
 {
-    private readonly ulong _seed;
+    /// <summary>Each power's seat seed (see <see cref="SeatSeed"/>); the game's own seed is not kept.</summary>
+    private readonly Dictionary<Power, ulong> _seeds;
     private readonly Dictionary<Power, Brain> _brains = new();
 
-    public ScriptLeader(ulong seed) => _seed = seed;
+    /// <param name="gameSeed">The game's seed, from which each power's seat seed is derived.</param>
+    public ScriptLeader(ulong gameSeed) => _seeds = Powers.All.ToDictionary(p => p, p => SeatSeed(gameSeed, p));
 
     public string Label => "Script bot";
 
-    /// <summary>The temperament a script king plays with in a game with this seed.</summary>
-    public static Personality Temperament(Power p, ulong seed) => Personality.For(p, seed);
+    /// <summary>
+    /// A script seat's own seed: a hash of the game's seed, "seat" and the power. Its temperament and every roll it
+    /// makes, its pictured rivals' included, come from this seed, so no script king holds the seed the engine rolls
+    /// the game's dice with.
+    /// </summary>
+    public static ulong SeatSeed(ulong gameSeed, Power p) => Rng.For(gameSeed, 0, "seat", p.ToString()).NextULong();
+
+    /// <summary>The temperament a script king plays with in a game with this seed (drawn from its seat seed).</summary>
+    public static Personality Temperament(Power p, ulong gameSeed) => Personality.For(p, SeatSeed(gameSeed, p));
 
     private Brain Brain(Power p)
     {
         lock (_brains)
         {
-            if (!_brains.TryGetValue(p, out var b)) _brains[p] = b = new Brain(p, _seed);
+            if (!_brains.TryGetValue(p, out var b)) _brains[p] = b = new Brain(p, _seeds[p]);
             return b;
         }
+    }
+
+    /// <summary>The memory this bot keeps for a power, if it has played or watched it.</summary>
+    internal Brain? BrainOf(Power p)
+    {
+        lock (_brains) return _brains.GetValueOrDefault(p);
     }
 
     public Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct)
@@ -90,7 +105,7 @@ public sealed class ScriptLeader : ISeat
         {
             brain.Learn(court, new Board(court));
             var board = new Board(court, treasuries: brain.Treasury);
-            var rng = Rng.For(_seed, view.Turn, "bot:host", $"{view.Host}:{view.AudienceId}:{view.Round}");
+            var rng = Rng.For(_seeds[view.Host], view.Turn, "bot:host", $"{view.Host}:{view.AudienceId}:{view.Round}");
             return Task.FromResult(Statecraft.Host(view, board, brain, rng));
         }
     }

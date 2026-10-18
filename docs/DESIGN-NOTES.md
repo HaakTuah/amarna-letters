@@ -194,7 +194,7 @@ kings on Sonnet 5.5, the design's default leader model.
 
 ## Script kings
 
-A script king sees exactly what any seat sees (its `SeatView`) and nothing more. The same bot plays every script seat. It also stands in for a model seat whenever a call to the model fails, playing that king's temperament. The stand-in keeps a memory of its own (see Known quirks). The rules live in `src/Amarna.Game/Bots` (`Personality`, `Brain`, `Board`, `Statecraft`, `Tactics`, `Search`, `ScriptLeader`), and their numbers are in that code, not in `GameConfig`. Every random choice comes from a seeded stream keyed by turn, purpose and power, so replays are exact.
+A script king sees exactly what any seat sees (its `SeatView`) and nothing more: a test changes what lies outside the view (rivals' gold, the fine gold in its unassayed lots, troops out of sight, seat labels, characters' traits) and its orders stay the same. The same bot plays every script seat. It also stands in for a model seat whenever a call to the model fails, playing that king's temperament. The stand-in keeps a memory of its own (see Known quirks). The rules live in `src/Amarna.Game/Bots` (`Personality`, `Brain`, `Board`, `Statecraft`, `Tactics`, `Search`, `ScriptLeader`), and their numbers are in that code, not in `GameConfig`. Each script seat plays from a seed of its own, a hash of the game's seed, "seat" and its power (`ScriptLeader.SeatSeed`), so no script king holds the seed the engine rolls the game's dice with. Every random choice it makes, in picturing its rivals too, comes from a stream of that seed keyed by turn and purpose, so replays are exact.
 
 ### A season, in order
 
@@ -255,7 +255,7 @@ There are ten weights, each from 0 to 1. Each power has a historical archetype:
 
 The archetypes are Egypt, "Pharaoh of the gilded gifts"; Hatti, "the conqueror of Anatolia"; Babylonia, "keeper of the old order"; Mitanni, "seeker of a patron"; Assyria, "the upstart who would be brother"; Arzawa, "the western opportunist"; and Alashiya, "the copper merchant".
 
-Each game moves every weight by a uniform amount between −0.15 and +0.15, drawn from the seed for that power, then clamps it to 0–1. So Babylonia's pride and Alashiya's commerce can only fall. The god view lists each king's temperament under Standings, naming the three traits furthest from 0.5. When a king pictures a rival in the look-ahead, it uses the rival's archetype without the nudge.
+Each game moves every weight by a uniform amount between −0.15 and +0.15, drawn from that power's seat seed, then clamps it to 0–1. So Babylonia's pride and Alashiya's commerce can only fall. The god view lists each king's temperament under Standings, naming the three traits furthest from 0.5. When a king pictures a rival in the look-ahead, it uses the rival's archetype without the nudge.
 
 Most behaviour switches on at a threshold. This table gives the share of seeds in which each king crosses it (the lull row is approximate, since it multiplies two weights):
 

@@ -30,6 +30,7 @@
         @foreach (var p in Powers.All)
         {
             var seat = Seats?.GetValueOrDefault(p) ?? "";
+            // The script seat's temperament, drawn from its own seat seed, derived from the game's seed as the seat derives it.
             var t = Amarna.Game.Bots.ScriptLeader.Temperament(p, State.Seed);
             <li>
                 <span class="dot" style="background:@Ui.Color(p)"></span>
