@@ -268,7 +268,7 @@ public sealed class GameRunner
         var soFar = new List<Exchange>();
         for (var round = 1; round <= State.Config.AudienceRounds; round++)
         {
-            var view = engine.BuildAudienceView(a, present.Speech, present.Skim, soFar, round);
+            var view = engine.BuildAudienceView(a, present.Speech, present.Skim, soFar, round, record.Rounds);
             var court = Views.For(State, a.Host);
             var host = await Recorded($"{key}/host/{round}",
                 () => Seats[a.Host].HostAudienceAsync(view, court, ct),

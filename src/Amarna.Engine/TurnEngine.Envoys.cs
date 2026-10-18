@@ -143,9 +143,11 @@ public sealed partial class TurnEngine
     /// <summary>The gold the host's weighers find, after whatever the envoy kept.</summary>
     public static int Weighed(PendingAudience a, int skim) => a.Dispatch.Gold - Math.Clamp(skim, 0, a.Dispatch.Gold);
 
-    public AudienceView BuildAudienceView(PendingAudience a, string spoken, int skim, IReadOnlyList<Exchange> soFar, int round)
+    /// <param name="earlier">The audience's earlier exchanges, so the host is told what it has already named and given.</param>
+    public AudienceView BuildAudienceView(PendingAudience a, string spoken, int skim, IReadOnlyList<Exchange> soFar, int round, IReadOnlyList<AudienceRound>? earlier = null)
     {
         var c = S.Char(a.EnvoyId);
+        earlier ??= [];
         var view = new AudienceView
         {
             AudienceId = a.Id,
@@ -161,6 +163,8 @@ public sealed partial class TurnEngine
             GoldStated = a.Dispatch.Gold,
             GoldWeighed = Weighed(a, skim),
             SoFar = soFar.ToList(),
+            GoldBackNamed = earlier.LastOrDefault(x => x.Host is { GoldBack: > 0 })?.Host.GoldBack ?? 0,
+            GiftAccepted = earlier.FirstOrDefault(x => x.Host is { Bribe: > 0 } && x.Envoy is { AcceptBribe: true })?.Host.Bribe ?? 0,
         };
         if (a.Dispatch.ProposalTabletId is { } tid && S.Tablets.FirstOrDefault(t => t.Id == tid) is { } tablet)
             view.Proposal = Views.Tablet(tablet, new TabletCopy { Id = "", TabletId = tid, Holder = a.Host, Source = $"proposed by {a.From}" });
@@ -225,13 +229,19 @@ public sealed partial class TurnEngine
         var detained = false;
         var defected = false;
         var bribePaid = 0;
+        // Gold to send home with the envoy: the latest amount named stands (0 in a later exchange keeps it), at that exchange's purity.
+        var goldBack = 0;
+        var goldBackPurity = 100;
         foreach (var round in record.Rounds.Take(S.Config.AudienceRounds))
         {
             var h = round.Host ?? new HostReply();
             var e = round.Envoy ?? new EnvoyReaction();
             trail.Exchanges.Add(new Exchange { Host = Greeting.Cap(h.Speech ?? "", MaxSpeech), Envoy = Greeting.Cap(e.Speech ?? "", MaxSpeech) });
 
-            if (h.Bribe > 0 && bribePaid == 0)
+            // An envoy takes one gift per audience.
+            if (h.Bribe > 0 && bribePaid > 0)
+                trail.Outcomes.Add("a second gift was not given: an envoy takes one gift per audience");
+            else if (h.Bribe > 0)
             {
                 if (e.AcceptBribe)
                 {
@@ -279,24 +289,29 @@ public sealed partial class TurnEngine
             if (!string.IsNullOrWhiteSpace(e.Commitments))
                 trail.Outcomes.Add($"the envoy committed: {Greeting.Cap(e.Commitments, 300)}");
 
+            if (h.GoldBack > 0)
+            {
+                goldBack = h.GoldBack;
+                goldBackPurity = h.GoldBackPurity;
+            }
+
             if (h.Detain) detained = true;
             if (h.End || detained || defected) break;
         }
 
-        var last = record.Rounds.LastOrDefault()?.Host;
         var cargo = new HomeCargo { TrailId = trail.Id, Observations = Observe(c, host) };
         if (d.ProposalTabletId is { } pid && S.Tablets.FirstOrDefault(t => t.Id == pid) is { SealedTurn: not null }) cargo.CopyIds.Add(pid);
 
-        if (!detained && !defected && last is { GoldBack: > 0 })
+        if (!detained && !defected && goldBack > 0)
         {
-            var purity = Math.Clamp(last.GoldBackPurity, 10, 100);
-            var backFine = (int)Math.Round(last.GoldBack * purity / 100.0);
+            var purity = Math.Clamp(goldBackPurity, 10, 100);
+            var backFine = (int)Math.Round(goldBack * purity / 100.0);
             if (Pay(host, backFine, $"gifts for {sender}"))
             {
-                cargo.Gold = last.GoldBack;
-                cargo.GoldStated = last.GoldBack;
+                cargo.Gold = goldBack;
+                cargo.GoldStated = goldBack;
                 cargo.PurityPercent = purity;
-                trail.Outcomes.Add($"{host} sent back {Money.Format(last.GoldBack)}");
+                trail.Outcomes.Add($"{host} sent back {Money.Format(goldBack)}");
             }
         }
 

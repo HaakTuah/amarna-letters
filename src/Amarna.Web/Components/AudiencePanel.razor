@@ -47,6 +47,14 @@ else
 {
     <div class="notice"><strong>This envoy secretly serves you.</strong> Their real instructions: “@a.SecretLetter” Mandate: @(a.SecretMandate.Length > 0 ? a.SecretMandate : "none given").</div>
 }
+@if (a.GoldBackNamed > 0)
+{
+    <p class="notice">You have already named @Ui.Shekels(a.GoldBackNamed) to send home with the envoy; a new amount replaces it, 0 keeps it.</p>
+}
+@if (a.GiftAccepted > 0)
+{
+    <p class="notice">@a.Envoy.Name has already accepted your gift of @Ui.Shekels(a.GiftAccepted). An envoy takes one gift per audience: another gift would not be given.</p>
+}
 
 <div class="section">
     <h4>Your answer</h4>

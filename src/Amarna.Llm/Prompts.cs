@@ -56,7 +56,7 @@ public static class Prompts
             ENVOYS: THE ONLY WAY KINGS COMMUNICATE
             - You never speak to another king directly. You give an envoy a spoken message, a mandate (what the envoy may agree to) and optionally gold and a tablet. Travel takes 1 to 3 seasons each way.
             - The greeting is written by your scribes from your choices and sealed: it arrives exactly as written. The message itself is spoken by the envoy in their own words. Envoys have motives of their own (greed, fear, ambition, sympathies) and may soften, embellish, omit, take bribes, skim gold, exceed their mandate, stay too long, or defect. Their reports home are written to their own advantage.
-            - When a foreign envoy stands before you, you may answer, offer them a gift (a bribe), offer them service at a wage, detain them, seal a tablet they bring, or send gold back with them.
+            - When a foreign envoy stands before you, you may answer, offer them a gift (a bribe), offer them service at a wage, detain them, seal a tablet they bring, or send gold back with them. An envoy takes one gift per audience. If you name gold to send back in more than one exchange, the latest amount named is sent; 0 keeps the amount named before.
             - At most {c.MaxDispatchesPerTurn} envoys may leave your court in one season.
 
             EVIDENCE AND INTELLIGENCE
@@ -228,6 +228,10 @@ public static class Prompts
             sb.AppendLine($"The envoy shows you a tablet as evidence, bearing the seals of {string.Join(", ", t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")}: \"{t.Text}\"");
         if (a.SecretMandate is not null)
             sb.AppendLine($"This envoy secretly serves you. Their real instructions were: \"{a.SecretLetter}\" Mandate: \"{a.SecretMandate}\".");
+        if (a.GoldBackNamed > 0)
+            sb.AppendLine($"You have already named {a.GoldBackNamed} shekels to send home with the envoy; a new amount replaces it, 0 keeps it.");
+        if (a.GiftAccepted > 0)
+            sb.AppendLine($"{a.Envoy.Name} has already accepted your gift of {a.GiftAccepted} shekels. An envoy takes one gift per audience: another gift would not be given.");
         sb.AppendLine(a.Round < a.MaxRounds
             ? "Answer the envoy. You may end the audience now, or leave it open for one more exchange."
             : "This is the last exchange of the audience.");

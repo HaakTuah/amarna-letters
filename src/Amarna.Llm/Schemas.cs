@@ -110,13 +110,13 @@ public static class Schemas
 
     public static JsonObject HostReply() => Object(
         ("speech", Str("What you say to the envoy, to carry home.")),
-        ("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0.")),
+        ("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given.")),
         ("gift_request", Str("What you want from the envoy in return for the gift, or empty.")),
         ("offer_service_wage", Int("Offer the envoy service at this wage per season, or 0.")),
         ("seal_tablet", Bool("Seal the tablet the envoy brought, if any.")),
         ("detain_envoy", Bool()),
-        ("send_gold_back", Int("Gold sent home with the envoy for their king, or 0.")),
-        ("gold_back_purity", Int("Purity of that gold in percent, 10-100.")),
+        ("send_gold_back", Int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it.")),
+        ("gold_back_purity", Int("Purity of that gold in percent, 10-100. The purity named with the amount that is sent applies.")),
         ("end_audience", Bool("End the audience now.")));
 
     public static JsonObject Present() => Object(

@@ -83,6 +83,10 @@ public sealed class AudienceView
     public TabletView? Proposal { get; set; }
     public List<TabletView> CopiesShown { get; set; } = new();
     public List<Exchange> SoFar { get; set; } = new();
+    /// <summary>Gold the host named in an earlier exchange to send home with the envoy (the latest amount named), or 0.</summary>
+    public int GoldBackNamed { get; set; }
+    /// <summary>A gift the envoy accepted in an earlier exchange, or 0. An envoy takes one gift per audience.</summary>
+    public int GiftAccepted { get; set; }
     /// <summary>Only when the envoy secretly serves the host: what the envoy was really told.</summary>
     public string? SecretMandate { get; set; }
     public string? SecretLetter { get; set; }

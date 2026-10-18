@@ -58,6 +58,13 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Envoys go out and come back.** An audience has at most two exchanges. Detention is the host's
   choice; detained envoys grow attached to the host court over time. The sender hears that the
   envoy is overdue a season after it should have returned.
+- **Gold sent back** is paid when the audience ends: the latest amount the host named, at the purity
+  it named with it. A 0 in the second exchange keeps the first amount; a new amount replaces it. The
+  second exchange tells the host what it already named. (Until the simulation-fixes round only the
+  last exchange counted, so gold named first and not repeated was lost.)
+- **One gift per audience.** Once an envoy has accepted a gift, a later gift in the same audience is
+  not given, and the audience's outcome tells the host ("a second gift was not given: an envoy takes
+  one gift per audience"). A refused gift may be offered again in the second exchange.
 - **Plants.** Two of the fourteen starting envoys are secretly in the pay of another power. When a
   plant stands before its real master, the master is shown the envoy's true instructions.
 - **Bribes, poaching and defection** are explicit decisions by the envoy that the engine applies:
