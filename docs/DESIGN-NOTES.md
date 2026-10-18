@@ -11,7 +11,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   its own failed moves says why, from the adjudicator's own checks in their order: no convoy carried
   it; its own unit did not leave; the unit from the target was coming the other way; the unit holding
   the target kept its place (or could not leave); the walls held; or it met another move into the
-  target from a named province. The strengths compared follow ("your strength 2 against 2"). The other
+  target from a named province (always the reason given when that move took the target). The
+  strengths compared follow ("your strength 2 against 2"). The other
   side's power is named only if that unit was in sight. A support whose unit was destroyed reads
   "void: the supporting unit was destroyed", not "cut"; a cut support says where the attack came
   from. (Until the simulation-fixes round, foreign lines were kept by the moving unit's origin

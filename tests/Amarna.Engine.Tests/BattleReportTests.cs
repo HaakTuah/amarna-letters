@@ -44,6 +44,24 @@ public class BattleReportTests
     }
 
     [Fact]
+    public void When_a_stronger_move_takes_the_province_that_is_the_reason_given()
+    {
+        // Babylon's army in Mari and Assyria's from Ashur both strike Terqa; only Assyria's is supported.
+        var s = GameFactory.NewGame(1);
+        s.Owner["mari"] = Power.Babylonia;
+        s.Garrisons.Remove("mari");
+        s.Units.Add(new Unit { Id = "u90", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "mari" });
+        Resolve(s, new()
+        {
+            [Power.Assyria] = new() { Orders = [new MoveOrder("ashur", "terqa"), new SupportOrder("ekallatum", "ashur", "terqa")] },
+            [Power.Babylonia] = new() { Orders = [new MoveOrder("mari", "terqa")] },
+        });
+
+        Assert.Equal(Power.Assyria, s.UnitAt("terqa")?.Power);
+        Assert.Contains("- A mari -> terqa: fails: it met a move into terqa from ashur by Assyria's army; your strength 1 against 2", Report(s, Power.Babylonia));
+    }
+
+    [Fact]
     public void A_support_whose_unit_is_destroyed_is_void_and_a_cut_support_says_from_where()
     {
         var s = GameFactory.NewGame(1);

@@ -474,6 +474,10 @@ public sealed class Adjudicator
         if (attack == 0 && occ is { Power: { } own } && own == move.Power)
             return new(MoveStop.OwnUnit, occ.At, occ.Power, occ.UnitKind, occ.Kind == Kind.Move ? occ.Target : null, 0, 0);
 
+        // Another move took the province: that is the news, even if the unit there also held this one off before it fell.
+        if (MovesTo(move.Target!).FirstOrDefault(m => m != move && _result[m.Index]) is { } winner)
+            return new(MoveStop.Bounced, winner.At, winner.Power, winner.UnitKind, winner.Target, attack, PreventStrength(winner));
+
         if (HeadToHeadOpponent(move) is { } opp)
         {
             var defend = DefendStrength(opp);
