@@ -35,4 +35,31 @@ public class RansomBotTests
         // Should that word never come, it asks again after six seasons.
         Assert.True(await Asks(14));
     }
+
+    [Fact]
+    public async Task A_script_king_pays_a_ransom_the_season_its_demand_arrives()
+    {
+        // Mitanni (honest in every game) has one of its people held by Hatti.
+        var s = GameFactory.NewGame(9);
+        var spy = s.Characters.First(c => c.Employer == Power.Mitanni);
+        spy.Status = CharacterStatus.Captured;
+        spy.HeldBy = Power.Hatti;
+        spy.At = Power.Hatti;
+        s.Treasuries[Power.Mitanni].Gold = 3000;
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Hatti] = new() { Orders = [new CaptiveOrder(spy.Id, CaptiveFate.Ransom, 80)] } });
+        var payer = new ScriptLeader(9);
+        while (!s.InboxOf(Power.Mitanni).Any(i => i.Kind == InboxKind.Rumor && i.Subject == spy.Id))
+        {
+            e = new TurnEngine(s);
+            e.BeginTurn();
+            if (s.InboxOf(Power.Mitanni).Any(i => i.Kind == InboxKind.Rumor && i.Subject == spy.Id)) break;
+            e.Resolve(new Dictionary<Power, TurnSubmission>());
+        }
+        var sub = await payer.DecideAsync(Views.For(s, Power.Mitanni), default);
+        var pay = Assert.Single(sub.Orders.OfType<PayRansomOrder>());
+        Assert.Equal(spy.Id, pay.Character);
+        Assert.Contains(new OrderValidator(s).Validate(Power.Mitanni, sub).Accepted, o => o is PayRansomOrder);
+    }
 }

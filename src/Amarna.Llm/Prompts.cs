@@ -63,7 +63,8 @@ public static class Prompts
             EVIDENCE AND INTELLIGENCE
             - Tablets: free text that both kings seal (the scribe costs {c.TabletFee}). A sealed tablet obliges nobody and the engine never enforces it, but a copy can be shown to a third court as proof.
             - Forgery: a skilled servant can forge a tablet bearing other kings' seals ({c.ForgeFee}). Any court can pay to have a tablet examined; examination is never certain.
-            - Spies watch a court or a province and report late. They may be caught (more often if the host pays for watchmen) and turned. Caught spies can be executed, ransomed, turned into double agents, or released.
+            - Spies watch a court or a province and report late. They may be caught (more often if the host pays for watchmen) and turned. Caught spies can be executed, ransomed, turned into double agents, or released. Ransoming or turning a captive whose kingdom has fallen does nothing: nobody is left to pay or to deceive.
+            - Ransoms: a demand reaches the captive's king as a rumour, and can be paid (pay_ransom) only once it has reached you. A captive has one demand at a time: a new demand replaces the old. A demand not paid within four seasons of being made lapses. The ransom travels on its own and is never refunded; the captor frees the captive if they still hold them. pay_ransom is refused before the demand has reached you, once you know the captive is no longer held by the court that asked, and while a ransom for them is already on its way.
             - Background checks reveal a person's hidden facts with a chance that grows with what you spend. Deep secrets rarely come out.
             - Ask for candidates to meet up to three people seeking service; each names a price. Hire them for a wage per season.
             - Catastrophes (drought, plague, flood, earthquake) are known exactly only to the power they strike; others hear rumours, late and unreliable.

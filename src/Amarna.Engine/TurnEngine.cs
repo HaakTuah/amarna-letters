@@ -189,6 +189,7 @@ public sealed partial class TurnEngine
                 case JourneyKind.Ransom: RansomArrives(j); break;
                 case JourneyKind.Rumor:
                     if (!S.IsAlive(j.To)) break;
+                    if (j.TaskId is not null && !DemandArrives(j)) break;
                     S.Notify(j.To, InboxKind.Rumor, "Rumor", j.Text ?? "", j.CharacterId);
                     NewsArrives(j);
                     break;

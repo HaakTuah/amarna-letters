@@ -222,8 +222,11 @@ public sealed partial class TurnEngine
                 break;
             case CaptiveFate.Ransom:
                 if (employer is not { } payer || !S.IsAlive(payer)) break;
-                S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.RansomDemand, Requester = payer, Other = host, CharacterId = c.Id, Spend = co.Ransom, DueTurn = S.Turn + 5 });
-                Rumor(payer, host, $"{host} holds {c.Name} and demands {Money.Format(co.Ransom)} for their return (order payRansom for {c.Id}).", c.Id, NewsKind.Ransom);
+                // One open demand per captive: a new one replaces the old, and the old one's rumour, if still on the road, announces nothing.
+                S.Tasks.RemoveAll(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == c.Id);
+                var demand = new PendingTask { Id = S.NewId("q"), Kind = TaskKind.RansomDemand, Requester = payer, Other = host, CharacterId = c.Id, Spend = co.Ransom, DueTurn = S.Turn + 5 };
+                S.Tasks.Add(demand);
+                Rumor(payer, host, $"{host} holds {c.Name} and demands {Money.Format(co.Ransom)} for their return (order pay_ransom for {c.Id}).", c.Id, NewsKind.Ransom, demand.Id);
                 break;
             case CaptiveFate.Turn:
                 // A captive whose kingdom has fallen has no court left to deceive: they stay a captive.
@@ -266,9 +269,16 @@ public sealed partial class TurnEngine
 
     private void PayRansom(Power payer, PayRansomOrder pr)
     {
-        var task = S.Tasks.FirstOrDefault(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == pr.Character && t.Requester == payer);
-        if (task is null || task.Other is not { } host) return;
-        if (!Pay(payer, task.Spend, "a ransom")) return;
+        // Checked again as the season resolves: the captor may have let the captive go, or an earlier order paid already.
+        var c = S.Char(pr.Character);
+        if (OrderValidator.RansomRefusal(S, payer, c, out var task) is { } why)
+        {
+            S.Notify(payer, InboxKind.Rejected, "Ransom not sent", $"The ransom for {c.Name} could not be sent: {why}.", c.Id);
+            ScheduledFailed(payer, pr, why);
+            return;
+        }
+        var host = task!.Other!.Value;
+        if (!Pay(payer, task.Spend, "a ransom")) { ScheduledFailed(payer, pr, "not enough gold"); return; }
         S.Tasks.Remove(task);
         S.Journeys.Add(new Journey
         {
@@ -292,7 +302,8 @@ public sealed partial class TurnEngine
     }
 
     /// <param name="about">One of the receiving court's own people the rumour is about, whose cover it ends on arrival.</param>
-    private void Rumor(Power to, Power from, string text, string? about = null, NewsKind? news = null)
+    /// <param name="demand">For a ransom demand's rumour: the demand it announces.</param>
+    private void Rumor(Power to, Power from, string text, string? about = null, NewsKind? news = null, string? demand = null)
     {
         if (!S.IsAlive(to)) return;
         S.Journeys.Add(new Journey
@@ -306,7 +317,26 @@ public sealed partial class TurnEngine
             Text = text,
             CharacterId = about,
             News = news,
+            TaskId = demand,
         });
+    }
+
+    /// <summary>
+    /// A ransom demand's rumour reaches the court asked to pay. Only a demand still standing for a captive still
+    /// held is announced: one replaced by a newer demand, or for a captive since freed, turned or put to death,
+    /// announces nothing.
+    /// </summary>
+    private bool DemandArrives(Journey j)
+    {
+        var task = S.Tasks.FirstOrDefault(t => t.Id == j.TaskId);
+        var c = S.FindCharacter(j.CharacterId);
+        if (task is null || c is not { Status: CharacterStatus.Captured } || c.HeldBy != task.Other)
+        {
+            if (task is not null) S.Tasks.Remove(task);
+            return false;
+        }
+        task.Announced = true;
+        return true;
     }
 
     private void Assay(Power p, AssayOrder a)

@@ -69,8 +69,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   candidates that season").
 - **Failures are rejection notices.** These are reported with the kind `Rejected`: every order the
   validator refused; a levy whose province was no longer free; a purchase that failed; a payment the
-  treasury could not make; a hire the person declined; and a cession blocked by the king's own
-  troops. The batch seat report's "invalid" column counts each of them (the validator's list once
+  treasury could not make; a ransom that could not be sent; a hire the person declined; and a
+  cession blocked by the king's own troops. The batch seat report's "invalid" column counts each of them (the validator's list once
   per order). Some failures at resolution still send no notice at all: a cession of land no longer
   held, a gift of troops whose unit is gone, and a disband of a unit that is gone (a scheduled order
   that fails this way still wakes its sleeping seat).
@@ -154,12 +154,29 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   court"; recalling a caught spy is accepted, and its master then believes it on the road home).
   Dismissing it is accepted and ends the cover and the wage; a dismissed captive stays a captive. A
   captive whose master has heard of it reads "held captive at the court of Assyria; Assyria demands
-  90 shekels for their return (order pay_ransom)" (the demand while one stands), never "at court,
+  90 shekels for their return (order pay_ransom)" (the demand once its word has arrived), never "at court,
   ready", and draws no wage; the web app offers the ransom button only then. Script kings read the
   same view and are fooled the same way. (Until the simulation-fixes round the master's list showed
   the truth at once: a caught spy "at court, ready for a mission", a detained envoy "has not
   returned" the same season, a defector dropped off the list and its wage stopped, an executed spy
   vanished.)
+- **Ransoms.** A captor's ransom order sends its demand to the captive's king as a rumour (one or
+  two seasons on the road). A captive has one open demand: a new order replaces the old one, and a
+  rumour still on the road for a replaced demand, or for a captive since freed, turned or put to
+  death, announces nothing and wakes nobody. A demand can be paid only once its rumour has arrived,
+  and lapses if it is not paid in the four seasons after it was made (the captor is told "No ransom
+  came"). `pay_ransom` is refused before the demand has arrived ("no ransom demand for Mane has
+  reached you"), once the payer can see that the captive is no longer held by that court ("Mane is
+  no longer held by Mitanni"), and while a ransom for that captive is on its way ("a ransom for Mane
+  is already on its way"), a second order in the same season included. Resolution checks again,
+  since the captor may let the captive go that season: a payment that cannot be sent costs nothing,
+  and the payer is told ("Ransom not sent"). The gold travels on its own; the captor keeps it and
+  frees the captive if it still holds them. A payer who has not heard that its captive was put to
+  death still pays, and the gold is lost. Ransoming or turning a captive whose kingdom has fallen is
+  refused, with the reason: "Mane's kingdom has fallen: nobody is left to pay. Mane remains your
+  captive." The rumour reads "(order pay_ransom for c7)", the order's name in the schema. (Until the
+  simulation-fixes round every ransom order added a demand and a rumour, a payment was accepted for
+  any open demand, even once the captive was free, and those captive orders did nothing in silence.)
 - **Authentication**: genuine tablets read genuine 95% of the time (else inconclusive). Forgeries
   are detected with chance 20% + spend/200 − forger skill/150 (5–95%), and traced to the forger's
   employer with chance 30% + spend/400 (30–80%), which is announced to every court.
@@ -732,7 +749,7 @@ These are in the code as written, and they affect the balance numbers:
 - **Partners' attacks count harshly.** A partner's conquest counts as two broken oaths, and a move into our land that bounced counts as one.
 - **Joint blows can misfire.** Each partner counts only the troops in its own sight, so partners may name different troops to go in. When the rule names a king who is at peace with the foe, that king does not go in (his troop does something else), and his partners' supports are wasted.
 - **Separate peace is allowed**, although the coalition tablet forbids it (see Good faith).
-- **A captive of a fallen kingdom is stuck with a cunning captor.** The captor orders "turn" every season, the engine leaves the captive a captive, and the captor never ransoms or releases him.
+- **A captive of a fallen kingdom is stuck with a cunning captor.** The captor orders "turn" every season, the engine refuses it (nobody is left to deceive) and leaves the captive a captive, and the captor never ransoms or releases him.
 - **The stand-in for a model seat is a shadow, not the model.** It is a separate script player that keeps up with every model and file seat: each season, asleep or awake, it reads that seat's view just before orders, as if it were to play, and learns from it once (if it stood in at one of that season's audiences, it learned then and reads nothing more). So when a call fails it knows the land taken, the troops seen and the gold spent so far. What it cannot know is what the model meant: its war target, its trust and its plans are its own, drawn from what reached the court, not from the model's notes. Its reading changes nothing in the game, so replays stay exact.
 
 ### Benchmarks

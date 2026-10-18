@@ -249,9 +249,9 @@ public static class Views
             ? $"held captive at the court of {heldAt}; {heldAt} demands {demand.Spend} shekels for their return (order pay_ransom)"
             : $"held captive at the court of {heldAt}";
 
-    /// <summary>The open ransom demand for a captive, as far as the court asked to pay knows it.</summary>
+    /// <summary>The open ransom demand for a captive, once its rumour has reached the court asked to pay.</summary>
     public static PendingTask? KnownDemand(GameState s, string id, Power heldAt, Power payer) =>
-        s.Tasks.LastOrDefault(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == id && t.Requester == payer && t.Other == heldAt);
+        s.Tasks.LastOrDefault(t => t.Kind == TaskKind.RansomDemand && t.Announced && t.CharacterId == id && t.Requester == payer && t.Other == heldAt);
 
     public static string DutyText(Character c) => c.Status == CharacterStatus.Captured && c.HeldBy is { } jailer ? $"held captive at the court of {jailer}" : c.Duty switch
     {

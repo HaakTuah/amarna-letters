@@ -31,6 +31,7 @@ public sealed class OrderValidator
         var raisedIn = new HashSet<string>();
         var bought = new HashSet<string>();
         var busyCharacters = new HashSet<string>();
+        var ransomed = new HashSet<string>();
         var dispatches = 0;
         var seekCount = 0;
         var counterIntel = false;
@@ -275,17 +276,40 @@ public sealed class OrderValidator
                     if (c is null || c.Status != CharacterStatus.Captured || c.HeldBy != power) return $"you hold no captive '{co.Character}'";
                     if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     if (co.Fate == CaptiveFate.Ransom && co.Ransom <= 0) return "name a ransom";
+                    // A ransom or a turning needs a living court on the other side.
+                    if (co.Fate is CaptiveFate.Ransom or CaptiveFate.Turn && (c.Employer is not { } master || !_s.IsAlive(master)))
+                        return $"{c.Name}'s kingdom has fallen: nobody is left to {(co.Fate == CaptiveFate.Ransom ? "pay" : "deceive")}. {c.Name} remains your captive";
                     return null;
                 }
 
                 case PayRansomOrder pr:
                 {
-                    var task = _s.Tasks.FirstOrDefault(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == pr.Character && t.Requester == power);
-                    if (task is null) return "nobody is demanding a ransom for that person";
-                    return Spend(task.Spend);
+                    var c = _s.FindCharacter(pr.Character);
+                    if (c is null) return $"there is nobody called '{pr.Character}'";
+                    if (ransomed.Contains(c.Id)) return $"a ransom for {c.Name} is already on its way";
+                    if (RansomRefusal(_s, power, c, out var task) is { } why) return why;
+                    var error = Spend(task!.Spend);
+                    if (error is null) ransomed.Add(c.Id);
+                    return error;
                 }
             }
             return "unknown order";
         }
+    }
+
+    /// <summary>
+    /// Why a court cannot pay a ransom for one of its people, in the rulebook's words, or null if it can. A demand
+    /// can be paid once its rumour has reached the court, while the captive is held by the court that asked (as far
+    /// as the payer knows: a captive put to death unknown to it still seems held), and once only.
+    /// </summary>
+    public static string? RansomRefusal(GameState s, Power payer, Character c, out PendingTask? demand)
+    {
+        demand = s.Tasks.LastOrDefault(t => t.Kind == TaskKind.RansomDemand && t.Announced && t.CharacterId == c.Id && t.Requester == payer);
+        if (s.Journeys.Any(j => j.Kind == JourneyKind.Ransom && j.CharacterId == c.Id && j.From == payer)) return $"a ransom for {c.Name} is already on its way";
+        if (demand?.Other is not { } captor) return $"no ransom demand for {c.Name} has reached you";
+        var held = c.Cover is { } k && k.For == payer
+            ? k.HeldAt == captor
+            : c.Status == CharacterStatus.Captured && c.HeldBy == captor;
+        return held ? null : $"{c.Name} is no longer held by {captor}";
     }
 }

@@ -506,9 +506,11 @@ public sealed class BaselineLeader : ISeat
             }
         }
 
-        foreach (var item in v.Inbox.Where(i => i.Kind == InboxKind.Rumor && i.Body.Contains("order payRansom for ")))
+        // The rumour's wording changed with the simulation-fixes round ("pay_ransom", the order's name in the schema); the rule did not.
+        const string pay = "order pay_ransom for ";
+        foreach (var item in v.Inbox.Where(i => i.Kind == InboxKind.Rumor && i.Body.Contains(pay)))
         {
-            var id = item.Body[(item.Body.IndexOf("order payRansom for ", StringComparison.Ordinal) + 20)..].TrimEnd(')', '.', ' ');
+            var id = item.Body[(item.Body.IndexOf(pay, StringComparison.Ordinal) + pay.Length)..].TrimEnd(')', '.', ' ');
             if (gold > 200) orders.Add(new PayRansomOrder(id));
         }
     }

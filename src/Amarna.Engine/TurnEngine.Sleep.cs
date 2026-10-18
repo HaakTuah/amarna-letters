@@ -71,7 +71,7 @@ public sealed partial class TurnEngine
                 InboxKind.Battle when i.Title == "Land lost" => $"land lost: {i.Body}",
                 InboxKind.Notice when i.Title == "A spy is caught" => "a spy has been caught at your court",
                 InboxKind.Notice when i.Title == "The treasury" && i.Body.Contains("deserted", StringComparison.Ordinal) => "your unpaid troops deserted",
-                InboxKind.Rumor when i.Body.Contains("order payRansom", StringComparison.Ordinal) => "a ransom is demanded for one of your people",
+                InboxKind.Rumor when i.Body.Contains("order pay_ransom", StringComparison.Ordinal) => "a ransom is demanded for one of your people",
                 _ => null,
             };
             if (reason is not null) Add(reason);

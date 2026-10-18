@@ -252,6 +252,8 @@ public sealed class Journey
     public int Gold { get; set; }
     /// <summary>For a rumour about one of the receiving court's own people (<see cref="CharacterId"/>): what it tells.</summary>
     public NewsKind? News { get; set; }
+    /// <summary>For a ransom demand's rumour: the demand it announces, unless a newer one has replaced it.</summary>
+    public string? TaskId { get; set; }
 }
 
 /// <summary>What a leader hands an envoy: the spoken message, the mandate, and what it carries.</summary>
@@ -375,6 +377,8 @@ public sealed class PendingTask
     public string? CopyId { get; set; }
     public int Spend { get; set; }
     public Power? Other { get; set; }
+    /// <summary>A ransom demand whose rumour has reached the court asked to pay: only then can it be paid.</summary>
+    public bool Announced { get; set; }
 }
 
 public enum InboxKind

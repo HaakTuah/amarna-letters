@@ -60,7 +60,11 @@ public class CoverBotTests
         Assert.Contains("held captive at the court of Mitanni;", line);
         Assert.DoesNotContain("ready", line);
 
-        s.Tasks.Add(new PendingTask { Id = "q900", Kind = TaskKind.RansomDemand, Requester = Power.Hatti, Other = Power.Mitanni, CharacterId = spy.Id, Spend = 90, DueTurn = 6 });
+        // A demand shows only once its word has arrived.
+        var demand = new PendingTask { Id = "q900", Kind = TaskKind.RansomDemand, Requester = Power.Hatti, Other = Power.Mitanni, CharacterId = spy.Id, Spend = 90, DueTurn = 6 };
+        s.Tasks.Add(demand);
+        Assert.DoesNotContain("demands", Amarna.Llm.Prompts.Person(Views.For(s, Power.Hatti).Court.Single(c => c.Id == spy.Id)));
+        demand.Announced = true;
         line = Amarna.Llm.Prompts.Person(Views.For(s, Power.Hatti).Court.Single(c => c.Id == spy.Id));
         Assert.Contains("held captive at the court of Mitanni; Mitanni demands 90 shekels for their return (order pay_ransom)", line);
     }

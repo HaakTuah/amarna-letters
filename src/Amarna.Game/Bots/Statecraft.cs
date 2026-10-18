@@ -356,9 +356,10 @@ internal static class Statecraft
         }
 
         // Our own people held abroad.
-        foreach (var item in v.Inbox.Where(i => i.Kind == InboxKind.Rumor && i.Body.Contains("order payRansom for ")))
+        const string pay = "order pay_ransom for ";
+        foreach (var item in v.Inbox.Where(i => i.Kind == InboxKind.Rumor && i.Body.Contains(pay)))
         {
-            var id = item.Body[(item.Body.IndexOf("order payRansom for ", StringComparison.Ordinal) + 20)..].TrimEnd(')', '.', ' ');
+            var id = item.Body[(item.Body.IndexOf(pay, StringComparison.Ordinal) + pay.Length)..].TrimEnd(')', '.', ' ');
             if (p.Honesty >= 0.3 && spare > 150) orders.Add(new PayRansomOrder(id));
         }
         brain.SpareGold = spare;
