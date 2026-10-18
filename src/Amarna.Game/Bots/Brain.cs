@@ -45,6 +45,8 @@ internal sealed partial class Brain
     public HashSet<string> Authenticating = new();
     /// <summary>Captives we have asked a ransom for, and when: a demand stands until it is paid or lapses.</summary>
     public Dictionary<string, int> RansomAsked = new();
+    /// <summary>Our own people whose line reads "has not returned" (the word that they are overdue), and the season it first did.</summary>
+    public Dictionary<string, int> MissingSince = new();
     public int LastSeek = -10;
     public int LastSpyCaught = -10;
     public Power? WarTarget;
@@ -194,6 +196,10 @@ internal sealed partial class Brain
                 Outbid[city.Id] = v.Turn;
         }
 
+        // Our own people we have word are overdue: since when, for as long as their line still says so.
+        foreach (var id in MissingSince.Keys.Where(id => !v.Court.Any(c => c.Id == id && Overdue(c))).ToList()) MissingSince.Remove(id);
+        foreach (var c in v.Court.Where(Overdue)) MissingSince.TryAdd(c.Id, v.Turn);
+
         // Troops seen, for judging each king's strength.
         foreach (var prov in v.Visible) Sightings.Remove(prov);
         foreach (var u in v.Units.Where(u => u.Power != Me)) Sightings[u.Province] = (u.Power, u.Kind, v.Turn);
@@ -313,6 +319,9 @@ internal sealed partial class Brain
         if (b.Leader() == Me) h += 0.15;
         return Math.Clamp(h, 0.05, 0.95);
     }
+
+    /// <summary>One of our people whose line reads that they have not returned: the overdue word has come, and nothing since.</summary>
+    private static bool Overdue(CharacterView c) => c.Duty.StartsWith("has not returned", StringComparison.Ordinal);
 
     /// <summary>A full ally, or a treaty partner we still trust a little; either way, one who has broken no oath to us.</summary>
     public bool IsFriend(Power other)

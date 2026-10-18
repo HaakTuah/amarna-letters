@@ -59,6 +59,62 @@ public class ScriptCourtTests
         Assert.Empty(await Renewals(s, Power.Egypt));
     }
 
+    /// <summary>
+    /// Egypt's court, as Egypt sees it: one envoy whose line reads "has not returned from Hatti" (it went over to Hatti, as
+    /// Egypt does not know), and one at court whose wage is so high that Egypt wants no third servant.
+    /// </summary>
+    private static (GameState S, Character Gone) Missing()
+    {
+        var s = GameFactory.NewGame(11);
+        s.Treasuries[Power.Egypt].Gold = 10000;
+        var servants = s.Characters.Where(c => c.Employer == Power.Egypt).ToList();
+        var gone = servants[0];
+        gone.Covers.Add(new Cover { For = Power.Egypt, Since = 2, Believed = Duty.Detained, DutyText = "has not returned from Hatti", WhereText = "unknown", Wage = 12, ContractUntil = 20 });
+        gone.Employer = Power.Hatti;
+        gone.At = Power.Hatti;
+        servants[1].Contract = new Contract { Wage = 500, StartTurn = 1, UntilTurn = 30 };
+        return (s, gone);
+    }
+
+    [Fact]
+    public async Task A_script_king_dismisses_a_servant_that_has_not_returned_for_three_seasons_and_looks_for_another()
+    {
+        var (s, gone) = Missing();
+        var king = new ScriptLeader(11);
+        for (var turn = 5; turn <= 8; turn++)
+        {
+            s.Turn = turn;
+            var orders = (await king.DecideAsync(Views.For(s, Power.Egypt), default)).Orders;
+            // Read so in seasons 5, 6 and 7; given up in the fourth season it still reads so.
+            Assert.Equal(turn == 8, orders.Contains(new DismissOrder(gone.Id)));
+            // The court counts itself one short only once it has given the servant up.
+            Assert.Equal(turn == 8, orders.OfType<SeekCandidatesOrder>().Any());
+            Assert.DoesNotContain(orders, o => o is not DismissOrder && OrderKeys.CharacterOf(o) == gone.Id);
+        }
+    }
+
+    [Fact]
+    public async Task A_script_king_keeps_a_servant_that_comes_home_before_it_is_given_up()
+    {
+        var (s, gone) = Missing();
+        var king = new ScriptLeader(11);
+        for (var turn = 5; turn <= 9; turn++)
+        {
+            s.Turn = turn;
+            if (turn == 7)
+            {
+                // Home after two seasons of "has not returned", and away again on an errand for two more.
+                gone.Covers.Clear();
+                gone.Employer = Power.Egypt;
+                gone.At = null;
+                gone.Duty = Duty.EnvoyOutbound;
+                gone.MissionTarget = Power.Babylonia;
+            }
+            var orders = (await king.DecideAsync(Views.For(s, Power.Egypt), default)).Orders;
+            Assert.DoesNotContain(new DismissOrder(gone.Id), orders);
+        }
+    }
+
     [Fact]
     public async Task Script_games_with_notices_and_renewals_replay_exactly()
     {

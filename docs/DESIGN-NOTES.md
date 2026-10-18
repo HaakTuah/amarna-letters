@@ -250,8 +250,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     Assyria; Assyria demands 1 mina 30 shekels for their return (order pay_ransom)" (the demand once
     its word has arrived), never "at court, ready", and draws no wage, so its line names none; the
     web app offers the ransom button only then.
-  - Script kings read the same view and are fooled the same way: a script king never dismisses,
-    so it pays an envoy that went over to the host for as long as the cover holds.
+  - Script kings read the same view and are fooled the same way: a script king pays an envoy that
+    went over to the host for as long as the cover holds, and gives it up (dismisses it) only once
+    its line has read "has not returned" for three seasons (see Script kings, Court and
+    intelligence).
   - **What a cover cannot hide:** a caught spy's reports stop coming, and a caught province
     watcher no longer adds its province to its master's sight; a background check on the servant
     finds a defection's public fact as usual; a captive whose master knew of it is seen on the road
@@ -778,6 +780,7 @@ What script kings never do, and how they treat oaths:
   - A careful king ((caution + cunning) ÷ 2 above 0.5) first pays 25 for a background check, if spare exceeds 30 + income ÷ 2.
   - Otherwise it hires for six seasons, if the price is at most 15 + 25 × (1 − greed) and spare exceeds three times the price (the hiring test).
 - **Notice.** A servant who gives notice is renewed for six seasons at the price it names while the king still wants it (the servants not on notice are fewer than it wants) and the price passes the hiring test; the most reliable first. Otherwise the king lets it go, and looks for someone new once it is short. It never renews early.
+- **Servants given up.** A servant whose line has read "has not returned" (the word that it is overdue) for three seasons, and still does in the fourth, is dismissed: its wage stops, and the court counts itself one short that season, so it may seek candidates and hire. This is how a script king stops paying an envoy that went over to the host, since its cover never ends otherwise. One that comes home, or is seen again, before then is kept. A script jailer lets a held envoy go within four seasons of the audience, and the overdue word comes two or three seasons after it, so the envoys script kings detain from each other are home before they are given up (an envoy held longer by a model or human king is dismissed, and, once let go, comes home a free person).
 - **Assays** (fee 10, with spare above 15) cover every lot from a king trusted below 0.3, every lot that weighed light, and every lot of all if greed is above 0.6.
 - **Watchmen** cost 20 + 30 × caution. The king hires them when a spy was caught in the last three seasons, or when caution is above 0.7 and spare is above 500. Spare must be above 40 either way.
 - **Tablets shown to it.** One bearing a friend's seal is examined, at a cost of 30 + 50 × caution, if spare exceeds 60 + 60 × (1 − caution); at most one a season, and the rest wait. A tablet that is not examined is half-believed: trust in each sealer falls by 0.1 × (1 − caution).
@@ -871,7 +874,7 @@ These are in the code as written, and they affect the balance numbers:
 - **Joint blows can misfire.** Each partner counts only the troops in its own sight, so partners may name different troops to go in. When the rule names a king who is at peace with the foe, that king does not go in (his troop does something else), and his partners' supports are wasted.
 - **Separate peace is allowed**, although the coalition tablet forbids it (see Good faith).
 - **A captive of a fallen kingdom is stuck with a cunning captor.** The captor orders "turn" every season, the engine refuses it (nobody is left to deceive) and leaves the captive a captive, and the captor never ransoms or releases him. The same holds for a captive its king has dismissed.
-- **A script jailer never lets go a held envoy who serves no king.** It releases only the envoys it holds whose status reads "employed", so one whose kingdom fell, or whose king (a model or human, since script kings never dismiss) dismissed it while it was held, reads "free" and stays held for the rest of the game, though the jailer's release would free it.
+- **A script jailer never lets go a held envoy who serves no king.** It releases only the envoys it holds whose status reads "employed", so one whose kingdom fell, or whose king dismissed it while it was held, reads "free" and stays held for the rest of the game, though the jailer's release would free it. A script king dismisses a held envoy only after its line has read "has not returned" for three seasons, by which time a script jailer, who holds an envoy at most four seasons (round(1 + 3 × vengeance)), has let it go, so between script kings this needs a model or human king.
 - **The stand-in for a model seat is a shadow, not the model.** It is a separate script player that keeps up with every model and file seat: each season, asleep or awake, it reads that seat's view just before orders, as if it were to play, and learns from it once (if it stood in at one of that season's audiences, it learned then and reads nothing more). So when a call fails it knows the land taken, the troops seen and the gold spent so far. What it cannot know is what the model meant: its war target, its trust and its plans are its own, drawn from what reached the court, not from the model's notes. Its reading changes nothing in the game, so replays stay exact.
 
 ### Benchmarks

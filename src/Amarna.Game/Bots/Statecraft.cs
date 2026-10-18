@@ -241,6 +241,15 @@ internal static class Statecraft
         // surplus to match the size of his kingdom (a small court for a small kingdom).
         var wanted = flow < 25 + 0.25 * v.Income ? 2 : 2 + (p.Diplomacy > 0.8 ? 1 : 0) + (p.Cunning > 0.7 && flow > 50 + 0.25 * v.Income ? 1 : 0);
 
+        // A servant given up for lost: its line has read "has not returned" (the word that it is overdue) for three seasons and
+        // still does. It is dismissed, so its wage stops, and the court counts itself one short, so it may hire.
+        foreach (var c in v.Court.Where(c => brain.MissingSince.TryGetValue(c.Id, out var since) && v.Turn - since >= 3).ToList())
+        {
+            orders.Add(new DismissOrder(c.Id));
+            busy.Add(c.Id);
+            staff.RemoveAll(x => x.Id == c.Id);
+        }
+
         // A servant who has given notice is kept on at its price while the court still wants it (counting only those not
         // leaving) and the price passes the hiring test; the most reliable first. Otherwise it is let go. Never early.
         var leaving = staff.Where(c => c.NoticePrice is not null).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
