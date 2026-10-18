@@ -226,6 +226,9 @@ internal static class Statecraft
     /// <summary>How far a court trusts one of its people, from what it knows of them.</summary>
     public static int Reliability(CharacterView c) => -c.KnownFacts.Count(f => Blemishes.Any(x => f.Contains(x, StringComparison.OrdinalIgnoreCase)));
 
+    /// <summary>The hiring test, for a new servant or one kept on: a wage the king's greed allows, with three seasons of it to spare.</summary>
+    private static bool WouldPay(Personality p, int wage, double spare) => wage <= 15 + 25 * (1 - p.Greed) && spare > wage * 3;
+
     public static void Court(Board b, Brain brain, List<Order> orders, HashSet<string> busy, Rng rng)
     {
         var p = brain.P;
@@ -237,6 +240,17 @@ internal static class Statecraft
         // A third or fourth servant costs a wage every season: only for a king with letters (or plots) to fill it, and a
         // surplus to match the size of his kingdom (a small court for a small kingdom).
         var wanted = flow < 25 + 0.25 * v.Income ? 2 : 2 + (p.Diplomacy > 0.8 ? 1 : 0) + (p.Cunning > 0.7 && flow > 50 + 0.25 * v.Income ? 1 : 0);
+
+        // A servant who has given notice is kept on at its price while the court still wants it (counting only those not
+        // leaving) and the price passes the hiring test; the most reliable first. Otherwise it is let go. Never early.
+        var leaving = staff.Where(c => c.NoticePrice is not null).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var keeping = staff.Count - leaving.Count;
+        foreach (var c in leaving)
+        {
+            if (keeping >= wanted || !WouldPay(p, c.NoticePrice!.Value, spare)) continue;
+            orders.Add(new RenewOrder(c.Id, c.NoticePrice.Value, 6));
+            keeping++;
+        }
 
         if (staff.Count < wanted && v.Turn - brain.LastSeek >= 2 && spare > 40)
         {
@@ -256,8 +270,8 @@ internal static class Statecraft
                 brain.Checked.Add(best.Id);
                 spare -= 25;
             }
-            else if (best.AskingPrice <= 15 + 25 * (1 - p.Greed) && spare > best.AskingPrice * 3)
-                orders.Add(new HireOrder(best.Id, best.AskingPrice!.Value, 6));
+            else if (WouldPay(p, best.AskingPrice!.Value, spare))
+                orders.Add(new HireOrder(best.Id, best.AskingPrice.Value, 6));
         }
 
         // Assay gold from those we do not trust, or that weighed light.
