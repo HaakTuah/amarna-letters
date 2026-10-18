@@ -46,8 +46,8 @@ public static class Prompts
             - One unit per province. Armies move along land and coast links; fleets along sea and coast links. A fleet in a sea zone may convoy an army from one coast to another.
             - A unit is named by the province it stands in. Orders: hold; move to a linked province; support another unit (of any power) holding, or moving into a province your own unit could move into; convoy (fleet at sea only); disband.
             - Strength is 1 plus valid supports. A move succeeds only if its strength beats the defender's hold strength and the strength of every other move into the same province. Ties bounce. A support is cut if the supporting unit is attacked from anywhere except the province it supports into. You can never dislodge your own unit.
-            - A unit dislodged is destroyed; a unit that is destroyed gives no support (your report calls such a support void). A province changes hands when a unit ends a season in it.
-            - Your battle report says why each of your moves that failed was stopped, and the strengths compared. It names the other side only if you could see that unit.
+            - A unit dislodged is destroyed; a unit that is destroyed gives no support (your report calls such a support void). A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds. A province changes hands when a unit ends a season in it.
+            - Your battle report says why each of your moves that failed was stopped, with the strengths compared where strength decided it, and why each of your supports or convoys was void. It names the other side's power only if that unit stood, or was moving, where you could see.
             - Free city-states have walls that hold with strength 1 and never move: you need at least one support to take one, or you can buy it. A city that accepts a buyer keeps its walls, which then hold for its new owner: the owner cannot station troops inside, but may support its walls holding.
 
             ECONOMY

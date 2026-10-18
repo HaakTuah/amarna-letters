@@ -308,8 +308,11 @@ public sealed partial class TurnEngine
         foreach (var p in S.Alive)
         {
             var sight = sightBefore[p];
-            // Its own orders, each failed move with the reason; foreign orders where the unit stood, or moved to, in sight before the moves.
-            var mine = result.Lines.Where(l => l.Power == p).Select(l => l.Failure is { } f ? $"{l.Text}: {WhyMoveFailed(p, l.Province, l.Target!, f, sight)}" : l.Text).ToList();
+            // Its own orders, each failed move and void support with the reason; foreign orders where the unit stood, or moved to, in sight before the moves.
+            var mine = result.Lines.Where(l => l.Power == p).Select(l =>
+                l.Failure is { } f ? $"{l.Text}: {WhyMoveFailed(p, l.Province, l.Target!, f, sight)}"
+                : l.Void is { } v ? $"{l.Text}: {v}"
+                : l.Text).ToList();
             var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && (sight.Contains(l.Province) || l.Target is { } t && sight.Contains(t)))
                 .Select(l => $"{l.Power}: {l.Text}").ToList();
             var fallen = result.FallenGarrisons.Where(sight.Contains).Select(g => $"The walls of {Map[g].Name} fell.").ToList();

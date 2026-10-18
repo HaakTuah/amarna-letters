@@ -9,14 +9,20 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Battle reports.** Next season each king reads its own orders as they resolved, and every
   foreign order whose unit stood, or moved to, a province it could see before the moves. Each of
   its own failed moves says why, from the adjudicator's own checks in their order: no convoy carried
-  it; its own unit did not leave; the unit from the target was coming the other way; the unit holding
-  the target kept its place (or could not leave); the walls held; or it met another move into the
-  target from a named province (always the reason given when that move took the target). The
-  strengths compared follow ("your strength 2 against 2"). The other
-  side's power is named only if that unit was in sight. A support whose unit was destroyed reads
-  "void: the supporting unit was destroyed", not "cut"; a cut support says where the attack came
-  from. (Until the simulation-fixes round, foreign lines were kept by the moving unit's origin
-  only, so a move from out of sight that bounced a king's move was never shown.)
+  it; its own unit did not leave; the unit from the target was coming the other way and won (the
+  reason given even when a third move then entered the province that unit left); it met another
+  move into the target from a named province (always the reason given when that move took the
+  target); the unit holding the target kept its place (or could not leave); the walls held; or
+  another move into the target was as strong. Where strength decided it, the strengths compared
+  follow ("your strength 2 against 2"). The other side's power is named only if that unit stood,
+  or was moving, in a province the king could see before the moves. A support whose unit was
+  destroyed reads "void: the supporting unit was destroyed", not "cut"; a cut support says where
+  the attack came from. A support or convoy that matched no real order (the unit it named moved
+  when it was supported holding, or did not make the move supported) reads "void" too, and its own
+  king is told why ("A babylon supports durkurigalzu -> nippur: void: no unit moved from
+  durkurigalzu to nippur"); other kings see only "void". (Until the simulation-fixes round,
+  foreign lines were kept by the moving unit's origin only, so a move from out of sight that
+  bounced a king's move was never shown, and a support that matched nothing read "holds".)
 - **Ownership changes every season**, whenever a unit ends a season in a province, not only in
   autumn as in Diplomacy.
 - **Free city-states have walls** that hold with strength 1 and never move, so taking one needs a
@@ -58,16 +64,21 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   "Movements last season"; "Mane set out for Hatti last season; the journey takes 2 season(s)".
   The treasury notice is written at the start of the season, before audiences: it gives the
   treasury "after income, upkeep and wages" and says that gold received at audiences or brought
-  home by envoys that season is added later.
-- **Failures are rejection notices.** Every order refused by the validator, and every order that
-  could not go through as the season resolved (a levy, cession or purchase, a payment the treasury
-  could not make, a hire the person declined), is reported with the kind `Rejected`. The batch
-  seat report's "invalid" column counts each of them (the validator's list once per order).
+  home by envoys that season is added later. The validator's refusals are worded for the season
+  they are read in ("Mane was already given a task by an earlier order"; "you had already asked for
+  candidates that season").
+- **Failures are rejection notices.** These are reported with the kind `Rejected`: every order the
+  validator refused; a levy whose province was no longer free; a purchase that failed; a payment the
+  treasury could not make; a hire the person declined; and a cession blocked by the king's own
+  troops. The batch seat report's "invalid" column counts each of them (the validator's list once
+  per order). Some failures at resolution still send no notice at all: a cession of land no longer
+  held, a gift of troops whose unit is gone, and a disband of a unit that is gone (a scheduled order
+  that fails this way still wakes its sleeping seat).
 - **Save version.** The state and the log header carry the version of the rules
   (`GameState.CurrentVersion`, 2 since the simulation-fixes round). A log saved under another version
   is refused, both for replay and for continuing it: "This game was saved under an earlier version of
   the rules (version 1) and cannot be replayed by this version." The web app shows that message
-  instead of loading the game. Within a version, seeds replay exactly, with sleeping seats on or off
+  in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
   the current rules; it may diverge.
 
@@ -93,7 +104,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   last exchange counted, so gold named first and not repeated was lost.)
 - **One gift per audience.** Once an envoy has accepted a gift, a later gift in the same audience is
   not given, and the audience's outcome tells the host ("a second gift was not given: an envoy takes
-  one gift per audience"). A refused gift may be offered again in the second exchange.
+  one gift per audience"). That holds even when the treasury cannot pay the accepted gift (gifts are
+  paid when the audience ends): the host gets a "Not enough gold" notice and the outcome reads
+  "agreed to take 50 shekels from Alashiya, but the treasury could not pay it". A refused gift may
+  be offered again in the second exchange.
 - **Plants.** Two of the fourteen starting envoys are secretly in the pay of another power. When a
   plant stands before its real master, the master is shown the envoy's true instructions.
 - **Bribes, poaching and defection** are explicit decisions by the envoy that the engine applies:

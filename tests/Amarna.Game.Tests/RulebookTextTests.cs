@@ -17,6 +17,14 @@ public class RulebookTextTests
     }
 
     [Fact]
+    public void The_rulebook_says_when_a_support_is_void_and_when_the_other_side_is_named()
+    {
+        Assert.Contains("A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds.", Rules);
+        Assert.Contains("with the strengths compared where strength decided it, and why each of your supports or convoys was void.", Rules);
+        Assert.Contains("It names the other side's power only if that unit stood, or was moving, where you could see.", Rules);
+    }
+
+    [Fact]
     public void Every_court_reads_every_power_s_opening_troops_treasury_and_starting_strength()
     {
         Assert.Contains("OPENING POSITIONS (known to every court)", Rules);

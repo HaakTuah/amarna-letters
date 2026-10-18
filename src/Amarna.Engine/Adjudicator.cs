@@ -28,11 +28,16 @@ public enum MoveStop
 /// </summary>
 public sealed record MoveFailure(MoveStop Stop, string Province, Power? Power, UnitKind Kind, string? MovingTo, int Strength, int Against);
 
-/// <summary>One line of a battle report: the unit's province, its power, the order as resolved, and for a move its target and why it failed.</summary>
+/// <summary>
+/// One line of a battle report: the unit's province, its power, the order as resolved, for a move its target
+/// and why it failed, and for a support or convoy that matched nothing why it was void.
+/// </summary>
 public sealed record ReportLine(string Province, Power? Power, string Text, bool Ok)
 {
     public string? Target { get; init; }
     public MoveFailure? Failure { get; init; }
+    /// <summary>Why a support or convoy was void because the unit it named did not do what it helped (told to its own king only).</summary>
+    public string? Void { get; init; }
 }
 
 /// <summary>One order as it resolved: who, where, what, and whether it worked.</summary>
@@ -92,6 +97,8 @@ public sealed class Adjudicator
         public bool ViaConvoy;
         public bool ParadoxFailed;
         public string Text = "";
+        public string? Voided;   // a support or convoy that matched nothing (now a hold): the order as given
+        public string? VoidWhy;  // and why it was void
     }
 
     private readonly WorldMap _map;
@@ -159,29 +166,45 @@ public sealed class Adjudicator
         _at[o.At] = o.Index;
     }
 
-    /// <summary>Supports and convoys that do not match an actual order count as holds.</summary>
+    /// <summary>
+    /// Supports and convoys that do not match an actual order count as holds. The report still shows the order
+    /// as given, void, and tells its own king why: a support of a move, or a convoy, names only the move that
+    /// did not happen, so it reveals nothing about a province out of sight.
+    /// </summary>
     private void VoidMismatched()
     {
         foreach (var o in _orders)
         {
             if (o.Kind == Kind.Support)
             {
-                var ok = _at.TryGetValue(o.Target!, out var t);
-                if (ok)
+                string? why;
+                if (!_at.TryGetValue(o.Target!, out var t))
+                    why = o.To is null ? $"no unit stood in {o.Target}" : $"no unit moved from {o.Target} to {o.To}";
+                else
                 {
                     var sup = _orders[t];
-                    if (sup.Power is null) ok = false; // a free city's walls take no help
-                    else if (o.To is null) ok = sup.Kind != Kind.Move;
-                    else ok = sup.Kind == Kind.Move && sup.Target == o.To;
+                    if (sup.Power is null) why = o.To is null ? "a free city's walls take no help" : $"no unit moved from {o.Target} to {o.To}";
+                    else if (o.To is null) why = sup.Kind != Kind.Move ? null : $"the unit in {o.Target} was ordered to move, not to hold";
+                    else why = sup.Kind == Kind.Move && sup.Target == o.To ? null : $"no unit moved from {o.Target} to {o.To}";
                 }
-                if (!ok) o.Kind = Kind.Hold;
+                if (why is not null)
+                {
+                    o.Voided = $"supports {o.Target}{(o.To is null ? " holding" : " -> " + o.To)}";
+                    o.VoidWhy = why;
+                    o.Kind = Kind.Hold;
+                }
             }
             else if (o.Kind == Kind.Convoy)
             {
                 var ok = _map[o.At].IsSea && _at.TryGetValue(o.Target!, out var t)
                          && _orders[t].Kind == Kind.Move && _orders[t].ViaConvoy && _orders[t].Target == o.To
                          && _orders[t].UnitKind == UnitKind.Army;
-                if (!ok) o.Kind = Kind.Hold;
+                if (!ok)
+                {
+                    o.Voided = $"convoys {o.Target} -> {o.To}";
+                    o.VoidWhy = _map[o.At].IsSea ? $"no army moved from {o.Target} to {o.To} by sea" : "a fleet convoys only at sea";
+                    o.Kind = Kind.Hold;
+                }
             }
         }
     }
@@ -454,7 +477,9 @@ public sealed class Adjudicator
                     r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} convoys {o.Target} -> {o.To}", _result[o.Index]));
                     break;
                 default:
-                    r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} holds", true));
+                    r.Lines.Add(o.Voided is { } asGiven
+                        ? new ReportLine(o.At, o.Power, $"{label} {asGiven}: void", false) { Void = _explain ? o.VoidWhy : null }
+                        : new ReportLine(o.At, o.Power, $"{label} holds", true));
                     break;
             }
             if (dislodged) r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} is destroyed", false));
@@ -464,8 +489,8 @@ public sealed class Adjudicator
 
     /// <summary>
     /// Why a resolved move failed, from the same checks <see cref="Adjudicate"/> made: the convoy, the mover's
-    /// own unit, another move that took the province, then in the adjudicator's order the head-to-head defence
-    /// or the hold, and every other move into the province.
+    /// own unit, the head-to-head defence, another move that took the province, then in the adjudicator's order
+    /// the hold and every other move into the province.
     /// </summary>
     private MoveFailure? WhyFailed(O move)
     {
@@ -475,16 +500,19 @@ public sealed class Adjudicator
         if (attack == 0 && occ is { Power: { } own } && own == move.Power)
             return new(MoveStop.OwnUnit, occ.At, occ.Power, occ.UnitKind, occ.Kind == Kind.Move ? occ.Target : null, 0, 0);
 
-        // Another move took the province: that is the news, even if the unit there also held this one off before it fell.
-        if (MovesTo(move.Target!).FirstOrDefault(m => m != move && _result[m.Index]) is { } winner)
-            return new(MoveStop.Bounced, winner.At, winner.Power, winner.UnitKind, winner.Target, attack, PreventStrength(winner));
-
-        if (HeadToHeadOpponent(move) is { } opp)
+        // A head-to-head battle lost is the reason, even when a third move then walked into the province the winner left.
+        var opp = HeadToHeadOpponent(move);
+        if (opp is not null)
         {
             var defend = DefendStrength(opp);
             if (attack <= defend) return new(MoveStop.HeadToHead, opp.At, opp.Power, opp.UnitKind, opp.Target, attack, defend);
         }
-        else if (occ is not null)
+
+        // Another move took the province: that is the news, even if the unit there also held this one off before it fell.
+        if (MovesTo(move.Target!).FirstOrDefault(m => m != move && _result[m.Index]) is { } winner)
+            return new(MoveStop.Bounced, winner.At, winner.Power, winner.UnitKind, winner.Target, attack, PreventStrength(winner));
+
+        if (opp is null && occ is not null)
         {
             var hold = HoldStrength(move.Target!);
             if (attack <= hold)

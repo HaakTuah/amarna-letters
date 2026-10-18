@@ -171,6 +171,10 @@
                 <button @onclick="() => Load(LoadedText, true)">Continue playing</button>
             }
         </div>
+        @if (LoadProblem is not null)
+        {
+            <div class="notice error">@LoadProblem</div>
+        }
         @if (Saved.Count == 0)
         {
             <p class="muted">No saved games yet.</p>
@@ -201,6 +205,8 @@
     private List<SavedLog> Saved { get; set; } = new();
     private string? LoadedText;
     private string? Problem;
+    /// <summary>Why a saved game or replay could not be loaded, shown next to the buttons that load one.</summary>
+    private string? LoadProblem;
     private bool Starting;
     private bool Customizing;
     private bool _budgetTouched;
@@ -318,20 +324,21 @@
 
     private async Task Load(string text, bool continuePlay)
     {
+        LoadProblem = null;
         LogHeader? header = null;
         try { header = GameLog.FromJsonl(text).Header; }
         catch (Exception) { } // not a log: the game page says so
-        // A game saved under other rules cannot be replayed or continued: say so here, before anything else.
+        // A game saved under other rules cannot be replayed or continued: say so here, next to the buttons, before anything else.
         if (header is not null && GameRunner.VersionProblem(header) is { } old)
         {
-            Problem = old;
+            LoadProblem = old;
             return;
         }
         if (continuePlay && header is not null)
         {
             if (SeatSetup.FromHeader(header).UsesModels && string.IsNullOrWhiteSpace(Keys.Key))
             {
-                Problem = "This game used Claude models. Choose any preset that needs a key, enter your key, then continue.";
+                LoadProblem = "This game used Claude models. Choose any preset that needs a key, enter your key above, then continue.";
                 return;
             }
         }
@@ -342,7 +349,7 @@
     private async Task LoadSaved(string id, bool continuePlay)
     {
         var text = await Store.LoadAsync(id);
-        if (text is null) { Problem = "That saved game could not be read."; return; }
+        if (text is null) { LoadProblem = "That saved game could not be read."; return; }
         await Load(text, continuePlay);
     }
 

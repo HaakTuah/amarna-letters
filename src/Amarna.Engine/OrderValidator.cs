@@ -62,7 +62,7 @@ public sealed class OrderValidator
                 result.Rejected.Add(new(order, error));
             }
         }
-        foreach (var o in submission.Orders.Skip(MaxOrders)) result.Rejected.Add(new(o, "too many orders this season"));
+        foreach (var o in submission.Orders.Skip(MaxOrders)) result.Rejected.Add(new(o, $"too many orders: only the first {MaxOrders} of a season are read"));
         return result;
 
         string? Spend(int cost)
@@ -93,7 +93,7 @@ public sealed class OrderValidator
             if (c is null) return $"there is nobody called '{id}'";
             if (c.Employer != power || c.Status != CharacterStatus.Employed) return $"{c.Name} is not in your service";
             if (mustBeHome && (c.Duty != Duty.None || c.At != power)) return $"{c.Name} is not at your court";
-            if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
+            if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
             return null;
         }
 
@@ -196,12 +196,12 @@ public sealed class OrderValidator
                     var c = _s.FindCharacter(rl.Character);
                     if (c is null) return $"there is nobody called '{rl.Character}'";
                     if (c.HeldBy != power) return $"you are not holding {c.Name}";
-                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
+                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     return null;
                 }
 
                 case SeekCandidatesOrder:
-                    return seekCount > 0 ? "you already asked for candidates this season" : null;
+                    return seekCount > 0 ? "you had already asked for candidates that season" : null;
 
                 case HireOrder h:
                 {
@@ -211,7 +211,7 @@ public sealed class OrderValidator
                     if (c.HeldBy is { } holder && holder != power) return $"{c.Name} is held at the court of {holder} and cannot come to yours";
                     if (!c.Pitches.ContainsKey(power) && c.At != power) return $"{c.Name} has not presented themselves to your court";
                     if (h.Wage <= 0 || h.Term <= 0) return "wage and term must be positive";
-                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
+                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     return null;
                 }
 
@@ -239,12 +239,12 @@ public sealed class OrderValidator
                     var c = _s.FindCharacter(rs.Character);
                     if (c is null || c.Employer != power) return $"{rs.Character} is not in your service";
                     if (c.Duty != Duty.SpyPosted) return $"{c.Name} is not on a mission";
-                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
+                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     return null;
                 }
 
                 case CounterIntelOrder ci:
-                    if (counterIntel) return "you already set your watch this season";
+                    if (counterIntel) return "you had already set your watch that season";
                     return Spend(ci.Spend);
 
                 case AssayOrder a:
@@ -268,7 +268,7 @@ public sealed class OrderValidator
                 {
                     var c = _s.FindCharacter(co.Character);
                     if (c is null || c.Status != CharacterStatus.Captured || c.HeldBy != power) return $"you hold no captive '{co.Character}'";
-                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} already has a task this season";
+                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     if (co.Fate == CaptiveFate.Ransom && co.Ransom <= 0) return "name a ransom";
                     return null;
                 }

@@ -80,6 +80,30 @@ public class AudienceGoldTests
     }
 
     [Fact]
+    public void A_gift_accepted_but_not_paid_is_still_the_one_gift_of_the_audience()
+    {
+        // The host offers more than it holds; the envoy accepts. The view of the second exchange says a gift was
+        // accepted and another would not be given, and the engine keeps to that.
+        var (s, e, envoy, a) = AtAudience();
+        var gold = s.Treasuries[Power.Alashiya].Gold;
+        var purse = envoy.Purse;
+        var first = new HostReply { Bribe = gold + 100 };
+        var view = e.BuildAudienceView(a, "Greetings.", 0, [new Exchange { Host = "", Envoy = "" }], 2,
+            [new AudienceRound { Host = first, Envoy = new EnvoyReaction { AcceptBribe = true } }]);
+        Assert.Equal(gold + 100, view.GiftAccepted);
+
+        e.ApplyAudience(TwoRounds(a, first, new HostReply { Bribe = 10, End = true }, acceptFirst: true, acceptSecond: true));
+
+        Assert.Equal(gold, s.Treasuries[Power.Alashiya].Gold);
+        Assert.Equal(purse, envoy.Purse);
+        var outcomes = s.Trails.Single().Outcomes;
+        Assert.Contains($"agreed to take {Money.Format(gold + 100)} from Alashiya, but the treasury could not pay it", outcomes);
+        Assert.Contains("a second gift was not given: an envoy takes one gift per audience", outcomes);
+        Assert.DoesNotContain(outcomes, o => o.StartsWith("accepted", StringComparison.Ordinal));
+        Assert.Contains(s.InboxOf(Power.Alashiya), i => i.Kind == InboxKind.Rejected && i.Title == "Not enough gold");
+    }
+
+    [Fact]
     public void A_gift_refused_in_the_first_exchange_may_be_offered_again()
     {
         var (s, e, envoy, a) = AtAudience();

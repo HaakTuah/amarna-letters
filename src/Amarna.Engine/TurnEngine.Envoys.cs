@@ -228,7 +228,7 @@ public sealed partial class TurnEngine
 
         var detained = false;
         var defected = false;
-        var bribePaid = 0;
+        var giftTaken = false;
         // Gold to send home with the envoy: the latest amount named stands (0 in a later exchange keeps it), at that exchange's purity.
         var goldBack = 0;
         var goldBackPurity = 100;
@@ -238,23 +238,27 @@ public sealed partial class TurnEngine
             var e = round.Envoy ?? new EnvoyReaction();
             trail.Exchanges.Add(new Exchange { Host = Greeting.Cap(h.Speech ?? "", MaxSpeech), Envoy = Greeting.Cap(e.Speech ?? "", MaxSpeech) });
 
-            // An envoy takes one gift per audience.
-            if (h.Bribe > 0 && bribePaid > 0)
+            // An envoy takes one gift per audience: the first it accepts, whether or not the treasury can then pay it.
+            if (h.Bribe > 0 && giftTaken)
                 trail.Outcomes.Add("a second gift was not given: an envoy takes one gift per audience");
             else if (h.Bribe > 0)
             {
                 if (e.AcceptBribe)
                 {
+                    giftTaken = true;
                     if (Pay(host, h.Bribe, $"a gift to {c.Name}"))
                     {
-                        bribePaid = h.Bribe;
                         c.Purse += h.Bribe;
                         c.Remember(S.Turn, $"The king of {host.Land()} gave me {Money.Format(h.Bribe)}" + (string.IsNullOrWhiteSpace(h.BribeAsk) ? "." : $", asking: {h.BribeAsk}"));
                         c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Took {Money.Format(h.Bribe)} from the king of {host.Land()}.", Secrecy = Secrecy.Hidden, Tag = "bribe", KnownBy = [host] });
                         trail.Outcomes.Add($"accepted {Money.Format(h.Bribe)} from {host}" + (string.IsNullOrWhiteSpace(h.BribeAsk) ? "" : $" (asked: {h.BribeAsk})"));
                         S.Log("bribe", $"{c.Name}, envoy of {sender}, took {Money.Format(h.Bribe)} from {host}.", [host], "bribe");
                     }
-                    else c.Remember(S.Turn, $"The king of {host.Land()} promised me gold that never came.");
+                    else
+                    {
+                        c.Remember(S.Turn, $"The king of {host.Land()} promised me gold that never came.");
+                        trail.Outcomes.Add($"agreed to take {Money.Format(h.Bribe)} from {host}, but the treasury could not pay it");
+                    }
                 }
                 else trail.Outcomes.Add($"refused a gift of {Money.Format(h.Bribe)} from {host}");
             }
