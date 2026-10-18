@@ -39,6 +39,8 @@ public class FailureNoticeTests
             Assert.Equal($"{free.Name} declined your offer of {Money.Format(wage)} a season: {why}.", notice.Body);
         }
         Assert.DoesNotContain(s.InboxOf(Power.Hatti), i => i.Title == "Not hired");
+        // The winner reads the rulebook's words: in service at the end of the season, sent on errands from the next.
+        Assert.Equal($"{free.Name} entered your service at the end of last season, at {Money.Format(40)} a season, and can be sent on an errand now.", s.InboxOf(Power.Hatti).Single(i => i.Title == "Hired").Body);
     }
 
     [Fact]

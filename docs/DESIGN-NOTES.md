@@ -47,7 +47,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   ledger"); "Mane was to be hired that season: a person hired enters your service only at the end of
   the season, and can be sent on an errand from the next season" (whichever order comes first); "a
   spy must be one of your own people at your court: you named nobody" (or "…: Mane is not at your
-  court"); "a spy must be sent to watch a court or a province: you named neither". A place_spy naming
+  court"); "a spy must be sent to watch a court or a province: you named neither". The hire itself
+  reads, next season, "Mane entered your service at the end of last season, at 20 shekels a season,
+  and can be sent on an errand now." A place_spy naming
   neither, which the parser used to drop without a word, now reaches the validator, and a second
   assay of the same lot in one season is refused. (Until the simulation-fixes round the rulebook's
   "EACH SEASON" list ended with "Resolution, catastrophes, and reports", and 26 of the simulation's
@@ -91,7 +93,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   with a regression test.)
 - **Shared victory is off** (since 18 October 2026; see `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 23). One
   power wins: the one with the highest growth. A tablet can still be marked as a sworn alliance,
-  and the script kings still treat it as a full alliance, but it shares nothing. The rulebook and
+  and the script kings still treat it as a full alliance, but it shares nothing (the order schema
+  says the mark "changes no rule and binds nobody"). The rulebook and
   the order schema mention shared victory only when the house rule is on (`--shared-victory` in the
   batch runner, "Customize" in the browser). With it on, two powers holding a sealed tablet marked
   as a sworn alliance win together if their combined growth beats every other power's growth; only

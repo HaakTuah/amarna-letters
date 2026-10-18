@@ -585,7 +585,8 @@ public sealed partial class TurnEngine
             c.Pitches.Clear();
             c.Reputation[winner] = c.Reputation.GetValueOrDefault(winner) + 5;
             c.Remember(S.Turn, $"I entered the service of {winner.Land()} for {Money.Format(hire.Wage)} a season.");
-            S.Notify(winner, InboxKind.Notice, "Hired", $"{c.Name} has entered your service at {Money.Format(hire.Wage)} a season.", c.Id);
+            // In the rulebook's words: a person hired enters your service at the end of the season, and can be sent on an errand from the next.
+            S.Notify(winner, InboxKind.Notice, "Hired", $"{c.Name} entered your service at the end of last season, at {Money.Format(hire.Wage)} a season, and can be sent on an errand now.", c.Id);
             S.Log("hire", $"{winner} hired {c.Name}.", [winner]);
         }
 

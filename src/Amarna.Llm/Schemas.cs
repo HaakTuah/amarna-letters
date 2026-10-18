@@ -106,7 +106,9 @@ public static class Schemas
             ("your_name_first", Bool("Put your own name before the recipient's: presumptuous, and the recipient will notice. False keeps the custom, his name first.")),
             ("omit_greeting", Bool("Send no greeting at all, which is a slight. The other greeting flags are then ignored.")),
             ("tablet_to_seal", Str("Text for both kings to seal, or empty.")),
-            ("sworn_alliance", Bool(sharedVictory ? "Mark the tablet as a sworn alliance (counts for a shared victory)." : "Mark the tablet as a sworn alliance.")),
+            ("sworn_alliance", Bool(sharedVictory
+                ? "Mark the tablet as a sworn alliance (counts for a shared victory)."
+                : "Mark the tablet as a sworn alliance, an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.")),
             ("show_tablet_copies", Array(Str(), "Ids of tablet copies you hold to show as evidence."))))),
         ("other_orders", Array(OtherOrder())));
 

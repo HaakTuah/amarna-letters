@@ -185,6 +185,7 @@ public class ViewTextTests
         Assert.Contains("Name yourself Great King in the greeting. False leaves your own title out.", schema);
         Assert.Contains("presumptuous, and the recipient will notice", schema);
         Assert.Contains("Send no greeting at all, which is a slight.", schema);
+        Assert.Contains("an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.", schema);
     }
 
     [Fact]
