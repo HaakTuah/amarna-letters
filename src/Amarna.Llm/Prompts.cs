@@ -111,6 +111,12 @@ public static class Prompts
             sb.AppendLine($"- {p.Id}: {p.Name}; {kind}{(home.Length > 0 ? "; " + home : "")}{(p.Capital ? "; capital" : "")}{(p.Yield > 0 ? $"; yield {p.Yield}" : "")}.{armies}{fleets}");
         }
 
+        // Public facts, fixed for the game: every court knows how each king began.
+        sb.AppendLine();
+        sb.AppendLine("OPENING POSITIONS (known to every court)");
+        sb.AppendLine($"Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is {c.ProvinceWeight} x its homeland yield + its treasury, and its growth is measured against it.");
+        foreach (var line in OpeningPositions.Lines(c)) sb.AppendLine("- " + line);
+
         sb.AppendLine("""
 
             HOW TO ANSWER

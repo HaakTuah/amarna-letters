@@ -22,6 +22,24 @@
     </tbody>
 </table>
 
+<h4 style="margin-top:1rem">Opening positions (known to every court)</h4>
+<p class="muted">Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is @State.Config.ProvinceWeight × its homeland yield + its treasury, and its growth is measured against it.</p>
+<table>
+    <thead><tr><th>Power</th><th>Opening troops</th><th>Treasury</th><th>Homeland yield</th><th>Starting strength</th></tr></thead>
+    <tbody>
+        @foreach (var o in OpeningPositions.For(State.Config))
+        {
+            <tr>
+                <td><span class="dot" style="background:@Ui.Color(o.Power)"></span> @o.Power.Name()</td>
+                <td>@o.Troops</td>
+                <td>@o.Gold shekels</td>
+                <td>@o.HomelandYield</td>
+                <td>@o.Strength</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
 @if (known)
 {
     <h4 style="margin-top:1rem">The kings</h4>

@@ -34,6 +34,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   start of the season, the one farthest from the capital first (the rulebook says so).
 - **Strength** = 10 × (sum of base yields of provinces held) + true gold. Growth is strength over
   starting strength. Units are not counted; they cost upkeep and are the means to land.
+- **Opening positions are public.** Every king reads every power's opening troops, treasury,
+  homeland yield and starting strength in the rulebook ("OPENING POSITIONS (known to every
+  court)"), generated from `MapData` (`OpeningPositions`), so the cached block stays byte-stable.
+  The web app's standings panel shows the same table to every seat, human or not. Script kings
+  read the same facts from `MapData`, as before.
 - **Ending.** Not before turn 15; then 15% at the end of each season; hard cap at 60 turns.
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
@@ -139,8 +144,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Server-side refusal fallback** (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`)
   is on for Sonnet and Opus calls. Haiku has no server fallback; a refused Haiku call falls back
   to the script character.
-- **Prompt caching**: the leader rulebook, map and customs primer form one byte-stable system
-  block marked for caching, shared across seats and seasons; per-seat identity and the season's
+- **Prompt caching**: the leader rulebook, map, opening positions and customs primer form one
+  byte-stable system block marked for caching, shared across seats and seasons; per-seat identity and the season's
   situation come after it.
 - **Transport**: the official C# SDK is used in the console runner and tests. It cannot run in the
   browser (its constructor enables HTTP decompression, which WebAssembly forbids), so the browser
