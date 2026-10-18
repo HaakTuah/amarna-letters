@@ -463,8 +463,9 @@ public sealed class Adjudicator
     }
 
     /// <summary>
-    /// Why a resolved move failed, from the same checks <see cref="Adjudicate"/> made, in the same order:
-    /// the convoy, the mover's own unit, the head-to-head defence or the hold, then every other move into the province.
+    /// Why a resolved move failed, from the same checks <see cref="Adjudicate"/> made: the convoy, the mover's
+    /// own unit, another move that took the province, then in the adjudicator's order the head-to-head defence
+    /// or the hold, and every other move into the province.
     /// </summary>
     private MoveFailure? WhyFailed(O move)
     {
