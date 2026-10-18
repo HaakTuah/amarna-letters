@@ -1114,6 +1114,28 @@ public class SleepTests
     }
 
     [Fact]
+    public async Task A_unit_that_moved_away_before_the_attack_was_not_attacked()
+    {
+        // The army in Sippar marches to Durkurigalzu in turn 2 as Assyria walks into Sippar behind it: the army was not
+        // attacked, so the standing order waits on.
+        var sleeper = new Sleeper(v => v.Turn == 1
+            ? new TurnSubmission
+            {
+                Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("sippar", "durkurigalzu")] }],
+                Standing = [Attacked("sippar", new MoveOrder("babylon", "nippur"))],
+            }
+            : Nothing());
+        var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "sippar")] } : new TurnSubmission());
+        var r = await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria }, setup: EmptyDurkurigalzu);
+        Assert.Equal(Power.Assyria, r.State.UnitAt("sippar")?.Power);
+        var standing = Assert.Single(r.State.Sleep[Power.Babylonia].Standing);
+        Assert.Equal(0, standing.Fires);
+        Assert.Null(r.State.UnitAt("nippur"));
+        // It now waits on the army where it stands.
+        Assert.Contains("- s1: when your army now in durkurigalzu is attacked, then:", Prompts.Situation(Views.For(r.State, Power.Babylonia)));
+    }
+
+    [Fact]
     public async Task Orders_given_in_the_season_a_standing_order_fires_replace_its_orders()
     {
         // The seat named turn 3, the season its standing order fires; awake, it orders the army in Babylon to hold.

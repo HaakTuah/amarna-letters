@@ -310,7 +310,7 @@ public sealed partial class TurnEngine
 
         var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
         // Where each unit stood before the moves: a standing order waits for an attack on its unit there.
-        var stoodAt = S.Units.ToDictionary(u => u.Id, u => u.Province);
+        var stoodAt = S.Units.DistinctBy(u => u.Id).ToDictionary(u => u.Id, u => u.Province);
         // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
         foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
             o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
