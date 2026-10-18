@@ -15,7 +15,8 @@ public interface IJsonAsker
 /// A file seat's channel. Instead of calling the API, it writes the request a model king would get
 /// (rulebook and customs primer, identity, the season's view, the JSON schema) to
 /// <c>&lt;folder&gt;/&lt;key&gt;.request.md</c> and waits for <c>&lt;key&gt;.reply.json</c>. Whoever answers
-/// (a person, or an agent allowed to touch only this folder) sees exactly what a model king sees.
+/// (a person, or an agent allowed to touch only this folder) sees exactly what a model king sees, plus a
+/// closing <see cref="Footer"/> on how to finish that API kings never get.
 /// An unreadable reply gets one retry request with the error; a second failure, or the timeout,
 /// throws, and the runner falls back to the script king for that decision, as it does for models.
 /// Every exchange is also logged as a model call (with no tokens), so the log holds the prompts.
@@ -136,8 +137,18 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
         sb.AppendLine("```json");
         sb.AppendLine(spec.Schema.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         sb.AppendLine("```");
+        sb.AppendLine();
+        sb.AppendLine(Footer);
         return sb.ToString();
     }
+
+    /// <summary>
+    /// Only file seats get this: an agent answering the request ends with a message to whoever started it,
+    /// which must carry nothing of the king's decision. A model king called through the API sees no such line.
+    /// </summary>
+    public const string Footer =
+        "When you have written your reply file, your final message must be the single word done. Say nothing about your decision. "
+        + "Earlier reply files cannot be read: your record of earlier seasons is in this request.";
 
     /// <summary>The reply as a JSON object: the whole text, or else the outermost {...} in it (a code fence or a stray line around it is forgiven).</summary>
     public static JsonObject? Lenient(string text)
