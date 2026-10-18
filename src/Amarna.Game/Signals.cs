@@ -47,12 +47,15 @@ public static partial class SignalDetector
         foreach (var t in s.Tablets.Where(t => t.IsSealedAgreement && Consequence().IsMatch(t.Text)))
             list.Add(new Signal(t.SealedTurn ?? t.CreatedTurn, "pact-with-consequences", Greeting.Cap(t.Text, 160)));
 
-        // Broken promises: a conquest between two powers that had sealed a tablet before it.
+        // Broken promises: a conquest between two powers that had sealed a tablet before it, or earlier the same season
+        // (audiences come before orders, so a tablet sealed this season already bound this season's troops). A king who
+        // takes back a province of his own homeland breaks no promise.
         foreach (var e in s.Events.Where(e => e.Kind == "conquest"))
         {
             var m = Took().Match(e.Text);
-            if (!m.Success || !Powers.TryParse(m.Groups[1].Value, out var taker) || !Powers.TryParse(m.Groups[2].Value, out var loser)) continue;
-            if (s.Tablets.Any(t => t.IsSealedAgreement && t.SealedTurn < e.Turn && t.Seals.Contains(taker) && t.Seals.Contains(loser)))
+            if (!m.Success || !Powers.TryParse(m.Groups[1].Value, out var taker) || !Powers.TryParse(m.Groups[3].Value, out var loser)) continue;
+            if (WorldMap.Default.Provinces.FirstOrDefault(x => x.Name == m.Groups[2].Value)?.Home == taker) continue;
+            if (s.Tablets.Any(t => t.IsSealedAgreement && t.SealedTurn <= e.Turn && t.Seals.Contains(taker) && t.Seals.Contains(loser)))
                 list.Add(new Signal(e.Turn, "broken-promise", e.Text));
         }
 
@@ -80,6 +83,6 @@ public static partial class SignalDetector
     [GeneratedRegex(@"\b(if (one|either|he|you|any)[^.]{0,80}(break|breaks|fails|attacks)|shall pay|must pay|forfeit|penalty|may the gods destroy)", RegexOptions.IgnoreCase)]
     private static partial Regex Consequence();
 
-    [GeneratedRegex(@"^(\w+) took .+ from (\w+)\.")]
+    [GeneratedRegex(@"^(\w+) took (.+) from (\w+)\.$")]
     private static partial Regex Took();
 }

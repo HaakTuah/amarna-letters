@@ -727,7 +727,13 @@ his attack) fires in about one game in ten: 27 times in 15 of seeds 1–100 and 
 101–200, where before it never fired in 200 games. Joint blows need two sworn partners next to the
 same province of the leader's, which the map allows only on a few borders. Other signal counts from
 script games are mostly artefacts of the bots' templates (their letters complain, their tablets
-name consequences). The signals are meant to be read from model and human games.
+name consequences). The signals are meant to be read from model and human games. They are
+heuristics read from the record afterwards (`src/Amarna.Game/Signals.cs`): a broken promise is a
+conquest between two kings who had sealed a tablet that season or earlier (audiences come before
+orders), except a king taking back a province of his own homeland; an accusation is a letter or an
+audience reply that calls someone a liar, a deceiver, false, faithless or an oath-breaker, read as
+whole words, so a road that lies in the hills, a denial ("I would never betray my brother") and a
+courtesy about "your messenger" are not accusations.
 
 ## Where the code differs from the design document (17 October 2026 revision)
 
