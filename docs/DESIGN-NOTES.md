@@ -24,7 +24,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   foreign lines were kept by the moving unit's origin only, so a move from out of sight that
   bounced a king's move was never shown, and a support that matched nothing read "holds".)
 - **Sight.** A court sees troops in its own land, where its troops stand and in the provinces its
-  spies watch, and one link of any kind (land, coast or sea) from those (`Views.Sight`). The rulebook
+  spies watch, and one link of any kind (land, coast or sea) from those (`Views.Sight`). A province
+  spy caught or let go unknown to its master still counts while the master's cover believes it at
+  its post, so the capture cannot be read off the sight line before word comes. The rulebook
   and the view's sight line say so, and that troops two links away, or an army carried across the
   sea, can arrive next season unseen. (Until the simulation-fixes round they said only "in and next
   to your own lands and troops", and empty seas were read as safety.)
@@ -49,11 +51,18 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   spy must be one of your own people at your court: you named nobody" (or "…: Mane is not at your
   court"); "a spy must be sent to watch a court or a province: you named neither". The hire itself
   reads, next season, "Mane entered your service at the end of last season, at 20 shekels a season,
-  and can be sent on an errand now." A place_spy naming
-  neither, which the parser used to drop without a word, now reaches the validator, and a second
-  assay of the same lot in one season is refused. (Until the simulation-fixes round the rulebook's
+  and can be sent on an errand now." Only a hire that can stand counts: an errand for someone whose
+  hire is refused (no wage, someone in another court's service) reads "Mane is not in your service".
+  A second assay of the same lot, or a second cession of the same province, in one season is
+  refused ("Thebes was already ceded by an earlier order"). The parser drops no order a reply names:
+  a place_spy naming neither court nor province, a move, support or convoy that leaves out where to
+  go, whom to support or where to land ("name the province the unit should move to"), and a
+  cession, gift of troops, spy, letter or forgery naming a power nobody knows ("there is no power
+  called 'Kush'", or "name the power to cede it to"; `UnreadableOrder`) all reach the validator and
+  are refused with the reason; the unit holds. (Until the simulation-fixes round the rulebook's
   "EACH SEASON" list ended with "Resolution, catastrophes, and reports", and 26 of the simulation's
-  43 refusals came from rules it never stated.)
+  43 refusals came from rules it never stated; those malformed orders vanished without a word, and a
+  forgery quietly lost any seal it could not read.)
 - **Free city-states have walls** that hold with strength 1 and never move, so taking one needs a
   supported attack. They can also be bought for 10 × yield by a power whose land or troops touch
   them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
@@ -64,12 +73,14 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   is only reserved when orders are checked), and a scheduled bid that fails this way wakes its seat.
   (Until the simulation-fixes round such a bid vanished without a word.)
 - **A bought city keeps its walls**, which then hold for its owner: the owner cannot station troops
-  inside but may support the walls holding; a rival still needs a supported attack, and conquest
+  inside but it, or any other king, may support the walls holding (the rulebook and the schema's
+  support target say so); a rival still needs a supported attack, and conquest
   tears the walls down. Buying is the durable way to grow, conquest the fast one.
 - **Levies** are raised after movement, only in a province of the power's own homeland that it
   still holds and that is empty after movement; otherwise nothing is raised or paid, and the king is
   told which ("No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.",
-  or "…: you no longer held Thebes after movement."). Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
+  or "…: you no longer held Thebes after movement.", or, for land the king itself ceded earlier in
+  the resolution, "…: you ceded Sinai to Hatti last season, before the levy."). Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
   start of the season, the one farthest from the capital first (the rulebook says so).
 - **Strength** = 10 × (sum of base yields of provinces held) + true gold. Growth is strength over
   starting strength. Units are not counted; they cost upkeep and are the means to land.
@@ -113,7 +124,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   the reason, and a scheduled order that fails any of these ways wakes its sleeping seat: every order
   the validator refused ("Orders that could not be carried out", one line each); a cession of land no
   longer held, or with the king's own troops still in it ("Cession failed": "Sinai was not ceded to
-  Hatti: you no longer held it after movement."); a gift of troops, or a disband, of a unit no longer
+  Hatti: you no longer held it after movement.", the only way it can be lost by then, since a second
+  cession of one province is refused); a gift of troops, or a disband, of a unit no longer
   there ("No unit of yours stood in Sinai after movement, so none was given to Hatti."); a levy (see
   Levies); a purchase (see the city-states); anything the treasury could not pay, saying what came of
   it ("There was not enough gold to pay for Mane's mission to Hatti; Mane stayed at your court.", and
@@ -121,10 +133,15 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   materials, a ransom, a gift at an audience or gold sent back with an envoy); a ransom that could not
   be sent; a captive order that could no longer be carried out; a hire the person declined, with why
   ("Mane declined your offer of 10 shekels a season: they ask 20 shekels.", or "…: another court
-  offered more"); a renewal below the servant's price; a forgery botched by a servant without the
-  skill (the clay is still paid for); and, though the validator should already have refused them, a
-  release, recall, dismissal or captive order that finds nobody to act on, and a second assay of a lot
-  already assayed. The batch seat report's "invalid" column counts each of them (the validator's list
+  offered more", or, at an equal wage, "…: they chose another court that offered as much"); a
+  renewal below the servant's price; a forgery botched by a servant without the skill (the clay is
+  still paid for, the one exception to the rulebook's "gold reserved for an order that failed stays in
+  your treasury", and it says so); an assay of gold the treasurers had already weighed that season,
+  when an earlier payment fell short and exposed debased gold, which empties the list of unassayed
+  lots, fine ones included ("Gold lot g901 was not assayed: your treasurers had already weighed all
+  your unassayed gold last season, when a payment fell short. No fee was paid."); and, though the
+  validator should already have refused them, a release, recall, dismissal or captive order that
+  finds nobody to act on. The batch seat report's "invalid" column counts each of them (the validator's list
   once per order). (Until the simulation-fixes round a cession of land no longer held, a gift or
   disband of a unit that was gone, and those last few did nothing in silence; a declined hire did not
   say why; a botched forgery was an ordinary notice.)
@@ -142,7 +159,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   the leader's deviations (omit it, own name first, withhold "brother", claim or deny "Great King",
   or free text). It arrives verbatim. The letter body is spoken by the envoy, who may distort it.
   The order schema says what each greeting flag claims or withholds (brother between Great Kings, a
-  slight withheld; the title Great King given or denied; one's own title named or left out; one's
+  slight withheld; the title Great King given or denied; oneself named Great King, or only king of
+  one's land, which the recipient reads as not claiming the rank; one's
   own name first, presumptuous; no greeting at all, a slight), since the sealed greeting is built
   from those flags alone. (Until the simulation-fixes round the flags had no description, and 54 of
   the simulation's 135 letters left out their sender's own title.)
@@ -268,6 +286,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   spies' and the examinations' below, and the fees, as they are (until the simulation-fixes round it
   said only that the chance "grows with what you spend").
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.
+  Nobody rolls to catch a spy watching a province no power holds, one its own king holds, a court
+  that has fallen, or the court it secretly serves; the rulebook names the first three.
   Caught spies confess their master if timid (or 40% of the time). Turned spies go back to their
   post (a court, or out in their province) and report what their new master wants, plus one true
   observation; one whose master, not knowing it was caught, had recalled it comes home instead, as
@@ -317,8 +337,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     web app offers the ransom button only then.
   - **When it is due back.** Each of the king's people away reads when it set out and when it is
     due back, as the travel table lets its master reckon it (`Views.TimingText`): an envoy on its
-    way out, or at the foreign court, "travelling as envoy to Hatti; set out in turn 4 for Hatti;
-    received there in turn 6; due back about turn 8"; on the road home "set out in turn 4 for Hatti;
+    way out "travelling as envoy to Hatti; set out in turn 4 for Hatti; due there about turn 6; due
+    back about turn 8", and once at the foreign court "…; received there in turn 6; due back about
+    turn 8" (a reckoning reads "due", a fact "received"); on the road home "set out in turn 4 for Hatti;
     due back about turn 8"; a spy on its way "set out in turn 4; due there about turn 6"; a spy
     recalled "due back about turn 7". A cover keeps the timing its master would read in the normal
     course (`Cover.TimingText`): a detained or defecting envoy reads like one sent home at the
@@ -329,8 +350,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     went over to the host for as long as the cover holds, and gives it up (dismisses it) only once
     its line has read "has not returned" for three seasons (see Script kings, Court and
     intelligence).
-  - **What a cover cannot hide:** a caught spy's reports stop coming, and a caught province
-    watcher no longer adds its province to its master's sight; a background check on the servant
+  - **Sight.** A caught or released province watcher keeps its province, and the links next to it,
+    in its master's sight while the cover believes it at its post (`Views.Sight`), so the capture
+    cannot be read off the "You can see troops in" line; the province leaves the sight when word
+    comes, or when the master recalls it, as for a spy really recalled. (Until the simulation-fixes
+    round's review it left the sight the season of the capture.)
+  - **What a cover cannot hide:** a caught spy's reports stop coming; a background check on the servant
     finds a defection's public fact as usual; a captive whose master knew of it is seen on the road
     home as soon as it is let go. A spy posted at a court is listed in that court's view with its
     employer, "at your court", before anyone catches it (`docs/rounds/2026-10-18-sleep-and-simulation.md`,
@@ -365,7 +390,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   silence.)
 - **Authentication**: genuine tablets read genuine 95% of the time (else inconclusive). Forgeries
   are detected with chance 20% + spend/200 − forger skill/150 (5–95%), and traced to the forger's
-  employer with chance 30% + spend/400 (30–80%), which is announced to every court.
+  employer with chance 30% + spend/400 (30–80%), which is announced to every court. A forgery that
+  is not detected reads exactly as a genuine tablet that reads genuine ("The seals are genuine.").
+  (Until the simulation-fixes round's review it read "The seals appear genuine.", which gave every
+  missed forgery away.)
 - **Catastrophes**: 3.5% per power per season. Drought halves income for three seasons; plague cuts
   a quarter for two and kills a unit; floods and earthquakes zero one province for two or four
   seasons. The stricken power is told exactly. A court whose sight (before the catastrophe) covers
@@ -409,7 +437,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   host's own land and troops ("YOUR LAND: …. YOUR TROOPS: army in memphis, …") and the season's news
   as its orders request shows it ("NEWS THIS SEASON"), so a host does not tell an envoy that a city
   is his when the news says the purchase failed. (Until the simulation-fixes round it had neither.)
-- **The web app's Rules tab** shows a human seat the rulebook a model king reads, word for word.
+- **The web app's Rules tab** shows a human seat the rulebook a model king reads, word for word,
+  with a note of where a human's game differs: orders are given with the controls rather than as
+  JSON, and checked units first, then the other orders in the order the human added them (not
+  "units, then letters, then other orders"); and, with sleeping seats on, a human seat never sleeps,
+  so the sleeping section does not apply to it.
 - **The customs primer** (on by default; `--no-primer` turns it off) covers the forms of address,
   gifts as a measure of respect, detained envoys and blaming the messenger, oaths before the gods,
   catastrophes as excuses, and the language of accusation: "Habiru" for outlaws and mercenaries,

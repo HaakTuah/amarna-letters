@@ -32,9 +32,13 @@ namespace Amarna.Engine;
 [JsonDerivedType(typeof(ForgeOrder), "forge")]
 [JsonDerivedType(typeof(CaptiveOrder), "captive")]
 [JsonDerivedType(typeof(PayRansomOrder), "payRansom")]
+[JsonDerivedType(typeof(UnreadableOrder), "unreadable")]
 public abstract record Order
 {
     public abstract string Describe();
+
+    /// <summary>A name the order left blank, as a refusal shows it.</summary>
+    protected static string Named(string? s) => string.IsNullOrWhiteSpace(s) ? "?" : s;
 }
 
 public sealed record HoldOrder(string Unit) : Order
@@ -44,18 +48,27 @@ public sealed record HoldOrder(string Unit) : Order
 
 public sealed record MoveOrder(string Unit, string To) : Order
 {
-    public override string Describe() => $"{Unit} -> {To}";
+    public override string Describe() => $"{Unit} -> {Named(To)}";
 }
 
 /// <summary>Support a unit standing in <paramref name="Supported"/>: to hold if To is null, else its move to To.</summary>
 public sealed record SupportOrder(string Unit, string Supported, string? To = null) : Order
 {
-    public override string Describe() => To is null ? $"{Unit} supports {Supported} holding" : $"{Unit} supports {Supported} -> {To}";
+    public override string Describe() => To is null ? $"{Unit} supports {Named(Supported)} holding" : $"{Unit} supports {Named(Supported)} -> {To}";
 }
 
 public sealed record ConvoyOrder(string Unit, string Army, string To) : Order
 {
-    public override string Describe() => $"{Unit} convoys {Army} -> {To}";
+    public override string Describe() => $"{Unit} convoys {Named(Army)} -> {Named(To)}";
+}
+
+/// <summary>
+/// An order a reply named but left incomplete or unreadable (a cession to no power anyone knows): the validator refuses
+/// it with <paramref name="Reason"/>, so its king is told next season instead of the order vanishing.
+/// </summary>
+public sealed record UnreadableOrder(string Text, string Reason) : Order
+{
+    public override string Describe() => Text;
 }
 
 public sealed record RaiseOrder(string Province, UnitKind Kind) : Order

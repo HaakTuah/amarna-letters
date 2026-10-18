@@ -407,7 +407,11 @@ public sealed partial class TurnEngine
         var lot = t.Lots.FirstOrDefault(l => l.Id == a.Lot);
         if (lot is null)
         {
-            Failed(p, a, "Assay failed", $"There was no unassayed gold lot {a.Lot} left to assay.", "no such gold");
+            // The validator refuses a lot that is not there, or one assayed twice: the only way it is gone now is an
+            // earlier payment this season that fell short, when the treasurers weighed all the unassayed gold.
+            Failed(p, a, "Assay failed",
+                $"Gold lot {a.Lot} was not assayed: your treasurers had already weighed all your unassayed gold last season, when a payment fell short. No fee was paid.",
+                "your treasurers had already weighed it");
             return;
         }
         if (!Pay(p, S.Config.AssayFee, "an assay", a, $"gold lot {a.Lot} was not assayed")) return;
@@ -425,9 +429,11 @@ public sealed partial class TurnEngine
         var tablet = copy is null ? null : S.Tablets.FirstOrDefault(t => t.Id == copy.TabletId);
         if (copy is null || tablet is null) return;
         var rng = R("authenticate", task.Id);
+        // A forgery the scribes miss reads exactly as a genuine tablet that reads genuine: the words betray nothing.
+        const string genuine = "The seals are genuine.";
         string result;
         if (!tablet.Forged)
-            result = rng.Chance(0.95) ? "The seals are genuine." : "The scribes cannot agree; the result is inconclusive.";
+            result = rng.Chance(0.95) ? genuine : "The scribes cannot agree; the result is inconclusive.";
         else
         {
             var detect = Math.Clamp(0.2 + task.Spend / 200.0 - tablet.ForgerSkill / 150.0, 0.05, 0.95);
@@ -449,7 +455,7 @@ public sealed partial class TurnEngine
                     S.Log("forgery-exposed", $"{task.Requester} publicly traced a forgery to {culprit}.", signal: "forgery-exposed");
                 }
             }
-            else result = "The seals appear genuine.";
+            else result = genuine;
         }
         copy.AuthResult = result;
         S.Notify(task.Requester, InboxKind.Authentication, "Examination of a tablet", $"\"{Greeting.Cap(tablet.Text, 200)}\" — {result}");

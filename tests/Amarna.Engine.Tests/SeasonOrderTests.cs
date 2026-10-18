@@ -45,6 +45,31 @@ public class SeasonOrderTests
     }
 
     [Fact]
+    public void An_errand_for_someone_whose_hire_is_refused_reads_as_for_anyone_not_in_your_service()
+    {
+        var s = GameFactory.NewGame(4);
+        var c = s.Characters.First(c => c.Status == CharacterStatus.Free);
+        c.At = Power.Egypt;
+        var other = s.Characters.First(x => x.Employer == Power.Hatti);
+
+        // A hire that cannot stand (no wage, or someone in another court's service): no "was to be hired" for the errand.
+        foreach (var (who, hire) in new[] { (c, new HireOrder(c.Id, 0)), (other, new HireOrder(other.Id, 40)) })
+        {
+            var v = new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new DispatchOrder(who.Id, Power.Hatti, "Greetings."), hire] });
+            Assert.Equal([$"{who.Name} is not in your service", hire.Wage <= 0 ? "wage and term must be positive" : $"{who.Name} is not available for hire"], v.Rejected.Select(r => r.Reason));
+        }
+    }
+
+    [Fact]
+    public void A_lot_is_assayed_and_a_province_ceded_once_a_season()
+    {
+        var s = GameFactory.NewGame(4);
+        s.Treasuries[Power.Egypt].Lots.Add(new GoldLot { Id = "g900", From = Power.Hatti, Stated = 40, Face = 40, True = 40, ArrivedTurn = 1 });
+        Assert.Equal("gold lot g900 was already to be assayed by an earlier order", Refused(s, Power.Egypt, new AssayOrder("g900"), new AssayOrder("g900")).Single().Reason);
+        Assert.Equal("Thebes was already ceded by an earlier order", Refused(s, Power.Egypt, new CedeProvinceOrder("thebes", Power.Hatti), new CedeProvinceOrder("thebes", Power.Mitanni)).Single().Reason);
+    }
+
+    [Fact]
     public void A_spy_must_be_one_of_your_own_people_at_court_sent_to_a_court_or_a_province()
     {
         var s = GameFactory.NewGame(4);

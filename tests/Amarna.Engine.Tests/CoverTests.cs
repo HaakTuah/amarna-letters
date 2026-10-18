@@ -110,6 +110,8 @@ public class CoverTests
         var seen = Views.For(gone, Power.Egypt).Court.Single(c => c.Id == envoy.Id);
         Assert.Equal("has not returned from Alashiya", seen.Duty);
         Assert.Equal("unknown", seen.Where);
+        // No longer due back: the word that it has not returned clears the reckoning, as for an envoy really held.
+        Assert.Equal("", seen.Timing);
         Assert.DoesNotContain(seen.KnownFacts, f => f.Contains("Abandoned"));
         var wage = seen.Wage!.Value;
         var purse = defector.Purse;
@@ -152,10 +154,11 @@ public class CoverTests
     }
 
     /// <summary>
-    /// Babylonia's spy at Assyria's court, in two games from one seed: in the first Assyria pays heavy watchmen
-    /// and catches it, in the second nobody does. Returns both at the season after the catch.
+    /// Babylonia's spy at Assyria's court (or watching <paramref name="province"/>, held by <paramref name="host"/>), in
+    /// two games from one seed: in the first the host pays heavy watchmen and catches it, in the second nobody does.
+    /// Returns both at the season after the catch.
     /// </summary>
-    private static (GameState Caught, GameState Free, string Spy) CaughtSpy()
+    private static (GameState Caught, GameState Free, string Spy) CaughtSpy(Power host = Power.Assyria, string? province = null)
     {
         for (ulong seed = 1; seed <= 40; seed++)
         {
@@ -165,15 +168,16 @@ public class CoverTests
                 var c = s.Characters.First(x => x.Employer == Power.Babylonia);
                 c.SecretMaster = null;
                 c.Traits.Competence = 10;
-                s.Treasuries[Power.Assyria].Gold = 100000;
+                s.Treasuries[host].Gold = 100000;
                 return s;
             }
             var (caught, free) = (Game(), Game());
             var id = caught.Characters.First(x => x.Employer == Power.Babylonia).Id;
-            foreach (var s in new[] { caught, free }) Begin(s).Resolve(Orders(Power.Babylonia, new PlaceSpyOrder(id, Court: Power.Assyria)));
+            var post = province is null ? new PlaceSpyOrder(id, Court: host) : new PlaceSpyOrder(id, Province: province);
+            foreach (var s in new[] { caught, free }) Begin(s).Resolve(Orders(Power.Babylonia, post));
             for (var i = 0; i < 6; i++)
             {
-                Begin(caught).Resolve(Orders(Power.Assyria, new CounterIntelOrder(5000)));
+                Begin(caught).Resolve(Orders(host, new CounterIntelOrder(5000)));
                 Begin(free).Resolve(None());
                 if (free.Char(id).Status == CharacterStatus.Captured) break;
                 if (caught.Char(id).Status != CharacterStatus.Captured) continue;
@@ -214,6 +218,35 @@ public class CoverTests
         Assert.Equal(90, known.RansomDemand);
         Assert.False(known.Ready);
         Assert.Equal(0, new TurnEngine(caught).Wages(Power.Babylonia) - Views.For(caught, Power.Babylonia).Court.Where(c => c.Id != id).Sum(c => c.Wage ?? 0));
+    }
+
+    [Fact]
+    public void A_caught_province_watcher_keeps_its_province_in_its_masters_sight_until_word_comes()
+    {
+        var (caught, free, id) = CaughtSpy(Power.Egypt, "thebes");
+        Assert.Equal(CharacterStatus.Captured, caught.Char(id).Status);
+        string Sight(GameState g)
+        {
+            var v = Views.For(g, Power.Babylonia);
+            return Json.Serialize(new { v.Visible, v.Units });
+        }
+        Assert.Contains("thebes", Views.For(caught, Power.Babylonia).Visible);
+        for (var i = 0; i < 3; i++)
+        {
+            // What it can see, and what it sees there, are as if its spy still watched: the capture is not read off its sight.
+            Assert.Equal(Sight(free), Sight(caught));
+            Assert.Equal(Seen(free, Power.Babylonia, id), Seen(caught, Power.Babylonia, id));
+            new TurnEngine(caught).Resolve(None());
+            new TurnEngine(free).Resolve(None());
+            Begin(caught);
+            Begin(free);
+        }
+
+        // Once word of the capture comes (here, a ransom demand), the province leaves its sight.
+        new TurnEngine(caught).Resolve(Orders(Power.Egypt, new CaptiveOrder(id, CaptiveFate.Ransom, 90)));
+        while (!caught.InboxOf(Power.Babylonia).Any(x => x.Kind == InboxKind.Rumor && x.Subject == id)) { Begin(caught); new TurnEngine(caught).Resolve(None()); }
+        Assert.Empty(caught.Char(id).Covers);
+        Assert.DoesNotContain("thebes", Views.For(caught, Power.Babylonia).Visible);
     }
 
     [Fact]
@@ -481,7 +514,7 @@ public class CoverTests
         Begin(caught);
         Assert.Contains(caught.InboxOf(Power.Babylonia), x => x.Kind == InboxKind.Rumor && x.Subject == id && x.Body.Contains("has not returned from the court of Assyria"));
         var seen = Views.For(caught, Power.Babylonia).Court.Single(c => c.Id == id);
-        Assert.Equal(("has not returned from Assyria", "unknown"), (seen.Duty, seen.Where));
+        Assert.Equal(("has not returned from Assyria", "unknown", ""), (seen.Duty, seen.Where, seen.Timing));
         Assert.Equal(CharacterStatus.Captured, caught.Char(id).Status);
     }
 

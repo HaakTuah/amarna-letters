@@ -44,6 +44,30 @@ public class FailureNoticeTests
     }
 
     [Fact]
+    public void A_hire_lost_to_an_equal_offer_says_so()
+    {
+        var s = GameFactory.NewGame(6);
+        var free = s.Characters.First(c => c.Status == CharacterStatus.Free);
+        free.Traits.Sympathy = null;
+        var e = Begin(s);
+        foreach (var p in new[] { Power.Egypt, Power.Hatti })
+        {
+            free.Pitches[p] = "I am worth it.";
+            free.AskingPrice[p] = 20;
+        }
+        e.Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Egypt] = new() { Orders = [new HireOrder(free.Id, 30)] },
+            [Power.Hatti] = new() { Orders = [new HireOrder(free.Id, 30)] },
+        });
+
+        var loser = free.Employer == Power.Egypt ? Power.Hatti : Power.Egypt;
+        var notice = s.InboxOf(loser).Single(i => i.Title == "Not hired");
+        Assert.Equal(InboxKind.Rejected, notice.Kind);
+        Assert.Equal($"{free.Name} declined your offer of {Money.Format(30)} a season: they chose another court that offered as much.", notice.Body);
+    }
+
+    [Fact]
     public void A_spy_sent_out_is_reported_as_having_left_last_season()
     {
         var s = GameFactory.NewGame(8);

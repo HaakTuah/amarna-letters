@@ -100,8 +100,41 @@ public class SeasonRulebookTests
     [InlineData("a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid.")]
     [InlineData("a spy must be one of your own people at your court, sent to watch a court or a province")]
     [InlineData("If you cannot pay upkeep, troops desert, the one farthest from your capital first")]
-    [InlineData("Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury.")]
+    [InlineData("Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).")]
+    [InlineData("one without the skill ruins the clay, which you still pay for")]
+    [InlineData("the owner cannot station troops inside, but it, or any other king, may support its walls holding")]
     public void The_rulebook_states_each_rule(string rule) => Assert.Contains(rule, Rules);
+
+    [Fact]
+    public void Malformed_orders_reach_the_validator_and_are_refused_with_the_reason()
+    {
+        // A reply that leaves out where a unit goes, or names a power nobody knows: the king is told, the order never vanishes.
+        var sub = Parse.Orders((System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse(
+            """
+            {"notes":"","letters":[],
+             "units":[{"unit":"memphis","order":"move","target":"","to":""},
+                      {"unit":"akhetaten","order":"support","target":"","to":"sinai"},
+                      {"unit":"levantsea","order":"convoy","target":"memphis","to":""}],
+             "other_orders":[{"action":"cede_province","province":"sinai","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]},
+                             {"action":"give_unit","province":"memphis","power":"the Hittites","person":"","amount":0,"term":0,"text":"","item":"","seals":[]},
+                             {"action":"place_spy","province":"","power":"Kush","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]},
+                             {"action":"forge","province":"","power":"","person":"c3","amount":0,"term":0,"text":"Peace.","item":"","seals":["Hatti","Kush"]}]}
+            """)!);
+        Assert.Equal(7, sub.Orders.Count);
+        var s = GameFactory.NewGame(5);
+        s.Units.Single(u => u.Province == "delta").Province = "levantsea";
+        var reasons = new OrderValidator(s).Validate(Power.Egypt, sub).Rejected.Select(r => $"{r.Order.Describe()}: {r.Reason}").ToList();
+        Assert.Equal(
+        [
+            "memphis -> ?: name the province the unit should move to",
+            "akhetaten supports ? -> sinai: name the unit to support, by the province it stands in",
+            "levantsea convoys memphis -> ?: name the coast where the army should land",
+            "cede sinai to '': name the power to cede it to",
+            "give memphis to 'the Hittites': there is no power called 'the Hittites'",
+            "send c3 to spy on 'Kush': there is no power called 'Kush'",
+            "have c3 forge a tablet sealed by Hatti, Kush: there is no power called 'Kush'",
+        ], reasons);
+    }
 
     [Fact]
     public void Scheduled_orders_are_checked_after_the_season_s_own()
@@ -172,17 +205,19 @@ public class ViewTextTests
     [InlineData("Background checks (at least 10 shekels) report next season: every public fact about the person, each hidden fact with a chance of shekels paid/150 (at most 90%), and each deep secret with a chance of shekels paid/400 (at most 60%).")]
     [InlineData("Each season a spy is caught with a chance of 5% + (what the court it watches, or the one holding the province it watches, spends on watchmen that season)/300 - (the spy's skill, 0-100)/400, between 2% and 60%")]
     [InlineData("a genuine tablet reads genuine 95% of the time (otherwise the scribes cannot agree); a forgery is found with a chance of 20% + shekels paid/200 - (the forger's skill, 0-100)/150, between 5% and 95%, and once found is traced to the forger's court with a chance of 30% + shekels paid/400, between 30% and 80%")]
+    [InlineData("a spy watching a province that no power holds, or one you hold yourself, is never caught, nor is one still watching a court that has fallen.")]
     [InlineData("the receiver sees its weight, not its fineness, until they pay 10 for an assay")]
     public void The_rulebook_states_sight_and_the_costs_and_odds_of_intelligence(string rule) => Assert.Contains(rule, Rules);
 
     [Fact]
     public void The_schema_says_how_to_support_a_city_s_walls_and_what_each_greeting_flag_means()
     {
-        var schema = Schemas.LeaderOrders(new GameConfig()).ToJsonString();
-        Assert.Contains("support: the province of the unit supported, or of your own walled city to support its walls holding", schema);
+        // As the king reads it: the JSON text escapes an apostrophe, which the model reads as the apostrophe.
+        var schema = Schemas.LeaderOrders(new GameConfig()).ToJsonString(new System.Text.Json.JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+        Assert.Contains("support: the province of the unit supported, or of a bought walled city (yours or another king's) to support its walls holding", schema);
         Assert.Contains("Greet the recipient as your brother, as Great Kings greet their equals", schema);
         Assert.Contains("Give the recipient the title Great King. False denies him that rank.", schema);
-        Assert.Contains("Name yourself Great King in the greeting. False leaves your own title out.", schema);
+        Assert.Contains("Name yourself Great King in the greeting. False names you only as king of your land, which the recipient reads as not claiming the rank.", schema);
         Assert.Contains("presumptuous, and the recipient will notice", schema);
         Assert.Contains("Send no greeting at all, which is a slight.", schema);
         Assert.Contains("an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.", schema);
@@ -200,7 +235,7 @@ public class ViewTextTests
 
         var text = Prompts.Situation(Views.For(s, Power.Egypt));
         Assert.Contains("You can see troops in (your land, your troops and what your spies watch, and one link of any kind from those; troops two links away can still arrive next season unseen): ", text);
-        Assert.Contains($"{envoy.Id} {envoy.Name} of {envoy.Origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; received there in turn {1 + travel}; due back about turn {1 + 2 * travel}; serves at", text);
+        Assert.Contains($"{envoy.Id} {envoy.Name} of {envoy.Origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn {1 + travel}; due back about turn {1 + 2 * travel}; serves at", text);
     }
 
     private sealed class Recorder : IJsonAsker

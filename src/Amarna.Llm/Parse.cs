@@ -39,7 +39,12 @@ public static class Parse
 
         foreach (var l in (o["letters"] as JsonArray) ?? new JsonArray())
         {
-            if (P(S(l, "to")) is not { } to) continue;
+            if (P(S(l, "to")) is not { } to)
+            {
+                // The schema lists the courts, so only a reply that ignores it lands here: refused with the reason, not dropped.
+                sub.Orders.Add(new UnreadableOrder($"send {S(l, "envoy")} to '{S(l, "to")}'", Nowhere(S(l, "to"), "the court to send the envoy to")));
+                continue;
+            }
             var tablet = S(l, "tablet_to_seal");
             sub.Orders.Add(new DispatchOrder(
                 S(l, "envoy"),
@@ -102,16 +107,22 @@ public static class Parse
         return sub;
     }
 
+    /// <summary>Why a power named in an order cannot be read: none was named, or no power goes by that name.</summary>
+    private static string Nowhere(string named, string what) =>
+        named.Length == 0 ? $"name {what}" : $"there is no power called '{named}'";
+
+    // A unit order that leaves out where to go, whom to support or what to carry still reaches the validator, which refuses
+    // it with the reason (the unit then holds): an order is never dropped without its king being told.
     private static Order? Unit(JsonNode? u)
     {
         var unit = Prov(S(u, "unit"));
-        var target = Empty(S(u, "target")) is { } t ? Prov(t) : null;
+        var target = Empty(S(u, "target")) is { } t ? Prov(t) : "";
         var to = Empty(S(u, "to")) is { } d ? Prov(d) : null;
         Order? order = S(u, "order") switch
         {
-            "move" when target is not null => new MoveOrder(unit, target),
-            "support" when target is not null => new SupportOrder(unit, target, to),
-            "convoy" when target is not null && to is not null => new ConvoyOrder(unit, target, to),
+            "move" => new MoveOrder(unit, target),
+            "support" => new SupportOrder(unit, target, to),
+            "convoy" => new ConvoyOrder(unit, target, to ?? ""),
             "disband" => new DisbandOrder(unit),
             "hold" => new HoldOrder(unit),
             _ => null,
@@ -124,16 +135,20 @@ public static class Parse
         var person = S(x, "person");
         var amount = I(x, "amount");
         var province = Empty(S(x, "province")) is { } pr ? Prov(pr) : "";
-        var power = P(S(x, "power"));
+        var named = S(x, "power");
+        var power = P(named);
         // Seasons of service for hire and renew: 0 (or none given) means the usual 6; the engine keeps it to 1-30.
         var term = I(x, "term") is var t && t > 0 ? t : 6;
+        var seals = L(x, "seals");
         Order? order = S(x, "action") switch
         {
             "raise_army" => new RaiseOrder(province, UnitKind.Army),
             "raise_fleet" => new RaiseOrder(province, UnitKind.Fleet),
             "buy_city" => new BuyProvinceOrder(province),
             "cede_province" when power is { } cp => new CedeProvinceOrder(province, cp),
+            "cede_province" => new UnreadableOrder($"cede {province} to '{named}'", Nowhere(named, "the power to cede it to")),
             "give_unit" when power is { } gp => new GiftUnitOrder(province, gp),
+            "give_unit" => new UnreadableOrder($"give {province} to '{named}'", Nowhere(named, "the power to give it to")),
             "seek_candidates" => new SeekCandidatesOrder(),
             "hire" => new HireOrder(person, amount, term),
             "renew" => new RenewOrder(person, amount, term),
@@ -141,13 +156,16 @@ public static class Parse
             "background_check" => new BackgroundCheckOrder(person, amount),
             "place_spy" when power is { } court => new PlaceSpyOrder(person, Court: court),
             "place_spy" when province.Length > 0 => new PlaceSpyOrder(person, Province: province),
+            "place_spy" when named.Length > 0 => new UnreadableOrder($"send {person} to spy on '{named}'", Nowhere(named, "the court to watch")),
             // Neither a court nor a province: the validator refuses it with the reason, rather than the order vanishing.
             "place_spy" => new PlaceSpyOrder(person),
             "recall_spy" => new RecallSpyOrder(person),
             "counter_intelligence" => new CounterIntelOrder(amount),
             "assay" => new AssayOrder(S(x, "item")),
             "authenticate" => new AuthenticateOrder(S(x, "item"), amount),
-            "forge" => new ForgeOrder(person, S(x, "text"), L(x, "seals").Select(P).OfType<Power>().ToList()),
+            // Every seal must name a power: a forgery is never made with fewer seals than the king asked for.
+            "forge" when seals.FirstOrDefault(n => P(n) is null) is { } bad => new UnreadableOrder($"have {person} forge a tablet sealed by {string.Join(", ", seals)}", Nowhere(bad, "")),
+            "forge" => new ForgeOrder(person, S(x, "text"), seals.Select(P).OfType<Power>().ToList()),
             "captive_execute" => new CaptiveOrder(person, CaptiveFate.Execute),
             "captive_ransom" => new CaptiveOrder(person, CaptiveFate.Ransom, amount),
             "captive_turn" => new CaptiveOrder(person, CaptiveFate.Turn, Poison: S(x, "text")),

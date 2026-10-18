@@ -29,7 +29,8 @@ public class ViewTimingTests
         var heard = 1 + travel;
         var back = heard + travel;
         var line = Line(s, Power.Egypt, envoy.Id);
-        Assert.Equal(("travelling as envoy to Hatti", $"set out in turn 1 for Hatti; received there in turn {heard}; due back about turn {back}"), (line.Duty, line.Timing));
+        // On its way, a reckoning: "due there"; only once it stands at that court, "received there".
+        Assert.Equal(("travelling as envoy to Hatti", $"set out in turn 1 for Hatti; due there about turn {heard}; due back about turn {back}"), (line.Duty, line.Timing));
 
         while (s.Audiences.Count == 0) { e = Begin(s); if (s.Audiences.Count == 0) e.Resolve(new Dictionary<Power, TurnSubmission>()); }
         Assert.Equal(heard, s.Turn);

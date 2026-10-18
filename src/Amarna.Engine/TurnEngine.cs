@@ -254,6 +254,7 @@ public sealed partial class TurnEngine
         var validator = new OrderValidator(S, Map);
         var valid = new Dictionary<Power, ValidationResult>();
         _scheduledNow.Clear();
+        _cededNow.Clear();
         foreach (var p in S.Alive.ToList())
         {
             var sub = WithScheduled(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission(), out var scheduled);
@@ -406,11 +407,15 @@ public sealed partial class TurnEngine
         }
     }
 
+    /// <summary>Provinces ceded while this season resolves, and to whom: a levy there later in the season is told so.</summary>
+    private readonly Dictionary<string, Power> _cededNow = new();
+
     private void ResolveTransfers(List<(Power P, CedeProvinceOrder O)> cessions, List<(Power P, GiftUnitOrder O)> gifts)
     {
         foreach (var (p, c) in cessions)
         {
             var name = Map[c.Province].Name;
+            // The validator refuses a second cession of one province, so land no longer held was lost in movement.
             if (S.Owner.GetValueOrDefault(c.Province) != p)
             {
                 Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: you no longer held it after movement.", "you no longer held it");
@@ -422,6 +427,7 @@ public sealed partial class TurnEngine
                 continue;
             }
             S.Owner[c.Province] = c.To;
+            _cededNow[c.Province] = c.To;
             S.Notify(p, InboxKind.Resolution, "Land ceded", $"{Map[c.Province].Name} now belongs to {c.To}.");
             S.Notify(c.To, InboxKind.Resolution, "Land received", $"{p} has ceded {Map[c.Province].Name} to you.");
             S.Log("cession", $"{p} ceded {Map[c.Province].Name} to {c.To}.", [p, c.To]);
@@ -486,9 +492,10 @@ public sealed partial class TurnEngine
         var prov = Map[r.Province];
         var kind = r.Kind.ToString().ToLowerInvariant();
         // In the rulebook's words: only in a province of your homeland that you still hold and that is empty after movement.
-        var why = S.Owner.GetValueOrDefault(prov.Id) != p ? $"you no longer held {prov.Name} after movement"
-            : S.UnitAt(prov.Id) is not null ? $"{prov.Name} was not empty after movement"
-            : null;
+        // Land the king itself ceded this season was not lost in movement: the notice says which.
+        var why = S.Owner.GetValueOrDefault(prov.Id) == p ? (S.UnitAt(prov.Id) is not null ? $"{prov.Name} was not empty after movement" : null)
+            : _cededNow.TryGetValue(prov.Id, out var to) ? $"you ceded {prov.Name} to {to} last season, before the levy"
+            : $"you no longer held {prov.Name} after movement";
         if (why is not null)
         {
             S.Notify(p, InboxKind.Rejected, "Levy failed", $"No {kind} was raised in {prov.Name}: {why}. No gold was paid.");

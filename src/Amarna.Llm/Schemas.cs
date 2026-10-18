@@ -49,7 +49,7 @@ public static class Schemas
     private static JsonObject UnitOrder() => Object(
         ("unit", Str("Province id where your unit stands.")),
         ("order", Enum(["hold", "move", "support", "convoy", "disband"])),
-        ("target", Str("move: destination. support: the province of the unit supported, or of your own walled city to support its walls holding. convoy: province of the army. Otherwise empty.")),
+        ("target", Str("move: destination. support: the province of the unit supported, or of a bought walled city (yours or another king's) to support its walls holding. convoy: province of the army. Otherwise empty.")),
         ("to", Str("support of a move, or convoy: the destination. Support to hold: empty.")));
 
     private static JsonObject OtherOrder() => Object(
@@ -102,7 +102,7 @@ public static class Schemas
             // The sealed greeting is written from these flags alone: say what each one claims or withholds.
             ("call_brother", Bool("Greet the recipient as your brother, as Great Kings greet their equals, and wish well to his household and country. False withholds it: a slight.")),
             ("call_them_great_king", Bool("Give the recipient the title Great King. False denies him that rank.")),
-            ("claim_great_king", Bool("Name yourself Great King in the greeting. False leaves your own title out.")),
+            ("claim_great_king", Bool("Name yourself Great King in the greeting. False names you only as king of your land, which the recipient reads as not claiming the rank.")),
             ("your_name_first", Bool("Put your own name before the recipient's: presumptuous, and the recipient will notice. False keeps the custom, his name first.")),
             ("omit_greeting", Bool("Send no greeting at all, which is a slight. The other greeting flags are then ignored.")),
             ("tablet_to_seal", Str("Text for both kings to seal, or empty.")),

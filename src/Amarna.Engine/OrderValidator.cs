@@ -28,9 +28,12 @@ public sealed class OrderValidator
         var result = new ValidationResult();
         var ledger = _s.Treasuries[power].Ledger;
         var budget = ledger;
-        // People this season's orders hire: they enter service only at the end of the season, so no errand can be given them now.
-        var hiring = submission.Orders.Take(MaxOrders).OfType<HireOrder>().Select(h => h.Character).ToHashSet();
+        // People this season's orders hire: they enter service only at the end of the season, so no errand can be given them
+        // now. Only a hire that stands counts (one refused for its wage, or for someone not free to take it, does not), and it
+        // counts wherever it is listed, so that an errand listed before it is refused in the same words.
+        var hiring = submission.Orders.Take(MaxOrders).OfType<HireOrder>().Where(h => HireRefusal(h, out _) is null).Select(h => h.Character).ToHashSet();
         var assayed = new HashSet<string>();
+        var ceded = new HashSet<string>();
         var orderedUnits = new HashSet<string>();
         var raisedIn = new HashSet<string>();
         var bought = new HashSet<string>();
@@ -63,6 +66,7 @@ public sealed class OrderValidator
                 if (order is BuyProvinceOrder b) bought.Add(b.Province);
                 if (order is RenewOrder rn) renewed.Add(rn.Character);
                 if (order is AssayOrder a) assayed.Add(a.Lot);
+                if (order is CedeProvinceOrder cp) ceded.Add(cp.Province);
             }
             else
             {
@@ -122,16 +126,36 @@ public sealed class OrderValidator
             return null;
         }
 
+        // Whether a hire can stand, apart from the person being given another task by an earlier order.
+        string? HireRefusal(HireOrder h, out Character? c)
+        {
+            c = _s.FindCharacter(h.Character);
+            if (c is null) return Nobody(h.Character);
+            // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
+            if (Covered(c) || c.Employer == power && c.Status is CharacterStatus.Employed or CharacterStatus.Captured)
+                return $"{c.Name} is already in your service; to keep them on, order renew";
+            if (!c.IsAvailableForHire) return $"{c.Name} is not available for hire";
+            if (c.HeldBy is { } holder && holder != power) return $"{c.Name} is held at the court of {holder} and cannot come to yours";
+            if (!c.Pitches.ContainsKey(power) && c.At != power) return $"{c.Name} has not presented themselves to your court";
+            if (h.Wage <= 0 || h.Term <= 0) return "wage and term must be positive";
+            return null;
+        }
+
         string? Check(Order order)
         {
             switch (order)
             {
+                // An order the reply named but left incomplete: refused with the reason, rather than dropped unseen.
+                case UnreadableOrder u:
+                    return u.Reason;
+
                 case HoldOrder h:
                     return OwnUnit(h.Unit, out _);
 
                 case MoveOrder m:
                 {
                     if (OwnUnit(m.Unit, out var u) is { } e) return e;
+                    if (string.IsNullOrWhiteSpace(m.To)) return "name the province the unit should move to";
                     if (!_map.Exists(m.To)) return $"there is no province called '{m.To}'";
                     if (m.To == m.Unit) return "a unit cannot move to where it stands";
                     if (_s.Garrisons.Contains(m.To) && _s.Owner.GetValueOrDefault(m.To) == power)
@@ -145,6 +169,7 @@ public sealed class OrderValidator
                 case SupportOrder sp:
                 {
                     if (OwnUnit(sp.Unit, out var u) is { } e) return e;
+                    if (string.IsNullOrWhiteSpace(sp.Supported)) return "name the unit to support, by the province it stands in";
                     if (!_map.Exists(sp.Supported)) return $"there is no province called '{sp.Supported}'";
                     var walls = _s.Garrisons.Contains(sp.Supported) && _s.Owner.GetValueOrDefault(sp.Supported) is not null;
                     if (_s.UnitAt(sp.Supported) is null && !walls) return $"there is no unit in {sp.Supported} to support";
@@ -160,6 +185,8 @@ public sealed class OrderValidator
                 {
                     if (OwnUnit(c.Unit, out var u) is { } e) return e;
                     if (u!.Kind != UnitKind.Fleet || !_map[c.Unit].IsSea) return "only a fleet at sea can convoy";
+                    if (string.IsNullOrWhiteSpace(c.Army)) return "name the army to convoy, by the province it stands in";
+                    if (string.IsNullOrWhiteSpace(c.To)) return "name the coast where the army should land";
                     var army = _s.UnitAt(c.Army);
                     if (army is null || army.Kind != UnitKind.Army) return $"there is no army in {c.Army}";
                     if (!_map.Exists(c.To) || !_map[c.To].IsCoastal) return $"{c.To} is not a coast an army can land on";
@@ -194,6 +221,7 @@ public sealed class OrderValidator
                     if (!_map.Exists(cp.Province)) return $"there is no province called '{cp.Province}'";
                     if (_s.Owner.GetValueOrDefault(cp.Province) != power) return "you can only cede what you hold";
                     if (cp.To == power || !_s.IsAlive(cp.To)) return $"you cannot cede land to {cp.To}";
+                    if (ceded.Contains(cp.Province)) return $"{_map[cp.Province].Name} was already ceded by an earlier order";
                     return null;
 
                 case GiftUnitOrder g:
@@ -230,16 +258,8 @@ public sealed class OrderValidator
 
                 case HireOrder h:
                 {
-                    var c = _s.FindCharacter(h.Character);
-                    if (c is null) return Nobody(h.Character);
-                    // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
-                    if (Covered(c) || c.Employer == power && c.Status is CharacterStatus.Employed or CharacterStatus.Captured)
-                        return $"{c.Name} is already in your service; to keep them on, order renew";
-                    if (!c.IsAvailableForHire) return $"{c.Name} is not available for hire";
-                    if (c.HeldBy is { } holder && holder != power) return $"{c.Name} is held at the court of {holder} and cannot come to yours";
-                    if (!c.Pitches.ContainsKey(power) && c.At != power) return $"{c.Name} has not presented themselves to your court";
-                    if (h.Wage <= 0 || h.Term <= 0) return "wage and term must be positive";
-                    if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
+                    if (HireRefusal(h, out var c) is { } e) return e;
+                    if (busyCharacters.Contains(c!.Id)) return $"{c.Name} was already given a task by an earlier order";
                     return null;
                 }
 

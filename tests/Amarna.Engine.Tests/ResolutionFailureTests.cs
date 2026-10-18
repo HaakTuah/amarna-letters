@@ -9,9 +9,9 @@ namespace Amarna.Engine.Tests;
 public class ResolutionFailureTests
 {
     /// <summary>Babylonia holds Megiddo and Gaza with an army in each, next to Egypt's Sinai, where Egypt has an army too.</summary>
-    private static GameState Board()
+    private static GameState Board(bool sleeping = false)
     {
-        var s = GameFactory.NewGame(4, new GameConfig { CatastropheChance = 0 });
+        var s = GameFactory.NewGame(4, new GameConfig { CatastropheChance = 0, SleepingSeats = sleeping });
         foreach (var (city, id) in new[] { ("megiddo", "u90"), ("gaza", "u91") })
         {
             s.Owner[city] = Power.Babylonia;
@@ -37,6 +37,7 @@ public class ResolutionFailureTests
     [InlineData("gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in Sinai after movement, so none was given to Hatti.")]
     [InlineData("disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in Sinai after movement, so none was disbanded.")]
     [InlineData("levy in a province not empty", "Levy failed", "No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.")]
+    [InlineData("levy in land ceded that season", "Levy failed", "No army was raised in Sinai: you ceded Sinai to Hatti last season, before the levy. No gold was paid.")]
     [InlineData("levy that cannot be paid", "Not enough gold", "There was not enough gold to pay for a new army in Thebes; none was raised.")]
     [InlineData("purchase between rival buyers", "Purchase failed", "The elders of Tyre would not choose between 2 buyers last season. No gold was paid.")]
     [InlineData("purchase that cannot be paid", "Not enough gold", "There was not enough gold to pay for the city of Tyre; it was not bought.")]
@@ -44,6 +45,7 @@ public class ResolutionFailureTests
     [InlineData("background check that cannot be paid", "Not enough gold", "There was not enough gold to pay for inquiries into {stranger}; none were made.")]
     [InlineData("watchmen who cannot be paid", "Not enough gold", "There was not enough gold to pay for watchmen; none were set.")]
     [InlineData("assay that cannot be paid", "Not enough gold", "There was not enough gold to pay for an assay; gold lot g901 was not assayed.")]
+    [InlineData("assay of gold weighed when a payment fell short", "Assay failed", "Gold lot g901 was not assayed: your treasurers had already weighed all your unassayed gold last season, when a payment fell short. No fee was paid.")]
     [InlineData("examination that cannot be paid", "Not enough gold", "There was not enough gold to pay for the examination of a tablet; tablet k900 was not examined.")]
     [InlineData("forgery that cannot be paid", "Not enough gold", "There was not enough gold to pay for a forger's materials; nothing was forged.")]
     [InlineData("forgery by a servant without the skill", "Forgery botched", "{envoy} lacks the skill; the clay is ruined and nothing usable came of it.")]
@@ -54,7 +56,18 @@ public class ResolutionFailureTests
     [InlineData("captive turned once its king dismissed it", "Captive order failed", "{envoy} serves no king now: nobody is left to deceive. {envoy} remains your captive.")]
     public void Every_order_that_fails_as_the_season_resolves_is_reported_with_the_reason(string order, string title, string expected)
     {
-        var s = Board();
+        Play(order, title, expected, scheduled: false);
+        // The same order scheduled by a sleeping seat fails the same way, and wakes it with the reason.
+        Play(order, title, expected, scheduled: true);
+    }
+
+    /// <summary>
+    /// Plays one failing order. Scheduled, the failing king's orders run as a sleeping seat's scheduled orders; the order
+    /// that fails is always the last it lists.
+    /// </summary>
+    private static void Play(string order, string title, string expected, bool scheduled)
+    {
+        var s = Board(scheduled);
         var e = new TurnEngine(s);
         e.BeginTurn();
         var envoy = s.Characters.First(c => c.Employer == Power.Egypt && c.At == Power.Egypt);
@@ -82,6 +95,11 @@ public class ResolutionFailureTests
                 break;
             case "levy in a province not empty":
                 Egypt(new MoveOrder("akhetaten", "thebes"), new RaiseOrder("thebes", UnitKind.Army));
+                break;
+            case "levy in land ceded that season":
+                // Ceded before the levy: the notice says so, not that the land was lost in movement.
+                Egypt(new CedeProvinceOrder("sinai", Power.Hatti), new MoveOrder("sinai", "memphis"), new RaiseOrder("sinai", UnitKind.Army));
+                s.Units.Single(u => u.Province == "memphis").Province = "thebes";
                 break;
             case "levy that cannot be paid":
                 Debased(s);
@@ -112,6 +130,13 @@ public class ResolutionFailureTests
                 s.Treasuries[Power.Egypt].Lots.Add(new GoldLot { Id = "g901", From = Power.Hatti, Stated = 40, Face = 40, True = 40, ArrivedTurn = 1 });
                 s.Treasuries[Power.Egypt].Gold = 5;
                 Egypt(new AssayOrder("g901"));
+                break;
+            case "assay of gold weighed when a payment fell short":
+                // A levy the debased gold cannot pay for: the treasurers weigh all the unassayed gold, the fine lot included.
+                Debased(s);
+                s.Treasuries[Power.Egypt].Lots.Add(new GoldLot { Id = "g901", From = Power.Hatti, Stated = 40, Face = 40, True = 40, ArrivedTurn = 1 });
+                s.Treasuries[Power.Egypt].Gold = 50;
+                Egypt(new RaiseOrder("thebes", UnitKind.Army), new AssayOrder("g901"));
                 break;
             case "examination that cannot be paid":
                 Debased(s);
@@ -157,6 +182,12 @@ public class ResolutionFailureTests
                 throw new ArgumentException(order);
         }
 
+        var mine = orders[who].Orders;
+        if (scheduled)
+        {
+            s.Sleep[who] = new SleepState { Asleep = true, WakeAt = 50, History = [new SleepSpell { From = s.Turn, Requested = 6 }], Scheduled = [new ScheduledOrders { Turn = s.Turn, Orders = mine.ToList() }] };
+            orders.Remove(who);
+        }
         var valid = e.Resolve(orders);
         Assert.Empty(valid[who].Rejected); // the validator accepted it: the failure came as the season resolved
         var text = expected.Replace("{envoy}", envoy.Name).Replace("{stranger}", stranger.Name);
@@ -164,5 +195,14 @@ public class ResolutionFailureTests
         Assert.Equal(InboxKind.Rejected, notice.Kind);
         Assert.Contains(text, notice.Body);
         Assert.Equal(s.Turn, notice.Turn); // read next season
+        if (!scheduled) return;
+
+        // The failure wakes the sleeping seat next season, naming the order and why it failed.
+        var wake = $"orders you scheduled could not be carried out: {mine[^1].Describe()} (";
+        Assert.Contains(s.Sleep[who].PendingWake, w => w.StartsWith(wake, StringComparison.Ordinal) && !w.EndsWith("()", StringComparison.Ordinal));
+        new TurnEngine(s).BeginTurn();
+        new TurnEngine(s).WakeCheck();
+        Assert.False(s.Sleep[who].Asleep);
+        Assert.Contains(s.Sleep[who].WokenBecause, w => w.StartsWith(wake, StringComparison.Ordinal));
     }
 }

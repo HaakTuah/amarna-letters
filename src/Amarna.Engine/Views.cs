@@ -140,12 +140,18 @@ public static class Views
             .ToList();
     }
 
-    /// <summary>Provinces a power can see units in: its own lands, where its units stand, and next to either.</summary>
+    /// <summary>
+    /// Provinces a power can see units in: its own lands, where its units stand, the provinces its spies watch, and
+    /// next to any of those. A province spy caught or let go unknown to its master still counts while the master
+    /// believes it at its post, so that its sight betrays nothing before word comes.
+    /// </summary>
     public static HashSet<string> Sight(GameState s, WorldMap map, Power p)
     {
         var core = new HashSet<string>(s.OwnedBy(p));
         foreach (var u in s.Units.Where(u => u.Power == p)) core.Add(u.Province);
-        foreach (var c in s.Characters.Where(c => c.Employer == p && c.Duty == Duty.SpyPosted && c.WatchProvince is not null))
+        foreach (var c in s.Characters.Where(c => c.WatchProvince is not null && (c.CoverOf(p) is { } cover
+                     ? cover.Believed == Duty.SpyPosted
+                     : c.Employer == p && c.Duty == Duty.SpyPosted)))
             core.Add(c.WatchProvince!);
         var all = new HashSet<string>(core);
         foreach (var id in core)
@@ -323,8 +329,9 @@ public static class Views
         int Back(Power from) => TurnEngine.TravelTurns(s.Config, map, map.Capital(from).Id, map.Capital(home).Id);
         return c.Duty switch
         {
+            // On its way the reckoning is a reckoning ("due there"); only once it stands at that court is it "received there".
             Duty.EnvoyOutbound when journey is { Kind: JourneyKind.EnvoyOutbound } j =>
-                $"set out in turn {j.DepartTurn} for {j.To}; received there in turn {j.ArriveTurn}; due back about turn {j.ArriveTurn + Back(j.To)}",
+                $"set out in turn {j.DepartTurn} for {j.To}; due there about turn {j.ArriveTurn}; due back about turn {j.ArriveTurn + Back(j.To)}",
             Duty.EnvoyAtCourt when trail is not null && c.At is { } at =>
                 $"set out in turn {trail.Turn} for {at}; received there in turn {s.Turn}; due back about turn {s.Turn + Back(at)}",
             Duty.EnvoyHomebound when journey is { Kind: JourneyKind.EnvoyHomebound } j && trail is not null => EnvoyHomeTiming(trail.Turn, trail.To, j.ArriveTurn),
