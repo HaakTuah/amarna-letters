@@ -4,7 +4,7 @@ Branch `round/simulation-fixes`, from `main` after PR #6, 18 October 2026. The p
 The previous round's report, which holds the plans for all 27 Part 3 questions, is now
 `docs/rounds/2026-10-18-sleep-and-simulation.md`; "question N" below means that report.
 
-*Work in progress: this report is saved as the round goes. Done so far: Part A and Part F.*
+*Work in progress: this report is saved as the round goes. Done so far: Parts A, B, C and F.*
 
 ## How I read the prompt
 
@@ -86,3 +86,41 @@ All with tests that fail without the fix: the implementer checked each of 31 fix
 ## Part F: the simulation kit
 
 Done (commit f21cc7d). Every file-seat request ends with a footer that only file seats get: "When you have written your reply file, your final message must be the single word done. Say nothing about your decision. Earlier reply files cannot be read: your record of earlier seasons is in this request." A model king called through the API sees no such line (tested). `sim/README.md` now states the orchestrator's rule (check only that the reply file exists; never read, act on or pass on a king's final text) and describes the structural fix without building it: a launcher that starts each king itself, waits for the reply file, discards the agent's final message and returns only "reply written" or "no reply". A debrief request, which the orchestrator writes, must end with the same footer.
+
+## Part B: contracts
+
+All built (six commits, then review fixes). The rulebook line, word for word:
+
+> Each servant serves for a term. When it ends, one content with the wage serves on for another 6 seasons; one who wants more gives notice, names a price and serves one more season: renew them (order renew) at that price or more, or they leave. You may renew one of your people at court at any time, for a new wage and term (below their price they refuse, and you are told the price); hire is only for people not in your service.
+
+1. **Notice period.** A content servant still renews itself for 6 seasons at the same wage. One who wants more gives notice when its term has ended and it is at court with no task: "Mane's term has ended. They ask 33 shekels a season to serve on: renew them this season (order renew), or they leave at the start of turn 12 (or, if you send them out first, when they are next at your court)." It serves one more season at its old wage, and the notice wakes a sleeping king. Unrenewed, it leaves at the start of that turn, before wages, and stands free at court asking its price. A servant on notice can still be sent on errands; away at the deadline, it leaves when next at court. A servant abroad under a cover keeps its notice in its master's eyes.
+2. **Staggered starting terms.** Each starting envoy's term ends at a turn drawn from 7 to 13 from its own stream, `Rng.For(seed, 0, "start-term", id)`. A test shows every starting character's traits, facts, wage, post, plant status and persona are unchanged for seeds 1, 7 and 42.
+3. **The renewal order** (`renew`: person, wage, term). Valid for one's own servant at court, or one on notice wherever it is; it is not a task, so the servant can be renewed and sent out the same season. Settled with hiring, at the end of the season. The price is the price named in the notice, or for an early renewal the renewal formula **or the present wage, whichever is higher** (a reviewer found that an early renewal could otherwise cut a wage of 60 to 9). Below the price: "Mane will not serve on for 20 shekels a season; they ask 33 shekels." Hire naming one's own servant: "Mane is already in your service; to keep them on, order renew." `hire` and `renew` both take a term (1-30; 0 means 6), so model kings can now set a term.
+4. **What kings read.** The rulebook line above. Each servant's term in plain words: "serves at 12 a season through turn 10; if content they then renew themselves, otherwise they give a season's notice and name a price"; on notice: "has given notice: asks 33 a season to serve on; leaves at the start of turn 12 unless renewed". Free people at your court show their asking price. The web app has a renew button, a term field, and hire buttons for anyone free at court.
+
+**Script kings.** They answer a notice with a 6-season renewal at the price named when they still want the servant (fewer servants not on notice than their court-size rule wants) and the price passes their existing hiring test; they never renew early. Over 40 script games: 407 notices, 258 renewals, 102 servants who left unrenewed.
+
+**One more bot rule, needed because of Part A's covers.** A defector now stays on its old master's list, paid, until dismissed, and script kings never dismissed anyone. So a script king now dismisses a servant whose line has read "has not returned" for three full seasons, and counts its court one short that season (27 such dismissals in the 40 games). Envoys held by script jailers come home before that.
+
+Deviations: a renewal's term counts from the next season, like a hire's (this season's wage was already paid at the old rate); a servant on notice leaves before that season's wages, so a king pays exactly one season past the term.
+
+## Part C: say every rule the king needs
+
+All built (five commits, then review fixes). The new rulebook section "HOW A SEASON RESOLVES" replaces the old "EACH SEASON" list, in the engine's real order (checked against the runner and the engine); it is quoted in full under "What a king now reads". It says, among the rest:
+- orders are checked in the order the reply lists them (units, then letters, then other orders), gold is reserved as each is accepted, so a later order can be refused for lack of gold, and there is no "else";
+- a person hired this season enters service at the end of the season and can be sent on an errand from the next;
+- two or more bids for one city: its elders accept none; a city taken by troops that season is not sold; a fallback purchase is refused when the gold is already reserved;
+- a levy needs a province of your homeland you still hold that is empty after movement;
+- `place_spy` needs one of your own people at your court, and a court or a province to watch.
+
+**Refusals and notices use the same words**: "not enough gold: it needs 100 shekels; orders listed before it had reserved 100, and 50 was left"; "Mane was to be hired that season: a person hired enters your service only at the end of the season, and can be sent on an errand from the next season"; "a spy must be one of your own people at your court: you named nobody"; "No army was raised in Thebes: Thebes was not empty after movement. No gold was paid."; "The elders of Gaza would not choose between 2 buyers last season. No gold was paid."
+
+**Every refused or failed order is reported next season with the reason, every time.** A `Failed` helper sends a Rejected notice and wakes a sleeping seat if the order was scheduled. The paths that were silent before now report: a cession of land no longer held or with one's own troops in it, a gift of troops or a disband of a unit that is gone, a botched forgery, a duplicate assay, every payment that could not be made (dispatch, check, watchmen, assay, examination, forgery, ransom, gold sent back), and a declined hire now says why ("they ask 20 shekels", "another court offered more"). The parser no longer drops malformed unit orders or a `place_spy` with nothing to watch in silence; the validator refuses them with the reason. One test plays every reachable failing order (20 paths), as a fresh order and as a sleeping seat's scheduled order.
+
+**Feedback the kings asked for:**
+- **Standings**, after the treasury line: "STANDINGS (an estimate from who holds what; treasuries are left out): Mitanni 1.93 (land yield 280, at the start 145); Egypt (you) 1.11 (land yield 210, at the start 190); … Fallen: Assyria." The web standings panel shows the same estimate, and now shows a human seat its own gold and growth by its ledger (it showed true figures, which leaked debased gold).
+- **Travel**, computed from the map: "Envoys take 1 or 2 seasons each way between courts (the table in your view gives each court); a spy sent to watch a distant province may take up to 3 seasons to reach it, and its reports as long to come home."
+
+**The rest of the simulation's view table, also done:** each servant away shows when it set out and is due back ("set out in turn 1 for Hatti; due there about turn 3; due back about turn 5", with the same words under a cover); the sight line explains "one link of any kind" and that troops two links away can arrive unseen; the odds and fees of checks, spies, examinations and assays are in the rulebook; the schema describes supporting a city's walls and every greeting flag; audience requests carry the host's land, troops and the season's news. Beyond the scope, the web app gained a Rules tab with the same rulebook, since human seats had none.
+
+Deviations: refusals are read the season after they are given, so they say "that season"; the travel line is computed rather than hard-coded; the spy-odds sentence says a spy watching a free or one's own province is never caught (the engine rolls no catch there).
