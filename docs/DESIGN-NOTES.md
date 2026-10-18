@@ -23,7 +23,7 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
-- **Shared victory is off** (since 18 October 2026; see `docs/ROUND-REPORT.md`, question 23). One
+- **Shared victory is off** (since 18 October 2026; see `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 23). One
   power wins: the one with the highest growth. A tablet can still be marked as a sworn alliance,
   and the script kings still treat it as a full alliance, but it shares nothing. The rulebook and
   the order schema mention shared victory only when the house rule is on (`--shared-victory` in the
@@ -720,7 +720,7 @@ The games play out as before (no script king's decision depends on the rule; mea
 coalition counts are the same); only the winner changes, and a win that was shared now goes to the
 power with the highest growth. Alashiya, whose wins were all shared, no longer wins at all against
 script kings. Balance stays frozen, so this is recorded, not tuned; it is the first thing to look
-at once model kings have played (see the round report).
+at once model kings have played (see `docs/rounds/2026-10-18-sleep-and-simulation.md`).
 
 The coalition signal (two kings supporting each other into the leader's land, or holding against
 his attack) fires in about one game in ten: 27 times in 15 of seeds 1–100 and 9 times in 8 of
@@ -739,8 +739,8 @@ The design document records intent; these notes record what is built. Where they
   season 3. An envoy between capitals takes one or two seasons each way (never the rulebook's three),
   so a letter and its reply take two seasons between neighbouring capitals and four otherwise.
   Sieges, walls that vary, terrain and the other tempo ideas are not built (see
-  `docs/ROUND-REPORT.md`, question 5).
-- **Shared victory is off by default**, as recommended in `docs/ROUND-REPORT.md` (question 23),
+  `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 5).
+- **Shared victory is off by default**, as recommended in `docs/rounds/2026-10-18-sleep-and-simulation.md` (question 23),
   and kept as a house rule. Scoring is as described in "Rules as implemented". Buying a city is score-neutral at the moment of purchase: its price is
   10 × yield in gold, and it counts 10 × yield in strength. The growth comes afterwards, from its
   income.

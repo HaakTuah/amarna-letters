@@ -24,7 +24,7 @@ The whole game depends on hidden information, so each king is walled in by const
 
 ## Kit lessons (from the run of 18 October)
 
-The results are in `docs/ROUND-REPORT.md`, "Simulation results". For the next run:
+The results are in `docs/rounds/2026-10-18-sleep-and-simulation.md`, "Simulation results". For the next run:
 
 - **Tell kings in every request that their final message must be only "done".** The agent file already says so, and it was not enough: 24 of the 280 game calls ended with a summary of the king's decision or plans, and 4 more with the reply path. Put the line in each request as well, for example "Your final message must be the single word done; say nothing about your decision." The file seat writes exactly what a model king sees, so add it as a footer only file seats get, or in the orchestrator's prompt to each king.
 - **Say in each request that reply files can't be read.** The guard allows a king to read only `*.request.md`. In run 1's debrief, four kings tried to open their own earlier replies to recall their orders. The guard blocked all six attempts, and `audit.js` then counts them as violations. Run 2's debrief request said reply files are closed, and nobody tried. Say it in game requests and debriefs alike, and point kings to the record of earlier seasons in the request instead.
