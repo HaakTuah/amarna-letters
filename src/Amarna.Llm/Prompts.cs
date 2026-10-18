@@ -68,7 +68,7 @@ public static class Prompts
             - Gold sent abroad travels with an envoy and arrives late. You may send it debased (purity below 100%): the receiver sees its weight, not its fineness, until they pay {c.AssayFee} for an assay. Your own treasury figure counts unassayed gold at its weight.
 
             ENVOYS: THE ONLY WAY KINGS COMMUNICATE
-            - You never speak to another king directly. You give an envoy a spoken message, a mandate (what the envoy may agree to) and optionally gold and a tablet. Travel takes 1 to 3 seasons each way.
+            - You never speak to another king directly. You give an envoy a spoken message, a mandate (what the envoy may agree to) and optionally gold and a tablet. {Travel(c)}
             - The greeting is written by your scribes from your choices and sealed: it arrives exactly as written. The message itself is spoken by the envoy in their own words. Envoys have motives of their own (greed, fear, ambition, sympathies) and may soften, embellish, omit, take bribes, skim gold, exceed their mandate, stay too long, or defect. Their reports home are written to their own advantage.
             - When a foreign envoy stands before you, you may answer, offer them a gift (a bribe), offer them service at a wage, detain them, seal a tablet they bring, or send gold back with them. An envoy takes one gift per audience. If you name gold to send back in more than one exchange, the latest amount named is sent; 0 keeps the amount named before.
             - At most {c.MaxDispatchesPerTurn} envoys may leave your court in one season.
@@ -142,6 +142,21 @@ public static class Prompts
         return sb.ToString();
     }
 
+    /// <summary>
+    /// How long journeys take, as the map and the travel bands make them: between courts, and, if longer, to a distant
+    /// province a spy is sent to watch. Worked out from the map, so it stays true if the bands change.
+    /// </summary>
+    private static string Travel(GameConfig c)
+    {
+        var map = WorldMap.Default;
+        int Turns(string from, string to) => TurnEngine.TravelTurns(c, map, from, to);
+        var courts = Powers.All.SelectMany(a => Powers.All.Where(b => b != a).Select(b => Turns(map.Capital(a).Id, map.Capital(b).Id))).ToList();
+        var fields = Powers.All.SelectMany(a => map.Provinces.Where(x => !x.IsSea).Select(x => Turns(map.Capital(a).Id, x.Id))).Max();
+        var (lo, hi) = (courts.Min(), courts.Max());
+        var text = $"Envoys take {(lo == hi ? $"{lo}" : hi == lo + 1 ? $"{lo} or {hi}" : $"{lo} to {hi}")} season{(hi == 1 ? "" : "s")} each way between courts (the table in your view gives each court)";
+        return text + (fields > hi ? $"; a spy sent to watch a distant province may take up to {fields} seasons to reach it, and its reports as long to come home." : ".");
+    }
+
     public static string Identity(Power p) =>
         $"You are {p.King()}, Great King of {p.Land()} ({p}). Your homeland: {string.Join(", ", WorldMap.Default.HomeOf(p).Select(x => x.Id))}; your capital is {WorldMap.Default.Capital(p).Id}.";
 
@@ -157,7 +172,7 @@ public static class Prompts
         sb.AppendLine($"TREASURY: {v.Gold} shekels by your ledger. Income {v.Income}, upkeep {v.Upkeep}, wages {v.Wages} a season. Strength {v.Strength} by your ledger, against a starting {v.StartStrength} (growth {growth:0.00}).");
         foreach (var lot in v.UnassayedGold)
             sb.AppendLine($"  Unassayed gold {lot.Id}: {lot.Weighed} shekels weighed, from {lot.From} (the inventory said {lot.Stated}).");
-        if (v.Fallen.Count > 0) sb.AppendLine($"FALLEN KINGDOMS: {string.Join(", ", v.Fallen)}.");
+        sb.AppendLine(Standings(v));
 
         sb.AppendLine();
         sb.AppendLine("LANDS (who holds what; troops only where you can see them):");
@@ -211,6 +226,20 @@ public static class Prompts
         if (v.Inbox.Count == 0) sb.AppendLine("- nothing");
         foreach (var i in v.Inbox) sb.AppendLine($"[{i.Kind}] {i.Title}: {i.Body}");
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Every power's growth as the court can estimate it from who holds what (the land it holds now against its
+    /// homeland's yield), in one line; fallen kingdoms are named at the end.
+    /// </summary>
+    public static string Standings(SeatView v)
+    {
+        var all = Views.LandStandings(v.Owner, v.Fallen);
+        var living = all.Where(x => !x.Fallen).Select(x =>
+            $"{x.Power}{(x.Power == v.Power ? " (you)" : "")} {x.Growth.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} (land yield {x.Yield}, at the start {x.StartYield})");
+        var fallen = all.Where(x => x.Fallen).Select(x => x.Power.ToString()).ToList();
+        return $"STANDINGS (an estimate from who holds what; treasuries are left out): {string.Join("; ", living)}."
+               + (fallen.Count > 0 ? $" Fallen: {string.Join(", ", fallen)}." : "");
     }
 
     public static string Person(CharacterView c)

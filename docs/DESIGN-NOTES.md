@@ -66,6 +66,15 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   start of the season, the one farthest from the capital first (the rulebook says so).
 - **Strength** = 10 × (sum of base yields of provinces held) + true gold. Growth is strength over
   starting strength. Units are not counted; they cost upkeep and are the means to land.
+- **Standings.** Every seat's view has one line after its treasury, the same for every court since
+  ownership is public: "STANDINGS (an estimate from who holds what; treasuries are left out): Mitanni
+  1.93 (land yield 280, at the start 145); Egypt (you) 1.11 (land yield 210, at the start 190); …
+  Fallen: Assyria." Land-based growth is the base yield of the land a power holds now over its
+  homeland's yield (`Views.LandStandings`), the living best first; it is not the score, which adds
+  gold. The seat's own growth by its ledger stays on its treasury line. The web app's standings
+  panel shows the same estimate as a column, and a human seat's own growth and gold there by its
+  ledger. (Until the simulation-fixes round the view gave no standings, and kings added up yields
+  by hand; the human seat's panel showed its true growth and gold.)
 - **Opening positions are public.** Every king reads every power's opening troops, treasury,
   homeland yield and starting strength in the rulebook ("OPENING POSITIONS (known to every
   court)"), generated from `MapData` (`OpeningPositions`), so the cached block stays byte-stable.
@@ -1029,8 +1038,12 @@ The design document records intent; these notes record what is built. Where they
 - **Pillar 8, war slower than diplomacy, is not met yet.** An army moves one link a season. Homeland
   provinces have no walls, so an empty one falls to a single army and a held one to two; walls
   (strength 1) stand only on free and bought cities. Hatti can take Arzawa's capital at the end of
-  season 3. An envoy between capitals takes one or two seasons each way (never the rulebook's three),
-  so a letter and its reply take two seasons between neighbouring capitals and four otherwise.
+  season 3. An envoy between capitals takes one or two seasons each way, so a letter and its reply
+  take two seasons between neighbouring capitals and four otherwise; only a spy sent to a distant
+  province can take three. The rulebook now says so, worked out from the map and the travel bands
+  ("Envoys take 1 or 2 seasons each way between courts (the table in your view gives each court); a
+  spy sent to watch a distant province may take up to 3 seasons to reach it, and its reports as long
+  to come home."); until the simulation-fixes round it said "1 to 3 seasons each way".
   Sieges, walls that vary, terrain and the other tempo ideas are not built (see
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 5).
 - **Shared victory is off by default**, as recommended in `docs/rounds/2026-10-18-sleep-and-simulation.md` (question 23),

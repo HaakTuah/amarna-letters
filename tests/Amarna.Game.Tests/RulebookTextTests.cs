@@ -117,3 +117,47 @@ public class SeasonRulebookTests
         Assert.Equal(new PlaceSpyOrder("c3"), Assert.Single(sub.Orders));
     }
 }
+
+/// <summary>The standings line every court reads, and the travel times the rulebook gives.</summary>
+public class StandingsAndTravelTests
+{
+    [Fact]
+    public void The_standings_line_estimates_every_power_s_growth_from_who_holds_what()
+    {
+        var s = GameFactory.NewGame(5);
+        var map = WorldMap.Default;
+        int Home(Power p) => map.HomeOf(p).Sum(x => x.Yield);
+        // Egypt has bought Gaza (yield 20); Mitanni has taken all of Assyria, which has fallen.
+        s.Owner["gaza"] = Power.Egypt;
+        foreach (var x in map.HomeOf(Power.Assyria)) s.Owner[x.Id] = Power.Mitanni;
+        s.Units.RemoveAll(u => u.Power == Power.Assyria);
+        s.Eliminated.Add(Power.Assyria);
+        s.Treasuries[Power.Egypt].Gold = 5000; // treasuries are left out
+
+        var line = Prompts.Standings(Views.For(s, Power.Egypt));
+        var mitanni = (double)(Home(Power.Mitanni) + Home(Power.Assyria)) / Home(Power.Mitanni);
+        Assert.StartsWith("STANDINGS (an estimate from who holds what; treasuries are left out): Mitanni ", line);
+        Assert.Contains($"Mitanni {mitanni.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} (land yield {Home(Power.Mitanni) + Home(Power.Assyria)}, at the start {Home(Power.Mitanni)}); Egypt (you) 1.11 (land yield 210, at the start 190); ", line);
+        Assert.Contains($"Hatti 1.00 (land yield {Home(Power.Hatti)}, at the start {Home(Power.Hatti)})", line);
+        Assert.EndsWith(" Fallen: Assyria.", line);
+        Assert.DoesNotContain("Assyria 0", line);
+        Assert.Contains(line, Prompts.Situation(Views.For(s, Power.Egypt)));
+
+        // Every court reads the same figures: ownership is public.
+        Assert.Equal(line.Replace("Egypt (you)", "Egypt"), Prompts.Standings(Views.For(s, Power.Hatti)).Replace("Hatti (you)", "Hatti"));
+    }
+
+    [Fact]
+    public void The_rulebook_gives_the_travel_times_the_map_makes()
+    {
+        var rules = Prompts.LeaderRules(true, new GameConfig());
+        Assert.DoesNotContain("1 to 3 seasons each way", rules);
+        Assert.Contains("Envoys take 1 or 2 seasons each way between courts (the table in your view gives each court); a spy sent to watch a distant province may take up to 3 seasons to reach it, and its reports as long to come home.", rules);
+
+        var s = GameFactory.NewGame(5);
+        var e = new TurnEngine(s);
+        var courts = Powers.All.SelectMany(a => Powers.All.Where(b => b != a).Select(b => e.TravelTurns(a, b))).ToHashSet();
+        Assert.Equal([1, 2], courts.Order());
+        Assert.All(Views.For(s, Power.Egypt).TravelTimes, t => Assert.Matches(@"^[A-Za-z]+: [12] season\(s\) each way$", t));
+    }
+}

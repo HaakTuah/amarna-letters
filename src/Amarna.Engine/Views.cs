@@ -113,8 +113,31 @@ public sealed class SeatView
     public Dictionary<string, int> Prices { get; set; } = new();
 }
 
+/// <summary>
+/// One power's standing as any court can reckon it from public ownership alone: the base yield of the land it holds now
+/// against the yield of its homeland, which it held at the start. Treasuries are left out, so it is only an estimate of growth.
+/// </summary>
+public sealed record LandStanding(Power Power, int Yield, int StartYield, bool Fallen)
+{
+    public double Growth => StartYield <= 0 ? 0 : (double)Yield / StartYield;
+}
+
 public static class Views
 {
+    /// <summary>
+    /// Every power's land-based growth from who holds what, the living best first (ties in the fixed order of powers),
+    /// then the fallen. The same for every court: ownership is public.
+    /// </summary>
+    public static IReadOnlyList<LandStanding> LandStandings(IReadOnlyDictionary<string, Power?> owner, IEnumerable<Power> fallen, WorldMap? map = null)
+    {
+        map ??= WorldMap.Default;
+        var gone = fallen.ToHashSet();
+        return Powers.All
+            .Select(p => new LandStanding(p, owner.Where(o => o.Value == p).Sum(o => map[o.Key].Yield), map.HomeOf(p).Sum(x => x.Yield), gone.Contains(p)))
+            .OrderBy(x => x.Fallen).ThenByDescending(x => x.Fallen ? 0 : x.Growth).ThenBy(x => x.Power)
+            .ToList();
+    }
+
     /// <summary>Provinces a power can see units in: its own lands, where its units stand, and next to either.</summary>
     public static HashSet<string> Sight(GameState s, WorldMap map, Power p)
     {

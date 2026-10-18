@@ -227,10 +227,13 @@ public sealed partial class TurnEngine
 
     public int TravelTurns(Power from, Power to) => TravelTurns(Map.Capital(from).Id, Map.Capital(to).Id);
 
-    public int TravelTurns(string fromProvince, string toProvince)
+    public int TravelTurns(string fromProvince, string toProvince) => TravelTurns(S.Config, Map, fromProvince, toProvince);
+
+    /// <summary>Seasons on the road between two provinces, by the travel bands (<see cref="GameConfig.TravelHops"/>).</summary>
+    public static int TravelTurns(GameConfig config, WorldMap map, string fromProvince, string toProvince)
     {
-        var hops = Map.Hops(fromProvince, toProvince);
-        var bands = S.Config.TravelHops;
+        var hops = map.Hops(fromProvince, toProvince);
+        var bands = config.TravelHops;
         if (hops <= bands[0]) return 1;
         if (hops <= bands[1]) return 2;
         return 3;
