@@ -33,7 +33,8 @@ public static class Parse
 
     public static TurnSubmission Orders(JsonObject o)
     {
-        var sub = new TurnSubmission { Notes = S(o, "notes") };
+        // The king's notes and its summary of older seasons are for its own record; the engine ignores them.
+        var sub = new TurnSubmission { Notes = S(o, "notes"), Summary = S(o, "summary") };
         foreach (var u in (o["units"] as JsonArray) ?? new JsonArray())
             if (Unit(u) is { } order) sub.Orders.Add(order);
 

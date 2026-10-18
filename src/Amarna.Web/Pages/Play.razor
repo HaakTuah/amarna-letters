@@ -129,7 +129,7 @@ else
                         case "rules":
                             @* The rulebook a model king reads, so a human seat reads the same rules. *@
                             <h3>The rulebook</h3>
-                            <p class="muted">What every king is told, word for word. Orders are given here with the controls of the orders tab rather than as JSON, and are checked units first, then your other orders in the order you added them.@(runner.State.Config.SleepingSeats ? " A human seat never sleeps: it is asked for orders every season, so the sections on sleeping and planning ahead do not apply to you." : "")</p>
+                            <p class="muted">What every king is told, word for word. Orders are given here with the controls of the orders tab rather than as JSON, and are checked units first, then your other orders in the order you added them. The record of notes and summary that HOW TO ANSWER describes is kept for model kings; here you keep your own.@(runner.State.Config.SleepingSeats ? " A human seat never sleeps: it is asked for orders every season, so the sections on sleeping and planning ahead do not apply to you." : "")</p>
                             <div class="item"><div class="body">@Amarna.Llm.Prompts.LeaderRules(runner.State.Config.CustomsPrimer, runner.State.Config)</div></div>
                             break;
                         case "chronicle":
