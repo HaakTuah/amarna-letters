@@ -40,6 +40,17 @@ public sealed class ScriptLeader : ISeat
         }
     }
 
+    /// <summary>
+    /// Reads a season's view of a seat it may have to stand in for, deciding nothing, so that it remembers what that seat
+    /// has seen when it must play it. Like all its learning this happens at most once a season: reading the same season
+    /// again, or playing it after reading it, learns nothing more.
+    /// </summary>
+    public void Observe(SeatView view)
+    {
+        var brain = Brain(view.Power);
+        lock (brain) brain.Learn(view, new Board(view));
+    }
+
     /// <summary>The memory this bot keeps for a power, if it has played or watched it.</summary>
     internal Brain? BrainOf(Power p)
     {
