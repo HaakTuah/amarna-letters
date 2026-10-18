@@ -108,8 +108,8 @@ internal sealed partial class Brain
         foreach (var t in v.Tablets.Where(t => t.SealedTurn is not null && t.Seals.Contains(Me) && t.Seals.Count >= 2 && t.AuthResult?.Contains("forgery") != true)
                      .OrderBy(t => t.SealedTurn))
         {
-            // A coalition names the king it stands against.
-            var against = Powers.All.Where(x => !t.Seals.Contains(x) && t.Text.Contains("against " + x)).Cast<Power?>().FirstOrDefault();
+            // A coalition names the king it stands against, by any of his names (see Names).
+            var against = Names.SwornAgainst(t.Text, t.Seals);
             foreach (var other in t.Seals.Where(s => s != Me && Rel.ContainsKey(s)))
             {
                 Rel[other].Treaty = true;

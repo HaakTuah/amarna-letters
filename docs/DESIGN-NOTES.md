@@ -339,7 +339,7 @@ Each season, before deciding:
 
 - Grudges fade by a factor of 1 − 0.12 × (1 − vengeance). At vengeance 0.5 a king keeps 94% a season; at vengeance 1 a grudge never fades.
 - Trust drifts 5% of the way back to 0. It is clamped to −1..1 once a season, at the end of learning.
-- Treaties are read again from the tablets the king holds. Any tablet sealed by it and at least one other king counts, unless an examination found it forged. Every co-sealer is a **treaty partner**. An alliance oath makes a **full ally**. A text that says "against X", where X is not a sealer, makes a **coalition** against X. Treaties never lapse.
+- Treaties are read again from the tablets the king holds. Any tablet sealed by it and at least one other king counts, unless an examination found it forged. Every co-sealer is a **treaty partner**. An alliance oath makes a **full ally**. A text that says "against X", where X is not a sealer, makes a **coalition** against X. X may go by any of his names, ignoring case: the game's (Hatti), the land's (Karduniash), the king's (Suppiluliuma), his people's (the Hittites), and Babylon, Pharaoh or the Cypriots; with or without "the", or as "the king (land, house, people, armies, troops) of X". Other phrasing ("strike X together", "X is the foe of both") is not read. Treaties never lapse.
 
 **Wrongs.** A wrong adds a grudge, scaled by (0.6 + vengeance), and lowers trust. Some wrongs also mark an attack. If an attack comes from a treaty partner, it is also a broken oath: one more broken oath on record, trust −0.5 more, and grudge +2 more (not scaled). A province taken by a partner counts as two broken oaths, because it is both a move into our land and land taken.
 
@@ -443,7 +443,7 @@ While betraying:
   - A king who is offered the coalition against the leader that season is not also offered a defence pact.
 - **The tablet**: "By Shamash, Amun, Marduk and Teshub: A and B swear to stand together against X. Neither shall make peace with X alone, and each shall support the other's troops against X," followed by a curse on whoever breaks it. It is a sworn treaty, not an alliance oath, so it never makes a shared victory.
 
-**Accepting, as host.** A tablet that names X ("against X") is sealed for one of two reasons:
+**Accepting, as host.** A tablet that names X ("against X", by any of his names, as under Memory and learning) is sealed for one of two reasons:
 
 - **The race.** X is the leader as the host reckons it, or X's growth is at least 1.10 and no lower than any other king's. X must also outweigh both host and sender.
 - **Defence.** X's land touches the host's, X has at least 0.8 × the sender's strength, and X is taking land (belligerence of 1 or more), is hostile, is the host's war target, or is trusted below 0.

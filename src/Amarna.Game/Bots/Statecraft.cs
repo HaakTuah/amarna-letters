@@ -614,8 +614,8 @@ internal static class Statecraft
 
         if (view.Proposal is { } proposal)
         {
-            // (Nullable: Egypt is the enum's default value.)
-            var named = Powers.All.Where(x => x != me && x != sender && proposal.Text.Contains("against " + x)).Cast<Power?>().FirstOrDefault();
+            // The king a coalition names, by any of his names (see Names).
+            var named = Names.SwornAgainst(proposal.Text, [me, sender]);
             bool seal;
             if (named is { } against)
             {
