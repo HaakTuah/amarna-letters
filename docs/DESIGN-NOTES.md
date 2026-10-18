@@ -195,10 +195,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     "serves at 12 a season; has given notice: asks 20 a season to serve on; leaves at the start of
     turn 12 unless renewed" (or "leaves when next at your court unless renewed"); a captive, who
     draws no wage while held, shows only a notice it gave, and one dead in the king's service no
-    term at all. The web app's
-    people lists use the same words. A free person at the court shows what it asks there (its
-    pitch's price, or its base price), whether or not it pitched; one's own servants show no
-    asking price.
+    term at all. The web app's people lists use the same words, and its orders panel offers renew
+    beside each servant at court or on notice, with a term for hiring and renewing. A free person
+    at the court shows what it asks there (its pitch's price, or its base price), whether or not it
+    pitched, and can be hired from the panel; one's own servants show no asking price.
   (Until the simulation-fixes round a servant who wanted more quit at once, the view read "wage 12
   until turn 10" with no word of what came then, no order could renew a contract, models could not
   name a term, and kings who tried to rehire their own envoys were told "not available for hire".)
@@ -782,7 +782,7 @@ What script kings never do, and how they treat oaths:
   - A careful king ((caution + cunning) ÷ 2 above 0.5) first pays 25 for a background check, if spare exceeds 30 + income ÷ 2.
   - Otherwise it hires for six seasons, if the price is at most 15 + 25 × (1 − greed) and spare exceeds three times the price (the hiring test).
 - **Notice.** A servant who gives notice is renewed for six seasons at the price it names while the king still wants it (the servants not on notice are fewer than it wants) and the price passes the hiring test; the most reliable first. Otherwise the king lets it go, and looks for someone new once it is short. It never renews early.
-- **Servants given up.** A servant whose line has read "has not returned" (the word that it is overdue) for three seasons, and still does in the fourth, is dismissed: its wage stops, and the court counts itself one short that season, so it may seek candidates and hire. This is how a script king stops paying an envoy that went over to the host, since its cover never ends otherwise. One that comes home, or is seen again, before then is kept. A script jailer lets a held envoy go within four seasons of the audience, and the overdue word comes two or three seasons after it, so the envoys script kings detain from each other are home before they are given up (an envoy held longer by a model or human king is dismissed, and, once let go, comes home a free person).
+- **Servants given up.** A servant whose line has read "has not returned" (the word that it is overdue) for three seasons, and still does in the fourth, is dismissed: its wage stops, and the court counts itself one short that season, so it may seek candidates and hire. This is how a script king stops paying an envoy that went over to the host, since its cover never ends otherwise. One that comes home, or is seen again, before then is kept. A script jailer lets a held envoy go within four seasons of the audience, and the overdue word comes two or three seasons after it, so the envoys script kings detain from each other are home before they are given up (an envoy held longer by a model or human king is dismissed, stays held, and once let go is free at the court that held it).
 - **Assays** (fee 10, with spare above 15) cover every lot from a king trusted below 0.3, every lot that weighed light, and every lot of all if greed is above 0.6.
 - **Watchmen** cost 20 + 30 × caution. The king hires them when a spy was caught in the last three seasons, or when caution is above 0.7 and spare is above 500. Spare must be above 40 either way.
 - **Tablets shown to it.** One bearing a friend's seal is examined, at a cost of 30 + 50 × caution, if spare exceeds 60 + 60 × (1 − caution); at most one a season, and the rest wait. A tablet that is not examined is half-believed: trust in each sealer falls by 0.1 × (1 − caution).
