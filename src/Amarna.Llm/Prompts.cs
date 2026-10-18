@@ -75,17 +75,17 @@ public static class Prompts
 
             EVIDENCE AND INTELLIGENCE
             - Tablets: free text that both kings seal (the scribe costs {c.TabletFee}). A sealed tablet obliges nobody and the engine never enforces it, but a copy can be shown to a third court as proof.
-            - Forgery: a skilled servant can forge a tablet bearing other kings' seals ({c.ForgeFee}). Any court can pay to have a tablet examined; examination is never certain.
-            - Spies watch a court or a province and report late. They may be caught (more often if the host pays for watchmen) and turned. Caught spies can be executed, ransomed, turned into double agents, or released. Ransoming or turning a captive whose kingdom has fallen is refused, and so is turning one whose king has dismissed them: nobody is left to pay or to deceive.
+            - Forgery: a skilled servant can forge a tablet bearing other kings' seals ({c.ForgeFee}; one without the skill ruins the clay, which you still pay for). Any court can pay at least 10 to have a tablet examined, and hears the result next season. Examination is never certain: a genuine tablet reads genuine 95% of the time (otherwise the scribes cannot agree); a forgery is found with a chance of 20% + shekels paid/200 - (the forger's skill, 0-100)/150, between 5% and 95%, and once found is traced to the forger's court with a chance of 30% + shekels paid/400, between 30% and 80%, which is announced to every court.
+            - Spies watch a court or a province and send a report every season, which reaches you as long after as the journey takes. Each season a spy is caught with a chance of 5% + (what the court it watches, or the one holding the province it watches, spends on watchmen that season)/300 - (the spy's skill, 0-100)/400, between 2% and 60%; watchmen (counter_intelligence) are paid for one season at a time. A caught spy may confess whom it serves. Caught spies can be executed, ransomed, turned into double agents, or released. Ransoming or turning a captive whose kingdom has fallen is refused, and so is turning one whose king has dismissed them: nobody is left to pay or to deceive.
             - Ransoms: a demand reaches the captive's king (for a captive dismissed while held, the king who dismissed them) as a rumour, and can be paid (pay_ransom) only once it has reached you. A captive has one demand at a time: a new demand replaces the old one once its word reaches you, and until then the old one can still be paid. A demand not paid within four seasons of being made lapses. The ransom travels on its own and is never refunded; the captor frees the captive if they still hold them. pay_ransom is refused before the demand has reached you, once you know the captive is no longer held by the court that asked, and while a ransom for them is already on its way.
-            - Background checks reveal a person's hidden facts with a chance that grows with what you spend. Deep secrets rarely come out.
+            - Background checks (at least 10 shekels) report next season: every public fact about the person, each hidden fact with a chance of shekels paid/150 (at most 90%), and each deep secret with a chance of shekels paid/400 (at most 60%). Never the whole truth for certain.
             - Ask for candidates to meet up to three people seeking service; each names a price, as does anyone free at your court. Hire them for a wage per season.
             - Each servant serves for a term. When it ends, one content with the wage serves on for another 6 seasons; one who wants more gives notice, names a price and serves one more season: renew them (order renew) at that price or more, or they leave. You may renew one of your people at court at any time, for a new wage and term; they never take less than their present wage (below their price they refuse, and you are told the price); hire is only for people not in your service.
             - Dismissal (dismiss) ends a servant's wage at once, wherever they are. Anyone dismissed while away keeps going where they were going and is free when they get there: an envoy on the way out arrives as a free person with no audience, and the gold it carried is its own; one on the way home still reports and hands over what it carries; a spy watching a court, or on its way to one, is free at that court; one watching a province, or on its way to one, walks back to your court and is free there. A held envoy or captive stays held.
             - Catastrophes (drought, plague, flood, earthquake) are known exactly only to the power they strike. A court that can see the stricken land hears of it the next season (a drought or plague: any province of that realm in sight; a flood or earthquake: that province in sight). Other courts learn of it only from their envoys and spies.
 
             WHAT YOU SEE
-            - Who holds each province is public. You see troops only in and next to your own lands and troops. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.
+            - Who holds each province is public. You see troops only in your own land, where your troops stand and in the provinces your spies watch, and one link of any kind (land, coast or sea) from those. Troops two links away, or an army carried across the sea by fleets, can still arrive next season without being seen first. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.
             - News of your people abroad reaches you only by rumour or when they return: a servant who is held, changes sides or dies abroad still appears on its mission until word comes, and you keep paying its wage.
             """);
 
@@ -187,7 +187,7 @@ public static class Prompts
         }
         var atSea = v.Units.Where(u => map[u.Province].IsSea).ToList();
         if (atSea.Count > 0) sb.AppendLine($"- At sea: {string.Join(", ", atSea.Select(u => $"{u.Province} [{u.Power} fleet]"))}");
-        sb.AppendLine($"You can see troops in: {string.Join(", ", v.Visible)}.");
+        sb.AppendLine($"You can see troops in (your land, your troops and what your spies watch, and one link of any kind from those; troops two links away can still arrive next season unseen): {string.Join(", ", v.Visible)}.");
 
         sb.AppendLine();
         sb.AppendLine("YOUR PEOPLE:");
@@ -222,9 +222,28 @@ public static class Prompts
         }
 
         sb.AppendLine();
+        sb.Append(News(v));
+        return sb.ToString();
+    }
+
+    /// <summary>The season's news as the court has it: everything delivered to it this season, oldest first.</summary>
+    public static string News(SeatView v)
+    {
+        var sb = new StringBuilder();
         sb.AppendLine("NEWS THIS SEASON:");
         if (v.Inbox.Count == 0) sb.AppendLine("- nothing");
         foreach (var i in v.Inbox) sb.AppendLine($"[{i.Kind}] {i.Title}: {i.Body}");
+        return sb.ToString();
+    }
+
+    /// <summary>What a host has before it as it holds court: its own land and troops in brief, and the season's news.</summary>
+    public static string CourtBrief(SeatView v)
+    {
+        var sb = new StringBuilder();
+        var land = v.Owner.Where(x => x.Value == v.Power).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var troops = v.Units.Where(u => u.Power == v.Power).Select(u => $"{(u.Kind == UnitKind.Army ? "army" : "fleet")} in {u.Province}").ToList();
+        sb.AppendLine($"YOUR LAND: {(land.Count == 0 ? "none" : string.Join(", ", land))}. YOUR TROOPS: {(troops.Count == 0 ? "none" : string.Join(", ", troops))}.");
+        sb.Append(News(v));
         return sb.ToString();
     }
 
@@ -245,7 +264,11 @@ public static class Prompts
     public static string Person(CharacterView c)
     {
         var parts = new List<string> { $"{c.Id} {c.Name} of {c.Origin}" };
-        if (c.Ours) parts.Add(c.Ready ? "at court, ready for a mission" : c.Duty);
+        if (c.Ours)
+        {
+            parts.Add(c.Ready ? "at court, ready for a mission" : c.Duty);
+            if (c.Timing.Length > 0) parts.Add(c.Timing);
+        }
         else
         {
             parts.Add(c.Status == "your captive" ? "your captive (a caught spy)" : c.Status);

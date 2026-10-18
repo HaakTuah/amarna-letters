@@ -23,6 +23,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   durkurigalzu to nippur"); other kings see only "void". (Until the simulation-fixes round,
   foreign lines were kept by the moving unit's origin only, so a move from out of sight that
   bounced a king's move was never shown, and a support that matched nothing read "holds".)
+- **Sight.** A court sees troops in its own land, where its troops stand and in the provinces its
+  spies watch, and one link of any kind (land, coast or sea) from those (`Views.Sight`). The rulebook
+  and the view's sight line say so, and that troops two links away, or an army carried across the
+  sea, can arrive next season unseen. (Until the simulation-fixes round they said only "in and next
+  to your own lands and troops", and empty seas were read as safety.)
 - **Ownership changes every season**, whenever a unit ends a season in a province, not only in
   autumn as in Diplomacy.
 - **How a season resolves.** The rulebook's section of that name lists the engine's own order
@@ -133,6 +138,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Greeting sealed, body spoken.** The engine renders the greeting from sender and recipient and
   the leader's deviations (omit it, own name first, withhold "brother", claim or deny "Great King",
   or free text). It arrives verbatim. The letter body is spoken by the envoy, who may distort it.
+  The order schema says what each greeting flag claims or withholds (brother between Great Kings, a
+  slight withheld; the title Great King given or denied; one's own title named or left out; one's
+  own name first, presumptuous; no greeting at all, a slight), since the sealed greeting is built
+  from those flags alone. (Until the simulation-fixes round the flags had no description, and 54 of
+  the simulation's 135 letters left out their sender's own title.)
 - **Tablets are verbatim** but cost a scribe fee (20), so the envoy channel stays the cheap default
   and a written agreement is a deliberate choice. Tablets are evidence only; nothing enforces them.
 - **Gold travels with envoys.** The tablet's inventory states the amount; the host's weighers find
@@ -251,7 +261,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   until turn 10" with no word of what came then, no order could renew a contract, models could not
   name a term, and kings who tried to rehire their own envoys were told "not available for hire".)
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
-  facts with chance spend/400 (max 60%). Never the whole truth.
+  facts with chance spend/400 (max 60%). Never the whole truth. The rulebook states these odds, the
+  spies' and the examinations' below, and the fees, as they are (until the simulation-fixes round it
+  said only that the chance "grows with what you spend").
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.
   Caught spies confess their master if timid (or 40% of the time). Turned spies go back to their
   post (a court, or out in their province) and report what their new master wants, plus one true
@@ -300,6 +312,16 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     Assyria; Assyria demands 1 mina 30 shekels for their return (order pay_ransom)" (the demand once
     its word has arrived), never "at court, ready", and draws no wage, so its line names none; the
     web app offers the ransom button only then.
+  - **When it is due back.** Each of the king's people away reads when it set out and when it is
+    due back, as the travel table lets its master reckon it (`Views.TimingText`): an envoy on its
+    way out, or at the foreign court, "travelling as envoy to Hatti; set out in turn 4 for Hatti;
+    received there in turn 6; due back about turn 8"; on the road home "set out in turn 4 for Hatti;
+    due back about turn 8"; a spy on its way "set out in turn 4; due there about turn 6"; a spy
+    recalled "due back about turn 7". A cover keeps the timing its master would read in the normal
+    course (`Cover.TimingText`): a detained or defecting envoy reads like one sent home at the
+    audience, a caught spy recalled like one really recalled, and the overdue word clears it, as it
+    does for a servant really held. (Until the simulation-fixes round the view gave no turns, and
+    kings mistimed their replies.)
   - Script kings read the same view and are fooled the same way: a script king pays an envoy that
     went over to the host for as long as the cover holds, and gives it up (dismisses it) only once
     its line has read "has not returned" for three seasons (see Script kings, Court and
@@ -380,6 +402,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   facts (tested); text never changes state; the narrator receives only released facts.
 - **Leader memory** is a private journal of its own notes and orders. A resumed game's model
   leaders start their journal afresh.
+- **Audience requests** carry, besides the treasury, the count of lands and the tablets held, the
+  host's own land and troops ("YOUR LAND: …. YOUR TROOPS: army in memphis, …") and the season's news
+  as its orders request shows it ("NEWS THIS SEASON"), so a host does not tell an envoy that a city
+  is his when the news says the purchase failed. (Until the simulation-fixes round it had neither.)
+- **The web app's Rules tab** shows a human seat the rulebook a model king reads, word for word.
 - **The customs primer** (on by default; `--no-primer` turns it off) covers the forms of address,
   gifts as a measure of respect, detained envoys and blaming the messenger, oaths before the gods,
   catastrophes as excuses, and the language of accusation: "Habiru" for outlaws and mercenaries,

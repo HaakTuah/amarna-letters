@@ -113,7 +113,10 @@ public sealed partial class TurnEngine
         cover.WhereText = c.WatchProvince is { } wp ? $"in {wp}" : "travelling";
         var post = c.MissionTarget is { } court ? Map.Capital(court).Id : c.WatchProvince ?? Map.Capital(p).Id;
         var place = c.MissionTarget is { } at ? $"the court of {at}" : c.WatchProvince is { } field ? Map[field].Name : p.ToString();
-        Overdue(p, c, c.HeldBy ?? c.MissionTarget ?? p, S.Turn + TravelTurns(post, Map.Capital(p).Id), place);
+        var due = S.Turn + TravelTurns(post, Map.Capital(p).Id);
+        // Due back as a spy really recalled now would be.
+        cover.TimingText = Views.HomeTiming(due);
+        Overdue(p, c, c.HeldBy ?? c.MissionTarget ?? p, due, place);
     }
 
     private void SpyComesHome(Journey j)

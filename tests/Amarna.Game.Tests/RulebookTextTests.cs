@@ -161,3 +161,76 @@ public class StandingsAndTravelTests
         Assert.All(Views.For(s, Power.Egypt).TravelTimes, t => Assert.Matches(@"^[A-Za-z]+: [12] season\(s\) each way$", t));
     }
 }
+
+/// <summary>What the view, the schema and the audience request say that the simulation's kings asked for.</summary>
+public class ViewTextTests
+{
+    private static readonly string Rules = Prompts.LeaderRules(true, new GameConfig());
+
+    [Theory]
+    [InlineData("You see troops only in your own land, where your troops stand and in the provinces your spies watch, and one link of any kind (land, coast or sea) from those. Troops two links away, or an army carried across the sea by fleets, can still arrive next season without being seen first.")]
+    [InlineData("Background checks (at least 10 shekels) report next season: every public fact about the person, each hidden fact with a chance of shekels paid/150 (at most 90%), and each deep secret with a chance of shekels paid/400 (at most 60%).")]
+    [InlineData("Each season a spy is caught with a chance of 5% + (what the court it watches, or the one holding the province it watches, spends on watchmen that season)/300 - (the spy's skill, 0-100)/400, between 2% and 60%")]
+    [InlineData("a genuine tablet reads genuine 95% of the time (otherwise the scribes cannot agree); a forgery is found with a chance of 20% + shekels paid/200 - (the forger's skill, 0-100)/150, between 5% and 95%, and once found is traced to the forger's court with a chance of 30% + shekels paid/400, between 30% and 80%")]
+    [InlineData("the receiver sees its weight, not its fineness, until they pay 10 for an assay")]
+    public void The_rulebook_states_sight_and_the_costs_and_odds_of_intelligence(string rule) => Assert.Contains(rule, Rules);
+
+    [Fact]
+    public void The_schema_says_how_to_support_a_city_s_walls_and_what_each_greeting_flag_means()
+    {
+        var schema = Schemas.LeaderOrders(new GameConfig()).ToJsonString();
+        Assert.Contains("support: the province of the unit supported, or of your own walled city to support its walls holding", schema);
+        Assert.Contains("Greet the recipient as your brother, as Great Kings greet their equals", schema);
+        Assert.Contains("Give the recipient the title Great King. False denies him that rank.", schema);
+        Assert.Contains("Name yourself Great King in the greeting. False leaves your own title out.", schema);
+        Assert.Contains("presumptuous, and the recipient will notice", schema);
+        Assert.Contains("Send no greeting at all, which is a slight.", schema);
+    }
+
+    [Fact]
+    public void The_situation_explains_sight_and_shows_when_an_envoy_is_due_back()
+    {
+        var s = GameFactory.NewGame(5, new GameConfig { CatastropheChance = 0 });
+        var envoy = s.Characters.First(c => c.Employer == Power.Egypt);
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        var travel = e.TravelTurns(Power.Egypt, Power.Hatti);
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Egypt] = new() { Orders = [new DispatchOrder(envoy.Id, Power.Hatti, "Greetings.")] } });
+
+        var text = Prompts.Situation(Views.For(s, Power.Egypt));
+        Assert.Contains("You can see troops in (your land, your troops and what your spies watch, and one link of any kind from those; troops two links away can still arrive next season unseen): ", text);
+        Assert.Contains($"{envoy.Id} {envoy.Name} of {envoy.Origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; received there in turn {1 + travel}; due back about turn {1 + 2 * travel}; serves at", text);
+    }
+
+    private sealed class Recorder : IJsonAsker
+    {
+        public List<CallSpec> Specs { get; } = new();
+
+        public Task<System.Text.Json.Nodes.JsonObject> AskJsonAsync(CallSpec spec, CancellationToken ct)
+        {
+            Specs.Add(spec);
+            return Task.FromResult((System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse(
+                """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""")!);
+        }
+    }
+
+    [Fact]
+    public async Task An_audience_request_carries_the_season_s_news_and_the_host_s_own_land_and_troops()
+    {
+        var s = GameFactory.NewGame(5);
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        s.Notify(Power.Egypt, InboxKind.Rejected, "Purchase failed", "The elders of Gaza would not choose between 2 buyers last season. No gold was paid.");
+        var recorder = new Recorder();
+        var seat = new LlmLeaderSeat(Power.Egypt, recorder, "claude-sonnet-5-5", "medium", true, s.Config);
+        var view = new AudienceView { AudienceId = "a1", Turn = 1, Round = 1, MaxRounds = 2, From = Power.Hatti, Host = Power.Egypt, Envoy = new CharacterView { Id = "c1", Name = "Mane" }, Spoken = "Greetings." };
+        await seat.HostAudienceAsync(view, Views.For(s, Power.Egypt), CancellationToken.None);
+
+        var user = Assert.Single(recorder.Specs).User;
+        Assert.Contains("YOUR LAND: akhetaten, delta, memphis, sinai, thebes. YOUR TROOPS: army in memphis, army in akhetaten, fleet in delta.", user);
+        Assert.Contains("NEWS THIS SEASON:", user);
+        Assert.Contains("[Rejected] Purchase failed: The elders of Gaza would not choose between 2 buyers last season. No gold was paid.", user);
+        Assert.Contains("[Notice] The treasury: ", user);
+        Assert.True(user.IndexOf("NEWS THIS SEASON:", StringComparison.Ordinal) < user.IndexOf("AN AUDIENCE", StringComparison.Ordinal));
+    }
+}

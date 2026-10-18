@@ -101,6 +101,7 @@ else
                     @if (Session.GodView) { <button class="@TabClass("trail")" @onclick='() => Tab = "trail"'>Message trail</button> }
                     <button class="@TabClass("people")" @onclick='() => Tab = "people"'>People</button>
                     <button class="@TabClass("standings")" @onclick='() => Tab = "standings"'>Standings</button>
+                    <button class="@TabClass("rules")" @onclick='() => Tab = "rules"'>Rules</button>
                     <button class="@TabClass("events")" @onclick='() => Tab = "events"'>Events</button>
                     @if (state.Ended && runner.Chronicles.Count > 0) { <button class="@TabClass("chronicle")" @onclick='() => Tab = "chronicle"'>Chronicles</button> }
                 </div>
@@ -124,6 +125,12 @@ else
                             break;
                         case "standings":
                             <StandingsPanel State="state" Viewer="viewer" Seats="runner.Log.Header.Seats" />
+                            break;
+                        case "rules":
+                            @* The rulebook a model king reads, so a human seat reads the same rules. *@
+                            <h3>The rulebook</h3>
+                            <p class="muted">What every king is told, word for word. Orders are given here with the controls of the orders tab rather than as JSON.</p>
+                            <div class="item"><div class="body">@Amarna.Llm.Prompts.LeaderRules(runner.State.Config.CustomsPrimer, runner.State.Config)</div></div>
                             break;
                         case "chronicle":
                             <ChroniclePanel Runner="runner" />

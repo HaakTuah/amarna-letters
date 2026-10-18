@@ -332,8 +332,9 @@ public sealed partial class TurnEngine
         c.Remember(S.Turn, $"I was received by the king of {host.Land()}. " + string.Join(" ", trail.Exchanges.Select(x => $"He said: \"{Greeting.Cap(x.Host, 300)}\" I answered: \"{Greeting.Cap(x.Envoy, 200)}\"")));
 
         var expectedHome = S.Turn + TravelTurns(host, sender);
+        // Its lord sees it on the road home, due back as an envoy sent home now would be.
         if (defected || detained)
-            CoverFor(c, sender, Duty.EnvoyHomebound, "on the road home", "travelling", seenBySender, knownBySender);
+            CoverFor(c, sender, Duty.EnvoyHomebound, "on the road home", "travelling", seenBySender, knownBySender, Views.EnvoyHomeTiming(trail.Turn, host, expectedHome));
         if (defected)
         {
             Overdue(sender, c, host, expectedHome);

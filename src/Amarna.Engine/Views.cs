@@ -26,6 +26,8 @@ public sealed class CharacterView
     public Power? Employer { get; set; }
     public string Duty { get; set; } = "";
     public string Where { get; set; } = "";
+    /// <summary>Your servant away: when it set out and when it is due back, as you can reckon it (see <see cref="Views.TimingText"/>).</summary>
+    public string Timing { get; set; } = "";
     public int? Wage { get; set; }
     /// <summary>The last season of your servant's term.</summary>
     public int? ContractUntil { get; set; }
@@ -248,6 +250,7 @@ public static class Views
             Employer = ours || c.Status == CharacterStatus.Employed && c.At == viewer ? c.Employer : null,
             Duty = captive ? CaptiveText(s, c.Id, c.HeldBy!.Value, viewer) : ours ? DutyText(c) : "",
             Where = ours || c.At == viewer ? WhereText(c, viewer) : "",
+            Timing = ours ? TimingText(s, c) : "",
             // A captive draws no wage while it is held.
             Wage = captive ? null : k?.Wage,
             ContractUntil = k?.UntilTurn,
@@ -275,6 +278,7 @@ public static class Views
         Employer = cover.For,
         Duty = cover.HeldAt is { } held ? CaptiveText(s, c.Id, held, cover.For) : cover.DutyText,
         Where = cover.HeldAt is { } at ? $"at the court of {at}" : cover.WhereText,
+        Timing = cover.HeldAt is null ? cover.TimingText : "",
         Wage = cover.HeldAt is null ? cover.Wage : null,
         ContractUntil = cover.ContractUntil,
         NoticePrice = cover.NoticePrice,
@@ -304,6 +308,37 @@ public static class Views
             ? $"{serves} through turn {u}; if content they then renew themselves, {notice}"
             : $"{serves}; the term ended with turn {u}: when next at your court, if content they renew themselves, {notice}";
     }
+
+    /// <summary>
+    /// When one of your servants away set out and when it is due back, as its master can reckon it from the travel
+    /// table: an envoy on its way out, at a foreign court or on the road home, a spy on its way to its post or home.
+    /// Blank at court, held, or at its post. A cover keeps this text as it stood (<see cref="Cover.TimingText"/>).
+    /// </summary>
+    public static string TimingText(GameState s, Character c, WorldMap? map = null)
+    {
+        map ??= WorldMap.Default;
+        if (c.Status != CharacterStatus.Employed || c.Employer is not { } home) return "";
+        var journey = s.Journeys.FirstOrDefault(j => j.CharacterId == c.Id && j.Kind is JourneyKind.EnvoyOutbound or JourneyKind.EnvoyHomebound or JourneyKind.SpyOutbound or JourneyKind.SpyHomebound);
+        var trail = c.CurrentTrail is { } t ? s.Trails.FirstOrDefault(x => x.Id == t && x.From == home) : null;
+        int Back(Power from) => TurnEngine.TravelTurns(s.Config, map, map.Capital(from).Id, map.Capital(home).Id);
+        return c.Duty switch
+        {
+            Duty.EnvoyOutbound when journey is { Kind: JourneyKind.EnvoyOutbound } j =>
+                $"set out in turn {j.DepartTurn} for {j.To}; received there in turn {j.ArriveTurn}; due back about turn {j.ArriveTurn + Back(j.To)}",
+            Duty.EnvoyAtCourt when trail is not null && c.At is { } at =>
+                $"set out in turn {trail.Turn} for {at}; received there in turn {s.Turn}; due back about turn {s.Turn + Back(at)}",
+            Duty.EnvoyHomebound when journey is { Kind: JourneyKind.EnvoyHomebound } j && trail is not null => EnvoyHomeTiming(trail.Turn, trail.To, j.ArriveTurn),
+            Duty.EnvoyHomebound when journey is { Kind: JourneyKind.EnvoyHomebound or JourneyKind.SpyHomebound } j => HomeTiming(j.ArriveTurn),
+            Duty.SpyOutbound when journey is { Kind: JourneyKind.SpyOutbound } j => $"set out in turn {j.DepartTurn}; due there about turn {j.ArriveTurn}",
+            _ => "",
+        };
+    }
+
+    /// <summary>An envoy on the road home: what its master reads, and what a cover keeps when the envoy is held or goes over.</summary>
+    public static string EnvoyHomeTiming(int setOut, Power to, int due) => $"set out in turn {setOut} for {to}; {HomeTiming(due)}";
+
+    /// <summary>A servant on the road home with no mission of its own to name (a spy recalled).</summary>
+    public static string HomeTiming(int due) => $"due back about turn {due}";
 
     /// <summary>One of the viewer's people held captive abroad, with the ransom demanded if that word has reached it.</summary>
     private static string CaptiveText(GameState s, string id, Power heldAt, Power viewer) =>

@@ -244,6 +244,8 @@ public sealed class Cover
     public bool Recalled { get; set; }
     public string DutyText { get; set; } = "";
     public string WhereText { get; set; } = "";
+    /// <summary>When the master believes the servant set out and is due back, as its view read then (see <see cref="Views.TimingText"/>).</summary>
+    public string TimingText { get; set; } = "";
     public int Wage { get; set; }
     public int? ContractUntil { get; set; }
     /// <summary>The notice the master believes the servant has given (the price it asks to serve on, and when it leaves), if any.</summary>

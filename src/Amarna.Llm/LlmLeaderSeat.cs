@@ -56,6 +56,8 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
         var user = new StringBuilder();
         user.AppendLine($"SEASON: turn {view.Turn}. You hold court. Treasury {court.Gold} shekels by your ledger.");
         user.AppendLine($"Lands now: {string.Join("; ", court.Owner.GroupBy(x => x.Value).Where(g => g.Key is not null).Select(g => $"{g.Key} {g.Count()}"))}.");
+        // What has reached the court this season, so that the host does not speak to an envoy against its own news.
+        user.Append(Prompts.CourtBrief(court));
         if (court.Tablets.Count > 0)
             user.AppendLine("Tablets you hold: " + string.Join(" | ", court.Tablets.Select(t => $"{t.CopyId}: \"{Greeting.Cap(t.Text, 200)}\" (seals {string.Join(", ", t.Seals)})")));
         user.AppendLine(Journal(brief: true));

@@ -16,7 +16,8 @@ public sealed partial class TurnEngine
     /// <param name="duty">The duty the master would see next in the normal course (an envoy whose audience ended is on the road home), or null for what it sees now.</param>
     /// <param name="seen">What the master saw, if taken before the event began to change the character.</param>
     /// <param name="factIds">The facts the master knew, if taken before the event added any.</param>
-    private void CoverFor(Character c, Power master, Duty believed, string? duty = null, string? where = null, CharacterView? seen = null, List<string>? factIds = null)
+    /// <param name="timing">With <paramref name="duty"/>: when the master would see it set out and due back in the normal course.</param>
+    private void CoverFor(Character c, Power master, Duty believed, string? duty = null, string? where = null, CharacterView? seen = null, List<string>? factIds = null, string? timing = null)
     {
         if (c.CoverOf(master) is not null || !S.IsAlive(master)) return;
         seen ??= Views.Character(S, c, master);
@@ -29,6 +30,7 @@ public sealed partial class TurnEngine
             HeldAt = seen.Status == "captured" ? c.HeldBy : null,
             DutyText = duty ?? seen.Duty,
             WhereText = where ?? seen.Where,
+            TimingText = timing ?? (duty is null ? seen.Timing : ""),
             // A captive's view shows no wage (none is paid while it is held); its contract's wage is kept for when it is free.
             Wage = seen.Wage ?? c.Contract?.Wage ?? 0,
             ContractUntil = seen.ContractUntil,
@@ -50,6 +52,7 @@ public sealed partial class TurnEngine
             cover.HeldAt = null;
             cover.DutyText = $"has not returned from {(cover.Recalled && c.MissionTarget is null && c.WatchProvince is { } wp ? wp : j.From.ToString())}";
             cover.WhereText = "unknown";
+            cover.TimingText = "";
             return;
         }
         c.Covers.Remove(cover);
