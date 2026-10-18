@@ -213,7 +213,8 @@ public static class Views
         var captive = ours && c.Status == CharacterStatus.Captured && c.HeldBy is not null;
         // A free person at your court (not held by another) can be hired there at what they ask, whether or not they pitched.
         var freeHere = c.Status == CharacterStatus.Free && c.At == viewer && (c.HeldBy is null || c.HeldBy == viewer);
-        var k = ours ? c.Contract : null;
+        // The contract of one who still serves you (not of one dead in your service).
+        var k = ours && c.Status is (CharacterStatus.Employed or CharacterStatus.Captured) ? c.Contract : null;
         return new CharacterView
         {
             Id = c.Id,
@@ -229,7 +230,7 @@ public static class Views
             ContractUntil = k?.UntilTurn,
             NoticePrice = k?.NoticePrice,
             LeavesTurn = k?.LeavesTurn,
-            Term = k is null || captive ? "" : TermText(k.Wage, k.UntilTurn, k.NoticePrice, k.LeavesTurn, s.Turn),
+            Term = k is null ? "" : TermText(captive ? null : k.Wage, k.UntilTurn, k.NoticePrice, k.LeavesTurn, s.Turn),
             KnownFacts = c.FactsKnownTo(viewer).Select(f => f.Text).ToList(),
             Pitch = c.Pitches.GetValueOrDefault(viewer),
             // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
@@ -255,7 +256,7 @@ public static class Views
         ContractUntil = cover.ContractUntil,
         NoticePrice = cover.NoticePrice,
         LeavesTurn = cover.LeavesTurn,
-        Term = cover.HeldAt is null ? TermText(cover.Wage, cover.ContractUntil, cover.NoticePrice, cover.LeavesTurn, s.Turn) : "",
+        Term = TermText(cover.HeldAt is null ? cover.Wage : null, cover.ContractUntil, cover.NoticePrice, cover.LeavesTurn, s.Turn),
         // What it knew then and what its inquiries have found since, as for a servant really away.
         KnownFacts = c.Facts.Where(f => cover.FactIds.Contains(f.Id) || f.Secrecy != Secrecy.Public && f.KnownBy.Contains(cover.For)).Select(f => f.Text).ToList(),
         Pitch = c.Pitches.GetValueOrDefault(cover.For),
@@ -266,12 +267,14 @@ public static class Views
     /// A servant's term in plain words, as its master reads it: the wage, the last season of the term and what happens
     /// then, or, once it has given notice, its price to serve on and when it leaves.
     /// </summary>
-    public static string TermText(int wage, int? until, int? noticePrice, int? leavesTurn, int turn)
+    /// <param name="wage">Null for a captive, who draws no wage while held: only a notice it gave is said.</param>
+    public static string TermText(int? wage, int? until, int? noticePrice, int? leavesTurn, int turn)
     {
-        var serves = $"serves at {wage} a season";
+        var serves = wage is int w ? $"serves at {w} a season" : null;
         if (noticePrice is int ask)
-            return $"{serves}; has given notice: asks {ask} a season to serve on; "
+            return (serves is null ? "" : serves + "; ") + $"has given notice: asks {ask} a season to serve on; "
                    + (leavesTurn is int t && t > turn ? $"leaves at the start of turn {t} unless renewed" : "leaves when next at your court unless renewed");
+        if (serves is null) return "";
         if (until is not int u) return serves;
         const string notice = "otherwise they give a season's notice and name a price";
         return u >= turn

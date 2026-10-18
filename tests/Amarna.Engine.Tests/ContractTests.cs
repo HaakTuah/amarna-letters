@@ -235,6 +235,24 @@ public class ContractTests
     }
 
     [Fact]
+    public void A_captive_on_notice_shows_its_notice_and_no_wage_and_may_be_renewed()
+    {
+        var (s, c) = Servant();
+        (c.Contract!.NoticePrice, c.Contract.LeavesTurn) = (33, 1);
+        (c.Status, c.HeldBy, c.At) = (CharacterStatus.Captured, Power.Hatti, Power.Hatti);
+        var line = Views.For(s, Power.Egypt).Court.Single(x => x.Id == c.Id);
+        Assert.Equal(("held captive at the court of Hatti", "has given notice: asks 33 a season to serve on; leaves when next at your court unless renewed"), (line.Duty, line.Term));
+        Assert.Null(line.Wage);
+        Assert.Empty(new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new RenewOrder(c.Id, 33)] }).Rejected);
+
+        // One dead in your service has no term.
+        c.Status = CharacterStatus.Dead;
+        c.Facts[0].KnownBy.Add(Power.Egypt);
+        c.Facts[0].Secrecy = Secrecy.Hidden;
+        Assert.Equal("", Views.For(s, Power.Egypt).Known.Single(x => x.Id == c.Id).Term);
+    }
+
+    [Fact]
     public void A_free_person_at_your_court_shows_what_they_ask()
     {
         var s = GameFactory.NewGame(5);

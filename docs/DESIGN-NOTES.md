@@ -193,7 +193,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     price"; once the term has passed while it is away, "serves at 12 a season; the term ended with
     turn 10: when next at your court, if content they renew themselves, otherwise …"; on notice,
     "serves at 12 a season; has given notice: asks 20 a season to serve on; leaves at the start of
-    turn 12 unless renewed" (or "leaves when next at your court unless renewed"). The web app's
+    turn 12 unless renewed" (or "leaves when next at your court unless renewed"); a captive, who
+    draws no wage while held, shows only a notice it gave, and one dead in the king's service no
+    term at all. The web app's
     people lists use the same words. A free person at the court shows what it asks there (its
     pitch's price, or its base price), whether or not it pitched; one's own servants show no
     asking price.
