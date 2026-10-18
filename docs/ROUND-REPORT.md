@@ -1,12 +1,21 @@
 # Round report: sleeping seats, the agent simulation, and questions
 
-Branch `round/sleep-and-simulation`, 18 October 2026. The prompt is in `docs/ROUND-PROMPT.md`. Parts 0 to 2 are built and tested. The agent simulation is prepared but not yet run: it needs a fresh session, so its results will go in "Simulation results" below. Part 3 is answered from the code, and every answer the simulation could change is marked.
+Branch `round/sleep-and-simulation`, 18 October 2026. The prompt is in `docs/ROUND-PROMPT.md`. Parts 0 to 2 are built and tested, and the agent simulation ran the same day in a fresh session: two 10-season games on seed 7, sleep on and off. Its results are in "Simulation results" below. Part 3 is answered from the code, and each answer ends with what the simulation showed.
 
 ## Summary
 
 - **Part 0.** `DESIGN-NOTES.md` now documents every rule the script kings follow, with its numbers, including the five you named. While documenting them, ten quirks turned up. They are left in place because balance is frozen, and are fixed with the bots' next change, before any new benchmark is quoted. The customs primer now teaches the language of accusation (the Habiru). Balance tuning against bots has stopped.
 - **Part 1.** Sleeping seats work behind a switch in the batch runner and the web app. Model and file seats can sleep for up to 6 seasons; script and human seats play every season. Wake-ups follow the design document's default triggers plus five triggers of the seat's own. Scheduled orders are secret and re-validated when they run, and a failed one wakes the seat. Replay is exact. A code review (four reviewers, each checked by a skeptic) found about a dozen real defects in the first version; all are fixed and covered by tests. 25 new tests, 18 for sleeping seats and 7 for the file seat; with the 86 from the base commit, all 111 pass.
 - **Part 2.** The file seat writes exactly what a model king sees and plays the reply. The kit in `sim/` walls each king in by construction: per-king agent types with only Read and Write, a hook that blocks every path outside its folder, unguessable folder names, a pre-game isolation test, and a transcript audit. Start it from `docs/SIMULATION-PROMPT.md` in a new session.
+- **Simulation** (run 18 October; "Simulation results" below).
+  - Isolation held, the audits are clean, and both games replay exactly.
+  - The kings played the trust game for real: 25 tablets sealed and 9 broken by conquest. Most breaches were planned in their private notes, and broken tablets were shown to third courts as evidence.
+  - The script envoys added almost nothing: near-verbatim relays, all gold whole, and no envoy ever accused.
+  - War outran letters: three kingdoms fell inside ten seasons.
+  - 43 orders were refused, none of them a unit order. The view never states the order of steps within a season, or what happens when a contract ends.
+  - No seat ever slept. With today's wake triggers, envoys alone wake nearly every court every season.
+  - Both runs took 8.6 million king tokens, about 9 points of the weekly limit; a full game would take about 10.
+  - Two new engine bugs and a reporting bug turned up.
 - **Fixed before the simulation** (18 October, on your go-ahead, one commit each). The answers below describe the code before these fixes; each one notes the change.
   - A seat could work out its true gold from the "Strength" line of its view, which defeated debased gold and assays. The strength shown to a seat is now reckoned from its ledger; the final score still uses true gold (question 25).
   - A timid script envoy (courage below 35), or one fond of the host (sympathy for that court of 50 or more), dropped every sentence containing "war", "march" and similar words as substrings, so "toward" and "warm" counted too. Threat words are now matched as whole words (question 13).
@@ -115,7 +124,7 @@ Built as specified; the rules are in `DESIGN-NOTES.md`, "Pacing: sleeping seats"
 
   7 in `FileSeatTests.cs` cover the request text, the retry and fallback, the timeout, an empty reply, a reply with wrong types, a fenced reply, and exact replay with sleeping on. All 111 tests pass: the 86 from the base commit and these 25.
 
-No model has slept yet, so there is no data on how long seats choose to sleep; the simulation will give the first.
+In the simulation one king asked to sleep once, for one season, and was woken in the season its sleep began; the others never asked. So there is still no data on how long seats choose to sleep, and 6 stays a placeholder (see "Sleeping seats" under Simulation results).
 
 ## Part 2: the file seat and the simulation kit
 
@@ -136,30 +145,222 @@ No model has slept yet, so there is no data on how long seats choose to sleep; t
 
 **Why not here.** Claude Code loads agent types when a session starts. Every agent type available in this session can read any file. The bundled CLI could have run tool-less kings, but it is not signed in, and I did not work around the app's authentication.
 
-**Ready.** `node sim/setup.js` has been run. To start, open a new Claude Code session in this folder (not a worktree) and paste `docs/SIMULATION-PROMPT.md`. The orchestrator then:
+**Run.** `node sim/setup.js` was run, and a new Claude Code session in this folder was started from `docs/SIMULATION-PROMPT.md` (results below). The orchestrator:
 
-1. Runs the isolation test, and stops if it fails.
-2. Plays seed 7 for at most 10 seasons with sleep on, then again with sleep off.
-3. Debriefs each king on what was unclear, audits the transcripts, and writes "Simulation results" below.
+1. Ran the isolation test (it held).
+2. Played seed 7 for 10 seasons with sleep on, then again with sleep off.
+3. Debriefed each king on what was unclear, audited the transcripts, and wrote "Simulation results" below.
 
 **Expected usage.** A request is about 21 KB (about 6,000 tokens) in a quiet season, and more when letters and tablets pile up. With the agent's own instructions, thinking and the reply, a king call is roughly 12,000 to 20,000 tokens on Sonnet. A 10-season game without sleeping is about 70 order calls plus perhaps 30 to 50 audiences, so 1.5 to 2.5 million tokens. With sleeping on it should be less. A full game of about 21 seasons is roughly twice that: about 3 to 5 million tokens without sleeping, less with it. What share of your quota that is stays unknown until the simulation measures it. The orchestrator records the real figures each season and stops after season 3 if the runs look set to use a large share of your quota.
 
+**Measured** (see "Usage" under Simulation results): about twice this estimate. A 10-season game took 3.4M and 3.9M king tokens; an orders call averaged 37k tokens, and an audience 16k. A full game would take about 9-10M.
+
 ## Simulation results
 
-Not run yet. The simulation session writes this section. Pending, as the prompt asks:
+Run on 18 October from `docs/SIMULATION-PROMPT.md`: seed 7, seven Sonnet king agents, script envoys, spies and city-states, template narrator, shared victory off, stopped after season 10. Run 1 had sleeping seats on (cap 6), run 2 off. Every number below was taken from the run folders (`sim/runs/sleep-on`, `sim/runs/sleep-off`: logs, final states, every request and reply, the debriefs), and the key claims, quotes and code findings were checked a second time by independent readers who tried to refute them. "Turn" and "season" mean the same thing.
 
-- Whether the kings used sealed tablets, accused envoys, broke promises and formed coalitions against the leader.
-- Three to five excerpts from the message trail that show what happened.
-- What in the seat view was unclear or misunderstood.
-- Invalid orders and fallbacks, per seat.
-- Wake-ups per seat with sleep on versus off, and the sleep lengths seats chose.
-- How much of your usage the runs consumed, and whether a full game is realistic this way.
+**In short.**
+
+- **The kings played the trust game for real.** They sealed 25 tablets, planned lies in their private notes, broke 9 tablets by conquest, and showed broken tablets to third courts 12 times. Partitions took several letters to agree; in run 2 five tablets set out joint moves by unit and season, and two were carried out.
+- **The envoys added almost nothing.** Script envoys relayed half the letters word for word and most of the rest minus the last sentence. Every lot of gold that reached its destination arrived whole, bribes bought nothing, and no king ever accused an envoy. The threat filter cut 12 sentences from 10 letters, none of them a threat to the host.
+- **War outran letters.** Three kingdoms fell inside ten seasons. In 14 of 21 first attacks between Great Kings, the attacker had not yet read an answer from its victim. Pleas for help got words, never troops.
+- **The view misled the kings about the order of steps in a season and about contracts.** 43 orders were refused; none was a unit order. All 14 debriefs asked what "wage N until turn 10" means.
+- **Sleeping saved nothing.** One king asked to sleep once and was woken the same season. Replaying both games through the engine shows the default triggers would have woken a sleeping seat in 117 of 120 seat-seasons, mostly because envoys arrive or come home every season.
+- **Cost:** 8.6 million king tokens for both runs and debriefs, about 9 points of the weekly limit. A full game this way is about 9-10 million tokens and 10 weekly points.
+- **New defects:** two engine bugs (gold sent back in an audience's first round is lost; a purchase vanishes without notice when the city falls that season), one reporting bug (a bounce from out of sight is hidden), and the contract cliff confirmed (11 of 14 starting envoys would quit at their first renewal).
+
+### Setup and integrity
+
+- **Isolation test** before the games: every king read its own secret word and was blocked at five forbidden steps; `check-isolation.js` printed `ISOLATION HOLDS`.
+- **Audits.** Run 1, audited after the game and before its debrief: `AUDIT CLEAN`. Run 2's 151 game transcripts, audited on their own: `AUDIT CLEAN`. The audit over all transcripts lists six blocked reads: four run-1 debrief agents tried to open their own earlier reply files, inside their own folders, after the game. The guard blocked all six. Run 2's debrief request said reply files cannot be opened, and nothing was blocked.
+- **Guard log:** 782 tool calls, 41 blocked (35 in the isolation test, 6 in the debrief). No king ever touched another king's folder.
+- **Replays** were exact in both runs (`replay ok`).
+- **Leaks to the orchestrator.** Of the 280 game calls, 24 ended with a summary of the king's decision or plans instead of the single word "done" (18 orders calls, 6 audiences), and 4 with the reply path. Nothing was passed on, but the kit then relies on the orchestrator ignoring what it reads. Harden the agent prompt, or have the orchestrator discard the final text.
+
+### The two games
+
+| Power | Run 1 growth | provinces | Run 2 growth | provinces |
+|---|---|---|---|---|
+| Egypt | 2.02 | 14 | 1.70 | 11 |
+| Hatti | 0.46 | 2 | 0.00 (fell season 9) | 0 |
+| Babylonia | 2.13 | 12 | 1.69 | 10 |
+| Mitanni | 0.75 | 4 | 1.61 | 8 |
+| Assyria | 0.00 (fell season 5) | 0 | 0.67 | 3 |
+| Arzawa | **2.39** | 9 | **1.97** | 7 |
+| Alashiya | 0.00 (fell season 10) | 0 | 0.66 | 1 |
+
+- The kings are fresh agents at every call, so the two games diverge from the first season. They are two games on one map, not a controlled pair.
+- **Arzawa, a weak power, led both games at the stop.** It grew by taking Hatti's land in both runs, and broke a sealed tablet with Hatti in both. Babylonia had the most strength in nearly every season but led on growth only briefly.
+- **Hatti**, the reference case of the bot balance work, lost land from season 2 in both games and fell in run 2. A drought (seasons 4-6) cost it its fleet, and it attacked nobody in seasons 4-9 of either run.
+- **Capitals fell fast.** Run 1: Ashur in season 4 (three seasons after the first attack on Assyria), Enkomi in season 8 (the first season of attack). Run 2: Enkomi in season 7, Hattusa in season 9. Nobody attacked Akhetaten, Babylon, Washukanni or Apasa.
+- These are leaders at a cap, not winners. The rulebook told the kings no game ends before season 15, and six debriefs say they planned for a longer game.
+
+### Sealed tablets, accusations, broken promises, coalitions
+
+| | Run 1 | Run 2 |
+|---|---|---|
+| Tablets offered | 26 | 16 |
+| Sealed by both | 15 (5 sworn) | 10 (2 sworn) |
+| Sealed tablets broken by conquest | 6 | 3 |
+| Tablets shown as evidence | 6 | 6 |
+| Joint-move tablets naming a season | 0 | 5 (2 carried out) |
+| Supports given to another king's move | 0 | 3 |
+| Gifts to envoys offered / accepted | 24 / 6 | 27 / 3 |
+| Envoys accused, detained, dismissed | 0 | 0 |
+| Spies placed / background checks / assays | 0 / 0 / 1 | 0 / 1 / 1 |
+
+**Sealed tablets: yes, and as the letters did.** Most are non-aggression pacts that name borders and holdings. Two in run 1 and five in run 2 divide a third king's land. Kings asked senders to redraft in at least six trails per run. The run-1 partition of Assyria between Babylonia and Mitanni took three drafts and four seasons (seasons 3-6) to seal.
+
+**Broken promises: yes, often, and on purpose.**
+- Run 1: Babylonia broke two sworn tablets with Mitanni (Ashur, Nineveh and Terqa, seasons 6-8). Egypt broke both its tablets with Alashiya and took its whole kingdom (seasons 8-10). Arzawa broke its tablet with Hatti in the season it was sealed (Tuwanuwa, season 2), and so did Mitanni (Carchemish, season 4).
+- Run 2: Arzawa broke all three tablets it sealed, with Hatti, Alashiya and Mitanni. Babylonia withheld a support a tablet promised Mitanni, and Mitanni held back from a joint blow it had itself named for season 10.
+- Most breaches were written down in the breaker's notes before or at the sealing: "It binds nobody; I intend to break it" (Egypt, run 1), "DECISION: break k204" (Babylonia, run 1), "PROMISE BROKEN on purpose" (Arzawa, run 2). Three tablets were broken in the season they were sealed, all in run 1.
+- Hatti and Alashiya broke no tablet. Each fell in one run and was cut down to one or two provinces in the other.
+
+**Accusations: against kings, never against envoys.** Hatti accused Arzawa before three courts in each run, and showed its copy of the broken tablet once in run 1 and three times in run 2. Mitanni (run 1) and Alashiya (both runs) showed broken tablets too. Evidence won sympathy and no help: "an oath broken before Shamash is its own punishment" (Egypt, run 2). No king accused an envoy of lying, skimming or altering words, though every king suspected its own envoys because of where they were born. The excuses kings used were their own subordinates: generals or captains who "went beyond what I commanded", at least five times, and scribes who forgot a title, three times. "Habiru" appeared three times, all in run 2 and all as cover for troops ("against the Habiru raiders", Egypt, explaining its army on Cyprus).
+
+**Coalitions against the leader: late, and they fed the next leader.** In run 1 four kings named Mitanni the leader in seasons 5-7, Babylonia struck it, and a front formed. By then Babylonia led, and Hatti, Egypt and Arzawa all sealed with Babylonia. No king attacked Babylonia. Arzawa, which won, was named a leader once, by Mitanni in the last season. In run 2 joint blows fell only on the weakest kings (Assyria, Hatti); Arzawa led from season 6, was first named at seasons 8-9, and met only lone attacks. The `coalition` signal stayed at 0 in both runs, because by the time a coalition acted, its target no longer led.
+
+### Five excerpts from the message trail
+
+**1. An oath broken, the protest, and a stall (run 1).** In season 5 Babylonia wrote to Mitanni: "Ashur and Nineveh are yours, as your men hold them; I do not seek them." Its notes: "a lie of convenience". In season 6 they sealed a sworn tablet naming Ashur and Nineveh as Mitanni's, and Babylonia took Ashur the same season. Mitanni protested (trail m421):
+
+> "Either your generals acted without your word, or the oath is broken, and Shamash saw it."
+
+Babylonia took the excuse at the audience: "my generals pressed on against him with a hot heart; some went beyond what I commanded... Let there be no more marching on either side while I weigh your words." It took Terqa that season, and noted: "told Ubaru I hold the oath and that no more marching, and the next day marched". Mitanni showed both tablets to Egypt and Hatti. Egypt answered "Such a man is not to be trusted by any brother" and sent nothing; Hatti had just sworn war on Mitanni with Babylonia.
+
+**2. A partition with a named season, kept, then broken by both (run 2).** Mitanni to Arzawa (m339): "in turn 8 your Tuwanuwa army supports my move Isuwa -> Kanesh, and my Sapinuwa army supports it too; strength three beats Kanesh's two." Arzawa sealed: "In turn 8 my Tuwanuwa army will support Isuwa -> Kanesh, provided your Isuwa and Sapinuwa armies both act as you say." In season 8 both did exactly that, and Kanesh fell. At the season-9 audience Mitanni told Arzawa's envoy: "Our first tablet and the peace between Arzawa and Mitanni stand, and I will break neither." That same season Mitanni took Hattusa alone ("I have to break my word ... because the road takes 2 seasons"), and Arzawa took Kanesh from Mitanni ("k404 with Mitanni is BROKEN by me this turn on purpose"). Arzawa won.
+
+**3. A cover story, softened by a timid envoy (run 1).** Egypt's notes: "I am breaking tablets k284 and k363 with Alashiya on purpose". Its letter (m407): "I have therefore set my ships in the Levantine and Syrian seas, as a shield beside your harbours and not against them. Do not mistake my sails for an enemy's. Keep your own ships quietly in harbour". The envoy, courage 11, cut the sentence with "enemy" and added "My lord hopes that no quarrel will ever come between your houses." Alashiya answered "Our tablet stands before Shamash and Amun, and I keep it". The envoy reported "All is well between your houses, I am certain of it." Egypt took Enkomi that season and the rest of the kingdom in the next two. Alashiya's notes: "the ships were 'a shield' - a lie."
+
+**4. The envoy cut the one qualifier that mattered (run 2).** Hatti asked Mitanni to keep out of its homeland (m328). Mitanni answered: "For this season my armies do not march on your hearth, so long as your armies stay out of my three cities." The envoy, courage 29, dropped that sentence because it contains "march", and reported: "It was my words that won his favour; no other envoy could have done as much. All is well between your houses, I am certain of it." Mitanni's notes say it promised "this season only", and it had already proposed the partition of Hatti to Arzawa. Hatti noted "Mitanni passive". Kanesh fell in season 8 and Hattusa in season 9.
+
+**5. A plea with gold and evidence; no help (run 1).** Alashiya to Arzawa (m491), with 40 shekels and Egypt's broken tablet: "A king who breaks his oath to me will break it to you. I have raised a new army at Tamassos... let your fleet in the Cilician Sea support my army when it moves from Tamassos into Enkomi next season". The gold and the tablet arrived whole. Arzawa: "I will not seal the tablet that names a day for my fleet... Strike at Enkomi when your own strength allows". The army did not exist: the levy had failed ("Tamassos is no longer free for a new army"). Alashiya fell that season, and Arzawa kept the gold.
+
+### What in the seat view was unclear or misunderstood
+
+From the 14 debriefs (343 items), the refused orders and the kings' notes. Kings per theme are run 1 / run 2, out of 7.
+
+| # | Theme | Kings | What it cost | Fix |
+|---|---|---|---|---|
+| 1 | **The order of steps within a season is never stated.** A levy is placed after movement; gold is reserved in the order the reply is read, so a "fallback" purchase is refused; a hire is an offer settled at the end of the season, so the person cannot carry a letter that season (and is often declined, since the price is hidden) | 6 / 6 | 26 of the 43 refusals. Provinces lost in the seasons their levy was meant to guard them. Mitanni's first envoy to Egypt, planned in season 1, left in season 7 | Step 5 of the rulebook lists the order: moves, ownership, purchases, disbands, levies, hires and envoys, spies. One line each on levies, gold reservation and hiring |
+| 2 | **"wage N until turn 10" is never explained** | 7 / 7 | 14 refused "renewals" (11 never seen). Wrong income forecasts | Rulebook: renewal is automatic at court if the person is content; you cannot hire your own people. View: say what happens when the term ends |
+| 3 | **Rival bids cancel each other; the rulebook does not say so, and the notice does not name the rival** | 5 / 4 | 30 failed bids; three kings bid for Amurru for six seasons in run 2 and it was never sold | One rulebook line; name the rivals or their number in the notice |
+| 4 | **No standings for rivals**, though the win test is relative growth | 6 / 7 | Kings added up yields by hand and guessed starting strengths wrong | Show each power's land and yield now and at the start (public), and each starting strength (fixed) |
+| 5 | **Audiences are held without the season's news or the board** | 4 / 4 | Kings told envoys false things: "Mari is mine now" and "Byblos is already mine" after failed purchases (run 1), "When Arzawa is driven from Tamassos" after Egypt had taken it (run 2) | Print the situation and the season's news in audience requests |
+| 6 | **Battle lines give no strength or cause, and hide some foreign moves** | 4 / 5 | Arzawa repeated a bounced attack four seasons running (run 1); Babylonia five (run 2) | Show foreign moves into provinces in sight (a bug, below); give one's own failed move a reason that reveals no unseen unit |
+| 7 | **How to support a bought city's walls** | 5 / 2 | Bought walled cities fell to one army with one support | Schema: "province of the unit, or of your walled city, supported" |
+| 8 | **What "see troops next to" covers** | 6 / 6 | Empty seas read as safety; Alashiya lost Cyprus to a convoy from out of sight | "One link of any kind; units two links away can still arrive" |
+| 9 | **Intelligence: costs, and how a spy is sent** | 2 / 7 | No spy placed in 134 orders replies; three spy orders refused | State costs and odds; "a spy is one of your own people at court" |
+| 10 | **When an envoy is heard and due back** | 3 / 4 | Kings mistimed replies; "on the road home" next to "has set out" | Show the audience and return turns |
+| 11 | **Treasury line and money units** | 6 / 6 | Hand reconciliation every season | "after this season's income, upkeep and wages"; shekels only |
+| 12 | **Game length** (a harness effect) | 3 / 3 | Kings hoarded or built for seasons that never came | Tell kings the cap, or label results "stopped, not finished" |
+
+Smaller: old notes cut to 300 characters (5 kings); the sealed greeting is built only from flags the king never sees, and 54 of 135 letters left out the sender's own title, which hosts remarked on in 12 trails; gifts to envoys refused with no hint why; envoy reports read as noise ("It was my words that won his favour"); what `sworn_alliance` does. Two doubts were wrong against the engine: armies standing on a border do not wake a sleeper, and `unit_moves` can watch a foreign unit.
+
+### Invalid orders and fallbacks
+
+**No fallbacks and no retries**: every one of the 280 replies parsed and passed the schema at the first try.
+
+| Cause | Run 1 | Run 2 |
+|---|---|---|
+| "hire" on one's own envoy, to renew a term | 8 | 6 |
+| Not enough gold, because an earlier order in the same reply reserved it (9 of 11 meant as "else") | 5 | 6 |
+| Letter carried by a person hired in the same reply | 5 | 4 |
+| Levy in a province occupied after movement | 3 | 3 |
+| Spy order naming nobody, or a man not in service | 0 | 3 |
+| **Total** | **21** | **22** |
+
+By seat, run 1 / run 2: Egypt 2 / 3, Hatti 4 / 1, Babylonia 2 / 5, Mitanni 7 / 7, Assyria 2 / 3, Arzawa 0 / 0, Alashiya 4 / 3. The seat report printed 18 and 19, because it misses the levy notices (below). No unit order was refused in either run. 14 of the 43 refusals came from turn-10 orders, so the kings never saw them.
+
+### Sleeping seats: wake-ups, sleep lengths and usage
+
+- **What the kings chose (run 1).** One sleep request in 65 orders replies: Alashiya in season 5 asked for 1 season, with three triggers of its own and a scheduled purchase for season 9. It slept 0 seasons. It was woken in season 6 by three envoys waiting, two foreign fleets off its coast and its own trigger, and it cancelled the schedule. No other king ever asked. No scheduled order ran or failed.
+- **Why.** All seven say they understood the option. Their reasons: a front that needed fresh supports every season (five kings), expecting to be woken anyway (three), scheduled orders cannot react (two), and "the rules also state no benefit to me from sleeping" (Babylonia).
+- **Wake-ups, sleep on against off.** Identical in effect: every living seat was called every season in both runs (65 and 69 orders calls). Sleeping saved no call.
+- **Would the default triggers have let anyone sleep?** Both logs were replayed through the engine, and its own wake check was asked, each season, whether a seat would have been woken had it been asleep. This is the game as played; a seat that really slept would have sent fewer envoys. Run 1: 56 of 58 seat-seasons would have woken it (3% quiet). Run 2: 61 of 62 (2% quiet). No seat had two quiet seasons in a row. The envoy triggers do most of it: an envoy waiting or an own envoy home fired in 86% and 94% of seat-seasons. Letters go out in odd seasons and are heard in even ones, so foreign and returning envoys wake every court in alternate seasons. Without the two envoy triggers, 33% and 44% of seat-seasons would have been quiet.
+- **Usage difference.** Run 2 cost 470k tokens more (3.91M against 3.44M). About 430k of that is call count: 4 more orders calls (Assyria fell after season 5 in run 1) and 18 more audiences. Per call the two runs cost the same. Sleep-on adds about 8 KB to every orders request (the rules and a larger schema), roughly 2,000 tokens a call, which did not show above the noise.
+- **The cap.** No data: nobody slept, so 6 stays a placeholder.
+- **What would make sleeping pay.** Envoys must stop forcing an orders call: an audience is already answered in its own call, and a returning envoy can go to the digest unless the king asked to be woken for it. That alone would make a third to two fifths of seat-seasons quiet, up to 21-27% of the tokens. The border trigger should ignore a neighbour's moves inside its own land, and the rulebook should say what sleeping is for.
+
+### Usage, and whether a full game is realistic
+
+| | Run 1 | Run 2 |
+|---|---|---|
+| King calls (orders / audiences) | 129 (65 / 64) | 151 (69 / 82) |
+| King tokens | 3.44M | 3.91M |
+| Mean per orders call / audience call | 37k / 16k | 38k / 16k |
+| Debrief | 0.55M | 0.66M |
+| Wall clock | 65 min | 83 min |
+| Weekly limit (all models) | 54% → 58% | 58% → 63% |
+
+- **Growth.** An orders call cost about 27k tokens in season 1 and 40-52k by seasons 9-10, mostly because the journal grows. Odd seasons, when letters are written, cost more. The journal is capped at five full seasons plus eight short notes, so growth should flatten from about season 14.
+- **All in:** 8.6M king tokens for the isolation test, both runs and both debriefs, about 9 points of the weekly limit, roughly 1 point per million. The 5-hour window rose 13 points during run 1 and reset during run 2. The orchestrator's own use is inside these figures. Reading the runs for this report took about 6 more weekly points: eight analysts and eight checkers on the orchestrator's model, about 3.7M tokens (63% to 69%). Budget for that too.
+- **A full game** (about 21 seasons, the expected length after season 15) would cost about 9-10M king tokens with a debrief, about 10 weekly points, 35 points of a 5-hour window, and 2.5 to 3.5 hours. That is twice the estimate in Part 2 above, because each call costs more than expected.
+- **Realistic?** One full game a week, yes. A sleep on/off pair at full length would take about a fifth of the week, and several seeds are out of reach this way. Sleeping, as it works today, does not change that.
+
+### Defects found
+
+Engine bugs, new:
+1. **Gold sent back in an audience's first round is lost** if the second round sets 0. Only the last round's `send_gold_back` is read (`TurnEngine.Envoys.cs:286-290`). Run 2: Egypt told Arzawa's envoy it sends 30 shekels, its notes say "I paid 30 gold", and nothing was sent or charged. One of the six gold-back audiences lost its gold this way.
+2. **A purchase vanishes without notice** when the city is conquered earlier in the same resolution (`TurnEngine.cs:371`). It also skips the scheduled-order failure wake. Three bids in the two runs.
+3. **Battle reports hide moves from out of sight into a visible province.** Foreign lines are kept by the moving unit's origin (`TurnEngine.cs:310`), though `LastSeen` already counts the target. Assyria never saw the move that bounced it (run 1, season 4), nor the move that took Susa from it (run 2, season 2).
+4. **The seat report** misses "Levy failed" notices in its invalid count (`BatchRunner.cs:113`) and shows only the first reason a sleeper woke.
+5. **Wake text** "a Egypt fleet" (`TurnEngine.Sleep.cs:93`). The border trigger also fires on a neighbour's moves inside its own land.
+6. **Signals:** `broken-promise` counts a king retaking its own homeland and misses a breach in the season of sealing; `accusation` matches "lie" as a verb and courtesy phrases (about half its hits are false).
+7. **Script envoy reports:** an ambitious envoy reports "I gave him such assurances as you would wish" whenever the outcome begins "the envoy committed", even when it did not overreach (`ScriptMind.cs:145`; run 2, m236). A second-round gift after an accepted first one is silently not paid, and the host is not told.
+
+Misleading text, as designed underneath: a support that fails because its unit was dislodged is labelled "cut", and the rulebook lacks the dislodgement rule; "Movements this season" and "Envoy dispatched" describe last season; the treasury notice is written before audience gold arrives; desertion takes the unit farthest from the capital, which the rulebook does not say.
+
+**The contract cliff, confirmed.** Renewal is automatic but only for a person at court with no task, and only if the ask is at most 1.2 times the wage (`TurnEngine.Envoys.cs:603-621`). Computed from the final states with the code's formula, 11 of the 14 starting envoys on seed 7 would quit at their first check. Of the envoys the kings tried to renew in run 1, only one would have stayed.
+
+Kit lessons: kings' final messages leak plans to the orchestrator (above); a debrief should say reply files cannot be opened; the debrief costs a sixth of a run; `audit.js <folder>` can audit one run's transcripts.
+
+### Season log, as the runs went
+
+Isolation test, 18 October: all seven kings read their own secret word and were blocked at the five forbidden steps; `check-isolation.js` printed `ISOLATION HOLDS`. About 7,200 tokens per king, 51,000 in all. Usage before the game: 33% of the 5-hour window, 54% of the weekly limit (all models).
+
+**Run 1, sleep on** (seed 7, cap 6, at most 10 seasons). Tokens are the Agent results' `subagent_tokens` per call.
+
+- Season 1: orders from all seven kings. Egypt 33.1k, Hatti 22.4k, Babylonia 29.3k, Mitanni 30.9k, Assyria 21.9k, Arzawa 26.2k, Alashiya 22.3k: 186k in all, 55 to 144 seconds a king. No retries.
+- Season 2: every king hosted an audience, so all seven were awake. 12 audience calls in three waves (seven, then Egypt, Hatti, Babylonia and Mitanni, then Babylonia again): 12.4k to 15.4k each, 162k in all. Then orders from all seven: Egypt 40.8k, Hatti 22.1k, Babylonia 26.2k, Mitanni 25.1k, Assyria 30.4k, Arzawa 24.3k, Alashiya 20.2k: 189k. Season total 351k. Babylonia's last audience agent summarised its decision to me in its final message instead of ending with "done"; nothing was passed on, but it shows a king's final text reaches the orchestrator.
+- Season 3: audiences at Egypt (two), Assyria and Arzawa: 4 calls, 56k. Orders from all seven again: Egypt 38.4k, Hatti 38.2k, Babylonia 34.1k, Mitanni 35.7k, Assyria 31.9k, Arzawa 30.0k, Alashiya 32.2k: 241k, with orders calls now up to 150 seconds. Season total 297k. Assyria's audience agent also summarised its speech to me; nothing was passed on.
+- **Check after season 3.** Run 1 so far: 834k king tokens in 37 calls (21 orders, 16 audiences). The 5-hour window went from 33% to 36% and the weekly limit from 54% to 55%. At this rate run 1 takes about 10 points of the 5-hour window and 3 to 4 weekly points, so both runs fit comfortably, and I continued. No king has slept yet: every king got an orders call in every season.
+- Season 4: 12 audiences in four waves (six courts, then Babylonia, Mitanni, Arzawa and Alashiya, then Mitanni twice more): 14.1k to 22.9k each, 191k. Orders from all seven: Egypt 45.8k, Hatti 30.9k, Babylonia 35.9k, Mitanni 45.7k, Assyria 37.6k, Arzawa 38.2k, Alashiya 22.4k: 257k, the longest call 199 seconds. Season total 448k. Babylonia's and Assyria's orders agents summarised their orders to me, and Babylonia's said it stays awake because its war is active. Nothing was passed on.
+- Season 5: audiences at Egypt and Hatti (twice): 3 calls, 45k. Orders from all seven: Egypt 48.8k, Hatti 53.6k, Babylonia 49.7k, Mitanni 52.2k, Assyria 36.9k, Arzawa 39.8k, Alashiya 33.7k: 315k, up to 263 seconds a call. Season total 360k. Orders calls have grown from about 26k in season 1 to about 45k, as journals, letters and tablets pile up in the request. Run 1 so far: 1.64M tokens.
+- Season 6: 12 audiences in three waves at Egypt, Hatti, Babylonia, Mitanni and Alashiya: 14.3k to 23.8k each, 199k. Orders from six kings; **Assyria got no request**, the first seat not called (asleep or out of the game; the seat report will say which). Egypt 39.8k, Hatti 34.1k, Babylonia 41.5k, Mitanni 47.4k, Arzawa 28.1k, Alashiya 30.4k: 221k. Season total 420k. Run 1 so far: 2.06M. Egypt's, Babylonia's and Mitanni's orders agents again summarised their private plans to me, including a planned breach of a sworn tablet. Nothing was passed on; it is checked against the log after the game.
+- Season 7: 5 audiences, four of them at Egypt, one wave at a time, plus one at Mitanni: 16.1k to 17.3k each, 83k. Orders from six kings, Assyria again not called: Egypt 46.8k, Hatti 37.1k, Babylonia 35.3k, Mitanni 55.9k (the largest call so far, 239 seconds), Arzawa 31.5k, Alashiya 38.1k: 245k. Season total 327k. Run 1 so far: 2.39M. Babylonia and Mitanni summarised their orders to me again; Mitanni's said it sends the broken tablets abroad as proof of the oath-breaking.
+- Season 8: 6 audiences at Hatti, Babylonia (two), Arzawa (two) and Alashiya: 15.4k to 18.7k each, 99k. Orders from six kings, Assyria not called: Egypt 30.6k, Hatti 44.0k, Babylonia 39.2k, Mitanni 40.7k, Arzawa 37.2k, Alashiya 31.0k: 223k. Season total 321k. Run 1 so far: 2.71M. Babylonia's and Arzawa's agents summarised their orders to me, and Babylonia's audience agent said it was stalling a protesting envoy.
+- Season 9: 7 audiences at Egypt, Hatti (two), Babylonia (three) and Mitanni: 15.8k to 22.3k each, 124k. Orders from six kings, Assyria not called: Egypt 62.9k, Hatti 46.3k, Babylonia 62.3k, Mitanni 60.0k, Arzawa 39.0k, Alashiya 40.9k: 311k, the longest calls 285 seconds. Season total 436k. Run 1 so far: 3.15M. Egypt's agent said it sent a peace tablet it means as a lull, and was unsure whether the engine accepts re-hiring an envoy whose contract is ending.
+- Season 10: 3 audiences (Hatti twice, Arzawa): 55k. Orders from six kings: Egypt 38.9k, Hatti 39.8k, Babylonia 51.6k, Mitanni 39.5k, Arzawa 40.2k, Alashiya 30.4k: 240k. Season total 295k.
+- **Run 1 done** after 65 minutes of game time: `seed 7: 10 turns, winner Arzawa, replay ok`. 129 king calls (65 orders, 64 audiences), no retries, no fallbacks. **3.44M king tokens** (orders 2.43M, audiences 1.01M). Usage after run 1: 46% of the 5-hour window (up 13 points) and 58% of the weekly limit (up 4). `audit.js` printed `AUDIT CLEAN` before the debrief.
+- Debrief: seven calls, 59k to 99k each (each king read 3 to 8 of its own requests), **549k** in all. Four of the debrief agents (Hatti and Assyria twice each, Babylonia and Mitanni once) tried to read their own earlier *reply* files to recall what they had ordered. The guard blocked every attempt, since only request files may be read, so the audit run after the debrief lists six blocked violations. All six are inside the king's own folder and after the game; none is an isolation breach. Run 2 is audited on its own transcripts below.
+
+**Run 2, sleep off** (same seed and settings). All of run 1's king files were moved to `sim/runs/sleep-on/kings/<power>/` first. Usage before run 2: 48% of the 5-hour window, 58% weekly.
+
+- Season 1: orders from all seven: Egypt 23.2k, Hatti 30.7k, Babylonia 27.9k, Mitanni 29.7k, Assyria 28.9k, Arzawa 22.5k, Alashiya 24.0k: 187k, about the same as run 1's 186k. The kings are fresh agents that decide afresh, so the two games diverge from the first season: run 2's season-2 audiences already carry other ids (a168 to a177 against a166 to a175).
+- Season 2: 15 audiences in four waves (all seven, then Hatti, Babylonia, Mitanni and Assyria, then Babylonia and Mitanni twice): 12.2k to 14.2k each, 192k. Orders from all seven: Egypt 20.6k, Hatti 31.8k, Babylonia 23.9k, Mitanni 32.4k, Assyria 22.9k, Arzawa 26.3k, Alashiya 17.0k: 175k. Season total 367k. Run 2 so far: 553k.
+- Season 3: 4 audiences (Egypt, Hatti twice, Mitanni): 53k. Orders from all seven: Egypt 33.7k, Hatti 41.3k, Babylonia 33.6k, Mitanni 40.6k, Assyria 40.3k, Arzawa 29.4k, Alashiya 21.8k: 241k. Season total 294k. Run 2 so far: 847k in 37 calls, close to run 1's 834k after three seasons. Usage after season 3: 53% of the 5-hour window, 59% weekly; continued.
+- Season 4: 13 audiences in four waves at six courts (Arzawa hosted none): 13.2k to 18.3k each, 192k. Orders from all seven: Egypt 30.5k, Hatti 47.7k, Babylonia 29.8k, Mitanni 37.8k, Assyria 29.6k, Arzawa 38.8k, Alashiya 24.4k: 239k. Season total 431k. Run 2 so far: 1.28M.
+- Season 5: 2 audiences, both at Egypt: 30k. Orders from all seven: Egypt 33.4k, Hatti 92.9k (the largest call of either run, 575 seconds), Babylonia 36.5k, Mitanni 37.7k, Assyria 42.8k, Arzawa 52.2k, Alashiya 23.4k: 319k. Season total 348k. Run 2 so far: 1.63M.
+- Season 6: 12 audiences in three waves at Egypt, Babylonia, Mitanni, Arzawa and Alashiya: 14.1k to 18.4k each, 188k. Orders from all seven (Assyria still in the game, unlike run 1): Egypt 33.9k, Hatti 33.4k, Babylonia 41.4k, Mitanni 41.2k, Assyria 45.7k, Arzawa 27.1k, Alashiya 22.5k: 245k. Season total 433k. Run 2 so far: 2.06M.
+- Season 7: 10 audiences in four waves at Egypt (four), Hatti (two), Mitanni (two), Assyria and Arzawa: 14.6k to 26.7k each, 168k. Orders from all seven: Egypt 49.5k, Hatti 37.4k, Babylonia 47.6k, Mitanni 60.5k, Assyria 42.0k, Arzawa 73.5k (400 seconds), Alashiya 34.6k: 345k. Season total 513k, the largest season of either run. Run 2 so far: 2.57M.
+- Season 8: 9 audiences in three waves at Egypt (two), Babylonia (three), Mitanni (two), Arzawa and Alashiya: 15.2k to 22.2k each, 154k. Orders from all seven: Egypt 39.0k, Hatti 24.1k, Babylonia 36.9k, Mitanni 62.7k, Assyria 33.8k, Arzawa 52.8k, Alashiya 28.3k: 277k. Season total 432k. Run 2 so far: 3.00M.
+- Season 9: 8 audiences in four waves at Egypt (two), Mitanni (four) and Assyria (two): 15.7k to 23.5k each, 142k. Orders from all seven: Egypt 46.1k, Hatti 35.6k, Babylonia 65.5k, Mitanni 62.6k, Assyria 36.4k, Arzawa 69.3k (370 seconds), Alashiya 40.1k: 356k. Season total 497k. Run 2 so far: 3.50M. Babylonia's and Assyria's agents summarised their orders to me; nothing was passed on.
+- Season 10: 9 audiences in two waves at Egypt, Babylonia (two), Mitanni (two), Assyria (two) and Arzawa (two): 15.7k to 26.6k each, 161k. Orders from six kings: **Hatti got no request**, having fallen in season 9. Egypt 32.5k, Babylonia 43.0k, Mitanni 54.1k, Assyria 45.5k, Arzawa 50.6k, Alashiya 22.6k: 248k. Season total 409k.
+- **Run 2 done**: `seed 7: 10 turns, winner Arzawa, replay ok`. 151 king calls (69 orders, 82 audiences), no retries, no fallbacks. **3.91M king tokens** (orders 2.63M, audiences 1.28M). The run's 151 transcripts, audited on their own, print `AUDIT CLEAN`. Weekly usage went from 58% to 63%. The 5-hour window reset during the run (02:30 UTC), so its figure for run 2 is not comparable.
+- Debrief: seven calls, 70k to 122k each, **659k** in all. The request now said that reply files cannot be opened, and no king attempted it; the guard log has no blocked attempt from run 2 or its debrief.
 
 # Part 3: questions and ideas
 
 References are to commit `23e0a4f` (the base of this round), unless marked "working tree", which means the sleeping seats and file seat added in this round. Each answer gives its status, what the code does today, an assessment, a rough plan, whether it serves the core hypothesis, and whether the simulation could change it. Every answer was researched from the code and then checked claim by claim by a second reader, and corrected.
 
-**The simulation could change every answer except question 20** (dismissal), because each rests partly on how model kings would behave. Each says how; the simulation session updates them in "Simulation results".
+**The simulation could change every answer except question 20** (dismissal), because each rests partly on how model kings would behave. Each says how. **Each answer now ends with a "Simulation result" paragraph** (18 October) saying what the two runs showed and whether the answer changes:
+- It changes questions 4, 9, 13, 15, 16, 17 and 27 outright: island defence, rumours, hybrid envoys, bot credulity, structured clauses, and the verdict.
+- It shifts priorities within most of the others.
+- It leaves 2, 19, 20 and 23 as they were.
+
+Where it gives a code reference of its own, that reference is to the working tree.
 
 ## A. Movement, travel, territory and the tempo of war (questions 1-4)
 
@@ -211,6 +412,8 @@ The rulebook's "1 to 3 seasons" should read "1 or 2 between courts". Make that c
 
 **Simulation could change this:** yes: if model kings often attack before a reply can arrive, that strengthens the case for slower war (sieges first) over changing envoy times. If they misread "1 to 3 seasons", the rulebook fix moves up. The facts about the code stay.
 
+**Simulation result (18 October): it does, toward slower war.** Kings attacked before answers could arrive. In 7 of 10 first attacks between Great Kings in run 1, and 7 of 11 in run 2, the attacker had sent its victim nothing or had not yet read the answer to its last letter. Babylonia struck Assyria in season 1 of both runs, and three sealed tablets were broken in the season they were sealed (run 1). Letters went out every other season; armies moved every season. That supports sieges first. No king misread "1 to 3 seasons": the notes quote the ENVOY TRAVEL table ("2 seasons each way"). The confusion was about *when* a one-season envoy is heard: the dispatch notice arrives a season late, next to "on the road home". So add the audience and return turns to YOUR PEOPLE and to the dispatch notice, besides the rulebook fix.
+
 ### 2. Envoys and gold crossing foreign land
 
 **Status:** not implemented. Travellers have no route, so the land they cross plays no part.
@@ -259,6 +462,8 @@ Stage 3:
 
 **Simulation could change this:** yes, in one direction only: if model kings ask for safe passage or worry about envoys crossing enemy land, stage 1 moves up. Silence proves little, since the seat view shows no routes.
 
+**Simulation result: no change.** No king worried about envoys crossing a third king's land or asked for safe passage through another kingdom. "Free passage of envoys" and "open roads" appeared in about a fifth of all letters, always as a formula between the two courts. Kings did trade road terms as chips: Babylonia offered Mitanni a toll-free road through Mari (run 1) and noted later that it had lied. Stage 1 does not move up. Silence still proves little, since nothing can happen on the road.
+
 ### 3. Passage for allies, and kinds of access
 
 **Status:** not implemented. The engine treats a partner's troops like anyone's, and tablets carry no access terms.
@@ -301,6 +506,8 @@ Basing waits for sieges and supply. Trade rights wait for a trade system.
 **Core hypothesis:** Serves it. An access grant is a trust bet backed by an action, and letters of passage are historical (EA 30). It matters most once war is slower and coalitions must march to a common foe, so build it right after sieges.
 
 **Simulation could change this:** yes: if model kings promise passage in letters, or take a partner's province by marching through it, the missing rule already hurts and moves up. If no king coordinates movement with a partner in 10 seasons, it can wait.
+
+**Simulation result: partly.** No king promised an army passage or marched through a partner, so the missing rule never bit. Partners did coordinate: in run 2 three supports went to another king's units, and two joint blows planned on tablets that named the season worked (Ekallatum in season 5, Kanesh in season 8). Then partners took each other's land: Babylonia took Ashur from its sworn ally (run 1), and Arzawa took Kanesh from Mitanni the season after helping take it (run 2). Access grants can stay right after sieges. Three debriefs asked to see whether an ally actually gave a promised support; showing that in the battle report is cheap and can come first.
 
 ### 4. Fleets, Alashiya, sea zones and meetings on the road
 
@@ -376,6 +583,8 @@ Meetings on the road, after questions 1 and 2:
 **Core hypothesis:** Island defence serves it indirectly: a defensible Alashiya makes its diplomacy matter, so build it inside the sieges package. Finer seas and meetings on the road matter only once travel takes time, so they follow sieges and distance-based travel.
 
 **Simulation could change this:** yes, for fleets and seas: if model kings take Alashiya within a few seasons, island defence moves up. If fleets sit idle for 10 seasons, finer seas stay later. The combat rules and meetings on the road cannot be tested by this run. Misread bounces or convoys would only call for clearer rulebook wording.
+
+**Simulation result: yes, for the island.** Model kings took Alashiya's homeland in both runs. It kept one fleet and no army to save upkeep, and once the plague killed that fleet, Egypt's fleets took Enkomi and Tamassos (run 1, seasons 8-9); in run 2 an Egyptian convoy and a lone Arzawan fleet took both in season 7. Levies ordered to stop it failed, because a levy is placed after movement. So island defence moves up inside the siege package. Fleets were not idle: Egypt raised three in each run and won most of its land with them, and only Egypt convoyed. Finer seas can still wait. Bounces were misread (one attack repeated four seasons, another five), which calls for clearer battle reports, not new rules.
 
 ## Question 5: war must be slower than diplomacy
 
@@ -494,6 +703,8 @@ Balance is frozen against bots. Set the first siege numbers from worked timings 
 **Core hypothesis:** Serves it directly: a siege is the window the vassal letters were written in, with time to plead, bargain and pay. Without that window no letter can change the outcome of a war, so build it next.
 
 **Simulation could change this:** yes: the 10-season run on seed 7 uses today's rules and stops before season 15, so it cannot test sieges. It can show whether model kings take a capital within 10 seasons, and whether threatened kings plead and allies answer within the round trip. If kings seldom attack, start capitals at W2 and skip campaign seasons. If they overrun Arzawa or Alashiya, keep W3 and consider campaign seasons. If pleas go unsent or unanswered, longer wars alone will not produce diplomacy, and the effort should go into relief and the sally. The sleep-on run's wake-up data also shows whether besiegers would really sleep through a siege.
+
+**Simulation result: the urgency is confirmed.** Capitals fell inside ten seasons, mostly fast: Ashur in season 4, three seasons after the first attack (run 1); Enkomi in the first season of attack (run 1) and one season after it (run 2); Hattusa in season 9, seven seasons after the first attack on Hatti (run 2). Assyria and Alashiya (run 1) and Hatti (run 2) were eliminated. Three of the four falls came well below the 5-10 season target band, and kings attacked often, so keep W3 for capitals and do not start at W2. Threatened kings pleaded and allies answered with words: no troops were sent, and the one relief payment (Egypt's 90 shekels to Assyria, run 2) was still on the road when the game stopped. So relief and the sally deserve the effort the answer gives them. No besieger slept: kings repeated assault orders four or five seasons running and would have been woken anyway by envoys and neighbours. Sieges will save calls only with a standing besiege order and wake triggers that ignore static neighbours.
 
 ## Questions 6-7: distance inside the realm, and command at a distance
 
@@ -630,6 +841,8 @@ It fits the long-term tree of trust, which is about how fast information moves a
 - Watch whether kings who lose land write to third courts for help. If they do, messages under siege come with the first siege build.
 - Tablets proposed against tablets sealed, and any king naming the fee as a reason, set the fee.
 
+**Simulation result: partly; it raises news that travels.** Kings follow distant wars from the public map: about 45% of orders notes estimate rivals' provinces or growth from the lands list, and Egypt exposed a two-season-old envoy report against it ("My scribes count two"). Travelling news would give reports value, so step 1 moves up, though kings will miss the free map. Only one king scheduled orders, once, so a delay inside the realm would need default commanders from the start. Kings who lost land wrote to third courts in both runs, so messages under siege belong in the first siege build. Tablets went with 45% and 24% of letters; only kings short of gold named the 20-shekel fee as a reason to skip one, so keep it.
+
 ### 7. Command at a distance
 
 **Status:** idea, not built. The king has no location and is not a person, and units have no commanders.
@@ -705,6 +918,8 @@ Generals with traits, desertion, defection and succession wait. They add a secon
 - The share of fighting more than 2 hops from the capital shows how much distance would bite in short games.
 - In the sleep-on run, how kings use scheduled orders shows whether they can command ahead at all.
 
+**Simulation result: partly.** Model kings handled movement well: no unit order was refused in 134 orders replies, and every refusal concerned people, gold or levies. Their notes already read like intents with limits ("NEVER leave hattusa or kanesh empty", "ABORT/adjust if..."). They invented the excuse this package would supply, blaming generals or captains at least five times, and never an envoy. Half or more of their attacks aimed three or more links from the capital, so distance would bite. But only one king scheduled orders, once, so they do not yet command ahead. The build order stands: generals later, with standing intents from the start.
+
 ## Question 8: pirates and bandits
 
 Line references are at commit 23e0a4f unless marked "working tree".
@@ -771,6 +986,8 @@ Once routes exist, the cost is about one round. The lawlessness state and the ra
 **Core hypothesis:** It serves the hypothesis directly: a deniable raid is unverifiable conflict at its purest, and the primer's Habiru words serve it now, free. The mechanic must wait for sieges and routes, or it adds noise and makes war relatively faster.
 
 **Simulation could change this:** yes: the primer alone may be enough. If agent kings blame lost envoys or call rivals "in league with the Habiru", the words carry much of the value. The mechanic can then wait. If they spot and use the court-list leak, step 1 moves up. The run also counts envoys and gold on the road each season. That sets how disruptive a raid rate would be. Ten seasons with script envoys give a weak signal.
+
+**Simulation result: partly.** The primer's word was used, but as cover for troops, not to blame lost envoys: "Habiru" appears three times, all in run 2 (Babylonia's border armies stand "against raiders and Habiru"; Egypt's army on Cyprus sailed "against the Habiru raiders"). No king called a rival "in league with the Habiru". No envoy was detained or defected, so none was lost and the court-list leak went untested. Nearly every envoy was on the road every season, but little gold: at most 120 shekels on the road in any season. A raid rate would hit letters far more than gold. The mechanic can wait; step 1 stays as planned.
 
 ## B. Economy, disasters and geography (questions 9-11)
 
@@ -849,6 +1066,8 @@ New numbers go in `GameConfig` and DESIGN-NOTES.md, with tests and a replay chec
 
 **Simulation could change this:** yes: seed 7 rolls a drought on Hatti at the end of season 3 (half income in seasons 4-6). It rolls a plague on Alashiya at the end of season 6 (seasons 7-8, one unit lost at once). A script-only run of seed 7 confirms both, and both fall in both runs while the two powers live. Alashiya's plague replays the Nergal letter: watch whether its king uses the excuse. Mitanni, Arzawa and Alashiya hear of the drought in season 4, the other courts in season 5. Watch whether they probe it, exploit it, or ignore it. Watch whether Hatti's war slows: its starting 2 armies and fleet cost 95 a season against about 91 drought income. If kings ignore rumors, step 3 matters less; if they catch or exploit excuses, it matters more. The batch success signals skip catastrophes (`src/Amarna.Game/Signals.cs:29`), so this needs the message trail.
 
+**Simulation result: yes; rumours matter more than expected.** Kings treated rumours as fact and acted on them. Mitanni broke a tablet sealed that same season to take Carchemish, citing Hatti's "harvest failure" (run 1); Assyria urged Mitanni against a Hatti "poor after a failed harvest" (run 2); Egypt still called Hatti starving four seasons after the drought ended. Hatti hid the drought in run 1 ("my granaries are filling") and pleaded with it in run 2. Its war did slow: it lost its fleet and attacked nobody in seasons 4-9 of either run. In run 2 both kings who heard the exaggerated plague rumour ("half the army is dead") struck Cyprus that season. Alashiya used the Nergal excuse to refuse gold in run 2 and hid its losses in run 1. Because a rumour's wording changed what kings did, step 3 (no automatic rumour to every court) matters more. Tag catastrophe rumours in the success signals.
+
 ### 10. Disasters and geography
 
 **Status:** not implemented. Disasters ignore geography, and river-specific floods are an idea, not built.
@@ -888,6 +1107,8 @@ It depends on 9 step 3 and on walls (5). About 2-3 days in all.
 **Core hypothesis:** Partly. Local, shared shocks make some excuses checkable and others not, which serves trust under delay; the Babylon balance side is asymmetry and flavour. It is not the bottleneck, so build it after sieges and walls (5) and the rumor change in 9.
 
 **Simulation could change this:** yes, weakly: seed 7 has no flood or earthquake in 10 seasons, so the rivers cannot be tested. Hatti's drought in seasons 4-6 shows whether neighbours treat a rumor as confirmation, probe it with envoys, or exploit it. If they never react, geography can wait longer. If model Babylonia runs away as the richest power, the case for tempering it grows, though balance stays provisional.
+
+**Simulation result: partly.** Neighbours acted on Hatti's drought rumour without checking it, and envoy reports confirmed it in passing; so regional shocks would be read and used, as the answer expects. Model Babylonia was the richest power almost all game in both runs, and others named it the leader to contain, but it led on growth only briefly and finished second and third behind Arzawa. No case yet for tempering it. Rivers and regional disasters still wait behind sieges and the rumour change in question 9.
 
 ### 11. Trade
 
@@ -948,6 +1169,8 @@ That is the Amarna gift exchange as a trust game, for about half a round of work
 
 **Simulation could change this:** yes: if agent kings already arrange recurring gifts, tribute or "copper for gold" by letter, trade adds less. The same holds if they object unprompted to the conquest of partners or city-states. If they treat peace as worthless and the agent Alashiya finds nothing beyond buying cities, the case for the envoy-trade variant grows. Ten seasons give only an early hint.
 
+**Simulation result: partly; the case for envoy trade grows.** Kings built no trade by letter. No letter mentions tribute. The only repeated gifts were Egypt's three small gifts to Alashiya (run 1), and Egypt took Enkomi the season after the last one. "Copper for gold" was discussed between Egypt and Alashiya in both runs, but copper cannot move ("When your copper moves, my gold will answer"). One exchange did appear: gold for true reports, which Egypt paid to Arzawa and Assyria. Objections to conquest concerned broken oaths and the leader's growth, never lost trade. Alashiya found nothing beyond buying cities ("Nothing left to buy, so the plan is: HOARD gold") and lost its homeland in both runs. Before trade by envoy is tested, fix the audience gold-back bug (Simulation results, "Defects found").
+
 ## C. Characters, envoys, city-states (questions 12-14)
 
 ### 12. What moves the city-states
@@ -986,6 +1209,8 @@ Sleeping seats are built but not yet played by models. With them, a plea should 
 **Core hypothesis:** Better left for later: the core test is trust among the seven kings. City pleas fit the theme, but matter only once sieges hold a city long enough for a letter to travel.
 
 **Simulation could change this:** yes: the facts will not change, but the priority can. If the agent kings fight over particular cities in their letters or promise them protection, the plea step moves up. If two kings deadlock on the elders' bounce, the rule needs a tie-breaker sooner.
+
+**Simulation result: partly.** The elders' bounce deadlocked once in each run. Babylonia and Mitanni bid for Mari three seasons running and wrote about it, until Babylonia took it by force (run 1). Three kings bid for Amurru for six seasons, 16 bids, and it was never sold (run 2): they could not bargain, because the notice never names the rival. Nine of 14 debriefs say the rulebook does not mention the bounce. No king promised a city protection; cities were spoils. So the step for city pleas stays later, and visibility moves up instead of a tie-breaker: one rulebook line, and the rivals named in the notice. Add a tie-breaker only if kings who know their rivals still deadlock.
 
 ### 13. Envoys and cities acting on their traits
 
@@ -1045,6 +1270,8 @@ Do 1 and 2 now, and 4 and 5 alongside. Build 3 next if the first Haiku-envoy gam
 **Core hypothesis:** Serves it now. The envoy's motivated distortion is the mechanism under test, and today's script envoys distort too little and too crudely to test it.
 
 **Simulation could change this:** yes: it is the first game where free-text letters pass through script envoys. It is also the first where hosts can trigger overreach, since the agent kings host audiences through their file seats. The trails will show how often letters arrive intact, whether the filter inverts proposals, and whether kings notice cut sentences or light gold. If letters arrive nearly intact and nobody accuses an envoy, hybrid envoys move to the top of the list. Model envoys are not tested, since the run uses script characters.
+
+**Simulation result: yes; hybrid envoys go to the top.** Letters arrived nearly intact: about half word for word, most of the rest minus the last sentence. All gold carried by envoys that arrived came at full weight and purity. The threat filter cut 12 sentences from 10 letters, and none threatened the host: it deleted a coalition proposal (Egypt to Babylonia, run 1), a non-aggression offer and an acceptance (run 2), an apology and a reassurance, and added a stock wish for peace. Three of the cuts came from envoys fond of the host, not timid ones. It also cut the one qualifier in a promise ("For this season my armies do not march", run 2). Overreach fired twice, both by Paser in run 2, with no consequence. Every bribe came with a specific request, most for army numbers, and none had any effect. No king noticed a cut, since senders never see the spoken text. So, as the answer said, hybrid envoys go to the top, and aiming the filter at the host (step 1) is urgent: today it deletes peace offers and leaves threats untouched.
 
 ### 14. Envoy authority and resident envoys
 
@@ -1109,6 +1336,8 @@ Are hubs desirable? Partly. A hub at a royal court gives a weak, central king po
 
 **Simulation could change this:** yes: the run shows how agent kings write mandates, though with script envoys a mandate's content has no effect. Specific, checkable mandates ("up to 200 shekels, no land") would argue for structured limits sooner. Treaties sent as pre-sealed tablets, complaints that a host cannot counter-propose, or repudiated envoy commitments would confirm authority to seal. Requests for a standing channel would raise residents. The 10-season run is too short to show any drift toward a host.
 
+**Simulation result: partly; authority to seal is confirmed.** Kings sent treaties as pre-sealed tablets (26 and 16 offered, 15 and 10 sealed), and hosts who wanted other terms had to ask for a redraft, in at least six trails per run. Each redraft cost a round trip: the run-1 partition of Assyria took four seasons. A run-2 debrief: counter-offers "only mattered once my own envoy carried them home, two seasons later". A counter-tablet sealed by an envoy holding the seal (steps 1-2) would have saved those legs. Mandates were checkable but almost all negative: every one forbade gold, troops or land, and only three set a gold cap. With script envoys there were no disputes or repudiations, so structured limits can wait. Nobody asked for a resident envoy, so residents stay later.
+
 ## Questions 15-18: model or script characters, bots among models, advisors
 
 Line references are to commit 23e0a4f. Sleeping seats and file seats exist only in the working tree: built, but not yet played by models.
@@ -1167,6 +1396,8 @@ About a day for steps 1-3 with tests. It depends on nothing else.
 
 **Simulation could change this:** yes: the run pairs seven agent kings with script characters. If kings never suspect or accuse envoys because relays are near verbatim, model-voiced envoys move up. If kings already suspect and accuse script envoys, scripts may do for minor roles. The run cannot show whether Haiku envoys are too honest; that needs a run with Haiku characters.
 
+**Simulation result: yes; model-voiced envoys move up.** Every king in both runs suspected its own envoys, mostly because of where they were born, but none accused, detained or dismissed one: script relays are near verbatim, so suspicion never found evidence. Eight debriefs say the envoys' stock lines carry no information and ask to see what the envoy actually said. This is the case the answer named. Run the Haiku-envoy game next, and build the hybrid (engine decides, model voices) at once if Haiku envoys prove as faithful. Scripts can stay for spies, pitches and memory summaries.
+
 ### 16. Bots blind to their opponents
 
 **Status:** partly implemented. Bots are blind to who sits in other seats and expect tactical surprises. They trust sealed tablets too easily, and never fight back against a sworn ally who betrays them.
@@ -1215,6 +1446,8 @@ About half a day for steps 1-4, and a day for steps 5-8.
 **Core hypothesis:** Blind, equal seats are a precondition for clean experiments, so steps 1-4 belong now. Credulity matters only where bots meet models or humans, so steps 5-8 can wait for mixed tables.
 
 **Simulation could change this:** yes, for the anticipation part: the run shows how often agent kings break sealed oaths and attack partners. If often, steps 5-8 move ahead of any mixed table. Blindness is a code fact. With no script kings except fallbacks, the run cannot show whether models spot bots.
+
+**Simulation result: yes; credulity comes before any mixed table.** Model kings break sealed oaths often and on purpose. Conquest broke 9 of the 25 sealed tablets within ten seasons, including two sworn alliances, and most breaches were planned in the breaker's notes when it sealed ("It binds nobody; I intend to break it"). The winner broke tablets in both runs. Against such players, a bot that trusts any sealed tablet and keeps a betraying ally as a friend would be farmed. So steps 5-8 move ahead of any mixed table, and the ally fix (step 1) is urgent. Whether models spot bots stays untested: there were no fallbacks.
 
 ### 17. Bots and models at one table
 
@@ -1270,6 +1503,8 @@ Not planned: a model translating free text for bots. It would end free, determin
 
 **Simulation could change this:** yes: the agent kings write to each other in free text, which shows what bots would miss. If kings rarely name a coalition target in other words, or make conditional offers and requests, steps 1-2 suffice. If they often do, structured clauses move up. The seat report also shows how many fallbacks a real game produces.
 
+**Simulation result: yes; structured clauses move up.** Kings named coalition targets in their own words: only 4 of 13 sealed tablets that name a target use the "against <Power>" form the bots read; the rest say "The Assyrian is the foe of both", "strike Assyria together" or "Against Assyria". In run 2 five tablets were already structured clauses in free text ("In turn 8 Arzawa's army at Tuwanuwa supports Mitanni's move Isuwa -> Kanesh"), and about a third of letters made conditional offers. So steps 1-2 are not enough: structured clauses (step 6), especially "support A to B in season N", "against X" and "cede or hold a province", move up to just after the bug fixes. A real game produced no fallbacks.
+
 ### 18. Advisors
 
 **Status:** idea, not built. There is no advisor or advice code in `src` at 23e0a4f.
@@ -1309,6 +1544,8 @@ About 1-2 days. It depends on nothing else.
 **Core hypothesis:** Indirectly, and not first. It helps only if tactical blunders drown the diplomatic signal. Build it after the first model games if they show that, then reuse it for script generals.
 
 **Simulation could change this:** yes: the seat report counts invalid orders and fallbacks per king, and the logs show blunders. Many invalid orders, units lost to obvious supported attacks, or notes spent on adjacency move the advisor up. Clean tactics drop it to a convenience for humans. Agent kings may out-play Sonnet at medium effort, so clean tactics here would not prove the same for Sonnet.
+
+**Simulation result: partly; fix the view, not an advisor.** No unit order was refused in 134 orders calls, and most notes were full of support arithmetic. The losses came from missing rules and reports: kings did not know a levy is placed after movement (six failed levies, provinces lost in the same seasons), and battle reports give no strengths, so attacks were repeated for four or five seasons. Those are view fixes. The advisor stays a convenience for humans. These agents had full context and thinking, so a Sonnet API king at medium effort may still blunder more.
 
 ## D. Characters' careers and contracts (questions 19-22)
 
@@ -1384,6 +1621,8 @@ Later:
 
 **Simulation could change this:** yes: a caught spy would show whether agent kings ransom, turn or execute, and whether bug 2 produces rejected dispatches. Agent kings bargaining by letter for detained envoys would raise step 5. Captures will be rare in 10 seasons, at 2% per spy per season without watchmen. Bug 4 may show as kings naming foreign spies at their court. Characters are scripts in the run, so the captive's side stays formula-driven.
 
+**Simulation result: no change; nothing to observe.** No spy was posted: the kings did not understand the order (two spy orders named nobody, one named a man not in service), and no envoy was detained. So no capture, ransom or bargain took place, and bugs 2 and 4 did not show. Before captures can be tested, the rulebook needs one line saying a spy is one of your own people at court, and the costs and odds of spies and checks.
+
 ### 20. Dismissal and employment history
 
 **Status:** partly implemented. A king can dismiss anyone in his service, and it is quiet by default, but employment history is not a fact.
@@ -1448,6 +1687,8 @@ About one to two days, with no new systems.
 
 **Simulation could change this:** no. The facts come from the code, script kings never dismiss, and ten seasons give an agent king little reason to.
 
+**Simulation result: confirmed.** No king dismissed anyone in either run. The answer stands.
+
 ### 21. Characters leaving on their own
 
 **Status:** partly implemented. Characters leave over missed pay, at contract end and by defecting at an audience, but they never look for work while employed.
@@ -1499,6 +1740,8 @@ Not worth doing: retiring on a full purse. It removes known figures from a pool 
 **Core hypothesis:** Serves it in part: envoys who change sides after long unpaid detention, and loyalty bought away, are mediated trust, and step 5 fits best. All of it is second order, after war tempo and the contract fix in question 22.
 
 **Simulation could change this:** yes: the run shows whether agent kings leave wages unpaid, whether they offer service to visiting envoys, and how often script envoys accept. Frequent poaching would make step 3 urgent. None at all would suggest the offer is buried in the rulebook. Starting envoys will not reach their contract check, which first runs in season 11. People hired or defecting in seasons 1–3 come up by season 10.
+
+**Simulation result: partly.** No king offered service to a visiting envoy (0 of 146 audience replies), and none poached, although the option is in every audience request. Wages count against the score ("wages cut strength", Arzawa) and an envoy's quality is hidden, so a host has no reason to want one. Unpaid wages happened once (run 2 Hatti, abroad) with no consequence. Poaching does not make step 3 urgent; if envoys are to change hands, show something of their skill or make step 5 cheap.
 
 ### 22. Contracts: wage, term, renewal and price
 
@@ -1569,6 +1812,8 @@ Steps 4–7 depend on nothing else.
 
 **Simulation could change this:** yes: ten seasons do not reach the starting-contract check, so the cliff will not show. Only hires from seasons 1–3 come up for renewal. It can show whether agent kings hire at all, bid below the ask, overpay, or react to "wage X until turn 10". To see the cliff, play to about season 14 or shorten the starting term. Characters are scripts in the run, so pitches and renewals stay formula-driven.
 
+**Simulation result: partly; the warning line misled every king.** The cliff itself starts in season 11 and was not reached. But all 14 debriefs ask what "wage X until turn 10" means, and 14 orders tried to renew a contract by hiring one's own envoy and were refused (the engine renews by itself, but only at court and only if content). Computed with the code's formula, 11 of the 14 starting envoys on seed 7 would quit at the first check. Kings also bid blind below the ask, because free people at court show no price: in run 1 Mitanni offered 10, 14, 16 and 20 before hiring its first new envoy at 30 in season 6. So steps 1 and 3 move into the bug-fix round, with two view fixes: show every free person's asking price, and replace "until turn N" with what happens then. A renewal order (step 4) is clearly wanted.
+
 ## E. Victory and threat (questions 23-25)
 
 ### 23. Shared victory
@@ -1621,6 +1866,8 @@ Effort: about two hours, plus batch time.
 **Core hypothesis:** Serves it now. Today the score pays for a sealed flag, not for kept trust, and hands the leader's ally a win for bandwagoning. Without it, alliances hold or break only on what each king expects of the other.
 
 **Simulation could change this:** yes. *Since 18 October the simulation runs with shared victory off, so the kings never read the rule; the rest of this paragraph was written for it on.* The simulation runs with shared victory on and `--max-turns 10`. So `DecideWinners` runs after season 10 (`TurnEngine.cs:449`) and can award a shared win. The kings believe no game ends before turn 15, so end-game manoeuvring will not show. The game can show whether model kings tick `sworn_alliance`, put it on coalition tablets, and use "seal and we both win" as a bargaining chip. Heavy use argues for a discounted version. No use means removal costs nothing.
+
+**Simulation result: no change.** With shared victory off, kings ticked `sworn_alliance` as a label (13 and 3 letters), sealed 5 and 2 sworn tablets, and broke two of them. Nobody used a shared win as a bargaining chip. Three debriefs say they could not tell what the flag does. Removing shared victory costs nothing, as the answer said; finish step 2 by dropping the field or describing it as having no effect.
 
 ### 24. Security threat and victory threat in the script kings
 
@@ -1676,6 +1923,8 @@ Value: moderate. It gives better script opponents and more varied coalition lett
 **Core hypothesis:** Serves it indirectly, and later. Kings who disagree about the threat give envoys something to argue, bribe and lie about, but this is bot quality, not communication. It ranks after slower war and the scoring decision.
 
 **Simulation could change this:** yes: model kings work the threat out from the rulebook. If they turn on a small king at growth 1.3 once the median king has grown, which the script kings' leader test rules out, the script kings are naive and this change moves up. If they also ignore small growers, the current gates match capable play and the change can wait. One 10-season game is thin evidence either way.
+
+**Simulation result: partly.** Model kings weigh each rival's growth, allies included, and let it decide whether to help or betray: Egypt, of its sworn ally Babylonia, "is the leader: do not feed it"; Arzawa ended its pact with Mitanni because "it only ever feeds Mitanni". They turned on the perceived leader, but late: two to three seasons after it took the lead, and in run 1 only Mitanni, in the last season, named the eventual winner. Most debriefs asked for a scoreboard. The specific test, a small king attacked below the bots' 0.8 × median gate, did not arise. A per-rival victory threat (steps 2-5) is closer to how these kings played, but it waits for the shared score function; a coarse public scoreboard would change model play sooner.
 
 ### 25. Relative growth as the measure of victory
 
@@ -1752,6 +2001,8 @@ Later, once model games exist:
 
 **Simulation could change this:** yes: one 10-season game cannot measure normalisation or par, but it can change priorities. Watch whether model kings save gold rather than keep troops (units count zero), or buy cities knowing a purchase is neutral. Watch whether any king notices that strength minus land reveals its true gold. Any of these would raise the priority of the fixes, not change their content.
 
+**Simulation result: partly; the kings read the score exactly.** They called purchases "strength-neutral" and computed paybacks, and they shed troops because units count zero: Babylonia disbanded three armies ("Gold counts as strength, so do not spend it") and ended with 1,250 gold. For small kings that was fatal: Alashiya fell in run 1 holding 302 gold and no army. Bought walled cities were a poor store of value: 6 of the 16 bought were later taken. A weak power won both runs. This raises the priority of the shared score function and the price tie (steps 1-3) and ties question 25 to sieges. Keep collecting model games before choosing a normalisation. The true-gold leak was fixed before the runs, so it could not show.
+
 ## F. Presentation and overall (questions 26-27), and the prioritized list
 
 ### 26. Year and season on screen, and 1360 BCE as the start year
@@ -1818,6 +2069,8 @@ Steps 1-3 belong with the web display of sleeping seats. Steps 4 and 6 can come 
 
 **Simulation could change this:** yes: for the prompt side only. If the agent kings mistime things, such as expecting an envoy back early, the turn must stay first and steps 1-3 move up. If they bring in later history (Mitanni's fall, Suppiluliuma's Syrian wars) with only the era given, a precise year stays out of prompts for good. The dating facts behind the start-year advice cannot change.
 
+**Simulation result: partly.** The kings reckoned only in turns, computed arrival turns correctly where checked, and almost never used season names, so the turn stays first. Their timing mistakes came from lag and stale content: answering audiences without the season's news, reading messages spoken seasons earlier, and "on the road home" beside "has set out". So steps 1-3 move up, with three additions to the prompt: each envoy's audience and return turns, the turn each message was spoken, and the season's news in audience requests. No king brought in later history with only the era given, so the precise year stays out of prompts.
+
 ### 27. Is the game coming together, and is it any good?
 
 **Status:** partly implemented. Milestones 1-6 are built and tested offline. No model has played a game, and the agent simulation has not run yet.
@@ -1881,15 +2134,36 @@ The weaknesses, most serious first:
 
 The run has limits. The game stops after season 10, while the kings are told no game ends before turn 15, so end-game behaviour goes untested. Envoys are scripts, so the Haiku envoy goes untested. One seed and two runs are anecdote, not statistics. Each king call is a fresh agent whose only memory is its journal, which is also all an API king gets.
 
+**Simulation result: the trust game among the kings works; the envoys do not yet.** Over ten seasons the kings bargained partitions through several letters, sealed 25 tablets, planned lies in their notes, broke 9 tablets, and showed broken tablets to third courts as evidence. They were neither uniformly honest nor indifferent to envoys, and the winner broke tablets in both runs. That is the answer's first case. The weak links are elsewhere: envoys were faithful couriers whose filter deleted the wrong sentences; spies, forgery, checks, detention and poaching went unused; war took whole kingdoms between letters; and the view hid rules that cost 43 refused orders. So the verdict becomes: it works on the kings' side; make the envoys distort with a motive, fix the view and rulebook, slow war down, then measure. One seed, ten seasons and script envoys mean the core mechanic is still unproven.
+
 ## What to do next
 
 **Done this round, before the simulation:** the true-gold leak (question 25), whole-word threat matching (question 13), and shared victory switched off (question 23), each in its own commit.
 
-**Still in this round: run the agent simulation.** The kit is in `sim/` and the start prompt in `docs/SIMULATION-PROMPT.md`. It is the first look at model kings, at no API cost, and it tests whether the seat view is understood. It runs with the bugs in item 1 still in place. Its ten seasons keep the contract cliff out of view (it starts in season 11), but a captured spy or a repeated ransom can show; record any that do. Read the trail by hand, not the signal counts. Its results go in "Simulation results" above and may reorder the list below; the signs to watch for are under question 27.
+**Done this round, after the fixes: the agent simulation** ("Simulation results" above). No spy was posted and no captive taken, so neither the captured-spy bug nor the repeated ransom showed. The contract cliff stayed out of view, but its warning line misled every king. The simulation changes the list below in four ways:
+- The view and rulebook fixes join item 1.
+- Two new engine bugs join item 1.
+- The Haiku-envoy game in item 2 becomes the test of the core mechanic.
+- Item 6 gains the finding that envoys keep every court awake.
 
 **Next round**, in order:
 
-1. **Fix the bugs that would still mislead model kings** (about 2-3 days). Each of these makes a game read wrong, whatever the kings do:
+1. **Fix the bugs that would still mislead model kings** (about 3-4 days with the simulation's additions). Each of these makes a game read wrong, whatever the kings do:
+   - **from the simulation, engine:**
+     - gold sent back in an audience's first round is lost if the last round sets 0 (`TurnEngine.Envoys.cs:286-290`)
+     - a purchase vanishes without notice when the city falls that season (`TurnEngine.cs:371`)
+     - battle reports hide moves from out of sight into a visible province (`TurnEngine.cs:310`)
+     - the seat report misses failed levies
+   - **from the simulation, the seat view and rulebook** (about a day; "What in the seat view was unclear" above):
+     - the order of steps within a season: levies after movement, gold reserved in reply order with no "else", and a hire settled at the end of the season
+     - what happens when a contract term ends
+     - the rival-buyer bounce
+     - public standings
+     - the season's news in audience requests
+     - the audience and return turns of each envoy
+     - intelligence costs, and what a plant is for
+     - descriptions for the greeting flags
+     - the dislodgement and desertion rules
    - starting envoys resigning by formula from season 11, the contract cliff: about 9 in 10 quit (question 22, plan steps 1-3)
    - a captured servant shown in its master's view as at court and ready for a mission (question 19, plan step 2)
    - repeated ransoms: a host re-issues the demand every season, and a payment is accepted for any open demand, even after the captive is free (question 19, plan step 1)
@@ -1908,11 +2182,17 @@ The run has limits. The game stops after season 10, while the kings are told no 
      - aiming the threat filter at the host (question 13 step 1, the part not done)
      - telling the host when a captive order does nothing (question 19 step 4)
      - the dismissal edge cases (question 20 step 5)
-2. **First live games on a spend-limited key** ($3 cap, as the design document's process notes say). Play one with Sonnet kings and script characters, then one with Haiku envoys. The simulation uses script envoys, so the Haiku envoy, which carries the core mechanic, has never run. These games also measure real cost, fallback rate and turn time. Play them on today's rules, as the baseline for what sieges change. The hybrid envoy (question 15): build it next, before sieges, if Haiku envoys relay too faithfully or refuse every bribe.
+2. **First live games on a spend-limited key** ($3 cap, as the design document's process notes say). Play one with Sonnet kings and script characters, then one with Haiku envoys. The simulation uses script envoys, so the Haiku envoy, which carries the core mechanic, has never run. The simulation showed why that matters: script envoys relayed nearly word for word, delivered every lot of gold whole and took no bribe that changed anything, so mediation had almost no effect (questions 13 and 15). These games also measure real cost, fallback rate and turn time. Play them on today's rules, as the baseline for what sieges change. The hybrid envoy (question 15): build it next, before sieges, if Haiku envoys relay too faithfully or refuse every bribe.
 3. **Sieges, walls and terrain as one package** (question 5), with slow absorption (question 9) and envoys leaving a besieged city (question 5, step 12). This is pillar 8. A capital must hold out longer than a plea for help takes to be answered. Until then letters cannot change a war, and a failed test proves nothing. It is the largest build: several days across engine, adjudicator, bots, prompts and tests. Tune it against model games, not bots, and watch for stalemate. Alashiya is one check: with shared victory off it never wins against script kings (DESIGN-NOTES.md, "Balance (script kings)"). Set the new game length from data.
 4. **Make measurement ready** (about a day). Write a fixed rubric per success signal, scored by a model judge, checked against about 20 hand-labelled messages. Ten games cannot be compared if each is read differently.
 5. **One score function** (question 25). A shared scoring function for engine and bots, with the city price derived from the score weight. Then put the bots' victory threat on the same function (question 24). Kings chase the score, so the bots must chase the same one. Leave the normalisation until about 50 model games.
-6. **Sleeping seats, second step.** Add conditional orders, and set the sleep cap from the lengths seats chose. Show dates as season plus turn, with an ending indicator (question 26). Siege-paced games run longer, and sleep is what makes them affordable.
+6. **Sleeping seats, second step.** First make sleeping possible. In the simulation nobody slept, and replaying both games shows that the default triggers would have woken a sleeping seat in 117 of 120 seat-seasons. Envoys did most of it: a foreign envoy waiting, or one's own envoy home, woke a court in 86-94% of seat-seasons. So:
+   - Send a returning envoy to the digest unless the king asked to be woken for it. An audience is answered in its own call anyway.
+   - Make the border trigger ignore a neighbour's moves inside its own land.
+   - Say in the rulebook what sleeping is for.
+   - Then add conditional orders, and set the sleep cap from the lengths seats choose.
+
+   Show dates as season plus turn, with an ending indicator (question 26). Siege-paced games run longer, and sleep is what makes them affordable.
 7. **Next layer, once sieges work:** mandates with authority to seal (question 14), passage grants (question 3), and news that travels (question 6, step 1). Each is a trust bet carried by mediated, delayed communication. Each matters more once wars take time.
 8. **The experiment itself:** at least 10 full model games read against the success signals, the primer on and off, and one model comparison. That is what the prototype is for.
 
@@ -1923,7 +2203,7 @@ The run has limits. The game stops after season 10, while the kings are told no 
 - Pirates and bandits (question 8) and trade (question 11). Both need routes that take time.
 - Geographic disasters and varying output beyond slow absorption (questions 9 and 10).
 - Resident envoys (question 14) and speaking city-states (question 12).
-- Advisors (question 18), unless model games show many invalid orders or tactical blunders.
+- Advisors (question 18), unless model games show many invalid orders or tactical blunders. The simulation showed neither: no unit order was refused, and the blunders came from rules the view does not state.
 - Careers beyond the bug fixes: dismissal, quitting, wage bargaining (questions 20-22).
 - Score normalisation or par (question 25), until about 50 model games.
 - More bot or balance tuning, multiplayer, an installable app, art and sound.
