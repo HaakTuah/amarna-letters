@@ -28,7 +28,8 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         """;
 
     /// <summary>Who you are: persona, the facts of your own life, and your memory. Nothing about anyone else.</summary>
-    public static string Self(Character c, int turn)
+    /// <param name="asOf">For a report written of an earlier season (a spy's, written when it arrives): what you remember only up to that season.</param>
+    public static string Self(Character c, int turn, int? asOf = null)
     {
         var sb = new StringBuilder();
         sb.AppendLine(c.Persona);
@@ -38,7 +39,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         if (c.SecretMaster is { } m) sb.AppendLine($"In secret you serve {m.Land()} ({m}), and you protect its interests.");
         sb.AppendLine($"Your purse holds {c.Purse} shekels. It is now season {turn}.");
         if (c.MemorySummary.Length > 0) sb.AppendLine("Long ago: " + c.MemorySummary);
-        var recent = c.Memory.TakeLast(10).ToList();
+        var recent = c.Memory.Where(m => asOf is null || m.Turn <= asOf).TakeLast(10).ToList();
         if (recent.Count > 0)
         {
             sb.AppendLine("What you remember:");
@@ -47,7 +48,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         return sb.ToString();
     }
 
-    private Task<System.Text.Json.Nodes.JsonObject> Ask(string key, int turn, string role, Character c, string user, System.Text.Json.Nodes.JsonObject schema, CancellationToken ct) =>
+    private Task<System.Text.Json.Nodes.JsonObject> Ask(string key, int turn, string role, Character c, string user, System.Text.Json.Nodes.JsonObject schema, CancellationToken ct, int? asOf = null) =>
         client.CallJsonAsync(new CallSpec
         {
             Key = key,
@@ -55,7 +56,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
             Role = role,
             Model = model,
             SharedSystem = SharedSystem,
-            SeatSystem = Self(c, turn),
+            SeatSystem = Self(c, turn, asOf),
             User = user,
             Schema = schema,
             Effort = "low",
@@ -142,7 +143,9 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 user.AppendLine("This season you observed: " + string.Join(" ", r.Observations));
                 if (!string.IsNullOrWhiteSpace(r.Poison)) user.AppendLine($"Your secret masters want your lord to hear this, as if you had seen it yourself: \"{r.Poison}\"");
                 user.AppendLine("Write your report home, to be carried by a trusted messenger.");
-                var json = await Ask($"t{ctx.Turn}/spy/{c.Id}", ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct);
+                // Written when it arrives, of the season it was observed: the spy remembers nothing that happened to it since
+                // (such as its capture), so the report cannot tell its master what the master has not heard.
+                var json = await Ask($"t{ctx.Turn}/spy/{c.Id}", ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct, asOf: r.ObservedTurn > 0 ? r.ObservedTurn : null);
                 return new MindReply { Text = Parse.Field(json, "report") };
             }
             case MindTask.SummarizeMemory:

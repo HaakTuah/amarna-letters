@@ -140,6 +140,18 @@ public class ModelLayerTests
     }
 
     [Fact]
+    public void A_spy_writing_a_report_of_an_earlier_season_remembers_nothing_since()
+    {
+        var c = GameFactory.NewGame(11).Characters[0];
+        c.Remember(3, "I watched the court of Hatti and saw its armies.");
+        c.Remember(4, "I was caught spying in Hatti. I told them I serve Egypt.");
+        var then = LlmCharacterMind.Self(c, 5, asOf: 3);
+        Assert.Contains("I watched the court of Hatti", then);
+        Assert.DoesNotContain("I was caught", then);
+        Assert.Contains("I was caught", LlmCharacterMind.Self(c, 5));
+    }
+
+    [Fact]
     public async Task Envoy_requests_never_mention_other_characters_hidden_facts()
     {
         var choices = new SeatChoices { Characters = CharacterKind.Haiku };

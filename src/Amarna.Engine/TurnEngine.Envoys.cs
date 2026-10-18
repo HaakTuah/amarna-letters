@@ -233,6 +233,7 @@ public sealed partial class TurnEngine
         // What the sender knows of its envoy before the audience: if the envoy is held or goes over to the host,
         // its lord goes on seeing it on the road home until word comes.
         var seenBySender = Views.Character(S, c, sender);
+        var knownBySender = c.FactsKnownTo(sender).Select(f => f.Id).ToList();
         var detained = false;
         var defected = false;
         var giftTaken = false;
@@ -332,7 +333,7 @@ public sealed partial class TurnEngine
 
         var expectedHome = S.Turn + TravelTurns(host, sender);
         if (defected || detained)
-            CoverFor(c, sender, Duty.EnvoyHomebound, "on the road home", "travelling", seenBySender);
+            CoverFor(c, sender, Duty.EnvoyHomebound, "on the road home", "travelling", seenBySender, knownBySender);
         if (defected)
         {
             Overdue(sender, c, host, expectedHome);
@@ -349,8 +350,13 @@ public sealed partial class TurnEngine
         else SendHome(c, host, cargo);
     }
 
-    /// <summary>The sender hears that its envoy is overdue a season after it was due home: the news that ends its cover.</summary>
-    private void Overdue(Power sender, Character c, Power host, int when)
+    /// <summary>
+    /// The sender hears that its servant is overdue a season after it was due home: the news that ends its cover.
+    /// The word is not sent if the servant has stood at the sender's court since, and is not told once the sender
+    /// no longer believes anything of it (it heard of a death, or dismissed the servant).
+    /// </summary>
+    /// <param name="place">Where it was last sent, if not a court (a province it watched).</param>
+    private void Overdue(Power sender, Character c, Power host, int when, string? place = null)
     {
         if (!S.IsAlive(sender)) return;
         S.Journeys.Add(new Journey
@@ -363,7 +369,7 @@ public sealed partial class TurnEngine
             To = sender,
             CharacterId = c.Id,
             News = NewsKind.Overdue,
-            Text = $"{c.Name} has not returned from the court of {host}. No word has come.",
+            Text = $"{c.Name} has not returned from {place ?? $"the court of {host}"}. No word has come.",
         });
     }
 
@@ -440,15 +446,23 @@ public sealed partial class TurnEngine
             ReleaseCaptive(host, c);
             return;
         }
+        LetEnvoyGo(host, c, r.Reply);
+    }
+
+    /// <summary>
+    /// A detained envoy let go sets out for home. Its lord goes on believing what it believed (on the road home,
+    /// or that it has not returned) until the envoy stands at its court again.
+    /// </summary>
+    private void LetEnvoyGo(Power host, Character c, string? reply)
+    {
+        if (c.Employer is { } lord) CoverFor(c, lord, Duty.Detained);
         c.HeldBy = null;
-        // On the road home, as its lord believed all along.
-        c.Cover = null;
         var trail = Trail(c.CurrentTrail);
-        if (trail is not null && !string.IsNullOrWhiteSpace(r.Reply))
-            trail.Exchanges.Add(new Exchange { Host = $"(on release) {Greeting.Cap(r.Reply, MaxSpeech)}", Envoy = "" });
+        if (trail is not null && !string.IsNullOrWhiteSpace(reply))
+            trail.Exchanges.Add(new Exchange { Host = $"(on release) {Greeting.Cap(reply, MaxSpeech)}", Envoy = "" });
         trail?.Outcomes.Add($"released by {host} in turn {S.Turn}");
-        c.Remember(S.Turn, $"The king of {host.Land()} let me go" + (string.IsNullOrWhiteSpace(r.Reply) ? "." : $", saying: \"{Greeting.Cap(r.Reply, 300)}\""));
-        S.Notify(host, InboxKind.Notice, "Envoy released", $"{c.Name} has been allowed to leave.", c.Id);
+        c.Remember(S.Turn, $"The king of {host.Land()} let me go" + (string.IsNullOrWhiteSpace(reply) ? "." : $", saying: \"{Greeting.Cap(reply, 300)}\""));
+        if (S.IsAlive(host)) S.Notify(host, InboxKind.Notice, "Envoy released", $"{c.Name} has been allowed to leave.", c.Id);
         S.Log("release", $"{host} released {c.Name}.", [host]);
         SendHome(c, host, new HomeCargo { TrailId = c.CurrentTrail ?? "", Observations = Observe(c, host), WasDetained = true });
     }
@@ -491,6 +505,8 @@ public sealed partial class TurnEngine
             }
             case MindTask.Pitch:
                 if (c is null || !c.IsAvailableForHire) return;
+                // A court that still believed this person away in its service now sees it seeking service: that is the news.
+                c.Covers.RemoveAll(k => k.For == req.Court);
                 c.Pitches[req.Court] = text;
                 c.AskingPrice[req.Court] = Math.Clamp(reply.Number, 5, 400);
                 S.Notify(req.Court, InboxKind.Candidates, $"{c.Name} seeks service",
@@ -564,7 +580,7 @@ public sealed partial class TurnEngine
     /// </summary>
     private void Dismiss(Power p, Character c)
     {
-        if (c.Cover is { } cover && cover.For == p) c.Cover = null;
+        if (c.CoverOf(p) is { } cover) c.Covers.Remove(cover);
         else if (c.Employer != p) return;
         var notice = $"{c.Name} has been dismissed.";
         if (c.Employer != p || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured))
@@ -649,6 +665,7 @@ public sealed partial class TurnEngine
                     if (c is null) break;
                     var rng = R("check", task.Id);
                     var found = new List<string>();
+                    var cover = c.CoverOf(task.Requester);
                     foreach (var f in c.Facts)
                     {
                         if (f.KnownBy.Contains(task.Requester)) continue;
@@ -660,6 +677,8 @@ public sealed partial class TurnEngine
                         };
                         if (!rng.Chance(p)) continue;
                         if (f.Secrecy != Secrecy.Public) f.KnownBy.Add(task.Requester);
+                        // A servant the court believes away: what the inquiries found shows in its court list, as for any servant.
+                        else if (cover is not null && !cover.FactIds.Contains(f.Id)) cover.FactIds.Add(f.Id);
                         found.Add(f.Text);
                     }
                     MindRequests.Add(new MindRequest { Id = S.NewId("r"), Task = MindTask.CheckReport, CharacterId = c.Id, Court = task.Requester, TaskId = task.Id, Facts = found });
@@ -672,7 +691,8 @@ public sealed partial class TurnEngine
                 case TaskKind.RansomDemand:
                     S.Tasks.Remove(task);
                     var held = S.FindCharacter(task.CharacterId);
-                    if (held is { Status: CharacterStatus.Captured } && task.Other is { } jailer)
+                    // A demand that lapses while a newer one for the same captive is on the road: the captor waits for that one.
+                    if (held is { Status: CharacterStatus.Captured } && task.Other is { } jailer && !S.Tasks.Any(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == held.Id))
                         S.Notify(jailer, InboxKind.Notice, "No ransom came", $"No ransom has come for {held.Name}. They remain your captive.", held.Id);
                     break;
             }

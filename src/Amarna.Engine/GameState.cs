@@ -198,8 +198,11 @@ public sealed class Character
     public Dictionary<Power, int> AskingPrice { get; set; } = new();
     /// <summary>Courts this character has pitched to, with the pitch text.</summary>
     public Dictionary<Power, string> Pitches { get; set; } = new();
-    /// <summary>What its master still believes of it, after something happened abroad that the master cannot see.</summary>
-    public Cover? Cover { get; set; }
+    /// <summary>
+    /// What courts it serves or served still believe of it, after something happened abroad that they cannot see:
+    /// at most one per court (an envoy that went over to a host may be covered for its old master and its new one).
+    /// </summary>
+    public List<Cover> Covers { get; set; } = new();
     /// <summary>The court it last served, once that service ended by dismissal or by the court's fall.</summary>
     public Power? FormerEmployer { get; set; }
 
@@ -209,12 +212,16 @@ public sealed class Character
 
     public IEnumerable<Fact> FactsKnownTo(Power p) =>
         Facts.Where(f => f.Secrecy == Secrecy.Public || f.KnownBy.Contains(p));
+
+    /// <summary>What <paramref name="p"/> still believes of this character, if it has not heard what happened to it.</summary>
+    public Cover? CoverOf(Power p) => Covers.FirstOrDefault(k => k.For == p);
 }
 
 /// <summary>
 /// A servant abroad whose master cannot see what happened to it (caught as a spy, detained, gone over to
-/// the host, put to death) keeps appearing to that master as it was, until word of it comes: a rumour,
-/// the servant's return, or the master dismissing it. Its master keeps paying the wage it believes it owes.
+/// the host, put to death, let go) keeps appearing to that master as it was, until word of it comes: a
+/// rumour, a report from it, the servant standing at the master's court, or the master dismissing it. Its
+/// master keeps paying the wage it believes it owes.
 /// </summary>
 public sealed class Cover
 {
@@ -225,12 +232,18 @@ public sealed class Cover
     public Duty Believed { get; set; }
     /// <summary>Set when the master believes the servant is held captive at that court: its view then reads as a captive's.</summary>
     public Power? HeldAt { get; set; }
+    /// <summary>The master recalled a spy it believed at its post: it believes it on the road home, and so it comes home if it is turned.</summary>
+    public bool Recalled { get; set; }
     public string DutyText { get; set; } = "";
     public string WhereText { get; set; } = "";
     public int Wage { get; set; }
     public int? ContractUntil { get; set; }
-    /// <summary>What the master knew of the servant then (a public fact added since, such as a defection, stays unseen).</summary>
-    public List<string> Facts { get; set; } = new();
+    /// <summary>
+    /// The facts the master knew of the servant then, and public ones its inquiries have found since. A public fact
+    /// added meanwhile, such as a defection, stays unseen until an inquiry finds it; hidden facts the master learns
+    /// show as for any servant.
+    /// </summary>
+    public List<string> FactIds { get; set; } = new();
 }
 
 public enum JourneyKind { EnvoyOutbound, EnvoyHomebound, SpyOutbound, SpyReport, SpyHomebound, Rumor, Ransom }

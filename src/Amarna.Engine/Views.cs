@@ -165,7 +165,7 @@ public static class Views
         foreach (var c in s.Characters)
         {
             // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
-            if (c.Cover is { } cover && cover.For == p)
+            if (c.CoverOf(p) is not null)
             {
                 v.Court.Add(Character(s, c, p));
                 continue;
@@ -200,7 +200,7 @@ public static class Views
 
     public static CharacterView Character(GameState s, Character c, Power viewer)
     {
-        if (c.Cover is { } cover && cover.For == viewer) return Covered(s, c, cover);
+        if (c.CoverOf(viewer) is { } cover) return Covered(s, c, cover);
         var ours = c.Employer == viewer;
         var captive = ours && c.Status == CharacterStatus.Captured && c.HeldBy is not null;
         return new CharacterView
@@ -213,7 +213,8 @@ public static class Views
             Employer = ours || c.Status == CharacterStatus.Employed && c.At == viewer ? c.Employer : null,
             Duty = captive ? CaptiveText(s, c.Id, c.HeldBy!.Value, viewer) : ours ? DutyText(c) : "",
             Where = ours || c.At == viewer ? WhereText(c, viewer) : "",
-            Wage = ours ? c.Contract?.Wage : null,
+            // A captive draws no wage while it is held.
+            Wage = ours && !captive ? c.Contract?.Wage : null,
             ContractUntil = ours ? c.Contract?.UntilTurn : null,
             KnownFacts = c.FactsKnownTo(viewer).Select(f => f.Text).ToList(),
             Pitch = c.Pitches.GetValueOrDefault(viewer),
@@ -235,9 +236,10 @@ public static class Views
         Employer = cover.For,
         Duty = cover.HeldAt is { } held ? CaptiveText(s, c.Id, held, cover.For) : cover.DutyText,
         Where = cover.HeldAt is { } at ? $"at the court of {at}" : cover.WhereText,
-        Wage = cover.Wage,
+        Wage = cover.HeldAt is null ? cover.Wage : null,
         ContractUntil = cover.ContractUntil,
-        KnownFacts = cover.Facts.ToList(),
+        // What it knew then and what its inquiries have found since, as for a servant really away.
+        KnownFacts = c.Facts.Where(f => cover.FactIds.Contains(f.Id) || f.Secrecy != Secrecy.Public && f.KnownBy.Contains(cover.For)).Select(f => f.Text).ToList(),
         Pitch = c.Pitches.GetValueOrDefault(cover.For),
         AskingPrice = c.AskingPrice.TryGetValue(cover.For, out var price) ? price : null,
         RansomDemand = cover.HeldAt is { } h ? KnownDemand(s, c.Id, h, cover.For)?.Spend : null,
@@ -246,7 +248,7 @@ public static class Views
     /// <summary>One of the viewer's people held captive abroad, with the ransom demanded if that word has reached it.</summary>
     private static string CaptiveText(GameState s, string id, Power heldAt, Power viewer) =>
         KnownDemand(s, id, heldAt, viewer) is { } demand
-            ? $"held captive at the court of {heldAt}; {heldAt} demands {demand.Spend} shekels for their return (order pay_ransom)"
+            ? $"held captive at the court of {heldAt}; {heldAt} demands {Money.Format(demand.Spend)} for their return (order pay_ransom)"
             : $"held captive at the court of {heldAt}";
 
     /// <summary>The open ransom demand for a captive, once its rumour has reached the court asked to pay.</summary>

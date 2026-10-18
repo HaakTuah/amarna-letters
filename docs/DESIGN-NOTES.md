@@ -69,8 +69,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   candidates that season").
 - **Failures are rejection notices.** These are reported with the kind `Rejected`: every order the
   validator refused; a levy whose province was no longer free; a purchase that failed; a payment the
-  treasury could not make; a ransom that could not be sent; a hire the person declined; and a
-  cession blocked by the king's own troops. The batch seat report's "invalid" column counts each of them (the validator's list once
+  treasury could not make; a ransom that could not be sent; a captive order that could no longer be
+  carried out ("Captive order failed"); a hire the person declined; and a cession blocked by the
+  king's own troops. The batch seat report's "invalid" column counts each of them (the validator's list once
   per order). Some failures at resolution still send no notice at all: a cession of land no longer
   held, a gift of troops whose unit is gone, and a disband of a unit that is gone (a scheduled order
   that fails this way still wakes its sleeping seat).
@@ -97,8 +98,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   cannot be read off the difference between strength and gold.
 - **Envoys go out and come back.** An audience has at most two exchanges. Detention is the host's
   choice; detained envoys grow attached to the host court over time. The sender hears that the
-  envoy is overdue a season after it should have returned; until then it sees the envoy on the
-  road home (see "News of your people abroad" under Characters).
+  envoy is overdue a season after it should have returned, unless it has come home meanwhile; until
+  then it sees the envoy on the road home (see "News of your people abroad" under Characters).
 - **Gold sent back** is paid when the audience ends: the latest amount the host named, at the purity
   it named with it. A 0 in the second exchange keeps the first amount; a new amount replaces it. The
   second exchange tells the host what it already named. (Until the simulation-fixes round only the
@@ -130,16 +131,24 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   recent ten entries; memory travels with the character to a new employer.
 - **Prisoners**: an envoy held at a foreign court whose own kingdom falls, or whose king dismisses
   them, becomes a free agent but stays a prisoner; only the court holding them can hire them, and
-  its release frees them at that court.
+  its release frees them at that court. A court that falls lets its prisoners go: its captives and
+  the envoys it detained walk home as if released, and a spy still watching it can no longer be
+  caught. (Until the simulation-fixes round a fallen court still caught spies and kept its
+  prisoners for the rest of the game.)
 - **Dismissal** (one line in the rulebook) ends the wage at once, wherever the servant is, and moves
   nobody. An envoy dismissed on the way out goes on to the court it was sent to and arrives there a
   free person, with no audience; the gold it carried becomes its own, and the notice says so ("Mane
   has been dismissed. The 1 mina 40 shekels of gold they carried is now theirs."). One on the way
   home still arrives, reports and hands over what it carries, and is then free at its old court. A
-  spy watching a court is free at that court; one watching a province walks back to its old court
-  and is free there; one on its way to its post is free when it gets there. A detained envoy stays
-  held (see Prisoners). A captive stays a captive; a captor that then asks a ransom for it, or tries
-  to turn it, is told "Mane serves no king now: nobody is left to pay. Mane remains your captive."
+  spy watching a court, or on its way to one, is free at that court; one watching a province, or
+  on its way to one, walks back to its old court (from the province, once there) and is free there.
+  A detained envoy stays held (see Prisoners). A captive stays a captive. Its captor is not told of
+  the dismissal: a ransom it asks goes to the king who dismissed the captive, who may still pay it
+  (the captive then goes free at the captor's court), and lapses unanswered otherwise. Only a
+  turning is refused, since the captive visibly stays in prison: "Mane serves no king now: nobody
+  is left to deceive. Mane remains your captive." When the dismissal and the turning fall in the
+  same season, the captor is told as the season resolves ("Captive order failed": "Your order for
+  Mane could not be carried out: Mane serves no king now: …").
   Someone taken into another court's service while still on the road stays with its new master when
   the old journey ends. The web app offers dismissal for every servant, at court or away. (Until
   the simulation-fixes round a dismissed traveller was set at home at once and the gold it carried
@@ -150,52 +159,86 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.
   Caught spies confess their master if timid (or 40% of the time). Turned spies go back to their
   post (a court, or out in their province) and report what their new master wants, plus one true
-  observation.
+  observation; one whose master, not knowing it was caught, had recalled it comes home instead, as
+  told. A spy's report is written when it arrives, of the season it was observed: a model-played
+  spy remembers nothing that happened to it since (such as its capture).
 - **News of your people abroad comes only by rumour or when they return** (the rulebook says so).
   When something happens to a servant abroad that its master cannot see (a spy caught, an envoy
-  detained or going over to the host, a captive put to death), the character carries a cover
-  (`Character.Cover`): what its master still believes. The master's view lists it as it would have
-  stood in the normal course of events, never ready: a caught spy "watching Assyria" where it was
-  posted, a detained or defecting envoy "on the road home", with only the facts the master knew
-  before (a defection's public fact stays unseen there). The master keeps paying the wage it
-  believes it owes, into the character's purse, and its view's wages count it, so the treasury
-  betrays nothing. The cover ends when the news reaches the master: the rumour that the envoy is
-  overdue, the ransom demand, or the rumour of the death (each of these rumours names the
-  character); the character standing at its master's court again (home, or sent there by another
-  court); its release or turning (truth and belief then agree); its dismissal; or the fall of the
-  master's kingdom. An envoy who went over to the host reads, after the overdue rumour, "has not
-  returned from Alashiya" like a detained one, and stays on the list, still paid, until it is
-  dismissed or seen. Orders for a covered servant read as for any servant away ("Mane is not at your
-  court"; recalling a caught spy is accepted, and its master then believes it on the road home).
-  Dismissing it is accepted and ends the cover and the wage; a dismissed captive stays a captive. A
-  captive whose master has heard of it reads "held captive at the court of Assyria; Assyria demands
-  90 shekels for their return (order pay_ransom)" (the demand once its word has arrived), never "at
-  court, ready", and draws no wage; the web app offers the ransom button only then. Script kings
-  read the same view and are fooled the same way: a script king never dismisses, so it pays an
-  envoy that went over to the host for as long as the cover holds. What a cover cannot hide: a
-  caught spy's reports stop coming, and a caught province watcher no longer adds its province to
-  its master's sight; a background check on the servant finds a defection's public fact as usual.
+  detained or going over to the host, a captive put to death or turned, a prisoner let go), the
+  character carries a cover (`Character.Covers`): what its master still believes. Each court keeps
+  its own: an envoy that went over to Alashiya is covered for Egypt, and, if Alashiya then sends it
+  to Hatti and Hatti holds it, for Alashiya too; what happens between Alashiya and Hatti changes
+  nothing Egypt sees. The master's view lists it as it would have stood in the normal course of
+  events, never ready: a caught spy "watching Assyria" where it was posted, a detained or defecting
+  envoy "on the road home". Its facts are those the master knew before, plus whatever the master's
+  own inquiries find later, as for any servant (a defection's public fact stays unseen until a
+  background check finds it, and then shows). The master keeps paying the wage it believes it owes,
+  into the character's purse, and its view's wages count it, so the treasury betrays nothing.
+  - **The cover ends when the news reaches the master:** the ransom demand, or the rumour of the
+    death (sent to the captive's king and to every court that still believes the dead one serves
+    it); the first report from a turned spy, if its master had heard of the capture; the character
+    standing at its master's court again (home, or sent there by another court); the character
+    presenting itself to that court as a free person seeking service; its dismissal; or the fall
+    of the master's kingdom.
+  - **Overdue.** The rumour that an envoy is overdue comes a season after it was due home. If the
+    envoy is held in the master's service, as the rumour says, the cover ends; otherwise (it went
+    over to the host, was let go too late to be home on time, or a caught spy its master recalled)
+    the master now believes just that, "has not returned from Alashiya", "unknown", until it is
+    seen. An envoy that went over to the host stays on the list, still paid, until it is dismissed
+    or seen. The rumour is not sent once the envoy has stood at its master's court, and not told to
+    a court that no longer believes anything of it (it dismissed the envoy, or heard of its death).
+  - **Let go, or turned.** A detained envoy let go, or a caught spy let go, still reads as its
+    master last believed (on the road home, not returned, or watching Assyria) until it is home.
+    Only a captive whose master had heard of the capture shows on the road home at once, so that no
+    ransom is paid for a captive already free (see Ransoms). A captive turned whose master knew it
+    was held still reads as held, with the demand, until its first report arrives; a ransom paid
+    meanwhile goes, and the captor keeps it. One its master did not know was caught goes back to
+    its post as believed, or, if its master had recalled it, comes home.
+  - **Orders.** Orders for a covered servant read as for any servant away ("Mane is not at your
+    court"; "Mane is not available for hire", even once it has gone free elsewhere; recalling a
+    caught spy is accepted, and its master then believes it on the road home and hears a season
+    after it was due that it has not returned). Dismissing it is accepted and ends the cover and the
+    wage; a dismissed captive stays a captive.
+  - **Captives.** A captive whose master has heard of it reads "held captive at the court of
+    Assyria; Assyria demands 1 mina 30 shekels for their return (order pay_ransom)" (the demand once
+    its word has arrived), never "at court, ready", and draws no wage, so its line names none; the
+    web app offers the ransom button only then.
+  - Script kings read the same view and are fooled the same way: a script king never dismisses,
+    so it pays an envoy that went over to the host for as long as the cover holds.
+  - **What a cover cannot hide:** a caught spy's reports stop coming, and a caught province
+    watcher no longer adds its province to its master's sight; a background check on the servant
+    finds a defection's public fact as usual; a captive whose master knew of it is seen on the road
+    home as soon as it is let go. A spy posted at a court is listed in that court's view with its
+    employer, "at your court", before anyone catches it (`docs/rounds/2026-10-18-sleep-and-simulation.md`,
+    question 19, bug 4; not changed this round), so a defector its new master posts at its old
+    master's court ends the old master's cover when it arrives.
   (Until the simulation-fixes round the master's list showed
   the truth at once: a caught spy "at court, ready for a mission", a detained envoy "has not
   returned" the same season, a defector dropped off the list and its wage stopped, an executed spy
   vanished.)
 - **Ransoms.** A captor's ransom order sends its demand to the captive's king as a rumour (one or
-  two seasons on the road). A captive has one open demand: a new order replaces the old one, and a
-  rumour still on the road for a replaced demand, or for a captive since freed, turned or put to
-  death, announces nothing and wakes nobody. A demand can be paid only once its rumour has arrived,
-  and lapses if it is not paid in the four seasons after it was made (the captor is told "No ransom
-  came"). `pay_ransom` is refused before the demand has arrived ("no ransom demand for Mane has
-  reached you"), once the payer can see that the captive is no longer held by that court ("Mane is
-  no longer held by Mitanni"), and while a ransom for that captive is on its way ("a ransom for Mane
-  is already on its way"), a second order in the same season included. Resolution checks again,
-  since the captor may let the captive go that season: a payment that cannot be sent costs nothing,
-  and the payer is told ("Ransom not sent"). The gold travels on its own; the captor keeps it and
-  frees the captive if it still holds them. A payer who has not heard that its captive was put to
-  death still pays, and the gold is lost. Ransoming or turning a captive whose kingdom has fallen is
-  refused, with the reason: "Mane's kingdom has fallen: nobody is left to pay. Mane remains your
-  captive." The rumour reads "(order pay_ransom for c7)", the order's name in the schema. (Until the
-  simulation-fixes round every ransom order added a demand and a rumour, a payment was accepted for
-  any open demand, even once the captive was free, and those captive orders did nothing in silence.)
+  two seasons on the road); for a captive its king has dismissed, to that king. A captive has one
+  open demand: a new order replaces the old one. A replaced demand whose word is still on the road
+  goes at once and announces nothing; one the payer has heard of stands, at its price, until the
+  new demand's word arrives, so the payer never sees a demand vanish before the next one reaches it.
+  A rumour for a captive since freed, turned or put to death announces nothing and wakes nobody. A
+  demand can be paid only once its rumour has arrived, and lapses if it is not paid in the four
+  seasons after it was made (the captor is told "No ransom came", unless a newer demand for that
+  captive is still on the road). `pay_ransom` is refused before the demand has arrived ("no ransom
+  demand for Mane has reached you"), once the payer can see that the captive is no longer held by
+  that court ("Mane is no longer held by Mitanni"), and while a ransom for that captive is on its
+  way ("a ransom for Mane is already on its way"), a second order in the same season included.
+  Captors' orders resolve before ransom payments, whatever the order of the courts, and resolution
+  checks the payment again: if the captor let the captive go that season, a payment that cannot be
+  sent costs nothing, and the payer is told ("Ransom not sent"). The gold travels on its own; the
+  captor keeps it and frees the captive if it still holds them. A payer who has not heard that its
+  captive was put to death, or turned, still pays, and the gold is lost. Ransoming or turning a
+  captive whose kingdom has fallen is refused, with the reason: "Mane's kingdom has fallen: nobody
+  is left to pay. Mane remains your captive."; so is turning a captive whose king dismissed it (see
+  Dismissal). The rumour reads "(order pay_ransom for c7)", the order's name in the schema. (Until
+  the simulation-fixes round every ransom order added a demand and a rumour, a payment was accepted
+  for any open demand, even once the captive was free, and those captive orders did nothing in
+  silence.)
 - **Authentication**: genuine tablets read genuine 95% of the time (else inconclusive). Forgeries
   are detected with chance 20% + spend/200 − forger skill/150 (5–95%), and traced to the forger's
   employer with chance 30% + spend/400 (30–80%), which is announced to every court.
@@ -774,7 +817,8 @@ These are in the code as written, and they affect the balance numbers:
 - **Partners' attacks count harshly.** A partner's conquest counts as two broken oaths, and a move into our land that bounced counts as one.
 - **Joint blows can misfire.** Each partner counts only the troops in its own sight, so partners may name different troops to go in. When the rule names a king who is at peace with the foe, that king does not go in (his troop does something else), and his partners' supports are wasted.
 - **Separate peace is allowed**, although the coalition tablet forbids it (see Good faith).
-- **A captive of a fallen kingdom is stuck with a cunning captor.** The captor orders "turn" every season, the engine refuses it (nobody is left to deceive) and leaves the captive a captive, and the captor never ransoms or releases him.
+- **A captive of a fallen kingdom is stuck with a cunning captor.** The captor orders "turn" every season, the engine refuses it (nobody is left to deceive) and leaves the captive a captive, and the captor never ransoms or releases him. The same holds for a captive its king has dismissed.
+- **A script jailer never lets go a held envoy who serves no king.** It releases only the envoys it holds whose status reads "employed", so one whose kingdom fell, or whose king (a model or human, since script kings never dismiss) dismissed it while it was held, reads "free" and stays held for the rest of the game, though the jailer's release would free it.
 - **The stand-in for a model seat is a shadow, not the model.** It is a separate script player that keeps up with every model and file seat: each season, asleep or awake, it reads that seat's view just before orders, as if it were to play, and learns from it once (if it stood in at one of that season's audiences, it learned then and reads nothing more). So when a call fails it knows the land taken, the troops seen and the gold spent so far. What it cannot know is what the model meant: its war target, its trust and its plans are its own, drawn from what reached the court, not from the model's notes. Its reading changes nothing in the game, so replays stay exact.
 
 ### Benchmarks

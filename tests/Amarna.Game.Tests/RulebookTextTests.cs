@@ -54,3 +54,18 @@ public class RulebookTextTests
         Assert.Equal(opening, Rules[Rules.IndexOf("OPENING POSITIONS", StringComparison.Ordinal)..Rules.IndexOf("HOW TO ANSWER", StringComparison.Ordinal)]);
     }
 }
+
+/// <summary>Captive orders the engine refuses, and replaced ransom demands, in the rulebook's own words.</summary>
+public class CaptiveRulebookTests
+{
+    private static readonly string Rules = Prompts.LeaderRules(true, new GameConfig());
+
+    [Fact]
+    public void The_rulebook_says_which_captive_orders_are_refused_and_when_a_replaced_demand_can_still_be_paid()
+    {
+        Assert.Contains("Ransoming or turning a captive whose kingdom has fallen is refused, and so is turning one whose king has dismissed them: nobody is left to pay or to deceive.", Rules);
+        Assert.Contains("a new demand replaces the old one once its word reaches you, and until then the old one can still be paid", Rules);
+        Assert.Contains("a spy watching a court, or on its way to one, is free at that court; one watching a province, or on its way to one, walks back to your court and is free there", Rules);
+        Assert.DoesNotContain("does nothing: nobody is left", Rules);
+    }
+}

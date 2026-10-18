@@ -19,9 +19,9 @@ public class CoverBotTests
         caught.Status = CharacterStatus.Captured;
         caught.HeldBy = Power.Hatti;
         caught.At = Power.Hatti;
-        caught.Cover = new Cover { For = me, Since = 1, Believed = Duty.SpyPosted, DutyText = "watching Hatti", WhereText = "at the court of Hatti", Wage = caught.Contract!.Wage, ContractUntil = caught.Contract.UntilTurn };
+        caught.Covers.Add(new Cover { For = me, Since = 1, Believed = Duty.SpyPosted, DutyText = "watching Hatti", WhereText = "at the court of Hatti", Wage = caught.Contract!.Wage, ContractUntil = caught.Contract.UntilTurn });
         var gone = servants[1];
-        gone.Cover = new Cover { For = me, Since = 1, Believed = Duty.EnvoyHomebound, DutyText = "on the road home", WhereText = "travelling", Wage = gone.Contract!.Wage, ContractUntil = gone.Contract.UntilTurn };
+        gone.Covers.Add(new Cover { For = me, Since = 1, Believed = Duty.EnvoyHomebound, DutyText = "on the road home", WhereText = "travelling", Wage = gone.Contract!.Wage, ContractUntil = gone.Contract.UntilTurn });
         gone.Employer = Power.Hatti;
         gone.At = Power.Hatti;
         s.Treasuries[me].Gold = 3000;
@@ -59,6 +59,8 @@ public class CoverBotTests
         var line = Amarna.Llm.Prompts.Person(Views.For(s, Power.Hatti).Court.Single(c => c.Id == spy.Id));
         Assert.Contains("held captive at the court of Mitanni;", line);
         Assert.DoesNotContain("ready", line);
+        // A captive draws no wage while it is held, so its line names none.
+        Assert.DoesNotContain("wage", line);
 
         // A demand shows only once its word has arrived.
         var demand = new PendingTask { Id = "q900", Kind = TaskKind.RansomDemand, Requester = Power.Hatti, Other = Power.Mitanni, CharacterId = spy.Id, Spend = 90, DueTurn = 6 };
@@ -66,6 +68,6 @@ public class CoverBotTests
         Assert.DoesNotContain("demands", Amarna.Llm.Prompts.Person(Views.For(s, Power.Hatti).Court.Single(c => c.Id == spy.Id)));
         demand.Announced = true;
         line = Amarna.Llm.Prompts.Person(Views.For(s, Power.Hatti).Court.Single(c => c.Id == spy.Id));
-        Assert.Contains("held captive at the court of Mitanni; Mitanni demands 90 shekels for their return (order pay_ransom)", line);
+        Assert.Contains("held captive at the court of Mitanni; Mitanni demands 1 mina 30 shekels for their return (order pay_ransom)", line);
     }
 }

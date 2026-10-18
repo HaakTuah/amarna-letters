@@ -190,6 +190,9 @@ public sealed partial class TurnEngine
                 case JourneyKind.Rumor:
                     if (!S.IsAlive(j.To)) break;
                     if (j.TaskId is not null && !DemandArrives(j)) break;
+                    // Word that a servant has not returned, to a court that no longer believes anything of it
+                    // (it heard of a death, dismissed the servant, or saw it seeking service): nothing to tell.
+                    if (j.News == NewsKind.Overdue && S.FindCharacter(j.CharacterId)?.CoverOf(j.To) is null) break;
                     S.Notify(j.To, InboxKind.Rumor, "Rumor", j.Text ?? "", j.CharacterId);
                     NewsArrives(j);
                     break;
@@ -472,7 +475,13 @@ public sealed partial class TurnEngine
             S.Eliminated.Add(p);
             EndSleep(p);
             S.Units.RemoveAll(u => u.Power == p);
-            foreach (var c in S.Characters.Where(c => c.Cover?.For == p)) c.Cover = null;
+            foreach (var c in S.Characters) c.Covers.RemoveAll(k => k.For == p);
+            // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
+            foreach (var c in S.Characters.Where(c => c.HeldBy == p).ToList())
+            {
+                if (c.Status == CharacterStatus.Captured) ReleaseCaptive(p, c);
+                else if (c.Duty == Duty.Detained) LetEnvoyGo(p, c, null);
+            }
             foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
             {
                 c.FormerEmployer = p;

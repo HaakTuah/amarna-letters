@@ -9,6 +9,11 @@ public sealed partial class TurnEngine
             if (o is CounterIntelOrder ci && Pay(p, ci.Spend, "watchmen"))
                 S.CounterIntel[p] = ci.Spend;
 
+        // Captors decide first, so that a ransom paid the same season meets the captive as its captor left them,
+        // whichever court comes first.
+        foreach (var (p, o) in orders)
+            if (o is CaptiveOrder co) Captive(p, co);
+
         foreach (var (p, o) in orders)
         {
             switch (o)
@@ -16,13 +21,7 @@ public sealed partial class TurnEngine
                 case PlaceSpyOrder ps: PlaceSpy(p, ps); break;
                 case RecallSpyOrder rs:
                     var recalled = S.Char(rs.Character);
-                    // A spy its master still believes at its post: the master now believes it on the road home.
-                    if (recalled.Cover is { } cover && cover.For == p)
-                    {
-                        cover.Believed = Duty.EnvoyHomebound;
-                        cover.DutyText = "on the road home";
-                        cover.WhereText = recalled.WatchProvince is { } wp ? $"in {wp}" : "travelling";
-                    }
+                    if (recalled.CoverOf(p) is { } cover) RecallCovered(p, recalled, cover);
                     else Recall(p, recalled);
                     break;
                 case AssayOrder a: Assay(p, a); break;
@@ -31,7 +30,6 @@ public sealed partial class TurnEngine
                         S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.Authenticate, Requester = p, DueTurn = S.Turn + 1, CopyId = au.Copy, Spend = au.Spend });
                     break;
                 case ForgeOrder f: Forge(p, f); break;
-                case CaptiveOrder co: Captive(p, co); break;
                 case PayRansomOrder pr: PayRansom(p, pr); break;
             }
         }
@@ -101,6 +99,22 @@ public sealed partial class TurnEngine
         });
     }
 
+    /// <summary>
+    /// A spy its master still believes at its post, though it was caught or let go: the master now believes it on
+    /// the road home, and hears a season after it was due that it has not come back. If its captor turns it, it
+    /// comes home as told.
+    /// </summary>
+    private void RecallCovered(Power p, Character c, Cover cover)
+    {
+        cover.Believed = Duty.EnvoyHomebound;
+        cover.Recalled = true;
+        cover.DutyText = "on the road home";
+        cover.WhereText = c.WatchProvince is { } wp ? $"in {wp}" : "travelling";
+        var post = c.MissionTarget is { } court ? Map.Capital(court).Id : c.WatchProvince ?? Map.Capital(p).Id;
+        var place = c.MissionTarget is { } at ? $"the court of {at}" : c.WatchProvince is { } field ? Map[field].Name : p.ToString();
+        Overdue(p, c, c.HeldBy ?? c.MissionTarget ?? p, S.Turn + TravelTurns(post, Map.Capital(p).Id), place);
+    }
+
     private void SpyComesHome(Journey j)
     {
         var c = S.Char(j.CharacterId!);
@@ -124,7 +138,8 @@ public sealed partial class TurnEngine
             var host = c.MissionTarget ?? (c.WatchProvince is { } wp ? S.Owner.GetValueOrDefault(wp) : null);
             var rng = R("spy", c.Id);
 
-            if (host is { } h && h != employer && c.SecretMaster != h)
+            // A fallen court has nobody left to catch a spy, nor to decide its fate.
+            if (host is { } h && h != employer && c.SecretMaster != h && S.IsAlive(h))
             {
                 var watch = S.CounterIntel.GetValueOrDefault(h);
                 var p = Math.Clamp(0.05 + watch / 300.0 - c.Traits.Competence / 400.0, 0.02, 0.6);
@@ -201,6 +216,8 @@ public sealed partial class TurnEngine
     {
         var c = S.FindCharacter(j.CharacterId);
         if (c is null || j.Report is null) return;
+        // A report it sent after its master's belief was frozen (a captive turned and back at its post): word has come from it.
+        if (c.CoverOf(j.To) is { } cover && j.Report.ObservedTurn >= cover.Since) c.Covers.Remove(cover);
         MindRequests.Add(new MindRequest { Id = S.NewId("r"), Task = MindTask.SpyReport, CharacterId = c.Id, Court = j.To, Report = j.Report });
     }
 
@@ -225,28 +242,41 @@ public sealed partial class TurnEngine
     {
         var c = S.Char(co.Character);
         if (c.Status != CharacterStatus.Captured || c.HeldBy != host) return;
+        // Checked again as the season resolves: the captive's king may have dismissed them this season.
+        if (OrderValidator.CaptiveRefusal(S, c, co.Fate) is { } why)
+        {
+            S.Notify(host, InboxKind.Rejected, "Captive order failed", $"Your order for {c.Name} could not be carried out: {why}.", c.Id);
+            ScheduledFailed(host, co, why);
+            return;
+        }
         var employer = c.Employer;
         switch (co.Fate)
         {
             case CaptiveFate.Execute:
                 // Its master goes on believing what it believed until the rumour of the death arrives.
-                if (employer is { } lord) CoverFor(c, lord, c.Cover?.Believed ?? Duty.None);
+                if (employer is { } lord) CoverFor(c, lord, Duty.None);
                 c.Status = CharacterStatus.Dead;
                 c.Duty = Duty.None;
                 S.Log("execution", $"{host} executed {c.Name}.", [host]);
-                if (employer is { } e) Rumor(e, host, $"It is said that {c.Name} was put to death in {host}.", c.Id, NewsKind.Death);
+                // The rumour reaches its king, and every court that still believes the dead one serves it.
+                foreach (var heard in Powers.All.Where(p => p == employer || c.CoverOf(p) is not null))
+                    Rumor(heard, host, $"It is said that {c.Name} was put to death in {host}.", c.Id, NewsKind.Death);
                 break;
             case CaptiveFate.Ransom:
-                if (employer is not { } payer || !S.IsAlive(payer)) break;
-                // One open demand per captive: a new one replaces the old, and the old one's rumour, if still on the road, announces nothing.
-                S.Tasks.RemoveAll(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == c.Id);
+                var payer = OrderValidator.RansomPayer(S, c)!.Value;
+                // One open demand per captive: a new one replaces the old. A demand whose word is still on the road
+                // goes at once and announces nothing; one the payer has heard of stands, and can be paid, until the
+                // new one's word arrives.
+                S.Tasks.RemoveAll(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == c.Id && !t.Announced);
                 var demand = new PendingTask { Id = S.NewId("q"), Kind = TaskKind.RansomDemand, Requester = payer, Other = host, CharacterId = c.Id, Spend = co.Ransom, DueTurn = S.Turn + 5 };
                 S.Tasks.Add(demand);
                 Rumor(payer, host, $"{host} holds {c.Name} and demands {Money.Format(co.Ransom)} for their return (order pay_ransom for {c.Id}).", c.Id, NewsKind.Ransom, demand.Id);
                 break;
             case CaptiveFate.Turn:
-                // A captive whose kingdom has fallen has no court left to deceive: they stay a captive.
-                if (employer is not { } master || !S.IsAlive(master)) break;
+                var master = employer!.Value;
+                var cover = c.CoverOf(master);
+                // A master that has heard of the capture goes on believing its servant held until word comes from it again.
+                if (cover is null) CoverFor(c, master, Duty.None);
                 c.Status = CharacterStatus.Employed;
                 c.SecretMaster = host;
                 c.PoisonText = Greeting.Cap(co.Poison, 600);
@@ -254,10 +284,12 @@ public sealed partial class TurnEngine
                 c.HeldBy = null;
                 // Back at its post, where it watched from before (a court, or out in a province): what its master believed all along.
                 c.At = c.MissionTarget;
-                c.Cover = null;
                 c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Was caught by {host.Land()} and now secretly serves it.", Secrecy = Secrecy.Deep, Tag = "turned", KnownBy = [host] });
                 c.Remember(S.Turn, $"To save my life I agreed to serve {host.Land()} in secret and send home what they tell me.");
                 S.Log("double-agent", $"{host} turned {c.Name} into a double agent against {employer}.", [host], "double-agent");
+                // Recalled by a master that did not know it was caught: it comes home as told, and is seen when it arrives.
+                if (cover is { Recalled: true }) Recall(master, c);
+                else if (cover is not null) c.Covers.Remove(cover);
                 break;
             case CaptiveFate.Release:
                 ReleaseCaptive(host, c);
@@ -265,11 +297,15 @@ public sealed partial class TurnEngine
         }
     }
 
+    /// <summary>
+    /// A captive let go walks home. A master that believes it still at its post (or recalled) goes on believing
+    /// that until it is home; one that has heard of the capture sees it on the road home at once, so that no ransom
+    /// is paid for a captive already free.
+    /// </summary>
     private void ReleaseCaptive(Power host, Character c)
     {
         c.Status = c.Employer is null ? CharacterStatus.Free : CharacterStatus.Employed;
         c.HeldBy = null;
-        c.Cover = null;
         c.Remember(S.Turn, $"{host.Land()} set me free.");
         if (c.Employer is { } e && S.IsAlive(e))
         {
@@ -352,6 +388,8 @@ public sealed partial class TurnEngine
             return false;
         }
         task.Announced = true;
+        // It replaces the demand the payer had heard of before, which could be paid until now.
+        S.Tasks.RemoveAll(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == c.Id && t != task);
         return true;
     }
 

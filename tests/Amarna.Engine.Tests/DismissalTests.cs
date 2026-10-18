@@ -96,6 +96,29 @@ public class DismissalTests
     }
 
     [Fact]
+    public void A_dismissed_envoy_hired_by_another_court_on_the_way_home_stays_with_its_new_master()
+    {
+        var (s, envoy) = Start();
+        Begin(s).Resolve(Orders(Power.Egypt, new DispatchOrder(envoy.Id, Power.Babylonia, "Greetings.")));
+        Begin(s).Resolve(None());
+        var e = Begin(s);
+        e.ApplyAudience(new AudienceRecord { AudienceId = s.Audiences.Single().Id, Delivered = "Greetings.", Rounds = [new AudienceRound { Host = new HostReply { End = true } }] });
+        e.Resolve(Orders(Power.Egypt, new DismissOrder(envoy.Id)));
+        Assert.Equal((CharacterStatus.Free, Duty.EnvoyHomebound), (envoy.Status, envoy.Duty));
+        var journey = s.Journeys.Single(j => j.CharacterId == envoy.Id && j.Kind == JourneyKind.EnvoyHomebound);
+        Assert.True(journey.ArriveTurn > s.Turn);
+
+        // Hatti hires it while it is still on the road; when the old journey ends it stays where it is.
+        envoy.Pitches[Power.Hatti] = "I would serve you.";
+        envoy.AskingPrice[Power.Hatti] = 10;
+        Begin(s).Resolve(Orders(Power.Hatti, new HireOrder(envoy.Id, 12)));
+        Assert.Equal((Power.Hatti, Power.Hatti), (envoy.Employer!.Value, envoy.At!.Value));
+        while (s.Journeys.Contains(journey)) Begin(s).Resolve(None());
+        Assert.Equal((Power.Hatti, Duty.None), (envoy.At!.Value, envoy.Duty));
+        Assert.DoesNotContain(s.InboxOf(Power.Egypt), i => i.Kind == InboxKind.EnvoyReport && i.Subject == envoy.Id);
+    }
+
+    [Fact]
     public void A_detained_envoy_dismissed_stays_held_and_the_jailers_release_frees_it_at_the_jailers_court()
     {
         var (s, envoy) = Start();
@@ -105,7 +128,7 @@ public class DismissalTests
         e.ApplyAudience(new AudienceRecord { AudienceId = s.Audiences.Single().Id, Delivered = "Greetings.", Rounds = [new AudienceRound { Host = new HostReply { Detain = true } }] });
         e.Resolve(Orders(Power.Egypt, new DismissOrder(envoy.Id)));
         Assert.Equal((CharacterStatus.Free, Duty.Detained, Power.Babylonia), (envoy.Status, envoy.Duty, envoy.HeldBy));
-        Assert.Null(envoy.Cover);
+        Assert.Empty(envoy.Covers);
 
         Begin(s).Resolve(Orders(Power.Babylonia, new ReleaseOrder(envoy.Id, "Go where you will.")));
         Assert.Equal((Duty.None, Power.Babylonia), (envoy.Duty, envoy.At));
@@ -128,9 +151,59 @@ public class DismissalTests
         Assert.Null(spy.Employer);
         Assert.DoesNotContain(Views.For(s, Power.Hatti).Court, c => c.Id == spy.Id);
 
-        // Its captor learns, if it asks a ransom, that nobody will pay for it.
+        // Its captor is not told of another court's dismissal: a ransom it asks goes, as ever, to the king who sent the spy,
+        // who may still pay it. Only a turning is refused, since the captive visibly stays in prison.
         Begin(s).Resolve(Orders(Power.Mitanni, new CaptiveOrder(spy.Id, CaptiveFate.Ransom, 90)));
-        Assert.Contains(s.InboxOf(Power.Mitanni), i => i.Kind == InboxKind.Rejected && i.Body.Contains($"{spy.Name} serves no king now: nobody is left to pay. {spy.Name} remains your captive"));
+        Assert.DoesNotContain(s.InboxOf(Power.Mitanni), i => i.Kind == InboxKind.Rejected);
+        Assert.Contains(s.Tasks, t => t.Kind == TaskKind.RansomDemand && t.CharacterId == spy.Id && t.Requester == Power.Hatti);
+        Assert.Contains(s.Journeys, j => j.Kind == JourneyKind.Rumor && j.To == Power.Hatti && j.CharacterId == spy.Id);
+        Begin(s).Resolve(Orders(Power.Mitanni, new CaptiveOrder(spy.Id, CaptiveFate.Turn, Poison: "All is quiet.")));
+        Assert.Contains(s.InboxOf(Power.Mitanni), i => i.Kind == InboxKind.Rejected && i.Body.Contains($"{spy.Name} serves no king now: nobody is left to deceive. {spy.Name} remains your captive"));
+        Assert.Equal(CharacterStatus.Captured, spy.Status);
+    }
+
+    [Fact]
+    public void A_captive_dismissed_in_the_season_its_captor_turns_it_stays_a_captive_and_the_captor_is_told()
+    {
+        var s = GameFactory.NewGame(4);
+        var spy = s.Characters.First(c => c.Employer == Power.Hatti);
+        spy.SecretMaster = null;
+        spy.Status = CharacterStatus.Captured;
+        spy.HeldBy = Power.Mitanni;
+        spy.At = Power.Mitanni;
+        Begin(s).Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Hatti] = new() { Orders = [new DismissOrder(spy.Id)] },
+            [Power.Mitanni] = new() { Orders = [new CaptiveOrder(spy.Id, CaptiveFate.Turn, Poison: "All is quiet.")] },
+        });
+        Assert.Equal((CharacterStatus.Captured, Power.Mitanni), (spy.Status, spy.HeldBy));
+        Assert.Null(spy.SecretMaster);
+        var notice = s.InboxOf(Power.Mitanni).Single(i => i.Kind == InboxKind.Rejected);
+        Assert.Equal("Captive order failed", notice.Title);
+        Assert.Equal($"Your order for {spy.Name} could not be carried out: {spy.Name} serves no king now: nobody is left to deceive. {spy.Name} remains your captive.", notice.Body);
+    }
+
+    [Fact]
+    public void A_province_watcher_dismissed_on_its_way_out_reaches_the_province_and_walks_back_free()
+    {
+        var s = GameFactory.NewGame(5);
+        var spy = s.Characters.First(c => c.Employer == Power.Egypt);
+        Begin(s).Resolve(Orders(Power.Egypt, new PlaceSpyOrder(spy.Id, Province: FarProvince(s))));
+        Assert.Equal(Duty.SpyOutbound, spy.Duty);
+        Begin(s).Resolve(Orders(Power.Egypt, new DismissOrder(spy.Id)));
+        Assert.Equal((CharacterStatus.Free, Duty.SpyOutbound), (spy.Status, spy.Duty));
+        while (!s.Journeys.Any(j => j.CharacterId == spy.Id && j.Kind == JourneyKind.SpyHomebound)) Begin(s).Resolve(None());
+        while (spy.At is null) Begin(s).Resolve(None());
+        Assert.Equal((Power.Egypt, Duty.None, CharacterStatus.Free), (spy.At!.Value, spy.Duty, spy.Status));
+        Assert.Null(spy.WatchProvince);
+    }
+
+    /// <summary>A province two seasons from Egypt's capital, so a spy sent there is still on its way a season later.</summary>
+    private static string FarProvince(GameState s)
+    {
+        var e = new TurnEngine(s);
+        var cap = e.Map.Capital(Power.Egypt).Id;
+        return e.Map.Provinces.Where(p => !p.IsSea && e.TravelTurns(cap, p.Id) >= 2).OrderBy(p => p.Id).First().Id;
     }
 
     [Fact]

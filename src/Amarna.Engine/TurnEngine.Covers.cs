@@ -2,23 +2,26 @@ namespace Amarna.Engine;
 
 /// <summary>
 /// Covers: news of a court's people abroad reaches it only by rumour or when they return. A servant who is
-/// caught, detained, goes over to the host or is put to death keeps appearing to its master as it was, and
-/// the master keeps paying the wage it believes it owes, until word comes.
+/// caught, detained, goes over to the host, is put to death or is let go keeps appearing to its master as it
+/// was, and the master keeps paying the wage it believes it owes, until word comes. Each court that served the
+/// character keeps its own cover: an envoy that went over to a host is covered for its old master, and again for
+/// its new one if something happens to it on the new master's errand.
 /// </summary>
 public sealed partial class TurnEngine
 {
     /// <summary>
     /// Freezes what <paramref name="master"/> sees of <paramref name="c"/> before something happens abroad
-    /// that it cannot see. An existing cover is kept: the master still believes the older story.
+    /// that it cannot see. An existing cover for that master is kept: it still believes the older story.
     /// </summary>
     /// <param name="duty">The duty the master would see next in the normal course (an envoy whose audience ended is on the road home), or null for what it sees now.</param>
     /// <param name="seen">What the master saw, if taken before the event began to change the character.</param>
-    private void CoverFor(Character c, Power master, Duty believed, string? duty = null, string? where = null, CharacterView? seen = null)
+    /// <param name="factIds">The facts the master knew, if taken before the event added any.</param>
+    private void CoverFor(Character c, Power master, Duty believed, string? duty = null, string? where = null, CharacterView? seen = null, List<string>? factIds = null)
     {
-        if (c.Cover is not null || !S.IsAlive(master)) return;
+        if (c.CoverOf(master) is not null || !S.IsAlive(master)) return;
         seen ??= Views.Character(S, c, master);
         if (!seen.Ours) return;
-        c.Cover = new Cover
+        c.Covers.Add(new Cover
         {
             For = master,
             Since = S.Turn,
@@ -26,35 +29,46 @@ public sealed partial class TurnEngine
             HeldAt = seen.Status == "captured" ? c.HeldBy : null,
             DutyText = duty ?? seen.Duty,
             WhereText = where ?? seen.Where,
-            Wage = seen.Wage ?? 0,
+            // A captive's view shows no wage (none is paid while it is held); its contract's wage is kept for when it is free.
+            Wage = seen.Wage ?? c.Contract?.Wage ?? 0,
             ContractUntil = seen.ContractUntil,
-            Facts = seen.KnownFacts.ToList(),
-        };
+            FactIds = factIds ?? c.FactsKnownTo(master).Select(f => f.Id).ToList(),
+        });
     }
 
     /// <summary>A rumour about one of the receiving court's own people: the news it carries ends what the court believed.</summary>
     private void NewsArrives(Journey j)
     {
-        if (S.FindCharacter(j.CharacterId) is not { Cover: { } cover } c || cover.For != j.To) return;
-        // An envoy that went over to the host: its lord hears only that it has not returned, as for one detained.
-        if (j.News == NewsKind.Overdue && c.Employer != j.To && c.Status != CharacterStatus.Dead)
+        if (S.FindCharacter(j.CharacterId) is not { } c || c.CoverOf(j.To) is not { } cover) return;
+        // Word that the servant has not returned: unless it is held in the court's service as the word says, the
+        // court now believes just that (an envoy that went over to the host, a captive, one let go late, one dead).
+        if (j.News == NewsKind.Overdue && !(c.Employer == j.To && c.Status == CharacterStatus.Employed && c.Duty == Duty.Detained))
         {
             cover.Believed = Duty.Detained;
-            cover.DutyText = $"has not returned from {j.From}";
+            cover.HeldAt = null;
+            cover.DutyText = $"has not returned from {(cover.Recalled && c.MissionTarget is null && c.WatchProvince is { } wp ? wp : j.From.ToString())}";
             cover.WhereText = "unknown";
             return;
         }
-        c.Cover = null;
+        c.Covers.Remove(cover);
     }
 
-    /// <summary>A servant who stands at its master's court again (home, or sent there by someone else) is seen as it is.</summary>
+    /// <summary>
+    /// A servant who stands at a court that held a cover for it (home, or sent there by someone else) is seen there
+    /// as it is; word that it has not returned, if still on the road, is not sent.
+    /// </summary>
     private void CoversAtCourt()
     {
-        foreach (var c in S.Characters.Where(c => c.Cover is { } k && c.At == k.For)) c.Cover = null;
+        foreach (var c in S.Characters)
+        {
+            if (c.At is not { } at || c.CoverOf(at) is not { } cover) continue;
+            c.Covers.Remove(cover);
+            S.Journeys.RemoveAll(j => j.Kind == JourneyKind.Rumor && j.News == NewsKind.Overdue && j.CharacterId == c.Id && j.To == at);
+        }
     }
 
     /// <summary>The wage a court pays a character this season: what it believes it owes a covered servant, else its contract.</summary>
     private static int WageOwed(Character c, Power p) =>
-        c.Cover is { } k && k.For == p ? (k.HeldAt is null ? k.Wage : 0)
+        c.CoverOf(p) is { } k ? (k.HeldAt is null ? k.Wage : 0)
         : c.Employer == p && c.Status == CharacterStatus.Employed ? c.Contract?.Wage ?? 0 : 0;
 }

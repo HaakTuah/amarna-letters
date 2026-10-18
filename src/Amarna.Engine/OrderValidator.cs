@@ -90,7 +90,7 @@ public sealed class OrderValidator
 
         // A servant abroad whose fate this court has not heard of is, for its orders, a servant who is away:
         // nothing the validator says may betray what happened to it.
-        bool Covered(Character c) => c.Cover is { } k && k.For == power;
+        bool Covered(Character c) => c.CoverOf(power) is not null;
 
         string? OwnCharacter(string id, out Character? c, bool mustBeHome = true)
         {
@@ -213,7 +213,8 @@ public sealed class OrderValidator
                 {
                     var c = _s.FindCharacter(h.Character);
                     if (c is null) return $"there is nobody called '{h.Character}'";
-                    if (!c.IsAvailableForHire) return $"{c.Name} is not available for hire";
+                    // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
+                    if (!c.IsAvailableForHire || Covered(c)) return $"{c.Name} is not available for hire";
                     if (c.HeldBy is { } holder && holder != power) return $"{c.Name} is held at the court of {holder} and cannot come to yours";
                     if (!c.Pitches.ContainsKey(power) && c.At != power) return $"{c.Name} has not presented themselves to your court";
                     if (h.Wage <= 0 || h.Term <= 0) return "wage and term must be positive";
@@ -244,7 +245,7 @@ public sealed class OrderValidator
                 {
                     var c = _s.FindCharacter(rs.Character);
                     if (c is null || (c.Employer != power && !Covered(c))) return $"{rs.Character} is not in your service";
-                    if ((Covered(c) ? c.Cover!.Believed : c.Duty) != Duty.SpyPosted) return $"{c.Name} is not on a mission";
+                    if ((c.CoverOf(power)?.Believed ?? c.Duty) != Duty.SpyPosted) return $"{c.Name} is not on a mission";
                     if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     return null;
                 }
@@ -276,15 +277,7 @@ public sealed class OrderValidator
                     if (c is null || c.Status != CharacterStatus.Captured || c.HeldBy != power) return $"you hold no captive '{co.Character}'";
                     if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     if (co.Fate == CaptiveFate.Ransom && co.Ransom <= 0) return "name a ransom";
-                    // A ransom or a turning needs a living court on the other side.
-                    if (co.Fate is CaptiveFate.Ransom or CaptiveFate.Turn && (c.Employer is not { } master || !_s.IsAlive(master)))
-                    {
-                        var nobody = $"nobody is left to {(co.Fate == CaptiveFate.Ransom ? "pay" : "deceive")}. {c.Name} remains your captive";
-                        return c.FormerEmployer is { } former && _s.IsAlive(former)
-                            ? $"{c.Name} serves no king now: {nobody}"
-                            : $"{c.Name}'s kingdom has fallen: {nobody}";
-                    }
-                    return null;
+                    return CaptiveRefusal(_s, c, co.Fate);
                 }
 
                 case PayRansomOrder pr:
@@ -312,9 +305,37 @@ public sealed class OrderValidator
         demand = s.Tasks.LastOrDefault(t => t.Kind == TaskKind.RansomDemand && t.Announced && t.CharacterId == c.Id && t.Requester == payer);
         if (s.Journeys.Any(j => j.Kind == JourneyKind.Ransom && j.CharacterId == c.Id && j.From == payer)) return $"a ransom for {c.Name} is already on its way";
         if (demand?.Other is not { } captor) return $"no ransom demand for {c.Name} has reached you";
-        var held = c.Cover is { } k && k.For == payer
+        var held = c.CoverOf(payer) is { } k
             ? k.HeldAt == captor
             : c.Status == CharacterStatus.Captured && c.HeldBy == captor;
         return held ? null : $"{c.Name} is no longer held by {captor}";
+    }
+
+    /// <summary>
+    /// The court a ransom demand for a captive goes to: its king, or the king who dismissed it (so that a captor
+    /// learns nothing of another court's dismissal), or nobody once that kingdom has fallen.
+    /// </summary>
+    public static Power? RansomPayer(GameState s, Character c) =>
+        c.Employer is { } e && s.IsAlive(e) ? e
+        : c.Employer is null && c.FormerEmployer is { } former && s.IsAlive(former) ? former
+        : null;
+
+    /// <summary>
+    /// Why a captor's ransom or turning cannot be carried out, in the rulebook's words, or null. A ransom needs a
+    /// court to pay it; a turning needs a king to deceive, which a captive whose king dismissed it no longer has.
+    /// </summary>
+    public static string? CaptiveRefusal(GameState s, Character c, CaptiveFate fate)
+    {
+        var possible = fate switch
+        {
+            CaptiveFate.Ransom => RansomPayer(s, c) is not null,
+            CaptiveFate.Turn => c.Employer is { } master && s.IsAlive(master),
+            _ => true,
+        };
+        if (possible) return null;
+        var nobody = $"nobody is left to {(fate == CaptiveFate.Ransom ? "pay" : "deceive")}. {c.Name} remains your captive";
+        return c.FormerEmployer is { } former && s.IsAlive(former)
+            ? $"{c.Name} serves no king now: {nobody}"
+            : $"{c.Name}'s kingdom has fallen: {nobody}";
     }
 }
