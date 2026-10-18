@@ -171,7 +171,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     a season through turn 17."). Otherwise it gives **notice** (`Contract.NoticePrice`,
     `LeavesTurn`): it names that price and stays one more season at the old wage, and its master is
     told, "Mane's term has ended. They ask 20 shekels a season to serve on: renew them this season
-    (order renew), or they leave at the start of turn 12." The notice wakes a sleeping seat. A
+    (order renew), or they leave at the start of turn 12 (or, if you send them out first, when they
+    are next at your court)." The notice wakes a sleeping seat. A
     servant on notice can still be sent on errands. Unless renewed, it leaves at the start of turn
     T, before that season's wages, so the king pays exactly one season past the term: it is free at
     the court, asking that price, with a pitch that says so, and its old master may hire it back. If
@@ -180,10 +181,13 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     any time, or for one who has given notice, wherever it is. It is not a task: the servant may be
     renewed and sent out in the same season. It is settled with hiring at the end of the season:
     accepted if the wage reaches the servant's price (what it named in its notice, else what it
-    would ask at the end of its term); a new contract then runs from that season for the term named
-    (1–30, 6 if none), paid from the next season, and any notice ends ("Contract renewed", with the
-    last season of the new term). Below the price it is refused, with the price, as a rejection
-    notice ("Not renewed": "Mane will not serve on for 15 shekels a season; they ask 20 shekels.").
+    would ask at the end of its term, and never less than its present wage: renewed early, a
+    servant takes no cut); a new contract is then made that season, its term (1–30, 6 if none)
+    counts from the next season, as for a hire, and the new wage is paid from then ("through turn
+    T + term"), and any notice ends ("Contract renewed", with the last season of the new term).
+    Below the price it is refused, with the price, as a rejection notice ("Not renewed": "Mane will
+    not serve on for 15 shekels a season; they ask 20 shekels.", or "…; they ask 60 shekels, their
+    present wage." when the present wage is the price).
     `hire` naming one's own servant is refused: "Mane is already in your service; to keep them on,
     order renew". A servant abroad whose fate its master has not heard of is renewed as its master
     believes it (its cover keeps the notice it gave): at the price it named, the master pays the new
@@ -378,7 +382,9 @@ before. There is never a global skip, and each seat sees only its own wake-ups.
   replaces everything scheduled for it, and an empty entry cancels it; that works for the current
   season too. They are validated when they run. In a season when the seat is awake, a fresh order
   for a unit or a person replaces the scheduled one for it, a scheduled order the seat repeats runs
-  once, and the other scheduled orders still run. A failed scheduled order wakes the seat next
+  once, and the other scheduled orders still run. A renewal is not a task: a fresh renewal replaces
+  a scheduled renewal or dismissal of the same person, and a fresh dismissal a scheduled renewal,
+  but a renewal and an errand for the same person both run (the rulebook says so in a clause). A failed scheduled order wakes the seat next
   season; a failure the seat has already seen in its news, while awake, does not wake it later.
   Conditional orders ("unless X") are not built.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:

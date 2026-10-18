@@ -579,8 +579,9 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// A servant kept on: accepted if the wage reaches its renewal price (what it asked when it gave notice, else the
-    /// renewal formula). The new contract runs from this season for the term named, and any notice ends. A servant
-    /// abroad whose fate its master has not heard of is renewed as the master believes it, so nothing is betrayed.
+    /// renewal formula, and never less than its present wage). The new contract is made this season, its term counts
+    /// from the next, as for a hire, and any notice ends. A servant abroad whose fate its master has not heard of is
+    /// renewed as the master believes it, so nothing is betrayed.
     /// </summary>
     private void Renew(Power p, RenewOrder r)
     {
@@ -594,10 +595,13 @@ public sealed partial class TurnEngine
             ScheduledFailed(p, r, "no longer in your service");
             return;
         }
-        var price = cover is not null ? cover.NoticePrice ?? cover.Wage : RenewalPrice(c, p);
+        // Renewed early, a servant takes no cut: it asks what it would ask at the end of its term, or its present wage if that is more.
+        var present = cover is null && c.Contract!.NoticePrice is null && c.Contract.Wage >= RenewalPrice(c, p);
+        var price = cover is not null ? cover.NoticePrice ?? cover.Wage : present ? c.Contract!.Wage : RenewalPrice(c, p);
         if (r.Wage < price)
         {
-            S.Notify(p, InboxKind.Rejected, "Not renewed", $"{c.Name} will not serve on for {Money.Format(r.Wage)} a season; they ask {Money.Format(price)}.", c.Id);
+            S.Notify(p, InboxKind.Rejected, "Not renewed",
+                $"{c.Name} will not serve on for {Money.Format(r.Wage)} a season; they ask {Money.Format(price)}{(present ? ", their present wage" : "")}.", c.Id);
             ScheduledFailed(p, r, $"they ask {price}");
             return;
         }
@@ -766,7 +770,7 @@ public sealed partial class TurnEngine
                 c.Contract.LeavesTurn = S.Turn + 1;
                 c.Remember(S.Turn, $"My term with {emp.Land()} has ended. I asked {Money.Format(ask)} a season to serve on.");
                 S.Notify(emp, InboxKind.Notice, NoticeTitle,
-                    $"{c.Name}'s term has ended. They ask {Money.Format(ask)} a season to serve on: renew them this season (order renew), or they leave at the start of turn {S.Turn + 1}.", c.Id);
+                    $"{c.Name}'s term has ended. They ask {Money.Format(ask)} a season to serve on: renew them this season (order renew), or they leave at the start of turn {S.Turn + 1} (or, if you send them out first, when they are next at your court).", c.Id);
             }
         }
     }

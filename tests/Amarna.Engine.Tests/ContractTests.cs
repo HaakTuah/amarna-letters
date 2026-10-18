@@ -43,7 +43,7 @@ public class ContractTests
         Begin(s);
         Assert.Equal(2, s.Turn);
         Assert.Contains(s.InboxOf(Power.Egypt), i => i.Turn == 2 && i.Kind == InboxKind.Notice && i.Title == "A servant gives notice"
-            && i.Body == $"{c.Name}'s term has ended. They ask 33 shekels a season to serve on: renew them this season (order renew), or they leave at the start of turn 3.");
+            && i.Body == $"{c.Name}'s term has ended. They ask 33 shekels a season to serve on: renew them this season (order renew), or they leave at the start of turn 3 (or, if you send them out first, when they are next at your court).");
         Assert.Equal((CharacterStatus.Employed, Power.Egypt, 12), (c.Status, c.Employer!.Value, c.Contract!.Wage));
         Assert.Equal((33, 3), (c.Contract.NoticePrice!.Value, c.Contract.LeavesTurn!.Value));
 
@@ -74,6 +74,9 @@ public class ContractTests
         // The old master may hire it back at its price.
         new TurnEngine(s).Resolve(Orders(Power.Egypt, new HireOrder(c.Id, 33)));
         Assert.Equal((Power.Egypt, 33), (c.Employer!.Value, c.Contract!.Wage));
+        // The price it asked as a free person stays on its record, but means nothing now: one's own servant shows no asking price.
+        Assert.Equal(33, c.AskingPrice[Power.Egypt]);
+        Assert.Null(Views.For(s, Power.Egypt).Court.Single(x => x.Id == c.Id).AskingPrice);
     }
 
     [Fact]
@@ -142,6 +145,10 @@ public class ContractTests
         // Renewing is not a task: it may be renewed and sent out in the same season, or renewed while it is away.
         var v = new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new DispatchOrder(c.Id, Power.Babylonia, "Greetings."), new RenewOrder(c.Id, 20)] });
         Assert.Equal(2, v.Accepted.Count);
+        // In either order: a renewal gives the servant no task, so it does not stand in the way of one.
+        v = new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new RenewOrder(c.Id, 20), new DispatchOrder(c.Id, Power.Babylonia, "Greetings.")] });
+        Assert.Equal(2, v.Accepted.Count);
+        Assert.Null(OrderKeys.CharacterOf(new RenewOrder(c.Id, 20)));
         Begin(s).Resolve(Orders(Power.Egypt, new DispatchOrder(c.Id, Power.Babylonia, "Greetings.")));
         Begin(s).Resolve(Orders(Power.Egypt, new RenewOrder(c.Id, 40, 6)));
         Assert.Equal((40, 9), (c.Contract!.Wage, c.Contract.UntilTurn));
@@ -178,6 +185,44 @@ public class ContractTests
         Assert.Equal((12, 10), (c.Contract.Wage, c.Contract.UntilTurn));
         Begin(s).Resolve(Orders(Power.Egypt, new RenewOrder(c.Id, 33, 12)));
         Assert.Equal((33, 14), (c.Contract.Wage, c.Contract.UntilTurn));
+    }
+
+    [Fact]
+    public void A_servant_renewed_early_takes_no_cut_from_its_present_wage()
+    {
+        // A free person at Egypt's court who pitched 60, hired at that.
+        var s = GameFactory.NewGame(5, new GameConfig { CatastropheChance = 0 });
+        var c = s.Characters.First(x => x.Status == CharacterStatus.Free && x.HeldBy is null);
+        c.At = Power.Egypt;
+        c.AskingPrice[Power.Egypt] = 60;
+        new TurnEngine(s).Resolve(Orders(Power.Egypt, new HireOrder(c.Id, 60)));
+        Assert.Equal((Power.Egypt, 60, 7), (c.Employer!.Value, c.Contract!.Wage, c.Contract.UntilTurn));
+        var formula = TurnEngine.RenewalPrice(c, Power.Egypt);
+        Assert.True(formula < 60);
+
+        // What it would ask at the end of its term is less than it earns now: renewed early, it still asks its present wage.
+        Begin(s).Resolve(Orders(Power.Egypt, new RenewOrder(c.Id, formula, 30)));
+        Assert.Contains(s.InboxOf(Power.Egypt), i => i.Kind == InboxKind.Rejected && i.Title == "Not renewed"
+            && i.Body == $"{c.Name} will not serve on for {Money.Format(formula)} a season; they ask {Money.Format(60)}, their present wage.");
+        Assert.Equal((60, 7), (c.Contract.Wage, c.Contract.UntilTurn));
+
+        // At its present wage it serves on, for the longer term.
+        Begin(s).Resolve(Orders(Power.Egypt, new RenewOrder(c.Id, 60, 12)));
+        Assert.Equal((60, 15), (c.Contract.Wage, c.Contract.UntilTurn));
+    }
+
+    [Fact]
+    public void A_servant_dismissed_earlier_in_the_season_is_not_renewed()
+    {
+        var (s, c) = Servant();
+        c.Contract!.UntilTurn = 10;
+        var v = new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new DismissOrder(c.Id), new RenewOrder(c.Id, 40)] });
+        Assert.Equal(2, v.Accepted.Count);
+        new TurnEngine(s).Resolve(Orders(Power.Egypt, new DismissOrder(c.Id), new RenewOrder(c.Id, 40)));
+        Assert.Equal(CharacterStatus.Free, c.Status);
+        Assert.Null(c.Employer);
+        Assert.Contains(s.InboxOf(Power.Egypt), i => i.Kind == InboxKind.Rejected && i.Title == "Not renewed"
+            && i.Body == $"{c.Name} is no longer in your service, so could not be renewed.");
     }
 
     [Fact]
@@ -232,6 +277,81 @@ public class ContractTests
         var purse = c.Purse;
         Begin(s);
         Assert.Equal(purse + 35, c.Purse);
+    }
+
+    [Fact]
+    public void An_envoy_on_notice_detained_abroad_keeps_its_notice_in_its_master_s_eyes()
+    {
+        var (s, c) = Servant();
+        Begin(s).Resolve(None());
+        Begin(s).Resolve(Orders(Power.Egypt, new DispatchOrder(c.Id, Power.Alashiya, "Greetings.")));
+        var e = Begin(s);
+        while (s.Audiences.Count == 0) { e.Resolve(None()); e = Begin(s); }
+
+        // Alashiya holds it; Egypt, which has not heard, sees it on the road home, still on notice.
+        e.ApplyAudience(new AudienceRecord { AudienceId = s.Audiences.Single().Id, Delivered = "Greetings.", Rounds = [new AudienceRound { Host = new HostReply { Detain = true } }] });
+        Assert.Equal((Duty.Detained, Power.Alashiya), (c.Duty, c.HeldBy!.Value));
+        Assert.NotNull(c.CoverOf(Power.Egypt));
+        var line = Views.For(s, Power.Egypt).Court.Single(x => x.Id == c.Id);
+        Assert.Equal(("on the road home", "serves at 12 a season; has given notice: asks 33 a season to serve on; leaves when next at your court unless renewed"), (line.Duty, line.Term));
+
+        // So the renewal the notice asked for is accepted, at the price it named.
+        Assert.Empty(new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new RenewOrder(c.Id, 33)] }).Rejected);
+        var until = s.Turn + 6;
+        e.Resolve(Orders(Power.Egypt, new RenewOrder(c.Id, 33, 6)));
+        Assert.Contains(s.InboxOf(Power.Egypt), i => i.Title == "Contract renewed" && i.Body == $"{c.Name} stays in your service at 33 shekels a season through turn {until}.");
+        Assert.Equal((33, until), (c.Contract!.Wage, c.Contract.UntilTurn));
+    }
+
+    /// <summary>
+    /// Egypt awake in the season of its servant's notice, with orders scheduled for that season: resolves the
+    /// scheduled orders together with the fresh ones.
+    /// </summary>
+    private static (GameState S, Character C) Awake(Func<string, Order[]> scheduled, Func<string, Order[]> fresh)
+    {
+        var (s, c) = Servant(config: new GameConfig { CatastropheChance = 0, SleepingSeats = true });
+        Begin(s).Resolve(None());
+        var e = Begin(s);
+        s.Sleep[Power.Egypt] = new SleepState { WakeAt = 50, LastCalled = s.Turn, Scheduled = [new ScheduledOrders { Turn = s.Turn, Orders = scheduled(c.Id).ToList() }] };
+        e.Resolve(Orders(Power.Egypt, fresh(c.Id)));
+        return (s, c);
+    }
+
+    [Fact]
+    public void A_fresh_renewal_replaces_a_scheduled_dismissal_or_renewal_of_the_same_person()
+    {
+        // Woken by the notice, the king renews the servant it had meant to dismiss.
+        var (s, c) = Awake(id => [new DismissOrder(id)], id => [new RenewOrder(id, 40, 6)]);
+        Assert.Equal((CharacterStatus.Employed, Power.Egypt, 40), (c.Status, c.Employer!.Value, c.Contract!.Wage));
+        Assert.Empty(s.Sleep[Power.Egypt].PendingWake);
+        Assert.DoesNotContain(s.InboxOf(Power.Egypt), i => i.Title is "A servant leaves" or "Not renewed");
+
+        // A fresh renewal at another wage replaces the scheduled one, which neither fails nor wakes the seat.
+        (s, c) = Awake(id => [new RenewOrder(id, 35, 6)], id => [new RenewOrder(id, 40, 8)]);
+        Assert.Equal((40, 2 + 8), (c.Contract!.Wage, c.Contract.UntilTurn));
+        Assert.Empty(s.Sleep[Power.Egypt].PendingWake);
+        Assert.DoesNotContain(s.InboxOf(Power.Egypt), i => i.Kind == InboxKind.Rejected);
+    }
+
+    [Fact]
+    public void A_fresh_dismissal_replaces_a_scheduled_renewal_of_the_same_person()
+    {
+        var (s, c) = Awake(id => [new RenewOrder(id, 40, 6)], id => [new DismissOrder(id)]);
+        Assert.Null(c.Employer);
+        Assert.Empty(s.Sleep[Power.Egypt].PendingWake);
+        Assert.DoesNotContain(s.InboxOf(Power.Egypt), i => i.Title == "Not renewed");
+    }
+
+    [Fact]
+    public void A_renewal_and_an_errand_for_the_same_person_both_run_whichever_was_scheduled()
+    {
+        var (s, c) = Awake(id => [new DispatchOrder(id, Power.Babylonia, "Greetings.")], id => [new RenewOrder(id, 40, 6)]);
+        Assert.Equal((Duty.EnvoyOutbound, 40), (c.Duty, c.Contract!.Wage));
+        Assert.Empty(s.Sleep[Power.Egypt].PendingWake);
+
+        (s, c) = Awake(id => [new RenewOrder(id, 40, 6)], id => [new DispatchOrder(id, Power.Babylonia, "Greetings.")]);
+        Assert.Equal((Duty.EnvoyOutbound, 40), (c.Duty, c.Contract!.Wage));
+        Assert.Empty(s.Sleep[Power.Egypt].PendingWake);
     }
 
     [Fact]

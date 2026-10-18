@@ -133,7 +133,9 @@ public sealed partial class TurnEngine
     /// A seat's orders for this season with its scheduled orders folded in. An entry for this season in
     /// the submission replaces what was scheduled for it (an empty one cancels it). Otherwise a fresh
     /// order for a unit or a person replaces the scheduled one for it, a scheduled order the seat has
-    /// repeated is dropped, and every other scheduled order is kept.
+    /// repeated is dropped, and every other scheduled order is kept. A renewal is not a task: a fresh
+    /// renewal replaces a scheduled renewal or dismissal of the same person, and a fresh dismissal a
+    /// scheduled renewal, but a renewal and an errand for the same person both run.
     /// </summary>
     private TurnSubmission WithScheduled(Power p, TurnSubmission sub, out List<Order> scheduled)
     {
@@ -146,10 +148,14 @@ public sealed partial class TurnEngine
         if (due.Count == 0) return sub;
         var units = sub.Orders.Select(OrderKeys.UnitOf).OfType<string>().ToHashSet();
         var people = sub.Orders.Select(OrderKeys.CharacterOf).OfType<string>().ToHashSet();
+        var renewing = sub.Orders.OfType<RenewOrder>().Select(r => r.Character).ToHashSet();
+        var renewedOrDismissed = sub.Orders.OfType<DismissOrder>().Select(d => d.Character).Concat(renewing).ToHashSet();
         var same = sub.Orders.Select(o => o.Describe()).ToHashSet();
         scheduled = due.Where(o => !same.Contains(o.Describe())
                                    && (OrderKeys.UnitOf(o) is not { } u || !units.Contains(u))
-                                   && (OrderKeys.CharacterOf(o) is not { } c || !people.Contains(c))).ToList();
+                                   && (OrderKeys.CharacterOf(o) is not { } c || !people.Contains(c))
+                                   && !(o is DismissOrder dm && renewing.Contains(dm.Character))
+                                   && !(o is RenewOrder rn && renewedOrDismissed.Contains(rn.Character))).ToList();
         _scheduledNow[p] = scheduled;
         return new TurnSubmission { Orders = sub.Orders.Concat(scheduled).ToList(), Notes = sub.Notes, Sleep = sub.Sleep, Scheduled = sub.Scheduled, FromFallback = sub.FromFallback };
     }

@@ -11,7 +11,7 @@ public class ContractTextTests
     public void The_rulebook_says_what_happens_when_a_term_ends_and_how_to_renew()
     {
         var rules = Prompts.LeaderRules(true, new GameConfig());
-        Assert.Contains("- Each servant serves for a term. When it ends, one content with the wage serves on for another 6 seasons; one who wants more gives notice, names a price and serves one more season: renew them (order renew) at that price or more, or they leave. You may renew one of your people at court at any time, for a new wage and term (below their price they refuse, and you are told the price); hire is only for people not in your service.", rules);
+        Assert.Contains("- Each servant serves for a term. When it ends, one content with the wage serves on for another 6 seasons; one who wants more gives notice, names a price and serves one more season: renew them (order renew) at that price or more, or they leave. You may renew one of your people at court at any time, for a new wage and term; they never take less than their present wage (below their price they refuse, and you are told the price); hire is only for people not in your service.", rules);
         Assert.Contains("each names a price, as does anyone free at your court.", rules);
         Assert.Contains("a servant gives notice", Prompts.LeaderRules(true, new GameConfig { SleepingSeats = true }));
     }
@@ -48,6 +48,9 @@ public class ContractTextTests
         string Line() => Prompts.Person(Views.For(s, Power.Mitanni).Court.Single(x => x.Id == c.Id));
         Assert.Contains("; at court, ready for a mission; serves at 12 a season through turn 10; if content they then renew themselves, otherwise they give a season's notice and name a price", Line());
         Assert.DoesNotContain("until turn", Line());
+        // What it asked before it was hired (here, or rehired after a notice ran out) means nothing now: one's own servant shows no asking price.
+        c.AskingPrice[Power.Mitanni] = 40;
+        Assert.DoesNotContain("asks", Line());
 
         c.Contract.NoticePrice = 20;
         c.Contract.LeavesTurn = 2;

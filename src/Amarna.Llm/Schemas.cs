@@ -58,7 +58,7 @@ public static class Schemas
         ("power", Str("For cede_province, give_unit, or a court to spy on.")),
         ("person", Str("Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge.")),
         ("amount", Int("Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0.")),
-        ("term", Int("hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice.")),
+        ("term", Int("hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice; else 0.")),
         ("text", Str("Forgery text, words for a released envoy, or what a turned spy should report.")),
         ("item", Str("Gold lot id for assay, tablet copy id for authenticate.")),
         ("seals", Array(Str(), "Powers whose seals a forgery bears.")));
