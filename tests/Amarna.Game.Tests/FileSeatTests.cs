@@ -205,10 +205,10 @@ public class FileSeatTests
         Assert.Contains("YOU SLEEP BETWEEN YOUR ORDERS", requests["t1_orders_Alashiya"]);
         Assert.Contains("\"wake_in_turn\"", requests["t1_orders_Alashiya"]);
         Assert.StartsWith("This is your first season.\n", Decision("t1_orders_Alashiya"));
-        const string woken = "You slept 0 seasons (you last gave orders in turn 1). You were woken because: an envoy of Egypt waits to be received.\n";
+        const string woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt waits to be received.\n";
         Assert.StartsWith(woken, Decision(requests.Keys.First(k => k.StartsWith("t2_aud_", StringComparison.Ordinal))));
         Assert.StartsWith(woken, Decision("t2_orders_Alashiya"));
-        Assert.StartsWith("You slept 0 seasons (you last gave orders in turn 2). You were woken because: you asked to be woken in turn 3.\n", Decision("t3_orders_Alashiya"));
+        Assert.StartsWith("You gave orders last season (turn 2). You were woken because: you asked to be woken in turn 3.\n", Decision("t3_orders_Alashiya"));
         Assert.DoesNotContain("t5_orders_Alashiya", requests.Keys);
 
         var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));

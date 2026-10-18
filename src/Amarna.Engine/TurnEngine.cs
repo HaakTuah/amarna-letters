@@ -360,7 +360,12 @@ public sealed partial class TurnEngine
                     if (byProvince.TryGetValue(l.Province, out var move)) ScheduledFailed(p, move, why);
                     mine.Add($"{l.Text}: {why}");
                 }
-                else mine.Add(l.Void is { } v ? $"{l.Text}: {v}" : l.Text);
+                else
+                {
+                    mine.Add(l.Void is { } v ? $"{l.Text}: {v}" : l.Text);
+                    // So does a scheduled support that was cut, or a support or convoy that matched no move.
+                    if ((l.Void ?? l.Cut) is { } failed && byProvince.TryGetValue(l.Province, out var help)) ScheduledFailed(p, help, failed);
+                }
             }
             var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && (sight.Contains(l.Province) || l.Target is { } t && sight.Contains(t)))
                 .Select(l => $"{l.Power}: {l.Text}").ToList();

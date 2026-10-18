@@ -33,14 +33,20 @@ public sealed partial class TurnEngine
         if (!S.Config.SleepingSeats) return;
         foreach (var (p, sl) in S.Sleep.OrderBy(x => x.Key))
         {
-            sl.WokenBecause.Clear();
+            var before = sl.WokenBecause;
+            sl.WokenBecause = new();
             if (!S.IsAlive(p)) continue;
             if (!sl.Asleep)
             {
                 // Awake although it gave orders before: its last call failed and the stand-in played. It is asked again,
-                // and told what concerns it as if it had been woken.
+                // told why it was woken last season (it never read it) and what concerns it now, as if it had been woken.
                 if (sl.LastCalled > 0 && sl.LastCalled < S.Turn - 1)
-                    sl.WokenBecause = WakeReasons(p, sl) is { Count: > 0 } why ? why : [AskedAgainReason];
+                {
+                    var why = before.Where(r => r != AskedAgainReason).ToList();
+                    foreach (var r in WakeReasons(p, sl))
+                        if (!why.Contains(r)) why.Add(r);
+                    sl.WokenBecause = why.Count > 0 ? why : [AskedAgainReason];
+                }
                 continue;
             }
             var reasons = WakeReasons(p, sl);
@@ -172,7 +178,8 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// A seat's orders for this season with its scheduled orders folded in. An entry for this season in
-    /// the submission replaces what was scheduled for it (an empty one cancels it). Otherwise a fresh
+    /// the submission replaces what was scheduled for it (an empty one cancels it); its orders are given
+    /// now, so they count as fresh ones (a failure among them does not wake the seat). Otherwise a fresh
     /// order for a unit or a person replaces the scheduled one for it, a scheduled order the seat has
     /// repeated is dropped, and every other scheduled order is kept. A renewal is not a task: a fresh
     /// renewal replaces a scheduled renewal or dismissal of the same person, and a fresh dismissal a
@@ -182,7 +189,8 @@ public sealed partial class TurnEngine
     {
         scheduled = new();
         if (!S.Config.SleepingSeats || !S.Sleep.TryGetValue(p, out var sl)) return sub;
-        var due = sub.Scheduled.LastOrDefault(x => x.Turn == S.Turn) is { } replacement
+        var replacement = sub.Scheduled.LastOrDefault(x => x.Turn == S.Turn);
+        var due = replacement is not null
             ? replacement.Orders.ToList()
             : sl.Scheduled.Where(x => x.Turn == S.Turn).SelectMany(x => x.Orders).ToList();
         sl.Scheduled.RemoveAll(x => x.Turn <= S.Turn);
@@ -192,21 +200,25 @@ public sealed partial class TurnEngine
         var renewing = sub.Orders.OfType<RenewOrder>().Select(r => r.Character).ToHashSet();
         var renewedOrDismissed = sub.Orders.OfType<DismissOrder>().Select(d => d.Character).Concat(renewing).ToHashSet();
         var same = sub.Orders.Select(o => o.Describe()).ToHashSet();
-        scheduled = due.Where(o => !same.Contains(o.Describe())
-                                   && (OrderKeys.UnitOf(o) is not { } u || !units.Contains(u))
-                                   && (OrderKeys.CharacterOf(o) is not { } c || !people.Contains(c))
-                                   && !(o is DismissOrder dm && renewing.Contains(dm.Character))
-                                   && !(o is RenewOrder rn && renewedOrDismissed.Contains(rn.Character))).ToList();
-        _scheduledNow[p] = scheduled;
-        return new TurnSubmission { Orders = sub.Orders.Concat(scheduled).ToList(), Notes = sub.Notes, Sleep = sub.Sleep, Scheduled = sub.Scheduled, FromFallback = sub.FromFallback };
+        var folded = due.Where(o => !same.Contains(o.Describe())
+                                    && (OrderKeys.UnitOf(o) is not { } u || !units.Contains(u))
+                                    && (OrderKeys.CharacterOf(o) is not { } c || !people.Contains(c))
+                                    && !(o is DismissOrder dm && renewing.Contains(dm.Character))
+                                    && !(o is RenewOrder rn && renewedOrDismissed.Contains(rn.Character))).ToList();
+        if (replacement is null)
+        {
+            scheduled = folded;
+            _scheduledNow[p] = scheduled;
+        }
+        return new TurnSubmission { Orders = sub.Orders.Concat(folded).ToList(), Notes = sub.Notes, Sleep = sub.Sleep, Scheduled = sub.Scheduled, FromFallback = sub.FromFallback };
     }
 
     /// <summary>The scheduled orders running this season, per seat, to tell their failures from the seat's fresh ones.</summary>
     private readonly Dictionary<Power, List<Order>> _scheduledNow = new();
 
     /// <summary>
-    /// A scheduled order that failed while the season resolved (a move that was stopped, or a levy, cession or purchase
-    /// that could not go through) wakes its seat next season.
+    /// A scheduled order that failed while the season resolved (a move that was stopped, a support that was cut, a support
+    /// or convoy that matched no move, or a levy, cession or purchase that could not go through) wakes its seat next season.
     /// </summary>
     private void ScheduledFailed(Power p, Order order, string why)
     {
@@ -261,9 +273,9 @@ public sealed partial class TurnEngine
     }
 
     /// <summary>
-    /// Keeps the orders a seat scheduled for later seasons: any season up to the game's last, at most
-    /// <see cref="MaxScheduledPerSeason"/> orders a season, for at most <see cref="MaxScheduledSeasons"/> seasons. One
-    /// entry per season replaces everything scheduled for it, and an empty entry cancels it. What is not kept is reported.
+    /// Keeps the orders a seat scheduled for later seasons: any later season, at most <see cref="MaxScheduledPerSeason"/>
+    /// orders a season, for at most <see cref="MaxScheduledSeasons"/> seasons. One entry per season replaces everything
+    /// scheduled for it, and an empty entry cancels it. What is not kept is reported.
     /// </summary>
     private void KeepScheduled(Power p, SleepState sl, List<ScheduledOrders> plans)
     {
@@ -275,8 +287,8 @@ public sealed partial class TurnEngine
                 if (plan.Orders.Count > 0) notKept.Add($"turn {plan.Turn}: that season has passed");
                 continue;
             }
-            // A season after the game's last never comes. Nothing is said, so the king learns nothing of when the game must end.
-            if (plan.Turn > S.Config.MaxTurns) continue;
+            // A season after the game's last is kept like any other, under the same limits: its orders never run, because
+            // the game ends first, and nothing the king reads depends on when the game must end.
             sl.Scheduled.RemoveAll(x => x.Turn == plan.Turn);
             if (plan.Orders.Count == 0) continue;
             if (plan.Orders.Count > MaxScheduledPerSeason)

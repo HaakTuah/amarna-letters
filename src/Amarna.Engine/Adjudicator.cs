@@ -38,6 +38,8 @@ public sealed record ReportLine(string Province, Power? Power, string Text, bool
     public MoveFailure? Failure { get; init; }
     /// <summary>Why a support or convoy was void because the unit it named did not do what it helped (told to its own king only).</summary>
     public string? Void { get; init; }
+    /// <summary>For a support that was cut (its unit still standing): why, in plain words.</summary>
+    public string? Cut { get; init; }
 }
 
 /// <summary>One order as it resolved: who, where, what, and whether it worked.</summary>
@@ -471,9 +473,13 @@ public sealed class Adjudicator
                     else if (o.Power is { } supporter && _at.TryGetValue(o.Target!, out var sIdx))
                         r.GivenSupports.Add((supporter, _orders[sIdx].Power, o.To ?? o.Target!));
                     // A unit that is destroyed gives no support: that is not a cut.
+                    var cutFrom = !given && !dislodged && _explain ? CutBy(o)?.At : null;
                     var failed = dislodged ? "void: the supporting unit was destroyed"
-                        : _explain && CutBy(o) is { } cut ? $"cut (attacked from {cut.At})" : "cut";
-                    r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} supports {o.Target}{(o.To is null ? " holding" : " -> " + o.To)}: {(given ? "given" : failed)}", given));
+                        : cutFrom is not null ? $"cut (attacked from {cutFrom})" : "cut";
+                    r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} supports {o.Target}{(o.To is null ? " holding" : " -> " + o.To)}: {(given ? "given" : failed)}", given)
+                    {
+                        Cut = given || dislodged || !_explain ? null : cutFrom is not null ? $"the support was cut by an attack from {cutFrom}" : "the support was cut",
+                    });
                     break;
                 case Kind.Convoy:
                     r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} convoys {o.Target} -> {o.To}", _result[o.Index]));

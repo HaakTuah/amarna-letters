@@ -464,8 +464,13 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
 - **Sleeping after every call.** A seat never asks to sleep: after every orders call it answered
   itself, it sleeps. It may name a season to be woken in (`wake_in_turn`, 0 for none); otherwise,
   having given orders in turn t, it is woken at the start of turn t + 1 + `MaxSleep` at the latest.
-  A named season after that is ignored (the cap wakes it first). When the script king stands in
-  because a call failed, the seat does not go to sleep: it is asked again next season (see below).
+  A named season after that is ignored (the cap wakes it first), and so is one that is not later
+  than the season of the orders. Like the triggers, the named season holds only until the seat is
+  next woken: each set of orders names it anew. A seat woken before the season it named reads, in
+  its view, "When you last gave orders you asked to be woken in turn 10. Each set of orders names
+  that season anew: name it again (wake_in_turn) if you still want it." (the rulebook and the
+  schema say so too). When the script king stands in because a call failed, the seat does not go
+  to sleep: it is asked again next season (see below).
 - **What wakes it**, and nothing else. These are checked each season after the arrivals and
   reports, from the seat's own view only:
   - an envoy waits to be received at its court
@@ -477,9 +482,12 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     deserting ("your unpaid troops deserted"), or a unit killed by plague ("plague destroyed troops
     of yours")
   - orders it scheduled could not be carried out: refused by the validator, failed as the season
-    resolved (any of the failures under "Every refused or failed order"), or a scheduled move that
+    resolved (any of the failures under "Every refused or failed order"), a scheduled move that
     was stopped, with the battle report's reason ("orders you scheduled could not be carried out:
-    sippar -> mari (the walls of mari held; your strength 1 against 1)")
+    sippar -> mari (the walls of mari held; your strength 1 against 1)"), a scheduled support that
+    was cut ("... (the support was cut by an attack from ekallatum)"), or a scheduled support or
+    convoy that matched no move ("... (no unit moved from sippar to mari)"). A support or convoy
+    whose unit was destroyed is not counted again: the lost troops already wake the seat.
   - a ransom is demanded for one of its people
   - a servant gives notice ("a servant gives notice: Mane asks 20 shekels a season to serve on"):
     the season of the notice is the one in which it can be renewed before it leaves
@@ -518,22 +526,35 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   works)" follows with the mechanics: scheduled orders and their limits, which failures wake, the
   seat's own triggers, naming a season, and the digest. Every request, for orders and for
   audiences, opens with one line: "You slept 3 seasons (you last gave orders in turn 5). You were
-  woken because: an envoy of Egypt waits to be received." In the first season it reads "This is
-  your first season."
+  woken because: an envoy of Egypt waits to be received." Woken in the season after its orders it
+  reads "You gave orders last season (turn 5). You were woken because: ..."; in the first season,
+  "This is your first season."; and if it has never answered itself (its first call failed), "This
+  is the first season you give orders." An audience request carries "WHILE YOU SLEPT" (the brief
+  and the news of the seasons slept) as the orders request does, before the season's news: an
+  envoy at the door is what most often wakes a king, so the audience is usually the first thing it
+  reads on waking.
 - **The cap is hidden**: `MaxSleep` = 12 seasons (`--sleep-cap N`, or the hidden safety cap box in
   the web app). It is in no rulebook, schema or view (the view only says whether the seat sleeps),
   and the reason it gives says nothing of it. A placeholder, to be set from the next games'
-  wake-up data. The batch seat report prints, per seat, how many seasons each sleep lasted ("n"
-  when it woke in the season it named, "+" for a sleep still running at the end) and every reason
-  it was woken, counted by kind over its sleeps.
-- **Scheduled orders**, kept secret in the seat's own state, for any later season up to the game's
-  last (`MaxTurns`; an entry beyond it is dropped without a word, so nothing tells the king when
-  the game must end), at most 24 orders a season and at most 40 seasons. What is not kept (a
-  season already past, orders past the 24th, seasons past the 40th) is reported as "Scheduled
-  orders not kept". Units are named by where they will stand in that season. One entry per season
-  replaces everything scheduled for it, and an empty entry cancels it; that works for the current
-  season too. They are validated when they run, after the seat's fresh orders for that season
-  (the rulebook says so), so the gold they need is reserved last. In a season when the seat is
+  wake-up data. It stays hidden only until it first wakes a seat: the opening line then reads "You
+  slept 12 seasons (...). You were woken because: your counsellors woke you after a long sleep.",
+  so a king that reaches it (having named a later season, or nothing) can count it, and from then on
+  it may anchor that king's plans. Both the exact count and the neutral reason were decided; a
+  way out, left to the user, would be to vary the cap a little for each sleep (from
+  `Rng.For(seed, turn, "sleepcap", power)`). The batch seat report prints, per seat, how many
+  seasons each sleep lasted ("n" when it woke in the season it named, "+" for a sleep still
+  running at the end) and every reason it was woken, counted by kind over its sleeps.
+- **Scheduled orders**, kept secret in the seat's own state, for any later season, at most 24
+  orders a season and at most 40 seasons. An entry for a season after the game's last (`MaxTurns`)
+  is kept, listed and counted like any other and simply never runs, because the game ends first:
+  what the king reads and the notices it gets are the same whatever `MaxTurns` is, so nothing tells
+  it when the game must end (tested). What is not kept (a season already past, orders past the
+  24th, seasons past the 40th) is reported as "Scheduled orders not kept". Units are named by where
+  they will stand in that season. One entry per season replaces everything scheduled for it, and
+  an empty entry cancels it; that works for the current season too, and then its orders count as
+  given now (a failure among them does not wake the seat, as the rulebook says of the orders given
+  for the season the seat is awake). They are validated when they run, after the seat's fresh
+  orders for that season (the rulebook says so), so the gold they need is reserved last. In a season when the seat is
   awake, a fresh order for a unit or a person replaces the scheduled one for it, a scheduled order
   the seat repeats runs once, and the other scheduled orders still run. A renewal is not a task: a
   fresh renewal replaces a scheduled renewal or dismissal of the same person, and a fresh dismissal
@@ -542,7 +563,15 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   already seen in its news, while awake, does not wake it later. Conditional orders are not built.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
-  again next season, told what concerns it as if woken, or else "your counsellors woke you".
+  again next season, told why it was woken in the season it missed (it never read that) and what
+  concerns it now, as if woken, or, if nothing does, "your counsellors woke you". Those reasons are
+  carried, without repeats, until the seat answers itself.
+- **What a human player can tell.** No seat's view and no event carries another seat's sleep (the
+  web app shows it only in the God view, which with humans playing needs Reveal all). But the web
+  app's model-spend pill, shown to the operator and so to a human at the table, rises only when a
+  model seat is called, and the orders phase returns at once when every model king sleeps: season by
+  season, a human can tell whether any model king was asked. This is accepted as operator
+  information (the pill is for whoever pays), not hidden.
 - **Replay.** Sleep state lives in `GameState`, and the log header records which seats may sleep,
   so replays stay exact with sleeping seats on and off (tested). With sleeping seats on, every
   season is also marked in the log (`t<turn>/season`), since a season can pass with no seat asked.

@@ -148,9 +148,9 @@ public static class Prompts
         PLANNING AHEAD (how sleeping works)
         - While you sleep the world goes on, and nobody is told that you sleep. Your units hold unless you scheduled orders for them.
         - Scheduled orders (schedule): orders for any later season, named by its turn number; name each unit by the province it will stand in that season. They are secret and are checked when they run, after the orders you give that season. In a season when you are awake, your scheduled orders for it still run, except where you give the same units or people other orders (a renewal is not a task: a renewal and an errand for the same person both run). To change or cancel them, send an entry for that season: it replaces everything scheduled for it, and an empty one cancels it. You may schedule at most {TurnEngine.MaxScheduledPerSeason} orders for one season, for at most {TurnEngine.MaxScheduledSeasons} seasons.
-        - A scheduled order that is refused, or fails as its season resolves (a move that is stopped among them), wakes you the next season. The orders you give now for this season do not: if one is refused or fails, you read why when you are next woken.
+        - A scheduled order that is refused, or fails as its season resolves (a move that is stopped or a support that is cut among them), wakes you the next season. The orders you give now for this season do not, an entry for this season in your schedule among them: if one is refused or fails, you read why when you are next woken.
         - Your own triggers (wake_on), at most 8, set anew with each set of orders: a unit moves (name the province it stands in), one of your people is back at court, your treasury falls below an amount, foreign troops (of one power, or any) are seen in a province, or a province changes hands.
-        - To be woken in a particular season, name it (wake_in_turn); something that concerns you may wake you sooner.
+        - To be woken in a particular season, name it (wake_in_turn) with each set of orders, like your triggers: it holds only until you are next woken, so if something wakes you sooner, name it again to keep it.
         - Each time you wake, you are told how long you slept and what woke you, then what happened while you slept: first in brief (the troop movements you saw, the reports that came, the orders that failed), then the news of those seasons in full (the routine treasury notices left out).
         """;
 
@@ -182,7 +182,9 @@ public static class Prompts
         // It has never given orders: the first season, or its first call failed and its counsellors kept the kingdom since.
         if (v.LastCalled == 0) return v.Turn <= 1 ? "This is your first season." : "This is the first season you give orders.";
         var slept = Math.Max(0, v.Turn - v.LastCalled - 1);
-        var line = $"You slept {slept} season{(slept == 1 ? "" : "s")} (you last gave orders in turn {v.LastCalled}).";
+        var line = slept == 0
+            ? $"You gave orders last season (turn {v.LastCalled})."
+            : $"You slept {slept} season{(slept == 1 ? "" : "s")} (you last gave orders in turn {v.LastCalled}).";
         return v.WokenBecause.Count == 0 ? line : $"{line} You were woken because: {string.Join("; ", v.WokenBecause.Select(r => r.TrimEnd('.')))}.";
     }
 
@@ -238,24 +240,36 @@ public static class Prompts
             foreach (var plan in v.Scheduled) sb.AppendLine($"- turn {plan.Turn}: {string.Join("; ", plan.Orders.Select(o => o.Describe()))}");
         }
 
-        if (v.WhileAsleep.Count > 0 || v.Digest.Count > 0)
-        {
-            sb.AppendLine();
-            sb.AppendLine($"WHILE YOU SLEPT ({(v.LastCalled > 0 ? $"since you gave orders in turn {v.LastCalled}" : "since the game began")}):");
-            if (v.Digest.Count > 0)
-            {
-                sb.AppendLine($"In brief{(v.DigestLeftOut > 0 ? $" ({v.DigestLeftOut} earlier lines left out)" : "")}:");
-                foreach (var d in v.Digest) sb.AppendLine($"- {d}");
-            }
-            if (v.WhileAsleep.Count > 0)
-            {
-                sb.AppendLine($"The news of those seasons, oldest first (routine treasury notices left out{(v.WhileAsleepLeftOut > 0 ? $"; {v.WhileAsleepLeftOut} earlier items left out" : "")}):");
-                foreach (var i in v.WhileAsleep) sb.AppendLine($"[turn {i.Turn}] [{i.Kind}] {i.Title}: {i.Body}");
-            }
-        }
+        if (v.NamedWake > 0)
+            sb.AppendLine($"When you last gave orders you asked to be woken in turn {v.NamedWake}. Each set of orders names that season anew: name it again (wake_in_turn) if you still want it.");
+
+        sb.Append(WhileYouSlept(v));
 
         sb.AppendLine();
         sb.Append(News(v));
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// What happened while the king slept, read when it wakes, before its orders and at its audiences alike: first in
+    /// brief, then the news of those seasons in full. Empty when nothing waits.
+    /// </summary>
+    public static string WhileYouSlept(SeatView v)
+    {
+        if (v.WhileAsleep.Count == 0 && v.Digest.Count == 0) return "";
+        var sb = new StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine($"WHILE YOU SLEPT ({(v.LastCalled > 0 ? $"since you gave orders in turn {v.LastCalled}" : "since the game began")}):");
+        if (v.Digest.Count > 0)
+        {
+            sb.AppendLine($"In brief{(v.DigestLeftOut > 0 ? $" ({v.DigestLeftOut} earlier lines left out)" : "")}:");
+            foreach (var d in v.Digest) sb.AppendLine($"- {d}");
+        }
+        if (v.WhileAsleep.Count > 0)
+        {
+            sb.AppendLine($"The news of those seasons, oldest first (routine treasury notices left out{(v.WhileAsleepLeftOut > 0 ? $"; {v.WhileAsleepLeftOut} earlier items left out" : "")}):");
+            foreach (var i in v.WhileAsleep) sb.AppendLine($"[turn {i.Turn}] [{i.Kind}] {i.Title}: {i.Body}");
+        }
         return sb.ToString();
     }
 
@@ -269,13 +283,21 @@ public static class Prompts
         return sb.ToString();
     }
 
-    /// <summary>What a host has before it as it holds court: its own land and troops in brief, and the season's news.</summary>
+    /// <summary>
+    /// What a host has before it as it holds court: its own land and troops in brief, what happened while it slept (an
+    /// envoy at its door is what most often wakes it), and the season's news.
+    /// </summary>
     public static string CourtBrief(SeatView v)
     {
         var sb = new StringBuilder();
         var land = v.Owner.Where(x => x.Value == v.Power).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal).ToList();
         var troops = v.Units.Where(u => u.Power == v.Power).Select(u => $"{(u.Kind == UnitKind.Army ? "army" : "fleet")} in {u.Province}").ToList();
         sb.AppendLine($"YOUR LAND: {(land.Count == 0 ? "none" : string.Join(", ", land))}. YOUR TROOPS: {(troops.Count == 0 ? "none" : string.Join(", ", troops))}.");
+        if (WhileYouSlept(v) is { Length: > 0 } slept)
+        {
+            sb.Append(slept);
+            sb.AppendLine();
+        }
         sb.Append(News(v));
         return sb.ToString();
     }

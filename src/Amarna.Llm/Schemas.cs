@@ -74,7 +74,7 @@ public static class Schemas
         var props = (JsonObject)o["properties"]!;
         var required = (JsonArray)o["required"]!;
         props["sleep"] = With(Object(
-            ("wake_in_turn", Int("The season (turn number) to be woken in, or 0 for none. Something that concerns you may wake you sooner.")),
+            ("wake_in_turn", Int("A later season (turn number) to be woken in, or 0 for none. Something that concerns you may wake you sooner. Like wake_on, it holds only until you are next woken: name it again to keep it.")),
             ("wake_on", Array(Object(
                 ("trigger", Enum(WakeTriggers)),
                 ("province", Str("unit_moves: where the unit stands now. troops_enter, province_changes_hands: the province. Otherwise empty.")),
@@ -84,7 +84,7 @@ public static class Schemas
                 "Your own reasons to be woken, on top of the usual ones (at most 8). They hold until you are next woken."))),
             "You sleep after these orders, until something concerns you. What else should wake you.");
         props["schedule"] = Array(Object(
-            ("turn", Int("The season (turn number) these orders run in: any later season, or this one.")),
+            ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
             ("units", Array(UnitOrder(), "Name each unit by the province it will stand in that season, after any earlier moves.")),
             ("other_orders", Array(OtherOrder()))),
             $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order that is refused or fails wakes you.");

@@ -68,7 +68,10 @@ public sealed class SleepState
     public List<string> Digest { get; set; } = new();
     /// <summary>Digest lines left out because the digest was full (the oldest go first).</summary>
     public int DigestLeftOut { get; set; }
-    /// <summary>Why it was woken this season (empty if it was awake anyway).</summary>
+    /// <summary>
+    /// Why it was woken this season (empty if it was awake anyway). After a season the stand-in played, the reasons it
+    /// was woken for then are kept here too, since it never read them, until it answers itself.
+    /// </summary>
     public List<string> WokenBecause { get; set; } = new();
     /// <summary>Reasons found while resolving a season, applied at the next wake check (a scheduled order that failed).</summary>
     public List<string> PendingWake { get; set; } = new();
