@@ -122,8 +122,10 @@ public sealed class SeatView
     public List<string> Digest { get; set; } = new();
     /// <summary>Older digest lines that did not fit.</summary>
     public int DigestLeftOut { get; set; }
-    /// <summary>Its own orders queued for later seasons.</summary>
+    /// <summary>Its own orders queued for later seasons, each of its units named by where it stands now.</summary>
     public List<ScheduledOrders> Scheduled { get; set; } = new();
+    /// <summary>Its standing orders, each of its units named by where it stands now.</summary>
+    public List<StandingOrderView> Standing { get; set; } = new();
     public Dictionary<string, int> Prices { get; set; } = new();
 }
 
@@ -224,7 +226,18 @@ public static class Views
             v.WhileAsleep = slept.Skip(v.WhileAsleepLeftOut).ToList();
             v.Digest = sleep.Digest.ToList();
             v.DigestLeftOut = sleep.DigestLeftOut;
-            v.Scheduled = sleep.Scheduled.Select(x => new ScheduledOrders { Turn = x.Turn, Orders = x.Orders.ToList() }).ToList();
+            // Orders follow their units: each is shown as it would be given from where its unit stands now.
+            v.Scheduled = sleep.Scheduled.GroupBy(x => x.Turn).OrderBy(g => g.Key)
+                .Select(g => new ScheduledOrders { Turn = g.Key, Orders = g.Select(x => TurnEngine.AsItStands(s, p, x) ?? x.Order).ToList() }).ToList();
+            v.Standing = sleep.Standing.Select(x => new StandingOrderView
+            {
+                Id = x.Id,
+                When = x.When,
+                Power = x.Power,
+                Province = (x.When == StandingWhen.UnitAttacked ? s.Units.FirstOrDefault(u => u.Id == x.UnitId && u.Power == p)?.Province ?? x.Province : x.Province) ?? "",
+                Orders = x.Orders.Select(o => TurnEngine.AsItStands(s, p, o) ?? o.Order).ToList(),
+                FiresNow = x.Fires == s.Turn ? x.Cause : null,
+            }).ToList();
         }
 
         foreach (var c in s.Characters)

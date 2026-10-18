@@ -312,7 +312,7 @@ public class ContractTests
         var (s, c) = Servant(config: new GameConfig { CatastropheChance = 0, SleepingSeats = true });
         Begin(s).Resolve(None());
         var e = Begin(s);
-        s.Sleep[Power.Egypt] = new SleepState { WakeAt = 50, LastCalled = s.Turn, Scheduled = [new ScheduledOrders { Turn = s.Turn, Orders = scheduled(c.Id).ToList() }] };
+        s.Sleep[Power.Egypt] = new SleepState { WakeAt = 50, LastCalled = s.Turn, Scheduled = [.. scheduled(c.Id).Select(o => new PlannedOrder { Turn = s.Turn, Order = o })] };
         e.Resolve(Orders(Power.Egypt, fresh(c.Id)));
         return (s, c);
     }

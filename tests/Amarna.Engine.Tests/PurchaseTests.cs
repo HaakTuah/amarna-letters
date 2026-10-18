@@ -71,7 +71,7 @@ public class PurchaseTests
         {
             Asleep = true,
             WakeAt = 50,
-            Scheduled = [new ScheduledOrders { Turn = s.Turn, Orders = [new BuyProvinceOrder("gaza")] }],
+            Scheduled = [new PlannedOrder { Turn = s.Turn, Order = new BuyProvinceOrder("gaza") }],
         };
         var e = new TurnEngine(s);
         e.BeginTurn();

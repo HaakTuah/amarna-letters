@@ -46,26 +46,29 @@ public static class Schemas
 
     public static readonly string[] WakeTriggers = ["unit_moves", "envoy_returns", "treasury_below", "troops_enter", "province_changes_hands"];
 
-    private static JsonObject UnitOrder() => Object(
-        ("unit", Str("Province id where your unit stands.")),
+    // The shapes of a unit order and of any other order. Repeated in the schedule and in standing orders; the copy in
+    // standing orders leaves out the field descriptions, which are the same as above it, to keep the schema short.
+    private static JsonObject UnitOrder(bool described = true) => Object(
+        ("unit", Str(described ? "Province id where your unit stands." : null)),
         ("order", Enum(["hold", "move", "support", "convoy", "disband"])),
-        ("target", Str("move: destination. support: the province of the unit supported, or of a bought walled city (yours or another king's) to support its walls holding. convoy: province of the army. Otherwise empty.")),
-        ("to", Str("support of a move, or convoy: the destination. Support to hold: empty.")));
+        ("target", Str(described ? "move: destination. support: the province of the unit supported, or of a bought walled city (yours or another king's) to support its walls holding. convoy: province of the army. Otherwise empty." : null)),
+        ("to", Str(described ? "support of a move, or convoy: the destination. Support to hold: empty." : null)));
 
-    private static JsonObject OtherOrder() => Object(
+    private static JsonObject OtherOrder(bool described = true) => Object(
         ("action", Enum(OtherActions)),
-        ("province", Str("For raise, buy_city, cede_province, give_unit, or a province to spy on.")),
-        ("power", Str("For cede_province, give_unit, or a court to spy on.")),
-        ("person", Str("Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge.")),
-        ("amount", Int("Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0.")),
-        ("term", Int("hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice; else 0.")),
-        ("text", Str("Forgery text, words for a released envoy, or what a turned spy should report.")),
-        ("item", Str("Gold lot id for assay, tablet copy id for authenticate.")),
-        ("seals", Array(Str(), "Powers whose seals a forgery bears.")));
+        ("province", Str(described ? "For raise, buy_city, cede_province, give_unit, or a province to spy on." : null)),
+        ("power", Str(described ? "For cede_province, give_unit, or a court to spy on." : null)),
+        ("person", Str(described ? "Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge." : null)),
+        ("amount", Int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)),
+        ("term", Int(described ? "hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice; else 0." : null)),
+        ("text", Str(described ? "Forgery text, words for a released envoy, or what a turned spy should report." : null)),
+        ("item", Str(described ? "Gold lot id for assay, tablet copy id for authenticate." : null)),
+        ("seals", Array(Str(), described ? "Powers whose seals a forgery bears." : null)));
 
     /// <summary>
     /// A king's orders. With sleeping seats on, it sleeps after them: it may name a season to be woken in, add its own
-    /// reasons to be woken, and schedule orders for later seasons. Nothing here names the cap on its sleep.
+    /// reasons to be woken, schedule orders for later seasons, and give or cancel standing orders. Nothing here names the
+    /// cap on its sleep.
     /// </summary>
     public static JsonObject LeaderOrders(GameConfig? c = null)
     {
@@ -85,11 +88,21 @@ public static class Schemas
             "You sleep after these orders, until something concerns you. What else should wake you.");
         props["schedule"] = Array(Object(
             ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
-            ("units", Array(UnitOrder(), "Name each unit by the province it will stand in that season, after any earlier moves.")),
+            ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands.")),
             ("other_orders", Array(OtherOrder()))),
-            $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order that is refused or fails wakes you.");
+            $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order that is refused or fails wakes you; a scheduled move that is stopped is tried once more (see the rulebook).");
+        props["standing_orders"] = Array(Object(
+            ("when", Enum(["unit_enters", "unit_attacked"])),
+            ("province", Str("unit_enters: the province entered. unit_attacked: where your unit stands now.")),
+            ("power", Str("unit_enters: whose troops, or empty for any foreign power's. Otherwise empty.")),
+            ("units", Array(UnitOrder(described: false), "As in schedule: your units named by where they stand now.")),
+            ("other_orders", Array(OtherOrder(described: false), "As in other_orders."))),
+            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all). When you see the event, the orders run the next season, once, before your scheduled orders; orders you give that season replace them. Firing does not wake you; an order of it that fails does.");
+        props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\".");
         required.Add("sleep");
         required.Add("schedule");
+        required.Add("standing_orders");
+        required.Add("cancel_standing");
         return o;
     }
 

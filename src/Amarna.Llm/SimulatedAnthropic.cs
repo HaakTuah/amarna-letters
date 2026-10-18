@@ -91,6 +91,8 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
         {
             o["sleep"] = new JsonObject { ["wake_in_turn"] = 0, ["wake_on"] = new JsonArray() };
             o["schedule"] = new JsonArray();
+            o["standing_orders"] = new JsonArray();
+            o["cancel_standing"] = new JsonArray();
         }
         return o.ToJsonString();
     }

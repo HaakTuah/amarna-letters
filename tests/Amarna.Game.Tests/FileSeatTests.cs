@@ -180,6 +180,42 @@ public class FileSeatTests
     }
 
     [Fact]
+    public async Task A_file_seat_s_schedule_and_standing_orders_are_read_and_bound_to_its_units()
+    {
+        var (runner, folder) = Game();
+        using var stop = new CancellationTokenSource();
+        string? request = null;
+        var answering = Answer(folder, (stem, text) =>
+        {
+            if (stem == "t1_orders_Alashiya") request = text;
+            return stem.Contains("orders")
+                ? """
+                  {"notes":"Plan ahead.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":0,"wake_on":[]},
+                   "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"other_orders":[]}],
+                   "standing_orders":[{"when":"unit_attacked","province":"enkomi","power":"","units":[{"unit":"enkomi","order":"hold","target":"","to":""}],"other_orders":[]}],
+                   "cancel_standing":[]}
+                  """
+                : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
+        }, stop.Token);
+        await runner.PlayTurnAsync();
+        stop.Cancel();
+        await answering;
+
+        Assert.Contains("\"standing_orders\"", request);
+        Assert.Contains("\"cancel_standing\"", request);
+        // Read the first time (no retry), and bound to the fleet that stood in Enkomi when the orders were given.
+        Assert.False(File.Exists(Path.Combine(folder, "t1_orders_Alashiya.retry.request.md")));
+        Assert.Empty(runner.Errors);
+        var fleet = runner.State.Units.Single(u => u.Power == Power.Alashiya);
+        var sleep = runner.State.Sleep[Power.Alashiya];
+        var scheduled = Assert.Single(sleep.Scheduled);
+        Assert.Equal((3, fleet.Id), (scheduled.Turn, scheduled.UnitId));
+        var standing = Assert.Single(sleep.Standing);
+        Assert.Equal(("s1", StandingWhen.UnitAttacked, fleet.Id), (standing.Id, standing.When, standing.UnitId));
+        Assert.Contains("- s1: when your fleet now in enkomi is attacked, then: the fleet now in enkomi holds", Prompts.Situation(Views.For(runner.State, Power.Alashiya)));
+    }
+
+    [Fact]
     public async Task A_file_seat_sleeps_by_default_and_replays_exactly()
     {
         // Sleeping seats are on by default: nothing here switches them on.

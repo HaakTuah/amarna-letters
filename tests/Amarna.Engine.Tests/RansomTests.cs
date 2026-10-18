@@ -321,7 +321,7 @@ public class RansomTests
         var (s, spy) = Held(Power.Hatti, Power.Mitanni, new GameConfig { SleepingSeats = true, CatastropheChance = 0 });
         Begin(s).Resolve(Orders(Power.Mitanni, new CaptiveOrder(spy.Id, CaptiveFate.Ransom, 90)));
         Begin(s);
-        s.Sleep[Power.Hatti] = new SleepState { Asleep = true, WakeAt = 50, Scheduled = [new ScheduledOrders { Turn = s.Turn, Orders = [new PayRansomOrder(spy.Id)] }] };
+        s.Sleep[Power.Hatti] = new SleepState { Asleep = true, WakeAt = 50, Scheduled = [new PlannedOrder { Turn = s.Turn, Order = new PayRansomOrder(spy.Id) }] };
         new TurnEngine(s).Resolve(Orders(Power.Mitanni, new CaptiveOrder(spy.Id, CaptiveFate.Release)));
         Assert.Contains(s.Sleep[Power.Hatti].PendingWake, w => w.StartsWith("orders you scheduled could not be carried out") && w.Contains($"{spy.Name} is no longer held by Mitanni"));
     }

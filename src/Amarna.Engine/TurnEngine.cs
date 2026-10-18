@@ -254,6 +254,8 @@ public sealed partial class TurnEngine
         var validator = new OrderValidator(S, Map);
         var valid = new Dictionary<Power, ValidationResult>();
         _scheduledNow.Clear();
+        _standingNow.Clear();
+        _marchNow.Clear();
         _cededNow.Clear();
         foreach (var p in S.Alive.ToList())
         {
@@ -270,6 +272,8 @@ public sealed partial class TurnEngine
             Powers.All.Where(valid.ContainsKey).SelectMany(p => valid[p].Accepted.OfType<T>().Select(o => (p, o)));
 
         ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder).ToList());
+        // A scheduled move that failed is tried again next season, or ends its unit's march.
+        Marches(valid);
         UpdateOwnership();
         ResolveTransfers(All<CedeProvinceOrder>().ToList(), All<GiftUnitOrder>().ToList());
         ResolvePurchases(All<BuyProvinceOrder>().ToList());
@@ -305,6 +309,8 @@ public sealed partial class TurnEngine
         }
 
         var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
+        // Where each unit stood before the moves: a standing order waits for an attack on its unit there.
+        var stoodAt = S.Units.ToDictionary(u => u.Id, u => u.Province);
         // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
         foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
             o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
@@ -345,6 +351,8 @@ public sealed partial class TurnEngine
 
         foreach (var p in S.Alive)
             S.LastSeen[p] = result.Outcomes.Where(o => o.Power == p || sightBefore[p].Contains(o.Province) || (o.Target is { } t && sightBefore[p].Contains(t))).ToList();
+        // Standing orders whose event each seat saw fire next season.
+        StandingEvents(result, stoodAt);
 
         foreach (var p in S.Alive)
         {

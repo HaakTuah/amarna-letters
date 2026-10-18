@@ -481,13 +481,18 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   - it lost troops: a unit destroyed in battle ("your army in sippar was destroyed"), unpaid troops
     deserting ("your unpaid troops deserted"), or a unit killed by plague ("plague destroyed troops
     of yours")
-  - orders it scheduled could not be carried out: refused by the validator, failed as the season
-    resolved (any of the failures under "Every refused or failed order"), a scheduled move that
-    was stopped, with the battle report's reason ("orders you scheduled could not be carried out:
-    sippar -> mari (the walls of mari held; your strength 1 against 1)"), a scheduled support that
-    was cut ("... (the support was cut by an attack from ekallatum)"), or a scheduled support or
-    convoy that matched no move ("... (no unit moved from sippar to mari)"). A support or convoy
-    whose unit was destroyed is not counted again: the lost troops already wake the seat.
+  - a scheduled or standing order could not be carried out: refused by the validator, failed as the
+    season resolved (any of the failures under "Every refused or failed order"), a scheduled move
+    that was stopped, with the battle report's reason ("orders you scheduled could not be carried
+    out: sippar -> mari (the walls of mari held; your strength 1 against 1)"), a scheduled support
+    that was cut ("... (the support was cut by an attack from ekallatum)"), or a scheduled support
+    or convoy that matched no move ("... (no unit moved from sippar to mari)"). A support or convoy
+    whose unit was destroyed is not counted again: the lost troops already wake the seat. An order
+    of a standing order that fired reads "a standing order of yours could not be carried out: s3:
+    ...". So do orders refused when given ("orders you scheduled were refused: turn 7: nippur -> ur:
+    you have no unit in nippur"; "standing orders you gave were refused: ..."), and orders dropped
+    because their unit is lost ("orders you scheduled could not be carried out: the troops they were
+    for are lost (...)"; see "Orders follow their unit").
   - a ransom is demanded for one of its people
   - a servant gives notice ("a servant gives notice: Mane asks 20 shekels a season to serve on"):
     the season of the notice is the one in which it can be renewed before it leaves
@@ -509,22 +514,28 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   brief", one line for each troop movement it saw ("turn 5: Egypt's army moved gaza -> megiddo";
   "turn 5: Assyria's army tried to move ekallatum -> sippar (against your troops) and failed") and
   for each envoy home with its report, spy, check, assay or examination report, candidate,
-  catastrophe that killed no unit, forgery ready, spy caught at its court, and refused or failed
-  order ("turn 5: your envoy Mane came home with a report"); then the news of those seasons in
+  catastrophe that killed no unit, forgery ready, spy caught at its court, refused or failed
+  order, and standing order that fired ("turn 5: your envoy Mane came home with a report"; "turn 6:
+  your standing order s1 fired"); then the news of those seasons in
   full, oldest first. Rumours and notices are only in the news. To stay readable over a long
   sleep, the routine treasury notices of the seasons it slept are left out (this season's is in
   its news; one that says troops deserted or people went unpaid stays), the brief keeps the latest
   60 lines and the news the latest 40 items, each saying how many earlier ones were left out.
 - **What the kings are told.** Right after HOW YOU WIN the rulebook says, as decided: "After you
   give your orders, you sleep. You are woken only when something concerns you: an envoy at your
-  door, foreign troops in your land, land or troops lost, a scheduled order that failed, a servant
-  giving notice, a ransom demanded, or news you asked to hear. Nothing else wakes you, and you may
-  not be woken again for the rest of the game. Plan as if these orders must carry your kingdom
-  until then: schedule what your armies should do in the seasons ahead, set the triggers you want,
-  and leave your envoys mandates that stand on their own." (The decided text's "a failed order"
-  became "a scheduled order that failed", to stay true.) A section "PLANNING AHEAD (how sleeping
-  works)" follows with the mechanics: scheduled orders and their limits, which failures wake, the
-  seat's own triggers, naming a season, and the digest. Every request, for orders and for
+  door, foreign troops in your land, land or troops lost, a scheduled or standing order that
+  failed, a servant giving notice, a ransom demanded, or news you asked to hear. Nothing else wakes
+  you, and you may not be woken again for the rest of the game. Plan as if these orders must carry
+  your kingdom until then: schedule what your armies should do in the seasons ahead, set the
+  triggers you want, and leave your envoys mandates that stand on their own." (The decided text's
+  "a failed order" became "a scheduled or standing order that failed", to stay true.) A section
+  "PLANNING AHEAD (how sleeping works)" follows with the mechanics: scheduled orders, naming units
+  by where they stand now, and their limits; the march; standing orders; which failures wake; the
+  seat's own triggers; naming a season; and the digest. The seat's view lists its scheduled orders
+  by season and its standing orders by id, each of its units named by where it stands now ("- turn
+  4: the army now in durkurigalzu -> nippur"; "- s1: when your army now in sippar is attacked,
+  then: the army now in babylon -> nippur", with "(it fires this season: Assyria's army tried to
+  move ekallatum -> sippar last season)" in the season it fires). Every request, for orders and for
   audiences, opens with one line: "You slept 3 seasons (you last gave orders in turn 5). You were
   woken because: an envoy of Egypt waits to be received." Woken in the season after its orders it
   reads "You gave orders last season (turn 5). You were woken because: ..."; in the first season,
@@ -549,18 +560,73 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   is kept, listed and counted like any other and simply never runs, because the game ends first:
   what the king reads and the notices it gets are the same whatever `MaxTurns` is, so nothing tells
   it when the game must end (tested). What is not kept (a season already past, orders past the
-  24th, seasons past the 40th) is reported as "Scheduled orders not kept". Units are named by where
-  they will stand in that season. One entry per season replaces everything scheduled for it, and
-  an empty entry cancels it; that works for the current season too, and then its orders count as
-  given now (a failure among them does not wake the seat, as the rulebook says of the orders given
-  for the season the seat is awake). They are validated when they run, after the seat's fresh
-  orders for that season (the rulebook says so), so the gold they need is reserved last. In a season when the seat is
-  awake, a fresh order for a unit or a person replaces the scheduled one for it, a scheduled order
-  the seat repeats runs once, and the other scheduled orders still run. A renewal is not a task: a
-  fresh renewal replaces a scheduled renewal or dismissal of the same person, and a fresh dismissal
-  a scheduled renewal, but a renewal and an errand for the same person both run (the rulebook says
-  so in a clause). A failed scheduled order wakes the seat next season; a failure the seat has
-  already seen in its news, while awake, does not wake it later. Conditional orders are not built.
+  24th, seasons past the 40th) is reported as "Scheduled orders not kept". One entry per season
+  replaces everything scheduled for it, and an empty entry cancels it; that works for the current
+  season too, and then its orders count as given now (they are not bound to units, and a failure
+  among them does not wake the seat, as the rulebook says of the orders given for the season the
+  seat is awake). They are validated when they run, after the seat's fresh orders for that season
+  and the orders of its standing orders that fire (the rulebook says so), so the gold they need is
+  reserved last. In a season when the seat is awake, a fresh order for a unit or a person replaces
+  the scheduled one for it, a scheduled order the seat repeats runs once, and the other scheduled
+  orders still run. A renewal is not a task: a fresh renewal replaces a scheduled renewal or
+  dismissal of the same person, and a fresh dismissal a scheduled renewal, but a renewal and an
+  errand for the same person both run (the rulebook says so in a clause). A failed scheduled order
+  wakes the seat next season; a failure the seat has already seen in its news, while awake, does
+  not wake it later.
+- **Orders follow their unit** (since the simulation-fixes round; before, a unit was named by where
+  it would stand in that season, so a planned march failed at its first bounce). In `schedule` and
+  in standing orders the king names each of its own units by the province it stands in when it
+  gives the orders. The engine binds the order to that unit's id (`PlannedOrder.UnitId`), and an
+  own unit named as the unit supported or the army convoyed too (`OtherUnitId`); a foreign unit, or
+  walls, stay named by province, and an order for no unit (a levy, an errand) runs as given. When
+  the order runs it is given from where its units then stand (`TurnEngine.AsItStands`). An order
+  naming a province where the seat has no unit, or a unit not its own, is refused when given, in the
+  validator's words ("- turn 7: nippur -> ur: you have no unit in nippur", in "Scheduled orders not
+  kept"), and that wakes the seat next season; so a unit not yet raised cannot be given orders
+  ahead. When a unit is lost (destroyed, deserted, killed by plague, disbanded or given away), every
+  scheduled order bound to it is dropped, and so is a standing order that waited on it or has no
+  orders left (a standing order's other orders stay). This is checked at the start of each season,
+  before the wake check: the seat reads "Orders for lost troops dropped", listing each order as it
+  gave it, and is woken ("orders you scheduled could not be carried out: the troops they were for
+  are lost (...)").
+- **The march.** A unit's scheduled moves are its march. After movement, a scheduled move whose
+  unit still stands but did not reach its destination (stopped for any reason) is tried again the
+  next season, and each of that unit's own later scheduled orders moves a season later (orders of
+  other units that were to help it do not); the seat reads "A march is held up": "Your army in
+  babylon did not reach durkurigalzu in turn 2. It will try again in turn 3, and each of its later
+  scheduled orders waits a season (they now run in turn 4)." A move tried again that is stopped
+  again ends the march: the unit's remaining scheduled orders are dropped ("A march ends": "Your
+  army in babylon failed to reach durkurigalzu a second time in turn 3: its march ends, and its
+  remaining scheduled orders were dropped: turn 4: babylon -> nippur."). A scheduled move refused by
+  the validator is not tried again (it would be refused again from the same place) and ends the
+  march the same way. Each failure is a failed scheduled order and wakes the seat, which sees the
+  shifted plan in its view. Only scheduled moves form a march: a move given for the season the seat
+  is awake (or in the schedule's entry for that season) that is stopped is not tried again, and the
+  unit's scheduled orders run from where it stands. Shifted orders are not counted again against
+  the limit of 40 seasons. (The brief allowed a refused move to be tried again too; the round's
+  plan for this part did not, and that is what is built.)
+- **Standing orders**, at most 12 (`standing_orders`), kept in the seat's own state until they fire
+  or are cancelled (`cancel_standing`: ids, or "all"; an unknown id is reported as "Standing orders
+  not cancelled"). Each has an id per seat ("s1", "s2", ...), one event and up to 24 orders, unit
+  orders and other orders in the same shapes as the schedule, bound to units as scheduled orders
+  are. The events, checked after movement from what the seat saw (its `LastSeen`): `unit_enters`, a
+  unit of the power named (any foreign power's if none is named) moved into the province named;
+  `unit_attacked`, a foreign move was made into the province where the seat's unit stood (named by
+  where it stands when the order is given), and the unit was still there after the moves (not
+  destroyed, not moved away). A standing order sees only events after it was given. It fires once,
+  in the season after its event, before that season's orders: its orders are given from where
+  their units then stand, replace scheduled orders for the same units or people, and give way to
+  fresh orders the seat gives that season (cancelled in that season, it does not fire). It is then
+  removed, and the seat reads "Standing order s1 fired": "Your standing order s1 (when Assyria's
+  troops enter arbela) fired: Assyria's army moved ekallatum -> arbela in turn 2. Its orders ran in
+  turn 3: babylon -> nippur." Firing does not wake the seat (the digest has "your standing order s1
+  fired"); an order of it that is refused or fails does. A standing order that cannot be kept (a
+  province that does not exist, no unit of the seat's where `unit_attacked` names, no orders or more
+  than 24, an order naming a province where the seat has no unit, a power nobody knows, or a
+  thirteenth) is refused whole ("Standing orders not kept"), which wakes the seat next season.
+  Cancellation is applied before the season's standing orders fire, new standing orders after the
+  season's orders are checked. The design document's wider vocabulary ("unless" conditions,
+  treasury below, envoy returned, tablet sealed) is not built.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
   again next season, told why it was woken in the season it missed (it never read that) and what
@@ -1192,15 +1258,19 @@ The design document records intent; these notes record what is built. Where they
   document's list of default triggers: an envoy or a report coming home, foreign troops next to its
   land, an attack that failed and a catastrophe that kills no unit go to the digest (see "Pacing:
   sleeping seats"). So the kings read "foreign troops in your land" where the document's decided
-  text says "foreign troops at your border", and "a scheduled order that failed" where it says "a
-  failed order". The sleep cap is 12 seasons and hidden from the kings, as the document decides.
+  text says "foreign troops at your border", and "a scheduled or standing order that failed" where
+  it says "a failed order". The sleep cap is 12 seasons and hidden from the kings, as the document
+  decides.
+  Of the document's "scheduled, conditional orders", orders that follow their unit and two standing
+  orders (`unit_enters`, `unit_attacked`) are built; its wider condition vocabulary is not.
 - **Prototype scope** in the document still lists terrain modifiers as out, while "Walls and
   terrain" is now a decided direction. Neither exists in the code yet.
 
 ## Not built yet
 
 - Sieges, varying walls, terrain, and distance-based marching (pillar 8).
-- Conditional orders for sleeping seats.
+- Conditional orders beyond the two standing-order events: "unless" conditions on scheduled orders,
+  and conditions on the treasury, an envoy's return or a sealed tablet.
 - Multiplayer (stages 2 and 3 of the design document): the engine runs in one browser.
 - Shareable spectator links; the log file is the way to share a game.
 - Art, animation, sound.

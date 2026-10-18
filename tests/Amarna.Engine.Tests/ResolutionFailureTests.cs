@@ -185,7 +185,7 @@ public class ResolutionFailureTests
         var mine = orders[who].Orders;
         if (scheduled)
         {
-            s.Sleep[who] = new SleepState { Asleep = true, WakeAt = 50, History = [new SleepSpell { From = s.Turn }], Scheduled = [new ScheduledOrders { Turn = s.Turn, Orders = mine.ToList() }] };
+            s.Sleep[who] = new SleepState { Asleep = true, WakeAt = 50, History = [new SleepSpell { From = s.Turn }], Scheduled = [.. mine.Select(o => new PlannedOrder { Turn = s.Turn, Order = o })] };
             orders.Remove(who);
         }
         var valid = e.Resolve(orders);

@@ -104,6 +104,27 @@ public static class Parse
                 if (Other(x) is { } order) scheduled.Orders.Add(order);
             if (scheduled.Turn > 0) sub.Scheduled.Add(scheduled);
         }
+        // Standing orders: when this is seen, give these orders the next season; and those to cancel.
+        foreach (var s in (o["standing_orders"] as JsonArray) ?? new JsonArray())
+        {
+            var when = S(s, "when");
+            var named = S(s, "power");
+            var standing = new StandingRequest
+            {
+                When = when == "unit_attacked" ? StandingWhen.UnitAttacked : StandingWhen.UnitEnters,
+                Power = P(named),
+                Province = Empty(S(s, "province")) is { } sp ? Prov(sp) : "",
+                // The schema lists the events, so only a reply that ignores it lands here: refused with the reason, not dropped.
+                Unreadable = when is not ("unit_enters" or "unit_attacked") ? "name the event it waits for: unit_enters or unit_attacked"
+                    : when == "unit_enters" && named.Length > 0 && P(named) is null ? Nowhere(named, "") : null,
+            };
+            foreach (var u in (s?["units"] as JsonArray) ?? new JsonArray())
+                if (Unit(u) is { } order) standing.Orders.Add(order);
+            foreach (var x in (s?["other_orders"] as JsonArray) ?? new JsonArray())
+                if (Other(x) is { } order) standing.Orders.Add(order);
+            sub.Standing.Add(standing);
+        }
+        sub.CancelStanding = L(o, "cancel_standing");
         return sub;
     }
 
