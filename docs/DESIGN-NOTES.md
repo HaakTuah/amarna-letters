@@ -156,7 +156,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   out was lost, a dismissed detained envoy could not be released, and a captive could not be
   dismissed.)
 - **Contracts** (one line in the rulebook). Every servant serves for a term (`Contract.UntilTurn` is
-  its last season). Starting envoys earn 6 + competence/10 (8–15); a hired servant serves the term
+  its last season). Starting envoys earn 6 + competence/10 (8–15), each through a turn drawn from 7
+  to 13 from a stream of its own (`start-term`, keyed by the character), so the starting corps comes
+  up for renewal over several seasons and no other draw changes (until the simulation-fixes round
+  every starting term ended with turn 10, and about nine in ten of the corps quit from turn 11
+  onwards, each as soon as it was next at court); a hired servant serves the term
   its king named (`term`, 1–30 seasons, 6 if none) at the wage agreed, from the season after it was
   hired. A person asks a court its base price, 6 + competence/8 + greed/8 + average reputation/5,
   −4 at the court it favours, at least 5, unless it named another in a pitch.
