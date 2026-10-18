@@ -67,9 +67,45 @@ public class FileSeatTests
         Assert.Contains("TREASURY:", request);
         Assert.Contains("\"other_orders\"", request);
         Assert.Contains("t1_orders_Alashiya.reply.json", request);
+        Assert.EndsWith(FileExchange.Footer, request.TrimEnd());
         Assert.Contains(runner.State.Units, u => u.Power == Power.Alashiya && u.Province == "cilicia");
         Assert.Empty(runner.Errors);
         Assert.Contains(runner.Log.Calls, c => c.Key == "t1/orders/Alashiya" && c.Model == "file seat" && c.Output.Contains("copper coast"));
+    }
+
+    /// <summary>Records what a model king is sent, and holds everything.</summary>
+    private sealed class Recorder : IJsonAsker
+    {
+        public List<CallSpec> Specs { get; } = new();
+
+        public Task<System.Text.Json.Nodes.JsonObject> AskJsonAsync(CallSpec spec, CancellationToken ct)
+        {
+            lock (Specs) Specs.Add(spec);
+            var json = spec.Key.Contains("/orders/")
+                ? HoldEverything
+                : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
+            return Task.FromResult((System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse(json)!);
+        }
+    }
+
+    [Fact]
+    public async Task Only_file_seats_are_told_how_to_finish()
+    {
+        var state = GameFactory.NewGame(8, new GameConfig { CatastropheChance = 0 });
+        var recorder = new Recorder();
+        var bot = new ScriptLeader(8);
+        var seats = Powers.All.ToDictionary(p => p, p => p == Power.Alashiya
+            ? new LlmLeaderSeat(p, recorder, "claude-sonnet-5-5", "medium", state.Config.CustomsPrimer, state.Config)
+            : (ISeat)bot);
+        var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
+        await runner.PlayTurnAsync();
+        await runner.PlayTurnAsync();
+
+        Assert.NotEmpty(recorder.Specs);
+        foreach (var spec in recorder.Specs)
+            Assert.DoesNotContain("single word done", spec.SharedSystem + spec.SeatSystem + spec.User);
+        var request = FileExchange.Request(recorder.Specs[0], "x.reply.json", "");
+        Assert.EndsWith(FileExchange.Footer, request.TrimEnd());
     }
 
     [Fact]

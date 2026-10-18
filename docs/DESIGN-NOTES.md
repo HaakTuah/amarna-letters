@@ -352,6 +352,9 @@ is unreadable, breaks the schema, or stays empty gets one retry request saying w
 second failure, or `--file-timeout` (120 minutes), falls back to the script king, as for models.
 Each exchange is logged as a call with no tokens, and replays are exact. File seats can sleep.
 Requests and replies left in a folder by an earlier game are moved aside when a new game starts.
+Only a file seat's request ends with a footer for the agent answering it (`FileExchange.Footer`):
+its final message must be the single word "done", and earlier reply files cannot be read, so its
+record of earlier seasons is in the request. A model king called through the API never sees it.
 
 `sim/` holds a kit that plays a game with one Claude Code agent per king, with isolation enforced
 by construction, not by instruction: see `sim/README.md` and `docs/SIMULATION-PROMPT.md`. Starting
