@@ -483,7 +483,7 @@ internal static class Statecraft
                     $"You may swear alliance against {top} and agree to support each other's troops. Promise no land.", greet,
                     Proposal: new TabletProposal
                     {
-                        Text = $"{Oath}: {me} and {to} swear to stand together against {top}. Neither shall make peace with {top} alone, and each shall support the other's troops against {top}. If one breaks this oath, may the gods destroy his name and his seed.",
+                        Text = CoalitionTablet(me, to, top),
                         // A pact against one king, not an alliance: it does not make the two of them partners in victory.
                         AllianceOath = false,
                     });
@@ -494,7 +494,7 @@ internal static class Statecraft
                     "You may swear a full alliance. Promise no land.", greet,
                     Proposal: new TabletProposal
                     {
-                        Text = $"{Oath}: {me} and {to} are allies. Each shall stand with the other against any enemy, and the friend of one shall be the friend of the other. If one breaks this oath, may the gods destroy his name and his seed.",
+                        Text = AllianceTablet(me, to),
                         AllianceOath = true,
                     });
             case "peace":
@@ -504,7 +504,7 @@ internal static class Statecraft
                 return new DispatchOrder(envoy, to,
                     $"I wish to live in brotherhood with you, as our fathers did. Let neither of us send troops into the lands of the other." + (gift > 0 ? " I send you gold as a sign of my love." : "") + $" {flavour} Seal the tablet I send, before Shamash and the gods of your land.",
                     "You may agree to peace and an exchange of gifts. Promise no land.", greet, gift, gift > 0 ? Purity() : 100,
-                    new TabletProposal { Text = $"{Oath}: {me} and {to} are brothers. Neither king shall send troops into the lands of the other. If one breaks this oath, may the gods destroy his name and his seed." });
+                    new TabletProposal { Text = PeaceTablet(me, to) });
             }
             case "lull":
                 return new DispatchOrder(envoy, to,
@@ -528,6 +528,41 @@ internal static class Statecraft
             }
         }
         return null;
+    }
+
+    // The tablets a script king proposes.
+    private const string Curse = "If one breaks this oath, may the gods destroy his name and his seed.";
+
+    public static string PeaceTablet(Power me, Power to) =>
+        $"{Oath}: {me} and {to} are brothers. Neither king shall send troops into the lands of the other. {Curse}";
+
+    public static string AllianceTablet(Power me, Power to) =>
+        $"{Oath}: {me} and {to} are allies. Each shall stand with the other against any enemy, and the friend of one shall be the friend of the other. {Curse}";
+
+    public static string CoalitionTablet(Power me, Power to, Power against) =>
+        $"{Oath}: {me} and {to} swear to stand together against {against}. Neither shall make peace with {against} alone, and each shall support the other's troops against {against}. {Curse}";
+
+    /// <summary>
+    /// Whether a tablet from this sender is in a script king's own words: one of the tablets above, or the frozen
+    /// baseline's (see <see cref="BaselineLeader"/>), so that games against it are not changed by the guard below.
+    /// </summary>
+    private static bool ScriptWords(string text, Power from, Power to) =>
+        text == PeaceTablet(from, to) || text == AllianceTablet(from, to)
+        || text == $"{Oath}: {from} and {to} are brothers. Neither king shall send troops into the lands of the other. They shall stand together against any enemy, and share in the victory. {Curse}"
+        || Powers.All.Any(x => text == CoalitionTablet(from, to, x) || text == $"{Oath}: {from} and {to} swear to stand together against {x}. Neither shall make peace with {x} alone. {Curse}");
+
+    /// <summary>
+    /// Whether a tablet in words no script king wrote speaks of land, gold or tribute, or names a province of ours (held
+    /// now, or of our homeland). A script king reads no more of a tablet than whom it stands against, so it seals none
+    /// that could make it give anything away.
+    /// </summary>
+    public static bool GivesAway(TabletView proposal, Board b, Power from)
+    {
+        var text = proposal.Text;
+        if (ScriptWords(text, from, b.Me)) return false;
+        if (TextKit.SpeaksOfLandOrGold(text)) return true;
+        return Board.Map.Provinces.Where(x => !x.IsSea && (b.IsMine(x.Id) || x.Home == b.Me))
+            .Any(x => Names.MentionsPlace(text, x.Name) || Names.MentionsPlace(text, x.Id));
     }
 
     /// <summary>The greeting a king chooses, from his pride and his feelings for the recipient.</summary>
@@ -631,10 +666,15 @@ internal static class Statecraft
                 // And never with a king who is taking our own land, whoever he names.
                 seal = !ra.Allied && !hostile && (race || defence);
             }
-            else seal = !hostile && (sender != brain.WarTarget || p.Cunning * (1 - p.Honesty) > 0.35) && !(proposal.AllianceOath && Rivals(b, me, sender));
+            else seal = !hostile && !(proposal.AllianceOath && Rivals(b, me, sender));
             if (sender == leader && !friend && p.Caution < 0.6) seal = false;
+            // A tablet in someone else's words is read for what it would give away (see GivesAway).
+            var givesAway = seal && GivesAway(proposal, b, sender);
+            if (givesAway) seal = false;
             reply.SealProposal = seal;
-            speech.Add(seal ? "I have sealed the tablet before the gods." : "I will not seal this tablet now.");
+            speech.Add(seal ? "I have sealed the tablet before the gods."
+                : givesAway ? "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine."
+                : "I will not seal this tablet now.");
             if (seal)
             {
                 r.Trust += 0.1;

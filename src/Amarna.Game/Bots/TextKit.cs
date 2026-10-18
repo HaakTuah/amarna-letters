@@ -18,6 +18,9 @@ public static partial class TextKit
     /// </summary>
     public static bool IsAccusation(string text) => Accusation().IsMatch(text);
 
+    /// <summary>Whether a text speaks of land, gold or tribute (whole words: "lands" and "tributes" too, not "landed" or "golden").</summary>
+    public static bool SpeaksOfLandOrGold(string text) => LandOrGold().IsMatch(text);
+
     public static string Join(IEnumerable<string> sentences) => string.Join(" ", sentences.Where(s => s.Length > 0));
 
     [GeneratedRegex(@"(?<=[.!?])\s+")]
@@ -28,4 +31,7 @@ public static partial class TextKit
 
     [GeneratedRegex(@"(?<!\b(?:never|not)\s+(?:\w+\s+){0,2})\b(?:liars?|lied|(?:lie|lies|lying)\s+to|you\s+lie\b(?!\s+(?:down|in|on|at|with|beside|between|near|under|within|beyond|still|asleep|idle|quiet))|(?:a|the|your|his|their|these|those|such|of|with|all|but|told|tells?|telling|spread(?:s|ing)?|speak(?:s|ing)?)\s+lies?|decei\w*|false(?:ly|hoods?)?|broke|broken|betray\w*|faithless\w*)\b", RegexOptions.IgnoreCase)]
     private static partial Regex Accusation();
+
+    [GeneratedRegex(@"\b(?:lands?|gold|tributes?)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex LandOrGold();
 }
