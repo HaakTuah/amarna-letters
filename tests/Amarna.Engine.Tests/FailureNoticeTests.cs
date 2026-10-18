@@ -32,11 +32,11 @@ public class FailureNoticeTests
         });
 
         Assert.Equal(Power.Hatti, free.Employer);
-        foreach (var (p, wage) in new[] { (Power.Egypt, 25), (Power.Assyria, 10) })
+        foreach (var (p, wage, why) in new[] { (Power.Egypt, 25, "another court offered more"), (Power.Assyria, 10, "they ask 20 shekels") })
         {
             var notice = s.InboxOf(p).Single(i => i.Title == "Not hired");
             Assert.Equal(InboxKind.Rejected, notice.Kind);
-            Assert.Equal($"{free.Name} declined your offer of {Money.Format(wage)} a season.", notice.Body);
+            Assert.Equal($"{free.Name} declined your offer of {Money.Format(wage)} a season: {why}.", notice.Body);
         }
         Assert.DoesNotContain(s.InboxOf(Power.Hatti), i => i.Title == "Not hired");
     }

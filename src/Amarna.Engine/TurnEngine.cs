@@ -149,8 +149,13 @@ public sealed partial class TurnEngine
         c.Duty = Duty.None;
     }
 
-    /// <summary>Takes gold from the true treasury. A shortfall exposes any debased gold the ledger was counting.</summary>
-    private bool Pay(Power p, int amount, string what)
+    /// <summary>
+    /// Takes gold from the true treasury. A shortfall exposes any debased gold the ledger was counting, and is reported
+    /// as a failure: what could not be paid for and, for an order, what came of it (a scheduled order then wakes its seat).
+    /// </summary>
+    /// <param name="order">The order being paid for, if any.</param>
+    /// <param name="outcome">What the failure means, in plain words ("Mane stayed at your court").</param>
+    private bool Pay(Power p, int amount, string what, Order? order = null, string? outcome = null)
     {
         var t = S.Treasuries[p];
         if (amount <= 0) return true;
@@ -169,8 +174,19 @@ public sealed partial class TurnEngine
             S.Log("debasement", $"{p} discovers {Money.Format(missing)} of debased gold from {sources}.", [p], "debasement-found");
         }
         // Every order that fails for want of gold is reported as a failure, whether or not debased gold was found.
-        S.Notify(p, InboxKind.Rejected, "Not enough gold", $"There was not enough gold to pay for {what}.");
+        S.Notify(p, InboxKind.Rejected, "Not enough gold", $"There was not enough gold to pay for {what}{(outcome is null ? "" : "; " + outcome)}.");
+        if (order is not null) ScheduledFailed(p, order, "not enough gold");
         return false;
+    }
+
+    /// <summary>
+    /// An order that could not be carried out as the season resolved: its king reads why next season, as a rejection
+    /// notice, and a scheduled one wakes its seat.
+    /// </summary>
+    private void Failed(Power p, Order order, string title, string body, string why, string? subject = null)
+    {
+        S.Notify(p, InboxKind.Rejected, title, body, subject);
+        ScheduledFailed(p, order, why);
     }
 
     // ---------------------------------------------------------------- arrivals and tasks (filled out by the envoy and intelligence parts)
@@ -261,6 +277,7 @@ public sealed partial class TurnEngine
                 S.Units.Remove(u);
                 S.Notify(p, InboxKind.Resolution, "Disbanded", $"{u.Label} was disbanded.");
             }
+            else Failed(p, d, "Disband failed", $"No unit of yours stood in {Map[d.Unit].Name} after movement, so none was disbanded.", "the unit is gone");
         }
         foreach (var (p, r) in All<RaiseOrder>()) Raise(p, r);
 
@@ -390,11 +407,15 @@ public sealed partial class TurnEngine
     {
         foreach (var (p, c) in cessions)
         {
-            if (S.Owner.GetValueOrDefault(c.Province) != p) { ScheduledFailed(p, c, "you no longer hold it"); continue; }
+            var name = Map[c.Province].Name;
+            if (S.Owner.GetValueOrDefault(c.Province) != p)
+            {
+                Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: you no longer held it after movement.", "you no longer held it");
+                continue;
+            }
             if (S.UnitAt(c.Province) is { } u && u.Power == p)
             {
-                S.Notify(p, InboxKind.Rejected, "Cession failed", $"Your own troops still stand in {Map[c.Province].Name}; it cannot be handed over.");
-                ScheduledFailed(p, c, "your own troops stand there");
+                Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: your own troops still stood in it after movement.", "your own troops stood there");
                 continue;
             }
             S.Owner[c.Province] = c.To;
@@ -405,7 +426,11 @@ public sealed partial class TurnEngine
         foreach (var (p, g) in gifts)
         {
             var u = S.UnitAt(g.Unit);
-            if (u is null || u.Power != p) { ScheduledFailed(p, g, "the unit is gone"); continue; }
+            if (u is null || u.Power != p)
+            {
+                Failed(p, g, "Gift of troops failed", $"No unit of yours stood in {Map[g.Unit].Name} after movement, so none was given to {g.To}.", "the unit is gone");
+                continue;
+            }
             u.Power = g.To;
             S.Notify(p, InboxKind.Resolution, "Troops given", $"{u.Label} now serves {g.To}.");
             S.Notify(g.To, InboxKind.Resolution, "Troops received", $"{p} has placed {u.Label} under your command.");
@@ -446,7 +471,7 @@ public sealed partial class TurnEngine
                 continue;
             }
             var price = prov.Yield * S.Config.NeutralPriceFactor;
-            if (!Pay(buyer, price, $"the city of {prov.Name}")) { ScheduledFailed(buyer, bid, "not enough gold"); continue; }
+            if (!Pay(buyer, price, $"the city of {prov.Name}", bid, "it was not bought")) continue;
             S.Owner[prov.Id] = buyer;
             S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule. Its walls now hold for you.");
             S.Log("purchase", $"{buyer} bought {prov.Name} for {Money.Format(price)}.", Powers.All.Where(p => Views.Sight(S, Map, p).Contains(prov.Id)).Append(buyer));
@@ -468,10 +493,10 @@ public sealed partial class TurnEngine
             return;
         }
         var cost = r.Kind == UnitKind.Army ? S.Config.ArmyCost : S.Config.FleetCost;
-        if (!Pay(p, cost, $"a new {r.Kind.ToString().ToLowerInvariant()}")) { ScheduledFailed(p, r, "not enough gold"); return; }
+        if (!Pay(p, cost, $"a new {kind} in {prov.Name}", r, "none was raised")) return;
         var u = new Unit { Id = S.NewId("u"), Power = p, Kind = r.Kind, Province = prov.Id };
         S.Units.Add(u);
-        S.Notify(p, InboxKind.Resolution, "Levy raised", $"A new {r.Kind.ToString().ToLowerInvariant()} stands in {prov.Name}.");
+        S.Notify(p, InboxKind.Resolution, "Levy raised", $"A new {kind} stands in {prov.Name}.");
     }
 
     private void CheckEliminations()

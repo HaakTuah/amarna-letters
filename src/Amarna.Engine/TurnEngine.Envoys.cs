@@ -14,7 +14,7 @@ public sealed partial class TurnEngine
         var c = S.Char(d.Envoy);
         var fine = (int)Math.Round(d.Gold * d.PurityPercent / 100.0);
         var fee = d.Proposal is not null ? S.Config.TabletFee : 0;
-        if (!Pay(p, fine + fee, $"{c.Name}'s mission")) return;
+        if (!Pay(p, fine + fee, $"{c.Name}'s mission to {d.To}", d, $"{c.Name} stayed at your court")) return;
 
         var letter = Greeting.Cap(d.Letter ?? "", S.Config.MaxLetterChars);
         var mandate = Greeting.Cap(d.Mandate ?? "", 600);
@@ -318,7 +318,7 @@ public sealed partial class TurnEngine
         {
             var purity = Math.Clamp(goldBackPurity, 10, 100);
             var backFine = (int)Math.Round(goldBack * purity / 100.0);
-            if (Pay(host, backFine, $"gifts for {sender}"))
+            if (Pay(host, backFine, $"gifts for {sender}", outcome: $"none went home with {c.Name}"))
             {
                 cargo.Gold = goldBack;
                 cargo.GoldStated = goldBack;
@@ -440,7 +440,11 @@ public sealed partial class TurnEngine
     private void ReleaseEnvoy(Power host, ReleaseOrder r)
     {
         var c = S.Char(r.Character);
-        if (c.HeldBy != host || (c.Duty != Duty.Detained && c.Status != CharacterStatus.Captured)) return;
+        if (c.HeldBy != host || (c.Duty != Duty.Detained && c.Status != CharacterStatus.Captured))
+        {
+            Failed(host, r, "Release failed", $"{c.Name} was no longer held at your court, so nobody was released.", "no longer held", c.Id);
+            return;
+        }
         if (c.Status == CharacterStatus.Captured)
         {
             ReleaseCaptive(host, c);
@@ -536,12 +540,12 @@ public sealed partial class TurnEngine
             {
                 case DispatchOrder d: Dispatch(p, d); break;
                 case ReleaseOrder r: ReleaseEnvoy(p, r); break;
-                case DismissOrder dm: Dismiss(p, S.Char(dm.Character)); break;
+                case DismissOrder dm: Dismiss(p, S.Char(dm.Character), dm); break;
                 case SeekCandidatesOrder:
                     S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.Candidates, Requester = p, DueTurn = S.Turn + 1 });
                     break;
                 case BackgroundCheckOrder bc:
-                    if (Pay(p, bc.Spend, "inquiries"))
+                    if (Pay(p, bc.Spend, $"inquiries into {S.FindCharacter(bc.Character)?.Name ?? bc.Character}", bc, "none were made"))
                         S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.BackgroundCheck, Requester = p, DueTurn = S.Turn + 1, CharacterId = bc.Character, Spend = bc.Spend });
                     break;
             }
@@ -551,12 +555,24 @@ public sealed partial class TurnEngine
         foreach (var group in orders.Where(x => x.O is HireOrder).Select(x => (x.P, H: (HireOrder)x.O)).GroupBy(x => x.H.Character))
         {
             var c = S.Char(group.Key);
-            if (!c.IsAvailableForHire) continue;
+            if (!c.IsAvailableForHire)
+            {
+                foreach (var (p, h) in group) Failed(p, h, "Not hired", $"{c.Name} was no longer free to take service.", "no longer free", c.Id);
+                continue;
+            }
             // Someone held at a court can only take service with the king who holds them.
             var bids = group.Where(b => b.H.Wage >= AskingPrice(c, b.P) && (c.HeldBy is null || c.HeldBy == b.P)).OrderByDescending(b => b.H.Wage)
                 .ThenByDescending(b => c.Traits.Sympathy == b.P).ThenBy(b => b.P).ToList();
             foreach (var lost in group.Where(b => bids.Count == 0 || b.P != bids[0].P))
-                S.Notify(lost.P, InboxKind.Rejected, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season.", c.Id);
+            {
+                // Why, as the person would say it: the price it asks this court, or that another court's offer won.
+                var ask = AskingPrice(c, lost.P);
+                var why = lost.H.Wage < ask ? $"they ask {Money.Format(ask)}"
+                    : c.HeldBy is { } holder && holder != lost.P ? $"they are held at the court of {holder}"
+                    : bids[0].H.Wage > lost.H.Wage ? "another court offered more"
+                    : "they chose another court that offered as much";
+                Failed(lost.P, lost.H, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season: {why}.", why, c.Id);
+            }
             if (bids.Count == 0) continue;
             var (winner, hire) = bids[0];
             c.Status = CharacterStatus.Employed;
@@ -626,10 +642,14 @@ public sealed partial class TurnEngine
     /// one dismissed while away keeps going where it was going and is free when it gets there, and one who is
     /// held stays held.
     /// </summary>
-    private void Dismiss(Power p, Character c)
+    private void Dismiss(Power p, Character c, DismissOrder order)
     {
         if (c.CoverOf(p) is { } cover) c.Covers.Remove(cover);
-        else if (c.Employer != p) return;
+        else if (c.Employer != p)
+        {
+            Failed(p, order, "Dismissal failed", $"{c.Name} was no longer in your service, so could not be dismissed.", "no longer in your service", c.Id);
+            return;
+        }
         var notice = $"{c.Name} has been dismissed.";
         if (c.Employer != p || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured))
         {

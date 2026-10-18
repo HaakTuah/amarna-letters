@@ -92,15 +92,25 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   home by envoys that season is added later. The validator's refusals are worded for the season
   they are read in ("Mane was already given a task by an earlier order"; "you had already asked for
   candidates that season").
-- **Failures are rejection notices.** These are reported with the kind `Rejected`: every order the
-  validator refused; a levy whose province was no longer free; a purchase that failed; a payment the
-  treasury could not make; a ransom that could not be sent; a captive order that could no longer be
-  carried out ("Captive order failed"); a hire the person declined; a renewal below the servant's
-  price, or of one dismissed that season ("Not renewed"); and a cession blocked by the
-  king's own troops. The batch seat report's "invalid" column counts each of them (the validator's list once
-  per order). Some failures at resolution still send no notice at all: a cession of land no longer
-  held, a gift of troops whose unit is gone, and a disband of a unit that is gone (a scheduled order
-  that fails this way still wakes its sleeping seat).
+- **Every refused or failed order is a rejection notice** (kind `Rejected`), read next season with
+  the reason, and a scheduled order that fails any of these ways wakes its sleeping seat: every order
+  the validator refused ("Orders that could not be carried out", one line each); a cession of land no
+  longer held, or with the king's own troops still in it ("Cession failed": "Sinai was not ceded to
+  Hatti: you no longer held it after movement."); a gift of troops, or a disband, of a unit no longer
+  there ("No unit of yours stood in Sinai after movement, so none was given to Hatti."); a levy (see
+  Levies); a purchase (see the city-states); anything the treasury could not pay, saying what came of
+  it ("There was not enough gold to pay for Mane's mission to Hatti; Mane stayed at your court.", and
+  likewise for a levy, a purchase, inquiries, watchmen, an assay, an examination, a forger's
+  materials, a ransom, a gift at an audience or gold sent back with an envoy); a ransom that could not
+  be sent; a captive order that could no longer be carried out; a hire the person declined, with why
+  ("Mane declined your offer of 10 shekels a season: they ask 20 shekels.", or "…: another court
+  offered more"); a renewal below the servant's price; a forgery botched by a servant without the
+  skill (the clay is still paid for); and, though the validator should already have refused them, a
+  release, recall, dismissal or captive order that finds nobody to act on, and a second assay of a lot
+  already assayed. The batch seat report's "invalid" column counts each of them (the validator's list
+  once per order). (Until the simulation-fixes round a cession of land no longer held, a gift or
+  disband of a unit that was gone, and those last few did nothing in silence; a declined hire did not
+  say why; a botched forgery was an ordinary notice.)
 - **Save version.** The state and the log header carry the version of the rules
   (`GameState.CurrentVersion`, 2 since the simulation-fixes round). A log saved under another version
   is refused, both for replay and for continuing it: "This game was saved under an earlier version of
@@ -394,7 +404,7 @@ before. There is never a global skip, and each seat sees only its own wake-ups.
   - a servant gives notice ("a servant gives notice: Mane asks 20 shekels a season to serve on"):
     the season of the notice is the one in which it can be renewed before it leaves
   - orders it scheduled could not be carried out, whether the validator rejected them or they
-    failed as the season resolved (a levy, cession, gift or purchase that could not go through)
+    failed as the season resolved (any of the failures under "Every refused or failed order")
   - the cap is reached
 - **Its own triggers** (at most 8): the unit in a named province moves or is gone; a named person of
   its own is back at court; its treasury, by its ledger, falls below an amount; foreign troops (of

@@ -6,7 +6,7 @@ public sealed partial class TurnEngine
     private void ResolveIntelligence(List<(Power P, Order O)> orders)
     {
         foreach (var (p, o) in orders)
-            if (o is CounterIntelOrder ci && Pay(p, ci.Spend, "watchmen"))
+            if (o is CounterIntelOrder ci && Pay(p, ci.Spend, "watchmen", ci, "none were set"))
                 S.CounterIntel[p] = ci.Spend;
 
         // Captors decide first, so that a ransom paid the same season meets the captive as its captor left them,
@@ -22,11 +22,12 @@ public sealed partial class TurnEngine
                 case RecallSpyOrder rs:
                     var recalled = S.Char(rs.Character);
                     if (recalled.CoverOf(p) is { } cover) RecallCovered(p, recalled, cover);
-                    else Recall(p, recalled);
+                    else if (recalled.Employer == p && recalled.Status == CharacterStatus.Employed && recalled.Duty == Duty.SpyPosted) Recall(p, recalled);
+                    else Failed(p, rs, "Recall failed", $"{recalled.Name} was not watching anywhere for you, so could not be recalled.", "not on a mission", recalled.Id);
                     break;
                 case AssayOrder a: Assay(p, a); break;
                 case AuthenticateOrder au:
-                    if (Pay(p, au.Spend, "the examination of a tablet"))
+                    if (Pay(p, au.Spend, "the examination of a tablet", au, $"tablet {au.Copy} was not examined"))
                         S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.Authenticate, Requester = p, DueTurn = S.Turn + 1, CopyId = au.Copy, Spend = au.Spend });
                     break;
                 case ForgeOrder f: Forge(p, f); break;
@@ -241,7 +242,11 @@ public sealed partial class TurnEngine
     private void Captive(Power host, CaptiveOrder co)
     {
         var c = S.Char(co.Character);
-        if (c.Status != CharacterStatus.Captured || c.HeldBy != host) return;
+        if (c.Status != CharacterStatus.Captured || c.HeldBy != host)
+        {
+            Failed(host, co, "Captive order failed", $"Your order for {c.Name} could not be carried out: {c.Name} was no longer your captive.", "no longer your captive", c.Id);
+            return;
+        }
         // Checked again as the season resolves: the captive's king may have dismissed them this season.
         if (OrderValidator.CaptiveRefusal(S, c, co.Fate) is { } why)
         {
@@ -330,7 +335,7 @@ public sealed partial class TurnEngine
             return;
         }
         var host = task!.Other!.Value;
-        if (!Pay(payer, task.Spend, "a ransom")) { ScheduledFailed(payer, pr, "not enough gold"); return; }
+        if (!Pay(payer, task.Spend, $"the ransom for {c.Name}", pr, "none was sent")) return;
         S.Tasks.Remove(task);
         S.Journeys.Add(new Journey
         {
@@ -397,7 +402,12 @@ public sealed partial class TurnEngine
     {
         var t = S.Treasuries[p];
         var lot = t.Lots.FirstOrDefault(l => l.Id == a.Lot);
-        if (lot is null || !Pay(p, S.Config.AssayFee, "an assay")) return;
+        if (lot is null)
+        {
+            Failed(p, a, "Assay failed", $"There was no unassayed gold lot {a.Lot} left to assay.", "no such gold");
+            return;
+        }
+        if (!Pay(p, S.Config.AssayFee, "an assay", a, $"gold lot {a.Lot} was not assayed")) return;
         t.Lots.Remove(lot);
         var pct = lot.Face == 0 ? 100 : (int)Math.Round(100.0 * lot.True / lot.Face);
         var text = $"Of the {Money.Format(lot.Face)} weighed from {lot.From}, {Money.Format(lot.True)} is fine gold ({pct}%).";
@@ -448,11 +458,12 @@ public sealed partial class TurnEngine
         var c = S.Char(f.Character);
         if (c.Traits.Competence < S.Config.ForgeMinCompetence)
         {
-            S.Notify(p, InboxKind.Notice, "Forgery botched", $"{c.Name} lacks the skill; the clay is ruined and nothing usable came of it.", c.Id);
+            // A failed order like any other, though the clay is still paid for.
+            Failed(p, f, "Forgery botched", $"{c.Name} lacks the skill; the clay is ruined and nothing usable came of it.", "the forger lacked the skill", c.Id);
             Pay(p, S.Config.ForgeFee, "spoiled clay");
             return;
         }
-        if (!Pay(p, S.Config.ForgeFee, "a forger's materials")) return;
+        if (!Pay(p, S.Config.ForgeFee, "a forger's materials", f, "nothing was forged")) return;
         var seals = f.Seals.Distinct().ToList();
         var tablet = new Tablet
         {
