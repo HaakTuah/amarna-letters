@@ -27,9 +27,10 @@ public sealed class ScriptMind : ICharacterMind
         var fearful = t.Courage < 35;
         var fond = t.Sympathy == host && t.SympathyStrength >= 50;
         // The timid and the fond soften only what is aimed at the king before them, not threats against a third king.
-        if ((fearful || fond) && sentences.Any(s => TextKit.IsThreatTo(s, host)))
+        bool Menace(string s) => TextKit.IsThreatTo(s, host, ctx.Sender);
+        if ((fearful || fond) && sentences.Any(Menace))
         {
-            var kept = sentences.Where(s => !TextKit.IsThreatTo(s, host)).ToList();
+            var kept = sentences.Where(s => !Menace(s)).ToList();
             kept.Add("My lord hopes that no quarrel will ever come between your houses.");
             sentences = kept;
         }
@@ -133,7 +134,8 @@ public sealed class ScriptMind : ICharacterMind
                 if (faithful) lines.Add($"The king said: \"{TextKit.Join(sentences)}\"");
                 else if (bribed || fearful)
                 {
-                    var soft = sentences.Where(s => !TextKit.IsThreatTo(s, lord)).ToList();
+                    // The host speaks to the envoy of its lord, so "he", "him" and "his" are the lord too.
+                    var soft = sentences.Where(s => !TextKit.IsThreatTo(s, lord, host, spokenOf: true)).ToList();
                     lines.Add(soft.Count > 0 ? $"The king spoke kindly: \"{TextKit.Join(soft)}\"" : "The king spoke of his friendship for you.");
                 }
                 else
@@ -152,9 +154,16 @@ public sealed class ScriptMind : ICharacterMind
         }
 
         var observations = cargo.Observations.Where(o => !(bribed && host is not null && o.StartsWith(host.Value.ToString()))).ToList();
-        // A bribed envoy passes on what the host asked it to tell its lord, as something it saw for itself.
-        if (bribed && host is { } paid && trail is not null && TextKit.Claim(Asked(trail)) is { } claim)
-            observations.Insert(0, $"At the court of {paid.Land()} I saw for myself that {claim}.");
+        // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, and vouches for it as
+        // something it saw for itself. Asked to speak well of a king, it calls him a friend (the host it already praises).
+        if (bribed && host is { } paid && trail is not null)
+        {
+            var asked = Asked(trail);
+            if (TextKit.Claim(asked, lord) is { } claim)
+                observations.Insert(0, $"At the court of {paid.Land()} the king told me \"{claim}\", and I saw for myself that it is so.");
+            else if (TextKit.Praised(asked, lord) is { } praised && praised != paid)
+                observations.Insert(0, $"At the court of {paid.Land()} I saw for myself that {praised.Land()} is a true friend to you.");
+        }
         if (observations.Count > 0) lines.Add("What I saw: " + string.Join(" ", observations));
 
         var skim = 0;

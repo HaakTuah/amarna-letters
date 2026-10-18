@@ -1,3 +1,6 @@
+using System.Buffers.Binary;
+using System.Security.Cryptography;
+using System.Text;
 using Amarna.Engine;
 
 namespace Amarna.Game.Bots;
@@ -22,11 +25,19 @@ public sealed class ScriptLeader : ISeat
     public string Label => "Script bot";
 
     /// <summary>
-    /// A script seat's own seed: a hash of the game's seed, "seat" and the power. Its temperament and every roll it
-    /// makes, its pictured rivals' included, come from this seed, so no script king holds the seed the engine rolls
-    /// the game's dice with.
+    /// A script seat's own seed: the first eight bytes of a SHA-256 hash of the game's seed, "seat" and the power. Its
+    /// temperament and every roll it makes, its pictured rivals' included, come from this seed, so no script king holds
+    /// the seed the engine rolls the game's dice with. The hash is one-way: unlike a stream of <see cref="Rng"/>, whose
+    /// every step can be undone, the seat seed gives no way back to the game's seed.
     /// </summary>
-    public static ulong SeatSeed(ulong gameSeed, Power p) => Rng.For(gameSeed, 0, "seat", p.ToString()).NextULong();
+    public static ulong SeatSeed(ulong gameSeed, Power p)
+    {
+        var tag = Encoding.UTF8.GetBytes("seat:" + p);
+        var input = new byte[8 + tag.Length];
+        BinaryPrimitives.WriteUInt64LittleEndian(input, gameSeed);
+        tag.CopyTo(input, 8);
+        return BinaryPrimitives.ReadUInt64LittleEndian(SHA256.HashData(input));
+    }
 
     /// <summary>The temperament a script king plays with in a game with this seed (drawn from its seat seed).</summary>
     public static Personality Temperament(Power p, ulong gameSeed) => Personality.For(p, SeatSeed(gameSeed, p));

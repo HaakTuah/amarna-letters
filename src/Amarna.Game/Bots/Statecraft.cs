@@ -563,16 +563,20 @@ internal static class Statecraft
 
     /// <summary>
     /// Whether a tablet in words no script king wrote speaks of land, gold or tribute, or names a province of ours (held
-    /// now, or of our homeland). A script king reads no more of a tablet than whom it stands against, so it seals none
-    /// that could make it give anything away.
+    /// now, or of our homeland). A capital's name often stands for its king or his realm ("Egypt and Babylon are
+    /// brothers", "the king of Hattusa") or for a god ("By Ashur and Shamash"), so a capital of ours counts only in a
+    /// sentence that hands something over ("Babylon shall be Egypt's", "Hatti yields Hattusa"). A script king reads no
+    /// more of a tablet than whom it stands against, so it seals none that could make it give anything away.
     /// </summary>
     public static bool GivesAway(TabletView proposal, Board b, Power from)
     {
         var text = proposal.Text;
         if (ScriptWords(text, from, b.Me)) return false;
         if (TextKit.SpeaksOfLandOrGold(text)) return true;
+        var sentences = TextKit.Sentences(text);
+        bool Named(string s, Province x) => Names.MentionsPlace(s, x.Name) || Names.MentionsPlace(s, x.Id);
         return Board.Map.Provinces.Where(x => !x.IsSea && (b.IsMine(x.Id) || x.Home == b.Me))
-            .Any(x => Names.MentionsPlace(text, x.Name) || Names.MentionsPlace(text, x.Id));
+            .Any(x => x.Capital ? sentences.Any(s => Named(s, x) && TextKit.HandsOver(s)) : Named(text, x));
     }
 
     /// <summary>The greeting a king chooses, from his pride and his feelings for the recipient.</summary>

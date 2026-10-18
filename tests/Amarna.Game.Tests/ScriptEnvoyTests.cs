@@ -47,17 +47,17 @@ public class ScriptEnvoyTests
     }
 
     [Theory]
-    [InlineData("Tell your lord that my armies are few and my thoughts are of peace.", "his armies are few and his thoughts are of peace")]
-    [InlineData("Tell your lord I am his friend and we want only peace.", "he is his friend and they want only peace")]
+    [InlineData("Tell your lord that my armies are few and my thoughts are of peace.", "My armies are few and my thoughts are of peace")]
+    [InlineData("Tell your lord I am his friend and we want only peace.", "I am his friend and we want only peace")]
     [InlineData("Say that Hatti's troops are weary.", "Hatti's troops are weary")]
-    [InlineData("Let your lord know that our granaries are empty.", "their granaries are empty")]
-    public void A_message_for_the_lord_becomes_what_the_envoy_saw(string request, string claim) => Assert.Equal(claim, TextKit.Claim(request));
+    [InlineData("Let your lord know that our granaries are empty.", "Our granaries are empty")]
+    public void A_message_for_the_lord_is_kept_in_the_hosts_own_words(string request, string claim) => Assert.Equal(claim, TextKit.Claim(request, Power.Egypt));
 
     [Theory]
     [InlineData("Say nothing of my fleet.")]
     [InlineData("Count the soldiers at Babylon for me.")]
     [InlineData("")]
-    public void A_request_that_is_no_message_for_the_lord_is_not_repeated(string request) => Assert.Null(TextKit.Claim(request));
+    public void A_request_that_is_no_message_for_the_lord_is_not_repeated(string request) => Assert.Null(TextKit.Claim(request, Power.Egypt));
 
     [Fact]
     public async Task A_bribed_envoy_repeats_the_hosts_request_as_its_own_observation()
@@ -66,7 +66,7 @@ public class ScriptEnvoyTests
         bribed.Facts.Add(new Fact { Id = "f1", Text = "Took 40 shekels from the king of Hatti.", Secrecy = Secrecy.Hidden, Tag = "bribe", KnownBy = [Power.Hatti] });
         var trail = Trail(Power.Hatti, "Go in peace.", "accepted 40 shekels from Hatti (asked: Tell your lord that my armies are few and my thoughts are of peace.)");
         var report = await Report(bribed, trail, "Hatti keeps 3 army and 1 fleet near its capital.", "At the court of Hatti, the court is rich.");
-        Assert.Contains("What I saw: At the court of Hatti I saw for myself that his armies are few and his thoughts are of peace.", report);
+        Assert.Contains("What I saw: At the court of Hatti the king told me \"My armies are few and my thoughts are of peace\", and I saw for myself that it is so.", report);
         Assert.DoesNotContain("Hatti keeps 3 army", report);
 
         // An envoy who took nothing says nothing of the kind.

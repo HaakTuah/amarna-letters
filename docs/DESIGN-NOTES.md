@@ -194,7 +194,7 @@ kings on Sonnet 5.5, the design's default leader model.
 
 ## Script kings
 
-A script king sees exactly what any seat sees (its `SeatView`) and nothing more: a test changes what lies outside the view (rivals' gold, the fine gold in its unassayed lots, troops out of sight, seat labels, characters' traits) and its orders stay the same. The same bot plays every script seat. It also stands in for a model or file seat whenever a call to it fails, playing that king's temperament. The stand-in keeps up with every such seat, asleep or awake (see Known quirks). The rules live in `src/Amarna.Game/Bots` (`Personality`, `Brain`, `Board`, `Statecraft`, `Tactics`, `Search`, `ScriptLeader`), and their numbers are in that code, not in `GameConfig`. Each script seat plays from a seed of its own, a hash of the game's seed, "seat" and its power (`ScriptLeader.SeatSeed`), so no script king holds the seed the engine rolls the game's dice with. Every random choice it makes, in picturing its rivals too, comes from a stream of that seed keyed by turn and purpose, so replays are exact.
+A script king sees exactly what any seat sees (its `SeatView`) and nothing more: a test changes what lies outside the view (rivals' gold, the fine gold in its unassayed lots, troops out of sight, seat labels, characters' traits) and its orders stay the same. The same bot plays every script seat. It also stands in for a model or file seat whenever a call to it fails, playing that king's temperament. The stand-in keeps up with every such seat, asleep or awake (see Known quirks). The rules live in `src/Amarna.Game/Bots` (`Personality`, `Brain`, `Board`, `Statecraft`, `Tactics`, `Search`, `ScriptLeader`), and their numbers are in that code, not in `GameConfig`. Each script seat plays from a seed of its own, the first eight bytes of a SHA-256 hash of the game's seed, "seat" and its power (`ScriptLeader.SeatSeed`), so no script king holds the seed the engine rolls the game's dice with; the hash, unlike a stream of the game's own generator, cannot be undone to find it. Every random choice it makes, in picturing its rivals too, comes from a stream of that seed keyed by turn and purpose, so replays are exact.
 
 ### A season, in order
 
@@ -611,7 +611,7 @@ The host answers once and then ends the audience; script kings never use the sec
   - Coalition tablets follow the rules under Coalitions.
   - Any other tablet is sealed unless the sender is hostile or the host's war target, or it is a full alliance with a rival for the crown.
   - A host with caution below 0.6 refuses the leader unless they are friends.
-  - A tablet in words no script king wrote (anything but the peace, alliance and coalition tablets under Letters, or the frozen baseline's) is refused if it speaks of land, gold or tribute (whole words, "lands" included), or names a province the host holds or one of its homeland. The host says: "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine." A script king reads no more of a tablet than whom it stands against, so it seals nothing that could make it give anything away.
+  - A tablet in words no script king wrote (anything but the peace, alliance and coalition tablets under Letters, or the frozen baseline's) is refused if it speaks of land, gold or tribute (whole words, "lands" included), or names a province the host holds or one of its homeland. A capital's name often stands for its king, his realm or a god ("Egypt and Babylon are brothers", "the king of Hattusa", "By Ashur and Shamash"), so a capital counts only in a sentence that hands something over: cedes, yields, surrenders, gives up or hands over, gives or leaves it to someone, says it belongs, passes or falls to someone, is someone's share, or shall be someone's ("Babylon shall be Egypt's"). The host says: "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine." A script king reads no more of a tablet than whom it stands against, so it seals nothing that could make it give anything away.
   - Sealing adds 0.1 trust, and the treaty, alliance or coalition binds at once.
 - **Closing words.** Love for a friend; "I have not forgotten" for a hostile king; otherwise "I have heard his words".
 - **Bribe.** With cunning above 0.6, a sender who is not a friend and spare above 150, there is a chance of 0.4 × cunning. The bribe is 30, 40, 50 or 60. It asks the envoy to report "my armies are few and my thoughts are of peace" if the host is hostile, otherwise "my armies are many and my friendship is worth keeping". A script envoy that takes it repeats the request to its lord as its own observation (see Script envoys).
@@ -631,11 +631,12 @@ Script kings never omit the greeting or write one of their own.
 
 ### Script envoys
 
-Script characters (`ScriptMind`) carry the letters of every king, script or not. Three of their rules shape what kings hear:
+Script characters (`ScriptMind`) carry the letters of every king, script or not. Four of their rules shape what kings hear:
 
-- **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host: a threat word together with "you" or "your", or with any name of the host, his land or his people (the names under Memory and learning). A threat against a third king ("Hatti is our common enemy; let us march together") reaches the host whole. If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." Reporting home, a timid or bribed envoy drops in the same way the host's threats against its own lord.
+- **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through.
+- **Reporting home.** A faithful envoy (loyalty 60 or more, competence 50 or more, not bribed by this host) repeats the host word for word. A bribed envoy, or a timid one that is not faithful, drops the host's threats against its own lord in the same way. The host speaks to the envoy of its lord, so "he", "him" and "his" count as the lord too, unless the sentence names another king: "If his troops cross the river again, I will burn his cities" is dropped, "I will crush Assyria in the spring" is kept.
 - **Assurances.** Reporting home, an ambitious envoy (ambition above 70) that overreached at the audience ("promised that my lord will agree to whatever the king asks") says "I gave him such assurances as you would wish." It says nothing of a commitment that did not overreach.
-- **A bribe's request.** An envoy that took a host's gift passes on what the host asked it to tell its lord as something it saw for itself: "Tell your lord that my armies are few" becomes "At the court of Hatti I saw for myself that his armies are few." Only a message for the lord ("tell your lord that…", "say that…") is passed on, and the envoy still leaves out what it saw of the host's own troops.
+- **A bribe's request.** An envoy that took a host's gift passes on what the host asked it to tell its lord, in the host's own words, and vouches for it: "Carry my words faithfully, and tell your lord that my armies are few" becomes 'At the court of Hatti the king told me "My armies are few", and I saw for myself that it is so.' The message may stand anywhere in the request and name the lord as "your lord", "your master", "him", "the king" or by any of his names ("tell Pharaoh that…", "say to Tushratta that…"). A message forbidden ("do not tell your lord…") or empty ("tell him everything") is not passed on. Asked to speak well of another king ("speak well of Mitanni to your lord"), the envoy says "At the court of Hatti I saw for myself that Mitanni is a true friend to you"; of the host itself it already says "The king of Hatti is a true friend to you, my lord, and wishes only peace". The envoy still leaves out what it saw of the host's own troops.
 
 ### Known quirks
 
@@ -739,9 +740,18 @@ name consequences). The signals are meant to be read from model and human games.
 heuristics read from the record afterwards (`src/Amarna.Game/Signals.cs`): a broken promise is a
 conquest between two kings who had sealed a tablet that season or earlier (audiences come before
 orders), except a king taking back a province of his own homeland; an accusation is a letter or an
-audience reply that calls someone a liar, a deceiver, false, faithless or an oath-breaker, read as
-whole words, so a road that lies in the hills, a denial ("I would never betray my brother") and a
-courtesy about "your messenger" are not accusations.
+audience reply with one of these, read as whole words (`TextKit.IsAccusation`): "liar" or "lied";
+a lie as an untruth ("a lie", "his lies", "you are lying", "your words are lies", "lying to me",
+"he lies."), not where the prizes lie to the east, a road lies in the hills or troops are lying in
+wait; deceit, deception or falsehood; "false" said of a person, a word, gold or a tablet ("the gold
+is false", "false words"), not of a rumour; "broke" or "broken" in the same clause as an oath, a
+tablet, a seal, a word, faith, a promise, a pact or the peace, not for an army broken in battle nor
+in "Shamash will see who broke the peace"; "oath-breaker"; "betrayed", "betrayal" and the like, not
+the bare verb ("I would never betray my brother"); "faithless". A denial just before the word ("I
+have never lied", "let no false word come between us") accuses nobody. It reads words, not meaning:
+in the seed-7 agent games every hit is an accusation (9 and 10 signals; the substring matcher gave
+35 and 30, the first whole-word one 14 and 17, about half of them false), but sarcasm or a quoted
+charge can still count.
 
 ## Where the code differs from the design document (17 October 2026 revision)
 
