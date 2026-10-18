@@ -86,7 +86,7 @@ public sealed record Personality
         },
     };
 
-    /// <summary>The archetype for a power, varied for this game by the seed.</summary>
+    /// <summary>The archetype for a power, varied by a seed: a script seat's own (see <see cref="ScriptLeader.SeatSeed"/>), never the game's.</summary>
     public static Personality For(Power p, ulong seed)
     {
         var a = Archetypes[p];
