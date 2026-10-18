@@ -133,7 +133,7 @@ public static class Prompts
         sb.AppendLine("""
 
             HOW TO ANSWER
-            Reply with one JSON object that matches the schema. Use province ids (like "memphis") and person ids (like "c12") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: you see them again the next time you give orders and nobody else ever does, so record your plans, your promises and your suspicions there.
+            Reply with one JSON object that matches the schema. Use province ids (like "memphis") and person ids (like "c12") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it.
             """);
         return sb.ToString();
     }

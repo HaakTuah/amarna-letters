@@ -214,6 +214,11 @@ public sealed class TurnSubmission
 {
     public List<Order> Orders { get; set; } = new();
     public string Notes { get; set; } = "";
+    /// <summary>
+    /// Model and file seats: the king's own summary of the seasons that have left its record, written in its reply (empty
+    /// keeps the one before). Logged with the orders, so a replay can read it; the engine ignores it.
+    /// </summary>
+    public string Summary { get; set; } = "";
     /// <summary>Seats that may sleep (they sleep after every call): the season to be woken in and what else should wake them. Ignored for other seats.</summary>
     public SleepRequest? Sleep { get; set; }
     /// <summary>Seats that may sleep: orders queued for later seasons (one entry per season replaces any earlier one).</summary>

@@ -57,6 +57,7 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o = new JsonObject
             {
                 ["notes"] = "Hold the line; keep Hatti friendly.",
+                ["summary"] = "",
                 ["units"] = new JsonArray(),
                 ["letters"] = new JsonArray(),
                 ["other_orders"] = new JsonArray(),

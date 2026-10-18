@@ -753,7 +753,7 @@ public class SleepTests
         Assert.Contains("(a move that is stopped or a support that is cut among them), wakes you the next season. The orders you give now for this season do not, an entry for this season in your schedule among them", rules);
         // Told when it next gives orders, not "next season": a king that sleeps reads it when it is woken.
         Assert.Contains("Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders.", rules);
-        Assert.Contains("you see them again the next time you give orders", rules);
+        Assert.Contains("Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders", rules);
         Assert.DoesNotContain("skip", rules);
     }
 

@@ -73,6 +73,33 @@ public class FileSeatTests
         Assert.Contains(runner.Log.Calls, c => c.Key == "t1/orders/Alashiya" && c.Model == "file seat" && c.Output.Contains("copper coast"));
     }
 
+    [Fact]
+    public async Task A_file_seat_s_summary_comes_back_in_its_next_request()
+    {
+        var (runner, folder) = Game(new GameConfig { CatastropheChance = 0, SleepingSeats = false });
+        using var stop = new CancellationTokenSource();
+        var seen = new List<string>();
+        var answering = Answer(folder, (stem, text) =>
+        {
+            lock (seen) seen.Add(text);
+            return stem.Contains("orders")
+                ? """{"notes":"zq-notes","summary":"zq-summary of what I learned","units":[],"letters":[],"other_orders":[]}"""
+                : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
+        }, stop.Token);
+        await runner.PlayTurnAsync();
+        await runner.PlayTurnAsync();
+        stop.Cancel();
+        await answering;
+
+        Assert.Empty(runner.Errors);
+        var second = seen.First(t => t.StartsWith("# t2/orders/Alashiya"));
+        Assert.Contains("YOUR SUMMARY OF EARLIER SEASONS (your own words, turn 1): zq-summary of what I learned", second);
+        Assert.Contains("turn 1 notes: zq-notes", second);
+        Assert.Contains("\"summary\": {\"type\":\"string\"", second);
+        Assert.True(runner.Log.TryGet<TurnSubmission>("t1/orders/Alashiya", out var logged));
+        Assert.Equal("zq-summary of what I learned", logged.Summary);
+    }
+
     /// <summary>Records what a model king is sent, and holds everything.</summary>
     private sealed class Recorder : IJsonAsker
     {

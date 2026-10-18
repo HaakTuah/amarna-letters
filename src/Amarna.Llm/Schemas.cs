@@ -35,6 +35,9 @@ public static class Schemas
         };
     }
 
+    // "2,000" whatever the machine's culture: every king reads the same schema.
+    private static string Thousands(int n) => n.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+
     private static IEnumerable<string> PowerNames => Powers.All.Select(p => p.ToString());
 
     public static readonly string[] OtherActions =
@@ -107,7 +110,8 @@ public static class Schemas
     }
 
     private static JsonObject LeaderOrdersBase(bool sharedVictory) => Object(
-        ("notes", Str("Private notes to yourself, shown to you the next time you give orders: plans, promises made, suspicions.")),
+        ("notes", Str($"Private notes to yourself, at most {Thousands(LeaderJournal.NotesMax)} characters (longer notes are cut): plans, promises made, suspicions. They are shown in full the next {LeaderJournal.SeasonsShown} times you give orders, then leave your record.")),
+        ("summary", Str($"Your own summary of the seasons before those shown in full: plans, promises, what you have learned. At most {Thousands(LeaderJournal.SummaryMax)} characters. It replaces your previous summary; leave it empty to keep it.")),
         ("units", Array(UnitOrder())),
         ("letters", Array(Object(
             ("envoy", Str("Id of one of your people who is at court and ready.")),
