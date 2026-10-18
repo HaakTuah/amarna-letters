@@ -14,7 +14,17 @@ public sealed partial class TurnEngine
             switch (o)
             {
                 case PlaceSpyOrder ps: PlaceSpy(p, ps); break;
-                case RecallSpyOrder rs: Recall(p, S.Char(rs.Character)); break;
+                case RecallSpyOrder rs:
+                    var recalled = S.Char(rs.Character);
+                    // A spy its master still believes at its post: the master now believes it on the road home.
+                    if (recalled.Cover is { } cover && cover.For == p)
+                    {
+                        cover.Believed = Duty.EnvoyHomebound;
+                        cover.DutyText = "on the road home";
+                        cover.WhereText = recalled.WatchProvince is { } wp ? $"in {wp}" : "travelling";
+                    }
+                    else Recall(p, recalled);
+                    break;
                 case AssayOrder a: Assay(p, a); break;
                 case AuthenticateOrder au:
                     if (Pay(p, au.Spend, "the examination of a tablet"))
@@ -181,6 +191,8 @@ public sealed partial class TurnEngine
     private void Capture(Character c, Power host, Rng rng)
     {
         var employer = c.Employer!.Value;
+        // Its master goes on seeing it at its post until word comes.
+        CoverFor(c, employer, Duty.SpyPosted);
         c.Status = CharacterStatus.Captured;
         c.HeldBy = host;
         c.Duty = Duty.None;
@@ -201,15 +213,17 @@ public sealed partial class TurnEngine
         switch (co.Fate)
         {
             case CaptiveFate.Execute:
+                // Its master goes on believing what it believed until the rumour of the death arrives.
+                if (employer is { } lord) CoverFor(c, lord, c.Cover?.Believed ?? Duty.None);
                 c.Status = CharacterStatus.Dead;
                 c.Duty = Duty.None;
                 S.Log("execution", $"{host} executed {c.Name}.", [host]);
-                if (employer is { } e) Rumor(e, host, $"It is said that {c.Name} was put to death in {host}.");
+                if (employer is { } e) Rumor(e, host, $"It is said that {c.Name} was put to death in {host}.", c.Id, NewsKind.Death);
                 break;
             case CaptiveFate.Ransom:
                 if (employer is not { } payer || !S.IsAlive(payer)) break;
                 S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.RansomDemand, Requester = payer, Other = host, CharacterId = c.Id, Spend = co.Ransom, DueTurn = S.Turn + 5 });
-                Rumor(payer, host, $"{host} holds {c.Name} and demands {Money.Format(co.Ransom)} for their return (order payRansom for {c.Id}).");
+                Rumor(payer, host, $"{host} holds {c.Name} and demands {Money.Format(co.Ransom)} for their return (order payRansom for {c.Id}).", c.Id, NewsKind.Ransom);
                 break;
             case CaptiveFate.Turn:
                 // A captive whose kingdom has fallen has no court left to deceive: they stay a captive.
@@ -219,6 +233,9 @@ public sealed partial class TurnEngine
                 c.PoisonText = Greeting.Cap(co.Poison, 600);
                 c.Duty = Duty.SpyPosted;
                 c.HeldBy = null;
+                // Back at its post, where it watched from before (a court, or out in a province): what its master believed all along.
+                c.At = c.MissionTarget;
+                c.Cover = null;
                 c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Was caught by {host.Land()} and now secretly serves it.", Secrecy = Secrecy.Deep, Tag = "turned", KnownBy = [host] });
                 c.Remember(S.Turn, $"To save my life I agreed to serve {host.Land()} in secret and send home what they tell me.");
                 S.Log("double-agent", $"{host} turned {c.Name} into a double agent against {employer}.", [host], "double-agent");
@@ -233,6 +250,7 @@ public sealed partial class TurnEngine
     {
         c.Status = c.Employer is null ? CharacterStatus.Free : CharacterStatus.Employed;
         c.HeldBy = null;
+        c.Cover = null;
         c.Remember(S.Turn, $"{host.Land()} set me free.");
         if (c.Employer is { } e && S.IsAlive(e))
         {
@@ -273,7 +291,8 @@ public sealed partial class TurnEngine
         if (c is { Status: CharacterStatus.Captured } && c.HeldBy == j.To) ReleaseCaptive(j.To, c);
     }
 
-    private void Rumor(Power to, Power from, string text)
+    /// <param name="about">One of the receiving court's own people the rumour is about, whose cover it ends on arrival.</param>
+    private void Rumor(Power to, Power from, string text, string? about = null, NewsKind? news = null)
     {
         if (!S.IsAlive(to)) return;
         S.Journeys.Add(new Journey
@@ -285,6 +304,8 @@ public sealed partial class TurnEngine
             From = from,
             To = to,
             Text = text,
+            CharacterId = about,
+            News = news,
         });
     }
 

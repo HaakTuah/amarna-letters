@@ -87,12 +87,17 @@ public sealed class OrderValidator
 
         static string? CharacterOf(Order o) => OrderKeys.CharacterOf(o);
 
+        // A servant abroad whose fate this court has not heard of is, for its orders, a servant who is away:
+        // nothing the validator says may betray what happened to it.
+        bool Covered(Character c) => c.Cover is { } k && k.For == power;
+
         string? OwnCharacter(string id, out Character? c, bool mustBeHome = true)
         {
             c = _s.FindCharacter(id);
             if (c is null) return $"there is nobody called '{id}'";
-            if (c.Employer != power || c.Status != CharacterStatus.Employed) return $"{c.Name} is not in your service";
-            if (mustBeHome && (c.Duty != Duty.None || c.At != power)) return $"{c.Name} is not at your court";
+            var away = Covered(c) || (c.Employer == power && c.Status == CharacterStatus.Captured);
+            if (!away && (c.Employer != power || c.Status != CharacterStatus.Employed)) return $"{c.Name} is not in your service";
+            if (mustBeHome && (away || c.Duty != Duty.None || c.At != power)) return $"{c.Name} is not at your court";
             if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
             return null;
         }
@@ -237,8 +242,8 @@ public sealed class OrderValidator
                 case RecallSpyOrder rs:
                 {
                     var c = _s.FindCharacter(rs.Character);
-                    if (c is null || c.Employer != power) return $"{rs.Character} is not in your service";
-                    if (c.Duty != Duty.SpyPosted) return $"{c.Name} is not on a mission";
+                    if (c is null || (c.Employer != power && !Covered(c))) return $"{rs.Character} is not in your service";
+                    if ((Covered(c) ? c.Cover!.Believed : c.Duty) != Duty.SpyPosted) return $"{c.Name} is not on a mission";
                     if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     return null;
                 }

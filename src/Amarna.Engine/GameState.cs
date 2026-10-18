@@ -198,6 +198,8 @@ public sealed class Character
     public Dictionary<Power, int> AskingPrice { get; set; } = new();
     /// <summary>Courts this character has pitched to, with the pitch text.</summary>
     public Dictionary<Power, string> Pitches { get; set; } = new();
+    /// <summary>What its master still believes of it, after something happened abroad that the master cannot see.</summary>
+    public Cover? Cover { get; set; }
 
     public bool IsAvailableForHire => Status == CharacterStatus.Free;
 
@@ -207,7 +209,32 @@ public sealed class Character
         Facts.Where(f => f.Secrecy == Secrecy.Public || f.KnownBy.Contains(p));
 }
 
+/// <summary>
+/// A servant abroad whose master cannot see what happened to it (caught as a spy, detained, gone over to
+/// the host, put to death) keeps appearing to that master as it was, until word of it comes: a rumour,
+/// the servant's return, or the master dismissing it. Its master keeps paying the wage it believes it owes.
+/// </summary>
+public sealed class Cover
+{
+    /// <summary>The master who still believes it.</summary>
+    public Power For { get; set; }
+    public int Since { get; set; }
+    /// <summary>The duty the master believes the servant is on (a posted spy, an envoy on the road home, one who has not returned).</summary>
+    public Duty Believed { get; set; }
+    /// <summary>Set when the master believes the servant is held captive at that court: its view then reads as a captive's.</summary>
+    public Power? HeldAt { get; set; }
+    public string DutyText { get; set; } = "";
+    public string WhereText { get; set; } = "";
+    public int Wage { get; set; }
+    public int? ContractUntil { get; set; }
+    /// <summary>What the master knew of the servant then (a public fact added since, such as a defection, stays unseen).</summary>
+    public List<string> Facts { get; set; } = new();
+}
+
 public enum JourneyKind { EnvoyOutbound, EnvoyHomebound, SpyOutbound, SpyReport, SpyHomebound, Rumor, Ransom }
+
+/// <summary>What a rumour about one of a court's own people tells it: news that ends a <see cref="Cover"/>.</summary>
+public enum NewsKind { Overdue, Ransom, Death }
 
 public sealed class Journey
 {
@@ -223,6 +250,8 @@ public sealed class Journey
     public SpyReport? Report { get; set; }
     public string? Text { get; set; }
     public int Gold { get; set; }
+    /// <summary>For a rumour about one of the receiving court's own people (<see cref="CharacterId"/>): what it tells.</summary>
+    public NewsKind? News { get; set; }
 }
 
 /// <summary>What a leader hands an envoy: the spoken message, the mandate, and what it carries.</summary>

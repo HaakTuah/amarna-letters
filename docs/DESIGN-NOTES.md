@@ -97,7 +97,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   cannot be read off the difference between strength and gold.
 - **Envoys go out and come back.** An audience has at most two exchanges. Detention is the host's
   choice; detained envoys grow attached to the host court over time. The sender hears that the
-  envoy is overdue a season after it should have returned.
+  envoy is overdue a season after it should have returned; until then it sees the envoy on the
+  road home (see "News of your people abroad" under Characters).
 - **Gold sent back** is paid when the audience ends: the latest amount the host named, at the purity
   it named with it. A 0 in the second exchange keeps the first amount; a new amount replaces it. The
   second exchange tells the host what it already named. (Until the simulation-fixes round only the
@@ -132,8 +133,33 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth.
 - **Spies**: detection chance 5% + watch spend/300 − competence/400, clamped to 2–60% a season.
-  Caught spies confess their master if timid (or 40% of the time). Turned spies report what their
-  new master wants, plus one true observation.
+  Caught spies confess their master if timid (or 40% of the time). Turned spies go back to their
+  post (a court, or out in their province) and report what their new master wants, plus one true
+  observation.
+- **News of your people abroad comes only by rumour or when they return** (the rulebook says so).
+  When something happens to a servant abroad that its master cannot see (a spy caught, an envoy
+  detained or going over to the host, a captive put to death), the character carries a cover
+  (`Character.Cover`): what its master still believes. The master's view lists it as it would have
+  stood in the normal course of events, never ready: a caught spy "watching Assyria" where it was
+  posted, a detained or defecting envoy "on the road home", with only the facts the master knew
+  before (a defection's public fact stays unseen there). The master keeps paying the wage it
+  believes it owes, into the character's purse, and its view's wages count it, so the treasury
+  betrays nothing. The cover ends when the news reaches the master: the rumour that the envoy is
+  overdue, the ransom demand, or the rumour of the death (each of these rumours names the
+  character); the character standing at its master's court again (home, or sent there by another
+  court); its release or turning (truth and belief then agree); its dismissal; or the fall of the
+  master's kingdom. An envoy who went over to the host reads, after the overdue rumour, "has not
+  returned from Alashiya" like a detained one, and stays on the list, still paid, until it is
+  dismissed or seen. Orders for a covered servant read as for any servant away ("Mane is not at your
+  court"; recalling a caught spy is accepted, and its master then believes it on the road home).
+  Dismissing it is accepted and ends the cover and the wage; a dismissed captive stays a captive. A
+  captive whose master has heard of it reads "held captive at the court of Assyria; Assyria demands
+  90 shekels for their return (order pay_ransom)" (the demand while one stands), never "at court,
+  ready", and draws no wage; the web app offers the ransom button only then. Script kings read the
+  same view and are fooled the same way. (Until the simulation-fixes round the master's list showed
+  the truth at once: a caught spy "at court, ready for a mission", a detained envoy "has not
+  returned" the same season, a defector dropped off the list and its wage stopped, an executed spy
+  vanished.)
 - **Authentication**: genuine tablets read genuine 95% of the time (else inconclusive). Forgeries
   are detected with chance 20% + spend/200 − forger skill/150 (5–95%), and traced to the forger's
   employer with chance 30% + spend/400 (30–80%), which is announced to every court.

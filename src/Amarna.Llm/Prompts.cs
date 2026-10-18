@@ -70,6 +70,7 @@ public static class Prompts
 
             WHAT YOU SEE
             - Who holds each province is public. You see troops only in and next to your own lands and troops. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.
+            - News of your people abroad reaches you only by rumour or when they return: a servant who is held, changes sides or dies abroad still appears on its mission until word comes, and you keep paying its wage.
             """);
 
         if (c.SleepingSeats)

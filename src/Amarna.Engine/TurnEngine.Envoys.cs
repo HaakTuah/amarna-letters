@@ -226,6 +226,9 @@ public sealed partial class TurnEngine
             S.Log("evidence", $"{sender} presented a tablet to {host} as evidence.", [sender, host], "evidence-shown");
         }
 
+        // What the sender knows of its envoy before the audience: if the envoy is held or goes over to the host,
+        // its lord goes on seeing it on the road home until word comes.
+        var seenBySender = Views.Character(S, c, sender);
         var detained = false;
         var defected = false;
         var giftTaken = false;
@@ -324,6 +327,8 @@ public sealed partial class TurnEngine
         c.Remember(S.Turn, $"I was received by the king of {host.Land()}. " + string.Join(" ", trail.Exchanges.Select(x => $"He said: \"{Greeting.Cap(x.Host, 300)}\" I answered: \"{Greeting.Cap(x.Envoy, 200)}\"")));
 
         var expectedHome = S.Turn + TravelTurns(host, sender);
+        if (defected || detained)
+            CoverFor(c, sender, Duty.EnvoyHomebound, "on the road home", "travelling", seenBySender);
         if (defected)
         {
             Overdue(sender, c, host, expectedHome);
@@ -340,6 +345,7 @@ public sealed partial class TurnEngine
         else SendHome(c, host, cargo);
     }
 
+    /// <summary>The sender hears that its envoy is overdue a season after it was due home: the news that ends its cover.</summary>
     private void Overdue(Power sender, Character c, Power host, int when)
     {
         if (!S.IsAlive(sender)) return;
@@ -351,6 +357,8 @@ public sealed partial class TurnEngine
             ArriveTurn = when + 1,
             From = host,
             To = sender,
+            CharacterId = c.Id,
+            News = NewsKind.Overdue,
             Text = $"{c.Name} has not returned from the court of {host}. No word has come.",
         });
     }
@@ -427,6 +435,8 @@ public sealed partial class TurnEngine
             return;
         }
         c.HeldBy = null;
+        // On the road home, as its lord believed all along.
+        c.Cover = null;
         var trail = Trail(c.CurrentTrail);
         if (trail is not null && !string.IsNullOrWhiteSpace(r.Reply))
             trail.Exchanges.Add(new Exchange { Host = $"(on release) {Greeting.Cap(r.Reply, MaxSpeech)}", Envoy = "" });
@@ -504,18 +514,7 @@ public sealed partial class TurnEngine
             {
                 case DispatchOrder d: Dispatch(p, d); break;
                 case ReleaseOrder r: ReleaseEnvoy(p, r); break;
-                case DismissOrder dm:
-                {
-                    var c = S.Char(dm.Character);
-                    if (c.Employer == p)
-                    {
-                        c.Remember(S.Turn, $"The king of {p.Land()} dismissed me.");
-                        Quit(c, $"{c.Name} has been dismissed.");
-                        if (c.Duty is not Duty.None) c.Duty = Duty.None;
-                        c.At ??= p;
-                    }
-                    break;
-                }
+                case DismissOrder dm: Dismiss(p, S.Char(dm.Character)); break;
                 case SeekCandidatesOrder:
                     S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.Candidates, Requester = p, DueTurn = S.Turn + 1 });
                     break;
@@ -550,6 +549,25 @@ public sealed partial class TurnEngine
             S.Notify(winner, InboxKind.Notice, "Hired", $"{c.Name} has entered your service at {Money.Format(hire.Wage)} a season.", c.Id);
             S.Log("hire", $"{winner} hired {c.Name}.", [winner]);
         }
+    }
+
+    /// <summary>A servant dismissed: its wage ends, and so does whatever its master still believed of it.</summary>
+    private void Dismiss(Power p, Character c)
+    {
+        if (c.Cover is { } cover && cover.For == p) c.Cover = null;
+        else if (c.Employer != p) return;
+        if (c.Employer != p || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured))
+        {
+            // Gone over to another court, or dead, unknown to its master: the court only stops paying what it believed it owed.
+            S.Notify(p, InboxKind.Notice, "A servant leaves", $"{c.Name} has been dismissed.", c.Id);
+            return;
+        }
+        c.Remember(S.Turn, $"The king of {p.Land()} dismissed me.");
+        var captive = c.Status == CharacterStatus.Captured;
+        Quit(c, $"{c.Name} has been dismissed.");
+        // A dismissed captive stays a captive: only the court that holds them can let them go.
+        if (captive) c.Status = CharacterStatus.Captured;
+        c.At ??= p;
     }
 
     /// <summary>What a character asks a court. Set by the character's own pitch when it gave one.</summary>

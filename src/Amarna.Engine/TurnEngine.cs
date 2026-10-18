@@ -81,18 +81,25 @@ public sealed partial class TurnEngine
 
             var wages = 0;
             var unpaid = new List<string>();
-            foreach (var c in S.Characters.Where(c => c.Employer == p && c.Status == CharacterStatus.Employed && c.Contract is not null).OrderBy(c => c.Id).ToList())
+            // A servant abroad whose fate the court has not heard of is paid as before, so the treasury betrays nothing.
+            foreach (var c in S.Characters.Where(c => WageOwed(c, p) > 0).OrderBy(c => c.Id).ToList())
             {
-                var wage = c.Contract!.Wage;
+                var wage = WageOwed(c, p);
+                var serves = c.Employer == p && c.Status == CharacterStatus.Employed;
                 if (t.Gold >= wage)
                 {
                     t.Gold -= wage;
                     c.Purse += wage;
-                    c.UnpaidTurns = 0;
+                    if (serves) c.UnpaidTurns = 0;
                     wages += wage;
                 }
                 else
                 {
+                    if (!serves)
+                    {
+                        unpaid.Add(c.Name);
+                        continue;
+                    }
                     c.UnpaidTurns++;
                     c.Traits.Loyalty = Math.Max(0, c.Traits.Loyalty - 15);
                     c.Remember(S.Turn, $"My wage from {p.Land()} was not paid this season.");
@@ -113,8 +120,8 @@ public sealed partial class TurnEngine
     public int Upkeep(Power p) => S.Units.Where(u => u.Power == p)
         .Sum(u => u.Kind == UnitKind.Army ? S.Config.ArmyUpkeep : S.Config.FleetUpkeep);
 
-    public int Wages(Power p) => S.Characters.Where(c => c.Employer == p && c.Status == CharacterStatus.Employed)
-        .Sum(c => c.Contract?.Wage ?? 0);
+    /// <summary>The wages a court pays each season, as it reckons them (a covered servant's included).</summary>
+    public int Wages(Power p) => S.Characters.Sum(c => WageOwed(c, p));
 
     public int EffectiveYield(string province)
     {
@@ -181,10 +188,13 @@ public sealed partial class TurnEngine
                 case JourneyKind.SpyHomebound: SpyComesHome(j); break;
                 case JourneyKind.Ransom: RansomArrives(j); break;
                 case JourneyKind.Rumor:
-                    if (S.IsAlive(j.To)) S.Notify(j.To, InboxKind.Rumor, "Rumor", j.Text ?? "");
+                    if (!S.IsAlive(j.To)) break;
+                    S.Notify(j.To, InboxKind.Rumor, "Rumor", j.Text ?? "", j.CharacterId);
+                    NewsArrives(j);
                     break;
             }
         }
+        CoversAtCourt();
     }
 
     public static int IdNumber(string id)
@@ -250,6 +260,7 @@ public sealed partial class TurnEngine
 
         ResolveCourt(All<Order>().ToList());
         ResolveIntelligence(All<Order>().ToList());
+        CoversAtCourt();
 
         WorldEvents();
         CheckEliminations();
@@ -460,6 +471,7 @@ public sealed partial class TurnEngine
             S.Eliminated.Add(p);
             EndSleep(p);
             S.Units.RemoveAll(u => u.Power == p);
+            foreach (var c in S.Characters.Where(c => c.Cover?.For == p)) c.Cover = null;
             foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
             {
                 c.Employer = null;

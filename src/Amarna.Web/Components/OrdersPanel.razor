@@ -207,9 +207,10 @@
         {
             <div class="row" style="margin-top:.3rem"><small>@c.Name</small> <button class="small danger" @onclick="() => Add(new DismissOrder(c.Id))">Dismiss</button></div>
         }
-        @foreach (var c in v.Court.Where(c => c.Status == "captured"))
+        @* Only once the demand has reached this court: until then a captive appears at its post, as its master believes. *@
+        @foreach (var c in v.Court.Where(c => c.RansomDemand is not null))
         {
-            <div class="row" style="margin-top:.3rem"><small>@c.Name is held abroad.</small> <button class="small" @onclick="() => Add(new PayRansomOrder(c.Id))">Pay the ransom demanded</button></div>
+            <div class="row" style="margin-top:.3rem"><small>@c.Name is held captive @c.Where.</small> <button class="small" @onclick="() => Add(new PayRansomOrder(c.Id))">Pay the ransom demanded (@Ui.Shekels(c.RansomDemand!.Value))</button></div>
         }
         @foreach (var c in v.Known.Where(c => c.Status == "your captive"))
         {

@@ -35,6 +35,8 @@ public sealed class CharacterView
     public bool Ready { get; set; }
     /// <summary>An envoy or spy you are holding against their will.</summary>
     public bool HeldByYou { get; set; }
+    /// <summary>One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.</summary>
+    public int? RansomDemand { get; set; }
 }
 
 public sealed class TabletView
@@ -162,6 +164,12 @@ public static class Views
 
         foreach (var c in s.Characters)
         {
+            // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
+            if (c.Cover is { } cover && cover.For == p)
+            {
+                v.Court.Add(Character(s, c, p));
+                continue;
+            }
             if (c.Status == CharacterStatus.Dead && c.Employer != p) continue;
             var ours = c.Employer == p && c.Status is CharacterStatus.Employed or CharacterStatus.Captured;
             var known = ours || c.At == p || c.HeldBy == p || c.Pitches.ContainsKey(p) || c.Facts.Any(f => f.Secrecy != Secrecy.Public && f.KnownBy.Contains(p));
@@ -192,7 +200,9 @@ public static class Views
 
     public static CharacterView Character(GameState s, Character c, Power viewer)
     {
+        if (c.Cover is { } cover && cover.For == viewer) return Covered(s, c, cover);
         var ours = c.Employer == viewer;
+        var captive = ours && c.Status == CharacterStatus.Captured && c.HeldBy is not null;
         return new CharacterView
         {
             Id = c.Id,
@@ -201,7 +211,7 @@ public static class Views
             Ours = ours,
             Status = c.Status == CharacterStatus.Captured && c.HeldBy == viewer ? "your captive" : c.Status.ToString().ToLowerInvariant(),
             Employer = ours || c.Status == CharacterStatus.Employed && c.At == viewer ? c.Employer : null,
-            Duty = ours ? DutyText(c) : "",
+            Duty = captive ? CaptiveText(s, c.Id, c.HeldBy!.Value, viewer) : ours ? DutyText(c) : "",
             Where = ours || c.At == viewer ? WhereText(c, viewer) : "",
             Wage = ours ? c.Contract?.Wage : null,
             ContractUntil = ours ? c.Contract?.UntilTurn : null,
@@ -210,10 +220,40 @@ public static class Views
             AskingPrice = c.AskingPrice.TryGetValue(viewer, out var price) ? price : null,
             Ready = ours && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == viewer,
             HeldByYou = c.HeldBy == viewer,
+            RansomDemand = captive ? KnownDemand(s, c.Id, c.HeldBy!.Value, viewer)?.Spend : null,
         };
     }
 
-    public static string DutyText(Character c) => c.Duty switch
+    /// <summary>A servant as its master still believes it to be: the same fields the master saw before, never ready.</summary>
+    private static CharacterView Covered(GameState s, Character c, Cover cover) => new()
+    {
+        Id = c.Id,
+        Name = c.Name,
+        Origin = c.Origin,
+        Ours = true,
+        Status = cover.HeldAt is null ? "employed" : "captured",
+        Employer = cover.For,
+        Duty = cover.HeldAt is { } held ? CaptiveText(s, c.Id, held, cover.For) : cover.DutyText,
+        Where = cover.HeldAt is { } at ? $"at the court of {at}" : cover.WhereText,
+        Wage = cover.Wage,
+        ContractUntil = cover.ContractUntil,
+        KnownFacts = cover.Facts.ToList(),
+        Pitch = c.Pitches.GetValueOrDefault(cover.For),
+        AskingPrice = c.AskingPrice.TryGetValue(cover.For, out var price) ? price : null,
+        RansomDemand = cover.HeldAt is { } h ? KnownDemand(s, c.Id, h, cover.For)?.Spend : null,
+    };
+
+    /// <summary>One of the viewer's people held captive abroad, with the ransom demanded if that word has reached it.</summary>
+    private static string CaptiveText(GameState s, string id, Power heldAt, Power viewer) =>
+        KnownDemand(s, id, heldAt, viewer) is { } demand
+            ? $"held captive at the court of {heldAt}; {heldAt} demands {demand.Spend} shekels for their return (order pay_ransom)"
+            : $"held captive at the court of {heldAt}";
+
+    /// <summary>The open ransom demand for a captive, as far as the court asked to pay knows it.</summary>
+    public static PendingTask? KnownDemand(GameState s, string id, Power heldAt, Power payer) =>
+        s.Tasks.LastOrDefault(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == id && t.Requester == payer && t.Other == heldAt);
+
+    public static string DutyText(Character c) => c.Status == CharacterStatus.Captured && c.HeldBy is { } jailer ? $"held captive at the court of {jailer}" : c.Duty switch
     {
         Duty.None => "at court, ready for a mission",
         Duty.EnvoyOutbound => $"travelling as envoy to {c.MissionTarget}",
@@ -227,7 +267,7 @@ public static class Views
 
     private static string WhereText(Character c, Power viewer)
     {
-        if (c.Status == CharacterStatus.Captured) return c.HeldBy == viewer ? "in your prison" : "unknown";
+        if (c.Status == CharacterStatus.Captured) return c.HeldBy == viewer ? "in your prison" : c.HeldBy is { } jailer && c.Employer == viewer ? $"at the court of {jailer}" : "unknown";
         if (c.Duty == Duty.Detained && c.Employer == viewer) return "unknown";
         if (c.At is { } at) return at == viewer ? "at your court" : $"at the court of {at}";
         return c.WatchProvince is { } wp ? $"in {wp}" : "travelling";
