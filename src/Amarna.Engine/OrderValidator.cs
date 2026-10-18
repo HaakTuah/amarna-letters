@@ -26,7 +26,11 @@ public sealed class OrderValidator
     public ValidationResult Validate(Power power, TurnSubmission submission)
     {
         var result = new ValidationResult();
-        var budget = _s.Treasuries[power].Ledger;
+        var ledger = _s.Treasuries[power].Ledger;
+        var budget = ledger;
+        // People this season's orders hire: they enter service only at the end of the season, so no errand can be given them now.
+        var hiring = submission.Orders.Take(MaxOrders).OfType<HireOrder>().Select(h => h.Character).ToHashSet();
+        var assayed = new HashSet<string>();
         var orderedUnits = new HashSet<string>();
         var raisedIn = new HashSet<string>();
         var bought = new HashSet<string>();
@@ -58,6 +62,7 @@ public sealed class OrderValidator
                 if (order is RaiseOrder r) raisedIn.Add(r.Province);
                 if (order is BuyProvinceOrder b) bought.Add(b.Province);
                 if (order is RenewOrder rn) renewed.Add(rn.Character);
+                if (order is AssayOrder a) assayed.Add(a.Lot);
             }
             else
             {
@@ -68,10 +73,17 @@ public sealed class OrderValidator
         foreach (var o in submission.Orders.Skip(MaxOrders)) result.Rejected.Add(new(o, $"too many orders: only the first {MaxOrders} of a season are read"));
         return result;
 
+        // Gold is reserved in the order the orders are listed, as each is accepted (the rulebook's "HOW A SEASON RESOLVES").
         string? Spend(int cost)
         {
             if (cost < 0) return "a cost cannot be negative";
-            if (cost > budget) return $"not enough gold (needs {cost}, ledger shows {budget} left)";
+            if (cost > budget)
+            {
+                var reserved = ledger - budget;
+                return reserved > 0
+                    ? $"not enough gold: it needs {cost} shekels; orders listed before it had reserved {reserved}, and {budget} was left"
+                    : $"not enough gold: it needs {cost} shekels, and your treasury held {budget} by your ledger";
+            }
             budget -= cost;
             return null;
         }
@@ -90,6 +102,8 @@ public sealed class OrderValidator
 
         static string? CharacterOf(Order o) => OrderKeys.CharacterOf(o);
 
+        static string Nobody(string id) => string.IsNullOrWhiteSpace(id) ? "you named nobody" : $"there is nobody called '{id}'";
+
         // A servant abroad whose fate this court has not heard of is, for its orders, a servant who is away:
         // nothing the validator says may betray what happened to it.
         bool Covered(Character c) => c.CoverOf(power) is not null;
@@ -97,9 +111,12 @@ public sealed class OrderValidator
         string? OwnCharacter(string id, out Character? c, bool mustBeHome = true)
         {
             c = _s.FindCharacter(id);
-            if (c is null) return $"there is nobody called '{id}'";
+            if (c is null) return Nobody(id);
             var away = Covered(c) || (c.Employer == power && c.Status == CharacterStatus.Captured);
-            if (!away && (c.Employer != power || c.Status != CharacterStatus.Employed)) return $"{c.Name} is not in your service";
+            if (!away && (c.Employer != power || c.Status != CharacterStatus.Employed))
+                return hiring.Contains(c.Id)
+                    ? $"{c.Name} was to be hired that season: a person hired enters your service only at the end of the season, and can be sent on an errand from the next season"
+                    : $"{c.Name} is not in your service";
             if (mustBeHome && (away || c.Duty != Duty.None || c.At != power)) return $"{c.Name} is not at your court";
             if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
             return null;
@@ -202,7 +219,7 @@ public sealed class OrderValidator
                 case ReleaseOrder rl:
                 {
                     var c = _s.FindCharacter(rl.Character);
-                    if (c is null) return $"there is nobody called '{rl.Character}'";
+                    if (c is null) return Nobody(rl.Character);
                     if (c.HeldBy != power) return $"you are not holding {c.Name}";
                     if (busyCharacters.Contains(c.Id)) return $"{c.Name} was already given a task by an earlier order";
                     return null;
@@ -214,7 +231,7 @@ public sealed class OrderValidator
                 case HireOrder h:
                 {
                     var c = _s.FindCharacter(h.Character);
-                    if (c is null) return $"there is nobody called '{h.Character}'";
+                    if (c is null) return Nobody(h.Character);
                     // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
                     if (Covered(c) || c.Employer == power && c.Status is CharacterStatus.Employed or CharacterStatus.Captured)
                         return $"{c.Name} is already in your service; to keep them on, order renew";
@@ -233,7 +250,7 @@ public sealed class OrderValidator
                 {
                     // Not a task: a servant may be renewed and sent on an errand in the same season.
                     var c = _s.FindCharacter(rn.Character);
-                    if (c is null) return $"there is nobody called '{rn.Character}'";
+                    if (c is null) return Nobody(rn.Character);
                     var cover = c.CoverOf(power);
                     if (cover is null && (c.Employer != power || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured)))
                         return $"{c.Name} is not in your service";
@@ -249,15 +266,17 @@ public sealed class OrderValidator
 
                 case BackgroundCheckOrder bc:
                 {
-                    if (_s.FindCharacter(bc.Character) is null) return $"there is nobody called '{bc.Character}'";
+                    if (_s.FindCharacter(bc.Character) is null) return Nobody(bc.Character);
                     if (bc.Spend < 10) return "a background check costs at least 10 shekels";
                     return Spend(bc.Spend);
                 }
 
                 case PlaceSpyOrder ps:
                 {
-                    if (OwnCharacter(ps.Character, out _) is { } e) return e;
-                    if (ps.Court is null == ps.Province is null) return "name either a court or a province to watch";
+                    // In the rulebook's words: a spy must be one of your own people at your court, sent to watch a court or a province.
+                    if (OwnCharacter(ps.Character, out _) is { } e) return $"a spy must be one of your own people at your court: {e}";
+                    if (ps.Court is null && ps.Province is null) return "a spy must be sent to watch a court or a province: you named neither";
+                    if (ps.Court is not null && ps.Province is not null) return "a spy must be sent to watch a court or a province: name only one";
                     if (ps.Court is { } court && (court == power || !_s.IsAlive(court))) return $"you cannot spy on {court}";
                     if (ps.Province is not null && (!_map.Exists(ps.Province) || _map[ps.Province].IsSea)) return $"there is no province called '{ps.Province}'";
                     return null;
@@ -278,6 +297,7 @@ public sealed class OrderValidator
 
                 case AssayOrder a:
                     if (!_s.Treasuries[power].Lots.Any(l => l.Id == a.Lot)) return $"there is no unassayed gold '{a.Lot}'";
+                    if (assayed.Contains(a.Lot)) return $"gold lot {a.Lot} was already to be assayed by an earlier order";
                     return Spend(_s.Config.AssayFee);
 
                 case AuthenticateOrder au:
@@ -305,7 +325,7 @@ public sealed class OrderValidator
                 case PayRansomOrder pr:
                 {
                     var c = _s.FindCharacter(pr.Character);
-                    if (c is null) return $"there is nobody called '{pr.Character}'";
+                    if (c is null) return Nobody(pr.Character);
                     if (ransomed.Contains(c.Id)) return $"a ransom for {c.Name} is already on its way";
                     if (RansomRefusal(_s, power, c, out var task) is { } why) return why;
                     var error = Spend(task!.Spend);

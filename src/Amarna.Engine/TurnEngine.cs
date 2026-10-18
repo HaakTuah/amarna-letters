@@ -433,8 +433,8 @@ public sealed partial class TurnEngine
             if (bidders.Count > 1)
             {
                 foreach (var b in bidders)
-                    S.Notify(b, InboxKind.Rejected, "Purchase failed", $"The elders of {prov.Name} would not choose between rival buyers last season. No gold was paid.");
-                foreach (var (b, o) in group) ScheduledFailed(b, o, "rival buyers bid for it");
+                    S.Notify(b, InboxKind.Rejected, "Purchase failed", $"The elders of {prov.Name} would not choose between {bidders.Count} buyers last season. No gold was paid.");
+                foreach (var (b, o) in group) ScheduledFailed(b, o, $"its elders would not choose between {bidders.Count} buyers");
                 continue;
             }
             var buyer = bidders[0];
@@ -456,10 +456,15 @@ public sealed partial class TurnEngine
     private void Raise(Power p, RaiseOrder r)
     {
         var prov = Map[r.Province];
-        if (S.Owner.GetValueOrDefault(prov.Id) != p || S.UnitAt(prov.Id) is not null)
+        var kind = r.Kind.ToString().ToLowerInvariant();
+        // In the rulebook's words: only in a province of your homeland that you still hold and that is empty after movement.
+        var why = S.Owner.GetValueOrDefault(prov.Id) != p ? $"you no longer held {prov.Name} after movement"
+            : S.UnitAt(prov.Id) is not null ? $"{prov.Name} was not empty after movement"
+            : null;
+        if (why is not null)
         {
-            S.Notify(p, InboxKind.Rejected, "Levy failed", $"{prov.Name} is no longer free for a new {r.Kind.ToString().ToLowerInvariant()}.");
-            ScheduledFailed(p, r, "the province is not free");
+            S.Notify(p, InboxKind.Rejected, "Levy failed", $"No {kind} was raised in {prov.Name}: {why}. No gold was paid.");
+            ScheduledFailed(p, r, why);
             return;
         }
         var cost = r.Kind == UnitKind.Army ? S.Config.ArmyCost : S.Config.FleetCost;

@@ -207,7 +207,7 @@ public class SleepTests
         var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new BuyProvinceOrder("susa")] } : new TurnSubmission());
         await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria });
         Assert.Equal([1, 3], sleeper.Calls);
-        Assert.Contains(sleeper.Views[1].WokenBecause, w => w.Contains("susa") && w.Contains("rival buyers"));
+        Assert.Contains(sleeper.Views[1].WokenBecause, w => w.Contains("susa") && w.Contains("would not choose between 2 buyers"));
     }
 
     [Fact]

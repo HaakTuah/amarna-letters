@@ -35,12 +35,25 @@ public static class Prompts
             - The winner is the power whose strength grew most relative to its own starting strength. Strength = {c.ProvinceWeight} x (sum of the base yields of the provinces you hold) + the gold in your treasury. A small kingdom that doubles beats an empire that merely holds its ground.
             - No game ends before turn {c.MinTurns}. From then on, at the end of every season the game ends with a {c.EndChance * 100:0}% chance. Nobody knows which season is the last.{sharedVictory}
 
-            EACH SEASON (one turn; three seasons make a year)
-            1. Income: provinces pay their yield in gold. You pay upkeep for every army ({c.ArmyUpkeep}) and fleet ({c.FleetUpkeep}) and the wages of your people. If you cannot pay upkeep, troops desert, the one farthest from your capital first; unpaid people lose loyalty and may leave.
-            2. Arrivals: envoys, gold, reports and rumours that were travelling arrive.
-            3. Audiences: foreign envoys at your court deliver their messages and you answer them.
-            4. Orders: every king secretly submits orders at the same time.
-            5. Resolution, catastrophes, and reports, which you read next season.
+            HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
+            1. Departures: a servant whose notice has run out, and who was not renewed, leaves if at your court with no task.
+            2. Income, upkeep and wages: your provinces pay their yield in gold; you pay upkeep for every army ({c.ArmyUpkeep}) and fleet ({c.FleetUpkeep}) and your people's wages. If you cannot pay upkeep, troops desert, the one farthest from your capital first; unpaid people lose loyalty and may leave.
+            3. Arrivals: envoys reach the courts they were sent to, or come home and report; spies reach their posts; spies' reports, ransoms and rumours arrive.
+            4. Your court: candidates you sent for last season present themselves; background checks and examinations ordered last season report; terms end (a servant content with the wage serves on, one who wants more gives notice); a servant on notice who has come home leaves.
+            5. Audiences: you receive the foreign envoys at your court and answer them. Gifts and gold you send back are paid when the audience ends.
+            6. Orders: every king gives orders at once, in secret. Yours are checked in the order your reply lists them (units, then letters, then other orders), and the gold each needs is reserved as it is accepted, so a later order can be refused for lack of gold. There is no "else": a refused order is not replaced by another, and a purchase meant as a fallback is refused if an earlier bid has reserved the gold, even if that city is then not sold.
+            7. Movement and battles: all units move at once.
+            8. Land changes hands: a province passes to the power whose unit stands in it after movement.
+            9. Cessions and gifts of troops: a cession fails if you no longer hold the province or your own troops stand in it; a gift fails if the unit is gone.
+            10. Purchases: a city's price is paid only when it accepts. A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none.
+            11. Disbanding.
+            12. Levies: a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid.
+            13. Envoys set out (their gold and the scribe's fee are paid now), detained envoys are released, servants are dismissed, candidates are sent for and background checks paid for. Then hiring and renewals are settled: a person hired this season enters your service at the end of the season and can be sent on an errand from next season; when two courts bid for one person, the higher wage wins.
+            14. Intelligence: watchmen are paid; captors decide their captives' fates; spies set out (a spy must be one of your own people at your court, sent to watch a court or a province) or are recalled; assays, examinations and forgeries are paid for; ransoms set out. Then each posted spy may be caught, or else sends its report home.
+            15. Catastrophes strike.
+            16. A kingdom with no land left falls.
+            17. Strength and growth are reckoned, and from turn {c.MinTurns} the game may end.
+            Everything that happened is reported to you next season. Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury.
 
             MOVEMENT AND COMBAT (Diplomacy rules, no dice)
             - One unit per province. Armies move along land and coast links; fleets along sea and coast links. A fleet in a sea zone may convoy an army from one coast to another.
@@ -51,7 +64,7 @@ public static class Prompts
             - Free city-states have walls that hold with strength 1 and never move: you need at least one support to take one, or you can buy it. A city that accepts a buyer keeps its walls, which then hold for its new owner: the owner cannot station troops inside, but may support its walls holding.
 
             ECONOMY
-            - Gold is counted in shekels (60 shekels make a mina). Raise an army for {c.ArmyCost} or a fleet for {c.FleetCost}, only in an unoccupied province of your own homeland that you still hold. Buy a free city-state for {c.NeutralPriceFactor} x its yield if it borders your land or troops, or shares a sea zone with one of your coasts. A city that troops take in the same season is not sold, and its bidders pay nothing. You may cede provinces or give troops to another power.
+            - Gold is counted in shekels (60 shekels make a mina). Raise an army for {c.ArmyCost} or a fleet for {c.FleetCost}, only in a province of your own homeland that you still hold and that is empty after movement. Buy a free city-state for {c.NeutralPriceFactor} x its yield if it borders your land or troops, or shares a sea zone with one of your coasts. You may cede provinces or give troops to another power.
             - Gold sent abroad travels with an envoy and arrives late. You may send it debased (purity below 100%): the receiver sees its weight, not its fineness, until they pay {c.AssayFee} for an assay. Your own treasury figure counts unassayed gold at its weight.
 
             ENVOYS: THE ONLY WAY KINGS COMMUNICATE
@@ -84,7 +97,7 @@ public static class Prompts
                 - With your orders you may choose to sleep: skip up to {c.MaxSleep} seasons before you are asked again. The world goes on while you sleep. Your units hold unless you scheduled orders for them, and nobody is told that you sleep.
                 - You are woken early when something concerns you: an envoy waits to be received, one of your envoys comes home or a report arrives, foreign troops move into or next to your land, you are attacked or lose land or troops, a catastrophe strikes you, a ransom is demanded or a spy is caught at your court, a servant gives notice, or orders you scheduled fail. Distant movements and other news wait for your next waking.
                 - You may add your own reasons to be woken: a unit moves (name the province it stands in), one of your people is back at court, your treasury falls below an amount, foreign troops (of one power, or any) are seen in a province, or a province changes hands.
-                - You may schedule orders for later seasons, up to {c.MaxSleep + 1} seasons ahead. They are secret and are checked when they run; name each unit by where it will stand in that season. In a season when you are awake, your scheduled orders for it still run, except where you give the same units or people other orders (a renewal is not a task: a renewal and an errand for the same person both run). To change or cancel them, send an entry for that season: it replaces everything scheduled for it, and an empty one cancels it.
+                - You may schedule orders for later seasons, up to {c.MaxSleep + 1} seasons ahead. They are secret and are checked when they run, after the orders you give that season; name each unit by where it will stand in that season. In a season when you are awake, your scheduled orders for it still run, except where you give the same units or people other orders (a renewal is not a task: a renewal and an errand for the same person both run). To change or cancel them, send an entry for that season: it replaces everything scheduled for it, and an empty one cancels it.
                 """);
         }
 
@@ -124,7 +137,7 @@ public static class Prompts
         sb.AppendLine("""
 
             HOW TO ANSWER
-            Reply with one JSON object that matches the schema. Use province ids (like "memphis") and person ids (like "c12") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are simply rejected, and you are told why next season. Keep each message under 1,500 characters. Your notes are private: you see them again next season and nobody else ever does, so record your plans, your promises and your suspicions there.
+            Reply with one JSON object that matches the schema. Use province ids (like "memphis") and person ids (like "c12") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why next season. Keep each message under 1,500 characters. Your notes are private: you see them again next season and nobody else ever does, so record your plans, your promises and your suspicions there.
             """);
         return sb.ToString();
     }

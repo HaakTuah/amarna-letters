@@ -25,10 +25,33 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   bounced a king's move was never shown, and a support that matched nothing read "holds".)
 - **Ownership changes every season**, whenever a unit ends a season in a province, not only in
   autumn as in Diplomacy.
+- **How a season resolves.** The rulebook's section of that name lists the engine's own order
+  (`TurnEngine.BeginTurn`, `GameRunner.PlayTurnAsync`, `TurnEngine.ResolveSeason`) in 17 short
+  steps: servants whose notice ran out leave; income, upkeep and wages (and desertion); arrivals;
+  the court (candidates, checks and examinations, contract ends and notices); audiences; orders;
+  movement and battles; land changes hands; cessions and gifts of troops; purchases; disbanding;
+  levies; envoys set out, releases, dismissals, candidates sent for and checks paid, then hiring and
+  renewals; intelligence (watchmen, captors, spies sent and recalled, assays, examinations,
+  forgeries, ransoms, then spies caught or reporting); catastrophes; kingdoms with no land fall;
+  scores and the end roll. It says that orders are checked in the order the reply lists them
+  (units, then letters, then other orders; a sleeping seat's scheduled orders after its fresh ones),
+  that gold is reserved as each is accepted and there is no "else", that a person hired this season
+  can be sent on an errand only from next season, what rival bids do, where a levy can stand, and
+  what a spy needs. The refusals use the same words: "not enough gold: it needs 100 shekels; orders
+  listed before it had reserved 100, and 50 was left" (or "…, and your treasury held 50 by your
+  ledger"); "Mane was to be hired that season: a person hired enters your service only at the end of
+  the season, and can be sent on an errand from the next season" (whichever order comes first); "a
+  spy must be one of your own people at your court: you named nobody" (or "…: Mane is not at your
+  court"); "a spy must be sent to watch a court or a province: you named neither". A place_spy naming
+  neither, which the parser used to drop without a word, now reaches the validator, and a second
+  assay of the same lot in one season is refused. (Until the simulation-fixes round the rulebook's
+  "EACH SEASON" list ended with "Resolution, catastrophes, and reports", and 26 of the simulation's
+  43 refusals came from rules it never stated.)
 - **Free city-states have walls** that hold with strength 1 and never move, so taking one needs a
   supported attack. They can also be bought for 10 × yield by a power whose land or troops touch
   them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
-  season bounce. A city that troops take in the season of a bid is not sold: every bidder is told
+  season bounce: the elders sell to none, and each bidder is told how many buyers bid ("The elders of
+  Gaza would not choose between 2 buyers last season. No gold was paid."). A city that troops take in the season of a bid is not sold: every bidder is told
   ("Gaza was taken by Babylonia's troops last season before its elders could accept your gold. No
   gold was paid.", or "Your own troops took Gaza last season; no gold was paid."), nobody pays (gold
   is only reserved when orders are checked), and a scheduled bid that fails this way wakes its seat.
@@ -36,8 +59,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **A bought city keeps its walls**, which then hold for its owner: the owner cannot station troops
   inside but may support the walls holding; a rival still needs a supported attack, and conquest
   tears the walls down. Buying is the durable way to grow, conquest the fast one.
-- **Levies** are raised only in an unoccupied province of the power's own homeland that it holds.
-  Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
+- **Levies** are raised after movement, only in a province of the power's own homeland that it
+  still holds and that is empty after movement; otherwise nothing is raised or paid, and the king is
+  told which ("No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.",
+  or "…: you no longer held Thebes after movement."). Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
   start of the season, the one farthest from the capital first (the rulebook says so).
 - **Strength** = 10 × (sum of base yields of provinces held) + true gold. Growth is strength over
   starting strength. Units are not counted; they cost upkeep and are the means to land.
@@ -380,7 +405,8 @@ before. There is never a global skip, and each seat sees only its own wake-ups.
 - **Scheduled orders**, kept secret in the seat's own state, up to cap + 1 seasons ahead, at most
   24 orders a season. Units are named by where they will stand in that season. One entry per season
   replaces everything scheduled for it, and an empty entry cancels it; that works for the current
-  season too. They are validated when they run. In a season when the seat is awake, a fresh order
+  season too. They are validated when they run, after the seat's fresh orders for that season (the
+  rulebook says so), so the gold they need is reserved last. In a season when the seat is awake, a fresh order
   for a unit or a person replaces the scheduled one for it, a scheduled order the seat repeats runs
   once, and the other scheduled orders still run. A renewal is not a task: a fresh renewal replaces
   a scheduled renewal or dismissal of the same person, and a fresh dismissal a scheduled renewal,

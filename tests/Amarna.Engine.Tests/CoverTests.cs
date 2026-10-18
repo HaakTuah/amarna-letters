@@ -139,7 +139,7 @@ public class CoverTests
             Orders = [new DispatchOrder(envoy.Id, Power.Hatti, "Go."), new PlaceSpyOrder(envoy.Id, Court: Power.Hatti), new RecallSpyOrder(envoy.Id)],
         }).Rejected;
         Assert.Equal($"{envoy.Name} is not at your court", rejected[0].Reason);
-        Assert.Equal($"{envoy.Name} is not at your court", rejected[1].Reason);
+        Assert.Equal($"a spy must be one of your own people at your court: {envoy.Name} is not at your court", rejected[1].Reason);
         Assert.Equal($"{envoy.Name} is not on a mission", rejected[2].Reason);
 
         // The same orders for an envoy really on the road home read the same.

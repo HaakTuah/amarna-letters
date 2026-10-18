@@ -141,6 +141,8 @@ public static class Parse
             "background_check" => new BackgroundCheckOrder(person, amount),
             "place_spy" when power is { } court => new PlaceSpyOrder(person, Court: court),
             "place_spy" when province.Length > 0 => new PlaceSpyOrder(person, Province: province),
+            // Neither a court nor a province: the validator refuses it with the reason, rather than the order vanishing.
+            "place_spy" => new PlaceSpyOrder(person),
             "recall_spy" => new RecallSpyOrder(person),
             "counter_intelligence" => new CounterIntelOrder(amount),
             "assay" => new AssayOrder(S(x, "item")),
