@@ -31,9 +31,11 @@ public sealed class GameRunner
 
     public event Action? Changed;
 
+    /// <param name="anyVersion">Replay a log saved under another rules version anyway (for analysis only: it may diverge).</param>
     public GameRunner(GameState state, IReadOnlyDictionary<Power, ISeat> seats, ICharacterMind minds, INarrator narrator,
-        GameLog? log = null, GameLog? replay = null, bool strictReplay = true)
+        GameLog? log = null, GameLog? replay = null, bool strictReplay = true, bool anyVersion = false)
     {
+        if (replay is not null && !anyVersion) EnsureVersion(replay.Header);
         State = state;
         _strict = strictReplay;
         Seats = seats;
@@ -57,16 +59,31 @@ public sealed class GameRunner
         };
     }
 
-    public static GameRunner ForReplay(GameLog log)
+    /// <summary>
+    /// Why a log cannot be replayed or continued by this version of the rules, or null when it can. Its
+    /// decisions were made under other rules, so they would not play out to the same game.
+    /// </summary>
+    public static string? VersionProblem(LogHeader header) => header.Version == GameState.CurrentVersion ? null
+        : $"This game was saved under {(header.Version < GameState.CurrentVersion ? "an earlier" : "a later")} version of the rules (version {header.Version}) and cannot be replayed by this version.";
+
+    private static void EnsureVersion(LogHeader header)
     {
+        if (VersionProblem(header) is { } problem) throw new SaveVersionException(problem);
+    }
+
+    /// <param name="anyVersion">Replay a log saved under another rules version anyway (for analysis only: it may diverge).</param>
+    public static GameRunner ForReplay(GameLog log, bool anyVersion = false)
+    {
+        if (!anyVersion) EnsureVersion(log.Header);
         var state = GameFactory.NewGame(log.Header.Seed, log.Header.Config);
         var seats = Powers.All.ToDictionary(p => p, p => (ISeat)new ReplaySeat(log.Header.Seats.GetValueOrDefault(p) ?? "?"));
-        return new GameRunner(state, seats, new ReplayMind(log.Header.Minds), new ReplayNarrator(log.Header.Narrator), replay: log);
+        return new GameRunner(state, seats, new ReplayMind(log.Header.Minds), new ReplayNarrator(log.Header.Narrator), replay: log, anyVersion: anyVersion);
     }
 
     /// <summary>Continues a saved game: decisions in the log are replayed, then live seats take over.</summary>
     public static GameRunner Resume(GameLog log, IReadOnlyDictionary<Power, ISeat> seats, ICharacterMind minds, INarrator narrator)
     {
+        EnsureVersion(log.Header);
         // Who may sleep is part of the game: the seats that take over must be the ones that could sleep before.
         if (log.Header.Config.SleepingSeats)
         {
@@ -308,6 +325,9 @@ public sealed class GameRunner
     public GameState? StateAt(int turn) =>
         turn >= 0 && turn < Snapshots.Count ? Json.Deserialize<GameState>(Snapshots[turn]) : null;
 }
+
+/// <summary>A log saved under another version of the rules: it can be neither replayed nor continued.</summary>
+public sealed class SaveVersionException(string message) : InvalidOperationException(message);
 
 public sealed class ReplayExhaustedException(string key) : Exception($"The log has no decision for '{key}'.")
 {

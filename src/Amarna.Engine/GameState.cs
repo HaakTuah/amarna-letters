@@ -7,7 +7,13 @@ namespace Amarna.Engine;
 /// </summary>
 public sealed class GameState
 {
-    public int Version { get; set; } = 1;
+    /// <summary>
+    /// The version of the rules. A log saved under another version is refused, since its decisions
+    /// would not replay to the same game. Raise it with every rule change.
+    /// </summary>
+    public const int CurrentVersion = 2;
+
+    public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }
     public GameConfig Config { get; set; } = new();
     public int Turn { get; set; } = 1;

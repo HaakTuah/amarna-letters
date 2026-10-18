@@ -34,6 +34,13 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   succeeds, and convoy paradoxes are resolved by the Szykman rule (the convoyed army stays put).
 - **News of a season is read the next season.** Battles, purchases, rejected orders and notices
   produced while a season resolves are delivered with the next season's reports.
+- **Save version.** The state and the log header carry the version of the rules
+  (`GameState.CurrentVersion`, 2 since the simulation-fixes round). A log saved under another version
+  is refused, both for replay and for continuing it: "This game was saved under an earlier version of
+  the rules (version 1) and cannot be replayed by this version." The web app shows that message
+  instead of loading the game. Within a version, seeds replay exactly, with sleeping seats on or off
+  (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
+  the current rules; it may diverge.
 
 ## Communication
 

@@ -318,9 +318,17 @@
 
     private async Task Load(string text, bool continuePlay)
     {
-        if (continuePlay)
+        LogHeader? header = null;
+        try { header = GameLog.FromJsonl(text).Header; }
+        catch (Exception) { } // not a log: the game page says so
+        // A game saved under other rules cannot be replayed or continued: say so here, before anything else.
+        if (header is not null && GameRunner.VersionProblem(header) is { } old)
         {
-            var header = GameLog.FromJsonl(text).Header;
+            Problem = old;
+            return;
+        }
+        if (continuePlay && header is not null)
+        {
             if (SeatSetup.FromHeader(header).UsesModels && string.IsNullOrWhiteSpace(Keys.Key))
             {
                 Problem = "This game used Claude models. Choose any preset that needs a key, enter your key, then continue.";
