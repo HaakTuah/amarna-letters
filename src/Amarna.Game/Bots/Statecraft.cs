@@ -324,13 +324,23 @@ internal static class Statecraft
         }
 
         // Captives: the honest ransom, the cunning turn, the vengeful execute.
-        foreach (var c in v.Known.Where(c => c.Status == "your captive"))
+        var captives = v.Known.Where(c => c.Status == "your captive").ToList();
+        foreach (var gone in brain.RansomAsked.Keys.Where(id => captives.All(c => c.Id != id)).ToList()) brain.RansomAsked.Remove(gone);
+        foreach (var c in captives)
         {
-            Order fate =
+            var fate =
                 p.Cunning > 0.65 ? new CaptiveOrder(c.Id, CaptiveFate.Turn, Poison: $"The armies of {b.Me} are scattered and tired; they will not march this year.")
                 : p.Vengeance > 0.75 ? new CaptiveOrder(c.Id, CaptiveFate.Execute)
                 : p.Honesty > 0.5 || p.Greed > 0.5 ? new CaptiveOrder(c.Id, CaptiveFate.Ransom, (int)(60 + 60 * p.Greed))
                 : new CaptiveOrder(c.Id, CaptiveFate.Release);
+            if (fate.Fate == CaptiveFate.Ransom)
+            {
+                // A demand stands until it is paid or lapses: asking again would only replace it. The court hears that it
+                // lapsed ("No ransom came"); in case that word never comes, it asks again after six seasons.
+                var lapsed = v.Inbox.Any(i => i.Kind == InboxKind.Notice && i.Subject == c.Id && i.Title == "No ransom came");
+                if (brain.RansomAsked.TryGetValue(c.Id, out var asked) && !lapsed && v.Turn - asked < 6) continue;
+                brain.RansomAsked[c.Id] = v.Turn;
+            }
             orders.Add(fate);
         }
 
