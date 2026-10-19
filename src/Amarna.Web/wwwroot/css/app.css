@@ -437,7 +437,9 @@ svg.map text { font-family: var(--serif); }
 }
 .map .plabel.cap { font-size: 13.5px; letter-spacing: .06em; font-variant: small-caps; }
 .lod0 .map .plabel:not(.cap) { display: none; }
-.lod0 .map .seen, .lod0 .map .eta, .lod1 .map .eta { display: none; }
+.lod0 .map .seen, .lod0 .map .eta, .lod1 .map .eta, .lod0 .map .fogdates, .lod1 .map .fogdates { display: none; }
+.map .fogdates { pointer-events: none; }
+.map .fogdate { font-size: 7.5px; font-style: italic; text-anchor: middle; fill: var(--muted); paint-order: stroke; stroke: var(--land-halo); stroke-width: 2.2px; font-family: var(--sans); transform: scale(var(--lab)); transform-box: view-box; transform-origin: 0 0; }
 
 /* fog of war: a veil over what the court cannot see now, denser the older its sight */
 .map .veil { fill: var(--veil); }
@@ -602,7 +604,8 @@ svg.map text { font-family: var(--serif); }
 .legend .peaks { fill: none; stroke: var(--peak); stroke-width: 1.4; }
 .legend .pass-lg { fill: none; stroke: var(--ink); stroke-width: 1.6; }
 .legend .ford-lg { fill: none; stroke: var(--river); stroke-width: 2; }
-.legend .crown { fill: var(--gold-metal); stroke: var(--bitumen); stroke-width: .8; }
+.legend .crown, .legend .cap-ring { fill: var(--gold-metal); stroke: var(--bitumen); stroke-width: .8; }
+.legend .s-hatti { fill: var(--hatti); }
 .legend .seal { stroke: var(--bitumen); stroke-width: 1.1; }
 .legend .seal.s-free { fill: var(--paper); stroke-dasharray: 2 1.4; }
 .legend .walls { fill: var(--paper); stroke: var(--bitumen); stroke-width: 2; stroke-dasharray: 2.4 1.5; }

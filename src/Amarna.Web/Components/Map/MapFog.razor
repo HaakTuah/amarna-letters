@@ -15,6 +15,15 @@
             }
         </g>
     }
+    @* When the map is zoomed in, each province seen before carries the season the court last saw it. *@
+    <g class="fogdates">
+        @foreach (var p in Provinces)
+        {
+            if (!Scene.FogAge.TryGetValue(p.Id, out var age) || age == 0) continue;
+            var at = MapArt.City(p.Id);
+            <g @key="p.Id" transform="@($"translate({MapArt.F(at.X)},{MapArt.F(at.Y)})")"><text class="fogdate" y="@(p.IsSea ? 18 : 33)">@($"seen {Calendar.Short(Scene.Index - age + 1, Scene.Viewer)}")</text></g>
+        }
+    </g>
 }
 
 @code {

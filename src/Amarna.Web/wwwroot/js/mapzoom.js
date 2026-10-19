@@ -198,11 +198,14 @@ function settle(st, now) {
     const g = geometry(st);
     const s = g.b * st.s; // screen pixels per map unit
     const v = st.view.style;
-    // Tokens keep about 14 pixels or more, cities 7, names 10: enough to read, little enough to leave the board in view.
-    v.setProperty("--sym", Math.min(2.4, Math.max(1, 0.62 / s)).toFixed(3));
-    v.setProperty("--cs", Math.min(2, Math.max(1, 0.5 / s)).toFixed(3));
-    v.setProperty("--lab", Math.min(2.4, Math.max(1, 0.78 / s)).toFixed(3));
-    v.setProperty("--k", Math.min(2.6, Math.max(1, 0.72 / s)).toFixed(3));
+    // On screen, tokens are about 14 pixels on a phone showing the whole board, 22 on a desktop, and grow gently to 40
+    // when zoomed in; cities 7 to 22 pixels across; names 10 to 19 pixels; lines 2 to 8. Enough to read at a glance,
+    // little enough to leave the board in view, and never ballooning with the zoom.
+    const clampTo = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    v.setProperty("--sym", (clampTo(9 + 12 * s, 14, 40) / (22 * s)).toFixed(3));
+    v.setProperty("--cs", (clampTo(4 + 9 * s, 7, 22) / (15 * s)).toFixed(3));
+    v.setProperty("--lab", (clampTo(7.5 + 6 * s, 10, 19) / (12.5 * s)).toFixed(3));
+    v.setProperty("--k", (clampTo(1.6 + 1.6 * s, 2, 8) / (3 * s)).toFixed(3));
     const lod = s < 0.55 ? 0 : s < 1.35 ? 1 : 2;
     st.view.classList.toggle("lod0", lod === 0);
     st.view.classList.toggle("lod1", lod === 1);
