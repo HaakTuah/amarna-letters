@@ -443,15 +443,16 @@ public class SleepTests
     // ------------------------------------------------------------ what waits in the digest
 
     [Fact]
-    public async Task Foreign_troops_off_the_coast_or_beyond_the_border_wait_in_the_digest()
+    public async Task Foreign_troops_beyond_the_border_wait_in_the_digest()
     {
         var sleeper = new Sleeper(_ => Nothing());
-        // The Great Green lies off Tamassos, not next to Enkomi, Alashiya's capital (a fleet arriving there would wake it).
-        var egypt = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("delta", "greatgreen")] } : new TurnSubmission());
-        var r = await Play(Power.Alashiya, sleeper, 4, Quiet with { MaxSleep = 2 }, others: new() { [Power.Egypt] = egypt });
+        // Arbela lies beyond Babylon's border, next to none of its homeland: Assyria's army leaving Ekallatum, which Babylon
+        // can see, for Arbela is news for the digest. (Troops ending a move next to its homeland, or off Alashiya's Tamassos, wake.)
+        var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela")] } : new TurnSubmission());
+        var r = await Play(Power.Babylonia, sleeper, 4, Quiet with { MaxSleep = 2 }, others: new() { [Power.Assyria] = assyria });
         Assert.Equal([1, 4], sleeper.Calls);
         Assert.Equal([TurnEngine.CapReason], sleeper.Views[1].WokenBecause);
-        Assert.Contains("turn 2: Egypt's fleet moved delta -> greatgreen", sleeper.Views[1].Digest);
+        Assert.Contains("turn 2: Assyria's army moved ekallatum -> arbela", sleeper.Views[1].Digest);
     }
 
     [Fact]
@@ -718,7 +719,7 @@ public class SleepTests
         var sleep = rules.IndexOf("YOU SLEEP BETWEEN YOUR ORDERS", StringComparison.Ordinal);
         var season = rules.IndexOf("HOW A SEASON RESOLVES", StringComparison.Ordinal);
         Assert.True(win < sleep && sleep < season);
-        Assert.Contains("After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops in your land or next to your capital; land or troops lost; a scheduled or standing order that failed; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
+        Assert.Contains("After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops in your land, or arriving next to your homeland or a walled city you hold; land or troops lost; a scheduled or standing order that failed; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
         // The sentence six kings of the second agent simulation read as a contradiction is gone.
         Assert.DoesNotContain("you may not be woken again", rules);
         Assert.Contains("PLANNING AHEAD (how sleeping works)", rules);

@@ -44,6 +44,15 @@ public sealed partial class TurnEngine
     /// </summary>
     public const string CapitalReason = "foreign troops came next to your capital";
 
+    /// <summary>
+    /// Why a seat is woken when foreign troops end a move next to a province of its homeland (not its capital, which has
+    /// <see cref="CapitalReason"/>) that it holds, followed by the move and the provinces it came next to.
+    /// </summary>
+    public const string HomelandReason = "foreign troops came next to your homeland";
+
+    /// <summary>Why a seat is woken when foreign troops end a move next to a walled city it holds (a bought city), and none of its homeland.</summary>
+    public const string WallsReason = "foreign troops came next to a walled city of yours";
+
     /// <summary>Why a sleeping seat holds court: an envoy of <paramref name="from"/> waits at its door.</summary>
     public static string EnvoyWaits(Power from) => $"an envoy of {from} waits to be received";
 
@@ -182,8 +191,8 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// What wakes a seat, and nothing else: the default triggers, events the engine itself judges to concern it, and the hidden
-    /// cap. An envoy waiting to be received; foreign troops in its land, or ending a move next to its capital while it holds
-    /// it; land or troops lost; a scheduled or standing order that failed; a ransom demanded; a servant giving notice; the
+    /// cap. An envoy waiting to be received; foreign troops in its land, or ending a move next to its capital, another
+    /// province of its homeland or a walled city, while it holds it; land or troops lost; a scheduled or standing order that failed; a ransom demanded; a servant giving notice; the
     /// hidden cap. (A kingdom that falls ends its sleep in <see cref="EndSleep"/>.) The seat itself can neither name a season
     /// to be woken in nor set triggers of its own (removed in the fix pass after item 4: given a way to wake himself, a king
     /// used it every season). An envoy waiting wakes it for its audiences only; every other reason here is an order trigger,
@@ -206,9 +215,13 @@ public sealed partial class TurnEngine
         // Last season's moves as it saw them: foreign troops that entered its land, its own troops destroyed.
         // Until sieges exist (a temporary trigger, to revisit with the siege package): foreign troops that ended a move
         // next to its capital, while it still holds it, since with no walls on homeland provinces they can take it the
-        // next season. Troops that merely stand there do not wake it again.
+        // next season. Since the fix pass after item 4, the same threat to any other province of its homeland, or to a
+        // walled city it holds (a bought city): foreign troops that ended a move next to one, while it holds it. Troops
+        // that merely stand there do not wake it again, and a move into its land wakes it for that alone.
         var capital = Map.Capital(p).Id;
         var nextToCapital = S.Owner.GetValueOrDefault(capital) == p ? Map.Neighbors(capital).ToHashSet() : [];
+        var home = Map.HomeOf(p).Select(x => x.Id).Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
+        var walled = S.Garrisons.Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
         foreach (var o in S.LastSeen.GetValueOrDefault(p) ?? [])
         {
             if (o.Power == p)
@@ -216,11 +229,15 @@ public sealed partial class TurnEngine
                 if (o.Destroyed) Add($"your {Kind(o.UnitKind)} in {o.Province} was destroyed");
                 continue;
             }
-            if (o.Order != "move" || !o.Succeeded) continue;
+            if (o.Order != "move" || !o.Succeeded || o.Target is not { } t) continue;
+            var move = $"{o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {t}";
             if (o.TargetOwner == p)
-                Add($"foreign troops entered your land: {o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {o.Target}");
-            if (o.Target is { } t && nextToCapital.Contains(t))
-                Add($"{CapitalReason}: {o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {t}");
+                Add($"foreign troops entered your land: {move}");
+            if (nextToCapital.Contains(t))
+                Add($"{CapitalReason}: {move}");
+            else if (o.TargetOwner != p
+                     && Map.Neighbors(t).Where(x => home.Contains(x) || walled.Contains(x)).OrderBy(x => x, StringComparer.Ordinal).ToList() is { Count: > 0 } near)
+                Add($"{(near.Any(home.Contains) ? HomelandReason : WallsReason)}: {move}, next to {string.Join(", ", near)}");
         }
         foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
             if (WakeReason(i) is { } reason) Add(reason);

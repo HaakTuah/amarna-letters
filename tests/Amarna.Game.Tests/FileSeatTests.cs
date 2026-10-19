@@ -284,7 +284,7 @@ public class FileSeatTests
         await answering;
 
         // The script kings of seed 8 send Egypt's envoy to Alashiya at once: it wakes the sleeping king in turn 2. The
-        // king cannot ask to be woken in turn 3, and nothing concerns it then.
+        // king cannot ask to be woken in turn 3.
         string Decision(string stem) => requests[stem].ReplaceLineEndings("\n").Split("## THIS DECISION\n\n")[1];
         Assert.Contains("YOU SLEEP BETWEEN YOUR ORDERS", requests["t1_orders_Alashiya"]);
         Assert.DoesNotContain("wake_in_turn", requests["t1_orders_Alashiya"]);
@@ -293,7 +293,8 @@ public class FileSeatTests
         const string woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt waits to be received";
         Assert.StartsWith(woken, Decision(requests.Keys.First(k => k.StartsWith("t2_aud_", StringComparison.Ordinal))));
         Assert.StartsWith(woken, Decision("t2_orders_Alashiya"));
-        Assert.DoesNotContain("t3_orders_Alashiya", requests.Keys);
+        // Turn 3 is not the season it named (it cannot): a script king's troops arriving next to its homeland wake it.
+        Assert.StartsWith($"You gave orders last season (turn 2). You were woken because: {TurnEngine.HomelandReason}: ", Decision("t3_orders_Alashiya"));
         Assert.DoesNotContain(requests.Values, r => r.Contains("you asked to be woken", StringComparison.Ordinal));
 
         var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));

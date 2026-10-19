@@ -68,9 +68,10 @@ public class NoticeTextTests
         e.BeginTurn();
         e.WakeCheck();
 
-        // A fleet off its coast, away from its capital, does not wake a sleeper: it waits in the digest, like any move it saw.
-        Assert.Empty(s.Sleep[Power.Alashiya].WokenBecause);
-        Assert.Contains("turn 1: Egypt's fleet moved delta -> greatgreen", s.Sleep[Power.Alashiya].Digest);
+        // A fleet off Tamassos, away from its capital, wakes Alashiya since the fix pass after item 4 (a threat to a province
+        // of its homeland), and the reason names whose fleet it was; an army beyond the border waits in Babylon's digest.
+        Assert.Equal([$"{TurnEngine.HomelandReason}: Egypt's fleet moved delta -> greatgreen, next to tamassos"], s.Sleep[Power.Alashiya].WokenBecause);
+        Assert.Empty(s.Sleep[Power.Babylonia].WokenBecause);
         Assert.Contains("turn 1: Assyria's army moved ekallatum -> arbela", s.Sleep[Power.Babylonia].Digest);
     }
 }

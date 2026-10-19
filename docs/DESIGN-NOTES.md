@@ -802,6 +802,22 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     Only the arrival wakes it: troops that stay where they are, a move that failed, the seat's own
     troops, and any move once the capital is lost do not (tested). A move into its own land next to
     the capital gives both reasons. The replay numbers count it as its own kind.
+  - **a threat to a home province or a walled city** (since the fix pass after item 4): foreign
+    troops ended a move last season in a province next to another province of its homeland that it
+    still holds ("foreign troops came next to your homeland: Egypt's fleet moved delta ->
+    greatgreen, next to tamassos"), or, with none of its homeland there, next to a walled city it
+    holds, which today is a city it bought ("foreign troops came next to a walled city of yours:
+    Mitanni's army moved washukanni -> terqa, next to mari"). "Threat" is read as the capital
+    trigger reads it, from what the king could know: an arrival by a move the seat saw (its
+    `LastSeen`; a province next to its own land is always in its sight), one link of any kind, so a
+    fleet off a coastal province counts, as does a move within the mover's own land. Troops that stay
+    where they are, a move that failed, the seat's own troops, a levy, and any move once the
+    province is lost do not wake it; a move into its land wakes it as "foreign troops entered your
+    land" alone, and a move next to its capital gives the capital reason alone (tested). The second
+    agent simulation found both gaps: Alashiya saw Egypt's fleet beside an empty Tamassos only because
+    an envoy woke it (seed 7), and Babylonia moved support to the walls of its bought Qadesh, next to
+    Egypt's armies, only because an envoy woke it (seed 15); both kings named the gap in their
+    debriefs. When item 5 retires the capital trigger, the capital falls under this one.
   - it lost land ("land lost: Sippar has been taken by Assyria.")
   - it lost troops: a unit destroyed in battle ("your army in sippar was destroyed"), unpaid troops
     deserting ("your unpaid troops deserted"), or a unit killed by plague ("plague destroyed troops
@@ -929,9 +945,10 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
 - **Changes, not states** (the user's rule for Part G of the simulation-fixes round: a trigger on a
   standing condition wakes a king every season and defeats sleeping). The engine's reasons above are
   all events or arrivals: an envoy waiting is one that arrived this season (audiences are cleared
-  each season), foreign troops are counted when they move in or arrive next to the capital, land and
+  each season), foreign troops are counted when they move in or arrive next to the capital, the
+  homeland or a walled city, land and
   troops when they are lost, failures, notices and ransom demands when they come. A foreign levy
-  raised next to the capital is not an arrival by a move and wakes nobody (levies are not among the
+  raised next to the capital or the homeland is not an arrival by a move and wakes nobody (levies are not among the
   moves a seat sees).
 - **The digest.** Everything else waits for its next waking, as "WHILE YOU SLEPT": first "in
   brief", one line for each troop movement it saw ("turn 5: Egypt's army moved gaza -> megiddo";
@@ -947,7 +964,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   60 lines and the news the latest 40 items, each saying how many earlier ones were left out.
 - **What the kings are told.** Right after HOW YOU WIN the rulebook says: "After you give your
   orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign
-  troops in your land or next to your capital; land or troops lost; a scheduled or standing order
+  troops in your land, or arriving next to your homeland or a walled city you hold; land or troops
+  lost; a scheduled or standing order
   that failed; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season
   you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest
   of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your
@@ -970,9 +988,10 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   Then you choose: reopen your orders, and after your audiences you give orders this season with
   your full view, as when anything else wakes you; or let them stand and sleep on. Anything else
   that wakes you reopens your orders without asking (your audiences still come first)."); which foreign troops wake the
-  king ("Foreign troops wake you when they move into your land, and, while you hold your capital,
-  when they end a move in a province next to it (troops there can take it the next season). Troops
-  that only stay where they are do not wake you again."); scheduled orders, naming units
+  king ("Foreign troops wake you when they move into your land, and when they end a move in a
+  province next to your capital, another province of your homeland or a walled city you hold, while
+  you hold it (troops there can take it the next season). Troops that only stay where they are do not
+  wake you again, nor do troops raised by a levy."); scheduled orders, naming units
   by where they stand now, and their limits; the march; standing orders; which failures wake; and
   the digest. The seat's view lists its scheduled orders
   by season and its standing orders by id, each of its units named by where it stands now ("- turn
@@ -1960,7 +1979,8 @@ The design document records intent; these notes record what is built. Where they
   between neighbouring capitals and four otherwise; only a spy sent to a distant province can take three. The rulebook says
   so, worked out from the map ("Envoys take 1 or 2 seasons each way between courts …"); until the simulation-fixes
   round it said "1 to 3 seasons each way". Until sieges exist, a temporary wake trigger (foreign troops arriving next
-  to a capital) stands in for the warning walls would give.
+  to a capital) stands in for the warning walls would give; since the fix pass after item 4, troops arriving next to any
+  province of the homeland, or a walled city the king holds, wake him too.
 - **Sleeping seats against the document's status paragraph** ("Status of sleeping seats", 19 October 2026). Built as
   it says: sleep by default for model and file seats (the switch stays), a hidden cap of 12 seasons, triggers that fire
   on changes, audience calls that may reopen orders, and orders that follow their unit. Of its "still to build, before
@@ -1970,9 +1990,9 @@ The design document records intent; these notes record what is built. Where they
   the document's list of default triggers ("an envoy or report arrives; foreign troops move into or next to its
   territory; it is attacked or loses a province; a catastrophe strikes it; a tablet, offer or audience awaits an
   answer; a scheduled order fails"). A report coming home, foreign troops next to its land (unless they arrive next to
-  its capital), an attack that did not get in and a catastrophe that kills no unit go to the digest; troops lost, a
+  its homeland or a walled city it holds), an attack that did not get in and a catastrophe that kills no unit go to the digest; troops lost, a
   ransom demand, a servant's notice and the cap wake it too (see "Pacing: sleeping seats"). So the kings read "foreign
-  troops in your land or next to your capital", "a scheduled or standing order that failed", "a servant giving notice"
+  troops in your land, or arriving next to your homeland or a walled city you hold", "a scheduled or standing order that failed", "a servant giving notice"
   and "a ransom demanded" where the document's decided text says "foreign troops at your border" and "a failed order",
   plus the owner's sentence on envoys. The document's list of order triggers (under "What the replay showed") leaves
   out a ransom demand; it reopens orders in the code, as the owner's instruction for Part H lists it.
