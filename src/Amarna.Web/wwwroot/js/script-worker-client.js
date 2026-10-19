@@ -59,6 +59,12 @@ export function start() {
             stop(e.message || "the worker stopped");
             resolve(false);
         };
+        // A worker that has not started in two minutes is given up, and the page plays instead of waiting on it.
+        setTimeout(() => {
+            if (stats.bootMs || stopped) return;
+            stop("it did not start within two minutes");
+            resolve(false);
+        }, 120000);
         worker.postMessage({ type: "boot", dotnet: dotnetUrl() });
     });
     return ready;
