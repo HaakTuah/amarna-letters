@@ -47,6 +47,8 @@ public sealed class CharacterView
     public bool HeldByYou { get; set; }
     /// <summary>One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.</summary>
     public int? RansomDemand { get; set; }
+    /// <summary>The back pay you owe them (as you believe it, for one of your people abroad), paid when they are back at your court; null if none.</summary>
+    public int? BackPay { get; set; }
 }
 
 public sealed class TabletView
@@ -81,10 +83,18 @@ public sealed class SeatView
     public List<LotView> UnassayedGold { get; set; } = new();
     public int Income { get; set; }
     public int Upkeep { get; set; }
+    /// <summary>The wages of all its people a season: paid to those at court, built up as back pay for those away.</summary>
     public int Wages { get; set; }
-    /// <summary>Strength by the seat's own ledger (unassayed gold at its weight), never the true figure.</summary>
+    /// <summary>The back pay it believes it owes (to its people, and to anyone at its court), paid when each is back at its court.</summary>
+    public int BackPay { get; set; }
+    /// <summary>
+    /// Strength by the seat's own ledger (unassayed gold at its weight), less the back pay it believes it owes; never the
+    /// true figure (see <see cref="Scoring"/>).
+    /// </summary>
     public int Strength { get; set; }
     public int StartStrength { get; set; }
+    /// <summary>What a shekel of yield counts in strength (public, in the rulebook).</summary>
+    public int ProvinceWeight { get; set; } = new GameConfig().ProvinceWeight;
 
     public Dictionary<string, Power?> Owner { get; set; } = new();
     public List<string> Garrisons { get; set; } = new();
@@ -203,8 +213,10 @@ public static class Views
             Income = engine.Income(p),
             Upkeep = engine.Upkeep(p),
             Wages = engine.Wages(p),
+            BackPay = engine.BelievedBackPay(p),
             Strength = engine.LedgerStrength(p),
             StartStrength = s.StartStrength.GetValueOrDefault(p),
+            ProvinceWeight = s.Config.ProvinceWeight,
             Owner = new Dictionary<string, Power?>(s.Owner),
             Garrisons = s.Garrisons.ToList(),
             Units = s.Units.Where(u => u.Power == p || sight.Contains(u.Province))
@@ -296,12 +308,12 @@ public static class Views
             Duty = captive ? CaptiveText(s, c.Id, c.HeldBy!.Value, viewer) : ours ? DutyText(c) : "",
             Where = ours || c.At == viewer ? WhereText(c, viewer) : "",
             Timing = ours ? TimingText(s, c) : "",
-            // A captive draws no wage while it is held.
-            Wage = captive ? null : k?.Wage,
+            // A captive's wage builds up as back pay, as for anyone away.
+            Wage = k?.Wage,
             ContractUntil = k?.UntilTurn,
             NoticePrice = k?.NoticePrice,
             LeavesTurn = k?.LeavesTurn,
-            Term = k is null ? "" : TermText(captive ? null : k.Wage, k.UntilTurn, k.NoticePrice, k.LeavesTurn, s.Turn),
+            Term = k is null ? "" : TermText(k.Wage, k.UntilTurn, k.NoticePrice, k.LeavesTurn, s.Turn),
             KnownFacts = c.FactsKnownTo(viewer).Select(f => f.Text).ToList(),
             Pitch = c.Pitches.GetValueOrDefault(viewer),
             // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
@@ -309,7 +321,23 @@ public static class Views
             Ready = ours && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == viewer,
             HeldByYou = c.HeldBy == viewer,
             RansomDemand = captive ? KnownDemand(s, c.Id, c.HeldBy!.Value, viewer)?.Spend : null,
+            BackPay = BackPayOwed(c, viewer),
         };
+    }
+
+    /// <summary>
+    /// The back pay <paramref name="viewer"/> owes a character as it can know it, or null if none: as it believes it for
+    /// one of its people abroad whose fate it has not heard of (its cover); else what it really owes one of its people,
+    /// or anyone standing at its court and not held there. Nothing for one away who no longer serves it, whose fate it
+    /// cannot see (what it owes them is paid if they ever come back).
+    /// </summary>
+    public static int? BackPayOwed(Character c, Power viewer)
+    {
+        var owed = c.CoverOf(viewer) is { } cover ? cover.BackPay
+            : c.Employer == viewer && c.Status is CharacterStatus.Employed or CharacterStatus.Captured
+              || c.At == viewer && c.HeldBy != viewer && c.Status != CharacterStatus.Dead ? c.BackPay.GetValueOrDefault(viewer)
+            : 0;
+        return owed > 0 ? owed : null;
     }
 
     /// <summary>A servant as its master still believes it to be: the same fields the master saw before, never ready.</summary>
@@ -324,22 +352,23 @@ public static class Views
         Duty = cover.HeldAt is { } held ? CaptiveText(s, c.Id, held, cover.For) : cover.DutyText,
         Where = cover.HeldAt is { } at ? $"at the court of {at}" : cover.WhereText,
         Timing = cover.HeldAt is null ? cover.TimingText : "",
-        Wage = cover.HeldAt is null ? cover.Wage : null,
+        Wage = cover.Wage,
         ContractUntil = cover.ContractUntil,
         NoticePrice = cover.NoticePrice,
         LeavesTurn = cover.LeavesTurn,
-        Term = TermText(cover.HeldAt is null ? cover.Wage : null, cover.ContractUntil, cover.NoticePrice, cover.LeavesTurn, s.Turn),
+        Term = TermText(cover.Wage, cover.ContractUntil, cover.NoticePrice, cover.LeavesTurn, s.Turn),
         // What it knew then and what its inquiries have found since, as for a servant really away.
         KnownFacts = c.Facts.Where(f => cover.FactIds.Contains(f.Id) || f.Secrecy != Secrecy.Public && f.KnownBy.Contains(cover.For)).Select(f => f.Text).ToList(),
         Pitch = c.Pitches.GetValueOrDefault(cover.For),
         RansomDemand = cover.HeldAt is { } h ? KnownDemand(s, c.Id, h, cover.For)?.Spend : null,
+        BackPay = cover.BackPay > 0 ? cover.BackPay : null,
     };
 
     /// <summary>
     /// A servant's term in plain words, as its master reads it: the wage, the last season of the term and what happens
     /// then, or, once it has given notice, its price to serve on and when it leaves.
     /// </summary>
-    /// <param name="wage">Null for a captive, who draws no wage while held: only a notice it gave is said.</param>
+    /// <param name="wage">Null when no wage is to be said: only a notice is.</param>
     public static string TermText(int? wage, int? until, int? noticePrice, int? leavesTurn, int turn)
     {
         var serves = wage is int w ? $"serves at {w} a season" : null;

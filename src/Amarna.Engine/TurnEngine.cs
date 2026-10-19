@@ -32,10 +32,14 @@ public sealed partial class TurnEngine
         MindRequests.Clear();
         S.Audiences.Clear();
         S.CounterIntel.Clear();
+        _missedPayNow.Clear();
         // A servant whose notice has run out leaves before it is paid again.
         NoticesRunOut();
         IncomeAndUpkeep();
+        // Where everyone stood before the season's travellers arrived: one standing at a court now that was not is back.
+        var stood = S.Characters.ToDictionary(c => c.Id, c => c.At);
         Arrivals();
+        PayBackPay(stood);
         TasksDue();
         MemoriesDue();
     }
@@ -82,36 +86,43 @@ public sealed partial class TurnEngine
             t.Gold -= paid;
 
             var wages = 0;
+            var owed = 0;
             var unpaid = new List<string>();
-            // A servant abroad whose fate the court has not heard of is paid as before, so the treasury betrays nothing.
-            foreach (var c in S.Characters.Where(c => WageOwed(c, p) > 0).OrderBy(c => c.Id).ToList())
+            // Only people at court are paid their wage. The wages of those away (on a mission, posted as a spy, detained or
+            // captive) build up as back pay, paid when they are back, and no gold leaves for them, so the treasury betrays
+            // nothing of what befell anyone away. A servant abroad whose fate the court has not heard of is owed it as the
+            // court believes it (its cover), and its real back pay builds up too if it still truly serves.
+            foreach (var c in S.Characters.OrderBy(c => c.Id).ToList())
             {
-                var wage = WageOwed(c, p);
-                var serves = c.Employer == p && c.Status == CharacterStatus.Employed;
-                if (t.Gold >= wage)
+                var cover = c.CoverOf(p);
+                if (cover is not null)
                 {
-                    t.Gold -= wage;
-                    c.Purse += wage;
-                    if (serves) c.UnpaidTurns = 0;
-                    wages += wage;
+                    cover.BackPay += cover.Wage;
+                    owed += cover.Wage;
                 }
-                else
+                if (c.Employer != p || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured) || c.Contract is not { Wage: > 0 } k) continue;
+                if (c.Status == CharacterStatus.Captured || c.At != p || c.Duty != Duty.None)
                 {
-                    if (!serves)
-                    {
-                        unpaid.Add(c.Name);
-                        continue;
-                    }
-                    c.UnpaidTurns++;
-                    c.Traits.Loyalty = Math.Max(0, c.Traits.Loyalty - 15);
-                    c.Remember(S.Turn, $"My wage from {p.Land()} was not paid this season.");
-                    unpaid.Add(c.Name);
-                    if (c.Traits.Loyalty < 20 && c.Duty == Duty.None) Quit(c, $"{c.Name} has left your service, unpaid.");
+                    c.BackPay[p] = c.BackPay.GetValueOrDefault(p) + k.Wage;
+                    if (cover is null) owed += k.Wage;
+                    continue;
                 }
+                if (t.Gold >= k.Wage)
+                {
+                    t.Gold -= k.Wage;
+                    c.Purse += k.Wage;
+                    c.UnpaidTurns = 0;
+                    wages += k.Wage;
+                    continue;
+                }
+                MissedPay(c, p, $"My wage from {p.Land()} was not paid this season.");
+                unpaid.Add(c.Name);
             }
 
             // Written before the season's audiences and envoys' returns: their gold comes after this figure.
-            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}, wages {Money.Format(wages)}. After income, upkeep and wages, the treasury holds {Money.Format(t.Ledger)}; gold received at audiences or brought home by your envoys this season is added later." };
+            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}, wages {Money.Format(wages)} (paid to your people at court)."
+                + (owed > 0 ? $" The wages of your people away, {Money.Format(owed)}, were added to their back pay, which is paid when they are back at your court." : "")
+                + $" After income, upkeep and wages, the treasury holds {Money.Format(t.Ledger)}; gold received at audiences or brought home by your envoys this season is added later." };
             if (deserted.Count > 0) lines.Add($"Unpaid troops deserted: {string.Join(", ", deserted)}.");
             if (unpaid.Count > 0) lines.Add($"Could not pay: {string.Join(", ", unpaid)}.");
             S.Notify(p, InboxKind.Notice, "The treasury", string.Join(" ", lines));
@@ -119,11 +130,77 @@ public sealed partial class TurnEngine
         }
     }
 
+    /// <summary>Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short.</summary>
+    private readonly HashSet<string> _missedPayNow = new();
+
+    /// <summary>
+    /// A servant not paid in full (its wage at court, or its back pay once it is back): it loses loyalty, remembers it and
+    /// counts another unpaid season, once a season; if its loyalty falls low while it is at court with no task, it leaves.
+    /// </summary>
+    private void MissedPay(Character c, Power p, string memory)
+    {
+        if (!_missedPayNow.Add(c.Id)) return;
+        c.UnpaidTurns++;
+        c.Traits.Loyalty = Math.Max(0, c.Traits.Loyalty - 15);
+        c.Remember(S.Turn, memory);
+        if (c.Traits.Loyalty < 20 && c.Duty == Duty.None) Quit(c, $"{c.Name} has left your service, unpaid.");
+    }
+
+    /// <summary>
+    /// Back pay, once the season's travellers have arrived: everyone standing at a court that owes it back pay, and not
+    /// held there, is paid from that court's true treasury, as much as it holds, whether or not it still serves that
+    /// court. What the treasury cannot pay stays owed, and for one of the court's own servants counts as missed pay.
+    /// </summary>
+    /// <param name="stood">Where each character stood before the arrivals: one now at a court it was not at is back.</param>
+    private void PayBackPay(IReadOnlyDictionary<string, Power?> stood)
+    {
+        foreach (var c in S.Characters.OrderBy(c => c.Id))
+        {
+            if (c.At is not { } court || c.HeldBy == court || c.Status == CharacterStatus.Dead || !S.IsAlive(court)) continue;
+            var owed = c.BackPay.GetValueOrDefault(court);
+            if (owed <= 0) continue;
+            var t = S.Treasuries[court];
+            // As for any payment, a shortfall shows the treasurers that the ledger counted debased gold.
+            if (t.Gold < owed) ExposeDebasement(court, $"{c.Name}'s back pay");
+            var paid = Math.Clamp(t.Gold, 0, owed);
+            t.Gold -= paid;
+            c.Purse += paid;
+            if (paid == owed) c.BackPay.Remove(court);
+            else c.BackPay[court] = owed - paid;
+            var who = stood.GetValueOrDefault(c.Id) != court ? $"{c.Name} is back at your court and" : c.Name;
+            if (paid > 0) c.Remember(S.Turn, $"The king of {court.Land()} paid me {Money.Format(paid)} of the wages he owed me.");
+            if (paid == owed)
+            {
+                S.Notify(court, InboxKind.Notice, BackPayTitle, $"{who} was paid {Money.Format(paid)} of back pay.", c.Id);
+                continue;
+            }
+            S.Notify(court, InboxKind.Notice, BackPayTitle,
+                $"{who} is owed {Money.Format(owed)} of back pay, but the treasury could pay only {Money.Format(paid)}: the other {Money.Format(owed - paid)} stays owed, and counts as missed pay.", c.Id);
+            if (c.Employer == court && c.Status == CharacterStatus.Employed)
+                MissedPay(c, court, $"The king of {court.Land()} could not pay all the wages he owes me.");
+        }
+    }
+
+    /// <summary>The notice that someone at court was paid the back pay owed, or could not be paid it all.</summary>
+    public const string BackPayTitle = "Back pay";
+
     public int Upkeep(Power p) => S.Units.Where(u => u.Power == p)
         .Sum(u => u.Kind == UnitKind.Army ? S.Config.ArmyUpkeep : S.Config.FleetUpkeep);
 
-    /// <summary>The wages a court pays each season, as it reckons them (a covered servant's included).</summary>
-    public int Wages(Power p) => S.Characters.Sum(c => WageOwed(c, p));
+    /// <summary>
+    /// The wages a court owes its people each season, as it reckons them (a covered servant's as it believes it): paid to
+    /// those at court, built up as back pay for those away.
+    /// </summary>
+    public int Wages(Power p) => S.Characters.Sum(c => WageOf(c, p));
+
+    /// <summary>The back pay a court really owes, to anyone, servant or not: what its score counts.</summary>
+    public int BackPayOwed(Power p) => S.Characters.Sum(c => c.BackPay.GetValueOrDefault(p));
+
+    /// <summary>
+    /// The back pay a court believes it owes: to its people (a covered servant's as it believes it), and to anyone standing
+    /// at its court. What its seat sees, and what its strength by its ledger counts.
+    /// </summary>
+    public int BelievedBackPay(Power p) => S.Characters.Sum(c => Views.BackPayOwed(c, p) ?? 0);
 
     public int EffectiveYield(string province)
     {
@@ -164,19 +241,24 @@ public sealed partial class TurnEngine
             t.Gold -= amount;
             return true;
         }
-        if (t.Lots.Any(l => l.Face > l.True))
-        {
-            var missing = t.Lots.Sum(l => l.Face - l.True);
-            var sources = string.Join(", ", t.Lots.Where(l => l.Face > l.True).Select(l => l.From).Distinct());
-            t.Lots.Clear();
-            S.Notify(p, InboxKind.Assay, "The treasury is short",
-                $"Paying for {what}, your treasurers found the treasury lighter than the ledger: {Money.Format(missing)} of gold received from {sources} was never fine gold.");
-            S.Log("debasement", $"{p} discovers {Money.Format(missing)} of debased gold from {sources}.", [p], "debasement-found");
-        }
+        ExposeDebasement(p, what);
         // Every order that fails for want of gold is reported as a failure, whether or not debased gold was found.
         S.Notify(p, InboxKind.Rejected, "Not enough gold", $"There was not enough gold to pay for {what}{(outcome is null ? "" : "; " + outcome)}.");
         if (order is not null) ScheduledFailed(p, order, "not enough gold");
         return false;
+    }
+
+    /// <summary>A payment the true treasury cannot cover: the treasurers find any debased gold the ledger was counting, all at once.</summary>
+    private void ExposeDebasement(Power p, string what)
+    {
+        var t = S.Treasuries[p];
+        if (!t.Lots.Any(l => l.Face > l.True)) return;
+        var missing = t.Lots.Sum(l => l.Face - l.True);
+        var sources = string.Join(", ", t.Lots.Where(l => l.Face > l.True).Select(l => l.From).Distinct());
+        t.Lots.Clear();
+        S.Notify(p, InboxKind.Assay, "The treasury is short",
+            $"Paying for {what}, your treasurers found the treasury lighter than the ledger: {Money.Format(missing)} of gold received from {sources} was never fine gold.");
+        S.Log("debasement", $"{p} discovers {Money.Format(missing)} of debased gold from {sources}.", [p], "debasement-found");
     }
 
     /// <summary>
@@ -542,7 +624,12 @@ public sealed partial class TurnEngine
             S.Eliminated.Add(p);
             EndSleep(p);
             S.Units.RemoveAll(u => u.Power == p);
-            foreach (var c in S.Characters) c.Covers.RemoveAll(k => k.For == p);
+            // What a fallen kingdom believed, and what it owed, go with it: back pay owed by it is lost.
+            foreach (var c in S.Characters)
+            {
+                c.Covers.RemoveAll(k => k.For == p);
+                c.BackPay.Remove(p);
+            }
             // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
             foreach (var c in S.Characters.Where(c => c.HeldBy == p).ToList())
             {
@@ -563,15 +650,18 @@ public sealed partial class TurnEngine
 
     // ---------------------------------------------------------------- scoring and the end
 
-    public int Strength(Power p) =>
-        S.Config.ProvinceWeight * S.OwnedBy(p).Sum(id => Map[id].Yield) + S.Treasuries[p].Gold;
+    /// <summary>The score: land, plus true gold, less the back pay the power really owes (see <see cref="Scoring"/>).</summary>
+    public int Strength(Power p) => Scoring.Strength(S.Config, LandYield(p), S.Treasuries[p].Gold, BackPayOwed(p));
 
     /// <summary>
-    /// Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at
-    /// their weight. A seat must never see true strength, or it could read debased gold off the difference.
+    /// Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight, less
+    /// the back pay it believes it owes. A seat must never see true strength, or it could read debased gold off the
+    /// difference, or the fate of a servant abroad off its back pay.
     /// </summary>
-    public int LedgerStrength(Power p) =>
-        S.Config.ProvinceWeight * S.OwnedBy(p).Sum(id => Map[id].Yield) + S.Treasuries[p].Ledger;
+    public int LedgerStrength(Power p) => Scoring.Strength(S.Config, LandYield(p), S.Treasuries[p].Ledger, BelievedBackPay(p));
+
+    /// <summary>The base yield of the land a power holds.</summary>
+    private int LandYield(Power p) => S.OwnedBy(p).Sum(id => Map[id].Yield);
 
     public double Growth(Power p)
     {

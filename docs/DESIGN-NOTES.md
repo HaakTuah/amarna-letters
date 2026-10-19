@@ -43,8 +43,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   autumn as in Diplomacy.
 - **How a season resolves.** The rulebook's section of that name lists the engine's own order
   (`TurnEngine.BeginTurn`, `GameRunner.PlayTurnAsync`, `TurnEngine.ResolveSeason`) in 17 short
-  steps: servants whose notice ran out leave; income, upkeep and wages (and desertion); arrivals;
-  the court (candidates, checks and examinations, contract ends and notices); audiences; orders;
+  steps: servants whose notice ran out leave; income, upkeep and wages (the wages of people at
+  court; those of people away added to their back pay) and desertion; arrivals, then back pay paid
+  to everyone at the court that owes it; the court (candidates, checks and examinations, contract
+  ends and notices, a servant still owed back pay giving notice); audiences; orders;
   movement and battles; land changes hands; cessions and gifts of troops; purchases; disbanding;
   levies; envoys set out, releases, dismissals, candidates sent for and checks paid, then hiring and
   renewals; intelligence (watchmen, captors, spies sent and recalled, assays, examinations,
@@ -91,8 +93,15 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   or "…: you no longer held Thebes after movement.", or, for land the king itself ceded earlier in
   the resolution, "…: you ceded Sinai to Hatti last season, before the levy."). Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
   start of the season, the one farthest from the capital first (the rulebook says so).
-- **Strength** = 10 × (sum of base yields of provinces held) + true gold. Growth is strength over
-  starting strength. Units are not counted; they cost upkeep and are the means to land.
+- **Strength** = 10 × (sum of base yields of provinces held) + true gold − back pay owed (see
+  "Back pay" under Characters). Growth is strength over starting strength. Units are not counted;
+  they cost upkeep and are the means to land. One function computes it (`Scoring.Strength`): the
+  engine's score with true gold and the back pay a power really owes; a seat's own strength line
+  (`TurnEngine.LedgerStrength`) with its gold by its ledger and the back pay it believes it owes,
+  covers included; the script kings with what their view shows (see Script kings). The rulebook's
+  HOW YOU WIN says so ("... + the gold in your treasury - the back pay you owe your people"), and the
+  view's treasury line says that back pay is counted against it. (Until the simulation-fixes round's
+  Part G, owed gold did not exist: every wage left the treasury each season.)
 - **Standings.** Every seat's view has one line after its treasury, the same for every court since
   ownership is public: "STANDINGS (an estimate from who holds what; treasuries are left out): Mitanni
   1.93 (land yield 280, at the start 145); Egypt (you) 1.11 (land yield 210, at the start 190); …
@@ -160,7 +169,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   the rules (version 1) and cannot be replayed by this version." The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
-  the current rules; it may diverge.
+  the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
+  and decisions), and version 2 was never released, so it stays version 2: a version-2 log saved
+  before back pay would replay under the new wage rules and may diverge.
 
 ## Communication
 
@@ -221,7 +232,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   caught. (Until the simulation-fixes round a fallen court still caught spies and kept its
   prisoners for the rest of the game.)
 - **Dismissal** (one line in the rulebook) ends the wage at once, wherever the servant is, and moves
-  nobody. An envoy dismissed on the way out goes on to the court it was sent to and arrives there a
+  nobody; back pay already owed is still paid if the person ever stands at that court again (see
+  Back pay). An envoy dismissed on the way out goes on to the court it was sent to and arrives there a
   free person, with no audience; the gold it carried becomes its own, and the notice says so ("Mane
   has been dismissed. The 1 mina 40 shekels of gold they carried is now theirs."). One on the way
   home still arrives, reports and hands over what it carries, and is then free at its old court. A
@@ -256,7 +268,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     `LeavesTurn`): it names that price and stays one more season at the old wage, and its master is
     told, "Mane's term has ended. They ask 20 shekels a season to serve on: renew them this season
     (order renew), or they leave at the start of turn 12 (or, if you send them out first, when they
-    are next at your court)." The notice wakes a sleeping seat. A
+    are next at your court)." A servant still owed back pay that the treasury could not pay is never
+    content: it gives notice instead of renewing itself, asking at least its present wage, and the
+    notice says so ("Mane's term has ended, and you still owe them 48 shekels of back pay. They ask
+    12 shekels a season to serve on: ..."). The notice wakes a sleeping seat. A
     servant on notice can still be sent on errands. Unless renewed, it leaves at the start of turn
     T, before that season's wages, so the king pays exactly one season past the term: it is free at
     the court, asking that price, with a pitch that says so, and its old master may hire it back. If
@@ -274,22 +289,50 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     present wage." when the present wage is the price).
     `hire` naming one's own servant is refused: "Mane is already in your service; to keep them on,
     order renew". A servant abroad whose fate its master has not heard of is renewed as its master
-    believes it (its cover keeps the notice it gave): at the price it named, the master pays the new
-    wage from then on, and the real contract changes too if it truly still serves (a captive).
+    believes it (its cover keeps the notice it gave): at the price it named, the back pay the master
+    believes it owes grows by the new wage from then on, and the real contract changes too if it
+    truly still serves (a captive).
   - **What the king reads.** Each servant's term in plain words: "serves at 12 a season through turn
     10; if content they then renew themselves, otherwise they give a season's notice and name a
     price"; once the term has passed while it is away, "serves at 12 a season; the term ended with
     turn 10: when next at your court, if content they renew themselves, otherwise …"; on notice,
     "serves at 12 a season; has given notice: asks 20 a season to serve on; leaves at the start of
-    turn 12 unless renewed" (or "leaves when next at your court unless renewed"); a captive, who
-    draws no wage while held, shows only a notice it gave, and one dead in the king's service no
-    term at all. The web app's people lists use the same words, and its orders panel offers renew
+    turn 12 unless renewed" (or "leaves when next at your court unless renewed"); a captive's wage
+    builds up as back pay, so its line reads like any servant's away ("serves at 12 a season; has
+    given notice: ..."), and one dead in the king's service has no term at all. (Until Part G a
+    captive drew no wage and its line named none.) The web app's people lists use the same words, and its orders panel offers renew
     beside each servant at court or on notice, with a term for hiring and renewing. A free person
     at the court shows what it asks there (its pitch's price, or its base price), whether or not it
     pitched, and can be hired from the panel; one's own servants show no asking price.
   (Until the simulation-fixes round a servant who wanted more quit at once, the view read "wage 12
   until turn 10" with no word of what came then, no order could renew a contract, models could not
   name a term, and kings who tried to rehire their own envoys were told "not available for hire".)
+- **Back pay** (one line in the rulebook; since the simulation-fixes round's Part G, the user's
+  addendum: gold has to travel too). Each season, at the wage step, a servant at its master's court
+  with no task is paid its wage from the treasury, as before. A servant away (on a mission of any
+  kind, posted as a spy, detained, or captive with its contract kept) is not paid: its wage is added
+  to its back pay (`Character.BackPay`, per court), and no gold leaves. Right after the season's
+  arrivals, everyone standing at a court that owes it back pay, and not held there, is paid from
+  that court's true treasury, as much as it holds, whether or not it still serves that court (one
+  dismissed while away is paid when it gets home); so a servant is paid the season it comes home,
+  and its master reads "Mane is back at your court and was paid 48 shekels of back pay." A shortfall
+  (which, like any payment the true treasury cannot cover, exposes debased gold in the ledger) stays
+  owed and counts as missed pay for a servant: loyalty −15, a memory, the unpaid count and the quit
+  rule, once a season however many payments fell short ("... is owed 48 shekels of back pay, but the
+  treasury could pay only 20 shekels: the other 28 shekels stays owed, and counts as missed pay.");
+  and its next term end is a notice (see Contracts). Whoever never comes back is never paid: a
+  servant who goes over to a host forfeits what its old court owed it; at death it is cleared; a
+  captive keeps it (it may be ransomed or let go and come home); when a kingdom falls, everything it
+  owed is lost. Back pay owed counts against strength. The view shows each person's back pay ("owed:
+  48 shekels of back pay", in the web app "Owed 48 shekels of back pay, paid when they are back at
+  your court"), and the treasury line the wages a season, that those of people away build up as
+  back pay, and the total owed ("Back pay owed to your people: 48, paid when they are back at your
+  court."); the season's treasury notice says the wages paid at court and the wages added to back
+  pay. What a court sees it owes is what it believes: its people as its covers believe them (see
+  below), and anyone at its court; back pay still owed to someone it dismissed while away, and who
+  has not come back, is counted in its score but not shown, since seeing it vanish would tell of a
+  death. The loophole this opens (a king saves the back pay of people sent on missions they do not
+  survive) is meant to be closed by reputation, which is not built.
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth. The rulebook states these odds, the
   spies' and the examinations' below, and the fees, as they are (until the simulation-fixes round it
@@ -312,8 +355,15 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   events, never ready: a caught spy "watching Assyria" where it was posted, a detained or defecting
   envoy "on the road home". Its facts are those the master knew before, plus whatever the master's
   own inquiries find later, as for any servant (a defection's public fact stays unseen until a
-  background check finds it, and then shows). The master keeps paying the wage it believes it owes,
-  into the character's purse, and its view's wages count it, so the treasury betrays nothing.
+  background check finds it, and then shows). Nobody away is paid until it is back (see Back pay),
+  so no wage leaves the treasury for anyone away, whatever befell it, and the treasury betrays
+  nothing. A cover keeps the back pay its master believes it owes (`Cover.BackPay`): the real back
+  pay when the cover is made, grown by the believed wage each season while the cover holds, so the
+  master's view shows the debt growing exactly as for a servant still on its mission (tested by
+  cloning a game with and without the hidden event: treasury, true gold, wages, back pay and
+  strength by the ledger are the same). When word comes, the master sees the truth: nothing owed to
+  one dead or gone over to another court, the real back pay owed to a captive. (Until Part G the
+  master kept paying the wage it believed it owed, into the character's purse.)
   - **The cover ends when the news reaches the master:** the ransom demand, or the rumour of the
     death (sent to the captive's king and to every court that still believes the dead one serves
     it); the first report from a turned spy, if its master had heard of the capture; the character
@@ -324,8 +374,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     envoy is held in the master's service, as the rumour says, the cover ends; otherwise (it went
     over to the host, was let go too late to be home on time, or a caught spy its master recalled)
     the master now believes just that, "has not returned from Alashiya", "unknown", until it is
-    seen. An envoy that went over to the host stays on the list, still paid, until it is dismissed
-    or seen. The rumour is not sent once the envoy has stood at its master's court, and not told to
+    seen. An envoy that went over to the host stays on the list, its believed back pay still
+    growing, until it is dismissed or seen. The rumour is not sent once the envoy has stood at its master's court, and not told to
     a court that no longer believes anything of it (it dismissed the envoy, or heard of its death).
   - **Let go, or turned.** A detained envoy let go, or a caught spy let go, still reads as its
     master last believed (on the road home, not returned, or watching Assyria) until it is home.
@@ -338,12 +388,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     court"; "Mane is already in your service; to keep them on, order renew" for a hire, even once
     it has gone free elsewhere; a renewal is accepted if it had given notice; recalling a
     caught spy is accepted, and its master then believes it on the road home and hears a season
-    after it was due that it has not returned). Dismissing it is accepted and ends the cover and the
-    wage; a dismissed captive stays a captive.
+    after it was due that it has not returned). Dismissing it is accepted and ends the cover, the
+    wage and the back pay the master believed it owed; a dismissed captive stays a captive.
   - **Captives.** A captive whose master has heard of it reads "held captive at the court of
     Assyria; Assyria demands 1 mina 30 shekels for their return (order pay_ransom)" (the demand once
-    its word has arrived), never "at court, ready", and draws no wage, so its line names none; the
-    web app offers the ransom button only then.
+    its word has arrived), never "at court, ready", with its wage and the back pay owed it, which
+    keeps growing while it is held; the web app offers the ransom button only then.
   - **When it is due back.** Each of the king's people away reads when it set out and when it is
     due back, as the travel table lets its master reckon it (`Views.TimingText`): an envoy on its
     way out "travelling as envoy to Hatti; set out in turn 4 for Hatti; due there about turn 6; due
@@ -355,10 +405,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     audience, a caught spy recalled like one really recalled, and the overdue word clears it, as it
     does for a servant really held. (Until the simulation-fixes round the view gave no turns, and
     kings mistimed their replies.)
-  - Script kings read the same view and are fooled the same way: a script king pays an envoy that
-    went over to the host for as long as the cover holds, and gives it up (dismisses it) only once
-    its line has read "has not returned" for three seasons (see Script kings, Court and
-    intelligence).
+  - Script kings read the same view and are fooled the same way: a script king keeps an envoy that
+    went over to the host on its list, its believed back pay growing, for as long as the cover
+    holds, and gives it up (dismisses it) only once its line has read "has not returned" for three
+    seasons (see Script kings, Court and intelligence).
   - **Sight.** A caught or released province watcher keeps its province, and the links next to it,
     in its master's sight while the cover believes it at its post (`Views.Sight`), so the capture
     cannot be read off the "You can see troops in" line; the province leaves the sight when word
@@ -1076,7 +1126,7 @@ What script kings never do, and how they treat oaths:
   - A careful king ((caution + cunning) ÷ 2 above 0.5) first pays 25 for a background check, if spare exceeds 30 + income ÷ 2.
   - Otherwise it hires for six seasons, if the price is at most 15 + 25 × (1 − greed) and spare exceeds three times the price (the hiring test).
 - **Notice.** A servant who gives notice is renewed for six seasons at the price it names while the king still wants it (the servants not on notice are fewer than it wants) and the price passes the hiring test; the most reliable first. Otherwise the king lets it go, and looks for someone new once it is short. It never renews early.
-- **Servants given up.** A servant whose line has read "has not returned" (the word that it is overdue) for three seasons, and still does in the fourth, is dismissed: its wage stops, and the court counts itself one short that season, so it may seek candidates and hire. This is how a script king stops paying an envoy that went over to the host, since its cover never ends otherwise. One that comes home, or is seen again, before then is kept. A script jailer lets a held envoy go within four seasons of the audience, and the overdue word comes two or three seasons after it, so the envoys script kings detain from each other are home before they are given up (an envoy held longer by a model or human king is dismissed, stays held, and once let go is free at the court that held it).
+- **Servants given up.** A servant whose line has read "has not returned" (the word that it is overdue) for three seasons, and still does in the fourth, is dismissed: its wage stops, so does the back pay the king believes it owes, and the court counts itself one short that season, so it may seek candidates and hire. This is how a script king stops counting an envoy that went over to the host as its own, since its cover never ends otherwise. One that comes home, or is seen again, before then is kept. A script jailer lets a held envoy go within four seasons of the audience, and the overdue word comes two or three seasons after it, so the envoys script kings detain from each other are home before they are given up (an envoy held longer by a model or human king is dismissed, stays held, and once let go is free at the court that held it).
 - **Assays** (fee 10, with spare above 15) cover every lot from a king trusted below 0.3, every lot that weighed light, and every lot of all if greed is above 0.6.
 - **Watchmen** cost 20 + 30 × caution. The king hires them when a spy was caught in the last three seasons, or when caution is above 0.7 and spare is above 500. Spare must be above 40 either way.
 - **Tablets shown to it.** One bearing a friend's seal is examined, at a cost of 30 + 50 × caution, if spare exceeds 60 + 60 × (1 − caution); at most one a season, and the rest wait. A tablet that is not examined is half-believed: trust in each sealer falls by 0.1 × (1 − caution).

@@ -273,10 +273,12 @@ public class ContractTests
         var line = Views.For(s, Power.Egypt).Court.Single(x => x.Id == c.Id);
         Assert.Equal(("watching Hatti", "serves at 35 a season through turn 9; if content they then renew themselves, otherwise they give a season's notice and name a price"), (line.Duty, line.Term));
         Assert.Equal((35, 9), (c.Contract!.Wage, c.Contract.UntilTurn));
-        // The treasury pays what the master now believes it owes, into the captive's purse.
-        var purse = c.Purse;
+        // Nothing leaves the treasury for anyone away: the back pay its master believes it owes grows by the new wage, and so
+        // does what it is really owed, since it truly still serves.
+        var (purse, believed, owed) = (c.Purse, c.CoverOf(Power.Egypt)!.BackPay, c.BackPay.GetValueOrDefault(Power.Egypt));
         Begin(s);
-        Assert.Equal(purse + 35, c.Purse);
+        Assert.Equal((purse, believed + 35, owed + 35), (c.Purse, c.CoverOf(Power.Egypt)!.BackPay, c.BackPay[Power.Egypt]));
+        Assert.Equal(believed + 35, Views.For(s, Power.Egypt).Court.Single(x => x.Id == c.Id).BackPay);
     }
 
     [Fact]
@@ -355,14 +357,15 @@ public class ContractTests
     }
 
     [Fact]
-    public void A_captive_on_notice_shows_its_notice_and_no_wage_and_may_be_renewed()
+    public void A_captive_on_notice_shows_its_notice_and_its_wage_and_may_be_renewed()
     {
         var (s, c) = Servant();
         (c.Contract!.NoticePrice, c.Contract.LeavesTurn) = (33, 1);
         (c.Status, c.HeldBy, c.At) = (CharacterStatus.Captured, Power.Hatti, Power.Hatti);
         var line = Views.For(s, Power.Egypt).Court.Single(x => x.Id == c.Id);
-        Assert.Equal(("held captive at the court of Hatti", "has given notice: asks 33 a season to serve on; leaves when next at your court unless renewed"), (line.Duty, line.Term));
-        Assert.Null(line.Wage);
+        // Its wage builds up as back pay while it is held, so its line names it.
+        Assert.Equal(("held captive at the court of Hatti", "serves at 12 a season; has given notice: asks 33 a season to serve on; leaves when next at your court unless renewed"), (line.Duty, line.Term));
+        Assert.Equal(12, line.Wage);
         Assert.Empty(new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new RenewOrder(c.Id, 33)] }).Rejected);
 
         // One dead in your service has no term.

@@ -7,7 +7,7 @@ public sealed record GameConfig
     public int MinTurns { get; init; } = 15;
     public double EndChance { get; init; } = 0.15;
     public int MaxTurns { get; init; } = 60;
-    /// <summary>Strength = ProvinceWeight x (sum of owned base yields) + gold.</summary>
+    /// <summary>Strength = ProvinceWeight x (sum of owned base yields) + gold - back pay owed (see <see cref="Scoring"/>).</summary>
     public int ProvinceWeight { get; init; } = 10;
     /// <summary>Off by default (since 18 October 2026): a house rule for experiments, never in a king's rulebook unless switched on.</summary>
     public bool SharedVictory { get; init; }

@@ -59,8 +59,8 @@ public class CoverBotTests
         var line = Amarna.Llm.Prompts.Person(Views.For(s, Power.Hatti).Court.Single(c => c.Id == spy.Id));
         Assert.Contains("held captive at the court of Mitanni;", line);
         Assert.DoesNotContain("ready", line);
-        // A captive draws no wage while it is held, so its line names none.
-        Assert.DoesNotContain("wage", line);
+        // Its wage builds up as back pay while it is held: its line names the wage, not a wage paid.
+        Assert.Contains($"serves at {spy.Contract!.Wage} a season", line);
 
         // A demand shows only once its word has arrived.
         var demand = new PendingTask { Id = "q900", Kind = TaskKind.RansomDemand, Requester = Power.Hatti, Other = Power.Mitanni, CharacterId = spy.Id, Spend = 90, DueTurn = 6 };

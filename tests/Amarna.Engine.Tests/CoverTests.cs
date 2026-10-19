@@ -5,7 +5,7 @@ namespace Amarna.Engine.Tests;
 /// <summary>
 /// News of a court's people abroad reaches it only by rumour or when they return: a servant who is held,
 /// changes sides or dies abroad appears to its master as it would have in the normal course of events,
-/// and the master keeps paying its wage, until word comes.
+/// its back pay growing in the master's books as for anyone away, until word comes.
 /// </summary>
 public class CoverTests
 {
@@ -21,11 +21,14 @@ public class CoverTests
 
     private static Dictionary<Power, TurnSubmission> Orders(Power p, params Order[] orders) => new() { [p] = new TurnSubmission { Orders = orders.ToList() } };
 
-    /// <summary>What a court sees of one of its people, and of its treasury: everything a cover must keep the same.</summary>
+    /// <summary>
+    /// What a court sees of one of its people, and of its treasury, its back pay and its strength (and the true gold behind
+    /// them): everything a cover must keep the same.
+    /// </summary>
     private static string Seen(GameState s, Power p, string id)
     {
         var v = Views.For(s, p);
-        return Json.Serialize(new { person = v.Court.SingleOrDefault(c => c.Id == id), v.Gold, v.Wages, court = v.Court.Count });
+        return Json.Serialize(new { person = v.Court.SingleOrDefault(c => c.Id == id), v.Gold, fine = s.Treasuries[p].Gold, v.Wages, v.BackPay, v.Strength, court = v.Court.Count });
     }
 
     /// <summary>Egypt's envoy stands before Alashiya's king; the state is cloned so the audience can end two ways.</summary>
@@ -57,9 +60,13 @@ public class CoverTests
         var held = EndAudience(at, new HostReply { Detain = true });
         Assert.Equal(Duty.Detained, held.Char(envoy.Id).Duty);
 
-        // From the audience until the season it would have come home, Egypt sees the same in both games.
+        // From the audience until the season it would have come home, Egypt sees the same in both games: its treasury,
+        // its strength, and the back pay it owes, growing by the wage each season, though the envoy held earns nothing it
+        // will collect until it is let go.
         Assert.Equal(Seen(home, Power.Egypt, envoy.Id), Seen(held, Power.Egypt, envoy.Id));
         Assert.Contains("\"duty\":\"on the road home\"", Seen(held, Power.Egypt, envoy.Id));
+        int? Owed() => Views.For(held, Power.Egypt).Court.Single(c => c.Id == envoy.Id).BackPay;
+        var (owed, wage) = (Owed()!.Value, envoy.Contract!.Wage);
         for (var i = 1; i < travel; i++)
         {
             new TurnEngine(home).Resolve(None());
@@ -67,6 +74,7 @@ public class CoverTests
             Begin(home);
             Begin(held);
             Assert.Equal(Seen(home, Power.Egypt, envoy.Id), Seen(held, Power.Egypt, envoy.Id));
+            Assert.Equal(owed + i * wage, Owed());
         }
 
         // Then the rumour that it is overdue: the cover ends, and Egypt sees what it has heard.
@@ -83,17 +91,22 @@ public class CoverTests
     }
 
     [Fact]
-    public void An_envoy_who_changes_sides_stays_on_its_lords_list_and_is_paid_until_dismissed()
+    public void An_envoy_who_changes_sides_stays_on_its_lords_list_and_owed_its_back_pay_until_dismissed()
     {
         var (at, envoy) = AtAudience();
         var travel = new TurnEngine(at).TravelTurns(Power.Alashiya, Power.Egypt);
+        var owedBefore = at.Char(envoy.Id).BackPay[Power.Egypt];
+        Assert.True(owedBefore > 0);
         var home = EndAudience(at, new HostReply { End = true });
         var gone = EndAudience(at, new HostReply { JobOffer = 40 }, new EnvoyReaction { AcceptJob = true });
         var defector = gone.Char(envoy.Id);
         Assert.Equal(Power.Alashiya, defector.Employer);
         Assert.Contains(defector.Facts, f => f.Tag == "defected" && f.Secrecy == Secrecy.Public);
+        // It will never go back to collect what Egypt owed it; Egypt's books still count it.
+        Assert.False(defector.BackPay.ContainsKey(Power.Egypt));
+        Assert.Equal(owedBefore, defector.CoverOf(Power.Egypt)!.BackPay);
 
-        // Egypt sees an envoy on the road home, with no word of the public fact, and pays its wage as before.
+        // Egypt sees an envoy on the road home, with no word of the public fact, its back pay growing as before.
         Assert.Equal(Seen(home, Power.Egypt, envoy.Id), Seen(gone, Power.Egypt, envoy.Id));
         for (var i = 1; i < travel; i++)
         {
@@ -105,7 +118,7 @@ public class CoverTests
         }
         Assert.Contains(Views.For(gone, Power.Alashiya).Court, c => c.Id == envoy.Id && c.Ready);
 
-        // Word comes only that it has not returned, as for an envoy who is held: it stays on the list, and is still paid.
+        // Word comes only that it has not returned, as for an envoy who is held: it stays on the list, its back pay still growing.
         while (!gone.InboxOf(Power.Egypt).Any(x => x.Kind == InboxKind.Rumor && x.Subject == envoy.Id)) { new TurnEngine(gone).Resolve(None()); Begin(gone); }
         var seen = Views.For(gone, Power.Egypt).Court.Single(c => c.Id == envoy.Id);
         Assert.Equal("has not returned from Alashiya", seen.Duty);
@@ -113,22 +126,26 @@ public class CoverTests
         // No longer due back: the word that it has not returned clears the reckoning, as for an envoy really held.
         Assert.Equal("", seen.Timing);
         Assert.DoesNotContain(seen.KnownFacts, f => f.Contains("Abandoned"));
-        var wage = seen.Wage!.Value;
+        var (wage, owed) = (seen.Wage!.Value, seen.BackPay!.Value);
         var purse = defector.Purse;
         new TurnEngine(gone).Resolve(None());
         Begin(gone);
-        Assert.Equal(purse + wage + 40, defector.Purse);
+        // Only its new master, at whose court it stands, pays it.
+        Assert.Equal(purse + 40, defector.Purse);
+        Assert.Equal(owed + wage, Views.For(gone, Power.Egypt).Court.Single(c => c.Id == envoy.Id).BackPay);
 
-        // Dismissing it is accepted, like any servant away, and ends the cover and the wage.
+        // Dismissing it is accepted, like any servant away, and ends the cover, its wage and the back pay Egypt believed it owed.
         var v = new OrderValidator(gone).Validate(Power.Egypt, new TurnSubmission { Orders = [new DismissOrder(envoy.Id)] });
         Assert.Empty(v.Rejected);
+        var backPay = Views.For(gone, Power.Egypt).BackPay;
         new TurnEngine(gone).Resolve(Orders(Power.Egypt, new DismissOrder(envoy.Id)));
         Assert.Null(defector.CoverOf(Power.Egypt));
+        Assert.Equal(backPay - owed - wage, Views.For(gone, Power.Egypt).BackPay);
         Assert.Contains(gone.InboxOf(Power.Egypt), i => i.Title == "A servant leaves" && i.Body == $"{defector.Name} has been dismissed.");
         Begin(gone);
         Assert.DoesNotContain(Views.For(gone, Power.Egypt).Court, c => c.Id == envoy.Id);
         Assert.Equal(Power.Alashiya, defector.Employer);
-        Assert.Equal(purse + wage + 40 + 40, defector.Purse);
+        Assert.Equal(purse + 40 + 40, defector.Purse);
     }
 
     [Fact]
@@ -208,7 +225,7 @@ public class CoverTests
         Assert.False(before.Ready);
         Assert.Null(before.RansomDemand);
 
-        // Assyria asks a ransom: once the word arrives Babylonia sees its spy held, with the demand, and no longer pays it.
+        // Assyria asks a ransom: once the word arrives Babylonia sees its spy held, with the demand, and what it really owes it.
         new TurnEngine(caught).Resolve(Orders(Power.Assyria, new CaptiveOrder(id, CaptiveFate.Ransom, 90)));
         while (!caught.InboxOf(Power.Babylonia).Any(x => x.Kind == InboxKind.Rumor && x.Subject == id)) { Begin(caught); new TurnEngine(caught).Resolve(None()); }
         var known = Views.For(caught, Power.Babylonia).Court.Single(c => c.Id == id);
@@ -217,7 +234,9 @@ public class CoverTests
         Assert.Equal("held captive at the court of Assyria; Assyria demands 1 mina 30 shekels for their return (order pay_ransom)", known.Duty);
         Assert.Equal(90, known.RansomDemand);
         Assert.False(known.Ready);
-        Assert.Equal(0, new TurnEngine(caught).Wages(Power.Babylonia) - Views.For(caught, Power.Babylonia).Court.Where(c => c.Id != id).Sum(c => c.Wage ?? 0));
+        // A captive's wage builds up as back pay, as it did while its master believed it at its post: the figure goes on.
+        Assert.Equal(caught.Char(id).BackPay[Power.Babylonia], known.BackPay);
+        Assert.Equal(new TurnEngine(caught).Wages(Power.Babylonia), Views.For(caught, Power.Babylonia).Court.Sum(c => c.Wage ?? 0));
     }
 
     [Fact]

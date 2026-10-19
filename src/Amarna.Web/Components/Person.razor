@@ -4,6 +4,7 @@
     {
         <div><small>@C.Duty@(C.Timing.Length > 0 ? $" ({C.Timing})" : "")@(C.Where.Length > 0 ? $" · {C.Where}" : "")@(C.Term.Length > 0 ? $" · {C.Term}" : "")</small></div>
     }
+    @if (C.BackPay is int owed) { <div><small>Owed @Ui.Shekels(owed) of back pay, paid when they are back at your court.</small></div> }
     @if (C.Employer is { } e && !C.Ours) { <div><small>Serves @e.Name()</small></div> }
     @if (C.KnownFacts.Count > 0) { <div><small>Known: @string.Join(" ", C.KnownFacts)</small></div> }
     @if (C.Pitch is not null) { <div class="speech" style="margin-top:.3rem;font-size:.92rem">“@C.Pitch”</div> }

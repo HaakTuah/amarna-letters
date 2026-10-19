@@ -3,7 +3,8 @@ namespace Amarna.Engine;
 /// <summary>
 /// Covers: news of a court's people abroad reaches it only by rumour or when they return. A servant who is
 /// caught, detained, goes over to the host, is put to death or is let go keeps appearing to its master as it
-/// was, and the master keeps paying the wage it believes it owes, until word comes. Each court that served the
+/// was, its back pay growing in the master's books by the wage it believes it owes, until word comes. Nobody away
+/// is paid until it is back, so the treasury betrays nothing either way. Each court that served the
 /// character keeps its own cover: an envoy that went over to a host is covered for its old master, and again for
 /// its new one if something happens to it on the new master's errand.
 /// </summary>
@@ -31,8 +32,9 @@ public sealed partial class TurnEngine
             DutyText = duty ?? seen.Duty,
             WhereText = where ?? seen.Where,
             TimingText = timing ?? (duty is null ? seen.Timing : ""),
-            // A captive's view shows no wage (none is paid while it is held); its contract's wage is kept for when it is free.
             Wage = seen.Wage ?? c.Contract?.Wage ?? 0,
+            // From here its back pay grows in the master's books by the wage it believes it owes, whatever really befell it.
+            BackPay = c.BackPay.GetValueOrDefault(master),
             ContractUntil = seen.ContractUntil,
             NoticePrice = seen.NoticePrice,
             LeavesTurn = seen.LeavesTurn,
@@ -72,8 +74,11 @@ public sealed partial class TurnEngine
         }
     }
 
-    /// <summary>The wage a court pays a character this season: what it believes it owes a covered servant, else its contract.</summary>
-    private static int WageOwed(Character c, Power p) =>
-        c.CoverOf(p) is { } k ? (k.HeldAt is null ? k.Wage : 0)
-        : c.Employer == p && c.Status == CharacterStatus.Employed ? c.Contract?.Wage ?? 0 : 0;
+    /// <summary>
+    /// The wage a court owes a character each season, as it reckons it: what it believes it owes a covered servant, else
+    /// its contract, a captive's included. Paid at court; built up as back pay while the character is away.
+    /// </summary>
+    private static int WageOf(Character c, Power p) =>
+        c.CoverOf(p) is { } k ? k.Wage
+        : c.Employer == p && c.Status is CharacterStatus.Employed or CharacterStatus.Captured ? c.Contract?.Wage ?? 0 : 0;
 }

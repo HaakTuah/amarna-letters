@@ -213,6 +213,12 @@ public sealed class Character
     public List<Cover> Covers { get; set; } = new();
     /// <summary>The court it last served, once that service ended by dismissal or by the court's fall.</summary>
     public Power? FormerEmployer { get; set; }
+    /// <summary>
+    /// Wages owed by each court, built up while the character was away in its service (on a mission, posted as a spy,
+    /// detained or captive). Paid when it stands at that court and is not held there, whether or not it still serves it;
+    /// forfeited when it goes over to another court, cleared at its death, lost when the court's kingdom falls.
+    /// </summary>
+    public Dictionary<Power, int> BackPay { get; set; } = new();
 
     public bool IsAvailableForHire => Status == CharacterStatus.Free;
 
@@ -228,8 +234,8 @@ public sealed class Character
 /// <summary>
 /// A servant abroad whose master cannot see what happened to it (caught as a spy, detained, gone over to
 /// the host, put to death, let go) keeps appearing to that master as it was, until word of it comes: a
-/// rumour, a report from it, the servant standing at the master's court, or the master dismissing it. Its
-/// master keeps paying the wage it believes it owes.
+/// rumour, a report from it, the servant standing at the master's court, or the master dismissing it. In its
+/// master's books its back pay builds up by the wage it believes it owes, as for any servant away.
 /// </summary>
 public sealed class Cover
 {
@@ -247,6 +253,11 @@ public sealed class Cover
     /// <summary>When the master believes the servant set out and is due back, as its view read then (see <see cref="Views.TimingText"/>).</summary>
     public string TimingText { get; set; } = "";
     public int Wage { get; set; }
+    /// <summary>
+    /// The back pay the master believes it owes: the real back pay when the cover was made, grown by <see cref="Wage"/>
+    /// each season since, exactly as for a servant still on its mission. No gold moves either way.
+    /// </summary>
+    public int BackPay { get; set; }
     public int? ContractUntil { get; set; }
     /// <summary>The notice the master believes the servant has given (the price it asks to serve on, and when it leaves), if any.</summary>
     public int? NoticePrice { get; set; }

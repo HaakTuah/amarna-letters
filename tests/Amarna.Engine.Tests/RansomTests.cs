@@ -268,22 +268,34 @@ public class RansomTests
     }
 
     [Fact]
-    public void A_captive_its_master_heard_of_draws_no_wage_even_once_put_to_death_unknown_to_it()
+    public void A_captive_s_wage_builds_up_as_back_pay_and_its_death_unknown_to_its_master_changes_nothing_in_the_masters_books()
     {
         var (s, spy) = Held(Power.Egypt, Power.Babylonia);
+        var wage = spy.Contract!.Wage;
         Begin(s).Resolve(Orders(Power.Babylonia, new CaptiveOrder(spy.Id, CaptiveFate.Ransom, 90)));
         Begin(s).Resolve(None());
         Begin(s);
-        int Others() => Views.For(s, Power.Egypt).Court.Where(c => c.Id != spy.Id).Sum(c => c.Wage ?? 0);
-        Assert.Equal(Others(), new TurnEngine(s).Wages(Power.Egypt));
-        Assert.Null(Views.For(s, Power.Egypt).Court.Single(c => c.Id == spy.Id).Wage);
+        CharacterView Line() => Views.For(s, Power.Egypt).Court.Single(c => c.Id == spy.Id);
+        Assert.Equal(Views.For(s, Power.Egypt).Court.Sum(c => c.Wage ?? 0), new TurnEngine(s).Wages(Power.Egypt));
+        Assert.Equal(wage, Line().Wage);
+        // Held, it is paid nothing: its wage is owed to it, season by season.
+        Assert.Equal(3 * wage, spy.BackPay[Power.Egypt]);
+        Assert.Equal(3 * wage, Line().BackPay);
+
+        // Put to death: it is owed nothing any more, but its master, not knowing, sees its back pay grow as before.
         new TurnEngine(s).Resolve(Orders(Power.Babylonia, new CaptiveOrder(spy.Id, CaptiveFate.Execute)));
         Assert.NotNull(spy.CoverOf(Power.Egypt));
-        Assert.Null(Views.For(s, Power.Egypt).Court.Single(c => c.Id == spy.Id).Wage);
-        Assert.Equal(Others(), new TurnEngine(s).Wages(Power.Egypt));
-        var purse = spy.Purse;
+        Assert.Empty(spy.BackPay);
+        Assert.Equal(3 * wage, Line().BackPay);
+        var (purse, gold) = (spy.Purse, s.Treasuries[Power.Egypt].Gold);
+        var e = new TurnEngine(s);
+        var (income, upkeep, others) = (e.Income(Power.Egypt), e.Upkeep(Power.Egypt), Views.For(s, Power.Egypt).Court.Where(c => c.Id != spy.Id && c.Ready).Sum(c => c.Wage ?? 0));
         Begin(s);
         Assert.Equal(purse, spy.Purse);
+        Assert.Equal(4 * wage, Line().BackPay);
+        Assert.Equal(wage, Line().Wage);
+        // Nothing left the treasury for it, before or after its death.
+        Assert.Equal(gold + income - upkeep - others, s.Treasuries[Power.Egypt].Gold);
     }
 
     [Fact]

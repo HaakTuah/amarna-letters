@@ -11,7 +11,7 @@
     <div class="section">
         <h3>Orders for @v.Season</h3>
         <p class="muted">
-            Treasury @Ui.Shekels(v.Gold) · income @Ui.Shekels(v.Income) · upkeep @Ui.Shekels(v.Upkeep) · wages @Ui.Shekels(v.Wages).
+            Treasury @Ui.Shekels(v.Gold) · income @Ui.Shekels(v.Income) · upkeep @Ui.Shekels(v.Upkeep) · wages @Ui.Shekels(v.Wages) (for people away, owed as back pay) · back pay owed @Ui.Shekels(v.BackPay).
             Growth so far: @(v.StartStrength > 0 ? (v.Strength / (double)v.StartStrength).ToString("0.00") : "-").
         </p>
         <p class="muted"><small>Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take: @string.Join("; ", v.TravelTimes).</small></p>

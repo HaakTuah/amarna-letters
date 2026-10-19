@@ -265,6 +265,8 @@ public sealed partial class TurnEngine
                 if (employer is { } lord) CoverFor(c, lord, Duty.None);
                 c.Status = CharacterStatus.Dead;
                 c.Duty = Duty.None;
+                // The dead are never paid: what any court owed it is gone (a court that has not heard keeps its own belief).
+                c.BackPay.Clear();
                 S.Log("execution", $"{host} executed {c.Name}.", [host]);
                 // The rumour reaches its king, and every court that still believes the dead one serves it.
                 foreach (var heard in Powers.All.Where(p => p == employer || c.CoverOf(p) is not null))

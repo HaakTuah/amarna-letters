@@ -337,6 +337,8 @@ public sealed partial class TurnEngine
             CoverFor(c, sender, Duty.EnvoyHomebound, "on the road home", "travelling", seenBySender, knownBySender, Views.EnvoyHomeTiming(trail.Turn, host, expectedHome));
         if (defected)
         {
+            // It never goes back to collect it: the back pay its old court owed it is forfeit (its cover keeps what that court believes).
+            c.BackPay.Remove(sender);
             Overdue(sender, c, host, expectedHome);
         }
         else if (detained)
@@ -776,23 +778,26 @@ public sealed partial class TurnEngine
         NoticesRunOut();
 
         // Terms that have ended, for servants at court with no task: one still content with the wage serves on; one who
-        // wants more gives a season's notice and names its price.
+        // wants more, or is still owed back pay the treasury could not pay, gives a season's notice and names its price.
         foreach (var c in S.Characters.Where(c => c.Status == CharacterStatus.Employed && c.Contract is { NoticePrice: null } k && k.UntilTurn < S.Turn && c.Duty == Duty.None).OrderBy(c => c.Id).ToList())
         {
             var emp = c.Employer!.Value;
             var ask = RenewalPrice(c, emp);
-            if (ask <= c.Contract!.Wage * 1.2)
+            var owed = c.BackPay.GetValueOrDefault(emp);
+            if (ask <= c.Contract!.Wage * 1.2 && owed == 0)
             {
                 c.Contract.UntilTurn = S.Turn + 6;
                 S.Notify(emp, InboxKind.Notice, "Contract renewed", $"{c.Name} stays in your service at {Money.Format(c.Contract.Wage)} a season through turn {c.Contract.UntilTurn}.", c.Id);
             }
             else
             {
+                // One still owed back pay is never content, but asks no less than it earns.
+                if (owed > 0) ask = Math.Max(ask, c.Contract.Wage);
                 c.Contract.NoticePrice = ask;
                 c.Contract.LeavesTurn = S.Turn + 1;
                 c.Remember(S.Turn, $"My term with {emp.Land()} has ended. I asked {Money.Format(ask)} a season to serve on.");
                 S.Notify(emp, InboxKind.Notice, NoticeTitle,
-                    $"{c.Name}'s term has ended. They ask {Money.Format(ask)} a season to serve on: renew them this season (order renew), or they leave at the start of turn {S.Turn + 1} (or, if you send them out first, when they are next at your court).", c.Id);
+                    $"{c.Name}'s term has ended{(owed > 0 ? $", and you still owe them {Money.Format(owed)} of back pay" : "")}. They ask {Money.Format(ask)} a season to serve on: renew them this season (order renew), or they leave at the start of turn {S.Turn + 1} (or, if you send them out first, when they are next at your court).", c.Id);
             }
         }
     }
