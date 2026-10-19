@@ -89,10 +89,9 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o = new JsonObject { ["report"] = "Nothing of note." };
         else
             o = new JsonObject();
-        // With sleeping seats on, a simulated king sleeps after its orders like any model king, naming no season.
-        if (Has("units") && Has("sleep"))
+        // With sleeping seats on, a simulated king sleeps after its orders like any model king, with nothing planned.
+        if (Has("units") && Has("schedule"))
         {
-            o["sleep"] = new JsonObject { ["wake_in_turn"] = 0, ["wake_on"] = new JsonArray() };
             o["schedule"] = new JsonArray();
             o["standing_orders"] = new JsonArray();
             o["cancel_standing"] = new JsonArray();

@@ -66,8 +66,11 @@ public class SleepTests
 
     private static TurnSubmission Nothing() => new();
 
-    /// <summary>Orders that name a season to be woken in (0 for none) and the seat's own reasons to be woken.</summary>
-    private static TurnSubmission Wake(int turn, params WakeTrigger[] wakeOn) => new() { Sleep = new SleepRequest { WakeTurn = turn, WakeOn = wakeOn.ToList() } };
+    /// <summary>
+    /// A game whose hidden cap wakes a seat that slept this many seasons. A king cannot ask to be woken, so the tests that need
+    /// a seat awake in a given season use the cap: having given orders in turn t, it is woken in turn t + 1 + seasons.
+    /// </summary>
+    private static GameConfig Cap(int seasons) => Quiet with { MaxSleep = seasons };
 
     /// <summary>One sleeper; every other king does nothing unless told.</summary>
     private static async Task<GameRunner> Play(Power who, ISeat sleeper, int turns, GameConfig? config = null, Dictionary<Power, ISeat>? others = null, Action<GameState>? setup = null)
@@ -105,32 +108,44 @@ public class SleepTests
         Assert.Equal(1, sleep.LastCalled);
         Assert.Equal(1 + 1 + 12, sleep.WakeAt);
         var spell = Assert.Single(sleep.History);
-        Assert.Equal((2, 0, 0), (spell.From, spell.Named, spell.WokeAt));
+        Assert.Equal((2, 0), (spell.From, spell.WokeAt));
         // Its units held while it slept, and the world went on.
         Assert.Equal(6, r.State.Scores.Max(s => s.Turn));
         Assert.Equal("This is your first season.", Prompts.SleepLine(sleeper.Views[0]));
     }
 
     [Fact]
-    public async Task A_seat_may_name_the_season_it_is_woken_in()
+    public async Task A_king_cannot_ask_to_be_woken()
     {
-        var sleeper = new Sleeper(v => v.Turn switch { 1 => Wake(3), 3 => Wake(5), _ => Nothing() });
+        // The fix pass after item 4 ("Decided: sleep is the default", "No triggers of the seat's own"): no season to be woken
+        // in, no triggers of its own. The schema has no field for either, the rulebook says so plainly, and a reply that
+        // still names them is read as if it did not.
+        var c = new GameConfig();
+        var schema = Schemas.LeaderOrders(c).ToJsonString();
+        foreach (var gone in new[] { "\"sleep\"", "wake_in_turn", "wake_on", "unit_moves", "envoy_returns", "treasury_below", "troops_enter", "province_changes_hands" })
+            Assert.DoesNotContain(gone, schema);
+        var rules = Prompts.LeaderRules(true, c);
+        Assert.DoesNotContain("wake_in_turn", rules);
+        Assert.DoesNotContain("wake_on", rules);
+        Assert.DoesNotContain("news you asked to hear", rules);
+        Assert.Contains("You cannot ask to be woken, at a season you name or for anything else.", rules);
+        const string plain = """{"notes":"Hold.","units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}""";
+        const string asks = """{"notes":"Hold.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":2,"wake_on":[{"trigger":"unit_moves","province":"ekallatum"}]},"schedule":[],"standing_orders":[],"cancel_standing":[]}""";
+        Assert.Equal(Json.Serialize(Parse.Orders((JsonObject)JsonNode.Parse(plain)!)), Json.Serialize(Parse.Orders((JsonObject)JsonNode.Parse(asks)!)));
+
+        // Asleep after its first orders, it is not woken again in six quiet seasons: only what concerns it, or the cap, would.
+        var sleeper = new Sleeper(_ => Nothing());
         var r = await Play(Power.Babylonia, sleeper, 6);
-        Assert.Equal([1, 3, 5], sleeper.Calls);
-        Assert.Equal(["you asked to be woken in turn 3"], sleeper.Views[1].WokenBecause);
-        Assert.Equal(1, sleeper.Views[1].LastCalled);
-        Assert.Equal("You slept 1 season (you last gave orders in turn 1). You were woken because: you asked to be woken in turn 3.", Prompts.SleepLine(sleeper.Views[1]));
-        Assert.StartsWith("You slept 1 season (you last gave orders in turn 3).", Prompts.Situation(sleeper.Views[2]));
-        var spells = r.State.Sleep[Power.Babylonia].History;
-        Assert.Equal([(2, 3, 3), (4, 5, 5), (6, 0, 0)], spells.Select(h => (h.From, h.Named, h.WokeAt)));
+        Assert.Equal([1], sleeper.Calls);
+        Assert.Equal(1 + 1 + 12, r.State.Sleep[Power.Babylonia].WakeAt);
     }
 
     [Fact]
     public async Task The_hidden_cap_wakes_a_seat_after_a_long_sleep_and_is_told_nowhere()
     {
-        // The season it named lies beyond the cap: the cap wakes it at turn 1 + 1 + 3, and says nothing of itself.
-        var sleeper = new Sleeper(v => v.Turn == 1 ? Wake(50) : Nothing());
-        await Play(Power.Babylonia, sleeper, 6, Quiet with { MaxSleep = 3 });
+        // The cap wakes it at turn 1 + 1 + 3, and says nothing of itself.
+        var sleeper = new Sleeper(_ => Nothing());
+        await Play(Power.Babylonia, sleeper, 6, Cap(3));
         Assert.Equal([1, 5], sleeper.Calls);
         Assert.Equal([TurnEngine.CapReason], sleeper.Views[1].WokenBecause);
         Assert.Equal("You slept 3 seasons (you last gave orders in turn 1). You were woken because: your counsellors woke you after a long sleep.", Prompts.SleepLine(sleeper.Views[1]));
@@ -204,7 +219,7 @@ public class SleepTests
             var plans = Enumerable.Range(3, 41).Append(70).Select(t => new ScheduledOrders { Turn = t, Orders = [new HoldOrder("babylon")] }).ToList();
             var e = new TurnEngine(s);
             e.BeginTurn();
-            e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Babylonia] = new() { Scheduled = plans, Sleep = new SleepRequest { WakeTurn = 3 } } });
+            e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Babylonia] = new() { Scheduled = plans } });
             var notices = string.Join("\n", s.InboxOf(Power.Babylonia).Where(i => i.Kind == InboxKind.Rejected).Select(i => i.Body));
             return (Prompts.Situation(Views.For(s, Power.Babylonia)), notices, sleep.Scheduled.Select(x => x.Turn).ToList());
         }
@@ -358,68 +373,13 @@ public class SleepTests
         // sleeps on until the cap wakes it, not the same failure again.
         var sleeper = new Sleeper(v => v.Turn switch
         {
-            1 => new TurnSubmission { Sleep = new SleepRequest { WakeTurn = 2 }, Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("sippar", "memphis")] }] },
+            1 => new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("sippar", "memphis")] }] },
             _ => Nothing(),
         });
-        await Play(Power.Babylonia, sleeper, 7, Quiet with { MaxSleep = 3 });
-        Assert.Equal([1, 2, 3, 7], sleeper.Calls);
-        Assert.Contains(sleeper.Views[2].WokenBecause, w => w.StartsWith("orders you scheduled could not be carried out"));
-        Assert.Equal([TurnEngine.CapReason], sleeper.Views[3].WokenBecause);
-    }
-
-    [Fact]
-    public async Task A_seat_can_ask_to_be_woken_when_a_unit_moves_or_its_treasury_runs_low()
-    {
-        var watcher = new Sleeper(v => v.Turn == 1 ? Wake(0, new WakeTrigger { Kind = WakeKind.UnitMoves, Province = "ekallatum" }) : Nothing());
-        var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela")] } : new TurnSubmission());
-        await Play(Power.Babylonia, watcher, 4, others: new() { [Power.Assyria] = assyria });
-        Assert.Equal(3, watcher.Calls.ElementAt(1));
-        Assert.True(watcher.Views[1].WokenBecause.Contains("you asked to be woken when the unit in ekallatum moves"), string.Join(" / ", watcher.Views[1].WokenBecause));
-
-        // A servant paid 400 a season at court drains Babylon's treasury: it falls below what the king saw when he set the
-        // trigger, which wakes him. A trigger set below the treasury already does not (only a fall wakes a king).
-        static void Costly(GameState s) => s.Characters.First(c => c.Employer == Power.Babylonia && c.Contract is not null).Contract!.Wage = 400;
-        var amount = 0;
-        var poor = new Sleeper(v =>
-        {
-            if (v.Turn != 1) return Nothing();
-            amount = v.Gold;
-            return Wake(0, new WakeTrigger { Kind = WakeKind.TreasuryBelow, Amount = amount });
-        });
-        await Play(Power.Babylonia, poor, 3, setup: Costly);
-        Assert.Equal(2, poor.Calls.ElementAt(1));
-        Assert.Equal([$"you asked to be woken when the treasury falls below {amount} shekels"], poor.Views[1].WokenBecause);
-        Assert.Equal($"You gave orders last season (turn 1). You were woken because: you asked to be woken when the treasury falls below {amount} shekels.", Prompts.SleepLine(poor.Views[1]));
-
-        var already = new Sleeper(v => v.Turn == 1 ? Wake(0, new WakeTrigger { Kind = WakeKind.TreasuryBelow, Amount = 100000 }) : Nothing());
-        await Play(Power.Babylonia, already, 3, setup: Costly);
-        Assert.Equal([1], already.Calls);
-    }
-
-    [Fact]
-    public async Task A_named_season_holds_only_until_the_seat_is_next_woken_and_the_seat_is_reminded_of_it()
-    {
-        // Babylon names turn 6 and asks to be woken when the unit in Ekallatum moves, which Assyria's army does at once:
-        // that wakes it in turn 2. It names no season then, so it is not woken in turn 6.
-        var sleeper = new Sleeper(v => v.Turn == 1 ? Wake(6, new WakeTrigger { Kind = WakeKind.UnitMoves, Province = "ekallatum" }) : Nothing());
-        var assyria = new Scripted(v => v.Turn == 1 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela")] } : new TurnSubmission());
-        var r = await Play(Power.Babylonia, sleeper, 6, others: new() { [Power.Assyria] = assyria });
-        Assert.Equal([1, 2], sleeper.Calls);
-        Assert.Equal(2 + 1 + 12, r.State.Sleep[Power.Babylonia].WakeAt);
-        var woke = sleeper.Views[1];
-        Assert.Equal(6, woke.NamedWake);
-        Assert.Contains("When you last gave orders you asked to be woken in turn 6. Each set of orders names that season anew: name it again (wake_in_turn) if you still want it.", Prompts.Situation(woke));
-        // Not once it has come, nor in the first season.
-        Assert.Equal(0, sleeper.Views[0].NamedWake);
-        var rules = Prompts.LeaderRules(true, new GameConfig());
-        Assert.Contains("name it (wake_in_turn) with each set of orders, like your triggers: it holds only until you are next woken, so if something wakes you sooner, name it again to keep it.", rules);
-        Assert.Contains("Like wake_on, it holds only until you are next woken: name it again to keep it.", Schemas.LeaderOrders(new GameConfig()).ToJsonString());
-
-        var punctual = new Sleeper(v => v.Turn == 1 ? Wake(3) : Nothing());
-        await Play(Power.Babylonia, punctual, 3);
-        Assert.Equal([1, 3], punctual.Calls);
-        Assert.Equal(0, punctual.Views[1].NamedWake);
-        Assert.DoesNotContain("When you last gave orders you asked", Prompts.Situation(punctual.Views[1]));
+        await Play(Power.Babylonia, sleeper, 7, Cap(3));
+        Assert.Equal([1, 3, 7], sleeper.Calls);
+        Assert.Contains(sleeper.Views[1].WokenBecause, w => w.StartsWith("orders you scheduled could not be carried out"));
+        Assert.Equal([TurnEngine.CapReason], sleeper.Views[2].WokenBecause);
     }
 
     [Fact]
@@ -657,11 +617,11 @@ public class SleepTests
     {
         var sleeper = new Sleeper(v => v.Turn switch
         {
-            1 => Wake(3),
+            1 => Nothing(),
             3 => new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new HoldOrder("babylon")] }] },
             _ => Nothing(),
         });
-        var r = await Play(Power.Babylonia, sleeper, 3);
+        var r = await Play(Power.Babylonia, sleeper, 3, Cap(1));
         var notice = Assert.Single(r.State.InboxOf(Power.Babylonia), i => i.Title == "Scheduled orders not kept");
         Assert.Equal((4, "- turn 2: that season has passed"), (notice.Turn, notice.Body));
         Assert.Empty(r.State.Sleep[Power.Babylonia].Scheduled);
@@ -687,7 +647,8 @@ public class SleepTests
         var first = recorder.Specs.Single(x => x.Key == "t1/orders/Alashiya");
         Assert.StartsWith("This is your first season.\n", first.User.ReplaceLineEndings("\n"));
         Assert.Contains("YOU SLEEP BETWEEN YOUR ORDERS\nAfter you give your orders, you sleep.", first.SharedSystem.ReplaceLineEndings("\n"));
-        Assert.Contains("\"wake_in_turn\"", first.Schema.ToJsonString());
+        Assert.Contains("\"schedule\"", first.Schema.ToJsonString());
+        Assert.DoesNotContain("\"wake_in_turn\"", first.Schema.ToJsonString());
         var slept = travel - 1;
         var since = slept == 0 ? "You gave orders last season (turn 1)." : $"You slept {slept} season{(slept == 1 ? "" : "s")} (you last gave orders in turn 1).";
         var host = recorder.Specs.First(x => x.Key.StartsWith($"t{1 + travel}/aud/", StringComparison.Ordinal));
@@ -757,13 +718,15 @@ public class SleepTests
         var sleep = rules.IndexOf("YOU SLEEP BETWEEN YOUR ORDERS", StringComparison.Ordinal);
         var season = rules.IndexOf("HOW A SEASON RESOLVES", StringComparison.Ordinal);
         Assert.True(win < sleep && sleep < season);
-        Assert.Contains("After you give your orders, you sleep. You are woken only when something concerns you: an envoy at your door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand. Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these orders must carry your kingdom until then: schedule what your armies should do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on their own.", rules);
+        Assert.Contains("After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops in your land or next to your capital; land or troops lost; a scheduled or standing order that failed; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
+        // The sentence six kings of the second agent simulation read as a contradiction is gone.
+        Assert.DoesNotContain("you may not be woken again", rules);
         Assert.Contains("PLANNING AHEAD (how sleeping works)", rules);
         Assert.Contains("You may schedule at most 24 orders for one season, for at most 40 seasons; orders past these limits are refused.", rules);
         Assert.Contains("Standing orders (standing_orders), at most 12, each with at most 24 orders,", rules);
         Assert.Contains("Your units hold unless you scheduled orders for them or a standing order gives them orders.", rules);
         Assert.Contains("If two fire in the same season, the one with the lower id goes first", rules);
-        Assert.Contains("name it (wake_in_turn)", rules);
+        Assert.DoesNotContain("wake_in_turn", rules);
         Assert.Contains("(a move that is stopped or a support that is cut among them), wakes you the next season. The orders you give now for this season do not, an entry for this season in your schedule among them", rules);
         // Told when it next gives orders, not "next season": a king that sleeps reads it when it is woken.
         Assert.Contains("Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders.", rules);
@@ -794,11 +757,11 @@ public class SleepTests
     {
         var sleeper = new Sleeper(v => v.Turn switch
         {
-            1 => new TurnSubmission { Sleep = new SleepRequest { WakeTurn = 2 }, Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("babylon", "nippur"), new MoveOrder("durkurigalzu", "nippur")] }] },
+            1 => new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("babylon", "nippur"), new MoveOrder("durkurigalzu", "nippur")] }] },
             2 => new TurnSubmission { Orders = [new HoldOrder("babylon")] },
             _ => Nothing(),
         });
-        var r = await Play(Power.Babylonia, sleeper, 2);
+        var r = await Play(Power.Babylonia, sleeper, 2, Cap(0));
         Assert.Contains("turn 2", Prompts.Situation(sleeper.Views[1]));
         Assert.Contains(r.State.Units, u => u.Power == Power.Babylonia && u.Province == "babylon");
         Assert.Contains(r.State.Units, u => u.Power == Power.Babylonia && u.Province == "nippur");
@@ -810,11 +773,11 @@ public class SleepTests
     {
         var sleeper = new Sleeper(v => v.Turn switch
         {
-            1 => new TurnSubmission { Sleep = new SleepRequest { WakeTurn = 2 }, Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new RaiseOrder("nippur", UnitKind.Army)] }] },
+            1 => new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new RaiseOrder("nippur", UnitKind.Army)] }] },
             2 => new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 2 }] },
             _ => Nothing(),
         });
-        var r = await Play(Power.Babylonia, sleeper, 2);
+        var r = await Play(Power.Babylonia, sleeper, 2, Cap(0));
         Assert.DoesNotContain(r.State.Units, u => u.Province == "nippur");
     }
 
@@ -826,17 +789,17 @@ public class SleepTests
         {
             calls++;
             if (calls == 2) throw new InvalidOperationException("the model did not answer");
-            return v.Turn == 1 ? new TurnSubmission { Orders = [new MoveOrder("babylon", "nippur")], Sleep = new SleepRequest { WakeTurn = 3 } } : Nothing();
+            return v.Turn == 1 ? new TurnSubmission { Orders = [new MoveOrder("babylon", "nippur")] } : Nothing();
         });
-        var r = await Play(Power.Babylonia, sleeper, 4);
+        var r = await Play(Power.Babylonia, sleeper, 4, Cap(1));
         Assert.Contains(r.Errors, e => e.StartsWith("t3/orders/Babylonia:"));
         // The stand-in did not put the seat to sleep: it is asked again next season, told how long it has been and why it
         // was woken in the season it missed, which it never read.
         Assert.Equal([1, 3, 4], sleeper.Calls);
         var after = sleeper.Views.Last();
         Assert.Equal(1, after.LastCalled);
-        Assert.Equal(["you asked to be woken in turn 3"], after.WokenBecause);
-        Assert.Equal("You slept 2 seasons (you last gave orders in turn 1). You were woken because: you asked to be woken in turn 3.", Prompts.SleepLine(after));
+        Assert.Equal([TurnEngine.CapReason], after.WokenBecause);
+        Assert.Equal("You slept 2 seasons (you last gave orders in turn 1). You were woken because: your counsellors woke you after a long sleep.", Prompts.SleepLine(after));
         Assert.Contains(after.WhileAsleep, i => i.Turn == 2 && i.Title == "Movements last season");
     }
 
@@ -877,7 +840,7 @@ public class SleepTests
     [Fact]
     public async Task With_sleeping_off_every_seat_is_asked_every_season()
     {
-        var sleeper = new Sleeper(_ => Wake(4));
+        var sleeper = new Sleeper(_ => Nothing());
         var r = await Play(Power.Babylonia, sleeper, 4, Quiet with { SleepingSeats = false });
         Assert.Equal([1, 2, 3, 4], sleeper.Calls);
         Assert.Empty(r.State.Sleep);
@@ -908,18 +871,15 @@ public class SleepTests
                 {
                     played.Add(st);
                     var bot = new ScriptLeader(st.Seed);
-                    // Two kings that sleep after every call, naming seasons, scheduling marches, setting triggers and standing
-                    // orders and cancelling them, among script kings.
-                    var nap = new Sleeper(v =>
+                    // Two kings that sleep after every call, scheduling marches, giving standing orders and cancelling them,
+                    // among script kings; a short hidden cap wakes them often.
+                    var nap = new Sleeper(v => new TurnSubmission
                     {
-                        var sub = Wake(0, new WakeTrigger { Kind = WakeKind.ProvinceChangesHands, Province = "mari" });
-                        sub.Standing = [Attacked("enkomi", new HoldOrder("enkomi")), Enters(null, "cilicia", new MoveOrder("enkomi", "cilicia"))];
-                        sub.CancelStanding = v.Turn % 3 == 0 ? ["all"] : ["s1"];
-                        return sub;
+                        Standing = [Attacked("enkomi", new HoldOrder("enkomi")), Enters(null, "cilicia", new MoveOrder("enkomi", "cilicia"))],
+                        CancelStanding = v.Turn % 3 == 0 ? ["all"] : ["s1"],
                     });
                     var babylon = new Sleeper(v => new TurnSubmission
                     {
-                        Sleep = new SleepRequest { WakeTurn = v.Turn + 1 + v.Turn % 3 },
                         Scheduled =
                         [
                             new ScheduledOrders { Turn = v.Turn + 1, Orders = [new HoldOrder("babylon")] },
@@ -931,7 +891,7 @@ public class SleepTests
                     });
                     var seats = Powers.All.ToDictionary(p => p, p => p switch { Power.Alashiya => nap, Power.Babylonia => babylon, _ => (ISeat)bot });
                     return new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
-                }, verifyReplay: true, config: new GameConfig { SleepingSeats = sleeping, MaxSleep = 4, MaxTurns = 18 });
+                }, verifyReplay: true, config: new GameConfig { SleepingSeats = sleeping, MaxSleep = 2, MaxTurns = 18 });
                 Assert.True(summary.ReplayMatches, $"seed {seed}, sleep {(sleeping ? "on" : "off")}");
             }
         }
@@ -1297,19 +1257,19 @@ public class SleepTests
     [Fact]
     public async Task Orders_given_in_the_season_a_standing_order_fires_replace_its_orders()
     {
-        // The seat named turn 3, the season its standing order fires; awake, it orders the army in Babylon to hold.
+        // The cap wakes the seat in turn 3, the season its standing order fires; awake, it orders the army in Babylon to hold.
         var sleeper = new Sleeper(v => v.Turn switch
         {
-            1 => new TurnSubmission { Sleep = new SleepRequest { WakeTurn = 3 }, Standing = [Attacked("sippar", new MoveOrder("babylon", "nippur"), new HoldOrder("durkurigalzu"))] },
+            1 => new TurnSubmission { Standing = [Attacked("sippar", new MoveOrder("babylon", "nippur"), new HoldOrder("durkurigalzu"))] },
             3 => new TurnSubmission { Orders = [new HoldOrder("babylon")] },
             _ => Nothing(),
         });
         var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "sippar")] } : new TurnSubmission());
-        var r = await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria });
+        var r = await Play(Power.Babylonia, sleeper, 3, Cap(1), others: new() { [Power.Assyria] = assyria });
 
         Assert.Equal([1, 3], sleeper.Calls);
         // The failed attack did not wake it; it read in its view that the standing order fires this season.
-        Assert.Equal(["you asked to be woken in turn 3"], sleeper.Views[1].WokenBecause);
+        Assert.Equal([TurnEngine.CapReason], sleeper.Views[1].WokenBecause);
         Assert.Contains("(it fires this season: Assyria's army tried to move ekallatum -> sippar last season)", Prompts.Situation(sleeper.Views[1]));
         Assert.Equal(Power.Babylonia, r.State.UnitAt("babylon")?.Power);
         Assert.Null(r.State.UnitAt("nippur"));
@@ -1455,19 +1415,18 @@ public class SleepTests
         {
             1 => new TurnSubmission
             {
-                Sleep = new SleepRequest { WakeTurn = 3 },
                 Standing = [Enters(Power.Assyria, "arbela", new MoveOrder("babylon", "nippur")), Attacked("sippar", new MoveOrder("durkurigalzu", "nippur"))],
             },
-            3 => new TurnSubmission { Sleep = new SleepRequest { WakeTurn = 4 }, CancelStanding = ["s1", "s7"] },
+            3 => new TurnSubmission { CancelStanding = ["s1", "s7"] },
             4 => new TurnSubmission { CancelStanding = ["all"] },
             _ => Nothing(),
         });
         var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela")] } : new TurnSubmission());
-        var r = await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria });
+        var r = await Play(Power.Babylonia, sleeper, 3, Cap(0), others: new() { [Power.Assyria] = assyria });
         var sleep = r.State.Sleep[Power.Babylonia];
 
         // s1 was to fire in turn 3; cancelled then, it did not. s2 stays until turn 4 cancels everything.
-        Assert.Contains("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur (it fires this season", Prompts.Situation(sleeper.Views[1]));
+        Assert.Contains("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur (it fires this season", Prompts.Situation(sleeper.Views.Last()));
         Assert.Null(r.State.UnitAt("nippur"));
         Assert.Equal("s2", Assert.Single(sleep.Standing).Id);
         Assert.Equal("- s7: you have no standing order s7", Notice(r.State, Power.Babylonia, "Standing orders not cancelled").Body);

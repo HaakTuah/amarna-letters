@@ -126,7 +126,7 @@ public static class BatchRunner
     /// script king, and, for seats that may sleep, the seasons it held court while its orders stood and
     /// in how many of them it reopened its orders (courts: held/reopened, and "(n by stand-in)" for courts
     /// where a call failed and it was asked for orders without having chosen), how many seasons each sleep
-    /// lasted (n: it woke in the season it named; +: still asleep at the end) and every reason they were
+    /// lasted (+: still asleep at the end) and every reason they were
     /// woken. A last line gives the reopen rate over all seats.
     /// </summary>
     public static string SeatReport(GameRunner runner)
@@ -155,7 +155,7 @@ public static class BatchRunner
             {
                 // A spell still open at the end counts the seasons slept so far.
                 sleeps = string.Join(" ", sl.History.Select(h => h.WokeAt > 0
-                    ? $"{h.WokeAt - h.From}{(h.Named > 0 && h.Named == h.WokeAt ? "n" : "")}"
+                    ? $"{h.WokeAt - h.From}"
                     : $"{s.Turn - h.From + 1}+"));
                 // Every reason a seat was woken, not only the first, counted over its spells.
                 woken = string.Join("; ", sl.History.SelectMany(h => h.Reasons).GroupBy(ReasonKind).Select(g => $"{g.Key} x{g.Count()}"));
@@ -303,7 +303,7 @@ public static class BatchRunner
 
     /// <summary>A wake reason without its particulars, to count reasons of one kind together ("land lost: Gaza ..." is "land lost").</summary>
     public static string ReasonKind(string reason) =>
-        reason.StartsWith("you asked to be woken in turn", StringComparison.Ordinal) ? "the season it named" : reason.Split(':', '(')[0].Trim();
+        reason.Split(':', '(')[0].Trim();
 
     /// <summary>
     /// Orders a notice reports as refused or failed: every rejection notice counts, the validator's list

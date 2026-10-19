@@ -308,7 +308,7 @@ public class LocalPlayTests
         {
             lock (asked) asked.Add(stem);
             return stem.Contains("orders")
-                ? """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":0,"wake_on":[]},"schedule":[]}"""
+                ? """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"schedule":[]}"""
                 : Welcome;
         }, stop.Token);
         for (var i = 0; i < 4; i++) await runner.PlayTurnAsync();

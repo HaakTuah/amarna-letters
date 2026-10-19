@@ -237,7 +237,7 @@ public class FileSeatTests
             if (stem == "t1_orders_Alashiya") request = text;
             return stem.Contains("orders")
                 ? """
-                  {"notes":"Plan ahead.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":0,"wake_on":[]},
+                  {"notes":"Plan ahead.","units":[],"letters":[],"other_orders":[],
                    "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"other_orders":[]}],
                    "standing_orders":[{"when":"unit_attacked","province":"enkomi","power":"","units":[{"unit":"enkomi","order":"hold","target":"","to":""}],"other_orders":[]}],
                    "cancel_standing":[]}
@@ -272,10 +272,11 @@ public class FileSeatTests
         var answering = Answer(folder, (stem, text) =>
         {
             lock (requests) requests[stem] = text;
+            // The second reply still names a season and a trigger of its own, as a king of version 4 could: it is not read.
             return stem.Contains("orders")
                 ? stem.StartsWith("t2_")
                     ? """{"notes":"Wake me next season.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[]}"""
-                    : """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":0,"wake_on":[]},"schedule":[]}"""
+                    : """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"schedule":[]}"""
                 : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
         }, stop.Token);
         for (var i = 0; i < 7; i++) await runner.PlayTurnAsync();
@@ -283,17 +284,17 @@ public class FileSeatTests
         await answering;
 
         // The script kings of seed 8 send Egypt's envoy to Alashiya at once: it wakes the sleeping king in turn 2. The
-        // king then names turn 3, and nothing concerns it in turn 5.
+        // king cannot ask to be woken in turn 3, and nothing concerns it then.
         string Decision(string stem) => requests[stem].ReplaceLineEndings("\n").Split("## THIS DECISION\n\n")[1];
         Assert.Contains("YOU SLEEP BETWEEN YOUR ORDERS", requests["t1_orders_Alashiya"]);
-        Assert.Contains("\"wake_in_turn\"", requests["t1_orders_Alashiya"]);
+        Assert.DoesNotContain("wake_in_turn", requests["t1_orders_Alashiya"]);
         Assert.StartsWith("This is your first season.\n", Decision("t1_orders_Alashiya"));
         // (A script king's fleet also ends a move next to Enkomi that season, which wakes it too.)
         const string woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt waits to be received";
         Assert.StartsWith(woken, Decision(requests.Keys.First(k => k.StartsWith("t2_aud_", StringComparison.Ordinal))));
         Assert.StartsWith(woken, Decision("t2_orders_Alashiya"));
-        Assert.StartsWith("You gave orders last season (turn 2). You were woken because: you asked to be woken in turn 3.\n", Decision("t3_orders_Alashiya"));
-        Assert.DoesNotContain("t5_orders_Alashiya", requests.Keys);
+        Assert.DoesNotContain("t3_orders_Alashiya", requests.Keys);
+        Assert.DoesNotContain(requests.Values, r => r.Contains("you asked to be woken", StringComparison.Ordinal));
 
         var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));
         await replay.PrepareAsync();

@@ -47,8 +47,6 @@ public static class Schemas
         "captive_execute", "captive_ransom", "captive_turn", "captive_release", "release_detained", "pay_ransom",
     ];
 
-    public static readonly string[] WakeTriggers = ["unit_moves", "envoy_returns", "treasury_below", "troops_enter", "province_changes_hands"];
-
     // The shapes of a unit order and of any other order. Repeated in the schedule and in standing orders; the copy in
     // standing orders leaves out the field descriptions, which are the same as above it, to keep the schema short.
     private static JsonObject UnitOrder(bool described = true) => Object(
@@ -69,9 +67,9 @@ public static class Schemas
         ("seals", Array(Str(), described ? "Powers whose seals a forgery bears." : null)));
 
     /// <summary>
-    /// A king's orders. With sleeping seats on, it sleeps after them: it may name a season to be woken in, add its own
-    /// reasons to be woken, schedule orders for later seasons, and give or cancel standing orders. Nothing here names the
-    /// cap on its sleep.
+    /// A king's orders. With sleeping seats on, it sleeps after them until something concerns it: it never chooses when it
+    /// wakes, so it schedules orders for later seasons and gives or cancels standing orders. Nothing here names the cap on
+    /// its sleep.
     /// </summary>
     public static JsonObject LeaderOrders(GameConfig? c = null)
     {
@@ -79,16 +77,6 @@ public static class Schemas
         if (c is not { SleepingSeats: true }) return o;
         var props = (JsonObject)o["properties"]!;
         var required = (JsonArray)o["required"]!;
-        props["sleep"] = With(Object(
-            ("wake_in_turn", Int("A later season (turn number) to be woken in, or 0 for none. Something that concerns you may wake you sooner. Like wake_on, it holds only until you are next woken: name it again to keep it.")),
-            ("wake_on", Array(Object(
-                ("trigger", Enum(WakeTriggers)),
-                ("province", Str("unit_moves: where the unit stands now. troops_enter, province_changes_hands: the province. Otherwise empty.")),
-                ("person", Str("envoy_returns: the person id. Otherwise empty.")),
-                ("amount", Int("treasury_below: shekels. Otherwise 0.")),
-                ("power", Str("troops_enter: whose troops, or empty for any foreign power's."))),
-                "Your own reasons to be woken, on top of the usual ones (at most 8). Each fires on a change after you set it, not on a state that lasts. They hold until you are next woken."))),
-            "You sleep after these orders, until something concerns you. What else should wake you.");
         props["schedule"] = Array(Object(
             ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
             ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands.")),
@@ -102,7 +90,6 @@ public static class Schemas
             ("other_orders", Array(OtherOrder(described: false), "As in other_orders."))),
             $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the event, the orders run the next season, once, before your scheduled orders; orders you give that season replace them. Firing does not wake you; an order of it that fails does.");
         props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\".");
-        required.Add("sleep");
         required.Add("schedule");
         required.Add("standing_orders");
         required.Add("cancel_standing");

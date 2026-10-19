@@ -124,14 +124,13 @@ public class CourtAsleepTests
     [Fact]
     public async Task An_order_trigger_reopens_orders_without_asking_and_the_audience_is_an_ordinary_one()
     {
-        // The king named the very season the envoy arrives: that reopens its orders directly.
+        // The hidden cap wakes the king in the very season the envoy arrives: that reopens its orders directly.
         var t = CourtTurn();
-        var host = new Sleeper(v => v.Turn == 1 ? new TurnSubmission { Sleep = new SleepRequest { WakeTurn = t } } : new TurnSubmission(),
-            (_, _) => new HostReply { End = true });
-        var r = await Play(host, t);
+        var host = new Sleeper(_ => new TurnSubmission(), (_, _) => new HostReply { End = true });
+        var r = await Play(host, t, Quiet with { MaxSleep = t - 2 });
         Assert.Equal([1, t], host.Calls);
         Assert.False(Assert.Single(host.Audiences).OrdersStand);
-        Assert.Equal([$"you asked to be woken in turn {t}", TurnEngine.EnvoyWaits(Power.Egypt)], host.Views.Last().WokenBecause);
+        Assert.Equal([TurnEngine.CapReason, TurnEngine.EnvoyWaits(Power.Egypt)], host.Views.Last().WokenBecause);
         Assert.Empty(r.State.Sleep[Power.Alashiya].Courts);
     }
 

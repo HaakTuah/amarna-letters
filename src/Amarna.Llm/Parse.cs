@@ -44,33 +44,8 @@ public static class Parse
         foreach (var x in (o["other_orders"] as JsonArray) ?? new JsonArray())
             if (Other(x) is { } order) sub.Orders.Add(order);
 
-        // Sleeping seats: the season to be woken in, what else should wake it, and orders for later seasons.
-        if (o["sleep"] is JsonObject sleep)
-        {
-            var req = new SleepRequest { WakeTurn = Math.Max(0, I(sleep, "wake_in_turn")) };
-            foreach (var w in (sleep["wake_on"] as JsonArray) ?? new JsonArray())
-            {
-                WakeKind? kind = S(w, "trigger") switch
-                {
-                    "unit_moves" => WakeKind.UnitMoves,
-                    "envoy_returns" => WakeKind.EnvoyReturns,
-                    "treasury_below" => WakeKind.TreasuryBelow,
-                    "troops_enter" => WakeKind.TroopsEnter,
-                    "province_changes_hands" => WakeKind.ProvinceChangesHands,
-                    _ => null,
-                };
-                if (kind is not { } k) continue;
-                req.WakeOn.Add(new WakeTrigger
-                {
-                    Kind = k,
-                    Province = Empty(S(w, "province")) is { } wp ? Prov(wp) : null,
-                    Character = Empty(S(w, "person")),
-                    Amount = Math.Max(0, I(w, "amount")),
-                    Power = P(S(w, "power")),
-                });
-            }
-            sub.Sleep = req;
-        }
+        // Sleeping seats: orders for later seasons. A king never chooses when he wakes, so a reply that still names a season
+        // or triggers of its own ("sleep") is not read.
         foreach (var plan in (o["schedule"] as JsonArray) ?? new JsonArray())
         {
             var scheduled = new ScheduledOrders { Turn = I(plan, "turn") };

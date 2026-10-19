@@ -151,7 +151,7 @@ public static class Prompts
     private static string Sleeping() => $"""
 
         YOU SLEEP BETWEEN YOUR ORDERS
-        After you give your orders, you sleep. You are woken only when something concerns you: an envoy at your door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand. Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these orders must carry your kingdom until then: schedule what your armies should do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on their own.
+        After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops in your land or next to your capital; land or troops lost; a scheduled or standing order that failed; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.
 
         PLANNING AHEAD (how sleeping works)
         - While you sleep the world goes on, and nobody is told that you sleep. Your units hold unless you scheduled orders for them or a standing order gives them orders.
@@ -161,8 +161,6 @@ public static class Prompts
         - A unit's scheduled moves are its march. If a scheduled move is stopped, the unit tries that step again the next season, and each of its later scheduled orders waits a season. If the step is stopped a second time, or a scheduled move is refused, the march ends: the unit's remaining scheduled orders are dropped. When you lose a unit, its scheduled and standing orders are dropped, which wakes you.
         - Standing orders (standing_orders), at most {TurnEngine.MaxStanding}, each with at most {TurnEngine.MaxScheduledPerSeason} orders, kept until they fire or you cancel them (cancel_standing, by id or "all"). One waits for an event you see: a unit of the power you name, or any foreign unit, moving into a province and getting there (unit_enters); or a foreign unit moving against the province where one of your units stands (name it by where it stands now), your unit still standing there afterwards (unit_attacked). Its orders then run the next season, once, before your scheduled orders: they replace scheduled orders for the same units or people, and orders you give that season replace theirs. If two fire in the same season, the one with the lower id goes first: its orders replace the other's for the same units or people. A standing order firing does not wake you: you read it in your news.
         - A scheduled or standing order that is refused, or fails as its season resolves (a move that is stopped or a support that is cut among them), wakes you the next season. The orders you give now for this season do not, an entry for this season in your schedule among them: if one is refused or fails, you read why when you are next woken.
-        - Your own triggers (wake_on), at most 8, set anew with each set of orders. Each wakes you when something changes after you set it, never for a state that merely lasts: a unit moves (name the province it stands in); one of your people comes back to court (one at court when you set it must leave and come back first); your treasury falls below an amount (if it is below that already, it must first rise to the amount again); foreign troops (of one power, or any) move into a province and get there; or a province changes hands.
-        - To be woken in a particular season, name it (wake_in_turn) with each set of orders, like your triggers: it holds only until you are next woken, so if something wakes you sooner, name it again to keep it.
         - Each time you wake, you are told how long you slept and what woke you, then what happened while you slept: first in brief (the troop movements you saw, the reports that came, the orders that failed, the standing orders that fired), then the news of those seasons in full (the routine treasury notices left out).
         """;
 
@@ -263,9 +261,6 @@ public static class Prompts
         if (v.CourtLetters.Count > 0)
             sb.AppendLine("LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): "
                           + string.Join("; ", v.CourtLetters.Select(o => o.Describe())) + "." + LettersGold(v.CourtLetters));
-
-        if (v.NamedWake > 0)
-            sb.AppendLine($"When you last gave orders you asked to be woken in turn {v.NamedWake}. Each set of orders names that season anew: name it again (wake_in_turn) if you still want it.");
 
         sb.Append(WhileYouSlept(v));
 

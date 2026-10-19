@@ -32,7 +32,7 @@ public sealed record FramePerson(string Id, string Name, string Origin, string C
 }
 
 /// <summary>A sleeping seat at the end of a season (god view only).</summary>
-public sealed record FrameSleep(bool Asleep, int LastCalled, int WakeAt, int Named, IReadOnlyList<string> WokenBecause,
+public sealed record FrameSleep(bool Asleep, int LastCalled, int WakeAt, IReadOnlyList<string> WokenBecause,
     int LastWokeAt, IReadOnlyList<string> LastReasons, int Spells);
 
 /// <summary>News that reached a court in a season, which the map can place: a rumour from a court, or a spy's report from its post.</summary>
@@ -154,7 +154,7 @@ public sealed class SeasonFrame
             Sleep = s.Sleep.ToDictionary(x => x.Key, x =>
             {
                 var last = x.Value.History.LastOrDefault(h => h.WokeAt > 0);
-                return new FrameSleep(x.Value.Asleep, x.Value.LastCalled, x.Value.WakeAt, x.Value.History.LastOrDefault()?.Named ?? 0,
+                return new FrameSleep(x.Value.Asleep, x.Value.LastCalled, x.Value.WakeAt,
                     x.Value.WokenBecause.ToList(), last?.WokeAt ?? 0, last?.Reasons.ToList() ?? [], x.Value.History.Count);
             }),
             Eliminated = s.Eliminated.ToHashSet(),

@@ -2,8 +2,9 @@ namespace Amarna.Engine;
 
 /// <summary>
 /// Sleeping seats. The world advances every season, but a seat that may sleep sleeps after every set of orders, and
-/// is asked again only when something concerns it, the season it named comes, or the hidden cap is reached. There
-/// is never a global skip: each seat sees only its own wake-ups, and everything it is told comes from its own view.
+/// is asked again only when something concerns it or the hidden cap is reached: a king never chooses when he wakes (the
+/// design document's "Decided: sleep is the default" and "No triggers of the seat's own"). There is never a global skip:
+/// each seat sees only its own wake-ups, and everything it is told comes from its own view.
 /// </summary>
 public sealed partial class TurnEngine
 {
@@ -117,13 +118,12 @@ public sealed partial class TurnEngine
         }
     }
 
-    /// <summary>A sleeping seat wakes for an orders call: its triggers and the reasons it waited on are spent, and its spell ends.</summary>
+    /// <summary>A sleeping seat wakes for an orders call: the reasons it waited on are spent, and its spell ends.</summary>
     private void Wake(SleepState sl, List<string> reasons)
     {
         sl.Asleep = false;
         sl.WokenBecause = reasons;
         sl.PendingWake.Clear();
-        sl.Triggers.Clear();
         if (sl.History.LastOrDefault() is { WokeAt: 0 } spell)
         {
             spell.WokeAt = S.Turn;
@@ -181,11 +181,13 @@ public sealed partial class TurnEngine
     }
 
     /// <summary>
-    /// What wakes a seat, and nothing else: an envoy waiting to be received; foreign troops in its land, or ending a move next
-    /// to its capital while it holds it; land or troops lost; a scheduled or standing order that failed; a ransom demanded; a
-    /// servant giving notice; one of its own triggers; the season it named; the hidden cap. (A kingdom that falls ends its
-    /// sleep in <see cref="EndSleep"/>.) An envoy waiting wakes it for its audiences only; every other reason here is an
-    /// order trigger, which reopens its orders directly (<see cref="WakeCheck"/>).
+    /// What wakes a seat, and nothing else: the default triggers, events the engine itself judges to concern it, and the hidden
+    /// cap. An envoy waiting to be received; foreign troops in its land, or ending a move next to its capital while it holds
+    /// it; land or troops lost; a scheduled or standing order that failed; a ransom demanded; a servant giving notice; the
+    /// hidden cap. (A kingdom that falls ends its sleep in <see cref="EndSleep"/>.) The seat itself can neither name a season
+    /// to be woken in nor set triggers of its own (removed in the fix pass after item 4: given a way to wake himself, a king
+    /// used it every season). An envoy waiting wakes it for its audiences only; every other reason here is an order trigger,
+    /// which reopens its orders directly (<see cref="WakeCheck"/>).
     /// </summary>
     private List<string> WakeReasons(Power p, SleepState sl)
     {
@@ -196,10 +198,7 @@ public sealed partial class TurnEngine
         }
 
         foreach (var r in sl.PendingWake) Add(r);
-        if (sl.Asleep && S.Turn >= sl.WakeAt)
-            Add(sl.History.LastOrDefault() is { Named: > 0 } spell && spell.Named == sl.WakeAt
-                ? $"you asked to be woken in turn {spell.Named}"
-                : CapReason);
+        if (sl.Asleep && S.Turn >= sl.WakeAt) Add(CapReason);
 
         foreach (var a in S.Audiences.Where(a => a.Host == p).OrderBy(a => IdNumber(a.Id)))
             Add(EnvoyWaits(a.From));
@@ -225,46 +224,8 @@ public sealed partial class TurnEngine
         }
         foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
             if (WakeReason(i) is { } reason) Add(reason);
-
-        // Its own triggers. Each fires on a change since it was set, never on a state that merely lasts (the user's rule for
-        // Part G): the unit or the owner it saw then is no longer there; the person comes back, having been away; the
-        // treasury falls below the amount, having stood at or above it; troops move into the province.
-        var sight = Views.Sight(S, Map, p);
-        var seen = S.LastSeen.GetValueOrDefault(p) ?? [];
-        foreach (var t in sl.Triggers)
-        {
-            var hit = t.Kind switch
-            {
-                WakeKind.UnitMoves when t.Province is { } prov =>
-                    seen.Any(o => o.Province == prov && o.Order == "move" && o.Succeeded)
-                    || (sight.Contains(prov) && Occupant(prov) != t.Seen),
-                WakeKind.EnvoyReturns => Comes(t, BackAtCourt(p, t.Character)),
-                WakeKind.TreasuryBelow => Comes(t, S.Treasuries[p].Ledger < t.Amount),
-                WakeKind.TroopsEnter when t.Province is { } prov =>
-                    seen.Any(o => o.Order == "move" && o.Succeeded && o.Target == prov && o.Power != p && (t.Power is null || o.Power == t.Power)),
-                WakeKind.ProvinceChangesHands when t.Province is { } prov => OwnerName(prov) != t.Seen,
-                _ => false,
-            };
-            if (hit) Add($"you asked to be woken when {t.Describe()}");
-        }
         return why;
     }
-
-    /// <summary>
-    /// A trigger on a condition (a person back at court, the treasury below an amount) fires when the condition comes
-    /// about, not while it lasts: only once the seat has seen it not hold since it set the trigger, which arms it. So a
-    /// treasury already below the amount wakes the seat only after it has risen to the amount and fallen below again.
-    /// </summary>
-    private static bool Comes(WakeTrigger t, bool holds)
-    {
-        if (holds) return t.Seen == WakeTrigger.Armed;
-        t.Seen = WakeTrigger.Armed;
-        return false;
-    }
-
-    /// <summary>One of the seat's people at its court with no errand: what <see cref="WakeKind.EnvoyReturns"/> waits for.</summary>
-    private bool BackAtCourt(Power p, string? id) =>
-        S.FindCharacter(id) is { } c && c.Employer == p && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == p;
 
     /// <summary>The news this season that wakes a seat: land lost, troops lost to desertion or plague, a ransom demanded, a servant's notice.</summary>
     private string? WakeReason(InboxItem i) => i.Kind switch
@@ -398,7 +359,7 @@ public sealed partial class TurnEngine
         _marchNow[p] = runs.Where(x => x.Order is MoveOrder).Select(x => (x.Order!, x.Plan)).ToList();
         return new TurnSubmission
         {
-            Orders = now.Concat(scheduled).Concat(filling).ToList(), Notes = sub.Notes, Sleep = sub.Sleep, Scheduled = sub.Scheduled,
+            Orders = now.Concat(scheduled).Concat(filling).ToList(), Notes = sub.Notes, Scheduled = sub.Scheduled,
             Standing = sub.Standing, CancelStanding = sub.CancelStanding, FromFallback = sub.FromFallback,
         };
     }
@@ -498,7 +459,7 @@ public sealed partial class TurnEngine
     /// <summary>
     /// After validation: failed scheduled and standing orders wake the seat next season. A seat that was asked this season
     /// (and answered itself, not through the stand-in) keeps the orders it scheduled and its new standing orders, and goes
-    /// to sleep: until a reason wakes it, the season it named, or the hidden cap, turn + 1 + <see cref="GameConfig.MaxSleep"/>.
+    /// to sleep: until a reason wakes it, or the hidden cap, turn + 1 + <see cref="GameConfig.MaxSleep"/>.
     /// </summary>
     private void AfterValidation(Power p, TurnSubmission sub, ValidationResult v, List<Order> scheduled)
     {
@@ -521,31 +482,10 @@ public sealed partial class TurnEngine
         KeepScheduled(p, sl, sub.Scheduled);
         KeepStanding(p, sl, sub.Standing);
 
-        var cap = S.Turn + 1 + Math.Max(0, S.Config.MaxSleep);
-        var named = sub.Sleep is { WakeTurn: var w } && w > S.Turn ? w : 0;
-        var sight = Views.Sight(S, Map, p);
+        // It sleeps until something concerns it, or, at the latest, the hidden cap: it names no season and sets no triggers.
         sl.Asleep = true;
-        sl.WakeAt = named > 0 && named <= cap ? named : cap;
-        sl.Triggers = (sub.Sleep?.WakeOn ?? []).Take(8).Select(t => new WakeTrigger
-        {
-            Kind = t.Kind,
-            Province = t.Province,
-            Character = t.Character,
-            Amount = t.Amount,
-            Power = t.Power,
-            Seen = t.Kind switch
-            {
-                WakeKind.UnitMoves when t.Province is { } prov => sight.Contains(prov) ? Occupant(prov) : "unseen",
-                WakeKind.ProvinceChangesHands when t.Province is { } prov => OwnerName(prov),
-                // A condition that holds as the trigger is set must first stop holding (see Comes): the person must leave
-                // and come back, a treasury below the amount must rise to it again. One sent out this season is still at
-                // court now, and is seen away at the next check.
-                WakeKind.EnvoyReturns => BackAtCourt(p, t.Character) ? null : WakeTrigger.Armed,
-                WakeKind.TreasuryBelow => S.Treasuries[p].Ledger < t.Amount ? null : WakeTrigger.Armed,
-                _ => null,
-            },
-        }).ToList();
-        sl.History.Add(new SleepSpell { From = S.Turn + 1, Named = named });
+        sl.WakeAt = S.Turn + 1 + Math.Max(0, S.Config.MaxSleep);
+        sl.History.Add(new SleepSpell { From = S.Turn + 1 });
     }
 
     /// <summary>
@@ -822,10 +762,5 @@ public sealed partial class TurnEngine
         }
     }
 
-    private string Occupant(string province) => S.UnitAt(province) is { } u ? $"{u.Power} {Kind(u.Kind)}" : "none";
-
-    private string OwnerName(string province) => S.Owner.GetValueOrDefault(province)?.ToString() ?? "free";
-
     private static string Kind(UnitKind k) => k == UnitKind.Army ? "army" : "fleet";
-
 }

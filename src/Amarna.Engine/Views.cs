@@ -117,11 +117,6 @@ public sealed class SeatView
     /// <summary>The last season this seat gave orders before this one (0 if it never has).</summary>
     public int LastCalled { get; set; }
     /// <summary>
-    /// The season it named to be woken in with its last orders, if that season is still to come (it was woken sooner);
-    /// else 0. Each set of orders names it anew.
-    /// </summary>
-    public int NamedWake { get; set; }
-    /// <summary>
     /// News delivered while this seat slept, oldest first: routine treasury notices left out (this season's is in its
     /// news), and at most <see cref="Views.MaxWhileAsleep"/> items, the latest.
     /// </summary>
@@ -253,7 +248,6 @@ public static class Views
             v.HoldsCourt = sleep.HoldsCourt && sleep.Asleep;
             v.CourtLetters = sleep.CourtLetters.ToList();
             v.LastCalled = sleep.LastCalled;
-            v.NamedWake = sleep.History.LastOrDefault() is { Named: var named } && named > s.Turn ? named : 0;
             var slept = s.InboxOf(p).Where(i => i.Turn > sleep.LastCalled && i.Turn < s.Turn && !RoutineTreasury(i)).ToList();
             v.WhileAsleepLeftOut = Math.Max(0, slept.Count - MaxWhileAsleep);
             v.WhileAsleep = slept.Skip(v.WhileAsleepLeftOut).ToList();

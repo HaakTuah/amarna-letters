@@ -157,6 +157,6 @@
 
     /// <summary>A sleeping seat's line, with the date labels: asleep since when, woken by when at the latest, and why it last woke.</summary>
     public static string SleepLine(FrameSleep s, Power? court) =>
-        (s.Asleep ? $"Asleep since {Ui.When(s.LastCalled + 1, court)}; wakes by {Ui.When(s.WakeAt, court)} at the latest{(s.Named > 0 ? $" (it named {Ui.When(s.Named, court)})" : "")}." : "Awake.")
+        (s.Asleep ? $"Asleep since {Ui.When(s.LastCalled + 1, court)}; wakes by {Ui.When(s.WakeAt, court)} at the latest." : "Awake.")
         + (s.LastWokeAt > 0 ? $" Last woken in {Ui.When(s.LastWokeAt, court)} by: {string.Join("; ", s.LastReasons)}." : s.Spells > 0 ? " Sleeping for the first time." : " Has not slept yet.");
 }

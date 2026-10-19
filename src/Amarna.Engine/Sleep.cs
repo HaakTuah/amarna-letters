@@ -1,69 +1,6 @@
 namespace Amarna.Engine;
 
 /// <summary>
-/// What a seat that may sleep adds to its orders. It always sleeps after them; it may name a season to be woken
-/// in and its own reasons to be woken sooner. The engine's own wake reasons apply as well.
-/// </summary>
-public sealed class SleepRequest
-{
-    /// <summary>The season (turn number) the seat asks to be woken in, or 0 for none. The hidden cap still applies (<see cref="GameConfig.MaxSleep"/>).</summary>
-    public int WakeTurn { get; set; }
-    public List<WakeTrigger> WakeOn { get; set; } = new();
-}
-
-/// <summary>
-/// The seat-defined wake triggers: a fixed list the engine can check from the seat's own view. Each fires on a change
-/// after it was set, never on a state that merely lasts (since Part G of the simulation-fixes round).
-/// </summary>
-public enum WakeKind
-{
-    /// <summary>The unit standing in <see cref="WakeTrigger.Province"/> when the seat fell asleep moves or is gone.</summary>
-    UnitMoves,
-    /// <summary>
-    /// One of the seat's own people (<see cref="WakeTrigger.Character"/>) comes back to court: it is back, and the seat has
-    /// seen it away since setting the trigger (when it set it, or at a later wake check).
-    /// </summary>
-    EnvoyReturns,
-    /// <summary>
-    /// The treasury, by the seat's ledger, falls below <see cref="WakeTrigger.Amount"/>: it is below, and the seat has seen
-    /// it at or above the amount since setting the trigger. A treasury already below must first rise to the amount again.
-    /// </summary>
-    TreasuryBelow,
-    /// <summary>Troops of <see cref="WakeTrigger.Power"/> (any foreign power's if empty) move into <see cref="WakeTrigger.Province"/> and get there, as the seat saw.</summary>
-    TroopsEnter,
-    /// <summary><see cref="WakeTrigger.Province"/> changes hands.</summary>
-    ProvinceChangesHands,
-}
-
-public sealed class WakeTrigger
-{
-    /// <summary>What <see cref="Seen"/> holds for a trigger on a condition once the seat has seen the condition not hold since it set the trigger.</summary>
-    public const string Armed = "armed";
-
-    public WakeKind Kind { get; set; }
-    public string? Province { get; set; }
-    public string? Character { get; set; }
-    public int Amount { get; set; }
-    public Power? Power { get; set; }
-    /// <summary>
-    /// For <see cref="WakeKind.UnitMoves"/> and <see cref="WakeKind.ProvinceChangesHands"/>: what the seat saw there when it
-    /// fell asleep. For <see cref="WakeKind.EnvoyReturns"/> and <see cref="WakeKind.TreasuryBelow"/>: <see cref="Armed"/>
-    /// once the seat has seen the person away, or the treasury at or above the amount, since it set the trigger.
-    /// </summary>
-    public string? Seen { get; set; }
-
-    public string Describe() => Kind switch
-    {
-        WakeKind.UnitMoves => $"the unit in {Province} moves",
-        WakeKind.EnvoyReturns => $"{Character} is back at court",
-        WakeKind.TreasuryBelow => $"the treasury falls below {Amount} shekels",
-        WakeKind.TroopsEnter => $"{(Power is { } w ? $"{w}'s" : "foreign")} troops enter {Province}",
-        WakeKind.ProvinceChangesHands => $"{Province} changes hands",
-        _ => Kind.ToString(),
-    };
-}
-
-/// <summary>
 /// Orders a seat gives for a later season, as it gives them: each of its own units named by the province it stands in
 /// when the orders are given. In the seat's view, the same with each unit named by where it stands now.
 /// </summary>
@@ -157,9 +94,8 @@ public sealed class SleepState
     public bool Asleep { get; set; }
     /// <summary>The last season the seat was asked for orders (and answered itself, not through the stand-in).</summary>
     public int LastCalled { get; set; }
-    /// <summary>The season it wakes at the latest: the one it named, or else the hidden cap.</summary>
+    /// <summary>The season it wakes at the latest: the hidden cap (<see cref="GameConfig.MaxSleep"/>), which no rulebook or view names.</summary>
     public int WakeAt { get; set; }
-    public List<WakeTrigger> Triggers { get; set; } = new();
     /// <summary>Its scheduled orders, each bound to its unit, in the order they run: by season, then as given.</summary>
     public List<PlannedOrder> Scheduled { get; set; } = new();
     /// <summary>Its standing orders, kept until they fire or are cancelled.</summary>
@@ -218,11 +154,10 @@ public sealed class CourtHeld
     public bool Decided => Reopened || !StandIn;
 }
 
-/// <summary>One stretch of sleep, for the reports: when it began, the season the seat named (0 for none), when and why it woke.</summary>
+/// <summary>One stretch of sleep, for the reports: when it began, and when and why it woke.</summary>
 public sealed class SleepSpell
 {
     public int From { get; set; }
-    public int Named { get; set; }
     public int WokeAt { get; set; }
     public List<string> Reasons { get; set; } = new();
 }
