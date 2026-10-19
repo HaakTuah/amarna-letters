@@ -159,7 +159,7 @@ What the gradient will need once news travels (item 7):
   kings read are unchanged. The rulebook tab still shows the rulebook word for word.
 - The header's ending line: "The age cannot end before Shemu, 1341 BCE (turn 15)." until then, "Any season may now be
   the last (15% each season)." after, and at the end "The age has ended: …. Winner: …". On a narrow phone it reads
-  "Can end from Shemu 1341 BCE (turn 15)".
+  "Can end from Shemu 1341 BCE", the short form, with the full line as its tooltip.
 - The message trail shows where an unfinished message stands instead of dashes: "On the road, arrives in season 3 of
   year 3 (turn 9).", "Heard; on the road home, back in …", "Detained at the court of …", "At the court of …", "Never
   came home: held captive by …", "Never reported: went over to …".
@@ -328,7 +328,10 @@ Haakon added two things to the item on 19 October, after the review:
    unchanged: the seat view's `Season` line still reads "Peret (growing), year 3" and no prompt names a year BCE, as
    question 26 advised (a precise year invites models to replay real history). The annals (template and model
    narrators) still count game years; the 60-season cap would end in 1326 BCE. The engine and web label tests check
-   the new format (all 654 tests pass); the seeds replay exactly, since no rule changed. The screenshots below were
+   the new format (all 654 tests pass); the seeds replay exactly, since no rule changed. On a phone held upright
+   (375 px) the header's narrow ending line now uses the short form without the turn ("Can end from s3 1341 BCE"),
+   as dense lists do, with the whole ending line as its tooltip: god view and the ordinal courts fit, and Egypt's
+   "Shemu" is cut by an ellipsis by about 11 px, as longer phase texts already were. The screenshots below were
    taken before this change and show the old "year N" labels.
 2. **The prompt's opening line** (phone first): already done in `dd82ff6` (see "Decisions and readings", 1).
 
