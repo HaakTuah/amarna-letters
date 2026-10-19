@@ -7,8 +7,8 @@ froze the page for up to about 3 s on a slow emulated phone, and the first load 
 **In short.** The freeze is gone: the script kings and the script characters now think in a Web Worker, and the
 longest stretch in which the page could not answer a tap while seasons played fell from 2.3-4.2 s to 0.6-0.8 s (once,
 at the first season) and at most 0.33 s after it. The first load is only somewhat faster: 15% fewer bytes (the
-Anthropic SDK is no longer downloaded) and 7-10% less time on average; "much faster" is not met, and what would close the gap is
-below. Seeds and replays are unchanged: no rule changed, the save version stays 3.
+Anthropic SDK is no longer downloaded) and 7-10% less time on average; "much faster" is not met, and what would
+close the gap is below. Seeds and replays are unchanged: no rule changed, the save version stays 3.
 
 ### What was built
 
@@ -25,8 +25,8 @@ below. Seeds and replays are unchanged: no rule changed, the save version stays 
   then start with no memory of earlier seasons; the characters keep none of their own, so theirs is the same answer).
   Model kings and characters wait on the network and stay in the page.
 - **What stays in the page is drawn apart from the engine's work** (same commit). A season's redraws are coalesced
-  into one task after the engine's work instead of inside it (`GameSession.NotifySoon`), the page draws that a season
-  is under way before the season's work starts. Loading a saved log is quicker too, as it no longer redraws at every
+  into one task after the engine's work instead of inside it (`GameSession.NotifySoon`), and the page draws that a
+  season is under way before the season's work starts. Loading a saved log is quicker too, as it no longer redraws at every
   phase of every replayed season.
 - **The log writes each decision's line once** (`0e28da3`). `GameLog.ToJsonl`, which the autosave calls
   every season, wrote and re-parsed every line each time, which grows long late in a game. The first version kept a
