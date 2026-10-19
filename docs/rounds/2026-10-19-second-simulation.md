@@ -177,3 +177,216 @@ None. Neither fix adds a time, cost, chance or threshold.
   captor learns who paid only when a ransom arrives (the notice names the court that paid), and the captive is then
   freed. That is how ransoms already worked, and it is unchanged.
 - `docs/BUILD-PROGRESS.md` is not touched, as the instructions for this part say.
+
+## Characters as agents
+
+Commits `8299995` (file characters, the script shadow and the reports) and `88d1b3c` (the kit and the start prompt),
+with this section in a third. No engine rule, no script king and no number of the game changed, so the save version
+stays at 4: script games play exactly as before (seeds 1-100 are identical, game by game, to the benchmark after fix
+(c)).
+
+### What was built
+
+**File characters** (`--file-characters DIR|map.json`). For every decision a model character makes today
+(`LlmCharacterMind`: the speech abroad, each reply at an audience, the report home, a pitch, a spy's report and a memory
+summary), the character's own folder gets the exact request a model character would get, the shared character system
+text, its persona, facts and memory, the situation and the JSON schema, plus the file-seat footer
+(`FileExchange.Footer`), and the seat waits for a reply file. The reply is checked against the schema like a file
+seat's (one retry with what was wrong); a missing or invalid reply falls back to the script character for that
+decision, and the failure is logged as a failed call and in the runner's errors. Replies are logged as decisions, so a
+game replays exactly without the files (tested with the folders deleted). The only change to the request text is its
+opening line, "Decide as yourself" where a king's says "Decide as the king". `LlmCharacterMind` now takes an asker per
+character, the API or a `FileExchange`; a character without one is played by the script. City-states stay as they are
+(they are not actors yet; that is item 17), the narrator stays the template, and file characters do not mix with
+`--characters haiku|sonnet`. `--list-characters` prints a seed's pool (id, name, origin and how it starts, no traits
+or secrets) as JSON. A character map carries its seed and is refused for another, because ids come from the game's own
+counter and name other people in another seed.
+
+**Which characters.** My reading of "every character that can serve as an envoy or a spy": every character in the
+seed's pool. Any of them can be sent as an envoy or posted as a spy by its employer, and the free ones can be hired
+first. The pool is drawn when the game is made (18 characters: 14 in service, two to each king, two of those secretly
+in another king's pay, and 4 free), and nothing adds one later. So each seed has 18 character agents, 36 for the two
+games.
+
+**The script's shadow, and the comparison.** For each decision a model character makes, through the API or as a file
+character, the runner logs beside it what `ScriptMind` with the same traits decides in the same situation (a
+`ShadowDecision`, a `shadow` line in the log). `ScriptMind` draws only from streams keyed by seed, season and character,
+never from the game's own generator, and changes nothing it reads, so the game is the same with or without the shadow:
+a test plays a game both ways and gets the same state and the same decisions. Each shadow line holds the character's
+traits, what it faced (gold carried, a gift or a post offered), what the engine knows happened on the mission, and
+both decisions with what `CharacterChecks` found in their words. The checks read words, not meaning:
+
+| Flag | The engine recorded | The words |
+|---|---|---|
+| `hid-gift` | the envoy took a host's gift on this mission | the report never speaks of gold or a gift given to the envoy itself |
+| `hid-detention` | it was held at that court | the report never says so |
+| `hid-skim` | it kept part of the gold it carried out | the report never owns up to it |
+| `softened-threat` | the host threatened its lord (abroad: the letter threatened the host) | the report (the speech) carries no threat at all |
+| `hid-offer` | it declined the host's offer of service | the report never mentions it |
+| `false-seal` | nothing was sealed | the report says the king sealed |
+| `passed-poison` | a spy's secret masters asked it to pass words on | most of their longer words are in its report |
+| `dropped-observations` | what a spy observed | fewer than half of an observation's names, numbers and longer words are in its report |
+
+An invented promise or a false account of a king's mood passes the checks, so the orchestrator reads the flagged
+reports, and the decisions where the two minds differ, before calling anything a lie. One thing to keep in mind when
+reading the counts: the shadow is per decision, not per life. Its situation is the one the model's own earlier choices
+made. Where a model envoy kept gold on the way out, the script's report of that mission is checked against the same
+fact (`hid-skim`), and a script envoy never owns up to it.
+
+**The reports.** After the seat report, the batch runner prints the comparison, mind against script: speeches abroad
+with gold, gold kept and how much, inventories swapped, threats softened; gifts and posts offered, taken and refused,
+and commitments; reports home with gold, gold kept, swaps and each flag; spies' reports; pitches and their mean price;
+and one line per character with its traits. Then the size of every kind of request, kings' and characters': file
+requests in characters, and in tokens at 3.6 characters a token as in the simulation-fixes round; API calls by their
+input tokens. Each file call now logs its request's length (`ModelCall.RequestChars`). The seat report already gives
+the reopen rate after audiences, sleep lengths and every reason a king was woken. `sim/summarize.js` prints all of it
+from the run folder too, plus each seat's sleep spells with their reasons and every decision where a character and its
+shadow differ, with both texts.
+
+**The kit** (`sim/`, `sim/README.md`):
+- `setup.js --seeds 7,15` makes, beside the seven kings, one agent type per character of each seed, read from the
+  engine (`--list-characters`): `.claude/agents/char-<8 random hex>.md`, a name that reveals nothing, with the Read and
+  Write tools only, model `haiku` (the design's default for characters, "Every model is the table's choice"), the same
+  PreToolUse guard limited to its own folder with a 32-hex-digit name, a canary word and an isolation test. The maps
+  for the batch runner are `sim/characters/seed-<S>.json`; `sim/characters/agents.json` maps each agent type to its
+  seed, character and folder. Everything it makes is git-ignored. Without `--seeds` it makes the kings only. `--force`
+  moves the previous kit (folders and agent types) to `sim/runs/setup-<time>/` instead of leaving it beside the new one.
+- The isolation tests: each character tries another character's canary and a king's, the repository, the agent map, a
+  write outside its folder and a non-reply file inside it. Each king now also tries a character's canary.
+- `wait.js` lists, for every waiting game request, the agent type to start and the file name, kings and characters
+  alike (`--seed S` watches one seed's characters). `check-isolation.js` and `audit.js` cover characters. The
+  orchestrator's rule extends to them: a character's final message could carry what a king said to it at an audience.
+- `check-isolation.js --dry` checks the walls without starting an agent. Each agent file names itself and has exactly
+  the Read and Write tools and a guard on every tool, on its own folder; folders and secret words are distinct and well
+  formed; and each agent's own hook, run as Claude Code runs it, allows reading its canary and a request and writing a
+  reply in its folder, and blocks 15 forbidden calls (another seat's canary, a king's, a path through `..`, the
+  repository, the map, reading a reply file, a subfolder, a relative path, a write outside, a non-reply write, `Bash`,
+  `Glob`, `Grep`, `Edit`). It logs to a scratch file. It cannot show that Claude Code runs the hook: the live test in
+  the playing session does.
+- `stub-replier.js` stands in for the agents to prove the plumbing. With `--orchestrate` it plays the orchestrator's
+  loop: it calls `wait.js` and answers each request in the folder that the named agent type's own file gives it. Its
+  kings send one person to the nearest court each season and ask to be woken the next. With `--tempted`, hosts offer
+  gifts and posts, and characters keep gold and take gifts. `--skip` and `--bad` force fallbacks.
+
+**The first simulation's files** were moved, not deleted, before the new kit was made: the king folders, guard log,
+seat map and canaries to `sim/runs/first-simulation/kings/`, both runs to `sim/runs/first-simulation/sleep-on/` and
+`sleep-off/`, and the old king agent types to `sim/runs/first-simulation/agents/`. All are git-ignored.
+
+**The start prompt.** `docs/SIMULATION-PROMPT.md` is rewritten for a fresh session: seeds 7 and 15, ten seasons each,
+sleep the default, kings as Sonnet agents (`king-<power>`) and characters as Haiku agents. It starts with usage, the
+estimate below and the stop points; then the agent check and the dry check; the isolation test for all 43 agents; the
+game loop on `wait.js`; the audit, the summary, and debriefs for kings and characters, each ending with the footer
+(the characters are also asked why they chose as they did where they carried gold, were offered a gift or a post, or
+reported home); and the measurements item 4 lists, with the two review questions, for a "Simulation results" section
+of this report.
+
+### The new seed: 15
+
+Seed 15 joins seed 7. My criterion: an ordinary game, in which no capital falls in the first ten seasons when script
+kings play it; a pool whose starting envoys span the traits the comparison turns on; and a script game in which the
+characters' own decisions come up. I played seeds 1-40 for ten seasons with script kings and read their final states.
+Fourteen had no capital taken (3, 6, 8, 10, 11, 12, 15, 20, 22, 27, 28, 31, 33 and 35). The closest candidates:
+
+| Seed | Starting envoys: would skim / bribable / timid / faithful / overreach / forger's hand | Script game, ten seasons: conquests; gifts taken / refused; posts taken / declined; detentions |
+|---|---|---|
+| 7 (for comparison) | 6 / 6 / 4 / 3 / 2 / 7 | 18, two capitals taken; 1 / 2; 0 / 3; 0 |
+| 12 | 4 / 6 / 3 / 4 / 2 / 8 | 4; 0 / 0; 2 / 0; 0 |
+| **15** | **3 / 5 / 5 / 3 / 1 / 7** | **8; 1 / 3; 1 / 2; 1** |
+| 28 | 4 / 4 / 2 / 6 / 2 / 8 | 11; 0 / 2; 2 / 3; 0 |
+
+Would skim: greed above 60 and loyalty below 60, the script's skimming rule. Bribable: greed more than 10 above
+loyalty. Timid: courage below 35. Faithful: loyalty 60 or more and competence 50 or more. Overreach: ambition above 70
+and loyalty below 50. Forger's hand: competence 55 or more. Every pool has two plants. Seed 15 is the one whose script
+game took a gift and refused gifts, took a post and declined posts, and held an envoy, with no capital lost and a mix
+of temptable and faithful envoys. Seed 12 has a slightly better spread of traits, but its script game offered no gift
+at all. Seed 7's script game is not ordinary (two capitals by season 7), and with model kings three kingdoms fell
+inside ten seasons; it stays because it was the first simulation's seed.
+
+### The estimate
+
+From the first simulation (seed 7: 65 orders calls at 37k agent tokens on average and 64 audiences at 16k; 8.6
+million king tokens for two runs, two debriefs and the isolation test, about 9 weekly points), corrected for what has
+changed since:
+- **Requests are larger.** A king's orders request is now about 50,000-56,000 characters (14,000-15,500 tokens) in the
+  stub runs, against about 6,000-8,000 tokens in season 1 and 11,500-13,500 by seasons 9-10 in the first simulation:
+  the rulebook, sleep and the schema grew. Audiences are about 36,000 characters (10,000 tokens), as before. So orders
+  calls are put at about 44k agent tokens and audiences at 17k.
+- **Kings:** about 50 orders calls a game (fewer than 65, since an envoy at the door now wakes a king for its audience
+  only) and about 65 audiences: about 3.3 million a game, 6.6 million for both (5.5 to 8 million).
+- **Characters:** the first simulation's seed-7 games had 50-60 speeches abroad, 64-82 audience replies, 42-50 reports
+  home, 12 pitches and 2-6 memory summaries: about 190 character calls a game. A character's request is 3,400-6,700
+  characters (900-1,900 tokens), so a Haiku agent call is put at about 7k tokens, the size of the first simulation's
+  isolation-test calls: about 1.3 million a game, 2.7 million for both (2 to 3.5 million).
+- **Isolation test:** about 0.3 million (43 agents). **Debriefs:** about 1.8 million. The first simulation's 14 king
+  debriefs took about 1.2 million, since each king rereads every request it had; about 30 character debriefs add 0.6.
+- **All in:** about 11.5 million agent tokens, 7.9 million of them Sonnet. At the first simulation's rate of about 1
+  weekly point per million, that is about 11.5 points if Haiku counts like Sonnet, or about 9 if it counts at a third
+  (not known yet; the run will show it). Writing the report adds 2 to 3 points without extra analyst agents.
+- **Stop points** in the prompt: after season 3 of game 1, if the weekly limit has risen by more than 3 points; before
+  game 2, if game 1 took more than 7; and at 90% of the weekly limit or of a 5-hour window.
+- **Time:** about 2 to 3 hours a game. The first simulation's run took 65 minutes for 129 king calls; now every
+  audience goes back and forth between a character agent and a king agent, round by round.
+
+### How it was verified
+
+No agent was started and no model call was spent.
+- **Tests:** 12 new, in `FileCharacterTests`:
+  - A file character writes the exact model-character request with the footer and plays the reply, which the host
+    hears. Every call logs its request's length and a shadow beside it.
+  - A missing reply (a timeout) and an unreadable one (twice) fall back to the script, and the shadow says so. The
+    game replays exactly from the log with the folders deleted.
+  - The shadow changes nothing in the game (the same state and the same decisions with and without it), and it
+    survives the log.
+  - The checks find a hidden gift, detention, skim, softened threat, declined offer and false seal, and pass an honest
+    report. A bribed script envoy is caught hiding the gift and the threat. A speech that drops the letter's threat is
+    flagged, and so is a spy that passes on its masters' words and leaves out an observation.
+  - Request sizes are counted by kind.
+
+  `dotnet test`: 711 pass (Engine 228, Game 466, Web 17). The build has 0 warnings.
+- **Replay check** (`--games 10 --seed 1 --verify-replay --no-chronicles`): replay ok for all ten. **Seeds 1-100**
+  (the benchmark run): identical, game by game, to the benchmark after fix (c). Nothing bot-visible changed, so the
+  other benchmark runs were not repeated.
+- **`node sim/setup.js --seeds 7,15`** was run for real. The 7 king types and 36 character types (18 of seed 7, 18 of
+  seed 15) are in `.claude/agents/`, with their folders and maps, ready for the next session.
+- **`node sim/check-isolation.js --dry`:** `DRY ISOLATION HOLDS` for 7 kings and 36 characters, 18 guarded calls each.
+  In a mutation check, one character's agent file was pointed at another character's folder, and the check failed with
+  four findings. The file was then restored. The live test (`check-isolation.js` without `--dry`) runs in the next
+  session.
+- **Stub games, file kings and file characters together**, run through `wait.js` by `stub-replier.js --orchestrate`,
+  each request answered in the folder that the named agent's file gives:
+  - two seasons of seed 7 and two of seed 15: 21 king and 14 character requests each;
+  - six seasons of seed 15 with tempted characters and two forced failures: 182 replies, 77 to kings and 106 to
+    characters. One report was never answered and one was answered twice with text that is not JSON; both fell back to
+    the script (`2 fallbacks`).
+
+  Every game printed `replay ok`, and its seat report, character comparison and request sizes came out as described
+  above. Request sizes in these runs:
+  - king orders: 50,000-56,600 characters (14,000-14,500 tokens);
+  - audiences: 35,700-37,200 characters (about 10,000);
+  - character speeches: 5,300-6,400 (1,500-1,600);
+  - replies: 4,400-5,600 (1,200-1,400);
+  - reports: 5,500-6,100 (1,500);
+  - memory summaries: 6,300-6,700 (1,700);
+  - pitches: about 3,400 (900).
+- **`audit.js`** on made-up transcripts (a character reading another's canary, a clean character and a clean king)
+  found exactly the one violation. `summarize.js` was run on the six-season stub game.
+- The stub runs' files were moved out of the agents' folders afterwards (to `sim/runs/stub-7/`, `stub-15/` and
+  `stub-earlier/`), so each agent folder now holds only its canary and its isolation test.
+
+### New numbers (first guesses, kit settings, not balance)
+
+- The checks: a spy "passes on" its masters' words if 60% of their words of four letters or more are in its report;
+  it "leaves out" an observation if fewer than half of that observation's key words are.
+- In the start prompt: `--file-timeout 240` minutes for the real games (the batch runner's default stays 120); the
+  stop points above; characters on Haiku.
+
+### Left out, and why
+
+- **Running the simulation,** for the reasons given at the top: no new agent type loads in this session, and the
+  headless CLI is not signed in. Everything is ready for a fresh session started from `docs/SIMULATION-PROMPT.md`.
+- **A launcher that returns nothing** (the README's "Not built") still needs a signed-in headless CLI. With 36 more
+  agents, the orchestrator's rule carries more weight than in the first simulation.
+- **Lie detection by meaning.** The checks find omissions, and one contradiction, by their words. Whether a report
+  misstates a king's mood or invents a promise is left to the reader of `summary.md`, which lists, with both texts,
+  every decision where a character and its script shadow differ.
+- **The local-play kit** is not part of this section.

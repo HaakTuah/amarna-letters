@@ -42,10 +42,12 @@ one (details under "Characters as agents" in the report):
   about 65 audiences at about 17k.
 - Characters, two games: about 2.7 million tokens (2 to 3.5 million): about 190 calls a game (some 55 speeches abroad,
   70 audience replies, 45 reports home, 12 pitches and a few memory summaries), at about 7k tokens each.
-- Isolation test (43 agents) about 0.3 million; debriefs about 1 million.
-- All in, about 10.5 million agent tokens: about 11 weekly points if Haiku counts like Sonnet, about 8 if it counts
-  at a third. Writing the report adds 2 to 3 points without extra analyst agents. Each game takes about 2 to 3 hours
-  and may span two 5-hour windows.
+- Isolation test (43 agents) about 0.3 million. Debriefs about 1.8 million: the first simulation's 14 king debriefs
+  took about 1.2 million, since each king rereads every request it had, and about 30 character debriefs add some 0.6.
+- All in, about 11.5 million agent tokens, 7.9 million of them Sonnet: about 11.5 weekly points if Haiku counts like
+  Sonnet, about 9 if it counts at a third (not measured yet: say which it was). Writing the report adds 2 to 3 points
+  without extra analyst agents. Each game takes about 2 to 3 hours, since an audience now goes back and forth between
+  two agents, and a game may span two 5-hour windows.
 - **Stop points.** After season 3 of game 1, if the weekly limit has risen by more than 3 points since you began, stop
   and report before going on. Before game 2, if game 1 took more than 7 weekly points, stop and ask Haakon. Never go on
   past 90% of the weekly limit or of a 5-hour window: stop when the season's requests are answered, and report. The
