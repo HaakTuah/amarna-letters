@@ -4,6 +4,7 @@ using Amarna.Game;
 using Amarna.Game.Batch;
 using Amarna.Game.Bots;
 using Amarna.Llm;
+using Amarna.Llm.Sdk;
 
 // Runs many games unattended and prints winners and signal counts.
 //   dotnet run --project src/Amarna.Batch -- --games 50 --seed 1 [--out logs] [--verify-replay] [--detail]
@@ -24,6 +25,9 @@ using Amarna.Llm;
 // File characters: --file-characters DIR|map.json (envoys, spies and candidates the same way: DIR gives one folder per
 //              character id, a JSON map {"seed": "7", "c1": "path", ...} names them; a character left out is a script),
 //              --list-characters (prints the seed's characters, with no traits or secrets, as JSON, and stops)
+
+// Model calls from here go through the official SDK.
+AnthropicSdk.Use();
 
 var games = 20;
 ulong seed = 1;

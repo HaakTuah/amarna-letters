@@ -666,7 +666,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Transport**: the official C# SDK is used in the console runner and tests. It cannot run in the
   browser (its constructor enables HTTP decompression, which WebAssembly forbids), so the browser
   posts the same Messages API request with `HttpClient`, with the
-  `anthropic-dangerous-direct-browser-access` header.
+  `anthropic-dangerous-direct-browser-access` header. The SDK path lives in a project of its own,
+  `Amarna.Llm.Sdk`, which the web app does not reference, so the browser never downloads the SDK; a
+  console program registers it once (`AnthropicSdk.Use()`, as the batch runner does), and a model client
+  built outside the browser without it says so.
 - **Prompt-injection boundaries**: a character's prompt holds only its own persona, memory and
   facts (tested); text never changes state; the narrator receives only released facts.
 - **Leader memory** is a private record in the king's own words (`LeaderJournal`), shown in every
@@ -1791,6 +1794,10 @@ charge can still count.
 
 Build order item 2 (`docs/prompts/VISUAL-OVERHAUL.md`; report `docs/rounds/2026-10-19-visual-overhaul.md`).
 Presentation only: no rule, state, view, prompt or balance changed, and seeds replay to the same logs byte for byte.
+Item 4 changed two things here: the engine's view now hides a foreign spy from the court it watches (fix (a), noted
+under "Each view sees only what its court knows"), and fix (b), phone performance, rewrote "Load size" and added
+"Script kings and characters in a worker" and "What is left in the page" (presentation and build only; report
+`docs/rounds/2026-10-19-second-simulation.md`).
 
 - **Terrain is map data with no effect yet** (`Geography` in the engine project). Rough provinces: Mira, Lukka,
   Isuwa, Amurru, Arbela, Tamassos. Desert: Sinai. Crossings on six connections: the Cilician Gates
@@ -1871,15 +1878,34 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   every file at install and starts from the cache afterwards. Fingerprinted files are taken from the browser's own
   cache, so installing downloads nothing twice; HTML files are not checked against the publish hashes, since the
   Pages workflow rewrites their base path. In development the worker caches nothing.
-- **Load size.** The browser build runs in the invariant culture (no ICU data) and trims the Anthropic SDK, which
-  the browser never constructs (it posts with HttpClient), to the code that refers to it: about 3.2 MB compressed
-  instead of 5.0 MB. Splitting the SDK path out of `Amarna.Llm` would save another 0.45 MB; not done, as it is not
-  presentation.
-- **Script kings in the page.** Their look-ahead runs in the page's one WebAssembly thread, and is nearly all of a
-  season's time (several seconds on a slow phone). The web app lets the browser draw between kings (`YieldingSeat`:
-  the kings still decide one after another in the same order, so nothing they decide changes), shows a season before
-  saving it, and never asks the map to read a whole state back from its snapshot. Measurements are in the round
-  report.
+- **Load size.** The browser build runs in the invariant culture (no ICU data) and carries none of the Anthropic
+  SDK, which it never constructs (it posts with HttpClient; the SDK path is in `Amarna.Llm.Sdk`, see "Transport"
+  under Models): about 2.8 MB with Brotli, 3.4 MB with the gzip GitHub Pages serves. On a first visit the loading
+  screen says that the game is being downloaded, about 3 MB, and that later visits start from the device; a visit
+  started by the service worker does not show the note.
+- **Script kings and characters in a worker.** The kings' look-ahead is nearly all of a season's time (seconds on a
+  slow phone), and a character's text code takes a second or two to warm up the first time it writes; in the page's one
+  WebAssembly thread both froze the page. In a browser game they now think in a Web Worker of their own
+  (`ScriptWorker.cs`, `js/script-worker.js`): it boots a second .NET runtime from the files the page has already
+  downloaded (nothing more to download), warms up on a throwaway game while the page sets up the real one, and
+  answers one request at a time. Each request carries what the engine handed the seat or the mind, the king's view or
+  the character's context, written out as JSON as a file seat's view is, and the answer comes back the same way into
+  the runner, which records it as before (serialization code generated at build time was tried and dropped: 69 KB
+  more to download, and no shorter first season in the page). The kings keep their memory in the worker from season to
+  season (one `ScriptLeader` per game, as in the page), so each answer is the one the same code gives in the page:
+  tests play seeds 1, 2, 5, 7 and 14 both ways and compare every decision and the state after every season. Where no
+  worker can start the kings think in the page as before, letting the browser draw between them (`YieldingSeat`); if
+  the worker stops during a game, the page takes over and says so (the kings then start that season with no memory of
+  the earlier ones; the characters keep none, so theirs is the same answer). Model kings and characters wait on the
+  network and stay in the page. So do local agent kings, which wait on the local bridge (see "Local play on a Claude
+  subscription"), the script decisions logged beside a model character's (the shadow lines, which nothing in the game
+  reads), and the runner's script stand-in for a model or local agent king whose call failed.
+- **What is left in the page** is the engine's own work and drawing. A season's redraws are coalesced and made in a
+  task of their own, after the engine's work rather than within it (`GameSession.NotifySoon`), the page draws that a
+  season is under way before its work begins, and a season is shown before it is saved. The log writes each decision's
+  line once and keeps it (`GameLog.ToJsonl`, which the autosave calls every season, used to write and re-read every
+  line each time; the text is the same, model characters' shadow lines included). The map never reads a whole state
+  back from its snapshot. Measurements are in the round reports.
 - **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
 
 ## Where the code differs from the design document (as it stood on 19 October 2026)

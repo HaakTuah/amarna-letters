@@ -8,8 +8,22 @@ namespace Amarna.Web.Services;
 /// The one game this browser tab is playing or watching: the runner, the human seats, the
 /// spectator's choices (whose eyes, which turn), and autosave to IndexedDB.
 /// </summary>
-public sealed class GameSession(Storage storage, SeatFactory factory)
+public sealed class GameSession
 {
+    private readonly Storage storage;
+    private readonly SeatFactory factory;
+
+    public GameSession(Storage storage, SeatFactory factory)
+    {
+        this.storage = storage;
+        this.factory = factory;
+        factory.KingsMovedToPage += reason =>
+        {
+            Notice = $"The script kings now think in the page, which may make it pause while they do: their worker stopped ({reason}).";
+            Notify();
+        };
+    }
+
     private CancellationTokenSource _cts = new();
     private GameState? _history;
     private int _historyTurn = -1;
@@ -55,7 +69,27 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
     private void RunnerChanged()
     {
         if (Runner is not null) Frames.CatchUp(Runner);
-        Notify();
+        NotifySoon();
+    }
+
+    private bool _notifyQueued;
+
+    /// <summary>
+    /// Redraws in a task of its own, once for every change made in the stretch of work before it: a season's engine work
+    /// and the drawing it causes would otherwise make one long stretch in which the page cannot answer a tap.
+    /// </summary>
+    private void NotifySoon()
+    {
+        if (_notifyQueued) return;
+        _notifyQueued = true;
+        _ = Later();
+
+        async Task Later()
+        {
+            await Task.Delay(1);
+            _notifyQueued = false;
+            Notify();
+        }
     }
 
     public bool HasHumans => Humans.Count > 0;
@@ -200,6 +234,8 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
         var played = false;
         try
         {
+            // The page draws that the season is under way before the season's first stretch of work begins.
+            await Task.Delay(1);
             await Runner.PlayTurnAsync(_cts.Token);
             played = true;
         }
@@ -212,7 +248,7 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
         finally
         {
             Busy = false;
-            Notify();
+            NotifySoon();
         }
         // The season is shown first; the save (the whole log, to IndexedDB) follows once the page has drawn it.
         if (played)

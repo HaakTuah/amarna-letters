@@ -104,6 +104,13 @@ public sealed class GameLog
     /// <summary>Model characters' decisions beside the script's for the same situations. Not used in replay.</summary>
     public List<ShadowDecision> Shadows { get; } = new();
     private readonly Dictionary<string, string> _index = new();
+    /// <summary>
+    /// The lines <see cref="ToJsonl"/> has written for the first decisions: a decision never changes once recorded, so
+    /// each line is written once. The browser saves the whole log every season, and writing every line again each time
+    /// grew slow on a phone as a game went on.
+    /// </summary>
+    private readonly StringBuilder _decisionLines = new();
+    private int _decisionLinesWritten;
 
     public void Record<T>(string key, T value)
     {
@@ -152,8 +159,13 @@ public sealed class GameLog
         sb.AppendLine(header.ToJsonString());
         lock (_gate)
         {
-            foreach (var (key, json) in Decisions)
-                sb.AppendLine(new JsonObject { ["type"] = "decision", ["key"] = key, ["value"] = JsonNode.Parse(json) }.ToJsonString());
+            if (_decisionLinesWritten > Decisions.Count) { _decisionLines.Clear(); _decisionLinesWritten = 0; }
+            for (; _decisionLinesWritten < Decisions.Count; _decisionLinesWritten++)
+            {
+                var (key, json) = Decisions[_decisionLinesWritten];
+                _decisionLines.AppendLine(new JsonObject { ["type"] = "decision", ["key"] = key, ["value"] = JsonNode.Parse(json) }.ToJsonString());
+            }
+            sb.Append(_decisionLines);
             foreach (var c in Calls)
             {
                 var node = JsonSerializer.SerializeToNode(c, Json.Options)!.AsObject();
