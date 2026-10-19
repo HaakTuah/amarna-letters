@@ -1,6 +1,6 @@
 # Build progress
 
-Follows "Build order" in the design document's main tab (set 19 October 2026). One line per item: state, branch,
+Follows "Build order" in the design document's main tab (set 19 October 2026; 17 items as read at the start of item 3). One line per item: state, branch,
 report, and what was decided along the way. Items are built on their own branch from `develop` and merged into
 `develop` when the tests pass and one reviewer has found nothing blocking; `main` is never touched (Haakon merges
 `develop` into `main`).
@@ -9,11 +9,11 @@ report, and what was decided along the way. Items are built on their own branch 
 |---|---|---|---|---|
 | 1 | Simulation fixes and default sleep | done (19 Oct), merged into `develop`; PR #7 merged into `main` | `round/simulation-fixes` | `docs/rounds/2026-10-19-simulation-fixes.md` |
 | 2 | The visual overhaul | done (19 Oct), merged into `develop`; PR `develop` -> `main` open for review | `item/visual-overhaul` | `docs/rounds/2026-10-19-visual-overhaul.md` |
-| 3 | Small record items | not started | | |
+| 3 | Small record items | in progress (19 Oct) | `item/small-record-items` | `docs/rounds/2026-10-19-small-record-items.md` |
 | 4 | Second agent simulation, with model characters (stop for review) | not started | | |
 | 5 | The siege package (stop for review) | not started | | |
 | 6 | Memory and call size | not started | | |
-| 7 | News travels | not started | | |
+| 7 | Travel on the map, and news travels | not started | | |
 | 8 | Structured press | not started | | |
 | 9 | Envoy authority and passage | not started | | |
 | 10 | Characters, first package | not started | | |
@@ -21,6 +21,9 @@ report, and what was decided along the way. Items are built on their own branch 
 | 12 | Languages (stop for review) | not started | | |
 | 13 | Command at a distance (stop for review) | not started | | |
 | 14 | Legends | not started | | |
+| 15 | Infrastructure and policing (stop for review) | not started | | |
+| 16 | The royal council | not started | | |
+| 17 | City-states as script bots (stop for review) | not started | | |
 
 ## Item 1: stock taken on 19 October 2026, before any change
 
