@@ -411,6 +411,42 @@ public class CoverTests
     }
 
     [Fact]
+    public void A_defector_posted_as_a_spy_at_its_old_masters_court_is_not_seen_there_and_the_cover_holds()
+    {
+        var (s, defector) = Defector();
+        Assert.NotNull(defector.CoverOf(Power.Egypt));
+        new TurnEngine(s).Resolve(Orders(Power.Alashiya, new PlaceSpyOrder(defector.Id, Court: Power.Egypt)));
+        for (var i = 0; i < 10 && defector.Duty != Duty.SpyPosted; i++)
+        {
+            Begin(s);
+            if (defector.Duty != Duty.SpyPosted) new TurnEngine(s).Resolve(None());
+        }
+        Assert.Equal((Duty.SpyPosted, Power.Egypt), (defector.Duty, defector.At));
+
+        // It watches in secret: Egypt still believes what it believed of its servant, and does not see Alashiya's spy.
+        Assert.NotNull(defector.CoverOf(Power.Egypt));
+        var v = Views.For(s, Power.Egypt);
+        var mine = v.Court.Single(c => c.Id == defector.Id);
+        Assert.True(mine.Ours);
+        Assert.NotEqual("at your court", mine.Where);
+        Assert.DoesNotContain(v.Known, c => c.Id == defector.Id);
+
+        // Caught by Egypt's watchmen, it is in Egypt's hands: the cover ends, and Egypt sees its captive.
+        defector.Traits.Competence = 0;
+        s.Treasuries[Power.Egypt].Gold = 100000;
+        for (var i = 0; i < 30 && defector.Status != CharacterStatus.Captured; i++)
+        {
+            new TurnEngine(s).Resolve(Orders(Power.Egypt, new CounterIntelOrder(200)));
+            if (defector.Status != CharacterStatus.Captured) Begin(s);
+        }
+        Assert.Equal((CharacterStatus.Captured, Power.Egypt), (defector.Status, defector.HeldBy));
+        Assert.Null(defector.CoverOf(Power.Egypt));
+        v = Views.For(s, Power.Egypt);
+        Assert.DoesNotContain(v.Court, c => c.Id == defector.Id);
+        Assert.Equal("your captive", v.Known.Single(c => c.Id == defector.Id).Status);
+    }
+
+    [Fact]
     public void A_masters_fall_ends_only_its_own_covers()
     {
         var (s, defector) = Defector();

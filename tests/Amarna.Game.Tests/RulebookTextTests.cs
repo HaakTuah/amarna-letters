@@ -24,6 +24,15 @@ public class RulebookTextTests
     }
 
     [Fact]
+    public void The_rulebook_says_that_a_spy_at_a_court_is_hidden_from_it_until_caught()
+    {
+        Assert.Contains("A spy posted at a court watches in secret: that court does not see it there, nor whom it serves, until its watchmen catch it, "
+                        + "unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing, "
+                        + "and is not paid any back pay you owe it while it hides there. A caught spy may confess whom it serves.", Rules);
+        Assert.Contains("Then everyone you see at your court whom you owe back pay is paid it", Rules);
+    }
+
+    [Fact]
     public void The_rulebook_says_that_tablets_lie_in_archives_that_spies_copy_and_conquerors_take()
     {
         Assert.Contains("- Archives: every tablet you hold (those you sealed, and the copies you were shown or brought) lies in your archive at your capital, and so it is at every court. "

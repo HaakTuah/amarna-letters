@@ -165,7 +165,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   say why; a botched forgery was an ordinary notice.)
 - **Save version.** The state and the log header carry the version of the rules
   (`GameState.CurrentVersion`: 2 since the simulation-fixes round, 3 since Build order item 3, whose archives,
-  inventory tablets and swapped inventories change how a seed plays). A log saved under another version
+  inventory tablets and swapped inventories change how a seed plays, 4 since Build order item 4, whose hidden spies
+  are not paid back pay at the court they watch and do not end that court's cover). A log saved under another version
   is refused, both for replay and for continuing it: "This game was saved under an earlier version of
   the rules (version 2) and cannot be replayed by this version." The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
@@ -391,7 +392,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   with no task is paid its wage from the treasury, as before. A servant away (on a mission of any
   kind, posted as a spy, detained, or captive with its contract kept) is not paid: its wage is added
   to its back pay (`Character.BackPay`, per court), and no gold leaves. Right after the season's
-  arrivals, everyone standing at a court that owes it back pay, and not held there, is paid from
+  arrivals, everyone standing at a court that owes it back pay, not held there and not hidden there as
+  another court's spy (since Build order item 4: the court does not see it there), is paid from
   that court's true treasury, as much as it holds, whether or not it still serves that court (one
   dismissed while away is paid when it gets home); so a servant is paid the season it comes home,
   and its master reads "Mane is back at your court and was paid 48 shekels of back pay." A shortfall
@@ -452,6 +454,29 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   told. A spy's report is written when it arrives, of the season it was observed: a model-played
   spy remembers nothing that happened to it since (such as its capture). A spy at a court also copies
   from its archive, and the copies come home with its report (see "Tablets lie in archives").
+- **A spy at a court is hidden from it** (since Build order item 4; the rulebook says so under the spies'
+  paragraph). A spy posted at a court stands there (`Character.At`), but the court does not see it there
+  (`Character.HiddenAt`, `Views.SeenAtCourt`): its view does not list it for being there, and gives it
+  no place and no master. It is listed only if the court knows of it otherwise (a hidden fact it learned,
+  for instance), and then exactly as it would be anywhere else: "employed", no place, no master. The
+  court sees it, and whom it serves, once it has learned that, which under today's rules means:
+  - **caught**: it is the court's captive, listed "your captive", in its prison, with the master it
+    confessed to if it confessed (the `LossAbroad` record of its capture; kept as the court learned it,
+    whatever happens to its service later), and with no master if it would not say;
+  - **turned, or a plant**: a spy secretly in the pay of the court it watches (a captive it turned and sent
+    back to its post, or one planted in another court's service at the start) reports to that court, so the
+    court sees it at its post, with the master it pretends to serve.
+  Nothing else tells a court of an uncaught spy at its court: a confession comes only with a capture;
+  spies' and envoys' reports name envoys received or held at the court they visit, captives and the
+  dead, never a spy still at its post; background checks report facts about a person, never where it is.
+  The engine follows the same line: a hidden spy is not paid back pay the court owes it (it does not
+  stand there in the open; it is paid if it ever does), so no notice and no gold betray it, and it does
+  not end a cover that court holds for it (a defector posted as a spy at its old master's court leaves the
+  old master believing what it believed, as for any servant abroad). The web map already drew no foreign
+  spy a court has not caught, and draws a captive held at the court with the master it confessed to, or
+  none. (Until Build order item 4 the view listed a spy posted at a court in that court's view as
+  employed, with its master, "at your court", and showed a captive no master even if it confessed, while
+  the map coloured every captive by its true master.)
 - **News of your people abroad comes only by rumour or when they return** (the rulebook says so).
   When something happens to a servant abroad that its master cannot see (a spy caught, an envoy
   detained or going over to the host, a captive put to death or turned, a prisoner let go), the
@@ -523,10 +548,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     round's review it left the sight the season of the capture.)
   - **What a cover cannot hide:** a caught spy's reports stop coming; a background check on the servant
     finds a defection's public fact as usual; a captive whose master knew of it is seen on the road
-    home as soon as it is let go. A spy posted at a court is listed in that court's view with its
-    employer, "at your court", before anyone catches it (`docs/rounds/2026-10-18-sleep-and-simulation.md`,
-    question 19, bug 4; not changed this round), so a defector its new master posts at its old
-    master's court ends the old master's cover when it arrives.
+    home as soon as it is let go. A defector its new master posts as a spy at its old master's court
+    is hidden there like any spy (see "A spy at a court is hidden from it"), so the old master's cover
+    holds; one sent there as an envoy stands before the king and ends it. (Until Build order item 4 a
+    spy posted at a court was listed in that court's view with its employer, "at your court",
+    `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 19, bug 4, and a defector posted at its old
+    master's court ended the old master's cover when it arrived.)
   (Until the simulation-fixes round the master's list showed
   the truth at once: a caught spy "at court, ready for a mission", a detained envoy "has not
   returned" the same season, a defector dropped off the list and its wage stopped, an executed spy
@@ -1576,9 +1603,10 @@ These are in the code as written, and they affect the balance numbers:
 `BaselineLeader` is a frozen copy of the first script bot. `--versus solo` plays each king on the
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
-current bot. Seeds 1–40, one current king against six baselines, rerun after Build order item 3 (19 October 2026,
-shared victory off; the numbers before it, and why they moved, are in its report,
-`docs/rounds/2026-10-19-small-record-items.md`, "Benchmarks", and the rounds before in theirs):
+current bot. Seeds 1–40, one current king against six baselines, rerun after Build order item 4's first fix,
+the hidden spy (19 October 2026, shared victory off; the numbers before it, and why they moved, are in that item's
+report, `docs/rounds/2026-10-19-second-simulation.md`, "Fixes (a) and (c)", and the items and rounds before in
+theirs):
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
@@ -1586,10 +1614,10 @@ shared victory off; the numbers before it, and why they moved, are in its report
 | Hatti | 2.78 | 0.84 | 85% | 5% |
 | Babylonia | 2.44 | 1.16 | 85% | 10% |
 | Mitanni | 1.85 | 1.35 | 53% | 28% |
-| Assyria | 3.76 | 0.97 | 88% | 10% |
+| Assyria | 3.79 | 0.97 | 88% | 10% |
 | Arzawa | 3.18 | 1.38 | 63% | 30% |
 | Alashiya | 1.84 | 0.88 | 45% | 3% |
-| All kings | 2.67 | 1.13 | 73% | 14% |
+| All kings | 2.68 | 1.13 | 73% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
@@ -1737,10 +1765,11 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   halo and a dotted road to say it is a guess. A ransom travels as gold on its own.
 - **Each view sees only what its court knows** (`MapScene`). A court sees its own people where it believes them
   (its cover of a servant whose fate it has not heard, read from the cover's own texts), foreign envoys only while
-  they stand at its court, and anyone it holds; never a foreign spy it has not caught. The engine's own view still
-  lists a spy posted at a court in that court's view with its employer (question 19, bug 4, recorded under
-  "Characters"); the map does not draw it, and this round changes no view (the People panel and the follow view,
-  which read the engine's view, still show it). A court is drawn only the orders it saw resolve. Who holds a province
+  they stand at its court, and anyone it holds (a caught spy marked with the master it confessed to, or none; a
+  held envoy with the king who sent it); never a foreign spy it has not caught. Since Build order item 4 the
+  engine's own view hides that spy too (see "A spy at a court is hidden from it" under Characters), so the People
+  panel and the follow view, which read it, no longer list it or its employer; until then they did (question 19,
+  bug 4). A court is drawn only the orders it saw resolve. Who holds a province
   is public, but how it changed hands is not (the engine tells a conquest only to the taker and the loser, a
   purchase only to courts with sight): a court reads "taken by" only when it saw the new owner's troops march in,
   "passed to" when it lost or gained the province (it would have seen a march), and otherwise "now held by". A march

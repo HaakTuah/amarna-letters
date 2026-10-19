@@ -10,9 +10,10 @@ public sealed class GameState
     /// <summary>
     /// The version of the rules. A log saved under another version is refused, since its decisions
     /// would not replay to the same game. Raise it with every rule change. 3 since Build order item 3 (archives, inventory
-    /// tablets and swapped inventories).
+    /// tablets and swapped inventories); 4 since Build order item 4 (a spy posted at a court is hidden from it: it is not
+    /// paid back pay there, and does not end that court's cover).
     /// </summary>
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }
@@ -249,6 +250,15 @@ public sealed class Character
 
     /// <summary>What <paramref name="p"/> still believes of this character, if it has not heard what happened to it.</summary>
     public Cover? CoverOf(Power p) => Covers.FirstOrDefault(k => k.For == p);
+
+    /// <summary>
+    /// A foreign spy posted at <paramref name="court"/> that the court does not know is there. A spy watches a court in
+    /// secret: the court does not see it standing there, nor whom it serves, until its watchmen catch it (it is then the
+    /// court's captive). A spy secretly in that court's own pay (one it turned, or a plant) reports to it, so the court
+    /// knows it is there.
+    /// </summary>
+    public bool HiddenAt(Power court) =>
+        At == court && Status == CharacterStatus.Employed && Duty == Duty.SpyPosted && Employer != court && SecretMaster != court;
 }
 
 /// <summary>Where gold in a character's purse came from.</summary>

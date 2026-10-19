@@ -16,7 +16,7 @@ public class BackPayTextTests
         Assert.DoesNotContain("you keep paying its wage", rules);
         Assert.Contains("back pay you already owe them is still paid if they ever stand at your court again", rules);
         Assert.Contains("2. Income, upkeep and wages: your provinces pay their yield in gold; you pay upkeep for every army (30) and fleet (35) and the wages of your people at court; the wages of your people away are added to their back pay.", rules);
-        Assert.Contains("Then everyone at your court whom you owe back pay is paid it, as far as your treasury allows.", rules);
+        Assert.Contains("Then everyone you see at your court whom you owe back pay is paid it, as far as your treasury allows.", rules);
     }
 
     [Fact]

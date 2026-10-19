@@ -156,7 +156,8 @@ public sealed partial class TurnEngine
     {
         foreach (var c in S.Characters.OrderBy(c => c.Id))
         {
-            if (c.At is not { } court || c.HeldBy == court || c.Status == CharacterStatus.Dead || !S.IsAlive(court)) continue;
+            // A foreign spy posted at the court in secret does not stand there in the open, so it is not paid there.
+            if (c.At is not { } court || c.HeldBy == court || c.Status == CharacterStatus.Dead || !S.IsAlive(court) || c.HiddenAt(court)) continue;
             var owed = c.BackPay.GetValueOrDefault(court);
             if (owed <= 0) continue;
             var t = S.Treasuries[court];

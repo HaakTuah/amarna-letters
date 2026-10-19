@@ -2,6 +2,7 @@ using System.Reflection;
 using Amarna.Engine;
 using Amarna.Game;
 using Amarna.Game.Bots;
+using Amarna.Llm;
 
 namespace Amarna.Game.Tests;
 
@@ -26,9 +27,29 @@ public class BlindnessTests
         return (runner, bots);
     }
 
-    /// <summary>Changes what this king cannot see: rivals' gold, the fine gold in its own unassayed lots, troops out of its sight, everyone's traits.</summary>
+    /// <summary>
+    /// Posts a rival's servant (at home, on the road, or watching elsewhere; never one standing at this court) at
+    /// <paramref name="p"/>'s court as a spy that court has not caught: it watches in secret. Returns it, or null if no
+    /// rival has anyone to send.
+    /// </summary>
+    private static Character? PostSpy(GameState s, Power p)
+    {
+        var spy = s.Characters.FirstOrDefault(c => c.Status == CharacterStatus.Employed && c.Employer is { } e && e != p && s.IsAlive(e)
+                                                    && c.At != p && c.HeldBy is null && c.Duty != Duty.Detained && c.SecretMaster != p && c.CoverOf(p) is null);
+        if (spy is null) return null;
+        (spy.Duty, spy.At, spy.MissionTarget, spy.WatchProvince, spy.CurrentTrail) = (Duty.SpyPosted, p, p, null, null);
+        // Whatever journey it was on is over: it is at its post.
+        s.Journeys.RemoveAll(j => j.CharacterId == spy.Id && j.Kind is JourneyKind.EnvoyOutbound or JourneyKind.EnvoyHomebound or JourneyKind.SpyOutbound or JourneyKind.SpyHomebound);
+        return spy;
+    }
+
+    /// <summary>
+    /// Changes what this king cannot see: rivals' gold, the fine gold in its own unassayed lots, troops out of its sight,
+    /// everyone's traits, and a rival's spy posted at its court that it has not caught.
+    /// </summary>
     private static void Hide(GameState s, Power p)
     {
+        PostSpy(s, p);
         foreach (var q in Powers.All.Where(q => q != p))
         {
             s.Treasuries[q].Gold += 400;
@@ -71,6 +92,24 @@ public class BlindnessTests
             var orders = await seeing[p].DecideAsync(Views.For(a.State, p), default);
             var unchanged = await blind[p].DecideAsync(Views.For(hidden, p), default);
             Assert.Equal(Json.Serialize(orders), Json.Serialize(unchanged));
+        }
+    }
+
+    [Fact]
+    public async Task A_foreign_spy_at_a_court_that_has_not_caught_it_changes_nothing_that_court_is_shown()
+    {
+        var (a, _) = await Played(6, 5);
+        foreach (var p in a.State.Alive)
+        {
+            var posted = Json.Deserialize<GameState>(Json.Serialize(a.State))!;
+            var spy = PostSpy(posted, p);
+            Assert.NotNull(spy);
+            Assert.True(spy.HiddenAt(p));
+            // The seat view, field by field, and every text a model or human king reads of it.
+            var seen = Views.For(a.State, p);
+            var shown = Views.For(posted, p);
+            Assert.Equal(Json.Serialize(seen), Json.Serialize(shown));
+            Assert.Equal(Prompts.Situation(seen), Prompts.Situation(shown));
         }
     }
 

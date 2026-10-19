@@ -362,9 +362,10 @@ public sealed class MapScene
                 continue;
             }
 
-            // Foreign people the court can see: envoys before it, and anyone it holds.
+            // Foreign people the court can see: envoys before it, and anyone it holds (a caught spy marked with the master
+            // it confessed to, if it did; a held envoy with the king who sent it).
             if (c.HeldBy == p && c.Status is CharacterStatus.Captured or CharacterStatus.Employed or CharacterStatus.Free)
-                people.Add(new ScenePerson(c.Id, PersonKind.Captive, c.Employer, home, $"{c.Name}, held at your court", false, false));
+                people.Add(new ScenePerson(c.Id, PersonKind.Captive, c.Status == CharacterStatus.Captured ? c.Confessed : c.Employer, home, $"{c.Name}, held at your court", false, false));
             else if (c.Status == CharacterStatus.Employed && c.Duty == Duty.EnvoyAtCourt && c.At == p && c.Employer is { } lord && lord != p)
                 people.Add(new ScenePerson(c.Id, PersonKind.Envoy, lord, home, $"{c.Name}, envoy of {lord.Name()}, at your court", false, false));
         }

@@ -283,7 +283,8 @@ public static class Views
             }
             if (c.Status == CharacterStatus.Dead && c.Employer != p) continue;
             var ours = c.Employer == p && c.Status is CharacterStatus.Employed or CharacterStatus.Captured;
-            var known = ours || c.At == p || c.HeldBy == p || c.Pitches.ContainsKey(p) || c.Facts.Any(f => f.Secrecy != Secrecy.Public && f.KnownBy.Contains(p));
+            // A foreign spy posted here in secret is not seen here: only something else this court knows of it lists it.
+            var known = ours || SeenAtCourt(c, p) || c.HeldBy == p || c.Pitches.ContainsKey(p) || c.Facts.Any(f => f.Secrecy != Secrecy.Public && f.KnownBy.Contains(p));
             if (!known) continue;
             var cv = Character(s, c, p);
             if (ours) v.Court.Add(cv); else v.Known.Add(cv);
@@ -309,13 +310,31 @@ public static class Views
         return v;
     }
 
+    /// <summary>
+    /// Whether <paramref name="viewer"/> sees <paramref name="c"/> standing at its court: anyone there in the open (its
+    /// own people, envoys received there, free people, anyone it holds), but not a foreign spy posted there in secret
+    /// (<see cref="Amarna.Engine.Character.HiddenAt"/>). Where it stands, and whom it serves, the court learns only when its
+    /// watchmen catch it, or if it secretly serves the court.
+    /// </summary>
+    public static bool SeenAtCourt(Character c, Power viewer) => c.At == viewer && !c.HiddenAt(viewer);
+
+    /// <summary>
+    /// Whom a spy <paramref name="court"/> caught confessed to serving when it was caught there (its latest capture there),
+    /// or null if it would not say: all the court learned of its master. Kept as the court learned it, whatever has
+    /// happened to the spy's service since.
+    /// </summary>
+    public static Power? ConfessedMaster(GameState s, string id, Power court) =>
+        s.Losses.LastOrDefault(l => l.CharacterId == id && l.Court == court && l.Kind == LossKind.Captured)?.Master;
+
     public static CharacterView Character(GameState s, Character c, Power viewer)
     {
         if (c.CoverOf(viewer) is { } cover) return Covered(s, c, cover);
         var ours = c.Employer == viewer;
         var captive = ours && c.Status == CharacterStatus.Captured && c.HeldBy is not null;
+        // A foreign spy hidden at your court is, to you, someone elsewhere: no place, no master.
+        var here = SeenAtCourt(c, viewer);
         // A free person at your court (not held by another) can be hired there at what they ask, whether or not they pitched.
-        var freeHere = c.Status == CharacterStatus.Free && c.At == viewer && (c.HeldBy is null || c.HeldBy == viewer);
+        var freeHere = c.Status == CharacterStatus.Free && here && (c.HeldBy is null || c.HeldBy == viewer);
         // The contract of one who still serves you (not of one dead in your service).
         var k = ours && c.Status is (CharacterStatus.Employed or CharacterStatus.Captured) ? c.Contract : null;
         return new CharacterView
@@ -325,9 +344,12 @@ public static class Views
             Origin = c.Origin,
             Ours = ours,
             Status = c.Status == CharacterStatus.Captured && c.HeldBy == viewer ? "your captive" : c.Status.ToString().ToLowerInvariant(),
-            Employer = ours || c.Status == CharacterStatus.Employed && c.At == viewer ? c.Employer : null,
+            // A spy you caught: whom it confessed to serving, if it did.
+            Employer = ours || c.Status == CharacterStatus.Employed && here ? c.Employer
+                : c.Status == CharacterStatus.Captured && c.HeldBy == viewer ? ConfessedMaster(s, c.Id, viewer)
+                : null,
             Duty = captive ? CaptiveText(s, c.Id, c.HeldBy!.Value, viewer) : ours ? DutyText(c) : "",
-            Where = ours || c.At == viewer ? WhereText(c, viewer) : "",
+            Where = ours || here ? WhereText(c, viewer) : "",
             Timing = ours ? TimingText(s, c) : "",
             // A captive's wage builds up as back pay, as for anyone away.
             Wage = k?.Wage,
@@ -349,14 +371,15 @@ public static class Views
     /// <summary>
     /// The back pay <paramref name="viewer"/> owes a character as it can know it, or null if none: as it believes it for
     /// one of its people abroad whose fate it has not heard of (its cover); else what it really owes one of its people,
-    /// or anyone standing at its court and not held there. Nothing for one away who no longer serves it, whose fate it
-    /// cannot see (what it owes them is paid if they ever come back).
+    /// or anyone it sees standing at its court and not held there. Nothing for one away who no longer serves it, whose
+    /// fate it cannot see, or for a foreign spy hidden at its court (what it owes them is paid if they ever stand at its
+    /// court in the open).
     /// </summary>
     public static int? BackPayOwed(Character c, Power viewer)
     {
         var owed = c.CoverOf(viewer) is { } cover ? cover.BackPay
             : c.Employer == viewer && c.Status is CharacterStatus.Employed or CharacterStatus.Captured
-              || c.At == viewer && c.HeldBy != viewer && c.Status != CharacterStatus.Dead ? c.BackPay.GetValueOrDefault(viewer)
+              || SeenAtCourt(c, viewer) && c.HeldBy != viewer && c.Status != CharacterStatus.Dead ? c.BackPay.GetValueOrDefault(viewer)
             : 0;
         return owed > 0 ? owed : null;
     }
