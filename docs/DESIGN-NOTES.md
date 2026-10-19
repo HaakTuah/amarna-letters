@@ -684,7 +684,15 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   where it also sends letters and decides whether to reopen its orders (Part H). Not exceptions, but close to the line: a king's envoys
   are characters with minds of their own (script, Haiku or Sonnet), so what a host hears is the
   envoy's rendering of the king's message, and an envoy may commit its king at a foreign court
-  (`commitments`, logged in the message trail); that is the character's decision, by design.
+  (`commitments`, logged in the message trail); that is the character's decision, by design. The
+  trail keeps the promise among its outcomes, marked "the envoy committed: …"
+  (`TurnEngine.CommittedPrefix`), but nobody reads it as an outcome: the host's record of the
+  audience gives it a line of its own after the outcomes ("Mane promised on behalf of Egypt:
+  "…""), and the envoy's report request keeps it out of "What happened" and gives it as the
+  envoy's own ("What you yourself promised on your lord's behalf, in your own words at the audience
+  (your promise, not anything the king did or sealed): "…""). (Until the fix pass after item 4 both
+  listed it among the outcomes, and in the second agent simulation an envoy read his own "the tablet
+  sealed exactly as written" as a sealing that never happened.)
 - Every state-changing output uses structured output (a JSON schema). Orders face the same
   validator as any seat. An unreadable reply is retried once with the error; then the runner
   uses a script decision for that call and logs the failure.

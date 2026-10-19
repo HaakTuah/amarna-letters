@@ -263,7 +263,14 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
                 {
                     user.AppendLine($"You went to the court of {t.To.Land()}. You told its king: \"{t.Delivered}\"");
                     foreach (var x in t.Exchanges) user.AppendLine($"The king said: \"{x.Host}\"" + (x.Envoy.Length > 0 ? $" You answered: \"{x.Envoy}\"" : ""));
-                    if (t.Outcomes.Count > 0) user.AppendLine("What happened: " + string.Join("; ", t.Outcomes) + ".");
+                    // What the audience brought about, as the engine records it; what the envoy itself promised is its own line,
+                    // so it is never read as something the king did or sealed.
+                    var happened = t.Outcomes.Where(o => TurnEngine.Commitment(o) is null).ToList();
+                    if (happened.Count > 0) user.AppendLine("What happened: " + string.Join("; ", happened) + ".");
+                    var promised = t.Outcomes.Select(TurnEngine.Commitment).OfType<string>().ToList();
+                    if (promised.Count > 0)
+                        user.AppendLine("What you yourself promised on your lord's behalf, in your own words at the audience (your promise, not anything the king did or sealed): "
+                                        + string.Join(" ", promised.Select(x => $"\"{x}\"")));
                 }
                 if (cargo.WasDetained) user.AppendLine("You were held there against your will before being let go.");
                 if (cargo.Observations.Count > 0) user.AppendLine("What you noticed at that court: " + string.Join(" ", cargo.Observations));

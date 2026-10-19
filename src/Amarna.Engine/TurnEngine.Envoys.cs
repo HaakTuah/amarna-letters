@@ -5,6 +5,17 @@ public sealed partial class TurnEngine
 {
     public const int MaxSpeech = 1500;
 
+    /// <summary>
+    /// How the record of a mission (<see cref="MessageTrail.Outcomes"/>) marks what the envoy itself promised on its lord's
+    /// behalf: its own words, not something the engine did. The host's record and the envoy's report request set it apart
+    /// from the outcomes.
+    /// </summary>
+    public const string CommittedPrefix = "the envoy committed: ";
+
+    /// <summary>What the envoy promised, if this outcome is its own commitment; else null.</summary>
+    public static string? Commitment(string outcome) =>
+        outcome.StartsWith(CommittedPrefix, StringComparison.Ordinal) ? outcome[CommittedPrefix.Length..] : null;
+
     public MessageTrail? Trail(string? id) => id is null ? null : S.Trails.FirstOrDefault(t => t.Id == id);
 
     // ---------------------------------------------------------------- dispatch
@@ -329,7 +340,7 @@ public sealed partial class TurnEngine
             }
 
             if (!string.IsNullOrWhiteSpace(e.Commitments))
-                trail.Outcomes.Add($"the envoy committed: {Greeting.Cap(e.Commitments, 300)}");
+                trail.Outcomes.Add(CommittedPrefix + Greeting.Cap(e.Commitments, 300));
 
             if (h.GoldBack > 0)
             {
@@ -419,8 +430,11 @@ public sealed partial class TurnEngine
             lines.Add($"You said: \"{x.Host}\"");
             lines.Add($"{c.Name} answered: \"{x.Envoy}\"");
         }
-        var outcomes = trail.Outcomes.Where(o => !unseen.Contains(o)).ToList();
+        // What the envoy promised is its own words, set apart from what the audience brought about.
+        var outcomes = trail.Outcomes.Where(o => !unseen.Contains(o) && Commitment(o) is null).ToList();
         if (outcomes.Count > 0) lines.Add("Outcome: " + string.Join("; ", outcomes) + ".");
+        foreach (var promised in trail.Outcomes.Select(Commitment).OfType<string>())
+            lines.Add($"{c.Name} promised on behalf of {a.From}: \"{promised}\"");
         return string.Join("\n", lines);
     }
 

@@ -98,6 +98,34 @@ public class RequestTextTests
     }
 
     [Fact]
+    public async Task An_envoys_own_promise_is_its_own_line_in_its_report_request_not_something_that_happened()
+    {
+        var asker = new Recorder();
+        var mind = new LlmCharacterMind(asker);
+        var envoy = Envoy();
+        var trail = new MessageTrail
+        {
+            Id = "m1", Turn = 2, From = Power.Egypt, To = Power.Hatti, EnvoyId = envoy.Id, EnvoyName = envoy.Name, Delivered = "Greetings.",
+            Exchanges = [new Exchange { Host = "I will think on it.", Envoy = "My lord will hold to it." }],
+            Outcomes = ["accepted 10 shekels from Hatti", TurnEngine.CommittedPrefix + "the tablet sealed exactly as written"],
+        };
+
+        await mind.WriteAsync(Report(envoy, 0, trail), default);
+
+        var user = Assert.Single(asker.Calls).User;
+        var happened = user.Split('\n').Single(l => l.StartsWith("What happened: ", StringComparison.Ordinal));
+        Assert.Equal("What happened: accepted 10 shekels from Hatti.", happened.TrimEnd());
+        Assert.DoesNotContain("committed", user);
+        Assert.Contains("What you yourself promised on your lord's behalf, in your own words at the audience (your promise, not anything the king did or sealed): \"the tablet sealed exactly as written\"", user);
+
+        // With only its own promise, there is no "What happened" line at all.
+        trail.Outcomes = [TurnEngine.CommittedPrefix + "nothing beyond the mandate"];
+        await mind.WriteAsync(Report(envoy, 0, trail), default);
+        Assert.DoesNotContain("What happened", asker.Calls[1].User);
+        Assert.Contains("\"nothing beyond the mandate\"", asker.Calls[1].User);
+    }
+
+    [Fact]
     public void A_reply_without_the_gold_fields_keeps_nothing_and_swaps_nothing()
     {
         var present = Parse.Present((JsonObject)JsonNode.Parse("""{"speech":"Hail."}""")!);
