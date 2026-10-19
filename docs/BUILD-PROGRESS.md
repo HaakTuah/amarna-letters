@@ -7,7 +7,7 @@ report, and what was decided along the way. Items are built on their own branch 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 1 | Simulation fixes and default sleep | in progress | `round/simulation-fixes` | `docs/rounds/2026-10-19-simulation-fixes.md` |
+| 1 | Simulation fixes and default sleep | done (19 Oct), merged into `develop`; PR #7 `develop` -> `main` open for review | `round/simulation-fixes` | `docs/rounds/2026-10-19-simulation-fixes.md` |
 | 2 | The visual overhaul | not started | | |
 | 3 | Small record items | not started | | |
 | 4 | Second agent simulation, with model characters (stop for review) | not started | | |
@@ -72,6 +72,10 @@ workflow was launched over it, and messages to its agents started second copies 
 replay checks before each commit; the leftover stash was an earlier copy of G2 and was dropped. Still to do in Part G:
 G3 (triggers on changes) and G4 (loss rumours). Part E's three commits stand; its request-size harness outside the
 repository was touched by two agents at once and is not trusted.
+
+**Item 1 closed, 19 October.** Parts G, E and H finished and reviewed (one reviewer each; the only blocking finding, in Part H, was fixed); the report and DESIGN-NOTES refreshed; benchmarks before and after run (all replays exact, nothing tuned). `develop` was created from `main` and the round merged into it with a merge commit (633 tests pass on `develop`). PR #7 (https://github.com/HaakTuah/amarna-letters/pull/7) carries `develop` into `main` for Haakon to review.
+
+**PRs at milepoints** (Haakon, 19 October): each time an item is merged into `develop`, `develop` is pushed and a PR from `develop` to `main` is opened (or an open one picks up the new commits). If a PR was squash- or rebase-merged, `main` is merged back into `develop` before the next push.
 
 **Decided along the way** (details in the report): following the Build order's rules, from here on one reviewer per
 part and no extra analyst workflows; the item's report moves to `docs/rounds/2026-10-19-simulation-fixes.md` when the
