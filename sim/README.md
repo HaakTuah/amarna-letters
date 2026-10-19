@@ -69,7 +69,8 @@ the session starts the script, and the script runs the loop and hands back only 
   the first request of a later season, so that the session can check usage (after season 3, as the start prompt
   asks) and start it again for the rest. A request still listed after 3 starts stops it (`stuck`), and so do more
   than five unreadable polls in a row. It returns only counts: rounds, king and character calls, and calls per
-  season.
+  season. It returns no tokens: the start prompt's season lines take theirs from the workflow's agent transcripts,
+  read after the game, as the second simulation's report did.
 - **The orchestrator's rule holds by construction.** The driver discards every agent's final text (each start resolves
   to `true`), and the poller returns only `wait.js`'s line, which names agent types and request files and nothing
   else. So no seat's words reach the session that starts the other seats: within a session that can run workflows,
