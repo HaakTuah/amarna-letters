@@ -3,10 +3,10 @@
     var view = Views.For(State, me);
     <h3>Your people</h3>
     @if (view.Court.Count == 0) { <p class="muted">Nobody serves you.</p> }
-    @foreach (var c in view.Court) { <Person C="c" /> }
+    @foreach (var c in view.Court) { <Person C="c" Court="me" OnFollow="OnPerson" /> }
     <h3 style="margin-top:1rem">Others you know of</h3>
     @if (view.Known.Count == 0) { <p class="muted">Nobody else has come to your notice.</p> }
-    @foreach (var c in view.Known) { <Person C="c" /> }
+    @foreach (var c in view.Known) { <Person C="c" Court="me" OnFollow="OnPerson" /> }
 }
 else
 {
@@ -16,12 +16,13 @@ else
     {
         <div class="item">
             <h4>
-                @if (c.Employer is { } e) { <span class="dot" style="background:@Ui.Color(e)"></span> }
+                <Emblem Power="c.Employer" />
                 @c.Name <small class="muted">of @c.Origin, @c.Calling</small>
                 <span class="pill">@c.Status.ToString().ToLowerInvariant()@(c.Employer is { } emp ? $" · {emp.Name()}" : "")</span>
                 @if (c.SecretMaster is { } sm) { <span class="pill" style="color:var(--danger)">secretly serves @sm.Name()</span> }
+                <button class="small link" @onclick="() => OnPerson.InvokeAsync(c.Id)">Follow</button>
             </h4>
-            <div><small>@Views.DutyText(c)@(c.At is { } at ? $" · at {at.Name()}" : "")@(c.HeldBy is { } hb ? $" · held by {hb.Name()}" : "") · purse @Ui.Shekels(c.Purse)@(c.Contract is { } k ? $" · {Views.TermText(k.Wage, k.UntilTurn, k.NoticePrice, k.LeavesTurn, State.Turn)}" : "")</small></div>
+            <div><small>@Views.DutyText(c)@(c.At is { } at ? $" · at {at.Name()}" : "")@(c.HeldBy is { } hb ? $" · held by {hb.Name()}" : "") · purse @Ui.Shekels(c.Purse)@(c.Contract is { } k ? $" · {Ui.Dated(Views.TermText(k.Wage, k.UntilTurn, k.NoticePrice, k.LeavesTurn, State.Turn), null)}" : "")</small></div>
             <div class="row" style="margin:.3rem 0">
                 @foreach (var (name, v) in Traits(c))
                 {
@@ -38,7 +39,7 @@ else
             <details><summary><small>Persona and memory</small></summary>
                 <p><small>@c.Persona</small></p>
                 @if (c.MemorySummary.Length > 0) { <p><small class="muted">Older memories:</small> <small>@c.MemorySummary</small></p> }
-                @foreach (var m in c.Memory.TakeLast(6)) { <div><small class="muted">t@(m.Turn):</small> <small>@m.Text</small></div> }
+                @foreach (var m in c.Memory.TakeLast(6)) { <div><small class="muted" title="@Ui.When(m.Turn, null)">@Calendar.Short(m.Turn):</small> <small>@m.Text</small></div> }
             </details>
         </div>
     }
@@ -47,6 +48,7 @@ else
 @code {
     [Parameter, EditorRequired] public GameState State { get; set; } = default!;
     [Parameter] public Power? Viewer { get; set; }
+    [Parameter] public EventCallback<string> OnPerson { get; set; }
 
     private static IEnumerable<(string, int)> Traits(Character c) =>
     [

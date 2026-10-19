@@ -1,0 +1,37 @@
+@* The selected province, the provinces an order can reach, and the arrows of a human seat's draft orders. *@
+@using Amarna.Web.Components.Map
+<g class="selection">
+    @if (Targets is not null)
+    {
+        @foreach (var id in Targets)
+        {
+            if (MapArt.Shapes.TryGetValue(id, out var d))
+            {
+                <path @key="id" class="target" d="@d" />
+            }
+        }
+    }
+    @if (Selected is not null && MapArt.Shapes.TryGetValue(Selected, out var sel))
+    {
+        var at = MapArt.City(Selected);
+        <path class="selected" d="@sel" />
+        <g transform="@($"translate({MapArt.F(at.X)},{MapArt.F(at.Y)})")"><g class="csym"><circle class="sel-ring" r="15" /></g></g>
+    }
+    @if (Arrows is not null)
+    {
+        @foreach (var (from, to, support) in Arrows)
+        {
+            var a = MapArt.UnitSpot(from);
+            var b = MapArt.UnitSpot(to);
+            if ((b - a).Length < 1) continue;
+            var end = b - (b - a).Unit * 12;
+            <path class="@($"draft{(support ? " support" : "")}")" d="@MapArt.Arc(a, end)" marker-end="url(#ah-ink)" />
+        }
+    }
+</g>
+
+@code {
+    [Parameter] public string? Selected { get; set; }
+    [Parameter] public HashSet<string>? Targets { get; set; }
+    [Parameter] public List<(string From, string To, bool Support)>? Arrows { get; set; }
+}

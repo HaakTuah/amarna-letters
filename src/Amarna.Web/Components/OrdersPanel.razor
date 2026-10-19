@@ -9,7 +9,7 @@
 }
 <div class="orders">
     <div class="section">
-        <h3>Orders for @v.Season</h3>
+        <h3>Orders for @Ui.When(v.Turn, me)</h3>
         <p class="muted">
             Treasury @Ui.Shekels(v.Gold) · income @Ui.Shekels(v.Income) · upkeep @Ui.Shekels(v.Upkeep) · wages @Ui.Shekels(v.Wages) (for people away, owed as back pay) · back pay owed @Ui.Shekels(v.BackPay).
             Growth so far: @(v.StartStrength > 0 ? (v.Strength / (double)v.StartStrength).ToString("0.00") : "-").
@@ -24,7 +24,7 @@
         {
             var unit = Draft.UnitAt(at)!;
             <div class="unitrow">
-                <span><span class="dot" style="background:@Ui.Color(me)"></span> @(unit.Kind == UnitKind.Army ? "Army" : "Fleet") @Ui.Province(at)</span>
+                <span><Emblem Power="me" /> @(unit.Kind == UnitKind.Army ? "Army" : "Fleet") @Ui.Province(at)</span>
                 <select value="@d.Kind" @onchange="e => { d.Kind = (string)e.Value!; d.Target = null; d.To = null; Changed(); }">
                     <option value="hold">Hold</option>
                     <option value="move">Move</option>
@@ -139,14 +139,15 @@
                     <div class="tablet" style="font-size:.88rem;margin-top:.3rem">@(Greeting.Render(me, Enum.Parse<Power>(SendTo), G) is { Length: > 0 } g ? g : "(no greeting)")</div>
                 </div>
                 <div class="field"><span>Your message (the envoy will speak it in their own words)</span>
-                    <textarea maxlength="1500" @bind="Letter" placeholder="What should your envoy say?"></textarea>
+                    <textarea maxlength="1500" rows="4" enterkeyhint="enter" @bind="Letter" @bind:event="oninput" placeholder="What should your envoy say? A few lines is best."></textarea>
+                    <small class="count @(Letter.Length > 600 ? "long" : "")">@Letter.Length / 1500@(Letter.Length > 600 ? " · long: kings and envoys read short letters best" : "")</small>
                 </div>
                 <div class="field"><span>Mandate: what the envoy may agree to</span>
-                    <input @bind="Mandate" placeholder="e.g. peace and an exchange of gifts; no land" />
+                    <input @bind="Mandate" enterkeyhint="done" autocomplete="off" placeholder="e.g. peace and gifts; no land" />
                 </div>
                 <div class="row">
-                    <label>Gold <input type="number" min="0" @bind="Gold" /></label>
-                    <label title="Below 100% the gold is debased: the receiver sees only its weight until they pay for an assay">purity % <input type="number" min="10" max="100" @bind="Purity" /></label>
+                    <label>Gold <input type="number" inputmode="numeric" min="0" @bind="Gold" /></label>
+                    <label title="Below 100% the gold is debased: the receiver sees only its weight until they pay for an assay">purity % <input type="number" inputmode="numeric" min="10" max="100" @bind="Purity" /></label>
                 </div>
                 <div class="field" style="margin-top:.4rem"><span>A tablet for both kings to seal (optional, @Ui.Shekels(v.Prices["tabletFee"]) for the scribe)</span>
                     <textarea maxlength="1200" @bind="TabletText" placeholder="By Shamash: ..."></textarea>
@@ -174,7 +175,7 @@
         @foreach (var c in v.Known.Where(c => c.Status == "free" && (c.Pitch is not null || c.AskingPrice is not null)))
         {
             <div class="item">
-                <Person C="c" />
+                <Person C="c" Court="me" />
                 <div class="row">
                     <label>Wage <input type="number" min="1" @bind="Wages[c.Id]" /></label>
                     <button class="small" @onclick="() => Add(new HireOrder(c.Id, Wages.GetValueOrDefault(c.Id, c.AskingPrice ?? 15), Math.Clamp(Term, 1, 30)))">Hire for @Math.Clamp(Term, 1, 30) seasons</button>
@@ -185,7 +186,7 @@
         @foreach (var c in v.Court.Where(c => c.Ready || c.NoticePrice is not null))
         {
             <div class="row" style="margin-top:.3rem">
-                <small>@c.Name: @c.Term.</small>
+                <small>@c.Name: @Ui.Dated(c.Term, me).</small>
                 <label>Wage <input type="number" min="1" @bind="Wages[c.Id]" /></label>
                 <button class="small" disabled="@Draft.Other.Any(o => o is RenewOrder r && r.Character == c.Id)" @onclick="() => Add(new RenewOrder(c.Id, Wages.GetValueOrDefault(c.Id, c.NoticePrice ?? c.Wage ?? 15), Math.Clamp(Term, 1, 30)))">Renew for @Math.Clamp(Term, 1, 30) seasons</button>
             </div>
@@ -216,7 +217,7 @@
         @* Anyone in your service, at court or away: whoever is away keeps going where they were going, and is free when they get there. *@
         @foreach (var c in v.Court)
         {
-            <div class="row" style="margin-top:.3rem"><small>@c.Name@(c.Ready ? "" : $" ({c.Duty})")</small> <button class="small danger" @onclick="() => Add(new DismissOrder(c.Id))">Dismiss</button></div>
+            <div class="row" style="margin-top:.3rem"><small>@c.Name@(c.Ready ? "" : $" ({Ui.Dated(c.Duty, me)})")</small> <button class="small danger" @onclick="() => Add(new DismissOrder(c.Id))">Dismiss</button></div>
         }
         @* Only once the demand has reached this court: until then a captive appears at its post, as its master believes. *@
         @foreach (var c in v.Court.Where(c => c.RansomDemand is not null))
@@ -255,7 +256,7 @@
         {
             <div class="item">
                 <div class="tablet">@t.Text</div>
-                <small>Seals: @string.Join(", ", t.Seals)@(t.SealedTurn is int st ? $" · sealed turn {st}" : "") · @t.Source@(t.AuthResult is not null ? $" · examined: {t.AuthResult}" : "")</small>
+                <small>Seals: @string.Join(", ", t.Seals)@(t.SealedTurn is int st ? $" · sealed {Ui.When(st, me)}" : "") · @t.Source@(t.AuthResult is not null ? $" · examined: {t.AuthResult}" : "")</small>
                 <div class="row"><button class="small" @onclick="() => Add(new AuthenticateOrder(t.CopyId, AuthSpend))">Have it examined</button> <label>spend <input type="number" min="10" @bind="AuthSpend" /></label></div>
             </div>
         }

@@ -41,7 +41,7 @@ else
 {
     <h4>Shown to you as evidence</h4>
     <div class="tablet">@t.Text</div>
-    <small>Bearing the seals of @string.Join(", ", t.Seals)@(t.SealedTurn is int st ? $", dated turn {st}" : "").</small>
+    <small>Bearing the seals of @string.Join(", ", t.Seals)@(t.SealedTurn is int st ? $", dated {Ui.When(st, court.Power)}" : "").</small>
 }
 @if (a.SecretMandate is not null)
 {

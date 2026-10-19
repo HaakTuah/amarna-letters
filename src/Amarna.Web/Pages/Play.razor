@@ -1,72 +1,145 @@
 @page "/play"
 @implements IDisposable
 @inject GameSession Session
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@using Amarna.Web.Components.Map
 
-<PageTitle>Amarna Letters — @(Session.Runner is null ? "no game" : $"turn {Session.Runner.State.Turn}")</PageTitle>
+<PageTitle>Amarna Letters — @(Session.Runner is null ? "no game" : Ui.WhenCap(Session.Runner.State.Turn, Viewer))</PageTitle>
 
-@if (Session.Runner is null)
+@if (Session.Runner is null || Session.Frames.Count == 0)
 {
     <div class="page">
         @if (Session.Error is not null) { <div class="notice error">The game could not start: @Session.Error</div> }
-        @if (Session.Busy) { <p>Preparing the game…</p> }
+        @if (Session.Busy || Session.Runner is not null) { <p>Preparing the game…</p> }
         else { <p>No game is running. <a href="">Start one</a> or load a saved log.</p> }
     </div>
 }
 else
 {
     var runner = Session.Runner;
-    var state = Session.Displayed!;
     var viewer = Viewer;
-    var view = viewer is { } vp ? Views.For(state, vp) : null;
-    var pendingOrders = Session.HistoryTurn is null ? Session.Humans.Values.FirstOrDefault(h => h.PendingOrders is not null) : null;
-    var pendingAudience = Session.HistoryTurn is null ? Session.Humans.Values.FirstOrDefault(h => h.PendingAudience is not null) : null;
+    var index = Session.ShownIndex;
+    var scene = Session.Scene(index, viewer);
+    var frame = scene.Frame;
+    var history = Session.HistoryTurn is not null;
+    var pendingOrders = !history ? Session.Humans.Values.FirstOrDefault(h => h.PendingOrders is not null) : null;
+    var pendingAudience = !history ? Session.Humans.Values.FirstOrDefault(h => h.PendingAudience is not null) : null;
     EnsureDraft(pendingOrders);
     EnsureAudienceTab(pendingAudience);
-    var useDraft = Tab == "orders" && Draft is not null;
+    var tab = EffectiveTab(pendingOrders, pendingAudience, viewer);
+    // A human seat's orders take the map's taps, and the province list's, while either tab is open.
+    var useDraft = tab is "orders" or "provinces" && Draft is not null;
+    var last = Session.Frames.Count - 1;
 
-    <div class="game">
-        <div class="controls">
-            <span class="season">@(viewer is { } sv ? Calendar.Season(state.Turn, sv) : Calendar.Neutral(state.Turn))</span>
-            <span class="phase">@(Session.HistoryTurn is int ht ? $"History: after turn {ht}" : runner.Phase)</span>
-            <span class="spacer"></span>
-            <button disabled="@(Session.Busy || Session.ReadOnly || runner.State.Ended || Session.Auto)" @onclick="Session.StepAsync">Play one season</button>
-            @if (Session.Auto)
-            {
-                <button @onclick="() => Session.SetAuto(false)">Pause</button>
-            }
-            else
-            {
-                <button class="primary" disabled="@(Session.ReadOnly || runner.State.Ended)" @onclick="() => Session.SetAuto(true)">Auto-play</button>
-            }
-            <select @bind="Session.DelayMs" title="Pause between seasons">
-                <option value="50">Fast</option>
-                <option value="400">Normal</option>
-                <option value="1500">Slow</option>
-            </select>
-            <select value="@(Session.ViewAs?.ToString() ?? "")" @onchange="ChangeView">
-                @if (Session.CanSeeAll)
+    <div class="@($"game{(Sheet ? " sheet" : "")} tab-{tab}")">
+        <header class="ghead">
+            <a class="brand" href="" title="New game">A<span>L</span></a>
+            <div class="when">
+                <div class="date" title="@(history ? "The season shown" : "The season being played")">
+                    @if (history)
+                    {
+                        <span class="hist">History</span> @Ui.WhenCap(index, viewer)
+                    }
+                    else
+                    {
+                        @Ui.WhenCap(runner.State.Turn, viewer)
+                    }
+                </div>
+                @{ var endingLine = frame.Ended ? $"The age has ended: {frame.EndReason}. Winner: {string.Join(" and ", frame.Winners)}." : Calendar.Ending(frame.Turn, frame.MinTurns, frame.EndChance, viewer); }
+                <div class="ending" title="@endingLine">
+                    @if (!history) { <span class="phase">@PhaseText(runner) · </span> }
+                    <span class="long">@endingLine</span>
+                    @* The short form, as in dense lists: the turn is in the tooltip. *@
+                    <span class="short">@(frame.Ended ? $"Ended · winner {string.Join(" and ", frame.Winners)}" : frame.Turn < frame.MinTurns ? $"Can end from {Calendar.Short(frame.MinTurns, viewer)}" : $"Any season may be the last ({frame.EndChance * 100:0.#}%)")</span>
+                </div>
+            </div>
+            <div class="gctl">
+                <select class="viewsel" value="@(Session.ViewAs?.ToString() ?? "")" @onchange="ChangeView" aria-label="Whose eyes">
+                    @if (Session.CanSeeAll)
+                    {
+                        <option value="">God view</option>
+                        @foreach (var p in Powers.All) { <option value="@p">As @p.Name()</option> }
+                    }
+                    else
+                    {
+                        @foreach (var p in Session.Humans.Keys) { <option value="@p">@p.Name() (you)</option> }
+                    }
+                </select>
+                @if (Session.Settings.UsesModels || Session.Cost > 0)
                 {
-                    <option value="">God view (everything)</option>
-                    @foreach (var p in Powers.All) { <option value="@p">As @p.Name() sees it</option> }
+                    <span class="pill cost" title="Model spend for this game">$@Session.Cost.ToString("0.00")<span class="hide-sm"> / $@Session.Settings.BudgetUsd.ToString("0.00")</span></span>
                 }
-                else
-                {
-                    @foreach (var p in Session.Humans.Keys) { <option value="@p">@p.Name() (you)</option> }
-                }
-            </select>
-            @if (Session.HasHumans)
-            {
-                <label title="Shows everything the engine knows: spoils the game"><input type="checkbox" @bind="Session.Reveal" /> Reveal all</label>
-            }
-            @if (Session.Settings.UsesModels || Session.Cost > 0)
-            {
-                <span class="pill" title="Model spend for this game">$@Session.Cost.ToString("0.00") / $@Session.Settings.BudgetUsd.ToString("0.00")</span>
-            }
-            <button @onclick="Session.ExportAsync">Export log</button>
-        </div>
+                <details class="menu">
+                    <summary aria-label="More" title="More">⋯</summary>
+                    <div class="menu-body">
+                        <a href="">New game</a>
+                        <a href="about">How it works</a>
+                        <button @onclick="Session.ExportAsync">Export log</button>
+                        <label>Speed
+                            <select @bind="Session.DelayMs">
+                                <option value="50">Fast</option>
+                                <option value="400">Normal</option>
+                                <option value="1500">Slow</option>
+                            </select>
+                        </label>
+                        <label>Theme
+                            <select value="@Theme" @onchange="SetTheme">
+                                <option value="">As the system</option>
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </label>
+                        @if (Session.HasHumans)
+                        {
+                            <label title="Shows everything the engine knows: spoils the game"><input type="checkbox" @bind="Session.Reveal" /> Reveal all</label>
+                        }
+                    </div>
+                </details>
+            </div>
+        </header>
 
-        <div class="board">
-            <div class="mapwrap">
+        <CourtStrip Scene="scene" />
+
+        <section class="mapcol">
+            <GameMap @ref="_map" Scene="scene" Selected="@(useDraft ? Draft!.Selected : SelectedProvince)" Targets="@(useDraft ? Draft!.Targets() : null)"
+                     Arrows="@(useDraft ? Draft!.Arrows() : null)" FollowId="FollowId" FollowPath="PathFor(index, viewer)"
+                     OnProvince="Clicked" OnPerson="Follow">
+                <button class="map-ui legend-btn" @onclick="() => Legend = !Legend" aria-expanded="@(Legend ? "true" : "false")">Legend</button>
+                @if (Legend)
+                {
+                    <MapLegend OnClose="() => Legend = false" />
+                }
+                @if (SelectedProvince is not null && !useDraft)
+                {
+                    <ProvinceInfo State="runner.State" Id="@SelectedProvince" Scene="scene" OnClose="() => SelectedProvince = null" OnPerson="Follow" />
+                }
+                @if (index < last || frame.Index > 0)
+                {
+                    <div class="map-ui season-tag">@(index == 0 ? "Opening positions" : $"Moves of {Calendar.Short(index, viewer)}")</div>
+                }
+            </GameMap>
+        </section>
+
+        <aside class="side">
+            <button class="sheet-handle" @onclick="() => Sheet = !Sheet" aria-label="@(Sheet ? "Show the map" : "Enlarge the panel")">
+                <span class="grip"></span><span class="sr">@(Sheet ? "Show the map" : "Enlarge the panel")</span>
+            </button>
+            <div class="tabs" role="tablist">
+                @if (pendingAudience is not null) { <button class="@TabClass("audience", true)" @onclick='() => Pick("audience")'>Audience!</button> }
+                @if (pendingOrders is not null) { <button class="@TabClass("orders", true)" @onclick='() => Pick("orders")'>Your orders</button> }
+                <button class="@TabClass("season")" @onclick='() => Pick("season")'>Season</button>
+                @if (viewer is not null) { <button class="@TabClass("inbox")" @onclick='() => Pick("inbox")'>Inbox</button> }
+                @if (Session.GodView) { <button class="@TabClass("trail")" @onclick='() => Pick("trail")'>Trail</button> }
+                <button class="@TabClass("people")" @onclick='() => Pick("people")'>People</button>
+                @if (FollowId is not null) { <button class="@TabClass("follow")" @onclick='() => Pick("follow")'>Follow</button> }
+                <button class="@TabClass("provinces")" @onclick='() => Pick("provinces")'>Provinces</button>
+                <button class="@TabClass("standings")" @onclick='() => Pick("standings")'>Standings</button>
+                <button class="@TabClass("events")" @onclick='() => Pick("events")'>Events</button>
+                <button class="@TabClass("rules")" @onclick='() => Pick("rules")'>Rules</button>
+                @if (runner.State.Ended && runner.Chronicles.Count > 0) { <button class="@TabClass("chronicle")" @onclick='() => Pick("chronicle")'>Chronicles</button> }
+            </div>
+            <div class="notices">
                 @if (Session.Error is not null) { <div class="notice error">@Session.Error <button class="small" @onclick="Session.ClearMessages">Dismiss</button></div> }
                 @if (Session.Notice is not null)
                 {
@@ -80,76 +153,81 @@ else
                         @foreach (var e in runner.Errors.TakeLast(8)) { <div><small>@e</small></div> }
                     </details>
                 }
-                @if (state.Ended)
+            </div>
+            <div class="panelbody">
+                @switch (tab)
                 {
-                    <div class="notice"><strong>The age has ended</strong> (@state.EndReason). Winner: @string.Join(" and ", state.Winners).</div>
-                }
-                <MapView State="state" SeatUnits="view?.Units" Visible="@(view is null ? null : view.Visible.ToHashSet())"
-                         Selected="@(useDraft ? Draft!.Selected : SelectedProvince)" Targets="@(useDraft ? Draft!.Targets() : null)"
-                         Arrows="@(useDraft ? Draft!.Arrows() : null)" OnProvince="Clicked" />
-                @if (SelectedProvince is not null && !useDraft)
-                {
-                    <ProvinceInfo State="state" Id="@SelectedProvince" View="view" />
+                    case "audience":
+                        <AudiencePanel Seat="pendingAudience!" />
+                        break;
+                    case "orders":
+                        <OrdersPanel Draft="Draft!" Seat="pendingOrders!" State="runner.State" OnChanged="StateHasChanged" />
+                        break;
+                    case "inbox":
+                        <InboxPanel State="Session.Displayed!" Power="viewer!.Value" />
+                        break;
+                    case "trail":
+                        <TrailPanel State="Session.Displayed!" OnPerson="Follow" />
+                        break;
+                    case "people":
+                        <PeoplePanel State="Session.Displayed!" Viewer="viewer" OnPerson="Follow" />
+                        break;
+                    case "follow" when FollowId is not null:
+                        <FollowPanel Record="RecordFor(index, viewer)" Viewer="viewer" OnProvince="Clicked" OnClose="StopFollowing" />
+                        break;
+                    case "provinces":
+                        <ProvinceList Scene="scene" Selected="@(useDraft ? Draft!.Selected : SelectedProvince)" OnProvince="FromList" />
+                        break;
+                    case "standings":
+                        <StandingsPanel State="Session.Displayed!" Viewer="viewer" Seats="runner.Log.Header.Seats" />
+                        break;
+                    case "rules":
+                        @* The rulebook a model king reads, so a human seat reads the same rules. *@
+                        <h3>The rulebook</h3>
+                        <p class="muted">What every king is told, word for word. Orders are given here with the controls of the orders tab rather than as JSON, and are checked units first, then your other orders in the order you added them. The record of notes, summary and ledger that HOW TO ANSWER describes is kept for model kings; here you keep your own.@(runner.State.Config.SleepingSeats ? " A human seat never sleeps: it is asked for orders every season, so the sections on sleeping and planning ahead do not apply to you." : "")</p>
+                        <div class="item"><div class="body">@Amarna.Llm.Prompts.LeaderRules(runner.State.Config.CustomsPrimer, runner.State.Config)</div></div>
+                        break;
+                    case "chronicle":
+                        <ChroniclePanel Runner="runner" />
+                        break;
+                    case "events":
+                        <EventsPanel State="runner.State" UpTo="Session.HistoryTurn" Viewer="viewer" />
+                        break;
+                    default:
+                        <SeasonPanel Scene="scene" OnProvince="Clicked" OnPerson="Follow" />
+                        break;
                 }
             </div>
+        </aside>
 
-            <div class="panel">
-                <div class="tabs">
-                    @if (pendingAudience is not null) { <button class="@TabClass("audience", true)" @onclick='() => Tab = "audience"'>Audience!</button> }
-                    @if (pendingOrders is not null) { <button class="@TabClass("orders", true)" @onclick='() => Tab = "orders"'>Your orders</button> }
-                    @if (view is not null) { <button class="@TabClass("inbox")" @onclick='() => Tab = "inbox"'>Inbox</button> }
-                    @if (Session.GodView) { <button class="@TabClass("trail")" @onclick='() => Tab = "trail"'>Message trail</button> }
-                    <button class="@TabClass("people")" @onclick='() => Tab = "people"'>People</button>
-                    <button class="@TabClass("standings")" @onclick='() => Tab = "standings"'>Standings</button>
-                    <button class="@TabClass("rules")" @onclick='() => Tab = "rules"'>Rules</button>
-                    <button class="@TabClass("events")" @onclick='() => Tab = "events"'>Events</button>
-                    @if (state.Ended && runner.Chronicles.Count > 0) { <button class="@TabClass("chronicle")" @onclick='() => Tab = "chronicle"'>Chronicles</button> }
-                </div>
-                <div class="panelbody">
-                    @switch (EffectiveTab(pendingOrders, pendingAudience, view))
-                    {
-                        case "audience":
-                            <AudiencePanel Seat="pendingAudience!" />
-                            break;
-                        case "orders":
-                            <OrdersPanel Draft="Draft!" Seat="pendingOrders!" State="runner.State" OnChanged="StateHasChanged" />
-                            break;
-                        case "inbox":
-                            <InboxPanel State="state" Power="viewer!.Value" />
-                            break;
-                        case "trail":
-                            <TrailPanel State="state" />
-                            break;
-                        case "people":
-                            <PeoplePanel State="state" Viewer="viewer" />
-                            break;
-                        case "standings":
-                            <StandingsPanel State="state" Viewer="viewer" Seats="runner.Log.Header.Seats" />
-                            break;
-                        case "rules":
-                            @* The rulebook a model king reads, so a human seat reads the same rules. *@
-                            <h3>The rulebook</h3>
-                            <p class="muted">What every king is told, word for word. Orders are given here with the controls of the orders tab rather than as JSON, and are checked units first, then your other orders in the order you added them. The record of notes, summary and ledger that HOW TO ANSWER describes is kept for model kings; here you keep your own.@(runner.State.Config.SleepingSeats ? " A human seat never sleeps: it is asked for orders every season, so the sections on sleeping and planning ahead do not apply to you." : "")</p>
-                            <div class="item"><div class="body">@Amarna.Llm.Prompts.LeaderRules(runner.State.Config.CustomsPrimer, runner.State.Config)</div></div>
-                            break;
-                        case "chronicle":
-                            <ChroniclePanel Runner="runner" />
-                            break;
-                        default:
-                            <EventsPanel State="state" Viewer="viewer" />
-                            break;
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="timeline">
-            <small>Start</small>
-            <input type="range" min="0" max="@Math.Max(0, runner.Snapshots.Count - 1)" value="@(Session.HistoryTurn ?? Math.Max(0, runner.Snapshots.Count - 1))"
-                   @onchange="e => Session.ShowTurn(int.Parse((string)e.Value!))" disabled="@(runner.Snapshots.Count < 2)" />
-            <small>@(Session.HistoryTurn is int t ? $"after turn {t}" : "now")</small>
-            <button class="small" disabled="@(Session.HistoryTurn is null)" @onclick="() => Session.ShowTurn(null)">Back to now</button>
-        </div>
+        <footer class="timebar">
+            <button class="tb" disabled="@(index <= 0)" @onclick="Session.StepBack" title="One season back" aria-label="One season back">◀</button>
+            @if (Session.Auto)
+            {
+                <button class="tb play on" @onclick="() => Session.SetAuto(false)" title="Pause" aria-label="Pause">❚❚</button>
+            }
+            else if (Session.Replaying)
+            {
+                <button class="tb play on" @onclick="Session.ToggleReplay" title="Stop the replay" aria-label="Stop the replay">❚❚</button>
+            }
+            else if (history || Session.ReadOnly || runner.State.Ended)
+            {
+                <button class="tb play" disabled="@(last < 1)" @onclick="Session.ToggleReplay" title="Replay the seasons" aria-label="Replay the seasons">▶</button>
+            }
+            else
+            {
+                <button class="tb play primary" disabled="@(!Session.CanPlay)" @onclick="() => Session.SetAuto(true)" title="Auto-play" aria-label="Auto-play">▶</button>
+            }
+            <button class="tb" disabled="@(!history && !Session.CanPlay)" @onclick="Session.StepForwardAsync"
+                    title="@(history ? "One season on" : "Play one season")" aria-label="@(history ? "One season on" : "Play one season")">@(history ? "▶︎|" : "+1")</button>
+            <input class="slider" type="range" min="0" max="@Math.Max(0, last)" value="@index" aria-label="Season"
+                   @oninput="e => Session.ShowTurn(int.Parse((string)e.Value!))" disabled="@(last < 1)" />
+            <span class="tlabel" title="@(index == 0 ? "The start" : Ui.When(index, viewer))">@(index == 0 ? "Start" : Calendar.Short(index, viewer))@(history ? "" : " · now")</span>
+            @if (history)
+            {
+                <button class="tb now" @onclick="() => Session.ShowTurn(null)" title="Back to now">Now</button>
+            }
+        </footer>
     </div>
 }
 
@@ -158,14 +236,40 @@ else
     private string? SelectedProvince;
     private OrderDraft? Draft;
     private SeatView? _draftFor;
+    private string? FollowId;
+    private bool Sheet;
+    private bool Legend;
+    private string Theme = "";
+    private GameMap? _map;
 
     private Power? Viewer => Session.GodView ? null : Session.ViewAs ?? Session.Humans.Keys.Cast<Power?>().FirstOrDefault();
 
-    protected override void OnInitialized() => Session.Changed += Refresh;
+    /// <summary>A free spectator game of script kings from a link (play?watch=SEED), for showing a game to someone.</summary>
+    [SupplyParameterFromQuery(Name = "watch")] public long? WatchSeed { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Session.Changed += Refresh;
+        if (Session.Runner is null && !Session.Busy && WatchSeed is > 0 and var seed)
+        {
+            var settings = new GameSettings { Seed = (ulong)seed };
+            Presets.Free.ApplyTo(settings.Choices);
+            _ = Session.StartAsync(settings, null);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try { Theme = await JS.InvokeAsync<string>("amarnaTheme.get") ?? ""; } catch (JSException) { }
+    }
 
     public void Dispose() => Session.Changed -= Refresh;
 
     private void Refresh() => InvokeAsync(StateHasChanged);
+
+    private static string PhaseText(Amarna.Game.GameRunner runner) =>
+        runner.Phase.StartsWith("Turn ") && runner.Phase.IndexOf(':') is > 0 and var colon ? runner.Phase[(colon + 1)..].Trim() : runner.Phase;
 
     private void EnsureDraft(HumanSeat? seat)
     {
@@ -190,29 +294,104 @@ else
         _audienceKey = key;
     }
 
-    private string EffectiveTab(HumanSeat? orders, HumanSeat? audience, SeatView? view)
+    private string EffectiveTab(HumanSeat? orders, HumanSeat? audience, Power? viewer)
     {
         if (Tab == "audience" && audience is null) Tab = "";
         if (Tab == "orders" && orders is null) Tab = "";
-        if (Tab == "inbox" && view is null) Tab = "";
+        if (Tab == "inbox" && viewer is null) Tab = "";
         if (Tab == "trail" && !Session.GodView) Tab = "";
-        if (Tab == "" || Tab is null)
-            Tab = audience is not null ? "audience" : orders is not null ? "orders" : view is not null ? "inbox" : Session.GodView ? "trail" : "events";
+        if (Tab == "follow" && FollowId is null) Tab = "";
+        if (string.IsNullOrEmpty(Tab))
+            Tab = audience is not null ? "audience" : orders is not null ? "orders" : "season";
         return Tab;
     }
 
     private string TabClass(string tab, bool alert = false) => (Tab == tab ? "on " : "") + (alert && Tab != tab ? "alert" : "");
 
+    private void Pick(string tab)
+    {
+        // The open tab, tapped again, pulls the panel up over the map (on a phone held upright) or drops it back.
+        if (Tab == tab) { Sheet = !Sheet; return; }
+        Tab = tab;
+    }
+
     private void ChangeView(ChangeEventArgs e)
     {
         var s = (string?)e.Value;
         Session.ViewAs = string.IsNullOrEmpty(s) ? null : Enum.Parse<Power>(s);
-        Tab = "";
+        if (Tab is "inbox" or "trail") Tab = "";
+        _path = null;
+        _record = null;
+        Session.ShowTurn(Session.HistoryTurn);
     }
 
     private void Clicked(string province)
     {
-        if (Tab == "orders" && Draft is not null) Draft.Click(province);
+        if (Tab is "orders" or "provinces" && Draft is not null) Draft.Click(province);
         else SelectedProvince = SelectedProvince == province ? null : province;
+    }
+
+    /// <summary>A province chosen from the list: selected as a tap on the map would, and brought into view.</summary>
+    private async Task FromList(string province)
+    {
+        var picking = Draft?.Selected is not null;
+        Clicked(province);
+        // A destination picked for an order: back to the orders, which now show it.
+        if (picking && Draft?.Selected is null) Tab = "orders";
+        Sheet = false;
+        if (_map is not null) await _map.FocusAsync(MapArt.City(province), 2.2);
+    }
+
+    private async Task Follow(string id)
+    {
+        FollowId = id;
+        Tab = "follow";
+        _path = null;
+        _record = null;
+        var path = PathFor(Session.ShownIndex, Viewer);
+        if (_map is not null && path is { Count: > 0 }) await _map.FocusAsync(path[^1].At, 1.6);
+    }
+
+    private void StopFollowing()
+    {
+        FollowId = null;
+        Tab = "season";
+        _path = null;
+        _record = null;
+    }
+
+    private (string?, int, Power?, int)? _pathKey;
+    private List<(int Index, Pt At, string Where)>? _path;
+
+    private List<(int Index, Pt At, string Where)>? PathFor(int index, Power? viewer)
+    {
+        if (FollowId is null) return null;
+        var key = (FollowId, index, viewer, Session.Frames.Generation);
+        if (_path is null || _pathKey != key)
+        {
+            _path = MapScene.PathOf(Session.Frames, index, viewer, FollowId);
+            _pathKey = key;
+        }
+        return _path;
+    }
+
+    private (string?, int, Power?, int)? _recordKey;
+    private Services.LifeRecord? _record;
+
+    private Services.LifeRecord RecordFor(int index, Power? viewer)
+    {
+        var key = (FollowId, index, viewer, Session.Frames.Generation);
+        if (_record is null || _recordKey != key)
+        {
+            _record = Services.LifeRecord.Build(Session.Frames, i => Session.Scene(i, viewer), index, Session.Displayed!, viewer, FollowId!);
+            _recordKey = key;
+        }
+        return _record;
+    }
+
+    private async Task SetTheme(ChangeEventArgs e)
+    {
+        Theme = (string?)e.Value ?? "";
+        try { await JS.InvokeVoidAsync("amarnaTheme.set", Theme); } catch (JSException) { }
     }
 }

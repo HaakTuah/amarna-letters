@@ -1584,6 +1584,100 @@ in the seed-7 agent games every hit is an accusation (9 and 10 signals; the subs
 35 and 30, the first whole-word one 14 and 17, about half of them false), but sarcasm or a quoted
 charge can still count.
 
+## The web map and the interface (visual overhaul)
+
+Build order item 2 (`docs/prompts/VISUAL-OVERHAUL.md`; report `docs/rounds/2026-10-19-visual-overhaul.md`).
+Presentation only: no rule, state, view, prompt or balance changed, and seeds replay to the same logs byte for byte.
+
+- **Terrain is map data with no effect yet** (`Geography` in the engine project). Rough provinces: Mira, Lukka,
+  Isuwa, Amurru, Arbela, Tamassos. Desert: Sinai. Crossings on six connections: the Cilician Gates
+  (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish) as mountain passes;
+  the Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh) as river crossings. The ordered
+  courses of the Nile (Thebes to the Delta), the Euphrates (Carchemish to Ur) and the Tigris (Nineveh to
+  Dur-Kurigalzu). These are the lists of question 5 (plan steps 14-15) and question 10 (plan step 2) of the
+  sleep-and-simulation round, so the siege package can use them unchanged. Nothing in the engine reads them; only
+  the web map draws them. "A landing by convoy counts as a crossing" is a rule about any convoyed landing, so it is
+  left to the siege package rather than stored on a connection.
+- **One date label** (`Calendar.Label`, question 26, plan steps 1-4): the court's season, the year BCE and the
+  turn. Years are counted from 1345 BCE: the first year of a game is 1345 BCE and each later year is one less
+  (`Calendar.FirstYearBce`, `YearBce`; Haakon, 19 October). Egypt's court reads "Peret, 1344 BCE (turn 5)", the
+  others "the second season, 1344 BCE (turn 5)", and the spectator "season 2, 1344 BCE (turn 5)". Dense lists use
+  the short form, "Peret 1344 BCE" or "s2 1344 BCE", with the full label in a tooltip. The header's ending line
+  reads "The age cannot end before Shemu, 1341 BCE (turn 15)." until the first season that may end the age, then
+  "Any season may now be the last (15% each season)." The year BCE is shown in the interface only: the seat view's
+  own `Season` text ("Peret (growing), year 3") and the prompts are unchanged, so kings are never told the year
+  (question 26: a precise year invites models to replay real history), and the annals still count game years. Every date the web app writes uses the label; engine texts shown
+  in the interface (a servant's timing and term, inbox items, events) have each "turn N" given its label for display
+  (`Ui.Dated`; a spy report's "season of turn N" becomes the label alone, which names the season), while the texts
+  kings read stay as they are. The rulebook tab still shows the rulebook word for word.
+- **The map is drawn, not computed by the engine.** The coasts, rivers (the three great ones of `Geography.Rivers`
+  plus the Marassantiya, Orontes, Khabur and Balikh for the eye), ranges, deserts and fields are hand-placed drawing
+  data in the web project (`Components/Map/MapArt.cs`), fitted to the engine's 1000 x 720 coordinates, which are
+  unchanged. Province shapes are Voronoi cells of the cities, clipped to land or sea, with each shared border wobbled
+  the same way from both sides; a few unclaimed points keep the deserts and the Zagros from swelling the provinces
+  next to them. Fertility is drawn as field furrows, closer the richer the yield (four bands: up to 25, 30-35, 40-45,
+  50+).
+- **Powers without colour.** Each power has a colour from the Late Bronze palette, an emblem (Egypt a lotus, Hatti
+  a sun, Babylon an eight-pointed star, Mitanni a winged disc, Assyria a spearhead, Arzawa a crescent, Alashiya a
+  jug) shown on every city it holds and every unit, and a border line of its own (solid, dashed, dotted, dash-dot …).
+  Armies are chariots on square tokens and fleets ships on round ones; envoys are clay tablets, spies eyes,
+  captives fetters, gold an oxhide ingot.
+- **What the map shows each season** comes from a frame taken at every snapshot (`SeasonFrame`): owners, units,
+  the orders of the season just resolved with how each went (from the engine's `LastSeen`, whose union is every
+  order), each court's sight, the journeys, the characters and the sleeping seats. The map steps through frames
+  without deserializing whole states; the panels still read the full state of the season shown. A fallen court's
+  `LastSeen` stays in the state unchanged, so a frame reads it only in the season the court fell; read later, it
+  redrew that season's orders every season after.
+- **Travellers are drawn on a guessed road.** The engine keeps only a departure and an arrival season, so each one is
+  drawn on the shortest path between the two places (`MapArt.Route`), at a position interpolated by season, with a
+  halo and a dotted road to say it is a guess. A ransom travels as gold on its own.
+- **Each view sees only what its court knows** (`MapScene`). A court sees its own people where it believes them
+  (its cover of a servant whose fate it has not heard, read from the cover's own texts), foreign envoys only while
+  they stand at its court, and anyone it holds; never a foreign spy it has not caught. The engine's own view still
+  lists a spy posted at a court in that court's view with its employer (question 19, bug 4, recorded under
+  "Characters"); the map does not draw it, and this round changes no view (the People panel and the follow view,
+  which read the engine's view, still show it). A court is drawn only the orders it saw resolve. Who holds a province
+  is public, but how it changed hands is not (the engine tells a conquest only to the taker and the loser, a
+  purchase only to courts with sight): a court reads "taken by" only when it saw the new owner's troops march in,
+  "passed to" when it lost or gained the province (it would have seen a march), and otherwise "now held by". A march
+  is called an attack on troops only if the court saw them standing in the target as the season began and did not
+  see them march out; god view likewise calls a march into a province its occupant left a plain move. The courts row
+  gives unit counts only for the court's own power.
+- **Fog of war as a gradient**, from the court's own earlier sights (the frames): a province in sight is clear; one
+  seen before is washed over, more the older the sight, and zoomed in carries the season it was last seen; one never
+  seen is hatched. Units the court saw in a province it cannot see now stay as dashed ghosts, fainter with age, with
+  the season they were seen. Rumours and spy reports that reached the court are placed where they came from, dashed
+  and fading over eight seasons. Ownership is not fogged: who holds each province is public and live in the engine,
+  so tints, border lines and seals are drawn as known.
+- **Follow this character** builds a life from the record (`LifeRecord`): service, places season by season (and the
+  path on the map), missions with what was written, said and reported, and in god view the hidden traits, facts and
+  the character's own memory; in a court's view only what that court knows: its own servants' service, the messages
+  it sent, and those of envoys who have stood before it (never one still on the road to it). A court that only
+  received an envoy sees that mission dated by its audience alone; the report home, and when it came, only the
+  sender reads. It is built from sections so that later roles and lives can add their own.
+- **Phone first.** On a phone held upright the map comes first, at the full width, with the courts above it, the
+  panel (the season in words by default) below it and the timeline at the bottom within reach of a thumb; a panel can
+  be pulled up over the map and dropped back without the map losing its place or zoom. Held sideways, the map takes
+  the left and the panels the right; on a desktop they stand side by side. The layout keeps to the phone's safe areas,
+  and the page itself never scrolls. Pinch-zoom and pan move one layer on the GPU (`js/mapzoom.js`); symbols, names and lines
+  keep a readable size on screen whatever the zoom (tokens about 14 pixels on a phone showing the whole board, 22 on a
+  desktop, at most 40), and minor names wait until the map is large enough to hold them. A province list stands in for
+  tapping small provinces; in a human seat's orders it picks a destination as a tap on the map would.
+- **Installable.** A manifest and a service worker (the Blazor template's, adapted): the published build caches
+  every file at install and starts from the cache afterwards. Fingerprinted files are taken from the browser's own
+  cache, so installing downloads nothing twice; HTML files are not checked against the publish hashes, since the
+  Pages workflow rewrites their base path. In development the worker caches nothing.
+- **Load size.** The browser build runs in the invariant culture (no ICU data) and trims the Anthropic SDK, which
+  the browser never constructs (it posts with HttpClient), to the code that refers to it: about 3.2 MB compressed
+  instead of 5.0 MB. Splitting the SDK path out of `Amarna.Llm` would save another 0.45 MB; not done, as it is not
+  presentation.
+- **Script kings in the page.** Their look-ahead runs in the page's one WebAssembly thread, and is nearly all of a
+  season's time (several seconds on a slow phone). The web app lets the browser draw between kings (`YieldingSeat`:
+  the kings still decide one after another in the same order, so nothing they decide changes), shows a season before
+  saving it, and never asks the map to read a whole state back from its snapshot. Measurements are in the round
+  report.
+- **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
+
 ## Where the code differs from the design document (as it stood on 19 October 2026)
 
 The design document records intent; these notes record what is built. Where they differ today:
@@ -1672,12 +1766,12 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   sections after it; item 11).
 - **Full and structured press**: two press modes, free text as today and a structured mode with templates for every
   king and for script envoys (Ideas tab "Two press modes"; item 8).
-- **Date labels**: one date label everywhere (court season and year, with the turn) and an ending indicator; other
-  courts' own calendars, where today only Egypt has one (main tab "The map (planned next)" and "Season names";
-  question 26; item 2).
-- **The visual overhaul**: the museum-map style, geography on the map, each season's moves and the envoys on the road
-  through the timeline, fog of war as a gradient, the "follow this character" view, measured performance on a phone
-  (`docs/prompts/VISUAL-OVERHAUL.md`; main tab "The map (planned next)"; item 2).
+- **Other courts' own calendars and regnal years**: season names for the courts that have only ordinals today
+  (main tab "Season names"), and regnal or limmu years (question 26, plan steps 5-7). The one date label with the
+  year BCE and the ending line are built (see "The web map and the interface").
+- **The map's later layers**: roads and relay stations, walls and sieges, and generals leading armies, drawn once the
+  game has them (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
+  once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).
 - **Tablets as objects in a place, swapped tablets and the richest characters**: archives at the capital that spies
   copy from and a conqueror takes; an envoy swapping an inventory tablet for a forgery; a ranking by wealth at the end
   (main tab "Tablets have a place"; Ideas tab; item 3).
@@ -1712,7 +1806,7 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   audiences" and "What the replay showed"; Build order "Not yet in the order"; the round report, "Later candidates").
 - **Local play on a Claude subscription**: a human seat against file-seat kings answered by guarded agents (main tab
   "Local play on a Claude subscription (planned)").
-- **An installable web app**, and later push notifications when an envoy arrives (main tab "Platforms").
+- **Push notifications** when an envoy arrives (main tab "Platforms"); the web app installs and starts from cache.
 - **Echoes kept out of the primer**: Finkel's "Send gold" parody as a rare script king's letter or chronicle line, and
   "a new Idrimi" in the chronicles once outlaws exist (main tab "Echoes from the archive" and "A new Idrimi").
 - **Still to be decided before they are built**: distance-based travel and interception (which outlaws and bandit
