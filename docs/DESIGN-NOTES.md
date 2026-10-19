@@ -1473,18 +1473,19 @@ These are in the code as written, and they affect the balance numbers:
 `BaselineLeader` is a frozen copy of the first script bot. `--versus solo` plays each king on the
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
-current bot. Seeds 1–40, one current king against six baselines:
+current bot. Seeds 1–40, one current king against six baselines, rerun after the simulation-fixes round (19 October
+2026, shared victory off; the numbers before that round, and why they moved, are in its report, `docs/ROUND-REPORT.md`, "Benchmarks"):
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
-| Egypt | 2.87 | 1.34 | 81% | 19% |
-| Hatti | 2.65 | 0.82 | 73% | 8% |
-| Babylonia | 2.48 | 1.13 | 54% | 6% |
-| Mitanni | 1.80 | 1.30 | 36% | 25% |
-| Assyria | 3.18 | 0.96 | 54% | 11% |
-| Arzawa | 3.24 | 1.46 | 51% | 24% |
-| Alashiya | 1.98 | 0.87 | 44% | 8% |
-| All kings | 2.60 | 1.13 | 56% | 14% |
+| Egypt | 2.85 | 1.30 | 88% | 18% |
+| Hatti | 2.76 | 0.82 | 83% | 5% |
+| Babylonia | 2.42 | 1.15 | 83% | 10% |
+| Mitanni | 1.86 | 1.35 | 50% | 25% |
+| Assyria | 3.81 | 0.96 | 85% | 10% |
+| Arzawa | 2.96 | 1.40 | 60% | 30% |
+| Alashiya | 1.84 | 0.91 | 48% | 3% |
+| All kings | 2.64 | 1.13 | 71% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
@@ -1547,6 +1548,20 @@ power with the highest growth. Alashiya, whose wins were all shared, no longer w
 script kings. Balance stays frozen, so this is recorded, not tuned; it is the first thing to look
 at once model kings have played (see `docs/rounds/2026-10-18-sleep-and-simulation.md`).
 
+After the simulation-fixes round (19 October 2026), which changed the script kings and characters in
+a few places (its report, "Benchmarks", lists which), the same seeds with shared victory off, all
+replays exact, nothing tuned:
+
+| Power | Wins, seeds 1–100 | Wins, seeds 101–200 | Mean growth, 1–100 | Mean growth, 101–200 |
+|---|---|---|---|---|
+| Egypt | 19% | 25% | 2.35 | 2.32 |
+| Hatti | 34% | 32% | 2.07 | 1.94 |
+| Babylonia | 17% | 15% | 2.29 | 2.21 |
+| Mitanni | 4% | 1% | 0.79 | 0.78 |
+| Assyria | 14% | 16% | 1.58 | 1.52 |
+| Arzawa | 12% | 11% | 1.11 | 1.31 |
+| Alashiya | 0% | 0% | 1.10 | 1.13 |
+
 The coalition signal (two kings supporting each other into the leader's land, or holding against
 his attack) fires in about one game in ten: 27 times in 15 of seeds 1–100 and 9 times in 8 of
 101–200, where before it never fired in 200 games. Joint blows need two sworn partners next to the
@@ -1569,58 +1584,136 @@ in the seed-7 agent games every hit is an accusation (9 and 10 signals; the subs
 35 and 30, the first whole-word one 14 and 17, about half of them false), but sarcasm or a quoted
 charge can still count.
 
-## Where the code differs from the design document (17 October 2026 revision)
+## Where the code differs from the design document (as it stood on 19 October 2026)
 
 The design document records intent; these notes record what is built. Where they differ today:
 
-- **Pillar 8, war slower than diplomacy, is not met yet.** An army moves one link a season. Homeland
-  provinces have no walls, so an empty one falls to a single army and a held one to two; walls
-  (strength 1) stand only on free and bought cities. Hatti can take Arzawa's capital at the end of
-  season 3. An envoy between capitals takes one or two seasons each way, so a letter and its reply
-  take two seasons between neighbouring capitals and four otherwise; only a spy sent to a distant
-  province can take three. The rulebook now says so, worked out from the map and the travel bands
-  ("Envoys take 1 or 2 seasons each way between courts (the table in your view gives each court); a
-  spy sent to watch a distant province may take up to 3 seasons to reach it, and its reports as long
-  to come home."); until the simulation-fixes round it said "1 to 3 seasons each way".
-  Sieges, walls that vary, terrain and the other tempo ideas are not built (see
-  `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 5).
-- **Shared victory is off by default**, as recommended in `docs/rounds/2026-10-18-sleep-and-simulation.md` (question 23),
-  and kept as a house rule. Scoring is as described in "Rules as implemented". Buying a city is score-neutral at the moment of purchase: its price is
-  10 × yield in gold, and it counts 10 × yield in strength. The growth comes afterwards, from its
-  income.
-- **Two kinds of threat.** The script kings already weigh a security threat (hostility, troops on
-  their borders) separately from a victory threat (the estimated growth leader), with temperament
-  setting the mix (see "Script kings").
-- **What wakes a sleeping seat** follows the round prompt of the simulation-fixes round, not the
-  document's list of default triggers: an envoy or a report coming home, foreign troops next to its
-  land, an attack that failed and a catastrophe that kills no unit go to the digest (see "Pacing:
-  sleeping seats"). So the kings read "foreign troops in your land or next to your capital" where
-  the document's decided text says "foreign troops at your border" (the capital part is a temporary
-  trigger, until sieges exist, and fires only when troops arrive), and "a scheduled or standing
-  order that failed" where it says "a failed order". The sleep cap is 12 seasons and hidden from the kings, as the document
-  decides.
-  Of the document's "scheduled, conditional orders", orders that follow their unit and two standing
-  orders (`unit_enters`, `unit_attacked`) are built; its wider condition vocabulary is not.
-- **Prototype scope** in the document still lists terrain modifiers as out, while "Walls and
-  terrain" is now a decided direction. Neither exists in the code yet.
+- **Pillar 8, war slower than diplomacy, is not met yet.** The document's scope table now counts sieges, walls and
+  minimal terrain in the prototype, and "Walls and terrain" is a decided direction; none of it is in the code. An
+  army moves one link a season. Homeland provinces have no walls, so an empty one falls to a single army and a held one
+  to two; walls (strength 1) stand only on free and bought cities. Hatti can take Arzawa's capital at the end of
+  season 3. An envoy between capitals takes one or two seasons each way, so a letter and its reply take two seasons
+  between neighbouring capitals and four otherwise; only a spy sent to a distant province can take three. The rulebook says
+  so, worked out from the map ("Envoys take 1 or 2 seasons each way between courts …"); until the simulation-fixes
+  round it said "1 to 3 seasons each way". Until sieges exist, a temporary wake trigger (foreign troops arriving next
+  to a capital) stands in for the warning walls would give.
+- **Sleeping seats are further along than the document's status paragraph says.** It still reads "behind a switch",
+  "up to 6 seasons", five triggers of the seat's own, and "next: conditional orders, and a sleep cap set from the
+  lengths seats choose". In the code sleep is on by default (the switch stays), the cap is 12 seasons and hidden, a
+  seat has up to 8 triggers of its own, each firing on a change, scheduled orders follow their unit, and two standing
+  orders exist. The document's later paragraphs (sleep is the default, the hidden cap, the temporary trigger, an envoy
+  waking a king for an audience) agree with the code.
+- **What wakes a sleeping seat** follows the simulation-fixes round's prompt and the owner's later instructions, not
+  the document's list of default triggers ("an envoy or report arrives; foreign troops move into or next to its
+  territory; it is attacked or loses a province; a catastrophe strikes it; a tablet, offer or audience awaits an
+  answer; a scheduled order fails"). A report coming home, foreign troops next to its land (unless they arrive next to
+  its capital), an attack that did not get in and a catastrophe that kills no unit go to the digest; troops lost, a
+  ransom demand, a servant's notice, the season it named and the cap wake it too (see "Pacing: sleeping seats"). So
+  the kings read "foreign troops in your land or next to your capital", "a scheduled or standing order that failed",
+  "a servant giving notice" and "a ransom demanded" where the document's decided text says "foreign troops at your
+  border" and "a failed order", plus the owner's sentence on envoys. The document's list of order triggers (under
+  "What the replay showed") leaves out a ransom demand and a season the king named; both reopen orders in the code, as
+  the owner's instruction for Part H lists them.
+- **An audience held while the orders stand** gives the king the compact picture the document describes, with its
+  standing orders and its people away as well, and the one line counting every power's provinces that opens every
+  audience. From it the king can send letters only: releasing a detained envoy or any other order waits until it
+  reopens its orders. When the call fails there, the king is woken for orders that same season.
+- **Seat-defined triggers and conditions.** The document's "raise or lower a default's priority" is not built. Of its
+  "scheduled, conditional orders", orders that follow their unit and two standing orders (`unit_enters`,
+  `unit_attacked`) are built; its wider vocabulary ("unless"; treasury below, envoy returned, tablet sealed as
+  conditions on orders) is not. Triggers count only moves the seat saw, so a foreign levy wakes nobody.
+- **Who holds each province is public at once.** The document's "Hidden by default" has news of distant provinces,
+  including who holds them, arrive late. In the code every seat sees every province's owner the season it changes,
+  and the standings line is computed from it.
+- **Tablets have no place yet.** The document has a tablet lie in a court's archive, where a spy can copy it and a
+  conqueror seize it. In the code each sealer keeps a copy, and there is no archive.
+- **Call size.** The document says a king's orders call grew from about 26k to over 60k tokens in ten seasons, "almost
+  all of it journal and letters", with a fixed part of about 5k. Measured in the simulation-fixes round (Part E of
+  `docs/ROUND-REPORT.md`), those are what the file-seat agents used per call. The requests themselves were about 6k-8k
+  tokens in season 1 and 11.5k-13.5k by seasons 9-10, of which the journal grew about 3.5k; the rest was the agent's
+  own overhead. The fixed part (rulebook, primer, map and opening positions) is now about 8,000 tokens with sleep on,
+  and the setup screen's cost estimate (`CostEstimate`) still assumes 5,000 cached and 5,000 fresh tokens an orders
+  call. Of the document's candidates, lower effort for audience calls is already built (one level below orders), and
+  the king summarizes its own older notes, as decided.
+- **The shared score function is half done.** `Scoring.Strength` (10 × land yield + gold − back pay owed) serves the
+  engine, the seat's own strength line and the script kings, as the document asks; the city price is still its own
+  setting (10 × yield), equal to the score weight by value, not derived from it.
+- **Wages on return.** The document leaves the check on the loophole (reputation from losses abroad) to be worked
+  out. The code carries news of losses abroad (captures and executions) to other courts with envoys and spies, and
+  script envoys weigh back pay against offers of service; no character yet grows wary of a court from such news.
 
 ## Not built yet
 
-- Sieges, varying walls, terrain, and distance-based marching (pillar 8). The siege package should
-  revisit the temporary wake trigger for foreign troops arriving next to a capital (see "What wakes
-  it" under Pacing).
-- Conditional orders beyond the two standing-order events: "unless" conditions on scheduled orders,
-  and conditions on the treasury, an envoy's return or a sealed tablet.
-- The message-kind fallback for reopening orders, if kings reopen too often after audiences: the
-  reopening offered only for a coalition or alliance tablet, evidence of a broken tablet, a ransom
-  demand, or a threat or news of war, sorted by a small, cheap model that labels each audience and
-  errs toward offering it, for model seats only (`docs/ROUND-PROMPT-ADDITIONS.md`, sections 4 and
-  6.2; the design document's Build order, "Not yet in the order", after item 4).
-- Reputation from losses abroad: characters who hear that a court loses its people abroad, or puts
-  others' to death, growing wary of serving it or visiting it (design document, main tab, "Wages are
-  paid on return"; the user's decision of 18 October in `docs/ROUND-PROMPT-ADDITIONS.md`, section 6).
-  The news already reaches other courts by carriers (see "Losses abroad travel with people"); what
-  script characters would need to weigh it is listed in the simulation-fixes round report.
-- Multiplayer (stages 2 and 3 of the design document): the engine runs in one browser.
-- Shareable spectator links; the log file is the way to share a game.
-- Art, animation, sound.
+Every decided direction that is not built, one line each, with where it is decided. "Main tab" and "Ideas tab" are
+the design document's; "question N" is in `docs/rounds/2026-10-18-sleep-and-simulation.md`; "item N" is in the main
+tab's Build order; "the round report" is the simulation-fixes round's report, `docs/ROUND-REPORT.md`.
+
+- **Sieges, walls and terrain**: walls that vary and can be strengthened, storming and besieging, envoys leaving a
+  besieged city, terrain per province and per connection, deserts costing supplies, islands protected by the sea;
+  then the temporary trigger for troops next to a capital is retired (main tab "Tempo of war" and "Walls and terrain";
+  question 5; item 5).
+- **Slow absorption** of conquered land (question 5; item 5).
+- **News that travels**: distant provinces, and who holds them, shown at their last known state with its date, the
+  news carried by people (main tab "Hidden by default"; question 6; item 7).
+- **Envoy authority and passage grants**: mandates with engine-checkable limits, the authority to seal within them,
+  credentials shown or hidden, passage, basing and trade rights on sealed tablets (Ideas tab "Envoy authority and
+  resident envoys"; questions 2, 3 and 14; item 9).
+- **Errands and generalist characters**: one pool serving as envoys, spies, generals and governors on errands rather
+  than in fixed roles, with a competence per role, boldness and discretion (Ideas tab "Errands, not roles"; main tab
+  "Character attributes for many roles"; item 10).
+- **Skills hard-coded and decisions left to the character, with engine rolls as a switch**, and kings never seeing
+  skills, only claims and checks (Ideas tab "Skills are hard-coded; decisions belong to the character" and "Kings
+  never see skills"; item 4 decides whether the rolls are needed; item 10).
+- **Who characters are**: declaring a name and false envoys; a past before the game, then a past made in play; what
+  servants know, the record of who saw what, and questioning a captive (Ideas tab; item 10).
+- **A living pool**: people entering and leaving the pool, enough people but not enough good ones, hiring as a
+  negotiation, ongoing costs, and where characters keep their gold, purse and hoard (Ideas tab "A living pool" and the
+  sections after it; item 11).
+- **Full and structured press**: two press modes, free text as today and a structured mode with templates for every
+  king and for script envoys (Ideas tab "Two press modes"; item 8).
+- **Date labels**: one date label everywhere (court season and year, with the turn) and an ending indicator; other
+  courts' own calendars, where today only Egypt has one (main tab "The map (planned next)" and "Season names";
+  question 26; item 2).
+- **The visual overhaul**: the museum-map style, geography on the map, each season's moves and the envoys on the road
+  through the timeline, fog of war as a gradient, the "follow this character" view, measured performance on a phone
+  (`docs/prompts/VISUAL-OVERHAUL.md`; main tab "The map (planned next)"; item 2).
+- **Tablets as objects in a place, swapped tablets and the richest characters**: archives at the capital that spies
+  copy from and a conqueror takes; an envoy swapping an inventory tablet for a forgery; a ranking by wealth at the end
+  (main tab "Tablets have a place"; Ideas tab; item 3).
+- **Model characters in the simulation kit**: envoys and spies as isolated agents, for the second agent simulation
+  (item 4).
+- **Memory and call size**: older letters summarized to a line, a "since you last acted" view, terser state tables,
+  requests ordered so the stable part is cached, the schema's repeated shapes shared, and the setup screen's cost
+  estimate brought up to date (main tab "Call size matters as much as call count"; the round report, Part E; item 6).
+- **A cheaper summariser**, measured on the same games before it is used (main tab "A cheaper model for condensing,
+  to be measured"; the round report, Part E).
+- **Languages** (Ideas tab "Languages"; item 12).
+- **Command at a distance**: the capital where the king is, commanders whose competence sets their tactical search,
+  army mandates, no commander, no mandate (Ideas tab "Command at a distance" and "Ruling by mandate"; question 7;
+  item 13).
+- **Legends**: biographies of characters, histories of tablets and the rise and fall of courts, grown from the
+  "follow this character" view (main tab "The narrator illuminates; it never steers"; item 14).
+- **Conditional orders beyond the two standing-order events** ("unless" conditions; the treasury, an envoy's return or
+  a sealed tablet as conditions) and a priority the king can set on a default trigger (main tab "Pacing: sleeping
+  seats and standing orders").
+- **The message-kind fallback for reopening orders**, if kings reopen too often after audiences: reopening offered
+  only for a coalition or alliance tablet, evidence of a broken tablet, a ransom demand, or a threat or news of war,
+  sorted by a small model that errs toward offering, for model seats only (main tab "If kings reopen almost every
+  time, the kind of message decides"; `docs/ROUND-PROMPT-ADDITIONS.md`, sections 4 and 6.2; Build order "Not yet in
+  the order", after item 4; the round report, Part H).
+- **Reputation from losses abroad**: characters who hear that a court loses its people abroad, or puts others' to
+  death, growing wary of serving or visiting it; the news already travels (see "Losses abroad travel with people")
+  (main tab "Wages are paid on return"; `docs/ROUND-PROMPT-ADDITIONS.md`, section 6; what script characters would need
+  is in the round report, Part G).
+- **Who receives envoys, later candidates**: a minister who receives routine envoys by the king's standing
+  instructions, an attention limit the same for every seat, and tablets counting as pressing only where the
+  instructions do not cover them; they need a decision first (main tab "Under consideration: standing instructions for
+  audiences" and "What the replay showed"; Build order "Not yet in the order"; the round report, "Later candidates").
+- **Local play on a Claude subscription**: a human seat against file-seat kings answered by guarded agents (main tab
+  "Local play on a Claude subscription (planned)").
+- **An installable web app**, and later push notifications when an envoy arrives (main tab "Platforms").
+- **Echoes kept out of the primer**: Finkel's "Send gold" parody as a rare script king's letter or chronicle line, and
+  "a new Idrimi" in the chronicles once outlaws exist (main tab "Echoes from the archive" and "A new Idrimi").
+- **Still to be decided before they are built**: distance-based travel and interception (which outlaws and bandit
+  chiefs depend on), the royal council, trade, and multiplayer, stages 2 and 3 (Build order "Not yet in the order";
+  main tab "Path to multiplayer").
