@@ -300,8 +300,16 @@ public sealed class GameRunner
             var seat = Views.For(State, a.Host);
             var host = await Recorded($"{key}/host/{round}",
                 () => Seats[a.Host].HostAudienceAsync(view, seat, ct),
-                () => _fallbackSeat.HostAudienceAsync(view, seat, ct));
-            if (court is not null)
+                async () =>
+                {
+                    // The script king answers the envoy; marked (and logged) so that, at a court held while the seat's orders
+                    // stand, it decides nothing for the seat, which is then asked for orders (TurnEngine.CourtsHeld).
+                    var stand = await _fallbackSeat.HostAudienceAsync(view, seat, ct);
+                    stand.FromFallback = true;
+                    return stand;
+                });
+            // Only the seat's own replies send letters or choose about its orders.
+            if (court is not null && !host.FromFallback)
             {
                 TurnEngine.AddLetters(court.Letters, host.Letters);
                 court.Reopen |= host.ReopenOrders;

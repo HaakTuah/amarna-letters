@@ -188,6 +188,11 @@ public sealed class SleepState
     /// <summary>While it holds court: it chose at one of its audiences to reopen its orders.</summary>
     public bool Reopen { get; set; }
     /// <summary>
+    /// While it holds court: a call failed at one of its audiences and the script king answered in its place. The stand-in
+    /// decides nothing for it, so unless it chose to reopen its orders itself, it is asked for orders this season all the same.
+    /// </summary>
+    public bool StoodIn { get; set; }
+    /// <summary>
     /// The letters it sent from its audiences this season, in the order sent (a later letter for the same person replaced an
     /// earlier one). They are checked with the season's orders, before any orders it gives itself, and then cleared.
     /// </summary>
@@ -201,7 +206,16 @@ public sealed class CourtHeld
 {
     public int Turn { get; set; }
     public int Envoys { get; set; }
+    /// <summary>It chose itself, at one of its audiences, to reopen its orders.</summary>
     public bool Reopened { get; set; }
+    /// <summary>
+    /// A call failed at one of its audiences and the stand-in answered. Unless it chose to reopen itself, its orders were then
+    /// reopened without its choice, and the court is left out of the reopen rate (<see cref="Decided"/>).
+    /// </summary>
+    public bool StandIn { get; set; }
+    /// <summary>The seat itself decided about its orders: it reopened them, or every reply was its own.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool Decided => Reopened || !StandIn;
 }
 
 /// <summary>One stretch of sleep, for the reports: when it began, the season the seat named (0 for none), when and why it woke.</summary>

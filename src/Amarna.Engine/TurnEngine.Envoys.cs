@@ -198,11 +198,17 @@ public sealed partial class TurnEngine
         var sender = a.From;
 
         // A host holding court while its orders stand: the letters it sent and whether it chose to reopen its orders, kept
-        // for CourtsHeld and Resolve. Anywhere else a reply's letters and reopening mean nothing.
+        // for CourtsHeld and Resolve. Anywhere else a reply's letters and reopening mean nothing. A reply the stand-in gave
+        // because the seat's call failed decides nothing for the seat: it is only marked, so that CourtsHeld asks the seat.
         if (S.Config.SleepingSeats && S.Sleep.TryGetValue(host, out var court) && court.HoldsCourt)
             foreach (var round in record.Rounds.Take(S.Config.AudienceRounds))
             {
                 if (round.Host is not { } said) continue;
+                if (said.FromFallback)
+                {
+                    court.StoodIn = true;
+                    continue;
+                }
                 AddLetters(court.CourtLetters, said.Letters);
                 court.Reopen |= said.ReopenOrders;
             }

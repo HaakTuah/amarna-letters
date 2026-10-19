@@ -53,6 +53,12 @@ public sealed partial class TurnEngine
     /// <summary>Why a seat that held court asleep gives orders after all: it chose at one of its audiences to reopen them.</summary>
     public const string ReopenReason = "you chose at your audience to reopen your orders";
 
+    /// <summary>
+    /// Why a seat that held court asleep gives orders after all although it did not choose to: a call failed at one of its
+    /// audiences and the script king answered the envoy in its place, so the choice to let its orders stand was never its own.
+    /// </summary>
+    public const string StandInCourtReason = "your counsellors answered an envoy in your place";
+
     public bool IsAsleep(Power p) => S.Config.SleepingSeats && S.IsAlive(p) && S.Sleep.TryGetValue(p, out var sl) && sl.Asleep;
 
     /// <summary>
@@ -72,6 +78,7 @@ public sealed partial class TurnEngine
             // What an earlier season's court left is never carried on (CourtsHeld clears it; Resolve uses the letters).
             sl.HoldsCourt = false;
             sl.Reopen = false;
+            sl.StoodIn = false;
             sl.CourtLetters.Clear();
             if (!S.IsAlive(p)) continue;
             // Troops lost since last season (in battle, by desertion or plague, disbanded or given away) take their orders with them.
@@ -80,9 +87,10 @@ public sealed partial class TurnEngine
             {
                 // Awake although it gave orders before: its last call failed and the stand-in played. It is asked again,
                 // told why it was woken last season (it never read it) and what concerns it now, as if it had been woken.
+                // Its own choice at last season's audience to reopen its orders is not carried: it made it, and it is spent.
                 if (sl.LastCalled > 0 && sl.LastCalled < S.Turn - 1)
                 {
-                    var why = before.Where(r => r != AskedAgainReason).ToList();
+                    var why = before.Where(r => r != AskedAgainReason && r != ReopenReason).ToList();
                     foreach (var r in WakeReasons(p, sl))
                         if (!why.Contains(r)) why.Add(r);
                     sl.WokenBecause = why.Count > 0 ? why : [AskedAgainReason];
@@ -127,7 +135,9 @@ public sealed partial class TurnEngine
     /// Once the season's audiences are applied (<see cref="ApplyAudience"/>): each seat that held court asleep either reopened
     /// its orders at one of its audiences, and wakes for an orders call this season as when anything else wakes it, or sleeps
     /// on with its orders standing, and what happened this season goes to its digest. Either way the court is recorded for
-    /// the reports. The letters it sent stay for <see cref="Resolve"/>, which checks them first among its orders.
+    /// the reports. The letters it sent stay for <see cref="Resolve"/>, which checks them first among its orders. Only the
+    /// seat's own replies decide: if a call failed at one of its audiences and the stand-in answered, it is asked for orders
+    /// this season all the same (an error toward reopening, which costs a call; letting them stand would cost it a decision).
     /// </summary>
     public void CourtsHeld()
     {
@@ -136,10 +146,18 @@ public sealed partial class TurnEngine
         {
             if (!sl.HoldsCourt) continue;
             sl.HoldsCourt = false;
-            var reopened = sl.Reopen && S.IsAlive(p) && sl.Asleep;
+            var live = S.IsAlive(p) && sl.Asleep;
+            var reopened = sl.Reopen && live;
+            var stoodIn = sl.StoodIn && live;
             sl.Reopen = false;
-            if (sl.Courts.LastOrDefault() is { } court && court.Turn == S.Turn) court.Reopened = reopened;
+            sl.StoodIn = false;
+            if (sl.Courts.LastOrDefault() is { } court && court.Turn == S.Turn)
+            {
+                court.Reopened = reopened;
+                court.StandIn = stoodIn;
+            }
             if (reopened) Wake(sl, [.. sl.WokenBecause, ReopenReason]);
+            else if (stoodIn) Wake(sl, [.. sl.WokenBecause, StandInCourtReason]);
             else
             {
                 sl.WokenBecause.Clear();

@@ -237,7 +237,8 @@ public class CourtAsleepTests
         // The orders request lists the letters sent from the audience.
         var view = host.Views.Last();
         Assert.Equal([$"send {second} to Babylonia with {gold} shekels", $"send {first} to Egypt"], view.CourtLetters.Select(o => o.Describe()));
-        Assert.Contains($"LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): send {second} to Babylonia with {gold} shekels; send {first} to Egypt.", Prompts.Situation(view));
+        Assert.Contains($"LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): send {second} to Babylonia with {gold} shekels; send {first} to Egypt."
+                        + $" Gold already committed by these letters: {gold} shekels, not yet taken from the treasury you read here; it is reserved first when the season's orders are checked.", Prompts.Situation(view));
         // The order for the first envoy replaced its letter; the second envoy's letter stood and was checked before the
         // orders, so its gold was reserved first and the watchmen ordered after reopening could not be paid.
         Assert.Equal(Power.Hatti, r.State.Char(first!).MissionTarget);
@@ -347,11 +348,11 @@ public class CourtAsleepTests
         var journal = new LeaderJournal();
         journal.Record(3, new TurnSubmission { Notes = "Hold." });
         journal.Audience(5, Power.Egypt, "Mane", "Welcome, brother.", ["send c4 to Hatti"]);
-        Assert.Contains("AUDIENCES YOU HAVE HELD SINCE YOU LAST GAVE ORDERS: Egypt's envoy Mane (turn 5): you said \"Welcome, brother.\"; you sent from the audience: send c4 to Hatti",
+        Assert.Contains("AUDIENCES YOU HAVE HELD SINCE YOU LAST GAVE ORDERS: Egypt's envoy Mane (turn 5): you said \"Welcome, brother.\"; letters you gave at the audience: send c4 to Hatti",
             journal.ForAudience());
         journal.Record(6, new TurnSubmission { Notes = "Plan." });
         Assert.DoesNotContain("SINCE YOU LAST GAVE ORDERS", journal.ForAudience());
-        Assert.Contains("turn 6 audiences: Egypt's envoy Mane (turn 5): you said \"Welcome, brother.\"; you sent from the audience: send c4 to Hatti", journal.ForOrders());
+        Assert.Contains("turn 6 audiences: Egypt's envoy Mane (turn 5): you said \"Welcome, brother.\"; letters you gave at the audience: send c4 to Hatti", journal.ForOrders());
     }
 
     // ------------------------------------------------------------ replay and the report
@@ -387,6 +388,149 @@ public class CourtAsleepTests
         var line = report.Split('\n').Single(l => l.TrimStart().StartsWith("Alashiya", StringComparison.Ordinal));
         Assert.Contains(" 1/1 ", line);
         Assert.Contains("Courts held while orders stood: 1; orders reopened at 1 (100%).", report);
-        Assert.Equal("Courts held while orders stood: 3; orders reopened at 1 (33%).", BatchRunner.ReopenRate((3, 1)));
+        Assert.Equal("Courts held while orders stood: 3; orders reopened at 1 (33%).", BatchRunner.ReopenRate((3, 1, 0)));
+        // Courts where a call failed and the stand-in answered are counted apart, out of the rate.
+        Assert.Equal("Courts held while orders stood: 5; orders reopened at 1 of the 4 where the king chose (25%); at 1 a call failed, the stand-in answered and the king was asked for orders without choosing (left out of the rate).",
+            BatchRunner.ReopenRate((5, 1, 1)));
+        Assert.Equal("Courts held while orders stood: 1; none left the choice to the king; at 1 a call failed, the stand-in answered and the king was asked for orders without choosing (left out of the rate).",
+            BatchRunner.ReopenRate((1, 0, 1)));
+    }
+
+    // ------------------------------------------------------------ a failed call (review of Part H)
+
+    [Fact]
+    public async Task A_failed_audience_call_lets_the_stand_in_decide_nothing_and_the_seat_is_asked_for_orders_that_season()
+    {
+        // Before the fix the stand-in's answer let the king's orders stand: the script, not the seat's own model, chose to
+        // sleep on, nothing woke the king again, and the reopen rate counted the script's default as the king's choice.
+        var t = CourtTurn();
+        var host = new Sleeper(_ => new TurnSubmission(), (_, _) => throw new InvalidOperationException("model down"));
+        var r = await Play(host, t + 1);
+        Assert.Contains(r.Errors, e => e.StartsWith($"t{t}/aud/", StringComparison.Ordinal) && e.Contains("/host/1: model down", StringComparison.Ordinal));
+
+        // The seat's own model gives orders that season, told why.
+        Assert.Equal([1, t], host.Calls);
+        Assert.Equal([TurnEngine.EnvoyWaits(Power.Egypt), TurnEngine.StandInCourtReason], host.Views.Last().WokenBecause);
+        Assert.Contains($"You were woken because: an envoy of Egypt waits to be received; {TurnEngine.StandInCourtReason}.", Prompts.SleepLine(host.Views.Last()));
+        var sl = r.State.Sleep[Power.Alashiya];
+        Assert.Equal([TurnEngine.EnvoyWaits(Power.Egypt), TurnEngine.StandInCourtReason], sl.History[0].Reasons);
+
+        // The court is recorded as one the king did not decide, and the reports keep it out of the rate.
+        var court = Assert.Single(sl.Courts);
+        Assert.Equal((false, true, false), (court.Reopened, court.StandIn, court.Decided));
+        var report = BatchRunner.SeatReport(r);
+        Assert.Contains(" 1/0 (1 by stand-in) ", report.Split('\n').Single(l => l.TrimStart().StartsWith("Alashiya", StringComparison.Ordinal)));
+        Assert.Contains("Courts held while orders stood: 1; none left the choice to the king; at 1 a call failed", report);
+
+        // The stand-in's reply is marked in the log, so the replay is exact.
+        var key = r.Log.Decisions.Single(d => d.Key.StartsWith($"t{t}/aud/", StringComparison.Ordinal) && d.Key.EndsWith("/host/1", StringComparison.Ordinal)).Key;
+        Assert.True(r.Log.TryGet<HostReply>(key, out var logged) && logged.FromFallback);
+        var replay = GameRunner.ForReplay(GameLog.FromJsonl(r.Log.ToJsonl()));
+        replay.WriteChronicles = false;
+        await replay.PrepareAsync();
+        for (var i = 0; i < t + 1; i++) await replay.PlayTurnAsync();
+        Assert.Equal(Json.Hash(r.State), Json.Hash(replay.State));
+    }
+
+    [Fact]
+    public async Task A_call_that_fails_after_the_seat_answered_itself_keeps_its_letters_and_still_asks_it_for_orders()
+    {
+        var t = CourtTurn();
+        string? sent = null;
+        var host = new Sleeper(_ => new TurnSubmission(), (a, court) =>
+        {
+            if (a.Round > 1) throw new InvalidOperationException("model down");
+            sent ??= Ready(court);
+            // Its own first reply sends a letter and lets its orders stand; its second call fails.
+            return new HostReply { Speech = "Wait.", Letters = [new DispatchOrder(sent, Power.Hatti, "Brother.")] };
+        });
+        var r = await Play(host, t);
+        Assert.Equal([1, t], host.Calls);
+        Assert.Equal(Power.Hatti, r.State.Char(sent!).MissionTarget);
+        var court = Assert.Single(r.State.Sleep[Power.Alashiya].Courts);
+        Assert.Equal((false, true), (court.Reopened, court.StandIn));
+    }
+
+    [Fact]
+    public async Task A_seat_that_reopened_and_whose_orders_call_failed_still_sends_its_letters_and_is_asked_again_without_its_old_choice()
+    {
+        var t = CourtTurn();
+        string? sent = null;
+        var host = new Sleeper(v => v.Turn == t ? throw new InvalidOperationException("model down") : new TurnSubmission(),
+            (_, court) =>
+            {
+                sent ??= Ready(court);
+                return new HostReply { End = true, ReopenOrders = true, Letters = [new DispatchOrder(sent, Power.Egypt, "Brother.")] };
+            });
+        var r = await Play(host, t + 1);
+        Assert.Contains(r.Errors, e => e.Contains($"t{t}/orders/Alashiya", StringComparison.Ordinal));
+        // The letter was its own and goes out although the stand-in gave the season's orders.
+        Assert.Equal(Power.Egypt, r.State.Char(sent!).MissionTarget);
+        // Asked again next season: told it was woken for the envoy, but not that it "chose to reopen", a choice already spent.
+        Assert.Equal([1, t, t + 1], host.Calls);
+        var again = host.Views.Last().WokenBecause;
+        Assert.Contains(TurnEngine.EnvoyWaits(Power.Egypt), again);
+        Assert.DoesNotContain(TurnEngine.ReopenReason, again);
+    }
+
+    [Fact]
+    public async Task A_letter_from_an_audience_replaces_a_dispatch_scheduled_for_the_same_person()
+    {
+        var t = CourtTurn();
+        string? who = null;
+        var host = new Sleeper(v => v.Turn == 1
+                ? new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = t, Orders = [new DispatchOrder(who = Ready(v), Power.Hatti, "Scheduled.")] }] }
+                : new TurnSubmission(),
+            (_, _) => new HostReply { End = true, Letters = [new DispatchOrder(who!, Power.Egypt, "From the audience.")] });
+        var r = await Play(host, t);
+        Assert.Equal([1], host.Calls);
+        Assert.Equal(Power.Egypt, r.State.Char(who!).MissionTarget);
+    }
+
+    [Fact]
+    public async Task Two_hosts_holding_court_in_the_same_season_each_keep_their_own_letters_and_choice()
+    {
+        var probe = new TurnEngine(GameFactory.NewGame(31, Quiet));
+        var (toAlashiya, toArzawa) = (probe.TravelTurns(Power.Egypt, Power.Alashiya), probe.TravelTurns(Power.Egypt, Power.Arzawa));
+        var t = 1 + Math.Max(toAlashiya, toArzawa);
+        var state = GameFactory.NewGame(31, Quiet);
+        var envoys = state.Characters.Where(c => c.Employer == Power.Egypt).Take(2).Select(c => c.Id).ToList();
+        // Egypt times its two envoys so that both stand before their hosts in season t.
+        var egypt = new Scripted(v =>
+        {
+            var orders = new List<Order>();
+            if (v.Turn == t - toAlashiya) orders.Add(new DispatchOrder(envoys[0], Power.Alashiya, "Greetings, brother."));
+            if (v.Turn == t - toArzawa) orders.Add(new DispatchOrder(envoys[1], Power.Arzawa, "Greetings, brother."));
+            return new TurnSubmission { Orders = orders };
+        });
+        string? sent = null;
+        var alashiya = new Sleeper(_ => new TurnSubmission(), (a, court) =>
+        {
+            sent ??= Ready(court);
+            return new HostReply { Speech = "Welcome.", End = a.Round > 1, ReopenOrders = true, Letters = [new DispatchOrder(sent, Power.Hatti, "Brother.")] };
+        });
+        var arzawa = new Sleeper(_ => new TurnSubmission(), (a, _) => new HostReply { Speech = "Welcome.", End = a.Round > 1 });
+        var seats = Powers.All.ToDictionary(p => p, p => p switch
+        {
+            Power.Alashiya => alashiya,
+            Power.Arzawa => arzawa,
+            Power.Egypt => egypt,
+            _ => (ISeat)new Scripted(),
+        });
+        var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
+        await runner.PrepareAsync();
+        for (var i = 0; i < t; i++) await runner.PlayTurnAsync();
+
+        // Arzawa's second exchange shows nothing of what Alashiya sent or chose in its own court that season.
+        var second = Assert.Single(arzawa.Audiences, a => a.Turn == t && a.Round == 2);
+        Assert.True(second.OrdersStand);
+        Assert.False(second.ReopenChosen);
+        Assert.Empty(second.LettersSent);
+        Assert.True(Assert.Single(alashiya.Audiences, a => a.Turn == t && a.Round == 2).ReopenChosen);
+        // Alashiya reopened and gives orders; Arzawa sleeps on; Alashiya's letter went out.
+        Assert.Equal([1, t], alashiya.Calls);
+        Assert.Equal([1], arzawa.Calls);
+        Assert.Equal((true, false), (state.Sleep[Power.Alashiya].Courts.Single().Reopened, state.Sleep[Power.Arzawa].Courts.Single().Reopened));
+        Assert.Equal(Power.Hatti, state.Char(sent!).MissionTarget);
     }
 }

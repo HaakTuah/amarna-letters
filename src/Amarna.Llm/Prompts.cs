@@ -260,7 +260,7 @@ public static class Prompts
         }
         if (v.CourtLetters.Count > 0)
             sb.AppendLine("LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): "
-                          + string.Join("; ", v.CourtLetters.Select(o => o.Describe())) + ".");
+                          + string.Join("; ", v.CourtLetters.Select(o => o.Describe())) + "." + LettersGold(v.CourtLetters));
 
         if (v.NamedWake > 0)
             sb.AppendLine($"When you last gave orders you asked to be woken in turn {v.NamedWake}. Each set of orders names that season anew: name it again (wake_in_turn) if you still want it.");
@@ -271,6 +271,15 @@ public static class Prompts
         sb.Append(News(v));
         return sb.ToString();
     }
+
+    /// <summary>
+    /// After the letters a king sent from its audiences this season: the gold they carry, which the treasury it reads does not
+    /// show as spent until the season's orders are checked (the letters first), or nothing if they carry none.
+    /// </summary>
+    private static string LettersGold(IEnumerable<Order> letters) =>
+        letters.OfType<DispatchOrder>().Sum(d => d.Gold) is > 0 and var gold
+            ? $" Gold already committed by these letters: {gold} shekels, not yet taken from the treasury you read here; it is reserved first when the season's orders are checked."
+            : "";
 
     /// <summary>A standing order as its king reads it: its id, the event it waits for, its orders, and whether it fires this season.</summary>
     private static string StandingLine(StandingOrderView st, SeatView v)
@@ -470,7 +479,7 @@ public static class Prompts
             sb.AppendLine("YOUR ORDERS STAND WHILE YOU SLEEP. At this audience you may also send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. "
                           + "Reopen your orders (reopen_orders) if the news changes your plan: you then give orders this season, with your full view, after your audiences. Otherwise your orders stand and you sleep on.");
             if (a.LettersSent.Count > 0)
-                sb.AppendLine($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): {string.Join("; ", a.LettersSent.Select(o => o.Describe()))}.");
+                sb.AppendLine($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): {string.Join("; ", a.LettersSent.Select(o => o.Describe()))}.{LettersGold(a.LettersSent)}");
             if (a.ReopenChosen)
                 sb.AppendLine("You have already chosen to reopen your orders this season: you give orders after your audiences.");
         }

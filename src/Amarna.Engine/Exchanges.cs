@@ -51,6 +51,13 @@ public sealed class HostReply
     /// after its audiences, as when anything else wakes it. Once chosen it holds for the season. Ignored at any other audience.
     /// </summary>
     public bool ReopenOrders { get; set; }
+    /// <summary>
+    /// The script king stood in because the seat's call failed (set by the runner and logged, so replays stay exact). At an
+    /// audience held while the host's orders stand, a stand-in reply decides nothing for the seat: its letters and its choice
+    /// are ignored, and the seat is asked for orders that season, since only the seat's own model may choose to let its orders
+    /// stand (<see cref="TurnEngine.CourtsHeld"/>).
+    /// </summary>
+    public bool FromFallback { get; set; }
 
     /// <summary>
     /// The reply as the envoy before the host meets it: what the host says and does to it. The letters the host sends and its

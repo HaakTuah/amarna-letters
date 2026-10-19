@@ -41,10 +41,13 @@ public sealed class LeaderJournal
         lock (_gate) _audiences.Add((turn, $"{from}'s envoy {envoy}", speech, sent?.ToList() ?? []));
     }
 
-    /// <summary>One audience as the record shows it: whose envoy, what the king said, and the letters it sent from it.</summary>
+    /// <summary>
+    /// One audience as the record shows it: whose envoy, what the king said, and the letters it gave there. Whether each went
+    /// out is not the record's to say (one may be refused, or replaced by an order given after reopening): its news tells it.
+    /// </summary>
     private static string AudienceLine((int Turn, string Who, string Speech, List<string> Sent) a, int? season) =>
         $"{a.Who}{(a.Turn == season ? "" : $" (turn {a.Turn})")}: you said \"{Greeting.Cap(a.Speech, 200)}\""
-        + (a.Sent.Count > 0 ? $"; you sent from the audience: {string.Join("; ", a.Sent)}" : "");
+        + (a.Sent.Count > 0 ? $"; letters you gave at the audience: {string.Join("; ", a.Sent)}" : "");
 
     /// <summary>
     /// The king's reply to an orders request: its notes (cut at <see cref="NotesMax"/>), the audiences since its last orders
