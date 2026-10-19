@@ -29,8 +29,10 @@ tab, including the date labels and the "follow this character" view. Branch `ite
 - Measured on an emulated mid-range phone (4x CPU slowdown, slow 4G): numbers and limits below. The browser build
   shrank from 5.0 to 3.2 MB compressed.
 - Terrain (rough provinces, the Sinai desert, six crossings, the ordered river courses) is stored as engine map
-  data that nothing in the engine reads, for the siege package. All 648 tests pass (633 before, plus 15 new), and
+  data that nothing in the engine reads, for the siege package. All 654 tests pass (633 before, plus 21 new), and
   seeds 1-10 replay to logs identical byte for byte with those before the round.
+- After review: a court's view no longer says how a province changed hands unless the court saw it or was a party to
+  it, and four smaller leaks and slips are fixed (see "Review findings").
 
 ## What was built
 
@@ -291,12 +293,14 @@ twice. Reduced motion turns off every transition and animation.
    which the web game of seed 7 confirms against the batch runner, but the order in which decisions are written to
    a web game's log can differ; replay reads decisions by key, so logs replay as before.
 10. **The Anthropic SDK is trimmed in the browser build** (`TrimmableAssembly`): the browser never constructs it.
-11. **Tests for the web map** in a new project, `tests/Amarna.Web.Tests` (9 tests): every person drawn in a court's
+11. **Tests for the web map** in a new project, `tests/Amarna.Web.Tests` (15 tests): every person drawn in a court's
     view is in that court's own engine view and is its own, an envoy at its court or held by it, never a foreign
     spy; fog is clear exactly where the court sees, units drawn as seen equal the view's units, and every ghost is a
     unit the court really saw; god view shows every unit and no fog; frames taken live equal frames read from
-    snapshots; a court draws only moves it saw; a life read in a court holds only messages it sent or heard; and the
-    "turn N" labelling.
+    snapshots; a court draws only moves it saw; a court learns how land changed hands only from marches it saw
+    (seeds 1, 3, 5, 7 and 9), and is told of an attack only from what it could see; no fallen court's orders are
+    drawn again; a life read in a court holds only messages it sent or heard, dated as that court knows them; and
+    the "turn N" labelling.
 12. **Merging.** The prompt asks to merge into `develop` after one reviewer; the session's instructions say never to
     touch `develop`, so the branch is left unmerged for the reviewer and the orchestrator.
 
@@ -310,9 +314,70 @@ twice. Reduced motion turns off every transition and animation.
   presentation (see "What limits it").
 - Measurement on a physical phone: none was available; all phone figures come from Chrome's emulation.
 
+## Review findings
+
+The reviewer found one blocking problem and eight minor notes. Each was checked; what was real is fixed in
+"Fix review findings: …", with the design notes updated in the same commit.
+
+**Blocking: how land changed hands leaked into a court's view. Confirmed and fixed.** `MapScene` decided "taken by"
+against "passed to" from every order of the season, whoever saw it, so a court's Season panel and the capture ring's
+tooltip told it that a province fell to arms, and so that the taker's army now stood there, even where the fog hid
+that army and the court had seen no such march. A new test reproduced it on every seed tried (seeds 1, 3, 5, 7 and
+9: in each, Egypt read Lukka as "taken by Arzawa" within the first two seasons, from a march it never saw). Now a
+scene decides from the orders the viewer saw (`SeenBy`): "taken by" only if it saw the new owner's troops march in;
+"passed to" if it lost or gained
+the province, since a march into its own land or its own march would have been seen; any other court reads "now held
+by Hatti, no longer by Arzawa", which says only what is public. God view is unchanged. In the browser, seed 7 after
+the last season: as Egypt, "Kanesh now held by Hatti, no longer by Arzawa" and "Isuwa now held by Mitanni, no longer
+by Assyria", with only the Arzawan moves Egypt saw listed; as Hatti, which saw both marches, "taken by" for both; as
+Alashiya, "now held by" for both and "No moves were seen." The test,
+`A_court_learns_how_land_changed_hands_only_from_moves_it_saw`, checks every change of hands in every court's view
+against the court's own `LastSeen` and against the god view.
+
+**Minor notes.**
+
+1. *An attack told from troops out of sight.* Fixed. A march is called an attack on troops only if the court saw them
+   standing in the target as the season began (`Sight` of the frame before) and did not see them march out; the same
+   test checks it. God view now calls a march into a province whose occupant left a plain move. A probe of seeds 1-10
+   found no such god-view case in practice.
+2. *A receiving court saw when a foreign envoy reported home* (the follow view's date range). Fixed: a court that only
+   received the envoy sees the mission dated by the audience it gave, with no end date; the sender keeps the range
+   from sending to the report home. Seen in the browser: Egypt following Alashiya's envoy Ili-iddina sees four
+   missions, each dated by its audience alone ("y2 Peret", "y5 Shemu", …). Tested.
+3. *"season of the second season" in a spy report.* Fixed: `Ui.Dated` turns "season of turn N" into the label alone,
+   so Hatti reads "From Arzawa, the second season, year 3 (turn 8)." and god view "season 2 of year 3 (turn 8)". A
+   "Turn N" opening a sentence now gives a capitalised label. Seen in the browser in Hatti's Season panel; tested.
+4. *Bare "turn N" labels.* Fixed: a saved game's line reads "Seed 1, season 3 of year 5 (turn 15) (ended), 7 Script
+   bot", and the replay notice "The log ends during season … (turn N)". Games saved before keep the line stored with
+   them.
+5. *Two commits changed behaviour without touching the design notes.* Fixed: the notes now say that a faded province
+   carries the season it was last seen, that the courts row gives unit counts only for the court's own power, and
+   what the follow view shows a court.
+6. *`docs/BUILD-PROGRESS.md` not updated.* Left: this session's instructions say not to edit it; it is the
+   orchestrator's.
+7. *The follow view and People panel show the employer of a foreign spy posted at the court.* Left: they read the
+   engine's own view, which the king reads too (question 19, bug 4, recorded under "Characters" in the design notes);
+   hiding it in the web app alone would make the page disagree with what the seat is told, and changing the view is
+   not presentation.
+8. *The service worker did not register in the reviewer's browser pane.* Checked: in this session's pane the
+   development worker registered and was active (`navigator.serviceWorker.getRegistrations()`), and registering it
+   again raised no error, so the failure looks like the pane's. Installing to a home screen could not be tried
+   without a phone; starting the published build from its cache was measured earlier (second visit, 0 bytes
+   downloaded).
+
+**Found while fixing: a fallen court's last orders were drawn again every season.** The engine keeps a fallen court's
+`LastSeen` from the season it fell, unchanged, and the frames took the union of every court's `LastSeen`, so god view
+redrew that season's orders, the fallen court's and those it saw, every season after. A probe of seeds 1-10 found it
+in seeds 1, 8 and 10 (17 seasons of fallen courts in all): in seed 1, for example, "Mitanni's army in Ashur moved to
+Arbela" was drawn again in every season from turn 10 to 14, after Assyria fell. Fixed in `SeasonFrame.From`: a
+court's `LastSeen` is read only if it still stood as the season began. Tested
+(`A_fallen_court_s_last_orders_are_not_drawn_again`, which fails without the fix) and checked in the browser on seed
+1: from turn 10 on, only the moves of courts still standing are listed. Presentation only, like the rest: the engine
+is unchanged and still keeps the fallen court's `LastSeen`.
+
 ## How it was verified
 
-- `dotnet test`: 648 tests pass (204 engine, of which 6 new for the labels and terrain data; 435 game; 9 web map).
+- `dotnet test`: 654 tests pass (204 engine, of which 6 new for the labels and terrain data; 435 game; 15 web map).
 - Seeds replay exactly: `dotnet run --project src/Amarna.Batch -- --games 10 --seed 1 --verify-replay
   --no-chronicles` prints the same results as before the round, and the logs and final states of seeds 1-10 are
   identical byte for byte with those saved before the first change.
@@ -324,6 +389,12 @@ twice. Reduced motion turns off every transition and animation.
 - A game of model kings with the simulated API: the sleeping kings shown in god view with their dates and reasons.
 - The built-in browser pane for the first checks; headless Chrome (scripts driving it over the DevTools protocol) for
   full-resolution screenshots, the whole-game checks and the measurements.
+- After the review fixes, in the built-in browser pane (development server, desktop size): seed 7 played to its end
+  and read in god view and as Egypt, Hatti and Alashiya (changes of hands, the capture rings' tooltips, the moves
+  listed); Egypt following a foreign envoy; Hatti's spy reports stepped through season by season; seed 1 played to
+  its end and its god view stepped through after the two courts fell; the saved-games list; no console errors. The
+  pane drew no screenshots (it was hidden), so these checks read the page's text; no new screenshots were taken. The
+  full suite (654 tests) and the replay check of seeds 1-10 were run again and pass, with the same results.
 
 ## Screenshots
 
@@ -362,4 +433,5 @@ In `docs/rounds/2026-10-19-visual-overhaul/` (seed 7, script kings):
 - `ca88beb` Make the web app installable, lighter and responsive on a phone
 - `7753d69` Keep map symbols at a steady size on screen; date faded provinces
 - `be458ab` Keep envoys on their way and rivals' strength out of a court's view
-- and this report, with the last touches to the header.
+- `061bedd` Write the visual-overhaul report, with the last touches to the header
+- "Fix review findings: …", the fixes above, with this report's review section and the design notes.

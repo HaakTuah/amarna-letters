@@ -1606,7 +1606,8 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   `Season` text and the prompts are unchanged: kings still read turns first, as question 26's simulation result
   asked. The BCE year (plan step 4) is not built. Every date the web app writes uses the label; engine texts shown
   in the interface (a servant's timing and term, inbox items, events) have each "turn N" given its label for display
-  (`Ui.Dated`), while the texts kings read stay as they are. The rulebook tab still shows the rulebook word for word.
+  (`Ui.Dated`; a spy report's "season of turn N" becomes the label alone, which names the season), while the texts
+  kings read stay as they are. The rulebook tab still shows the rulebook word for word.
 - **The map is drawn, not computed by the engine.** The coasts, rivers (the three great ones of `Geography.Rivers`
   plus the Marassantiya, Orontes, Khabur and Balikh for the eye), ranges, deserts and fields are hand-placed drawing
   data in the web project (`Components/Map/MapArt.cs`), fitted to the engine's 1000 x 720 coordinates, which are
@@ -1622,7 +1623,9 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
 - **What the map shows each season** comes from a frame taken at every snapshot (`SeasonFrame`): owners, units,
   the orders of the season just resolved with how each went (from the engine's `LastSeen`, whose union is every
   order), each court's sight, the journeys, the characters and the sleeping seats. The map steps through frames
-  without deserializing whole states; the panels still read the full state of the season shown.
+  without deserializing whole states; the panels still read the full state of the season shown. A fallen court's
+  `LastSeen` stays in the state unchanged, so a frame reads it only in the season the court fell; read later, it
+  redrew that season's orders every season after.
 - **Travellers are drawn on a guessed road.** The engine keeps only a departure and an arrival season, so each one is
   drawn on the shortest path between the two places (`MapArt.Route`), at a position interpolated by season, with a
   halo and a dotted road to say it is a guess. A ransom travels as gold on its own.
@@ -1630,17 +1633,26 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   (its cover of a servant whose fate it has not heard, read from the cover's own texts), foreign envoys only while
   they stand at its court, and anyone it holds; never a foreign spy it has not caught. The engine's own view still
   lists a spy posted at a court in that court's view with its employer (question 19, bug 4, recorded under
-  "Characters"); the map does not draw it, and this round changes no view.
+  "Characters"); the map does not draw it, and this round changes no view (the People panel and the follow view,
+  which read the engine's view, still show it). A court is drawn only the orders it saw resolve. Who holds a province
+  is public, but how it changed hands is not (the engine tells a conquest only to the taker and the loser, a
+  purchase only to courts with sight): a court reads "taken by" only when it saw the new owner's troops march in,
+  "passed to" when it lost or gained the province (it would have seen a march), and otherwise "now held by". A march
+  is called an attack on troops only if the court saw them standing in the target as the season began and did not
+  see them march out; god view likewise calls a march into a province its occupant left a plain move. The courts row
+  gives unit counts only for the court's own power.
 - **Fog of war as a gradient**, from the court's own earlier sights (the frames): a province in sight is clear; one
-  seen before is washed over, more the older the sight; one never seen is hatched. Units the court saw in a province
-  it cannot see now stay as dashed ghosts, fainter with age, with the season they were seen. Rumours and spy reports
-  that reached the court are placed where they came from, dashed and fading over eight seasons. Ownership is not
-  fogged: who holds each province is public and live in the engine, so tints, border lines and seals are drawn as
-  known.
+  seen before is washed over, more the older the sight, and zoomed in carries the season it was last seen; one never
+  seen is hatched. Units the court saw in a province it cannot see now stay as dashed ghosts, fainter with age, with
+  the season they were seen. Rumours and spy reports that reached the court are placed where they came from, dashed
+  and fading over eight seasons. Ownership is not fogged: who holds each province is public and live in the engine,
+  so tints, border lines and seals are drawn as known.
 - **Follow this character** builds a life from the record (`LifeRecord`): service, places season by season (and the
   path on the map), missions with what was written, said and reported, and in god view the hidden traits, facts and
-  the character's own memory; in a court's view only what that court knows. It is built from sections so that later
-  roles and lives can add their own.
+  the character's own memory; in a court's view only what that court knows: its own servants' service, the messages
+  it sent, and those of envoys who have stood before it (never one still on the road to it). A court that only
+  received an envoy sees that mission dated by its audience alone; the report home, and when it came, only the
+  sender reads. It is built from sections so that later roles and lives can add their own.
 - **Phone first.** On a phone held upright the map comes first, at the full width, with the courts above it, the
   panel (the season in words by default) below it and the timeline at the bottom within reach of a thumb; a panel can
   be pulled up over the map and dropped back without the map losing its place or zoom. Held sideways, the map takes

@@ -23,11 +23,16 @@ public static partial class Ui
 
     /// <summary>
     /// Engine text with every "turn N" given its date label ("due back about turn 8" reads "due back about Peret,
-    /// year 3 (turn 8)"). For texts the engine writes for courts and characters, shown in the interface only; the
-    /// texts themselves, which kings read, are unchanged.
+    /// year 3 (turn 8)"). "Season of turn N", as a spy's report dates what it saw, becomes the label alone, since
+    /// the label names the season. For texts the engine writes for courts and characters, shown in the interface
+    /// only; the texts themselves, which kings read, are unchanged.
     /// </summary>
     public static string Dated(string text, Power? court) =>
-        string.IsNullOrEmpty(text) ? text : TurnNumber().Replace(text, m => Calendar.Label(int.Parse(m.Groups[2].Value), court));
+        string.IsNullOrEmpty(text) ? text : TurnNumber().Replace(text, m =>
+        {
+            var label = Calendar.Label(int.Parse(m.Groups["n"].Value), court);
+            return char.IsUpper(m.Value[0]) ? Cap(label) : label;
+        });
 
     /// <summary>An order in words, with people and places by name rather than id.</summary>
     public static string Describe(Order o, SeatView v)
@@ -44,6 +49,6 @@ public static partial class Ui
     [GeneratedRegex(@"\b[a-z]+\b")]
     private static partial Regex Words();
 
-    [GeneratedRegex(@"\b([Tt]urn) (\d+)\b")]
+    [GeneratedRegex(@"\b(?:[Ss]eason of )?[Tt]urn (?<n>\d+)\b")]
     private static partial Regex TurnNumber();
 }

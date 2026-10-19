@@ -156,8 +156,8 @@ public class MapSceneTests
         {
             var state = runner.StateAt(k)!;
             var god = MapScene.Build(frames, k, null);
-            // Every power's own orders are among the season's moves.
-            foreach (var p in Powers.All)
+            // Every order seen by a court standing as the season began is among the season's moves.
+            foreach (var p in Powers.All.Where(runner.StateAt(k - 1)!.IsAlive))
                 foreach (var o in state.LastSeen.GetValueOrDefault(p) ?? [])
                     Assert.Contains(frames[k].Moves, m => m.Power == o.Power && m.From == o.Province && m.Order == o.Order);
             foreach (var p in Powers.All.Where(state.IsAlive))
@@ -171,6 +171,55 @@ public class MapSceneTests
         }
     }
 
+    public static IEnumerable<object[]> ManySeeds => [[1UL], [3UL], [5UL], [7UL], [9UL]];
+
+    [Theory]
+    [MemberData(nameof(ManySeeds))]
+    public void A_court_learns_how_land_changed_hands_only_from_moves_it_saw(ulong seed)
+    {
+        var (runner, frames) = Play(seed, 16);
+        var captures = 0;
+        for (var k = 1; k < frames.Count; k++)
+        {
+            var state = runner.StateAt(k)!;
+            var prev = frames[k - 1];
+            var god = MapScene.Build(frames, k, null);
+            foreach (var c in god.Captures)
+            {
+                var marched = frames[k].Moves.Any(m => m.IsMove && m.Succeeded && m.Target == c.Province && m.Power == c.To);
+                Assert.Equal(marched ? CaptureHow.Taken : CaptureHow.Passed, c.How);
+            }
+            foreach (var p in Powers.All.Where(state.IsAlive))
+            {
+                var seen = state.LastSeen.GetValueOrDefault(p) ?? [];
+                var scene = MapScene.Build(frames, k, p);
+                // Who holds each province is public, so every view lists the same changes of hands.
+                Assert.Equal(god.Captures.Select(c => (c.Province, c.From, c.To)), scene.Captures.Select(c => (c.Province, c.From, c.To)));
+                foreach (var (c, truth) in scene.Captures.Zip(god.Captures))
+                {
+                    captures++;
+                    // How it changed hands is not: "taken" only when the court saw the new owner's troops march in.
+                    var sawIt = seen.Any(o => o.Order == "move" && o.Succeeded && o.Target == c.Province && o.Power == c.To);
+                    Assert.True(sawIt == (c.How == CaptureHow.Taken), $"seed {seed}, after turn {k}: {p} reads {c.Province} to {c.To} as {c.How}, saw the move: {sawIt}");
+                    // A court on either side is told the truth; any other that saw no march, only who holds it now.
+                    var party = c.From == p || c.To == p;
+                    Assert.Equal(party || sawIt ? truth.How : CaptureHow.Unseen, c.How);
+                }
+                // An attack is called one only from what the court could tell: the target's owner, its walls, or a
+                // foreign unit standing there in its sight.
+                var sight = prev.Sight[p];
+                foreach (var m in scene.Moves.Where(m => m.Style == MoveStyle.Attack || m.Text.EndsWith("(an attack)")))
+                {
+                    var o = seen.First(o => o.Power == m.Power && o.Province == m.From && o.Order == "move" && o.Target == m.To);
+                    var foreignLand = o.TargetOwner is { } owner && owner != m.Power;
+                    var walls = o.TargetOwner is null && prev.Garrisons.Contains(m.To);
+                    Assert.True(foreignLand || walls || sight.Contains(m.To), $"seed {seed}, after turn {k}: {p} told of an attack on {m.To}, out of its sight");
+                }
+            }
+        }
+        Assert.True(captures > 0, "the games changed no hands");
+    }
+
     [Fact]
     public void A_life_read_in_a_court_holds_only_the_messages_that_court_sent_or_heard()
     {
@@ -178,6 +227,7 @@ public class MapSceneTests
         var k = frames.Count - 1;
         var state = runner.StateAt(k)!;
         var read = 0;
+        var received = 0;
         foreach (var p in Powers.All.Where(state.IsAlive))
         {
             var view = Views.For(state, p);
@@ -186,14 +236,23 @@ public class MapSceneTests
                 var life = LifeRecord.Build(frames, i => MapScene.Build(frames, i, p), k, state, p, c.Id);
                 Assert.True(life.Known);
                 var missions = life.Sections.FirstOrDefault(s => s.Title.StartsWith("Missions"));
-                var expected = state.Trails.Count(t => t.EnvoyId == c.Id && (t.From == p || t.To == p && t.AudienceTurn is not null));
-                Assert.Equal(expected, missions?.Entries.Count ?? 0);
+                var expected = state.Trails.Where(t => t.EnvoyId == c.Id && (t.From == p || t.To == p && t.AudienceTurn is not null)).OrderBy(t => t.Turn).ToList();
+                Assert.Equal(expected.Count, missions?.Entries.Count ?? 0);
+                foreach (var (e, t) in (missions?.Entries ?? []).Zip(expected))
+                {
+                    // The sender's dates run from sending to the report home; a court that only received the envoy
+                    // knows the audience it gave, not when or whether the envoy reported home.
+                    Assert.Equal(t.From == p ? t.Turn : t.AudienceTurn, e.From);
+                    Assert.Equal(t.From == p ? t.ReportTurn : null, e.Until);
+                    if (t.From != p) received++;
+                }
                 // No hidden traits or memory outside god view.
                 Assert.DoesNotContain(life.Sections, s => s.Title.StartsWith("Hidden") || s.Title.StartsWith("Their own memory"));
                 read++;
             }
         }
         Assert.True(read > 0);
+        Assert.True(received > 0, "no court read a mission it only received");
         // God view reads everyone's whole record.
         var anyone = state.Characters.First(c => state.Trails.Any(t => t.EnvoyId == c.Id));
         var full = LifeRecord.Build(frames, i => MapScene.Build(frames, i, null), k, state, null, anyone.Id);
@@ -207,5 +266,24 @@ public class MapSceneTests
             Ui.Dated("set out in turn 1 for Hatti; due back about turn 5", Power.Egypt));
         Assert.Equal("serves at 8 a season through season 3 of year 4 (turn 12)", Ui.Dated("serves at 8 a season through turn 12", null));
         Assert.Equal("Turn them", Ui.Dated("Turn them", null));
+        // A spy's report dates what it saw by "season of turn N": the label alone names the season.
+        Assert.Equal("From Arzawa, the second season, year 3 (turn 8).", Ui.Dated("From Arzawa, season of turn 8.", Power.Hatti));
+        Assert.Equal("From Arzawa, season 2 of year 3 (turn 8).", Ui.Dated("From Arzawa, season of turn 8.", null));
+        Assert.Equal("Season 2 of year 3 (turn 8) was quiet", Ui.Dated("Turn 8 was quiet", null));
+    }
+
+    [Fact]
+    public void A_fallen_court_s_last_orders_are_not_drawn_again()
+    {
+        var (runner, frames) = Play(1, 16);
+        var after = 0;
+        for (var k = 1; k < frames.Count; k++)
+        {
+            // Every order of the season was given by a unit standing where it was given from as the season began.
+            foreach (var m in frames[k].Moves)
+                Assert.Contains(frames[k - 1].Units, u => u.Province == m.From && u.Power == m.Power && u.Kind == m.Kind);
+            if (frames[k - 1].Eliminated.Count > 0) after++;
+        }
+        Assert.True(after > 0, "no court fell early enough in the game to check");
     }
 }

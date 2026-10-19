@@ -33,7 +33,7 @@
             @foreach (var c in Scene.Captures)
             {
                 <li @onclick="() => OnProvince.InvokeAsync(c.Province)">
-                    <Emblem Power="c.To" /> <strong>@Ui.Province(c.Province)</strong> @(c.Taken ? "taken by" : "passed to") @(c.To?.Name() ?? "nobody")@(c.From is { } fr ? $" from {fr.Name()}" : "")
+                    <Emblem Power="c.To" /> <strong>@Ui.Province(c.Province)</strong> @c.Line
                 </li>
             }
         </ul>

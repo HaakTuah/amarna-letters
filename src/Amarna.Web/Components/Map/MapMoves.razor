@@ -7,7 +7,7 @@
     {
         var at = MapArt.City(c.Province);
         <g @key="@($"{Scene.Index}:cap:{c.Province}")" class="@($"capture {(c.To is { } t ? $"c-{Glyphs.Id(t)}" : "c-free")}")" transform="@($"translate({F(at.X)},{F(at.Y)})")">
-            <title>@($"{Ui.Province(c.Province)} {(c.Taken ? "was taken by" : "passed to")} {c.To?.Name() ?? "nobody"}{(c.From is { } f ? $" from {f.Name()}" : "")} this season")</title>
+            <title>@($"{Ui.Province(c.Province)} changed hands this season: {c.Line}")</title>
             <g class="csym"><circle class="cap-ring" r="16" /><circle class="cap-ring2" r="21" /></g>
         </g>
     }

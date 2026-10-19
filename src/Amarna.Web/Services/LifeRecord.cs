@@ -112,7 +112,10 @@ public sealed class LifeRecord
             if ((viewer is null || viewer == t.From) && t.ReportTurn is not null && t.Report.Length > 0)
                 lines.Add($"Reported home: {Greeting.Cap(t.Report, 400)}");
             if (viewer is null && t.Outcomes.Count > 0) lines.Add($"What happened: {string.Join("; ", t.Outcomes)}.");
-            missions.Add(new LifeEntry(t.Turn, t.ReportTurn, string.Join("\n", lines), WorldMap.Default.Capital(t.To).Id));
+            // The sender's dates run from sending to the report home; a court that only received the envoy knows the
+            // audience it gave, not when the envoy set out or whether and when they reported home.
+            var sender = viewer is null || viewer == t.From;
+            missions.Add(new LifeEntry(sender ? t.Turn : t.AudienceTurn ?? t.Turn, sender ? t.ReportTurn : null, string.Join("\n", lines), WorldMap.Default.Capital(t.To).Id));
         }
         if (missions.Count > 0) sections.Add(new LifeSection("Missions, and what was said", missions));
 

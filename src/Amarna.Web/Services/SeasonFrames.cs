@@ -51,7 +51,7 @@ public sealed class SeasonFrame
     public IReadOnlyDictionary<string, Power?> Owner { get; init; } = new Dictionary<string, Power?>();
     public IReadOnlySet<string> Garrisons { get; init; } = new HashSet<string>();
     public IReadOnlyList<FrameUnit> Units { get; init; } = [];
-    /// <summary>Every order of the season just resolved (the union of what each court saw, which includes all its own).</summary>
+    /// <summary>Every order of the season just resolved (the union of what each court standing as it began saw, which includes all its own).</summary>
     public IReadOnlyList<FrameMove> Moves { get; init; } = [];
     /// <summary>What each court saw resolve: indexes into <see cref="Moves"/>.</summary>
     public IReadOnlyDictionary<Power, IReadOnlyList<int>> SeenBy { get; init; } = new Dictionary<Power, IReadOnlyList<int>>();
@@ -82,7 +82,10 @@ public sealed class SeasonFrame
         foreach (var p in Powers.All)
         {
             var mine = new List<int>();
-            foreach (var o in s.LastSeen.GetValueOrDefault(p) ?? [])
+            // A fallen court's last sights stay in the state unchanged: read them only in the season it fell, or every
+            // later season would redraw that season's orders.
+            var fallen = previous is not null && previous.Eliminated.Contains(p);
+            foreach (var o in fallen ? [] : s.LastSeen.GetValueOrDefault(p) ?? [])
             {
                 var key = $"{o.Power}|{o.Province}|{o.Order}|{o.Target}|{o.To}";
                 if (!keyed.TryGetValue(key, out var i))

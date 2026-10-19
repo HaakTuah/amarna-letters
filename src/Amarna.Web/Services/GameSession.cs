@@ -179,7 +179,7 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
                 ReadOnly = true;
                 await Runner.PrepareAsync(_cts.Token);
                 try { while (await Runner.PlayTurnAsync(_cts.Token)) { } }
-                catch (ReplayExhaustedException) { Notice = $"The log ends during turn {Runner.State.Turn}; showing the game up to there."; }
+                catch (ReplayExhaustedException) { Notice = $"The log ends during {Calendar.Label(Runner.State.Turn)}; showing the game up to there."; }
                 ViewAs = null;
             }
             GameId = $"game-{log.Header.Seed}-loaded-{DateTime.UtcNow:yyyyMMddHHmmss}";
@@ -323,7 +323,7 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
     public async Task SaveAsync()
     {
         if (Runner is null || ReadOnly) return;
-        var meta = $"Seed {Runner.State.Seed}, turn {Runner.State.Turn}{(Runner.State.Ended ? " (ended)" : "")}, {string.Join(", ", Runner.Log.Header.Seats.GroupBy(s => s.Value).Select(g => $"{g.Count()} {g.Key}"))}";
+        var meta = $"Seed {Runner.State.Seed}, {Calendar.Label(Runner.State.Turn)}{(Runner.State.Ended ? " (ended)" : "")}, {string.Join(", ", Runner.Log.Header.Seats.GroupBy(s => s.Value).Select(g => $"{g.Count()} {g.Key}"))}";
         await storage.SaveAsync(GameId, meta, Runner.Log.ToJsonl());
     }
 

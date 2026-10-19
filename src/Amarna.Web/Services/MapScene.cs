@@ -27,8 +27,30 @@ public sealed record ScenePerson(string Id, PersonKind Kind, Power? Owner, strin
 /// <summary>A rumour or a spy's report a court has received, placed where it came from: uncertain by nature, and fading with age.</summary>
 public sealed record SceneNews(string Province, InboxKind Kind, int Age, string Title, string Body, int Observed);
 
-/// <summary>A province that changed hands in the season just resolved.</summary>
-public sealed record SceneCapture(string Province, Power? From, Power? To, bool Taken);
+/// <summary>How a province changed hands, as far as the viewer can tell.</summary>
+public enum CaptureHow
+{
+    /// <summary>The new owner's troops marched in, and the viewer saw them.</summary>
+    Taken,
+    /// <summary>No troops of the new owner marched in (a cession, a purchase, a gift of troops), and the viewer can tell.</summary>
+    Passed,
+    /// <summary>A court that saw no march in and was party to neither side: it knows only who holds it now.</summary>
+    Unseen,
+}
+
+/// <summary>A province that changed hands in the season just resolved. Who holds it is public; how it changed hands is not.</summary>
+public sealed record SceneCapture(string Province, Power? From, Power? To, CaptureHow How)
+{
+    /// <summary>"taken by Hatti from Arzawa", "passed to Hatti from Arzawa", or "now held by Hatti, no longer by Arzawa".</summary>
+    public string Line => How switch
+    {
+        CaptureHow.Taken => $"taken by {Holder}{(From is { } f ? $" from {f.Name()}" : "")}",
+        CaptureHow.Passed => $"passed to {Holder}{(From is { } f ? $" from {f.Name()}" : "")}",
+        _ => $"now held by {Holder}{(From is { } f ? $", no longer by {f.Name()}" : "")}",
+    };
+
+    private string Holder => To?.Name() ?? "nobody";
+}
 
 /// <summary>
 /// What the map draws for one season through one pair of eyes: the god view's truth, or exactly what a court can see,
@@ -94,7 +116,9 @@ public sealed class MapScene
             }
         }
 
-        var (moves, destroyed) = MovesOf(f, prev, viewer);
+        // The orders the viewer saw resolve: every one in god view, a court's own and those it could see in a seat view.
+        IReadOnlyList<FrameMove> seen = viewer is { } q ? (f.SeenBy.GetValueOrDefault(q) ?? []).Select(i => f.Moves[i]).ToList() : f.Moves;
+        var (moves, destroyed) = MovesOf(f, prev, seen, viewer is { } r ? prev?.Sight.GetValueOrDefault(r) ?? new HashSet<string>() : null);
         var captures = new List<SceneCapture>();
         if (prev is not null)
             foreach (var prov in Map.LandProvinces)
@@ -102,8 +126,12 @@ public sealed class MapScene
                 var was = prev.OwnerOf(prov.Id);
                 var now = f.OwnerOf(prov.Id);
                 if (was == now) continue;
-                var taken = now is { } n && f.Moves.Any(m => m.IsMove && m.Succeeded && m.Target == prov.Id && m.Power == n);
-                captures.Add(new SceneCapture(prov.Id, was, now, taken));
+                // Taken by arms only if the viewer saw the new owner march in. A court on either side would have seen it
+                // (its own moves, or a march into its own land), so for it no march seen means none; any other court
+                // that saw none knows only who holds the province now.
+                var taken = now is { } n && seen.Any(m => m.IsMove && m.Succeeded && m.Target == prov.Id && m.Power == n);
+                var how = taken ? CaptureHow.Taken : viewer is null || viewer == was || viewer == now ? CaptureHow.Passed : CaptureHow.Unseen;
+                captures.Add(new SceneCapture(prov.Id, was, now, how));
             }
 
         var (travellers, people) = viewer is null ? GodPeople(f) : SeatPeople(f, viewer.Value);
@@ -129,12 +157,14 @@ public sealed class MapScene
         units.GroupBy(u => (u.Province, u.Power, u.Kind)).Select(g =>
             new SceneUnit(ghost ? $"g:{g.Key.Province}:{g.Key.Power}:{g.Key.Kind}" : $"u:{g.First().Id}", g.Key.Power, g.Key.Kind, g.Key.Province, g.Count(), ghost, age, seenAt));
 
-    private static (List<SceneMove>, List<SceneUnit>) MovesOf(SeasonFrame f, SeasonFrame? prev, Power? viewer)
+    /// <param name="seen">The orders the viewer saw resolve.</param>
+    /// <param name="sight">A court's sight as the season began (null in god view): it can tell a march was an attack on
+    /// troops only if it saw them standing there.</param>
+    private static (List<SceneMove>, List<SceneUnit>) MovesOf(SeasonFrame f, SeasonFrame? prev, IReadOnlyList<FrameMove> seen, IReadOnlySet<string>? sight)
     {
         var moves = new List<SceneMove>();
         var destroyed = new List<SceneUnit>();
         if (prev is null) return (moves, destroyed);
-        IEnumerable<FrameMove> seen = viewer is { } p ? (f.SeenBy.GetValueOrDefault(p) ?? []).Select(i => f.Moves[i]) : f.Moves;
         foreach (var m in seen)
         {
             if (m.Destroyed)
@@ -143,7 +173,10 @@ public sealed class MapScene
             {
                 case "move" when m.Target is { } t:
                 {
-                    var foreignUnit = prev.Units.Any(u => u.Province == t && u.Power != m.Power);
+                    // Foreign troops in the way: standing there as the season began (in the court's sight) and not
+                    // marched out of it this season. Troops that left make the march a plain move.
+                    var foreignUnit = (sight is null || sight.Contains(t)) && prev.Units.Any(u => u.Province == t && u.Power != m.Power
+                        && !seen.Any(x => x.IsMove && x.Succeeded && x.From == t && x.Power == u.Power && x.Kind == u.Kind));
                     var foreignLand = m.TargetOwner is { } o && o != m.Power;
                     var walls = m.TargetOwner is null && prev.Garrisons.Contains(t);
                     var attack = foreignUnit || foreignLand || walls;
