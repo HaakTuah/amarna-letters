@@ -1,16 +1,37 @@
 # Build progress
 
-Follows "Build order" in the design document's main tab (set 19 October 2026; 18 items as read at the start of item 4). One line per item: state, branch,
-report, and what was decided along the way. Items are built on their own branch from `develop` and merged into
-`develop` when the tests pass and one reviewer has found nothing blocking; `main` is never touched (Haakon merges
-`develop` into `main`).
+Follows "Build order" in the design document's main tab (set 19 October 2026; 18 items, with the builder rules as read
+on 20 October). One line per item: state, branch, report, and what was decided along the way. Items are built on their
+own branch from `develop` and merged into `develop` when the tests pass and one reviewer has found nothing blocking;
+`main` is never touched (Haakon merges `develop` into `main`). Since 20 October the whole order is built without
+stopping at review points: their questions and the readings taken are listed here, under "For Haakon", and in each
+item's report.
+
+## For Haakon: review points
+
+| Item | Review question | Reading taken | State |
+|---|---|---|---|
+| 4 | Are model characters too honest? Is the message-kind fallback for reopening needed? | Yes, on thin evidence (to be answered by stakes, not dispositions: item 11); no | Accepted by Haakon, 20 October |
+
+## Builder rules added on 20 October (from the live document and Haakon's message)
+
+- Review points do not stop the build; their questions go above and in the item's report.
+- No model games until every item is built; script games and stand-in repliers check everything.
+- "Every feature is every seat's": every item tests the script kings and characters on its new rules, reports usage and
+  success per new feature, and patches every weakness found, with benchmarks before and after; once, at the start of
+  the next item begun (the fix pass), every feature built so far is audited the same way.
+- Stop rules are never overridden: if a check that says stop fails, stop and ask.
+- A PR at every milestone: after each merge into `develop`, check the previous PR; if it was merged, merge `main` back
+  into `develop` first, then push and open a new PR.
+- Usage: this session may go up to 95% of the weekly limit, then stops at a clean commit.
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
 | 1 | Simulation fixes and default sleep | done (19 Oct), merged into `develop`; PR #7 merged into `main` | `round/simulation-fixes` | `docs/rounds/2026-10-19-simulation-fixes.md` |
 | 2 | The visual overhaul | done (19 Oct), merged into `develop`; PR #8 merged into `main` | `item/visual-overhaul` | `docs/rounds/2026-10-19-visual-overhaul.md` |
 | 3 | Small record items | done (19 Oct), merged into `develop`; PR #9 merged into `main` | `item/small-record-items` | `docs/rounds/2026-10-19-small-record-items.md` |
-| 4 | Second agent simulation, with model characters (stop for review) | done (19 Oct), merged into `develop`; **stopped for review**; PR `develop` -> `main` open | `item/second-simulation` | `docs/rounds/2026-10-19-second-simulation.md` |
+| 4 | Second agent simulation, with model characters (stop for review) | done (19 Oct), merged into `develop`; PR #10 merged into `main`; review accepted (20 Oct) | `item/second-simulation` | `docs/rounds/2026-10-19-second-simulation.md` |
+| 4+ | Fix pass, item 4's follow-up (Haakon, 20 Oct), with the feature audit | in progress (20 Oct) | `item/fix-pass` | `docs/rounds/2026-10-20-fix-pass.md` |
 | 5 | The siege package (stop for review) | not started | | |
 | 6 | Memory and call size | not started | | |
 | 7 | Travel on the map, and news travels | not started | | |
