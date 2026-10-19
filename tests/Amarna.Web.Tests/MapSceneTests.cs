@@ -172,7 +172,7 @@ public class MapSceneTests
     }
 
     [Fact]
-    public void A_life_read_in_a_court_holds_only_the_messages_that_court_took_part_in()
+    public void A_life_read_in_a_court_holds_only_the_messages_that_court_sent_or_heard()
     {
         var (runner, frames) = Play(7, 16);
         var k = frames.Count - 1;
@@ -186,7 +186,7 @@ public class MapSceneTests
                 var life = LifeRecord.Build(frames, i => MapScene.Build(frames, i, p), k, state, p, c.Id);
                 Assert.True(life.Known);
                 var missions = life.Sections.FirstOrDefault(s => s.Title.StartsWith("Missions"));
-                var expected = state.Trails.Count(t => t.EnvoyId == c.Id && (t.From == p || t.To == p));
+                var expected = state.Trails.Count(t => t.EnvoyId == c.Id && (t.From == p || t.To == p && t.AudienceTurn is not null));
                 Assert.Equal(expected, missions?.Entries.Count ?? 0);
                 // No hidden traits or memory outside god view.
                 Assert.DoesNotContain(life.Sections, s => s.Title.StartsWith("Hidden") || s.Title.StartsWith("Their own memory"));

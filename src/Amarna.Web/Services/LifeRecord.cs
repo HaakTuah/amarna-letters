@@ -94,8 +94,10 @@ public sealed class LifeRecord
         var missions = new List<LifeEntry>();
         foreach (var t in state.Trails.Where(t => t.EnvoyId == id).OrderBy(t => t.Turn))
         {
-            if (viewer is { } v && t.From != v && t.To != v) continue;
-            var lines = new List<string> { $"Sent by {t.From.Name()} to {t.To.Name()}" + (t.AudienceTurn is int a ? $"; heard in {Ui.When(a, viewer)}" : "; not yet heard") + (t.ReportTurn is int r ? $"; reported home in {Ui.When(r, viewer)}" : "") + "." };
+            // A court reads its own envoys' messages, and those of envoys who have stood before it; not one still on its way.
+            if (viewer is { } v && t.From != v && (t.To != v || t.AudienceTurn is null)) continue;
+            var lines = new List<string> { $"Sent by {t.From.Name()} to {t.To.Name()}" + (t.AudienceTurn is int a ? $"; heard in {Ui.When(a, viewer)}" : "; not yet heard")
+                + (t.ReportTurn is int r && (viewer is null || viewer == t.From) ? $"; reported home in {Ui.When(r, viewer)}" : "") + "." };
             if (viewer is null || viewer == t.From)
             {
                 lines.Add($"{(viewer is null ? "The king wrote" : "You wrote")}: {Greeting.Cap(t.LeaderLetter, 400)}");

@@ -29,7 +29,7 @@
 {
     var sleep = god ? f.Sleep.GetValueOrDefault(o) : null;
     <div class="court-pop">
-        <strong><Emblem Power="o" /> @o.Name()</strong> · @o.King() · @f.Owner.Count(x => x.Value == o) provinces, @f.Units.Count(u => u.Power == o) units@(f.Eliminated.Contains(o) ? " · fallen" : "")
+        <strong><Emblem Power="o" /> @o.Name()</strong> · @o.King() · @f.Owner.Count(x => x.Value == o) provinces@(god || Scene.Viewer == o ? $", {f.Units.Count(u => u.Power == o)} units" : "")@(f.Eliminated.Contains(o) ? " · fallen" : "")
         @if (sleep is not null)
         {
             <div class="small">@SeasonPanel.SleepLine(sleep, null)</div>
