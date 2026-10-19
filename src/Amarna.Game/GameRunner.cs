@@ -202,7 +202,7 @@ public sealed class GameRunner
             if (req.Task == MindTask.CheckReport)
             {
                 var subject = State.Char(req.CharacterId);
-                return new MindReply { Text = await Narrator.CheckReportAsync(new CheckContext { Subject = subject, Court = req.Court, Facts = req.Facts, Turn = turn }, ct) };
+                return new MindReply { Text = await Narrator.CheckReportAsync(new CheckContext { Subject = subject, Court = req.For(), Facts = req.Facts, Turn = turn }, ct) };
             }
             return await Minds.WriteAsync(Context(req, engine, turn), ct);
         }
@@ -210,7 +210,7 @@ public sealed class GameRunner
         async Task<MindReply> Fallback(MindRequest req)
         {
             if (req.Task == MindTask.CheckReport)
-                return new MindReply { Text = await new TemplateNarrator().CheckReportAsync(new CheckContext { Subject = State.Char(req.CharacterId), Court = req.Court, Facts = req.Facts, Turn = turn }, ct) };
+                return new MindReply { Text = await new TemplateNarrator().CheckReportAsync(new CheckContext { Subject = State.Char(req.CharacterId), Court = req.For(), Facts = req.Facts, Turn = turn }, ct) };
             return await _fallbackMind.WriteAsync(Context(req, engine, turn), ct);
         }
     }
@@ -225,7 +225,8 @@ public sealed class GameRunner
             Turn = turn,
             Seed = State.Seed,
             Trail = engine.Trail(req.TrailId),
-            BasePrice = TurnEngine.BasePrice(c, req.Court),
+            // Only a pitch names a price, to the court it is made to (a memory summary may be for no court at all).
+            BasePrice = req.Task == MindTask.Pitch ? TurnEngine.BasePrice(c, req.For()) : 0,
             Demand = State.Tasks.Count(t => t.Kind == TaskKind.Candidates) + engine.MindRequests.Count(r => r.Task == MindTask.Pitch && r.CharacterId == c.Id),
             ForgeMinCompetence = State.Config.ForgeMinCompetence,
         };

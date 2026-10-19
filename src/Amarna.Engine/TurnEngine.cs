@@ -56,7 +56,8 @@ public sealed partial class TurnEngine
                 Id = S.NewId("r"),
                 Task = MindTask.SummarizeMemory,
                 CharacterId = c.Id,
-                Court = c.Employer ?? c.At ?? Power.Egypt,
+                // The court it belongs to, if any: one with no employer that stands at no court belongs to none.
+                Court = c.Employer ?? c.At,
                 Facts = c.Memory.Take(fold).Select(m => $"season {m.Turn}: {m.Text}").ToList(),
                 Fold = fold,
             });

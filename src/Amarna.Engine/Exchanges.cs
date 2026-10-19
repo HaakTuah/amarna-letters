@@ -8,8 +8,15 @@ public sealed class MindRequest
     public string Id { get; set; } = "";
     public MindTask Task { get; set; }
     public string CharacterId { get; set; } = "";
-    /// <summary>The court the text is for.</summary>
-    public Power Court { get; set; }
+    /// <summary>
+    /// The court the text is for: the lord a report goes to, the court a pitch is made to, the court that paid for a
+    /// background check. For a memory summary, which goes to nobody, the court the character belongs to (its employer's,
+    /// else the one it stands at); null for one with neither, which belongs to no court.
+    /// </summary>
+    public Power? Court { get; set; }
+
+    /// <summary>The court a report, a pitch or a background check is for: every such request names one.</summary>
+    public Power For() => Court ?? throw new InvalidOperationException($"A {Task} request must name the court it is for.");
     public string? TrailId { get; set; }
     public string? TaskId { get; set; }
     public HomeCargo? Cargo { get; set; }

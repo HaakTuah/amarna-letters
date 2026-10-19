@@ -130,8 +130,9 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
             {
                 var t = ctx.Trail;
                 var cargo = req.Cargo ?? new HomeCargo();
+                var lord = req.For();
                 var user = new StringBuilder();
-                user.AppendLine($"You are home at the court of your lord, {req.Court.King()} of {req.Court.Land()}.");
+                user.AppendLine($"You are home at the court of your lord, {lord.King()} of {lord.Land()}.");
                 if (t is not null)
                 {
                     user.AppendLine($"You went to the court of {t.To.Land()}. You told its king: \"{t.Delivered}\"");
@@ -150,10 +151,11 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
             }
             case MindTask.Pitch:
             {
-                var user = $"The court of {req.Court.King()}, king of {req.Court.Land()}, is looking for envoys and agents, and you have come before the king. " +
+                var court = req.For();
+                var user = $"The court of {court.King()}, king of {court.Land()}, is looking for envoys and agents, and you have come before the king. " +
                            $"Present yourself in a few sentences and name your wage per season. Someone like you usually earns about {ctx.BasePrice} shekels a season; " +
                            $"{(ctx.Demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now")}.";
-                var json = await Ask($"t{ctx.Turn}/pitch/{c.Id}/{req.Court}", ctx.Turn, $"candidate:{c.Id}", c, user, Schemas.Pitch(), ct);
+                var json = await Ask($"t{ctx.Turn}/pitch/{c.Id}/{court}", ctx.Turn, $"candidate:{c.Id}", c, user, Schemas.Pitch(), ct);
                 return Parse.Pitch(json);
             }
             case MindTask.SpyReport:

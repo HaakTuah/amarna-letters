@@ -25,6 +25,33 @@ public class MemoryTests
     }
 
     [Fact]
+    public void A_summary_names_the_court_a_character_belongs_to_and_none_for_one_that_belongs_to_none()
+    {
+        var s = GameFactory.NewGame(2);
+        var servant = s.Characters.First(c => c.Employer == Power.Hatti);
+        var guest = s.Characters.First(c => c.Status == CharacterStatus.Free && c.At is not null);
+        // Free and on the road: no employer, and at no court (no Egyptian, nor anyone else's).
+        var wanderer = s.Characters.First(c => c.Status == CharacterStatus.Free && c != guest);
+        (wanderer.At, wanderer.Duty, wanderer.HeldBy) = (null, Duty.None, null);
+        foreach (var c in new[] { servant, guest, wanderer })
+            for (var i = 1; i <= 13; i++) c.Remember(i, $"memory number {i}");
+
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        MindRequest For(Character c) => e.MindRequests.Single(r => r.Task == MindTask.SummarizeMemory && r.CharacterId == c.Id);
+        Assert.Equal(Power.Hatti, For(servant).Court);
+        Assert.Equal(guest.At, For(guest).Court);
+        Assert.Null(For(wanderer).Court);
+        // A summary goes to nobody: it is still folded in, with no court to name.
+        Assert.Throws<InvalidOperationException>(() => For(wanderer).For());
+        e.Fulfil(For(wanderer), new MindReply { Text = "I have walked the roads alone." });
+        Assert.Equal("I have walked the roads alone.", wanderer.MemorySummary);
+        Assert.Equal(s.Config.MemoryKeep / 2, wanderer.Memory.Count);
+        // Every request that is for a court names one.
+        Assert.All(e.MindRequests.Where(r => r.Task != MindTask.SummarizeMemory), r => Assert.NotNull(r.Court));
+    }
+
+    [Fact]
     public void An_empty_summary_changes_nothing()
     {
         var s = GameFactory.NewGame(2);

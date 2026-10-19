@@ -27,6 +27,20 @@ public class RunnerTests
     }
 
     [Fact]
+    public async Task A_character_that_belongs_to_no_court_summarizes_its_memory_as_any_other()
+    {
+        var r = Scripted(2);
+        var wanderer = r.State.Characters.First(c => c.Status == CharacterStatus.Free);
+        // Free and on the road: no employer, and at no court.
+        (wanderer.At, wanderer.Duty, wanderer.HeldBy) = (null, Duty.None, null);
+        for (var i = 1; i <= 13; i++) wanderer.Remember(i, $"I walked on, season {i}.");
+        await r.PrepareAsync();
+        await r.PlayTurnAsync();
+        Assert.Contains("I walked on, season 1.", wanderer.MemorySummary);
+        Assert.True(wanderer.Memory.Count < 13);
+    }
+
+    [Fact]
     public async Task Script_characters_summarize_their_memories_and_replays_still_match()
     {
         var summary = await BatchRunner.PlayAsync(14, s => new GameRunner(s, Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(14)), new ScriptMind(), new TemplateNarrator()), verifyReplay: true,

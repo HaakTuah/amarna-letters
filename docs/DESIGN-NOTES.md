@@ -304,7 +304,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   fold its oldest entries (all but the newest six) into its summary, in its own voice: Haiku when
   characters are model-played, a deterministic condensation for script characters. The summary
   is recorded like any decision, so replays stay exact. Prompts carry the summary and the most
-  recent ten entries; memory travels with the character to a new employer.
+  recent ten entries; memory travels with the character to a new employer. The request names the
+  court the character belongs to (its employer's, else the court it stands at); one with neither, free
+  and on the road, belongs to no court, and its request names none (`MindRequest.Court` is null; only
+  reports, pitches and background checks must name one, `MindRequest.For`). Nothing reads that court
+  for a summary, which goes to nobody. (Until Build order item 4 such a character's request named Egypt.)
 - **Prisoners**: an envoy held at a foreign court whose own kingdom falls, or whose king dismisses
   them, becomes a free agent but stays a prisoner; only the court holding them can hire them, and
   its release frees them at that court. A court that falls lets its prisoners go: its captives and
