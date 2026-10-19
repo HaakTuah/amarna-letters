@@ -6,6 +6,10 @@ namespace Amarna.Game.Bots;
 /// <summary>Small sentence tools the script characters use to soften, embellish or trim messages.</summary>
 public static partial class TextKit
 {
+    /// <summary>
+    /// A text's sentences: it splits after a full stop, a question or an exclamation, and after a quote or bracket closing
+    /// on one ('He said: "Go." Then he left.' is two). Until save version 5 it did not split after a closing quote.
+    /// </summary>
     public static List<string> Sentences(string text) =>
         SentenceSplit().Split(text.Trim()).Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
 
@@ -87,7 +91,10 @@ public static partial class TextKit
             }
             if (w.StartsWith("warn"))
             {
-                if (w == "warning" && last is "last" or "final" or "only" || w == "warned" && BeWords.Contains(last)) return true;
+                // "You have been warned", "Be warned", "consider yourself warned": the one warned is the target. Not "strike
+                // at once, before they can be warned", which speaks of a third king.
+                if (w == "warning" && last is "last" or "final" or "only") return true;
+                if (w == "warned" && (BeWords.Contains(last) && (before.Any(Ref) || before.Count == 1) || last is "yourself" or "yourselves")) return true;
                 continue;
             }
             if (w.StartsWith("enem"))
@@ -242,7 +249,7 @@ public static partial class TextKit
 
     public static string Join(IEnumerable<string> sentences) => string.Join(" ", sentences.Where(s => s.Length > 0));
 
-    [GeneratedRegex(@"(?<=[.!?])\s+")]
+    [GeneratedRegex(@"(?<=[.!?][""'”’)\]]*)\s+")]
     private static partial Regex SentenceSplit();
 
     [GeneratedRegex(@"[\p{L}\p{N}][\p{L}\p{N}'-]*|[^\s\p{L}\p{N}]")]

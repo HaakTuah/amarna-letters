@@ -14,7 +14,8 @@ public sealed class GameState
     /// paid back pay there, and does not end that court's cover), and each kind of object has its own id counter (fix (d),
     /// <see cref="IdCounters"/>). Neither change was released on its own, so one version covers both. 5 since the fix pass
     /// after item 4: among its changes, script envoys keep a share of small lots of gold (rounded to the shekel, not down to
-    /// fives), which changes what they keep.
+    /// fives), read a passive "warned" as a threat to a king only when he is the one warned, and split sentences after a
+    /// closing quote, which changes what they keep and say.
     /// </summary>
     public const int CurrentVersion = 5;
 
@@ -573,6 +574,9 @@ public sealed class InboxItem
 /// <summary>The three versions of a message, side by side: the gaps between them are the game.</summary>
 public sealed class MessageTrail
 {
+    /// <summary>The outcome the engine records when the host seals the tablet the envoy carried: the only sealing on a mission.</summary>
+    public const string SealedOutcome = "the tablet was sealed by both kings";
+
     public string Id { get; set; } = "";
     public int Turn { get; set; }
     public Power From { get; set; }

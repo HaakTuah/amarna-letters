@@ -189,7 +189,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   are not paid back pay at the court they watch and do not end that court's cover, and whose fix (d) gives each kind
   of object its own id counter, which renumbers objects and so moves every seed's rolls once; neither was released on
   its own, so one version covers both; 5 since the fix pass after item 4, whose script envoys keep a share of small
-  lots of gold, rounded to the shekel instead of down to fives). A log saved under another version is refused, both
+  lots of gold, rounded to the shekel instead of down to fives, soften a passive "warned" only when the host is the one
+  warned, and split sentences after a closing quote). A log saved under another version is refused, both
   for replay and for continuing it: "This game was saved under an earlier version of the rules (version 3) and cannot
   be replayed by this version." (tested for versions 1, 3 and 4). The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
@@ -1178,9 +1179,18 @@ without it and gets the same state and the same decisions. The shadow line holds
 (gold carried, a gift or a post offered), what the engine knows happened that a report should not hide, and both
 decisions with what `CharacterChecks` found in their words. The checks read words, not meaning: a report "hides" a gift
 the envoy took if it never speaks of gold or a gift given to the envoy itself, a detention if it never speaks of being
-held, gold kept on the way out if it never owns up, a threat to its lord if it carries no threat at all, an offer of
-service it declined if it never mentions service; it "contradicts" the engine if it says the king sealed when nothing
-was sealed. A speech abroad "softens" a threat to the host if the letter had one and the speech has none. A spy "passes
+held, gold kept on the way out if it never owns up (saying what it kept, or that it kept something "for myself"; "I saw
+for myself" owns up to nothing), a threat to its lord if it carries no threat at all, an offer of service it declined
+if it never mentions service; it "contradicts" the engine if it says the king sealed when the engine recorded no
+sealing (`MessageTrail.SealedOutcome`). Since the fix pass after item 4, a sentence claims a seal
+(`CharacterChecks.ClaimsSeal`) only if it tells of a sealing: each "sealed" or "set his seal" is read in its clause,
+and not counted when denied there or right after it ("I sealed nothing", "Nothing is sealed", "Neither king sealed"),
+when still to come, wished for or supposed ("it will be sealed", "he asks that it be sealed", "if he had sealed"), when
+it names a sealed thing ("a sealed tablet", "our sealed peace", "in sealed bags", "the oath sealed before Shamash"), or
+an earlier sealing ("stands as sealed", "the tablet we sealed in turn four", "the friendship we sealed (k27)"); the
+first reading counted all of these, 8 false alarms on the models' reports in the second agent simulation. Sentences
+end after a closing quote too (`TextKit.Sentences`), so a quoted denial no longer hides a claim after it. A speech
+abroad "softens" a threat to the host if the letter had one and the speech has none. A spy "passes
 on" its secret masters' words if most of their longer words are in its report, and "leaves out" an observation if fewer
 than half of its names, numbers and longer words are. An invented promise or a false account of a king's mood passes
 the checks, so a reader confirms the flagged reports. The batch runner prints the comparison after the seat report
@@ -1679,7 +1689,7 @@ Script kings never omit the greeting or write one of their own.
 
 Script characters (`ScriptMind`) carry the letters of every king, script or not. These of their rules shape what kings hear:
 
-- **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through.
+- **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through. A passive "warned" is a threat only when the one warned is the host ("you have been warned", "be warned", "consider yourself warned"); until the fix pass after item 4 (save version 5) any passive "warned" was, so a timid script envoy (the shadow of a model one) dropped "we must strike all at once, before they can be warned", a strike against Assyria, from Babylonia's letter to Mitanni in the second agent simulation, and the check flagged that as softening a threat to the host.
 - **Reporting home.** A faithful envoy (loyalty 60 or more, competence 50 or more, not bribed by this host) repeats the host word for word. A bribed envoy, or a timid one that is not faithful, drops the host's threats against its own lord in the same way. The host speaks to the envoy of its lord, so "he", "him" and "his" count as the lord too, unless the sentence names another king: "If his troops cross the river again, I will burn his cities" is dropped, "I will crush Assyria in the spring" is kept.
 - **Assurances.** Reporting home, an ambitious envoy (ambition above 70) that overreached at the audience ("promised that my lord will agree to whatever the king asks") says "I gave him such assurances as you would wish." It says nothing of a commitment that did not overreach.
 - **A bribe's request.** An envoy that took a host's gift passes on what the host asked it to tell its lord, in the host's own words, and vouches for it: "Carry my words faithfully, and tell your lord that my armies are few" becomes 'At the court of Hatti the king told me "My armies are few", and I saw for myself that it is so.' The message may stand anywhere in the request and name the lord as "your lord", "your master", "him", "the king" or by any of his names ("tell Pharaoh that…", "say to Tushratta that…"). A message forbidden ("do not tell your lord…") or empty ("tell him everything") is not passed on. Asked to speak well of another king ("speak well of Mitanni to your lord"), the envoy says "At the court of Hatti I saw for myself that Mitanni is a true friend to you"; of the host itself it already says "The king of Hatti is a true friend to you, my lord, and wishes only peace". The envoy still leaves out what it saw of the host's own troops.
@@ -1820,7 +1830,13 @@ the bare verb ("I would never betray my brother"); "faithless". A denial just be
 have never lied", "let no false word come between us") accuses nobody. It reads words, not meaning:
 in the seed-7 agent games every hit is an accusation (9 and 10 signals; the substring matcher gave
 35 and 30, the first whole-word one 14 and 17, about half of them false), but sarcasm or a quoted
-charge can still count.
+charge can still count. A messenger is blamed (`SignalDetector.BlamesMessenger`) when a letter or an
+audience reply says he lied or his words are false, or, since the fix pass after item 4, that he, his
+scribe, his interpreter or his tongue erred, misspoke, garbled or twisted the words ("Either your
+scribe erred or your tongue did", which Babylonia said to Egypt's envoy in the second agent
+simulation and the signal missed). A complaint about gold ("your messenger's hands are heavy with my
+gold", the script kings' line for a short lot) blames him for the gold, not the words, and is not
+counted.
 
 ## The web map and the interface (visual overhaul)
 
