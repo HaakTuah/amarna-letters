@@ -10,6 +10,8 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <!-- An installable web app: the published build caches itself (wwwroot/service-worker.published.js). -->
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+    <!-- The script players' worker talks to .NET through [JSImport] and [JSExport], whose generated code needs this. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

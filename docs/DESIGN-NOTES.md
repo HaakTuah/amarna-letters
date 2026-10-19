@@ -1775,11 +1775,26 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   the browser never constructs (it posts with HttpClient), to the code that refers to it: about 3.2 MB compressed
   instead of 5.0 MB. Splitting the SDK path out of `Amarna.Llm` would save another 0.45 MB; not done, as it is not
   presentation.
-- **Script kings in the page.** Their look-ahead runs in the page's one WebAssembly thread, and is nearly all of a
-  season's time (several seconds on a slow phone). The web app lets the browser draw between kings (`YieldingSeat`:
-  the kings still decide one after another in the same order, so nothing they decide changes), shows a season before
-  saving it, and never asks the map to read a whole state back from its snapshot. Measurements are in the round
-  report.
+- **Script kings and characters in a worker.** The kings' look-ahead is nearly all of a season's time (seconds on a
+  slow phone), and a character's text code takes a second or two to warm up the first time it writes; in the page's one
+  WebAssembly thread both froze the page. In a browser game they now think in a Web Worker of their own
+  (`ScriptWorker.cs`, `js/script-worker.js`): it boots a second .NET runtime from the files the page has already
+  downloaded (nothing more to download), warms up on a throwaway game while the page sets up the real one, and
+  answers one request at a time. Each request carries what the engine handed the seat or the mind, the king's view or
+  the character's context, written out as JSON as a file seat's view is (with serialization code generated at build
+  time, which the page would otherwise spend most of a second working out on a slow phone), and the answer comes back
+  the same way into the runner, which records it as before. The kings keep their memory in the worker from season to
+  season (one `ScriptLeader` per game, as in the page), so each answer is the one the same code gives in the page:
+  tests play seeds 1, 2, 5, 7 and 14 both ways and compare every decision and the state after every season. Where no
+  worker can start the kings think in the page as before, letting the browser draw between them (`YieldingSeat`); if
+  the worker stops during a game, the page takes over and says so (the kings then start that season with no memory of
+  the earlier ones; the characters keep none, so theirs is the same answer). Model kings and characters wait on the
+  network and stay in the page.
+- **What is left in the page** is the engine's own work and drawing. A season's redraws are coalesced and made in a
+  task of their own, after the engine's work rather than within it (`GameSession.NotifySoon`), the page draws that a
+  season is under way before its work begins, a season is shown before it is saved, and the autosave's text is built
+  up season by season (`LogText`, the same text as the log's own `ToJsonl`, which rewrote the whole log every season).
+  The map never reads a whole state back from its snapshot. Measurements are in the round reports.
 - **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
 
 ## Where the code differs from the design document (as it stood on 19 October 2026)
