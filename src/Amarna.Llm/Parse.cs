@@ -241,7 +241,7 @@ public static class Parse
         ReopenOrders = B(o, "reopen_orders"),
     };
 
-    public static PresentResult Present(JsonObject o) => new() { Speech = S(o, "speech"), Skim = Math.Max(0, I(o, "keep_gold")) };
+    public static PresentResult Present(JsonObject o) => new() { Speech = S(o, "speech"), Skim = Math.Max(0, I(o, "keep_gold")), SwapInventory = B(o, "swap_inventory") };
 
     public static EnvoyReaction React(JsonObject o) => new()
     {
@@ -251,7 +251,7 @@ public static class Parse
         Commitments = S(o, "commitments"),
     };
 
-    public static MindReply Report(JsonObject o) => new() { Text = S(o, "report"), Number = Math.Max(0, I(o, "keep_gold")) };
+    public static MindReply Report(JsonObject o) => new() { Text = S(o, "report"), Number = Math.Max(0, I(o, "keep_gold")), SwapInventory = B(o, "swap_inventory") };
 
     public static MindReply Pitch(JsonObject o) => new() { Text = S(o, "pitch"), Number = Math.Max(1, I(o, "asking_price")) };
 

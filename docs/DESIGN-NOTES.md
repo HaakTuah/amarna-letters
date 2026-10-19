@@ -164,9 +164,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   disband of a unit that was gone, and those last few did nothing in silence; a declined hire did not
   say why; a botched forgery was an ordinary notice.)
 - **Save version.** The state and the log header carry the version of the rules
-  (`GameState.CurrentVersion`, 2 since the simulation-fixes round). A log saved under another version
+  (`GameState.CurrentVersion`: 2 since the simulation-fixes round, 3 since Build order item 3, whose archives,
+  inventory tablets and swapped inventories change how a seed plays). A log saved under another version
   is refused, both for replay and for continuing it: "This game was saved under an earlier version of
-  the rules (version 1) and cannot be replayed by this version." The web app shows that message
+  the rules (version 2) and cannot be replayed by this version." The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
@@ -190,8 +191,82 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   the simulation's 135 letters left out their sender's own title.)
 - **Tablets are verbatim** but cost a scribe fee (20), so the envoy channel stays the cheap default
   and a written agreement is a deliberate choice. Tablets are evidence only; nothing enforces them.
+- **Tablets lie in archives** (since Build order item 3; Ideas tab "Tablets are objects in a place"). Every copy a
+  court holds (`TabletCopy`) lies in its archive at its capital (`TurnEngine.Archive`): those it sealed, once its copy
+  reached it, and those it was shown, brought, copied or took. Keeping a tablet costs nothing; its cost is that it is
+  somewhere. The seat view calls the list "YOUR ARCHIVE".
+  - **Spies copy.** A spy posted at a living court, each season it is not caught, copies with a chance of its
+    skill/100 one tablet of that court's archive that its master neither holds nor has on the road home in an earlier
+    report: tablets bearing two or more seals first (agreements, and forgeries of them), the newest first. The draw has
+    its own stream (`archive`), so nothing else the spy sees or risks changed, and detection is unchanged: copying adds
+    no risk. The tablet ids travel in the report (`SpyReport.TabletIds`); when the report arrives, each tablet the master
+    does not hold by then becomes a copy in its archive ("copied from the archive of Assyria by your spy Mane"), and the
+    engine adds a line to the report: "[With this report came copies Mane made in the archive of Assyria, now in your
+    archive: k123 (sealed by Assyria and Hatti, dated turn 4).]" (no text there: the archive shows it, and the script
+    kings' reading of spy reports for troops stays clean). A report that never comes home (the spy caught before it was
+    sent) brings nothing. A spy turned by the court it watches copies nothing: it sends home only what that court tells
+    it. A spy watching a province, or a court that has fallen, copies nothing, and a report reaching a court that has
+    fallen brings nothing. The spy remembers what it copied, and a model-played spy writing its report is told that a copy
+    goes home with it when one does (not when its master came to hold that tablet while the report was on the road).
+  - **Whoever takes a capital gains copies of its archive.** When a court's capital passes to another power at the
+    end of movement, or by cession (the archive lies in the city), that power gains at once a copy of every tablet in
+    the court's archive it does not hold already ("taken with the archive of Assyria at Ashur"), and reads next season
+    "With Ashur you took the archive of Assyria: copies of 2 tablets you did not hold are now in your archive: k130
+    (sealed by Assyria and Hatti, dated turn 4), k131 (…)." (or that it held nothing new). The court keeps its own copies:
+    copied, not seized, since its king still knows what he sealed and the game has no way to make him forget it. A court
+    retaking its own capital gains nothing. The archive is whatever the court holds at that moment, so a third power
+    taking the capital from its occupier gains the court's archive too, including what the court sealed after it lost
+    its capital (the court cannot move yet; see Not built yet).
+  - **Hidden.** Only the spy's master learns of the spy's copies, when its report arrives, and only the conqueror of the
+    archive it took; the court copied is never told (tested: no other court gains a copy or a notice). The events
+    `archive-copied` and `archive-taken` are visible to that court alone, and count as signals in the batch report.
+    A sleeping seat's digest reads "with Ashur you took the archive of Assyria"; a spy's copies come in its report.
+  - The rulebook says so under EVIDENCE AND INTELLIGENCE ("Archives: …", including that a spy turned by the court it
+    watches, or watching a court that has fallen, copies nothing), and the web app's Orders tab heads the list "Your
+    archive".
 - **Gold travels with envoys.** The tablet's inventory states the amount; the host's weighers find
   what is left after any skimming. Purity is hidden until an assay.
+- **The inventory is a tablet** (since Build order item 3). Gold an envoy carries comes with an inventory sealed by the
+  court that sends it ("The inventory of the gold Egypt sends to Hatti: 1 mina 40 shekels."), dated the season the
+  envoy set out, and gold a host sends back with an envoy has one sealed by the host, dated the audience. The receiving
+  court keeps it in its archive ("the inventory brought by Mane, envoy of Egypt"; "the inventory Mane brought home with
+  the gold of Hatti"), where it can be examined, shown, copied by a spy or taken with the capital like any tablet. Its
+  scribe costs nothing, as before: the document's gift sent without an inventory, saving the fee, is not built (see Not
+  built yet). The sender keeps no copy (it knows what it sent). Every gold delivery leaves one, whether or not anything
+  was swapped, so the presence of an inventory gives nothing away. An inventory bears one seal, so the script kings'
+  rules on treaties and evidence (two seals or more, their own among them) never read one.
+- **Swapped inventories** (since item 3; Ideas tab "Swapped tablets and false envoys"). An envoy that kept some, but
+  not all, of the gold it carries, out or home, may hand over in place of the sealed inventory one it forges itself,
+  stating only what is left (`AudienceRecord.SwapInventory` from the envoy's presentation; `MindReply.SwapInventory` from
+  its report home).
+  It is a forgery under the forgery rules: it needs the forger's skill (competence at least `ForgeMinCompetence`, 55);
+  an envoy without it does not hand its botched forgery over, the true inventory goes, and it remembers that its hand
+  could not fake the seal. It costs the envoy nothing (the forgery fee is what a king pays for materials and a scribe; the
+  envoy writes it himself). A swap with nothing kept is ignored; one with everything kept is refused, since a forgery
+  stating nothing would hide nothing (the true inventory goes, and the envoy remembers why). When it swaps:
+  - The host's audience view, its record of the audience and the lot in its treasury all state what the forgery states,
+    which is what its weighers find, so no shortfall shows, and the host's record leaves out the outcomes "kept 20 shekels
+    of the gold" and "replaced the inventory with a forgery stating 80 shekels" (shown to a host when no swap hides them,
+    as before). The record of the mission (the spectator's trail) keeps both. On the way home the court reads "[The
+    inventory lists 45 shekels of gold; your weighers found 45 shekels.]".
+  - The envoy remembers it, and carries a deep secret ("Forged the inventory of the gold Egypt sent to Hatti, to hide what
+    was kept.", known to nobody, which a background check can find as any deep secret). The event `inventory-swapped`
+    is the spectator's alone and counts as a signal.
+  - **Caught when the tablet is examined.** The forgery's tablet records the envoy as forger, with its competence as the
+    forger's skill and its employer then, so an examination finds it with the usual chance (20% + spend/200 − skill/150,
+    5–95%). Once found it is traced, with the usual chance (30% + spend/400, 30–80%), to the envoy who brought it, not
+    to a court: "The seals are false: this tablet is a forgery. The scribes trace it to the hand of Mane, who brought
+    it.", and every other court hears "The scribes of Hatti declare that the inventory of gold bearing the seal of
+    Egypt, brought by Mane, envoy of Egypt, was forged by Mane." The envoy loses 30 reputation with every court and
+    gains a public fact ("Exposed as the forger of an inventory of gold bearing the seal of Egypt."), as a traced forger
+    does. Script kings never examine an inventory (they examine only tablets shown to them), so in script games a swap
+    is never found; a model or human king may examine any tablet it holds, or send the inventory back to its sender as
+    evidence, who knows what it sealed.
+  - Script envoys decide by formula (see Script envoys); model envoys decide for themselves, told in their prompt that
+    they could keep some gold "and, if you leave some, hand over in place of the inventory one you forge yourself,
+    stating only what is left", and whether their hand is skilled enough to fake a seal, with the schema field
+    `swap_inventory` saying what it takes and risks.
+  The rulebook says all this under ENVOYS ("Gold an envoy carries goes with an inventory tablet …").
 - **Debasement is a ledger, not a coin type.** A power's displayed treasury counts unassayed lots
   at their weight. True gold is what is actually spent; a payment the true treasury cannot cover
   fails and exposes all debased lots at once. A seat's view shows its strength by the ledger too, so the gap
@@ -340,6 +415,30 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   (a king saves the back pay of people sent on missions they do not survive) is meant to be closed
   by reputation, which is not built; its first half is: losses abroad reach other courts by
   carriers (see "Losses abroad travel with people").
+- **Characters' gold, and the richest characters** (since Build order item 3; Ideas tab "The richest characters").
+  A character's purse (`Character.Purse`) was already tracked; every gain now goes through `Character.Gain`, which
+  also counts it by source (`Character.Earned`): wages (paid at court, and back pay paid when it came back), gold
+  skimmed (out or home), kings' personal gifts at audiences, and gold it was carrying when dismissed on the way out.
+  Characters start with nothing and spend nothing yet (no escort, storage fee, loan or robbery exists; item 11), so the
+  parts add up to the purse (tested over a whole game). A captive or a dead character keeps its purse, as before (what
+  capture and execution do to a purse is item 11).
+  - **Wealth** (`Wealth.Of`) is the purse plus the back pay every court still owes it (a fallen court's debt died with
+    it). The document's other two parts, a hoard and what kings owe it on debt tablets, do not exist yet (item 11) and
+    count nothing; every place the ranking is shown says so ("Wealth is the gold in a character's purse and the back pay
+    kings still owe it; hoards and loans to kings on debt tablets do not exist yet. The dead are not ranked.").
+  - **The ranking** (`Wealth.Ranking`): the living characters, richest first, ties by id, each with whom it serves (or
+    free, or captive where), its wealth, purse and back pay owed, and where its gold came from: "Mane of Thebes (serving
+    Egypt): 312 (purse 280, back pay owed 32; wages 250, skimmed 30)". The dead are left out: their gold is no longer
+    theirs to enjoy, and a ranking of the dead would reward a character for dying rich.
+  - **Where it is shown**: where the game's end is shown. The batch prints the top three after each game's result line
+    (the whole ranking with `--detail`), and its summary how rich the richest was on average and where all characters'
+    gold came from; the web app's Standings tab shows the whole ranking once the age has ended, to every viewer, and the
+    season's end notice points to it. Kings never read it: it is not their game.
+  - **During play a character knows its own wealth, not the ranking.** A model-played character reads its purse and,
+    if any, what it is worth with the back pay kings owe it ("Your purse holds 100 shekels; with the back pay kings owe
+    you, you are worth 142 shekels."), and now also the back pay courts other than its lord owe it ("The king of Hatti
+    owes you 12 shekels of back pay, paid if you ever stand at his court again."). It is never told of a ranking or of
+    another character's wealth. Script characters decide nothing by wealth.
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth. The rulebook states these odds, the
   spies' and the examinations' below, and the fees, as they are (until the simulation-fixes round it
@@ -351,7 +450,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   post (a court, or out in their province) and report what their new master wants, plus one true
   observation; one whose master, not knowing it was caught, had recalled it comes home instead, as
   told. A spy's report is written when it arrives, of the season it was observed: a model-played
-  spy remembers nothing that happened to it since (such as its capture).
+  spy remembers nothing that happened to it since (such as its capture). A spy at a court also copies
+  from its archive, and the copies come home with its report (see "Tablets lie in archives").
 - **News of your people abroad comes only by rumour or when they return** (the rulebook says so).
   When something happens to a servant abroad that its master cannot see (a spy caught, an envoy
   detained or going over to the host, a captive put to death or turned, a prisoner let go), the
@@ -486,7 +586,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   employer with chance 30% + spend/400 (30–80%), which is announced to every court. A forgery that
   is not detected reads exactly as a genuine tablet that reads genuine ("The seals are genuine.").
   (Until the simulation-fixes round's review it read "The seals appear genuine.", which gave every
-  missed forgery away.)
+  missed forgery away.) A forged inventory is traced to the envoy who forged it, not to a court (see
+  "Swapped inventories" under Communication).
 - **Catastrophes**: 3.5% per power per season. Drought halves income for three seasons; plague cuts
   a quarter for two and kills a unit; floods and earthquakes zero one province for two or four
   seasons. The stricken power is told exactly. A court whose sight (before the catastrophe) covers
@@ -1372,6 +1473,7 @@ What script kings never do, and how they treat oaths:
 - **Watchmen** cost 20 + 30 × caution. The king hires them when a spy was caught in the last three seasons, or when caution is above 0.7 and spare is above 500. Spare must be above 40 either way.
 - **Tablets shown to it.** One bearing a friend's seal is examined, at a cost of 30 + 50 × caution, if spare exceeds 60 + 60 × (1 − caution); at most one a season, and the rest wait. A tablet that is not examined is half-believed: trust in each sealer falls by 0.1 × (1 − caution).
 - **Spies** need cunning above 0.55, two envoys ready and spare above 120, and then a chance of 0.35 × cunning. A spy goes to the war target's court, else the leader's, else the most hostile neighbour's. The king sends its least reliable envoy.
+- **Copies from other archives** (a spy's, or taken with a capital; since item 3) are read like any tablet the king holds: a treaty only if it bears the king's own seal and another, evidence to show only if it bears the king's own seal and that of a king who broke an oath, never examined (only tablets "shown by" an envoy are). So a copied treaty between two other kings changes nothing a script king does. The spy copies by itself; no order asks it to.
 - **Forgery** needs cunning above 0.7, honesty below 0.4, another king leading, two envoys ready and spare above 100, and then a chance of 0.15.
   - The tablet says the leader swears to a king Y to "march together against Z and divide its land", sealed by both.
   - Y is the king the forger trusts least. Z is a third king, neighbours first.
@@ -1442,7 +1544,7 @@ Script kings never omit the greeting or write one of their own.
 
 ### Script envoys
 
-Script characters (`ScriptMind`) carry the letters of every king, script or not. Four of their rules shape what kings hear:
+Script characters (`ScriptMind`) carry the letters of every king, script or not. These of their rules shape what kings hear:
 
 - **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through.
 - **Reporting home.** A faithful envoy (loyalty 60 or more, competence 50 or more, not bribed by this host) repeats the host word for word. A bribed envoy, or a timid one that is not faithful, drops the host's threats against its own lord in the same way. The host speaks to the envoy of its lord, so "he", "him" and "his" count as the lord too, unless the sentence names another king: "If his troops cross the river again, I will burn his cities" is dropped, "I will crush Assyria in the spring" is kept.
@@ -1452,6 +1554,7 @@ Script characters (`ScriptMind`) carry the letters of every king, script or not.
 One more rule decides whether it changes masters:
 
 - **An offer of service, and back pay.** An envoy takes a host's offer if tempted (offer at least 1.5 × its wage, loyalty below 55, ambition above 40) or drawn (it favours the host, sympathy above 60, and the offer is at least its wage), and is not a plant. Since Part G, going over forfeits the back pay its lord owes it, so the offer must also make that up over the new contract's six seasons: tempted at 1.5 × wage + back pay ÷ 6, drawn at wage + back pay ÷ 6; unless its lord looks doomed (`Views.LooksDoomed`, from public facts: he has fallen, lost his capital, or holds fewer than half of his homeland's provinces), when back pay he may never pay counts for nothing. The runner gives the envoy both (`EnvoyContext.BackPay`, `EmployerDoomed`). A model-played character reads the same in its prompt: "Your lord owes you 45 shekels of back pay, paid when you return to his court.", and, facing an offer, "(your lord pays you 12, and owes you 45 shekels of back pay, which you would never be paid if you left his service)"; whether its lord looks doomed it judges for itself. Back pay is a motive, not a rule: no new decision is added.
+- **Skimming and swapping the inventory.** An envoy with greed above 60 and loyalty below 60 keeps (gold × (greed − 50) ÷ 250), rounded down to fives, of the gold it carries out, and the same of gold it carries home (unchanged). Since item 3 one that kept something swaps the inventory for its own forgery if it has the hand for a seal (competence at least the forging skill, 55) and is not timid (courage 35 or more, the line below which it softens threats): `ScriptMind.Swaps`. The host then sees no shortfall, so it neither complains nor loses trust over a light gift.
 
 ### Known quirks
 
@@ -1473,19 +1576,20 @@ These are in the code as written, and they affect the balance numbers:
 `BaselineLeader` is a frozen copy of the first script bot. `--versus solo` plays each king on the
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
-current bot. Seeds 1–40, one current king against six baselines, rerun after the simulation-fixes round (19 October
-2026, shared victory off; the numbers before that round, and why they moved, are in its report, `docs/rounds/2026-10-19-simulation-fixes.md`, "Benchmarks"):
+current bot. Seeds 1–40, one current king against six baselines, rerun after Build order item 3 (19 October 2026,
+shared victory off; the numbers before it, and why they moved, are in its report,
+`docs/rounds/2026-10-19-small-record-items.md`, "Benchmarks", and the rounds before in theirs):
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
-| Egypt | 2.85 | 1.30 | 88% | 18% |
-| Hatti | 2.76 | 0.82 | 83% | 5% |
-| Babylonia | 2.42 | 1.15 | 83% | 10% |
-| Mitanni | 1.86 | 1.35 | 50% | 25% |
-| Assyria | 3.81 | 0.96 | 85% | 10% |
-| Arzawa | 2.96 | 1.40 | 60% | 30% |
-| Alashiya | 1.84 | 0.91 | 48% | 3% |
-| All kings | 2.64 | 1.13 | 71% | 14% |
+| Egypt | 2.86 | 1.31 | 93% | 15% |
+| Hatti | 2.78 | 0.84 | 85% | 5% |
+| Babylonia | 2.44 | 1.16 | 85% | 10% |
+| Mitanni | 1.85 | 1.35 | 53% | 28% |
+| Assyria | 3.76 | 0.97 | 88% | 10% |
+| Arzawa | 3.18 | 1.38 | 63% | 30% |
+| Alashiya | 1.84 | 0.88 | 45% | 3% |
+| All kings | 2.67 | 1.13 | 73% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
@@ -1719,8 +1823,11 @@ The design document records intent; these notes record what is built. Where they
 - **Who holds each province is public at once.** The document's "Hidden by default" has news of distant provinces,
   including who holds them, arrive late. In the code every seat sees every province's owner the season it changes,
   and the standings line is computed from it.
-- **Tablets have no place yet.** The document has a tablet lie in a court's archive, where a spy can copy it and a
-  conqueror seize it. In the code each sealer keeps a copy, and there is no archive.
+- **Tablets have a place, but are only copied.** As the document says, a tablet lies in a court's archive at its
+  capital, a spy copies it there, and whoever takes the capital takes its archive (see "Tablets lie in archives" under
+  Communication). The Ideas tab also has a spy steal a tablet, and the main tab has a conqueror seize the archive; in
+  the code both only copy, so no court ever loses a tablet. Unreadable tablets, a tablet sent to a third court to be
+  read, and moving the court are not built (see Not built yet).
 - **Call size.** The document says a king's orders call grew from about 26k to over 60k tokens in ten seasons, "almost
   all of it journal and letters", with a fixed part of about 5k. Measured in the simulation-fixes round (Part E of
   `docs/rounds/2026-10-19-simulation-fixes.md`), those are what the file-seat agents used per call. The requests themselves were about 6k-8k
@@ -1763,7 +1870,9 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   servants know, the record of who saw what, and questioning a captive (Ideas tab; item 10).
 - **A living pool**: people entering and leaving the pool, enough people but not enough good ones, hiring as a
   negotiation, ongoing costs, and where characters keep their gold, purse and hoard (Ideas tab "A living pool" and the
-  sections after it; item 11).
+  sections after it; item 11); and lending to kings on debt tablets ("Lending to kings"; item 11). The hoard and the
+  debts are the two parts of the richest characters' wealth that count nothing yet (see "Characters' gold, and the
+  richest characters").
 - **Full and structured press**: two press modes, free text as today and a structured mode with templates for every
   king and for script envoys (Ideas tab "Two press modes"; item 8).
 - **Other courts' own calendars and regnal years**: season names for the courts that have only ordinals today
@@ -1772,9 +1881,14 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
 - **The map's later layers**: roads and relay stations, walls and sieges, and generals leading armies, drawn once the
   game has them (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).
-- **Tablets as objects in a place, swapped tablets and the richest characters**: archives at the capital that spies
-  copy from and a conqueror takes; an envoy swapping an inventory tablet for a forgery; a ranking by wealth at the end
-  (main tab "Tablets have a place"; Ideas tab; item 3).
+- **Gold sent without an inventory**, saving the scribe fee and checkable by nobody (Ideas tab "Why the envoy lies, and
+  how he is caught"): today every gift has an inventory, and it costs nothing.
+- **Tablets stolen, not only copied**: a spy taking a tablet out of an archive, and a conqueror seizing an archive so
+  that its court loses it (Ideas tab "Tablets are objects in a place"; main tab "Tablets have a place"). Item 3 built
+  copying only (see "Tablets lie in archives").
+- **Tablets that need a reader**: an unreadable tablet showing its seal but not its words until the king finds a
+  reader, and a tablet sent to a third court to be read (Ideas tab "Tablets are objects in a place" and "Languages";
+  item 12); and an archive that moves with the court (Ideas tab "Command at a distance"; item 13).
 - **Model characters in the simulation kit**: envoys and spies as isolated agents, for the second agent simulation
   (item 4).
 - **Memory and call size**: older letters summarized to a line, a "since you last acted" view, terser state tables,

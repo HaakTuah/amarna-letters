@@ -29,7 +29,7 @@ public class SaveVersionTests
     [Fact]
     public async Task New_games_are_saved_under_the_current_version()
     {
-        Assert.Equal(2, GameState.CurrentVersion);
+        Assert.Equal(3, GameState.CurrentVersion);
         Assert.Equal(GameState.CurrentVersion, GameFactory.NewGame(1).Version);
         var log = await PlayedLog(4, 1);
         Assert.Equal(GameState.CurrentVersion, log.Header.Version);

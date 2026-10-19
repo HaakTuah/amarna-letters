@@ -227,6 +227,7 @@ public sealed class GameRunner
             Trail = engine.Trail(req.TrailId),
             BasePrice = TurnEngine.BasePrice(c, req.Court),
             Demand = State.Tasks.Count(t => t.Kind == TaskKind.Candidates) + engine.MindRequests.Count(r => r.Task == MindTask.Pitch && r.CharacterId == c.Id),
+            ForgeMinCompetence = State.Config.ForgeMinCompetence,
         };
     }
 
@@ -279,6 +280,7 @@ public sealed class GameRunner
             Skim = skim,
             BackPay = backPay,
             EmployerDoomed = doomed,
+            ForgeMinCompetence = State.Config.ForgeMinCompetence,
         };
 
         var present = await Recorded($"{key}/present",
@@ -286,11 +288,11 @@ public sealed class GameRunner
             () => _fallbackMind.PresentAsync(Ctx([], 0, "", 0), ct));
         present.Skim = Math.Clamp(present.Skim, 0, a.Dispatch.Gold);
 
-        var record = new AudienceRecord { AudienceId = a.Id, Delivered = present.Speech, Skim = present.Skim };
+        var record = new AudienceRecord { AudienceId = a.Id, Delivered = present.Speech, Skim = present.Skim, SwapInventory = present.SwapInventory };
         var soFar = new List<Exchange>();
         for (var round = 1; round <= State.Config.AudienceRounds; round++)
         {
-            var view = engine.BuildAudienceView(a, present.Speech, present.Skim, soFar, round, record.Rounds);
+            var view = engine.BuildAudienceView(a, present.Speech, present.Skim, soFar, round, record.Rounds, present.SwapInventory);
             if (court is not null)
             {
                 view.OrdersStand = true;

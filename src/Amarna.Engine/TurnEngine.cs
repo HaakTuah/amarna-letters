@@ -110,7 +110,7 @@ public sealed partial class TurnEngine
                 if (t.Gold >= k.Wage)
                 {
                     t.Gold -= k.Wage;
-                    c.Purse += k.Wage;
+                    c.Gain(k.Wage, GoldSource.Wages);
                     c.UnpaidTurns = 0;
                     wages += k.Wage;
                     continue;
@@ -164,7 +164,7 @@ public sealed partial class TurnEngine
             if (t.Gold < owed) ExposeDebasement(court, $"{c.Name}'s back pay");
             var paid = Math.Clamp(t.Gold, 0, owed);
             t.Gold -= paid;
-            c.Purse += paid;
+            c.Gain(paid, GoldSource.Wages);
             if (paid == owed) c.BackPay.Remove(court);
             else c.BackPay[court] = owed - paid;
             var who = stood.GetValueOrDefault(c.Id) != court ? $"{c.Name} is back at your court and" : c.Name;
@@ -511,6 +511,8 @@ public sealed partial class TurnEngine
                 S.Log("conquest", $"{u.Power} took {prov.Name} from {loser}.", [u.Power, loser]);
             }
             S.Notify(u.Power, InboxKind.Battle, "Land taken", $"{prov.Name} is now yours.");
+            // A court's capital holds its archive: whoever takes it gains a copy of every tablet in it.
+            TakeArchive(u.Power, u.Province);
         }
     }
 
@@ -538,6 +540,8 @@ public sealed partial class TurnEngine
             S.Notify(p, InboxKind.Resolution, "Land ceded", $"{Map[c.Province].Name} now belongs to {c.To}.");
             S.Notify(c.To, InboxKind.Resolution, "Land received", $"{p} has ceded {Map[c.Province].Name} to you.");
             S.Log("cession", $"{p} ceded {Map[c.Province].Name} to {c.To}.", [p, c.To]);
+            // A capital ceded is a capital taken: its archive lies in the city.
+            TakeArchive(c.To, c.Province);
         }
         foreach (var (p, g) in gifts)
         {

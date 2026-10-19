@@ -38,6 +38,8 @@ public sealed class PresentResult
 {
     public string Speech { get; set; } = "";
     public int Skim { get; set; }
+    /// <summary>With gold kept: replace the inventory tablet with one the envoy forges, stating only what the host's weighers find.</summary>
+    public bool SwapInventory { get; set; }
 }
 
 /// <summary>What an envoy has in front of it at a foreign court.</summary>
@@ -58,6 +60,8 @@ public sealed class EnvoyContext
     public int BackPay { get; init; }
     /// <summary>Whether its employer looks doomed, from public facts (see <see cref="Views.LooksDoomed"/>): back pay owed by a doomed court may never be paid.</summary>
     public bool EmployerDoomed { get; init; }
+    /// <summary>The skill it takes to fake a seal (<see cref="GameConfig.ForgeMinCompetence"/>): a script envoy weighs its own against it.</summary>
+    public int ForgeMinCompetence { get; init; } = new GameConfig().ForgeMinCompetence;
 }
 
 public sealed class MindContext
@@ -71,6 +75,8 @@ public sealed class MindContext
     public int BasePrice { get; init; }
     /// <summary>For pitches: how many courts are looking for people right now.</summary>
     public int Demand { get; init; }
+    /// <summary>For an envoy's report with gold: the skill it takes to fake a seal (see <see cref="EnvoyContext.ForgeMinCompetence"/>).</summary>
+    public int ForgeMinCompetence { get; init; } = new GameConfig().ForgeMinCompetence;
 }
 
 public sealed class CheckContext

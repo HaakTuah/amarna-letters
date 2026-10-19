@@ -9,9 +9,10 @@ public sealed class GameState
 {
     /// <summary>
     /// The version of the rules. A log saved under another version is refused, since its decisions
-    /// would not replay to the same game. Raise it with every rule change.
+    /// would not replay to the same game. Raise it with every rule change. 3 since Build order item 3 (archives, inventory
+    /// tablets and swapped inventories).
     /// </summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }
@@ -202,7 +203,10 @@ public sealed class Character
     public Power? SecretMaster { get; set; }
     public string? PoisonText { get; set; }
     public int TurnsAbroad { get; set; }
+    /// <summary>The gold on its person. Characters start with none; what it holds came in by <see cref="Gain"/>.</summary>
     public int Purse { get; set; }
+    /// <summary>Where the gold in its purse came from. Nothing is spent yet, so the parts add up to the purse.</summary>
+    public Earnings Earned { get; set; } = new();
     public int UnpaidTurns { get; set; }
     public Dictionary<Power, int> Reputation { get; set; } = new();
     public Dictionary<Power, int> AskingPrice { get; set; } = new();
@@ -226,11 +230,58 @@ public sealed class Character
 
     public void Remember(int turn, string text) => Memory.Add(new MemoryEntry { Turn = turn, Text = text });
 
+    /// <summary>Gold into its purse, counted by where it came from.</summary>
+    public void Gain(int amount, GoldSource source)
+    {
+        if (amount <= 0) return;
+        Purse += amount;
+        switch (source)
+        {
+            case GoldSource.Wages: Earned.Wages += amount; break;
+            case GoldSource.Skimmed: Earned.Skimmed += amount; break;
+            case GoldSource.Gifts: Earned.Gifts += amount; break;
+            case GoldSource.Carried: Earned.Carried += amount; break;
+        }
+    }
+
     public IEnumerable<Fact> FactsKnownTo(Power p) =>
         Facts.Where(f => f.Secrecy == Secrecy.Public || f.KnownBy.Contains(p));
 
     /// <summary>What <paramref name="p"/> still believes of this character, if it has not heard what happened to it.</summary>
     public Cover? CoverOf(Power p) => Covers.FirstOrDefault(k => k.For == p);
+}
+
+/// <summary>Where gold in a character's purse came from.</summary>
+public enum GoldSource
+{
+    /// <summary>Its wage paid at court, and back pay paid when it came back.</summary>
+    Wages,
+    /// <summary>Kept from gold it carried, out to a court or home.</summary>
+    Skimmed,
+    /// <summary>A king's personal gift at an audience.</summary>
+    Gifts,
+    /// <summary>Gold it was carrying when it was dismissed on the way out, which became its own.</summary>
+    Carried,
+}
+
+/// <summary>What a character has gained, by source. Characters spend nothing yet (no escort, storage fee or loan exists).</summary>
+public sealed class Earnings
+{
+    public int Wages { get; set; }
+    public int Skimmed { get; set; }
+    public int Gifts { get; set; }
+    public int Carried { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public int Total => Wages + Skimmed + Gifts + Carried;
+
+    public void Add(Earnings other)
+    {
+        Wages += other.Wages;
+        Skimmed += other.Skimmed;
+        Gifts += other.Gifts;
+        Carried += other.Carried;
+    }
 }
 
 /// <summary>
@@ -350,6 +401,8 @@ public sealed class SpyReport
     public List<string> Observations { get; set; } = new();
     public string? Poison { get; set; }
     public int ObservedTurn { get; set; }
+    /// <summary>Tablets the spy copied this season from the archive of the court it watches: the copies come home with the report.</summary>
+    public List<string> TabletIds { get; set; } = new();
 }
 
 public sealed class PendingAudience
@@ -372,6 +425,11 @@ public sealed class Tablet
     public int CreatedTurn { get; set; }
     public int? SealedTurn { get; set; }
     public bool AllianceOath { get; set; }
+    /// <summary>
+    /// The inventory of the gold an envoy carries, sealed by the court that sent the gold: the receiving court keeps it in
+    /// its archive. A forged one is an envoy's swap, stating only what was left after it kept some.
+    /// </summary>
+    public bool Inventory { get; set; }
     public bool Forged { get; set; }
     public string? ForgerId { get; set; }
     public Power? ForgerEmployer { get; set; }
@@ -380,6 +438,10 @@ public sealed class Tablet
     public bool IsSealedAgreement => !Forged && SealedTurn is not null && Partner is not null && Seals.Count >= 2;
 }
 
+/// <summary>
+/// A tablet as one court holds it. Every copy a court holds lies in its archive at its capital: a spy posted at that court
+/// may copy from it, and whoever takes the capital gains a copy of every tablet in it (see <see cref="TurnEngine"/>'s archives).
+/// </summary>
 public sealed class TabletCopy
 {
     public string Id { get; set; } = "";

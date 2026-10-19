@@ -173,7 +173,11 @@ public static class Schemas
 
     public static JsonObject Present() => Object(
         ("speech", Str("What you say to the king, delivering your lord's message in your own words.")),
-        ("keep_gold", Int("Shekels of the carried gold you quietly keep for yourself, or 0.")));
+        ("keep_gold", Int("Shekels of the carried gold you quietly keep for yourself, or 0.")),
+        ("swap_inventory", Bool(SwapInventory)));
+
+    /// <summary>What an envoy that keeps gold may do with the inventory tablet it carries.</summary>
+    private const string SwapInventory = "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. Faking the seal takes a forger's hand (you are told whether yours is one); without one you dare not use it and the true inventory is handed over. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
 
     public static JsonObject React() => Object(
         ("speech", Str("What you say in answer.")),
@@ -183,7 +187,8 @@ public static class Schemas
 
     public static JsonObject Report() => Object(
         ("report", Str("Your report to your lord.")),
-        ("keep_gold", Int("Shekels of the gold you carry home that you quietly keep, or 0.")));
+        ("keep_gold", Int("Shekels of the gold you carry home that you quietly keep, or 0.")),
+        ("swap_inventory", Bool(SwapInventory)));
 
     public static JsonObject Pitch() => Object(
         ("pitch", Str("How you present yourself, in a few sentences.")),
