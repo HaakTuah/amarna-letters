@@ -19,12 +19,18 @@ public interface IJsonAsker
 /// closing <see cref="Footer"/> on how to finish that API kings never get.
 /// An unreadable reply gets one retry request with the error; a second failure, or the timeout,
 /// throws, and the runner falls back to the script king for that decision, as it does for models.
-/// Every exchange is also logged as a model call (with no tokens), so the log holds the prompts.
+/// Every exchange is also logged as a model call (with no tokens, but the request's length), so the log holds the prompts.
+/// A file character (an envoy, spy or candidate, see <see cref="LlmCharacterMind"/>) uses the same channel: its request
+/// is the one a model character would get, with the same footer, and a failure falls back to the script character.
 /// </summary>
-public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCall>? record = null, Action<string>? say = null) : IJsonAsker
+public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCall>? record = null, Action<string>? say = null, string actor = FileExchange.King) : IJsonAsker
 {
     public string Folder { get; } = Path.GetFullPath(folder);
     public static readonly TimeSpan Poll = TimeSpan.FromMilliseconds(400);
+
+    /// <summary>Whom the request asks to decide: a king's file seat decides "as the king", a file character "as yourself".</summary>
+    public const string King = "the king";
+    public const string Character = "yourself";
 
     public async Task<JsonObject> AskJsonAsync(CallSpec spec, CancellationToken ct)
     {
@@ -37,8 +43,9 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
             for (var attempt = 1; ; attempt++)
             {
                 var stem = attempt == 1 ? name : $"{name}.retry";
-                var text = await AskOnceAsync(spec, stem, error, ct);
+                var (text, chars) = await AskOnceAsync(spec, stem, error, ct);
                 call.Output = text;
+                call.RequestChars = chars;
                 try
                 {
                     var json = Lenient(text) ?? throw new JsonException("the reply was not one JSON object");
@@ -62,13 +69,14 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
         }
     }
 
-    private async Task<string> AskOnceAsync(CallSpec spec, string stem, string error, CancellationToken ct)
+    private async Task<(string Reply, int Chars)> AskOnceAsync(CallSpec spec, string stem, string error, CancellationToken ct)
     {
         var request = Path.Combine(Folder, stem + ".request.md");
         var reply = Path.Combine(Folder, stem + ".reply.json");
         if (File.Exists(reply)) File.Delete(reply);
         var tmp = request + ".tmp";
-        await File.WriteAllTextAsync(tmp, Request(spec, reply, error), Encoding.UTF8, ct);
+        var text = Request(spec, reply, error, actor);
+        await File.WriteAllTextAsync(tmp, text, Encoding.UTF8, ct);
         File.Move(tmp, request, overwrite: true);
         say?.Invoke($"waiting for {reply}");
 
@@ -88,14 +96,14 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
             {
                 // A reply that stays empty is read as it stands (and fails), rather than waited on forever.
                 emptySince ??= DateTime.UtcNow;
-                if (DateTime.UtcNow - emptySince > EmptyGrace) return "";
+                if (DateTime.UtcNow - emptySince > EmptyGrace) return ("", text.Length);
                 continue;
             }
             emptySince = null;
             // Read once the file has stopped changing for one poll.
             if (now == size)
             {
-                try { return (await File.ReadAllTextAsync(reply, ct)).Trim().TrimStart('﻿'); }
+                try { return ((await File.ReadAllTextAsync(reply, ct)).Trim().TrimStart('﻿'), text.Length); }
                 catch (IOException) { size = -1; continue; }
             }
             size = now;
@@ -104,13 +112,13 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
 
     public static readonly TimeSpan EmptyGrace = TimeSpan.FromSeconds(5);
 
-    /// <summary>The request file: the same system text, prompt and schema a model king receives, and where to answer.</summary>
-    public static string Request(CallSpec spec, string replyPath, string error)
+    /// <summary>The request file: the same system text, prompt and schema a model king or character receives, and where to answer.</summary>
+    public static string Request(CallSpec spec, string replyPath, string error, string actor = King)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"# {spec.Key}");
         sb.AppendLine();
-        sb.AppendLine("Everything you need for this decision is in this file. Decide as the king, then write your answer as one JSON object to the file named under HOW TO REPLY.");
+        sb.AppendLine($"Everything you need for this decision is in this file. Decide as {actor}, then write your answer as one JSON object to the file named under HOW TO REPLY.");
         sb.AppendLine();
         sb.AppendLine("## SYSTEM");
         sb.AppendLine();

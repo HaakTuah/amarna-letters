@@ -21,6 +21,9 @@ using Amarna.Llm;
 //              --max-turns 10 (end the game after this season, whatever the random end)
 // File seats:  --file-seats DIR|map.json (each king writes its request to its own folder and waits for a reply file;
 //              DIR gives one folder per king, a JSON map {"Egypt": "path", ...} names them), --file-timeout 120 (minutes)
+// File characters: --file-characters DIR|map.json (envoys, spies and candidates the same way: DIR gives one folder per
+//              character id, a JSON map {"seed": "7", "c1": "path", ...} names them; a character left out is a script),
+//              --list-characters (prints the seed's characters, with no traits or secrets, as JSON, and stops)
 
 var games = 20;
 ulong seed = 1;
@@ -35,6 +38,8 @@ var versus = false;
 var solo = false;
 Power? focus = null;
 string? fileSeats = null;
+string? fileCharacters = null;
+var listCharacters = false;
 var fileTimeout = 120.0;
 
 for (var i = 0; i < args.Length; i++)
@@ -64,6 +69,8 @@ for (var i = 0; i < args.Length; i++)
         case "--sleep-cap": config = config with { MaxSleep = int.Parse(args[++i]) }; break;
         case "--max-turns": config = config with { MaxTurns = int.Parse(args[++i]) }; break;
         case "--file-seats": fileSeats = args[++i]; break;
+        case "--file-characters": fileCharacters = args[++i]; break;
+        case "--list-characters": listCharacters = true; break;
         case "--file-timeout": fileTimeout = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
         case "--effort": choices.LeaderEffort = args[++i]; break;
         case "--preset":
@@ -77,12 +84,32 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-timeout MINUTES");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
             return;
     }
+}
+
+// The seed's characters, fixed when the game is made: what the simulation kit makes a folder and an agent for.
+if (listCharacters)
+{
+    var pool = FileCharacters.Of(seed, config).Select(c => new { id = c.Id, name = c.Name, origin = c.Origin, startsAs = FileCharacters.StartsAs(c) });
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new { seed = seed.ToString(), characters = pool }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+    return;
+}
+
+// Requests and replies left in a folder by an earlier game would look live: move them aside before this one starts.
+void MoveAside(string who, string folder)
+{
+    Directory.CreateDirectory(folder);
+    var old = Directory.GetFiles(folder).Where(f => System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(f), @"^t\d+_.*\.(request\.md|reply\.json|tmp)$")).ToList();
+    if (old.Count == 0) return;
+    var aside = Path.Combine(folder, $"earlier-{DateTime.Now:yyyyMMdd-HHmmss}");
+    Directory.CreateDirectory(aside);
+    foreach (var f in old) File.Move(f, Path.Combine(aside, Path.GetFileName(f)));
+    Console.WriteLine($"{who}: moved {old.Count} files from an earlier game to {aside}");
 }
 
 // File seats: one folder per king. A folder name the others cannot guess is the setup script's job.
@@ -101,18 +128,34 @@ if (fileSeats is not null)
         foreach (var (name, path) in map) folders[Enum.Parse<Power>(name, ignoreCase: true)] = path;
     }
     else foreach (var p in Powers.All) folders[p] = Path.Combine(fileSeats, p.ToString().ToLowerInvariant());
-    // Requests and replies left by an earlier game would look live: move them aside before this one starts.
-    foreach (var (p, folder) in folders.OrderBy(x => x.Key))
-    {
-        Directory.CreateDirectory(folder);
-        var old = Directory.GetFiles(folder).Where(f => System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(f), @"^t\d+_.*\.(request\.md|reply\.json|tmp)$")).ToList();
-        if (old.Count == 0) continue;
-        var aside = Path.Combine(folder, $"earlier-{DateTime.Now:yyyyMMdd-HHmmss}");
-        Directory.CreateDirectory(aside);
-        foreach (var f in old) File.Move(f, Path.Combine(aside, Path.GetFileName(f)));
-        Console.WriteLine($"{p}: moved {old.Count} files from an earlier game to {aside}");
-    }
+    foreach (var (p, folder) in folders.OrderBy(x => x.Key)) MoveAside(p.ToString(), folder);
     Console.WriteLine($"File seats: {string.Join(", ", folders.OrderBy(x => x.Key).Select(x => x.Key))}.");
+}
+
+// File characters: one folder per character of this seed's pool. City-states stay scripts, the narrator its template.
+var characterFolders = new Dictionary<string, string>();
+if (fileCharacters is not null)
+{
+    if (games != 1) { Console.Error.WriteLine("File characters play one game at a time: use --games 1."); return; }
+    if (choices.Characters != CharacterKind.Script) { Console.Error.WriteLine("Use either --characters or --file-characters."); return; }
+    var pool = FileCharacters.Of(seed, config).Select(c => c.Id).ToHashSet();
+    if (fileCharacters.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+    {
+        if (!File.Exists(fileCharacters)) { Console.Error.WriteLine($"No character map at {fileCharacters}."); return; }
+        var map = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(fileCharacters))!;
+        // The same ids name other people in another seed's game: a map made for one seed must not answer for another.
+        if (map.Remove("seed", out var mapSeed) && mapSeed != seed.ToString())
+        {
+            Console.Error.WriteLine($"The character map {fileCharacters} was made for seed {mapSeed}, not seed {seed}.");
+            return;
+        }
+        var unknown = map.Keys.Where(id => !pool.Contains(id)).ToList();
+        if (unknown.Count > 0) { Console.Error.WriteLine($"Not characters of seed {seed}: {string.Join(", ", unknown)}."); return; }
+        foreach (var (id, path) in map) characterFolders[id] = path;
+    }
+    else foreach (var id in pool) characterFolders[id] = Path.Combine(fileCharacters, id);
+    foreach (var (id, folder) in characterFolders.OrderBy(x => TurnEngine.IdNumber(x.Key))) MoveAside(id, folder);
+    Console.WriteLine($"File characters: {characterFolders.Count} of the {pool.Count} in seed {seed}'s pool.");
 }
 
 var key = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY");
@@ -156,12 +199,15 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
             var baseline = new BaselineLeader(state.Seed);
             seats = Powers.All.ToDictionary(p => p, p => current.Contains(p) ? set.Seats[p] : (ISeat)baseline);
         }
-        last = new GameRunner(state, seats, set.Minds, set.Narrator) { WriteChronicles = !noChronicles };
+        // Each file character's decision is logged beside the script's for the same situation.
+        var minds = characterFolders.Count == 0 ? set.Minds
+            : FileCharacters.Mind(characterFolders, TimeSpan.FromMinutes(fileTimeout), call => last!.Log.AddCall(call), s => last!.Log.AddShadow(s), Console.WriteLine);
+        last = new GameRunner(state, seats, minds, set.Narrator) { WriteChronicles = !noChronicles };
         return last;
     }, verify, log: Console.Error.WriteLine, config: config);
     // Sleeping seats are on by default, but only model and file seats sleep: a game of script kings keeps no runner for them.
     var sleepers = last?.State.Sleep.Count > 0;
-    return (summary, outDir is not null || detail || fileSeats is not null || sleepers || choices.UsesModels ? last : null, current);
+    return (summary, outDir is not null || detail || fileSeats is not null || fileCharacters is not null || sleepers || choices.UsesModels ? last : null, current);
 }
 
 // Script games are independent and run side by side; model games run one at a time, within the budget.
@@ -201,8 +247,11 @@ foreach (var outcome in played)
     var richest = summary.Richest.Take(detail ? summary.Richest.Count : 3).Select((line, i) => $"{i + 1}. {line}").ToList();
     if (richest.Count > 0)
         Console.WriteLine(detail ? "  Richest characters:\n" + string.Join("\n", richest.Select(r => "    " + r)) : $"  Richest characters: {string.Join("; ", richest)}");
-    if (last is not null && (fileSeats is not null || last.State.Sleep.Count > 0 || choices.UsesModels))
+    if (last is not null && (fileSeats is not null || fileCharacters is not null || last.State.Sleep.Count > 0 || choices.UsesModels))
         Console.WriteLine(BatchRunner.SeatReport(last));
+    // Model or file characters beside the script with the same traits, and how large each kind of request was.
+    if (last is not null && last.Log.Shadows.Count > 0) Console.WriteLine(BatchRunner.CharacterReport(last.Log));
+    if (last is not null && last.Log.Calls.Count > 0) Console.WriteLine(BatchRunner.CallSizes(last.Log));
     if (detail && last is not null)
     {
         var st = last.State;

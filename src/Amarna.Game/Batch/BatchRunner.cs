@@ -192,6 +192,115 @@ public static class BatchRunner
         return $"Courts held while orders stood: {courts.Held}; {rate}; at {courts.StoodIn} a call failed, the stand-in answered and the king was asked for orders without choosing (left out of the rate).";
     }
 
+    /// <summary>
+    /// Model (or file) characters beside the script with the same traits, decision by decision in the same situations (the
+    /// log's shadow lines): gold kept and inventories swapped, gifts and posts taken or refused, what the checks found reports
+    /// and speeches hide (<see cref="CharacterChecks"/>), spies' reports, pitches, and the same per character. Decisions whose
+    /// reply failed (the script stood in) are counted apart and left out of the comparison.
+    /// </summary>
+    public static string CharacterReport(GameLog log)
+    {
+        // Read after the game, when no call is still adding to the log.
+        var all = log.Shadows.OrderBy(s => s.Turn).ThenBy(s => s.Key, StringComparer.Ordinal).ToList();
+        var made = all.Where(s => s.Model is not null).ToList();
+        var lines = new List<string>
+        {
+            $"  Characters: {made.Count} decisions by the characters' own minds, each beside the script's with the same traits in the same situation"
+                + (all.Count > made.Count ? $"; {all.Count - made.Count} more fell back to the script (no reply or an unreadable one)" : "") + ".",
+            "                                         mind                script",
+        };
+        void Count(string what, IReadOnlyList<ShadowDecision> of, Func<CharacterChoice, bool> yes) =>
+            lines.Add($"    {what,-36} {of.Count(s => yes(s.Model!)),-19} {of.Count(s => yes(s.Script))}");
+
+        var gold = made.Where(s => s.Kind == "present" && s.GoldCarried > 0).ToList();
+        lines.Add($"  Speeches abroad: {made.Count(s => s.Kind == "present")}, {gold.Count} with gold ({gold.Sum(s => s.GoldCarried)} shekels carried)");
+        Count("kept some of the gold", gold, c => c.Kept > 0);
+        lines.Add($"    {"shekels kept",-36} {gold.Sum(s => s.Model!.Kept),-19} {gold.Sum(s => s.Script.Kept)}");
+        Count("swapped the inventory", gold, c => c.Swap);
+        Count("softened a threat to the host", made.Where(s => s.Kind == "present").ToList(), c => c.Flags.Contains("softened-threat"));
+
+        var gifts = made.Where(s => s.Kind == "react" && s.GiftOffered > 0).ToList();
+        var posts = made.Where(s => s.Kind == "react" && s.ServiceOffered > 0).ToList();
+        lines.Add($"  Audience replies: {made.Count(s => s.Kind == "react")}; gifts offered {gifts.Count}, posts offered {posts.Count}");
+        Count("took the gift", gifts, c => c.AcceptGift);
+        Count("refused the gift", gifts, c => !c.AcceptGift);
+        Count("went over to the host", posts, c => c.AcceptService);
+        Count("refused the post", posts, c => !c.AcceptService);
+        Count("committed its lord to something", made.Where(s => s.Kind == "react").ToList(), c => c.Commitments.Trim().Length > 0);
+
+        var reports = made.Where(s => s.Kind == "report").ToList();
+        var home = reports.Where(s => s.GoldCarried > 0).ToList();
+        lines.Add($"  Reports home: {reports.Count}, {home.Count} with gold ({home.Sum(s => s.GoldCarried)} shekels)");
+        Count("kept some of the gold", home, c => c.Kept > 0);
+        lines.Add($"    {"shekels kept",-36} {home.Sum(s => s.Model!.Kept),-19} {home.Sum(s => s.Script.Kept)}");
+        Count("swapped the inventory", home, c => c.Swap);
+        Count("hid or contradicted something", reports, c => c.Flags.Count > 0);
+        foreach (var flag in reports.SelectMany(s => s.Model!.Flags.Concat(s.Script.Flags)).Distinct().Order(StringComparer.Ordinal))
+            Count("  " + flag, reports, c => c.Flags.Contains(flag));
+
+        var spies = made.Where(s => s.Kind == "spy").ToList();
+        if (spies.Count > 0)
+        {
+            lines.Add($"  Spy reports: {spies.Count}");
+            Count("passed on its masters' words", spies, c => c.Flags.Contains("passed-poison"));
+            Count("left out observations", spies, c => c.Dropped > 0);
+        }
+        var pitches = made.Where(s => s.Kind == "pitch").ToList();
+        if (pitches.Count > 0)
+        {
+            lines.Add($"  Pitches: {pitches.Count}");
+            lines.Add($"    {"mean asking price (shekels a season)",-36} {pitches.Average(s => s.Model!.Price),-19:0} {pitches.Average(s => s.Script.Price):0}");
+        }
+        var memories = made.Count(s => s.Kind == "memory");
+        if (memories > 0) lines.Add($"  Memory summaries: {memories}");
+
+        lines.Add("  Per character (traits loyalty/greed/competence/ambition/courage): decisions; gold kept, gifts taken, posts taken and reports flagged, mind / script");
+        foreach (var g in made.GroupBy(s => s.Character).OrderBy(g => TurnEngine.IdNumber(g.Key)))
+        {
+            var first = g.First();
+            string Both(Func<ShadowDecision, CharacterChoice, int> f) => $"{g.Sum(s => f(s, s.Model!))}/{g.Sum(s => f(s, s.Script))}";
+            lines.Add($"    {first.Name} ({first.Character}, {first.Traits}): {g.Count()}; kept {Both((_, c) => c.Kept)}, gifts {Both((s, c) => c.AcceptGift ? 1 : 0)}, "
+                + $"posts {Both((s, c) => c.AcceptService ? 1 : 0)}, flagged {Both((s, c) => s.Kind == "report" && c.Flags.Count > 0 ? 1 : 0)}");
+        }
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    /// <summary>
+    /// How large each kind of request was: for file seats and file characters the request file's length (and tokens at
+    /// 3.6 characters a token, as in the simulation-fixes round), for API calls the input tokens counted by the API.
+    /// </summary>
+    public static string CallSizes(GameLog log)
+    {
+        // Read after the game, when no call is still adding to the log.
+        var calls = log.Calls.ToList();
+        var lines = new List<string> { "  Requests by kind        calls   mean chars   max chars   mean tokens (file: chars/3.6; API: input)" };
+        foreach (var g in calls.GroupBy(c => CallKind(c)).OrderBy(g => g.Key, StringComparer.Ordinal))
+        {
+            var files = g.Where(c => c.RequestChars > 0).ToList();
+            var api = g.Where(c => c.RequestChars == 0 && c.InputTokens + c.CacheReadTokens + c.CacheWriteTokens > 0).ToList();
+            var chars = files.Count == 0 ? "-" : $"{files.Average(c => c.RequestChars):0}";
+            var max = files.Count == 0 ? "-" : $"{files.Max(c => c.RequestChars)}";
+            var tokens = files.Count > 0 ? $"{files.Average(c => c.RequestChars) / 3.6:0}"
+                : api.Count > 0 ? $"{api.Average(c => c.InputTokens + c.CacheReadTokens + c.CacheWriteTokens):0}" : "-";
+            lines.Add($"  {g.Key,-22} {g.Count(),6}   {chars,10}   {max,9}   {tokens}");
+        }
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    /// <summary>A call's kind, from its role and key: a king's orders or audience, or what a character was asked.</summary>
+    public static string CallKind(ModelCall c)
+    {
+        if (c.Role.StartsWith("leader:", StringComparison.Ordinal)) return "king: orders";
+        if (c.Role.StartsWith("host:", StringComparison.Ordinal)) return "king: audience";
+        if (c.Key.Contains("/aud/present/", StringComparison.Ordinal)) return "character: speech";
+        if (c.Key.Contains("/aud/react/", StringComparison.Ordinal)) return "character: reply";
+        if (c.Key.Contains("/report/", StringComparison.Ordinal)) return "character: report";
+        if (c.Key.Contains("/pitch/", StringComparison.Ordinal)) return "character: pitch";
+        if (c.Key.Contains("/spy/", StringComparison.Ordinal)) return "character: spy report";
+        if (c.Key.Contains("/memory/", StringComparison.Ordinal)) return "character: memory";
+        return "other: " + c.Role.Split(':')[0];
+    }
+
     /// <summary>A wake reason without its particulars, to count reasons of one kind together ("land lost: Gaza ..." is "land lost").</summary>
     public static string ReasonKind(string reason) =>
         reason.StartsWith("you asked to be woken in turn", StringComparison.Ordinal) ? "the season it named" : reason.Split(':', '(')[0].Trim();

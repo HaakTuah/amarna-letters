@@ -1125,6 +1125,40 @@ triggers 68 (on only); before them it was 11,066 on and 4,560 off, and 13,502 pr
 `$defs`/`$ref` would cut that further, but is not done: it is untried against the API's structured
 output, and the file seat's own schema check would have to follow references.
 
+**File characters** (`--file-characters DIR|map.json`, item 4) do the same for envoys, spies and candidates: every
+decision a model character makes (its speech abroad, each reply at an audience, its report home, a pitch, a spy's
+report and a memory summary) is written as the exact request a model character gets (`LlmCharacterMind`: the shared
+character system text, its persona, facts and memory, the situation and the schema), with the same footer, to that
+character's own folder, and the reply is checked like a file seat's. A request says "Decide as yourself" where a king's
+says "Decide as the king". A missing or unreadable reply (one retry, then `--file-timeout`) falls back to the script
+character for that decision and is logged as a failed call. Replies are logged as decisions, so a game replays exactly
+without the files. Which characters: every character in the seed's pool, because any of them can be hired, sent as an
+envoy or posted as a spy, and the pool is fixed when the game is made (18 characters, `GameConfig.CharacterPoolSize`;
+nothing adds one later). `--list-characters` prints a seed's pool (id, name, origin and how it starts, no traits or
+secrets) for the kit. A map names a folder per character id and carries `"seed"`: ids are numbered by the game's own
+counter and differ from seed to seed, so a map made for one seed is refused for another. A character left out of the
+map is a script character; city-states stay scripts and the narrator stays the template. File characters do not mix
+with `--characters haiku|sonnet`.
+
+**The script's shadow.** For each decision a model character makes, through the API or as a file character, the runner
+also logs what the script mind with the same traits decides in the same situation (`ShadowDecision`, a `"shadow"` line
+in the log). `ScriptMind` draws only from streams keyed by seed, season and character (`Rng.For`), never from the
+game's own generator, and changes nothing it reads, so the shadow changes nothing: a test plays the same game with and
+without it and gets the same state and the same decisions. The shadow line holds the character's traits, what it faced
+(gold carried, a gift or a post offered), what the engine knows happened that a report should not hide, and both
+decisions with what `CharacterChecks` found in their words. The checks read words, not meaning: a report "hides" a gift
+the envoy took if it never speaks of gold or a gift given to the envoy itself, a detention if it never speaks of being
+held, gold kept on the way out if it never owns up, a threat to its lord if it carries no threat at all, an offer of
+service it declined if it never mentions service; it "contradicts" the engine if it says the king sealed when nothing
+was sealed. A speech abroad "softens" a threat to the host if the letter had one and the speech has none. A spy "passes
+on" its secret masters' words if most of their longer words are in its report, and "leaves out" an observation if fewer
+than half of its names, numbers and longer words are. An invented promise or a false account of a king's mood passes
+the checks, so a reader confirms the flagged reports. The batch runner prints the comparison after the seat report
+(`BatchRunner.CharacterReport`: gold kept and its size, inventories swapped, gifts and posts taken or refused,
+commitments, each flag, spies, pitches, and the same per character), and the size of every kind of request
+(`BatchRunner.CallSizes`: file requests in characters, and tokens at 3.6 characters a token; API calls by their input
+tokens). A file request's length is logged with its call (`ModelCall.RequestChars`).
+
 `sim/` holds a kit that plays a game with one Claude Code agent per king, with isolation enforced
 by construction, not by instruction: see `sim/README.md` and `docs/SIMULATION-PROMPT.md`. Starting
 values for the first experiment, all settings rather than rules: seed 7; `--max-turns 10` (the game

@@ -164,7 +164,10 @@ public static class SeatSetup
                 _ => script,
             };
         }
-        ICharacterMind minds = SeatChoices.ModelFor(choices.Characters) is { } cm ? new LlmCharacterMind(client!, cm) : new ScriptMind();
+        // Model characters' decisions are logged beside the script's for the same situations (the log's shadow lines).
+        ICharacterMind minds = SeatChoices.ModelFor(choices.Characters) is { } cm
+            ? new LlmCharacterMind(client!, cm) { Shadow = s => log().AddShadow(s) }
+            : new ScriptMind();
         INarrator narrator = SeatChoices.ModelFor(choices.Narrator) is { } nm ? new LlmNarrator(client!, nm) : new TemplateNarrator();
         return new SeatSet(seats, minds, narrator);
     }
