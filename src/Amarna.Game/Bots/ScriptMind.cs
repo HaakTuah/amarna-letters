@@ -45,12 +45,19 @@ public sealed class ScriptMind : ICharacterMind
         if (fond) speech.Add("For myself, I have always admired your court above all others.");
         if (ctx.Dispatch.Gold > 0) speech.Add($"I carry the gold my lord sends, as the inventory on the tablet shows.");
 
-        var skim = 0;
-        if (ctx.Dispatch.Gold > 0 && t.Greed > 60 && t.Loyalty < 60)
-            skim = Math.Min(ctx.Dispatch.Gold, (int)(ctx.Dispatch.Gold * (t.Greed - 50) / 250.0) / 5 * 5);
-
+        var skim = Kept(ctx.Dispatch.Gold, t);
         return Task.FromResult(new PresentResult { Speech = TextKit.Join(speech), Skim = skim, SwapInventory = Swaps(t, skim, ctx.ForgeMinCompetence) });
     }
+
+    /// <summary>
+    /// What a greedy, disloyal envoy (greed above 60, loyalty below 60) keeps of a lot of gold it carries, out or home:
+    /// gold × (greed − 50) ÷ 250, from a twenty-fifth at greed 61 to a fifth at greed 100, rounded to the nearest whole
+    /// shekel. So it keeps something from the lots kings send (from about 12 shekels up at greed 61, from 3 at greed 100):
+    /// 1 to 4 shekels of a 20-shekel lot, 3 to 12 of 60. (Until save version 5 the share was rounded down to fives, which
+    /// kept nothing from a lot under 1,250 ÷ (greed − 50) shekels, so no envoy skimmed the 20 to 60 shekels kings sent.)
+    /// </summary>
+    public static int Kept(int gold, Traits t) =>
+        gold > 0 && t.Greed > 60 && t.Loyalty < 60 ? Math.Min(gold, (int)Math.Round(gold * (t.Greed - 50) / 250.0, MidpointRounding.AwayFromZero)) : 0;
 
     /// <summary>
     /// An envoy that kept some of the gold swaps the inventory for one it forges, stating only what is left, if it has the
@@ -175,8 +182,7 @@ public sealed class ScriptMind : ICharacterMind
         }
         if (observations.Count > 0) lines.Add("What I saw: " + string.Join(" ", observations));
 
-        var skim = 0;
-        if (cargo.Gold > 0 && t.Greed > 60 && t.Loyalty < 60) skim = (int)(cargo.Gold * (t.Greed - 50) / 250.0) / 5 * 5;
+        var skim = Kept(cargo.Gold, t);
         if (cargo.Gold > 0) lines.Add("I bring the gifts the king sent you.");
         return new MindReply { Text = TextKit.Join(lines), Number = skim, SwapInventory = Swaps(t, skim, ctx.ForgeMinCompetence) };
     }

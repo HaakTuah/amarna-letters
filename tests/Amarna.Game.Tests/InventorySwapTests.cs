@@ -16,10 +16,10 @@ public class InventorySwapTests
     };
 
     [Theory]
-    [InlineData(80, 40, 70, 60, 10, true)]   // greedy and disloyal, skilled and not timid: keeps some and swaps
-    [InlineData(80, 40, 55, 35, 10, true)]   // just skilled enough, just bold enough
-    [InlineData(80, 40, 70, 30, 10, false)]  // timid: keeps some, dares not forge
-    [InlineData(80, 40, 54, 60, 10, false)]  // without the forger's hand
+    [InlineData(80, 40, 70, 60, 12, true)]   // greedy and disloyal, skilled and not timid: keeps some and swaps
+    [InlineData(80, 40, 55, 35, 12, true)]   // just skilled enough, just bold enough
+    [InlineData(80, 40, 70, 30, 12, false)]  // timid: keeps some, dares not forge
+    [InlineData(80, 40, 54, 60, 12, false)]  // without the forger's hand
     [InlineData(30, 40, 90, 60, 0, false)]   // keeps nothing, so has nothing to hide
     public async Task A_script_envoy_that_skims_swaps_the_inventory_if_it_has_the_hand_and_is_not_timid(int greed, int loyalty, int competence, int courage, int kept, bool swaps)
     {
@@ -36,6 +36,36 @@ public class InventorySwapTests
         };
         var report = await new ScriptMind().WriteAsync(home, default);
         Assert.Equal((kept, swaps), (report.Number, report.SwapInventory));
+    }
+
+    /// <summary>
+    /// A greedy, disloyal script envoy keeps a share of the small lots kings send, rounded to the shekel. Until version 5 it
+    /// was rounded down to fives, which kept nothing from the 20, 25 and 60 shekels in greedy, disloyal hands in the second
+    /// agent simulation (the first three rows).
+    /// </summary>
+    [Theory]
+    [InlineData(20, 85, 40, 3)]
+    [InlineData(25, 85, 40, 4)]
+    [InlineData(60, 70, 56, 5)]
+    [InlineData(20, 61, 59, 1)]   // the least greedy who skims
+    [InlineData(11, 61, 59, 0)]   // a lot too small for him
+    [InlineData(3, 100, 0, 1)]
+    [InlineData(60, 100, 0, 12)]  // a fifth at most
+    [InlineData(60, 60, 0, 0)]    // not greedy enough
+    [InlineData(60, 90, 60, 0)]   // too loyal
+    [InlineData(0, 90, 0, 0)]
+    public async Task A_greedy_disloyal_script_envoy_keeps_a_share_of_the_small_lots_kings_send(int gold, int greed, int loyalty, int kept)
+    {
+        var envoy = Envoy(greed, loyalty, 70, 60);
+        Assert.Equal(kept, ScriptMind.Kept(gold, envoy.Traits));
+        var ctx = new EnvoyContext { Self = envoy, Sender = Power.Egypt, Host = Power.Hatti, Dispatch = new Dispatch { Letter = "Greetings.", Gold = gold }, Turn = 1, Seed = 1, ForgeMinCompetence = 55 };
+        Assert.Equal(kept, (await new ScriptMind().PresentAsync(ctx, default)).Skim);
+        var home = new MindContext
+        {
+            Request = new MindRequest { Task = MindTask.EnvoyReport, CharacterId = envoy.Id, Court = Power.Egypt, Cargo = new HomeCargo { Gold = gold, GoldStated = gold } },
+            Self = envoy, Turn = 3, Seed = 1, ForgeMinCompetence = 55,
+        };
+        Assert.Equal(kept, (await new ScriptMind().WriteAsync(home, default)).Number);
     }
 
     /// <summary>Sends one envoy with 100 shekels to Hatti in the first season.</summary>
@@ -87,7 +117,7 @@ public class InventorySwapTests
         for (var i = 0; i < 4 && host.Views.Count == 0; i++) await runner.PlayTurnAsync();
 
         var view = Assert.Single(host.Views);
-        Assert.Equal((90, 90), (view.GoldStated, view.GoldWeighed));
+        Assert.Equal((88, 88), (view.GoldStated, view.GoldWeighed));
         Assert.Contains(runner.Log.Decisions, d => d.Key.EndsWith("/present", StringComparison.Ordinal) && d.Json.Contains("\"swapInventory\":true", StringComparison.Ordinal));
         Assert.True(state.Tablets.Single(t => t.Inventory).Forged);
 

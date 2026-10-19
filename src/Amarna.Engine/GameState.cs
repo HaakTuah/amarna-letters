@@ -12,9 +12,11 @@ public sealed class GameState
     /// would not replay to the same game. Raise it with every rule change. 3 since Build order item 3 (archives, inventory
     /// tablets and swapped inventories); 4 since Build order item 4: a spy posted at a court is hidden from it (it is not
     /// paid back pay there, and does not end that court's cover), and each kind of object has its own id counter (fix (d),
-    /// <see cref="IdCounters"/>). Neither change was released on its own, so one version covers both.
+    /// <see cref="IdCounters"/>). Neither change was released on its own, so one version covers both. 5 since the fix pass
+    /// after item 4: among its changes, script envoys keep a share of small lots of gold (rounded to the shekel, not down to
+    /// fives), which changes what they keep.
     /// </summary>
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
 
     public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }

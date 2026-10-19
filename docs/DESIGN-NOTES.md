@@ -188,9 +188,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   inventory tablets and swapped inventories change how a seed plays, 4 since Build order item 4, whose hidden spies
   are not paid back pay at the court they watch and do not end that court's cover, and whose fix (d) gives each kind
   of object its own id counter, which renumbers objects and so moves every seed's rolls once; neither was released on
-  its own, so one version covers both). A log saved under another version is refused, both for replay and for
-  continuing it: "This game was saved under an earlier version of the rules (version 3) and cannot be replayed by
-  this version." (tested for versions 1 and 3). The web app shows that message
+  its own, so one version covers both; 5 since the fix pass after item 4, whose script envoys keep a share of small
+  lots of gold, rounded to the shekel instead of down to fives). A log saved under another version is refused, both
+  for replay and for continuing it: "This game was saved under an earlier version of the rules (version 3) and cannot
+  be replayed by this version." (tested for versions 1, 3 and 4). The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
@@ -1686,7 +1687,7 @@ Script characters (`ScriptMind`) carry the letters of every king, script or not.
 One more rule decides whether it changes masters:
 
 - **An offer of service, and back pay.** An envoy takes a host's offer if tempted (offer at least 1.5 × its wage, loyalty below 55, ambition above 40) or drawn (it favours the host, sympathy above 60, and the offer is at least its wage), and is not a plant. Since Part G, going over forfeits the back pay its lord owes it, so the offer must also make that up over the new contract's six seasons: tempted at 1.5 × wage + back pay ÷ 6, drawn at wage + back pay ÷ 6; unless its lord looks doomed (`Views.LooksDoomed`, from public facts: he has fallen, lost his capital, or holds fewer than half of his homeland's provinces), when back pay he may never pay counts for nothing. The runner gives the envoy both (`EnvoyContext.BackPay`, `EmployerDoomed`). A model-played character reads the same in its prompt: "Your lord owes you 45 shekels of back pay, paid when you return to his court.", and, facing an offer, "(your lord pays you 12, and owes you 45 shekels of back pay, which you would never be paid if you left his service)"; whether its lord looks doomed it judges for itself. Back pay is a motive, not a rule: no new decision is added.
-- **Skimming and swapping the inventory.** An envoy with greed above 60 and loyalty below 60 keeps (gold × (greed − 50) ÷ 250), rounded down to fives, of the gold it carries out, and the same of gold it carries home (unchanged). Since item 3 one that kept something swaps the inventory for its own forgery if it has the hand for a seal (competence at least the forging skill, 55) and is not timid (courage 35 or more, the line below which it softens threats): `ScriptMind.Swaps`. The host then sees no shortfall, so it neither complains nor loses trust over a light gift.
+- **Skimming and swapping the inventory.** An envoy with greed above 60 and loyalty below 60 keeps (gold × (greed − 50) ÷ 250), rounded to the nearest shekel, of the gold it carries out, and the same of gold it carries home (`ScriptMind.Kept`): from a twenty-fifth at greed 61 to a fifth at greed 100, so 1 to 4 shekels of a 20-shekel lot and 3 to 12 of a 60-shekel one. (Until the fix pass after item 4, save version 5, the share was rounded down to fives, which kept nothing from a lot under 1,250 ÷ (greed − 50) shekels, 36 at greed 85 and 63 at greed 70, so no script envoy skimmed the 20 to 60 shekels the kings sent in the second agent simulation. The share is a first guess, left to the balance pass.) Since item 3 one that kept something swaps the inventory for its own forgery if it has the hand for a seal (competence at least the forging skill, 55) and is not timid (courage 35 or more, the line below which it softens threats): `ScriptMind.Swaps`. The host then sees no shortfall, so it neither complains nor loses trust over a light gift.
 
 ### Known quirks
 
