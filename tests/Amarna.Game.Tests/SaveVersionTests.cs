@@ -29,20 +29,23 @@ public class SaveVersionTests
     [Fact]
     public async Task New_games_are_saved_under_the_current_version()
     {
-        Assert.Equal(3, GameState.CurrentVersion);
+        Assert.Equal(4, GameState.CurrentVersion);
         Assert.Equal(GameState.CurrentVersion, GameFactory.NewGame(1).Version);
         var log = await PlayedLog(4, 1);
         Assert.Equal(GameState.CurrentVersion, log.Header.Version);
         Assert.Null(GameRunner.VersionProblem(log.Header));
     }
 
-    [Fact]
-    public async Task A_log_saved_under_version_1_is_neither_replayed_nor_continued()
+    /// <summary>Version 3 is the one before item 4's fix (d), when every kind of object took its id from one shared counter.</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    public async Task A_log_saved_under_an_earlier_version_is_neither_replayed_nor_continued(int version)
     {
         var log = await PlayedLog(4, 2);
-        log.Header.Version = 1;
+        log.Header.Version = version;
         var old = GameLog.FromJsonl(log.ToJsonl());
-        const string message = "This game was saved under an earlier version of the rules (version 1) and cannot be replayed by this version.";
+        var message = $"This game was saved under an earlier version of the rules (version {version}) and cannot be replayed by this version.";
 
         Assert.Equal(message, GameRunner.VersionProblem(old.Header));
         Assert.Equal(message, Assert.Throws<SaveVersionException>(() => GameRunner.ForReplay(old)).Message);

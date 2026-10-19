@@ -120,6 +120,26 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
+- **Ids: a counter for each kind of object** (since Build order item 4, fix (d); save version 4). Every
+  object the engine makes takes its id from `GameState.NewId(prefix)`: its kind's prefix and that kind's
+  own count, so tablets are "t1", "t2", ... and copies "k1", "k2", ... (`GameState.IdCounters`, saved
+  with the state). The prefixes are listed once, in `IdKinds`: a audience, c character, f fact, g lot
+  of gold, j journey, k copy of a tablet, m message trail, q task owed to a court, r request to a
+  character's mind, t tablet, u unit, x catastrophe; standing orders are numbered per seat ("s1", ...),
+  outside it. Each is letters only and belongs to one kind, so ids stay unique across kinds. Why:
+  many rolls are keyed by an id (a character's, a task's, an audience's), and until version 4 all
+  kinds shared one counter, so more objects of one kind, or a new kind, shifted the ids of everything
+  made after them and with them the dice. Build order item 3's inventory tablets and copies did just
+  that, and changed the winner in 13-14% of benchmark seeds without a rule that decided anything.
+  Now a kind added later, or more of one kind, leaves the ids of every other kind, and every roll
+  keyed by them, where they were. Tested: a dummy kind issued all through play leaves seeds 1-3
+  identical (same log, outcomes, winner, length and world), and the benchmarks were rerun with one in
+  the engine and came out identical. Within a kind a higher number was made later, which the
+  archives' "newest first" and the trail panel rely on (tested). What this does not cover: a rule
+  that adds draws to a stream shared by many decisions (a script king's stream for the season, say)
+  still moves the draws after it. A court can tell from the numbers of the ids it sees how many
+  objects of that kind exist in the world (copies made at other courts, for instance); the shared
+  counter told the same of all kinds together. Left as it is.
 - **Shared victory is off** (since 18 October 2026; see `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 23). One
   power wins: the one with the highest growth. A tablet can still be marked as a sworn alliance,
   and the script kings still treat it as a full alliance, but it shares nothing (the order schema
@@ -165,9 +185,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   say why; a botched forgery was an ordinary notice.)
 - **Save version.** The state and the log header carry the version of the rules
   (`GameState.CurrentVersion`: 2 since the simulation-fixes round, 3 since Build order item 3, whose archives,
-  inventory tablets and swapped inventories change how a seed plays). A log saved under another version
-  is refused, both for replay and for continuing it: "This game was saved under an earlier version of
-  the rules (version 2) and cannot be replayed by this version." The web app shows that message
+  inventory tablets and swapped inventories change how a seed plays, 4 since item 4's fix (d), the id
+  counter for each kind of object, which renumbers objects and so moves every seed's rolls once). A log saved
+  under another version is refused, both for replay and for continuing it: "This game was saved under an
+  earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1
+  and 3). The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header

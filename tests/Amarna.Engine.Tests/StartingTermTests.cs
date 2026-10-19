@@ -5,18 +5,24 @@ namespace Amarna.Engine.Tests;
 /// <summary>Starting envoys' terms end at different seasons, drawn from a stream of their own.</summary>
 public class StartingTermTests
 {
-    /// <summary>Everything a starting character is apart from its term's end.</summary>
+    /// <summary>
+    /// Everything a starting character is apart from its term's end and its ids. The ids are left out since item 4's fix (d)
+    /// renumbered them (each kind of object now counts on its own), which moved nothing else.
+    /// </summary>
     private static string People(GameState s) => Json.Hash(s.Characters.Select(c => new
     {
-        c.Id, c.Name, c.Origin, c.Calling, c.Traits, c.Facts, c.Status, c.Employer, c.At, c.SecretMaster, c.Persona, c.Reputation,
-        Wage = c.Contract?.Wage, Start = c.Contract?.StartTurn,
+        c.Name, c.Origin, c.Calling, c.Traits, Facts = c.Facts.Select(f => new { f.Text, f.Secrecy, f.Tag, f.KnownBy }).ToList(),
+        c.Status, c.Employer, c.At, c.SecretMaster, c.Persona, c.Reputation, Wage = c.Contract?.Wage, Start = c.Contract?.StartTurn,
     }).ToList());
 
-    /// <param name="before">The fingerprint of the starting characters when every term ended with turn 10.</param>
+    /// <param name="before">
+    /// The fingerprint of the starting characters when every term ended with turn 10, ids left out (taken just before fix (d);
+    /// the version of this test before then, with the ids in, matched the fingerprint from before terms were staggered).
+    /// </param>
     [Theory]
-    [InlineData(1ul, "c455b6d36d51f07c")]
-    [InlineData(7ul, "342da4dd85b17043")]
-    [InlineData(42ul, "9e8e6ffad9208553")]
+    [InlineData(1ul, "a456cadfeaca4bdc")]
+    [InlineData(7ul, "4ba46718a38551cd")]
+    [InlineData(42ul, "dfb5aed76c8e54e6")]
     public void Starting_terms_end_between_turns_7_and_13_and_every_other_draw_is_unchanged(ulong seed, string before)
     {
         var s = GameFactory.NewGame(seed);
