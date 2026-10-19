@@ -1776,7 +1776,9 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   Pages workflow rewrites their base path. In development the worker caches nothing.
 - **Load size.** The browser build runs in the invariant culture (no ICU data) and carries none of the Anthropic
   SDK, which it never constructs (it posts with HttpClient; the SDK path is in `Amarna.Llm.Sdk`, see "Transport"
-  under Models).
+  under Models): about 2.8 MB with Brotli, 3.4 MB with the gzip GitHub Pages serves. On a first visit the loading
+  screen says that the game is being downloaded, about 3 MB, and that later visits start from the device; a visit
+  started by the service worker does not show the note.
 - **Script kings and characters in a worker.** The kings' look-ahead is nearly all of a season's time (seconds on a
   slow phone), and a character's text code takes a second or two to warm up the first time it writes; in the page's one
   WebAssembly thread both froze the page. In a browser game they now think in a Web Worker of their own

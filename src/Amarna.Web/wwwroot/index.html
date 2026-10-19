@@ -41,8 +41,13 @@
                 <circle r="40%" cx="50%" cy="50%" />
             </svg>
             <div class="loading-progress-text"></div>
+            <p class="boot-note">The first visit downloads the game, about 3 MB. Later visits start from this device.</p>
         </div>
     </div>
+    <script>
+        // A later visit, started from this device: the note about the first download is not for it.
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) document.querySelector(".boot-note")?.remove();
+    </script>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
