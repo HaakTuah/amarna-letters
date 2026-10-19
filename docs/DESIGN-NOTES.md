@@ -564,11 +564,20 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   JSON, and checked units first, then the other orders in the order the human added them (not
   "units, then letters, then other orders"); and, with sleeping seats on, a human seat never sleeps,
   so the sections on sleeping and planning ahead do not apply to it.
-- **The customs primer** (on by default; `--no-primer` turns it off) covers the forms of address,
-  gifts as a measure of respect, detained envoys and blaming the messenger, oaths before the gods,
-  catastrophes as excuses, and the language of accusation: "Habiru" for outlaws and mercenaries,
-  and "in league with the Habiru" as the charge of treachery. It is knowledge, not instructions.
-  The Habiru are words only; there are no bandits in the engine.
+- **The customs primer** (on by default; `--no-primer` turns it off) covers the forms of address
+  and rank in the greeting ("brother" between Great Kings claims equal rank, as Assyria's king did
+  when he first wrote to the pharaoh as a brother; one's own name above the recipient's reads as an
+  insult), gifts as a measure of respect, precedent as a floor (more than was given to one's father;
+  a son who breaks his father's promise, as Akhenaten did with gilded wooden statues, hands the
+  argument to the other side), detained envoys and blaming the messenger, detention answering
+  detention (Tushratta held Mane until his own messengers were let go), a messenger's word not being
+  a tablet (Arzawa), proof needing a witness who knows (send someone who can recognise the
+  princess), oaths before the gods, catastrophes as excuses, and the language of accusation:
+  "Habiru" for outlaws and mercenaries, and "in league with the Habiru" as the charge of treachery.
+  It is knowledge, not instructions. The Habiru are words only; there are no bandits in the engine.
+  The five echoes from the design document's "Echoes from the archive" (rank, detention, words and
+  tablets, witnesses, precedent) came in the simulation-fixes round, in our own wording, adding 188
+  words to the primer (298 to 486).
 
 ## Pacing: sleeping seats
 
