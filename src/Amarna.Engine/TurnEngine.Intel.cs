@@ -276,7 +276,14 @@ public sealed partial class TurnEngine
         S.Notify(host, InboxKind.Notice, "A spy is caught",
             $"Your watchmen caught {c.Name}" + (confesses ? $", who confesses to serving {employer}." : ", who will not say whom they serve.")
             + " You may execute, ransom, turn or release them.", c.Id);
-        S.Log("spy-caught", $"{host} caught {c.Name}, a spy of {employer}.", [host], "spy-caught");
+        // The captor's record says what its court learned: whose spy, only if it confessed. The truth goes in a line
+        // nobody's court sees (the god view's), which carries the success marker.
+        if (confesses) S.Log("spy-caught", $"{host} caught {c.Name}, a spy of {employer}.", [host], "spy-caught");
+        else
+        {
+            S.Log("spy-caught", $"{host} caught {c.Name}, a spy who will not say whom they serve.", [host]);
+            S.Log("spy-caught", $"{host} caught {c.Name}, a spy of {employer} who would not say so.", [], "spy-caught");
+        }
         // The talk of the court that holds it, for the envoys and spies there to carry home: whose spy, if it confessed.
         S.Losses.Add(new LossAbroad { Turn = S.Turn, Kind = LossKind.Captured, CharacterId = c.Id, Court = host, Master = confesses ? employer : null });
     }

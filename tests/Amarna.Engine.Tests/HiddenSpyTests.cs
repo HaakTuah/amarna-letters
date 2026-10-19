@@ -24,9 +24,9 @@ public class HiddenSpyTests
     private static IEnumerable<CharacterView> People(SeatView v) => v.Court.Concat(v.Known);
 
     /// <summary>Babylonia's spy, sent to watch Assyria, has just taken up its post there (the season's orders are still to come).</summary>
-    private static (GameState S, Character Spy) Posted()
+    private static (GameState S, Character Spy) Posted(ulong seed = 8)
     {
-        var s = GameFactory.NewGame(8, new GameConfig { CatastropheChance = 0 });
+        var s = GameFactory.NewGame(seed, new GameConfig { CatastropheChance = 0 });
         var spy = s.Characters.First(c => c.Employer == Power.Babylonia);
         spy.SecretMaster = null;
         Begin(s).Resolve(Orders(Power.Babylonia, new PlaceSpyOrder(spy.Id, Court: Power.Assyria)));
@@ -46,6 +46,19 @@ public class HiddenSpyTests
         var c = home.Char(id);
         (c.Duty, c.At, c.MissionTarget, c.WatchProvince) = (Duty.None, Power.Babylonia, null, null);
         return home;
+    }
+
+    /// <summary>Assyria pays its watchmen well until they catch the spy, as the engine catches one (TurnEngine.Capture).</summary>
+    private static void Catch(GameState s, Character spy)
+    {
+        spy.Traits.Competence = 0;
+        s.Treasuries[Power.Assyria].Gold = 100000;
+        for (var i = 0; i < 30 && spy.Status != CharacterStatus.Captured; i++)
+        {
+            new TurnEngine(s).Resolve(Orders(Power.Assyria, new CounterIntelOrder(200)));
+            if (spy.Status != CharacterStatus.Captured) Begin(s);
+        }
+        Assert.Equal((CharacterStatus.Captured, Power.Assyria), (spy.Status, spy.HeldBy));
     }
 
     [Fact]
@@ -83,14 +96,7 @@ public class HiddenSpyTests
     public void A_caught_spy_is_seen_as_a_captive_with_the_master_it_confessed_to_and_once_turned_at_its_post()
     {
         var (s, spy) = Posted();
-        spy.Traits.Competence = 0;
-        s.Treasuries[Power.Assyria].Gold = 100000;
-        for (var i = 0; i < 30 && spy.Status != CharacterStatus.Captured; i++)
-        {
-            new TurnEngine(s).Resolve(Orders(Power.Assyria, new CounterIntelOrder(200)));
-            if (spy.Status != CharacterStatus.Captured) Begin(s);
-        }
-        Assert.Equal((CharacterStatus.Captured, Power.Assyria), (spy.Status, spy.HeldBy));
+        Catch(s, spy);
 
         // Caught: the court holds it, and knows whom it serves only if it confessed.
         var confessed = s.Losses.Last(l => l.CharacterId == spy.Id).Master;
@@ -119,6 +125,42 @@ public class HiddenSpyTests
         // One that confessed names its master.
         s.Losses[^1].Master = Power.Babylonia;
         Assert.Equal(Power.Babylonia, Views.For(s, Power.Assyria).Known.Single(c => c.Id == spy.Id).Employer);
+    }
+
+    [Fact]
+    public void The_captors_record_of_a_capture_names_only_the_master_the_spy_confessed_to()
+    {
+        // A timid spy always confesses; a brave one does 40% of the time, so a few games give one that keeps silent.
+        foreach (var (courage, confesses) in new[] { (0, true), (100, false) })
+        {
+            var found = false;
+            for (ulong seed = 1; seed <= 20 && !found; seed++)
+            {
+                var (s, spy) = Posted(seed);
+                spy.Traits.Courage = courage;
+                Catch(s, spy);
+                if ((s.Losses.Last(l => l.CharacterId == spy.Id).Master is not null) != confesses) continue;
+                found = true;
+
+                // What the captor's court has on record of it (in the web app, its Events and Season panels).
+                var told = s.Events.Where(e => e.VisibleTo.Contains(Power.Assyria) && e.Text.Contains(spy.Name)).Select(e => e.Text).ToList();
+                var caught = s.Events.Where(e => e.Kind == "spy-caught").ToList();
+                if (confesses)
+                {
+                    Assert.Equal([$"Assyria caught {spy.Name}, a spy of Babylonia."], told);
+                    Assert.Equal(["spy-caught"], caught.Select(e => e.Signal));
+                }
+                else
+                {
+                    Assert.Equal([$"Assyria caught {spy.Name}, a spy who will not say whom they serve."], told);
+                    // The truth is on record for the god view alone, which counts the capture once.
+                    var truth = caught.Single(e => e.VisibleTo.Count == 0);
+                    Assert.Equal(($"Assyria caught {spy.Name}, a spy of Babylonia who would not say so.", "spy-caught"), (truth.Text, truth.Signal));
+                    Assert.Single(caught, e => e.Signal is not null);
+                }
+            }
+            Assert.True(found, confesses ? "no spy confessed" : "no spy kept silent");
+        }
     }
 
     [Fact]

@@ -478,9 +478,13 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   not end a cover that court holds for it (a defector posted as a spy at its old master's court leaves the
   old master believing what it believed, as for any servant abroad). The web map already drew no foreign
   spy a court has not caught, and draws a captive held at the court with the master it confessed to, or
-  none. (Until Build order item 4 the view listed a spy posted at a court in that court's view as
+  none. The captor's own record of the capture (the event its court sees, in the web app's Events and
+  Season panels) names the master it confessed to, or says it "will not say whom they serve"; the truth is
+  a line no court sees, shown in the god view, which carries the success marker, so a capture still counts
+  once. (Until Build order item 4 the view listed a spy posted at a court in that court's view as
   employed, with its master, "at your court", and showed a captive no master even if it confessed, while
-  the map coloured every captive by its true master.)
+  the map coloured every captive by its true master; until that item's review the captor's event named
+  the true master too.)
 - **News of your people abroad comes only by rumour or when they return** (the rulebook says so).
   When something happens to a servant abroad that its master cannot see (a spy caught, an envoy
   detained or going over to the host, a captive put to death or turned, a prisoner let go), the

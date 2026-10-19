@@ -114,6 +114,33 @@ public class BlindnessTests
     }
 
     [Fact]
+    public async Task A_court_that_caught_a_spy_has_on_record_only_the_master_it_confessed_to()
+    {
+        // Script games in which a caught spy kept silent (seed 16 at turn 7, seed 12 at turn 15, when this was written).
+        var silent = 0;
+        foreach (var seed in new ulong[] { 16, 12 })
+        {
+            var (runner, _) = await Played(seed, 16);
+            var s = runner.State;
+            foreach (var l in s.Losses.Where(l => l.Kind == LossKind.Captured))
+            {
+                var name = s.Char(l.CharacterId).Name;
+                // What the captor's court has on record (in the web app, its Events and Season panels).
+                var line = Assert.Single(s.Events, e => e.Turn == l.Turn && e.Kind == "spy-caught" && e.VisibleTo.Contains(l.Court) && e.Text.Contains(name)).Text;
+                if (l.Master is { } master) Assert.Equal($"{l.Court} caught {name}, a spy of {master}.", line);
+                else
+                {
+                    silent++;
+                    Assert.Equal($"{l.Court} caught {name}, a spy who will not say whom they serve.", line);
+                    Assert.Single(s.Events, e => e.Turn == l.Turn && e.Kind == "spy-caught" && e.VisibleTo.Count == 0 && e.Text.StartsWith($"{l.Court} caught {name}, a spy of "));
+                }
+            }
+            if (silent > 0) break;
+        }
+        Assert.True(silent > 0, "no caught spy kept silent in these games");
+    }
+
+    [Fact]
     public async Task Seat_labels_change_nothing_a_script_king_does()
     {
         var (a, _) = await Played(4, 5);
