@@ -58,6 +58,7 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             {
                 ["notes"] = "Hold the line; keep Hatti friendly.",
                 ["summary"] = "",
+                ["ledger"] = new JsonArray(),
                 ["units"] = new JsonArray(),
                 ["letters"] = new JsonArray(),
                 ["other_orders"] = new JsonArray(),

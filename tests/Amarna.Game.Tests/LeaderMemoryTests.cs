@@ -5,7 +5,7 @@ using Amarna.Llm;
 
 namespace Amarna.Game.Tests;
 
-/// <summary>A model king's record of earlier seasons: its notes, its own summary of older seasons, and what each request shows.</summary>
+/// <summary>A model king's record of earlier seasons: its notes, its own summary of older seasons, its ledger of dealings, and what each request shows.</summary>
 public class LeaderMemoryTests
 {
     /// <summary>Answers each request with the JSON the test gives for it, and keeps every request.</summary>
@@ -22,11 +22,12 @@ public class LeaderMemoryTests
 
     private const string Host = """{"speech":"Tell your lord I am his brother.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
 
-    /// <summary>An orders reply with these notes and summary, holding Hatti's capital.</summary>
-    private static string Orders(string notes, string summary = "") => new JsonObject
+    /// <summary>An orders reply with these notes, summary and ledger lines, holding Hatti's capital.</summary>
+    private static string Orders(string notes, string summary = "", params (string Court, string Entry)[] ledger) => new JsonObject
     {
         ["notes"] = notes,
         ["summary"] = summary,
+        ["ledger"] = new JsonArray(ledger.Select(l => (JsonNode)new JsonObject { ["court"] = l.Court, ["entry"] = l.Entry }).ToArray()),
         ["units"] = new JsonArray(new JsonObject { ["unit"] = "hattusa", ["order"] = "hold", ["target"] = "", ["to"] = "" }),
         ["letters"] = new JsonArray(),
         ["other_orders"] = new JsonArray(),
@@ -47,11 +48,13 @@ public class LeaderMemoryTests
         Envoy = new CharacterView { Id = "c90", Name = "Mane" }, Spoken = "My lord greets you.",
     };
 
-    /// <summary>A seat that has given orders in turns 1..last, with notes "notes of turn N" (and a summary where given).</summary>
-    private static async Task<(LlmLeaderSeat Seat, Scripted Asker)> Played(int last, Func<int, string>? summary = null, Func<int, string>? notes = null)
+    /// <summary>A seat that has given orders in turns 1..last, with notes "notes of turn N" (and a summary and ledger lines where given).</summary>
+    private static async Task<(LlmLeaderSeat Seat, Scripted Asker)> Played(int last, Func<int, string>? summary = null, Func<int, string>? notes = null,
+        Func<int, (string Court, string Entry)[]>? ledger = null)
     {
         var turn = 0;
-        var asker = new Scripted(spec => spec.Key.Contains("/aud/") ? Host : Orders(notes?.Invoke(turn) ?? $"notes of turn {turn}", summary?.Invoke(turn) ?? ""));
+        var asker = new Scripted(spec => spec.Key.Contains("/aud/") ? Host
+            : Orders(notes?.Invoke(turn) ?? $"notes of turn {turn}", summary?.Invoke(turn) ?? "", ledger?.Invoke(turn) ?? []));
         var seat = new LlmLeaderSeat(Power.Hatti, asker, "m", "medium", true, Game.Config);
         for (turn = 1; turn <= last; turn++) await seat.DecideAsync(View(turn), default);
         return (seat, asker);
@@ -153,11 +156,11 @@ public class LeaderMemoryTests
     }
 
     [Fact]
-    public async Task The_summary_is_logged_with_the_orders_and_a_replay_reads_it()
+    public async Task The_summary_and_ledger_are_logged_with_the_orders_and_a_replay_reads_them()
     {
         // Asked every season, so that every season has its orders.
         var state = GameFactory.NewGame(4, new GameConfig { MinTurns = 3, EndChance = 1.0, CatastropheChance = 0, SleepingSeats = false });
-        var asker = new Scripted(spec => spec.Key.Contains("/aud/") ? Host : Orders($"notes {spec.Turn}", $"summary written in turn {spec.Turn}"));
+        var asker = new Scripted(spec => spec.Key.Contains("/aud/") ? Host : Orders($"notes {spec.Turn}", $"summary written in turn {spec.Turn}", ("Egypt", $"ledger line of turn {spec.Turn}")));
         var bot = new ScriptLeader(4);
         var seats = Powers.All.ToDictionary(p => p, p => p == Power.Hatti ? new LlmLeaderSeat(p, asker, "m", "medium", true, state.Config) : (ISeat)bot);
         var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
@@ -167,10 +170,69 @@ public class LeaderMemoryTests
         var log = GameLog.FromJsonl(runner.Log.ToJsonl());
         Assert.True(log.TryGet<TurnSubmission>("t2/orders/Hatti", out var logged));
         Assert.Equal("summary written in turn 2", logged.Summary);
+        Assert.Equal(new LedgerLine(Power.Egypt, "ledger line of turn 2"), Assert.Single(logged.Ledger));
         var replay = GameRunner.ForReplay(log);
         replay.WriteChronicles = false;
         await replay.PrepareAsync();
         while (await replay.PlayTurnAsync()) { }
         Assert.Equal(Json.Hash(runner.State), Json.Hash(replay.State));
+    }
+
+    [Fact]
+    public async Task The_ledger_keeps_a_line_per_court_that_an_entry_replaces_and_an_empty_entry_removes()
+    {
+        var (seat, asker) = await Played(3, ledger: t => t switch
+        {
+            1 => [("Mitanni", "Promised 50 shekels for peace."), ("Egypt", "Sealed peace in turn 1.")],
+            2 => [("Egypt", "Broke the peace: took gaza."), ("Babylonia", "Paid me 30, as promised.")],
+            3 => [("Mitanni", "  "), ("Arzawa", new string('a', 900))],
+            _ => [],
+        });
+        await seat.DecideAsync(View(4), default);
+        var request = LastOrdersRequest(asker);
+        Assert.Contains("YOUR LEDGER OF DEALINGS (your own words, per court: what was promised, sealed, broken and paid; each line with the season you last wrote it):", request);
+        Assert.Contains("- Egypt (turn 2): Broke the peace: took gaza.", request);
+        Assert.Contains("- Babylonia (turn 2): Paid me 30, as promised.", request);
+        Assert.DoesNotContain("Sealed peace in turn 1", request);
+        Assert.DoesNotContain("Mitanni (turn", request);
+        Assert.Contains("- Arzawa (turn 3): " + new string('a', LeaderJournal.LedgerEntryMax) + "…", request);
+        // One line per court, in the fixed order of the powers, whatever order they were written in.
+        Assert.True(request.IndexOf("- Egypt (turn", StringComparison.Ordinal) < request.IndexOf("- Babylonia (turn", StringComparison.Ordinal));
+        Assert.True(request.IndexOf("- Babylonia (turn", StringComparison.Ordinal) < request.IndexOf("- Arzawa (turn", StringComparison.Ordinal));
+        // The ledger is carried in full, however long ago a line was written: it never leaves with the notes.
+        var (later, laterAsker) = await Played(6, ledger: t => t == 1 ? [("Assyria", "Owes me a fleet.")] : []);
+        await later.DecideAsync(View(7), default);
+        Assert.Contains("- Assyria (turn 1): Owes me a fleet.", LastOrdersRequest(laterAsker));
+        Assert.DoesNotContain("notes of turn 1", LastOrdersRequest(laterAsker));
+    }
+
+    [Fact]
+    public async Task The_ledger_is_carried_into_audience_requests()
+    {
+        var (seat, asker) = await Played(2, ledger: t => t == 2 ? [("Egypt", "Sent Mane with 40 shekels; no tablet yet.")] : []);
+        await seat.HostAudienceAsync(Envoy(3), View(3), default);
+        var request = asker.Asked.Last().User;
+        Assert.Contains("- Egypt (turn 2): Sent Mane with 40 shekels; no tablet yet.", request);
+        Assert.True(request.IndexOf("YOUR LEDGER OF DEALINGS", StringComparison.Ordinal) < request.IndexOf("AN AUDIENCE", StringComparison.Ordinal));
+
+        // Before anything is written, the request says so in one line.
+        var (fresh, freshAsker) = await Played(1);
+        await fresh.HostAudienceAsync(Envoy(2), View(2), default);
+        Assert.Contains("YOUR LEDGER OF DEALINGS (your own words, per court: what was promised, sealed, broken and paid; each line with the season you last wrote it): nothing written yet.", freshAsker.Asked.Last().User);
+    }
+
+    [Fact]
+    public void The_model_path_reads_the_ledger_and_the_schema_and_rulebook_explain_it()
+    {
+        var sub = Parse.Orders(JsonNode.Parse(Orders("n", "", ("Hatti", " Swore friendship. "), ("Assyria", "")))!.AsObject());
+        Assert.Equal([new LedgerLine(Power.Hatti, "Swore friendship."), new LedgerLine(Power.Assyria, "")], sub.Ledger);
+        var schema = Schemas.LeaderOrders(Game.Config);
+        Assert.Contains("ledger", schema["required"]!.AsArray().Select(x => x!.GetValue<string>()));
+        var ledger = schema["properties"]!["ledger"]!;
+        Assert.Contains("An entry replaces that court's line, an empty entry removes it", ledger["description"]!.GetValue<string>());
+        Assert.Equal(Powers.All.Select(p => p.ToString()), ledger["items"]!["properties"]!["court"]!["enum"]!.AsArray().Select(x => x!.GetValue<string>()));
+        Assert.Contains("At most 600 characters", ledger["items"]!["properties"]!["entry"]!["description"]!.GetValue<string>());
+        Assert.Contains("Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience",
+            Prompts.LeaderRules(true, Game.Config));
     }
 }

@@ -112,6 +112,10 @@ public static class Schemas
     private static JsonObject LeaderOrdersBase(bool sharedVictory) => Object(
         ("notes", Str($"Private notes to yourself, at most {Thousands(LeaderJournal.NotesMax)} characters (longer notes are cut): plans, promises made, suspicions. They are shown in full the next {LeaderJournal.SeasonsShown} times you give orders, then leave your record.")),
         ("summary", Str($"Your own summary of the seasons before those shown in full: plans, promises, what you have learned. At most {Thousands(LeaderJournal.SummaryMax)} characters. It replaces your previous summary; leave it empty to keep it.")),
+        ("ledger", Array(Object(
+            ("court", Enum(PowerNames)),
+            ("entry", Str($"At most {Thousands(LeaderJournal.LedgerEntryMax)} characters; empty removes that court's line."))),
+            "Your ledger of dealings, in your own words, per court: what was promised, sealed, broken and paid. An entry replaces that court's line, an empty entry removes it, and courts you leave out keep their lines. It is shown in full whenever you give orders or hold an audience.")),
         ("units", Array(UnitOrder())),
         ("letters", Array(Object(
             ("envoy", Str("Id of one of your people who is at court and ready.")),

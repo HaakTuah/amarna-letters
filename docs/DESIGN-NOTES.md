@@ -510,11 +510,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   condense; the seat's own model makes every decision: what the king answers, whether it reopens
   its orders, what it orders. A seat played by one model in one call and a weaker one in the next is
   not one mind, and the weaker call is the one that gets exploited. So the king's summary of older
-  seasons is written in its own reply, by its own model. Known exceptions: the script king that
-  stands in when a call fails (below, and "When a model call fails" under sleeping seats), and the
-  server-side refusal fallback, under which another model answers a refused Sonnet or Opus call
-  (logged as `UsedFallback`). A host's audience runs on the seat's own model, one effort level
-  lower.
+  seasons and its ledger of dealings are written in its own replies, by its own model. Known
+  exceptions: the script king that stands in when a call fails (below, and "When a model call
+  fails" under sleeping seats), and the server-side refusal fallback, under which another model
+  answers a refused Sonnet or Opus call (logged as `UsedFallback`). A host's audience runs on the
+  seat's own model, one effort level lower.
 - Every state-changing output uses structured output (a JSON schema). Orders face the same
   validator as any seat. An unreadable reply is retried once with the error; then the runner
   uses a script decision for that call and logs the failure.
@@ -531,22 +531,30 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Prompt-injection boundaries**: a character's prompt holds only its own persona, memory and
   facts (tested); text never changes state; the narrator receives only released facts.
 - **Leader memory** is a private record in the king's own words (`LeaderJournal`), shown in every
-  orders request after its view. First comes its own summary of earlier seasons ("YOUR SUMMARY OF
-  EARLIER SEASONS (your own words, turn 6): ..."), then the last three seasons it gave orders in
-  full: its notes, the audiences it held (what it said to whose envoy) and its orders. Older seasons
-  leave the record, and the request says which turn's notes leave it after this season ("Your notes
-  from turn 4 leave this record after this season; keep what you need in your summary."). Each
-  season's notes are kept up to 2,000 characters; longer notes are cut with "…", and the schema
-  says so. The summary is a reply field (`summary`, at most 2,000 characters, cut the same way): it
-  replaces the summary before, and an empty one keeps it. A king that has written none once notes
-  have left reads "you have written none, and your notes from turn 4 and before have left this
-  record." An audience request carries the summary and the notes of the last two seasons. The
-  rulebook's HOW TO ANSWER says how the record works. The summary is parsed with the orders
-  (`TurnSubmission.Summary`), so it is logged and a replay can read it; the engine ignores it. The
-  record lives in the seat object: a resumed game's model leaders start it afresh. (Until the
+  orders request after its view. First comes its **ledger of dealings**, the per-court ledger of the
+  design document's risk table, carried in full: "YOUR LEDGER OF DEALINGS (your own words, per
+  court: what was promised, sealed, broken and paid; each line with the season you last wrote it)",
+  one line per court in the fixed order of the powers ("- Egypt (turn 5): ..."), or "nothing
+  written yet". The reply field `ledger` is a list of {court, entry}: an entry (at most 600
+  characters, cut with "…") replaces that court's line, an empty entry removes it, and courts left
+  out keep theirs; the ledger never leaves the record. Then comes the king's own summary of earlier
+  seasons ("YOUR SUMMARY OF EARLIER SEASONS (your own words, turn 6): ..."), then the last three
+  seasons it gave orders in full: its notes, the audiences it held (what it said to whose envoy) and
+  its orders. Older seasons leave the record, and the request says which turn's notes leave it after
+  this season ("Your notes from turn 4 leave this record after this season; keep what you need in
+  your summary."). Each season's notes are kept up to 2,000 characters; longer notes are cut with
+  "…", and the schema says so. The summary is a reply field (`summary`, at most 2,000 characters,
+  cut the same way): it replaces the summary before, and an empty one keeps it. A king that has
+  written none once notes have left reads "you have written none, and your notes from turn 4 and
+  before have left this record." An audience request carries the ledger, the summary and the notes
+  of the last two seasons. The rulebook's HOW TO ANSWER says how the record and the ledger work.
+  Summary and ledger are parsed with the orders (`TurnSubmission.Summary`, `Ledger`), so they are
+  logged and a replay can read them; the engine ignores them. The record lives in the seat object:
+  a resumed game's model leaders start it afresh, ledger and all. It is kept only for model and file
+  kings: the web app's Rules tab tells a human seat that it keeps its own. (Until the
   simulation-fixes round it held the last five seasons in full and the notes of the eight before,
-  cut to 300 characters, with no summary; the simulation's kings wrote a median of 1,989
-  characters of notes a season, 107 of 134 replies over 1,500.)
+  cut to 300 characters, with no summary and no ledger; the simulation's kings wrote a median of
+  1,989 characters of notes a season, 107 of 134 replies over 1,500.)
 - **Audience requests** carry, besides the treasury, the count of lands and the tablets held, the
   host's own land and troops ("YOUR LAND: …. YOUR TROOPS: army in memphis, …") and the season's news
   as its orders request shows it ("NEWS THIS SEASON"), so a host does not tell an envoy that a city
@@ -555,8 +563,7 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   with a note of where a human's game differs: orders are given with the controls rather than as
   JSON, and checked units first, then the other orders in the order the human added them (not
   "units, then letters, then other orders"); and, with sleeping seats on, a human seat never sleeps,
-  so the sections on sleeping and planning ahead do not apply to it. The record of notes and summary
-  that HOW TO ANSWER describes is kept only for model kings (a human keeps its own).
+  so the sections on sleeping and planning ahead do not apply to it.
 - **The customs primer** (on by default; `--no-primer` turns it off) covers the forms of address,
   gifts as a measure of respect, detained envoys and blaming the messenger, oaths before the gods,
   catastrophes as excuses, and the language of accusation: "Habiru" for outlaws and mercenaries,
