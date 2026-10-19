@@ -133,8 +133,8 @@ public class WakeTriggerTests
     [Fact]
     public void Foreign_troops_that_end_a_move_next_to_a_home_province_wake_the_seat_once()
     {
-        // The second simulation's case (seed 15): Egypt's fleet comes beside Tamassos, Alashiya's other province, out of
-        // reach of Enkomi, its capital. Before the fix pass nothing woke Alashiya until Tamassos fell.
+        // The second simulation's case (seed 7): Egypt's fleet comes beside Tamassos, Alashiya's other province, out of
+        // reach of Enkomi, its capital. Before the fix pass only an envoy at its door could have woken Alashiya then.
         var (s, sleep) = AlashiyaAsleep();
         Assert.DoesNotContain("enkomi", WorldMap.Default.Neighbors("greatgreen"));
         Season(s, Egypt(new MoveOrder("delta", "greatgreen")));

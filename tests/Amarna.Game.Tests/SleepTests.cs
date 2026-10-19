@@ -1581,7 +1581,7 @@ public class SleepTests
     [Fact]
     public void The_rulebook_says_a_standing_order_answers_a_move_in_the_season_it_is_made()
     {
-        // Four kings debriefed after the second agent simulation found no use for standing orders that ran the season after
+        // Five kings debriefed after the second agent simulation found no use for standing orders that ran the season after
         // their event ("it cannot help against a lethal attack, and it comes a season late", Hatti, seed 7).
         var rules = Prompts.LeaderRules(true, new GameConfig());
         Assert.Contains("Each waits for a move you can see (from or into a province in your sight) and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds", rules);

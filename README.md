@@ -119,15 +119,16 @@ king's temperament under **Standings**.
 ## Sleeping seats
 
 Long games become affordable when model calls scale with events, not with time. **Sleeping
-seats** are on by default: after giving its orders, a model king sleeps. The world goes on, its
-units hold and its scheduled orders run, each following its unit (a march stopped by a bounce
-tries the step again), and its standing orders fire when it sees a unit enter a province or one of
-its own units attacked. It is woken only when something concerns it: an envoy at the door, foreign
-troops in its land, land or troops lost, a failed scheduled or standing order, a servant giving
-notice, a ransom demanded, a trigger of its own or the season it named. Everything else
-waits in a digest, and a hidden safety cap wakes it after a long sleep. Script and human kings play
-every season. Switch it off (Customize in the web app, `--sleep off` in the batch runner) to ask
-every king every season. The details are in `docs/DESIGN-NOTES.md`.
+seats** are on by default: after giving its orders, a model king sleeps, and it never chooses when
+it wakes. The world goes on, its units hold and its scheduled orders run, each following its unit
+(a march stopped by a bounce tries the step again, and a new levy can be given orders ahead), and
+its standing orders answer, in the same season, a unit it sees setting out to enter a province or
+to attack one of its own. It is woken only when something concerns it: an envoy at the door,
+foreign troops in its land or arriving next to its homeland or a walled city it holds, land or
+troops lost, a failed scheduled or standing order, a servant giving notice, or a ransom demanded.
+Everything else waits in a digest, and a hidden safety cap wakes it after a long sleep. Script and
+human kings play every season. Switch it off (Customize in the web app, `--sleep off` in the batch
+runner) to ask every king every season. The details are in `docs/DESIGN-NOTES.md`.
 
 ## Spectator mode
 

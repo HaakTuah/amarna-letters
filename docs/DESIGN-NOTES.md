@@ -1142,7 +1142,7 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     movement, from what the seat saw (`unit_enters`: the unit got there; `unit_attacked`: the unit
     was still there afterwards), and its orders ran the next season. That is the season a king woken
     by the same event gives orders anyway, so a standing order did nothing waking could not: no king
-    gave one in 130 orders replies of the second agent simulation, and four of the fourteen debriefs
+    gave one in 130 orders replies of the second agent simulation, and five of the fourteen debriefs
     said why ("it cannot help against a lethal attack, and it comes a season late", Hatti, seed 7;
     "they should also say what standing orders can do that waking cannot", Arzawa, seed 7). Answering
     the move as it is made is what the document's own example needs ("if Hatti enters Mira, support
@@ -1202,7 +1202,11 @@ with sleeping seats on (schedule 3,041, standing orders 1,949), 5,560 off. Part 
 and ledger fields added 1,000 of those characters (on or off) and Part G's wording of the wake
 triggers 68 (on only); before them it was 11,066 on and 4,560 off, and 13,502 printed in 205 lines. Sharing the shapes through
 `$defs`/`$ref` would cut that further, but is not done: it is untried against the API's structured
-output, and the file seat's own schema check would have to follow references.
+output, and the file seat's own schema check would have to follow references. Since the fix pass after item 4 the
+orders schema has no `sleep` field (no season named, no triggers of the seat's own): with sleeping seats on it is 10,933
+characters compact (12,134 before) and 13,202 as a file seat reads it (14,681 before); the rulebook grew 309 characters
+(30,579 to 30,888, sleep on, with the primer) with the sleep paragraph, the threats that wake a king, standing orders
+answering a move as it is made and orders for new levies.
 
 **File characters** (`--file-characters DIR|map.json`, item 4) do the same for envoys, spies and candidates: every
 decision a model character makes (its speech abroad, each reply at an audience, its report home, a pitch, a spy's
