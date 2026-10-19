@@ -144,9 +144,13 @@ public sealed class ScriptMind : ICharacterMind
             lines.Add($"My lord, I have returned from the court of {host.Value.Land()}.");
             if (cargo.WasDetained) lines.Add("They held me against my will, and only now let me go.");
             var hostWords = trail.Exchanges.Select(x => x.Host).Where(x => x.Length > 0).ToList();
+            // An envoy that kept some of the gold it carried leaves out what the host said of the weighing ("my weighers
+            // found only 37 shekels", "your messenger's hands are heavy with my gold"): its lord is not to hear the lot came light.
+            var kept = trail.Outcomes.Any(o => o.StartsWith("kept ", StringComparison.Ordinal));
             foreach (var words in hostWords)
             {
-                var sentences = TextKit.Sentences(words);
+                var sentences = TextKit.Sentences(words).Where(s => !kept || !TextKit.SpeaksOfWeighing(s)).ToList();
+                if (sentences.Count == 0) continue;
                 if (faithful) lines.Add($"The king said: \"{TextKit.Join(sentences)}\"");
                 else if (bribed || fearful)
                 {

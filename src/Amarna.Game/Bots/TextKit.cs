@@ -237,6 +237,13 @@ public static partial class TextKit
     /// </summary>
     public static bool IsAccusation(string text) => Accusation().IsMatch(text);
 
+    /// <summary>
+    /// Whether a sentence speaks of the weighing of gold: the weighers, weight or scales, the inventory, a lot that came or
+    /// fell short, a shortfall, a messenger's hands heavy with the gold ("The inventory lists 40 shekels, but my weighers
+    /// found only 37"; "Either your lord is mean or your messenger's hands are heavy with my gold").
+    /// </summary>
+    public static bool SpeaksOfWeighing(string sentence) => Weighing().IsMatch(sentence.Replace('’', '\''));
+
     /// <summary>Whether a text speaks of land, gold or tribute (whole words: "lands" and "tributes" too, not "landed" or "golden").</summary>
     public static bool SpeaksOfLandOrGold(string text) => LandOrGold().IsMatch(text);
 
@@ -280,6 +287,9 @@ public static partial class TextKit
 
     [GeneratedRegex(@"\b(?:lands?|gold|tributes?)\b", RegexOptions.IgnoreCase)]
     private static partial Regex LandOrGold();
+
+    [GeneratedRegex(@"\b(?:weigh(?:s|ed|ing|ers?|ts?)?|scales|inventor(?:y|ies)|shortfall|(?:fell|falls|came|comes|is|was)\s+short|hands\s+(?:are|were)\s+heavy|heavy\s+with\s+(?:my|the|our)\s+gold)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex Weighing();
 
     [GeneratedRegex(@"\b(?:ced(?:e|es|ed|ing)|cession|yield(?:s|ed|ing)?|surrender(?:s|ed|ing)?|relinquish\w*|(?:give|gives|gave|given|giving|hand|hands|handed|handing)\s+(?:\S+\s+)?(?:up|over)\b|(?:give|gives|gave|given|leave|leaves|left)\s+\S+\s+to\b|belong(?:s|ed|ing)?|(?:pass(?:es|ed)?|fall(?:s|en)?|fell)\s+(?:in)?to\b|share\s+of|(?:shall|will|is|are|be|becomes?|remains?)\s+(?:now\s+|henceforth\s+|forever\s+)?(?:\w+'s|yours|his|hers|theirs|ours)\b(?!\s+(?:brothers?|friends?|ally|allies|father|sons?|kin)\b))", RegexOptions.IgnoreCase)]
     private static partial Regex HandOver();

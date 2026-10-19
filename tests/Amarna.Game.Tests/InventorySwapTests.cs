@@ -68,6 +68,31 @@ public class InventorySwapTests
         Assert.Equal(kept, (await new ScriptMind().WriteAsync(home, default)).Number);
     }
 
+    /// <summary>
+    /// An envoy that kept some of the gold, with no hand to hide it, leaves the host's complaint about the weighing out of
+    /// its report, and only then: its lord is not to hear that the lot came light.
+    /// </summary>
+    [Fact]
+    public async Task A_script_envoy_that_kept_some_of_the_gold_leaves_the_hosts_complaint_out_of_its_report()
+    {
+        var envoy = Envoy(80, 40, 40, 60);
+        const string host = "Welcome, envoy. The inventory lists 40 shekels, but my weighers found only 34. Either your lord is mean or your messenger's hands are heavy with my gold. Go in peace.";
+        async Task<string> Report(params string[] outcomes) => (await new ScriptMind().WriteAsync(new MindContext
+        {
+            Request = new MindRequest { Task = MindTask.EnvoyReport, CharacterId = envoy.Id, Court = Power.Egypt, Cargo = new HomeCargo() },
+            Self = envoy, Turn = 3, Seed = 1,
+            Trail = new MessageTrail { Id = "m1", Turn = 1, From = Power.Egypt, To = Power.Hatti, Exchanges = [new Exchange { Host = host, Envoy = "I hear you." }], Outcomes = outcomes.ToList() },
+        }, default)).Text;
+
+        var kept = await Report("kept 6 shekels of the gold");
+        Assert.Contains("The king said, in short: \"Welcome, envoy. Go in peace.\"", kept);
+        Assert.DoesNotContain("weighers", kept);
+        Assert.DoesNotContain("hands are heavy", kept);
+        Assert.Contains("my weighers found only 34. Either your lord is mean or your messenger's hands are heavy with my gold.", await Report());
+        Assert.True(TextKit.SpeaksOfWeighing("The lot came short of its inventory."));
+        Assert.False(TextKit.SpeaksOfWeighing("I thank you for the gold you sent."));
+    }
+
     /// <summary>Sends one envoy with 100 shekels to Hatti in the first season.</summary>
     private sealed class Sender(string envoyId) : ISeat
     {

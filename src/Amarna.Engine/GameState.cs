@@ -14,8 +14,9 @@ public sealed class GameState
     /// paid back pay there, and does not end that court's cover), and each kind of object has its own id counter (fix (d),
     /// <see cref="IdCounters"/>). Neither change was released on its own, so one version covers both. 5 since the fix pass
     /// after item 4: among its changes, script envoys keep a share of small lots of gold (rounded to the shekel, not down to
-    /// fives), read a passive "warned" as a threat to a king only when he is the one warned, and split sentences after a
-    /// closing quote, which changes what they keep and say.
+    /// fives), leave the host's complaint about the weighing out of their reports when they kept some, read a passive
+    /// "warned" as a threat to a king only when he is the one warned, and split sentences after a closing quote, which
+    /// changes what they keep and say.
     /// </summary>
     public const int CurrentVersion = 5;
 
