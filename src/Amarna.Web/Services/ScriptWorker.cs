@@ -218,21 +218,14 @@ public sealed class ScriptHost
 }
 
 /// <summary>
-/// The requests and replies, read and written with serialization code generated at build time and the same settings as
-/// <see cref="Json.Options"/>. Worked out at run time instead, their types cost the page most of a second the first time
-/// on a slow phone.
+/// The requests and replies as JSON, with the engine's own settings (<see cref="Json.Options"/>). Serialization code
+/// generated at build time was tried: it added 69 KB to the download and made the first season's longest stretch in the
+/// page no shorter on an emulated slow phone.
 /// </summary>
-[System.Text.Json.Serialization.JsonSourceGenerationOptions(
-    PropertyNamingPolicy = System.Text.Json.Serialization.JsonKnownNamingPolicy.CamelCase,
-    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-    UseStringEnumConverter = true,
-    PropertyNameCaseInsensitive = true)]
-[System.Text.Json.Serialization.JsonSerializable(typeof(ScriptRequest))]
-[System.Text.Json.Serialization.JsonSerializable(typeof(ScriptReply))]
-public sealed partial class ScriptJson : System.Text.Json.Serialization.JsonSerializerContext
+public static class ScriptJson
 {
-    public static string Write(ScriptRequest request) => System.Text.Json.JsonSerializer.Serialize(request, Default.ScriptRequest);
-    public static string Write(ScriptReply reply) => System.Text.Json.JsonSerializer.Serialize(reply, Default.ScriptReply);
-    public static ScriptRequest ReadRequest(string json) => System.Text.Json.JsonSerializer.Deserialize(json, Default.ScriptRequest) ?? throw new InvalidOperationException("Could not read the request.");
-    public static ScriptReply ReadReply(string json) => System.Text.Json.JsonSerializer.Deserialize(json, Default.ScriptReply) ?? throw new InvalidOperationException("Could not read the reply.");
+    public static string Write(ScriptRequest request) => Json.Serialize(request);
+    public static string Write(ScriptReply reply) => Json.Serialize(reply);
+    public static ScriptRequest ReadRequest(string json) => Json.Deserialize<ScriptRequest>(json);
+    public static ScriptReply ReadReply(string json) => Json.Deserialize<ScriptReply>(json);
 }

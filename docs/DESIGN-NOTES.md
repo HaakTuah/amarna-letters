@@ -1781,9 +1781,9 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   (`ScriptWorker.cs`, `js/script-worker.js`): it boots a second .NET runtime from the files the page has already
   downloaded (nothing more to download), warms up on a throwaway game while the page sets up the real one, and
   answers one request at a time. Each request carries what the engine handed the seat or the mind, the king's view or
-  the character's context, written out as JSON as a file seat's view is (with serialization code generated at build
-  time, which the page would otherwise spend most of a second working out on a slow phone), and the answer comes back
-  the same way into the runner, which records it as before. The kings keep their memory in the worker from season to
+  the character's context, written out as JSON as a file seat's view is, and the answer comes back the same way into
+  the runner, which records it as before (serialization code generated at build time was tried and dropped: 69 KB
+  more to download, and no shorter first season in the page). The kings keep their memory in the worker from season to
   season (one `ScriptLeader` per game, as in the page), so each answer is the one the same code gives in the page:
   tests play seeds 1, 2, 5, 7 and 14 both ways and compare every decision and the state after every season. Where no
   worker can start the kings think in the page as before, letting the browser draw between them (`YieldingSeat`); if
