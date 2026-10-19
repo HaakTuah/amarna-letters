@@ -1645,8 +1645,9 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   panel (the season in words by default) below it and the timeline at the bottom within reach of a thumb; a panel can
   be pulled up over the map and dropped back without the map losing its place or zoom. Held sideways, the map takes
   the left and the panels the right; on a desktop they stand side by side. The layout keeps to the phone's safe areas,
-  and the page itself never scrolls. Pinch-zoom and pan move one layer on the GPU (`js/mapzoom.js`); symbols and names
-  grow when the map is small on screen, and minor names wait until it is zoomed in. A province list stands in for
+  and the page itself never scrolls. Pinch-zoom and pan move one layer on the GPU (`js/mapzoom.js`); symbols, names and lines
+  keep a readable size on screen whatever the zoom (tokens about 14 pixels on a phone showing the whole board, 22 on a
+  desktop, at most 40), and minor names wait until the map is large enough to hold them. A province list stands in for
   tapping small provinces; in a human seat's orders it picks a destination as a tap on the map would.
 - **Installable.** A manifest and a service worker (the Blazor template's, adapted): the published build caches
   every file at install and starts from the cache afterwards. Fingerprinted files are taken from the browser's own

@@ -48,8 +48,8 @@ else
                 </div>
                 <div class="ending">
                     @if (!history) { <span class="phase">@PhaseText(runner) · </span> }
-                    <span class="long">@(frame.Ended ? $"The age has ended: {frame.EndReason}." : Calendar.Ending(frame.Turn, frame.MinTurns, frame.EndChance, viewer))</span>
-                    <span class="short">@(frame.Ended ? "The age has ended" : frame.Turn < frame.MinTurns ? $"Can end from {Calendar.Short(frame.MinTurns, viewer)} (turn {frame.MinTurns})" : $"Any season may be the last ({frame.EndChance * 100:0.#}%)")</span>
+                    <span class="long">@(frame.Ended ? $"The age has ended: {frame.EndReason}. Winner: {string.Join(" and ", frame.Winners)}." : Calendar.Ending(frame.Turn, frame.MinTurns, frame.EndChance, viewer))</span>
+                    <span class="short">@(frame.Ended ? $"Ended · winner {string.Join(" and ", frame.Winners)}" : frame.Turn < frame.MinTurns ? $"Can end from {Calendar.Short(frame.MinTurns, viewer)} (turn {frame.MinTurns})" : $"Any season may be the last ({frame.EndChance * 100:0.#}%)")</span>
                 </div>
             </div>
             <div class="gctl">
@@ -308,7 +308,8 @@ else
 
     private void Pick(string tab)
     {
-        if (Tab == tab && tab != "season") { Sheet = !Sheet; return; }
+        // The open tab, tapped again, pulls the panel up over the map (on a phone held upright) or drops it back.
+        if (Tab == tab) { Sheet = !Sheet; return; }
         Tab = tab;
     }
 
