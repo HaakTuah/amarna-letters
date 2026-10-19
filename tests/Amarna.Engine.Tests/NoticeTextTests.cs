@@ -61,16 +61,16 @@ public class NoticeTextTests
         e.BeginTurn();
         e.Resolve(new Dictionary<Power, TurnSubmission>
         {
-            [Power.Egypt] = new() { Orders = [new MoveOrder("delta", "levantsea")] },
+            [Power.Egypt] = new() { Orders = [new MoveOrder("delta", "greatgreen")] },
             [Power.Assyria] = new() { Orders = [new MoveOrder("ekallatum", "arbela")] },
         });
         e = new TurnEngine(s);
         e.BeginTurn();
         e.WakeCheck();
 
-        // A fleet off its coast no longer wakes a sleeper: it waits in the digest, like any move it saw.
+        // A fleet off its coast, away from its capital, does not wake a sleeper: it waits in the digest, like any move it saw.
         Assert.Empty(s.Sleep[Power.Alashiya].WokenBecause);
-        Assert.Contains("turn 1: Egypt's fleet moved delta -> levantsea", s.Sleep[Power.Alashiya].Digest);
+        Assert.Contains("turn 1: Egypt's fleet moved delta -> greatgreen", s.Sleep[Power.Alashiya].Digest);
         Assert.Contains("turn 1: Assyria's army moved ekallatum -> arbela", s.Sleep[Power.Babylonia].Digest);
     }
 }

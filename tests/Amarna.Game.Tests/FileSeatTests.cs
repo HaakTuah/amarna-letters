@@ -259,7 +259,8 @@ public class FileSeatTests
         Assert.Contains("YOU SLEEP BETWEEN YOUR ORDERS", requests["t1_orders_Alashiya"]);
         Assert.Contains("\"wake_in_turn\"", requests["t1_orders_Alashiya"]);
         Assert.StartsWith("This is your first season.\n", Decision("t1_orders_Alashiya"));
-        const string woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt waits to be received.\n";
+        // (A script king's fleet also ends a move next to Enkomi that season, which wakes it too.)
+        const string woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt waits to be received";
         Assert.StartsWith(woken, Decision(requests.Keys.First(k => k.StartsWith("t2_aud_", StringComparison.Ordinal))));
         Assert.StartsWith(woken, Decision("t2_orders_Alashiya"));
         Assert.StartsWith("You gave orders last season (turn 2). You were woken because: you asked to be woken in turn 3.\n", Decision("t3_orders_Alashiya"));

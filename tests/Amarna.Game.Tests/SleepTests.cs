@@ -247,7 +247,7 @@ public class SleepTests
         await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria });
         Assert.Equal([1, 3], sleeper.Calls);
         Assert.Equal(
-            ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."],
+            ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."],
             sleeper.Views[1].WokenBecause);
     }
 
@@ -463,11 +463,12 @@ public class SleepTests
     public async Task Foreign_troops_off_the_coast_or_beyond_the_border_wait_in_the_digest()
     {
         var sleeper = new Sleeper(_ => Nothing());
-        var egypt = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("delta", "levantsea")] } : new TurnSubmission());
+        // The Great Green lies off Tamassos, not next to Enkomi, Alashiya's capital (a fleet arriving there would wake it).
+        var egypt = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("delta", "greatgreen")] } : new TurnSubmission());
         var r = await Play(Power.Alashiya, sleeper, 4, Quiet with { MaxSleep = 2 }, others: new() { [Power.Egypt] = egypt });
         Assert.Equal([1, 4], sleeper.Calls);
         Assert.Equal([TurnEngine.CapReason], sleeper.Views[1].WokenBecause);
-        Assert.Contains("turn 2: Egypt's fleet moved delta -> levantsea", sleeper.Views[1].Digest);
+        Assert.Contains("turn 2: Egypt's fleet moved delta -> greatgreen", sleeper.Views[1].Digest);
     }
 
     [Fact]
@@ -728,7 +729,7 @@ public class SleepTests
         var sleep = rules.IndexOf("YOU SLEEP BETWEEN YOUR ORDERS", StringComparison.Ordinal);
         var season = rules.IndexOf("HOW A SEASON RESOLVES", StringComparison.Ordinal);
         Assert.True(win < sleep && sleep < season);
-        Assert.Contains("After you give your orders, you sleep. You are woken only when something concerns you: an envoy at your door, foreign troops in your land, land or troops lost, a scheduled or standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear. Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these orders must carry your kingdom until then: schedule what your armies should do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on their own.", rules);
+        Assert.Contains("After you give your orders, you sleep. You are woken only when something concerns you: an envoy at your door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear. Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these orders must carry your kingdom until then: schedule what your armies should do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on their own.", rules);
         Assert.Contains("PLANNING AHEAD (how sleeping works)", rules);
         Assert.Contains("You may schedule at most 24 orders for one season, for at most 40 seasons; orders past these limits are refused.", rules);
         Assert.Contains("Standing orders (standing_orders), at most 12, each with at most 24 orders,", rules);
@@ -827,10 +828,10 @@ public class SleepTests
         var r = await Play(Power.Babylonia, sleeper, 5, others: new() { [Power.Assyria] = assyria });
         Assert.Contains(r.Errors, e => e.StartsWith("t3/orders/Babylonia:"));
         Assert.Equal([1, 3, 4], sleeper.Calls);
-        string[] woke = ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."];
+        string[] woke = ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."];
         Assert.Equal(woke, sleeper.Views[1].WokenBecause);
         Assert.Equal(woke, sleeper.Views[2].WokenBecause);
-        Assert.Equal("You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallatum -> sippar; land lost: Sippar has been taken by Assyria.", Prompts.SleepLine(sleeper.Views[2]));
+        Assert.Equal("You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallatum -> sippar; foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar; land lost: Sippar has been taken by Assyria.", Prompts.SleepLine(sleeper.Views[2]));
         // Having answered itself in turn 4, it sleeps on: the reasons it has now read wake it no more.
         Assert.True(r.State.Sleep[Power.Babylonia].Asleep);
     }

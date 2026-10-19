@@ -37,6 +37,12 @@ public sealed partial class TurnEngine
     /// <summary>Why a seat whose last call failed (the stand-in played that season) is asked again, when nothing else concerns it.</summary>
     public const string AskedAgainReason = "your counsellors woke you";
 
+    /// <summary>
+    /// Why a seat is woken when foreign troops end a move next to its capital (followed by the move). A temporary trigger,
+    /// until sieges and walls on homeland provinces exist.
+    /// </summary>
+    public const string CapitalReason = "foreign troops came next to your capital";
+
     public bool IsAsleep(Power p) => S.Config.SleepingSeats && S.IsAlive(p) && S.Sleep.TryGetValue(p, out var sl) && sl.Asleep;
 
     /// <summary>
@@ -85,9 +91,10 @@ public sealed partial class TurnEngine
     }
 
     /// <summary>
-    /// What wakes a seat, and nothing else: an envoy waiting to be received; foreign troops in its land; land or troops
-    /// lost; a scheduled or standing order that failed; a ransom demanded; a servant giving notice; one of its own triggers; the
-    /// season it named; the hidden cap. (A kingdom that falls ends its sleep in <see cref="EndSleep"/>.)
+    /// What wakes a seat, and nothing else: an envoy waiting to be received; foreign troops in its land, or ending a move next
+    /// to its capital while it holds it; land or troops lost; a scheduled or standing order that failed; a ransom demanded; a
+    /// servant giving notice; one of its own triggers; the season it named; the hidden cap. (A kingdom that falls ends its
+    /// sleep in <see cref="EndSleep"/>.)
     /// </summary>
     private List<string> WakeReasons(Power p, SleepState sl)
     {
@@ -107,14 +114,23 @@ public sealed partial class TurnEngine
             Add($"an envoy of {a.From} waits to be received");
 
         // Last season's moves as it saw them: foreign troops that entered its land, its own troops destroyed.
+        // Until sieges exist (a temporary trigger, to revisit with the siege package): foreign troops that ended a move
+        // next to its capital, while it still holds it, since with no walls on homeland provinces they can take it the
+        // next season. Troops that merely stand there do not wake it again.
+        var capital = Map.Capital(p).Id;
+        var nextToCapital = S.Owner.GetValueOrDefault(capital) == p ? Map.Neighbors(capital).ToHashSet() : [];
         foreach (var o in S.LastSeen.GetValueOrDefault(p) ?? [])
         {
             if (o.Power == p)
             {
                 if (o.Destroyed) Add($"your {Kind(o.UnitKind)} in {o.Province} was destroyed");
+                continue;
             }
-            else if (o.Order == "move" && o.Succeeded && o.TargetOwner == p)
+            if (o.Order != "move" || !o.Succeeded) continue;
+            if (o.TargetOwner == p)
                 Add($"foreign troops entered your land: {o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {o.Target}");
+            if (o.Target is { } t && nextToCapital.Contains(t))
+                Add($"{CapitalReason}: {o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {t}");
         }
         foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
             if (WakeReason(i) is { } reason) Add(reason);

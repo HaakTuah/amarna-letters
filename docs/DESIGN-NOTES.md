@@ -538,6 +538,15 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   - foreign troops entered its land last season ("foreign troops entered your land: Assyria's army
     moved ekallatum -> sippar"; a move counts as into its land if it held the province before the
     moves)
+  - **temporary, until sieges and walls on homeland provinces exist; revisit with the siege
+    package:** foreign troops (an army or a fleet) ended a move last season in a province next to
+    its capital (one link of any kind), seen by the seat, while it still holds its capital ("foreign
+    troops came next to your capital: Hatti's army moved isuwa -> sapinuwa"). With no walls on
+    homeland provinces an army there can take the capital the next season, so a sleeping king must
+    not first hear of it when the capital falls (the user's addendum to the simulation-fixes round).
+    Only the arrival wakes it: troops that stay where they are, a move that failed, the seat's own
+    troops, and any move once the capital is lost do not (tested). A move into its own land next to
+    the capital gives both reasons. The replay numbers count it as its own kind.
   - it lost land ("land lost: Sippar has been taken by Assyria.")
   - it lost troops: a unit destroyed in battle ("your army in sippar was destroyed"), unpaid troops
     deserting ("your unpaid troops deserted"), or a unit killed by plague ("plague destroyed troops
@@ -588,13 +597,17 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   60 lines and the news the latest 40 items, each saying how many earlier ones were left out.
 - **What the kings are told.** Right after HOW YOU WIN the rulebook says, as decided: "After you
   give your orders, you sleep. You are woken only when something concerns you: an envoy at your
-  door, foreign troops in your land, land or troops lost, a scheduled or standing order that
-  failed, a servant giving notice, a ransom demanded, or news you asked to hear. Nothing else wakes
-  you, and you may not be woken again for the rest of the game. Plan as if these orders must carry
-  your kingdom until then: schedule what your armies should do in the seasons ahead, set the
-  triggers you want, and leave your envoys mandates that stand on their own." (The decided text's
-  "a failed order" became "a scheduled or standing order that failed", to stay true.) A section
-  "PLANNING AHEAD (how sleeping works)" follows with the mechanics: scheduled orders, naming units
+  door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or
+  standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear.
+  Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these
+  orders must carry your kingdom until then: schedule what your armies should do in the seasons
+  ahead, set the triggers you want, and leave your envoys mandates that stand on their own." (The
+  decided text's "a failed order" became "a scheduled or standing order that failed", to stay true,
+  and "or next to your capital" came with the temporary capital trigger.) A section
+  "PLANNING AHEAD (how sleeping works)" follows with the mechanics: which foreign troops wake the
+  king ("Foreign troops wake you when they move into your land, and, while you hold your capital,
+  when they end a move in a province next to it (troops there can take it the next season). Troops
+  that only stay where they are do not wake you again."); scheduled orders, naming units
   by where they stand now, and their limits; the march; standing orders; which failures wake; the
   seat's own triggers; naming a season; and the digest. The seat's view lists its scheduled orders
   by season and its standing orders by id, each of its units named by where it stands now ("- turn
@@ -1356,9 +1369,10 @@ The design document records intent; these notes record what is built. Where they
 - **What wakes a sleeping seat** follows the round prompt of the simulation-fixes round, not the
   document's list of default triggers: an envoy or a report coming home, foreign troops next to its
   land, an attack that failed and a catastrophe that kills no unit go to the digest (see "Pacing:
-  sleeping seats"). So the kings read "foreign troops in your land" where the document's decided
-  text says "foreign troops at your border", and "a scheduled or standing order that failed" where
-  it says "a failed order". The sleep cap is 12 seasons and hidden from the kings, as the document
+  sleeping seats"). So the kings read "foreign troops in your land or next to your capital" where
+  the document's decided text says "foreign troops at your border" (the capital part is a temporary
+  trigger, until sieges exist, and fires only when troops arrive), and "a scheduled or standing
+  order that failed" where it says "a failed order". The sleep cap is 12 seasons and hidden from the kings, as the document
   decides.
   Of the document's "scheduled, conditional orders", orders that follow their unit and two standing
   orders (`unit_enters`, `unit_attacked`) are built; its wider condition vocabulary is not.
@@ -1367,7 +1381,9 @@ The design document records intent; these notes record what is built. Where they
 
 ## Not built yet
 
-- Sieges, varying walls, terrain, and distance-based marching (pillar 8).
+- Sieges, varying walls, terrain, and distance-based marching (pillar 8). The siege package should
+  revisit the temporary wake trigger for foreign troops arriving next to a capital (see "What wakes
+  it" under Pacing).
 - Conditional orders beyond the two standing-order events: "unless" conditions on scheduled orders,
   and conditions on the treasury, an envoy's return or a sealed tablet.
 - Multiplayer (stages 2 and 3 of the design document): the engine runs in one browser.
