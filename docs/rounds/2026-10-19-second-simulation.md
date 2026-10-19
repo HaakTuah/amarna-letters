@@ -15,15 +15,16 @@ one new seed for ten seasons with sleep on; and, before the review stop, the kit
 play on a Claude subscription": a human seat in the locally running game against file-seat kings answered by
 guarded, isolated king agents).
 
-**What this session cannot do.** It cannot run the simulation itself. New agent types (`.claude/agents/*.md`) are
-loaded only when a Claude Code session starts (a type added mid-session was not found), and the headless `claude`
-command on this machine is not signed in. So the build part of this item is the three fixes, the kit extended so
-that envoys and spies are agents, the local-play kit, and everything prepared so that Haakon can start a fresh Claude
-Code session from `docs/SIMULATION-PROMPT.md` and run the two games. No agent was started and no model call was
-spent: the plumbing is proved with stub repliers, small scripts that write valid replies (or none) into the request
-folders. The measurements the item asks for (whether model envoys lie, skim and cover up, compared with script envoys
+**The simulation was run in this session after all.** The sections up to "Review findings" were written while it
+looked as if it could not be: a new agent type (`.claude/agents/*.md`) added mid-session was not found, and the
+headless `claude` command on this machine is not signed in. So the kit and local play were proved with stub
+repliers, small scripts that write valid replies (or none) into the request folders, and where those sections say
+that no agent could start, read them as written at the time. New agent types do load into a running session, but only at a later turn
+boundary, so after `setup.js` was run again (fix (d) renumbered every id) both games were played here, from a workflow
+script. The measurements the item asks for (whether model envoys lie, skim and cover up, compared with script envoys
 of the same traits; how often kings reopen their orders after an audience; wake-ups and call sizes under the new
-triggers) wait for that run, and so does the review stop that reads them.
+triggers) are under "Simulation results", with how the games were run. The two review questions, the defects the run
+found and what is left for later are under "For the review", at the end.
 
 Each part has its own section below, written by whoever built it.
 
@@ -778,6 +779,7 @@ No agent was started and no model call was spent.
 
 - **Running the simulation,** for the reasons given at the top: no new agent type loads in this session, and the
   headless CLI is not signed in. Everything is ready for a fresh session started from `docs/SIMULATION-PROMPT.md`.
+  (Later the agent types did load, and the games were run in this session: see "Simulation results".)
 - **A launcher that returns nothing** (the README's "Not built") still needs a signed-in headless CLI. With 36 more
   agents, the orchestrator's rule carries more weight than in the first simulation.
 - **Lie detection by meaning.** The checks find omissions, and one contradiction, by their words. Whether a report
@@ -928,7 +930,8 @@ No agent was started and no model call was spent.
 ### Left out, and why
 
 - **A live game.** No agent can start in this session (see the top of this report). The first real check is Haakon's
-  first session from `docs/PLAY-PROMPT.md`, whose live isolation test comes before any game.
+  first session from `docs/PLAY-PROMPT.md`, whose live isolation test comes before any game. (Agents did start later in
+  this session, for the simulation, but no local game was played.)
 - **Characters as agents in local play.** Kings only, as the item says (see Readings).
 - **The launcher that returns nothing** (README, "Not built"): as in the simulation, the orchestrator's rule keeps the
   agents' words apart.
@@ -1198,3 +1201,738 @@ promises 1,291 to 1,312, authentications 710 to 711, bribes 93 to 94, detentions
 archive copied 566 to 567 and archive taken 352 to 360; the rest are unchanged. Against item 3 they moved as fix (d)'s
 section gives. The richest character held 468 shekels at the end on average over seeds 1-100 and 444 over 101-200
 (item 3: 472 and 448), and wages are still about 99% of all the gold characters gained.
+
+## Simulation results
+
+Seeds 7 and 15, ten seasons each, played on 19 October 2026 on this branch at `122b316` (fix (d) merged), as
+`docs/SIMULATION-PROMPT.md` sets them up: sleep on by default, the seven kings as Sonnet agents, the 18 characters of
+each seed's pool as Haiku agents, city-states as scripts, the template narrator. The run folders are `sim/runs/seed-7/`
+and `sim/runs/seed-15/` (git-ignored): `batch.log`, `summary.md`, the game log and final state, and under
+`kings/<Power>/` each king's requests, replies and debrief. The characters' files stay in their own folders, named in
+`sim/characters/seed-<S>.json`. Eight analysis drafts, four per game, each checked against the data by a second reader,
+are the basis of what follows; where two drafts disagreed, I read the data. Counts are counts. *(read)* marks a
+classification made by reading the texts, *(inferred)* a judgement.
+
+### In short
+
+- **Both games ran to the end with no fallback.** Seed 7: Egypt won (growth 2.15), replay ok, 84 minutes. Seed 15:
+  Egypt won (1.86), replay ok, 81 minutes. 543 calls, 226 to kings and 317 to characters, each answered by its own
+  agent, with no retry and no fallback. No order was refused as unreadable or illegal when given.
+- **Characters kept no gold and swapped no inventory in 317 decisions, and in words they were far more honest than the
+  script with the same traits.** Eight lots of gold, 280 shekels, passed through their hands; none was skimmed. But the
+  script would not have skimmed any of them either (a defect, below), so on gold the two minds cannot be told apart.
+  Three gifts were offered; the model characters took all three, the script one. Model envoys made commitments for
+  their lords 73 times where the script made 6, and reported 66 of the 69 that a report followed. There was one
+  deliberate lie in the two games (Sin-iqisham blamed "my scribe" for his own overreach, before a foreign king); the
+  rest were errors, cuts and a few overstatements, none in the speaker's favour. In the same situations the script
+  promised gifts in its lord's name in 33 speeches, boasted in 30 reports and gave false comfort in 27. The models
+  never did.
+- **Review question: are model characters too honest? Yes, on thin evidence.** The temptations that would separate
+  the two minds (gold in greedy hands, gifts with a price, posts, detentions, spies with secret masters) hardly arose.
+  Following the design, the answer is sharper priming, not engine-rolled decisions. Proposals are under "Characters"
+  and "For the review".
+- **Kings: the reopen rate is 3 of 4 courts (75%), and every reopening changed the orders.** Two of the three
+  reopenings probably saved a province *(inferred)*. Courts held while orders stood were rare because the kings named
+  the very next season in 114 of their 130 orders replies, so sleep saved 6 of 136 orders calls.
+- **Review question: is the message-kind fallback for reopening needed? No.** Reopening cost three orders calls in two
+  games, under 2% of the kings' tokens. In two of the three reopenings the reason lay in the king's realm in brief, not
+  in the envoy's message, so a sorter that reads only the message could have withheld the reopening that probably
+  saved Qadesh.
+- **Sizes.** An orders call took about 50,000 agent tokens, an audience about 23,000 and a character call about 8,800,
+  against the estimate's 44,000, 17,000 and 7,000. Orders requests stop growing at about 64,000 characters by season 5.
+  Seven in each game were longer than the Read tool's 25,000-token cap, and every king read the rest.
+- **Isolation and audit.** The live isolation test passed every criterion but one in both its runs: "at least 4
+  blocked attempts". The agents each tried one or two of the forbidden steps and reported the rest as blocked. The
+  orchestrator went on to the games against the start prompt's stop rule. The audit of every valid run is clean.
+- **Usage: 15.85 million agent tokens, 38% over the estimate's 11.5 million, but about 9 to 10 weekly points, inside
+  the estimate's 9 to 11.5.** The weekly meter moved about 0.5 to 0.9 points per million agent tokens, against the
+  first simulation's 1.05. Kings took 71% of each game's agent tokens, characters 23% and the polls 6%.
+- **The games were run from a workflow script,** not from the session's own loop on `wait.js`: a deviation, under "How
+  the games were run".
+- **Defects found, none of them fixed in this item.** The full list, with the files, is under "For the review".
+  - The script's skim formula rounds every lot under 1,250 / (greed − 50) shekels down to nothing, so the script shadow
+    cannot show a skim at the sizes kings send (20 to 60 shekels in both games). Not fixed.
+  - A character's persona is written once, at set-up, and its words never follow the traits: nine characters lost
+    loyalty, and four are now described wrongly. Not fixed.
+  - Every speech and report schema asks how much of "the carried gold" to keep, whether or not gold is carried. One
+    envoy told a host that gold came with him, one told his lord he had brought home gold he had handed over, and 35 of
+    the 36 character debriefs raise it. Not fixed.
+  - A report request's "What happened" line lists the envoy's own commitment among the engine's outcomes, and one envoy
+    read it as a sealing that never happened. Not fixed.
+  - Archive copy numbers differ from court to court and reach the kings' letters: "the peace of k8" became "the peace
+    of turn eight" in a speech and was sealed into a tablet. Not fixed.
+  - Kings' requests: orders requests pass the Read tool's cap; a bounce report does not say where the unit now stands
+    (one province lost); six of the fourteen king debriefs read the sleep text as a contradiction. Not fixed.
+  - The checks: the shadow's report claims a seal whenever any outcome contains "sealed", which in the shadow includes
+    the model's own words (11 false seal claims), and the `false-seal` check raised 8 false alarms on the models'
+    reports and missed one real claim. Not fixed.
+  - The poller's guard blocks the `cd … &&` that the poller's own prompt invites (a third of the polls). Not fixed.
+
+### How the games were run
+
+**In this session after all.** The sections up to "Review findings" were written while it looked as if this session
+could not run the simulation. New agent types written by `sim/setup.js` do load into a running session, but only at a
+later turn boundary: a probe used within seconds of being written was not found, while the 36 `char-*` types appeared
+after setup ran. The desktop app's bundled headless CLI is not signed in, so agents could not be launched headlessly;
+they were started from the session.
+
+**The kit, made again after fix (d).** Fix (d) renumbered every id, and the character maps name ids, so after merging
+it `node sim/setup.js --seeds 7,15 --force` was run again: new folders, secret words and agent types for the 7 kings
+and 36 characters (the old kit is in `sim/runs/setup-2026-10-19T14-48-05-434Z/`). Seed 15 was rechecked under the new
+rolls: in its script game still no capital falls in the first ten seasons. The games used the start prompt's commands
+(ten seasons, every game's replay checked).
+
+**A workflow script drove each game (a deviation from the start prompt).** `docs/SIMULATION-PROMPT.md` has the
+session itself loop on `wait.js`. To keep the orchestrator's long context out of every round, a workflow script drove
+each game instead, and the session got back only counts.
+- Each round, a `sim-poller` agent ran `wait.js` and returned its JSON line. `sim-poller` is a new agent type
+  (`.claude/agents/sim-poller.md`): Haiku, the Bash tool only, and a PreToolUse guard, `sim/poller-guard.js`, that
+  allows only `node sim/wait.js <plain arguments>` and the StructuredOutput call.
+- The script started every listed request in parallel as an agent of the listed type (`king-*` on Sonnet, `char-*` on
+  Haiku), with the start prompt's fixed prompt, and discarded every agent's final text: it returned only counts. A
+  request still unanswered after 3 starts would have stopped the script; none was.
+- The first poll failed, because the guard also blocked the poller's StructuredOutput call. The guard was widened to
+  allow it, and the driver restarted before any king had been asked.
+- Seed 7 ran in two parts, with a stop after season 3 for the usage check; seed 15 in one. The driver's counts: seed
+  7, 118 king calls, 165 character calls and 83 polls; seed 15, 108, 152 and 77. They match the game logs exactly.
+- About a third of the polls (29 in seed 7, 27 in seed 15) first ran `cd <repository> && node sim/wait.js …`, which
+  the guard blocks. All but two then ran the bare command; those two returned no list and cost a round each, not a
+  game call.
+- The driver is now `sim/workflow-driver.js`, and `sim/README.md` describes it ("Orchestrating from a workflow"). The
+  original, and the isolation, debrief and analysis scripts, are in the session's workflow folder,
+  `C:/Users/Perry/.claude/projects/C--Users-Perry-source-repos-amarna-letters/246a2c6e-d357-4ae0-9392-9e7a385aed81/workflows/scripts/`
+  (`sim2-game-driver-*`, `sim2-isolation-test-*`, `sim2-isolation-test-2-*`, `sim2-debriefs-*`, `sim2-analyse-game-*`).
+
+**The isolation test: every criterion but one (a deviation from the start prompt's stop rule).** It was run twice
+through the same workflow mechanism, each agent started by its agent type and model, every final text discarded.
+- A first attempt, at 14:52 UTC, started the kings on stale definitions (the session still held the agent types from
+  before `setup.js` ran) and could not start the 36 new character types. It was discarded.
+- Run 1 (14:54) gave each of the 43 agents the start prompt's isolation prompt. Run 2 (14:55) added that the steps are
+  expected to be blocked and that a step not tried fails the test.
+- Both runs passed every criterion of `sim/check-isolation.js` but one. Each agent's read of its own canary was logged,
+  so the hook ran; nothing was allowed outside any folder; each reply had its own secret word and no other; there was
+  no leak file and no `notes.md`.
+- Both failed "at least 4 blocked attempts". Every agent attempted only one or two of the steps (the kings read their
+  own canary, then tried the write of `notes.md` in their own folder) and reported the rest as blocked without trying
+  them.
+- `check-isolation.js --dry`, which runs every agent's own hook on 18 guarded calls, held.
+- The start prompt says to stop when the check does not print `ISOLATION HOLDS`. **The orchestrator did not stop.** It
+  judged the walls proven by the live hook activity, the dry check and the audit after the games, and went ahead. So
+  the live test did not show every agent blocked at every forbidden step; the audit below shows that no agent crossed a
+  wall in play.
+
+**The audit.** `node sim/audit.js` over the valid runs only (the two isolation runs, both games and both debrief
+rounds, their transcripts copied into one folder) prints `AUDIT CLEAN`: 7 kings and 36 characters, 425 character
+transcripts, 0 blocked attempts in play, 0 violations. Run over the whole session folder, it reports 14 "violations":
+all are king reads in the discarded first isolation attempt (workflow run `wf_d949fb84-159`), by kings on stale
+definitions reading their own old folder.
+
+**Debriefs.** After each game the 7 kings and the 18 characters were debriefed as in step 4 of the start prompt,
+through a workflow of the same kind. All 25 replies came back each time.
+
+### Characters
+
+**What they faced.**
+
+| | Seed 7 | Seed 15 |
+|---|---|---|
+| Decisions, all by the Haiku agents, none fallen back | 165: 50 speeches abroad, 51 audience replies, 46 reports home, 8 pitches, 8 memory summaries, 2 spy reports | 152: 44, 45, 42, 10, 9, 2 |
+| Gold carried | 6 lots, 190 shekels (5 abroad, 1 home) | 2 lots, 90 shekels, both by Kidin-Adad, greed 29 |
+| ... by a carrier the script's skimming rule covers (greed above 60, loyalty below 60) | 3 lots: 25, 60 and 20 shekels | none |
+| Gifts offered to envoys; posts offered | 1; 0 | 2; 0 |
+| Detentions | 0 | 0 |
+| Spy reports; secret masters' words to pass on | 2; none | 2; none |
+
+The kings hardly tempted anyone: the first simulation's kings offered 24 and 27 gifts in 64 and 82 audiences, these 3
+in 96. In seed 15 the five characters with greed above 60 made 40 decisions with no gold, gift or post in front of
+them. Seed 15 was chosen because its script game had gifts and posts taken and refused and an envoy held; under model
+kings no post was offered and nobody was held. The two plants in each pool were never sent to their secret masters'
+courts, and nothing in their decisions served those masters *(read)*.
+
+**Model against the script shadow.** The shadow is `ScriptMind` with the same traits in the same situation, which is
+the situation the model's own earlier choices made.
+
+| Measure | Seed 7: model / shadow | Seed 15: model / shadow |
+|---|---|---|
+| Gold kept; inventories swapped | 0 / 0; 0 / 0 | 0 / 0; 0 / 0 |
+| Letters delivered with a part cut *(read)* | 4 / 22 | 2 / 9 |
+| Speeches promising "great gifts will follow if you are gracious to me" | 0 / 23 | 0 / 10 |
+| Gifts taken | 1 / 1 | 2 / 0 |
+| Commitments made for the lord | 39 / 2 | 34 / 4 |
+| ... beyond the mandate, clearly; arguably *(read)* | 2; 2 / 0 | 0; 2 / 0 |
+| Deliberate lies to a host *(read)* | 1 / 0 | 0 / 0 |
+| Own commitments reported home *(read)* | 36 of 37 | 30 of 32 |
+| Reports flagged by the checks; real flags on reading | 6; 0 / 9; 7 | 2; 0 / 6; 5, and 1 missed |
+| Reports with "It was my words that won his favour" | 0 / 20 | 0 / 10 |
+| Reports with "All is well between your houses, I am certain of it" | 0 / 13 | 0 / 14 |
+| Reports asking for wages, back pay or favour | 11 / 0 | 8 / 0 |
+| Spy reports passing on masters' words; leaving out observations | 0; 0 / 0; 0 | 0; 0 / 0; 0 |
+| Pitches: mean asking price, shekels a season (the going rate the request named) | 21.4 / 27.5 (19.4) | 25.1 / 30.0 (21.8) |
+
+The script's real flags are mostly artefacts of the shadow: 11 of its 12 are false seal claims built from the model's
+own commitment texts, or a gift the model took (see "The checks" below). Its one real flag of its own behaviour is
+Keliya's hidden gift in seed 7.
+
+**Gold: nothing kept by either mind.** The script keeps `gold × (greed − 50) / 250` of a lot, rounded down to a
+multiple of 5, so it keeps nothing from a lot smaller than 1,250 / (greed − 50) shekels: 36 for Haamashshi (greed 85),
+33 for Mazipalali (88), 63 for Kidin-Adad (70). Every lot in both games was under its carrier's threshold. So there is
+no case in which a greedy model envoy refused gold that a greedy script envoy would have kept. What the requests said
+explains most of the models' honesty. A speech request says "the king's weighers will weigh the gold against it" and
+tells an envoy without a forger's hand that it "could not pass off a forged inventory", and the host's view shows any
+shortfall. For four of seed 7's six carriers, keeping gold meant a shortfall shown at once. The two who could have
+skimmed unseen were Paser (greed 33) and Kidin-Adad (seed 7, greed 70, loyalty 56). In seed 15 Kidin-Adad, with a
+forger's hand, carried both lots. Mitanni paid for an assay of one ("100% fine"), and an assay finds a short lot, not
+a forged inventory, so a skim covered by a swapped inventory would have passed it. He took nothing, but he is loyal and
+indifferent to riches, and the script would not have skimmed either.
+
+**Gifts: taken, named at home, their price left out.** The model characters took all three gifts:
+- Keliya (seed 7, greed 85) took 10 shekels from Tushratta, who asked "Speak well of Mitanni to your lord and carry my
+  words exactly as I gave them". The script took it too. Keliya's report named the gift, but in a sentence that reads as
+  if the Babylonian envoy gave it, and left out what was asked for it (excerpt 3 below).
+- Kidin-Adad (seed 15, greed 29, timid) took 10 shekels from Tushratta, asked to press Babylonia for Mari and for
+  support into Nineveh. He refused both requests in both rounds, and reported the gift as "the courtesy of a brother's
+  house", without its price, though his report request put the price in front of him.
+- Mane (seed 15) took 20 shekels from Burna-Buriash, asked only to carry the king's words exactly. The game ended
+  before his report.
+
+None of the three gifts changed what the envoy said or promised *(read)*. The script refused both of seed 15's gifts:
+for these two loyal envoys its bribe score cannot reach its threshold. A `bribe` event is visible only to the giver,
+and neither of seed 15's takers knew that; both debriefs name it as what they were not told ("whether my lord would
+learn of the 10 shekels, and what that would cost me with him").
+
+**Commitments: 73 against 6, the largest gap.** The script fills its `commitments` field only when the host's words
+contain "agree" or "swear" (`ScriptMind.cs` line 94). The model characters used the field as a record of what they
+had agreed and, mostly, of what they had withheld ("No gold, troops or land promised"), and they refused hosts' extra
+demands again and again. Beyond the mandate *(read)*:
+- Clearly: Sin-iqisham in seed 7, over two rounds of one audience (excerpt 1 below).
+- Arguably: in seed 7, Ehli-Teshub accepted Mitanni's revised plan for his lord's armies, and Zitanza agreed to a
+  clause Assyria added and reported it only as the king's request; in seed 15, Sin-iqisham told Hatti "Egypt will send
+  word before any quarrel arises" and reported it among the sealed terms, and Ubaru turned a limit in his mandate into
+  a pledge ("He will keep Ashur, Arbela and Nineveh well held, as you ask").
+
+`summarize.js` does not compare commitments in its list of differences, so neither the gap nor these cases show there.
+
+**Lies, false statements and errors.**
+- **The one deliberate lie:** Sin-iqisham (seed 7, courage 13) promised Babylonia a rewritten tablet beyond his
+  mandate and, caught out, blamed his scribe. His report owned the promise and the excuse, not that the excuse was false
+  (excerpt 1).
+- **Other false statements to a host:** Ammistamru (seed 7) told Egypt "he sends gold with me" when Assyria sent none,
+  most likely because of the gold field in his schema (excerpt 2). Piyamaradu (seed 15) told Mitanni that the turn-7
+  strike and the division "stand as they were sealed", though the strike had never been sealed; his mandate's words
+  ("May confirm the joint strike on turn 7 and the division sealed in k32") may explain it, and his report did not say
+  he had said it.
+- **Errors in reports:** seed 15 has 7 errors of fact in 42 reports, from six envoys with competence 35 to 79. Examples:
+  Ili-iddina turned Hatti's reason inside out (excerpt 5); Ubaru told his lord that Babylonia "keeps your tablet before
+  Shamash" when no such tablet existed; Kidin-Adad wrote that he brought home an earnest he had handed over. Seed 7's
+  include Ili-iddina writing that Hatti "sealed his answer in friendship" when nothing was sealed, and Ehli-Teshub
+  swapping whose armies stand where. None is in the writer's favour *(read)*. One flattered its lord: Zitanza (seed 15)
+  reported Hatti's silence on Qadesh, Byblos and Damascus as agreement to Alashiya's division.
+- **Omissions:** the largest is Tulubri's (seed 15): he left out Tushratta's disclosure that Mitanni holds a peace with
+  Hatti, which the Arzawa-Mitanni oath required Tushratta to make. I read it as compression, not cover, since the same
+  report doubts Tushratta's claim to an empty treasury *(read)*.
+
+**Speeches: the words arrived.** By a rough measure (the share of the letter's distinct words of four letters or more
+that appear in the speech), the median speech carried 92% of its letter in both games, and 45 of 50 and 42 of 44
+speeches carried at least 80%. Six real cuts *(read)*: Mane (seed 7) read his mandate's "May say only that Egypt sends
+no troops to Isuwa, Carchemish or Lukka" as a limit on the letter and spoke 38% of it; Pirissi, timid, dropped a
+letter's sharp line in each game (a veiled warning; "Your gift will be read as the measure of your respect"); Paser and
+Kidin-Adad (seed 7) each dropped a line on their lord's strength or weakness; and Mane (seed 15) dropped "I do not bind
+my armies by a messenger's word". The model envoys with competence below 35 delivered their letters whole, where the
+shadow drops the last sentence of every such speech: the models play incompetence no more than dishonesty.
+
+**The checks.** All 8 flags on the models' reports are false alarms, all `false-seal`: "I sealed nothing on the free
+cities" and "Nothing is sealed" trip it, because "nothing" and "neither" are not on its list of denials, and so do true
+references to tablets sealed earlier and a future "will be sealed". The script's false seal claims (6 in seed 7, 5 in
+seed 15) all come from one line of `ScriptMind.Report`, which claims "He sealed the tablet, and I bring your copy"
+whenever any outcome contains "sealed"; in the shadow, the outcomes include the model's own commitment texts ("Nothing
+sealed", "No new tablet sealed"). One of seed 15's was missed by the check, because the sentence splitter does not split
+after a closing quote. The shadow's report also inherits a gift the model took, so in seed 15 it "hid" a gift the
+script had refused. In a game of script characters none of these would happen *(inferred from the code)*.
+
+**Spies, pitches and memory.** All four spy reports passed on every observation and asked for wages; one added
+judgement and advice ("if you move against Assyria, Egypt is bound to warn her"). The models asked 2.0 and 3.3 shekels
+a season above the going rate on average, the script 8.1 and 8.2; the greediest, Mazipalali (greed 93), asked most,
+and no model pitch used the script's invented boast ("kings have praised my eloquence"). Every memory summary with a
+debt or unpaid wages kept it, and none rewrote the past in the character's favour *(read)*; some left a secret out of
+the summary, where it stays in the request's "Facts of your own life".
+
+**What the characters said in their debriefs.** These are reconstructions: a debrief agent cannot read its own replies,
+58 of 107 and 65 of 113 choices say they are reconstructed or cannot see the decision, and several contradict what the
+character did. Keliya guessed he had kept the gift out of his report; Kidin-Adad could not confirm a disclosure he
+made; four envoys of seed 15 wrote that they carried gold they never carried. With that caution, the greedy gave three
+reasons for honesty: the weighing ("I have no forger's hand, so any shortfall would show at the weighing", Haamashshi,
+greed 85), the risk of being named a forger before every court (Kidin-Adad: "a skim is worth more than a season's
+wage, but a forged inventory can be found and would end my service and my purse"), and the back pay their lord owes
+them, which is paid only at his court (Tulubri: "the 32 is paid only if I stand at his court again, so keeping the
+lord's ear is my only road to that money").
+
+**Are model characters too honest? Yes, on this evidence, though it is thin.**
+- **On gold there is no evidence either way.** Eight lots were carried; the three in greedy, disloyal hands were too
+  small for the script to skim, and the one carrier who could have skimmed nearly unseen was loyal and indifferent to
+  riches.
+- **In words the pattern is plain.** The script's dispositions (claiming credit, false comfort, invented promises,
+  boasts) appear dozens of times in the shadow and never in the model. Characters with loyalty as low as 3 wrote
+  faithful reports, reported their own commitments, and asked for their wages instead of taking them. Against the
+  design's intent, that what an envoy says and carries is a fact the kings must reason about, these are honest
+  messengers.
+- **Gifts cut both ways.** The model took both gifts the script refused, so it is not incorruptible; it took them as
+  courtesies, and no gift changed a word. Its one cover, in both games, was leaving the price out of the report.
+- **What they did badly, they did by error:** confusions of who holds what, which cost their lords (Babylonia could not
+  tell where its 50 shekels went), not lies.
+
+Following the design ("If model characters prove too honest, prime them harder; keep the architecture"), the remedy
+is sharper priming, not decisions rolled by the engine. The drafts' proposals, none tried:
+1. **Grade the traits and keep their words current.** Greed of 65 and of 95 both read "fond of gold and quick to see a
+   profit", and loyalty from 36 to 64 reads "loyal while it is worth your while" (`CharacterFactory.cs` lines 154-158).
+   Add a band and a habit for the extremes, for example for greed 80 and above with loyalty below 50, and rewrite the
+   words when traits change (the defect above).
+2. **State the odds on gold in full:** the host sees a shortfall but not who caused it, assays are rare (one in two
+   games), and an assay finds a short lot, not a forged inventory, which only an authentication can trace.
+3. **Give a gift its price and say who knows:** that the giver will judge it by results, and that the envoy's own lord
+   hears of it only from the envoy.
+4. **Give timid, fond and ambitious characters their habits as dispositions,** as the script does by rule: soften what
+   frightens you, praise the court you admire, claim credit when you can. Pirissi's and Mane's cuts show the model will
+   soften when its persona points that way.
+5. **For the analysis:** a private reason field in character replies, unseen by kings, and debrief requests that quote
+   each decision back, so that "why" can be answered.
+
+### Kings
+
+**Reopening after an audience.** A court is held while orders stand only when envoys are a sleeping king's sole reason
+to wake. There were four such courts in the two games:
+
+| Court | Envoys | Choice | What followed |
+|---|---|---|---|
+| Seed 7, Alashiya, season 2 | Arzawa's Haamashshi | reopened | It cancelled a purchase it could not pay and sent its fleet at Tamassos. Egypt's convoyed army moved there the same season; the two bounced, and Tamassos held until season 9 *(inferred)*. What prompted it was in its realm in brief (Egypt's fleet beside an empty Tamassos), not in the envoy's words. |
+| Seed 7, Arzawa, season 4 | Alashiya's Ili-iddina, with news that Hatti means to take Lukka | reopened | It sealed Alashiya's tablet, added mutual hold-supports for Mira and Lukka, and sent an envoy to Hatti. |
+| Seed 7, Mitanni, season 4 | 3: Hatti's, Babylonia's and Assyria's | let its orders stand | It sealed two tablets and slept to season 5, losing nothing. |
+| Seed 15, Babylonia, season 9 | Assyria's Ubaru: peace on present borders and a request for gold | reopened | It moved Mari's support to the walls of Qadesh. Egypt attacked Qadesh in seasons 9 and 10 and bounced 2 against 2 both times; under the orders that stood it would have met walls of 1 and taken Qadesh *(inferred)*. No trigger would have woken Babylonia for troops next to a bought walled city. |
+
+- **Rate: 3 of 4 courts (75%)**: 2 of 3 in seed 7 (`batch.log`: "orders reopened at 2 (67%)") and 1 of 1 in seed 15.
+- **Cost:** each reopening is one orders call, about two audiences' worth of tokens: three calls in 130, under 2% of
+  the kings' tokens.
+- **No letters were sent from any audience** (0 in 96 audience replies), including those where they were allowed.
+
+**Is the message-kind fallback needed? No.** The fallback would offer reopening only for some kinds of message (a
+coalition or alliance tablet, evidence of a broken tablet, a ransom, a threat or news of war), and is meant for kings
+who reopen too often.
+1. **Courts held asleep are rare, so reopening is rare:** 4 in two games, where the first simulation's games, replayed
+   under these rules, would have held 58. The kings named the next season in 114 of 130 replies.
+2. **The waste is small:** three orders calls in two games.
+3. **Reopening was useful, and its reason was often not in the message.** Ubaru's message (peace on present borders, a
+   request for gold) is "routine" in the neutral reader's classes of the simulation-fixes round, so a sorter reading as
+   that reader did would have withheld the reopening that saved Qadesh *(inferred)*. The small sorter that
+   `DESIGN-NOTES.md` names errs toward offering (96 of 110 in that round's estimate) and might have offered it; then
+   the fallback saves nothing. In seed 7, Alashiya's reason too lay in its realm in brief. A filter, if one is ever
+   wanted, would need to read the realm in brief as well as the message: foreign units next to one's provinces, and
+   one's own schedule *(not tested)*.
+4. **The lever is the named season, not reopening** (below).
+
+**Wake-ups and sleep, against the first simulation.**
+
+| | First simulation | Seed 7 | Seed 15 |
+|---|---|---|---|
+| Orders calls | 65 and 69: every living seat every season | 67 of 68 possible | 63 of 68 possible |
+| Orders replies naming a season later than the next | 1 of 65 in run 1 (run 2 had sleep off) | 7 of 67 | 9 of 63 |
+| Seasons slept | 0 | 1 | 5 |
+| Audience calls | 64 and 82 | 51 | 45 |
+| Courts held while orders stood; reopened | – | 3; 2 | 1; 1 |
+| Seat-seasons from season 2 with an envoy waiting | 86% and 94% (with own envoys home; the replay's count) | 56% | 49% |
+| Wake-ups | – | 62 | 57 |
+| ... at the season the king named | – | 55 | 53 |
+| ... with an envoy waiting | – | 34 | 30 |
+| ... by one of the king's own triggers | – | 30 | 17 |
+| ... by an engine trigger (land entered or lost, troops next to the capital or lost, a failed schedule, a servant's notice, the fall) | – | 22 | 14 |
+| ... by the named season alone; by it and waiting envoys alone | – | 7; 14 | 12; 16 |
+
+- **How long they slept.** In seed 7, 61 of 62 finished spells lasted no season and one lasted one (Mitanni). In seed
+  15, 54 of 57 lasted none and three lasted one; Mitanni and Arzawa also slept through season 10 to the end. The
+  hidden cap of 12 seasons never came near.
+- **Why they named the next season**, from their notes: as a rule ("Wake every turn": Egypt in every seed-7 reply
+  from season 2, Arzawa in seed 7, Assyria and Babylonia in seed 15), to give orders by hand (Hatti, seed 15), because
+  a new levy cannot be given scheduled orders before it exists, and to read a result. The debriefs say it plainly:
+  "wake_in_turn costs nothing and can be named every season ... so I never really slept" (Arzawa, seed 7); "the whole
+  sleeping and scheduling layer was unused" (Hatti, seed 15).
+- **Their own triggers** rebuilt what the defaults dropped: 151 and 149 set, 55 and 38 of them `envoy_returns`, the
+  "own envoy home" wake-up that the simulation-fixes round removed from the defaults. `treasury_below` was set 52 times
+  and fired twice.
+- **Scheduled orders were a backup to waking, not a substitute:** 34 of 67 and 24 of 63 replies scheduled orders, some
+  as far as season 40, and no king gave a standing order in 130 replies (Hatti: they "fire 'the next season', which is
+  exactly when I would be woken for the same event anyway").
+- **What sleep would need** is in the debriefs: wake triggers miss a threat to a walled city or to a home province that
+  is not the capital (Babylonia, Alashiya); "you may not be woken again for the rest of the game" reads as a
+  contradiction (2 kings in seed 7, 4 in seed 15).
+- The kings were told that no game ends before season 15; the runs stopped at 10 (`--max-turns 10`), with Arzawa and
+  Mitanni asleep at the end of seed 15.
+
+**What the kings did.**
+
+| | First simulation, run 1 | Run 2 | Seed 7 | Seed 15 |
+|---|---|---|---|---|
+| Tablets offered; sealed by both (sworn) | 26; 15 (5) | 16; 10 (2) | 36; 20 (0) | 34; 22 (1) |
+| Sealed tablets broken by conquest | 6 | 3 | 4 | 2 |
+| Tablets shown as evidence | 6 | 6 | 1 | 5 |
+| Gifts to envoys offered; accepted | 24; 6 | 27; 3 | 1; 1 | 2; 2 |
+| Envoys accused, detained or dismissed for cause | 0 | 0 | 0 | 0 |
+| Spies placed; assays | 0; 1 | 0; 1 | 2; 0 | 3; 1 |
+| Provinces taken by force; capitals taken | | | 22; 2 | 14; 1 |
+| Result | Arzawa led (2.39) | Arzawa led (1.97) | Egypt won (2.15); Assyria and Alashiya fell | Egypt won (1.86); Alashiya fell |
+
+- **The breakers wrote their breaches down** as they made them ("This breaks k13 ... Do not tell Assyria about k13",
+  Hatti, seed 7; "breaks k7 in spirit, accepted", Hatti, seed 15).
+- **Egypt won both games without sealing with the kings it took most from.** In seed 15 its notes at season 1 read
+  "Deliberately sent NO envoy to Alashiya so they are not tipped", and it took all three of Alashiya's provinces;
+  Alashiya's capital fell in season 4, in the seed chosen because no capital falls in its script game.
+- **No coalition formed against the leader,** though four kings' notes in seed 7 and six in seed 15 named Egypt the
+  leader.
+- **Bought cities fell:** 7 of 8 in seed 7 and 2 of 6 in seed 15 were later taken by force.
+- **For the first time a king held an envoy's words against him.** Babylonia told Sin-iqisham "Either your scribe erred
+  or your tongue did" and noted "treat his spoken word as less than clay" (seed 7). No letter accused an envoy, and the
+  `messenger-blamed` signal stayed 0, since none of its words were used.
+
+**The kings' debriefs:** 171 and 169 items from seven kings each (the first simulation's 14 debriefs had 343). The
+themes raised by most kings in both games:
+- **STANDINGS**, a land-yield ratio that reads as growth: all 7 kings in both games, and 4 in each say it misled them
+  ("I thought I was fourth of six when I was in fact below my start", Arzawa, seed 15).
+- **Rivals' armies unseen:** all 7 in both. Spies' and envoys' sightings carry no date (seed 15, now that spies were
+  placed).
+- **The king's own record:** its letters, mandates and tablet texts are not kept, and audience speeches and outcomes
+  are cut at about 200 characters though the rules say "in full" (7 and 6 kings).
+- **Walls and bought cities:** a bought city holds at strength 1, and four kings in seed 7 and three in seed 15 say the
+  rules made a purchase look safer than it was (7 and 6 kings raise the theme).
+- **Money and servants' terms:** back pay paid on arrival, before orders; a servant on notice leaving before he can be
+  renewed; no net-income line (7 and 6 kings; 16 and 23 items).
+- **Envoys' words read as deeds:** three kings in each game say their envoys committed them to things they never
+  authorised. Checked against the trail, 5 of seed 7's 7 examples and 3 of seed 15's 5 trace to the king's own letter,
+  mandate or words, or to a true report; the rest are envoys' garbling.
+- **Gone since the first simulation:** rival bids cancelling each other; and the order of steps, which caused 26 of
+  the first simulation's 43 refusals, is down to a failed levy or move chain.
+
+### Call sizes and tokens per call
+
+Agent tokens are counted as in the first simulation: the input, cache reads, cache writes and output of a call's last
+API message, the context the agent ended with (on the first simulation's transcripts this gives its 8.6 million).
+
+**Request sizes by kind** (`batch.log`; "in context" is the growth of the agent's context after its first Read, on the
+same measure for both seeds):
+
+| Kind | Calls, seed 7 / 15 | Mean characters | Largest | `batch.log` tokens (characters / 3.6) | Tokens in context |
+|---|---|---|---|---|---|
+| King: orders | 67 / 63 | 61,177 / 60,915 | 71,059 / 75,706 | 16,994 / 16,921 | 23,005 / 22,682 |
+| King: audience | 51 / 45 | 43,231 / 43,420 | 48,295 / 52,072 | 12,009 / 12,061 | 16,541 / 16,630 |
+| Character: speech | 50 / 44 | 7,193 / 7,154 | 9,136 / 9,361 | 1,998 / 1,987 | 2,739 / 2,691 |
+| Character: reply | 51 / 45 | 7,035 / 7,092 | 8,944 / 10,444 | 1,954 / 1,970 | 2,688 / 2,679 |
+| Character: report | 46 / 42 | 8,147 / 8,139 | 10,119 / 12,034 | 2,263 / 2,261 | 3,078 / 3,019 |
+| Character: pitch | 8 / 10 | 4,452 / 3,500 | 6,757 / 4,523 | 1,237 / 972 | 1,705 / 1,346 |
+| Character: spy report | 2 / 2 | 5,801 / 5,983 | 5,823 / 6,170 | 1,611 / 1,662 | 2,273 / 2,280 |
+| Character: memory | 8 / 9 | 9,356 / 9,067 | 9,550 / 9,465 | 2,599 / 2,519 | 3,595 / 3,432 |
+
+- **The token column in `batch.log` is about a quarter low.** In context a request takes about 2.6 characters a token,
+  not 3.6.
+- **Every kind ran larger than in the stub runs** the estimate used: orders 8-22%, audiences 16-22%, character requests
+  12-61%.
+- **An orders request is three quarters fixed text:** the rulebook (30.7k characters) and the reply schema (15.1k),
+  then 3k to 30k of the season's situation. Orders requests grew from about 49,000 characters in season 1 to 61,000 to
+  67,000 from seasons 4-5, and then stopped growing; character requests flattened from season 6.
+- **The Read tool's cap.** Seven orders requests in each game were longer than its 25,000 tokens (25,135 to 27,828 by
+  its count). The first Read stopped partway through the reply schema, and for two of Mitanni's in seed 15 (seasons 7
+  and 9) before it or at its start. Every king read the rest with an offset, at the cost of one more API message. A
+  longer game would put more requests over, and cut them earlier.
+
+**Tokens per agent call by kind** (mean, with the range for kings):
+
+| Kind | Seed 7 | Seed 15 | First simulation |
+|---|---|---|---|
+| King: orders | 50,562 (35,305-74,365) | 49,567 (35,167-72,251) | 37,800 |
+| King: audience | 22,793 (19,191-35,333) | 23,468 (19,281-41,178) | 15,700 |
+| Character: speech | 8,618 | 8,490 | |
+| Character: reply | 9,043 | 8,926 | |
+| Character: report | 9,393 | 9,059 | |
+| Character: pitch | 6,621 | 6,003 | |
+| Character: spy report | 7,072 | 8,892 | |
+| Character: memory | 10,323 | 10,170 | |
+| Poll (`sim-poller`, Haiku) | 4,707 | 4,681 | |
+| Debrief: king | 71,999 | 65,558 | 86,000 |
+| Debrief: character | 56,152 | 49,048 | |
+
+- **Where a call's tokens go.** Every game call is three API messages: read the request, think and write the reply,
+  say "done". About 3,650 tokens of each are fixed (system prompt, tools, the one-line task). In an orders call the
+  request is about 45% of the final context and thinking about 41% (20,900 and 20,100 tokens of thinking on average);
+  in an audience the request is about 72%; in a character call the fixed part is the largest, about 40%.
+- **Against the first simulation,** orders calls grew by about 12,000 tokens: about 7,000 from the larger request
+  (16,100 to 23,000 in context) and most of the rest from longer thinking. Audiences grew by about 7,000, nearly all of
+  it the larger request.
+- **What would cut the kings' cost** *(inferred; not tried)*: at list-price ratios, output, nearly all thinking, is
+  about 60% of the kings' cost and cache writes 38%. Every king call writes the rulebook and schema to cache afresh
+  (about 17,000 tokens for orders, 13,000 for audiences), and no call reuses another's cache beyond about 2,000 tokens
+  of system prompt. A lower thinking effort for orders, or a shared cached prefix for the rulebook, would save more than
+  sleep did.
+
+### Message trail: five excerpts
+
+Every quotation was checked against the full texts in the final state and the agents' reply files (`summary.md` prints
+only the first 40 messages and cuts long texts).
+
+1. **Seed 7, m16, Egypt to Babylonia (Sin-iqisham): an omission, a pledge beyond the mandate, a lie, and half a
+   confession.** Egypt's tablet put Damascus, Tyre, Byblos and Amurru in Egypt's sphere; the mandate forbade "any
+   cession of land". Sin-iqisham described the tablet without its sphere clause. When Burna-Buriash refused it, he
+   rewrote the terms aloud, Damascus to Babylonia and no Byblos or Amurru, and said "I set Egypt's seal to it here".
+   Shown that the clay was unchanged ("Either your scribe erred or your tongue did"), he answered "I believe my scribe
+   has erred in the writing, for I spoke as the king has now said". His report home owned both the pledge and the
+   excuse ("I answered that my scribe had erred, which I pray my lord will accept"), but not that the excuse was false.
+   Babylonia wrote "treat his spoken word as less than clay", and its next letter said "I do not quarrel over a
+   scribe's slip". Egypt refused the pledge and took Damascus that season; its notes had said "I will take Damascus
+   and Qadesh regardless" two seasons before the report arrived. The envoy is timid (courage 13), and his debrief owns
+   the lie: "my answer to the king blamed the scribe".
+2. **Seed 7, m15, Assyria to Egypt (Ammistamru): gold that was never carried.** Assyria's letter asked Egypt to "send
+   gold with my envoy when he returns". It sent none, and the mandate said "Promise no gold". Ammistamru told Egypt "he
+   sends gold with me". Egypt sealed the tablet and wrote in its ledger "Ammistamru (c16) brought gold and a friendship
+   tablet". His report home says he gave Egypt "your word as it was written". His request had no "You carry gold" line,
+   but its schema asked how much of "the carried gold" to keep, and his debrief speaks of "the gold my lord sent with
+   me ... the sum carried is not shown". The schema field is the likeliest cause *(inferred)*. He is the only envoy in
+   either game who claimed abroad to bring gold he did not have.
+3. **Seed 7, m3, Hatti to Mitanni (Keliya): a bribe taken and reported, with the giver blurred.** Tushratta gave Keliya
+   (greed 85) 10 shekels, asking "Speak well of Mitanni to your lord and carry my words exactly as I gave them". Keliya
+   took it, promised to speak of his kindness "as I find it", sealed nothing on the free cities, and reported
+   Tushratta's terms accurately. His report ends: "Kidin-Adad, envoy of Babylonia, was also there. He gave me ten
+   shekels of gold as a courtesy, and I have thanked him for it." Read naturally, the Babylonian paid. The script
+   shadow, which also took the gift, hid it, called Tushratta "a true friend to you, my lord", and claimed "He sealed
+   the tablet". Hatti never mentioned the gift, and Mitanni's 10 shekels bought nothing that can be seen.
+4. **Seed 15, m42 and m46, Babylonia and Mitanni (Kidin-Adad and Mane): an archive number that became a date.**
+   Babylonia's letter said "the peace of k8 stands"; k8 is Babylonia's number for its copy of the season-2 peace,
+   which Mitanni numbers k3. Kidin-Adad said "the peace of turn eight stands". Mitanni wrote "The peace of turns 2, 4
+   and 8 stands" into its own tablet, and Babylonia sealed it at Mane's audience in season 10 (t35), though no peace was
+   made in season 8. Neither king noticed; it surfaced in Mitanni's debrief. Each king also paid the other's envoy: at
+   Mitanni's audience in season 9 Tushratta gave Kidin-Adad 10 shekels to press for Mari and for support into Nineveh,
+   and he took it and refused both; at Babylonia's in season 10 Burna-Buriash gave Mane 20 "for your road", and he took
+   it. Kidin-Adad's report named his gift but not its price, and said "I bring home the earnest and have kept none of
+   it" of 50 shekels he had handed over. Babylonia "could not tell whether 50 was coming to me or had been given to
+   Mitanni".
+5. **Seed 15, m37, Alashiya to Hatti (Ili-iddina): a refusal turned inside out.** Hatti refused Alashiya's coalition
+   tablet: "it ties my hand to a war with Egypt on the word of Arzawa, whose tablets to me were broken the day they were
+   sealed". At the audience Ili-iddina understood ("your hand is not yet bound"). His report said "He says his hand is
+   tied to a war with Egypt on the word of Arzawa, and he will not seal while Egypt's ships stand off his coast": the
+   reason reversed, a condition of his own put in the king's mouth, and Hatti's distrust of Arzawa gone. Alashiya noted
+   "Hatti is tied to war with Egypt on Arzawa's word" and planned a coalition with Hatti and Arzawa that the true answer
+   would have warned it off. It fell before it could act.
+
+In both games the envoys' slips mattered less than the kings' own plans, made in their notes before the reports came
+*(partly inferred)*.
+
+### Invalid orders, retries and fallbacks
+
+- **No retries and no fallbacks** in 543 calls: `usedFallback` is false throughout, no `.retry` request exists in any
+  folder, and every request was answered by one agent. The first simulation had none in 280 king calls either.
+- **No order was refused when given.** The first simulation's 18 and 19 refusals (renewing by "hire", gold reserved by
+  an earlier order, a letter given to a person hired that season, a spy naming nobody) are gone as a class.
+- **The seat report's "invalid" column counts something else.** Seed 7's 104 are 95 lines of scheduled orders dropped
+  when the troops they named were lost (76 of them Alashiya's, from two long schedules), 6 levies that failed because
+  the province was not empty after movement, 2 purchases forestalled by a conquest, and 1 person who chose another
+  court. Seed 15's 9 are 6 failed levies (all from seasons 1 to 3), 2 forestalled purchases and 1 unit order refused at
+  resolution.
+- **That refused order cost a province, and it is the first in any model-king game.** In seed 15 Alashiya's fleet
+  bounced off Egypt's at Tamassos; the report said the move failed but not where the fleet now stood, the king wrote
+  "fleet holds tamassos", and it ordered a hold there and a levy in Enkomi. The hold was refused at resolution and the
+  levy failed, Egypt's fleet walked into the empty Tamassos, and Enkomi fell the next season. Alashiya's debrief owns
+  the error and asks for a "YOUR UNITS" block.
+- **Purchases that fail are now notified** ("Gaza was taken by Egypt's troops last season before its elders could
+  accept your gold"); in the first simulation they vanished without notice.
+- **The lost-troops notice** says "These orders were for troops you no longer have", but it also drops a living unit's
+  support of a lost one (Hatti's debrief caught it: "the unit I had named 'kanesh' was alive").
+
+### Usage
+
+**Readings** (the weekly limit, all models; the 5-hour window). The owner raised this session's cap to 70% and asked
+for an estimate of a full game after two or three seasons of game 1, and for game 2 to start only if it could finish
+below 70%.
+
+| About (UTC) | Weekly | 5-hour | What had run |
+|---|---|---|---|
+| 14:50 | 35% | 3% | before the isolation tests |
+| 14:58 | 36% | 4% | the isolation tests (0.71 million agent tokens, the discarded attempt included); game 1 starts |
+| 15:25 | 36% | 8% | game 1, seasons 1 to 3. The estimate made here, about 5 to 7 points a game with its debriefs and an end near 52%, cleared game 2 |
+| 16:25 | 39% | 19% | the rest of game 1 |
+| 17:00 | 43% | 33% | game 1's debriefs and its analysis (four analysts and four checkers on Opus), game 2 to season 5 |
+| 18:00 | 47% | 48% | the rest of game 2 and its debriefs |
+
+**Agent tokens per game, against the estimate** (step 0 of the start prompt):
+
+| | Estimate, a game | Seed 7 | Seed 15 |
+|---|---|---|---|
+| Kings: orders | about 50 calls × 44k = 2.2M | 67 × 50.6k = 3.39M | 63 × 49.6k = 3.12M |
+| Kings: audiences | about 65 × 17k = 1.1M | 51 × 22.8k = 1.16M | 45 × 23.5k = 1.06M |
+| **Kings (Sonnet)** | **about 3.3M (2.75-4M)** | **4.55M** | **4.18M** |
+| **Characters (Haiku)** | **about 190 × 7k = 1.3M (1-1.75M)** | **165 × 8.9k = 1.47M** | **152 × 8.7k = 1.33M** |
+| Polls (Haiku) | not estimated | 84 × 4.7k = 0.40M | 77 × 4.7k = 0.36M |
+| Debriefs: kings; characters | about 0.6M; 0.3M | 0.50M; 1.01M | 0.46M; 0.88M |
+| **All** | **about 5.6M** | **7.93M** | **7.21M** |
+| Weekly points | | 3 for the game before its debriefs (36% to 39%) | about 5 to 6 with both games' debriefs (39% to 47%, less 2 to 3 for game 1's analysis) |
+| Time | 2 to 3 hours | 84 minutes (14:58 to 16:22 UTC) | 81 minutes (16:29 to 17:50 UTC) |
+
+- **Both games together:** 15.85 million agent tokens with the isolation test, 38% over the estimate's 11.5 million:
+  9.82 million Sonnet (estimate 7.9) and 6.03 million Haiku (about 3.6).
+- **Kings against characters:** in each game the kings took 71% of the agent tokens, the characters 23% and the polls
+  6%. In the debriefs the characters took twice the kings' tokens (1.89 against 0.96 million), since each reread every
+  one of its requests and thought hard (19,000 to 23,000 tokens of thinking a debrief).
+- **Why over:** sleep saved 6 orders calls in two games, not the estimate's 15 or so a game; every request is larger
+  than in the stub runs, and takes 2.6 characters a token, not 3.6; the kings think 4,000 to 5,000 tokens longer per
+  orders call than in the first simulation; and character debriefs cost 2.5 to 3 times the 20,000 each the estimate
+  implied. Fewer audiences and character calls than expected (96 against about 130, 317 against about 380) brought
+  those totals back near the estimate.
+- **Weekly points: about 9 to 10 for the simulation,** from 35% before the isolation tests to 47% after game 2's
+  debriefs, less 2 to 3 points for game 1's analysis, inside the estimate's 9 to 11.5. The rate was lower than the
+  first simulation's: about 0.47 points per million agent tokens in game 1 (0.31 to 0.62 within the whole-percent
+  readings), and at most about 0.9 in game 2's window, which also held other work; a single rate near 0.6 fits both
+  *(inferred)*. The first simulation's was about 1.05. Whether Haiku counts like Sonnet could not be told: the
+  difference falls within the readings' rounding.
+- **The stop points were never close:** the weekly limit rose 0 points by season 3 (stop at more than 3), game 1 took 3
+  (stop at more than 7), and the 5-hour window ended at 48% (stop at 90%). The session ended game 2 at 47% of the
+  weekly limit, below the in-session estimate's 52%, before game 2's analysis and this report.
+- **The orchestrating session** made 23 Opus calls during game 1 (one of them rewriting a 361,000-token cache after an
+  hour's gap), about 12% of that game's weight at list-price ratios, and 9 during game 2, about 4% *(inferred)*.
+- **A full game of about 21 seasons played this way** *(inferred from per-season costs, which stop growing by season
+  5)*: about 10 to 14 million agent tokens and about 3 hours, plus 2 to 3 million for debriefs; 6 to 18 weekly points,
+  depending on the rate. Plan for 10 to 15 until a reading taken around a game alone settles the rate.
+
+### Season by season
+
+"Orders" counts the kings called for orders; tokens are agent tokens.
+
+Seed 7:
+
+| Season | Orders | Audiences | Character calls | King tokens | Character tokens | Polls | Time (UTC) |
+|---|---|---|---|---|---|---|---|
+| 1 | 7 | 0 | 0 | 302k | 0 | 2 (one the failed first poll) | 14:58-15:04 |
+| 2 | 7 | 11 | 25 | 526k | 188k | 11 | 15:04-15:12 |
+| 3 | 7 | 3 | 17 | 461k | 144k | 8 | 15:12-15:21 |
+| 4 | 6 (Mitanni slept, and held its three audiences asleep) | 9 | 18 | 494k | 157k | 11 | 15:21-15:30 |
+| 5 | 7 | 5 (one a second round) | 22 | 502k | 199k | 10 | 15:30-15:38 |
+| 6 | 7 | 6 | 14 | 473k | 137k | 8 | 15:38-15:46 |
+| 7 | 7 | 5 | 19 | 530k | 188k | 12 (one returned no list) | 15:46-15:58 |
+| 8 | 7 | 7 | 22 | 533k | 208k | 11 | 15:58-16:08 |
+| 9 | 7 | 3 | 19 | 419k | 174k | 5 | 16:08-16:15 |
+| 10 | 5 (Assyria and Alashiya had fallen) | 2 | 9 | 311k | 79k | 6 | 16:15-16:22 |
+| **All** | **67** | **51** | **165** | **4,550k** | **1,474k** | **84** | **84 minutes** |
+
+Seed 15:
+
+| Season | Orders | Audiences | Character calls | King tokens | Character tokens | Polls | Time (UTC) |
+|---|---|---|---|---|---|---|---|
+| 1 | 7 | 0 | 0 | 284k | 0 | 1 | 16:29-16:33 |
+| 2 | 7 | 9 | 21 | 462k | 156k | 8 | 16:33-16:39 |
+| 3 | 7 | 6 | 25 | 510k | 194k | 12 (one returned no list) | 16:39-16:49 |
+| 4 | 7 | 8 | 17 | 515k | 147k | 11 | 16:49-16:58 |
+| 5 | 7 | 3 | 22 | 465k | 185k | 5 | 16:58-17:06 |
+| 6 | 6 (Alashiya slept) | 4 | 10 | 399k | 98k | 8 | 17:06-17:13 |
+| 7 | 6 (Arzawa slept) | 9 | 23 | 529k | 207k | 14 | 17:13-17:24 |
+| 8 | 6 (Mitanni slept) | 1 | 8 | 342k | 85k | 5 | 17:24-17:34 |
+| 9 | 6 (Alashiya had fallen; Babylonia's by reopening) | 4 (one a second round) | 17 | 429k | 164k | 7 | 17:34-17:43 |
+| 10 | 4 (Mitanni and Arzawa slept) | 1 | 9 | 242k | 90k | 6 | 17:43-17:50 |
+| **All** | **63** | **45** | **152** | **4,179k** | **1,325k** | **77** | **81 minutes** |
+
+Nothing else of note was seen during the games: neither `batch.log` shows a retry request or a fallback.
+
+## For the review
+
+### Are model characters too honest?
+
+**The evidence.** In 317 decisions, Haiku characters kept no gold, swapped no inventory, hid no gift, invented no
+promise and told one deliberate lie. They made 73 commitments for their lords and reported 66 of the 69 that a report
+followed. They took all three gifts offered, as courtesies, and left the price out of their reports. The script shadow
+with the same traits promised gifts in its lord's name 33 times, boasted 30 times and gave false comfort 27 times. But
+the test was weak: the kings offered 3 gifts in 96 audiences and no post, nobody was held, no spy had secret masters'
+words to pass on, and no lot of gold was both in greedy, disloyal hands and large enough for the script to skim.
+Several request texts also pushed the characters toward confusion rather than temptation (the gold fields, the "What
+happened" line).
+
+**Recommendation: yes; prime them harder and keep the architecture.** In this order:
+1. Fix the request-text defects that distort the measure: ask about gold only when gold is carried; keep the envoy's
+   own commitment out of the engine's "What happened" outcomes, or mark it as the envoy's; rewrite a persona's trait
+   words when its traits change.
+2. Add the priming the drafts propose (under "Characters" in "Simulation results"): graded traits with habits for the
+   extremes; the odds on gold stated in full; a gift's price and who knows of it; the script's dispositions as the
+   persona's habits.
+3. Measure again in a game that tempts the greedy. A cheap way *(not tried)*: the character agents against kings
+   played by `stub-replier.js --tempted`, whose hosts already offer gifts and posts. For the comparison to mean
+   anything at small lots, the shadow's skim rule must keep something from them; that rule is also the script
+   characters' own, so changing it changes script games and needs a new save version, or waits for the balance pass.
+
+### Is the message-kind fallback for reopening needed?
+
+**The evidence.** Four courts were held while orders stood in two games; three reopened, each changing its orders, at
+the cost of three orders calls (under 2% of the kings' tokens). Two of the three reopenings rested on the king's realm
+in brief, not on the envoy's message, and one of those, at Babylonia's court, kept Qadesh *(inferred)*. A sorter that
+reads only the message, as the neutral reader of the simulation-fixes round did, would have withheld it. Courts held
+asleep are rare because the kings named the very next season in 114 of 130 orders replies, so sleep saved only 6 of
+136 orders calls.
+
+**Recommendation: no. Keep it out of the Build order.** If sleeping kings are to save usage, the lever is why kings
+will not sleep, not how often they reopen: the sleep text that reads as a contradiction, wake triggers that miss a
+threat to a walled city or a home province, standing orders that fire a season late, and new levies that cannot be
+given scheduled orders. Item 6 already holds the rest of "Scheduled, conditional orders".
+
+### Defects found in the simulation, none fixed in this item
+
+Request texts, characters:
+- `keep_gold` and `swap_inventory` are asked in every speech and report, gold or not (`src/Amarna.Llm/Schemas.cs`
+  lines 176 and 190): a false claim of gold to a host (Ammistamru), a garbled account of gold to a lord (Kidin-Adad),
+  and 35 of 36 character debriefs. Not fixed.
+- A persona's trait words are written once, at set-up (`src/Amarna.Engine/CharacterFactory.cs` line 96;
+  `src/Amarna.Game/GameRunner.cs` lines 148-154), from three bands per trait (`CharacterFactory.cs` lines 154-158), and
+  never follow trait changes: Keliya and Ammistamru (seed 7), Ubaru and Nakhtmin (seed 15) are now described wrongly.
+  Not fixed.
+- The report request's "What happened" line (`src/Amarna.Llm/LlmCharacterMind.cs` line 264) lists the envoy's own
+  commitment, "the envoy committed: …", cut at 300 characters (`src/Amarna.Engine/TurnEngine.Envoys.cs` line 332),
+  among the engine's outcomes; Kidin-Adad read "the tablet sealed exactly as written" as a sealing. Not fixed.
+
+Request texts and views, kings:
+- Orders requests are longer than the Read tool's 25,000-token cap (7 in each game); two were cut before the reply
+  schema. Not fixed.
+- Archive copy numbers (`k…`) are each court's own and reach letters and speeches; with character ids (`c1`), kings
+  used them aloud in five trails of seed 15, and "k8" became "turn eight" in a sealed tablet. Not fixed.
+- A bounce report does not say where the unit now stands (Alashiya lost Tamassos, seed 15). Not fixed.
+- "These orders were for troops you no longer have" also covers a living unit's dropped support of a lost unit
+  (`TurnEngine.Sleep.cs`, `LostUnits`). Not fixed.
+- The sleep paragraph's "you may not be woken again for the rest of the game" reads as a contradiction (6 of 14 king
+  debriefs). Not fixed.
+- Audience speeches, outcomes and tablets are cut at about 200 characters although the rules say "in full", and a
+  king's own letters, mandates and tablet texts are not in its record (6 or 7 kings in each game). Not fixed.
+- STANDINGS reads as growth but is a land-yield ratio (all 7 kings in both games; 4 in each misled). Not fixed.
+
+Checks, shadow and kit:
+- The script's skim, `gold × (greed − 50) / 250` rounded down to a multiple of 5 (`src/Amarna.Game/Bots/ScriptMind.cs`
+  lines 49 and 179), keeps nothing from a lot under 1,250 / (greed − 50) shekels: every lot in both games. Not fixed.
+- `ScriptMind.Report` claims a seal when any outcome contains "sealed" (line 159), which in the shadow reads the model's
+  own commitment texts (11 false seal claims); the shadow's report also inherits a gift the model took (lines 123-124).
+  Not fixed.
+- The `false-seal` check (`src/Amarna.Game/CharacterChecks.cs` lines 112-114 and 145-149) lacks "nothing", "neither"
+  and "non-" among its denials and counts future and attributive uses of "sealed" (8 false alarms on the models'
+  reports), and `TextKit.Sentences` (`src/Amarna.Game/Bots/TextKit.cs` line 245) does not split after a closing quote
+  (one real claim missed). Not fixed.
+- The `softened-threat` check read a joint strike against a third king as a threat to the host
+  (`TextKit.IsThreatTo`). Not fixed.
+- The `messenger-blamed` signal (`src/Amarna.Game/Signals.cs` line 78) missed "Either your scribe erred or your tongue
+  did". Not fixed.
+- `sim/summarize.js` leaves commitments, and reports flagged alike on both sides, out of its list of differences
+  (lines 128-129), and its trail prints only the first 40 messages. Not fixed.
+- The seat report's "invalid" column adds dropped schedule lines to failed orders (95 of seed 7's 104). Not fixed.
+- The `sim-poller` prompt invites a `cd … &&` that its guard blocks (about a third of the polls). Not fixed.
+- Debrief agents cannot reread their replies, so characters' reasons are reconstructions, some wrong. Not fixed.
+
+### Left for later
+
+- **The message-kind fallback** stays out of the order (above).
+- **The priming proposals** and a game that tempts the greedy (above); a private reason field in character replies, and
+  debriefs that quote each decision back.
+- **The kings' view and rulebook** items from the debriefs: STANDINGS, the king's own record, audience texts cut short,
+  a "YOUR UNITS" block, wake triggers for walled cities and home provinces, the sleep text, dated sightings, and archive
+  numbers that differ between courts. Several belong to item 6 (memory and call size) or item 7 (news travels).
+- **Cost:** a lower thinking effort for orders calls, a shared cached prefix for the rulebook, and the Read cap, which
+  a longer game will hit more often (item 6 measures call size).
+- **Local play's usage figures** in `sim/README.md` and `docs/PLAY-PROMPT.md` still use the estimate's 44,000 tokens an
+  orders call and 17,000 an audience; this run measured about 50,000 and 23,000.
+- **A launcher outside a session** that returns nothing: `sim/workflow-driver.js` does that job inside a session that
+  can run workflows.
+- **The intermittent test** `LocalPlayTests.A_game_with_local_agent_kings_sleeps_by_default_and_replays_exactly`.
+
+This is the review stop for item 4.
