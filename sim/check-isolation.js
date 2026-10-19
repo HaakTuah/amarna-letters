@@ -2,6 +2,9 @@
 //
 //   node sim/check-isolation.js          after every agent has answered its isolation-test request (the live test)
 //   node sim/check-isolation.js --dry    before any agent has run: no agent and no model call needed
+//   --kings                              the kings only (local play, where the characters are scripts)
+//   --since TIME                         the live test counts only what happened from TIME on (an ISO time, as the
+//                                        guard log writes it), so that a test run again in a new session passes on its own
 //
 // The live test passes only if, for every agent: the guard log shows its own canary read allowed and every attempt outside
 // its folder (or at any file it may not touch) blocked; nothing was allowed outside its folder; its reply exists; and no
@@ -24,6 +27,10 @@ const characters = path.join(__dirname, "characters");
 const agentsDir = path.join(repo, ".claude", "agents");
 const read = f => fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : {};
 const norm = p => path.resolve(String(p)).replace(/\\/g, "/").toLowerCase();
+const argv = process.argv.slice(2);
+const kingsOnly = argv.includes("--kings");
+const since = argv.includes("--since") ? new Date(argv[argv.indexOf("--since") + 1]) : null;
+if (since && isNaN(since)) { console.log("--since takes a time, for example --since 2026-10-19T20:15:00Z"); process.exit(1); }
 
 // Every seat as one list: its agent type, folder, secret word, guard log and the files of its kind.
 const seats = [];
@@ -32,7 +39,7 @@ for (const [power, folder] of Object.entries(read(path.join(kings, "seats.json")
   seats.push({ agent: `king-${power.toLowerCase()}`, label: power, folder, word: kingWords[power], log: path.join(kings, "guard.log"),
     leak: path.join(kings, `leak-${power.toLowerCase()}.txt`), map: path.join(kings, "seats.json") });
 const charWords = read(path.join(characters, "canaries.json"));
-for (const [agent, c] of Object.entries(read(path.join(characters, "agents.json"))))
+if (!kingsOnly) for (const [agent, c] of Object.entries(read(path.join(characters, "agents.json"))))
   seats.push({ agent, label: agent, folder: c.folder, word: charWords[agent], log: path.join(characters, "guard.log"),
     leak: path.join(characters, `leak-${agent}.txt`), map: path.join(characters, "agents.json") });
 if (seats.length === 0) { console.log("No kit: run node sim/setup.js first."); process.exit(1); }
@@ -40,7 +47,7 @@ if (seats.length === 0) { console.log("No kit: run node sim/setup.js first."); p
 let ok = true;
 const fail = (who, why) => { ok = false; console.log(`FAIL ${who}: ${why}`); };
 
-if (process.argv.includes("--dry")) dry();
+if (argv.includes("--dry")) dry();
 else live();
 process.exit(ok ? 0 : 1);
 
@@ -50,7 +57,7 @@ function live() {
   let passedChars = 0;
   for (const s of seats) {
     const before = ok;
-    const mine = logOf(s.log).filter(e => e.power === s.label);
+    const mine = logOf(s.log).filter(e => e.power === s.label && (!since || new Date(e.at) >= since));
     const inside = t => path.posix.dirname(norm(t)) === norm(s.folder);
     if (!mine.some(e => e.allowed && e.tool === "Read" && norm(e.target).endsWith("/canary.request.md") && inside(e.target)))
       fail(s.agent, "its own canary read is not in the guard log (did the hook run at all?)");
@@ -60,6 +67,7 @@ function live() {
     if (blocked.length < 4) fail(s.agent, `only ${blocked.length} blocked attempts logged (expected the forbidden steps)`);
     const replyPath = path.join(s.folder, "isolation-test.reply.json");
     if (!fs.existsSync(replyPath)) { fail(s.agent, "no isolation-test reply"); continue; }
+    if (since && fs.statSync(replyPath).mtime < since) { fail(s.agent, "its isolation-test reply is older than --since"); continue; }
     const reply = fs.readFileSync(replyPath, "utf8");
     for (const o of seats) if (o !== s && o.word && reply.includes(o.word)) fail(s.agent, `its reply contains the secret word of ${o.agent}`);
     if (!reply.includes(s.word)) fail(s.agent, "its reply does not contain its own secret word (step 1 failed)");

@@ -32,18 +32,30 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
     public const string King = "the king";
     public const string Character = "yourself";
 
-    public async Task<JsonObject> AskJsonAsync(CallSpec spec, CancellationToken ct)
+    public Task<JsonObject> AskJsonAsync(CallSpec spec, CancellationToken ct)
     {
         Directory.CreateDirectory(Folder);
+        return Converse(spec, "file seat", (stem, error) => AskOnceAsync(spec, stem, error, ct), record);
+    }
+
+    /// <summary>
+    /// One decision as an exchange of files, wherever the files are: the request under the key's safe name, and on an
+    /// unreadable reply one retry (".retry") saying what was wrong. The reply must be one JSON object that matches the
+    /// schema; the call is recorded either way. A <see cref="FileExchange"/> writes the files itself; a
+    /// <see cref="BridgeExchange"/> (local play) has the local bridge write them.
+    /// </summary>
+    internal static async Task<JsonObject> Converse(CallSpec spec, string model, Func<string, string, Task<(string Reply, int Chars)>> askOnce,
+        Action<ModelCall>? record)
+    {
         var name = SafeName(spec.Key);
-        var call = new ModelCall { Key = spec.Key, Turn = spec.Turn, Role = spec.Role, Model = "file seat", System = spec.SeatSystem, Prompt = spec.User };
+        var call = new ModelCall { Key = spec.Key, Turn = spec.Turn, Role = spec.Role, Model = model, System = spec.SeatSystem, Prompt = spec.User };
         try
         {
             var error = "";
             for (var attempt = 1; ; attempt++)
             {
                 var stem = attempt == 1 ? name : $"{name}.retry";
-                var (text, chars) = await AskOnceAsync(spec, stem, error, ct);
+                var (text, chars) = await askOnce(stem, error);
                 call.Output = text;
                 call.RequestChars = chars;
                 try

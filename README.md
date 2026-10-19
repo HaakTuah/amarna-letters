@@ -28,10 +28,16 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 | **Budget** | Haiku 5.5 | Haiku 5.5 | Haiku 5.5 | under $1 |
 | **Standard** | Sonnet 5.5 | Haiku 5.5 | Sonnet 5.5 | about $9 |
 | **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $20 |
+| **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
+
+**Local agents** is local play, for your own games: you take a seat, and the other kings are guarded Claude Code agents
+answered in a Claude Code session on your Claude subscription, through a small bridge on this computer
+(`node sim/bridge.js`). It appears only when the app runs on your computer. The steps are under "Local play" in
+`sim/README.md`, and the session's start prompt is `docs/PLAY-PROMPT.md`.
 
 Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
 messengers. **Customize the table** sets each king separately (script, human, Haiku, Sonnet or
-Opus, for model-against-model experiments), Sonnet envoys, the narrator, thinking effort and the
+Opus, for model-against-model experiments, and a local agent when the app runs on your computer), Sonnet envoys, the narrator, thinking effort and the
 house rules. The estimates are rough; the meter in the game shows the real spend, and the game
 pauses at a spending cap set from the estimate (you can change it).
 

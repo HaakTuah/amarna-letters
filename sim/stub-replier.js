@@ -7,6 +7,9 @@
 //       by answering in the folder that agent's own file (.claude/agents/<type>.md) gives it, as the agent would.
 //   node sim/stub-replier.js <batch output file> <folder | map.json>... [options]
 //       Answers every request that appears in the folders (a seat or character map names every folder in it).
+//   node sim/stub-replier.js --play [options]
+//       Local play: the orchestrator's loop of docs/PLAY-PROMPT.md, on sim/wait.js --play, answering the kings whose
+//       requests the local bridge (sim/bridge.js) writes, until the bridge is stopped.
 //
 // Kings send one of their people who is ready to the nearest court with each set of orders (20 shekels and a threat),
 // and ask to be woken the next season.
@@ -24,12 +27,13 @@ const args = process.argv.slice(2);
 const flag = name => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
 const toggle = name => { const i = args.indexOf(name); if (i < 0) return false; args.splice(i, 1); return true; };
 const tempted = toggle("--tempted");
-const orchestrate = toggle("--orchestrate");
+const play = toggle("--play");
+const orchestrate = toggle("--orchestrate") || play;
 const skip = flag("--skip");
 const bad = flag("--bad");
 const seed = flag("--seed");
-const [out, ...sources] = args;
-if (!out || (!orchestrate && sources.length === 0)) { console.error("usage: node sim/stub-replier.js <batch output file> (--orchestrate [--seed S] | <folder | map.json>...)"); process.exit(1); }
+const [out, ...sources] = play ? [null] : args;
+if ((!out && !play) || (!orchestrate && sources.length === 0)) { console.error("usage: node sim/stub-replier.js <batch output file> (--orchestrate [--seed S] | <folder | map.json>...), or node sim/stub-replier.js --play"); process.exit(1); }
 
 // The plainest value a schema allows: the first of an enum, empty text, zero, false, an empty list.
 function plain(schema, name = "") {
@@ -91,8 +95,9 @@ if (orchestrate) {
   };
   const skipped = new Set();
   for (;;) {
-    const r = JSON.parse(execFileSync(process.execPath, [path.join(__dirname, "wait.js"), out, "120", ...(seed ? ["--seed", seed] : [])], { encoding: "utf8" }));
-    if (r.status === "finished") break;
+    const waitArgs = play ? ["--play", "120"] : [out, "120", ...(seed ? ["--seed", seed] : [])];
+    const r = JSON.parse(execFileSync(process.execPath, [path.join(__dirname, "wait.js"), ...waitArgs], { encoding: "utf8" }));
+    if (r.status === "finished" || r.status === "bridge-stopped") break;
     for (const p of r.status === "waiting" ? r.pending : []) {
       const folder = folderOf(p.agent);
       if (!fs.existsSync(path.join(folder, p.request))) throw new Error(`${p.agent} was sent ${p.request}, which is not in its folder`);

@@ -1174,6 +1174,31 @@ running each agent's own hook on the isolation test's steps; the live test still
 playing session. `stub-replier.js` answers requests with the plainest valid reply, to prove the
 plumbing without model calls.
 
+**Local play on a Claude subscription** (item 4). A fourth way to play, for the developer's own games: the web app,
+run on this computer, with a human seat against kings played by the same guarded king agents, answered in a Claude Code
+session on the subscription instead of through paid API calls (`sim/README.md`, "Local play"; `docs/PLAY-PROMPT.md`).
+A king set to `LeaderKind.LocalAgent` ("Local agent") is a model leader seat whose asker is a `BridgeExchange`: a file
+seat whose files are written by the local bridge, `sim/bridge.js`, since a web page cannot write files. The page builds
+the request text itself (`FileExchange.Request`, with a one-off mark where the reply's path goes) and posts it with the
+king's name and the request's file name; the bridge, which alone knows the folders (`sim/kings/seats.json`), puts the
+reply path in and writes `<name>.request.md` into the king's folder, and the page asks it every second for the reply
+until it comes. The reply goes through the file seat's checks, one retry and fallback (`FileExchange.Converse`, shared
+by both); after the table's wait (`SeatChoices.LocalAgentMinutes`, 60 minutes by default) the script king stands in for
+that decision, and a request that times out, or whose game is stopped, is taken back (moved aside by the bridge), so
+that no agent is started for it later. Each exchange is logged as a call with no tokens ("local agent"), so a game
+saves, continues and replays like any other; a saved game reads its local agent kings back from the header's labels.
+Local agent kings sleep like model kings, so usage follows events. They need no key and cost nothing in the game's
+meter. The bridge listens on 127.0.0.1 and ::1 only, checks the Host header, answers only pages served from this computer
+(an `Origin` of localhost, 127.0.0.1 or [::1]; requests that change anything must be JSON, which a page elsewhere
+cannot send without asking first), and accepts only the seven kings and request names of the game's own form. The web
+app offers the "Local agents" preset (`Presets.Local`, not in `Presets.All`) and the "Local agent" choice only when it
+runs on a loopback address, so the published site never shows them; a saved local game continued elsewhere says that it
+needs the bridge. The orchestrator waits with `wait.js --play`, which watches the kings only and ends when the bridge
+stops (`sim/kings/bridge.json` gone or its process dead); `check-isolation.js --kings --since <time>` checks the
+kings' live isolation test of that session alone. Envoys, spies and the narrator are scripts in local play. Settings,
+first guesses: the bridge's port 5190, a poll every second, the 60-minute wait, and an empty reply handed back after
+5 seconds as the batch runner's file seats do.
+
 ## Script kings
 
 A script king sees exactly what any seat sees (its `SeatView`) and nothing more: a test changes what lies outside the view (rivals' gold, the fine gold in its unassayed lots, troops out of sight, seat labels, characters' traits) and its orders stay the same. The same bot plays every script seat. It also stands in for a model or file seat whenever a call to it fails, playing that king's temperament. The stand-in keeps up with every such seat, asleep or awake (see Known quirks). The rules live in `src/Amarna.Game/Bots` (`Personality`, `Brain`, `Board`, `Statecraft`, `Tactics`, `Search`, `ScriptLeader`), and their numbers are in that code, not in `GameConfig`. Each script seat plays from a seed of its own, the first eight bytes of a SHA-256 hash of the game's seed, "seat" and its power (`ScriptLeader.SeatSeed`), so no script king holds the seed the engine rolls the game's dice with; the hash, unlike a stream of the game's own generator, cannot be undone to find it. Every random choice it makes, in picturing its rivals too, comes from a stream of that seed keyed by turn and purpose, so replays are exact.
@@ -1993,8 +2018,6 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   instructions, an attention limit the same for every seat, and tablets counting as pressing only where the
   instructions do not cover them; they need a decision first (main tab "Under consideration: standing instructions for
   audiences" and "What the replay showed"; Build order "Not yet in the order"; the round report, "Later candidates").
-- **Local play on a Claude subscription**: a human seat against file-seat kings answered by guarded agents (main tab
-  "Local play on a Claude subscription (planned)").
 - **Push notifications** when an envoy arrives (main tab "Platforms"); the web app installs and starts from cache.
 - **Echoes kept out of the primer**: Finkel's "Send gold" parody as a rare script king's letter or chronicle line, and
   "a new Idrimi" in the chronicles once outlaws exist (main tab "Echoes from the archive" and "A new Idrimi").
