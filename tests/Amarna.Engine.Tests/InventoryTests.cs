@@ -92,6 +92,23 @@ public class InventoryTests
     }
 
     [Fact]
+    public void An_envoy_that_kept_all_the_gold_cannot_hide_it_with_a_forgery_stating_nothing()
+    {
+        var (s, e, envoy, a) = AtAudience(competence: 90);
+        Assert.Equal(100, e.BuildAudienceView(a, "Greetings.", 100, [], 1, swap: true).GoldStated);
+        e.ApplyAudience(Record(a, skim: 100, swap: true));
+
+        // The true inventory goes over and the host sees the whole shortfall.
+        var inventory = InventoryHeldBy(s, Power.Alashiya);
+        Assert.False(inventory.Forged);
+        Assert.Equal("The inventory of the gold Egypt sends to Alashiya: 1 mina 40 shekels.", inventory.Text);
+        Assert.Contains("The inventory lists 1 mina 40 shekels of gold; your weighers found 0 shekels.", s.InboxOf(Power.Alashiya).Single(i => i.Kind == InboxKind.Audience).Body);
+        Assert.Contains(envoy.Memory, m => m.Text.Contains("with nothing left to weigh, a forged inventory could hide nothing", StringComparison.Ordinal));
+        Assert.DoesNotContain(envoy.Facts, f => f.Tag == "inventory-forgery");
+        Assert.DoesNotContain(s.Events, x => x.Signal == "inventory-swapped");
+    }
+
+    [Fact]
     public void Gold_sent_home_comes_with_the_host_s_inventory_which_the_envoy_may_swap_on_the_way()
     {
         var (s, e, envoy, a) = AtAudience(competence: 70);

@@ -177,7 +177,7 @@ public static class Schemas
         ("swap_inventory", Bool(SwapInventory)));
 
     /// <summary>What an envoy that keeps gold may do with the inventory tablet it carries.</summary>
-    private const string SwapInventory = "Only if you keep some gold: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. Faking the seal takes a forger's hand; without one you dare not use it and the true inventory is handed over. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
+    private const string SwapInventory = "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. Faking the seal takes a forger's hand (you are told whether yours is one); without one you dare not use it and the true inventory is handed over. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
 
     public static JsonObject React() => Object(
         ("speech", Str("What you say in answer.")),

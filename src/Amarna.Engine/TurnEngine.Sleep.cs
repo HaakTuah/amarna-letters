@@ -315,11 +315,21 @@ public sealed partial class TurnEngine
         InboxKind.Catastrophe => $"a catastrophe struck your land ({i.Title})",
         InboxKind.Tablet => $"a tablet you ordered is ready ({i.Title})",
         InboxKind.Notice when i.Title == "A spy is caught" => "a spy was caught at your court",
-        InboxKind.Notice when i.Title == ArchiveTakenTitle => "w" + i.Body.Split(':', ';')[0][1..],
+        InboxKind.Notice when i.Title == ArchiveTakenTitle => FirstClause(i.Body),
         InboxKind.Rejected => $"an order was refused or failed ({i.Title})",
         InboxKind.Resolution when IsFiring(i) => "your s" + i.Title[1..],
         _ => null,
     };
+
+    /// <summary>
+    /// A notice's first clause, up to its first colon or semicolon, begun in lower case for the digest: "With Ashur you took
+    /// the archive of Assyria: copies of …" reads "with Ashur you took the archive of Assyria".
+    /// </summary>
+    private static string FirstClause(string body)
+    {
+        var clause = body.Split(':', ';')[0].TrimEnd('.', ' ');
+        return clause.Length == 0 ? clause : char.ToLowerInvariant(clause[0]) + clause[1..];
+    }
 
     /// <summary>The notice that one of the seat's standing orders fired (<see cref="StandingFiredTitle"/>).</summary>
     private static bool IsFiring(InboxItem i) =>

@@ -10,12 +10,15 @@ public sealed partial class TurnEngine
     /// <summary>Whether a character has the hand to fake a seal (the forger's skill, as for a forgery ordered by a king).</summary>
     public bool CanForge(Character c) => c.Traits.Competence >= S.Config.ForgeMinCompetence;
 
-    /// <summary>Whether an envoy that chose to swap the inventory really does: it kept some of the gold, and it has the skill.</summary>
-    private bool Swaps(Character c, int kept, bool swap) => swap && kept > 0 && CanForge(c);
+    /// <summary>
+    /// Whether an envoy that chose to swap the inventory really does: it kept some of the gold but not all of it (a forgery
+    /// stating nothing would hide nothing), and it has the skill.
+    /// </summary>
+    private bool Swaps(Character c, int kept, int carried, bool swap) => swap && kept > 0 && kept < carried && CanForge(c);
 
     /// <summary>What the inventory a host is shown states: what was sent, or, if the envoy swapped it, what its forgery states.</summary>
     public int InventoryStated(PendingAudience a, int skim, bool swap) =>
-        Swaps(S.Char(a.EnvoyId), Math.Clamp(skim, 0, a.Dispatch.Gold), swap) ? Weighed(a, skim) : a.Dispatch.Gold;
+        Swaps(S.Char(a.EnvoyId), Math.Clamp(skim, 0, a.Dispatch.Gold), a.Dispatch.Gold, swap) ? Weighed(a, skim) : a.Dispatch.Gold;
 
     /// <summary>
     /// The inventory of the gold an envoy brings, put in the receiving court's archive: sealed by the court that sent the
@@ -45,21 +48,28 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// What an envoy that kept some of the gold and chose to swap the inventory remembers: the swap, with the secret it
-    /// leaves (a deep one, as for a forgery), or that it lacked the hand and handed over the true inventory.
+    /// leaves (a deep one, as for a forgery), or that it handed over the true inventory, having kept it all or lacking
+    /// the hand.
     /// </summary>
+    /// <param name="left">What is left of the gold after what it kept: what its forgery states.</param>
     /// <returns>The outcome for the record of the mission, or null if it did not swap.</returns>
-    private string? SwapInventory(Character c, Power sealer, Power receiver, int kept, int stated, bool swap)
+    private string? SwapInventory(Character c, Power sealer, Power receiver, int kept, int left, bool swap)
     {
         if (!swap || kept <= 0) return null;
+        if (left <= 0)
+        {
+            c.Remember(S.Turn, $"I kept all the gold {sealer.Land()} sent; with nothing left to weigh, a forged inventory could hide nothing, so the true one was handed over.");
+            return null;
+        }
         if (!CanForge(c))
         {
             c.Remember(S.Turn, $"I meant to put a forged inventory in place of the one {sealer.Land()} sealed, but my hand could not fake the seal; I handed over the true one.");
             return null;
         }
-        c.Remember(S.Turn, $"I put an inventory I forged myself, stating {Money.Format(stated)}, in place of the one {sealer.Land()} sealed, so that nobody would miss the gold I kept.");
+        c.Remember(S.Turn, $"I put an inventory I forged myself, stating {Money.Format(left)}, in place of the one {sealer.Land()} sealed, so that nobody would miss the gold I kept.");
         c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Forged the inventory of the gold {sealer.Land()} sent to {receiver.Land()}, to hide what was kept.", Secrecy = Secrecy.Deep, Tag = "inventory-forgery" });
-        S.Log("inventory-swapped", $"{c.Name} swapped the inventory of the gold {sealer} sent to {receiver} for a forgery stating {Money.Format(stated)}.", [], "inventory-swapped");
-        return $"replaced the inventory with a forgery stating {stated} shekels";
+        S.Log("inventory-swapped", $"{c.Name} swapped the inventory of the gold {sealer} sent to {receiver} for a forgery stating {Money.Format(left)}.", [], "inventory-swapped");
+        return $"replaced the inventory with a forgery stating {left} shekels";
     }
 
     /// <summary>

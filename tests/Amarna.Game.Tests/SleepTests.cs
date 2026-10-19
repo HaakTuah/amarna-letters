@@ -534,6 +534,8 @@ public class SleepTests
     [InlineData(InboxKind.Catastrophe, "Catastrophe: Drought", "The rains have failed.", "a catastrophe struck your land (Catastrophe: Drought)")]
     [InlineData(InboxKind.Tablet, "A tablet is ready", "Mane has produced a tablet.", "a tablet you ordered is ready (A tablet is ready)")]
     [InlineData(InboxKind.Notice, "A spy is caught", "A spy of Hatti was caught.", "a spy was caught at your court")]
+    [InlineData(InboxKind.Notice, TurnEngine.ArchiveTakenTitle, "With Ashur you took the archive of Assyria: copies of 1 tablet you did not hold are now in your archive: k130 (sealed by Assyria and Hatti, dated turn 1).", "with Ashur you took the archive of Assyria")]
+    [InlineData(InboxKind.Notice, TurnEngine.ArchiveTakenTitle, "With Ashur you took the archive of Assyria; it held no tablet you did not hold already.", "with Ashur you took the archive of Assyria")]
     [InlineData(InboxKind.Rejected, "Levy failed", "No army was raised in ur.", "an order was refused or failed (Levy failed)")]
     [InlineData(InboxKind.Rumor, "Rumor", "Word spreads that Hatti is restless.", null)]
     [InlineData(InboxKind.Notice, "The treasury", "Income 200, upkeep 90, wages 20.", null)]

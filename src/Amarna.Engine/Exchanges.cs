@@ -101,7 +101,8 @@ public sealed class AudienceRecord
     /// <summary>
     /// The envoy that kept some of the gold replaced the inventory tablet with one it forged, stating only what the host's
     /// weighers find. It takes the forger's skill (<see cref="GameConfig.ForgeMinCompetence"/>): without it the envoy dares not
-    /// hand the forgery over and the true inventory goes to the host. Ignored when it kept nothing.
+    /// hand the forgery over and the true inventory goes to the host. Ignored when it kept nothing; refused when it kept
+    /// it all (a forgery stating nothing hides nothing), and the true inventory goes.
     /// </summary>
     public bool SwapInventory { get; set; }
     public List<AudienceRound> Rounds { get; set; } = new();

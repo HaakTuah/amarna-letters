@@ -221,7 +221,7 @@ public sealed partial class TurnEngine
         var weighed = d.Gold - skim;
         var fine = (int)Math.Round(weighed * d.PurityPercent / 100.0);
         // An envoy that kept some may have swapped the inventory for a forgery stating only what is left.
-        var swapped = Swaps(c, skim, record.SwapInventory);
+        var swapped = Swaps(c, skim, d.Gold, record.SwapInventory);
         var stated = swapped ? weighed : d.Gold;
         // What the envoy did that the host does not see in its record of the audience: what it kept, once its forgery hides it.
         var unseen = new List<string>();
@@ -232,7 +232,7 @@ public sealed partial class TurnEngine
             c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Kept part of the gold {sender.Land()} sent to {host.Land()}.", Secrecy = Secrecy.Hidden, Tag = "skim" });
             trail.Outcomes.Add($"kept {skim} shekels of the gold");
             S.Log("skim", $"{c.Name} kept {skim} of the {d.Gold} shekels {sender} sent to {host}.", [], "skim");
-            if (SwapInventory(c, sender, host, skim, stated, record.SwapInventory) is { } swap)
+            if (SwapInventory(c, sender, host, skim, weighed, record.SwapInventory) is { } swap)
             {
                 unseen.Add(trail.Outcomes[^1]);
                 trail.Outcomes.Add(swap);
@@ -527,14 +527,14 @@ public sealed partial class TurnEngine
                     var fine = (int)Math.Round(face * cargo.PurityPercent / 100.0);
                     var from = Trail(req.TrailId)?.To ?? req.Court;
                     // An envoy that kept some may have swapped the host's inventory for a forgery stating only what is left.
-                    var swapped = Swaps(c, skim, reply.SwapInventory);
+                    var swapped = Swaps(c, skim, cargo.Gold, reply.SwapInventory);
                     var stated = swapped ? face : cargo.GoldStated;
                     if (skim > 0)
                     {
                         c.Gain((int)Math.Round(skim * cargo.PurityPercent / 100.0), GoldSource.Skimmed);
                         c.Remember(S.Turn, $"I kept {skim} shekels of the gold sent home with me.");
                         S.Log("skim", $"{c.Name} kept {skim} shekels on the way home.", [], "skim");
-                        if (SwapInventory(c, from, req.Court, skim, stated, reply.SwapInventory) is { } swap && Trail(req.TrailId) is { } home)
+                        if (SwapInventory(c, from, req.Court, skim, face, reply.SwapInventory) is { } swap && Trail(req.TrailId) is { } home)
                             home.Outcomes.Add($"on the way home, kept {skim} shekels of the gold sent back and {swap}");
                     }
                     S.Treasuries[req.Court].Gold += fine;

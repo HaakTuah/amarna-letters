@@ -79,7 +79,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         user.AppendLine(d.GreetingText.Length > 0 ? $"The sealed greeting will be read out exactly as written: \"{d.GreetingText}\"" : "The tablet carries no greeting at all; the king will notice.");
         user.AppendLine($"Your lord's message, which you must now deliver in your own words: \"{d.Letter}\"");
         user.AppendLine(d.Mandate.Length > 0 ? $"Your mandate (what you may agree to): \"{d.Mandate}\"" : "You were given no mandate to agree to anything.");
-        if (d.Gold > 0) user.AppendLine($"You carry gold in sealed bags, with an inventory tablet sealed by your lord that says {d.Gold} shekels; the king's weighers will weigh the gold against it. You could quietly keep some before it is weighed, and hand over in place of the inventory one you forge yourself, stating only what is left.");
+        if (d.Gold > 0) user.AppendLine($"You carry gold in sealed bags, with an inventory tablet sealed by your lord that says {d.Gold} shekels; the king's weighers will weigh the gold against it. You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. " + ForgeHand(ctx.Self, ctx.ForgeMinCompetence));
         if (d.Proposal is not null) user.AppendLine($"You carry a tablet for the king to seal: \"{d.Proposal.Text}\"");
         user.AppendLine("Speak to the king now.");
         var json = await Ask($"t{ctx.Turn}/aud/present/{ctx.Self.Id}", ctx.Turn, $"envoy:{ctx.Self.Id}", ctx.Self, user.ToString(), Schemas.Present(), ct);
@@ -115,6 +115,11 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         $"He offers to take you into his service at {offer} shekels a season (your lord pays you {ctx.Self.Contract?.Wage ?? 0}"
         + (ctx.BackPay > 0 ? $", and owes you {ctx.BackPay} shekels of back pay, which you would never be paid if you left his service" : "") + ").";
 
+    /// <summary>Whether an envoy carrying gold has the hand to fake a seal (the forger's skill), so it knows whether a swap can work.</summary>
+    public static string ForgeHand(Character c, int forgeMinCompetence) => c.Traits.Competence >= forgeMinCompetence
+        ? "Your hand is skilled enough to fake a seal."
+        : "Your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory.";
+
     public async Task<MindReply> WriteAsync(MindContext ctx, CancellationToken ct)
     {
         var c = ctx.Self;
@@ -135,7 +140,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 }
                 if (cargo.WasDetained) user.AppendLine("You were held there against your will before being let go.");
                 if (cargo.Observations.Count > 0) user.AppendLine("What you noticed at that court: " + string.Join(" ", cargo.Observations));
-                if (cargo.Gold > 0) user.AppendLine($"You carry back gold the king sent your lord, with an inventory tablet sealed by that king that says {cargo.GoldStated} shekels. You could quietly keep some before it is weighed, and hand over in place of the inventory one you forge yourself, stating only what is left.");
+                if (cargo.Gold > 0) user.AppendLine($"You carry back gold the king sent your lord, with an inventory tablet sealed by that king that says {cargo.GoldStated} shekels. You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. " + ForgeHand(c, ctx.ForgeMinCompetence));
                 user.AppendLine("Write your report to your lord now.");
                 var json = await Ask($"t{ctx.Turn}/report/{c.Id}", ctx.Turn, $"envoy:{c.Id}", c, user.ToString(), Schemas.Report(), ct);
                 var r = Parse.Report(json);
@@ -157,8 +162,9 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 var user = new StringBuilder();
                 user.AppendLine($"You are quietly watching {(r.Court is { } court ? "the court of " + court.Land() : WorldMap.Default.Find(r.Province)?.Name ?? "a province")} for your lord.");
                 user.AppendLine("This season you observed: " + string.Join(" ", r.Observations));
-                if (r.TabletIds.Count > 0)
-                    user.AppendLine($"You also copied {(r.TabletIds.Count == 1 ? "a tablet" : $"{r.TabletIds.Count} tablets")} from the court's archive (you remember what it says); the copy goes home with this report, whatever you write.");
+                // The copies that reach the archive with it (what its master gained meanwhile is not added twice), as the engine's line lists them.
+                if (req.CopyIds.Count > 0)
+                    user.AppendLine($"You also copied {(req.CopyIds.Count == 1 ? "a tablet" : $"{req.CopyIds.Count} tablets")} from the court's archive (you remember what it says); the copy goes home with this report, whatever you write.");
                 if (!string.IsNullOrWhiteSpace(r.Poison)) user.AppendLine($"Your secret masters want your lord to hear this, as if you had seen it yourself: \"{r.Poison}\"");
                 user.AppendLine("Write your report home, to be carried by a trusted messenger.");
                 // Written when it arrives, of the season it was observed: the spy remembers nothing that happened to it since

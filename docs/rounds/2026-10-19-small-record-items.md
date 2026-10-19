@@ -14,8 +14,8 @@ yet, track what they gain and spend), all read fresh from the live document on 1
   Whoever takes a court's capital (or is ceded it) gains at once a copy of every tablet in its archive. Nothing is taken
   away, and no other court learns of either (tested).
 - **Inventory tablets and swaps.** Gold an envoy carries now comes with an inventory tablet sealed by the court that
-  sends it, out or home, and the receiving court keeps it in its archive. An envoy that kept some of the gold may hand
-  over a forgery stating only what is left, if it has the forger's skill: the host then sees no shortfall, and only an
+  sends it, out or home, and the receiving court keeps it in its archive. An envoy that kept some, but not all, of the
+  gold may hand over a forgery stating only what is left, if it has the forger's skill: the host then sees no shortfall, and only an
   examination of the inventory can find it, under the forgery rules, traced to the envoy. Script envoys swap when they
   skimmed, have the hand for a seal and are not timid; model envoys decide for themselves.
 - **The richest characters.** Every gain into a character's purse is counted by source. At the end of a game the living
@@ -25,7 +25,7 @@ yet, track what they gain and spend), all read fresh from the live document on 1
 - **Kings' texts.** The rulebook has two new paragraphs (Archives, and inventories under ENVOYS), the seat view heads its
   tablets "YOUR ARCHIVE", and the new notices and report lines are quoted below. `docs/DESIGN-NOTES.md` was updated with
   each rule in the same commit, including "Not built yet".
-- **Verified.** 680 tests pass (654 before, 26 new), 0 warnings; `--games 10 --seed 1 --verify-replay` says replay ok for
+- **Verified.** 686 tests pass (654 before, 32 new, 6 of them with the review fixes), 0 warnings; `--games 10 --seed 1 --verify-replay` says replay ok for
   all ten, and all 200 benchmark games replayed exactly. The benchmarks moved within noise (below); nothing was tuned.
   The web app's end-of-game ranking was checked in the browser.
 
@@ -53,7 +53,7 @@ yet, track what they gain and spend), all read fresh from the live document on 1
 - A sleeping seat's digest reads "with Ashur you took the archive of Assyria"; a spy's copies arrive in its report, which
   already had a digest line. The web app's Orders tab heads the list "Your archive", with one line on what that means.
 - A model-played spy writing its report is told "You also copied a tablet from the court's archive (you remember what it
-  says); the copy goes home with this report, whatever you write."
+  says); the copy goes home with this report, whatever you write.", when a copy reaches its master's archive with it.
 
 ### 2. Swapped tablets
 
@@ -64,7 +64,7 @@ yet, track what they gain and spend), all read fresh from the live document on 1
   Hatti"). It costs nothing, as the inventory always did. Every delivery leaves one, so its presence gives nothing away.
 - **The swap** is a decision of the envoy, recorded like the skim (`PresentResult.SwapInventory` into
   `AudienceRecord.SwapInventory`; `MindReply.SwapInventory` for the way home). The engine applies it only if the envoy
-  kept some gold and has the forger's skill (competence at least `ForgeMinCompetence`, 55, the rule for forgeries a king
+  kept some gold but not all of it (decision 15) and has the forger's skill (competence at least `ForgeMinCompetence`, 55, the rule for forgeries a king
   orders). Then the forgery states exactly what the weighers find; the host's audience view, its record of the audience
   and the lot in its treasury all state that; the lines "kept 20 shekels of the gold" and "replaced the inventory with a
   forgery stating 80 shekels" are left out of the host's record but kept in the mission's trail for the spectator; the
@@ -117,20 +117,21 @@ Under ENVOYS, after the paragraph on the greeting and the envoy's motives:
 
 > - Gold an envoy carries goes with an inventory tablet sealed by the court that sends it, stating the amount (gold a
 >   host sends back has one too): the receiving court's weighers report what they found against it, and the court keeps
->   the inventory in its archive. An envoy that keeps some of the gold may hand over, in place of the sealed inventory,
->   one it forges itself stating only what is left, if it has a forger's skill: the weight then matches the inventory,
->   and only having the inventory examined can show it, as for any forgery. A forged inventory that is found is traced,
->   with the same chance as any forgery, to the envoy who brought it, and every court hears of it.
+>   the inventory in its archive. An envoy that keeps some of the gold, but not all of it, may hand over, in place of
+>   the sealed inventory, one it forges itself stating only what is left, if it has a forger's skill: the weight then
+>   matches the inventory, and only having the inventory examined can show it, as for any forgery. A forged inventory
+>   that is found is traced, with the same chance as any forgery, to the envoy who brought it, and every court hears of
+>   it.
 
 Under EVIDENCE AND INTELLIGENCE, after the paragraph on tablets:
 
 > - Archives: every tablet you hold (those you sealed, and the copies you were shown or brought) lies in your archive at
 >   your capital, and so it is at every court. A spy watching a court copies from its archive: each season it is not
 >   caught, with a chance of (the spy's skill, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two
->   or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court copies
->   nothing for you. Whoever takes a king's capital, or is ceded it, gains at once a copy of every tablet in his archive,
->   and the king keeps his own. So a spy at your court may copy your tablets, and whoever takes your capital gains copies
->   of them all.
+>   or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court, or
+>   watching a court that has fallen, copies nothing for you. Whoever takes a king's capital, or is ceded it, gains at
+>   once a copy of every tablet in his archive, and the king keeps his own. So a spy at your court may copy your
+>   tablets, and whoever takes your capital gains copies of them all.
 
 The forgery paragraph (the examiner's odds) and the audience's inventory line ("The inventory on the tablet lists 80
 shekels of gold; your weighers found 80.") are unchanged in wording; the figure is now the forgery's when an envoy
@@ -157,13 +158,15 @@ swapped it.
 ### What a model envoy reads
 
 - Presenting: "You carry gold in sealed bags, with an inventory tablet sealed by your lord that says 100 shekels; the
-  king's weighers will weigh the gold against it. You could quietly keep some before it is weighed, and hand over in
-  place of the inventory one you forge yourself, stating only what is left." Home: the same for "gold the king sent your
-  lord, with an inventory tablet sealed by that king".
-- The field `swap_inventory` (presentation and report): "Only if you keep some gold: hand over, in place of the sealed
-  inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. Faking the seal takes a
-  forger's hand; without one you dare not use it and the true inventory is handed over. A forged inventory can be found
-  out if the king pays to have it examined, and you may then be named as its forger before every court."
+  king's weighers will weigh the gold against it. You could quietly keep some before it is weighed and, if you leave
+  some, hand over in place of the inventory one you forge yourself, stating only what is left.", followed by "Your hand
+  is skilled enough to fake a seal." or "Your hand is not skilled enough to fake a seal, so you could not pass off a
+  forged inventory." Home: the same for "gold the king sent your lord, with an inventory tablet sealed by that king".
+- The field `swap_inventory` (presentation and report): "Only if you keep some of the gold but not all of it: hand over,
+  in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed.
+  Faking the seal takes a forger's hand (you are told whether yours is one); without one you dare not use it and the
+  true inventory is handed over. A forged inventory can be found out if the king pays to have it examined, and you may
+  then be named as its forger before every court."
 - The shared system text lists "whether to swap the inventory tablet for one you forge" among the character's decisions.
 
 ## Decisions and readings
@@ -207,6 +210,12 @@ swapped it.
 13. **The ranking is shown to every viewer once the age has ended**, never before; kings never read it, since it is not
     their game; characters read only their own wealth, as the item says. They are not told that a ranking exists.
 14. **One save version for the whole item.** Version 3 was raised with the first rule (archives) and covers the other two.
+    The review fixes changed one rule within it (decision 15); version 3 has not been released, so it was not raised again.
+15. **No swap when the envoy kept it all** (from the review). A forgery stating "0 shekels" would hide nothing: no gold is
+    handed over to weigh, and an inventory of nothing beside an empty-handed envoy gives the game away. So the swap is
+    refused, the true inventory goes, and the envoy remembers "with nothing left to weigh, a forged inventory could hide
+    nothing". Script envoys never keep more than a fifth, so script games are unchanged (checked: the 200 benchmark
+    games and the baseline run came out identical).
 
 ## Benchmarks
 
@@ -291,6 +300,35 @@ greedy envoy skims 5 or 10 at most, and the richest are simply the longest-servi
 80, 54 seasons: "Mazipalali of Harran (serving Hatti): 1362 (purse 1332, back pay owed 30; wages 1332)"). The second
 game has little to say until characters can lend, hoard and be robbed (item 11), or model characters play it.
 
+The whole ranking for one game, seed 1 (15 seasons, won by Mitanni), as `--detail` prints it (the web app's Standings
+tab showed the same 18 for this seed):
+
+```
+  Richest characters:
+    1. Mane of Thebes (serving Egypt): 330 (purse 330, back pay owed 0; wages 330)
+    2. Tattamaru of Hattusa (serving Alashiya): 295 (purse 235, back pay owed 60; wages 235)
+    3. Piyamaradu of Apasa (serving Alashiya): 234 (purse 195, back pay owed 39; wages 195)
+    4. Ehli-Teshub of Carchemish (serving Egypt): 225 (purse 210, back pay owed 15; wages 210)
+    5. Pihhuniya of Kanesh (serving Mitanni): 225 (purse 225, back pay owed 0; wages 225)
+    6. Yanhamu of Byblos (serving Babylonia): 201 (purse 144, back pay owed 57; wages 144)
+    7. Mazipalali of Harran (serving Hatti): 189 (purse 170, back pay owed 19; wages 170)
+    8. Kushmeshu of Enkomi (serving Egypt): 165 (purse 165, back pay owed 0; wages 165)
+    9. Abdi-Milki of Tyre (serving Mitanni): 165 (purse 165, back pay owed 0; wages 165)
+    10. Zitanza of Lukka (serving Hatti): 160 (purse 160, back pay owed 0; wages 160)
+    11. Keliya of Washukanni (serving Mitanni): 152 (purse 152, back pay owed 0; wages 152)
+    12. Tehip-tilla of Arrapha (free): 104 (purse 104, back pay owed 0; wages 104)
+    13. Sin-iqisham of Nineveh (free): 96 (purse 96, back pay owed 0; wages 96)
+    14. Haamashshi of Memphis (free): 72 (purse 72, back pay owed 0; wages 72)
+    15. Tulubri of Taidu (free): 48 (purse 48, back pay owed 0; wages 48)
+    16. Paser of Memphis (free): 0 (purse 0, back pay owed 0; nothing gained)
+    17. Pirissi of Washukanni (free): 0 (purse 0, back pay owed 0; nothing gained)
+    18. Nakhtmin of Thebes (free): 0 (purse 0, back pay owed 0; nothing gained)
+```
+
+Ties keep the id order (Ehli-Teshub and Pihhuniya at 225; Kushmeshu and Abdi-Milki at 165). Free characters ranked low
+are those who never found service, or left it before the end: what they earned stays in their purse, and back pay owed
+by a court they left is still counted.
+
 ## Left out, and why
 
 - **Reading foreign or unreadable tablets, sending a tablet to a third court to be read, and moving the court**: later
@@ -305,7 +343,7 @@ game has little to say until characters can lend, hoard and be robbed (item 11),
 
 ## How it was verified
 
-- `dotnet test`: 680 tests pass (219 engine, 446 game, 15 web; 654 before). New: `ArchiveTests` (spies copy, one a
+- `dotnet test`: 686 tests pass (220 engine, 451 game, 15 web; 654 before). New: `ArchiveTests` (spies copy, one a
   season, never what the master holds, agreements and the newest first; turned and clumsy spies; a capital taken or
   ceded; a court retaking its own; nobody else gains a copy or a notice), `InventoryTests` (the inventory in the
   archive; a swap and what the host sees and does not see; no skill or nothing kept; the way home; examination finds and
@@ -313,7 +351,8 @@ game has little to say until characters can lend, hoard and be robbed (item 11),
   the runner, logged and replayed exactly; the model schema and parsing), `WealthTests` and `RichestTests` (gains by
   source; ranking, ties and the dead; the batch summary over a whole game, purse equal to gains; a model character's own
   wealth and nothing of the ranking), and rulebook tests for both new paragraphs and the archive heading. Existing tests
-  updated: the save version (3) and the envoy test (now two tablets: the proposal and the inventory).
+  updated: the save version (3) and the envoy test (now two tablets: the proposal and the inventory). The review fixes
+  added six (see "Review findings").
 - `dotnet build`: 0 warnings, 0 errors.
 - `dotnet run --project src/Amarna.Batch -- --games 10 --seed 1 --verify-replay --no-chronicles`: replay ok for seeds
   1-10. The benchmark runs replayed all 200 games exactly.
@@ -322,9 +361,50 @@ game has little to say until characters can lend, hoard and be robbed (item 11),
   matching the batch's seed 1 (330).
 - Not done: no game with model seats or model characters (the prompts and schema are covered by unit tests only).
 
+## Review findings
+
+One reviewer read the branch and found nothing blocking. It reported seven minor findings. I checked each against the
+code; all seven were accurate. Six were fixed and one was left, as follows.
+
+1. **The rulebook did not say that a spy at a fallen court copies nothing** (`TurnEngine.Intel.cs` copies only while
+   the watched court is alive). Fixed: the Archives paragraph now reads "a spy turned by that court, or watching a court
+   that has fallen, copies nothing for you" (quoted above; the rulebook test was updated). The other half, that a report
+   reaching a court that has fallen brings nothing, was not put in the rulebook: it speaks to a living king, and a king
+   whose court has fallen reads nothing more. The design notes now say both.
+2. **Script kings never examine an inventory, so no swap is caught in the benchmarks.** Correct (decision 10), and
+   left as it is. Teaching script kings to examine inventories would be new king behaviour that the item does not ask
+   for. It would also spend their gold and change their trust, and balance is frozen: the ground rules allow bot changes
+   only where the new rules need them (spies copying, envoys swapping). "Caught when examined" is covered by
+   `InventoryTests`, through the real examination path: found, traced to the envoy, the reputation loss and the rumour
+   to every other court. It is exercised in play only by model or human kings, whose rulebook states it.
+3. **An envoy that kept all the gold could swap in an inventory stating 0 shekels.** Fixed as a rule (decision 15): the
+   swap is refused, the true inventory goes, and the envoy remembers why. The rulebook ("keeps some of the gold, but not
+   all of it"), the model envoy's prompt and schema field, and the design notes say so. New test:
+   `An_envoy_that_kept_all_the_gold_cannot_hide_it_with_a_forgery_stating_nothing`.
+4. **The model spy's prompt counted the copies it made, not the copies that arrive.** A spy copies at most one tablet a
+   season, so the spy could be told "the copy goes home with this report" when its master had come to hold that tablet
+   meanwhile and nothing was added. Fixed: the prompt counts the copies that actually reach the archive with the report
+   (the request's `CopyIds`, which is also what the engine's line lists). New test for both cases.
+5. **The sleep digest line for an archive taken depended on the notice starting with "With".** Fixed:
+   `TurnEngine.FirstClause` takes the notice's first clause and lowers its first letter, whatever the word. Two new
+   digest test rows pin it for both forms of the notice.
+6. **A model envoy was not told whether it has a forger's hand.** Fixed: when it carries gold, out or home, its prompt
+   ends the gold line with "Your hand is skilled enough to fake a seal." or "Your hand is not skilled enough to fake a
+   seal, so you could not pass off a forged inventory." The schema field says "(you are told whether yours is one)". A
+   character knows its own hand, so nothing hidden is revealed. New tests for both prompts and both hands, and for
+   gold-free missions, which say nothing of it.
+7. **The report gave no full ranking for a sample game.** Added under "The richest characters in these games" (seed 1).
+
+After the fixes: 686 tests pass and the build has 0 warnings. `--games 10 --seed 1 --verify-replay --no-chronicles` says
+replay ok for all ten. The benchmark runs for seeds 1-100 and 101-200, and the frozen-baseline run, were repeated, and
+their output is identical to the runs above line by line, apart from the elapsed time. Script envoys never keep more
+than a fifth of the gold, and every other fix changes only text that script games do not read. So the benchmark tables
+stand as they are.
+
 ## Commits
 
 - `21929f8` Keep tablets in archives that spies copy and conquerors take
 - `9faa758` Let an envoy who skimmed swap the inventory for a forgery
 - `7d1f7c1` Rank characters by wealth at the end of a game
-- Write the small-record-items report (with the batch printing the shares of characters' gains to one decimal, and the design notes' benchmark table brought up to date)
+- `01c31ba` Write the small-record-items report (with the batch printing the shares of characters' gains to one decimal, and the design notes' benchmark table brought up to date)
+- Fix review findings: no swap when the envoy kept it all; say what fallen courts and a forger's hand mean (this section)

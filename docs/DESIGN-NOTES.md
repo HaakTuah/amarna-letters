@@ -205,8 +205,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     archive: k123 (sealed by Assyria and Hatti, dated turn 4).]" (no text there: the archive shows it, and the script
     kings' reading of spy reports for troops stays clean). A report that never comes home (the spy caught before it was
     sent) brings nothing. A spy turned by the court it watches copies nothing: it sends home only what that court tells
-    it. A spy watching a province, or a court that has fallen, copies nothing. The spy remembers what it copied, and a
-    model-played spy writing its report is told that a copy goes home with it.
+    it. A spy watching a province, or a court that has fallen, copies nothing, and a report reaching a court that has
+    fallen brings nothing. The spy remembers what it copied, and a model-played spy writing its report is told that a copy
+    goes home with it when one does (not when its master came to hold that tablet while the report was on the road).
   - **Whoever takes a capital gains copies of its archive.** When a court's capital passes to another power at the
     end of movement, or by cession (the archive lies in the city), that power gains at once a copy of every tablet in
     the court's archive it does not hold already ("taken with the archive of Assyria at Ashur"), and reads next season
@@ -220,8 +221,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     archive it took; the court copied is never told (tested: no other court gains a copy or a notice). The events
     `archive-copied` and `archive-taken` are visible to that court alone, and count as signals in the batch report.
     A sleeping seat's digest reads "with Ashur you took the archive of Assyria"; a spy's copies come in its report.
-  - The rulebook says so under EVIDENCE AND INTELLIGENCE ("Archives: …"), and the web app's Orders tab heads the list
-    "Your archive".
+  - The rulebook says so under EVIDENCE AND INTELLIGENCE ("Archives: …", including that a spy turned by the court it
+    watches, or watching a court that has fallen, copies nothing), and the web app's Orders tab heads the list "Your
+    archive".
 - **Gold travels with envoys.** The tablet's inventory states the amount; the host's weighers find
   what is left after any skimming. Purity is hidden until an assay.
 - **The inventory is a tablet** (since Build order item 3). Gold an envoy carries comes with an inventory sealed by the
@@ -233,13 +235,15 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   built yet). The sender keeps no copy (it knows what it sent). Every gold delivery leaves one, whether or not anything
   was swapped, so the presence of an inventory gives nothing away. An inventory bears one seal, so the script kings'
   rules on treaties and evidence (two seals or more, their own among them) never read one.
-- **Swapped inventories** (since item 3; Ideas tab "Swapped tablets and false envoys"). An envoy that kept some of the
-  gold it carries, out or home, may hand over in place of the sealed inventory one it forges itself, stating only what
-  is left (`AudienceRecord.SwapInventory` from the envoy's presentation; `MindReply.SwapInventory` from its report home).
+- **Swapped inventories** (since item 3; Ideas tab "Swapped tablets and false envoys"). An envoy that kept some, but
+  not all, of the gold it carries, out or home, may hand over in place of the sealed inventory one it forges itself,
+  stating only what is left (`AudienceRecord.SwapInventory` from the envoy's presentation; `MindReply.SwapInventory` from
+  its report home).
   It is a forgery under the forgery rules: it needs the forger's skill (competence at least `ForgeMinCompetence`, 55);
   an envoy without it does not hand its botched forgery over, the true inventory goes, and it remembers that its hand
   could not fake the seal. It costs the envoy nothing (the forgery fee is what a king pays for materials and a scribe; the
-  envoy writes it himself). A swap with nothing kept is ignored. When it swaps:
+  envoy writes it himself). A swap with nothing kept is ignored; one with everything kept is refused, since a forgery
+  stating nothing would hide nothing (the true inventory goes, and the envoy remembers why). When it swaps:
   - The host's audience view, its record of the audience and the lot in its treasury all state what the forgery states,
     which is what its weighers find, so no shortfall shows, and the host's record leaves out the outcomes "kept 20 shekels
     of the gold" and "replaced the inventory with a forgery stating 80 shekels" (shown to a host when no swap hides them,
@@ -259,8 +263,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     is never found; a model or human king may examine any tablet it holds, or send the inventory back to its sender as
     evidence, who knows what it sealed.
   - Script envoys decide by formula (see Script envoys); model envoys decide for themselves, told in their prompt that
-    they could keep some gold "and hand over in place of the inventory one you forge yourself, stating only what is
-    left", with the schema field `swap_inventory` saying what it takes and risks.
+    they could keep some gold "and, if you leave some, hand over in place of the inventory one you forge yourself,
+    stating only what is left", and whether their hand is skilled enough to fake a seal, with the schema field
+    `swap_inventory` saying what it takes and risks.
   The rulebook says all this under ENVOYS ("Gold an envoy carries goes with an inventory tablet …").
 - **Debasement is a ledger, not a coin type.** A power's displayed treasury counts unassayed lots
   at their weight. True gold is what is actually spent; a payment the true treasury cannot cover

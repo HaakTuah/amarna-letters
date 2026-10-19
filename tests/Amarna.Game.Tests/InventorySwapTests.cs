@@ -114,5 +114,57 @@ public class InventorySwapTests
         Assert.Equal((15, true), (parsed.Skim, parsed.SwapInventory));
         var report = Parse.Report((System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse("""{"report":"Back.","keep_gold":5,"swap_inventory":true}""")!);
         Assert.Equal((5, true), (report.Number, report.SwapInventory));
+        Assert.Contains("Only if you keep some of the gold but not all of it", Schemas.Present()["properties"]!["swap_inventory"]!["description"]!.GetValue<string>());
+    }
+
+    /// <summary>A model character over the simulated API, and the user text of each request it made.</summary>
+    internal static (LlmCharacterMind Mind, Func<List<string>> Prompts) ModelMind()
+    {
+        var fake = new SimulatedAnthropic();
+        var mind = new LlmCharacterMind(new ClaudeClient("sk-ant-test-0000", _ => { }, browser: true, fake));
+        return (mind, () => fake.Requests.Select(r => r.Body["messages"]![0]!["content"]!.GetValue<string>()).ToList());
+    }
+
+    [Theory]
+    [InlineData(70, "Your hand is skilled enough to fake a seal.")]
+    [InlineData(54, "Your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory.")]
+    public async Task A_model_envoy_carrying_gold_is_told_whether_its_hand_can_fake_a_seal(int competence, string hand)
+    {
+        var (mind, prompts) = ModelMind();
+        var envoy = Envoy(80, 40, competence, 60);
+        await mind.PresentAsync(new EnvoyContext { Self = envoy, Sender = Power.Egypt, Host = Power.Hatti, Dispatch = new Dispatch { Letter = "Greetings.", Gold = 100 }, Turn = 1, Seed = 1, ForgeMinCompetence = 55 }, default);
+        await mind.WriteAsync(new MindContext
+        {
+            Request = new MindRequest { Task = MindTask.EnvoyReport, CharacterId = envoy.Id, Court = Power.Egypt, Cargo = new HomeCargo { Gold = 60, GoldStated = 60 } },
+            Self = envoy, Turn = 3, Seed = 1, ForgeMinCompetence = 55,
+        }, default);
+        Assert.All(prompts(), p => Assert.Contains("You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. " + hand, p));
+        Assert.Equal(2, prompts().Count);
+
+        // Without gold there is nothing to keep or swap, and nothing is said of its hand.
+        var (bare, barePrompts) = ModelMind();
+        await bare.PresentAsync(new EnvoyContext { Self = envoy, Sender = Power.Egypt, Host = Power.Hatti, Dispatch = new Dispatch { Letter = "Greetings." }, Turn = 1, Seed = 1, ForgeMinCompetence = 55 }, default);
+        Assert.DoesNotContain("fake a seal", Assert.Single(barePrompts()));
+    }
+
+    [Fact]
+    public async Task A_model_spy_is_told_of_the_copies_that_come_home_with_its_report_not_of_one_its_master_already_held()
+    {
+        var spy = Envoy(30, 80, 70, 60);
+        SpyReport Report() => new() { SpyId = spy.Id, Court = Power.Assyria, Observations = ["Assyria musters chariots."], ObservedTurn = 2, TabletIds = ["t900"] };
+        MindContext Ctx(List<string> copies) => new()
+        {
+            Request = new MindRequest { Task = MindTask.SpyReport, CharacterId = spy.Id, Court = Power.Egypt, Report = Report(), CopyIds = copies },
+            Self = spy, Turn = 3, Seed = 1,
+        };
+
+        var (mind, prompts) = ModelMind();
+        await mind.WriteAsync(Ctx(["k5"]), default);
+        Assert.Contains("You also copied a tablet from the court's archive (you remember what it says); the copy goes home with this report, whatever you write.", Assert.Single(prompts()));
+
+        // Its master came to hold that tablet meanwhile: no copy is added, and the spy is not told that one goes home.
+        var (held, heldPrompts) = ModelMind();
+        await held.WriteAsync(Ctx([]), default);
+        Assert.DoesNotContain("You also copied", Assert.Single(heldPrompts()));
     }
 }

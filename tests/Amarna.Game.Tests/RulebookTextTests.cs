@@ -27,7 +27,7 @@ public class RulebookTextTests
     public void The_rulebook_says_that_tablets_lie_in_archives_that_spies_copy_and_conquerors_take()
     {
         Assert.Contains("- Archives: every tablet you hold (those you sealed, and the copies you were shown or brought) lies in your archive at your capital, and so it is at every court. "
-                        + "A spy watching a court copies from its archive: each season it is not caught, with a chance of (the spy's skill, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court copies nothing for you. "
+                        + "A spy watching a court copies from its archive: each season it is not caught, with a chance of (the spy's skill, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court, or watching a court that has fallen, copies nothing for you. "
                         + "Whoever takes a king's capital, or is ceded it, gains at once a copy of every tablet in his archive, and the king keeps his own.", Rules);
 
         // The seat view names the archive the rule speaks of.
@@ -43,7 +43,7 @@ public class RulebookTextTests
     public void The_rulebook_says_that_gold_comes_with_an_inventory_an_envoy_may_swap_for_a_forgery()
     {
         Assert.Contains("- Gold an envoy carries goes with an inventory tablet sealed by the court that sends it, stating the amount (gold a host sends back has one too): the receiving court's weighers report what they found against it, and the court keeps the inventory in its archive. "
-                        + "An envoy that keeps some of the gold may hand over, in place of the sealed inventory, one it forges itself stating only what is left, if it has a forger's skill: the weight then matches the inventory, and only having the inventory examined can show it, as for any forgery. "
+                        + "An envoy that keeps some of the gold, but not all of it, may hand over, in place of the sealed inventory, one it forges itself stating only what is left, if it has a forger's skill: the weight then matches the inventory, and only having the inventory examined can show it, as for any forgery. "
                         + "A forged inventory that is found is traced, with the same chance as any forgery, to the envoy who brought it, and every court hears of it.", Rules);
     }
 
