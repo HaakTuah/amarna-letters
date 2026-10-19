@@ -1584,6 +1584,28 @@ in the seed-7 agent games every hit is an accusation (9 and 10 signals; the subs
 35 and 30, the first whole-word one 14 and 17, about half of them false), but sarcasm or a quoted
 charge can still count.
 
+## The web map and the interface (visual overhaul)
+
+Build order item 2 (`docs/prompts/VISUAL-OVERHAUL.md`; report `docs/rounds/2026-10-19-visual-overhaul.md`).
+Presentation only: no rule, state, view, prompt or balance changed, and seeds replay to the same logs byte for byte.
+
+- **Terrain is map data with no effect yet** (`Geography` in the engine project). Rough provinces: Mira, Lukka,
+  Isuwa, Amurru, Arbela, Tamassos. Desert: Sinai. Crossings on six connections: the Cilician Gates
+  (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish) as mountain passes;
+  the Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh) as river crossings. The ordered
+  courses of the Nile (Thebes to the Delta), the Euphrates (Carchemish to Ur) and the Tigris (Nineveh to
+  Dur-Kurigalzu). These are the lists of question 5 (plan steps 14-15) and question 10 (plan step 2) of the
+  sleep-and-simulation round, so the siege package can use them unchanged. Nothing in the engine reads them; only
+  the web map draws them. "A landing by convoy counts as a crossing" is a rule about any convoyed landing, so it is
+  left to the siege package rather than stored on a connection.
+- **One date label** (`Calendar.Label`, question 26, plan steps 1-3): the court's season and year with the turn,
+  "Peret, year 3 (turn 8)" at Egypt's court, "the second season, year 3 (turn 8)" at the others, and "season 2 of
+  year 3 (turn 8)" for the spectator. Dense lists use the short form, "y3 Peret" or "y3 s2", with the full label in
+  a tooltip. The header's ending line reads "The age cannot end before Shemu, year 5 (turn 15)." until the first
+  season that may end the age, then "Any season may now be the last (15% each season)." The seat view's own
+  `Season` text and the prompts are unchanged: kings still read turns first, as question 26's simulation result
+  asked. The BCE year (plan step 4) is not built.
+
 ## Where the code differs from the design document (as it stood on 19 October 2026)
 
 The design document records intent; these notes record what is built. Where they differ today:
