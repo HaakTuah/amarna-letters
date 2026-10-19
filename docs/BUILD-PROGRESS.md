@@ -7,8 +7,8 @@ report, and what was decided along the way. Items are built on their own branch 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 1 | Simulation fixes and default sleep | done (19 Oct), merged into `develop`; PR #7 `develop` -> `main` open for review | `round/simulation-fixes` | `docs/rounds/2026-10-19-simulation-fixes.md` |
-| 2 | The visual overhaul | not started | | |
+| 1 | Simulation fixes and default sleep | done (19 Oct), merged into `develop`; PR #7 merged into `main` | `round/simulation-fixes` | `docs/rounds/2026-10-19-simulation-fixes.md` |
+| 2 | The visual overhaul | done (19 Oct), merged into `develop`; PR `develop` -> `main` open for review | `item/visual-overhaul` | `docs/rounds/2026-10-19-visual-overhaul.md` |
 | 3 | Small record items | not started | | |
 | 4 | Second agent simulation, with model characters (stop for review) | not started | | |
 | 5 | The siege package (stop for review) | not started | | |
@@ -80,3 +80,24 @@ repository was touched by two agents at once and is not trusted.
 **Decided along the way** (details in the report): following the Build order's rules, from here on one reviewer per
 part and no extra analyst workflows; the item's report moves to `docs/rounds/2026-10-19-simulation-fixes.md` when the
 item is done, since the Build order puts every item's report there.
+
+## Item 2: the visual overhaul (19 October)
+
+Specification: `docs/prompts/VISUAL-OVERHAUL.md` (committed first on the branch; its opening line corrected by Haakon
+to put watching on a phone first, `dd82ff6`) and "The map (planned next)" in the design document's main tab. Built in
+one pass, one reviewer, one fix pass. The reviewer's one blocking finding (a court's view said how land changed hands
+when it had not seen the march) was fixed with a test, with five minor notes and one more bug found along the way
+(god view redrew a fallen court's last orders). Haakon then added years counted from 1345 BCE to the date label
+(`b8dd3e9`, display only: kings' prompts keep the game year); the phone header's ending line now uses the short
+form with the turn in its tooltip (`413093b`). 654 tests pass on `develop`; seeds 1-10 replay exactly.
+
+**Decided along the way** (details in the report): presentation only, with display data (terrain, date helpers) in
+the engine project that nothing in the engine reads; a new test project `tests/Amarna.Web.Tests`; the browser build
+trims the unused Anthropic SDK (5.0 to 3.2 MB). Not met on a slow emulated phone: playing a season blocks the page for
+up to about 3 s (the script kings' look-ahead on the single WebAssembly thread) and a first load over slow 4G takes
+about 20 s; the fixes (a Web Worker or ahead-of-time compilation, splitting the SDK path out of `Amarna.Llm`) are
+not presentation and were left. Left as an engine matter: the engine's seat view lists a foreign spy posted at a
+court with its employer. No physical phone was used.
+
+**PR #7** (item 1) was merged into `main` with a merge commit, so `develop` was fast-forwarded to `main` before
+item 2 was merged; no merge back was needed.
