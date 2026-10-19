@@ -227,7 +227,7 @@ public sealed partial class TurnEngine
         var unseen = new List<string>();
         if (skim > 0)
         {
-            c.Purse += (int)Math.Round(skim * d.PurityPercent / 100.0);
+            c.Gain((int)Math.Round(skim * d.PurityPercent / 100.0), GoldSource.Skimmed);
             c.Remember(S.Turn, $"I kept {skim} shekels of the gold I carried to {host.Land()}.");
             c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Kept part of the gold {sender.Land()} sent to {host.Land()}.", Secrecy = Secrecy.Hidden, Tag = "skim" });
             trail.Outcomes.Add($"kept {skim} shekels of the gold");
@@ -286,7 +286,7 @@ public sealed partial class TurnEngine
                     giftTaken = true;
                     if (Pay(host, h.Bribe, $"a gift to {c.Name}"))
                     {
-                        c.Purse += h.Bribe;
+                        c.Gain(h.Bribe, GoldSource.Gifts);
                         c.Remember(S.Turn, $"The king of {host.Land()} gave me {Money.Format(h.Bribe)}" + (string.IsNullOrWhiteSpace(h.BribeAsk) ? "." : $", asking: {h.BribeAsk}"));
                         c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Took {Money.Format(h.Bribe)} from the king of {host.Land()}.", Secrecy = Secrecy.Hidden, Tag = "bribe", KnownBy = [host] });
                         trail.Outcomes.Add($"accepted {Money.Format(h.Bribe)} from {host}" + (string.IsNullOrWhiteSpace(h.BribeAsk) ? "" : $" (asked: {h.BribeAsk})"));
@@ -531,7 +531,7 @@ public sealed partial class TurnEngine
                     var stated = swapped ? face : cargo.GoldStated;
                     if (skim > 0)
                     {
-                        c.Purse += (int)Math.Round(skim * cargo.PurityPercent / 100.0);
+                        c.Gain((int)Math.Round(skim * cargo.PurityPercent / 100.0), GoldSource.Skimmed);
                         c.Remember(S.Turn, $"I kept {skim} shekels of the gold sent home with me.");
                         S.Log("skim", $"{c.Name} kept {skim} shekels on the way home.", [], "skim");
                         if (SwapInventory(c, from, req.Court, skim, stated, reply.SwapInventory) is { } swap && Trail(req.TrailId) is { } home)
@@ -717,7 +717,7 @@ public sealed partial class TurnEngine
                 // It goes on to the court it was sent to and arrives there free, with no audience: the gold it carried is its own.
                 if (S.Journeys.FirstOrDefault(j => j.Kind == JourneyKind.EnvoyOutbound && j.CharacterId == c.Id)?.Dispatch is { Gold: > 0 } d)
                 {
-                    c.Purse += (int)Math.Round(d.Gold * d.PurityPercent / 100.0);
+                    c.Gain((int)Math.Round(d.Gold * d.PurityPercent / 100.0), GoldSource.Carried);
                     c.Remember(S.Turn, $"I keep the gold I carried, said to be {Money.Format(d.Gold)}.");
                     notice += $" The {Money.Format(d.Gold)} of gold they carried is now theirs.";
                     d.Gold = 0;

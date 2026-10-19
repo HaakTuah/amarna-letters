@@ -410,6 +410,30 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   (a king saves the back pay of people sent on missions they do not survive) is meant to be closed
   by reputation, which is not built; its first half is: losses abroad reach other courts by
   carriers (see "Losses abroad travel with people").
+- **Characters' gold, and the richest characters** (since Build order item 3; Ideas tab "The richest characters").
+  A character's purse (`Character.Purse`) was already tracked; every gain now goes through `Character.Gain`, which
+  also counts it by source (`Character.Earned`): wages (paid at court, and back pay paid when it came back), gold
+  skimmed (out or home), kings' personal gifts at audiences, and gold it was carrying when dismissed on the way out.
+  Characters start with nothing and spend nothing yet (no escort, storage fee, loan or robbery exists; item 11), so the
+  parts add up to the purse (tested over a whole game). A captive or a dead character keeps its purse, as before (what
+  capture and execution do to a purse is item 11).
+  - **Wealth** (`Wealth.Of`) is the purse plus the back pay every court still owes it (a fallen court's debt died with
+    it). The document's other two parts, a hoard and what kings owe it on debt tablets, do not exist yet (item 11) and
+    count nothing; every place the ranking is shown says so ("Wealth is the gold in a character's purse and the back pay
+    kings still owe it; hoards and loans to kings on debt tablets do not exist yet. The dead are not ranked.").
+  - **The ranking** (`Wealth.Ranking`): the living characters, richest first, ties by id, each with whom it serves (or
+    free, or captive where), its wealth, purse and back pay owed, and where its gold came from: "Mane of Thebes (serving
+    Egypt): 312 (purse 280, back pay owed 32; wages 250, skimmed 30)". The dead are left out: their gold is no longer
+    theirs to enjoy, and a ranking of the dead would reward a character for dying rich.
+  - **Where it is shown**: where the game's end is shown. The batch prints the top three after each game's result line
+    (the whole ranking with `--detail`), and its summary how rich the richest was on average and where all characters'
+    gold came from; the web app's Standings tab shows the whole ranking once the age has ended, to every viewer, and the
+    season's end notice points to it. Kings never read it: it is not their game.
+  - **During play a character knows its own wealth, not the ranking.** A model-played character reads its purse and,
+    if any, what it is worth with the back pay kings owe it ("Your purse holds 100 shekels; with the back pay kings owe
+    you, you are worth 142 shekels."), and now also the back pay courts other than its lord owe it ("The king of Hatti
+    owes you 12 shekels of back pay, paid if you ever stand at his court again."). It is never told of a ranking or of
+    another character's wealth. Script characters decide nothing by wealth.
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth. The rulebook states these odds, the
   spies' and the examinations' below, and the fees, as they are (until the simulation-fixes round it
@@ -1840,7 +1864,9 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   servants know, the record of who saw what, and questioning a captive (Ideas tab; item 10).
 - **A living pool**: people entering and leaving the pool, enough people but not enough good ones, hiring as a
   negotiation, ongoing costs, and where characters keep their gold, purse and hoard (Ideas tab "A living pool" and the
-  sections after it; item 11).
+  sections after it; item 11); and lending to kings on debt tablets ("Lending to kings"; item 11). The hoard and the
+  debts are the two parts of the richest characters' wealth that count nothing yet (see "Characters' gold, and the
+  richest characters").
 - **Full and structured press**: two press modes, free text as today and a structured mode with templates for every
   king and for script envoys (Ideas tab "Two press modes"; item 8).
 - **Other courts' own calendars and regnal years**: season names for the courts that have only ordinals today
@@ -1849,7 +1875,6 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
 - **The map's later layers**: roads and relay stations, walls and sieges, and generals leading armies, drawn once the
   game has them (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).
-- **The richest characters**: a ranking by wealth at the end (Ideas tab; item 3).
 - **Gold sent without an inventory**, saving the scribe fee and checkable by nobody (Ideas tab "Why the envoy lies, and
   how he is caught"): today every gift has an inventory, and it costs nothing.
 - **Tablets stolen, not only copied**: a spy taking a tablet out of an archive, and a conqueror seizing an archive so

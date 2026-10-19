@@ -110,7 +110,7 @@ public sealed partial class TurnEngine
                 if (t.Gold >= k.Wage)
                 {
                     t.Gold -= k.Wage;
-                    c.Purse += k.Wage;
+                    c.Gain(k.Wage, GoldSource.Wages);
                     c.UnpaidTurns = 0;
                     wages += k.Wage;
                     continue;
@@ -164,7 +164,7 @@ public sealed partial class TurnEngine
             if (t.Gold < owed) ExposeDebasement(court, $"{c.Name}'s back pay");
             var paid = Math.Clamp(t.Gold, 0, owed);
             t.Gold -= paid;
-            c.Purse += paid;
+            c.Gain(paid, GoldSource.Wages);
             if (paid == owed) c.BackPay.Remove(court);
             else c.BackPay[court] = owed - paid;
             var who = stood.GetValueOrDefault(c.Id) != court ? $"{c.Name} is back at your court and" : c.Name;

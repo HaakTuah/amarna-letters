@@ -203,7 +203,10 @@ public sealed class Character
     public Power? SecretMaster { get; set; }
     public string? PoisonText { get; set; }
     public int TurnsAbroad { get; set; }
+    /// <summary>The gold on its person. Characters start with none; what it holds came in by <see cref="Gain"/>.</summary>
     public int Purse { get; set; }
+    /// <summary>Where the gold in its purse came from. Nothing is spent yet, so the parts add up to the purse.</summary>
+    public Earnings Earned { get; set; } = new();
     public int UnpaidTurns { get; set; }
     public Dictionary<Power, int> Reputation { get; set; } = new();
     public Dictionary<Power, int> AskingPrice { get; set; } = new();
@@ -227,11 +230,58 @@ public sealed class Character
 
     public void Remember(int turn, string text) => Memory.Add(new MemoryEntry { Turn = turn, Text = text });
 
+    /// <summary>Gold into its purse, counted by where it came from.</summary>
+    public void Gain(int amount, GoldSource source)
+    {
+        if (amount <= 0) return;
+        Purse += amount;
+        switch (source)
+        {
+            case GoldSource.Wages: Earned.Wages += amount; break;
+            case GoldSource.Skimmed: Earned.Skimmed += amount; break;
+            case GoldSource.Gifts: Earned.Gifts += amount; break;
+            case GoldSource.Carried: Earned.Carried += amount; break;
+        }
+    }
+
     public IEnumerable<Fact> FactsKnownTo(Power p) =>
         Facts.Where(f => f.Secrecy == Secrecy.Public || f.KnownBy.Contains(p));
 
     /// <summary>What <paramref name="p"/> still believes of this character, if it has not heard what happened to it.</summary>
     public Cover? CoverOf(Power p) => Covers.FirstOrDefault(k => k.For == p);
+}
+
+/// <summary>Where gold in a character's purse came from.</summary>
+public enum GoldSource
+{
+    /// <summary>Its wage paid at court, and back pay paid when it came back.</summary>
+    Wages,
+    /// <summary>Kept from gold it carried, out to a court or home.</summary>
+    Skimmed,
+    /// <summary>A king's personal gift at an audience.</summary>
+    Gifts,
+    /// <summary>Gold it was carrying when it was dismissed on the way out, which became its own.</summary>
+    Carried,
+}
+
+/// <summary>What a character has gained, by source. Characters spend nothing yet (no escort, storage fee or loan exists).</summary>
+public sealed class Earnings
+{
+    public int Wages { get; set; }
+    public int Skimmed { get; set; }
+    public int Gifts { get; set; }
+    public int Carried { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public int Total => Wages + Skimmed + Gifts + Carried;
+
+    public void Add(Earnings other)
+    {
+        Wages += other.Wages;
+        Skimmed += other.Skimmed;
+        Gifts += other.Gifts;
+        Carried += other.Carried;
+    }
 }
 
 /// <summary>

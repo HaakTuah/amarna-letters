@@ -39,8 +39,13 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         // Wages are paid at court: what he owes for seasons away is paid when the servant is back there, and lost if it leaves him.
         if (c.Employer is { } lord && c.BackPay.GetValueOrDefault(lord) is var owed and > 0)
             sb.AppendLine($"Your lord owes you {owed} shekels of back pay, paid when you return to his court.");
+        // Back pay other courts owe it: paid only if it stands at that court again.
+        foreach (var (court, due) in c.BackPay.Where(x => x.Key != c.Employer && x.Value > 0).OrderBy(x => x.Key))
+            sb.AppendLine($"The king of {court.Land()} owes you {due} shekels of back pay, paid if you ever stand at his court again.");
         if (c.SecretMaster is { } m) sb.AppendLine($"In secret you serve {m.Land()} ({m}), and you protect its interests.");
-        sb.AppendLine($"Your purse holds {c.Purse} shekels. It is now season {turn}.");
+        // It knows its own wealth, never how it stands against others.
+        var wealth = Wealth.Of(c);
+        sb.AppendLine($"Your purse holds {c.Purse} shekels{(wealth.BackPay > 0 ? $"; with the back pay kings owe you, you are worth {wealth.Total} shekels" : "")}. It is now season {turn}.");
         if (c.MemorySummary.Length > 0) sb.AppendLine("Long ago: " + c.MemorySummary);
         var recent = c.Memory.Where(m => asOf is null || m.Turn <= asOf).TakeLast(10).ToList();
         if (recent.Count > 0)
