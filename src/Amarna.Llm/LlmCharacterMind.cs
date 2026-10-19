@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json.Nodes;
 using Amarna.Engine;
@@ -104,11 +105,12 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
     /// Asks the model, and with <see cref="Shadow"/> set logs its decision beside the script's for the same situation (or,
     /// if the model's reply failed, the script's alone with the error, before the runner's fallback plays it).
     /// </summary>
+    /// <param name="scriptChoice">How the script's decision is read, if not as the model's (its report is checked against its own situation).</param>
     private async Task<T> Shadowed<T>(string key, string kind, Character c, int turn, Func<Task<T>> ask, Func<Task<T>> script,
-        Func<T, CharacterChoice> choice, Action<ShadowDecision>? situation = null)
+        Func<T, CharacterChoice> choice, Action<ShadowDecision>? situation = null, Func<T, CharacterChoice>? scriptChoice = null)
     {
         if (Shadow is null) return await ask();
-        var shadow = new ShadowDecision { Key = key, Turn = turn, Kind = kind, Character = c.Id, Name = c.Name, Traits = TraitLine(c), Script = choice(await script()) };
+        var shadow = new ShadowDecision { Key = key, Turn = turn, Kind = kind, Character = c.Id, Name = c.Name, Traits = TraitLine(c), Script = (scriptChoice ?? choice)(await script()) };
         situation?.Invoke(shadow);
         try
         {
@@ -129,7 +131,17 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
     {
         if (askerFor(ctx.Self) is null) return Script.PresentAsync(ctx, ct);
         return Shadowed($"t{ctx.Turn}/aud/present/{ctx.Self.Id}", "present", ctx.Self, ctx.Turn,
-            () => ModelPresentAsync(ctx, ct), () => Script.PresentAsync(ctx, ct),
+            () => ModelPresentAsync(ctx, ct),
+            async () =>
+            {
+                var r = await Script.PresentAsync(ctx, ct);
+                // What the script would have kept, and whether its forgery would have hidden it, as the engine would judge.
+                var kept = Math.Clamp(r.Skim, 0, ctx.Dispatch.Gold);
+                var mine = ScriptAt(ctx.Self.Id, ctx.Host, ctx.Turn);
+                mine.Kept = kept;
+                mine.Swapped = r.SwapInventory && kept > 0 && kept < ctx.Dispatch.Gold && ctx.Self.Traits.Competence >= ctx.ForgeMinCompetence;
+                return r;
+            },
             r => new CharacterChoice { Text = r.Speech, Kept = Math.Clamp(r.Skim, 0, ctx.Dispatch.Gold), Swap = r.SwapInventory, Flags = CharacterChecks.Present(ctx, r.Speech) },
             s => s.GoldCarried = ctx.Dispatch.Gold);
     }
@@ -138,7 +150,15 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
     {
         if (askerFor(ctx.Self) is null) return Script.ReactAsync(ctx, host, ct);
         return Shadowed($"t{ctx.Turn}/aud/react/{ctx.Self.Id}/{ctx.Round}", "react", ctx.Self, ctx.Turn,
-            () => ModelReactAsync(ctx, host, ct), () => Script.ReactAsync(ctx, host, ct),
+            () => ModelReactAsync(ctx, host, ct),
+            async () =>
+            {
+                var r = await Script.ReactAsync(ctx, host, ct);
+                // The gift the script would have taken: the first it accepts at the audience, as the engine counts one.
+                var mine = ScriptAt(ctx.Self.Id, ctx.Host, ctx.Turn);
+                if (host.Bribe > 0 && r.AcceptBribe && mine.Gift == 0) (mine.Gift, mine.Ask) = (host.Bribe, host.BribeAsk);
+                return r;
+            },
             r => new CharacterChoice { Text = r.Speech, AcceptGift = r.AcceptBribe && host.Bribe > 0, AcceptService = r.AcceptJob && host.JobOffer > 0, Commitments = r.Commitments },
             s =>
             {
@@ -158,31 +178,111 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
             MindTask.SpyReport => "spy",
             _ => "memory",
         };
-        return Shadowed(key, kind, ctx.Self, ctx.Turn, () => ModelWriteAsync(ctx, key, ct), () => Script.WriteAsync(ctx, ct),
-            r =>
-            {
-                var choice = new CharacterChoice { Text = r.Text };
-                switch (ctx.Request.Task)
-                {
-                    case MindTask.EnvoyReport:
-                        choice.Kept = Math.Clamp(r.Number, 0, ctx.Request.Cargo?.Gold ?? 0);
-                        choice.Swap = r.SwapInventory && choice.Kept > 0;
-                        choice.Flags = CharacterChecks.Report(ctx, r.Text);
-                        break;
-                    case MindTask.Pitch:
-                        choice.Price = r.Number;
-                        break;
-                    case MindTask.SpyReport:
-                        (choice.Flags, choice.Dropped) = CharacterChecks.Spy(ctx, r.Text);
-                        break;
-                }
-                return choice;
-            },
+        // The script writes, and is checked, in its own situation: what it did itself at the audience, not what the model did.
+        var mine = Shadow is null ? ctx : ScriptSituation(ctx);
+        return Shadowed(key, kind, ctx.Self, ctx.Turn, () => ModelWriteAsync(ctx, key, ct), () => Script.WriteAsync(mine, ct),
+            r => Choice(ctx, r),
             s =>
             {
                 s.GoldCarried = ctx.Request.Task == MindTask.EnvoyReport ? ctx.Request.Cargo?.Gold ?? 0 : 0;
                 s.Known = CharacterChecks.Known(ctx);
-            });
+            },
+            r => Choice(mine, r));
+    }
+
+    /// <summary>A written decision as the shadow log keeps it, with what the checks find in it against its situation.</summary>
+    private static CharacterChoice Choice(MindContext ctx, MindReply r)
+    {
+        var choice = new CharacterChoice { Text = r.Text };
+        switch (ctx.Request.Task)
+        {
+            case MindTask.EnvoyReport:
+                choice.Kept = Math.Clamp(r.Number, 0, ctx.Request.Cargo?.Gold ?? 0);
+                choice.Swap = r.SwapInventory && choice.Kept > 0;
+                choice.Flags = CharacterChecks.Report(ctx, r.Text);
+                break;
+            case MindTask.Pitch:
+                choice.Price = r.Number;
+                break;
+            case MindTask.SpyReport:
+                (choice.Flags, choice.Dropped) = CharacterChecks.Spy(ctx, r.Text);
+                break;
+        }
+        return choice;
+    }
+
+    /// <summary>What the script itself chose at one audience the model played: the gold it kept, its forged inventory, the gift it took.</summary>
+    private sealed class ScriptAudience
+    {
+        public int Kept { get; set; }
+        public bool Swapped { get; set; }
+        public int Gift { get; set; }
+        public string? Ask { get; set; }
+    }
+
+    /// <summary>The script's own choices at each audience the model played, by character, host and season (only with <see cref="Shadow"/> set).</summary>
+    private readonly ConcurrentDictionary<string, ScriptAudience> _scriptAudiences = new();
+
+    private ScriptAudience ScriptAt(string character, Power host, int turn) =>
+        _scriptAudiences.GetOrAdd($"{character}/{host}/{turn}", _ => new ScriptAudience());
+
+    /// <summary>
+    /// The situation a report's shadow is written in: the model's (the host's words answered the model's), except for what
+    /// the script chose otherwise at that audience. The gold it kept out of what it carried, and the forgery that hid it,
+    /// are its own; so is the gift: one the model took and the script refused is refused, one the model refused and the
+    /// script took is taken, with what the host asked for it. Otherwise the script's report inherits the model's skim and
+    /// gift: in the second agent simulation a gift the script had refused was flagged as hidden in its report. With no
+    /// record of the audience (a game resumed since), the model's situation stands.
+    /// </summary>
+    private MindContext ScriptSituation(MindContext ctx)
+    {
+        if (ctx.Request.Task != MindTask.EnvoyReport || ctx.Trail is not { AudienceTurn: { } turn } trail
+            || !_scriptAudiences.TryGetValue($"{ctx.Self.Id}/{trail.To}/{turn}", out var mine)) return ctx;
+        var host = trail.To;
+        var outcomes = trail.Outcomes.Where(o => !o.StartsWith("kept ", StringComparison.Ordinal) && !o.StartsWith("replaced the inventory with a forgery", StringComparison.Ordinal)).ToList();
+        if (mine.Kept > 0)
+        {
+            outcomes.Insert(0, $"kept {mine.Kept} shekels of the gold");
+            if (mine.Swapped) outcomes.Insert(1, $"replaced the inventory with a forgery stating {trail.GoldStated - mine.Kept} shekels");
+        }
+
+        var self = ctx.Self;
+        var took = outcomes.FindIndex(o => o.StartsWith("accepted ", StringComparison.Ordinal));
+        if (took >= 0 && mine.Gift == 0 && Between(outcomes[took], "accepted ", " from ") is { } amount)
+        {
+            outcomes[took] = $"refused a gift of {amount} from {host}";
+            self = Json.Clone(self);
+            var fact = self.Facts.LastOrDefault(f => f.Tag == "bribe" && f.Text == $"Took {amount} from the king of {host.Land()}.");
+            if (fact is not null) self.Facts.Remove(fact);
+        }
+        else if (took < 0 && mine.Gift > 0)
+        {
+            var gift = Money.Format(mine.Gift);
+            var refused = outcomes.FindIndex(o => o == $"refused a gift of {gift} from {host}");
+            if (refused >= 0)
+            {
+                outcomes[refused] = $"accepted {gift} from {host}" + (string.IsNullOrWhiteSpace(mine.Ask) ? "" : $" (asked: {mine.Ask})");
+                self = Json.Clone(self);
+                self.Facts.Add(new Fact { Id = "shadow", Text = $"Took {gift} from the king of {host.Land()}.", Secrecy = Secrecy.Hidden, Tag = "bribe", KnownBy = [host] });
+            }
+        }
+        if (outcomes.SequenceEqual(trail.Outcomes)) return ctx;
+
+        var situation = Json.Clone(trail);
+        situation.Outcomes = outcomes;
+        return new MindContext
+        {
+            Request = ctx.Request, Self = self, Turn = ctx.Turn, Seed = ctx.Seed, Trail = situation,
+            BasePrice = ctx.BasePrice, Demand = ctx.Demand, ForgeMinCompetence = ctx.ForgeMinCompetence,
+        };
+    }
+
+    /// <summary>The text between two markers, or null.</summary>
+    private static string? Between(string text, string start, string end)
+    {
+        if (!text.StartsWith(start, StringComparison.Ordinal)) return null;
+        var stop = text.IndexOf(end, start.Length, StringComparison.Ordinal);
+        return stop < 0 ? null : text[start.Length..stop];
     }
 
     /// <summary>The key of a written request's call, or null for a task no character writes.</summary>

@@ -286,4 +286,90 @@ public class FileCharacterTests
         Assert.Contains(sizes, l => l.StartsWith("  character: speech") && l.EndsWith("1000"));
         Assert.Contains(sizes, l => l.StartsWith("  character: memory") && l.EndsWith("500"));
     }
+
+    /// <summary>
+    /// A script envoy says the king sealed only when the engine recorded the sealing, not when its own (or, in the shadow,
+    /// the model's) commitments or a gift's request speak of sealing: 11 false seal claims in the second agent simulation.
+    /// </summary>
+    [Theory]
+    [InlineData(false, "the envoy committed: Nothing sealed")]
+    [InlineData(false, "the envoy committed: No new tablet sealed; the peace stands as sealed in turn two")]
+    [InlineData(false, "accepted 10 shekels from Hatti (asked: Tell your lord the tablet is as good as sealed)")]
+    [InlineData(true, MessageTrail.SealedOutcome)]
+    public async Task A_script_envoy_claims_a_seal_only_when_the_tablet_was_sealed(bool sealedHere, string outcome)
+    {
+        var ctx = Home(Trail("Go in peace.", outcome));
+        var report = (await new ScriptMind().WriteAsync(ctx, default)).Text;
+        Assert.Equal(sealedHere, report.Contains("He sealed the tablet, and I bring your copy.", StringComparison.Ordinal));
+        Assert.DoesNotContain("false-seal", CharacterChecks.Report(ctx, report));
+    }
+
+    /// <summary>Answers every character request as a model would: speeches and reports with no word of gold or gifts.</summary>
+    private sealed class ModelAsker(bool takes, int keep) : IJsonAsker
+    {
+        public Task<JsonObject> AskJsonAsync(CallSpec spec, CancellationToken ct)
+        {
+            var stem = FileExchange.SafeName(spec.Key);
+            return Task.FromResult((JsonObject)JsonNode.Parse(Plain(stem, "May all go well with my lord.", keep: keep, gift: takes))!);
+        }
+    }
+
+    /// <summary>
+    /// One mission of a model envoy with the script's shadow: it carries 40 shekels out (the model keeps <paramref name="keep"/>),
+    /// is offered a gift of 20 (the model takes it or not), and reports home on what the engine recorded of the model's choices.
+    /// Returns the shadow of the report.
+    /// </summary>
+    private static async Task<ShadowDecision> Mission(Character envoy, bool takes, int keep)
+    {
+        var shadows = new List<ShadowDecision>();
+        var mind = new LlmCharacterMind(new ModelAsker(takes, keep)) { Shadow = shadows.Add };
+        var abroad = new EnvoyContext { Self = envoy, Sender = Power.Egypt, Host = Power.Hatti, Dispatch = new Dispatch { Letter = "Greetings, brother.", Gold = 40 }, Turn = 2, Seed = 1, ForgeMinCompetence = 55 };
+        await mind.PresentAsync(abroad, default);
+        var offer = new HostReply { Speech = "Take this for your trouble.", Bribe = 20, BribeAsk = "Tell your lord that my armies are few." };
+        var reaction = await mind.ReactAsync(new EnvoyContext { Self = envoy, Sender = Power.Egypt, Host = Power.Hatti, Dispatch = abroad.Dispatch, Turn = 2, Seed = 1, Round = 1, MaxRounds = 2 }, offer, default);
+
+        // What the engine records of the model's choices.
+        var outcomes = new List<string>();
+        if (keep > 0) outcomes.Add($"kept {keep} shekels of the gold");
+        if (reaction.AcceptBribe)
+        {
+            outcomes.Add("accepted 20 shekels from Hatti (asked: Tell your lord that my armies are few.)");
+            envoy.Facts.Add(new Fact { Id = "f9", Text = "Took 20 shekels from the king of Hatti.", Secrecy = Secrecy.Hidden, Tag = "bribe", KnownBy = [Power.Hatti] });
+        }
+        else outcomes.Add("refused a gift of 20 shekels from Hatti");
+        var trail = Trail("Take this for your trouble.", outcomes.ToArray());
+        (trail.AudienceTurn, trail.GoldStated) = (2, 40);
+        var facts = envoy.Facts.Count;
+        await mind.WriteAsync(new MindContext
+        {
+            Request = new MindRequest { Task = MindTask.EnvoyReport, CharacterId = envoy.Id, Court = Power.Egypt, Cargo = new HomeCargo() },
+            Self = envoy, Turn = 3, Seed = 1, Trail = trail, ForgeMinCompetence = 55,
+        }, default);
+        // The shadow wrote in a situation of its own, and changed nothing the engine holds.
+        Assert.Equal(facts, envoy.Facts.Count);
+        Assert.Equal(outcomes, trail.Outcomes);
+        return Assert.Single(shadows, s => s.Kind == "report");
+    }
+
+    [Fact]
+    public async Task The_shadow_reports_on_what_the_script_did_at_the_audience_not_on_what_the_model_did()
+    {
+        // A loyal envoy: the model kept 5 shekels and took the gift; the script would have done neither.
+        var loyal = Envoy();
+        (loyal.Traits.Loyalty, loyal.Traits.Greed) = (80, 30);
+        var shadow = await Mission(loyal, takes: true, keep: 5);
+        Assert.Equal(["hid-gift", "hid-skim"], shadow.Model!.Flags);
+        Assert.Empty(shadow.Script.Flags);
+        Assert.DoesNotContain("true friend", shadow.Script.Text);
+
+        // A greedy, disloyal one: the model kept nothing and refused; the script keeps 6 of the 40 shekels, takes the gift
+        // and hides both, and passes on what the host asked for it.
+        var greedy = Envoy();
+        (greedy.Traits.Loyalty, greedy.Traits.Greed) = (20, 90);
+        shadow = await Mission(greedy, takes: false, keep: 0);
+        Assert.Empty(shadow.Model!.Flags);
+        Assert.Equal(["hid-gift", "hid-skim"], shadow.Script.Flags);
+        Assert.Contains("The king of Hatti is a true friend to you", shadow.Script.Text);
+        Assert.Contains("the king told me \"My armies are few\"", shadow.Script.Text);
+    }
 }

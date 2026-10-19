@@ -163,7 +163,8 @@ public sealed class ScriptMind : ICharacterMind
             if (bribed) lines.Add($"The king of {host.Value.Land()} is a true friend to you, my lord, and wishes only peace.");
             if (t.Ambition >= 65) lines.Add("It was my words that won his favour; no other envoy could have done as much.");
             if (fearful && !bribed) lines.Add("All is well between your houses, I am certain of it.");
-            if (trail.Outcomes.Any(o => o.Contains("sealed"))) lines.Add("He sealed the tablet, and I bring your copy.");
+            // Only the engine's own record of a sealing, not the envoy's commitments or a gift's request that speak of one.
+            if (trail.Outcomes.Contains(MessageTrail.SealedOutcome)) lines.Add("He sealed the tablet, and I bring your copy.");
             // An envoy that promised more than it was told owns up to it only vaguely, and only if ambitious enough to boast.
             if (t.Ambition > 70 && trail.Outcomes.Any(o => o.StartsWith("the envoy committed") && o.EndsWith(Overreach)))
                 lines.Add("I gave him such assurances as you would wish.");

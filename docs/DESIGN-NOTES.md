@@ -1177,7 +1177,15 @@ in the log). `ScriptMind` draws only from streams keyed by seed, season and char
 game's own generator, and changes nothing it reads, so the shadow changes nothing: a test plays the same game with and
 without it and gets the same state and the same decisions. The shadow line holds the character's traits, what it faced
 (gold carried, a gift or a post offered), what the engine knows happened that a report should not hide, and both
-decisions with what `CharacterChecks` found in their words. The checks read words, not meaning: a report "hides" a gift
+decisions with what `CharacterChecks` found in their words. The situation is the one the model's own earlier choices
+made (the host answered the model's words), with one exception since the fix pass after item 4: a report's shadow is
+written, and checked, against what the script itself chose at that audience, the gold it would have kept (and the
+forged inventory that would have hidden it) and the gift it would have taken or refused, with what the host asked for
+it (`LlmCharacterMind.ScriptSituation`). Before, it inherited the model's: in the second agent simulation a gift the
+script had refused was flagged as hidden in its report. A script envoy's report claims a seal ("He sealed the tablet,
+and I bring your copy") only when the engine recorded the sealing (`MessageTrail.SealedOutcome`); it used to claim one
+whenever any outcome held the word "sealed", which in the shadow included the model's own commitments ("Nothing
+sealed"): 11 false seal claims in that simulation. The checks read words, not meaning: a report "hides" a gift
 the envoy took if it never speaks of gold or a gift given to the envoy itself, a detention if it never speaks of being
 held, gold kept on the way out if it never owns up (saying what it kept, or that it kept something "for myself"; "I saw
 for myself" owns up to nothing), a threat to its lord if it carries no threat at all, an offer of service it declined
