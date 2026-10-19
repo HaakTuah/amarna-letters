@@ -108,10 +108,10 @@
                         <label><input type="checkbox" @bind="Settings.SharedVictory" /> Shared victory for sworn allies</label>
                     </div>
                     <div class="row" style="margin-top:.6rem">
-                        <label title="The world still moves every season; a model king is called only when something concerns it, or when the time it chose has come. Script and human kings play every season."><input type="checkbox" @bind="Settings.SleepingSeats" /> Sleeping seats for model kings</label>
+                        <label title="The world still moves every season; after its orders a model king sleeps, and is called again only when something concerns it or the season it named comes. Off, every king is called every season. Script and human kings play every season."><input type="checkbox" @bind="Settings.SleepingSeats" /> Sleeping seats for model kings</label>
                         @if (Settings.SleepingSeats)
                         {
-                            <label>Longest sleep (seasons) <input type="number" min="1" max="30" @bind="Settings.MaxSleep" /></label>
+                            <label title="A safety net only: a sleeping king is woken after this many seasons at the latest. The kings are never told it.">Hidden safety cap on sleep (seasons) <input type="number" min="1" max="30" @bind="Settings.MaxSleep" /></label>
                         }
                     </div>
                     <div class="row" style="margin-top:.6rem">
@@ -171,6 +171,10 @@
                 <button @onclick="() => Load(LoadedText, true)">Continue playing</button>
             }
         </div>
+        @if (LoadProblem is not null)
+        {
+            <div class="notice error">@LoadProblem</div>
+        }
         @if (Saved.Count == 0)
         {
             <p class="muted">No saved games yet.</p>
@@ -201,6 +205,8 @@
     private List<SavedLog> Saved { get; set; } = new();
     private string? LoadedText;
     private string? Problem;
+    /// <summary>Why a saved game or replay could not be loaded, shown next to the buttons that load one.</summary>
+    private string? LoadProblem;
     private bool Starting;
     private bool Customizing;
     private bool _budgetTouched;
@@ -318,12 +324,21 @@
 
     private async Task Load(string text, bool continuePlay)
     {
-        if (continuePlay)
+        LoadProblem = null;
+        LogHeader? header = null;
+        try { header = GameLog.FromJsonl(text).Header; }
+        catch (Exception) { } // not a log: the game page says so
+        // A game saved under other rules cannot be replayed or continued: say so here, next to the buttons, before anything else.
+        if (header is not null && GameRunner.VersionProblem(header) is { } old)
         {
-            var header = GameLog.FromJsonl(text).Header;
+            LoadProblem = old;
+            return;
+        }
+        if (continuePlay && header is not null)
+        {
             if (SeatSetup.FromHeader(header).UsesModels && string.IsNullOrWhiteSpace(Keys.Key))
             {
-                Problem = "This game used Claude models. Choose any preset that needs a key, enter your key, then continue.";
+                LoadProblem = "This game used Claude models. Choose any preset that needs a key, enter your key above, then continue.";
                 return;
             }
         }
@@ -334,7 +349,7 @@
     private async Task LoadSaved(string id, bool continuePlay)
     {
         var text = await Store.LoadAsync(id);
-        if (text is null) { Problem = "That saved game could not be read."; return; }
+        if (text is null) { LoadProblem = "That saved game could not be read."; return; }
         await Load(text, continuePlay);
     }
 

@@ -57,6 +57,8 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o = new JsonObject
             {
                 ["notes"] = "Hold the line; keep Hatti friendly.",
+                ["summary"] = "",
+                ["ledger"] = new JsonArray(),
                 ["units"] = new JsonArray(),
                 ["letters"] = new JsonArray(),
                 ["other_orders"] = new JsonArray(),
@@ -67,6 +69,7 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
                 ["speech"] = "Tell your lord I am his brother.",
                 ["gift_to_envoy"] = 0, ["gift_request"] = "", ["offer_service_wage"] = 0,
                 ["seal_tablet"] = true, ["detain_envoy"] = false, ["send_gold_back"] = 0, ["gold_back_purity"] = 100, ["end_audience"] = true,
+                ["ledger"] = new JsonArray(),
             };
         else if (Has("accept_gift"))
             o = new JsonObject { ["speech"] = "I thank you, Great King.", ["accept_gift"] = false, ["accept_service"] = false, ["commitments"] = "" };
@@ -86,11 +89,13 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o = new JsonObject { ["report"] = "Nothing of note." };
         else
             o = new JsonObject();
-        // With sleeping seats on, a simulated king sleeps a season at a time, so the path is exercised.
+        // With sleeping seats on, a simulated king sleeps after its orders like any model king, naming no season.
         if (Has("units") && Has("sleep"))
         {
-            o["sleep"] = new JsonObject { ["seasons"] = 1, ["wake_on"] = new JsonArray() };
+            o["sleep"] = new JsonObject { ["wake_in_turn"] = 0, ["wake_on"] = new JsonArray() };
             o["schedule"] = new JsonArray();
+            o["standing_orders"] = new JsonArray();
+            o["cancel_standing"] = new JsonArray();
         }
         return o.ToJsonString();
     }

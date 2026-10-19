@@ -1,3 +1,6 @@
+using System.Buffers.Binary;
+using System.Security.Cryptography;
+using System.Text;
 using Amarna.Engine;
 
 namespace Amarna.Game.Bots;
@@ -12,23 +15,57 @@ namespace Amarna.Game.Bots;
 /// </summary>
 public sealed class ScriptLeader : ISeat
 {
-    private readonly ulong _seed;
+    /// <summary>Each power's seat seed (see <see cref="SeatSeed"/>); the game's own seed is not kept.</summary>
+    private readonly Dictionary<Power, ulong> _seeds;
     private readonly Dictionary<Power, Brain> _brains = new();
 
-    public ScriptLeader(ulong seed) => _seed = seed;
+    /// <param name="gameSeed">The game's seed, from which each power's seat seed is derived.</param>
+    public ScriptLeader(ulong gameSeed) => _seeds = Powers.All.ToDictionary(p => p, p => SeatSeed(gameSeed, p));
 
     public string Label => "Script bot";
 
-    /// <summary>The temperament a script king plays with in a game with this seed.</summary>
-    public static Personality Temperament(Power p, ulong seed) => Personality.For(p, seed);
+    /// <summary>
+    /// A script seat's own seed: the first eight bytes of a SHA-256 hash of the game's seed, "seat" and the power. Its
+    /// temperament and every roll it makes, its pictured rivals' included, come from this seed, so no script king holds
+    /// the seed the engine rolls the game's dice with. The hash is one-way: unlike a stream of <see cref="Rng"/>, whose
+    /// every step can be undone, the seat seed gives no way back to the game's seed.
+    /// </summary>
+    public static ulong SeatSeed(ulong gameSeed, Power p)
+    {
+        var tag = Encoding.UTF8.GetBytes("seat:" + p);
+        var input = new byte[8 + tag.Length];
+        BinaryPrimitives.WriteUInt64LittleEndian(input, gameSeed);
+        tag.CopyTo(input, 8);
+        return BinaryPrimitives.ReadUInt64LittleEndian(SHA256.HashData(input));
+    }
+
+    /// <summary>The temperament a script king plays with in a game with this seed (drawn from its seat seed).</summary>
+    public static Personality Temperament(Power p, ulong gameSeed) => Personality.For(p, SeatSeed(gameSeed, p));
 
     private Brain Brain(Power p)
     {
         lock (_brains)
         {
-            if (!_brains.TryGetValue(p, out var b)) _brains[p] = b = new Brain(p, _seed);
+            if (!_brains.TryGetValue(p, out var b)) _brains[p] = b = new Brain(p, _seeds[p]);
             return b;
         }
+    }
+
+    /// <summary>
+    /// Reads a season's view of a seat it may have to stand in for, deciding nothing, so that it remembers what that seat
+    /// has seen when it must play it. Like all its learning this happens at most once a season: reading the same season
+    /// again, or playing it after reading it, learns nothing more.
+    /// </summary>
+    public void Observe(SeatView view)
+    {
+        var brain = Brain(view.Power);
+        lock (brain) brain.Learn(view, new Board(view));
+    }
+
+    /// <summary>The memory this bot keeps for a power, if it has played or watched it.</summary>
+    internal Brain? BrainOf(Power p)
+    {
+        lock (_brains) return _brains.GetValueOrDefault(p);
     }
 
     public Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct)
@@ -90,7 +127,7 @@ public sealed class ScriptLeader : ISeat
         {
             brain.Learn(court, new Board(court));
             var board = new Board(court, treasuries: brain.Treasury);
-            var rng = Rng.For(_seed, view.Turn, "bot:host", $"{view.Host}:{view.AudienceId}:{view.Round}");
+            var rng = Rng.For(_seeds[view.Host], view.Turn, "bot:host", $"{view.Host}:{view.AudienceId}:{view.Round}");
             return Task.FromResult(Statecraft.Host(view, board, brain, rng));
         }
     }

@@ -21,6 +21,7 @@ namespace Amarna.Engine;
 [JsonDerivedType(typeof(ReleaseOrder), "release")]
 [JsonDerivedType(typeof(SeekCandidatesOrder), "seekCandidates")]
 [JsonDerivedType(typeof(HireOrder), "hire")]
+[JsonDerivedType(typeof(RenewOrder), "renew")]
 [JsonDerivedType(typeof(DismissOrder), "dismiss")]
 [JsonDerivedType(typeof(BackgroundCheckOrder), "check")]
 [JsonDerivedType(typeof(PlaceSpyOrder), "spy")]
@@ -31,9 +32,13 @@ namespace Amarna.Engine;
 [JsonDerivedType(typeof(ForgeOrder), "forge")]
 [JsonDerivedType(typeof(CaptiveOrder), "captive")]
 [JsonDerivedType(typeof(PayRansomOrder), "payRansom")]
+[JsonDerivedType(typeof(UnreadableOrder), "unreadable")]
 public abstract record Order
 {
     public abstract string Describe();
+
+    /// <summary>A name the order left blank, as a refusal shows it.</summary>
+    protected static string Named(string? s) => string.IsNullOrWhiteSpace(s) ? "?" : s;
 }
 
 public sealed record HoldOrder(string Unit) : Order
@@ -43,18 +48,27 @@ public sealed record HoldOrder(string Unit) : Order
 
 public sealed record MoveOrder(string Unit, string To) : Order
 {
-    public override string Describe() => $"{Unit} -> {To}";
+    public override string Describe() => $"{Unit} -> {Named(To)}";
 }
 
 /// <summary>Support a unit standing in <paramref name="Supported"/>: to hold if To is null, else its move to To.</summary>
 public sealed record SupportOrder(string Unit, string Supported, string? To = null) : Order
 {
-    public override string Describe() => To is null ? $"{Unit} supports {Supported} holding" : $"{Unit} supports {Supported} -> {To}";
+    public override string Describe() => To is null ? $"{Unit} supports {Named(Supported)} holding" : $"{Unit} supports {Named(Supported)} -> {To}";
 }
 
 public sealed record ConvoyOrder(string Unit, string Army, string To) : Order
 {
-    public override string Describe() => $"{Unit} convoys {Army} -> {To}";
+    public override string Describe() => $"{Unit} convoys {Named(Army)} -> {Named(To)}";
+}
+
+/// <summary>
+/// An order a reply named but left incomplete or unreadable (a cession to no power anyone knows): the validator refuses
+/// it with <paramref name="Reason"/>, so its king is told next season instead of the order vanishing.
+/// </summary>
+public sealed record UnreadableOrder(string Text, string Reason) : Order
+{
+    public override string Describe() => Text;
 }
 
 public sealed record RaiseOrder(string Province, UnitKind Kind) : Order
@@ -112,6 +126,15 @@ public sealed record SeekCandidatesOrder() : Order
 public sealed record HireOrder(string Character, int Wage, int Term = 6) : Order
 {
     public override string Describe() => $"hire {Character} at {Wage} a season";
+}
+
+/// <summary>
+/// Keep one of your own people on at a new wage, for a new term. Not a task: the servant may be renewed and sent on
+/// an errand in the same season.
+/// </summary>
+public sealed record RenewOrder(string Character, int Wage, int Term = 6) : Order
+{
+    public override string Describe() => $"renew {Character} at {Wage} a season for {Term} seasons";
 }
 
 public sealed record DismissOrder(string Character) : Order
@@ -178,6 +201,7 @@ public static class OrderKeys
         DisbandOrder d => d.Unit, GiftUnitOrder g => g.Unit, _ => null,
     };
 
+    /// <summary>The person an order gives a task to. A renewal is not a task, so it is not counted here.</summary>
     public static string? CharacterOf(Order o) => o switch
     {
         DispatchOrder d => d.Envoy, ReleaseOrder r => r.Character, HireOrder h => h.Character, DismissOrder dm => dm.Character,
@@ -190,12 +214,29 @@ public sealed class TurnSubmission
 {
     public List<Order> Orders { get; set; } = new();
     public string Notes { get; set; } = "";
-    /// <summary>Seats that may sleep: how long to sleep and what should wake them. Ignored for other seats.</summary>
+    /// <summary>
+    /// Model and file seats: the king's own summary of the seasons that have left its record, written in its reply (empty
+    /// keeps the one before). Logged with the orders, so a replay can read it; the engine ignores it.
+    /// </summary>
+    public string Summary { get; set; } = "";
+    /// <summary>
+    /// Model and file seats: lines of the king's ledger of dealings, one per court, in its own words (an entry replaces that
+    /// court's line, an empty entry removes it). Logged with the orders; the engine ignores it.
+    /// </summary>
+    public List<LedgerLine> Ledger { get; set; } = new();
+    /// <summary>Seats that may sleep (they sleep after every call): the season to be woken in and what else should wake them. Ignored for other seats.</summary>
     public SleepRequest? Sleep { get; set; }
     /// <summary>Seats that may sleep: orders queued for later seasons (one entry per season replaces any earlier one).</summary>
     public List<ScheduledOrders> Scheduled { get; set; } = new();
+    /// <summary>Seats that may sleep: new standing orders, kept with those it already has.</summary>
+    public List<StandingRequest> Standing { get; set; } = new();
+    /// <summary>Seats that may sleep: ids of standing orders to cancel, or "all".</summary>
+    public List<string> CancelStanding { get; set; } = new();
     /// <summary>Set by the runner when the script king stood in for a seat whose call failed: the seat has not seen this season.</summary>
     public bool FromFallback { get; set; }
 }
+
+/// <summary>One line of a king's ledger of dealings: what it wrote of its dealings with one court.</summary>
+public sealed record LedgerLine(Power Court, string Entry);
 
 public sealed record RejectedOrder(Order Order, string Reason);

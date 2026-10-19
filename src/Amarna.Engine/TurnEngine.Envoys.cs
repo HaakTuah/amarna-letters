@@ -14,7 +14,7 @@ public sealed partial class TurnEngine
         var c = S.Char(d.Envoy);
         var fine = (int)Math.Round(d.Gold * d.PurityPercent / 100.0);
         var fee = d.Proposal is not null ? S.Config.TabletFee : 0;
-        if (!Pay(p, fine + fee, $"{c.Name}'s mission")) return;
+        if (!Pay(p, fine + fee, $"{c.Name}'s mission to {d.To}", d, $"{c.Name} stayed at your court")) return;
 
         var letter = Greeting.Cap(d.Letter ?? "", S.Config.MaxLetterChars);
         var mandate = Greeting.Cap(d.Mandate ?? "", 600);
@@ -83,16 +83,20 @@ public sealed partial class TurnEngine
             + (mandate.Length > 0 ? $" I may agree to: {mandate}." : "")
             + (d.Gold > 0 ? $" I carry gold, said to be {Money.Format(d.Gold)}." : "")
             + (d.Proposal is not null ? " I carry a tablet for their king to seal." : ""));
-        S.Notify(p, InboxKind.Notice, "Envoy dispatched", $"{c.Name} has set out for {d.To}; the journey takes {travel} season(s).", c.Id);
+        S.Notify(p, InboxKind.Notice, "Envoy dispatched", $"{c.Name} set out for {d.To} last season; the journey takes {travel} season(s).", c.Id);
     }
 
     private void EnvoyArrivesAbroad(Journey j)
     {
         var c = S.Char(j.CharacterId!);
-        if (c.Status != CharacterStatus.Employed || c.Employer != j.From)
+        // Taken into another court's service on the way: it is there already.
+        if (c.Status == CharacterStatus.Employed && c.Employer != j.From) return;
+        if (c.Status != CharacterStatus.Employed)
         {
+            // Dismissed on the way, or its kingdom fell: it arrives a free person, with no audience.
             c.At = j.To;
             c.Duty = Duty.None;
+            c.MissionTarget = null;
             return;
         }
         if (!S.IsAlive(j.To))
@@ -143,9 +147,11 @@ public sealed partial class TurnEngine
     /// <summary>The gold the host's weighers find, after whatever the envoy kept.</summary>
     public static int Weighed(PendingAudience a, int skim) => a.Dispatch.Gold - Math.Clamp(skim, 0, a.Dispatch.Gold);
 
-    public AudienceView BuildAudienceView(PendingAudience a, string spoken, int skim, IReadOnlyList<Exchange> soFar, int round)
+    /// <param name="earlier">The audience's earlier exchanges, so the host is told what it has already named and given.</param>
+    public AudienceView BuildAudienceView(PendingAudience a, string spoken, int skim, IReadOnlyList<Exchange> soFar, int round, IReadOnlyList<AudienceRound>? earlier = null)
     {
         var c = S.Char(a.EnvoyId);
+        earlier ??= [];
         var view = new AudienceView
         {
             AudienceId = a.Id,
@@ -161,6 +167,8 @@ public sealed partial class TurnEngine
             GoldStated = a.Dispatch.Gold,
             GoldWeighed = Weighed(a, skim),
             SoFar = soFar.ToList(),
+            GoldBackNamed = earlier.LastOrDefault(x => x.Host is { GoldBack: > 0 })?.Host.GoldBack ?? 0,
+            GiftAccepted = earlier.FirstOrDefault(x => x.Host is { Bribe: > 0 } && x.Envoy is { AcceptBribe: true })?.Host.Bribe ?? 0,
         };
         if (a.Dispatch.ProposalTabletId is { } tid && S.Tablets.FirstOrDefault(t => t.Id == tid) is { } tablet)
             view.Proposal = Views.Tablet(tablet, new TabletCopy { Id = "", TabletId = tid, Holder = a.Host, Source = $"proposed by {a.From}" });
@@ -188,6 +196,22 @@ public sealed partial class TurnEngine
         var trail = Trail(d.TrailId)!;
         var host = a.Host;
         var sender = a.From;
+
+        // A host holding court while its orders stand: the letters it sent and whether it chose to reopen its orders, kept
+        // for CourtsHeld and Resolve. Anywhere else a reply's letters and reopening mean nothing. A reply the stand-in gave
+        // because the seat's call failed decides nothing for the seat: it is only marked, so that CourtsHeld asks the seat.
+        if (S.Config.SleepingSeats && S.Sleep.TryGetValue(host, out var court) && court.HoldsCourt)
+            foreach (var round in record.Rounds.Take(S.Config.AudienceRounds))
+            {
+                if (round.Host is not { } said) continue;
+                if (said.FromFallback)
+                {
+                    court.StoodIn = true;
+                    continue;
+                }
+                AddLetters(court.CourtLetters, said.Letters);
+                court.Reopen |= said.ReopenOrders;
+            }
 
         trail.Delivered = Greeting.Cap(record.Delivered ?? "", MaxSpeech);
 
@@ -222,29 +246,43 @@ public sealed partial class TurnEngine
             S.Log("evidence", $"{sender} presented a tablet to {host} as evidence.", [sender, host], "evidence-shown");
         }
 
+        // What the sender knows of its envoy before the audience: if the envoy is held or goes over to the host,
+        // its lord goes on seeing it on the road home until word comes.
+        var seenBySender = Views.Character(S, c, sender);
+        var knownBySender = c.FactsKnownTo(sender).Select(f => f.Id).ToList();
         var detained = false;
         var defected = false;
-        var bribePaid = 0;
+        var giftTaken = false;
+        // Gold to send home with the envoy: the latest amount named stands (0 in a later exchange keeps it), at that exchange's purity.
+        var goldBack = 0;
+        var goldBackPurity = 100;
         foreach (var round in record.Rounds.Take(S.Config.AudienceRounds))
         {
             var h = round.Host ?? new HostReply();
             var e = round.Envoy ?? new EnvoyReaction();
             trail.Exchanges.Add(new Exchange { Host = Greeting.Cap(h.Speech ?? "", MaxSpeech), Envoy = Greeting.Cap(e.Speech ?? "", MaxSpeech) });
 
-            if (h.Bribe > 0 && bribePaid == 0)
+            // An envoy takes one gift per audience: the first it accepts, whether or not the treasury can then pay it.
+            if (h.Bribe > 0 && giftTaken)
+                trail.Outcomes.Add("a second gift was not given: an envoy takes one gift per audience");
+            else if (h.Bribe > 0)
             {
                 if (e.AcceptBribe)
                 {
+                    giftTaken = true;
                     if (Pay(host, h.Bribe, $"a gift to {c.Name}"))
                     {
-                        bribePaid = h.Bribe;
                         c.Purse += h.Bribe;
                         c.Remember(S.Turn, $"The king of {host.Land()} gave me {Money.Format(h.Bribe)}" + (string.IsNullOrWhiteSpace(h.BribeAsk) ? "." : $", asking: {h.BribeAsk}"));
                         c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Took {Money.Format(h.Bribe)} from the king of {host.Land()}.", Secrecy = Secrecy.Hidden, Tag = "bribe", KnownBy = [host] });
                         trail.Outcomes.Add($"accepted {Money.Format(h.Bribe)} from {host}" + (string.IsNullOrWhiteSpace(h.BribeAsk) ? "" : $" (asked: {h.BribeAsk})"));
                         S.Log("bribe", $"{c.Name}, envoy of {sender}, took {Money.Format(h.Bribe)} from {host}.", [host], "bribe");
                     }
-                    else c.Remember(S.Turn, $"The king of {host.Land()} promised me gold that never came.");
+                    else
+                    {
+                        c.Remember(S.Turn, $"The king of {host.Land()} promised me gold that never came.");
+                        trail.Outcomes.Add($"agreed to take {Money.Format(h.Bribe)} from {host}, but the treasury could not pay it");
+                    }
                 }
                 else trail.Outcomes.Add($"refused a gift of {Money.Format(h.Bribe)} from {host}");
             }
@@ -279,24 +317,29 @@ public sealed partial class TurnEngine
             if (!string.IsNullOrWhiteSpace(e.Commitments))
                 trail.Outcomes.Add($"the envoy committed: {Greeting.Cap(e.Commitments, 300)}");
 
+            if (h.GoldBack > 0)
+            {
+                goldBack = h.GoldBack;
+                goldBackPurity = h.GoldBackPurity;
+            }
+
             if (h.Detain) detained = true;
             if (h.End || detained || defected) break;
         }
 
-        var last = record.Rounds.LastOrDefault()?.Host;
         var cargo = new HomeCargo { TrailId = trail.Id, Observations = Observe(c, host) };
         if (d.ProposalTabletId is { } pid && S.Tablets.FirstOrDefault(t => t.Id == pid) is { SealedTurn: not null }) cargo.CopyIds.Add(pid);
 
-        if (!detained && !defected && last is { GoldBack: > 0 })
+        if (!detained && !defected && goldBack > 0)
         {
-            var purity = Math.Clamp(last.GoldBackPurity, 10, 100);
-            var backFine = (int)Math.Round(last.GoldBack * purity / 100.0);
-            if (Pay(host, backFine, $"gifts for {sender}"))
+            var purity = Math.Clamp(goldBackPurity, 10, 100);
+            var backFine = (int)Math.Round(goldBack * purity / 100.0);
+            if (Pay(host, backFine, $"gifts for {sender}", outcome: $"none went home with {c.Name}"))
             {
-                cargo.Gold = last.GoldBack;
-                cargo.GoldStated = last.GoldBack;
+                cargo.Gold = goldBack;
+                cargo.GoldStated = goldBack;
                 cargo.PurityPercent = purity;
-                trail.Outcomes.Add($"{host} sent back {Money.Format(last.GoldBack)}");
+                trail.Outcomes.Add($"{host} sent back {Money.Format(goldBack)}");
             }
         }
 
@@ -305,8 +348,13 @@ public sealed partial class TurnEngine
         c.Remember(S.Turn, $"I was received by the king of {host.Land()}. " + string.Join(" ", trail.Exchanges.Select(x => $"He said: \"{Greeting.Cap(x.Host, 300)}\" I answered: \"{Greeting.Cap(x.Envoy, 200)}\"")));
 
         var expectedHome = S.Turn + TravelTurns(host, sender);
+        // Its lord sees it on the road home, due back as an envoy sent home now would be.
+        if (defected || detained)
+            CoverFor(c, sender, Duty.EnvoyHomebound, "on the road home", "travelling", seenBySender, knownBySender, Views.EnvoyHomeTiming(trail.Turn, host, expectedHome));
         if (defected)
         {
+            // It never goes back to collect it: the back pay its old court owed it is forfeit (its cover keeps what that court believes).
+            c.BackPay.Remove(sender);
             Overdue(sender, c, host, expectedHome);
         }
         else if (detained)
@@ -321,7 +369,13 @@ public sealed partial class TurnEngine
         else SendHome(c, host, cargo);
     }
 
-    private void Overdue(Power sender, Character c, Power host, int when)
+    /// <summary>
+    /// The sender hears that its servant is overdue a season after it was due home: the news that ends its cover.
+    /// The word is not sent if the servant has stood at the sender's court since, and is not told once the sender
+    /// no longer believes anything of it (it heard of a death, or dismissed the servant).
+    /// </summary>
+    /// <param name="place">Where it was last sent, if not a court (a province it watched).</param>
+    private void Overdue(Power sender, Character c, Power host, int when, string? place = null)
     {
         if (!S.IsAlive(sender)) return;
         S.Journeys.Add(new Journey
@@ -332,7 +386,9 @@ public sealed partial class TurnEngine
             ArriveTurn = when + 1,
             From = host,
             To = sender,
-            Text = $"{c.Name} has not returned from the court of {host}. No word has come.",
+            CharacterId = c.Id,
+            News = NewsKind.Overdue,
+            Text = $"{c.Name} has not returned from {place ?? $"the court of {host}"}. No word has come.",
         });
     }
 
@@ -371,6 +427,8 @@ public sealed partial class TurnEngine
             if (rng.Chance(skill)) obs.Add($"{o.Name}, envoy of {o.Employer}, was also at the court{(o.Duty == Duty.Detained ? ", held there against their will" : "")}.");
         foreach (var cat in S.Catastrophes.Where(x => x.Power == court && x.StartTurn <= S.Turn + 1 && x.EndTurn >= S.Turn))
             if (rng.Chance(0.4 + skill / 2)) obs.Add($"In {court}: {cat.Text}");
+        // The captives the court holds, noticed as other envoys at court are; its executions, as its catastrophes are.
+        obs.AddRange(LossesHeard(c, court, held: skill, death: 0.4 + skill / 2));
         if (court == c.Traits.Sympathy) c.Traits.SympathyStrength = Math.Min(100, c.Traits.SympathyStrength + 5);
         return obs;
     }
@@ -378,6 +436,8 @@ public sealed partial class TurnEngine
     private void EnvoyArrivesHome(Journey j)
     {
         var c = S.Char(j.CharacterId!);
+        // Taken into another court's service on the way: it is there already. One dismissed on the way still comes home and reports.
+        if (c.Status == CharacterStatus.Employed && c.Employer != j.To) return;
         c.At = j.To;
         c.Duty = Duty.None;
         c.HeldBy = null;
@@ -401,19 +461,33 @@ public sealed partial class TurnEngine
     private void ReleaseEnvoy(Power host, ReleaseOrder r)
     {
         var c = S.Char(r.Character);
-        if (c.HeldBy != host || (c.Duty != Duty.Detained && c.Status != CharacterStatus.Captured)) return;
+        if (c.HeldBy != host || (c.Duty != Duty.Detained && c.Status != CharacterStatus.Captured))
+        {
+            Failed(host, r, "Release failed", $"{c.Name} was no longer held at your court, so nobody was released.", "no longer held", c.Id);
+            return;
+        }
         if (c.Status == CharacterStatus.Captured)
         {
             ReleaseCaptive(host, c);
             return;
         }
+        LetEnvoyGo(host, c, r.Reply);
+    }
+
+    /// <summary>
+    /// A detained envoy let go sets out for home. Its lord goes on believing what it believed (on the road home,
+    /// or that it has not returned) until the envoy stands at its court again.
+    /// </summary>
+    private void LetEnvoyGo(Power host, Character c, string? reply)
+    {
+        if (c.Employer is { } lord) CoverFor(c, lord, Duty.Detained);
         c.HeldBy = null;
         var trail = Trail(c.CurrentTrail);
-        if (trail is not null && !string.IsNullOrWhiteSpace(r.Reply))
-            trail.Exchanges.Add(new Exchange { Host = $"(on release) {Greeting.Cap(r.Reply, MaxSpeech)}", Envoy = "" });
+        if (trail is not null && !string.IsNullOrWhiteSpace(reply))
+            trail.Exchanges.Add(new Exchange { Host = $"(on release) {Greeting.Cap(reply, MaxSpeech)}", Envoy = "" });
         trail?.Outcomes.Add($"released by {host} in turn {S.Turn}");
-        c.Remember(S.Turn, $"The king of {host.Land()} let me go" + (string.IsNullOrWhiteSpace(r.Reply) ? "." : $", saying: \"{Greeting.Cap(r.Reply, 300)}\""));
-        S.Notify(host, InboxKind.Notice, "Envoy released", $"{c.Name} has been allowed to leave.", c.Id);
+        c.Remember(S.Turn, $"The king of {host.Land()} let me go" + (string.IsNullOrWhiteSpace(reply) ? "." : $", saying: \"{Greeting.Cap(reply, 300)}\""));
+        if (S.IsAlive(host)) S.Notify(host, InboxKind.Notice, "Envoy released", $"{c.Name} has been allowed to leave.", c.Id);
         S.Log("release", $"{host} released {c.Name}.", [host]);
         SendHome(c, host, new HomeCargo { TrailId = c.CurrentTrail ?? "", Observations = Observe(c, host), WasDetained = true });
     }
@@ -456,6 +530,8 @@ public sealed partial class TurnEngine
             }
             case MindTask.Pitch:
                 if (c is null || !c.IsAvailableForHire) return;
+                // A court that still believed this person away in its service now sees it seeking service: that is the news.
+                c.Covers.RemoveAll(k => k.For == req.Court);
                 c.Pitches[req.Court] = text;
                 c.AskingPrice[req.Court] = Math.Clamp(reply.Number, 5, 400);
                 S.Notify(req.Court, InboxKind.Candidates, $"{c.Name} seeks service",
@@ -485,23 +561,12 @@ public sealed partial class TurnEngine
             {
                 case DispatchOrder d: Dispatch(p, d); break;
                 case ReleaseOrder r: ReleaseEnvoy(p, r); break;
-                case DismissOrder dm:
-                {
-                    var c = S.Char(dm.Character);
-                    if (c.Employer == p)
-                    {
-                        c.Remember(S.Turn, $"The king of {p.Land()} dismissed me.");
-                        Quit(c, $"{c.Name} has been dismissed.");
-                        if (c.Duty is not Duty.None) c.Duty = Duty.None;
-                        c.At ??= p;
-                    }
-                    break;
-                }
+                case DismissOrder dm: Dismiss(p, S.Char(dm.Character), dm); break;
                 case SeekCandidatesOrder:
                     S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.Candidates, Requester = p, DueTurn = S.Turn + 1 });
                     break;
                 case BackgroundCheckOrder bc:
-                    if (Pay(p, bc.Spend, "inquiries"))
+                    if (Pay(p, bc.Spend, $"inquiries into {S.FindCharacter(bc.Character)?.Name ?? bc.Character}", bc, "none were made"))
                         S.Tasks.Add(new PendingTask { Id = S.NewId("q"), Kind = TaskKind.BackgroundCheck, Requester = p, DueTurn = S.Turn + 1, CharacterId = bc.Character, Spend = bc.Spend });
                     break;
             }
@@ -511,12 +576,24 @@ public sealed partial class TurnEngine
         foreach (var group in orders.Where(x => x.O is HireOrder).Select(x => (x.P, H: (HireOrder)x.O)).GroupBy(x => x.H.Character))
         {
             var c = S.Char(group.Key);
-            if (!c.IsAvailableForHire) continue;
+            if (!c.IsAvailableForHire)
+            {
+                foreach (var (p, h) in group) Failed(p, h, "Not hired", $"{c.Name} was no longer free to take service.", "no longer free", c.Id);
+                continue;
+            }
             // Someone held at a court can only take service with the king who holds them.
             var bids = group.Where(b => b.H.Wage >= AskingPrice(c, b.P) && (c.HeldBy is null || c.HeldBy == b.P)).OrderByDescending(b => b.H.Wage)
                 .ThenByDescending(b => c.Traits.Sympathy == b.P).ThenBy(b => b.P).ToList();
             foreach (var lost in group.Where(b => bids.Count == 0 || b.P != bids[0].P))
-                S.Notify(lost.P, InboxKind.Notice, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season.", c.Id);
+            {
+                // Why, as the person would say it: the price it asks this court, or that another court's offer won.
+                var ask = AskingPrice(c, lost.P);
+                var why = lost.H.Wage < ask ? $"they ask {Money.Format(ask)}"
+                    : c.HeldBy is { } holder && holder != lost.P ? $"they are held at the court of {holder}"
+                    : bids[0].H.Wage > lost.H.Wage ? "another court offered more"
+                    : "they chose another court that offered as much";
+                Failed(lost.P, lost.H, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season: {why}.", why, c.Id);
+            }
             if (bids.Count == 0) continue;
             var (winner, hire) = bids[0];
             c.Status = CharacterStatus.Employed;
@@ -528,25 +605,136 @@ public sealed partial class TurnEngine
             c.Pitches.Clear();
             c.Reputation[winner] = c.Reputation.GetValueOrDefault(winner) + 5;
             c.Remember(S.Turn, $"I entered the service of {winner.Land()} for {Money.Format(hire.Wage)} a season.");
-            S.Notify(winner, InboxKind.Notice, "Hired", $"{c.Name} has entered your service at {Money.Format(hire.Wage)} a season.", c.Id);
+            // In the rulebook's words: a person hired enters your service at the end of the season, and can be sent on an errand from the next.
+            S.Notify(winner, InboxKind.Notice, "Hired", $"{c.Name} entered your service at the end of last season, at {Money.Format(hire.Wage)} a season, and can be sent on an errand now.", c.Id);
             S.Log("hire", $"{winner} hired {c.Name}.", [winner]);
         }
+
+        // Renewals, settled with hiring.
+        foreach (var (p, o) in orders)
+            if (o is RenewOrder rn) Renew(p, rn);
+    }
+
+    /// <summary>
+    /// A servant kept on: accepted if the wage reaches its renewal price (what it asked when it gave notice, else the
+    /// renewal formula, and never less than its present wage). The new contract is made this season, its term counts
+    /// from the next, as for a hire, and any notice ends. A servant abroad whose fate its master has not heard of is
+    /// renewed as the master believes it, so nothing is betrayed.
+    /// </summary>
+    private void Renew(Power p, RenewOrder r)
+    {
+        var c = S.Char(r.Character);
+        var cover = c.CoverOf(p);
+        var serves = c.Employer == p && c.Status is (CharacterStatus.Employed or CharacterStatus.Captured) && c.Contract is not null;
+        if (cover is null && !serves)
+        {
+            // Dismissed earlier this season.
+            S.Notify(p, InboxKind.Rejected, "Not renewed", $"{c.Name} is no longer in your service, so could not be renewed.", c.Id);
+            ScheduledFailed(p, r, "no longer in your service");
+            return;
+        }
+        // Renewed early, a servant takes no cut: it asks what it would ask at the end of its term, or its present wage if that is more.
+        var present = cover is null && c.Contract!.NoticePrice is null && c.Contract.Wage >= RenewalPrice(c, p);
+        var price = cover is not null ? cover.NoticePrice ?? cover.Wage : present ? c.Contract!.Wage : RenewalPrice(c, p);
+        if (r.Wage < price)
+        {
+            S.Notify(p, InboxKind.Rejected, "Not renewed",
+                $"{c.Name} will not serve on for {Money.Format(r.Wage)} a season; they ask {Money.Format(price)}{(present ? ", their present wage" : "")}.", c.Id);
+            ScheduledFailed(p, r, $"they ask {price}");
+            return;
+        }
+        var until = S.Turn + Math.Clamp(r.Term, 1, 30);
+        if (cover is not null)
+        {
+            cover.Wage = r.Wage;
+            cover.ContractUntil = until;
+            cover.NoticePrice = null;
+            cover.LeavesTurn = null;
+        }
+        if (serves)
+        {
+            c.Contract = new Contract { Wage = r.Wage, StartTurn = S.Turn, UntilTurn = until };
+            c.Remember(S.Turn, $"The king of {p.Land()} renewed my service at {Money.Format(r.Wage)} a season.");
+        }
+        S.Notify(p, InboxKind.Notice, "Contract renewed", $"{c.Name} stays in your service at {Money.Format(r.Wage)} a season through turn {until}.", c.Id);
+    }
+
+    /// <summary>
+    /// A servant dismissed: its wage ends, and so does whatever its master still believed of it. Nobody is moved:
+    /// one dismissed while away keeps going where it was going and is free when it gets there, and one who is
+    /// held stays held.
+    /// </summary>
+    private void Dismiss(Power p, Character c, DismissOrder order)
+    {
+        if (c.CoverOf(p) is { } cover) c.Covers.Remove(cover);
+        else if (c.Employer != p)
+        {
+            Failed(p, order, "Dismissal failed", $"{c.Name} was no longer in your service, so could not be dismissed.", "no longer in your service", c.Id);
+            return;
+        }
+        var notice = $"{c.Name} has been dismissed.";
+        if (c.Employer != p || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured))
+        {
+            // Gone over to another court, or dead, unknown to its master: the court only stops paying what it believed it owed.
+            S.Notify(p, InboxKind.Notice, "A servant leaves", notice, c.Id);
+            return;
+        }
+        c.Remember(S.Turn, $"The king of {p.Land()} dismissed me.");
+        c.FormerEmployer = p;
+        c.Employer = null;
+        c.Contract = null;
+        // A dismissed captive stays a captive: only the court that holds them can let them go.
+        if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
+        switch (c.Duty)
+        {
+            case Duty.EnvoyOutbound:
+                // It goes on to the court it was sent to and arrives there free, with no audience: the gold it carried is its own.
+                if (S.Journeys.FirstOrDefault(j => j.Kind == JourneyKind.EnvoyOutbound && j.CharacterId == c.Id)?.Dispatch is { Gold: > 0 } d)
+                {
+                    c.Purse += (int)Math.Round(d.Gold * d.PurityPercent / 100.0);
+                    c.Remember(S.Turn, $"I keep the gold I carried, said to be {Money.Format(d.Gold)}.");
+                    notice += $" The {Money.Format(d.Gold)} of gold they carried is now theirs.";
+                    d.Gold = 0;
+                }
+                break;
+            case Duty.SpyPosted when c.MissionTarget is { } court:
+                // Free at the court it watched.
+                c.Duty = Duty.None;
+                c.At = court;
+                c.MissionTarget = null;
+                c.WatchProvince = null;
+                break;
+            case Duty.SpyPosted:
+                // A province watcher walks back to the court it left, and is free there.
+                Recall(p, c);
+                break;
+            case Duty.None or Duty.EnvoyAtCourt:
+                c.Duty = Duty.None;
+                c.At ??= p;
+                break;
+            // On the road home or to its post it keeps going (see the arrivals); a held envoy stays held until the jailer lets it go.
+        }
+        S.Notify(p, InboxKind.Notice, "A servant leaves", notice, c.Id);
     }
 
     /// <summary>What a character asks a court. Set by the character's own pitch when it gave one.</summary>
-    public int AskingPrice(Character c, Power court)
+    public static int AskingPrice(Character c, Power court)
     {
         if (c.AskingPrice.TryGetValue(court, out var price)) return price;
         return BasePrice(c, court);
     }
 
-    public int BasePrice(Character c, Power court)
+    public static int BasePrice(Character c, Power court)
     {
         var rep = c.Reputation.Values.DefaultIfEmpty(0).Average();
         var price = 6 + c.Traits.Competence / 8 + c.Traits.Greed / 8 + (int)(rep / 5);
         if (c.Traits.Sympathy == court) price -= 4;
         return Math.Max(5, price);
     }
+
+    /// <summary>What a servant asks its master to serve on: the price it named when it gave notice, else what it would ask at the end of its term.</summary>
+    public static int RenewalPrice(Character c, Power court) =>
+        c.Contract?.NoticePrice ?? BasePrice(c, court) + (c.Traits.Greed > 60 ? 5 : 0) - (c.Traits.Loyalty > 70 ? 5 : 0);
 
     private void TasksDue()
     {
@@ -571,6 +759,7 @@ public sealed partial class TurnEngine
                     if (c is null) break;
                     var rng = R("check", task.Id);
                     var found = new List<string>();
+                    var cover = c.CoverOf(task.Requester);
                     foreach (var f in c.Facts)
                     {
                         if (f.KnownBy.Contains(task.Requester)) continue;
@@ -582,6 +771,8 @@ public sealed partial class TurnEngine
                         };
                         if (!rng.Chance(p)) continue;
                         if (f.Secrecy != Secrecy.Public) f.KnownBy.Add(task.Requester);
+                        // A servant the court believes away: what the inquiries found shows in its court list, as for any servant.
+                        else if (cover is not null && !cover.FactIds.Contains(f.Id)) cover.FactIds.Add(f.Id);
                         found.Add(f.Text);
                     }
                     MindRequests.Add(new MindRequest { Id = S.NewId("r"), Task = MindTask.CheckReport, CharacterId = c.Id, Court = task.Requester, TaskId = task.Id, Facts = found });
@@ -594,30 +785,60 @@ public sealed partial class TurnEngine
                 case TaskKind.RansomDemand:
                     S.Tasks.Remove(task);
                     var held = S.FindCharacter(task.CharacterId);
-                    if (held is { Status: CharacterStatus.Captured } && task.Other is { } jailer)
+                    // A demand that lapses while a newer one for the same captive is on the road: the captor waits for that one.
+                    if (held is { Status: CharacterStatus.Captured } && task.Other is { } jailer && !S.Tasks.Any(t => t.Kind == TaskKind.RansomDemand && t.CharacterId == held.Id))
                         S.Notify(jailer, InboxKind.Notice, "No ransom came", $"No ransom has come for {held.Name}. They remain your captive.", held.Id);
                     break;
             }
         }
 
-        // Contracts that ran out are renewed if the character is still content with the wage.
-        foreach (var c in S.Characters.Where(c => c.Status == CharacterStatus.Employed && c.Contract is { } k && k.UntilTurn < S.Turn && c.Duty == Duty.None).OrderBy(c => c.Id).ToList())
+        // Servants on notice who came home this season leave now.
+        NoticesRunOut();
+
+        // Terms that have ended, for servants at court with no task: one still content with the wage serves on; one who
+        // wants more, or is still owed back pay the treasury could not pay, gives a season's notice and names its price.
+        foreach (var c in S.Characters.Where(c => c.Status == CharacterStatus.Employed && c.Contract is { NoticePrice: null } k && k.UntilTurn < S.Turn && c.Duty == Duty.None).OrderBy(c => c.Id).ToList())
         {
             var emp = c.Employer!.Value;
-            var ask = BasePrice(c, emp) + (c.Traits.Greed > 60 ? 5 : 0) - (c.Traits.Loyalty > 70 ? 5 : 0);
-            if (ask <= c.Contract!.Wage * 1.2)
+            var ask = RenewalPrice(c, emp);
+            var owed = c.BackPay.GetValueOrDefault(emp);
+            if (ask <= c.Contract!.Wage * 1.2 && owed == 0)
             {
                 c.Contract.UntilTurn = S.Turn + 6;
-                S.Notify(emp, InboxKind.Notice, "Contract renewed", $"{c.Name} stays in your service at {Money.Format(c.Contract.Wage)} a season.", c.Id);
+                S.Notify(emp, InboxKind.Notice, "Contract renewed", $"{c.Name} stays in your service at {Money.Format(c.Contract.Wage)} a season through turn {c.Contract.UntilTurn}.", c.Id);
             }
             else
             {
-                c.AskingPrice[emp] = ask;
-                c.Pitches[emp] = $"My term has ended. I would serve again for {Money.Format(ask)} a season.";
-                c.Remember(S.Turn, $"My term with {emp.Land()} ended; I asked for more and left.");
-                Quit(c, $"{c.Name}'s term has ended. They ask {Money.Format(ask)} a season to serve again.");
-                c.At = emp;
+                // One still owed back pay is never content, but asks no less than it earns.
+                if (owed > 0) ask = Math.Max(ask, c.Contract.Wage);
+                c.Contract.NoticePrice = ask;
+                c.Contract.LeavesTurn = S.Turn + 1;
+                c.Remember(S.Turn, $"My term with {emp.Land()} has ended. I asked {Money.Format(ask)} a season to serve on.");
+                S.Notify(emp, InboxKind.Notice, NoticeTitle,
+                    $"{c.Name}'s term has ended{(owed > 0 ? $", and you still owe them {Money.Format(owed)} of back pay" : "")}. They ask {Money.Format(ask)} a season to serve on: renew them this season (order renew), or they leave at the start of turn {S.Turn + 1} (or, if you send them out first, when they are next at your court).", c.Id);
             }
+        }
+    }
+
+    /// <summary>The title of the notice a servant gives when its term has ended and it wants more: it wakes a sleeping seat.</summary>
+    public const string NoticeTitle = "A servant gives notice";
+
+    /// <summary>
+    /// Servants whose notice has run out and who were not renewed leave, if they are at court with no task (one away
+    /// leaves when it is next at court): free at the court they served, asking the price they named. Checked at the
+    /// start of a season, before wages, and again once the season's travellers have arrived.
+    /// </summary>
+    private void NoticesRunOut()
+    {
+        foreach (var c in S.Characters.Where(c => c.Status == CharacterStatus.Employed && c.Contract is { LeavesTurn: { } t } && t <= S.Turn && c.Duty == Duty.None).OrderBy(c => c.Id).ToList())
+        {
+            var emp = c.Employer!.Value;
+            var ask = c.Contract!.NoticePrice!.Value;
+            c.AskingPrice[emp] = ask;
+            c.Pitches[emp] = $"My term has ended. I would serve again for {Money.Format(ask)} a season.";
+            c.Remember(S.Turn, $"My term with {emp.Land()} ended; I asked for more and was not kept on, so I left.");
+            Quit(c, $"{c.Name}'s term has ended and they were not renewed. They ask {Money.Format(ask)} a season to serve again.");
+            c.At = emp;
         }
     }
 }

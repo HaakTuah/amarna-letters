@@ -12,7 +12,8 @@ public sealed class GameRunner
 {
     private readonly GameLog? _replay;
     private readonly bool _strict;
-    private readonly ISeat _fallbackSeat;
+    /// <summary>The script king that stands in when a seat's call fails. It keeps up with every model and file seat (see OrdersAsync).</summary>
+    private readonly ScriptLeader _fallbackSeat;
     private readonly ICharacterMind _fallbackMind = new ScriptMind();
 
     public GameState State { get; private set; }
@@ -31,9 +32,11 @@ public sealed class GameRunner
 
     public event Action? Changed;
 
+    /// <param name="anyVersion">Replay a log saved under another rules version anyway (for analysis only: it may diverge).</param>
     public GameRunner(GameState state, IReadOnlyDictionary<Power, ISeat> seats, ICharacterMind minds, INarrator narrator,
-        GameLog? log = null, GameLog? replay = null, bool strictReplay = true)
+        GameLog? log = null, GameLog? replay = null, bool strictReplay = true, bool anyVersion = false)
     {
+        if (replay is not null && !anyVersion) EnsureVersion(replay.Header);
         State = state;
         _strict = strictReplay;
         Seats = seats;
@@ -57,16 +60,31 @@ public sealed class GameRunner
         };
     }
 
-    public static GameRunner ForReplay(GameLog log)
+    /// <summary>
+    /// Why a log cannot be replayed or continued by this version of the rules, or null when it can. Its
+    /// decisions were made under other rules, so they would not play out to the same game.
+    /// </summary>
+    public static string? VersionProblem(LogHeader header) => header.Version == GameState.CurrentVersion ? null
+        : $"This game was saved under {(header.Version < GameState.CurrentVersion ? "an earlier" : "a later")} version of the rules (version {header.Version}) and cannot be replayed by this version.";
+
+    private static void EnsureVersion(LogHeader header)
     {
+        if (VersionProblem(header) is { } problem) throw new SaveVersionException(problem);
+    }
+
+    /// <param name="anyVersion">Replay a log saved under another rules version anyway (for analysis only: it may diverge).</param>
+    public static GameRunner ForReplay(GameLog log, bool anyVersion = false)
+    {
+        if (!anyVersion) EnsureVersion(log.Header);
         var state = GameFactory.NewGame(log.Header.Seed, log.Header.Config);
         var seats = Powers.All.ToDictionary(p => p, p => (ISeat)new ReplaySeat(log.Header.Seats.GetValueOrDefault(p) ?? "?"));
-        return new GameRunner(state, seats, new ReplayMind(log.Header.Minds), new ReplayNarrator(log.Header.Narrator), replay: log);
+        return new GameRunner(state, seats, new ReplayMind(log.Header.Minds), new ReplayNarrator(log.Header.Narrator), replay: log, anyVersion: anyVersion);
     }
 
     /// <summary>Continues a saved game: decisions in the log are replayed, then live seats take over.</summary>
     public static GameRunner Resume(GameLog log, IReadOnlyDictionary<Power, ISeat> seats, ICharacterMind minds, INarrator narrator)
     {
+        EnsureVersion(log.Header);
         // Who may sleep is part of the game: the seats that take over must be the ones that could sleep before.
         if (log.Header.Config.SleepingSeats)
         {
@@ -81,6 +99,9 @@ public sealed class GameRunner
     }
 
     public bool IsReplay => _replay is not null && _strict;
+
+    /// <summary>The stand-in script king, for tests.</summary>
+    internal ScriptLeader StandIn => _fallbackSeat;
 
     private void SetPhase(string phase)
     {
@@ -204,7 +225,7 @@ public sealed class GameRunner
             Turn = turn,
             Seed = State.Seed,
             Trail = engine.Trail(req.TrailId),
-            BasePrice = engine.BasePrice(c, req.Court),
+            BasePrice = TurnEngine.BasePrice(c, req.Court),
             Demand = State.Tasks.Count(t => t.Kind == TaskKind.Candidates) + engine.MindRequests.Count(r => r.Task == MindTask.Pitch && r.CharacterId == c.Id),
         };
     }
@@ -215,18 +236,34 @@ public sealed class GameRunner
         var hostTasks = byHost.Select(async group =>
         {
             var records = new List<AudienceRecord>();
+            // A sleeping host was woken for its audiences only: its orders stand unless it reopens them, and it may send letters.
+            // What it chose so far this season, in its earlier audiences and exchanges, is shown to it at each later one.
+            var court = engine.IsAsleep(group.Key) ? new Court() : null;
             foreach (var a in group.OrderBy(a => TurnEngine.IdNumber(a.Id)))
-                records.Add(await AudienceAsync(engine, a, turn, ct));
+                records.Add(await AudienceAsync(engine, a, turn, court, ct));
             return records;
         }).ToList();
         var all = (await Task.WhenAll(hostTasks)).SelectMany(r => r).OrderBy(r => TurnEngine.IdNumber(r.AudienceId)).ToList();
         foreach (var record in all) engine.ApplyAudience(record);
+        // A host that held court asleep reopens its orders now if it chose to (it is then asked for orders), or sleeps on.
+        engine.CourtsHeld();
     }
 
-    private async Task<AudienceRecord> AudienceAsync(TurnEngine engine, PendingAudience a, int turn, CancellationToken ct)
+    /// <summary>What a host holding court asleep has chosen so far this season: the letters it sent, and whether it reopens its orders.</summary>
+    private sealed class Court
+    {
+        public List<Order> Letters { get; } = new();
+        public bool Reopen { get; set; }
+    }
+
+    private async Task<AudienceRecord> AudienceAsync(TurnEngine engine, PendingAudience a, int turn, Court? court, CancellationToken ct)
     {
         var envoy = State.Char(a.EnvoyId);
         var key = $"t{turn}/aud/{a.Id}";
+        // What its own lord owes it, and whether he looks doomed, by public facts: a motive it may weigh against an offer.
+        var lord = envoy.Employer;
+        var backPay = lord is { } owes ? envoy.BackPay.GetValueOrDefault(owes) : 0;
+        var doomed = lord is { } l && Views.LooksDoomed(State.Owner, State.Eliminated, l);
         EnvoyContext Ctx(List<Exchange> soFar, int round, string delivered, int skim) => new()
         {
             Self = envoy,
@@ -240,6 +277,8 @@ public sealed class GameRunner
             SoFar = soFar,
             Delivered = delivered,
             Skim = skim,
+            BackPay = backPay,
+            EmployerDoomed = doomed,
         };
 
         var present = await Recorded($"{key}/present",
@@ -251,15 +290,36 @@ public sealed class GameRunner
         var soFar = new List<Exchange>();
         for (var round = 1; round <= State.Config.AudienceRounds; round++)
         {
-            var view = engine.BuildAudienceView(a, present.Speech, present.Skim, soFar, round);
-            var court = Views.For(State, a.Host);
+            var view = engine.BuildAudienceView(a, present.Speech, present.Skim, soFar, round, record.Rounds);
+            if (court is not null)
+            {
+                view.OrdersStand = true;
+                view.ReopenChosen = court.Reopen;
+                view.LettersSent = court.Letters.ToList();
+            }
+            var seat = Views.For(State, a.Host);
             var host = await Recorded($"{key}/host/{round}",
-                () => Seats[a.Host].HostAudienceAsync(view, court, ct),
-                () => _fallbackSeat.HostAudienceAsync(view, court, ct));
+                () => Seats[a.Host].HostAudienceAsync(view, seat, ct),
+                async () =>
+                {
+                    // The script king answers the envoy; marked (and logged) so that, at a court held while the seat's orders
+                    // stand, it decides nothing for the seat, which is then asked for orders (TurnEngine.CourtsHeld).
+                    var stand = await _fallbackSeat.HostAudienceAsync(view, seat, ct);
+                    stand.FromFallback = true;
+                    return stand;
+                });
+            // Only the seat's own replies send letters or choose about its orders.
+            if (court is not null && !host.FromFallback)
+            {
+                TurnEngine.AddLetters(court.Letters, host.Letters);
+                court.Reopen |= host.ReopenOrders;
+            }
             var ctx = Ctx(soFar.ToList(), round, present.Speech, present.Skim);
+            // The envoy meets only what is said and done to it: the host's letters and its choice about its orders are its own.
+            var heard = host.AsHeard();
             var reaction = await Recorded($"{key}/envoy/{round}",
-                () => Minds.ReactAsync(ctx, host, ct),
-                () => _fallbackMind.ReactAsync(ctx, host, ct));
+                () => Minds.ReactAsync(ctx, heard, ct),
+                () => _fallbackMind.ReactAsync(ctx, heard, ct));
             record.Rounds.Add(new AudienceRound { Host = host, Envoy = reaction });
             soFar.Add(new Exchange { Host = host.Speech, Envoy = reaction.Speech });
             if (host.End || host.Detain || reaction.AcceptJob) break;
@@ -273,6 +333,12 @@ public sealed class GameRunner
         var engine = new TurnEngine(State);
         var alive = State.Alive.Where(p => !engine.IsAsleep(p)).ToList();
         var views = alive.ToDictionary(p => p, p => Views.For(State, p));
+        // A shadow brain: the stand-in reads every model or file seat's view each season, asleep or awake, so that when a
+        // call fails it plays a king who remembers. It learns once a season (if it stood in at an audience, it learned
+        // then). Its reading changes nothing in the game, so replays stay exact; a strict replay asks no seat and skips it.
+        if (!IsReplay)
+            foreach (var p in State.Alive.Where(p => Seats[p].CanSleep))
+                _fallbackSeat.Observe(views.GetValueOrDefault(p) ?? Views.For(State, p));
         var results = await Task.WhenAll(alive.Select(p => Recorded($"t{turn}/orders/{p}",
             () => Seats[p].DecideAsync(views[p], ct),
             async () =>
@@ -308,6 +374,9 @@ public sealed class GameRunner
     public GameState? StateAt(int turn) =>
         turn >= 0 && turn < Snapshots.Count ? Json.Deserialize<GameState>(Snapshots[turn]) : null;
 }
+
+/// <summary>A log saved under another version of the rules: it can be neither replayed nor continued.</summary>
+public sealed class SaveVersionException(string message) : InvalidOperationException(message);
 
 public sealed class ReplayExhaustedException(string key) : Exception($"The log has no decision for '{key}'.")
 {

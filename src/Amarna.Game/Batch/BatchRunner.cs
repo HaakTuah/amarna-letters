@@ -12,6 +12,15 @@ public sealed class GameSummary
     public double CostUsd { get; init; }
     public int Errors { get; init; }
     public bool ReplayMatches { get; init; } = true;
+    /// <summary>
+    /// Seasons a sleeping seat held court while its orders stood, over all seats; at how many it reopened them itself; and at
+    /// how many a call failed, the stand-in answered and the seat was asked for orders without having chosen (out of the rate).
+    /// </summary>
+    public int CourtsHeld { get; init; }
+    public int CourtsReopened { get; init; }
+    public int CourtsStoodIn { get; init; }
+    /// <summary>Whether any seat could sleep in this game.</summary>
+    public bool Sleepers { get; init; }
 }
 
 /// <summary>Plays many games unattended and summarizes winners and signals across them.</summary>
@@ -36,8 +45,13 @@ public static class BatchRunner
         }
 
         var engine = new TurnEngine(s);
+        var courts = Courts(s);
         return new GameSummary
         {
+            CourtsHeld = courts.Held,
+            CourtsReopened = courts.Reopened,
+            CourtsStoodIn = courts.StoodIn,
+            Sleepers = s.Sleep.Count > 0,
             Seed = seed,
             Turns = s.Scores.Count == 0 ? 0 : s.Scores.Max(x => x.Turn),
             Winners = s.Winners.ToList(),
@@ -96,13 +110,17 @@ public static class BatchRunner
 
     /// <summary>
     /// Per seat: how often it was asked (orders and audiences), how many of its orders the engine
-    /// rejected, how many decisions fell back to the script king, and, for seats that may sleep, how
-    /// long they asked to sleep, how long they slept and what woke them.
+    /// rejected or could not carry out as the season resolved, how many decisions fell back to the
+    /// script king, and, for seats that may sleep, the seasons it held court while its orders stood and
+    /// in how many of them it reopened its orders (courts: held/reopened, and "(n by stand-in)" for courts
+    /// where a call failed and it was asked for orders without having chosen), how many seasons each sleep
+    /// lasted (n: it woke in the season it named; +: still asleep at the end) and every reason they were
+    /// woken. A last line gives the reopen rate over all seats.
     /// </summary>
     public static string SeatReport(GameRunner runner)
     {
         var s = runner.State;
-        var lines = new List<string> { "  Power       seat                 orders  audiences  invalid  fallbacks  sleeps (asked/slept)  woken by" };
+        var lines = new List<string> { "  Power       seat                 orders  audiences  invalid  fallbacks  courts  slept (seasons)       woken by" };
         foreach (var p in Powers.All)
         {
             var label = runner.Log.Header.Seats.GetValueOrDefault(p) ?? "?";
@@ -110,24 +128,69 @@ public static class BatchRunner
             // Audiences answered by a model or file seat: one per logged key (a retry is the same audience). Script seats log no calls.
             var hostKeys = runner.Log.Calls.Where(c => c.Role == $"host:{p}").Select(c => c.Key).Distinct().Count();
             var hosted = runner.Log.Calls.Any(c => c.Role == $"leader:{p}" || c.Role == $"host:{p}") ? hostKeys.ToString() : "-";
-            var invalid = s.InboxOf(p).Where(i => i.Kind == InboxKind.Rejected).Sum(i => i.Body.Split('\n').Count(l => l.StartsWith("- ", StringComparison.Ordinal)));
+            var invalid = s.InboxOf(p).Sum(FailedOrders);
             int fallbacks;
             lock (runner.Errors) fallbacks = runner.Errors.Count(e => e.Contains($"/orders/{p}:", StringComparison.Ordinal)
                 || (e.Contains("/host/", StringComparison.Ordinal) && runner.Log.Calls.Any(c => c.Role == $"host:{p}" && e.StartsWith(c.Key, StringComparison.Ordinal))));
             var sleeps = "";
             var woken = "";
+            // Courts held while its orders stood (an envoy woke it for its audiences only), how many it reopened its orders at
+            // itself, and how many the stand-in answered at because a call failed (it was then asked for orders without choosing).
+            var courts = s.Sleep.TryGetValue(p, out var held)
+                ? $"{held.Courts.Count}/{held.Courts.Count(c => c.Reopened)}" + (held.Courts.Count(c => !c.Decided) is > 0 and var stood ? $" ({stood} by stand-in)" : "")
+                : "-";
             if (s.Sleep.TryGetValue(p, out var sl) && sl.History.Count > 0)
             {
                 // A spell still open at the end counts the seasons slept so far.
-                sleeps = string.Join(" ", sl.History.Select(h => $"{h.Requested}/{(h.WokeAt > 0 ? h.WokeAt - h.From : s.Turn - h.From + 1)}{(h.WokeAt > 0 ? "" : "+")}"));
-                woken = string.Join("; ", sl.History.Where(h => h.Reasons.Count > 0).SelectMany(h => h.Reasons.Take(1)).GroupBy(r => r.Split('(')[0].Trim()).Select(g => $"{g.Key} x{g.Count()}"));
+                sleeps = string.Join(" ", sl.History.Select(h => h.WokeAt > 0
+                    ? $"{h.WokeAt - h.From}{(h.Named > 0 && h.Named == h.WokeAt ? "n" : "")}"
+                    : $"{s.Turn - h.From + 1}+"));
+                // Every reason a seat was woken, not only the first, counted over its spells.
+                woken = string.Join("; ", sl.History.SelectMany(h => h.Reasons).GroupBy(ReasonKind).Select(g => $"{g.Key} x{g.Count()}"));
             }
-            lines.Add($"  {p,-10}  {Cap(label, 19),-19}  {orders,6}  {hosted,9}  {invalid,7}  {fallbacks,9}  {sleeps,-20}  {woken}");
+            lines.Add($"  {p,-10}  {Cap(label, 19),-19}  {orders,6}  {hosted,9}  {invalid,7}  {fallbacks,9}  {courts,6}  {sleeps,-20}  {woken}");
         }
+        if (s.Sleep.Count > 0) lines.Add("  " + ReopenRate(Courts(s)));
         return string.Join(Environment.NewLine, lines);
 
         static string Cap(string t, int n) => t.Length <= n ? t : t[..n];
     }
+
+    /// <summary>
+    /// The courts held while orders stood in one game, over every seat: how many, at how many the king reopened its orders
+    /// itself, and at how many a call failed and the stand-in answered, so that the king was asked for orders without having
+    /// chosen (<see cref="CourtHeld.Decided"/>).
+    /// </summary>
+    public static (int Held, int Reopened, int StoodIn) Courts(GameState s) =>
+        (s.Sleep.Values.Sum(x => x.Courts.Count), s.Sleep.Values.Sum(x => x.Courts.Count(c => c.Reopened)), s.Sleep.Values.Sum(x => x.Courts.Count(c => !c.Decided)));
+
+    /// <summary>
+    /// How often kings woken for an audience only reopened their orders. Courts where a call failed and the stand-in answered
+    /// are counted apart and left out of the rate: the king never made that choice.
+    /// </summary>
+    public static string ReopenRate((int Held, int Reopened, int StoodIn) courts)
+    {
+        if (courts.Held == 0) return "Courts held while orders stood: none.";
+        if (courts.StoodIn == 0)
+            return $"Courts held while orders stood: {courts.Held}; orders reopened at {courts.Reopened} ({100.0 * courts.Reopened / courts.Held:0}%).";
+        var decided = courts.Held - courts.StoodIn;
+        var rate = decided == 0
+            ? "none left the choice to the king"
+            : $"orders reopened at {courts.Reopened} of the {decided} where the king chose ({100.0 * courts.Reopened / decided:0}%)";
+        return $"Courts held while orders stood: {courts.Held}; {rate}; at {courts.StoodIn} a call failed, the stand-in answered and the king was asked for orders without choosing (left out of the rate).";
+    }
+
+    /// <summary>A wake reason without its particulars, to count reasons of one kind together ("land lost: Gaza ..." is "land lost").</summary>
+    public static string ReasonKind(string reason) =>
+        reason.StartsWith("you asked to be woken in turn", StringComparison.Ordinal) ? "the season it named" : reason.Split(':', '(')[0].Trim();
+
+    /// <summary>
+    /// Orders a notice reports as refused or failed: every rejection notice counts, the validator's list
+    /// once per order it names ("- ..."), and any other refusal or failure (a levy, cession, purchase,
+    /// payment or hire that could not go through) once.
+    /// </summary>
+    public static int FailedOrders(InboxItem item) => item.Kind != InboxKind.Rejected ? 0
+        : Math.Max(1, item.Body.Split('\n').Count(l => l.StartsWith("- ", StringComparison.Ordinal)));
 
     /// <summary>Current bot against the frozen baseline: growth and wins for each side, overall and per power.</summary>
     public static string Versus(IReadOnlyList<GameSummary> games, IReadOnlyList<HashSet<Power>> current)
@@ -185,6 +248,7 @@ public static class BatchRunner
         if (cost > 0) lines.Add($"\nModel cost: ${cost:0.00} total, ${cost / games.Count:0.00} per game.");
         var errors = games.Sum(g => g.Errors);
         if (errors > 0) lines.Add($"Seat or model errors replaced by script fallbacks: {errors}.");
+        if (games.Any(g => g.Sleepers)) lines.Add(ReopenRate((games.Sum(g => g.CourtsHeld), games.Sum(g => g.CourtsReopened), games.Sum(g => g.CourtsStoodIn))));
         if (games.Any(g => !g.ReplayMatches)) lines.Add($"REPLAY MISMATCH in {games.Count(g => !g.ReplayMatches)} game(s).");
         return string.Join(Environment.NewLine, lines);
     }

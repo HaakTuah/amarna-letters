@@ -11,7 +11,7 @@
     <div class="section">
         <h3>Orders for @v.Season</h3>
         <p class="muted">
-            Treasury @Ui.Shekels(v.Gold) · income @Ui.Shekels(v.Income) · upkeep @Ui.Shekels(v.Upkeep) · wages @Ui.Shekels(v.Wages).
+            Treasury @Ui.Shekels(v.Gold) · income @Ui.Shekels(v.Income) · upkeep @Ui.Shekels(v.Upkeep) · wages @Ui.Shekels(v.Wages) (for people away, owed as back pay) · back pay owed @Ui.Shekels(v.BackPay).
             Growth so far: @(v.StartStrength > 0 ? (v.Strength / (double)v.StartStrength).ToString("0.00") : "-").
         </p>
         <p class="muted"><small>Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take: @string.Join("; ", v.TravelTimes).</small></p>
@@ -170,14 +170,24 @@
             <label>Watch for spies: <input type="number" min="0" @bind="Watch" /></label>
             <button class="small" disabled="@(Watch <= 0)" @onclick="() => Add(new CounterIntelOrder(Watch))">Add</button>
         </div>
-        @foreach (var c in v.Known.Where(c => c.Status == "free" && c.Pitch is not null))
+        <div class="row" style="margin-top:.4rem"><label>Term for hiring and renewing <input type="number" min="1" max="30" @bind="Term" /> seasons</label></div>
+        @foreach (var c in v.Known.Where(c => c.Status == "free" && (c.Pitch is not null || c.AskingPrice is not null)))
         {
             <div class="item">
                 <Person C="c" />
                 <div class="row">
                     <label>Wage <input type="number" min="1" @bind="Wages[c.Id]" /></label>
-                    <button class="small" @onclick="() => Add(new HireOrder(c.Id, Wages.GetValueOrDefault(c.Id, c.AskingPrice ?? 15), 6))">Hire for 6 seasons</button>
+                    <button class="small" @onclick="() => Add(new HireOrder(c.Id, Wages.GetValueOrDefault(c.Id, c.AskingPrice ?? 15), Math.Clamp(Term, 1, 30)))">Hire for @Math.Clamp(Term, 1, 30) seasons</button>
                 </div>
+            </div>
+        }
+        @* Your own people: at court at any time, or wherever they are once they have given notice. Hire is only for people not in your service. *@
+        @foreach (var c in v.Court.Where(c => c.Ready || c.NoticePrice is not null))
+        {
+            <div class="row" style="margin-top:.3rem">
+                <small>@c.Name: @c.Term.</small>
+                <label>Wage <input type="number" min="1" @bind="Wages[c.Id]" /></label>
+                <button class="small" disabled="@Draft.Other.Any(o => o is RenewOrder r && r.Character == c.Id)" @onclick="() => Add(new RenewOrder(c.Id, Wages.GetValueOrDefault(c.Id, c.NoticePrice ?? c.Wage ?? 15), Math.Clamp(Term, 1, 30)))">Renew for @Math.Clamp(Term, 1, 30) seasons</button>
             </div>
         }
         <div class="row" style="margin-top:.4rem">
@@ -203,13 +213,15 @@
         {
             <div class="row" style="margin-top:.3rem"><small>@c.Name is @c.Duty.</small> <button class="small" @onclick="() => Add(new RecallSpyOrder(c.Id))">Recall</button></div>
         }
-        @foreach (var c in v.Court.Where(c => c.Ready))
+        @* Anyone in your service, at court or away: whoever is away keeps going where they were going, and is free when they get there. *@
+        @foreach (var c in v.Court)
         {
-            <div class="row" style="margin-top:.3rem"><small>@c.Name</small> <button class="small danger" @onclick="() => Add(new DismissOrder(c.Id))">Dismiss</button></div>
+            <div class="row" style="margin-top:.3rem"><small>@c.Name@(c.Ready ? "" : $" ({c.Duty})")</small> <button class="small danger" @onclick="() => Add(new DismissOrder(c.Id))">Dismiss</button></div>
         }
-        @foreach (var c in v.Court.Where(c => c.Status == "captured"))
+        @* Only once the demand has reached this court: until then a captive appears at its post, as its master believes. *@
+        @foreach (var c in v.Court.Where(c => c.RansomDemand is not null))
         {
-            <div class="row" style="margin-top:.3rem"><small>@c.Name is held abroad.</small> <button class="small" @onclick="() => Add(new PayRansomOrder(c.Id))">Pay the ransom demanded</button></div>
+            <div class="row" style="margin-top:.3rem"><small>@c.Name is held captive @c.Where.</small> <button class="small" @onclick="() => Add(new PayRansomOrder(c.Id))">Pay the ransom demanded (@Ui.Shekels(c.RansomDemand!.Value))</button></div>
         }
         @foreach (var c in v.Known.Where(c => c.Status == "your captive"))
         {
@@ -225,10 +237,11 @@
                 <input style="width:100%;margin-top:.3rem" @bind="PoisonText" placeholder="If turned: what they should report home" />
             </div>
         }
-        @foreach (var c in v.Known.Where(c => c.HeldByYou && c.Status == "employed"))
+        @* An envoy you hold whose king has dismissed them, or fallen, is free but still held: you may let them go. *@
+        @foreach (var c in v.Known.Where(c => c.HeldByYou && c.Status is "employed" or "free"))
         {
             <div class="row" style="margin-top:.3rem">
-                <small>You are holding @c.Name, envoy of @c.Employer?.Name().</small>
+                <small>You are holding @c.Name@(c.Employer is { } lord ? $", envoy of {lord.Name()}" : "").</small>
                 <input @bind="ReleaseWords" placeholder="Words to send with them" />
                 <button class="small" @onclick="() => Add(new ReleaseOrder(c.Id, ReleaseWords))">Release</button>
             </div>
@@ -277,7 +290,7 @@
 
     private string RaiseAt = "", RaiseKind = "Army", BuyCity = "", CedeWhat = "", CedeTo = "Egypt", GiftUnit = "", GiftTo = "Egypt";
     private string Envoy = "", SendTo = "Hatti", Letter = "", Mandate = "", TabletText = "";
-    private int Gold, Purity = 100, Watch, CheckSpend = 30, AuthSpend = 40, Ransom = 80;
+    private int Gold, Purity = 100, Watch, CheckSpend = 30, AuthSpend = 40, Ransom = 80, Term = 6;
     private bool Oath;
     private GreetingOptions G = new();
     private HashSet<string> Copies = new();
@@ -293,6 +306,7 @@
         if (GiftTo == Draft.View.Power.ToString()) GiftTo = others[0].ToString();
         if (SpyAt == Draft.View.Power.ToString()) SpyAt = others[0].ToString();
         foreach (var c in Draft.View.Known.Where(c => c.AskingPrice is not null)) Wages.TryAdd(c.Id, c.AskingPrice!.Value);
+        foreach (var c in Draft.View.Court.Where(c => (c.NoticePrice ?? c.Wage) is not null)) Wages.TryAdd(c.Id, (c.NoticePrice ?? c.Wage)!.Value);
     }
 
     private void Changed() => OnChanged.InvokeAsync();

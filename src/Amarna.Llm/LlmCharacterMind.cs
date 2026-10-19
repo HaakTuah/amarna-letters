@@ -28,17 +28,21 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         """;
 
     /// <summary>Who you are: persona, the facts of your own life, and your memory. Nothing about anyone else.</summary>
-    public static string Self(Character c, int turn)
+    /// <param name="asOf">For a report written of an earlier season (a spy's, written when it arrives): what you remember only up to that season.</param>
+    public static string Self(Character c, int turn, int? asOf = null)
     {
         var sb = new StringBuilder();
         sb.AppendLine(c.Persona);
         sb.AppendLine();
         sb.AppendLine("Facts of your own life: " + string.Join(" ", c.Facts.Select(f => f.Text)));
         sb.AppendLine(c.Employer is { } e ? $"You serve the king of {e.Land()} ({e}) for {c.Contract?.Wage ?? 0} shekels a season." : "You serve nobody at present.");
+        // Wages are paid at court: what he owes for seasons away is paid when the servant is back there, and lost if it leaves him.
+        if (c.Employer is { } lord && c.BackPay.GetValueOrDefault(lord) is var owed and > 0)
+            sb.AppendLine($"Your lord owes you {owed} shekels of back pay, paid when you return to his court.");
         if (c.SecretMaster is { } m) sb.AppendLine($"In secret you serve {m.Land()} ({m}), and you protect its interests.");
         sb.AppendLine($"Your purse holds {c.Purse} shekels. It is now season {turn}.");
         if (c.MemorySummary.Length > 0) sb.AppendLine("Long ago: " + c.MemorySummary);
-        var recent = c.Memory.TakeLast(10).ToList();
+        var recent = c.Memory.Where(m => asOf is null || m.Turn <= asOf).TakeLast(10).ToList();
         if (recent.Count > 0)
         {
             sb.AppendLine("What you remember:");
@@ -47,7 +51,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         return sb.ToString();
     }
 
-    private Task<System.Text.Json.Nodes.JsonObject> Ask(string key, int turn, string role, Character c, string user, System.Text.Json.Nodes.JsonObject schema, CancellationToken ct) =>
+    private Task<System.Text.Json.Nodes.JsonObject> Ask(string key, int turn, string role, Character c, string user, System.Text.Json.Nodes.JsonObject schema, CancellationToken ct, int? asOf = null) =>
         client.CallJsonAsync(new CallSpec
         {
             Key = key,
@@ -55,7 +59,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
             Role = role,
             Model = model,
             SharedSystem = SharedSystem,
-            SeatSystem = Self(c, turn),
+            SeatSystem = Self(c, turn, asOf),
             User = user,
             Schema = schema,
             Effort = "low",
@@ -86,7 +90,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         foreach (var x in ctx.SoFar) user.AppendLine($"The king said: \"{x.Host}\" You answered: \"{x.Envoy}\"");
         user.AppendLine($"The king now says: \"{host.Speech}\"");
         if (host.Bribe > 0) user.AppendLine($"He offers you a personal gift of {host.Bribe} shekels" + (host.BribeAsk.Length > 0 ? $", asking in return: \"{host.BribeAsk}\"" : "."));
-        if (host.JobOffer > 0) user.AppendLine($"He offers to take you into his service at {host.JobOffer} shekels a season (your lord pays you {ctx.Self.Contract?.Wage ?? 0}).");
+        if (host.JobOffer > 0) user.AppendLine(OfferLine(ctx, host.JobOffer));
         if (host.Detain) user.AppendLine("He orders that you may not leave his court.");
         if (host.SealProposal) user.AppendLine("He has sealed the tablet you brought.");
         if (host.GoldBack > 0) user.AppendLine($"He sends {host.GoldBack} shekels of gold home with you for your lord.");
@@ -98,6 +102,11 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         if (host.JobOffer <= 0) r.AcceptJob = false;
         return r;
     }
+
+    /// <summary>A host's offer of service, with what the envoy's lord pays it and, if any, the back pay it would give up by leaving him.</summary>
+    public static string OfferLine(EnvoyContext ctx, int offer) =>
+        $"He offers to take you into his service at {offer} shekels a season (your lord pays you {ctx.Self.Contract?.Wage ?? 0}"
+        + (ctx.BackPay > 0 ? $", and owes you {ctx.BackPay} shekels of back pay, which you would never be paid if you left his service" : "") + ").";
 
     public async Task<MindReply> WriteAsync(MindContext ctx, CancellationToken ct)
     {
@@ -142,7 +151,9 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 user.AppendLine("This season you observed: " + string.Join(" ", r.Observations));
                 if (!string.IsNullOrWhiteSpace(r.Poison)) user.AppendLine($"Your secret masters want your lord to hear this, as if you had seen it yourself: \"{r.Poison}\"");
                 user.AppendLine("Write your report home, to be carried by a trusted messenger.");
-                var json = await Ask($"t{ctx.Turn}/spy/{c.Id}", ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct);
+                // Written when it arrives, of the season it was observed: the spy remembers nothing that happened to it since
+                // (such as its capture), so the report cannot tell its master what the master has not heard.
+                var json = await Ask($"t{ctx.Turn}/spy/{c.Id}", ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct, asOf: r.ObservedTurn > 0 ? r.ObservedTurn : null);
                 return new MindReply { Text = Parse.Field(json, "report") };
             }
             case MindTask.SummarizeMemory:

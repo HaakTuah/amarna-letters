@@ -21,7 +21,7 @@ else
                 <span class="pill">@c.Status.ToString().ToLowerInvariant()@(c.Employer is { } emp ? $" · {emp.Name()}" : "")</span>
                 @if (c.SecretMaster is { } sm) { <span class="pill" style="color:var(--danger)">secretly serves @sm.Name()</span> }
             </h4>
-            <div><small>@Views.DutyText(c)@(c.At is { } at ? $" · at {at.Name()}" : "")@(c.HeldBy is { } hb ? $" · held by {hb.Name()}" : "") · purse @Ui.Shekels(c.Purse)@(c.Contract is { } k ? $" · wage {Ui.Shekels(k.Wage)} until turn {k.UntilTurn}" : "")</small></div>
+            <div><small>@Views.DutyText(c)@(c.At is { } at ? $" · at {at.Name()}" : "")@(c.HeldBy is { } hb ? $" · held by {hb.Name()}" : "") · purse @Ui.Shekels(c.Purse)@(c.Contract is { } k ? $" · {Views.TermText(k.Wage, k.UntilTurn, k.NoticePrice, k.LeavesTurn, State.Turn)}" : "")</small></div>
             <div class="row" style="margin:.3rem 0">
                 @foreach (var (name, v) in Traits(c))
                 {
