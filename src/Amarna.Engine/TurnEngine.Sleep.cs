@@ -43,11 +43,24 @@ public sealed partial class TurnEngine
     /// </summary>
     public const string CapitalReason = "foreign troops came next to your capital";
 
+    /// <summary>Why a sleeping seat holds court: an envoy of <paramref name="from"/> waits at its door.</summary>
+    public static string EnvoyWaits(Power from) => $"an envoy of {from} waits to be received";
+
+    /// <summary>Whether a wake reason is an envoy waiting, the one reason that wakes a seat for its audiences only.</summary>
+    public static bool IsEnvoyWaiting(string reason) =>
+        reason.StartsWith("an envoy of ", StringComparison.Ordinal) && reason.EndsWith(" waits to be received", StringComparison.Ordinal);
+
+    /// <summary>Why a seat that held court asleep gives orders after all: it chose at one of its audiences to reopen them.</summary>
+    public const string ReopenReason = "you chose at your audience to reopen your orders";
+
     public bool IsAsleep(Power p) => S.Config.SleepingSeats && S.IsAlive(p) && S.Sleep.TryGetValue(p, out var sl) && sl.Asleep;
 
     /// <summary>
     /// Decides which sleeping seats wake this season. Call it once the season's arrivals and reports are
-    /// in (after <see cref="BeginTurn"/> and the reports are fulfilled), before audiences and orders.
+    /// in (after <see cref="BeginTurn"/> and the reports are fulfilled), before audiences and orders. A seat whose only
+    /// reasons are envoys waiting is woken for its audiences only (<see cref="SleepState.HoldsCourt"/>): it stays asleep, and
+    /// once the audiences are done <see cref="CourtsHeld"/> reopens its orders if it chose so. Every other reason reopens
+    /// them directly, without asking.
     /// </summary>
     public void WakeCheck()
     {
@@ -56,6 +69,10 @@ public sealed partial class TurnEngine
         {
             var before = sl.WokenBecause;
             sl.WokenBecause = new();
+            // What an earlier season's court left is never carried on (CourtsHeld clears it; Resolve uses the letters).
+            sl.HoldsCourt = false;
+            sl.Reopen = false;
+            sl.CourtLetters.Clear();
             if (!S.IsAlive(p)) continue;
             // Troops lost since last season (in battle, by desertion or plague, disbanded or given away) take their orders with them.
             LostUnits(p, sl);
@@ -78,15 +95,70 @@ public sealed partial class TurnEngine
                 CollectDigest(p, sl);
                 continue;
             }
-            sl.Asleep = false;
-            sl.WokenBecause = reasons;
-            sl.PendingWake.Clear();
-            sl.Triggers.Clear();
-            if (sl.History.LastOrDefault() is { WokeAt: 0 } spell)
+            // Only envoys waiting: an audience, not an orders call. The seat stays asleep and its orders stand; at its
+            // audiences it judges whether the news changes its plan (Part H). Its digest for the season is collected once
+            // the audiences are done, if it sleeps on.
+            if (reasons.All(IsEnvoyWaiting))
             {
-                spell.WokeAt = S.Turn;
-                spell.Reasons = reasons.ToList();
+                sl.HoldsCourt = true;
+                sl.WokenBecause = reasons;
+                sl.Courts.Add(new CourtHeld { Turn = S.Turn, Envoys = S.Audiences.Count(a => a.Host == p) });
+                continue;
             }
+            Wake(sl, reasons);
+        }
+    }
+
+    /// <summary>A sleeping seat wakes for an orders call: its triggers and the reasons it waited on are spent, and its spell ends.</summary>
+    private void Wake(SleepState sl, List<string> reasons)
+    {
+        sl.Asleep = false;
+        sl.WokenBecause = reasons;
+        sl.PendingWake.Clear();
+        sl.Triggers.Clear();
+        if (sl.History.LastOrDefault() is { WokeAt: 0 } spell)
+        {
+            spell.WokeAt = S.Turn;
+            spell.Reasons = reasons.ToList();
+        }
+    }
+
+    /// <summary>
+    /// Once the season's audiences are applied (<see cref="ApplyAudience"/>): each seat that held court asleep either reopened
+    /// its orders at one of its audiences, and wakes for an orders call this season as when anything else wakes it, or sleeps
+    /// on with its orders standing, and what happened this season goes to its digest. Either way the court is recorded for
+    /// the reports. The letters it sent stay for <see cref="Resolve"/>, which checks them first among its orders.
+    /// </summary>
+    public void CourtsHeld()
+    {
+        if (!S.Config.SleepingSeats) return;
+        foreach (var (p, sl) in S.Sleep.OrderBy(x => x.Key))
+        {
+            if (!sl.HoldsCourt) continue;
+            sl.HoldsCourt = false;
+            var reopened = sl.Reopen && S.IsAlive(p) && sl.Asleep;
+            sl.Reopen = false;
+            if (sl.Courts.LastOrDefault() is { } court && court.Turn == S.Turn) court.Reopened = reopened;
+            if (reopened) Wake(sl, [.. sl.WokenBecause, ReopenReason]);
+            else
+            {
+                sl.WokenBecause.Clear();
+                CollectDigest(p, sl);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds letters sent from an audience to those sent before it this season: only letters (dispatches, or one that could not
+    /// be read), in the order sent, a later letter for the same person replacing an earlier one.
+    /// </summary>
+    public static void AddLetters(List<Order> sent, IEnumerable<Order>? letters)
+    {
+        foreach (var letter in letters ?? [])
+        {
+            if (letter is not (DispatchOrder or UnreadableOrder)) continue;
+            if (OrderKeys.CharacterOf(letter) is { } who) sent.RemoveAll(x => OrderKeys.CharacterOf(x) == who);
+            sent.Add(letter);
         }
     }
 
@@ -94,7 +166,8 @@ public sealed partial class TurnEngine
     /// What wakes a seat, and nothing else: an envoy waiting to be received; foreign troops in its land, or ending a move next
     /// to its capital while it holds it; land or troops lost; a scheduled or standing order that failed; a ransom demanded; a
     /// servant giving notice; one of its own triggers; the season it named; the hidden cap. (A kingdom that falls ends its
-    /// sleep in <see cref="EndSleep"/>.)
+    /// sleep in <see cref="EndSleep"/>.) An envoy waiting wakes it for its audiences only; every other reason here is an
+    /// order trigger, which reopens its orders directly (<see cref="WakeCheck"/>).
     /// </summary>
     private List<string> WakeReasons(Power p, SleepState sl)
     {
@@ -111,7 +184,7 @@ public sealed partial class TurnEngine
                 : CapReason);
 
         foreach (var a in S.Audiences.Where(a => a.Host == p).OrderBy(a => IdNumber(a.Id)))
-            Add($"an envoy of {a.From} waits to be received");
+            Add(EnvoyWaits(a.From));
 
         // Last season's moves as it saw them: foreign troops that entered its land, its own troops destroyed.
         // Until sieges exist (a temporary trigger, to revisit with the siege package): foreign troops that ended a move
@@ -243,7 +316,8 @@ public sealed partial class TurnEngine
     /// dropped. A renewal is not a task: a renewal replaces another's renewal or dismissal of the same person, and a
     /// dismissal its renewal, but a renewal and an errand for the same person both run. The script king standing in after
     /// the seat's call failed is not the seat: its orders only fill what the seat's own plans leave free, and it neither
-    /// replaces the schedule nor cancels standing orders.
+    /// replaces the schedule nor cancels standing orders. Letters the seat sent from its audiences this season (while its
+    /// orders stood) come first, as orders given now; an order it gives now for the same person replaces one.
     /// </summary>
     private TurnSubmission WithScheduled(Power p, TurnSubmission sub, out List<Order> scheduled)
     {
@@ -257,6 +331,13 @@ public sealed partial class TurnEngine
         var replacement = standIn ? null : sub.Scheduled.LastOrDefault(x => x.Turn == S.Turn);
         var now = standIn ? new List<Order>() : sub.Orders.ToList();
         if (replacement is not null) now.AddRange(Survivors(sub.Orders, replacement.Orders, o => o));
+        // Letters it sent from its audiences this season are its own orders, given before any it gives now: checked first, so
+        // their gold is reserved first. One it gives now for the same person replaces the letter (when it reopened its orders).
+        if (sl.CourtLetters.Count > 0)
+        {
+            now.InsertRange(0, Survivors(now, sl.CourtLetters, o => o));
+            sl.CourtLetters.Clear();
+        }
 
         var fired = sl.Standing.Where(x => x.Fires > 0 && x.Fires <= S.Turn).OrderBy(x => IdNumber(x.Id)).ToList();
         sl.Standing.RemoveAll(fired.Contains);
@@ -281,7 +362,7 @@ public sealed partial class TurnEngine
 
         scheduled = standing.Select(x => x.Order).Concat(runs.Select(x => x.Order!)).ToList();
         // The stand-in's orders come last, for the units and people the seat's own plans leave free.
-        var filling = standIn ? Survivors(scheduled, sub.Orders, o => o) : [];
+        var filling = standIn ? Survivors(now.Concat(scheduled), sub.Orders, o => o) : [];
         _scheduledNow[p] = scheduled;
         _standingNow[p] = standing.Select(x => (x.Order, x.From.Id)).ToList();
         _firedNow[p] = firings;

@@ -149,10 +149,11 @@ public static class Prompts
     private static string Sleeping() => $"""
 
         YOU SLEEP BETWEEN YOUR ORDERS
-        After you give your orders, you sleep. You are woken only when something concerns you: an envoy at your door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear. Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these orders must carry your kingdom until then: schedule what your armies should do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on their own.
+        After you give your orders, you sleep. You are woken only when something concerns you: an envoy at your door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand. Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these orders must carry your kingdom until then: schedule what your armies should do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on their own.
 
         PLANNING AHEAD (how sleeping works)
         - While you sleep the world goes on, and nobody is told that you sleep. Your units hold unless you scheduled orders for them or a standing order gives them orders.
+        - An envoy at your door wakes you for the audience only. You read your realm in brief (your land and troops, foreign troops at or inside your borders, your treasury, your scheduled and standing orders, your people), answer the envoy as at any audience, and may send envoys of yours with letters, tablets and gifts: they set out at the end of the season with everyone's orders and are checked like orders you give, before them. Then you choose: reopen your orders, and after your audiences you give orders this season with your full view, as when anything else wakes you; or let them stand and sleep on. Anything else that wakes you reopens your orders without asking (your audiences still come first).
         - Foreign troops wake you when they move into your land, and, while you hold your capital, when they end a move in a province next to it (troops there can take it the next season). Troops that only stay where they are do not wake you again.
         - Scheduled orders (schedule): orders for any later season, named by its turn number. Name each of your units by the province it stands in now, as you give the orders: the order follows that unit wherever it goes, and is given from where the unit then stands. An order naming a province where you have no unit is refused, so a unit not yet raised cannot be given orders ahead. They are secret and are checked when they run, after the orders you give that season. In a season when you are awake, your scheduled orders for it still run, except where you give the same units or people other orders (a renewal is not a task: a renewal and an errand for the same person both run). To change or cancel them, send an entry for that season: it replaces everything scheduled for it, and an empty one cancels it. You may schedule at most {TurnEngine.MaxScheduledPerSeason} orders for one season, for at most {TurnEngine.MaxScheduledSeasons} seasons; orders past these limits are refused.
         - A unit's scheduled moves are its march. If a scheduled move is stopped, the unit tries that step again the next season, and each of its later scheduled orders waits a season. If the step is stopped a second time, or a scheduled move is refused, the march ends: the unit's remaining scheduled orders are dropped. When you lose a unit, its scheduled and standing orders are dropped, which wakes you.
@@ -194,6 +195,10 @@ public static class Prompts
         var line = slept == 0
             ? $"You gave orders last season (turn {v.LastCalled})."
             : $"You slept {slept} season{(slept == 1 ? "" : "s")} (you last gave orders in turn {v.LastCalled}).";
+        // Woken for its audiences only: its orders stand unless it reopens them there.
+        if (v.HoldsCourt)
+            return $"{line} You were woken to receive {(v.WokenBecause.Count == 1 ? "an envoy" : "envoys")}: {string.Join("; ", v.WokenBecause.Select(r => r.TrimEnd('.')))}. "
+                   + "Your orders stand unless you reopen them at your audience.";
         return v.WokenBecause.Count == 0 ? line : $"{line} You were woken because: {string.Join("; ", v.WokenBecause.Select(r => r.TrimEnd('.')))}.";
     }
 
@@ -251,15 +256,11 @@ public static class Prompts
         if (v.Standing.Count > 0)
         {
             sb.AppendLine("YOUR STANDING ORDERS (each fires once, the season after you see its event; cancel_standing removes them):");
-            foreach (var st in v.Standing)
-            {
-                var when = st.When == StandingWhen.UnitAttacked
-                    ? $"when your {OwnKind(st.Province, v) ?? "unit"} now in {st.Province} is attacked"
-                    : TurnEngine.EntersText(v.Power, st.Power, st.Province);
-                sb.AppendLine($"- {st.Id}: {when}, then: {string.Join("; ", st.Orders.Select(o => Planned(o, v)))}"
-                              + (st.FiresNow is { } cause ? $" (it fires this season: {cause} last season)" : ""));
-            }
+            foreach (var st in v.Standing) sb.AppendLine($"- {StandingLine(st, v)}");
         }
+        if (v.CourtLetters.Count > 0)
+            sb.AppendLine("LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): "
+                          + string.Join("; ", v.CourtLetters.Select(o => o.Describe())) + ".");
 
         if (v.NamedWake > 0)
             sb.AppendLine($"When you last gave orders you asked to be woken in turn {v.NamedWake}. Each set of orders names that season anew: name it again (wake_in_turn) if you still want it.");
@@ -268,6 +269,60 @@ public static class Prompts
 
         sb.AppendLine();
         sb.Append(News(v));
+        return sb.ToString();
+    }
+
+    /// <summary>A standing order as its king reads it: its id, the event it waits for, its orders, and whether it fires this season.</summary>
+    private static string StandingLine(StandingOrderView st, SeatView v)
+    {
+        var when = st.When == StandingWhen.UnitAttacked
+            ? $"when your {OwnKind(st.Province, v) ?? "unit"} now in {st.Province} is attacked"
+            : TurnEngine.EntersText(v.Power, st.Power, st.Province);
+        return $"{st.Id}: {when}, then: {string.Join("; ", st.Orders.Select(o => Planned(o, v)))}"
+               + (st.FiresNow is { } cause ? $" (it fires this season: {cause} last season)" : "");
+    }
+
+    /// <summary>
+    /// What a king woken for its audiences only reads of its realm, enough to judge whether the news changes its plan, and
+    /// not the full map: its treasury, its land and troops, foreign troops at or inside its borders as far as it can see, its
+    /// scheduled and standing orders, and its people at court and away.
+    /// </summary>
+    public static string RealmBrief(SeatView v)
+    {
+        var map = WorldMap.Default;
+        var sb = new StringBuilder();
+        string Kind(UnitKind k) => k == UnitKind.Army ? "army" : "fleet";
+        sb.AppendLine("YOUR REALM IN BRIEF (enough to judge whether the news changes your plan; you see the full map only if you reopen your orders):");
+        sb.AppendLine($"- Treasury: {v.Gold} shekels by your ledger; income {v.Income}, upkeep {v.Upkeep}, wages {v.Wages} a season; back pay owed to your people {v.BackPay}.");
+        var land = v.Owner.Where(x => x.Value == v.Power).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        sb.AppendLine($"- Your land: {(land.Count == 0 ? "none" : string.Join(", ", land))}.");
+        var troops = v.Units.Where(u => u.Power == v.Power).Select(u => $"{Kind(u.Kind)} in {u.Province}").ToList();
+        sb.AppendLine($"- Your troops: {(troops.Count == 0 ? "none" : string.Join(", ", troops))}.");
+        var own = land.ToHashSet();
+        var foreign = new List<string>();
+        foreach (var u in v.Units.Where(u => u.Power != v.Power).OrderBy(u => u.Province, StringComparer.Ordinal))
+        {
+            var next = map.Neighbors(u.Province).Where(own.Contains).OrderBy(x => x, StringComparer.Ordinal).ToList();
+            if (own.Contains(u.Province)) foreign.Add($"{u.Power} {Kind(u.Kind)} in {u.Province} (in your land)");
+            else if (next.Count > 0) foreign.Add($"{u.Power} {Kind(u.Kind)} in {u.Province} (next to your {string.Join(", ", next)})");
+        }
+        sb.AppendLine($"- Foreign troops at or inside your borders, as far as you can see: {(foreign.Count == 0 ? "none" : string.Join("; ", foreign))}.");
+        if (v.Scheduled.Count == 0) sb.AppendLine("- Your scheduled orders: none; your units hold where they stand.");
+        else
+        {
+            sb.AppendLine("- Your scheduled orders (each follows its unit, named here by where it stands now):");
+            foreach (var plan in v.Scheduled) sb.AppendLine($"  turn {plan.Turn}: {string.Join("; ", plan.Orders.Select(o => Planned(o, v)))}");
+        }
+        if (v.Standing.Count == 0) sb.AppendLine("- Your standing orders: none.");
+        else
+        {
+            sb.AppendLine("- Your standing orders:");
+            foreach (var st in v.Standing) sb.AppendLine($"  {StandingLine(st, v)}");
+        }
+        var ready = v.Court.Where(c => c.Ready).Select(c => $"{c.Id} {c.Name}").ToList();
+        sb.AppendLine($"- Your people at court and ready to be sent: {(ready.Count == 0 ? "nobody" : string.Join("; ", ready))}.");
+        var away = v.Court.Where(c => !c.Ready).Select(c => $"{c.Id} {c.Name} ({c.Duty}{(c.Timing.Length > 0 ? "; " + c.Timing : "")})").ToList();
+        if (away.Count > 0) sb.AppendLine($"- Your other people: {string.Join("; ", away)}.");
         return sb.ToString();
     }
 
@@ -325,15 +380,20 @@ public static class Prompts
     }
 
     /// <summary>
-    /// What a host has before it as it holds court: its own land and troops in brief, what happened while it slept (an
-    /// envoy at its door is what most often wakes it), and the season's news.
+    /// What a host has before it as it holds court: its own land and troops in brief (with its orders standing, its realm in
+    /// brief: <see cref="RealmBrief"/>), what happened while it slept (an envoy at its door is what most often wakes it), and
+    /// the season's news.
     /// </summary>
-    public static string CourtBrief(SeatView v)
+    public static string CourtBrief(SeatView v, bool ordersStand = false)
     {
         var sb = new StringBuilder();
-        var land = v.Owner.Where(x => x.Value == v.Power).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal).ToList();
-        var troops = v.Units.Where(u => u.Power == v.Power).Select(u => $"{(u.Kind == UnitKind.Army ? "army" : "fleet")} in {u.Province}").ToList();
-        sb.AppendLine($"YOUR LAND: {(land.Count == 0 ? "none" : string.Join(", ", land))}. YOUR TROOPS: {(troops.Count == 0 ? "none" : string.Join(", ", troops))}.");
+        if (ordersStand) sb.Append(RealmBrief(v));
+        else
+        {
+            var land = v.Owner.Where(x => x.Value == v.Power).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal).ToList();
+            var troops = v.Units.Where(u => u.Power == v.Power).Select(u => $"{(u.Kind == UnitKind.Army ? "army" : "fleet")} in {u.Province}").ToList();
+            sb.AppendLine($"YOUR LAND: {(land.Count == 0 ? "none" : string.Join(", ", land))}. YOUR TROOPS: {(troops.Count == 0 ? "none" : string.Join(", ", troops))}.");
+        }
         if (WhileYouSlept(v) is { Length: > 0 } slept)
         {
             sb.Append(slept);
@@ -405,6 +465,15 @@ public static class Prompts
             sb.AppendLine($"You have already named {a.GoldBackNamed} shekels to send home with the envoy; a new amount replaces it, 0 keeps it.");
         if (a.GiftAccepted > 0)
             sb.AppendLine($"{a.Envoy.Name} has already accepted your gift of {a.GiftAccepted} shekels. An envoy takes one gift per audience: another gift would not be given.");
+        if (a.OrdersStand)
+        {
+            sb.AppendLine("YOUR ORDERS STAND WHILE YOU SLEEP. At this audience you may also send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. "
+                          + "Reopen your orders (reopen_orders) if the news changes your plan: you then give orders this season, with your full view, after your audiences. Otherwise your orders stand and you sleep on.");
+            if (a.LettersSent.Count > 0)
+                sb.AppendLine($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): {string.Join("; ", a.LettersSent.Select(o => o.Describe()))}.");
+            if (a.ReopenChosen)
+                sb.AppendLine("You have already chosen to reopen your orders this season: you give orders after your audiences.");
+        }
         sb.AppendLine(a.Round < a.MaxRounds
             ? "Answer the envoy. You may end the audience now, or leave it open for one more exchange."
             : "This is the last exchange of the audience.");

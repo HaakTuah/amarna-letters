@@ -114,7 +114,11 @@ public static class Schemas
         ("summary", Str($"Your own summary of the seasons before those shown in full: plans, promises, what you have learned. At most {Thousands(LeaderJournal.SummaryMax)} characters. It replaces your previous summary; leave it empty to keep it.")),
         ("ledger", Ledger()),
         ("units", Array(UnitOrder())),
-        ("letters", Array(Object(
+        ("letters", Array(Letter(sharedVictory))),
+        ("other_orders", Array(OtherOrder())));
+
+    /// <summary>One letter: an envoy sent abroad. The same in an orders reply and in an audience held while the king's orders stand.</summary>
+    private static JsonObject Letter(bool sharedVictory) => Object(
             ("envoy", Str("Id of one of your people who is at court and ready.")),
             ("to", Enum(PowerNames)),
             ("message", Str("What the envoy should say, in your words.")),
@@ -131,8 +135,7 @@ public static class Schemas
             ("sworn_alliance", Bool(sharedVictory
                 ? "Mark the tablet as a sworn alliance (counts for a shared victory)."
                 : "Mark the tablet as a sworn alliance, an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.")),
-            ("show_tablet_copies", Array(Str(), "Ids of tablet copies you hold to show as evidence."))))),
-        ("other_orders", Array(OtherOrder())));
+            ("show_tablet_copies", Array(Str(), "Ids of tablet copies you hold to show as evidence.")));
 
     /// <summary>The king's ledger of dealings, written the same way in an orders reply and in an audience reply.</summary>
     private static JsonObject Ledger() => Array(Object(
@@ -140,17 +143,33 @@ public static class Schemas
             ("entry", Str($"At most {Thousands(LeaderJournal.LedgerEntryMax)} characters; empty removes that court's line."))),
         "Your ledger of dealings, in your own words, per court: what was promised, sealed, broken and paid. An entry replaces that court's line, an empty entry removes it, and courts you leave out keep their lines. It is shown in full whenever you give orders or hold an audience, and you may write it in either reply.");
 
-    public static JsonObject HostReply() => Object(
-        ("speech", Str("What you say to the envoy, to carry home.")),
-        ("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given.")),
-        ("gift_request", Str("What you want from the envoy in return for the gift, or empty.")),
-        ("offer_service_wage", Int("Offer the envoy service at this wage per season, or 0.")),
-        ("seal_tablet", Bool("Seal the tablet the envoy brought, if any.")),
-        ("detain_envoy", Bool()),
-        ("send_gold_back", Int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it.")),
-        ("gold_back_purity", Int("Purity of that gold in percent, 10-100. The purity named with the amount that is sent applies.")),
-        ("end_audience", Bool("End the audience now.")),
-        ("ledger", Ledger()));
+    /// <summary>
+    /// A host's reply at an audience. A king that sleeps and was woken for its audiences only (its orders stand) may also send
+    /// letters from the audience and choose whether to reopen its orders; at any other audience the reply has neither field.
+    /// </summary>
+    public static JsonObject HostReply(GameConfig? c = null, bool ordersStand = false)
+    {
+        var fields = new List<(string Name, JsonObject Schema)>
+        {
+            ("speech", Str("What you say to the envoy, to carry home.")),
+            ("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given.")),
+            ("gift_request", Str("What you want from the envoy in return for the gift, or empty.")),
+            ("offer_service_wage", Int("Offer the envoy service at this wage per season, or 0.")),
+            ("seal_tablet", Bool("Seal the tablet the envoy brought, if any.")),
+            ("detain_envoy", Bool()),
+            ("send_gold_back", Int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it.")),
+            ("gold_back_purity", Int("Purity of that gold in percent, 10-100. The purity named with the amount that is sent applies.")),
+            ("end_audience", Bool("End the audience now.")),
+        };
+        if (ordersStand)
+        {
+            fields.Add(("letters", Array(Letter(c?.SharedVictory ?? false),
+                "Envoys of yours to send from this audience, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give. A new letter for a person you already sent this season replaces it. Empty for none.")));
+            fields.Add(("reopen_orders", Bool("True if the news changes your plan: after your audiences you give orders this season with your full view, as when anything else wakes you. False: your orders stand and you sleep on. Once true, it holds for the season.")));
+        }
+        fields.Add(("ledger", Ledger()));
+        return Object([.. fields]);
+    }
 
     public static JsonObject Present() => Object(
         ("speech", Str("What you say to the king, delivering your lord's message in your own words.")),

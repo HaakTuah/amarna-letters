@@ -4,7 +4,7 @@ namespace Amarna.Engine;
 /// Pure, synchronous phase functions over a <see cref="GameState"/>. A turn is one season:
 /// <list type="number">
 /// <item><see cref="BeginTurn"/>: servants whose notice ran out leave, income and upkeep, arrivals, tasks and contracts that fall due.</item>
-/// <item>The caller fulfils <see cref="MindRequests"/> (reports, pitches) and runs audiences, then calls <see cref="ApplyAudience"/>.</item>
+/// <item>The caller fulfils <see cref="MindRequests"/> (reports, pitches), calls <see cref="WakeCheck"/> and runs audiences, then calls <see cref="ApplyAudience"/> for each and <see cref="CourtsHeld"/> (a seat that held court asleep reopens its orders or sleeps on).</item>
 /// <item>Seats read <see cref="Views.For"/> and submit secret, simultaneous orders.</item>
 /// <item><see cref="Resolve"/>: combat, transfers, dispatches, intelligence, world events, scoring, the end roll.</item>
 /// </list>

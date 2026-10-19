@@ -147,7 +147,11 @@ public sealed class StandingOrderView
     public string? FiresNow { get; set; }
 }
 
-/// <summary>A sleeping seat's state. Only seats that may sleep (model and file seats, when the setting is on) have one.</summary>
+/// <summary>
+/// A sleeping seat's state. Only seats that may sleep (model and file seats, when the setting is on) have one. A seat woken
+/// only by envoys waiting holds court asleep: its orders stand unless it reopens them at an audience (Part H of the
+/// simulation-fixes round).
+/// </summary>
 public sealed class SleepState
 {
     public bool Asleep { get; set; }
@@ -168,12 +172,36 @@ public sealed class SleepState
     public int DigestLeftOut { get; set; }
     /// <summary>
     /// Why it was woken this season (empty if it was awake anyway). After a season the stand-in played, the reasons it
-    /// was woken for then are kept here too, since it never read them, until it answers itself.
+    /// was woken for then are kept here too, since it never read them, until it answers itself. While it holds court with its
+    /// orders standing (<see cref="HoldsCourt"/>), the envoys it was woken to receive.
     /// </summary>
     public List<string> WokenBecause { get; set; } = new();
     /// <summary>Reasons found while resolving a season, applied at the next wake check (a scheduled or standing order that failed, orders dropped with a lost unit).</summary>
     public List<string> PendingWake { get; set; } = new();
     public List<SleepSpell> History { get; set; } = new();
+    /// <summary>
+    /// This season it was woken for its audiences only: an envoy waits at its court and nothing that reopens its orders
+    /// happened. It stays asleep, its orders stand, and at its audiences it may send letters and choose to reopen its orders.
+    /// Set at the wake check; cleared once the season's audiences are done (<see cref="TurnEngine.CourtsHeld"/>).
+    /// </summary>
+    public bool HoldsCourt { get; set; }
+    /// <summary>While it holds court: it chose at one of its audiences to reopen its orders.</summary>
+    public bool Reopen { get; set; }
+    /// <summary>
+    /// The letters it sent from its audiences this season, in the order sent (a later letter for the same person replaced an
+    /// earlier one). They are checked with the season's orders, before any orders it gives itself, and then cleared.
+    /// </summary>
+    public List<Order> CourtLetters { get; set; } = new();
+    /// <summary>Every season it held court while its orders stood, and whether it then reopened them: for the reports.</summary>
+    public List<CourtHeld> Courts { get; set; } = new();
+}
+
+/// <summary>A season a sleeping seat held court while its orders stood: how many envoys waited to be received, and whether it reopened its orders.</summary>
+public sealed class CourtHeld
+{
+    public int Turn { get; set; }
+    public int Envoys { get; set; }
+    public bool Reopened { get; set; }
 }
 
 /// <summary>One stretch of sleep, for the reports: when it began, the season the seat named (0 for none), when and why it woke.</summary>

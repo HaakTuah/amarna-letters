@@ -197,6 +197,16 @@ public sealed partial class TurnEngine
         var host = a.Host;
         var sender = a.From;
 
+        // A host holding court while its orders stand: the letters it sent and whether it chose to reopen its orders, kept
+        // for CourtsHeld and Resolve. Anywhere else a reply's letters and reopening mean nothing.
+        if (S.Config.SleepingSeats && S.Sleep.TryGetValue(host, out var court) && court.HoldsCourt)
+            foreach (var round in record.Rounds.Take(S.Config.AudienceRounds))
+            {
+                if (round.Host is not { } said) continue;
+                AddLetters(court.CourtLetters, said.Letters);
+                court.Reopen |= said.ReopenOrders;
+            }
+
         trail.Delivered = Greeting.Cap(record.Delivered ?? "", MaxSpeech);
 
         // Gold changes hands, minus whatever stuck to the envoy's fingers.

@@ -54,10 +54,14 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
         var user = new StringBuilder();
         // Like every request to a king that sleeps, it opens with how long the king slept and what woke it.
         if (Prompts.SleepLine(court) is { Length: > 0 } woke) user.AppendLine(woke);
-        user.AppendLine($"SEASON: turn {view.Turn}. You hold court. Treasury {court.Gold} shekels by your ledger.");
+        // A king woken for its audiences only (its orders stand) reads its treasury in its realm in brief.
+        user.AppendLine(view.OrdersStand
+            ? $"SEASON: turn {view.Turn}. You hold court."
+            : $"SEASON: turn {view.Turn}. You hold court. Treasury {court.Gold} shekels by your ledger.");
         user.AppendLine($"Lands now: {string.Join("; ", court.Owner.GroupBy(x => x.Value).Where(g => g.Key is not null).Select(g => $"{g.Key} {g.Count()}"))}.");
-        // What has reached the court this season, so that the host does not speak to an envoy against its own news.
-        user.Append(Prompts.CourtBrief(court));
+        // What has reached the court this season, so that the host does not speak to an envoy against its own news; with its
+        // orders standing, its realm in brief, enough to judge whether the news changes its plan.
+        user.Append(Prompts.CourtBrief(court, view.OrdersStand));
         if (court.Tablets.Count > 0)
             user.AppendLine("Tablets you hold: " + string.Join(" | ", court.Tablets.Select(t => $"{t.CopyId}: \"{Greeting.Cap(t.Text, 200)}\" (seals {string.Join(", ", t.Seals)})")));
         user.AppendLine(_journal.ForAudience());
@@ -71,12 +75,20 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
             SharedSystem = Shared,
             SeatSystem = Prompts.Identity(power),
             User = user.ToString(),
-            Schema = Schemas.HostReply(),
+            // With its orders standing it may also send letters and reopen its orders. The same model answers: an audience is
+            // the seat's own decision, made at a lower effort only.
+            Schema = Schemas.HostReply(config, view.OrdersStand),
             Effort = effort == "high" ? "medium" : "low",
             MaxTokens = 8000,
         }, ct);
         var reply = Parse.Host(json);
-        _journal.Audience(view.Turn, view.From, view.Envoy.Name, reply.Speech);
+        // Letters and reopening mean something only while its orders stand; at any other audience the reply carries none.
+        if (!view.OrdersStand)
+        {
+            reply.Letters.Clear();
+            reply.ReopenOrders = false;
+        }
+        _journal.Audience(view.Turn, view.From, view.Envoy.Name, reply.Speech, reply.Letters.Select(o => o.Describe()));
         // What it wrote in its ledger stays in its own record: the reply that the engine and the envoy see carries none of it.
         _journal.WriteLedger(view.Turn, Parse.Ledger(json));
         return reply;

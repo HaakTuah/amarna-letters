@@ -39,33 +39,7 @@ public static class Parse
         foreach (var u in (o["units"] as JsonArray) ?? new JsonArray())
             if (Unit(u) is { } order) sub.Orders.Add(order);
 
-        foreach (var l in (o["letters"] as JsonArray) ?? new JsonArray())
-        {
-            if (P(S(l, "to")) is not { } to)
-            {
-                // The schema lists the courts, so only a reply that ignores it lands here: refused with the reason, not dropped.
-                sub.Orders.Add(new UnreadableOrder($"send {S(l, "envoy")} to '{S(l, "to")}'", Nowhere(S(l, "to"), "the court to send the envoy to")));
-                continue;
-            }
-            var tablet = S(l, "tablet_to_seal");
-            sub.Orders.Add(new DispatchOrder(
-                S(l, "envoy"),
-                to,
-                S(l, "message"),
-                S(l, "mandate"),
-                new GreetingOptions
-                {
-                    CallBrother = B(l, "call_brother"),
-                    GrantGreatKing = B(l, "call_them_great_king"),
-                    ClaimGreatKing = B(l, "claim_great_king"),
-                    SenderFirst = B(l, "your_name_first"),
-                    Omit = B(l, "omit_greeting"),
-                },
-                Math.Max(0, I(l, "gold")),
-                Math.Clamp(I(l, "purity") is 0 ? 100 : I(l, "purity"), 10, 100),
-                tablet.Length > 0 ? new TabletProposal { Text = tablet, AllianceOath = B(l, "sworn_alliance") } : null,
-                L(l, "show_tablet_copies") is { Count: > 0 } copies ? copies : null));
-        }
+        sub.Orders.AddRange(Letters(o));
 
         foreach (var x in (o["other_orders"] as JsonArray) ?? new JsonArray())
             if (Other(x) is { } order) sub.Orders.Add(order);
@@ -128,6 +102,44 @@ public static class Parse
         }
         sub.CancelStanding = L(o, "cancel_standing");
         return sub;
+    }
+
+    /// <summary>
+    /// The letters of a reply (an orders reply, or an audience held while the king's orders stand): each a dispatch order, or,
+    /// for a court that cannot be read, an order the validator refuses with the reason.
+    /// </summary>
+    private static List<Order> Letters(JsonObject o)
+    {
+        var letters = new List<Order>();
+        foreach (var l in (o["letters"] as JsonArray) ?? new JsonArray())
+        {
+            if (P(S(l, "to")) is not { } to)
+            {
+                // The schema lists the courts, so only a reply that ignores it lands here: refused with the reason, not dropped.
+                letters.Add(new UnreadableOrder($"send {S(l, "envoy")} to '{S(l, "to")}'", Nowhere(S(l, "to"), "the court to send the envoy to")));
+                continue;
+            }
+            var tablet = S(l, "tablet_to_seal");
+            letters.Add(new DispatchOrder(
+                S(l, "envoy"),
+                to,
+                S(l, "message"),
+                S(l, "mandate"),
+                new GreetingOptions
+                {
+                    CallBrother = B(l, "call_brother"),
+                    GrantGreatKing = B(l, "call_them_great_king"),
+                    ClaimGreatKing = B(l, "claim_great_king"),
+                    SenderFirst = B(l, "your_name_first"),
+                    Omit = B(l, "omit_greeting"),
+                },
+                Math.Max(0, I(l, "gold")),
+                Math.Clamp(I(l, "purity") is 0 ? 100 : I(l, "purity"), 10, 100),
+                tablet.Length > 0 ? new TabletProposal { Text = tablet, AllianceOath = B(l, "sworn_alliance") } : null,
+                L(l, "show_tablet_copies") is { Count: > 0 } copies ? copies : null));
+        }
+
+        return letters;
     }
 
     /// <summary>Why a power named in an order cannot be read: none was named, or no power goes by that name.</summary>
@@ -224,6 +236,9 @@ public static class Parse
         GoldBack = Math.Max(0, I(o, "send_gold_back")),
         GoldBackPurity = Math.Clamp(I(o, "gold_back_purity") is 0 ? 100 : I(o, "gold_back_purity"), 10, 100),
         End = B(o, "end_audience"),
+        // Only an audience held while the king's orders stand offers these; the engine ignores them anywhere else.
+        Letters = Letters(o),
+        ReopenOrders = B(o, "reopen_orders"),
     };
 
     public static PresentResult Present(JsonObject o) => new() { Speech = S(o, "speech"), Skim = Math.Max(0, I(o, "keep_gold")) };

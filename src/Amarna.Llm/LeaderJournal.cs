@@ -26,17 +26,25 @@ public sealed class LeaderJournal
 
     private readonly object _gate = new();
     private readonly List<Season> _seasons = new();
-    private readonly List<(int Turn, string Who, string Speech)> _audiences = new();
+    private readonly List<(int Turn, string Who, string Speech, List<string> Sent)> _audiences = new();
     private string _summary = "";
     private int _summaryTurn;
     private int _leftThrough;
     private readonly Dictionary<Power, (string Entry, int Turn)> _ledger = new();
 
-    /// <summary>An audience the king held: what it said to whose envoy. It joins the record with the next orders it gives.</summary>
-    public void Audience(int turn, Power from, string envoy, string speech)
+    /// <summary>
+    /// An audience the king held: what it said to whose envoy, and the letters it sent from it (while its orders stood). It
+    /// joins the record with the next orders it gives; until then its later audiences show it.
+    /// </summary>
+    public void Audience(int turn, Power from, string envoy, string speech, IEnumerable<string>? sent = null)
     {
-        lock (_gate) _audiences.Add((turn, $"{from}'s envoy {envoy}", speech));
+        lock (_gate) _audiences.Add((turn, $"{from}'s envoy {envoy}", speech, sent?.ToList() ?? []));
     }
+
+    /// <summary>One audience as the record shows it: whose envoy, what the king said, and the letters it sent from it.</summary>
+    private static string AudienceLine((int Turn, string Who, string Speech, List<string> Sent) a, int? season) =>
+        $"{a.Who}{(a.Turn == season ? "" : $" (turn {a.Turn})")}: you said \"{Greeting.Cap(a.Speech, 200)}\""
+        + (a.Sent.Count > 0 ? $"; you sent from the audience: {string.Join("; ", a.Sent)}" : "");
 
     /// <summary>
     /// The king's reply to an orders request: its notes (cut at <see cref="NotesMax"/>), the audiences since its last orders
@@ -49,7 +57,7 @@ public sealed class LeaderJournal
         lock (_gate)
         {
             // An audience held in an earlier season (its orders call then failed) is marked with its own season.
-            var audiences = _audiences.Select(a => $"{a.Who}{(a.Turn == turn ? "" : $" (turn {a.Turn})")}: you said \"{Greeting.Cap(a.Speech, 200)}\"").ToList();
+            var audiences = _audiences.Select(a => AudienceLine(a, turn)).ToList();
             _audiences.Clear();
             _seasons.Add(new Season(turn, Greeting.Cap(sub.Notes.Trim(), NotesMax), sub.Orders.Select(o => o.Describe()).ToList(), audiences));
             while (_seasons.Count > SeasonsShown)
@@ -109,18 +117,27 @@ public sealed class LeaderJournal
         }
     }
 
-    /// <summary>What an audience request shows: the ledger in full, the king's summary and the notes of its last two seasons.</summary>
+    /// <summary>
+    /// What an audience request shows: the ledger in full, the king's summary, the notes of its last two seasons, and the
+    /// audiences it has held since it last gave orders (a king whose orders stand may hold several before it gives orders again).
+    /// </summary>
     public string ForAudience()
     {
         lock (_gate)
         {
             var sb = new StringBuilder();
             Ledger(sb);
-            if (_seasons.Count == 0) return sb.Append("YOUR RECORD OF EARLIER SEASONS: none yet.").ToString();
-            sb.AppendLine("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):");
-            Summary(sb);
-            foreach (var s in _seasons.TakeLast(SeasonsShownAtAudience))
-                sb.AppendLine($"turn {s.Turn} notes: {(s.Notes.Length > 0 ? s.Notes : "none")}");
+            if (_seasons.Count == 0 && _audiences.Count == 0) return sb.Append("YOUR RECORD OF EARLIER SEASONS: none yet.").ToString();
+            if (_seasons.Count == 0) sb.AppendLine("YOUR RECORD OF EARLIER SEASONS: none yet.");
+            else
+            {
+                sb.AppendLine("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):");
+                Summary(sb);
+                foreach (var s in _seasons.TakeLast(SeasonsShownAtAudience))
+                    sb.AppendLine($"turn {s.Turn} notes: {(s.Notes.Length > 0 ? s.Notes : "none")}");
+            }
+            if (_audiences.Count > 0)
+                sb.AppendLine("AUDIENCES YOU HAVE HELD SINCE YOU LAST GAVE ORDERS: " + string.Join("; ", _audiences.Select(a => AudienceLine(a, null))));
             return sb.ToString();
         }
     }

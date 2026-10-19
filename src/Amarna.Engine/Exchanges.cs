@@ -39,6 +39,28 @@ public sealed class HostReply
     public int GoldBack { get; set; }
     public int GoldBackPurity { get; set; } = 100;
     public bool End { get; set; }
+    /// <summary>
+    /// Only at an audience held while the host's orders stand (<see cref="AudienceView.OrdersStand"/>): envoys of its own it
+    /// sends from the audience, as the letters of an orders reply (dispatch orders, or a letter that could not be read). They
+    /// go out with the season's orders and are checked first. Ignored at any other audience. The envoy before the host never
+    /// hears of them (<see cref="AsHeard"/>).
+    /// </summary>
+    public List<Order> Letters { get; set; } = new();
+    /// <summary>
+    /// Only at an audience held while the host's orders stand: the host reopens its orders, and gives orders this season
+    /// after its audiences, as when anything else wakes it. Once chosen it holds for the season. Ignored at any other audience.
+    /// </summary>
+    public bool ReopenOrders { get; set; }
+
+    /// <summary>
+    /// The reply as the envoy before the host meets it: what the host says and does to it. The letters the host sends and its
+    /// choice to reopen its orders are the host's own business, so they are left out.
+    /// </summary>
+    public HostReply AsHeard() => new()
+    {
+        Speech = Speech, Bribe = Bribe, BribeAsk = BribeAsk, JobOffer = JobOffer, SealProposal = SealProposal, Detain = Detain,
+        GoldBack = GoldBack, GoldBackPurity = GoldBackPurity, End = End,
+    };
 }
 
 /// <summary>The envoy's answer. Accepting a bribe or a job are explicit actions, not words.</summary>
@@ -90,4 +112,13 @@ public sealed class AudienceView
     /// <summary>Only when the envoy secretly serves the host: what the envoy was really told.</summary>
     public string? SecretMandate { get; set; }
     public string? SecretLetter { get; set; }
+    /// <summary>
+    /// The host sleeps and was woken for its audiences only (<see cref="SleepState.HoldsCourt"/>): its orders stand unless it
+    /// reopens them, and it may send letters from the audience (<see cref="HostReply.Letters"/>, <see cref="HostReply.ReopenOrders"/>).
+    /// </summary>
+    public bool OrdersStand { get; set; }
+    /// <summary>With <see cref="OrdersStand"/>: the host chose at an earlier exchange this season to reopen its orders.</summary>
+    public bool ReopenChosen { get; set; }
+    /// <summary>With <see cref="OrdersStand"/>: the letters it has sent from its audiences this season so far (a later one for the same person replaces it).</summary>
+    public List<Order> LettersSent { get; set; } = new();
 }

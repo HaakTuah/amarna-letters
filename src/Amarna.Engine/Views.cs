@@ -136,6 +136,13 @@ public sealed class SeatView
     public List<ScheduledOrders> Scheduled { get; set; } = new();
     /// <summary>Its standing orders, each of its units named by where it stands now.</summary>
     public List<StandingOrderView> Standing { get; set; } = new();
+    /// <summary>
+    /// It sleeps and was woken for its audiences only (<see cref="WokenBecause"/> names the envoys): its orders stand unless
+    /// it reopens them at an audience.
+    /// </summary>
+    public bool HoldsCourt { get; set; }
+    /// <summary>Letters it sent from its audiences this season, which go out with its orders (checked before them).</summary>
+    public List<Order> CourtLetters { get; set; } = new();
     public Dictionary<string, int> Prices { get; set; } = new();
 }
 
@@ -243,6 +250,8 @@ public static class Views
         {
             v.Sleeps = true;
             v.WokenBecause = sleep.WokenBecause.ToList();
+            v.HoldsCourt = sleep.HoldsCourt && sleep.Asleep;
+            v.CourtLetters = sleep.CourtLetters.ToList();
             v.LastCalled = sleep.LastCalled;
             v.NamedWake = sleep.History.LastOrDefault() is { Named: var named } && named > s.Turn ? named : 0;
             var slept = s.InboxOf(p).Where(i => i.Turn > sleep.LastCalled && i.Turn < s.Turn && !RoutineTreasury(i)).ToList();

@@ -10,11 +10,12 @@ namespace Amarna.Game.Tests;
 public class SleepTests
 {
     /// <summary>A seat that may sleep, deciding from a script, and remembering when it was asked.</summary>
-    private sealed class Sleeper(Func<SeatView, TurnSubmission> decide) : ISeat
+    private sealed class Sleeper(Func<SeatView, TurnSubmission> decide, Func<AudienceView, HostReply>? host = null) : ISeat
     {
         public List<SeatView> Views { get; } = new();
         public List<int> Hosted { get; } = new();
         public List<SeatView> Courts { get; } = new();
+        public List<AudienceView> Audiences { get; } = new();
         public IEnumerable<int> Calls => Views.Select(v => v.Turn);
         public string Label => "Test sleeper";
         public bool CanSleep => true;
@@ -31,8 +32,9 @@ public class SleepTests
             {
                 Hosted.Add(view.Turn);
                 Courts.Add(court);
+                Audiences.Add(view);
             }
-            return Task.FromResult(new HostReply { Speech = "Go in peace.", End = true });
+            return Task.FromResult(host?.Invoke(view) ?? new HostReply { Speech = "Go in peace.", End = true });
         }
     }
 
@@ -44,8 +46,8 @@ public class SleepTests
         public Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct) => Task.FromResult(new HostReply { End = true });
     }
 
-    /// <summary>Records what a model king is sent, and holds everything.</summary>
-    private sealed class Recorder : IJsonAsker
+    /// <summary>Records what a model king is sent, and holds everything. With <paramref name="reopen"/>, it reopens its orders at every audience held while they stand.</summary>
+    private sealed class Recorder(bool reopen = false) : IJsonAsker
     {
         public List<CallSpec> Specs { get; } = new();
 
@@ -54,7 +56,7 @@ public class SleepTests
             lock (Specs) Specs.Add(spec);
             var json = spec.Key.Contains("/orders/")
                 ? """{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}"""
-                : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}""";
+                : """{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"letters":[],"reopen_orders":REOPEN}""".Replace("REOPEN", reopen ? "true" : "false");
             return Task.FromResult((JsonObject)JsonNode.Parse(json)!);
         }
     }
@@ -220,7 +222,7 @@ public class SleepTests
     // ------------------------------------------------------------ what wakes a seat
 
     [Fact]
-    public async Task An_envoy_at_the_door_wakes_the_host_who_receives_it()
+    public async Task An_envoy_at_the_door_wakes_the_host_for_its_audience_only()
     {
         var envoyId = "";
         var egypt = new Scripted(v => v.Turn == 1 ? new TurnSubmission { Orders = [new DispatchOrder(envoyId, Power.Alashiya, "Greetings, brother.")] } : new TurnSubmission());
@@ -232,10 +234,17 @@ public class SleepTests
         var travel = new TurnEngine(state).TravelTurns(Power.Egypt, Power.Alashiya);
         for (var i = 0; i < 1 + travel; i++) await runner.PlayTurnAsync();
         Assert.Contains(1 + travel, sleeper.Hosted);
-        Assert.Contains(1 + travel, sleeper.Calls);
-        Assert.Contains(sleeper.Views.Last().WokenBecause, w => w.Contains("an envoy of Egypt waits to be received"));
-        // The audience opens with the same line as the orders: how long the host slept and what woke it.
-        Assert.EndsWith("You were woken because: an envoy of Egypt waits to be received.", Prompts.SleepLine(sleeper.Courts.Last()));
+        // It received the envoy, but no orders call followed: it did not reopen its orders, so they stand and it sleeps on.
+        Assert.Equal([1], sleeper.Calls);
+        var sl = state.Sleep[Power.Alashiya];
+        Assert.True(sl.Asleep);
+        Assert.False(sl.HoldsCourt);
+        Assert.Equal(0, sl.History.Last().WokeAt);
+        var court = Assert.Single(sl.Courts);
+        Assert.Equal((1 + travel, 1, false), (court.Turn, court.Envoys, court.Reopened));
+        Assert.True(sleeper.Audiences.Last().OrdersStand);
+        // The audience opens like every request: how long the host slept and what woke it, and that its orders stand.
+        Assert.EndsWith("You were woken to receive an envoy: an envoy of Egypt waits to be received. Your orders stand unless you reopen them at your audience.", Prompts.SleepLine(sleeper.Courts.Last()));
     }
 
     [Fact]
@@ -661,7 +670,8 @@ public class SleepTests
     [Fact]
     public async Task Every_request_opens_with_how_long_the_king_slept_and_what_woke_it()
     {
-        var recorder = new Recorder();
+        // The king reopens its orders at the audience, so an orders request follows it in the same season.
+        var recorder = new Recorder(reopen: true);
         var envoyId = "";
         var egypt = new Scripted(v => v.Turn == 1 ? new TurnSubmission { Orders = [new DispatchOrder(envoyId, Power.Alashiya, "Greetings, brother.")] } : new TurnSubmission());
         var state = GameFactory.NewGame(31, Quiet);
@@ -677,12 +687,13 @@ public class SleepTests
         Assert.Contains("YOU SLEEP BETWEEN YOUR ORDERS\nAfter you give your orders, you sleep.", first.SharedSystem.ReplaceLineEndings("\n"));
         Assert.Contains("\"wake_in_turn\"", first.Schema.ToJsonString());
         var slept = travel - 1;
-        var line = (slept == 0 ? "You gave orders last season (turn 1)." : $"You slept {slept} season{(slept == 1 ? "" : "s")} (you last gave orders in turn 1).")
-                   + " You were woken because: an envoy of Egypt waits to be received.\n";
+        var since = slept == 0 ? "You gave orders last season (turn 1)." : $"You slept {slept} season{(slept == 1 ? "" : "s")} (you last gave orders in turn 1).";
         var host = recorder.Specs.First(x => x.Key.StartsWith($"t{1 + travel}/aud/", StringComparison.Ordinal));
-        Assert.StartsWith(line, host.User.ReplaceLineEndings("\n"));
+        Assert.StartsWith(since + " You were woken to receive an envoy: an envoy of Egypt waits to be received. Your orders stand unless you reopen them at your audience.\n",
+            host.User.ReplaceLineEndings("\n"));
         var orders = recorder.Specs.Single(x => x.Key == $"t{1 + travel}/orders/Alashiya");
-        Assert.StartsWith(line, orders.User.ReplaceLineEndings("\n"));
+        Assert.StartsWith(since + " You were woken because: an envoy of Egypt waits to be received; you chose at your audience to reopen your orders.\n",
+            orders.User.ReplaceLineEndings("\n"));
         // An orders request ends by saying the king sleeps after its orders.
         Assert.EndsWith("Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, and anything else. You sleep after them.", orders.User.TrimEnd());
     }
@@ -699,8 +710,9 @@ public class SleepTests
     [Fact]
     public async Task An_audience_after_a_sleep_tells_the_host_what_happened_while_it_slept()
     {
-        // Alashiya sleeps from turn 1. News reaches it in turn 2; Egypt's envoy, sent in turn 2, wakes it later.
-        var recorder = new Recorder();
+        // Alashiya sleeps from turn 1. News reaches it in turn 2; Egypt's envoy, sent in turn 2, wakes it later for an
+        // audience, where it reopens its orders.
+        var recorder = new Recorder(reopen: true);
         var envoyId = "";
         var egypt = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new DispatchOrder(envoyId, Power.Alashiya, "Greetings, brother.")] } : new TurnSubmission());
         var state = GameFactory.NewGame(31, Quiet);
@@ -743,7 +755,7 @@ public class SleepTests
         var sleep = rules.IndexOf("YOU SLEEP BETWEEN YOUR ORDERS", StringComparison.Ordinal);
         var season = rules.IndexOf("HOW A SEASON RESOLVES", StringComparison.Ordinal);
         Assert.True(win < sleep && sleep < season);
-        Assert.Contains("After you give your orders, you sleep. You are woken only when something concerns you: an envoy at your door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear. Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these orders must carry your kingdom until then: schedule what your armies should do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on their own.", rules);
+        Assert.Contains("After you give your orders, you sleep. You are woken only when something concerns you: an envoy at your door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand. Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these orders must carry your kingdom until then: schedule what your armies should do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on their own.", rules);
         Assert.Contains("PLANNING AHEAD (how sleeping works)", rules);
         Assert.Contains("You may schedule at most 24 orders for one season, for at most 40 seasons; orders past these limits are refused.", rules);
         Assert.Contains("Standing orders (standing_orders), at most 12, each with at most 24 orders,", rules);

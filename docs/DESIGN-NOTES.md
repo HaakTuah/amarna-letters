@@ -517,7 +517,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   exceptions: the script king that stands in when a call fails (below, and "When a model call
   fails" under sleeping seats), and the server-side refusal fallback, under which another model
   answers a refused Sonnet or Opus call (logged as `UsedFallback`). A host's audience runs on the
-  seat's own model, one effort level lower. Not exceptions, but close to the line: a king's envoys
+  seat's own model, one effort level lower, including an audience held while its orders stand,
+  where it also sends letters and decides whether to reopen its orders (Part H). Not exceptions, but close to the line: a king's envoys
   are characters with minds of their own (script, Haiku or Sonnet), so what a host hears is the
   envoy's rendering of the king's message, and an envoy may commit its king at a foreign court
   (`commitments`, logged in the message trail); that is the character's decision, by design.
@@ -600,8 +601,9 @@ Script and human seats play every season as before. There is never a global skip
 sees only its own wake-ups. With sleeping seats off, a king reads nothing of any of this: no sleep
 sections in the rulebook, no sleep fields in the schema, no opening sleep line.
 
-- **Asleep.** The seat is not called. Its units hold, and the orders it scheduled for that season
-  run. Nobody is told that it sleeps.
+- **Asleep.** The seat is not called for orders (an envoy at its door is received in an audience
+  call; see below). Its units hold, and the orders it scheduled for that season run. Nobody is told
+  that it sleeps.
 - **Sleeping after every call.** A seat never asks to sleep: after every orders call it answered
   itself, it sleeps. It may name a season to be woken in (`wake_in_turn`, 0 for none); otherwise,
   having given orders in turn t, it is woken at the start of turn t + 1 + `MaxSleep` at the latest.
@@ -613,8 +615,10 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   schema say so too). When the script king stands in because a call failed, the seat does not go
   to sleep: it is asked again next season (see below).
 - **What wakes it**, and nothing else. These are checked each season after the arrivals and
-  reports, from the seat's own view only:
-  - an envoy waits to be received at its court
+  reports, from the seat's own view only. An envoy waiting wakes it for its audience only (since
+  Part H of the simulation-fixes round; see the next bullet); every other reason is an order
+  trigger, which reopens its orders directly, without asking:
+  - an envoy waits to be received at its court (an audience only, unless an order trigger fires too)
   - foreign troops entered its land last season ("foreign troops entered your land: Assyria's army
     moved ekallatum -> sippar"; a move counts as into its land if it held the province before the
     moves)
@@ -659,6 +663,69 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   coming home, every report, candidates, catastrophes, forgeries, a caught spy, and foreign troops
   at its border or attacking it in vain woke it too: replayed through the engine, the simulation's
   two seed-7 games would have woken a sleeping king in 117 of 120 seasons.)
+- **An envoy at the door: an audience, and the king judges whether to reopen its orders** (Part H
+  of the simulation-fixes round, the owner's later instruction in `docs/ROUND-PROMPT-ADDITIONS.md`,
+  section 4; it replaced an earlier plan in which an envoy could never reopen orders). The principle:
+  a king sleeps while nothing changes, and when something happens it judges whether that alters its
+  plan. Envoys were the most common reason a king woke, and an orders call costs about twice an
+  audience.
+  - When the only reasons a sleeping seat has are envoys waiting, the wake check does not wake it:
+    it holds court asleep (`SleepState.HoldsCourt`), its orders stand, and its audiences are held
+    as usual, one call per exchange, by the seat's own model at one effort level lower (the owner's
+    rule that the seat's own model makes every decision; the stand-in only answers when a call
+    fails, and then sends nothing and never reopens). When an order trigger fires as well, the seat
+    wakes as before and its audiences are ordinary ones (no realm in brief, letters or choice).
+  - Such an audience opens "You slept 2 seasons (you last gave orders in turn 5). You were woken to
+    receive an envoy: an envoy of Egypt waits to be received. Your orders stand unless you reopen
+    them at your audience." In place of the old line of land and troops (and the treasury figure on
+    the season line) it reads "YOUR REALM IN BRIEF (enough to judge whether the news changes your
+    plan; you see the full map only if you reopen your orders)": the treasury with income, upkeep,
+    wages and back pay owed; its land; its troops; foreign troops at or inside its borders as far as
+    it can see (a foreign unit standing in its land, "(in your land)", or in a province next to its
+    land, "(next to your byblos, enkomi)"; fleets at sea included); its scheduled orders by season
+    and its standing orders, as in its view; its people at court and ready to be sent (id and name);
+    and its other people with their duty and timing. Not the map, the standings, the travel table,
+    the other people it knows of or the troops elsewhere. "While you slept", the season's news, the
+    tablets it holds and its journal follow as before, then the audience, which ends with "YOUR
+    ORDERS STAND WHILE YOU SLEEP. At this audience you may also send envoys of yours who are at
+    court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at
+    the end of this season with everyone's orders and are checked first. Reopen your orders
+    (reopen_orders) if the news changes your plan: you then give orders this season, with your full
+    view, after your audiences. Otherwise your orders stand and you sleep on." Its schema adds
+    `letters` (the orders' letter shape) and `reopen_orders`.
+  - **Letters** sent from such an audience (`HostReply.Letters`: dispatch orders, or a letter to a
+    court nobody knows, refused with the reason) are kept in the seat's state (`CourtLetters`) and
+    validated as usual with the season's orders: they come first among the seat's orders, so their
+    gold is reserved first. A later letter for the same person in the same season replaces an earlier
+    one; a later exchange or audience shows the letters already sent and whether the king already
+    chose to reopen. A refused letter is reported in its news like any order and, if it sleeps on,
+    waits in its digest; it does not wake it (as with orders given for a season the seat was awake).
+    The envoy before the king never hears of the letters or the choice (`HostReply.AsHeard`).
+    Letters and the choice in a reply at an ordinary audience are ignored.
+  - **Reopening.** If any of its replies that season (any exchange of any audience) says
+    `reopen_orders`, then once the audiences are applied (`TurnEngine.CourtsHeld`) the seat wakes
+    for an orders call that season, as an ordinary wake: its sleep ends with the envoys plus "you
+    chose at your audience to reopen your orders", its own triggers are spent, and the orders
+    request opens "You were woken because: an envoy of Egypt waits to be received; you chose at
+    your audience to reopen your orders." and lists the letters already sent ("LETTERS YOU SENT FROM
+    YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order
+    you give now for the same person replaces its letter): ..."). Otherwise it sleeps on: its sleep
+    continues (its triggers and named season still hold), and the season's movements and reports go
+    to its digest after the audiences.
+  - The journal records the letters sent with each audience ("...: you said "..."; you sent from the
+    audience: send c12 to Hatti"), and an audience request shows "AUDIENCES YOU HAVE HELD SINCE YOU
+    LAST GAVE ORDERS", since a king whose orders stand may hold several courts before it gives
+    orders again (this also shows a host its earlier audiences of the same season).
+  - Each court held asleep is recorded (`SleepState.Courts`: season, envoys, reopened). The batch
+    seat report has a `courts` column (held/reopened) and a line "Courts held while orders stood: 5;
+    orders reopened at 2 (40%).", and the batch summary gives the same over all games: the reopen
+    rate is to be learned from the next agent simulation. Not built: the planned fallback if the
+    rate is high, offering the reopening only for some kinds of message (see "Not built yet").
+  - With sleeping seats off every king gives orders every season and its audiences are exactly as
+    before (tested). Measured on both seed-7 games' 146 logged audience calls (characters / 3.6),
+    an audience held asleep is about 1,400 tokens larger than before (about 11,900 against 10,500;
+    the schema +750, the realm in brief +240, the rulebook +230, the audience's closing paragraph
+    +125, the journal +55), and an ordinary audience about 280 larger (the rulebook and the journal).
 - **Its own triggers** (at most 8, set anew with each set of orders and cleared when it wakes).
   Each fires on a change after it was set, never on a state that merely lasts (the user's rule for
   Part G: a trigger on a standing condition wakes a king every season and defeats sleeping):
@@ -710,12 +777,20 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   give your orders, you sleep. You are woken only when something concerns you: an envoy at your
   door, foreign troops in your land or next to your capital, land or troops lost, a scheduled or
   standing order that failed, a servant giving notice, a ransom demanded, or news you asked to hear.
-  Nothing else wakes you, and you may not be woken again for the rest of the game. Plan as if these
-  orders must carry your kingdom until then: schedule what your armies should do in the seasons
-  ahead, set the triggers you want, and leave your envoys mandates that stand on their own." (The
-  decided text's "a failed order" became "a scheduled or standing order that failed", to stay true,
-  and "or next to your capital" came with the temporary capital trigger.) A section
-  "PLANNING AHEAD (how sleeping works)" follows with the mechanics: which foreign troops wake the
+  When you are woken to receive an envoy, reopen your orders if the news changes your plan;
+  otherwise they stand. Nothing else wakes you, and you may not be woken again for the rest of the
+  game. Plan as if these orders must carry your kingdom until then: schedule what your armies should
+  do in the seasons ahead, set the triggers you want, and leave your envoys mandates that stand on
+  their own." (The decided text's "a failed order" became "a scheduled or standing order that
+  failed", to stay true, "or next to your capital" came with the temporary capital trigger, and the
+  sentence on reopening is the owner's, from Part H.) A section
+  "PLANNING AHEAD (how sleeping works)" follows with the mechanics: an envoy at the door ("An envoy
+  at your door wakes you for the audience only. You read your realm in brief (...), answer the envoy
+  as at any audience, and may send envoys of yours with letters, tablets and gifts: they set out at
+  the end of the season with everyone's orders and are checked like orders you give, before them.
+  Then you choose: reopen your orders, and after your audiences you give orders this season with
+  your full view, as when anything else wakes you; or let them stand and sleep on. Anything else
+  that wakes you reopens your orders without asking (your audiences still come first)."); which foreign troops wake the
   king ("Foreign troops wake you when they move into your land, and, while you hold your capital,
   when they end a move in a province next to it (troops there can take it the next season). Troops
   that only stay where they are do not wake you again."); scheduled orders, naming units
@@ -726,7 +801,9 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   then: the army now in babylon -> nippur", with "(it fires this season: Assyria's army tried to
   move ekallatum -> sippar last season)" in the season it fires). Every request, for orders and for
   audiences, opens with one line: "You slept 3 seasons (you last gave orders in turn 5). You were
-  woken because: an envoy of Egypt waits to be received." Woken in the season after its orders it
+  woken because: foreign troops entered your land: ..." (an audience held while its orders stand:
+  "... You were woken to receive an envoy: an envoy of Egypt waits to be received. Your orders stand
+  unless you reopen them at your audience."). Woken in the season after its orders it
   reads "You gave orders last season (turn 5). You were woken because: ..."; in the first season,
   "This is your first season."; and if it has never answered itself (its first call failed), "This
   is the first season you give orders." An audience request carries "WHILE YOU SLEPT" (the brief
@@ -741,9 +818,11 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   so a king that reaches it (having named a later season, or nothing) can count it, and from then on
   it may anchor that king's plans. Both the exact count and the neutral reason were decided; a
   way out, left to the user, would be to vary the cap a little for each sleep (from
-  `Rng.For(seed, turn, "sleepcap", power)`). The batch seat report prints, per seat, how many
+  `Rng.For(seed, turn, "sleepcap", power)`). The batch seat report prints, per seat, the courts it
+  held while its orders stood and at how many it reopened them ("held/reopened"), how many
   seasons each sleep lasted ("n" when it woke in the season it named, "+" for a sleep still
-  running at the end) and every reason it was woken, counted by kind over its sleeps.
+  running at the end; the seasons it held court asleep count as slept) and every reason it was
+  woken, counted by kind over its sleeps.
 - **Scheduled orders**, kept secret in the seat's own state, for any later season, at most 24
   orders a season and at most 40 seasons. An entry for a season after the game's last (`MaxTurns`)
   is kept, listed and counted like any other and simply never runs, because the game ends first:
@@ -1499,6 +1578,11 @@ The design document records intent; these notes record what is built. Where they
   it" under Pacing).
 - Conditional orders beyond the two standing-order events: "unless" conditions on scheduled orders,
   and conditions on the treasury, an envoy's return or a sealed tablet.
+- The message-kind fallback for reopening orders, if kings reopen too often after audiences: the
+  reopening offered only for a coalition or alliance tablet, evidence of a broken tablet, a ransom
+  demand, or a threat or news of war, sorted by a small, cheap model that labels each audience and
+  errs toward offering it, for model seats only (`docs/ROUND-PROMPT-ADDITIONS.md`, sections 4 and
+  6.2; the design document's Build order, "Not yet in the order", after item 4).
 - Reputation from losses abroad: characters who hear that a court loses its people abroad, or puts
   others' to death, growing wary of serving it or visiting it (design document, main tab, "Wages are
   paid on return"; the user's decision of 18 October in `docs/ROUND-PROMPT-ADDITIONS.md`, section 6).

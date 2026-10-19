@@ -236,15 +236,27 @@ public sealed class GameRunner
         var hostTasks = byHost.Select(async group =>
         {
             var records = new List<AudienceRecord>();
+            // A sleeping host was woken for its audiences only: its orders stand unless it reopens them, and it may send letters.
+            // What it chose so far this season, in its earlier audiences and exchanges, is shown to it at each later one.
+            var court = engine.IsAsleep(group.Key) ? new Court() : null;
             foreach (var a in group.OrderBy(a => TurnEngine.IdNumber(a.Id)))
-                records.Add(await AudienceAsync(engine, a, turn, ct));
+                records.Add(await AudienceAsync(engine, a, turn, court, ct));
             return records;
         }).ToList();
         var all = (await Task.WhenAll(hostTasks)).SelectMany(r => r).OrderBy(r => TurnEngine.IdNumber(r.AudienceId)).ToList();
         foreach (var record in all) engine.ApplyAudience(record);
+        // A host that held court asleep reopens its orders now if it chose to (it is then asked for orders), or sleeps on.
+        engine.CourtsHeld();
     }
 
-    private async Task<AudienceRecord> AudienceAsync(TurnEngine engine, PendingAudience a, int turn, CancellationToken ct)
+    /// <summary>What a host holding court asleep has chosen so far this season: the letters it sent, and whether it reopens its orders.</summary>
+    private sealed class Court
+    {
+        public List<Order> Letters { get; } = new();
+        public bool Reopen { get; set; }
+    }
+
+    private async Task<AudienceRecord> AudienceAsync(TurnEngine engine, PendingAudience a, int turn, Court? court, CancellationToken ct)
     {
         var envoy = State.Char(a.EnvoyId);
         var key = $"t{turn}/aud/{a.Id}";
@@ -279,14 +291,27 @@ public sealed class GameRunner
         for (var round = 1; round <= State.Config.AudienceRounds; round++)
         {
             var view = engine.BuildAudienceView(a, present.Speech, present.Skim, soFar, round, record.Rounds);
-            var court = Views.For(State, a.Host);
+            if (court is not null)
+            {
+                view.OrdersStand = true;
+                view.ReopenChosen = court.Reopen;
+                view.LettersSent = court.Letters.ToList();
+            }
+            var seat = Views.For(State, a.Host);
             var host = await Recorded($"{key}/host/{round}",
-                () => Seats[a.Host].HostAudienceAsync(view, court, ct),
-                () => _fallbackSeat.HostAudienceAsync(view, court, ct));
+                () => Seats[a.Host].HostAudienceAsync(view, seat, ct),
+                () => _fallbackSeat.HostAudienceAsync(view, seat, ct));
+            if (court is not null)
+            {
+                TurnEngine.AddLetters(court.Letters, host.Letters);
+                court.Reopen |= host.ReopenOrders;
+            }
             var ctx = Ctx(soFar.ToList(), round, present.Speech, present.Skim);
+            // The envoy meets only what is said and done to it: the host's letters and its choice about its orders are its own.
+            var heard = host.AsHeard();
             var reaction = await Recorded($"{key}/envoy/{round}",
-                () => Minds.ReactAsync(ctx, host, ct),
-                () => _fallbackMind.ReactAsync(ctx, host, ct));
+                () => Minds.ReactAsync(ctx, heard, ct),
+                () => _fallbackMind.ReactAsync(ctx, heard, ct));
             record.Rounds.Add(new AudienceRound { Host = host, Envoy = reaction });
             soFar.Add(new Exchange { Host = host.Speech, Envoy = reaction.Speech });
             if (host.End || host.Detain || reaction.AcceptJob) break;
