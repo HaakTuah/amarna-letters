@@ -116,9 +116,10 @@ public class BlindnessTests
     [Fact]
     public async Task A_court_that_caught_a_spy_has_on_record_only_the_master_it_confessed_to()
     {
-        // Script games in which a caught spy kept silent (seed 16 at turn 7, seed 12 at turn 15, when this was written).
+        // Script games, seed by seed, until a caught spy kept silent. The seeds are searched rather than named, because a
+        // change to the rolls (as fix (d)'s id counters made) moves which games have one.
         var silent = 0;
-        foreach (var seed in new ulong[] { 16, 12 })
+        for (ulong seed = 1; seed <= 80 && silent == 0; seed++)
         {
             var (runner, _) = await Played(seed, 16);
             var s = runner.State;
@@ -135,7 +136,6 @@ public class BlindnessTests
                     Assert.Single(s.Events, e => e.Turn == l.Turn && e.Kind == "spy-caught" && e.VisibleTo.Count == 0 && e.Text.StartsWith($"{l.Court} caught {name}, a spy of "));
                 }
             }
-            if (silent > 0) break;
         }
         Assert.True(silent > 0, "no caught spy kept silent in these games");
     }
