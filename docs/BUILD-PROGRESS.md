@@ -9,8 +9,8 @@ report, and what was decided along the way. Items are built on their own branch 
 |---|---|---|---|---|
 | 1 | Simulation fixes and default sleep | done (19 Oct), merged into `develop`; PR #7 merged into `main` | `round/simulation-fixes` | `docs/rounds/2026-10-19-simulation-fixes.md` |
 | 2 | The visual overhaul | done (19 Oct), merged into `develop`; PR #8 merged into `main` | `item/visual-overhaul` | `docs/rounds/2026-10-19-visual-overhaul.md` |
-| 3 | Small record items | done (19 Oct), merged into `develop`; PR `develop` -> `main` open for review | `item/small-record-items` | `docs/rounds/2026-10-19-small-record-items.md` |
-| 4 | Second agent simulation, with model characters (stop for review) | in progress (19 Oct) | `item/second-simulation` | `docs/rounds/2026-10-19-second-simulation.md` |
+| 3 | Small record items | done (19 Oct), merged into `develop`; PR #9 merged into `main` | `item/small-record-items` | `docs/rounds/2026-10-19-small-record-items.md` |
+| 4 | Second agent simulation, with model characters (stop for review) | done (19 Oct), merged into `develop`; **stopped for review**; PR `develop` -> `main` open | `item/second-simulation` | `docs/rounds/2026-10-19-second-simulation.md` |
 | 5 | The siege package (stop for review) | not started | | |
 | 6 | Memory and call size | not started | | |
 | 7 | Travel on the map, and news travels | not started | | |
@@ -123,3 +123,36 @@ because the new tablets take ids from the game's one id counter and so move late
 (12 before) and 14 of 101-200 (11 before); against the frozen baseline, growth 2.67 (2.64) and wins 73% (71%).
 
 **PR #8** (item 2) was merged into `main` with a merge commit; `main` was merged back into `develop` (no content change).
+
+## Item 4: second agent simulation, with model characters (19 October) — stopped for review
+
+Specification read fresh from the live document at the start of the item (it now opens with three fixes; the Build
+order has 18 items and a balance rule: first guesses during the build, tuning in item 18). Haakon added a fourth fix
+during the item: an id counter per kind of object. Built by one workflow (fixes (a) and (c), characters as agents,
+local play; fix (b) in parallel in its own worktree; an integrator; one reviewer, whose one blocking finding was
+fixed) and fix (d) in its own worktree, merged afterwards with one save version 4 for (a) and (d). 742 tests pass on
+`develop`; seeds replay exactly within version 4. Report: `docs/rounds/2026-10-19-second-simulation.md`, ending with
+"For the review".
+
+**The simulation ran in this session.** New agent types load into a running session at a later turn boundary, so the
+kit's `setup.js` was rerun after fix (d) renumbered the characters, and the games were driven by a workflow script with a
+guarded poller agent (`sim/workflow-driver.js`, `.claude/agents/sim-poller.md`, `sim/poller-guard.js`) instead of the
+session's own loop. Seeds 7 and 15, ten seasons each, sleep on: both ran to the end (Egypt won both), 543 agent calls
+with no retry and no fallback, all debriefs back, audit clean. The live isolation test passed every check but "at least
+4 blocked attempts" (the agents tried one or two forbidden steps and reported the rest as blocked); the orchestrator
+went ahead on the dry check, the live hook logs and the audit, and the report says so.
+
+**Usage.** Haakon raised this session's cap from 50% to 70% and asked that game 2 start only if a full game, estimated
+after two or three seasons of game 1, could finish below 70%. Estimated after season 3 at about 5-7 weekly points a game;
+the cap was cleared. Measured: the weekly limit went from 35% before the isolation tests to 47% after both games and
+debriefs (about 9-10 points, 15.85 million agent tokens), and about 52% with both games' analysis and the report.
+
+**For the review** (details in the report): model characters are too honest (yes, on thin evidence: no gold kept in
+317 decisions; prime them harder after fixing the request texts that distort the measure, then test in a game that
+tempts the greedy); the message-kind fallback for reopening is not needed (3 of 4 courts held asleep reopened, under 2%
+of the kings' tokens; kings named the next season in 114 of 130 orders replies, so the lever is why kings will not
+sleep). The report lists about twenty defects found, none fixed in this item. Fix (b) met the no-freeze target but not
+"much faster" first load (15% smaller; the gap needs a Brotli host or tooling that needs administrator rights). One
+intermittent test noted: `LocalPlayTests.A_game_with_local_agent_kings_sleeps_by_default_and_replays_exactly`.
+
+**PR #9** (item 3) was merged into `main` with a merge commit; `main` was merged back into `develop`.
