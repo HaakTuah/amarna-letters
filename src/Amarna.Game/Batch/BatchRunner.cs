@@ -242,7 +242,7 @@ public static class BatchRunner
         var top = games.Select(g => g.TopWealth).ToList();
         var gained = new Earnings();
         foreach (var g in games) gained.Add(g.Gained);
-        string Share(int part) => gained.Total == 0 ? "0%" : $"{100.0 * part / gained.Total:0}%";
+        string Share(int part) => gained.Total == 0 ? "0%" : $"{100.0 * part / gained.Total:0.0}%";
         yield return "The richest characters (the second game, played under the kings'):";
         yield return $"  The richest held {top.Average():0} shekels at the end on average (range {top.Min()}-{top.Max()}).";
         yield return $"  All the gold characters gained, {gained.Total} shekels: wages {Share(gained.Wages)}, skimmed {Share(gained.Skimmed)}, gifts {Share(gained.Gifts)}, gold kept on dismissal {Share(gained.Carried)}.";

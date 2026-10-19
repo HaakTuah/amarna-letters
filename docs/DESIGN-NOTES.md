@@ -1571,19 +1571,20 @@ These are in the code as written, and they affect the balance numbers:
 `BaselineLeader` is a frozen copy of the first script bot. `--versus solo` plays each king on the
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
-current bot. Seeds 1–40, one current king against six baselines, rerun after the simulation-fixes round (19 October
-2026, shared victory off; the numbers before that round, and why they moved, are in its report, `docs/rounds/2026-10-19-simulation-fixes.md`, "Benchmarks"):
+current bot. Seeds 1–40, one current king against six baselines, rerun after Build order item 3 (19 October 2026,
+shared victory off; the numbers before it, and why they moved, are in its report,
+`docs/rounds/2026-10-19-small-record-items.md`, "Benchmarks", and the rounds before in theirs):
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
-| Egypt | 2.85 | 1.30 | 88% | 18% |
-| Hatti | 2.76 | 0.82 | 83% | 5% |
-| Babylonia | 2.42 | 1.15 | 83% | 10% |
-| Mitanni | 1.86 | 1.35 | 50% | 25% |
-| Assyria | 3.81 | 0.96 | 85% | 10% |
-| Arzawa | 2.96 | 1.40 | 60% | 30% |
-| Alashiya | 1.84 | 0.91 | 48% | 3% |
-| All kings | 2.64 | 1.13 | 71% | 14% |
+| Egypt | 2.86 | 1.31 | 93% | 15% |
+| Hatti | 2.78 | 0.84 | 85% | 5% |
+| Babylonia | 2.44 | 1.16 | 85% | 10% |
+| Mitanni | 1.85 | 1.35 | 53% | 28% |
+| Assyria | 3.76 | 0.97 | 88% | 10% |
+| Arzawa | 3.18 | 1.38 | 63% | 30% |
+| Alashiya | 1.84 | 0.88 | 45% | 3% |
+| All kings | 2.67 | 1.13 | 73% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
