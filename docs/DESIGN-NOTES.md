@@ -1598,13 +1598,15 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   sleep-and-simulation round, so the siege package can use them unchanged. Nothing in the engine reads them; only
   the web map draws them. "A landing by convoy counts as a crossing" is a rule about any convoyed landing, so it is
   left to the siege package rather than stored on a connection.
-- **One date label** (`Calendar.Label`, question 26, plan steps 1-3): the court's season and year with the turn,
-  "Peret, year 3 (turn 8)" at Egypt's court, "the second season, year 3 (turn 8)" at the others, and "season 2 of
-  year 3 (turn 8)" for the spectator. Dense lists use the short form, "y3 Peret" or "y3 s2", with the full label in
-  a tooltip. The header's ending line reads "The age cannot end before Shemu, year 5 (turn 15)." until the first
-  season that may end the age, then "Any season may now be the last (15% each season)." The seat view's own
-  `Season` text and the prompts are unchanged: kings still read turns first, as question 26's simulation result
-  asked. The BCE year (plan step 4) is not built. Every date the web app writes uses the label; engine texts shown
+- **One date label** (`Calendar.Label`, question 26, plan steps 1-4): the court's season, the year BCE and the
+  turn. Years are counted from 1345 BCE: the first year of a game is 1345 BCE and each later year is one less
+  (`Calendar.FirstYearBce`, `YearBce`; Haakon, 19 October). Egypt's court reads "Peret, 1344 BCE (turn 5)", the
+  others "the second season, 1344 BCE (turn 5)", and the spectator "season 2, 1344 BCE (turn 5)". Dense lists use
+  the short form, "Peret 1344 BCE" or "s2 1344 BCE", with the full label in a tooltip. The header's ending line
+  reads "The age cannot end before Shemu, 1341 BCE (turn 15)." until the first season that may end the age, then
+  "Any season may now be the last (15% each season)." The year BCE is shown in the interface only: the seat view's
+  own `Season` text ("Peret (growing), year 3") and the prompts are unchanged, so kings are never told the year
+  (question 26: a precise year invites models to replay real history), and the annals still count game years. Every date the web app writes uses the label; engine texts shown
   in the interface (a servant's timing and term, inbox items, events) have each "turn N" given its label for display
   (`Ui.Dated`; a spy report's "season of turn N" becomes the label alone, which names the season), while the texts
   kings read stay as they are. The rulebook tab still shows the rulebook word for word.
@@ -1764,9 +1766,9 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   sections after it; item 11).
 - **Full and structured press**: two press modes, free text as today and a structured mode with templates for every
   king and for script envoys (Ideas tab "Two press modes"; item 8).
-- **Other courts' own calendars and the BCE year**: season names for the courts that have only ordinals today
-  (main tab "Season names"), and the spectator's BCE year (question 26, plan steps 4-7). The one date label and the
-  ending line are built (see "The web map and the interface").
+- **Other courts' own calendars and regnal years**: season names for the courts that have only ordinals today
+  (main tab "Season names"), and regnal or limmu years (question 26, plan steps 5-7). The one date label with the
+  year BCE and the ending line are built (see "The web map and the interface").
 - **The map's later layers**: roads and relay stations, walls and sieges, and generals leading armies, drawn once the
   game has them (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).

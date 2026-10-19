@@ -262,14 +262,14 @@ public class MapSceneTests
     [Fact]
     public void Engine_texts_get_their_date_label_for_display()
     {
-        Assert.Equal("set out in Akhet, year 1 (turn 1) for Hatti; due back about Peret, year 2 (turn 5)",
+        Assert.Equal("set out in Akhet, 1345 BCE (turn 1) for Hatti; due back about Peret, 1344 BCE (turn 5)",
             Ui.Dated("set out in turn 1 for Hatti; due back about turn 5", Power.Egypt));
-        Assert.Equal("serves at 8 a season through season 3 of year 4 (turn 12)", Ui.Dated("serves at 8 a season through turn 12", null));
+        Assert.Equal("serves at 8 a season through season 3, 1342 BCE (turn 12)", Ui.Dated("serves at 8 a season through turn 12", null));
         Assert.Equal("Turn them", Ui.Dated("Turn them", null));
         // A spy's report dates what it saw by "season of turn N": the label alone names the season.
-        Assert.Equal("From Arzawa, the second season, year 3 (turn 8).", Ui.Dated("From Arzawa, season of turn 8.", Power.Hatti));
-        Assert.Equal("From Arzawa, season 2 of year 3 (turn 8).", Ui.Dated("From Arzawa, season of turn 8.", null));
-        Assert.Equal("Season 2 of year 3 (turn 8) was quiet", Ui.Dated("Turn 8 was quiet", null));
+        Assert.Equal("From Arzawa, the second season, 1343 BCE (turn 8).", Ui.Dated("From Arzawa, season of turn 8.", Power.Hatti));
+        Assert.Equal("From Arzawa, season 2, 1343 BCE (turn 8).", Ui.Dated("From Arzawa, season of turn 8.", null));
+        Assert.Equal("Season 2, 1343 BCE (turn 8) was quiet", Ui.Dated("Turn 8 was quiet", null));
     }
 
     [Fact]

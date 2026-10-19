@@ -148,16 +148,18 @@ What the gradient will need once news travels (item 7):
 
 ### Dates and status
 
-- Every date the web app writes uses `Calendar.Label`: "Peret, year 3 (turn 8)" at Egypt's court, "the second
-  season, year 3 (turn 8)" at the others, "season 2 of year 3 (turn 8)" in god view; dense lists use "y3 Peret" or
-  "y3 s2" with the full label in a tooltip. This covers the browser title, the header, the timeline, events and
+- Every date the web app writes uses `Calendar.Label`: the court's season, the year BCE and the turn, "Peret,
+  1343 BCE (turn 8)" at Egypt's court, "the second season, 1343 BCE (turn 8)" at the others, "season 2, 1343 BCE
+  (turn 8)" in god view; dense lists use "Peret 1343 BCE" or "s2 1343 BCE" with the full label in a tooltip. Years
+  are counted from 1345 BCE (see "Owner's additions" below; quotations elsewhere in this report from before that
+  change still show "year N"). This covers the browser title, the header, the timeline, events and
   signals, the annals' true record, memories, contracts and timings, tablets ("sealed"/"dated"), the message trail,
   the growth chart, the inbox, the orders panel and the sleep lines. Engine texts shown in the interface (a servant's
   timing and term, inbox items, events) have each "turn N" given its label for display only (`Ui.Dated`); the texts
   kings read are unchanged. The rulebook tab still shows the rulebook word for word.
-- The header's ending line: "The age cannot end before Shemu, year 5 (turn 15)." until then, "Any season may now be
+- The header's ending line: "The age cannot end before Shemu, 1341 BCE (turn 15)." until then, "Any season may now be
   the last (15% each season)." after, and at the end "The age has ended: …. Winner: …". On a narrow phone it reads
-  "Can end from y5 Shemu (turn 15)".
+  "Can end from Shemu 1341 BCE (turn 15)".
 - The message trail shows where an unfinished message stands instead of dashes: "On the road, arrives in season 3 of
   year 3 (turn 9).", "Heard; on the road home, back in …", "Detained at the court of …", "At the court of …", "Never
   came home: held captive by …", "Never reported: went over to …".
@@ -274,9 +276,9 @@ twice. Reduced motion turns off every transition and animation.
 3. **The season shown.** The map at a point in the timeline shows the world as a season begins, with the moves of the
    season just resolved drawn on it; the Season panel and the timeline name the season whose moves are shown, the
    header the season being played.
-4. **Date-label formats.** The ending line uses the one label ("The age cannot end before Shemu, year 5 (turn 15).")
-   rather than question 26's "turn 15 (Shemu, year 5)", since the prompt asks for one helper for every date. The
-   BCE year (question 26, step 4) is not built: the prompt asked for steps 1-3 only.
+4. **Date-label formats.** The ending line uses the one label ("The age cannot end before Shemu, 1341 BCE (turn
+   15).") rather than question 26's "turn 15 (Shemu, year 5)", since the prompt asks for one helper for every date.
+   The year BCE was added at Haakon's request (see "Owner's additions").
 5. **Foreign spies are never drawn in a court's view,** as the prompt says (its own spies, and foreign envoys only
    while at its court). The engine's own view still lists a spy posted at a court in that court's People panel with
    its employer (question 19, bug 4, an engine matter, recorded under "Characters" in the design notes); this round
@@ -306,13 +308,29 @@ twice. Reduced motion turns off every transition and animation.
 
 ## Left out, and why
 
-- The spectator's BCE year, regnal years and other courts' calendar names: not asked (question 26 steps 4-7).
+- Regnal years and other courts' calendar names: not asked (question 26 steps 5-7).
 - Roads, relay stations, walls that vary, sieges and generals: not in the game; the prompt says not to draw them.
 - Fog of war for ownership: ownership is public and live in the engine; what it will need is listed above.
 - Push notifications: the prompt lets them wait.
 - Ahead-of-time compilation or a Web Worker for the script kings, and splitting the SDK out of `Amarna.Llm`: not
   presentation (see "What limits it").
 - Measurement on a physical phone: none was available; all phone figures come from Chrome's emulation.
+
+## Owner's additions
+
+Haakon added two things to the item on 19 October, after the review:
+
+1. **Years counted from 1345 BCE.** The first year of a game is 1345 BCE and each later year is one less, so the
+   date-label helper shows the court's season, the year BCE and the turn: "Peret, 1344 BCE (turn 5)" at Egypt's
+   court, "the second season, 1344 BCE (turn 5)" at the others, "season 2, 1344 BCE (turn 5)" in god view, and
+   "Peret 1344 BCE" or "s2 1344 BCE" in dense lists. `Calendar.FirstYearBce` and `Calendar.YearBce` in the engine
+   project are display helpers like the rest of the label; nothing in the engine reads them. The kings' own text is
+   unchanged: the seat view's `Season` line still reads "Peret (growing), year 3" and no prompt names a year BCE, as
+   question 26 advised (a precise year invites models to replay real history). The annals (template and model
+   narrators) still count game years; the 60-season cap would end in 1326 BCE. The engine and web label tests check
+   the new format (all 654 tests pass); the seeds replay exactly, since no rule changed. The screenshots below were
+   taken before this change and show the old "year N" labels.
+2. **The prompt's opening line** (phone first): already done in `dd82ff6` (see "Decisions and readings", 1).
 
 ## Review findings
 

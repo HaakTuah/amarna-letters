@@ -13,7 +13,7 @@ public static partial class Ui
 
     public static string Name(this Power p) => p == Power.Babylonia ? "Babylonia" : p.Land();
 
-    /// <summary>The one date label of the interface: the court's season and year with the turn, or the spectator's (<see cref="Calendar.Label"/>).</summary>
+    /// <summary>The one date label of the interface: the court's season and the year BCE with the turn, or the spectator's (<see cref="Calendar.Label"/>).</summary>
     public static string When(int turn, Power? court) => Calendar.Label(turn, court);
 
     /// <summary>The same, capitalised to open a sentence or a heading.</summary>
@@ -23,7 +23,7 @@ public static partial class Ui
 
     /// <summary>
     /// Engine text with every "turn N" given its date label ("due back about turn 8" reads "due back about Peret,
-    /// year 3 (turn 8)"). "Season of turn N", as a spy's report dates what it saw, becomes the label alone, since
+    /// 1343 BCE (turn 8)"). "Season of turn N", as a spy's report dates what it saw, becomes the label alone, since
     /// the label names the season. For texts the engine writes for courts and characters, shown in the interface
     /// only; the texts themselves, which kings read, are unchanged.
     /// </summary>

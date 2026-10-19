@@ -23,8 +23,15 @@ public static class Calendar
     public static string Neutral(int turn) => $"Season {SeasonIndex(turn) + 1} of year {Year(turn)} (turn {turn})";
 
     // ---------------------------------------------------------------- the interface's date labels
-    // One label for every date the web app shows (question 26 of the sleep-and-simulation round, plan steps 1-3): the
-    // court's season and year, with the turn. Display only: no rule, view or prompt reads these.
+    // One label for every date the web app shows (question 26 of the sleep-and-simulation round, plan steps 1-4): the
+    // court's season and the year BCE, with the turn. Display only: no rule, view or prompt reads these, so kings are
+    // never told the year BCE.
+
+    /// <summary>The first year of every game, counted BCE; each later year is one less.</summary>
+    public const int FirstYearBce = 1345;
+
+    /// <summary>The year BCE of a turn: 1345 for turns 1-3, 1344 for turns 4-6, and so on.</summary>
+    public static int YearBce(int turn) => FirstYearBce - (Year(turn) - 1);
 
     /// <summary>The season's short name in a court's reckoning: Egypt's own names, the other courts' ordinals; the spectator's number.</summary>
     public static string SeasonName(int turn, Power? court)
@@ -36,16 +43,14 @@ public static class Calendar
     }
 
     /// <summary>
-    /// The date label: "Peret, year 3 (turn 8)" at Egypt's court, "the second season, year 3 (turn 8)" at the others,
-    /// and for the spectator (no court) "season 2 of year 3 (turn 8)".
+    /// The date label: "Peret, 1343 BCE (turn 8)" at Egypt's court, "the second season, 1343 BCE (turn 8)" at the
+    /// others, and for the spectator (no court) "season 2, 1343 BCE (turn 8)".
     /// </summary>
-    public static string Label(int turn, Power? court = null) => court is null
-        ? $"season {SeasonIndex(turn) + 1} of year {Year(turn)} (turn {turn})"
-        : $"{SeasonName(turn, court)}, year {Year(turn)} (turn {turn})";
+    public static string Label(int turn, Power? court = null) => $"{SeasonName(turn, court)}, {YearBce(turn)} BCE (turn {turn})";
 
-    /// <summary>The short form for dense lists: "y3 Peret", "y3 s2". The turn goes in a tooltip (<see cref="Label"/>).</summary>
+    /// <summary>The short form for dense lists: "Peret 1343 BCE", "s2 1343 BCE". The turn goes in a tooltip (<see cref="Label"/>).</summary>
     public static string Short(int turn, Power? court = null) =>
-        court == Power.Egypt ? $"y{Year(turn)} {SeasonName(turn, court)}" : $"y{Year(turn)} s{SeasonIndex(turn) + 1}";
+        court == Power.Egypt ? $"{SeasonName(turn, court)} {YearBce(turn)} BCE" : $"s{SeasonIndex(turn) + 1} {YearBce(turn)} BCE";
 
     /// <summary>
     /// The ending line for the header: before the first season that may end the age, "The age cannot end before …";

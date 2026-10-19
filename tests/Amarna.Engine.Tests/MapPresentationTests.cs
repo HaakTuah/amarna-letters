@@ -9,31 +9,35 @@ namespace Amarna.Engine.Tests;
 public class MapPresentationTests
 {
     [Fact]
-    public void Turn_1_is_the_first_season_of_year_1_and_turn_15_the_third_season_of_year_5()
+    public void Turn_1_is_the_first_season_of_1345_BCE_and_each_later_year_is_one_less()
     {
-        Assert.Equal("Akhet, year 1 (turn 1)", Calendar.Label(1, Power.Egypt));
-        Assert.Equal("the first season, year 1 (turn 1)", Calendar.Label(1, Power.Hatti));
-        Assert.Equal("season 1 of year 1 (turn 1)", Calendar.Label(1));
-        Assert.Equal("Shemu, year 5 (turn 15)", Calendar.Label(15, Power.Egypt));
-        Assert.Equal("the third season, year 5 (turn 15)", Calendar.Label(15, Power.Babylonia));
-        Assert.Equal("Peret, year 3 (turn 8)", Calendar.Label(8, Power.Egypt));
-        Assert.Equal("season 2 of year 3 (turn 8)", Calendar.Label(8));
+        Assert.Equal("Akhet, 1345 BCE (turn 1)", Calendar.Label(1, Power.Egypt));
+        Assert.Equal("the first season, 1345 BCE (turn 1)", Calendar.Label(1, Power.Hatti));
+        Assert.Equal("season 1, 1345 BCE (turn 1)", Calendar.Label(1));
+        Assert.Equal("Shemu, 1345 BCE (turn 3)", Calendar.Label(3, Power.Egypt));
+        Assert.Equal("Akhet, 1344 BCE (turn 4)", Calendar.Label(4, Power.Egypt));
+        Assert.Equal("Peret, 1344 BCE (turn 5)", Calendar.Label(5, Power.Egypt));
+        Assert.Equal("Shemu, 1341 BCE (turn 15)", Calendar.Label(15, Power.Egypt));
+        Assert.Equal("the third season, 1341 BCE (turn 15)", Calendar.Label(15, Power.Babylonia));
+        Assert.Equal("Peret, 1343 BCE (turn 8)", Calendar.Label(8, Power.Egypt));
+        Assert.Equal("season 2, 1343 BCE (turn 8)", Calendar.Label(8));
+        Assert.Equal(1326, Calendar.YearBce(60));
     }
 
     [Fact]
     public void The_short_form_keeps_the_year_and_season()
     {
-        Assert.Equal("y3 Peret", Calendar.Short(8, Power.Egypt));
-        Assert.Equal("y3 s2", Calendar.Short(8, Power.Mitanni));
-        Assert.Equal("y5 s3", Calendar.Short(15));
+        Assert.Equal("Peret 1343 BCE", Calendar.Short(8, Power.Egypt));
+        Assert.Equal("s2 1343 BCE", Calendar.Short(8, Power.Mitanni));
+        Assert.Equal("s3 1341 BCE", Calendar.Short(15));
     }
 
     [Fact]
     public void The_ending_line_names_the_first_season_that_may_end_the_age_then_the_chance()
     {
         var c = new GameConfig();
-        Assert.Equal("The age cannot end before Shemu, year 5 (turn 15).", Calendar.Ending(8, c.MinTurns, c.EndChance, Power.Egypt));
-        Assert.Equal("The age cannot end before season 3 of year 5 (turn 15).", Calendar.Ending(14, c.MinTurns, c.EndChance));
+        Assert.Equal("The age cannot end before Shemu, 1341 BCE (turn 15).", Calendar.Ending(8, c.MinTurns, c.EndChance, Power.Egypt));
+        Assert.Equal("The age cannot end before season 3, 1341 BCE (turn 15).", Calendar.Ending(14, c.MinTurns, c.EndChance));
         Assert.Equal("Any season may now be the last (15% each season).", Calendar.Ending(15, c.MinTurns, c.EndChance));
     }
 
