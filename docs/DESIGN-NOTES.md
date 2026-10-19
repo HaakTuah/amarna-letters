@@ -1159,12 +1159,20 @@ commitments, each flag, spies, pitches, and the same per character), and the siz
 (`BatchRunner.CallSizes`: file requests in characters, and tokens at 3.6 characters a token; API calls by their input
 tokens). A file request's length is logged with its call (`ModelCall.RequestChars`).
 
-`sim/` holds a kit that plays a game with one Claude Code agent per king, with isolation enforced
-by construction, not by instruction: see `sim/README.md` and `docs/SIMULATION-PROMPT.md`. Starting
-values for the first experiment, all settings rather than rules: seed 7; `--max-turns 10` (the game
-stops after season 10, whatever the random end; the kings are not told, and their rulebook still
-says no game ends before turn 15); `--sleep-cap 6`; script characters and the template narrator;
-kings on Sonnet 5.5, the design's default leader model.
+`sim/` holds a kit that plays a game with one Claude Code agent per king and, since item 4, one per
+character, with isolation enforced by construction, not by instruction: see `sim/README.md` and
+`docs/SIMULATION-PROMPT.md`. Starting values for the first experiment, all settings rather than rules:
+seed 7; `--max-turns 10` (the game stops after season 10, whatever the random end; the kings are not
+told, and their rulebook still says no game ends before turn 15); `--sleep-cap 6`; script characters
+and the template narrator; kings on Sonnet 5.5, the design's default leader model. For the second
+(item 4): seeds 7 and 15, ten seasons each, sleep on with the default hidden cap (12); kings on
+Sonnet and characters on Haiku, the design's defaults ("Every model is the table's choice"); every
+character of each seed's pool is a file character with an agent of its own (`setup.js --seeds 7,15`
+makes 36, named `char-` and 8 random hex digits, with the same guard as the kings); city-states and
+the narrator as before. `check-isolation.js --dry` checks the walls without starting an agent, by
+running each agent's own hook on the isolation test's steps; the live test still runs first in the
+playing session. `stub-replier.js` answers requests with the plainest valid reply, to prove the
+plumbing without model calls.
 
 ## Script kings
 

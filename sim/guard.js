@@ -1,9 +1,9 @@
-// PreToolUse guard for one king agent. Claude Code runs it before every tool call the agent makes.
+// PreToolUse guard for one agent, a king or a character. Claude Code runs it before every tool call the agent makes.
 // It allows exactly two things: reading a *.request.md file, and writing a *.reply.json file, both
-// directly inside the king's own folder. Everything else is blocked (exit code 2), and every attempt
-// is logged, allowed or not, to the guard log, which no king can reach.
+// directly inside the agent's own folder. Everything else is blocked (exit code 2), and every attempt
+// is logged, allowed or not, to the guard log, which no agent can reach.
 //
-//   node sim/guard.js <king folder> <guard log> <power>   (the hook input arrives on stdin as JSON)
+//   node sim/guard.js <folder> <guard log> <label: the power, or the character's agent type>   (the hook input arrives on stdin as JSON)
 const fs = require("fs");
 const path = require("path");
 

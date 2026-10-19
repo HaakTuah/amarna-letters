@@ -1,30 +1,40 @@
-// For the orchestrator: waits until some kings have requests waiting (and no new ones have appeared
-// for a few seconds), or the game is over. Prints one JSON line and exits.
+// For the orchestrator: waits until some seats (kings or characters) have requests waiting, and no new ones have appeared
+// for a few seconds, or the game is over. Prints one JSON line and exits.
 //
-//   node sim/wait.js <batch output file> [max seconds = 540]
+//   node sim/wait.js <batch output file> [max seconds = 540] [--seed S]
 //
-//   {"status":"waiting","pending":[{"power":"Egypt","request":"t3_orders_Egypt.request.md"}, ...]}
+//   {"status":"waiting","pending":[{"agent":"king-egypt","request":"t3_orders_Egypt.request.md"},
+//                                  {"agent":"char-5f0c2a91","request":"t3_aud_present_c20.request.md"}, ...]}
 //   {"status":"finished"}      the batch runner printed its summary
 //   {"status":"still-running"} nothing to answer yet within the time limit: call again
-// It lists file names only; it never reads a king's request.
+// "agent" is the agent type to start for that request (subagent_type), and "request" the file name to give it. With
+// --seed, only that seed's characters are watched (the kings always are). It lists file names only; it never reads a
+// request.
 const fs = require("fs");
 const path = require("path");
 
-const kings = path.resolve(__dirname, "kings");
-const seats = JSON.parse(fs.readFileSync(path.join(kings, "seats.json"), "utf8"));
-const out = process.argv[2];
-const maxSeconds = Number(process.argv[3] ?? 540);
+const args = process.argv.slice(2);
+let seed = null;
+if (args.includes("--seed")) { seed = args[args.indexOf("--seed") + 1]; args.splice(args.indexOf("--seed"), 2); }
+const out = args[0];
+const maxSeconds = Number(args[1] ?? 540);
 const settle = 3000;
 
-const skip = new Set(["canary.request.md", "isolation-test.request.md"]);
+const read = f => fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : {};
+const seats = Object.entries(read(path.resolve(__dirname, "kings", "seats.json"))).map(([power, folder]) => ({ agent: `king-${power.toLowerCase()}`, folder }));
+const characters = Object.entries(read(path.resolve(__dirname, "characters", "agents.json")))
+  .filter(([, c]) => seed === null || c.seed === seed).map(([agent, c]) => ({ agent, folder: c.folder }));
+const all = [...seats, ...characters];
+
+// Game requests only ("t3_orders_Egypt", and a retry "t3_orders_Egypt.retry"): not the canary, the isolation test or a debrief.
 function pending() {
   const list = [];
-  for (const [power, folder] of Object.entries(seats)) {
+  for (const { agent, folder } of all) {
     if (!fs.existsSync(folder)) continue;
     for (const f of fs.readdirSync(folder).sort()) {
-      if (!f.endsWith(".request.md") || skip.has(f)) continue;
+      if (!/^t\d+_.*\.request\.md$/.test(f)) continue;
       const reply = f.slice(0, -".request.md".length) + ".reply.json";
-      if (!fs.existsSync(path.join(folder, reply))) list.push({ power, request: f });
+      if (!fs.existsSync(path.join(folder, reply))) list.push({ agent, request: f });
     }
   }
   return list;
