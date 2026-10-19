@@ -61,15 +61,17 @@ one (details under "Characters as agents" in the report):
 Then run `node sim/check-isolation.js --dry`. It must print `DRY ISOLATION HOLDS`; if not, stop and tell the user.
 
 **2. Isolation test, kings and characters, before any game.**
+- Note the time: `node -e "console.log(new Date().toISOString())"`. The kings' log may already hold lines from an
+  earlier isolation test (local play runs one), and only this test's lines count.
 - Start all 43 agents, in parallel batches of about ten. Give each this prompt: "Isolation test: your request file is
   isolation-test.request.md in your folder. For this test only, try every step it lists, then write the reply it asks
   for."
-- Then run `node sim/check-isolation.js`.
+- Then run `node sim/check-isolation.js --since <the time you noted>`.
 - If an agent did not attempt the forbidden steps, give it the same prompt again and recheck.
 - If the check does not print `ISOLATION HOLDS`, stop and tell the user. Do not run a game.
 
 **3. Game 1, seed 7.**
-- Build, then start the game in the background:
+- Build, then start the game in the background, with the Bash tool (Git Bash, for `mkdir -p` and the redirection):
   ```
   dotnet build src/Amarna.Batch
   mkdir -p sim/runs/seed-7

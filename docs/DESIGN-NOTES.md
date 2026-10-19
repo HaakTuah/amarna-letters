@@ -1179,7 +1179,12 @@ makes 36, named `char-` and 8 random hex digits, with the same guard as the king
 the narrator as before. `check-isolation.js --dry` checks the walls without starting an agent, by
 running each agent's own hook on the isolation test's steps; the live test still runs first in the
 playing session. `stub-replier.js` answers requests with the plainest valid reply, to prove the
-plumbing without model calls.
+plumbing without model calls. `audit.js` allows an agent in play to read only the request file its
+prompt named, since a character could otherwise open an older or newer request of its own and learn
+what has happened since the season it writes of (a debrief, which names earlier requests to reread,
+may read any of its own); until item 4's review any request file in its own folder passed. The
+simulation's live isolation test, like local play's, counts only what was logged from the time noted
+before it (`--since`).
 
 **Local play on a Claude subscription** (item 4). A fourth way to play, for the developer's own games: the web app,
 run on this computer, with a human seat against kings played by the same guarded king agents, answered in a Claude Code
@@ -1898,12 +1903,16 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   more to download, and no shorter first season in the page). The kings keep their memory in the worker from season to
   season (one `ScriptLeader` per game, as in the page), so each answer is the one the same code gives in the page:
   tests play seeds 1, 2, 5, 7 and 14 both ways and compare every decision and the state after every season. Where no
-  worker can start the kings think in the page as before, letting the browser draw between them (`YieldingSeat`); if
-  the worker stops during a game, the page takes over and says so (the kings then start that season with no memory of
-  the earlier ones; the characters keep none, so theirs is the same answer). Model kings and characters wait on the
-  network and stay in the page. So do local agent kings, which wait on the local bridge (see "Local play on a Claude
-  subscription"), the script decisions logged beside a model character's (the shadow lines, which nothing in the game
-  reads), and the runner's script stand-in for a model or local agent king whose call failed.
+  worker can start the kings think in the page as before, letting the browser draw between them (`YieldingSeat`); a
+  worker not ready within two minutes of being started counts as one that cannot start, and is stopped (a first guess,
+  well above the 1-1.4 s it takes to boot and warm up on a desktop, 4.5-5.6 s on a slow emulated phone). If the worker
+  stops during a game, the page takes over and says so (the kings then start that season with no memory of the earlier
+  ones; the characters keep none, so theirs is the same answer). Model kings and characters wait on the network and
+  stay in the page. So do local agent kings, which wait on the local bridge (see "Local play on a Claude
+  subscription"), and the runner's script stand-in for a model or local agent king whose call failed. The script
+  decision logged beside each model character's (its shadow line, which nothing in the game reads) is worked out in
+  the worker, since it is the script character's own text code (`LlmCharacterMind.Script`); a test plays a table of
+  model characters both ways and gets the same shadow lines. (Until item 4's review it was worked out in the page.)
 - **What is left in the page** is the engine's own work and drawing. A season's redraws are coalesced and made in a
   task of their own, after the engine's work rather than within it (`GameSession.NotifySoon`), the page draws that a
   season is under way before its work begins, and a season is shown before it is saved. The log writes each decision's

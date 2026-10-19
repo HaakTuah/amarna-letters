@@ -19,7 +19,14 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
 {
     public LlmCharacterMind(IJsonAsker client, string model = ModelIds.Haiku) : this(_ => client, model) { }
 
-    private readonly ScriptMind _script = new();
+    /// <summary>
+    /// The script mind that plays a character with no asker and makes the shadow's decisions: by default one in this
+    /// process; in a browser game the script worker's, which gives the same answers away from the page's one thread.
+    /// </summary>
+    public ICharacterMind Script { get; init; } = new ScriptMind();
+
+    /// <summary>The same model characters, with <paramref name="script"/> as their <see cref="Script"/>.</summary>
+    public LlmCharacterMind WithScript(ICharacterMind script) => new(askerFor, model, label) { Shadow = Shadow, Script = script };
 
     public string Label => label ?? $"{ModelIds.Display(model)} characters";
 
@@ -120,18 +127,18 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
 
     public Task<PresentResult> PresentAsync(EnvoyContext ctx, CancellationToken ct)
     {
-        if (askerFor(ctx.Self) is null) return _script.PresentAsync(ctx, ct);
+        if (askerFor(ctx.Self) is null) return Script.PresentAsync(ctx, ct);
         return Shadowed($"t{ctx.Turn}/aud/present/{ctx.Self.Id}", "present", ctx.Self, ctx.Turn,
-            () => ModelPresentAsync(ctx, ct), () => _script.PresentAsync(ctx, ct),
+            () => ModelPresentAsync(ctx, ct), () => Script.PresentAsync(ctx, ct),
             r => new CharacterChoice { Text = r.Speech, Kept = Math.Clamp(r.Skim, 0, ctx.Dispatch.Gold), Swap = r.SwapInventory, Flags = CharacterChecks.Present(ctx, r.Speech) },
             s => s.GoldCarried = ctx.Dispatch.Gold);
     }
 
     public Task<EnvoyReaction> ReactAsync(EnvoyContext ctx, HostReply host, CancellationToken ct)
     {
-        if (askerFor(ctx.Self) is null) return _script.ReactAsync(ctx, host, ct);
+        if (askerFor(ctx.Self) is null) return Script.ReactAsync(ctx, host, ct);
         return Shadowed($"t{ctx.Turn}/aud/react/{ctx.Self.Id}/{ctx.Round}", "react", ctx.Self, ctx.Turn,
-            () => ModelReactAsync(ctx, host, ct), () => _script.ReactAsync(ctx, host, ct),
+            () => ModelReactAsync(ctx, host, ct), () => Script.ReactAsync(ctx, host, ct),
             r => new CharacterChoice { Text = r.Speech, AcceptGift = r.AcceptBribe && host.Bribe > 0, AcceptService = r.AcceptJob && host.JobOffer > 0, Commitments = r.Commitments },
             s =>
             {
@@ -142,7 +149,7 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
 
     public Task<MindReply> WriteAsync(MindContext ctx, CancellationToken ct)
     {
-        if (askerFor(ctx.Self) is null) return _script.WriteAsync(ctx, ct);
+        if (askerFor(ctx.Self) is null) return Script.WriteAsync(ctx, ct);
         if (WriteKey(ctx) is not { } key) return Task.FromResult(new MindReply());
         var kind = ctx.Request.Task switch
         {
@@ -151,7 +158,7 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
             MindTask.SpyReport => "spy",
             _ => "memory",
         };
-        return Shadowed(key, kind, ctx.Self, ctx.Turn, () => ModelWriteAsync(ctx, key, ct), () => _script.WriteAsync(ctx, ct),
+        return Shadowed(key, kind, ctx.Self, ctx.Turn, () => ModelWriteAsync(ctx, key, ct), () => Script.WriteAsync(ctx, ct),
             r =>
             {
                 var choice = new CharacterChoice { Text = r.Text };

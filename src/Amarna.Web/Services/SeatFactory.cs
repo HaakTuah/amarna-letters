@@ -7,7 +7,7 @@ namespace Amarna.Web.Services;
 public sealed record BuiltSeats(Dictionary<Power, ISeat> Seats, ICharacterMind Minds, INarrator Narrator);
 
 /// <summary>Turns setup choices into seats, character minds and a narrator. Model calls go from this browser with the player's key.</summary>
-public sealed class SeatFactory(ScriptWorkerClient worker)
+public sealed class SeatFactory(IScriptTransport worker)
 {
     /// <summary>Raised when the script players' worker stops during a game and the kings carry on in the page.</summary>
     public event Action<string>? KingsMovedToPage;
@@ -19,7 +19,8 @@ public sealed class SeatFactory(ScriptWorkerClient worker)
             : SeatSetup.Build(settings.Choices, state, apiKey, browser: true, log);
         // Script kings and characters think in a worker of their own, so that the page never waits on them (see
         // ScriptWorker.cs). All script powers share one ScriptLeader, as in the batch runner, and so one worker seat.
-        if (!set.Seats.Values.Any(s => s is Amarna.Game.Bots.ScriptLeader) && set.Minds is not Amarna.Game.Bots.ScriptMind)
+        // So does the script decision logged beside each model character's (its shadow).
+        if (!set.Seats.Values.Any(s => s is Amarna.Game.Bots.ScriptLeader) && set.Minds is not (Amarna.Game.Bots.ScriptMind or LlmCharacterMind { Shadow: not null }))
             return new BuiltSeats(set.Seats, set.Minds, set.Narrator);
         var game = worker.NewGame(state.Seed);
         WorkerSeat? kings = null;
@@ -33,7 +34,12 @@ public sealed class SeatFactory(ScriptWorkerClient worker)
             }
             return (ISeat)kings;
         });
-        var minds = set.Minds is Amarna.Game.Bots.ScriptMind script ? new WorkerMind(script, worker, game) : set.Minds;
+        var minds = set.Minds switch
+        {
+            Amarna.Game.Bots.ScriptMind script => new WorkerMind(script, worker, game),
+            LlmCharacterMind { Shadow: not null } model => model.WithScript(new WorkerMind(new Amarna.Game.Bots.ScriptMind(), worker, game)),
+            _ => set.Minds,
+        };
         return new BuiltSeats(seats, minds, set.Narrator);
     }
 

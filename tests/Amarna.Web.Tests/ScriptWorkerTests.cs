@@ -1,6 +1,7 @@
 using Amarna.Engine;
 using Amarna.Game;
 using Amarna.Game.Bots;
+using Amarna.Llm;
 using Amarna.Web.Services;
 
 namespace Amarna.Web.Tests;
@@ -23,6 +24,8 @@ public class ScriptWorkerTests
         private int _games;
 
         public int Asked { get; private set; }
+        /// <summary>The requests for a character's words.</summary>
+        public int AskedOfCharacters { get; private set; }
         public string? Problem { get; private set; }
 
         public Task<bool> ReadyAsync() => Task.FromResult(starts);
@@ -43,6 +46,7 @@ public class ScriptWorkerTests
                     return null;
                 }
                 Asked++;
+                if (request.Kind is ScriptRequest.Present or ScriptRequest.React or ScriptRequest.Write) AskedOfCharacters++;
                 return ScriptJson.ReadReply(_host.Answer(body));
             }
             finally
@@ -148,6 +152,44 @@ public class ScriptWorkerTests
         var replay = GameRunner.ForReplay(GameLog.FromJsonl(through.Log.ToJsonl()));
         await PlayOut(replay);
         Assert.Equal(Json.Hash(through.State), Json.Hash(replay.State));
+    }
+
+    [Fact]
+    public async Task A_model_characters_script_shadow_is_worked_out_in_the_worker_and_is_the_same_as_in_the_page()
+    {
+        // A browser table of script kings and model characters, whose calls the simulated API answers the same way
+        // every time; each model decision is logged beside the script's for the same situation.
+        var settings = new GameSettings { Seed = 7, SimulateApi = true, Choices = new SeatChoices { Characters = CharacterKind.Haiku } };
+        async Task<GameRunner> Play(Func<GameState, Func<GameLog>, (Dictionary<Power, ISeat> Seats, ICharacterMind Minds)> build)
+        {
+            var state = GameFactory.NewGame(7, new GameConfig { MaxTurns = 5 });
+            GameRunner? runner = null;
+            var (seats, minds) = build(state, () => runner!.Log);
+            runner = new GameRunner(state, seats, minds, new TemplateNarrator()) { WriteChronicles = false };
+            await PlayOut(runner);
+            return runner;
+        }
+
+        var page = await Play((state, log) =>
+        {
+            var set = SeatSetup.Build(settings.Choices, state, "simulated", browser: true, log, new SimulatedAnthropic { ReportUsage = false });
+            return (set.Seats, set.Minds);
+        });
+        var worker = new LocalWorker();
+        var through = await Play((state, log) =>
+        {
+            var built = new SeatFactory(worker).Build(settings, state, null, log);
+            return (built.Seats, built.Minds);
+        });
+
+        Assert.NotEmpty(page.Log.Shadows);
+        // Every shadow decision was asked of the worker, none was worked out in the page, and each is the page's.
+        Assert.Equal(through.Log.Shadows.Count, worker.AskedOfCharacters);
+        // (Logged as each decision is made, so in another order; the log writes them by season and key.)
+        static IEnumerable<string> Lines(GameRunner r) => r.Log.Shadows.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => Json.Serialize(x));
+        Assert.Equal(Lines(page), Lines(through));
+        Assert.Equal(Json.Hash(page.State), Json.Hash(through.State));
+        Assert.Equal(page.Log.Header.Minds, through.Log.Header.Minds);
     }
 
     [Fact]

@@ -6,9 +6,12 @@
 //   ~/.claude/projects/<this folder, slugged>/<CLAUDE_CODE_SESSION_ID>/subagents
 // For each transcript whose agent type is king-<power> or one of the character agents (sim/characters/agents.json), it
 // lists every tool call. A call is a violation if it uses a tool other than Read or Write, or names a path outside that
-// agent's folder, or reads anything but a request file, or writes anything but a reply file. Calls the guard blocked are
-// counted separately (they are attempts, and also violations unless they belong to the isolation test). It also checks
-// that no transcript contains another agent's secret word.
+// agent's folder, or reads anything but a request file, or writes anything but a reply file. In play, the one request
+// file it may read is the one its prompt named ("Your request file is <name> in your folder"): a character could
+// otherwise read an older or a newer request of its own, and learn what has happened since the season it writes of.
+// A debrief names earlier requests for the agent to reread, so in a debrief any of its own request files may be read.
+// Calls the guard blocked are counted separately (they are attempts, and also violations unless they belong to the
+// isolation test). It also checks that no transcript contains another agent's secret word.
 // Exit code 0 = clean, 1 = a violation was found.
 const fs = require("fs");
 const path = require("path");
@@ -49,27 +52,38 @@ for (const meta of walk(root)) {
   const text = fs.existsSync(transcript) ? fs.readFileSync(transcript, "utf8") : "";
   const s = (stats[name] ??= { transcripts: 0, reads: 0, writes: 0, blocked: 0, testBlocked: 0, violations: [] });
   s.transcripts++;
-  const isTest = text.includes("isolation-test.request.md");
   const results = new Map();
   const uses = [];
+  let prompt = null;
   for (const line of text.split("\n").filter(Boolean)) {
     const j = JSON.parse(line);
+    // The prompt it was started with: the first message of its transcript.
+    if (prompt === null && j.type === "user") {
+      const c = j.message?.content;
+      prompt = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b.type === "text").map(b => b.text).join("\n") : "";
+    }
     for (const b of Array.isArray(j.message?.content) ? j.message.content : []) {
       if (b.type === "tool_use") uses.push(b);
       if (b.type === "tool_result") results.set(b.tool_use_id, JSON.stringify(b.content ?? ""));
     }
   }
+  const named = /request file is (\S+\.request\.md)/i.exec(prompt ?? "")?.[1].toLowerCase() ?? null;
+  // A transcript whose prompt names no request file (not one of the prompts the start prompts give) is judged as before.
+  const isTest = named ? named === "isolation-test.request.md" : text.includes("isolation-test.request.md");
+  const anyRequest = !named || isTest || named === "debrief.request.md";
   for (const u of uses) {
     const file = u.input?.file_path;
     const blocked = /Blocked:/.test(results.get(u.id) ?? "");
     const inside = typeof file === "string" && path.posix.dirname(norm(file)) === folder;
-    const okShape = (u.name === "Read" && inside && norm(file).endsWith(".request.md"))
+    const request = inside && norm(file).endsWith(".request.md");
+    const okShape = (u.name === "Read" && request && (anyRequest || path.posix.basename(norm(file)) === named))
                  || (u.name === "Write" && inside && norm(file).endsWith(".reply.json"));
     if (blocked) { if (isTest) s.testBlocked++; else s.blocked++; }
     else if (u.name === "Read") s.reads++;
     else if (u.name === "Write") s.writes++;
     if (!okShape && !(blocked && isTest)) {
-      s.violations.push(`${path.basename(transcript)}: ${u.name} ${file ?? JSON.stringify(u.input).slice(0, 120)}${blocked ? " (blocked)" : " (NOT BLOCKED)"}`);
+      const why = u.name === "Read" && request ? ` (not the request its prompt named, ${named})` : "";
+      s.violations.push(`${path.basename(transcript)}: ${u.name} ${file ?? JSON.stringify(u.input).slice(0, 120)}${blocked ? " (blocked)" : " (NOT BLOCKED)"}${why}`);
       violations++;
     }
   }
