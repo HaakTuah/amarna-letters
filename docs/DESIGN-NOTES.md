@@ -1641,6 +1641,27 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   path on the map), missions with what was written, said and reported, and in god view the hidden traits, facts and
   the character's own memory; in a court's view only what that court knows. It is built from sections so that later
   roles and lives can add their own.
+- **Phone first.** On a phone held upright the map comes first, at the full width, with the courts above it, the
+  panel (the season in words by default) below it and the timeline at the bottom within reach of a thumb; a panel can
+  be pulled up over the map and dropped back without the map losing its place or zoom. Held sideways, the map takes
+  the left and the panels the right; on a desktop they stand side by side. The layout keeps to the phone's safe areas,
+  and the page itself never scrolls. Pinch-zoom and pan move one layer on the GPU (`js/mapzoom.js`); symbols and names
+  grow when the map is small on screen, and minor names wait until it is zoomed in. A province list stands in for
+  tapping small provinces; in a human seat's orders it picks a destination as a tap on the map would.
+- **Installable.** A manifest and a service worker (the Blazor template's, adapted): the published build caches
+  every file at install and starts from the cache afterwards. Fingerprinted files are taken from the browser's own
+  cache, so installing downloads nothing twice; HTML files are not checked against the publish hashes, since the
+  Pages workflow rewrites their base path. In development the worker caches nothing.
+- **Load size.** The browser build runs in the invariant culture (no ICU data) and trims the Anthropic SDK, which
+  the browser never constructs (it posts with HttpClient), to the code that refers to it: about 3.2 MB compressed
+  instead of 5.0 MB. Splitting the SDK path out of `Amarna.Llm` would save another 0.45 MB; not done, as it is not
+  presentation.
+- **Script kings in the page.** Their look-ahead runs in the page's one WebAssembly thread, and is nearly all of a
+  season's time (several seconds on a slow phone). The web app lets the browser draw between kings (`YieldingSeat`:
+  the kings still decide one after another in the same order, so nothing they decide changes), shows a season before
+  saving it, and never asks the map to read a whole state back from its snapshot. Measurements are in the round
+  report.
+- **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
 
 ## Where the code differs from the design document (as it stood on 19 October 2026)
 
@@ -1730,12 +1751,12 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   sections after it; item 11).
 - **Full and structured press**: two press modes, free text as today and a structured mode with templates for every
   king and for script envoys (Ideas tab "Two press modes"; item 8).
-- **Date labels**: one date label everywhere (court season and year, with the turn) and an ending indicator; other
-  courts' own calendars, where today only Egypt has one (main tab "The map (planned next)" and "Season names";
-  question 26; item 2).
-- **The visual overhaul**: the museum-map style, geography on the map, each season's moves and the envoys on the road
-  through the timeline, fog of war as a gradient, the "follow this character" view, measured performance on a phone
-  (`docs/prompts/VISUAL-OVERHAUL.md`; main tab "The map (planned next)"; item 2).
+- **Other courts' own calendars and the BCE year**: season names for the courts that have only ordinals today
+  (main tab "Season names"), and the spectator's BCE year (question 26, plan steps 4-7). The one date label and the
+  ending line are built (see "The web map and the interface").
+- **The map's later layers**: roads and relay stations, walls and sieges, and generals leading armies, drawn once the
+  game has them (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
+  once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).
 - **Tablets as objects in a place, swapped tablets and the richest characters**: archives at the capital that spies
   copy from and a conqueror takes; an envoy swapping an inventory tablet for a forgery; a ranking by wealth at the end
   (main tab "Tablets have a place"; Ideas tab; item 3).
@@ -1770,7 +1791,7 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   audiences" and "What the replay showed"; Build order "Not yet in the order"; the round report, "Later candidates").
 - **Local play on a Claude subscription**: a human seat against file-seat kings answered by guarded agents (main tab
   "Local play on a Claude subscription (planned)").
-- **An installable web app**, and later push notifications when an envoy arrives (main tab "Platforms").
+- **Push notifications** when an envoy arrives (main tab "Platforms"); the web app installs and starts from cache.
 - **Echoes kept out of the primer**: Finkel's "Send gold" parody as a rare script king's letter or chronicle line, and
   "a new Idrimi" in the chronicles once outlaws exist (main tab "Echoes from the archive" and "A new Idrimi").
 - **Still to be decided before they are built**: distance-based travel and interception (which outlaws and bandit

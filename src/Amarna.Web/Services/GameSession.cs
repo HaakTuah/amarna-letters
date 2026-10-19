@@ -65,6 +65,10 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
 
     private void Notify() => Changed?.Invoke();
 
+    /// <summary>
+    /// The full state of the season shown, for the panels that need it. A season in history is read back from its
+    /// snapshot, which is slow on a phone, so the last few read are kept, and the map never asks for one.
+    /// </summary>
     public GameState? Displayed
     {
         get
@@ -73,12 +77,23 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
             if (HistoryTurn is not int t) return Runner.State;
             if (_historyTurn != t || _history is null)
             {
-                _history = Runner.StateAt(t);
+                if (!_recent.TryGetValue(t, out var state))
+                {
+                    state = Runner.StateAt(t);
+                    if (state is not null)
+                    {
+                        if (_recent.Count >= 4) _recent.Remove(_recent.Keys.First());
+                        _recent[t] = state;
+                    }
+                }
+                _history = state;
                 _historyTurn = t;
             }
             return _history ?? Runner.State;
         }
     }
+
+    private readonly Dictionary<int, GameState> _recent = new();
 
     public async Task StartAsync(GameSettings settings, string? apiKey)
     {
@@ -95,6 +110,9 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
         foreach (var (p, seat) in built.Seats)
             if (seat is HumanSeat h) { Humans[p] = h; h.Changed += Notify; }
         Frames.Reset();
+        _recent.Clear();
+        _history = null;
+        _historyTurn = -1;
         Runner = new GameRunner(state, built.Seats, built.Minds, built.Narrator) { WriteChronicles = settings.Chronicles };
         Runner.Changed += RunnerChanged;
         GameId = $"game-{settings.Seed}-{DateTime.UtcNow:yyyyMMddHHmmss}";
@@ -135,6 +153,9 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
                 foreach (var (p, seat) in built.Seats)
                     if (seat is HumanSeat h) { Humans[p] = h; h.Changed += Notify; }
                 Frames.Reset();
+                _recent.Clear();
+                _history = null;
+                _historyTurn = -1;
                 Runner = GameRunner.Resume(log, built.Seats, built.Minds, built.Narrator);
                 Runner.Changed += RunnerChanged;
                 ReadOnly = false;
@@ -149,6 +170,9 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
             else
             {
                 Frames.Reset();
+                _recent.Clear();
+                _history = null;
+                _historyTurn = -1;
                 Runner = GameRunner.ForReplay(log);
                 Runner.Changed += RunnerChanged;
                 Runner.WriteChronicles = log.Decisions.Any(d => d.Key.StartsWith("end/chronicle/"));
@@ -173,10 +197,11 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
         HistoryTurn = null;
         Busy = true;
         Notify();
+        var played = false;
         try
         {
             await Runner.PlayTurnAsync(_cts.Token);
-            await SaveAsync();
+            played = true;
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -188,6 +213,12 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
         {
             Busy = false;
             Notify();
+        }
+        // The season is shown first; the save (the whole log, to IndexedDB) follows once the page has drawn it.
+        if (played)
+        {
+            await Task.Delay(1);
+            await SaveAsync();
         }
     }
 

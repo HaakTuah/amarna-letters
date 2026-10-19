@@ -131,16 +131,35 @@ reported home. Switch to any power to see exactly what it saw. The timeline step
 the seasons; signals mark sealed tablets, accusations, forgeries, broken promises and more.
 After the game, compare two nations' self-serving annals with the true record.
 
+The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
+each power in its colour with an emblem and a border line of its own (so it reads without
+colour), armies as chariots and fleets as ships. Step the timeline and each season's moves,
+attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
+and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
+uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
+their life: their path, their masters, their missions, what they said and reported. It is built
+phone first: the map fits the screen with pinch-zoom, the panels open from it, and the app
+installs to the home screen and starts from cache. A link to `play?watch=7` (any seed) starts a
+game of script kings to watch.
+
 ## Your first live game: a checklist
 
 1. Create a dedicated API key with a low spend limit (a few dollars) in the Anthropic Console.
 2. Start with a mixed table: Sonnet 5.5 leaders, script characters, template narrator. Set the
    budget to $3.
-3. Watch the cost meter in the top bar for the first two seasons; the per-season figure tells you
+3. Watch the cost meter in the game's header for the first two seasons; the per-season figure tells you
    what a full game will cost.
 4. Open the **Message trail** tab once envoys start arriving: the gap between what was written,
    said and reported is the thing to look at.
-5. If calls fail, the top of the map lists them; each failed call falls back to a script decision
-   and the game continues. Export the log (top bar) to keep the prompts and outputs.
+5. If calls fail, the top of the side panel lists them; each failed call falls back to a script
+   decision and the game continues. Export the log (the ⋯ menu) to keep the prompts and outputs.
 
 See [docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md) for every decision and simplification made while building.
+
+
+## Credits
+
+The game was inspired by Irving Finkel's *Curator's Corner* episode 100, "Reading the Pharaoh's
+private mail with Irving Finkel" (The British Museum,
+<https://www.youtube.com/watch?v=3MZq_ZQDhJA>), and leans on William L. Moran's *The Amarna
+Letters* for the translations of the letters themselves.

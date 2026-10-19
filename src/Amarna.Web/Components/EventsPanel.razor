@@ -1,6 +1,7 @@
 @{
-    var events = State.Events.Where(e => Viewer is null || e.VisibleTo.Contains(Viewer.Value)).ToList();
-    var signals = Viewer is null ? SignalDetector.Detect(State) : new List<Signal>();
+    var upTo = UpTo ?? int.MaxValue;
+    var events = State.Events.Where(e => e.Turn <= upTo && (Viewer is null || e.VisibleTo.Contains(Viewer.Value))).ToList();
+    var signals = Viewer is null ? SignalDetector.Detect(State).Where(s => s.Turn <= upTo).ToList() : new List<Signal>();
 }
 @if (Viewer is null)
 {
@@ -33,6 +34,11 @@
 @code {
     [Parameter, EditorRequired] public GameState State { get; set; } = default!;
     [Parameter] public Power? Viewer { get; set; }
+    /// <summary>
+    /// Show only what had happened by the end of this season. Events are only ever added, each stamped with its season, so
+    /// the newest state filtered by season reads as the state of that season did, without loading it.
+    /// </summary>
+    [Parameter] public int? UpTo { get; set; }
     private string? Kind;
     private int Limit = 120;
 }

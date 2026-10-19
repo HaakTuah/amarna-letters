@@ -6,7 +6,10 @@
 
 <div class="mapview lod1" @ref="_view">
     <div class="mapzoom">
-        <svg class="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="@AriaLabel">
+        @* Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and
+           painted only when another season is shown), the pieces above (light, and the only thing repainted while
+           units and travellers slide). The upper one lets taps through to the provinces where it has nothing. *@
+        <svg class="map map-lower" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="@AriaLabel">
             <StaticSvg Markup="@MapMarkup.Defs" />
             <StaticSvg Markup="@MapMarkup.Base" />
             <MapPolitics Frame="Scene.Frame" Part="tints" OnProvince="OnProvince" />
@@ -14,6 +17,8 @@
             <MapPolitics Frame="Scene.Frame" Part="bands" />
             <StaticSvg Markup="@MapMarkup.Labels" />
             <MapPolitics Frame="Scene.Frame" Part="cities" OnProvince="OnProvince" />
+        </svg>
+        <svg class="map map-upper" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
             <MapRoads Scene="Scene" Viewer="Scene.Viewer" FollowId="FollowId" Path="FollowPath" />
             <MapMoves Scene="Scene" />
             <MapUnits Scene="Scene" Viewer="Scene.Viewer" OnProvince="OnProvince" />

@@ -19,7 +19,12 @@ async function onInstall() {
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
         // HTML pages are rewritten for the site's base path after publishing, so their hashes are not checked.
-        .map(asset => new Request(new URL(asset.url, baseUrl), { integrity: /\.html$/.test(asset.url) ? "" : asset.hash, cache: "no-cache" }));
+        // Fingerprinted files never change under their name, so the browser's HTTP cache may answer for them (the page has
+        // just downloaded them) and installing does not download the app a second time. The rest are checked with the server.
+        .map(asset => new Request(new URL(asset.url, baseUrl), {
+            integrity: /\.html$/.test(asset.url) ? "" : asset.hash,
+            cache: /\.[a-z0-9]{10}\.[a-z.]+$/.test(asset.url) ? "default" : "no-cache",
+        }));
     const cache = await caches.open(cacheName);
     await cache.addAll(requests);
 }

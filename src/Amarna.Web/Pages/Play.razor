@@ -189,7 +189,7 @@ else
                         <ChroniclePanel Runner="runner" />
                         break;
                     case "events":
-                        <EventsPanel State="Session.Displayed!" Viewer="viewer" />
+                        <EventsPanel State="runner.State" UpTo="Session.HistoryTurn" Viewer="viewer" />
                         break;
                     default:
                         <SeasonPanel Scene="scene" OnProvince="Clicked" OnPerson="Follow" />
