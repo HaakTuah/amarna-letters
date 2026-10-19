@@ -135,20 +135,22 @@ public sealed partial class TurnEngine
         foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
             if (WakeReason(i) is { } reason) Add(reason);
 
-        // Its own triggers.
+        // Its own triggers. Each fires on a change since it was set, never on a state that merely lasts (the user's rule for
+        // Part G): the unit or the owner it saw then is no longer there; the person comes back, having been away; the
+        // treasury falls below the amount, having stood at or above it; troops move into the province.
         var sight = Views.Sight(S, Map, p);
+        var seen = S.LastSeen.GetValueOrDefault(p) ?? [];
         foreach (var t in sl.Triggers)
         {
             var hit = t.Kind switch
             {
                 WakeKind.UnitMoves when t.Province is { } prov =>
-                    (S.LastSeen.GetValueOrDefault(p) ?? []).Any(o => o.Province == prov && o.Order == "move" && o.Succeeded)
+                    seen.Any(o => o.Province == prov && o.Order == "move" && o.Succeeded)
                     || (sight.Contains(prov) && Occupant(prov) != t.Seen),
-                WakeKind.EnvoyReturns when S.FindCharacter(t.Character) is { } c =>
-                    c.Employer == p && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == p,
-                WakeKind.TreasuryBelow => S.Treasuries[p].Ledger < t.Amount,
+                WakeKind.EnvoyReturns => Comes(t, BackAtCourt(p, t.Character)),
+                WakeKind.TreasuryBelow => Comes(t, S.Treasuries[p].Ledger < t.Amount),
                 WakeKind.TroopsEnter when t.Province is { } prov =>
-                    sight.Contains(prov) && S.UnitAt(prov) is { } u && u.Power != p && (t.Power is null || u.Power == t.Power),
+                    seen.Any(o => o.Order == "move" && o.Succeeded && o.Target == prov && o.Power != p && (t.Power is null || o.Power == t.Power)),
                 WakeKind.ProvinceChangesHands when t.Province is { } prov => OwnerName(prov) != t.Seen,
                 _ => false,
             };
@@ -156,6 +158,22 @@ public sealed partial class TurnEngine
         }
         return why;
     }
+
+    /// <summary>
+    /// A trigger on a condition (a person back at court, the treasury below an amount) fires when the condition comes
+    /// about, not while it lasts: only once the seat has seen it not hold since it set the trigger, which arms it. So a
+    /// treasury already below the amount wakes the seat only after it has risen to the amount and fallen below again.
+    /// </summary>
+    private static bool Comes(WakeTrigger t, bool holds)
+    {
+        if (holds) return t.Seen == WakeTrigger.Armed;
+        t.Seen = WakeTrigger.Armed;
+        return false;
+    }
+
+    /// <summary>One of the seat's people at its court with no errand: what <see cref="WakeKind.EnvoyReturns"/> waits for.</summary>
+    private bool BackAtCourt(Power p, string? id) =>
+        S.FindCharacter(id) is { } c && c.Employer == p && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == p;
 
     /// <summary>The news this season that wakes a seat: land lost, troops lost to desertion or plague, a ransom demanded, a servant's notice.</summary>
     private string? WakeReason(InboxItem i) => i.Kind switch
@@ -409,6 +427,11 @@ public sealed partial class TurnEngine
             {
                 WakeKind.UnitMoves when t.Province is { } prov => sight.Contains(prov) ? Occupant(prov) : "unseen",
                 WakeKind.ProvinceChangesHands when t.Province is { } prov => OwnerName(prov),
+                // A condition that holds as the trigger is set must first stop holding (see Comes): the person must leave
+                // and come back, a treasury below the amount must rise to it again. One sent out this season is still at
+                // court now, and is seen away at the next check.
+                WakeKind.EnvoyReturns => BackAtCourt(p, t.Character) ? null : WakeTrigger.Armed,
+                WakeKind.TreasuryBelow => S.Treasuries[p].Ledger < t.Amount ? null : WakeTrigger.Armed,
                 _ => null,
             },
         }).ToList();

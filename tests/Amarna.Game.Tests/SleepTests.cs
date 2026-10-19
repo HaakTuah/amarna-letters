@@ -367,20 +367,34 @@ public class SleepTests
         Assert.Equal(3, watcher.Calls.ElementAt(1));
         Assert.True(watcher.Views[1].WokenBecause.Contains("you asked to be woken when the unit in ekallatum moves"), string.Join(" / ", watcher.Views[1].WokenBecause));
 
-        var poor = new Sleeper(v => v.Turn == 1 ? Wake(0, new WakeTrigger { Kind = WakeKind.TreasuryBelow, Amount = 100000 }) : Nothing());
-        await Play(Power.Babylonia, poor, 3);
+        // A servant paid 400 a season at court drains Babylon's treasury: it falls below what the king saw when he set the
+        // trigger, which wakes him. A trigger set below the treasury already does not (only a fall wakes a king).
+        static void Costly(GameState s) => s.Characters.First(c => c.Employer == Power.Babylonia && c.Contract is not null).Contract!.Wage = 400;
+        var amount = 0;
+        var poor = new Sleeper(v =>
+        {
+            if (v.Turn != 1) return Nothing();
+            amount = v.Gold;
+            return Wake(0, new WakeTrigger { Kind = WakeKind.TreasuryBelow, Amount = amount });
+        });
+        await Play(Power.Babylonia, poor, 3, setup: Costly);
         Assert.Equal(2, poor.Calls.ElementAt(1));
-        Assert.Contains(poor.Views[1].WokenBecause, w => w.Contains("treasury falls below 100000"));
-        Assert.Equal("You gave orders last season (turn 1). You were woken because: you asked to be woken when the treasury falls below 100000 shekels.", Prompts.SleepLine(poor.Views[1]));
+        Assert.Equal([$"you asked to be woken when the treasury falls below {amount} shekels"], poor.Views[1].WokenBecause);
+        Assert.Equal($"You gave orders last season (turn 1). You were woken because: you asked to be woken when the treasury falls below {amount} shekels.", Prompts.SleepLine(poor.Views[1]));
+
+        var already = new Sleeper(v => v.Turn == 1 ? Wake(0, new WakeTrigger { Kind = WakeKind.TreasuryBelow, Amount = 100000 }) : Nothing());
+        await Play(Power.Babylonia, already, 3, setup: Costly);
+        Assert.Equal([1], already.Calls);
     }
 
     [Fact]
     public async Task A_named_season_holds_only_until_the_seat_is_next_woken_and_the_seat_is_reminded_of_it()
     {
-        // Babylon names turn 6 and asks to be woken when its treasury runs low, which wakes it at once, in turn 2. It names
-        // no season then, so it is not woken in turn 6.
-        var sleeper = new Sleeper(v => v.Turn == 1 ? Wake(6, new WakeTrigger { Kind = WakeKind.TreasuryBelow, Amount = 100000 }) : Nothing());
-        var r = await Play(Power.Babylonia, sleeper, 6);
+        // Babylon names turn 6 and asks to be woken when the unit in Ekallatum moves, which Assyria's army does at once:
+        // that wakes it in turn 2. It names no season then, so it is not woken in turn 6.
+        var sleeper = new Sleeper(v => v.Turn == 1 ? Wake(6, new WakeTrigger { Kind = WakeKind.UnitMoves, Province = "ekallatum" }) : Nothing());
+        var assyria = new Scripted(v => v.Turn == 1 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela")] } : new TurnSubmission());
+        var r = await Play(Power.Babylonia, sleeper, 6, others: new() { [Power.Assyria] = assyria });
         Assert.Equal([1, 2], sleeper.Calls);
         Assert.Equal(2 + 1 + 12, r.State.Sleep[Power.Babylonia].WakeAt);
         var woke = sleeper.Views[1];

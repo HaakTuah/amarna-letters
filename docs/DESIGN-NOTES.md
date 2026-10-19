@@ -171,7 +171,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
   and decisions), and version 2 was never released, so it stays version 2: a version-2 log saved
-  before back pay would replay under the new wage rules and may diverge.
+  before back pay would replay under the new wage rules and may diverge. The same holds for the rest of
+  Part G (the capital trigger, triggers on changes).
 
 ## Communication
 
@@ -579,10 +580,41 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   coming home, every report, candidates, catastrophes, forgeries, a caught spy, and foreign troops
   at its border or attacking it in vain woke it too: replayed through the engine, the simulation's
   two seed-7 games would have woken a sleeping king in 117 of 120 seasons.)
-- **Its own triggers** (at most 8, set anew with each set of orders and cleared when it wakes):
-  the unit in a named province moves or is gone; a named person of its own is back at court; its
-  treasury, by its ledger, falls below an amount; foreign troops (of a given power, or any) are
-  seen in a province; a province changes hands.
+- **Its own triggers** (at most 8, set anew with each set of orders and cleared when it wakes).
+  Each fires on a change after it was set, never on a state that merely lasts (the user's rule for
+  Part G: a trigger on a standing condition wakes a king every season and defeats sleeping):
+  - the unit in a named province moves or is gone: compared with what the seat saw there when it
+    set the trigger (a move it saw out of the province, or another occupant there now, where it can
+    see);
+  - a named person of its own comes back to court (employed, at its court, with no errand): only
+    once the seat has seen the person away since it set the trigger, at the moment it set it or at
+    a later wake check. One sent out with the same orders is still at court as the trigger is set,
+    is away at the next check, and wakes the seat the season it is back; one who stays at court
+    never wakes it;
+  - its treasury, by its ledger, falls below an amount: only once the seat has seen the treasury
+    at or above the amount since it set the trigger (as it sets it, the ledger its view shows; then
+    at each wake check, after the season's income, upkeep, wages and arrivals). A treasury already
+    below the amount must first rise to it again, and then, falling below, wakes the seat; set
+    anew with each set of orders, so it can fire again after the treasury has risen above the
+    amount and fallen back (the user's later detail);
+  - foreign troops (of a given power, or any power but its own) move into a province and get there,
+    as the seat saw the move (the same moves as standing orders' `unit_enters`); troops already
+    standing there, a move that failed and the seat's own troops do not;
+  - a province changes hands: compared with its owner when the seat set the trigger.
+  The arming of the two triggers on a condition is kept in `WakeTrigger.Seen` ("armed"). The rulebook:
+  "Your own triggers (wake_on), at most 8, set anew with each set of orders. Each wakes you when
+  something changes after you set it, never for a state that merely lasts: a unit moves (name the
+  province it stands in); one of your people comes back to court (one at court when you set it must
+  leave and come back first); your treasury falls below an amount (if it is below that already, it
+  must first rise to the amount again); foreign troops (of one power, or any) move into a province
+  and get there; or a province changes hands." (tested). (Until Part G three of them fired on a
+  state: a named person at court, the treasury below the amount and foreign troops standing in the
+  province each woke the seat the next season, and again every season it set the trigger anew.)
+  The engine's own reasons above are all events or arrivals already: an envoy waiting is one that
+  arrived this season (audiences are cleared each season), foreign troops are counted when they
+  move in or arrive next to the capital, land and troops when they are lost, failures, notices and
+  ransom demands when they come. A foreign levy raised in a watched province, or next to the
+  capital, is not an arrival by a move and wakes nobody (levies are not among the moves a seat sees).
 - **The digest.** Everything else waits for its next waking, as "WHILE YOU SLEPT": first "in
   brief", one line for each troop movement it saw ("turn 5: Egypt's army moved gaza -> megiddo";
   "turn 5: Assyria's army tried to move ekallatum -> sippar (against your troops) and failed") and

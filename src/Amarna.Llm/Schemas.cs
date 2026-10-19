@@ -84,7 +84,7 @@ public static class Schemas
                 ("person", Str("envoy_returns: the person id. Otherwise empty.")),
                 ("amount", Int("treasury_below: shekels. Otherwise 0.")),
                 ("power", Str("troops_enter: whose troops, or empty for any foreign power's."))),
-                "Your own reasons to be woken, on top of the usual ones (at most 8). They hold until you are next woken."))),
+                "Your own reasons to be woken, on top of the usual ones (at most 8). Each fires on a change after you set it, not on a state that lasts. They hold until you are next woken."))),
             "You sleep after these orders, until something concerns you. What else should wake you.");
         props["schedule"] = Array(Object(
             ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),

@@ -11,16 +11,25 @@ public sealed class SleepRequest
     public List<WakeTrigger> WakeOn { get; set; } = new();
 }
 
-/// <summary>The seat-defined wake triggers: a fixed list the engine can check from the seat's own view.</summary>
+/// <summary>
+/// The seat-defined wake triggers: a fixed list the engine can check from the seat's own view. Each fires on a change
+/// after it was set, never on a state that merely lasts (since Part G of the simulation-fixes round).
+/// </summary>
 public enum WakeKind
 {
     /// <summary>The unit standing in <see cref="WakeTrigger.Province"/> when the seat fell asleep moves or is gone.</summary>
     UnitMoves,
-    /// <summary>One of the seat's own people (<see cref="WakeTrigger.Character"/>) is back at court.</summary>
+    /// <summary>
+    /// One of the seat's own people (<see cref="WakeTrigger.Character"/>) comes back to court: it is back, and the seat has
+    /// seen it away since setting the trigger (when it set it, or at a later wake check).
+    /// </summary>
     EnvoyReturns,
-    /// <summary>The treasury, by the seat's ledger, falls below <see cref="WakeTrigger.Amount"/>.</summary>
+    /// <summary>
+    /// The treasury, by the seat's ledger, falls below <see cref="WakeTrigger.Amount"/>: it is below, and the seat has seen
+    /// it at or above the amount since setting the trigger. A treasury already below must first rise to the amount again.
+    /// </summary>
     TreasuryBelow,
-    /// <summary>Troops of <see cref="WakeTrigger.Power"/> (any foreign power if empty) are seen in <see cref="WakeTrigger.Province"/>.</summary>
+    /// <summary>Troops of <see cref="WakeTrigger.Power"/> (any foreign power's if empty) move into <see cref="WakeTrigger.Province"/> and get there, as the seat saw.</summary>
     TroopsEnter,
     /// <summary><see cref="WakeTrigger.Province"/> changes hands.</summary>
     ProvinceChangesHands,
@@ -28,12 +37,19 @@ public enum WakeKind
 
 public sealed class WakeTrigger
 {
+    /// <summary>What <see cref="Seen"/> holds for a trigger on a condition once the seat has seen the condition not hold since it set the trigger.</summary>
+    public const string Armed = "armed";
+
     public WakeKind Kind { get; set; }
     public string? Province { get; set; }
     public string? Character { get; set; }
     public int Amount { get; set; }
     public Power? Power { get; set; }
-    /// <summary>For <see cref="WakeKind.UnitMoves"/> and <see cref="WakeKind.ProvinceChangesHands"/>: what the seat saw there when it fell asleep.</summary>
+    /// <summary>
+    /// For <see cref="WakeKind.UnitMoves"/> and <see cref="WakeKind.ProvinceChangesHands"/>: what the seat saw there when it
+    /// fell asleep. For <see cref="WakeKind.EnvoyReturns"/> and <see cref="WakeKind.TreasuryBelow"/>: <see cref="Armed"/>
+    /// once the seat has seen the person away, or the treasury at or above the amount, since it set the trigger.
+    /// </summary>
     public string? Seen { get; set; }
 
     public string Describe() => Kind switch
@@ -41,7 +57,7 @@ public sealed class WakeTrigger
         WakeKind.UnitMoves => $"the unit in {Province} moves",
         WakeKind.EnvoyReturns => $"{Character} is back at court",
         WakeKind.TreasuryBelow => $"the treasury falls below {Amount} shekels",
-        WakeKind.TroopsEnter => $"{Power?.ToString() ?? "foreign"} troops are seen in {Province}",
+        WakeKind.TroopsEnter => $"{(Power is { } w ? $"{w}'s" : "foreign")} troops enter {Province}",
         WakeKind.ProvinceChangesHands => $"{Province} changes hands",
         _ => Kind.ToString(),
     };
