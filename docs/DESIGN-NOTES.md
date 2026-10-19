@@ -1604,7 +1604,43 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   a tooltip. The header's ending line reads "The age cannot end before Shemu, year 5 (turn 15)." until the first
   season that may end the age, then "Any season may now be the last (15% each season)." The seat view's own
   `Season` text and the prompts are unchanged: kings still read turns first, as question 26's simulation result
-  asked. The BCE year (plan step 4) is not built.
+  asked. The BCE year (plan step 4) is not built. Every date the web app writes uses the label; engine texts shown
+  in the interface (a servant's timing and term, inbox items, events) have each "turn N" given its label for display
+  (`Ui.Dated`), while the texts kings read stay as they are. The rulebook tab still shows the rulebook word for word.
+- **The map is drawn, not computed by the engine.** The coasts, rivers (the three great ones of `Geography.Rivers`
+  plus the Marassantiya, Orontes, Khabur and Balikh for the eye), ranges, deserts and fields are hand-placed drawing
+  data in the web project (`Components/Map/MapArt.cs`), fitted to the engine's 1000 x 720 coordinates, which are
+  unchanged. Province shapes are Voronoi cells of the cities, clipped to land or sea, with each shared border wobbled
+  the same way from both sides; a few unclaimed points keep the deserts and the Zagros from swelling the provinces
+  next to them. Fertility is drawn as field furrows, closer the richer the yield (four bands: up to 25, 30-35, 40-45,
+  50+).
+- **Powers without colour.** Each power has a colour from the Late Bronze palette, an emblem (Egypt a lotus, Hatti
+  a sun, Babylon an eight-pointed star, Mitanni a winged disc, Assyria a spearhead, Arzawa a crescent, Alashiya a
+  jug) shown on every city it holds and every unit, and a border line of its own (solid, dashed, dotted, dash-dot …).
+  Armies are chariots on square tokens and fleets ships on round ones; envoys are clay tablets, spies eyes,
+  captives fetters, gold an oxhide ingot.
+- **What the map shows each season** comes from a frame taken at every snapshot (`SeasonFrame`): owners, units,
+  the orders of the season just resolved with how each went (from the engine's `LastSeen`, whose union is every
+  order), each court's sight, the journeys, the characters and the sleeping seats. The map steps through frames
+  without deserializing whole states; the panels still read the full state of the season shown.
+- **Travellers are drawn on a guessed road.** The engine keeps only a departure and an arrival season, so each one is
+  drawn on the shortest path between the two places (`MapArt.Route`), at a position interpolated by season, with a
+  halo and a dotted road to say it is a guess. A ransom travels as gold on its own.
+- **Each view sees only what its court knows** (`MapScene`). A court sees its own people where it believes them
+  (its cover of a servant whose fate it has not heard, read from the cover's own texts), foreign envoys only while
+  they stand at its court, and anyone it holds; never a foreign spy it has not caught. The engine's own view still
+  lists a spy posted at a court in that court's view with its employer (question 19, bug 4, recorded under
+  "Characters"); the map does not draw it, and this round changes no view.
+- **Fog of war as a gradient**, from the court's own earlier sights (the frames): a province in sight is clear; one
+  seen before is washed over, more the older the sight; one never seen is hatched. Units the court saw in a province
+  it cannot see now stay as dashed ghosts, fainter with age, with the season they were seen. Rumours and spy reports
+  that reached the court are placed where they came from, dashed and fading over eight seasons. Ownership is not
+  fogged: who holds each province is public and live in the engine, so tints, border lines and seals are drawn as
+  known.
+- **Follow this character** builds a life from the record (`LifeRecord`): service, places season by season (and the
+  path on the map), missions with what was written, said and reported, and in god view the hidden traits, facts and
+  the character's own memory; in a court's view only what that court knows. It is built from sections so that later
+  roles and lives can add their own.
 
 ## Where the code differs from the design document (as it stood on 19 October 2026)
 

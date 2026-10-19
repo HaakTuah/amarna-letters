@@ -16,7 +16,7 @@
     {
         @foreach (var s in signals.Where(s => s.Kind == Kind).TakeLast(40).Reverse())
         {
-            <div class="item"><small class="muted">turn @s.Turn</small> @s.Text</div>
+            <div class="item"><small class="muted" title="@Ui.When(s.Turn, null)">@Calendar.Short(s.Turn)</small> @Ui.Dated(s.Text, null)</div>
         }
     }
 }
@@ -24,7 +24,7 @@
 @foreach (var e in events.TakeLast(Limit).Reverse())
 {
     <div style="padding:.2rem 0;border-bottom:1px solid var(--line)">
-        <small class="muted">t@(e.Turn) · @e.Kind</small> @e.Text
+        <small class="muted" title="@Ui.When(e.Turn, Viewer)">@Calendar.Short(e.Turn, Viewer) · @e.Kind</small> @Ui.Dated(e.Text, Viewer)
         @if (Viewer is null && e.VisibleTo.Count < 7) { <small class="muted"> (known to @(e.VisibleTo.Count == 0 ? "nobody" : string.Join(", ", e.VisibleTo)))</small> }
     </div>
 }

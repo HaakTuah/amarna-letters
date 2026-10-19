@@ -30,6 +30,34 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
 
     public event Action? Changed;
 
+    /// <summary>What the map draws, one frame per season, kept in step with the runner.</summary>
+    public SeasonFrames Frames { get; } = new();
+
+    /// <summary>The season shown: the snapshot index (0 = the start, k = after turn k).</summary>
+    public int ShownIndex => HistoryTurn ?? Math.Max(0, Frames.Count - 1);
+
+    /// <summary>Stepping through the recorded seasons on a timer (a replay, or history in a live game).</summary>
+    public bool Replaying { get; private set; }
+
+    private readonly Dictionary<(int, Power?), MapScene> _scenes = new();
+    private int _scenesFor = -1;
+
+    /// <summary>The map's scene for a season and a pair of eyes, built once and kept while the frames stand.</summary>
+    public MapScene Scene(int index, Power? viewer)
+    {
+        if (_scenesFor != Frames.Generation) { _scenes.Clear(); _scenesFor = Frames.Generation; }
+        index = Math.Clamp(index, 0, Math.Max(0, Frames.Count - 1));
+        if (_scenes.TryGetValue((index, viewer), out var scene)) return scene;
+        if (_scenes.Count > 600) _scenes.Clear();
+        return _scenes[(index, viewer)] = MapScene.Build(Frames, index, viewer);
+    }
+
+    private void RunnerChanged()
+    {
+        if (Runner is not null) Frames.CatchUp(Runner);
+        Notify();
+    }
+
     public bool HasHumans => Humans.Count > 0;
     public bool CanSeeAll => !HasHumans || Reveal;
     public bool GodView => ViewAs is null && CanSeeAll;
@@ -66,8 +94,9 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
         Humans.Clear();
         foreach (var (p, seat) in built.Seats)
             if (seat is HumanSeat h) { Humans[p] = h; h.Changed += Notify; }
+        Frames.Reset();
         Runner = new GameRunner(state, built.Seats, built.Minds, built.Narrator) { WriteChronicles = settings.Chronicles };
-        Runner.Changed += Notify;
+        Runner.Changed += RunnerChanged;
         GameId = $"game-{settings.Seed}-{DateTime.UtcNow:yyyyMMddHHmmss}";
         ViewAs = Humans.Keys.Cast<Power?>().FirstOrDefault();
         Reveal = false;
@@ -105,8 +134,9 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
                 var built = factory.Build(Settings, GameFactory.NewGame(log.Header.Seed, log.Header.Config), apiKey, () => Runner!.Log);
                 foreach (var (p, seat) in built.Seats)
                     if (seat is HumanSeat h) { Humans[p] = h; h.Changed += Notify; }
+                Frames.Reset();
                 Runner = GameRunner.Resume(log, built.Seats, built.Minds, built.Narrator);
-                Runner.Changed += Notify;
+                Runner.Changed += RunnerChanged;
                 ReadOnly = false;
                 await Runner.PrepareAsync(_cts.Token);
                 Notice = "Replaying the saved seasons…";
@@ -118,8 +148,9 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
             }
             else
             {
+                Frames.Reset();
                 Runner = GameRunner.ForReplay(log);
-                Runner.Changed += Notify;
+                Runner.Changed += RunnerChanged;
                 Runner.WriteChronicles = log.Decisions.Any(d => d.Key.StartsWith("end/chronicle/"));
                 ReadOnly = true;
                 await Runner.PrepareAsync(_cts.Token);
@@ -196,13 +227,65 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
     public void Stop()
     {
         Auto = false;
+        Replaying = false;
         _cts.Cancel();
         _cts = new CancellationTokenSource();
     }
 
     public void ShowTurn(int? turn)
     {
-        HistoryTurn = turn is int t && Runner is not null && t >= Runner.Snapshots.Count - 1 ? null : turn;
+        HistoryTurn = turn is int t && Runner is not null && t >= Runner.Snapshots.Count - 1 ? null : turn is int u ? Math.Max(0, u) : null;
+        Notify();
+    }
+
+    /// <summary>One season back in the timeline.</summary>
+    public void StepBack()
+    {
+        StopReplay();
+        if (Runner is null || Frames.Count == 0) return;
+        ShowTurn(Math.Max(0, ShownIndex - 1));
+    }
+
+    /// <summary>One season on: through the recorded seasons, and at the newest, playing the next one if the game goes on.</summary>
+    public async Task StepForwardAsync()
+    {
+        StopReplay();
+        if (Runner is null) return;
+        if (HistoryTurn is int t) { ShowTurn(t + 1); return; }
+        if (CanPlay) await StepAsync();
+    }
+
+    public bool CanPlay => Runner is not null && !Busy && !ReadOnly && !Runner.State.Ended && !Auto;
+
+    /// <summary>Starts or stops stepping through the recorded seasons, from the start if already at the newest.</summary>
+    public void ToggleReplay()
+    {
+        if (Replaying) { StopReplay(); return; }
+        if (Runner is null || Frames.Count < 2) return;
+        if (HistoryTurn is null) HistoryTurn = 0;
+        Replaying = true;
+        Notify();
+        _ = ReplayLoopAsync();
+    }
+
+    public void StopReplay()
+    {
+        if (!Replaying) return;
+        Replaying = false;
+        Notify();
+    }
+
+    private async Task ReplayLoopAsync()
+    {
+        while (Replaying && Runner is not null)
+        {
+            await Task.Delay(Math.Max(700, DelayMs * 2));
+            if (!Replaying) break;
+            if (HistoryTurn is not int t) break;
+            ShowTurn(t + 1);
+            if (HistoryTurn is null) break;
+        }
+        Replaying = false;
         Notify();
     }
 

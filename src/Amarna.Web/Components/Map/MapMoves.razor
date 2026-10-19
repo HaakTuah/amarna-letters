@@ -1,0 +1,107 @@
+@* What happened in the season just resolved, as the viewer saw it: moves (an attack ends in a burst), bounces (the
+   arrow stops short at a bar), supports (thin dashes ending in a dot), convoys (dots across the sea), units destroyed
+   (a struck-out token where they stood) and provinces that changed hands (a seal ring in the new owner's colour). *@
+@using Amarna.Web.Components.Map
+<g class="moves">
+    @foreach (var c in Scene.Captures)
+    {
+        var at = MapArt.City(c.Province);
+        <g @key="@($"{Scene.Index}:cap:{c.Province}")" class="@($"capture {(c.To is { } t ? $"c-{Glyphs.Id(t)}" : "c-free")}")" transform="@($"translate({F(at.X)},{F(at.Y)})")">
+            <title>@($"{Ui.Province(c.Province)} {(c.Taken ? "was taken by" : "passed to")} {c.To?.Name() ?? "nobody"}{(c.From is { } f ? $" from {f.Name()}" : "")} this season")</title>
+            <g class="csym"><circle class="cap-ring" r="16" /><circle class="cap-ring2" r="21" /></g>
+        </g>
+    }
+    @foreach (var (m, i) in Scene.Moves.Select((m, i) => (m, i)))
+    {
+        var a = MapArt.UnitSpot(m.From);
+        var b = m.Style is MoveStyle.Support or MoveStyle.SupportCut or MoveStyle.Convoy ? MapArt.UnitSpot(m.To) : MapArt.UnitSpot(m.To);
+        var key = $"{Scene.Index}:{i}:{m.From}:{m.To}:{m.Style}";
+        var id = Glyphs.Id(m.Power);
+        switch (m.Style)
+        {
+            case MoveStyle.Move or MoveStyle.Attack:
+            {
+                var end = Short(a, b, 13);
+                <g @key="key" class="@($"mv {(m.Style == MoveStyle.Attack ? "attack" : "move")} m-{id}")">
+                    <title>@m.Text</title>
+                    <path class="casing" d="@MapArt.Arc(a, end)" />
+                    <path class="shaft" d="@MapArt.Arc(a, end)" pathLength="1" marker-end="@($"url(#ah-{id})")" />
+                    @if (m.Style == MoveStyle.Attack)
+                    {
+                        var at = MapArt.ArcAt(a, end, 0.78);
+                        <g transform="@($"translate({F(at.X)},{F(at.Y)})")"><g class="csym"><use href="#g-burst" class="burst" x="-8" y="-8" width="16" height="16" /></g></g>
+                    }
+                </g>
+                break;
+            }
+            case MoveStyle.Bounce:
+            {
+                var stop = MapArt.ArcAt(a, b, 0.58);
+                var dir = (MapArt.ArcAt(a, b, 0.6) - MapArt.ArcAt(a, b, 0.56)).Unit;
+                var n = dir.Normal * 8;
+                <g @key="key" class="@($"mv bounce m-{id}")">
+                    <title>@m.Text</title>
+                    <path class="casing" d="@Partial(a, b, 0.55)" />
+                    <path class="shaft" d="@Partial(a, b, 0.55)" pathLength="1" />
+                    <path class="bar" d="@($"M{F(stop.X + n.X)},{F(stop.Y + n.Y)}L{F(stop.X - n.X)},{F(stop.Y - n.Y)}")" />
+                </g>
+                break;
+            }
+            case MoveStyle.Support or MoveStyle.SupportCut:
+            {
+                var end = Short(a, b, 9);
+                <g @key="key" class="@($"mv support {(m.Style == MoveStyle.SupportCut ? "cut" : "")} m-{id}")">
+                    <title>@m.Text</title>
+                    <path class="sup" d="@MapArt.Arc(a, end, -0.18)" marker-end="url(#ah-sup)" />
+                </g>
+                break;
+            }
+            case MoveStyle.Convoy:
+                <g @key="key" class="@($"mv convoy m-{id}")">
+                    <title>@m.Text</title>
+                    <path class="conv" d="@MapArt.Arc(a, b, 0.2)" />
+                </g>
+                break;
+        }
+    }
+    @foreach (var d in Scene.Destroyed)
+    {
+        var at = MapArt.UnitSpot(d.Province);
+        <g @key="@($"{Scene.Index}:{d.Key}")" class="destroyed" transform="@($"translate({F(at.X)},{F(at.Y)})")">
+            <title>@($"{d.Power.Name()}'s {MapScene.Kind(d.Kind)} in {Ui.Province(d.Province)} was destroyed")</title>
+            <g class="sym lift">
+                <rect class="@($"tok-bg ghosted f-{Glyphs.Id(d.Power)}")" x="-11" y="-11" width="22" height="22" rx="@(d.Kind == UnitKind.Army ? 4 : 11)" />
+                <path class="strike" d="M-9,-9L9,9M9,-9L-9,9" />
+            </g>
+        </g>
+    }
+</g>
+
+@code {
+    [Parameter, EditorRequired] public MapScene Scene { get; set; } = default!;
+
+    private MapScene? _drawn;
+
+    protected override bool ShouldRender() => !ReferenceEquals(_drawn, Scene);
+
+    protected override void OnAfterRender(bool firstRender) => _drawn = Scene;
+
+    private static string F(double v) => MapArt.F(v);
+
+    /// <summary>The end of an arrow, stopped short of the point it aims at so the head does not hide the token there.</summary>
+    private static Pt Short(Pt a, Pt b, double by)
+    {
+        var d = b - a;
+        return d.Length <= by * 2 ? b : b - d.Unit * by;
+    }
+
+    /// <summary>The first part of the arc from a towards b, as its own quadratic (de Casteljau).</summary>
+    private static string Partial(Pt a, Pt b, double t)
+    {
+        var mid = (a + b) * 0.5;
+        var c = mid + (b - a).Normal * 0.12;
+        var q0 = a + (c - a) * t;
+        var end = MapArt.ArcAt(a, b, t);
+        return $"M{F(a.X)},{F(a.Y)}Q{F(q0.X)},{F(q0.Y)} {F(end.X)},{F(end.Y)}";
+    }
+}

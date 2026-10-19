@@ -1,8 +1,11 @@
+@* One person as a court sees them: its own servant, or someone who has come to its notice. Dates carry their label. *@
 <div class="item">
-    <h4>@C.Name <small class="muted">of @C.Origin</small> <span class="pill">@C.Status</span> @if (C.HeldByYou) { <span class="pill">held by you</span> }</h4>
+    <h4><Emblem Power="C.Employer" /> @C.Name <small class="muted">of @C.Origin</small> <span class="pill">@C.Status</span> @if (C.HeldByYou) { <span class="pill">held by you</span> }
+        @if (OnFollow.HasDelegate) { <button class="small link" @onclick="() => OnFollow.InvokeAsync(C.Id)">Follow</button> }
+    </h4>
     @if (C.Duty.Length > 0 || C.Where.Length > 0)
     {
-        <div><small>@C.Duty@(C.Timing.Length > 0 ? $" ({C.Timing})" : "")@(C.Where.Length > 0 ? $" · {C.Where}" : "")@(C.Term.Length > 0 ? $" · {C.Term}" : "")</small></div>
+        <div><small>@Ui.Dated(C.Duty, Court)@(C.Timing.Length > 0 ? $" ({Ui.Dated(C.Timing, Court)})" : "")@(C.Where.Length > 0 ? $" · {C.Where}" : "")@(C.Term.Length > 0 ? $" · {Ui.Dated(C.Term, Court)}" : "")</small></div>
     }
     @if (C.BackPay is int owed) { <div><small>Owed @Ui.Shekels(owed) of back pay, paid when they are back at your court.</small></div> }
     @if (C.Employer is { } e && !C.Ours) { <div><small>Serves @e.Name()</small></div> }
@@ -14,4 +17,7 @@
 
 @code {
     [Parameter, EditorRequired] public CharacterView C { get; set; } = default!;
+    /// <summary>Whose reckoning the dates are shown in.</summary>
+    [Parameter] public Power? Court { get; set; }
+    [Parameter] public EventCallback<string> OnFollow { get; set; }
 }

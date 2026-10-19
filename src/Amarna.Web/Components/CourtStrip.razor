@@ -1,0 +1,58 @@
+@* The seven courts along the top of the map: each power's colour and emblem (the key to the board), how many provinces
+   it holds, and in god view which kings sleep, until when at the latest, and what last woke them. No court's view shows
+   another's sleep. *@
+@using Amarna.Web.Services
+@{
+    var f = Scene.Frame;
+    var god = Scene.Viewer is null;
+}
+<div class="courtbar">
+<div class="courts">
+    @foreach (var p in Powers.All)
+    {
+        var held = f.Owner.Count(o => o.Value == p);
+        var fallen = f.Eliminated.Contains(p);
+        var sleep = god ? f.Sleep.GetValueOrDefault(p) : null;
+        <button class="@($"court{(Open == p ? " on" : "")}{(fallen ? " fallen" : "")}{(sleep?.Asleep == true ? " asleep" : "")}{(Scene.Viewer == p ? " me" : "")}")"
+                title="@Title(p, held, fallen, sleep)" @onclick="() => Open = Open == p ? null : p">
+            <Emblem Power="p" />
+            <span class="cname">@Short(p)</span>
+            <span class="ccount">@held</span>
+            @if (sleep?.Asleep == true)
+            {
+                <svg class="moon" viewBox="-10 -10 20 20" aria-label="asleep"><use href="#g-moon" /></svg>
+            }
+        </button>
+    }
+</div>
+@if (Open is { } o)
+{
+    var sleep = god ? f.Sleep.GetValueOrDefault(o) : null;
+    <div class="court-pop">
+        <strong><Emblem Power="o" /> @o.Name()</strong> · @o.King() · @f.Owner.Count(x => x.Value == o) provinces, @f.Units.Count(u => u.Power == o) units@(f.Eliminated.Contains(o) ? " · fallen" : "")
+        @if (sleep is not null)
+        {
+            <div class="small">@SeasonPanel.SleepLine(sleep, null)</div>
+        }
+        else if (god && f.Sleep.Count > 0)
+        {
+            <div class="small muted">This king does not sleep (script and human kings play every season).</div>
+        }
+    </div>
+}
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MapScene Scene { get; set; } = default!;
+    private Power? Open;
+
+    private static string Short(Power p) => p switch
+    {
+        Power.Babylonia => "Babylon",
+        Power.Alashiya => "Alashiya",
+        _ => p.Name(),
+    };
+
+    private static string Title(Power p, int held, bool fallen, FrameSleep? s) =>
+        $"{p.Name()}: {held} provinces{(fallen ? ", fallen" : "")}" + (s is { Asleep: true } ? $"; asleep, wakes by {Ui.When(s.WakeAt, null)} at the latest" : "");
+}

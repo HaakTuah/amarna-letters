@@ -16,12 +16,12 @@
 }
 @foreach (var turn in shown)
 {
-    <h4 class="muted" style="margin:.8rem 0 .3rem">@Calendar.Season(turn, Power)</h4>
+    <h4 class="muted" style="margin:.8rem 0 .3rem">@Ui.WhenCap(turn, Power)</h4>
     @foreach (var item in items.Where(i => i.Turn == turn).OrderBy(i => Order(i.Kind)))
     {
         <div class="item">
             <h4>@item.Title <span class="pill">@Kind(item.Kind)</span></h4>
-            <div class="body">@item.Body</div>
+            <div class="body">@Ui.Dated(item.Body, Power)</div>
         </div>
     }
 }

@@ -1,0 +1,39 @@
+@* The roads travellers are on: the shortest way between the two courts, dotted, since the engine keeps only when each
+   set out and when it arrives, never a route. And the path of the character being followed, season by season. *@
+@using Amarna.Web.Components.Map
+<g class="roads">
+    @foreach (var t in Scene.Travellers)
+    {
+        var route = MapArt.Route(t.FromProvince, t.ToProvince);
+        <polyline @key="t.Key" class="@($"road r-{Glyphs.Id(t.Owner)}{(t.Believed ? " believed" : "")}{(t.CharacterId is not null && t.CharacterId == FollowId ? " followed" : "")}")"
+                  points="@Points(route)" />
+    }
+    @if (Path is { Count: > 0 })
+    {
+        <g class="follow-path">
+            <polyline class="trace-casing" points="@Points(Path.Select(x => x.At).ToList())" />
+            <polyline class="trace" points="@Points(Path.Select(x => x.At).ToList())" />
+            @foreach (var (step, i) in Path.Select((s, i) => (s, i)))
+            {
+                <circle class="@(i == Path.Count - 1 ? "trace-now" : "trace-dot")" cx="@MapArt.F(step.At.X)" cy="@MapArt.F(step.At.Y)" r="@(i == Path.Count - 1 ? 5 : 2.6)">
+                    <title>@($"{Calendar.Label(step.Index + 1, Viewer)}: {step.Where}")</title>
+                </circle>
+            }
+        </g>
+    }
+</g>
+
+@code {
+    [Parameter, EditorRequired] public MapScene Scene { get; set; } = default!;
+    [Parameter] public Power? Viewer { get; set; }
+    [Parameter] public string? FollowId { get; set; }
+    [Parameter] public List<(int Index, Pt At, string Where)>? Path { get; set; }
+
+    private (MapScene?, string?, object?) _drawn;
+
+    protected override bool ShouldRender() => _drawn != (Scene, FollowId, Path);
+
+    protected override void OnAfterRender(bool firstRender) => _drawn = (Scene, FollowId, Path);
+
+    private static string Points(IReadOnlyList<Pt> pts) => string.Join(" ", pts.Select(p => $"{MapArt.F(p.X)},{MapArt.F(p.Y)}"));
+}
