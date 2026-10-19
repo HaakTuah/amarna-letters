@@ -5,8 +5,9 @@ namespace Amarna.Llm;
 
 /// <summary>
 /// A model king's private record of earlier seasons, all of it in its own words: the notes, audiences and orders of the
-/// last three seasons it gave orders, shown in full, and its own summary of the seasons before those, which it rewrites in
-/// its replies when it chooses. Nothing in it is condensed by anyone else: the king that reads it wrote all of it.
+/// last three seasons it gave orders, shown in full; its own summary of the seasons before those, which it rewrites in its
+/// replies when it chooses; and its ledger of dealings, one line per court, carried in full. Nothing in it is condensed by
+/// anyone else: the king that reads it wrote all of it.
 /// </summary>
 public sealed class LeaderJournal
 {
@@ -14,6 +15,8 @@ public sealed class LeaderJournal
     public const int NotesMax = 2000;
     /// <summary>The king's summary is kept up to this many characters.</summary>
     public const int SummaryMax = 2000;
+    /// <summary>A line of the ledger is kept up to this many characters.</summary>
+    public const int LedgerEntryMax = 600;
     /// <summary>The seasons an orders request shows in full; older ones leave the record.</summary>
     public const int SeasonsShown = 3;
     /// <summary>The seasons whose notes an audience request shows.</summary>
@@ -27,6 +30,7 @@ public sealed class LeaderJournal
     private string _summary = "";
     private int _summaryTurn;
     private int _leftThrough;
+    private readonly Dictionary<Power, (string Entry, int Turn)> _ledger = new();
 
     /// <summary>An audience the king held: what it said to whose envoy. It joins the record with the next orders it gives.</summary>
     public void Audience(int turn, Power from, string envoy, string speech)
@@ -37,7 +41,8 @@ public sealed class LeaderJournal
     /// <summary>
     /// The king's reply to an orders request: its notes (cut at <see cref="NotesMax"/>), the audiences since its last orders
     /// and its orders join the record, and the oldest season leaves it once more than <see cref="SeasonsShown"/> are kept.
-    /// A summary it wrote replaces the one before; an empty one keeps it.
+    /// A summary it wrote replaces the one before; an empty one keeps it. Each ledger line replaces that court's line, and
+    /// an empty one removes it.
     /// </summary>
     public void Record(int turn, TurnSubmission sub)
     {
@@ -57,19 +62,26 @@ public sealed class LeaderJournal
                 _summary = Greeting.Cap(summary, SummaryMax);
                 _summaryTurn = turn;
             }
+            foreach (var line in sub.Ledger)
+            {
+                if (line.Entry.Trim() is { Length: > 0 } entry) _ledger[line.Court] = (Greeting.Cap(entry, LedgerEntryMax), turn);
+                else _ledger.Remove(line.Court);
+            }
         }
     }
 
     /// <summary>
-    /// The record as an orders request shows it: the king's summary, then the last three seasons in full, and which
-    /// season's notes leave the record after this one.
+    /// What an orders request shows: the ledger in full, then the record: the king's summary, the last three seasons in
+    /// full, and which season's notes leave the record after this one.
     /// </summary>
     public string ForOrders()
     {
         lock (_gate)
         {
-            if (_seasons.Count == 0) return "YOUR RECORD OF EARLIER SEASONS: none yet; these are the first orders you give.";
-            var sb = new StringBuilder("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):\n");
+            var sb = new StringBuilder();
+            Ledger(sb);
+            if (_seasons.Count == 0) return sb.Append("YOUR RECORD OF EARLIER SEASONS: none yet; these are the first orders you give.").ToString();
+            sb.AppendLine("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):");
             Summary(sb);
             foreach (var s in _seasons)
             {
@@ -83,13 +95,15 @@ public sealed class LeaderJournal
         }
     }
 
-    /// <summary>The record as an audience request shows it: the king's summary and the notes of its last two seasons.</summary>
+    /// <summary>What an audience request shows: the ledger in full, the king's summary and the notes of its last two seasons.</summary>
     public string ForAudience()
     {
         lock (_gate)
         {
-            if (_seasons.Count == 0) return "YOUR RECORD OF EARLIER SEASONS: none yet.";
-            var sb = new StringBuilder("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):\n");
+            var sb = new StringBuilder();
+            Ledger(sb);
+            if (_seasons.Count == 0) return sb.Append("YOUR RECORD OF EARLIER SEASONS: none yet.").ToString();
+            sb.AppendLine("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):");
             Summary(sb);
             foreach (var s in _seasons.TakeLast(SeasonsShownAtAudience))
                 sb.AppendLine($"turn {s.Turn} notes: {(s.Notes.Length > 0 ? s.Notes : "none")}");
@@ -103,5 +117,19 @@ public sealed class LeaderJournal
             sb.AppendLine($"YOUR SUMMARY OF EARLIER SEASONS (your own words, turn {_summaryTurn}): {_summary}");
         else if (_leftThrough > 0)
             sb.AppendLine($"YOUR SUMMARY OF EARLIER SEASONS: you have written none, and your notes from turn {_leftThrough} and before have left this record.");
+    }
+
+    /// <summary>The ledger, one line per court in the fixed order of the powers, each with the season it was last written.</summary>
+    private void Ledger(StringBuilder sb)
+    {
+        const string head = "YOUR LEDGER OF DEALINGS (your own words, per court: what was promised, sealed, broken and paid; each line with the season you last wrote it)";
+        if (_ledger.Count == 0)
+        {
+            sb.AppendLine(head + ": nothing written yet.");
+            return;
+        }
+        sb.AppendLine(head + ":");
+        foreach (var p in Powers.All.Where(_ledger.ContainsKey))
+            sb.AppendLine($"- {p} (turn {_ledger[p].Turn}): {_ledger[p].Entry}");
     }
 }

@@ -219,6 +219,11 @@ public sealed class TurnSubmission
     /// keeps the one before). Logged with the orders, so a replay can read it; the engine ignores it.
     /// </summary>
     public string Summary { get; set; } = "";
+    /// <summary>
+    /// Model and file seats: lines of the king's ledger of dealings, one per court, in its own words (an entry replaces that
+    /// court's line, an empty entry removes it). Logged with the orders; the engine ignores it.
+    /// </summary>
+    public List<LedgerLine> Ledger { get; set; } = new();
     /// <summary>Seats that may sleep (they sleep after every call): the season to be woken in and what else should wake them. Ignored for other seats.</summary>
     public SleepRequest? Sleep { get; set; }
     /// <summary>Seats that may sleep: orders queued for later seasons (one entry per season replaces any earlier one).</summary>
@@ -230,5 +235,8 @@ public sealed class TurnSubmission
     /// <summary>Set by the runner when the script king stood in for a seat whose call failed: the seat has not seen this season.</summary>
     public bool FromFallback { get; set; }
 }
+
+/// <summary>One line of a king's ledger of dealings: what it wrote of its dealings with one court.</summary>
+public sealed record LedgerLine(Power Court, string Entry);
 
 public sealed record RejectedOrder(Order Order, string Reason);
