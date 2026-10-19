@@ -197,6 +197,10 @@ foreach (var outcome in played)
         + (verify ? summary.ReplayMatches ? ", replay ok" : ", REPLAY MISMATCH" : "")
         + (summary.CostUsd > 0 ? $", ${summary.CostUsd:0.00}" : "")
         + (summary.Errors > 0 ? $", {summary.Errors} fallbacks" : ""));
+    // Beside the kings' result, the richest characters: the top three, or with --detail the whole ranking.
+    var richest = summary.Richest.Take(detail ? summary.Richest.Count : 3).Select((line, i) => $"{i + 1}. {line}").ToList();
+    if (richest.Count > 0)
+        Console.WriteLine(detail ? "  Richest characters:\n" + string.Join("\n", richest.Select(r => "    " + r)) : $"  Richest characters: {string.Join("; ", richest)}");
     if (last is not null && (fileSeats is not null || last.State.Sleep.Count > 0 || choices.UsesModels))
         Console.WriteLine(BatchRunner.SeatReport(last));
     if (detail && last is not null)

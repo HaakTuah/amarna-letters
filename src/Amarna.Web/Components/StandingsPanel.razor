@@ -28,6 +28,31 @@
     </tbody>
 </table></div>
 
+@if (State.Ended)
+{
+    // Shown once the age has ended, to every viewer: during play a character knows its own wealth, never the ranking.
+    var ranking = Wealth.Ranking(State);
+    <h4 style="margin-top:1rem">The richest characters</h4>
+    <p class="muted">Beside the kings' standings, the people of the age ranked by their wealth: the second game, played under the kings', in which the greedy have a victory of their own. @Wealth.WhatCounts</p>
+    <div class="tablewrap"><table>
+        <thead><tr><th>#</th><th>Character</th><th>At the end</th><th>Wealth</th><th>Purse</th><th>Back pay owed</th><th>Where the gold came from</th></tr></thead>
+        <tbody>
+            @foreach (var (w, i) in ranking.Select((w, i) => (w, i)))
+            {
+                <tr>
+                    <td>@(i + 1)</td>
+                    <td>@w.Character.Name <span class="muted">of @w.Character.Origin</span></td>
+                    <td>@Wealth.Standing(w.Character)</td>
+                    <td>@Ui.Shekels(w.Total)</td>
+                    <td>@Ui.Shekels(w.Purse)</td>
+                    <td>@Ui.Shekels(w.BackPay)</td>
+                    <td>@Wealth.Sources(w.Character.Earned)</td>
+                </tr>
+            }
+        </tbody>
+    </table></div>
+}
+
 <h4 style="margin-top:1rem">Opening positions (known to every court)</h4>
 <p class="muted">Each king began with these troops and this treasury, holding its whole homeland. Its starting strength is @State.Config.ProvinceWeight × its homeland yield + its treasury, and its growth is measured against it.</p>
 <div class="tablewrap"><table>

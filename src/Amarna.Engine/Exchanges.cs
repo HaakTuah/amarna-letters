@@ -18,6 +18,8 @@ public sealed class MindRequest
     public List<string> Facts { get; set; } = new();
     /// <summary>For a memory summary: how many of the oldest memories it replaces.</summary>
     public int Fold { get; set; }
+    /// <summary>For a spy's report: the copies of tablets from the watched court's archive that came home with it, now in the court's archive.</summary>
+    public List<string> CopyIds { get; set; } = new();
 }
 
 public sealed class MindReply
@@ -25,6 +27,11 @@ public sealed class MindReply
     public string Text { get; set; } = "";
     /// <summary>Asking price for a pitch; gold skimmed on the way home for a report.</summary>
     public int Number { get; set; }
+    /// <summary>
+    /// For a report with gold kept on the way home: the envoy replaces the inventory tablet with one it forges, stating only
+    /// what is left (see <see cref="AudienceRecord.SwapInventory"/>).
+    /// </summary>
+    public bool SwapInventory { get; set; }
 }
 
 /// <summary>What the host replies at an audience. Every field but Speech is an action the engine checks.</summary>
@@ -91,6 +98,13 @@ public sealed class AudienceRecord
     public string AudienceId { get; set; } = "";
     public string Delivered { get; set; } = "";
     public int Skim { get; set; }
+    /// <summary>
+    /// The envoy that kept some of the gold replaced the inventory tablet with one it forged, stating only what the host's
+    /// weighers find. It takes the forger's skill (<see cref="GameConfig.ForgeMinCompetence"/>): without it the envoy dares not
+    /// hand the forgery over and the true inventory goes to the host. Ignored when it kept nothing; refused when it kept
+    /// it all (a forgery stating nothing hides nothing), and the true inventory goes.
+    /// </summary>
+    public bool SwapInventory { get; set; }
     public List<AudienceRound> Rounds { get; set; } = new();
 }
 
@@ -107,6 +121,7 @@ public sealed class AudienceView
     public string Greeting { get; set; } = "";
     public List<string> GreetingDeviations { get; set; } = new();
     public string Spoken { get; set; } = "";
+    /// <summary>What the inventory tablet states: what was sent, or, if the envoy swapped it, what its forgery states.</summary>
     public int GoldStated { get; set; }
     public int GoldWeighed { get; set; }
     public TabletView? Proposal { get; set; }

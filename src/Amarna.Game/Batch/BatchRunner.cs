@@ -21,6 +21,12 @@ public sealed class GameSummary
     public int CourtsStoodIn { get; init; }
     /// <summary>Whether any seat could sleep in this game.</summary>
     public bool Sleepers { get; init; }
+    /// <summary>The living characters at the end, richest first, one line each (<see cref="Wealth.Line"/>).</summary>
+    public List<string> Richest { get; init; } = new();
+    /// <summary>The richest character's wealth at the end.</summary>
+    public int TopWealth { get; init; }
+    /// <summary>What every character gained in the game, by source, the dead included.</summary>
+    public Earnings Gained { get; init; } = new();
 }
 
 /// <summary>Plays many games unattended and summarizes winners and signals across them.</summary>
@@ -46,8 +52,14 @@ public static class BatchRunner
 
         var engine = new TurnEngine(s);
         var courts = Courts(s);
+        var ranking = Wealth.Ranking(s);
+        var gained = new Earnings();
+        foreach (var c in s.Characters) gained.Add(c.Earned);
         return new GameSummary
         {
+            Richest = ranking.Select(Wealth.Line).ToList(),
+            TopWealth = ranking.Count == 0 ? 0 : ranking[0].Total,
+            Gained = gained,
             CourtsHeld = courts.Held,
             CourtsReopened = courts.Reopened,
             CourtsStoodIn = courts.StoodIn,
@@ -221,6 +233,22 @@ public static class BatchRunner
         return string.Join(Environment.NewLine, lines);
     }
 
+    /// <summary>
+    /// The richest characters over many games: how rich the richest was at the end, and where all characters' gold came
+    /// from. Each game's own ranking is printed with the game.
+    /// </summary>
+    public static IEnumerable<string> RichestReport(IReadOnlyList<GameSummary> games)
+    {
+        var top = games.Select(g => g.TopWealth).ToList();
+        var gained = new Earnings();
+        foreach (var g in games) gained.Add(g.Gained);
+        string Share(int part) => gained.Total == 0 ? "0%" : $"{100.0 * part / gained.Total:0.0}%";
+        yield return "The richest characters (the second game, played under the kings'):";
+        yield return $"  The richest held {top.Average():0} shekels at the end on average (range {top.Min()}-{top.Max()}).";
+        yield return $"  All the gold characters gained, {gained.Total} shekels: wages {Share(gained.Wages)}, skimmed {Share(gained.Skimmed)}, gifts {Share(gained.Gifts)}, gold kept on dismissal {Share(gained.Carried)}.";
+        yield return "  " + Wealth.WhatCounts;
+    }
+
     public static string Report(IReadOnlyList<GameSummary> games)
     {
         var lines = new List<string>();
@@ -244,6 +272,8 @@ public static class BatchRunner
             var total = games.Sum(g => g.Signals.GetValueOrDefault(kind));
             lines.Add($"  {kind,-24} {with,3} / {total}");
         }
+        lines.Add("");
+        lines.AddRange(RichestReport(games));
         var cost = games.Sum(g => g.CostUsd);
         if (cost > 0) lines.Add($"\nModel cost: ${cost:0.00} total, ${cost / games.Count:0.00} per game.");
         var errors = games.Sum(g => g.Errors);

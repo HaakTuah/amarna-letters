@@ -74,9 +74,9 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
         else if (Has("accept_gift"))
             o = new JsonObject { ["speech"] = "I thank you, Great King.", ["accept_gift"] = false, ["accept_service"] = false, ["commitments"] = "" };
         else if (Has("speech") && Has("keep_gold"))
-            o = new JsonObject { ["speech"] = "My lord greets you as a brother.", ["keep_gold"] = 0 };
+            o = new JsonObject { ["speech"] = "My lord greets you as a brother.", ["keep_gold"] = 0, ["swap_inventory"] = false };
         else if (Has("report") && Has("keep_gold"))
-            o = new JsonObject { ["report"] = "The king received me kindly.", ["keep_gold"] = 0 };
+            o = new JsonObject { ["report"] = "The king received me kindly.", ["keep_gold"] = 0, ["swap_inventory"] = false };
         else if (Has("pitch"))
             o = new JsonObject { ["pitch"] = "I know every road from Ugarit to Babylon.", ["asking_price"] = 20 };
         else if (Has("persona"))

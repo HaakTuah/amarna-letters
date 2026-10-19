@@ -23,7 +23,7 @@
 
     @if (f.Ended && Scene.Index == f.Index)
     {
-        <div class="notice"><strong>The age has ended</strong> (@f.EndReason). Winner: @string.Join(" and ", f.Winners).</div>
+        <div class="notice"><strong>The age has ended</strong> (@f.EndReason). Winner: @string.Join(" and ", f.Winners). The richest characters are ranked under Standings.</div>
     }
 
     @if (Scene.Captures.Count > 0)
