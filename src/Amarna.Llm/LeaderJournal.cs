@@ -6,8 +6,8 @@ namespace Amarna.Llm;
 /// <summary>
 /// A model king's private record of earlier seasons, all of it in its own words: the notes, audiences and orders of the
 /// last three seasons it gave orders, shown in full; its own summary of the seasons before those, which it rewrites in its
-/// replies when it chooses; and its ledger of dealings, one line per court, carried in full. Nothing in it is condensed by
-/// anyone else: the king that reads it wrote all of it.
+/// replies when it chooses; and its ledger of dealings, one line per court, carried in full, which it writes with its orders
+/// or at an audience. Nothing in it is condensed by anyone else: the king that reads it wrote all of it.
 /// </summary>
 public sealed class LeaderJournal
 {
@@ -62,11 +62,25 @@ public sealed class LeaderJournal
                 _summary = Greeting.Cap(summary, SummaryMax);
                 _summaryTurn = turn;
             }
-            foreach (var line in sub.Ledger)
-            {
-                if (line.Entry.Trim() is { Length: > 0 } entry) _ledger[line.Court] = (Greeting.Cap(entry, LedgerEntryMax), turn);
-                else _ledger.Remove(line.Court);
-            }
+            Write(turn, sub.Ledger);
+        }
+    }
+
+    /// <summary>
+    /// Lines of the ledger the king wrote in an audience reply. Like those in its orders, each replaces that court's line, an
+    /// empty one removes it, and courts it left out keep theirs.
+    /// </summary>
+    public void WriteLedger(int turn, IEnumerable<LedgerLine> lines)
+    {
+        lock (_gate) Write(turn, lines);
+    }
+
+    private void Write(int turn, IEnumerable<LedgerLine> lines)
+    {
+        foreach (var line in lines)
+        {
+            if (line.Entry.Trim() is { Length: > 0 } entry) _ledger[line.Court] = (Greeting.Cap(entry, LedgerEntryMax), turn);
+            else _ledger.Remove(line.Court);
         }
     }
 

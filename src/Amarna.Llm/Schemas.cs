@@ -112,10 +112,7 @@ public static class Schemas
     private static JsonObject LeaderOrdersBase(bool sharedVictory) => Object(
         ("notes", Str($"Private notes to yourself, at most {Thousands(LeaderJournal.NotesMax)} characters (longer notes are cut): plans, promises made, suspicions. They are shown in full the next {LeaderJournal.SeasonsShown} times you give orders, then leave your record.")),
         ("summary", Str($"Your own summary of the seasons before those shown in full: plans, promises, what you have learned. At most {Thousands(LeaderJournal.SummaryMax)} characters. It replaces your previous summary; leave it empty to keep it.")),
-        ("ledger", Array(Object(
-            ("court", Enum(PowerNames)),
-            ("entry", Str($"At most {Thousands(LeaderJournal.LedgerEntryMax)} characters; empty removes that court's line."))),
-            "Your ledger of dealings, in your own words, per court: what was promised, sealed, broken and paid. An entry replaces that court's line, an empty entry removes it, and courts you leave out keep their lines. It is shown in full whenever you give orders or hold an audience.")),
+        ("ledger", Ledger()),
         ("units", Array(UnitOrder())),
         ("letters", Array(Object(
             ("envoy", Str("Id of one of your people who is at court and ready.")),
@@ -137,6 +134,12 @@ public static class Schemas
             ("show_tablet_copies", Array(Str(), "Ids of tablet copies you hold to show as evidence."))))),
         ("other_orders", Array(OtherOrder())));
 
+    /// <summary>The king's ledger of dealings, written the same way in an orders reply and in an audience reply.</summary>
+    private static JsonObject Ledger() => Array(Object(
+            ("court", Enum(PowerNames)),
+            ("entry", Str($"At most {Thousands(LeaderJournal.LedgerEntryMax)} characters; empty removes that court's line."))),
+        "Your ledger of dealings, in your own words, per court: what was promised, sealed, broken and paid. An entry replaces that court's line, an empty entry removes it, and courts you leave out keep their lines. It is shown in full whenever you give orders or hold an audience, and you may write it in either reply.");
+
     public static JsonObject HostReply() => Object(
         ("speech", Str("What you say to the envoy, to carry home.")),
         ("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given.")),
@@ -146,7 +149,8 @@ public static class Schemas
         ("detain_envoy", Bool()),
         ("send_gold_back", Int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it.")),
         ("gold_back_purity", Int("Purity of that gold in percent, 10-100. The purity named with the amount that is sent applies.")),
-        ("end_audience", Bool("End the audience now.")));
+        ("end_audience", Bool("End the audience now.")),
+        ("ledger", Ledger()));
 
     public static JsonObject Present() => Object(
         ("speech", Str("What you say to the king, delivering your lord's message in your own words.")),

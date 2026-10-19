@@ -77,6 +77,8 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
         }, ct);
         var reply = Parse.Host(json);
         _journal.Audience(view.Turn, view.From, view.Envoy.Name, reply.Speech);
+        // What it wrote in its ledger stays in its own record: the reply that the engine and the envoy see carries none of it.
+        _journal.WriteLedger(view.Turn, Parse.Ledger(json));
         return reply;
     }
 }

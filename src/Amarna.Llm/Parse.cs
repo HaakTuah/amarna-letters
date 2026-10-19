@@ -34,10 +34,8 @@ public static class Parse
     public static TurnSubmission Orders(JsonObject o)
     {
         // The king's notes and its summary of older seasons are for its own record; the engine ignores them.
-        var sub = new TurnSubmission { Notes = S(o, "notes"), Summary = S(o, "summary") };
-        // Its ledger of dealings too: the schema lists the courts, so a line can only name one of them.
-        foreach (var l in (o["ledger"] as JsonArray) ?? new JsonArray())
-            if (P(S(l, "court")) is { } court) sub.Ledger.Add(new LedgerLine(court, S(l, "entry")));
+        // Its ledger of dealings too.
+        var sub = new TurnSubmission { Notes = S(o, "notes"), Summary = S(o, "summary"), Ledger = Ledger(o) };
         foreach (var u in (o["units"] as JsonArray) ?? new JsonArray())
             if (Unit(u) is { } order) sub.Orders.Add(order);
 
@@ -200,6 +198,19 @@ public static class Parse
             _ => null,
         };
         return order;
+    }
+
+    /// <summary>
+    /// The lines of the king's ledger of dealings, in an orders reply or an audience reply. The schema lists the courts, so
+    /// a line can only name one of them. Lines written at an audience stay in the seat's own record and never join the
+    /// <see cref="HostReply"/>, which the envoy's mind reads: the ledger is the king's alone.
+    /// </summary>
+    public static List<LedgerLine> Ledger(JsonObject o)
+    {
+        var lines = new List<LedgerLine>();
+        foreach (var l in (o["ledger"] as JsonArray) ?? new JsonArray())
+            if (P(S(l, "court")) is { } court) lines.Add(new LedgerLine(court, S(l, "entry")));
+        return lines;
     }
 
     public static HostReply Host(JsonObject o) => new()

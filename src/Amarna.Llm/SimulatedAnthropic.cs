@@ -69,6 +69,7 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
                 ["speech"] = "Tell your lord I am his brother.",
                 ["gift_to_envoy"] = 0, ["gift_request"] = "", ["offer_service_wage"] = 0,
                 ["seal_tablet"] = true, ["detain_envoy"] = false, ["send_gold_back"] = 0, ["gold_back_purity"] = 100, ["end_audience"] = true,
+                ["ledger"] = new JsonArray(),
             };
         else if (Has("accept_gift"))
             o = new JsonObject { ["speech"] = "I thank you, Great King.", ["accept_gift"] = false, ["accept_service"] = false, ["commitments"] = "" };
