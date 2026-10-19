@@ -120,6 +120,26 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
+- **Ids: a counter for each kind of object** (since Build order item 4, fix (d); save version 4). Every
+  object the engine makes takes its id from `GameState.NewId(prefix)`: its kind's prefix and that kind's
+  own count, so tablets are "t1", "t2", ... and copies "k1", "k2", ... (`GameState.IdCounters`, saved
+  with the state). The prefixes are listed once, in `IdKinds`: a audience, c character, f fact, g lot
+  of gold, j journey, k copy of a tablet, m message trail, q task owed to a court, r request to a
+  character's mind, t tablet, u unit, x catastrophe; standing orders are numbered per seat ("s1", ...),
+  outside it. Each is letters only and belongs to one kind, so ids stay unique across kinds. Why:
+  many rolls are keyed by an id (a character's, a task's, an audience's), and until version 4 all
+  kinds shared one counter, so more objects of one kind, or a new kind, shifted the ids of everything
+  made after them and with them the dice. Build order item 3's inventory tablets and copies did just
+  that, and changed the winner in 13-14% of benchmark seeds without a rule that decided anything.
+  Now a kind added later, or more of one kind, leaves the ids of every other kind, and every roll
+  keyed by them, where they were. Tested: a dummy kind issued all through play leaves seeds 1-3
+  identical (same log, outcomes, winner, length and world), and the benchmarks were rerun with one in
+  the engine and came out identical. Within a kind a higher number was made later, which the
+  archives' "newest first" and the trail panel rely on (tested). What this does not cover: a rule
+  that adds draws to a stream shared by many decisions (a script king's stream for the season, say)
+  still moves the draws after it. A court can tell from the numbers of the ids it sees how many
+  objects of that kind exist in the world (copies made at other courts, for instance); the shared
+  counter told the same of all kinds together. Left as it is.
 - **Shared victory is off** (since 18 October 2026; see `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 23). One
   power wins: the one with the highest growth. A tablet can still be marked as a sworn alliance,
   and the script kings still treat it as a full alliance, but it shares nothing (the order schema
@@ -165,9 +185,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   say why; a botched forgery was an ordinary notice.)
 - **Save version.** The state and the log header carry the version of the rules
   (`GameState.CurrentVersion`: 2 since the simulation-fixes round, 3 since Build order item 3, whose archives,
-  inventory tablets and swapped inventories change how a seed plays). A log saved under another version
-  is refused, both for replay and for continuing it: "This game was saved under an earlier version of
-  the rules (version 2) and cannot be replayed by this version." The web app shows that message
+  inventory tablets and swapped inventories change how a seed plays, 4 since Build order item 4, whose hidden spies
+  are not paid back pay at the court they watch and do not end that court's cover, and whose fix (d) gives each kind
+  of object its own id counter, which renumbers objects and so moves every seed's rolls once; neither was released on
+  its own, so one version covers both). A log saved under another version is refused, both for replay and for
+  continuing it: "This game was saved under an earlier version of the rules (version 3) and cannot be replayed by
+  this version." (tested for versions 1 and 3). The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
@@ -303,7 +326,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   fold its oldest entries (all but the newest six) into its summary, in its own voice: Haiku when
   characters are model-played, a deterministic condensation for script characters. The summary
   is recorded like any decision, so replays stay exact. Prompts carry the summary and the most
-  recent ten entries; memory travels with the character to a new employer.
+  recent ten entries; memory travels with the character to a new employer. The request names the
+  court the character belongs to (its employer's, else the court it stands at); one with neither, free
+  and on the road, belongs to no court, and its request names none (`MindRequest.Court` is null; only
+  reports, pitches and background checks must name one, `MindRequest.For`). Nothing reads that court
+  for a summary, which goes to nobody. (Until Build order item 4 such a character's request named Egypt.)
 - **Prisoners**: an envoy held at a foreign court whose own kingdom falls, or whose king dismisses
   them, becomes a free agent but stays a prisoner; only the court holding them can hire them, and
   its release frees them at that court. A court that falls lets its prisoners go: its captives and
@@ -391,7 +418,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   with no task is paid its wage from the treasury, as before. A servant away (on a mission of any
   kind, posted as a spy, detained, or captive with its contract kept) is not paid: its wage is added
   to its back pay (`Character.BackPay`, per court), and no gold leaves. Right after the season's
-  arrivals, everyone standing at a court that owes it back pay, and not held there, is paid from
+  arrivals, everyone standing at a court that owes it back pay, not held there and not hidden there as
+  another court's spy (since Build order item 4: the court does not see it there), is paid from
   that court's true treasury, as much as it holds, whether or not it still serves that court (one
   dismissed while away is paid when it gets home); so a servant is paid the season it comes home,
   and its master reads "Mane is back at your court and was paid 48 shekels of back pay." A shortfall
@@ -452,6 +480,33 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   told. A spy's report is written when it arrives, of the season it was observed: a model-played
   spy remembers nothing that happened to it since (such as its capture). A spy at a court also copies
   from its archive, and the copies come home with its report (see "Tablets lie in archives").
+- **A spy at a court is hidden from it** (since Build order item 4; the rulebook says so under the spies'
+  paragraph). A spy posted at a court stands there (`Character.At`), but the court does not see it there
+  (`Character.HiddenAt`, `Views.SeenAtCourt`): its view does not list it for being there, and gives it
+  no place and no master. It is listed only if the court knows of it otherwise (a hidden fact it learned,
+  for instance), and then exactly as it would be anywhere else: "employed", no place, no master. The
+  court sees it, and whom it serves, once it has learned that, which under today's rules means:
+  - **caught**: it is the court's captive, listed "your captive", in its prison, with the master it
+    confessed to if it confessed (the `LossAbroad` record of its capture; kept as the court learned it,
+    whatever happens to its service later), and with no master if it would not say;
+  - **turned, or a plant**: a spy secretly in the pay of the court it watches (a captive it turned and sent
+    back to its post, or one planted in another court's service at the start) reports to that court, so the
+    court sees it at its post, with the master it pretends to serve.
+  Nothing else tells a court of an uncaught spy at its court: a confession comes only with a capture;
+  spies' and envoys' reports name envoys received or held at the court they visit, captives and the
+  dead, never a spy still at its post; background checks report facts about a person, never where it is.
+  The engine follows the same line: a hidden spy is not paid back pay the court owes it (it does not
+  stand there in the open; it is paid if it ever does), so no notice and no gold betray it, and it does
+  not end a cover that court holds for it (a defector posted as a spy at its old master's court leaves the
+  old master believing what it believed, as for any servant abroad). The web map already drew no foreign
+  spy a court has not caught, and draws a captive held at the court with the master it confessed to, or
+  none. The captor's own record of the capture (the event its court sees, in the web app's Events and
+  Season panels) names the master it confessed to, or says it "will not say whom they serve"; the truth is
+  a line no court sees, shown in the god view, which carries the success marker, so a capture still counts
+  once. (Until Build order item 4 the view listed a spy posted at a court in that court's view as
+  employed, with its master, "at your court", and showed a captive no master even if it confessed, while
+  the map coloured every captive by its true master; until that item's review the captor's event named
+  the true master too.)
 - **News of your people abroad comes only by rumour or when they return** (the rulebook says so).
   When something happens to a servant abroad that its master cannot see (a spy caught, an envoy
   detained or going over to the host, a captive put to death or turned, a prisoner let go), the
@@ -523,10 +578,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     round's review it left the sight the season of the capture.)
   - **What a cover cannot hide:** a caught spy's reports stop coming; a background check on the servant
     finds a defection's public fact as usual; a captive whose master knew of it is seen on the road
-    home as soon as it is let go. A spy posted at a court is listed in that court's view with its
-    employer, "at your court", before anyone catches it (`docs/rounds/2026-10-18-sleep-and-simulation.md`,
-    question 19, bug 4; not changed this round), so a defector its new master posts at its old
-    master's court ends the old master's cover when it arrives.
+    home as soon as it is let go. A defector its new master posts as a spy at its old master's court
+    is hidden there like any spy (see "A spy at a court is hidden from it"), so the old master's cover
+    holds; one sent there as an envoy stands before the king and ends it. (Until Build order item 4 a
+    spy posted at a court was listed in that court's view with its employer, "at your court",
+    `docs/rounds/2026-10-18-sleep-and-simulation.md`, question 19, bug 4, and a defector posted at its old
+    master's court ended the old master's cover when it arrived.)
   (Until the simulation-fixes round the master's list showed
   the truth at once: a caught spy "at court, ready for a mission", a detained envoy "has not
   returned" the same season, a defector dropped off the list and its wage stopped, an executed spy
@@ -635,7 +692,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Transport**: the official C# SDK is used in the console runner and tests. It cannot run in the
   browser (its constructor enables HTTP decompression, which WebAssembly forbids), so the browser
   posts the same Messages API request with `HttpClient`, with the
-  `anthropic-dangerous-direct-browser-access` header.
+  `anthropic-dangerous-direct-browser-access` header. The SDK path lives in a project of its own,
+  `Amarna.Llm.Sdk`, which the web app does not reference, so the browser never downloads the SDK; a
+  console program registers it once (`AnthropicSdk.Use()`, as the batch runner does), and a model client
+  built outside the browser without it says so.
 - **Prompt-injection boundaries**: a character's prompt holds only its own persona, memory and
   facts (tested); text never changes state; the narrator receives only released facts.
 - **Leader memory** is a private record in the king's own words (`LeaderJournal`), shown in every
@@ -1094,12 +1154,84 @@ triggers 68 (on only); before them it was 11,066 on and 4,560 off, and 13,502 pr
 `$defs`/`$ref` would cut that further, but is not done: it is untried against the API's structured
 output, and the file seat's own schema check would have to follow references.
 
-`sim/` holds a kit that plays a game with one Claude Code agent per king, with isolation enforced
-by construction, not by instruction: see `sim/README.md` and `docs/SIMULATION-PROMPT.md`. Starting
-values for the first experiment, all settings rather than rules: seed 7; `--max-turns 10` (the game
-stops after season 10, whatever the random end; the kings are not told, and their rulebook still
-says no game ends before turn 15); `--sleep-cap 6`; script characters and the template narrator;
-kings on Sonnet 5.5, the design's default leader model.
+**File characters** (`--file-characters DIR|map.json`, item 4) do the same for envoys, spies and candidates: every
+decision a model character makes (its speech abroad, each reply at an audience, its report home, a pitch, a spy's
+report and a memory summary) is written as the exact request a model character gets (`LlmCharacterMind`: the shared
+character system text, its persona, facts and memory, the situation and the schema), with the same footer, to that
+character's own folder, and the reply is checked like a file seat's. A request says "Decide as yourself" where a king's
+says "Decide as the king". A missing or unreadable reply (one retry, then `--file-timeout`) falls back to the script
+character for that decision and is logged as a failed call. Replies are logged as decisions, so a game replays exactly
+without the files. Which characters: every character in the seed's pool, because any of them can be hired, sent as an
+envoy or posted as a spy, and the pool is fixed when the game is made (18 characters, `GameConfig.CharacterPoolSize`;
+nothing adds one later). `--list-characters` prints a seed's pool (id, name, origin and how it starts, no traits or
+secrets) for the kit. A map names a folder per character id and carries `"seed"`: ids are numbered by the game's own
+counter and differ from seed to seed, so a map made for one seed is refused for another. A character left out of the
+map is a script character; city-states stay scripts and the narrator stays the template. File characters do not mix
+with `--characters haiku|sonnet`.
+
+**The script's shadow.** For each decision a model character makes, through the API or as a file character, the runner
+also logs what the script mind with the same traits decides in the same situation (`ShadowDecision`, a `"shadow"` line
+in the log). `ScriptMind` draws only from streams keyed by seed, season and character (`Rng.For`), never from the
+game's own generator, and changes nothing it reads, so the shadow changes nothing: a test plays the same game with and
+without it and gets the same state and the same decisions. The shadow line holds the character's traits, what it faced
+(gold carried, a gift or a post offered), what the engine knows happened that a report should not hide, and both
+decisions with what `CharacterChecks` found in their words. The checks read words, not meaning: a report "hides" a gift
+the envoy took if it never speaks of gold or a gift given to the envoy itself, a detention if it never speaks of being
+held, gold kept on the way out if it never owns up, a threat to its lord if it carries no threat at all, an offer of
+service it declined if it never mentions service; it "contradicts" the engine if it says the king sealed when nothing
+was sealed. A speech abroad "softens" a threat to the host if the letter had one and the speech has none. A spy "passes
+on" its secret masters' words if most of their longer words are in its report, and "leaves out" an observation if fewer
+than half of its names, numbers and longer words are. An invented promise or a false account of a king's mood passes
+the checks, so a reader confirms the flagged reports. The batch runner prints the comparison after the seat report
+(`BatchRunner.CharacterReport`: gold kept and its size, inventories swapped, gifts and posts taken or refused,
+commitments, each flag, spies, pitches, and the same per character), and the size of every kind of request
+(`BatchRunner.CallSizes`: file requests in characters, and tokens at 3.6 characters a token; API calls by their input
+tokens). A file request's length is logged with its call (`ModelCall.RequestChars`).
+
+`sim/` holds a kit that plays a game with one Claude Code agent per king and, since item 4, one per
+character, with isolation enforced by construction, not by instruction: see `sim/README.md` and
+`docs/SIMULATION-PROMPT.md`. Starting values for the first experiment, all settings rather than rules:
+seed 7; `--max-turns 10` (the game stops after season 10, whatever the random end; the kings are not
+told, and their rulebook still says no game ends before turn 15); `--sleep-cap 6`; script characters
+and the template narrator; kings on Sonnet 5.5, the design's default leader model. For the second
+(item 4): seeds 7 and 15, ten seasons each, sleep on with the default hidden cap (12); kings on
+Sonnet and characters on Haiku, the design's defaults ("Every model is the table's choice"); every
+character of each seed's pool is a file character with an agent of its own (`setup.js --seeds 7,15`
+makes 36, named `char-` and 8 random hex digits, with the same guard as the kings); city-states and
+the narrator as before. `check-isolation.js --dry` checks the walls without starting an agent, by
+running each agent's own hook on the isolation test's steps; the live test still runs first in the
+playing session. `stub-replier.js` answers requests with the plainest valid reply, to prove the
+plumbing without model calls. `audit.js` allows an agent in play to read only the request file its
+prompt named, since a character could otherwise open an older or newer request of its own and learn
+what has happened since the season it writes of (a debrief, which names earlier requests to reread,
+may read any of its own); until item 4's review any request file in its own folder passed. The
+simulation's live isolation test, like local play's, counts only what was logged from the time noted
+before it (`--since`).
+
+**Local play on a Claude subscription** (item 4). A fourth way to play, for the developer's own games: the web app,
+run on this computer, with a human seat against kings played by the same guarded king agents, answered in a Claude Code
+session on the subscription instead of through paid API calls (`sim/README.md`, "Local play"; `docs/PLAY-PROMPT.md`).
+A king set to `LeaderKind.LocalAgent` ("Local agent") is a model leader seat whose asker is a `BridgeExchange`: a file
+seat whose files are written by the local bridge, `sim/bridge.js`, since a web page cannot write files. The page builds
+the request text itself (`FileExchange.Request`, with a one-off mark where the reply's path goes) and posts it with the
+king's name and the request's file name; the bridge, which alone knows the folders (`sim/kings/seats.json`), puts the
+reply path in and writes `<name>.request.md` into the king's folder, and the page asks it every second for the reply
+until it comes. The reply goes through the file seat's checks, one retry and fallback (`FileExchange.Converse`, shared
+by both); after the table's wait (`SeatChoices.LocalAgentMinutes`, 60 minutes by default) the script king stands in for
+that decision, and a request that times out, or whose game is stopped, is taken back (moved aside by the bridge), so
+that no agent is started for it later. Each exchange is logged as a call with no tokens ("local agent"), so a game
+saves, continues and replays like any other; a saved game reads its local agent kings back from the header's labels.
+Local agent kings sleep like model kings, so usage follows events. They need no key and cost nothing in the game's
+meter. The bridge listens on 127.0.0.1 and ::1 only, checks the Host header, answers only pages served from this computer
+(an `Origin` of localhost, 127.0.0.1 or [::1]; requests that change anything must be JSON, which a page elsewhere
+cannot send without asking first), and accepts only the seven kings and request names of the game's own form. The web
+app offers the "Local agents" preset (`Presets.Local`, not in `Presets.All`) and the "Local agent" choice only when it
+runs on a loopback address, so the published site never shows them; a saved local game continued elsewhere says that it
+needs the bridge. The orchestrator waits with `wait.js --play`, which watches the kings only and ends when the bridge
+stops (`sim/kings/bridge.json` gone or its process dead); `check-isolation.js --kings --since <time>` checks the
+kings' live isolation test of that session alone. Envoys, spies and the narrator are scripts in local play. Settings,
+first guesses: the bridge's port 5190, a poll every second, the 60-minute wait, and an empty reply handed back after
+5 seconds as the batch runner's file seats do.
 
 ## Script kings
 
@@ -1576,20 +1708,21 @@ These are in the code as written, and they affect the balance numbers:
 `BaselineLeader` is a frozen copy of the first script bot. `--versus solo` plays each king on the
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
-current bot. Seeds 1–40, one current king against six baselines, rerun after Build order item 3 (19 October 2026,
-shared victory off; the numbers before it, and why they moved, are in its report,
-`docs/rounds/2026-10-19-small-record-items.md`, "Benchmarks", and the rounds before in theirs):
+current bot. Seeds 1–40, one current king against six baselines, rerun after Build order item 4, with its fixes
+(a), the hidden spy, and (d), an id counter per kind (19 October 2026, shared victory off; the numbers before it, and
+why they moved, are in that item's report, `docs/rounds/2026-10-19-second-simulation.md`, "Merging fix (d), and the
+item's benchmarks", and the items and rounds before in theirs):
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
-| Egypt | 2.86 | 1.31 | 93% | 15% |
-| Hatti | 2.78 | 0.84 | 85% | 5% |
-| Babylonia | 2.44 | 1.16 | 85% | 10% |
-| Mitanni | 1.85 | 1.35 | 53% | 28% |
-| Assyria | 3.76 | 0.97 | 88% | 10% |
-| Arzawa | 3.18 | 1.38 | 63% | 30% |
-| Alashiya | 1.84 | 0.88 | 45% | 3% |
-| All kings | 2.67 | 1.13 | 73% | 14% |
+| Egypt | 2.86 | 1.32 | 85% | 18% |
+| Hatti | 2.68 | 0.83 | 80% | 5% |
+| Babylonia | 2.43 | 1.16 | 83% | 10% |
+| Mitanni | 1.84 | 1.34 | 58% | 25% |
+| Assyria | 3.61 | 0.94 | 85% | 10% |
+| Arzawa | 3.30 | 1.38 | 65% | 28% |
+| Alashiya | 1.87 | 0.90 | 53% | 5% |
+| All kings | 2.66 | 1.12 | 73% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
@@ -1692,6 +1825,10 @@ charge can still count.
 
 Build order item 2 (`docs/prompts/VISUAL-OVERHAUL.md`; report `docs/rounds/2026-10-19-visual-overhaul.md`).
 Presentation only: no rule, state, view, prompt or balance changed, and seeds replay to the same logs byte for byte.
+Item 4 changed two things here: the engine's view now hides a foreign spy from the court it watches (fix (a), noted
+under "Each view sees only what its court knows"), and fix (b), phone performance, rewrote "Load size" and added
+"Script kings and characters in a worker" and "What is left in the page" (presentation and build only; report
+`docs/rounds/2026-10-19-second-simulation.md`).
 
 - **Terrain is map data with no effect yet** (`Geography` in the engine project). Rough provinces: Mira, Lukka,
   Isuwa, Amurru, Arbela, Tamassos. Desert: Sinai. Crossings on six connections: the Cilician Gates
@@ -1737,10 +1874,11 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   halo and a dotted road to say it is a guess. A ransom travels as gold on its own.
 - **Each view sees only what its court knows** (`MapScene`). A court sees its own people where it believes them
   (its cover of a servant whose fate it has not heard, read from the cover's own texts), foreign envoys only while
-  they stand at its court, and anyone it holds; never a foreign spy it has not caught. The engine's own view still
-  lists a spy posted at a court in that court's view with its employer (question 19, bug 4, recorded under
-  "Characters"); the map does not draw it, and this round changes no view (the People panel and the follow view,
-  which read the engine's view, still show it). A court is drawn only the orders it saw resolve. Who holds a province
+  they stand at its court, and anyone it holds (a caught spy marked with the master it confessed to, or none; a
+  held envoy with the king who sent it); never a foreign spy it has not caught. Since Build order item 4 the
+  engine's own view hides that spy too (see "A spy at a court is hidden from it" under Characters), so the People
+  panel and the follow view, which read it, no longer list it or its employer; until then they did (question 19,
+  bug 4). A court is drawn only the orders it saw resolve. Who holds a province
   is public, but how it changed hands is not (the engine tells a conquest only to the taker and the loser, a
   purchase only to courts with sight): a court reads "taken by" only when it saw the new owner's troops march in,
   "passed to" when it lost or gained the province (it would have seen a march), and otherwise "now held by". A march
@@ -1771,15 +1909,38 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   every file at install and starts from the cache afterwards. Fingerprinted files are taken from the browser's own
   cache, so installing downloads nothing twice; HTML files are not checked against the publish hashes, since the
   Pages workflow rewrites their base path. In development the worker caches nothing.
-- **Load size.** The browser build runs in the invariant culture (no ICU data) and trims the Anthropic SDK, which
-  the browser never constructs (it posts with HttpClient), to the code that refers to it: about 3.2 MB compressed
-  instead of 5.0 MB. Splitting the SDK path out of `Amarna.Llm` would save another 0.45 MB; not done, as it is not
-  presentation.
-- **Script kings in the page.** Their look-ahead runs in the page's one WebAssembly thread, and is nearly all of a
-  season's time (several seconds on a slow phone). The web app lets the browser draw between kings (`YieldingSeat`:
-  the kings still decide one after another in the same order, so nothing they decide changes), shows a season before
-  saving it, and never asks the map to read a whole state back from its snapshot. Measurements are in the round
-  report.
+- **Load size.** The browser build runs in the invariant culture (no ICU data) and carries none of the Anthropic
+  SDK, which it never constructs (it posts with HttpClient; the SDK path is in `Amarna.Llm.Sdk`, see "Transport"
+  under Models): about 2.8 MB with Brotli, 3.4 MB with the gzip GitHub Pages serves. On a first visit the loading
+  screen says that the game is being downloaded, about 3 MB, and that later visits start from the device; a visit
+  started by the service worker does not show the note.
+- **Script kings and characters in a worker.** The kings' look-ahead is nearly all of a season's time (seconds on a
+  slow phone), and a character's text code takes a second or two to warm up the first time it writes; in the page's one
+  WebAssembly thread both froze the page. In a browser game they now think in a Web Worker of their own
+  (`ScriptWorker.cs`, `js/script-worker.js`): it boots a second .NET runtime from the files the page has already
+  downloaded (nothing more to download), warms up on a throwaway game while the page sets up the real one, and
+  answers one request at a time. Each request carries what the engine handed the seat or the mind, the king's view or
+  the character's context, written out as JSON as a file seat's view is, and the answer comes back the same way into
+  the runner, which records it as before (serialization code generated at build time was tried and dropped: 69 KB
+  more to download, and no shorter first season in the page). The kings keep their memory in the worker from season to
+  season (one `ScriptLeader` per game, as in the page), so each answer is the one the same code gives in the page:
+  tests play seeds 1, 2, 5, 7 and 14 both ways and compare every decision and the state after every season. Where no
+  worker can start the kings think in the page as before, letting the browser draw between them (`YieldingSeat`); a
+  worker not ready within two minutes of being started counts as one that cannot start, and is stopped (a first guess,
+  well above the 1-1.4 s it takes to boot and warm up on a desktop, 4.5-5.6 s on a slow emulated phone). If the worker
+  stops during a game, the page takes over and says so (the kings then start that season with no memory of the earlier
+  ones; the characters keep none, so theirs is the same answer). Model kings and characters wait on the network and
+  stay in the page. So do local agent kings, which wait on the local bridge (see "Local play on a Claude
+  subscription"), and the runner's script stand-in for a model or local agent king whose call failed. The script
+  decision logged beside each model character's (its shadow line, which nothing in the game reads) is worked out in
+  the worker, since it is the script character's own text code (`LlmCharacterMind.Script`); a test plays a table of
+  model characters both ways and gets the same shadow lines. (Until item 4's review it was worked out in the page.)
+- **What is left in the page** is the engine's own work and drawing. A season's redraws are coalesced and made in a
+  task of their own, after the engine's work rather than within it (`GameSession.NotifySoon`), the page draws that a
+  season is under way before its work begins, and a season is shown before it is saved. The log writes each decision's
+  line once and keeps it (`GameLog.ToJsonl`, which the autosave calls every season, used to write and re-read every
+  line each time; the text is the same, model characters' shadow lines included). The map never reads a whole state
+  back from its snapshot. Measurements are in the round reports.
 - **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
 
 ## Where the code differs from the design document (as it stood on 19 October 2026)
@@ -1918,8 +2079,6 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   instructions, an attention limit the same for every seat, and tablets counting as pressing only where the
   instructions do not cover them; they need a decision first (main tab "Under consideration: standing instructions for
   audiences" and "What the replay showed"; Build order "Not yet in the order"; the round report, "Later candidates").
-- **Local play on a Claude subscription**: a human seat against file-seat kings answered by guarded agents (main tab
-  "Local play on a Claude subscription (planned)").
 - **Push notifications** when an envoy arrives (main tab "Platforms"); the web app installs and starts from cache.
 - **Echoes kept out of the primer**: Finkel's "Send gold" parody as a rare script king's letter or chronicle line, and
   "a new Idrimi" in the chronicles once outlaws exist (main tab "Echoes from the archive" and "A new Idrimi").

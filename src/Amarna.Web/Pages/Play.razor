@@ -147,6 +147,12 @@ else
                         @if (Session.Notice.StartsWith("Paused")) { <button class="small" @onclick="() => Session.RaiseBudget(5)">Add $5</button> }
                     </div>
                 }
+                @* Local play: nothing moves while the other kings' agents think. Which kings are asked is not said: it would tell who sleeps. *@
+                @if (Session.Busy && !history && pendingOrders is null && pendingAudience is null && Session.Settings.Choices.UsesLocalAgents
+                     && (runner.Phase.EndsWith(": orders") || runner.Phase.EndsWith(": audiences")))
+                {
+                    <div class="notice">The other kings are deciding: their agents answer in the Claude Code session on this computer, which can take a few minutes.</div>
+                }
                 @if (runner.Errors.Count > 0 && (Session.GodView || !Session.HasHumans))
                 {
                     <details class="notice"><summary>@runner.Errors.Count call(s) failed and used script fallbacks</summary>

@@ -519,13 +519,14 @@ public sealed partial class TurnEngine
             case MindTask.EnvoyReport:
             {
                 if (c is null) return;
+                var lord = req.For();
                 var cargo = req.Cargo ?? new HomeCargo();
                 if (cargo.Gold > 0)
                 {
                     var skim = Math.Clamp(reply.Number, 0, cargo.Gold);
                     var face = cargo.Gold - skim;
                     var fine = (int)Math.Round(face * cargo.PurityPercent / 100.0);
-                    var from = Trail(req.TrailId)?.To ?? req.Court;
+                    var from = Trail(req.TrailId)?.To ?? lord;
                     // An envoy that kept some may have swapped the host's inventory for a forgery stating only what is left.
                     var swapped = Swaps(c, skim, cargo.Gold, reply.SwapInventory);
                     var stated = swapped ? face : cargo.GoldStated;
@@ -534,13 +535,13 @@ public sealed partial class TurnEngine
                         c.Gain((int)Math.Round(skim * cargo.PurityPercent / 100.0), GoldSource.Skimmed);
                         c.Remember(S.Turn, $"I kept {skim} shekels of the gold sent home with me.");
                         S.Log("skim", $"{c.Name} kept {skim} shekels on the way home.", [], "skim");
-                        if (SwapInventory(c, from, req.Court, skim, face, reply.SwapInventory) is { } swap && Trail(req.TrailId) is { } home)
+                        if (SwapInventory(c, from, lord, skim, face, reply.SwapInventory) is { } swap && Trail(req.TrailId) is { } home)
                             home.Outcomes.Add($"on the way home, kept {skim} shekels of the gold sent back and {swap}");
                     }
-                    S.Treasuries[req.Court].Gold += fine;
-                    S.Treasuries[req.Court].Lots.Add(new GoldLot { Id = S.NewId("g"), From = from, Stated = stated, Face = face, True = fine, ArrivedTurn = S.Turn });
+                    S.Treasuries[lord].Gold += fine;
+                    S.Treasuries[lord].Lots.Add(new GoldLot { Id = S.NewId("g"), From = from, Stated = stated, Face = face, True = fine, ArrivedTurn = S.Turn });
                     // The host's inventory, sealed at the audience, or the envoy's forgery, goes into the court's archive.
-                    Inventory(c, from, req.Court, stated, Trail(req.TrailId)?.AudienceTurn ?? S.Turn, swapped, $"the inventory {c.Name} brought home with the gold of {from}");
+                    Inventory(c, from, lord, stated, Trail(req.TrailId)?.AudienceTurn ?? S.Turn, swapped, $"the inventory {c.Name} brought home with the gold of {from}");
                     text += $"\n\n[The inventory lists {Money.Format(stated)} of gold; your weighers found {Money.Format(face)}.]";
                 }
                 if (Trail(req.TrailId) is { } trail)
@@ -548,26 +549,29 @@ public sealed partial class TurnEngine
                     trail.Report = text;
                     trail.ReportTurn = S.Turn;
                 }
-                S.Notify(req.Court, InboxKind.EnvoyReport, $"{c.Name} returns", text, c.Id);
+                S.Notify(lord, InboxKind.EnvoyReport, $"{c.Name} returns", text, c.Id);
                 c.Remember(S.Turn, $"I reported to my lord: \"{Greeting.Cap(text, 300)}\"");
                 break;
             }
             case MindTask.Pitch:
+            {
                 if (c is null || !c.IsAvailableForHire) return;
+                var court = req.For();
                 // A court that still believed this person away in its service now sees it seeking service: that is the news.
-                c.Covers.RemoveAll(k => k.For == req.Court);
-                c.Pitches[req.Court] = text;
-                c.AskingPrice[req.Court] = Math.Clamp(reply.Number, 5, 400);
-                S.Notify(req.Court, InboxKind.Candidates, $"{c.Name} seeks service",
-                    $"{text}\n[{c.Name} asks {Money.Format(c.AskingPrice[req.Court])} a season.]", c.Id);
+                c.Covers.RemoveAll(k => k.For == court);
+                c.Pitches[court] = text;
+                c.AskingPrice[court] = Math.Clamp(reply.Number, 5, 400);
+                S.Notify(court, InboxKind.Candidates, $"{c.Name} seeks service",
+                    $"{text}\n[{c.Name} asks {Money.Format(c.AskingPrice[court])} a season.]", c.Id);
                 break;
+            }
             case MindTask.CheckReport:
-                S.Notify(req.Court, InboxKind.CheckResult, $"Inquiries into {c?.Name ?? "a stranger"}", text, req.CharacterId);
+                S.Notify(req.For(), InboxKind.CheckResult, $"Inquiries into {c?.Name ?? "a stranger"}", text, req.CharacterId);
                 break;
             case MindTask.SpyReport:
                 if (c is not null && req.CopyIds.Count > 0 && req.Report?.Court is { } watched)
                     text += "\n\n" + CopiesLine(c, watched, req.CopyIds);
-                S.Notify(req.Court, InboxKind.SpyReport, $"Word from {c?.Name ?? "your agent"}", text, req.CharacterId);
+                S.Notify(req.For(), InboxKind.SpyReport, $"Word from {c?.Name ?? "your agent"}", text, req.CharacterId);
                 break;
             case MindTask.SummarizeMemory:
                 if (c is null || text.Trim().Length == 0) return;

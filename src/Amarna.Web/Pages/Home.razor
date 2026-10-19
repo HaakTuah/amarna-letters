@@ -17,20 +17,23 @@
     <div class="card">
         <h2>How do you want to play?</h2>
         <div class="presets" role="radiogroup" aria-label="Game presets">
-            @foreach (var p in Presets.All)
+            @foreach (var p in ShownPresets)
             {
                 var on = Selected?.Id == p.Id;
                 var estimate = EstimateFor(p);
-                <button class="preset @(on ? "on" : "")" role="radio" aria-checked="@(on ? "true" : "false")" aria-label="@($"{p.Name}: {CostEstimate.Describe(estimate)}")" @onclick="() => Choose(p)">
+                var local = p == Presets.Local;
+                var price = local ? "your Claude subscription" : $"{CostEstimate.Describe(estimate)}{(estimate > 0 ? " a game" : "")}";
+                <button class="preset @(on ? "on" : "")" role="radio" aria-checked="@(on ? "true" : "false")" aria-label="@($"{p.Name}: {price}")" @onclick="() => Choose(p)">
                     <span class="preset-head">
                         <strong>@p.Name</strong>
                         @if (p == Presets.Standard) { <span class="pill">recommended</span> }
+                        @if (local) { <span class="pill">this computer only</span> }
                     </span>
                     <span class="preset-models">@Roles(p)</span>
                     <span class="preset-text">@p.Tagline</span>
                     <span class="preset-foot">
-                        <span class="pill">@CostEstimate.Describe(estimate)@(estimate > 0 ? " a game" : "")</span>
-                        <small class="muted">@(p.NeedsKey ? "your API key" : "no key needed")</small>
+                        <span class="pill">@price</span>
+                        <small class="muted">@(local ? "needs the local bridge" : p.NeedsKey ? "your API key" : "no key needed")</small>
                     </span>
                 </button>
             }
@@ -69,6 +72,10 @@
                                             <option value="@LeaderKind.Haiku">Haiku 5.5</option>
                                             <option value="@LeaderKind.Sonnet">Sonnet 5.5</option>
                                             <option value="@LeaderKind.Opus">Opus 5.5</option>
+                                            @if (IsLocal || Settings.Choices.Leaders[p] == LeaderKind.LocalAgent)
+                                            {
+                                                <option value="@LeaderKind.LocalAgent">Local agent (Claude Code)</option>
+                                            }
                                         </select>
                                     </td>
                                 </tr>
@@ -125,6 +132,30 @@
                 </div>
             </div>
         </details>
+
+        @if (Settings.Choices.UsesLocalAgents)
+        {
+            <div class="section">
+                <h3>Kings played by Claude agents on this computer</h3>
+                <p class="muted" style="max-width:46rem">
+                    Local play: each king marked "local agent" is answered by its own guarded agent in a Claude Code session on
+                    this computer, on your Claude subscription, through the local bridge. Start the bridge
+                    (<code>node sim/bridge.js</code>) and the session (<code>docs/PLAY-PROMPT.md</code>) first: the steps are
+                    under "Local play" in <code>sim/README.md</code>. It works only when this app runs on your computer, not on
+                    the published site. Kings sleep after their orders until something concerns them, so a season takes
+                    minutes when they are woken. Envoys and the narrator stay scripts. For your own games only.
+                </p>
+                <div class="row">
+                    <label>Bridge <input style="width:16rem" @bind="Settings.Choices.BridgeAddress" @bind:after="() => BridgeLine = null" /></label>
+                    <label title="After this, the script king stands in for that one decision.">Wait for an agent up to <input type="number" min="1" max="600" @bind="Settings.Choices.LocalAgentMinutes" /> minutes</label>
+                    <button class="small" @onclick="CheckBridge">Check the bridge</button>
+                </div>
+                @if (BridgeLine is not null)
+                {
+                    <p class="@(BridgeOk ? "notice" : "notice error")">@BridgeLine</p>
+                }
+            </div>
+        }
 
         @if (Settings.UsesModels && !Settings.SimulateApi)
         {
@@ -218,7 +249,33 @@
         return s;
     }
 
-    private Preset? Selected => Presets.Matching(Settings.Choices);
+    /// <summary>
+    /// Whether this app runs on this computer (a local build, not the published site): only then can it reach the local
+    /// bridge, so only then are kings played by local agents offered.
+    /// </summary>
+    private bool IsLocal => Uri.TryCreate(Nav.BaseUri, UriKind.Absolute, out var u) && u.IsLoopback;
+
+    private IReadOnlyList<Preset> ShownPresets => IsLocal ? [.. Presets.All, Presets.Local] : Presets.All;
+
+    private Preset? Selected => ShownPresets.FirstOrDefault(p => p.Matches(Settings.Choices));
+
+    private string? BridgeLine;
+    private bool BridgeOk;
+
+    private IEnumerable<Power> LocalKings(SeatChoices c) => c.Leaders.Where(x => x.Value == LeaderKind.LocalAgent).Select(x => x.Key);
+
+    /// <summary>Asks the local bridge whether it runs and keeps a folder for every king played by a local agent.</summary>
+    private async Task<bool> BridgeReady(SeatChoices choices)
+    {
+        var status = await LocalBridge.CheckAsync(choices.BridgeAddress, LocalKings(choices));
+        BridgeOk = status.Ready;
+        BridgeLine = status.Ready
+            ? $"The bridge is running and keeps a folder for each of the {LocalKings(choices).Count()} kings played by local agents."
+            : status.Problem;
+        return status.Ready;
+    }
+
+    private async Task CheckBridge() => await BridgeReady(Settings.Choices);
 
     private Power? Seat => Settings.Choices.Leaders.Where(x => x.Value == LeaderKind.Human).Select(x => (Power?)x.Key).FirstOrDefault();
 
@@ -236,7 +293,13 @@
         Recost();
     }
 
-    private static string Name(LeaderKind k) => k switch { LeaderKind.Script => "script", LeaderKind.Human => "you", _ => $"{k} 5.5" };
+    private static string Name(LeaderKind k) => k switch
+    {
+        LeaderKind.Script => "script",
+        LeaderKind.Human => "you",
+        LeaderKind.LocalAgent => "local agents",
+        _ => $"{k} 5.5",
+    };
 
     private static string Roles(Preset p) =>
         $"Kings: {Name(p.Leaders)} · Envoys: {(p.Characters == CharacterKind.Script ? "script" : $"{p.Characters} 5.5")} · Narrator: {(p.Narrator == NarratorKind.Template ? "template" : $"{p.Narrator} 5.5")}";
@@ -307,6 +370,12 @@
     private async Task Start()
     {
         if (!await KeyReady()) return;
+        if (Settings.Choices.UsesLocalAgents && !await BridgeReady(Settings.Choices))
+        {
+            // Said once, next to the button that was pressed.
+            (Problem, BridgeLine) = (BridgeLine, null);
+            return;
+        }
         Starting = true;
         var settings = Settings.Copy();
         Settings.Seed = (ulong)Random.Shared.Next(1, 1_000_000);
@@ -336,9 +405,16 @@
         }
         if (continuePlay && header is not null)
         {
-            if (SeatSetup.FromHeader(header).UsesModels && string.IsNullOrWhiteSpace(Keys.Key))
+            var seats = SeatSetup.FromHeader(header);
+            if (seats.UsesModels && string.IsNullOrWhiteSpace(Keys.Key))
             {
                 LoadProblem = "This game used Claude models. Choose any preset that needs a key, enter your key above, then continue.";
+                return;
+            }
+            // A saved game with kings played by local agents goes on through the bridge at its usual address.
+            if (seats.UsesLocalAgents && !await BridgeReady(seats))
+            {
+                (LoadProblem, BridgeLine) = (BridgeLine, null);
                 return;
             }
         }

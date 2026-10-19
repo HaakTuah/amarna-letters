@@ -2,8 +2,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Anthropic;
-using Anthropic.Models.Beta.Messages;
 using Amarna.Game;
 
 namespace Amarna.Llm;
@@ -28,25 +26,39 @@ public sealed class CallSpec
     public int MaxTokens { get; init; } = 16000;
 }
 
+/// <summary>What one call returned, however it was made.</summary>
+public sealed record ApiResult(string Text, string? StopReason, string? Category, string Model, long Input, long Output, long CacheRead, long CacheWrite);
+
+/// <summary>A way to make one call to the Messages API other than the browser's own post: the official SDK (<c>Amarna.Llm.Sdk</c>).</summary>
+public interface IApiTransport
+{
+    Task<ApiResult> SendAsync(CallSpec spec, string user, CancellationToken ct);
+}
+
 /// <summary>
 /// The Anthropic Messages API, called with the player's own key. Outside the browser it goes
-/// through the official C# SDK. In the browser the SDK cannot be constructed (it enables HTTP
-/// decompression, which WebAssembly forbids), so the same request is posted with HttpClient,
-/// carrying the header that opts in to direct browser access. Every call is logged with its
-/// prompt, output, usage and cost. Output is constrained by a JSON schema; an unreadable reply
-/// is retried once with the error, then the caller falls back to a script decision.
+/// through the official C# SDK, which lives in <c>Amarna.Llm.Sdk</c> so that the web app does not
+/// download it: a console program registers it (<see cref="Sdk"/>). In the browser the SDK cannot
+/// be constructed (it enables HTTP decompression, which WebAssembly forbids), so the same request
+/// is posted with HttpClient, carrying the header that opts in to direct browser access. Every call
+/// is logged with its prompt, output, usage and cost. Output is constrained by a JSON schema; an
+/// unreadable reply is retried once with the error, then the caller falls back to a script decision.
 /// </summary>
 public sealed class ClaudeClient : IJsonAsker
 {
     public const string FallbackBeta = "server-side-fallback-2026-07-01";
     public const string ApiVersion = "2023-06-01";
 
+    /// <summary>
+    /// How calls leave a console program: the official SDK, set by <c>Amarna.Llm.Sdk.AnthropicSdk.Use()</c>. The
+    /// browser never sets it.
+    /// </summary>
+    public static Func<string, HttpClient, IApiTransport>? Sdk { get; set; }
+
     private readonly Action<ModelCall> _log;
-    private readonly IAnthropicClient? _sdk;
+    private readonly IApiTransport? _sdk;
     private readonly HttpClient? _http;
     private readonly string _apiKey;
-
-    private sealed record Result(string Text, string? StopReason, string? Category, string Model, long Input, long Output, long CacheRead, long CacheWrite);
 
     public ClaudeClient(string apiKey, Action<ModelCall> log, bool browser, HttpMessageHandler? handler = null)
     {
@@ -59,13 +71,9 @@ public sealed class ClaudeClient : IJsonAsker
             _http = http;
             return;
         }
-        _sdk = new AnthropicClient
-        {
-            ApiKey = apiKey,
-            HttpClient = http,
-            Timeout = TimeSpan.FromMinutes(8),
-            MaxRetries = 2,
-        };
+        var sdk = Sdk ?? throw new InvalidOperationException(
+            "Model calls outside the browser go through the Anthropic SDK: reference Amarna.Llm.Sdk and call AnthropicSdk.Use() first.");
+        _sdk = sdk(apiKey, http);
     }
 
     public bool UsesSdk => _sdk is not null;
@@ -102,7 +110,7 @@ public sealed class ClaudeClient : IJsonAsker
         };
         try
         {
-            var r = _sdk is not null ? await ViaSdk(spec, user, ct) : await ViaHttp(spec, user, ct);
+            var r = _sdk is not null ? await _sdk.SendAsync(spec, user, ct) : await ViaHttp(spec, user, ct);
             call.InputTokens = r.Input;
             call.OutputTokens = r.Output;
             call.CacheReadTokens = r.CacheRead;
@@ -127,39 +135,6 @@ public sealed class ClaudeClient : IJsonAsker
         {
             _log(call);
         }
-    }
-
-    // ---------------------------------------------------------------- the official SDK (console, tests)
-
-    private async Task<Result> ViaSdk(CallSpec spec, string user, CancellationToken ct)
-    {
-        var system = new List<BetaTextBlockParam>
-        {
-            new() { Text = spec.SharedSystem, CacheControl = new BetaCacheControlEphemeral() },
-        };
-        if (spec.SeatSystem.Length > 0) system.Add(new BetaTextBlockParam { Text = spec.SeatSystem });
-
-        var schema = spec.Schema.ToDictionary(x => x.Key, x => JsonSerializer.SerializeToElement(x.Value));
-        var parameters = new MessageCreateParams
-        {
-            Model = spec.Model,
-            MaxTokens = spec.MaxTokens,
-            System = system,
-            Messages = [new BetaMessageParam { Role = Role.User, Content = user }],
-            OutputConfig = new BetaOutputConfig
-            {
-                Effort = spec.Effort switch { "low" => Effort.Low, "high" => Effort.High, _ => Effort.Medium },
-                Format = new BetaJsonOutputFormat { Schema = schema },
-            },
-        };
-        if (ModelIds.SupportsFallback(spec.Model))
-            parameters = parameters with { Betas = [FallbackBeta], Fallbacks = new BetaFallbacksParam(new Default()) };
-
-        var response = await _sdk!.Beta.Messages.Create(parameters, ct);
-        var u = response.Usage;
-        var text = string.Concat(response.Content.Select(b => b.TryPickText(out var t) ? t.Text : ""));
-        return new Result(text, response.StopReason?.Raw(), response.StopDetails?.Category?.Raw(), response.Model.Raw(),
-            u.InputTokens, u.OutputTokens, u.CacheReadInputTokens ?? 0, u.CacheCreationInputTokens ?? 0);
     }
 
     // ---------------------------------------------------------------- raw HTTP (the browser)
@@ -189,7 +164,7 @@ public sealed class ClaudeClient : IJsonAsker
         return body;
     }
 
-    private async Task<Result> ViaHttp(CallSpec spec, string user, CancellationToken ct)
+    private async Task<ApiResult> ViaHttp(CallSpec spec, string user, CancellationToken ct)
     {
         var body = RequestBody(spec, user).ToJsonString();
         for (var attempt = 0; ; attempt++)
@@ -240,7 +215,7 @@ public sealed class ClaudeClient : IJsonAsker
         catch { return body.Length > 300 ? body[..300] : body; }
     }
 
-    private static Result Read(string json)
+    private static ApiResult Read(string json)
     {
         var o = JsonNode.Parse(json)!.AsObject();
         var text = string.Concat((o["content"] as JsonArray ?? new JsonArray())
@@ -248,7 +223,7 @@ public sealed class ClaudeClient : IJsonAsker
             .Select(b => b!["text"]?.GetValue<string>() ?? ""));
         var u = o["usage"];
         long L(string k) => u?[k] is JsonValue v && v.TryGetValue<long>(out var n) ? n : 0;
-        return new Result(
+        return new ApiResult(
             text,
             o["stop_reason"]?.GetValue<string>(),
             o["stop_details"]?["category"]?.GetValue<string>(),

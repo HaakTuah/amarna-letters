@@ -125,7 +125,7 @@ public sealed class ScriptMind : ICharacterMind
         var fearful = t.Courage < 35;
         var faithful = t.Loyalty >= 60 && t.Competence >= 50 && !bribed;
         // The envoy's lord, whom the host's threats would be aimed at.
-        var lord = trail?.From ?? ctx.Request.Court;
+        var lord = trail?.From ?? ctx.Request.For();
         var lines = new List<string>();
 
         if (trail is null || host is null)
