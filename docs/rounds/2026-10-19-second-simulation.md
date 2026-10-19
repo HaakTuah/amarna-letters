@@ -267,6 +267,9 @@ shadow differ, with both texts.
   loop: it calls `wait.js` and answers each request in the folder that the named agent type's own file gives it. Its
   kings send one person to the nearest court each season and ask to be woken the next. With `--tempted`, hosts offer
   gifts and posts, and characters keep gold and take gifts. `--skip` and `--bad` force fallbacks.
+- Every Claude Code session opened in this folder now lists the 43 agent types, each described as only for the
+  simulation orchestrator. They stay until the simulation is done; moving `.claude/agents/char-*.md` away (or the
+  next `setup.js --force`) clears the characters'.
 
 **The first simulation's files** were moved, not deleted, before the new kit was made: the king folders, guard log,
 seat map and canaries to `sim/runs/first-simulation/kings/`, both runs to `sim/runs/first-simulation/sleep-on/` and
