@@ -695,6 +695,7 @@ svg.map text { font-family: var(--serif); }
 }
 .loading-progress-text { position: absolute; text-align: center; font-weight: bold; inset: calc(20vh + 3.25rem) 0 auto 0.2rem; }
 .loading-progress-text:after { content: var(--blazor-load-percentage-text, "Loading"); }
+.boot-note { position: absolute; inset: calc(20vh + 10rem) 1rem auto 1rem; margin: 0 auto; max-width: 22rem; text-align: center; color: var(--muted); font-size: .9rem; }
 
 /* Setup presets */
 .presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .7rem; }

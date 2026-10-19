@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Amarna.Llm\Amarna.Llm.csproj" />
+    <ProjectReference Include="..\..\src\Amarna.Llm.Sdk\Amarna.Llm.Sdk.csproj" />
   </ItemGroup>
 
 </Project>

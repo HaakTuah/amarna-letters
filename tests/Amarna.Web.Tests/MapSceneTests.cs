@@ -37,6 +37,57 @@ public class MapSceneTests
 
     public static IEnumerable<object[]> Seeds => [[3UL], [7UL]];
 
+    [Fact]
+    public async Task A_caught_spy_is_marked_on_its_captors_map_only_with_the_master_it_confessed_to()
+    {
+        async Task<ScenePerson> Drawn(Power? confessed)
+        {
+            var state = GameFactory.NewGame(5);
+            var spy = state.Characters.First(c => c.Employer == Power.Babylonia);
+            // Caught at Assyria's court, as the engine catches a spy.
+            (spy.Status, spy.HeldBy, spy.Duty, spy.At, spy.SecretMaster) = (CharacterStatus.Captured, Power.Assyria, Duty.None, Power.Assyria, null);
+            state.Losses.Add(new LossAbroad { Turn = 1, Kind = LossKind.Captured, CharacterId = spy.Id, Court = Power.Assyria, Master = confessed });
+            var seats = Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(5));
+            var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
+            await runner.PrepareAsync();
+            var frames = new SeasonFrames();
+            frames.CatchUp(runner);
+            var person = MapScene.Build(frames, 0, Power.Assyria).People.Single(x => x.Id == spy.Id);
+            Assert.Equal(PersonKind.Captive, person.Kind);
+            Assert.Equal(confessed, Views.For(state, Power.Assyria).Known.Single(x => x.Id == spy.Id).Employer);
+            return person;
+        }
+
+        Assert.Null((await Drawn(null)).Owner);
+        Assert.Equal(Power.Babylonia, (await Drawn(Power.Babylonia)).Owner);
+    }
+
+    [Fact]
+    public async Task A_spy_a_court_has_not_caught_is_neither_drawn_nor_followed_there()
+    {
+        var state = GameFactory.NewGame(5);
+        var spy = state.Characters.First(c => c.Employer == Power.Babylonia);
+        // Posted at Assyria's court, watching it in secret.
+        (spy.Duty, spy.At, spy.MissionTarget, spy.SecretMaster) = (Duty.SpyPosted, Power.Assyria, Power.Assyria, null);
+        var seats = Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(5));
+        var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
+        await runner.PrepareAsync();
+        var frames = new SeasonFrames();
+        frames.CatchUp(runner);
+
+        Assert.DoesNotContain(MapScene.Build(frames, 0, Power.Assyria).People, x => x.Id == spy.Id);
+        // The People panel lists the court's view; the follow view knows nothing of the spy.
+        var view = Views.For(state, Power.Assyria);
+        Assert.DoesNotContain(view.Court.Concat(view.Known), x => x.Id == spy.Id);
+        var life = LifeRecord.Build(frames, i => MapScene.Build(frames, i, Power.Assyria), 0, state, Power.Assyria, spy.Id);
+        Assert.False(life.Known);
+        Assert.Null(life.Employer);
+        // Its master follows it to its post.
+        var own = LifeRecord.Build(frames, i => MapScene.Build(frames, i, Power.Babylonia), 0, state, Power.Babylonia, spy.Id);
+        Assert.True(own.Known);
+        Assert.Equal(Power.Babylonia, own.Employer);
+    }
+
     [Theory]
     [MemberData(nameof(Seeds))]
     public void A_court_sees_only_its_own_people_and_foreign_envoys_at_its_court(ulong seed)
@@ -63,6 +114,8 @@ public class MapSceneTests
                     var envoyHere = c.Duty == Duty.EnvoyAtCourt && c.At == p;
                     Assert.True(own || held || envoyHere, $"seed {seed}, after turn {k}: {p} shown {c.Name} ({c.Duty} at {c.At}, serving {c.Employer})");
                     Assert.False(!own && !held && c.Duty == Duty.SpyPosted, $"{p} shown a foreign spy, {c.Name}");
+                    // A foreign person is marked with no other master than the view names (a captive: the one it confessed to).
+                    if (!own) Assert.Equal(view.Known.Single(x => x.Id == person.Id).Employer, person.Owner);
                 }
                 foreach (var t in scene.Travellers)
                 {

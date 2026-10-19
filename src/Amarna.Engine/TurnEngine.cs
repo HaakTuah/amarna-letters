@@ -56,7 +56,8 @@ public sealed partial class TurnEngine
                 Id = S.NewId("r"),
                 Task = MindTask.SummarizeMemory,
                 CharacterId = c.Id,
-                Court = c.Employer ?? c.At ?? Power.Egypt,
+                // The court it belongs to, if any: one with no employer that stands at no court belongs to none.
+                Court = c.Employer ?? c.At,
                 Facts = c.Memory.Take(fold).Select(m => $"season {m.Turn}: {m.Text}").ToList(),
                 Fold = fold,
             });
@@ -156,7 +157,8 @@ public sealed partial class TurnEngine
     {
         foreach (var c in S.Characters.OrderBy(c => c.Id))
         {
-            if (c.At is not { } court || c.HeldBy == court || c.Status == CharacterStatus.Dead || !S.IsAlive(court)) continue;
+            // A foreign spy posted at the court in secret does not stand there in the open, so it is not paid there.
+            if (c.At is not { } court || c.HeldBy == court || c.Status == CharacterStatus.Dead || !S.IsAlive(court) || c.HiddenAt(court)) continue;
             var owed = c.BackPay.GetValueOrDefault(court);
             if (owed <= 0) continue;
             var t = S.Treasuries[court];

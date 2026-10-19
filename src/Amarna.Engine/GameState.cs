@@ -10,9 +10,11 @@ public sealed class GameState
     /// <summary>
     /// The version of the rules. A log saved under another version is refused, since its decisions
     /// would not replay to the same game. Raise it with every rule change. 3 since Build order item 3 (archives, inventory
-    /// tablets and swapped inventories).
+    /// tablets and swapped inventories); 4 since Build order item 4: a spy posted at a court is hidden from it (it is not
+    /// paid back pay there, and does not end that court's cover), and each kind of object has its own id counter (fix (d),
+    /// <see cref="IdCounters"/>). Neither change was released on its own, so one version covers both.
     /// </summary>
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }
@@ -50,9 +52,21 @@ public sealed class GameState
     public List<ScoreRow> Scores { get; set; } = new();
     public List<string> Winners { get; set; } = new();
 
-    public int NextId { get; set; } = 1;
+    /// <summary>
+    /// How many ids each kind of object has been given, by its prefix (<see cref="IdKinds"/>). Every kind counts on its own,
+    /// so making more or fewer objects of one kind, or a kind added later, never shifts the ids of another, nor with them
+    /// the rolls keyed by those ids. (Until version 4 all kinds shared one counter, and new inventory tablets shifted the
+    /// ids, and so the dice, of everything made after them.)
+    /// </summary>
+    public Dictionary<string, int> IdCounters { get; set; } = new();
 
-    public string NewId(string prefix) => $"{prefix}{NextId++}";
+    /// <summary>The next id of a kind: its prefix and its own count, "t1", "t2", ... Ordering by <see cref="TurnEngine.IdNumber"/> within a kind is the order of making.</summary>
+    public string NewId(string prefix)
+    {
+        var n = IdCounters.GetValueOrDefault(prefix) + 1;
+        IdCounters[prefix] = n;
+        return $"{prefix}{n}";
+    }
 
     public Unit? UnitAt(string province) => Units.FirstOrDefault(u => u.Province == province);
 
@@ -93,6 +107,34 @@ public sealed class GameState
         Events.Add(e);
         return e;
     }
+}
+
+/// <summary>
+/// The kinds of object the engine numbers with <see cref="GameState.NewId"/>, by prefix. Each prefix is letters only and
+/// belongs to one kind, so ids stay unique across kinds although each kind counts from 1. A new kind takes a prefix of its
+/// own here (the tests check that every id issued in play has one, and that no two kinds share one).
+/// </summary>
+public static class IdKinds
+{
+    /// <summary>Prefix to kind. Built with Add, so a prefix given twice fails at once.</summary>
+    public static IReadOnlyDictionary<string, string> All { get; } = new Dictionary<string, string>
+    {
+        { "a", "audience" },
+        { "c", "character" },
+        { "f", "fact about a character" },
+        { "g", "lot of gold" },
+        { "j", "journey" },
+        { "k", "copy of a tablet" },
+        { "m", "message trail" },
+        { "q", "task owed to a court" },
+        { "r", "request to a character's mind" },
+        { "t", "tablet" },
+        { "u", "unit" },
+        { "x", "catastrophe" },
+    };
+
+    /// <summary>Standing orders are numbered per seat ("s1", "s2", ...) by <see cref="SleepState.LastStanding"/>, not here; no kind may take "s".</summary>
+    public const string StandingOrder = "s";
 }
 
 public sealed class Unit
@@ -249,6 +291,15 @@ public sealed class Character
 
     /// <summary>What <paramref name="p"/> still believes of this character, if it has not heard what happened to it.</summary>
     public Cover? CoverOf(Power p) => Covers.FirstOrDefault(k => k.For == p);
+
+    /// <summary>
+    /// A foreign spy posted at <paramref name="court"/> that the court does not know is there. A spy watches a court in
+    /// secret: the court does not see it standing there, nor whom it serves, until its watchmen catch it (it is then the
+    /// court's captive). A spy secretly in that court's own pay (one it turned, or a plant) reports to it, so the court
+    /// knows it is there.
+    /// </summary>
+    public bool HiddenAt(Power court) =>
+        At == court && Status == CharacterStatus.Employed && Duty == Duty.SpyPosted && Employer != court && SecretMaster != court;
 }
 
 /// <summary>Where gold in a character's purse came from.</summary>

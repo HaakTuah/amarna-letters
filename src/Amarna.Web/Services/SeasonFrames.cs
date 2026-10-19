@@ -20,9 +20,13 @@ public sealed record FrameJourney(string Id, JourneyKind Kind, int Depart, int A
 public sealed record FrameCover(Power For, Duty Believed, Power? HeldAt, string WhereText, string TimingText, int Since);
 
 /// <summary>A character as it stood at the end of a season.</summary>
+/// <param name="Confessed">
+/// For a captive: whom it confessed to serving when the court holding it caught it, or null if it would not say
+/// (<see cref="Views.ConfessedMaster"/>); all that court knows of its master.
+/// </param>
 public sealed record FramePerson(string Id, string Name, string Origin, string Calling, Power? Employer, CharacterStatus Status, Duty Duty,
     Power? At, string? Watch, Power? Mission, Power? HeldBy, Power? SecretMaster, string? CurrentTrail, Power? FormerEmployer,
-    IReadOnlyList<FrameCover> Covers)
+    IReadOnlyList<FrameCover> Covers, Power? Confessed = null)
 {
     public FrameCover? CoverOf(Power p) => Covers.FirstOrDefault(c => c.For == p);
 }
@@ -127,7 +131,8 @@ public sealed class SeasonFrame
         foreach (var c in s.Characters)
             people[c.Id] = new FramePerson(c.Id, c.Name, c.Origin, c.Calling, c.Employer, c.Status, c.Duty, c.At, c.WatchProvince, c.MissionTarget,
                 c.HeldBy, c.SecretMaster, c.CurrentTrail, c.FormerEmployer,
-                c.Covers.Select(k => new FrameCover(k.For, k.Believed, k.HeldAt, k.WhereText, k.TimingText, k.Since)).ToList());
+                c.Covers.Select(k => new FrameCover(k.For, k.Believed, k.HeldAt, k.WhereText, k.TimingText, k.Since)).ToList(),
+                c.Status == CharacterStatus.Captured && c.HeldBy is { } holder ? Views.ConfessedMaster(s, c.Id, holder) : null);
 
         return new SeasonFrame
         {

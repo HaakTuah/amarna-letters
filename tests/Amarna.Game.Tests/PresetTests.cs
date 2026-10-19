@@ -80,6 +80,7 @@ public class PresetTests(ITestOutputHelper output)
         c.Characters = CharacterKind.Sonnet;
         var state = GameFactory.NewGame(1);
         GameRunner? runner = null;
+        Amarna.Llm.Sdk.AnthropicSdk.Use();
         var set = SeatSetup.Build(c, state, "k", browser: false, () => runner!.Log, new SimulatedAnthropic());
         runner = new GameRunner(state, set.Seats, set.Minds, set.Narrator);
         var back = SeatSetup.FromHeader(GameLog.FromJsonl(runner.Log.ToJsonl()).Header);

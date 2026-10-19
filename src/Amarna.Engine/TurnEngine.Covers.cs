@@ -62,13 +62,14 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// A servant who stands at a court that held a cover for it (home, or sent there by someone else) is seen there
-    /// as it is; word that it has not returned, if still on the road, is not sent.
+    /// as it is; word that it has not returned, if still on the road, is not sent. Not one posted there as another
+    /// court's spy: it watches in secret, so the court does not see it, and goes on believing what it believed.
     /// </summary>
     private void CoversAtCourt()
     {
         foreach (var c in S.Characters)
         {
-            if (c.At is not { } at || c.CoverOf(at) is not { } cover) continue;
+            if (c.At is not { } at || c.HiddenAt(at) || c.CoverOf(at) is not { } cover) continue;
             c.Covers.Remove(cover);
             S.Journeys.RemoveAll(j => j.Kind == JourneyKind.Rumor && j.News == NewsKind.Overdue && j.CharacterId == c.Id && j.To == at);
         }

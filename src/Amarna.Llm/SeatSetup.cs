@@ -4,7 +4,11 @@ using Amarna.Game.Bots;
 
 namespace Amarna.Llm;
 
-public enum LeaderKind { Script, Human, Haiku, Sonnet, Opus }
+/// <summary>
+/// Who plays a king. <see cref="LocalAgent"/> is local play on a Claude subscription: a king answered by its own guarded
+/// agent in a Claude Code session on this computer, through the local bridge (<see cref="LocalBridge"/>).
+/// </summary>
+public enum LeaderKind { Script, Human, Haiku, Sonnet, Opus, LocalAgent }
 public enum CharacterKind { Script, Haiku, Sonnet }
 public enum NarratorKind { Template, Haiku, Sonnet, Opus }
 
@@ -16,8 +20,17 @@ public sealed class SeatChoices
     public NarratorKind Narrator { get; set; } = NarratorKind.Template;
     public string LeaderEffort { get; set; } = "medium";
 
+    /// <summary>Local play: where the local bridge listens.</summary>
+    public string BridgeAddress { get; set; } = LocalBridge.DefaultAddress;
+
+    /// <summary>Local play: how long one decision waits for a king's agent before the script king stands in for it.</summary>
+    public int LocalAgentMinutes { get; set; } = 60;
+
+    /// <summary>Local agent kings are not model calls from this program: they need the local bridge, not a key, and cost nothing here.</summary>
     public bool UsesModels =>
         Leaders.Values.Any(v => ModelFor(v) is not null) || Characters != CharacterKind.Script || Narrator != NarratorKind.Template;
+
+    public bool UsesLocalAgents => Leaders.Values.Any(v => v == LeaderKind.LocalAgent);
 
     public SeatChoices Copy() => new()
     {
@@ -25,6 +38,8 @@ public sealed class SeatChoices
         Characters = Characters,
         Narrator = Narrator,
         LeaderEffort = LeaderEffort,
+        BridgeAddress = BridgeAddress,
+        LocalAgentMinutes = LocalAgentMinutes,
     };
 
     public static string? ModelFor(LeaderKind k) => k switch
@@ -88,6 +103,14 @@ public static class Presets
 
     public static readonly IReadOnlyList<Preset> All = [Free, Budget, Standard, Showcase];
 
+    /// <summary>
+    /// Local play on a Claude subscription. Not in <see cref="All"/>: the web app offers it only when it runs on this
+    /// computer, since it needs the local bridge.
+    /// </summary>
+    public static readonly Preset Local = new("local", "Local agents",
+        "Kings played by Claude agents in a Claude Code session on this computer, on your Claude subscription. Needs the local bridge; envoys and narrator are scripts.",
+        LeaderKind.LocalAgent, CharacterKind.Script, NarratorKind.Template);
+
     public static Preset? Find(string? id) => All.FirstOrDefault(p => p.Id == id);
 
     public static Preset? Matching(SeatChoices c) => All.FirstOrDefault(p => p.Matches(c));
@@ -143,7 +166,11 @@ public sealed record SeatSet(Dictionary<Power, ISeat> Seats, ICharacterMind Mind
 /// <summary>Builds seats for a game. Model seats share one client, which logs every call into the game's log.</summary>
 public static class SeatSetup
 {
-    public static SeatSet Build(SeatChoices choices, GameState state, string? apiKey, bool browser, Func<GameLog> log, HttpMessageHandler? handler = null)
+    /// <summary>A local agent king's label, in the log header and wherever seats are listed.</summary>
+    public const string LocalAgentLabel = "Local agent";
+
+    public static SeatSet Build(SeatChoices choices, GameState state, string? apiKey, bool browser, Func<GameLog> log, HttpMessageHandler? handler = null,
+        HttpMessageHandler? bridgeHandler = null)
     {
         ClaudeClient? client = null;
         if (choices.UsesModels)
@@ -151,6 +178,10 @@ public static class SeatSetup
             if (string.IsNullOrWhiteSpace(apiKey)) throw new InvalidOperationException("Model seats need an Anthropic API key.");
             client = new ClaudeClient(apiKey.Trim(), call => log().AddCall(call), browser, handler);
         }
+        // Local play: every local agent king goes through the one bridge, as a file seat whose files the bridge writes.
+        var bridge = choices.UsesLocalAgents
+            ? new LocalBridge(choices.BridgeAddress, TimeSpan.FromMinutes(Math.Clamp(choices.LocalAgentMinutes, 1, 24 * 60)), bridgeHandler)
+            : null;
 
         var script = new ScriptLeader(state.Seed);
         var seats = new Dictionary<Power, ISeat>();
@@ -160,11 +191,16 @@ public static class SeatSetup
             seats[p] = kind switch
             {
                 LeaderKind.Human => new HumanSeat(p),
+                LeaderKind.LocalAgent => new LlmLeaderSeat(p, new BridgeExchange(bridge!, p, call => log().AddCall(call)), BridgeExchange.Model,
+                    choices.LeaderEffort, state.Config.CustomsPrimer, state.Config, label: LocalAgentLabel),
                 _ when SeatChoices.ModelFor(kind) is { } model => new LlmLeaderSeat(p, client!, model, choices.LeaderEffort, state.Config.CustomsPrimer, state.Config),
                 _ => script,
             };
         }
-        ICharacterMind minds = SeatChoices.ModelFor(choices.Characters) is { } cm ? new LlmCharacterMind(client!, cm) : new ScriptMind();
+        // Model characters' decisions are logged beside the script's for the same situations (the log's shadow lines).
+        ICharacterMind minds = SeatChoices.ModelFor(choices.Characters) is { } cm
+            ? new LlmCharacterMind(client!, cm) { Shadow = s => log().AddShadow(s) }
+            : new ScriptMind();
         INarrator narrator = SeatChoices.ModelFor(choices.Narrator) is { } nm ? new LlmNarrator(client!, nm) : new TemplateNarrator();
         return new SeatSet(seats, minds, narrator);
     }
@@ -175,6 +211,7 @@ public static class SeatSetup
         static LeaderKind Leader(string label) => label switch
         {
             "Human" => LeaderKind.Human,
+            LocalAgentLabel => LeaderKind.LocalAgent,
             _ when label.Contains("Opus") => LeaderKind.Opus,
             _ when label.Contains("Sonnet") => LeaderKind.Sonnet,
             _ when label.Contains("Haiku") => LeaderKind.Haiku,

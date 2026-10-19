@@ -1,6 +1,8 @@
 using System.Text;
+using System.Text.Json.Nodes;
 using Amarna.Engine;
 using Amarna.Game;
+using Amarna.Game.Bots;
 
 namespace Amarna.Llm;
 
@@ -8,10 +10,28 @@ namespace Amarna.Llm;
 /// Envoys, spies and candidates played by Haiku. Each character's model receives only its own
 /// persona, its own memory and the facts it knows about itself, plus what is in front of it.
 /// It holds no secrets it should not tell: a full confession reveals only what it knows.
+/// <para>The asker is the Anthropic API, or one <see cref="FileExchange"/> per character for file characters, which then
+/// see exactly the same text. A character with no asker (one left out of a file-character map) is played by the script.
+/// With <see cref="Shadow"/> set, each decision a model makes is logged beside what the script mind with the same traits
+/// decides in the same situation; the script draws no dice of the game's own, so the game is the same with or without it.</para>
 /// </summary>
-public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelIds.Haiku) : ICharacterMind
+public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, string model = ModelIds.Haiku, string? label = null) : ICharacterMind
 {
-    public string Label => $"{ModelIds.Display(model)} characters";
+    public LlmCharacterMind(IJsonAsker client, string model = ModelIds.Haiku) : this(_ => client, model) { }
+
+    /// <summary>
+    /// The script mind that plays a character with no asker and makes the shadow's decisions: by default one in this
+    /// process; in a browser game the script worker's, which gives the same answers away from the page's one thread.
+    /// </summary>
+    public ICharacterMind Script { get; init; } = new ScriptMind();
+
+    /// <summary>The same model characters, with <paramref name="script"/> as their <see cref="Script"/>.</summary>
+    public LlmCharacterMind WithScript(ICharacterMind script) => new(askerFor, model, label) { Shadow = Shadow, Script = script };
+
+    public string Label => label ?? $"{ModelIds.Display(model)} characters";
+
+    /// <summary>Where each model decision goes, beside the script's for the same situation; null logs none.</summary>
+    public Action<ShadowDecision>? Shadow { get; init; }
 
     public const string SharedSystem = """
         You are one of the people of the Amarna age (c. 1360-1330 BCE): a messenger, envoy, agent or would-be servant of the Great Kings, who serves for pay. You are not a king and you are not playing to win a game. You live your own life inside the story, with your own motives, and you speak and decide only as yourself.
@@ -56,8 +76,8 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         return sb.ToString();
     }
 
-    private Task<System.Text.Json.Nodes.JsonObject> Ask(string key, int turn, string role, Character c, string user, System.Text.Json.Nodes.JsonObject schema, CancellationToken ct, int? asOf = null) =>
-        client.CallJsonAsync(new CallSpec
+    private Task<JsonObject> Ask(string key, int turn, string role, Character c, string user, JsonObject schema, CancellationToken ct, int? asOf = null) =>
+        (askerFor(c) ?? throw new InvalidOperationException($"No mind for {c.Id}.")).AskJsonAsync(new CallSpec
         {
             Key = key,
             Turn = turn,
@@ -71,7 +91,111 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
             MaxTokens = 4000,
         }, ct);
 
-    public async Task<PresentResult> PresentAsync(EnvoyContext ctx, CancellationToken ct)
+    /// <summary>A character's traits for the shadow log: "loyalty/greed/competence/ambition/courage", any court it favours and a secret master.</summary>
+    public static string TraitLine(Character c)
+    {
+        var t = c.Traits;
+        return $"{t.Loyalty}/{t.Greed}/{t.Competence}/{t.Ambition}/{t.Courage}"
+            + (t.Sympathy is { } fond ? $", fond of {fond} {t.SympathyStrength}" : "")
+            + (c.SecretMaster is { } master ? $", secretly serves {master}" : "");
+    }
+
+    /// <summary>
+    /// Asks the model, and with <see cref="Shadow"/> set logs its decision beside the script's for the same situation (or,
+    /// if the model's reply failed, the script's alone with the error, before the runner's fallback plays it).
+    /// </summary>
+    private async Task<T> Shadowed<T>(string key, string kind, Character c, int turn, Func<Task<T>> ask, Func<Task<T>> script,
+        Func<T, CharacterChoice> choice, Action<ShadowDecision>? situation = null)
+    {
+        if (Shadow is null) return await ask();
+        var shadow = new ShadowDecision { Key = key, Turn = turn, Kind = kind, Character = c.Id, Name = c.Name, Traits = TraitLine(c), Script = choice(await script()) };
+        situation?.Invoke(shadow);
+        try
+        {
+            var r = await ask();
+            shadow.Model = choice(r);
+            Shadow(shadow);
+            return r;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            shadow.Error = ex.Message;
+            Shadow(shadow);
+            throw;
+        }
+    }
+
+    public Task<PresentResult> PresentAsync(EnvoyContext ctx, CancellationToken ct)
+    {
+        if (askerFor(ctx.Self) is null) return Script.PresentAsync(ctx, ct);
+        return Shadowed($"t{ctx.Turn}/aud/present/{ctx.Self.Id}", "present", ctx.Self, ctx.Turn,
+            () => ModelPresentAsync(ctx, ct), () => Script.PresentAsync(ctx, ct),
+            r => new CharacterChoice { Text = r.Speech, Kept = Math.Clamp(r.Skim, 0, ctx.Dispatch.Gold), Swap = r.SwapInventory, Flags = CharacterChecks.Present(ctx, r.Speech) },
+            s => s.GoldCarried = ctx.Dispatch.Gold);
+    }
+
+    public Task<EnvoyReaction> ReactAsync(EnvoyContext ctx, HostReply host, CancellationToken ct)
+    {
+        if (askerFor(ctx.Self) is null) return Script.ReactAsync(ctx, host, ct);
+        return Shadowed($"t{ctx.Turn}/aud/react/{ctx.Self.Id}/{ctx.Round}", "react", ctx.Self, ctx.Turn,
+            () => ModelReactAsync(ctx, host, ct), () => Script.ReactAsync(ctx, host, ct),
+            r => new CharacterChoice { Text = r.Speech, AcceptGift = r.AcceptBribe && host.Bribe > 0, AcceptService = r.AcceptJob && host.JobOffer > 0, Commitments = r.Commitments },
+            s =>
+            {
+                s.GiftOffered = host.Bribe;
+                s.ServiceOffered = host.JobOffer;
+            });
+    }
+
+    public Task<MindReply> WriteAsync(MindContext ctx, CancellationToken ct)
+    {
+        if (askerFor(ctx.Self) is null) return Script.WriteAsync(ctx, ct);
+        if (WriteKey(ctx) is not { } key) return Task.FromResult(new MindReply());
+        var kind = ctx.Request.Task switch
+        {
+            MindTask.EnvoyReport => "report",
+            MindTask.Pitch => "pitch",
+            MindTask.SpyReport => "spy",
+            _ => "memory",
+        };
+        return Shadowed(key, kind, ctx.Self, ctx.Turn, () => ModelWriteAsync(ctx, key, ct), () => Script.WriteAsync(ctx, ct),
+            r =>
+            {
+                var choice = new CharacterChoice { Text = r.Text };
+                switch (ctx.Request.Task)
+                {
+                    case MindTask.EnvoyReport:
+                        choice.Kept = Math.Clamp(r.Number, 0, ctx.Request.Cargo?.Gold ?? 0);
+                        choice.Swap = r.SwapInventory && choice.Kept > 0;
+                        choice.Flags = CharacterChecks.Report(ctx, r.Text);
+                        break;
+                    case MindTask.Pitch:
+                        choice.Price = r.Number;
+                        break;
+                    case MindTask.SpyReport:
+                        (choice.Flags, choice.Dropped) = CharacterChecks.Spy(ctx, r.Text);
+                        break;
+                }
+                return choice;
+            },
+            s =>
+            {
+                s.GoldCarried = ctx.Request.Task == MindTask.EnvoyReport ? ctx.Request.Cargo?.Gold ?? 0 : 0;
+                s.Known = CharacterChecks.Known(ctx);
+            });
+    }
+
+    /// <summary>The key of a written request's call, or null for a task no character writes.</summary>
+    private static string? WriteKey(MindContext ctx) => ctx.Request.Task switch
+    {
+        MindTask.EnvoyReport => $"t{ctx.Turn}/report/{ctx.Self.Id}",
+        MindTask.Pitch => $"t{ctx.Turn}/pitch/{ctx.Self.Id}/{ctx.Request.For()}",
+        MindTask.SpyReport => $"t{ctx.Turn}/spy/{ctx.Self.Id}",
+        MindTask.SummarizeMemory => $"t{ctx.Turn}/memory/{ctx.Self.Id}",
+        _ => null,
+    };
+
+    private async Task<PresentResult> ModelPresentAsync(EnvoyContext ctx, CancellationToken ct)
     {
         var d = ctx.Dispatch;
         var user = new StringBuilder();
@@ -90,7 +214,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         return r;
     }
 
-    public async Task<EnvoyReaction> ReactAsync(EnvoyContext ctx, HostReply host, CancellationToken ct)
+    private async Task<EnvoyReaction> ModelReactAsync(EnvoyContext ctx, HostReply host, CancellationToken ct)
     {
         var user = new StringBuilder();
         user.AppendLine($"You stand before {ctx.Host.King()} of {ctx.Host.Land()} as envoy of {ctx.Sender.Land()}. You said: \"{ctx.Delivered}\"");
@@ -120,7 +244,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         ? "Your hand is skilled enough to fake a seal."
         : "Your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory.";
 
-    public async Task<MindReply> WriteAsync(MindContext ctx, CancellationToken ct)
+    private async Task<MindReply> ModelWriteAsync(MindContext ctx, string key, CancellationToken ct)
     {
         var c = ctx.Self;
         var req = ctx.Request;
@@ -130,8 +254,9 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
             {
                 var t = ctx.Trail;
                 var cargo = req.Cargo ?? new HomeCargo();
+                var lord = req.For();
                 var user = new StringBuilder();
-                user.AppendLine($"You are home at the court of your lord, {req.Court.King()} of {req.Court.Land()}.");
+                user.AppendLine($"You are home at the court of your lord, {lord.King()} of {lord.Land()}.");
                 if (t is not null)
                 {
                     user.AppendLine($"You went to the court of {t.To.Land()}. You told its king: \"{t.Delivered}\"");
@@ -142,7 +267,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 if (cargo.Observations.Count > 0) user.AppendLine("What you noticed at that court: " + string.Join(" ", cargo.Observations));
                 if (cargo.Gold > 0) user.AppendLine($"You carry back gold the king sent your lord, with an inventory tablet sealed by that king that says {cargo.GoldStated} shekels. You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. " + ForgeHand(c, ctx.ForgeMinCompetence));
                 user.AppendLine("Write your report to your lord now.");
-                var json = await Ask($"t{ctx.Turn}/report/{c.Id}", ctx.Turn, $"envoy:{c.Id}", c, user.ToString(), Schemas.Report(), ct);
+                var json = await Ask(key, ctx.Turn, $"envoy:{c.Id}", c, user.ToString(), Schemas.Report(), ct);
                 var r = Parse.Report(json);
                 r.Number = Math.Clamp(r.Number, 0, cargo.Gold);
                 if (r.Number == 0) r.SwapInventory = false;
@@ -150,10 +275,11 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
             }
             case MindTask.Pitch:
             {
-                var user = $"The court of {req.Court.King()}, king of {req.Court.Land()}, is looking for envoys and agents, and you have come before the king. " +
+                var court = req.For();
+                var user = $"The court of {court.King()}, king of {court.Land()}, is looking for envoys and agents, and you have come before the king. " +
                            $"Present yourself in a few sentences and name your wage per season. Someone like you usually earns about {ctx.BasePrice} shekels a season; " +
                            $"{(ctx.Demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now")}.";
-                var json = await Ask($"t{ctx.Turn}/pitch/{c.Id}/{req.Court}", ctx.Turn, $"candidate:{c.Id}", c, user, Schemas.Pitch(), ct);
+                var json = await Ask(key, ctx.Turn, $"candidate:{c.Id}", c, user, Schemas.Pitch(), ct);
                 return Parse.Pitch(json);
             }
             case MindTask.SpyReport:
@@ -169,7 +295,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 user.AppendLine("Write your report home, to be carried by a trusted messenger.");
                 // Written when it arrives, of the season it was observed: the spy remembers nothing that happened to it since
                 // (such as its capture), so the report cannot tell its master what the master has not heard.
-                var json = await Ask($"t{ctx.Turn}/spy/{c.Id}", ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct, asOf: r.ObservedTurn > 0 ? r.ObservedTurn : null);
+                var json = await Ask(key, ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct, asOf: r.ObservedTurn > 0 ? r.ObservedTurn : null);
                 return new MindReply { Text = Parse.Field(json, "report") };
             }
             case MindTask.SummarizeMemory:
@@ -179,7 +305,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 if (c.MemorySummary.Length > 0) user.AppendLine($"Your summary so far: {c.MemorySummary}");
                 user.AppendLine("Older memories to fold in:");
                 foreach (var m in req.Facts) user.AppendLine("- " + Greeting.Cap(m, 500));
-                var json = await Ask($"t{ctx.Turn}/memory/{c.Id}", ctx.Turn, $"memory:{c.Id}", c, user.ToString(), Schemas.Text("summary", "The new summary of your older memories."), ct);
+                var json = await Ask(key, ctx.Turn, $"memory:{c.Id}", c, user.ToString(), Schemas.Text("summary", "The new summary of your older memories."), ct);
                 return new MindReply { Text = Parse.Field(json, "summary") };
             }
         }

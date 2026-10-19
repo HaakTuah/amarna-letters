@@ -36,6 +36,58 @@ public sealed class ModelCall
     public double CostUsd { get; set; }
     public bool UsedFallback { get; set; }
     public string? Error { get; set; }
+    /// <summary>
+    /// For a file seat or file character: the length in characters of the request file it wrote (the last one, if it was
+    /// retried), since such a call has no token counts. 0 for API calls, whose size is in the token counts.
+    /// </summary>
+    public int RequestChars { get; set; }
+}
+
+/// <summary>
+/// One decision a model character made, beside what the script mind with the same traits decides in the same situation
+/// (<see cref="Bots.ScriptMind"/>, which draws no dice of the game's own), for comparing the two. Logged only; nothing in
+/// the game reads it, so a game plays and replays the same with or without it.
+/// </summary>
+public sealed class ShadowDecision
+{
+    /// <summary>The call's key ("t3/aud/present/c5"), as in the model call it goes with.</summary>
+    public string Key { get; set; } = "";
+    public int Turn { get; set; }
+    /// <summary>present, react, report, pitch, spy or memory.</summary>
+    public string Kind { get; set; } = "";
+    public string Character { get; set; } = "";
+    public string Name { get; set; } = "";
+    /// <summary>Its traits, "loyalty/greed/competence/ambition/courage", with the court it favours if any.</summary>
+    public string Traits { get; set; } = "";
+    /// <summary>What it faced: gold carried, a gift or a post offered (the numbers the counts need).</summary>
+    public int GoldCarried { get; set; }
+    public int GiftOffered { get; set; }
+    public int ServiceOffered { get; set; }
+    /// <summary>What the engine knows happened that a report should not hide or contradict (<see cref="CharacterChecks.Known"/>).</summary>
+    public List<string> Known { get; set; } = new();
+    /// <summary>The model's decision; null when its reply failed and the script stood in (then <see cref="Error"/> says why).</summary>
+    public CharacterChoice? Model { get; set; }
+    public CharacterChoice Script { get; set; } = new();
+    public string? Error { get; set; }
+}
+
+/// <summary>One character decision in a form both minds share, with what the checks found in its words.</summary>
+public sealed class CharacterChoice
+{
+    /// <summary>The speech, report, pitch or summary.</summary>
+    public string Text { get; set; } = "";
+    /// <summary>Gold kept for itself (present and report).</summary>
+    public int Kept { get; set; }
+    public bool Swap { get; set; }
+    public bool AcceptGift { get; set; }
+    public bool AcceptService { get; set; }
+    public string Commitments { get; set; } = "";
+    /// <summary>The asking price of a pitch.</summary>
+    public int Price { get; set; }
+    /// <summary>For a spy's report: how many of its observations its words leave out.</summary>
+    public int Dropped { get; set; }
+    /// <summary>What <see cref="CharacterChecks"/> found its words hide or contradict ("hid-gift", "softened-threat", ...).</summary>
+    public List<string> Flags { get; set; } = new();
 }
 
 /// <summary>
@@ -49,7 +101,16 @@ public sealed class GameLog
     public LogHeader Header { get; set; } = new();
     public List<(string Key, string Json)> Decisions { get; } = new();
     public List<ModelCall> Calls { get; } = new();
+    /// <summary>Model characters' decisions beside the script's for the same situations. Not used in replay.</summary>
+    public List<ShadowDecision> Shadows { get; } = new();
     private readonly Dictionary<string, string> _index = new();
+    /// <summary>
+    /// The lines <see cref="ToJsonl"/> has written for the first decisions: a decision never changes once recorded, so
+    /// each line is written once. The browser saves the whole log every season, and writing every line again each time
+    /// grew slow on a phone as a game went on.
+    /// </summary>
+    private readonly StringBuilder _decisionLines = new();
+    private int _decisionLinesWritten;
 
     public void Record<T>(string key, T value)
     {
@@ -80,6 +141,11 @@ public sealed class GameLog
         lock (_gate) Calls.Add(call);
     }
 
+    public void AddShadow(ShadowDecision shadow)
+    {
+        lock (_gate) Shadows.Add(shadow);
+    }
+
     public double TotalCost
     {
         get { lock (_gate) return Calls.Sum(c => c.CostUsd); }
@@ -93,12 +159,24 @@ public sealed class GameLog
         sb.AppendLine(header.ToJsonString());
         lock (_gate)
         {
-            foreach (var (key, json) in Decisions)
-                sb.AppendLine(new JsonObject { ["type"] = "decision", ["key"] = key, ["value"] = JsonNode.Parse(json) }.ToJsonString());
+            if (_decisionLinesWritten > Decisions.Count) { _decisionLines.Clear(); _decisionLinesWritten = 0; }
+            for (; _decisionLinesWritten < Decisions.Count; _decisionLinesWritten++)
+            {
+                var (key, json) = Decisions[_decisionLinesWritten];
+                _decisionLines.AppendLine(new JsonObject { ["type"] = "decision", ["key"] = key, ["value"] = JsonNode.Parse(json) }.ToJsonString());
+            }
+            sb.Append(_decisionLines);
             foreach (var c in Calls)
             {
                 var node = JsonSerializer.SerializeToNode(c, Json.Options)!.AsObject();
                 node["type"] = "call";
+                sb.AppendLine(node.ToJsonString());
+            }
+            // Ordered by key, so that two runs of a game write the same lines whatever order parallel calls finished in.
+            foreach (var shadow in Shadows.OrderBy(x => x.Turn).ThenBy(x => x.Key, StringComparer.Ordinal))
+            {
+                var node = JsonSerializer.SerializeToNode(shadow, Json.Options)!.AsObject();
+                node["type"] = "shadow";
                 sb.AppendLine(node.ToJsonString());
             }
         }
@@ -127,6 +205,9 @@ public sealed class GameLog
                     break;
                 case "call":
                     log.Calls.Add(node.Deserialize<ModelCall>(Json.Options)!);
+                    break;
+                case "shadow":
+                    log.Shadows.Add(node.Deserialize<ShadowDecision>(Json.Options)!);
                     break;
             }
         }
