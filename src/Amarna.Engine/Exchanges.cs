@@ -18,6 +18,8 @@ public sealed class MindRequest
     public List<string> Facts { get; set; } = new();
     /// <summary>For a memory summary: how many of the oldest memories it replaces.</summary>
     public int Fold { get; set; }
+    /// <summary>For a spy's report: the copies of tablets from the watched court's archive that came home with it, now in the court's archive.</summary>
+    public List<string> CopyIds { get; set; } = new();
 }
 
 public sealed class MindReply

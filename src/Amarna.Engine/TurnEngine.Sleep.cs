@@ -315,6 +315,7 @@ public sealed partial class TurnEngine
         InboxKind.Catastrophe => $"a catastrophe struck your land ({i.Title})",
         InboxKind.Tablet => $"a tablet you ordered is ready ({i.Title})",
         InboxKind.Notice when i.Title == "A spy is caught" => "a spy was caught at your court",
+        InboxKind.Notice when i.Title == ArchiveTakenTitle => "w" + i.Body.Split(':', ';')[0][1..],
         InboxKind.Rejected => $"an order was refused or failed ({i.Title})",
         InboxKind.Resolution when IsFiring(i) => "your s" + i.Title[1..],
         _ => null,

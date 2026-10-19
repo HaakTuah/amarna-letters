@@ -149,6 +149,8 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
                 var user = new StringBuilder();
                 user.AppendLine($"You are quietly watching {(r.Court is { } court ? "the court of " + court.Land() : WorldMap.Default.Find(r.Province)?.Name ?? "a province")} for your lord.");
                 user.AppendLine("This season you observed: " + string.Join(" ", r.Observations));
+                if (r.TabletIds.Count > 0)
+                    user.AppendLine($"You also copied {(r.TabletIds.Count == 1 ? "a tablet" : $"{r.TabletIds.Count} tablets")} from the court's archive (you remember what it says); the copy goes home with this report, whatever you write.");
                 if (!string.IsNullOrWhiteSpace(r.Poison)) user.AppendLine($"Your secret masters want your lord to hear this, as if you had seen it yourself: \"{r.Poison}\"");
                 user.AppendLine("Write your report home, to be carried by a trusted messenger.");
                 // Written when it arrives, of the season it was observed: the spy remembers nothing that happened to it since

@@ -511,6 +511,8 @@ public sealed partial class TurnEngine
                 S.Log("conquest", $"{u.Power} took {prov.Name} from {loser}.", [u.Power, loser]);
             }
             S.Notify(u.Power, InboxKind.Battle, "Land taken", $"{prov.Name} is now yours.");
+            // A court's capital holds its archive: whoever takes it gains a copy of every tablet in it.
+            TakeArchive(u.Power, u.Province);
         }
     }
 
@@ -538,6 +540,8 @@ public sealed partial class TurnEngine
             S.Notify(p, InboxKind.Resolution, "Land ceded", $"{Map[c.Province].Name} now belongs to {c.To}.");
             S.Notify(c.To, InboxKind.Resolution, "Land received", $"{p} has ceded {Map[c.Province].Name} to you.");
             S.Log("cession", $"{p} ceded {Map[c.Province].Name} to {c.To}.", [p, c.To]);
+            // A capital ceded is a capital taken: its archive lies in the city.
+            TakeArchive(c.To, c.Province);
         }
         foreach (var (p, g) in gifts)
         {

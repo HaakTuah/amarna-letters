@@ -24,6 +24,22 @@ public class RulebookTextTests
     }
 
     [Fact]
+    public void The_rulebook_says_that_tablets_lie_in_archives_that_spies_copy_and_conquerors_take()
+    {
+        Assert.Contains("- Archives: every tablet you hold (those you sealed, and the copies you were shown or brought) lies in your archive at your capital, and so it is at every court. "
+                        + "A spy watching a court copies from its archive: each season it is not caught, with a chance of (the spy's skill, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court copies nothing for you. "
+                        + "Whoever takes a king's capital, or is ceded it, gains at once a copy of every tablet in his archive, and the king keeps his own.", Rules);
+
+        // The seat view names the archive the rule speaks of.
+        var s = GameFactory.NewGame(4);
+        s.Tablets.Add(new Tablet { Id = "t900", Text = "Peace.", ProposedBy = Power.Hatti, Partner = Power.Egypt, Seals = [Power.Hatti, Power.Egypt], CreatedTurn = 1, SealedTurn = 1 });
+        s.Copies.Add(new TabletCopy { Id = "k900", TabletId = "t900", Holder = Power.Egypt, AcquiredTurn = 1, Source = "copied from the archive of Hatti by your spy Mane" });
+        var text = Prompts.Situation(Views.For(s, Power.Egypt));
+        Assert.Contains("YOUR ARCHIVE (the tablets you hold, kept at your capital; copy id: text; seals; how it came to you):", text);
+        Assert.Contains("- k900: \"Peace.\" Seals: Hatti, Egypt, dated turn 1. (copied from the archive of Hatti by your spy Mane)", text);
+    }
+
+    [Fact]
     public void The_rulebook_says_when_a_support_is_void_and_when_the_other_side_is_named()
     {
         Assert.Contains("A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds.", Rules);

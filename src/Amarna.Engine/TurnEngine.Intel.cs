@@ -161,6 +161,9 @@ public sealed partial class TurnEngine
                 report.Poison = c.PoisonText;
                 report.Observations = report.Observations.Take(1).ToList();
             }
+            // A spy at a living court copies from its archive; one turned by that court sends home only what it is told.
+            else if (c.MissionTarget is { } watched && S.IsAlive(watched))
+                report.TabletIds = CopyFromArchive(c, watched, employer);
             var from = c.MissionTarget is { } court ? Map.Capital(court).Id : c.WatchProvince ?? Map.Capital(employer).Id;
             S.Journeys.Add(new Journey
             {
@@ -254,7 +257,9 @@ public sealed partial class TurnEngine
         if (c is null || j.Report is null) return;
         // A report it sent after its master's belief was frozen (a captive turned and back at its post): word has come from it.
         if (c.CoverOf(j.To) is { } cover && j.Report.ObservedTurn >= cover.Since) c.Covers.Remove(cover);
-        MindRequests.Add(new MindRequest { Id = S.NewId("r"), Task = MindTask.SpyReport, CharacterId = c.Id, Court = j.To, Report = j.Report });
+        // The copies it made of the watched court's archive come home with the report.
+        var copies = ArchiveCopiesArrive(j, c);
+        MindRequests.Add(new MindRequest { Id = S.NewId("r"), Task = MindTask.SpyReport, CharacterId = c.Id, Court = j.To, Report = j.Report, CopyIds = copies });
     }
 
     private void Capture(Character c, Power host, Rng rng)

@@ -541,6 +541,8 @@ public sealed partial class TurnEngine
                 S.Notify(req.Court, InboxKind.CheckResult, $"Inquiries into {c?.Name ?? "a stranger"}", text, req.CharacterId);
                 break;
             case MindTask.SpyReport:
+                if (c is not null && req.CopyIds.Count > 0 && req.Report?.Court is { } watched)
+                    text += "\n\n" + CopiesLine(c, watched, req.CopyIds);
                 S.Notify(req.Court, InboxKind.SpyReport, $"Word from {c?.Name ?? "your agent"}", text, req.CharacterId);
                 break;
             case MindTask.SummarizeMemory:

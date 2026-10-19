@@ -9,9 +9,10 @@ public sealed class GameState
 {
     /// <summary>
     /// The version of the rules. A log saved under another version is refused, since its decisions
-    /// would not replay to the same game. Raise it with every rule change.
+    /// would not replay to the same game. Raise it with every rule change. 3 since Build order item 3 (archives, inventory
+    /// tablets and swapped inventories).
     /// </summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }
@@ -350,6 +351,8 @@ public sealed class SpyReport
     public List<string> Observations { get; set; } = new();
     public string? Poison { get; set; }
     public int ObservedTurn { get; set; }
+    /// <summary>Tablets the spy copied this season from the archive of the court it watches: the copies come home with the report.</summary>
+    public List<string> TabletIds { get; set; } = new();
 }
 
 public sealed class PendingAudience
@@ -380,6 +383,10 @@ public sealed class Tablet
     public bool IsSealedAgreement => !Forged && SealedTurn is not null && Partner is not null && Seals.Count >= 2;
 }
 
+/// <summary>
+/// A tablet as one court holds it. Every copy a court holds lies in its archive at its capital: a spy posted at that court
+/// may copy from it, and whoever takes the capital gains a copy of every tablet in it (see <see cref="TurnEngine"/>'s archives).
+/// </summary>
 public sealed class TabletCopy
 {
     public string Id { get; set; } = "";
