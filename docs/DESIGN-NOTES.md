@@ -172,7 +172,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
   and decisions), and version 2 was never released, so it stays version 2: a version-2 log saved
   before back pay would replay under the new wage rules and may diverge. The same holds for the rest of
-  Part G (the capital trigger, triggers on changes, the news of losses abroad).
+  Part G (the capital trigger, triggers on changes, the news of losses abroad). Part E (the king's
+  record, ledger and primer) changes what a model king reads, not the rules, and adds two fields to
+  the logged orders, the king's `summary` and `ledger` lines, which the engine ignores: a log saved
+  before them reads both as empty, so they need no new version either.
 
 ## Communication
 
@@ -867,12 +870,14 @@ its final message must be the single word "done", and earlier reply files cannot
 record of earlier seasons is in the request. A model king called through the API never sees it.
 The request prints the schema indented, but with each field (an object that holds no other object:
 its type, enum and description) on one line, and without escaping apostrophes
-(`FileExchange.Readable`): the same schema, 13,535 characters in 205 lines for the orders schema
-with sleeping seats on, against 19,878 fully indented, and no line longer than 414 characters, well
+(`FileExchange.Readable`): the same schema, 14,681 characters in 219 lines for the orders schema
+with sleeping seats on, against 21,361 fully indented, and no line longer than 414 characters, well
 under the 2,000 past which an agent's file reader cuts a line (a one-line compact schema would be
 cut). The schema itself grew with Part D's schedule and standing orders, which repeat the unit and
-other-order shapes (standing orders' copy without field descriptions): 11,066 characters compact
-with sleeping seats on (schedule 3,041, standing orders 1,949), 4,560 off. Sharing the shapes through
+other-order shapes (standing orders' copy without field descriptions): 12,134 characters compact
+with sleeping seats on (schedule 3,041, standing orders 1,949), 5,560 off. Part E's notes, summary
+and ledger fields added 1,000 of those characters (on or off) and Part G's wording of the wake
+triggers 68 (on only); before them it was 11,066 on and 4,560 off, and 13,502 printed in 205 lines. Sharing the shapes through
 `$defs`/`$ref` would cut that further, but is not done: it is untried against the API's structured
 output, and the file seat's own schema check would have to follow references.
 
