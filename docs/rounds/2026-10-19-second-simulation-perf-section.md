@@ -26,10 +26,14 @@ below. Seeds and replays are unchanged: no rule changed, the save version stays 
   Model kings and characters wait on the network and stay in the page.
 - **What stays in the page is drawn apart from the engine's work** (same commit). A season's redraws are coalesced
   into one task after the engine's work instead of inside it (`GameSession.NotifySoon`), the page draws that a season
-  is under way before the season's work starts, and the autosave's text is built up season by season (`LogText`,
-  byte for byte what `GameLog.ToJsonl` writes; that method rewrote and re-parsed the whole log every season, which
-  grows long late in a game and in model games, whose calls carry whole prompts). Loading a saved log is quicker too,
-  as it no longer redraws at every phase of every replayed season.
+  is under way before the season's work starts. Loading a saved log is quicker too, as it no longer redraws at every
+  phase of every replayed season.
+- **The log writes each decision's line once** (`0e28da3`). `GameLog.ToJsonl`, which the autosave calls
+  every season, wrote and re-parsed every line each time, which grows long late in a game. The first version kept a
+  copy of the log's line format in the web app (`LogText`, in `dfce064`); a trial merge with the item branch showed
+  why that was fragile (the branch adds model characters' shadow decisions to the log, and the copy missed them), so
+  the log now keeps the lines it has written itself, and its text is unchanged: a test compares the text written
+  season by season with the text a log read back from it writes afresh, for a script game and a model game.
 - **Generated serializers tried and dropped** (`25bd620`). Build-time JSON code for the worker's messages added 69 KB
   to the download and did not shorten the first season's longest stretch (363-364 ms with the engine's own serializer
   against 445-1,055 ms with the generated one, two runs each on the emulated phone).
@@ -49,10 +53,12 @@ left in the page" under the web map) and the README's project table changed in t
 
 ### How it was measured
 
-As in item 2: the published Release builds of `c0ff3cf` (before) and `a35b847` (after; the two later commits only add
-the start timeout and the loading note), each served from its own local port as a CDN serves it (precompressed Brotli,
-long caching for fingerprinted files), in headless Chrome 155 driven over the DevTools protocol with Lighthouse's
-mobile settings: a 412 x 823 screen at 1.75x, 4x CPU slowdown, slow 4G (150 ms, 1.6 Mbps). The script is item 2's
+As in item 2: the published Release builds of `c0ff3cf` (before) and `a35b847` (after; the later commits add the start
+timeout and the loading note, and move the cache of the log's lines from the web app into the log, which in a game of
+script players writes the same text with the same work), each served from its own local port as a CDN serves it
+(precompressed Brotli, long caching for fingerprinted files), in headless Chrome 155 driven over the DevTools protocol
+with Lighthouse's mobile settings: a 412 x 823 screen at 1.75x, 4x CPU slowdown, slow 4G (150 ms, 1.6 Mbps). The
+script is item 2's
 (cold load, service-worker install, second visit, a game of seed 7 from `play?watch=7`, twelve seasons played,
 timeline steps, sliding, pinching and panning), run three times for each build, back to back and alternating
 (before, after, after, before, after, before). The first load was also measured as GitHub Pages serves the site:
@@ -141,15 +147,15 @@ the web app, and the JSON, regular-expression and HTTP libraries it uses).
    JSON-serialized with the engine's own settings (`Json.Options`), as file seats already rely on. Tests in
    `tests/Amarna.Web.Tests/ScriptWorkerTests.cs` play seeds 1, 2, 7 and 14 through an in-process worker (the same
    requests, replies and JSON) and compare every decision and the final state with the game played in the page, seed
-   5 season by season, and check the fallbacks, a replay of a worker-played log, and the autosave text against
-   `ToJsonl` for a script game and a model game. In the browser, a whole watch game of seed 7 played through the
+   5 season by season, and check the fallbacks and a replay of a worker-played log. In the browser, a whole watch game of seed 7 played through the
    worker matched a native game of seed 7 with the web app's settings in 573 of its 580 logged decisions (19 seasons, Egypt
    winning, as item 2 found); the other seven, the chronicles, differ only in line endings, `\n` in the browser against `\r\n` on
    Windows (the template narrator writes `Environment.NewLine`; it was so before this change, and replays read the
    chronicles from the log).
-3. **Bot-visible behaviour is unchanged,** so the bot benchmarks were not rerun: no engine or bot code changed, and the
+3. **Bot-visible behaviour is unchanged,** so the bot benchmarks were not rerun: no rule or bot code changed (the one
+   change outside the web app and the SDK project is how the log writes its text, which stays the same), and the
    replay check (`--games 10 --seed 1 --verify-replay --no-chronicles`) prints the same output, line for line, at
-   `c0ff3cf` and at `a35b847` except its timing line; all ten replays match.
+   `c0ff3cf` and at `0e28da3` except its timing line; all ten replays match.
 4. **The worker keeps the kings of the newest game only**, and drops requests still queued for a game the page has
    left. A request that reaches a king whose code fails comes back as that king's error, and the runner's stand-in
    answers it, as for any seat.
@@ -175,8 +181,10 @@ the web app, and the JSON, regular-expression and HTTP libraries it uses).
 
 ### Checks
 
-`dotnet build` 0 warnings; `dotnet test` 698 passed (220 engine, 451 game, 27 web, 12 of them new); the replay check
-as above. In the browser (the published build, and the development server): a whole game watched to its end with every
+`dotnet build` 0 warnings; `dotnet test` 699 passed (220 engine, 454 game, 25 web; 13 of them new); the replay check
+as above. A trial merge of this branch into `item/second-simulation` as it stood at `72bee0d` (with the other
+agents' work merged so far) merged without conflicts, built with 0 warnings and passed all 724 tests, the worker tests included (the trial
+was not committed). In the browser (the published build, and the development server): a whole game watched to its end with every
 court's view and every panel opened (item 2's smoke script; 22 seasons, no errors, the page never scrolled), a human
 seat (Egypt) sealing orders and answering audiences for four seasons with the worker and with workers made
 unavailable (`Worker` replaced by a constructor that throws; the kings then think in the page), and the loading note
@@ -189,3 +197,6 @@ shown on a first visit and not on a visit the service worker starts.
 - `a35b847` Move the Anthropic SDK path out of Amarna.Llm
 - `0c9342b` Give up on a script worker that does not start
 - `6147b9c` Say on a first visit's loading screen that the game is downloading
+- `481cf5f` Report fix (b), phone performance, for the item 4 report
+- `0e28da3` Write each decision's line of the log once
+- and the commit that brings this section up to date
