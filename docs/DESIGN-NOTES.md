@@ -1049,13 +1049,39 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   naming a province where the seat has no unit, or a unit not its own, is refused when given, in the
   validator's words ("- turn 7: nippur -> ur: you have no unit in nippur", in "Scheduled orders not
   kept"; "the unit in X is not yours" only where the seat can see, see "Sight"), and that wakes the
-  seat next season; so a unit not yet raised cannot be given orders ahead. An order the reply named
+  seat next season (a unit a levy is to raise is named as below). An order the reply named
   but left unreadable is refused when given in the same way. When a unit is lost (destroyed, deserted, killed by plague, disbanded or given away), every
   scheduled order bound to it is dropped, and so is a standing order that waited on it or has no
   orders left (a standing order's other orders stay). This is checked at the start of each season,
   before the wake check: the seat reads "Orders for lost troops dropped", listing each order as it
   gave it, and is woken ("orders you gave for later could not be carried out: the troops they were
   for are lost (...)").
+- **Scheduled orders for new levies** (since the fix pass after item 4). A unit a levy is to raise
+  is named by the province of the levy: in a scheduled order for a season after a levy of the seat's
+  in that province (a levy accepted among the orders it gives now, or one it scheduled for an earlier
+  season), the name means the levy's unit, the latest such levy before the order's season, even
+  where another of its units stands there now (so "turn 2: durkurigalzu -> nippur; raise army in
+  durkurigalzu; turn 3: durkurigalzu holds" gives turn 2's march to the army there now and turn 3's
+  hold to the new army). The order waits for the levy (`PlannedOrder.UnitLevy`, or `OtherLevy` for
+  the unit supported or convoyed); when the levy raises its unit, at the end of its season, the order
+  is bound to it (`TurnEngine.LevyRaised`) and follows it like any other. If the levy raises none
+  (refused, failed, or replaced before it ran), the orders waiting for it are dropped once that
+  season's levies are raised (`TurnEngine.UnraisedLevies`): the seat reads "Orders for a levy that
+  raised no unit dropped" ("These orders were for troops a levy was to raise, and it raised none, so
+  they were dropped:", then a line for each, "- turn 3: the army to be raised in sippar in turn 2 ->
+  mari") and is woken
+  ("orders you gave for later could not be carried out: the levy they waited for raised no unit
+  (...)"). Until the levy's season the view names the unit as "the army to be raised in ur in turn
+  2" (`TurnEngine.AsShown`). A levy in the same season as the order does not count (the levy is
+  placed after movement, so its unit can first be ordered the season after), and standing orders,
+  which have no season, name only units standing now. The rulebook: "A unit you raise can be given
+  orders ahead too: name it by the province of its levy, in orders for any season after the levy (a
+  levy you order now, or one you schedule). In those seasons that name means the unit the levy
+  raises, even if another of your units stands there now; if the levy raises none, those orders are
+  dropped, which wakes you. Any other order naming a province where you have no unit is refused."
+  Until then an order naming a province where the seat had no unit was refused, so a new levy could
+  not be given orders ahead: one of the reasons the kings of the second agent simulation gave for
+  naming the very next season to be woken (tested).
 - **The march.** A unit's scheduled moves are its march. After movement, a scheduled move whose
   unit still stands but did not reach its destination (stopped for any reason) is tried again the
   next season, and each of that unit's own later scheduled orders moves a season later (orders of
@@ -1983,9 +2009,11 @@ The design document records intent; these notes record what is built. Where they
   province of the homeland, or a walled city the king holds, wake him too.
 - **Sleeping seats against the document's status paragraph** ("Status of sleeping seats", 19 October 2026). Built as
   it says: sleep by default for model and file seats (the switch stays), a hidden cap of 12 seasons, triggers that fire
-  on changes, audience calls that may reopen orders, and orders that follow their unit. Of its "still to build, before
-  item 5", the fix pass after item 4 removed a king's named season and his triggers of his own (see "Kings never choose
-  when they wake").
+  on changes, audience calls that may reopen orders, and orders that follow their unit. Its "still to build, before
+  item 5" was built in the fix pass after item 4: a king's named season and his triggers of his own removed (see "Kings
+  never choose when they wake"), the missing triggers for a threat to a home province or a walled city, standing orders
+  that answer a move in the season it is made rather than a season late, and scheduled orders for new levies. The rest
+  of conditional orders comes with item 6.
 - **What wakes a sleeping seat** follows the simulation-fixes round's prompt and the owner's later instructions, not
   the document's list of default triggers ("an envoy or report arrives; foreign troops move into or next to its
   territory; it is attacked or loses a province; a catastrophe strikes it; a tablet, offer or audience awaits an

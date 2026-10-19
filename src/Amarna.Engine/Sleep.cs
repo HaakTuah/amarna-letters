@@ -26,8 +26,26 @@ public sealed class PlannedOrder
     public string? UnitId { get; set; }
     /// <summary>The seat's own unit named as the unit supported or the army convoyed, or null.</summary>
     public string? OtherUnitId { get; set; }
+    /// <summary>
+    /// While the unit the order is for is not yet raised: the levy that is to raise it (since the fix pass after item 4). When
+    /// the levy raises it, the order is bound to it (<see cref="UnitId"/>); if the levy raises none, the order is dropped.
+    /// </summary>
+    public LevyRef? UnitLevy { get; set; }
+    /// <summary>The same for the unit named as the unit supported or the army convoyed.</summary>
+    public LevyRef? OtherLevy { get; set; }
     /// <summary>A scheduled move tried again because it failed: if it fails again, its unit's march ends.</summary>
     public bool Retry { get; set; }
+}
+
+/// <summary>A levy a scheduled order waits for: the unit of this kind to be raised in this province in this season.</summary>
+public sealed class LevyRef
+{
+    public string Province { get; set; } = "";
+    public int Turn { get; set; }
+    public UnitKind Kind { get; set; }
+
+    /// <summary>The unit the levy is to raise, in the words its seat reads ("the army to be raised in nippur in turn 3").</summary>
+    public string Describe() => $"the {(Kind == UnitKind.Army ? "army" : "fleet")} to be raised in {Province} in turn {Turn}";
 }
 
 /// <summary>

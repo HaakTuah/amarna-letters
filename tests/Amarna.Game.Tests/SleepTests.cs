@@ -960,6 +960,114 @@ public class SleepTests
         Assert.Equal(["orders you scheduled were refused: turn 3: nippur -> ur: you have no unit in nippur; turn 3: ekallatum -> ashur: the unit in ekallatum is not yours"], sleep.WokenBecause);
     }
 
+    // ------------------------------------------------------------ scheduled orders for new levies (the fix pass after item 4)
+
+    [Fact]
+    public async Task A_levy_ordered_now_can_be_given_orders_for_later_seasons()
+    {
+        // Turn 1: raise an army in Nippur, and schedule its march to Ur for turn 2. Before the fix pass the order was refused
+        // (no unit in Nippur yet), so a king named the next season to give it by hand.
+        var sleeper = new Sleeper(v => v.Turn == 1
+            ? new TurnSubmission { Orders = [new RaiseOrder("nippur", UnitKind.Army)], Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("nippur", "ur")] }] }
+            : Nothing());
+        var r = await Play(Power.Babylonia, sleeper, 1);
+        var sleep = r.State.Sleep[Power.Babylonia];
+        var levy = r.State.UnitAt("nippur")!;
+        // Raised at the end of turn 1, it is bound to the order, which now follows it like any other.
+        Assert.Equal(levy.Id, Assert.Single(sleep.Scheduled).UnitId);
+        Assert.Null(sleep.Scheduled[0].UnitLevy);
+        Assert.Contains("- turn 2: the army now in nippur -> ur", Prompts.Situation(Views.For(r.State, Power.Babylonia)));
+        await r.PlayTurnAsync();
+        Assert.Equal(levy.Id, r.State.UnitAt("ur")?.Id);
+        Assert.Equal([1], sleeper.Calls);
+        Assert.DoesNotContain(r.State.InboxOf(Power.Babylonia), i => i.Kind == InboxKind.Rejected);
+    }
+
+    [Fact]
+    public async Task A_scheduled_levy_s_unit_can_be_given_orders_for_the_seasons_after_it_and_others_can_support_it()
+    {
+        // Turn 2: raise an army in Ur. Turn 3: it marches to Nippur, the army in Babylon supporting it. Until turn 2 the view
+        // names it as the army to be raised.
+        var sleeper = new Sleeper(v => v.Turn == 1
+            ? Plan((2, [new RaiseOrder("ur", UnitKind.Army)]), (3, [new MoveOrder("ur", "nippur"), new SupportOrder("babylon", "ur", "nippur")]))
+            : Nothing());
+        var r = await Play(Power.Babylonia, sleeper, 1);
+        var sleep = r.State.Sleep[Power.Babylonia];
+        Assert.Equal(("ur", 2), (sleep.Scheduled[1].UnitLevy!.Province, sleep.Scheduled[1].UnitLevy!.Turn));
+        Assert.Equal(("ur", 2), (sleep.Scheduled[2].OtherLevy!.Province, sleep.Scheduled[2].OtherLevy!.Turn));
+        Assert.Contains("- turn 3: the army to be raised in ur in turn 2 -> nippur; the army now in babylon supports the army to be raised in ur in turn 2 -> nippur",
+            Prompts.Situation(Views.For(r.State, Power.Babylonia)));
+
+        await r.PlayTurnAsync();
+        await r.PlayTurnAsync();
+        // The new army stands in Nippur, its march supported from Babylon.
+        Assert.Equal(Power.Babylonia, r.State.UnitAt("nippur")?.Power);
+        Assert.Equal(Power.Babylonia, r.State.UnitAt("babylon")?.Power);
+        Assert.Null(r.State.UnitAt("ur"));
+        Assert.Equal([1], sleeper.Calls);
+        Assert.DoesNotContain(r.State.InboxOf(Power.Babylonia), i => i.Kind == InboxKind.Rejected);
+        Assert.Contains(r.State.InboxOf(Power.Babylonia), i => i.Title == "Movements last season" && i.Body.Contains("babylon supports ur -> nippur"));
+    }
+
+    [Fact]
+    public void After_a_levy_its_province_names_the_levy_s_unit_even_where_another_unit_stands_now()
+    {
+        // Turn 2: the army in Dur-Kurigalzu marches to Nippur and a new army is raised behind it. Turn 3's order for
+        // Dur-Kurigalzu is the new army's; turn 2's is the old one's.
+        var s = GameFactory.NewGame(31, new GameConfig { CatastropheChance = 0 });
+        var sleep = s.Sleep[Power.Babylonia] = new SleepState();
+        var old = s.UnitAt("durkurigalzu")!;
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        e.Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Babylonia] = Plan((2, [new MoveOrder("durkurigalzu", "nippur"), new RaiseOrder("durkurigalzu", UnitKind.Army)]), (3, [new HoldOrder("durkurigalzu")])),
+        });
+        Assert.Equal(old.Id, sleep.Scheduled.Single(x => x.Turn == 2 && x.Order is MoveOrder).UnitId);
+        Assert.Equal("durkurigalzu", sleep.Scheduled.Single(x => x.Turn == 3).UnitLevy?.Province);
+
+        e = new TurnEngine(s);
+        e.BeginTurn();
+        e.WakeCheck();
+        e.Resolve(new Dictionary<Power, TurnSubmission>());
+        var raised = s.UnitAt("durkurigalzu")!;
+        Assert.NotEqual(old.Id, raised.Id);
+        Assert.Equal(old.Id, s.UnitAt("nippur")?.Id);
+        Assert.Equal(raised.Id, sleep.Scheduled.Single(x => x.Turn == 3).UnitId);
+    }
+
+    [Fact]
+    public async Task Orders_for_a_levy_that_raises_no_unit_are_dropped_and_wake_the_seat()
+    {
+        // Turn 2: a levy in Sippar, where Babylon's own army stands, so it fails; turn 3: the new army was to march to Mari.
+        // In turn 3 the name Sippar means the levy's unit, not the army standing there, which stays.
+        var sleeper = new Sleeper(v => v.Turn == 1
+            ? Plan((2, [new RaiseOrder("sippar", UnitKind.Army)]), (3, [new MoveOrder("sippar", "mari")]))
+            : Nothing());
+        var r = await Play(Power.Babylonia, sleeper, 3);
+        var standing = r.State.UnitAt("sippar")!;
+        Assert.Equal(Power.Babylonia, standing.Power);
+        Assert.Equal([1, 3], sleeper.Calls);
+        Assert.Equal("These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n- turn 3: the army to be raised in sippar in turn 2 -> mari",
+            Notice(r.State, Power.Babylonia, TurnEngine.UnraisedTitle).Body);
+        Assert.Equal(
+            [
+                "orders you scheduled could not be carried out: raise army in sippar (Sippar was not empty after movement)",
+                "orders you gave for later could not be carried out: the levy they waited for raised no unit (turn 3: the army to be raised in sippar in turn 2 -> mari)",
+            ],
+            sleeper.Views[1].WokenBecause);
+        Assert.Empty(r.State.Sleep[Power.Babylonia].Scheduled);
+    }
+
+    [Fact]
+    public void The_rulebook_says_a_unit_to_be_raised_can_be_given_orders_ahead()
+    {
+        var rules = Prompts.LeaderRules(true, new GameConfig());
+        Assert.Contains("A unit you raise can be given orders ahead too: name it by the province of its levy, in orders for any season after the levy (a levy you order now, or one you schedule). In those seasons that name means the unit the levy raises, even if another of your units stands there now; if the levy raises none, those orders are dropped, which wakes you. Any other order naming a province where you have no unit is refused.", rules);
+        Assert.DoesNotContain("a unit not yet raised cannot be given orders ahead", rules);
+        Assert.Contains("A unit a levy is to raise (one you order now or schedule for an earlier season): the province of the levy.", Schemas.LeaderOrders(new GameConfig()).ToJsonString());
+    }
+
     [Fact]
     public void A_refusal_says_nothing_of_troops_out_of_sight()
     {

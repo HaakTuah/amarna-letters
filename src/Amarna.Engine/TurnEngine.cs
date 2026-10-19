@@ -382,6 +382,8 @@ public sealed partial class TurnEngine
             else Failed(p, d, "Disband failed", $"No unit of yours stood in {Map[d.Unit].Name} after movement, so none was disbanded.", "the unit is gone");
         }
         foreach (var (p, r) in All<RaiseOrder>()) Raise(p, r);
+        // Scheduled orders that waited for a levy's unit that was not raised are dropped.
+        UnraisedLevies();
 
         ResolveCourt(All<Order>().ToList());
         ResolveIntelligence(All<Order>().ToList());
@@ -625,6 +627,7 @@ public sealed partial class TurnEngine
         var u = new Unit { Id = S.NewId("u"), Power = p, Kind = r.Kind, Province = prov.Id };
         S.Units.Add(u);
         S.Notify(p, InboxKind.Resolution, "Levy raised", $"A new {kind} stands in {prov.Name}.");
+        LevyRaised(p, u);
     }
 
     private void CheckEliminations()

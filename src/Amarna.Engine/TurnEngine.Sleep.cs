@@ -481,11 +481,35 @@ public sealed partial class TurnEngine
     }
 
     /// <summary>
+    /// A kept order as its seat reads it: as it would be given from where its units stand now, or, for a unit a levy has
+    /// still to raise, with that unit named as such ("the army to be raised in nippur in turn 3 -> ur").
+    /// </summary>
+    public static Order AsShown(GameState s, Power p, PlannedOrder plan)
+    {
+        if (plan.UnitLevy is null && plan.OtherLevy is null) return AsItStands(s, p, plan) ?? plan.Order;
+        string? At(string? id) => id is null ? null : s.Units.FirstOrDefault(u => u.Id == id && u.Power == p)?.Province;
+        var unit = plan.UnitLevy?.Describe() ?? At(plan.UnitId);
+        var other = plan.OtherLevy?.Describe() ?? At(plan.OtherUnitId);
+        return plan.Order switch
+        {
+            HoldOrder h => h with { Unit = unit ?? h.Unit },
+            MoveOrder m => m with { Unit = unit ?? m.Unit },
+            SupportOrder sp => sp with { Unit = unit ?? sp.Unit, Supported = other ?? sp.Supported },
+            ConvoyOrder c => c with { Unit = unit ?? c.Unit, Army = other ?? c.Army },
+            DisbandOrder d => d with { Unit = unit ?? d.Unit },
+            GiftUnitOrder g => g with { Unit = unit ?? g.Unit },
+            var o => o,
+        };
+    }
+
+    /// <summary>
     /// A kept order as it is given from where its units stand now: the seat's own unit (and its own unit supported or
-    /// convoyed) wherever it has gone since. Null if one of them is no longer the seat's (destroyed, disbanded, given away).
+    /// convoyed) wherever it has gone since. Null if one of them is no longer the seat's (destroyed, disbanded, given away),
+    /// or is still to be raised by a levy.
     /// </summary>
     public static Order? AsItStands(GameState s, Power p, PlannedOrder plan)
     {
+        if (plan.UnitLevy is not null || plan.OtherLevy is not null) return null;
         string? At(string? id) => s.Units.FirstOrDefault(u => u.Id == id && u.Power == p)?.Province;
         var unit = plan.UnitId is null ? null : At(plan.UnitId);
         var other = plan.OtherUnitId is null ? null : At(plan.OtherUnitId);
@@ -554,7 +578,7 @@ public sealed partial class TurnEngine
         sl.LastCalled = S.Turn;
         sl.Digest.Clear();
         sl.DigestLeftOut = 0;
-        KeepScheduled(p, sl, sub.Scheduled);
+        KeepScheduled(p, sl, sub.Scheduled, v.Accepted);
         KeepStanding(p, sl, sub.Standing);
 
         // It sleeps until something concerns it, or, at the latest, the hidden cap: it names no season and sets no triggers.
@@ -565,10 +589,13 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// Binds an order the seat gives for later to the units it names: each of its own units, named by the province it stands
-    /// in now, and its own unit named as the unit supported or the army convoyed. Null, with the reason in the rulebook's
-    /// words, when it names a province where the seat has no unit, or could not be read.
+    /// in now, and its own unit named as the unit supported or the army convoyed. A unit a levy is to raise is named by the
+    /// province of the levy (since the fix pass after item 4): in an order for a season after a levy of the seat's in that
+    /// province (one of <paramref name="levies"/>, the latest before it), the name is the levy's unit, even where another of
+    /// the seat's units stands now. Null, with the reason in the rulebook's words, when it names a province where the seat
+    /// has no unit and raises none, or could not be read.
     /// </summary>
-    private PlannedOrder? Bind(Power p, int turn, Order o, out string refusal)
+    private PlannedOrder? Bind(Power p, int turn, Order o, IReadOnlyList<LevyRef> levies, out string refusal)
     {
         refusal = "";
         if (o is UnreadableOrder unreadable)
@@ -576,29 +603,93 @@ public sealed partial class TurnEngine
             refusal = unreadable.Reason;
             return null;
         }
+        LevyRef? Levy(string province) => levies.Where(l => l.Province == province && l.Turn < turn).OrderBy(l => l.Turn).LastOrDefault();
         var plan = new PlannedOrder { Turn = turn, Order = o };
         if (OrderKeys.UnitOf(o) is { } at)
         {
             // In the validator's words: a foreign unit is named as such only where the seat can see it.
             if (!Map.Exists(at)) refusal = $"there is no province called '{at}'";
+            else if (Levy(at) is { } levy) plan.UnitLevy = levy;
             else if (S.UnitAt(at) is { } unit && unit.Power == p) plan.UnitId = unit.Id;
             else refusal = OrderValidator.NotYours(S.UnitAt(at), at, Views.Sight(S, Map, p));
-            if (plan.UnitId is null) return null;
+            if (plan.UnitId is null && plan.UnitLevy is null) return null;
         }
         // A foreign unit, or walls, stay named by their province.
-        if (o switch { SupportOrder sp => sp.Supported, ConvoyOrder c => c.Army, _ => null } is { } other && S.UnitAt(other) is { } helped && helped.Power == p)
-            plan.OtherUnitId = helped.Id;
+        if (o switch { SupportOrder sp => sp.Supported, ConvoyOrder c => c.Army, _ => null } is { } other)
+        {
+            if (Levy(other) is { } levy) plan.OtherLevy = levy;
+            else if (S.UnitAt(other) is { } helped && helped.Power == p) plan.OtherUnitId = helped.Id;
+        }
         return plan;
+    }
+
+    /// <summary>
+    /// The levies a seat has under way as it gives orders for later: those it raises this season (accepted with its orders)
+    /// and those it has scheduled for later seasons.
+    /// </summary>
+    private static List<LevyRef> Levies(SleepState sl, IEnumerable<Order> accepted, int turn)
+    {
+        var levies = accepted.OfType<RaiseOrder>().Select(r => new LevyRef { Province = r.Province, Turn = turn, Kind = r.Kind }).ToList();
+        foreach (var x in sl.Scheduled)
+            if (x.Order is RaiseOrder r) levies.Add(new LevyRef { Province = r.Province, Turn = x.Turn, Kind = r.Kind });
+        return levies;
+    }
+
+    /// <summary>A levy raised a unit: the scheduled orders waiting for it are bound to it.</summary>
+    private void LevyRaised(Power p, Unit unit)
+    {
+        if (!S.Sleep.TryGetValue(p, out var sl)) return;
+        bool This(LevyRef? l) => l is not null && l.Province == unit.Province && l.Turn == S.Turn;
+        foreach (var x in sl.Scheduled)
+        {
+            if (This(x.UnitLevy))
+            {
+                x.UnitId = unit.Id;
+                x.UnitLevy = null;
+            }
+            if (This(x.OtherLevy))
+            {
+                x.OtherUnitId = unit.Id;
+                x.OtherLevy = null;
+            }
+        }
+    }
+
+    /// <summary>The notice that scheduled orders waiting for a levy's unit were dropped, because the levy raised none.</summary>
+    public const string UnraisedTitle = "Orders for a levy that raised no unit dropped";
+
+    /// <summary>
+    /// Once the season's levies are raised: scheduled orders still waiting for a unit a levy of this season or earlier was to
+    /// raise can never run (the levy failed, was refused, or was not given after all). They are dropped, and the seat is told
+    /// and woken, as when the troops orders were for are lost.
+    /// </summary>
+    private void UnraisedLevies()
+    {
+        if (!S.Config.SleepingSeats) return;
+        foreach (var (p, sl) in S.Sleep.OrderBy(x => x.Key))
+        {
+            bool Unraised(LevyRef? l) => l is not null && l.Turn <= S.Turn;
+            var dropped = sl.Scheduled.Where(x => Unraised(x.UnitLevy) || Unraised(x.OtherLevy)).ToList();
+            if (dropped.Count == 0) continue;
+            sl.Scheduled.RemoveAll(dropped.Contains);
+            var lines = dropped.Select(x => $"turn {x.Turn}: {AsShown(S, p, x).Describe()}").ToList();
+            S.Notify(p, InboxKind.Rejected, UnraisedTitle,
+                "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n" + string.Join("\n", lines.Select(x => "- " + x)));
+            sl.PendingWake.Add($"orders you gave for later could not be carried out: the levy they waited for raised no unit ({Entries(lines, UnraisedTitle)})");
+        }
     }
 
     /// <summary>
     /// Keeps the orders a seat scheduled for later seasons: any later season, at most <see cref="MaxScheduledPerSeason"/>
     /// orders a season, for at most <see cref="MaxScheduledSeasons"/> seasons. One entry per season replaces everything
-    /// scheduled for it, and an empty entry cancels it. Each order is bound to the units it names (<see cref="Bind"/>); one
-    /// naming a province where the seat has no unit is refused, which wakes the seat next season. What is not kept is reported.
+    /// scheduled for it, and an empty entry cancels it. Each order is bound to the units it names (<see cref="Bind"/>), a unit
+    /// still to be raised to the levy that raises it (a levy accepted among this season's orders, or one scheduled for an
+    /// earlier season than the order's); one naming a province where the seat has no unit and raises none is refused, which
+    /// wakes the seat next season. What is not kept is reported.
     /// </summary>
-    private void KeepScheduled(Power p, SleepState sl, List<ScheduledOrders> plans)
+    private void KeepScheduled(Power p, SleepState sl, List<ScheduledOrders> plans, IEnumerable<Order> accepted)
     {
+        var raisedNow = accepted.ToList();
         var notKept = new List<string>();
         var refused = new List<string>();
         foreach (var plan in plans.Where(x => x.Turn != S.Turn).GroupBy(x => x.Turn).Select(g => g.Last()).OrderBy(x => x.Turn))
@@ -614,9 +705,12 @@ public sealed partial class TurnEngine
             if (plan.Orders.Count == 0) continue;
             if (plan.Orders.Count > MaxScheduledPerSeason)
                 notKept.Add($"turn {plan.Turn}: only the first {MaxScheduledPerSeason} of its {plan.Orders.Count} orders were kept; at most {MaxScheduledPerSeason} orders may be scheduled for one season");
+            // The levies under way as this season's orders are kept: this season's, and those scheduled so far, earlier
+            // seasons' among them (the entries are kept in season order).
+            var levies = Levies(sl, raisedNow, S.Turn);
             foreach (var o in plan.Orders.Take(MaxScheduledPerSeason))
             {
-                if (Bind(p, plan.Turn, o, out var why) is { } bound) sl.Scheduled.Add(bound);
+                if (Bind(p, plan.Turn, o, levies, out var why) is { } bound) sl.Scheduled.Add(bound);
                 else refused.Add($"turn {plan.Turn}: {o.Describe()}: {why}");
             }
         }
@@ -658,7 +752,7 @@ public sealed partial class TurnEngine
             if (why is null)
                 foreach (var o in r.Orders)
                 {
-                    if (Bind(p, 0, o, out var refusal) is { } plan) bound.Add(plan);
+                    if (Bind(p, 0, o, [], out var refusal) is { } plan) bound.Add(plan);
                     else
                     {
                         why = $"{o.Describe()}: {refusal}";
@@ -754,7 +848,7 @@ public sealed partial class TurnEngine
         if (dropped.Count == 0 && quietIfNothingDropped) return;
         S.Notify(p, InboxKind.Rejected, MarchEndsTitle, $"{what}: its march ends"
             + (dropped.Count == 0 ? "." : ", and its remaining scheduled orders were dropped: "
-                + string.Join("; ", dropped.Select(d => $"turn {d.Turn}: {(AsItStands(S, p, d) ?? d.Order).Describe()}")) + "."));
+                + string.Join("; ", dropped.Select(d => $"turn {d.Turn}: {AsShown(S, p, d).Describe()}")) + "."));
     }
 
     /// <summary>

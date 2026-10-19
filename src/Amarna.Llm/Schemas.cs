@@ -79,7 +79,7 @@ public static class Schemas
         var required = (JsonArray)o["required"]!;
         props["schedule"] = Array(Object(
             ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
-            ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands.")),
+            ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands. A unit a levy is to raise (one you order now or schedule for an earlier season): the province of the levy.")),
             ("other_orders", Array(OtherOrder()))),
             $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order that is refused or fails wakes you; a scheduled move that is stopped is tried once more (see the rulebook).");
         props["standing_orders"] = Array(Object(
