@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Amarna.Llm\Amarna.Llm.csproj" />
+    <ProjectReference Include="..\Amarna.Llm.Sdk\Amarna.Llm.Sdk.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

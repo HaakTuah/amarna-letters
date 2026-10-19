@@ -19,13 +19,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.1" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- The browser never builds the Anthropic SDK client (it posts with HttpClient: see ClaudeClient), so the SDK, which
-       the batch runner uses, is trimmed to what the code references instead of shipping whole (about 2 MB compressed). -->
-  <ItemGroup>
-    <TrimmableAssembly Include="Anthropic" />
-    <TrimmableAssembly Include="Microsoft.Extensions.AI.Abstractions" />
-  </ItemGroup>
-
   <ItemGroup>
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>

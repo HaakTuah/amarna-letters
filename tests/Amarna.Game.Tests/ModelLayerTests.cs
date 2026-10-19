@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Amarna.Engine;
 using Amarna.Game;
 using Amarna.Llm;
+using Amarna.Llm.Sdk;
 
 namespace Amarna.Game.Tests;
 
@@ -9,6 +10,8 @@ public class ModelLayerTests
 {
     private static (GameRunner Runner, SimulatedAnthropic Fake) Build(SeatChoices choices, ulong seed = 3, bool browser = true)
     {
+        // Outside the browser, calls go through the official SDK, as in the batch runner.
+        if (!browser) AnthropicSdk.Use();
         var fake = new SimulatedAnthropic();
         var state = GameFactory.NewGame(seed, new GameConfig { MinTurns = 3, EndChance = 1.0 });
         GameRunner? runner = null;

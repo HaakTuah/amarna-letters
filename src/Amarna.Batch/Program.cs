@@ -4,6 +4,7 @@ using Amarna.Game;
 using Amarna.Game.Batch;
 using Amarna.Game.Bots;
 using Amarna.Llm;
+using Amarna.Llm.Sdk;
 
 // Runs many games unattended and prints winners and signal counts.
 //   dotnet run --project src/Amarna.Batch -- --games 50 --seed 1 [--out logs] [--verify-replay] [--detail]
@@ -21,6 +22,9 @@ using Amarna.Llm;
 //              --max-turns 10 (end the game after this season, whatever the random end)
 // File seats:  --file-seats DIR|map.json (each king writes its request to its own folder and waits for a reply file;
 //              DIR gives one folder per king, a JSON map {"Egypt": "path", ...} names them), --file-timeout 120 (minutes)
+
+// Model calls from here go through the official SDK.
+AnthropicSdk.Use();
 
 var games = 20;
 ulong seed = 1;

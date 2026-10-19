@@ -79,8 +79,9 @@ The site is `publish/wwwroot`. If it is served from a sub-path, set `<base href>
 |---|---|
 | `src/Amarna.Engine` | The deterministic engine: map, state, orders, validator, adjudicator, economy, envoys, tablets, spies, catastrophes, scoring. Pure C#, no I/O. |
 | `src/Amarna.Game` | Seats, character minds and the narrator as interfaces; the runner that records every decision; script kings (temperaments, memory, a look-ahead over likely rival orders) and script characters; signal detection; batch runner. |
-| `src/Amarna.Llm` | Claude leaders (Sonnet 5.5 / Opus 5.5), characters (Haiku 5.5) and narrator (Sonnet 5.5): prompts, JSON schemas, parsing, cost accounting, the API simulator. |
-| `src/Amarna.Web` | Blazor WebAssembly app: setup, SVG map, human orders and audiences, spectator views, timeline, chronicles, IndexedDB saves. |
+| `src/Amarna.Llm` | Claude leaders (Sonnet 5.5 / Opus 5.5), characters (Haiku 5.5) and narrator (Sonnet 5.5): prompts, JSON schemas, parsing, cost accounting, the API simulator. In the browser, calls are posted with HttpClient. |
+| `src/Amarna.Llm.Sdk` | The official Anthropic SDK as the way model calls leave the console runner and tests (kept apart so that the web app does not download it). |
+| `src/Amarna.Web` | Blazor WebAssembly app: setup, SVG map, human orders and audiences, spectator views, timeline, chronicles, IndexedDB saves. Script kings and characters think in a Web Worker. |
 | `src/Amarna.Batch` | Console runner for unattended games. |
 | `tests/` | Engine tests (adjudication, determinism, envoys, intelligence) and game/model-layer tests against a fake HTTP API. |
 

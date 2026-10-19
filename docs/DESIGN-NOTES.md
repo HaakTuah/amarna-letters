@@ -635,7 +635,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Transport**: the official C# SDK is used in the console runner and tests. It cannot run in the
   browser (its constructor enables HTTP decompression, which WebAssembly forbids), so the browser
   posts the same Messages API request with `HttpClient`, with the
-  `anthropic-dangerous-direct-browser-access` header.
+  `anthropic-dangerous-direct-browser-access` header. The SDK path lives in a project of its own,
+  `Amarna.Llm.Sdk`, which the web app does not reference, so the browser never downloads the SDK; a
+  console program registers it once (`AnthropicSdk.Use()`, as the batch runner does), and a model client
+  built outside the browser without it says so.
 - **Prompt-injection boundaries**: a character's prompt holds only its own persona, memory and
   facts (tested); text never changes state; the narrator receives only released facts.
 - **Leader memory** is a private record in the king's own words (`LeaderJournal`), shown in every
@@ -1771,10 +1774,9 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   every file at install and starts from the cache afterwards. Fingerprinted files are taken from the browser's own
   cache, so installing downloads nothing twice; HTML files are not checked against the publish hashes, since the
   Pages workflow rewrites their base path. In development the worker caches nothing.
-- **Load size.** The browser build runs in the invariant culture (no ICU data) and trims the Anthropic SDK, which
-  the browser never constructs (it posts with HttpClient), to the code that refers to it: about 3.2 MB compressed
-  instead of 5.0 MB. Splitting the SDK path out of `Amarna.Llm` would save another 0.45 MB; not done, as it is not
-  presentation.
+- **Load size.** The browser build runs in the invariant culture (no ICU data) and carries none of the Anthropic
+  SDK, which it never constructs (it posts with HttpClient; the SDK path is in `Amarna.Llm.Sdk`, see "Transport"
+  under Models).
 - **Script kings and characters in a worker.** The kings' look-ahead is nearly all of a season's time (seconds on a
   slow phone), and a character's text code takes a second or two to warm up the first time it writes; in the page's one
   WebAssembly thread both froze the page. In a browser game they now think in a Web Worker of their own
