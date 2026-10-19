@@ -145,7 +145,7 @@ went ahead on the dry check, the live hook logs and the audit, and the report sa
 **Usage.** Haakon raised this session's cap from 50% to 70% and asked that game 2 start only if a full game, estimated
 after two or three seasons of game 1, could finish below 70%. Estimated after season 3 at about 5-7 weekly points a game;
 the cap was cleared. Measured: the weekly limit went from 35% before the isolation tests to 47% after both games and
-debriefs (about 9-10 points, 15.85 million agent tokens), and about 52% with both games' analysis and the report.
+debriefs (about 9-10 points, 15.85 million agent tokens), and 54% at the stop, after both games' analysis and the report.
 
 **For the review** (details in the report): model characters are too honest (yes, on thin evidence: no gold kept in
 317 decisions; prime them harder after fixing the request texts that distort the measure, then test in a game that
