@@ -40,7 +40,11 @@ Branch `item/second-simulation-ids`, from `c0ff3cf` (develop with item 3, before
   continuing it ("This game was saved under an earlier version of the rules (version 3) and cannot be replayed by this
   version."), and the web app shows that message in its saved-games card instead of loading the game. Within version
   4, seeds replay exactly: the replay test with sleep on and off, the 10-game replay check, and all 200 benchmark
-  replays below.
+  replays below. Fix (a), on the item branch, also raises the version to 4 (this branch starts before it). Both are
+  item 4 and neither has been released, so item 4 is version 4 as a whole; when the branches meet, `CurrentVersion`
+  stays 4 and its comment, like the DESIGN-NOTES save-version entry, names both reasons (the two edits conflict
+  textually there). A log saved on the item branch between fix (a) and this fix says version 4 but would not replay
+  exactly; it was never released, as with version 2 in the simulation-fixes round.
 - **DESIGN-NOTES** has a new entry, "Ids: a counter for each kind of object" (how ids are issued and why), and the save
   version entry says what version 4 is, in the same commit as the change.
 
