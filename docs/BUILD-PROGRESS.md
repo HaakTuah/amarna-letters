@@ -65,6 +65,14 @@ fixed, unless noted):
    from the design document" and "Not built yet").
 6. Create `develop` from `main`, merge the item, and update this file.
 
+**Update, 19 October, 07:40.** Parts G and E were resumed from the work above. Two duplicate writers ran for a few
+minutes and were all stopped: yesterday's restarted workflow was still alive (its log showed only "started"), a second
+workflow was launched over it, and messages to its agents started second copies of them. Nothing was lost:
+`f1a6a18` and `9fa3f26` (G1) and `f03986e` (G2, the capital trigger) are committed and passed the full suite and the
+replay checks before each commit; the leftover stash was an earlier copy of G2 and was dropped. Still to do in Part G:
+G3 (triggers on changes) and G4 (loss rumours). Part E's three commits stand; its request-size harness outside the
+repository was touched by two agents at once and is not trusted.
+
 **Decided along the way** (details in the report): following the Build order's rules, from here on one reviewer per
 part and no extra analyst workflows; the item's report moves to `docs/rounds/2026-10-19-simulation-fixes.md` when the
 item is done, since the Build order puts every item's report there.
