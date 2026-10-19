@@ -85,6 +85,9 @@ Then run `node sim/check-isolation.js --dry`. It must print `DRY ISOLATION HOLDS
     `wait.js` again. An audience goes back and forth between a character and a king, so expect many short rounds.
   - `still-running`: call it again.
   - `finished`: go to step 4.
+  - In a long session, the loop can instead be run by a workflow script that keeps it out of your context and returns
+    only counts: `sim/workflow-driver.js`, described in `sim/README.md`, "Orchestrating from a workflow" (the second
+    simulation's games ran this way).
 - After each season (the turn number is in the request names), add a line under "Simulation results" in the report:
   the season; which kings were called, for orders or for an audience only; how many character calls; the tokens the
   king agents and the character agents used (from the Agent results); and anything notable that you saw without

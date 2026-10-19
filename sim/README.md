@@ -30,6 +30,8 @@ The whole game depends on hidden information, so every agent is walled in by con
 | `summarize.js` | Result, signals, sealed tablets, the message trail, each seat's sleep and what woke it, the reopen rate, request sizes by kind, and the characters' decisions beside the script's with the same traits, from the batch runner's `--out` folder. |
 | `stub-replier.js` | For testing the plumbing only: answers requests with the plainest valid reply, as the orchestrator's loop would start agents (`--orchestrate`), or straight from the folders. `--play` does the same for local play. Never in a real game. |
 | `bridge.js` | Local play (below): the small server through which the locally run web app hands each request to a king played by a local agent, and gets the reply back. |
+| `workflow-driver.js` | A Claude Code workflow script that drives one game in place of the orchestrator's own loop: see "Orchestrating from a workflow". |
+| `poller-guard.js` | The PreToolUse hook of the `sim-poller` agent (`.claude/agents/sim-poller.md`) that the workflow driver polls with. |
 
 `docs/SIMULATION-PROMPT.md` is the start prompt for the orchestrating session; `docs/PLAY-PROMPT.md` is the one for
 local play. Everything `setup.js` makes is
@@ -45,6 +47,46 @@ character. The orchestrator never reads an agent's final text for content, never
 waits on `wait.js` and the reply files alone. This is a rule the orchestrator follows, not a wall the kit builds (see
 "Not built" below). It holds for characters exactly as for kings: a character's final message could carry what a
 king told it in an audience.
+
+## Orchestrating from a workflow
+
+`docs/SIMULATION-PROMPT.md` has the orchestrating session loop on `wait.js` itself, so every round of every season
+passes through that session's context, which by the end of a game is several hundred thousand tokens long and is
+reread at every call. The second simulation (Build order item 4) ran both its games from a workflow script instead:
+the session starts the script, and the script runs the loop and hands back only counts.
+
+- **The poller.** `.claude/agents/sim-poller.md` is an agent type of its own: Haiku, the Bash tool only, told to run
+  the one command it is given and report the JSON line `wait.js` prints. Its PreToolUse hook, `sim/poller-guard.js`,
+  allows only a Bash command of the form `node sim/wait.js <plain arguments>` (letters, digits and `_./:-`) and the
+  StructuredOutput call that returns the line to the workflow; it blocks everything else, so the poller cannot read
+  a seat's files. Unlike the kings' and characters' agent types, it is not made by `setup.js` and is kept in git. It
+  holds this repository's absolute path, as the other agent files do.
+- **The driver,** `sim/workflow-driver.js`, a Claude Code workflow script (it runs only where the session can run
+  workflows). Each round it starts one poller on `node sim/wait.js <log> 100 --seed <S>` (each poll waits up to 100
+  seconds). On `waiting` it starts every listed request in parallel, as an agent of the listed type (`king-*` on
+  Sonnet, `char-*` on Haiku), with the start prompt's fixed prompt: "Your request file is <request> in your folder.
+  Read it, decide, and write your reply where it says." On `finished` it returns. With `untilTurn` it pauses before
+  the first request of a later season, so that the session can check usage (after season 3, as the start prompt
+  asks) and start it again for the rest. A request still listed after 3 starts stops it (`stuck`), and so do more
+  than five unreadable polls in a row. It returns only counts: rounds, king and character calls, and calls per
+  season.
+- **The orchestrator's rule holds by construction.** The driver discards every agent's final text (each start resolves
+  to `true`), and the poller returns only `wait.js`'s line, which names agent types and request files and nothing
+  else. So no seat's words reach the session that starts the other seats: within a session that can run workflows,
+  this is the launcher that returns nothing ("Not built" below). The isolation test and the debriefs can be run the
+  same way, by a script that starts each agent on its fixed prompt and returns only whether it ran.
+- **What it costs.** In the second simulation the polls took about 6% of each game's agent tokens (84 polls at about
+  4,700 tokens in seed 7, 77 in seed 15), and the orchestrating session made 23 and 9 calls during the two games
+  instead of one or more a round.
+- **A wrinkle, not fixed.** The poller's prompt names the folder to run in, and about a third of the polls first ran
+  `cd <repository> && node sim/wait.js …`, which the guard blocks. Almost all then ran the bare command; two
+  returned no list and cost one round each, but no game call.
+
+To use it: load the agent types in the session (start a new session after `setup.js`, or wait for a later turn: types
+written during a session appear only at a later turn boundary), run the isolation test, start the batch runner in the
+background as in step 3 of the start prompt, then run `sim/workflow-driver.js` as a workflow with
+`{ "log": "sim/runs/seed-7/batch.log", "seed": "7", "untilTurn": 3, "maxRounds": 300 }`, and after the usage check
+again with `"untilTurn": 0` and a larger `maxRounds`. The rest (audit, summary, debriefs) is as in the start prompt.
 
 ## Local play
 
@@ -154,7 +196,9 @@ process (for example `sim/launch.js`) would take an agent type and a request fil
 and print only "reply written" or "no reply". The orchestrator would call the launcher instead of starting agents
 directly, so no seat's words ever reach a context that starts other seats. It needs a way to start an agent outside
 the orchestrating session (a signed-in headless Claude Code CLI) and a per-launch transcript for `audit.js`. Until it
-exists, the orchestrator's rule above is what keeps the seats apart.
+exists, the orchestrator's rule above is what keeps the seats apart. Within a Claude Code session that can run
+workflows, `sim/workflow-driver.js` does the launcher's job ("Orchestrating from a workflow" above); a launcher that
+works outside such a session is still not built.
 
 Also: `audit.js <folder>` audits one run on its own if you copy that run's `*.meta.json` and `*.jsonl` transcripts into
 a folder. That keeps one run's debrief from mixing into the next run's audit.
