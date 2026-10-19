@@ -121,7 +121,8 @@ public static partial class CharacterChecks
     /// <item>a sealed thing, not a sealing: "a sealed tablet", "our sealed peace", "in sealed bags", "the oath sealed
     /// before Shamash";</item>
     /// <item>an earlier sealing: "the peace stands as sealed", "the tablet we sealed in turn four", "the friendship we
-    /// sealed (k27)", "the treaty sealed last year";</item>
+    /// sealed (k27)", "the treaty sealed last year", a pledge now kept, broken or standing ("Egypt keeps the tablet he
+    /// sealed", "the tablet we sealed stands");</item>
     /// <item>the sealed inventory, greeting or bags every envoy carries.</item>
     /// </list>
     /// It reads words, not meaning: "the tablet sealed by both kings" is still a claim, and so is a sealing put in the host's
@@ -152,6 +153,9 @@ public static partial class CharacterChecks
             if (Prepositions.Contains(prev) && next.Length > 0 && char.IsLetter(next[0]) && !Determiners.Contains(next) && !Objects.Contains(next)) continue;
             // "the oath sealed before Shamash", "our old peace sealed with Hatti": a sealed thing named, not a sealing told.
             if (Pledges.Contains(prev) && before.Count >= 2 && before.Take(before.Count - 1).TakeLast(3).Any(Determiners.Contains) && next != "by" && !Objects.Contains(next)) continue;
+            // "Egypt keeps the tablet he sealed", "tablets broken the day they were sealed", "the tablet we sealed stands": a
+            // pledge sealed before, now kept, broken or standing.
+            if (before.Any(Pledges.Contains) && (before.Any(Keeping.Contains) || after.Take(2).Any(Standing.Contains))) continue;
             if (Earlier(after)) continue;
             return true;
         }
@@ -176,7 +180,13 @@ public static partial class CharacterChecks
     private static bool ClauseEnd(string w) => !char.IsLetterOrDigit(w[0]) && w is not ("'" or "-") || ClauseWords.Contains(Low(w));
     private static string Low(string w) => w.ToLowerInvariant();
 
-    private static readonly HashSet<string> ClauseWords = ["and", "but", "while", "though", "although", "because", "yet", "whereas", "so"];
+    // Not "yet", which is more often "no tablet is yet sealed" than a "but".
+    private static readonly HashSet<string> ClauseWords = ["and", "but", "while", "though", "although", "because", "whereas", "so"];
+    private static readonly HashSet<string> Keeping =
+        ["keep", "keeps", "kept", "keeping", "hold", "holds", "held", "holding", "honour", "honours", "honoured", "honor", "honors", "honored",
+         "uphold", "upholds", "upheld", "abide", "abides", "remember", "remembers", "remembered", "break", "breaks", "broke", "broken", "breaking",
+         "renew", "renews", "renewed"];
+    private static readonly HashSet<string> Standing = ["stand", "stands", "stood", "hold", "holds", "held", "remain", "remains", "endure", "endures"];
     private static readonly HashSet<string> SealDenials =
         ["not", "never", "no", "nothing", "neither", "nor", "none", "nobody", "without", "refused", "refuses", "declined", "declines", "cannot", "unsealed"];
     private static readonly HashSet<string> Nothing = ["nothing", "no", "none", "neither", "not", "nor"];

@@ -20,6 +20,8 @@ public class CheckWordingTests
     [InlineData("He would not seal the first tablet, but sealed the second.")]
     [InlineData("The tablet sealed by both kings is in my hands.")]
     [InlineData("Then Hatti and Mitanni both sealed it.")]
+    // A real error of fact in seed 7: nothing was sealed at that audience.
+    [InlineData("He received me kindly and sealed his answer in friendship: the peace stands, Hatti keeps it, and his ships will not enter your waters.")]
     public void A_sentence_that_tells_of_a_sealing_claims_one(string sentence) =>
         Assert.True(CharacterChecks.ClaimsSeal(sentence));
 
@@ -52,6 +54,10 @@ public class CheckWordingTests
     [InlineData("The peace of Karduniash and Mitanni stands as sealed in turns two and four, and no army of mine enters his homeland.")]
     [InlineData("Then Ashur falls to me as sealed, and once it is mine my men will support your army into Nineveh.")]
     [InlineData("He keeps the treaty we sealed last year.")]
+    [InlineData("He will send an envoy with a tablet to seal when the time is right, so no tablet is yet sealed.")]
+    [InlineData("I came to the court of Suppiluliuma and gave him your words: Egypt keeps the tablet he sealed, and Egypt sends no troops to Isuwa.")]
+    [InlineData("The tablet of brotherhood we sealed stands, and Egypt keeps it.")]
+    [InlineData("I do not seal this new tablet now: it ties my hand to a war with Egypt on the word of Arzawa, whose tablets to me were broken the day they were sealed.")]
     public void A_sentence_that_denies_awaits_names_or_dates_a_sealing_claims_none(string sentence) =>
         Assert.False(CharacterChecks.ClaimsSeal(sentence));
 

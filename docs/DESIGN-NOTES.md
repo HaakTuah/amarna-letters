@@ -1196,8 +1196,10 @@ sealing (`MessageTrail.SealedOutcome`). Since the fix pass after item 4, a sente
 and not counted when denied there or right after it ("I sealed nothing", "Nothing is sealed", "Neither king sealed"),
 when still to come, wished for or supposed ("it will be sealed", "he asks that it be sealed", "if he had sealed"), when
 it names a sealed thing ("a sealed tablet", "our sealed peace", "in sealed bags", "the oath sealed before Shamash"), or
-an earlier sealing ("stands as sealed", "the tablet we sealed in turn four", "the friendship we sealed (k27)"); the
-first reading counted all of these, 8 false alarms on the models' reports in the second agent simulation. Sentences
+an earlier sealing ("stands as sealed", "the tablet we sealed in turn four", "the friendship we sealed (k27)", "Egypt
+keeps the tablet he sealed", "the tablet we sealed stands"); the first reading counted all of these, 8 false alarms on
+the models' reports in the second agent simulation. Read again with the new reading, those reports raise one flag, a
+real error ("He received me kindly and sealed his answer in friendship", when nothing was sealed). Sentences
 end after a closing quote too (`TextKit.Sentences`), so a quoted denial no longer hides a claim after it. A speech
 abroad "softens" a threat to the host if the letter had one and the speech has none. A spy "passes
 on" its secret masters' words if most of their longer words are in its report, and "leaves out" an observation if fewer
