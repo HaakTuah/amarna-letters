@@ -1169,145 +1169,177 @@ public class SleepTests
         Assert.Equal(new HoldOrder("babylon"), Assert.Single(Assert.Single(sleep.Standing).Orders).Order);
     }
 
-    // ------------------------------------------------------------ standing orders
+    // ------------------------------------------------------------ standing orders (answering a move in the season it is made, since the fix pass after item 4)
+
+    /// <summary>An Assyrian army in Susa, which Babylon can see from its homeland; the city is Assyria's, its walls gone.</summary>
+    private static void AssyriaInSusa(GameState s)
+    {
+        s.Garrisons.Remove("susa");
+        s.Owner["susa"] = Power.Assyria;
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "susa" });
+    }
 
     [Fact]
-    public async Task A_standing_order_fires_once_the_season_after_its_event_and_does_not_wake_the_seat()
+    public async Task A_standing_order_answers_a_move_in_the_season_it_is_made_once_and_does_not_wake_the_seat()
     {
-        // When Assyria's troops enter Arbela, the army in Babylon falls back to Nippur. Assyria's army leaves Ekallatum, which
-        // Babylon can see, for Arbela in turn 2, goes back in turn 3 and comes again in turn 4.
+        // When Assyria's troops enter Arbela, the army in Babylon falls back to Nippur. Turn 1: Assyria's army leaves
+        // Ekallatum, which Babylon can see, for Arbela; a standing order first fires the season after it is given, so not yet.
+        // Turn 2: the army in Susa sets out for Arbela and is stopped there, and the standing order answers it that season.
+        // Turn 3: it sets out again; the standing order is spent.
         var sleeper = new Sleeper(v => v.Turn == 1 ? new TurnSubmission { Standing = [Enters(Power.Assyria, "arbela", new MoveOrder("babylon", "nippur"))] } : Nothing());
         var assyria = new Scripted(v => v.Turn switch
         {
-            2 or 4 => new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela")] },
-            3 => new TurnSubmission { Orders = [new MoveOrder("arbela", "ekallatum")] },
+            1 => new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela")] },
+            2 or 3 => new TurnSubmission { Orders = [new MoveOrder("susa", "arbela")] },
             _ => new TurnSubmission(),
         });
-        var r = await Play(Power.Babylonia, sleeper, 2, others: new() { [Power.Assyria] = assyria });
+        var r = await Play(Power.Babylonia, sleeper, 1, others: new() { [Power.Assyria] = assyria }, setup: AssyriaInSusa);
         var sleep = r.State.Sleep[Power.Babylonia];
-        // Its view lists it with its id, and says it fires this season.
-        Assert.Contains("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur (it fires this season: Assyria's army moved ekallatum -> arbela last season)",
-            Prompts.Situation(Views.For(r.State, Power.Babylonia)));
+        Assert.Equal(Power.Babylonia, r.State.UnitAt("babylon")?.Power);
+        // Its view lists it with its id; nothing tells a king in advance whether it will fire.
+        var line = Prompts.Situation(Views.For(r.State, Power.Babylonia)).ReplaceLineEndings("\n").Split('\n').Single(l => l.StartsWith("- s1:", StringComparison.Ordinal));
+        Assert.Equal("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur", line);
 
-        for (var i = 0; i < 3; i++) await r.PlayTurnAsync();
-        Assert.Equal([1], sleeper.Calls);
+        await r.PlayTurnAsync();
         Assert.Equal(Power.Babylonia, r.State.UnitAt("nippur")?.Power);
+        Assert.Equal(Power.Assyria, r.State.UnitAt("susa")?.Power);
         Assert.Empty(sleep.Standing);
+        await r.PlayTurnAsync();
+        Assert.Equal([1], sleeper.Calls);
         var notice = Notice(r.State, Power.Babylonia, TurnEngine.StandingFiredTitle("s1"));
-        Assert.Equal((InboxKind.Resolution, 4), (notice.Kind, notice.Turn));
-        Assert.Equal("Your standing order s1 (when Assyria's troops enter arbela) fired: Assyria's army moved ekallatum -> arbela in turn 2. In turn 3 it gave these orders: babylon -> nippur.", notice.Body);
+        Assert.Equal((InboxKind.Resolution, 3), (notice.Kind, notice.Turn));
+        Assert.Equal("Your standing order s1 (when Assyria's troops enter arbela) fired in turn 2: Assyria's army set out from susa for arbela. It gave these orders: babylon -> nippur.", notice.Body);
         // In brief, the firing is dated by the season it fired, as the movements are by the season they were made.
-        Assert.Contains("turn 3: your standing order s1 fired", sleep.Digest);
+        Assert.Contains("turn 2: your standing order s1 fired", sleep.Digest);
         Assert.Empty(sleep.PendingWake);
     }
 
     [Fact]
-    public async Task A_standing_order_for_a_unit_attacked_replaces_what_was_scheduled_for_that_unit()
+    public async Task A_standing_order_for_a_unit_attacked_meets_the_blow_in_the_same_season()
     {
-        // When the army in Sippar is attacked, the army in Babylon falls back to Nippur; for turn 3 it was only scheduled to
-        // hold. Assyria attacks Sippar from Ekallatum in turn 2, and fails.
+        // Assyria attacks the army in Sippar from Ekallatum, supported from Mari (its walls gone, for the test): two against one.
+        // When the army in Sippar is attacked, the army in Dur-Kurigalzu supports it holding, in place of the hold it was
+        // scheduled to give: two against two, and Sippar holds. Before the fix pass the standing order fired the season after
+        // the attack, when the army was already lost.
+        void Setup(GameState s)
+        {
+            s.Garrisons.Remove("mari");
+            s.Owner["mari"] = Power.Assyria;
+            s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "mari" });
+        }
+        Scripted Assyria() => new(v => v.Turn == 2
+            ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "sippar"), new SupportOrder("mari", "ekallatum", "sippar")] }
+            : new TurnSubmission());
+
         var sleeper = new Sleeper(v => v.Turn == 1
             ? new TurnSubmission
             {
-                Scheduled = [new ScheduledOrders { Turn = 3, Orders = [new HoldOrder("babylon")] }],
-                Standing = [Attacked("sippar", new MoveOrder("babylon", "nippur"))],
+                Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new HoldOrder("durkurigalzu")] }],
+                Standing = [Attacked("sippar", new SupportOrder("durkurigalzu", "sippar"))],
             }
             : Nothing());
-        var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "sippar")] } : new TurnSubmission());
-        var r = await Play(Power.Babylonia, sleeper, 1, others: new() { [Power.Assyria] = assyria });
-        Assert.Contains("- s1: when your army now in sippar is attacked, then: the army now in babylon -> nippur", Prompts.Situation(Views.For(r.State, Power.Babylonia)));
-        await r.PlayTurnAsync();
-        await r.PlayTurnAsync();
-
-        Assert.Equal([1], sleeper.Calls);
-        Assert.Equal(Power.Babylonia, r.State.UnitAt("nippur")?.Power);
-        Assert.Null(r.State.UnitAt("babylon"));
+        var r = await Play(Power.Babylonia, sleeper, 2, others: new() { [Power.Assyria] = Assyria() }, setup: Setup);
+        Assert.Equal(Power.Babylonia, r.State.UnitAt("sippar")?.Power);
         Assert.Empty(r.State.Sleep[Power.Babylonia].Standing);
-        Assert.Equal("Your standing order s1 (when your army in sippar is attacked) fired: Assyria's army tried to move ekallatum -> sippar in turn 2. In turn 3 it gave these orders: babylon -> nippur.",
+        Assert.Equal("Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallatum for sippar. It gave these orders: durkurigalzu supports sippar holding.",
             Notice(r.State, Power.Babylonia, TurnEngine.StandingFiredTitle("s1")).Body);
-        // The scheduled hold was replaced, not refused as a second order for the unit: nothing failed, and nothing wakes the seat.
+        // The scheduled hold was replaced, not refused as a second order for the unit, and the attack that did not get in
+        // waits in the digest: nothing wakes the seat.
         Assert.DoesNotContain(r.State.InboxOf(Power.Babylonia), i => i.Kind == InboxKind.Rejected);
-        Assert.Empty(r.State.Sleep[Power.Babylonia].PendingWake);
         await r.PlayTurnAsync();
         Assert.Equal([1], sleeper.Calls);
+
+        // Without it, the army in Sippar is lost.
+        var alone = new Sleeper(v => v.Turn == 1 ? new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new HoldOrder("durkurigalzu")] }] } : Nothing());
+        r = await Play(Power.Babylonia, alone, 2, others: new() { [Power.Assyria] = Assyria() }, setup: Setup);
+        Assert.Equal(Power.Assyria, r.State.UnitAt("sippar")?.Power);
     }
 
     [Fact]
-    public async Task A_unit_that_moved_away_before_the_attack_was_not_attacked()
+    public async Task A_unit_attacked_as_it_marches_away_can_be_told_to_stand()
     {
-        // The army in Sippar marches to Durkurigalzu in turn 2 as Assyria walks into Sippar behind it: the army was not
-        // attacked, so the standing order waits on.
+        // The army in Sippar is to march to Dur-Kurigalzu in turn 2; if it is attacked, it is to stand instead. Assyria moves
+        // on Sippar that season: the standing order replaces the scheduled move, and the attack fails against the army.
         var sleeper = new Sleeper(v => v.Turn == 1
             ? new TurnSubmission
             {
                 Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("sippar", "durkurigalzu")] }],
-                Standing = [Attacked("sippar", new MoveOrder("babylon", "nippur"))],
+                Standing = [Attacked("sippar", new HoldOrder("sippar"))],
             }
             : Nothing());
         var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "sippar")] } : new TurnSubmission());
-        var r = await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria }, setup: EmptyDurkurigalzu);
-        Assert.Equal(Power.Assyria, r.State.UnitAt("sippar")?.Power);
-        var standing = Assert.Single(r.State.Sleep[Power.Babylonia].Standing);
-        Assert.Equal(0, standing.Fires);
-        Assert.Null(r.State.UnitAt("nippur"));
-        // It now waits on the army where it stands.
-        Assert.Contains("- s1: when your army now in durkurigalzu is attacked, then:", Prompts.Situation(Views.For(r.State, Power.Babylonia)));
+        var r = await Play(Power.Babylonia, sleeper, 2, others: new() { [Power.Assyria] = assyria }, setup: EmptyDurkurigalzu);
+        Assert.Equal(Power.Babylonia, r.State.UnitAt("sippar")?.Power);
+        Assert.Null(r.State.UnitAt("durkurigalzu"));
+        Assert.Equal(Power.Assyria, r.State.UnitAt("ekallatum")?.Power);
+        Assert.EndsWith("It gave these orders: sippar holds.", Notice(r.State, Power.Babylonia, TurnEngine.StandingFiredTitle("s1")).Body);
+        // The march gave way to the standing order: it is not held up, and nothing failed.
+        Assert.DoesNotContain(r.State.InboxOf(Power.Babylonia), i => i.Kind == InboxKind.Rejected);
+        Assert.Empty(r.State.Sleep[Power.Babylonia].Scheduled);
     }
 
     [Fact]
     public async Task Orders_given_in_the_season_a_standing_order_fires_replace_its_orders()
     {
-        // The cap wakes the seat in turn 3, the season its standing order fires; awake, it orders the army in Babylon to hold.
+        // Woken every season (a hidden cap of 0, for the test), the seat orders the army in Babylon to hold in turn 2, the
+        // season Assyria attacks Sippar and its standing order fires.
         var sleeper = new Sleeper(v => v.Turn switch
         {
             1 => new TurnSubmission { Standing = [Attacked("sippar", new MoveOrder("babylon", "nippur"), new HoldOrder("durkurigalzu"))] },
-            3 => new TurnSubmission { Orders = [new HoldOrder("babylon")] },
+            2 => new TurnSubmission { Orders = [new HoldOrder("babylon")] },
             _ => Nothing(),
         });
         var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "sippar")] } : new TurnSubmission());
-        var r = await Play(Power.Babylonia, sleeper, 3, Cap(1), others: new() { [Power.Assyria] = assyria });
+        var r = await Play(Power.Babylonia, sleeper, 2, Cap(0), others: new() { [Power.Assyria] = assyria });
 
-        Assert.Equal([1, 3], sleeper.Calls);
-        // The failed attack did not wake it; it read in its view that the standing order fires this season.
-        Assert.Equal([TurnEngine.CapReason], sleeper.Views[1].WokenBecause);
-        Assert.Contains("(it fires this season: Assyria's army tried to move ekallatum -> sippar last season)", Prompts.Situation(sleeper.Views[1]));
+        Assert.Equal([1, 2], sleeper.Calls);
+        // It could not know in advance that the standing order would fire.
+        Assert.DoesNotContain("fires this season", Prompts.Situation(sleeper.Views[1]));
         Assert.Equal(Power.Babylonia, r.State.UnitAt("babylon")?.Power);
         Assert.Null(r.State.UnitAt("nippur"));
         Assert.Empty(r.State.Sleep[Power.Babylonia].Standing);
-        Assert.Equal("Your standing order s1 (when your army in sippar is attacked) fired: Assyria's army tried to move ekallatum -> sippar in turn 2. In turn 3 it gave these orders: durkurigalzu holds. Replaced by the orders you gave for turn 3: babylon -> nippur.",
+        Assert.Equal("Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallatum for sippar. It gave these orders: durkurigalzu holds. Replaced by the orders you gave for turn 2: babylon -> nippur.",
             Notice(r.State, Power.Babylonia, TurnEngine.StandingFiredTitle("s1")).Body);
     }
 
-    /// <summary>A standing order of Babylon's that fires this season (its event, Assyria entering Arbela, seen last season), bound to its units.</summary>
-    private static StandingOrder FiresNow(GameState s, string id, params Order[] orders) => new()
+    /// <summary>A standing order of Babylon's waiting for Assyria to enter Arbela, bound to its units.</summary>
+    private static StandingOrder Waiting(GameState s, string id, params Order[] orders) => new()
     {
-        Id = id, When = StandingWhen.UnitEnters, Power = Power.Assyria, Province = "arbela", Fires = s.Turn, Cause = "Assyria's army moved ekallatum -> arbela",
+        Id = id, When = StandingWhen.UnitEnters, Power = Power.Assyria, Province = "arbela",
         Orders = orders.Select(o => new PlannedOrder { Order = o, UnitId = OrderKeys.UnitOf(o) is { } at ? s.UnitAt(at)!.Id : null }).ToList(),
     };
+
+    /// <summary>Assyria's army leaves Ekallatum, which Babylon can see, for Arbela.</summary>
+    private static Dictionary<Power, TurnSubmission> AssyriaToArbela(TurnSubmission? babylon = null)
+    {
+        var orders = new Dictionary<Power, TurnSubmission> { [Power.Assyria] = new() { Orders = [new MoveOrder("ekallatum", "arbela")] } };
+        if (babylon is not null) orders[Power.Babylonia] = babylon;
+        return orders;
+    }
 
     [Fact]
     public void Standing_orders_that_fire_together_go_by_id_and_the_notice_says_what_became_of_each_order()
     {
-        // Asleep in turn 3, three standing orders fire. s1 and s2 both order the army in Babylon: s1, the lower id, goes first
-        // (wherever it stands in the list). One of s3's is refused.
+        // Asleep in turn 3, three standing orders fire as Assyria enters Arbela. s1 and s2 both order the army in Babylon: s1,
+        // the lower id, goes first (wherever it stands in the list). One of s3's is refused.
         var (s, sleep) = Asleep(Power.Babylonia);
         sleep.Standing =
         [
-            FiresNow(s, "s2", new HoldOrder("babylon"), new HoldOrder("durkurigalzu")),
-            FiresNow(s, "s1", new MoveOrder("babylon", "nippur")),
-            FiresNow(s, "s3", new MoveOrder("sippar", "ur")),
+            Waiting(s, "s2", new HoldOrder("babylon"), new HoldOrder("durkurigalzu")),
+            Waiting(s, "s1", new MoveOrder("babylon", "nippur")),
+            Waiting(s, "s3", new MoveOrder("sippar", "ur")),
         ];
         sleep.LastStanding = 3;
         var e = new TurnEngine(s);
         e.BeginTurn();
-        e.Resolve(new Dictionary<Power, TurnSubmission>());
+        e.Resolve(AssyriaToArbela());
 
         Assert.Equal(Power.Babylonia, s.UnitAt("nippur")?.Power);
         Assert.Empty(sleep.Standing);
-        const string fired = "fired: Assyria's army moved ekallatum -> arbela in turn 2.";
-        Assert.Equal($"Your standing order s1 (when Assyria's troops enter arbela) {fired} In turn 3 it gave these orders: babylon -> nippur.",
+        const string fired = "fired in turn 3: Assyria's army set out from ekallatum for arbela.";
+        Assert.Equal($"Your standing order s1 (when Assyria's troops enter arbela) {fired} It gave these orders: babylon -> nippur.",
             Notice(s, Power.Babylonia, TurnEngine.StandingFiredTitle("s1")).Body);
-        Assert.Equal($"Your standing order s2 (when Assyria's troops enter arbela) {fired} In turn 3 it gave these orders: durkurigalzu holds. Replaced by standing order s1, which fired in the same season: babylon holds.",
+        Assert.Equal($"Your standing order s2 (when Assyria's troops enter arbela) {fired} It gave these orders: durkurigalzu holds. Replaced by standing order s1, which fired in the same season: babylon holds.",
             Notice(s, Power.Babylonia, TurnEngine.StandingFiredTitle("s2")).Body);
         Assert.Equal($"Your standing order s3 (when Assyria's troops enter arbela) {fired} Refused: sippar -> ur (an army in sippar cannot reach ur).",
             Notice(s, Power.Babylonia, TurnEngine.StandingFiredTitle("s3")).Body);
@@ -1319,32 +1351,29 @@ public class SleepTests
     [Fact]
     public async Task A_fired_order_that_is_stopped_wakes_the_seat_and_is_not_tried_again()
     {
-        // When Assyria's troops enter Arbela, the army in Babylon is to take Durkurigalzu. Assyria leaves Ekallatum for Arbela in
-        // turn 2, refills it from Ashur, and moves on Durkurigalzu in turn 3, the season the standing order fires: both bounce.
-        var sleeper = new Sleeper(v => v.Turn == 1 ? new TurnSubmission { Standing = [Enters(Power.Assyria, "arbela", new MoveOrder("babylon", "durkurigalzu"))] } : Nothing());
-        var assyria = new Scripted(v => v.Turn switch
-        {
-            2 => new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela"), new MoveOrder("ashur", "ekallatum")] },
-            3 => new TurnSubmission { Orders = [new MoveOrder("ekallatum", "durkurigalzu")] },
-            _ => new TurnSubmission(),
-        });
-        var r = await Play(Power.Babylonia, sleeper, 4, others: new() { [Power.Assyria] = assyria }, setup: EmptyDurkurigalzu);
+        // When Assyria's troops enter Dur-Kurigalzu, the army in Babylon is to take it too. Assyria moves in from Ekallatum in
+        // turn 2: the two meet, and both are stopped.
+        var sleeper = new Sleeper(v => v.Turn == 1 ? new TurnSubmission { Standing = [Enters(Power.Assyria, "durkurigalzu", new MoveOrder("babylon", "durkurigalzu"))] } : Nothing());
+        var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "durkurigalzu")] } : new TurnSubmission());
+        var r = await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria }, setup: EmptyDurkurigalzu);
 
         // Firing did not wake it; the move that was stopped did.
-        Assert.Equal([1, 4], sleeper.Calls);
+        Assert.Equal([1, 3], sleeper.Calls);
         Assert.StartsWith("a standing order of yours could not be carried out: s1: babylon -> durkurigalzu (it met a move into durkurigalzu from ekallatum",
             Assert.Single(sleeper.Views[1].WokenBecause));
         // Only a scheduled move is a march: this one is not tried again.
         Assert.Equal(Power.Babylonia, r.State.UnitAt("babylon")?.Power);
+        Assert.Null(r.State.UnitAt("durkurigalzu"));
         Assert.Empty(r.State.Sleep[Power.Babylonia].Scheduled);
         Assert.DoesNotContain(r.State.InboxOf(Power.Babylonia), i => i.Title == TurnEngine.MarchHeldUpTitle);
     }
 
     [Fact]
-    public void A_standing_order_fires_only_on_the_event_it_names()
+    public void A_standing_order_fires_only_on_the_move_it_names_as_the_seat_sees_it()
     {
-        // Turn 1: Assyria's army walks into Arbela; Mitanni's fails against the walls of Mari; Babylon's own army walks into
-        // Nippur, and another is stopped by its own army in Sippar. Babylon sees all of it.
+        // Turn 1: Babylon gives its standing orders. Turn 2, as it sleeps: Assyria's army sets out for Arbela; Mitanni's sets
+        // out for Mari and fails against its walls; Mitanni's army in Taidu sets out for Nineveh, out of Babylon's sight;
+        // Babylon's own army marches to Nippur, and another sets out against its own army in Sippar.
         var s = GameFactory.NewGame(31, new GameConfig { CatastropheChance = 0 });
         var sleep = s.Sleep[Power.Babylonia] = new SleepState();
         var e = new TurnEngine(s);
@@ -1353,23 +1382,32 @@ public class SleepTests
         {
             [Power.Babylonia] = new()
             {
-                Orders = [new MoveOrder("babylon", "nippur"), new MoveOrder("durkurigalzu", "sippar")],
+                Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("babylon", "nippur"), new MoveOrder("durkurigalzu", "sippar")] }],
                 Standing =
                 [
                     Enters(Power.Hatti, "arbela", new HoldOrder("sippar")),   // s1: another power entered
                     Enters(Power.Assyria, "arbela", new HoldOrder("sippar")), // s2: fires
                     Enters(null, "arbela", new HoldOrder("sippar")),          // s3: fires
                     Enters(null, "nippur", new HoldOrder("sippar")),          // s4: only its own troops entered
-                    Enters(null, "mari", new HoldOrder("sippar")),            // s5: the move into Mari failed
+                    Enters(null, "mari", new HoldOrder("sippar")),            // s5: fires, though the move into Mari failed
                     Attacked("sippar", new HoldOrder("sippar")),              // s6: only its own army moved against Sippar
+                    Enters(null, "nineveh", new HoldOrder("sippar")),         // s7: a move it cannot see
                 ],
             },
+        });
+        Assert.True(sleep.Asleep);
+        e = new TurnEngine(s);
+        e.BeginTurn();
+        e.WakeCheck();
+        e.Resolve(new Dictionary<Power, TurnSubmission>
+        {
             [Power.Assyria] = new() { Orders = [new MoveOrder("ekallatum", "arbela")] },
-            [Power.Mitanni] = new() { Orders = [new MoveOrder("terqa", "mari")] },
+            [Power.Mitanni] = new() { Orders = [new MoveOrder("terqa", "mari"), new MoveOrder("taidu", "nineveh")] },
         });
         Assert.Equal(Power.Mitanni, s.UnitAt("terqa")?.Power);
+        Assert.Equal(Power.Babylonia, s.UnitAt("nippur")?.Power);
         Assert.Equal(Power.Babylonia, s.UnitAt("durkurigalzu")?.Power);
-        Assert.Equal([("s1", 0), ("s2", 2), ("s3", 2), ("s4", 0), ("s5", 0), ("s6", 0)], sleep.Standing.Select(x => (x.Id, x.Fires)));
+        Assert.Equal(["s1", "s4", "s6", "s7"], sleep.Standing.Select(x => x.Id));
     }
 
     [Fact]
@@ -1384,22 +1422,19 @@ public class SleepTests
         var sleep = s.Sleep[Power.Babylonia] = new SleepState
         {
             LastCalled = 1,
-            Standing = [FiresNow(s, "s1", new MoveOrder("babylon", "nippur"))],
+            Standing = [Waiting(s, "s1", new MoveOrder("babylon", "nippur"))],
             LastStanding = 1,
             Scheduled = [new PlannedOrder { Turn = 3, Order = new MoveOrder("sippar", "durkurigalzu"), UnitId = marcher.Id }],
         };
         var e = new TurnEngine(s);
         e.BeginTurn();
-        e.Resolve(new Dictionary<Power, TurnSubmission>
-        {
-            [Power.Babylonia] = new() { FromFallback = true, Orders = [new HoldOrder("babylon"), new HoldOrder("sippar"), new RaiseOrder("sippar", UnitKind.Army)] },
-        });
+        e.Resolve(AssyriaToArbela(new TurnSubmission { FromFallback = true, Orders = [new HoldOrder("babylon"), new HoldOrder("sippar"), new RaiseOrder("sippar", UnitKind.Army)] }));
 
         Assert.Equal(Power.Babylonia, s.UnitAt("nippur")?.Power);
         Assert.Equal(marcher.Id, s.UnitAt("durkurigalzu")?.Id);
         Assert.Equal(Power.Babylonia, s.UnitAt("sippar")?.Power);
         Assert.Empty(sleep.Standing);
-        Assert.Equal("Your standing order s1 (when Assyria's troops enter arbela) fired: Assyria's army moved ekallatum -> arbela in turn 2. In turn 3 it gave these orders: babylon -> nippur.",
+        Assert.Equal("Your standing order s1 (when Assyria's troops enter arbela) fired in turn 3: Assyria's army set out from ekallatum for arbela. It gave these orders: babylon -> nippur.",
             Notice(s, Power.Babylonia, TurnEngine.StandingFiredTitle("s1")).Body);
         Assert.DoesNotContain(s.InboxOf(Power.Babylonia), i => i.Kind == InboxKind.Rejected);
         Assert.Empty(sleep.PendingWake);
@@ -1411,27 +1446,40 @@ public class SleepTests
     [Fact]
     public async Task Standing_orders_are_cancelled_by_id_or_all_even_in_the_season_they_would_fire()
     {
+        // Woken every season (a hidden cap of 0, for the test). In turn 2 Assyria enters Arbela, but s1 is cancelled that season.
         var sleeper = new Sleeper(v => v.Turn switch
         {
             1 => new TurnSubmission
             {
                 Standing = [Enters(Power.Assyria, "arbela", new MoveOrder("babylon", "nippur")), Attacked("sippar", new MoveOrder("durkurigalzu", "nippur"))],
             },
-            3 => new TurnSubmission { CancelStanding = ["s1", "s7"] },
-            4 => new TurnSubmission { CancelStanding = ["all"] },
+            2 => new TurnSubmission { CancelStanding = ["s1", "s7"] },
+            3 => new TurnSubmission { CancelStanding = ["all"] },
             _ => Nothing(),
         });
         var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new MoveOrder("ekallatum", "arbela")] } : new TurnSubmission());
-        var r = await Play(Power.Babylonia, sleeper, 3, Cap(0), others: new() { [Power.Assyria] = assyria });
+        var r = await Play(Power.Babylonia, sleeper, 2, Cap(0), others: new() { [Power.Assyria] = assyria });
         var sleep = r.State.Sleep[Power.Babylonia];
 
-        // s1 was to fire in turn 3; cancelled then, it did not. s2 stays until turn 4 cancels everything.
-        Assert.Contains("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur (it fires this season", Prompts.Situation(sleeper.Views.Last()));
+        Assert.Contains("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur", Prompts.Situation(sleeper.Views.Last()));
         Assert.Null(r.State.UnitAt("nippur"));
         Assert.Equal("s2", Assert.Single(sleep.Standing).Id);
         Assert.Equal("- s7: you have no standing order s7", Notice(r.State, Power.Babylonia, "Standing orders not cancelled").Body);
         await r.PlayTurnAsync();
         Assert.Empty(sleep.Standing);
+    }
+
+    [Fact]
+    public void The_rulebook_says_a_standing_order_answers_a_move_in_the_season_it_is_made()
+    {
+        // Four kings debriefed after the second agent simulation found no use for standing orders that ran the season after
+        // their event ("it cannot help against a lethal attack, and it comes a season late", Hatti, seed 7).
+        var rules = Prompts.LeaderRules(true, new GameConfig());
+        Assert.Contains("Each waits for a move you can see (from or into a province in your sight) and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds", rules);
+        Assert.Contains("It answers the moves as they were ordered, never the orders another standing order gives, and first fires in the season after you give it.", rules);
+        Assert.Contains("This is what a standing order can do that waking cannot: woken, you would answer the blow only the season after it fell.", rules);
+        Assert.DoesNotContain("your unit still standing there afterwards", rules);
+        Assert.Contains("its orders run in that same season, once, before your scheduled orders, so they meet the move", Schemas.LeaderOrders(new GameConfig()).ToJsonString());
     }
 
     [Fact]
@@ -1491,7 +1539,6 @@ public class SleepTests
     /// <summary>A reply with a march, two standing orders (one for any foreign power, one for a power nobody knows) and cancellations.</summary>
     public const string PlanningReply = """
         {"notes":"Plan ahead.","units":[],"letters":[],"other_orders":[],
-         "sleep":{"wake_in_turn":0,"wake_on":[]},
          "schedule":[{"turn":3,"units":[{"unit":"Babylon","order":"move","target":"nippur","to":""}],"other_orders":[]}],
          "standing_orders":[
            {"when":"unit_attacked","province":"Sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[{"action":"counter_intelligence","province":"","power":"","person":"","amount":20,"term":0,"text":"","item":"","seals":[]}]},

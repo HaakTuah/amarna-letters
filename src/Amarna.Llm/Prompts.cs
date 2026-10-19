@@ -159,7 +159,7 @@ public static class Prompts
         - Foreign troops wake you when they move into your land, and, while you hold your capital, when they end a move in a province next to it (troops there can take it the next season). Troops that only stay where they are do not wake you again.
         - Scheduled orders (schedule): orders for any later season, named by its turn number. Name each of your units by the province it stands in now, as you give the orders: the order follows that unit wherever it goes, and is given from where the unit then stands. An order naming a province where you have no unit is refused, so a unit not yet raised cannot be given orders ahead. They are secret and are checked when they run, after the orders you give that season. In a season when you are awake, your scheduled orders for it still run, except where you give the same units or people other orders (a renewal is not a task: a renewal and an errand for the same person both run). To change or cancel them, send an entry for that season: it replaces everything scheduled for it, and an empty one cancels it. You may schedule at most {TurnEngine.MaxScheduledPerSeason} orders for one season, for at most {TurnEngine.MaxScheduledSeasons} seasons; orders past these limits are refused.
         - A unit's scheduled moves are its march. If a scheduled move is stopped, the unit tries that step again the next season, and each of its later scheduled orders waits a season. If the step is stopped a second time, or a scheduled move is refused, the march ends: the unit's remaining scheduled orders are dropped. When you lose a unit, its scheduled and standing orders are dropped, which wakes you.
-        - Standing orders (standing_orders), at most {TurnEngine.MaxStanding}, each with at most {TurnEngine.MaxScheduledPerSeason} orders, kept until they fire or you cancel them (cancel_standing, by id or "all"). One waits for an event you see: a unit of the power you name, or any foreign unit, moving into a province and getting there (unit_enters); or a foreign unit moving against the province where one of your units stands (name it by where it stands now), your unit still standing there afterwards (unit_attacked). Its orders then run the next season, once, before your scheduled orders: they replace scheduled orders for the same units or people, and orders you give that season replace theirs. If two fire in the same season, the one with the lower id goes first: its orders replace the other's for the same units or people. A standing order firing does not wake you: you read it in your news.
+        - Standing orders (standing_orders), at most {TurnEngine.MaxStanding}, each with at most {TurnEngine.MaxScheduledPerSeason} orders, kept until they fire or you cancel them (cancel_standing, by id or "all"). Each waits for a move you can see (from or into a province in your sight) and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds: a unit of the power you name, or any foreign unit, setting out to move into a province (unit_enters); or a foreign unit setting out to move into the province where one of your units stands (unit_attacked; name your unit by where it stands now). So its orders meet the blow as it falls: when foreign troops move against the province where your army stands, your army next to it can support it holding that same season. Its orders run once, in that season, before your scheduled orders: they replace scheduled orders for the same units or people, and orders you give that season replace theirs. It answers the moves as they were ordered, never the orders another standing order gives, and first fires in the season after you give it. If two fire in the same season, the one with the lower id goes first: its orders replace the other's for the same units or people. A standing order firing does not wake you: you read it in your news. This is what a standing order can do that waking cannot: woken, you would answer the blow only the season after it fell.
         - A scheduled or standing order that is refused, or fails as its season resolves (a move that is stopped or a support that is cut among them), wakes you the next season. The orders you give now for this season do not, an entry for this season in your schedule among them: if one is refused or fails, you read why when you are next woken.
         - Each time you wake, you are told how long you slept and what woke you, then what happened while you slept: first in brief (the troop movements you saw, the reports that came, the orders that failed, the standing orders that fired), then the news of those seasons in full (the routine treasury notices left out).
         """;
@@ -255,7 +255,7 @@ public static class Prompts
         }
         if (v.Standing.Count > 0)
         {
-            sb.AppendLine("YOUR STANDING ORDERS (each fires once, the season after you see its event; cancel_standing removes them):");
+            sb.AppendLine("YOUR STANDING ORDERS (each fires once, in the season you see the move it waits for; cancel_standing removes them):");
             foreach (var st in v.Standing) sb.AppendLine($"- {StandingLine(st, v)}");
         }
         if (v.CourtLetters.Count > 0)
@@ -278,14 +278,13 @@ public static class Prompts
             ? $" Gold already committed by these letters: {gold} shekels, not yet taken from the treasury you read here; it is reserved first when the season's orders are checked."
             : "";
 
-    /// <summary>A standing order as its king reads it: its id, the event it waits for, its orders, and whether it fires this season.</summary>
+    /// <summary>A standing order as its king reads it: its id, the move it waits for, and its orders.</summary>
     private static string StandingLine(StandingOrderView st, SeatView v)
     {
         var when = st.When == StandingWhen.UnitAttacked
             ? $"when your {OwnKind(st.Province, v) ?? "unit"} now in {st.Province} is attacked"
             : TurnEngine.EntersText(v.Power, st.Power, st.Province);
-        return $"{st.Id}: {when}, then: {string.Join("; ", st.Orders.Select(o => Planned(o, v)))}"
-               + (st.FiresNow is { } cause ? $" (it fires this season: {cause} last season)" : "");
+        return $"{st.Id}: {when}, then: {string.Join("; ", st.Orders.Select(o => Planned(o, v)))}";
     }
 
     /// <summary>

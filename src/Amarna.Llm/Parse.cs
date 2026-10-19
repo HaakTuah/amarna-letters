@@ -55,7 +55,7 @@ public static class Parse
                 if (Other(x) is { } order) scheduled.Orders.Add(order);
             if (scheduled.Turn > 0) sub.Scheduled.Add(scheduled);
         }
-        // Standing orders: when this is seen, give these orders the next season; and those to cancel.
+        // Standing orders: when this move is seen, give these orders in the same season; and those to cancel.
         foreach (var s in (o["standing_orders"] as JsonArray) ?? new JsonArray())
         {
             var when = S(s, "when");

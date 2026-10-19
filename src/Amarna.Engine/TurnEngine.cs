@@ -342,9 +342,18 @@ public sealed partial class TurnEngine
         _firedNow.Clear();
         _marchNow.Clear();
         _cededNow.Clear();
+        // Each sleeping seat's season before its standing orders fire; then the standing orders that answer this season's moves.
+        var seasons = S.Alive.ToDictionary(p => p, p =>
+        {
+            var given = submissions.GetValueOrDefault(p) ?? new TurnSubmission();
+            return (Sub: given, Plan: PlanSeason(p, given));
+        });
+        var fires = StandingFires(seasons, validator);
         foreach (var p in S.Alive.ToList())
         {
-            var sub = WithScheduled(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission(), out var scheduled);
+            var (given, plan) = seasons[p];
+            var scheduled = new List<Order>();
+            var sub = plan is null ? given : Compose(p, plan, fires.GetValueOrDefault(p) ?? [], out scheduled);
             var v = validator.Validate(p, sub);
             valid[p] = v;
             if (v.Rejected.Count > 0)
@@ -394,8 +403,6 @@ public sealed partial class TurnEngine
         }
 
         var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
-        // Where each unit stood before the moves: a standing order waits for an attack on its unit there.
-        var stoodAt = S.Units.DistinctBy(u => u.Id).ToDictionary(u => u.Id, u => u.Province);
         // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
         foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
             o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
@@ -436,8 +443,6 @@ public sealed partial class TurnEngine
 
         foreach (var p in S.Alive)
             S.LastSeen[p] = result.Outcomes.Where(o => o.Power == p || sightBefore[p].Contains(o.Province) || (o.Target is { } t && sightBefore[p].Contains(t))).ToList();
-        // Standing orders whose event each seat saw fire next season.
-        StandingEvents(result, stoodAt);
 
         foreach (var p in S.Alive)
         {

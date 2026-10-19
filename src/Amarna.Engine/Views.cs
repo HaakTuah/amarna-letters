@@ -263,7 +263,6 @@ public static class Views
                 Power = x.Power,
                 Province = (x.When == StandingWhen.UnitAttacked ? s.Units.FirstOrDefault(u => u.Id == x.UnitId && u.Power == p)?.Province ?? x.Province : x.Province) ?? "",
                 Orders = x.Orders.Select(o => TurnEngine.AsItStands(s, p, o) ?? o.Order).ToList(),
-                FiresNow = x.Fires == s.Turn ? x.Cause : null,
             }).ToList();
         }
 

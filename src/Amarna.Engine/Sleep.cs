@@ -30,16 +30,19 @@ public sealed class PlannedOrder
     public bool Retry { get; set; }
 }
 
-/// <summary>The events a standing order waits for: a small vocabulary the engine checks from the seat's own view.</summary>
+/// <summary>
+/// The events a standing order waits for: a small vocabulary the engine checks from the seat's own view. Each is a move set
+/// out this season, which the standing order answers in the same season (since the fix pass after item 4).
+/// </summary>
 public enum StandingWhen
 {
-    /// <summary>A unit of <see cref="StandingOrder.Power"/> (any foreign power's if null) was seen moving into <see cref="StandingOrder.Province"/>.</summary>
+    /// <summary>A unit of <see cref="StandingOrder.Power"/> (any foreign power's if null) sets out, where the seat can see it, to move into <see cref="StandingOrder.Province"/>.</summary>
     UnitEnters,
-    /// <summary>A foreign unit moved against the seat's own unit (<see cref="StandingOrder.UnitId"/>) where it stood, and the unit stayed there.</summary>
+    /// <summary>A foreign unit sets out to move into the province where the seat's own unit (<see cref="StandingOrder.UnitId"/>) stands.</summary>
     UnitAttacked,
 }
 
-/// <summary>A standing order as a seat gives it: when this is seen, give these orders the next season.</summary>
+/// <summary>A standing order as a seat gives it: when this move is seen, give these orders in the same season.</summary>
 public sealed class StandingRequest
 {
     public StandingWhen When { get; set; }
@@ -65,10 +68,6 @@ public sealed class StandingOrder
     /// <summary>For <see cref="StandingWhen.UnitAttacked"/>: the seat's own unit.</summary>
     public string? UnitId { get; set; }
     public List<PlannedOrder> Orders { get; set; } = new();
-    /// <summary>The season it fires in, the one after its event; 0 while it waits.</summary>
-    public int Fires { get; set; }
-    /// <summary>What set it off, as the seat saw it ("Hatti's army moved halab -> qatna").</summary>
-    public string? Cause { get; set; }
 }
 
 /// <summary>A standing order as its seat reads it: its unit and its orders named by where they stand now.</summary>
@@ -80,8 +79,6 @@ public sealed class StandingOrderView
     /// <summary>For <see cref="StandingWhen.UnitEnters"/>: the province entered. For <see cref="StandingWhen.UnitAttacked"/>: where the unit stands now.</summary>
     public string Province { get; set; } = "";
     public List<Order> Orders { get; set; } = new();
-    /// <summary>What set it off last season, when it fires this season; else null.</summary>
-    public string? FiresNow { get; set; }
 }
 
 /// <summary>

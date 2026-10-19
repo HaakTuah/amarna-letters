@@ -977,8 +977,7 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   the digest. The seat's view lists its scheduled orders
   by season and its standing orders by id, each of its units named by where it stands now ("- turn
   4: the army now in durkurigalzu -> nippur"; "- s1: when your army now in sippar is attacked,
-  then: the army now in babylon -> nippur", with "(it fires this season: Assyria's army tried to
-  move ekallatum -> sippar last season)" in the season it fires). Every request, for orders and for
+  then: the army now in babylon -> nippur"). Every request, for orders and for
   audiences, opens with one line: "You slept 3 seasons (you last gave orders in turn 5). You were
   woken because: foreign troops entered your land: ..." (an audience held while its orders stand:
   "... You were woken to receive an envoy: an envoy of Egypt waits to be received. Your orders stand
@@ -1059,34 +1058,53 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   or are cancelled (`cancel_standing`: ids, or "all"; an unknown id is reported as "Standing orders
   not cancelled"). Each has an id per seat ("s1", "s2", ...), one event and up to 24 orders, unit
   orders and other orders in the same shapes as the schedule, bound to units as scheduled orders
-  are. The events, checked after movement from what the seat saw (its `LastSeen`): `unit_enters`, a
-  unit of the power named (any foreign power's if none is named; never the seat's own then) moved
-  into the province named and got there; `unit_attacked`, a foreign move was made into the province
-  where the seat's unit stood (named by where it stands when the order is given), and the unit was
-  still there after the moves (not destroyed, not moved away); a move of the seat's own does not
-  count (tested, each filter). A standing order sees only events after it was given. It fires once,
-  in the season after its event, before that season's orders: its orders are given from where
-  their units then stand, replace scheduled orders for the same units or people, and give way to
-  fresh orders the seat gives that season (cancelled in that season, it does not fire). Two that
-  fire in the same season go by id: the lower id's orders replace the other's for the same units or
-  people, so they never reach the validator as two orders for one unit (the rulebook says so). A
-  fired move that is stopped is a failed order, but not a march: it is not tried again. It is then
-  removed, and once the season's orders are checked the seat reads "Standing order s1 fired", saying
-  what became of each of its orders: "Your standing order s2 (when Assyria's troops enter arbela)
-  fired: Assyria's army moved ekallatum -> arbela in turn 2. In turn 3 it gave these orders:
-  durkurigalzu holds. Replaced by standing order s1, which fired in the same season: babylon
-  holds.", with "Refused: sippar -> ur (an army in sippar cannot reach ur)." and "Replaced by the
-  orders you gave for turn 3: ..." where they apply. Firing does not wake the seat (the digest has
-  "turn 3: your standing order s1 fired"); an order of it that is refused or fails does ("a
-  standing order of yours could not be carried out: s1: babylon -> durkurigalzu (it met a move into
-  durkurigalzu from ekallatum ...)", tested). A standing order that cannot be kept (a
-  province that does not exist, no unit of the seat's where `unit_attacked` names, no orders or more
-  than 24, an order naming a province where the seat has no unit, a power nobody knows, or a
-  thirteenth) is refused whole ("Standing orders not kept"), which wakes the seat next season; the
-  rulebook and the schema give both limits.
+  are. **A standing order answers a move in the season it is made** (since the fix pass after item
+  4). The events: `unit_enters`, a unit of the power named (any foreign power's if none is named;
+  never the seat's own then) sets out to move into the province named; `unit_attacked`, a foreign
+  unit sets out to move into the province where the seat's unit stands as the season begins (named
+  by where it stands when the order is given). Each fires on the move as it is ordered, whatever then
+  becomes of it (a move stopped at the border still sets it off), and only on a move the seat can
+  see: one from or into a province in its sight as the season begins (`TurnEngine.StandingFires`).
+  The moves are those each seat was ordered to make this season (its fresh orders, its letters and
+  its scheduled orders, or the stand-in's), as the validator accepts them, before any standing order
+  fires: a standing order never answers what another standing order gives, so the season still
+  resolves in one pass and the result does not depend on the order seats are read in. A move of the
+  seat's own does not count (tested, each filter). A standing order first fires in the season after
+  it is given. It fires once: its orders are given from where their units stand as the season
+  begins, replace scheduled orders for the same units or people (so "when the army in sippar is
+  attacked, it holds" stops the march it was scheduled to make), and give way to fresh orders the
+  seat gives that season (cancelled in that season, it does not fire). Two that fire in the same
+  season go by id: the lower id's orders replace the other's for the same units or people, so they
+  never reach the validator as two orders for one unit (the rulebook says so). A fired move that is
+  stopped is a failed order, but not a march: it is not tried again. It is then removed, and once
+  the season's orders are checked the seat reads "Standing order s1 fired", saying what became of
+  each of its orders: "Your standing order s2 (when Assyria's troops enter arbela) fired in turn 3:
+  Assyria's army set out from ekallatum for arbela. It gave these orders: durkurigalzu holds.
+  Replaced by standing order s1, which fired in the same season: babylon holds.", with "Refused:
+  sippar -> ur (an army in sippar cannot reach ur)." and "Replaced by the orders you gave for turn
+  3: ..." where they apply. Firing does not wake the seat (the digest has "turn 3: your standing
+  order s1 fired"); an order of it that is refused or fails does ("a standing order of yours could
+  not be carried out: s1: babylon -> durkurigalzu (it met a move into durkurigalzu from ekallatum
+  ...)", tested). A standing order that cannot be kept (a province that does not exist, no unit of
+  the seat's where `unit_attacked` names, no orders or more than 24, an order naming a province
+  where the seat has no unit, a power nobody knows, or a thirteenth) is refused whole ("Standing
+  orders not kept"), which wakes the seat next season; the rulebook and the schema give both limits.
   Cancellation is applied before the season's standing orders fire, new standing orders after the
   season's orders are checked. The design document's wider vocabulary ("unless" conditions,
-  treasury below, envoy returned, tablet sealed) is not built.
+  treasury below, envoy returned, tablet sealed) is not built (item 6).
+  - **Why same season** (the fix pass after item 4; the document's "Status of sleeping seats":
+    "standing orders that fire a season late"). Until then a standing order's event was checked after
+    movement, from what the seat saw (`unit_enters`: the unit got there; `unit_attacked`: the unit
+    was still there afterwards), and its orders ran the next season. That is the season a king woken
+    by the same event gives orders anyway, so a standing order did nothing waking could not: no king
+    gave one in 130 orders replies of the second agent simulation, and four of the fourteen debriefs
+    said why ("it cannot help against a lethal attack, and it comes a season late", Hatti, seed 7;
+    "they should also say what standing orders can do that waking cannot", Arzawa, seed 7). Answering
+    the move as it is made is what the document's own example needs ("if Hatti enters Mira, support
+    Mira"), and what commanders on the spot could do within a season. The rulebook ends its paragraph
+    on standing orders: "This is what a standing order can do that waking cannot: woken, you would
+    answer the blow only the season after it fell." The seat's view no longer says "(it fires this
+    season: ...)", since no seat knows in advance whether a standing order will fire.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
   again next season, told why it was woken in the season it missed (it never read that) and what
@@ -1964,7 +1982,8 @@ The design document records intent; these notes record what is built. Where they
   reopens its orders. When the call fails there, the king is woken for orders that same season.
 - **Conditions.** No seat-defined triggers exist, and no priority on a default trigger (the document dropped both).
   Of its "scheduled, conditional orders", orders that follow their unit and two standing orders (`unit_enters`,
-  `unit_attacked`) are built; its wider vocabulary ("unless"; treasury below, envoy returned, tablet sealed as
+  `unit_attacked`, each answering a move in the season it is made, as the document's "if Hatti enters Mira, support
+  Mira" needs) are built; its wider vocabulary ("unless"; treasury below, envoy returned, tablet sealed as
   conditions on orders) is not (item 6). Triggers count only moves the seat saw, so a foreign levy wakes nobody.
 - **Who holds each province is public at once.** The document's "Hidden by default" has news of distant provinces,
   including who holds them, arrive late. In the code every seat sees every province's owner the season it changes,
