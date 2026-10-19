@@ -1,6 +1,6 @@
 # Visual overhaul (build order item 2)
 
-Before I start testing with model leaders myself, the interface needs a graphical makeover. I watch the game in spectator mode, and right now it's too hard to follow. This round is presentation only: don't change the engine, rules or balance. Treat phone and desktop as equally important, as described under platforms in the design document.
+Before I start testing with model leaders myself, the interface needs a graphical makeover. I watch the game in spectator mode, and right now it's too hard to follow. This round is presentation only: don't change the engine, rules or balance. Phone and desktop both matter, as described under platforms in the design document, but watching a game on a phone comes first (see "Phone first" below).
 
 Keep all existing panels, statistics and tracking. Don't remove any information; only make it easier to read and navigate.
 
