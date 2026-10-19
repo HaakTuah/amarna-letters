@@ -73,7 +73,9 @@ public static class CharacterFactory
                 c.Status = CharacterStatus.Employed;
                 c.Employer = p;
                 c.At = p;
-                c.Contract = new Contract { Wage = 6 + c.Traits.Competence / 10, StartTurn = 1, UntilTurn = 1 + 9 };
+                // Terms end between turns 7 and 13, so the starting corps does not come up for renewal all at once. Each is
+                // drawn from its own stream, so that no other draw (traits, facts, posts) changes.
+                c.Contract = new Contract { Wage = 6 + c.Traits.Competence / 10, StartTurn = 1, UntilTurn = Rng.For(s.Seed, 0, "start-term", c.Id).Range(7, 13) };
                 c.Reputation[p] = 10;
                 if (plantSlots.Contains(slot))
                 {

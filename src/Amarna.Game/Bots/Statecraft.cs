@@ -143,7 +143,8 @@ internal static class Statecraft
         var p = brain.P;
         var v = b.V;
         var me = b.Me;
-        var gold = v.Gold;
+        // Back pay owed is gold already spent: the people it is owed to will claim it when they are back at court.
+        var gold = v.Gold - v.BackPay;
         var flow = v.Income - v.Upkeep - v.Wages;
         // While income covers upkeep, a small cushion is enough; a treasury that bleeds needs a season or two in hand.
         var costs = v.Upkeep + v.Wages;
@@ -226,6 +227,9 @@ internal static class Statecraft
     /// <summary>How far a court trusts one of its people, from what it knows of them.</summary>
     public static int Reliability(CharacterView c) => -c.KnownFacts.Count(f => Blemishes.Any(x => f.Contains(x, StringComparison.OrdinalIgnoreCase)));
 
+    /// <summary>The hiring test, for a new servant or one kept on: a wage the king's greed allows, with three seasons of it to spare.</summary>
+    private static bool WouldPay(Personality p, int wage, double spare) => wage <= 15 + 25 * (1 - p.Greed) && spare > wage * 3;
+
     public static void Court(Board b, Brain brain, List<Order> orders, HashSet<string> busy, Rng rng)
     {
         var p = brain.P;
@@ -237,6 +241,28 @@ internal static class Statecraft
         // A third or fourth servant costs a wage every season: only for a king with letters (or plots) to fill it, and a
         // surplus to match the size of his kingdom (a small court for a small kingdom).
         var wanted = flow < 25 + 0.25 * v.Income ? 2 : 2 + (p.Diplomacy > 0.8 ? 1 : 0) + (p.Cunning > 0.7 && flow > 50 + 0.25 * v.Income ? 1 : 0);
+
+        // A servant given up for lost: its line has read "has not returned" (the word that it is overdue) for three seasons and
+        // still does. Away, it costs no gold, but it fills a place at court and the back pay we believe we owe it keeps
+        // growing, counted as gold already spent. It is dismissed, which ends both, and the court counts itself one short,
+        // so it may hire.
+        foreach (var c in v.Court.Where(c => brain.MissingSince.TryGetValue(c.Id, out var since) && v.Turn - since >= 3).ToList())
+        {
+            orders.Add(new DismissOrder(c.Id));
+            busy.Add(c.Id);
+            staff.RemoveAll(x => x.Id == c.Id);
+        }
+
+        // A servant who has given notice is kept on at its price while the court still wants it (counting only those not
+        // leaving) and the price passes the hiring test; the most reliable first. Otherwise it is let go. Never early.
+        var leaving = staff.Where(c => c.NoticePrice is not null).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var keeping = staff.Count - leaving.Count;
+        foreach (var c in leaving)
+        {
+            if (keeping >= wanted || !WouldPay(p, c.NoticePrice!.Value, spare)) continue;
+            orders.Add(new RenewOrder(c.Id, c.NoticePrice.Value, 6));
+            keeping++;
+        }
 
         if (staff.Count < wanted && v.Turn - brain.LastSeek >= 2 && spare > 40)
         {
@@ -256,8 +282,8 @@ internal static class Statecraft
                 brain.Checked.Add(best.Id);
                 spare -= 25;
             }
-            else if (best.AskingPrice <= 15 + 25 * (1 - p.Greed) && spare > best.AskingPrice * 3)
-                orders.Add(new HireOrder(best.Id, best.AskingPrice!.Value, 6));
+            else if (WouldPay(p, best.AskingPrice!.Value, spare))
+                orders.Add(new HireOrder(best.Id, best.AskingPrice.Value, 6));
         }
 
         // Assay gold from those we do not trust, or that weighed light.
@@ -324,13 +350,23 @@ internal static class Statecraft
         }
 
         // Captives: the honest ransom, the cunning turn, the vengeful execute.
-        foreach (var c in v.Known.Where(c => c.Status == "your captive"))
+        var captives = v.Known.Where(c => c.Status == "your captive").ToList();
+        foreach (var gone in brain.RansomAsked.Keys.Where(id => captives.All(c => c.Id != id)).ToList()) brain.RansomAsked.Remove(gone);
+        foreach (var c in captives)
         {
-            Order fate =
+            var fate =
                 p.Cunning > 0.65 ? new CaptiveOrder(c.Id, CaptiveFate.Turn, Poison: $"The armies of {b.Me} are scattered and tired; they will not march this year.")
                 : p.Vengeance > 0.75 ? new CaptiveOrder(c.Id, CaptiveFate.Execute)
                 : p.Honesty > 0.5 || p.Greed > 0.5 ? new CaptiveOrder(c.Id, CaptiveFate.Ransom, (int)(60 + 60 * p.Greed))
                 : new CaptiveOrder(c.Id, CaptiveFate.Release);
+            if (fate.Fate == CaptiveFate.Ransom)
+            {
+                // A demand stands until it is paid or lapses: asking again would only replace it. The court hears that it
+                // lapsed ("No ransom came"); in case that word never comes, it asks again after six seasons.
+                var lapsed = v.Inbox.Any(i => i.Kind == InboxKind.Notice && i.Subject == c.Id && i.Title == "No ransom came");
+                if (brain.RansomAsked.TryGetValue(c.Id, out var asked) && !lapsed && v.Turn - asked < 6) continue;
+                brain.RansomAsked[c.Id] = v.Turn;
+            }
             orders.Add(fate);
         }
 
@@ -346,9 +382,10 @@ internal static class Statecraft
         }
 
         // Our own people held abroad.
-        foreach (var item in v.Inbox.Where(i => i.Kind == InboxKind.Rumor && i.Body.Contains("order payRansom for ")))
+        const string pay = "order pay_ransom for ";
+        foreach (var item in v.Inbox.Where(i => i.Kind == InboxKind.Rumor && i.Body.Contains(pay)))
         {
-            var id = item.Body[(item.Body.IndexOf("order payRansom for ", StringComparison.Ordinal) + 20)..].TrimEnd(')', '.', ' ');
+            var id = item.Body[(item.Body.IndexOf(pay, StringComparison.Ordinal) + pay.Length)..].TrimEnd(')', '.', ' ');
             if (p.Honesty >= 0.3 && spare > 150) orders.Add(new PayRansomOrder(id));
         }
         brain.SpareGold = spare;
@@ -483,7 +520,7 @@ internal static class Statecraft
                     $"You may swear alliance against {top} and agree to support each other's troops. Promise no land.", greet,
                     Proposal: new TabletProposal
                     {
-                        Text = $"{Oath}: {me} and {to} swear to stand together against {top}. Neither shall make peace with {top} alone, and each shall support the other's troops against {top}. If one breaks this oath, may the gods destroy his name and his seed.",
+                        Text = CoalitionTablet(me, to, top),
                         // A pact against one king, not an alliance: it does not make the two of them partners in victory.
                         AllianceOath = false,
                     });
@@ -494,7 +531,7 @@ internal static class Statecraft
                     "You may swear a full alliance. Promise no land.", greet,
                     Proposal: new TabletProposal
                     {
-                        Text = $"{Oath}: {me} and {to} are allies. Each shall stand with the other against any enemy, and the friend of one shall be the friend of the other. If one breaks this oath, may the gods destroy his name and his seed.",
+                        Text = AllianceTablet(me, to),
                         AllianceOath = true,
                     });
             case "peace":
@@ -504,7 +541,7 @@ internal static class Statecraft
                 return new DispatchOrder(envoy, to,
                     $"I wish to live in brotherhood with you, as our fathers did. Let neither of us send troops into the lands of the other." + (gift > 0 ? " I send you gold as a sign of my love." : "") + $" {flavour} Seal the tablet I send, before Shamash and the gods of your land.",
                     "You may agree to peace and an exchange of gifts. Promise no land.", greet, gift, gift > 0 ? Purity() : 100,
-                    new TabletProposal { Text = $"{Oath}: {me} and {to} are brothers. Neither king shall send troops into the lands of the other. If one breaks this oath, may the gods destroy his name and his seed." });
+                    new TabletProposal { Text = PeaceTablet(me, to) });
             }
             case "lull":
                 return new DispatchOrder(envoy, to,
@@ -528,6 +565,45 @@ internal static class Statecraft
             }
         }
         return null;
+    }
+
+    // The tablets a script king proposes.
+    private const string Curse = "If one breaks this oath, may the gods destroy his name and his seed.";
+
+    public static string PeaceTablet(Power me, Power to) =>
+        $"{Oath}: {me} and {to} are brothers. Neither king shall send troops into the lands of the other. {Curse}";
+
+    public static string AllianceTablet(Power me, Power to) =>
+        $"{Oath}: {me} and {to} are allies. Each shall stand with the other against any enemy, and the friend of one shall be the friend of the other. {Curse}";
+
+    public static string CoalitionTablet(Power me, Power to, Power against) =>
+        $"{Oath}: {me} and {to} swear to stand together against {against}. Neither shall make peace with {against} alone, and each shall support the other's troops against {against}. {Curse}";
+
+    /// <summary>
+    /// Whether a tablet from this sender is in a script king's own words: one of the tablets above, or the frozen
+    /// baseline's (see <see cref="BaselineLeader"/>), so that games against it are not changed by the guard below.
+    /// </summary>
+    private static bool ScriptWords(string text, Power from, Power to) =>
+        text == PeaceTablet(from, to) || text == AllianceTablet(from, to)
+        || text == $"{Oath}: {from} and {to} are brothers. Neither king shall send troops into the lands of the other. They shall stand together against any enemy, and share in the victory. {Curse}"
+        || Powers.All.Any(x => text == CoalitionTablet(from, to, x) || text == $"{Oath}: {from} and {to} swear to stand together against {x}. Neither shall make peace with {x} alone. {Curse}");
+
+    /// <summary>
+    /// Whether a tablet in words no script king wrote speaks of land, gold or tribute, or names a province of ours (held
+    /// now, or of our homeland). A capital's name often stands for its king or his realm ("Egypt and Babylon are
+    /// brothers", "the king of Hattusa") or for a god ("By Ashur and Shamash"), so a capital of ours counts only in a
+    /// sentence that hands something over ("Babylon shall be Egypt's", "Hatti yields Hattusa"). A script king reads no
+    /// more of a tablet than whom it stands against, so it seals none that could make it give anything away.
+    /// </summary>
+    public static bool GivesAway(TabletView proposal, Board b, Power from)
+    {
+        var text = proposal.Text;
+        if (ScriptWords(text, from, b.Me)) return false;
+        if (TextKit.SpeaksOfLandOrGold(text)) return true;
+        var sentences = TextKit.Sentences(text);
+        bool Named(string s, Province x) => Names.MentionsPlace(s, x.Name) || Names.MentionsPlace(s, x.Id);
+        return Board.Map.Provinces.Where(x => !x.IsSea && (b.IsMine(x.Id) || x.Home == b.Me))
+            .Any(x => x.Capital ? sentences.Any(s => Named(s, x) && TextKit.HandsOver(s)) : Named(text, x));
     }
 
     /// <summary>The greeting a king chooses, from his pride and his feelings for the recipient.</summary>
@@ -614,8 +690,8 @@ internal static class Statecraft
 
         if (view.Proposal is { } proposal)
         {
-            // (Nullable: Egypt is the enum's default value.)
-            var named = Powers.All.Where(x => x != me && x != sender && proposal.Text.Contains("against " + x)).Cast<Power?>().FirstOrDefault();
+            // The king a coalition names, by any of his names (see Names).
+            var named = Names.SwornAgainst(proposal.Text, [me, sender]);
             bool seal;
             if (named is { } against)
             {
@@ -631,10 +707,15 @@ internal static class Statecraft
                 // And never with a king who is taking our own land, whoever he names.
                 seal = !ra.Allied && !hostile && (race || defence);
             }
-            else seal = !hostile && (sender != brain.WarTarget || p.Cunning * (1 - p.Honesty) > 0.35) && !(proposal.AllianceOath && Rivals(b, me, sender));
+            else seal = !hostile && !(proposal.AllianceOath && Rivals(b, me, sender));
             if (sender == leader && !friend && p.Caution < 0.6) seal = false;
+            // A tablet in someone else's words is read for what it would give away (see GivesAway).
+            var givesAway = seal && GivesAway(proposal, b, sender);
+            if (givesAway) seal = false;
             reply.SealProposal = seal;
-            speech.Add(seal ? "I have sealed the tablet before the gods." : "I will not seal this tablet now.");
+            speech.Add(seal ? "I have sealed the tablet before the gods."
+                : givesAway ? "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine."
+                : "I will not seal this tablet now.");
             if (seal)
             {
                 r.Trust += 0.1;

@@ -7,7 +7,8 @@ namespace Amarna.Game;
 
 public sealed class LogHeader
 {
-    public int Version { get; set; } = 1;
+    /// <summary>The rules version the game was played under (<see cref="GameState.CurrentVersion"/> for a new game).</summary>
+    public int Version { get; set; } = GameState.CurrentVersion;
     public ulong Seed { get; set; }
     public GameConfig Config { get; set; } = new();
     public Dictionary<Power, string> Seats { get; set; } = new();

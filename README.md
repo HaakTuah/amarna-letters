@@ -57,8 +57,9 @@ such game costs real money. `--no-primer` runs the
 customs-primer experiment; `--out logs` keeps every game's log. `--versus solo` measures the
 script king against the frozen first version (one king at a time, against six of the old), and
 `--versus baseline` and `--focus <Power>` mix the two. Script games run on every core.
-`--sleep on` turns on sleeping seats (below), `--sleep-cap N` sets the longest sleep, and
-`--max-turns N` stops a game after season N. `--file-seats DIR` makes every king a file seat:
+`--sleep off` turns off sleeping seats (below; they are on by default), `--sleep-cap N` sets
+the hidden safety cap on a sleep, and `--max-turns N` stops a game after season N.
+`--file-seats DIR` makes every king a file seat:
 it writes what a model king would see to its own folder and waits for a JSON reply file, which is
 how `sim/` plays a game with Claude Code agents as the kings (see `sim/README.md`).
 
@@ -110,13 +111,16 @@ king's temperament under **Standings**.
 
 ## Sleeping seats
 
-Long games become affordable when model calls scale with events, not with time. With **Sleeping
-seats** on (Customize in the web app, `--sleep on` in the batch runner), a model king can choose
-to skip seasons. The world goes on, its units hold and its scheduled orders run. It is woken
-early when something concerns it: an envoy at the door, a report home, foreign troops at its
-border, an attack, a catastrophe, a ransom, a failed scheduled order, or a trigger of its own.
-Distant news waits in a digest. Script and human kings play every season. The details are in
-`docs/DESIGN-NOTES.md`.
+Long games become affordable when model calls scale with events, not with time. **Sleeping
+seats** are on by default: after giving its orders, a model king sleeps. The world goes on, its
+units hold and its scheduled orders run, each following its unit (a march stopped by a bounce
+tries the step again), and its standing orders fire when it sees a unit enter a province or one of
+its own units attacked. It is woken only when something concerns it: an envoy at the door, foreign
+troops in its land, land or troops lost, a failed scheduled or standing order, a servant giving
+notice, a ransom demanded, a trigger of its own or the season it named. Everything else
+waits in a digest, and a hidden safety cap wakes it after a long sleep. Script and human kings play
+every season. Switch it off (Customize in the web app, `--sleep off` in the batch runner) to ask
+every king every season. The details are in `docs/DESIGN-NOTES.md`.
 
 ## Spectator mode
 

@@ -182,8 +182,9 @@ internal static class Search
             Owner = v.Owner, Garrisons = v.Garrisons, Units = b.Units, Visible = v.Visible, Fallen = v.Fallen, Prices = v.Prices,
         };
         var their = new Board(view, treasuries: brain.Treasury);
+        // A pictured rival plays the archetype, and every roll in picturing him comes from our own seat's stream.
         if (!brain.Models.TryGetValue(x, out var model))
-            brain.Models[x] = model = new Brain(x, brain.Seed ^ 0xA5A5_5A5A_0F0F_F0F0UL, Personality.Archetype(x));
+            brain.Models[x] = model = new Brain(x, brain.Seed, Personality.Archetype(x));
 
         // What we know of how they see us: the mirror of our own dealings with them.
         var ours = brain.Rel[x];

@@ -140,6 +140,18 @@ public class ModelLayerTests
     }
 
     [Fact]
+    public void A_spy_writing_a_report_of_an_earlier_season_remembers_nothing_since()
+    {
+        var c = GameFactory.NewGame(11).Characters[0];
+        c.Remember(3, "I watched the court of Hatti and saw its armies.");
+        c.Remember(4, "I was caught spying in Hatti. I told them I serve Egypt.");
+        var then = LlmCharacterMind.Self(c, 5, asOf: 3);
+        Assert.Contains("I watched the court of Hatti", then);
+        Assert.DoesNotContain("I was caught", then);
+        Assert.Contains("I was caught", LlmCharacterMind.Self(c, 5));
+    }
+
+    [Fact]
     public async Task Envoy_requests_never_mention_other_characters_hidden_facts()
     {
         var choices = new SeatChoices { Characters = CharacterKind.Haiku };
@@ -220,6 +232,28 @@ public class ModelLayerTests
         Assert.Contains("CUSTOMS OF THE AGE", Prompts.LeaderRules(true, state.Config));
         Assert.DoesNotContain("CUSTOMS OF THE AGE", Prompts.LeaderRules(false, state.Config));
         Assert.Contains("15% chance", Prompts.LeaderRules(false, state.Config));
+    }
+
+    [Fact]
+    public void The_customs_primer_carries_five_echoes_from_the_archive()
+    {
+        var config = new GameConfig();
+        var rules = Prompts.LeaderRules(true, config);
+        // Rank in the greeting: the existing line, extended rather than repeated.
+        Assert.Contains("Between Great Kings, \"brother\" claims equal rank, and withholding it is a slight: when the king of Assyria first wrote to the pharaoh as a brother", rules);
+        Assert.Contains("Writing your own name above the recipient's reads as an insult", rules);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(rules, "seven times and seven times"));
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(rules, "claims equal rank"));
+        Assert.Contains("- Detention answers detention: Tushratta kept the pharaoh's envoy Mane at his court until his own messengers, held in Egypt, were let go.", rules);
+        Assert.Contains("- A messenger's word is not a tablet. The king of Arzawa would not trust what the pharaoh's messenger told him until a tablet said the same.", rules);
+        Assert.Contains("- Proof needs a witness who knows.", rules);
+        Assert.Contains("send someone who could recognise her", rules);
+        Assert.Contains("- Precedent is a floor. A king asks for more than was given to his father, so anything less reads as a demotion.", rules);
+        Assert.Contains("Akhenaten sent statues of gilded wood where his father had promised solid gold", rules);
+        // Knowledge only: none of it reaches a game played without the primer.
+        var plain = Prompts.LeaderRules(false, config);
+        foreach (var echo in new[] { "Mane", "Arzawa would not trust", "recognise her", "Precedent is a floor", "reads as an insult" })
+            Assert.DoesNotContain(echo, plain);
     }
 
     [Fact]

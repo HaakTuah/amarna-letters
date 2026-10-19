@@ -15,7 +15,8 @@ public interface IJsonAsker
 /// A file seat's channel. Instead of calling the API, it writes the request a model king would get
 /// (rulebook and customs primer, identity, the season's view, the JSON schema) to
 /// <c>&lt;folder&gt;/&lt;key&gt;.request.md</c> and waits for <c>&lt;key&gt;.reply.json</c>. Whoever answers
-/// (a person, or an agent allowed to touch only this folder) sees exactly what a model king sees.
+/// (a person, or an agent allowed to touch only this folder) sees exactly what a model king sees, plus a
+/// closing <see cref="Footer"/> on how to finish that API kings never get.
 /// An unreadable reply gets one retry request with the error; a second failure, or the timeout,
 /// throws, and the runner falls back to the script king for that decision, as it does for models.
 /// Every exchange is also logged as a model call (with no tokens), so the log holds the prompts.
@@ -134,10 +135,43 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
         sb.AppendLine($"Write exactly one JSON object that matches this schema, and nothing else, to: {replyPath.Replace('\\', '/')}");
         sb.AppendLine();
         sb.AppendLine("```json");
-        sb.AppendLine(spec.Schema.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        sb.AppendLine(Readable(spec.Schema));
         sb.AppendLine("```");
+        sb.AppendLine();
+        sb.AppendLine(Footer);
         return sb.ToString();
     }
+
+    /// <summary>
+    /// The schema as the request prints it: indented, but each object that holds no other object (a field: its type, enum
+    /// and description) on one line, and apostrophes left as they are. About two thirds of the length of a fully indented
+    /// schema, and no line grows long enough for a file reader to cut it, as one compact line would.
+    /// </summary>
+    public static string Readable(JsonNode? node, int depth = 0)
+    {
+        bool Nested(JsonNode? x) => x is JsonObject || x is JsonArray a && a.Any(Nested);
+        var pad = new string(' ', 2 * depth);
+        var inner = new string(' ', 2 * (depth + 1));
+        return node switch
+        {
+            JsonObject o when o.Any(kv => Nested(kv.Value)) =>
+                "{\n" + string.Join(",\n", o.Select(kv => $"{inner}{JsonSerializer.Serialize(kv.Key, Plain)}: {Readable(kv.Value, depth + 1)}")) + $"\n{pad}}}",
+            JsonArray a when a.Any(Nested) => "[\n" + string.Join(",\n", a.Select(x => inner + Readable(x, depth + 1))) + $"\n{pad}]",
+            null => "null",
+            _ => node.ToJsonString(Plain),
+        };
+    }
+
+    /// <summary>JSON as a reader reads it: no character escaped that JSON does not require (the request is not a web page).</summary>
+    private static readonly JsonSerializerOptions Plain = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+
+    /// <summary>
+    /// Only file seats get this: an agent answering the request ends with a message to whoever started it,
+    /// which must carry nothing of the king's decision. A model king called through the API sees no such line.
+    /// </summary>
+    public const string Footer =
+        "When you have written your reply file, your final message must be the single word done. Say nothing about your decision. "
+        + "Earlier reply files cannot be read: your record of earlier seasons is in this request.";
 
     /// <summary>The reply as a JSON object: the whole text, or else the outermost {...} in it (a code fence or a stray line around it is forgiven).</summary>
     public static JsonObject? Lenient(string text)

@@ -1,10 +1,15 @@
 namespace Amarna.Engine;
 
-/// <summary>Seeded catastrophes, fully visible only to the power they strike; rumors for everyone else.</summary>
+/// <summary>
+/// Seeded catastrophes, known exactly only to the power they strike. A court that can see the stricken land
+/// hears of it the next season; distant courts learn of it only through their envoys and spies.
+/// </summary>
 public sealed partial class TurnEngine
 {
     private void WorldEvents()
     {
+        // What each court could see before the season's catastrophes (a plague takes a unit, and with it some sight).
+        var sight = S.Alive.ToDictionary(p => p, p => Views.Sight(S, Map, p));
         foreach (var p in S.Alive.ToList())
         {
             var rng = R("catastrophe", p.ToString());
@@ -13,7 +18,7 @@ public sealed partial class TurnEngine
             if (owned.Count == 0) continue;
             var kind = rng.Pick(Enum.GetValues<CatastropheKind>());
             var cat = new Catastrophe { Id = S.NewId("x"), Power = p, Kind = kind, StartTurn = S.Turn + 1 };
-            string exact, vague, exaggerated, slight;
+            string exact, plain;
             switch (kind)
             {
                 case CatastropheKind.Drought:
@@ -21,9 +26,7 @@ public sealed partial class TurnEngine
                     cat.IncomeFactor = 0.5;
                     cat.Text = "the rains failed and the harvest withers across the land";
                     exact = "The rains have failed. For three seasons the whole realm will yield only half its income.";
-                    vague = $"Travellers say the harvest has failed in {p.Land()}.";
-                    exaggerated = $"It is said that {p.Land()} starves, and its granaries stand empty.";
-                    slight = $"Merchants mention a poor harvest in {p.Land()}, though little more.";
+                    plain = $"Travellers say the harvest has failed in {p.Land()}.";
                     break;
                 case CatastropheKind.Plague:
                     cat.EndTurn = S.Turn + 2;
@@ -34,9 +37,7 @@ public sealed partial class TurnEngine
                     if (lost is not null) S.Units.Remove(lost);
                     exact = "The hand of Nergal is on the land. Plague will cut income by a quarter for two seasons"
                             + (lost is not null ? $", and it has destroyed your {lost.Label}." : ".");
-                    vague = $"Word comes of sickness in {p.Land()}.";
-                    exaggerated = $"They say plague has emptied the barracks of {p.Land()} and half the army is dead.";
-                    slight = $"Some say a fever passed through {p.Land()}.";
+                    plain = $"Word comes of sickness in {p.Land()}.";
                     break;
                 case CatastropheKind.Flood:
                     cat.Province = rng.Pick(owned);
@@ -44,9 +45,7 @@ public sealed partial class TurnEngine
                     cat.IncomeFactor = 0;
                     cat.Text = $"a great flood has drowned the fields of {Map[cat.Province].Name}";
                     exact = $"A flood has drowned the fields of {Map[cat.Province].Name}; it will yield nothing for two seasons.";
-                    vague = $"Travellers speak of floods in {p.Land()}.";
-                    exaggerated = $"It is said the waters swallowed whole towns in {p.Land()}.";
-                    slight = $"There was high water somewhere in {p.Land()}.";
+                    plain = $"Travellers speak of floods in {p.Land()}.";
                     break;
                 default:
                     cat.Province = rng.Pick(owned);
@@ -54,21 +53,17 @@ public sealed partial class TurnEngine
                     cat.IncomeFactor = 0;
                     cat.Text = $"an earthquake has thrown down the walls and storehouses of {Map[cat.Province].Name}";
                     exact = $"An earthquake has ruined {Map[cat.Province].Name}; it will yield nothing for four seasons.";
-                    vague = $"Word comes that the earth shook in {p.Land()}.";
-                    exaggerated = $"They say a city of {p.Land()} has fallen into the earth.";
-                    slight = $"A tremor was felt in {p.Land()}, it is said.";
+                    plain = $"Word comes that the earth shook in {p.Land()}.";
                     break;
             }
             S.Catastrophes.Add(cat);
             S.Notify(p, InboxKind.Catastrophe, $"Catastrophe: {kind}", exact);
             S.Log("catastrophe", $"{kind} strikes {p}: {cat.Text}.", [p], "catastrophe");
 
-            foreach (var other in S.Alive.Where(o => o != p))
-            {
-                var roll = Rng.For(S.Seed, S.Turn, "rumor", $"{cat.Id}:{other}").NextDouble();
-                var text = roll < 0.5 ? vague : roll < 0.75 ? exaggerated : slight;
-                Rumor(other, p, text);
-            }
+            // Courts that can see the stricken land hear of it next season, as a plain fact; nobody else does.
+            var stricken = cat.Province is { } one ? [one] : owned;
+            foreach (var other in S.Alive.Where(o => o != p && stricken.Any(sight[o].Contains)))
+                S.Notify(other, InboxKind.Notice, "News from nearby", plain);
         }
 
         // Long stays abroad breed attachment to the host court.

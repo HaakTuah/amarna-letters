@@ -1,6 +1,6 @@
 # Round report: sleeping seats, the agent simulation, and questions
 
-Branch `round/sleep-and-simulation`, 18 October 2026. The prompt is in `docs/ROUND-PROMPT.md`. Parts 0 to 2 are built and tested, and the agent simulation ran the same day in a fresh session: two 10-season games on seed 7, sleep on and off. Its results are in "Simulation results" below. Part 3 is answered from the code, and each answer ends with what the simulation showed.
+Branch `round/sleep-and-simulation`, 18 October 2026. The prompt is in `docs/rounds/2026-10-18-sleep-and-simulation-prompt.md`. Parts 0 to 2 are built and tested, and the agent simulation ran the same day in a fresh session: two 10-season games on seed 7, sleep on and off. Its results are in "Simulation results" below. Part 3 is answered from the code, and each answer ends with what the simulation showed.
 
 ## Summary
 

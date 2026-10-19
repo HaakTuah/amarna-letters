@@ -7,7 +7,13 @@ namespace Amarna.Engine;
 /// </summary>
 public sealed class GameState
 {
-    public int Version { get; set; } = 1;
+    /// <summary>
+    /// The version of the rules. A log saved under another version is refused, since its decisions
+    /// would not replay to the same game. Raise it with every rule change.
+    /// </summary>
+    public const int CurrentVersion = 2;
+
+    public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }
     public GameConfig Config { get; set; } = new();
     public int Turn { get; set; } = 1;
@@ -28,6 +34,8 @@ public sealed class GameState
     public List<Tablet> Tablets { get; set; } = new();
     public List<TabletCopy> Copies { get; set; } = new();
     public List<Catastrophe> Catastrophes { get; set; } = new();
+    /// <summary>Servants caught or put to death abroad, at the court that did it: the talk of that court, which envoys and spies there carry home.</summary>
+    public List<LossAbroad> Losses { get; set; } = new();
     public List<PendingTask> Tasks { get; set; } = new();
     public Dictionary<Power, int> CounterIntel { get; set; } = new();
     /// <summary>Seats that may sleep (model and file seats, when <see cref="GameConfig.SleepingSeats"/> is on). Each sees only its own.</summary>
@@ -151,7 +159,15 @@ public sealed class Contract
 {
     public int Wage { get; set; }
     public int StartTurn { get; set; }
+    /// <summary>The last season of the term.</summary>
     public int UntilTurn { get; set; }
+    /// <summary>
+    /// Set when the term has ended and the servant, wanting more than its wage, has given notice: the wage it asks
+    /// to serve on. Its master may renew it at that price or more; otherwise it leaves at <see cref="LeavesTurn"/>.
+    /// </summary>
+    public int? NoticePrice { get; set; }
+    /// <summary>With a notice: the season at whose start it leaves unless renewed (if it is away then, when it is next at court with no task).</summary>
+    public int? LeavesTurn { get; set; }
 }
 
 public enum CharacterStatus { Free, Employed, Captured, Dead }
@@ -192,6 +208,19 @@ public sealed class Character
     public Dictionary<Power, int> AskingPrice { get; set; } = new();
     /// <summary>Courts this character has pitched to, with the pitch text.</summary>
     public Dictionary<Power, string> Pitches { get; set; } = new();
+    /// <summary>
+    /// What courts it serves or served still believe of it, after something happened abroad that they cannot see:
+    /// at most one per court (an envoy that went over to a host may be covered for its old master and its new one).
+    /// </summary>
+    public List<Cover> Covers { get; set; } = new();
+    /// <summary>The court it last served, once that service ended by dismissal or by the court's fall.</summary>
+    public Power? FormerEmployer { get; set; }
+    /// <summary>
+    /// Wages owed by each court, built up while the character was away in its service (on a mission, posted as a spy,
+    /// detained or captive). Paid when it stands at that court and is not held there, whether or not it still serves it;
+    /// forfeited when it goes over to another court, cleared at its death, lost when the court's kingdom falls.
+    /// </summary>
+    public Dictionary<Power, int> BackPay { get; set; } = new();
 
     public bool IsAvailableForHire => Status == CharacterStatus.Free;
 
@@ -199,9 +228,54 @@ public sealed class Character
 
     public IEnumerable<Fact> FactsKnownTo(Power p) =>
         Facts.Where(f => f.Secrecy == Secrecy.Public || f.KnownBy.Contains(p));
+
+    /// <summary>What <paramref name="p"/> still believes of this character, if it has not heard what happened to it.</summary>
+    public Cover? CoverOf(Power p) => Covers.FirstOrDefault(k => k.For == p);
+}
+
+/// <summary>
+/// A servant abroad whose master cannot see what happened to it (caught as a spy, detained, gone over to
+/// the host, put to death, let go) keeps appearing to that master as it was, until word of it comes: a
+/// rumour, a report from it, the servant standing at the master's court, or the master dismissing it. In its
+/// master's books its back pay builds up by the wage it believes it owes, as for any servant away.
+/// </summary>
+public sealed class Cover
+{
+    /// <summary>The master who still believes it.</summary>
+    public Power For { get; set; }
+    public int Since { get; set; }
+    /// <summary>The duty the master believes the servant is on (a posted spy, an envoy on the road home, one who has not returned).</summary>
+    public Duty Believed { get; set; }
+    /// <summary>Set when the master believes the servant is held captive at that court: its view then reads as a captive's.</summary>
+    public Power? HeldAt { get; set; }
+    /// <summary>The master recalled a spy it believed at its post: it believes it on the road home, and so it comes home if it is turned.</summary>
+    public bool Recalled { get; set; }
+    public string DutyText { get; set; } = "";
+    public string WhereText { get; set; } = "";
+    /// <summary>When the master believes the servant set out and is due back, as its view read then (see <see cref="Views.TimingText"/>).</summary>
+    public string TimingText { get; set; } = "";
+    public int Wage { get; set; }
+    /// <summary>
+    /// The back pay the master believes it owes: the real back pay when the cover was made, grown by <see cref="Wage"/>
+    /// each season since, exactly as for a servant still on its mission. No gold moves either way.
+    /// </summary>
+    public int BackPay { get; set; }
+    public int? ContractUntil { get; set; }
+    /// <summary>The notice the master believes the servant has given (the price it asks to serve on, and when it leaves), if any.</summary>
+    public int? NoticePrice { get; set; }
+    public int? LeavesTurn { get; set; }
+    /// <summary>
+    /// The facts the master knew of the servant then, and public ones its inquiries have found since. A public fact
+    /// added meanwhile, such as a defection, stays unseen until an inquiry finds it; hidden facts the master learns
+    /// show as for any servant.
+    /// </summary>
+    public List<string> FactIds { get; set; } = new();
 }
 
 public enum JourneyKind { EnvoyOutbound, EnvoyHomebound, SpyOutbound, SpyReport, SpyHomebound, Rumor, Ransom }
+
+/// <summary>What a rumour about one of a court's own people tells it: news that ends a <see cref="Cover"/>.</summary>
+public enum NewsKind { Overdue, Ransom, Death }
 
 public sealed class Journey
 {
@@ -217,6 +291,10 @@ public sealed class Journey
     public SpyReport? Report { get; set; }
     public string? Text { get; set; }
     public int Gold { get; set; }
+    /// <summary>For a rumour about one of the receiving court's own people (<see cref="CharacterId"/>): what it tells.</summary>
+    public NewsKind? News { get; set; }
+    /// <summary>For a ransom demand's rumour: the demand it announces, unless a newer one has replaced it.</summary>
+    public string? TaskId { get; set; }
 }
 
 /// <summary>What a leader hands an envoy: the spoken message, the mandate, and what it carries.</summary>
@@ -327,6 +405,24 @@ public sealed class Catastrophe
     public string Text { get; set; } = "";
 }
 
+public enum LossKind { Captured, PutToDeath }
+
+/// <summary>
+/// A servant of another court caught or put to death at a court, as that court knows it. It is the talk of that court:
+/// envoys received there and spies posted there may hear of it and carry it home in their reports, so a court that
+/// loses its people abroad, or puts them to death, becomes known for it, but only where someone carried the news.
+/// </summary>
+public sealed class LossAbroad
+{
+    public int Turn { get; set; }
+    public LossKind Kind { get; set; }
+    public string CharacterId { get; set; } = "";
+    /// <summary>The court that caught or put the servant to death.</summary>
+    public Power Court { get; set; }
+    /// <summary>Whom the servant served, as that court knows it: null if the captive never said.</summary>
+    public Power? Master { get; set; }
+}
+
 public enum TaskKind { Candidates, BackgroundCheck, Authenticate, RansomDemand }
 
 /// <summary>Work the engine owes a court in a later season: check results, candidate pitches, and so on.</summary>
@@ -340,6 +436,8 @@ public sealed class PendingTask
     public string? CopyId { get; set; }
     public int Spend { get; set; }
     public Power? Other { get; set; }
+    /// <summary>A ransom demand whose rumour has reached the court asked to pay: only then can it be paid.</summary>
+    public bool Announced { get; set; }
 }
 
 public enum InboxKind

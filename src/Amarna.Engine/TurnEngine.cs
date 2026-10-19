@@ -3,8 +3,8 @@ namespace Amarna.Engine;
 /// <summary>
 /// Pure, synchronous phase functions over a <see cref="GameState"/>. A turn is one season:
 /// <list type="number">
-/// <item><see cref="BeginTurn"/>: income and upkeep, arrivals, tasks that fall due.</item>
-/// <item>The caller fulfils <see cref="MindRequests"/> (reports, pitches) and runs audiences, then calls <see cref="ApplyAudience"/>.</item>
+/// <item><see cref="BeginTurn"/>: servants whose notice ran out leave, income and upkeep, arrivals, tasks and contracts that fall due.</item>
+/// <item>The caller fulfils <see cref="MindRequests"/> (reports, pitches), calls <see cref="WakeCheck"/> and runs audiences, then calls <see cref="ApplyAudience"/> for each and <see cref="CourtsHeld"/> (a seat that held court asleep reopens its orders or sleeps on).</item>
 /// <item>Seats read <see cref="Views.For"/> and submit secret, simultaneous orders.</item>
 /// <item><see cref="Resolve"/>: combat, transfers, dispatches, intelligence, world events, scoring, the end roll.</item>
 /// </list>
@@ -32,8 +32,14 @@ public sealed partial class TurnEngine
         MindRequests.Clear();
         S.Audiences.Clear();
         S.CounterIntel.Clear();
+        _missedPayNow.Clear();
+        // A servant whose notice has run out leaves before it is paid again.
+        NoticesRunOut();
         IncomeAndUpkeep();
+        // Where everyone stood before the season's travellers arrived: one standing at a court now that was not is back.
+        var stood = S.Characters.ToDictionary(c => c.Id, c => c.At);
         Arrivals();
+        PayBackPay(stood);
         TasksDue();
         MemoriesDue();
     }
@@ -80,28 +86,43 @@ public sealed partial class TurnEngine
             t.Gold -= paid;
 
             var wages = 0;
+            var owed = 0;
             var unpaid = new List<string>();
-            foreach (var c in S.Characters.Where(c => c.Employer == p && c.Status == CharacterStatus.Employed && c.Contract is not null).OrderBy(c => c.Id).ToList())
+            // Only people at court are paid their wage. The wages of those away (on a mission, posted as a spy, detained or
+            // captive) build up as back pay, paid when they are back, and no gold leaves for them, so the treasury betrays
+            // nothing of what befell anyone away. A servant abroad whose fate the court has not heard of is owed it as the
+            // court believes it (its cover), and its real back pay builds up too if it still truly serves.
+            foreach (var c in S.Characters.OrderBy(c => c.Id).ToList())
             {
-                var wage = c.Contract!.Wage;
-                if (t.Gold >= wage)
+                var cover = c.CoverOf(p);
+                if (cover is not null)
                 {
-                    t.Gold -= wage;
-                    c.Purse += wage;
+                    cover.BackPay += cover.Wage;
+                    owed += cover.Wage;
+                }
+                if (c.Employer != p || c.Status is not (CharacterStatus.Employed or CharacterStatus.Captured) || c.Contract is not { Wage: > 0 } k) continue;
+                if (c.Status == CharacterStatus.Captured || c.At != p || c.Duty != Duty.None)
+                {
+                    c.BackPay[p] = c.BackPay.GetValueOrDefault(p) + k.Wage;
+                    if (cover is null) owed += k.Wage;
+                    continue;
+                }
+                if (t.Gold >= k.Wage)
+                {
+                    t.Gold -= k.Wage;
+                    c.Purse += k.Wage;
                     c.UnpaidTurns = 0;
-                    wages += wage;
+                    wages += k.Wage;
+                    continue;
                 }
-                else
-                {
-                    c.UnpaidTurns++;
-                    c.Traits.Loyalty = Math.Max(0, c.Traits.Loyalty - 15);
-                    c.Remember(S.Turn, $"My wage from {p.Land()} was not paid this season.");
-                    unpaid.Add(c.Name);
-                    if (c.Traits.Loyalty < 20 && c.Duty == Duty.None) Quit(c, $"{c.Name} has left your service, unpaid.");
-                }
+                MissedPay(c, p, $"My wage from {p.Land()} was not paid this season.");
+                unpaid.Add(c.Name);
             }
 
-            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}, wages {Money.Format(wages)}. The treasury holds {Money.Format(t.Ledger)}." };
+            // Written before the season's audiences and envoys' returns: their gold comes after this figure.
+            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}, wages {Money.Format(wages)} (paid to your people at court)."
+                + (owed > 0 ? $" The wages of your people away, {Money.Format(owed)}, were added to their back pay, which is paid when they are back at your court." : "")
+                + $" After income, upkeep and wages, the treasury holds {Money.Format(t.Ledger)}; gold received at audiences or brought home by your envoys this season is added later." };
             if (deserted.Count > 0) lines.Add($"Unpaid troops deserted: {string.Join(", ", deserted)}.");
             if (unpaid.Count > 0) lines.Add($"Could not pay: {string.Join(", ", unpaid)}.");
             S.Notify(p, InboxKind.Notice, "The treasury", string.Join(" ", lines));
@@ -109,11 +130,77 @@ public sealed partial class TurnEngine
         }
     }
 
+    /// <summary>Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short.</summary>
+    private readonly HashSet<string> _missedPayNow = new();
+
+    /// <summary>
+    /// A servant not paid in full (its wage at court, or its back pay once it is back): it loses loyalty, remembers it and
+    /// counts another unpaid season, once a season; if its loyalty falls low while it is at court with no task, it leaves.
+    /// </summary>
+    private void MissedPay(Character c, Power p, string memory)
+    {
+        if (!_missedPayNow.Add(c.Id)) return;
+        c.UnpaidTurns++;
+        c.Traits.Loyalty = Math.Max(0, c.Traits.Loyalty - 15);
+        c.Remember(S.Turn, memory);
+        if (c.Traits.Loyalty < 20 && c.Duty == Duty.None) Quit(c, $"{c.Name} has left your service, unpaid.");
+    }
+
+    /// <summary>
+    /// Back pay, once the season's travellers have arrived: everyone standing at a court that owes it back pay, and not
+    /// held there, is paid from that court's true treasury, as much as it holds, whether or not it still serves that
+    /// court. What the treasury cannot pay stays owed, and for one of the court's own servants counts as missed pay.
+    /// </summary>
+    /// <param name="stood">Where each character stood before the arrivals: one now at a court it was not at is back.</param>
+    private void PayBackPay(IReadOnlyDictionary<string, Power?> stood)
+    {
+        foreach (var c in S.Characters.OrderBy(c => c.Id))
+        {
+            if (c.At is not { } court || c.HeldBy == court || c.Status == CharacterStatus.Dead || !S.IsAlive(court)) continue;
+            var owed = c.BackPay.GetValueOrDefault(court);
+            if (owed <= 0) continue;
+            var t = S.Treasuries[court];
+            // As for any payment, a shortfall shows the treasurers that the ledger counted debased gold.
+            if (t.Gold < owed) ExposeDebasement(court, $"{c.Name}'s back pay");
+            var paid = Math.Clamp(t.Gold, 0, owed);
+            t.Gold -= paid;
+            c.Purse += paid;
+            if (paid == owed) c.BackPay.Remove(court);
+            else c.BackPay[court] = owed - paid;
+            var who = stood.GetValueOrDefault(c.Id) != court ? $"{c.Name} is back at your court and" : c.Name;
+            if (paid > 0) c.Remember(S.Turn, $"The king of {court.Land()} paid me {Money.Format(paid)} of the wages he owed me.");
+            if (paid == owed)
+            {
+                S.Notify(court, InboxKind.Notice, BackPayTitle, $"{who} was paid {Money.Format(paid)} of back pay.", c.Id);
+                continue;
+            }
+            S.Notify(court, InboxKind.Notice, BackPayTitle,
+                $"{who} is owed {Money.Format(owed)} of back pay, but the treasury could pay only {Money.Format(paid)}: the other {Money.Format(owed - paid)} stays owed, and counts as missed pay.", c.Id);
+            if (c.Employer == court && c.Status == CharacterStatus.Employed)
+                MissedPay(c, court, $"The king of {court.Land()} could not pay all the wages he owes me.");
+        }
+    }
+
+    /// <summary>The notice that someone at court was paid the back pay owed, or could not be paid it all.</summary>
+    public const string BackPayTitle = "Back pay";
+
     public int Upkeep(Power p) => S.Units.Where(u => u.Power == p)
         .Sum(u => u.Kind == UnitKind.Army ? S.Config.ArmyUpkeep : S.Config.FleetUpkeep);
 
-    public int Wages(Power p) => S.Characters.Where(c => c.Employer == p && c.Status == CharacterStatus.Employed)
-        .Sum(c => c.Contract?.Wage ?? 0);
+    /// <summary>
+    /// The wages a court owes its people each season, as it reckons them (a covered servant's as it believes it): paid to
+    /// those at court, built up as back pay for those away.
+    /// </summary>
+    public int Wages(Power p) => S.Characters.Sum(c => WageOf(c, p));
+
+    /// <summary>The back pay a court really owes, to anyone, servant or not: what its score counts.</summary>
+    public int BackPayOwed(Power p) => S.Characters.Sum(c => c.BackPay.GetValueOrDefault(p));
+
+    /// <summary>
+    /// The back pay a court believes it owes: to its people (a covered servant's as it believes it), and to anyone standing
+    /// at its court. What its seat sees, and what its strength by its ledger counts.
+    /// </summary>
+    public int BelievedBackPay(Power p) => S.Characters.Sum(c => Views.BackPayOwed(c, p) ?? 0);
 
     public int EffectiveYield(string province)
     {
@@ -139,8 +226,13 @@ public sealed partial class TurnEngine
         c.Duty = Duty.None;
     }
 
-    /// <summary>Takes gold from the true treasury. A shortfall exposes any debased gold the ledger was counting.</summary>
-    private bool Pay(Power p, int amount, string what)
+    /// <summary>
+    /// Takes gold from the true treasury. A shortfall exposes any debased gold the ledger was counting, and is reported
+    /// as a failure: what could not be paid for and, for an order, what came of it (a scheduled order then wakes its seat).
+    /// </summary>
+    /// <param name="order">The order being paid for, if any.</param>
+    /// <param name="outcome">What the failure means, in plain words ("Mane stayed at your court").</param>
+    private bool Pay(Power p, int amount, string what, Order? order = null, string? outcome = null)
     {
         var t = S.Treasuries[p];
         if (amount <= 0) return true;
@@ -149,17 +241,34 @@ public sealed partial class TurnEngine
             t.Gold -= amount;
             return true;
         }
-        if (t.Lots.Any(l => l.Face > l.True))
-        {
-            var missing = t.Lots.Sum(l => l.Face - l.True);
-            var sources = string.Join(", ", t.Lots.Where(l => l.Face > l.True).Select(l => l.From).Distinct());
-            t.Lots.Clear();
-            S.Notify(p, InboxKind.Assay, "The treasury is short",
-                $"Paying for {what}, your treasurers found the treasury lighter than the ledger: {Money.Format(missing)} of gold received from {sources} was never fine gold.");
-            S.Log("debasement", $"{p} discovers {Money.Format(missing)} of debased gold from {sources}.", [p], "debasement-found");
-        }
-        else S.Notify(p, InboxKind.Notice, "Not enough gold", $"There was not enough gold to pay for {what}.");
+        ExposeDebasement(p, what);
+        // Every order that fails for want of gold is reported as a failure, whether or not debased gold was found.
+        S.Notify(p, InboxKind.Rejected, "Not enough gold", $"There was not enough gold to pay for {what}{(outcome is null ? "" : "; " + outcome)}.");
+        if (order is not null) ScheduledFailed(p, order, "not enough gold");
         return false;
+    }
+
+    /// <summary>A payment the true treasury cannot cover: the treasurers find any debased gold the ledger was counting, all at once.</summary>
+    private void ExposeDebasement(Power p, string what)
+    {
+        var t = S.Treasuries[p];
+        if (!t.Lots.Any(l => l.Face > l.True)) return;
+        var missing = t.Lots.Sum(l => l.Face - l.True);
+        var sources = string.Join(", ", t.Lots.Where(l => l.Face > l.True).Select(l => l.From).Distinct());
+        t.Lots.Clear();
+        S.Notify(p, InboxKind.Assay, "The treasury is short",
+            $"Paying for {what}, your treasurers found the treasury lighter than the ledger: {Money.Format(missing)} of gold received from {sources} was never fine gold.");
+        S.Log("debasement", $"{p} discovers {Money.Format(missing)} of debased gold from {sources}.", [p], "debasement-found");
+    }
+
+    /// <summary>
+    /// An order that could not be carried out as the season resolved: its king reads why next season, as a rejection
+    /// notice, and a scheduled one wakes its seat.
+    /// </summary>
+    private void Failed(Power p, Order order, string title, string body, string why, string? subject = null)
+    {
+        S.Notify(p, InboxKind.Rejected, title, body, subject);
+        ScheduledFailed(p, order, why);
     }
 
     // ---------------------------------------------------------------- arrivals and tasks (filled out by the envoy and intelligence parts)
@@ -179,10 +288,17 @@ public sealed partial class TurnEngine
                 case JourneyKind.SpyHomebound: SpyComesHome(j); break;
                 case JourneyKind.Ransom: RansomArrives(j); break;
                 case JourneyKind.Rumor:
-                    if (S.IsAlive(j.To)) S.Notify(j.To, InboxKind.Rumor, "Rumor", j.Text ?? "");
+                    if (!S.IsAlive(j.To)) break;
+                    if (j.TaskId is not null && !DemandArrives(j)) break;
+                    // Word that a servant has not returned, to a court that no longer believes anything of it
+                    // (it heard of a death, dismissed the servant, or saw it seeking service): nothing to tell.
+                    if (j.News == NewsKind.Overdue && S.FindCharacter(j.CharacterId)?.CoverOf(j.To) is null) break;
+                    S.Notify(j.To, InboxKind.Rumor, "Rumor", j.Text ?? "", j.CharacterId);
+                    NewsArrives(j);
                     break;
             }
         }
+        CoversAtCourt();
     }
 
     public static int IdNumber(string id)
@@ -193,10 +309,13 @@ public sealed partial class TurnEngine
 
     public int TravelTurns(Power from, Power to) => TravelTurns(Map.Capital(from).Id, Map.Capital(to).Id);
 
-    public int TravelTurns(string fromProvince, string toProvince)
+    public int TravelTurns(string fromProvince, string toProvince) => TravelTurns(S.Config, Map, fromProvince, toProvince);
+
+    /// <summary>Seasons on the road between two provinces, by the travel bands (<see cref="GameConfig.TravelHops"/>).</summary>
+    public static int TravelTurns(GameConfig config, WorldMap map, string fromProvince, string toProvince)
     {
-        var hops = Map.Hops(fromProvince, toProvince);
-        var bands = S.Config.TravelHops;
+        var hops = map.Hops(fromProvince, toProvince);
+        var bands = config.TravelHops;
         if (hops <= bands[0]) return 1;
         if (hops <= bands[1]) return 2;
         return 3;
@@ -217,6 +336,10 @@ public sealed partial class TurnEngine
         var validator = new OrderValidator(S, Map);
         var valid = new Dictionary<Power, ValidationResult>();
         _scheduledNow.Clear();
+        _standingNow.Clear();
+        _firedNow.Clear();
+        _marchNow.Clear();
+        _cededNow.Clear();
         foreach (var p in S.Alive.ToList())
         {
             var sub = WithScheduled(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission(), out var scheduled);
@@ -232,6 +355,8 @@ public sealed partial class TurnEngine
             Powers.All.Where(valid.ContainsKey).SelectMany(p => valid[p].Accepted.OfType<T>().Select(o => (p, o)));
 
         ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder).ToList());
+        // A scheduled move that failed is tried again next season, or ends its unit's march.
+        Marches(valid);
         UpdateOwnership();
         ResolveTransfers(All<CedeProvinceOrder>().ToList(), All<GiftUnitOrder>().ToList());
         ResolvePurchases(All<BuyProvinceOrder>().ToList());
@@ -243,11 +368,13 @@ public sealed partial class TurnEngine
                 S.Units.Remove(u);
                 S.Notify(p, InboxKind.Resolution, "Disbanded", $"{u.Label} was disbanded.");
             }
+            else Failed(p, d, "Disband failed", $"No unit of yours stood in {Map[d.Unit].Name} after movement, so none was disbanded.", "the unit is gone");
         }
         foreach (var (p, r) in All<RaiseOrder>()) Raise(p, r);
 
         ResolveCourt(All<Order>().ToList());
         ResolveIntelligence(All<Order>().ToList());
+        CoversAtCourt();
 
         WorldEvents();
         CheckEliminations();
@@ -264,7 +391,12 @@ public sealed partial class TurnEngine
             if (at is not null) byProvince[at] = o;
         }
 
-        var result = new Adjudicator(Map).Run(S.Units, S.Garrisons, byProvince, S.Owner);
+        var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
+        // Where each unit stood before the moves: a standing order waits for an attack on its unit there.
+        var stoodAt = S.Units.DistinctBy(u => u.Id).ToDictionary(u => u.Id, u => u.Province);
+        // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
+        foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
+            o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
 
         // Which provinces could each power see before the moves? Battles there are reported to it.
         var sightBefore = Powers.All.ToDictionary(p => p, p => Views.Sight(S, Map, p));
@@ -302,19 +434,65 @@ public sealed partial class TurnEngine
 
         foreach (var p in S.Alive)
             S.LastSeen[p] = result.Outcomes.Where(o => o.Power == p || sightBefore[p].Contains(o.Province) || (o.Target is { } t && sightBefore[p].Contains(t))).ToList();
+        // Standing orders whose event each seat saw fire next season.
+        StandingEvents(result, stoodAt);
 
         foreach (var p in S.Alive)
         {
             var sight = sightBefore[p];
-            var mine = result.Lines.Where(l => l.Power == p).Select(l => l.Text).ToList();
-            var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && sight.Contains(l.Province)).Select(l => $"{l.Power}: {l.Text}").ToList();
+            // Its own orders, each failed move and void support with the reason; foreign orders where the unit stood, or moved to, in sight before the moves.
+            var mine = new List<string>();
+            foreach (var l in result.Lines.Where(l => l.Power == p))
+            {
+                if (l.Failure is { } f)
+                {
+                    var why = WhyMoveFailed(p, l.Province, l.Target!, f, sight);
+                    // A scheduled move that was stopped wakes its sleeping seat, with the reason.
+                    if (byProvince.TryGetValue(l.Province, out var move)) ScheduledFailed(p, move, why);
+                    mine.Add($"{l.Text}: {why}");
+                }
+                else
+                {
+                    mine.Add(l.Void is { } v ? $"{l.Text}: {v}" : l.Text);
+                    // So does a scheduled support that was cut, or a support or convoy that matched no move.
+                    if ((l.Void ?? l.Cut) is { } failed && byProvince.TryGetValue(l.Province, out var help)) ScheduledFailed(p, help, failed);
+                }
+            }
+            var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && (sight.Contains(l.Province) || l.Target is { } t && sight.Contains(t)))
+                .Select(l => $"{l.Power}: {l.Text}").ToList();
             var fallen = result.FallenGarrisons.Where(sight.Contains).Select(g => $"The walls of {Map[g].Name} fell.").ToList();
             if (mine.Count + seen.Count + fallen.Count == 0) continue;
             var body = string.Join("\n", mine.Select(x => "- " + x));
             if (seen.Count > 0) body += "\nSeen nearby:\n" + string.Join("\n", seen.Select(x => "- " + x));
             if (fallen.Count > 0) body += "\n" + string.Join("\n", fallen);
-            S.Notify(p, InboxKind.Battle, "Movements this season", body.Trim());
+            S.Notify(p, InboxKind.Battle, "Movements last season", body.Trim());
         }
+    }
+
+    /// <summary>
+    /// Why one of the viewer's own moves failed, in plain words, with the strengths the engine compared.
+    /// The other side's power is named only when the viewer could see that unit before the moves (where it
+    /// stood, or where it was going); the province it acted from is always named.
+    /// </summary>
+    private static string WhyMoveFailed(Power viewer, string from, string to, MoveFailure f, HashSet<string> sight)
+    {
+        var seen = f.Power is not null && (sight.Contains(f.Province) || f.MovingTo is { } t && sight.Contains(t));
+        var kind = f.Kind == UnitKind.Army ? "army" : "fleet";
+        var whose = f.Power == viewer ? $"your own {kind}" : $"{f.Power}'s {kind}";
+        var strengths = $"; your strength {f.Strength} against {f.Against}";
+        return f.Stop switch
+        {
+            MoveStop.NoConvoy => "no convoy carried it across the sea",
+            MoveStop.OwnUnit => f.MovingTo == from
+                ? $"your own {kind} in {f.Province} was moving the other way, and you cannot dislodge your own unit"
+                : $"your own {kind} in {f.Province} did not leave, and you cannot dislodge your own unit",
+            MoveStop.HeadToHead => $"it met the unit from {f.Province}{(seen ? $" ({whose})" : "")} coming the other way{strengths}",
+            MoveStop.Held => $"the unit holding {f.Province}{(seen ? $" ({whose})" : "")} kept its place{strengths}",
+            MoveStop.Stayed => $"the unit in {f.Province}{(seen ? $" ({whose})" : "")} could not leave, so it kept its place{strengths}",
+            MoveStop.Walls => $"the walls of {f.Province} held{(f.Power is { } owner ? $" for {owner}" : "")}{strengths}",
+            MoveStop.Bounced => $"it met a move into {to} from {f.Province}{(seen ? $" by {whose}" : "")}{strengths}",
+            _ => "it was stopped",
+        };
     }
 
     private void UpdateOwnership()
@@ -336,18 +514,27 @@ public sealed partial class TurnEngine
         }
     }
 
+    /// <summary>Provinces ceded while this season resolves, and to whom: a levy there later in the season is told so.</summary>
+    private readonly Dictionary<string, Power> _cededNow = new();
+
     private void ResolveTransfers(List<(Power P, CedeProvinceOrder O)> cessions, List<(Power P, GiftUnitOrder O)> gifts)
     {
         foreach (var (p, c) in cessions)
         {
-            if (S.Owner.GetValueOrDefault(c.Province) != p) { ScheduledFailed(p, c, "you no longer hold it"); continue; }
+            var name = Map[c.Province].Name;
+            // The validator refuses a second cession of one province, so land no longer held was lost in movement.
+            if (S.Owner.GetValueOrDefault(c.Province) != p)
+            {
+                Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: you no longer held it after movement.", "you no longer held it");
+                continue;
+            }
             if (S.UnitAt(c.Province) is { } u && u.Power == p)
             {
-                S.Notify(p, InboxKind.Rejected, "Cession failed", $"Your own troops still stand in {Map[c.Province].Name}; it cannot be handed over.");
-                ScheduledFailed(p, c, "your own troops stand there");
+                Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: your own troops still stood in it after movement.", "your own troops stood there");
                 continue;
             }
             S.Owner[c.Province] = c.To;
+            _cededNow[c.Province] = c.To;
             S.Notify(p, InboxKind.Resolution, "Land ceded", $"{Map[c.Province].Name} now belongs to {c.To}.");
             S.Notify(c.To, InboxKind.Resolution, "Land received", $"{p} has ceded {Map[c.Province].Name} to you.");
             S.Log("cession", $"{p} ceded {Map[c.Province].Name} to {c.To}.", [p, c.To]);
@@ -355,7 +542,11 @@ public sealed partial class TurnEngine
         foreach (var (p, g) in gifts)
         {
             var u = S.UnitAt(g.Unit);
-            if (u is null || u.Power != p) { ScheduledFailed(p, g, "the unit is gone"); continue; }
+            if (u is null || u.Power != p)
+            {
+                Failed(p, g, "Gift of troops failed", $"No unit of yours stood in {Map[g.Unit].Name} after movement, so none was given to {g.To}.", "the unit is gone");
+                continue;
+            }
             u.Power = g.To;
             S.Notify(p, InboxKind.Resolution, "Troops given", $"{u.Label} now serves {g.To}.");
             S.Notify(g.To, InboxKind.Resolution, "Troops received", $"{p} has placed {u.Label} under your command.");
@@ -365,23 +556,38 @@ public sealed partial class TurnEngine
 
     private void ResolvePurchases(List<(Power P, BuyProvinceOrder O)> buys)
     {
+        // Gold for a purchase is only reserved when the orders are checked; it leaves the treasury only when the city accepts.
         foreach (var group in buys.GroupBy(b => b.O.Province))
         {
             var prov = Map[group.Key];
-            if (S.Owner.GetValueOrDefault(prov.Id) is not null) continue;
             var bidders = group.Select(b => b.P).Distinct().ToList();
+            // Troops took the city earlier in this season's resolution: its elders sell to nobody, and nobody pays.
+            if (S.Owner.GetValueOrDefault(prov.Id) is { } taker)
+            {
+                foreach (var b in bidders)
+                    S.Notify(b, InboxKind.Rejected, "Purchase failed", b == taker
+                        ? $"Your own troops took {prov.Name} last season; no gold was paid."
+                        : $"{prov.Name} was taken by {taker}'s troops last season before its elders could accept your gold. No gold was paid.");
+                foreach (var (b, o) in group) ScheduledFailed(b, o, b == taker ? "your own troops took it" : $"{taker}'s troops took it");
+                continue;
+            }
             if (bidders.Count > 1)
             {
                 foreach (var b in bidders)
-                    S.Notify(b, InboxKind.Resolution, "Purchase failed", $"The elders of {prov.Name} would not choose between rival buyers this season.");
-                foreach (var (b, o) in group) ScheduledFailed(b, o, "rival buyers bid for it");
+                    S.Notify(b, InboxKind.Rejected, "Purchase failed", $"The elders of {prov.Name} would not choose between {bidders.Count} buyers last season. No gold was paid.");
+                foreach (var (b, o) in group) ScheduledFailed(b, o, $"its elders would not choose between {bidders.Count} buyers");
                 continue;
             }
             var buyer = bidders[0];
             var bid = group.First().O;
-            if (S.UnitAt(prov.Id) is { } occupant && occupant.Power != buyer) { ScheduledFailed(buyer, bid, "foreign troops stand in it"); continue; }
+            if (S.UnitAt(prov.Id) is { } occupant && occupant.Power != buyer)
+            {
+                S.Notify(buyer, InboxKind.Rejected, "Purchase failed", $"Foreign troops stood in {prov.Name}, and its elders would not sell. No gold was paid.");
+                ScheduledFailed(buyer, bid, "foreign troops stand in it");
+                continue;
+            }
             var price = prov.Yield * S.Config.NeutralPriceFactor;
-            if (!Pay(buyer, price, $"the city of {prov.Name}")) { ScheduledFailed(buyer, bid, "not enough gold"); continue; }
+            if (!Pay(buyer, price, $"the city of {prov.Name}", bid, "it was not bought")) continue;
             S.Owner[prov.Id] = buyer;
             S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule. Its walls now hold for you.");
             S.Log("purchase", $"{buyer} bought {prov.Name} for {Money.Format(price)}.", Powers.All.Where(p => Views.Sight(S, Map, p).Contains(prov.Id)).Append(buyer));
@@ -391,17 +597,23 @@ public sealed partial class TurnEngine
     private void Raise(Power p, RaiseOrder r)
     {
         var prov = Map[r.Province];
-        if (S.Owner.GetValueOrDefault(prov.Id) != p || S.UnitAt(prov.Id) is not null)
+        var kind = r.Kind.ToString().ToLowerInvariant();
+        // In the rulebook's words: only in a province of your homeland that you still hold and that is empty after movement.
+        // Land the king itself ceded this season was not lost in movement: the notice says which.
+        var why = S.Owner.GetValueOrDefault(prov.Id) == p ? (S.UnitAt(prov.Id) is not null ? $"{prov.Name} was not empty after movement" : null)
+            : _cededNow.TryGetValue(prov.Id, out var to) ? $"you ceded {prov.Name} to {to} last season, before the levy"
+            : $"you no longer held {prov.Name} after movement";
+        if (why is not null)
         {
-            S.Notify(p, InboxKind.Rejected, "Levy failed", $"{prov.Name} is no longer free for a new {r.Kind.ToString().ToLowerInvariant()}.");
-            ScheduledFailed(p, r, "the province is not free");
+            S.Notify(p, InboxKind.Rejected, "Levy failed", $"No {kind} was raised in {prov.Name}: {why}. No gold was paid.");
+            ScheduledFailed(p, r, why);
             return;
         }
         var cost = r.Kind == UnitKind.Army ? S.Config.ArmyCost : S.Config.FleetCost;
-        if (!Pay(p, cost, $"a new {r.Kind.ToString().ToLowerInvariant()}")) { ScheduledFailed(p, r, "not enough gold"); return; }
+        if (!Pay(p, cost, $"a new {kind} in {prov.Name}", r, "none was raised")) return;
         var u = new Unit { Id = S.NewId("u"), Power = p, Kind = r.Kind, Province = prov.Id };
         S.Units.Add(u);
-        S.Notify(p, InboxKind.Resolution, "Levy raised", $"A new {r.Kind.ToString().ToLowerInvariant()} stands in {prov.Name}.");
+        S.Notify(p, InboxKind.Resolution, "Levy raised", $"A new {kind} stands in {prov.Name}.");
     }
 
     private void CheckEliminations()
@@ -412,8 +624,21 @@ public sealed partial class TurnEngine
             S.Eliminated.Add(p);
             EndSleep(p);
             S.Units.RemoveAll(u => u.Power == p);
+            // What a fallen kingdom believed, and what it owed, go with it: back pay owed by it is lost.
+            foreach (var c in S.Characters)
+            {
+                c.Covers.RemoveAll(k => k.For == p);
+                c.BackPay.Remove(p);
+            }
+            // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
+            foreach (var c in S.Characters.Where(c => c.HeldBy == p).ToList())
+            {
+                if (c.Status == CharacterStatus.Captured) ReleaseCaptive(p, c);
+                else if (c.Duty == Duty.Detained) LetEnvoyGo(p, c, null);
+            }
             foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
             {
+                c.FormerEmployer = p;
                 c.Employer = null;
                 c.Contract = null;
                 if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
@@ -425,15 +650,18 @@ public sealed partial class TurnEngine
 
     // ---------------------------------------------------------------- scoring and the end
 
-    public int Strength(Power p) =>
-        S.Config.ProvinceWeight * S.OwnedBy(p).Sum(id => Map[id].Yield) + S.Treasuries[p].Gold;
+    /// <summary>The score: land, plus true gold, less the back pay the power really owes (see <see cref="Scoring"/>).</summary>
+    public int Strength(Power p) => Scoring.Strength(S.Config, LandYield(p), S.Treasuries[p].Gold, BackPayOwed(p));
 
     /// <summary>
-    /// Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at
-    /// their weight. A seat must never see true strength, or it could read debased gold off the difference.
+    /// Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight, less
+    /// the back pay it believes it owes. A seat must never see true strength, or it could read debased gold off the
+    /// difference, or the fate of a servant abroad off its back pay.
     /// </summary>
-    public int LedgerStrength(Power p) =>
-        S.Config.ProvinceWeight * S.OwnedBy(p).Sum(id => Map[id].Yield) + S.Treasuries[p].Ledger;
+    public int LedgerStrength(Power p) => Scoring.Strength(S.Config, LandYield(p), S.Treasuries[p].Ledger, BelievedBackPay(p));
+
+    /// <summary>The base yield of the land a power holds.</summary>
+    private int LandYield(Power p) => S.OwnedBy(p).Sum(id => Map[id].Yield);
 
     public double Growth(Power p)
     {

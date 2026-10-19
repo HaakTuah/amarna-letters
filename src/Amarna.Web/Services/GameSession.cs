@@ -91,6 +91,8 @@ public sealed class GameSession(Storage storage, SeatFactory factory)
         GameLog log;
         try { log = GameLog.FromJsonl(text); }
         catch (Exception ex) { Error = $"That file is not a game log: {ex.Message}"; Notify(); return; }
+        // A game saved under other rules would not play out the same: say so plainly instead of failing midway.
+        if (GameRunner.VersionProblem(log.Header) is { } problem) { Error = problem; Notify(); return; }
 
         Humans.Clear();
         Busy = true;

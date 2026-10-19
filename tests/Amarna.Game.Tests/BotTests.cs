@@ -194,7 +194,7 @@ public class BotTests
         var audience = new AudienceView
         {
             AudienceId = "a1", Turn = 1, Round = 1, MaxRounds = 2, From = Power.Arzawa, Host = Power.Hatti,
-            Proposal = new TabletView { Text = "Arzawa and Hatti are brothers. Neither king shall send troops into the lands of the other.", ProposedBy = Power.Arzawa, Partner = Power.Hatti },
+            Proposal = new TabletView { Text = Statecraft.PeaceTablet(Power.Arzawa, Power.Hatti), ProposedBy = Power.Arzawa, Partner = Power.Hatti },
         };
 
         var reply = Statecraft.Host(audience, board, brain, Rng.For(5, 1, "test", "host"));

@@ -43,6 +43,10 @@ internal sealed partial class Brain
     public HashSet<string> SentCopies = new();
     public Dictionary<string, int> HeldSince = new();
     public HashSet<string> Authenticating = new();
+    /// <summary>Captives we have asked a ransom for, and when: a demand stands until it is paid or lapses.</summary>
+    public Dictionary<string, int> RansomAsked = new();
+    /// <summary>Our own people whose line reads "has not returned" (the word that they are overdue), and the season it first did.</summary>
+    public Dictionary<string, int> MissingSince = new();
     public int LastSeek = -10;
     public int LastSpyCaught = -10;
     public Power? WarTarget;
@@ -108,8 +112,8 @@ internal sealed partial class Brain
         foreach (var t in v.Tablets.Where(t => t.SealedTurn is not null && t.Seals.Contains(Me) && t.Seals.Count >= 2 && t.AuthResult?.Contains("forgery") != true)
                      .OrderBy(t => t.SealedTurn))
         {
-            // A coalition names the king it stands against.
-            var against = Powers.All.Where(x => !t.Seals.Contains(x) && t.Text.Contains("against " + x)).Cast<Power?>().FirstOrDefault();
+            // A coalition names the king it stands against, by any of his names (see Names).
+            var against = Names.SwornAgainst(t.Text, t.Seals);
             foreach (var other in t.Seals.Where(s => s != Me && Rel.ContainsKey(s)))
             {
                 Rel[other].Treaty = true;
@@ -191,6 +195,10 @@ internal sealed partial class Brain
             if (item.Title == "Purchase failed" && Board.Map.Provinces.FirstOrDefault(x => item.Body.Contains($"elders of {x.Name} would not")) is { } city)
                 Outbid[city.Id] = v.Turn;
         }
+
+        // Our own people we have word are overdue: since when, for as long as their line still says so.
+        foreach (var id in MissingSince.Keys.Where(id => !v.Court.Any(c => c.Id == id && Overdue(c))).ToList()) MissingSince.Remove(id);
+        foreach (var c in v.Court.Where(Overdue)) MissingSince.TryAdd(c.Id, v.Turn);
 
         // Troops seen, for judging each king's strength.
         foreach (var prov in v.Visible) Sightings.Remove(prov);
@@ -312,7 +320,15 @@ internal sealed partial class Brain
         return Math.Clamp(h, 0.05, 0.95);
     }
 
-    public bool IsFriend(Power other) => Rel[other].Allied || (Rel[other].Treaty && Rel[other].Trust > -0.2 && Rel[other].OathsBroken == 0);
+    /// <summary>One of our people whose line reads that they have not returned: the overdue word has come, and nothing since.</summary>
+    private static bool Overdue(CharacterView c) => c.Duty.StartsWith("has not returned", StringComparison.Ordinal);
+
+    /// <summary>A full ally, or a treaty partner we still trust a little; either way, one who has broken no oath to us.</summary>
+    public bool IsFriend(Power other)
+    {
+        var r = Rel[other];
+        return r.OathsBroken == 0 && (r.Allied || (r.Treaty && r.Trust > -0.2));
+    }
 
     /// <summary>Reads an amount written as "2 minas 15 shekels", "1 mina" or "45 shekels".</summary>
     public static int Shekels(string text)

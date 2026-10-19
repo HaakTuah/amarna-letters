@@ -54,6 +54,10 @@ public sealed class EnvoyContext
     public List<Exchange> SoFar { get; init; } = new();
     public string Delivered { get; init; } = "";
     public int Skim { get; init; }
+    /// <summary>The back pay its employer owes it, paid when it is back at his court; lost if it goes over to another.</summary>
+    public int BackPay { get; init; }
+    /// <summary>Whether its employer looks doomed, from public facts (see <see cref="Views.LooksDoomed"/>): back pay owed by a doomed court may never be paid.</summary>
+    public bool EmployerDoomed { get; init; }
 }
 
 public sealed class MindContext

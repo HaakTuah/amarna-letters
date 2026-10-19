@@ -13,6 +13,9 @@ public sealed class ScriptMind : ICharacterMind
 
     private static Rng R(ulong seed, int turn, string what, string id) => Rng.For(seed, turn, "mind:" + what, id);
 
+    /// <summary>What an envoy promises when it overreaches its mandate.</summary>
+    private const string Overreach = "promised that my lord will agree to whatever the king asks";
+
     public Task<PresentResult> PresentAsync(EnvoyContext ctx, CancellationToken ct)
     {
         var c = ctx.Self;
@@ -23,9 +26,11 @@ public sealed class ScriptMind : ICharacterMind
 
         var fearful = t.Courage < 35;
         var fond = t.Sympathy == host && t.SympathyStrength >= 50;
-        if ((fearful || fond) && sentences.Any(TextKit.IsThreat))
+        // The timid and the fond soften only what is aimed at the king before them, not threats against a third king.
+        bool Menace(string s) => TextKit.IsThreatTo(s, host, ctx.Sender);
+        if ((fearful || fond) && sentences.Any(Menace))
         {
-            var kept = sentences.Where(s => !TextKit.IsThreat(s)).ToList();
+            var kept = sentences.Where(s => !Menace(s)).ToList();
             kept.Add("My lord hopes that no quarrel will ever come between your houses.");
             sentences = kept;
         }
@@ -67,8 +72,11 @@ public sealed class ScriptMind : ICharacterMind
         var wage = c.Contract?.Wage ?? 15;
         if (host.JobOffer > 0)
         {
-            var tempted = host.JobOffer >= wage * 1.5 && t.Loyalty < 55 && t.Ambition > 40;
-            var drawn = t.Sympathy == ctx.Host && t.SympathyStrength > 60 && host.JobOffer >= wage;
+            // Going over forfeits the back pay its lord owes it: the offer must make it up over the new contract's six
+            // seasons, unless its lord looks doomed and may never pay.
+            var forfeit = ctx.EmployerDoomed ? 0 : ctx.BackPay / 6.0;
+            var tempted = host.JobOffer >= wage * 1.5 + forfeit && t.Loyalty < 55 && t.Ambition > 40;
+            var drawn = t.Sympathy == ctx.Host && t.SympathyStrength > 60 && host.JobOffer >= wage + forfeit;
             reaction.AcceptJob = (tempted || drawn) && c.SecretMaster is null;
             speech.Add(reaction.AcceptJob ? "Then I am yours, Great King. My old master will have to find another voice." : "You honour me, but I must return to my lord.");
         }
@@ -80,9 +88,7 @@ public sealed class ScriptMind : ICharacterMind
             if (ctx.Dispatch.Mandate.Length > 0 && (host.Speech.Contains("agree", StringComparison.OrdinalIgnoreCase) || host.Speech.Contains("swear", StringComparison.OrdinalIgnoreCase)))
             {
                 var overreach = t.Ambition > 70 && t.Loyalty < 50;
-                reaction.Commitments = overreach
-                    ? "promised that my lord will agree to whatever the king asks"
-                    : "said my lord will consider these words";
+                reaction.Commitments = overreach ? Overreach : "said my lord will consider these words";
                 speech.Add(overreach ? "My lord will agree to all of it, I promise you." : "I will carry your words to my lord faithfully.");
             }
             else if (speech.Count == 0) speech.Add(t.Courage < 35 ? "As you say, Great King. I will repeat every word." : "I will carry your words to my lord.");
@@ -112,6 +118,8 @@ public sealed class ScriptMind : ICharacterMind
         var bribed = host is not null && bribedBy is not null && bribedBy.Contains(host.Value.Land());
         var fearful = t.Courage < 35;
         var faithful = t.Loyalty >= 60 && t.Competence >= 50 && !bribed;
+        // The envoy's lord, whom the host's threats would be aimed at.
+        var lord = trail?.From ?? ctx.Request.Court;
         var lines = new List<string>();
 
         if (trail is null || host is null)
@@ -129,7 +137,8 @@ public sealed class ScriptMind : ICharacterMind
                 if (faithful) lines.Add($"The king said: \"{TextKit.Join(sentences)}\"");
                 else if (bribed || fearful)
                 {
-                    var soft = sentences.Where(s => !TextKit.IsThreat(s)).ToList();
+                    // The host speaks to the envoy of its lord, so "he", "him" and "his" are the lord too.
+                    var soft = sentences.Where(s => !TextKit.IsThreatTo(s, lord, host, spokenOf: true)).ToList();
                     lines.Add(soft.Count > 0 ? $"The king spoke kindly: \"{TextKit.Join(soft)}\"" : "The king spoke of his friendship for you.");
                 }
                 else
@@ -142,16 +151,38 @@ public sealed class ScriptMind : ICharacterMind
             if (t.Ambition >= 65) lines.Add("It was my words that won his favour; no other envoy could have done as much.");
             if (fearful && !bribed) lines.Add("All is well between your houses, I am certain of it.");
             if (trail.Outcomes.Any(o => o.Contains("sealed"))) lines.Add("He sealed the tablet, and I bring your copy.");
-            if (!string.IsNullOrEmpty(trail.Outcomes.FirstOrDefault(o => o.StartsWith("the envoy committed")))) lines.Add(t.Ambition > 70 ? "I gave him such assurances as you would wish." : "");
+            // An envoy that promised more than it was told owns up to it only vaguely, and only if ambitious enough to boast.
+            if (t.Ambition > 70 && trail.Outcomes.Any(o => o.StartsWith("the envoy committed") && o.EndsWith(Overreach)))
+                lines.Add("I gave him such assurances as you would wish.");
         }
 
         var observations = cargo.Observations.Where(o => !(bribed && host is not null && o.StartsWith(host.Value.ToString()))).ToList();
+        // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, and vouches for it as
+        // something it saw for itself. Asked to speak well of a king, it calls him a friend (the host it already praises).
+        if (bribed && host is { } paid && trail is not null)
+        {
+            var asked = Asked(trail);
+            if (TextKit.Claim(asked, lord) is { } claim)
+                observations.Insert(0, $"At the court of {paid.Land()} the king told me \"{claim}\", and I saw for myself that it is so.");
+            else if (TextKit.Praised(asked, lord) is { } praised && praised != paid)
+                observations.Insert(0, $"At the court of {paid.Land()} I saw for myself that {praised.Land()} is a true friend to you.");
+        }
         if (observations.Count > 0) lines.Add("What I saw: " + string.Join(" ", observations));
 
         var skim = 0;
         if (cargo.Gold > 0 && t.Greed > 60 && t.Loyalty < 60) skim = (int)(cargo.Gold * (t.Greed - 50) / 250.0) / 5 * 5;
         if (cargo.Gold > 0) lines.Add("I bring the gifts the king sent you.");
         return new MindReply { Text = TextKit.Join(lines), Number = skim };
+    }
+
+    /// <summary>What the host asked in return for a gift this envoy took on this mission ("accepted 40 shekels from Hatti (asked: …)").</summary>
+    private static string Asked(MessageTrail trail)
+    {
+        const string marker = " (asked: ";
+        var outcome = trail.Outcomes.LastOrDefault(o => o.StartsWith("accepted ") && o.Contains(marker));
+        if (outcome is null) return "";
+        var ask = outcome[(outcome.IndexOf(marker, StringComparison.Ordinal) + marker.Length)..];
+        return ask.EndsWith(')') ? ask[..^1] : ask;
     }
 
     private static MindReply Pitch(MindContext ctx)
