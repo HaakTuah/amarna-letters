@@ -488,7 +488,13 @@ public sealed partial class TurnEngine
             {
                 result = "The seals are false: this tablet is a forgery.";
                 S.Log("forgery-detected", $"{task.Requester} found that tablet {tablet.Id} is forged.", [task.Requester], "forgery-detected");
-                if (tablet.ForgerEmployer is { } culprit && rng.Chance(Math.Clamp(0.3 + task.Spend / 400.0, 0.3, 0.8)))
+                // A swapped inventory is traced, with the same chance, to the envoy who forged it and brought it.
+                if (tablet.Inventory)
+                {
+                    if (S.FindCharacter(tablet.ForgerId) is { } bearer && rng.Chance(Math.Clamp(0.3 + task.Spend / 400.0, 0.3, 0.8)))
+                        result += InventoryExposed(task.Requester, tablet, bearer);
+                }
+                else if (tablet.ForgerEmployer is { } culprit && rng.Chance(Math.Clamp(0.3 + task.Spend / 400.0, 0.3, 0.8)))
                 {
                     var forger = S.FindCharacter(tablet.ForgerId);
                     result += $" The scribes trace it to the hand of {forger?.Name ?? "a scribe"} in the service of {culprit}.";

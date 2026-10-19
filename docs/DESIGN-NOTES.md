@@ -224,6 +224,44 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     "Your archive".
 - **Gold travels with envoys.** The tablet's inventory states the amount; the host's weighers find
   what is left after any skimming. Purity is hidden until an assay.
+- **The inventory is a tablet** (since Build order item 3). Gold an envoy carries comes with an inventory sealed by the
+  court that sends it ("The inventory of the gold Egypt sends to Hatti: 1 mina 40 shekels."), dated the season the
+  envoy set out, and gold a host sends back with an envoy has one sealed by the host, dated the audience. The receiving
+  court keeps it in its archive ("the inventory brought by Mane, envoy of Egypt"; "the inventory Mane brought home with
+  the gold of Hatti"), where it can be examined, shown, copied by a spy or taken with the capital like any tablet. Its
+  scribe costs nothing, as before: the document's gift sent without an inventory, saving the fee, is not built (see Not
+  built yet). The sender keeps no copy (it knows what it sent). Every gold delivery leaves one, whether or not anything
+  was swapped, so the presence of an inventory gives nothing away. An inventory bears one seal, so the script kings'
+  rules on treaties and evidence (two seals or more, their own among them) never read one.
+- **Swapped inventories** (since item 3; Ideas tab "Swapped tablets and false envoys"). An envoy that kept some of the
+  gold it carries, out or home, may hand over in place of the sealed inventory one it forges itself, stating only what
+  is left (`AudienceRecord.SwapInventory` from the envoy's presentation; `MindReply.SwapInventory` from its report home).
+  It is a forgery under the forgery rules: it needs the forger's skill (competence at least `ForgeMinCompetence`, 55);
+  an envoy without it does not hand its botched forgery over, the true inventory goes, and it remembers that its hand
+  could not fake the seal. It costs the envoy nothing (the forgery fee is what a king pays for materials and a scribe; the
+  envoy writes it himself). A swap with nothing kept is ignored. When it swaps:
+  - The host's audience view, its record of the audience and the lot in its treasury all state what the forgery states,
+    which is what its weighers find, so no shortfall shows, and the host's record leaves out the outcomes "kept 20 shekels
+    of the gold" and "replaced the inventory with a forgery stating 80 shekels" (shown to a host when no swap hides them,
+    as before). The record of the mission (the spectator's trail) keeps both. On the way home the court reads "[The
+    inventory lists 45 shekels of gold; your weighers found 45 shekels.]".
+  - The envoy remembers it, and carries a deep secret ("Forged the inventory of the gold Egypt sent to Hatti, to hide what
+    was kept.", known to nobody, which a background check can find as any deep secret). The event `inventory-swapped`
+    is the spectator's alone and counts as a signal.
+  - **Caught when the tablet is examined.** The forgery's tablet records the envoy as forger, with its competence as the
+    forger's skill and its employer then, so an examination finds it with the usual chance (20% + spend/200 − skill/150,
+    5–95%). Once found it is traced, with the usual chance (30% + spend/400, 30–80%), to the envoy who brought it, not
+    to a court: "The seals are false: this tablet is a forgery. The scribes trace it to the hand of Mane, who brought
+    it.", and every other court hears "The scribes of Hatti declare that the inventory of gold bearing the seal of
+    Egypt, brought by Mane, envoy of Egypt, was forged by Mane." The envoy loses 30 reputation with every court and
+    gains a public fact ("Exposed as the forger of an inventory of gold bearing the seal of Egypt."), as a traced forger
+    does. Script kings never examine an inventory (they examine only tablets shown to them), so in script games a swap
+    is never found; a model or human king may examine any tablet it holds, or send the inventory back to its sender as
+    evidence, who knows what it sealed.
+  - Script envoys decide by formula (see Script envoys); model envoys decide for themselves, told in their prompt that
+    they could keep some gold "and hand over in place of the inventory one you forge yourself, stating only what is
+    left", with the schema field `swap_inventory` saying what it takes and risks.
+  The rulebook says all this under ENVOYS ("Gold an envoy carries goes with an inventory tablet …").
 - **Debasement is a ledger, not a coin type.** A power's displayed treasury counts unassayed lots
   at their weight. True gold is what is actually spent; a payment the true treasury cannot cover
   fails and exposes all debased lots at once. A seat's view shows its strength by the ledger too, so the gap
@@ -519,7 +557,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   employer with chance 30% + spend/400 (30–80%), which is announced to every court. A forgery that
   is not detected reads exactly as a genuine tablet that reads genuine ("The seals are genuine.").
   (Until the simulation-fixes round's review it read "The seals appear genuine.", which gave every
-  missed forgery away.)
+  missed forgery away.) A forged inventory is traced to the envoy who forged it, not to a court (see
+  "Swapped inventories" under Communication).
 - **Catastrophes**: 3.5% per power per season. Drought halves income for three seasons; plague cuts
   a quarter for two and kills a unit; floods and earthquakes zero one province for two or four
   seasons. The stricken power is told exactly. A court whose sight (before the catastrophe) covers
@@ -1476,7 +1515,7 @@ Script kings never omit the greeting or write one of their own.
 
 ### Script envoys
 
-Script characters (`ScriptMind`) carry the letters of every king, script or not. Four of their rules shape what kings hear:
+Script characters (`ScriptMind`) carry the letters of every king, script or not. These of their rules shape what kings hear:
 
 - **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through.
 - **Reporting home.** A faithful envoy (loyalty 60 or more, competence 50 or more, not bribed by this host) repeats the host word for word. A bribed envoy, or a timid one that is not faithful, drops the host's threats against its own lord in the same way. The host speaks to the envoy of its lord, so "he", "him" and "his" count as the lord too, unless the sentence names another king: "If his troops cross the river again, I will burn his cities" is dropped, "I will crush Assyria in the spring" is kept.
@@ -1486,6 +1525,7 @@ Script characters (`ScriptMind`) carry the letters of every king, script or not.
 One more rule decides whether it changes masters:
 
 - **An offer of service, and back pay.** An envoy takes a host's offer if tempted (offer at least 1.5 × its wage, loyalty below 55, ambition above 40) or drawn (it favours the host, sympathy above 60, and the offer is at least its wage), and is not a plant. Since Part G, going over forfeits the back pay its lord owes it, so the offer must also make that up over the new contract's six seasons: tempted at 1.5 × wage + back pay ÷ 6, drawn at wage + back pay ÷ 6; unless its lord looks doomed (`Views.LooksDoomed`, from public facts: he has fallen, lost his capital, or holds fewer than half of his homeland's provinces), when back pay he may never pay counts for nothing. The runner gives the envoy both (`EnvoyContext.BackPay`, `EmployerDoomed`). A model-played character reads the same in its prompt: "Your lord owes you 45 shekels of back pay, paid when you return to his court.", and, facing an offer, "(your lord pays you 12, and owes you 45 shekels of back pay, which you would never be paid if you left his service)"; whether its lord looks doomed it judges for itself. Back pay is a motive, not a rule: no new decision is added.
+- **Skimming and swapping the inventory.** An envoy with greed above 60 and loyalty below 60 keeps (gold × (greed − 50) ÷ 250), rounded down to fives, of the gold it carries out, and the same of gold it carries home (unchanged). Since item 3 one that kept something swaps the inventory for its own forgery if it has the hand for a seal (competence at least the forging skill, 55) and is not timid (courage 35 or more, the line below which it softens threats): `ScriptMind.Swaps`. The host then sees no shortfall, so it neither complains nor loses trust over a light gift.
 
 ### Known quirks
 
@@ -1809,8 +1849,9 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
 - **The map's later layers**: roads and relay stations, walls and sieges, and generals leading armies, drawn once the
   game has them (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).
-- **Swapped tablets and the richest characters**: an envoy swapping an inventory tablet for a forgery; a ranking by
-  wealth at the end (Ideas tab; item 3).
+- **The richest characters**: a ranking by wealth at the end (Ideas tab; item 3).
+- **Gold sent without an inventory**, saving the scribe fee and checkable by nobody (Ideas tab "Why the envoy lies, and
+  how he is caught"): today every gift has an inventory, and it costs nothing.
 - **Tablets stolen, not only copied**: a spy taking a tablet out of an archive, and a conqueror seizing an archive so
   that its court loses it (Ideas tab "Tablets are objects in a place"; main tab "Tablets have a place"). Item 3 built
   copying only (see "Tablets lie in archives").

@@ -40,6 +40,14 @@ public class RulebookTextTests
     }
 
     [Fact]
+    public void The_rulebook_says_that_gold_comes_with_an_inventory_an_envoy_may_swap_for_a_forgery()
+    {
+        Assert.Contains("- Gold an envoy carries goes with an inventory tablet sealed by the court that sends it, stating the amount (gold a host sends back has one too): the receiving court's weighers report what they found against it, and the court keeps the inventory in its archive. "
+                        + "An envoy that keeps some of the gold may hand over, in place of the sealed inventory, one it forges itself stating only what is left, if it has a forger's skill: the weight then matches the inventory, and only having the inventory examined can show it, as for any forgery. "
+                        + "A forged inventory that is found is traced, with the same chance as any forgery, to the envoy who brought it, and every court hears of it.", Rules);
+    }
+
+    [Fact]
     public void The_rulebook_says_when_a_support_is_void_and_when_the_other_side_is_named()
     {
         Assert.Contains("A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds.", Rules);

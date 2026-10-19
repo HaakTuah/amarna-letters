@@ -49,8 +49,14 @@ public sealed class ScriptMind : ICharacterMind
         if (ctx.Dispatch.Gold > 0 && t.Greed > 60 && t.Loyalty < 60)
             skim = Math.Min(ctx.Dispatch.Gold, (int)(ctx.Dispatch.Gold * (t.Greed - 50) / 250.0) / 5 * 5);
 
-        return Task.FromResult(new PresentResult { Speech = TextKit.Join(speech), Skim = skim });
+        return Task.FromResult(new PresentResult { Speech = TextKit.Join(speech), Skim = skim, SwapInventory = Swaps(t, skim, ctx.ForgeMinCompetence) });
     }
+
+    /// <summary>
+    /// An envoy that kept some of the gold swaps the inventory for one it forges, stating only what is left, if it has the
+    /// hand for a seal (competence at least what forging takes) and is not timid (courage 35 or more, as for softening).
+    /// </summary>
+    public static bool Swaps(Traits t, int kept, int forgeSkill) => kept > 0 && t.Competence >= forgeSkill && t.Courage >= 35;
 
     public Task<EnvoyReaction> ReactAsync(EnvoyContext ctx, HostReply host, CancellationToken ct)
     {
@@ -172,7 +178,7 @@ public sealed class ScriptMind : ICharacterMind
         var skim = 0;
         if (cargo.Gold > 0 && t.Greed > 60 && t.Loyalty < 60) skim = (int)(cargo.Gold * (t.Greed - 50) / 250.0) / 5 * 5;
         if (cargo.Gold > 0) lines.Add("I bring the gifts the king sent you.");
-        return new MindReply { Text = TextKit.Join(lines), Number = skim };
+        return new MindReply { Text = TextKit.Join(lines), Number = skim, SwapInventory = Swaps(t, skim, ctx.ForgeMinCompetence) };
     }
 
     /// <summary>What the host asked in return for a gift this envoy took on this mission ("accepted 40 shekels from Hatti (asked: …)").</summary>

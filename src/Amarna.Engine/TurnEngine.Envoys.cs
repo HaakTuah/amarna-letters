@@ -148,7 +148,8 @@ public sealed partial class TurnEngine
     public static int Weighed(PendingAudience a, int skim) => a.Dispatch.Gold - Math.Clamp(skim, 0, a.Dispatch.Gold);
 
     /// <param name="earlier">The audience's earlier exchanges, so the host is told what it has already named and given.</param>
-    public AudienceView BuildAudienceView(PendingAudience a, string spoken, int skim, IReadOnlyList<Exchange> soFar, int round, IReadOnlyList<AudienceRound>? earlier = null)
+    /// <param name="swap">The envoy chose to swap the inventory for its forgery (it does only if it kept gold and has the skill).</param>
+    public AudienceView BuildAudienceView(PendingAudience a, string spoken, int skim, IReadOnlyList<Exchange> soFar, int round, IReadOnlyList<AudienceRound>? earlier = null, bool swap = false)
     {
         var c = S.Char(a.EnvoyId);
         earlier ??= [];
@@ -164,7 +165,7 @@ public sealed partial class TurnEngine
             Greeting = a.Dispatch.GreetingText,
             GreetingDeviations = Greeting.Deviations(a.Dispatch.Greeting),
             Spoken = spoken,
-            GoldStated = a.Dispatch.Gold,
+            GoldStated = InventoryStated(a, skim, swap),
             GoldWeighed = Weighed(a, skim),
             SoFar = soFar.ToList(),
             GoldBackNamed = earlier.LastOrDefault(x => x.Host is { GoldBack: > 0 })?.Host.GoldBack ?? 0,
@@ -219,6 +220,11 @@ public sealed partial class TurnEngine
         var skim = Math.Clamp(record.Skim, 0, d.Gold);
         var weighed = d.Gold - skim;
         var fine = (int)Math.Round(weighed * d.PurityPercent / 100.0);
+        // An envoy that kept some may have swapped the inventory for a forgery stating only what is left.
+        var swapped = Swaps(c, skim, record.SwapInventory);
+        var stated = swapped ? weighed : d.Gold;
+        // What the envoy did that the host does not see in its record of the audience: what it kept, once its forgery hides it.
+        var unseen = new List<string>();
         if (skim > 0)
         {
             c.Purse += (int)Math.Round(skim * d.PurityPercent / 100.0);
@@ -226,13 +232,21 @@ public sealed partial class TurnEngine
             c.Facts.Add(new Fact { Id = S.NewId("f"), Text = $"Kept part of the gold {sender.Land()} sent to {host.Land()}.", Secrecy = Secrecy.Hidden, Tag = "skim" });
             trail.Outcomes.Add($"kept {skim} shekels of the gold");
             S.Log("skim", $"{c.Name} kept {skim} of the {d.Gold} shekels {sender} sent to {host}.", [], "skim");
+            if (SwapInventory(c, sender, host, skim, stated, record.SwapInventory) is { } swap)
+            {
+                unseen.Add(trail.Outcomes[^1]);
+                trail.Outcomes.Add(swap);
+                unseen.Add(swap);
+            }
         }
         if (weighed > 0)
         {
             var t = S.Treasuries[host];
             t.Gold += fine;
-            t.Lots.Add(new GoldLot { Id = S.NewId("g"), From = sender, Stated = d.Gold, Face = weighed, True = fine, ArrivedTurn = S.Turn });
+            t.Lots.Add(new GoldLot { Id = S.NewId("g"), From = sender, Stated = stated, Face = weighed, True = fine, ArrivedTurn = S.Turn });
         }
+        // The inventory, sealed when the envoy set out, or its forgery, goes into the host's archive.
+        if (d.Gold > 0) Inventory(c, sender, host, stated, trail.Turn, swapped, $"the inventory brought by {c.Name}, envoy of {sender}");
         trail.GoldDelivered = weighed;
         trail.GoldFine = fine;
         if (d.PurityPercent < 100 && d.Gold > 0)
@@ -343,7 +357,7 @@ public sealed partial class TurnEngine
             }
         }
 
-        var audienceText = AudienceTranscript(a, c, trail, weighed);
+        var audienceText = AudienceTranscript(a, c, trail, stated, weighed, unseen);
         S.Notify(host, InboxKind.Audience, $"Audience with {c.Name}, envoy of {sender}", audienceText, c.Id);
         c.Remember(S.Turn, $"I was received by the king of {host.Land()}. " + string.Join(" ", trail.Exchanges.Select(x => $"He said: \"{Greeting.Cap(x.Host, 300)}\" I answered: \"{Greeting.Cap(x.Envoy, 200)}\"")));
 
@@ -392,18 +406,21 @@ public sealed partial class TurnEngine
         });
     }
 
-    private string AudienceTranscript(PendingAudience a, Character c, MessageTrail trail, int weighed)
+    /// <param name="stated">What the inventory the host holds states (the envoy's forgery, if it swapped it).</param>
+    /// <param name="unseen">Outcomes the host does not see: what the envoy kept, once its forged inventory hides it.</param>
+    private string AudienceTranscript(PendingAudience a, Character c, MessageTrail trail, int stated, int weighed, IReadOnlyCollection<string> unseen)
     {
         var lines = new List<string>();
         lines.Add(a.Dispatch.GreetingText.Length > 0 ? $"The sealed greeting reads: \"{a.Dispatch.GreetingText}\"" : "The tablet bears no greeting at all.");
         lines.Add($"{c.Name} said: \"{trail.Delivered}\"");
-        if (a.Dispatch.Gold > 0) lines.Add($"The inventory lists {Money.Format(a.Dispatch.Gold)} of gold; your weighers found {Money.Format(weighed)}.");
+        if (a.Dispatch.Gold > 0) lines.Add($"The inventory lists {Money.Format(stated)} of gold; your weighers found {Money.Format(weighed)}.");
         foreach (var x in trail.Exchanges)
         {
             lines.Add($"You said: \"{x.Host}\"");
             lines.Add($"{c.Name} answered: \"{x.Envoy}\"");
         }
-        if (trail.Outcomes.Count > 0) lines.Add("Outcome: " + string.Join("; ", trail.Outcomes) + ".");
+        var outcomes = trail.Outcomes.Where(o => !unseen.Contains(o)).ToList();
+        if (outcomes.Count > 0) lines.Add("Outcome: " + string.Join("; ", outcomes) + ".");
         return string.Join("\n", lines);
     }
 
@@ -508,16 +525,23 @@ public sealed partial class TurnEngine
                     var skim = Math.Clamp(reply.Number, 0, cargo.Gold);
                     var face = cargo.Gold - skim;
                     var fine = (int)Math.Round(face * cargo.PurityPercent / 100.0);
+                    var from = Trail(req.TrailId)?.To ?? req.Court;
+                    // An envoy that kept some may have swapped the host's inventory for a forgery stating only what is left.
+                    var swapped = Swaps(c, skim, reply.SwapInventory);
+                    var stated = swapped ? face : cargo.GoldStated;
                     if (skim > 0)
                     {
                         c.Purse += (int)Math.Round(skim * cargo.PurityPercent / 100.0);
                         c.Remember(S.Turn, $"I kept {skim} shekels of the gold sent home with me.");
                         S.Log("skim", $"{c.Name} kept {skim} shekels on the way home.", [], "skim");
+                        if (SwapInventory(c, from, req.Court, skim, stated, reply.SwapInventory) is { } swap && Trail(req.TrailId) is { } home)
+                            home.Outcomes.Add($"on the way home, kept {skim} shekels of the gold sent back and {swap}");
                     }
-                    var from = Trail(req.TrailId)?.To ?? req.Court;
                     S.Treasuries[req.Court].Gold += fine;
-                    S.Treasuries[req.Court].Lots.Add(new GoldLot { Id = S.NewId("g"), From = from, Stated = cargo.GoldStated, Face = face, True = fine, ArrivedTurn = S.Turn });
-                    text += $"\n\n[The inventory lists {Money.Format(cargo.GoldStated)} of gold; your weighers found {Money.Format(face)}.]";
+                    S.Treasuries[req.Court].Lots.Add(new GoldLot { Id = S.NewId("g"), From = from, Stated = stated, Face = face, True = fine, ArrivedTurn = S.Turn });
+                    // The host's inventory, sealed at the audience, or the envoy's forgery, goes into the court's archive.
+                    Inventory(c, from, req.Court, stated, Trail(req.TrailId)?.AudienceTurn ?? S.Turn, swapped, $"the inventory {c.Name} brought home with the gold of {from}");
+                    text += $"\n\n[The inventory lists {Money.Format(stated)} of gold; your weighers found {Money.Format(face)}.]";
                 }
                 if (Trail(req.TrailId) is { } trail)
                 {

@@ -68,8 +68,14 @@ public class EnvoyTests
         Assert.Equal(100, trail.GoldDelivered);
         Assert.Equal(50, trail.GoldFine);
         Assert.Contains(trail.Outcomes, o => o.Contains("sealed"));
-        var tablet = s.Tablets.Single();
+        var tablet = s.Tablets.Single(t => !t.Inventory);
         Assert.True(tablet.IsSealedAgreement);
+        // The gold came with Egypt's inventory, which Alashiya keeps; the envoy kept 20 but did not swap it.
+        var inventory = s.Tablets.Single(t => t.Inventory);
+        Assert.Equal("The inventory of the gold Egypt sends to Alashiya: 2 minas.", inventory.Text);
+        Assert.Equal([Power.Egypt], inventory.Seals);
+        Assert.False(inventory.Forged);
+        Assert.Contains(s.Copies, c => c.Holder == Power.Alashiya && c.TabletId == inventory.Id && c.Source == $"the inventory brought by {envoy.Name}, envoy of Egypt");
         Assert.Contains(s.Copies, c => c.Holder == Power.Alashiya);
         Assert.Equal(Duty.EnvoyHomebound, envoy.Duty);
         Assert.Contains(envoy.Facts, f => f.Tag == "bribe" && f.KnownBy.Contains(Power.Alashiya));

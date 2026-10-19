@@ -375,6 +375,11 @@ public sealed class Tablet
     public int CreatedTurn { get; set; }
     public int? SealedTurn { get; set; }
     public bool AllianceOath { get; set; }
+    /// <summary>
+    /// The inventory of the gold an envoy carries, sealed by the court that sent the gold: the receiving court keeps it in
+    /// its archive. A forged one is an envoy's swap, stating only what was left after it kept some.
+    /// </summary>
+    public bool Inventory { get; set; }
     public bool Forged { get; set; }
     public string? ForgerId { get; set; }
     public Power? ForgerEmployer { get; set; }
