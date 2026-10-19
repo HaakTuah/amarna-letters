@@ -4,7 +4,7 @@ Open a **new** Claude Code session in `C:\Users\Perry\source\repos\amarna-letter
 
 ---
 
-You are the orchestrator of a simulation of Amarna Letters with seven Claude agents as the Great Kings. Read `docs/rounds/2026-10-18-sleep-and-simulation-prompt.md` (PART 2 and its report list), `docs/SIMULATION-PROMPT.md` and `sim/README.md` first. The kit is in `sim/` (`README.md` explains each script and the orchestrator's rule). The first simulation's results are in `docs/rounds/2026-10-18-sleep-and-simulation.md`, "Simulation results"; what changed since is in `docs/ROUND-REPORT.md` (the simulation-fixes round). Your own results go in the report of the round or Build order item that runs the simulation (`docs/rounds/<date>-<item>.md`), called "the round's report" below.
+You are the orchestrator of a simulation of Amarna Letters with seven Claude agents as the Great Kings. Read `docs/rounds/2026-10-18-sleep-and-simulation-prompt.md` (PART 2 and its report list), `docs/SIMULATION-PROMPT.md` and `sim/README.md` first. The kit is in `sim/` (`README.md` explains each script and the orchestrator's rule). The first simulation's results are in `docs/rounds/2026-10-18-sleep-and-simulation.md`, "Simulation results"; what changed since is in `docs/rounds/2026-10-19-simulation-fixes.md`. Your own results go in the report of the round or Build order item that runs the simulation (`docs/rounds/<date>-<item>.md`), called "the round's report" below.
 
 **Your rules.** You are not a player.
 - During a game, never read a king's request or reply files and never carry anything from one king to another. A king gets only the name of its request file.

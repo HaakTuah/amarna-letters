@@ -28,7 +28,7 @@ The whole game depends on hidden information, so each king is walled in by const
 
 ## Kit lessons (from the run of 18 October), and what was done
 
-The results are in `docs/rounds/2026-10-18-sleep-and-simulation.md`, "Simulation results".
+The results are in `docs/rounds/2026-10-18-sleep-and-simulation.md`, "Simulation results". What was done is Part F of the simulation-fixes round, `docs/rounds/2026-10-19-simulation-fixes.md`.
 
 - **"Your final message must be the single word done."** The agent file already said so, and it was not enough: 24 of the 280 game calls ended with a summary of the king's decision or plans, and 4 more with the reply path. *Done:* every file-seat request now ends with a footer, `FileExchange.Footer`: "When you have written your reply file, your final message must be the single word done. Say nothing about your decision. Earlier reply files cannot be read: your record of earlier seasons is in this request." Only file seats get it; a model king called through the API sees no such line (tested in `FileSeatTests`).
 - **Reply files cannot be read.** The guard lets a king read only `*.request.md`. In run 1's debrief, four kings tried to open their own earlier replies; the guard blocked all six attempts, and `audit.js` counted them as violations. Run 2's debrief request said reply files are closed, and nobody tried. *Done* for game requests by the same footer. A debrief request is written by the orchestrator, so it must end with the same footer.

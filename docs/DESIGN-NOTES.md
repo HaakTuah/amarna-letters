@@ -1474,7 +1474,7 @@ These are in the code as written, and they affect the balance numbers:
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
 current bot. Seeds 1–40, one current king against six baselines, rerun after the simulation-fixes round (19 October
-2026, shared victory off; the numbers before that round, and why they moved, are in its report, `docs/ROUND-REPORT.md`, "Benchmarks"):
+2026, shared victory off; the numbers before that round, and why they moved, are in its report, `docs/rounds/2026-10-19-simulation-fixes.md`, "Benchmarks"):
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
@@ -1629,7 +1629,7 @@ The design document records intent; these notes record what is built. Where they
   conqueror seize it. In the code each sealer keeps a copy, and there is no archive.
 - **Call size.** The document says a king's orders call grew from about 26k to over 60k tokens in ten seasons, "almost
   all of it journal and letters", with a fixed part of about 5k. Measured in the simulation-fixes round (Part E of
-  `docs/ROUND-REPORT.md`), those are what the file-seat agents used per call. The requests themselves were about 6k-8k
+  `docs/rounds/2026-10-19-simulation-fixes.md`), those are what the file-seat agents used per call. The requests themselves were about 6k-8k
   tokens in season 1 and 11.5k-13.5k by seasons 9-10, of which the journal grew about 3.5k; the rest was the agent's
   own overhead. The fixed part (rulebook, primer, map and opening positions) is now about 8,000 tokens with sleep on,
   and the setup screen's cost estimate (`CostEstimate`) still assumes 5,000 cached and 5,000 fresh tokens an orders
@@ -1646,7 +1646,8 @@ The design document records intent; these notes record what is built. Where they
 
 Every decided direction that is not built, one line each, with where it is decided. "Main tab" and "Ideas tab" are
 the design document's; "question N" is in `docs/rounds/2026-10-18-sleep-and-simulation.md`; "item N" is in the main
-tab's Build order; "the round report" is the simulation-fixes round's report, `docs/ROUND-REPORT.md`.
+tab's Build order; "the round report" is the simulation-fixes round's report,
+`docs/rounds/2026-10-19-simulation-fixes.md`.
 
 - **Sieges, walls and terrain**: walls that vary and can be strengthened, storming and besieging, envoys leaving a
   besieged city, terrain per province and per connection, deserts costing supplies, islands protected by the sea;

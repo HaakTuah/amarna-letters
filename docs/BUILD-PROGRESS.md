@@ -7,7 +7,7 @@ report, and what was decided along the way. Items are built on their own branch 
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|
-| 1 | Simulation fixes and default sleep | in progress | `round/simulation-fixes` | `docs/ROUND-REPORT.md` (moves to `docs/rounds/` when the item is done) |
+| 1 | Simulation fixes and default sleep | in progress | `round/simulation-fixes` | `docs/rounds/2026-10-19-simulation-fixes.md` |
 | 2 | The visual overhaul | not started | | |
 | 3 | Small record items | not started | | |
 | 4 | Second agent simulation, with model characters (stop for review) | not started | | |
@@ -26,7 +26,7 @@ report, and what was decided along the way. Items are built on their own branch 
 
 The round was interrupted on 18 October when the weekly usage limit ran out, in the middle of Parts G and E.
 Specification: `docs/ROUND-PROMPT.md` and `docs/ROUND-PROMPT-ADDITIONS.md` (the owner's later instructions, word for
-word). The report so far is `docs/ROUND-REPORT.md`.
+word). The report so far is `docs/ROUND-REPORT.md` (now `docs/rounds/2026-10-19-simulation-fixes.md`).
 
 **Committed on `round/simulation-fixes`** (each part implemented, reviewed by two or three adversarial reviewers, and
 fixed, unless noted):
