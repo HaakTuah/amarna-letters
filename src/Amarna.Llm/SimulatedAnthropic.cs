@@ -71,12 +71,25 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
                 ["seal_tablet"] = true, ["detain_envoy"] = false, ["send_gold_back"] = 0, ["gold_back_purity"] = 100, ["end_audience"] = true,
                 ["ledger"] = new JsonArray(),
             };
-        else if (Has("accept_gift"))
-            o = new JsonObject { ["speech"] = "I thank you, Great King.", ["accept_gift"] = false, ["accept_service"] = false, ["commitments"] = "" };
-        else if (Has("speech") && Has("keep_gold"))
-            o = new JsonObject { ["speech"] = "My lord greets you as a brother.", ["keep_gold"] = 0, ["swap_inventory"] = false };
-        else if (Has("report") && Has("keep_gold"))
-            o = new JsonObject { ["report"] = "The king received me kindly.", ["keep_gold"] = 0, ["swap_inventory"] = false };
+        else if (Has("commitments"))
+        {
+            // An envoy's answer: it is asked whether to take a gift or a post only when one is offered.
+            o = new JsonObject { ["speech"] = "I thank you, Great King.", ["commitments"] = "" };
+            if (Has("accept_gift")) o["accept_gift"] = false;
+            if (Has("accept_service")) o["accept_service"] = false;
+        }
+        else if (Has("speech"))
+        {
+            // An envoy's presentation, with the gold fields only when it carries gold.
+            o = new JsonObject { ["speech"] = "My lord greets you as a brother." };
+            Gold(o);
+        }
+        else if (Has("report") && (Has("keep_gold") || props!["report"]?["description"]?.GetValue<string>() == Schemas.ReportText))
+        {
+            // An envoy's report home (a spy's report is described otherwise).
+            o = new JsonObject { ["report"] = "The king received me kindly." };
+            Gold(o);
+        }
         else if (Has("pitch"))
             o = new JsonObject { ["pitch"] = "I know every road from Ugarit to Babylon.", ["asking_price"] = 20 };
         else if (Has("persona"))
@@ -97,5 +110,12 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o["cancel_standing"] = new JsonArray();
         }
         return o.ToJsonString();
+
+        void Gold(JsonObject reply)
+        {
+            if (!Has("keep_gold")) return;
+            reply["keep_gold"] = 0;
+            reply["swap_inventory"] = false;
+        }
     }
 }

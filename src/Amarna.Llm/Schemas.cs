@@ -158,24 +158,42 @@ public static class Schemas
         return Object([.. fields]);
     }
 
-    public static JsonObject Present() => Object(
-        ("speech", Str("What you say to the king, delivering your lord's message in your own words.")),
-        ("keep_gold", Int("Shekels of the carried gold you quietly keep for yourself, or 0.")),
-        ("swap_inventory", Bool(SwapInventory)));
+    /// <summary>
+    /// An envoy's presentation. The gold fields are asked only of an envoy that carries gold: one that carries none is not
+    /// asked what it keeps of it (in the second agent simulation, asked every time, envoys spoke of gold they never had).
+    /// </summary>
+    public static JsonObject Present(bool carriesGold = true) => carriesGold
+        ? Object(
+            ("speech", Str(PresentSpeech)),
+            ("keep_gold", Int("Shekels of the gold you carry that you quietly keep for yourself, or 0.")),
+            ("swap_inventory", Bool(SwapInventory)))
+        : Object(("speech", Str(PresentSpeech)));
+
+    private const string PresentSpeech = "What you say to the king, delivering your lord's message in your own words.";
 
     /// <summary>What an envoy that keeps gold may do with the inventory tablet it carries.</summary>
     private const string SwapInventory = "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. Faking the seal takes a forger's hand (you are told whether yours is one); without one you dare not use it and the true inventory is handed over. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
 
-    public static JsonObject React() => Object(
-        ("speech", Str("What you say in answer.")),
-        ("accept_gift", Bool("Accept the king's personal gift, if one was offered.")),
-        ("accept_service", Bool("Leave your lord and enter this king's service, if offered.")),
-        ("commitments", Str("Anything you promised on your lord's behalf, or empty.")));
+    /// <summary>An envoy's answer at an audience: whether to take a gift or a post only when one is offered.</summary>
+    public static JsonObject React(bool giftOffered = true, bool serviceOffered = true)
+    {
+        var fields = new List<(string Name, JsonObject Schema)> { ("speech", Str("What you say in answer.")) };
+        if (giftOffered) fields.Add(("accept_gift", Bool("Accept the king's personal gift.")));
+        if (serviceOffered) fields.Add(("accept_service", Bool("Leave your lord and enter this king's service.")));
+        fields.Add(("commitments", Str("Anything you promised on your lord's behalf, or empty.")));
+        return Object([.. fields]);
+    }
 
-    public static JsonObject Report() => Object(
-        ("report", Str("Your report to your lord.")),
-        ("keep_gold", Int("Shekels of the gold you carry home that you quietly keep, or 0.")),
-        ("swap_inventory", Bool(SwapInventory)));
+    /// <summary>An envoy's report home, with the gold fields only when it carries gold home (gold a host sent back with it).</summary>
+    public static JsonObject Report(bool carriesGold = true) => carriesGold
+        ? Object(
+            ("report", Str(ReportText)),
+            ("keep_gold", Int("Shekels of the gold you carry home that you quietly keep, or 0.")),
+            ("swap_inventory", Bool(SwapInventory)))
+        : Object(("report", Str(ReportText)));
+
+    /// <summary>What an envoy's report is, as its schema says (a spy's report is "Your report home.").</summary>
+    public const string ReportText = "Your report to your lord.";
 
     public static JsonObject Pitch() => Object(
         ("pitch", Str("How you present yourself, in a few sentences.")),

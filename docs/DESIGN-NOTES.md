@@ -288,7 +288,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   - Script envoys decide by formula (see Script envoys); model envoys decide for themselves, told in their prompt that
     they could keep some gold "and, if you leave some, hand over in place of the inventory one you forge yourself,
     stating only what is left", and whether their hand is skilled enough to fake a seal, with the schema field
-    `swap_inventory` saying what it takes and risks.
+    `swap_inventory` saying what it takes and risks. The gold fields (`keep_gold`, `swap_inventory`) are in the schema of
+    a presentation or a report home only when the envoy carries gold, and the shared character text says the gold
+    decisions come "only when you carry gold"; likewise an envoy's answer at an audience asks `accept_gift` only when a gift
+    is offered and `accept_service` only when a post is. (Until the fix pass after item 4 every speech and report asked
+    how much of "the carried gold" to keep: in the second agent simulation one envoy told a host that gold came with him
+    when none did, and 35 of the 36 character debriefs raised it.)
   The rulebook says all this under ENVOYS ("Gold an envoy carries goes with an inventory tablet …").
 - **Debasement is a ledger, not a coin type.** A power's displayed treasury counts unassayed lots
   at their weight. True gold is what is actually spent; a payment the true treasury cannot cover
