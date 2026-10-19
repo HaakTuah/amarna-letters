@@ -48,12 +48,12 @@ public class LeaderMemoryTests
         Envoy = new CharacterView { Id = "c90", Name = "Mane" }, Spoken = "My lord greets you.",
     };
 
-    /// <summary>A seat that has given orders in turns 1..last, with notes "notes of turn N" (and a summary and ledger lines where given).</summary>
+    /// <summary>A seat that has given orders in turns 1..last, with notes "notes of turn N" (and a summary and ledger lines where given); it answers audiences with <paramref name="host"/>, or a plain reply.</summary>
     private static async Task<(LlmLeaderSeat Seat, Scripted Asker)> Played(int last, Func<int, string>? summary = null, Func<int, string>? notes = null,
-        Func<int, (string Court, string Entry)[]>? ledger = null)
+        Func<int, (string Court, string Entry)[]>? ledger = null, string? host = null)
     {
         var turn = 0;
-        var asker = new Scripted(spec => spec.Key.Contains("/aud/") ? Host
+        var asker = new Scripted(spec => spec.Key.Contains("/aud/") ? host ?? Host
             : Orders(notes?.Invoke(turn) ?? $"notes of turn {turn}", summary?.Invoke(turn) ?? "", ledger?.Invoke(turn) ?? []));
         var seat = new LlmLeaderSeat(Power.Hatti, asker, "m", "medium", true, Game.Config);
         for (turn = 1; turn <= last; turn++) await seat.DecideAsync(View(turn), default);
@@ -219,6 +219,44 @@ public class LeaderMemoryTests
         var (fresh, freshAsker) = await Played(1);
         await fresh.HostAudienceAsync(Envoy(2), View(2), default);
         Assert.Contains("YOUR LEDGER OF DEALINGS (your own words, per court: what was promised, sealed, broken and paid; each line with the season you last wrote it): nothing written yet.", freshAsker.Asked.Last().User);
+    }
+
+    [Fact]
+    public async Task An_audience_reply_writes_the_ledger_and_keeps_it_out_of_the_reply_the_envoy_reads()
+    {
+        // Played two seasons; at the audience of turn 3 the king seals and writes it down, and strikes out Mitanni's line.
+        var hostWithLedger = new JsonObject
+        {
+            ["speech"] = "Tell your lord I am his brother.", ["gift_to_envoy"] = 0, ["gift_request"] = "", ["offer_service_wage"] = 0,
+            ["seal_tablet"] = true, ["detain_envoy"] = false, ["send_gold_back"] = 0, ["gold_back_purity"] = 100, ["end_audience"] = true,
+            ["ledger"] = new JsonArray(
+                new JsonObject { ["court"] = "Egypt", ["entry"] = "zq Sealed peace through Mane in turn 3; owe them nothing." },
+                new JsonObject { ["court"] = "Mitanni", ["entry"] = "" }),
+        }.ToJsonString();
+        var (seat, asker) = await Played(2, ledger: t => t == 1 ? [("Mitanni", "Owes me 50 shekels."), ("Egypt", "Nothing yet.")] : [], host: hostWithLedger);
+        var reply = await seat.HostAudienceAsync(Envoy(3), View(3), default);
+
+        // The reply the engine applies and the envoy's mind reads carries nothing of the ledger.
+        Assert.DoesNotContain("zq", Json.Serialize(reply));
+        Assert.True(reply.SealProposal);
+
+        // The next audience and the next orders show the line as written at the audience, with its season.
+        await seat.HostAudienceAsync(Envoy(3), View(3), default);
+        Assert.Contains("- Egypt (turn 3): zq Sealed peace through Mane in turn 3; owe them nothing.", asker.Asked.Last().User);
+        await seat.DecideAsync(View(3), default);
+        var orders = LastOrdersRequest(asker);
+        Assert.Contains("- Egypt (turn 3): zq Sealed peace through Mane in turn 3; owe them nothing.", orders);
+        Assert.DoesNotContain("Owes me 50 shekels", orders);
+        Assert.DoesNotContain("Nothing yet.", orders);
+
+        // The audience schema asks for it the way the orders schema does, and the rulebook says either reply may write it.
+        var host = Schemas.HostReply();
+        Assert.Contains("ledger", host["required"]!.AsArray().Select(x => x!.GetValue<string>()));
+        Assert.Equal(Schemas.LeaderOrders(Game.Config)["properties"]!["ledger"]!.ToJsonString(), host["properties"]!["ledger"]!.ToJsonString());
+        Assert.Contains("you may write it in either reply", host["properties"]!["ledger"]!["description"]!.GetValue<string>());
+        Assert.Contains("until you change or remove that line; you may write it in either reply.", Prompts.LeaderRules(true, Game.Config));
+        // An audience reply without the field (an older reply, or a file seat that left it out) changes nothing.
+        Assert.Empty(Parse.Ledger(JsonNode.Parse(Host)!.AsObject()));
     }
 
     [Fact]

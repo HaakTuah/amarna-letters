@@ -454,9 +454,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   design document's risk table, carried in full: "YOUR LEDGER OF DEALINGS (your own words, per
   court: what was promised, sealed, broken and paid; each line with the season you last wrote it)",
   one line per court in the fixed order of the powers ("- Egypt (turn 5): ..."), or "nothing
-  written yet". The reply field `ledger` is a list of {court, entry}: an entry (at most 600
-  characters, cut with "…") replaces that court's line, an empty entry removes it, and courts left
-  out keep theirs; the ledger never leaves the record. Then comes the king's own summary of earlier
+  written yet". The reply field `ledger`, in the orders reply and in the audience reply alike (an
+  audience is where tablets are sealed and gifts given), is a list of {court, entry}: an entry (at
+  most 600 characters, cut with "…") replaces that court's line, an empty entry removes it, and
+  courts left out keep theirs; the ledger never leaves the record. Lines written at an audience stay
+  in the seat's record and are not part of the `HostReply`, which the engine applies and the envoy's
+  mind reads. Then comes the king's own summary of earlier
   seasons ("YOUR SUMMARY OF EARLIER SEASONS (your own words, turn 6): ..."), then the last three
   seasons it gave orders in full: its notes, the audiences it held (what it said to whose envoy) and
   its orders. Older seasons leave the record, and the request says which turn's notes leave it after
@@ -468,7 +471,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   before have left this record." An audience request carries the ledger, the summary and the notes
   of the last two seasons. The rulebook's HOW TO ANSWER says how the record and the ledger work.
   Summary and ledger are parsed with the orders (`TurnSubmission.Summary`, `Ledger`), so they are
-  logged and a replay can read them; the engine ignores them. The record lives in the seat object:
+  logged and a replay can read them; the engine ignores them. Ledger lines written at an audience are
+  in the logged model call's output only. The record lives in the seat object:
   a resumed game's model leaders start it afresh, ledger and all. It is kept only for model and file
   kings: the web app's Rules tab tells a human seat that it keeps its own. (Until the
   simulation-fixes round it held the last five seasons in full and the notes of the eight before,
