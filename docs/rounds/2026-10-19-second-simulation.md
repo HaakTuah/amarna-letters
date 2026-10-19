@@ -819,3 +819,116 @@ and local play changed `Home.razor` and `Play.razor`, as its section expected.
 - The trimmed Release build in a browser after the merge.
 - Phone measurements. Fix (b)'s figures are from its own branch. The merge adds no work to the worker's path, but
   fix (a)'s view check now runs in the page's engine work. It is a per-person comparison and was not measured.
+
+## Review findings
+
+One reviewer read the whole item and reported one blocking finding and ten minor ones. I checked each against the
+code. The blocking one and five of the minor ones are fixed in two commits: `b3ec38b` (the leak) and `b74fcc6` (the
+rest). The other five are left as they are; the reasons are below.
+
+### Blocking: the captor's event named a silent spy's master (fixed)
+
+**Confirmed.** `TurnEngine.Capture` logged `"{host} caught {name}, a spy of {employer}."` visible to the captor, even
+when the spy would not say whom it serves. The web app's Events and Season panels show a court every event visible to
+it. So a human seat learned the true master, though the capture notice, the rulebook ("A caught spy may confess whom
+it serves"), and fix (a)'s view and map all withhold it. The model kings were never affected, since no seat view
+carries events.
+
+**The fix.**
+- The captor's line now names the master only if the spy confessed. A silent spy's line reads `"{host} caught {name},
+  a spy who will not say whom they serve."`
+- The truth goes in a second line that no court sees (`VisibleTo` empty), shown in the god view: `"{host} caught
+  {name}, a spy of {employer} who would not say so."` That line carries the `spy-caught` success marker, so a capture
+  still counts once.
+
+**Tests.** Two new tests, both of which fail without the fix:
+- `HiddenSpyTests.The_captors_record_of_a_capture_names_only_the_master_the_spy_confessed_to` catches a timid spy
+  (who always confesses) and a brave one that kept silent, through the engine's own capture.
+- `BlindnessTests.A_court_that_caught_a_spy_has_on_record_only_the_master_it_confessed_to` replays the reviewer's
+  probe on the script games of seeds 16 and 12.
+
+**Seen in the browser.** I played `play?watch=16` to turn 9.
+- Arzawa's Events panel reads "Arzawa caught Keliya, a spy who will not say whom they serve."
+- The god view shows both lines and "spy-caught · 1".
+- One season later Arzawa turned Keliya, and its line "turned Keliya into a double agent against Hatti" names the
+  master. That is by design: a turned spy serves the court that turned it, and that court's view already lists it with
+  the master it pretends to serve (DESIGN-NOTES, "turned, or a plant").
+
+**Seeds, rules and notes.**
+- Events are in no seat view, and script kings read none. Seeds 1-100 (Release, `--verify-replay`) give output
+  identical, game by game, to the merge's run; only the timing line differs. That includes the signal table: spy
+  caught 24 / 26, as before. The save version stays 4.
+- A model narrator writing a court's annals reads the events that court knows, so it now gets the captor's line too.
+- The rulebook already says a caught spy may confess, so it is unchanged. DESIGN-NOTES, "A spy at a court is hidden
+  from it", now describes the captor's record.
+
+### Minor findings
+
+1. **The simulation prompt's isolation check had no `--since` (fixed).** Step 2 of `docs/SIMULATION-PROMPT.md` now
+   notes the time before starting the agents and runs `check-isolation.js --since <that time>`, as `PLAY-PROMPT.md`
+   does. Without it, lines left in the kings' `guard.log` by a local-play isolation test could pass the canary-read and
+   blocked-attempt tests.
+2. **The first load is 7-10% faster, not "much faster" (no change).** Fix (b)'s section already says so, and names
+   what would close the gap: a host that serves Brotli, relinking with wasm-tools (which needs admin rights), and
+   lazy loading. Which of these to pursue is Haakon's call.
+3. **One 0.6-0.8 s stretch is left at the first season (no change).** It is as reported under fix (b). From the
+   second season on, the page is never busy for more than 0.33 s at a time.
+4. **A model character's script shadow ran on the page's thread (fixed).**
+   - **The change.** `LlmCharacterMind` now takes its script mind as `Script`, and `SeatFactory` gives a browser
+     game's model characters the worker's (`WorkerMind`). So the shadow, and any character with no asker, is worked
+     out in the worker. A worker that cannot start or stops still falls back to the page, as for script characters.
+   - **For the test.** `SeatFactory` now takes `IScriptTransport`, under which the app registers
+     `ScriptWorkerClient`, so a test can hand it the in-process worker.
+   - **The test.** `ScriptWorkerTests.A_model_characters_script_shadow_is_worked_out_in_the_worker_and_is_the_same_as_in_the_page`
+     plays seed 7 for five seasons both ways on the simulated API. The shadow lines are identical (compared in key
+     order, the order the log writes them in), so is the state, and every shadow decision was asked of the worker.
+   - **In the browser.** I played four seasons of script kings and Haiku characters on the simulated API. The worker
+     got 51 character requests (18 speeches, 18 reactions, 15 writings), all shadows, beside 46 for the kings. The
+     console showed no errors.
+   - **One cost.** A table of model kings and model characters now starts the worker too, only for the shadows: one
+     more runtime booting off the page's thread when the game starts.
+   - **Not measured** on the emulated phone.
+5. **The worker's two-minute start limit had no design note (fixed).** DESIGN-NOTES, "Script kings and characters in
+   a worker", now says that a worker not ready within two minutes counts as one that cannot start. It compares the
+   limit with the measured boot times: 1-1.4 s on a desktop and 4.5-5.6 s on the slow emulated phone.
+6. **`self.__amarnaSlowdown` ships in `script-worker.js` (kept).**
+   - **Why kept.** It is how fix (b) measured the worker on the emulated phone ("How it was measured" above). Without
+     it, those figures could not be repeated.
+   - **What it costs.** Nothing unless it is set through the DevTools protocol, and one property read per answer.
+7. **Each agent's `isolation-test.request.md` stays readable during the games (no change, but now audited).**
+   - **No leak.** The guard blocks every path outside the agent's own folder, so the folder names in the file cannot
+     be used.
+   - **Now audited.** With the audit change in finding 8, reading that file during a game is a violation.
+   - **Also fixed.** `audit.js` used to treat any transcript that mentioned the file as part of the isolation test,
+     which excused its blocked attempts. It now goes by the prompt the agent was started with.
+   - **Why the file stays.** Removing it after the test would need `setup.js` to write it again for the next session,
+     since local play and the simulation each run the test.
+8. **A character could read its own other request files (fixed in `audit.js`).**
+   - **The rule.** In play, an agent may now read only the request file its prompt named ("Your request file is
+     <name> in your folder"). A debrief, which names earlier requests to reread, may read any of its own.
+     `sim/README.md` and DESIGN-NOTES say so.
+   - **Fabricated transcripts.** I checked the rule on five: a clean read, a read of a later request of the agent's
+     own, a read of the isolation test during play, a debrief, and an isolation test. It flagged exactly the two
+     violations.
+   - **The first simulation.** I also checked it on that run's 301 king transcripts: 280 in play, 14 debriefs and 7
+     isolation tests. Every prompt parsed, and no agent in play read any request but its own, so the rule would have
+     flagged nothing there.
+9. **If the worker stops mid-game, the script kings lose their memory (no change).** This is documented in
+   DESIGN-NOTES, and replays stay exact.
+10. **`mkdir -p` on a PowerShell-first machine (fixed).** Step 3 of the simulation prompt now says to run the game
+    commands with the Bash tool (Git Bash), where `mkdir -p` and the redirection work as written.
+
+`setup.js` output is not affected by any of this and was not regenerated. Regenerating it would change the folders
+and secret words and need yet another new session.
+
+### Checks
+
+- `dotnet build`: 0 warnings.
+- `dotnet test`: 734 pass, 0 fail (229 engine, 477 game, 28 web), three more than after the merge.
+- Replay check (`--games 10 --seed 1 --verify-replay --no-chronicles`): replay ok for all ten.
+- Seeds 1-100 (Release, `--verify-replay`): identical to the merge's run, as above. Nothing a bot sees changed, so
+  the other benchmark runs were not repeated.
+- The browser checks above used the `amarna-web` development server (Debug) at desktop size. The games are saved in
+  that browser's storage for `localhost:5183`.
+
+No new numbers. Nothing was tuned.
