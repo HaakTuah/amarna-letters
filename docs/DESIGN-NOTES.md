@@ -1796,8 +1796,9 @@ Presentation only: no rule, state, view, prompt or balance changed, and seeds re
   network and stay in the page.
 - **What is left in the page** is the engine's own work and drawing. A season's redraws are coalesced and made in a
   task of their own, after the engine's work rather than within it (`GameSession.NotifySoon`), the page draws that a
-  season is under way before its work begins, a season is shown before it is saved, and the autosave's text is built
-  up season by season (`LogText`, the same text as the log's own `ToJsonl`, which rewrote the whole log every season).
+  season is under way before its work begins, and a season is shown before it is saved. The log writes each decision's
+  line once and keeps it (`GameLog.ToJsonl`, which the autosave calls every season, used to write and re-read every
+  line each time; the text is the same).
   The map never reads a whole state back from its snapshot. Measurements are in the round reports.
 - **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
 

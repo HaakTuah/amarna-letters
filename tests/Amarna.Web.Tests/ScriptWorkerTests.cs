@@ -1,7 +1,6 @@
 using Amarna.Engine;
 using Amarna.Game;
 using Amarna.Game.Bots;
-using Amarna.Llm;
 using Amarna.Web.Services;
 
 namespace Amarna.Web.Tests;
@@ -171,34 +170,5 @@ public class ScriptWorkerTests
         var reply = ScriptJson.ReadReply(new ScriptHost().Answer(ScriptJson.Write(new ScriptRequest { Kind = ScriptRequest.Decide })));
         Assert.NotNull(reply.Error);
         Assert.Null(reply.Submission);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task The_autosave_text_is_the_log_as_it_writes_itself(bool models)
-    {
-        var state = GameFactory.NewGame(8, new GameConfig { MinTurns = 6, EndChance = 1.0 });
-        GameRunner? runner = null;
-        var choices = new SeatChoices();
-        if (models)
-        {
-            choices.Leaders[Power.Egypt] = LeaderKind.Haiku;
-            choices.Characters = CharacterKind.Haiku;
-        }
-        var set = SeatSetup.Build(choices, state, "sk-ant-test-0000", browser: true, () => runner!.Log, new SimulatedAnthropic());
-        runner = new GameRunner(state, set.Seats, set.Minds, set.Narrator);
-        var text = new LogText();
-        await runner.PrepareAsync();
-        Assert.Equal(runner.Log.ToJsonl(), text.For(runner.Log));
-        while (await runner.PlayTurnAsync())
-            Assert.Equal(runner.Log.ToJsonl(), text.For(runner.Log));
-        Assert.Equal(runner.Log.ToJsonl(), text.For(runner.Log));
-        Assert.Equal(models, runner.Log.Calls.Count > 0);
-        // Another log starts the text afresh.
-        var other = InPage(2);
-        await other.PrepareAsync();
-        await other.PlayTurnAsync();
-        Assert.Equal(other.Log.ToJsonl(), text.For(other.Log));
     }
 }

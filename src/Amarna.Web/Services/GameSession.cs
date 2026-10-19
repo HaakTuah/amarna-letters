@@ -128,7 +128,6 @@ public sealed class GameSession
     }
 
     private readonly Dictionary<int, GameState> _recent = new();
-    private readonly LogText _logText = new();
 
     public async Task StartAsync(GameSettings settings, string? apiKey)
     {
@@ -361,13 +360,13 @@ public sealed class GameSession
     {
         if (Runner is null || ReadOnly) return;
         var meta = $"Seed {Runner.State.Seed}, {Calendar.Label(Runner.State.Turn)}{(Runner.State.Ended ? " (ended)" : "")}, {string.Join(", ", Runner.Log.Header.Seats.GroupBy(s => s.Value).Select(g => $"{g.Count()} {g.Key}"))}";
-        await storage.SaveAsync(GameId, meta, _logText.For(Runner.Log));
+        await storage.SaveAsync(GameId, meta, Runner.Log.ToJsonl());
     }
 
     public async Task ExportAsync()
     {
         if (Runner is null) return;
-        await storage.DownloadAsync($"{GameId}.jsonl", _logText.For(Runner.Log));
+        await storage.DownloadAsync($"{GameId}.jsonl", Runner.Log.ToJsonl());
     }
 
     public void ClearMessages()
