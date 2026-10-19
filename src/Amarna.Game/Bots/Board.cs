@@ -79,9 +79,11 @@ internal sealed class Board
     public double YieldWorth => V.Prices.GetValueOrDefault("cityPricePerYield", 10);
 
     /// <summary>
-    /// A king's strength as this court reckons it: land at the price of a city, plus gold (our own exactly, a
-    /// rival's as estimated from what is public). Buying a city turns gold into the same strength in land, so
-    /// unlike land alone this does not mistake a buyer for a conqueror.
+    /// A king's strength as this court reckons it, by the game's own measure (<see cref="Scoring.Strength{T}"/>): land
+    /// at the price of a city, plus gold, less back pay owed. Our own is what our view shows (our ledger, less the back
+    /// pay we believe we owe); a rival's is estimated from what is public, with his gold as we reckon it and no back
+    /// pay, which nobody can see. Buying a city turns gold into the same strength in land, so unlike land alone this
+    /// does not mistake a buyer for a conqueror.
     /// </summary>
     public double Strength(Power p)
     {
@@ -89,10 +91,11 @@ internal sealed class Board
         if (p == Me && V.StartStrength > 0) return V.Strength;
         var land = V.Owner.Where(x => x.Value == p).Sum(x => Map[x.Key].Yield);
         var gold = _treasuries is not null && _treasuries.TryGetValue(p, out var g) ? g : MapData.StartGold[p];
-        return YieldWorth * land + Math.Max(0, gold);
+        return Scoring.Strength<double>(YieldWorth, land, Math.Max(0, gold), 0);
     }
 
-    public double StartStrength(Power p) => p == Me && V.StartStrength > 0 ? V.StartStrength : YieldWorth * Map.HomeOf(p).Sum(x => x.Yield) + MapData.StartGold[p];
+    public double StartStrength(Power p) => p == Me && V.StartStrength > 0 ? V.StartStrength
+        : Scoring.Strength<double>(YieldWorth, Map.HomeOf(p).Sum(x => x.Yield), MapData.StartGold[p], 0);
 
     /// <summary>Strength against what the king started with: the measure the game is won by.</summary>
     public double Growth(Power p)

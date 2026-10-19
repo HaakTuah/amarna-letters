@@ -36,6 +36,9 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         sb.AppendLine();
         sb.AppendLine("Facts of your own life: " + string.Join(" ", c.Facts.Select(f => f.Text)));
         sb.AppendLine(c.Employer is { } e ? $"You serve the king of {e.Land()} ({e}) for {c.Contract?.Wage ?? 0} shekels a season." : "You serve nobody at present.");
+        // Wages are paid at court: what he owes for seasons away is paid when the servant is back there, and lost if it leaves him.
+        if (c.Employer is { } lord && c.BackPay.GetValueOrDefault(lord) is var owed and > 0)
+            sb.AppendLine($"Your lord owes you {owed} shekels of back pay, paid when you return to his court.");
         if (c.SecretMaster is { } m) sb.AppendLine($"In secret you serve {m.Land()} ({m}), and you protect its interests.");
         sb.AppendLine($"Your purse holds {c.Purse} shekels. It is now season {turn}.");
         if (c.MemorySummary.Length > 0) sb.AppendLine("Long ago: " + c.MemorySummary);
@@ -87,7 +90,7 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         foreach (var x in ctx.SoFar) user.AppendLine($"The king said: \"{x.Host}\" You answered: \"{x.Envoy}\"");
         user.AppendLine($"The king now says: \"{host.Speech}\"");
         if (host.Bribe > 0) user.AppendLine($"He offers you a personal gift of {host.Bribe} shekels" + (host.BribeAsk.Length > 0 ? $", asking in return: \"{host.BribeAsk}\"" : "."));
-        if (host.JobOffer > 0) user.AppendLine($"He offers to take you into his service at {host.JobOffer} shekels a season (your lord pays you {ctx.Self.Contract?.Wage ?? 0}).");
+        if (host.JobOffer > 0) user.AppendLine(OfferLine(ctx, host.JobOffer));
         if (host.Detain) user.AppendLine("He orders that you may not leave his court.");
         if (host.SealProposal) user.AppendLine("He has sealed the tablet you brought.");
         if (host.GoldBack > 0) user.AppendLine($"He sends {host.GoldBack} shekels of gold home with you for your lord.");
@@ -99,6 +102,11 @@ public sealed class LlmCharacterMind(ClaudeClient client, string model = ModelId
         if (host.JobOffer <= 0) r.AcceptJob = false;
         return r;
     }
+
+    /// <summary>A host's offer of service, with what the envoy's lord pays it and, if any, the back pay it would give up by leaving him.</summary>
+    public static string OfferLine(EnvoyContext ctx, int offer) =>
+        $"He offers to take you into his service at {offer} shekels a season (your lord pays you {ctx.Self.Contract?.Wage ?? 0}"
+        + (ctx.BackPay > 0 ? $", and owes you {ctx.BackPay} shekels of back pay, which you would never be paid if you left his service" : "") + ").";
 
     public async Task<MindReply> WriteAsync(MindContext ctx, CancellationToken ct)
     {

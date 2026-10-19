@@ -165,6 +165,18 @@ public static class Views
     }
 
     /// <summary>
+    /// Whether a kingdom looks doomed, from public facts alone (who holds what): it has fallen, lost its capital, or holds
+    /// fewer than half of its homeland's provinces. Back pay owed by such a court may never be paid.
+    /// </summary>
+    public static bool LooksDoomed(IReadOnlyDictionary<string, Power?> owner, IEnumerable<Power> fallen, Power p, WorldMap? map = null)
+    {
+        map ??= WorldMap.Default;
+        if (fallen.Contains(p) || owner.GetValueOrDefault(map.Capital(p).Id) != p) return true;
+        var home = map.HomeOf(p).ToList();
+        return 2 * home.Count(x => owner.GetValueOrDefault(x.Id) == p) < home.Count;
+    }
+
+    /// <summary>
     /// Provinces a power can see units in: its own lands, where its units stand, the provinces its spies watch, and
     /// next to any of those. A province spy caught or let go unknown to its master still counts while the master
     /// believes it at its post, so that its sight betrays nothing before word comes.

@@ -143,7 +143,8 @@ internal static class Statecraft
         var p = brain.P;
         var v = b.V;
         var me = b.Me;
-        var gold = v.Gold;
+        // Back pay owed is gold already spent: the people it is owed to will claim it when they are back at court.
+        var gold = v.Gold - v.BackPay;
         var flow = v.Income - v.Upkeep - v.Wages;
         // While income covers upkeep, a small cushion is enough; a treasury that bleeds needs a season or two in hand.
         var costs = v.Upkeep + v.Wages;
@@ -242,7 +243,9 @@ internal static class Statecraft
         var wanted = flow < 25 + 0.25 * v.Income ? 2 : 2 + (p.Diplomacy > 0.8 ? 1 : 0) + (p.Cunning > 0.7 && flow > 50 + 0.25 * v.Income ? 1 : 0);
 
         // A servant given up for lost: its line has read "has not returned" (the word that it is overdue) for three seasons and
-        // still does. It is dismissed, so its wage stops, and the court counts itself one short, so it may hire.
+        // still does. Away, it costs no gold, but it fills a place at court and the back pay we believe we owe it keeps
+        // growing, counted as gold already spent. It is dismissed, which ends both, and the court counts itself one short,
+        // so it may hire.
         foreach (var c in v.Court.Where(c => brain.MissingSince.TryGetValue(c.Id, out var since) && v.Turn - since >= 3).ToList())
         {
             orders.Add(new DismissOrder(c.Id));

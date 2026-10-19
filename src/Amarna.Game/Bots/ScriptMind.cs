@@ -72,8 +72,11 @@ public sealed class ScriptMind : ICharacterMind
         var wage = c.Contract?.Wage ?? 15;
         if (host.JobOffer > 0)
         {
-            var tempted = host.JobOffer >= wage * 1.5 && t.Loyalty < 55 && t.Ambition > 40;
-            var drawn = t.Sympathy == ctx.Host && t.SympathyStrength > 60 && host.JobOffer >= wage;
+            // Going over forfeits the back pay its lord owes it: the offer must make it up over the new contract's six
+            // seasons, unless its lord looks doomed and may never pay.
+            var forfeit = ctx.EmployerDoomed ? 0 : ctx.BackPay / 6.0;
+            var tempted = host.JobOffer >= wage * 1.5 + forfeit && t.Loyalty < 55 && t.Ambition > 40;
+            var drawn = t.Sympathy == ctx.Host && t.SympathyStrength > 60 && host.JobOffer >= wage + forfeit;
             reaction.AcceptJob = (tempted || drawn) && c.SecretMaster is null;
             speech.Add(reaction.AcceptJob ? "Then I am yours, Great King. My old master will have to find another voice." : "You honour me, but I must return to my lord.");
         }

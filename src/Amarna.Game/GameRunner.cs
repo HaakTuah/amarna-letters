@@ -248,6 +248,10 @@ public sealed class GameRunner
     {
         var envoy = State.Char(a.EnvoyId);
         var key = $"t{turn}/aud/{a.Id}";
+        // What its own lord owes it, and whether he looks doomed, by public facts: a motive it may weigh against an offer.
+        var lord = envoy.Employer;
+        var backPay = lord is { } owes ? envoy.BackPay.GetValueOrDefault(owes) : 0;
+        var doomed = lord is { } l && Views.LooksDoomed(State.Owner, State.Eliminated, l);
         EnvoyContext Ctx(List<Exchange> soFar, int round, string delivered, int skim) => new()
         {
             Self = envoy,
@@ -261,6 +265,8 @@ public sealed class GameRunner
             SoFar = soFar,
             Delivered = delivered,
             Skim = skim,
+            BackPay = backPay,
+            EmployerDoomed = doomed,
         };
 
         var present = await Recorded($"{key}/present",
