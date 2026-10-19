@@ -393,3 +393,157 @@ No agent was started and no model call was spent.
   misstates a king's mood or invents a promise is left to the reader of `summary.md`, which lists, with both texts,
   every decision where a character and its script shadow differ.
 - **The local-play kit** is not part of this section.
+
+## Local play
+
+Commit `56be282` (the seat type, the bridge, the kit, the start prompt, the tests and the notes), with this section in
+a second. The last part of item 4: "Local play on a Claude subscription", so that at the review Haakon can start playing model
+kings himself. A human seat in the locally running web app against kings answered by the simulation's guarded,
+isolated king agents in a Claude Code session, on the subscription instead of paid API calls. No engine rule, script
+king or number of the game changed, so the save version stays at 4 and script games play exactly as before. No agent
+was started and no model call was spent: the plumbing was proved with the stub replier.
+
+### What was built
+
+**The route: the web app and a local bridge.** The human seat already exists in the web app, so the web route was the
+simplest robust one, and it worked. A king set to the new seat type **Local agent** (`LeaderKind.LocalAgent`) is a
+model leader seat whose asker is a `BridgeExchange` (`src/Amarna.Llm/BridgeExchange.cs`): a file seat whose files are
+written by `sim/bridge.js`, a small Node server on this computer, since a web page cannot write files.
+- For each decision the page builds the request text itself, exactly a file seat's (`FileExchange.Request`: rules,
+  customs, identity, view, journal, schema, footer), with a one-off mark where the reply's path goes. It posts it to the
+  bridge with the king's name and the request's file name (`t3_orders_Egypt`, `t3_aud_a12_host_1`, `.retry`).
+- The bridge alone knows the folders (`sim/kings/seats.json`). It puts the reply's path in, writes
+  `<name>.request.md` into that king's folder (through a temporary file, as the batch runner does), and hands the page
+  the reply file's text once it has stopped changing. The page asks once a second.
+- The reply goes through the file seat's own checks, its one retry and its fallback: `FileExchange`'s exchange loop is
+  now one function, `FileExchange.Converse`, shared by both channels. After the table's wait (60 minutes by default)
+  the script king stands in for that one decision. A request that times out, or whose game is stopped or replaced, is
+  taken back (the bridge moves it aside), so `wait.js` stops listing it and no agent is started for it later.
+- Each exchange is logged as a call with no tokens (model "local agent"), so a game saves, replays and continues like
+  any other. A saved game reads its local agent kings back from the header's label "Local agent". Local agent kings
+  sleep like model kings (sleeping seats are on by default), need no key, and cost nothing on the game's meter.
+
+**The web app.** A **Local agents** preset (`Presets.Local`: local agent kings, script envoys and narrator; not in
+`Presets.All`, so the batch runner's presets are unchanged) and a "Local agent (Claude Code)" choice under "Customize
+the table". Both appear only when the app runs on a loopback address (`localhost`, `127.0.0.1`, `[::1]`), so the GitHub
+Pages build never shows them. With local agent kings at the table, a section explains local play and has the bridge's
+address, the wait in minutes and a **Check the bridge** button. "Begin the age" checks the bridge first, and so does
+"Continue" on a saved local game. If the bridge does not answer, the page says to start it with `node sim/bridge.js`
+and that it works only when the game runs on this computer, not on the published site. While the other kings decide,
+the game shows "The other kings are deciding: their agents answer in the Claude Code session on this computer, which
+can take a few minutes." It names no king and gives no count, because that would tell the player which kings are awake.
+
+**The bridge** (`sim/bridge.js`). `GET /status`, `POST /ask`, `GET /reply`, `POST /cancel`.
+- Who it answers: it listens on 127.0.0.1 and ::1 only and checks the Host header (against DNS rebinding). It answers
+  only pages served from this computer (an `Origin` of localhost, 127.0.0.1 or [::1]). Anything that writes must be
+  JSON, which a page elsewhere cannot send without a preflight, and the preflight is refused.
+- What it accepts: only the seven kings of the map file, request names of the game's own form (no path can be smuggled
+  in), and a text in which the mark appears exactly once.
+- At start it moves an earlier game's requests and replies into `earlier-<time>/` in each folder, as the batch runner
+  does; `--keep` leaves them, for a restart in the middle of a game. It writes `sim/kings/bridge.json` (process id and
+  port), refuses to start while another bridge runs, and removes the file on Ctrl+C.
+- It is quiet by default, for the same reason as the page's notice; `--verbose` prints every request and reply.
+
+**The kit.**
+- `wait.js --play [seconds]` watches the kings only and reports `bridge-stopped` when the bridge is not running: its
+  file is gone, or its process is dead, which also covers a bridge that was killed.
+- `stub-replier.js --play` plays the orchestrator's loop on it.
+- `check-isolation.js --kings` checks the kings only. `--since <time>` makes the live test count only the guard log
+  entries and replies from that time on, so the kings' isolation test run again in a new session must pass on its own,
+  not on the simulation's old log lines.
+
+**The start prompt** `docs/PLAY-PROMPT.md`, for a new Claude Code session:
+- Checks: that `ANTHROPIC_API_KEY` is not set, usage, the stop point (90% of the weekly limit or of a 5-hour window),
+  the seven agent types, the dry check, the live isolation test of the seven kings with `--since`, and that the bridge
+  runs.
+- The loop on `wait.js --play 540`: one agent per listed request, started in parallel. A request still unanswered after
+  its agent finished gets one more start, then is left to the script.
+- The orchestrator's rule, and one rule more: Haakon is a player, so during the game he is told nothing about the other
+  kings, and he may read everything afterwards.
+- After the game: the audit and the usage.
+
+`sim/README.md` has a new section "Local play": how it fits together, the isolation and the pre-game check, what the
+player can see that a king cannot, why sleeping kings keep usage down, that usage is shared with the Claude apps, that
+`ANTHROPIC_API_KEY` must not be set, personal use only, and the exact steps (the king agents, the bridge, the web app,
+the session, play, stop). The root README lists the preset. DESIGN-NOTES has a paragraph on it under "File seats and
+the agent simulation", and the line under "Not built yet" is gone.
+
+### Readings
+
+- **Characters stay scripts in local play.** The item names "file-seat kings answered by guarded, isolated king
+  agents". Character agents are made per seed (`setup.js --seeds`), and a local game can have any seed.
+- **The king agents are the simulation's.** `node sim/setup.js --seeds 7,15` already made the seven `king-` types
+  (Sonnet), and local play uses them as they are. A king's agent file says the game is "played by seven kings", which
+  stays true; nothing tells a king which seats are human. The isolation test covers all seven kings, since the player
+  chooses his seat in the browser after the test.
+- **What the player can see.** The orchestrating session shows which king agents it starts, so the player can tell
+  which kings were woken. The folders hold the other kings' requests, and the god view and "Reveal all" show everything,
+  as in any game. The README says so. The kit keeps it from the kings, not from the developer at his own desk.
+- **The end of a session** is the bridge stopping (Ctrl+C), not the end of a game: a game can continue later from
+  "Saved games", and the orchestrator cannot see the game's state.
+
+### How it was verified
+
+No agent was started and no model call was spent.
+- **Tests:** 7 new, in `tests/Amarna.Game.Tests/LocalPlayTests.cs`, with a stand-in bridge over temporary folders:
+  - A local agent king's request is word for word a file seat's in the same game, but for the folder. Its reply is
+    played, and its call is logged as "local agent" with the request's length. The header's label is "Local agent".
+  - An unreadable reply gets the retry through the bridge.
+  - An agent that never answers times out, and its request is taken back.
+  - A stopped game takes its waiting request back.
+  - The bridge check says what is wrong: no bridge, or no folder for a king.
+  - Local agent kings need no key and cost nothing, and come back from a saved game's header. The preset keeps a human
+    seat and is not in `Presets.All`.
+  - A game with two local agent kings sleeps by default and replays exactly.
+
+  `dotnet test`: 718 pass (Engine 228, Game 473, Web 17), 711 before and 7 new. The build has 0 warnings, and so has
+  the Release publish of the web app. Replay check (`--games 10 --seed 1 --verify-replay --no-chronicles`): replay ok
+  for all ten. Nothing a script king sees changed, so the benchmarks were not run. On the first full run one of the
+  new tests hung under load: the test's stand-in bridge wrote a request in place, so its stand-in agent could open the
+  file while it was still being written, and the failed read ended its loop. It now writes through a temporary file and renames it, as `sim/bridge.js` and
+  the batch runner do. Five runs of the new tests on their own and two of the whole suite then passed.
+- **The whole route in the browser:** the real bridge, the web app (the `amarna-web` dev server in the built-in browser
+  pane) and `stub-replier.js --play` standing in for the orchestrator and its agents through `wait.js --play`.
+  - First run, playing Hatti: seasons 1 to 4. I sent an envoy to Mitanni and answered the audiences of envoys from
+    Mitanni and Arzawa each season. The six local agent kings gave orders every season and held their audiences,
+    Mitanni's with my envoy among them.
+  - The withdrawal: I stopped the stub replier with six season-4 orders requests waiting, which `wait.js --play`
+    listed, then began a new game in the same tab. All six were taken back, and `wait.js` listed none.
+  - With the bridge stopped, "Begin the age" refused with the bridge message, and `wait.js --play` reported
+    `bridge-stopped`.
+  - Second run, after the last web changes, in a fresh tab, playing Babylonia on seed 7: seasons 1 to 4 in 44 seconds.
+    The page showed the waiting notice while the agents decided, and the console showed no errors. Then the saved game
+    replayed in the browser to the season it had reached. "Continue" resumed it through the bridge and played season 4
+    on to season 5.
+  - The bridge's own guards, tried with curl: a foreign `Origin`, a foreign `Host`, a text/plain post, a seat name
+    from the object prototype (`toString`) and a name with a path in it were all refused. It answered on `[::1]`.
+    Restarting over a stale `bridge.json` worked, and a second bridge was refused.
+  - A request the bridge wrote had the right reply path, with forward slashes, and the footer.
+- `check-isolation.js --dry --kings` and `--dry`: `DRY ISOLATION HOLDS`.
+- The stub runs' files were moved out of the king folders afterwards (to `sim/runs/stub-local-play/` and
+  `stub-local-play-2/`), so each king's folder again holds only its canary and its isolation test.
+
+### New numbers (first guesses, kit settings, not balance)
+
+- **The bridge:** port 5190; the page asks for a reply every second; a reply that stays empty is handed back after 5
+  seconds, as the file seats do.
+- **Waits:** 60 minutes before the script king stands in for one decision (a table setting, 1 to 600 in the page); each
+  call to the bridge times out after 30 seconds; a post the bridge does not answer is tried four times, 2 seconds apart.
+- **Limits:** a request body may be at most 8 MB.
+- **Usage, in the README and the start prompt:** about 0.3 million agent tokens for a season in which all six other
+  kings are woken, and roughly 4 to 6 million for a 20-season game. They come from the simulation estimate's 44,000
+  tokens an orders call and 17,000 an audience, and from its rates of waking; they are not measured.
+
+### Left out, and why
+
+- **A live game.** No agent can start in this session (see the top of this report). The first real check is Haakon's
+  first session from `docs/PLAY-PROMPT.md`, whose live isolation test comes before any game.
+- **Characters as agents in local play.** Kings only, as the item says (see Readings).
+- **The launcher that returns nothing** (README, "Not built"): as in the simulation, the orchestrator's rule keeps the
+  agents' words apart.
+- **A count or names of the kings being waited on.** Left out on purpose, as above.
+- **Line endings.** The bridge's requests have Unix line endings, because the page builds the text; the batch
+  runner's on Windows have Windows line endings. The words are the same, and agents read both.
+- **Merging with fix (b).** The phone-performance branch moves the script kings into a Web Worker in `SeatFactory`.
+  Local agent kings are model leader seats, which stay in the page as API kings do, so this part does not touch
+  `SeatFactory`. It changes `SeatSetup`, `Home.razor` and `Play.razor` instead.
