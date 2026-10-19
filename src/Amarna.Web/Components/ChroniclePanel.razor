@@ -12,7 +12,7 @@
 <h4 style="margin-top:1rem">The true record between them</h4>
 @foreach (var e in Runner.State.Events.Where(e => e.Text.Contains(Left.ToString()) || e.Text.Contains(Right.ToString())).Where(e => e.Kind is not "support").TakeLast(60))
 {
-    <div><small class="muted">t@(e.Turn)</small> @e.Text</div>
+    <div><small class="muted" title="@Ui.When(e.Turn, null)">@Calendar.Short(e.Turn)</small> @Ui.Dated(e.Text, null)</div>
 }
 
 @code {

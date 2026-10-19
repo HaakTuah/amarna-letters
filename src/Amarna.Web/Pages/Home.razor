@@ -60,7 +60,7 @@
                             @foreach (var p in Powers.All)
                             {
                                 <tr>
-                                    <td><span class="dot" style="background:@Ui.Color(p)"></span> @p.Name()</td>
+                                    <td><Emblem Power="p" /> @p.Name()</td>
                                     <td class="muted">@p.Tier()</td>
                                     <td>
                                         <select value="@Settings.Choices.Leaders[p]" @onchange="e => SetLeader(p, (string)e.Value!)">

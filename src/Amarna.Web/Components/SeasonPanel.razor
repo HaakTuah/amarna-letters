@@ -1,0 +1,162 @@
+@* The season in words, beside the map: what was ordered and what came of it, what changed hands, who is on the road and
+   where everyone stands, as the current view knows it. Every line points at the map: a tap selects the place or
+   follows the person. *@
+@using Amarna.Web.Services
+@{
+    var f = Scene.Frame;
+    var v = Scene.Viewer;
+    var moves = Scene.Moves.OrderBy(m => Rank(m.Style)).ThenBy(m => m.Power).ToList();
+    var events = f.Events.Where(e => e.Kind is not ("support" or "battle" or "conquest") && (v is null || e.VisibleTo.Contains(v.Value))).ToList();
+    var news = v is { } me ? f.News.Where(n => n.Court == me).ToList() : [];
+}
+<div class="season-panel">
+    @if (Scene.Index == 0)
+    {
+        <h3>The opening positions</h3>
+        <p class="muted">Every king holds his homeland; the free cities hold their walls. Step forward to see the first season.</p>
+    }
+    else
+    {
+        <h3>@Ui.WhenCap(Scene.Index, v)</h3>
+        <p class="muted small">@(v is { } vv ? $"What {vv.Name()} saw of the season's moves, and its own people as it believes them." : "Everything that happened in the season.")</p>
+    }
+
+    @if (f.Ended && Scene.Index == f.Index)
+    {
+        <div class="notice"><strong>The age has ended</strong> (@f.EndReason). Winner: @string.Join(" and ", f.Winners).</div>
+    }
+
+    @if (Scene.Captures.Count > 0)
+    {
+        <h4>Changed hands</h4>
+        <ul class="lines">
+            @foreach (var c in Scene.Captures)
+            {
+                <li @onclick="() => OnProvince.InvokeAsync(c.Province)">
+                    <Emblem Power="c.To" /> <strong>@Ui.Province(c.Province)</strong> @c.Line
+                </li>
+            }
+        </ul>
+    }
+
+    @if (moves.Count > 0)
+    {
+        <h4>Moves and battles</h4>
+        <ul class="lines">
+            @foreach (var m in moves)
+            {
+                <li class="@($"ms-{m.Style.ToString().ToLowerInvariant()}")" @onclick="() => OnProvince.InvokeAsync(m.To)">
+                    <Emblem Power="m.Power" /> <span class="mv-tag">@Tag(m.Style)</span> @m.Text
+                </li>
+            }
+            @foreach (var d in Scene.Destroyed)
+            {
+                <li class="ms-destroyed" @onclick="() => OnProvince.InvokeAsync(d.Province)">
+                    <Emblem Power="d.Power" /> <span class="mv-tag">destroyed</span> @d.Power.Name()'s @MapScene.Kind(d.Kind) in @Ui.Province(d.Province)
+                </li>
+            }
+        </ul>
+    }
+    else if (Scene.Index > 0)
+    {
+        <p class="muted">@(v is null ? "Every unit held." : "No moves were seen.")</p>
+    }
+
+    @if (Scene.Travellers.Count > 0)
+    {
+        <h4>On the road</h4>
+        <ul class="lines">
+            @foreach (var t in Scene.Travellers.OrderBy(t => t.Arrive))
+            {
+                <li @onclick="() => Follow(t.CharacterId)" class="@(t.Believed ? "believed" : "")">
+                    <Emblem Power="t.Owner" /> @t.Title<span class="muted">; @(t.Believed ? "due back about" : "arrives") @Ui.When(t.Arrive, v)@(t.Gold > 0 && t.Kind != TravellerKind.Gold ? $", carrying {Ui.Shekels(t.Gold)}" : "")</span>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (Scene.People.Count > 0)
+    {
+        <h4>@(v is null ? "At foreign courts and posts" : "Your people abroad, and envoys at your court")</h4>
+        <ul class="lines">
+            @foreach (var p in Scene.People.OrderBy(p => p.Kind).ThenBy(p => p.Title))
+            {
+                <li @onclick="() => Follow(p.Id)" class="@(p.Believed ? "believed" : "")">
+                    <Emblem Power="p.Owner" /> @p.Title@(p.Double && v is null ? " (secretly serves another)" : "")
+                </li>
+            }
+        </ul>
+    }
+
+    @if (news.Count > 0)
+    {
+        <h4>Word that reached you</h4>
+        <ul class="lines">
+            @foreach (var n in news)
+            {
+                <li @onclick="() => NewsAt(n)">
+                    <span class="mv-tag">@(n.Kind == InboxKind.SpyReport ? "agent" : "rumour")</span> <strong>@n.Title</strong>: @Ui.Dated(n.Body, v)
+                </li>
+            }
+        </ul>
+    }
+
+    @if (events.Count > 0)
+    {
+        <h4>Also this season</h4>
+        <ul class="lines plain">
+            @foreach (var e in events.TakeLast(30))
+            {
+                <li>@Ui.Dated(e.Text, v)</li>
+            }
+        </ul>
+    }
+
+    @if (v is null && f.Sleep.Count > 0)
+    {
+        <h4>Sleeping kings</h4>
+        <ul class="lines plain">
+            @foreach (var (p, s) in f.Sleep.OrderBy(x => x.Key))
+            {
+                <li><Emblem Power="p" /> @SleepLine(s, null)</li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MapScene Scene { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnProvince { get; set; }
+    [Parameter] public EventCallback<string> OnPerson { get; set; }
+
+    private MapScene? _drawn;
+
+    protected override bool ShouldRender() => !ReferenceEquals(_drawn, Scene);
+
+    protected override void OnAfterRender(bool firstRender) => _drawn = Scene;
+
+    private Task Follow(string? id) => id is null ? Task.CompletedTask : OnPerson.InvokeAsync(id);
+
+    private Task NewsAt(FrameNews n)
+    {
+        var at = n.Province ?? (n.FromCourt is { } fc ? WorldMap.Default.Capital(fc).Id : null);
+        return at is null ? Task.CompletedTask : OnProvince.InvokeAsync(at);
+    }
+
+    private static int Rank(MoveStyle s) => s switch { MoveStyle.Attack => 0, MoveStyle.Bounce => 1, MoveStyle.Move => 2, MoveStyle.Convoy => 3, _ => 4 };
+
+    private static string Tag(MoveStyle s) => s switch
+    {
+        MoveStyle.Attack => "attack",
+        MoveStyle.Bounce => "bounced",
+        MoveStyle.Move => "move",
+        MoveStyle.Support => "support",
+        MoveStyle.SupportCut => "support cut",
+        _ => "convoy",
+    };
+
+    /// <summary>A sleeping seat's line, with the date labels: asleep since when, woken by when at the latest, and why it last woke.</summary>
+    public static string SleepLine(FrameSleep s, Power? court) =>
+        (s.Asleep ? $"Asleep since {Ui.When(s.LastCalled + 1, court)}; wakes by {Ui.When(s.WakeAt, court)} at the latest{(s.Named > 0 ? $" (it named {Ui.When(s.Named, court)})" : "")}." : "Awake.")
+        + (s.LastWokeAt > 0 ? $" Last woken in {Ui.When(s.LastWokeAt, court)} by: {string.Join("; ", s.LastReasons)}." : s.Spells > 0 ? " Sleeping for the first time." : " Has not slept yet.");
+}

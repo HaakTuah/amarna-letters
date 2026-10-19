@@ -1,12 +1,27 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject NavigationManager Nav
 
-<header class="topbar">
-    <a class="brand" href="">Amarna <span>Letters</span></a>
-    <nav>
-        <NavLink href="" Match="NavLinkMatch.All">New game</NavLink>
-        <NavLink href="play">Play &amp; watch</NavLink>
-        <NavLink href="about">How it works</NavLink>
-    </nav>
-</header>
+@* The game screen has its own compact header, so the page's own bar gives it the whole screen. *@
+@if (!OnGame)
+{
+    <header class="topbar">
+        <a class="brand" href="">Amarna <span>Letters</span></a>
+        <nav>
+            <NavLink href="" Match="NavLinkMatch.All">New game</NavLink>
+            <NavLink href="play">Play &amp; watch</NavLink>
+            <NavLink href="about">How it works</NavLink>
+        </nav>
+    </header>
+}
 @Body
+
+@code {
+    private bool OnGame => Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].TrimEnd('/') == "play";
+
+    protected override void OnInitialized() => Nav.LocationChanged += Moved;
+
+    private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => StateHasChanged();
+
+    public void Dispose() => Nav.LocationChanged -= Moved;
+}

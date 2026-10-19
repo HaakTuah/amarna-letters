@@ -1,0 +1,16 @@
+@* A power's emblem in its colour, inline with text: the key to the map's colours and its colour-free emblems. *@
+<svg class="@($"emblem-inline {(Power is { } p ? $"e-{p.ToString().ToLowerInvariant()}" : "e-none")}")" viewBox="-10 -10 20 20" aria-hidden="true">
+    @if (Power is { } q)
+    {
+        <circle r="9.6" class="ei-bg" />
+        <path d="@Amarna.Web.Components.Map.Glyphs.Emblem(q)" class="ei-fg" transform="scale(.78)" />
+    }
+    else
+    {
+        <circle r="8.5" class="ei-free" />
+    }
+</svg>
+
+@code {
+    [Parameter] public Power? Power { get; set; }
+}

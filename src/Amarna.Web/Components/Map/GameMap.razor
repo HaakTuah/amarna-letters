@@ -1,0 +1,92 @@
+@* The board. The static geography is written once as markup; each layer above it redraws only when what it shows
+   changes; pinch, pan and wheel zoom move one layer on the GPU (js/mapzoom.js) without a render. *@
+@using Amarna.Web.Components.Map
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div class="mapview lod1" @ref="_view">
+    <div class="mapzoom">
+        @* Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and
+           painted only when another season is shown), the pieces above (light, and the only thing repainted while
+           units and travellers slide). The upper one lets taps through to the provinces where it has nothing. *@
+        <svg class="map map-lower" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="@AriaLabel">
+            <StaticSvg Markup="@MapMarkup.Defs" />
+            <StaticSvg Markup="@MapMarkup.Base" />
+            <MapPolitics Frame="Scene.Frame" Part="tints" OnProvince="OnProvince" />
+            <MapFog Scene="Scene" />
+            <MapPolitics Frame="Scene.Frame" Part="bands" />
+            <StaticSvg Markup="@MapMarkup.Labels" />
+            <MapPolitics Frame="Scene.Frame" Part="cities" OnProvince="OnProvince" />
+        </svg>
+        <svg class="map map-upper" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <MapRoads Scene="Scene" Viewer="Scene.Viewer" FollowId="FollowId" Path="FollowPath" />
+            <MapMoves Scene="Scene" />
+            <MapUnits Scene="Scene" Viewer="Scene.Viewer" OnProvince="OnProvince" />
+            <MapPeople Scene="Scene" Viewer="Scene.Viewer" FollowId="FollowId" OnPerson="OnPerson" />
+            <MapSelection Selected="Selected" Targets="Targets" Arrows="Arrows" />
+        </svg>
+    </div>
+    <div class="map-ui zoombtns">
+        <button class="zb" title="Zoom in" aria-label="Zoom in" @onclick="() => Zoom(1.6)">+</button>
+        <button class="zb" title="Zoom out" aria-label="Zoom out" @onclick="() => Zoom(1 / 1.6)">−</button>
+        <button class="zb fit" title="Show the whole map" aria-label="Show the whole map" @onclick="Fit">⤢</button>
+    </div>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public MapScene Scene { get; set; } = default!;
+    [Parameter] public string? Selected { get; set; }
+    [Parameter] public HashSet<string>? Targets { get; set; }
+    [Parameter] public List<(string From, string To, bool Support)>? Arrows { get; set; }
+    [Parameter] public string? FollowId { get; set; }
+    [Parameter] public List<(int Index, Pt At, string Where)>? FollowPath { get; set; }
+    [Parameter] public EventCallback<string> OnProvince { get; set; }
+    [Parameter] public EventCallback<string> OnPerson { get; set; }
+    /// <summary>Overlays drawn over the map, outside the zoomed layer (legend, cards).</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private ElementReference _view;
+    private IJSObjectReference? _module;
+
+    private string AriaLabel => Scene.Viewer is { } v ? $"Map of the Great Kings' lands as {v.Name()} sees it" : "Map of the Great Kings' lands (god view)";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/mapzoom.js");
+            await _module.InvokeVoidAsync("attach", _view);
+        }
+        catch (JSException) { }
+    }
+
+    private async Task Zoom(double factor)
+    {
+        if (_module is not null) await _module.InvokeVoidAsync("zoomBy", _view, factor);
+    }
+
+    private async Task Fit()
+    {
+        if (_module is not null) await _module.InvokeVoidAsync("reset", _view);
+    }
+
+    /// <summary>Brings a point of the board into view (following a character, or a province chosen from the list).</summary>
+    public async Task FocusAsync(Pt at, double minZoom = 1)
+    {
+        if (_module is not null) await _module.InvokeVoidAsync("focus", _view, at.X, at.Y, minZoom);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null) return;
+        try
+        {
+            await _module.InvokeVoidAsync("detach", _view);
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException) { }
+        catch (JSException) { }
+    }
+}

@@ -1,32 +1,50 @@
+@using Amarna.Web.Services
 @{
     var map = WorldMap.Default;
     var p = map[Id];
-    var owner = State.Owner.GetValueOrDefault(Id);
-    var unit = View is null ? State.UnitAt(Id) is { } u ? new UnitView { Power = u.Power, Kind = u.Kind, Province = u.Province } : null
-                            : View.Units.FirstOrDefault(x => x.Province == Id);
+    var owner = Scene.Frame.OwnerOf(Id);
+    var units = Scene.Units.Where(u => u.Province == Id).ToList();
+    var people = Scene.People.Where(x => x.Province == Id).ToList();
+    var age = Scene.Viewer is null ? 0 : Scene.FogAge.TryGetValue(Id, out var a) ? a : -1;
+    var terrain = Geography.TerrainOf(Id);
+    var rivers = Geography.RiversThrough(Id).Select(r => r.Name).ToList();
+    var crossings = Geography.Crossings.Where(c => c.A == Id || c.B == Id).ToList();
+    var walls = Scene.Frame.Garrisons.Contains(Id);
 }
-<div class="card" style="margin-top:.5rem">
-    <h3>@p.Name @if (p.Capital) { <small class="muted">· capital</small> }</h3>
+<div class="infocard map-ui">
+    <div class="info-head">
+        <Emblem Power="@(p.IsSea ? null : owner)" />
+        <h3>@p.Name @if (p.Capital) { <small class="muted">· capital of @p.Home?.Name()</small> }</h3>
+        <button class="small" @onclick="OnClose" aria-label="Close">✕</button>
+    </div>
     @if (p.IsSea)
     {
-        <p class="muted">A sea zone. Fleets move through it; fleets here can convoy armies across.</p>
+        <p class="small">A sea zone. Fleets move through it; fleets here can convoy armies across.</p>
     }
     else
     {
-        <p>
+        <p class="small">
             @(owner is { } o ? $"Held by {o.Name()}." : "A free city-state.")
             Yields @Ui.Shekels(p.Yield) a season@(p.Home is { } h && h != owner ? $"; part of the homeland of {h.Name()}" : "").
-            @if (State.Garrisons.Contains(Id) && owner is null) { <span> Its walls hold against a single army: take it with support, or buy it for @Ui.Shekels(p.Yield * State.Config.NeutralPriceFactor).</span> }
-            else if (State.Garrisons.Contains(Id)) { <span> It accepted @owner?.Name()'s gold, and its walls hold for its owner.</span> }
+            @if (walls && owner is null) { <span> Its walls hold against a single army: take it with support, or buy it for @Ui.Shekels(p.Yield * State.Config.NeutralPriceFactor).</span> }
+            else if (walls) { <span> It accepted @owner?.Name()'s gold, and its walls hold for its owner.</span> }
+        </p>
+        <p class="small muted">
+            @(terrain == Terrain.Open ? "Open ground" : terrain == Terrain.Rough ? "Rough ground" : "Desert")@(rivers.Count > 0 ? $" on the {string.Join(" and the ", rivers)}" : "")@(crossings.Count > 0 ? $"; {string.Join("; ", crossings.Select(c => $"{c.Name} towards {Ui.Province(c.A == Id ? c.B : c.A)}"))}" : "").
+            Terrain has no effect yet.
         </p>
     }
-    @if (unit is not null)
+    @foreach (var u in units)
     {
-        <p><span class="dot" style="background:@Ui.Color(unit.Power)"></span> @(unit.Kind == UnitKind.Army ? "An army" : "A fleet") of @unit.Power.Name() stands here.</p>
+        <p class="small"><Emblem Power="u.Power" /> @(u.Count > 1 ? $"{u.Count} {MapScene.Kind(u.Kind)}s" : u.Kind == UnitKind.Army ? "An army" : "A fleet") of @u.Power.Name()@(u.Ghost ? $": last seen here in {Ui.When(u.SeenAt + 1, Scene.Viewer)}; it may have gone" : " stands here").</p>
     }
-    else if (View is not null && !View.Visible.Contains(Id))
+    @if (Scene.Viewer is not null && age != 0)
     {
-        <p class="muted">Beyond your sight: you cannot see troops here.</p>
+        <p class="small muted">@(age < 0 ? "Never in your sight: you cannot see troops here." : $"Out of your sight: you last saw troops here in {Ui.When(Scene.Index - age + 1, Scene.Viewer)}, {age} season{(age == 1 ? "" : "s")} ago.") Who holds it is known to every court.</p>
+    }
+    @foreach (var x in people)
+    {
+        <p class="small tap" @onclick="() => OnPerson.InvokeAsync(x.Id)"><Emblem Power="x.Owner" /> @x.Title <span class="link">follow</span></p>
     }
     <small class="muted">Neighbours: @string.Join(", ", map.Neighbors(Id).Distinct().Select(Ui.Province))</small>
 </div>
@@ -34,5 +52,7 @@
 @code {
     [Parameter, EditorRequired] public GameState State { get; set; } = default!;
     [Parameter, EditorRequired] public string Id { get; set; } = "";
-    [Parameter] public SeatView? View { get; set; }
+    [Parameter, EditorRequired] public MapScene Scene { get; set; } = default!;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<string> OnPerson { get; set; }
 }
