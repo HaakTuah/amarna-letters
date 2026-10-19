@@ -172,7 +172,7 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
   and decisions), and version 2 was never released, so it stays version 2: a version-2 log saved
   before back pay would replay under the new wage rules and may diverge. The same holds for the rest of
-  Part G (the capital trigger, triggers on changes).
+  Part G (the capital trigger, triggers on changes, the news of losses abroad).
 
 ## Communication
 
@@ -335,7 +335,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   death. Characters weigh it as a motive (see Script envoys, "An offer of service, and back pay"), and
   script kings count it as gold already spent (see Script kings, Treasury). The loophole this opens
   (a king saves the back pay of people sent on missions they do not survive) is meant to be closed
-  by reputation, which is not built.
+  by reputation, which is not built; its first half is: losses abroad reach other courts by
+  carriers (see "Losses abroad travel with people").
 - **Background checks**: public facts always; hidden facts with chance spend/150 (max 90%); deep
   facts with chance spend/400 (max 60%). Never the whole truth. The rulebook states these odds, the
   spies' and the examinations' below, and the fees, as they are (until the simulation-fixes round it
@@ -427,6 +428,33 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   the truth at once: a caught spy "at court, ready for a mission", a detained envoy "has not
   returned" the same season, a defector dropped off the list and its wage stopped, an executed spy
   vanished.)
+- **Losses abroad travel with people** (since Part G of the simulation-fixes round, the user's
+  decision on the back-pay loophole). A spy caught at a court, and a captive put to death there, are
+  the talk of that court (`GameState.Losses`, one `LossAbroad` each: the season, the court, the
+  servant, and whom it served as that court knows it, which is known only if it confessed when
+  caught). Other courts hear of it only from carriers: an envoy received at that court hears of each
+  captive it still holds with a chance of its skill/100 (as it notices other envoys there), and of
+  each servant it put to death in the season of the death or the 3 after (`TurnEngine.LossNewsSeasons`)
+  with a chance of 0.4 + skill/200 (as it notices the court's catastrophes); a spy posted there
+  hears of the captives with a chance of its skill/100 and always of the deaths (as of the court's
+  catastrophes). The lines go into the carrier's report like its other observations: "Assyria holds
+  Mane, a spy of Babylonia, captive (caught in turn 4)."; "Assyria put Mane, a spy of
+  Babylonia, to death in turn 6."; and, for one that never said whom it served, "a spy who will not
+  say whom they serve" / "a spy who would not say whom they served". Each begins with the court's
+  name, so a bribed script envoy leaves it out with the rest of what it saw of the host. A captive no
+  longer held (ransomed, released or turned) is not talked of, so a turn is not given away; nor is a
+  captive the carrier itself. The draws come from their own stream (`losses-heard`), so nothing else a
+  carrier notices changed. A carrier's word does not end its own master's cover (as a detained envoy
+  seen by a fellow envoy did not before): only the existing news does (see above). Detained envoys
+  were already talked of the same way ("held there against their will"). The rulebook, under WHAT YOU
+  SEE: "Word of captives and executions travels with people: an envoy received at a court, or a spy
+  posted there, may hear which servants of other courts it holds captive and whom it has put to death
+  within the last 3 seasons, and brings that home in its report. Other courts' envoys and spies hear
+  the same at yours." (tested). Nothing yet weighs this news: no script king or script character
+  reads these lines (the bots' crude letter sentiment counts none of their words), and the check the
+  design document intends, characters wary of a court that loses or executes its people, is not built
+  (see Not built yet). (Until Part G only the dead servant's own king, and any court that still
+  believed it served it, heard of an execution, and nobody but the captor heard of a capture.)
 - **Ransoms.** A captor's ransom order sends its demand to the captive's king as a rumour (one or
   two seasons on the road); for a captive its king has dismissed, to that king. A captive has one
   open demand: a new order replaces the old one. A replaced demand whose word is still on the road
@@ -1418,6 +1446,11 @@ The design document records intent; these notes record what is built. Where they
   it" under Pacing).
 - Conditional orders beyond the two standing-order events: "unless" conditions on scheduled orders,
   and conditions on the treasury, an envoy's return or a sealed tablet.
+- Reputation from losses abroad: characters who hear that a court loses its people abroad, or puts
+  others' to death, growing wary of serving it or visiting it (design document, main tab, "Wages are
+  paid on return"; the user's decision of 18 October in `docs/ROUND-PROMPT-ADDITIONS.md`, section 6).
+  The news already reaches other courts by carriers (see "Losses abroad travel with people"); what
+  script characters would need to weigh it is listed in the simulation-fixes round report.
 - Multiplayer (stages 2 and 3 of the design document): the engine runs in one browser.
 - Shareable spectator links; the log file is the way to share a game.
 - Art, animation, sound.

@@ -198,6 +198,8 @@ public sealed partial class TurnEngine
                 if (rng.Chance(skill)) obs.Add($"{v.Name}, envoy of {v.Employer}, was received at {court}{(v.Duty == Duty.Detained ? " and is being held there" : "")}.");
             foreach (var cat in S.Catastrophes.Where(x => x.Power == court && x.EndTurn >= S.Turn && x.StartTurn <= S.Turn + 1))
                 obs.Add($"In {court}: {cat.Text}");
+            // The captives the court holds, noticed as envoys at court are; its executions, always, as catastrophes are.
+            obs.AddRange(LossesHeard(c, court, held: skill, death: 1));
             foreach (var x in S.Characters.Where(x => x.Employer == court && x.At == court && x.Id != c.Id))
             {
                 var secret = x.Facts.FirstOrDefault(f => f.Secrecy == Secrecy.Hidden && !f.KnownBy.Contains(c.Employer!.Value));
@@ -214,6 +216,36 @@ public sealed partial class TurnEngine
         }
         if (obs.Count == 0) obs.Add("Nothing of note this season.");
         return obs;
+    }
+
+    /// <summary>How long a court talks of a servant it put to death: the season of the death and this many after.</summary>
+    public const int LossNewsSeasons = 3;
+
+    /// <summary>
+    /// What a carrier (an envoy received at <paramref name="court"/>, or a spy posted there) hears of the servants of other
+    /// courts caught or put to death there: the captives the court still holds, each with the chance <paramref name="held"/>,
+    /// and those it put to death in the last <see cref="LossNewsSeasons"/> seasons, with the chance <paramref name="death"/>,
+    /// named with their master where the court knows it. Its own random stream, so nothing else the carrier notices changes.
+    /// Each line begins with the court's name, as the carrier's other news of the court does.
+    /// </summary>
+    private List<string> LossesHeard(Character carrier, Power court, double held, double death)
+    {
+        var rng = R("losses-heard", carrier.Id);
+        var heard = new List<string>();
+        var talk = S.Losses.Where(l => l.Court == court && l.CharacterId != carrier.Id)
+            .GroupBy(l => (l.CharacterId, l.Kind)).Select(g => g.Last()).OrderBy(l => l.Turn).ThenBy(l => IdNumber(l.CharacterId));
+        foreach (var l in talk)
+        {
+            if (S.FindCharacter(l.CharacterId) is not { } x) continue;
+            if (l.Kind == LossKind.Captured && x.Status == CharacterStatus.Captured && x.HeldBy == court)
+            {
+                if (rng.Chance(held))
+                    heard.Add($"{court} holds {x.Name}, {(l.Master is { } m ? $"a spy of {m}" : "a spy who will not say whom they serve")}, captive (caught in turn {l.Turn}).");
+            }
+            else if (l.Kind == LossKind.PutToDeath && S.Turn - l.Turn <= LossNewsSeasons && rng.Chance(death))
+                heard.Add($"{court} put {x.Name}, {(l.Master is { } m ? $"a spy of {m}" : "a spy who would not say whom they served")}, to death in turn {l.Turn}.");
+        }
+        return heard;
     }
 
     private void SpyReportArrives(Journey j)
@@ -240,6 +272,8 @@ public sealed partial class TurnEngine
             $"Your watchmen caught {c.Name}" + (confesses ? $", who confesses to serving {employer}." : ", who will not say whom they serve.")
             + " You may execute, ransom, turn or release them.", c.Id);
         S.Log("spy-caught", $"{host} caught {c.Name}, a spy of {employer}.", [host], "spy-caught");
+        // The talk of the court that holds it, for the envoys and spies there to carry home: whose spy, if it confessed.
+        S.Losses.Add(new LossAbroad { Turn = S.Turn, Kind = LossKind.Captured, CharacterId = c.Id, Court = host, Master = confesses ? employer : null });
     }
 
     private void Captive(Power host, CaptiveOrder co)
@@ -271,6 +305,12 @@ public sealed partial class TurnEngine
                 // The rumour reaches its king, and every court that still believes the dead one serves it.
                 foreach (var heard in Powers.All.Where(p => p == employer || c.CoverOf(p) is not null))
                     Rumor(heard, host, $"It is said that {c.Name} was put to death in {host}.", c.Id, NewsKind.Death);
+                // Other courts hear of it only from their envoys and spies at this court (see LossesHeard).
+                S.Losses.Add(new LossAbroad
+                {
+                    Turn = S.Turn, Kind = LossKind.PutToDeath, CharacterId = c.Id, Court = host,
+                    Master = S.Losses.LastOrDefault(l => l.CharacterId == c.Id && l.Court == host && l.Kind == LossKind.Captured)?.Master,
+                });
                 break;
             case CaptiveFate.Ransom:
                 var payer = OrderValidator.RansomPayer(S, c)!.Value;

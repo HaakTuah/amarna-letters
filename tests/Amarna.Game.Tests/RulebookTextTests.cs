@@ -17,6 +17,13 @@ public class RulebookTextTests
     }
 
     [Fact]
+    public void The_rulebook_says_that_word_of_captives_and_executions_travels_with_envoys_and_spies()
+    {
+        Assert.Equal(3, TurnEngine.LossNewsSeasons);
+        Assert.Contains("- Word of captives and executions travels with people: an envoy received at a court, or a spy posted there, may hear which servants of other courts it holds captive and whom it has put to death within the last 3 seasons, and brings that home in its report. Other courts' envoys and spies hear the same at yours.", Rules);
+    }
+
+    [Fact]
     public void The_rulebook_says_when_a_support_is_void_and_when_the_other_side_is_named()
     {
         Assert.Contains("A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds.", Rules);

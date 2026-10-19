@@ -411,6 +411,8 @@ public sealed partial class TurnEngine
             if (rng.Chance(skill)) obs.Add($"{o.Name}, envoy of {o.Employer}, was also at the court{(o.Duty == Duty.Detained ? ", held there against their will" : "")}.");
         foreach (var cat in S.Catastrophes.Where(x => x.Power == court && x.StartTurn <= S.Turn + 1 && x.EndTurn >= S.Turn))
             if (rng.Chance(0.4 + skill / 2)) obs.Add($"In {court}: {cat.Text}");
+        // The captives the court holds, noticed as other envoys at court are; its executions, as its catastrophes are.
+        obs.AddRange(LossesHeard(c, court, held: skill, death: 0.4 + skill / 2));
         if (court == c.Traits.Sympathy) c.Traits.SympathyStrength = Math.Min(100, c.Traits.SympathyStrength + 5);
         return obs;
     }

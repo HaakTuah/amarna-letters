@@ -34,6 +34,8 @@ public sealed class GameState
     public List<Tablet> Tablets { get; set; } = new();
     public List<TabletCopy> Copies { get; set; } = new();
     public List<Catastrophe> Catastrophes { get; set; } = new();
+    /// <summary>Servants caught or put to death abroad, at the court that did it: the talk of that court, which envoys and spies there carry home.</summary>
+    public List<LossAbroad> Losses { get; set; } = new();
     public List<PendingTask> Tasks { get; set; } = new();
     public Dictionary<Power, int> CounterIntel { get; set; } = new();
     /// <summary>Seats that may sleep (model and file seats, when <see cref="GameConfig.SleepingSeats"/> is on). Each sees only its own.</summary>
@@ -401,6 +403,24 @@ public sealed class Catastrophe
     /// <summary>Income multiplier while active (whole realm, or one province if Province is set).</summary>
     public double IncomeFactor { get; set; } = 1;
     public string Text { get; set; } = "";
+}
+
+public enum LossKind { Captured, PutToDeath }
+
+/// <summary>
+/// A servant of another court caught or put to death at a court, as that court knows it. It is the talk of that court:
+/// envoys received there and spies posted there may hear of it and carry it home in their reports, so a court that
+/// loses its people abroad, or puts them to death, becomes known for it, but only where someone carried the news.
+/// </summary>
+public sealed class LossAbroad
+{
+    public int Turn { get; set; }
+    public LossKind Kind { get; set; }
+    public string CharacterId { get; set; } = "";
+    /// <summary>The court that caught or put the servant to death.</summary>
+    public Power Court { get; set; }
+    /// <summary>Whom the servant served, as that court knows it: null if the captive never said.</summary>
+    public Power? Master { get; set; }
 }
 
 public enum TaskKind { Candidates, BackgroundCheck, Authenticate, RansomDemand }
