@@ -433,7 +433,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   exceptions: the script king that stands in when a call fails (below, and "When a model call
   fails" under sleeping seats), and the server-side refusal fallback, under which another model
   answers a refused Sonnet or Opus call (logged as `UsedFallback`). A host's audience runs on the
-  seat's own model, one effort level lower.
+  seat's own model, one effort level lower. Not exceptions, but close to the line: a king's envoys
+  are characters with minds of their own (script, Haiku or Sonnet), so what a host hears is the
+  envoy's rendering of the king's message, and an envoy may commit its king at a foreign court
+  (`commitments`, logged in the message trail); that is the character's decision, by design.
 - Every state-changing output uses structured output (a JSON schema). Orders face the same
   validator as any seat. An unreadable reply is retried once with the error; then the runner
   uses a script decision for that call and logs the failure.
