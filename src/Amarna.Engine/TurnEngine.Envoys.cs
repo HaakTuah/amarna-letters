@@ -540,6 +540,9 @@ public sealed partial class TurnEngine
                 if (c is null) return;
                 var lord = req.For();
                 var cargo = req.Cargo ?? new HomeCargo();
+                // What the envoy itself said, which it remembers: the court's own note on the weighing is added after it for
+                // the king, and is not the envoy's words.
+                var own = text;
                 if (cargo.Gold > 0)
                 {
                     var skim = Math.Clamp(reply.Number, 0, cargo.Gold);
@@ -569,7 +572,7 @@ public sealed partial class TurnEngine
                     trail.ReportTurn = S.Turn;
                 }
                 S.Notify(lord, InboxKind.EnvoyReport, $"{c.Name} returns", text, c.Id);
-                c.Remember(S.Turn, $"I reported to my lord: \"{Greeting.Cap(text, 300)}\"");
+                c.Remember(S.Turn, $"I reported to {(c.Employer == lord ? "my lord" : $"the king of {lord.Land()}")}: \"{Greeting.Cap(own, 300)}\"");
                 break;
             }
             case MindTask.Pitch:

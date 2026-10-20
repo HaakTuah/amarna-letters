@@ -54,6 +54,11 @@ public sealed class EnvoyContext
     public int Round { get; init; }
     public int MaxRounds { get; init; }
     public List<Exchange> SoFar { get; init; } = new();
+    /// <summary>
+    /// It accepted the host's gift at an earlier exchange of this audience: an envoy takes one gift per audience, so a later
+    /// gift is not given, and a model envoy is not asked whether to take it.
+    /// </summary>
+    public bool GiftTaken { get; init; }
     public string Delivered { get; init; } = "";
     public int Skim { get; init; }
     /// <summary>The back pay its employer owes it, paid when it is back at his court; lost if it goes over to another.</summary>

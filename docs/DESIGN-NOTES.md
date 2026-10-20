@@ -333,13 +333,16 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     examine any tablet it holds, or send the inventory back to its sender as evidence, who knows what it sealed.
   - Script envoys decide by formula (see Script envoys); model envoys decide for themselves, told in their prompt that
     they could keep some gold "and, if you leave some, hand over in place of the inventory one you forge yourself,
-    stating only what is left", and whether their hand is skilled enough to fake a seal, with the schema field
-    `swap_inventory` saying what it takes and risks. The gold fields (`keep_gold`, `swap_inventory`) are in the schema of
+    stating only what is left", and that their hand is skilled enough to fake a seal, with the schema field
+    `swap_inventory` saying what it risks. The gold fields (`keep_gold`, `swap_inventory`) are in the schema of
     a presentation or a report home only when the envoy carries gold, and the shared character text says the gold
     decisions come "only when you carry gold"; likewise an envoy's answer at an audience asks `accept_gift` only when a gift
     is offered and `accept_service` only when a post is. (Until the fix pass after item 4 every speech and report asked
     how much of "the carried gold" to keep: in the second agent simulation one envoy told a host that gold came with him
-    when none did, and 35 of the 36 character debriefs raised it.)
+    when none did, and 35 of the 36 character debriefs raised it.) Since the same pass's builder rule "Requests are rules
+    too", `swap_inventory` is asked only of an envoy whose hand can fake a seal: one without the skill is told "your hand is
+    not skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold
+    missing against the inventory", and is not offered the swap (it once was, beside the line saying it could not).
   The rulebook says all this under ENVOYS ("Gold an envoy carries goes with an inventory tablet …").
 - **Debasement is a ledger, not a coin type.** A power's displayed treasury counts unassayed lots
   at their weight. True gold is what is actually spent; a payment the true treasury cannot cover
@@ -537,7 +540,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   post (a court, or out in their province) and report what their new master wants, plus one true
   observation; one whose master, not knowing it was caught, had recalled it comes home instead, as
   told. A spy's report is written when it arrives, of the season it was observed: a model-played
-  spy remembers nothing that happened to it since (such as its capture). A spy at a court also copies
+  spy remembers nothing that happened to it since (such as its capture), and its request says it is
+  that season ("It is now season 3", where it once gave the season the report arrived, beside "This
+  season you observed"). A spy at a court also copies
   from its archive, and the copies come home with its report (see "Tablets lie in archives").
 - **A spy at a court is hidden from it** (since Build order item 4; the rulebook says so under the spies'
   paragraph). A spy posted at a court stands there (`Character.At`), but the court does not see it there
@@ -750,6 +755,27 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - Every state-changing output uses structured output (a JSON schema). Orders face the same
   validator as any seat. An unreadable reply is retried once with the error; then the runner
   uses a script decision for that call and logs the failure.
+- **Requests are rules too** (a builder rule, decided 20 October 2026; applied in the fix pass after item 4, whose report
+  has the field-by-field audit under "Additions: requests are rules too"). Models read their requests literally, so every
+  field is a nudge: no field may imply something that is not true. Each request asks only what applies, shows no internal
+  id or number a king or character could repeat, and keeps the engine's outcomes apart from a character's own words.
+  Fields that need an answer (a yes or no, an amount) are in a schema only when the question applies; a list that may be
+  left empty (letters, orders, tablets to show) is an offer, not a question, and stays. Besides the cases item 4 found
+  (part 2 of the fix pass), the audit changed, for characters:
+  - an envoy is asked whether to swap an inventory only if its hand can fake a seal (see Swapped inventories);
+  - an envoy that took the host's gift at an earlier exchange is not asked about another, which would not be given: "He
+    offers you another gift of 20 shekels, but an envoy takes one gift at an audience and you have taken his already, so
+    it will not be given." (`EnvoyContext.GiftTaken`, as the engine counts the gift);
+  - gold a host names for the envoy's lord is "handed to you when the audience ends, if his treasury can pay it" (and "you
+    go home to your lord", when a post is offered too), not "He sends …", and a detained envoy is not told of it, since it
+    takes none home;
+  - an envoy that was never received (its host's kingdom had fallen) reads "you were never received there: you came back
+    without an audience", not "You told its king: """; one dismissed while away reports to the king who sent it, "who is
+    no longer your lord";
+  - a spy's request gives the season it observed as the season it is (see Spies, under Characters);
+  - an envoy remembers its own report ("I reported to my lord: "…""), without the court's note on the weighing that the
+    king's news adds after it ("[The inventory lists …; your weighers found …]"), which it once remembered as its own words;
+  - a file request's heading is no longer the call's key (see File seats).
 - **Server-side refusal fallback** (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`)
   is on for Sonnet and Opus calls. Haiku has no server fallback; a refused Haiku call falls back
   to the script character.
@@ -1370,6 +1396,9 @@ Requests and replies left in a folder by an earlier game are moved aside when a 
 Only a file seat's request ends with a footer for the agent answering it (`FileExchange.Footer`):
 its final message must be the single word "done", and earlier reply files cannot be read, so its
 record of earlier seasons is in the request. A model king called through the API never sees it.
+The request is headed "# Your decision" (`FileExchange.Heading`), not with the call's key, which holds the season as an id
+and a person's id ("t2/aud/present/c7"): since the fix pass after item 4 ("Requests are rules too") nothing a king or
+character reads offers it an internal id to repeat. The key stays the file's name, which the kit needs, and the log's.
 The request prints the schema indented, but with each field (an object that holds no other object:
 its type, enum and description) on one line, and without escaping apostrophes
 (`FileExchange.Readable`): the same schema, 14,681 characters in 219 lines for the orders schema

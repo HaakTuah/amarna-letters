@@ -163,8 +163,11 @@ public class InventorySwapTests
     {
         var present = Schemas.Present().ToJsonString();
         Assert.Contains("\"swap_inventory\"", present);
-        Assert.Contains("Faking the seal takes a forger's hand", Schemas.Present()["properties"]!["swap_inventory"]!["description"]!.GetValue<string>());
+        Assert.Contains("can be found out if the king pays to have it examined", Schemas.Present()["properties"]!["swap_inventory"]!["description"]!.GetValue<string>());
         Assert.Contains("\"swap_inventory\"", Schemas.Report().ToJsonString());
+        // Only a hand that can fake a seal is asked (since "Requests are rules too").
+        Assert.DoesNotContain("\"swap_inventory\"", Schemas.Present(canForge: false).ToJsonString());
+        Assert.DoesNotContain("\"swap_inventory\"", Schemas.Report(canForge: false).ToJsonString());
         var parsed = Parse.Present((System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse("""{"speech":"Hail.","keep_gold":15,"swap_inventory":true}""")!);
         Assert.Equal((15, true), (parsed.Skim, parsed.SwapInventory));
         var report = Parse.Report((System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse("""{"report":"Back.","keep_gold":5,"swap_inventory":true}""")!);
@@ -181,8 +184,9 @@ public class InventorySwapTests
     }
 
     [Theory]
-    [InlineData(70, "Your hand is skilled enough to fake a seal.")]
-    [InlineData(54, "Your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory.")]
+    [InlineData(70, "You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. Your hand is skilled enough to fake a seal.")]
+    // Without the skill it is not offered the swap at all (since "Requests are rules too"), only told that a shortfall shows.
+    [InlineData(54, "You could quietly keep some before it is weighed, but your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.")]
     public async Task A_model_envoy_carrying_gold_is_told_whether_its_hand_can_fake_a_seal(int competence, string hand)
     {
         var (mind, prompts) = ModelMind();
@@ -193,7 +197,7 @@ public class InventorySwapTests
             Request = new MindRequest { Task = MindTask.EnvoyReport, CharacterId = envoy.Id, Court = Power.Egypt, Cargo = new HomeCargo { Gold = 60, GoldStated = 60 } },
             Self = envoy, Turn = 3, Seed = 1, ForgeMinCompetence = 55,
         }, default);
-        Assert.All(prompts(), p => Assert.Contains("You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. " + hand, p));
+        Assert.All(prompts(), p => Assert.Contains(hand, p));
         Assert.Equal(2, prompts().Count);
 
         // Without gold there is nothing to keep or swap, and nothing is said of its hand.

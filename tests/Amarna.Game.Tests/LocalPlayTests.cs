@@ -137,7 +137,8 @@ public class LocalPlayTests
         await answering;
 
         var request = await File.ReadAllTextAsync(Path.Combine(bridge.Folders[Power.Alashiya], "t1_orders_Alashiya.request.md"));
-        Assert.StartsWith("# t1/orders/Alashiya", request);
+        Assert.StartsWith(FileExchange.Heading, request);
+        Assert.DoesNotContain("t1/orders/Alashiya", request);
         Assert.Contains("Decide as the king", request);
         Assert.Contains("Great King of Alashiya", request);
         Assert.Contains($"to: {bridge.ReplyPath(Power.Alashiya, "t1_orders_Alashiya")}", request);

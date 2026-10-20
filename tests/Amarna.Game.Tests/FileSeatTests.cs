@@ -59,7 +59,7 @@ public class FileSeatTests
         stop.Cancel();
         await answering;
 
-        var request = seen.First(t => t.StartsWith("# t1/orders/Alashiya"));
+        var request = seen.First(t => t.Contains("t1_orders_Alashiya.reply.json"));
         Assert.Contains("You are playing Amarna Letters", request);
         Assert.Contains("CUSTOMS OF THE AGE", request);
         Assert.Contains("Habiru", request);
@@ -92,7 +92,7 @@ public class FileSeatTests
         await answering;
 
         Assert.Empty(runner.Errors);
-        var second = seen.First(t => t.StartsWith("# t2/orders/Alashiya"));
+        var second = seen.First(t => t.Contains("t2_orders_Alashiya.reply.json"));
         Assert.Contains("YOUR SUMMARY OF EARLIER SEASONS (your own words, turn 1): zq-summary of what I learned", second);
         Assert.Contains("turn 1 notes: zq-notes", second);
         Assert.Contains("- Egypt (turn 1): zq-ledger: Egypt owes me 40.", second);

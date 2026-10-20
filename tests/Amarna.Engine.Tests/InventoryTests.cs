@@ -135,6 +135,27 @@ public class InventoryTests
     }
 
     [Fact]
+    public void An_envoy_remembers_its_own_report_not_the_court_s_note_on_the_weighing()
+    {
+        // "Requests are rules too": what the court's weighers found is the engine's, added for the king after the report, and
+        // never the envoy's own words (it once read in the envoy's memory as part of what it said).
+        var (s, e, envoy, a) = AtAudience(competence: 40);
+        e.ApplyAudience(Record(a, skim: 0, swap: false, new HostReply { Speech = "Take this home.", GoldBack = 60, End = true }));
+        TurnEngine home;
+        do
+        {
+            e.Resolve(new Dictionary<Power, TurnSubmission>());
+            home = e = new TurnEngine(s);
+            e.BeginTurn();
+        } while (envoy.Duty != Duty.None);
+        home.Fulfil(home.MindRequests.Single(r => r.Task == MindTask.EnvoyReport), new MindReply { Text = "I am back with the gold." });
+
+        Assert.Contains("I am back with the gold.\n\n[The inventory lists 1 mina of gold; your weighers found 1 mina.]", s.InboxOf(Power.Egypt).Single(i => i.Kind == InboxKind.EnvoyReport).Body);
+        var memory = envoy.Memory.Last(m => m.Text.StartsWith("I reported", StringComparison.Ordinal)).Text;
+        Assert.Equal("I reported to my lord: \"I am back with the gold.\"", memory);
+    }
+
+    [Fact]
     public void Examining_a_swapped_inventory_can_find_the_forgery_and_trace_it_to_the_envoy_who_brought_it()
     {
         var (s, e, envoy, a) = AtAudience(competence: 60);

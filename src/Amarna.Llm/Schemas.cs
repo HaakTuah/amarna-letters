@@ -161,20 +161,31 @@ public static class Schemas
     /// <summary>
     /// An envoy's presentation. The gold fields are asked only of an envoy that carries gold: one that carries none is not
     /// asked what it keeps of it (in the second agent simulation, asked every time, envoys spoke of gold they never had).
+    /// Whether to swap the inventory is asked only of an envoy whose hand can fake a seal (<paramref name="canForge"/>):
+    /// one without the skill could not use a forgery, so the question would offer it something it cannot do.
     /// </summary>
-    public static JsonObject Present(bool carriesGold = true) => carriesGold
-        ? Object(
-            ("speech", Str(PresentSpeech)),
-            ("keep_gold", Int("Shekels of the gold you carry that you quietly keep for yourself, or 0.")),
-            ("swap_inventory", Bool(SwapInventory)))
-        : Object(("speech", Str(PresentSpeech)));
+    public static JsonObject Present(bool carriesGold = true, bool canForge = true) => !carriesGold
+        ? Object(("speech", Str(PresentSpeech)))
+        : canForge
+            ? Object(
+                ("speech", Str(PresentSpeech)),
+                ("keep_gold", Int(KeepGold)),
+                ("swap_inventory", Bool(SwapInventory)))
+            : Object(
+                ("speech", Str(PresentSpeech)),
+                ("keep_gold", Int(KeepGold)));
+
+    private const string KeepGold = "Shekels of the gold you carry that you quietly keep for yourself, or 0.";
 
     private const string PresentSpeech = "What you say to the king, delivering your lord's message in your own words.";
 
-    /// <summary>What an envoy that keeps gold may do with the inventory tablet it carries.</summary>
-    private const string SwapInventory = "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. Faking the seal takes a forger's hand (you are told whether yours is one); without one you dare not use it and the true inventory is handed over. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
+    /// <summary>What an envoy that keeps gold, and whose hand can fake a seal (the only one asked), may do with the inventory tablet it carries.</summary>
+    private const string SwapInventory = "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
 
-    /// <summary>An envoy's answer at an audience: whether to take a gift or a post only when one is offered.</summary>
+    /// <summary>
+    /// An envoy's answer at an audience: whether to take a gift or a post only when one is offered (and a gift only while it
+    /// can still be taken: an envoy takes one gift per audience, so a later one is not asked about).
+    /// </summary>
     public static JsonObject React(bool giftOffered = true, bool serviceOffered = true)
     {
         var fields = new List<(string Name, JsonObject Schema)> { ("speech", Str("What you say in answer.")) };
@@ -184,13 +195,22 @@ public static class Schemas
         return Object([.. fields]);
     }
 
-    /// <summary>An envoy's report home, with the gold fields only when it carries gold home (gold a host sent back with it).</summary>
-    public static JsonObject Report(bool carriesGold = true) => carriesGold
-        ? Object(
-            ("report", Str(ReportText)),
-            ("keep_gold", Int("Shekels of the gold you carry home that you quietly keep, or 0.")),
-            ("swap_inventory", Bool(SwapInventory)))
-        : Object(("report", Str(ReportText)));
+    /// <summary>
+    /// An envoy's report home, with the gold fields only when it carries gold home (gold a host sent back with it), and the
+    /// swap only when its hand can fake a seal, as in <see cref="Present"/>.
+    /// </summary>
+    public static JsonObject Report(bool carriesGold = true, bool canForge = true) => !carriesGold
+        ? Object(("report", Str(ReportText)))
+        : canForge
+            ? Object(
+                ("report", Str(ReportText)),
+                ("keep_gold", Int(KeepGoldHome)),
+                ("swap_inventory", Bool(SwapInventory)))
+            : Object(
+                ("report", Str(ReportText)),
+                ("keep_gold", Int(KeepGoldHome)));
+
+    private const string KeepGoldHome = "Shekels of the gold you carry home that you quietly keep, or 0.";
 
     /// <summary>What an envoy's report is, as its schema says (a spy's report is "Your report home.").</summary>
     public const string ReportText = "Your report to your lord.";

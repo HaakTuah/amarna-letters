@@ -78,7 +78,9 @@ public class FileCharacterTests
         var c = runner.State.Char(id);
         // The model character's own request: the shared system text, its persona and memory, the audience, the schema, and the
         // footer only file seats and file characters get.
-        Assert.StartsWith($"# {key}", request.TrimStart('﻿'));
+        // Its heading names no key: the season as an id and its own id stay out of what it reads (the key is the file's name).
+        Assert.StartsWith(FileExchange.Heading, request.TrimStart('﻿'));
+        Assert.DoesNotContain(key, request);
         Assert.Contains("Decide as yourself, then write your answer", request);
         Assert.Contains("You are one of the people of the Amarna age", request);
         Assert.Contains(c.Name, request);

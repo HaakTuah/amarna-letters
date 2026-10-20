@@ -266,7 +266,7 @@ public sealed class GameRunner
         var lord = envoy.Employer;
         var backPay = lord is { } owes ? envoy.BackPay.GetValueOrDefault(owes) : 0;
         var doomed = lord is { } l && Views.LooksDoomed(State.Owner, State.Eliminated, l);
-        EnvoyContext Ctx(List<Exchange> soFar, int round, string delivered, int skim) => new()
+        EnvoyContext Ctx(List<Exchange> soFar, int round, string delivered, int skim, bool giftTaken = false) => new()
         {
             Self = envoy,
             Sender = a.From,
@@ -277,6 +277,7 @@ public sealed class GameRunner
             Round = round,
             MaxRounds = State.Config.AudienceRounds,
             SoFar = soFar,
+            GiftTaken = giftTaken,
             Delivered = delivered,
             Skim = skim,
             BackPay = backPay,
@@ -321,7 +322,9 @@ public sealed class GameRunner
                 TurnEngine.AddLetters(court.Letters, host.Letters);
                 court.Reopen |= host.ReopenOrders;
             }
-            var ctx = Ctx(soFar.ToList(), round, present.Speech, present.Skim);
+            // A gift it took at an earlier exchange, as the engine counts one (the first accepted): no later gift is given.
+            var giftTaken = record.Rounds.Any(x => x.Host is { Bribe: > 0 } && x.Envoy is { AcceptBribe: true });
+            var ctx = Ctx(soFar.ToList(), round, present.Speech, present.Skim, giftTaken);
             // The envoy meets only what is said and done to it: the host's letters and its choice about its orders are its own.
             var heard = host.AsHeard();
             var reaction = await Recorded($"{key}/envoy/{round}",
