@@ -17,3 +17,10 @@ First, a fix pass as item 4's follow-up, with its own branch, tests and report:
 4. Fix the script skim rounding and the shadow's false seal claims and checks, under the new save version.
 
 Then item 5 onward, in order, to the end of the Build order.
+
+## Additions (Haakon, 20 October 2026)
+
+Three additions from the live document, for the fix pass you're running now, since they touch the same files:
+1. New builder rule "Requests are rules too": no field in a request may imply something that isn't true. Apply it while fixing the request texts: ask only what applies, show no internal ids or numbers a king or character could repeat, and keep the engine's outcomes apart from a character's own words. Check the other request schemas for the same kind of nudge, not only the cases item 4 found.
+2. While you're in the kit for the isolation test: repeat the safety-check rule in docs/SIMULATION-PROMPT.md in the same words as the builder rules, since that's what an orchestrator reads.
+3. Also in the kit: add the debrief question "What did you find most and least interesting about playing this role?" for kings and characters, ready for when model games return. Don't run any.
