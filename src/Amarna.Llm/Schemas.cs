@@ -63,7 +63,7 @@ public static class Schemas
         ("amount", Int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)),
         ("term", Int(described ? "hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice; else 0." : null)),
         ("text", Str(described ? "Forgery text, words for a released envoy, or what a turned spy should report." : null)),
-        ("item", Str(described ? "Gold lot id for assay; for authenticate, your mark for your copy of the tablet (like k8), as your archive gives it." : null)),
+        ("item", Str(described ? "For assay, your mark for the gold (like g7), as your treasury gives it; for authenticate, your mark for your copy of the tablet (like k8), as your archive gives it." : null)),
         ("seals", Array(Str(), described ? "Powers whose seals a forgery bears." : null)));
 
     /// <summary>
@@ -111,7 +111,7 @@ public static class Schemas
             ("message", Str("What the envoy should say, in your words.")),
             ("mandate", Str("What the envoy may agree to on your behalf.")),
             ("gold", Int("Shekels sent with the envoy, or 0.")),
-            ("purity", Int("Purity of the gold in percent, 10-100. Below 100 is debased.")),
+            ("purity", Int("Purity of the gold in percent, 10-100 (100 when you send none). Below 100 is debased.")),
             // The sealed greeting is written from these flags alone: say what each one claims or withholds.
             ("call_brother", Bool("Greet the recipient as your brother, as Great Kings greet their equals, and wish well to his household and country. False withholds it: a slight.")),
             ("call_them_great_king", Bool("Give the recipient the title Great King. False denies him that rank.")),
@@ -120,8 +120,8 @@ public static class Schemas
             ("omit_greeting", Bool("Send no greeting at all, which is a slight. The other greeting flags are then ignored.")),
             ("tablet_to_seal", Str("Text for both kings to seal, or empty.")),
             ("sworn_alliance", Bool(sharedVictory
-                ? "Mark the tablet as a sworn alliance (counts for a shared victory)."
-                : "Mark the tablet as a sworn alliance, an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.")),
+                ? "Only with a tablet to seal (false without one): mark the tablet as a sworn alliance (counts for a shared victory)."
+                : "Only with a tablet to seal (false without one): mark the tablet as a sworn alliance, an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.")),
             ("show_tablet_copies", Array(Str(), "Your marks for the copies of tablets you hold (like k8), as your archive gives them, to show as evidence.")));
 
     /// <summary>The king's ledger of dealings, written the same way in an orders reply and in an audience reply.</summary>
@@ -131,28 +131,46 @@ public static class Schemas
         "Your ledger of dealings, in your own words, per court: what was promised, sealed, broken and paid. An entry replaces that court's line, an empty entry removes it, and courts you leave out keep their lines. It is shown in full whenever you give orders or hold an audience, and you may write it in either reply.");
 
     /// <summary>
-    /// A host's reply at an audience. A king that sleeps and was woken for its audiences only (its orders stand) may also send
-    /// letters from the audience and choose whether to reopen its orders; at any other audience the reply has neither field.
+    /// A host's reply at an audience, with every field (the schema's shape before "Requests are rules too": tests compare
+    /// against it). A king that sleeps and was woken for its audiences only (its orders stand) may also send letters from the
+    /// audience and choose whether to reopen its orders; at any other audience the reply has neither field.
     /// </summary>
-    public static JsonObject HostReply(GameConfig? c = null, bool ordersStand = false)
+    public static JsonObject HostReply(GameConfig? c = null, bool ordersStand = false) => HostReply(c, new AudienceAsks(OrdersStand: ordersStand));
+
+    /// <summary>
+    /// What a host is asked at one exchange of an audience, by the builder rule "Requests are rules too" (no field may imply
+    /// something that is not true): whether to seal only while a tablet the envoy brought waits to be sealed, a gift only
+    /// until the envoy has accepted one (an envoy takes one gift per audience), whether to end the audience only before its
+    /// last exchange, and whether to reopen its orders only while its orders stand and it has not already chosen to.
+    /// </summary>
+    public readonly record struct AudienceAsks(bool OrdersStand = false, bool TabletToSeal = true, bool GiftOpen = true, bool LastExchange = false, bool ReopenChosen = false)
     {
-        var fields = new List<(string Name, JsonObject Schema)>
+        public static AudienceAsks Of(AudienceView a) => new(a.OrdersStand, a.Proposal is not null && !a.ProposalSealed, a.GiftAccepted == 0, a.Round >= a.MaxRounds, a.ReopenChosen);
+    }
+
+    /// <summary>A host's reply at this exchange of an audience: only the fields that apply to it (<see cref="AudienceAsks"/>).</summary>
+    public static JsonObject HostReply(GameConfig? c, AudienceView a) => HostReply(c, AudienceAsks.Of(a));
+
+    private static JsonObject HostReply(GameConfig? c, AudienceAsks asks)
+    {
+        var fields = new List<(string Name, JsonObject Schema)> { ("speech", Str("What you say to the envoy, to carry home.")) };
+        if (asks.GiftOpen)
         {
-            ("speech", Str("What you say to the envoy, to carry home.")),
-            ("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given.")),
-            ("gift_request", Str("What you want from the envoy in return for the gift, or empty.")),
-            ("offer_service_wage", Int("Offer the envoy service at this wage per season, or 0.")),
-            ("seal_tablet", Bool("Seal the tablet the envoy brought, if any.")),
-            ("detain_envoy", Bool()),
-            ("send_gold_back", Int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it.")),
-            ("gold_back_purity", Int("Purity of that gold in percent, 10-100. The purity named with the amount that is sent applies.")),
-            ("end_audience", Bool("End the audience now.")),
-        };
-        if (ordersStand)
+            fields.Add(("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given.")));
+            fields.Add(("gift_request", Str("What you want from the envoy in return for the gift, or empty.")));
+        }
+        fields.Add(("offer_service_wage", Int("Offer the envoy service at this wage per season, or 0.")));
+        if (asks.TabletToSeal) fields.Add(("seal_tablet", Bool("Seal the tablet the envoy brought.")));
+        fields.Add(("detain_envoy", Bool("Keep the envoy at your court against its will: it does not go home when the audience ends.")));
+        fields.Add(("send_gold_back", Int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it.")));
+        fields.Add(("gold_back_purity", Int("Purity of that gold in percent, 10-100 (100 when you send none). The purity named with the amount that is sent applies.")));
+        if (!asks.LastExchange) fields.Add(("end_audience", Bool("End the audience now.")));
+        if (asks.OrdersStand)
         {
             fields.Add(("letters", Array(Letter(c?.SharedVictory ?? false),
                 "Envoys of yours to send from this audience, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give, and each costs what a letter in your orders costs. A new letter for a person you already sent this season replaces it. Empty for none.")));
-            fields.Add(("reopen_orders", Bool("True if the news changes your plan: after your audiences you give orders this season with your full view, as when anything else wakes you. False: your orders stand and you sleep on. Once true, it holds for the season.")));
+            if (!asks.ReopenChosen)
+                fields.Add(("reopen_orders", Bool("True if the news changes your plan: after your audiences you give orders this season with your full view, as when anything else wakes you. False: your orders stand and you sleep on. Once true, it holds for the season.")));
         }
         fields.Add(("ledger", Ledger()));
         return Object([.. fields]);

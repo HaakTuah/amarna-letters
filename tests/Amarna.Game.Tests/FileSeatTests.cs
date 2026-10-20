@@ -290,9 +290,10 @@ public class FileSeatTests
         Assert.DoesNotContain("wake_in_turn", requests["t1_orders_Alashiya"]);
         Assert.StartsWith("This is your first season.\n", Decision("t1_orders_Alashiya"));
         // (A script king's fleet also ends a move next to Enkomi that season, which wakes it too.)
-        const string woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt waits to be received";
+        const string woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt came to your court";
         Assert.StartsWith(woken, Decision(requests.Keys.First(k => k.StartsWith("t2_aud_", StringComparison.Ordinal))));
-        Assert.StartsWith(woken, Decision("t2_orders_Alashiya"));
+        // By its orders it has received the envoy (the audiences come first).
+        Assert.StartsWith("You gave orders last season (turn 1). You were woken because: an envoy of Egypt came to your court (you received him before these orders)", Decision("t2_orders_Alashiya"));
         // Turn 3 is not the season it named (it cannot): a script king's troops arriving next to its homeland wake it.
         Assert.StartsWith($"You gave orders last season (turn 2). You were woken because: {TurnEngine.HomelandReason}: ", Decision("t3_orders_Alashiya"));
         Assert.DoesNotContain(requests.Values, r => r.Contains("you asked to be woken", StringComparison.Ordinal));

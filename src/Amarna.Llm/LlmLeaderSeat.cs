@@ -28,9 +28,7 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
         var user = new StringBuilder();
         user.AppendLine(Prompts.Situation(view));
         user.AppendLine(_journal.ForOrders());
-        user.AppendLine(view.Sleeps
-            ? "Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You sleep after them."
-            : "Now give your orders for this season: your troops, your envoys and letters, and anything else.");
+        user.AppendLine(Prompts.OrdersLine(view));
         var json = await client.AskJsonAsync(new CallSpec
         {
             Key = $"t{view.Turn}/orders/{power}",
@@ -53,7 +51,7 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
     {
         var user = new StringBuilder();
         // Like every request to a king that sleeps, it opens with how long the king slept and what woke it.
-        if (Prompts.SleepLine(court) is { Length: > 0 } woke) user.AppendLine(woke);
+        if (Prompts.SleepLine(court, reopenChosen: view.OrdersStand && view.ReopenChosen) is { Length: > 0 } woke) user.AppendLine(woke);
         // A king woken for its audiences only (its orders stand) reads its treasury in its realm in brief.
         user.AppendLine(view.OrdersStand
             ? $"SEASON: turn {view.Turn}. You hold court."
@@ -76,8 +74,8 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
             SeatSystem = Prompts.Identity(power),
             User = user.ToString(),
             // With its orders standing it may also send letters and reopen its orders. The same model answers: an audience is
-            // the seat's own decision, made at a lower effort only.
-            Schema = Schemas.HostReply(config, view.OrdersStand),
+            // the seat's own decision, made at a lower effort only. It is asked only what applies at this exchange.
+            Schema = Schemas.HostReply(config, view),
             Effort = effort == "high" ? "medium" : "low",
             MaxTokens = 8000,
         }, ct);
@@ -88,6 +86,11 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
             reply.Letters.Clear();
             reply.ReopenOrders = false;
         }
+        // What it was not asked, it does not choose, even if the reply says so (a file seat's reply may carry any field).
+        var asked = Schemas.AudienceAsks.Of(view);
+        if (!asked.GiftOpen) (reply.Bribe, reply.BribeAsk) = (0, "");
+        if (!asked.TabletToSeal) reply.SealProposal = false;
+        if (asked.LastExchange) reply.End = false;
         _journal.Audience(view.Turn, view.From, view.Envoy.Name, reply.Speech, reply.Letters.Select(o => o.Describe()));
         // What it wrote in its ledger stays in its own record: the reply that the engine and the envoy see carries none of it.
         _journal.WriteLedger(view.Turn, Parse.Ledger(json));

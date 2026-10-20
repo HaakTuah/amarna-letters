@@ -292,6 +292,14 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     each court read its own copy ids as the tablets' names, and kings used them aloud: in the second agent simulation
     Babylonia's "the peace of k8" reached Mitanni, whose copy had another id, and an envoy turned it into "the peace of
     turn eight". Script kings write no ids in their letters, so their games are unchanged.)
+  - **Marks for gold** (since "Requests are rules too", the same fix pass). A lot of unassayed gold is named the same way:
+    the view reads "Unassayed gold from Hatti, weighed in turn 3 [your mark g7]: 15 shekels weighed (the inventory said
+    20)", where it read "Unassayed gold g7: …", and the scribes write the writer's own mark as the gold it names
+    (`TurnEngine.GoldName`: "the gold Hatti sent to Egypt, weighed in turn 3", with ", its inventory stating 20 shekels"
+    where another lot of the writer's shares sender and season). The rulebook says so ("Your treasury likewise marks each
+    lot of unassayed gold (like g7), for your assay orders only"), HOW TO ANSWER names the gold marks among those used "in
+    your orders", and the schema's `item` speaks of "your mark for the gold (like g7)". A standing order's id ("s1") is the
+    king's own too, for `cancel_standing`, and the view says so; no other court could read it, so the scribes leave it.
 - **Gold travels with envoys.** The tablet's inventory states the amount; the host's weighers find
   what is left after any skimming. Purity is hidden until an assay.
 - **The inventory is a tablet** (since Build order item 3). Gold an envoy carries comes with an inventory sealed by the
@@ -775,7 +783,29 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   - a spy's request gives the season it observed as the season it is (see Spies, under Characters);
   - an envoy remembers its own report ("I reported to my lord: "…""), without the court's note on the weighing that the
     king's news adds after it ("[The inventory lists …; your weighers found …]"), which it once remembered as its own words;
-  - a file request's heading is no longer the call's key (see File seats).
+  - a file request's heading is no longer the call's key (see File seats);
+  - Alashiya's king, whose title names his land, is "the King of Alashiya", not "the King of Alashiya of Alashiya"
+    (`LlmCharacterMind.KingOf`, `CourtOf`).
+
+  And for kings:
+  - a host is asked `seal_tablet` only while a tablet the envoy brought waits for his seal (not when the envoy brought none,
+    nor after he chose to seal it at an earlier exchange, when the audience says "You chose at an earlier exchange to seal
+    the tablet …, and your seal is set on it when the audience ends"; `AudienceView.ProposalSealed`); `gift_to_envoy` and
+    `gift_request` only until the envoy has accepted a gift; `end_audience` only before the last exchange ("This is the last
+    exchange of the audience: it ends with your answer"); and `reopen_orders` only until he has chosen to reopen
+    (`Schemas.AudienceAsks`). What he was not asked he does not choose, even if a file seat's reply carries the field;
+  - `detain_envoy` has a description at last, and the purities and `sworn_alliance` say when they are not asked of a
+    letter or a reply ("(100 when you send none)", "Only with a tablet to seal (false without one)"): fields inside a list
+    item cannot come and go per item, so their descriptions carry it;
+  - no request says any more that an envoy that woke the king "waits to be received": at a second audience the first envoy
+    had been received, and the season's audiences come before orders. An audience reads "an envoy of Hatti came to your
+    court", an orders request "an envoy of Hatti came to your court (you received him before these orders)"
+    (`Prompts.SleepLine`, `Prompts.Came`; the reason the engine keeps is unchanged);
+  - the orders request's closing line names only what applies (`Prompts.OrdersLine`; see Pacing, standing orders);
+  - lots of gold carry marks for the king's orders, which the scribes write as the gold, as copies of tablets do (see
+    Naming tablets, under Communication);
+  - the event a court logs when its examination finds a forgery names the tablet as that court does, not by the engine's
+    id ("Egypt found that tablet t12 is forged"): a narrator's chronicle reads the events a court knew.
 - **Server-side refusal fallback** (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`)
   is on for Sonnet and Opus calls. Haiku has no server fallback; a refused Haiku call falls back
   to the script character.
@@ -1050,7 +1080,12 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     the end of this season with everyone's orders and are checked first. Reopen your orders
     (reopen_orders) if the news changes your plan: you then give orders this season, with your full
     view, after your audiences. Otherwise your orders stand and you sleep on." Its schema adds
-    `letters` (the orders' letter shape) and `reopen_orders`.
+    `letters` (the orders' letter shape) and `reopen_orders`. Once the king has chosen to reopen (at an
+    earlier exchange or audience that season), its orders no longer stand: the audience says "You have
+    already chosen to reopen your orders this season: you give orders after your audiences, with your
+    full view", its opening line ends "You chose at an earlier audience this season to reopen your
+    orders", and its schema has `letters` but no `reopen_orders` (since "Requests are rules too": it
+    once still read "YOUR ORDERS STAND WHILE YOU SLEEP" and was asked again).
   - **Letters** sent from such an audience (`HostReply.Letters`: dispatch orders, or a letter to a
     court nobody knows, refused with the reason) are kept in the seat's state (`CourtLetters`) and
     validated as usual with the season's orders: they come first among the seat's orders, so their
@@ -1352,7 +1387,9 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     "Giving one costs nothing; its orders cost what they cost when they run.", and the orders
     request ends "Now give your orders for this season and the seasons ahead: your troops, your
     envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You
-    sleep after them." Script kings give no standing orders: they never sleep, and the feature audit of
+    sleep after them." (`Prompts.OrdersLine`; since "Requests are rules too" it names the troops only
+    when the king has some, and the envoys and letters only when one of its people is at court and
+    ready.) Script kings give no standing orders: they never sleep, and the feature audit of
     this fix pass left the orders that exist only for a king who sleeps to sleeping seats (see "Every
     feature is every seat's" under Script kings). The audit at the start of item 5 looks at it again.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:

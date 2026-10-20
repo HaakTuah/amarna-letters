@@ -194,7 +194,11 @@ public class CourtAsleepTests
         Assert.Equal($"send {sent} to Hatti", Assert.Single(rounds[1].LettersSent).Describe());
         var text = Prompts.Audience(rounds[1]);
         Assert.Contains($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): send {sent} to Hatti: message \"Brother.\"; mandate none.", text);
-        Assert.Contains("You have already chosen to reopen your orders this season: you give orders after your audiences.", text);
+        Assert.Contains("You have already chosen to reopen your orders this season: you give orders after your audiences", text);
+        // Its orders no longer stand, so it is neither told they do nor asked again (since "Requests are rules too").
+        Assert.DoesNotContain("YOUR ORDERS STAND WHILE YOU SLEEP", text);
+        Assert.DoesNotContain("\"reopen_orders\"", Schemas.HostReply(new GameConfig(), rounds[1]).ToJsonString());
+        Assert.Contains("\"reopen_orders\"", Schemas.HostReply(new GameConfig(), rounds[0]).ToJsonString());
     }
 
     [Fact]
@@ -331,7 +335,10 @@ public class CourtAsleepTests
         var t = CourtTurn(off);
         var r = await Play(king, t, off);
         var host = recorder.Specs.Single(x => x.Key.StartsWith($"t{t}/aud/", StringComparison.Ordinal));
-        Assert.Equal(Schemas.HostReply().ToJsonString(), host.Schema.ToJsonString());
+        // No letters and no choice about its orders (the other fields are those that apply at that exchange: RequestsAreRulesTests).
+        Assert.DoesNotContain("\"letters\"", host.Schema.ToJsonString());
+        Assert.DoesNotContain("\"reopen_orders\"", host.Schema.ToJsonString());
+        Assert.Contains("\"speech\"", host.Schema.ToJsonString());
         Assert.DoesNotContain("reopen", host.User, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("YOUR REALM IN BRIEF", host.User);
         // Every king gives orders every season, as before.
@@ -424,7 +431,7 @@ public class CourtAsleepTests
         // The seat's own model gives orders that season, told why.
         Assert.Equal([1, t], host.Calls);
         Assert.Equal([TurnEngine.EnvoyWaits(Power.Egypt), TurnEngine.StandInCourtReason], host.Views.Last().WokenBecause);
-        Assert.Contains($"You were woken because: an envoy of Egypt waits to be received; {TurnEngine.StandInCourtReason}.", Prompts.SleepLine(host.Views.Last()));
+        Assert.Contains($"You were woken because: an envoy of Egypt came to your court (you received him before these orders); {TurnEngine.StandInCourtReason}.", Prompts.SleepLine(host.Views.Last(), atOrders: true));
         var sl = r.State.Sleep[Power.Alashiya];
         Assert.Equal([TurnEngine.EnvoyWaits(Power.Egypt), TurnEngine.StandInCourtReason], sl.History[0].Reasons);
 

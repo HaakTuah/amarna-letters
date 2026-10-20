@@ -186,7 +186,11 @@ public sealed partial class TurnEngine
             GiftAccepted = earlier.FirstOrDefault(x => x.Host is { Bribe: > 0 } && x.Envoy is { AcceptBribe: true })?.Host.Bribe ?? 0,
         };
         if (a.Dispatch.ProposalTabletId is { } tid && S.Tablets.FirstOrDefault(t => t.Id == tid) is { } tablet)
+        {
             view.Proposal = Views.Tablet(tablet, new TabletCopy { Id = "", TabletId = tid, Holder = a.Host, Source = $"proposed by {a.From}" });
+            // Sealed at an earlier exchange (the first that chose to seal it seals it when the audience is applied).
+            view.ProposalSealed = earlier.Any(x => x.Host is { SealProposal: true });
+        }
         foreach (var copyId in a.Dispatch.CopyIds)
         {
             var copy = S.Copies.FirstOrDefault(x => x.Id == copyId);

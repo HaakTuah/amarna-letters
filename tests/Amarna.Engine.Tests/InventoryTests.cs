@@ -175,6 +175,14 @@ public class InventoryTests
             if (copy.AuthResult?.Contains("trace", StringComparison.Ordinal) == true) found = copy.AuthResult;
         }
         Assert.Equal($"The seals are false: this tablet is a forgery. The scribes trace it to the hand of {envoy.Name}, who brought it.", found);
+        // The event (which a narrator's chronicle reads) names the tablet as the court does, never by the engine's id.
+        var detected = s.Events.Where(x => x.Kind == "forgery-detected").ToList();
+        Assert.NotEmpty(detected);
+        Assert.All(detected, x =>
+        {
+            Assert.StartsWith("Alashiya found that the inventory sealed by Egypt, dated turn ", x.Text);
+            Assert.DoesNotContain(copy.TabletId, x.Text);
+        });
         Assert.Contains(envoy.Facts, f => f.Tag == "forger" && f.Secrecy == Secrecy.Public && f.Text == "Exposed as the forger of an inventory of gold bearing the seal of Egypt.");
         Assert.All(Powers.All, p => Assert.Equal(standing[p] - 30, envoy.Reputation.GetValueOrDefault(p)));
         var rumour = $"The scribes of Alashiya declare that the inventory of gold bearing the seal of Egypt, brought by {envoy.Name}, envoy of Egypt, was forged by {envoy.Name}.";

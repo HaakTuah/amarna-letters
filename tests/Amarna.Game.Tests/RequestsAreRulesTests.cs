@@ -142,6 +142,148 @@ public class RequestsAreRulesTests
     }
 
     [Fact]
+    public async Task A_king_whose_title_names_his_land_is_not_named_twice()
+    {
+        var asker = new RequestTextTests.Recorder();
+        var mind = new LlmCharacterMind(asker);
+        await mind.PresentAsync(new EnvoyContext { Self = Envoy(), Sender = Power.Egypt, Host = Power.Alashiya, Dispatch = new Dispatch { Letter = "Greetings." }, Turn = 2, Seed = 1 }, default);
+        await mind.WriteAsync(new MindContext
+        {
+            Request = new MindRequest { Task = MindTask.EnvoyReport, CharacterId = "c1", Court = Power.Alashiya, Cargo = new HomeCargo() },
+            Self = Envoy(employer: Power.Alashiya), Turn = 4, Seed = 1,
+        }, default);
+
+        Assert.StartsWith("You have arrived at the court of the King of Alashiya, as the envoy of Napkhururiya of Egypt.", asker.Calls[0].User);
+        Assert.StartsWith("You are home at the court of your lord, the King of Alashiya.", asker.Calls[1].User);
+        Assert.All(asker.Calls, c => Assert.DoesNotContain("Alashiya of Alashiya", c.User));
+        Assert.All(asker.Calls, c => Assert.DoesNotContain("Alashiya, king of Alashiya", c.User));
+    }
+
+    // ------------------------------------------------------------ kings
+
+    private static AudienceView Court(int round = 1, bool tablet = false, bool sealedEarlier = false, int giftAccepted = 0, bool ordersStand = false, bool reopenChosen = false) => new()
+    {
+        AudienceId = "a1", Turn = 2, Round = round, MaxRounds = 2, From = Power.Hatti, Host = Power.Egypt,
+        Envoy = new CharacterView { Id = "c3", Name = "Keliya" }, Spoken = "Greetings.", GiftAccepted = giftAccepted,
+        Proposal = tablet ? new TabletView { Text = "Peace between us.", Seals = [Power.Hatti] } : null, ProposalSealed = sealedEarlier,
+        OrdersStand = ordersStand, ReopenChosen = reopenChosen,
+    };
+
+    private static IEnumerable<string> Fields(JsonObject schema) => ((JsonObject)schema["properties"]!).Select(p => p.Key);
+
+    [Fact]
+    public void A_host_is_asked_only_what_applies_at_each_exchange_of_an_audience()
+    {
+        var c = new GameConfig();
+        // No tablet brought: no question about sealing one.
+        Assert.Equal(["speech", "gift_to_envoy", "gift_request", "offer_service_wage", "detain_envoy", "send_gold_back", "gold_back_purity", "end_audience", "ledger"],
+            Fields(Schemas.HostReply(c, Court())));
+        Assert.Contains("seal_tablet", Fields(Schemas.HostReply(c, Court(tablet: true))));
+        // Chosen at an earlier exchange: sealed when the audience ends, and not asked again.
+        Assert.DoesNotContain("seal_tablet", Fields(Schemas.HostReply(c, Court(round: 2, tablet: true, sealedEarlier: true))));
+        Assert.Contains("You chose at an earlier exchange to seal the tablet the envoy brought (already sealed by Hatti), and your seal is set on it when the audience ends", Prompts.Audience(Court(round: 2, tablet: true, sealedEarlier: true)));
+        // The envoy took a gift: another would not be given, so none is asked.
+        var afterGift = Fields(Schemas.HostReply(c, Court(round: 2, giftAccepted: 20))).ToList();
+        Assert.DoesNotContain("gift_to_envoy", afterGift);
+        Assert.DoesNotContain("gift_request", afterGift);
+        // At the last exchange the audience ends with the answer: no question of ending it.
+        Assert.DoesNotContain("end_audience", afterGift);
+        Assert.Contains("This is the last exchange of the audience: it ends with your answer.", Prompts.Audience(Court(round: 2)));
+        // Woken for its audiences only, it may reopen its orders, until it has chosen to.
+        Assert.Contains("reopen_orders", Fields(Schemas.HostReply(c, Court(ordersStand: true))));
+        Assert.DoesNotContain("reopen_orders", Fields(Schemas.HostReply(c, Court(round: 2, ordersStand: true, reopenChosen: true))));
+        Assert.Contains("letters", Fields(Schemas.HostReply(c, Court(round: 2, ordersStand: true, reopenChosen: true))));
+    }
+
+    [Fact]
+    public async Task A_host_does_not_choose_what_it_was_not_asked_even_if_its_reply_says_so()
+    {
+        var reply = new JsonObject
+        {
+            ["speech"] = "Welcome.", ["gift_to_envoy"] = 30, ["gift_request"] = "Speak well of me.", ["offer_service_wage"] = 0, ["seal_tablet"] = true,
+            ["detain_envoy"] = false, ["send_gold_back"] = 0, ["gold_back_purity"] = 100, ["end_audience"] = true, ["ledger"] = new JsonArray(),
+        };
+        var asker = new Answers(reply);
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        var king = new LlmLeaderSeat(Power.Egypt, asker, "file", "medium", true, s.Config);
+
+        var late = await king.HostAudienceAsync(Court(round: 2, giftAccepted: 20), Views.For(s, Power.Egypt), default);
+        Assert.Equal((0, "", false), (late.Bribe, late.BribeAsk, late.SealProposal));
+        var first = await king.HostAudienceAsync(Court(tablet: true), Views.For(s, Power.Egypt), default);
+        Assert.Equal((30, true, true), (first.Bribe, first.SealProposal, first.End));
+    }
+
+    [Fact]
+    public void An_envoy_that_woke_the_king_is_not_said_to_wait_in_its_orders_request_after_the_audience()
+    {
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        var v = Views.For(s, Power.Egypt);
+        (v.Turn, v.Sleeps, v.LastCalled) = (3, true, 2);
+        v.WokenBecause = [TurnEngine.EnvoyWaits(Power.Hatti), TurnEngine.ReopenReason];
+
+        // At an audience the envoy came to his court (with two envoys, the first is received before the second's audience); by
+        // his orders he has received him (audiences come first). Neither says the envoy still waits.
+        Assert.Contains("an envoy of Hatti came to your court; you chose", Prompts.SleepLine(v));
+        Assert.DoesNotContain("waits to be received", Prompts.SleepLine(v));
+        Assert.StartsWith("You gave orders last season (turn 2). You were woken because: an envoy of Hatti came to your court (you received him before these orders); you chose at your audience to reopen your orders.\n",
+            Prompts.Situation(v).ReplaceLineEndings("\n"));
+        Assert.DoesNotContain("waits to be received", Prompts.Situation(v));
+
+        // Held while its orders stand, after choosing to reopen them: they no longer stand.
+        v.HoldsCourt = true;
+        v.WokenBecause = [TurnEngine.EnvoyWaits(Power.Hatti)];
+        Assert.EndsWith("You chose at an earlier audience this season to reopen your orders: you give orders after your audiences.", Prompts.SleepLine(v, reopenChosen: true));
+        Assert.EndsWith("Your orders stand unless you reopen them at your audience.", Prompts.SleepLine(v));
+    }
+
+    [Fact]
+    public void The_orders_request_names_only_what_the_king_can_order()
+    {
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0, SleepingSeats = false });
+        var v = Views.For(s, Power.Egypt);
+        Assert.Contains(v.Court, c => c.Ready);
+        Assert.Equal("Now give your orders for this season: your troops, your envoys and letters, and anything else.", Prompts.OrdersLine(v));
+        v.Sleeps = true;
+        Assert.Equal("Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You sleep after them.", Prompts.OrdersLine(v));
+
+        // No troops and nobody at court to send: no troops or letters are offered.
+        v.Sleeps = false;
+        v.Units.RemoveAll(u => u.Power == Power.Egypt);
+        foreach (var c in v.Court) c.Ready = false;
+        Assert.Equal("Now give your orders for this season.", Prompts.OrdersLine(v));
+        v.Court[0].Ready = true;
+        Assert.Equal("Now give your orders for this season: your envoys and letters and anything else.", Prompts.OrdersLine(v));
+    }
+
+    [Fact]
+    public void A_king_s_marks_for_its_gold_are_for_its_orders_and_its_scribes_write_them_as_the_gold()
+    {
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        s.Treasuries[Power.Egypt].Lots.Add(new GoldLot { Id = "g900", From = Power.Hatti, Stated = 20, Face = 15, True = 15, ArrivedTurn = 3 });
+        s.Treasuries[Power.Hatti].Lots.Add(new GoldLot { Id = "g901", From = Power.Egypt, Stated = 30, Face = 30, True = 30, ArrivedTurn = 3 });
+
+        // The view names the lot by what it is, then gives the mark as the court's own.
+        Assert.Contains("  Unassayed gold from Hatti, weighed in turn 3 [your mark g900]: 15 shekels weighed (the inventory said 20).", Prompts.Situation(Views.For(s, Power.Egypt)));
+        Assert.Contains("Your treasury likewise marks each lot of unassayed gold (like g7), for your assay orders only.", Prompts.LeaderRules(true, s.Config));
+
+        // In a letter, its own mark becomes the gold it names; another court's mark, and other text, stay as written.
+        var e = new TurnEngine(s);
+        Assert.Equal("The gold Hatti sent to Egypt, weighed in turn 3 was light; so was g901.", e.Scribe(Power.Egypt, "The gold g900 was light; so was g901."));
+        // Two lots from the same court weighed in the same season are told apart by their inventories.
+        s.Treasuries[Power.Egypt].Lots.Add(new GoldLot { Id = "g902", From = Power.Hatti, Stated = 40, Face = 40, True = 40, ArrivedTurn = 3 });
+        Assert.Equal("Of the gold Hatti sent to Egypt, weighed in turn 3, its inventory stating 20 shekels, I say nothing.", e.Scribe(Power.Egypt, "Of g900, I say nothing."));
+    }
+
+    [Fact]
+    public void A_letter_without_gold_or_a_tablet_says_its_purity_and_alliance_mark_are_not_asked_of_it()
+    {
+        var letter = (JsonObject)Schemas.LeaderOrders(new GameConfig())["properties"]!["letters"]!["items"]!["properties"]!;
+        Assert.Contains("(100 when you send none)", letter["purity"]!["description"]!.GetValue<string>());
+        Assert.StartsWith("Only with a tablet to seal (false without one)", letter["sworn_alliance"]!["description"]!.GetValue<string>());
+        Assert.Contains("(100 when you send none)", Schemas.HostReply()["properties"]!["gold_back_purity"]!["description"]!.GetValue<string>());
+    }
+
+    [Fact]
     public async Task A_spy_writes_its_report_in_the_season_it_observed_not_the_season_the_report_arrives()
     {
         var asker = new RequestTextTests.Recorder();

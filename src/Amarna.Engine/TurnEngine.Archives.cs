@@ -117,9 +117,32 @@ public sealed partial class TurnEngine
             var name = Views.TabletName(tablet, archive);
             return char.IsUpper(m.Value[0]) ? char.ToUpperInvariant(name[0]) + name[1..] : name;
         });
+        // A mark of the writer's own for a lot of its unassayed gold ("g7"), which only its assay orders use, is the gold it names.
+        var lots = S.Treasuries.TryGetValue(writer, out var treasury) ? treasury.Lots : [];
+        written = GoldMark.Replace(written, m =>
+        {
+            var id = m.Groups["id"].Value.ToLowerInvariant();
+            if (lots.FirstOrDefault(l => l.Id == id) is not { } lot) return m.Value;
+            var name = GoldName(writer, lot, lots);
+            return char.IsUpper(m.Value[0]) ? char.ToUpperInvariant(name[0]) + name[1..] : name;
+        });
         // "Mane (c12)" is Mane; a bare "c12" is the person's name.
         written = NamedPerson.Replace(written, m => Known(m.Groups["id"].Value) is { } c && c.Name == m.Groups["name"].Value ? c.Name : m.Value);
         return PersonMark.Replace(written, m => Known(m.Groups["id"].Value)?.Name ?? m.Value);
+    }
+
+    private static readonly Regex GoldMark = new(@"\b(?:(?:the\s+)?(?:gold|lot)\s+)?(?<id>g\d+)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// A lot of gold as any court could name it: who sent it to whom and when it was weighed ("the gold Hatti sent to Egypt,
+    /// weighed in turn 3"), with what its inventory stated where another of the holder's lots shares all three.
+    /// </summary>
+    public static string GoldName(Power holder, GoldLot lot, IEnumerable<GoldLot> lots)
+    {
+        var name = $"the gold {lot.From} sent to {holder}, weighed in turn {lot.ArrivedTurn}";
+        return lots.Any(l => l.Id != lot.Id && l.From == lot.From && l.ArrivedTurn == lot.ArrivedTurn)
+            ? $"{name}, its inventory stating {Money.Format(lot.Stated)}"
+            : name;
     }
 
     /// <summary>The line the engine adds to a spy's report for the copies that came home with it.</summary>

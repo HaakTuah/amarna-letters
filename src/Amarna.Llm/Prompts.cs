@@ -83,7 +83,7 @@ public static class Prompts
             EVIDENCE AND INTELLIGENCE
             - Tablets: free text that both kings seal (the scribe costs {c.TabletFee}). A sealed tablet obliges nobody and the engine never enforces it, but a copy can be shown to a third court as proof.
             - Archives: every tablet you hold (those you sealed, and the copies you were shown or brought) lies in your archive at your capital, and so it is at every court. A spy watching a court copies from its archive: each season it is not caught, with a chance of (the spy's skill, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court, or watching a court that has fallen, copies nothing for you. Whoever takes a king's capital, or is ceded it, gains at once a copy of every tablet in his archive, and the king keeps his own. So a spy at your court may copy your tablets, and whoever takes your capital gains copies of them all.
-            - Naming tablets: every court names a tablet by its seals and the date it bears ("the tablet sealed by Egypt and Hatti, dated turn 4", with its opening words where two share both). Your archive also gives each of your copies a mark of your own (like k8) for your orders (show_tablet_copies, authenticate); every court marks its copies differently, so another court's k8 is another tablet or none. In what other courts read (your letters, mandates and tablets, and your words at an audience), your scribes write any mark of yours as the tablet it names, and the id of anyone your view lists (YOUR PEOPLE and OTHER PEOPLE YOU KNOW OF) as that person's name; any other id stays as written.
+            - Naming tablets: every court names a tablet by its seals and the date it bears ("the tablet sealed by Egypt and Hatti, dated turn 4", with its opening words where two share both). Your archive also gives each of your copies a mark of your own (like k8) for your orders (show_tablet_copies, authenticate); every court marks its copies differently, so another court's k8 is another tablet or none. Your treasury likewise marks each lot of unassayed gold (like g7), for your assay orders only. In what other courts read (your letters, mandates and tablets, and your words at an audience), your scribes write any mark of yours as the tablet or the gold it names ("the gold Hatti sent to Egypt, weighed in turn 3"), and the id of anyone your view lists (YOUR PEOPLE and OTHER PEOPLE YOU KNOW OF) as that person's name; any other id stays as written.
             - Forgery: a skilled servant can forge a tablet bearing other kings' seals ({c.ForgeFee}; one without the skill ruins the clay, which you still pay for). Any court can pay at least 10 to have a tablet examined, and hears the result next season. Examination is never certain: a genuine tablet reads genuine 95% of the time (otherwise the scribes cannot agree); a forgery is found with a chance of 20% + shekels paid/200 - (the forger's skill, 0-100)/150, between 5% and 95%, and once found is traced to the forger's court with a chance of 30% + shekels paid/400, between 30% and 80%, which is announced to every court.
             - Spies watch a court or a province and send a report every season, which reaches you as long after as the journey takes. Each season a spy is caught with a chance of 5% + (what the court it watches, or the one holding the province it watches, spends on watchmen that season)/300 - (the spy's skill, 0-100)/400, between 2% and 60%; a spy watching a province that no power holds, or one you hold yourself, is never caught, nor is one still watching a court that has fallen. Watchmen (counter_intelligence) are paid for one season at a time. A spy posted at a court watches in secret: that court does not see it there, nor whom it serves, until its watchmen catch it, unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing, and is not paid any back pay you owe it while it hides there. A caught spy may confess whom it serves. Caught spies can be executed, ransomed, turned into double agents, or released. Ransoming or turning a captive whose kingdom has fallen is refused, and so is turning one whose king has dismissed them: nobody is left to pay or to deceive.
             - Ransoms: a demand reaches the captive's king (for a captive dismissed while held, the king who dismissed them) as a rumour, and can be paid (pay_ransom) only once it has reached you. A captive has one demand at a time: a new demand replaces the old one once its word reaches you, and until then the old one can still be paid. A demand not paid within four seasons of being made lapses. The ransom travels on its own and is never refunded; the captor frees the captive if they still hold them. pay_ransom is refused before the demand has reached you, once you know the captive is no longer held by the court that asked, and while a ransom for them is already on its way.
@@ -141,7 +141,7 @@ public static class Prompts
         sb.AppendLine("""
 
             HOW TO ANSWER
-            Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows the letters you sent (message, mandate, tablet and gold) in full under YOUR LETTERS while their envoys are away, and once more when the report comes. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply.
+            Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") and of your gold (like "g7") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows the letters you sent (message, mandate, tablet and gold) in full under YOUR LETTERS while their envoys are away, and once more when the report comes. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply.
             """);
         return sb.ToString();
     }
@@ -188,7 +188,14 @@ public static class Prompts
     /// The opening line of every request to a king that sleeps (orders and audiences): how long it slept and what woke
     /// it, or that this is its first season. Empty with sleeping seats off.
     /// </summary>
-    public static string SleepLine(SeatView v)
+    /// <param name="atOrders">
+    /// For an orders request: the season's audiences come before orders, so an envoy that woke the king no longer waits to be
+    /// received, and the line says it was received. At an audience an envoy that woke it "came to your court": with two
+    /// envoys, the first is received before the second's audience ("Requests are rules too": the line once said "waits to be
+    /// received" of every envoy in every request).
+    /// </param>
+    /// <param name="reopenChosen">At an audience held while its orders stand, after it chose at an earlier one to reopen them.</param>
+    public static string SleepLine(SeatView v, bool atOrders = false, bool reopenChosen = false)
     {
         if (!v.Sleeps) return "";
         // It has never given orders: the first season, or its first call failed and its counsellors kept the kingdom since.
@@ -197,11 +204,43 @@ public static class Prompts
         var line = slept == 0
             ? $"You gave orders last season (turn {v.LastCalled})."
             : $"You slept {slept} season{(slept == 1 ? "" : "s")} (you last gave orders in turn {v.LastCalled}).";
+        string Reason(string r) => (TurnEngine.IsEnvoyWaiting(r) ? Came(r, atOrders) : r).TrimEnd('.');
         // Woken for its audiences only: its orders stand unless it reopens them there.
         if (v.HoldsCourt)
-            return $"{line} You were woken to receive {(v.WokenBecause.Count == 1 ? "an envoy" : "envoys")}: {string.Join("; ", v.WokenBecause.Select(r => r.TrimEnd('.')))}. "
-                   + "Your orders stand unless you reopen them at your audience.";
-        return v.WokenBecause.Count == 0 ? line : $"{line} You were woken because: {string.Join("; ", v.WokenBecause.Select(r => r.TrimEnd('.')))}.";
+            return $"{line} You were woken to receive {(v.WokenBecause.Count == 1 ? "an envoy" : "envoys")}: {string.Join("; ", v.WokenBecause.Select(Reason))}. "
+                   + (reopenChosen
+                       ? "You chose at an earlier audience this season to reopen your orders: you give orders after your audiences."
+                       : "Your orders stand unless you reopen them at your audience.");
+        return v.WokenBecause.Count == 0 ? line : $"{line} You were woken because: {string.Join("; ", v.WokenBecause.Select(Reason))}.";
+    }
+
+    /// <summary>
+    /// An envoy that woke the king, as a request names it ("an envoy of Hatti came to your court"), and in an orders request,
+    /// that it was received at the season's audiences, which come before orders.
+    /// </summary>
+    public static string Came(string envoyWaits, bool atOrders) =>
+        envoyWaits.Replace(" waits to be received", atOrders ? " came to your court (you received him before these orders)" : " came to your court", StringComparison.Ordinal);
+
+    /// <summary>
+    /// The closing line of an orders request: what the king may now order, naming only what applies ("Requests are rules
+    /// too"): its troops if it has any, its envoys and letters if one of its people is at court and ready to be sent, and with
+    /// sleep on the orders for later seasons, then anything else.
+    /// </summary>
+    public static string OrdersLine(SeatView v)
+    {
+        var what = new List<string>();
+        if (v.Units.Any(u => u.Power == v.Power)) what.Add("your troops");
+        if (v.Court.Any(c => c.Ready)) what.Add("your envoys and letters");
+        if (v.Sleeps) what.AddRange(["orders scheduled for later seasons", "standing orders"]);
+        var list = what.Count switch
+        {
+            0 => "",
+            1 => $": {what[0]} and anything else",
+            _ => $": {string.Join(", ", what)}, and anything else",
+        };
+        return v.Sleeps
+            ? $"Now give your orders for this season and the seasons ahead{list}. You sleep after them."
+            : $"Now give your orders for this season{list}.";
     }
 
     /// <summary>A seat's view as text: what this king knows this season.</summary>
@@ -209,12 +248,13 @@ public static class Prompts
     {
         var map = WorldMap.Default;
         var sb = new StringBuilder();
-        if (SleepLine(v) is { Length: > 0 } woke) sb.AppendLine(woke);
+        if (SleepLine(v, atOrders: true) is { Length: > 0 } woke) sb.AppendLine(woke);
         sb.AppendLine($"SEASON: turn {v.Turn}, {v.Season} by your court's reckoning.");
         var growth = v.StartStrength > 0 ? (double)v.Strength / v.StartStrength : 0;
         sb.AppendLine($"TREASURY: {v.Gold} shekels by your ledger. Income {v.Income}, upkeep {v.Upkeep}, wages {v.Wages} a season (paid to your people at court; for those away they build up as back pay). Back pay owed to your people: {v.BackPay}, paid when they are back at your court. Strength {v.Strength} by your ledger (back pay owed counted against it), against a starting {v.StartStrength} (growth {growth:0.00}).");
+        // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
         foreach (var lot in v.UnassayedGold)
-            sb.AppendLine($"  Unassayed gold {lot.Id}: {lot.Weighed} shekels weighed, from {lot.From} (the inventory said {lot.Stated}).");
+            sb.AppendLine($"  Unassayed gold from {lot.From}, weighed in turn {lot.ArrivedTurn} [your mark {lot.Id}]: {lot.Weighed} shekels weighed (the inventory said {lot.Stated}).");
         sb.AppendLine(Standings(v));
 
         sb.AppendLine();
@@ -263,7 +303,7 @@ public static class Prompts
         }
         if (v.Standing.Count > 0)
         {
-            sb.AppendLine("YOUR STANDING ORDERS (each fires once, in the season you see the move it waits for; cancel_standing removes them):");
+            sb.AppendLine("YOUR STANDING ORDERS (each fires once, in the season you see the move it waits for; cancel_standing removes them by their ids, which are for your orders only):");
             foreach (var st in v.Standing) sb.AppendLine($"- {StandingLine(st, v)}");
         }
         if (v.CourtLetters.Count > 0)
@@ -491,7 +531,9 @@ public static class Prompts
         if (a.GoldStated > 0)
             sb.AppendLine($"The inventory on the tablet lists {a.GoldStated} shekels of gold; your weighers found {a.GoldWeighed}. Its purity is unknown until you pay for an assay.");
         if (a.Proposal is not null)
-            sb.AppendLine($"The envoy brings a tablet for you to seal, already sealed by {string.Join(", ", a.Proposal.Seals)}{(a.Proposal.AllianceOath ? " as a sworn alliance" : "")}: \"{a.Proposal.Text}\"");
+            sb.AppendLine(a.ProposalSealed
+                ? $"You chose at an earlier exchange to seal the tablet the envoy brought (already sealed by {string.Join(", ", a.Proposal.Seals)}{(a.Proposal.AllianceOath ? " as a sworn alliance" : "")}), and your seal is set on it when the audience ends: \"{a.Proposal.Text}\""
+                : $"The envoy brings a tablet for you to seal, already sealed by {string.Join(", ", a.Proposal.Seals)}{(a.Proposal.AllianceOath ? " as a sworn alliance" : "")}: \"{a.Proposal.Text}\"");
         foreach (var t in a.CopiesShown)
             sb.AppendLine($"The envoy shows you a tablet as evidence, bearing the seals of {string.Join(", ", t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")}: \"{t.Text}\"");
         if (a.SecretMandate is not null)
@@ -502,16 +544,19 @@ public static class Prompts
             sb.AppendLine($"{a.Envoy.Name} has already accepted your gift of {a.GiftAccepted} shekels. An envoy takes one gift per audience: another gift would not be given.");
         if (a.OrdersStand)
         {
-            sb.AppendLine("YOUR ORDERS STAND WHILE YOU SLEEP. At this audience you may also send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season); if you let your orders stand and send none, your next letters leave only when you next give orders. "
-                          + "Reopen your orders (reopen_orders) if the news changes your plan: you then give orders this season, with your full view, after your audiences. Otherwise your orders stand and you sleep on.");
+            // Once it chose to reopen its orders, they no longer stand, and it is not asked again (its schema has no reopen_orders).
+            if (a.ReopenChosen)
+                sb.AppendLine("You have already chosen to reopen your orders this season: you give orders after your audiences, with your full view. "
+                              + "At this audience you may still send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season).");
+            else
+                sb.AppendLine("YOUR ORDERS STAND WHILE YOU SLEEP. At this audience you may also send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season); if you let your orders stand and send none, your next letters leave only when you next give orders. "
+                              + "Reopen your orders (reopen_orders) if the news changes your plan: you then give orders this season, with your full view, after your audiences. Otherwise your orders stand and you sleep on.");
             if (a.LettersSent.Count > 0)
                 sb.AppendLine($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): {string.Join("; ", a.LettersSent.Select(InFull))}.{LettersGold(a.LettersSent)}");
-            if (a.ReopenChosen)
-                sb.AppendLine("You have already chosen to reopen your orders this season: you give orders after your audiences.");
         }
         sb.AppendLine(a.Round < a.MaxRounds
             ? "Answer the envoy. You may end the audience now, or leave it open for one more exchange."
-            : "This is the last exchange of the audience.");
+            : "This is the last exchange of the audience: it ends with your answer.");
         return sb.ToString();
     }
 }

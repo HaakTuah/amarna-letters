@@ -259,7 +259,7 @@ public class SleepTests
         Assert.Equal((1 + travel, 1, false), (court.Turn, court.Envoys, court.Reopened));
         Assert.True(sleeper.Audiences.Last().OrdersStand);
         // The audience opens like every request: how long the host slept and what woke it, and that its orders stand.
-        Assert.EndsWith("You were woken to receive an envoy: an envoy of Egypt waits to be received. Your orders stand unless you reopen them at your audience.", Prompts.SleepLine(sleeper.Courts.Last()));
+        Assert.EndsWith("You were woken to receive an envoy: an envoy of Egypt came to your court. Your orders stand unless you reopen them at your audience.", Prompts.SleepLine(sleeper.Courts.Last()));
     }
 
     [Fact]
@@ -718,10 +718,11 @@ public class SleepTests
         var slept = travel - 1;
         var since = slept == 0 ? "You gave orders last season (turn 1)." : $"You slept {slept} season{(slept == 1 ? "" : "s")} (you last gave orders in turn 1).";
         var host = recorder.Specs.First(x => x.Key.StartsWith($"t{1 + travel}/aud/", StringComparison.Ordinal));
-        Assert.StartsWith(since + " You were woken to receive an envoy: an envoy of Egypt waits to be received. Your orders stand unless you reopen them at your audience.\n",
+        Assert.StartsWith(since + " You were woken to receive an envoy: an envoy of Egypt came to your court. Your orders stand unless you reopen them at your audience.\n",
             host.User.ReplaceLineEndings("\n"));
         var orders = recorder.Specs.Single(x => x.Key == $"t{1 + travel}/orders/Alashiya");
-        Assert.StartsWith(since + " You were woken because: an envoy of Egypt waits to be received; you chose at your audience to reopen your orders.\n",
+        // By its orders the envoy has been received: the audiences come first (since "Requests are rules too").
+        Assert.StartsWith(since + " You were woken because: an envoy of Egypt came to your court (you received him before these orders); you chose at your audience to reopen your orders.\n",
             orders.User.ReplaceLineEndings("\n"));
         // An orders request ends by saying the king sleeps after its orders.
         Assert.EndsWith("Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You sleep after them.", orders.User.TrimEnd());
@@ -731,7 +732,7 @@ public class SleepTests
     public void Woken_the_season_after_its_orders_a_king_is_told_it_gave_orders_last_season()
     {
         var view = new SeatView { Sleeps = true, Turn = 5, LastCalled = 4, WokenBecause = ["an envoy of Egypt waits to be received"] };
-        Assert.Equal("You gave orders last season (turn 4). You were woken because: an envoy of Egypt waits to be received.", Prompts.SleepLine(view));
+        Assert.Equal("You gave orders last season (turn 4). You were woken because: an envoy of Egypt came to your court.", Prompts.SleepLine(view));
         view.Turn = 6;
         Assert.StartsWith("You slept 1 season (you last gave orders in turn 4).", Prompts.SleepLine(view));
     }

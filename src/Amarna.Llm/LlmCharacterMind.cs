@@ -303,7 +303,7 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
     {
         var d = ctx.Dispatch;
         var user = new StringBuilder();
-        user.AppendLine($"You have arrived at the court of {ctx.Host.King()}, king of {ctx.Host.Land()}, as the envoy of {ctx.Sender.King()} of {ctx.Sender.Land()}.");
+        user.AppendLine($"You have arrived at {CourtOf(ctx.Host)}, as the envoy of {KingOf(ctx.Sender)}.");
         user.AppendLine(d.GreetingText.Length > 0 ? $"The sealed greeting will be read out exactly as written: \"{d.GreetingText}\"" : "The tablet carries no greeting at all; the king will notice.");
         user.AppendLine($"Your lord's message, which you must now deliver in your own words: \"{d.Letter}\"");
         user.AppendLine(d.Mandate.Length > 0 ? $"Your mandate (what you may agree to): \"{d.Mandate}\"" : "You were given no mandate to agree to anything.");
@@ -334,7 +334,7 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
     private async Task<EnvoyReaction> ModelReactAsync(EnvoyContext ctx, HostReply host, CancellationToken ct)
     {
         var user = new StringBuilder();
-        user.AppendLine($"You stand before {ctx.Host.King()} of {ctx.Host.Land()} as envoy of {ctx.Sender.Land()}. You said: \"{ctx.Delivered}\"");
+        user.AppendLine($"You stand before {KingOf(ctx.Host)} as envoy of {ctx.Sender.Land()}. You said: \"{ctx.Delivered}\"");
         foreach (var x in ctx.SoFar) user.AppendLine($"The king said: \"{x.Host}\" You answered: \"{x.Envoy}\"");
         user.AppendLine($"The king now says: \"{host.Speech}\"");
         // An envoy takes one gift per audience: a gift offered after it took one is not given, so it is not asked about it.
@@ -358,6 +358,12 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
         return r;
     }
 
+    /// <summary>A king by name and land ("Tushratta of Mitanni"), or by his title alone where it names the land ("the King of Alashiya").</summary>
+    public static string KingOf(Power p) => p.King().Contains(p.Land(), StringComparison.Ordinal) ? p.King() : $"{p.King()} of {p.Land()}";
+
+    /// <summary>A king's court ("the court of Tushratta, king of Mitanni", or "the court of the King of Alashiya").</summary>
+    public static string CourtOf(Power p) => p.King().Contains(p.Land(), StringComparison.Ordinal) ? $"the court of {p.King()}" : $"the court of {p.King()}, king of {p.Land()}";
+
     /// <summary>A host's offer of service, with what the envoy's lord pays it and, if any, the back pay it would give up by leaving him.</summary>
     public static string OfferLine(EnvoyContext ctx, int offer) =>
         $"He offers to take you into his service at {offer} shekels a season (your lord pays you {ctx.Self.Contract?.Wage ?? 0}"
@@ -379,8 +385,8 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
                 var him = still ? "your lord" : lord.King();
                 var user = new StringBuilder();
                 user.AppendLine(still
-                    ? $"You are home at the court of your lord, {lord.King()} of {lord.Land()}."
-                    : $"You are back at the court of {lord.King()} of {lord.Land()}, who sent you on this mission. He dismissed you while you were away, so he is no longer your lord, but you report to him on the mission he gave you.");
+                    ? $"You are home at the court of your lord, {KingOf(lord)}."
+                    : $"You are back at the court of {KingOf(lord)}, who sent you on this mission. He dismissed you while you were away, so he is no longer your lord, but you report to him on the mission he gave you.");
                 // An envoy that was never received (its host's kingdom had fallen) is not asked about an audience it never had.
                 if (t is { AudienceTurn: null, Exchanges.Count: 0 })
                     user.AppendLine($"You went to the court of {t.To.Land()}, but you were never received there: you came back without an audience.");
@@ -411,7 +417,7 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
             case MindTask.Pitch:
             {
                 var court = req.For();
-                var user = $"The court of {court.King()}, king of {court.Land()}, is looking for envoys and agents, and you have come before the king. " +
+                var user = $"{Views.Capitalized(CourtOf(court))} is looking for envoys and agents, and you have come before the king. " +
                            $"Present yourself in a few sentences and name your wage per season. Someone like you usually earns about {ctx.BasePrice} shekels a season; " +
                            $"{(ctx.Demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now")}.";
                 var json = await Ask(key, ctx.Turn, $"candidate:{c.Id}", c, user, Schemas.Pitch(), ct);

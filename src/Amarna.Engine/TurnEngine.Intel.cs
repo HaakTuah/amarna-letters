@@ -494,7 +494,8 @@ public sealed partial class TurnEngine
             if (rng.Chance(detect))
             {
                 result = "The seals are false: this tablet is a forgery.";
-                S.Log("forgery-detected", $"{task.Requester} found that tablet {tablet.Id} is forged.", [task.Requester], "forgery-detected");
+                // The event names the tablet as the court does, not by the engine's id, which a narrator reading its events could repeat.
+                S.Log("forgery-detected", $"{task.Requester} found that {Views.TabletName(tablet, Archive(task.Requester))} is forged.", [task.Requester], "forgery-detected");
                 // A swapped inventory is traced, with the same chance, to the envoy who forged it and brought it.
                 if (tablet.Inventory)
                 {
