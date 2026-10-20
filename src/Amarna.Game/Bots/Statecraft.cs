@@ -542,10 +542,13 @@ internal static class Statecraft
         foreach (var gone in brain.RansomAsked.Keys.Where(id => captives.All(c => c.Id != id)).ToList()) brain.RansomAsked.Remove(gone);
         foreach (var c in captives)
         {
-            // Nobody left to pay or to deceive (a ransom or turning refused for it), or a ransom twice lapsed unpaid: the
-            // captive is worth nothing kept, so it goes free, unless the king is vengeful. A spy of a sworn ally goes free
-            // too: the alliance is worth more than a ransom.
-            var worthless = brain.Unclaimed.Contains(c.Id) || brain.RansomLapsed.GetValueOrDefault(c.Id) >= 2;
+            // Nobody left to pay or to deceive (a ransom or turning refused for it, or the king it served has fallen, as all
+            // can see), or a ransom twice lapsed unpaid: the captive is worth nothing kept, so it goes free, unless the king is
+            // vengeful. A spy of a sworn ally goes free too: the alliance is worth more than a ransom. (Until the script
+            // players' audit of the siege package, an envoy caught coming home to a capital that fell the same season was held
+            // under a ransom demand nobody could pay, for six seasons or to the end of the game.)
+            var lordFallen = c.Employer is { } served && v.Fallen.Contains(served);
+            var worthless = brain.Unclaimed.Contains(c.Id) || brain.RansomLapsed.GetValueOrDefault(c.Id) >= 2 || lordFallen;
             var ally = c.Employer is { } master && brain.Rel.TryGetValue(master, out var mr) && mr.Allied && mr.OathsBroken == 0;
             if (worthless || ally)
             {
