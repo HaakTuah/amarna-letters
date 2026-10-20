@@ -274,7 +274,10 @@ internal static class Statecraft
         foreach (var id in v.Owner.Where(x => x.Value == b.Me).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal))
         {
             var level = b.WallLevel(id);
-            if (level >= 3 || b.SiegeAt(id) is not null) continue;
+            if (level >= 3 || b.SiegeAt(id) is not null || b.UnitAt.TryGetValue(id, out var within) && within.Power != b.Me) continue;
+            // The walls rise at the end of the season, after the moves: an empty province without walls that a feared king can
+            // walk into now would be his before they stand (in the first script games of the siege package such orders failed, nearly five a game).
+            if (level == 0 && !b.Mine.Any(u => u.Province == id)) continue;
             var chance = plan.Danger.TryGetValue(id, out var d) ? d.Chance : 0;
             if (chance < 0.4) continue;
             var cost = price * (level + 1);

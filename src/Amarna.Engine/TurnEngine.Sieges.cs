@@ -21,13 +21,15 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// Walls strengthened (<see cref="FortifyOrder"/>): a level higher at the end of the season, paid now, unless the province
-    /// was lost in movement or is besieged, which others brought about (a scheduled order then wakes its seat).
+    /// was lost in movement, is besieged, or has foreign troops within it after movement, which others brought about (a
+    /// scheduled order then wakes its seat).
     /// </summary>
     private void Fortify(Power p, FortifyOrder f)
     {
         var name = Map[f.Province].Name;
         var why = S.Owner.GetValueOrDefault(f.Province) != p ? "you no longer held it after movement"
             : S.SiegeOf(f.Province) is not null ? "it was besieged"
+            : S.UnitAt(f.Province) is { } within && within.Power != p ? "foreign troops stood within it after movement"
             : S.WallsOf(f.Province) >= S.Config.MaxWalls ? "its walls stood as high as walls go"
             : null;
         if (why is not null)

@@ -48,13 +48,15 @@ public class FortifyTests
         var s = GameFactory.NewGame(1);
         s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Hatti, Kind = UnitKind.Army, Province = "memphis" });
         s.Sieges.Add(new Siege { Province = "memphis", Power = Power.Hatti, UnitId = s.UnitAt("memphis")!.Id, Progress = 1, Since = 1 });
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Hatti, Kind = UnitKind.Army, Province = "sinai" });
         var v = new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission
         {
-            Orders = [new FortifyOrder("akhetaten"), new FortifyOrder("gaza"), new FortifyOrder("memphis"), new FortifyOrder("thebes"), new FortifyOrder("thebes"), new FortifyOrder("")],
+            Orders = [new FortifyOrder("akhetaten"), new FortifyOrder("gaza"), new FortifyOrder("memphis"), new FortifyOrder("thebes"), new FortifyOrder("thebes"), new FortifyOrder(""), new FortifyOrder("sinai")],
         });
         Assert.Equal(
             ["the walls of Akhetaten stand at 3, as high as walls go", "you do not hold Gaza", "Memphis is besieged: its walls cannot be strengthened while the siege lasts",
-             "the walls of Thebes were already to be strengthened by an earlier order", "name the province whose walls to strengthen"],
+             "the walls of Thebes were already to be strengthened by an earlier order", "name the province whose walls to strengthen",
+             "foreign troops stand within Sinai: its walls cannot be strengthened while they are there"],
             v.Rejected.Select(r => r.Reason));
         Assert.Equal([new FortifyOrder("thebes")], v.Accepted);
     }

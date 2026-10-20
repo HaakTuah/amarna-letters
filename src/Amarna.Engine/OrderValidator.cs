@@ -215,6 +215,7 @@ public sealed class OrderValidator
                     var level = _s.WallsOf(f.Province);
                     if (level >= _s.Config.MaxWalls) return $"the walls of {name} stand at {level}, as high as walls go";
                     if (_s.SiegeOf(f.Province) is not null) return $"{name} is besieged: its walls cannot be strengthened while the siege lasts";
+                    if (_s.UnitAt(f.Province) is { } within && within.Power != power) return $"foreign troops stand within {name}: its walls cannot be strengthened while they are there";
                     if (fortified.Contains(f.Province)) return $"the walls of {name} were already to be strengthened by an earlier order";
                     return Spend(_s.Config.FortifyCost * (level + 1));
                 }

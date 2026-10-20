@@ -154,7 +154,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     guesses): the walls of a province the king holds rise a level at the end of the season (after purchases), up to
     `GameConfig.MaxWalls` (3), for `FortifyCost` (50) × the new level, reserved when the order is checked and paid when
     it is done; a province without walls can be given them. Refused at level 3, for land not held, while the province is
-    besieged, or twice in a season; not done, and not paid, if the province was lost in the moves or a siege began
+    besieged or foreign troops stand within it, or twice in a season; not done, and not paid, if the province was lost in
+    the moves, a siege began or foreign troops got into it
     ("Walls not strengthened": a scheduled one then wakes its seat, as others foiled it). Each level above the map's own
     for the province costs `WallUpkeep` (5) a season, paid after the troops' upkeep (`TurnEngine.WallsUpkeep`; the
     treasury notice reads "upkeep 3 minas 5 shekels, walls 5 shekels, wages ..."); walls whose upkeep the treasury
@@ -2200,7 +2201,7 @@ disbanded or given away), whose place next season is known. It rolls no dice.
     - the new flow is no worse than −(gold left − reserve) ÷ max(3, H).
   - Until turn 11, an army costs 400 over its life (100 + 30 × 10). The bar is then 277 for Hatti's archetype and 570 for Alashiya's.
   - A king with no troops at all raises an army if 100 leaves the reserve intact.
-- **Walls** (the siege package; `Statecraft.Fortification`), at most a level a season, after the levies: in a province the king holds, below walls 3 and not besieged, whose likeliest attack this season is feared at a chance of at least 0.4. Net = chance × value × (0.35 for a first level, 0.15 for a further one) − the price of the new level − (5 × min(H, 10) if the level is above the map's). The best net above 0 is bought if its price leaves 60 above the reserve. (A first level turns a province a lone army would take at once into one it must storm or besiege; a further level adds a season of siege.)
+- **Walls** (the siege package; `Statecraft.Fortification`), at most a level a season, after the levies: in a province the king holds, below walls 3, not besieged and with no foreign troops within, walled already or with a troop of ours in it (walls rise after the moves, so an empty province without walls that a feared king can walk into would be his before they stood: in the first script games such orders failed nearly five times a game; trying still costs nothing when it fails), whose likeliest attack this season is feared at a chance of at least 0.4. Net = chance × value × (0.35 for a first level, 0.15 for a further one) − the price of the new level − (5 × min(H, 10) if the level is above the map's). The best net above 0 is bought if its price leaves 60 above the reserve. (A first level turns a province a lone army would take at once into one it must storm or besiege; a further level adds a season of siege.)
 - **Cities.** The king considers free walled cities within buying reach that are not a destination, nor held by another king's troops (its own may stand in one it besieges, and buy it).
   - Score = (yield × H − danger × 10 × yield) × (1.15 if no rival can bid; otherwise 1 − 0.1 × the number of rivals who can, at most three).
   - Danger is 0.35 if a king with hostility above 0.4 can bring two troops to the city, else 0.08.
