@@ -126,6 +126,38 @@ public class RequestTextTests
     }
 
     [Fact]
+    public async Task A_characters_trait_words_follow_its_traits_as_they_are_now()
+    {
+        var envoy = Envoy(loyalty: 80, greed: 20);
+        envoy.Facts.Add(new Fact { Id = "f1", Text = "Keeps a lover in Ugarit.", Secrecy = Secrecy.Hidden, Tag = "lover" });
+        envoy.Persona = Personas.Template(envoy);
+        Assert.Contains("steadfast to whoever treats you fairly; indifferent to riches", envoy.Persona);
+        Assert.Equal(envoy.Persona, Personas.Current(envoy));
+
+        // Years unpaid and a court's gold: loyalty falls and greed rises. The template persona is rewritten in place.
+        (envoy.Traits.Loyalty, envoy.Traits.Greed) = (30, 70);
+        var now = Personas.Current(envoy);
+        Assert.Contains("You are Keliya, born in Washukanni, once a scribe. You are loyal mostly to yourself; fond of gold and quick to see a profit;", now);
+        Assert.Contains("What you want most: gold, enough to never serve again.", now);
+        Assert.DoesNotContain("steadfast", now);
+        Assert.DoesNotContain("to serve well and be trusted", now);
+        // The rest stays as written, its secrets among them; the persona it was given is not changed.
+        Assert.Contains("Things about yourself you do not volunteer: Keeps a lover in Ugarit.", now);
+        Assert.EndsWith("You speak in the formal manner of a royal messenger of the Late Bronze Age.", now);
+        Assert.Contains("steadfast", envoy.Persona);
+
+        // What the model reads is the persona as it is now.
+        var asker = new Recorder();
+        await new LlmCharacterMind(asker).PresentAsync(Audience(envoy, 0), default);
+        Assert.StartsWith(now, Assert.Single(asker.Calls).SeatSystem);
+
+        // A persona the narrator wrote cannot be rewritten without a model: the trait words as they are now follow it.
+        envoy.Persona = "You are Keliya, a scribe who has served one master faithfully all his life. You speak softly.";
+        Assert.Equal(envoy.Persona + "\nAs you are now (where anything above differs, this is how you are now): you are loyal mostly to yourself; fond of gold and quick to see a profit; capable enough; hopeful of advancement; careful with powerful men. What you want most: gold, enough to never serve again.",
+            Personas.Current(envoy));
+    }
+
+    [Fact]
     public void A_reply_without_the_gold_fields_keeps_nothing_and_swaps_nothing()
     {
         var present = Parse.Present((JsonObject)JsonNode.Parse("""{"speech":"Hail."}""")!);

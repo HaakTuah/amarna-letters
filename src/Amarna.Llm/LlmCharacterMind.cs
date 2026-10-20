@@ -52,7 +52,8 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
     public static string Self(Character c, int turn, int? asOf = null)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(c.Persona);
+        // Its trait words as its traits are now: loyalty lost to unpaid wages shows in how it is described.
+        sb.AppendLine(Personas.Current(c));
         sb.AppendLine();
         sb.AppendLine("Facts of your own life: " + string.Join(" ", c.Facts.Select(f => f.Text)));
         sb.AppendLine(c.Employer is { } e ? $"You serve the king of {e.Land()} ({e}) for {c.Contract?.Wage ?? 0} shekels a season." : "You serve nobody at present.");

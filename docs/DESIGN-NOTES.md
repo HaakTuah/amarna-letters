@@ -326,7 +326,15 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   name styles. Each power starts with two envoys; the rest are free agents.
 - Traits 0–100 (loyalty, greed, competence, ambition, courage, an optional sympathy) and discrete
   facts at three secrecy levels. Persona text is written once (template, or Sonnet narrator) and
-  frozen.
+  kept, but its trait words follow the traits: every model request is built with the persona as it is
+  now (`Personas.Current`). A template persona has its trait words ("loyal mostly to yourself; fond
+  of gold and quick to see a profit; …") and what it wants most rewritten in place from the current
+  traits, the rest (its secrets among them) as written; a persona the narrator wrote cannot be
+  rewritten without a model, so it is followed by "As you are now (where anything above differs,
+  this is how you are now): you are …. What you want most: …." The web app's people panel shows the
+  same. (Until the fix pass after item 4 the words were frozen: in the second agent simulation nine
+  characters lost loyalty and four were described wrongly. Item 11 replaces the persona with a
+  strategy, rewritten when the traits change which strategy fits.)
 - **Memory** is an episodic list. When it grows past 12 entries, the engine asks the character to
   fold its oldest entries (all but the newest six) into its summary, in its own voice: Haiku when
   characters are model-played, a deterministic condensation for script characters. The summary

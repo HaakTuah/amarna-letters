@@ -148,23 +148,48 @@ public static class Personas
     /// <summary>A persona prompt from traits and facts, used until (or instead of) the narrator's version.</summary>
     public static string Template(Character c)
     {
-        var t = c.Traits;
-        var parts = new List<string>
-        {
-            t.Loyalty >= 65 ? "steadfast to whoever treats you fairly" : t.Loyalty <= 35 ? "loyal mostly to yourself" : "loyal while it is worth your while",
-            t.Greed >= 65 ? "fond of gold and quick to see a profit" : t.Greed <= 30 ? "indifferent to riches" : "glad of a gift",
-            t.Competence >= 65 ? "shrewd and observant" : t.Competence <= 35 ? "careless with details" : "capable enough",
-            t.Ambition >= 65 ? "eager to be noticed by kings" : t.Ambition <= 30 ? "content with a quiet life" : "hopeful of advancement",
-            t.Courage >= 65 ? "bold, unafraid to carry hard words" : t.Courage <= 35 ? "timid before powerful men and eager to please them" : "careful with powerful men",
-        };
-        var want = t.Ambition >= 65 ? "rank and the favour of a great king"
-            : t.Greed >= 65 ? "gold, enough to never serve again"
-            : t.Loyalty >= 65 ? "to serve well and be trusted"
-            : "to come home safely with something to show for it";
         var secrets = c.Facts.Where(f => f.Secrecy != Secrecy.Public).Select(f => f.Text).ToList();
-        var text = $"You are {c.Name}, born in {c.Origin}, once a {c.Calling}. You are {string.Join("; ", parts)}. What you want most: {want}.";
+        var text = Opening(c) + Temperament(c.Traits) + WantMarker + Want(c.Traits) + ".";
         if (secrets.Count > 0) text += $" Things about yourself you do not volunteer: {string.Join(" ", secrets)}";
         text += " You speak in the formal manner of a royal messenger of the Late Bronze Age.";
         return text;
+    }
+
+    /// <summary>How a template persona begins, up to its trait words.</summary>
+    private static string Opening(Character c) => $"You are {c.Name}, born in {c.Origin}, once a {c.Calling}. You are ";
+
+    private const string WantMarker = ". What you want most: ";
+
+    /// <summary>The trait words: one phrase for each trait's band (low, middle or high).</summary>
+    public static string Temperament(Traits t) => string.Join("; ",
+        t.Loyalty >= 65 ? "steadfast to whoever treats you fairly" : t.Loyalty <= 35 ? "loyal mostly to yourself" : "loyal while it is worth your while",
+        t.Greed >= 65 ? "fond of gold and quick to see a profit" : t.Greed <= 30 ? "indifferent to riches" : "glad of a gift",
+        t.Competence >= 65 ? "shrewd and observant" : t.Competence <= 35 ? "careless with details" : "capable enough",
+        t.Ambition >= 65 ? "eager to be noticed by kings" : t.Ambition <= 30 ? "content with a quiet life" : "hopeful of advancement",
+        t.Courage >= 65 ? "bold, unafraid to carry hard words" : t.Courage <= 35 ? "timid before powerful men and eager to please them" : "careful with powerful men");
+
+    /// <summary>What a character wants most, from its traits.</summary>
+    public static string Want(Traits t) => t.Ambition >= 65 ? "rank and the favour of a great king"
+        : t.Greed >= 65 ? "gold, enough to never serve again"
+        : t.Loyalty >= 65 ? "to serve well and be trusted"
+        : "to come home safely with something to show for it";
+
+    /// <summary>
+    /// The persona a character is played with now: its trait words follow its traits as they are now, not as they were when
+    /// the persona was written. A template persona has its trait words and what it wants rewritten in place (the rest, its
+    /// secrets among them, stays as written); a persona the narrator wrote cannot be rewritten without a model, so it is
+    /// followed by the trait words as they are now, which hold where the two differ.
+    /// </summary>
+    public static string Current(Character c)
+    {
+        var persona = c.Persona;
+        var opening = Opening(c);
+        if (persona.StartsWith(opening, StringComparison.Ordinal))
+        {
+            var want = persona.IndexOf(WantMarker, opening.Length, StringComparison.Ordinal);
+            var end = want < 0 ? -1 : persona.IndexOf('.', want + WantMarker.Length);
+            if (end >= 0) return opening + Temperament(c.Traits) + WantMarker + Want(c.Traits) + persona[end..];
+        }
+        return $"{persona}\nAs you are now (where anything above differs, this is how you are now): you are {Temperament(c.Traits)}. What you want most: {Want(c.Traits)}.";
     }
 }
