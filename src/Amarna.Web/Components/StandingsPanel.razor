@@ -2,16 +2,16 @@
     var engine = new TurnEngine(State);
     var latest = State.Scores.Count == 0 ? 0 : State.Scores.Max(s => s.Turn);
     var known = Viewer is null;
-    // The estimate every court can make from who holds what: the same figures a model king reads on its STANDINGS line.
+    // The estimate every court can make from who holds what: the same figures a model king reads on its LAND STANDINGS line.
     var land = Views.LandStandings(State.Owner, State.Eliminated).ToDictionary(x => x.Power);
     // A seat sees its own strength and gold by its ledger (unassayed gold at its weight), never the true figures.
     double Growth(Power p) => known ? engine.Growth(p)
         : State.StartStrength.GetValueOrDefault(p) is > 0 and var start && State.IsAlive(p) ? (double)engine.LedgerStrength(p) / start : 0;
 }
 <h3>Standings</h3>
-<p class="muted">The winner is whoever grew most relative to where they began. @(known ? "" : "You see only your own figures; rivals' treasuries are private.") Land growth is an estimate any court can make from who holds what: the yield of the land a power holds now against its homeland's yield at the start. Treasuries are left out.</p>
+<p class="muted">The winner is whoever grew most relative to where they began. @(known ? "" : "You see only your own figures; rivals' treasuries are private.") The land-yield ratio is what any court can reckon from who holds what: the yield of the land a power holds now over its homeland's yield at the start. It is not growth, which counts treasuries and back pay too, against a starting strength that includes the starting treasury.</p>
 <div class="tablewrap"><table>
-    <thead><tr><th>Power</th><th>Land growth (estimate)</th><th>Growth</th><th>Lands</th><th>Units</th><th>Gold</th></tr></thead>
+    <thead><tr><th>Power</th><th>Land-yield ratio (not growth)</th><th>Growth</th><th>Lands</th><th>Units</th><th>Gold</th></tr></thead>
     <tbody>
         @foreach (var p in Powers.All.OrderByDescending(p => known ? engine.Growth(p) : land[p].Fallen ? -1 : land[p].Growth))
         {

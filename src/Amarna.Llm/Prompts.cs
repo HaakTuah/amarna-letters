@@ -96,6 +96,7 @@ public static class Prompts
 
             WHAT YOU SEE
             - Who holds each province is public. You see troops only in your own land, where your troops stand and in the provinces your spies watch, and one link of any kind (land, coast or sea) from those. Troops two links away, or an army carried across the sea by fleets, can still arrive next season without being seen first. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.
+            - LAND STANDINGS in your view give each power's land-yield ratio: the yield of the land it holds now over its homeland's yield at the start, which anyone can reckon from who holds what. It is not growth: growth, which decides who wins, measures strength (land, treasury and back pay) against a starting strength that includes the starting treasury, and rivals' treasuries are private. Your own growth, by your ledger, is on your treasury line.
             - News of your people abroad reaches you only by rumour or when they return: a servant who is held, changes sides or dies abroad still appears on its mission until word comes, and its back pay builds up in your books as for anyone away.
             - Word of captives and executions travels with people: an envoy received at a court, or a spy posted there, may hear which servants of other courts it holds captive and whom it has put to death within the last {TurnEngine.LossNewsSeasons} seasons, and brings that home in its report. Other courts' envoys and spies hear the same at yours.
             """);
@@ -438,8 +439,8 @@ public static class Prompts
     }
 
     /// <summary>
-    /// Every power's growth as the court can estimate it from who holds what (the land it holds now against its
-    /// homeland's yield), in one line; fallen kingdoms are named at the end.
+    /// Every power's land standing, which any court can reckon from who holds what: a land-yield ratio (the land it holds
+    /// now against its homeland's yield), labelled as not growth, in one line; fallen kingdoms are named at the end.
     /// </summary>
     public static string Standings(SeatView v)
     {
@@ -447,7 +448,7 @@ public static class Prompts
         var living = all.Where(x => !x.Fallen).Select(x =>
             $"{x.Power}{(x.Power == v.Power ? " (you)" : "")} {x.Growth.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} (land yield {x.Yield}, at the start {x.StartYield})");
         var fallen = all.Where(x => x.Fallen).Select(x => x.Power.ToString()).ToList();
-        return $"STANDINGS (an estimate from who holds what; treasuries are left out): {string.Join("; ", living)}."
+        return $"LAND STANDINGS (a land-yield ratio, not growth: the yield of the land each power holds now over its homeland's yield at the start, as any court can reckon it from who holds what. Growth, which decides who wins, also counts treasuries and back pay, so these are not the winning figures, and yours is not your growth on the treasury line): {string.Join("; ", living)}."
                + (fallen.Count > 0 ? $" Fallen: {string.Join(", ", fallen)}." : "");
     }
 

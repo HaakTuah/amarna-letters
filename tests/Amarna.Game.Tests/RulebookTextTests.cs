@@ -195,7 +195,7 @@ public class SeasonRulebookTests
 public class StandingsAndTravelTests
 {
     [Fact]
-    public void The_standings_line_estimates_every_power_s_growth_from_who_holds_what()
+    public void The_land_standings_line_gives_every_power_s_land_yield_ratio_from_who_holds_what_and_says_it_is_not_growth()
     {
         var s = GameFactory.NewGame(5);
         var map = WorldMap.Default;
@@ -209,7 +209,9 @@ public class StandingsAndTravelTests
 
         var line = Prompts.Standings(Views.For(s, Power.Egypt));
         var mitanni = (double)(Home(Power.Mitanni) + Home(Power.Assyria)) / Home(Power.Mitanni);
-        Assert.StartsWith("STANDINGS (an estimate from who holds what; treasuries are left out): Mitanni ", line);
+        // Labelled for what it is: a land-yield ratio, not the growth that wins, as the rulebook says too.
+        Assert.StartsWith("LAND STANDINGS (a land-yield ratio, not growth: the yield of the land each power holds now over its homeland's yield at the start, as any court can reckon it from who holds what. Growth, which decides who wins, also counts treasuries and back pay, so these are not the winning figures, and yours is not your growth on the treasury line): Mitanni ", line);
+        Assert.Contains("- LAND STANDINGS in your view give each power's land-yield ratio: the yield of the land it holds now over its homeland's yield at the start, which anyone can reckon from who holds what. It is not growth: growth, which decides who wins, measures strength (land, treasury and back pay) against a starting strength that includes the starting treasury, and rivals' treasuries are private. Your own growth, by your ledger, is on your treasury line.", Prompts.LeaderRules(true, new GameConfig()));
         Assert.Contains($"Mitanni {mitanni.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} (land yield {Home(Power.Mitanni) + Home(Power.Assyria)}, at the start {Home(Power.Mitanni)}); Egypt (you) 1.11 (land yield 210, at the start 190); ", line);
         Assert.Contains($"Hatti 1.00 (land yield {Home(Power.Hatti)}, at the start {Home(Power.Hatti)})", line);
         Assert.EndsWith(" Fallen: Assyria.", line);

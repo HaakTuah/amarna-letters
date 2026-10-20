@@ -106,15 +106,23 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   HOW YOU WIN says so ("... + the gold in your treasury - the back pay you owe your people"), and the
   view's treasury line says that back pay is counted against it. (Until the simulation-fixes round's
   Part G, owed gold did not exist: every wage left the treasury each season.)
-- **Standings.** Every seat's view has one line after its treasury, the same for every court since
-  ownership is public: "STANDINGS (an estimate from who holds what; treasuries are left out): Mitanni
+- **Land standings.** Every seat's view has one line after its treasury, the same for every court
+  since ownership is public, labelled for what it is: "LAND STANDINGS (a land-yield ratio, not growth:
+  the yield of the land each power holds now over its homeland's yield at the start, as any court can
+  reckon it from who holds what. Growth, which decides who wins, also counts treasuries and back pay,
+  so these are not the winning figures, and yours is not your growth on the treasury line): Mitanni
   1.93 (land yield 280, at the start 145); Egypt (you) 1.11 (land yield 210, at the start 190); …
-  Fallen: Assyria." Land-based growth is the base yield of the land a power holds now over its
-  homeland's yield (`Views.LandStandings`), the living best first; it is not the score, which adds
-  gold. The seat's own growth by its ledger stays on its treasury line. The web app's standings
-  panel shows the same estimate as a column, and a human seat's own growth and gold there by its
-  ledger. (Until the simulation-fixes round the view gave no standings, and kings added up yields
-  by hand; the human seat's panel showed its true growth and gold.)
+  Fallen: Assyria." The ratio is the base yield of the land a power holds now over its homeland's
+  yield (`Views.LandStandings`), the living best first; it is not the score, which adds gold and
+  subtracts back pay, against a starting strength that includes the starting treasury. The rulebook's
+  WHAT YOU SEE says so ("LAND STANDINGS in your view give each power's land-yield ratio: … It is not
+  growth: …"). The seat's own growth by its ledger stays on its treasury line. The web app's standings
+  panel shows the same ratio as a column, "Land-yield ratio (not growth)", and a human seat's own
+  growth and gold there by its ledger. (Until the simulation-fixes round the view gave no standings,
+  and kings added up yields by hand; the human seat's panel showed its true growth and gold. Until the
+  fix pass after item 4 the line was headed "STANDINGS (an estimate from who holds what; treasuries
+  are left out)", and in the second agent simulation all seven kings in both games read it as growth,
+  four in each misled: "I thought I was fourth of six when I was in fact below my start".)
 - **Opening positions are public.** Every king reads every power's opening troops, treasury,
   homeland yield and starting strength in the rulebook ("OPENING POSITIONS (known to every
   court)"), generated from `MapData` (`OpeningPositions`), so the cached block stays byte-stable.
