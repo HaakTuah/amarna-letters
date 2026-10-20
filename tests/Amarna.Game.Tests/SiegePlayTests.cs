@@ -139,6 +139,39 @@ public class SiegePlayTests
     }
 
     [Fact]
+    public async Task A_script_king_takes_a_host_s_offer_to_its_envoy_as_a_slight_and_trusts_the_envoy_that_refused()
+    {
+        // Egypt's two envoys are home; one reports that the king of Karduniash offered it a post, and it refused.
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        s.Turn = 4;
+        s.Treasuries[Power.Egypt].Gold = 3000;
+        var envoys = s.Characters.Where(c => c.Employer == Power.Egypt && c.SecretMaster is null).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var loyal = envoys[^1];
+        void Report(string body) => s.InboxOf(Power.Egypt).Add(new InboxItem { Turn = 4, Kind = InboxKind.EnvoyReport, Title = $"{loyal.Name} returns", Body = body, Subject = loyal.Id });
+        const string plain = "At the court of Karduniash the king received me. He said: \"I have heard his words.\"";
+        Report(plain);
+        var v = Views.For(s, Power.Egypt);
+        var before = new Brain(Power.Egypt, 1);
+        before.Learn(v, new Board(v));
+
+        s.InboxOf(Power.Egypt).Clear();
+        Report(plain + " The king of Karduniash offered me a post in his service, and I refused it: I serve you alone.");
+        v = Views.For(s, Power.Egypt);
+        var after = new Brain(Power.Egypt, 1);
+        after.Learn(v, new Board(v));
+        Assert.Equal(before.Rel[Power.Babylonia].Trust - 0.05, after.Rel[Power.Babylonia].Trust, 6);
+        Assert.Contains(loyal.Id, after.ProvenLoyal);
+        Assert.DoesNotContain(loyal.Id, before.ProvenLoyal);
+
+        // Among the equally reliable it is the first sent with a tablet or gold: here, with a gift to a friend, or a peace tablet.
+        Treaty(s, Power.Egypt, Power.Hatti, alliance: false);
+        var sub = await new ScriptLeader(1).DecideAsync(Views.For(s, Power.Egypt), default);
+        var trusted = sub.Orders.OfType<DispatchOrder>().Where(d => d.Proposal is not null || d.Gold > 0).ToList();
+        Assert.NotEmpty(trusted);
+        Assert.Equal(loyal.Id, trusted[0].Envoy);
+    }
+
+    [Fact]
     public async Task A_script_captor_lets_go_at_once_an_envoy_whose_king_has_fallen()
     {
         // The envoy is caught leaving Ashur; the next season Ashur surrenders, and Assyria falls.

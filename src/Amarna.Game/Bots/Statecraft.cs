@@ -431,7 +431,7 @@ internal static class Statecraft
 
         // A servant who has given notice is kept on at its price while the court still wants it (counting only those not
         // leaving) and the price passes the hiring test; the most reliable first. Otherwise it is let go. Never early.
-        var leaving = staff.Where(c => c.NoticePrice is not null).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var leaving = staff.Where(c => c.NoticePrice is not null).OrderByDescending(Reliability).ThenByDescending(c => brain.ProvenLoyal.Contains(c.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
         var keeping = staff.Count - leaving.Count;
         foreach (var c in leaving)
         {
@@ -527,7 +527,7 @@ internal static class Statecraft
             }
         }
 
-        var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id)).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id)).OrderByDescending(Reliability).ThenByDescending(c => brain.ProvenLoyal.Contains(c.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
         var leader = b.Leader();
 
         // Spies come home from a court that has fallen (it has no archive to copy and nobody to watch for), or, when nobody is
@@ -642,7 +642,7 @@ internal static class Statecraft
         // will fail again while the siege is as tight: he is not asked for two seasons, and no gold goes out to be taken.
         var besieged = v.Sieges.Any(x => x.Holder == me && x.Province == Board.Map.Capital(me).Id);
         var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id) && !(besieged && brain.WouldNotLeave.TryGetValue(c.Id, out var t) && v.Turn - t <= 2))
-            .OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+            .OrderByDescending(Reliability).ThenByDescending(c => brain.ProvenLoyal.Contains(c.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
         if (ready.Count == 0) return;
 
         var leader = b.Leader();
