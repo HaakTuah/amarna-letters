@@ -157,7 +157,21 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   or "…: you no longer held Thebes after movement.", or, for land the king itself ceded earlier in
   the resolution, "…: you ceded Sinai to Hatti last season, before the levy."). Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
   start of the season, the one farthest from the capital first (the rulebook says so).
-- **Strength** = 10 × (sum of base yields of provinces held) + true gold − back pay owed (see
+- **Slow absorption** (Build order item 5, the siege package; question 5, plan step 16, and the design document's "A
+  kingdom falls with its capital": "the land becomes the conqueror's over time rather than at once, so a conqueror gains
+  an empire to hold, not a lump of score"). A province taken by force (troops standing in it, a storm, a siege, or
+  passing with a fallen kingdom's capital) yields its new holder a third of its yield in its first season under him,
+  two thirds in the second, and all of it from the third, and counts in his strength the same way
+  (`TurnEngine.Absorbed`, `GameState.Conquered`: the season it was taken). The first season is the season it was taken,
+  for the score reckoned at its end, and the next, for the income paid at its start; the mark goes once it counts in
+  full. A province of the taker's own homeland that he takes back counts in full at once (map data, not a check of which
+  power it is), and so does land bought or ceded (a cession clears the mark, even on land the giver had conquered).
+  Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
+  following the yield (a reading; review question). Revolts, which the Ideas tab mentions, are left for later, as
+  question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of
+  its yield this season)"); the rulebook says so under ECONOMY and in HOW YOU WIN's strength. The public land standings
+  still use base yields.
+- **Strength** = 10 × (sum of base yields of provinces held, conquered land counted as far as it is absorbed) + true gold − back pay owed (see
   "Back pay" under Characters). Growth is strength over starting strength. Units are not counted;
   they cost upkeep and are the means to land. One function computes it (`Scoring.Strength`): the
   engine's score with true gold and the back pay a power really owes; a seat's own strength line
@@ -2589,7 +2603,7 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   city, terrain per province and per connection, deserts costing supplies, islands protected by the sea; the temporary
   trigger for troops next to a capital retired (main tab "Tempo of war" and "Walls and terrain"; question 5). Walls that
   differ by place, storming and besieging are built (see Walls and sieges).
-- **Slow absorption** of conquered land (question 5; item 5).
+
 - **News that travels**: distant provinces, and who holds them, shown at their last known state with its date, the
   news carried by people (main tab "Hidden by default"; question 6; item 7).
 - **Envoy authority and passage grants**: mandates with engine-checkable limits, the authority to seal within them,

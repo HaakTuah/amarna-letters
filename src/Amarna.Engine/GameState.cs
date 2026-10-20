@@ -45,6 +45,12 @@ public sealed class GameState
     public Dictionary<string, int> Walls { get; set; } = new();
     /// <summary>The sieges under way: a foreign army standing in a walled city, ordered to besiege it.</summary>
     public List<Siege> Sieges { get; set; } = new();
+    /// <summary>
+    /// Land taken by force and still being absorbed, with the season it was taken (Build order item 5, slow absorption): it
+    /// yields, and counts in its holder's strength, a third of its yield in its first season under him, two thirds in the
+    /// second, all of it from the third (<see cref="TurnEngine.Absorbed"/>). Public, as who holds what is.
+    /// </summary>
+    public Dictionary<string, int> Conquered { get; set; } = new();
     public List<Unit> Units { get; set; } = new();
     public Dictionary<Power, Treasury> Treasuries { get; set; } = new();
     public Dictionary<Power, int> StartStrength { get; set; } = new();

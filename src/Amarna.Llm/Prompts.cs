@@ -32,7 +32,7 @@ public static class Prompts
             You are playing Amarna Letters, a strategy game set among the seven Great Kings of the Late Bronze Age (c. 1360-1330 BCE): Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus). The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one king. Your only goal is to win.
 
             HOW YOU WIN
-            - The winner is the power whose strength grew most relative to its own starting strength. Strength = {c.ProvinceWeight} x (sum of the base yields of the provinces you hold) + the gold in your treasury - the back pay you owe your people. A small kingdom that doubles beats an empire that merely holds its ground.
+            - The winner is the power whose strength grew most relative to its own starting strength. Strength = {c.ProvinceWeight} x (sum of the base yields of the provinces you hold, land you conquered counted as far as you have absorbed it) + the gold in your treasury - the back pay you owe your people. A small kingdom that doubles beats an empire that merely holds its ground.
             - No game ends before turn {c.MinTurns}. From then on, at the end of every season the game ends with a {c.EndChance * 100:0}% chance. Nobody knows which season is the last.{sharedVictory}
             - A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him, your troops disband, and what you owe dies with you. You cannot cede your capital. Take a rival's capital and his whole kingdom is yours.
             """);
@@ -87,6 +87,7 @@ public static class Prompts
 
             ECONOMY
             - Gold is counted in shekels (60 shekels make a mina). Raise an army for {c.ArmyCost} or a fleet for {c.FleetCost}, only in a province of your own homeland that you still hold and that is empty after movement. Buy a free city-state for {c.NeutralPriceFactor} x its yield if it borders your land or troops, or shares a sea zone with one of your coasts. You may cede provinces or give troops to another power.
+            - Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you, and counts in your strength, a third of its yield in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third. A province of your own homeland that you take back, and land bought or ceded to you, is yours in full at once. LANDS in your view marks the land still being absorbed.
             - Gold sent abroad travels with an envoy and arrives late. You may send it debased (purity below 100%): the receiver sees its weight, not its fineness, until they pay {c.AssayFee} for an assay. Your own treasury figure counts unassayed gold at its weight.
 
             ENVOYS: THE ONLY WAY KINGS COMMUNICATE
@@ -282,11 +283,15 @@ public static class Prompts
         sb.AppendLine("LANDS (who holds what, with the walls standing now; troops only where you can see them):");
         var units = v.Units.ToDictionary(u => u.Province);
         string Troop(string id) => units.TryGetValue(id, out var u) ? $" [{u.Power} {(u.Kind == UnitKind.Army ? "army" : "fleet")}]" : "";
+        // Land taken by force and still being absorbed: what it yields and counts this season.
+        string Absorbing(string id) => v.Conquered.TryGetValue(id, out var taken)
+            ? $" (taken by force in turn {taken}: yields and counts {(v.Turn - taken <= 1 ? "a third" : "two thirds")} of its yield this season)"
+            : "";
         foreach (var group in v.Owner.GroupBy(x => x.Value).OrderBy(g => g.Key is null ? 99 : (int)g.Key.Value))
         {
             var who = group.Key is { } o ? (o == v.Power ? $"{o} (you)" : o.ToString()) : "Free cities";
             var list = group.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal)
-                .Select(id => id + (v.Walls.TryGetValue(id, out var w) ? $" (walls {w})" : "") + Troop(id));
+                .Select(id => id + (v.Walls.TryGetValue(id, out var w) ? $" (walls {w})" : "") + Absorbing(id) + Troop(id));
             sb.AppendLine($"- {who}: {string.Join(", ", list)}");
         }
         if (Sieges(v) is { Length: > 0 } sieges) sb.AppendLine(sieges);

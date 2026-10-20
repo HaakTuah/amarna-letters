@@ -35,6 +35,8 @@ public sealed partial class TurnEngine
         _missedPayNow.Clear();
         // A siege whose army is gone since it was last pressed (disbanded, given away, lost to plague) is over: it costs nothing.
         LiftLostSieges();
+        // Land absorbed in full is no longer marked.
+        foreach (var done in S.Conquered.Where(x => S.Turn - x.Value >= 3).Select(x => x.Key).ToList()) S.Conquered.Remove(done);
         // A servant whose notice has run out leaves before it is paid again.
         NoticesRunOut();
         IncomeAndUpkeep();
@@ -219,7 +221,7 @@ public sealed partial class TurnEngine
         var p = Map[province];
         if (S.SiegeOf(province) is not null) return 0;
         var owner = S.Owner.GetValueOrDefault(province);
-        var factor = 1.0;
+        var factor = Absorbed(province);
         foreach (var c in S.Catastrophes)
         {
             if (c.StartTurn > S.Turn || c.EndTurn < S.Turn) continue;
@@ -229,6 +231,28 @@ public sealed partial class TurnEngine
     }
 
     public int Income(Power p) => S.OwnedBy(p).Sum(EffectiveYield);
+
+    /// <summary>
+    /// How much of a province its holder has absorbed (slow absorption, Build order item 5): land taken by force yields, and
+    /// counts in his strength, a third of its yield in its first season under him (the season it was taken, for the score
+    /// reckoned then, and the next, for its income), two thirds in the second, all of it from the third. Land held from the
+    /// start, bought, ceded, or retaken of the holder's own homeland counts in full.
+    /// </summary>
+    public double Absorbed(string province) => Absorbed(S, province);
+
+    /// <inheritdoc cref="Absorbed(string)"/>
+    public static double Absorbed(GameState s, string province) =>
+        s.Conquered.TryGetValue(province, out var taken) ? (s.Turn - taken) switch { <= 1 => 1 / 3.0, 2 => 2 / 3.0, _ => 1.0 } : 1.0;
+
+    /// <summary>
+    /// A province changes hands by force (stormed, surrendered to a siege, taken by troops standing in it, or passing with a
+    /// fallen kingdom): its new holder absorbs it slowly, unless it is of his own homeland, which he retakes in full.
+    /// </summary>
+    private void TakenByForce(string province, Power? taker)
+    {
+        if (taker is { } t && Map[province].Home != t) S.Conquered[province] = S.Turn;
+        else S.Conquered.Remove(province);
+    }
 
     private void Quit(Character c, string notice)
     {
@@ -550,6 +574,7 @@ public sealed partial class TurnEngine
                 LowerWalls(u.Province);
             }
             S.Owner[u.Province] = u.Power;
+            TakenByForce(u.Province, u.Power);
             if (before is { } loser)
             {
                 S.Notify(loser, InboxKind.Battle, "Land lost", $"{prov.Name} has been taken by {u.Power}.");
@@ -581,6 +606,8 @@ public sealed partial class TurnEngine
                 continue;
             }
             S.Owner[c.Province] = c.To;
+            // Land given is the receiver's in full at once.
+            S.Conquered.Remove(c.Province);
             _cededNow[c.Province] = c.To;
             S.Notify(p, InboxKind.Resolution, "Land ceded", $"{Map[c.Province].Name} now belongs to {c.To}.");
             S.Notify(c.To, InboxKind.Resolution, "Land received", $"{p} has ceded {Map[c.Province].Name} to you.");
@@ -695,6 +722,7 @@ public sealed partial class TurnEngine
         foreach (var id in land)
         {
             S.Owner[id] = conqueror;
+            TakenByForce(id, conqueror);
             // A siege the conqueror pressed against land that is now his is over.
             if (conqueror is { } c) S.Sieges.RemoveAll(x => x.Province == id && x.Power == c);
         }
@@ -750,8 +778,8 @@ public sealed partial class TurnEngine
     /// </summary>
     public int LedgerStrength(Power p) => Scoring.Strength(S.Config, LandYield(p), S.Treasuries[p].Ledger, BelievedBackPay(p));
 
-    /// <summary>The base yield of the land a power holds.</summary>
-    private int LandYield(Power p) => S.OwnedBy(p).Sum(id => Map[id].Yield);
+    /// <summary>The yield of the land a power holds, conquered land counted as far as it is absorbed (<see cref="Absorbed"/>).</summary>
+    private int LandYield(Power p) => S.OwnedBy(p).Sum(id => (int)Math.Round(Map[id].Yield * Absorbed(id)));
 
     public double Growth(Power p)
     {

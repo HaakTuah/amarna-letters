@@ -123,6 +123,7 @@ public sealed partial class TurnEngine
         S.Sieges.Remove(x);
         LowerWalls(prov);
         S.Owner[prov] = x.Power;
+        TakenByForce(prov, x.Power);
         var left = S.WallsOf(prov) is > 0 and var w ? $"walls {w}" : "no walls";
         tell(x.Power, $"{name} surrendered to you after a siege of {seasons} season{(seasons == 1 ? "" : "s")}: it is yours, with its walls a level lower ({left}).");
         if (owner is { } loser)

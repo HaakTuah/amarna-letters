@@ -136,6 +136,8 @@ public sealed class SeatView
     public Dictionary<string, int> Walls { get; set; } = new();
     /// <summary>The sieges this court knows of: its own, those of its cities, and those it can see.</summary>
     public List<SiegeView> Sieges { get; set; } = new();
+    /// <summary>Land taken by force and still being absorbed, with the season it was taken (public, as who holds what is).</summary>
+    public Dictionary<string, int> Conquered { get; set; } = new();
     public List<UnitView> Units { get; set; } = new();
     public List<string> Visible { get; set; } = new();
     public List<Power> Fallen { get; set; } = new();
@@ -276,6 +278,7 @@ public static class Views
             ProvinceWeight = s.Config.ProvinceWeight,
             Owner = new Dictionary<string, Power?>(s.Owner),
             Walls = new Dictionary<string, int>(s.Walls),
+            Conquered = new Dictionary<string, int>(s.Conquered),
             Sieges = s.Sieges.Where(x => x.Power == p || s.Owner.GetValueOrDefault(x.Province) == p || sight.Contains(x.Province))
                 .Select(x => new SiegeView { Province = x.Province, Besieger = x.Power, Holder = s.Owner.GetValueOrDefault(x.Province), Progress = x.Progress, Walls = s.WallsOf(x.Province), Since = x.Since })
                 .ToList(),
