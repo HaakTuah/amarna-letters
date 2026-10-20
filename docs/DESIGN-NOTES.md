@@ -1791,7 +1791,9 @@ makes 36, named `char-` and 8 random hex digits, with the same guard as the king
 the narrator as before. `check-isolation.js --dry` checks the walls without starting an agent, by
 running each agent's own hook on the isolation test's steps; the live test still runs first in the
 playing session. `stub-replier.js` answers requests with the plainest valid reply, to prove the
-plumbing without model calls. `audit.js` allows an agent in play to read only the request file its
+plumbing without model calls (with `--sieges`, since the script players' audit of the siege package, its kings also
+besiege, march armies into free walled cities, sally and fortify, read from their view, to prove that file seats can give
+the siege package's orders). `audit.js` allows an agent in play to read only the request file its
 prompt named, since a character could otherwise open an older or newer request of its own and learn
 what has happened since the season it writes of (a debrief, which names earlier requests to reread,
 may read any of its own); until item 4's review any request file in its own folder passed. The
