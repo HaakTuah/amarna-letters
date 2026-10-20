@@ -188,6 +188,28 @@
             </select>
             <button class="small" disabled="@(FortifyAt == "")" @onclick="() => Add(new FortifyOrder(FortifyAt))">Add</button>
         </div>
+        @{
+            var sallying = v.Owner.Where(x => x.Value == me && v.Walls.GetValueOrDefault(x.Key) >= v.Prices.GetValueOrDefault("sallyMinWalls", 2) && v.Prices.GetValueOrDefault("sallyMinWalls", 2) > 0
+                                              && v.Units.Any(u => u.Province == x.Key && u.Power != me)).Select(x => x.Key).OrderBy(Ui.Province).ToList();
+        }
+        @if (sallying.Count > 0)
+        {
+            @* A sally (the siege package): the walls of a city with foreign troops within them support one attack on them, for +1. *@
+            <div class="row" style="margin-top:.4rem">
+                <select @bind="SallyCity" @bind:after="() => SallyFrom = string.Empty">
+                    <option value="">Sally from the walls of…</option>
+                    @foreach (var c in sallying) { <option value="@c">@Ui.Province(c)</option> }
+                </select>
+                @if (SallyCity != "")
+                {
+                    <select @bind="SallyFrom">
+                        <option value="">supporting the attack from…</option>
+                        @foreach (var n in map.Neighbors(SallyCity).Distinct().OrderBy(Ui.Province)) { <option value="@n">@Ui.Province(n)</option> }
+                    </select>
+                }
+                <button class="small" disabled="@(SallyCity == "" || SallyFrom == "")" @onclick="() => Add(new SallyOrder(SallyCity, SallyFrom))">Add</button>
+            </div>
+        }
         <div class="row" style="margin-top:.4rem">
             <select @bind="CedeWhat">
                 <option value="">Cede a province…</option>
@@ -391,7 +413,7 @@
     [Parameter, EditorRequired] public GameState State { get; set; } = default!;
     [Parameter] public EventCallback OnChanged { get; set; }
 
-    private string RaiseAt = "", RaiseKind = "Army", BuyCity = "", FortifyAt = "", CedeWhat = "", CedeTo = "Egypt", GiftUnit = "", GiftTo = "Egypt";
+    private string RaiseAt = "", RaiseKind = "Army", BuyCity = "", FortifyAt = "", SallyCity = "", SallyFrom = "", CedeWhat = "", CedeTo = "Egypt", GiftUnit = "", GiftTo = "Egypt";
     private string Envoy = "", SendTo = "Hatti", Letter = "", Mandate = "", TabletText = "";
     private int Gold, Purity = 100, Watch, CheckSpend = 30, AuthSpend = 40, Ransom = 80, Term = 6;
     private bool Oath;

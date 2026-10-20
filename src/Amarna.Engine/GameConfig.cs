@@ -37,6 +37,8 @@ public sealed record GameConfig
     public int FortifyCost { get; init; } = 50;
     /// <summary>Each level of walls above the map's own for that province costs this a season; unpaid, the walls fall a level.</summary>
     public int WallUpkeep { get; init; } = 5;
+    /// <summary>The walls a city needs for its defenders to sally against troops within them (+1 to one attack on them); 0 turns sallies off.</summary>
+    public int SallyMinWalls { get; init; } = 2;
     /// <summary>
     /// An envoy leaving or coming home to its king's besieged capital is caught with a chance in percent of this × the siege's
     /// tightness (the besieger's units in and next to the city, 1 to 3) − its skill ÷ 4, between the next two; one whose

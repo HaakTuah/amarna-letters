@@ -262,7 +262,8 @@ public class ViewTextTests
     {
         // As the king reads it: the JSON text escapes an apostrophe, which the model reads as the apostrophe.
         var schema = Schemas.LeaderOrders(new GameConfig()).ToJsonString(new System.Text.Json.JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-        Assert.Contains("\"enum\":[\"hold\",\"move\",\"support\",\"convoy\",\"disband\",\"besiege\"]", schema);
+        Assert.Contains("\"enum\":[\"hold\",\"move\",\"support\",\"convoy\",\"disband\",\"besiege\",\"sally\"]", schema);
+        Assert.Contains("sally: the province the attack on the troops within your walls comes from", schema);
         Assert.Contains("besiege: an army standing within walls you do not hold besieges that city", schema);
         Assert.DoesNotContain("support its walls holding", schema);
         Assert.Contains("Greet the recipient as your brother, as Great Kings greet their equals", schema);

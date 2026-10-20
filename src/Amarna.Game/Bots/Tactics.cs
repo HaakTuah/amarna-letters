@@ -414,6 +414,20 @@ internal static class Tactics
         }
     }
 
+    /// <summary>
+    /// The sallies that go with a plan (the siege package): each of our moves into a city of ours whose walls can sally, with
+    /// foreign troops within them, is supported by the walls (+1, a support that cannot be cut).
+    /// </summary>
+    public static List<SallyOrder> Sallies(Board b, IEnumerable<Order> orders)
+    {
+        var min = b.V.Prices.GetValueOrDefault("sallyMinWalls", 2);
+        if (min <= 0) return [];
+        return orders.OfType<MoveOrder>()
+            .Where(m => b.IsMine(m.To) && b.WallLevel(m.To) >= min && b.V.Units.Any(u => u.Province == m.To && u.Power != b.Me))
+            .GroupBy(m => m.To).Select(g => g.OrderBy(m => m.Unit, StringComparer.Ordinal).First())
+            .Select(m => new SallyOrder(m.To, m.Unit)).ToList();
+    }
+
     /// <summary>Whether the king will send troops against another king this season. Decided by his own temper, never by a trial plan.</summary>
     public static bool Willing(Board b, Brain brain, Power owner, Power? leader)
     {

@@ -136,6 +136,7 @@ public static class Parse
             "disband" => new DisbandOrder(unit),
             "hold" => new HoldOrder(unit),
             "besiege" => new BesiegeOrder(unit),
+            "sally" => new SallyOrder(unit, target),
             _ => null,
         };
         return order;

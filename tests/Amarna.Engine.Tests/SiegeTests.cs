@@ -10,7 +10,7 @@ namespace Amarna.Engine.Tests;
 public class SiegeTests
 {
     /// <summary>Seed 1 with no catastrophes, Babylonia's army in Sippar next to Mari (walls 2, a free city), Mitanni's in Terqa.</summary>
-    private static GameState Board()
+    internal static GameState Board()
     {
         var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
         return s;
@@ -172,5 +172,39 @@ public class SiegeTests
         Assert.Equal(new BesiegeOrder("mari"), TurnEngine.AsItStands(s, Power.Babylonia, plan));
         var round = Json.Deserialize<Order>(Json.Serialize<Order>(new BesiegeOrder("mari")));
         Assert.Equal(new BesiegeOrder("mari"), round);
+    }
+
+    [Fact]
+    public void Walls_that_sally_add_one_to_an_attack_on_the_troops_within_them()
+    {
+        // Mitanni holds Mari (walls 2); Babylonia's army besieges it. Mitanni's lone army from Terqa, with the walls' sally,
+        // beats the besieger's 1 and drives it out; without the sally it bounces.
+        GameState Board()
+        {
+            var s = SiegeTests.Board();
+            s.Owner["mari"] = Power.Mitanni;
+            s.Units.First(u => u.Province == "sippar").Province = "mari";
+            s.Sieges.Add(new Siege { Province = "mari", Power = Power.Babylonia, UnitId = s.UnitAt("mari")!.Id, Progress = 1, Since = 1 });
+            return s;
+        }
+        var bounced = Board();
+        Season(bounced, Orders(Power.Mitanni, new MoveOrder("terqa", "mari")));
+        Assert.Equal(Power.Babylonia, bounced.UnitAt("mari")?.Power);
+
+        var s = Board();
+        Season(s, Orders(Power.Mitanni, new MoveOrder("terqa", "mari"), new SallyOrder("mari", "terqa")));
+        Assert.Equal(Power.Mitanni, s.UnitAt("mari")?.Power);
+        Assert.Empty(s.Sieges);
+        Assert.Contains("- The walls of mari sally in support of the attack from terqa: given", s.InboxOf(Power.Mitanni).Single(i => i.Title == "Movements last season" && i.Turn == s.Turn).Body);
+        Assert.Contains(s.Events, e => e.Signal == "sally-won");
+
+        // A sally that finds no attack is void, and walls below 2 cannot sally.
+        var v = Board();
+        Season(v, Orders(Power.Mitanni, new SallyOrder("mari", "damascus")));
+        Assert.Contains("- The walls of mari sally in support of the attack from damascus: void: no unit moved from damascus to mari", v.InboxOf(Power.Mitanni).Single(i => i.Title == "Movements last season" && i.Turn == v.Turn).Body);
+        var low = Board();
+        low.Walls["mari"] = 1;
+        var refused = new OrderValidator(low).Validate(Power.Mitanni, new TurnSubmission { Orders = [new SallyOrder("mari", "terqa"), new SallyOrder("harran", "terqa")] });
+        Assert.Equal(["the walls of Mari stand at 1: only walls of 2 or more can sally", "Harran has no walls to sally from"], refused.Rejected.Select(r => r.Reason));
     }
 }

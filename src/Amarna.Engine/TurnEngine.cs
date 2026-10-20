@@ -415,7 +415,7 @@ public sealed partial class TurnEngine
         IEnumerable<(Power P, T O)> All<T>() where T : Order =>
             Powers.All.Where(p => valid.ContainsKey(p) && S.IsAlive(p)).SelectMany(p => valid[p].Accepted.OfType<T>().Select(o => (p, o)));
 
-        ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder).ToList());
+        ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder or BesiegeOrder or SallyOrder).ToList());
         // A scheduled move that failed is tried again next season, or ends its unit's march.
         Marches(valid);
         // Sieges are lifted, begun and pressed, and cities worn down surrender; then land changes hands where troops stand.
@@ -459,7 +459,9 @@ public sealed partial class TurnEngine
             if (at is not null) byProvince[at] = o;
         }
 
-        var result = new Adjudicator(Map, explain: true).Run(S.Units, byProvince, S.Owner, S.Walls);
+        var sallies = unitOrders.Select(x => x.O).OfType<SallyOrder>().ToList();
+        var adjudicator = new Adjudicator(Map, explain: true);
+        var result = adjudicator.Run(S.Units, byProvince, S.Owner, S.Walls, sallies);
         _battle = result;
         _unitOrdersNow = byProvince;
         // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
@@ -536,6 +538,14 @@ public sealed partial class TurnEngine
                     // which tells only that the seat guessed another unit's orders wrong.
                     if (l.Cut is { } cut && byProvince.TryGetValue(l.Province, out var help)) ScheduledFailed(p, help, cut);
                 }
+            }
+            // The walls of his cities that sallied: whether they found the attack they were to support.
+            foreach (var (q, w) in unitOrders.Where(x => x.P == p && x.O is SallyOrder).Select(x => (x.P, (SallyOrder)x.O)))
+            {
+                var matched = adjudicator.SallyMatched(w);
+                mine.Add($"The walls of {w.City} sally in support of the attack from {w.From}: {(matched ? "given" : $"void: no unit moved from {w.From} to {w.City}")}");
+                var won = result.Moves.Any(m => m.From == w.From && m.To == w.City && m.Succeeded);
+                S.Log("sally", $"The walls of {Map[w.City].Name} sallied in support of the attack from {Map[w.From].Name}{(won ? ", which drove out the troops within" : matched ? ", which failed" : ", but no attack came")}.", [p], won ? "sally-won" : "sally");
             }
             // An assault on a walled city of the king's own: his side of it, with the strengths, among his own lines (until the
             // siege package it showed only under "Seen nearby", with no strengths: the fix pass after item 4, minor finding 5).

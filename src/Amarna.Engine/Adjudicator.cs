@@ -133,6 +133,8 @@ public sealed class Adjudicator
     private readonly List<int> _deps = new();
     private IReadOnlyDictionary<string, Power?> _owners = new Dictionary<string, Power?>();
     private IReadOnlyDictionary<string, int> _walls = new Dictionary<string, int>();
+    private IReadOnlyList<SallyOrder> _sallies = [];
+    private IReadOnlyDictionary<string, Power?> _sallyBy = new Dictionary<string, Power?>();
 
     /// <param name="explain">Also work out why each failed move failed and where each cut came from, for battle reports.</param>
     public Adjudicator(WorldMap map, bool explain = false)
@@ -143,13 +145,19 @@ public sealed class Adjudicator
 
     /// <param name="owners">Who holds each province before the moves: a move into one's own walled province storms nothing.</param>
     /// <param name="walls">The level of each province's walls (none if left out).</param>
+    /// <param name="sallies">
+    /// Walls that sally: each supports the move from its <see cref="SallyOrder.From"/> into its city, for its city's holder in
+    /// <paramref name="owners"/>, as a support that cannot be cut (checked by the validator; one per city).
+    /// </param>
     public AdjudicationResult Run(IReadOnlyList<Unit> units, IReadOnlyDictionary<string, Order> ordersByProvince,
-        IReadOnlyDictionary<string, Power?>? owners = null, IReadOnlyDictionary<string, int>? walls = null)
+        IReadOnlyDictionary<string, Power?>? owners = null, IReadOnlyDictionary<string, int>? walls = null, IReadOnlyList<SallyOrder>? sallies = null)
     {
         _orders.Clear();
         _at.Clear();
         _owners = owners ?? new Dictionary<string, Power?>();
         _walls = walls ?? new Dictionary<string, int>();
+        _sallies = sallies ?? [];
+        _sallyBy = _sallies.GroupBy(x => x.City).ToDictionary(g => g.Key, g => _owners.GetValueOrDefault(g.Key));
         foreach (var u in units)
         {
             var o = new O { At = u.Province, Power = u.Power, UnitKind = u.Kind, UnitId = u.Id, Kind = Kind.Hold };
@@ -413,8 +421,14 @@ public sealed class Adjudicator
         foreach (var s in _orders)
             if (s.Kind == Kind.Support && s.Target == move.At && s.To == move.Target && Resolve(s.Index))
                 if (excludePower is null || s.Power != excludePower) count++;
+        // Walls that sally support the move from where they name into their city, and cannot be cut.
+        foreach (var w in _sallies)
+            if (w.City == move.Target && w.From == move.At && (excludePower is null || _sallyBy.GetValueOrDefault(w.City) != excludePower)) count++;
         return count;
     }
+
+    /// <summary>Whether a sally found the move it supports (a move from where it names into its city, whoever made it).</summary>
+    public bool SallyMatched(SallyOrder w) => _orders.Any(o => o.Kind == Kind.Move && o.At == w.From && o.Target == w.City);
 
     private int AttackStrength(O move)
     {

@@ -14,6 +14,7 @@ namespace Amarna.Engine;
 [JsonDerivedType(typeof(ConvoyOrder), "convoy")]
 [JsonDerivedType(typeof(BesiegeOrder), "besiege")]
 [JsonDerivedType(typeof(FortifyOrder), "fortify")]
+[JsonDerivedType(typeof(SallyOrder), "sally")]
 [JsonDerivedType(typeof(RaiseOrder), "raise")]
 [JsonDerivedType(typeof(DisbandOrder), "disband")]
 [JsonDerivedType(typeof(BuyProvinceOrder), "buy")]
@@ -90,6 +91,16 @@ public sealed record UnreadableOrder(string Text, string Reason) : Order
 public sealed record FortifyOrder(string Province) : Order
 {
     public override string Describe() => $"strengthen the walls of {Named(Province)}";
+}
+
+/// <summary>
+/// The walls of a city of the seat's, with foreign troops within them, sally: they support one attack on those troops, the
+/// move from <paramref name="From"/> into the city, whoever makes it, for +1, a support that cannot be cut (Build order item
+/// 5; question 5, plan step 8). Only walls of <see cref="GameConfig.SallyMinWalls"/> or more can sally.
+/// </summary>
+public sealed record SallyOrder(string City, string From) : Order
+{
+    public override string Describe() => $"the walls of {Named(City)} sally in support of the attack from {Named(From)}";
 }
 
 public sealed record RaiseOrder(string Province, UnitKind Kind) : Order

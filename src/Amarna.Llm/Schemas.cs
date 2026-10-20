@@ -50,9 +50,9 @@ public static class Schemas
     // The shapes of a unit order and of any other order. Repeated in the schedule and in standing orders; the copy in
     // standing orders leaves out the field descriptions, which are the same as above it, to keep the schema short.
     private static JsonObject UnitOrder(bool described = true) => Object(
-        ("unit", Str(described ? "Province id where your unit stands." : null)),
-        ("order", Enum(["hold", "move", "support", "convoy", "disband", "besiege"])),
-        ("target", Str(described ? "move: destination. support: the province of the unit supported. convoy: province of the army. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)." : null)),
+        ("unit", Str(described ? "Province id where your unit stands (sally: your walled city whose walls sally)." : null)),
+        ("order", Enum(["hold", "move", "support", "convoy", "disband", "besiege", "sally"])),
+        ("target", Str(described ? "move: destination. support: the province of the unit supported. convoy: province of the army. sally: the province the attack on the troops within your walls comes from. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)." : null)),
         ("to", Str(described ? "support of a move, or convoy: the destination. Support to hold: empty." : null)));
 
     private static JsonObject OtherOrder(bool described = true) => Object(

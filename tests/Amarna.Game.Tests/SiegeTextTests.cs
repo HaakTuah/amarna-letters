@@ -37,14 +37,15 @@ public class SiegeTextTests
     [InlineData("Strengthening walls (order fortify, naming the province): the walls of a province you hold rise a level at the end of the season, up to 3, for 50 x the new level (50, 100, 150), paid then")]
     [InlineData("walls whose upkeep you cannot pay fall a level, the farthest from your capital first. An earthquake throws the walls of the province it strikes down a level.")]
     [InlineData("An envoy whose courage is below 20 x tightness will not leave that season: nothing is paid, and you are told. A caught envoy is the besieger's captive: he reads the letter and the mandate, and takes the gold and the tablets it carried; he may execute, ransom or release the envoy, but cannot turn him.")]
+    [InlineData("The walls then support one attack into the city on those troops, yours or another king's, for +1, as a support that cannot be cut. A sally that finds no such attack is void.")]
     public void The_rulebook_states_walls_by_place_and_slow_absorption(string rule) => Assert.Contains(rule, Prompts.LeaderRules(true, new GameConfig()));
 
     [Fact]
     public void A_fortify_order_is_read_from_a_reply_and_offered_in_the_schema()
     {
         var sub = Parse.Orders((System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse(
-            """{"notes":"","letters":[],"units":[{"unit":"mari","order":"besiege","target":"","to":""}],"other_orders":[{"action":"fortify","province":"Thebes","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]}]}""")!);
-        Assert.Equal([new BesiegeOrder("mari"), new FortifyOrder("thebes")], sub.Orders);
+            """{"notes":"","letters":[],"units":[{"unit":"mari","order":"besiege","target":"","to":""},{"unit":"Babylon","order":"sally","target":"sippar","to":""}],"other_orders":[{"action":"fortify","province":"Thebes","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]}]}""")!);
+        Assert.Equal([new BesiegeOrder("mari"), new SallyOrder("babylon", "sippar"), new FortifyOrder("thebes")], sub.Orders);
         Assert.Contains("fortify", Schemas.OtherActions);
     }
 
@@ -62,5 +63,15 @@ public class SiegeTextTests
         var walls = Amarna.Game.Bots.Statecraft.Fortification(b, plan, 1500);
         Assert.Equal(("sippar", 50), walls);
         Assert.Null(Amarna.Game.Bots.Statecraft.Fortification(b, plan, 50));
+    }
+
+    [Fact]
+    public void A_script_king_s_attack_on_troops_within_its_walls_goes_with_a_sally()
+    {
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        s.Units.RemoveAll(u => u.Province == "babylon");
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "babylon" });
+        var b = new Amarna.Game.Bots.Board(Views.For(s, Power.Babylonia));
+        Assert.Equal([new SallyOrder("babylon", "sippar")], Amarna.Game.Bots.Tactics.Sallies(b, [new MoveOrder("sippar", "babylon"), new MoveOrder("nippur", "ur")]));
     }
 }

@@ -138,6 +138,17 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     "Land lost" when it falls. The view's SIEGES line lists the sieges it knows of (its own, of its
     cities, and in its sight) with how far each has gone. The record logs "storm" and "siege" events,
     with the signals `storm`, `siege-begun` and `siege-won` counted in the batch report.
+  - **Sallies** (`SallyOrder`, unit order "sally": the city as the unit, the province the attack comes from as the target;
+    question 5, plan step 8). While foreign troops stand within the walls of a city of the king's whose walls are
+    `GameConfig.SallyMinWalls` (2) or higher, its defenders may sally: the walls support one attack into the city on those
+    troops, the king's own or another king's, for +1, a support that cannot be cut (counted in `Adjudicator.Supports`, for
+    the city's holder, so it does not help a move into his own unit). One per city a season; refused below the walls
+    needed, with no foreign troops within, or from a province not next to the city ("the walls of Mari stand at 1: only
+    walls of 2 or more can sally", "Harran has no walls to sally from"). A sally that finds no such attack is void, and the
+    battle report says so ("- The walls of mari sally in support of the attack from terqa: given", or "...: void: no unit
+    moved from damascus to mari"). So a lone relief army with a sally drives out a lone besieger, who must be supported to
+    hold; timing it with an ally takes letters. 0 turns sallies off. The record marks each sally (`sally`, or `sally-won`
+    when the attack it supported got in). The orders panel offers "Sally from the walls of…" where it can be given.
   - **Strengthening walls** (`FortifyOrder`, other_orders "fortify", naming the province; the design document's "can be
     strengthened for gold and upkeep, a real choice between defense and expansion"; question 5, plan step 11, first
     guesses): the walls of a province the king holds rise a level at the end of the season (after purchases), up to
@@ -2198,6 +2209,10 @@ disbanded or given away), whose place next season is known. It rolls no dice.
   - It buys only while the gold left is at least reserve × (1.2 − 0.7 × commerce). A merchant therefore dips into its reserve: Alashiya keeps half of it, Hatti nearly all.
   - After the elders refused to choose between rival buyers, it bids again within three seasons only half the time, and for those three seasons it scores that city at 0.6 of its worth, so another city nearly as good is bought instead (since the fix pass after item 4).
 - **Spare gold** is what is left above the reserve. It pays for the court, gifts and bribes.
+- **Sallies** (the siege package): every move of ours into a city of ours whose walls can sally, with foreign troops within
+  it, goes with a sally from its walls (`Tactics.Sallies`; the first such move into each city, by province). The look-ahead
+  pictures sallies for every king's moves into his own walled cities, a rival's as he may give them, so a besieger reckons
+  with a relief army and its sally, and supports its army to hold.
 - **Under siege** (the siege package): while its capital is besieged, a king sends no gifts or tribute (the gold would be
   taken with a caught envoy), and does not ask an envoy who would not leave to go again for two seasons. As besieger, it
   ransoms a caught envoy where it would have turned a spy (a caught envoy cannot be turned).

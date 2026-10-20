@@ -42,6 +42,7 @@ public sealed class OrderValidator
         var assayed = new HashSet<string>();
         var ceded = new HashSet<string>();
         var fortified = new HashSet<string>();
+        var sallied = new HashSet<string>();
         var orderedUnits = new HashSet<string>();
         var raisedIn = new HashSet<string>();
         var bought = new HashSet<string>();
@@ -77,6 +78,7 @@ public sealed class OrderValidator
                 if (order is AssayOrder a) assayed.Add(a.Lot);
                 if (order is CedeProvinceOrder cp) ceded.Add(cp.Province);
                 if (order is FortifyOrder fo) fortified.Add(fo.Province);
+                if (order is SallyOrder so) sallied.Add(so.City);
             }
             else
             {
@@ -215,6 +217,24 @@ public sealed class OrderValidator
                     if (_s.SiegeOf(f.Province) is not null) return $"{name} is besieged: its walls cannot be strengthened while the siege lasts";
                     if (fortified.Contains(f.Province)) return $"the walls of {name} were already to be strengthened by an earlier order";
                     return Spend(_s.Config.FortifyCost * (level + 1));
+                }
+
+                case SallyOrder so:
+                {
+                    if (_s.Config.SallyMinWalls <= 0) return "walls do not sally in this game";
+                    if (string.IsNullOrWhiteSpace(so.City)) return "name the city whose walls sally";
+                    if (!_map.Exists(so.City) || _map[so.City].IsSea) return $"there is no city called '{so.City}'";
+                    var name = _map[so.City].Name;
+                    if (_s.Owner.GetValueOrDefault(so.City) != power) return $"you do not hold {name}";
+                    if (_s.WallsOf(so.City) == 0) return $"{name} has no walls to sally from";
+                    if (_s.WallsOf(so.City) < _s.Config.SallyMinWalls)
+                        return $"the walls of {name} stand at {_s.WallsOf(so.City)}: only walls of {_s.Config.SallyMinWalls} or more can sally";
+                    if (_s.UnitAt(so.City) is not { } inside || inside.Power == power) return $"no foreign troops stand within the walls of {name}";
+                    if (string.IsNullOrWhiteSpace(so.From)) return "name the province the attack the walls support comes from";
+                    if (!_map.Exists(so.From)) return $"there is no province called '{so.From}'";
+                    if (!_map.AreAdjacent(so.From, so.City)) return $"{so.From} is not next to {name}";
+                    if (sallied.Contains(so.City)) return $"the walls of {name} were already to sally by an earlier order";
+                    return null;
                 }
 
                 case BesiegeOrder b:

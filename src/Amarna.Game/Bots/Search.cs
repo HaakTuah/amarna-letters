@@ -288,7 +288,9 @@ internal static class Search
         {
             var orders = new Dictionary<string, Order>(foes);
             foreach (var (k, o) in mine) orders[k] = o;
-            var r = c.Adj.Run(c.Units, orders, c.B.V.Owner, c.B.V.Walls);
+            // A king's move on troops within his own walls goes with the walls' sally, ours as the plan will give it
+            // (Tactics.Sallies), a rival's as he may: a besieger who forgets the sally loses his army to a lone relief.
+            var r = c.Adj.Run(c.Units, orders, c.B.V.Owner, c.B.V.Walls, Sallies(c, orders));
             c.Runs++;
             var sc = Score(c, r, orders);
             total += sc;
@@ -297,6 +299,21 @@ internal static class Search
         var mean = total / c.Foes.Count;
         var rho = 0.1 + 0.3 * c.P.Caution;
         return (1 - rho) * mean + rho * worst;
+    }
+
+    /// <summary>Every sally the pictured season's moves would bring: a king's move into his own city whose walls can sally, with another's troops within.</summary>
+    private static List<SallyOrder> Sallies(Ctx c, IReadOnlyDictionary<string, Order> orders)
+    {
+        var min = c.B.V.Prices.GetValueOrDefault("sallyMinWalls", 2);
+        if (min <= 0) return [];
+        var list = new List<SallyOrder>();
+        foreach (var m in orders.Values.OfType<MoveOrder>().OrderBy(m => m.Unit, StringComparer.Ordinal))
+        {
+            var mover = c.Units.FirstOrDefault(u => u.Province == m.Unit)?.Power;
+            if (mover is null || c.B.OwnerOf(m.To) != mover || c.B.WallLevel(m.To) < min || list.Any(x => x.City == m.To)) continue;
+            if (c.Units.Any(u => u.Province == m.To && u.Power != mover)) list.Add(new SallyOrder(m.To, m.Unit));
+        }
+        return list;
     }
 
     /// <summary>What a resolved season leaves us: land and troops, minus what lies open next season, plus harm to our enemies.</summary>
