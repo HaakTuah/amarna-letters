@@ -38,7 +38,7 @@ item's report.
 | 3 | Small record items | done (19 Oct), merged into `develop`; PR #9 merged into `main` | `item/small-record-items` | `docs/rounds/2026-10-19-small-record-items.md` |
 | 4 | Second agent simulation, with model characters (stop for review) | done (19 Oct), merged into `develop`; PR #10 merged into `main`; review accepted (20 Oct) | `item/second-simulation` | `docs/rounds/2026-10-19-second-simulation.md` |
 | 4+ | Fix pass, item 4's follow-up (Haakon, 20 Oct), with the feature audit | done (20 Oct), merged into `develop`; PR `develop` -> `main` open | `item/fix-pass` | `docs/rounds/2026-10-20-fix-pass.md` |
-| 5 | The siege package (stop for review) | not started | | |
+| 5 | The siege package (stop for review) | in progress (20 Oct) | `item/sieges` | `docs/rounds/2026-10-20-sieges.md` |
 | 6 | Memory and call size | not started | | |
 | 7 | Travel on the map, and news travels | not started | | |
 | 8 | Structured press | not started | | |
