@@ -51,6 +51,7 @@ public sealed class SeatFactory(IScriptTransport worker)
             Choices = SeatSetup.FromHeader(header),
             CustomsPrimer = header.Config.CustomsPrimer,
             SharedVictory = header.Config.SharedVictory,
+            FallenSeeAll = header.Config.FallenSeeAll,
             SleepingSeats = header.Config.SleepingSeats,
             MaxSleep = header.Config.MaxSleep,
             MessagesPerTurn = header.Config.MaxDispatchesPerTurn,

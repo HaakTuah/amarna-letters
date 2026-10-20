@@ -273,7 +273,7 @@ public class SleepTests
         await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria });
         Assert.Equal([1, 3], sleeper.Calls);
         Assert.Equal(
-            ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."],
+            ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."],
             sleeper.Views[1].WokenBecause);
     }
 
@@ -283,7 +283,7 @@ public class SleepTests
         // An Assyrian army stands in Mari (its walls gone, for the test) to support the attack on Sippar.
         void Setup(GameState s)
         {
-            s.Garrisons.Remove("mari");
+            s.Walls.Remove("mari");
             s.Owner["mari"] = Power.Assyria;
             s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "mari" });
         }
@@ -372,17 +372,19 @@ public class SleepTests
     }
 
     [Fact]
-    public async Task A_scheduled_move_stopped_by_walls_alone_or_by_its_own_unit_wakes_nobody()
+    public async Task A_scheduled_move_into_walls_or_stopped_by_its_own_unit_wakes_nobody()
     {
-        // Mari's walls hold against a single army: the king knows their strength, so the failure is his own (since the review
-        // of the fix pass after item 4; before, a lone attack on walls was a sure way to be woken next season).
+        // Mari's walls: a lone army gets within them but does not storm them (since the siege package walls stop no move). The
+        // move succeeds, so nothing wakes the seat, and its report says what came of it.
         var walls = new Sleeper(v => v.Turn == 1
             ? new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("sippar", "mari")] }] }
             : Nothing());
         var r = await Play(Power.Babylonia, walls, 3);
         Assert.Equal([1], walls.Calls);
         Assert.Empty(r.State.Sleep[Power.Babylonia].PendingWake);
-        Assert.Contains(r.State.InboxOf(Power.Babylonia), i => i.Title == "Movements last season" && i.Body.Contains("sippar -> mari: fails: the walls of mari held; your strength 1 against 1"));
+        Assert.Contains(r.State.InboxOf(Power.Babylonia), i => i.Title == "Movements last season"
+            && i.Body.Contains("sippar -> mari: succeeds: it got within the walls of mari but did not storm them (strength 1 against walls 2 and defenders 0)"));
+        Assert.Null(r.State.Owner["mari"]);
 
         // Babylon's own army holds Babylon: the move from Dur-Kurigalzu into it fails against its own unit.
         var own = new Sleeper(v => v.Turn == 1
@@ -394,16 +396,20 @@ public class SleepTests
     }
 
     [Fact]
-    public async Task A_scheduled_move_stopped_by_walls_that_others_helped_hold_wakes_the_seat()
+    public async Task A_scheduled_assault_on_walls_that_others_troops_hold_wakes_the_seat()
     {
-        // Mari is Assyria's, its walls holding for it, and Assyria's army in Ekallatum supports them: strength 2 against 1.
+        // Mari is Assyria's, with an Assyrian army within its walls that the army in Ekallatum supports: strength 2 against 1.
         var sleeper = new Sleeper(v => v.Turn == 1
             ? new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 2, Orders = [new MoveOrder("sippar", "mari")] }] }
             : Nothing());
         var assyria = new Scripted(v => v.Turn == 2 ? new TurnSubmission { Orders = [new SupportOrder("ekallatum", "mari")] } : new TurnSubmission());
-        await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria }, setup: s => s.Owner["mari"] = Power.Assyria);
+        await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria }, setup: s =>
+        {
+            s.Owner["mari"] = Power.Assyria;
+            s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "mari" });
+        });
         Assert.Equal([1, 3], sleeper.Calls);
-        Assert.Equal(["orders you scheduled could not be carried out: sippar -> mari (the walls of mari held for Assyria; your strength 1 against 2)"], sleeper.Views[1].WokenBecause);
+        Assert.Equal(["orders you scheduled could not be carried out: sippar -> mari (the unit holding mari (Assyria's army) kept its place; your strength 1 against 2)"], sleeper.Views[1].WokenBecause);
     }
 
     [Fact]
@@ -470,13 +476,13 @@ public class SleepTests
     [Fact]
     public async Task An_entry_for_this_season_counts_as_orders_given_now_and_its_failure_does_not_wake_the_seat()
     {
-        // Mari's walls hold against a single army: the move sent as this season's entry fails, as a fresh order would.
+        // Assyria's army holds Ekallatum against a single army: the move sent as this season's entry fails, as a fresh order would.
         var sleeper = new Sleeper(v => v.Turn == 1
-            ? new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 1, Orders = [new MoveOrder("sippar", "mari")] }] }
+            ? new TurnSubmission { Scheduled = [new ScheduledOrders { Turn = 1, Orders = [new MoveOrder("sippar", "ekallatum")] }] }
             : Nothing());
         var r = await Play(Power.Babylonia, sleeper, 3);
         Assert.Equal([1], sleeper.Calls);
-        Assert.Contains(r.State.InboxOf(Power.Babylonia), i => i.Turn == 2 && i.Title == "Movements last season" && i.Body.Contains("sippar -> mari: fails"));
+        Assert.Contains(r.State.InboxOf(Power.Babylonia), i => i.Turn == 2 && i.Title == "Movements last season" && i.Body.Contains("sippar -> ekallatum: fails"));
         Assert.Empty(r.State.Sleep[Power.Babylonia].PendingWake);
     }
 
@@ -787,7 +793,7 @@ public class SleepTests
         var sleep = rules.IndexOf("YOU SLEEP BETWEEN YOUR ORDERS", StringComparison.Ordinal);
         var season = rules.IndexOf("HOW A SEASON RESOLVES", StringComparison.Ordinal);
         Assert.True(win < sleep && sleep < season);
-        Assert.Contains("After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; land or troops lost; a scheduled or standing order that others foiled; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
+        Assert.Contains("After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; a siege of a city of yours begun, or about to make it surrender; land or troops lost; a scheduled or standing order that others foiled; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
         // The sentence six kings of the second agent simulation read as a contradiction is gone.
         Assert.DoesNotContain("you may not be woken again", rules);
         Assert.Contains("PLANNING AHEAD (how sleeping works)", rules);
@@ -796,8 +802,8 @@ public class SleepTests
         Assert.Contains("Your units hold unless you scheduled orders for them or a standing order gives them orders.", rules);
         Assert.Contains("If two fire in the same season, the one with the lower id goes first", rules);
         Assert.DoesNotContain("wake_in_turn", rules);
-        Assert.Contains("- A scheduled or standing order wakes you the next season only if others foil it as its season resolves: a move stopped by foreign troops, or by walls that troops helped hold;", rules);
-        Assert.Contains("Your own orders never wake you: an order refused, whether when you give it or when it runs, and one that fails only because of your own orders or strength (a support or convoy that matched no move; a move stopped by your own unit, by walls alone, or for want of a convoy;", rules);
+        Assert.Contains("- A scheduled or standing order wakes you the next season only if others foil it as its season resolves: a move stopped by foreign troops;", rules);
+        Assert.Contains("Your own orders never wake you: an order refused, whether when you give it or when it runs, and one that fails only because of your own orders or strength (a support or convoy that matched no move; a move stopped by your own unit, or for want of a convoy;", rules);
         Assert.Contains("Nor do the orders you give now for this season, an entry for this season in your schedule among them", rules);
         Assert.DoesNotContain("which wakes you", rules);
         // Told when it next gives orders, not "next season": a king that sleeps reads it when it is woken.
@@ -891,10 +897,10 @@ public class SleepTests
         var r = await Play(Power.Babylonia, sleeper, 5, others: new() { [Power.Assyria] = assyria });
         Assert.Contains(r.Errors, e => e.StartsWith("t3/orders/Babylonia:"));
         Assert.Equal([1, 3, 4], sleeper.Calls);
-        string[] woke = ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."];
+        string[] woke = ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."];
         Assert.Equal(woke, sleeper.Views[1].WokenBecause);
         Assert.Equal(woke, sleeper.Views[2].WokenBecause);
-        Assert.Equal("You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallatum -> sippar; foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar; land lost: Sippar has been taken by Assyria.", Prompts.SleepLine(sleeper.Views[2]));
+        Assert.Equal("You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallatum -> sippar; land lost: Sippar has been taken by Assyria.", Prompts.SleepLine(sleeper.Views[2]));
         // Having answered itself in turn 4, it sleeps on: the reasons it has now read wake it no more.
         Assert.True(r.State.Sleep[Power.Babylonia].Asleep);
     }
@@ -1277,17 +1283,17 @@ public class SleepTests
     public async Task A_scheduled_move_that_is_refused_is_not_tried_again_and_ends_the_march()
     {
         var sleeper = new Sleeper(v => v.Turn == 1
-            ? Plan((2, [new MoveOrder("babylon", "ur"), new MoveOrder("sippar", "mari")]), (3, [new MoveOrder("babylon", "nippur")]))
+            ? Plan((2, [new MoveOrder("babylon", "ur"), new MoveOrder("durkurigalzu", "babylon")]), (3, [new MoveOrder("babylon", "nippur")]))
             : Nothing());
         var r = await Play(Power.Babylonia, sleeper, 3);
-        // Neither failure wakes the seat: the refusal is its own, and Mari's walls held alone.
+        // Neither failure wakes the seat: the refusal is its own, and so is the move its own army in Babylon stopped.
         Assert.Equal([1], sleeper.Calls);
         Assert.Contains("- babylon -> ur: an army in babylon cannot reach ur", Notice(r.State, Power.Babylonia, "Orders that could not be carried out").Body);
         var notice = r.State.InboxOf(Power.Babylonia).Single(i => i.Title == TurnEngine.MarchEndsTitle && i.Turn == 3);
         Assert.Equal("Your army in babylon could not be ordered to ur in turn 2 (an army in babylon cannot reach ur): its march ends, and its remaining scheduled orders were dropped: turn 3: babylon -> nippur.", notice.Body);
-        // The move to Mari, stopped by its walls, is another unit's march: it is tried again in turn 3, and stopped again.
-        Assert.Equal("Your army in sippar did not reach mari in turn 2. It will try again in turn 3.", Notice(r.State, Power.Babylonia, TurnEngine.MarchHeldUpTitle).Body);
-        Assert.Equal("Your army in sippar failed to reach mari a second time in turn 3: its march ends.",
+        // The move into Babylon, stopped by its own army there, is another unit's march: it is tried again in turn 3, and stopped again.
+        Assert.Equal("Your army in durkurigalzu did not reach babylon in turn 2. It will try again in turn 3.", Notice(r.State, Power.Babylonia, TurnEngine.MarchHeldUpTitle).Body);
+        Assert.Equal("Your army in durkurigalzu failed to reach babylon a second time in turn 3: its march ends.",
             r.State.InboxOf(Power.Babylonia).Single(i => i.Title == TurnEngine.MarchEndsTitle && i.Turn == 4).Body);
         Assert.Equal(Power.Babylonia, r.State.UnitAt("babylon")?.Power);
         Assert.Null(r.State.UnitAt("nippur"));
@@ -1366,7 +1372,7 @@ public class SleepTests
     /// <summary>An Assyrian army in Susa, which Babylon can see from its homeland; the city is Assyria's, its walls gone.</summary>
     private static void AssyriaInSusa(GameState s)
     {
-        s.Garrisons.Remove("susa");
+        s.Walls.Remove("susa");
         s.Owner["susa"] = Power.Assyria;
         s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "susa" });
     }
@@ -1415,7 +1421,7 @@ public class SleepTests
         // the attack, when the army was already lost.
         void Setup(GameState s)
         {
-            s.Garrisons.Remove("mari");
+            s.Walls.Remove("mari");
             s.Owner["mari"] = Power.Assyria;
             s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "mari" });
         }
@@ -1573,9 +1579,10 @@ public class SleepTests
     public void A_standing_order_fires_only_on_the_move_it_names_as_the_seat_sees_it()
     {
         // Turn 1: Babylon gives its standing orders. Turn 2, as it sleeps: Assyria's army sets out for Arbela; Mitanni's sets
-        // out for Mari and fails against its walls; Mitanni's army in Taidu sets out for Nineveh, out of Babylon's sight;
-        // Babylon's own army marches to Nippur, and another sets out against its own army in Sippar.
+        // out for Mari and fails against the Assyrian army standing within its walls; Mitanni's army in Taidu sets out for
+        // Nineveh, out of Babylon's sight; Babylon's own army marches to Nippur, and another sets out against its own army in Sippar.
         var s = GameFactory.NewGame(31, new GameConfig { CatastropheChance = 0 });
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "mari" });
         var sleep = s.Sleep[Power.Babylonia] = new SleepState();
         var e = new TurnEngine(s);
         e.BeginTurn();

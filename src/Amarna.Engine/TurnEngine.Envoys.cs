@@ -23,6 +23,15 @@ public sealed partial class TurnEngine
     private void Dispatch(Power p, DispatchOrder d)
     {
         var c = S.Char(d.Envoy);
+        // From a besieged capital (the siege package): an envoy whose courage the siege outweighs will not go this season.
+        if (CapitalSiege(p) is { } siege && c.Traits.Courage < S.Config.SiegeCatchPerUnit * siege.Tightness)
+        {
+            Failed(p, d, "An envoy would not leave", $"{c.Name} would not leave {Map.Capital(p).Name} while {siege.Siege.Power}'s army besieges it: the siege is too tight for {c.Name}'s courage this season. No gold was paid.",
+                "the siege was too tight for the envoy's courage", byOthers: true, c.Id);
+            c.Remember(S.Turn, $"I would not try to slip out of {Map.Capital(p).Name} through {siege.Siege.Power}'s besiegers.");
+            S.Log("siege", $"{c.Name}, envoy of {p}, would not leave besieged {Map.Capital(p).Name}.", [p], "envoy-stayed");
+            return;
+        }
         var fine = (int)Math.Round(d.Gold * d.PurityPercent / 100.0);
         var fee = d.Proposal is not null ? S.Config.TabletFee : 0;
         if (!Pay(p, fine + fee, $"{c.Name}'s mission to {d.To}", d, $"{c.Name} stayed at your court")) return;
@@ -98,6 +107,17 @@ public sealed partial class TurnEngine
             + (d.Gold > 0 ? $" I carry gold, said to be {Money.Format(d.Gold)}." : "")
             + (d.Proposal is not null ? " I carry a tablet for their king to seal." : ""));
         S.Notify(p, InboxKind.Notice, "Envoy dispatched", $"{c.Name} set out for {d.To} last season; the journey takes {travel} season(s).", c.Id);
+        // Out of a besieged capital: the besiegers may catch it as it slips out (its king believes it on its way).
+        if (CapitalSiege(p) is { } besieged)
+        {
+            if (CaughtByBesiegers(c, besieged.Tightness))
+            {
+                var journey = S.Journeys.Last(j => j.CharacterId == c.Id && j.Kind == JourneyKind.EnvoyOutbound);
+                Intercept(c, p, besieged.Siege, leaving: true, journey.Dispatch, null, S.Turn + 2 * travel);
+                S.Journeys.Remove(journey);
+            }
+            else S.Log("siege", $"{c.Name}, envoy of {p}, slipped out of besieged {Map.Capital(p).Name}.", [p], "envoy-out");
+        }
     }
 
     private void EnvoyArrivesAbroad(Journey j)
@@ -476,6 +496,12 @@ public sealed partial class TurnEngine
         var c = S.Char(j.CharacterId!);
         // Taken into another court's service on the way: it is there already. One dismissed on the way still comes home and reports.
         if (c.Status == CharacterStatus.Employed && c.Employer != j.To) return;
+        // Home to a besieged capital: the besiegers may catch it as it slips in, with what it carries.
+        if (c.Status == CharacterStatus.Employed && CapitalSiege(j.To) is { } besieged && CaughtByBesiegers(c, besieged.Tightness))
+        {
+            Intercept(c, j.To, besieged.Siege, leaving: false, null, j.Cargo, S.Turn);
+            return;
+        }
         c.At = j.To;
         c.Duty = Duty.None;
         c.HeldBy = null;

@@ -15,6 +15,11 @@
 // they sleep after them like any king, until something concerns them (a king cannot ask to be woken).
 //   --tempted        characters keep 5 shekels of any gold they carry, take every gift and swap no inventory; hosts
 //                    offer each envoy a gift of 10 and a post at 30, and send 15 shekels home with it
+//   --sieges         kings also use the siege package's orders, read from their view: each army within walls it does not
+//                    hold besieges them; each other army in the king's own land marches into a free walled city next to it;
+//                    the walls (2 or more) of a city of theirs with foreign troops within sally for a troop of theirs next
+//                    to it, which attacks; and the first province of theirs with walls below 3 and no foreign troops within
+//                    is fortified
 //   --skip REGEX     leave requests whose file name matches unanswered (the runner then times out into the script)
 //   --bad REGEX      answer requests whose file name matches with text that is not JSON (one retry, then the script)
 // It prints what it answered and a count at the end.
@@ -27,6 +32,7 @@ const args = process.argv.slice(2);
 const flag = name => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
 const toggle = name => { const i = args.indexOf(name); if (i < 0) return false; args.splice(i, 1); return true; };
 const tempted = toggle("--tempted");
+const sieges = toggle("--sieges");
 const play = toggle("--play");
 const orchestrate = toggle("--orchestrate") || play;
 const skip = flag("--skip");
@@ -61,9 +67,63 @@ function stubReply(schema, text, file) {
       message: "I send you gold as a sign of my love. If you do not withdraw your troops from my border, there will be war.", mandate: "You may agree to peace and an exchange of gifts.",
     });
   }
+  if (sieges && /_orders_/.test(file) && Array.isArray(r.units) && schema.properties.units?.items) siegeOrders(r, schema, text, file);
   if (tempted && /_host_/.test(file) && "gift_to_envoy" in r)
     Object.assign(r, { gift_to_envoy: 10, gift_request: "Tell your lord that my armies are few.", offer_service_wage: 30, send_gold_back: 15 });
   return r;
+}
+
+// The siege package's orders (--sieges), read from the king's view: THE MAP for the links an army may take, LANDS for who
+// holds what, the walls standing and the troops in sight.
+function siegeOrders(r, schema, text, file) {
+  const me = /_orders_(\w+)\.request\.md$/.exec(file)[1];
+  const links = {};
+  for (const m of text.matchAll(/^- (\w+): [^\n]*?armies: ([^.\n]*)/gm)) links[m[1]] = m[2].split(", ").map(x => x.replace(/ \(.*\)$/, ""));
+  const lands = {};
+  const block = /^LANDS [^\n]*\n((?:- [^\n]*\n)+)/m.exec(text)?.[1] ?? "";
+  for (const line of block.split("\n").filter(Boolean)) {
+    const m = /^- ([^:]+): (.*)$/.exec(line);
+    if (!m) continue;
+    const owner = m[1].startsWith("Free") ? null : m[1].replace(" (you)", "");
+    // Entries are split on the commas outside brackets: "amurru (walls 1, rough ground)".
+    const entries = [];
+    let depth = 0, cur = "";
+    for (const ch of m[2]) {
+      if (ch === "(" || ch === "[") depth++;
+      if (ch === ")" || ch === "]") depth--;
+      if (ch === "," && depth === 0) { entries.push(cur.trim()); cur = ""; } else cur += ch;
+    }
+    if (cur.trim()) entries.push(cur.trim());
+    for (const e of entries) {
+      const id = /^(\w+)/.exec(e)[1];
+      const unit = /\[(\w+) (army|fleet)\]/.exec(e);
+      lands[id] = { owner, walls: +(/walls (\d)/.exec(e)?.[1] ?? 0), unit: unit ? { power: unit[1], kind: unit[2] } : null };
+    }
+  }
+  const ordered = new Set(), taken = new Set();
+  const order = (unit, kind, target = "", to = "") => { r.units.push({ ...plain(schema.properties.units.items), unit, order: kind, target, to }); ordered.add(unit); };
+  const mine = Object.entries(lands).filter(([, l]) => l.unit?.power === me);
+  // Sallies: a city of ours with walls of 2 or more and foreign troops within, and a troop of ours next to it to attack them.
+  for (const [city, l] of Object.entries(lands)) {
+    if (l.owner !== me || l.walls < 2 || !l.unit || l.unit.power === me) continue;
+    const from = mine.map(([id]) => id).find(id => !ordered.has(id) && (links[id] ?? []).includes(city));
+    if (!from) continue;
+    order(from, "move", city);
+    order(city, "sally", from);
+  }
+  for (const [id, l] of mine) {
+    if (ordered.has(id) || l.unit.kind !== "army") continue;
+    // Within walls not ours: besiege them.
+    if (l.owner !== me && l.walls > 0) { order(id, "besiege"); continue; }
+    // In our own land: march into a free walled city next to it with no troops in it.
+    if (l.owner !== me) continue;
+    const city = (links[id] ?? []).find(n => lands[n] && lands[n].owner === null && lands[n].walls > 0 && !lands[n].unit && !taken.has(n));
+    if (city) { order(id, "move", city); taken.add(city); }
+  }
+  // Walls: the first province of ours below walls 3 with no foreign troops within.
+  const walls = Object.entries(lands).find(([, l]) => l.owner === me && l.walls < 3 && !(l.unit && l.unit.power !== me));
+  if (walls && Array.isArray(r.other_orders) && schema.properties.other_orders?.items)
+    r.other_orders.push({ ...plain(schema.properties.other_orders.items), action: "fortify", province: walls[0] });
 }
 
 const finished = () => fs.existsSync(out) && /\d+ games?, [\d.]+ turns on average/.test(fs.readFileSync(out, "utf8"));

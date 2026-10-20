@@ -34,6 +34,8 @@ internal sealed partial class Brain
     public ulong Seed { get; }
     public Dictionary<Power, Relation> Rel { get; } = new();
     public Dictionary<string, Power?> LastOwner = new();
+    /// <summary>The walls as they stood last season: a city bought keeps its walls, one that falls loses a level.</summary>
+    public Dictionary<string, int> LastWalls = new();
     public Dictionary<Power, (int Units, int Turn)> ArmySeen = new();
     /// <summary>Where foreign troops were last seen, for provinces out of sight.</summary>
     public Dictionary<string, (Power Power, UnitKind Kind, int Turn)> Sightings = new();
@@ -56,6 +58,17 @@ internal sealed partial class Brain
     public HashSet<string> NoHand = new();
     /// <summary>Captives a ransom or a turning was refused for: nobody is left to pay or to deceive.</summary>
     public HashSet<string> Unclaimed = new();
+    /// <summary>Our envoys who would not slip out of our besieged capital, and when (the siege package).</summary>
+    public Dictionary<string, int> WouldNotLeave = new();
+    /// <summary>
+    /// Pleas for relief heard from envoys (the siege package): a city of the sender's, the king besieging it, and the season
+    /// we heard it. Our troops march to its relief while it is fresh (see <see cref="Tactics"/>).
+    /// </summary>
+    public Dictionary<string, (Power Holder, Power Besieger, int Turn)> Pleas = new();
+    /// <summary>When we last pleaded with each king for the relief of a city of ours.</summary>
+    public Dictionary<Power, int> PleaSent = new();
+    /// <summary>Our envoys who told us they refused a host's offer of a post: proven true.</summary>
+    public HashSet<string> ProvenLoyal = new();
     /// <summary>People a hire of ours was refused for because another court holds them: they cannot come to us.</summary>
     public HashSet<string> HeldElsewhere = new();
     /// <summary>Provinces a friend ceded to us: we keep them, rather than pass them on in turn.</summary>
@@ -150,12 +163,21 @@ internal sealed partial class Brain
             if (was != Me || b.OwnerOf(prov) is not { } taker || taker == Me || !Rel.ContainsKey(taker)) continue;
             Wronged(taker, 2 + Board.Map[prov].Yield / 20.0, -0.4, v.Turn);
         }
-        // Conquests anywhere on the public map (a purchase keeps the walls; a conquest tears them down).
+        // Conquests anywhere on the public map (a purchase keeps the walls; a city that falls loses a level of them). We see
+        // the walls only where we see troops: a free city that changed hands out of our sight was bought or taken, we cannot
+        // tell which, so it counts half as each (since the review of the siege package, when the walls out of sight became
+        // those last seen; until then every wall was seen as it stood).
         foreach (var k in Belligerence.Keys.ToList()) Belligerence[k] *= 0.7;
         foreach (var (prov, was) in previous)
         {
             if (b.OwnerOf(prov) is not { } now || now == was || now == Me) continue;
-            if (was is null && b.Walls(prov))
+            if (was is null && !v.Visible.Contains(prov))
+            {
+                Treasury[now] -= Board.Map[prov].Yield * b.YieldWorth / 2;
+                Belligerence[now] = Belligerence.GetValueOrDefault(now) + 0.5;
+                continue;
+            }
+            if (was is null && b.Walls(prov) && b.WallLevel(prov) == LastWalls.GetValueOrDefault(prov))
             {
                 Treasury[now] -= Board.Map[prov].Yield * b.YieldWorth;
                 continue;
@@ -163,20 +185,25 @@ internal sealed partial class Brain
             Belligerence[now] = Belligerence.GetValueOrDefault(now) + (was is null ? 1 : 1.5);
         }
         LastOwner = new Dictionary<string, Power?>(v.Owner);
+        LastWalls = new Dictionary<string, int>(v.Walls);
 
-        // What we saw happen last season.
+        // What we saw happen last season. A move into our land on a third king's troop standing in it (a besieger within our
+        // walls, or a guest) struck him, not us: a relief, and no wrong (since the script players' audit of the siege
+        // package; before it, a friend who drove out our besiegers was counted as breaking his oath). It wrongs us still if he
+        // takes the land, which counts below as land taken.
+        bool OnAnother(string t, Power mover) => v.LastSeason.Any(x => x.Province == t && x.Power != mover && x.Power != Me && x.Order != "move");
         foreach (var o in v.LastSeason)
         {
             if (o.Power == Me || !Rel.ContainsKey(o.Power)) continue;
             var r = Rel[o.Power];
-            if (o.Order == "move" && o.Target is { } t && (b.IsMine(t) || previous.GetValueOrDefault(t) == Me))
+            if (o.Order == "move" && o.Target is { } t && (b.IsMine(t) || previous.GetValueOrDefault(t) == Me) && !OnAnother(t, o.Power))
                 Wronged(o.Power, 1, -0.25, v.Turn);
             if (o.Order == "support" && o.Helped == Me && o.Succeeded)
             {
                 r.SupportsGiven++;
                 r.Trust = Math.Min(1, r.Trust + 0.15);
             }
-            if (o.Order == "support" && o.Helped != Me && o.To is { } into && previous.GetValueOrDefault(into) == Me)
+            if (o.Order == "support" && o.Helped != Me && o.To is { } into && previous.GetValueOrDefault(into) == Me && !OnAnother(into, o.Helped ?? o.Power))
                 r.Grudge += 0.5;
         }
 
@@ -213,6 +240,15 @@ internal sealed partial class Brain
                 }
             }
             if (item.Kind == InboxKind.Notice && item.Title == "A spy is caught") LastSpyCaught = v.Turn;
+            // Our envoy's word that a host offered it a post and that it refused (since the script players' audit of the siege
+            // package, the fix pass's minor finding 2): the host tried to buy our servant, a small slight, and the servant
+            // proved true, so it is the first chosen, among the equally reliable, for the letters that carry tablets or gold.
+            if (item.Kind == InboxKind.EnvoyReport && PostRefused().Match(item.Body) is { Success: true } refused
+                && Powers.All.Where(x => x.Land() == refused.Groups[1].Value).Cast<Power?>().FirstOrDefault() is { } poacher && poacher != Me && Rel.TryGetValue(poacher, out var pr))
+            {
+                pr.Trust -= 0.05;
+                if (item.Subject is { } loyal) ProvenLoyal.Add(loyal);
+            }
             if (item.Title == "Purchase failed" && Board.Map.Provinces.FirstOrDefault(x => item.Body.Contains($"elders of {x.Name} would not")) is { } city)
                 Outbid[city.Id] = v.Turn;
             LearnOfPeople(v, item);
@@ -383,6 +419,9 @@ internal sealed partial class Brain
             case InboxKind.Rejected when item.Title == "Forgery botched" && item.Subject is { } id:
                 NoHand.Add(id);
                 break;
+            case InboxKind.Rejected when item.Title == "An envoy would not leave" && item.Subject is { } id:
+                WouldNotLeave[id] = v.Turn;
+                break;
             case InboxKind.Rejected when item.Title == "Orders that could not be carried out":
                 foreach (var line in item.Body.Split('\n'))
                 {
@@ -443,6 +482,9 @@ internal sealed partial class Brain
 
     [GeneratedRegex(@"the captive (\S+):")]
     private static partial Regex CaptiveLine();
+
+    [GeneratedRegex(@"The king of (\S+) offered me a post in his service, and I refused it")]
+    private static partial Regex PostRefused();
 
     [GeneratedRegex(@"^- hire (\S+) at ")]
     private static partial Regex HireLine();

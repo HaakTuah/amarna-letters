@@ -43,18 +43,92 @@ internal sealed class Board
 
     public Power? OwnerOf(string p) => V.Owner.GetValueOrDefault(p);
     public bool IsMine(string p) => OwnerOf(p) == Me;
-    public bool Walls(string p) => V.Garrisons.Contains(p);
+    /// <summary>Whether a province has walls (Build order item 5: they add nothing to a battle, but a city within them falls only to a storm or a siege).</summary>
+    public bool Walls(string p) => WallLevel(p) > 0;
+    public int WallLevel(string p) => V.Walls.GetValueOrDefault(p);
+    /// <summary>The siege of a province this court knows of, if any.</summary>
+    public SiegeView? SiegeAt(string p) => V.Sieges.FirstOrDefault(x => x.Province == p);
+
+    /// <summary>
+    /// The strength a move into a walled province needs to storm it (to take it at once): more than its walls and the
+    /// defenders' hold strength together. Zero for an unwalled one.
+    /// </summary>
+    public int StormNeeds(string p, int defenders) => Walls(p) ? WallLevel(p) + defenders + 1 : 0;
     public Province P(string id) => Map[id];
 
-    /// <summary>What holding a province is worth over the rest of the game: its score plus the income it brings.</summary>
+    /// <summary>What the ground gives a unit that stands its ground (Build order item 5, terrain), as the rules of the game set it.</summary>
+    public int GroundBonus => V.Prices.GetValueOrDefault("terrainDefence", 1);
+
+    /// <summary>
+    /// The ground's help to a unit standing in <paramref name="to"/> against a move from <paramref name="from"/>: rough ground, a
+    /// pass or a river on the link, or a landing from the sea (a move from a province not next to it comes by convoy).
+    /// </summary>
+    public int Ground(string from, string to) =>
+        GroundBonus > 0 && Geography.DefenceGround(from, to, byConvoy: !Map.AreAdjacent(from, to)) is not null ? GroundBonus : 0;
+
+    /// <summary>
+    /// The ground's help to a unit standing in <paramref name="place"/> against a blow from these provinces: rough ground helps
+    /// against any; a crossing or a landing only if every one of them comes over one, since the attacker leads with the
+    /// unit that does not.
+    /// </summary>
+    public int Ground(IEnumerable<string> from, string place)
+    {
+        if (GroundBonus <= 0) return 0;
+        if (Geography.TerrainOf(place) == Terrain.Rough) return GroundBonus;
+        var froms = from.ToList();
+        return froms.Count > 0 && froms.All(f => Ground(f, place) > 0) ? GroundBonus : 0;
+    }
+
+    /// <summary>The ground's help to a unit in <paramref name="place"/> against what a power could move into it this season.</summary>
+    public int GroundAgainst(string place, Power attacker) => Ground(CanReach(place, u => u.Power == attacker).Select(u => u.Province), place);
+
+    /// <summary>
+    /// What an army of ours pays for supplies for a season it ends in <paramref name="place"/> (Build order item 5, terrain):
+    /// the desert's cost if it is desert land we do not hold; nothing in our own land.
+    /// </summary>
+    public int DesertCost(string place) =>
+        Geography.TerrainOf(place) == Terrain.Desert && !IsMine(place) ? V.Prices.GetValueOrDefault("desertUpkeep", 30) : 0;
+
+    /// <summary>
+    /// What holding a province is worth over the rest of the game: its score plus the income it brings. A kingdom falls with
+    /// its capital (the siege package): a living king's capital is worth, to us, half of the rest of his land too, since it
+    /// passes with the capital; our own is worth all the rest of ours, which we lose with it.
+    /// </summary>
     public double Value(string id)
+    {
+        var v = BaseValue(id);
+        var p = Map[id];
+        if (p.Capital && p.Home is { } king && Alive.Contains(king) && OwnerOf(id) == king)
+            v += (king == Me ? 1.0 : 0.5) * V.Owner.Where(x => x.Value == king && x.Key != id).Sum(x => BaseValue(x.Key));
+        return v;
+    }
+
+    private double BaseValue(string id)
     {
         var p = Map[id];
         if (p.IsSea) return 0;
         var v = 10.0 * p.Yield + p.Yield * Horizon;
         if (p.Capital) v += 80;
         if (p.Home is { } h && h == Me) v += 30;
-        return v;
+        return v - AbsorptionLoss(id);
+    }
+
+    /// <summary>
+    /// The yield land taken by force will not bring us from next season on, while we absorb it (slow absorption, the siege
+    /// package: a third of its yield in its first season under us, two thirds in the second): one season's yield for land not
+    /// ours that we would take, what is left of that for land of ours still being absorbed, nothing for our own homeland,
+    /// which counts in full when retaken. Since the script players' audit of the siege package; until then script kings
+    /// valued land they would conquer at its full yield from the start.
+    /// </summary>
+    public double AbsorptionLoss(string id)
+    {
+        var p = Map[id];
+        if (p.IsSea || p.Home == Me) return 0;
+        var taken = V.Turn;
+        if (IsMine(id) && !V.Conquered.TryGetValue(id, out taken)) return 0;
+        var loss = 0.0;
+        for (var k = V.Turn + 1; k <= taken + 2; k++) loss += k - taken <= 1 ? 2 / 3.0 : 1 / 3.0;
+        return loss * p.Yield;
     }
 
     /// <summary>Units (of a given power, or any but mine) that could move into a province this season.</summary>

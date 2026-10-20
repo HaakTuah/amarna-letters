@@ -10,7 +10,7 @@ public static class GameFactory
         foreach (var p in map.LandProvinces)
         {
             s.Owner[p.Id] = p.Home;
-            if (p.Home is null) s.Garrisons.Add(p.Id);
+            if (MapData.StartWalls.GetValueOrDefault(p.Id) is > 0 and var walls) s.Walls[p.Id] = walls;
         }
         foreach (var u in MapData.StartUnits)
             s.Units.Add(new Unit { Id = s.NewId("u"), Power = u.Power, Kind = u.Kind, Province = u.Province });
@@ -18,6 +18,8 @@ public static class GameFactory
         {
             s.Treasuries[p] = new Treasury { Gold = MapData.StartGold[p] };
             s.Inbox[p] = new List<InboxItem>();
+            // Every court knows the walls as the map gives them; after that, as it last saw them.
+            s.WallsSeen[p] = new Dictionary<string, int>(s.Walls);
         }
 
         CharacterFactory.Populate(s);

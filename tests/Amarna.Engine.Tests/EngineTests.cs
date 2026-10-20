@@ -66,7 +66,11 @@ public class EngineTests
         var s = GameFactory.NewGame(1);
         var e = new TurnEngine(s);
         Assert.Equal(19, s.Units.Count);
-        Assert.Equal(13, s.Garrisons.Count);
+        // Walls by place: the seven capitals 3, ten fortresses 2, six walled towns 1; every free city has some.
+        Assert.Equal(23, s.Walls.Count);
+        Assert.Equal(7, s.Walls.Count(w => w.Value == 3));
+        Assert.All(WorldMap.Default.LandProvinces.Where(p => p.Home is null), p => Assert.True(s.WallsOf(p.Id) > 0, p.Id));
+        Assert.All(WorldMap.Default.LandProvinces.Where(p => p.Capital), p => Assert.Equal(3, s.WallsOf(p.Id)));
         Assert.Equal(18, s.Characters.Count);
         Assert.All(Powers.All, p => Assert.Equal(2, s.Characters.Count(c => c.Employer == p)));
         Assert.True(e.Strength(Power.Egypt) > e.Strength(Power.Mitanni));
@@ -157,7 +161,7 @@ public class EngineTests
         e.BeginTurn();
         e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Egypt] = new() { Orders = [new BuyProvinceOrder("gaza")] } });
         Assert.Equal(Power.Egypt, s.Owner["gaza"]);
-        Assert.Contains("gaza", s.Garrisons); // a bought city keeps its walls, now for its owner
+        Assert.Equal(2, s.WallsOf("gaza")); // a bought city keeps its walls, now for its owner
     }
 
     [Fact]
@@ -171,7 +175,7 @@ public class EngineTests
     }
 
     [Fact]
-    public void Bought_walls_hold_for_their_owner()
+    public void Bought_walls_stand_for_their_owner_who_may_enter_them()
     {
         var s = GameFactory.NewGame(1);
         s.Owner["gaza"] = Power.Egypt; // bought: the walls stay
@@ -179,29 +183,21 @@ public class EngineTests
         s.Units.Add(new Unit { Id = "u1", Power = Power.Egypt, Kind = UnitKind.Army, Province = "sinai" });
         s.Units.Add(new Unit { Id = "u2", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "megiddo" });
         s.Units.Add(new Unit { Id = "u3", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "tyre" });
-        s.Garrisons.Remove("megiddo"); s.Garrisons.Remove("tyre");
+        s.Walls.Remove("megiddo"); s.Walls.Remove("tyre");
 
-        // The owner cannot march into its own walled city.
+        // The owner may march into its own walled city (until the siege package it could not).
         var own = new OrderValidator(s).Validate(Power.Egypt, new TurnSubmission { Orders = [new MoveOrder("sinai", "gaza")] });
-        Assert.Single(own.Rejected);
+        Assert.Empty(own.Rejected);
 
-        // One supported attack beats the walls alone, but not walls the owner supports.
+        // A supported attack gets within the walls (2 against walls 2 and no defenders), but does not storm them.
         var e = new TurnEngine(s);
         e.Resolve(new Dictionary<Power, TurnSubmission>
         {
-            [Power.Egypt] = new() { Orders = [new SupportOrder("sinai", "gaza")] },
             [Power.Babylonia] = new() { Orders = [new MoveOrder("megiddo", "gaza"), new SupportOrder("tyre", "megiddo", "gaza")] },
         });
+        Assert.Equal(Power.Babylonia, s.UnitAt("gaza")?.Power);
         Assert.Equal(Power.Egypt, s.Owner["gaza"]);
-        Assert.Contains("gaza", s.Garrisons);
-
-        e = new TurnEngine(s);
-        e.Resolve(new Dictionary<Power, TurnSubmission>
-        {
-            [Power.Babylonia] = new() { Orders = [new MoveOrder("megiddo", "gaza"), new SupportOrder("tyre", "megiddo", "gaza")] },
-        });
-        Assert.Equal(Power.Babylonia, s.Owner["gaza"]);
-        Assert.DoesNotContain("gaza", s.Garrisons);
+        Assert.Equal(2, s.WallsOf("gaza"));
     }
 
     [Fact]
@@ -209,7 +205,7 @@ public class EngineTests
     {
         // Assyria supports Mitanni's Washukanni, holding, against Hatti's attack from Isuwa.
         var s = GameFactory.NewGame(1);
-        s.Owner["isuwa"] = Power.Hatti; s.Garrisons.Remove("isuwa");
+        s.Owner["isuwa"] = Power.Hatti; s.Walls.Remove("isuwa");
         s.Units.RemoveAll(u => u.Province == "taidu");
         s.Units.Add(new Unit { Id = "u90", Power = Power.Hatti, Kind = UnitKind.Army, Province = "isuwa" });
         s.Units.Add(new Unit { Id = "u91", Power = Power.Assyria, Kind = UnitKind.Army, Province = "taidu" });
@@ -228,7 +224,7 @@ public class EngineTests
     public void Rival_buyers_bounce()
     {
         var s = GameFactory.NewGame(1);
-        s.Owner["megiddo"] = Power.Babylonia; s.Garrisons.Remove("megiddo");
+        s.Owner["megiddo"] = Power.Babylonia; s.Walls.Remove("megiddo");
         var e = new TurnEngine(s);
         e.BeginTurn();
         e.Resolve(new Dictionary<Power, TurnSubmission>

@@ -7,6 +7,24 @@ public sealed class UnitView
     public string Province { get; set; } = "";
 }
 
+/// <summary>A siege as a court sees it: the city, the besieger, who holds the city, and how far it has been worn down against its walls.</summary>
+public sealed class SiegeView
+{
+    public string Province { get; set; } = "";
+    public Power Besieger { get; set; }
+    public Power? Holder { get; set; }
+    /// <summary>How far the city has been worn down; it surrenders when this reaches <see cref="Walls"/>.</summary>
+    public int Progress { get; set; }
+    public int Walls { get; set; }
+    /// <summary>The season the siege began.</summary>
+    public int Since { get; set; }
+    /// <summary>
+    /// For the city's holder and the besieger only: the besieger's units in the city and next to it, from 1 to 3, which sets
+    /// the odds that an envoy leaving or coming home to a besieged capital is caught.
+    /// </summary>
+    public int? Tightness { get; set; }
+}
+
 public sealed class LotView
 {
     public string Id { get; set; } = "";
@@ -45,6 +63,8 @@ public sealed class CharacterView
     public bool Ready { get; set; }
     /// <summary>An envoy or spy you are holding against their will.</summary>
     public bool HeldByYou { get; set; }
+    /// <summary>Your captive is an envoy your besiegers caught at a city you besiege (it can be executed, ransomed or released, not turned).</summary>
+    public bool Intercepted { get; set; }
     /// <summary>One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.</summary>
     public int? RansomDemand { get; set; }
     /// <summary>The back pay you owe them (as you believe it, for one of your people abroad), paid when they are back at your court; null if none.</summary>
@@ -105,6 +125,8 @@ public sealed class SeatView
     public List<LotView> UnassayedGold { get; set; } = new();
     public int Income { get; set; }
     public int Upkeep { get; set; }
+    /// <summary>The upkeep of walls it raised above the map's own, a season (paid after its troops').</summary>
+    public int WallUpkeep { get; set; }
     /// <summary>The wages of all its people a season: paid to those at court, built up as back pay for those away.</summary>
     public int Wages { get; set; }
     /// <summary>The back pay it believes it owes (to its people, and to anyone at its court), paid when each is back at its court.</summary>
@@ -119,7 +141,20 @@ public sealed class SeatView
     public int ProvinceWeight { get; set; } = new GameConfig().ProvinceWeight;
 
     public Dictionary<string, Power?> Owner { get; set; } = new();
-    public List<string> Garrisons { get; set; } = new();
+    /// <summary>
+    /// The walls as this court knows them, by province (a province with none is left out): standing now where it can see
+    /// troops, elsewhere as it last saw them (<see cref="Views.WallsKnown"/>; since the review of the siege package, until
+    /// which every court saw every wall as it stood).
+    /// </summary>
+    public Dictionary<string, int> Walls { get; set; } = new();
+    /// <summary>The sieges this court knows of: its own, those of its cities, and those it can see.</summary>
+    public List<SiegeView> Sieges { get; set; } = new();
+    /// <summary>
+    /// This court's own land taken by force and still being absorbed, with the season it was taken. Only its own: who holds
+    /// a province is public, but how it changed hands is not (since the review of the siege package; until then every court
+    /// saw every king's marks, and so which land had been conquered and which ceded or bought).
+    /// </summary>
+    public Dictionary<string, int> Conquered { get; set; } = new();
     public List<UnitView> Units { get; set; } = new();
     public List<string> Visible { get; set; } = new();
     public List<Power> Fallen { get; set; } = new();
@@ -224,6 +259,27 @@ public static class Views
         return all;
     }
 
+    /// <summary>
+    /// The walls as a court knows them, by province (a province with none left out): those standing now where it can see
+    /// troops (<see cref="Sight"/>), and elsewhere as it last saw them (<see cref="GameState.WallsSeen"/>; at the start, as
+    /// the map gives them). Walls thrown down by an earthquake or unpaid upkeep, or raised for gold, change out of other
+    /// courts' sight, and a catastrophe and a treasury are known exactly only to their own king. Since the review of the
+    /// siege package; until then every court saw every wall as it stood.
+    /// </summary>
+    public static Dictionary<string, int> WallsKnown(GameState s, WorldMap map, Power p, IReadOnlySet<string>? sight = null)
+    {
+        sight ??= Sight(s, map, p);
+        var known = s.WallsSeen.TryGetValue(p, out var seen)
+            ? new Dictionary<string, int>(seen)
+            : MapData.StartWalls.Where(x => x.Value > 0).ToDictionary(x => x.Key, x => x.Value);
+        foreach (var id in sight)
+        {
+            if (s.Walls.TryGetValue(id, out var level)) known[id] = level;
+            else known.Remove(id);
+        }
+        return known;
+    }
+
     /// <summary>A sleeping seat wakes to at most this many items of the news of the seasons it slept.</summary>
     public const int MaxWhileAsleep = 40;
 
@@ -253,13 +309,23 @@ public static class Views
             UnassayedGold = t.Lots.Select(l => new LotView { Id = l.Id, From = l.From, Stated = l.Stated, Weighed = l.Face, ArrivedTurn = l.ArrivedTurn }).ToList(),
             Income = engine.Income(p),
             Upkeep = engine.Upkeep(p),
+            WallUpkeep = engine.WallsUpkeep(p),
             Wages = engine.Wages(p),
             BackPay = engine.BelievedBackPay(p),
             Strength = engine.LedgerStrength(p),
             StartStrength = s.StartStrength.GetValueOrDefault(p),
             ProvinceWeight = s.Config.ProvinceWeight,
             Owner = new Dictionary<string, Power?>(s.Owner),
-            Garrisons = s.Garrisons.ToList(),
+            Walls = WallsKnown(s, map, p, sight),
+            // Its own land's only: how another king's land changed hands is not public, though who holds it is.
+            Conquered = s.Conquered.Where(x => s.Owner.GetValueOrDefault(x.Key) == p).ToDictionary(x => x.Key, x => x.Value),
+            Sieges = s.Sieges.Where(x => x.Power == p || s.Owner.GetValueOrDefault(x.Province) == p || sight.Contains(x.Province))
+                .Select(x => new SiegeView
+                {
+                    Province = x.Province, Besieger = x.Power, Holder = s.Owner.GetValueOrDefault(x.Province), Progress = x.Progress, Walls = s.WallsOf(x.Province), Since = x.Since,
+                    Tightness = x.Power == p || s.Owner.GetValueOrDefault(x.Province) == p ? engine.Tightness(x) : null,
+                })
+                .ToList(),
             Units = s.Units.Where(u => u.Power == p || sight.Contains(u.Province))
                 .Select(u => new UnitView { Power = u.Power, Kind = u.Kind, Province = u.Province }).ToList(),
             Visible = map.Provinces.Where(x => sight.Contains(x.Id)).Select(x => x.Id).ToList(),
@@ -327,6 +393,12 @@ public static class Views
         v.Prices["assay"] = s.Config.AssayFee;
         v.Prices["forgery"] = s.Config.ForgeFee;
         v.Prices["cityPricePerYield"] = s.Config.NeutralPriceFactor;
+        v.Prices["siegeUpkeep"] = s.Config.SiegeUpkeep;
+        v.Prices["fortifyPerLevel"] = s.Config.FortifyCost;
+        v.Prices["wallUpkeep"] = s.Config.WallUpkeep;
+        v.Prices["sallyMinWalls"] = s.Config.SallyMinWalls;
+        v.Prices["terrainDefence"] = s.Config.TerrainDefence;
+        v.Prices["desertUpkeep"] = s.Config.DesertUpkeep;
         return v;
     }
 
@@ -428,6 +500,7 @@ public static class Views
             AskingPrice = ours ? null : c.AskingPrice.TryGetValue(viewer, out var price) ? price : freeHere ? TurnEngine.BasePrice(c, viewer) : null,
             Ready = ours && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == viewer,
             HeldByYou = c.HeldBy == viewer,
+            Intercepted = c.HeldBy == viewer && c.Intercepted,
             RansomDemand = captive ? KnownDemand(s, c.Id, c.HeldBy!.Value, viewer)?.Spend : null,
             BackPay = BackPayOwed(c, viewer),
         };

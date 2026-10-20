@@ -91,7 +91,7 @@ public class SeasonOrderTests
     {
         var s = GameFactory.NewGame(4, new GameConfig { CatastropheChance = 0 });
         s.Owner["megiddo"] = Power.Babylonia;
-        s.Garrisons.Remove("megiddo");
+        s.Walls.Remove("megiddo");
         s.Units.Add(new Unit { Id = "u90", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "megiddo" });
         var e = new TurnEngine(s);
         e.BeginTurn();
@@ -114,7 +114,7 @@ public class SeasonOrderTests
     {
         var s = GameFactory.NewGame(1);
         s.Owner["megiddo"] = Power.Babylonia;
-        s.Garrisons.Remove("megiddo");
+        s.Walls.Remove("megiddo");
         s.Units.Add(new Unit { Id = "u90", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "megiddo" });
         var e = new TurnEngine(s);
         e.BeginTurn();

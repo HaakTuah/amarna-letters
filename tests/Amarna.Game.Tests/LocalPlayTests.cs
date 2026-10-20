@@ -48,7 +48,11 @@ public class LocalPlayTests
                 if (!File.Exists(Path.Combine(folder, name + ".request.md"))) return new HttpResponseMessage(HttpStatusCode.NotFound);
                 var reply = Path.Combine(folder, name + ".reply.json");
                 if (!File.Exists(reply)) return new HttpResponseMessage(HttpStatusCode.NoContent);
-                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(await File.ReadAllTextAsync(reply, ct)) };
+                // As the bridge does: a reply that cannot be read yet (just moved into place, and held a moment by another
+                // reader, such as a virus scanner) is not there yet. Until the review of the siege package this fake let the
+                // error through, which failed a game test now and then under load.
+                try { return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(await File.ReadAllTextAsync(reply, ct)) }; }
+                catch (IOException) { return new HttpResponseMessage(HttpStatusCode.NoContent); }
             }
             var body = JsonNode.Parse(await request.Content!.ReadAsStringAsync(ct))!.AsObject();
             var who = Enum.Parse<Power>(body["seat"]!.GetValue<string>());

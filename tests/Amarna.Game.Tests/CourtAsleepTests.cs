@@ -316,7 +316,7 @@ public class CourtAsleepTests
 
         // What a standing order costs and what it can win, beside a scheduled order and waking: in the section every king
         // reads (since the additions to the fix pass after item 4), and for a king that sleeps, beside his scheduled orders.
-        Assert.Contains("- So its orders meet the blow as it falls: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), or support the walls of a walled city of yours holding (unit_enters on the city), and a unit next to an empty province of yours can move into it, so that an attacker without support bounces.", rules);
+        Assert.Contains("- So its orders meet the blow as it falls: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), and a unit next to an empty province of yours, walled or not, can move into it, so that an attacker without support bounces.", rules);
         Assert.Contains("- It fires once, on the first move it waits for that you see, whether a real attack or a feint, and is then gone.", rules);
         Assert.Contains("Giving one costs nothing; its orders cost what they cost when they run (a levy its gold).", rules);
         Assert.Contains("- Standing orders (see STANDING ORDERS) keep answering while you sleep: in the season one fires, its units do its orders instead of their scheduled ones, and its orders are checked before your scheduled orders. "

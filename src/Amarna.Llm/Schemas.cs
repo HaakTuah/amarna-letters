@@ -42,7 +42,7 @@ public static class Schemas
 
     public static readonly string[] OtherActions =
     [
-        "raise_army", "raise_fleet", "buy_city", "cede_province", "give_unit", "seek_candidates", "hire", "renew", "dismiss",
+        "raise_army", "raise_fleet", "buy_city", "cede_province", "give_unit", "fortify", "seek_candidates", "hire", "renew", "dismiss",
         "background_check", "place_spy", "recall_spy", "counter_intelligence", "assay", "authenticate", "forge",
         "captive_execute", "captive_ransom", "captive_turn", "captive_release", "release_detained", "pay_ransom",
     ];
@@ -50,14 +50,14 @@ public static class Schemas
     // The shapes of a unit order and of any other order. Repeated in the schedule and in standing orders; the copy in
     // standing orders leaves out the field descriptions, which are the same as above it, to keep the schema short.
     private static JsonObject UnitOrder(bool described = true) => Object(
-        ("unit", Str(described ? "Province id where your unit stands." : null)),
-        ("order", Enum(["hold", "move", "support", "convoy", "disband"])),
-        ("target", Str(described ? "move: destination. support: the province of the unit supported, or of a bought walled city (yours or another king's) to support its walls holding. convoy: province of the army. Otherwise empty." : null)),
+        ("unit", Str(described ? "Province id where your unit stands (sally: your walled city whose walls sally)." : null)),
+        ("order", Enum(["hold", "move", "support", "convoy", "disband", "besiege", "sally"])),
+        ("target", Str(described ? "move: destination. support: the province of the unit supported. convoy: province of the army. sally: the province the attack on the troops within your walls comes from. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)." : null)),
         ("to", Str(described ? "support of a move, or convoy: the destination. Support to hold: empty." : null)));
 
     private static JsonObject OtherOrder(bool described = true) => Object(
         ("action", Enum(OtherActions)),
-        ("province", Str(described ? "For raise, buy_city, cede_province, give_unit, or a province to spy on." : null)),
+        ("province", Str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), or a province to spy on." : null)),
         ("power", Str(described ? "For cede_province, give_unit, or a court to spy on." : null)),
         ("person", Str(described ? "Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge." : null)),
         ("amount", Int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)),

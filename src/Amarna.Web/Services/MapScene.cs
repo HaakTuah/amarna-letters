@@ -71,6 +71,17 @@ public sealed class MapScene
     public IReadOnlyList<SceneTraveller> Travellers { get; init; } = [];
     public IReadOnlyList<ScenePerson> People { get; init; } = [];
     public IReadOnlyList<SceneNews> News { get; init; } = [];
+    /// <summary>The sieges the viewer knows of: every one in god view; a court's own, those of its cities and those in its sight.</summary>
+    public IReadOnlyList<FrameSiege> Sieges { get; init; } = [];
+    /// <summary>
+    /// The walls the viewer knows: every wall as it stands in god view; a court's standing now in its sight and as it last
+    /// saw them elsewhere (<see cref="SeasonFrame.KnownWalls"/>).
+    /// </summary>
+    public IReadOnlyDictionary<string, int> Walls { get; init; } = new Dictionary<string, int>();
+
+    /// <summary>The walls a viewer knows in a frame (see <see cref="Walls"/>).</summary>
+    public static IReadOnlyDictionary<string, int> WallsIn(SeasonFrame f, Power? viewer) =>
+        viewer is { } p && f.KnownWalls.TryGetValue(p, out var known) ? known : f.Walls;
 
     /// <summary>A stamp for components that redraw only when what they show changes.</summary>
     public string Stamp => $"{Index}:{Viewer}";
@@ -118,7 +129,8 @@ public sealed class MapScene
 
         // The orders the viewer saw resolve: every one in god view, a court's own and those it could see in a seat view.
         IReadOnlyList<FrameMove> seen = viewer is { } q ? (f.SeenBy.GetValueOrDefault(q) ?? []).Select(i => f.Moves[i]).ToList() : f.Moves;
-        var (moves, destroyed) = MovesOf(f, prev, seen, viewer is { } r ? prev?.Sight.GetValueOrDefault(r) ?? new HashSet<string>() : null);
+        var (moves, destroyed) = MovesOf(f, prev, seen, viewer is { } r ? prev?.Sight.GetValueOrDefault(r) ?? new HashSet<string>() : null,
+            prev is null ? null : WallsIn(prev, viewer));
         var captures = new List<SceneCapture>();
         if (prev is not null)
             foreach (var prov in Map.LandProvinces)
@@ -136,6 +148,9 @@ public sealed class MapScene
 
         var (travellers, people) = viewer is null ? GodPeople(f) : SeatPeople(f, viewer.Value);
         var news = viewer is { } v ? NewsOf(frames, index, v) : [];
+        var sieges = viewer is { } w
+            ? f.Sieges.Where(x => x.Besieger == w || f.OwnerOf(x.Province) == w || (f.Sight.GetValueOrDefault(w)?.Contains(x.Province) ?? false)).ToList()
+            : f.Sieges.ToList();
 
         return new MapScene
         {
@@ -150,6 +165,8 @@ public sealed class MapScene
             Travellers = travellers,
             People = people,
             News = news,
+            Sieges = sieges,
+            Walls = WallsIn(f, viewer),
         };
     }
 
@@ -160,7 +177,9 @@ public sealed class MapScene
     /// <param name="seen">The orders the viewer saw resolve.</param>
     /// <param name="sight">A court's sight as the season began (null in god view): it can tell a march was an attack on
     /// troops only if it saw them standing there.</param>
-    private static (List<SceneMove>, List<SceneUnit>) MovesOf(SeasonFrame f, SeasonFrame? prev, IReadOnlyList<FrameMove> seen, IReadOnlySet<string>? sight)
+    /// <param name="wallsBefore">The walls the viewer knew as the season began.</param>
+    private static (List<SceneMove>, List<SceneUnit>) MovesOf(SeasonFrame f, SeasonFrame? prev, IReadOnlyList<FrameMove> seen, IReadOnlySet<string>? sight,
+        IReadOnlyDictionary<string, int>? wallsBefore)
     {
         var moves = new List<SceneMove>();
         var destroyed = new List<SceneUnit>();
@@ -178,10 +197,12 @@ public sealed class MapScene
                     var foreignUnit = (sight is null || sight.Contains(t)) && prev.Units.Any(u => u.Province == t && u.Power != m.Power
                         && !seen.Any(x => x.IsMove && x.Succeeded && x.From == t && x.Power == u.Power && x.Kind == u.Kind));
                     var foreignLand = m.TargetOwner is { } o && o != m.Power;
-                    var walls = m.TargetOwner is null && prev.Garrisons.Contains(t);
+                    // Walls not its own: getting in is an attack, but takes the city only if it stormed them (it then holds it).
+                    var walls = m.TargetOwner != m.Power && (wallsBefore ?? prev.Walls).ContainsKey(t);
                     var attack = foreignUnit || foreignLand || walls;
                     var style = !m.Succeeded ? MoveStyle.Bounce : attack ? MoveStyle.Attack : MoveStyle.Move;
-                    var verb = m.Succeeded ? attack ? "attacked and took" : "moved to" : "was stopped short of";
+                    var took = f.Owner.GetValueOrDefault(t) == m.Power;
+                    var verb = m.Succeeded ? attack ? walls && !took ? "got within the walls of" : "attacked and took" : "moved to" : "was stopped short of";
                     moves.Add(new SceneMove(m.Power, m.Kind, m.From, t, style,
                         $"{m.Power.Name()}'s {Kind(m.Kind)} in {Ui.Province(m.From)} {verb} {Ui.Province(t)}{(attack && !m.Succeeded ? " (an attack)" : "")}"));
                     break;

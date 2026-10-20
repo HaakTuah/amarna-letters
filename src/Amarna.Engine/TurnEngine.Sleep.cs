@@ -39,16 +39,17 @@ public sealed partial class TurnEngine
     public const string AskedAgainReason = "your counsellors woke you";
 
     /// <summary>
-    /// Why a seat is woken when foreign troops end a move next to its capital (followed by the move). A temporary trigger,
-    /// until sieges and walls on homeland provinces exist.
-    /// </summary>
-    public const string CapitalReason = "foreign troops came next to your capital";
-
-    /// <summary>
-    /// Why a seat is woken when foreign troops end a move next to a province of its homeland (not its capital, which has
-    /// <see cref="CapitalReason"/>) that it holds, followed by the move and the provinces it came next to.
+    /// Why a seat is woken when foreign troops end a move next to a province of its homeland that it holds, its capital among
+    /// them, followed by the move and the provinces it came next to. (Until the siege package the capital had a temporary
+    /// trigger of its own, "foreign troops came next to your capital", standing in for the warning walls would give.)
     /// </summary>
     public const string HomelandReason = "foreign troops came next to your homeland";
+
+    /// <summary>Why a seat is woken when a siege of a city it holds began last season (followed by the siege).</summary>
+    public const string SiegeBegunReason = "a siege of a city of yours has begun";
+
+    /// <summary>Why a seat is woken when a city of its own will surrender at the end of this season if its besiegers hold.</summary>
+    public const string SurrenderReason = "a city of yours surrenders at the end of this season unless the siege is broken";
 
     /// <summary>Why a seat is woken when foreign troops end a move next to a walled city it holds (a bought city), and none of its homeland.</summary>
     public const string WallsReason = "foreign troops came next to a walled city of yours";
@@ -207,7 +208,8 @@ public sealed partial class TurnEngine
     /// <summary>
     /// What wakes a seat, and nothing else: the default triggers, events the engine itself judges to concern it, and the hidden
     /// cap. An envoy waiting to be received; foreign troops entering or attacking its land or its troops, or ending a move
-    /// next to its capital, another province of its homeland or a walled city, while it holds it; land or troops lost; a
+    /// next to a province of its homeland or a walled city, while it holds it; a siege of a city of its own begun, or about to
+    /// make it surrender; land or troops lost; a
     /// scheduled or standing order that others foiled (<see cref="ScheduledFailed"/>); a ransom demanded; a servant giving
     /// notice; the hidden cap. (A kingdom that falls ends its sleep in <see cref="EndSleep"/>.) The seat itself can neither
     /// name a season to be woken in nor set triggers of its own (removed in the fix pass after item 4: given a way to wake
@@ -230,20 +232,18 @@ public sealed partial class TurnEngine
         foreach (var a in S.Audiences.Where(a => a.Host == p).OrderBy(a => IdNumber(a.Id)))
             Add(EnvoyWaits(a.From));
 
-        // Last season's moves as it saw them: foreign troops that entered its land, its own troops destroyed.
-        // Until sieges exist (a temporary trigger, to revisit with the siege package): foreign troops that ended a move
-        // next to its capital, while it still holds it, since with no walls on homeland provinces they can take it the
-        // next season. Since the fix pass after item 4, the same threat to any other province of its homeland, or to a
-        // walled city it holds (a bought city): foreign troops that ended a move next to one, while it holds it. Troops
-        // that merely stand there do not wake it again, and a move into its land wakes it for that alone. Since the review
-        // of that pass, an attack that failed wakes it too ("it is attacked", among the document's default triggers): a
-        // foreign move into a province it held, or into one where its troops stood, that did not get in (walls that held,
-        // its troops that held, a bounce), so a king whose walled city or home province is assailed hears of it although
-        // nothing was lost, even when the attackers stood next to it before he last gave orders.
-        var capital = Map.Capital(p).Id;
-        var nextToCapital = S.Owner.GetValueOrDefault(capital) == p ? Map.Neighbors(capital).ToHashSet() : [];
+        // Last season's moves as it saw them: foreign troops that entered its land, its own troops destroyed. Since the fix
+        // pass after item 4, a threat to a province of its homeland, or to a walled city it holds: foreign troops that ended a
+        // move next to one, while it holds it (troops there can get into it the next season: take it if it has no walls, or
+        // stand within its walls and besiege it). Troops that merely stand there do not wake it again, and a move into its
+        // land wakes it for that alone. (Until the siege package the capital had a temporary trigger of its own; it is a
+        // province of its homeland like any other now, its walls the warning.) Since the review of that pass, an attack that
+        // failed wakes it too ("it is attacked", among the document's default triggers): a foreign move into a province it
+        // held, or into one where its troops stood, that did not get in (its troops that held, a bounce), so a king whose
+        // city or home province is assailed hears of it although nothing was lost, even when the attackers stood next to it
+        // before he last gave orders.
         var home = Map.HomeOf(p).Select(x => x.Id).Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
-        var walled = S.Garrisons.Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
+        var walled = S.Walls.Keys.Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
         var seen = S.LastSeen.GetValueOrDefault(p) ?? [];
         var stood = seen.Where(o => o.Power == p).Select(o => o.Province).ToHashSet();
         foreach (var o in seen)
@@ -262,11 +262,19 @@ public sealed partial class TurnEngine
             var move = $"{o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {t}";
             if (o.TargetOwner == p)
                 Add($"foreign troops entered your land: {move}");
-            if (nextToCapital.Contains(t))
-                Add($"{CapitalReason}: {move}");
             else if (o.TargetOwner != p
                      && Map.Neighbors(t).Where(x => home.Contains(x) || walled.Contains(x)).OrderBy(x => x, StringComparer.Ordinal).ToList() is { Count: > 0 } near)
                 Add($"{(near.Any(home.Contains) ? HomelandReason : WallsReason)}: {move}, next to {string.Join(", ", near)}");
+        }
+        // Sieges of its own cities (the siege package): one begun last season, a change that the entry before it did not
+        // tell (an army within its walls may be a guest until it besieges); and one that will make the city surrender at the
+        // end of this season if the besiegers just hold, the last season to break it. Each fires once.
+        foreach (var x in S.Sieges.Where(x => S.Owner.GetValueOrDefault(x.Province) == p).OrderBy(x => x.Province, StringComparer.Ordinal))
+        {
+            var walls = S.WallsOf(x.Province);
+            var state = $"{x.Power}'s army besieges {x.Province} (walls {walls}), worn down {x.Progress} of {walls}";
+            if (x.Progress + 1 >= walls) Add($"{SurrenderReason}: {state}");
+            else if (x.Since == S.Turn - 1) Add($"{SiegeBegunReason}: {state}");
         }
         foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
             if (WakeReason(i) is { } reason) Add(reason);
@@ -530,6 +538,7 @@ public sealed partial class TurnEngine
         {
             HoldOrder h => h with { Unit = unit ?? h.Unit },
             MoveOrder m => m with { Unit = unit ?? m.Unit },
+            BesiegeOrder b => b with { Unit = unit ?? b.Unit },
             SupportOrder sp => sp with { Unit = unit ?? sp.Unit, Supported = other ?? sp.Supported },
             ConvoyOrder c => c with { Unit = unit ?? c.Unit, Army = other ?? c.Army },
             DisbandOrder d => d with { Unit = unit ?? d.Unit },
@@ -555,6 +564,7 @@ public sealed partial class TurnEngine
         {
             HoldOrder h => h with { Unit = unit },
             MoveOrder m => m with { Unit = unit },
+            BesiegeOrder b => b with { Unit = unit },
             SupportOrder sp => sp with { Unit = unit, Supported = other ?? sp.Supported },
             ConvoyOrder c => c with { Unit = unit, Army = other ?? c.Army },
             DisbandOrder d => d with { Unit = unit },
@@ -956,14 +966,13 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// Whether others stopped a move of <paramref name="p"/>'s, so that its failure wakes the seat when the move was scheduled:
-    /// another power's unit held it off, met it or took the province first, or walls held that troops had helped hold (a
-    /// strength above the walls' own 1). Not a move stopped by the seat's own unit, by walls alone (whose strength the king
-    /// knows), or for want of a convoy: the seat's own orders and strength decided those.
+    /// another power's unit held it off, met it or took the province first. Not a move stopped by the seat's own unit, or for
+    /// want of a convoy: the seat's own orders decided those. (Walls never stop a move since the siege package: a move into a
+    /// walled province gets in, and storms the walls or stands inside.)
     /// </summary>
     public static bool StoppedByOthers(Power p, MoveFailure f) => f.Stop switch
     {
         MoveStop.NoConvoy or MoveStop.OwnUnit => false,
-        MoveStop.Walls => f.Against > 1,
         _ => f.Power is { } q && q != p,
     };
 

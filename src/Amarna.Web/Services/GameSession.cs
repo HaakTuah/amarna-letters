@@ -69,6 +69,7 @@ public sealed class GameSession
     private void RunnerChanged()
     {
         if (Runner is not null) Frames.CatchUp(Runner);
+        TellFall();
         NotifySoon();
     }
 
@@ -93,7 +94,36 @@ public sealed class GameSession
     }
 
     public bool HasHumans => Humans.Count > 0;
-    public bool CanSeeAll => !HasHumans || Reveal;
+    public bool CanSeeAll => !HasHumans || Reveal || (Runner is not null && FallenSeesAll(Runner.State, Humans.Keys));
+
+    /// <summary>
+    /// A fallen player's game is over (the design document's rule, built with the siege package): once every human seat at the
+    /// table has fallen, and the table's setting allows it (on by default), the players watch the rest in god view. While one
+    /// of them still plays, a fallen player on the same screen would see what the other cannot, so nobody does. With the
+    /// setting off, a fallen player keeps his own view: what his kingdom knew when it fell, and what is public since.
+    /// </summary>
+    public static bool FallenSeesAll(GameState s, IEnumerable<Power> humans)
+    {
+        var seats = humans.ToList();
+        return s.Config.FallenSeeAll && seats.Count > 0 && seats.All(s.Eliminated.Contains);
+    }
+
+    /// <summary>Whether the fall of the human seats has been told (once a game).</summary>
+    private bool _fallTold;
+
+    /// <summary>Once every human seat has fallen: the players are told their game is over, and the view opens on the god view if the table allows it.</summary>
+    private void TellFall()
+    {
+        if (_fallTold || Runner is null || !HasHumans || !Humans.Keys.All(Runner.State.Eliminated.Contains)) return;
+        _fallTold = true;
+        var who = string.Join(" and ", Humans.Keys.Select(p => p.Land()));
+        if (FallenSeesAll(Runner.State, Humans.Keys))
+        {
+            ViewAs = null;
+            Notice = $"The kingdom of {who} has fallen with its capital: your game is over. You watch the rest of the game in god view, seeing everything.";
+        }
+        else Notice = $"The kingdom of {who} has fallen with its capital: your game is over. You watch the rest of the game with what your kingdom knew when it fell.";
+    }
     public bool GodView => ViewAs is null && CanSeeAll;
     public double Cost => Runner?.Log.TotalCost ?? 0;
 
@@ -149,6 +179,7 @@ public sealed class GameSession
         _historyTurn = -1;
         Runner = new GameRunner(state, built.Seats, built.Minds, built.Narrator) { WriteChronicles = settings.Chronicles };
         Runner.Changed += RunnerChanged;
+        _fallTold = false;
         GameId = $"game-{settings.Seed}-{DateTime.UtcNow:yyyyMMddHHmmss}";
         ViewAs = Humans.Keys.Cast<Power?>().FirstOrDefault();
         Reveal = false;
@@ -191,6 +222,7 @@ public sealed class GameSession
                 _history = null;
                 _historyTurn = -1;
                 Runner = GameRunner.Resume(log, built.Seats, built.Minds, built.Narrator);
+                _fallTold = false;
                 Runner.Changed += RunnerChanged;
                 ReadOnly = false;
                 await Runner.PrepareAsync(_cts.Token);

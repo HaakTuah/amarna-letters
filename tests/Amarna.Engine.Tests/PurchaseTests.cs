@@ -5,14 +5,15 @@ namespace Amarna.Engine.Tests;
 /// <summary>A city bought in the season troops take it: nobody pays, every bidder is told, a scheduled bid wakes its seat.</summary>
 public class PurchaseTests
 {
-    /// <summary>Babylonia holds Megiddo and Tyre, with an army in each, ready to storm Gaza's walls.</summary>
+    /// <summary>Babylonia holds Megiddo and Tyre, with an army in each, ready to storm Gaza's walls (brought down to level 1, so a supported attack storms them).</summary>
     private static GameState Board(GameConfig? config = null)
     {
         var s = GameFactory.NewGame(1, config);
+        s.Walls["gaza"] = 1;
         foreach (var city in new[] { "megiddo", "tyre" })
         {
             s.Owner[city] = Power.Babylonia;
-            s.Garrisons.Remove(city);
+            s.Walls.Remove(city);
         }
         s.Units.Add(new Unit { Id = "u90", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "megiddo" });
         s.Units.Add(new Unit { Id = "u91", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "tyre" });

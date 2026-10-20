@@ -9,6 +9,11 @@ namespace Amarna.Game.Bots;
 /// (aggression, honesty, greed). It remembers who took its land or sent bad gold, keeps sealed
 /// tablets unless tempted (and dishonest), writes letters from templates and runs its court.
 /// It sees exactly what any seat sees: the <see cref="SeatView"/>.
+/// <para>
+/// Adapted only as far as the siege package (Build order item 5) made its rules wrong: walls no longer hold in a battle, so
+/// it no longer supports walls holding, and an army of its that stands within foreign walls it attacked lays siege to them,
+/// as its supported attack once tore the free cities' walls down. Its judgement is otherwise as it was.
+/// </para>
 /// </summary>
 public sealed class BaselineLeader : ISeat
 {
@@ -129,14 +134,13 @@ public sealed class BaselineLeader : ISeat
             }
         }
 
-        // Help the walls of our own cities hold when enemies stand next to them.
-        foreach (var city in v.Garrisons.Where(g => v.Owner.GetValueOrDefault(g) == me).OrderBy(g => g, StringComparer.Ordinal))
+        // An army within foreign walls it means to take besieges them (walls no longer hold in a battle, so it no longer helps its own walls hold).
+        foreach (var u in free.Values.Where(u => u.Kind == UnitKind.Army && v.Walls.GetValueOrDefault(u.Province) > 0 && v.Owner.GetValueOrDefault(u.Province) != me).ToList())
         {
-            if (!others.Any(o => !Friendly(o.Power) && Map.CanMove(o.Kind, o.Province, city))) continue;
-            var helper = free.Values.Where(u => Map.CanMove(u.Kind, u.Province, city)).OrderBy(u => u.Province, StringComparer.Ordinal).FirstOrDefault();
-            if (helper is null) continue;
-            orders.Add(new SupportOrder(helper.Province, city));
-            free.Remove(helper.Province);
+            var holder = v.Owner.GetValueOrDefault(u.Province);
+            if (holder is { } h && !Willing(h)) continue;
+            orders.Add(new BesiegeOrder(u.Province));
+            free.Remove(u.Province);
         }
 
         // Pick targets and gather enough strength for each.
@@ -147,10 +151,10 @@ public sealed class BaselineLeader : ISeat
             var occ = unitAt.GetValueOrDefault(t);
             if (occ?.Power == me) continue;
             int need;
-            if (owner is null) need = occ is null ? (v.Garrisons.Contains(t) ? 2 : 1) : (Willing(occ.Power) ? 2 : 0);
+            if (owner is null) need = occ is null ? (v.Walls.GetValueOrDefault(t) > 0 ? 2 : 1) : (Willing(occ.Power) ? 2 : 0);
             else if (owner == me) need = occ is null ? 0 : 2;
             else if (!Willing(owner.Value)) need = 0;
-            else need = occ is null ? (v.Garrisons.Contains(t) ? 2 : 1) : 2 + (m.Aggression < 0.5 ? 1 : 0);
+            else need = occ is null ? (v.Walls.GetValueOrDefault(t) > 0 ? 2 : 1) : 2 + (m.Aggression < 0.5 ? 1 : 0);
             if (need == 0) continue;
             var prov = Map[t];
             var value = prov.Yield + (prov.Capital ? 25 : 0) + (owner is null ? 5 : 0) + (prov.Home == me ? 30 : 0)
@@ -214,7 +218,7 @@ public sealed class BaselineLeader : ISeat
                 var step = cur;
                 while (prev[step] != u.Province) step = prev[step];
                 if (taken.Contains(step) || unitAt.ContainsKey(step)) return null;
-                if (v.Garrisons.Contains(step)) return null; // walls: wait for help rather than bounce
+                if (v.Walls.GetValueOrDefault(step) > 0) return null; // walls: wait for help rather than bounce
                 return step;
             }
             foreach (var n in Map.MovesFrom(u.Kind, cur).OrderBy(x => x, StringComparer.Ordinal))
@@ -256,7 +260,7 @@ public sealed class BaselineLeader : ISeat
         }
 
         var myUnits = v.Units.Where(u => u.Power == me).Select(u => u.Province).ToList();
-        var buy = v.Garrisons
+        var buy = v.Owner.Where(x => x.Value is null).Select(x => x.Key)
             .Where(g => v.Owner.GetValueOrDefault(g) is null && !destinations.Contains(g) && Map.WithinReach(g, me, v.Owner, myUnits))
             .OrderByDescending(g => Map[g].Yield).ThenBy(g => g, StringComparer.Ordinal)
             .FirstOrDefault(g => gold - Map[g].Yield * v.Prices["cityPricePerYield"] >= reserve + (weak ? 20 : 50));

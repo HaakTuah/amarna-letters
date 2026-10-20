@@ -45,7 +45,7 @@ public class BattleReasonTests
             var s = GameFactory.NewGame(1);
             s.Units.Single(u => u.Province == "delta").Kind = UnitKind.Army;
             s.Units.Single(u => u.Province == "enkomi").Province = "greatgreen";
-            s.Garrisons.Remove("lukka");
+            s.Walls.Remove("lukka");
             s.Owner["lukka"] = Power.Arzawa;
             s.Units.Add(new Unit { Id = "u90", Power = Power.Arzawa, Kind = UnitKind.Army, Province = "lukka" });
             return s;
@@ -59,7 +59,8 @@ public class BattleReasonTests
             [Power.Alashiya] = new() { Orders = [new ConvoyOrder("greatgreen", "delta", "lukka")] },
         });
         var egypt = Report(s, Power.Egypt);
-        Assert.Contains("- A delta -> lukka (by sea): fails: the unit holding lukka kept its place; your strength 1 against 1", egypt);
+        // Lukka is rough ground (Build order item 5, terrain): the unit holding it has 1 more, and the report gives its share.
+        Assert.Contains("- A delta -> lukka (by sea): fails: the unit holding lukka kept its place; your strength 1 against 2, 1 of it for the rough ground of lukka", egypt);
         Assert.DoesNotContain("Arzawa", egypt);
 
         // When the ships carry it somewhere else, nothing carried it to Lukka, and the fleet's king is told why its convoy was void.
@@ -77,15 +78,16 @@ public class BattleReasonTests
     [Fact]
     public void A_unit_that_could_not_leave_kept_its_place()
     {
-        // Mitanni's army in Terqa strikes Mari's walls and fails, so Assyria's move into Terqa meets it still there.
+        // Mitanni's army in Terqa and Babylon's in Sippar strike Mari and bounce, so Assyria's move into Terqa meets it still there.
         var s = GameFactory.NewGame(1);
         Resolve(s, new()
         {
             [Power.Assyria] = new() { Orders = [new MoveOrder("ashur", "terqa")] },
             [Power.Mitanni] = new() { Orders = [new MoveOrder("terqa", "mari")] },
+            [Power.Babylonia] = new() { Orders = [new MoveOrder("sippar", "mari")] },
         });
         Assert.Contains("- A ashur -> terqa: fails: the unit in terqa (Mitanni's army) could not leave, so it kept its place; your strength 1 against 1", Report(s, Power.Assyria));
-        Assert.Contains("- A terqa -> mari: fails: the walls of mari held; your strength 1 against 1", Report(s, Power.Mitanni));
+        Assert.Contains("- A terqa -> mari: fails: it met a move into mari from sippar by Babylonia's army; your strength 1 against 1", Report(s, Power.Mitanni));
     }
 
     [Fact]

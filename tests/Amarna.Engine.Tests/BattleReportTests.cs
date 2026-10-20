@@ -15,7 +15,7 @@ public class BattleReportTests
     {
         // Arbela lies beyond Babylon's sight; Susa, next to Dur-Kurigalzu, within it.
         var s = GameFactory.NewGame(1);
-        s.Garrisons.Remove("susa");
+        s.Walls.Remove("susa");
         s.Units.Add(new Unit { Id = "u90", Power = Power.Assyria, Kind = UnitKind.Army, Province = "arbela" });
         Assert.DoesNotContain("arbela", Views.Sight(s, WorldMap.Default, Power.Babylonia));
         Resolve(s, new()
@@ -49,7 +49,7 @@ public class BattleReportTests
         // Babylon's army in Mari and Assyria's from Ashur both strike Terqa; only Assyria's is supported.
         var s = GameFactory.NewGame(1);
         s.Owner["mari"] = Power.Babylonia;
-        s.Garrisons.Remove("mari");
+        s.Walls.Remove("mari");
         s.Units.Add(new Unit { Id = "u90", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "mari" });
         Resolve(s, new()
         {
@@ -86,7 +86,7 @@ public class BattleReportTests
     }
 
     [Fact]
-    public void Walls_your_own_units_and_a_unit_moving_the_other_way_are_named_as_the_reason()
+    public void Your_own_units_and_a_unit_moving_the_other_way_are_named_as_the_reason_and_walls_say_what_came_of_getting_in()
     {
         var s = GameFactory.NewGame(1);
         Resolve(s, new()
@@ -96,10 +96,44 @@ public class BattleReportTests
             [Power.Mitanni] = new() { Orders = [new MoveOrder("terqa", "ekallatum")] },
         });
 
-        Assert.Contains("- A kanesh -> carchemish: fails: the walls of carchemish held; your strength 1 against 1", Report(s, Power.Hatti));
+        // Walls stop no move since the siege package: the report says the army got within them and did not storm them.
+        Assert.Contains("- A kanesh -> carchemish: succeeds: it got within the walls of carchemish but did not storm them (strength 1 against walls 2 and defenders 0): your army stands inside and takes nothing; besiege the city to wear it down", Report(s, Power.Hatti));
         var assyria = Report(s, Power.Assyria);
         Assert.Contains("- A ashur -> nineveh: fails: your own army in nineveh did not leave, and you cannot dislodge your own unit", assyria);
         Assert.Contains("- A ekallatum -> terqa: fails: it met the unit from terqa (Mitanni's army) coming the other way; your strength 1 against 1", assyria);
+    }
+
+    [Fact]
+    public void An_assault_on_a_walled_city_of_the_king_s_own_is_told_among_his_own_lines_with_his_side_and_the_strengths()
+    {
+        // The fix pass after item 4, minor finding 5: until the siege package such an assault showed only under "Seen nearby".
+        var s = GameFactory.NewGame(1);
+        s.Owner["mari"] = Power.Babylonia;
+        Resolve(s, new() { [Power.Mitanni] = new() { Orders = [new MoveOrder("terqa", "mari")] } });
+        var own = Report(s, Power.Babylonia).Split("\nSeen nearby:")[0];
+        Assert.Contains("- Your walled city of Mari: Mitanni's army from terqa got within the walls but did not storm them (its strength 1 against your walls 2 and defenders 0): it stands inside, and Mari stays yours unless a siege wears it down.", own);
+
+        // Stormed with three against walls 2 and an army of Babylon's within them.
+        s = GameFactory.NewGame(1);
+        s.Owner["mari"] = Power.Babylonia;
+        s.Units.Add(new Unit { Id = "u90", Power = Power.Babylonia, Kind = UnitKind.Army, Province = "mari" });
+        s.Units.Add(new Unit { Id = "u91", Power = Power.Mitanni, Kind = UnitKind.Army, Province = "damascus" });
+        s.Units.Add(new Unit { Id = "u92", Power = Power.Mitanni, Kind = UnitKind.Army, Province = "qadesh" });
+        s.Owner["damascus"] = Power.Mitanni;
+        s.Owner["qadesh"] = Power.Mitanni;
+        s.Units.Add(new Unit { Id = "u93", Power = Power.Mitanni, Kind = UnitKind.Army, Province = "ekallatum" });
+        s.Units.RemoveAll(u => u.Province == "ekallatum" && u.Power == Power.Assyria);
+        Resolve(s, new()
+        {
+            [Power.Mitanni] = new()
+            {
+                Orders = [new MoveOrder("terqa", "mari"), new SupportOrder("damascus", "terqa", "mari"), new SupportOrder("qadesh", "terqa", "mari"), new SupportOrder("ekallatum", "terqa", "mari")],
+            },
+        });
+        Assert.Contains("- Your walled city of Mari: Mitanni's army from terqa stormed the walls (its strength 4 against your walls 2 and defenders 1): Mari is taken.", Report(s, Power.Babylonia));
+        Assert.Equal(Power.Mitanni, s.Owner["mari"]);
+        Assert.Equal(1, s.WallsOf("mari"));
+        Assert.Contains("- A terqa -> mari: succeeds: it stormed the walls of mari (strength 4 against walls 2 and defenders 1), and mari is yours", Report(s, Power.Mitanni));
     }
 
     [Fact]

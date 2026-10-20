@@ -115,7 +115,30 @@ public class BotTests
     [Fact]
     public void A_king_who_buys_cities_is_not_taken_for_a_conqueror()
     {
+        var (brain, board) = EgyptBuysTheLevant(watching: true);
+        Assert.True(board.LandGrowth(Power.Egypt) >= 1.2, "by land alone Egypt would seem to run away with the game");
+        Assert.InRange(board.Growth(Power.Egypt), 0.95, 1.15);
+        Assert.NotEqual(Power.Egypt, board.Leader());
+        Assert.Equal(0, brain.Belligerence.GetValueOrDefault(Power.Egypt));
+    }
+
+    [Fact]
+    public void Cities_that_change_hands_out_of_sight_count_half_as_bought_and_half_as_taken()
+    {
+        // Out of Hatti's sight the walls are as it last saw them, so it cannot tell a purchase from a conquest (since the
+        // review of the siege package).
+        var (seen, inSight) = EgyptBuysTheLevant(watching: true);
+        var (unseen, outOfSight) = EgyptBuysTheLevant(watching: false);
+        Assert.Equal(1.0, unseen.Belligerence[Power.Egypt], 3);
+        Assert.True(outOfSight.Growth(Power.Egypt) > inSight.Growth(Power.Egypt));
+        Assert.Equal(0, seen.Belligerence.GetValueOrDefault(Power.Egypt));
+    }
+
+    /// <summary>Egypt buys Megiddo and Tyre, seen by Hatti from an army of its in Damascus, or unseen.</summary>
+    private static (Brain, Board) EgyptBuysTheLevant(bool watching)
+    {
         var s = GameFactory.NewGame(3);
+        if (watching) s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Hatti, Kind = UnitKind.Army, Province = "damascus" });
         var brain = new Brain(Power.Hatti, 3);
         var first = Views.For(s, Power.Hatti);
         brain.Learn(first, new Board(first));
@@ -129,11 +152,7 @@ public class BotTests
         s.Turn = 6;
         var view = Views.For(s, Power.Hatti);
         brain.Learn(view, new Board(view));
-        var board = new Board(view, brain.Remembered(view), brain.Treasury);
-
-        Assert.True(board.LandGrowth(Power.Egypt) >= 1.2, "by land alone Egypt would seem to run away with the game");
-        Assert.InRange(board.Growth(Power.Egypt), 0.95, 1.15);
-        Assert.NotEqual(Power.Egypt, board.Leader());
+        return (brain, new Board(view, brain.Remembered(view), brain.Treasury));
     }
 
     [Fact]
@@ -144,7 +163,7 @@ public class BotTests
         foreach (var (city, owner) in new[] { ("carchemish", Power.Mitanni), ("ugarit", Power.Egypt) })
         {
             s.Owner[city] = owner;
-            s.Garrisons.Remove(city);
+            s.Walls.Remove(city);
         }
         s.Units.RemoveAll(u => u.Province is "kizzuwatna" or "terqa" or "memphis");
         s.Units.Add(new Unit { Id = "u90", Power = Power.Mitanni, Kind = UnitKind.Army, Province = "carchemish" });
