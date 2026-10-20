@@ -12,7 +12,7 @@ item's report.
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
 | 4 | Are model characters too honest? Is the message-kind fallback for reopening needed? | Yes, on thin evidence (to be answered by stakes, not dispositions: item 11); no | Accepted by Haakon, 20 October |
-| 4+ | Fix pass: standing orders now answer a move in the season it is made (reading of "fire a season late"); a threat to the homeland includes moves inside the mover's own land; no refusal and no failure of a king's own making wakes him (a route through other kings' troops remains); a failed attack on any of his land or troops wakes him; foreign levies beside his land wake nobody; a king's letters are in his view while their envoys are away; scribes rewrite copy marks and person ids, and a tablet is named by its seals and date (names can still differ between courts); narrator-written personas keep their text, with current trait words added; the isolation test's authority sits in every agent's definition and a paraphrased guard message fails it; the skim share is rounded to the shekel; "weighed light" means not a whole ten shekels; standing orders for every seat (built, with script kings using them) | Readings as listed; each with its alternative in `docs/rounds/2026-10-20-fix-pass.md` ("Review questions for the whole pass" and "Review questions" under the review findings) | Open |
+| 4+ | Fix pass: standing orders now answer a move in the season it is made (reading of "fire a season late"); a threat to the homeland includes moves inside the mover's own land; no refusal and no failure of a king's own making wakes him (a route through other kings' troops remains); a failed attack on any of his land or troops wakes him; foreign levies beside his land wake nobody; a king's letters are in his view while their envoys are away; scribes rewrite copy marks and person ids, and a tablet is named by its seals and date (names can still differ between courts); narrator-written personas keep their text, with current trait words added; the isolation test's authority sits in every agent's definition and a paraphrased guard message fails it; the skim share is rounded to the shekel; "weighed light" means not a whole ten shekels; standing orders for every seat (built, with script kings using them) | Readings as listed; each with its alternative in `docs/rounds/2026-10-20-fix-pass.md` ("Review questions for the whole pass" and "Review questions" under the review findings) | Accepted by Haakon, 20 October (Haakon merges the fix-pass PR himself) |
 
 ## Builder rules added on 20 October (from the live document and Haakon's message)
 
@@ -25,6 +25,10 @@ item's report.
   or irreversible fails (agent isolation before any agent starts, anything touching `main`, keys or spending), stop that
   step and ask, and go on with other work meanwhile. An ordinary failing test is not a reason to stop: fix it, or mark
   the item blocked with the reason and go on to the next item that does not depend on it.
+- Standing orders answer a blow in the same season, for every seat (accepted 20 October), so the pace of war is measured
+  with script kings using standing orders, and item 5 reports whether walls, sieges and same-season standing orders
+  together make defence dominate (reported, not tuned: item 18). In item 13, standing orders become part of a
+  commander's mandate ("Standing orders belong to commanders", Ideas tab); nothing changes before then.
 - "Requests are rules too": no field in a request may imply something untrue; ask only what applies, show no internal
   ids a model could repeat, keep the engine's outcomes apart from a character's words.
 - A PR at every milestone: after each merge into `develop`, check the previous PR; if it was merged, merge `main` back
