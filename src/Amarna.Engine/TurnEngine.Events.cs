@@ -52,7 +52,11 @@ public sealed partial class TurnEngine
                     cat.EndTurn = S.Turn + 4;
                     cat.IncomeFactor = 0;
                     cat.Text = $"an earthquake has thrown down the walls and storehouses of {Map[cat.Province].Name}";
-                    exact = $"An earthquake has ruined {Map[cat.Province].Name}; it will yield nothing for four seasons.";
+                    // It throws the walls down a level (Build order item 5).
+                    var shaken = S.WallsOf(cat.Province) > 0;
+                    if (shaken) LowerWalls(cat.Province);
+                    exact = $"An earthquake has ruined {Map[cat.Province].Name}; it will yield nothing for four seasons"
+                            + (shaken ? $", and its walls stand a level lower ({(S.WallsOf(cat.Province) is > 0 and var left ? $"walls {left}" : "none left")})." : ".");
                     plain = $"Word comes that the earth shook in {p.Land()}.";
                     break;
             }

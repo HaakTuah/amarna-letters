@@ -41,6 +41,7 @@ public sealed class OrderValidator
         var hiring = submission.Orders.Take(MaxOrders).OfType<HireOrder>().Where(h => HireRefusal(h, out _) is null).Select(h => h.Character).ToHashSet();
         var assayed = new HashSet<string>();
         var ceded = new HashSet<string>();
+        var fortified = new HashSet<string>();
         var orderedUnits = new HashSet<string>();
         var raisedIn = new HashSet<string>();
         var bought = new HashSet<string>();
@@ -75,6 +76,7 @@ public sealed class OrderValidator
                 if (order is RenewOrder rn) renewed.Add(rn.Character);
                 if (order is AssayOrder a) assayed.Add(a.Lot);
                 if (order is CedeProvinceOrder cp) ceded.Add(cp.Province);
+                if (order is FortifyOrder fo) fortified.Add(fo.Province);
             }
             else
             {
@@ -200,6 +202,19 @@ public sealed class OrderValidator
                     if ((army is null || army.Kind != UnitKind.Army) && Sight().Contains(c.Army)) return $"there is no army in {c.Army}";
                     if (!_map.Exists(c.To) || !_map[c.To].IsCoastal) return $"{c.To} is not a coast an army can land on";
                     return null;
+                }
+
+                case FortifyOrder f:
+                {
+                    if (string.IsNullOrWhiteSpace(f.Province)) return "name the province whose walls to strengthen";
+                    if (!_map.Exists(f.Province) || _map[f.Province].IsSea) return $"there is no province called '{f.Province}'";
+                    var name = _map[f.Province].Name;
+                    if (_s.Owner.GetValueOrDefault(f.Province) != power) return $"you do not hold {name}";
+                    var level = _s.WallsOf(f.Province);
+                    if (level >= _s.Config.MaxWalls) return $"the walls of {name} stand at {level}, as high as walls go";
+                    if (_s.SiegeOf(f.Province) is not null) return $"{name} is besieged: its walls cannot be strengthened while the siege lasts";
+                    if (fortified.Contains(f.Province)) return $"the walls of {name} were already to be strengthened by an earlier order";
+                    return Spend(_s.Config.FortifyCost * (level + 1));
                 }
 
                 case BesiegeOrder b:

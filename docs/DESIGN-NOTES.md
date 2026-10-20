@@ -138,6 +138,21 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     "Land lost" when it falls. The view's SIEGES line lists the sieges it knows of (its own, of its
     cities, and in its sight) with how far each has gone. The record logs "storm" and "siege" events,
     with the signals `storm`, `siege-begun` and `siege-won` counted in the batch report.
+  - **Strengthening walls** (`FortifyOrder`, other_orders "fortify", naming the province; the design document's "can be
+    strengthened for gold and upkeep, a real choice between defense and expansion"; question 5, plan step 11, first
+    guesses): the walls of a province the king holds rise a level at the end of the season (after purchases), up to
+    `GameConfig.MaxWalls` (3), for `FortifyCost` (50) × the new level, reserved when the order is checked and paid when
+    it is done; a province without walls can be given them. Refused at level 3, for land not held, while the province is
+    besieged, or twice in a season; not done, and not paid, if the province was lost in the moves or a siege began
+    ("Walls not strengthened": a scheduled one then wakes its seat, as others foiled it). Each level above the map's own
+    for the province costs `WallUpkeep` (5) a season, paid after the troops' upkeep (`TurnEngine.WallsUpkeep`; the
+    treasury notice reads "upkeep 3 minas 5 shekels, walls 5 shekels, wages ..."); walls whose upkeep the treasury
+    cannot pay fall a level, the farthest from the capital first ("Unkept, walls fell a level: Sinai, Thebes."). A city
+    that falls loses a level as any other, so a captured capital at 2 can be built back to 3 without upkeep. An
+    earthquake throws the walls of the province it strikes down a level (its notice says so: "..., and its walls stand a
+    level lower (walls 2)."); until the siege package its text spoke of walls it did not touch. The view shows the walls'
+    upkeep beside the troops' (`SeatView.WallUpkeep`), and the orders panel has "Strengthen walls in…" with the price.
+    Script kings strengthen walls where a feared king may walk in (see Treasury under Script kings).
   - **Free cities** can also be bought for 10 × yield by a power whose land or troops touch
     them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
   season bounce: the elders sell to none, and each bidder is told how many buyers bid ("The elders of
@@ -2127,10 +2142,10 @@ disbanded or given away), whose place next season is known. It rolls no dice.
 ### Treasury
 
 - **Gold** the king plans with is its treasury by its ledger less the back pay its view shows it owes: back pay owed is gold already spent, since the people it is owed to claim it when they are back at court. Everything below (disbanding, levies, cities, and the spare gold that pays for the court, gifts and bribes) reckons with that figure, so a script king never spends what a returning servant will claim. (Since the simulation-fixes round's Part G.)
-- **Flow** = income − upkeep − wages (all wages, those built up as back pay included).
+- **Flow** = income − upkeep − the walls' upkeep − wages (all wages, those built up as back pay included).
 - **Reserve**:
-  - while flow is not negative, 0.3 × (upkeep + wages) × (0.5 + caution);
-  - while flow is negative, (upkeep + wages) × (1 + caution);
+  - while flow is not negative, 0.3 × (upkeep + walls' upkeep + wages) × (0.5 + caution);
+  - while flow is negative, (upkeep + walls' upkeep + wages) × (1 + caution);
   - in both cases, + 40 × greed + 20.
 - **Disbanding.** While flow is negative and the treasury would not last two more seasons (gold + 2 × flow < 0), the king disbands a troop. It picks the troop in the least valuable province among those that are only holding or moving and not threatened.
   - **Or gives it to a friend** (since the fix pass after item 4): the troop goes instead to a friend the king would not betray, whose land the troop stands in or whose land or troops stand next to it, and whose treasury, as the king reckons it, feeds the troop for four seasons (the most trusted first). It costs nothing more than disbanding, and the troop serves a friend against the kings both face. Never a troop standing in the king's own land: land passes to whoever's troops stand in it, so the friend would take the province with it. When no idle troop is left and the treasury cannot pay next season's upkeep (gold + flow < 0), troops will desert whatever they are doing, so one a friend can take (by the same test, threatened or busy) is given to it. A king given troops or land trusts the giver 0.25 more (0.35 for land) and counts it as a support given.
@@ -2142,7 +2157,8 @@ disbanded or given away), whose place next season is known. It rolls no dice.
     - the new flow is no worse than −(gold left − reserve) ÷ max(3, H).
   - Until turn 11, an army costs 400 over its life (100 + 30 × 10). The bar is then 277 for Hatti's archetype and 570 for Alashiya's.
   - A king with no troops at all raises an army if 100 leaves the reserve intact.
-- **Cities.** The king considers free walled cities within buying reach that are not a destination.
+- **Walls** (the siege package; `Statecraft.Fortification`), at most a level a season, after the levies: in a province the king holds, below walls 3 and not besieged, whose likeliest attack this season is feared at a chance of at least 0.4. Net = chance × value × (0.35 for a first level, 0.15 for a further one) − the price of the new level − (5 × min(H, 10) if the level is above the map's). The best net above 0 is bought if its price leaves 60 above the reserve. (A first level turns a province a lone army would take at once into one it must storm or besiege; a further level adds a season of siege.)
+- **Cities.** The king considers free walled cities within buying reach that are not a destination, nor held by another king's troops (its own may stand in one it besieges, and buy it).
   - Score = (yield × H − danger × 10 × yield) × (1.15 if no rival can bid; otherwise 1 − 0.1 × the number of rivals who can, at most three).
   - Danger is 0.35 if a king with hostility above 0.4 can bring two troops to the city, else 0.08.
   - Cities are ranked by score per shekel.

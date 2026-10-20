@@ -91,6 +91,18 @@ public sealed partial class TurnEngine
             }
             var paid = Math.Max(0, Math.Min(t.Gold, Upkeep(p)));
             t.Gold -= paid;
+            // Walls above the map's own are kept up after the troops: what the treasury cannot keep falls a level.
+            var crumbled = new List<string>();
+            while (WallsUpkeep(p) > Math.Max(0, t.Gold))
+            {
+                var cap = Map.Capital(p).Id;
+                var weakest = S.OwnedBy(p).Where(x => S.WallsOf(x) > MapData.StartWalls.GetValueOrDefault(x))
+                    .OrderByDescending(x => Map.Hops(cap, x)).ThenBy(x => x, StringComparer.Ordinal).First();
+                LowerWalls(weakest);
+                crumbled.Add(Map[weakest].Name);
+            }
+            var walls = WallsUpkeep(p);
+            t.Gold -= walls;
 
             var wages = 0;
             var owed = 0;
@@ -127,10 +139,11 @@ public sealed partial class TurnEngine
             }
 
             // Written before the season's audiences and envoys' returns: their gold comes after this figure.
-            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}, wages {Money.Format(wages)} (paid to your people at court)."
+            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}{(walls > 0 ? $", walls {Money.Format(walls)}" : "")}, wages {Money.Format(wages)} (paid to your people at court)."
                 + (owed > 0 ? $" The wages of your people away, {Money.Format(owed)}, were added to their back pay, which is paid when they are back at your court." : "")
                 + $" After income, upkeep and wages, the treasury holds {Money.Format(t.Ledger)}; gold received at audiences or brought home by your envoys this season is added later." };
             if (deserted.Count > 0) lines.Add($"Unpaid troops deserted: {string.Join(", ", deserted)}.");
+            if (crumbled.Count > 0) lines.Add($"Unkept, walls fell a level: {string.Join(", ", crumbled.GroupBy(x => x).Select(g => g.Count() == 1 ? g.Key : $"{g.Key} ({g.Count()} levels)"))}.");
             if (unpaid.Count > 0) lines.Add($"Could not pay: {string.Join(", ", unpaid)}.");
             S.Notify(p, InboxKind.Notice, "The treasury", string.Join(" ", lines));
             if (deserted.Count > 0) S.Log("desertion", $"{p} could not pay its troops: {string.Join(", ", deserted)} deserted.", [p]);
@@ -191,6 +204,13 @@ public sealed partial class TurnEngine
 
     /// <summary>The notice that someone at court was paid the back pay owed, or could not be paid it all.</summary>
     public const string BackPayTitle = "Back pay";
+
+    /// <summary>
+    /// The upkeep of the walls a power holds above the map's own for each province (<see cref="GameConfig.WallUpkeep"/> a
+    /// level a season), paid after its troops' upkeep.
+    /// </summary>
+    public int WallsUpkeep(Power p) =>
+        S.OwnedBy(p).Sum(x => Math.Max(0, S.WallsOf(x) - MapData.StartWalls.GetValueOrDefault(x))) * S.Config.WallUpkeep;
 
     /// <summary>The upkeep of a power's troops, and the cost of each siege it presses (<see cref="GameConfig.SiegeUpkeep"/>).</summary>
     public int Upkeep(Power p) => S.Units.Where(u => u.Power == p)
@@ -405,6 +425,7 @@ public sealed partial class TurnEngine
         CapitalsTaken();
         ResolveTransfers(All<CedeProvinceOrder>().ToList(), All<GiftUnitOrder>().ToList());
         ResolvePurchases(All<BuyProvinceOrder>().ToList());
+        foreach (var (p, f) in All<FortifyOrder>()) Fortify(p, f);
         foreach (var (p, d) in All<DisbandOrder>())
         {
             var u = S.UnitAt(d.Unit);

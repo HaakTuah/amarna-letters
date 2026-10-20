@@ -42,7 +42,7 @@ public static class Schemas
 
     public static readonly string[] OtherActions =
     [
-        "raise_army", "raise_fleet", "buy_city", "cede_province", "give_unit", "seek_candidates", "hire", "renew", "dismiss",
+        "raise_army", "raise_fleet", "buy_city", "cede_province", "give_unit", "fortify", "seek_candidates", "hire", "renew", "dismiss",
         "background_check", "place_spy", "recall_spy", "counter_intelligence", "assay", "authenticate", "forge",
         "captive_execute", "captive_ransom", "captive_turn", "captive_release", "release_detained", "pay_ransom",
     ];
@@ -57,7 +57,7 @@ public static class Schemas
 
     private static JsonObject OtherOrder(bool described = true) => Object(
         ("action", Enum(OtherActions)),
-        ("province", Str(described ? "For raise, buy_city, cede_province, give_unit, or a province to spy on." : null)),
+        ("province", Str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), or a province to spy on." : null)),
         ("power", Str(described ? "For cede_province, give_unit, or a court to spy on." : null)),
         ("person", Str(described ? "Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge." : null)),
         ("amount", Int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)),

@@ -145,9 +145,9 @@ internal static class Statecraft
         var me = b.Me;
         // Back pay owed is gold already spent: the people it is owed to will claim it when they are back at court.
         var gold = v.Gold - v.BackPay;
-        var flow = v.Income - v.Upkeep - v.Wages;
+        var flow = v.Income - v.Upkeep - v.WallUpkeep - v.Wages;
         // While income covers upkeep, a small cushion is enough; a treasury that bleeds needs a season or two in hand.
-        var costs = v.Upkeep + v.Wages;
+        var costs = v.Upkeep + v.WallUpkeep + v.Wages;
         var reserve = (flow >= 0 ? costs * 0.3 * (0.5 + p.Caution) : costs * (1 + p.Caution)) + p.Greed * 40 + 20;
 
         // Disband before the troops desert: the least needed unit goes first. A unit that must go is given instead to a
@@ -219,6 +219,16 @@ internal static class Statecraft
             gold -= v.Prices["army"];
         }
 
+        // Walls (the siege package), at most a level a season, where they pay: on land of ours a feared king could walk into,
+        // a level of walls turns a province he would take at once into one he must storm or besiege. A first level saves about
+        // a third of its worth against the likeliest attack (a feared king, at least an even chance in four that he comes), a further level about a seventh (another season of siege); against
+        // that, the price of the new level and its upkeep, for as long as the game may run (at most ten seasons).
+        if (Fortification(b, plan, gold - reserve) is { } walls)
+        {
+            orders.Add(new FortifyOrder(walls.Province));
+            gold -= walls.Cost;
+        }
+
         // Cities: buying turns gold into the same score in land, plus its income, behind walls that now stand for the buyer.
         var units = b.Mine.Select(u => u.Province).ToList();
         var offers = v.Owner.Where(x => x.Value is null).Select(x => x.Key)
@@ -252,6 +262,28 @@ internal static class Statecraft
 
         // Land we cannot keep goes to a friend rather than to a rival ahead of us (see Cession).
         if (Cession(b, brain, plan) is { } cede) orders.Add(cede);
+    }
+
+    /// <summary>The province of ours whose walls are best strengthened this season, and the price, if any pays (see Economy).</summary>
+    internal static (string Province, int Cost)? Fortification(Board b, MilitaryPlan plan, double spare)
+    {
+        var v = b.V;
+        var price = v.Prices.GetValueOrDefault("fortifyPerLevel", 50);
+        var upkeep = v.Prices.GetValueOrDefault("wallUpkeep", 5);
+        (string Province, int Cost, double Net)? best = null;
+        foreach (var id in v.Owner.Where(x => x.Value == b.Me).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal))
+        {
+            var level = b.WallLevel(id);
+            if (level >= 3 || b.SiegeAt(id) is not null) continue;
+            var chance = plan.Danger.TryGetValue(id, out var d) ? d.Chance : 0;
+            if (chance < 0.4) continue;
+            var cost = price * (level + 1);
+            var above = level + 1 > MapData.StartWalls.GetValueOrDefault(id);
+            var net = chance * b.Value(id) * (level == 0 ? 0.35 : 0.15) - cost - (above ? upkeep * Math.Min(b.Horizon, 10) : 0);
+            if (net <= 0 || cost > spare - 60) continue;
+            if (best is null || net > best.Value.Net) best = (id, cost, net);
+        }
+        return best is { } w ? (w.Province, w.Cost) : null;
     }
 
     /// <summary>

@@ -19,6 +19,32 @@ public sealed partial class TurnEngine
     /// <summary>The notice of the season's sieges: those a court presses, and those of its cities.</summary>
     public const string SiegesTitle = "Sieges";
 
+    /// <summary>
+    /// Walls strengthened (<see cref="FortifyOrder"/>): a level higher at the end of the season, paid now, unless the province
+    /// was lost in movement or is besieged, which others brought about (a scheduled order then wakes its seat).
+    /// </summary>
+    private void Fortify(Power p, FortifyOrder f)
+    {
+        var name = Map[f.Province].Name;
+        var why = S.Owner.GetValueOrDefault(f.Province) != p ? "you no longer held it after movement"
+            : S.SiegeOf(f.Province) is not null ? "it was besieged"
+            : S.WallsOf(f.Province) >= S.Config.MaxWalls ? "its walls stood as high as walls go"
+            : null;
+        if (why is not null)
+        {
+            Failed(p, f, "Walls not strengthened", $"The walls of {name} were not strengthened: {why}. No gold was paid.", why, byOthers: true);
+            return;
+        }
+        var level = S.WallsOf(f.Province) + 1;
+        if (!Pay(p, S.Config.FortifyCost * level, $"the walls of {name}", f, "they were not strengthened")) return;
+        S.Walls[f.Province] = level;
+        var above = level - MapData.StartWalls.GetValueOrDefault(f.Province);
+        S.Notify(p, InboxKind.Resolution, "Walls strengthened", $"The walls of {name} stand at level {level} now"
+            + (above > 0 ? $"; the {above} level{(above == 1 ? "" : "s")} above its old walls cost {Money.Format(above * S.Config.WallUpkeep)} a season." : "."));
+        S.Log("fortify", $"{p} strengthened the walls of {name} to level {level}.",
+            Powers.All.Where(x => x == p || Views.Sight(S, Map, x).Contains(f.Province)), "fortify");
+    }
+
     /// <summary>The walls of a province fall a level (to none from level 1).</summary>
     private void LowerWalls(string province)
     {

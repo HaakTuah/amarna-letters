@@ -61,8 +61,10 @@ public class OrderDraftTests
         s.Units.First(u => u.Province == "sippar").Province = "mari";
         var draft = new OrderDraft(Views.For(s, Power.Babylonia));
         draft.Units["mari"].Kind = "besiege";
+        draft.Other.Add(new FortifyOrder("nippur"));
         var sub = draft.Build();
         Assert.Contains(new BesiegeOrder("mari"), sub.Orders);
+        Assert.Contains(new FortifyOrder("nippur"), sub.Orders);
         Assert.Empty(new OrderValidator(s).Validate(Power.Babylonia, sub).Rejected);
     }
 }

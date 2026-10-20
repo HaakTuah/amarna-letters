@@ -156,6 +156,7 @@ public static class Parse
             "raise_army" => new RaiseOrder(province, UnitKind.Army),
             "raise_fleet" => new RaiseOrder(province, UnitKind.Fleet),
             "buy_city" => new BuyProvinceOrder(province),
+            "fortify" => new FortifyOrder(province),
             "cede_province" when power is { } cp => new CedeProvinceOrder(province, cp),
             "cede_province" => new UnreadableOrder($"cede {province} to '{named}'", Nowhere(named, "the power to cede it to")),
             "give_unit" when power is { } gp => new GiftUnitOrder(province, gp),

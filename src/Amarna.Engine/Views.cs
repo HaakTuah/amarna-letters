@@ -118,6 +118,8 @@ public sealed class SeatView
     public List<LotView> UnassayedGold { get; set; } = new();
     public int Income { get; set; }
     public int Upkeep { get; set; }
+    /// <summary>The upkeep of walls it raised above the map's own, a season (paid after its troops').</summary>
+    public int WallUpkeep { get; set; }
     /// <summary>The wages of all its people a season: paid to those at court, built up as back pay for those away.</summary>
     public int Wages { get; set; }
     /// <summary>The back pay it believes it owes (to its people, and to anyone at its court), paid when each is back at its court.</summary>
@@ -271,6 +273,7 @@ public static class Views
             UnassayedGold = t.Lots.Select(l => new LotView { Id = l.Id, From = l.From, Stated = l.Stated, Weighed = l.Face, ArrivedTurn = l.ArrivedTurn }).ToList(),
             Income = engine.Income(p),
             Upkeep = engine.Upkeep(p),
+            WallUpkeep = engine.WallsUpkeep(p),
             Wages = engine.Wages(p),
             BackPay = engine.BelievedBackPay(p),
             Strength = engine.LedgerStrength(p),
@@ -350,6 +353,8 @@ public static class Views
         v.Prices["forgery"] = s.Config.ForgeFee;
         v.Prices["cityPricePerYield"] = s.Config.NeutralPriceFactor;
         v.Prices["siegeUpkeep"] = s.Config.SiegeUpkeep;
+        v.Prices["fortifyPerLevel"] = s.Config.FortifyCost;
+        v.Prices["wallUpkeep"] = s.Config.WallUpkeep;
         return v;
     }
 

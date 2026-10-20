@@ -11,7 +11,7 @@
     <div class="section">
         <h3>Orders for @Ui.When(v.Turn, me)</h3>
         <p class="muted">
-            Treasury @Ui.Shekels(v.Gold) · income @Ui.Shekels(v.Income) · upkeep @Ui.Shekels(v.Upkeep) · wages @Ui.Shekels(v.Wages) (for people away, owed as back pay) · back pay owed @Ui.Shekels(v.BackPay).
+            Treasury @Ui.Shekels(v.Gold) · income @Ui.Shekels(v.Income) · upkeep @Ui.Shekels(v.Upkeep)@(v.WallUpkeep > 0 ? $" · walls {Ui.Shekels(v.WallUpkeep)}" : "") · wages @Ui.Shekels(v.Wages) (for people away, owed as back pay) · back pay owed @Ui.Shekels(v.BackPay).
             Growth so far: @(v.StartStrength > 0 ? (v.Strength / (double)v.StartStrength).ToString("0.00") : "-").
         </p>
         <p class="muted"><small>Click one of your units on the map, then a destination, to move it. Click the unit again to hold. Envoys take: @string.Join("; ", v.TravelTimes).</small></p>
@@ -175,6 +175,18 @@
                 @foreach (var g in v.Owner.Where(x => x.Value is null).Select(x => x.Key).Where(g => map.WithinReach(g, me, v.Owner, v.Units.Where(u => u.Power == me).Select(u => u.Province))).OrderBy(Ui.Province)) { <option value="@g">@Ui.Province(g) (@Ui.Shekels(map[g].Yield * v.Prices["cityPricePerYield"]))</option> }
             </select>
             <button class="small" disabled="@(BuyCity == "")" @onclick="() => Add(new BuyProvinceOrder(BuyCity))">Add</button>
+        </div>
+        @* Walls (the siege package): a level higher at the end of the season, for the price of the new level, then upkeep above the map's own. *@
+        <div class="row" style="margin-top:.4rem">
+            <select @bind="FortifyAt">
+                <option value="">Strengthen walls in…</option>
+                @foreach (var (id, _) in v.Owner.Where(x => x.Value == me && v.Walls.GetValueOrDefault(x.Key) < State.Config.MaxWalls && v.Sieges.All(s => s.Province != x.Key)).OrderBy(x => Ui.Province(x.Key)))
+                {
+                    var level = v.Walls.GetValueOrDefault(id) + 1;
+                    <option value="@id">@Ui.Province(id) to level @level (@Ui.Shekels(level * v.Prices["fortifyPerLevel"]))</option>
+                }
+            </select>
+            <button class="small" disabled="@(FortifyAt == "")" @onclick="() => Add(new FortifyOrder(FortifyAt))">Add</button>
         </div>
         <div class="row" style="margin-top:.4rem">
             <select @bind="CedeWhat">
@@ -379,7 +391,7 @@
     [Parameter, EditorRequired] public GameState State { get; set; } = default!;
     [Parameter] public EventCallback OnChanged { get; set; }
 
-    private string RaiseAt = "", RaiseKind = "Army", BuyCity = "", CedeWhat = "", CedeTo = "Egypt", GiftUnit = "", GiftTo = "Egypt";
+    private string RaiseAt = "", RaiseKind = "Army", BuyCity = "", FortifyAt = "", CedeWhat = "", CedeTo = "Egypt", GiftUnit = "", GiftTo = "Egypt";
     private string Envoy = "", SendTo = "Hatti", Letter = "", Mandate = "", TabletText = "";
     private int Gold, Purity = 100, Watch, CheckSpend = 30, AuthSpend = 40, Ransom = 80, Term = 6;
     private bool Oath;

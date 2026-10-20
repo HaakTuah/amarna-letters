@@ -19,11 +19,17 @@ public sealed record GameConfig
     public int FleetUpkeep { get; init; } = 35;
     /// <summary>A neutral city-state sells itself for yield x this.</summary>
     public int NeutralPriceFactor { get; init; } = 10;
+    public double CatastropheChance { get; init; } = 0.035;
 
     // Walls and sieges (Build order item 5; first guesses from question 5's plan, tuned in item 18)
     /// <summary>What each siege costs its besieger a season, on top of the army's upkeep.</summary>
     public int SiegeUpkeep { get; init; } = 15;
-    public double CatastropheChance { get; init; } = 0.035;
+    /// <summary>The highest walls go.</summary>
+    public int MaxWalls { get; init; } = 3;
+    /// <summary>Strengthening walls costs this times the new level (50, 100, 150).</summary>
+    public int FortifyCost { get; init; } = 50;
+    /// <summary>Each level of walls above the map's own for that province costs this a season; unpaid, the walls fall a level.</summary>
+    public int WallUpkeep { get; init; } = 5;
 
     // Communication
     /// <summary>Envoy travel: up to [0] hops is 1 season, up to [1] hops 2 seasons, beyond that 3.</summary>

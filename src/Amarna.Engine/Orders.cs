@@ -13,6 +13,7 @@ namespace Amarna.Engine;
 [JsonDerivedType(typeof(SupportOrder), "support")]
 [JsonDerivedType(typeof(ConvoyOrder), "convoy")]
 [JsonDerivedType(typeof(BesiegeOrder), "besiege")]
+[JsonDerivedType(typeof(FortifyOrder), "fortify")]
 [JsonDerivedType(typeof(RaiseOrder), "raise")]
 [JsonDerivedType(typeof(DisbandOrder), "disband")]
 [JsonDerivedType(typeof(BuyProvinceOrder), "buy")]
@@ -80,6 +81,15 @@ public sealed record BesiegeOrder(string Unit) : Order
 public sealed record UnreadableOrder(string Text, string Reason) : Order
 {
     public override string Describe() => Text;
+}
+
+/// <summary>
+/// Strengthen the walls of a province the seat holds by one level, at the end of the season (Build order item 5): a real
+/// choice between defence and expansion, paid once and then in upkeep.
+/// </summary>
+public sealed record FortifyOrder(string Province) : Order
+{
+    public override string Describe() => $"strengthen the walls of {Named(Province)}";
 }
 
 public sealed record RaiseOrder(string Province, UnitKind Kind) : Order
