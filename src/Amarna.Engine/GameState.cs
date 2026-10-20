@@ -48,7 +48,8 @@ public sealed class GameState
     /// <summary>
     /// Land taken by force and still being absorbed, with the season it was taken (Build order item 5, slow absorption): it
     /// yields, and counts in its holder's strength, a third of its yield in its first season under him, two thirds in the
-    /// second, all of it from the third (<see cref="TurnEngine.Absorbed"/>). Public, as who holds what is.
+    /// second, all of it from the third (<see cref="TurnEngine.Absorbed"/>). Each court sees the marks of its own land only
+    /// (<see cref="SeatView.Conquered"/>): who holds a province is public, but how it changed hands is not.
     /// </summary>
     public Dictionary<string, int> Conquered { get; set; } = new();
     /// <summary>

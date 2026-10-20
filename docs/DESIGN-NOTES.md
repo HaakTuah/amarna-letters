@@ -259,8 +259,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
   following the yield (a reading; review question). Revolts, which the Ideas tab mentions, are left for later, as
   question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of
-  its yield this season)"); the rulebook says so under ECONOMY and in HOW YOU WIN's strength. The public land standings
-  still use base yields.
+  its yield this season)"), the court's own land only (`SeatView.Conquered`): who holds a province is public, but how it
+  changed hands is not, and a mark on every king's land told every court which land had been conquered and which ceded
+  or bought (since the review of the siege package; until then every view carried every mark). The rulebook says so
+  under ECONOMY ("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is
+  not shown") and in HOW YOU WIN's strength. The public land standings still use base yields.
 - **Strength** = 10 × (sum of base yields of provinces held, conquered land counted as far as it is absorbed) + true gold − back pay owed (see
   "Back pay" under Characters). Growth is strength over starting strength. Units are not counted;
   they cost upkeep and are the means to land. One function computes it (`Scoring.Strength`): the

@@ -24,8 +24,12 @@ public class SiegeTextTests
         Assert.Contains("babylon (walls 3) [Babylonia army]", babylon);
         Assert.Contains("mari (walls 2) [Babylonia army]", babylon);
         Assert.Contains("SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges mari (a free city, walls 2): worn down 1 of 2, since turn 1.", babylon);
-        // Assyria took Sippar from Babylon by force: a third of it counts this season.
-        Assert.Contains("sippar (taken by force in turn 1: yields and counts a third of its yield this season) [Assyria army]", babylon);
+        // Assyria took Sippar from Babylon by force: a third of it counts this season, which Assyria reads, and nobody else
+        // (who holds a province is public, how it changed hands is not).
+        Assert.Contains("sippar (taken by force in turn 1: yields and counts a third of its yield this season) [Assyria army]", Prompts.Situation(Views.For(s, Power.Assyria)));
+        Assert.Contains("sippar [Assyria army]", babylon);
+        Assert.DoesNotContain("taken by force", babylon);
+        Assert.DoesNotContain("taken by force", Prompts.Situation(Views.For(s, Power.Egypt)));
         // Mitanni, next to Mari, sees the siege too.
         Assert.Contains("Babylonia's army besieges mari (a free city, walls 2): worn down 1 of 2", Prompts.Situation(Views.For(s, Power.Mitanni)));
     }

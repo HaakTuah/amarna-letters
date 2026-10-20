@@ -34,7 +34,10 @@ public class AbsorptionTests
         Assert.Equal(1, s.Conquered["sapinuwa"]);
         // Its strength counts a third of Sapinuwa's 30 beside its homeland's 145.
         Assert.Equal(s.Config.ProvinceWeight * (145 + 10) + s.Treasuries[Power.Mitanni].Gold - e.BackPayOwed(Power.Mitanni), e.Strength(Power.Mitanni));
-        Assert.Equal(1, Views.For(s, Power.Hatti).Conquered["sapinuwa"]);
+        // Its taker sees the mark; no other court does, not even the loser (how land changed hands is not public).
+        Assert.Equal(1, Views.For(s, Power.Mitanni).Conquered["sapinuwa"]);
+        Assert.Empty(Views.For(s, Power.Hatti).Conquered);
+        Assert.Empty(Views.For(s, Power.Egypt).Conquered);
 
         // Turn 2: it yields a third of its yield; turn 3 two thirds; turn 4 all of it, and the mark is gone.
         Assert.Equal(10, new TurnEngine(s).EffectiveYield("sapinuwa"));

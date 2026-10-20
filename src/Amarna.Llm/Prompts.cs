@@ -92,7 +92,7 @@ public static class Prompts
 
             ECONOMY
             - Gold is counted in shekels (60 shekels make a mina). Raise an army for {c.ArmyCost} or a fleet for {c.FleetCost}, only in a province of your own homeland that you still hold and that is empty after movement. Buy a free city-state for {c.NeutralPriceFactor} x its yield if it borders your land or troops, or shares a sea zone with one of your coasts. You may cede provinces or give troops to another power.
-            - Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you, and counts in your strength, a third of its yield in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third. A province of your own homeland that you take back, and land bought or ceded to you, is yours in full at once. LANDS in your view marks the land still being absorbed.
+            - Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you, and counts in your strength, a third of its yield in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third. A province of your own homeland that you take back, and land bought or ceded to you, is yours in full at once. LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is not shown.
             - Gold sent abroad travels with an envoy and arrives late. You may send it debased (purity below 100%): the receiver sees its weight, not its fineness, until they pay {c.AssayFee} for an assay. Your own treasury figure counts unassayed gold at its weight.
 
             ENVOYS: THE ONLY WAY KINGS COMMUNICATE
@@ -325,7 +325,7 @@ public static class Prompts
             if (Geography.TerrainOf(id) == Terrain.Desert && v.Prices.GetValueOrDefault("desertUpkeep", 1) > 0) marks.Add("desert");
             return marks.Count == 0 ? "" : $" ({string.Join(", ", marks)})";
         }
-        // Land taken by force and still being absorbed: what it yields and counts this season.
+        // Our own land taken by force and still being absorbed (the view carries no other king's): what it yields and counts this season.
         string Absorbing(string id) => v.Conquered.TryGetValue(id, out var taken)
             ? $" (taken by force in turn {taken}: yields and counts {(v.Turn - taken <= 1 ? "a third" : "two thirds")} of its yield this season)"
             : "";

@@ -145,7 +145,11 @@ public sealed class SeatView
     public Dictionary<string, int> Walls { get; set; } = new();
     /// <summary>The sieges this court knows of: its own, those of its cities, and those it can see.</summary>
     public List<SiegeView> Sieges { get; set; } = new();
-    /// <summary>Land taken by force and still being absorbed, with the season it was taken (public, as who holds what is).</summary>
+    /// <summary>
+    /// This court's own land taken by force and still being absorbed, with the season it was taken. Only its own: who holds
+    /// a province is public, but how it changed hands is not (since the review of the siege package; until then every court
+    /// saw every king's marks, and so which land had been conquered and which ceded or bought).
+    /// </summary>
     public Dictionary<string, int> Conquered { get; set; } = new();
     public List<UnitView> Units { get; set; } = new();
     public List<string> Visible { get; set; } = new();
@@ -288,7 +292,8 @@ public static class Views
             ProvinceWeight = s.Config.ProvinceWeight,
             Owner = new Dictionary<string, Power?>(s.Owner),
             Walls = new Dictionary<string, int>(s.Walls),
-            Conquered = new Dictionary<string, int>(s.Conquered),
+            // Its own land's only: how another king's land changed hands is not public, though who holds it is.
+            Conquered = s.Conquered.Where(x => s.Owner.GetValueOrDefault(x.Key) == p).ToDictionary(x => x.Key, x => x.Value),
             Sieges = s.Sieges.Where(x => x.Power == p || s.Owner.GetValueOrDefault(x.Province) == p || sight.Contains(x.Province))
                 .Select(x => new SiegeView
                 {
