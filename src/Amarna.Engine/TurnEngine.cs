@@ -420,6 +420,12 @@ public sealed partial class TurnEngine
         // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
         foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
             o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
+        // The record of wars: the first season each king's troops got into another's land.
+        foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Succeeded && o.TargetOwner is { } v && v != o.Power))
+        {
+            if (!S.Invaded.TryGetValue(o.TargetOwner!.Value, out var by)) S.Invaded[o.TargetOwner.Value] = by = new();
+            by.TryAdd(o.Power, S.Turn);
+        }
 
         // Which provinces could each power see before the moves? Battles there are reported to it.
         var sightBefore = Powers.All.ToDictionary(p => p, p => Views.Sight(S, Map, p));

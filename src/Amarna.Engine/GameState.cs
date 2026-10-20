@@ -51,6 +51,11 @@ public sealed class GameState
     public List<Power> Eliminated { get; set; } = new();
     /// <summary>Each kingdom's fall: when, to whom, and the land that passed (Build order item 5: a kingdom falls with its capital).</summary>
     public List<KingdomFall> Falls { get; set; } = new();
+    /// <summary>
+    /// The record of wars, for the measures of the pace of war (Build order item 5): for each king, the season each other
+    /// king's troops first got into land he held (a move into it that succeeded, whether or not it took the province).
+    /// </summary>
+    public Dictionary<Power, Dictionary<Power, int>> Invaded { get; set; } = new();
 
     public List<Character> Characters { get; set; } = new();
     public List<Journey> Journeys { get; set; } = new();
