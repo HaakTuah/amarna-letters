@@ -188,6 +188,27 @@ internal static class Tactics
             }
         }
 
+        // A relief of a friend's besieged city: one of our armies moves in on the besiegers with enough supports to beat their
+        // likely hold, never so many that it could storm the walls (the city would be ours, not our friend's): with its
+        // strength no more than the walls and one besieger standing alone, a sally from the walls included, it cannot storm.
+        // Worth a share of the city to its holder, as a support for a friend's blow is, and the besiegers' troop.
+        Op? ReliefOp(UnitView besieger)
+        {
+            var target = besieger.Province;
+            var backers = b.CanReach(target, u => u.Power == besieger.Power && u.Province != target).Count();
+            var able = Helpers(target, "").ToList();
+            var lead = able.Where(u => !stay.Contains(u) && b.UnitAt[u].Kind == UnitKind.Army)
+                .OrderBy(u => b.Ground(u, target)).ThenBy(Exposure).ThenBy(u => u, StringComparer.Ordinal).FirstOrDefault();
+            if (lead is null) return null;
+            var defence = 1 + (int)Math.Round(backers * (0.5 + 0.3 * p.Caution)) + b.Ground(lead, target);
+            var sally = b.WallLevel(target) >= b.V.Prices.GetValueOrDefault("sallyMinWalls", 2) ? 1 : 0;
+            if (defence > b.WallLevel(target) - sally) return null;
+            var helpers = able.Where(u => u != lead).Take(defence).ToList();
+            if (helpers.Count < defence) return null;
+            var gain = (0.25 + 0.25 * p.Honesty) * b.Value(target) + 120 * (Multiplier(besieger.Power) >= 1 ? 1 : 0.5);
+            return new Op("attack", 0.85 * gain - Exposure(lead) - 6 * helpers.Count - (b.UnitAt[lead].Kind == UnitKind.Army ? b.DesertCost(target) : 0), target, lead, helpers);
+        }
+
         // ---- Attack: every reachable province we would gain from.
         var targets = free.SelectMany(u => Board.Map.MovesFrom(b.UnitAt[u].Kind, u)).Distinct().Where(t => !Board.Map[t].IsSea).ToList();
         foreach (var target in targets)
@@ -196,6 +217,12 @@ internal static class Tactics
             var occupant = b.UnitAt.GetValueOrDefault(target);
             if (occupant?.Power == me) continue;
             if (owner == me && occupant is null) continue;
+            // A friend's city besieged by a king we would fight: drive the besiegers out (see Relief).
+            if (Relief(b, brain, target, Willing) is { } besieger)
+            {
+                if (ReliefOp(besieger) is { } relief) ops.Add(relief);
+                continue;
+            }
             if (owner is { } o && o != me && !Willing(o)) continue;
             if (occupant is { } oc && oc.Power != me && !Willing(oc.Power) && owner != me) continue;
             // A friend's troop standing within our walls as a guest is left alone; one that besieges them is driven out.
@@ -426,14 +453,56 @@ internal static class Tactics
     /// The sallies that go with a plan (the siege package): each of our moves into a city of ours whose walls can sally, with
     /// foreign troops within them, is supported by the walls (+1, a support that cannot be cut).
     /// </summary>
-    public static List<SallyOrder> Sallies(Board b, IEnumerable<Order> orders)
+    public static List<SallyOrder> Sallies(Board b, IEnumerable<Order> orders, Brain? brain = null)
     {
         var min = b.V.Prices.GetValueOrDefault("sallyMinWalls", 2);
         if (min <= 0) return [];
-        return orders.OfType<MoveOrder>()
+        var list = orders.OfType<MoveOrder>()
             .Where(m => b.IsMine(m.To) && b.WallLevel(m.To) >= min && b.V.Units.Any(u => u.Province == m.To && u.Power != b.Me))
             .GroupBy(m => m.To).Select(g => g.OrderBy(m => m.Unit, StringComparer.Ordinal).First())
             .Select(m => new SallyOrder(m.To, m.Unit)).ToList();
+        if (brain is null) return list;
+        // A city of ours besieged by a king who is no friend, with no move of ours into it: its walls sally for a friend's troop
+        // next to it, should it come to drive the besiegers out (the rule lets walls support "yours or another king's" attack;
+        // a sally that finds no attack is void). Since the script players' audit of the siege package.
+        foreach (var x in b.V.Sieges.Where(x => x.Holder == b.Me && b.WallLevel(x.Province) >= min && !brain.IsFriend(x.Besieger))
+                     .OrderBy(x => x.Province, StringComparer.Ordinal))
+        {
+            if (list.Any(y => y.City == x.Province)) continue;
+            var friend = b.V.Units.Where(u => u.Power != b.Me && u.Power != x.Besieger && brain.IsFriend(u.Power) && Board.Map.CanMove(u.Kind, u.Province, x.Province))
+                .OrderBy(u => u.Kind == UnitKind.Army ? 0 : 1).ThenBy(u => u.Province, StringComparer.Ordinal).FirstOrDefault();
+            if (friend is not null) list.Add(new SallyOrder(x.Province, friend.Province));
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// The besiegers of a friend's city, if this court would drive them out (the siege package: "an ally's relief army can
+    /// enter", question 5, plan step 6): a city of a friend we are not betraying, under siege by the troop standing within it,
+    /// whose king we are willing to fight, or who is no friend of ours while the city's holder is our full ally. Until the
+    /// script players' audit of the siege package no script king ever relieved a friend's city: the friend's land was closed
+    /// to its troops.
+    /// </summary>
+    internal static UnitView? Relief(Board b, Brain brain, string city, Func<Power, bool> willing)
+    {
+        if (b.OwnerOf(city) is not { } holder || holder == b.Me || !brain.IsFriend(holder) || brain.Betraying == holder) return null;
+        if (b.UnitAt.GetValueOrDefault(city) is not { } within || within.Power == holder || within.Power == b.Me) return null;
+        if (b.SiegeAt(city) is not { } siege || siege.Besieger != within.Power) return null;
+        return willing(within.Power) || (brain.Rel[holder].Allied && !brain.IsFriend(within.Power)) ? within : null;
+    }
+
+    /// <summary>
+    /// Whether our troops should march to a friend's city to relieve it: we see it besieged by a king we would drive out (see
+    /// <see cref="Relief"/>), or its holder pleaded with us in the last four seasons, it is still his, he is still our friend,
+    /// we would fight its besieger, and we do not see the siege over.
+    /// </summary>
+    internal static bool Relieving(Board b, Brain brain, string city, Func<Power, bool> willing)
+    {
+        if (Relief(b, brain, city, willing) is not null) return true;
+        if (!brain.Pleas.TryGetValue(city, out var plea) || b.V.Turn - plea.Turn > 4 || b.OwnerOf(city) != plea.Holder) return false;
+        if (!brain.IsFriend(plea.Holder) || brain.Betraying == plea.Holder || !b.Alive.Contains(plea.Besieger)) return false;
+        if (b.V.Visible.Contains(city) && b.SiegeAt(city) is null) return false;
+        return willing(plea.Besieger) || (brain.Rel[plea.Holder].Allied && !brain.IsFriend(plea.Besieger));
     }
 
     /// <summary>Whether the king will send troops against another king this season. Decided by his own temper, never by a trial plan.</summary>
@@ -488,6 +557,9 @@ internal static class Tactics
                 // Desert land not ours costs an army supplies for each season it ends there (Build order item 5, terrain).
                 if (kind == UnitKind.Army) lure = Math.Max(0, lure - b.DesertCost(n));
                 if (b.IsMine(n) && threat.ContainsKey(n) && !b.UnitAt.ContainsKey(n)) lure = Math.Max(lure, b.Value(n) * 0.8);
+                // A friend's city besieged, as we see it or as he pleaded with us (the siege package): worth marching next to it,
+                // to drive the besiegers out (see Relief); its walls keep us from stepping in before the blow.
+                if (Relieving(b, brain, n, willing)) lure = Math.Max(lure, (0.25 + 0.25 * brain.P.Honesty) * b.Value(n));
                 var score = lure / (1 + depth[n]);
                 if (score > bestScore) { bestScore = score; best = n; }
             }

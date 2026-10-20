@@ -1945,8 +1945,8 @@ Each season, before deciding:
 | What reached the court | Grudge, before scaling | Trust | Marks an attack |
 |---|---|---|---|
 | He took one of our provinces | 2 + yield ÷ 20 | −0.4 | yes |
-| He ordered a move into our land (seen, whether it worked or not) | 1 | −0.25 | yes |
-| He supported a move (his own or another king's, successful or not) into land we held | +0.5, not scaled | 0 | no |
+| He ordered a move into our land (seen, whether it worked or not), unless it struck a third king's troop standing in it (since the script players' audit of the siege package: a besieger within our walls, or a guest; driving it out is a relief, no wrong, though taking the land still counts as land taken) | 1 | −0.25 | yes |
+| He supported a move (his own or another king's, successful or not) into land we held, unless it struck a third king's troop standing in it | +0.5, not scaled | 0 | no |
 | His gold assayed below 100%, or was found missing when the treasury paid (only the first sender named counts) | 1.5 | −0.3 | no |
 | Our envoy is overdue from his court | 1 | −0.3 | no |
 | A caught spy confesses to serving him | 1 | −0.3 | no |
@@ -2123,6 +2123,7 @@ What script kings never do, and how they treat oaths:
      - Defence: with a troop there, 1 + round(backers × (0.5 + 0.3 × caution)) + the ground's help to it against the troop that goes in; otherwise 0 (walls add nothing to a battle since the siege package, and the ground nothing to empty land).
      - Walls not ours (the siege package): only an army goes in. With troops enough to storm them (more than the walls and the defence together), the attack takes the city at once and is worth its gain; with only enough to get in, the army stands within the walls to besiege the city, and the attack is worth gain × 0.6 ÷ (1 + 0.25 × walls), + 60 if a troop is there (`Tactics.SiegeWorth`).
      - Our own city besieged: driving the besieger out adds 0.9 × the city's value to the gain. A friend's troop standing in our city as a guest, with no siege, is left alone.
+     - **A friend's city besieged** (`Tactics.Relief`, since the script players' audit of the siege package; before it no script king ever relieved a friend's city, whose land was closed to its troops): a city of a friend we are not betraying, besieged by the troop standing within it, whose king we are willing to fight, or who is no friend of ours while the city's holder is our full ally. An army of ours goes in on the besiegers with defence supports, the defence reckoned as for an attack (the besieger's backers and the ground), but only if that strength, with a sally from the walls counted where the walls can sally, is no more than the walls: then it cannot storm them even against a besieger standing alone, and the city stays our friend's. Gain: (0.25 + 0.25 × honesty) × the city's value (a share, as for a support given to a friend's blow), + 120 for the besiegers' troop (60 if they are kings we would not otherwise strike first). Net as for an attack.
      - Contest: the largest number of troops any other king could also march in, less one unless caution is above 0.5.
      - Troops needed: the larger of defence and contest, plus one.
      - Gain = value × multiplier (0 for our own land), + 120 if a troop is there, + 60 for a foreign capital.
@@ -2141,6 +2142,7 @@ What script kings never do, and how they treat oaths:
 7. **The rest.** Threatened troops and troops kept home hold. Every other troop takes one step towards the best place within five steps:
    - land that is not ours and is free, or belongs to a king we are willing to fight, scores value ÷ (1 + steps);
    - our own threatened empty land scores 0.8 × value ÷ (1 + steps);
+   - a friend's city we would relieve (above), as we see it besieged or as its holder pleaded with us in the last four seasons (and we do not see the siege over), scores (0.25 + 0.25 × honesty) × value ÷ (1 + steps): the troop marches next to it, since foreign walls are not stepped into (since the script players' audit of the siege package);
    - for an army, desert land not ours scores the desert's cost less (since terrain).
 
    The step must be empty, not already taken, not within foreign walls (our own the troop may march through), and not into an unwilling king's land. Otherwise the troop holds.
@@ -2162,7 +2164,7 @@ What script kings never do, and how they treat oaths:
   3. his hard plan;
   4. to 8. each rival attacks with chance (hostility − 0.2) × 1.2, clamped to 0.03–0.85: half the time with a random one of his three strikes, otherwise with his hard plan. Each rival order also has a 15% chance of becoming a random move or a hold.
 
-  Sworn partners keep to the joint-blow rule in every season except 2 and 3. A rival's troop that stood its ground against a move of ours last season (our move failed, it stayed) and stands there still is pictured holding in every season (`Search.StoodAgainstUs`, since terrain): it showed it will. Before it, a move one support short of a troop the ground helped was tried season after season, because the seasons in which that troop marched off made it worth trying.
+  Sallies are pictured for every king (`Search.Sallies`): his move into his own walled city on troops within it, and, where he makes none, another king's move into it on the troops within (a friend's relief, which the holder's walls may support; since the script players' audit of the siege package). Sworn partners keep to the joint-blow rule in every season except 2 and 3. A rival's troop that stood its ground against a move of ours last season (our move failed, it stayed) and stands there still is pictured holding in every season (`Search.StoodAgainstUs`, since terrain): it showed it will. Before it, a move one support short of a troop the ground helped was tried season after season, because the seasons in which that troop marched off made it worth trying.
 - **Candidates.** The king's own plan, a bolder one (aggression +0.35, caution −0.35), a safer one (aggression −0.3, caution +0.35), and every troop holding. Willingness stays the king's own. A candidate wins only if it scores more than 1 above the best so far.
 - **Single changes.** Then, in up to two passes over its troops, every alternative order is tried:
   - hold;
@@ -2177,6 +2179,7 @@ What script kings never do, and how they treat oaths:
 - **Scoring a resolved season**:
   - + the value of every province held afterwards, and 90 for each of our troops left. A troop within walls its king does not hold holds the province afterwards only if it stormed them, or if it held there and the siege, begun now or under way, reaches the walls' level this season;
   - + 0.45 × share × value for each siege of ours, and − the same for each siege of one of our cities, where share = (progress + this season's steps + 0.5) ÷ (walls + 1), at most 1 (a troop of ours within such walls with no siege yet counts as one about to begin);
+  - + (0.25 + 0.25 × honesty) × value for each friend's city whose besiegers are driven out, where we would relieve it (`Tactics.Relief`; since the script players' audit of the siege package);
   - + harm to the kings we fight: weight × value of each province he lost, and weight × 100 for each of his troops destroyed. The weight is 0.45 for a sworn foe, 0.35 for the war target or a betrayed friend, 0.3 for the leader, and 0.2 for any other hostile king;
   - − 0.25 × value for each sworn partner's province the foe now holds, and 25 for each partner troop destroyed;
   - − what lies open next season, for each province we hold: risk × (0.3 + 0.3 × caution) × (value, + 90 if our troop is there).
@@ -2261,7 +2264,9 @@ disbanded or given away), whose place next season is known. It rolls no dice.
 - **Sallies** (the siege package): every move of ours into a city of ours whose walls can sally, with foreign troops within
   it, goes with a sally from its walls (`Tactics.Sallies`; the first such move into each city, by province). The look-ahead
   pictures sallies for every king's moves into his own walled cities, a rival's as he may give them, so a besieger reckons
-  with a relief army and its sally, and supports its army to hold.
+  with a relief army and its sally, and supports its army to hold. A city of ours besieged by a king who is no friend, with
+  no move of ours into it, sallies for a friend's troop next to it (an army first, then by province), should it come to
+  drive the besiegers out; a sally that finds no attack is void (since the script players' audit of the siege package).
 - **Under siege** (the siege package): while its capital is besieged, a king sends no gifts or tribute (the gold would be
   taken with a caught envoy), and does not ask an envoy who would not leave to go again for two seasons. As besieger, it
   ransoms a caught envoy where it would have turned a spy (a caught envoy cannot be turned).
@@ -2312,8 +2317,18 @@ disbanded or given away), whose place next season is known. It rolls no dice.
 | Full alliance | see Rivals for the crown | 0.5 × diplomacy + 0.2 × trust, + 0.15 if small |
 | Gift | a friend, spare above 150, in 30% of seasons | 0.4 × generosity |
 | Tribute | from Arzawa or Alashiya to a neighbour of a stronger tier with hostility above 0.35, not hostile, fresh, spare above 100 | 0.35 + 0.4 × caution |
+| Plea for relief (since the script players' audit of the siege package) | a city of ours besieged by a king who is no friend (the most valuable such city, the capital first), to each friend we would not betray who is a neighbour or a full ally, not the besieger, at most once in three seasons | 0.9 |
 
-- **Envoys.** The war target gets no missions except lulling letters (evidence copies may still go to him). Peace, alliance and coalition letters carry a tablet, which resets "fresh". They, and gifts and tribute, go with the most reliable envoy still at court; all other letters go with the least reliable. (Until the fix pass after item 4 gifts and tribute went with the least reliable, so a servant known to skim carried the gold.)
+- **Pleas** ask the friend to send troops to drive the besiegers out ("My brother, the troops of Babylonia besiege my city of
+  Ashur. Come to my aid: send your troops to drive them out, and my walls will sally to meet them."; the sally only where the
+  walls can sally), carry no gold, and go with the most reliable envoy. A friend not yet sworn with us against the besieger is
+  also asked to swear it ("What Babylonia takes from me today he will take from you tomorrow: let us stand together against
+  him."), with the coalition tablet, which he seals by the rules for coalitions: a friend at peace with the besieger will not
+  fight him for us unless he has sworn to, or is our full ally (see Tactics, "A friend's city besieged"). From a besieged
+  capital the envoy may be caught, and the besieger reads the plea. Before the audit a besieged script king never asked
+  anyone for help.
+
+- **Envoys.** The war target gets no missions except lulling letters (evidence copies may still go to him). Peace, alliance and coalition letters carry a tablet, which resets "fresh". They, gifts and tribute, and pleas for relief go with the most reliable envoy still at court; all other letters go with the least reliable. (Until the fix pass after item 4 gifts and tribute went with the least reliable, so a servant known to skim carried the gold.)
 - **Gifts.** At most one gift-bearing letter goes out a season, and only with spare of at least 100.
   - **Debased gold** (purity 55-85%) is sent by a king with honesty below 0.45 only to a friend whose trust, as its own in him shows it, is 0.3 or more, who has no cause to assay it; everything else it sends is fine (since the fix pass after item 4). Courts assay gold from those they trust little, so gold debased for anyone else is found and costs more trust than it saves gold: before the fix pass 406 debased lots went out in seeds 1-100, and nearly every one was found. The host's gold back, debased by the same kings (75%), follows the same rule.
   - Amount: 10 + spare × share × 0.5, clamped between 20 and the larger of 20 and min(60, income ÷ 3), then rounded down to tens. Gifts are therefore 20–60 shekels.
@@ -2340,6 +2355,12 @@ The host answers once and then ends the audience, unless it offered a gift (belo
   - A tablet in words no script king wrote (anything but the peace, alliance and coalition tablets under Letters, or the frozen baseline's) is refused if it speaks of land, gold or tribute (whole words, "lands" included), or names a province the host holds or one of its homeland. A capital's name often stands for its king, his realm or a god ("Egypt and Babylon are brothers", "the king of Hattusa", "By Ashur and Shamash"), so a capital counts only in a sentence that hands something over: cedes, yields, surrenders, gives up or hands over, gives or leaves it to someone, says it belongs, passes or falls to someone, is someone's share, or shall be someone's ("Babylon shall be Egypt's"). The host says: "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine." A script king reads no more of a tablet than whom it stands against, so it seals nothing that could make it give anything away.
   - Sealing adds 0.1 trust, and the treaty, alliance or coalition binds at once.
   - Sealing a coalition or a full alliance, the host asks the envoy for its word: "Swear to me that your lord's troops will stand with mine, as mine will stand with his." A script envoy with a mandate answers with a commitment, within its mandate or, if ambitious and disloyal, beyond it (see Script envoys); before the fix pass no script host's words ever asked for one, so no script envoy ever committed to anything.
+- **Pleas for relief** (since the script players' audit of the siege package). The host reads the envoy's words for a plea:
+  a sentence that speaks of a siege ("besieg..."), names a walled city of the sender's and exactly one living king besides
+  the two of them (`Statecraft.PleasIn`; words, so a model king's "Ashur is besieged by the Babylonians" counts as a script
+  king's plea). It remembers the city, its besieger and the season, and for four seasons its troops march to relieve it if it
+  would (see Tactics). A friend it would fight for, sworn against the besieger now if it has just sealed his tablet, hears:
+  "I have heard of the siege of Ashur. Where my troops can reach the troops of Babylonia, they will drive them out."
 - **Closing words.** Love for a friend; "I have not forgotten" for a hostile king; otherwise "I have heard his words".
 - **Bribe.** With cunning above 0.6, a sender who is not a friend and spare above 150, there is a chance of 0.4 × cunning. The bribe is 30, 40, 50 or 60. It asks the envoy to report "my armies are few and my thoughts are of peace" if the host is hostile, otherwise "my armies are many and my friendship is worth keeping". A script envoy that takes it repeats the request to its lord as its own observation (see Script envoys).
   - **The second exchange** (since the fix pass after item 4). A host that offers a gift keeps the audience open for one more exchange. If the envoy refused it, the host offers half as much again (rounded to tens), once, with the same request, if spare exceeds 150 + the first offer; otherwise it says "Go in peace, and carry my words faithfully." and ends the audience. Nothing else is decided in the second exchange.

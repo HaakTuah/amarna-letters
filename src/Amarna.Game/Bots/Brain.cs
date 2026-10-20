@@ -60,6 +60,13 @@ internal sealed partial class Brain
     public HashSet<string> Unclaimed = new();
     /// <summary>Our envoys who would not slip out of our besieged capital, and when (the siege package).</summary>
     public Dictionary<string, int> WouldNotLeave = new();
+    /// <summary>
+    /// Pleas for relief heard from envoys (the siege package): a city of the sender's, the king besieging it, and the season
+    /// we heard it. Our troops march to its relief while it is fresh (see <see cref="Tactics"/>).
+    /// </summary>
+    public Dictionary<string, (Power Holder, Power Besieger, int Turn)> Pleas = new();
+    /// <summary>When we last pleaded with each king for the relief of a city of ours.</summary>
+    public Dictionary<Power, int> PleaSent = new();
     /// <summary>People a hire of ours was refused for because another court holds them: they cannot come to us.</summary>
     public HashSet<string> HeldElsewhere = new();
     /// <summary>Provinces a friend ceded to us: we keep them, rather than pass them on in turn.</summary>
@@ -169,19 +176,23 @@ internal sealed partial class Brain
         LastOwner = new Dictionary<string, Power?>(v.Owner);
         LastWalls = new Dictionary<string, int>(v.Walls);
 
-        // What we saw happen last season.
+        // What we saw happen last season. A move into our land on a third king's troop standing in it (a besieger within our
+        // walls, or a guest) struck him, not us: a relief, and no wrong (since the script players' audit of the siege
+        // package; before it, a friend who drove out our besiegers was counted as breaking his oath). It wrongs us still if he
+        // takes the land, which counts below as land taken.
+        bool OnAnother(string t, Power mover) => v.LastSeason.Any(x => x.Province == t && x.Power != mover && x.Power != Me && x.Order != "move");
         foreach (var o in v.LastSeason)
         {
             if (o.Power == Me || !Rel.ContainsKey(o.Power)) continue;
             var r = Rel[o.Power];
-            if (o.Order == "move" && o.Target is { } t && (b.IsMine(t) || previous.GetValueOrDefault(t) == Me))
+            if (o.Order == "move" && o.Target is { } t && (b.IsMine(t) || previous.GetValueOrDefault(t) == Me) && !OnAnother(t, o.Power))
                 Wronged(o.Power, 1, -0.25, v.Turn);
             if (o.Order == "support" && o.Helped == Me && o.Succeeded)
             {
                 r.SupportsGiven++;
                 r.Trust = Math.Min(1, r.Trust + 0.15);
             }
-            if (o.Order == "support" && o.Helped != Me && o.To is { } into && previous.GetValueOrDefault(into) == Me)
+            if (o.Order == "support" && o.Helped != Me && o.To is { } into && previous.GetValueOrDefault(into) == Me && !OnAnother(into, o.Helped ?? o.Power))
                 r.Grudge += 0.5;
         }
 

@@ -34,6 +34,92 @@ public class SiegePlayTests
         e.Resolve(orders);
     }
 
+    /// <summary>A tablet two kings sealed, with a copy in each archive: a treaty, or an alliance.</summary>
+    private static void Treaty(GameState s, Power a, Power b, bool alliance)
+    {
+        var t = new Tablet
+        {
+            Id = s.NewId("t"), Text = alliance ? Statecraft.AllianceTablet(a, b) : Statecraft.PeaceTablet(a, b), ProposedBy = a, Partner = b,
+            Seals = [a, b], CreatedTurn = 1, SealedTurn = 1, AllianceOath = alliance,
+        };
+        s.Tablets.Add(t);
+        foreach (var holder in new[] { a, b })
+            s.Copies.Add(new TabletCopy { Id = s.NewId("k"), TabletId = t.Id, Holder = holder, AcquiredTurn = 1, Source = "sealed at audience" });
+    }
+
+    /// <summary>
+    /// Seed 1, turn 5: Babylonia's army besieges Ashur (walls 3), alone; Mitanni, Assyria's ally, has armies in Terqa and in
+    /// Nineveh (taken from Assyria for the test), both next to Ashur.
+    /// </summary>
+    private static GameState AllyBesieged()
+    {
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        s.Turn = 5;
+        s.Units.RemoveAll(u => u.Province is "ashur" or "nineveh");
+        var army = new Unit { Id = s.NewId("u"), Power = Power.Babylonia, Kind = UnitKind.Army, Province = "ashur" };
+        s.Units.Add(army);
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Mitanni, Kind = UnitKind.Army, Province = "nineveh" });
+        s.Owner["nineveh"] = Power.Mitanni;
+        s.Sieges.Add(new Siege { Province = "ashur", Power = Power.Babylonia, UnitId = army.Id, Progress = 1, Since = 4 });
+        Treaty(s, Power.Mitanni, Power.Assyria, alliance: true);
+        return s;
+    }
+
+    [Fact]
+    public async Task A_script_king_drives_the_besiegers_out_of_an_ally_s_city_without_storming_it()
+    {
+        var s = AllyBesieged();
+        var sub = await new ScriptLeader(1).DecideAsync(Views.For(s, Power.Mitanni), default);
+        var move = Assert.Single(sub.Orders.OfType<MoveOrder>(), m => m.To == "ashur");
+        var supports = sub.Orders.OfType<SupportOrder>().Count(x => x.Supported == move.Unit && x.To == "ashur");
+        // Enough to beat the besieger standing alone (strength 2 against 1); never enough to storm the walls of 3, with the
+        // walls' sally of 1 counted, so the city stays Assyria's.
+        Assert.InRange(1 + supports, 2, 3);
+        Assert.DoesNotContain(new OrderValidator(s).Validate(Power.Mitanni, sub).Rejected, r => r.Order is MoveOrder or SupportOrder);
+
+        // Assyria's walls sally for its ally's troop next to Ashur, when Assyria makes no move of its own into it.
+        var v = Views.For(s, Power.Assyria);
+        var brain = new Brain(Power.Assyria, 1);
+        brain.Learn(v, new Board(v));
+        Assert.Equal([new SallyOrder("ashur", "nineveh")], Tactics.Sallies(new Board(v), [], brain));
+        Assert.Empty(Tactics.Sallies(new Board(v), []));
+
+        // Played out: the besiegers are driven out, Ashur stays Assyria's, and Assyria counts its ally's blow no wrong.
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        e.Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Mitanni] = new() { Orders = [new MoveOrder("nineveh", "ashur"), new SupportOrder("terqa", "nineveh", "ashur")] },
+            [Power.Babylonia] = new() { Orders = [new BesiegeOrder("ashur")] },
+            [Power.Assyria] = new() { Orders = [new SallyOrder("ashur", "nineveh")] },
+        });
+        Assert.Equal(Power.Assyria, s.Owner["ashur"]);
+        Assert.Empty(s.Sieges);
+        Assert.Equal(Power.Mitanni, s.Units.Single(u => u.Province == "ashur").Power);
+        var after = Views.For(s, Power.Assyria);
+        brain.Learn(after, new Board(after));
+        Assert.Equal((0, 0.0), (brain.Rel[Power.Mitanni].OathsBroken, brain.Rel[Power.Mitanni].Grudge));
+        Assert.True(brain.IsFriend(Power.Mitanni));
+    }
+
+    [Fact]
+    public async Task A_besieged_script_king_pleads_with_its_ally_and_the_ally_hears_the_plea()
+    {
+        var s = AllyBesieged();
+        var sub = await new ScriptLeader(1).DecideAsync(Views.For(s, Power.Assyria), default);
+        var plea = Assert.Single(sub.Orders.OfType<DispatchOrder>(), d => d.To == Power.Mitanni);
+        Assert.StartsWith("My brother, the troops of Babylonia besiege my city of Ashur. Come to my aid: send your troops to drive them out, and my walls will sally to meet them.", plea.Letter);
+        Assert.Equal(0, plea.Gold);
+        // The ally reads it, as it would a model king's words.
+        var b = new Board(Views.For(s, Power.Mitanni));
+        Assert.Equal([("ashur", Power.Babylonia)], Statecraft.PleasIn(plea.Letter, b, Power.Assyria, Power.Mitanni).ToList());
+        Assert.Equal([("ashur", Power.Babylonia)], Statecraft.PleasIn("Hear me, brother! Ashur is besieged by the Babylonians, and my people starve.", b, Power.Assyria, Power.Mitanni).ToList());
+        // Not a plea: no siege, or no besieger named, or the host himself named as the besieger.
+        Assert.Empty(Statecraft.PleasIn("Ashur stands strong, and Babylonia is far away.", b, Power.Assyria, Power.Mitanni));
+        Assert.Empty(Statecraft.PleasIn("Ashur is besieged.", b, Power.Assyria, Power.Mitanni));
+        Assert.Empty(Statecraft.PleasIn("Your troops of Mitanni besiege my city of Ashur.", b, Power.Assyria, Power.Mitanni));
+    }
+
     [Fact]
     public async Task A_script_captor_lets_go_at_once_an_envoy_whose_king_has_fallen()
     {

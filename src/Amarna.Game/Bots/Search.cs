@@ -326,17 +326,30 @@ internal static class Search
         return (1 - rho) * mean + rho * worst;
     }
 
-    /// <summary>Every sally the pictured season's moves would bring: a king's move into his own city whose walls can sally, with another's troops within.</summary>
+    /// <summary>
+    /// Every sally the pictured season's moves would bring: a king's move into his own city whose walls can sally, with another's
+    /// troops within; and, where he makes no such move, another king's move into it on the troops within, which the walls may
+    /// support as a friend's relief (since the script players' audit of the siege package).
+    /// </summary>
     private static List<SallyOrder> Sallies(Ctx c, IReadOnlyDictionary<string, Order> orders)
     {
         var min = c.B.V.Prices.GetValueOrDefault("sallyMinWalls", 2);
         if (min <= 0) return [];
         var list = new List<SallyOrder>();
-        foreach (var m in orders.Values.OfType<MoveOrder>().OrderBy(m => m.Unit, StringComparer.Ordinal))
+        var moves = orders.Values.OfType<MoveOrder>().OrderBy(m => m.Unit, StringComparer.Ordinal).ToList();
+        Power? Mover(MoveOrder m) => c.Units.FirstOrDefault(u => u.Province == m.Unit)?.Power;
+        foreach (var m in moves)
         {
-            var mover = c.Units.FirstOrDefault(u => u.Province == m.Unit)?.Power;
+            var mover = Mover(m);
             if (mover is null || c.B.OwnerOf(m.To) != mover || c.B.WallLevel(m.To) < min || list.Any(x => x.City == m.To)) continue;
             if (c.Units.Any(u => u.Province == m.To && u.Power != mover)) list.Add(new SallyOrder(m.To, m.Unit));
+        }
+        foreach (var m in moves)
+        {
+            if (c.B.OwnerOf(m.To) is not { } holder || c.B.WallLevel(m.To) < min || list.Any(x => x.City == m.To)) continue;
+            var within = c.Units.FirstOrDefault(u => u.Province == m.To);
+            if (Mover(m) is { } mover && mover != holder && within is not null && within.Power != holder && within.Power != mover)
+                list.Add(new SallyOrder(m.To, m.Unit));
         }
         return list;
     }
@@ -404,6 +417,11 @@ internal static class Search
                 if (o == x && Owner(p) != x) score += w * b.Value(p);
             score += w * 100 * c.Units.Count(u => u.Power == x && lost.Contains(u.Id));
         }
+        // A friend's city relieved: the besiegers of a city of a friend's driven out (see Tactics.Relief), for a share of it.
+        foreach (var x in b.V.Sieges)
+            if (lost.Contains(x.Province) && c.Units.Any(u => u.Id == x.Province && u.Power == x.Besieger) && Tactics.Relief(b, c.Brain, x.Province, c.Willing) is not null)
+                score += (0.25 + 0.25 * c.P.Honesty) * b.Value(x.Province);
+
         // And what a sworn partner loses to him.
         foreach (var (partner, foe) in c.Coalitions)
         {

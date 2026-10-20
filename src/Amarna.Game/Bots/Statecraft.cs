@@ -597,8 +597,9 @@ internal static class Statecraft
 
     // ================================================================= letters
 
-    /// <param name="Against">The king a coalition is sworn against.</param>
-    private sealed record Mission(Power To, string Kind, double Score, Power? Against = null);
+    /// <param name="Against">The king a coalition is sworn against, or who besieges the city a plea is for.</param>
+    /// <param name="City">The besieged city a plea is for.</param>
+    private sealed record Mission(Power To, string Kind, double Score, Power? Against = null, string? City = null);
 
     public static void Letters(Board b, Brain brain, List<Order> orders, HashSet<string> busy, Rng rng)
     {
@@ -648,6 +649,18 @@ internal static class Statecraft
             if (!besieged && me.Tier() == Tier.Weak && x.Tier() != Tier.Weak && neighbours.Contains(x) && brain.SpareGold > 100 && fresh && !r.Hostile && brain.Hostility(x, b) > 0.35)
                 missions.Add(new(x, "tribute", 0.35 + 0.4 * p.Caution));
         }
+        // Pleas for relief (the siege package): while a city of ours is besieged by a king who is no friend of ours, every
+        // friend who could come (a neighbour, or a full ally) is asked to send troops to drive the besiegers out, at most once
+        // in three seasons; the city that matters most first (the capital, which the kingdom falls with). The envoy may be
+        // caught leaving a besieged capital, and the besieger then reads the plea. (Until the script players' audit of the
+        // siege package a besieged script king never asked anyone for help, and no script king ever relieved a friend's city.)
+        var plea = v.Sieges.Where(x => x.Holder == me && !brain.IsFriend(x.Besieger)).OrderByDescending(x => b.Value(x.Province))
+            .ThenBy(x => x.Province, StringComparer.Ordinal).FirstOrDefault();
+        if (plea is not null)
+            foreach (var x in b.Alive.Where(x => x != me && x != plea.Besieger && brain.IsFriend(x) && brain.Betraying != x && (neighbours.Contains(x) || brain.Rel[x].Allied)))
+                if (!brain.PleaSent.TryGetValue(x, out var asked) || v.Turn - asked >= 3)
+                    missions.Add(new(x, "plea", 0.9, plea.Besieger, plea.Province));
+
         // Evidence of broken oaths for a third court.
         var broken = v.Tablets.FirstOrDefault(t => t.SealedTurn is not null && t.Seals.Contains(me) && !brain.SentCopies.Contains(t.CopyId)
             && t.Seals.Any(s => s != me && brain.Rel.TryGetValue(s, out var r) && r.OathsBroken > 0));
@@ -693,10 +706,12 @@ internal static class Statecraft
             // Tablets, and the gold of gifts and tribute (a peace letter may carry gold too), go with the most reliable envoy
             // still at court; the rest with the least reliable. (Until the fix pass after item 4 gifts went with the least
             // reliable, so a servant known to skim carried the gold.)
-            var trusted = m.Kind is "coalition" or "alliance" or "peace" or "gift" or "tribute";
+            var trusted = m.Kind is "coalition" or "alliance" or "peace" or "gift" or "tribute" or "plea";
             var envoy = trusted ? ready[0] : ready[^1];
             var d = Compose(b, brain, m, envoy.Id, rng);
-            if (d is not null) Send(d);
+            if (d is null) continue;
+            Send(d);
+            if (m.Kind == "plea") brain.PleaSent[m.To] = v.Turn;
         }
     }
 
@@ -773,6 +788,24 @@ internal static class Statecraft
                     text += " If you do not withdraw, my troops will march into your land.";
                 return new DispatchOrder(envoy, to, $"{text} {flavour}".Trim(), "Demand withdrawal and gifts. Agree to nothing less.", greet);
             }
+            case "plea":
+            {
+                var foe = m.Against!.Value;
+                var city = Board.Map[m.City!].Name;
+                // The walls sally only from a height (sallyMinWalls): the letter promises it only where they can.
+                var sally = b.WallLevel(m.City!) >= b.V.Prices.GetValueOrDefault("sallyMinWalls", 2) && b.V.Prices.GetValueOrDefault("sallyMinWalls", 2) > 0
+                    ? ", and my walls will sally to meet them" : "";
+                // A king not yet sworn with us against the besieger is asked to swear it too, as in a defence pact: a friend at
+                // peace with the besieger will not fight him for us unless he has sworn to (see Tactics.Relief).
+                var sworn = brain.Rel[to].Against == foe;
+                return new DispatchOrder(envoy, to,
+                    $"My brother, the troops of {foe} besiege my city of {city}. Come to my aid: send your troops to drive them out{sally}."
+                    + (sworn ? "" : $" What {foe} takes from me today he will take from you tomorrow: let us stand together against him.")
+                    + $" I will not forget who stood with me. {flavour}".TrimEnd(),
+                    sworn ? $"Ask for troops against {foe} at {city}. Promise no land."
+                        : $"Ask for troops against {foe} at {city}. You may swear alliance against {foe} and agree to support each other's troops. Promise no land.",
+                    greet, Proposal: sworn ? null : new TabletProposal { Text = CoalitionTablet(me, to, foe), AllianceOath = false });
+            }
             case "gift" or "tribute":
             {
                 var gift = Gift(0.06 + 0.08 * p.Generosity);
@@ -783,6 +816,24 @@ internal static class Statecraft
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// The cities of the sender's that a letter says are besieged, each with the one living king the sentence names as
+    /// besieging it (neither the sender nor the host): "the troops of Hatti besiege my city of Washukanni", "Ashur is
+    /// besieged by the Babylonians". Read as words, so a model king's plea counts as a script king's does.
+    /// </summary>
+    internal static IEnumerable<(string City, Power Besieger)> PleasIn(string text, Board b, Power sender, Power host)
+    {
+        foreach (var sentence in TextKit.Sentences(text))
+        {
+            if (!sentence.Contains("besieg", StringComparison.OrdinalIgnoreCase)) continue;
+            var kings = b.Alive.Where(x => x != sender && x != host && Names.Mentions(sentence, x)).ToList();
+            if (kings.Count != 1) continue;
+            foreach (var city in b.V.Owner.Where(o => o.Value == sender && b.Walls(o.Key) && Names.MentionsPlace(sentence, Board.Map[o.Key].Name))
+                         .Select(o => o.Key).OrderBy(x => x, StringComparer.Ordinal))
+                yield return (city, kings[0]);
+        }
     }
 
     // The tablets a script king proposes.
@@ -978,6 +1029,18 @@ internal static class Statecraft
                 if (proposal.AllianceOath) r.Allied = true;
                 if (named is { } foe) r.Against = foe;
             }
+        }
+
+        // A plea for relief (the siege package): a city of the sender's besieged by a third king, remembered so that our troops
+        // march to its relief while it is fresh (see Tactics.Relief). A friend we would fight for (sworn against the besieger
+        // now, if we have just sealed his tablet) hears that we will.
+        var answered = false;
+        foreach (var (city, besieger) in PleasIn(view.Spoken, b, sender, me))
+        {
+            brain.Pleas[city] = (sender, besieger, view.Turn);
+            if (answered || !brain.IsFriend(sender) || brain.Betraying == sender || !(Tactics.Willing(b, brain, besieger, leader) || r.Allied && !brain.IsFriend(besieger))) continue;
+            speech.Add($"I have heard of the siege of {Board.Map[city].Name}. Where my troops can reach the troops of {besieger}, they will drive them out.");
+            answered = true;
         }
 
         speech.Add(friend ? "Tell my brother that my love for him is great."
