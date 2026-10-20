@@ -37,7 +37,7 @@ public class RulebookTextTests
     {
         Assert.Contains("- Archives: every tablet you hold (those you sealed, and the copies you were shown or brought) lies in your archive at your capital, and so it is at every court. "
                         + "A spy watching a court copies from its archive: each season it is not caught, with a chance of (the spy's skill, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court, or watching a court that has fallen, copies nothing for you. "
-                        + "Whoever takes a king's capital, or is ceded it, gains at once a copy of every tablet in his archive, and the king keeps his own.", Rules);
+                        + "Whoever takes a king's capital gains at once a copy of every tablet in his archive, and so does anyone that city is later ceded to (a king cannot cede his own capital).", Rules);
 
         // The seat view names the archive the rule speaks of.
         var s = GameFactory.NewGame(4);

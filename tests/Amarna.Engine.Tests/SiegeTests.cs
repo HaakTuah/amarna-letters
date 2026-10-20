@@ -207,4 +207,32 @@ public class SiegeTests
         var refused = new OrderValidator(low).Validate(Power.Mitanni, new TurnSubmission { Orders = [new SallyOrder("mari", "terqa"), new SallyOrder("harran", "terqa")] });
         Assert.Equal(["the walls of Mari stand at 1: only walls of 2 or more can sally", "Harran has no walls to sally from"], refused.Rejected.Select(r => r.Reason));
     }
+
+    [Fact]
+    public void A_sally_over_a_great_river_needs_one_support_more_against_a_lone_besieger()
+    {
+        // Mitanni holds Carchemish (walls 2); Hatti's army besieges it. Mitanni's lone army from Harran comes over the
+        // Euphrates, so the besieger has the ground's help: 1 and the sally against 1 and the river bounces, as the
+        // rulebook's sally example says; with a support from Isuwa, 3 against 2 drives the besieger out.
+        GameState Board()
+        {
+            var s = SiegeTests.Board();
+            s.Owner["carchemish"] = Power.Mitanni;
+            foreach (var at in new[] { "carchemish", "harran", "isuwa" }) s.Units.RemoveAll(u => u.Province == at);
+            var besieger = new Unit { Id = s.NewId("u"), Power = Power.Hatti, Kind = UnitKind.Army, Province = "carchemish" };
+            s.Units.Add(besieger);
+            s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Mitanni, Kind = UnitKind.Army, Province = "harran" });
+            s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Mitanni, Kind = UnitKind.Army, Province = "isuwa" });
+            s.Sieges.Add(new Siege { Province = "carchemish", Power = Power.Hatti, UnitId = besieger.Id, Progress = 1, Since = 1 });
+            return s;
+        }
+        var bounced = Board();
+        Season(bounced, Orders(Power.Mitanni, new MoveOrder("harran", "carchemish"), new SallyOrder("carchemish", "harran")));
+        Assert.Equal(Power.Hatti, bounced.UnitAt("carchemish")?.Power);
+
+        var s = Board();
+        Season(s, Orders(Power.Mitanni, new MoveOrder("harran", "carchemish"), new SallyOrder("carchemish", "harran"), new SupportOrder("isuwa", "harran", "carchemish")));
+        Assert.Equal(Power.Mitanni, s.UnitAt("carchemish")?.Power);
+        Assert.Empty(s.Sieges);
+    }
 }

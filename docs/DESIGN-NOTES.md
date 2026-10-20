@@ -127,7 +127,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     A fleet never storms or besieges walls: it takes only coasts without walls. A foreign unit within
     walls without a siege is a **guest** and takes nothing, so an ally's relief army may stand in
     a friend's city, and turning on the host (a besiege order) is a visible act. A province without
-    walls changes hands as before. Owners may move their own troops into their own walled provinces
+    walls changes hands as before; the rulebook's MOVEMENT AND COMBAT says "A province without walls
+    changes hands when a unit ends a season in it; a walled one only as WALLS AND SIEGES says" (since
+    the review of the siege package, which found the old sentence, true only of land without walls,
+    left in place). Owners may move their own troops into their own walled provinces
     (until the siege package they could not enter a bought city).
   - **Besieging** (`BesiegeOrder`, schema "besiege"): an army standing within walls it does not
     hold may besiege the city. The order runs as a hold. Each season the army holds there (a besiege
@@ -162,7 +165,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     walls of 2 or more can sally", "Harran has no walls to sally from"). A sally that finds no such attack is void, and the
     battle report says so ("- The walls of mari sally in support of the attack from terqa: given", or "...: void: no unit
     moved from damascus to mari"). So a lone relief army with a sally drives out a lone besieger, who must be supported to
-    hold; timing it with an ally takes letters. 0 turns sallies off. The record marks each sally (`sally`, or `sally-won`
+    hold, unless the ground helps the besieger against that attack (rough ground, a pass or a great river crossed, or a
+    landing: a relief into Carchemish over the Euphrates or the Amanus, or into Nineveh over the Tigris, is 2 against 2
+    and bounces), when the relief needs one support more; the rulebook's example says so (since the review of the siege
+    package, which found it stated without the exception). Timing it with an ally takes letters. 0 turns sallies off. The record marks each sally (`sally`, or `sally-won`
     when the attack it supported got in). The orders panel offers "Sally from the walls of…" where it can be given.
   - **Strengthening walls** (`FortifyOrder`, other_orders "fortify", naming the province; the design document's "can be
     strengthened for gold and upkeep, a real choice between defense and expansion"; question 5, plan step 11, first
@@ -456,7 +462,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     fallen brings nothing. The spy remembers what it copied, and a model-played spy writing its report is told that a copy
     goes home with it when one does (not when its master came to hold that tablet while the report was on the road).
   - **Whoever takes a capital gains copies of its archive.** When a court's capital passes to another power at the
-    end of movement, or by cession (the archive lies in the city), that power gains at once a copy of every tablet in
+    end of movement, or by cession (the archive lies in the city; since the siege package a king cannot cede his own
+    capital, so a capital is ceded only by whoever holds it after its kingdom fell, and the rulebook says "and so does
+    anyone that city is later ceded to (a king cannot cede his own capital)"), that power gains at once a copy of every tablet in
     the court's archive it does not hold already ("taken with the archive of Assyria at Ashur"), and reads next season
     "With Ashur you took the archive of Assyria: copies of 2 tablets you did not hold are now in your archive: the
     tablet sealed by Assyria and Hatti, dated turn 4 (your copy k130), … (your copy k131)." (or that it held nothing new). The court keeps its own copies:

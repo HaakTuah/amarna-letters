@@ -42,6 +42,10 @@ public class SiegeTextTests
     [InlineData("walls whose upkeep you cannot pay fall a level, the farthest from your capital first. An earthquake throws the walls of the province it strikes down a level.")]
     [InlineData("An envoy whose courage is below 20 x tightness will not leave that season: nothing is paid, and you are told. A caught envoy is the besieger's captive: he reads the letter and the mandate, and takes the gold and the tablets it carried; he may execute, ransom or release the envoy, but cannot turn him.")]
     [InlineData("The walls then support one attack into the city on those troops, yours or another king's, for +1, as a support that cannot be cut. A sally that finds no such attack is void.")]
+    [InlineData("So a lone army of yours, or an ally's, that attacks a lone besieger with a sally drives it out, unless the ground helps the besieger against that attack (rough ground, a pass or a great river crossed, or a landing; see TERRAIN): then the attack needs one support more.")]
+    [InlineData("A province without walls changes hands when a unit ends a season in it; a walled one only as WALLS AND SIEGES says.")]
+    [InlineData("You see the walls standing now only where you can see troops; elsewhere LANDS in your view gives them as your court last saw them (at the start, as THE MAP gives them), since walls can be raised, or thrown down by an earthquake or unpaid upkeep, out of your sight.")]
+    [InlineData("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is not shown.")]
     public void The_rulebook_states_walls_by_place_and_slow_absorption(string rule) => Assert.Contains(rule, Prompts.LeaderRules(true, new GameConfig()));
 
     [Fact]
