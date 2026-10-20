@@ -172,6 +172,19 @@ public class SiegePlayTests
     }
 
     [Fact]
+    public void The_look_ahead_counts_a_foreign_army_within_its_own_capital_as_a_kingdom_at_stake()
+    {
+        // A foreign army that just got within walls of 3: a ninth of a city's worth, but a quarter of our capital's, which holds
+        // the kingdom (its worth counts all the rest of our land).
+        Assert.Equal(0.45 * 0.5 / 4, Search.Stake(false, 0, 0, 3), 6);
+        Assert.Equal(Search.CapitalAtStake, Search.Stake(true, 0, 0, 3), 6);
+        Assert.Equal(0.25, Search.CapitalAtStake);
+        // Worn down further, the siege counts as it did.
+        Assert.Equal(0.45 * 3.5 / 4, Search.Stake(true, 2, 1, 3), 6);
+        Assert.Equal(Search.Stake(false, 2, 1, 3), Search.Stake(true, 2, 1, 3), 6);
+    }
+
+    [Fact]
     public async Task A_script_captor_lets_go_at_once_an_envoy_whose_king_has_fallen()
     {
         // The envoy is caught leaving Ashur; the next season Ashur surrenders, and Assyria falls.

@@ -15,6 +15,13 @@ internal static class Search
     /// <summary>Adjudications per season and king: enough to try every unit's alternatives once.</summary>
     private const int Budget = 720;
     private const double UnitWorth = 90;
+    /// <summary>
+    /// The share of our capital's worth a foreign army within its walls puts at stake, however early the siege (see
+    /// <see cref="Stake"/>): a quarter, below the 43% that fell within four seasons in script games, since a capital whose
+    /// garrison is outside may still be relieved; at two fifths the current king lost more growth against the frozen
+    /// baseline (2.73 against 2.79, one current king against six baselines) than at a quarter (2.76).
+    /// </summary>
+    internal const double CapitalAtStake = 0.25;
 
     private sealed class Ctx
     {
@@ -180,6 +187,20 @@ internal static class Search
     }
 
     // ------------------------------------------------------------------ rivals
+
+    /// <summary>
+    /// The share of a walled city's worth that a siege of it puts at stake, at the end of a pictured season: 0.45 of how far it
+    /// is worn down, progress and this season's steps, a half step more, against its walls and one. For our own capital, a
+    /// kingdom at stake, at least <see cref="CapitalAtStake"/> however early the siege (since the script players' audit of
+    /// the siege package: until then a foreign army that just got within our capital's walls counted for a twentieth of its
+    /// worth, and of 228 foreign armies that got within capitals in 100 script games, 121 got in as the garrison marched
+    /// out on a blow elsewhere and 88 found it empty; 43% of those capitals fell within four seasons).
+    /// </summary>
+    internal static double Stake(bool ourCapital, int progress, int pressed, int walls)
+    {
+        var share = 0.45 * Math.Min(1.0, (progress + pressed + 0.5) / (walls + 1.0));
+        return ourCapital ? Math.Max(share, CapitalAtStake) : share;
+    }
 
     /// <summary>A rival's likely orders, drawn from its side of the board: as it stands, and if it chose war on us.</summary>
     private static (Dictionary<string, Order> Calm, Dictionary<string, Order> Hard) Foresee(Board b, Brain brain, Power x)
@@ -391,15 +412,17 @@ internal static class Search
         foreach (var p in held) score += b.Value(p);
 
         // Sieges: a city worn down is nearer to falling. Ours count for what they bring nearer; a siege of one of our cities
-        // counts against us the same way. A troop within walls it does not hold, with no siege, counts as one about to begin.
+        // counts against us the same way. A troop within walls it does not hold, with no siege, counts as one about to begin;
+        // a friend's within ours does not (a guest, or a relief; since the script players' audit of the siege package).
+        var ourCapital = Board.Map.Capital(me).Id;
         foreach (var (p, u) in at)
         {
             if (Board.Map[p].IsSea || !b.Walls(p) || u.Power == b.OwnerOf(p) || Owner(p) == u.Power || u.Kind != UnitKind.Army) continue;
             var progress = b.SiegeAt(p) is { } x && x.Besieger == u.Power && u.Province == p ? x.Progress : 0;
+            if (b.OwnerOf(p) == me && progress == 0 && c.Brain.IsFriend(u.Power) && c.Brain.Betraying != u.Power) continue;
             var pressed = u.Province == p && orders.GetValueOrDefault(p) is null or HoldOrder or BesiegeOrder ? (r.HoldSupported.Contains(p) ? 2 : 1) : 0;
-            var share = Math.Min(1.0, (progress + pressed + 0.5) / (b.WallLevel(p) + 1.0));
-            if (u.Power == me && c.Prey(b.OwnerOf(p))) score += 0.45 * share * b.Value(p);
-            else if (b.OwnerOf(p) == me) score -= 0.45 * share * b.Value(p);
+            if (u.Power == me && c.Prey(b.OwnerOf(p))) score += Stake(false, progress, pressed, b.WallLevel(p)) * b.Value(p);
+            else if (b.OwnerOf(p) == me) score -= Stake(p == ourCapital, progress, pressed, b.WallLevel(p)) * b.Value(p);
         }
 
         var mineAfter = fallen ? [] : at.Where(x => x.Value.Power == me).ToList();
@@ -451,9 +474,11 @@ internal static class Search
                 if (attackers == 0) continue;
                 // Our troop standing its ground there has the ground's help against his blow (Build order item 5, terrain).
                 var stands = here ? defence + b.Ground(from, p) : defence;
-                // Behind walls, getting in is not taking: only a storm takes it next season; a lone entry only begins a siege.
+                // Behind walls, getting in is not taking: only a storm takes it next season; a lone entry only begins a siege. But
+                // within the walls of our capital it puts the kingdom at stake (see Stake): counted as CapitalAtStake ÷ 0.45 of a
+                // taking, as a siege worn down to the walls counts 0.45 (since the script players' audit of the siege package).
                 var chance = walls > 0
-                    ? attackers > walls + (here ? stands : 0) ? h : attackers > stands ? h * 0.15 : 0
+                    ? attackers > walls + (here ? stands : 0) ? h : attackers > stands ? h * (capital ? CapitalAtStake / 0.45 : 0.15) : 0
                     : attackers > stands ? h : attackers == stands ? h * 0.3 : 0;
                 risk = 1 - (1 - risk) * (1 - chance);
             }
