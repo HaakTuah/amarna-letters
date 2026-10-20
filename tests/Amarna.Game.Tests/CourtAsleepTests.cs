@@ -124,14 +124,13 @@ public class CourtAsleepTests
     [Fact]
     public async Task An_order_trigger_reopens_orders_without_asking_and_the_audience_is_an_ordinary_one()
     {
-        // The king named the very season the envoy arrives: that reopens its orders directly.
+        // The hidden cap wakes the king in the very season the envoy arrives: that reopens its orders directly.
         var t = CourtTurn();
-        var host = new Sleeper(v => v.Turn == 1 ? new TurnSubmission { Sleep = new SleepRequest { WakeTurn = t } } : new TurnSubmission(),
-            (_, _) => new HostReply { End = true });
-        var r = await Play(host, t);
+        var host = new Sleeper(_ => new TurnSubmission(), (_, _) => new HostReply { End = true });
+        var r = await Play(host, t, Quiet with { MaxSleep = t - 2 });
         Assert.Equal([1, t], host.Calls);
         Assert.False(Assert.Single(host.Audiences).OrdersStand);
-        Assert.Equal([$"you asked to be woken in turn {t}", TurnEngine.EnvoyWaits(Power.Egypt)], host.Views.Last().WokenBecause);
+        Assert.Equal([TurnEngine.CapReason, TurnEngine.EnvoyWaits(Power.Egypt)], host.Views.Last().WokenBecause);
         Assert.Empty(r.State.Sleep[Power.Alashiya].Courts);
     }
 
@@ -194,8 +193,12 @@ public class CourtAsleepTests
         Assert.True(rounds[1].ReopenChosen);
         Assert.Equal($"send {sent} to Hatti", Assert.Single(rounds[1].LettersSent).Describe());
         var text = Prompts.Audience(rounds[1]);
-        Assert.Contains($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): send {sent} to Hatti.", text);
-        Assert.Contains("You have already chosen to reopen your orders this season: you give orders after your audiences.", text);
+        Assert.Contains($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): send {sent} to Hatti: message \"Brother.\"; mandate none.", text);
+        Assert.Contains("You have already chosen to reopen your orders this season: you give orders after your audiences", text);
+        // Its orders no longer stand, so it is neither told they do nor asked again (since "Requests are rules too").
+        Assert.DoesNotContain("YOUR ORDERS STAND WHILE YOU SLEEP", text);
+        Assert.DoesNotContain("\"reopen_orders\"", Schemas.HostReply(new GameConfig(), rounds[1]).ToJsonString());
+        Assert.Contains("\"reopen_orders\"", Schemas.HostReply(new GameConfig(), rounds[0]).ToJsonString());
     }
 
     [Fact]
@@ -237,7 +240,7 @@ public class CourtAsleepTests
         // The orders request lists the letters sent from the audience.
         var view = host.Views.Last();
         Assert.Equal([$"send {second} to Babylonia with {gold} shekels", $"send {first} to Egypt"], view.CourtLetters.Select(o => o.Describe()));
-        Assert.Contains($"LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): send {second} to Babylonia with {gold} shekels; send {first} to Egypt."
+        Assert.Contains($"LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): send {second} to Babylonia with {gold} shekels: message \"All my gold.\"; mandate none; send {first} to Egypt: message \"To Egypt.\"; mandate none."
                         + $" Gold already committed by these letters: {gold} shekels, not yet taken from the treasury you read here; it is reserved first when the season's orders are checked.", Prompts.Situation(view));
         // The order for the first envoy replaced its letter; the second envoy's letter stood and was checked before the
         // orders, so its gold was reserved first and the watchmen ordered after reopening could not be paid.
@@ -306,7 +309,25 @@ public class CourtAsleepTests
     {
         var rules = Prompts.LeaderRules(true, new GameConfig()).ReplaceLineEndings("\n");
         Assert.Contains("When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
-        Assert.Contains("- An envoy at your door wakes you for the audience only. You read your realm in brief (your land and troops, foreign troops at or inside your borders, your treasury, your scheduled and standing orders, your people), answer the envoy as at any audience, and may send envoys of yours with letters, tablets and gifts: they set out at the end of the season with everyone's orders and are checked like orders you give, before them. Then you choose: reopen your orders, and after your audiences you give orders this season with your full view, as when anything else wakes you; or let them stand and sleep on. Anything else that wakes you reopens your orders without asking (your audiences still come first).", rules);
+        Assert.Contains("- An envoy at your door wakes you for the audience only. You read your realm in brief (your land and troops, foreign troops at or inside your borders, your treasury, your scheduled and standing orders, your people), answer the envoy as at any audience, and may send envoys of yours with letters, tablets and gifts: they set out at the end of the season with everyone's orders and are checked like orders you give, before them. "
+                        + "A letter sent there costs what it costs in your orders (the gold it carries, the scribe's fee of 20 for a tablet, one of the 3 envoys who may leave your court in a season, and the envoy's time away) and sets out this season; if you send none and let your orders stand, your next letters leave only when you next give orders, which may be many seasons away. "
+                        + "Your answer to the envoy before you goes home only as his report of your words; a letter goes with your own envoy, in your words, with a mandate, gold, a tablet to seal or tablets shown as evidence. "
+                        + "Then you choose: reopen your orders, and after your audiences you give orders this season with your full view, as when anything else wakes you; or let them stand and sleep on. Anything else that wakes you reopens your orders without asking (your audiences still come first).", rules);
+
+        // What a standing order costs and what it can win, beside a scheduled order and waking: in the section every king
+        // reads (since the additions to the fix pass after item 4), and for a king that sleeps, beside his scheduled orders.
+        Assert.Contains("- So its orders meet the blow as it falls: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), or support the walls of a walled city of yours holding (unit_enters on the city), and a unit next to an empty province of yours can move into it, so that an attacker without support bounces.", rules);
+        Assert.Contains("- It fires once, on the first move it waits for that you see, whether a real attack or a feint, and is then gone.", rules);
+        Assert.Contains("Giving one costs nothing; its orders cost what they cost when they run (a levy its gold).", rules);
+        Assert.Contains("- Standing orders (see STANDING ORDERS) keep answering while you sleep: in the season one fires, its units do its orders instead of their scheduled ones, and its orders are checked before your scheduled orders. "
+                        + "A standing order firing does not wake you: you read it in your news. This is what a standing order can do that waking cannot: woken, you would answer the blow only the season after it fell. "
+                        + "Unlike a scheduled order, which runs in its season whatever happens, a standing order runs only if the move it waits for comes, and then in that very season.", rules);
+        Assert.EndsWith("Giving one costs nothing; its orders cost what they cost when they run.", Schemas.LeaderOrders(new GameConfig())["properties"]!["standing_orders"]!["description"]!.GetValue<string>());
+
+        // The audience held while the king's orders stand says the same of a letter sent from it.
+        var audience = Prompts.Audience(new AudienceView { Round = 1, MaxRounds = 2, From = Power.Egypt, Envoy = new CharacterView { Id = "c1", Name = "Mane" }, OrdersStand = true });
+        Assert.Contains("A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season); if you let your orders stand and send none, your next letters leave only when you next give orders.", audience);
+        Assert.Contains("each costs what a letter in your orders costs", Schemas.HostReply(new GameConfig(), ordersStand: true)["properties"]!["letters"]!["description"]!.GetValue<string>());
     }
 
     [Fact]
@@ -318,7 +339,10 @@ public class CourtAsleepTests
         var t = CourtTurn(off);
         var r = await Play(king, t, off);
         var host = recorder.Specs.Single(x => x.Key.StartsWith($"t{t}/aud/", StringComparison.Ordinal));
-        Assert.Equal(Schemas.HostReply().ToJsonString(), host.Schema.ToJsonString());
+        // No letters and no choice about its orders (the other fields are those that apply at that exchange: RequestsAreRulesTests).
+        Assert.DoesNotContain("\"letters\"", host.Schema.ToJsonString());
+        Assert.DoesNotContain("\"reopen_orders\"", host.Schema.ToJsonString());
+        Assert.Contains("\"speech\"", host.Schema.ToJsonString());
         Assert.DoesNotContain("reopen", host.User, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("YOUR REALM IN BRIEF", host.User);
         // Every king gives orders every season, as before.
@@ -411,7 +435,7 @@ public class CourtAsleepTests
         // The seat's own model gives orders that season, told why.
         Assert.Equal([1, t], host.Calls);
         Assert.Equal([TurnEngine.EnvoyWaits(Power.Egypt), TurnEngine.StandInCourtReason], host.Views.Last().WokenBecause);
-        Assert.Contains($"You were woken because: an envoy of Egypt waits to be received; {TurnEngine.StandInCourtReason}.", Prompts.SleepLine(host.Views.Last()));
+        Assert.Contains($"You were woken because: an envoy of Egypt came to your court (you received him before these orders); {TurnEngine.StandInCourtReason}.", Prompts.SleepLine(host.Views.Last(), atOrders: true));
         var sl = r.State.Sleep[Power.Alashiya];
         Assert.Equal([TurnEngine.EnvoyWaits(Power.Egypt), TurnEngine.StandInCourtReason], sl.History[0].Reasons);
 

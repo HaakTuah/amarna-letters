@@ -265,12 +265,12 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// An order that could not be carried out as the season resolved: its king reads why next season, as a rejection
-    /// notice, and a scheduled one wakes its seat.
+    /// notice, and a scheduled one that others foiled (<paramref name="byOthers"/>) wakes its seat.
     /// </summary>
-    private void Failed(Power p, Order order, string title, string body, string why, string? subject = null)
+    private void Failed(Power p, Order order, string title, string body, string why, bool byOthers, string? subject = null)
     {
         S.Notify(p, InboxKind.Rejected, title, body, subject);
-        ScheduledFailed(p, order, why);
+        if (byOthers) ScheduledFailed(p, order, why);
     }
 
     // ---------------------------------------------------------------- arrivals and tasks (filled out by the envoy and intelligence parts)
@@ -342,15 +342,18 @@ public sealed partial class TurnEngine
         _firedNow.Clear();
         _marchNow.Clear();
         _cededNow.Clear();
+        // Each seat's season before its standing orders fire; then the standing orders, any seat's, that answer this season's moves.
+        var seasons = S.Alive.ToDictionary(p => p, p => PlanSeason(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission()));
+        var fires = StandingFires(seasons, validator);
         foreach (var p in S.Alive.ToList())
         {
-            var sub = WithScheduled(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission(), out var scheduled);
+            var sub = Compose(p, seasons[p], fires.GetValueOrDefault(p) ?? []);
             var v = validator.Validate(p, sub);
             valid[p] = v;
             if (v.Rejected.Count > 0)
                 S.Notify(p, InboxKind.Rejected, "Orders that could not be carried out",
                     string.Join("\n", v.Rejected.Select(r => $"- {r.Order.Describe()}: {r.Reason}")));
-            AfterValidation(p, sub, v, scheduled);
+            AfterValidation(p, sub, v);
         }
 
         IEnumerable<(Power P, T O)> All<T>() where T : Order =>
@@ -370,9 +373,12 @@ public sealed partial class TurnEngine
                 S.Units.Remove(u);
                 S.Notify(p, InboxKind.Resolution, "Disbanded", $"{u.Label} was disbanded.");
             }
-            else Failed(p, d, "Disband failed", $"No unit of yours stood in {Map[d.Unit].Name} after movement, so none was disbanded.", "the unit is gone");
+            // The unit moved by the seat's own orders, or was destroyed (which wakes the seat by itself).
+            else Failed(p, d, "Disband failed", $"No unit of yours stood in {Map[d.Unit].Name} after movement, so none was disbanded.", "the unit is gone", byOthers: false);
         }
         foreach (var (p, r) in All<RaiseOrder>()) Raise(p, r);
+        // Scheduled orders that waited for a levy's unit that was not raised are dropped.
+        UnraisedLevies();
 
         ResolveCourt(All<Order>().ToList());
         ResolveIntelligence(All<Order>().ToList());
@@ -394,8 +400,6 @@ public sealed partial class TurnEngine
         }
 
         var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
-        // Where each unit stood before the moves: a standing order waits for an attack on its unit there.
-        var stoodAt = S.Units.DistinctBy(u => u.Id).ToDictionary(u => u.Id, u => u.Province);
         // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
         foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
             o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
@@ -436,8 +440,6 @@ public sealed partial class TurnEngine
 
         foreach (var p in S.Alive)
             S.LastSeen[p] = result.Outcomes.Where(o => o.Power == p || sightBefore[p].Contains(o.Province) || (o.Target is { } t && sightBefore[p].Contains(t))).ToList();
-        // Standing orders whose event each seat saw fire next season.
-        StandingEvents(result, stoodAt);
 
         foreach (var p in S.Alive)
         {
@@ -449,15 +451,22 @@ public sealed partial class TurnEngine
                 if (l.Failure is { } f)
                 {
                     var why = WhyMoveFailed(p, l.Province, l.Target!, f, sight);
-                    // A scheduled move that was stopped wakes its sleeping seat, with the reason.
-                    if (byProvince.TryGetValue(l.Province, out var move)) ScheduledFailed(p, move, why);
-                    mine.Add($"{l.Text}: {why}");
+                    // A scheduled move that others stopped wakes its sleeping seat, with the reason; one its own orders or
+                    // strength stopped does not.
+                    if (StoppedByOthers(p, f) && byProvince.TryGetValue(l.Province, out var move)) ScheduledFailed(p, move, why);
+                    // Where the unit now stands, in plain words: it stayed where it was (unless it was destroyed there, which
+                    // its own line says).
+                    var stays = S.Units.FirstOrDefault(u => u.Power == p && u.Province == l.Province) is { } still
+                        ? $"; so your {(still.Kind == UnitKind.Army ? "army" : "fleet")} stays in {l.Province}"
+                        : "";
+                    mine.Add($"{l.Text}: {why}{stays}");
                 }
                 else
                 {
                     mine.Add(l.Void is { } v ? $"{l.Text}: {v}" : l.Text);
-                    // So does a scheduled support that was cut, or a support or convoy that matched no move.
-                    if ((l.Void ?? l.Cut) is { } failed && byProvince.TryGetValue(l.Province, out var help)) ScheduledFailed(p, help, failed);
+                    // So does a scheduled support that a foreign attack cut; not a support or convoy that matched no move,
+                    // which tells only that the seat guessed another unit's orders wrong.
+                    if (l.Cut is { } cut && byProvince.TryGetValue(l.Province, out var help)) ScheduledFailed(p, help, cut);
                 }
             }
             var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && (sight.Contains(l.Province) || l.Target is { } t && sight.Contains(t)))
@@ -529,12 +538,12 @@ public sealed partial class TurnEngine
             // The validator refuses a second cession of one province, so land no longer held was lost in movement.
             if (S.Owner.GetValueOrDefault(c.Province) != p)
             {
-                Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: you no longer held it after movement.", "you no longer held it");
+                Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: you no longer held it after movement.", "you no longer held it", byOthers: true);
                 continue;
             }
             if (S.UnitAt(c.Province) is { } u && u.Power == p)
             {
-                Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: your own troops still stood in it after movement.", "your own troops stood there");
+                Failed(p, c, "Cession failed", $"{name} was not ceded to {c.To}: your own troops still stood in it after movement.", "your own troops stood there", byOthers: false);
                 continue;
             }
             S.Owner[c.Province] = c.To;
@@ -550,7 +559,7 @@ public sealed partial class TurnEngine
             var u = S.UnitAt(g.Unit);
             if (u is null || u.Power != p)
             {
-                Failed(p, g, "Gift of troops failed", $"No unit of yours stood in {Map[g.Unit].Name} after movement, so none was given to {g.To}.", "the unit is gone");
+                Failed(p, g, "Gift of troops failed", $"No unit of yours stood in {Map[g.Unit].Name} after movement, so none was given to {g.To}.", "the unit is gone", byOthers: false);
                 continue;
             }
             u.Power = g.To;
@@ -574,7 +583,8 @@ public sealed partial class TurnEngine
                     S.Notify(b, InboxKind.Rejected, "Purchase failed", b == taker
                         ? $"Your own troops took {prov.Name} last season; no gold was paid."
                         : $"{prov.Name} was taken by {taker}'s troops last season before its elders could accept your gold. No gold was paid.");
-                foreach (var (b, o) in group) ScheduledFailed(b, o, b == taker ? "your own troops took it" : $"{taker}'s troops took it");
+                // Only another's troops foil the bid: the seat's own taking it is its own doing.
+                foreach (var (b, o) in group.Where(x => x.P != taker)) ScheduledFailed(b, o, $"{taker}'s troops took it");
                 continue;
             }
             if (bidders.Count > 1)
@@ -612,7 +622,9 @@ public sealed partial class TurnEngine
         if (why is not null)
         {
             S.Notify(p, InboxKind.Rejected, "Levy failed", $"No {kind} was raised in {prov.Name}: {why}. No gold was paid.");
-            ScheduledFailed(p, r, why);
+            // Only land lost in movement is others' doing: a province the seat still holds that is not empty holds its own
+            // unit (any other troops there would have taken it), and a cession is its own.
+            if (S.Owner.GetValueOrDefault(prov.Id) != p && !_cededNow.ContainsKey(prov.Id)) ScheduledFailed(p, r, why);
             return;
         }
         var cost = r.Kind == UnitKind.Army ? S.Config.ArmyCost : S.Config.FleetCost;
@@ -620,6 +632,7 @@ public sealed partial class TurnEngine
         var u = new Unit { Id = S.NewId("u"), Power = p, Kind = r.Kind, Province = prov.Id };
         S.Units.Add(u);
         S.Notify(p, InboxKind.Resolution, "Levy raised", $"A new {kind} stands in {prov.Name}.");
+        LevyRaised(p, u);
     }
 
     private void CheckEliminations()

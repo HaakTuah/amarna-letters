@@ -23,7 +23,7 @@ public sealed partial class TurnEngine
                     var recalled = S.Char(rs.Character);
                     if (recalled.CoverOf(p) is { } cover) RecallCovered(p, recalled, cover);
                     else if (recalled.Employer == p && recalled.Status == CharacterStatus.Employed && recalled.Duty == Duty.SpyPosted) Recall(p, recalled);
-                    else Failed(p, rs, "Recall failed", $"{recalled.Name} was not watching anywhere for you, so could not be recalled.", "not on a mission", recalled.Id);
+                    else Failed(p, rs, "Recall failed", $"{recalled.Name} was not watching anywhere for you, so could not be recalled.", "not on a mission", byOthers: true, recalled.Id);
                     break;
                 case AssayOrder a: Assay(p, a); break;
                 case AuthenticateOrder au:
@@ -154,7 +154,12 @@ public sealed partial class TurnEngine
                 }
             }
 
-            var report = new SpyReport { SpyId = c.Id, Court = c.MissionTarget, Province = c.WatchProvince, ObservedTurn = S.Turn };
+            // What the spy was when it observed: a report that arrives after its capture is still written as it was then.
+            var report = new SpyReport
+            {
+                SpyId = c.Id, Court = c.MissionTarget, Province = c.WatchProvince, ObservedTurn = S.Turn, FactCount = c.Facts.Count, SecretMaster = c.SecretMaster,
+                Lord = employer, Wage = c.Contract?.Wage ?? 0, Purse = c.Purse, BackPay = new Dictionary<Power, int>(c.BackPay),
+            };
             report.Observations.AddRange(SpyObserve(c, rng));
             if (c.SecretMaster is { } master && master == host)
             {
@@ -293,7 +298,7 @@ public sealed partial class TurnEngine
         var c = S.Char(co.Character);
         if (c.Status != CharacterStatus.Captured || c.HeldBy != host)
         {
-            Failed(host, co, "Captive order failed", $"Your order for {c.Name} could not be carried out: {c.Name} was no longer your captive.", "no longer your captive", c.Id);
+            Failed(host, co, "Captive order failed", $"Your order for {c.Name} could not be carried out: {c.Name} was no longer your captive.", "no longer your captive", byOthers: true, c.Id);
             return;
         }
         // Checked again as the season resolves: the captive's king may have dismissed them this season.
@@ -341,7 +346,7 @@ public sealed partial class TurnEngine
                 if (cover is null) CoverFor(c, master, Duty.None);
                 c.Status = CharacterStatus.Employed;
                 c.SecretMaster = host;
-                c.PoisonText = Greeting.Cap(co.Poison, 600);
+                c.PoisonText = Scribe(host, Greeting.Cap(co.Poison, 600));
                 c.Duty = Duty.SpyPosted;
                 c.HeldBy = null;
                 // Back at its post, where it watched from before (a court, or out in a province): what its master believed all along.
@@ -465,7 +470,7 @@ public sealed partial class TurnEngine
             // earlier payment this season that fell short, when the treasurers weighed all the unassayed gold.
             Failed(p, a, "Assay failed",
                 $"Gold lot {a.Lot} was not assayed: your treasurers had already weighed all your unassayed gold last season, when a payment fell short. No fee was paid.",
-                "your treasurers had already weighed it");
+                "your treasurers had already weighed it", byOthers: true);
             return;
         }
         if (!Pay(p, S.Config.AssayFee, "an assay", a, $"gold lot {a.Lot} was not assayed")) return;
@@ -494,7 +499,8 @@ public sealed partial class TurnEngine
             if (rng.Chance(detect))
             {
                 result = "The seals are false: this tablet is a forgery.";
-                S.Log("forgery-detected", $"{task.Requester} found that tablet {tablet.Id} is forged.", [task.Requester], "forgery-detected");
+                // The event names the tablet as the court does, not by the engine's id, which a narrator reading its events could repeat.
+                S.Log("forgery-detected", $"{task.Requester} found that {Views.TabletName(tablet, Archive(task.Requester))} is forged.", [task.Requester], "forgery-detected");
                 // A swapped inventory is traced, with the same chance, to the envoy who forged it and brought it.
                 if (tablet.Inventory)
                 {
@@ -518,7 +524,8 @@ public sealed partial class TurnEngine
             else result = genuine;
         }
         copy.AuthResult = result;
-        S.Notify(task.Requester, InboxKind.Authentication, "Examination of a tablet", $"\"{Greeting.Cap(tablet.Text, 200)}\" — {result}");
+        // The tablet as every court names it, the court's own mark for its copy, and its text in full.
+        S.Notify(task.Requester, InboxKind.Authentication, "Examination of a tablet", $"{Views.Capitalized(Views.TabletName(tablet, Archive(task.Requester)))} (your copy {copy.Id}): \"{tablet.Text}\" — {result}");
         S.Log("authenticate", $"{task.Requester} paid to authenticate a tablet.", [task.Requester], "authentication");
     }
 
@@ -528,7 +535,7 @@ public sealed partial class TurnEngine
         if (c.Traits.Competence < S.Config.ForgeMinCompetence)
         {
             // A failed order like any other, though the clay is still paid for.
-            Failed(p, f, "Forgery botched", $"{c.Name} lacks the skill; the clay is ruined and nothing usable came of it.", "the forger lacked the skill", c.Id);
+            Failed(p, f, "Forgery botched", $"{c.Name} lacks the skill; the clay is ruined and nothing usable came of it.", "the forger lacked the skill", byOthers: false, c.Id);
             Pay(p, S.Config.ForgeFee, "spoiled clay");
             return;
         }
@@ -537,7 +544,7 @@ public sealed partial class TurnEngine
         var tablet = new Tablet
         {
             Id = S.NewId("t"),
-            Text = Greeting.Cap(f.Text, 1200),
+            Text = Scribe(p, Greeting.Cap(f.Text, 1200)),
             ProposedBy = seals[0],
             Partner = seals.Count > 1 ? seals[1] : null,
             Seals = seals,

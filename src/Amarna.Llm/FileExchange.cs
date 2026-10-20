@@ -124,11 +124,19 @@ public sealed class FileExchange(string folder, TimeSpan timeout, Action<ModelCa
 
     public static readonly TimeSpan EmptyGrace = TimeSpan.FromSeconds(5);
 
-    /// <summary>The request file: the same system text, prompt and schema a model king or character receives, and where to answer.</summary>
+    /// <summary>The first line of every request file.</summary>
+    public const string Heading = "# Your decision";
+
+    /// <summary>
+    /// The request file: the same system text, prompt and schema a model king or character receives, and where to answer. Its
+    /// heading is <see cref="Heading"/>, not the call's key ("t2/aud/present/c7"), which holds the season as an id and a
+    /// person's id, numbers a king or character could repeat (since the fix pass after item 4: "Requests are rules too").
+    /// The key is still the file's name, which the kit needs, and every call is logged under it.
+    /// </summary>
     public static string Request(CallSpec spec, string replyPath, string error, string actor = King)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"# {spec.Key}");
+        sb.AppendLine(Heading);
         sb.AppendLine();
         sb.AppendLine($"Everything you need for this decision is in this file. Decide as {actor}, then write your answer as one JSON object to the file named under HOW TO REPLY.");
         sb.AppendLine();

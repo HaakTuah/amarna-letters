@@ -115,7 +115,7 @@
                         <label><input type="checkbox" @bind="Settings.SharedVictory" /> Shared victory for sworn allies</label>
                     </div>
                     <div class="row" style="margin-top:.6rem">
-                        <label title="The world still moves every season; after its orders a model king sleeps, and is called again only when something concerns it or the season it named comes. Off, every king is called every season. Script and human kings play every season."><input type="checkbox" @bind="Settings.SleepingSeats" /> Sleeping seats for model kings</label>
+                        <label title="The world still moves every season; after its orders a model king sleeps, and is called again only when something concerns it: it never chooses when it wakes. Off, every king is called every season. Script and human kings play every season."><input type="checkbox" @bind="Settings.SleepingSeats" /> Sleeping seats for model kings</label>
                         @if (Settings.SleepingSeats)
                         {
                             <label title="A safety net only: a sleeping king is woken after this many seasons at the latest. The kings are never told it.">Hidden safety cap on sleep (seasons) <input type="number" min="1" max="30" @bind="Settings.MaxSleep" /></label>

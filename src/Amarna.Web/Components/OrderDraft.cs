@@ -23,6 +23,10 @@ public sealed class OrderDraft
     public SeatView View { get; }
     public Dictionary<string, UnitDraft> Units { get; } = new();
     public List<Order> Other { get; } = new();
+    /// <summary>New standing orders, which every seat may give (since the additions to the fix pass after item 4).</summary>
+    public List<StandingRequest> Standing { get; } = new();
+    /// <summary>The ids of standing orders kept so far that are to be cancelled with these orders.</summary>
+    public HashSet<string> CancelStanding { get; } = new();
     public string? Selected { get; set; }
     public string Notes { get; set; } = "";
 
@@ -89,6 +93,24 @@ public sealed class OrderDraft
             });
         }
         orders.AddRange(Other);
-        return new TurnSubmission { Orders = orders, Notes = Notes };
+        return new TurnSubmission
+        {
+            Orders = orders, Notes = Notes, Standing = Standing.ToList(),
+            CancelStanding = View.Standing.Select(s => s.Id).Where(CancelStanding.Contains).ToList(),
+        };
     }
+
+    /// <summary>A unit order as the form for standing orders builds it, or null while it lacks what it needs.</summary>
+    public static Order? UnitOrder(string unit, string kind, string? target, string? to) => kind switch
+    {
+        "hold" => new HoldOrder(unit),
+        "move" when !string.IsNullOrEmpty(target) => new MoveOrder(unit, target),
+        "support" when !string.IsNullOrEmpty(target) => new SupportOrder(unit, target, string.IsNullOrEmpty(to) ? null : to),
+        _ => null,
+    };
+
+    /// <summary>What a standing order waits for, in the words the seat's view uses ("when Hatti's troops enter mira").</summary>
+    public static string When(StandingWhen when, Power? power, string province, Power viewer) => when == StandingWhen.UnitAttacked
+        ? $"when your troop in {Ui.Province(province)} is attacked"
+        : TurnEngine.EntersText(viewer, power, Ui.Province(province));
 }

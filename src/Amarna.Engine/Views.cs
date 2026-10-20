@@ -53,6 +53,9 @@ public sealed class CharacterView
 
 public sealed class TabletView
 {
+    /// <summary>The tablet as every court names it, by its seals and date (see <see cref="Views.TabletName"/>).</summary>
+    public string Name { get; set; } = "";
+    /// <summary>This court's own mark for its copy, for its orders only: every court numbers its copies differently.</summary>
     public string CopyId { get; set; } = "";
     public string TabletId { get; set; } = "";
     public string Text { get; set; } = "";
@@ -63,6 +66,25 @@ public sealed class TabletView
     public bool AllianceOath { get; set; }
     public string Source { get; set; } = "";
     public string? AuthResult { get; set; }
+}
+
+/// <summary>
+/// A letter the king sent, as his scribes wrote it (<see cref="MessageTrail"/>): his record of what he sent with an envoy,
+/// to set beside what the envoy reports.
+/// </summary>
+public sealed class LetterView
+{
+    public int Turn { get; set; }
+    public string EnvoyId { get; set; } = "";
+    public string EnvoyName { get; set; } = "";
+    public Power To { get; set; }
+    public int Gold { get; set; }
+    public string Message { get; set; } = "";
+    public string Mandate { get; set; } = "";
+    /// <summary>The tablet the envoy carried to be sealed, or null.</summary>
+    public string? Tablet { get; set; }
+    /// <summary>The season the envoy's report reached the king, or null while it is still away.</summary>
+    public int? ReportedTurn { get; set; }
 }
 
 /// <summary>
@@ -105,6 +127,11 @@ public sealed class SeatView
     public List<CharacterView> Court { get; set; } = new();
     public List<CharacterView> Known { get; set; } = new();
     public List<TabletView> Tablets { get; set; } = new();
+    /// <summary>
+    /// Its own letters in full, oldest first: each envoy's latest, while the envoy is away on that errand as far as the court
+    /// knows, and once more when its report has come since the court last gave orders (see <see cref="Views.Letters"/>).
+    /// </summary>
+    public List<LetterView> Letters { get; set; } = new();
     public List<InboxItem> Inbox { get; set; } = new();
     public List<string> TravelTimes { get; set; } = new();
     /// <summary>Last season's orders as they resolved, for every unit this court could see.</summary>
@@ -116,11 +143,6 @@ public sealed class SeatView
     public List<string> WokenBecause { get; set; } = new();
     /// <summary>The last season this seat gave orders before this one (0 if it never has).</summary>
     public int LastCalled { get; set; }
-    /// <summary>
-    /// The season it named to be woken in with its last orders, if that season is still to come (it was woken sooner);
-    /// else 0. Each set of orders names it anew.
-    /// </summary>
-    public int NamedWake { get; set; }
     /// <summary>
     /// News delivered while this seat slept, oldest first: routine treasury notices left out (this season's is in its
     /// news), and at most <see cref="Views.MaxWhileAsleep"/> items, the latest.
@@ -253,7 +275,6 @@ public static class Views
             v.HoldsCourt = sleep.HoldsCourt && sleep.Asleep;
             v.CourtLetters = sleep.CourtLetters.ToList();
             v.LastCalled = sleep.LastCalled;
-            v.NamedWake = sleep.History.LastOrDefault() is { Named: var named } && named > s.Turn ? named : 0;
             var slept = s.InboxOf(p).Where(i => i.Turn > sleep.LastCalled && i.Turn < s.Turn && !RoutineTreasury(i)).ToList();
             v.WhileAsleepLeftOut = Math.Max(0, slept.Count - MaxWhileAsleep);
             v.WhileAsleep = slept.Skip(v.WhileAsleepLeftOut).ToList();
@@ -261,40 +282,39 @@ public static class Views
             v.DigestLeftOut = sleep.DigestLeftOut;
             // Orders follow their units: each is shown as it would be given from where its unit stands now.
             v.Scheduled = sleep.Scheduled.GroupBy(x => x.Turn).OrderBy(g => g.Key)
-                .Select(g => new ScheduledOrders { Turn = g.Key, Orders = g.Select(x => TurnEngine.AsItStands(s, p, x) ?? x.Order).ToList() }).ToList();
-            v.Standing = sleep.Standing.Select(x => new StandingOrderView
+                .Select(g => new ScheduledOrders { Turn = g.Key, Orders = g.Select(x => TurnEngine.AsShown(s, p, x)).ToList() }).ToList();
+        }
+        // Every seat's standing orders, awake or asleep, each of its units named by where it stands now.
+        if (s.Standing.TryGetValue(p, out var book))
+            v.Standing = book.Orders.Select(x => new StandingOrderView
             {
                 Id = x.Id,
                 When = x.When,
                 Power = x.Power,
                 Province = (x.When == StandingWhen.UnitAttacked ? s.Units.FirstOrDefault(u => u.Id == x.UnitId && u.Power == p)?.Province ?? x.Province : x.Province) ?? "",
-                Orders = x.Orders.Select(o => TurnEngine.AsItStands(s, p, o) ?? o.Order).ToList(),
-                FiresNow = x.Fires == s.Turn ? x.Cause : null,
+                Orders = x.Orders.Select(o => TurnEngine.AsShown(s, p, o)).ToList(),
             }).ToList();
-        }
 
         foreach (var c in s.Characters)
         {
-            // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
-            if (c.CoverOf(p) is not null)
-            {
-                v.Court.Add(Character(s, c, p));
-                continue;
-            }
-            if (c.Status == CharacterStatus.Dead && c.Employer != p) continue;
-            var ours = c.Employer == p && c.Status is CharacterStatus.Employed or CharacterStatus.Captured;
-            // A foreign spy posted here in secret is not seen here: only something else this court knows of it lists it.
-            var known = ours || SeenAtCourt(c, p) || c.HeldBy == p || c.Pitches.ContainsKey(p) || c.Facts.Any(f => f.Secrecy != Secrecy.Public && f.KnownBy.Contains(p));
-            if (!known) continue;
+            if (!Knows(c, p)) continue;
             var cv = Character(s, c, p);
-            if (ours) v.Court.Add(cv); else v.Known.Add(cv);
+            // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
+            if (c.CoverOf(p) is not null || IsOurs(c, p)) v.Court.Add(cv); else v.Known.Add(cv);
         }
 
+        var archive = new List<Tablet>();
         foreach (var copy in s.Copies.Where(x => x.Holder == p))
         {
             var tab = s.Tablets.FirstOrDefault(x => x.Id == copy.TabletId);
-            if (tab is not null) v.Tablets.Add(Tablet(tab, copy));
+            if (tab is null) continue;
+            v.Tablets.Add(Tablet(tab, copy));
+            archive.Add(tab);
         }
+        // Named as every court names them, with their opening words where the archive holds two of the same seals and date.
+        foreach (var (view, tab) in v.Tablets.Zip(archive)) view.Name = TabletName(tab, archive);
+
+        v.Letters = Letters(s, p, v.Court, s.Config.SleepingSeats && s.Sleep.TryGetValue(p, out var asleep) ? asleep.LastCalled : s.Turn - 1);
 
         foreach (var other in s.Alive.Where(x => x != p))
             v.TravelTimes.Add($"{other}: {engine.TravelTurns(p, other)} season(s) each way");
@@ -311,12 +331,57 @@ public static class Views
     }
 
     /// <summary>
+    /// A court's record of the letters it sent, in full as its scribes wrote them: the latest letter of each of its envoys
+    /// still away on that errand as far as it knows (one of its people, by what it believes, not at court), and every letter
+    /// whose envoy's report has reached it since it last gave orders (<paramref name="since"/>), so the king can set the report
+    /// beside what he sent. A letter whose envoy it knows has left its service, or died, drops out.
+    /// </summary>
+    public static List<LetterView> Letters(GameState s, Power p, IReadOnlyList<CharacterView> court, int since)
+    {
+        var away = court.Where(c => c.Ours && !c.Ready).Select(c => c.Id).ToHashSet();
+        var latest = s.Trails.Where(t => t.From == p).GroupBy(t => t.EnvoyId).Select(g => g.Last()).Select(t => t.Id).ToHashSet();
+        return s.Trails
+            .Where(t => t.From == p && (t.ReportTurn is int r ? r > since : away.Contains(t.EnvoyId) && latest.Contains(t.Id)))
+            .Select(t => new LetterView
+            {
+                Turn = t.Turn,
+                EnvoyId = t.EnvoyId,
+                EnvoyName = t.EnvoyName,
+                To = t.To,
+                Gold = t.GoldStated,
+                Message = t.LeaderLetter,
+                Mandate = t.Mandate,
+                Tablet = t.ProposalText,
+                ReportedTurn = t.ReportTurn,
+            })
+            .ToList();
+    }
+
+    /// <summary>
     /// Whether <paramref name="viewer"/> sees <paramref name="c"/> standing at its court: anyone there in the open (its
     /// own people, envoys received there, free people, anyone it holds), but not a foreign spy posted there in secret
     /// (<see cref="Amarna.Engine.Character.HiddenAt"/>). Where it stands, and whom it serves, the court learns only when its
     /// watchmen catch it, or if it secretly serves the court.
     /// </summary>
     public static bool SeenAtCourt(Character c, Power viewer) => c.At == viewer && !c.HiddenAt(viewer);
+
+    /// <summary>
+    /// Whether a court knows of a person, so that its view lists them (its court, or the people it knows): its own servants
+    /// (and one abroad whose fate it has not heard of, as it believes), anyone seen at its court, held there or who
+    /// presented themselves to it, and anyone a fact it knows names. A foreign spy posted at its court in secret is not
+    /// seen there. The dead are known only to the court they served. What a court's scribes write turns into names only the
+    /// ids of the people it knows (<see cref="TurnEngine.Scribe"/>).
+    /// </summary>
+    public static bool Knows(Character c, Power viewer)
+    {
+        if (c.CoverOf(viewer) is not null) return true;
+        if (c.Status == CharacterStatus.Dead && c.Employer != viewer) return false;
+        return IsOurs(c, viewer) || SeenAtCourt(c, viewer) || c.HeldBy == viewer || c.Pitches.ContainsKey(viewer)
+               || c.Facts.Any(f => f.Secrecy != Secrecy.Public && f.KnownBy.Contains(viewer));
+    }
+
+    /// <summary>A servant of the court's, at home, abroad or held captive.</summary>
+    private static bool IsOurs(Character c, Power viewer) => c.Employer == viewer && c.Status is CharacterStatus.Employed or CharacterStatus.Captured;
 
     /// <summary>
     /// Whom a spy <paramref name="court"/> caught confessed to serving when it was caught there (its latest capture there),
@@ -489,8 +554,35 @@ public static class Views
         return c.WatchProvince is { } wp ? $"in {wp}" : "travelling";
     }
 
+    /// <summary>
+    /// A tablet as every court names it: an inventory or a tablet, by its seals and the date it bears ("the tablet sealed by
+    /// Babylonia and Mitanni, dated turn 2"). Where <paramref name="among"/> holds another of the same kind, seals and date,
+    /// its opening words are added. Never a copy id, which is each court's own: a name another court can read.
+    /// </summary>
+    public static string TabletName(Tablet t, IEnumerable<Tablet>? among = null)
+    {
+        var name = $"the {(t.Inventory ? "inventory" : "tablet")} sealed by {Listed(t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")}";
+        var twin = among?.Any(o => o.Id != t.Id && o.Inventory == t.Inventory && o.SealedTurn == t.SealedTurn && o.Seals.SequenceEqual(t.Seals)) == true;
+        return twin ? $"{name}, beginning \"{Opening(t.Text)}\"" : name;
+    }
+
+    /// <summary>A text with its first letter capitalized, to open a sentence.</summary>
+    public static string Capitalized(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+
+    /// <summary>"Egypt", "Egypt and Hatti", "Egypt, Hatti and Mitanni".</summary>
+    private static string Listed(IReadOnlyList<Power> seals) =>
+        seals.Count <= 1 ? string.Join("", seals) : $"{string.Join(", ", seals.Take(seals.Count - 1))} and {seals[^1]}";
+
+    /// <summary>A text's first eight words, marked "…" if there are more.</summary>
+    private static string Opening(string text)
+    {
+        var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return words.Length <= 8 ? string.Join(" ", words) : string.Join(" ", words.Take(8)) + "…";
+    }
+
     public static TabletView Tablet(Tablet t, TabletCopy copy) => new()
     {
+        Name = TabletName(t),
         CopyId = copy.Id,
         TabletId = t.Id,
         Text = t.Text,

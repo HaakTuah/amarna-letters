@@ -5,6 +5,17 @@ public sealed partial class TurnEngine
 {
     public const int MaxSpeech = 1500;
 
+    /// <summary>
+    /// How the record of a mission (<see cref="MessageTrail.Outcomes"/>) marks what the envoy itself promised on its lord's
+    /// behalf: its own words, not something the engine did. The host's record and the envoy's report request set it apart
+    /// from the outcomes.
+    /// </summary>
+    public const string CommittedPrefix = "the envoy committed: ";
+
+    /// <summary>What the envoy promised, if this outcome is its own commitment; else null.</summary>
+    public static string? Commitment(string outcome) =>
+        outcome.StartsWith(CommittedPrefix, StringComparison.Ordinal) ? outcome[CommittedPrefix.Length..] : null;
+
     public MessageTrail? Trail(string? id) => id is null ? null : S.Trails.FirstOrDefault(t => t.Id == id);
 
     // ---------------------------------------------------------------- dispatch
@@ -16,8 +27,11 @@ public sealed partial class TurnEngine
         var fee = d.Proposal is not null ? S.Config.TabletFee : 0;
         if (!Pay(p, fine + fee, $"{c.Name}'s mission to {d.To}", d, $"{c.Name} stayed at your court")) return;
 
-        var letter = Greeting.Cap(d.Letter ?? "", S.Config.MaxLetterChars);
-        var mandate = Greeting.Cap(d.Mandate ?? "", 600);
+        // The scribes write the king's own marks for the copies in his archive as tablets every court can name, and person ids
+        // as names: the envoy and the host read what any court could read.
+        var letter = Scribe(p, Greeting.Cap(d.Letter ?? "", S.Config.MaxLetterChars));
+        var mandate = Scribe(p, Greeting.Cap(d.Mandate ?? "", 600));
+        var proposal = d.Proposal is { } asked ? new TabletProposal { Text = Scribe(p, Greeting.Cap(asked.Text, 1200)), AllianceOath = asked.AllianceOath } : null;
         var greeting = Greeting.Render(p, d.To, d.Greeting);
         var trail = new MessageTrail
         {
@@ -31,7 +45,7 @@ public sealed partial class TurnEngine
             LeaderLetter = letter,
             Mandate = mandate,
             GoldStated = d.Gold,
-            ProposalText = d.Proposal?.Text,
+            ProposalText = proposal?.Text,
         };
         S.Trails.Add(trail);
 
@@ -43,21 +57,21 @@ public sealed partial class TurnEngine
             Mandate = mandate,
             Gold = d.Gold,
             PurityPercent = d.PurityPercent,
-            Proposal = d.Proposal,
+            Proposal = proposal,
             CopyIds = d.Copies?.ToList() ?? new(),
             TrailId = trail.Id,
         };
-        if (d.Proposal is not null)
+        if (proposal is not null)
         {
             var tablet = new Tablet
             {
                 Id = S.NewId("t"),
-                Text = Greeting.Cap(d.Proposal.Text, 1200),
+                Text = proposal.Text,
                 ProposedBy = p,
                 Partner = d.To,
                 Seals = [p],
                 CreatedTurn = S.Turn,
-                AllianceOath = d.Proposal.AllianceOath,
+                AllianceOath = proposal.AllianceOath,
             };
             S.Tablets.Add(tablet);
             dispatch.ProposalTabletId = tablet.Id;
@@ -80,7 +94,7 @@ public sealed partial class TurnEngine
         c.MissionTarget = d.To;
         c.CurrentTrail = trail.Id;
         c.Remember(S.Turn, $"My lord of {p.Land()} sent me to {d.To.Land()}. The message: \"{letter}\""
-            + (mandate.Length > 0 ? $" I may agree to: {mandate}." : "")
+            + (mandate.Length > 0 ? $" I may agree to: {Greeting.Stopped(mandate)}" : "")
             + (d.Gold > 0 ? $" I carry gold, said to be {Money.Format(d.Gold)}." : "")
             + (d.Proposal is not null ? " I carry a tablet for their king to seal." : ""));
         S.Notify(p, InboxKind.Notice, "Envoy dispatched", $"{c.Name} set out for {d.To} last season; the journey takes {travel} season(s).", c.Id);
@@ -172,7 +186,11 @@ public sealed partial class TurnEngine
             GiftAccepted = earlier.FirstOrDefault(x => x.Host is { Bribe: > 0 } && x.Envoy is { AcceptBribe: true })?.Host.Bribe ?? 0,
         };
         if (a.Dispatch.ProposalTabletId is { } tid && S.Tablets.FirstOrDefault(t => t.Id == tid) is { } tablet)
+        {
             view.Proposal = Views.Tablet(tablet, new TabletCopy { Id = "", TabletId = tid, Holder = a.Host, Source = $"proposed by {a.From}" });
+            // Sealed at an earlier exchange (the first that chose to seal it seals it when the audience is applied).
+            view.ProposalSealed = earlier.Any(x => x.Host is { SealProposal: true });
+        }
         foreach (var copyId in a.Dispatch.CopyIds)
         {
             var copy = S.Copies.FirstOrDefault(x => x.Id == copyId);
@@ -324,12 +342,12 @@ public sealed partial class TurnEngine
                 tablet.Seals.Add(host);
                 tablet.SealedTurn = S.Turn;
                 S.Copies.Add(new TabletCopy { Id = S.NewId("k"), TabletId = tablet.Id, Holder = host, AcquiredTurn = S.Turn, Source = "sealed at audience" });
-                trail.Outcomes.Add("the tablet was sealed by both kings");
+                trail.Outcomes.Add(MessageTrail.SealedOutcome);
                 S.Log("tablet", $"{sender} and {host} sealed a tablet: \"{Greeting.Cap(tablet.Text, 160)}\"", [sender, host], "tablet-sealed");
             }
 
             if (!string.IsNullOrWhiteSpace(e.Commitments))
-                trail.Outcomes.Add($"the envoy committed: {Greeting.Cap(e.Commitments, 300)}");
+                trail.Outcomes.Add(CommittedPrefix + Greeting.Cap(e.Commitments, MaxSpeech));
 
             if (h.GoldBack > 0)
             {
@@ -419,8 +437,11 @@ public sealed partial class TurnEngine
             lines.Add($"You said: \"{x.Host}\"");
             lines.Add($"{c.Name} answered: \"{x.Envoy}\"");
         }
-        var outcomes = trail.Outcomes.Where(o => !unseen.Contains(o)).ToList();
+        // What the envoy promised is its own words, set apart from what the audience brought about.
+        var outcomes = trail.Outcomes.Where(o => !unseen.Contains(o) && Commitment(o) is null).ToList();
         if (outcomes.Count > 0) lines.Add("Outcome: " + string.Join("; ", outcomes) + ".");
+        foreach (var promised in trail.Outcomes.Select(Commitment).OfType<string>())
+            lines.Add($"{c.Name} promised on behalf of {a.From}: \"{promised}\"");
         return string.Join("\n", lines);
     }
 
@@ -480,7 +501,7 @@ public sealed partial class TurnEngine
         var c = S.Char(r.Character);
         if (c.HeldBy != host || (c.Duty != Duty.Detained && c.Status != CharacterStatus.Captured))
         {
-            Failed(host, r, "Release failed", $"{c.Name} was no longer held at your court, so nobody was released.", "no longer held", c.Id);
+            Failed(host, r, "Release failed", $"{c.Name} was no longer held at your court, so nobody was released.", "no longer held", byOthers: true, c.Id);
             return;
         }
         if (c.Status == CharacterStatus.Captured)
@@ -497,6 +518,8 @@ public sealed partial class TurnEngine
     /// </summary>
     private void LetEnvoyGo(Power host, Character c, string? reply)
     {
+        // Words the envoy carries home, as the host's scribes would put them for another court.
+        reply = string.IsNullOrWhiteSpace(reply) ? reply : Scribe(host, reply);
         if (c.Employer is { } lord) CoverFor(c, lord, Duty.Detained);
         c.HeldBy = null;
         var trail = Trail(c.CurrentTrail);
@@ -521,6 +544,9 @@ public sealed partial class TurnEngine
                 if (c is null) return;
                 var lord = req.For();
                 var cargo = req.Cargo ?? new HomeCargo();
+                // What the envoy itself said, which it remembers: the court's own note on the weighing is added after it for
+                // the king, and is not the envoy's words.
+                var own = text;
                 if (cargo.Gold > 0)
                 {
                     var skim = Math.Clamp(reply.Number, 0, cargo.Gold);
@@ -550,7 +576,7 @@ public sealed partial class TurnEngine
                     trail.ReportTurn = S.Turn;
                 }
                 S.Notify(lord, InboxKind.EnvoyReport, $"{c.Name} returns", text, c.Id);
-                c.Remember(S.Turn, $"I reported to my lord: \"{Greeting.Cap(text, 300)}\"");
+                c.Remember(S.Turn, $"I reported to {(c.Employer == lord ? "my lord" : $"the king of {lord.Land()}")}: \"{Greeting.Cap(own, 300)}\"");
                 break;
             }
             case MindTask.Pitch:
@@ -608,7 +634,7 @@ public sealed partial class TurnEngine
             var c = S.Char(group.Key);
             if (!c.IsAvailableForHire)
             {
-                foreach (var (p, h) in group) Failed(p, h, "Not hired", $"{c.Name} was no longer free to take service.", "no longer free", c.Id);
+                foreach (var (p, h) in group) Failed(p, h, "Not hired", $"{c.Name} was no longer free to take service.", "no longer free", byOthers: true, c.Id);
                 continue;
             }
             // Someone held at a court can only take service with the king who holds them.
@@ -622,7 +648,7 @@ public sealed partial class TurnEngine
                     : c.HeldBy is { } holder && holder != lost.P ? $"they are held at the court of {holder}"
                     : bids[0].H.Wage > lost.H.Wage ? "another court offered more"
                     : "they chose another court that offered as much";
-                Failed(lost.P, lost.H, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season: {why}.", why, c.Id);
+                Failed(lost.P, lost.H, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season: {why}.", why, byOthers: lost.H.Wage >= ask, c.Id);
             }
             if (bids.Count == 0) continue;
             var (winner, hire) = bids[0];
@@ -649,7 +675,10 @@ public sealed partial class TurnEngine
     /// A servant kept on: accepted if the wage reaches its renewal price (what it asked when it gave notice, else the
     /// renewal formula, and never less than its present wage). The new contract is made this season, its term counts
     /// from the next, as for a hire, and any notice ends. A servant abroad whose fate its master has not heard of is
-    /// renewed as the master believes it, so nothing is betrayed.
+    /// renewed as the master believes it, so nothing is betrayed. A renewal that fails wakes nobody, scheduled or not (since
+    /// the review of the fix pass after item 4): the servant's price follows a rule, and a dismissal earlier in the season
+    /// is the seat's own, so either would let a king wake himself with an offer he knows is too low. A servant's notice wakes
+    /// the seat by itself.
     /// </summary>
     private void Renew(Power p, RenewOrder r)
     {
@@ -660,7 +689,6 @@ public sealed partial class TurnEngine
         {
             // Dismissed earlier this season.
             S.Notify(p, InboxKind.Rejected, "Not renewed", $"{c.Name} is no longer in your service, so could not be renewed.", c.Id);
-            ScheduledFailed(p, r, "no longer in your service");
             return;
         }
         // Renewed early, a servant takes no cut: it asks what it would ask at the end of its term, or its present wage if that is more.
@@ -670,7 +698,6 @@ public sealed partial class TurnEngine
         {
             S.Notify(p, InboxKind.Rejected, "Not renewed",
                 $"{c.Name} will not serve on for {Money.Format(r.Wage)} a season; they ask {Money.Format(price)}{(present ? ", their present wage" : "")}.", c.Id);
-            ScheduledFailed(p, r, $"they ask {price}");
             return;
         }
         var until = S.Turn + Math.Clamp(r.Term, 1, 30);
@@ -699,7 +726,7 @@ public sealed partial class TurnEngine
         if (c.CoverOf(p) is { } cover) c.Covers.Remove(cover);
         else if (c.Employer != p)
         {
-            Failed(p, order, "Dismissal failed", $"{c.Name} was no longer in your service, so could not be dismissed.", "no longer in your service", c.Id);
+            Failed(p, order, "Dismissal failed", $"{c.Name} was no longer in your service, so could not be dismissed.", "no longer in your service", byOthers: true, c.Id);
             return;
         }
         var notice = $"{c.Name} has been dismissed.";

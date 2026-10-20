@@ -224,13 +224,11 @@ public sealed class TurnSubmission
     /// court's line, an empty entry removes it). Logged with the orders; the engine ignores it.
     /// </summary>
     public List<LedgerLine> Ledger { get; set; } = new();
-    /// <summary>Seats that may sleep (they sleep after every call): the season to be woken in and what else should wake them. Ignored for other seats.</summary>
-    public SleepRequest? Sleep { get; set; }
     /// <summary>Seats that may sleep: orders queued for later seasons (one entry per season replaces any earlier one).</summary>
     public List<ScheduledOrders> Scheduled { get; set; } = new();
-    /// <summary>Seats that may sleep: new standing orders, kept with those it already has.</summary>
+    /// <summary>Every seat, awake or asleep: new standing orders, kept with those it already has.</summary>
     public List<StandingRequest> Standing { get; set; } = new();
-    /// <summary>Seats that may sleep: ids of standing orders to cancel, or "all".</summary>
+    /// <summary>Every seat, awake or asleep: ids of standing orders to cancel, or "all".</summary>
     public List<string> CancelStanding { get; set; } = new();
     /// <summary>Set by the runner when the script king stood in for a seat whose call failed: the seat has not seen this season.</summary>
     public bool FromFallback { get; set; }

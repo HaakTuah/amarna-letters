@@ -132,6 +132,8 @@ public sealed class AudienceView
     public int GoldStated { get; set; }
     public int GoldWeighed { get; set; }
     public TabletView? Proposal { get; set; }
+    /// <summary>The host chose to seal the <see cref="Proposal"/> at an earlier exchange of this audience: it is sealed when the audience ends.</summary>
+    public bool ProposalSealed { get; set; }
     public List<TabletView> CopiesShown { get; set; } = new();
     public List<Exchange> SoFar { get; set; } = new();
     /// <summary>Gold the host named in an earlier exchange to send home with the envoy (the latest amount named), or 0.</summary>

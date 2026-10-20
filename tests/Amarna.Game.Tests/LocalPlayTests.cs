@@ -137,7 +137,8 @@ public class LocalPlayTests
         await answering;
 
         var request = await File.ReadAllTextAsync(Path.Combine(bridge.Folders[Power.Alashiya], "t1_orders_Alashiya.request.md"));
-        Assert.StartsWith("# t1/orders/Alashiya", request);
+        Assert.StartsWith(FileExchange.Heading, request);
+        Assert.DoesNotContain("t1/orders/Alashiya", request);
         Assert.Contains("Decide as the king", request);
         Assert.Contains("Great King of Alashiya", request);
         Assert.Contains($"to: {bridge.ReplyPath(Power.Alashiya, "t1_orders_Alashiya")}", request);
@@ -308,7 +309,7 @@ public class LocalPlayTests
         {
             lock (asked) asked.Add(stem);
             return stem.Contains("orders")
-                ? """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":0,"wake_on":[]},"schedule":[]}"""
+                ? """{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"schedule":[]}"""
                 : Welcome;
         }, stop.Token);
         for (var i = 0; i < 4; i++) await runner.PlayTurnAsync();

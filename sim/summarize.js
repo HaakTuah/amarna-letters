@@ -71,7 +71,7 @@ if (sleep.length > 0) {
   out.push("", "## Seats: sleep, what woke them, and courts held");
   let held = 0, reopened = 0, stood = 0;
   for (const [p, st] of sleep) {
-    const spells = (st.history ?? []).map(h => `from t${h.from}${h.named ? ` (named t${h.named})` : ""} ${h.wokeAt ? `woke t${h.wokeAt}` : "still asleep"}${h.reasons?.length ? `: ${h.reasons.map(r => cap(r, 60)).join("; ")}` : ""}`);
+    const spells = (st.history ?? []).map(h => `from t${h.from} ${h.wokeAt ? `woke t${h.wokeAt}` : "still asleep"}${h.reasons?.length ? `: ${h.reasons.map(r => cap(r, 60)).join("; ")}` : ""}`);
     const courts = st.courts ?? [];
     held += courts.length; reopened += courts.filter(c => c.reopened).length; stood += courts.filter(c => c.standIn && !c.reopened).length;
     out.push(`- **${p}**: ${spells.length} spells; courts held ${courts.length}, reopened ${courts.filter(c => c.reopened).length}${courts.some(c => c.standIn) ? `, stand-in at ${courts.filter(c => c.standIn).length}` : ""}`);
