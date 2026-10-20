@@ -275,6 +275,13 @@ public class RequestsAreRulesTests
     }
 
     [Fact]
+    public void The_rulebook_says_a_bracketed_note_after_a_report_is_the_court_s_own_not_the_writer_s_words()
+    {
+        var rules = Prompts.LeaderRules(true, new GameConfig());
+        Assert.Contains("- In your news, a note in square brackets after a report or a pitch (what your weighers found against an inventory, the copies that came home with a spy's report, the wage a candidate asks) is your court's own record, not the words of the envoy, spy or candidate.", rules);
+    }
+
+    [Fact]
     public void A_letter_without_gold_or_a_tablet_says_its_purity_and_alliance_mark_are_not_asked_of_it()
     {
         var letter = (JsonObject)Schemas.LeaderOrders(new GameConfig())["properties"]!["letters"]!["items"]!["properties"]!;
@@ -289,12 +296,20 @@ public class RequestsAreRulesTests
         var asker = new RequestTextTests.Recorder();
         var mind = new LlmCharacterMind(asker);
         var spy = Envoy();
+        spy.Facts.Add(new Fact { Id = "f1", Text = "Born in Washukanni.", Secrecy = Secrecy.Public });
         spy.Remember(3, "I watched the court of Assyria.");
+        // Its report of season 3 was on the road when Assyria caught it and turned it.
         spy.Remember(5, "I was caught spying in Assyria.");
+        spy.Facts.Add(new Fact { Id = "f2", Text = "Was caught by Assyria and now secretly serves it.", Secrecy = Secrecy.Deep, Tag = "turned" });
+        spy.SecretMaster = Power.Assyria;
 
         await mind.WriteAsync(new MindContext
         {
-            Request = new MindRequest { Task = MindTask.SpyReport, CharacterId = spy.Id, Court = Power.Egypt, Report = new SpyReport { SpyId = spy.Id, Court = Power.Assyria, Observations = ["Assyria musters chariots."], ObservedTurn = 3 } },
+            Request = new MindRequest
+            {
+                Task = MindTask.SpyReport, CharacterId = spy.Id, Court = Power.Egypt,
+                Report = new SpyReport { SpyId = spy.Id, Court = Power.Assyria, Observations = ["Assyria musters chariots."], ObservedTurn = 3, FactCount = 1, SecretMaster = null },
+            },
             Self = spy, Turn = 5, Seed = 1,
         }, default);
 
@@ -302,5 +317,39 @@ public class RequestsAreRulesTests
         Assert.Contains("It is now season 3.", call.SeatSystem);
         Assert.DoesNotContain("season 5", call.SeatSystem);
         Assert.Contains("This season you observed: Assyria musters chariots.", call.User);
+        // It writes as the spy it was then: not yet caught, and serving Egypt alone.
+        Assert.Contains("Facts of your own life: Born in Washukanni.", call.SeatSystem);
+        Assert.DoesNotContain("caught", call.SeatSystem);
+        Assert.DoesNotContain("In secret you serve", call.SeatSystem);
+
+        // A report made before the spy's past was kept shows its life as it is.
+        await mind.WriteAsync(new MindContext
+        {
+            Request = new MindRequest { Task = MindTask.SpyReport, CharacterId = spy.Id, Court = Power.Egypt, Report = new SpyReport { SpyId = spy.Id, Court = Power.Assyria, Observations = ["Quiet."], ObservedTurn = 3 } },
+            Self = spy, Turn = 5, Seed = 1,
+        }, default);
+        Assert.Contains("In secret you serve Assyria, and you protect its interests.", asker.Calls[1].SeatSystem);
+    }
+
+    [Fact]
+    public void A_spy_s_report_keeps_what_the_spy_was_when_it_observed()
+    {
+        // The engine notes the spy's facts and secret master as it observes, for the report written when it arrives.
+        var s = GameFactory.NewGame(3, new GameConfig { CatastropheChance = 0 });
+        var spy = s.Characters.First(c => c.Employer == Power.Egypt && c.SecretMaster is null);
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Egypt] = new() { Orders = [new PlaceSpyOrder(spy.Id, Court: Power.Hatti)] } });
+        SpyReport? report = null;
+        for (var i = 0; i < 6 && report is null; i++)
+        {
+            e = new TurnEngine(s);
+            e.BeginTurn();
+            e.Resolve(new Dictionary<Power, TurnSubmission>());
+            report = s.Journeys.FirstOrDefault(j => j.Kind == JourneyKind.SpyReport)?.Report;
+        }
+        Assert.NotNull(report);
+        Assert.Equal(spy.Facts.Count, report!.FactCount);
+        Assert.Null(report.SecretMaster);
     }
 }

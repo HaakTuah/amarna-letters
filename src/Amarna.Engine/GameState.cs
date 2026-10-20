@@ -460,6 +460,14 @@ public sealed class SpyReport
     public int ObservedTurn { get; set; }
     /// <summary>Tablets the spy copied this season from the archive of the court it watches: the copies come home with the report.</summary>
     public List<string> TabletIds { get; set; } = new();
+    /// <summary>
+    /// How many facts of its own life the spy had when it observed (facts are only ever added), so that the report, written
+    /// when it arrives but of the season observed, shows the spy only those; null in a report made before this was kept
+    /// (the fix pass after item 4), which shows them all.
+    /// </summary>
+    public int? FactCount { get; set; }
+    /// <summary>Whom the spy secretly served when it observed (with <see cref="FactCount"/> set), if anyone.</summary>
+    public Power? SecretMaster { get; set; }
 }
 
 public sealed class PendingAudience

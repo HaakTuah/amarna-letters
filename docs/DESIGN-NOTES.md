@@ -550,7 +550,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   told. A spy's report is written when it arrives, of the season it was observed: a model-played
   spy remembers nothing that happened to it since (such as its capture), and its request says it is
   that season ("It is now season 3", where it once gave the season the report arrived, beside "This
-  season you observed"). A spy at a court also copies
+  season you observed"), with the facts of its life and its secret master as they were then (the
+  report keeps them: `SpyReport.FactCount`, `SpyReport.SecretMaster`), so a report still on the road
+  when the spy was caught and turned is not written by the double agent it became. A spy at a court also copies
   from its archive, and the copies come home with its report (see "Tablets lie in archives").
 - **A spy at a court is hidden from it** (since Build order item 4; the rulebook says so under the spies'
   paragraph). A spy posted at a court stands there (`Character.At`), but the court does not see it there
@@ -780,7 +782,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   - an envoy that was never received (its host's kingdom had fallen) reads "you were never received there: you came back
     without an audience", not "You told its king: """; one dismissed while away reports to the king who sent it, "who is
     no longer your lord";
-  - a spy's request gives the season it observed as the season it is (see Spies, under Characters);
+  - a spy's request gives the season it observed as the season it is, and its facts and secret master as they were then
+    (see Spies, under Characters);
+  - a character's request names its lord's land once ("You serve the king of Mitanni", "Karduniash (Babylonia)"), where it
+    read "Mitanni (Mitanni)";
   - an envoy remembers its own report ("I reported to my lord: "…""), without the court's note on the weighing that the
     king's news adds after it ("[The inventory lists …; your weighers found …]"), which it once remembered as its own words;
   - a file request's heading is no longer the call's key (see File seats);
@@ -805,7 +810,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   - lots of gold carry marks for the king's orders, which the scribes write as the gold, as copies of tablets do (see
     Naming tablets, under Communication);
   - the event a court logs when its examination finds a forgery names the tablet as that court does, not by the engine's
-    id ("Egypt found that tablet t12 is forged"): a narrator's chronicle reads the events a court knew.
+    id ("Egypt found that tablet t12 is forged"): a narrator's chronicle reads the events a court knew;
+  - the rulebook's WHAT YOU SEE says that a note in square brackets after a report or a pitch ("[The inventory lists …]",
+    "[With this report came copies …]", "[Mane asks 20 shekels a season.]") is the court's own record, not the words of
+    the envoy, spy or candidate, so the engine's outcomes and a character's words stay apart in the king's news too.
 - **Server-side refusal fallback** (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`)
   is on for Sonnet and Opus calls. Haiku has no server fallback; a refused Haiku call falls back
   to the script character.

@@ -53,21 +53,27 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
     /// For a report written of an earlier season (a spy's, written when it arrives): what you remember only up to that
     /// season, and that season as the one it is now, since the report is of it ("This season you observed").
     /// </param>
-    public static string Self(Character c, int turn, int? asOf = null)
+    /// <param name="then">
+    /// For a spy's report: what it was when it observed (its facts then, and whom it secretly served then), so that a report
+    /// arriving after its capture is not written by the spy it became since ("Requests are rules too").
+    /// </param>
+    public static string Self(Character c, int turn, int? asOf = null, SpyReport? then = null)
     {
         var sb = new StringBuilder();
         // Its trait words as its traits are now: loyalty lost to unpaid wages shows in how it is described.
         sb.AppendLine(Personas.Current(c));
         sb.AppendLine();
-        sb.AppendLine("Facts of your own life: " + string.Join(" ", c.Facts.Select(f => f.Text)));
-        sb.AppendLine(c.Employer is { } e ? $"You serve the king of {e.Land()} ({e}) for {c.Contract?.Wage ?? 0} shekels a season." : "You serve nobody at present.");
+        var known = then?.FactCount is int n ? c.Facts.Take(n) : c.Facts;
+        var secret = then?.FactCount is not null ? then.SecretMaster : c.SecretMaster;
+        sb.AppendLine("Facts of your own life: " + string.Join(" ", known.Select(f => f.Text)));
+        sb.AppendLine(c.Employer is { } e ? $"You serve the king of {LandName(e)} for {c.Contract?.Wage ?? 0} shekels a season." : "You serve nobody at present.");
         // Wages are paid at court: what he owes for seasons away is paid when the servant is back there, and lost if it leaves him.
         if (c.Employer is { } lord && c.BackPay.GetValueOrDefault(lord) is var owed and > 0)
             sb.AppendLine($"Your lord owes you {owed} shekels of back pay, paid when you return to his court.");
         // Back pay other courts owe it: paid only if it stands at that court again.
         foreach (var (court, due) in c.BackPay.Where(x => x.Key != c.Employer && x.Value > 0).OrderBy(x => x.Key))
             sb.AppendLine($"The king of {court.Land()} owes you {due} shekels of back pay, paid if you ever stand at his court again.");
-        if (c.SecretMaster is { } m) sb.AppendLine($"In secret you serve {m.Land()} ({m}), and you protect its interests.");
+        if (secret is { } m) sb.AppendLine($"In secret you serve {LandName(m)}, and you protect its interests.");
         // It knows its own wealth, never how it stands against others.
         var wealth = Wealth.Of(c);
         sb.AppendLine($"Your purse holds {c.Purse} shekels{(wealth.BackPay > 0 ? $"; with the back pay kings owe you, you are worth {wealth.Total} shekels" : "")}. It is now season {asOf ?? turn}.");
@@ -81,7 +87,10 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
         return sb.ToString();
     }
 
-    private Task<JsonObject> Ask(string key, int turn, string role, Character c, string user, JsonObject schema, CancellationToken ct, int? asOf = null) =>
+    /// <summary>A land by its own name, with the power's name after it where they differ ("Karduniash (Babylonia)", but "Mitanni").</summary>
+    private static string LandName(Power p) => p.Land() == p.ToString() ? p.Land() : $"{p.Land()} ({p})";
+
+    private Task<JsonObject> Ask(string key, int turn, string role, Character c, string user, JsonObject schema, CancellationToken ct, int? asOf = null, SpyReport? then = null) =>
         (askerFor(c) ?? throw new InvalidOperationException($"No mind for {c.Id}.")).AskJsonAsync(new CallSpec
         {
             Key = key,
@@ -89,7 +98,7 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
             Role = role,
             Model = model,
             SharedSystem = SharedSystem,
-            SeatSystem = Self(c, turn, asOf),
+            SeatSystem = Self(c, turn, asOf, then),
             User = user,
             Schema = schema,
             Effort = "low",
@@ -436,7 +445,7 @@ public sealed class LlmCharacterMind(Func<Character, IJsonAsker?> askerFor, stri
                 user.AppendLine("Write your report home, to be carried by a trusted messenger.");
                 // Written when it arrives, of the season it was observed: the spy remembers nothing that happened to it since
                 // (such as its capture), so the report cannot tell its master what the master has not heard.
-                var json = await Ask(key, ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct, asOf: r.ObservedTurn > 0 ? r.ObservedTurn : null);
+                var json = await Ask(key, ctx.Turn, $"spy:{c.Id}", c, user.ToString(), Schemas.Text("report", "Your report home."), ct, asOf: r.ObservedTurn > 0 ? r.ObservedTurn : null, then: r);
                 return new MindReply { Text = Parse.Field(json, "report") };
             }
             case MindTask.SummarizeMemory:
