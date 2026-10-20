@@ -130,6 +130,21 @@ public class RecordTextTests
     }
 
     [Fact]
+    public void An_envoys_promise_is_kept_in_full()
+    {
+        var (s, e, envoy, a) = AtAudience();
+        var promise = string.Concat(Enumerable.Repeat("My lord will hold Mira and Lukka and send no ships to Cyprus. ", 10)).Trim(); // about 600 characters
+        e.ApplyAudience(new AudienceRecord
+        {
+            AudienceId = a.Id,
+            Delivered = "Greetings.",
+            Rounds = [new AudienceRound { Host = new HostReply { Speech = "Swear it.", End = true }, Envoy = new EnvoyReaction { Speech = "I swear.", Commitments = promise } }],
+        });
+        Assert.Contains(TurnEngine.CommittedPrefix + promise, s.Trails.Single().Outcomes);
+        Assert.Contains($"{envoy.Name} promised on behalf of Egypt: \"{promise}\"", s.InboxOf(Power.Alashiya).Single(i => i.Kind == InboxKind.Audience).Body);
+    }
+
+    [Fact]
     public void The_host_reads_the_envoys_own_promise_apart_from_what_the_audience_brought_about()
     {
         var (s, e, envoy, a) = AtAudience();

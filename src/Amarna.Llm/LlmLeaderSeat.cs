@@ -63,7 +63,7 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
         // orders standing, its realm in brief, enough to judge whether the news changes its plan.
         user.Append(Prompts.CourtBrief(court, view.OrdersStand));
         if (court.Tablets.Count > 0)
-            user.AppendLine("Tablets you hold: " + string.Join(" | ", court.Tablets.Select(t => $"{t.Name} [your copy {t.CopyId}]: \"{Greeting.Cap(t.Text, 200)}\"")));
+            user.AppendLine("Tablets you hold, in full: " + string.Join(" | ", court.Tablets.Select(Prompts.TabletLine)));
         user.AppendLine(_journal.ForAudience());
         user.AppendLine(Prompts.Audience(view));
         var json = await client.AskJsonAsync(new CallSpec

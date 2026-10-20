@@ -752,8 +752,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   in the seat's record and are not part of the `HostReply`, which the engine applies and the envoy's
   mind reads. Then comes the king's own summary of earlier
   seasons ("YOUR SUMMARY OF EARLIER SEASONS (your own words, turn 6): ..."), then the last three
-  seasons it gave orders in full: its notes, the audiences it held (what it said to whose envoy) and
-  its orders. Older seasons leave the record, and the request says which turn's notes leave it after
+  seasons it gave orders in full: its notes, the audiences it held (what it said to whose envoy, in
+  full up to the 1,500 characters an envoy hears) and its orders. Older seasons leave the record, and the request says which turn's notes leave it after
   this season ("Your notes from turn 4 leave this record after this season; keep what you need in
   your summary."). Each season's notes are kept up to 2,000 characters; longer notes are cut with
   "…", and the schema says so. The summary is a reply field (`summary`, at most 2,000 characters,
@@ -769,10 +769,16 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   simulation-fixes round it held the last five seasons in full and the notes of the eight before,
   cut to 300 characters, with no summary and no ledger; the simulation's kings wrote a median of
   1,989 characters of notes a season, 107 of 134 replies over 1,500.)
-- **Audience requests** carry, besides the treasury, the count of lands and the tablets held, the
+- **Audience requests** carry, besides the treasury, the count of lands and the tablets held (in full,
+  each by its name with the king's mark for his copy: "Tablets you hold, in full: the tablet sealed by
+  Egypt and Hatti, dated turn 1 [your copy k901]: "…""), the
   host's own land and troops ("YOUR LAND: …. YOUR TROOPS: army in memphis, …") and the season's news
   as its orders request shows it ("NEWS THIS SEASON"), so a host does not tell an envoy that a city
-  is his when the news says the purchase failed. (Until the simulation-fixes round it had neither.)
+  is his when the news says the purchase failed. (Until the simulation-fixes round it had neither.
+  Until the fix pass after item 4 the tablets there, and the king's own speeches in his record, were
+  cut at 200 characters, and an envoy's promise in the host's record at 300, though the rulebook says
+  the record is shown in full: six or seven kings in each game of the second agent simulation said
+  so.)
 - **The web app's Rules tab** shows a human seat the rulebook a model king reads, word for word,
   with a note of where a human's game differs: orders are given with the controls rather than as
   JSON, and checked units first, then the other orders in the order the human added them (not

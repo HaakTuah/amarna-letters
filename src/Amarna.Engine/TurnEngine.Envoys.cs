@@ -343,7 +343,7 @@ public sealed partial class TurnEngine
             }
 
             if (!string.IsNullOrWhiteSpace(e.Commitments))
-                trail.Outcomes.Add(CommittedPrefix + Greeting.Cap(e.Commitments, 300));
+                trail.Outcomes.Add(CommittedPrefix + Greeting.Cap(e.Commitments, MaxSpeech));
 
             if (h.GoldBack > 0)
             {

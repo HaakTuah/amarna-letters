@@ -46,7 +46,7 @@ public sealed class LeaderJournal
     /// out is not the record's to say (one may be refused, or replaced by an order given after reopening): its news tells it.
     /// </summary>
     private static string AudienceLine((int Turn, string Who, string Speech, List<string> Sent) a, int? season) =>
-        $"{a.Who}{(a.Turn == season ? "" : $" (turn {a.Turn})")}: you said \"{Greeting.Cap(a.Speech, 200)}\""
+        $"{a.Who}{(a.Turn == season ? "" : $" (turn {a.Turn})")}: you said \"{Greeting.Cap(a.Speech, TurnEngine.MaxSpeech)}\""
         + (a.Sent.Count > 0 ? $"; letters you gave at the audience: {string.Join("; ", a.Sent)}" : "");
 
     /// <summary>
