@@ -283,7 +283,10 @@ public static class Views
             // Orders follow their units: each is shown as it would be given from where its unit stands now.
             v.Scheduled = sleep.Scheduled.GroupBy(x => x.Turn).OrderBy(g => g.Key)
                 .Select(g => new ScheduledOrders { Turn = g.Key, Orders = g.Select(x => TurnEngine.AsShown(s, p, x)).ToList() }).ToList();
-            v.Standing = sleep.Standing.Select(x => new StandingOrderView
+        }
+        // Every seat's standing orders, awake or asleep, each of its units named by where it stands now.
+        if (s.Standing.TryGetValue(p, out var book))
+            v.Standing = book.Orders.Select(x => new StandingOrderView
             {
                 Id = x.Id,
                 When = x.When,
@@ -291,7 +294,6 @@ public static class Views
                 Province = (x.When == StandingWhen.UnitAttacked ? s.Units.FirstOrDefault(u => u.Id == x.UnitId && u.Power == p)?.Province ?? x.Province : x.Province) ?? "",
                 Orders = x.Orders.Select(o => TurnEngine.AsShown(s, p, o)).ToList(),
             }).ToList();
-        }
 
         foreach (var c in s.Characters)
         {

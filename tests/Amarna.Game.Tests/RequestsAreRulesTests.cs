@@ -250,7 +250,8 @@ public class RequestsAreRulesTests
         var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0, SleepingSeats = false });
         var v = Views.For(s, Power.Egypt);
         Assert.Contains(v.Court, c => c.Ready);
-        Assert.Equal("Now give your orders for this season: your troops, your envoys and letters, and anything else.", Prompts.OrdersLine(v));
+        // Every king may give standing orders: they are named when it has troops for them to command.
+        Assert.Equal("Now give your orders for this season: your troops, your envoys and letters, standing orders, and anything else.", Prompts.OrdersLine(v));
         v.Sleeps = true;
         Assert.Equal("Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You sleep after them.", Prompts.OrdersLine(v));
 

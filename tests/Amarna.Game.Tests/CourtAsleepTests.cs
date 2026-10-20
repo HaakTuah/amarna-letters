@@ -314,10 +314,14 @@ public class CourtAsleepTests
                         + "Your answer to the envoy before you goes home only as his report of your words; a letter goes with your own envoy, in your words, with a mandate, gold, a tablet to seal or tablets shown as evidence. "
                         + "Then you choose: reopen your orders, and after your audiences you give orders this season with your full view, as when anything else wakes you; or let them stand and sleep on. Anything else that wakes you reopens your orders without asking (your audiences still come first).", rules);
 
-        // What a standing order costs and what it can win, beside a scheduled order and waking.
-        Assert.Contains("This is what a standing order can do that waking cannot: woken, you would answer the blow only the season after it fell. "
-                        + "Unlike a scheduled order, which runs in its season whatever happens, a standing order runs only if the move it waits for comes, and then in that very season: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), or support the walls of a walled city of yours holding (unit_enters on the city), as the blow falls. "
-                        + "Giving one costs nothing; its orders cost what they cost when they run (a levy its gold), and in the season it fires its units do its orders instead of their scheduled ones. It fires once, on the first move it waits for that you see, whether a real attack or a feint, and is then gone.", rules);
+        // What a standing order costs and what it can win, beside a scheduled order and waking: in the section every king
+        // reads (since the additions to the fix pass after item 4), and for a king that sleeps, beside his scheduled orders.
+        Assert.Contains("- So its orders meet the blow as it falls: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), or support the walls of a walled city of yours holding (unit_enters on the city), and a unit next to an empty province of yours can move into it, so that an attacker without support bounces.", rules);
+        Assert.Contains("- It fires once, on the first move it waits for that you see, whether a real attack or a feint, and is then gone.", rules);
+        Assert.Contains("Giving one costs nothing; its orders cost what they cost when they run (a levy its gold).", rules);
+        Assert.Contains("- Standing orders (see STANDING ORDERS) keep answering while you sleep: in the season one fires, its units do its orders instead of their scheduled ones, and its orders are checked before your scheduled orders. "
+                        + "A standing order firing does not wake you: you read it in your news. This is what a standing order can do that waking cannot: woken, you would answer the blow only the season after it fell. "
+                        + "Unlike a scheduled order, which runs in its season whatever happens, a standing order runs only if the move it waits for comes, and then in that very season.", rules);
         Assert.EndsWith("Giving one costs nothing; its orders cost what they cost when they run.", Schemas.LeaderOrders(new GameConfig())["properties"]!["standing_orders"]!["description"]!.GetValue<string>());
 
         // The audience held while the king's orders stand says the same of a letter sent from it.

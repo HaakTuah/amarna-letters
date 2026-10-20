@@ -19,6 +19,9 @@ public sealed class GameState
     /// script envoys keep a share of small lots of gold (rounded to the shekel, not down to fives), leave the host's
     /// complaint about the weighing out of their reports when they kept some, read a passive "warned" as a threat to a king
     /// only when he is the one warned, and split sentences after a closing quote, which changes what they keep and say.
+    /// Among the owner's additions to that pass, still under 5 since it was never released: every seat may keep standing
+    /// orders, awake or asleep, and a standing order that fires replaces the season's other orders for the same units or
+    /// people, those given that season among them.
     /// </summary>
     public const int CurrentVersion = 5;
 
@@ -49,6 +52,11 @@ public sealed class GameState
     public Dictionary<Power, int> CounterIntel { get; set; } = new();
     /// <summary>Seats that may sleep (model and file seats, when <see cref="GameConfig.SleepingSeats"/> is on). Each sees only its own.</summary>
     public Dictionary<Power, SleepState> Sleep { get; set; } = new();
+    /// <summary>
+    /// Every seat's standing orders, awake or asleep (since the additions to the fix pass after item 4); a seat that never
+    /// kept one has no entry. Each sees only its own.
+    /// </summary>
+    public Dictionary<Power, StandingBook> Standing { get; set; } = new();
 
     public Dictionary<Power, List<InboxItem>> Inbox { get; set; } = new();
     /// <summary>The orders each power could see resolve last season (its own and those in sight).</summary>
@@ -139,7 +147,7 @@ public static class IdKinds
         { "x", "catastrophe" },
     };
 
-    /// <summary>Standing orders are numbered per seat ("s1", "s2", ...) by <see cref="SleepState.LastStanding"/>, not here; no kind may take "s".</summary>
+    /// <summary>Standing orders are numbered per seat ("s1", "s2", ...) by <see cref="StandingBook.Last"/>, not here; no kind may take "s".</summary>
     public const string StandingOrder = "s";
 }
 

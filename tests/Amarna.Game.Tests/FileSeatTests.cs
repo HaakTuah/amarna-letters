@@ -257,7 +257,7 @@ public class FileSeatTests
         var sleep = runner.State.Sleep[Power.Alashiya];
         var scheduled = Assert.Single(sleep.Scheduled);
         Assert.Equal((3, fleet.Id), (scheduled.Turn, scheduled.UnitId));
-        var standing = Assert.Single(sleep.Standing);
+        var standing = Assert.Single(runner.State.Standing[Power.Alashiya].Orders);
         Assert.Equal(("s1", StandingWhen.UnitAttacked, fleet.Id), (standing.Id, standing.When, standing.UnitId));
         Assert.Contains("- s1: when your fleet now in enkomi is attacked, then: the fleet now in enkomi holds", Prompts.Situation(Views.For(runner.State, Power.Alashiya)));
     }

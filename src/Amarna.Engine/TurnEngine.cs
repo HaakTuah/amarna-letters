@@ -342,17 +342,12 @@ public sealed partial class TurnEngine
         _firedNow.Clear();
         _marchNow.Clear();
         _cededNow.Clear();
-        // Each sleeping seat's season before its standing orders fire; then the standing orders that answer this season's moves.
-        var seasons = S.Alive.ToDictionary(p => p, p =>
-        {
-            var given = submissions.GetValueOrDefault(p) ?? new TurnSubmission();
-            return (Sub: given, Plan: PlanSeason(p, given));
-        });
+        // Each seat's season before its standing orders fire; then the standing orders, any seat's, that answer this season's moves.
+        var seasons = S.Alive.ToDictionary(p => p, p => PlanSeason(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission()));
         var fires = StandingFires(seasons, validator);
         foreach (var p in S.Alive.ToList())
         {
-            var (given, plan) = seasons[p];
-            var sub = plan is null ? given : Compose(p, plan, fires.GetValueOrDefault(p) ?? []);
+            var sub = Compose(p, seasons[p], fires.GetValueOrDefault(p) ?? []);
             var v = validator.Validate(p, sub);
             valid[p] = v;
             if (v.Rejected.Count > 0)

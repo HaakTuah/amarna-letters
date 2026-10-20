@@ -211,7 +211,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   shekel instead of down to fives, leave the host's complaint about the weighing out of their reports when they kept
   some, tell their lord of a post they turned down (since the review), soften a passive "warned" only when the host
   is the one warned, and split sentences after a closing quote;
-  and script kings use the features they never used, under "Every feature is every seat's" in Script kings). A log
+  and script kings use the features they never used, under "Every feature is every seat's" in Script kings; among the
+  owner's additions to that pass, every seat may keep standing orders, a standing order that fires replaces the
+  season's other orders for its units and people, those given that season among them, under the same
+  unreleased version 5). A log
   saved under another version is refused, both for replay and for continuing it: "This game was saved under an
   earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3 and
   4). The web app shows that message
@@ -806,7 +809,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     had been received, and the season's audiences come before orders. An audience reads "an envoy of Hatti came to your
     court", an orders request "an envoy of Hatti came to your court (you received him before these orders)"
     (`Prompts.SleepLine`, `Prompts.Came`; the reason the engine keeps is unchanged);
-  - the orders request's closing line names only what applies (`Prompts.OrdersLine`; see Pacing, standing orders);
+  - the orders request's closing line names only what applies (`Prompts.OrdersLine`; see Pacing, standing orders): its
+    troops, its envoys and letters, with sleep on the orders for later seasons, and standing orders when it has troops
+    or sleeps (every king may give them since the owner's additions to the fix pass after item 4);
   - lots of gold carry marks for the king's orders, which the scribes write as the gold, as copies of tablets do (see
     Naming tablets, under Communication);
   - the event a court logs when its examination finds a forgery names the tablet as that court does, not by the engine's
@@ -914,7 +919,9 @@ again only when something concerns it or the hidden cap is reached: a king never
 wakes (the document's "Decided: sleep is the default" and "No triggers of the seat's own"; since the
 fix pass after item 4, save version 5). Script and human seats play every season as before. There is never a global skip, and each seat
 sees only its own wake-ups. With sleeping seats off, a king reads nothing of any of this: no sleep
-sections in the rulebook, no sleep fields in the schema, no opening sleep line.
+sections in the rulebook, no sleep fields in the schema, no opening sleep line. Standing orders are not
+a sleeping seat's alone: every seat may keep them, awake or asleep, and every king reads how they work in the
+rulebook's STANDING ORDERS section (see "Standing orders" below).
 
 - **Asleep.** The seat is not called for orders (an envoy at its door is received in an audience
   call; see below). Its units hold, and the orders it scheduled for that season run. Nobody is told
@@ -1329,9 +1336,12 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   unit's scheduled orders run from where it stands. Shifted orders are not counted again against
   the limit of 40 seasons. (The brief allowed a refused move to be tried again too; the round's
   plan for this part did not, and that is what is built.)
-- **Standing orders**, at most 12 (`standing_orders`), kept in the seat's own state until they fire
+- **Standing orders**, at most 12 (`standing_orders`), kept in the game state for each seat that
+  gave one (`GameState.Standing`, a `StandingBook` per seat with its orders and its last id) until they fire
   or are cancelled (`cancel_standing`: ids, or "all"; an unknown id is reported as "Standing orders
-  not cancelled"). Each has an id per seat ("s1", "s2", ...), one event and up to 24 orders, unit
+  not cancelled"). **Every seat may keep them, awake or asleep** (since the owner's additions to the
+  fix pass after item 4; see "For every seat" below): until then they were kept in a sleeping seat's
+  `SleepState`, and only a model or file seat with sleep on could give them. Each has an id per seat ("s1", "s2", ...), one event and up to 24 orders, unit
   orders and other orders in the same shapes as the schedule, bound to units as scheduled orders
   are. **A standing order answers a move in the season it is made** (since the fix pass after item
   4). The events: `unit_enters`, a unit of the power named (any foreign power's if none is named;
@@ -1346,9 +1356,16 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   resolves in one pass and the result does not depend on the order seats are read in. A move of the
   seat's own does not count (tested, each filter). A standing order first fires in the season after
   it is given. It fires once: its orders are given from where their units stand as the season
-  begins, replace scheduled orders for the same units or people (so "when the army in sippar is
-  attacked, it holds" stops the march it was scheduled to make), and give way to fresh orders the
-  seat gives that season (cancelled in that season, it does not fire). Two that fire in the same
+  begins, and replace the season's other orders for the same units or people: scheduled orders (so
+  "when the army in sippar is attacked, it holds" stops the march it was scheduled to make) and, since
+  the owner's additions to the fix pass after item 4, the orders the seat gives that season too
+  (`TurnEngine.Compose`). A seat that gives orders every season gives its units their orders as usual
+  and leaves the standing order to change them only if the blow comes; to keep one from firing it
+  cancels it (cancelled in that season, it does not fire). Until then fresh orders replaced a standing
+  order's, which suited a king woken for the season but left a seat that gives orders every season
+  (every unit of a human's has an order, a hold at least) with standing orders that could never act.
+  The orders are checked in this order: those given now, then the standing orders', then the scheduled
+  ones, then the stand-in's. Two that fire in the same
   season go by id: the lower id's orders replace the other's for the same units or people, so they
   never reach the validator as two orders for one unit (the rulebook says so). A fired move that is
   stopped is a failed order, but not a march: it is not tried again. It is then removed, and once
@@ -1356,8 +1373,10 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   each of its orders: "Your standing order s2 (when Assyria's troops enter arbela) fired in turn 3:
   Assyria's army set out from ekallatum for arbela. It gave these orders: durkurigalzu holds.
   Replaced by standing order s1, which fired in the same season: babylon holds.", with "Refused:
-  sippar -> ur (an army in sippar cannot reach ur)." and "Replaced by the orders you gave for turn
-  3: ..." where they apply. Firing does not wake the seat (the digest has "turn 3: your standing
+  sippar -> ur (an army in sippar cannot reach ur)." and "They replaced these orders you gave for turn
+  3: durkurigalzu -> nippur." where they apply (an order given that season that the standing order
+  repeats exactly is not counted as replaced; until the additions it read "Replaced by the orders you
+  gave for turn 3: ...", the other way round). Firing does not wake the seat (the digest has "turn 3: your standing
   order s1 fired"); an order of it that others foil does ("a standing order of yours could
   not be carried out: s1: babylon -> durkurigalzu (it met a move into durkurigalzu from ekallatum
   ...)", tested). A standing order that cannot be kept (a province that does not exist, no unit of
@@ -1397,9 +1416,36 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You
     sleep after them." (`Prompts.OrdersLine`; since "Requests are rules too" it names the troops only
     when the king has some, and the envoys and letters only when one of its people is at court and
-    ready.) Script kings give no standing orders: they never sleep, and the feature audit of
-    this fix pass left the orders that exist only for a king who sleeps to sleeping seats (see "Every
-    feature is every seat's" under Script kings). The audit at the start of item 5 looks at it again.
+    ready.) Since the owner's additions this paragraph is the rulebook's STANDING ORDERS section, which
+    every king reads, and the sleeping section keeps what concerns sleep (below).
+  - **For every seat** (the owner's additions to the fix pass after item 4; the design document's "the
+    game adds no position that exists for one kind of seat only", and the review's finding that a
+    same-season reaction existed for sleeping seats alone). The feature audit of the fix pass had left
+    standing orders to sleeping seats ("Script kings give no standing orders: they never sleep"); the
+    review asked that it be built rather than deferred. Now:
+    - **The engine** keeps every seat's standing orders alike (`GameState.Standing`). A seat that plays
+      every season keeps the ones it gives in any season, unless the stand-in gave them
+      (`TurnEngine.AfterValidation`), cancels in the season it gives the cancellation, and has troops it
+      lost take their standing orders with them at the wake check, which runs for every seat
+      (`TurnEngine.WakeCheck`, `LostUnits`). Every seat's season is planned and composed the same way
+      (`TurnEngine.PlanSeason`, `Compose`); for a seat that does not sleep there is simply no schedule
+      and no letters from audiences. With no standing order waiting anywhere, a season resolves exactly
+      as before (tested by the benchmarks of the change before the script kings gave any).
+    - **The view** shows every seat its standing orders (`SeatView.Standing`), and the orders request
+      lists them under YOUR STANDING ORDERS whether or not the king sleeps.
+    - **The rulebook** has a section of its own, STANDING ORDERS, after MOVEMENT AND COMBAT, for every
+      king: what a standing order waits for, what it can do as the blow falls (support a troop or a
+      walled city of the king's holding, or march into an empty province of his so that a lone attacker
+      bounces), how its units are named, that its orders replace the king's other orders for the season
+      and how to stop it (cancel it), that it fires once and first the season after it is given, the
+      limits and the cost. HOW A SEASON RESOLVES says at step 6 that standing orders that fire answer
+      the moves just ordered. The sleeping section keeps one bullet: standing orders keep answering
+      while the king sleeps, in place of his scheduled orders, firing does not wake him, and this is
+      what a standing order can do that waking cannot.
+    - **The schema** offers `standing_orders` and `cancel_standing` to every king; `schedule` only with
+      sleep on. Its description says the standing order's orders replace the king's other orders that
+      season, those he gives then among them ("and your scheduled ones" with sleep on), that it first
+      fires the season after it is given, and, with sleep on only, what wakes him.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
   again next season, told why it was woken in the season it missed (it never read that) and what
@@ -1407,7 +1453,7 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   carried, without repeats, until the seat answers itself. The stand-in is not the seat: the seat's
   own plans for that season go first (the standing orders that fire, the scheduled orders due, a
   march's step tried again), and the stand-in's orders only fill the units and people they leave
-  free; it neither replaces the schedule nor cancels standing orders. (Until the review of Part D its
+  free; it neither replaces the schedule nor gives or cancels standing orders, whether the seat sleeps or not (since the owner's additions to the fix pass after item 4, a model seat with sleep off keeps standing orders too). (Until the review of Part D its
   orders counted as the seat's own fresh orders, so the script king's holds used up a standing order
   that fired that season and dropped the scheduled moves due, and the seat was told that "the orders
   you gave" replaced them.) A call that fails at an audience held while the seat's orders stand

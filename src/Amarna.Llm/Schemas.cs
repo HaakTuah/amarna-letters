@@ -67,30 +67,35 @@ public static class Schemas
         ("seals", Array(Str(), described ? "Powers whose seals a forgery bears." : null)));
 
     /// <summary>
-    /// A king's orders. With sleeping seats on, it sleeps after them until something concerns it: it never chooses when it
-    /// wakes, so it schedules orders for later seasons and gives or cancels standing orders. Nothing here names the cap on
-    /// its sleep.
+    /// A king's orders. Every king may give and cancel standing orders (since the additions to the fix pass after item 4:
+    /// "Every feature is every seat's"). With sleeping seats on, it sleeps after them until something concerns it: it never
+    /// chooses when it wakes, so it also schedules orders for later seasons. Nothing here names the cap on its sleep.
     /// </summary>
     public static JsonObject LeaderOrders(GameConfig? c = null)
     {
         var o = LeaderOrdersBase(c?.SharedVictory ?? false);
-        if (c is not { SleepingSeats: true }) return o;
+        var sleeps = c is { SleepingSeats: true };
         var props = (JsonObject)o["properties"]!;
         var required = (JsonArray)o["required"]!;
-        props["schedule"] = Array(Object(
-            ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
-            ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands. A unit a levy is to raise (one you order now or schedule for an earlier season): the province of the levy.")),
-            ("other_orders", Array(OtherOrder()))),
-            $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order wakes you only if others foil it, never if it is refused or fails by your own orders; a scheduled move that is stopped is tried once more (see the rulebook).");
+        if (sleeps)
+        {
+            props["schedule"] = Array(Object(
+                ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
+                ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands. A unit a levy is to raise (one you order now or schedule for an earlier season): the province of the levy.")),
+                ("other_orders", Array(OtherOrder()))),
+                $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order wakes you only if others foil it, never if it is refused or fails by your own orders; a scheduled move that is stopped is tried once more (see the rulebook).");
+            required.Add("schedule");
+        }
         props["standing_orders"] = Array(Object(
             ("when", Enum(["unit_enters", "unit_attacked"])),
             ("province", Str("unit_enters: the province the troops move into. unit_attacked: where your unit stands now.")),
             ("power", Str("unit_enters: whose troops, or empty for any foreign power's. Otherwise empty.")),
-            ("units", Array(UnitOrder(described: false), "As in schedule: your units named by where they stand now.")),
+            ("units", Array(UnitOrder(described: false), "As in units, each of your units named by the province it stands in now: the order follows that unit, and is given from wherever it then stands.")),
             ("other_orders", Array(OtherOrder(described: false), "As in other_orders."))),
-            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the move it waits for, its orders run in that same season, once, before your scheduled orders, so they meet the move; orders you give that season replace them. Firing does not wake you; an order of it that others foil does. Giving one costs nothing; its orders cost what they cost when they run.");
-        props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\".");
-        required.Add("schedule");
+            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the move it waits for, its orders run in that same season, once, so they meet the move: they replace your other orders for the same units or people that season, those you give then among them{(sleeps ? " and your scheduled ones" : "")} (cancel it to stop it). It first fires in the season after you give it."
+            + (sleeps ? " Firing does not wake you; an order of it that others foil does." : "")
+            + " Giving one costs nothing; its orders cost what they cost when they run.");
+        props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\". Cancelled now, one does not fire this season.");
         required.Add("standing_orders");
         required.Add("cancel_standing");
         return o;

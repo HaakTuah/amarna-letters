@@ -88,6 +88,19 @@ public sealed class StandingOrder
     public List<PlannedOrder> Orders { get; set; } = new();
 }
 
+/// <summary>
+/// A seat's standing orders. Every seat may keep them, awake or asleep, script, human, model or file seat (since the
+/// additions to the fix pass after item 4, by the tenet "Every feature is every seat's"; before, only a seat that sleeps had
+/// them, in its <see cref="SleepState"/>). A seat that never kept one has none (<see cref="GameState.Standing"/>).
+/// </summary>
+public sealed class StandingBook
+{
+    /// <summary>Its standing orders, kept until they fire or are cancelled.</summary>
+    public List<StandingOrder> Orders { get; set; } = new();
+    /// <summary>The number of the last standing order it was given, for the next id.</summary>
+    public int Last { get; set; }
+}
+
 /// <summary>A standing order as its seat reads it: its unit and its orders named by where they stand now.</summary>
 public sealed class StandingOrderView
 {
@@ -111,12 +124,11 @@ public sealed class SleepState
     public int LastCalled { get; set; }
     /// <summary>The season it wakes at the latest: the hidden cap (<see cref="GameConfig.MaxSleep"/>), which no rulebook or view names.</summary>
     public int WakeAt { get; set; }
-    /// <summary>Its scheduled orders, each bound to its unit, in the order they run: by season, then as given.</summary>
+    /// <summary>
+    /// Its scheduled orders, each bound to its unit, in the order they run: by season, then as given. (Its standing orders,
+    /// which every seat may keep, are in <see cref="GameState.Standing"/>.)
+    /// </summary>
     public List<PlannedOrder> Scheduled { get; set; } = new();
-    /// <summary>Its standing orders, kept until they fire or are cancelled.</summary>
-    public List<StandingOrder> Standing { get; set; } = new();
-    /// <summary>The number of the last standing order it was given, for the next id.</summary>
-    public int LastStanding { get; set; }
     /// <summary>What happened in the seasons it slept through that did not wake it, one line each, shown when it wakes.</summary>
     public List<string> Digest { get; set; } = new();
     /// <summary>Digest lines left out because the digest was full (the oldest go first).</summary>
