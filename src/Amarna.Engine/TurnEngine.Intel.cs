@@ -341,7 +341,7 @@ public sealed partial class TurnEngine
                 if (cover is null) CoverFor(c, master, Duty.None);
                 c.Status = CharacterStatus.Employed;
                 c.SecretMaster = host;
-                c.PoisonText = Greeting.Cap(co.Poison, 600);
+                c.PoisonText = Scribe(host, Greeting.Cap(co.Poison, 600));
                 c.Duty = Duty.SpyPosted;
                 c.HeldBy = null;
                 // Back at its post, where it watched from before (a court, or out in a province): what its master believed all along.
@@ -518,7 +518,8 @@ public sealed partial class TurnEngine
             else result = genuine;
         }
         copy.AuthResult = result;
-        S.Notify(task.Requester, InboxKind.Authentication, "Examination of a tablet", $"\"{Greeting.Cap(tablet.Text, 200)}\" — {result}");
+        // The tablet as every court names it, the court's own mark for its copy, and its text in full.
+        S.Notify(task.Requester, InboxKind.Authentication, "Examination of a tablet", $"{Views.Capitalized(Views.TabletName(tablet, Archive(task.Requester)))} (your copy {copy.Id}): \"{tablet.Text}\" — {result}");
         S.Log("authenticate", $"{task.Requester} paid to authenticate a tablet.", [task.Requester], "authentication");
     }
 
@@ -537,7 +538,7 @@ public sealed partial class TurnEngine
         var tablet = new Tablet
         {
             Id = S.NewId("t"),
-            Text = Greeting.Cap(f.Text, 1200),
+            Text = Scribe(p, Greeting.Cap(f.Text, 1200)),
             ProposedBy = seals[0],
             Partner = seals.Count > 1 ? seals[1] : null,
             Seals = seals,

@@ -44,8 +44,8 @@ public class RulebookTextTests
         s.Tablets.Add(new Tablet { Id = "t900", Text = "Peace.", ProposedBy = Power.Hatti, Partner = Power.Egypt, Seals = [Power.Hatti, Power.Egypt], CreatedTurn = 1, SealedTurn = 1 });
         s.Copies.Add(new TabletCopy { Id = "k900", TabletId = "t900", Holder = Power.Egypt, AcquiredTurn = 1, Source = "copied from the archive of Hatti by your spy Mane" });
         var text = Prompts.Situation(Views.For(s, Power.Egypt));
-        Assert.Contains("YOUR ARCHIVE (the tablets you hold, kept at your capital; copy id: text; seals; how it came to you):", text);
-        Assert.Contains("- k900: \"Peace.\" Seals: Hatti, Egypt, dated turn 1. (copied from the archive of Hatti by your spy Mane)", text);
+        Assert.Contains("YOUR ARCHIVE (the tablets you hold, kept at your capital: each as every court names it, by its seals and date; your own mark for your copy, for your orders only; its text; how it came to you):", text);
+        Assert.Contains("- the tablet sealed by Hatti and Egypt, dated turn 1 [your copy k900]: \"Peace.\" (copied from the archive of Hatti by your spy Mane)", text);
     }
 
     [Fact]

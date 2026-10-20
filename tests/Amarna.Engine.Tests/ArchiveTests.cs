@@ -60,7 +60,7 @@ public class ArchiveTests
         var copy = s.Copies.Single(k => k.TabletId == "t900" && k.Holder == Power.Babylonia);
         Assert.Equal($"copied from the archive of Assyria by your spy {spy.Name}", copy.Source);
         var report = s.InboxOf(Power.Babylonia).First(i => i.Kind == InboxKind.SpyReport);
-        Assert.Contains($"[With this report came copies {spy.Name} made in the archive of Assyria, now in your archive: {copy.Id} (sealed by Assyria and Hatti, dated turn 1).]", report.Body);
+        Assert.Contains($"[With this report came copies {spy.Name} made in the archive of Assyria, now in your archive: the tablet sealed by Assyria and Hatti, dated turn 1 (your copy {copy.Id}).]", report.Body);
         Assert.Contains(Views.For(s, Power.Babylonia).Tablets, t => t.CopyId == copy.Id && t.Text.Contains("against Babylonia"));
         Assert.Contains(s.Events, e => e.Signal == "archive-copied" && e.VisibleTo.SequenceEqual([Power.Babylonia]));
 
@@ -148,7 +148,7 @@ public class ArchiveTests
         Assert.Equal([Power.Assyria, Power.Hatti, Power.Babylonia], HoldersOf(s, "t900"));
 
         var notice = s.InboxOf(Power.Babylonia).Single(i => i.Title == TurnEngine.ArchiveTakenTitle);
-        Assert.Equal($"With {WorldMap.Default[capital].Name} you took the archive of Assyria: copies of 1 tablet you did not hold are now in your archive: {taken[0].Id} (sealed by Assyria and Hatti, dated turn 1).", notice.Body);
+        Assert.Equal($"With {WorldMap.Default[capital].Name} you took the archive of Assyria: copies of 1 tablet you did not hold are now in your archive: the tablet sealed by Assyria and Hatti, dated turn 1 (your copy {taken[0].Id}).", notice.Body);
         // Read next season, with the rest of the season's news.
         Assert.Equal(s.Turn, notice.Turn);
         foreach (var p in Powers.All.Where(p => p != Power.Babylonia))

@@ -63,7 +63,7 @@ public static class Schemas
         ("amount", Int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)),
         ("term", Int(described ? "hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice; else 0." : null)),
         ("text", Str(described ? "Forgery text, words for a released envoy, or what a turned spy should report." : null)),
-        ("item", Str(described ? "Gold lot id for assay, tablet copy id for authenticate." : null)),
+        ("item", Str(described ? "Gold lot id for assay; for authenticate, your mark for your copy of the tablet (like k8), as your archive gives it." : null)),
         ("seals", Array(Str(), described ? "Powers whose seals a forgery bears." : null)));
 
     /// <summary>
@@ -122,7 +122,7 @@ public static class Schemas
             ("sworn_alliance", Bool(sharedVictory
                 ? "Mark the tablet as a sworn alliance (counts for a shared victory)."
                 : "Mark the tablet as a sworn alliance, an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.")),
-            ("show_tablet_copies", Array(Str(), "Ids of tablet copies you hold to show as evidence.")));
+            ("show_tablet_copies", Array(Str(), "Your marks for the copies of tablets you hold (like k8), as your archive gives them, to show as evidence.")));
 
     /// <summary>The king's ledger of dealings, written the same way in an orders reply and in an audience reply.</summary>
     private static JsonObject Ledger() => Array(Object(

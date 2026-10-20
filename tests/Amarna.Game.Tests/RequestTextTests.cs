@@ -157,6 +157,59 @@ public class RequestTextTests
             Personas.Current(envoy));
     }
 
+    /// <summary>Sends one envoy to Hatti in the first season; answers every audience plainly.</summary>
+    private sealed class Sender(string envoyId) : ISeat
+    {
+        public string Label => "Sender";
+        public Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct) => Task.FromResult(view.Turn == 1
+            ? new TurnSubmission { Orders = [new DispatchOrder(envoyId, Power.Hatti, "Greetings, brother.")] }
+            : new TurnSubmission());
+        public Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct) => Task.FromResult(new HostReply { End = true });
+    }
+
+    /// <summary>Hatti's king, who speaks of his copy of a tablet by his own mark and of a person by id.</summary>
+    private sealed class Marker(string words) : ISeat
+    {
+        public string Label => "Marker";
+        public Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct) => Task.FromResult(new TurnSubmission());
+        public Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct) =>
+            Task.FromResult(new HostReply { Speech = words, Bribe = 5, BribeAsk = "Remember k901.", End = true });
+    }
+
+    private sealed class Idle : ISeat
+    {
+        public string Label => "Idle";
+        public Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct) => Task.FromResult(new TurnSubmission());
+        public Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct) => Task.FromResult(new HostReply { End = true });
+    }
+
+    [Fact]
+    public async Task A_hosts_marks_for_his_copies_reach_the_envoy_as_the_tablets_names()
+    {
+        var state = GameFactory.NewGame(5, new GameConfig { CatastropheChance = 0, MinTurns = 40 });
+        state.Tablets.Add(new Tablet { Id = "t900", Text = "Peace.", ProposedBy = Power.Egypt, Partner = Power.Hatti, Seals = [Power.Egypt, Power.Hatti], CreatedTurn = 1, SealedTurn = 1 });
+        state.Copies.Add(new TabletCopy { Id = "k901", TabletId = "t900", Holder = Power.Hatti, AcquiredTurn = 1, Source = "sealed at audience" });
+        var envoy = state.Characters.First(c => c.Employer == Power.Egypt);
+        envoy.SecretMaster = null;
+        // Greedy enough to take the gift, so it remembers what was asked for it.
+        (envoy.Traits.Greed, envoy.Traits.Loyalty) = (95, 10);
+        var seats = Powers.All.ToDictionary(p => p, p => p switch
+        {
+            Power.Egypt => new Sender(envoy.Id),
+            Power.Hatti => new Marker($"The peace of k901 holds, as {envoy.Id} knows."),
+            _ => (ISeat)new Idle(),
+        });
+        var runner = new GameRunner(state, seats, new Bots.ScriptMind(), new Bots.TemplateNarrator()) { WriteChronicles = false };
+        await runner.PrepareAsync();
+        for (var i = 0; i < 4 && state.Trails.All(t => t.Exchanges.Count == 0); i++) await runner.PlayTurnAsync();
+
+        var heard = state.Trails.Single().Exchanges.Single().Host;
+        Assert.Equal($"The peace of the tablet sealed by Egypt and Hatti, dated turn 1 holds, as {envoy.Name} knows.", heard);
+        // What it asked for a gift too; the log keeps the king's own words.
+        Assert.Contains(envoy.Memory, m => m.Text.Contains("Remember the tablet sealed by Egypt and Hatti, dated turn 1."));
+        Assert.Contains(runner.Log.Decisions, d => d.Key.EndsWith("/host/1", StringComparison.Ordinal) && d.Json.Contains("k901", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void A_reply_without_the_gold_fields_keeps_nothing_and_swaps_nothing()
     {

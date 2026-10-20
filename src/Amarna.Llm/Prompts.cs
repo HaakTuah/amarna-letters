@@ -83,6 +83,7 @@ public static class Prompts
             EVIDENCE AND INTELLIGENCE
             - Tablets: free text that both kings seal (the scribe costs {c.TabletFee}). A sealed tablet obliges nobody and the engine never enforces it, but a copy can be shown to a third court as proof.
             - Archives: every tablet you hold (those you sealed, and the copies you were shown or brought) lies in your archive at your capital, and so it is at every court. A spy watching a court copies from its archive: each season it is not caught, with a chance of (the spy's skill, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court, or watching a court that has fallen, copies nothing for you. Whoever takes a king's capital, or is ceded it, gains at once a copy of every tablet in his archive, and the king keeps his own. So a spy at your court may copy your tablets, and whoever takes your capital gains copies of them all.
+            - Naming tablets: every court names a tablet by its seals and the date it bears ("the tablet sealed by Egypt and Hatti, dated turn 4", with its opening words where two share both). Your archive also gives each of your copies a mark of your own (like k8) for your orders (show_tablet_copies, authenticate); every court marks its copies differently, so another court's k8 is another tablet or none. In what other courts read (your letters, mandates and tablets, and your words at an audience), your scribes write any mark of yours as the tablet it names, and any person id as that person's name.
             - Forgery: a skilled servant can forge a tablet bearing other kings' seals ({c.ForgeFee}; one without the skill ruins the clay, which you still pay for). Any court can pay at least 10 to have a tablet examined, and hears the result next season. Examination is never certain: a genuine tablet reads genuine 95% of the time (otherwise the scribes cannot agree); a forgery is found with a chance of 20% + shekels paid/200 - (the forger's skill, 0-100)/150, between 5% and 95%, and once found is traced to the forger's court with a chance of 30% + shekels paid/400, between 30% and 80%, which is announced to every court.
             - Spies watch a court or a province and send a report every season, which reaches you as long after as the journey takes. Each season a spy is caught with a chance of 5% + (what the court it watches, or the one holding the province it watches, spends on watchmen that season)/300 - (the spy's skill, 0-100)/400, between 2% and 60%; a spy watching a province that no power holds, or one you hold yourself, is never caught, nor is one still watching a court that has fallen. Watchmen (counter_intelligence) are paid for one season at a time. A spy posted at a court watches in secret: that court does not see it there, nor whom it serves, until its watchmen catch it, unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing, and is not paid any back pay you owe it while it hides there. A caught spy may confess whom it serves. Caught spies can be executed, ransomed, turned into double agents, or released. Ransoming or turning a captive whose kingdom has fallen is refused, and so is turning one whose king has dismissed them: nobody is left to pay or to deceive.
             - Ransoms: a demand reaches the captive's king (for a captive dismissed while held, the king who dismissed them) as a rumour, and can be paid (pay_ransom) only once it has reached you. A captive has one demand at a time: a new demand replaces the old one once its word reaches you, and until then the old one can still be paid. A demand not paid within four seasons of being made lapses. The ransom travels on its own and is never refunded; the captor frees the captive if they still hold them. pay_ransom is refused before the demand has reached you, once you know the captive is no longer held by the court that asked, and while a ransom for them is already on its way.
@@ -139,7 +140,7 @@ public static class Prompts
         sb.AppendLine("""
 
             HOW TO ANSWER
-            Reply with one JSON object that matches the schema. Use province ids (like "memphis") and person ids (like "c12") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply.
+            Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply.
             """);
         return sb.ToString();
     }
@@ -242,9 +243,9 @@ public static class Prompts
 
         if (v.Tablets.Count > 0)
         {
-            sb.AppendLine("YOUR ARCHIVE (the tablets you hold, kept at your capital; copy id: text; seals; how it came to you):");
+            sb.AppendLine("YOUR ARCHIVE (the tablets you hold, kept at your capital: each as every court names it, by its seals and date; your own mark for your copy, for your orders only; its text; how it came to you):");
             foreach (var t in v.Tablets)
-                sb.AppendLine($"- {t.CopyId}: \"{t.Text}\" Seals: {string.Join(", ", t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")}{(t.AllianceOath ? ", a sworn alliance" : "")}. ({t.Source}{(t.AuthResult is not null ? "; examined: " + t.AuthResult : "")})");
+                sb.AppendLine($"- {TabletLine(t)}{(t.AllianceOath ? " A sworn alliance." : "")} ({t.Source}{(t.AuthResult is not null ? "; examined: " + t.AuthResult : "")})");
         }
         sb.AppendLine($"ENVOY TRAVEL: {string.Join("; ", v.TravelTimes)}.");
 
@@ -268,6 +269,12 @@ public static class Prompts
         sb.Append(News(v));
         return sb.ToString();
     }
+
+    /// <summary>
+    /// A tablet the king holds: its name, which every court gives it (its seals and date), then the king's own mark for its
+    /// copy, which only its orders use (another court numbers its copies differently), then its text.
+    /// </summary>
+    public static string TabletLine(TabletView t) => $"{t.Name} [your copy {t.CopyId}]: \"{t.Text}\"";
 
     /// <summary>
     /// After the letters a king sent from its audiences this season: the gold they carry, which the treasury it reads does not

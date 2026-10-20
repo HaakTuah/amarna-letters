@@ -225,7 +225,7 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     no risk. The tablet ids travel in the report (`SpyReport.TabletIds`); when the report arrives, each tablet the master
     does not hold by then becomes a copy in its archive ("copied from the archive of Assyria by your spy Mane"), and the
     engine adds a line to the report: "[With this report came copies Mane made in the archive of Assyria, now in your
-    archive: k123 (sealed by Assyria and Hatti, dated turn 4).]" (no text there: the archive shows it, and the script
+    archive: the tablet sealed by Assyria and Hatti, dated turn 4 (your copy k123).]" (no text there: the archive shows it, and the script
     kings' reading of spy reports for troops stays clean). A report that never comes home (the spy caught before it was
     sent) brings nothing. A spy turned by the court it watches copies nothing: it sends home only what that court tells
     it. A spy watching a province, or a court that has fallen, copies nothing, and a report reaching a court that has
@@ -234,8 +234,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   - **Whoever takes a capital gains copies of its archive.** When a court's capital passes to another power at the
     end of movement, or by cession (the archive lies in the city), that power gains at once a copy of every tablet in
     the court's archive it does not hold already ("taken with the archive of Assyria at Ashur"), and reads next season
-    "With Ashur you took the archive of Assyria: copies of 2 tablets you did not hold are now in your archive: k130
-    (sealed by Assyria and Hatti, dated turn 4), k131 (…)." (or that it held nothing new). The court keeps its own copies:
+    "With Ashur you took the archive of Assyria: copies of 2 tablets you did not hold are now in your archive: the
+    tablet sealed by Assyria and Hatti, dated turn 4 (your copy k130), … (your copy k131)." (or that it held nothing new). The court keeps its own copies:
     copied, not seized, since its king still knows what he sealed and the game has no way to make him forget it. A court
     retaking its own capital gains nothing. The archive is whatever the court holds at that moment, so a third power
     taking the capital from its occupier gains the court's archive too, including what the court sealed after it lost
@@ -247,6 +247,23 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   - The rulebook says so under EVIDENCE AND INTELLIGENCE ("Archives: …", including that a spy turned by the court it
     watches, or watching a court that has fallen, copies nothing), and the web app's Orders tab heads the list "Your
     archive".
+  - **Naming tablets** (since the fix pass after item 4). Every court names a tablet the same way, by its kind, seals and
+    the date it bears (`Views.TabletName`: "the tablet sealed by Babylonia and Mitanni, dated turn 2", "the inventory
+    sealed by Egypt, dated turn 3"), with its first eight words added where the archive holds another of the same kind,
+    seals and date. A copy's id ("k8") is each court's own mark, for its orders only (`show_tablet_copies`,
+    `authenticate`): the archive lists "- the tablet sealed by Hatti and Egypt, dated turn 1 [your copy k900]: "Peace."
+    (how it came)", the audience request's "Tablets you hold" the same, and notices name the tablet before the mark
+    ("… (your copy k130)"); the examination notice gives the tablet's text in full. **The scribes**
+    (`TurnEngine.Scribe`) write what other courts read with the writer's own marks as the tablets' names, and person ids
+    ("c12", or "Mane (c12)") as the people's names: a letter, its mandate and its tablet (at dispatch, so the envoy, the
+    host and the record all read the scribed text), a host's words and what it asks for a gift at an audience (in the
+    runner, after the reply is logged, so the log keeps the king's own words and a replay scribes them again), the words
+    given with a release, what a turned spy is to report, and a forgery's text. Marks that are not the writer's, and all
+    other text, stay as written. The rulebook says so ("Naming tablets: …"), its HOW TO ANSWER asks for ids and marks "in
+    your orders", and the schema's descriptions of `show_tablet_copies` and `item` speak of "your marks". (Until then
+    each court read its own copy ids as the tablets' names, and kings used them aloud: in the second agent simulation
+    Babylonia's "the peace of k8" reached Mitanni, whose copy had another id, and an envoy turned it into "the peace of
+    turn eight". Script kings write no ids in their letters, so their games are unchanged.)
 - **Gold travels with envoys.** The tablet's inventory states the amount; the host's weighers find
   what is left after any skimming. Purity is hidden until an assay.
 - **The inventory is a tablet** (since Build order item 3). Gold an envoy carries comes with an inventory sealed by the

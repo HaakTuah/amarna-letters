@@ -53,6 +53,9 @@ public sealed class CharacterView
 
 public sealed class TabletView
 {
+    /// <summary>The tablet as every court names it, by its seals and date (see <see cref="Views.TabletName"/>).</summary>
+    public string Name { get; set; } = "";
+    /// <summary>This court's own mark for its copy, for its orders only: every court numbers its copies differently.</summary>
     public string CopyId { get; set; } = "";
     public string TabletId { get; set; } = "";
     public string Text { get; set; } = "";
@@ -283,11 +286,16 @@ public static class Views
             if (ours) v.Court.Add(cv); else v.Known.Add(cv);
         }
 
+        var archive = new List<Tablet>();
         foreach (var copy in s.Copies.Where(x => x.Holder == p))
         {
             var tab = s.Tablets.FirstOrDefault(x => x.Id == copy.TabletId);
-            if (tab is not null) v.Tablets.Add(Tablet(tab, copy));
+            if (tab is null) continue;
+            v.Tablets.Add(Tablet(tab, copy));
+            archive.Add(tab);
         }
+        // Named as every court names them, with their opening words where the archive holds two of the same seals and date.
+        foreach (var (view, tab) in v.Tablets.Zip(archive)) view.Name = TabletName(tab, archive);
 
         foreach (var other in s.Alive.Where(x => x != p))
             v.TravelTimes.Add($"{other}: {engine.TravelTurns(p, other)} season(s) each way");
@@ -482,8 +490,35 @@ public static class Views
         return c.WatchProvince is { } wp ? $"in {wp}" : "travelling";
     }
 
+    /// <summary>
+    /// A tablet as every court names it: an inventory or a tablet, by its seals and the date it bears ("the tablet sealed by
+    /// Babylonia and Mitanni, dated turn 2"). Where <paramref name="among"/> holds another of the same kind, seals and date,
+    /// its opening words are added. Never a copy id, which is each court's own: a name another court can read.
+    /// </summary>
+    public static string TabletName(Tablet t, IEnumerable<Tablet>? among = null)
+    {
+        var name = $"the {(t.Inventory ? "inventory" : "tablet")} sealed by {Listed(t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")}";
+        var twin = among?.Any(o => o.Id != t.Id && o.Inventory == t.Inventory && o.SealedTurn == t.SealedTurn && o.Seals.SequenceEqual(t.Seals)) == true;
+        return twin ? $"{name}, beginning \"{Opening(t.Text)}\"" : name;
+    }
+
+    /// <summary>A text with its first letter capitalized, to open a sentence.</summary>
+    public static string Capitalized(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+
+    /// <summary>"Egypt", "Egypt and Hatti", "Egypt, Hatti and Mitanni".</summary>
+    private static string Listed(IReadOnlyList<Power> seals) =>
+        seals.Count <= 1 ? string.Join("", seals) : $"{string.Join(", ", seals.Take(seals.Count - 1))} and {seals[^1]}";
+
+    /// <summary>A text's first eight words, marked "…" if there are more.</summary>
+    private static string Opening(string text)
+    {
+        var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return words.Length <= 8 ? string.Join(" ", words) : string.Join(" ", words.Take(8)) + "…";
+    }
+
     public static TabletView Tablet(Tablet t, TabletCopy copy) => new()
     {
+        Name = TabletName(t),
         CopyId = copy.Id,
         TabletId = t.Id,
         Text = t.Text,

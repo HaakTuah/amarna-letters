@@ -311,6 +311,10 @@ public sealed class GameRunner
                     stand.FromFallback = true;
                     return stand;
                 });
+            // What the host says reaches the envoy as any court could read it: its own marks for its copies of tablets, and
+            // person ids, become the tablets' and the people's names (as in its letters).
+            host.Speech = engine.Scribe(a.Host, host.Speech);
+            host.BribeAsk = engine.Scribe(a.Host, host.BribeAsk);
             // Only the seat's own replies send letters or choose about its orders.
             if (court is not null && !host.FromFallback)
             {

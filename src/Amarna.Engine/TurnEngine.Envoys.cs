@@ -27,8 +27,11 @@ public sealed partial class TurnEngine
         var fee = d.Proposal is not null ? S.Config.TabletFee : 0;
         if (!Pay(p, fine + fee, $"{c.Name}'s mission to {d.To}", d, $"{c.Name} stayed at your court")) return;
 
-        var letter = Greeting.Cap(d.Letter ?? "", S.Config.MaxLetterChars);
-        var mandate = Greeting.Cap(d.Mandate ?? "", 600);
+        // The scribes write the king's own marks for the copies in his archive as tablets every court can name, and person ids
+        // as names: the envoy and the host read what any court could read.
+        var letter = Scribe(p, Greeting.Cap(d.Letter ?? "", S.Config.MaxLetterChars));
+        var mandate = Scribe(p, Greeting.Cap(d.Mandate ?? "", 600));
+        var proposal = d.Proposal is { } asked ? new TabletProposal { Text = Scribe(p, Greeting.Cap(asked.Text, 1200)), AllianceOath = asked.AllianceOath } : null;
         var greeting = Greeting.Render(p, d.To, d.Greeting);
         var trail = new MessageTrail
         {
@@ -42,7 +45,7 @@ public sealed partial class TurnEngine
             LeaderLetter = letter,
             Mandate = mandate,
             GoldStated = d.Gold,
-            ProposalText = d.Proposal?.Text,
+            ProposalText = proposal?.Text,
         };
         S.Trails.Add(trail);
 
@@ -54,21 +57,21 @@ public sealed partial class TurnEngine
             Mandate = mandate,
             Gold = d.Gold,
             PurityPercent = d.PurityPercent,
-            Proposal = d.Proposal,
+            Proposal = proposal,
             CopyIds = d.Copies?.ToList() ?? new(),
             TrailId = trail.Id,
         };
-        if (d.Proposal is not null)
+        if (proposal is not null)
         {
             var tablet = new Tablet
             {
                 Id = S.NewId("t"),
-                Text = Greeting.Cap(d.Proposal.Text, 1200),
+                Text = proposal.Text,
                 ProposedBy = p,
                 Partner = d.To,
                 Seals = [p],
                 CreatedTurn = S.Turn,
-                AllianceOath = d.Proposal.AllianceOath,
+                AllianceOath = proposal.AllianceOath,
             };
             S.Tablets.Add(tablet);
             dispatch.ProposalTabletId = tablet.Id;
@@ -511,6 +514,8 @@ public sealed partial class TurnEngine
     /// </summary>
     private void LetEnvoyGo(Power host, Character c, string? reply)
     {
+        // Words the envoy carries home, as the host's scribes would put them for another court.
+        reply = string.IsNullOrWhiteSpace(reply) ? reply : Scribe(host, reply);
         if (c.Employer is { } lord) CoverFor(c, lord, Duty.Detained);
         c.HeldBy = null;
         var trail = Trail(c.CurrentTrail);
