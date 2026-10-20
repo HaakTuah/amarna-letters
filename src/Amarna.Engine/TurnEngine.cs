@@ -33,6 +33,8 @@ public sealed partial class TurnEngine
         S.Audiences.Clear();
         S.CounterIntel.Clear();
         _missedPayNow.Clear();
+        // A siege whose army is gone since it was last pressed (disbanded, given away, lost to plague) is over: it costs nothing.
+        LiftLostSieges();
         // A servant whose notice has run out leaves before it is paid again.
         NoticesRunOut();
         IncomeAndUpkeep();
@@ -81,6 +83,8 @@ public sealed partial class TurnEngine
                 var victim = S.Units.Where(u => u.Power == p)
                     .OrderByDescending(u => Map.Hops(cap, u.Province)).ThenBy(u => u.Id).First();
                 S.Units.Remove(victim);
+                // A besieging army that deserts lifts its siege, and its cost with it.
+                LiftSiegesOf(victim.Id);
                 deserted.Add(victim.Label);
             }
             var paid = Math.Max(0, Math.Min(t.Gold, Upkeep(p)));
@@ -186,8 +190,10 @@ public sealed partial class TurnEngine
     /// <summary>The notice that someone at court was paid the back pay owed, or could not be paid it all.</summary>
     public const string BackPayTitle = "Back pay";
 
+    /// <summary>The upkeep of a power's troops, and the cost of each siege it presses (<see cref="GameConfig.SiegeUpkeep"/>).</summary>
     public int Upkeep(Power p) => S.Units.Where(u => u.Power == p)
-        .Sum(u => u.Kind == UnitKind.Army ? S.Config.ArmyUpkeep : S.Config.FleetUpkeep);
+        .Sum(u => u.Kind == UnitKind.Army ? S.Config.ArmyUpkeep : S.Config.FleetUpkeep)
+        + S.Sieges.Count(x => x.Power == p) * S.Config.SiegeUpkeep;
 
     /// <summary>
     /// The wages a court owes its people each season, as it reckons them (a covered servant's as it believes it): paid to
@@ -204,9 +210,14 @@ public sealed partial class TurnEngine
     /// </summary>
     public int BelievedBackPay(Power p) => S.Characters.Sum(c => Views.BackPayOwed(c, p) ?? 0);
 
+    /// <summary>
+    /// What a province yields its holder this season: its base yield, cut by catastrophes, and nothing while it is besieged
+    /// (its holder keeps it and counts it in his strength, but its yield goes to nobody).
+    /// </summary>
     public int EffectiveYield(string province)
     {
         var p = Map[province];
+        if (S.SiegeOf(province) is not null) return 0;
         var owner = S.Owner.GetValueOrDefault(province);
         var factor = 1.0;
         foreach (var c in S.Catastrophes)
@@ -362,6 +373,8 @@ public sealed partial class TurnEngine
         ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder).ToList());
         // A scheduled move that failed is tried again next season, or ends its unit's march.
         Marches(valid);
+        // Sieges are lifted, begun and pressed, and cities worn down surrender; then land changes hands where troops stand.
+        Sieges(valid);
         UpdateOwnership();
         ResolveTransfers(All<CedeProvinceOrder>().ToList(), All<GiftUnitOrder>().ToList());
         ResolvePurchases(All<BuyProvinceOrder>().ToList());
@@ -395,11 +408,13 @@ public sealed partial class TurnEngine
         var byProvince = new Dictionary<string, Order>();
         foreach (var (_, o) in unitOrders)
         {
-            var at = o switch { HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit, _ => null };
+            var at = o switch { HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit, BesiegeOrder b => b.Unit, _ => null };
             if (at is not null) byProvince[at] = o;
         }
 
-        var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
+        var result = new Adjudicator(Map, explain: true).Run(S.Units, byProvince, S.Owner, S.Walls);
+        _battle = result;
+        _unitOrdersNow = byProvince;
         // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
         foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
             o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
@@ -431,12 +446,10 @@ public sealed partial class TurnEngine
         }
         foreach (var (id, prov) in result.NewPositions)
             S.Units.First(x => x.Id == id).Province = prov;
-        foreach (var g in result.FallenGarrisons)
-        {
-            S.Garrisons.Remove(g);
-            var taker = S.UnitAt(g)?.Power;
-            S.Log("conquest", $"The walls of {Map[g].Name} fell to {taker}.", Powers.All.Where(p => sightBefore[p].Contains(g)));
-        }
+        // Walls stormed: the province is taken when land changes hands, and its walls fall a level then.
+        foreach (var a in result.Assaults.Where(a => a.Stormed))
+            S.Log("storm", $"{a.Power} stormed the walls of {Map[a.Province].Name}{(a.Owner is { } held ? $", held by {held}" : "")}.",
+                Powers.All.Where(p => sightBefore[p].Contains(a.Province)).Append(a.Power), "storm");
 
         foreach (var p in S.Alive)
             S.LastSeen[p] = result.Outcomes.Where(o => o.Power == p || sightBefore[p].Contains(o.Province) || (o.Target is { } t && sightBefore[p].Contains(t))).ToList();
@@ -461,6 +474,8 @@ public sealed partial class TurnEngine
                         : "";
                     mine.Add($"{l.Text}: {why}{stays}");
                 }
+                else if (l.Assault is { } a)
+                    mine.Add($"{l.Text}: {AssaultText(a)}");
                 else
                 {
                     mine.Add(l.Void is { } v ? $"{l.Text}: {v}" : l.Text);
@@ -469,13 +484,15 @@ public sealed partial class TurnEngine
                     if (l.Cut is { } cut && byProvince.TryGetValue(l.Province, out var help)) ScheduledFailed(p, help, cut);
                 }
             }
+            // An assault on a walled city of the king's own: his side of it, with the strengths, among his own lines (until the
+            // siege package it showed only under "Seen nearby", with no strengths: the fix pass after item 4, minor finding 5).
+            foreach (var a in result.Assaults.Where(a => a.Owner == p))
+                mine.Add(OwnWallsText(a));
             var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && (sight.Contains(l.Province) || l.Target is { } t && sight.Contains(t)))
-                .Select(l => $"{l.Power}: {l.Text}").ToList();
-            var fallen = result.FallenGarrisons.Where(sight.Contains).Select(g => $"The walls of {Map[g].Name} fell.").ToList();
-            if (mine.Count + seen.Count + fallen.Count == 0) continue;
+                .Select(l => $"{l.Power}: {l.Text}{(l.Assault is { } a && a.Owner != p ? a.Stormed ? $" (it stormed the walls of {a.Province})" : $" (it stands within the walls of {a.Province} and does not take it)" : "")}").ToList();
+            if (mine.Count + seen.Count == 0) continue;
             var body = string.Join("\n", mine.Select(x => "- " + x));
             if (seen.Count > 0) body += "\nSeen nearby:\n" + string.Join("\n", seen.Select(x => "- " + x));
-            if (fallen.Count > 0) body += "\n" + string.Join("\n", fallen);
             S.Notify(p, InboxKind.Battle, "Movements last season", body.Trim());
         }
     }
@@ -500,22 +517,31 @@ public sealed partial class TurnEngine
             MoveStop.HeadToHead => $"it met the unit from {f.Province}{(seen ? $" ({whose})" : "")} coming the other way{strengths}",
             MoveStop.Held => $"the unit holding {f.Province}{(seen ? $" ({whose})" : "")} kept its place{strengths}",
             MoveStop.Stayed => $"the unit in {f.Province}{(seen ? $" ({whose})" : "")} could not leave, so it kept its place{strengths}",
-            MoveStop.Walls => $"the walls of {f.Province} held{(f.Power is { } owner ? $" for {owner}" : "")}{strengths}",
             MoveStop.Bounced => $"it met a move into {to} from {f.Province}{(seen ? $" by {whose}" : "")}{strengths}",
             _ => "it was stopped",
         };
     }
 
+    /// <summary>
+    /// Land changes hands: a province passes to the power whose unit stands in it after movement, if it has no walls, or if
+    /// that unit stormed them this season (they then fall a level). A unit standing within walls it did not storm takes
+    /// nothing: a guest, or an army before a siege, which takes the city only when the siege wears it down (<see cref="Sieges"/>).
+    /// </summary>
     private void UpdateOwnership()
     {
+        var stormed = _battle?.Stormed.ToHashSet() ?? [];
         foreach (var u in S.Units)
         {
             var prov = Map[u.Province];
             if (prov.IsSea) continue;
             var before = S.Owner.GetValueOrDefault(u.Province);
             if (before == u.Power) continue;
+            if (S.WallsOf(u.Province) > 0)
+            {
+                if (!stormed.Contains(u.Province)) continue;
+                LowerWalls(u.Province);
+            }
             S.Owner[u.Province] = u.Power;
-            S.Garrisons.Remove(u.Province);
             if (before is { } loser)
             {
                 S.Notify(loser, InboxKind.Battle, "Land lost", $"{prov.Name} has been taken by {u.Power}.");
@@ -605,7 +631,7 @@ public sealed partial class TurnEngine
             var price = prov.Yield * S.Config.NeutralPriceFactor;
             if (!Pay(buyer, price, $"the city of {prov.Name}", bid, "it was not bought")) continue;
             S.Owner[prov.Id] = buyer;
-            S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule. Its walls now hold for you.");
+            S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule. Its walls now stand for you.");
             S.Log("purchase", $"{buyer} bought {prov.Name} for {Money.Format(price)}.", Powers.All.Where(p => Views.Sight(S, Map, p).Contains(prov.Id)).Append(buyer));
         }
     }

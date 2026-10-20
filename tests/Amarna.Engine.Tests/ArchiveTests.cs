@@ -123,6 +123,8 @@ public class ArchiveTests
         var from = map.MovesFrom(UnitKind.Army, capital).First(x => !map[x].IsSea && map[x].Home == Power.Assyria);
         s.Units.RemoveAll(u => u.Province == capital || u.Province == from);
         s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Babylonia, Kind = UnitKind.Army, Province = from });
+        // Ashur with its walls thrown down, for the test: a lone army walks in and takes it.
+        s.Walls.Remove(capital);
         return (s, capital, from);
     }
 

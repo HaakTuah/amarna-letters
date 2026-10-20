@@ -12,6 +12,7 @@ namespace Amarna.Engine;
 [JsonDerivedType(typeof(MoveOrder), "move")]
 [JsonDerivedType(typeof(SupportOrder), "support")]
 [JsonDerivedType(typeof(ConvoyOrder), "convoy")]
+[JsonDerivedType(typeof(BesiegeOrder), "besiege")]
 [JsonDerivedType(typeof(RaiseOrder), "raise")]
 [JsonDerivedType(typeof(DisbandOrder), "disband")]
 [JsonDerivedType(typeof(BuyProvinceOrder), "buy")]
@@ -60,6 +61,16 @@ public sealed record SupportOrder(string Unit, string Supported, string? To = nu
 public sealed record ConvoyOrder(string Unit, string Army, string To) : Order
 {
     public override string Describe() => $"{Unit} convoys {Named(Army)} -> {Named(To)}";
+}
+
+/// <summary>
+/// An army standing in a walled city it does not hold lays siege to it (Build order item 5): it holds there, and the city
+/// is worn down a step each season it holds, two with an uncut support, until it surrenders. One order is enough: the
+/// siege goes on each season the army holds there, until it leaves or is destroyed.
+/// </summary>
+public sealed record BesiegeOrder(string Unit) : Order
+{
+    public override string Describe() => $"{Unit} besieges the city";
 }
 
 /// <summary>
@@ -197,7 +208,7 @@ public static class OrderKeys
 {
     public static string? UnitOf(Order o) => o switch
     {
-        HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit,
+        HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit, BesiegeOrder b => b.Unit,
         DisbandOrder d => d.Unit, GiftUnitOrder g => g.Unit, _ => null,
     };
 

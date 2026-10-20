@@ -19,6 +19,10 @@ public sealed record GameConfig
     public int FleetUpkeep { get; init; } = 35;
     /// <summary>A neutral city-state sells itself for yield x this.</summary>
     public int NeutralPriceFactor { get; init; } = 10;
+
+    // Walls and sieges (Build order item 5; first guesses from question 5's plan, tuned in item 18)
+    /// <summary>What each siege costs its besieger a season, on top of the army's upkeep.</summary>
+    public int SiegeUpkeep { get; init; } = 15;
     public double CatastropheChance { get; init; } = 0.035;
 
     // Communication

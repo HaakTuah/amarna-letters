@@ -90,7 +90,8 @@ public class WakeTriggerTests
     public void A_failed_assault_on_a_walled_city_it_holds_wakes_the_seat()
     {
         // The review's probe (Babylonia's debrief, seed 15): Mitanni's army already stands in Terqa, next to Babylon's bought
-        // Mari, when Babylon last gave orders, so no arrival wakes it. Mitanni attacks Mari alone and the walls hold.
+        // Mari, when Babylon last gave orders, so no arrival wakes it. Since the siege package Mitanni's lone attack gets
+        // within the walls without storming them: the city is still Babylon's, and the entry into its land wakes it.
         var (s, sleep) = Sleeping(s =>
         {
             s.Owner["mari"] = Power.Babylonia;
@@ -98,10 +99,11 @@ public class WakeTriggerTests
             s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Mitanni, Kind = UnitKind.Army, Province = "terqa" });
         });
         Season(s, new() { [Power.Mitanni] = new TurnSubmission { Orders = [new MoveOrder("terqa", "mari")] } });
-        Assert.Equal("mari", s.Garrisons.Single(g => g == "mari"));
+        Assert.Equal(2, s.WallsOf("mari"));
         Assert.Equal(Power.Babylonia, s.Owner["mari"]);
+        Assert.Equal(Power.Mitanni, s.UnitAt("mari")?.Power);
         Assert.False(sleep.Asleep);
-        Assert.Equal([$"{TurnEngine.AttackedReason}: Mitanni's army tried to move terqa -> mari"], sleep.WokenBecause);
+        Assert.Equal(["foreign troops entered your land: Mitanni's army moved terqa -> mari"], sleep.WokenBecause);
 
         // A home province with its army in it, attacked in vain: the same reason.
         (s, sleep) = Sleeping(s =>
@@ -192,7 +194,7 @@ public class WakeTriggerTests
             s.Owner["mari"] = Power.Babylonia;
             s.Units.RemoveAll(u => u.Province == "terqa");
         });
-        Assert.Contains("mari", s.Garrisons);
+        Assert.Equal(2, s.WallsOf("mari"));
         Season(s, new() { [Power.Mitanni] = new TurnSubmission { Orders = [new MoveOrder("washukanni", "terqa")] } });
         Assert.False(sleep.Asleep);
         Assert.Equal([$"{TurnEngine.WallsReason}: Mitanni's army moved washukanni -> terqa, next to mari"], sleep.WokenBecause);

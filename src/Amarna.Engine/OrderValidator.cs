@@ -168,8 +168,6 @@ public sealed class OrderValidator
                     if (string.IsNullOrWhiteSpace(m.To)) return "name the province the unit should move to";
                     if (!_map.Exists(m.To)) return $"there is no province called '{m.To}'";
                     if (m.To == m.Unit) return "a unit cannot move to where it stands";
-                    if (_s.Garrisons.Contains(m.To) && _s.Owner.GetValueOrDefault(m.To) == power)
-                        return $"{_map[m.To].Name} is held by its own walls for you; your troops cannot enter it";
                     if (u!.Kind == UnitKind.Fleet)
                         return _map.CanMove(UnitKind.Fleet, m.Unit, m.To) ? null : $"a fleet in {m.Unit} cannot reach {m.To}";
                     if (_map.CanMove(UnitKind.Army, m.Unit, m.To)) return null;
@@ -181,10 +179,8 @@ public sealed class OrderValidator
                     if (OwnUnit(sp.Unit, out var u) is { } e) return e;
                     if (string.IsNullOrWhiteSpace(sp.Supported)) return "name the unit to support, by the province it stands in";
                     if (!_map.Exists(sp.Supported)) return $"there is no province called '{sp.Supported}'";
-                    var walls = _s.Garrisons.Contains(sp.Supported) && _s.Owner.GetValueOrDefault(sp.Supported) is not null;
                     // Out of sight, a province's troops are unknown: the support is given, and is void if no unit there acts as it names.
-                    if (_s.UnitAt(sp.Supported) is null && !walls && Sight().Contains(sp.Supported)) return $"there is no unit in {sp.Supported} to support";
-                    if (walls && sp.To is not null) return "city walls never move; they can only be supported holding";
+                    if (_s.UnitAt(sp.Supported) is null && Sight().Contains(sp.Supported)) return $"there is no unit in {sp.Supported} to support";
                     if (sp.Supported == sp.Unit) return "a unit cannot support itself";
                     var into = sp.To ?? sp.Supported;
                     if (!_map.Exists(into)) return $"there is no province called '{into}'";
@@ -203,6 +199,15 @@ public sealed class OrderValidator
                     // As for a support: out of sight, the convoy is given, and is void if no army there sails as it names.
                     if ((army is null || army.Kind != UnitKind.Army) && Sight().Contains(c.Army)) return $"there is no army in {c.Army}";
                     if (!_map.Exists(c.To) || !_map[c.To].IsCoastal) return $"{c.To} is not a coast an army can land on";
+                    return null;
+                }
+
+                case BesiegeOrder b:
+                {
+                    if (OwnUnit(b.Unit, out var u) is { } e) return e;
+                    if (u!.Kind != UnitKind.Army) return "only an army can besiege a city; a fleet cannot";
+                    if (_s.WallsOf(b.Unit) <= 0) return $"{_map[b.Unit].Name} has no walls to besiege";
+                    if (_s.Owner.GetValueOrDefault(b.Unit) == power) return $"{_map[b.Unit].Name} is yours";
                     return null;
                 }
 

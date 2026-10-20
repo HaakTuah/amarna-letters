@@ -124,8 +124,8 @@ public class SeasonRulebookTests
         string[] steps =
         [
             "1. Departures", "2. Income, upkeep and wages", "3. Arrivals", "4. Your court", "5. Audiences", "6. Orders", "7. Movement and battles",
-            "8. Land changes hands", "9. Cessions and gifts of troops", "10. Purchases", "11. Disbanding", "12. Levies", "13. Envoys set out",
-            "14. Intelligence", "15. Catastrophes", "16. A kingdom with no land left falls", "17. Strength and growth are reckoned",
+            "8. Sieges", "9. Land changes hands", "10. Cessions and gifts of troops", "11. Purchases", "12. Disbanding", "13. Levies", "14. Envoys set out",
+            "15. Intelligence", "16. Catastrophes", "17. A kingdom with no land left falls", "18. Strength and growth are reckoned",
         ];
         var at = steps.Select(x => section.IndexOf("\n" + x, StringComparison.Ordinal)).ToList();
         Assert.DoesNotContain(-1, at);
@@ -143,7 +143,11 @@ public class SeasonRulebookTests
     [InlineData("If you cannot pay upkeep, troops desert, the one farthest from your capital first")]
     [InlineData("Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).")]
     [InlineData("one without the skill ruins the clay, which you still pay for")]
-    [InlineData("the owner cannot station troops inside, but it, or any other king, may support its walls holding")]
+    [InlineData("Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other.")]
+    [InlineData("a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the hold strength of the defenders it beat")]
+    [InlineData("You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them")]
+    [InlineData("When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls.")]
+    [InlineData("Each siege costs the besieger 15 a season on top of the army's upkeep.")]
     public void The_rulebook_states_each_rule(string rule) => Assert.Contains(rule, Rules);
 
     [Fact]
@@ -253,11 +257,13 @@ public class ViewTextTests
     public void The_rulebook_states_sight_and_the_costs_and_odds_of_intelligence(string rule) => Assert.Contains(rule, Rules);
 
     [Fact]
-    public void The_schema_says_how_to_support_a_city_s_walls_and_what_each_greeting_flag_means()
+    public void The_schema_says_how_to_besiege_a_city_and_what_each_greeting_flag_means()
     {
         // As the king reads it: the JSON text escapes an apostrophe, which the model reads as the apostrophe.
         var schema = Schemas.LeaderOrders(new GameConfig()).ToJsonString(new System.Text.Json.JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-        Assert.Contains("support: the province of the unit supported, or of a bought walled city (yours or another king's) to support its walls holding", schema);
+        Assert.Contains("\"enum\":[\"hold\",\"move\",\"support\",\"convoy\",\"disband\",\"besiege\"]", schema);
+        Assert.Contains("besiege: an army standing within walls you do not hold besieges that city", schema);
+        Assert.DoesNotContain("support its walls holding", schema);
         Assert.Contains("Greet the recipient as your brother, as Great Kings greet their equals", schema);
         Assert.Contains("Give the recipient the title Great King. False denies him that rank.", schema);
         Assert.Contains("Name yourself Great King in the greeting. False names you only as king of your land, which the recipient reads as not claiming the rank.", schema);

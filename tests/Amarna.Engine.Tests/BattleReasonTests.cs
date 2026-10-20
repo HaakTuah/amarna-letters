@@ -45,7 +45,7 @@ public class BattleReasonTests
             var s = GameFactory.NewGame(1);
             s.Units.Single(u => u.Province == "delta").Kind = UnitKind.Army;
             s.Units.Single(u => u.Province == "enkomi").Province = "greatgreen";
-            s.Garrisons.Remove("lukka");
+            s.Walls.Remove("lukka");
             s.Owner["lukka"] = Power.Arzawa;
             s.Units.Add(new Unit { Id = "u90", Power = Power.Arzawa, Kind = UnitKind.Army, Province = "lukka" });
             return s;
@@ -77,15 +77,16 @@ public class BattleReasonTests
     [Fact]
     public void A_unit_that_could_not_leave_kept_its_place()
     {
-        // Mitanni's army in Terqa strikes Mari's walls and fails, so Assyria's move into Terqa meets it still there.
+        // Mitanni's army in Terqa and Babylon's in Sippar strike Mari and bounce, so Assyria's move into Terqa meets it still there.
         var s = GameFactory.NewGame(1);
         Resolve(s, new()
         {
             [Power.Assyria] = new() { Orders = [new MoveOrder("ashur", "terqa")] },
             [Power.Mitanni] = new() { Orders = [new MoveOrder("terqa", "mari")] },
+            [Power.Babylonia] = new() { Orders = [new MoveOrder("sippar", "mari")] },
         });
         Assert.Contains("- A ashur -> terqa: fails: the unit in terqa (Mitanni's army) could not leave, so it kept its place; your strength 1 against 1", Report(s, Power.Assyria));
-        Assert.Contains("- A terqa -> mari: fails: the walls of mari held; your strength 1 against 1", Report(s, Power.Mitanni));
+        Assert.Contains("- A terqa -> mari: fails: it met a move into mari from sippar by Babylonia's army; your strength 1 against 1", Report(s, Power.Mitanni));
     }
 
     [Fact]

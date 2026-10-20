@@ -15,8 +15,6 @@ public enum MoveStop
     Held,
     /// <summary>The unit in the target tried to leave, failed, and so kept its place.</summary>
     Stayed,
-    /// <summary>City walls held the target.</summary>
-    Walls,
     /// <summary>Another move into the same province was at least as strong.</summary>
     Bounced,
 }
@@ -40,6 +38,19 @@ public sealed record ReportLine(string Province, Power? Power, string Text, bool
     public string? Void { get; init; }
     /// <summary>For a support that was cut (its unit still standing): why, in plain words.</summary>
     public string? Cut { get; init; }
+    /// <summary>For a move that got into a walled province its mover does not hold: whether it stormed the walls, and the strengths.</summary>
+    public Assault? Assault { get; init; }
+}
+
+/// <summary>
+/// A move that got into a walled province its mover does not hold (Build order item 5): its strength, the level of the walls,
+/// and the hold strength of the defenders it beat. An army storms the walls, and takes the province at once, only if its
+/// strength beats the walls and the defenders together; otherwise it stands inside and takes nothing (a siege may follow).
+/// A fleet never storms walls.
+/// </summary>
+public sealed record Assault(string Province, Power Power, UnitKind Kind, string From, Power? Owner, int Strength, int Walls, int Defenders)
+{
+    public bool Stormed => Kind == UnitKind.Army && Strength > Walls + Defenders;
 }
 
 /// <summary>One order as it resolved: who, where, what, and whether it worked.</summary>
@@ -67,11 +78,16 @@ public sealed class AdjudicationResult
     /// <summary>Unit id -> province it ends in (for units that survive).</summary>
     public Dictionary<string, string> NewPositions { get; } = new();
     public List<string> DislodgedUnitIds { get; } = new();
-    public List<string> FallenGarrisons { get; } = new();
+    /// <summary>Every move that got into a walled province its mover does not hold, stormed or not.</summary>
+    public List<Assault> Assaults { get; } = new();
+    /// <summary>The walled provinces taken by storm this season.</summary>
+    public IEnumerable<string> Stormed => Assaults.Where(a => a.Stormed).Select(a => a.Province);
     public List<MoveResult> Moves { get; } = new();
     public List<string> CutSupports { get; } = new();
     /// <summary>Supports that held: (supporter, supported power, province acted on).</summary>
     public List<(Power Supporter, Power? Supported, string Province)> GivenSupports { get; } = new();
+    /// <summary>The provinces whose unit was given at least one support to hold that was not cut (a besieger's speeds its siege).</summary>
+    public HashSet<string> HoldSupported { get; } = new();
     /// <summary>Order description per unit province, with its outcome, for reports.</summary>
     public List<ReportLine> Lines { get; } = new();
     public List<OrderOutcome> Outcomes { get; } = new();
@@ -81,7 +97,9 @@ public sealed class AdjudicationResult
 /// Diplomacy-style resolution with no dice: strength is one plus supports and ties bounce.
 /// Implements Lucas Kruijswijk's guess-and-check algorithm (from "The Math of Adjudication"),
 /// with circular movement resolved as success and convoy paradoxes by the Szykman rule.
-/// City walls act as units that always hold: a free city's belong to nobody, a bought city's to its owner.
+/// Walls add nothing to the battle (Build order item 5): a move that wins its way into a walled province its mover does
+/// not hold storms the walls only if its strength also beats their level plus the hold strength it beat
+/// (<see cref="Assault"/>); the engine decides what that means for the province.
 /// </summary>
 public sealed class Adjudicator
 {
@@ -103,6 +121,7 @@ public sealed class Adjudicator
         public string Text = "";
         public string? Voided;   // a support or convoy that matched nothing (now a hold): the order as given
         public string? VoidWhy;  // and why it was void
+        public bool Besieging;   // a besiege order: a hold that wears the city down
     }
 
     private readonly WorldMap _map;
@@ -112,6 +131,8 @@ public sealed class Adjudicator
     private RState[] _state = [];
     private bool[] _result = [];
     private readonly List<int> _deps = new();
+    private IReadOnlyDictionary<string, Power?> _owners = new Dictionary<string, Power?>();
+    private IReadOnlyDictionary<string, int> _walls = new Dictionary<string, int>();
 
     /// <param name="explain">Also work out why each failed move failed and where each cut came from, for battle reports.</param>
     public Adjudicator(WorldMap map, bool explain = false)
@@ -120,11 +141,15 @@ public sealed class Adjudicator
         _explain = explain;
     }
 
-    public AdjudicationResult Run(IReadOnlyList<Unit> units, IEnumerable<string> garrisons, IReadOnlyDictionary<string, Order> ordersByProvince,
-        IReadOnlyDictionary<string, Power?>? owners = null)
+    /// <param name="owners">Who holds each province before the moves: a move into one's own walled province storms nothing.</param>
+    /// <param name="walls">The level of each province's walls (none if left out).</param>
+    public AdjudicationResult Run(IReadOnlyList<Unit> units, IReadOnlyDictionary<string, Order> ordersByProvince,
+        IReadOnlyDictionary<string, Power?>? owners = null, IReadOnlyDictionary<string, int>? walls = null)
     {
         _orders.Clear();
         _at.Clear();
+        _owners = owners ?? new Dictionary<string, Power?>();
+        _walls = walls ?? new Dictionary<string, int>();
         foreach (var u in units)
         {
             var o = new O { At = u.Province, Power = u.Power, UnitKind = u.Kind, UnitId = u.Id, Kind = Kind.Hold };
@@ -146,12 +171,12 @@ public sealed class Adjudicator
                     o.Target = c.Army;
                     o.To = c.To;
                     break;
+                case BesiegeOrder:
+                    o.Besieging = true;
+                    break;
             }
             Add(o);
         }
-        foreach (var g in garrisons)
-            if (!_at.ContainsKey(g))
-                Add(new O { At = g, Power = owners?.GetValueOrDefault(g), UnitKind = UnitKind.Army, Kind = Kind.Hold });
 
         VoidMismatched();
 
@@ -187,8 +212,7 @@ public sealed class Adjudicator
                 else
                 {
                     var sup = _orders[t];
-                    if (sup.Power is null) why = o.To is null ? "a free city's walls take no help" : $"no unit moved from {o.Target} to {o.To}";
-                    else if (o.To is null) why = sup.Kind != Kind.Move ? null : $"the unit in {o.Target} was ordered to move, not to hold";
+                    if (o.To is null) why = sup.Kind != Kind.Move ? null : $"the unit in {o.Target} was ordered to move, not to hold";
                     else why = sup.Kind == Kind.Move && sup.Target == o.To ? null : $"no unit moved from {o.Target} to {o.To}";
                 }
                 if (why is not null)
@@ -435,11 +459,7 @@ public sealed class Adjudicator
         {
             var moved = o.Kind == Kind.Move && _result[o.Index];
             var dislodged = !moved && succeededInto.Contains(o.At);
-            if (o.UnitId is null)
-            {
-                if (dislodged) r.FallenGarrisons.Add(o.At);
-                continue;
-            }
+            if (o.UnitId is null) continue;
             if (dislodged) r.DislodgedUnitIds.Add(o.UnitId);
             else r.NewPositions[o.UnitId] = moved ? o.Target! : o.At;
 
@@ -461,17 +481,23 @@ public sealed class Adjudicator
             {
                 case Kind.Move:
                     r.Moves.Add(new MoveResult(o.At, o.Target!, moved));
+                    var assault = moved ? AssaultBy(o) : null;
+                    if (assault is not null) r.Assaults.Add(assault);
                     r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} -> {o.Target}{(o.ViaConvoy ? " (by sea)" : "")}: {(moved ? "succeeds" : "fails")}", moved)
                     {
                         Target = o.Target,
                         Failure = _explain && !moved ? WhyFailed(o) : null,
+                        Assault = assault,
                     });
                     break;
                 case Kind.Support:
                     var given = _result[o.Index];
                     if (!given) r.CutSupports.Add(o.At);
                     else if (o.Power is { } supporter && _at.TryGetValue(o.Target!, out var sIdx))
+                    {
                         r.GivenSupports.Add((supporter, _orders[sIdx].Power, o.To ?? o.Target!));
+                        if (o.To is null) r.HoldSupported.Add(o.Target!);
+                    }
                     // A unit that is destroyed gives no support: that is not a cut.
                     var cutFrom = !given && !dislodged && _explain ? CutBy(o)?.At : null;
                     var failed = dislodged ? "void: the supporting unit was destroyed"
@@ -487,7 +513,7 @@ public sealed class Adjudicator
                 default:
                     r.Lines.Add(o.Voided is { } asGiven
                         ? new ReportLine(o.At, o.Power, $"{label} {asGiven}: void", false) { Void = _explain ? o.VoidWhy : null }
-                        : new ReportLine(o.At, o.Power, $"{label} holds", true));
+                        : new ReportLine(o.At, o.Power, $"{label} {(o.Besieging ? "besieges the city" : "holds")}", true));
                     break;
             }
             if (dislodged) r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} is destroyed", false));
@@ -525,7 +551,7 @@ public sealed class Adjudicator
             var hold = HoldStrength(move.Target!);
             if (attack <= hold)
             {
-                var stop = occ.UnitId is null ? MoveStop.Walls : occ.Kind == Kind.Move ? MoveStop.Stayed : MoveStop.Held;
+                var stop = occ.Kind == Kind.Move ? MoveStop.Stayed : MoveStop.Held;
                 return new(stop, occ.At, occ.Power, occ.UnitKind, occ.Kind == Kind.Move ? occ.Target : null, attack, hold);
             }
         }
@@ -537,6 +563,23 @@ public sealed class Adjudicator
             if (attack <= prevent) return new(MoveStop.Bounced, other.At, other.Power, other.UnitKind, other.Target, attack, prevent);
         }
         return null;
+    }
+
+    /// <summary>
+    /// A move that succeeded into a walled province its mover does not hold: its strength against the walls and the hold
+    /// strength it beat (a unit that stayed, or the defence of one it met head on; nothing if the province was empty or its
+    /// unit got away). Null for an unwalled province, or the mover's own.
+    /// </summary>
+    private Assault? AssaultBy(O move)
+    {
+        var target = move.Target!;
+        var walls = _walls.GetValueOrDefault(target);
+        if (walls <= 0 || move.Power is not { } mover) return null;
+        var owner = _owners.GetValueOrDefault(target);
+        if (owner == mover) return null;
+        var opp = HeadToHeadOpponent(move);
+        var beaten = opp is not null ? DefendStrength(opp) : HoldStrength(target);
+        return new Assault(target, mover, move.UnitKind, move.At, owner, AttackStrength(move), walls, beaten);
     }
 
     /// <summary>The move that cut a support, by the same test <see cref="Adjudicate"/> used.</summary>

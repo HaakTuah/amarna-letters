@@ -55,7 +55,8 @@ internal static class Tactics
                 var lead = near.OrderBy(u => Land(u.Power)).ThenBy(u => u.Power).ThenBy(u => u.Kind == UnitKind.Army ? 0 : 1)
                     .ThenBy(u => u.Province, StringComparer.Ordinal).First();
                 var support = near.Where(u => u != lead).ToList();
-                var held = b.UnitAt.GetValueOrDefault(t)?.Power == foe || b.Walls(t) ? 1 : 0;
+                // Walls add nothing to the battle: a blow lands if it beats the troop there (behind walls it begins a siege).
+                var held = b.UnitAt.GetValueOrDefault(t)?.Power == foe ? 1 : 0;
                 var backers = b.Units.Count(u => u.Power == foe && u.Province != t && Board.Map.CanMove(u.Kind, u.Province, t));
                 if (1 + support.Count <= held + (backers + 1) / 2) continue;
                 used.Add(lead.Province);
@@ -158,10 +159,9 @@ internal static class Tactics
         foreach (var (prov, t) in threat)
         {
             var hasUnit = free.Contains(prov);
-            var walls = b.Walls(prov) && b.IsMine(prov);
-            if (!hasUnit && !walls)
+            if (!hasUnit)
             {
-                // Empty land: march in to bounce whoever comes.
+                // Empty land, walled or not (walls do not hold in a battle): march in to bounce whoever comes.
                 var blocker = Helpers(prov, "").FirstOrDefault(u => !stay.Contains(u) && (!threat.ContainsKey(u) || b.Value(u) < b.Value(prov)));
                 if (blocker is not null && !b.UnitAt.ContainsKey(prov))
                     ops.Add(new Op("block", t.Chance * b.Value(prov) * 0.6 - Exposure(blocker), prov, blocker, new()));
@@ -196,15 +196,17 @@ internal static class Tactics
             if (owner == me && occupant is null) continue;
             if (owner is { } o && o != me && !Willing(o)) continue;
             if (occupant is { } oc && oc.Power != me && !Willing(oc.Power) && owner != me) continue;
+            // A friend's troop standing within our walls as a guest is left alone; one that besieges them is driven out.
+            var besieged = owner == me && b.SiegeAt(target) is not null;
+            if (owner == me && occupant is { } guest && guest.Power != me && !Willing(guest.Power) && !besieged) continue;
 
+            // Walls add nothing to the battle (the siege package): the defence is the troop there and its likely supports.
             int defence;
             if (occupant is not null)
             {
                 var backers = b.CanReach(target, u => u.Power == occupant.Power && u.Province != target).Count();
                 defence = 1 + (int)Math.Round(backers * (0.5 + 0.3 * p.Caution));
             }
-            else if (b.Walls(target))
-                defence = 1 + (owner is { } wo ? (int)Math.Round(b.Muster(wo, target) * 0.6) : 0);
             else defence = 0;
 
             var rivals = b.Alive.Where(x => x != me && x != occupant?.Power).Select(x => b.Muster(x, target)).DefaultIfEmpty(0).Max();
@@ -213,17 +215,27 @@ internal static class Tactics
 
             var gain = (owner == me ? 0 : b.Value(target)) * Multiplier(owner) + (occupant is not null ? 120 : 0);
             if (owner is { } capOwner && capOwner != me && Board.Map[target].Capital) gain += 60;
+            // Our own city besieged: driving the besieger out saves it.
+            if (besieged) gain += 0.9 * b.Value(target);
 
             var able = Helpers(target, "").ToList();
             if (able.Count == 0) continue;
-            var movers = able.Where(u => !stay.Contains(u)).ToList();
+            // Within foreign walls only an army can do anything: storm them, or stand and besiege the city.
+            var walled = b.Walls(target) && owner != me;
+            var movers = able.Where(u => !stay.Contains(u) && (!walled || b.UnitAt[u].Kind == UnitKind.Army)).ToList();
             if (movers.Count == 0) continue;
             var lead = movers.OrderBy(u => Exposure(u)).ThenBy(u => b.UnitAt[u].Kind == UnitKind.Army ? 0 : 1).ThenBy(u => u, StringComparer.Ordinal).First();
-            var helpers = able.Where(u => u != lead).Take(required - 1).ToList();
+            // Strong enough to storm the walls, the attack takes the city at once; only strong enough to get in, the army stands
+            // inside and besieges it, which takes seasons and may be broken: worth less, the higher the walls.
+            var storm = walled ? Math.Max(required, b.StormNeeds(target, occupant is null ? 0 : defence)) : required;
+            var stormHelpers = able.Where(u => u != lead).Take(storm - 1).ToList();
+            var helpers = 1 + stormHelpers.Count >= storm ? stormHelpers : able.Where(u => u != lead).Take(required - 1).ToList();
+            var stormed = !walled || 1 + helpers.Count >= storm;
             if (1 + helpers.Count >= required)
             {
                 var chance = 0.85 - (defence > 1 ? 0.1 : 0);
-                ops.Add(new Op("attack", chance * gain - Exposure(lead) - 6 * helpers.Count, target, lead, helpers));
+                var worth = stormed ? gain : gain * SiegeWorth(b.WallLevel(target)) + (occupant is not null ? 60 : 0);
+                ops.Add(new Op("attack", chance * worth - Exposure(lead) - 6 * helpers.Count, target, lead, helpers));
             }
             else if (gain > 150) plan.Shortfalls.Add((target, gain * 0.5));
         }
@@ -231,7 +243,7 @@ internal static class Tactics
         // An army on a coast with nothing it could take by land this season: every land or coast link leads to our own land,
         // to walls, or to a king we will not fight. Carried over the sea it can work again (and march inland, as no fleet can).
         bool Stranded(string army) =>
-            !Board.Map.MovesFrom(UnitKind.Army, army).Any(n => !b.IsMine(n) && (b.OwnerOf(n) is not { } o || Willing(o)) && !b.Walls(n));
+            !Board.Map.MovesFrom(UnitKind.Army, army).Any(n => !b.IsMine(n) && (b.OwnerOf(n) is not { } o || Willing(o)));
 
         // ---- Convoy: an army on the coast, our fleet at sea, a coast beyond. For a stranded army the convoy is worth more
         // than the fleet taking that coast itself: the army goes in, and the fleet stays at sea to carry or strike again.
@@ -241,12 +253,26 @@ internal static class Tactics
                 {
                     var owner = b.OwnerOf(target);
                     if (b.UnitAt.ContainsKey(target) || owner == me || (owner is { } o && !Willing(o))) continue;
-                    var required = (b.Walls(target) ? 2 : 1) + Math.Min(1, b.Alive.Where(x => x != me).Select(x => b.Muster(x, target)).DefaultIfEmpty(0).Max());
+                    var required = 1 + Math.Min(1, b.Alive.Where(x => x != me).Select(x => b.Muster(x, target)).DefaultIfEmpty(0).Max());
                     var helpers = Helpers(target, army).Where(u => u != fleet).Take(required - 1).ToList();
                     if (1 + helpers.Count < required) continue;
-                    var carried = Stranded(army) ? 0.85 * (b.Value(target) * Multiplier(owner)) + 60 : 0.75 * b.Value(target) * Multiplier(owner);
+                    // A landing that does not storm the walls only begins a siege.
+                    var landed = b.Walls(target) && 1 + helpers.Count < b.StormNeeds(target, 0) ? SiegeWorth(b.WallLevel(target)) : 1;
+                    var carried = landed * (Stranded(army) ? 0.85 * (b.Value(target) * Multiplier(owner)) + 60 : 0.75 * b.Value(target) * Multiplier(owner));
                     ops.Add(new Op("convoy", carried - Exposure(army), target, army, helpers, fleet));
                 }
+
+        // ---- Sieges: an army of ours within foreign walls we mean to take stays and besieges the city (each season it holds
+        // there wears the city down a step), with a support from a neighbouring troop when that saves a season (a support to
+        // hold, uncut, wears it down two steps).
+        foreach (var at in free.Where(u => b.UnitAt[u].Kind == UnitKind.Army && b.Walls(u) && !b.IsMine(u)).OrderBy(u => u, StringComparer.Ordinal).ToList())
+        {
+            var holder = b.OwnerOf(at);
+            if (holder is { } h && !Willing(h)) continue;
+            var left = b.WallLevel(at) - (b.SiegeAt(at) is { } x && x.Besieger == me ? x.Progress : 0);
+            var helper = left >= 2 ? Helpers(at, at).FirstOrDefault(u => !stay.Contains(u) && !threat.ContainsKey(u)) : null;
+            ops.Add(new Op("siege", 0.9 * b.Value(at) * Multiplier(holder) / Math.Max(1, left) + 40, at, at, helper is null ? new() : [helper]));
+        }
 
         // ---- Joint blows with sworn partners (see Joints): go in when it is our turn, support when it is theirs.
         foreach (var j in Joints(b, brain))
@@ -273,7 +299,7 @@ internal static class Tactics
         {
             if (op.Net <= 0) break;
             if (op.Lead.Length > 0 && !free.Contains(op.Lead)) continue;
-            if (op.Kind is not ("defend" or "assist") && stay.Contains(op.Lead)) continue;
+            if (op.Kind is not ("defend" or "assist" or "siege") && stay.Contains(op.Lead)) continue;
             if (op.Kind is "attack" or "block" or "convoy" or "assist" && plan.Destinations.Contains(op.Target)) continue;
             if (op.Kind == "convoy" && !free.Contains(op.Other!)) continue;
             var helpers = op.Helpers.Where(free.Contains).ToList();
@@ -309,6 +335,10 @@ internal static class Tactics
                     // A unit that supports stays where it is, so one kept home (or defended) may still do it.
                     Assign(plan, free, op.Lead, new SupportOrder(op.Lead, op.Other!, op.Target), "assist");
                     plan.Destinations.Add(op.Target);
+                    break;
+                case "siege":
+                    Assign(plan, free, op.Lead, new BesiegeOrder(op.Lead), "siege");
+                    foreach (var h in helpers) Assign(plan, free, h, new SupportOrder(h, op.Lead), "support");
                     break;
             }
         }
@@ -367,6 +397,23 @@ internal static class Tactics
         return plan;
     }
 
+    /// <summary>
+    /// After the look-ahead: an army of ours left holding within foreign walls we mean to take besieges the city instead (a
+    /// besiege order is a hold that wears the city down; the look-ahead weighs holds and moves, and a siege, once begun,
+    /// goes on while the army holds there, but it must be ordered to begin).
+    /// </summary>
+    public static void Besiege(Board b, Brain brain, MilitaryPlan plan)
+    {
+        var leader = b.Leader();
+        foreach (var u in b.Mine.Where(u => u.Kind == UnitKind.Army && b.Walls(u.Province) && !b.IsMine(u.Province)).Select(u => u.Province).ToList())
+        {
+            if (plan.Orders.GetValueOrDefault(u) is not (null or HoldOrder)) continue;
+            if (b.OwnerOf(u) is { } holder && !Willing(b, brain, holder, leader)) continue;
+            plan.Orders[u] = new BesiegeOrder(u);
+            plan.Role[u] = "siege";
+        }
+    }
+
     /// <summary>Whether the king will send troops against another king this season. Decided by his own temper, never by a trial plan.</summary>
     public static bool Willing(Board b, Brain brain, Power owner, Power? leader)
     {
@@ -378,6 +425,12 @@ internal static class Tactics
         // While another king runs away with the game, only the most warlike still pick fights among the rest.
         return brain.P.Aggression > (leader is { } l && l != b.Me ? 0.8 : 0.55);
     }
+
+    /// <summary>
+    /// What getting within walls without storming them is worth against taking the city at once: the army then stands and
+    /// besieges it for as many seasons as the walls are high (fewer with support), and may be driven out meanwhile.
+    /// </summary>
+    internal static double SiegeWorth(int walls) => 0.6 / (1 + 0.25 * walls);
 
     private static void Assign(MilitaryPlan plan, HashSet<string> free, string unit, Order order, string role)
     {
@@ -418,8 +471,8 @@ internal static class Tactics
         if (best is null) return null;
         var step = best;
         while (prev[step] != from) step = prev[step];
-        if (taken.Contains(step) || b.UnitAt.ContainsKey(step) || (b.Walls(step) && step != best)) return null;
-        if (b.Walls(step)) return null;
+        // Foreign walls are entered only to take the city, by the attacks above; our own we may march through.
+        if (taken.Contains(step) || b.UnitAt.ContainsKey(step) || (b.Walls(step) && !b.IsMine(step))) return null;
         var stepOwner = b.OwnerOf(step);
         if (stepOwner is { } so && so != b.Me && !willing(so)) return null;
         return step;

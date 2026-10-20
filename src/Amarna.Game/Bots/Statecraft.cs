@@ -219,10 +219,10 @@ internal static class Statecraft
             gold -= v.Prices["army"];
         }
 
-        // Cities: buying turns gold into the same score in land, plus its income, behind walls that hold for the buyer.
+        // Cities: buying turns gold into the same score in land, plus its income, behind walls that now stand for the buyer.
         var units = b.Mine.Select(u => u.Province).ToList();
-        var offers = v.Garrisons
-            .Where(g => b.OwnerOf(g) is null && !plan.Destinations.Contains(g) && Board.Map.WithinReach(g, me, v.Owner, units))
+        var offers = v.Owner.Where(x => x.Value is null).Select(x => x.Key)
+            .Where(g => b.OwnerOf(g) is null && (b.UnitAt.GetValueOrDefault(g) is not { } there || there.Power == me) && !plan.Destinations.Contains(g) && Board.Map.WithinReach(g, me, v.Owner, units))
             .Select(g =>
             {
                 var y = Board.Map[g].Yield;

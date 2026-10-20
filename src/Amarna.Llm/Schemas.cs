@@ -51,8 +51,8 @@ public static class Schemas
     // standing orders leaves out the field descriptions, which are the same as above it, to keep the schema short.
     private static JsonObject UnitOrder(bool described = true) => Object(
         ("unit", Str(described ? "Province id where your unit stands." : null)),
-        ("order", Enum(["hold", "move", "support", "convoy", "disband"])),
-        ("target", Str(described ? "move: destination. support: the province of the unit supported, or of a bought walled city (yours or another king's) to support its walls holding. convoy: province of the army. Otherwise empty." : null)),
+        ("order", Enum(["hold", "move", "support", "convoy", "disband", "besiege"])),
+        ("target", Str(described ? "move: destination. support: the province of the unit supported. convoy: province of the army. Otherwise empty (besiege: an army standing within walls you do not hold besieges that city)." : null)),
         ("to", Str(described ? "support of a move, or convoy: the destination. Support to hold: empty." : null)));
 
     private static JsonObject OtherOrder(bool described = true) => Object(

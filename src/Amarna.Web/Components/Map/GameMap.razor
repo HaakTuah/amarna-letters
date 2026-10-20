@@ -16,7 +16,7 @@
             <MapFog Scene="Scene" />
             <MapPolitics Frame="Scene.Frame" Part="bands" />
             <StaticSvg Markup="@MapMarkup.Labels" />
-            <MapPolitics Frame="Scene.Frame" Part="cities" OnProvince="OnProvince" />
+            <MapPolitics Frame="Scene.Frame" Part="cities" OnProvince="OnProvince" Sieges="@Scene.Sieges.Select(x => x.Province).ToHashSet()" />
         </svg>
         <svg class="map map-upper" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
             <MapRoads Scene="Scene" Viewer="Scene.Viewer" FollowId="FollowId" Path="FollowPath" />

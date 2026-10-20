@@ -243,7 +243,7 @@ public sealed partial class TurnEngine
         var capital = Map.Capital(p).Id;
         var nextToCapital = S.Owner.GetValueOrDefault(capital) == p ? Map.Neighbors(capital).ToHashSet() : [];
         var home = Map.HomeOf(p).Select(x => x.Id).Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
-        var walled = S.Garrisons.Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
+        var walled = S.Walls.Keys.Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
         var seen = S.LastSeen.GetValueOrDefault(p) ?? [];
         var stood = seen.Where(o => o.Power == p).Select(o => o.Province).ToHashSet();
         foreach (var o in seen)
@@ -530,6 +530,7 @@ public sealed partial class TurnEngine
         {
             HoldOrder h => h with { Unit = unit ?? h.Unit },
             MoveOrder m => m with { Unit = unit ?? m.Unit },
+            BesiegeOrder b => b with { Unit = unit ?? b.Unit },
             SupportOrder sp => sp with { Unit = unit ?? sp.Unit, Supported = other ?? sp.Supported },
             ConvoyOrder c => c with { Unit = unit ?? c.Unit, Army = other ?? c.Army },
             DisbandOrder d => d with { Unit = unit ?? d.Unit },
@@ -555,6 +556,7 @@ public sealed partial class TurnEngine
         {
             HoldOrder h => h with { Unit = unit },
             MoveOrder m => m with { Unit = unit },
+            BesiegeOrder b => b with { Unit = unit },
             SupportOrder sp => sp with { Unit = unit, Supported = other ?? sp.Supported },
             ConvoyOrder c => c with { Unit = unit, Army = other ?? c.Army },
             DisbandOrder d => d with { Unit = unit },
@@ -956,14 +958,13 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// Whether others stopped a move of <paramref name="p"/>'s, so that its failure wakes the seat when the move was scheduled:
-    /// another power's unit held it off, met it or took the province first, or walls held that troops had helped hold (a
-    /// strength above the walls' own 1). Not a move stopped by the seat's own unit, by walls alone (whose strength the king
-    /// knows), or for want of a convoy: the seat's own orders and strength decided those.
+    /// another power's unit held it off, met it or took the province first. Not a move stopped by the seat's own unit, or for
+    /// want of a convoy: the seat's own orders decided those. (Walls never stop a move since the siege package: a move into a
+    /// walled province gets in, and storms the walls or stands inside.)
     /// </summary>
     public static bool StoppedByOthers(Power p, MoveFailure f) => f.Stop switch
     {
         MoveStop.NoConvoy or MoveStop.OwnUnit => false,
-        MoveStop.Walls => f.Against > 1,
         _ => f.Power is { } q && q != p,
     };
 

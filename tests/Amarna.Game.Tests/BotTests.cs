@@ -144,7 +144,7 @@ public class BotTests
         foreach (var (city, owner) in new[] { ("carchemish", Power.Mitanni), ("ugarit", Power.Egypt) })
         {
             s.Owner[city] = owner;
-            s.Garrisons.Remove(city);
+            s.Walls.Remove(city);
         }
         s.Units.RemoveAll(u => u.Province is "kizzuwatna" or "terqa" or "memphis");
         s.Units.Add(new Unit { Id = "u90", Power = Power.Mitanni, Kind = UnitKind.Army, Province = "carchemish" });

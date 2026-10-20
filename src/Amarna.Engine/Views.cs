@@ -7,6 +7,19 @@ public sealed class UnitView
     public string Province { get; set; } = "";
 }
 
+/// <summary>A siege as a court sees it: the city, the besieger, who holds the city, and how far it has been worn down against its walls.</summary>
+public sealed class SiegeView
+{
+    public string Province { get; set; } = "";
+    public Power Besieger { get; set; }
+    public Power? Holder { get; set; }
+    /// <summary>How far the city has been worn down; it surrenders when this reaches <see cref="Walls"/>.</summary>
+    public int Progress { get; set; }
+    public int Walls { get; set; }
+    /// <summary>The season the siege began.</summary>
+    public int Since { get; set; }
+}
+
 public sealed class LotView
 {
     public string Id { get; set; } = "";
@@ -119,7 +132,10 @@ public sealed class SeatView
     public int ProvinceWeight { get; set; } = new GameConfig().ProvinceWeight;
 
     public Dictionary<string, Power?> Owner { get; set; } = new();
-    public List<string> Garrisons { get; set; } = new();
+    /// <summary>The walls standing now, by province (public, like who holds what); a province with none is left out.</summary>
+    public Dictionary<string, int> Walls { get; set; } = new();
+    /// <summary>The sieges this court knows of: its own, those of its cities, and those it can see.</summary>
+    public List<SiegeView> Sieges { get; set; } = new();
     public List<UnitView> Units { get; set; } = new();
     public List<string> Visible { get; set; } = new();
     public List<Power> Fallen { get; set; } = new();
@@ -259,7 +275,10 @@ public static class Views
             StartStrength = s.StartStrength.GetValueOrDefault(p),
             ProvinceWeight = s.Config.ProvinceWeight,
             Owner = new Dictionary<string, Power?>(s.Owner),
-            Garrisons = s.Garrisons.ToList(),
+            Walls = new Dictionary<string, int>(s.Walls),
+            Sieges = s.Sieges.Where(x => x.Power == p || s.Owner.GetValueOrDefault(x.Province) == p || sight.Contains(x.Province))
+                .Select(x => new SiegeView { Province = x.Province, Besieger = x.Power, Holder = s.Owner.GetValueOrDefault(x.Province), Progress = x.Progress, Walls = s.WallsOf(x.Province), Since = x.Since })
+                .ToList(),
             Units = s.Units.Where(u => u.Power == p || sight.Contains(u.Province))
                 .Select(u => new UnitView { Power = u.Power, Kind = u.Kind, Province = u.Province }).ToList(),
             Visible = map.Provinces.Where(x => sight.Contains(x.Id)).Select(x => x.Id).ToList(),
@@ -327,6 +346,7 @@ public static class Views
         v.Prices["assay"] = s.Config.AssayFee;
         v.Prices["forgery"] = s.Config.ForgeFee;
         v.Prices["cityPricePerYield"] = s.Config.NeutralPriceFactor;
+        v.Prices["siegeUpkeep"] = s.Config.SiegeUpkeep;
         return v;
     }
 

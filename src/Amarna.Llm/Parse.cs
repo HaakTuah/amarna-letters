@@ -135,6 +135,7 @@ public static class Parse
             "convoy" => new ConvoyOrder(unit, target, to ?? ""),
             "disband" => new DisbandOrder(unit),
             "hold" => new HoldOrder(unit),
+            "besiege" => new BesiegeOrder(unit),
             _ => null,
         };
         return order;

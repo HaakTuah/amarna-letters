@@ -21,9 +21,11 @@ public sealed class GameState
     /// only when he is the one warned, and split sentences after a closing quote, which changes what they keep and say.
     /// Among the owner's additions to that pass, still under 5 since it was never released: every seat may keep standing
     /// orders, awake or asleep, and a standing order that fires replaces the season's other orders for the same units or
-    /// people, those given that season among them; script kings give them.
+    /// people, those given that season among them; script kings give them. 6 since Build order item 5, the siege package,
+    /// one version for the whole item: walls that differ by place in place of the free cities' garrisons, storming and
+    /// sieges, and everything else the item builds.
     /// </summary>
-    public const int CurrentVersion = 5;
+    public const int CurrentVersion = 6;
 
     public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }
@@ -33,8 +35,16 @@ public sealed class GameState
     public string? EndReason { get; set; }
 
     public Dictionary<string, Power?> Owner { get; set; } = new();
-    /// <summary>Cities still defended by their own walls (hold strength 1): free city-states, and cities that accepted a buyer, whose walls then hold for the owner.</summary>
-    public List<string> Garrisons { get; set; } = new();
+    /// <summary>
+    /// The walls standing now, by province, from 1 to 3; a province with none is left out (Build order item 5, the siege
+    /// package, in place of the free cities' garrisons that held with strength 1). They start as the map gives them
+    /// (<see cref="MapData.StartWalls"/>). Walls add nothing to a field battle: a move into a walled province not its
+    /// mover's takes it at once only if it storms the walls, and otherwise stands inside and takes nothing until a siege
+    /// wears the city down (<see cref="Sieges"/>).
+    /// </summary>
+    public Dictionary<string, int> Walls { get; set; } = new();
+    /// <summary>The sieges under way: a foreign army standing in a walled city, ordered to besiege it.</summary>
+    public List<Siege> Sieges { get; set; } = new();
     public List<Unit> Units { get; set; } = new();
     public Dictionary<Power, Treasury> Treasuries { get; set; } = new();
     public Dictionary<Power, int> StartStrength { get; set; } = new();
@@ -83,6 +93,12 @@ public sealed class GameState
     }
 
     public Unit? UnitAt(string province) => Units.FirstOrDefault(u => u.Province == province);
+
+    /// <summary>The level of a province's walls now (0 for none).</summary>
+    public int WallsOf(string province) => Walls.GetValueOrDefault(province);
+
+    /// <summary>The siege of a province under way, if any.</summary>
+    public Siege? SiegeOf(string province) => Sieges.FirstOrDefault(x => x.Province == province);
 
     public Character? FindCharacter(string? id) => id is null ? null : Characters.FirstOrDefault(c => c.Id == id);
 
@@ -159,6 +175,25 @@ public sealed class Unit
     public string Province { get; set; } = "";
 
     public string Label => $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}";
+}
+
+/// <summary>
+/// A siege under way (Build order item 5): a foreign army standing in a walled city it does not hold, whose king ordered it
+/// to besiege the city. Each season the army holds there, the city's stores run down by one, or by two if another unit
+/// supports the army holding and the support is not cut; when they reach the level of its walls the city surrenders to the
+/// besieger at the end of that season. The siege ends, and its progress is lost, if the army leaves or is destroyed.
+/// </summary>
+public sealed class Siege
+{
+    public string Province { get; set; } = "";
+    /// <summary>The besieger.</summary>
+    public Power Power { get; set; }
+    /// <summary>The besieging army.</summary>
+    public string UnitId { get; set; } = "";
+    /// <summary>How far the city has been worn down: it surrenders when this reaches the level of its walls.</summary>
+    public int Progress { get; set; }
+    /// <summary>The season the first besiege order ran.</summary>
+    public int Since { get; set; }
 }
 
 public sealed class Treasury

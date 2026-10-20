@@ -80,6 +80,7 @@ public sealed class ScriptLeader : ISeat
             Statecraft.Strategy(board, brain, rng);
             var plan = Tactics.Make(board, brain);
             Search.Improve(board, brain, plan, brain.R(view.Turn, "search"));
+            Tactics.Besiege(board, brain, plan);
             foreach (var order in plan.Orders.Values)
             {
                 if (order is not MoveOrder m) continue;

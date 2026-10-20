@@ -26,7 +26,7 @@ internal static class Contingencies
     /// <summary>The least fear of a king that counts his troops as a threat, as in the first plan (Tactics).</summary>
     private const double MinFear = 0.25;
 
-    /// <summary>What a standing order guards: a troop of ours, the walls of a city of ours, an empty province of our homeland, or a fleet that slips away.</summary>
+    /// <summary>What a standing order guards: a troop of ours, an empty walled city of ours, an empty province of our homeland, or a fleet that slips away.</summary>
     internal enum Guard { Troop, Walls, Empty, Retreat }
 
     /// <summary>A standing order the king gives, with what it guards, for the notes and the tests.</summary>
@@ -93,7 +93,7 @@ internal static class Contingencies
             }
             else if (!b.IsMine(place)) return "lost";
             // An empty province one of our troops moves into, or stands in now: two of ours would bounce there.
-            else if (!b.Walls(place) && (mine.ContainsKey(place) || plan.Orders.Values.OfType<MoveOrder>().Any(m => m.To == place))) return "ours to enter";
+            else if (mine.ContainsKey(place) || plan.Orders.Values.OfType<MoveOrder>().Any(m => m.To == place)) return "ours to enter";
             // This season's plan already gives every one of its orders: firing would change nothing, so it waits no longer.
             if (st.Orders.All(o => Unit(o) is { } u && Fresh(u)?.Describe() == o.Describe())) return "the plan does it";
             // The plan guards the troop its own way: one of ours moves into its province with support, so that an attacker
@@ -162,20 +162,15 @@ internal static class Contingencies
                     // A fleet at sea, nothing to help it, and nothing to lose there but the fleet: it slips away as the blow falls.
                     Add(Guard.Retreat, place, StandingWhen.UnitAttacked, [new MoveOrder(place, refuge)], [place]);
             }
-            else if (b.Walls(place) && b.IsMine(place))
+            else if (b.IsMine(place) && (Board.Map[place].Home == me || b.Walls(place)) && !covered.Contains((StandingWhen.UnitEnters, place)))
             {
-                // The walls of a city of ours hold against one troop: against more, troops next to them support them.
-                if (strength < 2 || Muster(place) < 2 || covered.Contains((StandingWhen.UnitEnters, place))) continue;
-                var support = helpers.Take(strength - 1).ToList();
-                if (support.Count > 0) Add(Guard.Walls, place, StandingWhen.UnitEnters, support.Select(h => (Order)new SupportOrder(h, place)).ToList(), support);
-            }
-            else if (b.IsMine(place) && Board.Map[place].Home == me && !covered.Contains((StandingWhen.UnitEnters, place)))
-            {
-                // Empty land of our homeland: a troop next to it marches in as the enemy does, and an attacker without support
-                // bounces; the troop stays where it was (the least threatened goes). Against a supported attack it fails, and
-                // has given up only its own order for the season, which is weighed in the season it may fire.
+                // Empty land of our homeland, or an empty walled city of ours: a troop next to it marches in as the enemy does,
+                // and an attacker without support bounces; the troop stays where it was (the least threatened goes). Against a
+                // supported attack it fails, and has given up only its own order for the season, which is weighed in the season
+                // it may fire. (Until the siege package walls held with strength 1, and the guard on a walled city supported them
+                // holding; walls now add nothing to a battle, so the city is guarded as empty land is.)
                 var blocker = helpers.FirstOrDefault();
-                if (blocker is not null) Add(Guard.Empty, place, StandingWhen.UnitEnters, [new MoveOrder(blocker, place)], [blocker]);
+                if (blocker is not null) Add(b.Walls(place) ? Guard.Walls : Guard.Empty, place, StandingWhen.UnitEnters, [new MoveOrder(blocker, place)], [blocker]);
             }
         }
         return (cancel, give);

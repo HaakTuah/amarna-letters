@@ -36,12 +36,17 @@
             @foreach (var p in Land)
             {
                 var owner = Frame.OwnerOf(p.Id);
-                var walls = Frame.Garrisons.Contains(p.Id);
-                <g @key="p.Id" transform="@($"translate({p.X},{p.Y})")" class="@($"city{(p.Capital ? " capital" : "")}{(owner is null ? " free" : "")}")" @onclick="() => OnProvince.InvokeAsync(p.Id)">
+                var walls = Frame.Walls.GetValueOrDefault(p.Id);
+                var besieged = Sieges.Contains(p.Id);
+                <g @key="p.Id" transform="@($"translate({p.X},{p.Y})")" class="@($"city{(p.Capital ? " capital" : "")}{(owner is null ? " free" : "")}{(besieged ? " besieged" : "")}")" @onclick="() => OnProvince.InvokeAsync(p.Id)">
                     <g class="csym">
-                        @if (walls)
+                        @if (walls > 0)
                         {
-                            <circle class="walls" r="@(p.Capital ? 15 : 11)" />
+                            @* One ring for each level of walls standing. *@
+                            @for (var level = walls; level >= 1; level--)
+                            {
+                                <circle class="@($"walls w{level}")" r="@((p.Capital ? 12 : 8.5) + 2 * level)" />
+                            }
                         }
                         @if (p.Capital)
                         {
@@ -68,12 +73,21 @@
     /// <summary>"tints", "bands" or "cities".</summary>
     [Parameter] public string Part { get; set; } = "tints";
     [Parameter] public EventCallback<string> OnProvince { get; set; }
+    /// <summary>The cities besieged that the viewer knows of, drawn with broken walls (a court knows only the sieges in its view).</summary>
+    [Parameter] public IReadOnlySet<string> Sieges { get; set; } = new HashSet<string>();
 
     private SeasonFrame? _drawn;
+    private string _sieges = "";
 
-    protected override bool ShouldRender() => !ReferenceEquals(_drawn, Frame);
+    private string SiegeKey => string.Join(",", Sieges.Order(StringComparer.Ordinal));
 
-    protected override void OnAfterRender(bool firstRender) => _drawn = Frame;
+    protected override bool ShouldRender() => !ReferenceEquals(_drawn, Frame) || _sieges != SiegeKey;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _drawn = Frame;
+        _sieges = SiegeKey;
+    }
 
     private static string Title(Province p, Power? owner) =>
         $"{p.Name}: {(owner is { } o ? $"held by {o.Name()}" : "a free city-state")}; yields {Ui.Shekels(p.Yield)} a season"

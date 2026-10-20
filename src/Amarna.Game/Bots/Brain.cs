@@ -34,6 +34,8 @@ internal sealed partial class Brain
     public ulong Seed { get; }
     public Dictionary<Power, Relation> Rel { get; } = new();
     public Dictionary<string, Power?> LastOwner = new();
+    /// <summary>The walls as they stood last season: a city bought keeps its walls, one that falls loses a level.</summary>
+    public Dictionary<string, int> LastWalls = new();
     public Dictionary<Power, (int Units, int Turn)> ArmySeen = new();
     /// <summary>Where foreign troops were last seen, for provinces out of sight.</summary>
     public Dictionary<string, (Power Power, UnitKind Kind, int Turn)> Sightings = new();
@@ -150,12 +152,12 @@ internal sealed partial class Brain
             if (was != Me || b.OwnerOf(prov) is not { } taker || taker == Me || !Rel.ContainsKey(taker)) continue;
             Wronged(taker, 2 + Board.Map[prov].Yield / 20.0, -0.4, v.Turn);
         }
-        // Conquests anywhere on the public map (a purchase keeps the walls; a conquest tears them down).
+        // Conquests anywhere on the public map (a purchase keeps the walls; a city that falls loses a level of them).
         foreach (var k in Belligerence.Keys.ToList()) Belligerence[k] *= 0.7;
         foreach (var (prov, was) in previous)
         {
             if (b.OwnerOf(prov) is not { } now || now == was || now == Me) continue;
-            if (was is null && b.Walls(prov))
+            if (was is null && b.Walls(prov) && b.WallLevel(prov) == LastWalls.GetValueOrDefault(prov))
             {
                 Treasury[now] -= Board.Map[prov].Yield * b.YieldWorth;
                 continue;
@@ -163,6 +165,7 @@ internal sealed partial class Brain
             Belligerence[now] = Belligerence.GetValueOrDefault(now) + (was is null ? 1 : 1.5);
         }
         LastOwner = new Dictionary<string, Power?>(v.Owner);
+        LastWalls = new Dictionary<string, int>(v.Walls);
 
         // What we saw happen last season.
         foreach (var o in v.LastSeason)

@@ -49,16 +49,17 @@ public static class Prompts
             5. Audiences: you receive the foreign envoys at your court and answer them. Gifts and gold you send back are paid when the audience ends.
             6. Orders: every king gives orders at once, in secret. Then each standing order that fires (see STANDING ORDERS) answers the moves just ordered and puts its orders in place of yours for the same units or people. Yours are checked in the order your reply lists them (units, then letters, then other orders), then those of your standing orders that fire, and the gold each needs is reserved as it is accepted, so a later order can be refused for lack of gold. There is no "else": a refused order is not replaced by another, and a purchase meant as a fallback is refused if an earlier bid has reserved the gold, even if that city is then not sold.
             7. Movement and battles: all units move at once.
-            8. Land changes hands: a province passes to the power whose unit stands in it after movement.
-            9. Cessions and gifts of troops: a cession fails if you no longer hold the province or your own troops stand in it; a gift fails if the unit is gone.
-            10. Purchases: a city's price is paid only when it accepts. A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none.
-            11. Disbanding.
-            12. Levies: a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid.
-            13. Envoys set out (their gold and the scribe's fee are paid now), detained envoys are released, servants are dismissed, candidates are sent for and background checks paid for. Then hiring and renewals are settled: a person hired this season enters your service at the end of the season and can be sent on an errand from next season; a person takes the highest offer at or above the price it asks, so when two courts bid for one person the higher wage wins.
-            14. Intelligence: watchmen are paid; captors decide their captives' fates; spies set out (a spy must be one of your own people at your court, sent to watch a court or a province) or are recalled; assays, examinations and forgeries are paid for; ransoms set out. Then each posted spy may be caught, or else sends its report home.
-            15. Catastrophes strike.
-            16. A kingdom with no land left falls.
-            17. Strength and growth are reckoned, and from turn {c.MinTurns} the game may end.
+            8. Sieges (see WALLS AND SIEGES): a siege whose army left or was destroyed is lifted; each besieging army that held its place wears its city down; a city worn down as far as its walls are high surrenders to the besieger.
+            9. Land changes hands: a province without walls passes to the power whose unit stands in it after movement; a walled one only to a unit that stormed its walls this season (or by a siege, in step 8).
+            10. Cessions and gifts of troops: a cession fails if you no longer hold the province or your own troops stand in it; a gift fails if the unit is gone.
+            11. Purchases: a city's price is paid only when it accepts. A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none.
+            12. Disbanding.
+            13. Levies: a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid.
+            14. Envoys set out (their gold and the scribe's fee are paid now), detained envoys are released, servants are dismissed, candidates are sent for and background checks paid for. Then hiring and renewals are settled: a person hired this season enters your service at the end of the season and can be sent on an errand from next season; a person takes the highest offer at or above the price it asks, so when two courts bid for one person the higher wage wins.
+            15. Intelligence: watchmen are paid; captors decide their captives' fates; spies set out (a spy must be one of your own people at your court, sent to watch a court or a province) or are recalled; assays, examinations and forgeries are paid for; ransoms set out. Then each posted spy may be caught, or else sends its report home.
+            16. Catastrophes strike.
+            17. A kingdom with no land left falls.
+            18. Strength and growth are reckoned, and from turn {c.MinTurns} the game may end.
             Everything that happened is reported to you next season. Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).
 
             MOVEMENT AND COMBAT (Diplomacy rules, no dice)
@@ -67,11 +68,18 @@ public static class Prompts
             - Strength is 1 plus valid supports. A move succeeds only if its strength beats the defender's hold strength and the strength of every other move into the same province. Ties bounce. A support is cut if the supporting unit is attacked from anywhere except the province it supports into. You can never dislodge your own unit.
             - A unit dislodged is destroyed; a unit that is destroyed gives no support (your report calls such a support void). A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds. One naming a province you cannot see is never refused for what stands there: if no unit there does what it helps, it is void. A province changes hands when a unit ends a season in it.
             - Your battle report says why each of your moves that failed was stopped, with the strengths compared where strength decided it, and that the unit stays where it was (a unit whose move fails does not move), and why each of your supports or convoys was void. It names the other side's power only if that unit stood, or was moving, where you could see.
-            - Free city-states have walls that hold with strength 1 and never move: you need at least one support to take one, or you can buy it. A city that accepts a buyer keeps its walls, which then hold for its new owner: the owner cannot station troops inside, but it, or any other king, may support its walls holding.
+
+            WALLS AND SIEGES
+            - Many provinces have walls, from level 1 to 3: every capital 3, the great fortresses 2, the walled towns 1, and every free city-state at least 1 (THE MAP gives each province's walls at the start; LANDS in your view gives the walls standing now). Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other. What walls decide is whether the province is taken.
+            - Storming: a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the hold strength of the defenders it beat (none if the province was empty or its unit moved away). So an empty city with walls 1 needs strength 2, and a capital held by one army needs 5. A city taken by storm loses a level of walls.
+            - Otherwise the unit that got in stands within the walls and takes nothing: the province stays its holder's. A foreign unit within walls takes nothing unless it storms them or a siege wears the city down, so an ally's troops may stand in your city as guests. You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them: it takes only coasts without walls.
+            - Besieging: an army standing within walls it does not hold may besiege the city (order besiege). Each season it holds there (a besiege or hold order, or no order) wears the city down one step, or two if another unit, of any power, supports it holding and that support is not cut; a season in which it gives a support or a convoy, or tries to move, adds nothing. One besiege order is enough: the siege goes on each season the army holds there. When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls. So an army that gets into a city with walls 1 takes it in the next season, and one before walls 3 in the third season after it got in, or the second with a support each season. If the besieging army leaves or is destroyed, the siege is lifted and what it had worn down is lost.
+            - While besieged, a city stays its holder's and counts in his strength, but it yields nothing to anyone, and he cannot raise troops in it. Each siege costs the besieger {c.SiegeUpkeep} a season on top of the army's upkeep. The holder may still cede the city.
+            - Breaking a siege is ordinary combat: drive the besieging army out with an attack into the city stronger than its hold. Your battle report and your news say how every assault on walls went, yours and those on your own walled cities, with the strengths, and how far each siege of yours, or of your cities, has gone.
 
             STANDING ORDERS (standing_orders; every king may give them)
             - A standing order waits for a move you can see and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds: a unit of the power you name, or any foreign unit, setting out to move into a province (unit_enters); or a foreign unit setting out to move into the province where one of your units stands (unit_attacked; name your unit by where it stands now). A move you can see is one from or into a province in your sight.
-            - So its orders meet the blow as it falls: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), or support the walls of a walled city of yours holding (unit_enters on the city), and a unit next to an empty province of yours can move into it, so that an attacker without support bounces.
+            - So its orders meet the blow as it falls: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), and a unit next to an empty province of yours, walled or not, can move into it, so that an attacker without support bounces.
             - Name each of your units in its orders by the province it stands in now, as you give it: the order follows that unit wherever it goes, and is given from where the unit then stands. A standing order naming a province where you have no unit is refused whole.
             - When it fires, its orders replace your other orders that season for the same units or people, those you give that season among them: give your units their orders as usual, and a standing order changes them only if the move it waits for comes. To stop one from firing, cancel it (cancel_standing, by id or "all"); cancelled in a season, it does not fire in that season. It answers the moves as they were ordered, never the orders another standing order gives, so it may answer a move that the mover's own standing order then turns aside: it fires even though that move is never made. It first fires in the season after you give it. If two fire in the same season, the one with the lower id goes first: its orders replace the other's for the same units or people.
             - It fires once, on the first move it waits for that you see, whether a real attack or a feint, and is then gone. Your news then says what set it off, the orders it gave and those of yours it replaced. You may keep at most {TurnEngine.MaxStanding}, each with at most {TurnEngine.MaxScheduledPerSeason} orders, until they fire or you cancel them; when you lose a unit, a standing order that waits on it is dropped, and so are the orders any standing order gives it. Giving one costs nothing; its orders cost what they cost when they run (a levy its gold).
@@ -129,7 +137,7 @@ public static class Prompts
         }
 
         sb.AppendLine();
-        sb.AppendLine("THE MAP (id: name; kind; homeland; yield per season; links)");
+        sb.AppendLine("THE MAP (id: name; kind; homeland; yield per season; walls at the start; links)");
         var map = WorldMap.Default;
         foreach (var p in map.Provinces)
         {
@@ -137,7 +145,8 @@ public static class Prompts
             var home = p.Home is { } h ? $"homeland of {h}" : p.IsSea ? "" : "free city-state";
             var armies = p.IsSea ? "" : $" armies: {string.Join(", ", map.MovesFrom(UnitKind.Army, p.Id))}.";
             var fleets = p.IsSea || p.IsCoastal ? $" fleets: {string.Join(", ", map.MovesFrom(UnitKind.Fleet, p.Id))}." : "";
-            sb.AppendLine($"- {p.Id}: {p.Name}; {kind}{(home.Length > 0 ? "; " + home : "")}{(p.Capital ? "; capital" : "")}{(p.Yield > 0 ? $"; yield {p.Yield}" : "")}.{armies}{fleets}");
+            var walls = MapData.StartWalls.GetValueOrDefault(p.Id) is > 0 and var w ? $"; walls {w}" : "";
+            sb.AppendLine($"- {p.Id}: {p.Name}; {kind}{(home.Length > 0 ? "; " + home : "")}{(p.Capital ? "; capital" : "")}{(p.Yield > 0 ? $"; yield {p.Yield}" : "")}{walls}.{armies}{fleets}");
         }
 
         // Public facts, fixed for the game: every court knows how each king began.
@@ -269,16 +278,17 @@ public static class Prompts
         sb.AppendLine(Standings(v));
 
         sb.AppendLine();
-        sb.AppendLine("LANDS (who holds what; troops only where you can see them):");
+        sb.AppendLine("LANDS (who holds what, with the walls standing now; troops only where you can see them):");
         var units = v.Units.ToDictionary(u => u.Province);
         string Troop(string id) => units.TryGetValue(id, out var u) ? $" [{u.Power} {(u.Kind == UnitKind.Army ? "army" : "fleet")}]" : "";
         foreach (var group in v.Owner.GroupBy(x => x.Value).OrderBy(g => g.Key is null ? 99 : (int)g.Key.Value))
         {
             var who = group.Key is { } o ? (o == v.Power ? $"{o} (you)" : o.ToString()) : "Free cities";
             var list = group.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal)
-                .Select(id => id + (v.Garrisons.Contains(id) ? " (walls)" : "") + Troop(id));
+                .Select(id => id + (v.Walls.TryGetValue(id, out var w) ? $" (walls {w})" : "") + Troop(id));
             sb.AppendLine($"- {who}: {string.Join(", ", list)}");
         }
+        if (Sieges(v) is { Length: > 0 } sieges) sb.AppendLine(sieges);
         var atSea = v.Units.Where(u => map[u.Province].IsSea).ToList();
         if (atSea.Count > 0) sb.AppendLine($"- At sea: {string.Join(", ", atSea.Select(u => $"{u.Province} [{u.Power} fleet]"))}");
         sb.AppendLine($"You can see troops in (your land, your troops and what your spies watch, and one link of any kind from those; troops two links away can still arrive next season unseen): {string.Join(", ", v.Visible)}.");
@@ -326,6 +336,20 @@ public static class Prompts
         sb.AppendLine();
         sb.Append(News(v));
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// The sieges a king knows of, in one line: his own, those of his cities, and those he can see, each with how far the city
+    /// has been worn down against its walls. Empty when there are none.
+    /// </summary>
+    public static string Sieges(SeatView v)
+    {
+        if (v.Sieges.Count == 0) return "";
+        string Line(SiegeView x) =>
+            x.Besieger == v.Power ? $"your army besieges {x.Province} ({(x.Holder is { } h ? $"held by {h}" : "a free city")}, walls {x.Walls}): worn down {x.Progress} of {x.Walls}, since turn {x.Since}"
+            : x.Holder == v.Power ? $"{x.Besieger}'s army besieges your city of {x.Province} (walls {x.Walls}): worn down {x.Progress} of {x.Walls}, since turn {x.Since}"
+            : $"{x.Besieger}'s army besieges {x.Province} ({(x.Holder is { } o ? $"held by {o}" : "a free city")}, walls {x.Walls}): worn down {x.Progress} of {x.Walls}";
+        return $"SIEGES (a city surrenders when it is worn down as far as its walls are high): {string.Join("; ", v.Sieges.Select(Line))}.";
     }
 
     /// <summary>
@@ -393,6 +417,7 @@ public static class Prompts
             else if (next.Count > 0) foreign.Add($"{u.Power} {Kind(u.Kind)} in {u.Province} (next to your {string.Join(", ", next)})");
         }
         sb.AppendLine($"- Foreign troops at or inside your borders, as far as you can see: {(foreign.Count == 0 ? "none" : string.Join("; ", foreign))}.");
+        if (Sieges(v) is { Length: > 0 } sieges) sb.AppendLine("- " + sieges);
         if (v.Scheduled.Count == 0) sb.AppendLine("- Your scheduled orders: none; your units hold where they stand.");
         else
         {
@@ -424,6 +449,7 @@ public static class Prompts
         {
             HoldOrder h => h with { Unit = Now(h.Unit) },
             MoveOrder m => m with { Unit = Now(m.Unit) },
+            BesiegeOrder b => b with { Unit = Now(b.Unit) },
             SupportOrder s => s with { Unit = Now(s.Unit), Supported = Now(s.Supported) },
             ConvoyOrder c => c with { Unit = Now(c.Unit), Army = Now(c.Army) },
             DisbandOrder d => d with { Unit = Now(d.Unit) },

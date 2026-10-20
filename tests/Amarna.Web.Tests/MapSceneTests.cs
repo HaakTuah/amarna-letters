@@ -265,7 +265,7 @@ public class MapSceneTests
                 {
                     var o = seen.First(o => o.Power == m.Power && o.Province == m.From && o.Order == "move" && o.Target == m.To);
                     var foreignLand = o.TargetOwner is { } owner && owner != m.Power;
-                    var walls = o.TargetOwner is null && prev.Garrisons.Contains(m.To);
+                    var walls = o.TargetOwner != m.Power && prev.Walls.ContainsKey(m.To);
                     Assert.True(foreignLand || walls || sight.Contains(m.To), $"seed {seed}, after turn {k}: {p} told of an attack on {m.To}, out of its sight");
                 }
             }
@@ -326,9 +326,26 @@ public class MapSceneTests
     }
 
     [Fact]
-    public void A_fallen_court_s_last_orders_are_not_drawn_again()
+    public async Task A_fallen_court_s_last_orders_are_not_drawn_again()
     {
-        var (runner, frames) = Play(1, 16);
+        // Seed 1, with Alashiya's island given to Egypt by decree after the second season, as a test: Alashiya falls in the
+        // third (since the siege package walls make a fall in the first seasons rare).
+        var state = GameFactory.NewGame(1);
+        var seats = Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(1));
+        var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
+        var frames = new SeasonFrames();
+        runner.Changed += () => frames.CatchUp(runner);
+        await runner.PrepareAsync();
+        for (var i = 0; i < 8 && !state.Ended; i++)
+        {
+            if (i == 2)
+            {
+                state.Owner["enkomi"] = Power.Egypt;
+                state.Owner["tamassos"] = Power.Egypt;
+                state.Units.RemoveAll(u => u.Power == Power.Alashiya);
+            }
+            await runner.PlayTurnAsync();
+        }
         var after = 0;
         for (var k = 1; k < frames.Count; k++)
         {

@@ -71,6 +71,8 @@ public sealed class MapScene
     public IReadOnlyList<SceneTraveller> Travellers { get; init; } = [];
     public IReadOnlyList<ScenePerson> People { get; init; } = [];
     public IReadOnlyList<SceneNews> News { get; init; } = [];
+    /// <summary>The sieges the viewer knows of: every one in god view; a court's own, those of its cities and those in its sight.</summary>
+    public IReadOnlyList<FrameSiege> Sieges { get; init; } = [];
 
     /// <summary>A stamp for components that redraw only when what they show changes.</summary>
     public string Stamp => $"{Index}:{Viewer}";
@@ -136,6 +138,9 @@ public sealed class MapScene
 
         var (travellers, people) = viewer is null ? GodPeople(f) : SeatPeople(f, viewer.Value);
         var news = viewer is { } v ? NewsOf(frames, index, v) : [];
+        var sieges = viewer is { } w
+            ? f.Sieges.Where(x => x.Besieger == w || f.OwnerOf(x.Province) == w || (f.Sight.GetValueOrDefault(w)?.Contains(x.Province) ?? false)).ToList()
+            : f.Sieges.ToList();
 
         return new MapScene
         {
@@ -150,6 +155,7 @@ public sealed class MapScene
             Travellers = travellers,
             People = people,
             News = news,
+            Sieges = sieges,
         };
     }
 
@@ -178,10 +184,12 @@ public sealed class MapScene
                     var foreignUnit = (sight is null || sight.Contains(t)) && prev.Units.Any(u => u.Province == t && u.Power != m.Power
                         && !seen.Any(x => x.IsMove && x.Succeeded && x.From == t && x.Power == u.Power && x.Kind == u.Kind));
                     var foreignLand = m.TargetOwner is { } o && o != m.Power;
-                    var walls = m.TargetOwner is null && prev.Garrisons.Contains(t);
+                    // Walls not its own: getting in is an attack, but takes the city only if it stormed them (it then holds it).
+                    var walls = m.TargetOwner != m.Power && prev.Walls.ContainsKey(t);
                     var attack = foreignUnit || foreignLand || walls;
                     var style = !m.Succeeded ? MoveStyle.Bounce : attack ? MoveStyle.Attack : MoveStyle.Move;
-                    var verb = m.Succeeded ? attack ? "attacked and took" : "moved to" : "was stopped short of";
+                    var took = f.Owner.GetValueOrDefault(t) == m.Power;
+                    var verb = m.Succeeded ? attack ? walls && !took ? "got within the walls of" : "attacked and took" : "moved to" : "was stopped short of";
                     moves.Add(new SceneMove(m.Power, m.Kind, m.From, t, style,
                         $"{m.Power.Name()}'s {Kind(m.Kind)} in {Ui.Province(m.From)} {verb} {Ui.Province(t)}{(attack && !m.Succeeded ? " (an attack)" : "")}"));
                     break;

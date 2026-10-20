@@ -43,7 +43,17 @@ internal sealed class Board
 
     public Power? OwnerOf(string p) => V.Owner.GetValueOrDefault(p);
     public bool IsMine(string p) => OwnerOf(p) == Me;
-    public bool Walls(string p) => V.Garrisons.Contains(p);
+    /// <summary>Whether a province has walls (Build order item 5: they add nothing to a battle, but a city within them falls only to a storm or a siege).</summary>
+    public bool Walls(string p) => WallLevel(p) > 0;
+    public int WallLevel(string p) => V.Walls.GetValueOrDefault(p);
+    /// <summary>The siege of a province this court knows of, if any.</summary>
+    public SiegeView? SiegeAt(string p) => V.Sieges.FirstOrDefault(x => x.Province == p);
+
+    /// <summary>
+    /// The strength a move into a walled province needs to storm it (to take it at once): more than its walls and the
+    /// defenders' hold strength together. Zero for an unwalled one.
+    /// </summary>
+    public int StormNeeds(string p, int defenders) => Walls(p) ? WallLevel(p) + defenders + 1 : 0;
     public Province P(string id) => Map[id];
 
     /// <summary>What holding a province is worth over the rest of the game: its score plus the income it brings.</summary>

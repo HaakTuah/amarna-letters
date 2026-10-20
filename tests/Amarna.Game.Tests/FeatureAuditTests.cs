@@ -132,7 +132,7 @@ public class FeatureAuditTests
         Add(s, Power.Egypt, UnitKind.Fleet, "levantsea");
         // And Alashiya's land next to Sinai too.
         s.Owner["gaza"] = Power.Alashiya;
-        s.Garrisons.Remove("gaza");
+        s.Walls.Remove("gaza");
 
         var (plan, _) = Economy(s, Power.Egypt);
         Assert.Equal(new GiftUnitOrder("levantsea", Power.Alashiya), plan.Orders["levantsea"]);
@@ -172,11 +172,11 @@ public class FeatureAuditTests
         s.Turn = 6;
         // Egypt holds Qadesh, far from its troops. Hatti, hostile and well ahead, stands next to it; so does Mitanni, a friend.
         s.Owner["qadesh"] = Power.Egypt;
-        s.Garrisons.Remove("qadesh");
+        s.Walls.Remove("qadesh");
         foreach (var x in new[] { "isuwa", "ugarit", "carchemish" })
         {
             s.Owner[x] = Power.Hatti;
-            s.Garrisons.Remove(x);
+            s.Walls.Remove(x);
         }
         Add(s, Power.Hatti, UnitKind.Army, "carchemish");
         Add(s, Power.Mitanni, UnitKind.Army, "mari");
@@ -199,7 +199,7 @@ public class FeatureAuditTests
         s = GameFactory.NewGame(Seed);
         s.Turn = 6;
         s.Owner["qadesh"] = Power.Egypt;
-        s.Garrisons.Remove("qadesh");
+        s.Walls.Remove("qadesh");
         Add(s, Power.Mitanni, UnitKind.Army, "mari");
         Treaty(s, Power.Egypt, Power.Mitanni);
         (_, orders) = Economy(s, Power.Egypt, brain => brain.Rel[Power.Hatti].Grudge = 5);
@@ -217,7 +217,7 @@ public class FeatureAuditTests
         s.Units.Clear();
         Add(s, Power.Alashiya, UnitKind.Army, "tamassos");
         Add(s, Power.Alashiya, UnitKind.Fleet, fleetAt);
-        s.Garrisons.Remove("lukka");
+        s.Walls.Remove("lukka");
         return s;
     }
 

@@ -179,7 +179,7 @@ internal static class Search
         var view = new SeatView
         {
             Turn = v.Turn, Season = v.Season, Power = x, MinTurns = v.MinTurns, EndChance = v.EndChance,
-            Owner = v.Owner, Garrisons = v.Garrisons, Units = b.Units, Visible = v.Visible, Fallen = v.Fallen, Prices = v.Prices,
+            Owner = v.Owner, Walls = v.Walls, Sieges = v.Sieges, Units = b.Units, Visible = v.Visible, Fallen = v.Fallen, Prices = v.Prices,
         };
         var their = new Board(view, treasuries: brain.Treasury);
         // A pictured rival plays the archetype, and every roll in picturing him comes from our own seat's stream.
@@ -230,13 +230,13 @@ internal static class Search
     private static Dictionary<string, Order> Troops(MilitaryPlan plan, IEnumerable<string> units)
     {
         var d = new Dictionary<string, Order>();
-        foreach (var u in units) d[u] = plan.Orders.TryGetValue(u, out var o) && o is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder ? o : new HoldOrder(u);
+        foreach (var u in units) d[u] = plan.Orders.TryGetValue(u, out var o) && o is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder or BesiegeOrder ? o : new HoldOrder(u);
         return d;
     }
 
     private static string Unit(Order o) => o switch
     {
-        HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit,
+        HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit, BesiegeOrder b => b.Unit,
         _ => throw new ArgumentException("not a troop order"),
     };
 
@@ -255,7 +255,7 @@ internal static class Search
         var moves = Board.Map.MovesFrom(kind, u).OrderBy(x => x, StringComparer.Ordinal).ToList();
         foreach (var to in moves)
         {
-            if (b.Walls(to) && b.IsMine(to) || !Open(to)) continue;
+            if (!Open(to)) continue;
             yield return [new MoveOrder(u, to)];
             // The same move with the best placed of our other units in support.
             if (Board.Map[to].IsSea) continue;
@@ -272,9 +272,6 @@ internal static class Search
             }
             else if (Board.Map.CanMove(kind, u, other)) yield return [new SupportOrder(u, other)];
         }
-        // Our own walls can be supported holding too.
-        foreach (var w in moves.Where(w => b.Walls(w) && b.IsMine(w) && !plan.ContainsKey(w)))
-            yield return [new SupportOrder(u, w)];
         // And a sworn partner's troop going in on a joint blow (see Tactics.Joints).
         foreach (var j in joints.Where(j => j.Lead.Power != b.Me && j.Support.Any(s => s.Province == u)))
             yield return [new SupportOrder(u, j.Lead.Province, j.Target)];
@@ -291,9 +288,9 @@ internal static class Search
         {
             var orders = new Dictionary<string, Order>(foes);
             foreach (var (k, o) in mine) orders[k] = o;
-            var r = c.Adj.Run(c.Units, c.B.V.Garrisons, orders, c.B.V.Owner);
+            var r = c.Adj.Run(c.Units, orders, c.B.V.Owner, c.B.V.Walls);
             c.Runs++;
-            var sc = Score(c, r);
+            var sc = Score(c, r, orders);
             total += sc;
             worst = Math.Min(worst, sc);
         }
@@ -303,7 +300,7 @@ internal static class Search
     }
 
     /// <summary>What a resolved season leaves us: land and troops, minus what lies open next season, plus harm to our enemies.</summary>
-    private static double Score(Ctx c, AdjudicationResult r)
+    private static double Score(Ctx c, AdjudicationResult r, IReadOnlyDictionary<string, Order> orders)
     {
         var b = c.B;
         var me = b.Me;
@@ -314,13 +311,38 @@ internal static class Search
             if (lost.Contains(u.Id)) continue;
             at[r.NewPositions.GetValueOrDefault(u.Id, u.Province)] = u;
         }
-        var fallen = r.FallenGarrisons.ToHashSet();
-        Power? Owner(string p) => !Board.Map[p].IsSea && at.TryGetValue(p, out var u) ? u.Power : b.OwnerOf(p);
+        var stormed = r.Stormed.ToHashSet();
+        // A unit within walls it does not hold takes the province only by storming them, or when its siege wears the city
+        // down this season: it held there (it stood there before the moves and was not ordered to move, support or convoy),
+        // and the siege, begun now or under way, reaches the level of the walls.
+        bool Falls(string p, Unit u)
+        {
+            if (u.Province != p || orders.GetValueOrDefault(p) is not (null or HoldOrder or BesiegeOrder)) return false;
+            var progress = b.SiegeAt(p) is { } x && x.Besieger == u.Power ? x.Progress : 0;
+            return progress + (r.HoldSupported.Contains(p) ? 2 : 1) >= b.WallLevel(p);
+        }
+        Power? Owner(string p)
+        {
+            if (Board.Map[p].IsSea || !at.TryGetValue(p, out var u)) return b.OwnerOf(p);
+            return !b.Walls(p) || u.Power == b.OwnerOf(p) || stormed.Contains(p) || Falls(p, u) ? u.Power : b.OwnerOf(p);
+        }
 
         var score = 0.0;
         var held = b.V.Owner.Where(x => x.Value == me).Select(x => x.Key).Concat(at.Where(x => x.Value.Power == me).Select(x => x.Key))
             .Where(x => !Board.Map[x].IsSea && Owner(x) == me).Distinct().ToList();
         foreach (var p in held) score += b.Value(p);
+
+        // Sieges: a city worn down is nearer to falling. Ours count for what they bring nearer; a siege of one of our cities
+        // counts against us the same way. A troop within walls it does not hold, with no siege, counts as one about to begin.
+        foreach (var (p, u) in at)
+        {
+            if (Board.Map[p].IsSea || !b.Walls(p) || u.Power == b.OwnerOf(p) || Owner(p) == u.Power || u.Kind != UnitKind.Army) continue;
+            var progress = b.SiegeAt(p) is { } x && x.Besieger == u.Power && u.Province == p ? x.Progress : 0;
+            var pressed = u.Province == p && orders.GetValueOrDefault(p) is null or HoldOrder or BesiegeOrder ? (r.HoldSupported.Contains(p) ? 2 : 1) : 0;
+            var share = Math.Min(1.0, (progress + pressed + 0.5) / (b.WallLevel(p) + 1.0));
+            if (u.Power == me && c.Prey(b.OwnerOf(p))) score += 0.45 * share * b.Value(p);
+            else if (b.OwnerOf(p) == me) score -= 0.45 * share * b.Value(p);
+        }
 
         var mineAfter = at.Where(x => x.Value.Power == me).ToList();
         score += UnitWorth * mineAfter.Count;
@@ -348,9 +370,10 @@ internal static class Search
         foreach (var p in held)
         {
             var here = at.TryGetValue(p, out var occ) && occ.Power == me;
-            var walls = b.Walls(p) && b.IsMine(p) && !fallen.Contains(p) && !at.ContainsKey(p);
+            // Walls add nothing to the defence, but an attacker gets them only by storming them (more than walls and defence).
+            var walls = b.WallLevel(p);
             var helpers = mineAfter.Count(x => x.Key != p && Board.Map.CanMove(x.Value.Kind, x.Key, p));
-            var defence = here || walls ? 1 + helpers : Math.Min(1, helpers);
+            var defence = here ? 1 + helpers : Math.Min(1, helpers);
             var risk = 0.0;
             var capital = Board.Map[p].Capital && Board.Map[p].Home == me;
             foreach (var (x, fear) in c.Hostility)
@@ -360,7 +383,10 @@ internal static class Search
                 if (h < 0.15) continue;
                 var attackers = at.Count(y => y.Value.Power == x && Board.Map.CanMove(y.Value.Kind, y.Key, p));
                 if (attackers == 0) continue;
-                var chance = attackers > defence ? h : attackers == defence ? h * 0.3 : 0;
+                // Behind walls, getting in is not taking: only a storm takes it next season; a lone entry only begins a siege.
+                var chance = walls > 0
+                    ? attackers > walls + (here ? defence : 0) ? h : attackers > defence ? h * 0.15 : 0
+                    : attackers > defence ? h : attackers == defence ? h * 0.3 : 0;
                 risk = 1 - (1 - risk) * (1 - chance);
             }
             if (risk > 0) score -= risk * kappa * (b.Value(p) + (here ? UnitWorth : 0));

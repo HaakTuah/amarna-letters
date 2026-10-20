@@ -9,7 +9,8 @@
     var terrain = Geography.TerrainOf(Id);
     var rivers = Geography.RiversThrough(Id).Select(r => r.Name).ToList();
     var crossings = Geography.Crossings.Where(c => c.A == Id || c.B == Id).ToList();
-    var walls = Scene.Frame.Garrisons.Contains(Id);
+    var walls = Scene.Frame.Walls.GetValueOrDefault(Id);
+    var siege = Scene.Sieges.FirstOrDefault(x => x.Province == Id);
 }
 <div class="infocard map-ui">
     <div class="info-head">
@@ -26,9 +27,13 @@
         <p class="small">
             @(owner is { } o ? $"Held by {o.Name()}." : "A free city-state.")
             Yields @Ui.Shekels(p.Yield) a season@(p.Home is { } h && h != owner ? $"; part of the homeland of {h.Name()}" : "").
-            @if (walls && owner is null) { <span> Its walls hold against a single army: take it with support, or buy it for @Ui.Shekels(p.Yield * State.Config.NeutralPriceFactor).</span> }
-            else if (walls) { <span> It accepted @owner?.Name()'s gold, and its walls hold for its owner.</span> }
+            @if (walls > 0) { <span> Walls of level @walls: an attacker takes it at once only by storming them (a strength above the walls and the defenders together); otherwise its army stands inside and must besiege the city for as many seasons as the walls are high.</span> }
+            @if (walls > 0 && owner is null) { <span> Buy it for @Ui.Shekels(p.Yield * State.Config.NeutralPriceFactor).</span> }
         </p>
+        @if (siege is not null)
+        {
+            <p class="small"><Emblem Power="siege.Besieger" /> Besieged by @siege.Besieger.Name() since @Ui.When(siege.Since, Scene.Viewer): worn down @siege.Progress of @siege.Walls. It yields nothing while besieged.</p>
+        }
         <p class="small muted">
             @(terrain == Terrain.Open ? "Open ground" : terrain == Terrain.Rough ? "Rough ground" : "Desert")@(rivers.Count > 0 ? $" on the {string.Join(" and the ", rivers)}" : "")@(crossings.Count > 0 ? $"; {string.Join("; ", crossings.Select(c => $"{c.Name} towards {Ui.Province(c.A == Id ? c.B : c.A)}"))}" : "").
             Terrain has no effect yet.
