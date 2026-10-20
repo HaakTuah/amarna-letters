@@ -128,7 +128,8 @@ foreign troops in its land or arriving next to its homeland or a walled city it 
 troops lost, a failed scheduled or standing order, a servant giving notice, or a ransom demanded.
 Everything else waits in a digest, and a hidden safety cap wakes it after a long sleep. Script and
 human kings play every season. Switch it off (Customize in the web app, `--sleep off` in the batch
-runner) to ask every king every season. The details are in `docs/DESIGN-NOTES.md`.
+runner) to ask every king every season. Standing orders are every king's, awake or asleep: script
+kings give them, and a human gives them in the orders panel. The details are in `docs/DESIGN-NOTES.md`.
 
 ## Spectator mode
 

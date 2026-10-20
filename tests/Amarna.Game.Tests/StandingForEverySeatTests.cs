@@ -8,8 +8,8 @@ namespace Amarna.Game.Tests;
 /// <summary>
 /// Standing orders for every seat (the owner's additions to the fix pass after item 4, "Every feature is every seat's"):
 /// a seat that gives orders every season (script, human, or a model or file seat with sleep off) keeps standing orders as
-/// a sleeping one does; one that fires replaces the season's orders for its units; and the rulebook and
-/// schema offer them to every king.
+/// a sleeping one does; one that fires replaces the season's orders for its units; script kings give them where they make
+/// sense; and the rulebook and schema offer them to every king.
 /// </summary>
 public class StandingForEverySeatTests
 {
@@ -201,5 +201,150 @@ public class StandingForEverySeatTests
         Assert.Contains("\"standing_orders\"", spec.Schema.ToJsonString());
         Assert.DoesNotContain("\"schedule\"", spec.Schema.ToJsonString());
         Assert.EndsWith("standing orders, and anything else.", spec.User.TrimEnd());
+    }
+
+    // ------------------------------------------------------------ script kings
+
+    private static (Board Board, Brain Brain) Read(GameState s, Power me)
+    {
+        var v = Views.For(s, me);
+        var brain = new Brain(me, 9);
+        brain.Learn(v, new Board(v));
+        return (new Board(v), brain);
+    }
+
+    /// <summary>A plan in which every troop of the king's holds, with the changes given.</summary>
+    private static MilitaryPlan Holding(Board b, params Order[] changes)
+    {
+        var plan = new MilitaryPlan();
+        foreach (var u in b.Mine) plan.Orders[u.Province] = new HoldOrder(u.Province);
+        foreach (var o in changes) plan.Orders[OrderKeys.UnitOf(o)!] = o;
+        return plan;
+    }
+
+    [Fact]
+    public void A_script_king_guards_a_troop_that_could_be_struck_by_more_than_it_holds_alone()
+    {
+        // Two Assyrian armies stand next to Sippar, in Ekallatum and Mari: one support holds it against both. The army in
+        // Dur-Kurigalzu, which holds this season and guards less than the army in the capital, is to give it if Sippar is
+        // attacked.
+        var s = GameFactory.NewGame(31, Quiet);
+        AssyriaInMari(s);
+        var (b, brain) = Read(s, Power.Babylonia);
+        var (cancel, give) = Contingencies.Plan(b, brain, Holding(b), []);
+        Assert.Empty(cancel);
+        var sippar = Assert.Single(give, g => g.Place == "sippar");
+        Assert.Equal((Contingencies.Guard.Troop, StandingWhen.UnitAttacked), (sippar.Kind, sippar.Request.When));
+        Assert.Equal([new SupportOrder("durkurigalzu", "sippar")], sippar.Request.Orders);
+        // A troop that marches this season is no helper, since its place next season is not known: the army in Babylon then.
+        (_, give) = Contingencies.Plan(b, brain, Holding(b, new MoveOrder("durkurigalzu", "nippur")), []);
+        Assert.Equal([new SupportOrder("babylon", "sippar")], Assert.Single(give, g => g.Place == "sippar").Request.Orders);
+        // With one army next to it, Sippar holds alone: no standing order for it.
+        s.Units.RemoveAll(u => u.Province == "mari");
+        (b, brain) = Read(s, Power.Babylonia);
+        (_, give) = Contingencies.Plan(b, brain, Holding(b), []);
+        Assert.DoesNotContain(give, g => g.Place == "sippar");
+    }
+
+    [Fact]
+    public void A_script_king_sends_a_troop_into_an_empty_home_province_as_a_lone_attacker_does()
+    {
+        // The opening: the Assyrian army in Ekallatum, which Babylon sees, is two moves from its empty Nippur (by Dur-Kurigalzu)
+        // and next to Sippar and Dur-Kurigalzu, which one army alone cannot take. The army in Dur-Kurigalzu, the least
+        // threatened troop next to Nippur by what it guards, is to march in if foreign troops do.
+        var s = GameFactory.NewGame(31, Quiet);
+        var (b, brain) = Read(s, Power.Babylonia);
+        var (_, give) = Contingencies.Plan(b, brain, Holding(b), []);
+        var g = Assert.Single(give);
+        Assert.Equal((Contingencies.Guard.Empty, "nippur", StandingWhen.UnitEnters, (Power?)null), (g.Kind, g.Place, g.Request.When, g.Request.Power));
+        Assert.Equal([new MoveOrder("durkurigalzu", "nippur")], g.Request.Orders);
+        // Not if the plan has another troop support it holding: its supports would be lost when it moves.
+        var s2 = GameFactory.NewGame(31, Quiet);
+        var e = new TurnEngine(s2);
+        e.BeginTurn();
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Babylonia] = new() { Standing = give.Select(x => x.Request).ToList() } });
+        (b, brain) = Read(s2, Power.Babylonia);
+        var (cancel, _) = Contingencies.Plan(b, brain, Holding(b, new SupportOrder("babylon", "durkurigalzu")), []);
+        Assert.Equal(("s1", "needed at home"), Assert.Single(cancel));
+    }
+
+    [Fact]
+    public void A_script_king_s_fleet_at_sea_with_nothing_to_help_it_slips_away_as_the_blow_falls()
+    {
+        // Alashiya's fleet in the Great Green, next to Egypt's fleets in the Delta and the Levantine Sea; its armies hold
+        // Tamassos and Enkomi, and no army can help a fleet at sea. The Cilician Sea is empty, and no Egyptian fleet could
+        // move into it this season.
+        var s = GameFactory.NewGame(31, Quiet);
+        s.Units.RemoveAll(u => u.Power == Power.Alashiya);
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Alashiya, Kind = UnitKind.Fleet, Province = "greatgreen" });
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Alashiya, Kind = UnitKind.Army, Province = "tamassos" });
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Alashiya, Kind = UnitKind.Army, Province = "enkomi" });
+        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Egypt, Kind = UnitKind.Fleet, Province = "levantsea" });
+        var (b, brain) = Read(s, Power.Alashiya);
+        var (_, give) = Contingencies.Plan(b, brain, Holding(b), []);
+        var g = Assert.Single(give);
+        Assert.Equal((Contingencies.Guard.Retreat, "greatgreen", StandingWhen.UnitAttacked), (g.Kind, g.Place, g.Request.When));
+        Assert.Equal([new MoveOrder("greatgreen", "cilicia")], g.Request.Orders);
+    }
+
+    /// <summary>Babylonia keeps standing order s1: when the army in Sippar is attacked, the army in Dur-Kurigalzu supports it.</summary>
+    private static GameState Guarded()
+    {
+        var s = GameFactory.NewGame(31, Quiet);
+        AssyriaInMari(s);
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Babylonia] = new() { Standing = [Attacked("sippar", new SupportOrder("durkurigalzu", "sippar"))] } });
+        return s;
+    }
+
+    [Theory]
+    [InlineData("hold", null)]
+    [InlineData("march", "the troop marches")]
+    [InlineData("same", "the plan does it")]
+    [InlineData("supported", "held without it")]
+    [InlineData("attack", "needed elsewhere")]
+    [InlineData("disband", "the troop goes")]
+    public void A_script_king_cancels_a_standing_order_that_no_longer_makes_sense_against_the_season_s_plan(string season, string? why)
+    {
+        var s = Guarded();
+        var (b, brain) = Read(s, Power.Babylonia);
+        var plan = season switch
+        {
+            // Two armies could strike Sippar, which holds alone: it should stand.
+            "hold" => Holding(b),
+            "march" => Holding(b, new MoveOrder("sippar", "mari")),
+            "same" => Holding(b, new SupportOrder("durkurigalzu", "sippar")),
+            // The plan has Babylon support it: two against two, held without the standing order.
+            "supported" => Holding(b, new SupportOrder("babylon", "sippar")),
+            // Dur-Kurigalzu's own order this season is worth more than Sippar: a march on Susa's free land.
+            "attack" => Holding(b, new MoveOrder("durkurigalzu", "susa")),
+            _ => Holding(b),
+        };
+        List<Order> orders = season == "disband" ? [new DisbandOrder("sippar")] : [];
+        var (cancel, _) = Contingencies.Plan(b, brain, plan, orders);
+        if (why is null) Assert.Empty(cancel);
+        else Assert.Equal(("s1", why), Assert.Single(cancel));
+    }
+
+    [Fact]
+    public async Task Script_kings_give_standing_orders_and_one_meets_its_blow()
+    {
+        // Seed 1: in turn 3 Arzawa marches on Hattusa, which Hatti's plan for the season leaves empty; the standing order Hatti
+        // gave the season before sends the army in Kanesh in as well, and Arzawa bounces. The game replays exactly.
+        var state = GameFactory.NewGame(1);
+        var seats = Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(1));
+        var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
+        await runner.PrepareAsync();
+        for (var i = 0; i < 3; i++) await runner.PlayTurnAsync();
+        var fired = Assert.Single(state.InboxOf(Power.Hatti), x => x.Title.StartsWith("Standing order s", StringComparison.Ordinal) && x.Title.EndsWith(" fired", StringComparison.Ordinal));
+        Assert.Contains("(when foreign troops enter hattusa) fired in turn 3: Arzawa's army set out from tuwanuwa for hattusa. It gave these orders: kanesh -> hattusa.", fired.Body);
+        Assert.Equal(Power.Hatti, state.Owner["hattusa"]);
+        Assert.True(Powers.All.Sum(p => state.Standing.GetValueOrDefault(p)?.Last ?? 0) > 1);
+
+        var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));
+        await replay.PrepareAsync();
+        for (var i = 0; i < 3; i++) await replay.PlayTurnAsync();
+        Assert.Equal(Json.Hash(state), Json.Hash(replay.State));
     }
 }

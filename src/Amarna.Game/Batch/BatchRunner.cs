@@ -21,6 +21,9 @@ public sealed class GameSummary
     public int CourtsStoodIn { get; init; }
     /// <summary>Whether any seat could sleep in this game.</summary>
     public bool Sleepers { get; init; }
+    /// <summary>Standing orders every seat kept (given and not refused) over the game, and how many of them fired.</summary>
+    public int StandingKept { get; init; }
+    public int StandingFired { get; init; }
     /// <summary>The living characters at the end, richest first, one line each (<see cref="Wealth.Line"/>).</summary>
     public List<string> Richest { get; init; } = new();
     /// <summary>The richest character's wealth at the end.</summary>
@@ -64,6 +67,8 @@ public static class BatchRunner
             CourtsReopened = courts.Reopened,
             CourtsStoodIn = courts.StoodIn,
             Sleepers = s.Sleep.Count > 0,
+            StandingKept = s.Standing.Values.Sum(b => b.Last),
+            StandingFired = Powers.All.Sum(p => s.InboxOf(p).Count(i => i.Kind == InboxKind.Resolution && i.Title.StartsWith("Standing order ", StringComparison.Ordinal) && i.Title.EndsWith(" fired", StringComparison.Ordinal))),
             Seed = seed,
             Turns = s.Scores.Count == 0 ? 0 : s.Scores.Max(x => x.Turn),
             Winners = s.Winners.ToList(),
@@ -381,6 +386,8 @@ public static class BatchRunner
             var total = games.Sum(g => g.Signals.GetValueOrDefault(kind));
             lines.Add($"  {kind,-24} {with,3} / {total}");
         }
+        lines.Add("");
+        lines.Add($"Standing orders, every seat's: {games.Sum(g => g.StandingKept)} kept in {games.Count(g => g.StandingKept > 0)} games; {games.Sum(g => g.StandingFired)} fired in {games.Count(g => g.StandingFired > 0)} games.");
         lines.Add("");
         lines.AddRange(RichestReport(games));
         var cost = games.Sum(g => g.CostUsd);

@@ -213,8 +213,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   is the one warned, and split sentences after a closing quote;
   and script kings use the features they never used, under "Every feature is every seat's" in Script kings; among the
   owner's additions to that pass, every seat may keep standing orders, a standing order that fires replaces the
-  season's other orders for its units and people, those given that season among them, under the same
-  unreleased version 5). A log
+  season's other orders for its units and people, those given that season among them, and script kings give them,
+  which changes what existing seeds do, under the same unreleased version 5). A log
   saved under another version is refused, both for replay and for continuing it: "This game was saved under an
   earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3 and
   4). The web app shows that message
@@ -1446,6 +1446,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
       sleep on. Its description says the standing order's orders replace the king's other orders that
       season, those he gives then among them ("and your scheduled ones" with sleep on), that it first
       fires the season after it is given, and, with sleep on only, what wakes him.
+    - **Script kings** give them (`Contingencies`; see "Standing orders" under Script kings).
     - **Human seats** give them in the web app's orders panel (see the web app's orders panel, under
       "The web map and the interface").
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
@@ -1625,9 +1626,10 @@ first guesses: the bridge's port 5190, a poll every second, the 60-minute wait, 
 A script king sees exactly what any seat sees (its `SeatView`) and nothing more: a test changes what lies outside the view (rivals' gold, the fine gold in its unassayed lots, troops out of sight, seat labels, characters' traits) and its orders stay the same. The same bot plays every script seat. It also stands in for a model or file seat whenever a call to it fails, playing that king's temperament. The stand-in keeps up with every such seat, asleep or awake (see Known quirks). The rules live in `src/Amarna.Game/Bots` (`Personality`, `Brain`, `Board`, `Statecraft`, `Tactics`, `Search`, `ScriptLeader`), and their numbers are in that code, not in `GameConfig`. Each script seat plays from a seed of its own, the first eight bytes of a SHA-256 hash of the game's seed, "seat" and its power (`ScriptLeader.SeatSeed`), so no script king holds the seed the engine rolls the game's dice with; the hash, unlike a stream of the game's own generator, cannot be undone to find it. Every random choice it makes, in picturing its rivals too, comes from a stream of that seed keyed by turn and purpose, so replays are exact.
 
 **Every feature is every seat's.** Script kings use every order and every choice at an audience that a model king has,
-except those that exist only for a king who sleeps: scheduled and standing orders, letters sent from an audience while
-orders stand, and reopening orders. A script seat is asked every season and gives every order fresh, so it has nothing to
-schedule or stand by; when it stands in for a sleeping seat whose call failed, it plays that one season. The audit of the
+standing orders among them (since the owner's additions to the fix pass after item 4; see "Standing orders" below),
+except those that exist only for a king who sleeps: scheduled orders, letters sent from an audience while orders stand,
+and reopening orders. A script seat is asked every season and gives every order fresh, so it has nothing to schedule;
+when it stands in for a sleeping seat whose call failed, it plays that one season. The audit of the
 fix pass after item 4 (report `docs/rounds/2026-10-20-fix-pass.md`, "The feature audit") measured each feature's use and
 success in seeds 1-100 and patched those never used or never successful: inventories examined, thieves dismissed,
 convoys, gifts of troops, cessions, recalls, captives released, the second exchange, greetings without the title or
@@ -1643,7 +1645,8 @@ where they pay.
 5. **Treasury.** It disbands (or gives a troop to a friend), raises levies, buys cities and cedes land it cannot keep.
 6. **Court.** Servants (thieves let go), checks, assays, watchmen, examinations (inventories too), spies and recalls, forgeries, captives, held envoys and ransoms.
 7. **Letters.**
-8. **Notes** for the log: the war target, any betrayal, the leader, pacts in force, joint blows struck, and every trust beyond ±0.15.
+8. **Standing orders**, against the season's whole plan: those kept are looked over and cancelled where they no longer make sense, and new ones are given for the seasons ahead (see Standing orders).
+9. **Notes** for the log: the war target, any betrayal, the leader, pacts in force, joint blows struck, the standing orders given (what each guards) and cancelled (with why), and every trust beyond ±0.15.
 
 ### Terms used below
 
@@ -1963,6 +1966,49 @@ What script kings never do, and how they treat oaths:
     - These chances combine as independent.
   - + 0.05 × the best value each of our troops could strike next season: land not ours that is free, or belongs to the war target, a betrayed friend, the leader, a hostile king or a sworn foe.
 
+### Standing orders
+
+Since the owner's additions to the fix pass after item 4 (`Contingencies`). A standing order that fires replaces the
+season's orders for its troops, so the king gives its troops their orders as usual and leaves standing orders to change
+them only if a feared blow is ordered. One given now first fires next season, so the king gives them against troops that
+could strike next season, and only to troops that stay where they are this season (hold, support or convoy, and not
+disbanded or given away), whose place next season is known. It rolls no dice.
+
+- **Threat** to a place, next season: the most troops one king it fears at least 0.25 (as the first plan reckons fear,
+  the capital at least 0.3 unless he is a full ally) has, seen or remembered, within two moves of it (able to move in now,
+  or to move next to it first). **Muster**: the same, counting only troops that could move in this season.
+- **New standing orders**, for the places it holds or stands in under threat, most chance × worth first (worth: the
+  province's value if it is ours, + 120 for a troop of ours there), at most 12 kept in all, each helper used once:
+  - **a troop of ours** that stays, with a threat of 2 or more and a muster of 2 or more now: when it is attacked, troops of
+    ours next to it support it holding, as many as the threat less one, the least threatened (by chance × worth) first;
+  - **a fleet at sea** in that case with no troop to help it (armies cannot support at sea): when it is attacked, it moves
+    to an empty refuge next to it, ours, free or at sea, where no feared troop could move in now (ours first);
+  - **the walls of a city of ours**, with a threat and a muster of 2 or more: when foreign troops enter it, troops next to it
+    support the walls holding;
+  - **an empty province of our homeland** under any threat: when foreign troops enter it, the least threatened troop of ours
+    next to it marches in, so that a lone attacker bounces (the troop stays where it was, holding alone as a troop whose
+    move failed does).
+- **Those kept so far** may fire this season. Each is cancelled (the reason goes in the notes) when:
+  - no feared troop is within two moves of the place ("no threat");
+  - the troop it guards marches out or leaves our hands this season ("the troop marches", "the troop goes");
+  - the city is lost, or one of our troops stands in or moves into the empty province it guards ("lost", "ours to enter");
+  - this season's plan already gives all its orders ("the plan does it"), or guards the troop its own way, with a supported
+    move of ours into its province, which an attack cannot cut ("the plan guards it");
+  - it gives only supports, and the troop or walls hold this season without them against the muster now ("held without
+    it"): it would fire on any blow and take its troops from their own orders for nothing;
+  - one of its troops is gone or can no longer reach ("a troop gone", "out of reach"), a fleet's refuge is taken or could be
+    entered now ("no refuge"), or a troop it sends to block is one the plan has others support holding ("needed at home");
+  - what a troop of it would give up is worth more: its own order for the season costs, for a hold 0, for a move or a
+    support of a move into a foreign troop's place 0.85 × value + 120, into free or foreign land 0.85 × value, into our own
+    threatened empty land 0.6 × value, otherwise 0; for a support holding another place that place's worth; for a convoy
+    everything. Kept only if the worth of what it guards is at least that cost ÷ 0.6 ("needed elsewhere").
+- **Measured** in seeds 1-100 and 101-200 (report of the fix pass, "Additions: standing orders for every seat"): about 53
+  and 55 given per game for all seven kings together, most cancelled within a season or two as the plan or the threat
+  changes; 82 and 92 fired, each in a season of its own, and a replay of each such season's movement with the troops
+  given their own orders instead shows the standing order saved a troop or land in 72 and 81 of them (7 and 9 changed
+  nothing, 3 and 2 lost something). Most of the successes are troops marching into an empty home province as a lone
+  attacker does.
+
 ### Treasury
 
 - **Gold** the king plans with is its treasury by its ledger less the back pay its view shows it owes: back pay owed is gold already spent, since the people it is owed to claim it when they are back at court. Everything below (disbanding, levies, cities, and the spare gold that pays for the court, gifts and bribes) reckons with that figure, so a script king never spends what a returning servant will claim. (Since the simulation-fixes round's Part G.)
@@ -2120,19 +2166,20 @@ These are in the code as written, and they affect the balance numbers:
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
 current bot. Seeds 1–40, one current king against six baselines, rerun after the fix pass after item 4 (20 October
-2026, shared victory off: its script envoys' skim and its feature audit; the numbers before it, and why they moved, are
-in its report, `docs/rounds/2026-10-20-fix-pass.md`, and the items and rounds before in theirs):
+2026, shared victory off: its script envoys' skim, its feature audit and the script kings' standing orders; the numbers
+before it, and why they moved, are in its report, `docs/rounds/2026-10-20-fix-pass.md`, and the items and rounds before
+in theirs):
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
 | Egypt | 2.91 | 1.32 | 88% | 15% |
-| Hatti | 2.61 | 0.82 | 80% | 3% |
+| Hatti | 2.64 | 0.82 | 80% | 3% |
 | Babylonia | 2.47 | 1.16 | 85% | 10% |
-| Mitanni | 1.87 | 1.35 | 53% | 28% |
-| Assyria | 3.67 | 0.93 | 85% | 10% |
+| Mitanni | 1.95 | 1.35 | 58% | 28% |
+| Assyria | 3.78 | 0.93 | 80% | 10% |
 | Arzawa | 3.10 | 1.38 | 63% | 28% |
-| Alashiya | 1.88 | 0.90 | 50% | 8% |
-| All kings | 2.65 | 1.12 | 72% | 14% |
+| Alashiya | 1.87 | 0.90 | 50% | 8% |
+| All kings | 2.67 | 1.12 | 72% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.

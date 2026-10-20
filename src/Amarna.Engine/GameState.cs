@@ -21,7 +21,7 @@ public sealed class GameState
     /// only when he is the one warned, and split sentences after a closing quote, which changes what they keep and say.
     /// Among the owner's additions to that pass, still under 5 since it was never released: every seat may keep standing
     /// orders, awake or asleep, and a standing order that fires replaces the season's other orders for the same units or
-    /// people, those given that season among them.
+    /// people, those given that season among them; script kings give them.
     /// </summary>
     public const int CurrentVersion = 5;
 
