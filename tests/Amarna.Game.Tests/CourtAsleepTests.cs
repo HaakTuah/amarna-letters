@@ -193,7 +193,7 @@ public class CourtAsleepTests
         Assert.True(rounds[1].ReopenChosen);
         Assert.Equal($"send {sent} to Hatti", Assert.Single(rounds[1].LettersSent).Describe());
         var text = Prompts.Audience(rounds[1]);
-        Assert.Contains($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): send {sent} to Hatti.", text);
+        Assert.Contains($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): send {sent} to Hatti: message \"Brother.\"; mandate none.", text);
         Assert.Contains("You have already chosen to reopen your orders this season: you give orders after your audiences.", text);
     }
 
@@ -236,7 +236,7 @@ public class CourtAsleepTests
         // The orders request lists the letters sent from the audience.
         var view = host.Views.Last();
         Assert.Equal([$"send {second} to Babylonia with {gold} shekels", $"send {first} to Egypt"], view.CourtLetters.Select(o => o.Describe()));
-        Assert.Contains($"LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): send {second} to Babylonia with {gold} shekels; send {first} to Egypt."
+        Assert.Contains($"LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): send {second} to Babylonia with {gold} shekels: message \"All my gold.\"; mandate none; send {first} to Egypt: message \"To Egypt.\"; mandate none."
                         + $" Gold already committed by these letters: {gold} shekels, not yet taken from the treasury you read here; it is reserved first when the season's orders are checked.", Prompts.Situation(view));
         // The order for the first envoy replaced its letter; the second envoy's letter stood and was checked before the
         // orders, so its gold was reserved first and the watchmen ordered after reopening could not be paid.

@@ -66,6 +66,27 @@ public class KingRecordTests
     }
 
     [Fact]
+    public void A_king_reads_his_letters_in_full_and_the_rulebook_says_where()
+    {
+        var v = Views.For(GameFactory.NewGame(5), Power.Egypt);
+        v.Letters =
+        [
+            new LetterView { Turn = 3, EnvoyId = "c7", EnvoyName = "Mane", To = Power.Babylonia, Gold = 50, Message = "Brother, Mari is yours when Ashur falls.", Mandate = "May name the day; may not seal.", Tablet = "Mari to Babylonia." },
+            new LetterView { Turn = 2, EnvoyId = "c8", EnvoyName = "Paser", To = Power.Hatti, Message = "Peace.", ReportedTurn = 5 },
+        ];
+        var text = Prompts.Situation(v);
+        Assert.Contains("YOUR LETTERS (your record of what you sent, as your scribes wrote it: each envoy's letter while he is away on that errand, and once more when his report has come since you last gave orders):", text);
+        Assert.Contains("- turn 3, Mane (c7) to Babylonia, with 50 shekels (still away): message \"Brother, Mari is yours when Ashur falls.\"; mandate \"May name the day; may not seal.\"; tablet to seal \"Mari to Babylonia.\"", text);
+        Assert.Contains("- turn 2, Paser (c8) to Hatti (his report came in turn 5): message \"Peace.\"; mandate none", text);
+        Assert.Contains("Each set of orders shows the letters you sent (message, mandate, tablet and gold) in full under YOUR LETTERS while their envoys are away, and once more when the report comes.",
+            Prompts.LeaderRules(true, new GameConfig()));
+
+        // Letters sent from this season's audiences, before they go out, are read back in full too.
+        v.CourtLetters = [new DispatchOrder("c9", Power.Mitanni, "Come to terms.", "May offer 30 shekels.", Gold: 30)];
+        Assert.Contains("send c9 to Mitanni with 30 shekels: message \"Come to terms.\"; mandate \"May offer 30 shekels.\"", Prompts.Situation(v));
+    }
+
+    [Fact]
     public async Task At_an_audience_a_king_reads_the_tablets_he_holds_in_full_by_their_names()
     {
         var text = string.Concat(Enumerable.Repeat("Hatti and Egypt shall not cross into each other's homeland, and the free cities between them stay free. ", 5)).Trim();

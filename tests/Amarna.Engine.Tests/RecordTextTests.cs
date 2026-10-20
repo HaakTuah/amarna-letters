@@ -9,10 +9,10 @@ namespace Amarna.Engine.Tests;
 public class RecordTextTests
 {
     /// <summary>Egypt's envoy stands before Alashiya's king.</summary>
-    private static (GameState S, TurnEngine E, Character Envoy, PendingAudience A) AtAudience(DispatchOrder? letter = null)
+    private static (GameState S, TurnEngine E, Character Envoy, PendingAudience A) AtAudience(DispatchOrder? letter = null, GameState? state = null, Character? sent = null)
     {
-        var s = GameFactory.NewGame(5);
-        var envoy = s.Characters.First(c => c.Employer == Power.Egypt);
+        var s = state ?? GameFactory.NewGame(5);
+        var envoy = sent ?? s.Characters.First(c => c.Employer == Power.Egypt);
         envoy.SecretMaster = null;
         var e = new TurnEngine(s);
         e.BeginTurn();
@@ -127,6 +127,46 @@ public class RecordTextTests
         var assyria = Battle(t, Power.Assyria);
         Assert.Contains("- A ekallatum is destroyed", assyria);
         Assert.DoesNotContain("stays in ekallatum", assyria);
+    }
+
+    [Fact]
+    public void A_kings_letter_is_in_his_view_in_full_while_its_envoy_is_away_and_beside_the_report_when_it_comes()
+    {
+        var s = GameFactory.NewGame(5);
+        var envoy = s.Characters.First(c => c.Employer == Power.Egypt);
+        envoy.SecretMaster = null;
+        var message = string.Concat(Enumerable.Repeat("Brother, my army will not cross into Alashiya. ", 12)).Trim();
+        var (_, e, _, a) = AtAudience(new DispatchOrder(envoy.Id, Power.Alashiya, message, "May promise peace for three years.", Gold: 20,
+            Proposal: new TabletProposal { Text = "Peace between Egypt and Alashiya." }), s, envoy);
+        var letter = Assert.Single(Views.For(s, Power.Egypt).Letters);
+        Assert.Equal((envoy.Id, envoy.Name, Power.Alashiya, 20, message, "May promise peace for three years.", "Peace between Egypt and Alashiya.", (int?)null),
+            (letter.EnvoyId, letter.EnvoyName, letter.To, letter.Gold, letter.Message, letter.Mandate, letter.Tablet, letter.ReportedTurn));
+        // Nobody else sees it.
+        Assert.Empty(Views.For(s, Power.Alashiya).Letters);
+
+        e.ApplyAudience(new AudienceRecord { AudienceId = a.Id, Delivered = "Greetings.", Rounds = [new AudienceRound { Host = new HostReply { Speech = "Go home.", End = true }, Envoy = new EnvoyReaction { Speech = "I go." } }] });
+        Assert.Single(Views.For(s, Power.Egypt).Letters);
+        e.Resolve(new Dictionary<Power, TurnSubmission>());
+
+        // Still shown on the road home; then once more, in the season its report comes; then it leaves the view.
+        while (true)
+        {
+            e = new TurnEngine(s);
+            e.BeginTurn();
+            foreach (var req in e.MindRequests.Where(r => r.Task == MindTask.EnvoyReport && r.CharacterId == envoy.Id).ToList())
+                e.Fulfil(req, new MindReply { Text = "My lord, I have returned." });
+            var letters = Views.For(s, Power.Egypt).Letters;
+            if (s.Trails.Single().ReportTurn is int reported)
+            {
+                Assert.Equal(reported, Assert.Single(letters).ReportedTurn);
+                break;
+            }
+            Assert.Single(letters);
+            e.Resolve(new Dictionary<Power, TurnSubmission>());
+        }
+        e.Resolve(new Dictionary<Power, TurnSubmission>());
+        new TurnEngine(s).BeginTurn();
+        Assert.Empty(Views.For(s, Power.Egypt).Letters);
     }
 
     [Fact]

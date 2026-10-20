@@ -769,6 +769,22 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   simulation-fixes round it held the last five seasons in full and the notes of the eight before,
   cut to 300 characters, with no summary and no ledger; the simulation's kings wrote a median of
   1,989 characters of notes a season, 107 of 134 replies over 1,500.)
+- **The king's letters.** Every seat's view carries the court's own letters as its scribes wrote
+  them (`SeatView.Letters`, `Views.Letters`, from the message trails): the latest letter of each of
+  its envoys still away on that errand as far as it knows (one of its people, by what it believes,
+  not at court), and every letter whose envoy's report has reached it since it last gave orders. A
+  model king reads them in his orders request, after his people: "YOUR LETTERS (your record of what
+  you sent, as your scribes wrote it: …): - turn 3, Mane (c7) to Babylonia, with 50 shekels (still
+  away): message "…"; mandate "…"; tablet to seal "…"", and "(his report came in turn 5)" for one
+  whose report has come. A letter whose envoy he knows has left his service, or died, drops out;
+  one whose envoy was held drops out only when its report comes. The rulebook's HOW TO ANSWER says
+  so. The record's "turn N orders" lines keep the short form ("send c7 to Babylonia with 50 shekels
+  bearing a tablet to seal"), so a letter is not shown twice while its envoy is away; once the
+  report has been read beside it, what matters of it is for the king's ledger and summary (item 6
+  compacts older letters with the ledger of promises). Letters sent from this season's audiences,
+  before they go out, are read back in full too. (Until the fix pass after item 4 a king's letters,
+  mandates and tablet texts were nowhere in his requests once sent: in the second agent simulation
+  six or seven kings in each game said they could not check a report against what they had sent.)
 - **Audience requests** carry, besides the treasury, the count of lands and the tablets held (in full,
   each by its name with the king's mark for his copy: "Tablets you hold, in full: the tablet sealed by
   Egypt and Hatti, dated turn 1 [your copy k901]: "…""), the
@@ -935,8 +951,9 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     court nobody knows, refused with the reason) are kept in the seat's state (`CourtLetters`) and
     validated as usual with the season's orders: they come first among the seat's orders, so their
     gold is reserved first. A later letter for the same person in the same season replaces an earlier
-    one; a later exchange or audience shows the letters already sent and whether the king already
-    chose to reopen, and, when they carry gold, "Gold already committed by these letters: 40
+    one; a later exchange or audience shows the letters already sent, in full (to whom, with what gold,
+    the message, the mandate and the tablet: `Prompts.InFull`; until the fix pass after item 4 only
+    "send c4 to Hatti"), and whether the king already chose to reopen, and, when they carry gold, "Gold already committed by these letters: 40
     shekels, not yet taken from the treasury you read here; it is reserved first when the season's
     orders are checked." (the treasury a king reads is the season's, so without it a king could
     promise the same gold twice and see its later letters refused; the orders request after

@@ -69,6 +69,25 @@ public sealed class TabletView
 }
 
 /// <summary>
+/// A letter the king sent, as his scribes wrote it (<see cref="MessageTrail"/>): his record of what he sent with an envoy,
+/// to set beside what the envoy reports.
+/// </summary>
+public sealed class LetterView
+{
+    public int Turn { get; set; }
+    public string EnvoyId { get; set; } = "";
+    public string EnvoyName { get; set; } = "";
+    public Power To { get; set; }
+    public int Gold { get; set; }
+    public string Message { get; set; } = "";
+    public string Mandate { get; set; } = "";
+    /// <summary>The tablet the envoy carried to be sealed, or null.</summary>
+    public string? Tablet { get; set; }
+    /// <summary>The season the envoy's report reached the king, or null while it is still away.</summary>
+    public int? ReportedTurn { get; set; }
+}
+
+/// <summary>
 /// One seat's view of the world: the public map, its own treasury and people, what its
 /// characters chose to tell it. Every seat - human, model or script - receives exactly this.
 /// </summary>
@@ -108,6 +127,11 @@ public sealed class SeatView
     public List<CharacterView> Court { get; set; } = new();
     public List<CharacterView> Known { get; set; } = new();
     public List<TabletView> Tablets { get; set; } = new();
+    /// <summary>
+    /// Its own letters in full, oldest first: each envoy's latest, while the envoy is away on that errand as far as the court
+    /// knows, and once more when its report has come since the court last gave orders (see <see cref="Views.Letters"/>).
+    /// </summary>
+    public List<LetterView> Letters { get; set; } = new();
     public List<InboxItem> Inbox { get; set; } = new();
     public List<string> TravelTimes { get; set; } = new();
     /// <summary>Last season's orders as they resolved, for every unit this court could see.</summary>
@@ -297,6 +321,8 @@ public static class Views
         // Named as every court names them, with their opening words where the archive holds two of the same seals and date.
         foreach (var (view, tab) in v.Tablets.Zip(archive)) view.Name = TabletName(tab, archive);
 
+        v.Letters = Letters(s, p, v.Court, s.Config.SleepingSeats && s.Sleep.TryGetValue(p, out var asleep) ? asleep.LastCalled : s.Turn - 1);
+
         foreach (var other in s.Alive.Where(x => x != p))
             v.TravelTimes.Add($"{other}: {engine.TravelTurns(p, other)} season(s) each way");
 
@@ -309,6 +335,33 @@ public static class Views
         v.Prices["forgery"] = s.Config.ForgeFee;
         v.Prices["cityPricePerYield"] = s.Config.NeutralPriceFactor;
         return v;
+    }
+
+    /// <summary>
+    /// A court's record of the letters it sent, in full as its scribes wrote them: the latest letter of each of its envoys
+    /// still away on that errand as far as it knows (one of its people, by what it believes, not at court), and every letter
+    /// whose envoy's report has reached it since it last gave orders (<paramref name="since"/>), so the king can set the report
+    /// beside what he sent. A letter whose envoy it knows has left its service, or died, drops out.
+    /// </summary>
+    public static List<LetterView> Letters(GameState s, Power p, IReadOnlyList<CharacterView> court, int since)
+    {
+        var away = court.Where(c => c.Ours && !c.Ready).Select(c => c.Id).ToHashSet();
+        var latest = s.Trails.Where(t => t.From == p).GroupBy(t => t.EnvoyId).Select(g => g.Last()).Select(t => t.Id).ToHashSet();
+        return s.Trails
+            .Where(t => t.From == p && (t.ReportTurn is int r ? r > since : away.Contains(t.EnvoyId) && latest.Contains(t.Id)))
+            .Select(t => new LetterView
+            {
+                Turn = t.Turn,
+                EnvoyId = t.EnvoyId,
+                EnvoyName = t.EnvoyName,
+                To = t.To,
+                Gold = t.GoldStated,
+                Message = t.LeaderLetter,
+                Mandate = t.Mandate,
+                Tablet = t.ProposalText,
+                ReportedTurn = t.ReportTurn,
+            })
+            .ToList();
     }
 
     /// <summary>

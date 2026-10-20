@@ -140,7 +140,7 @@ public static class Prompts
         sb.AppendLine("""
 
             HOW TO ANSWER
-            Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply.
+            Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows the letters you sent (message, mandate, tablet and gold) in full under YOUR LETTERS while their envoys are away, and once more when the report comes. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply.
             """);
         return sb.ToString();
     }
@@ -241,6 +241,12 @@ public static class Prompts
             foreach (var c in v.Known) sb.AppendLine("- " + Person(c));
         }
 
+        if (v.Letters.Count > 0)
+        {
+            sb.AppendLine("YOUR LETTERS (your record of what you sent, as your scribes wrote it: each envoy's letter while he is away on that errand, and once more when his report has come since you last gave orders):");
+            foreach (var l in v.Letters) sb.AppendLine("- " + LetterLine(l));
+        }
+
         if (v.Tablets.Count > 0)
         {
             sb.AppendLine("YOUR ARCHIVE (the tablets you hold, kept at your capital: each as every court names it, by its seals and date; your own mark for your copy, for your orders only; its text; how it came to you):");
@@ -261,7 +267,7 @@ public static class Prompts
         }
         if (v.CourtLetters.Count > 0)
             sb.AppendLine("LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): "
-                          + string.Join("; ", v.CourtLetters.Select(o => o.Describe())) + "." + LettersGold(v.CourtLetters));
+                          + string.Join("; ", v.CourtLetters.Select(InFull)) + "." + LettersGold(v.CourtLetters));
 
         sb.Append(WhileYouSlept(v));
 
@@ -275,6 +281,22 @@ public static class Prompts
     /// copy, which only its orders use (another court numbers its copies differently), then its text.
     /// </summary>
     public static string TabletLine(TabletView t) => $"{t.Name} [your copy {t.CopyId}]: \"{t.Text}\"";
+
+    /// <summary>
+    /// An order as the king reads it back: a letter in full (to whom, with what gold, its message, mandate and tablet), as it
+    /// goes out with this season's orders; any other order as it describes itself.
+    /// </summary>
+    public static string InFull(Order o) => o is DispatchOrder d
+        ? $"send {d.Envoy} to {d.To}{(d.Gold > 0 ? $" with {d.Gold} shekels" : "")}: message \"{d.Letter}\"; mandate {(d.Mandate.Length > 0 ? $"\"{d.Mandate}\"" : "none")}"
+          + (d.Proposal is { } p ? $"; tablet to seal \"{p.Text}\"" : "")
+        : o.Describe();
+
+    /// <summary>A letter the king sent, in full: when, by whom, to whom, with what gold, and its message, mandate and tablet.</summary>
+    public static string LetterLine(LetterView l) =>
+        $"turn {l.Turn}, {l.EnvoyName} ({l.EnvoyId}) to {l.To}{(l.Gold > 0 ? $", with {l.Gold} shekels" : "")}"
+        + (l.ReportedTurn is int r ? $" (his report came in turn {r})" : " (still away)")
+        + $": message \"{l.Message}\"; mandate {(l.Mandate.Length > 0 ? $"\"{l.Mandate}\"" : "none")}"
+        + (l.Tablet is { } tablet ? $"; tablet to seal \"{tablet}\"" : "");
 
     /// <summary>
     /// After the letters a king sent from its audiences this season: the gold they carry, which the treasury it reads does not
@@ -482,7 +504,7 @@ public static class Prompts
             sb.AppendLine("YOUR ORDERS STAND WHILE YOU SLEEP. At this audience you may also send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. "
                           + "Reopen your orders (reopen_orders) if the news changes your plan: you then give orders this season, with your full view, after your audiences. Otherwise your orders stand and you sleep on.");
             if (a.LettersSent.Count > 0)
-                sb.AppendLine($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): {string.Join("; ", a.LettersSent.Select(o => o.Describe()))}.{LettersGold(a.LettersSent)}");
+                sb.AppendLine($"Letters you have already sent from your audiences this season (a new letter for the same person replaces one): {string.Join("; ", a.LettersSent.Select(InFull))}.{LettersGold(a.LettersSent)}");
             if (a.ReopenChosen)
                 sb.AppendLine("You have already chosen to reopen your orders this season: you give orders after your audiences.");
         }
