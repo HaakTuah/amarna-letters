@@ -47,6 +47,27 @@ internal sealed partial class Brain
     public Dictionary<string, int> RansomAsked = new();
     /// <summary>Our own people whose line reads "has not returned" (the word that they are overdue), and the season it first did.</summary>
     public Dictionary<string, int> MissingSince = new();
+    /// <summary>
+    /// Our own people found keeping gold they carried: a lot brought home that weighed less than its inventory, an
+    /// inventory of theirs found forged, or a theft their known facts show. Let go when next at court.
+    /// </summary>
+    public HashSet<string> Thieves = new();
+    /// <summary>Our own people whose forgery was botched: they lack the hand, so they are not asked to forge again.</summary>
+    public HashSet<string> NoHand = new();
+    /// <summary>Captives a ransom or a turning was refused for: nobody is left to pay or to deceive.</summary>
+    public HashSet<string> Unclaimed = new();
+    /// <summary>People a hire of ours was refused for because another court holds them: they cannot come to us.</summary>
+    public HashSet<string> HeldElsewhere = new();
+    /// <summary>Provinces a friend ceded to us: we keep them, rather than pass them on in turn.</summary>
+    public HashSet<string> Received = new();
+    /// <summary>Captives whose ransom demand lapsed unpaid, and how often.</summary>
+    public Dictionary<string, int> RansomLapsed = new();
+    /// <summary>Our spies at their posts, and the season we first saw each one watching there.</summary>
+    public Dictionary<string, (string Post, int Since)> Posted = new();
+    /// <summary>Spies we have recalled, while their line still reads that they watch (a master may not hear at once).</summary>
+    public HashSet<string> Recalled = new();
+    /// <summary>The bribe the host offered at an audience still open, by audience, to raise once in a second exchange.</summary>
+    public Dictionary<string, (int Bribe, string Ask)> BribeOffered = new();
     public int LastSeek = -10;
     public int LastSpyCaught = -10;
     public Power? WarTarget;
@@ -194,7 +215,24 @@ internal sealed partial class Brain
             if (item.Kind == InboxKind.Notice && item.Title == "A spy is caught") LastSpyCaught = v.Turn;
             if (item.Title == "Purchase failed" && Board.Map.Provinces.FirstOrDefault(x => item.Body.Contains($"elders of {x.Name} would not")) is { } city)
                 Outbid[city.Id] = v.Turn;
+            LearnOfPeople(v, item);
         }
+
+        // Our spies at their posts, and since when (a spy sent elsewhere starts again).
+        foreach (var c in v.Court)
+        {
+            if (c.Duty.StartsWith("watching ", StringComparison.Ordinal))
+            {
+                var post = c.Duty["watching ".Length..];
+                if (!Posted.TryGetValue(c.Id, out var at) || at.Post != post) Posted[c.Id] = (post, v.Turn);
+            }
+            else
+            {
+                Posted.Remove(c.Id);
+                Recalled.Remove(c.Id);
+            }
+        }
+        foreach (var gone in Posted.Keys.Where(id => v.Court.All(c => c.Id != id)).ToList()) Posted.Remove(gone);
 
         // Our own people we have word are overdue: since when, for as long as their line still says so.
         foreach (var id in MissingSince.Keys.Where(id => !v.Court.Any(c => c.Id == id && Overdue(c))).ToList()) MissingSince.Remove(id);
@@ -320,6 +358,53 @@ internal sealed partial class Brain
         return Math.Clamp(h, 0.05, 0.95);
     }
 
+    /// <summary>
+    /// What one item of the season's news says of people: our own servant caught keeping gold (a lot brought home lighter
+    /// than its inventory, or an inventory found forged and traced to the servant who brought it), a servant without the
+    /// hand to forge, a captive nobody will pay for or whose ransom lapsed, and troops or land a king gave us.
+    /// </summary>
+    private void LearnOfPeople(SeatView v, InboxItem item)
+    {
+        CharacterView? Ours(Func<CharacterView, bool> test) => v.Court.FirstOrDefault(c => c.Ours && test(c));
+        switch (item.Kind)
+        {
+            case InboxKind.EnvoyReport when item.Subject is { } id && HomeLot().Match(item.Body) is { Success: true } lot
+                                            && Shekels(lot.Groups[2].Value) < Shekels(lot.Groups[1].Value):
+                Thieves.Add(id);
+                break;
+            // Our own examination: the forger who brought the inventory, named.
+            case InboxKind.Authentication when TracedTo().Match(item.Body) is { Success: true } hand && Ours(c => c.Name == hand.Groups[1].Value) is { } thief:
+                Thieves.Add(thief.Id);
+                break;
+            // Another court's examination, announced to every court: an inventory brought by our envoy was forged by it.
+            case InboxKind.Rumor when Ours(c => item.Body.Contains($"brought by {c.Name}, envoy of {Me}, was forged by {c.Name}")) is { } thief:
+                Thieves.Add(thief.Id);
+                break;
+            case InboxKind.Rejected when item.Title == "Forgery botched" && item.Subject is { } id:
+                NoHand.Add(id);
+                break;
+            case InboxKind.Rejected when item.Title == "Orders that could not be carried out":
+                foreach (var line in item.Body.Split('\n'))
+                {
+                    if (line.Contains("nobody is left to") && CaptiveLine().Match(line) is { Success: true } m) Unclaimed.Add(m.Groups[1].Value);
+                    if (line.Contains("cannot come to yours") && HireLine().Match(line) is { Success: true } h) HeldElsewhere.Add(h.Groups[1].Value);
+                }
+                break;
+            case InboxKind.Notice when item.Title == "No ransom came" && item.Subject is { } id:
+                RansomLapsed[id] = RansomLapsed.GetValueOrDefault(id) + 1;
+                break;
+            // A king who places his troops under our command, or cedes us land, is a friend indeed.
+            case InboxKind.Resolution when item.Title is "Troops received" or "Land received"
+                                           && Powers.All.Where(x => x != Me && item.Body.StartsWith(x + " has ")).Cast<Power?>().FirstOrDefault() is { } giver
+                                           && Rel.TryGetValue(giver, out var r):
+                r.Trust = Math.Min(1, r.Trust + (item.Title == "Land received" ? 0.35 : 0.25));
+                r.SupportsGiven++;
+                if (item.Title == "Land received" && Board.Map.Provinces.FirstOrDefault(x => item.Body.EndsWith($" ceded {x.Name} to you.")) is { } land)
+                    Received.Add(land.Id);
+                break;
+        }
+    }
+
     /// <summary>One of our people whose line reads that they have not returned: the overdue word has come, and nothing since.</summary>
     private static bool Overdue(CharacterView c) => c.Duty.StartsWith("has not returned", StringComparison.Ordinal);
 
@@ -349,4 +434,16 @@ internal sealed partial class Brain
 
     [GeneratedRegex(@"(\w+) has (?:an army|a fleet) in")]
     private static partial Regex SpiedUnit();
+
+    [GeneratedRegex(@"\[The inventory lists (.+?) of gold; your weighers found (.+?)\.\]")]
+    private static partial Regex HomeLot();
+
+    [GeneratedRegex(@"trace it to the hand of (.+?), who brought it")]
+    private static partial Regex TracedTo();
+
+    [GeneratedRegex(@"the captive (\S+):")]
+    private static partial Regex CaptiveLine();
+
+    [GeneratedRegex(@"^- hire (\S+) at ")]
+    private static partial Regex HireLine();
 }

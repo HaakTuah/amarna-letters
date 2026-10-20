@@ -13,9 +13,12 @@ public sealed class GameState
     /// tablets and swapped inventories); 4 since Build order item 4: a spy posted at a court is hidden from it (it is not
     /// paid back pay there, and does not end that court's cover), and each kind of object has its own id counter (fix (d),
     /// <see cref="IdCounters"/>). Neither change was released on its own, so one version covers both. 5 since the fix pass
-    /// after item 4: kings never choose when they wake (no named season, no triggers of their own), threats to a home
-    /// province or a walled city wake a sleeping king, standing orders fire in the season of their event, scheduled orders
-    /// may be given to a levy's unit, and the other rule changes of that pass.
+    /// after item 4, for both its lanes: kings never choose when they wake (no named season, no triggers of their own),
+    /// threats to a home province or a walled city wake a sleeping king, standing orders fire in the season of their event,
+    /// scheduled orders may be given to a levy's unit, and engine texts name tablets and people as every court sees them;
+    /// script envoys keep a share of small lots of gold (rounded to the shekel, not down to fives), leave the host's
+    /// complaint about the weighing out of their reports when they kept some, read a passive "warned" as a threat to a king
+    /// only when he is the one warned, and split sentences after a closing quote, which changes what they keep and say.
     /// </summary>
     public const int CurrentVersion = 5;
 
@@ -574,6 +577,9 @@ public sealed class InboxItem
 /// <summary>The three versions of a message, side by side: the gaps between them are the game.</summary>
 public sealed class MessageTrail
 {
+    /// <summary>The outcome the engine records when the host seals the tablet the envoy carried: the only sealing on a mission.</summary>
+    public const string SealedOutcome = "the tablet was sealed by both kings";
+
     public string Id { get; set; } = "";
     public int Turn { get; set; }
     public Power From { get; set; }

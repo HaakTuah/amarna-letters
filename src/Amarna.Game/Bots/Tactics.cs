@@ -11,6 +11,8 @@ internal sealed class MilitaryPlan
     /// <summary>Places where one more unit would have paid off, with what it was worth.</summary>
     public List<(string Near, double Value)> Shortfalls { get; } = new();
     public HashSet<string> Threatened { get; } = new();
+    /// <summary>For each threatened province, the strength of the likeliest attack on it and how likely it is to come.</summary>
+    public Dictionary<string, (int Strength, double Chance)> Danger { get; } = new();
 }
 
 /// <summary>
@@ -114,7 +116,7 @@ internal static class Tactics
         foreach (var prov in b.V.Owner.Where(x => x.Value == me).Select(x => x.Key).Concat(free).Distinct())
         {
             var d = Danger(prov);
-            if (d.Strength > 0) { threat[prov] = d; plan.Threatened.Add(prov); }
+            if (d.Strength > 0) { threat[prov] = d; plan.Threatened.Add(prov); plan.Danger[prov] = d; }
         }
 
         // The chance that some hostile king walks into a province within two moves, for the homeland and capital.
@@ -226,7 +228,13 @@ internal static class Tactics
             else if (gain > 150) plan.Shortfalls.Add((target, gain * 0.5));
         }
 
-        // ---- Convoy: an army on the coast, our fleet at sea, a coast beyond.
+        // An army on a coast with nothing it could take by land this season: every land or coast link leads to our own land,
+        // to walls, or to a king we will not fight. Carried over the sea it can work again (and march inland, as no fleet can).
+        bool Stranded(string army) =>
+            !Board.Map.MovesFrom(UnitKind.Army, army).Any(n => !b.IsMine(n) && (b.OwnerOf(n) is not { } o || Willing(o)) && !b.Walls(n));
+
+        // ---- Convoy: an army on the coast, our fleet at sea, a coast beyond. For a stranded army the convoy is worth more
+        // than the fleet taking that coast itself: the army goes in, and the fleet stays at sea to carry or strike again.
         foreach (var fleet in free.Where(u => b.UnitAt[u].Kind == UnitKind.Fleet && Board.Map[u].IsSea))
             foreach (var army in free.Where(u => b.UnitAt[u].Kind == UnitKind.Army && Board.Map[u].IsCoastal && Board.Map.AreAdjacent(u, fleet)))
                 foreach (var target in Board.Map.Neighbors(fleet).Where(t => t != army && Board.Map[t].IsCoastal && !Board.Map.CanMove(UnitKind.Army, army, t)))
@@ -236,7 +244,8 @@ internal static class Tactics
                     var required = (b.Walls(target) ? 2 : 1) + Math.Min(1, b.Alive.Where(x => x != me).Select(x => b.Muster(x, target)).DefaultIfEmpty(0).Max());
                     var helpers = Helpers(target, army).Where(u => u != fleet).Take(required - 1).ToList();
                     if (1 + helpers.Count < required) continue;
-                    ops.Add(new Op("convoy", 0.75 * b.Value(target) * Multiplier(owner) - Exposure(army), target, army, helpers, fleet));
+                    var carried = Stranded(army) ? 0.85 * (b.Value(target) * Multiplier(owner)) + 60 : 0.75 * b.Value(target) * Multiplier(owner);
+                    ops.Add(new Op("convoy", carried - Exposure(army), target, army, helpers, fleet));
                 }
 
         // ---- Joint blows with sworn partners (see Joints): go in when it is our turn, support when it is theirs.
@@ -314,6 +323,33 @@ internal static class Tactics
                 .Where(x => x.Menace > 0).OrderByDescending(x => x.Menace).ThenBy(x => x.Unit.Province, StringComparer.Ordinal).Select(x => x.Unit).FirstOrDefault();
             if (ally is null || threat.ContainsKey(u)) continue;
             Assign(plan, free, u, new SupportOrder(u, ally.Province), "ally-support");
+        }
+
+        // ---- Ready a convoy: an army on a coast with nothing to take by land, and our fleet a move from a sea that touches
+        // both its coast and land worth taking that the army cannot reach by land. The fleet puts to that sea, so that next
+        // season the convoy above can carry the army over. (Until the fix pass after item 4 no script king ever convoyed:
+        // its fleets were never at sea next to an army that needed them.)
+        foreach (var army in free.Where(u => b.UnitAt[u].Kind == UnitKind.Army && Board.Map[u].IsCoastal && !threat.ContainsKey(u) && !stay.Contains(u))
+                     .OrderBy(x => x, StringComparer.Ordinal).ToList())
+        {
+            if (!Stranded(army)) continue;
+            var best = (Fleet: (string?)null, Sea: "", Worth: 0.0);
+            foreach (var sea in Board.Map.Neighbors(army).Where(s => Board.Map[s].IsSea && !plan.Destinations.Contains(s) && (!b.UnitAt.TryGetValue(s, out var at) || at.Power == me)))
+            {
+                var worth = Board.Map.Neighbors(sea)
+                    .Where(t => t != army && Board.Map[t].IsCoastal && !Board.Map.CanMove(UnitKind.Army, army, t) && !b.IsMine(t)
+                                && (b.OwnerOf(t) is not { } o || Willing(o)))
+                    .Select(t => b.Value(t) * Multiplier(b.OwnerOf(t))).DefaultIfEmpty(0).Max();
+                if (worth <= best.Worth) continue;
+                var fleet = free.Where(f => f != army && b.UnitAt[f].Kind == UnitKind.Fleet && !stay.Contains(f) && !threat.ContainsKey(f)
+                                            && (f == sea || Board.Map.CanMove(UnitKind.Fleet, f, sea)))
+                    .OrderBy(f => f == sea ? 0 : 1).ThenBy(f => f, StringComparer.Ordinal).FirstOrDefault();
+                if (fleet is not null) best = (fleet, sea, worth);
+            }
+            if (best.Fleet is not { } carrier || best.Worth < 200) continue;
+            // Already at sea there: it waits for the army (the convoy above did not find a landing it could make this season).
+            Assign(plan, free, carrier, carrier == best.Sea ? new HoldOrder(carrier) : new MoveOrder(carrier, best.Sea), "convoy");
+            if (carrier != best.Sea) plan.Destinations.Add(best.Sea);
         }
 
         // ---- Everyone else: hold if threatened, otherwise move towards where the value is.

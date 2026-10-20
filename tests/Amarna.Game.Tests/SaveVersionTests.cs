@@ -36,7 +36,11 @@ public class SaveVersionTests
         Assert.Null(GameRunner.VersionProblem(log.Header));
     }
 
-    /// <summary>Version 3 is the one before item 4's fix (d), when every kind of object took its id from one shared counter; version 4, before the fix pass after item 4, when kings could name a season to be woken in.</summary>
+    /// <summary>
+    /// Version 3 is the one before item 4's fix (d), when every kind of object took its id from one shared counter; version
+    /// 4 the one before the fix pass after item 4, when kings could name a season to be woken in and script envoys kept
+    /// nothing from small lots of gold.
+    /// </summary>
     [Theory]
     [InlineData(1)]
     [InlineData(3)]

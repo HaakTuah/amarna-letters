@@ -45,12 +45,19 @@ public sealed class ScriptMind : ICharacterMind
         if (fond) speech.Add("For myself, I have always admired your court above all others.");
         if (ctx.Dispatch.Gold > 0) speech.Add($"I carry the gold my lord sends, as the inventory on the tablet shows.");
 
-        var skim = 0;
-        if (ctx.Dispatch.Gold > 0 && t.Greed > 60 && t.Loyalty < 60)
-            skim = Math.Min(ctx.Dispatch.Gold, (int)(ctx.Dispatch.Gold * (t.Greed - 50) / 250.0) / 5 * 5);
-
+        var skim = Kept(ctx.Dispatch.Gold, t);
         return Task.FromResult(new PresentResult { Speech = TextKit.Join(speech), Skim = skim, SwapInventory = Swaps(t, skim, ctx.ForgeMinCompetence) });
     }
+
+    /// <summary>
+    /// What a greedy, disloyal envoy (greed above 60, loyalty below 60) keeps of a lot of gold it carries, out or home:
+    /// gold × (greed − 50) ÷ 250, from a twenty-fifth at greed 61 to a fifth at greed 100, rounded to the nearest whole
+    /// shekel. So it keeps something from the lots kings send (from about 12 shekels up at greed 61, from 3 at greed 100):
+    /// 1 to 4 shekels of a 20-shekel lot, 3 to 12 of 60. (Until save version 5 the share was rounded down to fives, which
+    /// kept nothing from a lot under 1,250 ÷ (greed − 50) shekels, so no envoy skimmed the 20 to 60 shekels kings sent.)
+    /// </summary>
+    public static int Kept(int gold, Traits t) =>
+        gold > 0 && t.Greed > 60 && t.Loyalty < 60 ? Math.Min(gold, (int)Math.Round(gold * (t.Greed - 50) / 250.0, MidpointRounding.AwayFromZero)) : 0;
 
     /// <summary>
     /// An envoy that kept some of the gold swaps the inventory for one it forges, stating only what is left, if it has the
@@ -137,9 +144,13 @@ public sealed class ScriptMind : ICharacterMind
             lines.Add($"My lord, I have returned from the court of {host.Value.Land()}.");
             if (cargo.WasDetained) lines.Add("They held me against my will, and only now let me go.");
             var hostWords = trail.Exchanges.Select(x => x.Host).Where(x => x.Length > 0).ToList();
+            // An envoy that kept some of the gold it carried leaves out what the host said of the weighing ("my weighers
+            // found only 37 shekels", "your messenger's hands are heavy with my gold"): its lord is not to hear the lot came light.
+            var kept = trail.Outcomes.Any(o => o.StartsWith("kept ", StringComparison.Ordinal));
             foreach (var words in hostWords)
             {
-                var sentences = TextKit.Sentences(words);
+                var sentences = TextKit.Sentences(words).Where(s => !kept || !TextKit.SpeaksOfWeighing(s)).ToList();
+                if (sentences.Count == 0) continue;
                 if (faithful) lines.Add($"The king said: \"{TextKit.Join(sentences)}\"");
                 else if (bribed || fearful)
                 {
@@ -156,9 +167,10 @@ public sealed class ScriptMind : ICharacterMind
             if (bribed) lines.Add($"The king of {host.Value.Land()} is a true friend to you, my lord, and wishes only peace.");
             if (t.Ambition >= 65) lines.Add("It was my words that won his favour; no other envoy could have done as much.");
             if (fearful && !bribed) lines.Add("All is well between your houses, I am certain of it.");
-            if (trail.Outcomes.Any(o => o.Contains("sealed"))) lines.Add("He sealed the tablet, and I bring your copy.");
+            // Only the engine's own record of a sealing, not the envoy's commitments or a gift's request that speak of one.
+            if (trail.Outcomes.Contains(MessageTrail.SealedOutcome)) lines.Add("He sealed the tablet, and I bring your copy.");
             // An envoy that promised more than it was told owns up to it only vaguely, and only if ambitious enough to boast.
-            if (t.Ambition > 70 && trail.Outcomes.Any(o => o.StartsWith("the envoy committed") && o.EndsWith(Overreach)))
+            if (t.Ambition > 70 && trail.Outcomes.Any(o => TurnEngine.Commitment(o) is { } promised && promised.EndsWith(Overreach, StringComparison.Ordinal)))
                 lines.Add("I gave him such assurances as you would wish.");
         }
 
@@ -175,8 +187,7 @@ public sealed class ScriptMind : ICharacterMind
         }
         if (observations.Count > 0) lines.Add("What I saw: " + string.Join(" ", observations));
 
-        var skim = 0;
-        if (cargo.Gold > 0 && t.Greed > 60 && t.Loyalty < 60) skim = (int)(cargo.Gold * (t.Greed - 50) / 250.0) / 5 * 5;
+        var skim = Kept(cargo.Gold, t);
         if (cargo.Gold > 0) lines.Add("I bring the gifts the king sent you.");
         return new MindReply { Text = TextKit.Join(lines), Number = skim, SwapInventory = Swaps(t, skim, ctx.ForgeMinCompetence) };
     }

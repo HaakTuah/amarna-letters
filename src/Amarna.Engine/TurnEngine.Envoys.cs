@@ -338,7 +338,7 @@ public sealed partial class TurnEngine
                 tablet.Seals.Add(host);
                 tablet.SealedTurn = S.Turn;
                 S.Copies.Add(new TabletCopy { Id = S.NewId("k"), TabletId = tablet.Id, Holder = host, AcquiredTurn = S.Turn, Source = "sealed at audience" });
-                trail.Outcomes.Add("the tablet was sealed by both kings");
+                trail.Outcomes.Add(MessageTrail.SealedOutcome);
                 S.Log("tablet", $"{sender} and {host} sealed a tablet: \"{Greeting.Cap(tablet.Text, 160)}\"", [sender, host], "tablet-sealed");
             }
 

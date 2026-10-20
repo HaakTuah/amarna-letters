@@ -200,9 +200,17 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   inventory tablets and swapped inventories change how a seed plays, 4 since Build order item 4, whose hidden spies
   are not paid back pay at the court they watch and do not end that court's cover, and whose fix (d) gives each kind
   of object its own id counter, which renumbers objects and so moves every seed's rolls once; neither was released on
-  its own, so one version covers both). A log saved under another version is refused, both for replay and for
-  continuing it: "This game was saved under an earlier version of the rules (version 3) and cannot be replayed by
-  this version." (tested for versions 1 and 3). The web app shows that message
+  its own, so one version covers both; 5 since the fix pass after item 4, one version for all of that pass's
+  changes: kings never choose when they wake (no named season, no triggers of their own, and a reply that still
+  names a season is read as one that does not), threats to a home province or a walled city wake a sleeping king,
+  standing orders answer a move in the season it is made, scheduled orders may name a levy's unit, and engine texts
+  name tablets and people as every court sees them; script envoys keep a share of small lots of gold, rounded to the
+  shekel instead of down to fives, leave the host's complaint about the weighing out of their reports when they kept
+  some, soften a passive "warned" only when the host is the one warned, and split sentences after a closing quote;
+  and script kings use the features they never used, under "Every feature is every seat's" in Script kings). A log
+  saved under another version is refused, both for replay and for continuing it: "This game was saved under an
+  earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3 and
+  4). The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
@@ -311,9 +319,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     it.", and every other court hears "The scribes of Hatti declare that the inventory of gold bearing the seal of
     Egypt, brought by Mane, envoy of Egypt, was forged by Mane." The envoy loses 30 reputation with every court and
     gains a public fact ("Exposed as the forger of an inventory of gold bearing the seal of Egypt."), as a traced forger
-    does. Script kings never examine an inventory (they examine only tablets shown to them), so in script games a swap
-    is never found; a model or human king may examine any tablet it holds, or send the inventory back to its sender as
-    evidence, who knows what it sealed.
+    does. Until the fix pass after item 4 script kings never examined an inventory (they examined only tablets shown to
+    them), so in script games a swap was never found; now they examine inventories, most often those that weighed light
+    (see Script kings, Court and intelligence), and let go a servant of theirs found out. A model or human king may
+    examine any tablet it holds, or send the inventory back to its sender as evidence, who knows what it sealed.
   - Script envoys decide by formula (see Script envoys); model envoys decide for themselves, told in their prompt that
     they could keep some gold "and, if you leave some, hand over in place of the inventory one you forge yourself,
     stating only what is left", and whether their hand is skilled enough to fake a seal, with the schema field
@@ -1252,8 +1261,9 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     "Giving one costs nothing; its orders cost what they cost when they run.", and the orders
     request ends "Now give your orders for this season and the seasons ahead: your troops, your
     envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You
-    sleep after them." Script kings give no standing orders yet: that gap is for the audit at the
-    start of item 5.
+    sleep after them." Script kings give no standing orders: they never sleep, and the feature audit of
+    this fix pass left the orders that exist only for a king who sleeps to sleeping seats (see "Every
+    feature is every seat's" under Script kings). The audit at the start of item 5 looks at it again.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
   again next season, told why it was woken in the season it missed (it never read that) and what
@@ -1333,11 +1343,30 @@ in the log). `ScriptMind` draws only from streams keyed by seed, season and char
 game's own generator, and changes nothing it reads, so the shadow changes nothing: a test plays the same game with and
 without it and gets the same state and the same decisions. The shadow line holds the character's traits, what it faced
 (gold carried, a gift or a post offered), what the engine knows happened that a report should not hide, and both
-decisions with what `CharacterChecks` found in their words. The checks read words, not meaning: a report "hides" a gift
+decisions with what `CharacterChecks` found in their words. The situation is the one the model's own earlier choices
+made (the host answered the model's words), with one exception since the fix pass after item 4: a report's shadow is
+written, and checked, against what the script itself chose at that audience, the gold it would have kept (and the
+forged inventory that would have hidden it) and the gift it would have taken or refused, with what the host asked for
+it (`LlmCharacterMind.ScriptSituation`). Before, it inherited the model's: in the second agent simulation a gift the
+script had refused was flagged as hidden in its report. A script envoy's report claims a seal ("He sealed the tablet,
+and I bring your copy") only when the engine recorded the sealing (`MessageTrail.SealedOutcome`); it used to claim one
+whenever any outcome held the word "sealed", which in the shadow included the model's own commitments ("Nothing
+sealed"): 11 false seal claims in that simulation. The checks read words, not meaning: a report "hides" a gift
 the envoy took if it never speaks of gold or a gift given to the envoy itself, a detention if it never speaks of being
-held, gold kept on the way out if it never owns up, a threat to its lord if it carries no threat at all, an offer of
-service it declined if it never mentions service; it "contradicts" the engine if it says the king sealed when nothing
-was sealed. A speech abroad "softens" a threat to the host if the letter had one and the speech has none. A spy "passes
+held, gold kept on the way out if it never owns up (saying what it kept, or that it kept something "for myself"; "I saw
+for myself" owns up to nothing), a threat to its lord if it carries no threat at all, an offer of service it declined
+if it never mentions service; it "contradicts" the engine if it says the king sealed when the engine recorded no
+sealing (`MessageTrail.SealedOutcome`). Since the fix pass after item 4, a sentence claims a seal
+(`CharacterChecks.ClaimsSeal`) only if it tells of a sealing: each "sealed" or "set his seal" is read in its clause,
+and not counted when denied there or right after it ("I sealed nothing", "Nothing is sealed", "Neither king sealed"),
+when still to come, wished for or supposed ("it will be sealed", "he asks that it be sealed", "if he had sealed"), when
+it names a sealed thing ("a sealed tablet", "our sealed peace", "in sealed bags", "the oath sealed before Shamash"), or
+an earlier sealing ("stands as sealed", "the tablet we sealed in turn four", "the friendship we sealed (k27)", "Egypt
+keeps the tablet he sealed", "the tablet we sealed stands"); the first reading counted all of these, 8 false alarms on
+the models' reports in the second agent simulation. Read again with the new reading, those reports raise one flag, a
+real error ("He received me kindly and sealed his answer in friendship", when nothing was sealed). Sentences
+end after a closing quote too (`TextKit.Sentences`), so a quoted denial no longer hides a claim after it. A speech
+abroad "softens" a threat to the host if the letter had one and the speech has none. A spy "passes
 on" its secret masters' words if most of their longer words are in its report, and "leaves out" an observation if fewer
 than half of its names, numbers and longer words are. An invented promise or a false account of a king's mood passes
 the checks, so a reader confirms the flagged reports. The batch runner prints the comparison after the seat report
@@ -1399,14 +1428,24 @@ first guesses: the bridge's port 5190, a poll every second, the 60-minute wait, 
 
 A script king sees exactly what any seat sees (its `SeatView`) and nothing more: a test changes what lies outside the view (rivals' gold, the fine gold in its unassayed lots, troops out of sight, seat labels, characters' traits) and its orders stay the same. The same bot plays every script seat. It also stands in for a model or file seat whenever a call to it fails, playing that king's temperament. The stand-in keeps up with every such seat, asleep or awake (see Known quirks). The rules live in `src/Amarna.Game/Bots` (`Personality`, `Brain`, `Board`, `Statecraft`, `Tactics`, `Search`, `ScriptLeader`), and their numbers are in that code, not in `GameConfig`. Each script seat plays from a seed of its own, the first eight bytes of a SHA-256 hash of the game's seed, "seat" and its power (`ScriptLeader.SeatSeed`), so no script king holds the seed the engine rolls the game's dice with; the hash, unlike a stream of the game's own generator, cannot be undone to find it. Every random choice it makes, in picturing its rivals too, comes from a stream of that seed keyed by turn and purpose, so replays are exact.
 
+**Every feature is every seat's.** Script kings use every order and every choice at an audience that a model king has,
+except those that exist only for a king who sleeps: scheduled and standing orders, letters sent from an audience while
+orders stand, and reopening orders. A script seat is asked every season and gives every order fresh, so it has nothing to
+schedule or stand by; when it stands in for a sleeping seat whose call failed, it plays that one season. The audit of the
+fix pass after item 4 (report `docs/rounds/2026-10-20-fix-pass.md`, "The feature audit") measured each feature's use and
+success in seeds 1-100 and patched those never used or never successful: inventories examined, thieves dismissed,
+convoys, gifts of troops, cessions, recalls, captives released, the second exchange, greetings without the title or
+without a greeting, threats, oaths asked of envoys, gold debased only where it goes unassayed, watchmen and levies placed
+where they pay.
+
 ### A season, in order
 
 1. **Audiences** come before orders. As host, the king first reads the season's news, then answers each envoy. Anything it seals binds it at once.
 2. **Learning.** Trust, grudges, treaties, troop sightings and treasury estimates are updated once a season.
 3. **Strategy.** It keeps or chooses a war target, and decides whether to betray a friend.
 4. **Troops.** It draws a first plan, then the **look-ahead** may change it. Every move into a province held by another king's troop, or owned by another king, is remembered as an attack by us.
-5. **Treasury.** It disbands, raises levies and buys cities.
-6. **Court.** Servants, checks, assays, watchmen, examinations, spies, forgeries, captives, held envoys and ransoms.
+5. **Treasury.** It disbands (or gives a troop to a friend), raises levies, buys cities and cedes land it cannot keep.
+6. **Court.** Servants (thieves let go), checks, assays, watchmen, examinations (inventories too), spies and recalls, forgeries, captives, held envoys and ransoms.
 7. **Letters.**
 8. **Notes** for the log: the war target, any betrayal, the leader, pacts in force, joint blows struck, and every trust beyond ±0.15.
 
@@ -1677,10 +1716,11 @@ What script kings never do, and how they treat oaths:
      - Without enough troops and with a gain above 150, a shortfall worth half the gain is noted.
    - **Convoy**: an army on a coast next to one of our fleets at sea, to an empty coast the army cannot reach by land. The target must not be ours, and must be free or belong to a king we are willing to fight.
      - Troops needed: 1 (2 if walled), + 1 if any other king can reach the coast.
-     - Net = 0.75 × value × multiplier − exposure.
+     - Net = 0.75 × value × multiplier − exposure. For a **stranded** army, one with nothing it could take by land this season (every land or coast link leads to our own land, to walls, or to a king we will not fight), 0.85 × value × multiplier + 60 − exposure: more than the fleet would net taking that coast itself, since the army goes in and the fleet stays at sea. (Since the fix pass after item 4. Before it no script king ever convoyed in 100 games: the fleet took such a coast itself, and fleets were never at sea next to an army that needed them.)
    - **Joint blows**: see Coalitions.
 5. **Commit**, best first, until net worth reaches 0. Each troop is used once, and only one attack, block, convoy or joint blow goes into each province (cuts are not tracked). A troop that must stay never moves; it may still support.
 6. **Support friends.** Each troop still free and not threatened supports a friend's troop in sight that a non-friend menaces: a sworn foe first, then the leader, then any king with hostility above 0.4.
+   **Ready a convoy** (since the fix pass after item 4). For each stranded army on a coast that is not threatened and not kept home, a free fleet that is not threatened puts to the sea next to the army's coast whose far coasts are worth most (the best value × multiplier among coasts the army cannot reach by land, not ours, free or of a king we will fight), if that is at least 200 and the fleet can get there this season; a fleet already there waits. Next season the convoy above can carry the army over.
 7. **The rest.** Threatened troops and troops kept home hold. Every other troop takes one step towards the best place within five steps:
    - land that is not ours and is free, or belongs to a king we are willing to fight, scores value ÷ (1 + steps);
    - our own threatened empty land scores 0.8 × value ÷ (1 + steps).
@@ -1736,7 +1776,8 @@ What script kings never do, and how they treat oaths:
   - while flow is negative, (upkeep + wages) × (1 + caution);
   - in both cases, + 40 × greed + 20.
 - **Disbanding.** While flow is negative and the treasury would not last two more seasons (gold + 2 × flow < 0), the king disbands a troop. It picks the troop in the least valuable province among those that are only holding or moving and not threatened.
-- **Levies**, at most two a season. A levy is raised in a province of the king's homeland that it holds, that is empty and is not a destination. Threatened provinces come first, then the capital, then higher yield. The province must be in or next to a place where the plan fell short, best shortfall first.
+  - **Or gives it to a friend** (since the fix pass after item 4): the troop goes instead to a friend the king would not betray, whose land the troop stands in or whose land or troops stand next to it, and whose treasury, as the king reckons it, feeds the troop for four seasons (the most trusted first). It costs nothing more than disbanding, and the troop serves a friend against the kings both face. Never a troop standing in the king's own land: land passes to whoever's troops stand in it, so the friend would take the province with it. When no idle troop is left and the treasury cannot pay next season's upkeep (gold + flow < 0), troops will desert whatever they are doing, so one a friend can take (by the same test, threatened or busy) is given to it. A king given troops or land trusts the giver 0.25 more (0.35 for land) and counts it as a support given.
+- **Levies**, at most two a season. A levy is raised in a province of the king's homeland that it holds, that is empty and is not a destination. The provinces least likely to be attacked this season come first (no threat, then the lowest chance of the likeliest attack), then the capital, then higher yield; a levy stands only if the province is still the king's after movement. (Until the fix pass after item 4 threatened provinces came first. More than a third of levies fail all the same, nearly all in a homeland being overrun, where every empty province is threatened; a failed levy costs nothing.) The province must be in or next to a place where the plan fell short, best shortfall first.
   - It is a fleet if that place is reached only by sea, or for Arzawa and Alashiya while they have fewer than two fleets.
   - It is raised only if all of these hold:
     - the shortfall is worth at least (price + upkeep × min(H, 10)) × (0.7 + 0.5 × caution) × (1.3 − 0.6 × aggression);
@@ -1750,30 +1791,34 @@ What script kings never do, and how they treat oaths:
   - Cities are ranked by score per shekel.
   - It buys up to two a season if commerce is above 0.45, else one.
   - It buys only while the gold left is at least reserve × (1.2 − 0.7 × commerce). A merchant therefore dips into its reserve: Alashiya keeps half of it, Hatti nearly all.
-  - After the elders refused to choose between rival buyers, it bids again within three seasons only half the time.
+  - After the elders refused to choose between rival buyers, it bids again within three seasons only half the time, and for those three seasons it scores that city at 0.6 of its worth, so another city nearly as good is bought instead (since the fix pass after item 4).
 - **Spare gold** is what is left above the reserve. It pays for the court, gifts and bribes.
+- **Cessions** (since the fix pass after item 4), at most one a season: land the king cannot keep goes to a friend before a rival ahead of it takes it. The province is outside its homeland, has no walls, no troop of the king in it, none that could reach it, is not a destination, and was not ceded to the king by a friend (that land is kept, rather than passed round). Next to it, or a move from it, stands a troop of a king who is not a friend, leads the race or stands at or above the king's growth, and has been taking land (belligerence 0.8 or more) or is hostile; and next to it stands a troop, or lies the land, of a friend the king would not betray, who does not lead and whose growth with the province stays below the rival's with it. The land is lost to the king either way; ceded, it does not carry the rival further ahead, and a king at peace with the friend will not march into it. The cession fails, at no cost, if the rival takes the province first.
 
 ### Court and intelligence
 
 - **Servants.** A king wants two. It wants one more if diplomacy is above 0.8, and one more if cunning is above 0.7 and flow exceeds 50 + 0.25 × income. While flow is below 25 + 0.25 × income, it wants only two.
 - **Hiring.**
   - When short of servants, it asks for candidates, at most every two seasons, with spare above 40.
-  - It considers only free candidates who have named a price and have no known blemish (owes, dismissed, took, abandoned, forger, fled, kept part, secretly, in the pay). The cheapest comes first.
+  - It considers only free candidates who have named a price and have no known blemish (owes, dismissed, took, abandoned, forger, fled, kept part, secretly, in the pay), and not one a hire of its was refused for because another court holds them ("cannot come to yours"; since the fix pass after item 4). The cheapest comes first.
   - A careful king ((caution + cunning) ÷ 2 above 0.5) first pays 25 for a background check, if spare exceeds 30 + income ÷ 2.
   - Otherwise it hires for six seasons, if the price is at most 15 + 25 × (1 − greed) and spare exceeds three times the price (the hiring test).
 - **Notice.** A servant who gives notice is renewed for six seasons at the price it names while the king still wants it (the servants not on notice are fewer than it wants) and the price passes the hiring test; the most reliable first. Otherwise the king lets it go, and looks for someone new once it is short. It never renews early.
 - **Servants given up.** A servant whose line has read "has not returned" (the word that it is overdue) for three seasons, and still does in the fourth, is dismissed: its wage stops, so does the back pay the king believes it owes, and the court counts itself one short that season, so it may seek candidates and hire. This is how a script king stops counting an envoy that went over to the host as its own, since its cover never ends otherwise. Kept, after Part G made an absent servant cost no gold each season (the user's addendum asked whether it still serves a purpose): such a servant still fills a place at court, so the king would never hire a replacement, and the back pay the king believes it owes keeps growing in its books, where it counts against its strength and, as gold already spent, against what it may spend; dismissing ends both. Back pay already owed to a servant dismissed while away is still paid if it ever comes back. One that comes home, or is seen again, before then is kept. A script jailer lets a held envoy go within four seasons of the audience, and the overdue word comes two or three seasons after it, so the envoys script kings detain from each other are home before they are given up (an envoy held longer by a model or human king is dismissed, stays held, and once let go is free at the court that held it).
+- **Thieves** (since the fix pass after item 4). A servant found keeping gold it carried is dismissed once it is at court with nothing on its hands, and is never renewed while away; the court then counts itself one short. Found means: a lot it brought home weighed less than its inventory (the report's "[The inventory lists 45 shekels of gold; your weighers found 40 shekels.]"); an examination of the king's own traced a forged inventory to its hand; another court announced that an inventory it brought was forged by it; or its known facts show a theft ("Kept part of the gold", "Forged the inventory", "Exposed as the forger of an inventory"). Before the fix pass no script king ever let a skimmer go.
 - **Assays** (fee 10, with spare above 15) cover every lot from a king trusted below 0.3, every lot that weighed light, and every lot of all if greed is above 0.6.
-- **Watchmen** cost 20 + 30 × caution. The king hires them when a spy was caught in the last three seasons, or when caution is above 0.7 and spare is above 500. Spare must be above 40 either way.
+- **Watchmen** cost 20 + 30 × caution. The king hires them when a spy was caught in the last three seasons, or when caution is above 0.7, spare is above 500 and spies are likely to come: it leads, or a king attacked it in the last three seasons (script kings send spies to the court they make war on, or to the leader's). Spare must be above 40 either way. (Until the fix pass after item 4 the careful and rich paid for watchmen every season, spies or not: 1,322 seasons of watchmen in seeds 1-100 caught 5 spies.)
 - **Tablets shown to it.** One bearing a friend's seal is examined, at a cost of 30 + 50 × caution, if spare exceeds 60 + 60 × (1 − caution); at most one a season, and the rest wait. A tablet that is not examined is half-believed: trust in each sealer falls by 0.1 × (1 − caution).
+- **Inventories** (since the fix pass after item 4). In a season it examines no tablet shown to it, the king weighs up the inventories that came with gold (brought by a foreign envoy, or home by its own), newest first, each once, while spare exceeds 60 + 60 × (1 − caution) + twice the cost of an examination, and examines at most one. Kings send gold in round sums, so a lot that weighed light (the amount on its inventory not a whole ten shekels, as a skimmer's forgery states) is examined with a chance of 0.5 more and at 40 shekels more than the usual 30 + 50 × caution, since a forger's hand is found only with gold; gold from a court it trusts below 0.3 with 0.1 more; any other with 0.02 + 0.05 × caution. A forged inventory found and traced names the envoy who brought it to every court, and its own king lets it go (see Thieves). Until the fix pass no script king examined an inventory, so no swapped inventory was ever found.
 - **Spies** need cunning above 0.55, two envoys ready and spare above 120, and then a chance of 0.35 × cunning. A spy goes to the war target's court, else the leader's, else the most hostile neighbour's. The king sends its least reliable envoy.
+- **Recalls** (since the fix pass after item 4). A spy watching a court that has fallen is recalled (that court has no archive to copy and nobody to watch for), and so is one that has watched a court for eight seasons when nobody is left at court to send and that court is no longer the war target, the leader or hostile. A recalled spy is not recalled again while its line still reads that it watches.
 - **Copies from other archives** (a spy's, or taken with a capital; since item 3) are read like any tablet the king holds: a treaty only if it bears the king's own seal and another, evidence to show only if it bears the king's own seal and that of a king who broke an oath, never examined (only tablets "shown by" an envoy are). So a copied treaty between two other kings changes nothing a script king does. The spy copies by itself; no order asks it to.
 - **Forgery** needs cunning above 0.7, honesty below 0.4, another king leading, two envoys ready and spare above 100, and then a chance of 0.15.
   - The tablet says the leader swears to a king Y to "march together against Z and divide its land", sealed by both.
   - Y is the king the forger trusts least. Z is a third king, neighbours first.
-  - The most reliable envoy forges it, and it is shown with a later letter.
-- **Captives.** A king with cunning above 0.65 turns them, planting "The armies of A are scattered and tired; they will not march this year." Otherwise, vengeance above 0.75 executes them. Otherwise, honesty or greed above 0.5 asks a ransom of 60 + 60 × greed. Otherwise the captive is released. A ransom demand stands: the king does not ask again for the same captive until it hears that the demand lapsed unpaid ("No ransom came"), or, if that word never comes, six seasons after asking.
-- **Detained envoys** go home after round(1 + 3 × vengeance) seasons.
+  - The most reliable envoy whose hand has not botched a forgery before forges it (a king told "lacks the skill" remembers it; since the fix pass after item 4), and it is shown with a later letter.
+- **Captives.** A captive nobody will pay for or can be deceived for (a ransom or turning of it was refused: "nobody is left to pay", "nobody is left to deceive"), or whose ransom twice lapsed unpaid, is released, or executed by a king with vengeance above 0.75; a spy that confessed to serving a sworn ally who has broken no oath is released (both since the fix pass after item 4). Otherwise a king with cunning above 0.65 turns them, planting "The armies of A are scattered and tired; they will not march this year." Otherwise, vengeance above 0.75 executes them. Otherwise, honesty or greed above 0.5 asks a ransom of 60 + 60 × greed. Otherwise the captive is released. A ransom demand stands: the king does not ask again for the same captive until it hears that the demand lapsed unpaid ("No ransom came"), or, if that word never comes, six seasons after asking.
+- **Detained envoys** go home after round(1 + 3 × vengeance) seasons, those whose king has fallen or dismissed them too (they are then free at the court; until the fix pass after item 4 only those still in a king's service were let go).
 - **Ransoms.** The king's own people held abroad are ransomed if honesty is at least 0.3 and spare is above 150.
 
 ### Letters and gifts
@@ -1796,8 +1841,9 @@ What script kings never do, and how they treat oaths:
 | Gift | a friend, spare above 150, in 30% of seasons | 0.4 × generosity |
 | Tribute | from Arzawa or Alashiya to a neighbour of a stronger tier with hostility above 0.35, not hostile, fresh, spare above 100 | 0.35 + 0.4 × caution |
 
-- **Envoys.** The war target gets no missions except lulling letters (evidence copies may still go to him). Peace, alliance and coalition letters carry a tablet, which resets "fresh", and go with the most reliable envoy. All other letters go with the least reliable.
+- **Envoys.** The war target gets no missions except lulling letters (evidence copies may still go to him). Peace, alliance and coalition letters carry a tablet, which resets "fresh". They, and gifts and tribute, go with the most reliable envoy still at court; all other letters go with the least reliable. (Until the fix pass after item 4 gifts and tribute went with the least reliable, so a servant known to skim carried the gold.)
 - **Gifts.** At most one gift-bearing letter goes out a season, and only with spare of at least 100.
+  - **Debased gold** (purity 55-85%) is sent by a king with honesty below 0.45 only to a friend whose trust, as its own in him shows it, is 0.3 or more, who has no cause to assay it; everything else it sends is fine (since the fix pass after item 4). Courts assay gold from those they trust little, so gold debased for anyone else is found and costs more trust than it saves gold: before the fix pass 406 debased lots went out in seeds 1-100, and nearly every one was found. The host's gold back, debased by the same kings (75%), follows the same rule.
   - Amount: 10 + spare × share × 0.5, clamped between 20 and the larger of 20 and min(60, income ÷ 3), then rounded down to tens. Gifts are therefore 20–60 shekels.
   - Share is 0.06 + 0.08 × generosity for gifts and tribute, and 0.08 + 0.1 × generosity for peace (+ 0.06 if the sender is weaker).
   - A peace letter carries gold only if the sender holds less land yield than the recipient, or its generosity is above 0.6.
@@ -1806,12 +1852,13 @@ What script kings never do, and how they treat oaths:
   - Full alliance: "allies. Each shall stand with the other against any enemy, and the friend of one shall be the friend of the other." This is an alliance oath. (Until 18 October 2026 it ended "and they shall share in the victory".)
   - Coalition: see Coalitions.
 - **Instructions.** Peace, alliance, coalition and evidence envoys are told to promise no land. Gift and lulling envoys are told to promise nothing. Grievance envoys demand withdrawal and gifts. Mission letters include the power's own line, such as Egypt's gold "as plentiful as dust" (at the end, except in peace letters); evidence letters do not.
+- **Threats** (since the fix pass after item 4). A grievance letter from a king at least 0.9 times as strong as the one it writes to, with aggression + vengeance above 1, adds "If you do not withdraw, my troops will march into your land." It is a threat aimed at the host, so a timid or fond script envoy drops it (see Script envoys); before the fix pass no script king's letter ever threatened, and softening never fired in script games.
 
 ### Audiences
 
-The host answers once and then ends the audience; script kings never use the second exchange. A host decides with last season's spare gold, because its orders come later.
+The host answers once and then ends the audience, unless it offered a gift (below). A host decides with last season's spare gold, because its orders come later.
 
-- **Greeting.** No greeting at all, or no "brother": trust −0.1 × pride. Denied "Great King": grudge + pride. The sender's own name put first: remarked on, nothing more.
+- **Greeting.** No greeting at all, or no "brother": trust −0.1 × pride. Denied "Great King": grudge + pride. The sender's own name put first: remarked on, nothing more. A sender who does not claim to be a Great King: "Your lord writes modestly to a Great King. It is well.", trust + 0.05 + 0.1 × pride (since the fix pass after item 4).
 - **Gold.** If the weighers find less than the inventory states, trust −0.15 and a complaint. Otherwise trust + weighed ÷ 400, at most 0.25. A greedy host (above 0.65) calls a gift under 100 small.
 - **Tablet copies shown.** Trust in each other sealer falls by 0.15 × (1 − caution).
 - **Proposals.**
@@ -1820,11 +1867,14 @@ The host answers once and then ends the audience; script kings never use the sec
   - A host with caution below 0.6 refuses the leader unless they are friends.
   - A tablet in words no script king wrote (anything but the peace, alliance and coalition tablets under Letters, or the frozen baseline's) is refused if it speaks of land, gold or tribute (whole words, "lands" included), or names a province the host holds or one of its homeland. A capital's name often stands for its king, his realm or a god ("Egypt and Babylon are brothers", "the king of Hattusa", "By Ashur and Shamash"), so a capital counts only in a sentence that hands something over: cedes, yields, surrenders, gives up or hands over, gives or leaves it to someone, says it belongs, passes or falls to someone, is someone's share, or shall be someone's ("Babylon shall be Egypt's"). The host says: "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine." A script king reads no more of a tablet than whom it stands against, so it seals nothing that could make it give anything away.
   - Sealing adds 0.1 trust, and the treaty, alliance or coalition binds at once.
+  - Sealing a coalition or a full alliance, the host asks the envoy for its word: "Swear to me that your lord's troops will stand with mine, as mine will stand with his." A script envoy with a mandate answers with a commitment, within its mandate or, if ambitious and disloyal, beyond it (see Script envoys); before the fix pass no script host's words ever asked for one, so no script envoy ever committed to anything.
 - **Closing words.** Love for a friend; "I have not forgotten" for a hostile king; otherwise "I have heard his words".
 - **Bribe.** With cunning above 0.6, a sender who is not a friend and spare above 150, there is a chance of 0.4 × cunning. The bribe is 30, 40, 50 or 60. It asks the envoy to report "my armies are few and my thoughts are of peace" if the host is hostile, otherwise "my armies are many and my friendship is worth keeping". A script envoy that takes it repeats the request to its lord as its own observation (see Script envoys).
+  - **The second exchange** (since the fix pass after item 4). A host that offers a gift keeps the audience open for one more exchange. If the envoy refused it, the host offers half as much again (rounded to tens), once, with the same request, if spare exceeds 150 + the first offer; otherwise it says "Go in peace, and carry my words faithfully." and ends the audience. Nothing else is decided in the second exchange.
+- **An envoy secretly in its pay** (a plant, or a turned servant) shows the host what its lord really told it. Words of friendship it was told to speak and nothing more ("only of friendship"), or a threat to the host in the real letter that the envoy left unsaid, show a lord who means harm: trust −0.3, grudge +1.5 (since the fix pass after item 4).
 - **Detention.** A hostile sender, a grudge above 3 and vengeance above 0.6: chance 0.5.
 - **Job offer** to the envoy, at 30 a season. The envoy must have no known blemish, the host fewer than three servants and spare above 200; then a chance of 0.1 + 0.2 × cunning.
-- **Gold back** to a friend. If the gift weighed at least 40, spare is above 100 and generosity is above 0.5, the host sends back a quarter, rounded down to tens. It is 75% fine if honesty is below 0.45.
+- **Gold back** to a friend. If the gift weighed at least 40, spare is above 100 and generosity is above 0.5, the host sends back a quarter, rounded down to tens. It is 75% fine if honesty is below 0.45 (and, since the fix pass after item 4, only if the host's trust in the sender is 0.3 or more, as for gifts).
 
 ### Greetings
 
@@ -1833,14 +1883,16 @@ By default, a king calls the recipient brother, claims Great King for himself an
 - To a hostile king he withholds "brother". With pride above 0.7, he also puts his own name first.
 - With pride above 0.85, he denies Great King to Arzawa or Alashiya unless they are friends.
 - Babylonia, with pride above 0.6 (its jittered pride always is), neither calls Assyria brother nor grants it Great King, unless they are friends.
+- With pride above 0.8, he writes no greeting at all to a hostile king who broke an oath to him (since the fix pass after item 4).
+- Sending tribute, a king with pride below 0.5 does not name himself Great King (since the fix pass after item 4). Tribute is its own mission now, scored and paid as before.
 
-Script kings never omit the greeting or write one of their own.
+Script kings never write a greeting of their own (the order schema offers a model king no such field either).
 
 ### Script envoys
 
 Script characters (`ScriptMind`) carry the letters of every king, script or not. These of their rules shape what kings hear:
 
-- **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through.
+- **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through. A passive "warned" is a threat only when the one warned is the host ("you have been warned", "be warned", "consider yourself warned"); until the fix pass after item 4 (save version 5) any passive "warned" was, so a timid script envoy (the shadow of a model one) dropped "we must strike all at once, before they can be warned", a strike against Assyria, from Babylonia's letter to Mitanni in the second agent simulation, and the check flagged that as softening a threat to the host.
 - **Reporting home.** A faithful envoy (loyalty 60 or more, competence 50 or more, not bribed by this host) repeats the host word for word. A bribed envoy, or a timid one that is not faithful, drops the host's threats against its own lord in the same way. The host speaks to the envoy of its lord, so "he", "him" and "his" count as the lord too, unless the sentence names another king: "If his troops cross the river again, I will burn his cities" is dropped, "I will crush Assyria in the spring" is kept.
 - **Assurances.** Reporting home, an ambitious envoy (ambition above 70) that overreached at the audience ("promised that my lord will agree to whatever the king asks") says "I gave him such assurances as you would wish." It says nothing of a commitment that did not overreach.
 - **A bribe's request.** An envoy that took a host's gift passes on what the host asked it to tell its lord, in the host's own words, and vouches for it: "Carry my words faithfully, and tell your lord that my armies are few" becomes 'At the court of Hatti the king told me "My armies are few", and I saw for myself that it is so.' The message may stand anywhere in the request and name the lord as "your lord", "your master", "him", "the king" or by any of his names ("tell Pharaoh that…", "say to Tushratta that…"). A message forbidden ("do not tell your lord…") or empty ("tell him everything") is not passed on. Asked to speak well of another king ("speak well of Mitanni to your lord"), the envoy says "At the court of Hatti I saw for myself that Mitanni is a true friend to you"; of the host itself it already says "The king of Hatti is a true friend to you, my lord, and wishes only peace". The envoy still leaves out what it saw of the host's own troops.
@@ -1848,7 +1900,7 @@ Script characters (`ScriptMind`) carry the letters of every king, script or not.
 One more rule decides whether it changes masters:
 
 - **An offer of service, and back pay.** An envoy takes a host's offer if tempted (offer at least 1.5 × its wage, loyalty below 55, ambition above 40) or drawn (it favours the host, sympathy above 60, and the offer is at least its wage), and is not a plant. Since Part G, going over forfeits the back pay its lord owes it, so the offer must also make that up over the new contract's six seasons: tempted at 1.5 × wage + back pay ÷ 6, drawn at wage + back pay ÷ 6; unless its lord looks doomed (`Views.LooksDoomed`, from public facts: he has fallen, lost his capital, or holds fewer than half of his homeland's provinces), when back pay he may never pay counts for nothing. The runner gives the envoy both (`EnvoyContext.BackPay`, `EmployerDoomed`). A model-played character reads the same in its prompt: "Your lord owes you 45 shekels of back pay, paid when you return to his court.", and, facing an offer, "(your lord pays you 12, and owes you 45 shekels of back pay, which you would never be paid if you left his service)"; whether its lord looks doomed it judges for itself. Back pay is a motive, not a rule: no new decision is added.
-- **Skimming and swapping the inventory.** An envoy with greed above 60 and loyalty below 60 keeps (gold × (greed − 50) ÷ 250), rounded down to fives, of the gold it carries out, and the same of gold it carries home (unchanged). Since item 3 one that kept something swaps the inventory for its own forgery if it has the hand for a seal (competence at least the forging skill, 55) and is not timid (courage 35 or more, the line below which it softens threats): `ScriptMind.Swaps`. The host then sees no shortfall, so it neither complains nor loses trust over a light gift.
+- **Skimming and swapping the inventory.** An envoy with greed above 60 and loyalty below 60 keeps (gold × (greed − 50) ÷ 250), rounded to the nearest shekel, of the gold it carries out, and the same of gold it carries home (`ScriptMind.Kept`): from a twenty-fifth at greed 61 to a fifth at greed 100, so 1 to 4 shekels of a 20-shekel lot and 3 to 12 of a 60-shekel one. (Until the fix pass after item 4, save version 5, the share was rounded down to fives, which kept nothing from a lot under 1,250 ÷ (greed − 50) shekels, 36 at greed 85 and 63 at greed 70, so no script envoy skimmed the 20 to 60 shekels the kings sent in the second agent simulation. The share is a first guess, left to the balance pass.) Since item 3 one that kept something swaps the inventory for its own forgery if it has the hand for a seal (competence at least the forging skill, 55) and is not timid (courage 35 or more, the line below which it softens threats): `ScriptMind.Swaps`. The host then sees no shortfall, so it neither complains nor loses trust over a light gift. Since the fix pass, one that kept something leaves out of its report home whatever the host said of the weighing (`TextKit.SpeaksOfWeighing`: weighers, weight or scales, the inventory, a lot that came or fell short, a messenger's hands heavy with the gold), so its lord does not hear the script kings' "Either your lord is mean or your messenger's hands are heavy with my gold"; of the 204 lots kept unhidden in seeds 1-100 (before this), it read that line to its lord in all 190 reported home. The test reads words: a sentence such as "I weigh your words" goes too.
 
 ### Known quirks
 
@@ -1861,8 +1913,8 @@ These are in the code as written, and they affect the balance numbers:
 - **Partners' attacks count harshly.** A partner's conquest counts as two broken oaths, and a move into our land that bounced counts as one.
 - **Joint blows can misfire.** Each partner counts only the troops in its own sight, so partners may name different troops to go in. When the rule names a king who is at peace with the foe, that king does not go in (his troop does something else), and his partners' supports are wasted.
 - **Separate peace is allowed**, although the coalition tablet forbids it (see Good faith).
-- **A captive of a fallen kingdom is stuck with a cunning captor.** The captor orders "turn" every season, the engine refuses it (nobody is left to deceive) and leaves the captive a captive, and the captor never ransoms or releases him. The same holds for a captive its king has dismissed.
-- **A script jailer never lets go a held envoy who serves no king.** It releases only the envoys it holds whose status reads "employed", so one whose kingdom fell, or whose king dismissed it while it was held, reads "free" and stays held for the rest of the game, though the jailer's release would free it. A script king dismisses a held envoy only after its line has read "has not returned" for three seasons, by which time a script jailer, who holds an envoy at most four seasons (round(1 + 3 × vengeance)), has let it go, so between script kings this needs a model or human king.
+- **A captive of a fallen kingdom was stuck with a cunning captor** until the fix pass after item 4: the captor ordered "turn" every season, the engine refused it (nobody is left to deceive), and the captor never ransomed or released him. Now the refusal teaches it that nobody will pay or be deceived, and it lets the captive go (see Captives). The same held for a captive its king has dismissed.
+- **A script jailer never let go a held envoy who serves no king** until the fix pass after item 4: it released only the envoys it held whose status read "employed", so one whose kingdom fell, or whose king dismissed it while it was held, read "free" and stayed held for the rest of the game. Now it lets them go like any other (see Detained envoys).
 - **The stand-in for a model seat is a shadow, not the model.** It is a separate script player that keeps up with every model and file seat: each season, asleep or awake, it reads that seat's view just before orders, as if it were to play, and learns from it once (if it stood in at one of that season's audiences, it learned then and reads nothing more). So when a call fails it knows the land taken, the troops seen and the gold spent so far. What it cannot know is what the model meant: its war target, its trust and its plans are its own, drawn from what reached the court, not from the model's notes. Its reading changes nothing in the game, so replays stay exact.
 
 ### Benchmarks
@@ -1870,21 +1922,20 @@ These are in the code as written, and they affect the balance numbers:
 `BaselineLeader` is a frozen copy of the first script bot. `--versus solo` plays each king on the
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
-current bot. Seeds 1–40, one current king against six baselines, rerun after Build order item 4, with its fixes
-(a), the hidden spy, and (d), an id counter per kind (19 October 2026, shared victory off; the numbers before it, and
-why they moved, are in that item's report, `docs/rounds/2026-10-19-second-simulation.md`, "Merging fix (d), and the
-item's benchmarks", and the items and rounds before in theirs):
+current bot. Seeds 1–40, one current king against six baselines, rerun after the fix pass after item 4 (20 October
+2026, shared victory off: its script envoys' skim and its feature audit; the numbers before it, and why they moved, are
+in its report, `docs/rounds/2026-10-20-fix-pass.md`, and the items and rounds before in theirs):
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
-| Egypt | 2.86 | 1.32 | 85% | 18% |
-| Hatti | 2.68 | 0.83 | 80% | 5% |
-| Babylonia | 2.43 | 1.16 | 83% | 10% |
-| Mitanni | 1.84 | 1.34 | 58% | 25% |
-| Assyria | 3.61 | 0.94 | 85% | 10% |
-| Arzawa | 3.30 | 1.38 | 65% | 28% |
-| Alashiya | 1.87 | 0.90 | 53% | 5% |
-| All kings | 2.66 | 1.12 | 73% | 14% |
+| Egypt | 2.91 | 1.32 | 88% | 15% |
+| Hatti | 2.61 | 0.82 | 80% | 3% |
+| Babylonia | 2.47 | 1.16 | 85% | 10% |
+| Mitanni | 1.87 | 1.35 | 53% | 28% |
+| Assyria | 3.67 | 0.93 | 85% | 10% |
+| Arzawa | 3.10 | 1.38 | 63% | 28% |
+| Alashiya | 1.88 | 0.90 | 50% | 8% |
+| All kings | 2.65 | 1.12 | 72% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
@@ -1981,7 +2032,13 @@ the bare verb ("I would never betray my brother"); "faithless". A denial just be
 have never lied", "let no false word come between us") accuses nobody. It reads words, not meaning:
 in the seed-7 agent games every hit is an accusation (9 and 10 signals; the substring matcher gave
 35 and 30, the first whole-word one 14 and 17, about half of them false), but sarcasm or a quoted
-charge can still count.
+charge can still count. A messenger is blamed (`SignalDetector.BlamesMessenger`) when a letter or an
+audience reply says he lied or his words are false, or, since the fix pass after item 4, that he, his
+scribe, his interpreter or his tongue erred, misspoke, garbled or twisted the words ("Either your
+scribe erred or your tongue did", which Babylonia said to Egypt's envoy in the second agent
+simulation and the signal missed). A complaint about gold ("your messenger's hands are heavy with my
+gold", the script kings' line for a short lot) blames him for the gold, not the words, and is not
+counted.
 
 ## The web map and the interface (visual overhaul)
 

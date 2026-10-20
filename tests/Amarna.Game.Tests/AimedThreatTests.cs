@@ -24,6 +24,10 @@ public class AimedThreatTests
     [InlineData("For your insolence I will punish you.")]
     [InlineData("With these armies I will crush you.")]
     [InlineData("If the Babylonians cross the river, there will be war.")]
+    [InlineData("You have been warned.")]
+    [InlineData("Be warned.")]
+    [InlineData("Let Karduniash be warned.")]
+    [InlineData("Consider yourself warned.")]
     public void A_threat_aimed_at_the_host_is_found(string sentence) =>
         Assert.True(TextKit.IsThreatTo(sentence, Power.Babylonia, Power.Egypt));
 
@@ -45,6 +49,10 @@ public class AimedThreatTests
     [InlineData("My men stand on the roads of Kanesh and Sapinuwa to keep them from Arzawa, not to march on your capital.", Power.Hatti, Power.Mitanni)]
     [InlineData("Send word of the season you will march.", Power.Mitanni, Power.Babylonia)]
     [InlineData("In the same season your army took Ashur and destroyed my men there, and your army from Mari came against Terqa.", Power.Babylonia, Power.Mitanni)]
+    // A joint strike against a third king, from seed 15 of the second agent simulation: the timid shadow dropped it, and
+    // the check flagged that as softening a threat to the host.
+    [InlineData("Assyria's three provinces prop each other up, so we must strike all at once, in the season of turn 7, before they can be warned.", Power.Mitanni, Power.Babylonia)]
+    [InlineData("Let Hatti be warned of nothing until our armies stand at his border.", Power.Mitanni, Power.Babylonia)]
     public void A_peace_offer_a_pledge_or_a_brothers_warning_is_no_threat_to_the_host(string sentence, Power host, Power sender) =>
         Assert.False(TextKit.IsThreatTo(sentence, host, sender));
 
