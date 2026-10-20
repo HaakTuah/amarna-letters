@@ -178,6 +178,8 @@ public class SleepTests
         Assert.Equal([1, 5], sleeper.Calls);
         Assert.Contains(sleeper.Views[1].Scheduled, x => x.Turn == 7);
         Assert.Contains("- turn 7: the army now in babylon -> nippur", Prompts.Situation(sleeper.Views[1]));
+        // The header says what replaces them, a standing order that fires among them (the follow-up's review).
+        Assert.Contains("they run in their season unless you give the same units or people other orders, send an entry for that season to replace them, or a standing order of yours that fires that season gives them orders):", Prompts.Situation(sleeper.Views[1]));
         Assert.Contains(r.State.Units, u => u.Power == Power.Babylonia && u.Province == "nippur");
     }
 
@@ -1675,7 +1677,7 @@ public class SleepTests
         var rules = Prompts.LeaderRules(true, new GameConfig());
         Assert.Contains("A standing order waits for a move you can see and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds", rules);
         Assert.Contains("A move you can see is one from or into a province in your sight.", rules);
-        Assert.Contains("It answers the moves as they were ordered, never the orders another standing order gives, and first fires in the season after you give it.", rules);
+        Assert.Contains("It answers the moves as they were ordered, never the orders another standing order gives, so it may answer a move that the mover's own standing order then turns aside: it fires even though that move is never made. It first fires in the season after you give it.", rules);
         Assert.Contains("This is what a standing order can do that waking cannot: woken, you would answer the blow only the season after it fell.", rules);
         Assert.DoesNotContain("your unit still standing there afterwards", rules);
         Assert.Contains("its orders run in that same season, once, so they meet the move: they replace your other orders for the same units or people that season, those you give then among them and your scheduled ones (cancel it to stop it)", Schemas.LeaderOrders(new GameConfig()).ToJsonString());

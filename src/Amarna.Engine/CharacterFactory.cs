@@ -125,7 +125,7 @@ public static class CharacterFactory
             c.Facts.Add(new Fact { Id = s.NewId("f"), Text = text, Secrecy = secrecy, Tag = tag });
 
         Add($"Born in {c.Origin}.", Secrecy.Public, "origin");
-        Add($"Served as a {c.Calling}.", Secrecy.Public, "calling");
+        Add($"Served as {Personas.Calling(c)}.", Secrecy.Public, "calling");
         if (seed.Attested) Add("Known by name at more than one royal court.", Secrecy.Public, "renown");
 
         var hidden = new List<(string, string)>();
@@ -156,7 +156,13 @@ public static class Personas
     }
 
     /// <summary>How a template persona begins, up to its trait words.</summary>
-    private static string Opening(Character c) => $"You are {c.Name}, born in {c.Origin}, once a {c.Calling}. You are ";
+    private static string Opening(Character c) => $"You are {c.Name}, born in {c.Origin}, once {Calling(c)}. You are ";
+
+    /// <summary>
+    /// A character's former calling with its article ("a merchant", "an interpreter"; until the follow-up's review of the
+    /// fix pass after item 4 every calling took "a", so a character "Served as a interpreter").
+    /// </summary>
+    public static string Calling(Character c) => ("aeiou".Contains(char.ToLowerInvariant(c.Calling.FirstOrDefault())) ? "an " : "a ") + c.Calling;
 
     private const string WantMarker = ". What you want most: ";
 

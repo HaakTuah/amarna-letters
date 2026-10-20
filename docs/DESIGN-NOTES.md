@@ -555,7 +555,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   that season ("It is now season 3", where it once gave the season the report arrived, beside "This
   season you observed"), with the facts of its life and its secret master as they were then (the
   report keeps them: `SpyReport.FactCount`, `SpyReport.SecretMaster`), so a report still on the road
-  when the spy was caught and turned is not written by the double agent it became. A spy at a court also copies
+  when the spy was caught and turned is not written by the double agent it became. Since the follow-up's review of
+  that pass the report also keeps its lord, wage, purse and back pay then (`SpyReport.Lord`, `Wage`, `Purse`,
+  `BackPay`): a spy dismissed while its report was on the road read "You serve nobody at present" beside "You are
+  quietly watching … for your lord". Its persona's trait words are still as its traits are now. A spy at a court also copies
   from its archive, and the copies come home with its report (see "Tablets lie in archives").
 - **A spy at a court is hidden from it** (since Build order item 4; the rulebook says so under the spies'
   paragraph). A spy posted at a court stands there (`Character.At`), but the court does not see it there
@@ -784,9 +787,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     takes none home;
   - an envoy that was never received (its host's kingdom had fallen) reads "you were never received there: you came back
     without an audience", not "You told its king: """; one dismissed while away reports to the king who sent it, "who is
-    no longer your lord";
-  - a spy's request gives the season it observed as the season it is, and its facts and secret master as they were then
-    (see Spies, under Characters);
+    no longer your lord", and its schema says the same: `report` is "Your report to the king who sent you on this
+    mission." (`Schemas.Report`'s `toLord`; until the follow-up's review the schema still said "Your report to your
+    lord."), and its own promise was made "on his behalf", not "on your lord's behalf";
+  - a spy's request gives the season it observed as the season it is, and its facts, secret master, lord, wage, purse and
+    back pay as they were then (see Spies, under Characters);
   - a character's request names its lord's land once ("You serve the king of Mitanni", "Karduniash (Babylonia)"), where it
     read "Mitanni (Mitanni)";
   - an envoy remembers its own report ("I reported to my lord: "…""), without the court's note on the weighing that the
@@ -1353,7 +1358,14 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   The moves are those each seat was ordered to make this season (its fresh orders, its letters and
   its scheduled orders, or the stand-in's), as the validator accepts them, before any standing order
   fires: a standing order never answers what another standing order gives, so the season still
-  resolves in one pass and the result does not depend on the order seats are read in. A move of the
+  resolves in one pass and the result does not depend on the order seats are read in. So a standing
+  order may answer a move that its mover's own standing order then turns aside: it fires, and its
+  notice names a move that was never made, which tells its seat of an order the mover gave and lost.
+  Since a standing order that fires replaces the orders given that season, this can happen to any
+  seat's fresh orders, not only to a sleeping seat's scheduled ones; the rulebook says so ("it may
+  answer a move that the mover's own standing order then turns aside: it fires even though that move
+  is never made", since the follow-up's review of the fix pass after item 4; tested). In the script
+  games of seeds 1-200 it never happened: the move was made in all 174 firings. A move of the
   seat's own does not count (tested, each filter). A standing order first fires in the season after
   it is given. It fires once: its orders are given from where their units stand as the season
   begins, and replace the season's other orders for the same units or people: scheduled orders (so
@@ -1432,7 +1444,12 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
       and no letters from audiences. With no standing order waiting anywhere, a season resolves exactly
       as before (tested by the benchmarks of the change before the script kings gave any).
     - **The view** shows every seat its standing orders (`SeatView.Standing`), and the orders request
-      lists them under YOUR STANDING ORDERS whether or not the king sleeps.
+      lists them under YOUR STANDING ORDERS whether or not the king sleeps. Its header repeats the
+      precedence ("each fires once, in the season you see the move it waits for, and its orders then
+      replace the orders you give that season for the same units or people; … one cancelled does not
+      fire in that season"), and so does that of ORDERS YOU HAVE SCHEDULED ("… or a standing order of
+      yours that fires that season gives them orders"), since a woken king reads the view (the
+      follow-up's review).
     - **The rulebook** has a section of its own, STANDING ORDERS, after MOVEMENT AND COMBAT, for every
       king: what a standing order waits for, what it can do as the blow falls (support a troop or a
       walled city of the king's holding, or march into an empty province of his so that a lone attacker

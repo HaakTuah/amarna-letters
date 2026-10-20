@@ -220,23 +220,28 @@ public static class Schemas
 
     /// <summary>
     /// An envoy's report home, with the gold fields only when it carries gold home (gold a host sent back with it), and the
-    /// swap only when its hand can fake a seal, as in <see cref="Present"/>.
+    /// swap only when its hand can fake a seal, as in <see cref="Present"/>. An envoy whose king dismissed it while it was
+    /// away (<paramref name="toLord"/> false) reports to the king who sent it, who is no longer its lord, and its schema
+    /// says so as its request does ("Requests are rules too"; until the follow-up's review the schema still said "Your
+    /// report to your lord.").
     /// </summary>
-    public static JsonObject Report(bool carriesGold = true, bool canForge = true) => !carriesGold
-        ? Object(("report", Str(ReportText)))
-        : canForge
-            ? Object(
-                ("report", Str(ReportText)),
-                ("keep_gold", Int(KeepGoldHome)),
-                ("swap_inventory", Bool(SwapInventory)))
-            : Object(
-                ("report", Str(ReportText)),
-                ("keep_gold", Int(KeepGoldHome)));
+    public static JsonObject Report(bool carriesGold = true, bool canForge = true, bool toLord = true)
+    {
+        var report = ("report", Str(toLord ? ReportText : ReportToSender));
+        return !carriesGold
+            ? Object(report)
+            : canForge
+                ? Object(report, ("keep_gold", Int(KeepGoldHome)), ("swap_inventory", Bool(SwapInventory)))
+                : Object(report, ("keep_gold", Int(KeepGoldHome)));
+    }
 
     private const string KeepGoldHome = "Shekels of the gold you carry home that you quietly keep, or 0.";
 
     /// <summary>What an envoy's report is, as its schema says (a spy's report is "Your report home.").</summary>
     public const string ReportText = "Your report to your lord.";
+
+    /// <summary>What the report of an envoy dismissed while away is: its king is no longer its lord.</summary>
+    public const string ReportToSender = "Your report to the king who sent you on this mission.";
 
     public static JsonObject Pitch() => Object(
         ("pitch", Str("How you present yourself, in a few sentences.")),

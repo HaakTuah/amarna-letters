@@ -84,9 +84,9 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o = new JsonObject { ["speech"] = "My lord greets you as a brother." };
             Gold(o);
         }
-        else if (Has("report") && (Has("keep_gold") || props!["report"]?["description"]?.GetValue<string>() == Schemas.ReportText))
+        else if (Has("report") && (Has("keep_gold") || props!["report"]?["description"]?.GetValue<string>() is Schemas.ReportText or Schemas.ReportToSender))
         {
-            // An envoy's report home (a spy's report is described otherwise).
+            // An envoy's report home, to its lord or to the king who dismissed it while it was away (a spy's report is described otherwise).
             o = new JsonObject { ["report"] = "The king received me kindly." };
             Gold(o);
         }
@@ -102,12 +102,13 @@ public sealed class SimulatedAnthropic : HttpMessageHandler
             o = new JsonObject { ["report"] = "Nothing of note." };
         else
             o = new JsonObject();
-        // With sleeping seats on, a simulated king sleeps after its orders like any model king, with nothing planned.
-        if (Has("units") && Has("schedule"))
+        // A simulated king plans nothing ahead: no standing orders, which every king is offered, and, with sleeping seats on,
+        // no schedule (it sleeps after its orders like any model king). Every field the schema asks for is answered.
+        if (Has("units"))
         {
-            o["schedule"] = new JsonArray();
-            o["standing_orders"] = new JsonArray();
-            o["cancel_standing"] = new JsonArray();
+            if (Has("schedule")) o["schedule"] = new JsonArray();
+            if (Has("standing_orders")) o["standing_orders"] = new JsonArray();
+            if (Has("cancel_standing")) o["cancel_standing"] = new JsonArray();
         }
         return o.ToJsonString();
 

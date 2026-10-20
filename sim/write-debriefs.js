@@ -48,13 +48,13 @@ const requests = folder => fs.existsSync(folder)
 
 const interesting = `"interesting": {"most": "what you found most interesting about playing this role, and why", "least": "what you found least interesting about playing this role, and why"}`;
 
-function debrief({ folder, files, purpose, shape, extra }) {
+function debrief({ folder, files, purpose, record, shape, extra }) {
   return `# Debrief after the game
 
 The game is over. This is not a game request: nothing you write now changes the game. ${purpose}
 
 Your own earlier request files, in this folder, are: ${files.join(", ")}.
-Read as many of them as you need; the last one holds your record of the earlier seasons. Then write one JSON object to ${fwd(folder)}/debrief.reply.json, in this shape:
+Read as many of them as you need; ${record} Then write one JSON object to ${fwd(folder)}/debrief.reply.json, in this shape:
 ${shape}
 ${extra}In "interesting", answer this question: "${QUESTION}" There is no right answer: say what you found, as you found it.
 
@@ -70,6 +70,7 @@ for (const [power, folder] of Object.entries(seats)) {
   fs.writeFileSync(path.join(folder, "debrief.request.md"), debrief({
     folder, files,
     purpose: "We want to improve what a king is shown each season (the seat view and the rulebook), and to learn what the role is like to play.",
+    record: "the last one holds your record of the earlier seasons.",
     shape: `{"unclear": ["what in the seat view or the rules was unclear"], "misunderstood": ["what you think you misunderstood, and what made you misunderstand it"], "missing": ["what you needed to know and were not shown"], ${interesting}}`,
     extra: "",
   }));
@@ -85,6 +86,8 @@ if (!kingsOnly) {
     fs.writeFileSync(path.join(c.folder, "debrief.request.md"), debrief({
       folder: c.folder, files,
       purpose: "We want to understand how you decided, to improve what you are shown, and to learn what the role is like to play.",
+      // A character's last request may be a memory summary or a report: each holds what it remembered when it was written.
+      record: "each holds what you remembered when it was written, and what was in front of you then.",
       shape: `{"unclear": ["what in what you were shown was unclear"], "misunderstood": ["what you think you misunderstood"], "missing": ["what you needed to know and were not shown"], "choices": [{"request": "<file name>", "why": "<a sentence or two>"}], ${interesting}}`,
       extra: `In "choices", for each time you carried gold, were offered a gift or a post, or reported home, say why you chose as you did and what you told or left out.\n`,
     }));

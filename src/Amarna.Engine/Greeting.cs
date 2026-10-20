@@ -32,6 +32,17 @@ public static class Greeting
 
     public static string Cap(string s, int max) => s.Length <= max ? s : s[..max].TrimEnd() + "…";
 
+    /// <summary>
+    /// A text ending a sentence: with a full stop added unless it already ends with one (or "!", "?" or "…"), so that a
+    /// mandate written with its own full stop is not remembered with two ("Promise no land..", until the follow-up's review
+    /// of the fix pass after item 4).
+    /// </summary>
+    public static string Stopped(string s)
+    {
+        var t = s.TrimEnd();
+        return t.Length > 0 && ".!?…".Contains(t[^1]) ? t : t + ".";
+    }
+
     /// <summary>Plain-language list of how a greeting departs from the standard formula.</summary>
     public static List<string> Deviations(GreetingOptions? options)
     {

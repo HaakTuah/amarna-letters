@@ -132,14 +132,65 @@ public class RequestsAreRulesTests
 
         await mind.WriteAsync(Report(dismissed, gold: 20), default);
 
-        var user = Assert.Single(asker.Calls).User;
+        var call = Assert.Single(asker.Calls);
+        var user = call.User;
         Assert.Contains("He dismissed you while you were away, so he is no longer your lord, but you report to him on the mission he gave you.", user);
         Assert.Contains("You carry back gold the king sent Napkhururiya", user);
         Assert.Contains("Write your report to him now.", user);
         Assert.DoesNotContain("home at the court of your lord", user);
         Assert.DoesNotContain("sent your lord", user);
         Assert.DoesNotContain("report to your lord", user);
+        // The schema says the same as the request (the follow-up's review: it still said "Your report to your lord.").
+        Assert.Equal("Your report to the king who sent you on this mission.", ReportDescription(call));
+        Assert.DoesNotContain("your lord", call.Schema.ToJsonString());
+
+        // One still in its lord's service reports to its lord, in the request and the schema alike.
+        var loyal = new RequestTextTests.Recorder();
+        await new LlmCharacterMind(loyal).WriteAsync(Report(Envoy(competence: 70), gold: 20), default);
+        Assert.Contains("Write your report to your lord now.", loyal.Calls[0].User);
+        Assert.Equal("Your report to your lord.", ReportDescription(loyal.Calls[0]));
     }
+
+    [Fact]
+    public async Task An_envoy_dismissed_while_away_is_told_its_own_promise_was_made_on_behalf_of_the_king_who_sent_it()
+    {
+        var asker = new RequestTextTests.Recorder();
+        var mind = new LlmCharacterMind(asker);
+        var trail = new MessageTrail { Id = "m1", Turn = 2, From = Power.Egypt, To = Power.Mitanni, EnvoyId = "c1", EnvoyName = "Keliya", AudienceTurn = 3, Delivered = "Greetings." };
+        trail.Outcomes.Add(TurnEngine.CommittedPrefix + "Egypt will send gold next spring.");
+
+        await mind.WriteAsync(Report(Envoy(employer: null), trail: trail), default);
+        await mind.WriteAsync(Report(Envoy(), trail: trail), default);
+
+        Assert.Contains("What you yourself promised on his behalf, in your own words at the audience", asker.Calls[0].User);
+        Assert.Contains("What you yourself promised on your lord's behalf, in your own words at the audience", asker.Calls[1].User);
+    }
+
+    [Fact]
+    public async Task The_simulated_api_answers_every_field_a_king_or_a_dismissed_envoy_is_asked()
+    {
+        // The follow-up's review: with sleep off the simulated API left out standing_orders and cancel_standing, which every
+        // king is now asked; and a dismissed envoy's report fell through to the plain report reply.
+        static async Task<JsonObject> Reply(JsonObject schema)
+        {
+            using var http = new HttpClient(new SimulatedAnthropic());
+            var body = new JsonObject { ["model"] = "claude-sonnet-5-5", ["output_config"] = new JsonObject { ["format"] = new JsonObject { ["schema"] = schema } } };
+            var response = await http.PostAsync("https://api.anthropic.com/v1/messages", new StringContent(body.ToJsonString()));
+            var message = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
+            return JsonNode.Parse(message["content"]![0]!["text"]!.GetValue<string>())!.AsObject();
+        }
+
+        foreach (var sleeping in new[] { false, true })
+        {
+            var schema = Schemas.LeaderOrders(new GameConfig { SleepingSeats = sleeping });
+            var reply = await Reply(schema);
+            Assert.All(((JsonArray)schema["required"]!).Select(f => f!.GetValue<string>()), field => Assert.True(reply.ContainsKey(field), $"{field} (sleep {sleeping})"));
+            Assert.Equal(sleeping, reply.ContainsKey("schedule"));
+        }
+        Assert.Equal("The king received me kindly.", (await Reply(Schemas.Report(carriesGold: false, toLord: false)))["report"]!.GetValue<string>());
+    }
+
+    private static string ReportDescription(CallSpec call) => call.Schema["properties"]!["report"]!["description"]!.GetValue<string>();
 
     [Fact]
     public async Task A_king_whose_title_names_his_land_is_not_named_twice()
@@ -360,5 +411,46 @@ public class RequestsAreRulesTests
         Assert.NotNull(report);
         Assert.Equal(spy.Facts.Count, report!.FactCount);
         Assert.Null(report.SecretMaster);
+        // And its service and money then (the follow-up's review).
+        Assert.Equal(Power.Egypt, report.Lord);
+        Assert.Equal(spy.Contract!.Wage, report.Wage);
+        Assert.NotNull(report.Purse);
+        Assert.NotNull(report.BackPay);
+    }
+
+    [Fact]
+    public async Task A_spy_dismissed_while_its_report_is_on_the_road_writes_it_as_the_servant_it_was()
+    {
+        // The follow-up's review: its request said "You are quietly watching … for your lord" beside "You serve nobody at
+        // present". It writes as it was when it observed: in Egypt's service, at its wage then, with its purse and back pay then.
+        var asker = new RequestTextTests.Recorder();
+        var mind = new LlmCharacterMind(asker);
+        var spy = Envoy(employer: null);
+        spy.Purse = 90;
+        spy.BackPay[Power.Egypt] = 30;
+        spy.Remember(4, "The king of Egypt dismissed me.");
+
+        await mind.WriteAsync(new MindContext
+        {
+            Request = new MindRequest
+            {
+                Task = MindTask.SpyReport, CharacterId = spy.Id, Court = Power.Egypt,
+                Report = new SpyReport
+                {
+                    SpyId = spy.Id, Court = Power.Assyria, Observations = ["Assyria musters chariots."], ObservedTurn = 3, FactCount = 0,
+                    Lord = Power.Egypt, Wage = 12, Purse = 40, BackPay = new() { [Power.Egypt] = 24, [Power.Hatti] = 5 },
+                },
+            },
+            Self = spy, Turn = 5, Seed = 1,
+        }, default);
+
+        var call = Assert.Single(asker.Calls);
+        Assert.Contains("You are quietly watching the court of Assyria for your lord.", call.User);
+        Assert.Contains("You serve the king of Egypt for 12 shekels a season.", call.SeatSystem);
+        Assert.Contains("Your lord owes you 24 shekels of back pay, paid when you return to his court.", call.SeatSystem);
+        Assert.Contains("The king of Hatti owes you 5 shekels of back pay, paid if you ever stand at his court again.", call.SeatSystem);
+        Assert.Contains("Your purse holds 40 shekels; with the back pay kings owe you, you are worth 69 shekels. It is now season 3.", call.SeatSystem);
+        Assert.DoesNotContain("You serve nobody", call.SeatSystem);
+        Assert.DoesNotContain("dismissed", call.SeatSystem);
     }
 }

@@ -246,4 +246,35 @@ public class RecordTextTests
         Assert.Contains($"accepted 10 shekels from Alashiya", outcome);
         Assert.Contains($"{envoy.Name} promised on behalf of Egypt: \"the tablet sealed exactly as written\"", body);
     }
+
+    [Fact]
+    public void An_envoy_remembers_its_mandate_with_one_full_stop()
+    {
+        // The follow-up's review: "You may agree to peace and an exchange of gifts.." in a character's memory.
+        var s = GameFactory.NewGame(5);
+        var envoy = s.Characters.First(c => c.Employer == Power.Egypt);
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        e.Resolve(new Dictionary<Power, TurnSubmission> { [Power.Egypt] = new() { Orders = [new DispatchOrder(envoy.Id, Power.Hatti, "Greetings, brother.", "You may agree to peace and an exchange of gifts. Promise no land.")] } });
+        var sent = envoy.Memory.Single(m => m.Text.StartsWith("My lord of Egypt sent me", StringComparison.Ordinal)).Text;
+        Assert.EndsWith("I may agree to: You may agree to peace and an exchange of gifts. Promise no land.", sent);
+        Assert.Equal("Hold the border.", Greeting.Stopped("Hold the border"));
+        Assert.Equal("Will he come?", Greeting.Stopped("Will he come? "));
+    }
+
+    [Fact]
+    public void A_calling_takes_the_article_its_sound_asks_for()
+    {
+        // The follow-up's review: "Served as a interpreter".
+        var interpreter = new Character { Name = "Keliya", Origin = "Washukanni", Calling = "interpreter" };
+        Assert.Equal("an interpreter", Personas.Calling(interpreter));
+        Assert.Equal("a merchant", Personas.Calling(new Character { Calling = "merchant" }));
+        Assert.Contains("once an interpreter. You are ", Personas.Template(interpreter));
+        foreach (var seed in Enumerable.Range(1, 20).Select(n => (ulong)n))
+            foreach (var c in GameFactory.NewGame(seed).Characters)
+            {
+                Assert.DoesNotContain(c.Facts, f => f.Text.StartsWith("Served as a interpreter", StringComparison.Ordinal));
+                Assert.DoesNotContain("once a interpreter", c.Persona);
+            }
+    }
 }

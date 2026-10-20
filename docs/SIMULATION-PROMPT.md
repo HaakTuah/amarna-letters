@@ -53,7 +53,9 @@ and start a new session. Then record the 5-hour window and the weekly limit (`/u
 have) in the report. The first simulation cost about 1 weekly point per million agent tokens. The estimate for this
 one (details under "Characters as agents" in the report):
 - Kings, two games: about 6.5 million tokens (5.5 to 8 million): about 50 orders calls a game at about 44k tokens and
-  about 65 audiences at about 17k.
+  about 65 audiences at about 17k. These figures predate standing orders for every king (20 October 2026): with sleep on,
+  as here, a king's orders request grew by about 3% (52,900 to 54,300 characters in seed 7), so about 45k tokens a call
+  and some 0.1 million more for the two games; with sleep off it grew by about 15% (38,000 to 43,700).
 - Characters, two games: about 2.7 million tokens (2 to 3.5 million): about 190 calls a game (some 55 speeches abroad,
   70 audience replies, 45 reports home, 12 pitches and a few memory summaries), at about 7k tokens each.
 - Isolation test (43 agents) about 0.3 million. Debriefs about 1.8 million: the first simulation's 14 king debriefs

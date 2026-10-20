@@ -7,13 +7,17 @@ public class StartingTermTests
 {
     /// <summary>
     /// Everything a starting character is apart from its term's end and its ids. The ids are left out since item 4's fix (d)
-    /// renumbered them (each kind of object now counts on its own), which moved nothing else.
+    /// renumbered them (each kind of object now counts on its own), which moved nothing else. Texts are read with the
+    /// article the follow-up's review of the fix pass after item 4 corrected put back ("Served as a interpreter", "once a
+    /// interpreter"), which changed no draw.
     /// </summary>
     private static string People(GameState s) => Json.Hash(s.Characters.Select(c => new
     {
-        c.Name, c.Origin, c.Calling, c.Traits, Facts = c.Facts.Select(f => new { f.Text, f.Secrecy, f.Tag, f.KnownBy }).ToList(),
-        c.Status, c.Employer, c.At, c.SecretMaster, c.Persona, c.Reputation, Wage = c.Contract?.Wage, Start = c.Contract?.StartTurn,
+        c.Name, c.Origin, c.Calling, c.Traits, Facts = c.Facts.Select(f => new { Text = Before(f.Text), f.Secrecy, f.Tag, f.KnownBy }).ToList(),
+        c.Status, c.Employer, c.At, c.SecretMaster, Persona = Before(c.Persona), c.Reputation, Wage = c.Contract?.Wage, Start = c.Contract?.StartTurn,
     }).ToList());
+
+    private static string Before(string text) => text.Replace("as an interpreter", "as a interpreter").Replace("once an interpreter", "once a interpreter");
 
     /// <param name="before">
     /// The fingerprint of the starting characters when every term ended with turn 10, ids left out (taken just before fix (d);

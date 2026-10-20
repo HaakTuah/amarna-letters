@@ -476,6 +476,15 @@ public sealed class SpyReport
     public int? FactCount { get; set; }
     /// <summary>Whom the spy secretly served when it observed (with <see cref="FactCount"/> set), if anyone.</summary>
     public Power? SecretMaster { get; set; }
+    /// <summary>
+    /// Its lord, wage, purse and back pay when it observed, so that a report arriving after it was dismissed or hired
+    /// elsewhere is still written by the servant it was then (the follow-up's review of the fix pass after item 4); null in
+    /// a report made before these were kept, which shows them as they are when it arrives.
+    /// </summary>
+    public Power? Lord { get; set; }
+    public int? Wage { get; set; }
+    public int? Purse { get; set; }
+    public Dictionary<Power, int>? BackPay { get; set; }
 }
 
 public sealed class PendingAudience

@@ -43,7 +43,8 @@ with `node sim/wait.js --play` and start the agent it names. Envoys, spies and t
 - Run `node -e "console.log(Boolean(process.env.ANTHROPIC_API_KEY))"`. It must print `false`. If it prints `true`, stop,
   start no agent, and ask Haakon to unset it and start a new session.
 - Record the 5-hour window and the weekly limit (`/usage`, or whatever usage tool you have) and tell Haakon. Rough cost:
-  a woken king's orders take about 44,000 agent tokens and an audience about 17,000. A season in which all six other
+  a woken king's orders take about 45,000 agent tokens (44,000 before standing orders were offered to every king, which
+  made a sleeping king's orders request about 3% longer) and an audience about 17,000. A season in which all six other
   kings are woken costs about 0.3 million tokens, a quiet one far less, a 20-season game roughly 4 to 6 million (about
   one weekly point per million in the first simulation). Kings sleep after their orders until something concerns them.
 - **Stop points** (a safety check on spending). Never go past 90% of the weekly limit or of a 5-hour window: when the

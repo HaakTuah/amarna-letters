@@ -155,7 +155,11 @@ public sealed partial class TurnEngine
             }
 
             // What the spy was when it observed: a report that arrives after its capture is still written as it was then.
-            var report = new SpyReport { SpyId = c.Id, Court = c.MissionTarget, Province = c.WatchProvince, ObservedTurn = S.Turn, FactCount = c.Facts.Count, SecretMaster = c.SecretMaster };
+            var report = new SpyReport
+            {
+                SpyId = c.Id, Court = c.MissionTarget, Province = c.WatchProvince, ObservedTurn = S.Turn, FactCount = c.Facts.Count, SecretMaster = c.SecretMaster,
+                Lord = employer, Wage = c.Contract?.Wage ?? 0, Purse = c.Purse, BackPay = new Dictionary<Power, int>(c.BackPay),
+            };
             report.Observations.AddRange(SpyObserve(c, rng));
             if (c.SecretMaster is { } master && master == host)
             {

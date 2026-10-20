@@ -210,7 +210,7 @@ public sealed class ScriptMind : ICharacterMind
     {
         var c = ctx.Self;
         var t = c.Traits;
-        var lines = new List<string> { $"I am {c.Name} of {c.Origin}, once a {c.Calling}." };
+        var lines = new List<string> { $"I am {c.Name} of {c.Origin}, once {Personas.Calling(c)}." };
         if (t.Greed >= 60 || t.Ambition >= 65)
             lines.Add("No envoy knows the roads and courts as I do; kings have praised my eloquence, and I have never failed a master.");
         else if (t.Competence < 50 && t.Loyalty >= 55)

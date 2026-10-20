@@ -73,7 +73,7 @@ public static class Prompts
             - A standing order waits for a move you can see and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds: a unit of the power you name, or any foreign unit, setting out to move into a province (unit_enters); or a foreign unit setting out to move into the province where one of your units stands (unit_attacked; name your unit by where it stands now). A move you can see is one from or into a province in your sight.
             - So its orders meet the blow as it falls: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), or support the walls of a walled city of yours holding (unit_enters on the city), and a unit next to an empty province of yours can move into it, so that an attacker without support bounces.
             - Name each of your units in its orders by the province it stands in now, as you give it: the order follows that unit wherever it goes, and is given from where the unit then stands. A standing order naming a province where you have no unit is refused whole.
-            - When it fires, its orders replace your other orders that season for the same units or people, those you give that season among them: give your units their orders as usual, and a standing order changes them only if the move it waits for comes. To stop one from firing, cancel it (cancel_standing, by id or "all"); cancelled in a season, it does not fire in that season. It answers the moves as they were ordered, never the orders another standing order gives, and first fires in the season after you give it. If two fire in the same season, the one with the lower id goes first: its orders replace the other's for the same units or people.
+            - When it fires, its orders replace your other orders that season for the same units or people, those you give that season among them: give your units their orders as usual, and a standing order changes them only if the move it waits for comes. To stop one from firing, cancel it (cancel_standing, by id or "all"); cancelled in a season, it does not fire in that season. It answers the moves as they were ordered, never the orders another standing order gives, so it may answer a move that the mover's own standing order then turns aside: it fires even though that move is never made. It first fires in the season after you give it. If two fire in the same season, the one with the lower id goes first: its orders replace the other's for the same units or people.
             - It fires once, on the first move it waits for that you see, whether a real attack or a feint, and is then gone. Your news then says what set it off, the orders it gave and those of yours it replaced. You may keep at most {TurnEngine.MaxStanding}, each with at most {TurnEngine.MaxScheduledPerSeason} orders, until they fire or you cancel them; when you lose a unit, a standing order that waits on it is dropped, and so are the orders any standing order gives it. Giving one costs nothing; its orders cost what they cost when they run (a levy its gold).
 
             ECONOMY
@@ -309,12 +309,12 @@ public static class Prompts
 
         if (v.Scheduled.Count > 0)
         {
-            sb.AppendLine("ORDERS YOU HAVE SCHEDULED (each follows its unit, named here by where it stands now; they run in their season unless you give the same units or people other orders, or send an entry for that season to replace them):");
+            sb.AppendLine("ORDERS YOU HAVE SCHEDULED (each follows its unit, named here by where it stands now; they run in their season unless you give the same units or people other orders, send an entry for that season to replace them, or a standing order of yours that fires that season gives them orders):");
             foreach (var plan in v.Scheduled) sb.AppendLine($"- turn {plan.Turn}: {string.Join("; ", plan.Orders.Select(o => Planned(o, v)))}");
         }
         if (v.Standing.Count > 0)
         {
-            sb.AppendLine("YOUR STANDING ORDERS (each fires once, in the season you see the move it waits for; cancel_standing removes them by their ids, which are for your orders only):");
+            sb.AppendLine("YOUR STANDING ORDERS (each fires once, in the season you see the move it waits for, and its orders then replace the orders you give that season for the same units or people; cancel_standing removes them by their ids, which are for your orders only, and one cancelled does not fire in that season):");
             foreach (var st in v.Standing) sb.AppendLine($"- {StandingLine(st, v)}");
         }
         if (v.CourtLetters.Count > 0)

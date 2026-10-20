@@ -85,6 +85,8 @@ public class StandingForEverySeatTests
         // Its view in turn 2 listed it, as a sleeping seat's does.
         Assert.Equal("s1", Assert.Single(babylon.Views[1].Standing).Id);
         Assert.Contains("- s1: when your army now in sippar is attacked, then: the army now in durkurigalzu supports the army now in sippar holding", Prompts.Situation(babylon.Views[1]));
+        // Its header says that its orders replace those the king gives in the season it fires (the follow-up's review).
+        Assert.Contains("YOUR STANDING ORDERS (each fires once, in the season you see the move it waits for, and its orders then replace the orders you give that season for the same units or people; cancel_standing removes them by their ids, which are for your orders only, and one cancelled does not fire in that season):", Prompts.Situation(babylon.Views[1]));
         Assert.Equal("Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallatum for sippar. It gave these orders: durkurigalzu supports sippar holding. They replaced these orders you gave for turn 2: durkurigalzu -> nippur.",
             Notice(r.State, Power.Babylonia, TurnEngine.StandingFiredTitle("s1")).Body);
         Assert.DoesNotContain(r.State.InboxOf(Power.Babylonia), i => i.Kind == InboxKind.Rejected);
@@ -111,6 +113,39 @@ public class StandingForEverySeatTests
         Assert.Equal(Power.Assyria, r.State.UnitAt("sippar")?.Power);
         Assert.Equal(Power.Babylonia, r.State.UnitAt("nippur")?.Power);
         Assert.DoesNotContain(r.State.InboxOf(Power.Babylonia), i => i.Title == TurnEngine.StandingFiredTitle("s1"));
+        Assert.Empty(StandingOf(r.State, Power.Babylonia));
+    }
+
+    [Fact]
+    public async Task A_standing_order_answers_a_move_as_ordered_even_one_the_mover_s_own_standing_order_turns_aside()
+    {
+        // The follow-up's review: standing orders answer the moves as ordered, before any standing order fires, so one may
+        // answer a move that its mover's own standing order then replaces. The rulebook says so. In turn 2 Assyria orders
+        // Ekallatum's army into Sippar, but Babylonia's army in Sippar attacks Mari, and Assyria's standing order turns
+        // Ekallatum's army to support Mari holding. Babylonia's standing order still fires on the march into Sippar.
+        var babylon = new Awake(v => v.Turn switch
+        {
+            1 => new TurnSubmission { Standing = [Attacked("sippar", new SupportOrder("durkurigalzu", "sippar"))] },
+            2 => new TurnSubmission { Orders = [new MoveOrder("sippar", "mari")] },
+            _ => new TurnSubmission(),
+        });
+        var assyria = new Awake(v => v.Turn switch
+        {
+            1 => new TurnSubmission { Standing = [Attacked("mari", new SupportOrder("ekallatum", "mari"))] },
+            2 => new TurnSubmission { Orders = [new MoveOrder("ekallatum", "sippar"), new SupportOrder("mari", "ekallatum", "sippar")] },
+            _ => new TurnSubmission(),
+        });
+        var r = await Play(babylon, assyria, 2, setup: AssyriaInMari);
+
+        // Ekallatum's army never set out; Babylonia's attack on Mari met two and bounced.
+        Assert.Equal(Power.Assyria, r.State.UnitAt("ekallatum")?.Power);
+        Assert.Equal(Power.Assyria, r.State.UnitAt("mari")?.Power);
+        Assert.Equal(Power.Babylonia, r.State.UnitAt("sippar")?.Power);
+        Assert.StartsWith("Your standing order s1 (when your army in mari is attacked) fired in turn 2: Babylonia's army set out from sippar for mari. It gave these orders: ekallatum supports mari holding. They replaced these orders you gave for turn 2: ekallatum -> sippar.",
+            Notice(r.State, Power.Assyria, TurnEngine.StandingFiredTitle("s1")).Body);
+        // Babylonia's fired all the same, on the move as Assyria ordered it.
+        Assert.StartsWith("Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallatum for sippar. It gave these orders: durkurigalzu supports sippar holding.",
+            Notice(r.State, Power.Babylonia, TurnEngine.StandingFiredTitle("s1")).Body);
         Assert.Empty(StandingOf(r.State, Power.Babylonia));
     }
 

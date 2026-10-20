@@ -94,7 +94,7 @@ public sealed partial class TurnEngine
         c.MissionTarget = d.To;
         c.CurrentTrail = trail.Id;
         c.Remember(S.Turn, $"My lord of {p.Land()} sent me to {d.To.Land()}. The message: \"{letter}\""
-            + (mandate.Length > 0 ? $" I may agree to: {mandate}." : "")
+            + (mandate.Length > 0 ? $" I may agree to: {Greeting.Stopped(mandate)}" : "")
             + (d.Gold > 0 ? $" I carry gold, said to be {Money.Format(d.Gold)}." : "")
             + (d.Proposal is not null ? " I carry a tablet for their king to seal." : ""));
         S.Notify(p, InboxKind.Notice, "Envoy dispatched", $"{c.Name} set out for {d.To} last season; the journey takes {travel} season(s).", c.Id);
