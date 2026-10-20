@@ -1100,16 +1100,16 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     is not the seat's, with none of its troops there, do not wake it (tested). Until this review a
     failed attack went to the digest, marked "(into your land)" or "(against your troops)", by the
     reading of the simulation-fixes round (below).
-  - **temporary, until sieges and walls on homeland provinces exist; revisit with the siege
-    package:** foreign troops (an army or a fleet) ended a move last season in a province next to
-    its capital (one link of any kind), seen by the seat, while it still holds its capital ("foreign
-    troops came next to your capital: Hatti's army moved isuwa -> sapinuwa"). With no walls on
-    homeland provinces an army there can take the capital the next season, so a sleeping king must
-    not first hear of it when the capital falls (the user's addendum to the simulation-fixes round).
-    Only the arrival wakes it: troops that stay where they are, a move that failed, the seat's own
-    troops, and any move once the capital is lost do not (tested; a failed move into its land or
-    against its troops wakes it as an attack, below). A move into its own land next to
-    the capital gives both reasons. The replay numbers count it as its own kind.
+  - **retired with the siege package** (Build order item 5): a temporary trigger for foreign troops
+    ending a move next to the capital ("foreign troops came next to your capital: Hatti's army moved
+    isuwa -> sapinuwa"), which stood in, from the user's addendum to the simulation-fixes round, for
+    the warning walls would give: with no walls on homeland provinces an army there could take the
+    capital the next season. The capital now has walls 3, and falls only to a storm of 4 or more or a
+    siege of seasons; troops next to it wake the king as troops next to any province of his homeland
+    do ("foreign troops came next to your homeland: ..., next to babylon, nippur, sippar"), and a move
+    into his own land next to it gives that reason alone. The sleep triggers for walled cities and home
+    provinces stay as the fix pass built them; their rulebook text now says what troops next to them
+    can do ("get into it the next season: take it if it has no walls, or stand within them and besiege it").
   - **a threat to a home province or a walled city** (since the fix pass after item 4): foreign
     troops ended a move last season in a province next to another province of its homeland that it
     still holds ("foreign troops came next to your homeland: Egypt's fleet moved delta ->
@@ -1126,7 +1126,16 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     agent simulation found both gaps: Alashiya saw Egypt's fleet beside an empty Tamassos only because
     an envoy woke it (seed 7), and Babylonia moved support to the walls of its bought Qadesh, next to
     Egypt's armies, only because an envoy woke it (seed 15); both kings named the gap in their
-    debriefs. When item 5 retires the capital trigger, the capital falls under this one.
+    debriefs. Since the siege package the capital falls under this one (its own trigger is retired).
+  - **a siege of a city of its own** (the siege package): one begun last season ("a siege of a city of
+    yours has begun: Assyria's army besieges babylon (walls 3), worn down 1 of 3"), a change the entry
+    before it did not tell (an army within the walls may stand as a guest until it besieges), and one
+    that will make the city surrender at the end of this season if the besiegers just hold ("a city of
+    yours surrenders at the end of this season unless the siege is broken: ..., worn down 2 of 3"), the
+    last season to break it. Each fires once (question 5 listed both among the triggers a siege needs;
+    its other three, for the besieger and for envoys, are not built: a besieger is woken by attacks on
+    its army as any king is, a caught envoy is news that travels, and the captor decides the captive's
+    fate when next it gives orders, as for a caught spy).
   - it lost land ("land lost: Sippar has been taken by Assyria.")
   - it lost troops: a unit destroyed in battle ("your army in sippar was destroyed"), unpaid troops
     deserting ("your unpaid troops deserted"), or a unit killed by plague ("plague destroyed troops
@@ -1359,7 +1368,11 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   the move succeeds, and when they end a move in a
   province next to your capital, another province of your homeland or a walled city you hold, while
   you hold it (troops there can take it the next season). Troops that only stay where they are do not
-  wake you again, nor do troops raised by a levy."); scheduled orders, naming units
+  wake you again, nor do troops raised by a levy."; since the siege package "... next to a province
+  of your homeland or a walled city you hold, while you hold it (troops there can get into it the next
+  season: take it if it has no walls, or stand within them and besiege it). ... A siege of a city of
+  yours wakes you in the season after it begins, and again when the city would surrender at the end of
+  the season if the besiegers just hold: the last season to break the siege."); scheduled orders, naming units
   by where they stand now, and their limits; the march; standing orders; which failures wake; and
   the digest. The seat's view lists its scheduled orders
   by season and its standing orders by id, each of its units named by where it stands now ("- turn
@@ -2637,10 +2650,11 @@ the design document's; "question N" is in `docs/rounds/2026-10-18-sleep-and-simu
 tab's Build order; "the round report" is the simulation-fixes round's report,
 `docs/rounds/2026-10-19-simulation-fixes.md`.
 
-- **The rest of the siege package** (item 5, being built): walls that can be strengthened, envoys leaving a besieged
-  city, terrain per province and per connection, deserts costing supplies, islands protected by the sea; the temporary
-  trigger for troops next to a capital retired (main tab "Tempo of war" and "Walls and terrain"; question 5). Walls that
-  differ by place, storming and besieging are built (see Walls and sieges).
+- **The rest of the siege package** (item 5, being built): terrain per province and per connection, deserts costing
+  supplies, islands protected by the sea (main tab "Tempo of war" and "Walls and terrain"; question 5). Walls that differ
+  by place and can be strengthened, storming and besieging, envoys leaving a besieged city, a kingdom falling with its
+  capital, slow absorption, and the retirement of the temporary trigger for troops next to a capital are built (see
+  Walls and sieges).
 
 - **News that travels**: distant provinces, and who holds them, shown at their last known state with its date, the
   news carried by people (main tab "Hidden by default"; question 6; item 7).

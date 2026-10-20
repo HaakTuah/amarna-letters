@@ -273,7 +273,7 @@ public class SleepTests
         await Play(Power.Babylonia, sleeper, 3, others: new() { [Power.Assyria] = assyria });
         Assert.Equal([1, 3], sleeper.Calls);
         Assert.Equal(
-            ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."],
+            ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."],
             sleeper.Views[1].WokenBecause);
     }
 
@@ -793,7 +793,7 @@ public class SleepTests
         var sleep = rules.IndexOf("YOU SLEEP BETWEEN YOUR ORDERS", StringComparison.Ordinal);
         var season = rules.IndexOf("HOW A SEASON RESOLVES", StringComparison.Ordinal);
         Assert.True(win < sleep && sleep < season);
-        Assert.Contains("After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; land or troops lost; a scheduled or standing order that others foiled; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
+        Assert.Contains("After you give your orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; a siege of a city of yours begun, or about to make it surrender; land or troops lost; a scheduled or standing order that others foiled; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
         // The sentence six kings of the second agent simulation read as a contradiction is gone.
         Assert.DoesNotContain("you may not be woken again", rules);
         Assert.Contains("PLANNING AHEAD (how sleeping works)", rules);
@@ -802,8 +802,8 @@ public class SleepTests
         Assert.Contains("Your units hold unless you scheduled orders for them or a standing order gives them orders.", rules);
         Assert.Contains("If two fire in the same season, the one with the lower id goes first", rules);
         Assert.DoesNotContain("wake_in_turn", rules);
-        Assert.Contains("- A scheduled or standing order wakes you the next season only if others foil it as its season resolves: a move stopped by foreign troops, or by walls that troops helped hold;", rules);
-        Assert.Contains("Your own orders never wake you: an order refused, whether when you give it or when it runs, and one that fails only because of your own orders or strength (a support or convoy that matched no move; a move stopped by your own unit, by walls alone, or for want of a convoy;", rules);
+        Assert.Contains("- A scheduled or standing order wakes you the next season only if others foil it as its season resolves: a move stopped by foreign troops;", rules);
+        Assert.Contains("Your own orders never wake you: an order refused, whether when you give it or when it runs, and one that fails only because of your own orders or strength (a support or convoy that matched no move; a move stopped by your own unit, or for want of a convoy;", rules);
         Assert.Contains("Nor do the orders you give now for this season, an entry for this season in your schedule among them", rules);
         Assert.DoesNotContain("which wakes you", rules);
         // Told when it next gives orders, not "next season": a king that sleeps reads it when it is woken.
@@ -897,10 +897,10 @@ public class SleepTests
         var r = await Play(Power.Babylonia, sleeper, 5, others: new() { [Power.Assyria] = assyria });
         Assert.Contains(r.Errors, e => e.StartsWith("t3/orders/Babylonia:"));
         Assert.Equal([1, 3, 4], sleeper.Calls);
-        string[] woke = ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."];
+        string[] woke = ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."];
         Assert.Equal(woke, sleeper.Views[1].WokenBecause);
         Assert.Equal(woke, sleeper.Views[2].WokenBecause);
-        Assert.Equal("You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallatum -> sippar; foreign troops came next to your capital: Assyria's army moved ekallatum -> sippar; land lost: Sippar has been taken by Assyria.", Prompts.SleepLine(sleeper.Views[2]));
+        Assert.Equal("You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallatum -> sippar; land lost: Sippar has been taken by Assyria.", Prompts.SleepLine(sleeper.Views[2]));
         // Having answered itself in turn 4, it sleeps on: the reasons it has now read wake it no more.
         Assert.True(r.State.Sleep[Power.Babylonia].Asleep);
     }
