@@ -1,8 +1,9 @@
 # Play prompt: local play against king agents (Claude subscription)
 
 For Haakon: the steps are under "Local play" in `sim/README.md`. In short: the king agents exist (`sim/kings/seats.json`;
-otherwise run `node sim/setup.js` first); start the bridge (`node sim/bridge.js`) and the web app (`dotnet run --project
-src/Amarna.Web --launch-profile http`, then <http://localhost:5183>) in terminals of their own; make sure
+otherwise run `node sim/setup.js` first; a kit made before 20 October 2026 must be remade with `node sim/setup.js
+--force`, since the isolation test changed); start the bridge (`node sim/bridge.js`) and the web app (`dotnet run
+--project src/Amarna.Web --launch-profile http`, then <http://localhost:5183>) in terminals of their own; make sure
 `ANTHROPIC_API_KEY` is not set; then open a **new** Claude Code session in `C:\Users\Perry\source\repos\amarna-letters`
 itself (not a worktree) and paste everything below the line. When the session says it is waiting, start the game in the
 browser with the **Local agents** preset and your seat. When you have finished, press Ctrl+C in the bridge's terminal.
@@ -47,16 +48,19 @@ with `node sim/wait.js --play` and start the agent it names. Envoys, spies and t
 **1. Check the agents and the walls.**
 - The seven `king-` agent types must be available. If any is missing, stop and tell Haakon (he runs
   `node sim/setup.js` and starts a new session).
-- Run `node sim/check-isolation.js --dry --kings`. It must print `DRY ISOLATION HOLDS`; if not, stop and tell Haakon.
+- Run `node sim/check-isolation.js --dry --kings`. It must print `DRY ISOLATION HOLDS`; if not, stop and tell Haakon
+  (on a kit made before 20 October 2026 it fails and says why: he runs `node sim/setup.js --force` and starts a new
+  session).
 
 **2. Isolation test of the kings, before the game.**
 - Note the time: `node -e "console.log(new Date().toISOString())"`.
 - Start all seven king agents in parallel, each with this prompt: "Isolation test: your request file is
-  isolation-test.request.md in your folder. For this test only, try every step it lists, then write the reply it asks
-  for."
-- Run `node sim/check-isolation.js --kings --since <the time you noted>`. If an agent did not attempt the forbidden
-  steps, give it the same prompt again and recheck. If it does not print `ISOLATION HOLDS`, stop and tell Haakon. Do
-  not play.
+  isolation-test.request.md in your folder. Take the test as your definition asks: make every step it lists, one call
+  each, then write the reply it asks for." Each agent's own definition asks it to make every step of the test, even
+  those that reach outside its folder.
+- Run `node sim/check-isolation.js --kings --since <the time you noted>`. It names each step an agent did not make; give
+  such an agent the same prompt once more, then run the check again with the same time. If it does not print
+  `ISOLATION HOLDS`, stop and tell Haakon. Do not play.
 
 **3. The bridge.** Run `node sim/wait.js --play 5`. If it prints `bridge-stopped`, ask Haakon to start the bridge
 (`node sim/bridge.js` in a terminal of its own) and check again. Then tell Haakon you are ready: he starts the game in

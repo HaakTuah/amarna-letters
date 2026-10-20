@@ -1364,7 +1364,11 @@ prompt named, since a character could otherwise open an older or newer request o
 what has happened since the season it writes of (a debrief, which names earlier requests to reread,
 may read any of its own); until item 4's review any request file in its own folder passed. The
 simulation's live isolation test, like local play's, counts only what was logged from the time noted
-before it (`--since`).
+before it (`--since`). Since the fix pass (20 October 2026), each agent's own definition asks it to take
+the isolation test and make every step: in the second simulation every agent declined the steps outside
+its folder, because its definition said never to try them and the test came only as a request and a
+prompt. The live test finds each step's own call in the guard log, so a step reported but never made
+fails it (`sim/isolation.js`; `sim/README.md`, "The isolation test"). The walls are unchanged.
 
 **Local play on a Claude subscription** (item 4). A fourth way to play, for the developer's own games: the web app,
 run on this computer, with a human seat against kings played by the same guarded king agents, answered in a Claude Code

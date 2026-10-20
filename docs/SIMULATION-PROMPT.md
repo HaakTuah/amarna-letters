@@ -5,8 +5,11 @@ branch that holds item 4 (`item/second-simulation`, or `develop` once it is merg
 line. The agent types are loaded when that session starts: `node sim/setup.js --seeds 7,15` was run on 19 October 2026
 and made the 7 king types and the 36 character types (18 characters for each seed). Run it again with `--force` only
 if you want new folders and secret words (the old kit is moved to `sim/runs/setup-<time>/`), then start yet another
-fresh session. The `ANTHROPIC_API_KEY` environment variable must not be set in that session: it would make Claude Code
-bill the API instead of the subscription.
+fresh session. Since then the fix pass (20 October 2026) changed the isolation test: each agent's definition now asks
+it to make every step. That kit predates the change, and the second simulation moved its kings' files out of their
+folders, so before this prompt is used again run `node sim/setup.js --seeds 7,15 --force` and start a fresh session.
+The `ANTHROPIC_API_KEY` environment variable must not be set in that session: it would make Claude Code bill the API
+instead of the subscription.
 
 ---
 
@@ -58,16 +61,20 @@ one (details under "Characters as agents" in the report):
 **1. Check the agents.** The agent types `king-egypt`, `king-hatti`, `king-babylonia`, `king-mitanni`,
 `king-assyria`, `king-arzawa` and `king-alashiya`, and the 36 character types named in `sim/characters/agents.json`
 (`char-` and 8 hex digits; each entry says its seed), must be available. If any is missing, stop and tell the user.
-Then run `node sim/check-isolation.js --dry`. It must print `DRY ISOLATION HOLDS`; if not, stop and tell the user.
+Then run `node sim/check-isolation.js --dry`. It must print `DRY ISOLATION HOLDS`; if not, stop and tell the user (on a
+kit made before 20 October 2026 it fails and says why: the kit must be remade, as above).
 
 **2. Isolation test, kings and characters, before any game.**
 - Note the time: `node -e "console.log(new Date().toISOString())"`. The kings' log may already hold lines from an
   earlier isolation test (local play runs one), and only this test's lines count.
 - Start all 43 agents, in parallel batches of about ten. Give each this prompt: "Isolation test: your request file is
-  isolation-test.request.md in your folder. For this test only, try every step it lists, then write the reply it asks
-  for."
-- Then run `node sim/check-isolation.js --since <the time you noted>`.
-- If an agent did not attempt the forbidden steps, give it the same prompt again and recheck.
+  isolation-test.request.md in your folder. Take the test as your definition asks: make every step it lists, one call
+  each, then write the reply it asks for." Each agent's own definition asks it to make every step of the test, even
+  those that reach outside its folder, so the prompt may come from a workflow script, as in the second simulation. Do
+  not read the agents' final texts.
+- Then run `node sim/check-isolation.js --since <the time you noted>`. It finds every step of every agent's test in the
+  guard log, as the exact call the request names, and names each step an agent did not make.
+- If an agent left steps out, give it the same prompt once more, then run the check again with the same time.
 - If the check does not print `ISOLATION HOLDS`, stop and tell the user. Do not run a game.
 
 **3. Game 1, seed 7.**
