@@ -148,7 +148,7 @@ public class SeasonRulebookTests
     [InlineData("You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them")]
     [InlineData("When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls.")]
     [InlineData("Each siege costs the besieger 15 a season on top of the army's upkeep.")]
-    [InlineData("A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him, your troops disband, and what you owe dies with you. You cannot cede your capital.")]
+    [InlineData("A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him (if he falls too in the same season, it passes on with his own land), your troops disband, and what you owe dies with you. You cannot cede your capital.")]
     public void The_rulebook_states_each_rule(string rule) => Assert.Contains(rule, Rules);
 
     [Fact]

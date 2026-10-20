@@ -322,8 +322,14 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   his sieges are lifted, a siege the conqueror pressed against land that is now his is over, and his debts die with him
   (back pay owed by him is lost, as before; debt tablets do not exist yet). His prisoners are let go, his servants are
   free, and none of his orders after the moves is carried out (levies, purchases, envoys, intelligence). The kingdoms
-  that fall in one season are found first, so one fall revives nobody; land passing to a capital's taker that itself
-  falls that season is left free (a reading: the case needs two capitals taken by each other in one season). The
+  that fall in one season are found first, so one fall revives nobody. Land passing to a capital's taker that itself
+  falls that season passes on with the taker's own land to whoever took his capital, and so on down the chain; a ring of
+  kings who took each other's capitals leaves the land free. Every heir is found before any land passes, so the order in
+  which the falls are reckoned changes nothing (since the review of the siege package, which found that when A took B's
+  capital while B took C's, C's land went to A or was left free as that order fell); the conqueror down the chain reads
+  "Assyria took Washukanni, the capital of Mitanni, but fell himself in the same season, and the kingdom of Mitanni
+  passes to you with his: ...", and the rulebook's HOW YOU WIN says "(if he falls too in the same season, it passes on
+  with his own land)". The
   conqueror reads "A kingdom falls to you" ("With Apasa you took the kingdom of Arzawa: its king has fallen, his troops
   have disbanded, and his land is yours: Seha River Land."), every other living court the rumour "Word spreads that the
   kingdom of Arzawa is no more: Hatti took its capital, Apasa." (who holds the capital is public). The game records each

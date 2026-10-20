@@ -63,6 +63,51 @@ public class KingdomFallTests
         Assert.Equal(Power.Babylonia, Assert.Single(s.Falls).Conqueror);
     }
 
+    /// <summary>Seed 1, no catastrophes: each pair's army stands in the other's capital, one season from its surrender.</summary>
+    private static GameState Sieges(params (Power Besieger, Power Besieged)[] sieges)
+    {
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        foreach (var (by, of) in sieges)
+        {
+            var capital = WorldMap.Default.Capital(of).Id;
+            s.Units.RemoveAll(u => u.Province == capital);
+            var army = new Unit { Id = s.NewId("u"), Power = by, Kind = UnitKind.Army, Province = capital };
+            s.Units.Add(army);
+            s.Sieges.Add(new Siege { Province = capital, Power = by, UnitId = army.Id, Progress = s.WallsOf(capital) - 1, Since = 1 });
+        }
+        return s;
+    }
+
+    [Theory]
+    // Babylonia takes Ashur while Assyria takes Washukanni: Mitanni is reckoned before Assyria.
+    [InlineData(Power.Babylonia, Power.Assyria, Power.Mitanni)]
+    // Babylonia takes Washukanni while Mitanni takes Ashur: Mitanni is reckoned before Assyria.
+    [InlineData(Power.Babylonia, Power.Mitanni, Power.Assyria)]
+    public void A_kingdom_whose_taker_falls_in_the_same_season_passes_on_with_his_land_in_any_order(Power first, Power second, Power third)
+    {
+        var s = Sieges((first, second), (second, third));
+        Season(s, []);
+        Assert.Contains(second, s.Eliminated);
+        Assert.Contains(third, s.Eliminated);
+        Assert.DoesNotContain(first, s.Eliminated);
+        Assert.All(WorldMap.Default.HomeOf(second).Concat(WorldMap.Default.HomeOf(third)), p => Assert.Equal(first, s.Owner[p.Id]));
+        Assert.Equal(first, s.Falls.Single(f => f.Power == third).Conqueror);
+        Assert.Contains(s.Events, e => e.Kind == "fall" && e.Text == $"The kingdom of {third.Land()} has fallen: {second} took its capital, {WorldMap.Default.Capital(third).Name}, and its land passes to {first}.");
+        Assert.Contains(s.InboxOf(first), i => i.Title == TurnEngine.KingdomFallsTitle
+            && i.Body.StartsWith($"{second} took {WorldMap.Default.Capital(third).Name}, the capital of {third.Land()}, but fell himself in the same season, and the kingdom of {third.Land()} passes to you with his"));
+    }
+
+    [Fact]
+    public void Kings_who_take_each_other_s_capitals_in_one_season_leave_their_land_free()
+    {
+        var s = Sieges((Power.Assyria, Power.Mitanni), (Power.Mitanni, Power.Assyria));
+        Season(s, []);
+        Assert.Contains(Power.Assyria, s.Eliminated);
+        Assert.Contains(Power.Mitanni, s.Eliminated);
+        Assert.All(WorldMap.Default.HomeOf(Power.Mitanni).Concat(WorldMap.Default.HomeOf(Power.Assyria)), p => Assert.Null(s.Owner[p.Id]));
+        Assert.All(s.Falls, f => Assert.Null(f.Conqueror));
+    }
+
     [Fact]
     public void A_king_cannot_cede_his_own_capital()
     {

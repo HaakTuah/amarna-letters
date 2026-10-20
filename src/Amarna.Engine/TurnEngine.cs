@@ -786,21 +786,36 @@ public sealed partial class TurnEngine
     /// package; until then a kingdom fell only when it held no land): a king whose capital another power holds after the
     /// moves has fallen, and his kingdom with him. His remaining land passes to the power that took the capital, every
     /// troop of his disbands (none has a commander yet to choose otherwise), his sieges are lifted, and his debts die with
-    /// him (<see cref="Fall"/>). The kingdoms that fall in one season are found first, so one fall revives nobody; if a
-    /// capital's taker falls in the same season, the land passing to it is left free.
+    /// him (<see cref="Fall"/>). The kingdoms that fall in one season are found first, so one fall revives nobody. If a
+    /// capital's taker falls in the same season, the land passes on with his own to whoever took his capital, and so on
+    /// down the chain; a ring of kings who took each other's capitals leaves it free. Every heir is found before any land
+    /// passes, so the order the falls are reckoned in changes nothing (since the review of the siege package; until then a
+    /// taker who fell left the land free, or passed it on, as that order fell).
     /// </summary>
     private void CapitalsTaken()
     {
         var fallen = S.Alive.Where(p => S.Owner.GetValueOrDefault(Map.Capital(p).Id) != p).ToList();
-        foreach (var p in fallen)
+        var takers = fallen.ToDictionary(p => p, p => S.Owner.GetValueOrDefault(Map.Capital(p).Id));
+        Power? Heir(Power p)
         {
-            var conqueror = S.Owner.GetValueOrDefault(Map.Capital(p).Id);
-            Fall(p, conqueror is { } c && S.IsAlive(c) && !fallen.Contains(c) ? c : null);
+            var passed = new HashSet<Power> { p };
+            var next = takers[p];
+            while (next is { } n && takers.ContainsKey(n))
+            {
+                if (!passed.Add(n)) return null;
+                next = takers[n];
+            }
+            return next is { } heir && S.IsAlive(heir) ? heir : null;
         }
+        var heirs = fallen.ToDictionary(p => p, Heir);
+        foreach (var p in fallen) Fall(p, heirs[p], takers[p]);
     }
 
-    /// <summary>A kingdom's fall: what passes with it, and what goes with it.</summary>
-    private void Fall(Power p, Power? conqueror)
+    /// <summary>
+    /// A kingdom's fall: what passes with it, and what goes with it. <paramref name="conqueror"/> is the power its land
+    /// passes to; <paramref name="taker"/> the one holding its capital after the moves, the same unless the taker fell too.
+    /// </summary>
+    private void Fall(Power p, Power? conqueror, Power? taker)
     {
         var capital = Map.Capital(p);
         var land = S.OwnedBy(p).ToList();
@@ -835,16 +850,17 @@ public sealed partial class TurnEngine
             c.Contract = null;
             if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
         }
-        var who = conqueror is { } taker ? $"{taker} took its capital, {capital.Name}" : $"its capital, {capital.Name}, was taken";
+        var who = taker is { } took ? $"{took} took its capital, {capital.Name}" : $"its capital, {capital.Name}, was taken";
         S.Log("fall", $"The kingdom of {p.Land()} has fallen: {who}{(conqueror is { } t ? $", and its land passes to {t}" : "")}.", signal: null);
         foreach (var other in S.Alive.Where(x => x != conqueror))
             S.Notify(other, InboxKind.Rumor, "A kingdom falls", $"Word spreads that the kingdom of {p.Land()} is no more: {who}.");
         if (conqueror is { } winner)
         {
             var rest = land.Where(x => x != capital.Id).Select(x => Map[x].Name).ToList();
-            S.Notify(winner, InboxKind.Battle, KingdomFallsTitle,
-                $"With {capital.Name} you took the kingdom of {p.Land()}: its king has fallen, his troops have disbanded, and "
-                + (rest.Count == 0 ? "he held no other land." : $"his land is yours: {string.Join(", ", rest)}."));
+            var yours = rest.Count == 0 ? "he held no other land." : $"his land is yours: {string.Join(", ", rest)}.";
+            S.Notify(winner, InboxKind.Battle, KingdomFallsTitle, taker == winner
+                ? $"With {capital.Name} you took the kingdom of {p.Land()}: its king has fallen, his troops have disbanded, and {yours}"
+                : $"{taker} took {capital.Name}, the capital of {p.Land()}, but fell himself in the same season, and the kingdom of {p.Land()} passes to you with his: its king has fallen, his troops have disbanded, and {yours}");
         }
     }
 
