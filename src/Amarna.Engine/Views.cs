@@ -295,19 +295,10 @@ public static class Views
 
         foreach (var c in s.Characters)
         {
-            // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
-            if (c.CoverOf(p) is not null)
-            {
-                v.Court.Add(Character(s, c, p));
-                continue;
-            }
-            if (c.Status == CharacterStatus.Dead && c.Employer != p) continue;
-            var ours = c.Employer == p && c.Status is CharacterStatus.Employed or CharacterStatus.Captured;
-            // A foreign spy posted here in secret is not seen here: only something else this court knows of it lists it.
-            var known = ours || SeenAtCourt(c, p) || c.HeldBy == p || c.Pitches.ContainsKey(p) || c.Facts.Any(f => f.Secrecy != Secrecy.Public && f.KnownBy.Contains(p));
-            if (!known) continue;
+            if (!Knows(c, p)) continue;
             var cv = Character(s, c, p);
-            if (ours) v.Court.Add(cv); else v.Known.Add(cv);
+            // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
+            if (c.CoverOf(p) is not null || IsOurs(c, p)) v.Court.Add(cv); else v.Known.Add(cv);
         }
 
         var archive = new List<Tablet>();
@@ -371,6 +362,24 @@ public static class Views
     /// watchmen catch it, or if it secretly serves the court.
     /// </summary>
     public static bool SeenAtCourt(Character c, Power viewer) => c.At == viewer && !c.HiddenAt(viewer);
+
+    /// <summary>
+    /// Whether a court knows of a person, so that its view lists them (its court, or the people it knows): its own servants
+    /// (and one abroad whose fate it has not heard of, as it believes), anyone seen at its court, held there or who
+    /// presented themselves to it, and anyone a fact it knows names. A foreign spy posted at its court in secret is not
+    /// seen there. The dead are known only to the court they served. What a court's scribes write turns into names only the
+    /// ids of the people it knows (<see cref="TurnEngine.Scribe"/>).
+    /// </summary>
+    public static bool Knows(Character c, Power viewer)
+    {
+        if (c.CoverOf(viewer) is not null) return true;
+        if (c.Status == CharacterStatus.Dead && c.Employer != viewer) return false;
+        return IsOurs(c, viewer) || SeenAtCourt(c, viewer) || c.HeldBy == viewer || c.Pitches.ContainsKey(viewer)
+               || c.Facts.Any(f => f.Secrecy != Secrecy.Public && f.KnownBy.Contains(viewer));
+    }
+
+    /// <summary>A servant of the court's, at home, abroad or held captive.</summary>
+    private static bool IsOurs(Character c, Power viewer) => c.Employer == viewer && c.Status is CharacterStatus.Employed or CharacterStatus.Captured;
 
     /// <summary>
     /// Whom a spy <paramref name="court"/> caught confessed to serving when it was caught there (its latest capture there),

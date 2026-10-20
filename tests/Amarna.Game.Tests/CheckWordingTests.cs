@@ -123,6 +123,29 @@ public class CheckWordingTests
         Assert.StartsWith("Egypt/Babylonia: That is not what you promised", signal.Text);
     }
 
+    /// <summary>
+    /// A script envoy that turned down the host's offer of a post tells its lord, unless it has little loyalty or the host
+    /// bought it (the integrator's stub game of the fix pass after item 4: the shadow raised hid-offer 7 times in 7).
+    /// </summary>
+    [Theory]
+    [InlineData(70, false, true)]
+    [InlineData(50, false, true)]
+    [InlineData(30, false, false)]
+    [InlineData(70, true, false)]
+    public async Task A_loyal_script_envoy_tells_its_lord_of_a_post_it_turned_down(int loyalty, bool bribed, bool tells)
+    {
+        var ctx = Home("declined an offer of service from Babylonia");
+        ctx.Self.Traits.Loyalty = loyalty;
+        if (bribed)
+        {
+            ctx.Trail!.Outcomes.Add("accepted 40 shekels from Babylonia (asked: speak well of me)");
+            ctx.Self.Facts.Add(new Fact { Id = "f1", Text = $"Took 40 shekels from the king of {Power.Babylonia.Land()}.", Secrecy = Secrecy.Hidden, Tag = "bribe", KnownBy = [Power.Babylonia] });
+        }
+        var report = (await new ScriptMind().WriteAsync(ctx, default)).Text;
+        Assert.Equal(tells, report.Contains($"The king of {Power.Babylonia.Land()} offered me a post in his service, and I refused it: I serve you alone.", StringComparison.Ordinal));
+        Assert.Equal(!tells, CharacterChecks.Report(ctx, report).Contains("hid-offer"));
+    }
+
     /// <summary>The joint strike of seed 15: a timid envoy carries it whole, and a speech that keeps it softens nothing.</summary>
     [Fact]
     public async Task A_timid_envoy_carries_a_joint_strike_against_a_third_king_whole()

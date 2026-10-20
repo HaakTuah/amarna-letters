@@ -169,6 +169,10 @@ public sealed class ScriptMind : ICharacterMind
             if (fearful && !bribed) lines.Add("All is well between your houses, I am certain of it.");
             // Only the engine's own record of a sealing, not the envoy's commitments or a gift's request that speak of one.
             if (trail.Outcomes.Contains(MessageTrail.SealedOutcome)) lines.Add("He sealed the tablet, and I bring your copy.");
+            // An envoy that turned down the host's offer of a post tells its lord, who learns that the host tried to buy his
+            // servant and that the servant stayed true; one with little loyalty, or bought by that host, keeps it to itself.
+            if (t.Loyalty >= 50 && !bribed && trail.Outcomes.Any(o => o.StartsWith("declined an offer", StringComparison.Ordinal)))
+                lines.Add($"The king of {host.Value.Land()} offered me a post in his service, and I refused it: I serve you alone.");
             // An envoy that promised more than it was told owns up to it only vaguely, and only if ambitious enough to boast.
             if (t.Ambition > 70 && trail.Outcomes.Any(o => TurnEngine.Commitment(o) is { } promised && promised.EndsWith(Overreach, StringComparison.Ordinal)))
                 lines.Add("I gave him such assurances as you would wish.");

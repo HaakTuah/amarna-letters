@@ -23,7 +23,7 @@ public sealed partial class TurnEngine
                     var recalled = S.Char(rs.Character);
                     if (recalled.CoverOf(p) is { } cover) RecallCovered(p, recalled, cover);
                     else if (recalled.Employer == p && recalled.Status == CharacterStatus.Employed && recalled.Duty == Duty.SpyPosted) Recall(p, recalled);
-                    else Failed(p, rs, "Recall failed", $"{recalled.Name} was not watching anywhere for you, so could not be recalled.", "not on a mission", recalled.Id);
+                    else Failed(p, rs, "Recall failed", $"{recalled.Name} was not watching anywhere for you, so could not be recalled.", "not on a mission", byOthers: true, recalled.Id);
                     break;
                 case AssayOrder a: Assay(p, a); break;
                 case AuthenticateOrder au:
@@ -293,7 +293,7 @@ public sealed partial class TurnEngine
         var c = S.Char(co.Character);
         if (c.Status != CharacterStatus.Captured || c.HeldBy != host)
         {
-            Failed(host, co, "Captive order failed", $"Your order for {c.Name} could not be carried out: {c.Name} was no longer your captive.", "no longer your captive", c.Id);
+            Failed(host, co, "Captive order failed", $"Your order for {c.Name} could not be carried out: {c.Name} was no longer your captive.", "no longer your captive", byOthers: true, c.Id);
             return;
         }
         // Checked again as the season resolves: the captive's king may have dismissed them this season.
@@ -465,7 +465,7 @@ public sealed partial class TurnEngine
             // earlier payment this season that fell short, when the treasurers weighed all the unassayed gold.
             Failed(p, a, "Assay failed",
                 $"Gold lot {a.Lot} was not assayed: your treasurers had already weighed all your unassayed gold last season, when a payment fell short. No fee was paid.",
-                "your treasurers had already weighed it");
+                "your treasurers had already weighed it", byOthers: true);
             return;
         }
         if (!Pay(p, S.Config.AssayFee, "an assay", a, $"gold lot {a.Lot} was not assayed")) return;
@@ -529,7 +529,7 @@ public sealed partial class TurnEngine
         if (c.Traits.Competence < S.Config.ForgeMinCompetence)
         {
             // A failed order like any other, though the clay is still paid for.
-            Failed(p, f, "Forgery botched", $"{c.Name} lacks the skill; the clay is ruined and nothing usable came of it.", "the forger lacked the skill", c.Id);
+            Failed(p, f, "Forgery botched", $"{c.Name} lacks the skill; the clay is ruined and nothing usable came of it.", "the forger lacked the skill", byOthers: false, c.Id);
             Pay(p, S.Config.ForgeFee, "spoiled clay");
             return;
         }

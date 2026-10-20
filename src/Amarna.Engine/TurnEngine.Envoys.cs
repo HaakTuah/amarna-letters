@@ -497,7 +497,7 @@ public sealed partial class TurnEngine
         var c = S.Char(r.Character);
         if (c.HeldBy != host || (c.Duty != Duty.Detained && c.Status != CharacterStatus.Captured))
         {
-            Failed(host, r, "Release failed", $"{c.Name} was no longer held at your court, so nobody was released.", "no longer held", c.Id);
+            Failed(host, r, "Release failed", $"{c.Name} was no longer held at your court, so nobody was released.", "no longer held", byOthers: true, c.Id);
             return;
         }
         if (c.Status == CharacterStatus.Captured)
@@ -627,7 +627,7 @@ public sealed partial class TurnEngine
             var c = S.Char(group.Key);
             if (!c.IsAvailableForHire)
             {
-                foreach (var (p, h) in group) Failed(p, h, "Not hired", $"{c.Name} was no longer free to take service.", "no longer free", c.Id);
+                foreach (var (p, h) in group) Failed(p, h, "Not hired", $"{c.Name} was no longer free to take service.", "no longer free", byOthers: true, c.Id);
                 continue;
             }
             // Someone held at a court can only take service with the king who holds them.
@@ -641,7 +641,7 @@ public sealed partial class TurnEngine
                     : c.HeldBy is { } holder && holder != lost.P ? $"they are held at the court of {holder}"
                     : bids[0].H.Wage > lost.H.Wage ? "another court offered more"
                     : "they chose another court that offered as much";
-                Failed(lost.P, lost.H, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season: {why}.", why, c.Id);
+                Failed(lost.P, lost.H, "Not hired", $"{c.Name} declined your offer of {Money.Format(lost.H.Wage)} a season: {why}.", why, byOthers: lost.H.Wage >= ask, c.Id);
             }
             if (bids.Count == 0) continue;
             var (winner, hire) = bids[0];
@@ -668,7 +668,10 @@ public sealed partial class TurnEngine
     /// A servant kept on: accepted if the wage reaches its renewal price (what it asked when it gave notice, else the
     /// renewal formula, and never less than its present wage). The new contract is made this season, its term counts
     /// from the next, as for a hire, and any notice ends. A servant abroad whose fate its master has not heard of is
-    /// renewed as the master believes it, so nothing is betrayed.
+    /// renewed as the master believes it, so nothing is betrayed. A renewal that fails wakes nobody, scheduled or not (since
+    /// the review of the fix pass after item 4): the servant's price follows a rule, and a dismissal earlier in the season
+    /// is the seat's own, so either would let a king wake himself with an offer he knows is too low. A servant's notice wakes
+    /// the seat by itself.
     /// </summary>
     private void Renew(Power p, RenewOrder r)
     {
@@ -679,7 +682,6 @@ public sealed partial class TurnEngine
         {
             // Dismissed earlier this season.
             S.Notify(p, InboxKind.Rejected, "Not renewed", $"{c.Name} is no longer in your service, so could not be renewed.", c.Id);
-            ScheduledFailed(p, r, "no longer in your service");
             return;
         }
         // Renewed early, a servant takes no cut: it asks what it would ask at the end of its term, or its present wage if that is more.
@@ -689,7 +691,6 @@ public sealed partial class TurnEngine
         {
             S.Notify(p, InboxKind.Rejected, "Not renewed",
                 $"{c.Name} will not serve on for {Money.Format(r.Wage)} a season; they ask {Money.Format(price)}{(present ? ", their present wage" : "")}.", c.Id);
-            ScheduledFailed(p, r, $"they ask {price}");
             return;
         }
         var until = S.Turn + Math.Clamp(r.Term, 1, 30);
@@ -718,7 +719,7 @@ public sealed partial class TurnEngine
         if (c.CoverOf(p) is { } cover) c.Covers.Remove(cover);
         else if (c.Employer != p)
         {
-            Failed(p, order, "Dismissal failed", $"{c.Name} was no longer in your service, so could not be dismissed.", "no longer in your service", c.Id);
+            Failed(p, order, "Dismissal failed", $"{c.Name} was no longer in your service, so could not be dismissed.", "no longer in your service", byOthers: true, c.Id);
             return;
         }
         var notice = $"{c.Name} has been dismissed.";

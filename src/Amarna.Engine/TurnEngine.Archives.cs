@@ -99,10 +99,14 @@ public sealed partial class TurnEngine
     /// What a court's scribes write down for another court to read (its letters, mandates and tablets, its words at an
     /// audience): each mark of the writer's own for a copy in its archive ("k8"), which another court numbers differently or
     /// not at all, becomes the tablet as every court names it ("the tablet sealed by Babylonia and Mitanni, dated turn 2"),
-    /// and each person's id becomes the person's name. Any other text is left as written.
+    /// and the id of each person the writer knows (its view lists them: <see cref="Views.Knows"/>) becomes the person's name.
+    /// Any other text is left as written: an id the writer does not know stays an id, so that what it reads back of its own
+    /// letters (and what the envoy and the host read) never names someone it has not met (since the review of the fix pass
+    /// after item 4).
     /// </summary>
     public string Scribe(Power writer, string? text)
     {
+        Character? Known(string id) => S.FindCharacter(id) is { } c && Views.Knows(c, writer) ? c : null;
         if (string.IsNullOrEmpty(text)) return text ?? "";
         var archive = Archive(writer).ToList();
         var written = CopyMark.Replace(text, m =>
@@ -114,8 +118,8 @@ public sealed partial class TurnEngine
             return char.IsUpper(m.Value[0]) ? char.ToUpperInvariant(name[0]) + name[1..] : name;
         });
         // "Mane (c12)" is Mane; a bare "c12" is the person's name.
-        written = NamedPerson.Replace(written, m => S.FindCharacter(m.Groups["id"].Value) is { } c && c.Name == m.Groups["name"].Value ? c.Name : m.Value);
-        return PersonMark.Replace(written, m => S.FindCharacter(m.Groups["id"].Value)?.Name ?? m.Value);
+        written = NamedPerson.Replace(written, m => Known(m.Groups["id"].Value) is { } c && c.Name == m.Groups["name"].Value ? c.Name : m.Value);
+        return PersonMark.Replace(written, m => Known(m.Groups["id"].Value)?.Name ?? m.Value);
     }
 
     /// <summary>The line the engine adds to a spy's report for the copies that came home with it.</summary>

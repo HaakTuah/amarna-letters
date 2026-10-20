@@ -85,6 +85,39 @@ public class RecordTextTests
     }
 
     [Fact]
+    public void Scribes_turn_into_names_only_the_ids_of_people_the_writer_knows()
+    {
+        // The review's probe (the review of the fix pass after item 4): Egypt's letter "Greetings. c3 c4 c5 c6 c7" came back
+        // in its own view naming five people none of its lists held.
+        var s = GameFactory.NewGame(5);
+        var envoy = s.Characters.First(c => c.Employer == Power.Egypt);
+        envoy.SecretMaster = null;
+        var view = Views.For(s, Power.Egypt);
+        var known = view.Court.Concat(view.Known).Select(c => c.Id).ToHashSet();
+        var strangers = s.Characters.Where(c => !known.Contains(c.Id)).Take(3).ToList();
+        Assert.Equal(3, strangers.Count);
+        Assert.All(strangers, c => Assert.False(Views.Knows(c, Power.Egypt)));
+        var friend = s.Characters.First(c => c.Employer == Power.Egypt && c.Id != envoy.Id);
+        Assert.True(Views.Knows(friend, Power.Egypt));
+        var ids = string.Join(" ", strangers.Select(c => c.Id));
+        var e = new TurnEngine(s);
+        e.BeginTurn();
+        e.Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Egypt] = new() { Orders = [new DispatchOrder(envoy.Id, Power.Hatti, $"Greetings. {ids} and {friend.Id}. Ask {strangers[0].Name} ({strangers[0].Id}).", $"Speak of {strangers[1].Id}.")] },
+        });
+
+        // Ids it does not know stay as written, even beside a name it guessed; the one it knows becomes a name.
+        var trail = s.Trails.Single();
+        Assert.Equal($"Greetings. {ids} and {friend.Name}. Ask {strangers[0].Name} ({strangers[0].Id}).", trail.LeaderLetter);
+        Assert.Equal($"Speak of {strangers[1].Id}.", trail.Mandate);
+        // What Egypt reads back of its own letter (YOUR LETTERS) is the same text.
+        var letter = Views.For(s, Power.Egypt).Letters.Single();
+        Assert.Equal(trail.LeaderLetter, letter.Message);
+        Assert.All(strangers, c => Assert.DoesNotContain(c.Name, letter.Message.Replace($"Ask {strangers[0].Name} (", "")));
+    }
+
+    [Fact]
     public void An_examination_names_the_tablet_and_gives_its_text_in_full()
     {
         var s = WithPeace();

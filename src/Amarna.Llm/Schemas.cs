@@ -81,14 +81,14 @@ public static class Schemas
             ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
             ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands. A unit a levy is to raise (one you order now or schedule for an earlier season): the province of the levy.")),
             ("other_orders", Array(OtherOrder()))),
-            $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order that is refused or fails wakes you; a scheduled move that is stopped is tried once more (see the rulebook).");
+            $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order wakes you only if others foil it, never if it is refused or fails by your own orders; a scheduled move that is stopped is tried once more (see the rulebook).");
         props["standing_orders"] = Array(Object(
             ("when", Enum(["unit_enters", "unit_attacked"])),
             ("province", Str("unit_enters: the province the troops move into. unit_attacked: where your unit stands now.")),
             ("power", Str("unit_enters: whose troops, or empty for any foreign power's. Otherwise empty.")),
             ("units", Array(UnitOrder(described: false), "As in schedule: your units named by where they stand now.")),
             ("other_orders", Array(OtherOrder(described: false), "As in other_orders."))),
-            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the move it waits for, its orders run in that same season, once, before your scheduled orders, so they meet the move; orders you give that season replace them. Firing does not wake you; an order of it that fails does. Giving one costs nothing; its orders cost what they cost when they run.");
+            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the move it waits for, its orders run in that same season, once, before your scheduled orders, so they meet the move; orders you give that season replace them. Firing does not wake you; an order of it that others foil does. Giving one costs nothing; its orders cost what they cost when they run.");
         props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\".");
         required.Add("schedule");
         required.Add("standing_orders");

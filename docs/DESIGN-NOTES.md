@@ -85,7 +85,8 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   Gaza would not choose between 2 buyers last season. No gold was paid."). A city that troops take in the season of a bid is not sold: every bidder is told
   ("Gaza was taken by Babylonia's troops last season before its elders could accept your gold. No
   gold was paid.", or "Your own troops took Gaza last season; no gold was paid."), nobody pays (gold
-  is only reserved when orders are checked), and a scheduled bid that fails this way wakes its seat.
+  is only reserved when orders are checked), and a scheduled bid that fails this way wakes its seat, unless its own
+  troops took the city (since the review of the fix pass after item 4: no failure of a king's own making wakes him).
   (Until the simulation-fixes round such a bid vanished without a word.)
 - **A bought city keeps its walls**, which then hold for its owner: the owner cannot station troops
   inside but it, or any other king, may support the walls holding (the rulebook and the schema's
@@ -204,9 +205,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   changes: kings never choose when they wake (no named season, no triggers of their own, and a reply that still
   names a season is read as one that does not), threats to a home province or a walled city wake a sleeping king,
   standing orders answer a move in the season it is made, scheduled orders may name a levy's unit, and engine texts
-  name tablets and people as every court sees them; script envoys keep a share of small lots of gold, rounded to the
+  name tablets and people as every court sees them; since that pass's review, no order of a king's own wakes him (a
+  refusal, given or run, and a failure of his own making wake nobody), a failed attack on his land or troops wakes
+  him, and scribes name only the people the writer knows; script envoys keep a share of small lots of gold, rounded to the
   shekel instead of down to fives, leave the host's complaint about the weighing out of their reports when they kept
-  some, soften a passive "warned" only when the host is the one warned, and split sentences after a closing quote;
+  some, tell their lord of a post they turned down (since the review), soften a passive "warned" only when the host
+  is the one warned, and split sentences after a closing quote;
   and script kings use the features they never used, under "Every feature is every seat's" in Script kings). A log
   saved under another version is refused, both for replay and for continuing it: "This game was saved under an
   earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3 and
@@ -274,8 +278,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     `authenticate`): the archive lists "- the tablet sealed by Hatti and Egypt, dated turn 1 [your copy k900]: "Peace."
     (how it came)", the audience request's "Tablets you hold" the same, and notices name the tablet before the mark
     ("… (your copy k130)"); the examination notice gives the tablet's text in full. **The scribes**
-    (`TurnEngine.Scribe`) write what other courts read with the writer's own marks as the tablets' names, and person ids
-    ("c12", or "Mane (c12)") as the people's names: a letter, its mandate and its tablet (at dispatch, so the envoy, the
+    (`TurnEngine.Scribe`) write what other courts read with the writer's own marks as the tablets' names, and the ids of
+    the people the writer knows ("c12", or "Mane (c12)") as their names: only those its view lists, its court or the
+    people it knows (`Views.Knows`, the test the view itself uses), so an id it does not know stays as written (since
+    the review of the fix pass after item 4: before, any id became a name, so Egypt's letter "Greetings. c3 c4 c5 c6
+    c7" came back in its own YOUR LETTERS naming five people none of its lists held, and the envoy and the host read
+    the names too; tested). They scribe a letter, its mandate and its tablet (at dispatch, so the envoy, the
     host and the record all read the scribed text), a host's words and what it asks for a gift at an audience (in the
     runner, after the reply is logged, so the log keeps the king's own words and a replay scribes them again), the words
     given with a release, what a turned spy is to report, and a forgery's text. Marks that are not the writer's, and all
@@ -874,6 +882,21 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   - foreign troops entered its land last season ("foreign troops entered your land: Assyria's army
     moved ekallatum -> sippar"; a move counts as into its land if it held the province before the
     moves)
+  - **foreign troops attacked it, and failed** (since the review of the fix pass after item 4; "it is
+    attacked", among the document's default triggers): a foreign move last season into a province it
+    held, or into one where its troops stood, that did not get in, whatever stopped it (walls that
+    held, its troops that held, a bounce with another move), seen by the seat as every move into its
+    land or its troops is ("foreign troops attacked you, and failed: Mitanni's army tried to move
+    terqa -> mari"). Babylonia's debrief after seed 15 of the second agent simulation found the gap:
+    "A bounced assault on my walls therefore does not wake me ... Qadesh can only be protected
+    blind". When the attackers stood next to the city before the king last gave orders, no arrival
+    woke him, and a standing order fires once and is gone, so he first heard of the threat as land
+    lost. The review's probe: Mitanni's army in Terqa attacked Babylonia's bought Mari alone, the
+    walls held, and Babylonia slept on, the attack only in its digest (tested now: it wakes, and so
+    does an attack on its army in a home province). Two foreign moves that bounce in a province that
+    is not the seat's, with none of its troops there, do not wake it (tested). Until this review a
+    failed attack went to the digest, marked "(into your land)" or "(against your troops)", by the
+    reading of the simulation-fixes round (below).
   - **temporary, until sieges and walls on homeland provinces exist; revisit with the siege
     package:** foreign troops (an army or a fleet) ended a move last season in a province next to
     its capital (one link of any kind), seen by the seat, while it still holds its capital ("foreign
@@ -881,7 +904,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     homeland provinces an army there can take the capital the next season, so a sleeping king must
     not first hear of it when the capital falls (the user's addendum to the simulation-fixes round).
     Only the arrival wakes it: troops that stay where they are, a move that failed, the seat's own
-    troops, and any move once the capital is lost do not (tested). A move into its own land next to
+    troops, and any move once the capital is lost do not (tested; a failed move into its land or
+    against its troops wakes it as an attack, below). A move into its own land next to
     the capital gives both reasons. The replay numbers count it as its own kind.
   - **a threat to a home province or a walled city** (since the fix pass after item 4): foreign
     troops ended a move last season in a province next to another province of its homeland that it
@@ -894,7 +918,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     fleet off a coastal province counts, as does a move within the mover's own land. Troops that stay
     where they are, a move that failed, the seat's own troops, a levy, and any move once the
     province is lost do not wake it; a move into its land wakes it as "foreign troops entered your
-    land" alone, and a move next to its capital gives the capital reason alone (tested). The second
+    land" alone, a failed one into its land or against its troops as an attack, and a move next to its
+    capital gives the capital reason alone (tested). The second
     agent simulation found both gaps: Alashiya saw Egypt's fleet beside an empty Tamassos only because
     an envoy woke it (seed 7), and Babylonia moved support to the walls of its bought Qadesh, next to
     Egypt's armies, only because an envoy woke it (seed 15); both kings named the gap in their
@@ -903,21 +928,56 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   - it lost troops: a unit destroyed in battle ("your army in sippar was destroyed"), unpaid troops
     deserting ("your unpaid troops deserted"), or a unit killed by plague ("plague destroyed troops
     of yours")
-  - a scheduled or standing order could not be carried out: refused by the validator, failed as the
-    season resolved (any of the failures under "Every refused or failed order"), a scheduled move
-    that was stopped, with the battle report's reason ("orders you scheduled could not be carried
-    out: sippar -> mari (the walls of mari held; your strength 1 against 1)"), a scheduled support
-    that was cut ("... (the support was cut by an attack from ekallatum)"), or a scheduled support
-    or convoy that matched no move ("... (no unit moved from sippar to mari)"). A support or convoy
-    whose unit was destroyed is not counted again: the lost troops already wake the seat. An order
-    of a standing order that fired reads "a standing order of yours could not be carried out: s3:
-    ...". So do orders refused when given ("orders you scheduled were refused: turn 7: nippur -> ur:
-    you have no unit in nippur"; "standing orders you gave were refused: ..."), orders past the
-    schedule's limits or for a season already past (refused like any other), and orders dropped
-    because their unit is lost ("orders you gave for later could not be carried out: the troops they
-    were for are lost (...)"; see "Orders follow their unit"). A reason that lists orders names the
-    first three and counts the rest ("...; and 4 more, listed in the notice "Orders for lost troops
-    dropped""): the notice in the same request lists every one, so the opening line stays short.
+  - a scheduled or standing order that others foiled as the season resolved (`TurnEngine.ScheduledFailed`):
+    a scheduled move stopped by another power's unit (held off, met head on, or beaten to the
+    province), or by walls that troops helped hold (a strength above the walls' own 1;
+    `TurnEngine.StoppedByOthers`), with the battle report's reason ("orders you scheduled could not
+    be carried out: sippar -> ekallatum (the unit holding ekallatum (Assyria's army) kept its place;
+    your strength 1 against 1)"); a scheduled support that a foreign attack cut ("... (the support
+    was cut by an attack from ekallatum)"); a purchase other buyers or another's troops spoiled; a
+    levy or cession in land lost in that season's moves; a hire another court won, or one whose
+    candidate another court hired or holds; a servant who left the seat's service, a spy no longer
+    at its post, a captive no longer held or whose king fell, a ransom whose captive was let go,
+    that season; gold found short when paid, which only debased gold others gave can cause (and an
+    assay of gold weighed then). An order of a standing order that fired reads "a standing order of
+    yours could not be carried out: s3: ...". A support or convoy whose unit was destroyed is not
+    counted again: the lost troops already wake the seat.
+
+    **Nothing a king's own orders bring about wakes him** (since the review of the fix pass after
+    item 4), so that he cannot wake himself through them, which would bring back the named season
+    by another door ("No triggers of the seat's own": "Each is a way for a king to wake himself").
+    The review's probe found the door: a sleeping Babylonia that added an entry for the season
+    before to every reply was asked for orders every season, woken by "orders you scheduled were
+    refused: turn 0: that season has passed", the very "wake me next season" the kings of the
+    second simulation chose in 114 of 130 replies. So these are told in the seat's news, and in
+    the digest of a seat that sleeps on ("an order was refused or failed (...)"), and wake nobody:
+    - an order refused, when given (orders not kept: a season already past, past a limit, naming
+      a province where the seat has no unit, unreadable; standing orders not kept) or when it runs
+      (any of the validator's refusals: it checks the seat's own state and orders);
+    - a failure of its own making as the season resolves: a support or convoy that matched no
+      move (a guess at another unit's orders, given on purpose as easily); a move stopped by its own
+      unit, by walls alone (whose strength of 1 the king knows, so a lone attack on walls was a sure
+      way to be woken), or for want of a convoy; a levy where its own unit stands, or in land it
+      ceded; a cession its own troops stood in; a disband or a gift of a unit its own orders had
+      moved (one destroyed wakes it as troops lost); a purchase its own troops took first; a hire
+      below the asking price; a renewal below the servant's price, or of a servant it dismissed that
+      season (the price follows a rule; a servant's notice wakes it by itself); a forgery by a
+      servant without the skill;
+    - orders dropped because their unit is lost ("Orders for lost troops dropped": troops lost to
+      others wake the seat by themselves, and troops it disbanded or gave away are its own doing), or
+      because the levy they waited for raised none ("Orders for a levy that raised no unit dropped":
+      a scheduled levy that others foiled wakes it as a failed order; every other cause is its own).
+
+    Each was a reason before ("orders you scheduled were refused: ...", "standing orders you gave
+    were refused: ...", "orders you gave for later could not be carried out: the troops they were
+    for are lost (...)" or "... the levy they waited for raised no unit (...)"), and so was every
+    failure as the season resolved. The review suggested also checking a scheduled order's shape
+    (reach, unit kind) when it is given; with no refusal waking a king, that would change only when
+    he reads of the mistake, not whether it wakes him, so it is not built (a refused move still ends
+    the unit's march, as before). What remains is a route through others' troops: a king can still
+    schedule a weak attack on a foreign unit he expects to stand, or on walls he expects their owner
+    to support, and be woken when it fails; that costs him a unit's season and depends on another
+    king's orders, and is left to the owner as a review question.
   - a ransom is demanded for one of its people
   - a servant gives notice ("a servant gives notice: Mane asks 20 shekels a season to serve on"):
     the season of the notice is the one in which it can be renewed before it leaves
@@ -928,7 +988,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   reads why when next woken, and the rulebook says so. (Until the simulation-fixes round an envoy
   coming home, every report, candidates, catastrophes, forgeries, a caught spy, and foreign troops
   at its border or attacking it in vain woke it too: replayed through the engine, the simulation's
-  two seed-7 games would have woken a sleeping king in 117 of 120 seasons.)
+  two seed-7 games would have woken a sleeping king in 117 of 120 seasons. A failed attack on its land
+  or troops wakes it again since the review of the fix pass after item 4, above.)
 - **An envoy at the door: an audience, and the king judges whether to reopen its orders** (Part H
   of the simulation-fixes round, the owner's later instruction in `docs/ROUND-PROMPT-ADDITIONS.md`,
   section 4; it replaced an earlier plan in which an envoy could never reopen orders). The principle:
@@ -1040,14 +1101,15 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
 - **Changes, not states** (the user's rule for Part G of the simulation-fixes round: a trigger on a
   standing condition wakes a king every season and defeats sleeping). The engine's reasons above are
   all events or arrivals: an envoy waiting is one that arrived this season (audiences are cleared
-  each season), foreign troops are counted when they move in or arrive next to the capital, the
+  each season), foreign troops are counted when they move in, attack in vain, or arrive next to the capital, the
   homeland or a walled city, land and
   troops when they are lost, failures, notices and ransom demands when they come. A foreign levy
   raised next to the capital or the homeland is not an arrival by a move and wakes nobody (levies are not among the
   moves a seat sees).
 - **The digest.** Everything else waits for its next waking, as "WHILE YOU SLEPT": first "in
   brief", one line for each troop movement it saw ("turn 5: Egypt's army moved gaza -> megiddo";
-  "turn 5: Assyria's army tried to move ekallatum -> sippar (against your troops) and failed") and
+  "turn 5: Assyria's army tried to move mari -> terqa and failed", a move that touched none of its
+  land or troops) and
   for each envoy home with its report, spy, check, assay or examination report, candidate,
   catastrophe that killed no unit, forgery ready, spy caught at its court, refused or failed
   order, and standing order that fired ("turn 5: your envoy Mane came home with a report"; "turn 6:
@@ -1059,16 +1121,18 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   60 lines and the news the latest 40 items, each saying how many earlier ones were left out.
 - **What the kings are told.** Right after HOW YOU WIN the rulebook says: "After you give your
   orders, you sleep. Only these wake you, because they concern you: an envoy at your door; foreign
-  troops in your land, or arriving next to your homeland or a walled city you hold; land or troops
+  troops entering or attacking your land or your troops, or arriving next to your homeland or a
+  walled city you hold; land or troops
   lost; a scheduled or standing order
-  that failed; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season
+  that others foiled; a servant giving notice; a ransom demanded. You cannot ask to be woken, at a season
   you name or for anything else. If none of these happens, you sleep on: you may sleep for the rest
   of the game. So plan as if these orders must carry your kingdom until it ends: schedule what your
   armies should do in the seasons ahead, give standing orders for the attacks you fear, and leave
   your envoys mandates that stand on their own. When you are woken to receive an envoy, reopen your
   orders if the news changes your plan; otherwise they stand." It follows the document's decided
   text ("What the kings are told") with these changes: "a failed order" is "a scheduled or standing
-  order that failed", to stay true; the list of what wakes a king names the engine's triggers as
+  order that others foiled", to stay true (since the review of the fix pass after item 4, which
+  made a failure of the king's own making wake nobody; until then "that failed"); the list of what wakes a king names the engine's triggers as
   built; the sentence on reopening is the owner's, from Part H; and the decided "Nothing else wakes
   you, and you may not be woken again for the rest of the game" is said plainly instead ("Only these
   wake you"; "If none of these happens, you sleep on: you may sleep for the rest of the game"), since
@@ -1084,7 +1148,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   you choose: reopen your orders, and after your audiences you give orders this season with
   your full view, as when anything else wakes you; or let them stand and sleep on. Anything else
   that wakes you reopens your orders without asking (your audiences still come first)."); which foreign troops wake the
-  king ("Foreign troops wake you when they move into your land, and when they end a move in a
+  king ("Foreign troops wake you when they move into your land or against your troops, whether or not
+  the move succeeds, and when they end a move in a
   province next to your capital, another province of your homeland or a walled city you hold, while
   you hold it (troops there can take it the next season). Troops that only stay where they are do not
   wake you again, nor do troops raised by a levy."); scheduled orders, naming units
@@ -1121,8 +1186,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   is kept, listed and counted like any other and simply never runs, because the game ends first:
   what the king reads and the notices it gets are the same whatever `MaxTurns` is, so nothing tells
   it when the game must end (tested). What is not kept (a season already past, orders past the
-  24th, seasons past the 40th) is reported as "Scheduled orders not kept", and wakes the seat like
-  any other refusal (the rulebook: "orders past these limits are refused"). One entry per season
+  24th, seasons past the 40th) is reported as "Scheduled orders not kept", and, like
+  any other refusal, wakes nobody (the rulebook: "orders past these limits are refused"). One entry per season
   replaces everything scheduled for it, and an empty entry cancels it; that works for the current
   season too, and then its orders count as given now (they are not bound to units, and a failure
   among them does not wake the seat, as the rulebook says of the orders given for the season the
@@ -1132,8 +1197,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   the scheduled one for it, a scheduled order the seat repeats runs once, and the other scheduled
   orders still run. A renewal is not a task: a fresh renewal replaces a scheduled renewal or
   dismissal of the same person, and a fresh dismissal a scheduled renewal, but a renewal and an
-  errand for the same person both run (the rulebook says so in a clause). A failed scheduled order
-  wakes the seat next season; a failure the seat has already seen in its news, while awake, does
+  errand for the same person both run (the rulebook says so in a clause). A scheduled order that others
+  foiled wakes the seat next season (see "What wakes it"); a failure the seat has already seen in its news, while awake, does
   not wake it later.
 - **Orders follow their unit** (since the simulation-fixes round; before, a unit was named by where
   it would stand in that season, so a planned march failed at its first bounce). In `schedule` and
@@ -1144,13 +1209,13 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   the order runs it is given from where its units then stand (`TurnEngine.AsItStands`). An order
   naming a province where the seat has no unit, or a unit not its own, is refused when given, in the
   validator's words ("- turn 7: nippur -> ur: you have no unit in nippur", in "Scheduled orders not
-  kept"; "the unit in X is not yours" only where the seat can see, see "Sight"), and that wakes the
-  seat next season (a unit a levy is to raise is named as below). An order the reply named
+  kept"; "the unit in X is not yours" only where the seat can see, see "Sight"), which wakes nobody
+  (until the review of the fix pass after item 4 it woke the seat next season; a unit a levy is to raise is named as below). An order the reply named
   but left unreadable is refused when given in the same way. When a unit is lost (destroyed, deserted, killed by plague, disbanded or given away), every
   scheduled order bound to it is dropped, and so is a standing order that waited on it or has no
   orders left (a standing order's other orders stay). This is checked at the start of each season,
   before the wake check: the seat reads "Orders for lost troops dropped", listing each order as it
-  gave it, and is woken ("orders you gave for later could not be carried out: the troops they were
+  gave it. That wakes nobody since the review of the fix pass after item 4 (troops lost to others wake the seat by themselves; before, it was woken: "orders you gave for later could not be carried out: the troops they were
   for are lost (...)").
 - **Scheduled orders for new levies** (since the fix pass after item 4). A unit a levy is to raise
   is named by the province of the levy: in a scheduled order for a season after a levy of the seat's
@@ -1165,16 +1230,16 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   season's levies are raised (`TurnEngine.UnraisedLevies`): the seat reads "Orders for a levy that
   raised no unit dropped" ("These orders were for troops a levy was to raise, and it raised none, so
   they were dropped:", then a line for each, "- turn 3: the army to be raised in sippar in turn 2 ->
-  mari") and is woken
+  mari"), which wakes nobody since the review of the fix pass after item 4 (a scheduled levy others foiled wakes the seat as a failed order; before, the seat was woken
   ("orders you gave for later could not be carried out: the levy they waited for raised no unit
-  (...)"). Until the levy's season the view names the unit as "the army to be raised in ur in turn
+  (...)")). Until the levy's season the view names the unit as "the army to be raised in ur in turn
   2" (`TurnEngine.AsShown`). A levy in the same season as the order does not count (the levy is
   placed after movement, so its unit can first be ordered the season after), and standing orders,
   which have no season, name only units standing now. The rulebook: "A unit you raise can be given
   orders ahead too: name it by the province of its levy, in orders for any season after the levy (a
   levy you order now, or one you schedule). In those seasons that name means the unit the levy
   raises, even if another of your units stands there now; if the levy raises none, those orders are
-  dropped, which wakes you. Any other order naming a province where you have no unit is refused."
+  dropped (your news says so). Any other order naming a province where you have no unit is refused."
   Until then an order naming a province where the seat had no unit was refused, so a new levy could
   not be given orders ahead: one of the reasons the kings of the second agent simulation gave for
   naming the very next season to be woken (tested).
@@ -1188,7 +1253,7 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   army in babylon failed to reach durkurigalzu a second time in turn 3: its march ends, and its
   remaining scheduled orders were dropped: turn 4: babylon -> nippur."). A scheduled move refused by
   the validator is not tried again (it would be refused again from the same place) and ends the
-  march the same way. Each failure is a failed scheduled order and wakes the seat, which sees the
+  march the same way. A failure others caused wakes the seat (see "What wakes it"), which sees the
   shifted plan in its view. A refused move with no later orders to drop is told only as refused (no
   "A march ends" notice). Only scheduled moves form a march: a move given for the season the seat
   is awake (or in the schedule's entry for that season) that is stopped is not tried again, and the
@@ -1224,12 +1289,12 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   Replaced by standing order s1, which fired in the same season: babylon holds.", with "Refused:
   sippar -> ur (an army in sippar cannot reach ur)." and "Replaced by the orders you gave for turn
   3: ..." where they apply. Firing does not wake the seat (the digest has "turn 3: your standing
-  order s1 fired"); an order of it that is refused or fails does ("a standing order of yours could
+  order s1 fired"); an order of it that others foil does ("a standing order of yours could
   not be carried out: s1: babylon -> durkurigalzu (it met a move into durkurigalzu from ekallatum
   ...)", tested). A standing order that cannot be kept (a province that does not exist, no unit of
   the seat's where `unit_attacked` names, no orders or more than 24, an order naming a province
   where the seat has no unit, a power nobody knows, or a thirteenth) is refused whole ("Standing
-  orders not kept"), which wakes the seat next season; the rulebook and the schema give both limits.
+  orders not kept"), which wakes nobody (until the review of the fix pass after item 4 it woke the seat next season); the rulebook and the schema give both limits.
   Cancellation is applied before the season's standing orders fire, new standing orders after the
   season's orders are checked. The design document's wider vocabulary ("unless" conditions,
   treasury below, envoy returned, tablet sealed) is not built (item 6).
@@ -1895,6 +1960,7 @@ Script characters (`ScriptMind`) carry the letters of every king, script or not.
 - **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through. A passive "warned" is a threat only when the one warned is the host ("you have been warned", "be warned", "consider yourself warned"); until the fix pass after item 4 (save version 5) any passive "warned" was, so a timid script envoy (the shadow of a model one) dropped "we must strike all at once, before they can be warned", a strike against Assyria, from Babylonia's letter to Mitanni in the second agent simulation, and the check flagged that as softening a threat to the host.
 - **Reporting home.** A faithful envoy (loyalty 60 or more, competence 50 or more, not bribed by this host) repeats the host word for word. A bribed envoy, or a timid one that is not faithful, drops the host's threats against its own lord in the same way. The host speaks to the envoy of its lord, so "he", "him" and "his" count as the lord too, unless the sentence names another king: "If his troops cross the river again, I will burn his cities" is dropped, "I will crush Assyria in the spring" is kept.
 - **Assurances.** Reporting home, an ambitious envoy (ambition above 70) that overreached at the audience ("promised that my lord will agree to whatever the king asks") says "I gave him such assurances as you would wish." It says nothing of a commitment that did not overreach.
+- **A post turned down.** Reporting home, an envoy that turned down the host's offer of a post says so ("The king of Karduniash offered me a post in his service, and I refused it: I serve you alone."), unless its loyalty is below 50 or that host bribed it. Its lord learns that the host tried to buy his servant, and that the servant stayed true. (Since the review of the fix pass after item 4: before, no script envoy mentioned an offer, so the shadow raised `hid-offer` for 7 of the 7 reports in the integrator's stub game, loyal envoys included. Script kings do not yet act on the line: its words carry nothing their reading of reports counts.)
 - **A bribe's request.** An envoy that took a host's gift passes on what the host asked it to tell its lord, in the host's own words, and vouches for it: "Carry my words faithfully, and tell your lord that my armies are few" becomes 'At the court of Hatti the king told me "My armies are few", and I saw for myself that it is so.' The message may stand anywhere in the request and name the lord as "your lord", "your master", "him", "the king" or by any of his names ("tell Pharaoh that…", "say to Tushratta that…"). A message forbidden ("do not tell your lord…") or empty ("tell him everything") is not passed on. Asked to speak well of another king ("speak well of Mitanni to your lord"), the envoy says "At the court of Hatti I saw for myself that Mitanni is a true friend to you"; of the host itself it already says "The king of Hatti is a true friend to you, my lord, and wishes only peace". The envoy still leaves out what it saw of the host's own troops.
 
 One more rule decides whether it changes masters:

@@ -53,6 +53,12 @@ public sealed partial class TurnEngine
     /// <summary>Why a seat is woken when foreign troops end a move next to a walled city it holds (a bought city), and none of its homeland.</summary>
     public const string WallsReason = "foreign troops came next to a walled city of yours";
 
+    /// <summary>
+    /// Why a seat is woken when a foreign move into a province it held, or against its troops, failed (followed by the move):
+    /// it was attacked, though nothing was lost.
+    /// </summary>
+    public const string AttackedReason = "foreign troops attacked you, and failed";
+
     /// <summary>Why a sleeping seat holds court: an envoy of <paramref name="from"/> waits at its door.</summary>
     public static string EnvoyWaits(Power from) => $"an envoy of {from} waits to be received";
 
@@ -191,12 +197,15 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// What wakes a seat, and nothing else: the default triggers, events the engine itself judges to concern it, and the hidden
-    /// cap. An envoy waiting to be received; foreign troops in its land, or ending a move next to its capital, another
-    /// province of its homeland or a walled city, while it holds it; land or troops lost; a scheduled or standing order that failed; a ransom demanded; a servant giving notice; the
-    /// hidden cap. (A kingdom that falls ends its sleep in <see cref="EndSleep"/>.) The seat itself can neither name a season
-    /// to be woken in nor set triggers of its own (removed in the fix pass after item 4: given a way to wake himself, a king
-    /// used it every season). An envoy waiting wakes it for its audiences only; every other reason here is an order trigger,
-    /// which reopens its orders directly (<see cref="WakeCheck"/>).
+    /// cap. An envoy waiting to be received; foreign troops entering or attacking its land or its troops, or ending a move
+    /// next to its capital, another province of its homeland or a walled city, while it holds it; land or troops lost; a
+    /// scheduled or standing order that others foiled (<see cref="ScheduledFailed"/>); a ransom demanded; a servant giving
+    /// notice; the hidden cap. (A kingdom that falls ends its sleep in <see cref="EndSleep"/>.) The seat itself can neither
+    /// name a season to be woken in nor set triggers of its own (removed in the fix pass after item 4: given a way to wake
+    /// himself, a king used it every season), nor wake itself through its own orders: an order refused, or one that fails
+    /// only because of its own orders or strength, wakes nobody (since the review of that pass). An envoy waiting wakes it
+    /// for its audiences only; every other reason here is an order trigger, which reopens its orders directly
+    /// (<see cref="WakeCheck"/>).
     /// </summary>
     private List<string> WakeReasons(Power p, SleepState sl)
     {
@@ -217,19 +226,30 @@ public sealed partial class TurnEngine
         // next to its capital, while it still holds it, since with no walls on homeland provinces they can take it the
         // next season. Since the fix pass after item 4, the same threat to any other province of its homeland, or to a
         // walled city it holds (a bought city): foreign troops that ended a move next to one, while it holds it. Troops
-        // that merely stand there do not wake it again, and a move into its land wakes it for that alone.
+        // that merely stand there do not wake it again, and a move into its land wakes it for that alone. Since the review
+        // of that pass, an attack that failed wakes it too ("it is attacked", among the document's default triggers): a
+        // foreign move into a province it held, or into one where its troops stood, that did not get in (walls that held,
+        // its troops that held, a bounce), so a king whose walled city or home province is assailed hears of it although
+        // nothing was lost, even when the attackers stood next to it before he last gave orders.
         var capital = Map.Capital(p).Id;
         var nextToCapital = S.Owner.GetValueOrDefault(capital) == p ? Map.Neighbors(capital).ToHashSet() : [];
         var home = Map.HomeOf(p).Select(x => x.Id).Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
         var walled = S.Garrisons.Where(x => S.Owner.GetValueOrDefault(x) == p).ToHashSet();
-        foreach (var o in S.LastSeen.GetValueOrDefault(p) ?? [])
+        var seen = S.LastSeen.GetValueOrDefault(p) ?? [];
+        var stood = seen.Where(o => o.Power == p).Select(o => o.Province).ToHashSet();
+        foreach (var o in seen)
         {
             if (o.Power == p)
             {
                 if (o.Destroyed) Add($"your {Kind(o.UnitKind)} in {o.Province} was destroyed");
                 continue;
             }
-            if (o.Order != "move" || !o.Succeeded || o.Target is not { } t) continue;
+            if (o.Order != "move" || o.Target is not { } t) continue;
+            if (!o.Succeeded)
+            {
+                if (o.TargetOwner == p || stood.Contains(t)) Add($"{AttackedReason}: {o.Power}'s {Kind(o.UnitKind)} tried to move {o.Province} -> {t}");
+                continue;
+            }
             var move = $"{o.Power}'s {Kind(o.UnitKind)} moved {o.Province} -> {t}";
             if (o.TargetOwner == p)
                 Add($"foreign troops entered your land: {move}");
@@ -259,20 +279,19 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// What happened this season that did not wake a sleeping seat, one line each, for the digest it reads when it wakes:
-    /// troop movements it saw (failed attacks on its land or troops among them), and a line for each report, catastrophe,
-    /// forgery, caught spy and refused order whose full text waits in its news.
+    /// troop movements it saw, and a line for each report, catastrophe, forgery, caught spy and refused or failed order whose
+    /// full text waits in its news. (A failed attack on its land or troops is not among them: since the review of the fix
+    /// pass after item 4 it wakes the seat.)
     /// </summary>
     private void CollectDigest(Power p, SleepState sl)
     {
-        var seen = S.LastSeen.GetValueOrDefault(p) ?? [];
-        var mine = seen.Where(o => o.Power == p).Select(o => o.Province).ToHashSet();
-        foreach (var o in seen)
+        foreach (var o in S.LastSeen.GetValueOrDefault(p) ?? [])
         {
             if (o.Power == p || o.Order != "move" || o.Target is not { } t) continue;
             var who = $"{o.Power}'s {Kind(o.UnitKind)}";
             sl.Digest.Add(o.Succeeded
                 ? $"turn {S.Turn - 1}: {who} moved {o.Province} -> {t}"
-                : $"turn {S.Turn - 1}: {who} tried to move {o.Province} -> {t}{(mine.Contains(t) ? " (against your troops)" : o.TargetOwner == p ? " (into your land)" : "")} and failed");
+                : $"turn {S.Turn - 1}: {who} tried to move {o.Province} -> {t} and failed");
         }
         // Each line is dated by the season its news came, except a standing order's firing, dated by the season it fired.
         foreach (var i in S.InboxOf(p).Where(i => i.Turn == S.Turn))
@@ -363,7 +382,7 @@ public sealed partial class TurnEngine
     /// both run. The stand-in's orders only fill what the seat's own plans leave free. The standing orders that fire are
     /// spent: they leave the seat's list.
     /// </summary>
-    private TurnSubmission Compose(Power p, SeasonPlan plan, IReadOnlyList<(StandingOrder Order, string Cause)> fired, out List<Order> scheduled)
+    private TurnSubmission Compose(Power p, SeasonPlan plan, IReadOnlyList<(StandingOrder Order, string Cause)> fired)
     {
         var sl = S.Sleep[p];
         var now = plan.Now;
@@ -383,7 +402,7 @@ public sealed partial class TurnEngine
         }
 
         var runs = Survivors(now.Concat(standing.Select(x => x.Order)), plan.Due, x => x.Order!);
-        scheduled = standing.Select(x => x.Order).Concat(runs.Select(x => x.Order!)).ToList();
+        var scheduled = standing.Select(x => x.Order).Concat(runs.Select(x => x.Order!)).ToList();
         // The stand-in's orders come last, for the units and people the seat's own plans leave free.
         var filling = plan.StandIn ? Survivors(now.Concat(scheduled), plan.Sub.Orders, o => o) : [];
         _scheduledNow[p] = scheduled;
@@ -418,7 +437,7 @@ public sealed partial class TurnEngine
         var moves = Powers.All.Where(seasons.ContainsKey).ToDictionary(p => p, p =>
         {
             var (sub, plan) = seasons[p];
-            return validator.Validate(p, plan is null ? sub : Compose(p, plan, [], out _)).Accepted.OfType<MoveOrder>().ToList();
+            return validator.Validate(p, plan is null ? sub : Compose(p, plan, [])).Accepted.OfType<MoveOrder>().ToList();
         });
         foreach (var p in waiting)
         {
@@ -546,8 +565,15 @@ public sealed partial class TurnEngine
             : "orders you scheduled could not be carried out";
 
     /// <summary>
-    /// A scheduled or standing order that failed while the season resolved (a move that was stopped, a support that was cut,
-    /// a support or convoy that matched no move, or a levy, cession or purchase that could not go through) wakes its seat next season.
+    /// A scheduled or standing order that others foiled while the season resolved wakes its seat next season: a move stopped
+    /// by foreign troops, or by walls that troops helped hold (<see cref="StoppedByOthers"/>), a support cut by a foreign
+    /// attack, a purchase other buyers or foreign troops spoiled, a cession or levy in land lost in movement, a captive or
+    /// ransom whose fate another court changed, gold found short when paid (debased gold others gave). Callers call it only
+    /// for those. Since the review of the fix pass after item 4 nothing the seat's own orders bring about wakes it, so that
+    /// it cannot wake itself through them: an order refused (when given, or by the checks when it runs), a support or convoy
+    /// that matched no move, a move stopped by its own unit, by walls alone or for want of a convoy, a levy or cession its
+    /// own troops stood in the way of, a unit its own orders moved or gave away, a renewal below the servant's price. Each
+    /// is told in its news as before, and in the digest of a seat that sleeps on.
     /// </summary>
     private void ScheduledFailed(Power p, Order order, string why)
     {
@@ -556,20 +582,20 @@ public sealed partial class TurnEngine
     }
 
     /// <summary>
-    /// After validation: failed scheduled and standing orders wake the seat next season. A seat that was asked this season
-    /// (and answered itself, not through the stand-in) keeps the orders it scheduled and its new standing orders, and goes
-    /// to sleep: until a reason wakes it, or the hidden cap, turn + 1 + <see cref="GameConfig.MaxSleep"/>.
+    /// After validation: a standing order that fired is told. Scheduled and standing orders the checks refuse are told in the
+    /// season's notice of refused orders and wake nobody (since the review of the fix pass after item 4: a refusal comes of
+    /// the seat's own orders and state, so waking for it would let a king wake himself with an order he knows will be
+    /// refused). A seat that was asked this season (and answered itself, not through the stand-in) keeps the orders it
+    /// scheduled and its new standing orders, and goes to sleep: until a reason wakes it, or the hidden cap, turn + 1 +
+    /// <see cref="GameConfig.MaxSleep"/>.
     /// </summary>
-    private void AfterValidation(Power p, TurnSubmission sub, ValidationResult v, List<Order> scheduled)
+    private void AfterValidation(Power p, TurnSubmission sub, ValidationResult v)
     {
         if (!S.Config.SleepingSeats || !S.Sleep.TryGetValue(p, out var sl)) return;
         foreach (var f in _firedNow.GetValueOrDefault(p) ?? []) TellFired(p, f, v);
         // A seat asked this season has seen earlier failures in its own news; only this season's count.
         var asked = !sl.Asleep && !sub.FromFallback;
         if (asked) sl.PendingWake.Clear();
-        var failed = v.Rejected.Where(r => scheduled.Any(o => ReferenceEquals(o, r.Order))).ToList();
-        foreach (var g in failed.GroupBy(f => FailureOf(p, f.Order)))
-            sl.PendingWake.Add($"{g.Key}: " + Entries(g.Select(f => $"{f.Order.Describe()} ({f.Reason})").ToList(), "Orders that could not be carried out"));
         // Asleep, or the script king stood in after the seat's call failed: the seat has not seen this season yet,
         // and it is asked again next season.
         if (!asked) return;
@@ -661,7 +687,9 @@ public sealed partial class TurnEngine
     /// <summary>
     /// Once the season's levies are raised: scheduled orders still waiting for a unit a levy of this season or earlier was to
     /// raise can never run (the levy failed, was refused, or was not given after all). They are dropped, and the seat is told
-    /// and woken, as when the troops orders were for are lost.
+    /// in its news. That wakes nobody (since the review of the fix pass after item 4): a levy that failed because others
+    /// foiled it wakes the seat by itself when it was scheduled (land lost in movement, or debased gold), and every other
+    /// cause is the seat's own (a levy refused, replaced, or blocked by its own unit), which must not be a way to be woken.
     /// </summary>
     private void UnraisedLevies()
     {
@@ -675,7 +703,6 @@ public sealed partial class TurnEngine
             var lines = dropped.Select(x => $"turn {x.Turn}: {AsShown(S, p, x).Describe()}").ToList();
             S.Notify(p, InboxKind.Rejected, UnraisedTitle,
                 "These orders were for troops a levy was to raise, and it raised none, so they were dropped:\n" + string.Join("\n", lines.Select(x => "- " + x)));
-            sl.PendingWake.Add($"orders you gave for later could not be carried out: the levy they waited for raised no unit ({Entries(lines, UnraisedTitle)})");
         }
     }
 
@@ -684,8 +711,8 @@ public sealed partial class TurnEngine
     /// orders a season, for at most <see cref="MaxScheduledSeasons"/> seasons. One entry per season replaces everything
     /// scheduled for it, and an empty entry cancels it. Each order is bound to the units it names (<see cref="Bind"/>), a unit
     /// still to be raised to the levy that raises it (a levy accepted among this season's orders, or one scheduled for an
-    /// earlier season than the order's); one naming a province where the seat has no unit and raises none is refused, which
-    /// wakes the seat next season. What is not kept is reported.
+    /// earlier season than the order's); one naming a province where the seat has no unit and raises none is refused. What is
+    /// not kept is reported in the seat's news, and wakes nobody.
     /// </summary>
     private void KeepScheduled(Power p, SleepState sl, List<ScheduledOrders> plans, IEnumerable<Order> accepted)
     {
@@ -723,16 +750,16 @@ public sealed partial class TurnEngine
             notKept.Add($"turn{(late.Count == 1 ? "" : "s")} {string.Join(", ", late)}: orders may be scheduled for at most {MaxScheduledSeasons} seasons, so those for the latest were not kept");
             sl.Scheduled.RemoveAll(x => late.Contains(x.Turn));
         }
-        // Orders past a limit, or for a season already past, are refused like any other, and wake the seat the same way.
+        // Orders past a limit, or for a season already past, are refused like any other. Like the refusal of an order given
+        // for this season, it is told in the seat's news and wakes nobody: an order the seat knows will be refused must not be
+        // a way to be woken next season.
         if (notKept.Count + refused.Count == 0) return;
-        const string title = "Scheduled orders not kept";
-        S.Notify(p, InboxKind.Rejected, title, string.Join("\n", refused.Concat(notKept).Select(x => "- " + x)));
-        sl.PendingWake.Add("orders you scheduled were refused: " + Entries(refused.Concat(notKept).ToList(), title));
+        S.Notify(p, InboxKind.Rejected, "Scheduled orders not kept", string.Join("\n", refused.Concat(notKept).Select(x => "- " + x)));
     }
 
     /// <summary>
     /// Keeps a seat's new standing orders, at most <see cref="MaxStanding"/> in all, each bound to the units it names
-    /// (<see cref="Bind"/>). One that cannot be kept is refused whole, which wakes the seat next season.
+    /// (<see cref="Bind"/>). One that cannot be kept is refused whole, which is reported in the seat's news and wakes nobody.
     /// </summary>
     private void KeepStanding(Power p, SleepState sl, List<StandingRequest> requests)
     {
@@ -774,10 +801,9 @@ public sealed partial class TurnEngine
                 Orders = bound,
             });
         }
+        // Told in the seat's news, waking nobody, as for scheduled orders not kept.
         if (refused.Count == 0) return;
-        const string title = "Standing orders not kept";
-        S.Notify(p, InboxKind.Rejected, title, string.Join("\n", refused.Select(x => "- " + x)));
-        sl.PendingWake.Add("standing orders you gave were refused: " + Entries(refused, title));
+        S.Notify(p, InboxKind.Rejected, "Standing orders not kept", string.Join("\n", refused.Select(x => "- " + x)));
     }
 
     /// <summary>Cancels standing orders by id, or all of them; an id the seat does not have is reported.</summary>
@@ -807,7 +833,8 @@ public sealed partial class TurnEngine
     /// After movement, each scheduled move that ran this season: one whose unit still stands but did not get where it was
     /// going is tried again next season, and each of that unit's later scheduled orders waits a season; failing a second
     /// time, or refused, it ends the unit's march, and the unit's remaining scheduled orders are dropped. (The failure
-    /// itself wakes the seat.) A unit that was destroyed takes its orders with it (<see cref="LostUnits"/>).
+    /// itself wakes the seat when others foiled it: see <see cref="ScheduledFailed"/>.) A unit that was destroyed takes its
+    /// orders with it (<see cref="LostUnits"/>).
     /// </summary>
     private void Marches(IReadOnlyDictionary<Power, ValidationResult> valid)
     {
@@ -853,7 +880,10 @@ public sealed partial class TurnEngine
 
     /// <summary>
     /// Orders bound to troops the seat no longer has (destroyed, deserted, disbanded or given away) can never run: they are
-    /// dropped, a standing order with them if it waited on that unit or has no orders left, and the seat is told and woken.
+    /// dropped, a standing order with them if it waited on that unit or has no orders left, and the seat is told in its news.
+    /// Dropping them wakes nobody (since the review of the fix pass after item 4): troops lost to others (in battle, by
+    /// desertion or plague) wake the seat by themselves, and troops the seat disbanded or gave away are its own doing, which
+    /// must not be a way to be woken.
     /// </summary>
     private void LostUnits(Power p, SleepState sl)
     {
@@ -878,16 +908,7 @@ public sealed partial class TurnEngine
         S.Notify(p, InboxKind.Rejected, LostTroopsTitle,
             "These orders were for troops you no longer have (destroyed, deserted, disbanded or given away), so they were dropped. Each names its unit by where it stood when you gave the order:\n"
             + string.Join("\n", lines.Select(x => "- " + x)));
-        sl.PendingWake.Add($"orders you gave for later could not be carried out: the troops they were for are lost ({Entries(lines, LostTroopsTitle)})");
     }
-
-    /// <summary>The most orders a wake reason names; the rest are counted, and the notice it names lists every one.</summary>
-    public const int MaxReasonEntries = 3;
-
-    /// <summary>The orders a wake reason names: the first few, and how many more the notice lists, so the reason stays short.</summary>
-    private static string Entries(List<string> items, string notice) => items.Count <= MaxReasonEntries
-        ? string.Join("; ", items)
-        : string.Join("; ", items.Take(MaxReasonEntries)) + $"; and {items.Count - MaxReasonEntries} more, listed in the notice \"{notice}\"";
 
     /// <summary>A sleeping seat whose kingdom falls stops sleeping: its last spell ends that season.</summary>
     private void EndSleep(Power p)
@@ -900,6 +921,19 @@ public sealed partial class TurnEngine
             spell.Reasons = ["the kingdom fell"];
         }
     }
+
+    /// <summary>
+    /// Whether others stopped a move of <paramref name="p"/>'s, so that its failure wakes the seat when the move was scheduled:
+    /// another power's unit held it off, met it or took the province first, or walls held that troops had helped hold (a
+    /// strength above the walls' own 1). Not a move stopped by the seat's own unit, by walls alone (whose strength the king
+    /// knows), or for want of a convoy: the seat's own orders and strength decided those.
+    /// </summary>
+    public static bool StoppedByOthers(Power p, MoveFailure f) => f.Stop switch
+    {
+        MoveStop.NoConvoy or MoveStop.OwnUnit => false,
+        MoveStop.Walls => f.Against > 1,
+        _ => f.Power is { } q && q != p,
+    };
 
     private static string Kind(UnitKind k) => k == UnitKind.Army ? "army" : "fleet";
 }

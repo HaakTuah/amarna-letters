@@ -71,13 +71,48 @@ public class WakeTriggerTests
     }
 
     [Fact]
-    public void A_failed_move_next_to_the_capital_does_not_wake_the_seat()
+    public void A_failed_move_next_to_the_capital_wakes_the_seat_only_as_an_attack_on_its_troops()
     {
-        // Babylon's own army stands in Durkurigalzu, and holds.
+        // Babylon's own army stands in Durkurigalzu, and holds: the move did not arrive, but it was an attack on its troops.
         var (s, sleep) = Sleeping(s => s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Babylonia, Kind = UnitKind.Army, Province = "durkurigalzu" }));
         Season(s, Assyria(new MoveOrder("ekallatum", "durkurigalzu")));
+        Assert.False(sleep.Asleep);
+        Assert.Equal([$"{TurnEngine.AttackedReason}: Assyria's army tried to move ekallatum -> durkurigalzu"], sleep.WokenBecause);
+
+        // Two of Assyria's armies bounce in its own empty Durkurigalzu: neither arrived, nor attacked Babylonia's land or troops.
+        (s, sleep) = Sleeping(s => s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "susa" }));
+        Season(s, Assyria(new MoveOrder("ekallatum", "durkurigalzu"), new MoveOrder("susa", "durkurigalzu")));
         Assert.True(sleep.Asleep);
         Assert.Empty(sleep.WokenBecause);
+    }
+
+    [Fact]
+    public void A_failed_assault_on_a_walled_city_it_holds_wakes_the_seat()
+    {
+        // The review's probe (Babylonia's debrief, seed 15): Mitanni's army already stands in Terqa, next to Babylon's bought
+        // Mari, when Babylon last gave orders, so no arrival wakes it. Mitanni attacks Mari alone and the walls hold.
+        var (s, sleep) = Sleeping(s =>
+        {
+            s.Owner["mari"] = Power.Babylonia;
+            s.Units.RemoveAll(u => u.Province == "terqa");
+            s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Mitanni, Kind = UnitKind.Army, Province = "terqa" });
+        });
+        Season(s, new() { [Power.Mitanni] = new TurnSubmission { Orders = [new MoveOrder("terqa", "mari")] } });
+        Assert.Equal("mari", s.Garrisons.Single(g => g == "mari"));
+        Assert.Equal(Power.Babylonia, s.Owner["mari"]);
+        Assert.False(sleep.Asleep);
+        Assert.Equal([$"{TurnEngine.AttackedReason}: Mitanni's army tried to move terqa -> mari"], sleep.WokenBecause);
+
+        // A home province with its army in it, attacked in vain: the same reason.
+        (s, sleep) = Sleeping(s =>
+        {
+            s.Units.RemoveAll(u => u.Province is "nippur" or "susa");
+            s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Babylonia, Kind = UnitKind.Army, Province = "nippur" });
+            s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "susa" });
+        });
+        Season(s, Assyria(new MoveOrder("susa", "nippur")));
+        Assert.Equal(Power.Babylonia, s.Owner["nippur"]);
+        Assert.Equal([$"{TurnEngine.AttackedReason}: Assyria's army tried to move susa -> nippur"], sleep.WokenBecause);
     }
 
     [Fact]
@@ -169,7 +204,7 @@ public class WakeTriggerTests
     }
 
     [Fact]
-    public void A_move_into_its_land_wakes_the_seat_for_that_alone_and_a_lost_or_failed_threat_wakes_nobody()
+    public void A_move_into_its_land_wakes_the_seat_for_that_alone_and_a_lost_threat_wakes_nobody()
     {
         // Assyria's army in Susa walks into empty Ur, next to Nippur: entering its land is the reason, not the threat to Nippur.
         var (s, sleep) = Sleeping(s => s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "susa" }));
@@ -183,17 +218,18 @@ public class WakeTriggerTests
         Season(s, Egypt(new MoveOrder("delta", "greatgreen")));
         Assert.True(sleep.Asleep);
 
-        // Alashiya's own fleet holds the Great Green: Egypt's move fails, and an attack that did not get in waits in the digest.
+        // Alashiya's own fleet holds the Great Green: Egypt's move fails, and wakes it as an attack on its troops (since the
+        // review of the fix pass after item 4; before, an attack that did not get in waited in the digest), not as a threat.
         (s, sleep) = AlashiyaAsleep(s => s.Units.First(u => u.Province == "enkomi").Province = "greatgreen");
         Season(s, Egypt(new MoveOrder("delta", "greatgreen")));
-        Assert.True(sleep.Asleep);
+        Assert.Equal([$"{TurnEngine.AttackedReason}: Egypt's fleet tried to move delta -> greatgreen"], sleep.WokenBecause);
     }
 
     [Fact]
     public void The_rulebook_says_that_troops_next_to_the_homeland_or_a_walled_city_wake_a_king()
     {
         var rules = Prompts.LeaderRules(true, new GameConfig());
-        Assert.Contains("an envoy at your door; foreign troops in your land, or arriving next to your homeland or a walled city you hold; land or troops lost", rules);
-        Assert.Contains("- Foreign troops wake you when they move into your land, and when they end a move in a province next to your capital, another province of your homeland or a walled city you hold, while you hold it (troops there can take it the next season). Troops that only stay where they are do not wake you again, nor do troops raised by a levy.", rules);
+        Assert.Contains("an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; land or troops lost", rules);
+        Assert.Contains("- Foreign troops wake you when they move into your land or against your troops, whether or not the move succeeds, and when they end a move in a province next to your capital, another province of your homeland or a walled city you hold, while you hold it (troops there can take it the next season). Troops that only stay where they are do not wake you again, nor do troops raised by a levy.", rules);
     }
 }
