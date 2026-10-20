@@ -99,6 +99,36 @@ public class RecordTextTests
         Assert.StartsWith($"The tablet sealed by Egypt and Hatti, dated turn 1 (your copy k900): \"{long_}\" — ", notice.Body);
     }
 
+    private static string Battle(GameState s, Power p) =>
+        s.InboxOf(p).Single(i => i.Kind == InboxKind.Battle && i.Title.StartsWith("Movements", StringComparison.Ordinal)).Body;
+
+    [Fact]
+    public void A_stopped_move_says_where_the_unit_now_stands()
+    {
+        // Assyria and Mitanni meet head to head between Ekallatum and Terqa at equal strength: both bounce and stay.
+        var s = GameFactory.NewGame(1);
+        new TurnEngine(s).Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Assyria] = new() { Orders = [new MoveOrder("ekallatum", "terqa")] },
+            [Power.Mitanni] = new() { Orders = [new MoveOrder("terqa", "ekallatum")] },
+        });
+
+        Assert.Contains("- A ekallatum -> terqa: fails: it met the unit from terqa (Mitanni's army) coming the other way; your strength 1 against 1; so your army stays in ekallatum", Battle(s, Power.Assyria));
+        Assert.Contains("- A terqa -> ekallatum: fails: it met the unit from ekallatum (Assyria's army) coming the other way; your strength 1 against 1; so your army stays in terqa", Battle(s, Power.Mitanni));
+
+        // A unit whose move failed and that was then destroyed is not said to stay: its own line says it was destroyed.
+        var t = GameFactory.NewGame(1);
+        new TurnEngine(t).Resolve(new Dictionary<Power, TurnSubmission>
+        {
+            [Power.Assyria] = new() { Orders = [new MoveOrder("ekallatum", "terqa"), new SupportOrder("ashur", "ekallatum", "terqa")] },
+            [Power.Mitanni] = new() { Orders = [new MoveOrder("terqa", "ekallatum")] },
+            [Power.Babylonia] = new() { Orders = [new SupportOrder("sippar", "terqa", "ekallatum"), new SupportOrder("durkurigalzu", "terqa", "ekallatum")] },
+        });
+        var assyria = Battle(t, Power.Assyria);
+        Assert.Contains("- A ekallatum is destroyed", assyria);
+        Assert.DoesNotContain("stays in ekallatum", assyria);
+    }
+
     [Fact]
     public void The_host_reads_the_envoys_own_promise_apart_from_what_the_audience_brought_about()
     {

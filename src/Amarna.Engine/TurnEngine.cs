@@ -458,7 +458,12 @@ public sealed partial class TurnEngine
                     var why = WhyMoveFailed(p, l.Province, l.Target!, f, sight);
                     // A scheduled move that was stopped wakes its sleeping seat, with the reason.
                     if (byProvince.TryGetValue(l.Province, out var move)) ScheduledFailed(p, move, why);
-                    mine.Add($"{l.Text}: {why}");
+                    // Where the unit now stands, in plain words: it stayed where it was (unless it was destroyed there, which
+                    // its own line says).
+                    var stays = S.Units.FirstOrDefault(u => u.Power == p && u.Province == l.Province) is { } still
+                        ? $"; so your {(still.Kind == UnitKind.Army ? "army" : "fleet")} stays in {l.Province}"
+                        : "";
+                    mine.Add($"{l.Text}: {why}{stays}");
                 }
                 else
                 {

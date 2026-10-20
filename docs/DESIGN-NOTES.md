@@ -14,7 +14,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   move into the target from a named province (always the reason given when that move took the
   target); the unit holding the target kept its place (or could not leave); the walls held; or
   another move into the target was as strong. Where strength decided it, the strengths compared
-  follow ("your strength 2 against 2"). The other side's power is named only if that unit stood,
+  follow ("your strength 2 against 2"), then where the unit now stands ("; so your fleet stays in
+  enkomi"), unless it was destroyed there, which its own line says ("F enkomi is destroyed"); the
+  rulebook says so. (Until the fix pass after item 4 the line stopped at the reason: in the second
+  agent simulation Alashiya read a bounced move to Tamassos as made, gave orders to a fleet that was
+  still in Enkomi, and lost Tamassos.) The other side's power is named only if that unit stood,
   or was moving, in a province the king could see before the moves. A support whose unit was
   destroyed reads "void: the supporting unit was destroyed", not "cut"; a cut support says where
   the attack came from. A support or convoy that matched no real order (the unit it named moved
