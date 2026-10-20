@@ -36,7 +36,7 @@
         }
         <p class="small muted">
             @(terrain == Terrain.Open ? "Open ground" : terrain == Terrain.Rough ? "Rough ground" : "Desert")@(rivers.Count > 0 ? $" on the {string.Join(" and the ", rivers)}" : "")@(crossings.Count > 0 ? $"; {string.Join("; ", crossings.Select(c => $"{c.Name} towards {Ui.Province(c.A == Id ? c.B : c.A)}"))}" : "").
-            Terrain has no effect yet.
+            @GroundText(p, terrain, crossings)
         </p>
     }
     @foreach (var u in units)
@@ -60,4 +60,23 @@
     [Parameter, EditorRequired] public MapScene Scene { get; set; } = default!;
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<string> OnPerson { get; set; }
+
+    /// <summary>
+    /// What the ground does here (Build order item 5, terrain): rough ground and the crossings on its links give a unit that
+    /// stands its ground more against an attack, and so does a landing from the sea on a coast.
+    /// </summary>
+    private string GroundText(Province p, Terrain terrain, IReadOnlyList<Crossing> crossings)
+    {
+        var t = State.Config.TerrainDefence;
+        if (t <= 0) return "The ground gives no defence in this game.";
+        var lines = new List<string>();
+        if (terrain == Terrain.Rough) lines.Add($"A unit standing its ground here holds with {t} more against any attack.");
+        else
+        {
+            if (crossings.Count > 0) lines.Add($"A unit standing its ground here holds with {t} more against an attack over {string.Join(" or ", crossings.Select(c => c.Name).Distinct())}.");
+            if (p.IsCoastal) lines.Add($"An army landing here from the sea meets a defender with {t} more.");
+        }
+        if (lines.Count == 0) lines.Add("The ground gives a defender nothing here.");
+        return string.Join(" ", lines);
+    }
 }

@@ -59,7 +59,8 @@ public class BattleReasonTests
             [Power.Alashiya] = new() { Orders = [new ConvoyOrder("greatgreen", "delta", "lukka")] },
         });
         var egypt = Report(s, Power.Egypt);
-        Assert.Contains("- A delta -> lukka (by sea): fails: the unit holding lukka kept its place; your strength 1 against 1", egypt);
+        // Lukka is rough ground (Build order item 5, terrain): the unit holding it has 1 more, and the report gives its share.
+        Assert.Contains("- A delta -> lukka (by sea): fails: the unit holding lukka kept its place; your strength 1 against 2, 1 of it for the rough ground of lukka", egypt);
         Assert.DoesNotContain("Arzawa", egypt);
 
         // When the ships carry it somewhere else, nothing carried it to Lukka, and the fleet's king is told why its convoy was void.

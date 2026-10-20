@@ -460,7 +460,7 @@ public sealed partial class TurnEngine
         }
 
         var sallies = unitOrders.Select(x => x.O).OfType<SallyOrder>().ToList();
-        var adjudicator = new Adjudicator(Map, explain: true);
+        var adjudicator = new Adjudicator(Map, explain: true, terrain: S.Config.TerrainDefence);
         var result = adjudicator.Run(S.Units, byProvince, S.Owner, S.Walls, sallies);
         _battle = result;
         _unitOrdersNow = byProvince;
@@ -505,6 +505,16 @@ public sealed partial class TurnEngine
         foreach (var a in result.Assaults.Where(a => a.Stormed))
             S.Log("storm", $"{a.Power} stormed the walls of {Map[a.Province].Name}{(a.Owner is { } held ? $", held by {held}" : "")}.",
                 Powers.All.Where(p => sightBefore[p].Contains(a.Province)).Append(a.Power), "storm");
+        // The ground at work: a unit that held only because of it, and an attack that beat a unit it helped.
+        foreach (var g in result.GroundFights.Where(g => g.Won || g.Decided))
+        {
+            var kind = g.DefenderKind == UnitKind.Army ? "army" : "fleet";
+            S.Log("terrain", g.Won
+                    ? $"{g.Attacker}'s attack from {Map[g.From].Name} drove {g.Defender}'s {kind} from {Map[g.To].Name} in spite of {g.Ground.Text} (strength {g.Strength} against {g.Against})."
+                    : $"{g.Defender}'s {kind} in {Map[g.To].Name} held against {g.Attacker}'s attack from {Map[g.From].Name} by {g.Ground.Text} (strength {g.Strength} against {g.Against}).",
+                Powers.All.Where(p => sightBefore[p].Contains(g.To)).Append(g.Attacker).Append(g.Defender).Distinct(),
+                g.Won ? "terrain-beaten" : "terrain-held");
+        }
 
         foreach (var p in S.Alive)
             S.LastSeen[p] = result.Outcomes.Where(o => o.Power == p || sightBefore[p].Contains(o.Province) || (o.Target is { } t && sightBefore[p].Contains(t))).ToList();
@@ -571,6 +581,8 @@ public sealed partial class TurnEngine
         var kind = f.Kind == UnitKind.Army ? "army" : "fleet";
         var whose = f.Power == viewer ? $"your own {kind}" : $"{f.Power}'s {kind}";
         var strengths = $"; your strength {f.Strength} against {f.Against}";
+        // The ground that helped the unit that held it off, in the strength it had to beat.
+        var held = strengths + (f.Ground is { } g ? $", {f.GroundBonus} of it for {g.Text}" : "");
         return f.Stop switch
         {
             MoveStop.NoConvoy => "no convoy carried it across the sea",
@@ -578,8 +590,8 @@ public sealed partial class TurnEngine
                 ? $"your own {kind} in {f.Province} was moving the other way, and you cannot dislodge your own unit"
                 : $"your own {kind} in {f.Province} did not leave, and you cannot dislodge your own unit",
             MoveStop.HeadToHead => $"it met the unit from {f.Province}{(seen ? $" ({whose})" : "")} coming the other way{strengths}",
-            MoveStop.Held => $"the unit holding {f.Province}{(seen ? $" ({whose})" : "")} kept its place{strengths}",
-            MoveStop.Stayed => $"the unit in {f.Province}{(seen ? $" ({whose})" : "")} could not leave, so it kept its place{strengths}",
+            MoveStop.Held => $"the unit holding {f.Province}{(seen ? $" ({whose})" : "")} kept its place{held}",
+            MoveStop.Stayed => $"the unit in {f.Province}{(seen ? $" ({whose})" : "")} could not leave, so it kept its place{held}",
             MoveStop.Bounced => $"it met a move into {to} from {f.Province}{(seen ? $" by {whose}" : "")}{strengths}",
             _ => "it was stopped",
         };

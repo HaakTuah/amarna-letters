@@ -252,11 +252,14 @@ public sealed partial class TurnEngine
     /// <summary>What a king reads of his own move that got within walls he does not hold: whether it stormed them, with the strengths.</summary>
     private static string AssaultText(Assault a)
     {
-        var strengths = $"strength {a.Strength} against walls {a.Walls} and defenders {a.Defenders}";
+        var strengths = $"strength {a.Strength} against walls {a.Walls} and defenders {a.Defenders}{GroundShare(a)}";
         if (a.Stormed) return $"it stormed the walls of {a.Province} ({strengths}), and {a.Province} is yours";
         if (a.Kind == UnitKind.Fleet) return $"your fleet stands within the walls of {a.Province} (walls {a.Walls}), but a fleet can neither storm walls nor besiege them, so it takes nothing";
         return $"it got within the walls of {a.Province} but did not storm them ({strengths}): your army stands inside and takes nothing; besiege the city to wear it down";
     }
+
+    /// <summary>The ground's share of the defenders' strength in an assault on walls, if it had one (", 1 of it for the rough ground of lukka").</summary>
+    private static string GroundShare(Assault a) => a.Ground is { } g ? $", {a.GroundBonus} of it for {g.Text}" : "";
 
     /// <summary>
     /// What a king reads of an assault on a walled city of his own, among his own lines: who came from where, his side of it
@@ -265,7 +268,7 @@ public sealed partial class TurnEngine
     private string OwnWallsText(Assault a)
     {
         var who = $"{a.Power}'s {(a.Kind == UnitKind.Army ? "army" : "fleet")} from {a.From}";
-        var strengths = $"its strength {a.Strength} against your walls {a.Walls} and defenders {a.Defenders}";
+        var strengths = $"its strength {a.Strength} against your walls {a.Walls} and defenders {a.Defenders}{GroundShare(a)}";
         var name = Map[a.Province].Name;
         return a.Stormed
             ? $"Your walled city of {name}: {who} stormed the walls ({strengths}): {name} is taken."

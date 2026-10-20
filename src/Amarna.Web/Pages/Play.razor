@@ -108,7 +108,7 @@ else
                 <button class="map-ui legend-btn" @onclick="() => Legend = !Legend" aria-expanded="@(Legend ? "true" : "false")">Legend</button>
                 @if (Legend)
                 {
-                    <MapLegend OnClose="() => Legend = false" />
+                    <MapLegend Config="runner.State.Config" OnClose="() => Legend = false" />
                 }
                 @if (SelectedProvince is not null && !useDraft)
                 {

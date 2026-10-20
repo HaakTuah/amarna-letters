@@ -48,6 +48,19 @@ public sealed record GameConfig
     public int SiegeCatchMin { get; init; } = 5;
     public int SiegeCatchMax { get; init; } = 75;
 
+    // Terrain (Build order item 5; first guesses from question 5's plan, steps 14 and 15, tuned in item 18)
+    /// <summary>
+    /// What the ground gives a unit that stands its ground against an attack (<see cref="Geography.DefenceGround"/>): on rough
+    /// ground, across a mountain pass or a great river, or against a landing from the sea; this much in all, however many
+    /// apply. 0 turns terrain off.
+    /// </summary>
+    public int TerrainDefence { get; init; } = 1;
+    /// <summary>
+    /// What an army pays for supplies, with its next upkeep, for a season it ends in desert land its king did not hold when
+    /// that season's moves were made; an army in its own land pays nothing.
+    /// </summary>
+    public int DesertUpkeep { get; init; } = 30;
+
     // Communication
     /// <summary>Envoy travel: up to [0] hops is 1 season, up to [1] hops 2 seasons, beyond that 3.</summary>
     public int[] TravelHops { get; init; } = [4, 7];

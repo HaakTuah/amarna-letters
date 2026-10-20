@@ -14,8 +14,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   move into the target from a named province (always the reason given when that move took the
   target); the unit holding the target kept its place (or could not leave); or another move into
   the target was as strong (walls never stop a move since the siege package). Where strength decided it, the strengths compared
-  follow ("your strength 2 against 2"), then where the unit now stands ("; so your fleet stays in
-  enkomi"), unless it was destroyed there, which its own line says ("F enkomi is destroyed"); the
+  follow ("your strength 2 against 2", with the ground's share of it where the ground helped the unit that held:
+  "your strength 2 against 2, 1 of it for the rough ground of mira", since terrain in the siege package), then where the
+  unit now stands ("; so your fleet stays in enkomi"), unless it was destroyed there, which its own line says ("F enkomi is destroyed"); the
   rulebook says so. (Until the fix pass after item 4 the line stopped at the reason: in the second
   agent simulation Alashiya read a bounced move to Tamassos as made, gave orders to a fleet that was
   still in Enkomi, and lost Tamassos.) The other side's power is named only if that unit stood,
@@ -104,7 +105,7 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     ("LANDS ...: mari (walls 2)") and on the map (a ring for each level). THE MAP in the rulebook
     gives each province's walls at the start.
   - **Walls add nothing to a battle.** Combat resolves as always, and a unit within walls defends
-    with 1 plus its supports. (Until the siege package walls were pretend units that held with
+    with 1 plus its supports, and the ground's help where it has it (see Terrain). (Until the siege package walls were pretend units that held with
     strength 1, only on the free cities.) A move that wins its way into a walled province its mover
     does not hold **storms** the walls, and takes the province at once, only if its strength also
     beats the walls' level plus the hold strength of the defenders it beat (`Assault`; none if the
@@ -199,6 +200,36 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   a city taken by storm or siege keeps them a level lower. Buying is the durable way to grow,
   conquest the slow one now. (Until the siege package walls held with strength 1 for their owner,
   who could not enter them but could support them holding, and conquest tore them down.)
+- **Terrain** (Build order item 5, the siege package; save version 6; question 5 of
+  `docs/rounds/2026-10-18-sleep-and-simulation.md`, plan step 14, and the design document's "Walls and terrain": "Mountains
+  and hills make a province harder to take", passes and rivers "belong on the connection between two provinces", "Islands
+  such as Alashiya are protected by the sea"). The lists are `Geography`'s, unchanged since the visual overhaul drew them:
+  rough ground in Mira, Lukka, Isuwa, Amurru, Arbela and Tamassos; the mountain passes of the Cilician Gates
+  (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish); the great rivers at the
+  Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh).
+  - **The ground helps a unit that stands its ground** (`Geography.DefenceGround`, `Adjudicator.HoldStrength`): one that
+    holds, besieges, supports or convoys, or whose own move failed. Against an attack it holds with
+    `GameConfig.TerrainDefence` (1, a first guess) more when it stands on rough ground, when the attack comes over a pass or
+    a great river (a crossing protects both its sides), or when the attack is a landing from the sea (an army carried by
+    convoy: question 5's "a landing by convoy counts as a crossing"); 1 in all however many apply, the first named in that
+    order. So one army on rough ground needs three to dislodge it, and Alashiya's island, which armies reach only by convoy,
+    meets every landing with that help (Tamassos is rough ground besides). 0 turns terrain off.
+  - **What it never does.** It never helps a unit that moves, nor one met head on (both armies are on the road, as in a
+    swap across the Cilician Gates), nor empty land, which stays open (question 5: "only to a defending unit"); it adds
+    nothing to walls and nothing to a siege's pace ("never in sieges"). A storm must beat the walls plus the hold strength
+    of the defenders it beat (`Assault`), and the ground's help is part of that strength, since the move had to beat it to
+    get in (a reading): Lukka (walls 1, rough ground) held by one army is entered with 3 and stormed with 4; empty, it is
+    stormed with 2 as before. A besieging army standing on rough ground, or behind a crossing, has the ground's help against
+    a relief like any unit standing its ground (a reading: no rule asks who holds the city). Supports are cut as always.
+  - **What kings read.** The rulebook's TERRAIN section, after WALLS AND SIEGES, built from `Geography` so it stays true if
+    the map changes; THE MAP marks each rough province ("- mira: Mira; land; homeland of Arzawa; yield 30; rough ground.")
+    and each link over a crossing ("kizzuwatna (across the Cilician Gates)"); LANDS marks the rough ground beside the walls
+    ("lukka (walls 1, rough ground)"). A failed move's line gives the ground's share of the strength it had to beat ("the
+    unit holding mira (Arzawa's army) kept its place; your strength 2 against 2, 1 of it for the rough ground of mira"),
+    and an assault on walls the ground's share of the defenders ("strength 3 against walls 1 and defenders 2, 1 of it for
+    the rough ground of lukka"), on both sides. The record logs "terrain" events where the ground decided a battle (the
+    move beat the hold without it: signal `terrain-held`) or an attack beat a unit the ground helped (`terrain-beaten`),
+    counted in the batch report. The web map's tooltips, province card, legend and about page say what the ground does.
 - **Levies** are raised after movement, only in a province of the power's own homeland that it
   still holds and that is empty after movement; otherwise nothing is raised or paid, and the king is
   told which ("No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.",
@@ -354,7 +385,7 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   season's other orders for its units and people, those given that season among them, and script kings give them,
   which changes what existing seeds do, under the same unreleased version 5; 6 since Build order item 5, the siege
   package, one version for the whole item: walls by place in place of the free cities' garrisons, storming and
-  sieges, and the rest of the item as it is built). A log
+  sieges, terrain, and the rest of the item as it is built). A log
   saved under another version is refused, both for replay and for continuing it: "This game was saved under an
   earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3, 4 and
   5). The web app shows that message
@@ -2477,15 +2508,19 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
 "Script kings and characters in a worker" and "What is left in the page" (presentation and build only; report
 `docs/rounds/2026-10-19-second-simulation.md`).
 
-- **Terrain is map data with no effect yet** (`Geography` in the engine project). Rough provinces: Mira, Lukka,
+- **Terrain is map data** (`Geography` in the engine project), given its effects by the siege package (Build order item 5;
+  see Terrain under Rules as implemented); until then it was drawn only. Rough provinces: Mira, Lukka,
   Isuwa, Amurru, Arbela, Tamassos. Desert: Sinai. Crossings on six connections: the Cilician Gates
   (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish) as mountain passes;
   the Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh) as river crossings. The ordered
   courses of the Nile (Thebes to the Delta), the Euphrates (Carchemish to Ur) and the Tigris (Nineveh to
   Dur-Kurigalzu). These are the lists of question 5 (plan steps 14-15) and question 10 (plan step 2) of the
-  sleep-and-simulation round, so the siege package can use them unchanged. Nothing in the engine reads them; only
-  the web map draws them. "A landing by convoy counts as a crossing" is a rule about any convoyed landing, so it is
-  left to the siege package rather than stored on a connection.
+  sleep-and-simulation round, so the siege package can use them unchanged, and it did. Until the siege package nothing
+  in the engine read them and only the web map drew them; now the adjudicator reads rough ground and the crossings, and
+  the map's tooltips, province card, legend and about page say what they do (the drawing is unchanged: peaks beside
+  each rough city, a pass or ford mark across each crossing). "A landing by convoy counts as a crossing" is a rule
+  about any convoyed landing, so it is a rule of the adjudicator (`Geography.DefenceGround`) rather than stored on a
+  connection.
 - **One date label** (`Calendar.Label`, question 26, plan steps 1-4): the court's season, the year BCE and the
   turn. Years are counted from 1345 BCE: the first year of a game is 1345 BCE and each later year is one less
   (`Calendar.FirstYearBce`, `YearBce`; Haakon, 19 October). Egypt's court reads "Peret, 1344 BCE (turn 5)", the
@@ -2681,11 +2716,11 @@ the design document's; "question N" is in `docs/rounds/2026-10-18-sleep-and-simu
 tab's Build order; "the round report" is the simulation-fixes round's report,
 `docs/rounds/2026-10-19-simulation-fixes.md`.
 
-- **The rest of the siege package** (item 5, being built): terrain per province and per connection, deserts costing
-  supplies, islands protected by the sea (main tab "Tempo of war" and "Walls and terrain"; question 5). Walls that differ
-  by place and can be strengthened, storming and besieging, envoys leaving a besieged city, a kingdom falling with its
-  capital, slow absorption, and the retirement of the temporary trigger for troops next to a capital are built (see
-  Walls and sieges).
+- **The rest of the siege package** (item 5, being built): deserts costing supplies (main tab "Tempo of war" and "Walls
+  and terrain"; question 5). Walls that differ by place and can be strengthened, storming and besieging, envoys leaving a
+  besieged city, a kingdom falling with its capital, slow absorption, the retirement of the temporary trigger for troops
+  next to a capital (see Walls and sieges), and terrain per province and per connection, with islands protected by the sea
+  (see Terrain), are built.
 
 - **News that travels**: distant provinces, and who holds them, shown at their last known state with its date, the
   news carried by people (main tab "Hidden by default"; question 6; item 7).

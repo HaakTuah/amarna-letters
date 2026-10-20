@@ -66,13 +66,13 @@ public static class Prompts
             MOVEMENT AND COMBAT (Diplomacy rules, no dice)
             - One unit per province. Armies move along land and coast links; fleets along sea and coast links. A fleet in a sea zone may convoy an army from one coast to another.
             - A unit is named by the province it stands in. Orders: hold; move to a linked province; support another unit (of any power) holding, or moving into a province your own unit could move into; convoy (fleet at sea only); disband.
-            - Strength is 1 plus valid supports. A move succeeds only if its strength beats the defender's hold strength and the strength of every other move into the same province. Ties bounce. A support is cut if the supporting unit is attacked from anywhere except the province it supports into. You can never dislodge your own unit.
+            - Strength is 1 plus valid supports. A move succeeds only if its strength beats the defender's hold strength and the strength of every other move into the same province. Ties bounce.{(c.TerrainDefence > 0 ? " A unit standing its ground may have the ground's help in its hold strength (see TERRAIN)." : "")} A support is cut if the supporting unit is attacked from anywhere except the province it supports into. You can never dislodge your own unit.
             - A unit dislodged is destroyed; a unit that is destroyed gives no support (your report calls such a support void). A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds. One naming a province you cannot see is never refused for what stands there: if no unit there does what it helps, it is void. A province changes hands when a unit ends a season in it.
             - Your battle report says why each of your moves that failed was stopped, with the strengths compared where strength decided it, and that the unit stays where it was (a unit whose move fails does not move), and why each of your supports or convoys was void. It names the other side's power only if that unit stood, or was moving, where you could see.
 
             WALLS AND SIEGES
-            - Many provinces have walls, from level 1 to 3: every capital 3, the great fortresses 2, the walled towns 1, and every free city-state at least 1 (THE MAP gives each province's walls at the start; LANDS in your view gives the walls standing now). Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other. What walls decide is whether the province is taken.
-            - Storming: a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the hold strength of the defenders it beat (none if the province was empty or its unit moved away). So an empty city with walls 1 needs strength 2, and a capital held by one army needs 5. A city taken by storm loses a level of walls.
+            - Many provinces have walls, from level 1 to 3: every capital 3, the great fortresses 2, the walled towns 1, and every free city-state at least 1 (THE MAP gives each province's walls at the start; LANDS in your view gives the walls standing now). Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other{(c.TerrainDefence > 0 ? " (and the ground's help, see TERRAIN)" : "")}. What walls decide is whether the province is taken.
+            - Storming: a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the hold strength of the defenders it beat (none if the province was empty or its unit moved away{(c.TerrainDefence > 0 ? "; the ground's help to them counts in it" : "")}). So an empty city with walls 1 needs strength 2, and a capital held by one army needs 5. A city taken by storm loses a level of walls.
             - Otherwise the unit that got in stands within the walls and takes nothing: the province stays its holder's. A foreign unit within walls takes nothing unless it storms them or a siege wears the city down, so an ally's troops may stand in your city as guests. You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them: it takes only coasts without walls.
             - Besieging: an army standing within walls it does not hold may besiege the city (order besiege). Each season it holds there (a besiege or hold order, or no order) wears the city down one step, or two if another unit, of any power, supports it holding and that support is not cut; a season in which it gives a support or a convoy, or tries to move, adds nothing. One besiege order is enough: the siege goes on each season the army holds there. When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls. So an army that gets into a city with walls 1 takes it in the next season, and one before walls 3 in the third season after it got in, or the second with a support each season. If the besieging army leaves or is destroyed, the siege is lifted and what it had worn down is lost.
             - While besieged, a city stays its holder's and counts in his strength, but it yields nothing to anyone, and he cannot raise troops in it. Each siege costs the besieger {c.SiegeUpkeep} a season on top of the army's upkeep. The holder may still cede the city.
@@ -80,6 +80,8 @@ public static class Prompts
             - Sallies: while foreign troops stand within the walls of a city of yours whose walls are {c.SallyMinWalls} or higher, its defenders may sally (unit order sally: name the city as the unit, and as target the province the attack comes from). The walls then support one attack into the city on those troops, yours or another king's, for +1, as a support that cannot be cut. A sally that finds no such attack is void. So a lone army of yours, or an ally's, that attacks a lone besieger with a sally drives it out.
             - Envoys and a besieged capital: while your capital is besieged, each envoy of yours leaving it, or coming home to it, may be caught by the besiegers. The siege's tightness is the besieger's units in the city and next to it, from 1 to 3 (SIEGES in your view gives it); the chance in percent is {c.SiegeCatchPerUnit} x tightness - (the envoy's skill, 0-100)/4, between {c.SiegeCatchMin} and {c.SiegeCatchMax}. An envoy whose courage is below {c.SiegeCatchPerUnit} x tightness will not leave that season: nothing is paid, and you are told. A caught envoy is the besieger's captive: he reads the letter and the mandate, and takes the gold and the tablets it carried; he may execute, ransom or release the envoy, but cannot turn him. You hear only, a season after he was due, that he has not returned. Other kings' envoys come and go freely, and so do your spies.
             - Breaking a siege is ordinary combat: drive the besieging army out with an attack into the city stronger than its hold. Your battle report and your news say how every assault on walls went, yours and those on your own walled cities, with the strengths, and how far each siege of yours, or of your cities, has gone.
+
+            {TerrainRules(c)}
 
             STANDING ORDERS (standing_orders; every king may give them)
             - A standing order waits for a move you can see and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds: a unit of the power you name, or any foreign unit, setting out to move into a province (unit_enters); or a foreign unit setting out to move into the province where one of your units stands (unit_attacked; name your unit by where it stands now). A move you can see is one from or into a province in your sight.
@@ -142,16 +144,19 @@ public static class Prompts
         }
 
         sb.AppendLine();
-        sb.AppendLine("THE MAP (id: name; kind; homeland; yield per season; walls at the start; links)");
+        sb.AppendLine("THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground; links, with the mountain passes and great rivers on them)");
         var map = WorldMap.Default;
+        // A link over a mountain pass or a great river says so (see TERRAIN).
+        string Link(string from, string to) => Geography.CrossingBetween(from, to) is { } x ? $"{to} (across {x.Name})" : to;
         foreach (var p in map.Provinces)
         {
             var kind = p.IsSea ? "sea zone" : p.IsCoastal ? "coast" : "land";
             var home = p.Home is { } h ? $"homeland of {h}" : p.IsSea ? "" : "free city-state";
-            var armies = p.IsSea ? "" : $" armies: {string.Join(", ", map.MovesFrom(UnitKind.Army, p.Id))}.";
+            var armies = p.IsSea ? "" : $" armies: {string.Join(", ", map.MovesFrom(UnitKind.Army, p.Id).Select(n => Link(p.Id, n)))}.";
             var fleets = p.IsSea || p.IsCoastal ? $" fleets: {string.Join(", ", map.MovesFrom(UnitKind.Fleet, p.Id))}." : "";
             var walls = MapData.StartWalls.GetValueOrDefault(p.Id) is > 0 and var w ? $"; walls {w}" : "";
-            sb.AppendLine($"- {p.Id}: {p.Name}; {kind}{(home.Length > 0 ? "; " + home : "")}{(p.Capital ? "; capital" : "")}{(p.Yield > 0 ? $"; yield {p.Yield}" : "")}{walls}.{armies}{fleets}");
+            var ground = Geography.TerrainOf(p.Id) switch { Terrain.Rough => "; rough ground", _ => "" };
+            sb.AppendLine($"- {p.Id}: {p.Name}; {kind}{(home.Length > 0 ? "; " + home : "")}{(p.Capital ? "; capital" : "")}{(p.Yield > 0 ? $"; yield {p.Yield}" : "")}{walls}{ground}.{armies}{fleets}");
         }
 
         // Public facts, fixed for the game: every court knows how each king began.
@@ -166,6 +171,26 @@ public static class Prompts
             Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") and of your gold (like "g7") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows the letters you sent (message, mandate, tablet and gold) in full under YOUR LETTERS while their envoys are away, and once more when the report comes. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply.
             """);
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// The rulebook's TERRAIN section (Build order item 5): what rough ground, the crossings and a landing from the sea give a
+    /// unit that stands its ground, and what they never do, with the lists from the map data (<see cref="Geography"/>), so the
+    /// text stays true if the map changes.
+    /// </summary>
+    private static string TerrainRules(GameConfig c)
+    {
+        if (c.TerrainDefence <= 0) return "TERRAIN\n- In this game the ground gives no unit any help: rough ground, mountain passes, rivers and landings from the sea change nothing in a battle.";
+        var t = c.TerrainDefence;
+        var rough = string.Join(", ", Geography.Rough);
+        var crossings = string.Join(", ", Geography.Crossings.GroupBy(x => x.Name)
+            .Select(g => $"{g.Key} ({string.Join(" and ", g.Select(x => $"{x.A}-{x.B}"))})"));
+        return $"""
+            TERRAIN
+            - The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with {t} more when it stands on rough ground ({rough}), when the attack comes over a mountain pass or a great river ({crossings}), or when the attack is a landing from the sea (an army carried by convoy): {t} in all, however many of these apply. THE MAP marks the rough ground and the crossings on the links.
+            - The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that. A support is cut as always.
+            - So an island is protected by the sea: an army reaches it only by convoy, and a unit there holds with {t} more against a landing. Your battle report gives the ground's share wherever it counted in the strength you had to beat.
+            """;
     }
 
     /// <summary>
@@ -283,9 +308,17 @@ public static class Prompts
         sb.AppendLine(Standings(v));
 
         sb.AppendLine();
-        sb.AppendLine("LANDS (who holds what, with the walls standing now; troops only where you can see them):");
+        sb.AppendLine("LANDS (who holds what, with the walls standing now and the rough ground; troops only where you can see them):");
         var units = v.Units.ToDictionary(u => u.Province);
         string Troop(string id) => units.TryGetValue(id, out var u) ? $" [{u.Power} {(u.Kind == UnitKind.Army ? "army" : "fleet")}]" : "";
+        // The walls standing now and the ground (see TERRAIN), in one bracket: "lukka (walls 1, rough ground)".
+        string Marks(string id)
+        {
+            var marks = new List<string>();
+            if (v.Walls.TryGetValue(id, out var w)) marks.Add($"walls {w}");
+            if (Geography.TerrainOf(id) == Terrain.Rough && v.Prices.GetValueOrDefault("terrainDefence", 1) > 0) marks.Add("rough ground");
+            return marks.Count == 0 ? "" : $" ({string.Join(", ", marks)})";
+        }
         // Land taken by force and still being absorbed: what it yields and counts this season.
         string Absorbing(string id) => v.Conquered.TryGetValue(id, out var taken)
             ? $" (taken by force in turn {taken}: yields and counts {(v.Turn - taken <= 1 ? "a third" : "two thirds")} of its yield this season)"
@@ -294,7 +327,7 @@ public static class Prompts
         {
             var who = group.Key is { } o ? (o == v.Power ? $"{o} (you)" : o.ToString()) : "Free cities";
             var list = group.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal)
-                .Select(id => id + (v.Walls.TryGetValue(id, out var w) ? $" (walls {w})" : "") + Absorbing(id) + Troop(id));
+                .Select(id => id + Marks(id) + Absorbing(id) + Troop(id));
             sb.AppendLine($"- {who}: {string.Join(", ", list)}");
         }
         if (Sieges(v) is { Length: > 0 } sieges) sb.AppendLine(sieges);

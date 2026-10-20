@@ -143,7 +143,7 @@ public class SeasonRulebookTests
     [InlineData("If you cannot pay upkeep, troops desert, the one farthest from your capital first")]
     [InlineData("Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).")]
     [InlineData("one without the skill ruins the clay, which you still pay for")]
-    [InlineData("Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other.")]
+    [InlineData("Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other (and the ground's help, see TERRAIN).")]
     [InlineData("a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the hold strength of the defenders it beat")]
     [InlineData("You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them")]
     [InlineData("When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls.")]

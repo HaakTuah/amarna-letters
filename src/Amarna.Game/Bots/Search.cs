@@ -109,7 +109,8 @@ internal static class Search
         var ctx = new Ctx
         {
             B = b, Brain = brain, P = p, Hostility = hostility, Leader = leader, Foes = foes, Sworn = sworn, Joints = joints, Coalitions = brain.Coalitions(b).ToList(),
-            Adj = new Adjudicator(Board.Map),
+            // The game's own adjudicator, the ground included (Build order item 5, terrain), so the pictured seasons count it.
+            Adj = new Adjudicator(Board.Map, terrain: b.V.Prices.GetValueOrDefault("terrainDefence", 1)),
             Units = b.Units.Select(u => new Unit { Id = u.Province, Power = u.Power, Kind = u.Kind, Province = u.Province }).ToList(),
             Willing = x => Tactics.Willing(b, brain, x, leader),
             Prey = owner => owner is null || owner == brain.WarTarget || owner == brain.Betraying || owner == leader

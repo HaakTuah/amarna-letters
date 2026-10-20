@@ -367,6 +367,7 @@ public static class Views
         v.Prices["fortifyPerLevel"] = s.Config.FortifyCost;
         v.Prices["wallUpkeep"] = s.Config.WallUpkeep;
         v.Prices["sallyMinWalls"] = s.Config.SallyMinWalls;
+        v.Prices["terrainDefence"] = s.Config.TerrainDefence;
         return v;
     }
 

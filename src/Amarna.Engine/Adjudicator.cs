@@ -24,7 +24,13 @@ public enum MoveStop
 /// stopped it stood, its power and kind, where that unit was itself moving, and the strengths compared
 /// (the move's own, and what it had to beat).
 /// </summary>
-public sealed record MoveFailure(MoveStop Stop, string Province, Power? Power, UnitKind Kind, string? MovingTo, int Strength, int Against);
+public sealed record MoveFailure(MoveStop Stop, string Province, Power? Power, UnitKind Kind, string? MovingTo, int Strength, int Against)
+{
+    /// <summary>For a move the unit in the target held off: the ground that counted in its hold strength, if any (<see cref="Geography.DefenceGround"/>).</summary>
+    public Ground? Ground { get; init; }
+    /// <summary>What that ground counted for (<see cref="GameConfig.TerrainDefence"/>).</summary>
+    public int GroundBonus { get; init; }
+}
 
 /// <summary>
 /// One line of a battle report: the unit's province, its power, the order as resolved, for a move its target
@@ -51,6 +57,21 @@ public sealed record ReportLine(string Province, Power? Power, string Text, bool
 public sealed record Assault(string Province, Power Power, UnitKind Kind, string From, Power? Owner, int Strength, int Walls, int Defenders)
 {
     public bool Stormed => Kind == UnitKind.Army && Strength > Walls + Defenders;
+    /// <summary>The ground that counted in the defenders' hold strength, if any: a storm must beat it too (it beat it to get in).</summary>
+    public Ground? Ground { get; init; }
+    /// <summary>What that ground counted for.</summary>
+    public int GroundBonus { get; init; }
+}
+
+/// <summary>
+/// A move on a unit that stood its ground with the ground's help (Build order item 5, terrain): where from and to, who
+/// attacked and who stood, the ground, the strengths compared, and whether the move got in (the defender destroyed). Recorded
+/// only when the adjudicator explains its battles.
+/// </summary>
+public sealed record GroundFight(string From, string To, Power Attacker, Power Defender, UnitKind DefenderKind, Ground Ground, int Strength, int Against, bool Won)
+{
+    /// <summary>The move failed only because of the ground: the unit there held it off, and the move beat the hold without the ground.</summary>
+    public bool Decided { get; init; }
 }
 
 /// <summary>One order as it resolved: who, where, what, and whether it worked.</summary>
@@ -88,6 +109,8 @@ public sealed class AdjudicationResult
     public List<(Power Supporter, Power? Supported, string Province)> GivenSupports { get; } = new();
     /// <summary>The provinces whose unit was given at least one support to hold that was not cut (a besieger's speeds its siege).</summary>
     public HashSet<string> HoldSupported { get; } = new();
+    /// <summary>Moves on units that stood their ground with the ground's help (only when the battles are explained).</summary>
+    public List<GroundFight> GroundFights { get; } = new();
     /// <summary>Order description per unit province, with its outcome, for reports.</summary>
     public List<ReportLine> Lines { get; } = new();
     public List<OrderOutcome> Outcomes { get; } = new();
@@ -99,7 +122,10 @@ public sealed class AdjudicationResult
 /// with circular movement resolved as success and convoy paradoxes by the Szykman rule.
 /// Walls add nothing to the battle (Build order item 5): a move that wins its way into a walled province its mover does
 /// not hold storms the walls only if its strength also beats their level plus the hold strength it beat
-/// (<see cref="Assault"/>); the engine decides what that means for the province.
+/// (<see cref="Assault"/>); the engine decides what that means for the province. The ground does count (item 5, terrain): a
+/// unit that stands its ground on rough ground, across a pass or a great river from the attack, or against a landing from
+/// the sea holds with <see cref="GameConfig.TerrainDefence"/> more against that attack, at most that in all
+/// (<see cref="Geography.DefenceGround"/>); never a unit that moves, nor one met head on, nor empty land.
 /// </summary>
 public sealed class Adjudicator
 {
@@ -126,6 +152,7 @@ public sealed class Adjudicator
 
     private readonly WorldMap _map;
     private readonly bool _explain;
+    private readonly int _terrain;
     private readonly List<O> _orders = new();
     private readonly Dictionary<string, int> _at = new();
     private RState[] _state = [];
@@ -137,10 +164,12 @@ public sealed class Adjudicator
     private IReadOnlyDictionary<string, Power?> _sallyBy = new Dictionary<string, Power?>();
 
     /// <param name="explain">Also work out why each failed move failed and where each cut came from, for battle reports.</param>
-    public Adjudicator(WorldMap map, bool explain = false)
+    /// <param name="terrain">What the ground gives a unit that stands its ground (<see cref="GameConfig.TerrainDefence"/>); 0 turns terrain off.</param>
+    public Adjudicator(WorldMap map, bool explain = false, int terrain = 1)
     {
         _map = map;
         _explain = explain;
+        _terrain = Math.Max(0, terrain);
     }
 
     /// <param name="owners">Who holds each province before the moves: a move into one's own walled province storms nothing.</param>
@@ -351,7 +380,7 @@ public sealed class Adjudicator
                 {
                     if (attack <= DefendStrength(opp)) return false;
                 }
-                else if (attack <= HoldStrength(o.Target!)) return false;
+                else if (attack <= HoldStrength(o)) return false;
 
                 foreach (var other in MovesTo(o.Target!))
                     if (other != o && attack <= PreventStrength(other)) return false;
@@ -441,16 +470,29 @@ public sealed class Adjudicator
         return 1 + Supports(move, occ.Power);
     }
 
-    private int HoldStrength(string province)
+    /// <summary>
+    /// The hold strength a move into a province must beat: none if the province is empty or its unit got away; else 1 for the
+    /// unit that stays (holding, besieging, supporting, convoying, or whose own move failed), its supports to hold if it did
+    /// not try to move, and what the ground gives it against this move (<see cref="GroundAgainst"/>).
+    /// </summary>
+    private int HoldStrength(O move)
     {
+        var province = move.Target!;
         if (!_at.TryGetValue(province, out var i)) return 0;
         var occ = _orders[i];
-        if (occ.Kind == Kind.Move) return Resolve(occ.Index) ? 0 : 1;
         var count = 1;
-        foreach (var s in _orders)
-            if (s.Kind == Kind.Support && s.Target == province && s.To is null && Resolve(s.Index)) count++;
-        return count;
+        if (occ.Kind == Kind.Move)
+        {
+            if (Resolve(occ.Index)) return 0;
+        }
+        else
+            foreach (var s in _orders)
+                if (s.Kind == Kind.Support && s.Target == province && s.To is null && Resolve(s.Index)) count++;
+        return count + (GroundAgainst(move) is null ? 0 : _terrain);
     }
+
+    /// <summary>The ground that helps a unit standing its ground in the move's target against it, or null (also when terrain is off).</summary>
+    private Ground? GroundAgainst(O move) => _terrain > 0 ? Geography.DefenceGround(move.At, move.Target!, move.ViaConvoy) : null;
 
     private int DefendStrength(O move) => 1 + Supports(move, null);
 
@@ -495,6 +537,7 @@ public sealed class Adjudicator
             {
                 case Kind.Move:
                     r.Moves.Add(new MoveResult(o.At, o.Target!, moved));
+                    if (_explain && GroundFightOf(o, moved) is { } fight) r.GroundFights.Add(fight);
                     var assault = moved ? AssaultBy(o) : null;
                     if (assault is not null) r.Assaults.Add(assault);
                     r.Lines.Add(new ReportLine(o.At, o.Power, $"{label} -> {o.Target}{(o.ViaConvoy ? " (by sea)" : "")}: {(moved ? "succeeds" : "fails")}", moved)
@@ -562,11 +605,16 @@ public sealed class Adjudicator
 
         if (opp is null && occ is not null)
         {
-            var hold = HoldStrength(move.Target!);
+            var hold = HoldStrength(move);
             if (attack <= hold)
             {
                 var stop = occ.Kind == Kind.Move ? MoveStop.Stayed : MoveStop.Held;
-                return new(stop, occ.At, occ.Power, occ.UnitKind, occ.Kind == Kind.Move ? occ.Target : null, attack, hold);
+                var ground = GroundAgainst(move);
+                return new(stop, occ.At, occ.Power, occ.UnitKind, occ.Kind == Kind.Move ? occ.Target : null, attack, hold)
+                {
+                    Ground = ground,
+                    GroundBonus = ground is null ? 0 : _terrain,
+                };
             }
         }
 
@@ -592,8 +640,32 @@ public sealed class Adjudicator
         var owner = _owners.GetValueOrDefault(target);
         if (owner == mover) return null;
         var opp = HeadToHeadOpponent(move);
-        var beaten = opp is not null ? DefendStrength(opp) : HoldStrength(target);
-        return new Assault(target, mover, move.UnitKind, move.At, owner, AttackStrength(move), walls, beaten);
+        var beaten = opp is not null ? DefendStrength(opp) : HoldStrength(move);
+        // The ground counted in the hold strength the move beat to get in: the storm must beat it too.
+        var ground = opp is null && beaten > 0 ? GroundAgainst(move) : null;
+        return new Assault(target, mover, move.UnitKind, move.At, owner, AttackStrength(move), walls, beaten)
+        {
+            Ground = ground,
+            GroundBonus = ground is null ? 0 : _terrain,
+        };
+    }
+
+    /// <summary>
+    /// A move on another power's unit that stood its ground with the ground's help, not met head on: whether it got in, and
+    /// whether the ground decided it (the unit held it off, and the move beat the hold without the ground). Null for any other
+    /// move.
+    /// </summary>
+    private GroundFight? GroundFightOf(O move, bool moved)
+    {
+        if (HeadToHeadOpponent(move) is not null || !_at.TryGetValue(move.Target!, out var i)) return null;
+        var occ = _orders[i];
+        if (occ.Power is not { } defender || move.Power is not { } attacker || defender == attacker) return null;
+        if (GroundAgainst(move) is not { } ground) return null;
+        var hold = HoldStrength(move);
+        if (hold == 0) return null;
+        var attack = AttackStrength(move);
+        var decided = !moved && attack <= hold && attack > hold - _terrain && WhyFailed(move) is { Stop: MoveStop.Held or MoveStop.Stayed };
+        return new GroundFight(move.At, move.Target!, attacker, defender, occ.UnitKind, ground, attack, hold, moved) { Decided = decided };
     }
 
     /// <summary>The move that cut a support, by the same test <see cref="Adjudicate"/> used.</summary>
