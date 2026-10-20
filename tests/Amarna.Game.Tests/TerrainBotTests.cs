@@ -93,8 +93,10 @@ public class TerrainBotTests
     {
         var held = 0;
         var beaten = 0;
-        // Seeds 9 to 12 since the script players' audit of the siege package changed the games (until then 15 to 18).
-        for (ulong seed = 9; seed <= 12; seed++)
+        // Seeds from 1 until both have been seen (at most 40): a blow that beats the ground is rare, and which games hold one
+        // changes with every change to the script kings (until the script players' audit of the siege package this played
+        // seeds 15 to 18).
+        for (ulong seed = 1; seed <= 40 && (held == 0 || beaten == 0); seed++)
         {
             var summary = await BatchRunner.PlayAsync(seed, st =>
                 new GameRunner(st, Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(st.Seed)), new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false },

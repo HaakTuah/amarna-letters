@@ -110,7 +110,25 @@ internal sealed class Board
         var v = 10.0 * p.Yield + p.Yield * Horizon;
         if (p.Capital) v += 80;
         if (p.Home is { } h && h == Me) v += 30;
-        return v;
+        return v - AbsorptionLoss(id);
+    }
+
+    /// <summary>
+    /// The yield land taken by force will not bring us from next season on, while we absorb it (slow absorption, the siege
+    /// package: a third of its yield in its first season under us, two thirds in the second): one season's yield for land not
+    /// ours that we would take, what is left of that for land of ours still being absorbed, nothing for our own homeland,
+    /// which counts in full when retaken. Since the script players' audit of the siege package; until then script kings
+    /// valued land they would conquer at its full yield from the start.
+    /// </summary>
+    public double AbsorptionLoss(string id)
+    {
+        var p = Map[id];
+        if (p.IsSea || p.Home == Me) return 0;
+        var taken = V.Turn;
+        if (IsMine(id) && !V.Conquered.TryGetValue(id, out taken)) return 0;
+        var loss = 0.0;
+        for (var k = V.Turn + 1; k <= taken + 2; k++) loss += k - taken <= 1 ? 2 / 3.0 : 1 / 3.0;
+        return loss * p.Yield;
     }
 
     /// <summary>Units (of a given power, or any but mine) that could move into a province this season.</summary>

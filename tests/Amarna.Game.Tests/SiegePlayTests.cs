@@ -185,6 +185,25 @@ public class SiegePlayTests
     }
 
     [Fact]
+    public void A_script_king_values_land_by_what_it_yields_while_absorbed()
+    {
+        // Turn 6: Assyria took Terqa (Mitanni's, yield 30) last season, and holds Nineveh of its own homeland.
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        s.Turn = 6;
+        s.Owner["terqa"] = Power.Assyria;
+        s.Conquered["terqa"] = 5;
+        var assyria = new Board(Views.For(s, Power.Assyria));
+        // Land it would take by force yields a third, then two thirds: a season's yield lost.
+        Assert.Equal(Board.Map["harran"].Yield, assyria.AbsorptionLoss("harran"), 6);
+        // Terqa, taken last season, has a third of a season's yield still to lose (two thirds next season).
+        Assert.Equal(Board.Map["terqa"].Yield / 3.0, assyria.AbsorptionLoss("terqa"), 6);
+        // Its own homeland counts in full, held or retaken; so does land held from the start.
+        Assert.Equal(0, assyria.AbsorptionLoss("nineveh"));
+        // To Mitanni, Terqa is its own homeland: retaken, it counts in full.
+        Assert.Equal(0, new Board(Views.For(s, Power.Mitanni)).AbsorptionLoss("terqa"));
+    }
+
+    [Fact]
     public async Task A_script_captor_lets_go_at_once_an_envoy_whose_king_has_fallen()
     {
         // The envoy is caught leaving Ashur; the next season Ashur surrenders, and Assyria falls.
