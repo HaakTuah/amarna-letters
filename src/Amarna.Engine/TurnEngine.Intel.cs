@@ -373,6 +373,7 @@ public sealed partial class TurnEngine
     {
         c.Status = c.Employer is null ? CharacterStatus.Free : CharacterStatus.Employed;
         c.HeldBy = null;
+        c.Intercepted = false;
         c.Remember(S.Turn, $"{host.Land()} set me free.");
         if (c.Employer is { } e && S.IsAlive(e))
         {

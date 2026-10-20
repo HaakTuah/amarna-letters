@@ -18,6 +18,11 @@ public sealed class SiegeView
     public int Walls { get; set; }
     /// <summary>The season the siege began.</summary>
     public int Since { get; set; }
+    /// <summary>
+    /// For the city's holder and the besieger only: the besieger's units in the city and next to it, from 1 to 3, which sets
+    /// the odds that an envoy leaving or coming home to a besieged capital is caught.
+    /// </summary>
+    public int? Tightness { get; set; }
 }
 
 public sealed class LotView
@@ -58,6 +63,8 @@ public sealed class CharacterView
     public bool Ready { get; set; }
     /// <summary>An envoy or spy you are holding against their will.</summary>
     public bool HeldByYou { get; set; }
+    /// <summary>Your captive is an envoy your besiegers caught at a city you besiege (it can be executed, ransomed or released, not turned).</summary>
+    public bool Intercepted { get; set; }
     /// <summary>One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.</summary>
     public int? RansomDemand { get; set; }
     /// <summary>The back pay you owe them (as you believe it, for one of your people abroad), paid when they are back at your court; null if none.</summary>
@@ -283,7 +290,11 @@ public static class Views
             Walls = new Dictionary<string, int>(s.Walls),
             Conquered = new Dictionary<string, int>(s.Conquered),
             Sieges = s.Sieges.Where(x => x.Power == p || s.Owner.GetValueOrDefault(x.Province) == p || sight.Contains(x.Province))
-                .Select(x => new SiegeView { Province = x.Province, Besieger = x.Power, Holder = s.Owner.GetValueOrDefault(x.Province), Progress = x.Progress, Walls = s.WallsOf(x.Province), Since = x.Since })
+                .Select(x => new SiegeView
+                {
+                    Province = x.Province, Besieger = x.Power, Holder = s.Owner.GetValueOrDefault(x.Province), Progress = x.Progress, Walls = s.WallsOf(x.Province), Since = x.Since,
+                    Tightness = x.Power == p || s.Owner.GetValueOrDefault(x.Province) == p ? engine.Tightness(x) : null,
+                })
                 .ToList(),
             Units = s.Units.Where(u => u.Power == p || sight.Contains(u.Province))
                 .Select(u => new UnitView { Power = u.Power, Kind = u.Kind, Province = u.Province }).ToList(),
@@ -456,6 +467,7 @@ public static class Views
             AskingPrice = ours ? null : c.AskingPrice.TryGetValue(viewer, out var price) ? price : freeHere ? TurnEngine.BasePrice(c, viewer) : null,
             Ready = ours && c.Status == CharacterStatus.Employed && c.Duty == Duty.None && c.At == viewer,
             HeldByYou = c.HeldBy == viewer,
+            Intercepted = c.HeldBy == viewer && c.Intercepted,
             RansomDemand = captive ? KnownDemand(s, c.Id, c.HeldBy!.Value, viewer)?.Spend : null,
             BackPay = BackPayOwed(c, viewer),
         };

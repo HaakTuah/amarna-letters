@@ -547,8 +547,10 @@ internal static class Statecraft
                 orders.Add(new CaptiveOrder(c.Id, worthless && p.Vengeance > 0.75 ? CaptiveFate.Execute : CaptiveFate.Release));
                 continue;
             }
+            // An envoy our besiegers caught was no spy at a post: it cannot be turned, so the cunning ransom it instead.
             var fate =
-                p.Cunning > 0.65 ? new CaptiveOrder(c.Id, CaptiveFate.Turn, Poison: $"The armies of {b.Me} are scattered and tired; they will not march this year.")
+                p.Cunning > 0.65 && !c.Intercepted ? new CaptiveOrder(c.Id, CaptiveFate.Turn, Poison: $"The armies of {b.Me} are scattered and tired; they will not march this year.")
+                : p.Cunning > 0.65 ? new CaptiveOrder(c.Id, CaptiveFate.Ransom, (int)(60 + 60 * p.Greed))
                 : p.Vengeance > 0.75 ? new CaptiveOrder(c.Id, CaptiveFate.Execute)
                 : p.Honesty > 0.5 || p.Greed > 0.5 ? new CaptiveOrder(c.Id, CaptiveFate.Ransom, (int)(60 + 60 * p.Greed))
                 : new CaptiveOrder(c.Id, CaptiveFate.Release);
@@ -595,7 +597,11 @@ internal static class Statecraft
         var p = brain.P;
         var v = b.V;
         var me = b.Me;
-        var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id)).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        // From a besieged capital (the siege package) an envoy may be caught slipping out, and one whose courage failed him
+        // will fail again while the siege is as tight: he is not asked for two seasons, and no gold goes out to be taken.
+        var besieged = v.Sieges.Any(x => x.Holder == me && x.Province == Board.Map.Capital(me).Id);
+        var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id) && !(besieged && brain.WouldNotLeave.TryGetValue(c.Id, out var t) && v.Turn - t <= 2))
+            .OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
         if (ready.Count == 0) return;
 
         var leader = b.Leader();
@@ -628,10 +634,10 @@ internal static class Statecraft
             var small = b.Strength(me) < 0.6 * b.Strength(x);
             if (r.Treaty && !r.Allied && r.Trust > 0.2 && fresh && (x != leader || small) && !Rivals(b, me, x))
                 missions.Add(new(x, "alliance", 0.5 * p.Diplomacy + 0.2 * r.Trust + (small ? 0.15 : 0)));
-            if (brain.IsFriend(x) && brain.SpareGold > 150 && rng.Chance(0.3))
+            if (!besieged && brain.IsFriend(x) && brain.SpareGold > 150 && rng.Chance(0.3))
                 missions.Add(new(x, "gift", 0.4 * p.Generosity));
             // Tribute, to a great neighbour who looks ready to march.
-            if (me.Tier() == Tier.Weak && x.Tier() != Tier.Weak && neighbours.Contains(x) && brain.SpareGold > 100 && fresh && !r.Hostile && brain.Hostility(x, b) > 0.35)
+            if (!besieged && me.Tier() == Tier.Weak && x.Tier() != Tier.Weak && neighbours.Contains(x) && brain.SpareGold > 100 && fresh && !r.Hostile && brain.Hostility(x, b) > 0.35)
                 missions.Add(new(x, "tribute", 0.35 + 0.4 * p.Caution));
         }
         // Evidence of broken oaths for a third court.

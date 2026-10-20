@@ -315,6 +315,11 @@ public sealed class Character
     public Power? MissionTarget { get; set; }
     public string? CurrentTrail { get; set; }
     public Power? HeldBy { get; set; }
+    /// <summary>
+    /// A captive caught leaving, or coming home to, its king's besieged capital (Build order item 5): its captor may execute,
+    /// ransom or release it, not turn it (it was no spy at a post). Cleared when it is set free.
+    /// </summary>
+    public bool Intercepted { get; set; }
     /// <summary>A double agent's real master.</summary>
     public Power? SecretMaster { get; set; }
     public string? PoisonText { get; set; }

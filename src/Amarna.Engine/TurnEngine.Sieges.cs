@@ -137,6 +137,89 @@ public sealed partial class TurnEngine
             S.Notify(p, InboxKind.Battle, SiegesTitle, string.Join("\n", lines.Select(l => "- " + l)));
     }
 
+    /// <summary>
+    /// The siege of a king's own capital, if one is under way, with its tightness: the besieger's units in the city and next
+    /// to it (any kind of link), from 1 to 3.
+    /// </summary>
+    public (Siege Siege, int Tightness)? CapitalSiege(Power p)
+    {
+        var capital = Map.Capital(p).Id;
+        if (S.Owner.GetValueOrDefault(capital) != p || S.SiegeOf(capital) is not { } siege) return null;
+        return (siege, Tightness(siege));
+    }
+
+    /// <summary>A siege's tightness: the besieger's units in the city and next to it, from 1 to 3.</summary>
+    public int Tightness(Siege x)
+    {
+        var near = Map.Neighbors(x.Province).Append(x.Province).ToHashSet();
+        return Math.Clamp(S.Units.Count(u => u.Power == x.Power && near.Contains(u.Province)), 1, 3);
+    }
+
+    /// <summary>
+    /// The besiegers' roll for an envoy slipping out of, or into, its king's besieged capital: a chance in percent of 20 ×
+    /// the tightness − its skill ÷ 4, between 5 and 75 (first guesses: question 5, plan step 12).
+    /// </summary>
+    private bool CaughtByBesiegers(Character c, int tightness)
+    {
+        var percent = Math.Clamp(S.Config.SiegeCatchPerUnit * tightness - c.Traits.Competence / 4, S.Config.SiegeCatchMin, S.Config.SiegeCatchMax);
+        return R("siege-envoy", c.Id).Chance(percent / 100.0);
+    }
+
+    /// <summary>
+    /// An envoy caught by the besiegers of its king's capital, leaving with a letter or coming home with what it brings: it
+    /// is the besieger's captive (who may execute, ransom or release it, not turn it). The besieger reads the letter and the
+    /// mandate, takes the gold and keeps the tablets it carried; its king goes on believing it on its way, and hears only,
+    /// a season after it was due, that it has not returned.
+    /// </summary>
+    private void Intercept(Character c, Power lord, Siege siege, bool leaving, Dispatch? dispatch, HomeCargo? cargo, int due)
+    {
+        var besieger = siege.Power;
+        var city = Map[siege.Province].Name;
+        // What its king believed of it a moment before: on its way out, or on the road home.
+        CoverFor(c, lord, leaving ? Duty.EnvoyOutbound : Duty.EnvoyHomebound);
+        c.Status = CharacterStatus.Captured;
+        c.HeldBy = besieger;
+        c.At = besieger;
+        c.Duty = Duty.None;
+        c.MissionTarget = null;
+        c.WatchProvince = null;
+        c.Intercepted = true;
+        var trail = Trail(dispatch?.TrailId ?? cargo?.TrailId);
+        trail?.Outcomes.Add($"caught {(leaving ? "leaving" : "coming home to")} {city} by {besieger}'s besiegers");
+        var lines = new List<string>();
+        var gold = dispatch?.Gold ?? cargo?.Gold ?? 0;
+        var purity = dispatch?.PurityPercent ?? cargo?.PurityPercent ?? 100;
+        if (gold > 0)
+        {
+            var fine = (int)Math.Round(gold * purity / 100.0);
+            S.Treasuries[besieger].Gold += fine;
+            S.Treasuries[besieger].Lots.Add(new GoldLot { Id = S.NewId("g"), From = lord, Stated = gold, Face = gold, True = fine, ArrivedTurn = S.Turn + S.DeliveryOffset });
+            lines.Add($"He carried {Money.Format(gold)} of gold, which your troops took.");
+        }
+        // The tablets it carried: the one it was to have sealed, those shown as evidence, those it brought home.
+        var tablets = new List<string>();
+        if (dispatch?.ProposalTabletId is { } proposal) tablets.Add(proposal);
+        foreach (var copyId in dispatch?.CopyIds ?? []) if (S.Copies.FirstOrDefault(k => k.Id == copyId) is { } shown) tablets.Add(shown.TabletId);
+        tablets.AddRange(cargo?.CopyIds ?? []);
+        var held = S.Copies.Where(k => k.Holder == besieger).Select(k => k.TabletId).ToHashSet();
+        foreach (var id in tablets.Distinct().Where(held.Add))
+            S.Copies.Add(new TabletCopy { Id = S.NewId("k"), TabletId = id, Holder = besieger, AcquiredTurn = S.Turn, Source = $"taken from {c.Name}, envoy of {lord}, caught at {city}" });
+        if (tablets.Count > 0) lines.Add($"The tablets he carried are in your archive now.");
+        var said = dispatch is not null
+            ? $"leaving the city for the court of {trail?.To}. The letter he was to speak: \"{dispatch.Letter}\"" + (dispatch.Mandate.Length > 0 ? $" His mandate: \"{dispatch.Mandate}\"" : "")
+            : $"coming home to the city from the court of {trail?.To.ToString() ?? "abroad"}.";
+        S.Notify(besieger, InboxKind.Notice, EnvoyCaughtTitle,
+            $"Your troops besieging {city} caught {c.Name}, envoy of {lord}, {said} {string.Join(" ", lines)} He is your captive: you may execute, ransom or release him.".Replace("  ", " "), c.Id);
+        c.Remember(S.Turn, $"{besieger.Land()}'s besiegers caught me {(leaving ? "slipping out of" : "slipping back into")} {city}.");
+        S.Log("siege", $"{besieger}'s besiegers caught {c.Name}, envoy of {lord}, {(leaving ? "leaving" : "coming home to")} {city}.", [besieger], "envoy-caught");
+        // The talk of the court that holds it, for envoys and spies there to carry home: whose envoy, plainly.
+        S.Losses.Add(new LossAbroad { Turn = S.Turn, Kind = LossKind.Captured, CharacterId = c.Id, Court = besieger, Master = lord });
+        Overdue(lord, c, trail?.To ?? besieger, due);
+    }
+
+    /// <summary>The notice to a besieger whose troops caught an envoy at the city it besieges.</summary>
+    public const string EnvoyCaughtTitle = "An envoy is caught";
+
     /// <summary>The besieger and, if the city has one, its holder: who reads of a siege in the record.</summary>
     private static IEnumerable<Power> Parties(Power besieger, Power? owner) => owner is { } o ? [besieger, o] : [besieger];
 

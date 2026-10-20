@@ -153,6 +153,25 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     level lower (walls 2)."); until the siege package its text spoke of walls it did not touch. The view shows the walls'
     upkeep beside the troops' (`SeatView.WallUpkeep`), and the orders panel has "Strengthen walls in…" with the price.
     Script kings strengthen walls where a feared king may walk in (see Treasury under Script kings).
+  - **Envoys and a besieged capital** (the design document's "Getting a message out depends on the envoy's competence and
+    courage and on how tight the siege is; the besieger may capture the envoy and read the tablets"; question 5, plan
+    steps 12 and 13, first guesses in `GameConfig`). While a king's own capital is besieged (`TurnEngine.CapitalSiege`), the
+    siege's **tightness** is the besieger's units in the city and next to it, 1 to 3 (`TurnEngine.Tightness`; shown to the
+    holder and the besieger in SIEGES). An envoy of his whose courage is below 20 × tightness **will not leave** that season:
+    the letter is not sent and nothing is paid ("An envoy would not leave": "Mane would not leave Ashur while Babylonia's
+    army besieges it: the siege is too tight for Mane's courage this season. No gold was paid."; a scheduled letter then
+    wakes its seat, since others foiled it). One that goes is **caught** slipping out with a chance in percent of 20 ×
+    tightness − its skill ÷ 4, between 5 and 75 (`SiegeCatchPerUnit`, `SiegeCatchMin`, `SiegeCatchMax`), rolled on the
+    seeded stream "siege-envoy" by its id; so is one coming home to the besieged capital, with what it brings. A caught envoy
+    is the besieger's captive (`TurnEngine.Intercept`, `Character.Intercepted`): the besieger's notice ("An envoy is
+    caught") gives the letter it was to speak and its mandate, the gold goes to his treasury as an unassayed lot, and the
+    tablets it carried (the one to be sealed, those shown as evidence, those brought home) go into his archive. He may
+    execute, ransom or release it, not turn it ("... is an envoy your besiegers caught, not a spy at a post, and cannot
+    be turned"): it was no spy at a post to be sent back to. Released, it walks home in a season. Its king goes on seeing
+    it on its errand (a cover) and hears only, a season after it was due back, that it has not returned; the court that
+    holds it is known for it, as for a caught spy. Other kings' envoys, and the besieged king's spies, come and go freely
+    (closing the roads to all, and envoys visiting several courts in turn, come later, as question 5 planned). The record
+    marks envoys that slipped out (`envoy-out`), were caught (`envoy-caught`) or would not go (`envoy-stayed`).
   - **Free cities** can also be bought for 10 × yield by a power whose land or troops touch
     them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
   season bounce: the elders sell to none, and each bidder is told how many buyers bid ("The elders of
@@ -2166,6 +2185,9 @@ disbanded or given away), whose place next season is known. It rolls no dice.
   - It buys only while the gold left is at least reserve × (1.2 − 0.7 × commerce). A merchant therefore dips into its reserve: Alashiya keeps half of it, Hatti nearly all.
   - After the elders refused to choose between rival buyers, it bids again within three seasons only half the time, and for those three seasons it scores that city at 0.6 of its worth, so another city nearly as good is bought instead (since the fix pass after item 4).
 - **Spare gold** is what is left above the reserve. It pays for the court, gifts and bribes.
+- **Under siege** (the siege package): while its capital is besieged, a king sends no gifts or tribute (the gold would be
+  taken with a caught envoy), and does not ask an envoy who would not leave to go again for two seasons. As besieger, it
+  ransoms a caught envoy where it would have turned a spy (a caught envoy cannot be turned).
 - **Cessions** (since the fix pass after item 4), at most one a season: land the king cannot keep goes to a friend before a rival ahead of it takes it. The province is outside its homeland, has no walls, no troop of the king in it, none that could reach it, is not a destination, and was not ceded to the king by a friend (that land is kept, rather than passed round). Next to it, or a move from it, stands a troop of a king who is not a friend, leads the race or stands at or above the king's growth, and has been taking land (belligerence 0.8 or more) or is hostile; and next to it stands a troop, or lies the land, of a friend the king would not betray, who does not lead and whose growth with the province stays below the rival's with it. The land is lost to the king either way; ceded, it does not carry the rival further ahead, and a king at peace with the friend will not march into it. The cession fails, at no cost, if the rival takes the province first.
 
 ### Court and intelligence

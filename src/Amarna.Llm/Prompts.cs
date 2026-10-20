@@ -77,6 +77,7 @@ public static class Prompts
             - Besieging: an army standing within walls it does not hold may besiege the city (order besiege). Each season it holds there (a besiege or hold order, or no order) wears the city down one step, or two if another unit, of any power, supports it holding and that support is not cut; a season in which it gives a support or a convoy, or tries to move, adds nothing. One besiege order is enough: the siege goes on each season the army holds there. When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls. So an army that gets into a city with walls 1 takes it in the next season, and one before walls 3 in the third season after it got in, or the second with a support each season. If the besieging army leaves or is destroyed, the siege is lifted and what it had worn down is lost.
             - While besieged, a city stays its holder's and counts in his strength, but it yields nothing to anyone, and he cannot raise troops in it. Each siege costs the besieger {c.SiegeUpkeep} a season on top of the army's upkeep. The holder may still cede the city.
             - Strengthening walls (order fortify, naming the province): the walls of a province you hold rise a level at the end of the season, up to 3, for {c.FortifyCost} x the new level ({c.FortifyCost}, {2 * c.FortifyCost}, {3 * c.FortifyCost}), paid then; a province with no walls can be given them this way. Not while it is besieged, and nothing is paid if you lost it in the season's moves. Each level above the walls a province has on THE MAP costs {c.WallUpkeep} a season, paid after your troops' upkeep; walls whose upkeep you cannot pay fall a level, the farthest from your capital first. An earthquake throws the walls of the province it strikes down a level.
+            - Envoys and a besieged capital: while your capital is besieged, each envoy of yours leaving it, or coming home to it, may be caught by the besiegers. The siege's tightness is the besieger's units in the city and next to it, from 1 to 3 (SIEGES in your view gives it); the chance in percent is {c.SiegeCatchPerUnit} x tightness - (the envoy's skill, 0-100)/4, between {c.SiegeCatchMin} and {c.SiegeCatchMax}. An envoy whose courage is below {c.SiegeCatchPerUnit} x tightness will not leave that season: nothing is paid, and you are told. A caught envoy is the besieger's captive: he reads the letter and the mandate, and takes the gold and the tablets it carried; he may execute, ransom or release the envoy, but cannot turn him. You hear only, a season after he was due, that he has not returned. Other kings' envoys come and go freely, and so do your spies.
             - Breaking a siege is ordinary combat: drive the besieging army out with an attack into the city stronger than its hold. Your battle report and your news say how every assault on walls went, yours and those on your own walled cities, with the strengths, and how far each siege of yours, or of your cities, has gone.
 
             STANDING ORDERS (standing_orders; every king may give them)
@@ -352,9 +353,13 @@ public static class Prompts
     public static string Sieges(SeatView v)
     {
         if (v.Sieges.Count == 0) return "";
+        // The tightness matters only at a capital: envoys leaving it, or coming home to it, may be caught.
+        string Tight(SiegeView x) => x.Tightness is { } t && WorldMap.Default[x.Province] is { Capital: true } city && city.Home == x.Holder
+            ? $"; tightness {t} (see WALLS AND SIEGES: envoys {(x.Holder == v.Power ? "of yours" : $"of {x.Holder}")} leaving or coming home may be caught)"
+            : "";
         string Line(SiegeView x) =>
-            x.Besieger == v.Power ? $"your army besieges {x.Province} ({(x.Holder is { } h ? $"held by {h}" : "a free city")}, walls {x.Walls}): worn down {x.Progress} of {x.Walls}, since turn {x.Since}"
-            : x.Holder == v.Power ? $"{x.Besieger}'s army besieges your city of {x.Province} (walls {x.Walls}): worn down {x.Progress} of {x.Walls}, since turn {x.Since}"
+            x.Besieger == v.Power ? $"your army besieges {x.Province} ({(x.Holder is { } h ? $"held by {h}" : "a free city")}, walls {x.Walls}): worn down {x.Progress} of {x.Walls}, since turn {x.Since}{Tight(x)}"
+            : x.Holder == v.Power ? $"{x.Besieger}'s army besieges your city of {x.Province} (walls {x.Walls}): worn down {x.Progress} of {x.Walls}, since turn {x.Since}{Tight(x)}"
             : $"{x.Besieger}'s army besieges {x.Province} ({(x.Holder is { } o ? $"held by {o}" : "a free city")}, walls {x.Walls}): worn down {x.Progress} of {x.Walls}";
         return $"SIEGES (a city surrenders when it is worn down as far as its walls are high): {string.Join("; ", v.Sieges.Select(Line))}.";
     }
@@ -546,7 +551,7 @@ public static class Prompts
         }
         else
         {
-            parts.Add(c.Status == "your captive" ? "your captive (a caught spy)" : c.Status);
+            parts.Add(c.Status != "your captive" ? c.Status : c.Intercepted ? "your captive (an envoy your besiegers caught)" : "your captive (a caught spy)");
             if (c.Employer is { } e) parts.Add($"serves {e}");
             if (c.HeldByYou) parts.Add("held at your court against their will");
             if (c.Where.Length > 0) parts.Add(c.Where);

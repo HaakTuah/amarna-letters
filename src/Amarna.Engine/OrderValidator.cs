@@ -422,6 +422,9 @@ public sealed class OrderValidator
     /// </summary>
     public static string? CaptiveRefusal(GameState s, Character c, CaptiveFate fate)
     {
+        // An envoy caught at a besieged city was no spy at a post: there is nowhere to send it back to deceive from.
+        if (fate == CaptiveFate.Turn && c.Intercepted)
+            return $"{c.Name} is an envoy your besiegers caught, not a spy at a post, and cannot be turned. {c.Name} remains your captive";
         var possible = fate switch
         {
             CaptiveFate.Ransom => RansomPayer(s, c) is not null,

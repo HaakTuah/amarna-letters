@@ -36,6 +36,7 @@ public class SiegeTextTests
     [InlineData("- apasa: Apasa; coast; homeland of Arzawa; capital; yield 40; walls 3.")]
     [InlineData("Strengthening walls (order fortify, naming the province): the walls of a province you hold rise a level at the end of the season, up to 3, for 50 x the new level (50, 100, 150), paid then")]
     [InlineData("walls whose upkeep you cannot pay fall a level, the farthest from your capital first. An earthquake throws the walls of the province it strikes down a level.")]
+    [InlineData("An envoy whose courage is below 20 x tightness will not leave that season: nothing is paid, and you are told. A caught envoy is the besieger's captive: he reads the letter and the mandate, and takes the gold and the tablets it carried; he may execute, ransom or release the envoy, but cannot turn him.")]
     public void The_rulebook_states_walls_by_place_and_slow_absorption(string rule) => Assert.Contains(rule, Prompts.LeaderRules(true, new GameConfig()));
 
     [Fact]

@@ -18,7 +18,7 @@ public static partial class SignalDetector
         "tablet-sealed", "accusation", "messenger-blamed", "reputation", "broken-promise", "coalition",
         "forgery", "authentication", "forgery-exposed", "pact-with-consequences", "bribe", "defection",
         "detention", "skim", "debasement-found", "spy-caught", "double-agent", "evidence-shown", "shared-victory",
-        "archive-copied", "archive-taken", "inventory-swapped", "storm", "siege-begun", "siege-won", "fortify",
+        "archive-copied", "archive-taken", "inventory-swapped", "storm", "siege-begun", "siege-won", "fortify", "envoy-out", "envoy-caught", "envoy-stayed",
     ];
 
     public static List<Signal> Detect(GameState s)

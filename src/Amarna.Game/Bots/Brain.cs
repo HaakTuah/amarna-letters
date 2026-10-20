@@ -58,6 +58,8 @@ internal sealed partial class Brain
     public HashSet<string> NoHand = new();
     /// <summary>Captives a ransom or a turning was refused for: nobody is left to pay or to deceive.</summary>
     public HashSet<string> Unclaimed = new();
+    /// <summary>Our envoys who would not slip out of our besieged capital, and when (the siege package).</summary>
+    public Dictionary<string, int> WouldNotLeave = new();
     /// <summary>People a hire of ours was refused for because another court holds them: they cannot come to us.</summary>
     public HashSet<string> HeldElsewhere = new();
     /// <summary>Provinces a friend ceded to us: we keep them, rather than pass them on in turn.</summary>
@@ -385,6 +387,9 @@ internal sealed partial class Brain
                 break;
             case InboxKind.Rejected when item.Title == "Forgery botched" && item.Subject is { } id:
                 NoHand.Add(id);
+                break;
+            case InboxKind.Rejected when item.Title == "An envoy would not leave" && item.Subject is { } id:
+                WouldNotLeave[id] = v.Turn;
                 break;
             case InboxKind.Rejected when item.Title == "Orders that could not be carried out":
                 foreach (var line in item.Body.Split('\n'))
