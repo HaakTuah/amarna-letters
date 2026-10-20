@@ -2571,6 +2571,19 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   line each time; the text is the same, model characters' shadow lines included). The map never reads a whole state
   back from its snapshot. Measurements are in the round reports.
 - **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
+- **A fallen player's game is over** (the design document's rule, built with the siege package, Build order item 5). Once
+  every human seat at the table has fallen with its capital, and the table's setting allows it (`GameConfig.FallenSeeAll`,
+  on by default; "A fallen player watches in god view" when a game is started), the players watch the rest of the game in
+  god view, seeing everything, and the view opens on it with a notice: "The kingdom of Arzawa has fallen with its capital:
+  your game is over. You watch the rest of the game in god view, seeing everything." (`GameSession.FallenSeesAll`, `TellFall`).
+  While another human seat at the same screen still plays, nobody sees all (a reading: one screen cannot show one player
+  what the other must not see). With the setting off, for a table worried that a fallen player might pass hidden facts to a
+  friend still in the game, he keeps his own view: what his kingdom knew when it fell (its news, its record, its last
+  sight of the board, fading), and what is public since (who holds what, which kingdoms fell), as the seat view of a
+  fallen court already showed; nothing his court could no longer learn (a reading). Spectating a game without human seats
+  keeps both god view and each king's own view, as before. The setting is carried in the log, so a game loaded to
+  continue keeps it, and the batch runner sets it with `--fallen-view god|kingdom` for a game it writes to be opened in
+  the web app. The rules tab tells a human player which it is.
 - **Standing orders in the orders panel** (since the owner's additions to the fix pass after item 4: every seat may keep
   them, so a human seat has a form for them). Under Troops, a section lists the seat's standing orders by id, each with a
   Cancel button (Keep undoes it), and the new ones written this season, each with Remove. A new one is written in two

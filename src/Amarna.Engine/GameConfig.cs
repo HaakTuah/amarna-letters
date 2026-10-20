@@ -11,6 +11,13 @@ public sealed record GameConfig
     public int ProvinceWeight { get; init; } = 10;
     /// <summary>Off by default (since 18 October 2026): a house rule for experiments, never in a king's rulebook unless switched on.</summary>
     public bool SharedVictory { get; init; }
+    /// <summary>
+    /// A table setting, on by default (the design document's "A fallen player's game is over", built with the siege package):
+    /// a player whose kingdom has fallen watches the rest of the game in god view, seeing everything. Off, for a table worried
+    /// that a fallen player might pass hidden facts to a friend still playing, he watches with what his kingdom knew when it
+    /// fell. It changes no rule, and no king's rulebook names it.
+    /// </summary>
+    public bool FallenSeeAll { get; init; } = true;
 
     // Economy and military
     public int ArmyCost { get; init; } = 100;

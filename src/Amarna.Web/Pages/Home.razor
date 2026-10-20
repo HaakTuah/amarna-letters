@@ -113,6 +113,7 @@
                         <label><input type="checkbox" @bind="Settings.Chronicles" /> Chronicles at the end</label>
                         <label><input type="checkbox" @bind="Settings.CustomsPrimer" /> Customs primer for kings</label>
                         <label><input type="checkbox" @bind="Settings.SharedVictory" /> Shared victory for sworn allies</label>
+                        <label title="A player whose kingdom falls watches the rest of the game seeing everything. Off, a fallen player watches with what his kingdom knew when it fell, so he cannot pass hidden facts to a friend still playing."><input type="checkbox" @bind="Settings.FallenSeeAll" /> A fallen player watches in god view</label>
                     </div>
                     <div class="row" style="margin-top:.6rem">
                         <label title="The world still moves every season; after its orders a model king sleeps, and is called again only when something concerns it: it never chooses when it wakes. Off, every king is called every season. Script and human kings play every season."><input type="checkbox" @bind="Settings.SleepingSeats" /> Sleeping seats for model kings</label>

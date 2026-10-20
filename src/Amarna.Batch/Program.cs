@@ -14,6 +14,8 @@ using Amarna.Llm.Sdk;
 //   --effort low|medium|high
 //   --budget 5   (stop when total spend reaches this many dollars)
 // Experiments: --no-primer (leaders without the customs primer), --shared-victory (the house rule, off by default)
+// Table:       --fallen-view god|kingdom (god by default: a fallen player watches the rest seeing everything; kingdom: with
+//              what his kingdom knew when it fell; carried in the log, for a game opened in the web app)
 // Benchmark:   --versus baseline (half the kings are the frozen first bot, alternating by seed)
 //              --versus solo (each king in turn plays the current bot against six baselines)
 //              --focus Mitanni (only that king plays the current bot; add --detail to follow it)
@@ -68,6 +70,12 @@ for (var i = 0; i < args.Length; i++)
             break;
         case "--no-primer": config = config with { CustomsPrimer = false }; break;
         case "--shared-victory": config = config with { SharedVictory = true }; break;
+        // A table setting carried in the log: whether a fallen player watches the rest in god view when the log is opened.
+        case "--fallen-view":
+            var view = args[++i];
+            if (view is not ("god" or "kingdom")) throw new ArgumentException("Use --fallen-view god or --fallen-view kingdom.");
+            config = config with { FallenSeeAll = view == "god" };
+            break;
         case "--no-shared-victory": config = config with { SharedVictory = false }; break;
         case "--sleep": config = config with { SleepingSeats = args[++i] is "on" or "true" or "1" }; break;
         case "--sleep-cap": config = config with { MaxSleep = int.Parse(args[++i]) }; break;
@@ -88,7 +96,7 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
