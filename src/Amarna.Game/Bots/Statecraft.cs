@@ -23,12 +23,14 @@ internal static class Statecraft
         // troops there beat what he can hold it with (a unit and its supports, walls, or troops that can block).
         double Prize(Power x) => reach.Where(t => b.OwnerOf(t) == x).Sum(t =>
         {
-            var strike = b.Mine.Count(u => Board.Map.CanMove(u.Kind, u.Province, t));
+            var strikers = b.Mine.Where(u => Board.Map.CanMove(u.Kind, u.Province, t)).Select(u => u.Province).ToList();
+            var strike = strikers.Count;
             // Troops we cannot see may stand in his provinces next to it.
             var unseen = Math.Max(0, Force(x) - b.Others.Count(u => u.Power == x));
             var hidden = Board.Map.Neighbors(t).Count(n => b.OwnerOf(n) == x && !b.V.Visible.Contains(n));
             var backers = b.Muster(x, t) + Math.Min(unseen, hidden);
-            var defence = b.UnitAt.GetValueOrDefault(t)?.Power == x ? 1 + 0.6 * backers : b.Walls(t) ? 1 + 0.6 * backers : 0.5 * backers;
+            // His troop there has the ground's help against our blow (Build order item 5, terrain).
+            var defence = b.UnitAt.GetValueOrDefault(t)?.Power == x ? 1 + b.Ground(strikers, t) + 0.6 * backers : b.Walls(t) ? 1 + 0.6 * backers : 0.5 * backers;
             var chance = strike > defence + 0.5 ? 0.8 : strike > defence ? 0.5 : strike > defence - 0.5 ? 0.25 : 0.05;
             // Taken land must still be kept: count a little over half of what holding it to the end is worth.
             return b.Value(t) * chance * 0.6;

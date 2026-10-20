@@ -55,8 +55,9 @@ internal static class Tactics
                 var lead = near.OrderBy(u => Land(u.Power)).ThenBy(u => u.Power).ThenBy(u => u.Kind == UnitKind.Army ? 0 : 1)
                     .ThenBy(u => u.Province, StringComparer.Ordinal).First();
                 var support = near.Where(u => u != lead).ToList();
-                // Walls add nothing to the battle: a blow lands if it beats the troop there (behind walls it begins a siege).
-                var held = b.UnitAt.GetValueOrDefault(t)?.Power == foe ? 1 : 0;
+                // Walls add nothing to the battle: a blow lands if it beats the troop there (behind walls it begins a siege), with
+                // the ground's help to it against the troop that goes in (Build order item 5, terrain).
+                var held = b.UnitAt.GetValueOrDefault(t)?.Power == foe ? 1 + b.Ground(lead.Province, t) : 0;
                 var backers = b.Units.Count(u => u.Power == foe && u.Province != t && Board.Map.CanMove(u.Kind, u.Province, t));
                 if (1 + support.Count <= held + (backers + 1) / 2) continue;
                 used.Add(lead.Province);
@@ -167,7 +168,9 @@ internal static class Tactics
                     ops.Add(new Op("block", t.Chance * b.Value(prov) * 0.6 - Exposure(blocker), prov, blocker, new()));
                 continue;
             }
-            var needed = t.Strength - 1;
+            // The likeliest attacker; the ground's help against his blow counts with our troop (Build order item 5, terrain).
+            var attacker = b.Alive.Where(x => x != me && b.Muster(x, prov) == t.Strength).OrderByDescending(x => hostility[x]).FirstOrDefault();
+            var needed = t.Strength - 1 - b.GroundAgainst(prov, attacker);
             if (needed <= 0) continue;
             var helpers = Helpers(prov, prov).Take(needed).ToList();
             var worth = (b.IsMine(prov) ? b.Value(prov) : 0) + (hasUnit ? 120 : 0);
@@ -177,7 +180,6 @@ internal static class Tactics
             if (helpers.Count < needed) plan.Shortfalls.Add((prov, t.Chance * worth));
 
             // Cut the supports of the attack, from anywhere but the province under threat.
-            var attacker = b.Alive.Where(x => x != me && b.Muster(x, prov) == t.Strength).OrderByDescending(x => hostility[x]).FirstOrDefault();
             foreach (var supporter in b.CanReach(prov, u => u.Power == attacker).Select(u => u.Province))
             {
                 var cutter = Helpers(supporter, prov).FirstOrDefault(u => u != prov);
@@ -211,7 +213,6 @@ internal static class Tactics
 
             var rivals = b.Alive.Where(x => x != me && x != occupant?.Power).Select(x => b.Muster(x, target)).DefaultIfEmpty(0).Max();
             var contest = rivals == 0 ? 0 : p.Caution > 0.5 ? rivals : Math.Max(0, rivals - 1);
-            var required = Math.Max(defence, contest) + 1;
 
             var gain = (owner == me ? 0 : b.Value(target)) * Multiplier(owner) + (occupant is not null ? 120 : 0);
             if (owner is { } capOwner && capOwner != me && Board.Map[target].Capital) gain += 60;
@@ -224,7 +225,12 @@ internal static class Tactics
             var walled = b.Walls(target) && owner != me;
             var movers = able.Where(u => !stay.Contains(u) && (!walled || b.UnitAt[u].Kind == UnitKind.Army)).ToList();
             if (movers.Count == 0) continue;
-            var lead = movers.OrderBy(u => Exposure(u)).ThenBy(u => b.UnitAt[u].Kind == UnitKind.Army ? 0 : 1).ThenBy(u => u, StringComparer.Ordinal).First();
+            // Against a troop standing its ground, lead from where the ground helps it least (Build order item 5, terrain): a
+            // move over open ground needs one support fewer than one over a pass or a river.
+            var lead = movers.OrderBy(u => occupant is null ? 0 : b.Ground(u, target)).ThenBy(u => Exposure(u))
+                .ThenBy(u => b.UnitAt[u].Kind == UnitKind.Army ? 0 : 1).ThenBy(u => u, StringComparer.Ordinal).First();
+            if (occupant is not null) defence += b.Ground(lead, target);
+            var required = Math.Max(defence, contest) + 1;
             // Strong enough to storm the walls, the attack takes the city at once; only strong enough to get in, the army stands
             // inside and besieges it, which takes seasons and may be broken: worth less, the higher the walls.
             var storm = walled ? Math.Max(required, b.StormNeeds(target, occupant is null ? 0 : defence)) : required;
@@ -235,7 +241,9 @@ internal static class Tactics
             {
                 var chance = 0.85 - (defence > 1 ? 0.1 : 0);
                 var worth = stormed ? gain : gain * SiegeWorth(b.WallLevel(target)) + (occupant is not null ? 60 : 0);
-                ops.Add(new Op("attack", chance * worth - Exposure(lead) - 6 * helpers.Count, target, lead, helpers));
+                // An army that ends the season in desert land not ours pays for supplies.
+                var desert = b.UnitAt[lead].Kind == UnitKind.Army ? b.DesertCost(target) : 0;
+                ops.Add(new Op("attack", chance * worth - Exposure(lead) - 6 * helpers.Count - desert, target, lead, helpers));
             }
             else if (gain > 150) plan.Shortfalls.Add((target, gain * 0.5));
         }
@@ -477,6 +485,8 @@ internal static class Tactics
                 var owner = b.OwnerOf(n);
                 double lure = 0;
                 if (!Board.Map[n].IsSea && owner != b.Me && (owner is null || willing(owner.Value))) lure = b.Value(n);
+                // Desert land not ours costs an army supplies for each season it ends there (Build order item 5, terrain).
+                if (kind == UnitKind.Army) lure = Math.Max(0, lure - b.DesertCost(n));
                 if (b.IsMine(n) && threat.ContainsKey(n) && !b.UnitAt.ContainsKey(n)) lure = Math.Max(lure, b.Value(n) * 0.8);
                 var score = lure / (1 + depth[n]);
                 if (score > bestScore) { bestScore = score; best = n; }

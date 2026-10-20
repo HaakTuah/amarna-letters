@@ -105,6 +105,14 @@ internal static class Search
             }
         }
 
+        // A rival's troop that stood its ground against our attack last season, and stands there still, is pictured standing
+        // again in every season: it showed it will. (Until terrain, Build order item 5, a move one support short of a troop the
+        // ground helps was tried season after season, because the pictured seasons in which that troop marched off, struck at
+        // us or wandered made it worth trying; the troop held each time.)
+        foreach (var t in StoodAgainstUs(b))
+            foreach (var f in foes)
+                if (f.GetValueOrDefault(t) is MoveOrder) f[t] = new HoldOrder(t);
+
         var sworn = brain.SwornFoes(b);
         var ctx = new Ctx
         {
@@ -217,6 +225,19 @@ internal static class Search
         return (calm, hard);
     }
 
+    /// <summary>
+    /// The provinces where a rival's troop stood its ground against a move of ours last season (it stayed there, whatever its
+    /// order, and our move failed) and stands there still, as far as we can see.
+    /// </summary>
+    internal static HashSet<string> StoodAgainstUs(Board b)
+    {
+        var last = b.V.LastSeason;
+        return last.Where(o => o.Power == b.Me && o.Order == "move" && !o.Succeeded && o.Target is { } t
+                               && b.V.Units.FirstOrDefault(u => u.Province == t) is { } there && there.Power != b.Me
+                               && last.Any(x => x.Province == t && x.Power == there.Power && !x.Destroyed && !(x.Order == "move" && x.Succeeded)))
+            .Select(o => o.Target!).ToHashSet();
+    }
+
     /// <summary>A unit that does something nobody planned: holds, or moves somewhere at random.</summary>
     private static Order Wander(Board b, string at, Rng rng)
     {
@@ -260,9 +281,12 @@ internal static class Search
             yield return [new MoveOrder(u, to)];
             // The same move with the best placed of our other units in support.
             if (Board.Map[to].IsSea) continue;
-            var helper = plan.Keys.Where(h => h != u && h != to && Board.Map.CanMove(b.UnitAt[h].Kind, h, to))
-                .OrderBy(h => plan[h] is HoldOrder ? 0 : plan[h] is SupportOrder ? 1 : 2).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
-            if (helper is not null) yield return [new MoveOrder(u, to), new SupportOrder(helper, u, to)];
+            var helpers = plan.Keys.Where(h => h != u && h != to && Board.Map.CanMove(b.UnitAt[h].Kind, h, to))
+                .OrderBy(h => plan[h] is HoldOrder ? 0 : plan[h] is SupportOrder ? 1 : 2).ThenBy(h => h, StringComparer.Ordinal).Take(2).ToList();
+            if (helpers.Count > 0) yield return [new MoveOrder(u, to), new SupportOrder(helpers[0], u, to)];
+            // Against a foreign troop the ground helps (Build order item 5, terrain), one support is a support too few: try two.
+            if (helpers.Count > 1 && b.UnitAt.GetValueOrDefault(to) is { } there && there.Power != b.Me && b.Ground(u, to) > 0)
+                yield return [new MoveOrder(u, to), new SupportOrder(helpers[0], u, to), new SupportOrder(helpers[1], u, to)];
         }
         foreach (var (other, o) in plan.OrderBy(x => x.Key, StringComparer.Ordinal))
         {
@@ -367,6 +391,8 @@ internal static class Search
 
         var mineAfter = fallen ? [] : at.Where(x => x.Value.Power == me).ToList();
         score += UnitWorth * mineAfter.Count;
+        // An army of ours that ends the season in desert land we do not hold pays for supplies (Build order item 5, terrain).
+        score -= mineAfter.Where(x => x.Value.Kind == UnitKind.Army).Sum(x => b.DesertCost(x.Key));
 
         // Harm done to the kings we fight.
         foreach (var x in c.Hostility.Keys)
@@ -402,12 +428,15 @@ internal static class Search
                 // A capital is trusted only to a sworn ally (see Tactics.Make).
                 var h = capital && !c.Brain.Rel[x].Allied ? Math.Max(fear, 0.3) : fear;
                 if (h < 0.15) continue;
-                var attackers = at.Count(y => y.Value.Power == x && Board.Map.CanMove(y.Value.Kind, y.Key, p));
+                var from = at.Where(y => y.Value.Power == x && Board.Map.CanMove(y.Value.Kind, y.Key, p)).Select(y => y.Key).ToList();
+                var attackers = from.Count;
                 if (attackers == 0) continue;
+                // Our troop standing its ground there has the ground's help against his blow (Build order item 5, terrain).
+                var stands = here ? defence + b.Ground(from, p) : defence;
                 // Behind walls, getting in is not taking: only a storm takes it next season; a lone entry only begins a siege.
                 var chance = walls > 0
-                    ? attackers > walls + (here ? defence : 0) ? h : attackers > defence ? h * 0.15 : 0
-                    : attackers > defence ? h : attackers == defence ? h * 0.3 : 0;
+                    ? attackers > walls + (here ? stands : 0) ? h : attackers > stands ? h * 0.15 : 0
+                    : attackers > stands ? h : attackers == stands ? h * 0.3 : 0;
                 risk = 1 - (1 - risk) * (1 - chance);
             }
             if (risk > 0) score -= risk * kappa * (b.Value(p) + (here ? UnitWorth : 0));

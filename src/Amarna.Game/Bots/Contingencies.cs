@@ -70,6 +70,9 @@ internal static class Contingencies
         }
         // The most troops one feared king, seen or remembered, could move into a place this season.
         int Muster(string place) => hostility.Keys.Where(x => Fear(x, place) >= MinFear).Select(x => b.Muster(x, place)).DefaultIfEmpty(0).Max();
+        // The ground's help to a troop of ours standing there against any blow (Build order item 5, terrain): rough ground only,
+        // since a blow over a pass or a river may come round by open ground in the seasons a standing order waits.
+        int Rough(string place) => Geography.TerrainOf(place) == Terrain.Rough ? b.GroundBonus : 0;
         var used = new HashSet<string>();
 
         // ---- The standing orders kept so far: any may fire this season, in place of this season's orders for its troops.
@@ -102,7 +105,7 @@ internal static class Contingencies
             // A troop or walls that hold this season without its supports against all that a feared king could move in now:
             // it would fire on any blow, even one they hold alone, and take its troops from their own orders for nothing.
             if (st.Orders.All(o => o is SupportOrder { To: null })
-                && 1 + mine.Keys.Count(u => !st.Orders.Any(o => Unit(o) == u) && Fresh(u) is SupportOrder { To: null } s && s.Supported == place) >= Muster(place))
+                && 1 + Rough(place) + mine.Keys.Count(u => !st.Orders.Any(o => Unit(o) == u) && Fresh(u) is SupportOrder { To: null } s && s.Supported == place) >= Muster(place))
                 return "held without it";
             foreach (var o in st.Orders)
             {
@@ -153,9 +156,10 @@ internal static class Contingencies
                 .OrderBy(u => Threat(u).Chance * Worth(u)).ThenBy(u => u, StringComparer.Ordinal).ToList();
             if (mine.TryGetValue(place, out var troop))
             {
-                // A troop of ours that stays: against more than one, it needs supports to hold.
-                if (!Stays(place) || strength < 2 || Muster(place) < 2 || covered.Contains((StandingWhen.UnitAttacked, place))) continue;
-                var support = helpers.Take(strength - 1).ToList();
+                // A troop of ours that stays: against more than one, it needs supports to hold (one fewer on rough ground).
+                var ground = Rough(place);
+                if (!Stays(place) || strength - ground < 2 || Muster(place) - ground < 2 || covered.Contains((StandingWhen.UnitAttacked, place))) continue;
+                var support = helpers.Take(strength - 1 - ground).ToList();
                 if (support.Count > 0)
                     Add(Guard.Troop, place, StandingWhen.UnitAttacked, support.Select(h => (Order)new SupportOrder(h, place)).ToList(), support);
                 else if (Board.Map[place].IsSea && !used.Contains(place) && Refuge(place, troop.Kind) is { } refuge)

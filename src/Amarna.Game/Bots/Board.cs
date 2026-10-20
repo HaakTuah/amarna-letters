@@ -56,6 +56,39 @@ internal sealed class Board
     public int StormNeeds(string p, int defenders) => Walls(p) ? WallLevel(p) + defenders + 1 : 0;
     public Province P(string id) => Map[id];
 
+    /// <summary>What the ground gives a unit that stands its ground (Build order item 5, terrain), as the rules of the game set it.</summary>
+    public int GroundBonus => V.Prices.GetValueOrDefault("terrainDefence", 1);
+
+    /// <summary>
+    /// The ground's help to a unit standing in <paramref name="to"/> against a move from <paramref name="from"/>: rough ground, a
+    /// pass or a river on the link, or a landing from the sea (a move from a province not next to it comes by convoy).
+    /// </summary>
+    public int Ground(string from, string to) =>
+        GroundBonus > 0 && Geography.DefenceGround(from, to, byConvoy: !Map.AreAdjacent(from, to)) is not null ? GroundBonus : 0;
+
+    /// <summary>
+    /// The ground's help to a unit standing in <paramref name="place"/> against a blow from these provinces: rough ground helps
+    /// against any; a crossing or a landing only if every one of them comes over one, since the attacker leads with the
+    /// unit that does not.
+    /// </summary>
+    public int Ground(IEnumerable<string> from, string place)
+    {
+        if (GroundBonus <= 0) return 0;
+        if (Geography.TerrainOf(place) == Terrain.Rough) return GroundBonus;
+        var froms = from.ToList();
+        return froms.Count > 0 && froms.All(f => Ground(f, place) > 0) ? GroundBonus : 0;
+    }
+
+    /// <summary>The ground's help to a unit in <paramref name="place"/> against what a power could move into it this season.</summary>
+    public int GroundAgainst(string place, Power attacker) => Ground(CanReach(place, u => u.Power == attacker).Select(u => u.Province), place);
+
+    /// <summary>
+    /// What an army of ours pays for supplies for a season it ends in <paramref name="place"/> (Build order item 5, terrain):
+    /// the desert's cost if it is desert land we do not hold; nothing in our own land.
+    /// </summary>
+    public int DesertCost(string place) =>
+        Geography.TerrainOf(place) == Terrain.Desert && !IsMine(place) ? V.Prices.GetValueOrDefault("desertUpkeep", 30) : 0;
+
     /// <summary>
     /// What holding a province is worth over the rest of the game: its score plus the income it brings. A kingdom falls with
     /// its capital (the siege package): a living king's capital is worth, to us, half of the rest of his land too, since it
