@@ -157,6 +157,14 @@ public class RequestsAreRulesTests
         Assert.StartsWith("You are home at the court of your lord, the King of Alashiya.", asker.Calls[1].User);
         Assert.All(asker.Calls, c => Assert.DoesNotContain("Alashiya of Alashiya", c.User));
         Assert.All(asker.Calls, c => Assert.DoesNotContain("Alashiya, king of Alashiya", c.User));
+
+        // Its lord's land is named once, with the power's name only where the land has another ("Mitanni (Mitanni)" before).
+        Assert.Contains("You serve the king of Egypt for 10 shekels a season.", asker.Calls[0].SeatSystem);
+        var babylonian = Envoy(employer: Power.Babylonia);
+        babylonian.SecretMaster = Power.Hatti;
+        var self = LlmCharacterMind.Self(babylonian, 2);
+        Assert.Contains("You serve the king of Karduniash (Babylonia) for 10 shekels a season.", self);
+        Assert.Contains("In secret you serve Hatti, and you protect its interests.", self);
     }
 
     // ------------------------------------------------------------ kings
