@@ -36,7 +36,7 @@ public sealed record GameConfig
     // Pacing
     /// <summary>
     /// On by default (since 18 October 2026): after every set of orders a model or file seat sleeps, and is asked again
-    /// only when something concerns it, the season it named comes, or the hidden cap is reached. Off, every seat is asked every season.
+    /// only when something concerns it or the hidden cap is reached (it never chooses when it wakes). Off, every seat is asked every season.
     /// </summary>
     public bool SleepingSeats { get; init; } = true;
     /// <summary>

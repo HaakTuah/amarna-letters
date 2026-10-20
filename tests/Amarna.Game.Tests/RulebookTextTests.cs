@@ -44,8 +44,8 @@ public class RulebookTextTests
         s.Tablets.Add(new Tablet { Id = "t900", Text = "Peace.", ProposedBy = Power.Hatti, Partner = Power.Egypt, Seals = [Power.Hatti, Power.Egypt], CreatedTurn = 1, SealedTurn = 1 });
         s.Copies.Add(new TabletCopy { Id = "k900", TabletId = "t900", Holder = Power.Egypt, AcquiredTurn = 1, Source = "copied from the archive of Hatti by your spy Mane" });
         var text = Prompts.Situation(Views.For(s, Power.Egypt));
-        Assert.Contains("YOUR ARCHIVE (the tablets you hold, kept at your capital; copy id: text; seals; how it came to you):", text);
-        Assert.Contains("- k900: \"Peace.\" Seals: Hatti, Egypt, dated turn 1. (copied from the archive of Hatti by your spy Mane)", text);
+        Assert.Contains("YOUR ARCHIVE (the tablets you hold, kept at your capital: each as every court names it, by its seals and date; your own mark for your copy, for your orders only; its text; how it came to you):", text);
+        Assert.Contains("- the tablet sealed by Hatti and Egypt, dated turn 1 [your copy k900]: \"Peace.\" (copied from the archive of Hatti by your spy Mane)", text);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class RulebookTextTests
     public void The_rulebook_says_when_a_support_is_void_and_when_the_other_side_is_named()
     {
         Assert.Contains("A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds.", Rules);
-        Assert.Contains("with the strengths compared where strength decided it, and why each of your supports or convoys was void.", Rules);
+        Assert.Contains("with the strengths compared where strength decided it, and that the unit stays where it was (a unit whose move fails does not move), and why each of your supports or convoys was void.", Rules);
         Assert.Contains("It names the other side's power only if that unit stood, or was moving, where you could see.", Rules);
     }
 
@@ -134,7 +134,8 @@ public class SeasonRulebookTests
 
     [Theory]
     [InlineData("a person hired this season enters your service at the end of the season and can be sent on an errand from next season")]
-    [InlineData("Yours are checked in the order your reply lists them (units, then letters, then other orders), and the gold each needs is reserved as it is accepted, so a later order can be refused for lack of gold.")]
+    [InlineData("Yours are checked in the order your reply lists them (units, then letters, then other orders), then those of your standing orders that fire, and the gold each needs is reserved as it is accepted, so a later order can be refused for lack of gold.")]
+    [InlineData("Then each standing order that fires (see STANDING ORDERS) answers the moves just ordered and puts its orders in place of yours for the same units or people.")]
     [InlineData("There is no \"else\": a refused order is not replaced by another, and a purchase meant as a fallback is refused if an earlier bid has reserved the gold, even if that city is then not sold.")]
     [InlineData("A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none.")]
     [InlineData("a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid.")]
@@ -195,7 +196,7 @@ public class SeasonRulebookTests
 public class StandingsAndTravelTests
 {
     [Fact]
-    public void The_standings_line_estimates_every_power_s_growth_from_who_holds_what()
+    public void The_land_standings_line_gives_every_power_s_land_yield_ratio_from_who_holds_what_and_says_it_is_not_growth()
     {
         var s = GameFactory.NewGame(5);
         var map = WorldMap.Default;
@@ -209,7 +210,9 @@ public class StandingsAndTravelTests
 
         var line = Prompts.Standings(Views.For(s, Power.Egypt));
         var mitanni = (double)(Home(Power.Mitanni) + Home(Power.Assyria)) / Home(Power.Mitanni);
-        Assert.StartsWith("STANDINGS (an estimate from who holds what; treasuries are left out): Mitanni ", line);
+        // Labelled for what it is: a land-yield ratio, not the growth that wins, as the rulebook says too.
+        Assert.StartsWith("LAND STANDINGS (a land-yield ratio, not growth: the yield of the land each power holds now over its homeland's yield at the start, as any court can reckon it from who holds what. Growth, which decides who wins, also counts treasuries and back pay, so these are not the winning figures, and yours is not your growth on the treasury line): Mitanni ", line);
+        Assert.Contains("- LAND STANDINGS in your view give each power's land-yield ratio: the yield of the land it holds now over its homeland's yield at the start, which anyone can reckon from who holds what. It is not growth: growth, which decides who wins, measures strength (land, treasury and back pay) against a starting strength that includes the starting treasury, and rivals' treasuries are private. Your own growth, by your ledger, is on your treasury line.", Prompts.LeaderRules(true, new GameConfig()));
         Assert.Contains($"Mitanni {mitanni.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)} (land yield {Home(Power.Mitanni) + Home(Power.Assyria)}, at the start {Home(Power.Mitanni)}); Egypt (you) 1.11 (land yield 210, at the start 190); ", line);
         Assert.Contains($"Hatti 1.00 (land yield {Home(Power.Hatti)}, at the start {Home(Power.Hatti)})", line);
         Assert.EndsWith(" Fallen: Assyria.", line);

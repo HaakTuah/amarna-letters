@@ -94,11 +94,18 @@ public sealed class ScriptLeader : ISeat
             var busy = new HashSet<string>();
             Statecraft.Court(board, brain, orders, busy, rng);
             Statecraft.Letters(board, brain, orders, busy, rng);
+            // Standing orders last, against the season's whole plan: those kept may change it if the blow comes.
+            var (cancel, give) = Contingencies.Plan(board, brain, plan, orders);
 
             var notes = $"War on {brain.WarTarget?.ToString() ?? "nobody"}" + (brain.Betraying is { } t ? $"; turning on {t}" : "")
                         + (board.Leader() is { } top ? $"; {top} leads" : "") + string.Concat(Pacts(board, brain, plan).Select(s => "; " + s))
+                        + (give.Count > 0 ? $"; standing orders guard {string.Join(", ", give.Select(g => $"{g.Place} ({g.Kind.ToString().ToLowerInvariant()})"))}" : "")
+                        + (cancel.Count > 0 ? $"; standing orders cancelled: {string.Join(", ", cancel.Select(c => $"{c.Id} ({c.Why})"))}" : "")
                         + $". Trust: {string.Join(", ", brain.Rel.Where(x => Math.Abs(x.Value.Trust) > 0.15).Select(x => $"{x.Key} {x.Value.Trust:+0.0;-0.0}"))}.";
-            return Task.FromResult(new TurnSubmission { Orders = orders, Notes = notes });
+            return Task.FromResult(new TurnSubmission
+            {
+                Orders = orders, Notes = notes, Standing = give.Select(g => g.Request).ToList(), CancelStanding = cancel.Select(c => c.Id).ToList(),
+            });
         }
     }
 

@@ -47,8 +47,6 @@ public static class Schemas
         "captive_execute", "captive_ransom", "captive_turn", "captive_release", "release_detained", "pay_ransom",
     ];
 
-    public static readonly string[] WakeTriggers = ["unit_moves", "envoy_returns", "treasury_below", "troops_enter", "province_changes_hands"];
-
     // The shapes of a unit order and of any other order. Repeated in the schedule and in standing orders; the copy in
     // standing orders leaves out the field descriptions, which are the same as above it, to keep the schema short.
     private static JsonObject UnitOrder(bool described = true) => Object(
@@ -65,45 +63,39 @@ public static class Schemas
         ("amount", Int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)),
         ("term", Int(described ? "hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice; else 0." : null)),
         ("text", Str(described ? "Forgery text, words for a released envoy, or what a turned spy should report." : null)),
-        ("item", Str(described ? "Gold lot id for assay, tablet copy id for authenticate." : null)),
+        ("item", Str(described ? "For assay, your mark for the gold (like g7), as your treasury gives it; for authenticate, your mark for your copy of the tablet (like k8), as your archive gives it." : null)),
         ("seals", Array(Str(), described ? "Powers whose seals a forgery bears." : null)));
 
     /// <summary>
-    /// A king's orders. With sleeping seats on, it sleeps after them: it may name a season to be woken in, add its own
-    /// reasons to be woken, schedule orders for later seasons, and give or cancel standing orders. Nothing here names the
-    /// cap on its sleep.
+    /// A king's orders. Every king may give and cancel standing orders (since the additions to the fix pass after item 4:
+    /// "Every feature is every seat's"). With sleeping seats on, it sleeps after them until something concerns it: it never
+    /// chooses when it wakes, so it also schedules orders for later seasons. Nothing here names the cap on its sleep.
     /// </summary>
     public static JsonObject LeaderOrders(GameConfig? c = null)
     {
         var o = LeaderOrdersBase(c?.SharedVictory ?? false);
-        if (c is not { SleepingSeats: true }) return o;
+        var sleeps = c is { SleepingSeats: true };
         var props = (JsonObject)o["properties"]!;
         var required = (JsonArray)o["required"]!;
-        props["sleep"] = With(Object(
-            ("wake_in_turn", Int("A later season (turn number) to be woken in, or 0 for none. Something that concerns you may wake you sooner. Like wake_on, it holds only until you are next woken: name it again to keep it.")),
-            ("wake_on", Array(Object(
-                ("trigger", Enum(WakeTriggers)),
-                ("province", Str("unit_moves: where the unit stands now. troops_enter, province_changes_hands: the province. Otherwise empty.")),
-                ("person", Str("envoy_returns: the person id. Otherwise empty.")),
-                ("amount", Int("treasury_below: shekels. Otherwise 0.")),
-                ("power", Str("troops_enter: whose troops, or empty for any foreign power's."))),
-                "Your own reasons to be woken, on top of the usual ones (at most 8). Each fires on a change after you set it, not on a state that lasts. They hold until you are next woken."))),
-            "You sleep after these orders, until something concerns you. What else should wake you.");
-        props["schedule"] = Array(Object(
-            ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
-            ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands.")),
-            ("other_orders", Array(OtherOrder()))),
-            $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order that is refused or fails wakes you; a scheduled move that is stopped is tried once more (see the rulebook).");
+        if (sleeps)
+        {
+            props["schedule"] = Array(Object(
+                ("turn", Int("The season (turn number) these orders run in: any later season, or this one (an entry for this season counts as orders given now).")),
+                ("units", Array(UnitOrder(), "Name each of your units by the province it stands in now: the order follows that unit, and is given from wherever it then stands. A unit a levy is to raise (one you order now or schedule for an earlier season): the province of the levy.")),
+                ("other_orders", Array(OtherOrder()))),
+                $"Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most {TurnEngine.MaxScheduledPerSeason} orders a season, for at most {TurnEngine.MaxScheduledSeasons} seasons. A scheduled order wakes you only if others foil it, never if it is refused or fails by your own orders; a scheduled move that is stopped is tried once more (see the rulebook).");
+            required.Add("schedule");
+        }
         props["standing_orders"] = Array(Object(
             ("when", Enum(["unit_enters", "unit_attacked"])),
-            ("province", Str("unit_enters: the province entered. unit_attacked: where your unit stands now.")),
+            ("province", Str("unit_enters: the province the troops move into. unit_attacked: where your unit stands now.")),
             ("power", Str("unit_enters: whose troops, or empty for any foreign power's. Otherwise empty.")),
-            ("units", Array(UnitOrder(described: false), "As in schedule: your units named by where they stand now.")),
+            ("units", Array(UnitOrder(described: false), "As in units, each of your units named by the province it stands in now: the order follows that unit, and is given from wherever it then stands.")),
             ("other_orders", Array(OtherOrder(described: false), "As in other_orders."))),
-            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the event, the orders run the next season, once, before your scheduled orders; orders you give that season replace them. Firing does not wake you; an order of it that fails does.");
-        props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\".");
-        required.Add("sleep");
-        required.Add("schedule");
+            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the move it waits for, its orders run in that same season, once, so they meet the move: they replace your other orders for the same units or people that season, those you give then among them{(sleeps ? " and your scheduled ones" : "")} (cancel it to stop it). It first fires in the season after you give it."
+            + (sleeps ? " Firing does not wake you; an order of it that others foil does." : "")
+            + " Giving one costs nothing; its orders cost what they cost when they run.");
+        props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\". Cancelled now, one does not fire this season.");
         required.Add("standing_orders");
         required.Add("cancel_standing");
         return o;
@@ -124,7 +116,7 @@ public static class Schemas
             ("message", Str("What the envoy should say, in your words.")),
             ("mandate", Str("What the envoy may agree to on your behalf.")),
             ("gold", Int("Shekels sent with the envoy, or 0.")),
-            ("purity", Int("Purity of the gold in percent, 10-100. Below 100 is debased.")),
+            ("purity", Int("Purity of the gold in percent, 10-100 (100 when you send none). Below 100 is debased.")),
             // The sealed greeting is written from these flags alone: say what each one claims or withholds.
             ("call_brother", Bool("Greet the recipient as your brother, as Great Kings greet their equals, and wish well to his household and country. False withholds it: a slight.")),
             ("call_them_great_king", Bool("Give the recipient the title Great King. False denies him that rank.")),
@@ -133,9 +125,9 @@ public static class Schemas
             ("omit_greeting", Bool("Send no greeting at all, which is a slight. The other greeting flags are then ignored.")),
             ("tablet_to_seal", Str("Text for both kings to seal, or empty.")),
             ("sworn_alliance", Bool(sharedVictory
-                ? "Mark the tablet as a sworn alliance (counts for a shared victory)."
-                : "Mark the tablet as a sworn alliance, an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.")),
-            ("show_tablet_copies", Array(Str(), "Ids of tablet copies you hold to show as evidence.")));
+                ? "Only with a tablet to seal (false without one): mark the tablet as a sworn alliance (counts for a shared victory)."
+                : "Only with a tablet to seal (false without one): mark the tablet as a sworn alliance, an oath of alliance before the gods that every reader of the tablet sees. It changes no rule and binds nobody.")),
+            ("show_tablet_copies", Array(Str(), "Your marks for the copies of tablets you hold (like k8), as your archive gives them, to show as evidence.")));
 
     /// <summary>The king's ledger of dealings, written the same way in an orders reply and in an audience reply.</summary>
     private static JsonObject Ledger() => Array(Object(
@@ -144,51 +136,112 @@ public static class Schemas
         "Your ledger of dealings, in your own words, per court: what was promised, sealed, broken and paid. An entry replaces that court's line, an empty entry removes it, and courts you leave out keep their lines. It is shown in full whenever you give orders or hold an audience, and you may write it in either reply.");
 
     /// <summary>
-    /// A host's reply at an audience. A king that sleeps and was woken for its audiences only (its orders stand) may also send
-    /// letters from the audience and choose whether to reopen its orders; at any other audience the reply has neither field.
+    /// A host's reply at an audience, with every field (the schema's shape before "Requests are rules too": tests compare
+    /// against it). A king that sleeps and was woken for its audiences only (its orders stand) may also send letters from the
+    /// audience and choose whether to reopen its orders; at any other audience the reply has neither field.
     /// </summary>
-    public static JsonObject HostReply(GameConfig? c = null, bool ordersStand = false)
+    public static JsonObject HostReply(GameConfig? c = null, bool ordersStand = false) => HostReply(c, new AudienceAsks(OrdersStand: ordersStand));
+
+    /// <summary>
+    /// What a host is asked at one exchange of an audience, by the builder rule "Requests are rules too" (no field may imply
+    /// something that is not true): whether to seal only while a tablet the envoy brought waits to be sealed, a gift only
+    /// until the envoy has accepted one (an envoy takes one gift per audience), whether to end the audience only before its
+    /// last exchange, and whether to reopen its orders only while its orders stand and it has not already chosen to.
+    /// </summary>
+    public readonly record struct AudienceAsks(bool OrdersStand = false, bool TabletToSeal = true, bool GiftOpen = true, bool LastExchange = false, bool ReopenChosen = false)
     {
-        var fields = new List<(string Name, JsonObject Schema)>
+        public static AudienceAsks Of(AudienceView a) => new(a.OrdersStand, a.Proposal is not null && !a.ProposalSealed, a.GiftAccepted == 0, a.Round >= a.MaxRounds, a.ReopenChosen);
+    }
+
+    /// <summary>A host's reply at this exchange of an audience: only the fields that apply to it (<see cref="AudienceAsks"/>).</summary>
+    public static JsonObject HostReply(GameConfig? c, AudienceView a) => HostReply(c, AudienceAsks.Of(a));
+
+    private static JsonObject HostReply(GameConfig? c, AudienceAsks asks)
+    {
+        var fields = new List<(string Name, JsonObject Schema)> { ("speech", Str("What you say to the envoy, to carry home.")) };
+        if (asks.GiftOpen)
         {
-            ("speech", Str("What you say to the envoy, to carry home.")),
-            ("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given.")),
-            ("gift_request", Str("What you want from the envoy in return for the gift, or empty.")),
-            ("offer_service_wage", Int("Offer the envoy service at this wage per season, or 0.")),
-            ("seal_tablet", Bool("Seal the tablet the envoy brought, if any.")),
-            ("detain_envoy", Bool()),
-            ("send_gold_back", Int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it.")),
-            ("gold_back_purity", Int("Purity of that gold in percent, 10-100. The purity named with the amount that is sent applies.")),
-            ("end_audience", Bool("End the audience now.")),
-        };
-        if (ordersStand)
+            fields.Add(("gift_to_envoy", Int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given.")));
+            fields.Add(("gift_request", Str("What you want from the envoy in return for the gift, or empty.")));
+        }
+        fields.Add(("offer_service_wage", Int("Offer the envoy service at this wage per season, or 0.")));
+        if (asks.TabletToSeal) fields.Add(("seal_tablet", Bool("Seal the tablet the envoy brought.")));
+        fields.Add(("detain_envoy", Bool("Keep the envoy at your court against its will: it does not go home when the audience ends.")));
+        fields.Add(("send_gold_back", Int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it.")));
+        fields.Add(("gold_back_purity", Int("Purity of that gold in percent, 10-100 (100 when you send none). The purity named with the amount that is sent applies.")));
+        if (!asks.LastExchange) fields.Add(("end_audience", Bool("End the audience now.")));
+        if (asks.OrdersStand)
         {
             fields.Add(("letters", Array(Letter(c?.SharedVictory ?? false),
-                "Envoys of yours to send from this audience, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give. A new letter for a person you already sent this season replaces it. Empty for none.")));
-            fields.Add(("reopen_orders", Bool("True if the news changes your plan: after your audiences you give orders this season with your full view, as when anything else wakes you. False: your orders stand and you sleep on. Once true, it holds for the season.")));
+                "Envoys of yours to send from this audience, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give, and each costs what a letter in your orders costs. A new letter for a person you already sent this season replaces it. Empty for none.")));
+            if (!asks.ReopenChosen)
+                fields.Add(("reopen_orders", Bool("True if the news changes your plan: after your audiences you give orders this season with your full view, as when anything else wakes you. False: your orders stand and you sleep on. Once true, it holds for the season.")));
         }
         fields.Add(("ledger", Ledger()));
         return Object([.. fields]);
     }
 
-    public static JsonObject Present() => Object(
-        ("speech", Str("What you say to the king, delivering your lord's message in your own words.")),
-        ("keep_gold", Int("Shekels of the carried gold you quietly keep for yourself, or 0.")),
-        ("swap_inventory", Bool(SwapInventory)));
+    /// <summary>
+    /// An envoy's presentation. The gold fields are asked only of an envoy that carries gold: one that carries none is not
+    /// asked what it keeps of it (in the second agent simulation, asked every time, envoys spoke of gold they never had).
+    /// Whether to swap the inventory is asked only of an envoy whose hand can fake a seal (<paramref name="canForge"/>):
+    /// one without the skill could not use a forgery, so the question would offer it something it cannot do.
+    /// </summary>
+    public static JsonObject Present(bool carriesGold = true, bool canForge = true) => !carriesGold
+        ? Object(("speech", Str(PresentSpeech)))
+        : canForge
+            ? Object(
+                ("speech", Str(PresentSpeech)),
+                ("keep_gold", Int(KeepGold)),
+                ("swap_inventory", Bool(SwapInventory)))
+            : Object(
+                ("speech", Str(PresentSpeech)),
+                ("keep_gold", Int(KeepGold)));
 
-    /// <summary>What an envoy that keeps gold may do with the inventory tablet it carries.</summary>
-    private const string SwapInventory = "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. Faking the seal takes a forger's hand (you are told whether yours is one); without one you dare not use it and the true inventory is handed over. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
+    private const string KeepGold = "Shekels of the gold you carry that you quietly keep for yourself, or 0.";
 
-    public static JsonObject React() => Object(
-        ("speech", Str("What you say in answer.")),
-        ("accept_gift", Bool("Accept the king's personal gift, if one was offered.")),
-        ("accept_service", Bool("Leave your lord and enter this king's service, if offered.")),
-        ("commitments", Str("Anything you promised on your lord's behalf, or empty.")));
+    private const string PresentSpeech = "What you say to the king, delivering your lord's message in your own words.";
 
-    public static JsonObject Report() => Object(
-        ("report", Str("Your report to your lord.")),
-        ("keep_gold", Int("Shekels of the gold you carry home that you quietly keep, or 0.")),
-        ("swap_inventory", Bool(SwapInventory)));
+    /// <summary>What an envoy that keeps gold, and whose hand can fake a seal (the only one asked), may do with the inventory tablet it carries.</summary>
+    private const string SwapInventory = "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
+
+    /// <summary>
+    /// An envoy's answer at an audience: whether to take a gift or a post only when one is offered (and a gift only while it
+    /// can still be taken: an envoy takes one gift per audience, so a later one is not asked about).
+    /// </summary>
+    public static JsonObject React(bool giftOffered = true, bool serviceOffered = true)
+    {
+        var fields = new List<(string Name, JsonObject Schema)> { ("speech", Str("What you say in answer.")) };
+        if (giftOffered) fields.Add(("accept_gift", Bool("Accept the king's personal gift.")));
+        if (serviceOffered) fields.Add(("accept_service", Bool("Leave your lord and enter this king's service.")));
+        fields.Add(("commitments", Str("Anything you promised on your lord's behalf, or empty.")));
+        return Object([.. fields]);
+    }
+
+    /// <summary>
+    /// An envoy's report home, with the gold fields only when it carries gold home (gold a host sent back with it), and the
+    /// swap only when its hand can fake a seal, as in <see cref="Present"/>. An envoy whose king dismissed it while it was
+    /// away (<paramref name="toLord"/> false) reports to the king who sent it, who is no longer its lord, and its schema
+    /// says so as its request does ("Requests are rules too"; until the follow-up's review the schema still said "Your
+    /// report to your lord.").
+    /// </summary>
+    public static JsonObject Report(bool carriesGold = true, bool canForge = true, bool toLord = true)
+    {
+        var report = ("report", Str(toLord ? ReportText : ReportToSender));
+        return !carriesGold
+            ? Object(report)
+            : canForge
+                ? Object(report, ("keep_gold", Int(KeepGoldHome)), ("swap_inventory", Bool(SwapInventory)))
+                : Object(report, ("keep_gold", Int(KeepGoldHome)));
+    }
+
+    private const string KeepGoldHome = "Shekels of the gold you carry home that you quietly keep, or 0.";
+
+    /// <summary>What an envoy's report is, as its schema says (a spy's report is "Your report home.").</summary>
+    public const string ReportText = "Your report to your lord.";
+
+    /// <summary>What the report of an envoy dismissed while away is: its king is no longer its lord.</summary>
+    public const string ReportToSender = "Your report to the king who sent you on this mission.";
 
     public static JsonObject Pitch() => Object(
         ("pitch", Str("How you present yourself, in a few sentences.")),

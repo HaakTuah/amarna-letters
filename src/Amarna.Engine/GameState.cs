@@ -12,9 +12,18 @@ public sealed class GameState
     /// would not replay to the same game. Raise it with every rule change. 3 since Build order item 3 (archives, inventory
     /// tablets and swapped inventories); 4 since Build order item 4: a spy posted at a court is hidden from it (it is not
     /// paid back pay there, and does not end that court's cover), and each kind of object has its own id counter (fix (d),
-    /// <see cref="IdCounters"/>). Neither change was released on its own, so one version covers both.
+    /// <see cref="IdCounters"/>). Neither change was released on its own, so one version covers both. 5 since the fix pass
+    /// after item 4, for both its lanes: kings never choose when they wake (no named season, no triggers of their own),
+    /// threats to a home province or a walled city wake a sleeping king, standing orders fire in the season of their event,
+    /// scheduled orders may be given to a levy's unit, and engine texts name tablets and people as every court sees them;
+    /// script envoys keep a share of small lots of gold (rounded to the shekel, not down to fives), leave the host's
+    /// complaint about the weighing out of their reports when they kept some, read a passive "warned" as a threat to a king
+    /// only when he is the one warned, and split sentences after a closing quote, which changes what they keep and say.
+    /// Among the owner's additions to that pass, still under 5 since it was never released: every seat may keep standing
+    /// orders, awake or asleep, and a standing order that fires replaces the season's other orders for the same units or
+    /// people, those given that season among them; script kings give them.
     /// </summary>
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
 
     public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }
@@ -43,6 +52,11 @@ public sealed class GameState
     public Dictionary<Power, int> CounterIntel { get; set; } = new();
     /// <summary>Seats that may sleep (model and file seats, when <see cref="GameConfig.SleepingSeats"/> is on). Each sees only its own.</summary>
     public Dictionary<Power, SleepState> Sleep { get; set; } = new();
+    /// <summary>
+    /// Every seat's standing orders, awake or asleep (since the additions to the fix pass after item 4); a seat that never
+    /// kept one has no entry. Each sees only its own.
+    /// </summary>
+    public Dictionary<Power, StandingBook> Standing { get; set; } = new();
 
     public Dictionary<Power, List<InboxItem>> Inbox { get; set; } = new();
     /// <summary>The orders each power could see resolve last season (its own and those in sight).</summary>
@@ -133,7 +147,7 @@ public static class IdKinds
         { "x", "catastrophe" },
     };
 
-    /// <summary>Standing orders are numbered per seat ("s1", "s2", ...) by <see cref="SleepState.LastStanding"/>, not here; no kind may take "s".</summary>
+    /// <summary>Standing orders are numbered per seat ("s1", "s2", ...) by <see cref="StandingBook.Last"/>, not here; no kind may take "s".</summary>
     public const string StandingOrder = "s";
 }
 
@@ -454,6 +468,23 @@ public sealed class SpyReport
     public int ObservedTurn { get; set; }
     /// <summary>Tablets the spy copied this season from the archive of the court it watches: the copies come home with the report.</summary>
     public List<string> TabletIds { get; set; } = new();
+    /// <summary>
+    /// How many facts of its own life the spy had when it observed (facts are only ever added), so that the report, written
+    /// when it arrives but of the season observed, shows the spy only those; null in a report made before this was kept
+    /// (the fix pass after item 4), which shows them all.
+    /// </summary>
+    public int? FactCount { get; set; }
+    /// <summary>Whom the spy secretly served when it observed (with <see cref="FactCount"/> set), if anyone.</summary>
+    public Power? SecretMaster { get; set; }
+    /// <summary>
+    /// Its lord, wage, purse and back pay when it observed, so that a report arriving after it was dismissed or hired
+    /// elsewhere is still written by the servant it was then (the follow-up's review of the fix pass after item 4); null in
+    /// a report made before these were kept, which shows them as they are when it arrives.
+    /// </summary>
+    public Power? Lord { get; set; }
+    public int? Wage { get; set; }
+    public int? Purse { get; set; }
+    public Dictionary<Power, int>? BackPay { get; set; }
 }
 
 public sealed class PendingAudience
@@ -571,6 +602,9 @@ public sealed class InboxItem
 /// <summary>The three versions of a message, side by side: the gaps between them are the game.</summary>
 public sealed class MessageTrail
 {
+    /// <summary>The outcome the engine records when the host seals the tablet the envoy carried: the only sealing on a mission.</summary>
+    public const string SealedOutcome = "the tablet was sealed by both kings";
+
     public string Id { get; set; } = "";
     public int Turn { get; set; }
     public Power From { get; set; }

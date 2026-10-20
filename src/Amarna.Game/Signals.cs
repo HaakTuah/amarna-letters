@@ -41,7 +41,7 @@ public static partial class SignalDetector
                 if (hit is not null) list.Add(new Signal(turn, kind, $"{t.From}/{t.To}: {Greeting.Cap(hit, 140)}"));
             }
             Mark("accusation", TextKit.IsAccusation);
-            Mark("messenger-blamed", x => MessengerBlamed().IsMatch(x));
+            Mark("messenger-blamed", BlamesMessenger);
             Mark("reputation", x => PastConduct().IsMatch(x));
         }
 
@@ -75,7 +75,14 @@ public static partial class SignalDetector
     public static Dictionary<string, int> Count(GameState s) =>
         Detect(s).GroupBy(x => x.Kind).ToDictionary(g => g.Key, g => g.Count());
 
-    [GeneratedRegex(@"(messenger|envoy)[^.]{0,60}\b(lie|lied|lies|lying|false|deceiv)", RegexOptions.IgnoreCase)]
+    /// <summary>
+    /// Blame laid on a messenger for the words he carried: his lies ("your envoy lied", "the messenger's words are false"),
+    /// or his errors and his scribe's ("Either your scribe erred or your tongue did", "the messenger misspoke", "my
+    /// interpreter garbled it"). Until the fix pass after item 4 only lies counted.
+    /// </summary>
+    public static bool BlamesMessenger(string text) => MessengerBlamed().IsMatch(text);
+
+    [GeneratedRegex(@"(messenger|envoy)[^.]{0,60}\b(lie|lied|lies|lying|false|deceiv)|\b(messenger|envoy|scribe|interpreter|tongue)s?('s|s')?\b[^.!?]{0,60}?\b(err(ed|s)?|misspo(ke|ken)|mistook|garbled|twisted|miswr(ote|itten))\b", RegexOptions.IgnoreCase)]
     private static partial Regex MessengerBlamed();
 
     [GeneratedRegex(@"\b(you (once|before|already) (broke|swore|promised|sent)|as you did before|remember (when|how)|last (year|season) you|you kept your word|you have kept)", RegexOptions.IgnoreCase)]

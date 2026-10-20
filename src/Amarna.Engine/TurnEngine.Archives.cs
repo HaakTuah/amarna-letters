@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace Amarna.Engine;
 
 /// <summary>
@@ -79,11 +81,68 @@ public sealed partial class TurnEngine
         S.Log("archive-taken", $"{taker} took the archive of {court} with {prov.Name} ({taken.Count} tablet(s) new to it).", [taker], "archive-taken");
     }
 
-    /// <summary>A copy as a court reads it in a notice: its id, its seals and its date. The text is in the archive the court reads.</summary>
+    /// <summary>
+    /// A copy as a court reads it in a notice: the tablet as every court names it (its seals and date), then the court's own
+    /// mark for its copy. The text is in the archive the court reads.
+    /// </summary>
     private string CopyLine(TabletCopy copy)
     {
         var t = S.Tablets.First(x => x.Id == copy.TabletId);
-        return $"{copy.Id} (sealed by {string.Join(" and ", t.Seals)}{(t.SealedTurn is int st ? $", dated turn {st}" : "")})";
+        return $"{Views.TabletName(t, Archive(copy.Holder))} (your copy {copy.Id})";
+    }
+
+    private static readonly Regex CopyMark = new(@"\b(?:(?:the\s+)?(?:tablet|copy)\s+)?(?<id>k\d+)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    private static readonly Regex NamedPerson = new(@"(?<name>[\p{L}][\p{L}-]*)\s*\((?<id>c\d+)\)", RegexOptions.CultureInvariant);
+    private static readonly Regex PersonMark = new(@"\b(?<id>c\d+)\b", RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// What a court's scribes write down for another court to read (its letters, mandates and tablets, its words at an
+    /// audience): each mark of the writer's own for a copy in its archive ("k8"), which another court numbers differently or
+    /// not at all, becomes the tablet as every court names it ("the tablet sealed by Babylonia and Mitanni, dated turn 2"),
+    /// and the id of each person the writer knows (its view lists them: <see cref="Views.Knows"/>) becomes the person's name.
+    /// Any other text is left as written: an id the writer does not know stays an id, so that what it reads back of its own
+    /// letters (and what the envoy and the host read) never names someone it has not met (since the review of the fix pass
+    /// after item 4).
+    /// </summary>
+    public string Scribe(Power writer, string? text)
+    {
+        Character? Known(string id) => S.FindCharacter(id) is { } c && Views.Knows(c, writer) ? c : null;
+        if (string.IsNullOrEmpty(text)) return text ?? "";
+        var archive = Archive(writer).ToList();
+        var written = CopyMark.Replace(text, m =>
+        {
+            var id = m.Groups["id"].Value.ToLowerInvariant();
+            var copy = S.Copies.FirstOrDefault(k => k.Holder == writer && k.Id == id);
+            if (copy is null || S.Tablets.FirstOrDefault(t => t.Id == copy.TabletId) is not { } tablet) return m.Value;
+            var name = Views.TabletName(tablet, archive);
+            return char.IsUpper(m.Value[0]) ? char.ToUpperInvariant(name[0]) + name[1..] : name;
+        });
+        // A mark of the writer's own for a lot of its unassayed gold ("g7"), which only its assay orders use, is the gold it names.
+        var lots = S.Treasuries.TryGetValue(writer, out var treasury) ? treasury.Lots : [];
+        written = GoldMark.Replace(written, m =>
+        {
+            var id = m.Groups["id"].Value.ToLowerInvariant();
+            if (lots.FirstOrDefault(l => l.Id == id) is not { } lot) return m.Value;
+            var name = GoldName(writer, lot, lots);
+            return char.IsUpper(m.Value[0]) ? char.ToUpperInvariant(name[0]) + name[1..] : name;
+        });
+        // "Mane (c12)" is Mane; a bare "c12" is the person's name.
+        written = NamedPerson.Replace(written, m => Known(m.Groups["id"].Value) is { } c && c.Name == m.Groups["name"].Value ? c.Name : m.Value);
+        return PersonMark.Replace(written, m => Known(m.Groups["id"].Value)?.Name ?? m.Value);
+    }
+
+    private static readonly Regex GoldMark = new(@"\b(?:(?:the\s+)?(?:gold|lot)\s+)?(?<id>g\d+)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// A lot of gold as any court could name it: who sent it to whom and when it was weighed ("the gold Hatti sent to Egypt,
+    /// weighed in turn 3"), with what its inventory stated where another of the holder's lots shares all three.
+    /// </summary>
+    public static string GoldName(Power holder, GoldLot lot, IEnumerable<GoldLot> lots)
+    {
+        var name = $"the gold {lot.From} sent to {holder}, weighed in turn {lot.ArrivedTurn}";
+        return lots.Any(l => l.Id != lot.Id && l.From == lot.From && l.ArrivedTurn == lot.ArrivedTurn)
+            ? $"{name}, its inventory stating {Money.Format(lot.Stated)}"
+            : name;
     }
 
     /// <summary>The line the engine adds to a spy's report for the copies that came home with it.</summary>

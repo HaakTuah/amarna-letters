@@ -234,7 +234,10 @@ public class LeaderMemoryTests
                 new JsonObject { ["court"] = "Mitanni", ["entry"] = "" }),
         }.ToJsonString();
         var (seat, asker) = await Played(2, ledger: t => t == 1 ? [("Mitanni", "Owes me 50 shekels."), ("Egypt", "Nothing yet.")] : [], host: hostWithLedger);
-        var reply = await seat.HostAudienceAsync(Envoy(3), View(3), default);
+        // The envoy brings a tablet to seal (a host is asked whether to seal one only when there is one to seal).
+        var sealing = Envoy(3);
+        sealing.Proposal = new TabletView { Text = "Peace between us.", Seals = [Power.Egypt] };
+        var reply = await seat.HostAudienceAsync(sealing, View(3), default);
 
         // The reply the engine applies and the envoy's mind reads carries nothing of the ledger.
         Assert.DoesNotContain("zq", Json.Serialize(reply));

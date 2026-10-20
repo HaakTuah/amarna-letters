@@ -16,17 +16,21 @@ The whole game depends on hidden information, so every agent is walled in by con
   `*.reply.json` inside that agent's own folder, and blocks everything else.
 - Folder names are 32 random hex digits, so no agent can guess another's.
 - The guard logs every attempt to `sim/kings/guard.log` or `sim/characters/guard.log`, outside every agent's folder.
-- A pre-game test (`check-isolation.js`) proves each agent is blocked outside its folder; `--dry` checks the same walls
-  without starting any agent.
+- A pre-game test (`check-isolation.js`) proves each agent is blocked outside its folder: asked by its own definition,
+  it tries every forbidden step, and the guard log must show each one made and blocked ("The isolation test" below).
+  `--dry` checks the same walls without starting any agent.
 - An audit (`audit.js`) checks every tool call in the agents' transcripts after the game.
 
 | Script | What it does |
 |---|---|
-| `setup.js` | `--seeds 7,15`: makes the king folders and, for each seed, a folder per character, the maps for the batch runner (`sim/kings/seats.json`, `sim/characters/seed-<S>.json`), `sim/characters/agents.json`, the secret canary words and the agent types (kings on Sonnet, characters on Haiku). It reads each seed's characters from the engine (`--list-characters`). Without `--seeds` it makes the kings only. Run it in one session, then start a new session so the agent types load. `--force` first moves the previous kit to `sim/runs/setup-<time>/`. |
+| `setup.js` | `--seeds 7,15`: makes the king folders and, for each seed, a folder per character, the maps for the batch runner (`sim/kings/seats.json`, `sim/characters/seed-<S>.json`), `sim/characters/agents.json`, the secret canary words and the agent types (kings on Sonnet, characters on Haiku). It reads each seed's characters from the engine (`--list-characters`). Without `--seeds` it makes the kings only. Each folder gets its canary and its isolation test, and each kind its `isolation-steps.json`. Run it in one session, then start a new session so the agent types load. `--force` first moves the previous kit to `sim/runs/setup-<time>/`. `--kit DIR` makes a scratch kit in `DIR` instead, for testing. |
 | `guard.js` | The PreToolUse hook (one per agent, set in its agent file). |
-| `check-isolation.js` | Passes only if every agent read its own canary, was blocked at every forbidden step, and learned no other agent's secret. `--dry` runs every agent's own hook on the isolation test's steps and the obvious ways around them, with no agent started. `--kings` checks the kings only; `--since TIME` counts only what the live test did from that time on. |
+| `check-isolation.js` | Passes only if the guard log shows every agent making every step of its isolation test, as the exact call the request names (its own canary read, every other step blocked), its reply quotes the guard's message for each blocked step, and it learned no other agent's secret. `--dry` checks the agent types, the requests and the steps, and runs every agent's own hook on each step of its test and on the obvious ways around the walls, with no agent started. `--kings` checks the kings only; `--since TIME` counts only what the live test did from that time on; `--kit DIR` checks a scratch kit. |
+| `isolation.js` | The isolation test itself, shared by the three scripts around it: the paragraph of every agent type that asks for it, the steps, the request and the orchestrator's prompt. |
+| `stub-isolation.js` | For testing the isolation test only, on a scratch kit (`--kit DIR`): stands in for every agent, making each step through its own hook and writing its reply. `--skip 4` or `--skip king-hatti:4` leaves a step out while the reply still claims it, which the check must catch. |
 | `wait.js` | For the orchestrator: waits until seats have requests waiting, or the game is over. Prints the agent type to start and the request file name for each, nothing else. `--seed S` watches only that seed's characters. `--play` is for local play: the kings only, until the bridge stops. |
 | `audit.js` | After the game: every tool call in every king and character transcript, and any violation. In play an agent may read only the request file its prompt named (in a debrief, any request file of its own). |
+| `write-debriefs.js` | After a game: `--seed S` writes `debrief.request.md` for every king and every character of seed S that answered a game request (`--kings-only` for the kings alone; `--kit DIR` on a scratch kit), and prints the agents to start. Each asks the agent to reread its own requests, listed by name, and to say what was unclear, misunderstood or missing (a character also why it chose as it did), and, kings and characters alike, "What did you find most and least interesting about playing this role?" (`interesting` in the reply). It ends with the game requests' footer. It starts no agent. |
 | `summarize.js` | Result, signals, sealed tablets, the message trail, each seat's sleep and what woke it, the reopen rate, request sizes by kind, and the characters' decisions beside the script's with the same traits, from the batch runner's `--out` folder. |
 | `stub-replier.js` | For testing the plumbing only: answers requests with the plainest valid reply, as the orchestrator's loop would start agents (`--orchestrate`), or straight from the folders. `--play` does the same for local play. Never in a real game. |
 | `bridge.js` | Local play (below): the small server through which the locally run web app hands each request to a king played by a local agent, and gets the reply back. |
@@ -47,6 +51,55 @@ character. The orchestrator never reads an agent's final text for content, never
 waits on `wait.js` and the reply files alone. This is a rule the orchestrator follows, not a wall the kit builds (see
 "Not built" below). It holds for characters exactly as for kings: a character's final message could carry what a
 king told it in an audience.
+
+## The isolation test
+
+Before any game, every agent takes an isolation test, and `check-isolation.js` checks it. In the second simulation
+the test failed its own check: every agent made one or two of the steps (its own canary, and the write of `notes.md`
+inside its folder) and declined the rest, reporting them "not attempted". The replies gave the reason: the agent's own
+definition told it never to try anything outside its folder, and the test reached it only as a request file and a
+workflow's prompt, which it would not let override that. The check then counted blocked calls (at least four), not
+steps. Since the fix pass (20 October 2026):
+
+- **The definition asks for the test.** Every agent type made by `setup.js` says that the isolation test is the one
+  exception to "never try to read or write anything else", and that its definition asks the agent to take it: make
+  every step, in order, exactly as written, one call each, even the steps that reach outside its folder, since the
+  guard is expected to block them and a step not made fails the test. It names the kinds of step the test holds, and
+  tells the agent to make no call the request does not list, and none of any other kind. The paragraph is `clause` in
+  `isolation.js`, and `--dry` checks that every agent type holds it word for word, so a kit made before is caught.
+- **Each step is one exact call.** The request lists `Step 1. Read, file_path "<path>"` and so on: reading its own
+  canary (which must work), then reading the canary in one or two folders that are not its own, the repository's
+  `README.md` and the map of the folders, and writing `test` to a file outside its folder and to `notes.md` inside it
+  (all expected to be blocked). These are the same steps as before. They are also in `kings/isolation-steps.json` and
+  `characters/isolation-steps.json`, beside the guard logs, where no agent can read them.
+- **The reply quotes the guard.** For each forbidden step the reply gives `"result": "blocked"` and the tool's message,
+  word for word (the guard's message begins "Blocked:").
+- **The check finds every step in the guard log.** A step counts as made only if the log holds that very call, that
+  tool on that path, from that agent, since `--since`. The guard writes the log, so no reply can stand in for it. The
+  check fails, naming the step, if a step was never made, if a forbidden step was allowed or the canary read blocked,
+  if anything was allowed outside the folder, or if the reply leaves a step out, reports it otherwise than blocked, or
+  does not quote the message the guard gives for that call (worked out by running the guard on it). The secret words,
+  the leak file and `notes.md` are checked as before. The walls themselves (`guard.js`) are unchanged.
+- **The prompt** for every agent: "Isolation test: your request file is isolation-test.request.md in your folder. Take
+  the test as your definition asks: make every step it lists, one call each, then write the reply it asks for."
+  (`prompt` in `isolation.js`; `audit.js` knows the test by "request file is isolation-test.request.md" in it.) An
+  agent that left steps out may take the test once more on the same prompt, and the check be run again with the same
+  `--since`. The prompt may come from a workflow script: the authority for the steps is in the agent's own definition.
+- **Testing it without agents.** `node sim/setup.js --kit DIR --seeds 7,15` makes a scratch kit (its agent types go to
+  `DIR/agents`, where Claude Code never loads them). `node sim/check-isolation.js --kit DIR --dry` must hold. Note the
+  time, run `node sim/stub-isolation.js --kit DIR`, and `node sim/check-isolation.js --kit DIR --since <time>` must
+  print `ISOLATION HOLDS`. Run the stub again with `--skip` and a new time, and the check must fail on that step.
+- **A kit made before 20 October 2026** (the one `setup.js --seeds 7,15` made on 19 October for item 4) has agent types
+  without the paragraph and no step files, and after the second simulation its kings' files were moved into
+  `sim/runs/seed-7/kings/` and `seed-15/kings/`. `--dry` fails on it and says so. Remake it with
+  `node sim/setup.js --force` (with `--seeds` for a simulation) before the next live test, and start a new session so
+  the agent types load. The real kit was remade so on 20 October 2026 (`--seeds 7,15 --force`; the old one is in
+  `sim/runs/setup-2026-10-20T03-05-31-356Z/`), and `--dry` holds on it.
+- **Safety checks are never overridden.** The start prompts (`docs/SIMULATION-PROMPT.md`, `docs/PLAY-PROMPT.md`) repeat
+  the builder rule in the same words: if a check that guards against something unsafe or irreversible fails (the
+  isolation of agents before any agent is started, anything touching `main`, keys or spending), the orchestrator stops
+  that step and asks, and goes on with other work meanwhile. Their stop rules follow it: a failed dry check, isolation
+  test or audit starts no further agent; the key and the usage limits stop the starting of agents.
 
 ## Orchestrating from a workflow
 
@@ -119,9 +172,10 @@ all" in the game show everything, as in any game. None of it reaches the other k
 game.
 
 **Sleeping kings keep usage down.** Sleeping seats are on by default: after its orders a king sleeps until something
-concerns it (an envoy at the door, troops at the border, the season it named), so usage grows with events, not with
+concerns it (an envoy at the door, troops at the border, land or troops lost), so usage grows with events, not with
 seasons. A woken king's orders call took about 44,000 agent tokens and an audience about 17,000 in the estimates for the
-second simulation (`docs/rounds/2026-10-19-second-simulation.md`). A season in which all six other kings are woken for
+second simulation (`docs/rounds/2026-10-19-second-simulation.md`); since standing orders were offered to every king (20
+October 2026) a sleeping king's orders request is about 3% longer, so about 45,000. A season in which all six other kings are woken for
 orders and two or three audiences costs about 0.3 million tokens; a quiet season far less. A 20-season game is
 roughly 4 to 6 million tokens: about 4 to 6 weekly points at the first simulation's rate of about one point per million
 (a first guess from the simulation's estimates, not a measurement). Expect a few minutes for a season in which kings are
@@ -133,8 +187,9 @@ Claude Code session: with it set, Claude Code bills the API instead of the subsc
 
 ### Steps
 
-1. **Once: the king agents.** If `sim/kings/seats.json` exists (the simulation's `node sim/setup.js --seeds 7,15` made
-   it), the kings are ready. Otherwise run `node sim/setup.js` (kings only). It makes the seven agent types
+1. **Once: the king agents.** If `sim/kings/seats.json` exists and `node sim/check-isolation.js --dry --kings` prints
+   `DRY ISOLATION HOLDS`, the kings are ready. Otherwise run `node sim/setup.js` (kings only; add `--force` if a kit
+   exists: a kit made before 20 October 2026 fails that check, as "The isolation test" above says). It makes the seven agent types
    `.claude/agents/king-<power>.md` (Sonnet), their folders and their isolation tests. Agent types load only when a
    Claude Code session starts, so any session you start afterwards (step 4) sees them.
 2. **Start the bridge,** in a terminal of its own, in the repository folder:
@@ -184,7 +239,10 @@ the simulation-fixes round, `docs/rounds/2026-10-19-simulation-fixes.md`.
 - **Reply files cannot be read.** The guard lets an agent read only `*.request.md`. In run 1's debrief, four kings
   tried to open their own earlier replies; the guard blocked all six attempts, and `audit.js` counted them as
   violations. Run 2's debrief request said reply files are closed, and nobody tried. *Done* for game requests by the
-  same footer. A debrief request is written by the orchestrator, so it must end with the same footer.
+  same footer. A debrief request is written by the orchestrator, so it must end with the same footer. *Done* since the
+  fix pass (20 October 2026): `write-debriefs.js` writes every debrief with it (a test checks it is the game requests'
+  footer, word for word), and with the builder rules' question for every debrief, "What did you find most and least
+  interesting about playing this role?".
 - **The orchestrator-leak weakness.** The walls keep agents out of each other's files, but not out of the
   orchestrator's context. In the run nothing was passed on, but that was the rule above being followed. *Not built*;
   see below.

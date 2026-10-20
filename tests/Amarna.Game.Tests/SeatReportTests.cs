@@ -56,16 +56,16 @@ public class SeatReportTests
             History =
             [
                 new SleepSpell { From = 2, WokeAt = 4, Reasons = ["an envoy of Egypt waits to be received", "land lost: Sippar has been taken by Assyria."] },
-                new SleepSpell { From = 5, Named = 7, WokeAt = 7, Reasons = ["you asked to be woken in turn 7", "land lost: Kish has been taken by Assyria."] },
-                new SleepSpell { From = 8, Named = 30 },
+                new SleepSpell { From = 5, WokeAt = 7, Reasons = [TurnEngine.CapReason, "land lost: Kish has been taken by Assyria."] },
+                new SleepSpell { From = 8 },
             ],
         };
         var report = BatchRunner.SeatReport(r);
         var line = report.Split('\n').Single(l => l.TrimStart().StartsWith("Babylonia", StringComparison.Ordinal));
         Assert.Contains("an envoy of Egypt waits to be received x1", line);
         Assert.Contains("land lost x2", line);
-        Assert.Contains("the season it named x1", line);
-        // Each sleep's length in seasons: n when it woke in the season it named, + while it still sleeps.
-        Assert.Contains(" 2 2n 1+ ", line);
+        Assert.Contains($"{TurnEngine.CapReason} x1", line);
+        // Each sleep's length in seasons, + while it still sleeps.
+        Assert.Contains(" 2 2 1+ ", line);
     }
 }

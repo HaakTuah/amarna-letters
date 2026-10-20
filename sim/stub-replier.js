@@ -11,8 +11,8 @@
 //       Local play: the orchestrator's loop of docs/PLAY-PROMPT.md, on sim/wait.js --play, answering the kings whose
 //       requests the local bridge (sim/bridge.js) writes, until the bridge is stopped.
 //
-// Kings send one of their people who is ready to the nearest court with each set of orders (20 shekels and a threat),
-// and ask to be woken the next season.
+// Kings send one of their people who is ready to the nearest court with each set of orders (20 shekels and a threat);
+// they sleep after them like any king, until something concerns them (a king cannot ask to be woken).
 //   --tempted        characters keep 5 shekels of any gold they carry, take every gift and swap no inventory; hosts
 //                    offer each envoy a gift of 10 and a post at 30, and send 15 shekels home with it
 //   --skip REGEX     leave requests whose file name matches unanswered (the runner then times out into the script)
@@ -61,9 +61,6 @@ function stubReply(schema, text, file) {
       message: "I send you gold as a sign of my love. If you do not withdraw your troops from my border, there will be war.", mandate: "You may agree to peace and an exchange of gifts.",
     });
   }
-  // A king asks to be woken next season, so that it gives orders (and sends someone) every season.
-  const season = /^SEASON: turn (\d+)/m.exec(text);
-  if (/_orders_/.test(file) && season && r.sleep && "wake_in_turn" in r.sleep) r.sleep.wake_in_turn = Number(season[1]) + 1;
   if (tempted && /_host_/.test(file) && "gift_to_envoy" in r)
     Object.assign(r, { gift_to_envoy: 10, gift_request: "Tell your lord that my armies are few.", offer_service_wage: 30, send_gold_back: 15 });
   return r;

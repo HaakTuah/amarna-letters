@@ -32,40 +32,40 @@ public class ResolutionFailureTests
     private static readonly Order[] TakeSinai = [new MoveOrder("megiddo", "sinai"), new SupportOrder("gaza", "megiddo", "sinai")];
 
     [Theory]
-    [InlineData("cession of land lost in battle", "Cession failed", "Sinai was not ceded to Hatti: you no longer held it after movement.")]
-    [InlineData("cession of land with own troops in it", "Cession failed", "Memphis was not ceded to Hatti: your own troops still stood in it after movement.")]
-    [InlineData("gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in Sinai after movement, so none was given to Hatti.")]
-    [InlineData("disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in Sinai after movement, so none was disbanded.")]
-    [InlineData("levy in a province not empty", "Levy failed", "No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.")]
-    [InlineData("levy in land ceded that season", "Levy failed", "No army was raised in Sinai: you ceded Sinai to Hatti last season, before the levy. No gold was paid.")]
-    [InlineData("levy that cannot be paid", "Not enough gold", "There was not enough gold to pay for a new army in Thebes; none was raised.")]
-    [InlineData("purchase between rival buyers", "Purchase failed", "The elders of Tyre would not choose between 2 buyers last season. No gold was paid.")]
-    [InlineData("purchase that cannot be paid", "Not enough gold", "There was not enough gold to pay for the city of Tyre; it was not bought.")]
-    [InlineData("dispatch that cannot be paid", "Not enough gold", "mission to Hatti; {envoy} stayed at your court.")]
-    [InlineData("background check that cannot be paid", "Not enough gold", "There was not enough gold to pay for inquiries into {stranger}; none were made.")]
-    [InlineData("watchmen who cannot be paid", "Not enough gold", "There was not enough gold to pay for watchmen; none were set.")]
-    [InlineData("assay that cannot be paid", "Not enough gold", "There was not enough gold to pay for an assay; gold lot g901 was not assayed.")]
-    [InlineData("assay of gold weighed when a payment fell short", "Assay failed", "Gold lot g901 was not assayed: your treasurers had already weighed all your unassayed gold last season, when a payment fell short. No fee was paid.")]
-    [InlineData("examination that cannot be paid", "Not enough gold", "There was not enough gold to pay for the examination of a tablet; tablet k900 was not examined.")]
-    [InlineData("forgery that cannot be paid", "Not enough gold", "There was not enough gold to pay for a forger's materials; nothing was forged.")]
-    [InlineData("forgery by a servant without the skill", "Forgery botched", "{envoy} lacks the skill; the clay is ruined and nothing usable came of it.")]
-    [InlineData("ransom that cannot be paid", "Not enough gold", "There was not enough gold to pay for the ransom for {envoy}; none was sent.")]
-    [InlineData("ransom for a captive let go that season", "Ransom not sent", "The ransom for {envoy} could not be sent: {envoy} is no longer held by Hatti.")]
-    [InlineData("hire below the price", "Not hired", "{stranger} declined your offer of 1 shekels a season: they ask")]
-    [InlineData("renewal below the price", "Not renewed", "{envoy} will not serve on for 1 shekels a season; they ask")]
-    [InlineData("captive turned once its king dismissed it", "Captive order failed", "{envoy} serves no king now: nobody is left to deceive. {envoy} remains your captive.")]
-    public void Every_order_that_fails_as_the_season_resolves_is_reported_with_the_reason(string order, string title, string expected)
+    [InlineData("cession of land lost in battle", "Cession failed", "Sinai was not ceded to Hatti: you no longer held it after movement.", true)]
+    [InlineData("cession of land with own troops in it", "Cession failed", "Memphis was not ceded to Hatti: your own troops still stood in it after movement.", false)]
+    [InlineData("gift of troops destroyed in battle", "Gift of troops failed", "No unit of yours stood in Sinai after movement, so none was given to Hatti.", false)]
+    [InlineData("disband of a unit destroyed in battle", "Disband failed", "No unit of yours stood in Sinai after movement, so none was disbanded.", false)]
+    [InlineData("levy in a province not empty", "Levy failed", "No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", false)]
+    [InlineData("levy in land ceded that season", "Levy failed", "No army was raised in Sinai: you ceded Sinai to Hatti last season, before the levy. No gold was paid.", false)]
+    [InlineData("levy that cannot be paid", "Not enough gold", "There was not enough gold to pay for a new army in Thebes; none was raised.", true)]
+    [InlineData("purchase between rival buyers", "Purchase failed", "The elders of Tyre would not choose between 2 buyers last season. No gold was paid.", true)]
+    [InlineData("purchase that cannot be paid", "Not enough gold", "There was not enough gold to pay for the city of Tyre; it was not bought.", true)]
+    [InlineData("dispatch that cannot be paid", "Not enough gold", "mission to Hatti; {envoy} stayed at your court.", true)]
+    [InlineData("background check that cannot be paid", "Not enough gold", "There was not enough gold to pay for inquiries into {stranger}; none were made.", true)]
+    [InlineData("watchmen who cannot be paid", "Not enough gold", "There was not enough gold to pay for watchmen; none were set.", true)]
+    [InlineData("assay that cannot be paid", "Not enough gold", "There was not enough gold to pay for an assay; gold lot g901 was not assayed.", true)]
+    [InlineData("assay of gold weighed when a payment fell short", "Assay failed", "Gold lot g901 was not assayed: your treasurers had already weighed all your unassayed gold last season, when a payment fell short. No fee was paid.", true)]
+    [InlineData("examination that cannot be paid", "Not enough gold", "There was not enough gold to pay for the examination of a tablet; tablet k900 was not examined.", true)]
+    [InlineData("forgery that cannot be paid", "Not enough gold", "There was not enough gold to pay for a forger's materials; nothing was forged.", true)]
+    [InlineData("forgery by a servant without the skill", "Forgery botched", "{envoy} lacks the skill; the clay is ruined and nothing usable came of it.", false)]
+    [InlineData("ransom that cannot be paid", "Not enough gold", "There was not enough gold to pay for the ransom for {envoy}; none was sent.", true)]
+    [InlineData("ransom for a captive let go that season", "Ransom not sent", "The ransom for {envoy} could not be sent: {envoy} is no longer held by Hatti.", true)]
+    [InlineData("hire below the price", "Not hired", "{stranger} declined your offer of 1 shekels a season: they ask", false)]
+    [InlineData("renewal below the price", "Not renewed", "{envoy} will not serve on for 1 shekels a season; they ask", false)]
+    [InlineData("captive turned once its king dismissed it", "Captive order failed", "{envoy} serves no king now: nobody is left to deceive. {envoy} remains your captive.", true)]
+    public void Every_order_that_fails_as_the_season_resolves_is_reported_with_the_reason(string order, string title, string expected, bool wakes)
     {
-        Play(order, title, expected, scheduled: false);
-        // The same order scheduled by a sleeping seat fails the same way, and wakes it with the reason.
-        Play(order, title, expected, scheduled: true);
+        Play(order, title, expected, scheduled: false, wakes);
+        // The same order scheduled by a sleeping seat fails the same way, and wakes it with the reason if others foiled it.
+        Play(order, title, expected, scheduled: true, wakes);
     }
 
     /// <summary>
     /// Plays one failing order. Scheduled, the failing king's orders run as a sleeping seat's scheduled orders; the order
     /// that fails is always the last it lists.
     /// </summary>
-    private static void Play(string order, string title, string expected, bool scheduled)
+    private static void Play(string order, string title, string expected, bool scheduled, bool wakes)
     {
         var s = Board(scheduled);
         var e = new TurnEngine(s);
@@ -197,8 +197,20 @@ public class ResolutionFailureTests
         Assert.Equal(s.Turn, notice.Turn); // read next season
         if (!scheduled) return;
 
-        // The failure wakes the sleeping seat next season, naming the order and why it failed.
         var wake = $"orders you scheduled could not be carried out: {mine[^1].Describe()} (";
+        if (!wakes)
+        {
+            // A failure of the seat's own making wakes nobody: it would let a king wake himself with an order he knows will
+            // fail. (Troops destroyed in battle wake the seat by themselves, so a disband or gift of them wakes it for that.)
+            Assert.DoesNotContain(s.Sleep[who].PendingWake, w => w.StartsWith(wake, StringComparison.Ordinal));
+            new TurnEngine(s).BeginTurn();
+            new TurnEngine(s).WakeCheck();
+            Assert.DoesNotContain(s.Sleep[who].WokenBecause, w => w.StartsWith(wake, StringComparison.Ordinal));
+            if (s.Sleep[who].Asleep) Assert.Contains($"an order was refused or failed ({title})", string.Join("\n", s.Sleep[who].Digest));
+            else Assert.Contains(s.Sleep[who].WokenBecause, w => w.StartsWith("your army in sinai was destroyed", StringComparison.Ordinal));
+            return;
+        }
+        // The failure wakes the sleeping seat next season, naming the order and why it failed.
         Assert.Contains(s.Sleep[who].PendingWake, w => w.StartsWith(wake, StringComparison.Ordinal) && !w.EndsWith("()", StringComparison.Ordinal));
         new TurnEngine(s).BeginTurn();
         new TurnEngine(s).WakeCheck();
