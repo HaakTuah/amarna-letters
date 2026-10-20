@@ -58,15 +58,17 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Ownership changes every season**, whenever a unit ends a season in a province, not only in
   autumn as in Diplomacy.
 - **How a season resolves.** The rulebook's section of that name lists the engine's own order
-  (`TurnEngine.BeginTurn`, `GameRunner.PlayTurnAsync`, `TurnEngine.ResolveSeason`) in 17 short
+  (`TurnEngine.BeginTurn`, `GameRunner.PlayTurnAsync`, `TurnEngine.ResolveSeason`) in 18 short
   steps: servants whose notice ran out leave; income, upkeep and wages (the wages of people at
   court; those of people away added to their back pay) and desertion; arrivals, then back pay paid
   to everyone at the court that owes it; the court (candidates, checks and examinations, contract
   ends and notices, a servant still owed back pay giving notice); audiences; orders;
-  movement and battles; land changes hands; cessions and gifts of troops; purchases; disbanding;
+  movement and battles; sieges (since the siege package); land changes hands; a kingdom falls with
+  its capital (since the siege package, in place of "kingdoms with no land fall" after the
+  catastrophes); cessions and gifts of troops; purchases, then walls strengthened; disbanding;
   levies; envoys set out, releases, dismissals, candidates sent for and checks paid, then hiring and
   renewals; intelligence (watchmen, captors, spies sent and recalled, assays, examinations,
-  forgeries, ransoms, then spies caught or reporting); catastrophes; kingdoms with no land fall;
+  forgeries, ransoms, then spies caught or reporting); catastrophes;
   scores and the end roll. It says that orders are checked in the order the reply lists them
   (units, then letters, then other orders; a sleeping seat's scheduled orders after its fresh ones),
   that gold is reserved as each is accepted and there is no "else", that a person hired this season
