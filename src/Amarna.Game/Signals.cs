@@ -19,7 +19,7 @@ public static partial class SignalDetector
         "forgery", "authentication", "forgery-exposed", "pact-with-consequences", "bribe", "defection",
         "detention", "skim", "debasement-found", "spy-caught", "double-agent", "evidence-shown", "shared-victory",
         "archive-copied", "archive-taken", "inventory-swapped", "storm", "siege-begun", "siege-won", "fortify", "sally", "sally-won", "envoy-out", "envoy-caught", "envoy-stayed",
-        "terrain-held", "terrain-beaten",
+        "terrain-held", "terrain-beaten", "desert",
     ];
 
     public static List<Signal> Detect(GameState s)

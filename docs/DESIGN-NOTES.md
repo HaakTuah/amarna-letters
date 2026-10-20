@@ -230,6 +230,17 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     the rough ground of lukka"), on both sides. The record logs "terrain" events where the ground decided a battle (the
     move beat the hold without it: signal `terrain-held`) or an attack beat a unit the ground helped (`terrain-beaten`),
     counted in the batch report. The web map's tooltips, province card, legend and about page say what the ground does.
+  - **The desert costs an army supplies** (question 5, plan step 15, built as the Build order's item 5 asks: "an army in its
+    own land pays no desert cost", so no rule names a power). An army that ends a season's moves in desert land (Sinai,
+    `Geography.Desert`) its king did not hold when the moves were made pays `GameConfig.DesertUpkeep` (30, a first guess)
+    with its next upkeep (`TurnEngine.MarkDesert`, `GameState.InDesert`, cleared once paid; `TurnEngine.DesertCost` in
+    `Upkeep`, so unpaid it makes troops desert like any upkeep). Egypt holds the Sinai at the start, so its armies cross it
+    freely (question 5's Ways of Horus), and so does anyone who takes it, from the season after: an invader pays for the
+    season he marches in, and every season he stands within walls raised there without taking it. The treasury notice says
+    what was paid ("The upkeep includes 30 shekels for supplies in the desert: your army in sinai ended last season in desert
+    land you did not hold."); the view's upkeep line, a forecast, leaves it out. The rulebook's TERRAIN and step 2 of HOW A
+    SEASON RESOLVES say so; THE MAP and LANDS mark the desert. The record marks each army that pays (`desert`). 0 turns it
+    off.
 - **Levies** are raised after movement, only in a province of the power's own homeland that it
   still holds and that is empty after movement; otherwise nothing is raised or paid, and the king is
   told which ("No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.",
@@ -2715,12 +2726,6 @@ Every decided direction that is not built, one line each, with where it is decid
 the design document's; "question N" is in `docs/rounds/2026-10-18-sleep-and-simulation.md`; "item N" is in the main
 tab's Build order; "the round report" is the simulation-fixes round's report,
 `docs/rounds/2026-10-19-simulation-fixes.md`.
-
-- **The rest of the siege package** (item 5, being built): deserts costing supplies (main tab "Tempo of war" and "Walls
-  and terrain"; question 5). Walls that differ by place and can be strengthened, storming and besieging, envoys leaving a
-  besieged city, a kingdom falling with its capital, slow absorption, the retirement of the temporary trigger for troops
-  next to a capital (see Walls and sieges), and terrain per province and per connection, with islands protected by the sea
-  (see Terrain), are built.
 
 - **News that travels**: distant provinces, and who holds them, shown at their last known state with its date, the
   news carried by people (main tab "Hidden by default"; question 6; item 7).

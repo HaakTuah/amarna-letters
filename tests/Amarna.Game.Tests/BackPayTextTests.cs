@@ -15,7 +15,7 @@ public class BackPayTextTests
         Assert.Contains("still appears on its mission until word comes, and its back pay builds up in your books as for anyone away.", rules);
         Assert.DoesNotContain("you keep paying its wage", rules);
         Assert.Contains("back pay you already owe them is still paid if they ever stand at your court again", rules);
-        Assert.Contains("2. Income, upkeep and wages: your provinces pay their yield in gold; you pay upkeep for every army (30) and fleet (35) and the wages of your people at court; the wages of your people away are added to their back pay.", rules);
+        Assert.Contains("2. Income, upkeep and wages: your provinces pay their yield in gold; you pay upkeep for every army (30) and fleet (35), 30 more for each army that ended last season in desert land you did not hold (see TERRAIN), and the wages of your people at court; the wages of your people away are added to their back pay.", rules);
         Assert.Contains("Then everyone you see at your court whom you owe back pay is paid it, as far as your treasury allows.", rules);
     }
 

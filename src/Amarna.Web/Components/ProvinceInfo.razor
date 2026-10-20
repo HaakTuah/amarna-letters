@@ -68,14 +68,17 @@
     private string GroundText(Province p, Terrain terrain, IReadOnlyList<Crossing> crossings)
     {
         var t = State.Config.TerrainDefence;
-        if (t <= 0) return "The ground gives no defence in this game.";
         var lines = new List<string>();
-        if (terrain == Terrain.Rough) lines.Add($"A unit standing its ground here holds with {t} more against any attack.");
+        if (t <= 0) lines.Add("The ground gives no defence in this game.");
+        else if (terrain == Terrain.Rough) lines.Add($"A unit standing its ground here holds with {t} more against any attack.");
         else
         {
             if (crossings.Count > 0) lines.Add($"A unit standing its ground here holds with {t} more against an attack over {string.Join(" or ", crossings.Select(c => c.Name).Distinct())}.");
             if (p.IsCoastal) lines.Add($"An army landing here from the sea meets a defender with {t} more.");
         }
+        // The desert costs an army supplies unless its king holds it.
+        if (terrain == Terrain.Desert && State.Config.DesertUpkeep > 0)
+            lines.Add($"An army that ends a season here while its king does not hold it pays {Ui.Shekels(State.Config.DesertUpkeep)} for supplies; in its own land it pays nothing.");
         if (lines.Count == 0) lines.Add("The ground gives a defender nothing here.");
         return string.Join(" ", lines);
     }

@@ -91,5 +91,5 @@
 
     private static string Title(Province p, Power? owner) =>
         $"{p.Name}: {(owner is { } o ? $"held by {o.Name()}" : "a free city-state")}; yields {Ui.Shekels(p.Yield)} a season"
-        + (Geography.TerrainOf(p.Id) switch { Terrain.Rough => "; rough ground: a unit standing its ground here is stronger", Terrain.Desert => "; desert", _ => "" });
+        + (Geography.TerrainOf(p.Id) switch { Terrain.Rough => "; rough ground: a unit standing its ground here is stronger", Terrain.Desert => "; desert: an army not in its own land pays for supplies here", _ => "" });
 }

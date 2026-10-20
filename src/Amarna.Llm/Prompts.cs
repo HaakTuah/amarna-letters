@@ -44,7 +44,7 @@ public static class Prompts
 
             HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
             1. Departures: a servant whose notice has run out, and who was not renewed, leaves if at your court with no task.
-            2. Income, upkeep and wages: your provinces pay their yield in gold; you pay upkeep for every army ({c.ArmyUpkeep}) and fleet ({c.FleetUpkeep}) and the wages of your people at court; the wages of your people away are added to their back pay. If you cannot pay upkeep, troops desert, the one farthest from your capital first; unpaid people lose loyalty and may leave.
+            2. Income, upkeep and wages: your provinces pay their yield in gold; you pay upkeep for every army ({c.ArmyUpkeep}) and fleet ({c.FleetUpkeep}){(c.DesertUpkeep > 0 ? $", {c.DesertUpkeep} more for each army that ended last season in desert land you did not hold (see TERRAIN)," : "")} and the wages of your people at court; the wages of your people away are added to their back pay. If you cannot pay upkeep, troops desert, the one farthest from your capital first; unpaid people lose loyalty and may leave.
             3. Arrivals: envoys reach the courts they were sent to, or come home and report; spies reach their posts; spies' reports, ransoms and rumours arrive. Then everyone you see at your court whom you owe back pay is paid it, as far as your treasury allows.
             4. Your court: candidates you sent for last season present themselves; background checks and examinations ordered last season report; terms end (a servant content with the wage serves on, one who wants more or is still owed back pay gives notice); a servant on notice who has come home leaves.
             5. Audiences: you receive the foreign envoys at your court and answer them. Gifts and gold you send back are paid when the audience ends.
@@ -144,7 +144,7 @@ public static class Prompts
         }
 
         sb.AppendLine();
-        sb.AppendLine("THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground; links, with the mountain passes and great rivers on them)");
+        sb.AppendLine("THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; links, with the mountain passes and great rivers on them)");
         var map = WorldMap.Default;
         // A link over a mountain pass or a great river says so (see TERRAIN).
         string Link(string from, string to) => Geography.CrossingBetween(from, to) is { } x ? $"{to} (across {x.Name})" : to;
@@ -155,7 +155,7 @@ public static class Prompts
             var armies = p.IsSea ? "" : $" armies: {string.Join(", ", map.MovesFrom(UnitKind.Army, p.Id).Select(n => Link(p.Id, n)))}.";
             var fleets = p.IsSea || p.IsCoastal ? $" fleets: {string.Join(", ", map.MovesFrom(UnitKind.Fleet, p.Id))}." : "";
             var walls = MapData.StartWalls.GetValueOrDefault(p.Id) is > 0 and var w ? $"; walls {w}" : "";
-            var ground = Geography.TerrainOf(p.Id) switch { Terrain.Rough => "; rough ground", _ => "" };
+            var ground = Geography.TerrainOf(p.Id) switch { Terrain.Rough => "; rough ground", Terrain.Desert => "; desert", _ => "" };
             sb.AppendLine($"- {p.Id}: {p.Name}; {kind}{(home.Length > 0 ? "; " + home : "")}{(p.Capital ? "; capital" : "")}{(p.Yield > 0 ? $"; yield {p.Yield}" : "")}{walls}{ground}.{armies}{fleets}");
         }
 
@@ -175,22 +175,27 @@ public static class Prompts
 
     /// <summary>
     /// The rulebook's TERRAIN section (Build order item 5): what rough ground, the crossings and a landing from the sea give a
-    /// unit that stands its ground, and what they never do, with the lists from the map data (<see cref="Geography"/>), so the
-    /// text stays true if the map changes.
+    /// unit that stands its ground, and what they never do, and what the desert costs an army, with the lists from the map
+    /// data (<see cref="Geography"/>), so the text stays true if the map changes. Only what applies in this game is said.
     /// </summary>
     private static string TerrainRules(GameConfig c)
     {
-        if (c.TerrainDefence <= 0) return "TERRAIN\n- In this game the ground gives no unit any help: rough ground, mountain passes, rivers and landings from the sea change nothing in a battle.";
         var t = c.TerrainDefence;
         var rough = string.Join(", ", Geography.Rough);
         var crossings = string.Join(", ", Geography.Crossings.GroupBy(x => x.Name)
             .Select(g => $"{g.Key} ({string.Join(" and ", g.Select(x => $"{x.A}-{x.B}"))})"));
-        return $"""
-            TERRAIN
-            - The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with {t} more when it stands on rough ground ({rough}), when the attack comes over a mountain pass or a great river ({crossings}), or when the attack is a landing from the sea (an army carried by convoy): {t} in all, however many of these apply. THE MAP marks the rough ground and the crossings on the links.
-            - The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that. A support is cut as always.
-            - So an island is protected by the sea: an army reaches it only by convoy, and a unit there holds with {t} more against a landing. Your battle report gives the ground's share wherever it counted in the strength you had to beat.
-            """;
+        var lines = new List<string> { "TERRAIN" };
+        if (t <= 0)
+            lines.Add("- In this game the ground gives no unit any help: rough ground, mountain passes, rivers and landings from the sea change nothing in a battle.");
+        else
+        {
+            lines.Add($"- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with {t} more when it stands on rough ground ({rough}), when the attack comes over a mountain pass or a great river ({crossings}), or when the attack is a landing from the sea (an army carried by convoy): {t} in all, however many of these apply. THE MAP marks the rough ground and the crossings on the links.");
+            lines.Add("- The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that. A support is cut as always.");
+            lines.Add($"- So an island is protected by the sea: an army reaches it only by convoy, and a unit there holds with {t} more against a landing. Your battle report gives the ground's share wherever it counted in the strength you had to beat.");
+        }
+        if (c.DesertUpkeep > 0)
+            lines.Add($"- Desert ({string.Join(", ", Geography.Desert)}) costs an army supplies: an army that ends a season in desert land its king did not hold when that season's moves were made pays {c.DesertUpkeep} with the next upkeep, and your treasury notice says so. An army in its own land pays nothing: a king who holds the desert crosses it freely, and so does whoever takes it, from the season after. Only armies pay it.");
+        return string.Join("\n", lines);
     }
 
     /// <summary>
@@ -308,7 +313,7 @@ public static class Prompts
         sb.AppendLine(Standings(v));
 
         sb.AppendLine();
-        sb.AppendLine("LANDS (who holds what, with the walls standing now and the rough ground; troops only where you can see them):");
+        sb.AppendLine("LANDS (who holds what, with the walls standing now, the rough ground and the desert; troops only where you can see them):");
         var units = v.Units.ToDictionary(u => u.Province);
         string Troop(string id) => units.TryGetValue(id, out var u) ? $" [{u.Power} {(u.Kind == UnitKind.Army ? "army" : "fleet")}]" : "";
         // The walls standing now and the ground (see TERRAIN), in one bracket: "lukka (walls 1, rough ground)".
@@ -317,6 +322,7 @@ public static class Prompts
             var marks = new List<string>();
             if (v.Walls.TryGetValue(id, out var w)) marks.Add($"walls {w}");
             if (Geography.TerrainOf(id) == Terrain.Rough && v.Prices.GetValueOrDefault("terrainDefence", 1) > 0) marks.Add("rough ground");
+            if (Geography.TerrainOf(id) == Terrain.Desert && v.Prices.GetValueOrDefault("desertUpkeep", 1) > 0) marks.Add("desert");
             return marks.Count == 0 ? "" : $" ({string.Join(", ", marks)})";
         }
         // Land taken by force and still being absorbed: what it yields and counts this season.

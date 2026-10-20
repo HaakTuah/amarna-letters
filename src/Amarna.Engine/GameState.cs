@@ -51,6 +51,12 @@ public sealed class GameState
     /// second, all of it from the third (<see cref="TurnEngine.Absorbed"/>). Public, as who holds what is.
     /// </summary>
     public Dictionary<string, int> Conquered { get; set; } = new();
+    /// <summary>
+    /// The armies, by unit id, that ended the last season's moves in desert land their king did not hold when the moves were
+    /// made (Build order item 5, terrain): each pays <see cref="GameConfig.DesertUpkeep"/> for supplies with the next upkeep,
+    /// and the list is then cleared. An army in its own land pays nothing.
+    /// </summary>
+    public List<string> InDesert { get; set; } = new();
     public List<Unit> Units { get; set; } = new();
     public Dictionary<Power, Treasury> Treasuries { get; set; } = new();
     public Dictionary<Power, int> StartStrength { get; set; } = new();

@@ -90,6 +90,9 @@ public sealed partial class TurnEngine
                 deserted.Add(victim.Label);
             }
             var paid = Math.Max(0, Math.Min(t.Gold, Upkeep(p)));
+            // The desert's share of it: the armies that ended last season in desert land not their king's, and still stand.
+            var desert = DesertCost(p);
+            var parched = DesertArmies(p).Select(u => u.Province).ToList();
             t.Gold -= paid;
             // Walls above the map's own are kept up after the troops: what the treasury cannot keep falls a level.
             var crumbled = new List<string>();
@@ -140,6 +143,7 @@ public sealed partial class TurnEngine
 
             // Written before the season's audiences and envoys' returns: their gold comes after this figure.
             var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}{(walls > 0 ? $", walls {Money.Format(walls)}" : "")}, wages {Money.Format(wages)} (paid to your people at court)."
+                + (desert > 0 ? $" The upkeep includes {Money.Format(desert)} for supplies in the desert: your {(parched.Count == 1 ? "army" : "armies")} in {string.Join(", ", parched)} ended last season in desert land you did not hold." : "")
                 + (owed > 0 ? $" The wages of your people away, {Money.Format(owed)}, were added to their back pay, which is paid when they are back at your court." : "")
                 + $" After income, upkeep and wages, the treasury holds {Money.Format(t.Ledger)}; gold received at audiences or brought home by your envoys this season is added later." };
             if (deserted.Count > 0) lines.Add($"Unpaid troops deserted: {string.Join(", ", deserted)}.");
@@ -148,6 +152,8 @@ public sealed partial class TurnEngine
             S.Notify(p, InboxKind.Notice, "The treasury", string.Join(" ", lines));
             if (deserted.Count > 0) S.Log("desertion", $"{p} could not pay its troops: {string.Join(", ", deserted)} deserted.", [p]);
         }
+        // The desert's cost is paid once, with this upkeep.
+        S.InDesert.Clear();
     }
 
     /// <summary>Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short.</summary>
@@ -212,10 +218,42 @@ public sealed partial class TurnEngine
     public int WallsUpkeep(Power p) =>
         S.OwnedBy(p).Sum(x => Math.Max(0, S.WallsOf(x) - MapData.StartWalls.GetValueOrDefault(x))) * S.Config.WallUpkeep;
 
-    /// <summary>The upkeep of a power's troops, and the cost of each siege it presses (<see cref="GameConfig.SiegeUpkeep"/>).</summary>
+    /// <summary>
+    /// The upkeep of a power's troops, the cost of each siege it presses (<see cref="GameConfig.SiegeUpkeep"/>), and the
+    /// desert's cost for each of its armies that ended the last season in desert land it did not hold (<see cref="DesertCost"/>).
+    /// </summary>
     public int Upkeep(Power p) => S.Units.Where(u => u.Power == p)
         .Sum(u => u.Kind == UnitKind.Army ? S.Config.ArmyUpkeep : S.Config.FleetUpkeep)
-        + S.Sieges.Count(x => x.Power == p) * S.Config.SiegeUpkeep;
+        + S.Sieges.Count(x => x.Power == p) * S.Config.SiegeUpkeep
+        + DesertCost(p);
+
+    /// <summary>
+    /// What a power pays for supplies in the desert with this season's upkeep (Build order item 5, terrain): <see
+    /// cref="GameConfig.DesertUpkeep"/> for each of its armies that ended the last season's moves in desert land it did not
+    /// hold when the moves were made (<see cref="GameState.InDesert"/>). Nothing once the upkeep is paid, as the list is cleared.
+    /// </summary>
+    public int DesertCost(Power p) => DesertArmies(p).Count() * S.Config.DesertUpkeep;
+
+    private IEnumerable<Unit> DesertArmies(Power p) => S.Units.Where(u => u.Power == p && S.InDesert.Contains(u.Id));
+
+    /// <summary>
+    /// After the moves (Build order item 5, terrain; question 5, plan step 15, built as "an army in its own land pays no desert
+    /// cost"): each army standing in desert land that its king did not hold when the moves were made pays for supplies with
+    /// the next upkeep. So an army that marches into the Sinai pays for that season, and none after once its king holds it;
+    /// one that stands within walls there without taking it pays every season it stays. Its king holding the desert is the
+    /// only exemption, whoever he is: no rule names a power.
+    /// </summary>
+    private void MarkDesert()
+    {
+        S.InDesert.Clear();
+        if (S.Config.DesertUpkeep <= 0) return;
+        foreach (var u in S.Units.Where(u => u.Kind == UnitKind.Army && Geography.TerrainOf(u.Province) == Terrain.Desert && S.Owner.GetValueOrDefault(u.Province) != u.Power)
+                     .OrderBy(u => IdNumber(u.Id)))
+        {
+            S.InDesert.Add(u.Id);
+            S.Log("desert", $"{u.Power}'s army ended the season in {Map[u.Province].Name}, desert land {u.Power} did not hold: it pays {Money.Format(S.Config.DesertUpkeep)} for supplies.", [u.Power], "desert");
+        }
+    }
 
     /// <summary>
     /// The wages a court owes its people each season, as it reckons them (a covered servant's as it believes it): paid to
@@ -416,6 +454,8 @@ public sealed partial class TurnEngine
             Powers.All.Where(p => valid.ContainsKey(p) && S.IsAlive(p)).SelectMany(p => valid[p].Accepted.OfType<T>().Select(o => (p, o)));
 
         ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder or BesiegeOrder or SallyOrder).ToList());
+        // Armies that ended the moves in desert land not their king's pay for supplies with the next upkeep.
+        MarkDesert();
         // A scheduled move that failed is tried again next season, or ends its unit's march.
         Marches(valid);
         // Sieges are lifted, begun and pressed, and cities worn down surrender; then land changes hands where troops stand.

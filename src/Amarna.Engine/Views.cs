@@ -368,6 +368,7 @@ public static class Views
         v.Prices["wallUpkeep"] = s.Config.WallUpkeep;
         v.Prices["sallyMinWalls"] = s.Config.SallyMinWalls;
         v.Prices["terrainDefence"] = s.Config.TerrainDefence;
+        v.Prices["desertUpkeep"] = s.Config.DesertUpkeep;
         return v;
     }
 

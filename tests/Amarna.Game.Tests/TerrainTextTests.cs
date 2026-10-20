@@ -14,11 +14,14 @@ public class TerrainTextTests
     [InlineData("So an island is protected by the sea: an army reaches it only by convoy, and a unit there holds with 1 more against a landing.")]
     [InlineData("A unit standing its ground may have the ground's help in its hold strength (see TERRAIN).")]
     [InlineData("(none if the province was empty or its unit moved away; the ground's help to them counts in it)")]
-    [InlineData("THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground; links, with the mountain passes and great rivers on them)")]
+    [InlineData("THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; links, with the mountain passes and great rivers on them)")]
     [InlineData("- mira: Mira; land; homeland of Arzawa; yield 30; rough ground. armies: seha, apasa, lukka, tuwanuwa.")]
     [InlineData("- tamassos: Tamassos; coast; homeland of Alashiya; yield 40; rough ground. armies: enkomi.")]
     [InlineData("- tuwanuwa: Tuwanuwa; land; homeland of Hatti; yield 30. armies: seha, mira, lukka, hattusa, kanesh, kizzuwatna (across the Cilician Gates).")]
     [InlineData("- harran: Harran; land; homeland of Mitanni; yield 35. armies: isuwa (across the Euphrates), carchemish (across the Euphrates), washukanni, terqa.")]
+    [InlineData("- Desert (sinai) costs an army supplies: an army that ends a season in desert land its king did not hold when that season's moves were made pays 30 with the next upkeep, and your treasury notice says so. An army in its own land pays nothing: a king who holds the desert crosses it freely, and so does whoever takes it, from the season after. Only armies pay it.")]
+    [InlineData("you pay upkeep for every army (30) and fleet (35), 30 more for each army that ended last season in desert land you did not hold (see TERRAIN), and the wages of your people at court;")]
+    [InlineData("- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: megiddo, gaza, delta, memphis.")]
     public void The_rulebook_states_what_the_ground_does_and_the_map_marks_it(string rule) => Assert.Contains(rule, Rules);
 
     [Fact]
@@ -35,7 +38,9 @@ public class TerrainTextTests
     {
         var rules = Prompts.LeaderRules(true, new GameConfig { TerrainDefence = 0 });
         Assert.Contains("In this game the ground gives no unit any help", rules);
-        Assert.DoesNotContain("see TERRAIN", rules);
+        Assert.DoesNotContain("the ground's help", rules);
+        // The desert still costs supplies: it is a rule of its own.
+        Assert.Contains("- Desert (sinai) costs an army supplies", rules);
     }
 
     [Fact]
@@ -46,6 +51,7 @@ public class TerrainTextTests
         Assert.Contains("lukka (walls 1, rough ground)", hatti);
         Assert.Contains("isuwa (walls 1, rough ground)", hatti);
         Assert.Contains("mira (rough ground) [Arzawa army]", hatti);
+        Assert.Contains("sinai (desert)", hatti);
         // With terrain off, nothing is marked.
         var off = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0, TerrainDefence = 0 });
         Assert.Contains("mira [Arzawa army]", Prompts.Situation(Views.For(off, Power.Hatti)));
