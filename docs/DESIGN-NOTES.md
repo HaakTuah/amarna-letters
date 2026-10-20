@@ -184,7 +184,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     that falls loses a level as any other, so a captured capital at 2 can be built back to 3 without upkeep. An
     earthquake throws the walls of the province it strikes down a level (its notice says so: "..., and its walls stand a
     level lower (walls 2)."); until the siege package its text spoke of walls it did not touch. The view shows the walls'
-    upkeep beside the troops' (`SeatView.WallUpkeep`), and the orders panel has "Strengthen walls in…" with the price.
+    upkeep beside the troops' (`SeatView.WallUpkeep`), and the orders panel has "Strengthen walls in…" with the price,
+    offering only land the order may be given for (since the review of the siege package, not where foreign troops stand
+    within).
     Script kings strengthen walls where a feared king may walk in (see Treasury under Script kings).
   - **Envoys and a besieged capital** (the design document's "Getting a message out depends on the envoy's competence and
     courage and on how tight the siege is; the besieger may capture the envoy and read the tablets"; question 5, plan

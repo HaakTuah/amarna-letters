@@ -176,11 +176,13 @@
             </select>
             <button class="small" disabled="@(BuyCity == "")" @onclick="() => Add(new BuyProvinceOrder(BuyCity))">Add</button>
         </div>
-        @* Walls (the siege package): a level higher at the end of the season, for the price of the new level, then upkeep above the map's own. *@
+        @* Walls (the siege package): a level higher at the end of the season, for the price of the new level, then upkeep above
+           the map's own. Not where foreign troops stand within, which the rules refuse (since the review of the siege package). *@
         <div class="row" style="margin-top:.4rem">
             <select @bind="FortifyAt">
                 <option value="">Strengthen walls in…</option>
-                @foreach (var (id, _) in v.Owner.Where(x => x.Value == me && v.Walls.GetValueOrDefault(x.Key) < State.Config.MaxWalls && v.Sieges.All(s => s.Province != x.Key)).OrderBy(x => Ui.Province(x.Key)))
+                @foreach (var (id, _) in v.Owner.Where(x => x.Value == me && v.Walls.GetValueOrDefault(x.Key) < State.Config.MaxWalls && v.Sieges.All(s => s.Province != x.Key)
+                                                           && !v.Units.Any(u => u.Province == x.Key && u.Power != me)).OrderBy(x => Ui.Province(x.Key)))
                 {
                     var level = v.Walls.GetValueOrDefault(id) + 1;
                     <option value="@id">@Ui.Province(id) to level @level (@Ui.Shekels(level * v.Prices["fortifyPerLevel"]))</option>
