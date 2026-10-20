@@ -1446,6 +1446,8 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
       sleep on. Its description says the standing order's orders replace the king's other orders that
       season, those he gives then among them ("and your scheduled ones" with sleep on), that it first
       fires the season after it is given, and, with sleep on only, what wakes him.
+    - **Human seats** give them in the web app's orders panel (see the web app's orders panel, under
+      "The web map and the interface").
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
   again next season, told why it was woken in the season it missed (it never read that) and what
@@ -2356,6 +2358,15 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   line each time; the text is the same, model characters' shadow lines included). The map never reads a whole state
   back from its snapshot. Measurements are in the round reports.
 - **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
+- **Standing orders in the orders panel** (since the owner's additions to the fix pass after item 4: every seat may keep
+  them, so a human seat has a form for them). Under Troops, a section lists the seat's standing orders by id, each with a
+  Cancel button (Keep undoes it), and the new ones written this season, each with Remove. A new one is written in two
+  rows: what it waits for ("When troops enter…" a province, of any foreign power or of one named, or "When my troop is
+  attacked…", one of its troops), then its orders one at a time (a troop of its own that supports a troop in sight or a
+  walled city of its own, holding or into a province, moves, or holds), each added with "Add this order", and the whole
+  with "Add this standing order". The draft sends them with the season's orders (`OrderDraft.Standing`,
+  `OrderDraft.CancelStanding`, `OrderDraft.Build`); the form offers no other orders (levies, letters) in a standing order,
+  which a model king's reply may carry. The rules tab says that standing orders apply to a human seat, which never sleeps.
 
 ## Where the code differs from the design document (as it stood on 19 October 2026)
 

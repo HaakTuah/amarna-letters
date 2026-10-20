@@ -70,6 +70,94 @@
         }
     </div>
 
+    @* Standing orders: every seat may keep them, awake or asleep (since the additions to the fix pass after item 4). *@
+    <div class="section standing">
+        <h3>Standing orders</h3>
+        <p class="muted"><small>A standing order waits for a move you can see and answers it in the same season, as your commanders on the spot would: its orders then replace yours for the same troops. It first fires next season, fires once, and costs nothing to give. At most @TurnEngine.MaxStanding.</small></p>
+        @foreach (var st in v.Standing)
+        {
+            var cancelled = Draft.CancelStanding.Contains(st.Id);
+            <div class="row">
+                <small style="@(cancelled ? "text-decoration:line-through" : "")">@st.Id: @OrderDraft.When(st.When, st.Power, st.Province, me), then @string.Join("; ", st.Orders.Select(o => Ui.Describe(o, v)))</small>
+                <button class="small" @onclick="() => { if (!Draft.CancelStanding.Remove(st.Id)) Draft.CancelStanding.Add(st.Id); Changed(); }">@(cancelled ? "Keep" : "Cancel")</button>
+            </div>
+        }
+        @foreach (var r in Draft.Standing.ToList())
+        {
+            <div class="row">
+                <small>New: @OrderDraft.When(r.When, r.Power, r.Province, me), then @string.Join("; ", r.Orders.Select(o => Ui.Describe(o, v)))</small>
+                <button class="small" @onclick="() => { Draft.Standing.Remove(r); Changed(); }">Remove</button>
+            </div>
+        }
+        @if (v.Standing.Count - Draft.CancelStanding.Count + Draft.Standing.Count < TurnEngine.MaxStanding)
+        {
+            <div class="row" style="margin-top:.4rem">
+                <select @bind="StWhen" @bind:after="ResetPlace">
+                    <option value="enters">When troops enter…</option>
+                    @if (Draft.Units.Count > 0) { <option value="attacked">When my troop is attacked…</option> }
+                </select>
+                <select @bind="StPlace">
+                    <option value="">— where? —</option>
+                    @if (StWhen == "attacked")
+                    {
+                        @foreach (var at in Draft.Units.Keys.OrderBy(Ui.Province)) { <option value="@at">@Ui.Province(at)</option> }
+                    }
+                    else
+                    {
+                        @foreach (var p in map.Provinces.OrderBy(p => p.Name)) { <option value="@p.Id">@p.Name</option> }
+                    }
+                </select>
+                @if (StWhen == "enters")
+                {
+                    <select @bind="StPower">
+                        <option value="">any foreign troops</option>
+                        @foreach (var p in Powers.All.Where(p => p != me && !v.Fallen.Contains(p))) { <option value="@p">@p.Name()'s troops</option> }
+                    </select>
+                }
+            </div>
+            <div class="row" style="margin-top:.3rem">
+                <span>then</span>
+                <select @bind="StUnit" @bind:after="ResetTarget">
+                    <option value="">— which troop? —</option>
+                    @foreach (var at in Draft.Units.Keys.Where(a => StOrders.All(o => OrderKeys.UnitOf(o) != a)).OrderBy(Ui.Province)) { <option value="@at">@(Draft.UnitAt(at)!.Kind == UnitKind.Army ? "Army" : "Fleet") @Ui.Province(at)</option> }
+                </select>
+                <select @bind="StKind" @bind:after="ResetTarget">
+                    <option value="support">supports</option>
+                    <option value="move">moves</option>
+                    <option value="hold">holds</option>
+                </select>
+                @if (StUnit != "" && StKind == "move")
+                {
+                    <select @bind="StTarget">
+                        <option value="">— where? —</option>
+                        @foreach (var to in map.MovesFrom(Draft.UnitAt(StUnit)!.Kind, StUnit).OrderBy(Ui.Province)) { <option value="@to">@Ui.Province(to)</option> }
+                    </select>
+                }
+                else if (StUnit != "" && StKind == "support")
+                {
+                    <select @bind="StTarget" @bind:after="ResetTo">
+                        <option value="">— whom? —</option>
+                        @foreach (var u in visibleUnits.Where(u => u.Province != StUnit)) { <option value="@u.Province">@u.Power.Name() @(u.Kind == UnitKind.Army ? "A" : "F") @Ui.Province(u.Province)</option> }
+                        @foreach (var w in v.Garrisons.Where(g => v.Owner.GetValueOrDefault(g) == me).OrderBy(Ui.Province)) { <option value="@w">the walls of @Ui.Province(w)</option> }
+                    </select>
+                    @if (StTarget != "")
+                    {
+                        <select @bind="StTo">
+                            <option value="">to hold</option>
+                            @foreach (var to in map.MovesFrom(Draft.UnitAt(StUnit)!.Kind, StUnit).Where(x => x != StTarget).OrderBy(Ui.Province)) { <option value="@to">into @Ui.Province(to)</option> }
+                        </select>
+                    }
+                }
+                <button class="small" disabled="@(OrderDraft.UnitOrder(StUnit, StKind, StTarget, StTo) is null || StUnit == "")" @onclick="AddStandingOrder">Add this order</button>
+            </div>
+            @if (StOrders.Count > 0)
+            {
+                <div class="row" style="margin-top:.3rem"><small>Its orders: @string.Join("; ", StOrders.Select(o => Ui.Describe(o, v)))</small> <button class="small" @onclick="() => { StOrders.Clear(); Changed(); }">Clear</button></div>
+            }
+            <button class="small" style="margin-top:.3rem" disabled="@(StPlace == "" || StOrders.Count == 0)" @onclick="AddStanding">Add this standing order</button>
+        }
+    </div>
+
     <div class="section">
         <h3>Treasury and land</h3>
         <div class="row">
@@ -299,6 +387,44 @@
     private Dictionary<string, int> Wages = new();
     private string CheckWho = "", SpyWho = "", SpyAt = "Hatti", PoisonText = "", ReleaseWords = "", ForgeWho = "", ForgeText = "";
     private HashSet<Power> ForgeSeals = new();
+    // The standing order being written: what it waits for, and its orders so far.
+    private string StWhen = "enters", StPlace = "", StPower = "", StUnit = "", StKind = "support", StTarget = "", StTo = "";
+    private List<Order> StOrders = new();
+
+    private void ResetPlace() => StPlace = "";
+
+    private void ResetTarget()
+    {
+        StTarget = "";
+        StTo = "";
+    }
+
+    private void ResetTo() => StTo = "";
+
+    private void AddStandingOrder()
+    {
+        if (StUnit == "" || OrderDraft.UnitOrder(StUnit, StKind, StTarget, StTo) is not { } order) return;
+        StOrders.Add(order);
+        StUnit = "";
+        ResetTarget();
+        Changed();
+    }
+
+    private void AddStanding()
+    {
+        if (StPlace == "" || StOrders.Count == 0) return;
+        Draft.Standing.Add(new StandingRequest
+        {
+            When = StWhen == "attacked" ? StandingWhen.UnitAttacked : StandingWhen.UnitEnters,
+            Province = StPlace,
+            Power = StWhen == "enters" && Enum.TryParse<Power>(StPower, out var whose) ? whose : null,
+            Orders = StOrders.ToList(),
+        });
+        StOrders = new();
+        StPlace = "";
+        StPower = "";
+        Changed();
+    }
 
     protected override void OnParametersSet()
     {
