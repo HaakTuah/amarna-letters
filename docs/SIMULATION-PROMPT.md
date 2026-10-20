@@ -6,8 +6,10 @@ line. The agent types are loaded when that session starts: `node sim/setup.js --
 and made the 7 king types and the 36 character types (18 characters for each seed). Run it again with `--force` only
 if you want new folders and secret words (the old kit is moved to `sim/runs/setup-<time>/`), then start yet another
 fresh session. Since then the fix pass (20 October 2026) changed the isolation test: each agent's definition now asks
-it to make every step. That kit predates the change, and the second simulation moved its kings' files out of their
-folders, so before this prompt is used again run `node sim/setup.js --seeds 7,15 --force` and start a fresh session.
+it to make every step. The kit of 19 October predated the change, so on 20 October it was remade with `node
+sim/setup.js --seeds 7,15 --force` (the old one is in `sim/runs/setup-<time>/`), and `node sim/check-isolation.js
+--dry` holds on it; start a fresh session before using it, so that its agent types load. No model game is run until
+the build order is done and Haakon asks for one (the builder rules, "No model games until the build order is done").
 The `ANTHROPIC_API_KEY` environment variable must not be set in that session: it would make Claude Code bill the API
 instead of the subscription.
 
@@ -25,6 +27,13 @@ simulation could not: whether model envoys lie, skim and cover up, and how they 
 traits; how often kings reopen their orders after an audience; and wake-ups and call sizes under the new triggers.
 
 **Your rules.**
+- Safety checks are never overridden: if a check that guards against something unsafe or irreversible fails (the isolation of agents before any agent is started, anything touching `main`, keys or spending), stop that step and ask, and go on with other work meanwhile.
+  (The builder rules say this in the same words.) In this prompt the safety checks are: the key and the usage stop
+  points (step 0), the agent types and the dry isolation check (step 1), the live isolation test (step 2), and the
+  audit after each game (steps 4 and 5). Each step below says what stops when one fails; "ask" means ask Haakon. The
+  other work that may go on meanwhile is work that starts no agent and spends nothing: the season lines, `summarize.js`,
+  the report. A failure that guards against nothing unsafe (a fallback, an invalid order, a retry) is not a reason to
+  stop: write it down and go on.
 - During a game, never read a seat's request or reply files and never carry anything from one seat to another. A king
   or a character gets only the name of its request file.
 - Check only that an agent's reply file exists. Every agent's final message reaches you, and you start every other
@@ -38,7 +47,9 @@ traits; how often kings reopen their orders after an audience; and wake-ups and 
   are starting values, not design decisions.
 - Do not change engine rules, the map or the balance, and do not fix bugs during the runs: write them down.
 
-**0. Usage, before anything else.** Record the 5-hour window and the weekly limit (`/usage`, or whatever usage tool you
+**0. The key and usage, before anything else.** Run `node -e "console.log(Boolean(process.env.ANTHROPIC_API_KEY))"`. It
+must print `false`. If it prints `true`, the agents would bill the API: stop, start no agent, and ask Haakon to unset it
+and start a new session. Then record the 5-hour window and the weekly limit (`/usage`, or whatever usage tool you
 have) in the report. The first simulation cost about 1 weekly point per million agent tokens. The estimate for this
 one (details under "Characters as agents" in the report):
 - Kings, two games: about 6.5 million tokens (5.5 to 8 million): about 50 orders calls a game at about 44k tokens and
@@ -51,18 +62,19 @@ one (details under "Characters as agents" in the report):
   Sonnet, about 9 if it counts at a third (not measured yet: say which it was). Writing the report adds 2 to 3 points
   without extra analyst agents. Each game takes about 2 to 3 hours, since an audience now goes back and forth between
   two agents, and a game may span two 5-hour windows.
-- **Stop points.** After season 3 of game 1, if the weekly limit has risen by more than 3 points since you began, stop
-  and report before going on. Before game 2, if game 1 took more than 7 weekly points, stop and ask Haakon. Never go on
-  past 90% of the weekly limit or of a 5-hour window: stop when the season's requests are answered, and report. The
+- **Stop points** (safety checks on spending: stop starting agents and ask; meanwhile write up what is done). After
+  season 3 of game 1, if the weekly limit has risen by more than 3 points since you began, stop and ask before going
+  on. Before game 2, if game 1 took more than 7 weekly points, stop and ask. Never go on past 90% of the weekly limit or
+  of a 5-hour window: stop when the season's requests are answered, and ask. The
   batch runner waits up to `--file-timeout` minutes (240 in the commands below) for each reply before the script
   stands in, so a game can wait out a short pause, but not a long one: a reply that never comes makes the rest of that
   game a mixed one, and the report must say so.
 
 **1. Check the agents.** The agent types `king-egypt`, `king-hatti`, `king-babylonia`, `king-mitanni`,
 `king-assyria`, `king-arzawa` and `king-alashiya`, and the 36 character types named in `sim/characters/agents.json`
-(`char-` and 8 hex digits; each entry says its seed), must be available. If any is missing, stop and tell the user.
-Then run `node sim/check-isolation.js --dry`. It must print `DRY ISOLATION HOLDS`; if not, stop and tell the user (on a
-kit made before 20 October 2026 it fails and says why: the kit must be remade, as above).
+(`char-` and 8 hex digits; each entry says its seed), must be available. If any is missing, stop, start no agent, and
+ask. Then run `node sim/check-isolation.js --dry`. It must print `DRY ISOLATION HOLDS`; if not, stop, start no agent,
+and ask (on a kit made before 20 October 2026 it fails and says why: the kit must be remade, as above).
 
 **2. Isolation test, kings and characters, before any game.**
 - Note the time: `node -e "console.log(new Date().toISOString())"`. The kings' log may already hold lines from an
@@ -75,7 +87,7 @@ kit made before 20 October 2026 it fails and says why: the kit must be remade, a
 - Then run `node sim/check-isolation.js --since <the time you noted>`. It finds every step of every agent's test in the
   guard log, as the exact call the request names, and names each step an agent did not make.
 - If an agent left steps out, give it the same prompt once more, then run the check again with the same time.
-- If the check does not print `ISOLATION HOLDS`, stop and tell the user. Do not run a game.
+- If the check does not print `ISOLATION HOLDS`, stop and ask. Do not run a game, and start no other agent.
 
 **3. Game 1, seed 7.**
 - Build, then start the game in the background, with the Bash tool (Git Bash, for `mkdir -p` and the redirection):
@@ -104,31 +116,31 @@ kit made before 20 October 2026 it fails and says why: the kit must be remade, a
 - Check usage after season 3 (step 0).
 
 **4. After game 1.**
-- Run `node sim/audit.js`. It must print `AUDIT CLEAN`. If not, report the violations and treat the game as invalid.
+- Run `node sim/audit.js`. It must print `AUDIT CLEAN`. If not, report the violations and treat the game as invalid:
+  the walls between agents did not hold, so stop before any other agent is started (no debriefs, no game 2) and ask,
+  and meanwhile write up game 1.
 - Run `node sim/summarize.js sim/runs/seed-7 > sim/runs/seed-7/summary.md`. The seat report in `batch.log` gives
   calls, invalid orders, fallbacks, sleep lengths, what woke each king and the reopen rate; below it, the characters'
   decisions beside the script's with the same traits, and the request sizes by kind. `summary.md` has the same, the
   message trail, and every decision where a character and its script shadow differ, with both texts.
-- Debrief the kings: write `debrief.request.md` into each king's folder (the folders are in `sim/kings/seats.json`).
-  Ask the king to read its own earlier request files, listed by name, and to write `debrief.reply.json` with
-  `{"unclear": [...], "misunderstood": [...], "missing": [...]}` about the seat view.
-- Debrief the characters of seed 7 that answered at least one game request (their folders are in
-  `sim/characters/seed-7.json`): write `debrief.request.md` asking the character to read its own earlier request
-  files, listed by name, and to write `debrief.reply.json` with `{"unclear": [...], "misunderstood": [...],
-  "missing": [...], "choices": [{"request": "<file name>", "why": "<a sentence or two>"}]}`, where `choices` says,
-  for each time it carried gold, was offered a gift or a post, or reported home, why it chose as it did and what it
-  told or left out.
-- End every debrief request, kings' and characters', with the same footer the game requests carry: "When you have
-  written your reply file, your final message must be the single word done. Say nothing about your decision. Earlier
-  reply files cannot be read: your record of earlier seasons is in this request." Then start the agents on it, with
-  the prompt "Your request file is debrief.request.md in your folder. Read it, and write your reply where it says."
+- Debrief the kings and the characters of seed 7 that answered at least one game request: run `node
+  sim/write-debriefs.js --seed 7`. It writes `debrief.request.md` into each of their folders and prints, as one JSON
+  line, the agents to start. Each request lists the agent's own earlier request files by name, asks it to reread them
+  and to write `debrief.reply.json`, and ends with the footer the game requests carry. A king's reply is
+  `{"unclear": [...], "misunderstood": [...], "missing": [...], "interesting": {"most": "...", "least": "..."}}`
+  about the seat view; a character's adds `"choices": [{"request": "<file name>", "why": "<a sentence or two>"}]`,
+  saying, for each time it carried gold, was offered a gift or a post, or reported home, why it chose as it did and
+  what it told or left out. Kings and characters alike answer "What did you find most and least interesting about
+  playing this role?" in `interesting` (the builder rules ask it of every debrief: a role an agent finds dull probably
+  has too few real choices). Start each listed agent with the prompt "Your request file is debrief.request.md in your
+  folder. Read it, and write your reply where it says."
 - Move every file in the kings' folders into `sim/runs/seed-7/kings/<power>/`. You do this; the kings never touch it.
   The characters of seed 7 keep their folders: game 2 is played by the other 18 character agents.
 
 **5. Game 2, seed 15.** The same as steps 3 and 4 with `--seed 15`, `--file-characters
-sim/characters/seed-15.json`, `--out sim/runs/seed-15`, `wait.js ... --seed 15`, the debriefs of seed 15's characters,
-and the kings' files moved into `sim/runs/seed-15/kings/<power>/`. Run `audit.js` again: it covers both games and the
-debriefs.
+sim/characters/seed-15.json`, `--out sim/runs/seed-15`, `wait.js ... --seed 15`, `write-debriefs.js --seed 15` (the
+kings and seed 15's characters), and the kings' files moved into `sim/runs/seed-15/kings/<power>/`. Run `audit.js`
+again: it covers both games and the debriefs.
 
 **6. Report.** Write the "Simulation results" section of `docs/rounds/2026-10-19-second-simulation.md`, answering:
 - **Characters.** Whether model envoys and spies lied, skimmed and covered up, against the script shadow with the
@@ -143,9 +155,11 @@ debriefs.
   slept, against the first simulation.
 - **Call sizes.** Request sizes by kind (the table in `summary.md`) and the tokens per agent call by kind, for kings
   (orders, audiences) and characters (speech, reply, report, pitch, spy report, memory).
+- **The roles.** What the kings and the characters found most and least interesting about playing their roles (the
+  debriefs' `interesting`), and which choices the answers point to as too few or too thin: design data, not a verdict.
 - Three to five message-trail excerpts that show what the characters did to their kings' words.
 - Invalid orders, retries and fallbacks; the isolation test and the audit.
 - Usage: per game, kings against characters, against the estimate in step 0.
 
-Commit the report to the branch this session runs on. Do not push to `main` or `develop`. Then stop: this is a review
-stop for Haakon.
+Commit the report to the branch this session runs on. Do not push, and do not touch `main` or `develop` (a safety
+check: anything touching `main` is asked first). Then stop: this is a review stop for Haakon.

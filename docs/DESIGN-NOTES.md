@@ -1536,7 +1536,16 @@ before it (`--since`). Since the fix pass (20 October 2026), each agent's own de
 the isolation test and make every step: in the second simulation every agent declined the steps outside
 its folder, because its definition said never to try them and the test came only as a request and a
 prompt. The live test finds each step's own call in the guard log, so a step reported but never made
-fails it (`sim/isolation.js`; `sim/README.md`, "The isolation test"). The walls are unchanged.
+fails it (`sim/isolation.js`; `sim/README.md`, "The isolation test"). The walls are unchanged. The real kit was
+remade the same day (`setup.js --seeds 7,15 --force`), and `--dry` holds on it. Two builder rules of that day reach
+the kit. The start prompts an orchestrator reads (`docs/SIMULATION-PROMPT.md`, `docs/PLAY-PROMPT.md`) repeat the
+safety-check rule in the builder rules' own words ("Safety checks are never overridden: …"), and their stop rules
+follow it: a failed dry check, isolation test or audit starts no further agent, and the key and the usage limits stop
+the starting of agents, while work that starts no agent goes on. And every debrief, for kings and characters alike,
+asks "What did you find most and least interesting about playing this role?" (a role an agent finds dull probably has
+too few real choices): `sim/write-debriefs.js` writes the debrief requests, with that question as the reply's
+`interesting` field and the game requests' footer (a test checks the footer is `FileExchange.Footer` word for word).
+No model game is run until the build order is done and Haakon asks.
 
 **Local play on a Claude subscription** (item 4). A fourth way to play, for the developer's own games: the web app,
 run on this computer, with a human seat against kings played by the same guarded king agents, answered in a Claude Code

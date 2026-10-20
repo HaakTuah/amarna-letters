@@ -30,6 +30,7 @@ The whole game depends on hidden information, so every agent is walled in by con
 | `stub-isolation.js` | For testing the isolation test only, on a scratch kit (`--kit DIR`): stands in for every agent, making each step through its own hook and writing its reply. `--skip 4` or `--skip king-hatti:4` leaves a step out while the reply still claims it, which the check must catch. |
 | `wait.js` | For the orchestrator: waits until seats have requests waiting, or the game is over. Prints the agent type to start and the request file name for each, nothing else. `--seed S` watches only that seed's characters. `--play` is for local play: the kings only, until the bridge stops. |
 | `audit.js` | After the game: every tool call in every king and character transcript, and any violation. In play an agent may read only the request file its prompt named (in a debrief, any request file of its own). |
+| `write-debriefs.js` | After a game: `--seed S` writes `debrief.request.md` for every king and every character of seed S that answered a game request (`--kings-only` for the kings alone; `--kit DIR` on a scratch kit), and prints the agents to start. Each asks the agent to reread its own requests, listed by name, and to say what was unclear, misunderstood or missing (a character also why it chose as it did), and, kings and characters alike, "What did you find most and least interesting about playing this role?" (`interesting` in the reply). It ends with the game requests' footer. It starts no agent. |
 | `summarize.js` | Result, signals, sealed tablets, the message trail, each seat's sleep and what woke it, the reopen rate, request sizes by kind, and the characters' decisions beside the script's with the same traits, from the batch runner's `--out` folder. |
 | `stub-replier.js` | For testing the plumbing only: answers requests with the plainest valid reply, as the orchestrator's loop would start agents (`--orchestrate`), or straight from the folders. `--play` does the same for local play. Never in a real game. |
 | `bridge.js` | Local play (below): the small server through which the locally run web app hands each request to a king played by a local agent, and gets the reply back. |
@@ -92,7 +93,13 @@ steps. Since the fix pass (20 October 2026):
   without the paragraph and no step files, and after the second simulation its kings' files were moved into
   `sim/runs/seed-7/kings/` and `seed-15/kings/`. `--dry` fails on it and says so. Remake it with
   `node sim/setup.js --force` (with `--seeds` for a simulation) before the next live test, and start a new session so
-  the agent types load.
+  the agent types load. The real kit was remade so on 20 October 2026 (`--seeds 7,15 --force`; the old one is in
+  `sim/runs/setup-2026-10-20T03-05-31-356Z/`), and `--dry` holds on it.
+- **Safety checks are never overridden.** The start prompts (`docs/SIMULATION-PROMPT.md`, `docs/PLAY-PROMPT.md`) repeat
+  the builder rule in the same words: if a check that guards against something unsafe or irreversible fails (the
+  isolation of agents before any agent is started, anything touching `main`, keys or spending), the orchestrator stops
+  that step and asks, and goes on with other work meanwhile. Their stop rules follow it: a failed dry check, isolation
+  test or audit starts no further agent; the key and the usage limits stop the starting of agents.
 
 ## Orchestrating from a workflow
 
@@ -231,7 +238,10 @@ the simulation-fixes round, `docs/rounds/2026-10-19-simulation-fixes.md`.
 - **Reply files cannot be read.** The guard lets an agent read only `*.request.md`. In run 1's debrief, four kings
   tried to open their own earlier replies; the guard blocked all six attempts, and `audit.js` counted them as
   violations. Run 2's debrief request said reply files are closed, and nobody tried. *Done* for game requests by the
-  same footer. A debrief request is written by the orchestrator, so it must end with the same footer.
+  same footer. A debrief request is written by the orchestrator, so it must end with the same footer. *Done* since the
+  fix pass (20 October 2026): `write-debriefs.js` writes every debrief with it (a test checks it is the game requests'
+  footer, word for word), and with the builder rules' question for every debrief, "What did you find most and least
+  interesting about playing this role?".
 - **The orchestrator-leak weakness.** The walls keep agents out of each other's files, but not out of the
   orchestrator's context. In the run nothing was passed on, but that was the rule above being followed. *Not built*;
   see below.
