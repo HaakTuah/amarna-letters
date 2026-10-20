@@ -225,10 +225,12 @@ internal static class Statecraft
         // a level of walls turns a province he would take at once into one he must storm or besiege. A first level saves about
         // a third of its worth against the likeliest attack (a feared king, at least an even chance in four that he comes), a further level about a seventh (another season of siege); against
         // that, the price of the new level and its upkeep, for as long as the game may run (at most ten seasons).
+        var fortified = false;
         if (Fortification(b, plan, gold - reserve) is { } walls)
         {
             orders.Add(new FortifyOrder(walls.Province));
             gold -= walls.Cost;
+            fortified = true;
         }
 
         // Cities: buying turns gold into the same score in land, plus its income, behind walls that now stand for the buyer.
@@ -260,6 +262,14 @@ internal static class Statecraft
             gold -= o.Price;
             buys++;
         }
+        // Walls against fleets alone (see Fortification), with what the cities left: they guard land no fleet threatens yet
+        // with a blow, so they never take the place of a city bought this season (since the script players' audit of the
+        // siege package: raised before the cities, they cost Alashiya more growth against the frozen baseline than they saved).
+        if (!fortified && Fortification(b, plan, gold - reserve, againstFleets: true) is { } fleetWalls)
+        {
+            orders.Add(new FortifyOrder(fleetWalls.Province));
+            gold -= fleetWalls.Cost;
+        }
         brain.SpareGold = gold - reserve;
 
         // Land we cannot keep goes to a friend rather than to a rival ahead of us (see Cession).
@@ -267,7 +277,8 @@ internal static class Statecraft
     }
 
     /// <summary>The province of ours whose walls are best strengthened this season, and the price, if any pays (see Economy).</summary>
-    internal static (string Province, int Cost)? Fortification(Board b, MilitaryPlan plan, double spare)
+    /// <param name="againstFleets">Only unwalled land that fleets alone threaten (MilitaryPlan.ByFleets), after the first year; otherwise every province but those.</param>
+    internal static (string Province, int Cost)? Fortification(Board b, MilitaryPlan plan, double spare, bool againstFleets = false)
     {
         var v = b.V;
         var price = v.Prices.GetValueOrDefault("fortifyPerLevel", 50);
@@ -277,14 +288,35 @@ internal static class Statecraft
         {
             var level = b.WallLevel(id);
             if (level >= 3 || b.SiegeAt(id) is not null || b.UnitAt.TryGetValue(id, out var within) && within.Power != b.Me) continue;
+            var chance = plan.Danger.TryGetValue(id, out var d) ? d.Chance : 0;
+            var share = level == 0 ? 0.35 : 0.15;
+            var floor = 0.4;
+            // Unwalled land that only fleets threaten (MilitaryPlan.ByFleets), empty or not: a first level keeps it from fleets
+            // for good, since fleets never take walls (an island's coast above all), so it is worth more than against armies;
+            // and if the fleet walks in before the walls stand, the order fails and costs nothing. Since the script players'
+            // audit of the siege package, which found Alashiya's empty Tamassos taken by a lone fleet in 23 of 100 games, its
+            // walls never raised. Not in the first year (turns 1 to 3), while its gold is better spent on cities and nobody has
+            // yet shown what he means: walls raised then cost a weak kingdom more than they saved (one current king against six
+            // baselines: Alashiya won 26 of 40 seeds, not 33).
+            var fleets = 0.0;
+            var byFleets = level == 0 && plan.ByFleets.TryGetValue(id, out fleets);
+            if (againstFleets != byFleets) continue;
+            // Against fleets alone a further level adds nothing: fleets never take walls of any height.
+            if (level > 0 && plan.ByFleets.ContainsKey(id)) continue;
+            if (byFleets)
+            {
+                if (v.Turn <= 3) continue;
+                chance = Math.Max(chance, fleets);
+                share = 0.6;
+                floor = 0.25;
+            }
             // The walls rise at the end of the season, after the moves: an empty province without walls that a feared king can
             // walk into now would be his before they stand (in the first script games of the siege package such orders failed, nearly five a game).
-            if (level == 0 && !b.Mine.Any(u => u.Province == id)) continue;
-            var chance = plan.Danger.TryGetValue(id, out var d) ? d.Chance : 0;
-            if (chance < 0.4) continue;
+            else if (level == 0 && !b.Mine.Any(u => u.Province == id)) continue;
+            if (chance < floor) continue;
             var cost = price * (level + 1);
             var above = level + 1 > MapData.StartWalls.GetValueOrDefault(id);
-            var net = chance * b.Value(id) * (level == 0 ? 0.35 : 0.15) - cost - (above ? upkeep * Math.Min(b.Horizon, 10) : 0);
+            var net = chance * b.Value(id) * share - cost - (above ? upkeep * Math.Min(b.Horizon, 10) : 0);
             if (net <= 0 || cost > spare - 60) continue;
             if (best is null || net > best.Value.Net) best = (id, cost, net);
         }

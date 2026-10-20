@@ -13,6 +13,13 @@ internal sealed class MilitaryPlan
     public HashSet<string> Threatened { get; } = new();
     /// <summary>For each threatened province, the strength of the likeliest attack on it and how likely it is to come.</summary>
     public Dictionary<string, (int Strength, double Chance)> Danger { get; } = new();
+    /// <summary>
+    /// Land of ours that only fleets threaten: a foreign fleet could move into it this season, and every foreign troop that
+    /// could move into it now, or move next to it first, is a fleet; with how much the most feared such king is feared (a
+    /// friend at the least fear that counts). Fleets never take walls, so a first level keeps it from them for good, and a
+    /// further level adds nothing against them (see <see cref="Statecraft.Fortification"/>).
+    /// </summary>
+    public Dictionary<string, double> ByFleets { get; } = new();
 }
 
 /// <summary>
@@ -119,6 +126,15 @@ internal static class Tactics
         {
             var d = Danger(prov);
             if (d.Strength > 0) { threat[prov] = d; plan.Threatened.Add(prov); plan.Danger[prov] = d; }
+        }
+        // Land of ours that only fleets threaten, a fleet next to it now (see MilitaryPlan.ByFleets). A friend's fleet counts too, at
+        // the least fear that counts at all: land with no walls and no troop is what tempts a friend to betray (see
+        // Statecraft.Strategy), and in script games the lone fleets that took Alashiya's Tamassos were often a friend's.
+        foreach (var prov in b.V.Owner.Where(x => x.Value == me && !Board.Map[x.Key].IsSea).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal))
+        {
+            var near = b.Others.Where(u => u.Province != prov && (Board.Map.CanMove(u.Kind, u.Province, prov)
+                                           || Board.Map.MovesFrom(u.Kind, u.Province).Any(n => n != prov && Board.Map.CanMove(u.Kind, n, prov)))).ToList();
+            if (near.Count > 0 && near.All(u => u.Kind == UnitKind.Fleet) && near.Any(u => Board.Map.CanMove(u.Kind, u.Province, prov))) plan.ByFleets[prov] = near.Max(u => Math.Max(0.25, Fear(u.Power, prov)));
         }
 
         // The chance that some hostile king walks into a province within two moves, for the homeland and capital.

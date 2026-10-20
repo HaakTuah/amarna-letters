@@ -120,6 +120,24 @@ public class SiegePlayTests
         Assert.Empty(Statecraft.PleasIn("Your troops of Mitanni besiege my city of Ashur.", b, Power.Assyria, Power.Mitanni));
     }
 
+    [Theory]
+    [InlineData(5, 0, true)]
+    // In the first year its gold goes to cities first.
+    [InlineData(2, 0, false)]
+    // A further level adds nothing against fleets, which never take walls of any height.
+    [InlineData(5, 1, false)]
+    public async Task A_script_king_walls_an_open_coast_that_only_a_fleet_threatens(int turn, int walls, bool fortifies)
+    {
+        // Egypt's fleet stands next to Alashiya's Tamassos, which has no troop; no army can reach the island.
+        var s = GameFactory.NewGame(1, new GameConfig { CatastropheChance = 0 });
+        s.Turn = turn;
+        s.Treasuries[Power.Alashiya].Gold = 2000;
+        s.Units.Single(u => u.Province == "delta").Province = "greatgreen";
+        if (walls > 0) s.Walls["tamassos"] = walls;
+        var sub = await new ScriptLeader(1).DecideAsync(Views.For(s, Power.Alashiya), default);
+        Assert.Equal(fortifies, sub.Orders.Contains(new FortifyOrder("tamassos")));
+    }
+
     [Fact]
     public async Task A_script_captor_lets_go_at_once_an_envoy_whose_king_has_fallen()
     {
