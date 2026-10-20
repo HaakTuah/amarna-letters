@@ -88,7 +88,7 @@ public static class Schemas
             ("power", Str("unit_enters: whose troops, or empty for any foreign power's. Otherwise empty.")),
             ("units", Array(UnitOrder(described: false), "As in schedule: your units named by where they stand now.")),
             ("other_orders", Array(OtherOrder(described: false), "As in other_orders."))),
-            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the move it waits for, its orders run in that same season, once, before your scheduled orders, so they meet the move; orders you give that season replace them. Firing does not wake you; an order of it that fails does.");
+            $"New standing orders, kept until they fire or you cancel them (at most {TurnEngine.MaxStanding} in all, each with at most {TurnEngine.MaxScheduledPerSeason} orders). When you see the move it waits for, its orders run in that same season, once, before your scheduled orders, so they meet the move; orders you give that season replace them. Firing does not wake you; an order of it that fails does. Giving one costs nothing; its orders cost what they cost when they run.");
         props["cancel_standing"] = Array(Str(), "Ids of your standing orders to cancel (like s3), or \"all\".");
         required.Add("schedule");
         required.Add("standing_orders");
@@ -151,7 +151,7 @@ public static class Schemas
         if (ordersStand)
         {
             fields.Add(("letters", Array(Letter(c?.SharedVictory ?? false),
-                "Envoys of yours to send from this audience, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give. A new letter for a person you already sent this season replaces it. Empty for none.")));
+                "Envoys of yours to send from this audience, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give, and each costs what a letter in your orders costs. A new letter for a person you already sent this season replaces it. Empty for none.")));
             fields.Add(("reopen_orders", Bool("True if the news changes your plan: after your audiences you give orders this season with your full view, as when anything else wakes you. False: your orders stand and you sleep on. Once true, it holds for the season.")));
         }
         fields.Add(("ledger", Ledger()));

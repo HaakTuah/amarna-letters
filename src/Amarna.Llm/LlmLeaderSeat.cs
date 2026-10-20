@@ -29,7 +29,7 @@ public sealed class LlmLeaderSeat(Power power, IJsonAsker client, string model, 
         user.AppendLine(Prompts.Situation(view));
         user.AppendLine(_journal.ForOrders());
         user.AppendLine(view.Sleeps
-            ? "Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, and anything else. You sleep after them."
+            ? "Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You sleep after them."
             : "Now give your orders for this season: your troops, your envoys and letters, and anything else.");
         var json = await client.AskJsonAsync(new CallSpec
         {

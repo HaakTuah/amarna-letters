@@ -305,7 +305,21 @@ public class CourtAsleepTests
     {
         var rules = Prompts.LeaderRules(true, new GameConfig()).ReplaceLineEndings("\n");
         Assert.Contains("When you are woken to receive an envoy, reopen your orders if the news changes your plan; otherwise they stand.", rules);
-        Assert.Contains("- An envoy at your door wakes you for the audience only. You read your realm in brief (your land and troops, foreign troops at or inside your borders, your treasury, your scheduled and standing orders, your people), answer the envoy as at any audience, and may send envoys of yours with letters, tablets and gifts: they set out at the end of the season with everyone's orders and are checked like orders you give, before them. Then you choose: reopen your orders, and after your audiences you give orders this season with your full view, as when anything else wakes you; or let them stand and sleep on. Anything else that wakes you reopens your orders without asking (your audiences still come first).", rules);
+        Assert.Contains("- An envoy at your door wakes you for the audience only. You read your realm in brief (your land and troops, foreign troops at or inside your borders, your treasury, your scheduled and standing orders, your people), answer the envoy as at any audience, and may send envoys of yours with letters, tablets and gifts: they set out at the end of the season with everyone's orders and are checked like orders you give, before them. "
+                        + "A letter sent there costs what it costs in your orders (the gold it carries, the scribe's fee of 20 for a tablet, one of the 3 envoys who may leave your court in a season, and the envoy's time away) and sets out this season; if you send none and let your orders stand, your next letters leave only when you next give orders, which may be many seasons away. "
+                        + "Your answer to the envoy before you goes home only as his report of your words; a letter goes with your own envoy, in your words, with a mandate, gold, a tablet to seal or tablets shown as evidence. "
+                        + "Then you choose: reopen your orders, and after your audiences you give orders this season with your full view, as when anything else wakes you; or let them stand and sleep on. Anything else that wakes you reopens your orders without asking (your audiences still come first).", rules);
+
+        // What a standing order costs and what it can win, beside a scheduled order and waking.
+        Assert.Contains("This is what a standing order can do that waking cannot: woken, you would answer the blow only the season after it fell. "
+                        + "Unlike a scheduled order, which runs in its season whatever happens, a standing order runs only if the move it waits for comes, and then in that very season: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), or support the walls of a walled city of yours holding (unit_enters on the city), as the blow falls. "
+                        + "Giving one costs nothing; its orders cost what they cost when they run (a levy its gold), and in the season it fires its units do its orders instead of their scheduled ones. It fires once, on the first move it waits for that you see, whether a real attack or a feint, and is then gone.", rules);
+        Assert.EndsWith("Giving one costs nothing; its orders cost what they cost when they run.", Schemas.LeaderOrders(new GameConfig())["properties"]!["standing_orders"]!["description"]!.GetValue<string>());
+
+        // The audience held while the king's orders stand says the same of a letter sent from it.
+        var audience = Prompts.Audience(new AudienceView { Round = 1, MaxRounds = 2, From = Power.Egypt, Envoy = new CharacterView { Id = "c1", Name = "Mane" }, OrdersStand = true });
+        Assert.Contains("A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season); if you let your orders stand and send none, your next letters leave only when you next give orders.", audience);
+        Assert.Contains("each costs what a letter in your orders costs", Schemas.HostReply(new GameConfig(), ordersStand: true)["properties"]!["letters"]!["description"]!.GetValue<string>());
     }
 
     [Fact]

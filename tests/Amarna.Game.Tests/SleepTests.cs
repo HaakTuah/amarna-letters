@@ -659,7 +659,7 @@ public class SleepTests
         Assert.StartsWith(since + " You were woken because: an envoy of Egypt waits to be received; you chose at your audience to reopen your orders.\n",
             orders.User.ReplaceLineEndings("\n"));
         // An orders request ends by saying the king sleeps after its orders.
-        Assert.EndsWith("Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, and anything else. You sleep after them.", orders.User.TrimEnd());
+        Assert.EndsWith("Now give your orders for this season and the seasons ahead: your troops, your envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You sleep after them.", orders.User.TrimEnd());
     }
 
     [Fact]

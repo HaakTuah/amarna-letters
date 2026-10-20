@@ -971,6 +971,19 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     waits in its digest; it does not wake it (as with orders given for a season the seat was awake).
     The envoy before the king never hears of the letters or the choice (`HostReply.AsHeard`).
     Letters and the choice in a reply at an ordinary audience are ignored.
+    **What a letter from an audience costs and can win** (the fix pass after item 4, part 2: in the
+    second agent simulation no king sent one, in 96 audience replies, 4 of them held while orders
+    stood; explained, never primed). The rulebook's paragraph on an envoy at the door goes on: "A
+    letter sent there costs what it costs in your orders (the gold it carries, the scribe's fee of 20
+    for a tablet, one of the 3 envoys who may leave your court in a season, and the envoy's time
+    away) and sets out this season; if you send none and let your orders stand, your next letters
+    leave only when you next give orders, which may be many seasons away. Your answer to the envoy
+    before you goes home only as his report of your words; a letter goes with your own envoy, in
+    your words, with a mandate, gold, a tablet to seal or tablets shown as evidence." The audience
+    request says it shortly ("A letter sent now costs what it would in your orders (its gold, the
+    scribe's fee for a tablet, one of the envoys who may leave your court this season); if you let
+    your orders stand and send none, your next letters leave only when you next give orders."), and
+    the schema's `letters` adds "each costs what a letter in your orders costs".
   - **Reopening.** If any of its replies that season (any exchange of any audience) says
     `reopen_orders`, then once the audiences are applied (`TurnEngine.CourtsHeld`) the seat wakes
     for an orders call that season, as an ordinary wake: its sleep ends with the envoys plus "you
@@ -1058,7 +1071,8 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
   at your door wakes you for the audience only. You read your realm in brief (...), answer the envoy
   as at any audience, and may send envoys of yours with letters, tablets and gifts: they set out at
   the end of the season with everyone's orders and are checked like orders you give, before them.
-  Then you choose: reopen your orders, and after your audiences you give orders this season with
+  A letter sent there costs what it costs in your orders (...) and sets out this season; ... Then
+  you choose: reopen your orders, and after your audiences you give orders this season with
   your full view, as when anything else wakes you; or let them stand and sleep on. Anything else
   that wakes you reopens your orders without asking (your audiences still come first)."); which foreign troops wake the
   king ("Foreign troops wake you when they move into your land, and when they end a move in a
@@ -1223,6 +1237,23 @@ sections in the rulebook, no sleep fields in the schema, no opening sleep line.
     on standing orders: "This is what a standing order can do that waking cannot: woken, you would
     answer the blow only the season after it fell." The seat's view no longer says "(it fires this
     season: ...)", since no seat knows in advance whether a standing order will fire.
+  - **What it costs and what it can win** (the fix pass after item 4, part 2, by the tenet "Every
+    feature is every seat's": models must be able to use every feature well, and the second agent
+    simulation found no king giving a standing order, explained, never primed). The paragraph goes
+    on: "Unlike a scheduled order, which runs in its season whatever happens, a standing order runs
+    only if the move it waits for comes, and then in that very season: a unit of yours next to the
+    province attacked can support your unit there holding (unit_attacked), or support the walls of a
+    walled city of yours holding (unit_enters on the city), as the blow falls. Giving one costs
+    nothing; its orders cost what they cost when they run (a levy its gold), and in the season it
+    fires its units do its orders instead of their scheduled ones. It fires once, on the first move it
+    waits for that you see, whether a real attack or a feint, and is then gone." Two debriefs had
+    asked what a standing order does that a scheduled one cannot, and Babylonia (seed 7) found no
+    way to guard a bought walled city, which `unit_enters` does. The schema's description adds
+    "Giving one costs nothing; its orders cost what they cost when they run.", and the orders
+    request ends "Now give your orders for this season and the seasons ahead: your troops, your
+    envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You
+    sleep after them." Script kings give no standing orders yet: that gap is for the audit at the
+    start of item 5.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
   again next season, told why it was woken in the season it missed (it never read that) and what
