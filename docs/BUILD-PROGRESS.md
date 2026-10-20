@@ -12,6 +12,7 @@ item's report.
 | Item | Review question | Reading taken | State |
 |---|---|---|---|
 | 4 | Are model characters too honest? Is the message-kind fallback for reopening needed? | Yes, on thin evidence (to be answered by stakes, not dispositions: item 11); no | Accepted by Haakon, 20 October |
+| 4+ | Fix pass: standing orders now answer a move in the season it is made (reading of "fire a season late"); a threat to the homeland includes moves inside the mover's own land; no refusal and no failure of a king's own making wakes him (a route through other kings' troops remains); a failed attack on any of his land or troops wakes him; foreign levies beside his land wake nobody; a king's letters are in his view while their envoys are away; scribes rewrite copy marks and person ids, and a tablet is named by its seals and date (names can still differ between courts); narrator-written personas keep their text, with current trait words added; the isolation test's authority sits in every agent's definition and a paraphrased guard message fails it; the skim share is rounded to the shekel; "weighed light" means not a whole ten shekels; standing orders for every seat (built, with script kings using them) | Readings as listed; each with its alternative in `docs/rounds/2026-10-20-fix-pass.md` ("Review questions for the whole pass" and "Review questions" under the review findings) | Open |
 
 ## Builder rules added on 20 October (from the live document and Haakon's message)
 
@@ -20,7 +21,12 @@ item's report.
 - "Every feature is every seat's": every item tests the script kings and characters on its new rules, reports usage and
   success per new feature, and patches every weakness found, with benchmarks before and after; once, at the start of
   the next item begun (the fix pass), every feature built so far is audited the same way.
-- Stop rules are never overridden: if a check that says stop fails, stop and ask.
+- Safety checks are never overridden (refined by Haakon on 20 October): if a check that guards against something unsafe
+  or irreversible fails (agent isolation before any agent starts, anything touching `main`, keys or spending), stop that
+  step and ask, and go on with other work meanwhile. An ordinary failing test is not a reason to stop: fix it, or mark
+  the item blocked with the reason and go on to the next item that does not depend on it.
+- "Requests are rules too": no field in a request may imply something untrue; ask only what applies, show no internal
+  ids a model could repeat, keep the engine's outcomes apart from a character's words.
 - A PR at every milestone: after each merge into `develop`, check the previous PR; if it was merged, merge `main` back
   into `develop` first, then push and open a new PR.
 - Usage: this session may go up to 95% of the weekly limit, then stops at a clean commit.
@@ -31,7 +37,7 @@ item's report.
 | 2 | The visual overhaul | done (19 Oct), merged into `develop`; PR #8 merged into `main` | `item/visual-overhaul` | `docs/rounds/2026-10-19-visual-overhaul.md` |
 | 3 | Small record items | done (19 Oct), merged into `develop`; PR #9 merged into `main` | `item/small-record-items` | `docs/rounds/2026-10-19-small-record-items.md` |
 | 4 | Second agent simulation, with model characters (stop for review) | done (19 Oct), merged into `develop`; PR #10 merged into `main`; review accepted (20 Oct) | `item/second-simulation` | `docs/rounds/2026-10-19-second-simulation.md` |
-| 4+ | Fix pass, item 4's follow-up (Haakon, 20 Oct), with the feature audit | in progress (20 Oct) | `item/fix-pass` | `docs/rounds/2026-10-20-fix-pass.md` |
+| 4+ | Fix pass, item 4's follow-up (Haakon, 20 Oct), with the feature audit | done (20 Oct), merged into `develop`; PR `develop` -> `main` open | `item/fix-pass` | `docs/rounds/2026-10-20-fix-pass.md` |
 | 5 | The siege package (stop for review) | not started | | |
 | 6 | Memory and call size | not started | | |
 | 7 | Travel on the map, and news travels | not started | | |
@@ -177,3 +183,21 @@ sleep). The report lists about twenty defects found, none fixed in this item. Fi
 intermittent test noted: `LocalPlayTests.A_game_with_local_agent_kings_sleeps_by_default_and_replays_exactly`.
 
 **PR #9** (item 3) was merged into `main` with a merge commit; `main` was merged back into `develop`.
+
+## Item 4+: the fix pass, item 4's follow-up (20 October)
+
+Specification: Haakon's message of 20 October, word for word in `docs/prompts/FIX-PASS.md` (parts 1-4 and his three
+additions), with the live document's builder rules read fresh. Built by two workflows: two lanes in parallel (sleep
+rules, request texts and the isolation test; the skim, the checks and the feature audit in their own worktree), an
+integrator, one reviewer (three blocking findings, fixed), then a follow-up for the three additions and standing orders
+for every seat, with its own reviewer (one blocking finding, fixed). Save version 5. 901 tests pass on `develop`; seeds
+replay exactly. The real simulation kit was remade (`sim/setup.js --seeds 7,15 --force`) and its dry isolation check
+holds. Report: `docs/rounds/2026-10-20-fix-pass.md`.
+
+**Decided along the way:** kings never choose when they wake; standing orders answer a move in the season it is made,
+and every seat keeps them (script kings give about 53 a game, 82 fired in seeds 1-100, 72 of them better than the
+season's orders); the feature audit, once, covered every feature built so far (inventories examined, skimmers dismissed,
+convoys, gifts of troops, cessions, recalls, second audience exchanges, envoys' commitments, among others); benchmarks
+before and after each change are in the report. Left for item 5's audit: wall guards and fleet retreats that never
+succeed, and Mitanni's numbers. Two intermittent tests noted (`LocalPlayTests` and `FileCharacterTests`, both
+passing on rerun).
