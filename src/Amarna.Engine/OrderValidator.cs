@@ -238,6 +238,7 @@ public sealed class OrderValidator
                 case CedeProvinceOrder cp:
                     if (!_map.Exists(cp.Province)) return $"there is no province called '{cp.Province}'";
                     if (_s.Owner.GetValueOrDefault(cp.Province) != power) return "you can only cede what you hold";
+                    if (cp.Province == _map.Capital(power).Id) return "you cannot cede your capital: your kingdom falls with it";
                     if (cp.To == power || !_s.IsAlive(cp.To)) return $"you cannot cede land to {cp.To}";
                     if (ceded.Contains(cp.Province)) return $"{_map[cp.Province].Name} was already ceded by an earlier order";
                     return null;

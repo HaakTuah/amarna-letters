@@ -367,8 +367,9 @@ public sealed partial class TurnEngine
             AfterValidation(p, sub, v);
         }
 
+        // A kingdom that falls with its capital this season gives no more orders after the moves: only the living's run.
         IEnumerable<(Power P, T O)> All<T>() where T : Order =>
-            Powers.All.Where(valid.ContainsKey).SelectMany(p => valid[p].Accepted.OfType<T>().Select(o => (p, o)));
+            Powers.All.Where(p => valid.ContainsKey(p) && S.IsAlive(p)).SelectMany(p => valid[p].Accepted.OfType<T>().Select(o => (p, o)));
 
         ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder).ToList());
         // A scheduled move that failed is tried again next season, or ends its unit's march.
@@ -376,6 +377,8 @@ public sealed partial class TurnEngine
         // Sieges are lifted, begun and pressed, and cities worn down surrender; then land changes hands where troops stand.
         Sieges(valid);
         UpdateOwnership();
+        // A kingdom falls with its capital: its land passes to whoever took it, and its orders for the rest of the season lapse.
+        CapitalsTaken();
         ResolveTransfers(All<CedeProvinceOrder>().ToList(), All<GiftUnitOrder>().ToList());
         ResolvePurchases(All<BuyProvinceOrder>().ToList());
         foreach (var (p, d) in All<DisbandOrder>())
@@ -398,7 +401,6 @@ public sealed partial class TurnEngine
         CoversAtCourt();
 
         WorldEvents();
-        CheckEliminations();
         EndOfTurn();
         return valid;
     }
@@ -661,37 +663,74 @@ public sealed partial class TurnEngine
         LevyRaised(p, u);
     }
 
-    private void CheckEliminations()
+    /// <summary>
+    /// A kingdom falls with its capital (the design document's "A kingdom falls with its capital", built with the siege
+    /// package; until then a kingdom fell only when it held no land): a king whose capital another power holds after the
+    /// moves has fallen, and his kingdom with him. His remaining land passes to the power that took the capital, every
+    /// troop of his disbands (none has a commander yet to choose otherwise), his sieges are lifted, and his debts die with
+    /// him (<see cref="Fall"/>). The kingdoms that fall in one season are found first, so one fall revives nobody; if a
+    /// capital's taker falls in the same season, the land passing to it is left free.
+    /// </summary>
+    private void CapitalsTaken()
     {
-        foreach (var p in S.Alive.ToList())
+        var fallen = S.Alive.Where(p => S.Owner.GetValueOrDefault(Map.Capital(p).Id) != p).ToList();
+        foreach (var p in fallen)
         {
-            if (S.OwnedBy(p).Any()) continue;
-            S.Eliminated.Add(p);
-            EndSleep(p);
-            S.Units.RemoveAll(u => u.Power == p);
-            // What a fallen kingdom believed, and what it owed, go with it: back pay owed by it is lost.
-            foreach (var c in S.Characters)
-            {
-                c.Covers.RemoveAll(k => k.For == p);
-                c.BackPay.Remove(p);
-            }
-            // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
-            foreach (var c in S.Characters.Where(c => c.HeldBy == p).ToList())
-            {
-                if (c.Status == CharacterStatus.Captured) ReleaseCaptive(p, c);
-                else if (c.Duty == Duty.Detained) LetEnvoyGo(p, c, null);
-            }
-            foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
-            {
-                c.FormerEmployer = p;
-                c.Employer = null;
-                c.Contract = null;
-                if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
-            }
-            S.Log("fall", $"The kingdom of {p.Land()} has fallen.", signal: null);
-            foreach (var other in S.Alive) S.Notify(other, InboxKind.Rumor, "A kingdom falls", $"Word spreads that the kingdom of {p.Land()} is no more.");
+            var conqueror = S.Owner.GetValueOrDefault(Map.Capital(p).Id);
+            Fall(p, conqueror is { } c && S.IsAlive(c) && !fallen.Contains(c) ? c : null);
         }
     }
+
+    /// <summary>A kingdom's fall: what passes with it, and what goes with it.</summary>
+    private void Fall(Power p, Power? conqueror)
+    {
+        var capital = Map.Capital(p);
+        var land = S.OwnedBy(p).ToList();
+        foreach (var id in land)
+        {
+            S.Owner[id] = conqueror;
+            // A siege the conqueror pressed against land that is now his is over.
+            if (conqueror is { } c) S.Sieges.RemoveAll(x => x.Province == id && x.Power == c);
+        }
+        S.Falls.Add(new KingdomFall { Power = p, Turn = S.Turn, Conqueror = conqueror, Capital = capital.Id, Land = land });
+        S.Eliminated.Add(p);
+        EndSleep(p);
+        foreach (var u in S.Units.Where(u => u.Power == p).ToList()) LiftSiegesOf(u.Id);
+        S.Units.RemoveAll(u => u.Power == p);
+        // What a fallen kingdom believed, and what it owed, go with it: back pay owed by it is lost.
+        foreach (var c in S.Characters)
+        {
+            c.Covers.RemoveAll(k => k.For == p);
+            c.BackPay.Remove(p);
+        }
+        // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
+        foreach (var c in S.Characters.Where(c => c.HeldBy == p).ToList())
+        {
+            if (c.Status == CharacterStatus.Captured) ReleaseCaptive(p, c);
+            else if (c.Duty == Duty.Detained) LetEnvoyGo(p, c, null);
+        }
+        foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
+        {
+            c.FormerEmployer = p;
+            c.Employer = null;
+            c.Contract = null;
+            if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
+        }
+        var who = conqueror is { } taker ? $"{taker} took its capital, {capital.Name}" : $"its capital, {capital.Name}, was taken";
+        S.Log("fall", $"The kingdom of {p.Land()} has fallen: {who}{(conqueror is { } t ? $", and its land passes to {t}" : "")}.", signal: null);
+        foreach (var other in S.Alive.Where(x => x != conqueror))
+            S.Notify(other, InboxKind.Rumor, "A kingdom falls", $"Word spreads that the kingdom of {p.Land()} is no more: {who}.");
+        if (conqueror is { } winner)
+        {
+            var rest = land.Where(x => x != capital.Id).Select(x => Map[x].Name).ToList();
+            S.Notify(winner, InboxKind.Battle, KingdomFallsTitle,
+                $"With {capital.Name} you took the kingdom of {p.Land()}: its king has fallen, his troops have disbanded, and "
+                + (rest.Count == 0 ? "he held no other land." : $"his land is yours: {string.Join(", ", rest)}."));
+        }
+    }
+
+    /// <summary>The notice to the power that took a king's capital, and with it his kingdom.</summary>
+    public const string KingdomFallsTitle = "A kingdom falls to you";
 
     // ---------------------------------------------------------------- scoring and the end
 

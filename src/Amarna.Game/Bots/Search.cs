@@ -330,6 +330,9 @@ internal static class Search
         var score = 0.0;
         var held = b.V.Owner.Where(x => x.Value == me).Select(x => x.Key).Concat(at.Where(x => x.Value.Power == me).Select(x => x.Key))
             .Where(x => !Board.Map[x].IsSea && Owner(x) == me).Distinct().ToList();
+        // A kingdom falls with its capital: a season that loses ours loses everything.
+        var fallen = Owner(Board.Map.Capital(me).Id) != me;
+        if (fallen) held.Clear();
         foreach (var p in held) score += b.Value(p);
 
         // Sieges: a city worn down is nearer to falling. Ours count for what they bring nearer; a siege of one of our cities
@@ -344,7 +347,7 @@ internal static class Search
             else if (b.OwnerOf(p) == me) score -= 0.45 * share * b.Value(p);
         }
 
-        var mineAfter = at.Where(x => x.Value.Power == me).ToList();
+        var mineAfter = fallen ? [] : at.Where(x => x.Value.Power == me).ToList();
         score += UnitWorth * mineAfter.Count;
 
         // Harm done to the kings we fight.

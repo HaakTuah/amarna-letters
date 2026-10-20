@@ -171,8 +171,12 @@ public class ArchiveTests
         Assert.DoesNotContain(Power.Babylonia, HoldersOf(s, "t900"));
         Assert.DoesNotContain(s.InboxOf(Power.Babylonia), i => i.Title == TurnEngine.ArchiveTakenTitle);
 
-        // Assyria cedes its capital to Egypt: the archive lies in the city, and Egypt gains copies of it.
-        Begin(s).Resolve(Orders(Power.Assyria, new CedeProvinceOrder(capital, Power.Egypt)));
+        // Ashur is Babylonia's (given to it, for the test), and Assyria falls with it as the season resolves; Babylonia cedes
+        // the city to Egypt that season: the archive lies in the city, and Egypt gains copies of it. (A king cannot cede his
+        // own capital since the siege package.)
+        s.Owner[capital] = Power.Babylonia;
+        Begin(s).Resolve(Orders(Power.Babylonia, new CedeProvinceOrder(capital, Power.Egypt)));
+        Assert.Contains(Power.Assyria, s.Eliminated);
         Assert.Equal(Power.Egypt, s.Owner[capital]);
         Assert.Single(s.Copies, k => k.Holder == Power.Egypt && k.TabletId == "t900");
         Assert.Single(s.InboxOf(Power.Egypt), i => i.Title == TurnEngine.ArchiveTakenTitle);
@@ -180,25 +184,14 @@ public class ArchiveTests
     }
 
     [Fact]
-    public void A_court_taking_back_its_own_capital_gains_nothing_and_an_empty_archive_is_said_to_be_empty()
+    public void An_empty_archive_is_said_to_be_empty()
     {
+        // (Until the siege package this test also had Assyria retake its capital and gain nothing from its own archive; a
+        // kingdom now falls with its capital, so there is no king left to retake it.)
         var (s, capital, from) = BabyloniaNextToAshur();
         Begin(s).Resolve(Orders(Power.Babylonia, new MoveOrder(from, capital)));
         Assert.Equal("With " + WorldMap.Default[capital].Name + " you took the archive of Assyria; it held no tablet you did not hold already.",
             s.InboxOf(Power.Babylonia).Single(i => i.Title == TurnEngine.ArchiveTakenTitle).Body);
-
-        // Assyria retakes its capital: its own archive is nothing new to it.
-        var back = WorldMap.Default.MovesFrom(UnitKind.Army, capital).First(x => x != from && !WorldMap.Default[x].IsSea);
-        s.Units.RemoveAll(u => u.Province == back);
-        s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = back });
-        var copies = s.Copies.Count;
-        Begin(s).Resolve(new Dictionary<Power, TurnSubmission>
-        {
-            [Power.Assyria] = new() { Orders = [new MoveOrder(back, capital)] },
-            [Power.Babylonia] = new() { Orders = [new MoveOrder(capital, from)] },
-        });
-        Assert.Equal(Power.Assyria, s.Owner[capital]);
-        Assert.Equal(copies, s.Copies.Count);
-        Assert.DoesNotContain(s.InboxOf(Power.Assyria), i => i.Title == TurnEngine.ArchiveTakenTitle);
+        Assert.Contains(Power.Assyria, s.Eliminated);
     }
 }

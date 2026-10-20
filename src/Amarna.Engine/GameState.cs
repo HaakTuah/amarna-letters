@@ -49,6 +49,8 @@ public sealed class GameState
     public Dictionary<Power, Treasury> Treasuries { get; set; } = new();
     public Dictionary<Power, int> StartStrength { get; set; } = new();
     public List<Power> Eliminated { get; set; } = new();
+    /// <summary>Each kingdom's fall: when, to whom, and the land that passed (Build order item 5: a kingdom falls with its capital).</summary>
+    public List<KingdomFall> Falls { get; set; } = new();
 
     public List<Character> Characters { get; set; } = new();
     public List<Journey> Journeys { get; set; } = new();
@@ -175,6 +177,18 @@ public sealed class Unit
     public string Province { get; set; } = "";
 
     public string Label => $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}";
+}
+
+/// <summary>The fall of a kingdom with its capital: the season, the power that took the capital, and the land that passed to it.</summary>
+public sealed class KingdomFall
+{
+    public Power Power { get; set; }
+    public int Turn { get; set; }
+    /// <summary>The power that took the capital; null if it fell in the same season, when the land was left free.</summary>
+    public Power? Conqueror { get; set; }
+    public string Capital { get; set; } = "";
+    /// <summary>The land it still held when its capital was taken, which passed with the capital (the capital not among it).</summary>
+    public List<string> Land { get; set; } = new();
 }
 
 /// <summary>

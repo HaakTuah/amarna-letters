@@ -124,8 +124,8 @@ public class SeasonRulebookTests
         string[] steps =
         [
             "1. Departures", "2. Income, upkeep and wages", "3. Arrivals", "4. Your court", "5. Audiences", "6. Orders", "7. Movement and battles",
-            "8. Sieges", "9. Land changes hands", "10. Cessions and gifts of troops", "11. Purchases", "12. Disbanding", "13. Levies", "14. Envoys set out",
-            "15. Intelligence", "16. Catastrophes", "17. A kingdom with no land left falls", "18. Strength and growth are reckoned",
+            "8. Sieges", "9. Land changes hands", "10. A kingdom falls with its capital", "11. Cessions and gifts of troops", "12. Purchases", "13. Disbanding",
+            "14. Levies", "15. Envoys set out", "16. Intelligence", "17. Catastrophes", "18. Strength and growth are reckoned",
         ];
         var at = steps.Select(x => section.IndexOf("\n" + x, StringComparison.Ordinal)).ToList();
         Assert.DoesNotContain(-1, at);
@@ -148,6 +148,7 @@ public class SeasonRulebookTests
     [InlineData("You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them")]
     [InlineData("When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls.")]
     [InlineData("Each siege costs the besieger 15 a season on top of the army's upkeep.")]
+    [InlineData("A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him, your troops disband, and what you owe dies with you. You cannot cede your capital.")]
     public void The_rulebook_states_each_rule(string rule) => Assert.Contains(rule, Rules);
 
     [Fact]

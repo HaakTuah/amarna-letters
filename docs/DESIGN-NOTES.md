@@ -189,6 +189,23 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   The web app's standings panel shows the same table to every seat, human or not. Script kings
   read the same facts from `MapData`, as before.
 - **Ending.** Not before turn 15; then 15% at the end of each season; hard cap at 60 turns.
+- **A kingdom falls with its capital** (the design document's rule, built with the siege package, Build order item 5;
+  until then a kingdom fell only when it held no land, so a king who lost his capital fought on from his last
+  provinces). After the moves, sieges and the change of hands, a king whose capital another power now holds has
+  fallen (`TurnEngine.CapitalsTaken`, step 10 of HOW A SEASON RESOLVES): his remaining land passes to the power that
+  took the capital, every troop of his disbands (no army has a commander yet to choose for itself, so all of them do),
+  his sieges are lifted, a siege the conqueror pressed against land that is now his is over, and his debts die with him
+  (back pay owed by him is lost, as before; debt tablets do not exist yet). His prisoners are let go, his servants are
+  free, and none of his orders after the moves is carried out (levies, purchases, envoys, intelligence). The kingdoms
+  that fall in one season are found first, so one fall revives nobody; land passing to a capital's taker that itself
+  falls that season is left free (a reading: the case needs two capitals taken by each other in one season). The
+  conqueror reads "A kingdom falls to you" ("With Apasa you took the kingdom of Arzawa: its king has fallen, his troops
+  have disbanded, and his land is yours: Seha River Land."), every other living court the rumour "Word spreads that the
+  kingdom of Arzawa is no more: Hatti took its capital, Apasa." (who holds the capital is public). The game records each
+  fall (`GameState.Falls`: the season, the conqueror, the capital and the land that passed). A king cannot cede his own
+  capital ("you cannot cede your capital: your kingdom falls with it"); a capital that is no longer its king's (his
+  kingdom has fallen) can be ceded like any city, and its archive goes with it. The rulebook says so under HOW YOU WIN
+  ("A kingdom falls with its capital. If another king takes your capital, ... your game is over").
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
@@ -1732,7 +1749,7 @@ where they pay.
 ### Terms used below
 
 - **H**, the seasons the game is still expected to run: 15 − turn + 6.7 before turn 15, then 6.7 (that is, 1 ÷ 0.15).
-- **Value** of a land province: 10 × yield + yield × H, plus 80 for any capital, plus 30 for a province of the king's own homeland. Sea zones are worth 0. At turn 1, a province of yield 20 is worth 613.
+- **Value** of a land province: 10 × yield + yield × H, plus 80 for any capital, plus 30 for a province of the king's own homeland. Sea zones are worth 0. At turn 1, a province of yield 20 is worth 613. Since the siege package a kingdom falls with its capital, so a living king's capital, while he holds it, is worth half the value of the rest of his land more to a rival (it passes with the capital), and the king's own capital the whole value of the rest of his land more to him (he loses it all with it). In the look-ahead, a pictured season that loses our capital loses every province and troop we hold.
 - **Strength**: 10 × the yield of the land held, plus gold, less back pay owed, by the game's own function (`Scoring.Strength`, shared with the engine). A king's own strength is the one its view shows (its gold by its ledger, less the back pay it believes it owes). A rival's gold is an estimate, never below 0, and his back pay counts as 0, since no court can see what another owes. **Growth** is strength over starting strength (10 × homeland yield + starting gold), and a fallen king's growth is 0. This is the game's own score.
 - **Leader**: from turn 4, the king with the highest growth. He must have growth of at least 1.15, stand at least 0.1 above the next king, and have at least 0.8 × the median strength of the living kings. Otherwise nobody leads. A king may find that he leads himself.
 - **Neighbours**: kings whose land borders our land or troops, or shares a sea zone with one of our coasts. Kings whose troops (seen or remembered) are within two moves of our land or troops also count.

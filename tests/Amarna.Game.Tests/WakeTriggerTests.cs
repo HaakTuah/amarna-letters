@@ -128,30 +128,20 @@ public class WakeTriggerTests
     }
 
     [Fact]
-    public void Once_the_capital_is_lost_troops_next_to_it_wake_the_seat_only_for_the_homeland_it_still_holds()
+    public void Troops_next_to_home_provinces_it_has_lost_wake_the_seat_only_for_the_homeland_it_still_holds()
     {
-        // Babylon is Hatti's: troops coming to Dur-Kurigalzu, next to it, are no threat to a capital the seat no longer
-        // holds, only to Nippur and Sippar, which it does (since the fix pass after item 4).
+        // Nippur and Sippar are Hatti's: troops coming to Dur-Kurigalzu, next to them, threaten only Babylon, which the seat
+        // still holds. (Until the siege package this test took Babylon from it; a kingdom now falls with its capital.)
         var (s, sleep) = Sleeping(s =>
         {
-            s.Units.RemoveAll(u => u.Province == "babylon");
-            s.Owner["babylon"] = Power.Hatti;
-        });
-        Season(s, Assyria(new MoveOrder("ekallatum", "durkurigalzu")));
-        Assert.Equal([$"{TurnEngine.HomelandReason}: Assyria's army moved ekallatum -> durkurigalzu, next to nippur, sippar"], sleep.WokenBecause);
-
-        // With nothing of its homeland next to Dur-Kurigalzu left, the same move wakes nobody.
-        (s, sleep) = Sleeping(s =>
-        {
-            foreach (var x in new[] { "babylon", "nippur", "sippar" })
+            foreach (var x in new[] { "nippur", "sippar" })
             {
                 s.Units.RemoveAll(u => u.Province == x);
                 s.Owner[x] = Power.Hatti;
             }
         });
         Season(s, Assyria(new MoveOrder("ekallatum", "durkurigalzu")));
-        Assert.True(sleep.Asleep);
-        Assert.Empty(sleep.WokenBecause);
+        Assert.Equal([$"{TurnEngine.CapitalReason}: Assyria's army moved ekallatum -> durkurigalzu"], sleep.WokenBecause);
     }
 
     // ------------------------------------------------------------ a threat to a home province or a walled city (the fix pass after item 4)

@@ -56,8 +56,21 @@ internal sealed class Board
     public int StormNeeds(string p, int defenders) => Walls(p) ? WallLevel(p) + defenders + 1 : 0;
     public Province P(string id) => Map[id];
 
-    /// <summary>What holding a province is worth over the rest of the game: its score plus the income it brings.</summary>
+    /// <summary>
+    /// What holding a province is worth over the rest of the game: its score plus the income it brings. A kingdom falls with
+    /// its capital (the siege package): a living king's capital is worth, to us, half of the rest of his land too, since it
+    /// passes with the capital; our own is worth all the rest of ours, which we lose with it.
+    /// </summary>
     public double Value(string id)
+    {
+        var v = BaseValue(id);
+        var p = Map[id];
+        if (p.Capital && p.Home is { } king && Alive.Contains(king) && OwnerOf(id) == king)
+            v += (king == Me ? 1.0 : 0.5) * V.Owner.Where(x => x.Value == king && x.Key != id).Sum(x => BaseValue(x.Key));
+        return v;
+    }
+
+    private double BaseValue(string id)
     {
         var p = Map[id];
         if (p.IsSea) return 0;
