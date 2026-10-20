@@ -46,6 +46,7 @@ public class SiegeTextTests
     [InlineData("A province without walls changes hands when a unit ends a season in it; a walled one only as WALLS AND SIEGES says.")]
     [InlineData("You see the walls standing now only where you can see troops; elsewhere LANDS in your view gives them as your court last saw them (at the start, as THE MAP gives them), since walls can be raised, or thrown down by an earthquake or unpaid upkeep, out of your sight.")]
     [InlineData("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is not shown.")]
+    [InlineData("A province of your own homeland that you take back or are ceded is yours in full at once, and so is land bought, or ceded to you, unless its giver was still absorbing it: then it goes on being absorbed under you as it would have been under him.")]
     public void The_rulebook_states_walls_by_place_and_slow_absorption(string rule) => Assert.Contains(rule, Prompts.LeaderRules(true, new GameConfig()));
 
     [Fact]

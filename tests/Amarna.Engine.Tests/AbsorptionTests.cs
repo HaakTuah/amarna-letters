@@ -51,7 +51,7 @@ public class AbsorptionTests
     }
 
     [Fact]
-    public void A_king_s_own_homeland_retaken_counts_in_full_and_land_ceded_too()
+    public void A_king_s_own_homeland_retaken_counts_in_full()
     {
         var s = Board();
         Season(s, new() { [Power.Mitanni] = new() { Orders = [new MoveOrder("isuwa", "sapinuwa")] } });
@@ -64,12 +64,31 @@ public class AbsorptionTests
         Assert.Equal(Power.Hatti, s.Owner["sapinuwa"]);
         Assert.False(s.Conquered.ContainsKey("sapinuwa"));
         Assert.Equal(1.0, new TurnEngine(s).Absorbed("sapinuwa"));
+    }
 
-        // Land ceded is the receiver's in full at once, even land the giver had conquered.
-        s.Conquered["tuwanuwa"] = s.Turn;
+    [Fact]
+    public void Land_ceded_is_the_receiver_s_in_full_unless_the_giver_was_still_absorbing_it()
+    {
+        var s = Board();
+        // Mitanni takes Sapinuwa, then cedes it to Assyria the next season: Assyria goes on absorbing it from the season it
+        // was taken, so a conquest cannot be laundered through a friend.
+        Season(s, new() { [Power.Mitanni] = new() { Orders = [new MoveOrder("isuwa", "sapinuwa")] } });
+        Season(s, new() { [Power.Mitanni] = new() { Orders = [new MoveOrder("sapinuwa", "isuwa"), new CedeProvinceOrder("sapinuwa", Power.Assyria)] } });
+        Assert.Equal(Power.Assyria, s.Owner["sapinuwa"]);
+        Assert.Equal(1, s.Conquered["sapinuwa"]);
+        Assert.Equal(2 / 3.0, new TurnEngine(s).Absorbed("sapinuwa"));
+        Assert.Equal(1, Views.For(s, Power.Assyria).Conquered["sapinuwa"]);
+
+        // Ceded to the king whose homeland it is, it is his in full at once, as if he had retaken it.
+        Season(s, new() { [Power.Assyria] = new() { Orders = [new CedeProvinceOrder("sapinuwa", Power.Hatti)] } });
+        Assert.Equal(Power.Hatti, s.Owner["sapinuwa"]);
+        Assert.False(s.Conquered.ContainsKey("sapinuwa"));
+
+        // Land that was never taken by force is the receiver's in full at once.
         Season(s, new() { [Power.Hatti] = new() { Orders = [new CedeProvinceOrder("tuwanuwa", Power.Arzawa)] } });
         Assert.Equal(Power.Arzawa, s.Owner["tuwanuwa"]);
         Assert.False(s.Conquered.ContainsKey("tuwanuwa"));
+        Assert.Equal(1.0, new TurnEngine(s).Absorbed("tuwanuwa"));
     }
 
     [Fact]

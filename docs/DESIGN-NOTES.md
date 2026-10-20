@@ -273,7 +273,10 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   (`TurnEngine.Absorbed`, `GameState.Conquered`: the season it was taken). The first season is the season it was taken,
   for the score reckoned at its end, and the next, for the income paid at its start; the mark goes once it counts in
   full. A province of the taker's own homeland that he takes back counts in full at once (map data, not a check of which
-  power it is), and so does land bought or ceded (a cession clears the mark, even on land the giver had conquered).
+  power it is), and so does land bought or ceded, except land ceded while its giver was still absorbing it: the mark
+  stays, and the receiver goes on absorbing it from the season it was taken, unless it is his own homeland, which is his
+  in full at once as if he had retaken it (`TurnEngine.ResolveTransfers`; since the review of the siege package, which
+  found that a cession clearing the mark let two friends launder a conquest by passing it back and forth).
   Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
   following the yield (a reading; review question). Revolts, which the Ideas tab mentions, are left for later, as
   question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of

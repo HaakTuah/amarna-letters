@@ -691,8 +691,11 @@ public sealed partial class TurnEngine
                 continue;
             }
             S.Owner[c.Province] = c.To;
-            // Land given is the receiver's in full at once.
-            S.Conquered.Remove(c.Province);
+            // Land still being absorbed goes on being absorbed under the receiver as it would have been under the giver, so
+            // that a friend cannot launder a conquest by passing it back and forth; land of the receiver's own homeland is
+            // his in full at once, as if he had retaken it (since the review of the siege package; until then a cession
+            // cleared the mark).
+            if (Map[c.Province].Home == c.To) S.Conquered.Remove(c.Province);
             _cededNow[c.Province] = c.To;
             S.Notify(p, InboxKind.Resolution, "Land ceded", $"{Map[c.Province].Name} now belongs to {c.To}.");
             S.Notify(c.To, InboxKind.Resolution, "Land received", $"{p} has ceded {Map[c.Province].Name} to you.");
