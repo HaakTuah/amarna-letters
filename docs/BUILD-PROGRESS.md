@@ -13,6 +13,7 @@ item's report.
 |---|---|---|---|
 | 4 | Are model characters too honest? Is the message-kind fallback for reopening needed? | Yes, on thin evidence (to be answered by stakes, not dispositions: item 11); no | Accepted by Haakon, 20 October |
 | 4+ | Fix pass: standing orders now answer a move in the season it is made (reading of "fire a season late"); a threat to the homeland includes moves inside the mover's own land; no refusal and no failure of a king's own making wakes him (a route through other kings' troops remains); a failed attack on any of his land or troops wakes him; foreign levies beside his land wake nobody; a king's letters are in his view while their envoys are away; scribes rewrite copy marks and person ids, and a tablet is named by its seals and date (names can still differ between courts); narrator-written personas keep their text, with current trait words added; the isolation test's authority sits in every agent's definition and a paraphrased guard message fails it; the skim share is rounded to the shekel; "weighed light" means not a whole ten shekels; standing orders for every seat (built, with script kings using them) | Readings as listed; each with its alternative in `docs/rounds/2026-10-20-fix-pass.md` ("Review questions for the whole pass" and "Review questions" under the review findings) | Accepted by Haakon, 20 October (Haakon merges the fix-pass PR himself) |
+| 5 | How long wars and games now run; does defence now dominate? Also: capitals fall in about half the games (53-58 of 100) — "most games"?; wars of attrition but 2-season capital sieges; the game ends as wars ripen (lengthen games in item 18?); allies cannot reach a friend's besieged city (passage, item 9?); only sworn partners relieve a besieged friend; walls against fleets vs a blockade rule for islands; the frozen baseline and the siege package; Mitanni falls most | Median 9-10 seasons from first entry to a capital's fall, never fewer than 3; capitals fall in about half the games; defence does not dominate outright but nearly does within today's game length (standing orders fire under once a game); game length and the ending rule left to item 18; details in `docs/rounds/2026-10-20-sieges.md` ("How long wars and games now run", "Does defence now dominate?", "Review questions") | Accepted by Haakon, 20 October: "most games" is judged in item 18 after game length is set; allies relieve a besieged city through item 9's passage grants, with no rule of their own; islands are protected by a blockade, built in item 7, replacing what item 5 built for them |
 
 ## Builder rules added on 20 October (from the live document and Haakon's message)
 
@@ -42,7 +43,7 @@ item's report.
 | 3 | Small record items | done (19 Oct), merged into `develop`; PR #9 merged into `main` | `item/small-record-items` | `docs/rounds/2026-10-19-small-record-items.md` |
 | 4 | Second agent simulation, with model characters (stop for review) | done (19 Oct), merged into `develop`; PR #10 merged into `main`; review accepted (20 Oct) | `item/second-simulation` | `docs/rounds/2026-10-19-second-simulation.md` |
 | 4+ | Fix pass, item 4's follow-up (Haakon, 20 Oct), with the feature audit | done (20 Oct), merged into `develop`; PR `develop` -> `main` open | `item/fix-pass` | `docs/rounds/2026-10-20-fix-pass.md` |
-| 5 | The siege package (stop for review) | not started | | |
+| 5 | The siege package (stop for review) | done (20 Oct), merged into `develop`; PR `develop` -> `main` open | `item/sieges` | `docs/rounds/2026-10-20-sieges.md` |
 | 6 | Memory and call size | not started | | |
 | 7 | Travel on the map, and news travels | not started | | |
 | 8 | Structured press | not started | | |
@@ -205,3 +206,36 @@ convoys, gifts of troops, cessions, recalls, second audience exchanges, envoys' 
 before and after each change are in the report. Left for item 5's audit: wall guards and fleet retreats that never
 succeed, and Mitanni's numbers. Two intermittent tests noted (`LocalPlayTests` and `FileCharacterTests`, both
 passing on rerun).
+
+## Item 5: the siege package (20 October)
+
+Specification read fresh from the live document at the start of the item (main rev 256, Ideas rev 120), with question 5
+of the old round report. Built by one workflow in three stages (walls, sieges, capitals and the fallen player; terrain;
+the script players and the pace of war), one reviewer (three blocking findings: two seat-view leaks, of absorption
+marks and of wall levels, and a rulebook sentence no longer true; all fixed), and a fix step. Save version 6. 1,008 tests
+pass on `develop`; seeds replay exactly. Report: `docs/rounds/2026-10-20-sieges.md`.
+
+**Decided along the way** (details in the report): walls by place (capitals 3, ten fortresses 2, six walled towns 1);
+storming, besieging, sallies, fortifying with upkeep, earthquakes lowering walls; envoys caught leaving a besieged capital;
+a kingdom falls with its capital and its land passes down the chain of takers; slow absorption of yield and score; the
+capital wake trigger retired for siege triggers; a fallen player's god view (a table setting); terrain helps a unit
+standing its ground; deserts cost an army outside its own land; a court sees walls only where it sees troops. Script
+kings use every new feature (sieges won 1,128 of 1,201 begun per 100 games, storms, sallies, relief, fortifying, coastal
+walls, besiegers' standing orders). Haakon's question on whether defence now dominates is answered in the report.
+Benchmarks: weak-power wins fell, bribes and skims fell; reported, not tuned.
+
+**Usage:** this session went from 63% to about 93% of the weekly limit over the fix pass and item 5; stopped here, as
+Haakon set (wrap up near 95%). Next: item 6 (memory and call size), reading it fresh from the live document.
+
+## Haakon's answers to item 5's review, and what comes first in item 6 (20 October)
+
+From the live design document (Haakon, 20 October):
+- **"Most games"** (capitals falling in about half the games) is judged in item 18, after game length is set.
+- **Relief of a besieged ally** comes through item 9's passage grants, with no rule of its own.
+- **Islands** are protected by a blockade, built in item 7, replacing what item 5 built for them (the script island
+  king walling its coast).
+- **New since item 5, built first in item 6:** the random ending is revised (any season may be the last from the first
+  season, a median end of 1332 BCE, a cap of 90 seasons), and the first year moves from 1345 to 1346 BCE.
+
+**Stopped on Haakon's word (20 October):** do not start item 6 or any other work until Haakon says to continue. When he
+does, read item 6 and the builder rules fresh from the live document.

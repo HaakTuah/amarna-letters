@@ -10,6 +10,8 @@ public sealed class GameSettings
     public bool Chronicles { get; set; } = true;
     public bool CustomsPrimer { get; set; } = true;
     public bool SharedVictory { get; set; }
+    /// <summary>On by default: a player whose kingdom has fallen watches the rest in god view (<see cref="GameConfig.FallenSeeAll"/>).</summary>
+    public bool FallenSeeAll { get; set; } = true;
     /// <summary>On by default: a model king sleeps after its orders until something concerns it (script and human kings play every season).</summary>
     public bool SleepingSeats { get; set; } = true;
     /// <summary>The hidden safety cap on one sleep, in seasons; the kings are never told it.</summary>
@@ -31,6 +33,7 @@ public sealed class GameSettings
         Chronicles = Chronicles,
         CustomsPrimer = CustomsPrimer,
         SharedVictory = SharedVictory,
+        FallenSeeAll = FallenSeeAll,
         SleepingSeats = SleepingSeats,
         MaxSleep = MaxSleep,
         BudgetUsd = BudgetUsd,
@@ -42,6 +45,7 @@ public sealed class GameSettings
     {
         CustomsPrimer = CustomsPrimer,
         SharedVictory = SharedVictory,
+        FallenSeeAll = FallenSeeAll,
         SleepingSeats = SleepingSeats,
         MaxSleep = Math.Clamp(MaxSleep, 1, 30),
         MaxDispatchesPerTurn = MessagesPerTurn,

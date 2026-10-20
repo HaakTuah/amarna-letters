@@ -28,13 +28,56 @@ public sealed class GameSummary
     public List<string> Richest { get; init; } = new();
     /// <summary>The richest character's wealth at the end.</summary>
     public int TopWealth { get; init; }
+    /// <summary>
+    /// The kingdoms that fell with their capitals (Build order item 5), each with the season it fell, and the seasons since the
+    /// conqueror's troops, and anyone's, first got into its land: the pace of war.
+    /// </summary>
+    public List<FallMeasure> Falls { get; init; } = new();
     /// <summary>What every character gained in the game, by source, the dead included.</summary>
     public Earnings Gained { get; init; } = new();
 }
 
+/// <summary>
+/// A kingdom's fall as the pace of war measures it: the season, the conqueror, and the seasons from the conqueror's first
+/// entry into its land, and from anyone's, to the fall (counting both seasons: an entry in the season it fell is 1).
+/// </summary>
+public sealed record FallMeasure(Power Power, int Turn, Power? Conqueror, int? FromConquerorEntry, int? FromFirstEntry);
+
 /// <summary>Plays many games unattended and summarizes winners and signals across them.</summary>
 public static class BatchRunner
 {
+    /// <summary>The falls of a game, measured (see <see cref="FallMeasure"/>).</summary>
+    public static List<FallMeasure> Falls(GameState s) => s.Falls.Select(f =>
+    {
+        var by = s.Invaded.GetValueOrDefault(f.Power);
+        int? Since(int? entry) => entry is int t ? f.Turn - t + 1 : null;
+        return new FallMeasure(f.Power, f.Turn, f.Conqueror,
+            Since(f.Conqueror is { } c && by?.TryGetValue(c, out var mine) == true ? mine : null),
+            Since(by is { Count: > 0 } ? by.Values.Min() : null));
+    }).ToList();
+
+    /// <summary>
+    /// The pace of war over many games (Build order item 5's measure): how many games saw a capital fall, the season of the
+    /// first fall, and the seasons from a conqueror's first entry into the land it took to the fall (median and range).
+    /// </summary>
+    public static IEnumerable<string> WarReport(IReadOnlyList<GameSummary> games)
+    {
+        var falls = games.SelectMany(g => g.Falls).ToList();
+        yield return $"Wars: a capital fell in {games.Count(g => g.Falls.Count > 0)} of {games.Count} games ({falls.Count} kingdoms fell in all; at most {games.Select(g => g.Falls.Count).DefaultIfEmpty(0).Max()} in one game).";
+        if (falls.Count == 0) yield break;
+        var first = games.Where(g => g.Falls.Count > 0).Select(g => g.Falls.Min(f => f.Turn)).ToList();
+        yield return $"  The first fall of a game came in season {Median(first)} on the median (range {first.Min()}-{first.Max()}).";
+        static string Spread(List<int> xs) => xs.Count == 0 ? "none" : $"median {Median(xs)}, range {xs.Min()}-{xs.Max()}, {100.0 * xs.Count(x => x >= 5 && x <= 10) / xs.Count:0}% within 5-10";
+        yield return $"  Seasons from the conqueror's first entry into the fallen king's land to the fall: {Spread(falls.Where(f => f.FromConquerorEntry is not null).Select(f => f.FromConquerorEntry!.Value).ToList())}.";
+        yield return $"  From anyone's first entry into it: {Spread(falls.Where(f => f.FromFirstEntry is not null).Select(f => f.FromFirstEntry!.Value).ToList())}.";
+        yield return $"  Kingdoms fallen: {string.Join(", ", Powers.All.Select(p => $"{p} {falls.Count(f => f.Power == p)}"))}.";
+    }
+
+    private static double Median(List<int> xs)
+    {
+        var s = xs.Order().ToList();
+        return s.Count % 2 == 1 ? s[s.Count / 2] : (s[s.Count / 2 - 1] + s[s.Count / 2]) / 2.0;
+    }
     public static async Task<GameSummary> PlayAsync(ulong seed, Func<GameState, GameRunner> build, bool verifyReplay, CancellationToken ct = default, Action<string>? log = null, GameConfig? config = null)
     {
         var runner = build(GameFactory.NewGame(seed, config));
@@ -70,6 +113,7 @@ public static class BatchRunner
             StandingKept = s.Standing.Values.Sum(b => b.Last),
             StandingFired = Powers.All.Sum(p => s.InboxOf(p).Count(i => i.Kind == InboxKind.Resolution && i.Title.StartsWith("Standing order ", StringComparison.Ordinal) && i.Title.EndsWith(" fired", StringComparison.Ordinal))),
             Seed = seed,
+            Falls = Falls(s),
             Turns = s.Scores.Count == 0 ? 0 : s.Scores.Max(x => x.Turn),
             Winners = s.Winners.ToList(),
             Growth = Powers.All.ToDictionary(p => p, p => Math.Round(engine.Growth(p), 3)),
@@ -388,6 +432,8 @@ public static class BatchRunner
         }
         lines.Add("");
         lines.Add($"Standing orders, every seat's: {games.Sum(g => g.StandingKept)} kept in {games.Count(g => g.StandingKept > 0)} games; {games.Sum(g => g.StandingFired)} fired in {games.Count(g => g.StandingFired > 0)} games.");
+        lines.Add("");
+        lines.AddRange(WarReport(games));
         lines.Add("");
         lines.AddRange(RichestReport(games));
         var cost = games.Sum(g => g.CostUsd);

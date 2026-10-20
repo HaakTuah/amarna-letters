@@ -29,7 +29,7 @@ public class SaveVersionTests
     [Fact]
     public async Task New_games_are_saved_under_the_current_version()
     {
-        Assert.Equal(5, GameState.CurrentVersion);
+        Assert.Equal(6, GameState.CurrentVersion);
         Assert.Equal(GameState.CurrentVersion, GameFactory.NewGame(1).Version);
         var log = await PlayedLog(4, 1);
         Assert.Equal(GameState.CurrentVersion, log.Header.Version);
@@ -39,12 +39,14 @@ public class SaveVersionTests
     /// <summary>
     /// Version 3 is the one before item 4's fix (d), when every kind of object took its id from one shared counter; version
     /// 4 the one before the fix pass after item 4, when kings could name a season to be woken in and script envoys kept
-    /// nothing from small lots of gold.
+    /// nothing from small lots of gold; version 5 the one before the siege package (Build order item 5), when free cities'
+    /// walls held with strength 1 and nothing else had walls.
     /// </summary>
     [Theory]
     [InlineData(1)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public async Task A_log_saved_under_an_earlier_version_is_neither_replayed_nor_continued(int version)
     {
         var log = await PlayedLog(4, 2);

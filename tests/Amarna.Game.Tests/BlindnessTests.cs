@@ -126,6 +126,8 @@ public class BlindnessTests
             foreach (var l in s.Losses.Where(l => l.Kind == LossKind.Captured))
             {
                 var name = s.Char(l.CharacterId).Name;
+                // An envoy caught at a besieged city (the siege package) is a captive too, on the record as such.
+                if (s.Events.Any(e => e.Turn == l.Turn && e.Signal == "envoy-caught" && e.Text.Contains(name))) continue;
                 // What the captor's court has on record (in the web app, its Events and Season panels).
                 var line = Assert.Single(s.Events, e => e.Turn == l.Turn && e.Kind == "spy-caught" && e.VisibleTo.Contains(l.Court) && e.Text.Contains(name)).Text;
                 if (l.Master is { } master) Assert.Equal($"{l.Court} caught {name}, a spy of {master}.", line);

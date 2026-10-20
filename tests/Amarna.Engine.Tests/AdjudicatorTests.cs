@@ -7,7 +7,8 @@ public class AdjudicatorTests
     private sealed class Board
     {
         public List<Unit> Units { get; } = new();
-        public List<string> Garrisons { get; } = new();
+        public Dictionary<string, int> Walls { get; } = new();
+        public Dictionary<string, Power?> Owners { get; } = new();
         public Dictionary<string, Order> Orders { get; } = new();
 
         public Board A(Power p, string at) { Units.Add(new Unit { Id = "u" + Units.Count, Power = p, Kind = UnitKind.Army, Province = at }); return this; }
@@ -16,7 +17,7 @@ public class AdjudicatorTests
         public Board Support(string at, string supported, string? to = null) { Orders[at] = new SupportOrder(at, supported, to); return this; }
         public Board Convoy(string at, string army, string to) { Orders[at] = new ConvoyOrder(at, army, to); return this; }
 
-        public AdjudicationResult Run() => new Adjudicator(WorldMap.Default).Run(Units, Garrisons, Orders);
+        public AdjudicationResult Run() => new Adjudicator(WorldMap.Default).Run(Units, Orders, Owners, Walls);
 
         public string? Where(AdjudicationResult r, string startProvince)
         {
@@ -178,20 +179,52 @@ public class AdjudicatorTests
     }
 
     [Fact]
-    public void Neutral_walls_hold_against_one_army_and_fall_to_two()
+    public void Walls_add_nothing_to_the_battle_and_are_stormed_only_by_more_than_walls_and_defenders()
     {
+        // A lone army gets within empty walls of level 1 but does not storm them: 1 against 1 + 0.
         var single = new Board().A(Power.Hatti, "kanesh").Move("kanesh", "carchemish");
-        single.Garrisons.Add("carchemish");
+        single.Walls["carchemish"] = 1;
         var r1 = single.Run();
-        Assert.Equal("kanesh", single.Where(r1, "kanesh"));
-        Assert.Empty(r1.FallenGarrisons);
+        Assert.Equal("carchemish", single.Where(r1, "kanesh"));
+        var a1 = Assert.Single(r1.Assaults);
+        Assert.Equal((1, 1, 0, false), (a1.Strength, a1.Walls, a1.Defenders, a1.Stormed));
+        Assert.Empty(r1.Stormed);
 
+        // A supported one storms them: 2 against 1 + 0.
         var supported = new Board().A(Power.Hatti, "kanesh").A(Power.Hatti, "kizzuwatna")
             .Move("kanesh", "carchemish").Support("kizzuwatna", "kanesh", "carchemish");
-        supported.Garrisons.Add("carchemish");
+        supported.Walls["carchemish"] = 1;
         var r2 = supported.Run();
         Assert.Equal("carchemish", supported.Where(r2, "kanesh"));
-        Assert.Contains("carchemish", r2.FallenGarrisons);
+        Assert.Equal(["carchemish"], r2.Stormed);
+
+        // Walls 2 held by an army: 2 dislodges the army but storms nothing (2 against 2 + 1).
+        var held = new Board().A(Power.Hatti, "kanesh").A(Power.Hatti, "kizzuwatna").A(Power.Mitanni, "carchemish")
+            .Move("kanesh", "carchemish").Support("kizzuwatna", "kanesh", "carchemish");
+        held.Walls["carchemish"] = 2;
+        held.Owners["carchemish"] = Power.Mitanni;
+        var r3 = held.Run();
+        Assert.Equal("carchemish", held.Where(r3, "kanesh"));
+        Assert.Null(held.Where(r3, "carchemish"));
+        Assert.Equal((2, 2, 1, false), (r3.Assaults[0].Strength, r3.Assaults[0].Walls, r3.Assaults[0].Defenders, r3.Assaults[0].Stormed));
+
+        // A move into one's own walled province is no assault.
+        var own = new Board().A(Power.Mitanni, "harran").Move("harran", "carchemish");
+        own.Walls["carchemish"] = 2;
+        own.Owners["carchemish"] = Power.Mitanni;
+        var r4 = own.Run();
+        Assert.Equal("carchemish", own.Where(r4, "harran"));
+        Assert.Empty(r4.Assaults);
+    }
+
+    [Fact]
+    public void A_fleet_never_storms_walls()
+    {
+        var b = new Board().F(Power.Hatti, "cilicia").F(Power.Hatti, "kizzuwatna").Move("cilicia", "ugarit").Support("kizzuwatna", "cilicia", "ugarit");
+        b.Walls["ugarit"] = 1;
+        var r = b.Run();
+        Assert.Equal("ugarit", b.Where(r, "cilicia"));
+        Assert.False(Assert.Single(r.Assaults).Stormed);
     }
 
     [Fact]
@@ -210,7 +243,7 @@ public class AdjudicatorTests
     {
         var b = new Board().A(Power.Mitanni, "terqa").A(Power.Assyria, "ashur")
             .Move("terqa", "mari").Move("ashur", "terqa");
-        b.Garrisons.Remove("mari");
+        b.Walls.Remove("mari");
         var r = b.Run();
         Assert.Equal("mari", b.Where(r, "terqa"));
         Assert.Equal("terqa", b.Where(r, "ashur"));

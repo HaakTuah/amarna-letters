@@ -11,6 +11,13 @@ public sealed record GameConfig
     public int ProvinceWeight { get; init; } = 10;
     /// <summary>Off by default (since 18 October 2026): a house rule for experiments, never in a king's rulebook unless switched on.</summary>
     public bool SharedVictory { get; init; }
+    /// <summary>
+    /// A table setting, on by default (the design document's "A fallen player's game is over", built with the siege package):
+    /// a player whose kingdom has fallen watches the rest of the game in god view, seeing everything. Off, for a table worried
+    /// that a fallen player might pass hidden facts to a friend still playing, he watches with what his kingdom knew when it
+    /// fell. It changes no rule, and no king's rulebook names it.
+    /// </summary>
+    public bool FallenSeeAll { get; init; } = true;
 
     // Economy and military
     public int ArmyCost { get; init; } = 100;
@@ -20,6 +27,39 @@ public sealed record GameConfig
     /// <summary>A neutral city-state sells itself for yield x this.</summary>
     public int NeutralPriceFactor { get; init; } = 10;
     public double CatastropheChance { get; init; } = 0.035;
+
+    // Walls and sieges (Build order item 5; first guesses from question 5's plan, tuned in item 18)
+    /// <summary>What each siege costs its besieger a season, on top of the army's upkeep.</summary>
+    public int SiegeUpkeep { get; init; } = 15;
+    /// <summary>The highest walls go.</summary>
+    public int MaxWalls { get; init; } = 3;
+    /// <summary>Strengthening walls costs this times the new level (50, 100, 150).</summary>
+    public int FortifyCost { get; init; } = 50;
+    /// <summary>Each level of walls above the map's own for that province costs this a season; unpaid, the walls fall a level.</summary>
+    public int WallUpkeep { get; init; } = 5;
+    /// <summary>The walls a city needs for its defenders to sally against troops within them (+1 to one attack on them); 0 turns sallies off.</summary>
+    public int SallyMinWalls { get; init; } = 2;
+    /// <summary>
+    /// An envoy leaving or coming home to its king's besieged capital is caught with a chance in percent of this × the siege's
+    /// tightness (the besieger's units in and next to the city, 1 to 3) − its skill ÷ 4, between the next two; one whose
+    /// courage is below this × the tightness will not leave.
+    /// </summary>
+    public int SiegeCatchPerUnit { get; init; } = 20;
+    public int SiegeCatchMin { get; init; } = 5;
+    public int SiegeCatchMax { get; init; } = 75;
+
+    // Terrain (Build order item 5; first guesses from question 5's plan, steps 14 and 15, tuned in item 18)
+    /// <summary>
+    /// What the ground gives a unit that stands its ground against an attack (<see cref="Geography.DefenceGround"/>): on rough
+    /// ground, across a mountain pass or a great river, or against a landing from the sea; this much in all, however many
+    /// apply. 0 turns terrain off.
+    /// </summary>
+    public int TerrainDefence { get; init; } = 1;
+    /// <summary>
+    /// What an army pays for supplies, with its next upkeep, for a season it ends in desert land its king did not hold when
+    /// that season's moves were made; an army in its own land pays nothing.
+    /// </summary>
+    public int DesertUpkeep { get; init; } = 30;
 
     // Communication
     /// <summary>Envoy travel: up to [0] hops is 1 season, up to [1] hops 2 seasons, beyond that 3.</summary>

@@ -58,7 +58,7 @@ public static class MapData
             new("tamassos", "Tamassos", C, Power.Alashiya, 40, false, 290, 410),
             new("enkomi", "Enkomi", C, Power.Alashiya, 45, true, 365, 395),
 
-            // Neutral city-states: taken by force (walls hold with strength 1) or bought
+            // Neutral city-states: taken by force (each has walls: see StartWalls) or bought
             new("lukka", "Lukka", C, none, 25, false, 175, 270),
             new("isuwa", "Isuwa", L, none, 30, false, 570, 110),
             new("carchemish", "Carchemish", L, none, 35, false, 555, 225),
@@ -154,6 +154,25 @@ public static class MapData
 
         return new WorldMap(provinces, edges);
     }
+
+    /// <summary>
+    /// The walls each land province starts with, from 0 (none) to 3 (Build order item 5, the siege package; the levels of
+    /// question 5, plan step 1, in <c>docs/rounds/2026-10-18-sleep-and-simulation.md</c>): every capital 3; the fortresses
+    /// 2; the walled towns 1; every other land province none, and so it is left out. They differ from place to place, as
+    /// the design document's "Walls and terrain" asks (Hattusa's walls on their ridge, a Levantine village with none);
+    /// first guesses, tuned in item 18. The walls standing now are the game state's (<see cref="GameState.Walls"/>): they
+    /// fall a level when a city falls, rise when its king strengthens them, and an earthquake throws a level down.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, int> StartWalls = new Dictionary<string, int>
+    {
+        // Capitals
+        ["hattusa"] = 3, ["babylon"] = 3, ["ashur"] = 3, ["washukanni"] = 3, ["akhetaten"] = 3, ["apasa"] = 3, ["enkomi"] = 3,
+        // Fortresses
+        ["carchemish"] = 2, ["qadesh"] = 2, ["tyre"] = 2, ["megiddo"] = 2, ["gaza"] = 2, ["mari"] = 2, ["susa"] = 2,
+        ["memphis"] = 2, ["kanesh"] = 2, ["nineveh"] = 2,
+        // Walled towns
+        ["lukka"] = 1, ["isuwa"] = 1, ["ugarit"] = 1, ["amurru"] = 1, ["byblos"] = 1, ["damascus"] = 1,
+    };
 
     public sealed record StartUnit(Power Power, UnitKind Kind, string Province);
 

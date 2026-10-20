@@ -33,6 +33,10 @@ public sealed partial class TurnEngine
         S.Audiences.Clear();
         S.CounterIntel.Clear();
         _missedPayNow.Clear();
+        // A siege whose army is gone since it was last pressed (disbanded, given away, lost to plague) is over: it costs nothing.
+        LiftLostSieges();
+        // Land absorbed in full is no longer marked.
+        foreach (var done in S.Conquered.Where(x => S.Turn - x.Value >= 3).Select(x => x.Key).ToList()) S.Conquered.Remove(done);
         // A servant whose notice has run out leaves before it is paid again.
         NoticesRunOut();
         IncomeAndUpkeep();
@@ -81,10 +85,27 @@ public sealed partial class TurnEngine
                 var victim = S.Units.Where(u => u.Power == p)
                     .OrderByDescending(u => Map.Hops(cap, u.Province)).ThenBy(u => u.Id).First();
                 S.Units.Remove(victim);
+                // A besieging army that deserts lifts its siege, and its cost with it.
+                LiftSiegesOf(victim.Id);
                 deserted.Add(victim.Label);
             }
             var paid = Math.Max(0, Math.Min(t.Gold, Upkeep(p)));
+            // The desert's share of it: the armies that ended last season in desert land not their king's, and still stand.
+            var desert = DesertCost(p);
+            var parched = DesertArmies(p).Select(u => u.Province).ToList();
             t.Gold -= paid;
+            // Walls above the map's own are kept up after the troops: what the treasury cannot keep falls a level.
+            var crumbled = new List<string>();
+            while (WallsUpkeep(p) > Math.Max(0, t.Gold))
+            {
+                var cap = Map.Capital(p).Id;
+                var weakest = S.OwnedBy(p).Where(x => S.WallsOf(x) > MapData.StartWalls.GetValueOrDefault(x))
+                    .OrderByDescending(x => Map.Hops(cap, x)).ThenBy(x => x, StringComparer.Ordinal).First();
+                LowerWalls(weakest);
+                crumbled.Add(Map[weakest].Name);
+            }
+            var walls = WallsUpkeep(p);
+            t.Gold -= walls;
 
             var wages = 0;
             var owed = 0;
@@ -121,14 +142,18 @@ public sealed partial class TurnEngine
             }
 
             // Written before the season's audiences and envoys' returns: their gold comes after this figure.
-            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}, wages {Money.Format(wages)} (paid to your people at court)."
+            var lines = new List<string> { $"Income {Money.Format(income)}, upkeep {Money.Format(paid)}{(walls > 0 ? $", walls {Money.Format(walls)}" : "")}, wages {Money.Format(wages)} (paid to your people at court)."
+                + (desert > 0 ? $" The upkeep includes {Money.Format(desert)} for supplies in the desert: your {(parched.Count == 1 ? "army" : "armies")} in {string.Join(", ", parched)} ended last season in desert land you did not hold." : "")
                 + (owed > 0 ? $" The wages of your people away, {Money.Format(owed)}, were added to their back pay, which is paid when they are back at your court." : "")
                 + $" After income, upkeep and wages, the treasury holds {Money.Format(t.Ledger)}; gold received at audiences or brought home by your envoys this season is added later." };
             if (deserted.Count > 0) lines.Add($"Unpaid troops deserted: {string.Join(", ", deserted)}.");
+            if (crumbled.Count > 0) lines.Add($"Unkept, walls fell a level: {string.Join(", ", crumbled.GroupBy(x => x).Select(g => g.Count() == 1 ? g.Key : $"{g.Key} ({g.Count()} levels)"))}.");
             if (unpaid.Count > 0) lines.Add($"Could not pay: {string.Join(", ", unpaid)}.");
             S.Notify(p, InboxKind.Notice, "The treasury", string.Join(" ", lines));
             if (deserted.Count > 0) S.Log("desertion", $"{p} could not pay its troops: {string.Join(", ", deserted)} deserted.", [p]);
         }
+        // The desert's cost is paid once, with this upkeep.
+        S.InDesert.Clear();
     }
 
     /// <summary>Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short.</summary>
@@ -186,8 +211,49 @@ public sealed partial class TurnEngine
     /// <summary>The notice that someone at court was paid the back pay owed, or could not be paid it all.</summary>
     public const string BackPayTitle = "Back pay";
 
+    /// <summary>
+    /// The upkeep of the walls a power holds above the map's own for each province (<see cref="GameConfig.WallUpkeep"/> a
+    /// level a season), paid after its troops' upkeep.
+    /// </summary>
+    public int WallsUpkeep(Power p) =>
+        S.OwnedBy(p).Sum(x => Math.Max(0, S.WallsOf(x) - MapData.StartWalls.GetValueOrDefault(x))) * S.Config.WallUpkeep;
+
+    /// <summary>
+    /// The upkeep of a power's troops, the cost of each siege it presses (<see cref="GameConfig.SiegeUpkeep"/>), and the
+    /// desert's cost for each of its armies that ended the last season in desert land it did not hold (<see cref="DesertCost"/>).
+    /// </summary>
     public int Upkeep(Power p) => S.Units.Where(u => u.Power == p)
-        .Sum(u => u.Kind == UnitKind.Army ? S.Config.ArmyUpkeep : S.Config.FleetUpkeep);
+        .Sum(u => u.Kind == UnitKind.Army ? S.Config.ArmyUpkeep : S.Config.FleetUpkeep)
+        + S.Sieges.Count(x => x.Power == p) * S.Config.SiegeUpkeep
+        + DesertCost(p);
+
+    /// <summary>
+    /// What a power pays for supplies in the desert with this season's upkeep (Build order item 5, terrain): <see
+    /// cref="GameConfig.DesertUpkeep"/> for each of its armies that ended the last season's moves in desert land it did not
+    /// hold when the moves were made (<see cref="GameState.InDesert"/>). Nothing once the upkeep is paid, as the list is cleared.
+    /// </summary>
+    public int DesertCost(Power p) => DesertArmies(p).Count() * S.Config.DesertUpkeep;
+
+    private IEnumerable<Unit> DesertArmies(Power p) => S.Units.Where(u => u.Power == p && S.InDesert.Contains(u.Id));
+
+    /// <summary>
+    /// After the moves (Build order item 5, terrain; question 5, plan step 15, built as "an army in its own land pays no desert
+    /// cost"): each army standing in desert land that its king did not hold when the moves were made pays for supplies with
+    /// the next upkeep. So an army that marches into the Sinai pays for that season, and none after once its king holds it;
+    /// one that stands within walls there without taking it pays every season it stays. Its king holding the desert is the
+    /// only exemption, whoever he is: no rule names a power.
+    /// </summary>
+    private void MarkDesert()
+    {
+        S.InDesert.Clear();
+        if (S.Config.DesertUpkeep <= 0) return;
+        foreach (var u in S.Units.Where(u => u.Kind == UnitKind.Army && Geography.TerrainOf(u.Province) == Terrain.Desert && S.Owner.GetValueOrDefault(u.Province) != u.Power)
+                     .OrderBy(u => IdNumber(u.Id)))
+        {
+            S.InDesert.Add(u.Id);
+            S.Log("desert", $"{u.Power}'s army ended the season in {Map[u.Province].Name}, desert land {u.Power} did not hold: it pays {Money.Format(S.Config.DesertUpkeep)} for supplies.", [u.Power], "desert");
+        }
+    }
 
     /// <summary>
     /// The wages a court owes its people each season, as it reckons them (a covered servant's as it believes it): paid to
@@ -204,11 +270,16 @@ public sealed partial class TurnEngine
     /// </summary>
     public int BelievedBackPay(Power p) => S.Characters.Sum(c => Views.BackPayOwed(c, p) ?? 0);
 
+    /// <summary>
+    /// What a province yields its holder this season: its base yield, cut by catastrophes, and nothing while it is besieged
+    /// (its holder keeps it and counts it in his strength, but its yield goes to nobody).
+    /// </summary>
     public int EffectiveYield(string province)
     {
         var p = Map[province];
+        if (S.SiegeOf(province) is not null) return 0;
         var owner = S.Owner.GetValueOrDefault(province);
-        var factor = 1.0;
+        var factor = Absorbed(province);
         foreach (var c in S.Catastrophes)
         {
             if (c.StartTurn > S.Turn || c.EndTurn < S.Turn) continue;
@@ -218,6 +289,28 @@ public sealed partial class TurnEngine
     }
 
     public int Income(Power p) => S.OwnedBy(p).Sum(EffectiveYield);
+
+    /// <summary>
+    /// How much of a province its holder has absorbed (slow absorption, Build order item 5): land taken by force yields, and
+    /// counts in his strength, a third of its yield in its first season under him (the season it was taken, for the score
+    /// reckoned then, and the next, for its income), two thirds in the second, all of it from the third. Land held from the
+    /// start, bought, ceded, or retaken of the holder's own homeland counts in full.
+    /// </summary>
+    public double Absorbed(string province) => Absorbed(S, province);
+
+    /// <inheritdoc cref="Absorbed(string)"/>
+    public static double Absorbed(GameState s, string province) =>
+        s.Conquered.TryGetValue(province, out var taken) ? (s.Turn - taken) switch { <= 1 => 1 / 3.0, 2 => 2 / 3.0, _ => 1.0 } : 1.0;
+
+    /// <summary>
+    /// A province changes hands by force (stormed, surrendered to a siege, taken by troops standing in it, or passing with a
+    /// fallen kingdom): its new holder absorbs it slowly, unless it is of his own homeland, which he retakes in full.
+    /// </summary>
+    private void TakenByForce(string province, Power? taker)
+    {
+        if (taker is { } t && Map[province].Home != t) S.Conquered[province] = S.Turn;
+        else S.Conquered.Remove(province);
+    }
 
     private void Quit(Character c, string notice)
     {
@@ -342,6 +435,8 @@ public sealed partial class TurnEngine
         _firedNow.Clear();
         _marchNow.Clear();
         _cededNow.Clear();
+        // Each living court remembers the walls as it saw them when it gave its orders (its view's), for when it no longer sees them.
+        foreach (var p in S.Alive) S.WallsSeen[p] = Views.WallsKnown(S, Map, p);
         // Each seat's season before its standing orders fire; then the standing orders, any seat's, that answer this season's moves.
         var seasons = S.Alive.ToDictionary(p => p, p => PlanSeason(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission()));
         var fires = StandingFires(seasons, validator);
@@ -356,15 +451,23 @@ public sealed partial class TurnEngine
             AfterValidation(p, sub, v);
         }
 
+        // A kingdom that falls with its capital this season gives no more orders after the moves: only the living's run.
         IEnumerable<(Power P, T O)> All<T>() where T : Order =>
-            Powers.All.Where(valid.ContainsKey).SelectMany(p => valid[p].Accepted.OfType<T>().Select(o => (p, o)));
+            Powers.All.Where(p => valid.ContainsKey(p) && S.IsAlive(p)).SelectMany(p => valid[p].Accepted.OfType<T>().Select(o => (p, o)));
 
-        ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder).ToList());
+        ResolveMovement(All<Order>().Where(x => x.O is HoldOrder or MoveOrder or SupportOrder or ConvoyOrder or BesiegeOrder or SallyOrder).ToList());
+        // Armies that ended the moves in desert land not their king's pay for supplies with the next upkeep.
+        MarkDesert();
         // A scheduled move that failed is tried again next season, or ends its unit's march.
         Marches(valid);
+        // Sieges are lifted, begun and pressed, and cities worn down surrender; then land changes hands where troops stand.
+        Sieges(valid);
         UpdateOwnership();
+        // A kingdom falls with its capital: its land passes to whoever took it, and its orders for the rest of the season lapse.
+        CapitalsTaken();
         ResolveTransfers(All<CedeProvinceOrder>().ToList(), All<GiftUnitOrder>().ToList());
         ResolvePurchases(All<BuyProvinceOrder>().ToList());
+        foreach (var (p, f) in All<FortifyOrder>()) Fortify(p, f);
         foreach (var (p, d) in All<DisbandOrder>())
         {
             var u = S.UnitAt(d.Unit);
@@ -385,7 +488,6 @@ public sealed partial class TurnEngine
         CoversAtCourt();
 
         WorldEvents();
-        CheckEliminations();
         EndOfTurn();
         return valid;
     }
@@ -395,14 +497,24 @@ public sealed partial class TurnEngine
         var byProvince = new Dictionary<string, Order>();
         foreach (var (_, o) in unitOrders)
         {
-            var at = o switch { HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit, _ => null };
+            var at = o switch { HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit, BesiegeOrder b => b.Unit, _ => null };
             if (at is not null) byProvince[at] = o;
         }
 
-        var result = new Adjudicator(Map, explain: true).Run(S.Units, S.Garrisons, byProvince, S.Owner);
+        var sallies = unitOrders.Select(x => x.O).OfType<SallyOrder>().ToList();
+        var adjudicator = new Adjudicator(Map, explain: true, terrain: S.Config.TerrainDefence);
+        var result = adjudicator.Run(S.Units, byProvince, S.Owner, S.Walls, sallies);
+        _battle = result;
+        _unitOrdersNow = byProvince;
         // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
         foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Target is not null))
             o.TargetOwner = S.Owner.GetValueOrDefault(o.Target!);
+        // The record of wars: the first season each king's troops got into another's land.
+        foreach (var o in result.Outcomes.Where(o => o.Order == "move" && o.Succeeded && o.TargetOwner is { } v && v != o.Power))
+        {
+            if (!S.Invaded.TryGetValue(o.TargetOwner!.Value, out var by)) S.Invaded[o.TargetOwner.Value] = by = new();
+            by.TryAdd(o.Power, S.Turn);
+        }
 
         // Which provinces could each power see before the moves? Battles there are reported to it.
         var sightBefore = Powers.All.ToDictionary(p => p, p => Views.Sight(S, Map, p));
@@ -431,11 +543,19 @@ public sealed partial class TurnEngine
         }
         foreach (var (id, prov) in result.NewPositions)
             S.Units.First(x => x.Id == id).Province = prov;
-        foreach (var g in result.FallenGarrisons)
+        // Walls stormed: the province is taken when land changes hands, and its walls fall a level then.
+        foreach (var a in result.Assaults.Where(a => a.Stormed))
+            S.Log("storm", $"{a.Power} stormed the walls of {Map[a.Province].Name}{(a.Owner is { } held ? $", held by {held}" : "")}.",
+                Powers.All.Where(p => sightBefore[p].Contains(a.Province)).Append(a.Power), "storm");
+        // The ground at work: a unit that held only because of it, and an attack that beat a unit it helped.
+        foreach (var g in result.GroundFights.Where(g => g.Won || g.Decided))
         {
-            S.Garrisons.Remove(g);
-            var taker = S.UnitAt(g)?.Power;
-            S.Log("conquest", $"The walls of {Map[g].Name} fell to {taker}.", Powers.All.Where(p => sightBefore[p].Contains(g)));
+            var kind = g.DefenderKind == UnitKind.Army ? "army" : "fleet";
+            S.Log("terrain", g.Won
+                    ? $"{g.Attacker}'s attack from {Map[g.From].Name} drove {g.Defender}'s {kind} from {Map[g.To].Name} in spite of {g.Ground.Text} (strength {g.Strength} against {g.Against})."
+                    : $"{g.Defender}'s {kind} in {Map[g.To].Name} held against {g.Attacker}'s attack from {Map[g.From].Name} by {g.Ground.Text} (strength {g.Strength} against {g.Against}).",
+                Powers.All.Where(p => sightBefore[p].Contains(g.To)).Append(g.Attacker).Append(g.Defender).Distinct(),
+                g.Won ? "terrain-beaten" : "terrain-held");
         }
 
         foreach (var p in S.Alive)
@@ -461,6 +581,8 @@ public sealed partial class TurnEngine
                         : "";
                     mine.Add($"{l.Text}: {why}{stays}");
                 }
+                else if (l.Assault is { } a)
+                    mine.Add($"{l.Text}: {AssaultText(a)}");
                 else
                 {
                     mine.Add(l.Void is { } v ? $"{l.Text}: {v}" : l.Text);
@@ -469,13 +591,23 @@ public sealed partial class TurnEngine
                     if (l.Cut is { } cut && byProvince.TryGetValue(l.Province, out var help)) ScheduledFailed(p, help, cut);
                 }
             }
+            // The walls of his cities that sallied: whether they found the attack they were to support.
+            foreach (var (q, w) in unitOrders.Where(x => x.P == p && x.O is SallyOrder).Select(x => (x.P, (SallyOrder)x.O)))
+            {
+                var matched = adjudicator.SallyMatched(w);
+                mine.Add($"The walls of {w.City} sally in support of the attack from {w.From}: {(matched ? "given" : $"void: no unit moved from {w.From} to {w.City}")}");
+                var won = result.Moves.Any(m => m.From == w.From && m.To == w.City && m.Succeeded);
+                S.Log("sally", $"The walls of {Map[w.City].Name} sallied in support of the attack from {Map[w.From].Name}{(won ? ", which drove out the troops within" : matched ? ", which failed" : ", but no attack came")}.", [p], won ? "sally-won" : "sally");
+            }
+            // An assault on a walled city of the king's own: his side of it, with the strengths, among his own lines (until the
+            // siege package it showed only under "Seen nearby", with no strengths: the fix pass after item 4, minor finding 5).
+            foreach (var a in result.Assaults.Where(a => a.Owner == p))
+                mine.Add(OwnWallsText(a));
             var seen = result.Lines.Where(l => l.Power != p && l.Power is not null && (sight.Contains(l.Province) || l.Target is { } t && sight.Contains(t)))
-                .Select(l => $"{l.Power}: {l.Text}").ToList();
-            var fallen = result.FallenGarrisons.Where(sight.Contains).Select(g => $"The walls of {Map[g].Name} fell.").ToList();
-            if (mine.Count + seen.Count + fallen.Count == 0) continue;
+                .Select(l => $"{l.Power}: {l.Text}{(l.Assault is { } a && a.Owner != p ? a.Stormed ? $" (it stormed the walls of {a.Province})" : $" (it stands within the walls of {a.Province} and does not take it)" : "")}").ToList();
+            if (mine.Count + seen.Count == 0) continue;
             var body = string.Join("\n", mine.Select(x => "- " + x));
             if (seen.Count > 0) body += "\nSeen nearby:\n" + string.Join("\n", seen.Select(x => "- " + x));
-            if (fallen.Count > 0) body += "\n" + string.Join("\n", fallen);
             S.Notify(p, InboxKind.Battle, "Movements last season", body.Trim());
         }
     }
@@ -491,6 +623,8 @@ public sealed partial class TurnEngine
         var kind = f.Kind == UnitKind.Army ? "army" : "fleet";
         var whose = f.Power == viewer ? $"your own {kind}" : $"{f.Power}'s {kind}";
         var strengths = $"; your strength {f.Strength} against {f.Against}";
+        // The ground that helped the unit that held it off, in the strength it had to beat.
+        var held = strengths + (f.Ground is { } g ? $", {f.GroundBonus} of it for {g.Text}" : "");
         return f.Stop switch
         {
             MoveStop.NoConvoy => "no convoy carried it across the sea",
@@ -498,24 +632,34 @@ public sealed partial class TurnEngine
                 ? $"your own {kind} in {f.Province} was moving the other way, and you cannot dislodge your own unit"
                 : $"your own {kind} in {f.Province} did not leave, and you cannot dislodge your own unit",
             MoveStop.HeadToHead => $"it met the unit from {f.Province}{(seen ? $" ({whose})" : "")} coming the other way{strengths}",
-            MoveStop.Held => $"the unit holding {f.Province}{(seen ? $" ({whose})" : "")} kept its place{strengths}",
-            MoveStop.Stayed => $"the unit in {f.Province}{(seen ? $" ({whose})" : "")} could not leave, so it kept its place{strengths}",
-            MoveStop.Walls => $"the walls of {f.Province} held{(f.Power is { } owner ? $" for {owner}" : "")}{strengths}",
+            MoveStop.Held => $"the unit holding {f.Province}{(seen ? $" ({whose})" : "")} kept its place{held}",
+            MoveStop.Stayed => $"the unit in {f.Province}{(seen ? $" ({whose})" : "")} could not leave, so it kept its place{held}",
             MoveStop.Bounced => $"it met a move into {to} from {f.Province}{(seen ? $" by {whose}" : "")}{strengths}",
             _ => "it was stopped",
         };
     }
 
+    /// <summary>
+    /// Land changes hands: a province passes to the power whose unit stands in it after movement, if it has no walls, or if
+    /// that unit stormed them this season (they then fall a level). A unit standing within walls it did not storm takes
+    /// nothing: a guest, or an army before a siege, which takes the city only when the siege wears it down (<see cref="Sieges"/>).
+    /// </summary>
     private void UpdateOwnership()
     {
+        var stormed = _battle?.Stormed.ToHashSet() ?? [];
         foreach (var u in S.Units)
         {
             var prov = Map[u.Province];
             if (prov.IsSea) continue;
             var before = S.Owner.GetValueOrDefault(u.Province);
             if (before == u.Power) continue;
+            if (S.WallsOf(u.Province) > 0)
+            {
+                if (!stormed.Contains(u.Province)) continue;
+                LowerWalls(u.Province);
+            }
             S.Owner[u.Province] = u.Power;
-            S.Garrisons.Remove(u.Province);
+            TakenByForce(u.Province, u.Power);
             if (before is { } loser)
             {
                 S.Notify(loser, InboxKind.Battle, "Land lost", $"{prov.Name} has been taken by {u.Power}.");
@@ -547,6 +691,11 @@ public sealed partial class TurnEngine
                 continue;
             }
             S.Owner[c.Province] = c.To;
+            // Land still being absorbed goes on being absorbed under the receiver as it would have been under the giver, so
+            // that a friend cannot launder a conquest by passing it back and forth; land of the receiver's own homeland is
+            // his in full at once, as if he had retaken it (since the review of the siege package; until then a cession
+            // cleared the mark).
+            if (Map[c.Province].Home == c.To) S.Conquered.Remove(c.Province);
             _cededNow[c.Province] = c.To;
             S.Notify(p, InboxKind.Resolution, "Land ceded", $"{Map[c.Province].Name} now belongs to {c.To}.");
             S.Notify(c.To, InboxKind.Resolution, "Land received", $"{p} has ceded {Map[c.Province].Name} to you.");
@@ -605,7 +754,7 @@ public sealed partial class TurnEngine
             var price = prov.Yield * S.Config.NeutralPriceFactor;
             if (!Pay(buyer, price, $"the city of {prov.Name}", bid, "it was not bought")) continue;
             S.Owner[prov.Id] = buyer;
-            S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule. Its walls now hold for you.");
+            S.Notify(buyer, InboxKind.Resolution, "City bought", $"{prov.Name} has accepted your gold ({Money.Format(price)}) and your rule. Its walls now stand for you.");
             S.Log("purchase", $"{buyer} bought {prov.Name} for {Money.Format(price)}.", Powers.All.Where(p => Views.Sight(S, Map, p).Contains(prov.Id)).Append(buyer));
         }
     }
@@ -635,37 +784,91 @@ public sealed partial class TurnEngine
         LevyRaised(p, u);
     }
 
-    private void CheckEliminations()
+    /// <summary>
+    /// A kingdom falls with its capital (the design document's "A kingdom falls with its capital", built with the siege
+    /// package; until then a kingdom fell only when it held no land): a king whose capital another power holds after the
+    /// moves has fallen, and his kingdom with him. His remaining land passes to the power that took the capital, every
+    /// troop of his disbands (none has a commander yet to choose otherwise), his sieges are lifted, and his debts die with
+    /// him (<see cref="Fall"/>). The kingdoms that fall in one season are found first, so one fall revives nobody. If a
+    /// capital's taker falls in the same season, the land passes on with his own to whoever took his capital, and so on
+    /// down the chain; a ring of kings who took each other's capitals leaves it free. Every heir is found before any land
+    /// passes, so the order the falls are reckoned in changes nothing (since the review of the siege package; until then a
+    /// taker who fell left the land free, or passed it on, as that order fell).
+    /// </summary>
+    private void CapitalsTaken()
     {
-        foreach (var p in S.Alive.ToList())
+        var fallen = S.Alive.Where(p => S.Owner.GetValueOrDefault(Map.Capital(p).Id) != p).ToList();
+        var takers = fallen.ToDictionary(p => p, p => S.Owner.GetValueOrDefault(Map.Capital(p).Id));
+        Power? Heir(Power p)
         {
-            if (S.OwnedBy(p).Any()) continue;
-            S.Eliminated.Add(p);
-            EndSleep(p);
-            S.Units.RemoveAll(u => u.Power == p);
-            // What a fallen kingdom believed, and what it owed, go with it: back pay owed by it is lost.
-            foreach (var c in S.Characters)
+            var passed = new HashSet<Power> { p };
+            var next = takers[p];
+            while (next is { } n && takers.ContainsKey(n))
             {
-                c.Covers.RemoveAll(k => k.For == p);
-                c.BackPay.Remove(p);
+                if (!passed.Add(n)) return null;
+                next = takers[n];
             }
-            // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
-            foreach (var c in S.Characters.Where(c => c.HeldBy == p).ToList())
-            {
-                if (c.Status == CharacterStatus.Captured) ReleaseCaptive(p, c);
-                else if (c.Duty == Duty.Detained) LetEnvoyGo(p, c, null);
-            }
-            foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
-            {
-                c.FormerEmployer = p;
-                c.Employer = null;
-                c.Contract = null;
-                if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
-            }
-            S.Log("fall", $"The kingdom of {p.Land()} has fallen.", signal: null);
-            foreach (var other in S.Alive) S.Notify(other, InboxKind.Rumor, "A kingdom falls", $"Word spreads that the kingdom of {p.Land()} is no more.");
+            return next is { } heir && S.IsAlive(heir) ? heir : null;
+        }
+        var heirs = fallen.ToDictionary(p => p, Heir);
+        foreach (var p in fallen) Fall(p, heirs[p], takers[p]);
+    }
+
+    /// <summary>
+    /// A kingdom's fall: what passes with it, and what goes with it. <paramref name="conqueror"/> is the power its land
+    /// passes to; <paramref name="taker"/> the one holding its capital after the moves, the same unless the taker fell too.
+    /// </summary>
+    private void Fall(Power p, Power? conqueror, Power? taker)
+    {
+        var capital = Map.Capital(p);
+        var land = S.OwnedBy(p).ToList();
+        foreach (var id in land)
+        {
+            S.Owner[id] = conqueror;
+            TakenByForce(id, conqueror);
+            // A siege the conqueror pressed against land that is now his is over.
+            if (conqueror is { } c) S.Sieges.RemoveAll(x => x.Province == id && x.Power == c);
+        }
+        S.Falls.Add(new KingdomFall { Power = p, Turn = S.Turn, Conqueror = conqueror, Capital = capital.Id, Land = land });
+        S.Eliminated.Add(p);
+        EndSleep(p);
+        foreach (var u in S.Units.Where(u => u.Power == p).ToList()) LiftSiegesOf(u.Id);
+        S.Units.RemoveAll(u => u.Power == p);
+        // What a fallen kingdom believed, and what it owed, go with it: back pay owed by it is lost.
+        foreach (var c in S.Characters)
+        {
+            c.Covers.RemoveAll(k => k.For == p);
+            c.BackPay.Remove(p);
+        }
+        // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
+        foreach (var c in S.Characters.Where(c => c.HeldBy == p).ToList())
+        {
+            if (c.Status == CharacterStatus.Captured) ReleaseCaptive(p, c);
+            else if (c.Duty == Duty.Detained) LetEnvoyGo(p, c, null);
+        }
+        foreach (var c in S.Characters.Where(c => c.Employer == p).ToList())
+        {
+            c.FormerEmployer = p;
+            c.Employer = null;
+            c.Contract = null;
+            if (c.Status == CharacterStatus.Employed) c.Status = CharacterStatus.Free;
+        }
+        var who = taker is { } took ? $"{took} took its capital, {capital.Name}" : $"its capital, {capital.Name}, was taken";
+        S.Log("fall", $"The kingdom of {p.Land()} has fallen: {who}{(conqueror is { } t ? $", and its land passes to {t}" : "")}.", signal: null);
+        foreach (var other in S.Alive.Where(x => x != conqueror))
+            S.Notify(other, InboxKind.Rumor, "A kingdom falls", $"Word spreads that the kingdom of {p.Land()} is no more: {who}.");
+        if (conqueror is { } winner)
+        {
+            var rest = land.Where(x => x != capital.Id).Select(x => Map[x].Name).ToList();
+            var yours = rest.Count == 0 ? "he held no other land." : $"his land is yours: {string.Join(", ", rest)}.";
+            S.Notify(winner, InboxKind.Battle, KingdomFallsTitle, taker == winner
+                ? $"With {capital.Name} you took the kingdom of {p.Land()}: its king has fallen, his troops have disbanded, and {yours}"
+                : $"{taker} took {capital.Name}, the capital of {p.Land()}, but fell himself in the same season, and the kingdom of {p.Land()} passes to you with his: its king has fallen, his troops have disbanded, and {yours}");
         }
     }
+
+    /// <summary>The notice to the power that took a king's capital, and with it his kingdom.</summary>
+    public const string KingdomFallsTitle = "A kingdom falls to you";
 
     // ---------------------------------------------------------------- scoring and the end
 
@@ -679,8 +882,8 @@ public sealed partial class TurnEngine
     /// </summary>
     public int LedgerStrength(Power p) => Scoring.Strength(S.Config, LandYield(p), S.Treasuries[p].Ledger, BelievedBackPay(p));
 
-    /// <summary>The base yield of the land a power holds.</summary>
-    private int LandYield(Power p) => S.OwnedBy(p).Sum(id => Map[id].Yield);
+    /// <summary>The yield of the land a power holds, conquered land counted as far as it is absorbed (<see cref="Absorbed"/>).</summary>
+    private int LandYield(Power p) => S.OwnedBy(p).Sum(id => (int)Math.Round(Map[id].Yield * Absorbed(id)));
 
     public double Growth(Power p)
     {

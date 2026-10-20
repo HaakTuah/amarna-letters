@@ -5,7 +5,7 @@ namespace Amarna.Game.Tests;
 
 /// <summary>
 /// The engine's wake triggers fire on a change, not on a condition that merely holds: foreign troops arriving next to the
-/// capital. A king has no triggers of his own (removed in the fix pass after item 4).
+/// homeland, a siege begun or about to end. A king has no triggers of his own (removed in the fix pass after item 4).
 /// </summary>
 public class WakeTriggerTests
 {
@@ -43,17 +43,18 @@ public class WakeTriggerTests
         sleep.History.Add(new SleepSpell { From = 3 });
     }
 
-    // ------------------------------------------------------------ foreign troops next to the capital (temporary, until sieges)
+    // ------------------------------------------------------------ foreign troops next to the capital (its own trigger until the siege package)
 
     [Fact]
-    public void Foreign_troops_that_end_a_move_next_to_the_capital_wake_the_seat_once()
+    public void Foreign_troops_that_end_a_move_next_to_the_capital_wake_the_seat_once_as_next_to_its_homeland()
     {
         var (s, sleep) = Sleeping();
         Assert.Contains("durkurigalzu", WorldMap.Default.Neighbors("babylon"));
         Season(s, Assyria(new MoveOrder("ekallatum", "durkurigalzu")));
         Assert.False(sleep.Asleep);
-        // Durkurigalzu is Assyria's here, so only the capital trigger fires.
-        Assert.Equal(["foreign troops came next to your capital: Assyria's army moved ekallatum -> durkurigalzu"], sleep.WokenBecause);
+        // Durkurigalzu is Assyria's here: the capital, a province of the homeland like any other since the siege package
+        // retired its own trigger, is named with the rest.
+        Assert.Equal([$"{TurnEngine.HomelandReason}: Assyria's army moved ekallatum -> durkurigalzu, next to babylon, nippur, sippar"], sleep.WokenBecause);
 
         // Standing there the next season is no news: it does not wake the seat again.
         Sleep(sleep);
@@ -67,7 +68,7 @@ public class WakeTriggerTests
         var s = GameFactory.NewGame(31, Quiet);
         var sleep = s.Sleep[Power.Alashiya] = new SleepState { Asleep = true, LastCalled = 1, WakeAt = 50, History = [new SleepSpell { From = 2 }] };
         Season(s, new() { [Power.Egypt] = new TurnSubmission { Orders = [new MoveOrder("delta", "levantsea")] } });
-        Assert.Equal(["foreign troops came next to your capital: Egypt's fleet moved delta -> levantsea"], sleep.WokenBecause);
+        Assert.Equal([$"{TurnEngine.HomelandReason}: Egypt's fleet moved delta -> levantsea, next to enkomi"], sleep.WokenBecause);
     }
 
     [Fact]
@@ -90,7 +91,8 @@ public class WakeTriggerTests
     public void A_failed_assault_on_a_walled_city_it_holds_wakes_the_seat()
     {
         // The review's probe (Babylonia's debrief, seed 15): Mitanni's army already stands in Terqa, next to Babylon's bought
-        // Mari, when Babylon last gave orders, so no arrival wakes it. Mitanni attacks Mari alone and the walls hold.
+        // Mari, when Babylon last gave orders, so no arrival wakes it. Since the siege package Mitanni's lone attack gets
+        // within the walls without storming them: the city is still Babylon's, and the entry into its land wakes it.
         var (s, sleep) = Sleeping(s =>
         {
             s.Owner["mari"] = Power.Babylonia;
@@ -98,10 +100,11 @@ public class WakeTriggerTests
             s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Mitanni, Kind = UnitKind.Army, Province = "terqa" });
         });
         Season(s, new() { [Power.Mitanni] = new TurnSubmission { Orders = [new MoveOrder("terqa", "mari")] } });
-        Assert.Equal("mari", s.Garrisons.Single(g => g == "mari"));
+        Assert.Equal(2, s.WallsOf("mari"));
         Assert.Equal(Power.Babylonia, s.Owner["mari"]);
+        Assert.Equal(Power.Mitanni, s.UnitAt("mari")?.Power);
         Assert.False(sleep.Asleep);
-        Assert.Equal([$"{TurnEngine.AttackedReason}: Mitanni's army tried to move terqa -> mari"], sleep.WokenBecause);
+        Assert.Equal(["foreign troops entered your land: Mitanni's army moved terqa -> mari"], sleep.WokenBecause);
 
         // A home province with its army in it, attacked in vain: the same reason.
         (s, sleep) = Sleeping(s =>
@@ -126,30 +129,20 @@ public class WakeTriggerTests
     }
 
     [Fact]
-    public void Once_the_capital_is_lost_troops_next_to_it_wake_the_seat_only_for_the_homeland_it_still_holds()
+    public void Troops_next_to_home_provinces_it_has_lost_wake_the_seat_only_for_the_homeland_it_still_holds()
     {
-        // Babylon is Hatti's: troops coming to Dur-Kurigalzu, next to it, are no threat to a capital the seat no longer
-        // holds, only to Nippur and Sippar, which it does (since the fix pass after item 4).
+        // Nippur and Sippar are Hatti's: troops coming to Dur-Kurigalzu, next to them, threaten only Babylon, which the seat
+        // still holds. (Until the siege package this test took Babylon from it; a kingdom now falls with its capital.)
         var (s, sleep) = Sleeping(s =>
         {
-            s.Units.RemoveAll(u => u.Province == "babylon");
-            s.Owner["babylon"] = Power.Hatti;
-        });
-        Season(s, Assyria(new MoveOrder("ekallatum", "durkurigalzu")));
-        Assert.Equal([$"{TurnEngine.HomelandReason}: Assyria's army moved ekallatum -> durkurigalzu, next to nippur, sippar"], sleep.WokenBecause);
-
-        // With nothing of its homeland next to Dur-Kurigalzu left, the same move wakes nobody.
-        (s, sleep) = Sleeping(s =>
-        {
-            foreach (var x in new[] { "babylon", "nippur", "sippar" })
+            foreach (var x in new[] { "nippur", "sippar" })
             {
                 s.Units.RemoveAll(u => u.Province == x);
                 s.Owner[x] = Power.Hatti;
             }
         });
         Season(s, Assyria(new MoveOrder("ekallatum", "durkurigalzu")));
-        Assert.True(sleep.Asleep);
-        Assert.Empty(sleep.WokenBecause);
+        Assert.Equal([$"{TurnEngine.HomelandReason}: Assyria's army moved ekallatum -> durkurigalzu, next to babylon"], sleep.WokenBecause);
     }
 
     // ------------------------------------------------------------ a threat to a home province or a walled city (the fix pass after item 4)
@@ -192,7 +185,7 @@ public class WakeTriggerTests
             s.Owner["mari"] = Power.Babylonia;
             s.Units.RemoveAll(u => u.Province == "terqa");
         });
-        Assert.Contains("mari", s.Garrisons);
+        Assert.Equal(2, s.WallsOf("mari"));
         Season(s, new() { [Power.Mitanni] = new TurnSubmission { Orders = [new MoveOrder("washukanni", "terqa")] } });
         Assert.False(sleep.Asleep);
         Assert.Equal([$"{TurnEngine.WallsReason}: Mitanni's army moved washukanni -> terqa, next to mari"], sleep.WokenBecause);
@@ -229,7 +222,25 @@ public class WakeTriggerTests
     public void The_rulebook_says_that_troops_next_to_the_homeland_or_a_walled_city_wake_a_king()
     {
         var rules = Prompts.LeaderRules(true, new GameConfig());
-        Assert.Contains("an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; land or troops lost", rules);
-        Assert.Contains("- Foreign troops wake you when they move into your land or against your troops, whether or not the move succeeds, and when they end a move in a province next to your capital, another province of your homeland or a walled city you hold, while you hold it (troops there can take it the next season). Troops that only stay where they are do not wake you again, nor do troops raised by a levy.", rules);
+        Assert.Contains("an envoy at your door; foreign troops entering or attacking your land or your troops, or arriving next to your homeland or a walled city you hold; a siege of a city of yours begun, or about to make it surrender; land or troops lost", rules);
+        Assert.Contains("- Foreign troops wake you when they move into your land or against your troops, whether or not the move succeeds, and when they end a move in a province next to a province of your homeland or a walled city you hold, while you hold it (troops there can get into it the next season: take it if it has no walls, or stand within them and besiege it). Troops that only stay where they are do not wake you again, nor do troops raised by a levy. A siege of a city of yours wakes you in the season after it begins, and again when the city would surrender at the end of the season if the besiegers just hold: the last season to break the siege.", rules);
+    }
+
+    [Fact]
+    public void A_siege_of_its_city_wakes_the_seat_when_it_begins_and_when_the_city_would_surrender_this_season()
+    {
+        // Assyria's army stands within Babylon's walls (3) as the seat sleeps, and turns on it: the siege begins.
+        var (s, sleep) = Sleeping(s =>
+        {
+            s.Units.RemoveAll(u => u.Province == "babylon");
+            s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "babylon" });
+        });
+        Season(s, Assyria(new BesiegeOrder("babylon")));
+        Assert.Equal([$"{TurnEngine.SiegeBegunReason}: Assyria's army besieges babylon (walls 3), worn down 1 of 3"], sleep.WokenBecause);
+
+        // Pressed a second season, it would surrender at the end of the next if the besiegers just hold: the last chance.
+        Sleep(sleep);
+        Season(s, Assyria());
+        Assert.Equal([$"{TurnEngine.SurrenderReason}: Assyria's army besieges babylon (walls 3), worn down 2 of 3"], sleep.WokenBecause);
     }
 }

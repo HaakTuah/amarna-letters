@@ -89,6 +89,7 @@ public sealed class OrderDraft
                 "support" when d.Target is not null => new SupportOrder(at, d.Target, string.IsNullOrEmpty(d.To) ? null : d.To),
                 "convoy" when d.Target is not null && d.To is not null => new ConvoyOrder(at, d.Target, d.To),
                 "disband" => new DisbandOrder(at),
+                "besiege" => new BesiegeOrder(at),
                 _ => new HoldOrder(at),
             });
         }

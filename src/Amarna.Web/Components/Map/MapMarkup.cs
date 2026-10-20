@@ -99,7 +99,7 @@ public static class MapMarkup
             var u = (b - a).Unit;
             var n = u.Normal * 6;
             var deg = Math.Atan2(u.Y, u.X) * 180 / Math.PI;
-            sb.Append($"<g class=\"crossing {(c.Kind == CrossingKind.Mountain ? "pass" : "ford")}\" transform=\"translate({F(mid.X)},{F(mid.Y)}) rotate({F(deg)})\"><title>{c.Name} ({(c.Kind == CrossingKind.Mountain ? "a mountain pass" : "a river crossing")}; no effect yet)</title>"
+            sb.Append($"<g class=\"crossing {(c.Kind == CrossingKind.Mountain ? "pass" : "ford")}\" transform=\"translate({F(mid.X)},{F(mid.Y)}) rotate({F(deg)})\"><title>{c.Name} ({(c.Kind == CrossingKind.Mountain ? "a mountain pass" : "a river crossing")}: a unit standing its ground on either side is stronger against an attack over it)</title>"
                       + (c.Kind == CrossingKind.Mountain
                           ? "<path d=\"M-4,-7Q0,0 -4,7 M4,-7Q0,0 4,7\"/>"
                           : "<path d=\"M-3,-7V7 M3,-7V7\"/>")

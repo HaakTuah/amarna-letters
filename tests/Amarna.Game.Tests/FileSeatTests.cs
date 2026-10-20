@@ -149,7 +149,7 @@ public class FileSeatTests
         var indented = schema.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }).Length;
         Assert.True(text.Length < indented * 0.75, $"{text.Length} against {indented}");
         Assert.Contains("    \"notes\": {\"type\":\"string\",\"description\":", text);
-        Assert.Contains("another king's", text);
+        Assert.Contains("that court's line", text);
         var spec = new CallSpec { Key = "t1/orders/Egypt", Turn = 1, Role = "leader", Model = "file seat", SharedSystem = "Rules.", User = "Your view.", Schema = schema };
         var request = FileExchange.Request(spec, "x.reply.json", "");
         Assert.Contains("```json\n" + text + "\n```", request.ReplaceLineEndings("\n"));
@@ -294,8 +294,8 @@ public class FileSeatTests
         Assert.StartsWith(woken, Decision(requests.Keys.First(k => k.StartsWith("t2_aud_", StringComparison.Ordinal))));
         // By its orders it has received the envoy (the audiences come first).
         Assert.StartsWith("You gave orders last season (turn 1). You were woken because: an envoy of Egypt came to your court (you received him before these orders)", Decision("t2_orders_Alashiya"));
-        // Turn 3 is not the season it named (it cannot): a script king's troops arriving next to its homeland wake it.
-        Assert.StartsWith($"You gave orders last season (turn 2). You were woken because: {TurnEngine.HomelandReason}: ", Decision("t3_orders_Alashiya"));
+        // Turn 3 is not the season it named (it cannot): a script king's troops arriving next to or in its homeland wake it.
+        Assert.Matches(@"^You gave orders last season \(turn 2\)\. You were woken because: [^\n]*foreign troops (came next to your|entered your)", Decision("t3_orders_Alashiya"));
         Assert.DoesNotContain(requests.Values, r => r.Contains("you asked to be woken", StringComparison.Ordinal));
 
         var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));

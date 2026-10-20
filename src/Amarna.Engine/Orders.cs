@@ -12,6 +12,9 @@ namespace Amarna.Engine;
 [JsonDerivedType(typeof(MoveOrder), "move")]
 [JsonDerivedType(typeof(SupportOrder), "support")]
 [JsonDerivedType(typeof(ConvoyOrder), "convoy")]
+[JsonDerivedType(typeof(BesiegeOrder), "besiege")]
+[JsonDerivedType(typeof(FortifyOrder), "fortify")]
+[JsonDerivedType(typeof(SallyOrder), "sally")]
 [JsonDerivedType(typeof(RaiseOrder), "raise")]
 [JsonDerivedType(typeof(DisbandOrder), "disband")]
 [JsonDerivedType(typeof(BuyProvinceOrder), "buy")]
@@ -63,12 +66,41 @@ public sealed record ConvoyOrder(string Unit, string Army, string To) : Order
 }
 
 /// <summary>
+/// An army standing in a walled city it does not hold lays siege to it (Build order item 5): it holds there, and the city
+/// is worn down a step each season it holds, two with an uncut support, until it surrenders. One order is enough: the
+/// siege goes on each season the army holds there, until it leaves or is destroyed.
+/// </summary>
+public sealed record BesiegeOrder(string Unit) : Order
+{
+    public override string Describe() => $"{Unit} besieges the city";
+}
+
+/// <summary>
 /// An order a reply named but left incomplete or unreadable (a cession to no power anyone knows): the validator refuses
 /// it with <paramref name="Reason"/>, so its king is told next season instead of the order vanishing.
 /// </summary>
 public sealed record UnreadableOrder(string Text, string Reason) : Order
 {
     public override string Describe() => Text;
+}
+
+/// <summary>
+/// Strengthen the walls of a province the seat holds by one level, at the end of the season (Build order item 5): a real
+/// choice between defence and expansion, paid once and then in upkeep.
+/// </summary>
+public sealed record FortifyOrder(string Province) : Order
+{
+    public override string Describe() => $"strengthen the walls of {Named(Province)}";
+}
+
+/// <summary>
+/// The walls of a city of the seat's, with foreign troops within them, sally: they support one attack on those troops, the
+/// move from <paramref name="From"/> into the city, whoever makes it, for +1, a support that cannot be cut (Build order item
+/// 5; question 5, plan step 8). Only walls of <see cref="GameConfig.SallyMinWalls"/> or more can sally.
+/// </summary>
+public sealed record SallyOrder(string City, string From) : Order
+{
+    public override string Describe() => $"the walls of {Named(City)} sally in support of the attack from {Named(From)}";
 }
 
 public sealed record RaiseOrder(string Province, UnitKind Kind) : Order
@@ -197,7 +229,7 @@ public static class OrderKeys
 {
     public static string? UnitOf(Order o) => o switch
     {
-        HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit,
+        HoldOrder h => h.Unit, MoveOrder m => m.Unit, SupportOrder s => s.Unit, ConvoyOrder c => c.Unit, BesiegeOrder b => b.Unit,
         DisbandOrder d => d.Unit, GiftUnitOrder g => g.Unit, _ => null,
     };
 

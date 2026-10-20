@@ -41,6 +41,8 @@ public sealed class OrderValidator
         var hiring = submission.Orders.Take(MaxOrders).OfType<HireOrder>().Where(h => HireRefusal(h, out _) is null).Select(h => h.Character).ToHashSet();
         var assayed = new HashSet<string>();
         var ceded = new HashSet<string>();
+        var fortified = new HashSet<string>();
+        var sallied = new HashSet<string>();
         var orderedUnits = new HashSet<string>();
         var raisedIn = new HashSet<string>();
         var bought = new HashSet<string>();
@@ -75,6 +77,8 @@ public sealed class OrderValidator
                 if (order is RenewOrder rn) renewed.Add(rn.Character);
                 if (order is AssayOrder a) assayed.Add(a.Lot);
                 if (order is CedeProvinceOrder cp) ceded.Add(cp.Province);
+                if (order is FortifyOrder fo) fortified.Add(fo.Province);
+                if (order is SallyOrder so) sallied.Add(so.City);
             }
             else
             {
@@ -168,8 +172,6 @@ public sealed class OrderValidator
                     if (string.IsNullOrWhiteSpace(m.To)) return "name the province the unit should move to";
                     if (!_map.Exists(m.To)) return $"there is no province called '{m.To}'";
                     if (m.To == m.Unit) return "a unit cannot move to where it stands";
-                    if (_s.Garrisons.Contains(m.To) && _s.Owner.GetValueOrDefault(m.To) == power)
-                        return $"{_map[m.To].Name} is held by its own walls for you; your troops cannot enter it";
                     if (u!.Kind == UnitKind.Fleet)
                         return _map.CanMove(UnitKind.Fleet, m.Unit, m.To) ? null : $"a fleet in {m.Unit} cannot reach {m.To}";
                     if (_map.CanMove(UnitKind.Army, m.Unit, m.To)) return null;
@@ -181,10 +183,8 @@ public sealed class OrderValidator
                     if (OwnUnit(sp.Unit, out var u) is { } e) return e;
                     if (string.IsNullOrWhiteSpace(sp.Supported)) return "name the unit to support, by the province it stands in";
                     if (!_map.Exists(sp.Supported)) return $"there is no province called '{sp.Supported}'";
-                    var walls = _s.Garrisons.Contains(sp.Supported) && _s.Owner.GetValueOrDefault(sp.Supported) is not null;
                     // Out of sight, a province's troops are unknown: the support is given, and is void if no unit there acts as it names.
-                    if (_s.UnitAt(sp.Supported) is null && !walls && Sight().Contains(sp.Supported)) return $"there is no unit in {sp.Supported} to support";
-                    if (walls && sp.To is not null) return "city walls never move; they can only be supported holding";
+                    if (_s.UnitAt(sp.Supported) is null && Sight().Contains(sp.Supported)) return $"there is no unit in {sp.Supported} to support";
                     if (sp.Supported == sp.Unit) return "a unit cannot support itself";
                     var into = sp.To ?? sp.Supported;
                     if (!_map.Exists(into)) return $"there is no province called '{into}'";
@@ -203,6 +203,47 @@ public sealed class OrderValidator
                     // As for a support: out of sight, the convoy is given, and is void if no army there sails as it names.
                     if ((army is null || army.Kind != UnitKind.Army) && Sight().Contains(c.Army)) return $"there is no army in {c.Army}";
                     if (!_map.Exists(c.To) || !_map[c.To].IsCoastal) return $"{c.To} is not a coast an army can land on";
+                    return null;
+                }
+
+                case FortifyOrder f:
+                {
+                    if (string.IsNullOrWhiteSpace(f.Province)) return "name the province whose walls to strengthen";
+                    if (!_map.Exists(f.Province) || _map[f.Province].IsSea) return $"there is no province called '{f.Province}'";
+                    var name = _map[f.Province].Name;
+                    if (_s.Owner.GetValueOrDefault(f.Province) != power) return $"you do not hold {name}";
+                    var level = _s.WallsOf(f.Province);
+                    if (level >= _s.Config.MaxWalls) return $"the walls of {name} stand at {level}, as high as walls go";
+                    if (_s.SiegeOf(f.Province) is not null) return $"{name} is besieged: its walls cannot be strengthened while the siege lasts";
+                    if (_s.UnitAt(f.Province) is { } within && within.Power != power) return $"foreign troops stand within {name}: its walls cannot be strengthened while they are there";
+                    if (fortified.Contains(f.Province)) return $"the walls of {name} were already to be strengthened by an earlier order";
+                    return Spend(_s.Config.FortifyCost * (level + 1));
+                }
+
+                case SallyOrder so:
+                {
+                    if (_s.Config.SallyMinWalls <= 0) return "walls do not sally in this game";
+                    if (string.IsNullOrWhiteSpace(so.City)) return "name the city whose walls sally";
+                    if (!_map.Exists(so.City) || _map[so.City].IsSea) return $"there is no city called '{so.City}'";
+                    var name = _map[so.City].Name;
+                    if (_s.Owner.GetValueOrDefault(so.City) != power) return $"you do not hold {name}";
+                    if (_s.WallsOf(so.City) == 0) return $"{name} has no walls to sally from";
+                    if (_s.WallsOf(so.City) < _s.Config.SallyMinWalls)
+                        return $"the walls of {name} stand at {_s.WallsOf(so.City)}: only walls of {_s.Config.SallyMinWalls} or more can sally";
+                    if (_s.UnitAt(so.City) is not { } inside || inside.Power == power) return $"no foreign troops stand within the walls of {name}";
+                    if (string.IsNullOrWhiteSpace(so.From)) return "name the province the attack the walls support comes from";
+                    if (!_map.Exists(so.From)) return $"there is no province called '{so.From}'";
+                    if (!_map.AreAdjacent(so.From, so.City)) return $"{so.From} is not next to {name}";
+                    if (sallied.Contains(so.City)) return $"the walls of {name} were already to sally by an earlier order";
+                    return null;
+                }
+
+                case BesiegeOrder b:
+                {
+                    if (OwnUnit(b.Unit, out var u) is { } e) return e;
+                    if (u!.Kind != UnitKind.Army) return "only an army can besiege a city; a fleet cannot";
+                    if (_s.WallsOf(b.Unit) <= 0) return $"{_map[b.Unit].Name} has no walls to besiege";
+                    if (_s.Owner.GetValueOrDefault(b.Unit) == power) return $"{_map[b.Unit].Name} is yours";
                     return null;
                 }
 
@@ -233,6 +274,7 @@ public sealed class OrderValidator
                 case CedeProvinceOrder cp:
                     if (!_map.Exists(cp.Province)) return $"there is no province called '{cp.Province}'";
                     if (_s.Owner.GetValueOrDefault(cp.Province) != power) return "you can only cede what you hold";
+                    if (cp.Province == _map.Capital(power).Id) return "you cannot cede your capital: your kingdom falls with it";
                     if (cp.To == power || !_s.IsAlive(cp.To)) return $"you cannot cede land to {cp.To}";
                     if (ceded.Contains(cp.Province)) return $"{_map[cp.Province].Name} was already ceded by an earlier order";
                     return null;
@@ -401,6 +443,9 @@ public sealed class OrderValidator
     /// </summary>
     public static string? CaptiveRefusal(GameState s, Character c, CaptiveFate fate)
     {
+        // An envoy caught at a besieged city was no spy at a post: there is nowhere to send it back to deceive from.
+        if (fate == CaptiveFate.Turn && c.Intercepted)
+            return $"{c.Name} is an envoy your besiegers caught, not a spy at a post, and cannot be turned. {c.Name} remains your captive";
         var possible = fate switch
         {
             CaptiveFate.Ransom => RansomPayer(s, c) is not null,

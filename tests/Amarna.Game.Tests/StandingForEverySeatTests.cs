@@ -33,7 +33,7 @@ public class StandingForEverySeatTests
     /// <summary>Mari is Assyria's, its walls gone, with an Assyrian army in it: two Assyrian armies stand next to Sippar.</summary>
     private static void AssyriaInMari(GameState s)
     {
-        s.Garrisons.Remove("mari");
+        s.Walls.Remove("mari");
         s.Owner["mari"] = Power.Assyria;
         s.Units.Add(new Unit { Id = s.NewId("u"), Power = Power.Assyria, Kind = UnitKind.Army, Province = "mari" });
     }
@@ -365,21 +365,33 @@ public class StandingForEverySeatTests
     [Fact]
     public async Task Script_kings_give_standing_orders_and_one_meets_its_blow()
     {
-        // Seed 1: in turn 3 Arzawa marches on Hattusa, which Hatti's plan for the season leaves empty; the standing order Hatti
-        // gave the season before sends the army in Kanesh in as well, and Arzawa bounces. The game replays exactly.
-        var state = GameFactory.NewGame(1);
-        var seats = Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(1));
-        var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
-        await runner.PrepareAsync();
-        for (var i = 0; i < 3; i++) await runner.PlayTurnAsync();
-        var fired = Assert.Single(state.InboxOf(Power.Hatti), x => x.Title.StartsWith("Standing order s", StringComparison.Ordinal) && x.Title.EndsWith(" fired", StringComparison.Ordinal));
-        Assert.Contains("(when foreign troops enter hattusa) fired in turn 3: Arzawa's army set out from tuwanuwa for hattusa. It gave these orders: kanesh -> hattusa.", fired.Body);
-        Assert.Equal(Power.Hatti, state.Owner["hattusa"]);
-        Assert.True(Powers.All.Sum(p => state.Standing.GetValueOrDefault(p)?.Last ?? 0) > 1);
+        // Script kings give standing orders, and in the first seeds one fires within a few seasons: its notice says what set it
+        // off and the orders it gave. The game replays exactly. (Until the siege package this was seed 1's turn 3, where Arzawa
+        // marched on an empty Hattusa; the walls on homelands changed that game.)
+        for (ulong seed = 1; seed <= 12; seed++)
+        {
+            var state = GameFactory.NewGame(seed);
+            var seats = Powers.All.ToDictionary(p => p, _ => (ISeat)new ScriptLeader(seed));
+            var runner = new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()) { WriteChronicles = false };
+            await runner.PrepareAsync();
+            InboxItem? fired = null;
+            var turns = 0;
+            while (fired is null && turns < 12 && await runner.PlayTurnAsync())
+            {
+                turns++;
+                fired = Powers.All.SelectMany(p => state.InboxOf(p))
+                    .FirstOrDefault(x => x.Title.StartsWith("Standing order s", StringComparison.Ordinal) && x.Title.EndsWith(" fired", StringComparison.Ordinal));
+            }
+            if (fired is null) continue;
+            Assert.Matches(@"^Your standing order s\d+ \(when .+\) fired in turn \d+: \w+'s (army|fleet) set out from \w+ for \w+\. It gave these orders: ", fired.Body);
+            Assert.True(Powers.All.Sum(p => state.Standing.GetValueOrDefault(p)?.Last ?? 0) > 1);
 
-        var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));
-        await replay.PrepareAsync();
-        for (var i = 0; i < 3; i++) await replay.PlayTurnAsync();
-        Assert.Equal(Json.Hash(state), Json.Hash(replay.State));
+            var replay = GameRunner.ForReplay(GameLog.FromJsonl(runner.Log.ToJsonl()));
+            await replay.PrepareAsync();
+            for (var i = 0; i < turns; i++) await replay.PlayTurnAsync();
+            Assert.Equal(Json.Hash(state), Json.Hash(replay.State));
+            return;
+        }
+        Assert.Fail("no standing order fired in the first twelve seasons of seeds 1-12");
     }
 }

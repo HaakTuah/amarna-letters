@@ -15,7 +15,7 @@ public class ResolutionFailureTests
         foreach (var (city, id) in new[] { ("megiddo", "u90"), ("gaza", "u91") })
         {
             s.Owner[city] = Power.Babylonia;
-            s.Garrisons.Remove(city);
+            s.Walls.Remove(city);
             s.Units.Add(new Unit { Id = id, Power = Power.Babylonia, Kind = UnitKind.Army, Province = city });
         }
         s.Units.Add(new Unit { Id = "u92", Power = Power.Egypt, Kind = UnitKind.Army, Province = "sinai" });

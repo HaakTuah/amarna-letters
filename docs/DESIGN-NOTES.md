@@ -12,10 +12,11 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   it; its own unit did not leave; the unit from the target was coming the other way and won (the
   reason given even when a third move then entered the province that unit left); it met another
   move into the target from a named province (always the reason given when that move took the
-  target); the unit holding the target kept its place (or could not leave); the walls held; or
-  another move into the target was as strong. Where strength decided it, the strengths compared
-  follow ("your strength 2 against 2"), then where the unit now stands ("; so your fleet stays in
-  enkomi"), unless it was destroyed there, which its own line says ("F enkomi is destroyed"); the
+  target); the unit holding the target kept its place (or could not leave); or another move into
+  the target was as strong (walls never stop a move since the siege package). Where strength decided it, the strengths compared
+  follow ("your strength 2 against 2", with the ground's share of it where the ground helped the unit that held:
+  "your strength 2 against 2, 1 of it for the rough ground of mira", since terrain in the siege package), then where the
+  unit now stands ("; so your fleet stays in enkomi"), unless it was destroyed there, which its own line says ("F enkomi is destroyed"); the
   rulebook says so. (Until the fix pass after item 4 the line stopped at the reason: in the second
   agent simulation Alashiya read a bounced move to Tamassos as made, gave orders to a fleet that was
   still in Enkomi, and lost Tamassos.) The other side's power is named only if that unit stood,
@@ -27,6 +28,18 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   durkurigalzu to nippur"); other kings see only "void". (Until the simulation-fixes round,
   foreign lines were kept by the moving unit's origin only, so a move from out of sight that
   bounced a king's move was never shown, and a support that matched nothing read "holds".)
+  A move that got within walls its mover does not hold says what came of it, with the strengths
+  ("- A kanesh -> carchemish: succeeds: it got within the walls of carchemish but did not storm them
+  (strength 1 against walls 2 and defenders 0): your army stands inside and takes nothing; besiege
+  the city to wear it down", or "...: it stormed the walls of mari (strength 4 against walls 2 and
+  defenders 1), and mari is yours"), and an assault on a walled city of the king's own is among his
+  own lines, with his side and the strengths ("- Your walled city of Mari: Mitanni's army from terqa
+  got within the walls but did not storm them (its strength 1 against your walls 2 and defenders 0):
+  it stands inside, and Mari stays yours unless a siege wears it down."). Until the siege package
+  such an assault showed only under "Seen nearby", with no strengths (the fix pass after item 4,
+  minor finding 5). Other kings who see it read the line with "(it stormed the walls of mari)" or
+  "(it stands within the walls of mari and does not take it)". The season's sieges come in a notice
+  of their own, "Sieges" (see Walls and sieges).
 - **Sight.** A court sees troops in its own land, where its troops stand and in the provinces its
   spies watch, and one link of any kind (land, coast or sea) from those (`Views.Sight`). A province
   spy caught or let go unknown to its master still counts while the master's cover believes it at
@@ -46,15 +59,17 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 - **Ownership changes every season**, whenever a unit ends a season in a province, not only in
   autumn as in Diplomacy.
 - **How a season resolves.** The rulebook's section of that name lists the engine's own order
-  (`TurnEngine.BeginTurn`, `GameRunner.PlayTurnAsync`, `TurnEngine.ResolveSeason`) in 17 short
+  (`TurnEngine.BeginTurn`, `GameRunner.PlayTurnAsync`, `TurnEngine.ResolveSeason`) in 18 short
   steps: servants whose notice ran out leave; income, upkeep and wages (the wages of people at
   court; those of people away added to their back pay) and desertion; arrivals, then back pay paid
   to everyone at the court that owes it; the court (candidates, checks and examinations, contract
   ends and notices, a servant still owed back pay giving notice); audiences; orders;
-  movement and battles; land changes hands; cessions and gifts of troops; purchases; disbanding;
+  movement and battles; sieges (since the siege package); land changes hands; a kingdom falls with
+  its capital (since the siege package, in place of "kingdoms with no land fall" after the
+  catastrophes); cessions and gifts of troops; purchases, then walls strengthened; disbanding;
   levies; envoys set out, releases, dismissals, candidates sent for and checks paid, then hiring and
   renewals; intelligence (watchmen, captors, spies sent and recalled, assays, examinations,
-  forgeries, ransoms, then spies caught or reporting); catastrophes; kingdoms with no land fall;
+  forgeries, ransoms, then spies caught or reporting); catastrophes;
   scores and the end roll. It says that orders are checked in the order the reply lists them
   (units, then letters, then other orders; a sleeping seat's scheduled orders after its fresh ones),
   that gold is reserved as each is accepted and there is no "else", that a person hired this season
@@ -78,9 +93,122 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   "EACH SEASON" list ended with "Resolution, catastrophes, and reports", and 26 of the simulation's
   43 refusals came from rules it never stated; those malformed orders vanished without a word, and a
   forgery quietly lost any seal it could not read.)
-- **Free city-states have walls** that hold with strength 1 and never move, so taking one needs a
-  supported attack. They can also be bought for 10 × yield by a power whose land or troops touch
-  them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
+- **Walls and sieges** (Build order item 5, the siege package; save version 6; question 5 of
+  `docs/rounds/2026-10-18-sleep-and-simulation.md`, plan steps 1 to 9, and the design document's
+  "Tempo of war" and "Walls and terrain"). Walls set how long a city holds out, not how many armies
+  a field battle needs:
+  - **Walls by place** (`MapData.StartWalls`, first guesses): every capital 3; the fortresses
+    Carchemish, Qadesh, Tyre, Megiddo, Gaza, Mari, Susa, Memphis, Kanesh and Nineveh 2; the walled
+    towns Lukka, Isuwa, Ugarit, Amurru, Byblos and Damascus 1; every other land province none. So
+    every free city has walls, and so do the capitals and three homeland fortresses. The walls
+    standing now are the game state's (`GameState.Walls`). THE MAP in the rulebook gives each
+    province's walls at the start, which every court knows. **A court sees the walls standing now
+    only where it sees troops** (its sight: its land, its troops, its spies' provinces and next to
+    them), and knows them elsewhere as it last saw them (`Views.WallsKnown`, `GameState.WallsSeen`:
+    each living court's, set from the map at the start and, as each season resolves, from what its
+    view showed when it gave its orders), in its view ("LANDS ...: mari (walls 2)") and on its map
+    (a ring for each level; the province card says "as your court last saw them" out of sight, or
+    "as the map gave them at the start" where it never saw). God view draws them as they stand. Since
+    the review of the siege package: until then every court saw every wall as it stood, so an
+    earthquake (known exactly only to the king it strikes), walls that fell for want of upkeep (which
+    told every court that a rival's treasury could not keep them) and walls raised for gold out of
+    sight (whose fortify notice goes only to courts with sight) were all seen by everyone. A court
+    that can see a province sees its walls fall to an earthquake there, as it sees a troop lost to
+    plague. The rulebook says so in WALLS AND SIEGES and WHAT YOU SEE, and LANDS' heading ("the walls
+    elsewhere as you last saw them").
+  - **Walls add nothing to a battle.** Combat resolves as always, and a unit within walls defends
+    with 1 plus its supports, and the ground's help where it has it (see Terrain). (Until the siege package walls were pretend units that held with
+    strength 1, only on the free cities.) A move that wins its way into a walled province its mover
+    does not hold **storms** the walls, and takes the province at once, only if its strength also
+    beats the walls' level plus the hold strength of the defenders it beat (`Assault`; none if the
+    province was empty or its unit got away, the defence of a unit met head on). An empty city with
+    walls 1 needs 2, as before; Hattusa held by one army needs 5, more than its neighbours can
+    supply. Otherwise the unit stands within the walls and takes nothing (`TurnEngine.UpdateOwnership`).
+    A fleet never storms or besieges walls: it takes only coasts without walls. A foreign unit within
+    walls without a siege is a **guest** and takes nothing, so an ally's relief army may stand in
+    a friend's city, and turning on the host (a besiege order) is a visible act. A province without
+    walls changes hands as before; the rulebook's MOVEMENT AND COMBAT says "A province without walls
+    changes hands when a unit ends a season in it; a walled one only as WALLS AND SIEGES says" (since
+    the review of the siege package, which found the old sentence, true only of land without walls,
+    left in place). Owners may move their own troops into their own walled provinces
+    (until the siege package they could not enter a bought city).
+  - **Besieging** (`BesiegeOrder`, schema "besiege"): an army standing within walls it does not
+    hold may besiege the city. The order runs as a hold. Each season the army holds there (a besiege
+    or hold order, or none) the city is worn down a step, or two if another unit, of any power,
+    gave it a support to hold that was not cut (`AdjudicationResult.HoldSupported`); a season in
+    which it supports, convoys or tries to move adds nothing. One order is enough: the siege goes
+    on while the army holds there. When the city is worn down as far as its walls are high, it
+    **surrenders** to the besieger at the end of that season (`TurnEngine.Sieges`, after movement and
+    before land changes hands) and its walls fall a level; a city stormed falls a level too. So a
+    lone army takes walls 1 in the season after it got in, walls 3 in the third (four seasons
+    counting the entry, question 5's timings), with a support each season walls 3 in the second.
+    If the besieging army leaves or is destroyed, or deserts, the siege is lifted and its progress
+    lost. Breaking a siege is ordinary combat against the besieger.
+  - **While besieged** the city stays its holder's and counts in his strength, but yields nothing
+    (`TurnEngine.EffectiveYield`), and no levy can be raised there (the besieger stands in it). Each
+    siege costs its besieger `GameConfig.SiegeUpkeep` (15, a first guess) a season on top of the
+    army's upkeep, paid with upkeep. The holder may still cede the city.
+  - **What kings read.** The battle report (above); a "Sieges" notice each season to the besieger
+    and to the city's holder: begun ("Your siege of Mari (walls 2, a free city) has begun, and it
+    wore the city down a step: it stands at 1 of 2. The city surrenders when that reaches 2, if your
+    army holds there."), pressed, not pressed, lifted, and surrendered ("Mari surrendered to you after
+    a siege of 2 seasons: it is yours, with its walls a level lower (walls 1)."); the holder reads
+    "Land lost" when it falls. The view's SIEGES line lists the sieges it knows of (its own, of its
+    cities, and in its sight) with how far each has gone. The record logs "storm" and "siege" events,
+    with the signals `storm`, `siege-begun` and `siege-won` counted in the batch report.
+  - **Sallies** (`SallyOrder`, unit order "sally": the city as the unit, the province the attack comes from as the target;
+    question 5, plan step 8). While foreign troops stand within the walls of a city of the king's whose walls are
+    `GameConfig.SallyMinWalls` (2) or higher, its defenders may sally: the walls support one attack into the city on those
+    troops, the king's own or another king's, for +1, a support that cannot be cut (counted in `Adjudicator.Supports`, for
+    the city's holder, so it does not help a move into his own unit). One per city a season; refused below the walls
+    needed, with no foreign troops within, or from a province not next to the city ("the walls of Mari stand at 1: only
+    walls of 2 or more can sally", "Harran has no walls to sally from"). A sally that finds no such attack is void, and the
+    battle report says so ("- The walls of mari sally in support of the attack from terqa: given", or "...: void: no unit
+    moved from damascus to mari"). So a lone relief army with a sally drives out a lone besieger, who must be supported to
+    hold, unless the ground helps the besieger against that attack (rough ground, a pass or a great river crossed, or a
+    landing: a relief into Carchemish over the Euphrates or the Amanus, or into Nineveh over the Tigris, is 2 against 2
+    and bounces), when the relief needs one support more; the rulebook's example says so (since the review of the siege
+    package, which found it stated without the exception). Timing it with an ally takes letters. 0 turns sallies off. The record marks each sally (`sally`, or `sally-won`
+    when the attack it supported got in). The orders panel offers "Sally from the walls of…" where it can be given.
+  - **Strengthening walls** (`FortifyOrder`, other_orders "fortify", naming the province; the design document's "can be
+    strengthened for gold and upkeep, a real choice between defense and expansion"; question 5, plan step 11, first
+    guesses): the walls of a province the king holds rise a level at the end of the season (after purchases), up to
+    `GameConfig.MaxWalls` (3), for `FortifyCost` (50) × the new level, reserved when the order is checked and paid when
+    it is done; a province without walls can be given them. Refused at level 3, for land not held, while the province is
+    besieged or foreign troops stand within it, or twice in a season; not done, and not paid, if the province was lost in
+    the moves, a siege began or foreign troops got into it
+    ("Walls not strengthened": a scheduled one then wakes its seat, as others foiled it). Each level above the map's own
+    for the province costs `WallUpkeep` (5) a season, paid after the troops' upkeep (`TurnEngine.WallsUpkeep`; the
+    treasury notice reads "upkeep 3 minas 5 shekels, walls 5 shekels, wages ..."); walls whose upkeep the treasury
+    cannot pay fall a level, the farthest from the capital first ("Unkept, walls fell a level: Sinai, Thebes."). A city
+    that falls loses a level as any other, so a captured capital at 2 can be built back to 3 without upkeep. An
+    earthquake throws the walls of the province it strikes down a level (its notice says so: "..., and its walls stand a
+    level lower (walls 2)."); until the siege package its text spoke of walls it did not touch. The view shows the walls'
+    upkeep beside the troops' (`SeatView.WallUpkeep`), and the orders panel has "Strengthen walls in…" with the price,
+    offering only land the order may be given for (since the review of the siege package, not where foreign troops stand
+    within).
+    Script kings strengthen walls where a feared king may walk in (see Treasury under Script kings).
+  - **Envoys and a besieged capital** (the design document's "Getting a message out depends on the envoy's competence and
+    courage and on how tight the siege is; the besieger may capture the envoy and read the tablets"; question 5, plan
+    steps 12 and 13, first guesses in `GameConfig`). While a king's own capital is besieged (`TurnEngine.CapitalSiege`), the
+    siege's **tightness** is the besieger's units in the city and next to it, 1 to 3 (`TurnEngine.Tightness`; shown to the
+    holder and the besieger in SIEGES). An envoy of his whose courage is below 20 × tightness **will not leave** that season:
+    the letter is not sent and nothing is paid ("An envoy would not leave": "Mane would not leave Ashur while Babylonia's
+    army besieges it: the siege is too tight for Mane's courage this season. No gold was paid."; a scheduled letter then
+    wakes its seat, since others foiled it). One that goes is **caught** slipping out with a chance in percent of 20 ×
+    tightness − its skill ÷ 4, between 5 and 75 (`SiegeCatchPerUnit`, `SiegeCatchMin`, `SiegeCatchMax`), rolled on the
+    seeded stream "siege-envoy" by its id; so is one coming home to the besieged capital, with what it brings. A caught envoy
+    is the besieger's captive (`TurnEngine.Intercept`, `Character.Intercepted`): the besieger's notice ("An envoy is
+    caught") gives the letter it was to speak and its mandate, the gold goes to his treasury as an unassayed lot, and the
+    tablets it carried (the one to be sealed, those shown as evidence, those brought home) go into his archive. He may
+    execute, ransom or release it, not turn it ("... is an envoy your besiegers caught, not a spy at a post, and cannot
+    be turned"): it was no spy at a post to be sent back to. Released, it walks home in a season. Its king goes on seeing
+    it on its errand (a cover) and hears only, a season after it was due back, that it has not returned; the court that
+    holds it is known for it, as for a caught spy. Other kings' envoys, and the besieged king's spies, come and go freely
+    (closing the roads to all, and envoys visiting several courts in turn, come later, as question 5 planned). The record
+    marks envoys that slipped out (`envoy-out`), were caught (`envoy-caught`) or would not go (`envoy-stayed`).
+  - **Free cities** can also be bought for 10 × yield by a power whose land or troops touch
+    them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
   season bounce: the elders sell to none, and each bidder is told how many buyers bid ("The elders of
   Gaza would not choose between 2 buyers last season. No gold was paid."). A city that troops take in the season of a bid is not sold: every bidder is told
   ("Gaza was taken by Babylonia's troops last season before its elders could accept your gold. No
@@ -88,17 +216,78 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   is only reserved when orders are checked), and a scheduled bid that fails this way wakes its seat, unless its own
   troops took the city (since the review of the fix pass after item 4: no failure of a king's own making wakes him).
   (Until the simulation-fixes round such a bid vanished without a word.)
-- **A bought city keeps its walls**, which then hold for its owner: the owner cannot station troops
-  inside but it, or any other king, may support the walls holding (the rulebook and the schema's
-  support target say so); a rival still needs a supported attack, and conquest
-  tears the walls down. Buying is the durable way to grow, conquest the fast one.
+- **A bought city keeps its walls**, which then stand for its owner, who may station troops inside;
+  a city taken by storm or siege keeps them a level lower. Buying is the durable way to grow,
+  conquest the slow one now. (Until the siege package walls held with strength 1 for their owner,
+  who could not enter them but could support them holding, and conquest tore them down.)
+- **Terrain** (Build order item 5, the siege package; save version 6; question 5 of
+  `docs/rounds/2026-10-18-sleep-and-simulation.md`, plan step 14, and the design document's "Walls and terrain": "Mountains
+  and hills make a province harder to take", passes and rivers "belong on the connection between two provinces", "Islands
+  such as Alashiya are protected by the sea"). The lists are `Geography`'s, unchanged since the visual overhaul drew them:
+  rough ground in Mira, Lukka, Isuwa, Amurru, Arbela and Tamassos; the mountain passes of the Cilician Gates
+  (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish); the great rivers at the
+  Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh).
+  - **The ground helps a unit that stands its ground** (`Geography.DefenceGround`, `Adjudicator.HoldStrength`): one that
+    holds, besieges, supports or convoys, or whose own move failed. Against an attack it holds with
+    `GameConfig.TerrainDefence` (1, a first guess) more when it stands on rough ground, when the attack comes over a pass or
+    a great river (a crossing protects both its sides), or when the attack is a landing from the sea (an army carried by
+    convoy: question 5's "a landing by convoy counts as a crossing"); 1 in all however many apply, the first named in that
+    order. So one army on rough ground needs three to dislodge it, and Alashiya's island, which armies reach only by convoy,
+    meets every landing with that help (Tamassos is rough ground besides). 0 turns terrain off.
+  - **What it never does.** It never helps a unit that moves, nor one met head on (both armies are on the road, as in a
+    swap across the Cilician Gates), nor empty land, which stays open (question 5: "only to a defending unit"); it adds
+    nothing to walls and nothing to a siege's pace ("never in sieges"). A storm must beat the walls plus the hold strength
+    of the defenders it beat (`Assault`), and the ground's help is part of that strength, since the move had to beat it to
+    get in (a reading): Lukka (walls 1, rough ground) held by one army is entered with 3 and stormed with 4; empty, it is
+    stormed with 2 as before. A besieging army standing on rough ground, or behind a crossing, has the ground's help against
+    a relief like any unit standing its ground (a reading: no rule asks who holds the city). Supports are cut as always.
+  - **What kings read.** The rulebook's TERRAIN section, after WALLS AND SIEGES, built from `Geography` so it stays true if
+    the map changes; THE MAP marks each rough province ("- mira: Mira; land; homeland of Arzawa; yield 30; rough ground.")
+    and each link over a crossing ("kizzuwatna (across the Cilician Gates)"); LANDS marks the rough ground beside the walls
+    ("lukka (walls 1, rough ground)"). A failed move's line gives the ground's share of the strength it had to beat ("the
+    unit holding mira (Arzawa's army) kept its place; your strength 2 against 2, 1 of it for the rough ground of mira"),
+    and an assault on walls the ground's share of the defenders ("strength 3 against walls 1 and defenders 2, 1 of it for
+    the rough ground of lukka"), on both sides. The record logs "terrain" events where the ground decided a battle (the
+    move beat the hold without it: signal `terrain-held`) or an attack beat a unit the ground helped (`terrain-beaten`),
+    counted in the batch report. The web map's tooltips, province card, legend and about page say what the ground does.
+  - **The desert costs an army supplies** (question 5, plan step 15, built as the Build order's item 5 asks: "an army in its
+    own land pays no desert cost", so no rule names a power). An army that ends a season's moves in desert land (Sinai,
+    `Geography.Desert`) its king did not hold when the moves were made pays `GameConfig.DesertUpkeep` (30, a first guess)
+    with its next upkeep (`TurnEngine.MarkDesert`, `GameState.InDesert`, cleared once paid; `TurnEngine.DesertCost` in
+    `Upkeep`, so unpaid it makes troops desert like any upkeep). Egypt holds the Sinai at the start, so its armies cross it
+    freely (question 5's Ways of Horus), and so does anyone who takes it, from the season after: an invader pays for the
+    season he marches in, and every season he stands within walls raised there without taking it. The treasury notice says
+    what was paid ("The upkeep includes 30 shekels for supplies in the desert: your army in sinai ended last season in desert
+    land you did not hold."); the view's upkeep line, a forecast, leaves it out. The rulebook's TERRAIN and step 2 of HOW A
+    SEASON RESOLVES say so; THE MAP and LANDS mark the desert. The record marks each army that pays (`desert`). 0 turns it
+    off.
 - **Levies** are raised after movement, only in a province of the power's own homeland that it
   still holds and that is empty after movement; otherwise nothing is raised or paid, and the king is
   told which ("No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.",
   or "…: you no longer held Thebes after movement.", or, for land the king itself ceded earlier in
   the resolution, "…: you ceded Sinai to Hatti last season, before the levy."). Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
   start of the season, the one farthest from the capital first (the rulebook says so).
-- **Strength** = 10 × (sum of base yields of provinces held) + true gold − back pay owed (see
+- **Slow absorption** (Build order item 5, the siege package; question 5, plan step 16, and the design document's "A
+  kingdom falls with its capital": "the land becomes the conqueror's over time rather than at once, so a conqueror gains
+  an empire to hold, not a lump of score"). A province taken by force (troops standing in it, a storm, a siege, or
+  passing with a fallen kingdom's capital) yields its new holder a third of its yield in its first season under him,
+  two thirds in the second, and all of it from the third, and counts in his strength the same way
+  (`TurnEngine.Absorbed`, `GameState.Conquered`: the season it was taken). The first season is the season it was taken,
+  for the score reckoned at its end, and the next, for the income paid at its start; the mark goes once it counts in
+  full. A province of the taker's own homeland that he takes back counts in full at once (map data, not a check of which
+  power it is), and so does land bought or ceded, except land ceded while its giver was still absorbing it: the mark
+  stays, and the receiver goes on absorbing it from the season it was taken, unless it is his own homeland, which is his
+  in full at once as if he had retaken it (`TurnEngine.ResolveTransfers`; since the review of the siege package, which
+  found that a cession clearing the mark let two friends launder a conquest by passing it back and forth).
+  Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
+  following the yield (a reading; review question). Revolts, which the Ideas tab mentions, are left for later, as
+  question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of
+  its yield this season)"), the court's own land only (`SeatView.Conquered`): who holds a province is public, but how it
+  changed hands is not, and a mark on every king's land told every court which land had been conquered and which ceded
+  or bought (since the review of the siege package; until then every view carried every mark). The rulebook says so
+  under ECONOMY ("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is
+  not shown") and in HOW YOU WIN's strength. The public land standings still use base yields.
+- **Strength** = 10 × (sum of base yields of provinces held, conquered land counted as far as it is absorbed) + true gold − back pay owed (see
   "Back pay" under Characters). Growth is strength over starting strength. Units are not counted;
   they cost upkeep and are the means to land. One function computes it (`Scoring.Strength`): the
   engine's score with true gold and the back pay a power really owes; a seat's own strength line
@@ -130,6 +319,29 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   The web app's standings panel shows the same table to every seat, human or not. Script kings
   read the same facts from `MapData`, as before.
 - **Ending.** Not before turn 15; then 15% at the end of each season; hard cap at 60 turns.
+- **A kingdom falls with its capital** (the design document's rule, built with the siege package, Build order item 5;
+  until then a kingdom fell only when it held no land, so a king who lost his capital fought on from his last
+  provinces). After the moves, sieges and the change of hands, a king whose capital another power now holds has
+  fallen (`TurnEngine.CapitalsTaken`, step 10 of HOW A SEASON RESOLVES): his remaining land passes to the power that
+  took the capital, every troop of his disbands (no army has a commander yet to choose for itself, so all of them do),
+  his sieges are lifted, a siege the conqueror pressed against land that is now his is over, and his debts die with him
+  (back pay owed by him is lost, as before; debt tablets do not exist yet). His prisoners are let go, his servants are
+  free, and none of his orders after the moves is carried out (levies, purchases, envoys, intelligence). The kingdoms
+  that fall in one season are found first, so one fall revives nobody. Land passing to a capital's taker that itself
+  falls that season passes on with the taker's own land to whoever took his capital, and so on down the chain; a ring of
+  kings who took each other's capitals leaves the land free. Every heir is found before any land passes, so the order in
+  which the falls are reckoned changes nothing (since the review of the siege package, which found that when A took B's
+  capital while B took C's, C's land went to A or was left free as that order fell); the conqueror down the chain reads
+  "Assyria took Washukanni, the capital of Mitanni, but fell himself in the same season, and the kingdom of Mitanni
+  passes to you with his: ...", and the rulebook's HOW YOU WIN says "(if he falls too in the same season, it passes on
+  with his own land)". The
+  conqueror reads "A kingdom falls to you" ("With Apasa you took the kingdom of Arzawa: its king has fallen, his troops
+  have disbanded, and his land is yours: Seha River Land."), every other living court the rumour "Word spreads that the
+  kingdom of Arzawa is no more: Hatti took its capital, Apasa." (who holds the capital is public). The game records each
+  fall (`GameState.Falls`: the season, the conqueror, the capital and the land that passed). A king cannot cede his own
+  capital ("you cannot cede your capital: your kingdom falls with it"); a capital that is no longer its king's (his
+  kingdom has fallen) can be ceded like any city, and its archive goes with it. The rulebook says so under HOW YOU WIN
+  ("A kingdom falls with its capital. If another king takes your capital, ... your game is over").
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
@@ -214,10 +426,12 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
   and script kings use the features they never used, under "Every feature is every seat's" in Script kings; among the
   owner's additions to that pass, every seat may keep standing orders, a standing order that fires replaces the
   season's other orders for its units and people, those given that season among them, and script kings give them,
-  which changes what existing seeds do, under the same unreleased version 5). A log
+  which changes what existing seeds do, under the same unreleased version 5; 6 since Build order item 5, the siege
+  package, one version for the whole item: walls by place in place of the free cities' garrisons, storming and
+  sieges, terrain, and the rest of the item as it is built). A log
   saved under another version is refused, both for replay and for continuing it: "This game was saved under an
-  earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3 and
-  4). The web app shows that message
+  earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3, 4 and
+  5). The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
   (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
@@ -259,7 +473,9 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     fallen brings nothing. The spy remembers what it copied, and a model-played spy writing its report is told that a copy
     goes home with it when one does (not when its master came to hold that tablet while the report was on the road).
   - **Whoever takes a capital gains copies of its archive.** When a court's capital passes to another power at the
-    end of movement, or by cession (the archive lies in the city), that power gains at once a copy of every tablet in
+    end of movement, or by cession (the archive lies in the city; since the siege package a king cannot cede his own
+    capital, so a capital is ceded only by whoever holds it after its kingdom fell, and the rulebook says "and so does
+    anyone that city is later ceded to (a king cannot cede his own capital)"), that power gains at once a copy of every tablet in
     the court's archive it does not hold already ("taken with the archive of Assyria at Ashur"), and reads next season
     "With Ashur you took the archive of Assyria: copies of 2 tablets you did not hold are now in your archive: the
     tablet sealed by Assyria and Hatti, dated turn 4 (your copy k130), … (your copy k131)." (or that it held nothing new). The court keeps its own copies:
@@ -960,8 +1176,9 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     moves)
   - **foreign troops attacked it, and failed** (since the review of the fix pass after item 4; "it is
     attacked", among the document's default triggers): a foreign move last season into a province it
-    held, or into one where its troops stood, that did not get in, whatever stopped it (walls that
-    held, its troops that held, a bounce with another move), seen by the seat as every move into its
+    held, or into one where its troops stood, that did not get in, whatever stopped it (its troops
+    that held, a bounce with another move; walls stop no move since the siege package: a move that
+    gets within them wakes the seat as one entering its land), seen by the seat as every move into its
     land or its troops is ("foreign troops attacked you, and failed: Mitanni's army tried to move
     terqa -> mari"). Babylonia's debrief after seed 15 of the second agent simulation found the gap:
     "A bounced assault on my walls therefore does not wake me ... Qadesh can only be protected
@@ -973,16 +1190,16 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     is not the seat's, with none of its troops there, do not wake it (tested). Until this review a
     failed attack went to the digest, marked "(into your land)" or "(against your troops)", by the
     reading of the simulation-fixes round (below).
-  - **temporary, until sieges and walls on homeland provinces exist; revisit with the siege
-    package:** foreign troops (an army or a fleet) ended a move last season in a province next to
-    its capital (one link of any kind), seen by the seat, while it still holds its capital ("foreign
-    troops came next to your capital: Hatti's army moved isuwa -> sapinuwa"). With no walls on
-    homeland provinces an army there can take the capital the next season, so a sleeping king must
-    not first hear of it when the capital falls (the user's addendum to the simulation-fixes round).
-    Only the arrival wakes it: troops that stay where they are, a move that failed, the seat's own
-    troops, and any move once the capital is lost do not (tested; a failed move into its land or
-    against its troops wakes it as an attack, below). A move into its own land next to
-    the capital gives both reasons. The replay numbers count it as its own kind.
+  - **retired with the siege package** (Build order item 5): a temporary trigger for foreign troops
+    ending a move next to the capital ("foreign troops came next to your capital: Hatti's army moved
+    isuwa -> sapinuwa"), which stood in, from the user's addendum to the simulation-fixes round, for
+    the warning walls would give: with no walls on homeland provinces an army there could take the
+    capital the next season. The capital now has walls 3, and falls only to a storm of 4 or more or a
+    siege of seasons; troops next to it wake the king as troops next to any province of his homeland
+    do ("foreign troops came next to your homeland: ..., next to babylon, nippur, sippar"), and a move
+    into his own land next to it gives that reason alone. The sleep triggers for walled cities and home
+    provinces stay as the fix pass built them; their rulebook text now says what troops next to them
+    can do ("get into it the next season: take it if it has no walls, or stand within them and besiege it").
   - **a threat to a home province or a walled city** (since the fix pass after item 4): foreign
     troops ended a move last season in a province next to another province of its homeland that it
     still holds ("foreign troops came next to your homeland: Egypt's fleet moved delta ->
@@ -999,15 +1216,23 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     agent simulation found both gaps: Alashiya saw Egypt's fleet beside an empty Tamassos only because
     an envoy woke it (seed 7), and Babylonia moved support to the walls of its bought Qadesh, next to
     Egypt's armies, only because an envoy woke it (seed 15); both kings named the gap in their
-    debriefs. When item 5 retires the capital trigger, the capital falls under this one.
+    debriefs. Since the siege package the capital falls under this one (its own trigger is retired).
+  - **a siege of a city of its own** (the siege package): one begun last season ("a siege of a city of
+    yours has begun: Assyria's army besieges babylon (walls 3), worn down 1 of 3"), a change the entry
+    before it did not tell (an army within the walls may stand as a guest until it besieges), and one
+    that will make the city surrender at the end of this season if the besiegers just hold ("a city of
+    yours surrenders at the end of this season unless the siege is broken: ..., worn down 2 of 3"), the
+    last season to break it. Each fires once (question 5 listed both among the triggers a siege needs;
+    its other three, for the besieger and for envoys, are not built: a besieger is woken by attacks on
+    its army as any king is, a caught envoy is news that travels, and the captor decides the captive's
+    fate when next it gives orders, as for a caught spy).
   - it lost land ("land lost: Sippar has been taken by Assyria.")
   - it lost troops: a unit destroyed in battle ("your army in sippar was destroyed"), unpaid troops
     deserting ("your unpaid troops deserted"), or a unit killed by plague ("plague destroyed troops
     of yours")
   - a scheduled or standing order that others foiled as the season resolved (`TurnEngine.ScheduledFailed`):
     a scheduled move stopped by another power's unit (held off, met head on, or beaten to the
-    province), or by walls that troops helped hold (a strength above the walls' own 1;
-    `TurnEngine.StoppedByOthers`), with the battle report's reason ("orders you scheduled could not
+    province; `TurnEngine.StoppedByOthers`), with the battle report's reason ("orders you scheduled could not
     be carried out: sippar -> ekallatum (the unit holding ekallatum (Assyria's army) kept its place;
     your strength 1 against 1)"); a scheduled support that a foreign attack cut ("... (the support
     was cut by an attack from ekallatum)"); a purchase other buyers or another's troops spoiled; a
@@ -1032,8 +1257,8 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
       (any of the validator's refusals: it checks the seat's own state and orders);
     - a failure of its own making as the season resolves: a support or convoy that matched no
       move (a guess at another unit's orders, given on purpose as easily); a move stopped by its own
-      unit, by walls alone (whose strength of 1 the king knows, so a lone attack on walls was a sure
-      way to be woken), or for want of a convoy; a levy where its own unit stands, or in land it
+      unit, or for want of a convoy (until the siege package also by walls alone, whose strength of 1
+      the king knew); a levy where its own unit stands, or in land it
       ceded; a cession its own troops stood in; a disband or a gift of a unit its own orders had
       moved (one destroyed wakes it as troops lost); a purchase its own troops took first; a hire
       below the asking price; a renewal below the servant's price, or of a servant it dismissed that
@@ -1051,8 +1276,8 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     (reach, unit kind) when it is given; with no refusal waking a king, that would change only when
     he reads of the mistake, not whether it wakes him, so it is not built (a refused move still ends
     the unit's march, as before). What remains is a route through others' troops: a king can still
-    schedule a weak attack on a foreign unit he expects to stand, or on walls he expects their owner
-    to support, and be woken when it fails; that costs him a unit's season and depends on another
+    schedule a weak attack on a foreign unit he expects to stand, and be woken when it fails; that
+    costs him a unit's season and depends on another
     king's orders, and is left to the owner as a review question.
   - a ransom is demanded for one of its people
   - a servant gives notice ("a servant gives notice: Mane asks 20 shekels a season to serve on"):
@@ -1233,7 +1458,11 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   the move succeeds, and when they end a move in a
   province next to your capital, another province of your homeland or a walled city you hold, while
   you hold it (troops there can take it the next season). Troops that only stay where they are do not
-  wake you again, nor do troops raised by a levy."); scheduled orders, naming units
+  wake you again, nor do troops raised by a levy."; since the siege package "... next to a province
+  of your homeland or a walled city you hold, while you hold it (troops there can get into it the next
+  season: take it if it has no walls, or stand within them and besiege it). ... A siege of a city of
+  yours wakes you in the season after it begins, and again when the city would surrender at the end of
+  the season if the besiegers just hold: the last season to break the siege."); scheduled orders, naming units
   by where they stand now, and their limits; the march; standing orders; which failures wake; and
   the digest. The seat's view lists its scheduled orders
   by season and its standing orders by id, each of its units named by where it stands now ("- turn
@@ -1417,7 +1646,10 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     on: "Unlike a scheduled order, which runs in its season whatever happens, a standing order runs
     only if the move it waits for comes, and then in that very season: a unit of yours next to the
     province attacked can support your unit there holding (unit_attacked), or support the walls of a
-    walled city of yours holding (unit_enters on the city), as the blow falls. Giving one costs
+    walled city of yours holding (unit_enters on the city), as the blow falls. [Since the siege
+    package walls add nothing to a battle, and the section reads instead "... can support your unit
+    there holding (unit_attacked), and a unit next to an empty province of yours, walled or not, can
+    move into it, so that an attacker without support bounces."] Giving one costs
     nothing; its orders cost what they cost when they run (a levy its gold), and in the season it
     fires its units do its orders instead of their scheduled ones. It fires once, on the first move it
     waits for that you see, whether a real attack or a feint, and is then gone." Two debriefs had
@@ -1593,7 +1825,9 @@ makes 36, named `char-` and 8 random hex digits, with the same guard as the king
 the narrator as before. `check-isolation.js --dry` checks the walls without starting an agent, by
 running each agent's own hook on the isolation test's steps; the live test still runs first in the
 playing session. `stub-replier.js` answers requests with the plainest valid reply, to prove the
-plumbing without model calls. `audit.js` allows an agent in play to read only the request file its
+plumbing without model calls (with `--sieges`, since the script players' audit of the siege package, its kings also
+besiege, march armies into free walled cities, sally and fortify, read from their view, to prove that file seats can give
+the siege package's orders). `audit.js` allows an agent in play to read only the request file its
 prompt named, since a character could otherwise open an older or newer request of its own and learn
 what has happened since the season it writes of (a debrief, which names earlier requests to reread,
 may read any of its own); until item 4's review any request file in its own folder passed. The
@@ -1651,7 +1885,11 @@ fix pass after item 4 (report `docs/rounds/2026-10-20-fix-pass.md`, "The feature
 success in seeds 1-100 and patched those never used or never successful: inventories examined, thieves dismissed,
 convoys, gifts of troops, cessions, recalls, captives released, the second exchange, greetings without the title or
 without a greeting, threats, oaths asked of envoys, gold debased only where it goes unassayed, watchmen and levies placed
-where they pay.
+where they pay. The script players' audit of the siege package (Build order item 5; its report, "Script players and every
+feature") did the same for that item's features and for the leftovers of the fix pass's audit: pleas for relief and the
+relief of a friend's besieged city, walls against fleets on an open coast, standing orders for besieging armies (a lone
+one slips away from a relief), captives whose king has fallen let go, a foreign army within one's own capital counted as
+the kingdom at stake, land to be conquered valued as it is absorbed, and an envoy's word that a host offered it a post.
 
 ### A season, in order
 
@@ -1668,7 +1906,7 @@ where they pay.
 ### Terms used below
 
 - **H**, the seasons the game is still expected to run: 15 − turn + 6.7 before turn 15, then 6.7 (that is, 1 ÷ 0.15).
-- **Value** of a land province: 10 × yield + yield × H, plus 80 for any capital, plus 30 for a province of the king's own homeland. Sea zones are worth 0. At turn 1, a province of yield 20 is worth 613.
+- **Value** of a land province: 10 × yield + yield × H, plus 80 for any capital, plus 30 for a province of the king's own homeland. Sea zones are worth 0. At turn 1, a province of yield 20 is worth 613. Since the siege package a kingdom falls with its capital, so a living king's capital, while he holds it, is worth half the value of the rest of his land more to a rival (it passes with the capital), and the king's own capital the whole value of the rest of his land more to him (he loses it all with it). In the look-ahead, a pictured season that loses our capital loses every province and troop we hold. Land taken by force is absorbed slowly (a third of its yield in its first season under its taker, two thirds in the second), so the value of land not ours that we would take, outside our own homeland (which counts in full when retaken), is a season's yield less, and land of ours still being absorbed is worth what it has still to lose less (Board.AbsorptionLoss; since the script players' audit of the siege package).
 - **Strength**: 10 × the yield of the land held, plus gold, less back pay owed, by the game's own function (`Scoring.Strength`, shared with the engine). A king's own strength is the one its view shows (its gold by its ledger, less the back pay it believes it owes). A rival's gold is an estimate, never below 0, and his back pay counts as 0, since no court can see what another owes. **Growth** is strength over starting strength (10 × homeland yield + starting gold), and a fallen king's growth is 0. This is the game's own score.
 - **Leader**: from turn 4, the king with the highest growth. He must have growth of at least 1.15, stand at least 0.1 above the next king, and have at least 0.8 × the median strength of the living kings. Otherwise nobody leads. A king may find that he leads himself.
 - **Neighbours**: kings whose land borders our land or troops, or shares a sea zone with one of our coasts. Kings whose troops (seen or remembered) are within two moves of our land or troops also count.
@@ -1747,8 +1985,8 @@ Each season, before deciding:
 | What reached the court | Grudge, before scaling | Trust | Marks an attack |
 |---|---|---|---|
 | He took one of our provinces | 2 + yield ÷ 20 | −0.4 | yes |
-| He ordered a move into our land (seen, whether it worked or not) | 1 | −0.25 | yes |
-| He supported a move (his own or another king's, successful or not) into land we held | +0.5, not scaled | 0 | no |
+| He ordered a move into our land (seen, whether it worked or not), unless it struck a third king's troop standing in it (since the script players' audit of the siege package: a besieger within our walls, or a guest; driving it out is a relief, no wrong, though taking the land still counts as land taken) | 1 | −0.25 | yes |
+| He supported a move (his own or another king's, successful or not) into land we held, unless it struck a third king's troop standing in it | +0.5, not scaled | 0 | no |
 | His gold assayed below 100%, or was found missing when the treasury paid (only the first sender named counts) | 1.5 | −0.3 | no |
 | Our envoy is overdue from his court | 1 | −0.3 | no |
 | A caught spy confesses to serving him | 1 | −0.3 | no |
@@ -1758,7 +1996,7 @@ Each season, before deciding:
 
 - A successful support for one of our troops: trust +0.15, and the support is remembered.
 - Gold that assays at 100%: trust +0.05.
-- Our own envoy's report from his court: trust + 0.08 × tone.
+- Our own envoy's report from his court: trust + 0.08 × tone. If it says the host offered it a post and it refused ("The king of Karduniash offered me a post in his service, and I refused it"), the host tried to buy our servant: trust in him − 0.05, and the envoy is proven true, so among servants equally reliable it is chosen first for the letters that carry tablets, gold or pleas, and kept on first when servants give notice (since the script players' audit of the siege package, the fix pass's minor finding 2).
 - Audiences the king hosts change trust by gifts, slights and seals (see Audiences).
 
 **Tone** is a crude word count. Each of nine warm words (brother, love, friend, peace, sealed, gift, rejoice, gracious, kindly) counts +0.5. Each of ten cold phrases (not forgotten, regret, withdraw, war, punish, liar, false, broke, detain, will not seal) counts −1. The total is clamped to ±2 and halved, so tone runs from −1 to +1.
@@ -1770,7 +2008,7 @@ Each season, before deciding:
 - Remembered troops are placed at the newest sightings, up to the number each king is thought to have beyond those in sight. A fallen king's troops are forgotten.
 - It keeps the largest number of troops it has seen each king hold. After three seasons of seeing fewer, it lowers that count by one, so it forgets a troop a year. A spy's report can raise the count. A king with no land and no troops in sight is counted as having none.
 
-**Belligerence.** Each conquest by another king, anywhere on the public map, adds 1 for free land and 1.5 for a king's land. It fades to 70% each season. Purchases do not count.
+**Belligerence.** Each conquest by another king, anywhere on the public map, adds 1 for free land and 1.5 for a king's land. It fades to 70% each season. Purchases do not count: a free city bought keeps its walls, one taken loses a level. Since the review of the siege package a court sees the walls standing only where it sees troops, so a free city that changed hands out of sight, which may have been bought or taken, counts half as each: 0.5 belligerence, and half its price off the buyer's estimated treasury.
 
 **Rivals' treasuries** are estimated from what is public. Each one starts at that king's starting gold. Then, each season, it adds the yield of his land and subtracts:
 
@@ -1787,7 +2025,7 @@ An estimate never goes below 0, and a fallen king's is 0.
 
 **Prize**(X) adds up, for each of X's provinces one of our troops can move into, value × chance × 0.6 (land taken must still be held). The chance compares the troops we can strike with against X's defence:
 
-- Defence is 1 + 0.6 × backers if X's troop or walls stand there, else 0.5 × backers.
+- Defence is 1 + 0.6 × backers if X's troop stands there, else 0.5 × backers (walls add nothing to a battle since the siege package).
 - Backers are X's troops able to move in, plus hidden ones: as many of X's neighbouring provinces out of sight as X has troops unaccounted for.
 - The chance is 0.8 if our strikers exceed the defence by more than 0.5, 0.5 if they exceed it at all, 0.25 if they are short by less than 0.5 (or tie), and 0.05 otherwise.
 
@@ -1874,7 +2112,7 @@ Otherwise the tablet still makes a treaty partner, but nobody acts against X.
   - At least one of those troops must be ours, and at least one a partner's.
   - The troop of the king with the least land (by yield) goes in. Ties go by fixed power order, then army before fleet, then province id.
   - All the other troops support it.
-  - The blow is struck only if 1 + supports > held + (backers + 1) ÷ 2, rounded down. Held is 1 if his troop or walls stand there. Backers are his troops able to reach the province.
+  - The blow is struck only if 1 + supports > held + (backers + 1) ÷ 2, rounded down. Held is 1 if his troop stands there (walls add nothing to the battle; a blow that gets within them begins a siege). Backers are his troops able to reach the province.
   - Each troop is used once.
   - If we go in and are willing, the attack is worth 0.85 × (value × 1.3, + 120 if a troop is there) + 40, minus exposure and 6 for each of our own supporting troops.
   - If a partner goes in, each of our supports is worth (0.25 + 0.25 × honesty) × value (× 0.85 if the province is empty) + 40. Even a troop kept at home may give it.
@@ -1915,33 +2153,39 @@ What script kings never do, and how they treat oaths:
    - with more troops, only if caution is above 0.5 and 0.6 × fear is at least 0.2.
 3. **Exposure** is the cost of moving a troop out of a province the king holds: chance × value × (0.6 + 0.5 × caution). The chance is the threat's fear. For the capital and homeland it is at least 0.6 × the fear of any feared troop within two moves.
 4. **Operations**, each with a net worth:
-   - **Block**: march into our own threatened land that has no troop and no walls. Net: 0.6 × fear × value − exposure.
-   - **Defend**: hold a threatened troop or walls with (threat − 1) supports.
+   - **Block**: march into our own threatened land that has no troop, walled or not (walls do not hold in a battle). Net: 0.6 × fear × value − exposure.
+   - **Defend**: hold a threatened troop with (threat − 1 − the ground's help) supports. The ground's help (terrain, since the siege package) is what rough ground there gives against any blow, or a pass, a river or a landing if every troop of the likeliest attacker that could move in comes over one (`Board.GroundAgainst`).
      - Worth = value, + 120 if a troop is there.
      - Net = fear × worth × share × (0.7 + 0.6 × caution). Share is 1 with enough supporters, else 0.5 × found ÷ needed.
      - If supporters are short, a shortfall worth fear × worth is noted for levies.
    - **Cut**: move a troop into each province from which the most hostile king with that strength could support the attack. Net: 0.35 × fear × worth − exposure.
    - **Attack**: any land province next to a free troop, except our own empty land, the land of kings we are unwilling to fight, and their troops outside our own land.
-     - Defence: with a troop there, 1 + round(backers × (0.5 + 0.3 × caution)); with empty walls, 1 + round(0.6 × the owner's troops in reach), or 1 for a free city; open land, 0.
+     - Defence: with a troop there, 1 + round(backers × (0.5 + 0.3 × caution)) + the ground's help to it against the troop that goes in; otherwise 0 (walls add nothing to a battle since the siege package, and the ground nothing to empty land).
+     - Walls not ours (the siege package): only an army goes in. With troops enough to storm them (more than the walls and the defence together), the attack takes the city at once and is worth its gain; with only enough to get in, the army stands within the walls to besiege the city, and the attack is worth gain × 0.6 ÷ (1 + 0.25 × walls), + 60 if a troop is there (`Tactics.SiegeWorth`).
+     - Our own city besieged: driving the besieger out adds 0.9 × the city's value to the gain. A friend's troop standing in our city as a guest, with no siege, is left alone.
+     - **A friend's city besieged** (`Tactics.Relief`, since the script players' audit of the siege package; before it no script king ever relieved a friend's city, whose land was closed to its troops): a city of a friend we are not betraying, besieged by the troop standing within it, whose king we are willing to fight, or who is no friend of ours while the city's holder is our full ally. An army of ours goes in on the besiegers with defence supports, the defence reckoned as for an attack (the besieger's backers and the ground), but only if that strength, with a sally from the walls counted where the walls can sally, is no more than the walls: then it cannot storm them even against a besieger standing alone, and the city stays our friend's. Gain: (0.25 + 0.25 × honesty) × the city's value (a share, as for a support given to a friend's blow), + 120 for the besiegers' troop (60 if they are kings we would not otherwise strike first). Net as for an attack.
      - Contest: the largest number of troops any other king could also march in, less one unless caution is above 0.5.
      - Troops needed: the larger of defence and contest, plus one.
      - Gain = value × multiplier (0 for our own land), + 120 if a troop is there, + 60 for a foreign capital.
      - Multiplier: free land 1 − 0.45 × commerce; the betrayed friend 1.1; the war target or a sworn foe 1.3; the leader 1.2; a hostile king 1 + 0.3 × vengeance; anyone else 0.55 + 0.45 × aggression.
-     - The troop that goes in is the least exposed one that may move, armies first.
-     - Net = 0.85 × gain (0.75 × gain if defence is above 1) − exposure − 6 for each supporter.
+     - The troop that goes in is, against a troop there, one the ground helps it least against (over open ground rather than a pass or a river; since terrain), then the least exposed one that may move, armies first.
+     - Net = 0.85 × gain (0.75 × gain if defence is above 1) − exposure − 6 for each supporter − the desert's cost for an army going into desert land not ours (since terrain).
      - Without enough troops and with a gain above 150, a shortfall worth half the gain is noted.
    - **Convoy**: an army on a coast next to one of our fleets at sea, to an empty coast the army cannot reach by land. The target must not be ours, and must be free or belong to a king we are willing to fight.
-     - Troops needed: 1 (2 if walled), + 1 if any other king can reach the coast.
+     - Troops needed: 1, + 1 if any other king can reach the coast; a landing that does not storm the coast's walls is worth × `SiegeWorth` (it only begins a siege).
      - Net = 0.75 × value × multiplier − exposure. For a **stranded** army, one with nothing it could take by land this season (every land or coast link leads to our own land, to walls, or to a king we will not fight), 0.85 × value × multiplier + 60 − exposure: more than the fleet would net taking that coast itself, since the army goes in and the fleet stays at sea. (Since the fix pass after item 4. Before it no script king ever convoyed in 100 games: the fleet took such a coast itself, and fleets were never at sea next to an army that needed them.)
+   - **Siege** (the siege package): each army of ours within walls we do not hold, of a free city or a king we are willing to fight, stays and besieges the city. Net = 0.9 × value × multiplier ÷ (the steps still to wear down) + 40. A neighbouring troop that is free and not threatened supports it holding when two or more steps are left (a support wears the city down two steps). After the look-ahead, an army of ours still holding within such walls is given a besiege order (`Tactics.Besiege`).
    - **Joint blows**: see Coalitions.
 5. **Commit**, best first, until net worth reaches 0. Each troop is used once, and only one attack, block, convoy or joint blow goes into each province (cuts are not tracked). A troop that must stay never moves; it may still support.
 6. **Support friends.** Each troop still free and not threatened supports a friend's troop in sight that a non-friend menaces: a sworn foe first, then the leader, then any king with hostility above 0.4.
    **Ready a convoy** (since the fix pass after item 4). For each stranded army on a coast that is not threatened and not kept home, a free fleet that is not threatened puts to the sea next to the army's coast whose far coasts are worth most (the best value × multiplier among coasts the army cannot reach by land, not ours, free or of a king we will fight), if that is at least 200 and the fleet can get there this season; a fleet already there waits. Next season the convoy above can carry the army over.
 7. **The rest.** Threatened troops and troops kept home hold. Every other troop takes one step towards the best place within five steps:
    - land that is not ours and is free, or belongs to a king we are willing to fight, scores value ÷ (1 + steps);
-   - our own threatened empty land scores 0.8 × value ÷ (1 + steps).
+   - our own threatened empty land scores 0.8 × value ÷ (1 + steps);
+   - a friend's city we would relieve (above), as we see it besieged or as its holder pleaded with us in the last four seasons (and we do not see the siege over), scores (0.25 + 0.25 × honesty) × value ÷ (1 + steps): the troop marches next to it, since foreign walls are not stepped into (since the script players' audit of the siege package);
+   - for an army, desert land not ours scores the desert's cost less (since terrain).
 
-   The step must be empty, not already taken, not walled, and not into an unwilling king's land. Otherwise the troop holds.
+   The step must be empty, not already taken, not within foreign walls (our own the troop may march through), and not into an unwilling king's land. Otherwise the troop holds.
 
 ### The look-ahead
 
@@ -1960,27 +2204,29 @@ What script kings never do, and how they treat oaths:
   3. his hard plan;
   4. to 8. each rival attacks with chance (hostility − 0.2) × 1.2, clamped to 0.03–0.85: half the time with a random one of his three strikes, otherwise with his hard plan. Each rival order also has a 15% chance of becoming a random move or a hold.
 
-  Sworn partners keep to the joint-blow rule in every season except 2 and 3.
+  Sallies are pictured for every king (`Search.Sallies`): his move into his own walled city on troops within it, and, where he makes none, another king's move into it on the troops within (a friend's relief, which the holder's walls may support; since the script players' audit of the siege package). Sworn partners keep to the joint-blow rule in every season except 2 and 3. A rival's troop that stood its ground against a move of ours last season (our move failed, it stayed) and stands there still is pictured holding in every season (`Search.StoodAgainstUs`, since terrain): it showed it will. Before it, a move one support short of a troop the ground helped was tried season after season, because the seasons in which that troop marched off made it worth trying.
 - **Candidates.** The king's own plan, a bolder one (aggression +0.35, caution −0.35), a safer one (aggression −0.3, caution +0.35), and every troop holding. Willingness stays the king's own. A candidate wins only if it scores more than 1 above the best so far.
 - **Single changes.** Then, in up to two passes over its troops, every alternative order is tried:
   - hold;
-  - each move, except into its own walled city or into the land or troops of a king it is unwilling to fight;
-  - each land move with one supporter, preferring a troop that is holding, then one that is supporting;
+  - each move, except into the land or troops of a king it is unwilling to fight;
+  - each land move with one supporter, preferring a troop that is holding, then one that is supporting, and, against a foreign troop the ground helps against that move, with two (since terrain);
   - support for each of our other planned moves, or for one of our own troops in reach that is not moving;
-  - support for its own walled cities;
   - support for a partner going in on a joint blow.
 
   A change is kept if it scores more than 2 above the best. A pass that keeps nothing ends the search.
 - **Budget**: 720 adjudications per king per season, which is 90 plans tried against eight seasons. That takes about 20 ms natively; a season of six script kings takes well under a second in the browser.
 - **A plan's worth** is (1 − ρ) × mean + ρ × worst over the eight seasons, where ρ = 0.1 + 0.3 × caution.
 - **Scoring a resolved season**:
-  - + the value of every province held afterwards, and 90 for each of our troops left;
+  - + the value of every province held afterwards, and 90 for each of our troops left. A troop within walls its king does not hold holds the province afterwards only if it stormed them, or if it held there and the siege, begun now or under way, reaches the walls' level this season;
+  - + 0.45 × share × value for each siege of ours, and − the same for each siege of one of our cities, where share = (progress + this season's steps + 0.5) ÷ (walls + 1), at most 1 (a troop within such walls with no siege yet counts as one about to begin; a friend's within ours does not, a guest or a relief). A siege of our own capital, the kingdom at stake, counts at least 0.25 of its worth however early (`Search.Stake`; since the script players' audit of the siege package: until then a foreign army that had just got within its walls counted as a twentieth of its worth, and of 228 foreign armies that got within capitals in 100 script games, 121 got in as the garrison marched out on a blow elsewhere and 88 found it empty; 43% of those capitals fell within four seasons. A quarter, not more: at two fifths the current king lost more growth against the frozen baseline);
+  - + (0.25 + 0.25 × honesty) × value for each friend's city whose besiegers are driven out, where we would relieve it (`Tactics.Relief`; since the script players' audit of the siege package);
   - + harm to the kings we fight: weight × value of each province he lost, and weight × 100 for each of his troops destroyed. The weight is 0.45 for a sworn foe, 0.35 for the war target or a betrayed friend, 0.3 for the leader, and 0.2 for any other hostile king;
   - − 0.25 × value for each sworn partner's province the foe now holds, and 25 for each partner troop destroyed;
   - − what lies open next season, for each province we hold: risk × (0.3 + 0.3 × caution) × (value, + 90 if our troop is there).
-    - Defence is 1 + our troops next to it if a troop or intact walls are there, else at most 1.
-    - Each king feared at least 0.15 (at the capital, at least 0.3 unless a full ally) adds his fear as a chance if his troops next to it outnumber the defence, or 0.3 × his fear if they equal it.
+    - Defence is 1 + our troops next to it + the ground's help against that king's troops if a troop of ours is there, else at most 1.
+    - Each king feared at least 0.15 (at the capital, at least 0.3 unless a full ally) adds his fear as a chance if his troops next to it outnumber the defence, or 0.3 × his fear if they equal it. Behind walls, his fear counts only if his troops could storm them (more than the walls and our troop there), and 0.15 × his fear if they could only get in; behind the walls of our capital, 0.25 ÷ 0.45 × his fear (the kingdom at stake, as above; since the script players' audit of the siege package).
     - These chances combine as independent.
+  - − the desert's cost for each army of ours that ends the season in desert land we do not hold (since terrain);
   - + 0.05 × the best value each of our troops could strike next season: land not ours that is free, or belongs to the war target, a betrayed friend, the leader, a hostile king or a sworn foe.
 
 ### Standing orders
@@ -1988,37 +2234,48 @@ What script kings never do, and how they treat oaths:
 Since the owner's additions to the fix pass after item 4 (`Contingencies`). A standing order that fires replaces the
 season's orders for its troops, so the king gives its troops their orders as usual and leaves standing orders to change
 them only if a feared blow is ordered. One given now first fires next season, so the king gives them against troops that
-could strike next season, and only to troops that stay where they are this season (hold, support or convoy, and not
-disbanded or given away), whose place next season is known. It rolls no dice.
+could strike next season, and only to troops that stay where they are this season (hold, support, convoy or besiege, and
+not disbanded or given away), whose place next season is known. It rolls no dice. A besieging army is guarded, but never
+called away to help elsewhere, since it presses its siege only if it holds there (since the script players' audit of the
+siege package; until then besiegers were left out of standing orders altogether).
 
 - **Threat** to a place, next season: the most troops one king it fears at least 0.25 (as the first plan reckons fear,
   the capital at least 0.3 unless he is a full ally) has, seen or remembered, within two moves of it (able to move in now,
   or to move next to it first). **Muster**: the same, counting only troops that could move in this season.
 - **New standing orders**, for the places it holds or stands in under threat, most chance × worth first (worth: the
   province's value if it is ours, + 120 for a troop of ours there), at most 12 kept in all, each helper used once:
-  - **a troop of ours** that stays, with a threat of 2 or more and a muster of 2 or more now: when it is attacked, troops of
-    ours next to it support it holding, as many as the threat less one, the least threatened (by chance × worth) first;
-  - **a fleet at sea** in that case with no troop to help it (armies cannot support at sea): when it is attacked, it moves
-    to an empty refuge next to it, ours, free or at sea, where no feared troop could move in now (ours first);
-  - **the walls of a city of ours**, with a threat and a muster of 2 or more: when foreign troops enter it, troops next to it
-    support the walls holding;
-  - **an empty province of our homeland** under any threat: when foreign troops enter it, the least threatened troop of ours
-    next to it marches in, so that a lone attacker bounces (the troop stays where it was, holding alone as a troop whose
-    move failed does).
+  - **a troop of ours** that stays, with a threat of 2 or more and a muster of 2 or more now (each less 1 on rough ground,
+    where the troop holds with 1 more against any blow, since terrain; each 1 more for an army besieging a city whose walls
+    can sally, since the walls may support the blow): when it is attacked, troops of ours next to it support it holding, as
+    many as the threat less one (with the same changes), the least threatened (by chance × worth) first;
+  - **a fleet at sea, or an army besieging a city,** in that case with no troop to help it (armies cannot support at sea):
+    when it is attacked, it moves to an empty refuge next to it, ours, free or at sea, not within foreign walls, where no
+    feared troop could move in now (ours first). The besieger loses its siege either way when it is driven out, so it saves
+    the army. (Fleets at sea were never struck in script games, 0 in 100, so until the script players' audit of the siege
+    package no retreat was ever given; besiegers then gave 130 in seeds 1-100, of which 7 fired and 6 saved an army that a
+    relief with its sally would have driven out);
+  - **an empty province of our homeland, or an empty walled city of ours**, under any threat: when foreign troops enter it,
+    the least threatened troop of ours next to it marches in, so that a lone attacker bounces (the troop stays where it was,
+    holding alone as a troop whose move failed does). Until the siege package a walled city's guard had troops next to it
+    support its walls holding; walls now add nothing to a battle, so it is guarded as empty land is (the fix pass after item
+    4 found the old wall guards given 41 and 24 times in seeds 1-200 and never fired).
 - **Those kept so far** may fire this season. Each is cancelled (the reason goes in the notes) when:
   - no feared troop is within two moves of the place ("no threat");
   - the troop it guards marches out or leaves our hands this season ("the troop marches", "the troop goes");
   - the city is lost, or one of our troops stands in or moves into the empty province it guards ("lost", "ours to enter");
   - this season's plan already gives all its orders ("the plan does it"), or guards the troop its own way, with a supported
     move of ours into its province, which an attack cannot cut ("the plan guards it");
-  - it gives only supports, and the troop or walls hold this season without them against the muster now ("held without
-    it"): it would fire on any blow and take its troops from their own orders for nothing;
+  - it gives only supports, or slips a besieger away, and the troop holds this season without them against the muster now
+    (and the walls' sally, for a besieger) ("held without it"): it would fire on any blow and take its troops from their own
+    orders, or give up the siege, for nothing; or it slips away an army whose siege is over ("no siege");
   - one of its troops is gone or can no longer reach ("a troop gone", "out of reach"), a fleet's refuge is taken or could be
     entered now ("no refuge"), or a troop it sends to block is one the plan has others support holding ("needed at home");
   - what a troop of it would give up is worth more: its own order for the season costs, for a hold 0, for a move or a
     support of a move into a foreign troop's place 0.85 × value + 120, into free or foreign land 0.85 × value, into our own
     threatened empty land 0.6 × value, otherwise 0; for a support holding another place that place's worth; for a convoy
-    everything. Kept only if the worth of what it guards is at least that cost ÷ 0.6 ("needed elsewhere").
+    everything; for a besiege order a step of the siege, 0.45 × the city's value ÷ (walls + 1). Kept only if the worth of
+    what it guards is at least that cost ÷ 0.6 ("needed elsewhere"); the troop that slips away is not weighed, since it fires
+    only on a blow that would drive it out.
 - **Measured** in seeds 1-100 and 101-200 (report of the fix pass, "Additions: standing orders for every seat"): about 53
   and 55 given per game for all seven kings together, most cancelled within a season or two as the plan or the threat
   changes; 82 and 92 fired, each in a season of its own, and a replay of each such season's movement with the troops
@@ -2029,10 +2286,10 @@ disbanded or given away), whose place next season is known. It rolls no dice.
 ### Treasury
 
 - **Gold** the king plans with is its treasury by its ledger less the back pay its view shows it owes: back pay owed is gold already spent, since the people it is owed to claim it when they are back at court. Everything below (disbanding, levies, cities, and the spare gold that pays for the court, gifts and bribes) reckons with that figure, so a script king never spends what a returning servant will claim. (Since the simulation-fixes round's Part G.)
-- **Flow** = income − upkeep − wages (all wages, those built up as back pay included).
+- **Flow** = income − upkeep − the walls' upkeep − wages (all wages, those built up as back pay included).
 - **Reserve**:
-  - while flow is not negative, 0.3 × (upkeep + wages) × (0.5 + caution);
-  - while flow is negative, (upkeep + wages) × (1 + caution);
+  - while flow is not negative, 0.3 × (upkeep + walls' upkeep + wages) × (0.5 + caution);
+  - while flow is negative, (upkeep + walls' upkeep + wages) × (1 + caution);
   - in both cases, + 40 × greed + 20.
 - **Disbanding.** While flow is negative and the treasury would not last two more seasons (gold + 2 × flow < 0), the king disbands a troop. It picks the troop in the least valuable province among those that are only holding or moving and not threatened.
   - **Or gives it to a friend** (since the fix pass after item 4): the troop goes instead to a friend the king would not betray, whose land the troop stands in or whose land or troops stand next to it, and whose treasury, as the king reckons it, feeds the troop for four seasons (the most trusted first). It costs nothing more than disbanding, and the troop serves a friend against the kings both face. Never a troop standing in the king's own land: land passes to whoever's troops stand in it, so the friend would take the province with it. When no idle troop is left and the treasury cannot pay next season's upkeep (gold + flow < 0), troops will desert whatever they are doing, so one a friend can take (by the same test, threatened or busy) is given to it. A king given troops or land trusts the giver 0.25 more (0.35 for land) and counts it as a support given.
@@ -2044,7 +2301,9 @@ disbanded or given away), whose place next season is known. It rolls no dice.
     - the new flow is no worse than −(gold left − reserve) ÷ max(3, H).
   - Until turn 11, an army costs 400 over its life (100 + 30 × 10). The bar is then 277 for Hatti's archetype and 570 for Alashiya's.
   - A king with no troops at all raises an army if 100 leaves the reserve intact.
-- **Cities.** The king considers free walled cities within buying reach that are not a destination.
+- **Walls** (the siege package; `Statecraft.Fortification`), at most a level a season, after the levies: in a province the king holds, below walls 3, not besieged and with no foreign troops within, walled already or with a troop of ours in it (walls rise after the moves, so an empty province without walls that a feared king can walk into would be his before they stood: in the first script games such orders failed nearly five times a game; trying still costs nothing when it fails), whose likeliest attack this season is feared at a chance of at least 0.4. Net = chance × value × (0.35 for a first level, 0.15 for a further one) − the price of the new level − (5 × min(H, 10) if the level is above the map's). The best net above 0 is bought if its price leaves 60 above the reserve. (A first level turns a province a lone army would take at once into one it must storm or besiege; a further level adds a season of siege.)
+  - **Against fleets alone** (since the script players' audit of the siege package, which found Alashiya's empty Tamassos taken by a lone fleet in 23 of 100 games, its walls never raised; Tamassos was then lost in 9). Land of ours that only fleets threaten (a foreign fleet could move in now, and every foreign troop that could move in now or move next to it first is a fleet; a friend's fleet counts at the fear of 0.25, since open land is what tempts a friend to betray) is walled by its own rule, after the cities of the season are bought, from turn 4: an unwalled province, empty or not, at a chance of the most feared such king's fear (at least 0.25), worth chance × value × 0.6 (fleets never take walls, so a first level keeps the land from them for good), less the price and the upkeep as above; if the fleet walks in before the walls stand, the order fails at no cost. No further level is raised against fleets alone. In the first year the gold goes to cities: walled at once, Alashiya won 26 of 40 seeds against six baselines instead of 33; from turn 4, 30 (its growth 1.87 instead of 1.96: the frozen baseline seldom sends fleets against Tamassos).
+- **Cities.** The king considers free walled cities within buying reach that are not a destination, nor held by another king's troops (its own may stand in one it besieges, and buy it).
   - Score = (yield × H − danger × 10 × yield) × (1.15 if no rival can bid; otherwise 1 − 0.1 × the number of rivals who can, at most three).
   - Danger is 0.35 if a king with hostility above 0.4 can bring two troops to the city, else 0.08.
   - Cities are ranked by score per shekel.
@@ -2052,6 +2311,15 @@ disbanded or given away), whose place next season is known. It rolls no dice.
   - It buys only while the gold left is at least reserve × (1.2 − 0.7 × commerce). A merchant therefore dips into its reserve: Alashiya keeps half of it, Hatti nearly all.
   - After the elders refused to choose between rival buyers, it bids again within three seasons only half the time, and for those three seasons it scores that city at 0.6 of its worth, so another city nearly as good is bought instead (since the fix pass after item 4).
 - **Spare gold** is what is left above the reserve. It pays for the court, gifts and bribes.
+- **Sallies** (the siege package): every move of ours into a city of ours whose walls can sally, with foreign troops within
+  it, goes with a sally from its walls (`Tactics.Sallies`; the first such move into each city, by province). The look-ahead
+  pictures sallies for every king's moves into his own walled cities, a rival's as he may give them, so a besieger reckons
+  with a relief army and its sally, and supports its army to hold. A city of ours besieged by a king who is no friend, with
+  no move of ours into it, sallies for a friend's troop next to it (an army first, then by province), should it come to
+  drive the besiegers out; a sally that finds no attack is void (since the script players' audit of the siege package).
+- **Under siege** (the siege package): while its capital is besieged, a king sends no gifts or tribute (the gold would be
+  taken with a caught envoy), and does not ask an envoy who would not leave to go again for two seasons. As besieger, it
+  ransoms a caught envoy where it would have turned a spy (a caught envoy cannot be turned).
 - **Cessions** (since the fix pass after item 4), at most one a season: land the king cannot keep goes to a friend before a rival ahead of it takes it. The province is outside its homeland, has no walls, no troop of the king in it, none that could reach it, is not a destination, and was not ceded to the king by a friend (that land is kept, rather than passed round). Next to it, or a move from it, stands a troop of a king who is not a friend, leads the race or stands at or above the king's growth, and has been taking land (belligerence 0.8 or more) or is hostile; and next to it stands a troop, or lies the land, of a friend the king would not betray, who does not lead and whose growth with the province stays below the rival's with it. The land is lost to the king either way; ceded, it does not carry the rival further ahead, and a king at peace with the friend will not march into it. The cession fails, at no cost, if the rival takes the province first.
 
 ### Court and intelligence
@@ -2076,7 +2344,7 @@ disbanded or given away), whose place next season is known. It rolls no dice.
   - The tablet says the leader swears to a king Y to "march together against Z and divide its land", sealed by both.
   - Y is the king the forger trusts least. Z is a third king, neighbours first.
   - The most reliable envoy whose hand has not botched a forgery before forges it (a king told "lacks the skill" remembers it; since the fix pass after item 4), and it is shown with a later letter.
-- **Captives.** A captive nobody will pay for or can be deceived for (a ransom or turning of it was refused: "nobody is left to pay", "nobody is left to deceive"), or whose ransom twice lapsed unpaid, is released, or executed by a king with vengeance above 0.75; a spy that confessed to serving a sworn ally who has broken no oath is released (both since the fix pass after item 4). Otherwise a king with cunning above 0.65 turns them, planting "The armies of A are scattered and tired; they will not march this year." Otherwise, vengeance above 0.75 executes them. Otherwise, honesty or greed above 0.5 asks a ransom of 60 + 60 × greed. Otherwise the captive is released. A ransom demand stands: the king does not ask again for the same captive until it hears that the demand lapsed unpaid ("No ransom came"), or, if that word never comes, six seasons after asking.
+- **Captives.** A captive nobody will pay for or can be deceived for (a ransom or turning of it was refused: "nobody is left to pay", "nobody is left to deceive"; or the king it served, as the captor learned it, has fallen, which all can see: since the script players' audit of the siege package, which found envoys caught coming home to a capital that fell the same season held under a ransom demand nobody could pay, for six seasons or to the end of the game), or whose ransom twice lapsed unpaid, is released, or executed by a king with vengeance above 0.75; a spy that confessed to serving a sworn ally who has broken no oath is released (both since the fix pass after item 4). Otherwise a king with cunning above 0.65 turns them, planting "The armies of A are scattered and tired; they will not march this year." Otherwise, vengeance above 0.75 executes them. Otherwise, honesty or greed above 0.5 asks a ransom of 60 + 60 × greed. Otherwise the captive is released. A ransom demand stands: the king does not ask again for the same captive until it hears that the demand lapsed unpaid ("No ransom came"), or, if that word never comes, six seasons after asking.
 - **Detained envoys** go home after round(1 + 3 × vengeance) seasons, those whose king has fallen or dismissed them too (they are then free at the court; until the fix pass after item 4 only those still in a king's service were let go).
 - **Ransoms.** The king's own people held abroad are ransomed if honesty is at least 0.3 and spare is above 150.
 
@@ -2099,8 +2367,18 @@ disbanded or given away), whose place next season is known. It rolls no dice.
 | Full alliance | see Rivals for the crown | 0.5 × diplomacy + 0.2 × trust, + 0.15 if small |
 | Gift | a friend, spare above 150, in 30% of seasons | 0.4 × generosity |
 | Tribute | from Arzawa or Alashiya to a neighbour of a stronger tier with hostility above 0.35, not hostile, fresh, spare above 100 | 0.35 + 0.4 × caution |
+| Plea for relief (since the script players' audit of the siege package) | a city of ours besieged by a king who is no friend (the most valuable such city, the capital first), to each friend we would not betray who is a neighbour or a full ally, not the besieger, at most once in three seasons | 0.9 |
 
-- **Envoys.** The war target gets no missions except lulling letters (evidence copies may still go to him). Peace, alliance and coalition letters carry a tablet, which resets "fresh". They, and gifts and tribute, go with the most reliable envoy still at court; all other letters go with the least reliable. (Until the fix pass after item 4 gifts and tribute went with the least reliable, so a servant known to skim carried the gold.)
+- **Pleas** ask the friend to send troops to drive the besiegers out ("My brother, the troops of Babylonia besiege my city of
+  Ashur. Come to my aid: send your troops to drive them out, and my walls will sally to meet them."; the sally only where the
+  walls can sally), carry no gold, and go with the most reliable envoy. A friend not yet sworn with us against the besieger is
+  also asked to swear it ("What Babylonia takes from me today he will take from you tomorrow: let us stand together against
+  him."), with the coalition tablet, which he seals by the rules for coalitions: a friend at peace with the besieger will not
+  fight him for us unless he has sworn to, or is our full ally (see Tactics, "A friend's city besieged"). From a besieged
+  capital the envoy may be caught, and the besieger reads the plea. Before the audit a besieged script king never asked
+  anyone for help.
+
+- **Envoys.** The war target gets no missions except lulling letters (evidence copies may still go to him). Peace, alliance and coalition letters carry a tablet, which resets "fresh". They, gifts and tribute, and pleas for relief go with the most reliable envoy still at court; all other letters go with the least reliable. (Until the fix pass after item 4 gifts and tribute went with the least reliable, so a servant known to skim carried the gold.)
 - **Gifts.** At most one gift-bearing letter goes out a season, and only with spare of at least 100.
   - **Debased gold** (purity 55-85%) is sent by a king with honesty below 0.45 only to a friend whose trust, as its own in him shows it, is 0.3 or more, who has no cause to assay it; everything else it sends is fine (since the fix pass after item 4). Courts assay gold from those they trust little, so gold debased for anyone else is found and costs more trust than it saves gold: before the fix pass 406 debased lots went out in seeds 1-100, and nearly every one was found. The host's gold back, debased by the same kings (75%), follows the same rule.
   - Amount: 10 + spare × share × 0.5, clamped between 20 and the larger of 20 and min(60, income ÷ 3), then rounded down to tens. Gifts are therefore 20–60 shekels.
@@ -2127,6 +2405,12 @@ The host answers once and then ends the audience, unless it offered a gift (belo
   - A tablet in words no script king wrote (anything but the peace, alliance and coalition tablets under Letters, or the frozen baseline's) is refused if it speaks of land, gold or tribute (whole words, "lands" included), or names a province the host holds or one of its homeland. A capital's name often stands for its king, his realm or a god ("Egypt and Babylon are brothers", "the king of Hattusa", "By Ashur and Shamash"), so a capital counts only in a sentence that hands something over: cedes, yields, surrenders, gives up or hands over, gives or leaves it to someone, says it belongs, passes or falls to someone, is someone's share, or shall be someone's ("Babylon shall be Egypt's"). The host says: "I will not seal a tablet that speaks of land, gold or tribute, or names a province of mine." A script king reads no more of a tablet than whom it stands against, so it seals nothing that could make it give anything away.
   - Sealing adds 0.1 trust, and the treaty, alliance or coalition binds at once.
   - Sealing a coalition or a full alliance, the host asks the envoy for its word: "Swear to me that your lord's troops will stand with mine, as mine will stand with his." A script envoy with a mandate answers with a commitment, within its mandate or, if ambitious and disloyal, beyond it (see Script envoys); before the fix pass no script host's words ever asked for one, so no script envoy ever committed to anything.
+- **Pleas for relief** (since the script players' audit of the siege package). The host reads the envoy's words for a plea:
+  a sentence that speaks of a siege ("besieg..."), names a walled city of the sender's and exactly one living king besides
+  the two of them (`Statecraft.PleasIn`; words, so a model king's "Ashur is besieged by the Babylonians" counts as a script
+  king's plea). It remembers the city, its besieger and the season, and for four seasons its troops march to relieve it if it
+  would (see Tactics). A friend it would fight for, sworn against the besieger now if it has just sealed his tablet, hears:
+  "I have heard of the siege of Ashur. Where my troops can reach the troops of Babylonia, they will drive them out."
 - **Closing words.** Love for a friend; "I have not forgotten" for a hostile king; otherwise "I have heard his words".
 - **Bribe.** With cunning above 0.6, a sender who is not a friend and spare above 150, there is a chance of 0.4 × cunning. The bribe is 30, 40, 50 or 60. It asks the envoy to report "my armies are few and my thoughts are of peace" if the host is hostile, otherwise "my armies are many and my friendship is worth keeping". A script envoy that takes it repeats the request to its lord as its own observation (see Script envoys).
   - **The second exchange** (since the fix pass after item 4). A host that offers a gift keeps the audience open for one more exchange. If the envoy refused it, the host offers half as much again (rounded to tens), once, with the same request, if spare exceeds 150 + the first offer; otherwise it says "Go in peace, and carry my words faithfully." and ends the audience. Nothing else is decided in the second exchange.
@@ -2154,7 +2438,7 @@ Script characters (`ScriptMind`) carry the letters of every king, script or not.
 - **Softening.** A timid envoy (courage below 35) or one fond of the host (sympathy 50 or more) drops from the letter each sentence that threatens the host (`TextKit.IsThreatTo`): a threat word that is not denied ("will not march", "no war between us", "I march on no land of yours") and is aimed at the host. The host is "you" or "your", or any name of his, his land or his people (the names under Memory and learning). A threat is aimed at him when he is what it falls on ("I will burn your cities", "march on Babylon"), when he is to suffer it ("you will be crushed", "Babylonia will regret its insolence", "you are my enemy", "this is my last warning"), or when it follows from what he does ("If you do not withdraw, there will be war", "pay, or I will march"). These reach the host whole: a threat against a third king ("Hatti is our common enemy; let us march against him"), what another king may do ("Hatti will attack you"), help ("If Hatti attacks you, my armies will march to your side"; "I will support you if you are attacked"), the host's own march ("your march on Ashur") and a warning given as a brother ("I warn you of any muster"). If it dropped anything, it adds "My lord hopes that no quarrel will ever come between your houses." The rule reads words, not meaning: of the sentences the old filter cut from letters in the seed-7 agent games, none a threat to the host, it cuts none, but an unusual threat can still slip through. A passive "warned" is a threat only when the one warned is the host ("you have been warned", "be warned", "consider yourself warned"); until the fix pass after item 4 (save version 5) any passive "warned" was, so a timid script envoy (the shadow of a model one) dropped "we must strike all at once, before they can be warned", a strike against Assyria, from Babylonia's letter to Mitanni in the second agent simulation, and the check flagged that as softening a threat to the host.
 - **Reporting home.** A faithful envoy (loyalty 60 or more, competence 50 or more, not bribed by this host) repeats the host word for word. A bribed envoy, or a timid one that is not faithful, drops the host's threats against its own lord in the same way. The host speaks to the envoy of its lord, so "he", "him" and "his" count as the lord too, unless the sentence names another king: "If his troops cross the river again, I will burn his cities" is dropped, "I will crush Assyria in the spring" is kept.
 - **Assurances.** Reporting home, an ambitious envoy (ambition above 70) that overreached at the audience ("promised that my lord will agree to whatever the king asks") says "I gave him such assurances as you would wish." It says nothing of a commitment that did not overreach.
-- **A post turned down.** Reporting home, an envoy that turned down the host's offer of a post says so ("The king of Karduniash offered me a post in his service, and I refused it: I serve you alone."), unless its loyalty is below 50 or that host bribed it. Its lord learns that the host tried to buy his servant, and that the servant stayed true. (Since the review of the fix pass after item 4: before, no script envoy mentioned an offer, so the shadow raised `hid-offer` for 7 of the 7 reports in the integrator's stub game, loyal envoys included. Script kings do not yet act on the line: its words carry nothing their reading of reports counts.)
+- **A post turned down.** Reporting home, an envoy that turned down the host's offer of a post says so ("The king of Karduniash offered me a post in his service, and I refused it: I serve you alone."), unless its loyalty is below 50 or that host bribed it. Its lord learns that the host tried to buy his servant, and that the servant stayed true. (Since the review of the fix pass after item 4: before, no script envoy mentioned an offer, so the shadow raised `hid-offer` for 7 of the 7 reports in the integrator's stub game, loyal envoys included. Until the script players' audit of the siege package script kings did not act on the line; now they take it as a small slight from the host and trust the envoy more: see Memory and learning, Favours.)
 - **A bribe's request.** An envoy that took a host's gift passes on what the host asked it to tell its lord, in the host's own words, and vouches for it: "Carry my words faithfully, and tell your lord that my armies are few" becomes 'At the court of Hatti the king told me "My armies are few", and I saw for myself that it is so.' The message may stand anywhere in the request and name the lord as "your lord", "your master", "him", "the king" or by any of his names ("tell Pharaoh that…", "say to Tushratta that…"). A message forbidden ("do not tell your lord…") or empty ("tell him everything") is not passed on. Asked to speak well of another king ("speak well of Mitanni to your lord"), the envoy says "At the court of Hatti I saw for myself that Mitanni is a true friend to you"; of the host itself it already says "The king of Hatti is a true friend to you, my lord, and wishes only peace". The envoy still leaves out what it saw of the host's own troops.
 
 One more rule decides whether it changes masters:
@@ -2182,21 +2466,25 @@ These are in the code as written, and they affect the balance numbers:
 `BaselineLeader` is a frozen copy of the first script bot. `--versus solo` plays each king on the
 current bot against six baselines and compares it with the same seed played all-baseline;
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
-current bot. Seeds 1–40, one current king against six baselines, rerun after the fix pass after item 4 (20 October
-2026, shared victory off: its script envoys' skim, its feature audit and the script kings' standing orders; the numbers
-before it, and why they moved, are in its report, `docs/rounds/2026-10-20-fix-pass.md`, and the items and rounds before
-in theirs):
+current bot. Seeds 1–40, one current king against six baselines, rerun at the end of Build order item 5 (20 October 2026,
+shared victory off: its walls, sieges and capitals, its terrain, and the script players' audit of it; the numbers before
+it, and why they moved, are in its report, `docs/rounds/2026-10-20-sieges.md`, and the items and rounds before in theirs).
+The baseline was adapted only as far as the siege package's rules required (terrain required nothing of it), so the
+current bot gains more over it than before item 5. Terrain made conquest harder for it (its growth alone fell from 3.10 to
+2.80), and the audit's walls against fleets and its care for the capital cost it a little more against a baseline that
+seldom presses either (2.74). After the review of the siege package (walls seen only in sight, among other fixes) the
+table was rerun: the same growth over all, 86% of wins instead of 85%:
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
-| Egypt | 2.91 | 1.32 | 88% | 15% |
-| Hatti | 2.64 | 0.82 | 80% | 3% |
-| Babylonia | 2.47 | 1.16 | 85% | 10% |
-| Mitanni | 1.95 | 1.35 | 58% | 28% |
-| Assyria | 3.78 | 0.93 | 80% | 10% |
-| Arzawa | 3.10 | 1.38 | 63% | 28% |
-| Alashiya | 1.87 | 0.90 | 50% | 8% |
-| All kings | 2.67 | 1.12 | 72% | 14% |
+| Egypt | 2.83 | 1.07 | 100% | 3% |
+| Hatti | 3.05 | 0.85 | 100% | 3% |
+| Babylonia | 3.31 | 1.06 | 100% | 5% |
+| Mitanni | 2.68 | 1.25 | 95% | 25% |
+| Assyria | 3.34 | 1.02 | 73% | 10% |
+| Arzawa | 2.05 | 1.38 | 60% | 45% |
+| Alashiya | 1.90 | 0.99 | 75% | 10% |
+| All kings | 2.74 | 1.09 | 86% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
@@ -2310,15 +2598,19 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
 "Script kings and characters in a worker" and "What is left in the page" (presentation and build only; report
 `docs/rounds/2026-10-19-second-simulation.md`).
 
-- **Terrain is map data with no effect yet** (`Geography` in the engine project). Rough provinces: Mira, Lukka,
+- **Terrain is map data** (`Geography` in the engine project), given its effects by the siege package (Build order item 5;
+  see Terrain under Rules as implemented); until then it was drawn only. Rough provinces: Mira, Lukka,
   Isuwa, Amurru, Arbela, Tamassos. Desert: Sinai. Crossings on six connections: the Cilician Gates
   (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish) as mountain passes;
   the Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh) as river crossings. The ordered
   courses of the Nile (Thebes to the Delta), the Euphrates (Carchemish to Ur) and the Tigris (Nineveh to
   Dur-Kurigalzu). These are the lists of question 5 (plan steps 14-15) and question 10 (plan step 2) of the
-  sleep-and-simulation round, so the siege package can use them unchanged. Nothing in the engine reads them; only
-  the web map draws them. "A landing by convoy counts as a crossing" is a rule about any convoyed landing, so it is
-  left to the siege package rather than stored on a connection.
+  sleep-and-simulation round, so the siege package can use them unchanged, and it did. Until the siege package nothing
+  in the engine read them and only the web map drew them; now the adjudicator reads rough ground and the crossings, and
+  the map's tooltips, province card, legend and about page say what they do (the drawing is unchanged: peaks beside
+  each rough city, a pass or ford mark across each crossing). "A landing by convoy counts as a crossing" is a rule
+  about any convoyed landing, so it is a rule of the adjudicator (`Geography.DefenceGround`) rather than stored on a
+  connection.
 - **One date label** (`Calendar.Label`, question 26, plan steps 1-4): the court's season, the year BCE and the
   turn. Years are counted from 1345 BCE: the first year of a game is 1345 BCE and each later year is one less
   (`Calendar.FirstYearBce`, `YearBce`; Haakon, 19 October). Egypt's court reads "Peret, 1344 BCE (turn 5)", the
@@ -2370,7 +2662,8 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   seen is hatched. Units the court saw in a province it cannot see now stay as dashed ghosts, fainter with age, with
   the season they were seen. Rumours and spy reports that reached the court are placed where they came from, dashed
   and fading over eight seasons. Ownership is not fogged: who holds each province is public and live in the engine,
-  so tints, border lines and seals are drawn as known.
+  so tints, border lines and seals are drawn as known. Walls are (since the review of the siege package): a court's map
+  draws them standing now in its sight and as it last saw them elsewhere (`SeasonFrame.KnownWalls`, `MapScene.Walls`).
 - **Follow this character** builds a life from the record (`LifeRecord`): service, places season by season (and the
   path on the map), missions with what was written, said and reported, and in god view the hidden traits, facts and
   the character's own memory; in a court's view only what that court knows: its own servants' service, the messages
@@ -2422,12 +2715,25 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   line each time; the text is the same, model characters' shadow lines included). The map never reads a whole state
   back from its snapshot. Measurements are in the round reports.
 - **A link to watch**: `play?watch=SEED` starts a game of script kings, for showing a game to someone.
+- **A fallen player's game is over** (the design document's rule, built with the siege package, Build order item 5). Once
+  every human seat at the table has fallen with its capital, and the table's setting allows it (`GameConfig.FallenSeeAll`,
+  on by default; "A fallen player watches in god view" when a game is started), the players watch the rest of the game in
+  god view, seeing everything, and the view opens on it with a notice: "The kingdom of Arzawa has fallen with its capital:
+  your game is over. You watch the rest of the game in god view, seeing everything." (`GameSession.FallenSeesAll`, `TellFall`).
+  While another human seat at the same screen still plays, nobody sees all (a reading: one screen cannot show one player
+  what the other must not see). With the setting off, for a table worried that a fallen player might pass hidden facts to a
+  friend still in the game, he keeps his own view: what his kingdom knew when it fell (its news, its record, its last
+  sight of the board, fading), and what is public since (who holds what, which kingdoms fell), as the seat view of a
+  fallen court already showed; nothing his court could no longer learn (a reading). Spectating a game without human seats
+  keeps both god view and each king's own view, as before. The setting is carried in the log, so a game loaded to
+  continue keeps it, and the batch runner sets it with `--fallen-view god|kingdom` for a game it writes to be opened in
+  the web app. The rules tab tells a human player which it is.
 - **Standing orders in the orders panel** (since the owner's additions to the fix pass after item 4: every seat may keep
   them, so a human seat has a form for them). Under Troops, a section lists the seat's standing orders by id, each with a
   Cancel button (Keep undoes it), and the new ones written this season, each with Remove. A new one is written in two
   rows: what it waits for ("When troops enter…" a province, of any foreign power or of one named, or "When my troop is
-  attacked…", one of its troops), then its orders one at a time (a troop of its own that supports a troop in sight or a
-  walled city of its own, holding or into a province, moves, or holds), each added with "Add this order", and the whole
+  attacked…", one of its troops), then its orders one at a time (a troop of its own that supports a troop in sight,
+  holding or into a province, moves, or holds; until the siege package also the walls of a city of its own), each added with "Add this order", and the whole
   with "Add this standing order". The draft sends them with the season's orders (`OrderDraft.Standing`,
   `OrderDraft.CancelStanding`, `OrderDraft.Build`); the form offers no other orders (levies, letters) in a standing order,
   which a model king's reply may carry. The rules tab says that standing orders apply to a human seat, which never sleeps.
@@ -2436,11 +2742,10 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
 
 The design document records intent; these notes record what is built. Where they differ today:
 
-- **Pillar 8, war slower than diplomacy, is not met yet.** The document's scope table now counts sieges, walls and
-  minimal terrain in the prototype, and "Walls and terrain" is a decided direction; none of it is in the code. An
-  army moves one link a season. Homeland provinces have no walls, so an empty one falls to a single army and a held one
-  to two; walls (strength 1) stand only on free and bought cities. Hatti can take Arzawa's capital at the end of
-  season 3. An envoy between capitals takes one or two seasons each way, so a letter and its reply take two seasons
+- **Pillar 8, war slower than diplomacy, is being built** (Build order item 5, the siege package). Walls that differ
+  by place, storming and sieges are built (see Walls and sieges): a capital held by one army falls to a storm of 5, or
+  to a lone besieger in the fourth season counting the one it got in. An army moves one link a season. Provinces without
+  walls still fall to a single army, and a held one to two. An envoy between capitals takes one or two seasons each way, so a letter and its reply take two seasons
   between neighbouring capitals and four otherwise; only a spy sent to a distant province can take three. The rulebook says
   so, worked out from the map ("Envoys take 1 or 2 seasons each way between courts …"); until the simulation-fixes
   round it said "1 to 3 seasons each way". Until sieges exist, a temporary wake trigger (foreign troops arriving next
@@ -2502,11 +2807,6 @@ the design document's; "question N" is in `docs/rounds/2026-10-18-sleep-and-simu
 tab's Build order; "the round report" is the simulation-fixes round's report,
 `docs/rounds/2026-10-19-simulation-fixes.md`.
 
-- **Sieges, walls and terrain**: walls that vary and can be strengthened, storming and besieging, envoys leaving a
-  besieged city, terrain per province and per connection, deserts costing supplies, islands protected by the sea;
-  then the temporary trigger for troops next to a capital is retired (main tab "Tempo of war" and "Walls and terrain";
-  question 5; item 5).
-- **Slow absorption** of conquered land (question 5; item 5).
 - **News that travels**: distant provinces, and who holds them, shown at their last known state with its date, the
   news carried by people (main tab "Hidden by default"; question 6; item 7).
 - **Envoy authority and passage grants**: mandates with engine-checkable limits, the authority to seal within them,
@@ -2530,8 +2830,9 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
 - **Other courts' own calendars and regnal years**: season names for the courts that have only ordinals today
   (main tab "Season names"), and regnal or limmu years (question 26, plan steps 5-7). The one date label with the
   year BCE and the ending line are built (see "The web map and the interface").
-- **The map's later layers**: roads and relay stations, walls and sieges, and generals leading armies, drawn once the
-  game has them (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
+- **The map's later layers**: roads and relay stations, and generals leading armies, drawn once the
+  game has them (walls are drawn since the siege package, a ring for each level standing, as the viewer knows them, broken
+  where the viewer knows of a siege; the province card gives the level and the siege) (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).
 - **Gold sent without an inventory**, saving the scribe fee and checkable by nobody (Ideas tab "Why the envoy lies, and
   how he is caught"): today every gift has an inventory, and it costs nothing.

@@ -23,12 +23,14 @@ internal static class Statecraft
         // troops there beat what he can hold it with (a unit and its supports, walls, or troops that can block).
         double Prize(Power x) => reach.Where(t => b.OwnerOf(t) == x).Sum(t =>
         {
-            var strike = b.Mine.Count(u => Board.Map.CanMove(u.Kind, u.Province, t));
+            var strikers = b.Mine.Where(u => Board.Map.CanMove(u.Kind, u.Province, t)).Select(u => u.Province).ToList();
+            var strike = strikers.Count;
             // Troops we cannot see may stand in his provinces next to it.
             var unseen = Math.Max(0, Force(x) - b.Others.Count(u => u.Power == x));
             var hidden = Board.Map.Neighbors(t).Count(n => b.OwnerOf(n) == x && !b.V.Visible.Contains(n));
             var backers = b.Muster(x, t) + Math.Min(unseen, hidden);
-            var defence = b.UnitAt.GetValueOrDefault(t)?.Power == x ? 1 + 0.6 * backers : b.Walls(t) ? 1 + 0.6 * backers : 0.5 * backers;
+            // His troop there has the ground's help against our blow (Build order item 5, terrain).
+            var defence = b.UnitAt.GetValueOrDefault(t)?.Power == x ? 1 + b.Ground(strikers, t) + 0.6 * backers : b.Walls(t) ? 1 + 0.6 * backers : 0.5 * backers;
             var chance = strike > defence + 0.5 ? 0.8 : strike > defence ? 0.5 : strike > defence - 0.5 ? 0.25 : 0.05;
             // Taken land must still be kept: count a little over half of what holding it to the end is worth.
             return b.Value(t) * chance * 0.6;
@@ -145,9 +147,9 @@ internal static class Statecraft
         var me = b.Me;
         // Back pay owed is gold already spent: the people it is owed to will claim it when they are back at court.
         var gold = v.Gold - v.BackPay;
-        var flow = v.Income - v.Upkeep - v.Wages;
+        var flow = v.Income - v.Upkeep - v.WallUpkeep - v.Wages;
         // While income covers upkeep, a small cushion is enough; a treasury that bleeds needs a season or two in hand.
-        var costs = v.Upkeep + v.Wages;
+        var costs = v.Upkeep + v.WallUpkeep + v.Wages;
         var reserve = (flow >= 0 ? costs * 0.3 * (0.5 + p.Caution) : costs * (1 + p.Caution)) + p.Greed * 40 + 20;
 
         // Disband before the troops desert: the least needed unit goes first. A unit that must go is given instead to a
@@ -219,10 +221,22 @@ internal static class Statecraft
             gold -= v.Prices["army"];
         }
 
-        // Cities: buying turns gold into the same score in land, plus its income, behind walls that hold for the buyer.
+        // Walls (the siege package), at most a level a season, where they pay: on land of ours a feared king could walk into,
+        // a level of walls turns a province he would take at once into one he must storm or besiege. A first level saves about
+        // a third of its worth against the likeliest attack (a feared king, at least an even chance in four that he comes), a further level about a seventh (another season of siege); against
+        // that, the price of the new level and its upkeep, for as long as the game may run (at most ten seasons).
+        var fortified = false;
+        if (Fortification(b, plan, gold - reserve) is { } walls)
+        {
+            orders.Add(new FortifyOrder(walls.Province));
+            gold -= walls.Cost;
+            fortified = true;
+        }
+
+        // Cities: buying turns gold into the same score in land, plus its income, behind walls that now stand for the buyer.
         var units = b.Mine.Select(u => u.Province).ToList();
-        var offers = v.Garrisons
-            .Where(g => b.OwnerOf(g) is null && !plan.Destinations.Contains(g) && Board.Map.WithinReach(g, me, v.Owner, units))
+        var offers = v.Owner.Where(x => x.Value is null).Select(x => x.Key)
+            .Where(g => b.OwnerOf(g) is null && (b.UnitAt.GetValueOrDefault(g) is not { } there || there.Power == me) && !plan.Destinations.Contains(g) && Board.Map.WithinReach(g, me, v.Owner, units))
             .Select(g =>
             {
                 var y = Board.Map[g].Yield;
@@ -248,10 +262,65 @@ internal static class Statecraft
             gold -= o.Price;
             buys++;
         }
+        // Walls against fleets alone (see Fortification), with what the cities left: they guard land no fleet threatens yet
+        // with a blow, so they never take the place of a city bought this season (since the script players' audit of the
+        // siege package: raised before the cities, they cost Alashiya more growth against the frozen baseline than they saved).
+        if (!fortified && Fortification(b, plan, gold - reserve, againstFleets: true) is { } fleetWalls)
+        {
+            orders.Add(new FortifyOrder(fleetWalls.Province));
+            gold -= fleetWalls.Cost;
+        }
         brain.SpareGold = gold - reserve;
 
         // Land we cannot keep goes to a friend rather than to a rival ahead of us (see Cession).
         if (Cession(b, brain, plan) is { } cede) orders.Add(cede);
+    }
+
+    /// <summary>The province of ours whose walls are best strengthened this season, and the price, if any pays (see Economy).</summary>
+    /// <param name="againstFleets">Only unwalled land that fleets alone threaten (MilitaryPlan.ByFleets), after the first year; otherwise every province but those.</param>
+    internal static (string Province, int Cost)? Fortification(Board b, MilitaryPlan plan, double spare, bool againstFleets = false)
+    {
+        var v = b.V;
+        var price = v.Prices.GetValueOrDefault("fortifyPerLevel", 50);
+        var upkeep = v.Prices.GetValueOrDefault("wallUpkeep", 5);
+        (string Province, int Cost, double Net)? best = null;
+        foreach (var id in v.Owner.Where(x => x.Value == b.Me).Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal))
+        {
+            var level = b.WallLevel(id);
+            if (level >= 3 || b.SiegeAt(id) is not null || b.UnitAt.TryGetValue(id, out var within) && within.Power != b.Me) continue;
+            var chance = plan.Danger.TryGetValue(id, out var d) ? d.Chance : 0;
+            var share = level == 0 ? 0.35 : 0.15;
+            var floor = 0.4;
+            // Unwalled land that only fleets threaten (MilitaryPlan.ByFleets), empty or not: a first level keeps it from fleets
+            // for good, since fleets never take walls (an island's coast above all), so it is worth more than against armies;
+            // and if the fleet walks in before the walls stand, the order fails and costs nothing. Since the script players'
+            // audit of the siege package, which found Alashiya's empty Tamassos taken by a lone fleet in 23 of 100 games, its
+            // walls never raised. Not in the first year (turns 1 to 3), while its gold is better spent on cities and nobody has
+            // yet shown what he means: walls raised then cost a weak kingdom more than they saved (one current king against six
+            // baselines: Alashiya won 26 of 40 seeds, not 33).
+            var fleets = 0.0;
+            var byFleets = level == 0 && plan.ByFleets.TryGetValue(id, out fleets);
+            if (againstFleets != byFleets) continue;
+            // Against fleets alone a further level adds nothing: fleets never take walls of any height.
+            if (level > 0 && plan.ByFleets.ContainsKey(id)) continue;
+            if (byFleets)
+            {
+                if (v.Turn <= 3) continue;
+                chance = Math.Max(chance, fleets);
+                share = 0.6;
+                floor = 0.25;
+            }
+            // The walls rise at the end of the season, after the moves: an empty province without walls that a feared king can
+            // walk into now would be his before they stand (in the first script games of the siege package such orders failed, nearly five a game).
+            else if (level == 0 && !b.Mine.Any(u => u.Province == id)) continue;
+            if (chance < floor) continue;
+            var cost = price * (level + 1);
+            var above = level + 1 > MapData.StartWalls.GetValueOrDefault(id);
+            var net = chance * b.Value(id) * share - cost - (above ? upkeep * Math.Min(b.Horizon, 10) : 0);
+            if (net <= 0 || cost > spare - 60) continue;
+            if (best is null || net > best.Value.Net) best = (id, cost, net);
+        }
+        return best is { } w ? (w.Province, w.Cost) : null;
     }
 
     /// <summary>
@@ -362,7 +431,7 @@ internal static class Statecraft
 
         // A servant who has given notice is kept on at its price while the court still wants it (counting only those not
         // leaving) and the price passes the hiring test; the most reliable first. Otherwise it is let go. Never early.
-        var leaving = staff.Where(c => c.NoticePrice is not null).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var leaving = staff.Where(c => c.NoticePrice is not null).OrderByDescending(Reliability).ThenByDescending(c => brain.ProvenLoyal.Contains(c.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
         var keeping = staff.Count - leaving.Count;
         foreach (var c in leaving)
         {
@@ -458,7 +527,7 @@ internal static class Statecraft
             }
         }
 
-        var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id)).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id)).OrderByDescending(Reliability).ThenByDescending(c => brain.ProvenLoyal.Contains(c.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
         var leader = b.Leader();
 
         // Spies come home from a court that has fallen (it has no archive to copy and nobody to watch for), or, when nobody is
@@ -505,18 +574,23 @@ internal static class Statecraft
         foreach (var gone in brain.RansomAsked.Keys.Where(id => captives.All(c => c.Id != id)).ToList()) brain.RansomAsked.Remove(gone);
         foreach (var c in captives)
         {
-            // Nobody left to pay or to deceive (a ransom or turning refused for it), or a ransom twice lapsed unpaid: the
-            // captive is worth nothing kept, so it goes free, unless the king is vengeful. A spy of a sworn ally goes free
-            // too: the alliance is worth more than a ransom.
-            var worthless = brain.Unclaimed.Contains(c.Id) || brain.RansomLapsed.GetValueOrDefault(c.Id) >= 2;
+            // Nobody left to pay or to deceive (a ransom or turning refused for it, or the king it served has fallen, as all
+            // can see), or a ransom twice lapsed unpaid: the captive is worth nothing kept, so it goes free, unless the king is
+            // vengeful. A spy of a sworn ally goes free too: the alliance is worth more than a ransom. (Until the script
+            // players' audit of the siege package, an envoy caught coming home to a capital that fell the same season was held
+            // under a ransom demand nobody could pay, for six seasons or to the end of the game.)
+            var lordFallen = c.Employer is { } served && v.Fallen.Contains(served);
+            var worthless = brain.Unclaimed.Contains(c.Id) || brain.RansomLapsed.GetValueOrDefault(c.Id) >= 2 || lordFallen;
             var ally = c.Employer is { } master && brain.Rel.TryGetValue(master, out var mr) && mr.Allied && mr.OathsBroken == 0;
             if (worthless || ally)
             {
                 orders.Add(new CaptiveOrder(c.Id, worthless && p.Vengeance > 0.75 ? CaptiveFate.Execute : CaptiveFate.Release));
                 continue;
             }
+            // An envoy our besiegers caught was no spy at a post: it cannot be turned, so the cunning ransom it instead.
             var fate =
-                p.Cunning > 0.65 ? new CaptiveOrder(c.Id, CaptiveFate.Turn, Poison: $"The armies of {b.Me} are scattered and tired; they will not march this year.")
+                p.Cunning > 0.65 && !c.Intercepted ? new CaptiveOrder(c.Id, CaptiveFate.Turn, Poison: $"The armies of {b.Me} are scattered and tired; they will not march this year.")
+                : p.Cunning > 0.65 ? new CaptiveOrder(c.Id, CaptiveFate.Ransom, (int)(60 + 60 * p.Greed))
                 : p.Vengeance > 0.75 ? new CaptiveOrder(c.Id, CaptiveFate.Execute)
                 : p.Honesty > 0.5 || p.Greed > 0.5 ? new CaptiveOrder(c.Id, CaptiveFate.Ransom, (int)(60 + 60 * p.Greed))
                 : new CaptiveOrder(c.Id, CaptiveFate.Release);
@@ -555,15 +629,20 @@ internal static class Statecraft
 
     // ================================================================= letters
 
-    /// <param name="Against">The king a coalition is sworn against.</param>
-    private sealed record Mission(Power To, string Kind, double Score, Power? Against = null);
+    /// <param name="Against">The king a coalition is sworn against, or who besieges the city a plea is for.</param>
+    /// <param name="City">The besieged city a plea is for.</param>
+    private sealed record Mission(Power To, string Kind, double Score, Power? Against = null, string? City = null);
 
     public static void Letters(Board b, Brain brain, List<Order> orders, HashSet<string> busy, Rng rng)
     {
         var p = brain.P;
         var v = b.V;
         var me = b.Me;
-        var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id)).OrderByDescending(Reliability).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+        // From a besieged capital (the siege package) an envoy may be caught slipping out, and one whose courage failed him
+        // will fail again while the siege is as tight: he is not asked for two seasons, and no gold goes out to be taken.
+        var besieged = v.Sieges.Any(x => x.Holder == me && x.Province == Board.Map.Capital(me).Id);
+        var ready = v.Court.Where(c => c.Ready && !busy.Contains(c.Id) && !(besieged && brain.WouldNotLeave.TryGetValue(c.Id, out var t) && v.Turn - t <= 2))
+            .OrderByDescending(Reliability).ThenByDescending(c => brain.ProvenLoyal.Contains(c.Id)).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
         if (ready.Count == 0) return;
 
         var leader = b.Leader();
@@ -596,12 +675,24 @@ internal static class Statecraft
             var small = b.Strength(me) < 0.6 * b.Strength(x);
             if (r.Treaty && !r.Allied && r.Trust > 0.2 && fresh && (x != leader || small) && !Rivals(b, me, x))
                 missions.Add(new(x, "alliance", 0.5 * p.Diplomacy + 0.2 * r.Trust + (small ? 0.15 : 0)));
-            if (brain.IsFriend(x) && brain.SpareGold > 150 && rng.Chance(0.3))
+            if (!besieged && brain.IsFriend(x) && brain.SpareGold > 150 && rng.Chance(0.3))
                 missions.Add(new(x, "gift", 0.4 * p.Generosity));
             // Tribute, to a great neighbour who looks ready to march.
-            if (me.Tier() == Tier.Weak && x.Tier() != Tier.Weak && neighbours.Contains(x) && brain.SpareGold > 100 && fresh && !r.Hostile && brain.Hostility(x, b) > 0.35)
+            if (!besieged && me.Tier() == Tier.Weak && x.Tier() != Tier.Weak && neighbours.Contains(x) && brain.SpareGold > 100 && fresh && !r.Hostile && brain.Hostility(x, b) > 0.35)
                 missions.Add(new(x, "tribute", 0.35 + 0.4 * p.Caution));
         }
+        // Pleas for relief (the siege package): while a city of ours is besieged by a king who is no friend of ours, every
+        // friend who could come (a neighbour, or a full ally) is asked to send troops to drive the besiegers out, at most once
+        // in three seasons; the city that matters most first (the capital, which the kingdom falls with). The envoy may be
+        // caught leaving a besieged capital, and the besieger then reads the plea. (Until the script players' audit of the
+        // siege package a besieged script king never asked anyone for help, and no script king ever relieved a friend's city.)
+        var plea = v.Sieges.Where(x => x.Holder == me && !brain.IsFriend(x.Besieger)).OrderByDescending(x => b.Value(x.Province))
+            .ThenBy(x => x.Province, StringComparer.Ordinal).FirstOrDefault();
+        if (plea is not null)
+            foreach (var x in b.Alive.Where(x => x != me && x != plea.Besieger && brain.IsFriend(x) && brain.Betraying != x && (neighbours.Contains(x) || brain.Rel[x].Allied)))
+                if (!brain.PleaSent.TryGetValue(x, out var asked) || v.Turn - asked >= 3)
+                    missions.Add(new(x, "plea", 0.9, plea.Besieger, plea.Province));
+
         // Evidence of broken oaths for a third court.
         var broken = v.Tablets.FirstOrDefault(t => t.SealedTurn is not null && t.Seals.Contains(me) && !brain.SentCopies.Contains(t.CopyId)
             && t.Seals.Any(s => s != me && brain.Rel.TryGetValue(s, out var r) && r.OathsBroken > 0));
@@ -647,10 +738,12 @@ internal static class Statecraft
             // Tablets, and the gold of gifts and tribute (a peace letter may carry gold too), go with the most reliable envoy
             // still at court; the rest with the least reliable. (Until the fix pass after item 4 gifts went with the least
             // reliable, so a servant known to skim carried the gold.)
-            var trusted = m.Kind is "coalition" or "alliance" or "peace" or "gift" or "tribute";
+            var trusted = m.Kind is "coalition" or "alliance" or "peace" or "gift" or "tribute" or "plea";
             var envoy = trusted ? ready[0] : ready[^1];
             var d = Compose(b, brain, m, envoy.Id, rng);
-            if (d is not null) Send(d);
+            if (d is null) continue;
+            Send(d);
+            if (m.Kind == "plea") brain.PleaSent[m.To] = v.Turn;
         }
     }
 
@@ -727,6 +820,24 @@ internal static class Statecraft
                     text += " If you do not withdraw, my troops will march into your land.";
                 return new DispatchOrder(envoy, to, $"{text} {flavour}".Trim(), "Demand withdrawal and gifts. Agree to nothing less.", greet);
             }
+            case "plea":
+            {
+                var foe = m.Against!.Value;
+                var city = Board.Map[m.City!].Name;
+                // The walls sally only from a height (sallyMinWalls): the letter promises it only where they can.
+                var sally = b.WallLevel(m.City!) >= b.V.Prices.GetValueOrDefault("sallyMinWalls", 2) && b.V.Prices.GetValueOrDefault("sallyMinWalls", 2) > 0
+                    ? ", and my walls will sally to meet them" : "";
+                // A king not yet sworn with us against the besieger is asked to swear it too, as in a defence pact: a friend at
+                // peace with the besieger will not fight him for us unless he has sworn to (see Tactics.Relief).
+                var sworn = brain.Rel[to].Against == foe;
+                return new DispatchOrder(envoy, to,
+                    $"My brother, the troops of {foe} besiege my city of {city}. Come to my aid: send your troops to drive them out{sally}."
+                    + (sworn ? "" : $" What {foe} takes from me today he will take from you tomorrow: let us stand together against him.")
+                    + $" I will not forget who stood with me. {flavour}".TrimEnd(),
+                    sworn ? $"Ask for troops against {foe} at {city}. Promise no land."
+                        : $"Ask for troops against {foe} at {city}. You may swear alliance against {foe} and agree to support each other's troops. Promise no land.",
+                    greet, Proposal: sworn ? null : new TabletProposal { Text = CoalitionTablet(me, to, foe), AllianceOath = false });
+            }
             case "gift" or "tribute":
             {
                 var gift = Gift(0.06 + 0.08 * p.Generosity);
@@ -737,6 +848,24 @@ internal static class Statecraft
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// The cities of the sender's that a letter says are besieged, each with the one living king the sentence names as
+    /// besieging it (neither the sender nor the host): "the troops of Hatti besiege my city of Washukanni", "Ashur is
+    /// besieged by the Babylonians". Read as words, so a model king's plea counts as a script king's does.
+    /// </summary>
+    internal static IEnumerable<(string City, Power Besieger)> PleasIn(string text, Board b, Power sender, Power host)
+    {
+        foreach (var sentence in TextKit.Sentences(text))
+        {
+            if (!sentence.Contains("besieg", StringComparison.OrdinalIgnoreCase)) continue;
+            var kings = b.Alive.Where(x => x != sender && x != host && Names.Mentions(sentence, x)).ToList();
+            if (kings.Count != 1) continue;
+            foreach (var city in b.V.Owner.Where(o => o.Value == sender && b.Walls(o.Key) && Names.MentionsPlace(sentence, Board.Map[o.Key].Name))
+                         .Select(o => o.Key).OrderBy(x => x, StringComparer.Ordinal))
+                yield return (city, kings[0]);
+        }
     }
 
     // The tablets a script king proposes.
@@ -932,6 +1061,18 @@ internal static class Statecraft
                 if (proposal.AllianceOath) r.Allied = true;
                 if (named is { } foe) r.Against = foe;
             }
+        }
+
+        // A plea for relief (the siege package): a city of the sender's besieged by a third king, remembered so that our troops
+        // march to its relief while it is fresh (see Tactics.Relief). A friend we would fight for (sworn against the besieger
+        // now, if we have just sealed his tablet) hears that we will.
+        var answered = false;
+        foreach (var (city, besieger) in PleasIn(view.Spoken, b, sender, me))
+        {
+            brain.Pleas[city] = (sender, besieger, view.Turn);
+            if (answered || !brain.IsFriend(sender) || brain.Betraying == sender || !(Tactics.Willing(b, brain, besieger, leader) || r.Allied && !brain.IsFriend(besieger))) continue;
+            speech.Add($"I have heard of the siege of {Board.Map[city].Name}. Where my troops can reach the troops of {besieger}, they will drive them out.");
+            answered = true;
         }
 
         speech.Add(friend ? "Tell my brother that my love for him is great."

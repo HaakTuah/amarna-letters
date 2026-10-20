@@ -5,6 +5,9 @@ namespace Amarna.Web.Services;
 /// <summary>A unit as it stood at the end of a season.</summary>
 public sealed record FrameUnit(string Id, Power Power, UnitKind Kind, string Province);
 
+/// <summary>A siege at the end of a season: the city, the besieger, and how far it has worn the city down against its walls.</summary>
+public sealed record FrameSiege(string Province, Power Besieger, int Progress, int Walls, int Since);
+
 /// <summary>One unit's order of the season just resolved, and how it went (copied from the engine's outcomes).</summary>
 public sealed record FrameMove(Power Power, UnitKind Kind, string From, string Order, string? Target, string? To, Power? Helped,
     bool Succeeded, bool Destroyed, Power? TargetOwner)
@@ -53,7 +56,15 @@ public sealed class SeasonFrame
     public string? EndReason { get; init; }
     public IReadOnlyList<string> Winners { get; init; } = [];
     public IReadOnlyDictionary<string, Power?> Owner { get; init; } = new Dictionary<string, Power?>();
-    public IReadOnlySet<string> Garrisons { get; init; } = new HashSet<string>();
+    /// <summary>The walls standing at the end of the season, by province (a province with none is left out), as god view sees them.</summary>
+    public IReadOnlyDictionary<string, int> Walls { get; init; } = new Dictionary<string, int>();
+    /// <summary>
+    /// The walls as each court knows them (<see cref="Views.WallsKnown"/>): standing now in its sight, elsewhere as it last
+    /// saw them. Walls rise and fall out of other courts' sight, so a seat view draws these, not <see cref="Walls"/>.
+    /// </summary>
+    public IReadOnlyDictionary<Power, IReadOnlyDictionary<string, int>> KnownWalls { get; init; } = new Dictionary<Power, IReadOnlyDictionary<string, int>>();
+    /// <summary>Every siege under way; a court's view shows those it knows of (<see cref="Views.For"/>).</summary>
+    public IReadOnlyList<FrameSiege> Sieges { get; init; } = [];
     public IReadOnlyList<FrameUnit> Units { get; init; } = [];
     /// <summary>Every order of the season just resolved (the union of what each court standing as it began saw, which includes all its own).</summary>
     public IReadOnlyList<FrameMove> Moves { get; init; } = [];
@@ -134,6 +145,7 @@ public sealed class SeasonFrame
                 c.Covers.Select(k => new FrameCover(k.For, k.Believed, k.HeldAt, k.WhereText, k.TimingText, k.Since)).ToList(),
                 c.Status == CharacterStatus.Captured && c.HeldBy is { } holder ? Views.ConfessedMaster(s, c.Id, holder) : null);
 
+        var sight = Powers.All.ToDictionary(p => p, p => (IReadOnlySet<string>)(s.IsAlive(p) ? Views.Sight(s, map, p) : new HashSet<string>()));
         return new SeasonFrame
         {
             Index = index,
@@ -142,11 +154,13 @@ public sealed class SeasonFrame
             EndReason = s.EndReason,
             Winners = s.Winners.ToList(),
             Owner = new Dictionary<string, Power?>(s.Owner),
-            Garrisons = s.Garrisons.ToHashSet(),
+            Walls = new Dictionary<string, int>(s.Walls),
+            Sieges = s.Sieges.Select(x => new FrameSiege(x.Province, x.Power, x.Progress, s.WallsOf(x.Province), x.Since)).ToList(),
             Units = s.Units.Select(u => new FrameUnit(u.Id, u.Power, u.Kind, u.Province)).ToList(),
             Moves = moves,
             SeenBy = seenBy,
-            Sight = Powers.All.ToDictionary(p => p, p => (IReadOnlySet<string>)(s.IsAlive(p) ? Views.Sight(s, map, p) : new HashSet<string>())),
+            Sight = sight,
+            KnownWalls = Powers.All.ToDictionary(p => p, p => (IReadOnlyDictionary<string, int>)Views.WallsKnown(s, map, p, sight[p])),
             Journeys = s.Journeys.Select(j => new FrameJourney(j.Id, j.Kind, j.DepartTurn, j.ArriveTurn, j.From, j.To, j.CharacterId,
                 j.Kind == JourneyKind.EnvoyOutbound ? j.Dispatch?.Gold ?? 0 : j.Kind == JourneyKind.EnvoyHomebound ? j.Cargo?.Gold ?? 0 : j.Gold,
                 j.Dispatch?.TrailId ?? j.Cargo?.TrailId, j.Report?.Court, j.Report?.Province, j.Report?.ObservedTurn ?? 0, j.Text)).ToList(),
