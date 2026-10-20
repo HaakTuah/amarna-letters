@@ -2472,18 +2472,19 @@ it, and why they moved, are in its report, `docs/rounds/2026-10-20-sieges.md`, a
 The baseline was adapted only as far as the siege package's rules required (terrain required nothing of it), so the
 current bot gains more over it than before item 5. Terrain made conquest harder for it (its growth alone fell from 3.10 to
 2.80), and the audit's walls against fleets and its care for the capital cost it a little more against a baseline that
-seldom presses either (2.74):
+seldom presses either (2.74). After the review of the siege package (walls seen only in sight, among other fixes) the
+table was rerun: the same growth over all, 86% of wins instead of 85%:
 
 | Power | Growth alone | Growth as baseline | Wins alone | Wins as baseline |
 |---|---|---|---|---|
 | Egypt | 2.83 | 1.07 | 100% | 3% |
-| Hatti | 3.04 | 0.85 | 98% | 3% |
-| Babylonia | 3.25 | 1.06 | 100% | 5% |
-| Mitanni | 2.66 | 1.25 | 90% | 25% |
-| Assyria | 3.48 | 1.02 | 78% | 10% |
-| Arzawa | 2.10 | 1.38 | 55% | 45% |
-| Alashiya | 1.87 | 0.99 | 75% | 10% |
-| All kings | 2.74 | 1.09 | 85% | 14% |
+| Hatti | 3.05 | 0.85 | 100% | 3% |
+| Babylonia | 3.31 | 1.06 | 100% | 5% |
+| Mitanni | 2.68 | 1.25 | 95% | 25% |
+| Assyria | 3.34 | 1.02 | 73% | 10% |
+| Arzawa | 2.05 | 1.38 | 60% | 45% |
+| Alashiya | 1.90 | 0.99 | 75% | 10% |
+| All kings | 2.74 | 1.09 | 86% | 14% |
 
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
