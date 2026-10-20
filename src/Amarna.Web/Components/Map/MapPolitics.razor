@@ -1,7 +1,7 @@
 @* Who holds each province, drawn as known: ownership is public and live in the engine, so it is never faded by age.
    Three parts, drawn at three depths: the tints (which also catch taps), the border lines (each power its own line, so
    borders read without colour), and the cities (each with its owner's emblem, a crown for a capital, a ring of walls
-   for a walled city). Redrawn only when another season is shown. *@
+   for a walled city, as the viewer knows them). Redrawn only when another season, viewer or siege is shown. *@
 @using Amarna.Web.Components.Map
 @switch (Part)
 {
@@ -36,7 +36,7 @@
             @foreach (var p in Land)
             {
                 var owner = Frame.OwnerOf(p.Id);
-                var walls = Frame.Walls.GetValueOrDefault(p.Id);
+                var walls = Walls.GetValueOrDefault(p.Id);
                 var besieged = Sieges.Contains(p.Id);
                 <g @key="p.Id" transform="@($"translate({p.X},{p.Y})")" class="@($"city{(p.Capital ? " capital" : "")}{(owner is null ? " free" : "")}{(besieged ? " besieged" : "")}")" @onclick="() => OnProvince.InvokeAsync(p.Id)">
                     <g class="csym">
@@ -75,18 +75,25 @@
     [Parameter] public EventCallback<string> OnProvince { get; set; }
     /// <summary>The cities besieged that the viewer knows of, drawn with broken walls (a court knows only the sieges in its view).</summary>
     [Parameter] public IReadOnlySet<string> Sieges { get; set; } = new HashSet<string>();
+    /// <summary>
+    /// The walls the viewer knows (<see cref="MapScene.Walls"/>): all of them as they stand in god view; a court's standing
+    /// now in its sight and as it last saw them elsewhere.
+    /// </summary>
+    [Parameter] public IReadOnlyDictionary<string, int> Walls { get; set; } = new Dictionary<string, int>();
 
     private SeasonFrame? _drawn;
     private string _sieges = "";
+    private IReadOnlyDictionary<string, int>? _walls;
 
     private string SiegeKey => string.Join(",", Sieges.Order(StringComparer.Ordinal));
 
-    protected override bool ShouldRender() => !ReferenceEquals(_drawn, Frame) || _sieges != SiegeKey;
+    protected override bool ShouldRender() => !ReferenceEquals(_drawn, Frame) || _sieges != SiegeKey || !ReferenceEquals(_walls, Walls);
 
     protected override void OnAfterRender(bool firstRender)
     {
         _drawn = Frame;
         _sieges = SiegeKey;
+        _walls = Walls;
     }
 
     private static string Title(Province p, Power? owner) =>

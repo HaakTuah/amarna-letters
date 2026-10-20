@@ -20,7 +20,7 @@ public class SiegeTextTests
             [Power.Assyria] = new() { Orders = [new MoveOrder("ekallatum", "sippar")] },
         });
         var babylon = Prompts.Situation(Views.For(s, Power.Babylonia));
-        Assert.Contains("LANDS (who holds what, with the walls standing now, the rough ground and the desert; troops only where you can see them):", babylon);
+        Assert.Contains("LANDS (who holds what, with the walls, the rough ground and the desert; troops, and the walls standing now, only where you can see them, the walls elsewhere as you last saw them):", babylon);
         Assert.Contains("babylon (walls 3) [Babylonia army]", babylon);
         Assert.Contains("mari (walls 2) [Babylonia army]", babylon);
         Assert.Contains("SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges mari (a free city, walls 2): worn down 1 of 2, since turn 1.", babylon);

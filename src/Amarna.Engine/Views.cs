@@ -141,7 +141,11 @@ public sealed class SeatView
     public int ProvinceWeight { get; set; } = new GameConfig().ProvinceWeight;
 
     public Dictionary<string, Power?> Owner { get; set; } = new();
-    /// <summary>The walls standing now, by province (public, like who holds what); a province with none is left out.</summary>
+    /// <summary>
+    /// The walls as this court knows them, by province (a province with none is left out): standing now where it can see
+    /// troops, elsewhere as it last saw them (<see cref="Views.WallsKnown"/>; since the review of the siege package, until
+    /// which every court saw every wall as it stood).
+    /// </summary>
     public Dictionary<string, int> Walls { get; set; } = new();
     /// <summary>The sieges this court knows of: its own, those of its cities, and those it can see.</summary>
     public List<SiegeView> Sieges { get; set; } = new();
@@ -255,6 +259,27 @@ public static class Views
         return all;
     }
 
+    /// <summary>
+    /// The walls as a court knows them, by province (a province with none left out): those standing now where it can see
+    /// troops (<see cref="Sight"/>), and elsewhere as it last saw them (<see cref="GameState.WallsSeen"/>; at the start, as
+    /// the map gives them). Walls thrown down by an earthquake or unpaid upkeep, or raised for gold, change out of other
+    /// courts' sight, and a catastrophe and a treasury are known exactly only to their own king. Since the review of the
+    /// siege package; until then every court saw every wall as it stood.
+    /// </summary>
+    public static Dictionary<string, int> WallsKnown(GameState s, WorldMap map, Power p, IReadOnlySet<string>? sight = null)
+    {
+        sight ??= Sight(s, map, p);
+        var known = s.WallsSeen.TryGetValue(p, out var seen)
+            ? new Dictionary<string, int>(seen)
+            : MapData.StartWalls.Where(x => x.Value > 0).ToDictionary(x => x.Key, x => x.Value);
+        foreach (var id in sight)
+        {
+            if (s.Walls.TryGetValue(id, out var level)) known[id] = level;
+            else known.Remove(id);
+        }
+        return known;
+    }
+
     /// <summary>A sleeping seat wakes to at most this many items of the news of the seasons it slept.</summary>
     public const int MaxWhileAsleep = 40;
 
@@ -291,7 +316,7 @@ public static class Views
             StartStrength = s.StartStrength.GetValueOrDefault(p),
             ProvinceWeight = s.Config.ProvinceWeight,
             Owner = new Dictionary<string, Power?>(s.Owner),
-            Walls = new Dictionary<string, int>(s.Walls),
+            Walls = WallsKnown(s, map, p, sight),
             // Its own land's only: how another king's land changed hands is not public, though who holds it is.
             Conquered = s.Conquered.Where(x => s.Owner.GetValueOrDefault(x.Key) == p).ToDictionary(x => x.Key, x => x.Value),
             Sieges = s.Sieges.Where(x => x.Power == p || s.Owner.GetValueOrDefault(x.Province) == p || sight.Contains(x.Province))

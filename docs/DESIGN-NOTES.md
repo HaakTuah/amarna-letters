@@ -101,9 +101,21 @@ Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
     Carchemish, Qadesh, Tyre, Megiddo, Gaza, Mari, Susa, Memphis, Kanesh and Nineveh 2; the walled
     towns Lukka, Isuwa, Ugarit, Amurru, Byblos and Damascus 1; every other land province none. So
     every free city has walls, and so do the capitals and three homeland fortresses. The walls
-    standing now are the game state's (`GameState.Walls`), public like ownership, in each view
-    ("LANDS ...: mari (walls 2)") and on the map (a ring for each level). THE MAP in the rulebook
-    gives each province's walls at the start.
+    standing now are the game state's (`GameState.Walls`). THE MAP in the rulebook gives each
+    province's walls at the start, which every court knows. **A court sees the walls standing now
+    only where it sees troops** (its sight: its land, its troops, its spies' provinces and next to
+    them), and knows them elsewhere as it last saw them (`Views.WallsKnown`, `GameState.WallsSeen`:
+    each living court's, set from the map at the start and, as each season resolves, from what its
+    view showed when it gave its orders), in its view ("LANDS ...: mari (walls 2)") and on its map
+    (a ring for each level; the province card says "as your court last saw them" out of sight, or
+    "as the map gave them at the start" where it never saw). God view draws them as they stand. Since
+    the review of the siege package: until then every court saw every wall as it stood, so an
+    earthquake (known exactly only to the king it strikes), walls that fell for want of upkeep (which
+    told every court that a rival's treasury could not keep them) and walls raised for gold out of
+    sight (whose fortify notice goes only to courts with sight) were all seen by everyone. A court
+    that can see a province sees its walls fall to an earthquake there, as it sees a troop lost to
+    plague. The rulebook says so in WALLS AND SIEGES and WHAT YOU SEE, and LANDS' heading ("the walls
+    elsewhere as you last saw them").
   - **Walls add nothing to a battle.** Combat resolves as always, and a unit within walls defends
     with 1 plus its supports, and the ground's help where it has it (see Terrain). (Until the siege package walls were pretend units that held with
     strength 1, only on the free cities.) A move that wins its way into a walled province its mover
@@ -1977,7 +1989,7 @@ Each season, before deciding:
 - Remembered troops are placed at the newest sightings, up to the number each king is thought to have beyond those in sight. A fallen king's troops are forgotten.
 - It keeps the largest number of troops it has seen each king hold. After three seasons of seeing fewer, it lowers that count by one, so it forgets a troop a year. A spy's report can raise the count. A king with no land and no troops in sight is counted as having none.
 
-**Belligerence.** Each conquest by another king, anywhere on the public map, adds 1 for free land and 1.5 for a king's land. It fades to 70% each season. Purchases do not count.
+**Belligerence.** Each conquest by another king, anywhere on the public map, adds 1 for free land and 1.5 for a king's land. It fades to 70% each season. Purchases do not count: a free city bought keeps its walls, one taken loses a level. Since the review of the siege package a court sees the walls standing only where it sees troops, so a free city that changed hands out of sight, which may have been bought or taken, counts half as each: 0.5 belligerence, and half its price off the buyer's estimated treasury.
 
 **Rivals' treasuries** are estimated from what is public. Each one starts at that king's starting gold. Then, each season, it adds the yield of his land and subtracts:
 
@@ -2630,7 +2642,8 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   seen is hatched. Units the court saw in a province it cannot see now stay as dashed ghosts, fainter with age, with
   the season they were seen. Rumours and spy reports that reached the court are placed where they came from, dashed
   and fading over eight seasons. Ownership is not fogged: who holds each province is public and live in the engine,
-  so tints, border lines and seals are drawn as known.
+  so tints, border lines and seals are drawn as known. Walls are (since the review of the siege package): a court's map
+  draws them standing now in its sight and as it last saw them elsewhere (`SeasonFrame.KnownWalls`, `MapScene.Walls`).
 - **Follow this character** builds a life from the record (`LifeRecord`): service, places season by season (and the
   path on the map), missions with what was written, said and reported, and in god view the hidden traits, facts and
   the character's own memory; in a court's view only what that court knows: its own servants' service, the messages
@@ -2798,8 +2811,8 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
   (main tab "Season names"), and regnal or limmu years (question 26, plan steps 5-7). The one date label with the
   year BCE and the ending line are built (see "The web map and the interface").
 - **The map's later layers**: roads and relay stations, and generals leading armies, drawn once the
-  game has them (walls are drawn since the siege package, a ring for each level standing, broken where the viewer knows
-  of a siege; the province card gives the level and the siege) (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
+  game has them (walls are drawn since the siege package, a ring for each level standing, as the viewer knows them, broken
+  where the viewer knows of a siege; the province card gives the level and the siege) (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).
 - **Gold sent without an inventory**, saving the scribe fee and checkable by nobody (Ideas tab "Why the envoy lies, and
   how he is caught"): today every gift has an inventory, and it costs nothing.

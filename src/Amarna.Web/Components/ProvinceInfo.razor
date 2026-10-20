@@ -9,7 +9,7 @@
     var terrain = Geography.TerrainOf(Id);
     var rivers = Geography.RiversThrough(Id).Select(r => r.Name).ToList();
     var crossings = Geography.Crossings.Where(c => c.A == Id || c.B == Id).ToList();
-    var walls = Scene.Frame.Walls.GetValueOrDefault(Id);
+    var walls = Scene.Walls.GetValueOrDefault(Id);
     var siege = Scene.Sieges.FirstOrDefault(x => x.Province == Id);
 }
 <div class="infocard map-ui">
@@ -27,7 +27,7 @@
         <p class="small">
             @(owner is { } o ? $"Held by {o.Name()}." : "A free city-state.")
             Yields @Ui.Shekels(p.Yield) a season@(p.Home is { } h && h != owner ? $"; part of the homeland of {h.Name()}" : "").
-            @if (walls > 0) { <span> Walls of level @walls: an attacker takes it at once only by storming them (a strength above the walls and the defenders together); otherwise its army stands inside and must besiege the city for as many seasons as the walls are high.</span> }
+            @if (walls > 0) { <span> Walls of level @walls@(Scene.Viewer is null || age == 0 ? "" : age < 0 ? " as the map gave them at the start" : " as your court last saw them"): an attacker takes it at once only by storming them (a strength above the walls and the defenders together); otherwise its army stands inside and must besiege the city for as many seasons as the walls are high.</span> }
             @if (walls > 0 && owner is null) { <span> Buy it for @Ui.Shekels(p.Yield * State.Config.NeutralPriceFactor).</span> }
         </p>
         @if (siege is not null)

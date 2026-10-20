@@ -163,11 +163,20 @@ internal sealed partial class Brain
             if (was != Me || b.OwnerOf(prov) is not { } taker || taker == Me || !Rel.ContainsKey(taker)) continue;
             Wronged(taker, 2 + Board.Map[prov].Yield / 20.0, -0.4, v.Turn);
         }
-        // Conquests anywhere on the public map (a purchase keeps the walls; a city that falls loses a level of them).
+        // Conquests anywhere on the public map (a purchase keeps the walls; a city that falls loses a level of them). We see
+        // the walls only where we see troops: a free city that changed hands out of our sight was bought or taken, we cannot
+        // tell which, so it counts half as each (since the review of the siege package, when the walls out of sight became
+        // those last seen; until then every wall was seen as it stood).
         foreach (var k in Belligerence.Keys.ToList()) Belligerence[k] *= 0.7;
         foreach (var (prov, was) in previous)
         {
             if (b.OwnerOf(prov) is not { } now || now == was || now == Me) continue;
+            if (was is null && !v.Visible.Contains(prov))
+            {
+                Treasury[now] -= Board.Map[prov].Yield * b.YieldWorth / 2;
+                Belligerence[now] = Belligerence.GetValueOrDefault(now) + 0.5;
+                continue;
+            }
             if (was is null && b.Walls(prov) && b.WallLevel(prov) == LastWalls.GetValueOrDefault(prov))
             {
                 Treasury[now] -= Board.Map[prov].Yield * b.YieldWorth;

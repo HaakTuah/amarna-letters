@@ -435,6 +435,8 @@ public sealed partial class TurnEngine
         _firedNow.Clear();
         _marchNow.Clear();
         _cededNow.Clear();
+        // Each living court remembers the walls as it saw them when it gave its orders (its view's), for when it no longer sees them.
+        foreach (var p in S.Alive) S.WallsSeen[p] = Views.WallsKnown(S, Map, p);
         // Each seat's season before its standing orders fire; then the standing orders, any seat's, that answer this season's moves.
         var seasons = S.Alive.ToDictionary(p => p, p => PlanSeason(p, submissions.GetValueOrDefault(p) ?? new TurnSubmission()));
         var fires = StandingFires(seasons, validator);

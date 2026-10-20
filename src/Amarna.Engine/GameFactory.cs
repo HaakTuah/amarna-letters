@@ -18,6 +18,8 @@ public static class GameFactory
         {
             s.Treasuries[p] = new Treasury { Gold = MapData.StartGold[p] };
             s.Inbox[p] = new List<InboxItem>();
+            // Every court knows the walls as the map gives them; after that, as it last saw them.
+            s.WallsSeen[p] = new Dictionary<string, int>(s.Walls);
         }
 
         CharacterFactory.Populate(s);

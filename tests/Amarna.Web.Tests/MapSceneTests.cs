@@ -184,6 +184,27 @@ public class MapSceneTests
     }
 
     [Fact]
+    public void A_court_draws_the_walls_standing_only_where_it_sees_and_god_view_draws_them_all()
+    {
+        var (runner, frames) = Play(7, 16);
+        var differ = 0;
+        for (var k = 0; k < frames.Count; k++)
+        {
+            var f = frames[k];
+            Assert.Equal(f.Walls.OrderBy(x => x.Key), MapScene.Build(frames, k, null).Walls.OrderBy(x => x.Key));
+            foreach (var p in Powers.All.Where(runner.StateAt(k)!.IsAlive))
+            {
+                var walls = MapScene.Build(frames, k, p).Walls;
+                Assert.Equal(f.KnownWalls[p].OrderBy(x => x.Key), walls.OrderBy(x => x.Key));
+                foreach (var id in f.Sight[p].Where(id => !WorldMap.Default[id].IsSea))
+                    Assert.Equal(f.Walls.GetValueOrDefault(id), walls.GetValueOrDefault(id));
+                differ += WorldMap.Default.LandProvinces.Count(x => f.Walls.GetValueOrDefault(x.Id) != walls.GetValueOrDefault(x.Id));
+            }
+        }
+        Assert.True(differ > 0, "no court's walls ever differed from the truth out of its sight, so nothing was checked");
+    }
+
+    [Fact]
     public void A_frame_from_the_live_state_matches_one_read_back_from_its_snapshot()
     {
         var (runner, frames) = Play(7, 16);
@@ -198,6 +219,7 @@ public class MapSceneTests
             Assert.Equal(JsonSerializer.Serialize(live.News, options), JsonSerializer.Serialize(again.News, options));
             Assert.Equal(live.Owner.OrderBy(x => x.Key), again.Owner.OrderBy(x => x.Key));
             foreach (var p in Powers.All) Assert.Equal(live.Sight[p].OrderBy(x => x), again.Sight[p].OrderBy(x => x));
+            foreach (var p in Powers.All) Assert.Equal(live.KnownWalls[p].OrderBy(x => x.Key), again.KnownWalls[p].OrderBy(x => x.Key));
         }
     }
 
@@ -265,7 +287,7 @@ public class MapSceneTests
                 {
                     var o = seen.First(o => o.Power == m.Power && o.Province == m.From && o.Order == "move" && o.Target == m.To);
                     var foreignLand = o.TargetOwner is { } owner && owner != m.Power;
-                    var walls = o.TargetOwner != m.Power && prev.Walls.ContainsKey(m.To);
+                    var walls = o.TargetOwner != m.Power && MapScene.WallsIn(prev, p).ContainsKey(m.To);
                     Assert.True(foreignLand || walls || sight.Contains(m.To), $"seed {seed}, after turn {k}: {p} told of an attack on {m.To}, out of its sight");
                 }
             }

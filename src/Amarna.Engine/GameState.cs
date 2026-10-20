@@ -43,6 +43,14 @@ public sealed class GameState
     /// wears the city down (<see cref="Sieges"/>).
     /// </summary>
     public Dictionary<string, int> Walls { get; set; } = new();
+    /// <summary>
+    /// The walls as each court last saw them, by province (a province with none left out): at the start as the map gives
+    /// them, then, as each season resolves, those standing in the court's sight as it gave its orders. A court sees the walls
+    /// standing now only where it sees troops, and knows them elsewhere as they were when it last saw them
+    /// (<see cref="Views.WallsKnown"/>): walls fall to an earthquake or to unpaid upkeep, and rise for gold, out of other
+    /// courts' sight. Since the review of the siege package; until then every court saw every wall as it stood.
+    /// </summary>
+    public Dictionary<Power, Dictionary<string, int>> WallsSeen { get; set; } = new();
     /// <summary>The sieges under way: a foreign army standing in a walled city, ordered to besiege it.</summary>
     public List<Siege> Sieges { get; set; } = new();
     /// <summary>
