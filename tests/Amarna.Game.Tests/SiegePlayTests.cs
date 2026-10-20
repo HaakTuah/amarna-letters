@@ -204,6 +204,35 @@ public class SiegePlayTests
     }
 
     [Fact]
+    public void A_script_king_s_besieging_army_with_nothing_to_help_it_slips_away_as_the_relief_falls()
+    {
+        // Babylonia's army besieges Assyria's Mari (walls 2, so the walls may sally); Assyria's army in Ekallatum stands next
+        // to it, and no troop of Babylonia's can reach Mari. Damascus, beyond it, is free, open and out of Assyria's reach.
+        var s = GameFactory.NewGame(1, new GameConfig { MinTurns = 40, CatastropheChance = 0 });
+        s.Turn = 6;
+        s.Units.RemoveAll(u => u.Province == "sippar");
+        var army = new Unit { Id = s.NewId("u"), Power = Power.Babylonia, Kind = UnitKind.Army, Province = "mari" };
+        s.Units.Add(army);
+        s.Owner["mari"] = Power.Assyria;
+        s.Sieges.Add(new Siege { Province = "mari", Power = Power.Babylonia, UnitId = army.Id, Progress = 1, Since = 5 });
+        s.Walls.Remove("damascus");
+        var v = Views.For(s, Power.Babylonia);
+        var brain = new Brain(Power.Babylonia, 9);
+        brain.Learn(v, new Board(v));
+        var b = new Board(v);
+        var plan = new MilitaryPlan();
+        foreach (var u in b.Mine) plan.Orders[u.Province] = u.Province == "mari" ? new BesiegeOrder("mari") : new HoldOrder(u.Province);
+        var (_, give) = Contingencies.Plan(b, brain, plan, []);
+        // One army and the walls' sally beat it standing alone: when it is attacked, it slips away rather than be destroyed (the
+        // siege is lost either way).
+        var g = Assert.Single(give, x => x.Place == "mari");
+        Assert.Equal((Contingencies.Guard.Retreat, StandingWhen.UnitAttacked), (g.Kind, g.Request.When));
+        Assert.Equal([new MoveOrder("mari", "damascus")], g.Request.Orders);
+        // A besieging army is never called away to help elsewhere: it would not press its siege.
+        Assert.DoesNotContain(give, x => x.Request.Orders.Any(o => o is SupportOrder { Unit: "mari" } || o is MoveOrder { Unit: "mari" } && x.Place != "mari"));
+    }
+
+    [Fact]
     public async Task A_script_captor_lets_go_at_once_an_envoy_whose_king_has_fallen()
     {
         // The envoy is caught leaving Ashur; the next season Ashur surrenders, and Assyria falls.

@@ -43,7 +43,13 @@ internal static class Contingencies
         // Troops that leave our hands this season, by the treasury's orders: they answer nothing next season.
         var going = orders.Select(o => o switch { DisbandOrder d => d.Unit, GiftUnitOrder g => g.Unit, _ => null }).OfType<string>().ToHashSet();
         Order? Fresh(string unit) => plan.Orders.GetValueOrDefault(unit);
-        bool Stays(string unit) => mine.ContainsKey(unit) && !going.Contains(unit) && Fresh(unit) is null or HoldOrder or SupportOrder or ConvoyOrder;
+        bool Stays(string unit) => mine.ContainsKey(unit) && !going.Contains(unit) && Fresh(unit) is null or HoldOrder or SupportOrder or ConvoyOrder or BesiegeOrder;
+        // An army of ours besieging a city stays where it is, but presses the siege only if it holds there: it guards nothing
+        // else (since the script players' audit of the siege package, which found besiegers left out of standing orders).
+        bool Besieging(string unit) => Fresh(unit) is BesiegeOrder;
+        // The walls of a city we besiege may sally for an attack on our army there: one more to beat.
+        var sallyMin = b.V.Prices.GetValueOrDefault("sallyMinWalls", 2);
+        int Sally(string place) => Besieging(place) && sallyMin > 0 && b.WallLevel(place) >= sallyMin ? 1 : 0;
         double Worth(string place) => (b.IsMine(place) ? b.Value(place) : 0) + (mine.ContainsKey(place) ? TroopWorth : 0);
 
         // Fear of each king, as the first plan reckons it: a friend counts a quarter, and next to the capital anyone but a
@@ -104,9 +110,11 @@ internal static class Contingencies
             if (st.When == StandingWhen.UnitAttacked && plan.Orders.Values.OfType<MoveOrder>().Any(m => m.To == place)) return "the plan guards it";
             // A troop or walls that hold this season without its supports against all that a feared king could move in now:
             // it would fire on any blow, even one they hold alone, and take its troops from their own orders for nothing.
-            if (st.Orders.All(o => o is SupportOrder { To: null })
-                && 1 + Rough(place) + mine.Keys.Count(u => !st.Orders.Any(o => Unit(o) == u) && Fresh(u) is SupportOrder { To: null } s && s.Supported == place) >= Muster(place))
-                return "held without it";
+            if (st.Orders.All(o => o is SupportOrder { To: null }) || st.Orders is [MoveOrder { Unit: var slipping }] && slipping == place && !Board.Map[place].IsSea)
+                if (1 + Rough(place) + mine.Keys.Count(u => !st.Orders.Any(o => Unit(o) == u) && Fresh(u) is SupportOrder { To: null } s && s.Supported == place) >= Muster(place) + Sally(place))
+                    return "held without it";
+            // An army that slips away from a siege when attacked: not once the city is ours, or the siege given up.
+            if (st.Orders is [MoveOrder { Unit: var leaving }] && leaving == place && !Board.Map[place].IsSea && !Besieging(place)) return "no siege";
             foreach (var o in st.Orders)
             {
                 if (Unit(o) is not { } u) continue;
@@ -121,7 +129,8 @@ internal static class Contingencies
                     && plan.Orders.Values.Any(x => x is SupportOrder { To: null } s && s.Supported == u))
                     return "needed at home";
                 // What the troop would give up if it fires: its own order for this season.
-                if (Fresh(u) is { } f && f.Describe() != o.Describe() && Cost(f, place) * KeepRatio > Worth(place)) return "needed elsewhere";
+                // (Not the troop that slips away: it fires only on a blow that would drive it out, its own order lost either way.)
+                if (Fresh(u) is { } f && f.Describe() != o.Describe() && !(o is MoveOrder && u == place) && Cost(f, place) * KeepRatio > Worth(place)) return "needed elsewhere";
             }
             return null;
         }
@@ -130,6 +139,8 @@ internal static class Contingencies
         double Cost(Order f, string guarded) => f switch
         {
             HoldOrder => 0,
+            // A besieger that does something else this season does not press its siege: a step lost.
+            BesiegeOrder x => 0.45 * b.Value(x.Unit) / (b.WallLevel(x.Unit) + 1.0),
             ConvoyOrder => double.MaxValue,
             MoveOrder m => Into(m.To),
             SupportOrder { To: { } to } => Into(to),
@@ -152,18 +163,22 @@ internal static class Contingencies
         {
             if (give.Count >= room) break;
             // Our troops next to it that stay where they are this season, the least threatened first.
-            var helpers = mine.Keys.Where(u => u != place && !used.Contains(u) && Stays(u) && Board.Map.CanMove(mine[u].Kind, u, place))
+            var helpers = mine.Keys.Where(u => u != place && !used.Contains(u) && Stays(u) && !Besieging(u) && Board.Map.CanMove(mine[u].Kind, u, place))
                 .OrderBy(u => Threat(u).Chance * Worth(u)).ThenBy(u => u, StringComparer.Ordinal).ToList();
             if (mine.TryGetValue(place, out var troop))
             {
-                // A troop of ours that stays: against more than one, it needs supports to hold (one fewer on rough ground).
+                // A troop of ours that stays: against more than one, it needs supports to hold (one fewer on rough ground; one more
+                // for a besieger, whose city's walls may sally).
                 var ground = Rough(place);
-                if (!Stays(place) || strength - ground < 2 || Muster(place) - ground < 2 || covered.Contains((StandingWhen.UnitAttacked, place))) continue;
-                var support = helpers.Take(strength - 1 - ground).ToList();
+                var sally = Sally(place);
+                if (!Stays(place) || strength + sally - ground < 2 || Muster(place) + sally - ground < 2 || covered.Contains((StandingWhen.UnitAttacked, place))) continue;
+                var support = helpers.Take(strength + sally - 1 - ground).ToList();
                 if (support.Count > 0)
                     Add(Guard.Troop, place, StandingWhen.UnitAttacked, support.Select(h => (Order)new SupportOrder(h, place)).ToList(), support);
-                else if (Board.Map[place].IsSea && !used.Contains(place) && Refuge(place, troop.Kind) is { } refuge)
-                    // A fleet at sea, nothing to help it, and nothing to lose there but the fleet: it slips away as the blow falls.
+                else if ((Board.Map[place].IsSea || Besieging(place)) && !used.Contains(place) && Refuge(place, troop.Kind) is { } refuge)
+                    // A fleet at sea, or an army besieging a city, with nothing to help it and nothing to lose there but the troop
+                    // (the siege is lost with it either way): it slips away as the blow falls. Fleets at sea were never struck in
+                    // script games, so until the script players' audit of the siege package no retreat was ever given.
                     Add(Guard.Retreat, place, StandingWhen.UnitAttacked, [new MoveOrder(place, refuge)], [place]);
             }
             else if (b.IsMine(place) && (Board.Map[place].Home == me || b.Walls(place)) && !covered.Contains((StandingWhen.UnitEnters, place)))
