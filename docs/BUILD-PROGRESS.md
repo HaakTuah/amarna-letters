@@ -35,6 +35,11 @@ item's report.
 - A PR at every milestone: after each merge into `develop`, check the previous PR; if it was merged, merge `main` back
   into `develop` first, then push and open a new PR.
 - Usage: this session may go up to 95% of the weekly limit, then stops at a clean commit.
+- Added on 21 October, for one PR only (Haakon, word for word): "One exception to "main is never touched", for the
+  docs and preview PR only: when it's done and its own preview link works, merge it into main yourself. Then check
+  that the site root still shows the game from main as before. If it doesn't, revert the merge, say so in the PR, and
+  carry on without previews. Every other PR into main stays mine to merge." The PR is the docs and preview pass
+  (`docs/prompts/DOCS-AND-PREVIEW.md`). Once it is merged, or reverted, the exception has been used up.
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|

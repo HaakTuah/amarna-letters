@@ -79,19 +79,44 @@ doesn't refer to it.
 8: Yes, tidy up in the docs PR. Remove a worktree or branch only if it has no
 uncommitted or unpushed work, and list any you keep in the PR.
 
+- 5: in the archiving step, check only each report's decision and review-question
+  sections against DESIGN-NOTES.md and BUILD-PROGRESS.md, not the whole reports.
+
+On 4: I don't think the docs PR has to be merged before previews work. On a PR from this
+repo, GitHub runs the workflows in the PR's own branch, so the preview workflow should
+run on the docs PR itself and on every later PR that includes it; only publishing main
+to the site root needs it on main. Check it on the docs PR, and note the result in the
+docs pass instead of the assumption.
+
+One exception to "main is never touched", for the docs and preview PR only: when it's
+done and its own preview link works, merge it into main yourself. Then check that the
+site root still shows the game from main as before. If it doesn't, revert the merge,
+say so in the PR, and carry on without previews. Every other PR into main stays mine
+to merge.
+
+(The exception is also recorded in `docs/BUILD-PROGRESS.md` under the builder rules. It applies to this one PR only.)
+
 (Haakon's point 5, adding `docs/CONVERSION-PLAN.md` in this PR, was done ahead of it: the file was committed on
 `develop` on 21 October 2026, together with this one.)
 
 ## Findings while preparing the pass (21 October 2026; check them again before relying on them)
 
 **Pages and previews.**
-- Pages uses the GitHub Actions source (`build_type: workflow`). The `github-pages` environment allows deploys
-  only from `main` (a custom branch policy). A `pull_request` job therefore can't deploy, but a `workflow_run` job
-  (whose ref is `main`) can, so no Pages setting needs to change.
-- The plan that follows: the PR workflow builds the site and uploads it as an artifact. A `workflow_run` workflow
-  assembles the site in a `gh-pages` storage branch (main at the root, each preview in `pr-N/`) and deploys the
-  whole tree with deploy-pages. Deploys are serialised with a concurrency group, and pushes to the storage branch
-  use a lease. The `gh-pages` branch does not exist yet.
+- Pages uses the GitHub Actions source (`build_type: workflow`). As Haakon says, a PR from this repo runs the
+  workflows in its own branch, so the build and preview jobs run on the docs PR itself.
+- The part to check on the docs PR is the deploy. On 21 October the `github-pages` environment allowed deployments
+  only from `main` (a custom branch policy naming `main`). A job run for a pull request deploys from the PR's merge
+  ref (`refs/pull/N/merge`), which that rule may refuse. Note in this file and in the PR what actually happened.
+- If the deploy is allowed: one workflow does everything. On a PR it builds the preview, puts it in `pr-N/`, deploys,
+  and comments the link. On a push to `main` it updates the root. On close it removes `pr-N/`.
+- If it is refused: say in the PR, exactly, which setting allows it (Settings → Environments → `github-pages` →
+  Deployment branches and tags: let the PR's ref deploy, for example "No restriction"). Don't use the merge exception
+  until the PR's own preview link works, and carry on with the next item meanwhile. A `workflow_run` workflow (ref
+  `main`) could deploy with no setting change, but only once it is on `main`, so it can't show the docs PR's own
+  preview.
+- Either way, the site is kept in a `gh-pages` storage branch (main at the root, each preview in `pr-N/`), and
+  deploy-pages deploys the whole tree. Deploys are serialised with a concurrency group, and pushes to the storage
+  branch use a lease. The `gh-pages` branch does not exist yet.
 - `src/Amarna.Web/wwwroot/service-worker.published.js` answers every navigation inside its scope with the cached
   root `index.html`, so `/pr-N/` would show main to anyone who has visited the game. It needs a two-line skip for
   `pr-<n>/` paths. Previews must not register a service worker of their own: leave `service-worker.js` out of the

@@ -63,6 +63,16 @@ the rest is what was agreed with him.
   machine, cloud sessions included. Check first that they contain no API keys or other
   secrets. If they're too large, commit a trimmed set and say so in the PR.
 
+## Gates and checks added (Haakon, 21 October 2026)
+
+- Split the script-king layer into several parity gates by phase (orders, audiences,
+  letters, intelligence), so every session can end with a gate passed.
+- A Playwright smoke test of the main screens (setup, a season, an audience, the
+  trail, the phone layout), run on both builds.
+- Fingerprint the rulebook, prompt and request text as part of parity, and gather the
+  number formatting used in prompts and engine text in a few helpers that reproduce the
+  C# formats exactly.
+
 ## Also agreed
 
 - Port order: engine, then script kings and characters, then the model layer, then web, then batch and the
@@ -76,6 +86,11 @@ the rest is what was agreed with him.
   dictionary order and culture-sensitive string sorting in C#.
 
 ## Notes
+
+- What in the C# is hard to port exactly (counted on 21 October 2026 in the engine, game and model layers): one
+  transcendental `Math` call, in the API client's retry wait (`ClaudeClient.cs`), not in any rule; no `GetHashCode`;
+  22 `Math.Round` calls (round-half-to-even, so through the helper); 9 numeric formats in prompts and engine text
+  (through the formatting helpers, and proved by the text fingerprints).
 
 - The model-game logs were recorded with the 64-bit generator. After the switch to the 32-bit one, a strict
   replay no longer matches them: the dice differ, and the recorded replies stop fitting the situations. They
