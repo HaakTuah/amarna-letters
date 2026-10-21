@@ -12,15 +12,171 @@ on their own.
 
 **Play it in your browser:** <https://haaktuah.github.io/amarna-letters/>
 
-## Run it
+Play a king yourself, watch Claude play all seven, or mix the two. With no API key, every king
+and envoy is a script player, and a whole game costs nothing.
 
-You need the .NET 10 SDK.
+![The message trail: what Alashiya's king wrote, beside what his envoy said abroad and reported home](docs/rounds/2026-10-19-visual-overhaul/desktop-dark-trail.jpg)
 
-```bash
-dotnet run --project src/Amarna.Web --launch-profile http
-```
+*The message trail. Every message exists in three versions: what the king wrote, what the envoy
+said at the foreign court, and what the envoy reported home. The gaps between them are the game.*
 
-Then open <http://localhost:5183>, pick a preset, choose whether to watch or take a seat, and begin.
+## How to play
+
+You are one of seven Great Kings: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa and
+Alashiya. Each season you read what reached your court, receive foreign envoys, and give your
+orders in secret. Every king orders at the same time, and the engine resolves everything at once.
+Three seasons make a year.
+
+You see only what your kingdom can see: your own land, the provinces where your troops stand or
+your spies watch, and one step beyond them. Everything else you know from letters, reports and
+rumours, and those can be late, shaded or false.
+
+### A season
+
+1. **Income and upkeep.** Provinces pay gold. Troops, servants and raised walls are paid. Troops
+   the treasury cannot pay desert; unpaid servants are owed back pay, and remember it.
+2. **Arrivals.** Envoys, gold, spy reports and rumours that were on the road arrive.
+3. **Audiences.** Foreign envoys deliver their message in their own words. The host answers, and
+   may bribe the envoy, offer it a post, seal its tablet, detain it or send gold back. Each audience
+   has up to two exchanges, and the envoy decides how to respond.
+4. **Orders.** Every king submits secret, simultaneous orders.
+5. **Resolution.** Movement and battles, then sieges. Land changes hands, and a kingdom whose
+   capital is taken falls. Then come cessions and gifts, purchases, walls, levies, envoys setting
+   out, hiring, intelligence and seeded catastrophes.
+6. **Reports.** News of the season reaches each court the next season.
+
+### What a king can do
+
+**Armies and fleets.**
+- Move, hold, support and convoy, as in Diplomacy. Strength is one plus supports, ties bounce,
+  and there are no dice. You may support any power's unit, which is how alliances fight together.
+- Besiege a walled city your army stands in, or sally from your own walls (level 2 or more) against troops inside them.
+- Give standing orders that answer a blow in the same season, while you sleep or play.
+- Raise an army (100 shekels) or a fleet (120) in an empty province of your homeland, or disband
+  one. Upkeep is 30 a season for an army and 35 for a fleet.
+
+**Land and gold.**
+- Buy a free city for ten times its yield, if your land or troops touch it.
+- Cede provinces, give troops, and send gold with an envoy.
+- Debase the gold you send. The receiver's ledger counts it at face value until they pay
+  10 shekels to assay the lot.
+- Strengthen the walls of a city you hold, up to level 3, for 50 shekels times the new level.
+
+**Envoys and letters.**
+- Send up to three envoys a season, each with a letter of up to 1,500 characters, a mandate
+  saying what it may agree to, gold, and tablets. An envoy takes one to three seasons each way,
+  by distance.
+- Every letter opens with the formula of the real Amarna letters ("Say to …, my brother: thus
+  says the Great King …"). Who is called brother, and who is granted "Great King", shows how a
+  court stands with you.
+
+**Tablets.**
+- Write a treaty on a tablet (20 shekels) for your envoy to offer for sealing.
+- Send a copy of a sealed tablet to a third court as evidence.
+- Have a tablet examined for forgery, or forge one yourself (40 shekels, with a servant skilled
+  enough).
+- Tablets are evidence only: nothing in the engine enforces them.
+
+**Court and spies.**
+- Hire from the open market, where people name their own price, and dismiss servants.
+- Run background checks on what a person hides.
+- Post spies at a foreign court or in a province, and pay watchmen against other kings' spies.
+- Hold a caught spy for ransom or try to turn it, and pay the ransom for one of your own.
+
+### Walls, sieges and terrain
+
+Every capital has walls of level 3. The great fortresses (Carchemish, Qadesh, Tyre, Megiddo,
+Gaza, Mari, Susa, Memphis, Kanesh and Nineveh) have 2, and a few walled towns have 1.
+
+- **Storming.** Walls add nothing to a field battle. A move into a walled city takes it at once only
+  if its strength also beats the walls plus the defenders.
+- **Besieging.** Otherwise the army stands inside and can besiege. Each season it holds there wears
+  the walls down a step, or two with a support. A besieged city yields nothing, and the siege costs
+  the besieger 15 shekels a season.
+- **Envoys under siege.** An envoy leaving a besieged capital may be caught, and a timid one will
+  not go.
+- **Terrain.** A unit standing its ground on rough ground, behind a mountain pass or a great
+  river, or against a landing from the sea, gets +1. An army in desert land its king did not hold
+  pays 30 shekels a season for supplies.
+
+### Winning
+
+A king's strength is ten times the yield of the land he holds, plus his gold, minus back pay he
+owes. Conquered land counts as it is absorbed: a third in its first season, two thirds in the
+second, all of it from the third. The winner is whoever grew most relative to their own start.
+
+No game ends before turn 15, the third season of year 5. After that, each season ends the age with a 15% chance, and
+nobody knows which season is the last.
+
+A kingdom falls with its capital: its remaining land passes to the conqueror, and its troops
+disband. A fallen player watches the rest of the game in god view (a table setting).
+
+There is one winner. Shared victory for sworn allies is a house rule, off by default.
+
+## The seven Great Kings
+
+Every king reads every power's opening position. The script kings each play a temperament of their
+own, varied a little in every game.
+
+| Power | Capital | Tier | Starts with | How the script king plays |
+|---|---|---|---|---|
+| **Egypt** | Akhetaten | Strong | armies in Memphis and Akhetaten, a fleet in the Nile Delta, 600 shekels | "Pharaoh of the gilded gifts": generous, proud and diplomatic; buys friends with gold "as plentiful as dust" |
+| **Hatti** | Hattusa | Strong | armies in Hattusa and Kanesh, a fleet in Kizzuwatna, 300 shekels | "The conqueror of Anatolia": the most aggressive king, vengeful, little given to trade |
+| **Babylonia** | Babylon | Strong | armies in Babylon, Sippar and Dur-Kurigalzu, 650 shekels | "Keeper of the old order": the proudest and greediest; cautious, and will not call Assyria brother unless they are friends |
+| **Mitanni** | Washukanni | Middle | armies in Washukanni, Taidu and Terqa, 500 shekels | "Seeker of a patron": the most diplomatic and among the most honest; squeezed between Hatti and Assyria |
+| **Assyria** | Ashur | Middle | armies in Ashur, Nineveh and Ekallatum, 350 shekels | "The upstart who would be brother": aggressive and cunning, hungry to be counted a Great King |
+| **Arzawa** | Apasa | Weak | armies in Mira and Apasa, a fleet in Seha, 300 shekels | "The western opportunist": the most cunning and least honest |
+| **Alashiya** | Enkomi | Weak | a fleet in Enkomi, 350 shekels | "The copper merchant": the island trader, the most cautious and least aggressive |
+
+Between the great kingdoms lie free cities, such as Ugarit, Byblos, Qadesh and Susa, which can be
+bought or taken. Alashiya is an island, reached only by sea.
+
+A script king sees only what its seat sees. It remembers who wronged it and who kept faith, and
+checks its orders against what its rivals are likely to do by playing the season out with the
+engine's own adjudicator. When one king runs away with the game, the others swear coalitions
+against him and strike at his land together; a king attacked by a strong neighbour asks the
+neighbour's other neighbours for a defence pact. Script kings give standing orders too. The god
+view lists each king's temperament under **Standings**. Every rule they follow, with its numbers,
+is in [docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md) under "Script kings".
+
+## Envoys and other servants
+
+Eighteen people move between the courts: eight with names attested in the Amarna letters (Mane,
+Keliya, Pirissi and others, seven drawn each game) and the rest named in their region's style.
+Each power starts with two envoys; the rest are free agents, looking for a master.
+
+Each has traits from 0 to 100 (loyalty, greed, competence, ambition, courage, and sympathy for a
+court), secrets at three levels of secrecy, and a memory that travels with them to a new master.
+Nobody shows you their traits. You learn them from what they do, from background checks, and from
+what others tell you.
+
+What an envoy can do to your words, and why:
+
+- **Soften them.** A timid envoy, or one fond of the host, drops the threats aimed at the host.
+- **Shade the report home.** A faithful one repeats the host word for word. A bribed one, or a
+  timid one that is not faithful, leaves out the host's threats against you.
+- **Sell them.** An envoy that took a host's gift carries home what the host asked it to say, and
+  vouches for it.
+- **Overreach.** An ambitious envoy may promise more than its mandate, then tell you it gave "such
+  assurances as you would wish".
+- **Skim.** A greedy, disloyal envoy keeps part of the gold it carries, and may forge a new inventory
+  to hide it.
+- **Change masters.** An envoy takes a host's offer of a post if it pays well enough and its
+  loyalty is low, or if it already favours that court.
+- **Be detained.** A host may hold your envoy, and with it your letters and gold.
+
+Servants are paid every season. One left unpaid loses loyalty and is owed back pay, and may give
+notice. When a contract ends, the servant names a price to stay.
+
+Spies watch a court or a province and send reports home. Watchmen catch them, and a caught spy can
+be ransomed, or turned into a double agent who sends home poisoned reports.
+
+Envoys are script characters in the Free and Local agents presets and Claude Haiku in the others; Customize can give
+them Sonnet.
+
+## Playing with Claude
+
+Pick a preset, choose whether to watch or take a seat, and begin.
 
 | Preset | Kings | Envoys and spies | Narrator | Rough cost per 20-season game |
 |---|---|---|---|---|
@@ -30,23 +186,94 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 | **Showcase** | Opus 5.5 | Haiku 5.5 | Opus 5.5 | about $20 |
 | **Local agents** (this computer only) | Claude Code agents | Script | Template | your Claude subscription, no key |
 
+Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
+messengers. **Customize the table** sets each king separately (script, human, Haiku, Sonnet or
+Opus, for model-against-model experiments, and a local agent when the app runs on your computer),
+Sonnet envoys, the narrator, thinking effort and the house rules. The estimates are rough; the
+meter in the game shows the real spend, and the game pauses at a spending cap set from the
+estimate (you can change it).
+
+Model seats use your own Anthropic API key: calls go straight from the page to the Anthropic
+API, and the key is never stored outside this tab. Use a dedicated key with a spend limit set in
+the Anthropic Console. **Simulate the API** (under Customize) tries model seats with canned
+replies; nothing leaves the browser. When a model call fails, a script king or character makes
+that decision instead, the failure is listed at the top of the side panel, and the game goes on.
+
 **Local agents** is local play, for your own games: you take a seat, and the other kings are guarded Claude Code agents
 answered in a Claude Code session on your Claude subscription, through a small bridge on this computer
 (`node sim/bridge.js`). It appears only when the app runs on your computer. The steps are under "Local play" in
 `sim/README.md`, and the session's start prompt is `docs/PLAY-PROMPT.md`.
 
-Envoys stay on Haiku even in Showcase: they make the most calls, and the design wants fallible
-messengers. **Customize the table** sets each king separately (script, human, Haiku, Sonnet or
-Opus, for model-against-model experiments, and a local agent when the app runs on your computer), Sonnet envoys, the narrator, thinking effort and the
-house rules. The estimates are rough; the meter in the game shows the real spend, and the game
-pauses at a spending cap set from the estimate (you can change it).
+### Sleeping seats
 
-Model seats use your own Anthropic API key: calls go straight from the page to the Anthropic
-API, and the key is never stored outside this tab. Use a dedicated key with a spend limit set in
-the Anthropic Console. **Simulate the API** (under Customize) tries model seats with canned
-replies; nothing leaves the browser.
+Long games become affordable when model calls scale with events, not with time. **Sleeping
+seats** are on by default: after giving its orders, a model king sleeps, and it never chooses when
+it wakes. The world goes on, its units hold and its scheduled orders run, each following its unit
+(a march stopped by a bounce tries the step again, and a new levy can be given orders ahead), and
+its standing orders answer, in the same season, a unit it sees setting out to enter a province or
+to attack one of its own. It is woken only when something concerns it: an envoy at the door,
+foreign troops in its land or arriving next to its homeland or a walled city it holds, land or
+troops lost, a failed scheduled or standing order, a servant giving notice, or a ransom demanded.
+Everything else waits in a digest, and a hidden safety cap wakes it after a long sleep. Script and
+human kings play every season. Switch it off (Customize in the web app, `--sleep off` in the batch
+runner) to ask every king every season. Standing orders are every king's, awake or asleep: script
+kings give them, and a human gives them in the orders panel. The details are in `docs/DESIGN-NOTES.md`.
 
-Tests and batch runs:
+## Watching a game
+
+![God view: the map with its legend, and the season's moves and battles in the side panel](docs/rounds/2026-10-19-visual-overhaul/desktop-god-legend.jpg)
+
+In games without a human, the god view shows everything the engine knows: true map, every
+treasury, every character's hidden traits and facts and who knows them, and the **message
+trail**: for every message, what the king wrote, what the envoy said abroad, and what the envoy
+reported home. Switch to any power to see exactly what it saw. The side panel's tabs show the
+season's events, the trail, the people, the provinces, the standings and the rules. The timeline
+steps back through the seasons; signals mark sealed tablets, accusations, forgeries, broken
+promises and more. After the game, compare two nations' self-serving annals with the true record.
+
+The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
+each power in its colour with an emblem and a border line of its own (so it reads without
+colour), armies as chariots and fleets as ships. Step the timeline and each season's moves,
+attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
+and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
+uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
+their life: their path, their masters, their missions, what they said and reported.
+
+A link to `play?watch=7` (any seed) starts a game of script kings to watch. Games are saved in the
+browser, and a game's log can be exported and loaded again to replay it exactly.
+
+## On a phone
+
+<img src="docs/rounds/2026-10-19-visual-overhaul/phone-portrait-follow.jpg" width="300" alt="On a phone: the map above, and the Follow tab tracing an envoy's service and travels">
+
+It is built phone first: the map fits the screen with pinch-zoom, the panels open from it, and
+the app installs to the home screen and starts from cache.
+
+## Your first live game: a checklist
+
+1. Create a dedicated API key with a low spend limit (a few dollars) in the Anthropic Console.
+2. Start with a mixed table: Sonnet 5.5 leaders, script characters, template narrator. Set the
+   budget to $3.
+3. Watch the cost meter in the game's header for the first two seasons; the per-season figure tells you
+   what a full game will cost.
+4. Open the **Message trail** tab once envoys start arriving: the gap between what was written,
+   said and reported is the thing to look at.
+5. If calls fail, the top of the side panel lists them; each failed call falls back to a script
+   decision and the game continues. Export the log (the ⋯ menu) to keep the prompts and outputs.
+
+## For developers
+
+### Run locally
+
+You need the .NET 10 SDK.
+
+```bash
+dotnet run --project src/Amarna.Web --launch-profile http
+```
+
+Then open <http://localhost:5183>, pick a preset, choose whether to watch or take a seat, and begin.
+
+### Tests and the batch runner
 
 ```bash
 dotnet test
@@ -63,11 +290,13 @@ such game costs real money. `--no-primer` runs the
 customs-primer experiment; `--out logs` keeps every game's log. `--versus solo` measures the
 script king against the frozen first version (one king at a time, against six of the old), and
 `--versus baseline` and `--focus <Power>` mix the two. Script games run on every core.
-`--sleep off` turns off sleeping seats (below; they are on by default), `--sleep-cap N` sets
+`--sleep off` turns off sleeping seats, `--sleep-cap N` sets
 the hidden safety cap on a sleep, and `--max-turns N` stops a game after season N.
 `--file-seats DIR` makes every king a file seat:
 it writes what a model king would see to its own folder and waits for a JSON reply file, which is
 how `sim/` plays a game with Claude Code agents as the kings (see `sim/README.md`).
+
+### Publishing and CI
 
 Changes go in through pull requests: every pull request builds and runs the tests
 (`.github/workflows/pages.yml`), and merging into `main` publishes the browser game to GitHub Pages. To publish the static files somewhere else, such as S3:
@@ -79,7 +308,10 @@ dotnet publish src/Amarna.Web -c Release -o publish
 The site is `publish/wwwroot`. If it is served from a sub-path, set `<base href>` in its
 `index.html` to that path.
 
-## What is in the box
+### How it is put together
+
+Every game is deterministic: the same seed and the same decisions give the same game, and every
+log replays exactly.
 
 | Project | What it is |
 |---|---|
@@ -91,80 +323,11 @@ The site is `publish/wwwroot`. If it is served from a sub-path, set `<base href>
 | `src/Amarna.Batch` | Console runner for unattended games. |
 | `tests/` | Engine tests (adjudication, determinism, envoys, intelligence) and game/model-layer tests against a fake HTTP API. |
 
-## How a season works
+### Design notes
 
-1. **Income and upkeep.** Provinces pay gold; troops and servants are paid. Unpaid troops desert.
-2. **Arrivals.** Envoys, gold, spy reports and rumours that were on the road arrive.
-3. **Audiences.** Foreign envoys deliver their message in their own words; the host answers,
-   bribes, hires, detains, seals a tablet or sends gold back. The envoy decides how to respond.
-4. **Orders.** Every seat submits secret, simultaneous orders.
-5. **Resolution.** Diplomacy-style combat (strength is one plus supports, ties bounce, no dice),
-   transfers, purchases, levies, dispatches, intelligence, then seeded catastrophes.
-6. **Reports.** News of the season reaches each court the next season.
-
-The winner is whoever grew most relative to their own start. No game ends before turn 15; after
-that each season ends the age with a 15% chance.
-
-## Script kings
-
-Without a key, every king is a script king, and a script king also stands in for a model king
-whenever a call fails. Each power plays a temperament of its own (Hatti the conqueror, Egypt the
-gift-giver, Babylon the proud keeper of the old order, Alashiya the copper merchant, and so on),
-varied a little in every game. A script king sees only what its seat sees, remembers who wronged
-it and who kept faith, and checks its orders against what its rivals are likely to do by playing
-the season out with the engine's own adjudicator. When one king runs away with the game, the
-others swear coalitions against him and strike at his land together. The god view lists each
-king's temperament under **Standings**.
-
-## Sleeping seats
-
-Long games become affordable when model calls scale with events, not with time. **Sleeping
-seats** are on by default: after giving its orders, a model king sleeps, and it never chooses when
-it wakes. The world goes on, its units hold and its scheduled orders run, each following its unit
-(a march stopped by a bounce tries the step again, and a new levy can be given orders ahead), and
-its standing orders answer, in the same season, a unit it sees setting out to enter a province or
-to attack one of its own. It is woken only when something concerns it: an envoy at the door,
-foreign troops in its land or arriving next to its homeland or a walled city it holds, land or
-troops lost, a failed scheduled or standing order, a servant giving notice, or a ransom demanded.
-Everything else waits in a digest, and a hidden safety cap wakes it after a long sleep. Script and
-human kings play every season. Switch it off (Customize in the web app, `--sleep off` in the batch
-runner) to ask every king every season. Standing orders are every king's, awake or asleep: script
-kings give them, and a human gives them in the orders panel. The details are in `docs/DESIGN-NOTES.md`.
-
-## Spectator mode
-
-In games without a human, the god view shows everything the engine knows: true map, every
-treasury, every character's hidden traits and facts and who knows them, and the **message
-trail**: for every message, what the king wrote, what the envoy said abroad, and what the envoy
-reported home. Switch to any power to see exactly what it saw. The timeline steps back through
-the seasons; signals mark sealed tablets, accusations, forgeries, broken promises and more.
-After the game, compare two nations' self-serving annals with the true record.
-
-The map is a museum map of the Late Bronze Age: coasts, rivers, mountains, deserts and fields,
-each power in its colour with an emblem and a border line of its own (so it reads without
-colour), armies as chariots and fleets as ships. Step the timeline and each season's moves,
-attacks, supports, bounces and captures are drawn; envoys, spies and gold appear on the road
-and at foreign courts. In a power's view the fog of war fades with the age of its sight, and
-uncertain things (old sightings, rumours, spy reports) are drawn as such. Tap anyone to follow
-their life: their path, their masters, their missions, what they said and reported. It is built
-phone first: the map fits the screen with pinch-zoom, the panels open from it, and the app
-installs to the home screen and starts from cache. A link to `play?watch=7` (any seed) starts a
-game of script kings to watch.
-
-## Your first live game: a checklist
-
-1. Create a dedicated API key with a low spend limit (a few dollars) in the Anthropic Console.
-2. Start with a mixed table: Sonnet 5.5 leaders, script characters, template narrator. Set the
-   budget to $3.
-3. Watch the cost meter in the game's header for the first two seasons; the per-season figure tells you
-   what a full game will cost.
-4. Open the **Message trail** tab once envoys start arriving: the gap between what was written,
-   said and reported is the thing to look at.
-5. If calls fail, the top of the side panel lists them; each failed call falls back to a script
-   decision and the game continues. Export the log (the ⋯ menu) to keep the prompts and outputs.
-
-See [docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md) for every decision and simplification made while building.
-
+[docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md) records every decision and simplification made while
+building, and every rule as implemented. [docs/BUILD-PROGRESS.md](docs/BUILD-PROGRESS.md) tracks the
+build order item by item, with each item's report in `docs/rounds/`.
 
 ## Credits
 
