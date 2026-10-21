@@ -20,6 +20,13 @@ the rest is what was agreed with him.
   32-bit operations (for example xoshiro128**), record new C# fingerprints, and port that
   generator. If you find a concrete reason not to, say why in the PR and port the 64-bit
   one carefully instead.
+  Added under random numbers (Haakon, 21 October 2026):
+  - Hash each roll's key (seed, season, purpose, subject) into the generator's full
+    128-bit state with several 32-bit hash rounds, never into a single 32-bit seed, so
+    different keys don't come to share a stream in long games.
+  - Use | 0 and other 32-bit tricks only in the generator, hashing and similar hot paths.
+    Ordinary amounts such as gold and troops stay ordinary numbers, since | 0 truncates
+    anything above about 2.1 billion.
 - Parity: fingerprint after every phase within a season, not only after each season, so
   a mismatch shows where it arose. Pass parity layer by layer as you port (engine, then
   script kings, then the rest), so every session ends with a gate passed.
