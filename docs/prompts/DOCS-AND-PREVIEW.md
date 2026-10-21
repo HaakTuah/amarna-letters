@@ -102,21 +102,39 @@ to merge.
 ## Findings while preparing the pass (21 October 2026; check them again before relying on them)
 
 **Pages and previews.**
-- Pages uses the GitHub Actions source (`build_type: workflow`). As Haakon says, a PR from this repo runs the
-  workflows in its own branch, so the build and preview jobs run on the docs PR itself.
-- The part to check on the docs PR is the deploy. On 21 October the `github-pages` environment allowed deployments
-  only from `main` (a custom branch policy naming `main`). A job run for a pull request deploys from the PR's merge
-  ref (`refs/pull/N/merge`), which that rule may refuse. Note in this file and in the PR what actually happened.
-- If the deploy is allowed: one workflow does everything. On a PR it builds the preview, puts it in `pr-N/`, deploys,
-  and comments the link. On a push to `main` it updates the root. On close it removes `pr-N/`.
-- If it is refused: say in the PR, exactly, which setting allows it (Settings → Environments → `github-pages` →
-  Deployment branches and tags: let the PR's ref deploy, for example "No restriction"). Don't use the merge exception
-  until the PR's own preview link works, and carry on with the next item meanwhile. A `workflow_run` workflow (ref
-  `main`) could deploy with no setting change, but only once it is on `main`, so it can't show the docs PR's own
-  preview.
-- Either way, the site is kept in a `gh-pages` storage branch (main at the root, each preview in `pr-N/`), and
-  deploy-pages deploys the whole tree. Deploys are serialised with a concurrency group, and pushes to the storage
-  branch use a lease. The `gh-pages` branch does not exist yet.
+- **The approach (Haakon, 21 October 2026, word for word):**
+
+  ```
+  On the deploy step: GitHub Pages has one deployment per site, so a PR deployed with the
+  standard Pages action would replace the whole site, not add a folder beside it. Use a
+  publishing branch instead, the same approach as Barkstreet Snakes: main built to the
+  branch's root, each PR to its own /pr-<number>/ folder, removed when the PR closes, and
+  Pages serving from that branch. A PR must never be able to replace the site root.
+  Write this into the docs pass spec. I won't change any Pages or environment setting
+  now: if the chosen approach needs a setting changed, the PR says exactly which one.
+  ```
+
+- **So that a PR can never replace the root,** no PR's own code runs with write access to the publishing branch
+  (`gh-pages`, which does not exist yet):
+  - A PR run builds its preview with a read-only token and uploads it as an artifact.
+  - Only workflows that run from `main` write to the branch. A push to `main` rebuilds the root and keeps every
+    `pr-*` folder. A publisher started by `workflow_run` copies a PR's artifact into `pr-<number>/` only, with the
+    number checked to be digits, and comments the link on the PR. Closing a PR removes that folder only.
+    `workflow_run` always uses `main`'s copy of the publisher, so a PR cannot change what it does.
+  - Every write to the branch is pushed with a lease, and retried if another run moved the branch first.
+- **Settings (left to Haakon; the PR says exactly which).** On 21 October Pages served from GitHub Actions
+  (`build_type: workflow`). Serving from the branch needs Settings → Pages → Build and deployment → Source: "Deploy
+  from a branch", branch `gh-pages`, folder `/ (root)`. On 21 October the `github-pages` environment allowed
+  deployments only from `main`. If GitHub's own deployment from `gh-pages` is refused once the source is switched,
+  the PR also names Settings → Environments → `github-pages` → Deployment branches and tags: add `gh-pages`.
+- **The game never stops updating.** Until the source is switched, the push to `main` also deploys the branch's
+  contents with the Pages action, which runs from `main` and is allowed. That shows the root and every preview. Once
+  the Pages API reports the branch source, that step is skipped.
+- **Jekyll.** A site served from a branch goes through Jekyll, which drops folders that start with an underscore
+  (`_framework`). A `.nojekyll` file at the branch root prevents that.
+- **The docs PR's own preview.** The publisher runs only from `main`, so the docs PR's own preview appears only
+  after it is merged. The merge exception asks for its own preview link to work first. *Open on 21 October: which
+  of the two gives way. Haakon's answer goes here.*
 - `src/Amarna.Web/wwwroot/service-worker.published.js` answers every navigation inside its scope with the cached
   root `index.html`, so `/pr-N/` would show main to anyone who has visited the game. It needs a two-line skip for
   `pr-<n>/` paths. Previews must not register a service worker of their own: leave `service-worker.js` out of the
