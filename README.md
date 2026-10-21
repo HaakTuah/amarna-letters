@@ -139,6 +139,37 @@ neighbour's other neighbours for a defence pact. Script kings give standing orde
 view lists each king's temperament under **Standings**. Every rule they follow, with its numbers,
 is in [docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md) under "Script kings".
 
+## The courts
+
+No court has missions, goals or rules of its own. Each plays differently because of what it has, what it
+lacks and where it stands, and the same court plays differently from game to game as floods fail, roads
+close and rivals change. This is the picture the game is growing towards; for now, position and
+relations do most of the work.
+
+- **Egypt, the banker.** Rich in gold and grain, short of horses, timber and tin. Its game is spending
+  well: buying allies, horses and cedar, and holding Canaan to keep the coast road.
+- **Hatti, the soldier with an empty granary.** Horses and silver, rain-fed land that fails in drought,
+  and enemies on every side. It needs wars that end quickly, and grain from Syria or Egypt.
+- **Mitanni, the toll keeper in a vice.** Horses, and the Euphrates crossing that eastern tin takes going
+  west, squeezed between Hatti and a rising Assyria. It collapsed in exactly these years, so its game is
+  survival.
+- **Babylonia, the distant merchant prince.** Grain, horses and the start of the eastern tin road, far
+  from the fighting. Its game is prestige, recognition and marriages, and it can tighten the tin.
+- **Assyria, the upstart.** Small, on the tin road, growing by squeezing Mitanni and fighting to be
+  counted a Great King. Burna-Buriash of Babylon protested to Pharaoh at Assyrians being received as if
+  they were independent (letter EA 9).
+- **Arzawa, the western sea power.** River gold, and a coast where western tin lands; Hatti's rival from
+  the other side.
+- **Alashiya, the lottery winner.** Copper and timber of its own on its island. Its game is price and
+  balance, and tin is its weak point.
+
+**The Levant, the boiling pot.** Between the great kingdoms lies the board's centre: a crowd of vassal
+cities where the spheres of Egypt, Mitanni and Hatti meet. Each ruler protests his loyalty to Pharaoh
+while taking his neighbours' towns and denouncing them as traitors, and most of the surviving letters are
+theirs. Rib-Hadda of Byblos wrote more than sixty, begging for troops and grain against Abdi-Ashirta of
+Amurru and then his son Aziru, who played Egypt against Hatti and in the end went over to Hatti. It is
+where the great kings' spheres meet, and where the truth is hardest to find.
+
 ## Envoys and other servants
 
 Eighteen people move between the courts: eight with names attested in the Amarna letters (Mane,
