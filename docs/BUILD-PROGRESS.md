@@ -38,8 +38,10 @@ item's report.
 - Added on 21 October, for one PR only (Haakon, word for word): "One exception to "main is never touched", for the
   docs and preview PR only: when it's done and its own preview link works, merge it into main yourself. Then check
   that the site root still shows the game from main as before. If it doesn't, revert the merge, say so in the PR, and
-  carry on without previews. Every other PR into main stays mine to merge." The PR is the docs and preview pass
-  (`docs/prompts/DOCS-AND-PREVIEW.md`). Once it is merged, or reverted, the exception has been used up.
+  carry on without previews. Every other PR into main stays mine to merge." Revised the same day, since that PR can't
+  show its own preview before it is merged: "Merge the docs PR once its build and tests pass, then check the site
+  root shows main and check previews on the next PR; fix previews in a follow-up if needed." The PR is the docs and
+  preview pass (`docs/prompts/DOCS-AND-PREVIEW.md`). Once it is merged, or reverted, the exception has been used up.
 
 | # | Item | State | Branch | Report |
 |---|---|---|---|---|

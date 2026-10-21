@@ -94,6 +94,10 @@ site root still shows the game from main as before. If it doesn't, revert the me
 say so in the PR, and carry on without previews. Every other PR into main stays mine
 to merge.
 
+Revised the same day, because the preview publisher runs only from `main` and so can't show this PR's own preview
+before it is merged (see "The docs PR's own preview" below): "Merge the docs PR once its build and tests pass, then
+check the site root shows main and check previews on the next PR; fix previews in a follow-up if needed."
+
 (The exception is also recorded in `docs/BUILD-PROGRESS.md` under the builder rules. It applies to this one PR only.)
 
 (Haakon's point 5, adding `docs/CONVERSION-PLAN.md` in this PR, was done ahead of it: the file was committed on
@@ -133,8 +137,9 @@ to merge.
 - **Jekyll.** A site served from a branch goes through Jekyll, which drops folders that start with an underscore
   (`_framework`). A `.nojekyll` file at the branch root prevents that.
 - **The docs PR's own preview.** The publisher runs only from `main`, so the docs PR's own preview appears only
-  after it is merged. The merge exception asks for its own preview link to work first. *Open on 21 October: which
-  of the two gives way. Haakon's answer goes here.*
+  after it is merged. The merge exception asked for its own preview link to work first, so Haakon changed its
+  condition (21 October 2026, word for word): "Merge the docs PR once its build and tests pass, then check the site
+  root shows main and check previews on the next PR; fix previews in a follow-up if needed."
 - `src/Amarna.Web/wwwroot/service-worker.published.js` answers every navigation inside its scope with the cached
   root `index.html`, so `/pr-N/` would show main to anyone who has visited the game. It needs a two-line skip for
   `pr-<n>/` paths. Previews must not register a service worker of their own: leave `service-worker.js` out of the
