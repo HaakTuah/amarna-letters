@@ -58,6 +58,10 @@ the rest is what was agreed with him.
   they must give the same fingerprints in both builds.
 - Replaying recorded model-game logs makes no API calls, so it isn't a model game under the
   builder rules ("No model games until the build order is done").
+- Commit a small selection of the recorded model-game logs (a few games, enough for the
+  lenient parity check) as test fixtures under tests/fixtures/, so parity can run from any
+  machine, cloud sessions included. Check first that they contain no API keys or other
+  secrets. If they're too large, commit a trimmed set and say so in the PR.
 
 ## Also agreed
 
@@ -77,7 +81,8 @@ the rest is what was agreed with him.
   replay no longer matches them: the dice differ, and the recorded replies stop fitting the situations. They
   still serve parity if both builds replay them the same non-strict way (recorded replies where their keys match,
   the script stand-in elsewhere) and their fingerprints are compared with each other. The runs are in `sim/runs/`,
-  which git ignores, so they exist only on the computer that ran them. If this proves impractical, say so in the PR.
+  which git ignores, so they exist only on the computer that ran them until a selection is committed under
+  `tests/fixtures/` (above). If this proves impractical, say so in the PR.
 
 ## Why
 
