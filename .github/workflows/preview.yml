@@ -6,7 +6,7 @@ name: Publish preview
 
 on:
   workflow_run:
-    workflows: [Build, test and publish]
+    workflows: ["Build, test and publish"]  # quoted: unquoted, the comma splits the name in two
     types: [completed]
 
 jobs:
