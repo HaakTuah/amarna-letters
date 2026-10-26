@@ -1,6 +1,6 @@
 # Simulation start prompt: the second simulation (Build order item 4)
 
-Open a **new** Claude Code session in `C:\Users\Perry\source\repos\amarna-letters` itself (not a worktree), on the
+Open a **new** Claude Code session in the repository's main checkout itself (not a worktree), on the
 branch that holds item 4 (`item/second-simulation`, or `develop` once it is merged), and paste everything below the
 line. The agent types are loaded when that session starts: `node sim/setup.js --seeds 7,15` was run on 19 October 2026
 and made the 7 king types and the 36 character types (18 characters for each seed). Run it again with `--force` only
