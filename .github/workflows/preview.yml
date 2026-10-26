@@ -49,7 +49,8 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
           if [ "$state" = open ] && [ -f "$PREVIEW/site/index.html" ]; then
-            scripts/site-publish.sh "pr-$n" "$PREVIEW/site"
+            out=$(scripts/site-publish.sh "pr-$n" "$PREVIEW/site"); echo "$out"
+            case $out in *"gh-pages: published"*|*"unchanged"*) ;; *) echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0 ;; esac
             owner=${GITHUB_REPOSITORY%%/*}
             url="https://${owner,,}.github.io/${GITHUB_REPOSITORY#*/}/pr-$n/"
             marker='<!-- amarna-preview -->'
@@ -63,11 +64,12 @@ jobs:
               gh api "repos/$GITHUB_REPOSITORY/issues/$n/comments" -f body="$body" > /dev/null
             fi
           elif [ "$state" = closed ]; then
-            scripts/site-publish.sh "pr-$n" --remove
+            out=$(scripts/site-publish.sh "pr-$n" --remove); echo "$out"
           else
             echo "PR #$n is open but its run uploaded no site"; exit 1
           fi
-          echo "changed=true" >> "$GITHUB_OUTPUT"
+          # Deploy only when the branch changed (not when nothing was there to remove, or no root is published yet).
+          case $out in *"gh-pages: published"*) echo "changed=true" ;; *) echo "changed=false" ;; esac >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: publish
