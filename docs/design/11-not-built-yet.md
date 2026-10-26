@@ -3,7 +3,7 @@
 Every decided direction that is not built, one line each, with where it is decided. "Main tab" and "Ideas tab" are
 the design document's; "question N" is in `docs/rounds/2026-10-18-sleep-and-simulation.md`; "item N" is in the main
 tab's Build order; "the round report" is the simulation-fixes round's report,
-`docs/rounds/2026-10-19-simulation-fixes.md`.
+`docs/archive/rounds/2026-10-19-simulation-fixes.md`.
 
 - **News that travels**: distant provinces, and who holds them, shown at their last known state with its date, the
   news carried by people (main tab "Hidden by default"; question 6; item 7).
@@ -31,7 +31,7 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
 - **The map's later layers**: roads and relay stations, and generals leading armies, drawn once the
   game has them (walls are drawn since the siege package, a ring for each level standing, as the viewer knows them, broken
   where the viewer knows of a siege; the province card gives the level and the siege) (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
-  once news travels (item 7; what it needs is in `docs/rounds/2026-10-19-visual-overhaul.md`).
+  once news travels (item 7; what it needs is in `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
 - **Gold sent without an inventory**, saving the scribe fee and checkable by nobody (Ideas tab "Why the envoy lies, and
   how he is caught"): today every gift has an inventory, and it costs nothing.
 - **Tablets stolen, not only copied**: a spy taking a tablet out of an archive, and a conqueror seizing an archive so
@@ -59,11 +59,11 @@ tab's Build order; "the round report" is the simulation-fixes round's report,
 - **The message-kind fallback for reopening orders**, if kings reopen too often after audiences: reopening offered
   only for a coalition or alliance tablet, evidence of a broken tablet, a ransom demand, or a threat or news of war,
   sorted by a small model that errs toward offering, for model seats only (main tab "If kings reopen almost every
-  time, the kind of message decides"; `docs/ROUND-PROMPT-ADDITIONS.md`, sections 4 and 6.2; Build order "Not yet in
+  time, the kind of message decides"; `docs/archive/rounds/ROUND-PROMPT-ADDITIONS.md`, sections 4 and 6.2; Build order "Not yet in
   the order", after item 4; the round report, Part H).
 - **Reputation from losses abroad**: characters who hear that a court loses its people abroad, or puts others' to
   death, growing wary of serving or visiting it; the news already travels (see "Losses abroad travel with people")
-  (main tab "Wages are paid on return"; `docs/ROUND-PROMPT-ADDITIONS.md`, section 6; what script characters would need
+  (main tab "Wages are paid on return"; `docs/archive/rounds/ROUND-PROMPT-ADDITIONS.md`, section 6; what script characters would need
   is in the round report, Part G).
 - **Who receives envoys, later candidates**: a minister who receives routine envoys by the king's standing
   instructions, an attention limit the same for every seat, and tablets counting as pressing only where the

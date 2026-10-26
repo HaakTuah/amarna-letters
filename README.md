@@ -15,7 +15,7 @@ on their own.
 Play a king yourself, watch Claude play all seven, or mix the two. With no API key, every king
 and envoy is a script player, and a whole game costs nothing.
 
-![The message trail: what Alashiya's king wrote, beside what his envoy said abroad and reported home](docs/rounds/2026-10-19-visual-overhaul/desktop-dark-trail.jpg)
+![The message trail: what Alashiya's king wrote, beside what his envoy said abroad and reported home](docs/archive/rounds/2026-10-19-visual-overhaul/desktop-dark-trail.jpg)
 
 *The message trail. Every message exists in three versions: what the king wrote, what the envoy
 said at the foreign court, and what the envoy reported home. The gaps between them are the game.*
@@ -252,7 +252,7 @@ kings give them, and a human gives them in the orders panel. The details are in 
 
 ## Watching a game
 
-![God view: the map with its legend, and the season's moves and battles in the side panel](docs/rounds/2026-10-19-visual-overhaul/desktop-god-legend.jpg)
+![God view: the map with its legend, and the season's moves and battles in the side panel](docs/archive/rounds/2026-10-19-visual-overhaul/desktop-god-legend.jpg)
 
 In games without a human, the god view shows everything the engine knows: true map, every
 treasury, every character's hidden traits and facts and who knows them, and the **message
@@ -275,7 +275,7 @@ browser, and a game's log can be exported and loaded again to replay it exactly.
 
 ## On a phone
 
-<img src="docs/rounds/2026-10-19-visual-overhaul/phone-portrait-follow.jpg" width="300" alt="On a phone: the map above, and the Follow tab tracing an envoy's service and travels">
+<img src="docs/archive/rounds/2026-10-19-visual-overhaul/phone-portrait-follow.jpg" width="300" alt="On a phone: the map above, and the Follow tab tracing an envoy's service and travels">
 
 It is built phone first: the map fits the screen with pinch-zoom, the panels open from it, and
 the app installs to the home screen and starts from cache.
@@ -330,7 +330,12 @@ how `sim/` plays a game with Claude Code agents as the kings (see `sim/README.md
 ### Publishing and CI
 
 Changes go in through pull requests: every pull request builds and runs the tests
-(`.github/workflows/pages.yml`), and merging into `main` publishes the browser game to GitHub Pages. To publish the static files somewhere else, such as S3:
+(`.github/workflows/pages.yml`) and gets a playable preview at its own address,
+`https://haaktuah.github.io/amarna-letters/pr-<number>/`, linked in a comment on the pull request and removed when it
+closes (`.github/workflows/preview.yml`). Merging into `main` publishes the browser game at the site's root. Both are
+written to the `gh-pages` branch, which Pages serves: `main` to its root, each pull request to its own `pr-<number>/`
+folder (`scripts/site-prepare.sh`, `scripts/site-publish.sh`). No pull request's own code can write to that branch, so
+none can replace the root. To publish the static files somewhere else, such as S3:
 
 ```bash
 dotnet publish src/Amarna.Web -c Release -o publish

@@ -5,7 +5,7 @@ current bot against six baselines and compares it with the same seed played all-
 `--versus baseline` gives half the kings to each side; `--focus <Power>` plays one king on the
 current bot. Seeds 1–40, one current king against six baselines, rerun at the end of Build order item 5 (20 October 2026,
 shared victory off: its walls, sieges and capitals, its terrain, and the script players' audit of it; the numbers before
-it, and why they moved, are in its report, `docs/rounds/2026-10-20-sieges.md`, and the items and rounds before in theirs).
+it, and why they moved, are in its report, `docs/archive/rounds/2026-10-20-sieges.md`, and the items and rounds before in theirs).
 The baseline was adapted only as far as the siege package's rules required (terrain required nothing of it), so the
 current bot gains more over it than before item 5. Terrain made conquest harder for it (its growth alone fell from 3.10 to
 2.80), and the audit's walls against fleets and its care for the capital cost it a little more against a baseline that

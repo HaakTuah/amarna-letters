@@ -1,11 +1,14 @@
-# Builds and tests the game on every pull request; publishes it to GitHub Pages only from main.
+# Builds and tests the game on every pull request and every push to main.
+# A push to main publishes the game to the root of the gh-pages branch, which GitHub Pages serves.
+# A pull request only builds its preview and uploads it, with a read-only token; "Publish preview"
+# (preview.yml), which always runs main's own copy, puts it at /pr-<number>/ and removes it when the PR closes.
 name: Build, test and publish
 
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
 
 # A newer push to the same pull request replaces the older run; deploys from main always finish.
@@ -20,46 +23,77 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        if: github.event.action != 'closed'
 
       - uses: actions/setup-dotnet@v4
+        if: github.event.action != 'closed'
         with:
           dotnet-version: 10.0.x
 
       - name: Test
+        if: github.event.action != 'closed'
         run: dotnet test --configuration Release
 
-      - name: Publish
-        run: dotnet publish src/Amarna.Web --configuration Release --output publish
+      # The build step: swap this one line for the TypeScript build after the conversion.
+      - name: Build
+        if: github.event.action != 'closed'
+        run: dotnet publish src/Amarna.Web --configuration Release --output publish && mv publish/wwwroot site
 
-      - name: Prepare for Pages
-        if: github.ref == 'refs/heads/main'
+      - name: Prepare the site
+        if: github.event.action != 'closed'
+        env:
+          PR: ${{ github.event.number }}
         run: |
-          site=publish/wwwroot
-          # The site lives under /<repository>/, so the app's base path must match.
-          sed -i "s|<base href=\"/\" />|<base href=\"/${GITHUB_REPOSITORY#*/}/\" />|" "$site/index.html"
-          # Deep links such as /play are served the app, whose router takes over.
-          cp "$site/index.html" "$site/404.html"
-          # Without this, Pages' Jekyll step drops folders starting with an underscore (_framework).
-          touch "$site/.nojekyll"
+          repo=${GITHUB_REPOSITORY#*/}
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            scripts/site-prepare.sh site "/$repo/pr-$PR/" preview
+          else
+            scripts/site-prepare.sh site "/$repo/" root
+          fi
 
-      - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main'
+      # What the publisher reads: the PR's number (checked against the PR itself before use) and, unless it closed,
+      # its site.
+      - name: Hand the preview to the publisher
+        if: github.event_name == 'pull_request'
+        env:
+          PR: ${{ github.event.number }}
+        run: mkdir -p preview && echo "$PR" > preview/pr-number && { [ ! -d site ] || mv site preview/site; }
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
         with:
-          path: publish/wwwroot
+          name: preview
+          path: preview
+          include-hidden-files: true
+          retention-days: 3
 
-  deploy:
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          name: site
+          path: site
+          include-hidden-files: true
+          retention-days: 3
+
+  publish:
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site
+      - name: Publish to the root of gh-pages
+        run: scripts/site-publish.sh root site
+
+  deploy:
+    needs: publish
+    uses: ./.github/workflows/pages-deploy.yml
+    permissions:
+      contents: read
       pages: write
       id-token: write
-    concurrency:
-      group: pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4

@@ -160,7 +160,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   two seed-7 games would have woken a sleeping king in 117 of 120 seasons. A failed attack on its land
   or troops wakes it again since the review of the fix pass after item 4, above.)
 - **An envoy at the door: an audience, and the king judges whether to reopen its orders** (Part H
-  of the simulation-fixes round, the owner's later instruction in `docs/ROUND-PROMPT-ADDITIONS.md`,
+  of the simulation-fixes round, the owner's later instruction in `docs/archive/rounds/ROUND-PROMPT-ADDITIONS.md`,
   section 4; it replaced an earlier plan in which an envoy could never reopen orders). The principle:
   a king sleeps while nothing changes, and when something happens it judges whether that alters its
   plan. Envoys were the most common reason a king woke, and an orders call costs about twice an

@@ -47,7 +47,7 @@ The design document records intent; these notes record what is built. Where they
   read, and moving the court are not built (see Not built yet).
 - **Call size.** The document says a king's orders call grew from about 26k to over 60k tokens in ten seasons, "almost
   all of it journal and letters", with a fixed part of about 5k. Measured in the simulation-fixes round (Part E of
-  `docs/rounds/2026-10-19-simulation-fixes.md`), those are what the file-seat agents used per call. The requests themselves were about 6k-8k
+  `docs/archive/rounds/2026-10-19-simulation-fixes.md`), those are what the file-seat agents used per call. The requests themselves were about 6k-8k
   tokens in season 1 and 11.5k-13.5k by seasons 9-10, of which the journal grew about 3.5k; the rest was the agent's
   own overhead. The fixed part (rulebook, primer, map and opening positions) is now about 8,000 tokens with sleep on,
   and the setup screen's cost estimate (`CostEstimate`) still assumes 5,000 cached and 5,000 fresh tokens an orders
