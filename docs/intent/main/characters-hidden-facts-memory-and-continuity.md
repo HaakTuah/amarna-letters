@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 545 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Characters: hidden facts, memory and continuity
 
 Every character is data first and personality second: the engine owns its traits and facts, and the narrator writes a persona from them once, at creation. The prototype has 18 characters, serving as envoys and spies. As characters take on more roles (generals, governors, later advisors), the pool grows to about 60 ("How many characters" in the Ideas tab), most of them scripts, while envoys and spies remain a small cast of known figures people talk about rather than consumables. More roles also need more attributes (see "Character attributes for many roles" below).

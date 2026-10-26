@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 545 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 **The order.**
 
 1. **Simulation fixes and default sleep** (built). Finish Parts G, E and H, the benchmarks and the report, as in `docs/ROUND-PROMPT.md` and `docs/ROUND-PROMPT-ADDITIONS.md`. Merge into `develop`, which this item creates.

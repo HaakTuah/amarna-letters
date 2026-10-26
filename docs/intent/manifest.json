@@ -4,7 +4,7 @@
  "tabs": {
   "main": {
    "node": "320f0886-6acf",
-   "rev": 542,
+   "rev": 545,
    "files": [
     "docs/intent/main/front.md",
     "docs/intent/main/vision-and-core-hypothesis.md",

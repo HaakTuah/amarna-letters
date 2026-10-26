@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 545 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Design pillars
 
 Eight principles decide every feature; a mechanic that breaks one needs a strong reason.

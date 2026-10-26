@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 545 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Voice of the age: letters, customs and vocabulary
 
 Flavor that gives every seat a shared vocabulary of the period. None of it is a rule; it is context all players know, so following or breaking it becomes a signal.
