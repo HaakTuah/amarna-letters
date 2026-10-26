@@ -42,7 +42,7 @@ The design document records intent; these notes record what is built. Where they
   and the standings line is computed from it.
 - **Tablets have a place, but are only copied.** As the document says, a tablet lies in a court's archive at its
   capital, a spy copies it there, and whoever takes the capital takes its archive (see "Tablets lie in archives" under
-  Communication). The Ideas tab also has a spy steal a tablet, and the main tab has a conqueror seize the archive; in
+  Communication). The design document also has a spy steal a tablet, and a conqueror seize the archive; in
   the code both only copy, so no court ever loses a tablet. Unreadable tablets, a tablet sent to a third court to be
   read, and moving the court are not built (see Not built yet).
 - **Call size.** The document says a king's orders call grew from about 26k to over 60k tokens in ten seasons, "almost

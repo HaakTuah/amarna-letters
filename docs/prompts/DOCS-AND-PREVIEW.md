@@ -16,7 +16,13 @@ Part of this pass was done on 26 October 2026, when the repository was set up fo
   section (`docs/intent/`), with a check against the live document at the start of each item. It gives builders the
   same small reads, and the docs tools could only move text between tabs by retyping it. Haakon left the choice to
   Claude on 26 October ("You handle the details", `docs/archive/instructions.md`). The finished items' details were
-  already in `docs/BUILD-PROGRESS.md`; its history now lives in `docs/archive/build-log.md`.
+  already in `docs/BUILD-PROGRESS.md`; its history now lives in `docs/archive/build-log.md`. Then on 27 October the
+  document was split into tabs after all, one per system (Overview, Build order, World and history, Engine and models,
+  Diplomacy and intelligence, Characters, Work, money and lending, Land, people and economy, War, travel and the seas,
+  Victory and the ending, Interface and the council, Tests, risks and references, Ideas), once a way was found to move
+  whole sections without retyping them; every tab was checked byte for byte against the text it came from. The copy
+  keeps one folder per tab (`docs/intent/<tab>/`), and the decided entries that were in the Ideas tab now sit in the
+  tab of their system.
 - `docs/BUILD-PROGRESS.md` has the row for 5+, split into this pass, the conversion and the fix pass.
 
 Left for the pass: step 2 (archiving the round reports), step 4 (previews), point 8 (tidy-up), the sizes before and

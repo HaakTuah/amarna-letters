@@ -1,0 +1,26 @@
+<!-- Generated from the design document, World and history tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+## The sources
+
+**Grounded in the sources (decided 21 October 2026, build order item 6+).** Before the map, the people of the land and the opening relations are built, a research pass gathers what the sources say about the world in 1346 BCE, so the start is as historically accurate as the evidence allows. It writes dossiers in the repository (`docs/history/`), every claim with its source and how sure it is:
+
+- **Politics:** who ruled where in 1346, who was whose vassal, and what the letters show of each relation ("Opening relations as they were"). One chronology for everything, the one the game's dates already use, with the doubts recorded, such as which kings reigned in Hatti and Arzawa that year.
+- **Geography:** routes, distances and journey times the sources attest, terrain, passes, rivers, coasts and harbours ("Map review", "Finer seas").
+- **Environment and seasons:** each region's climate, its rivers' floods, its sowing and harvest, droughts and plagues on record ("Land and climate", "Rivers", "Seasons").
+- **People and settlement:** population estimates by region, the sizes of towns and the shares of farmers, soldiers and townspeople ("People of the land"). Ancient numbers are uncertain, so the dossiers give ranges, and the game is calibrated within them and against today's yields.
+- **Economy:** what each land produced and traded: Nubia's gold, Cyprus's copper, the tin and textile routes.
+- **People:** every attested person of the period who could appear in the game: kings, vassal rulers, envoys, officials, scribes and merchants, with what is known of each ("Attested characters").
+
+**The letters come first.** The Amarna letters themselves, in scholarly translation, are the primary source for everything above, and for three things only they can give:
+
+- **Relationships:** who calls whom brother, who complains of whom, the grievances over gold, brides and detained envoys. They seed the starting sympathies, grievances and facts of rulers and characters ("A past before the game, then a past made in play").
+- **The voice of the age:** how a request is phrased, how a grievance is made, the greetings, prostrations and gift lists ("Voice of the age").
+- **The norms of the time:** brotherhood among the Great Kings, gifts answered with gifts, envoys held as leverage, a vassal's duty to report.
+
+Treaties, the Hittite archives, the tablets of Ugarit and archaeology fill in where the letters are silent.
+
+**Style, not strategy.** The letters set how people speak and what is normal, never what they want. Every king and character still plays to win ("Stakes, not dispositions"): a vassal can fall at the king's feet seven times and seven times and betray him in the same season, and a Great King can call another brother while working for his ruin, as the letters themselves show. The period's deference is a form, not a surrender. The second agent simulation showed how easily models slide into accommodation, so the norms are taught as tools of play, never as limits on it.
+
+**A reference to use creatively, not a script.** The letters may be quoted in full where that fits: in the dossiers, the primer and the requests, within each request's size budget. Where a verbatim line does not fit the moment, it is reshaped to fit, or the letters' general style is matched instead, whichever serves the context better. A quotation shows how things were said and what was normal; it never decides what anyone does. That is decided by the goal and by each character's own road to it: the strategy the engine chooses from his traits and gives him in his starting prompt ("How the strategy is made", "Bold or careful, one goal"). The primer and the quotations only shape how he speaks on that road.
+
+The dossiers feed build order items 7, 10, 10+, 11, 11+ and 17, which cite them. Where the sources are silent, the builder says so and takes a reasonable first guess, marked as such.
+

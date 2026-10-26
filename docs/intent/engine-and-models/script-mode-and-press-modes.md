@@ -1,0 +1,16 @@
+<!-- Generated from the design document, Engine and models tab, revision 3 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+## Script mode and press modes
+
+**Script mode makes no model calls** (decided 18 October 2026). Each layer (kings, characters and the narrator) is set to models or to script bots. Script bots make no model calls at all: they exist for cheap testing and as the fallback when a model call fails, not as the intended way to play. Script text has tells: its stock phrasing would tell a model king that an envoy is a script and its changes mechanical, which breaks pillar 7 from the character side. That is accepted, because script mode is not the intended way to play:
+
+- **Whether a message is understood is an engine fact,** the same for every envoy, so it leaves no tell in any mode.
+- **A table that wants characters indistinguishable by style** sets the character layer to models.
+- **A fallback script standing in for one failed call** may leave a tell in that one message; the fallback rate is checked after every live run, as the security section says.
+- **Structured press,** where kings write only in clauses, removes tells altogether, so script characters can alter letters there without fingerprints.
+
+**Two press modes** (decided 18 October 2026), after Diplomacy's press variants:
+
+- **Full press (the default for model games).** Kings write free text, and every character is played by a model, which makes its decisions and writes its words. Every letter still carries its formulas as clauses from the templates below, greeting, gifts, requests, offers, threats and answers, as the Amarna letters set theirs out (decided 26 October 2026), so a script king reads any letter by its clauses whoever wrote the words, and no writer needs to know who will read it; a script standing in for a failed model call writes from the templates alone. Where words and clauses differ, each reader goes by what he reads, as a tablet and its bearer's words could differ.
+- **Structured press.** Required whenever the character layer is set to script bots. Every king, model, script or human, writes letters only from templates, and script envoys carry them with no model at all. A script envoy can then alter a letter without fingerprints: drop a clause, soften a threat into a request, change an amount (skim the promised 50 to 40), add a flattering clause, or misreport the answer. Script kings can read every letter, since they see only clauses (the structured vocabulary of the round report's question 17). Templates must cover greetings and gifts; proposals (peace, no attack, alliance, against a named king, support for a named move in a named season, tribute, ceding a province); requests and threats; grievances and accusations, including "your messenger lied" and "in league with the Habiru"; news to pass on (the structured reports of "Information as an asset"); and answers (accept, refuse, counter). It is cheap, works with bot kings and humans alike, and suits the free mode.
+- **Comparing the two is an experiment in itself:** if trust still emerges when kings can speak only in clauses, the hypothesis is about delay and mediation, not eloquence.
+

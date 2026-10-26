@@ -1,8 +1,8 @@
 # Brief: the fix pass after the conversion (item 5+, step 3 of 3)
 
 **Spec:** the "Found during the port" list in `docs/BUILD-PROGRESS.md`, and what the first live game found, as item 5+
-says (`docs/intent/main/build-order/item-5plus.md`). The sections it names are in `docs/intent/main/tech-stack.md`
-("One source for model schemas", "Built to outlive its models") and `docs/intent/main/spectator-mode-and-analysis.md`
+says (`docs/intent/build-order/item-5plus.md`). The sections it names are in `docs/intent/engine-and-models/tech-stack.md`
+("One source for model schemas", "Built to outlive its models") and `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md`
 ("The message trail", "Who wrote it"). **Effort:** high.
 
 - The first live game's error was "Anthropic API 400: The compiled grammar is too large": all but one model call was
