@@ -4,7 +4,7 @@
  "tabs": {
   "main": {
    "node": "320f0886-6acf",
-   "rev": 486,
+   "rev": 542,
    "files": [
     "docs/intent/main/front.md",
     "docs/intent/main/vision-and-core-hypothesis.md",
@@ -54,7 +54,7 @@
   },
   "ideas": {
    "node": "4fd20c8e-f5d2",
-   "rev": 314,
+   "rev": 347,
    "files": [
     "docs/intent/ideas/front.md",
     "docs/intent/ideas/tempo-of-war-further-ways-to-slow-it.md",

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 486 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Tech stack
 
 The prototype is a static browser game where each player brings their own Anthropic API key. The whole game runs in the browser, including the TypeScript engine (decided 21 October 2026, in place of C# on Blazor WebAssembly; build order item 5+), and model calls go straight from the browser to the Anthropic API. The key never touches a server you run, so nobody can spend on your account, and hosting costs almost nothing.
@@ -36,7 +36,7 @@ The prototype is a static browser game where each player brings their own Anthro
 
 **One rule holds in every stage.** All character model calls run where the secrets live. A character's prompt contains its hidden traits, so splitting costs by running each player's envoys in that player's browser would leak them.
 
-**Local play on a Claude subscription (planned).** A fourth way to play, for the developer's own games: the game runs locally, the player takes a human seat, and the other kings are file seats answered by guarded king agents in a Claude Code session, drawing on the subscription instead of paid API calls. Its characters are script characters for now; item 8 (Structured press) lets them be agents too.
+**Local play on a Claude subscription (built in item 4).** A fourth way to play, for the developer's own games: the game runs locally, the player takes a human seat, and the other kings are file seats answered by guarded king agents in a Claude Code session, drawing on the subscription instead of paid API calls. Its characters are script characters for now; item 8 (Structured press) lets them be agents too.
 
 - **Local, not GitHub Pages.** A browser page cannot read or write local files, so this needs a local build of the web app or the batch runner.
 - **Isolation as in the simulation.** One agent type per king, a hook blocking any path outside its own folder, unguessable folder names, and a pre-game check.

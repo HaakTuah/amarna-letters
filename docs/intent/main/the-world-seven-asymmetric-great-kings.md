@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 486 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## The world: seven asymmetric Great Kings
 
 The board holds the seven powers of the Amarna correspondence, deliberately unequal. Strength breeds suspicion: the strongest powers must look less threatening than they are, the weakest must make themselves indispensable, and everyone in between decides who the bigger threat is this year.
@@ -13,7 +13,7 @@ The board holds the seven powers of the Amarna correspondence, deliberately uneq
 | Arzawa | Weak | Peripheral in Anatolia; survives by being courted, not feared |
 | Alashiya (Cyprus) | Weak | An island of copper; trade partner to all, threat to none |
 
-**Map.** An abstract province graph of about 40 provinces and a handful of sea zones, not a grid, so Alashiya is reachable by sea. The exact map lives in the design notes. Each province yields gold; neutral provinces stand in for vassal city-states until item 11+ makes them powers.
+**Map.** An abstract province graph of about 40 provinces (until item 7a) and a handful of sea zones, not a grid, so Alashiya is reachable by sea. The exact map lives in the design notes. Each province yields gold; neutral provinces stand in for vassal city-states until item 11+ makes them powers.
 
 **Starting tiers are proposals.** Exact provinces, gold and units per tier are tuned in testing (see Success criteria). Historical accuracy serves the dynamics, not the reverse.
 

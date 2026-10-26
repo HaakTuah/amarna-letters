@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 486 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Success criteria and test plan
 
 The prototype succeeds if, across ten or more full games, norms of trust appear that no rule created. Decide the signals before building, and read them from the logs.
@@ -28,7 +28,7 @@ The prototype succeeds if, across ten or more full games, norms of trust appear 
 
 - **Next steps** are the numbered items under "Build order" below. The most important open question, whether envoys and leaders are too honest, can only be answered by real model games.
 - **Simulated API first.** A built-in fake Anthropic endpoint runs the full model path in the browser at zero cost; use it to check plumbing after every change to prompts or schemas.
-- **First live runs.** Use a spend-limited key and a small budget (for example $3), and watch the cost meter for two seasons before letting a game run. Play one game with Sonnet 5.5 leaders and script characters, then one with Haiku 5.5 envoys, since envoys carry the core mechanic.
+- **First live runs.** Use a spend-limited key and a small budget (for example $3), and watch the cost meter for two seasons before letting a game run. Play one game with Sonnet 5.5 leaders and script characters, then one with Haiku 5.5 envoys, since envoys carry the core mechanic. These games wait until the build order is done ("No model games until the build order is done" under Build order).
 - **Script bots test the engine, not the hypothesis.** They cannot lie strategically or invent norms. Document their decision rules so balance numbers are read against known behavior.
 - **Bot archetypes** (aggressive, mercantile, loyal to a fault) stress the engine with varied behavior and give model leaders varied opponents.
 - **Balance against bots is provisional.** It will shift once model leaders negotiate; do not over-tune the map before then.

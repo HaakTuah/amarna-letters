@@ -1,9 +1,9 @@
-<!-- Generated from the design document, main tab, revision 486 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Characters: hidden facts, memory and continuity
 
-Every character is data first and personality second: the engine owns its traits and facts, and the narrator writes a persona from them once, at creation. The prototype has 18 characters, serving as envoys and spies. As characters take on more roles (generals, governors, later advisors), the pool grows toward 30–40, most of them scripts, while envoys and spies remain a small cast of known figures people talk about rather than consumables. More roles also need more attributes (see "Character attributes for many roles" below).
+Every character is data first and personality second: the engine owns its traits and facts, and the narrator writes a persona from them once, at creation. The prototype has 18 characters, serving as envoys and spies. As characters take on more roles (generals, governors, later advisors), the pool grows to about 60 ("How many characters" in the Ideas tab), most of them scripts, while envoys and spies remain a small cast of known figures people talk about rather than consumables. More roles also need more attributes (see "Character attributes for many roles" below).
 
-**Hidden traits** (0–100, seeded, never shown to players): loyalty, greed, competence, ambition, courage, and an optional sympathy for one foreign court. Once characters take on several roles, competence splits into one per role and two temperament traits are added; see "Character attributes for many roles" below.
+**Hidden traits** (0–100, seeded, never shown to players): loyalty, greed, competence, ambition, courage, and an optional sympathy for one foreign court. Once characters take on several roles, they have the skills that "What skills cover" in the Ideas tab sets out ("Character attributes for many roles" below).
 
 **Facts with secrecy levels.** A backstory is a list of discrete facts, each with a level and a record of which courts have uncovered it.
 
@@ -38,12 +38,7 @@ The character's model receives only its persona, its memory and the facts it kno
 
 **Character attributes for many roles.** One shared pool serves as envoys, spies, generals and governors, so a single competence is not enough; a brilliant negotiator can be a poor general.
 
-| Group | Attributes | What they govern |
-| --- | --- | --- |
-| Competences, one per role | Diplomacy, command, administration, cunning | Negotiating; leading armies; governing provinces; intrigue, spying, forgery and detecting lies |
-| Temperament (new) | Boldness, discretion | Risk appetite: how readily a general engages and how far an envoy stretches its mandate; whether secrets are kept or slip out |
-| Existing traits (kept) | Loyalty, greed, ambition, courage, sympathy for a foreign court | Unchanged |
-| Later | Age, health | Characters who grow old and die, needed for long games with succession |
+Which skills a character has, and what each governs, is in "What skills cover" in the Ideas tab.
 
 All stay hidden, seeded and engine-owned, revealed only through checks, spies and observed behavior.
 

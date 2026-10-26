@@ -1,13 +1,13 @@
-<!-- Generated from the design document, ideas tab, revision 314 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, ideas tab, revision 347 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## The royal council
 
-**The royal council (decided 19 October 2026; build order item 16).** Instead of one advisor, each king hears a council of four, built from the script kings' tactics with different weightings. With one advisor the easy path is to copy it; with four who disagree, the king has to choose, and how far they diverge shows how open the situation is. When all four agree, the move is almost certainly right. It is a toggle: on by default for human seats, who can turn it off, as with the advisors in Civilization, and model kings are run both with and without it so the games can be compared.
+**The royal council (decided 19 October 2026; build order item 16).** Instead of one advisor, each king hears a council of four, built from the script kings' tactics with different weightings. With one advisor the easy path is to copy it; with four who disagree, the king has to choose, and how far they diverge shows how open the situation is. When all four agree, the move is almost certainly right. It is a toggle: on by default for human seats, who can turn it off, as with the advisors in Civilization, and comparing model kings with and without it waits until Haakon asks for model games.
 
 | Advisor | Weighting | Looks for | Example |
 | --- | --- | --- | --- |
 | The General | High aggression | Where a strike wins now; exposed enemy armies | "Take Mira while Arzawa's army is in Seha." |
 | The Steward | High caution, treasury first | Protecting the capital, avoiding overreach, keeping a reserve | "Hold the capital; Hatti's troops are two moves away, and we cannot afford another army." |
-| The Tjaty | Cunning and commerce | Cheap gains: a city to buy, a distracted neighbor, a weakly held province | "Buy Ugarit before Egypt does; Hatti is busy in the west." |
+| The Tjaty | Cunning and commerce | Cheap gains: a city left unguarded, a distracted neighbor, a weakly held province | "Take Ugarit while Egypt looks away; Hatti is busy in the west." |
 | The Diviner | The race to win | Who is growing fastest, and where pressure keeps a rival from pulling ahead | "The signs say Babylon's star is rising; its fall would be your rise." |
 
 - **Hard, calculated analysis with known tilts.** The council's value is grounding: deterministic analysis of the board (adjudicated outcomes, threats, odds) that a model king would otherwise have to work out alone, which is what language models do worst. The king is told each advisor's tilt, so it can weigh the advice: a General urging attack is expected; a Steward agreeing is a strong signal.

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 486 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Voice of the age: letters, customs and vocabulary
 
 Flavor that gives every seat a shared vocabulary of the period. None of it is a rule; it is context all players know, so following or breaking it becomes a signal.
@@ -28,7 +28,7 @@ Because the greeting travels on a sealed tablet, the envoy cannot alter it. That
 
 **Echoes from the archive.** Moves from the letters themselves, as read in the *Curator's Corner* episode that inspired the game. Each is tied to a rule that exists or a question in the round report.
 
-*Candidates for the customs primer.* Add the best four to six after the agent simulation, since both runs must read the same rulebook and every primer line is paid for on every call.
+*Candidates for the customs primer.* Add the best four to six, since every primer line is paid for on every call.
 
 - **Rank in the greeting.** Great Kings call each other "brother" to claim equality; vassals fall at the king's feet seven times and seven times. Assyria's first letter claims equality with Mitanni. Writing your own name above the recipient's was an insult. The engine already checks greeting deviations; this tells kings what a deviation means.
 - **Detention answers detention.** Tushratta held Pharaoh's envoy Mane until his own men were released, and asked whether messengers are birds, able to fly home on their own.

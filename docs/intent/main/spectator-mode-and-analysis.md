@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 486 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Spectator mode and analysis
 
 AI-only games are part of the prototype, because watching them is the only way to see whether trust emerges and to tune the models. The spectator sees everything the engine knows, which no player ever does.
@@ -10,9 +10,9 @@ AI-only games are part of the prototype, because watching them is the only way t
 - **Timeline and replay.** Step through turns from the event log, rewind, and replay from the same seed.
 - **Signal markers.** Highlight events that count toward the success criteria: sealed tablets, accusations, forgeries, broken promises, coalitions.
 - **Speed control.** Run turn by turn while watching, or batch many games unattended and review them afterwards.
-- **The map (planned next, before testing with model leaders).** A presentation-only makeover, with no change to engine, rules or balance:
+- **The map (built in item 2).** A presentation-only makeover, with no change to engine, rules or balance:
   - **Style:** a museum map or archaeological board game, in a Late Bronze Age palette (lapis, carnelian, gold, ochre, clay, bitumen) with light and dark modes. Each power is distinct by colour and by pattern or emblem, so it works for colour-blind players. Original period icons: chariots for armies, ships for fleets, a clay tablet or traveller for envoys, oxhide ingots for gold.
-  - **Geography:** seas, coasts, rivers, mountains, desert and fertility drawn on the map. Terrain is stored as map data matching the planned siege package, with no game effect yet.
+  - **Geography:** seas, coasts, rivers, mountains, desert and fertility drawn on the map. Terrain is stored as map data matching the siege package, built in item 5.
   - **Readable at a glance:** the whole map fits the screen on phone and desktop, with pinch-zoom; each season's moves, attacks, supports, bounces and captures are shown through the timeline; envoys and gold shipments appear on the road with destination and arrival.
   - **Fog of war as a gradient:** in a seat view, knowledge fades with age, and uncertain information (old sightings, spy reports, rumours) looks uncertain. Each seat sees only the characters it knows about; god view shows everything.
   - **Dates and status:** one date label everywhere (court season and year, with the turn), an ending indicator, and who is asleep in god view.
@@ -27,5 +27,5 @@ The chronicles complete this: after a game, read two nations' biased accounts be
 - **Never a storyteller that steers.** Nothing in the engine nudges events toward a better story: no dramatic timing of catastrophes, no rescue of a losing king, no events because the game has gone quiet. Catastrophes stay seeded and blind to the story.
 - **Two kinds of telling.** Each court's chronicle tells its own flattering version, in the Kadesh tone; the true record stands beside them in spectator mode. The gaps between them, like the gaps in the message trail, are part of what is worth reading.
 
-**Legends, read from the record.** The "follow this character" view planned with the visual overhaul is the first form of a legends mode: one person's life, read from what the engine recorded. Later it can grow into biographies of characters, histories of tablets (who sealed it, who broke it, where copies were shown), and the rise and fall of courts, all of them read from the record and none of them written in advance. When a game ends, the record opens: every hidden fact becomes readable to every seat, who lied, who skimmed, which seals were forged, which go-between was paid to bend what he passed on, and the season the end was drawn for. In a game about deception, that is the moment the table has been waiting for.
+**Legends, read from the record.** The "follow this character" view built with the visual overhaul in item 2 is the first form of a legends mode: one person's life, read from what the engine recorded. Later it can grow into biographies of characters, histories of tablets (who sealed it, who broke it, where copies were shown), and the rise and fall of courts, all of them read from the record and none of them written in advance. When a game ends, the record opens: every hidden fact becomes readable to every seat, who lied, who skimmed, which seals were forged, which go-between was paid to bend what he passed on, and the season the end was drawn for. In a game about deception, that is the moment the table has been waiting for.
 

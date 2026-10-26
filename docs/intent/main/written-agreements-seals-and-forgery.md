@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 486 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Written agreements, seals and forgery
 
 A sealed tablet is evidence, not enforcement. The engine records that both parties sealed a text; it never makes anyone obey it. Its value is that a broken promise can be proven to third parties.
@@ -7,7 +7,7 @@ A sealed tablet is evidence, not enforcement. The engine records that both parti
 
 **Using evidence.** A copy can be sent by envoy to a third court as proof: "Hatti sealed this and broke it." Whether the third court believes it is up to them.
 
-**Tablets have a place.** The scribe fee pays for making a tablet; keeping it costs nothing, but it lies in a court's archive, where a spy can copy it and a conqueror can seize it with the city. Whoever takes a capital takes every treaty its king sealed. Archives, reading foreign tablets, swapped inventories and false envoys are decided directions in the Ideas tab.
+**Tablets have a place.** The scribe fee pays for making a tablet; keeping it costs nothing, but it lies in a court's archive, where a spy can copy it and a conqueror can seize it with the city. Whoever takes a capital takes every treaty its king sealed. Archives and swapped inventories were built in item 3; false envoys come with item 10, and reading foreign tablets with item 12 (all in the Ideas tab).
 
 **Verbal agreements** made through envoys remain possible and common. They are faster and cheaper, but they leave no evidence, which is exactly the tradeoff.
 

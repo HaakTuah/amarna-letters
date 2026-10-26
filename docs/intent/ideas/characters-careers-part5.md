@@ -1,4 +1,4 @@
-<!-- Generated from the design document, ideas tab, revision 314 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, ideas tab, revision 347 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 **Retired with the chain:** the per-sentence rolls, marked gaps and marked ambiguity, the combined roll and its curve, interpreters' and scribes' decisions over what they relay, and the five-version message trail. The per-season chance replaces them: language now costs time, not words. The old script rule that drops a letter's last sentence when competence is below 35 is retired too: whether a message is altered is the envoy's choice, never his skill's. One decision returns, and only with a motive: a bridger in someone else's pay may bend what he passes on, by the scribe's rule ("A go-between for hire"; decided 21 October 2026).
 
 **Why the envoy lies, and how he is caught** (decided 19 October 2026). Pillar 3: only someone with a motive bends a message, and the envoy has one. He carries the gifts, so he can skim them or take them whole, and he answers for how they were received.

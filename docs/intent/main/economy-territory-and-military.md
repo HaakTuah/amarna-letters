@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 486 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Economy, territory and military
 
 Gold is the only currency, and everything of value can change hands. The economy exists for one reason: war must cost something and peace must be worth something, so trust has a price without any rule saying so.
@@ -25,9 +25,9 @@ Gold is the only currency, and everything of value can change hands. The economy
 
 - **Sieges (the priority).** Walled cities, and capitals above all, take several seasons to take. The besieger must keep the army in place and pay for it, while the besieged can still send envoys, beg for help and bargain. The vassal letters are full of sieges that dragged on while their rulers pleaded with the pharaoh; that window is where diplomacy happens. Getting a message out depends on the envoy's competence and courage and on how tight the siege is; the besieger may capture the envoy and read the tablets. Several messages need several envoys, or one envoy visiting courts in turn.
 
-**Further ways to slow war**: campaign seasons and distance-based marching are under consideration in the Ideas tab. Slow absorption is decided and comes with sieges (build order item 5), and rare elimination was replaced by "A kingdom falls with its capital" below.
+**Further ways to slow war**: in the Ideas tab, distance-based marching comes with command at a distance (build order item 13), and campaigning seasons arise from cost, without a rule ("Winter in the field" under "Seasons"). Slow absorption is decided and was built with sieges in build order item 5, and rare elimination was replaced by "A kingdom falls with its capital" below.
 
-**Walls and terrain (decided direction, built and tuned together with sieges).** Today almost every place needs one army to take, which is part of why conquest is so fast. Defense should come from two separate sources:
+**Walls and terrain (decided direction, built with sieges in item 5).** Before item 5 almost every place needed one army to take, which was part of why conquest was so fast. Defense should come from two separate sources:
 
 - **Walls, the built defense.** They vary from place to place (Hattusa's massive walls on a rocky ridge, a Levantine village with none) and can be strengthened for gold and upkeep, a real choice between defense and expansion. With sieges, walls mainly set how long a city holds out, not only how many armies it takes to storm it.
 - **Terrain, the natural defense.** Mountains and hills make a province harder to take. Terrain along a route matters as much: crossing a river such as the Euphrates or forcing a pass such as the Cilician Gates between Anatolia and Syria is harder than attacking across open ground, so these belong on the connection between two provinces. Deserts such as Sinai cost an army supplies rather than adding defense. Islands such as Alashiya are protected by the sea.

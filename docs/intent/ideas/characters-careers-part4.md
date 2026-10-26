@@ -1,4 +1,4 @@
-<!-- Generated from the design document, ideas tab, revision 314 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, ideas tab, revision 347 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 **Kings never see skills** (decided 18 October 2026). A king hears what a character says it can do, and checks it the slow way: a background check, a message to a former employer the character names, his own envoys' reports, rumours. Someone a court has dealt with before arrives with data points attached; a stranger arrives with only his own word. The planned employment-history facts give the checks something to find.
 
 - **Lying about identity.** A stranger may claim to be someone he is not, perhaps borrowing a famous negotiator's name and reputation. Every character has a true identity and a claimed one, and each court's records attach to the name it was given. An impostor is exposed when he meets someone who has seen the real man, or when a check turns up the truth, and both take time. The period's own answer is the one Amenhotep III gave Babylon: send someone who knows the person.

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, ideas tab, revision 314 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, ideas tab, revision 347 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Beyond the prototype
 
 If the hypothesis holds, the full game becomes a grand strategy whose tech tree is a tree of trust: each era changes how fast information moves, how verifiable it is and how easy it is to fake.
@@ -16,7 +16,6 @@ If the hypothesis holds, the full game becomes a grand strategy whose tech tree 
 - **Promotion: level of detail for intelligence.** When a city-state matters (several provinces, a large treasury, courted by several kings, holding tablets), the engine promotes it to a model leader with a summary of its history, and demotes it if it shrinks. A rising city-state could even claim Great King status, as Assyria did and as Aziru of Amurru nearly did.
 - **Fallen kings return as characters (dropped 19 October 2026: a fallen king is dead, and the dead do not return).** An eliminated player re-enters the pool as an envoy or spy for hire, with memories of who betrayed them. It keeps humans in the game and makes "only the dead may talk" literally true. Deposed rulers really did end up at foreign courts, like Urhi-Teshub, sheltered in Egypt.
 - **Succession.** In longer games rulers die; a new leader inherits the old one's promises, debts and enemies and decides whether to honor them.
-- A separate scribe role, added only if it gets a real motive, such as being in a foreign power's pay.
 - Hidden objectives per power.
 - Grand-strategy layers (population, technology, culture) added only where they feed trust and information.
 - **Voice and music.** Music first: ambient loops per court, with the Hurrian Hymn from Ugarit, the oldest substantially complete notated melody, as a possible anchor. Then a distinct voice archetype per court (Egypt stern, measured, aristocratic), designed rather than imitating any real actor. Test first with free browser speech synthesis behind a toggle in spectator mode.
