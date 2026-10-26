@@ -1,0 +1,56 @@
+<!-- Generated from the design document, main tab, revision 485 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+## Tech stack
+
+The prototype is a static browser game where each player brings their own Anthropic API key. The whole game runs in the browser, including the TypeScript engine (decided 21 October 2026, in place of C# on Blazor WebAssembly; build order item 5+), and model calls go straight from the browser to the Anthropic API. The key never touches a server you run, so nobody can spend on your account, and hosting costs almost nothing.
+
+**Key handling.** The key is entered on start and held in memory, optionally in session storage for the tab, never in local storage or a cookie. Browser calls to the Anthropic API need a header that opts in to direct browser access; that is acceptable here because the key belongs to the person using the page. Recommend that players use a dedicated key with a spend limit set in the Anthropic Console.
+
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Engine | TypeScript in strict mode, in npm workspaces (engine, game, llm); the engine has no browser or Node code | Deterministic, unit-tested with Vitest, runs headless for batch games |
+| Runtime | The browser, built with Vite and React | The same TypeScript engine runs in the browser and in Node; one language end to end, and a light first download on phones |
+| Models | Anthropic API with the player's key, behind a provider interface other providers can join ("Built to outlive its models"): the official TypeScript SDK, in the browser, the tests and the batch runner | No server holds keys; each player pays for their own games. One SDK everywhere, so prompts, schemas and parsing are shared |
+| Map | SVG province graph | Enough for an abstract map; cheap to build and to click |
+| Storage | Event log in IndexedDB, exportable as a file | The log is the save game, the replay and the analysis data |
+| Hosting | Static files (for example S3 with CloudFront, or GitHub Pages) | No backend to run or secure in the prototype |
+| Batch runs | The same engine in a Node command-line runner, playing games side by side on worker threads | Runs many AI-only games unattended with your own key, logs to disk |
+
+**Engine rules (decided 21 October 2026).** These hold for the rest of the game's life, not only for the conversion.
+
+- **Determinism is enforced by tools.** Lint rules in the engine package forbid `Math.random`, `Date`, `Intl` and sorting without an explicit comparison, with `localeCompare` and `toLocaleString` named under the ban on `Intl`. They also allow only the `Math` functions whose result is the same in every JavaScript engine (`abs`, `sign`, `floor`, `ceil`, `round`, `trunc`, `min`, `max`, `sqrt`, `imul`, `clz32`, `fround`) and forbid every other, `Math.pow` and `**` included, since the rest (`exp`, `log`, the trigonometric and hyperbolic functions, `cbrt`, `hypot`, `expm1`, `log1p` and the like) may be rounded differently by each engine, and Safari on a phone, Chrome and Node would drift apart and break a replay or, later, the match between server and client in multiplayer (decided 21 October 2026). The ending curve, odds and population flows use integer or fixed-point arithmetic or tables instead. Randomness comes only from the seeded generator. Replays and the parity gate prove the rest.
+- **The engine is the only state.** In the browser the engine runs in a Web Worker and holds the game; the interface only displays the snapshots it sends and keeps no copy of its own.
+- **One source for model schemas.** The order and audience schemas are defined once, in Zod: the TypeScript types are derived from them, model replies are validated against them, and the same definitions are sent to the API as JSON schemas. They stay small enough to compile, since the first live game had nearly every call refused with "The compiled grammar is too large": strict mode only where a malformed reply would do real harm, never for orders, since every reply is validated and falls back to a script anyway; every field required, the model writing the default instead of leaving it out; one flat shape for each reply, with a field naming an order's type instead of a branch for each type; and provinces, units and characters as plain strings the engine checks, never as lists of every name. At startup each schema is compiled once against each provider in use, so a schema too large fails at setup, not in the middle of a game.
+- **The map draws through a renderer interface,** so the SVG map can give way to a canvas or PixiJS in a later graphical pass without touching the rest.
+- **The look-ahead only imagines.** The script kings' look-ahead replays a season many times, so whatever a season does is multiplied by it. Presentation, such as omens, chronicles and request text, is produced only for the real season, never inside the look-ahead. The look-ahead neither draws the end nor touches the game's real random streams; it weighs the known chance instead: the chance as a seat may know it from the rulebook and the omens, never the cap or any other number drawn in secret. It stays fast, and the real game stays deterministic.
+- **Built to outlive its models.** The game should get better and cheaper to play as models improve, long after its last update, so nothing in it may depend on today's models. Models and providers sit behind one small interface in the model layer, with Anthropic as the first provider and others able to join without touching the rest: another provider's API, or a local model through a compatible endpoint. Each job's model, and any seat's own, is a setting that names a provider and any model, not a fixed list, so a model released after the last update can be used, retired names never break a game, and one table can mix providers ("Every model is the table's choice"). Prompts stay provider-neutral, and each provider's adapter handles its own format for system prompts and structured replies. Every reply is validated against the schemas ("One source for model schemas") and falls back to a script decision when it does not fit, so a model that formats things a little differently cannot stall a game; a fallback is never silent, since the log and the viewer mark every decision a script made in a model's place ("Who wrote it" under Spectator mode). Prices, speeds and call-size budgets are settings, never assumptions in the code, so cheaper and faster models are used without an update. Keys are held per provider, in memory, as the Anthropic key is today; a provider that refuses calls straight from a browser can still serve the Node runner and local play. Built in the conversion's model layer (build order item 5+).
+
+**Path to multiplayer.** Each stage adds players without changing the engine; what changes is where the engine runs, whose key pays and who could peek at secrets.
+
+| Stage | Topology | Who pays for model calls | Who could see hidden state | Fit |
+| --- | --- | --- | --- | --- |
+| 1. Prototype | One browser runs everything; single player plus spectator | The player, with their own key | The player, through developer tools | Testing, tuning, AI-only games |
+| 2. Friendly live multiplayer | Host-authoritative peer-to-peer over WebRTC; the host's browser runs the engine and all models | The host | The host | Friends playing at the same time |
+| 3. Asynchronous multiplayer | A Node server runs the same TypeScript engine and holds the game while players are offline | The game's creator, whose key is stored encrypted for that game only | Only the server | The main multiplayer direction: long-distance games, one turn a day, strangers |
+
+**Stage 2 in practice.** Other players' browsers only send orders and letters and receive their own view. A small signaling service introduces the peers but carries no game data and no keys; a relay (TURN) is needed only when a direct connection fails.
+
+**One rule holds in every stage.** All character model calls run where the secrets live. A character's prompt contains its hidden traits, so splitting costs by running each player's envoys in that player's browser would leak them.
+
+**Local play on a Claude subscription (planned).** A fourth way to play, for the developer's own games: the game runs locally, the player takes a human seat, and the other kings are file seats answered by guarded king agents in a Claude Code session, drawing on the subscription instead of paid API calls. Its characters are script characters for now; item 8 (Structured press) lets them be agents too.
+
+- **Local, not GitHub Pages.** A browser page cannot read or write local files, so this needs a local build of the web app or the batch runner.
+- **Isolation as in the simulation.** One agent type per king, a hook blocking any path outside its own folder, unguessable folder names, and a pre-game check.
+- **Sleeping seats keep usage down.** Kings are woken only when something concerns them, so usage scales with events, not seasons. Expect minutes per season, which suits slow, asynchronous play.
+- **Subscription limits apply.** Usage is shared with the Claude apps; check it with `/usage`. An `ANTHROPIC_API_KEY` environment variable makes Claude Code bill the API instead, so it must not be set.
+- **Personal use only.** Games that other people play use the bring-your-own-key API path.
+
+**Platforms: phone and computer are both primary.** The game is mostly reading, short letters and a few decisions per turn, which suits a phone as well as a desktop.
+
+- **Mobile-first seat view.** Design from the phone screen up; the message trail and panels stack on narrow screens.
+- **Map on small screens.** Pinch-zoom and pan on the SVG map, plus a list view of provinces, since small provinces are hard to tap.
+- **Installable web app (PWA).** Home-screen install, cached for fast start, and later push notifications when an envoy arrives (also supported on iPhone for installed web apps).
+- **Short letters.** The interface encourages brief letters, which suits phone keyboards and dictation and saves tokens.
+- **Load size.** Blazor WebAssembly ships a .NET runtime: measured on 21 October 2026, a first visit downloaded 3.5 MB compressed in 62 files before the first screen. That is why the engine and frontend move to TypeScript (build order item 5+). Keep measuring first-load time and the time of one season on a phone, before and after the conversion and as the game grows.
+
+**Hosting on GitHub Pages.** The static build runs from the repository like any static site, with nothing to install: set the base path to the repository name, add a `.nojekyll` file, add a `404.html` redirect for client-side routing, and publish with a GitHub Actions workflow. Pages is free for public repositories; private ones need a paid plan.
+

@@ -1,0 +1,18 @@
+<!-- Generated from the design document, main tab, revision 485 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+## Design pillars
+
+Eight principles decide every feature; a mechanic that breaks one needs a strong reason.
+
+1. **Physics, not politics.** Code enforces movement, combat, production and payment. War, peace and treaties are only words backed by actions. There is no "cannot declare war" rule anywhere.
+2. **The only currency is currency.** No diplomacy points, no influence mana, no casus belli meter. Gold, land, units and people are the only things that change hands.
+3. **Every error has a motive.** Distortion comes from characters with reasons the player can reason about: greed, fear, ambition, sympathy. Unexplained randomness in communication is not allowed.
+4. **Everything is delayed.** Messages, gold, intelligence and rumors all travel. Nobody acts on the present; everyone acts on a report of the past.
+5. **Truth is expensive.** Verification costs gold and time and never returns the whole truth. Information is an asset to buy, sell, withhold and fake.
+6. **Code decides facts; language models phrase them.** The engine decides what is true and what is revealed. Models only add voice, personality and judgment inside their own seat.
+7. **Every seat is replaceable.** Humans, language models and scripts use the same interface and receive the same information. No seat knows who sits in the others, so every player, scripted or not, must expect any move, including broken oaths.
+8. **War is slower than diplomacy.** A kingdom must not fall faster than a letter and its reply can travel, or diplomacy cannot matter. Diplomacy gets away with fast war because its communication is instant; here communication is layered and delayed, so combat must match it.
+
+**Different data, same rules** (decided 19 October 2026). No rule checks which power it is. Asymmetry lives in the map and the starting data (land, wealth, troops, rank, temperament), and every rule reads that data, so a power that loses its fleet stops thinking like a sea power, and one that rises is treated as an equal. Voice may differ by power: season names, titles, greetings and the lines in gift letters are flavour and stay. Further sources of difference, such as government, ruling class, laws and demography, come as starting data that existing systems already read (wealth, loyalty, levy size, court size), never as a new system per factor.
+
+**Every feature is every seat's** (decided 20 October 2026, a core tenet). Any feature a player can use, the AI must be able to use too, and leverage sensibly, with at least occasional success: script kings and script characters as much as model ones. A rule only humans or models exploit is a rule the game is not really testing, and it hands that seat an edge no rule intended. So no feature counts as built until the script players use it. Concretely, the work is in the scripts: the script kings (the bots that play a seat) and the script characters (\`ScriptMind\`, which plays envoys, spies and every other character by formula), both under \`src/Amarna.Game/Bots\`, and later the script city-states of item 11+. Model kings and characters must use every feature too, and well. Each feature is described in the rulebook and in their requests clearly enough to be used, with what it costs and what it can win, and the model games after the build order is done check that they do; the second agent simulation found kings sending no letters from audiences and giving no standing orders, the kind of gap to close by explaining, never by priming. A model using a feature never stands in for the script players using it, nor the other way round.
+
