@@ -163,3 +163,16 @@ call, which is why the PR's checks were green. The site kept showing the game fr
 same game). The fix (PR "Pages: set the build's concurrency on the job") moves the group onto the build job, and was
 merged into `main` under the exception's follow-up clause ("fix previews in a follow-up if needed"), since without it
 pushes to `main` no longer updated the site. The same PR quotes the name in `preview.yml`'s `workflows: [Build, test and publish]`: unquoted, YAML splits it at the comma into "Build" and "test and publish", so the publisher never started (actionlint does not catch it).
+
+The second push to `main` (`30308ac`, PR #22) was cancelled the same way. The real cause: a merged PR's `closed` run
+has the base branch's ref, `refs/heads/main`, so it joined the push run's group and, being a PR run, cancelled it.
+Worse, that `closed` run started the preview publisher. With no `gh-pages` branch yet, its removal of `pr-22` created
+the branch with nothing but `.nojekyll`, and the deploy step put that live: **the site root showed GitHub's 404 page
+from about 23:16 UTC.** I restored it by running "Build, test and publish" by hand on `main`
+(`workflow_dispatch`), which publishes the root of `gh-pages` and deploys it. I did not revert: Haakon's revised
+condition says "fix previews in a follow-up if needed", and reverting merges on `main` would have left `main` and
+`develop` tangled. The follow-up fix (PR "Pages: never deploy without the game at the root"):
+- a PR's builds are grouped by the PR's number, so its `closed` run cannot cancel a push to `main`;
+- a preview neither creates `gh-pages` nor writes beside a missing root (`site-publish.sh`), and the publisher deploys
+  only when the branch really changed;
+- the deploy step refuses a branch with no `index.html` at its root.

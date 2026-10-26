@@ -28,6 +28,11 @@ for attempt in 1 2 3 4 5; do
     old=""   # the branch does not exist yet: the lease requires that it still does not
   fi
 
+  # A preview never creates the branch, nor writes beside a root that is not there: deployed, such a branch would
+  # replace the game with an empty site. Previews start once main has published the root.
+  if [ "$target" != root ] && [ ! -f "$work/tree/index.html" ]; then
+    echo "gh-pages: no root published yet; $target skipped"; exit 0
+  fi
   if [ "$target" = root ]; then
     find "$work/tree" -mindepth 1 -maxdepth 1 ! -regex '.*/pr-[0-9]+' -exec rm -rf {} +
     cp -R "$src"/. "$work/tree"/
