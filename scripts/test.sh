@@ -5,7 +5,7 @@
 cd "$(dirname "$0")/.." || exit 2
 command -v dotnet >/dev/null 2>&1 || { echo "dotnet is missing: run scripts/cloud-setup.sh first"; exit 2; }
 LOG="${TMPDIR:-/tmp}/amarna-test.log"
-dotnet test --nologo -v q "$@" >"$LOG" 2>&1
+dotnet test --nologo -v minimal --logger "console;verbosity=normal" "$@" >"$LOG" 2>&1
 rc=$?
 grep -E "Passed!|Failed!|Test summary|Total tests|error (CS|MSB|NU)[0-9]+|Build FAILED" "$LOG" | sed 's/^ *//' | sort -u | head -40
 # each failing test: its name and the first lines of its message, without the stack trace

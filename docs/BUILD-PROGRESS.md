@@ -1,6 +1,6 @@
 # Build progress
 
-Follows "Build order" in the design document (copy: `docs/intent/main/20-build-order/`; the builder rules are in
+Follows "Build order" in the design document (copy: `docs/intent/main/build-order/`; the builder rules are in
 `.claude/rules/builder-rules.md`). One line per item: state, branch, report, and what was decided along the way. Items
 are built on their own branch from `develop` and merged into `develop` when the tests pass and one reviewer has found
 nothing blocking; `main` is never touched (Haakon merges `develop` into `main`). The whole order is built without

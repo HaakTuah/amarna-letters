@@ -3,11 +3,8 @@
 A Late Bronze Age grand strategy game: seven Great Kings, played by humans, script bots or language models, negotiate
 through envoys and sealed tablets on a deterministic engine. Haakon (the owner) designs it with Claude in a design
 document; builders like you build it item by item. Built in C# on Blazor WebAssembly today, moving to TypeScript in
-build order item 5+.
-
-The principles every rule answers to: different data, same rules (no rule checks which power it is); every rule has an
-in-world reason; systemic, with no special cases and no stopgaps; historically grounded, style not strategy; built to
-outlive its models.
+build order item 5+. Every feature answers to the design pillars and tenets in `docs/intent/main/design-pillars.md`:
+read them once per session.
 
 ## Where things are
 
@@ -20,17 +17,19 @@ outlive its models.
 | Briefs for the steps of item 5+ | `docs/items/` | Docs and preview pass, conversion, fix pass. |
 | Specs Haakon wrote for item 5+ | `docs/prompts/DOCS-AND-PREVIEW.md`, `docs/CONVERSION-PLAN.md` | His words, quoted. |
 | Item reports | `docs/rounds/<date>-<item>.md` | Write yours there. |
-| History | `docs/archive/` (build log, Haakon's instructions word for word) | Read only when a task points there. |
+| History | `docs/archive/` (build log; Haakon's instructions word for word) | Read only when a task points there. |
 
 ## Starting a task
 
 1. Find the next item in `docs/BUILD-PROGRESS.md`. For the steps of item 5+, read its brief in `docs/items/`. For
-   item 6 onward, the item's own text is its brief: `docs/intent/main/20-build-order/<nn>-item-<n>.md`.
-2. Ask the live design document what changed since the copy was cut (`docs/intent/INDEX.md` says how; one small read
-   per tab). Where the copy and the live document differ, the live document wins.
+   item 6 onward, the item's own text is its brief: `docs/intent/main/build-order/item-<n>.md` (`item-6.md`,
+   `item-9plus.md`, ...).
+2. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules).
 3. Read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
-   Read the rest of the design document for intent only when you need it.
-4. Check weekly usage (`scripts/usage.sh`), and again after every commit. Stop as "Usage" in the builder rules says.
+4. Check weekly usage with `scripts/usage.sh`, and again after every commit ("Usage" in the builder rules). If it
+   says "unknown", this session cannot see usage: say so in the first line of each PR you open, and carry on; Haakon
+   then watches usage himself and pauses the work at about 90%.
+5. Read "Standing instructions" at the end of this file.
 
 ## How to work
 
@@ -57,23 +56,26 @@ How to keep to them:
   `2026-10-18-sleep-and-simulation.md` is a specification (its "question N" plans), read by the question you need.
 - **Print little.** Run tests with `scripts/test.sh` and script games with `scripts/sim.sh`: both print a summary and
   the failures, and keep the full log in a file. Never paste a full log into the conversation.
-- **Helpers.** One agent does the item. Spawn a subagent only to search widely (pass `model: "haiku"`; ask for
-  file:line and conclusions, not file contents), to run a long test or batch (`model: "haiku"`; summary and failures
-  only), or as the one reviewer at the end (the main model; give it the diff and the item's text, nothing else).
-  Project threads ignore `.claude/agents/`, so pass the model in the call. No workflows and no ultracode unless an
-  item's documented process calls for them. Never message an agent that a workflow started: stop the workflow and
-  relaunch from what is committed.
-- **Effort.** Medium for most items. High for the TypeScript conversion, the fix pass after it, and the reviewer. If
-  high has failed twice on the same problem, try extra high for that problem only. Never max.
+- **Helpers, at most two at a time.** You do the item yourself. A subagent only to search widely (pass
+  `model: "haiku"`; ask for file:line and conclusions, not file contents), to run a long test or batch
+  (`model: "haiku"`; summary and failures only), or as the item's one reviewer (the main model; give it the diff and
+  the item's text, nothing else). Sessions started from a Claude Code Project don't load `.claude/agents/`, so pass the
+  model in the call. No workflows and no ultracode unless an item's documented process calls for them. Never message an
+  agent that a workflow started: stop the workflow and relaunch from what is committed.
+- **Effort** is set when a session starts: medium for most items, high for the TypeScript conversion and the fix pass
+  after it. If a problem defeats you twice at high, write it up in the PR and `docs/BUILD-PROGRESS.md` so Haakon can
+  rerun it with more.
 - **Edit in place.** Change the lines that need changing; never rewrite a large file to change part of it.
 - **Don't loop.** If the same approach fails twice, stop, write down what you tried, and take another approach or mark
   the step blocked and go on, as the builder rules say.
-- **One fact, one place.** Link to where a fact lives instead of copying it. When a rule changes, update its topic file
-  in `docs/design/` in the same commit. Never edit `docs/intent/` or `.claude/rules/builder-rules.md`: if the design
-  document seems wrong or unclear, take the most reasonable reading and list it under "Design questions" in the PR and
-  in the item's report.
+- **One fact, one place.** Link to where a fact lives instead of copying it. Never edit `docs/intent/` or
+  `.claude/rules/builder-rules.md`: if the design document seems wrong or unclear, take the most reasonable reading and
+  list it under "Design questions" in the PR and in the item's report.
 - **Haakon's words are kept.** When Haakon gives an instruction in a session, quote it word for word in the item's
-  report; if it is a standing rule, also add it, dated, to `docs/archive/instructions.md`.
+  report. If it is a standing rule, also add it, dated, to "Standing instructions" below, with the quote in
+  `docs/archive/instructions.md`; it moves into the design document's builder rules when the copy is next refreshed.
+- **Each game's files stay in its own repository.** Never write this project's notes, logs or files into another
+  project's repository or folders, above all Barkstreet Snakes' (Haakon: strictly forbidden).
 - **One item per session.** When an item is merged, the next item starts in a fresh session. A long item may end a
   session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md` saying where to pick up.
 
@@ -87,15 +89,27 @@ scripts/usage.sh              # weekly usage, if this session can read it
 dotnet run --project src/Amarna.Web --launch-profile http   # the web app at http://localhost:5183
 ```
 
-Benchmarks: `scripts/sim.sh --versus solo ...` (see "Benchmarks" in `docs/design/07-script-kings/20-benchmarks.md`).
-No model games: the batch runner's model presets cost real money and the builder rules forbid them until the build
-order is done.
+Benchmarks: `scripts/sim.sh --versus solo ...` ("Benchmarks" in `docs/design/07-script-kings/20-benchmarks.md`). No
+model games: no API key is set in cloud sessions, and the builder rules forbid them until the build order is done.
 
 ## Git and GitHub
 
-- Branches, merges and PRs follow the builder rules. `main` is Haakon's; the one exception is the docs and preview PR,
-  as its spec says.
-- In cloud sessions GitHub's GraphQL API is blocked, so `gh pr create` and `gh pr list` fail. Use the REST API:
-  `gh api repos/HaakTuah/amarna-letters/pulls -f title=... -f head=... -f base=develop -f body=...`, and
-  `gh api -X PUT repos/HaakTuah/amarna-letters/pulls/<n>/merge -f merge_method=merge` to merge into `develop`.
-- Never put a key or secret in the repository or in an environment variable.
+Branches, merges and PRs follow the builder rules; `main` is Haakon's (the one exception is the docs and preview PR, as
+its spec says). Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
+Use the REST API (repository `HaakTuah/amarna-letters`):
+
+```bash
+gh api repos/HaakTuah/amarna-letters/pulls -f title=... -f head=<branch> -f base=develop -f body=...  # add -F draft=true for a draft
+gh api -X PUT repos/HaakTuah/amarna-letters/pulls/<n>/merge -f merge_method=merge                     # merge into develop
+gh api "repos/HaakTuah/amarna-letters/pulls?state=all&base=main&head=HaakTuah:develop" --jq '.[0] | {number,state,merged_at}'
+gh api repos/HaakTuah/amarna-letters/pulls -f title=... -f head=develop -f base=main -f body=...       # the milestone PR
+```
+
+The third line is the check before pushing `develop`: if the last `develop` -> `main` PR has `merged_at`, merge `main`
+back into `develop` first and open a new milestone PR. Never put a key or secret in the repository or in an environment
+variable.
+
+## Standing instructions
+
+Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (None
+yet.)

@@ -7,6 +7,10 @@ This script turns its two tab exports into docs/intent/ (one file per section) a
 Every output file starts with one generated-header line; without those lines the files, in
 manifest order, reproduce each export byte for byte, and the script checks that before it exits.
 
+File names come from headings, with no position numbers, so a path stays the same until its heading is renamed;
+the order lives in docs/intent/manifest.json. After writing, the script checks that every docs/intent path named in
+the repository's own docs still exists, and fails if one does not.
+
 Usage (run by whoever refreshes the copy after a design session, never by builders):
   python3 scripts/design-copy.py --main main.md --main-rev N --ideas ideas.md --ideas-rev M --date YYYY-MM-DD
   python3 scripts/design-copy.py --verify main.md ideas.md   # check an existing copy against exports
@@ -19,9 +23,10 @@ RULES = os.path.join(ROOT, '.claude', 'rules', 'builder-rules.md')
 DOC = '7f857750-39dc-464a-a739-c9f59dfe3dcd'
 NODES = {'main': '320f0886-6acf', 'ideas': '4fd20c8e-f5d2'}
 PART_BYTES = 22000  # Ideas sections above ~30 KB are cut into parts of about this size, at entry boundaries
+REF_GLOBS = ['CLAUDE.md', 'docs', '.claude']  # where references to docs/intent paths are checked
 
 
-def slug(text, n=48):
+def slug(text, n=64):
     s = re.sub(r'[^a-z0-9]+', '-', text.lower().replace("'", '')).strip('-')
     return s[:n].rstrip('-') or 'section'
 
@@ -36,7 +41,7 @@ def sections(lines):
     return chunks
 
 
-def build_order_parts(chunk):
+def build_order_parts(chunk, done_through):
     """Cut the Build order section: intro, builder rules (to .claude/rules), done items, one file per item, not yet."""
     rules_at = next(i for i, l in enumerate(chunk) if l.startswith('**Rules for the builder.**'))
     order_at = next(i for i, l in enumerate(chunk) if l.startswith('**The order.**'))
@@ -47,20 +52,18 @@ def build_order_parts(chunk):
         m = item_re.match(chunk[i])
         if m:
             starts.append((i, m.group(1) or m.group(2)))
-    parts = [('build-order/00-intro', 'Build order: introduction', chunk[:rules_at]),
+    parts = [('build-order/intro', 'Build order: introduction', chunk[:rules_at]),
              ('RULES', 'Rules for the builder', chunk[rules_at:order_at])]
-    first_open = next(k for k, (i, num) in enumerate(starts) if not (num.isdigit() and int(num) <= 5))
-    parts.append(('build-order/01-items-1-to-5-done', 'The order: items 1 to 5 (built)',
+    first_open = next(k for k, (i, num) in enumerate(starts) if not (num.isdigit() and int(num) <= done_through))
+    parts.append((f'build-order/items-1-to-{done_through}-done', f'The order: items 1 to {done_through} (built)',
                   chunk[order_at:starts[first_open][0]]))
-    n = 2
     for k in range(first_open, len(starts)):
         i, num = starts[k]
         j = starts[k + 1][0] if k + 1 < len(starts) else notyet_at
         title = re.sub(r'\*\*', '', chunk[i].strip()).split('(')[0].strip().rstrip('.')
         name = 'item-' + num.replace('+', 'plus')
-        parts.append((f'build-order/{n:02d}-{name}', title[:80], chunk[i:j]))
-        n += 1
-    parts.append((f'build-order/{n:02d}-not-yet-in-the-order', 'Not yet in the order', chunk[notyet_at:]))
+        parts.append((f'build-order/{name}', title[:80], chunk[i:j]))
+    parts.append(('build-order/not-yet-in-the-order', 'Not yet in the order', chunk[notyet_at:]))
     return parts
 
 
@@ -70,7 +73,7 @@ def entry_parts(chunk):
     if size(chunk) <= 30000:
         return [chunk]
     bounds = [i for i in range(1, len(chunk)) if chunk[i].startswith('**') and chunk[i - 1] == '']
-    parts, start, acc = [], 0, 0
+    parts, start = [], 0
     for b in bounds:
         if size(chunk[start:b]) >= PART_BYTES:
             parts.append(chunk[start:b])
@@ -79,21 +82,24 @@ def entry_parts(chunk):
     return parts
 
 
-def plan(tab, text):
+def plan(tab, text, done_through):
     lines = text.split('\n')
     out = []  # (relative path, description, lines)
-    for k, (title, chunk) in enumerate(sections(lines)):
-        prefix = f'{k:02d}'
+    for title, chunk in sections(lines):
         if title == 'front':
-            out.append((f'{tab}/00-front', 'Title, status, how the document relates to the code', chunk))
+            out.append((f'{tab}/front', 'Title, status, how the document relates to the code', chunk))
         elif tab == 'main' and title == 'Build order':
-            for name, desc, ls in build_order_parts(chunk):
-                out.append((name if name == 'RULES' else f'{tab}/{prefix}-{name}', desc, ls))
+            for name, desc, ls in build_order_parts(chunk, done_through):
+                out.append((name if name == 'RULES' else f'{tab}/{name}', desc, ls))
         else:
             ps = entry_parts(chunk) if tab == 'ideas' else [chunk]
             for p, ls in enumerate(ps):
                 suffix = f'-part{p + 1}' if len(ps) > 1 else ''
-                out.append((f'{tab}/{prefix}-{slug(title)}{suffix}', title + (f' (part {p + 1})' if suffix else ''), ls))
+                out.append((f'{tab}/{slug(title)}{suffix}', title + (f' (part {p + 1})' if suffix else ''), ls))
+    names = [o[0] for o in out]
+    dup = {n for n in names if names.count(n) > 1}
+    if dup:
+        sys.exit(f'two sections would share a file name: {sorted(dup)}; rename a heading')
     return out
 
 
@@ -115,7 +121,7 @@ def write(args):
     manifest = {'doc': DOC, 'date': args.date, 'tabs': {}}
     index_rows = []
     for tab, (text, rev) in tabs.items():
-        items = plan(tab, text)
+        items = plan(tab, text, args.done_through)
         manifest['tabs'][tab] = {'node': NODES[tab], 'rev': rev, 'files': []}
         for i, (name, desc, ls) in enumerate(items):
             body = '\n'.join(ls)
@@ -134,6 +140,27 @@ def write(args):
         f.write('\n')
     write_index(manifest, index_rows)
     verify(manifest, {t: v[0] for t, v in tabs.items()})
+    check_references()
+
+
+def check_references():
+    """Fail if a doc in the repository names a docs/intent file that no longer exists."""
+    bad = []
+    for top in REF_GLOBS:
+        base = os.path.join(ROOT, top)
+        files = [base] if os.path.isfile(base) else [os.path.join(d, f) for d, _, fs in os.walk(base) for f in fs if f.endswith('.md')]
+        for f in files:
+            if f.startswith(OUT + os.sep):
+                continue
+            for n, line in enumerate(open(f, encoding='utf-8'), 1):
+                for ref in re.findall(r'docs/intent/[A-Za-z0-9_./+-]+\.md', line):
+                    if not os.path.exists(os.path.join(ROOT, ref)):
+                        bad.append(f'{os.path.relpath(f, ROOT)}:{n}: {ref}')
+    if bad:
+        print('References to docs/intent files that no longer exist (fix them):')
+        print('\n'.join('  ' + b for b in bad))
+        sys.exit(1)
+    print('references: all docs/intent paths named in the docs exist')
 
 
 def write_index(m, rows):
@@ -184,14 +211,17 @@ def verify(m, texts):
 
 
 if __name__ == '__main__':
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--main'); ap.add_argument('--main-rev', type=int)
     ap.add_argument('--ideas'); ap.add_argument('--ideas-rev', type=int)
     ap.add_argument('--date')
+    ap.add_argument('--done-through', type=int, default=5, help='the last built item whose text goes in the "done" file')
     ap.add_argument('--verify', nargs=2, metavar=('MAIN', 'IDEAS'))
     a = ap.parse_args()
     if a.verify:
         m = json.load(open(os.path.join(OUT, 'manifest.json')))
         verify(m, {'main': open(a.verify[0], encoding='utf-8').read(), 'ideas': open(a.verify[1], encoding='utf-8').read()})
     else:
+        if not all([a.main, a.main_rev, a.ideas, a.ideas_rev, a.date]):
+            ap.error('--main, --main-rev, --ideas, --ideas-rev and --date are all needed (or --verify)')
         write(a)

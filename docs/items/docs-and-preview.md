@@ -1,6 +1,7 @@
 # Brief: the rest of the docs and preview pass (item 5+, step 1 of 3)
 
-**Spec:** `docs/prompts/DOCS-AND-PREVIEW.md`, Haakon's words. Read "Status (26 October 2026)" first, then "The task",
+**Spec:** `docs/prompts/DOCS-AND-PREVIEW.md`, Haakon's words. It asks for one session with no subagents, so this pass
+has no separate reviewer: read your own diff carefully before merging, and say so in the PR. Read "Status (26 October 2026)" first, then "The task",
 "Corrections and additions" and, for the previews, "Findings while preparing the pass". **Effort:** medium.
 
 ## First, check the cloud machine (report the results in the PR's first lines)
@@ -21,7 +22,8 @@
   comments the spec names.
 - **Step 4:** the preview workflow, with the publishing-branch approach the spec gives word for word. A PR must never be
   able to replace the site root.
-- **Point 8:** tidy up remote branches. Remove one only if all its work is in `develop` or `main`; list the ones kept.
+- **Point 8:** tidy up. Remove a branch only if it has no uncommitted or unpushed work (the spec's words); for a
+  branch on GitHub that means all its work is in `develop` or `main`. List the ones kept.
   `round/simulation-fixes-bots`, `-memory`, `-kit` and `wip/scratch-review-H` were pushed from Haakon's computer on
   26 October as backups: their commits were cherry-picked into `develop` on 18 and 19 October (same subjects, new
   hashes), except `wip/scratch-review-H`, an untested probe test. Say in the PR what you did with each.

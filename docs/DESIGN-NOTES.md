@@ -4,8 +4,8 @@ Decisions and simplifications made while building the prototype from the design 
 Every number here lives in `GameConfig` or `MapData` and is meant to be tuned.
 
 Split into one file per topic under `docs/design/` on 26 October 2026, word for word, so that a session reads only
-the topics its task needs. The text as it stood before the split is in git history. When a rule changes, update the
-topic file it belongs to, in the same commit as the rule. A new topic gets its own file and a line here.
+the topics its task needs. The text as it stood before the split is in git history. A new topic gets its own file and a line
+here.
 
 | File | Topic | KB |
 | --- | --- | --- |

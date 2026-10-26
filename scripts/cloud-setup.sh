@@ -16,7 +16,6 @@ if ! have dotnet && have apt-get; then
     && apt-get install -y -q dotnet-sdk-10.0; } >/tmp/dotnet-apt.log 2>&1
 fi
 if have dotnet; then echo "dotnet $(dotnet --version)"; else echo "NOT INSTALLED: .NET 10 SDK (see /tmp/dotnet-install.log, /tmp/dotnet-apt.log)"; fi
-export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
 if have npx && [ "${SKIP_PLAYWRIGHT:-}" != "1" ]; then
   if npx -y playwright@1.49.1 install --with-deps chromium >/tmp/playwright-install.log 2>&1; then
     echo "playwright chromium: installed"

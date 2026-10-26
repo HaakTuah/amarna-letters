@@ -19,7 +19,7 @@ commit `6a2ae7d`. Where each part went:
 | The "How to work" note (21 October) | `CLAUDE.md`, in the fuller words of `docs/prompts/DOCS-AND-PREVIEW.md`, step 1. |
 | "Never message a workflow's agents" | `CLAUDE.md`, "Helpers". |
 | Pointers to the docs pass and the conversion | `docs/items/`. |
-| "Project folders stay separate" | Retired: in the cloud each repository is its own session. |
+| "Project folders stay separate" | `CLAUDE.md`, "Each game's files stay in its own repository". |
 | The owner's message log, its rebuild script and the hooks that ran it | Retired: cloud sessions have no local session files to rebuild from. The 9 instructions recorded nowhere else are in `instructions.md`; new ones are recorded there as they are given (`CLAUDE.md`). |
 | Three recorded model games | `tests/fixtures/replays/`, for the conversion's parity check. |
 

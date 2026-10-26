@@ -14,9 +14,12 @@ What was left out:
 
 No open questions were found.
 
-## Still current on 26 October 2026, from the log
+## From the log
 
-Since 26 October 2026, items 4 to 7 are superseded: see "26 October 2026" at the end of this file.
+Items 1 to 3 still stand. Items 4 to 6 were superseded on 26 October 2026 (items 11 and 12 at the end of this file).
+In item 7, "there is no mirror" and "Don't create docs/DESIGN.md" were superseded the same day by the copy in
+`docs/intent/` (item 10), while "the design document records intent, and docs/DESIGN-NOTES.md is the source of truth
+for what's built" still holds.
 
 1. **2026-10-17 14:07**, the answer to a setup question ("How should live Claude API calls be tested? I can't type
    your API key into the game myself."):
@@ -65,8 +68,7 @@ Since 26 October 2026, items 4 to 7 are superseded: see "26 October 2026" at the
 
    > You are cleared up to 70% of weekly usage instead of 50%.
 
-Both were replaced on 19 October by the limit of 95% now in the builder rules in `docs/BUILD-PROGRESS.md`. Haakon
-sets the limit for each new session himself.
+Both were replaced on 19 October by a limit of 95%, which the 90% rule replaced on 26 October (item 11).
 
 ## 26 October 2026
 
