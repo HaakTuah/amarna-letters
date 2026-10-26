@@ -489,3 +489,7 @@ $RECYCLE.BIN/
 /sim/runs/
 /.claude/agents/king-*.md
 /.claude/agents/char-*.md
+
+# Claude Code: local-only files
+.claude/settings.local.json
+.claude/worktrees/
