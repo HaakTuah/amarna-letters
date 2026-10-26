@@ -4,6 +4,8 @@
 The stack table and "Engine rules" are under Tech stack (`docs/intent/main/tech-stack.md`). **Effort:** high.
 
 - **Parity data:** the recorded model games are in `tests/fixtures/replays/` (see its README).
+- **File size:** keep each TypeScript file under about 50 KB, split by responsibility, so later sessions can read a
+  whole file when they need to. Today's largest C# files are 50 to 120 KB.
 - **Tools:** Node 22 is on cloud machines. The C# side of parity needs .NET (`scripts/cloud-setup.sh`); the phone
   measurements need Playwright's Chromium (the docs pass reports whether it installs).
 
