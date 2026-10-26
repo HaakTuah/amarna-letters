@@ -11,14 +11,15 @@ on:
     types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
 
-# A newer push to the same pull request replaces the older run; deploys from main always finish.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    # A newer push to the same pull request replaces the older build; builds of main always finish. This is set on the
+    # job, not the workflow: a workflow-level group also applies to the called deploy workflow, which then cancels the
+    # whole run as a "higher priority waiting request".
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     permissions:
       contents: read
     steps:

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 545 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Economy, territory and military
 
 Gold is the only currency, and everything of value can change hands. The economy exists for one reason: war must cost something and peace must be worth something, so trust has a price without any rule saying so.
@@ -20,6 +20,7 @@ Gold is the only currency, and everything of value can change hands. The economy
 - Armies on land, fleets at sea; one unit per province.
 - Diplomacy-style resolution, including convoys: strength is one plus supports, and ties bounce. No dice in combat.
 - Supports can be given to any power, so a promised support is a checkable promise.
+- **Battles: one season, losses, no dice** (decided 26 October 2026; built with army size in build order item 13). A season is a third of a year: room for a campaign and its one decisive battle, so a battle is decided within the season it is fought, and armies never stand and fight for months; only sieges last longer. An army's strength becomes its size, shaped by its commander's skill and the ground, plus the size of its supports, and the stronger side wins as now. The loser falls back to a neighbouring province its side holds or that stands empty, losing men in proportion to the margin it lost by; the winner loses men too, fewer. An army with nowhere to fall back, or beaten by far, is destroyed or scattered. Where it falls back is its commander's choice within his mandate ("retreat if outnumbered", "Command at a distance" in the Ideas tab), so the enemy cannot be sure of it. There are still no dice: a battle is uncertain because of what a king does not know, the enemy's numbers, its commander's skill and its orders, so every result has a cause the record can show ("Every error has a motive"). Until item 13 a dislodged army is destroyed, as now.
 
 **Tempo of war.** Pillar 8 takes the game beyond Diplomacy's combat model. Early bot games showed why: Hatti could swallow Arzawa before any letter arrived, so diplomacy never got a chance.
 

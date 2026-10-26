@@ -1,4 +1,4 @@
-<!-- Generated from the design document, main tab, revision 542 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, main tab, revision 545 (2026-10-26). Do not edit: see docs/intent/INDEX.md. -->
 ## Recruitment, background checks and the open market
 
 Hiring is the player's first real tradeoff: take a candidate now and accept the risk, or spend gold and turns checking, and maybe miss the moment.

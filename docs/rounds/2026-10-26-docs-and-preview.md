@@ -153,3 +153,13 @@ Also `main`, `develop`, and this item's branch until it is merged.
   publishing target, and each build holds about 16 MB.
 - **Branches whose commits were ported** (the bots and kit backups) count as having their work in `develop`, as the
   brief says, checked by content because their hashes and subjects differ.
+
+## After the merge into main
+
+The first push to `main` with the new workflows (`c918074`) was cancelled within a second, before any step ran: "Canceling
+since a higher priority waiting request for Build, test and publish-refs/heads/main exists". The workflow-level
+concurrency group also applied to the deploy workflow it calls, so the run cancelled itself. PR runs never reach that
+call, which is why the PR's checks were green. The site kept showing the game from the last deployment (`a5f3c73`, the
+same game). The fix (PR "Pages: set the build's concurrency on the job") moves the group onto the build job, and was
+merged into `main` under the exception's follow-up clause ("fix previews in a follow-up if needed"), since without it
+pushes to `main` no longer updated the site. The same PR quotes the name in `preview.yml`'s `workflows: [Build, test and publish]`: unquoted, YAML splits it at the comma into "Build" and "test and publish", so the publisher never started (actionlint does not catch it).
