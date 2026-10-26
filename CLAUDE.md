@@ -59,17 +59,10 @@ How to keep to them:
 - **Print little.** Run tests with `scripts/test.sh` and script games with `scripts/sim.sh`: both print a summary and
   the failures, and keep the full log in a file. Run long ones in the background (the Bash tool's background mode) and
   wait for the completion notice. Never paste a full log into the conversation.
-- **Helpers, at most two at a time.** You do the item yourself. A subagent only to search widely (pass
-  `model: "haiku"`; ask for file:line and conclusions, not file contents), or as the item's one reviewer (the main model; give it the diff and
-  the item's text, nothing else). Sessions started from a Claude Code Project don't load `.claude/agents/`, so pass the
-  model in the call. No workflows and no ultracode unless an item's documented process calls for them. Never message an
-  agent that a workflow started: stop the workflow and relaunch from what is committed.
-- **Effort** is set when a session starts: medium for most items, high for the TypeScript conversion and the fix pass
-  after it. If a problem defeats you twice at high, write it up in the PR and `docs/BUILD-PROGRESS.md` so Haakon can
-  rerun it with more.
+- **Helpers, effort and escalation:** see "Models, effort and helpers" below.
 - **Edit in place.** Change the lines that need changing; never rewrite a large file to change part of it.
-- **Don't loop.** If the same approach fails twice, stop, write down what you tried, and take another approach or mark
-  the step blocked and go on, as the builder rules say.
+- **Don't loop.** If the same approach fails twice, stop, write down what you tried, and take another approach, hand it to
+  the escalation helper, or mark the step blocked and go on, as the builder rules say.
 - **One fact, one place.** Link to where a fact lives instead of copying it. Never edit `docs/intent/` or
   `.claude/rules/builder-rules.md`: if the design document seems wrong or unclear, take the most reasonable reading and
   list it under "Design questions" in the PR and in the item's report.
@@ -81,6 +74,27 @@ How to keep to them:
 - **Sessions.** When sessions are started for you item by item (a Claude Code Project does this), stop when your item
   is merged and say what is next; otherwise carry on with the next item in the same session. A long item may end a
   session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md` saying where to pick up.
+
+## Models, effort and helpers
+
+The same in both of Haakon's games; only the list of hard work differs.
+
+| Who | Model | Effort | For |
+| --- | --- | --- | --- |
+| You, the builder | Opus | medium; high for the TypeScript conversion and the fix pass after it | the item itself |
+| Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files; it returns file:line and one-line conclusions |
+| Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | every item, once, before it is merged (the builder rules): give it the diff and the item's text, nothing else |
+| Escalation | Opus (`model: "opus"`, `effort: "high"`, or `"xhigh"` if you already run at high) | high or extra high | one problem that has defeated you twice: give it a self-contained brief (the problem, what you tried, the files and lines), then apply and check its answer yourself |
+
+- **Never more than two helpers at a time,** and only these four uses. No workflows and no ultracode. No agent kept
+  alive to wait for a run: long runs go in the background (the Bash tool's background mode).
+- **Effort is set when the session starts** and you can't raise your own. If the escalation helper fails too, write the
+  problem up in the PR and `docs/BUILD-PROGRESS.md` as blocked, go on with the next item, and say in your update that it needs a
+  session at higher effort.
+- Sessions started from a Claude Code Project don't load `.claude/agents/`, so always pass `model` (and `effort`) in
+  the call. Never max effort: it costs the most and tends to overthink.
+- **Keep files small and organised:** split code where it naturally belongs, by responsibility, and keep each file under
+  about 50 KB. Split a file that grows past that in its own PR, with behaviour proven unchanged.
 
 ## Commands
 
