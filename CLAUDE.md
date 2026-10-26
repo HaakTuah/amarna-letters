@@ -21,15 +21,17 @@ read them once per session.
 
 ## Starting a task
 
-1. Find the next item in `docs/BUILD-PROGRESS.md`. For the steps of item 5+, read its brief in `docs/items/`. For
+1. Work from `develop`: if you are on `main`, check out `develop` first (this file and the docs it names live there
+   until Haakon next merges `develop` into `main`).
+2. Find the next item in `docs/BUILD-PROGRESS.md`. For the steps of item 5+, read its brief in `docs/items/`. For
    item 6 onward, the item's own text is its brief: `docs/intent/main/build-order/item-<n>.md` (`item-6.md`,
    `item-9plus.md`, ...).
-2. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules).
-3. Read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
-4. Check weekly usage with `scripts/usage.sh`, and again after every commit ("Usage" in the builder rules). If it
+3. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules).
+4. Read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
+5. Check weekly usage with `scripts/usage.sh`, and again after every commit ("Usage" in the builder rules). If it
    says "unknown", this session cannot see usage: say so in the first line of each PR you open, and carry on; Haakon
    then watches usage himself and pauses the work at about 90%.
-5. Read "Standing instructions" at the end of this file.
+6. Read "Standing instructions" at the end of this file.
 
 ## How to work
 
@@ -55,10 +57,10 @@ How to keep to them:
   re-read a file you just edited. Until the docs pass archives them, the old round reports are in `docs/rounds/`; only
   `2026-10-18-sleep-and-simulation.md` is a specification (its "question N" plans), read by the question you need.
 - **Print little.** Run tests with `scripts/test.sh` and script games with `scripts/sim.sh`: both print a summary and
-  the failures, and keep the full log in a file. Never paste a full log into the conversation.
+  the failures, and keep the full log in a file. Run long ones in the background (the Bash tool's background mode) and
+  wait for the completion notice. Never paste a full log into the conversation.
 - **Helpers, at most two at a time.** You do the item yourself. A subagent only to search widely (pass
-  `model: "haiku"`; ask for file:line and conclusions, not file contents), to run a long test or batch
-  (`model: "haiku"`; summary and failures only), or as the item's one reviewer (the main model; give it the diff and
+  `model: "haiku"`; ask for file:line and conclusions, not file contents), or as the item's one reviewer (the main model; give it the diff and
   the item's text, nothing else). Sessions started from a Claude Code Project don't load `.claude/agents/`, so pass the
   model in the call. No workflows and no ultracode unless an item's documented process calls for them. Never message an
   agent that a workflow started: stop the workflow and relaunch from what is committed.
@@ -76,7 +78,8 @@ How to keep to them:
   `docs/archive/instructions.md`; it moves into the design document's builder rules when the copy is next refreshed.
 - **Each game's files stay in its own repository.** Never write this project's notes, logs or files into another
   project's repository or folders, above all Barkstreet Snakes' (Haakon: strictly forbidden).
-- **One item per session.** When an item is merged, the next item starts in a fresh session. A long item may end a
+- **Sessions.** When sessions are started for you item by item (a Claude Code Project does this), stop when your item
+  is merged and say what is next; otherwise carry on with the next item in the same session. A long item may end a
   session at a passed gate, with a commit and a note in `docs/BUILD-PROGRESS.md` saying where to pick up.
 
 ## Commands
