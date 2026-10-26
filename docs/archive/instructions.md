@@ -1,4 +1,4 @@
-# Instructions from the owner's message log not recorded elsewhere
+# Haakon's instructions, word for word
 
 Haakon's message log (`owner-messages-log.md`, 71 messages from 17 to 26 October 2026) stays out of the repo. It was
 read once on 26 October 2026, and each instruction, decision or open question about this project was checked against
@@ -14,7 +14,9 @@ What was left out:
 
 No open questions were found.
 
-## Still current
+## Still current on 26 October 2026, from the log
+
+Since 26 October 2026, items 4 to 7 are superseded: see "26 October 2026" at the end of this file.
 
 1. **2026-10-17 14:07**, the answer to a setup question ("How should live Claude API calls be tested? I can't type
    your API key into the game myself."):
@@ -65,3 +67,23 @@ No open questions were found.
 
 Both were replaced on 19 October by the limit of 95% now in the builder rules in `docs/BUILD-PROGRESS.md`. Haakon
 sets the limit for each new session himself.
+
+## 26 October 2026
+
+Given in the design chat with Claude, while the repositories were set up for building in the cloud. Times are UTC.
+
+10. **20:34**, on the rule against a copy of the design document in the repository (item 7 above):
+
+    > I don't really care. I just said that because me and you have been continually iterating on the design document, so whatever document it was working based on would quickly be stale. I want whatever works best and will give the most optimal results at sensible token usage, with the idea iteration flow me and you have established. You handle the details.
+
+    Built as the copy in `docs/intent/` with its check for later changes ("The specification" in the builder rules).
+
+11. **20:34**, on a suggested stop after the fix pass (it replaces item 6 above, and the usage lines of items 4 and 5):
+
+    > I don't agree with that break. I want these 2 continually working until they reach about 90% usage, at that point I don't want them taking on any bigger task, as I want the bulk of that remaining usage for myself.
+
+    "These 2" are this game's builder and Barkstreet Snakes' builder. Written into the builder rules as "Usage".
+
+12. **20:45**, on the setup itself:
+
+    > Go, do it all, expertly! Just make sure you don't lose anything important along the way, or duplicate unessecarily, which creates drift!

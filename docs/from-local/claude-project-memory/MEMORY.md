@@ -1,9 +1,0 @@
-- [Owner's message log](owner-message-log.md) — every owner message word for word in owner-messages-log.md; rebuild with rebuild-owner-log.js after a context squeeze
-- [Project folders stay separate](project-folders-separate.md) — never write this project's notes into another project's folder, above all snake-game's
-- [Round workflow rules](round-workflow-rules.md) — prompt saved word for word, branch/PR flow, frozen balance, rule text and DESIGN-NOTES together
-- [Build order](build-order.md) — from 19 Oct 2026 follow the design doc's Build order item by item; progress in docs/BUILD-PROGRESS.md
-- [No messaging workflow agents](no-messaging-workflow-agents.md) — messaging a running workflow subagent can start a second copy; stop the workflow and relaunch instead
-- [Safety checks are never overridden](stop-rules-never-overridden.md) — a failing safety check stops that step and I ask; failing tests never stop the build
-- [How to work](usage-lean-by-default.md) — questions are answered, not acted on; one pass for small tasks; ask before more than 2 agents (simulations and build-order reviews excepted)
-- [After 26 Oct: docs and preview pass](after-26-oct-cheaper-dev-and-previews.md) — spec in docs/prompts/DOCS-AND-PREVIEW.md on develop; not before 26 Oct
-- [Conversion plan](conversion-plan.md) — spec in docs/CONVERSION-PLAN.md on develop; order: docs pass, conversion, fix pass, item 6; never wait for Haakon
