@@ -9,7 +9,7 @@ the rest is what was agreed with him.
 1. The docs and preview pass (`docs/prompts/DOCS-AND-PREVIEW.md`), not before 26 October 2026.
 2. The conversion (this file).
 3. The fix pass for the "Found during the port" list in `docs/BUILD-PROGRESS.md`.
-4. Build order item 6.
+4. Build order item 6. (Since 26 October 2026 item 6 is built in two parts, 6a first.)
 
 ## Haakon's plan (21 October 2026)
 
@@ -97,7 +97,8 @@ the rest is what was agreed with him.
   still serve parity if both builds replay them the same non-strict way (recorded replies where their keys match,
   the script stand-in elsewhere) and their fingerprints are compared with each other. The runs are in `sim/runs/`,
   which git ignores, so they exist only on the computer that ran them until a selection is committed under
-  `tests/fixtures/` (above). If this proves impractical, say so in the PR.
+  `tests/fixtures/` (above). If this proves impractical, say so in the PR. (26 October 2026: three of them are
+  now in `tests/fixtures/replays/`.)
 
 ## Why
 
@@ -109,4 +110,5 @@ server.
 ## In the design document
 
 Item 5+ under "Build order", the stack table and "Engine rules" under Tech stack. Read them fresh from the live
-document when the conversion starts.
+document when the conversion starts. (Since 26 October 2026: from the copy in `docs/intent/`, with the check for
+changes that `docs/intent/INDEX.md` describes.)

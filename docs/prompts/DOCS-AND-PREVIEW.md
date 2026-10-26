@@ -2,8 +2,25 @@
 
 The first step of build order item 5+ in the design document, before the TypeScript conversion
 (`docs/CONVERSION-PLAN.md`). Not before 26 October 2026, when usage resets; Haakon sets the session's usage limit
-when he starts it. Haakon's instructions are quoted word for word, with his corrections and additions, followed by
+when he starts it (since 26 October: the 90% rule, "Usage" in the builder rules). Haakon's instructions are quoted word for word, with his corrections and additions, followed by
 what was found while preparing the pass.
+
+## Status (26 October 2026)
+
+Part of this pass was done on 26 October 2026, when the repository was set up for cloud sessions (PR "Cloud setup"):
+- **Step 1** is done: `CLAUDE.md` holds the "How to work" rules below word for word, with the working rules that keep
+  to them.
+- **Step 3** is done: `DESIGN-NOTES.md` is split into `docs/design/`, one file per topic, word for word, and
+  `DESIGN-NOTES.md` is now its short index, so old references still work.
+- **Splitting the design document into tabs** is replaced by a copy of the document in the repository, one file per
+  section (`docs/intent/`), with a check against the live document at the start of each item. It gives builders the
+  same small reads, and the docs tools could only move text between tabs by retyping it. Haakon left the choice to
+  Claude on 26 October ("You handle the details", `docs/archive/instructions.md`). The finished items' details were
+  already in `docs/BUILD-PROGRESS.md`; its history now lives in `docs/archive/build-log.md`.
+- `docs/BUILD-PROGRESS.md` has the row for 5+, split into this pass, the conversion and the fix pass.
+
+Left for the pass: step 2 (archiving the round reports), step 4 (previews), point 8 (tidy-up), the sizes before and
+after, and the merge exception. The brief is `docs/items/docs-and-preview.md`.
 
 ## The task (Haakon, 21 October 2026)
 
@@ -98,7 +115,7 @@ Revised the same day, because the preview publisher runs only from `main` and so
 before it is merged (see "The docs PR's own preview" below): "Merge the docs PR once its build and tests pass, then
 check the site root shows main and check previews on the next PR; fix previews in a follow-up if needed."
 
-(The exception is also recorded in `docs/BUILD-PROGRESS.md` under the builder rules. It applies to this one PR only.)
+(The exception was also recorded in the progress file's builder rules, now `docs/archive/build-log.md`. It applies to this one PR only.)
 
 (Haakon's point 5, adding `docs/CONVERSION-PLAN.md` in this PR, was done ahead of it: the file was committed on
 `develop` on 21 October 2026, together with this one.)
@@ -164,6 +181,9 @@ trusting-stonebraker); worktrees in old session scratch folders (main-before, sc
 `docs/player-first-readme`; old feature, round and item branches.
 
 ## Notes for the pass
+
+(26 October 2026: the tab split was replaced by the copy in `docs/intent/`, and the 5+ rows are in
+`docs/BUILD-PROGRESS.md`; see "Status" above. These notes stay for the record.)
 
 - "5+. TypeScript conversion" is not finished, so it stays in the Build order tab with its label. Items 1 to 5
   go to the short list of finished ones, with their details moved to BUILD-PROGRESS.md.
