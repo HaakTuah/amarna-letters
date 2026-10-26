@@ -35,6 +35,9 @@ async function onActivate() {
 }
 
 async function onFetch(event) {
+    // A PR's preview (pr-<n>/ beside the root on GitHub Pages) is another app: leave it to the network.
+    const url = event.request.url;
+    if (url.startsWith(baseUrl.href) && /^pr-[0-9]+\//.test(url.slice(baseUrl.href.length))) return fetch(event.request);
     let cached = null;
     if (event.request.method === "GET") {
         // Deep links (/play) are the app's own page.

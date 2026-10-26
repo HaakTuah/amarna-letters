@@ -54,8 +54,9 @@ Haakon's rules, word for word (21 October 2026):
 How to keep to them:
 
 - **Read little.** Never read a file over 50 KB whole: grep for what you need, then read that line range. Don't
-  re-read a file you just edited. Until the docs pass archives them, the old round reports are in `docs/rounds/`; only
-  `2026-10-18-sleep-and-simulation.md` is a specification (its "question N" plans), read by the question you need.
+  re-read a file you just edited. The old round reports are in `docs/archive/rounds/`, except
+  `docs/rounds/2026-10-18-sleep-and-simulation.md`, a specification (its "question N" plans): read it by the question
+  you need.
 - **Print little.** Run tests with `scripts/test.sh` and script games with `scripts/sim.sh`: both print a summary and
   the failures, and keep the full log in a file. Run long ones in the background (the Bash tool's background mode) and
   wait for the completion notice. Never paste a full log into the conversation.

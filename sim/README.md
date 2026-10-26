@@ -174,7 +174,7 @@ game.
 **Sleeping kings keep usage down.** Sleeping seats are on by default: after its orders a king sleeps until something
 concerns it (an envoy at the door, troops at the border, land or troops lost), so usage grows with events, not with
 seasons. A woken king's orders call took about 44,000 agent tokens and an audience about 17,000 in the estimates for the
-second simulation (`docs/rounds/2026-10-19-second-simulation.md`); since standing orders were offered to every king (20
+second simulation (`docs/archive/rounds/2026-10-19-second-simulation.md`); since standing orders were offered to every king (20
 October 2026) a sleeping king's orders request is about 3% longer, so about 45,000. A season in which all six other kings are woken for
 orders and two or three audiences costs about 0.3 million tokens; a quiet season far less. A 20-season game is
 roughly 4 to 6 million tokens: about 4 to 6 weekly points at the first simulation's rate of about one point per million
@@ -228,7 +228,7 @@ secret masters' words and observations it left out. Read the flagged reports bef
 ## Kit lessons (from the run of 18 October), and what was done
 
 The results are in `docs/rounds/2026-10-18-sleep-and-simulation.md`, "Simulation results". What was done is Part F of
-the simulation-fixes round, `docs/rounds/2026-10-19-simulation-fixes.md`.
+the simulation-fixes round, `docs/archive/rounds/2026-10-19-simulation-fixes.md`.
 
 - **"Your final message must be the single word done."** The agent file already said so, and it was not enough: 24 of
   the 280 game calls ended with a summary of the king's decision or plans, and 4 more with the reply path. *Done:*

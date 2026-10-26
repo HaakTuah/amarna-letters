@@ -1,0 +1,79 @@
+# Publishes a pull request's preview at /pr-<number>/ on the gh-pages branch, and removes it when the PR closes.
+# workflow_run always runs main's copy of this file, so no PR can change what it does. It never runs the PR's code:
+# it takes the site the PR's build uploaded, and the PR's number only after checking it against the PR itself
+# (same repository, same head commit). It writes only pr-<number>/, never the root.
+name: Publish preview
+
+on:
+  workflow_run:
+    workflows: [Build, test and publish]
+    types: [completed]
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+      issues: write
+    outputs:
+      changed: ${{ steps.publish.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: preview
+          path: ${{ runner.temp }}/preview
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Publish or remove the preview
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          PREVIEW: ${{ runner.temp }}/preview
+        run: |
+          n=$(head -c 20 "$PREVIEW/pr-number" | tr -d '[:space:]')
+          [[ $n =~ ^[0-9]+$ ]] || { echo "not a PR number: $n"; exit 1; }
+          read -r state sha repo < <(gh api "repos/$GITHUB_REPOSITORY/pulls/$n" --jq '"\(.state) \(.head.sha) \(.head.repo.full_name)"')
+          [ -n "$state" ] || { echo "could not read PR #$n"; exit 1; }
+          if [ "$sha" != "$RUN_SHA" ] || [ "$repo" != "$GITHUB_REPOSITORY" ]; then
+            echo "PR #$n's head is now $sha from $repo, not this run's $RUN_SHA: a newer run will publish it"
+            echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ "$state" = open ] && [ -f "$PREVIEW/site/index.html" ]; then
+            scripts/site-publish.sh "pr-$n" "$PREVIEW/site"
+            owner=${GITHUB_REPOSITORY%%/*}
+            url="https://${owner,,}.github.io/${GITHUB_REPOSITORY#*/}/pr-$n/"
+            marker='<!-- amarna-preview -->'
+            body="$marker
+          **Playable preview:** $url
+          Built from ${sha:0:7}; updated on every push, removed when this PR closes. It may take a minute or two to appear."
+            id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$n/comments" --paginate --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -1)
+            if [ -n "$id" ]; then
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+            else
+              gh api "repos/$GITHUB_REPOSITORY/issues/$n/comments" -f body="$body" > /dev/null
+            fi
+          elif [ "$state" = closed ]; then
+            scripts/site-publish.sh "pr-$n" --remove
+          else
+            echo "PR #$n is open but its run uploaded no site"; exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: publish
+    if: needs.publish.outputs.changed == 'true'
+    uses: ./.github/workflows/pages-deploy.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

@@ -1,11 +1,11 @@
 ## The web map and the interface (visual overhaul)
 
-Build order item 2 (`docs/prompts/VISUAL-OVERHAUL.md`; report `docs/rounds/2026-10-19-visual-overhaul.md`).
+Build order item 2 (`docs/prompts/VISUAL-OVERHAUL.md`; report `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
 Presentation only: no rule, state, view, prompt or balance changed, and seeds replay to the same logs byte for byte.
 Item 4 changed two things here: the engine's view now hides a foreign spy from the court it watches (fix (a), noted
 under "Each view sees only what its court knows"), and fix (b), phone performance, rewrote "Load size" and added
 "Script kings and characters in a worker" and "What is left in the page" (presentation and build only; report
-`docs/rounds/2026-10-19-second-simulation.md`).
+`docs/archive/rounds/2026-10-19-second-simulation.md`).
 
 - **Terrain is map data** (`Geography` in the engine project), given its effects by the siege package (Build order item 5;
   see Terrain under Rules as implemented); until then it was drawn only. Rough provinces: Mira, Lukka,
@@ -90,7 +90,10 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
 - **Installable.** A manifest and a service worker (the Blazor template's, adapted): the published build caches
   every file at install and starts from the cache afterwards. Fingerprinted files are taken from the browser's own
   cache, so installing downloads nothing twice; HTML files are not checked against the publish hashes, since the
-  Pages workflow rewrites their base path. In development the worker caches nothing.
+  Pages workflow rewrites their base path. In development the worker caches nothing. A PR's preview, served at
+  `pr-<number>/` inside the root worker's scope (since the docs and preview pass), is left to the network by that
+  worker, and has no worker of its own: one would delete the root's caches when it activated. Pages serves only the
+  root's `404.html`, which sends a deep link inside a preview to that preview's start.
 - **Load size.** The browser build runs in the invariant culture (no ICU data) and carries none of the Anthropic
   SDK, which it never constructs (it posts with HttpClient; the SDK path is in `Amarna.Llm.Sdk`, see "Transport"
   under Models): about 2.8 MB with Brotli, 3.4 MB with the gzip GitHub Pages serves. On a first visit the loading

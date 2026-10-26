@@ -1,0 +1,52 @@
+# Shows the gh-pages branch on the site while Pages still serves from GitHub Actions.
+# Once Settings -> Pages serves from the gh-pages branch, Pages deploys the branch by itself and this does nothing.
+# Called only by workflows that run from main, which the github-pages environment allows.
+name: Deploy gh-pages
+
+on:
+  workflow_call:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    # One deployment at a time. A deployment that waits is replaced by a newer one, which checks out the branch as it
+    # then stands, so the newest state is always deployed.
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Where Pages serves from
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # "legacy" means a branch; anything else, or no answer, deploys here so the site never stops updating.
+          type=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq .build_type 2>/dev/null || echo unknown)
+          echo "Pages build type: $type"
+          echo "branch=$([ "$type" = legacy ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.source.outputs.branch == 'false'
+        with:
+          ref: gh-pages
+          path: site
+
+      - name: Leave out the checkout's own files
+        if: steps.source.outputs.branch == 'false'
+        run: rm -rf site/.git
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.source.outputs.branch == 'false'
+        with:
+          path: site
+
+      - id: deployment
+        if: steps.source.outputs.branch == 'false'
+        uses: actions/deploy-pages@v4
