@@ -37,7 +37,8 @@ none were found. The conversion moves them into `tests/fixtures/`.
   project.
 - `owner-messages-log.md` (project memory, 87 KB): every message Haakon typed in this project, word for word. It has
   personal remarks in it. The decisions in it are already in the repo: the round prompts, `docs/BUILD-PROGRESS.md`,
-  `docs/CONVERSION-PLAN.md` and `docs/prompts/DOCS-AND-PREVIEW.md`.
+  `docs/CONVERSION-PLAN.md` and `docs/prompts/DOCS-AND-PREVIEW.md`. The few that were recorded nowhere else are quoted
+  in `instructions-from-log.md`.
 - `sim/kings/`, `sim/characters/`, the `canaries.json` files and `.claude/agents/king-*.md`, `char-*.md`: the last
   setup's unguessable folder names and canary words (secrets of the isolation test). `sim/setup.js` makes them anew for
   every run.
