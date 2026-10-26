@@ -38,9 +38,11 @@ jobs:
           ref: gh-pages
           path: site
 
-      - name: Leave out the checkout's own files
+      - name: Leave out the checkout's own files, and never deploy a branch without the game at its root
         if: steps.source.outputs.branch == 'false'
-        run: rm -rf site/.git
+        run: |
+          rm -rf site/.git
+          [ -f site/index.html ] || { echo "gh-pages has no index.html at its root: not deploying"; exit 1; }
 
       - uses: actions/upload-pages-artifact@v3
         if: steps.source.outputs.branch == 'false'

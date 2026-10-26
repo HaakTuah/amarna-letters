@@ -14,11 +14,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # A newer push to the same pull request replaces the older build; builds of main always finish. This is set on the
-    # job, not the workflow: a workflow-level group also applies to the called deploy workflow, which then cancels the
-    # whole run as a "higher priority waiting request".
+    # A newer push to the same pull request replaces the older build; builds of main always finish. A PR's group is
+    # named by its number, not its ref: once a PR is merged, its "closed" run has the base branch's ref, and in the
+    # same group it would cancel the push to main that the merge started.
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref }}
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     permissions:
       contents: read
