@@ -3,7 +3,7 @@
 A Late Bronze Age grand strategy game: seven Great Kings, played by humans, script bots or language models, negotiate
 through envoys and sealed tablets on a deterministic engine. Haakon (the owner) designs it with Claude in a design
 document; builders like you build it item by item. Built in C# on Blazor WebAssembly today, moving to TypeScript in
-build order item 5+. Every feature answers to the design pillars and tenets in `docs/intent/main/design-pillars.md`:
+build order item 5+. Every feature answers to the design pillars and tenets in `docs/intent/overview/design-pillars.md`:
 read them once per session.
 
 ## Where things are
@@ -11,7 +11,7 @@ read them once per session.
 | What | Where | Notes |
 | --- | --- | --- |
 | Builder rules | `.claude/rules/builder-rules.md` | From the design document. Loaded in every session. |
-| Intent: the design document, by section | `docs/intent/` (start at `INDEX.md`) | Generated copy. Never edit it. |
+| Intent: the design document, by tab and section | `docs/intent/` (start at `INDEX.md`) | One folder per tab. Generated copy. Never edit it. |
 | As built: the design notes, by topic | `docs/design/` (index: `docs/DESIGN-NOTES.md`) | Source of truth for formulas, rules, numbers. |
 | What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, review questions, "Found during the port". |
 | Briefs for the steps of item 5+ | `docs/items/` | Docs and preview pass, conversion, fix pass. |
@@ -24,7 +24,7 @@ read them once per session.
 1. Work from `develop`: if you are on `main`, check out `develop` first (this file and the docs it names live there
    until Haakon next merges `develop` into `main`).
 2. Find the next item in `docs/BUILD-PROGRESS.md`. For the steps of item 5+, read its brief in `docs/items/`. For
-   item 6 onward, the item's own text is its brief: `docs/intent/main/build-order/item-<n>.md` (`item-6.md`,
+   item 6 onward, the item's own text is its brief: `docs/intent/build-order/item-<n>.md` (`item-6.md`,
    `item-9plus.md`, ...).
 3. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules).
 4. Read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.

@@ -1,0 +1,35 @@
+<!-- Generated from the design document, Land, people and economy tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+## Land, climate and rivers
+
+**Land and climate (decided 21 October 2026).** Each province, and each connection between provinces, has one profile: its terrain and its water. The same data sets how slow a place is to cross, how hard it is to take and how many people it can carry, so its character comes from one source ("Different data, same rules").
+
+- **Terrain:** river valley, plain, hills, mountains, desert or coast. It sets travel weight (build order item 7), defence (item 5's terrain, as built) and capacity together.
+- **Water:** river-fed land, such as the Nile valley and the Euphrates, has reliable floods, high capacity and the risk of a bad flood. Rain-fed land, such as the Levant and Anatolia, does well in good years but is prone to drought. Arid land, such as the Sinai, carries few people. Drought then strikes rain-fed land hardest and floods strike the river valleys, so catastrophes follow the land rather than falling anywhere alike.
+- **Season:** mountain passes, such as those of the Taurus between Hatti and the south (the map already marks the Cilician Gates, the Taurus and the Amanus as passes), are slow or closed in winter, as the sea is ("Finer seas").
+- **Calibrated to today's yields.** Capacity comes from the profile, but is calibrated so that each province starts with the yield it has now. The profile then decides how it recovers, suffers and grows, and the balance is not upset before item 18.
+
+**Seasons (decided 21 October 2026).** The engine's clock is three seasons a year, Akhet, Peret and Shemu as Egypt counts them, and each court names them in its own calendar. Egypt's three are an Egyptian lens, since Mesopotamian texts mostly speak of two seasons and the Hittites of a campaigning year, but as four-month blocks they fit the whole region: Peret is winter everywhere (rain in the Levant, snow in the Anatolian passes, the sea closed), Shemu is harvest from Egypt to Babylonia, and Akhet is the Nile's flood and the dry summer elsewhere. The fit is unusually good in 1346: Egypt's civil calendar drifted against the real year by about a day every four years and came back into line around 1321 BCE, so at the start of the game its seasons match the real ones within about a week. What a season does comes from each province's climate, not from the clock:
+
+- **Fields.** Each province sows and harvests in its own seasons, so a levy taken then costs more of its harvest than one taken in a slack season.
+- **Rivers.** Each river floods in its own season: the Nile in Akhet, the Tigris and Euphrates in Shemu, at harvest, which is why their floods do harm.
+- **Winter in the field.** An army outside its own land in a hard winter pays supplies, as in the desert, by how hard that province's winter is: mild in Egypt and Babylonia, hard in the Anatolian highlands. Campaigning seasons then arise from cost, without a rule naming a season for war (the balance pass's "campaign seasons if needed").
+- **Travel.** Passes and open sea close or grow riskier in winter, and some river voyages are easier in one season than another.
+
+Today the seasons change only the date. Travel's seasons come with item 7; fields, rivers and winter supplies with item 10+.
+
+**Rivers.** A river is one thing running through many provinces, and the great rivers differed.
+
+- **The Nile was the most dependable river of the ancient world.** It rose every year in late summer, spread over the fields, left fertile silt and fell in time for sowing. It still varied: a low Nile meant famine, and a very high one broke dikes and swept away villages, but its rhythm was steady enough to plan a state around.
+- **The Tigris and Euphrates were the opposite.** Fed by mountain snowmelt, they flooded in spring, just before the grain harvest, irregularly and at times violently. Farming there depended on canals and dikes, long irrigation salted the soil, and the rivers sometimes shifted their beds and left cities stranded.
+
+What the game does:
+
+- **A river is data:** the provinces along it from source to mouth (the map data already holds the courses: the Nile through four provinces, five once Nubia joins the map, the Euphrates through seven, the Tigris through four), and a profile of how regular its floods are, how strong, and whether they come at the right time for the harvest.
+- **One flood a year for each river,** drawn from its own seeded stream and shared by every province along it. When the Nile is low, all of Egypt suffers at once, a common fate a scattered kingdom does not share. The Nile's profile is steady, so its large swings are rare; the Euphrates' and Tigris' are irregular, badly timed and sometimes destructive.
+- **Investment matters most where the river is hardest.** Canals and dikes raise a province's capacity and soften a bad flood: essential in Mesopotamia, useful in Egypt. This is the investment of "People of the land" in concrete form.
+- **Rivers are roads.** The Nile carries boats both ways, downstream with the current and upstream under sail before the north wind; the Euphrates is easiest downstream. Travel along a river can take longer one way than the other, as data, like the sea's currents. Rivers do not join the seas: the Euphrates turns away some 150 to 200 km short of the Mediterranean, so Babylon's boats go no further than Emar, where goods went on by donkey to Aleppo and Ugarit; and the Nile's cataracts break the river into reaches, where cargo is unloaded and carried round, as much of Nubia's gold came down to Egypt. A boat can itself be carried overland as cargo, slowly and at great cost, as Thutmose III had boats built at Byblos hauled on ox-carts to cross the Euphrates (with ships carrying goods, item 9+b). On foot a river counts once: walkers along it already gain from its water ("What sets a company's pace"), the boat is the faster way for whoever has one, and crossing it is the cost.
+- **A border or a spine** (decided 26 October 2026). Where a great river was a frontier, as the Euphrates was where Thutmose III had to cross it into Mitanni, it is drawn between provinces: crossing it is a connection of its own, at fords and ferry towns, slower in flood, and boats on the river can contest it. Where people lived along it, as along the Nile through Egypt and the lower Euphrates in Babylonia, it runs through provinces as their spine. Provinces are taken whole, so a river inside one never splits it. Boats sail a river's waters, one stretch for each riverside province, as fleets sail each coastal province's waters ("Finer seas"). Drawn in the map review of item 7.
+
+Water wars between upstream and downstream powers are left out: the Great Kings of the Amarna letters did not fight over water, and sharing it would need a mechanism of its own.
+
+The passes and river travel are built with travel in item 7; capacity, the rivers' floods, and drought and flood by water, with "People of the land" in item 10+.

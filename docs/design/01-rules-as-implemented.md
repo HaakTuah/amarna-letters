@@ -275,7 +275,7 @@
   in full at once as if he had retaken it (`TurnEngine.ResolveTransfers`; since the review of the siege package, which
   found that a cession clearing the mark let two friends launder a conquest by passing it back and forth).
   Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
-  following the yield (a reading; review question). Revolts, which the Ideas tab mentions, are left for later, as
+  following the yield (a reading; review question). Revolts, which the design document mentions, are left for later, as
   question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of
   its yield this season)"), the court's own land only (`SeatView.Conquered`): who holds a province is public, but how it
   changed hands is not, and a mark on every king's land told every court which land had been conquered and which ceded
