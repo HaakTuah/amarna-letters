@@ -135,7 +135,7 @@
   (a king saves the back pay of people sent on missions they do not survive) is meant to be closed
   by reputation, which is not built; its first half is: losses abroad reach other courts by
   carriers (see "Losses abroad travel with people").
-- **Characters' gold, and the richest characters** (since Build order item 3; Ideas tab "The richest characters").
+- **Characters' gold, and the richest characters** (since Build order item 3; "The richest characters").
   A character's purse (`Character.Purse`) was already tracked; every gain now goes through `Character.Gain`, which
   also counts it by source (`Character.Earned`): wages (paid at court, and back pay paid when it came back), gold
   skimmed (out or home), kings' personal gifts at audiences, and gold it was carrying when dismissed on the way out.

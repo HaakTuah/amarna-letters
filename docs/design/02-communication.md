@@ -11,7 +11,7 @@
   the simulation's 135 letters left out their sender's own title.)
 - **Tablets are verbatim** but cost a scribe fee (20), so the envoy channel stays the cheap default
   and a written agreement is a deliberate choice. Tablets are evidence only; nothing enforces them.
-- **Tablets lie in archives** (since Build order item 3; Ideas tab "Tablets are objects in a place"). Every copy a
+- **Tablets lie in archives** (since Build order item 3; "Tablets are objects in a place"). Every copy a
   court holds (`TabletCopy`) lies in its archive at its capital (`TurnEngine.Archive`): those it sealed, once its copy
   reached it, and those it was shown, brought, copied or took. Keeping a tablet costs nothing; its cost is that it is
   somewhere. The seat view calls the list "YOUR ARCHIVE".
@@ -86,7 +86,7 @@
   built yet). The sender keeps no copy (it knows what it sent). Every gold delivery leaves one, whether or not anything
   was swapped, so the presence of an inventory gives nothing away. An inventory bears one seal, so the script kings'
   rules on treaties and evidence (two seals or more, their own among them) never read one.
-- **Swapped inventories** (since item 3; Ideas tab "Swapped tablets and false envoys"). An envoy that kept some, but
+- **Swapped inventories** (since item 3; "Swapped tablets and false envoys"). An envoy that kept some, but
   not all, of the gold it carries, out or home, may hand over in place of the sealed inventory one it forges itself,
   stating only what is left (`AudienceRecord.SwapInventory` from the envoy's presentation; `MindReply.SwapInventory` from
   its report home).

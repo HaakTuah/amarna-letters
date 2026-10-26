@@ -1,12 +1,16 @@
 # Build progress
 
-Follows "Build order" in the design document (copy: `docs/intent/main/build-order/`; the builder rules are in
+Follows "Build order" in the design document (copy: `docs/intent/build-order/`; the builder rules are in
 `.claude/rules/builder-rules.md`). One line per item: state, branch, report, and what was decided along the way. Items
 are built on their own branch from `develop` and merged into `develop` when the tests pass and one reviewer has found
 nothing blocking; `main` is never touched (Haakon merges `develop` into `main`). The whole order is built without
 stopping at review points: their questions and the readings taken are listed under "For Haakon" and in each item's
 report. Work goes on item after item until weekly usage nears 90% ("Usage" in the builder rules; decided 26 October
 2026, replacing the stop after item 5 of 20 October).
+
+Since 27 October 2026 the design document has one tab per system, and its copy one folder per tab
+(`docs/intent/INDEX.md` lists them, with each tab's node and revision for the check for changes). An entry keeps its
+title wherever it moved, so `grep -rn "Title" docs/intent` still finds what an item names.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`.
 Haakon's standing instructions given in chat are recorded word for word in `docs/archive/instructions.md`.

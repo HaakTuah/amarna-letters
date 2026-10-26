@@ -1,0 +1,14 @@
+<!-- Generated from the design document, War, travel and the seas tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+## Commanders
+
+**No commander, no mandate.** An army needs a person to carry the king's intent. Near the king, he commands it directly; far away, an army without a commander has nobody to give a mandate to (decided 20 October 2026). It still follows plain orders, to the letter: it moves where it is told, holds where it is told, attacks where it is told, and supports as it is told, when the order reaches it, and a schedule of such orders runs as written. What it lacks is judgment: no intent to pursue, no standing orders, no adapting when things change. If the order no longer fits, because the city has fallen or an enemy stands in the way, it marches, bounces or holds as the order and the engine decide. Fighting needs no decision: an army that meets an enemy fights as the rules of combat say, commander or not. A commander is what turns orders into intent, so a shortage of commanders has a visible cost without any special rule.
+
+**Standing orders belong to commanders** (decided 20 October 2026; built with command at a distance, build order item 13). Since the fix pass of 20 October, a standing order answers a rival's move in the season it is made, for every seat, defensively, once, on what the king can see. That is a reflex wired from the king to his troops wherever he is, which internal distance and commanders must change:
+
+1. **It is part of a commander's mandate**, the king saying in advance "if this happens, do that". The commander with the army carries it out, or the king himself if he is there. An army with no commander present does not react ("No commander, no mandate").
+2. **It comes into force only when it reaches the army.** A king in Babylon who writes one for a border army sends it there, and it holds from its arrival, like any order inside his realm, so contingencies must be planned early, and a king who moves his court to the front has faster reflexes there and slower ones everywhere else.
+3. **It fires on what the army can see**, where its troops stand and one province around, not on everything the king sees.
+4. **The commander's traits shape how it is carried out**, as for any mandate: loyalty sets how strictly he keeps to it, so a disloyal commander may look the other way; competence sets how well he reads the moment, so a poor one may answer a feint that a good one sees through.
+
+Commanders become worth choosing well, since a good plan is only as good as the man carrying it out. Script kings give standing orders through their commanders too ("Every feature is every seat's").
+
