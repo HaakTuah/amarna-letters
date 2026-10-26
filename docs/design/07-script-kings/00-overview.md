@@ -7,7 +7,7 @@ standing orders among them (since the owner's additions to the fix pass after it
 except those that exist only for a king who sleeps: scheduled orders, letters sent from an audience while orders stand,
 and reopening orders. A script seat is asked every season and gives every order fresh, so it has nothing to schedule;
 when it stands in for a sleeping seat whose call failed, it plays that one season. The audit of the
-fix pass after item 4 (report `docs/rounds/2026-10-20-fix-pass.md`, "The feature audit") measured each feature's use and
+fix pass after item 4 (report `docs/archive/rounds/2026-10-20-fix-pass.md`, "The feature audit") measured each feature's use and
 success in seeds 1-100 and patched those never used or never successful: inventories examined, thieves dismissed,
 convoys, gifts of troops, cessions, recalls, captives released, the second exchange, greetings without the title or
 without a greeting, threats, oaths asked of envoys, gold debased only where it goes unassayed, watchmen and levies placed

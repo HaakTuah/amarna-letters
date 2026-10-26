@@ -20,7 +20,7 @@ and one Claude agent plays each character, every envoy, spy and would-be servant
 of ten seasons: seed 7, then seed 15. You are not a player.
 
 Read first: `sim/README.md` (the kit, each script, the orchestrator's rule and the characters' comparison), this file,
-the section "Characters as agents" in `docs/rounds/2026-10-19-second-simulation.md` (the item's report; your results go
+the section "Characters as agents" in `docs/archive/rounds/2026-10-19-second-simulation.md` (the item's report; your results go
 in its "Simulation results" section, which you add), and the first simulation's results in
 `docs/rounds/2026-10-18-sleep-and-simulation.md`, "Simulation results". The item asks you to measure what the first
 simulation could not: whether model envoys lie, skim and cover up, and how they compare with script envoys of the same
@@ -144,7 +144,7 @@ sim/characters/seed-15.json`, `--out sim/runs/seed-15`, `wait.js ... --seed 15`,
 kings and seed 15's characters), and the kings' files moved into `sim/runs/seed-15/kings/<power>/`. Run `audit.js`
 again: it covers both games and the debriefs.
 
-**6. Report.** Write the "Simulation results" section of `docs/rounds/2026-10-19-second-simulation.md`, answering:
+**6. Report.** Write the "Simulation results" section of `docs/archive/rounds/2026-10-19-second-simulation.md`, answering:
 - **Characters.** Whether model envoys and spies lied, skimmed and covered up, against the script shadow with the
   same traits in the same situations: gold kept and how much, inventories swapped, gifts and posts taken or refused,
   commitments made, what reports hid or contradicted, spies' reports, pitches. Read every flagged report and every
