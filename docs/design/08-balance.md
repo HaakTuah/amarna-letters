@@ -76,10 +76,10 @@ his attack) fires in about one game in ten: 27 times in 15 of seeds 1–100 and 
 same province of the leader's, which the map allows only on a few borders. Other signal counts from
 script games are mostly artefacts of the bots' templates (their letters complain, their tablets
 name consequences). The signals are meant to be read from model and human games. They are
-heuristics read from the record afterwards (`src/Amarna.Game/Signals.cs`): a broken promise is a
+heuristics read from the record afterwards (`src/game/src/signals.ts`): a broken promise is a
 conquest between two kings who had sealed a tablet that season or earlier (audiences come before
 orders), except a king taking back a province of his own homeland; an accusation is a letter or an
-audience reply with one of these, read as whole words (`TextKit.IsAccusation`): "liar" or "lied";
+audience reply with one of these, read as whole words (`TextKit.isAccusation`): "liar" or "lied";
 a lie as an untruth ("a lie", "his lies", "you are lying", "your words are lies", "lying to me",
 "he lies."), not where the prizes lie to the east, a road lies in the hills or troops are lying in
 wait; deceit, deception or falsehood; "false" said of a person, a word, gold or a tablet ("the gold
@@ -90,7 +90,7 @@ the bare verb ("I would never betray my brother"); "faithless". A denial just be
 have never lied", "let no false word come between us") accuses nobody. It reads words, not meaning:
 in the seed-7 agent games every hit is an accusation (9 and 10 signals; the substring matcher gave
 35 and 30, the first whole-word one 14 and 17, about half of them false), but sarcasm or a quoted
-charge can still count. A messenger is blamed (`SignalDetector.BlamesMessenger`) when a letter or an
+charge can still count. A messenger is blamed (`SignalDetector.blamesMessenger`) when a letter or an
 audience reply says he lied or his words are false, or, since the fix pass after item 4, that he, his
 scribe, his interpreter or his tongue erred, misspoke, garbled or twisted the words ("Either your
 scribe erred or your tongue did", which Babylonia said to Egypt's envoy in the second agent

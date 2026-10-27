@@ -29,14 +29,14 @@
   seasons and its ledger of dealings are written in its own replies, by its own model. Known
   exceptions: the script king that stands in when a call fails (below, and "When a model call
   fails" under sleeping seats), and the server-side refusal fallback, under which another model
-  answers a refused Sonnet or Opus call (logged as `UsedFallback`). A host's audience runs on the
+  answers a refused Sonnet or Opus call (logged as `usedFallback`). A host's audience runs on the
   seat's own model, one effort level lower, including an audience held while its orders stand,
   where it also sends letters and decides whether to reopen its orders (Part H). Not exceptions, but close to the line: a king's envoys
   are characters with minds of their own (script, Haiku or Sonnet), so what a host hears is the
   envoy's rendering of the king's message, and an envoy may commit its king at a foreign court
   (`commitments`, logged in the message trail); that is the character's decision, by design. The
   trail keeps the promise among its outcomes, marked "the envoy committed: …"
-  (`TurnEngine.CommittedPrefix`), but nobody reads it as an outcome: the host's record of the
+  (`CommittedPrefix`), but nobody reads it as an outcome: the host's record of the
   audience gives it a line of its own after the outcomes ("Mane promised on behalf of Egypt:
   "…""), and the envoy's report request keeps it out of "What happened" and gives it as the
   envoy's own ("What you yourself promised on your lord's behalf, in your own words at the audience
@@ -81,14 +81,14 @@
   - an envoy is asked whether to swap an inventory only if its hand can fake a seal (see Swapped inventories);
   - an envoy that took the host's gift at an earlier exchange is not asked about another, which would not be given: "He
     offers you another gift of 20 shekels, but an envoy takes one gift at an audience and you have taken his already, so
-    it will not be given." (`EnvoyContext.GiftTaken`, as the engine counts the gift);
+    it will not be given." (`EnvoyContext.giftTaken`, as the engine counts the gift);
   - gold a host names for the envoy's lord is "handed to you when the audience ends, if his treasury can pay it" (and "you
     go home to your lord", when a post is offered too), not "He sends …", and a detained envoy is not told of it, since it
     takes none home;
   - an envoy that was never received (its host's kingdom had fallen) reads "you were never received there: you came back
     without an audience", not "You told its king: """; one dismissed while away reports to the king who sent it, "who is
     no longer your lord", and its schema says the same: `report` is "Your report to the king who sent you on this
-    mission." (`Schemas.Report`'s `toLord`; until the follow-up's review the schema still said "Your report to your
+    mission." (`Schemas.report`'s `toLord`; until the follow-up's review the schema still said "Your report to your
     lord."), and its own promise was made "on his behalf", not "on your lord's behalf";
   - a spy's request gives the season it observed as the season it is, and its facts, secret master, lord, wage, purse and
     back pay as they were then (see Spies, under Characters);
@@ -98,23 +98,23 @@
     king's news adds after it ("[The inventory lists …; your weighers found …]"), which it once remembered as its own words;
   - a file request's heading is no longer the call's key (see File seats);
   - Alashiya's king, whose title names his land, is "the King of Alashiya", not "the King of Alashiya of Alashiya"
-    (`LlmCharacterMind.KingOf`, `CourtOf`).
+    (`LlmCharacterMind.kingOf`, `courtOf`).
 
   And for kings:
   - a host is asked `seal_tablet` only while a tablet the envoy brought waits for his seal (not when the envoy brought none,
     nor after he chose to seal it at an earlier exchange, when the audience says "You chose at an earlier exchange to seal
-    the tablet …, and your seal is set on it when the audience ends"; `AudienceView.ProposalSealed`); `gift_to_envoy` and
+    the tablet …, and your seal is set on it when the audience ends"; `AudienceView.proposalSealed`); `gift_to_envoy` and
     `gift_request` only until the envoy has accepted a gift; `end_audience` only before the last exchange ("This is the last
     exchange of the audience: it ends with your answer"); and `reopen_orders` only until he has chosen to reopen
-    (`Schemas.AudienceAsks`). What he was not asked he does not choose, even if a file seat's reply carries the field;
+    (`AudienceAsks`). What he was not asked he does not choose, even if a file seat's reply carries the field;
   - `detain_envoy` has a description at last, and the purities and `sworn_alliance` say when they are not asked of a
     letter or a reply ("(100 when you send none)", "Only with a tablet to seal (false without one)"): fields inside a list
     item cannot come and go per item, so their descriptions carry it;
   - no request says any more that an envoy that woke the king "waits to be received": at a second audience the first envoy
     had been received, and the season's audiences come before orders. An audience reads "an envoy of Hatti came to your
     court", an orders request "an envoy of Hatti came to your court (you received him before these orders)"
-    (`Prompts.SleepLine`, `Prompts.Came`; the reason the engine keeps is unchanged);
-  - the orders request's closing line names only what applies (`Prompts.OrdersLine`; see Pacing, standing orders): its
+    (`sleepLine`, `came`; the reason the engine keeps is unchanged);
+  - the orders request's closing line names only what applies (`ordersLine`; see Pacing, standing orders): its
     troops, its envoys and letters, with sleep on the orders for later seasons, and standing orders when it has troops
     or sleeps (every king may give them since the owner's additions to the fix pass after item 4);
   - lots of gold carry marks for the king's orders, which the scribes write as the gold, as copies of tablets do (see
@@ -135,8 +135,8 @@
   SDK (`SdkTransport`, `@anthropic-ai/sdk`) in the browser, the batch runner and the tests alike, with the
   `anthropic-dangerous-direct-browser-access` header; the simulated API stands in for it (and, with "Simulate the API",
   for every provider). Other providers and local models go through `CompatibleProvider` (chat completions, the schema as a
-  JSON-schema response format, the shared and seat system texts as one system message). The C# build's transport is kept
-  for reference only.
+  JSON-schema response format, the shared and seat system texts as one system message). The C# build's transport went with that build (kept at
+  the tag `csharp-final`).
 - **Prompt-injection boundaries**: a character's prompt holds only its own persona, memory and
   facts (tested); text never changes state; the narrator receives only released facts.
 - **Leader memory** is a private record in the king's own words (`LeaderJournal`), shown in every
@@ -160,7 +160,7 @@
   written none once notes have left reads "you have written none, and your notes from turn 4 and
   before have left this record." An audience request carries the ledger, the summary and the notes
   of the last two seasons. The rulebook's HOW TO ANSWER says how the record and the ledger work.
-  Summary and ledger are parsed with the orders (`TurnSubmission.Summary`, `Ledger`), so they are
+  Summary and ledger are parsed with the orders (`TurnSubmission.summary`, `ledger`), so they are
   logged and a replay can read them; the engine ignores them. Ledger lines written at an audience are
   in the logged model call's output only. The record lives in the seat object:
   a resumed game's model leaders start it afresh, ledger and all. It is kept only for model and file
@@ -169,7 +169,7 @@
   cut to 300 characters, with no summary and no ledger; the simulation's kings wrote a median of
   1,989 characters of notes a season, 107 of 134 replies over 1,500.)
 - **The king's letters.** Every seat's view carries the court's own letters as its scribes wrote
-  them (`SeatView.Letters`, `Views.Letters`, from the message trails): the latest letter of each of
+  them (`SeatView.letters`, `Views.letters`, from the message trails): the latest letter of each of
   its envoys still away on that errand as far as it knows (one of its people, by what it believes,
   not at court), and every letter whose envoy's report has reached it since it last gave orders. A
   model king reads them in his orders request, after his people: "YOUR LETTERS (your record of what

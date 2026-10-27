@@ -6,7 +6,7 @@
 - Traits 0–100 (loyalty, greed, competence, ambition, courage, an optional sympathy) and discrete
   facts at three secrecy levels. Persona text is written once (template, or Sonnet narrator) and
   kept, but its trait words follow the traits: every model request is built with the persona as it is
-  now (`Personas.Current`). A template persona has its trait words ("loyal mostly to yourself; fond
+  now (`Personas.current`). A template persona has its trait words ("loyal mostly to yourself; fond
   of gold and quick to see a profit; …") and what it wants most rewritten in place from the current
   traits, the rest (its secrets among them) as written; a persona the narrator wrote cannot be
   rewritten without a model, so it is followed by "As you are now (where anything above differs,
@@ -20,8 +20,8 @@
   is recorded like any decision, so replays stay exact. Prompts carry the summary and the most
   recent ten entries; memory travels with the character to a new employer. The request names the
   court the character belongs to (its employer's, else the court it stands at); one with neither, free
-  and on the road, belongs to no court, and its request names none (`MindRequest.Court` is null; only
-  reports, pitches and background checks must name one, `MindRequest.For`). Nothing reads that court
+  and on the road, belongs to no court, and its request names none (`MindRequest.court` is null; only
+  reports, pitches and background checks must name one, `MindRequest.for`). Nothing reads that court
   for a summary, which goes to nobody. (Until Build order item 4 such a character's request named Egypt.)
 - **Prisoners**: an envoy held at a foreign court whose own kingdom falls, or whose king dismisses
   them, becomes a free agent but stays a prisoner; only the court holding them can hire them, and
@@ -49,7 +49,7 @@
   the simulation-fixes round a dismissed traveller was set at home at once and the gold it carried
   out was lost, a dismissed detained envoy could not be released, and a captive could not be
   dismissed.)
-- **Contracts** (one line in the rulebook). Every servant serves for a term (`Contract.UntilTurn` is
+- **Contracts** (one line in the rulebook). Every servant serves for a term (`Contract.untilTurn` is
   its last season). Starting envoys earn 6 + competence/10 (8–15), each through a turn drawn from 7
   to 13 from a stream of its own (`start-term`, keyed by the character), so the starting corps comes
   up for renewal over several seasons and no other draw changes (until the simulation-fixes round
@@ -62,7 +62,7 @@
     on until it is next at court), it reckons what it would ask to serve on: its base price, +5 if
     greed is above 60, −5 if loyalty is above 70. If that is at most 1.2 × its wage it serves
     another 6 seasons at the same wage ("Contract renewed": "Mane stays in your service at 12 shekels
-    a season through turn 17."). Otherwise it gives **notice** (`Contract.NoticePrice`,
+    a season through turn 17."). Otherwise it gives **notice** (`Contract.noticePrice`,
     `LeavesTurn`): it names that price and stays one more season at the old wage, and its master is
     told, "Mane's term has ended. They ask 20 shekels a season to serve on: renew them this season
     (order renew), or they leave at the start of turn 12 (or, if you send them out first, when they
@@ -109,7 +109,7 @@
   addendum: gold has to travel too). Each season, at the wage step, a servant at its master's court
   with no task is paid its wage from the treasury, as before. A servant away (on a mission of any
   kind, posted as a spy, detained, or captive with its contract kept) is not paid: its wage is added
-  to its back pay (`Character.BackPay`, per court), and no gold leaves. Right after the season's
+  to its back pay (`Character.backPay`, per court), and no gold leaves. Right after the season's
   arrivals, everyone standing at a court that owes it back pay, not held there and not hidden there as
   another court's spy (since Build order item 4: the court does not see it there), is paid from
   that court's true treasury, as much as it holds, whether or not it still serves that court (one
@@ -136,17 +136,17 @@
   by reputation, which is not built; its first half is: losses abroad reach other courts by
   carriers (see "Losses abroad travel with people").
 - **Characters' gold, and the richest characters** (since Build order item 3; "The richest characters").
-  A character's purse (`Character.Purse`) was already tracked; every gain now goes through `Character.Gain`, which
-  also counts it by source (`Character.Earned`): wages (paid at court, and back pay paid when it came back), gold
+  A character's purse (`Character.purse`) was already tracked; every gain now goes through `Character.gain`, which
+  also counts it by source (`Character.earned`): wages (paid at court, and back pay paid when it came back), gold
   skimmed (out or home), kings' personal gifts at audiences, and gold it was carrying when dismissed on the way out.
   Characters start with nothing and spend nothing yet (no escort, storage fee, loan or robbery exists; item 11), so the
   parts add up to the purse (tested over a whole game). A captive or a dead character keeps its purse, as before (what
   capture and execution do to a purse is item 11).
-  - **Wealth** (`Wealth.Of`) is the purse plus the back pay every court still owes it (a fallen court's debt died with
+  - **Wealth** (`Wealth.of`) is the purse plus the back pay every court still owes it (a fallen court's debt died with
     it). The document's other two parts, a hoard and what kings owe it on debt tablets, do not exist yet (item 11) and
     count nothing; every place the ranking is shown says so ("Wealth is the gold in a character's purse and the back pay
     kings still owe it; hoards and loans to kings on debt tablets do not exist yet. The dead are not ranked.").
-  - **The ranking** (`Wealth.Ranking`): the living characters, richest first, ties by id, each with whom it serves (or
+  - **The ranking** (`Wealth.ranking`): the living characters, richest first, ties by id, each with whom it serves (or
     free, or captive where), its wealth, purse and back pay owed, and where its gold came from: "Mane of Thebes (serving
     Egypt): 312 (purse 280, back pay owed 32; wages 250, skimmed 30)". The dead are left out: their gold is no longer
     theirs to enjoy, and a ranking of the dead would reward a character for dying rich.
@@ -173,15 +173,15 @@
   spy remembers nothing that happened to it since (such as its capture), and its request says it is
   that season ("It is now season 3", where it once gave the season the report arrived, beside "This
   season you observed"), with the facts of its life and its secret master as they were then (the
-  report keeps them: `SpyReport.FactCount`, `SpyReport.SecretMaster`), so a report still on the road
+  report keeps them: `SpyReport.factCount`, `SpyReport.secretMaster`), so a report still on the road
   when the spy was caught and turned is not written by the double agent it became. Since the follow-up's review of
-  that pass the report also keeps its lord, wage, purse and back pay then (`SpyReport.Lord`, `Wage`, `Purse`,
-  `BackPay`): a spy dismissed while its report was on the road read "You serve nobody at present" beside "You are
+  that pass the report also keeps its lord, wage, purse and back pay then (`SpyReport.lord`, `wage`, `purse`,
+  `backPay`): a spy dismissed while its report was on the road read "You serve nobody at present" beside "You are
   quietly watching … for your lord". Its persona's trait words are still as its traits are now. A spy at a court also copies
   from its archive, and the copies come home with its report (see "Tablets lie in archives").
 - **A spy at a court is hidden from it** (since Build order item 4; the rulebook says so under the spies'
-  paragraph). A spy posted at a court stands there (`Character.At`), but the court does not see it there
-  (`Character.HiddenAt`, `Views.SeenAtCourt`): its view does not list it for being there, and gives it
+  paragraph). A spy posted at a court stands there (`Character.at`), but the court does not see it there
+  (`Character.hiddenAt`, `Views.seenAtCourt`): its view does not list it for being there, and gives it
   no place and no master. It is listed only if the court knows of it otherwise (a hidden fact it learned,
   for instance), and then exactly as it would be anywhere else: "employed", no place, no master. The
   court sees it, and whom it serves, once it has learned that, which under today's rules means:
@@ -209,7 +209,7 @@
 - **News of your people abroad comes only by rumour or when they return** (the rulebook says so).
   When something happens to a servant abroad that its master cannot see (a spy caught, an envoy
   detained or going over to the host, a captive put to death or turned, a prisoner let go), the
-  character carries a cover (`Character.Covers`): what its master still believes. Each court keeps
+  character carries a cover (`Character.covers`): what its master still believes. Each court keeps
   its own: an envoy that went over to Alashiya is covered for Egypt, and, if Alashiya then sends it
   to Hatti and Hatti holds it, for Alashiya too; what happens between Alashiya and Hatti changes
   nothing Egypt sees. The master's view lists it as it would have stood in the normal course of
@@ -218,7 +218,7 @@
   own inquiries find later, as for any servant (a defection's public fact stays unseen until a
   background check finds it, and then shows). Nobody away is paid until it is back (see Back pay),
   so no wage leaves the treasury for anyone away, whatever befell it, and the treasury betrays
-  nothing. A cover keeps the back pay its master believes it owes (`Cover.BackPay`): the real back
+  nothing. A cover keeps the back pay its master believes it owes (`Cover.backPay`): the real back
   pay when the cover is made, grown by the believed wage each season while the cover holds, so the
   master's view shows the debt growing exactly as for a servant still on its mission (tested by
   cloning a game with and without the hidden event: treasury, true gold, wages, back pay and
@@ -256,13 +256,13 @@
     its word has arrived), never "at court, ready", with its wage and the back pay owed it, which
     keeps growing while it is held; the web app offers the ransom button only then.
   - **When it is due back.** Each of the king's people away reads when it set out and when it is
-    due back, as the travel table lets its master reckon it (`Views.TimingText`): an envoy on its
+    due back, as the travel table lets its master reckon it (`Views.timingText`): an envoy on its
     way out "travelling as envoy to Hatti; set out in turn 4 for Hatti; due there about turn 6; due
     back about turn 8", and once at the foreign court "…; received there in turn 6; due back about
     turn 8" (a reckoning reads "due", a fact "received"); on the road home "set out in turn 4 for Hatti;
     due back about turn 8"; a spy on its way "set out in turn 4; due there about turn 6"; a spy
     recalled "due back about turn 7". A cover keeps the timing its master would read in the normal
-    course (`Cover.TimingText`): a detained or defecting envoy reads like one sent home at the
+    course (`Cover.timingText`): a detained or defecting envoy reads like one sent home at the
     audience, a caught spy recalled like one really recalled, and the overdue word clears it, as it
     does for a servant really held. (Until the simulation-fixes round the view gave no turns, and
     kings mistimed their replies.)
@@ -271,7 +271,7 @@
     holds, and gives it up (dismisses it) only once its line has read "has not returned" for three
     seasons (see Script kings, Court and intelligence).
   - **Sight.** A caught or released province watcher keeps its province, and the links next to it,
-    in its master's sight while the cover believes it at its post (`Views.Sight`), so the capture
+    in its master's sight while the cover believes it at its post (`Views.sight`), so the capture
     cannot be read off the "You can see troops in" line; the province leaves the sight when word
     comes, or when the master recalls it, as for a spy really recalled. (Until the simulation-fixes
     round's review it left the sight the season of the capture.)
@@ -289,11 +289,11 @@
   vanished.)
 - **Losses abroad travel with people** (since Part G of the simulation-fixes round, the user's
   decision on the back-pay loophole). A spy caught at a court, and a captive put to death there, are
-  the talk of that court (`GameState.Losses`, one `LossAbroad` each: the season, the court, the
+  the talk of that court (`GameState.losses`, one `LossAbroad` each: the season, the court, the
   servant, and whom it served as that court knows it, which is known only if it confessed when
   caught). Other courts hear of it only from carriers: an envoy received at that court hears of each
   captive it still holds with a chance of its skill/100 (as it notices other envoys there), and of
-  each servant it put to death in the season of the death or the 3 after (`TurnEngine.LossNewsSeasons`)
+  each servant it put to death in the season of the death or the 3 after (`LossNewsSeasons`)
   with a chance of 0.4 + skill/200 (as it notices the court's catastrophes); a spy posted there
   hears of the captives with a chance of its skill/100 and always of the deaths (as of the court's
   catastrophes). The lines go into the carrier's report like its other observations: "Assyria holds

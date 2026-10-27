@@ -2,8 +2,8 @@
 
 For Haakon: the steps are under "Local play" in `sim/README.md`. In short: the king agents exist (`sim/kings/seats.json`;
 otherwise run `node sim/setup.js` first; a kit made before 20 October 2026 must be remade with `node sim/setup.js
---force`, since the isolation test changed: the kit was remade that day, with `--seeds 7,15`); start the bridge (`node sim/bridge.js`) and the web app (`dotnet run
---project src/Amarna.Web --launch-profile http`, then <http://localhost:5183>) in terminals of their own; make sure
+--force`, since the isolation test changed: the kit was remade that day, with `--seeds 7,15`); start the bridge (`node sim/bridge.js`) and the web app (`npm ci` once, then `npm run dev
+--workspace src/web`, then <http://localhost:5183>) in terminals of their own; make sure
 `ANTHROPIC_API_KEY` is not set; then open a **new** Claude Code session in the repository's main checkout
 itself (not a worktree) and paste everything below the line. When the session says it is waiting, start the game in the
 browser with the **Local agents** preset and your seat. When you have finished, press Ctrl+C in the bridge's terminal.

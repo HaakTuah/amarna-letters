@@ -3,8 +3,6 @@
 # and the phone measurements. Node 22 is already there; the game no longer needs .NET (the TypeScript conversion,
 # item 5+). Safe to run twice; always exits 0 and says what it could not install. The same script can be pasted into a
 # cloud environment's "Setup script" field, so that new sessions start with it done.
-# The C# build is kept in the repository for reference only; to run it, or scripts/parity.sh, install the .NET 10 SDK
-# by hand (https://dot.net/v1/dotnet-install.sh --channel 10.0).
 have() { command -v "$1" >/dev/null 2>&1; }
 cd "$(dirname "$0")/.." || exit 0
 if have npm; then

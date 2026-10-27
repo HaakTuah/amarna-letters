@@ -1,9 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Ordinal text comparison and sorting everywhere, as in the browser build and the TypeScript port (item 5+). -->
-    <InvariantGlobalization>true</InvariantGlobalization>
-  </PropertyGroup>
-</Project>

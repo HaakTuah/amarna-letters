@@ -30,7 +30,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   next season in 114 of their 130 orders replies, and sleep saved 6 of 136 orders calls; their own
   triggers rebuilt the "own envoy home" wake-up that the simulation-fixes round had removed. All of it
   is gone: the schema has no `sleep` field, a reply that still carries one is read as if it did not
-  (`Parse.Orders`, tested), the view no longer reminds a king of a season it named, and the batch
+  (`Parse.orders`, tested), the view no longer reminds a king of a season it named, and the batch
   seat report has no "n" for a sleep that ended in the season named. Only the engine's own triggers
   (below) and the hidden cap wake a king. The document's option to raise or lower a default
   trigger's priority was never built, and is not now.
@@ -75,7 +75,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     holds, which today is a city it bought ("foreign troops came next to a walled city of yours:
     Mitanni's army moved washukanni -> terqa, next to mari"). "Threat" is read as the capital
     trigger reads it, from what the king could know: an arrival by a move the seat saw (its
-    `LastSeen`; a province next to its own land is always in its sight), one link of any kind, so a
+    `lastSeen`; a province next to its own land is always in its sight), one link of any kind, so a
     fleet off a coastal province counts, as does a move within the mover's own land. Troops that stay
     where they are, a move that failed, the seat's own troops, a levy, and any move once the
     province is lost do not wake it; a move into its land wakes it as "foreign troops entered your
@@ -98,9 +98,9 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   - it lost troops: a unit destroyed in battle ("your army in sippar was destroyed"), unpaid troops
     deserting ("your unpaid troops deserted"), or a unit killed by plague ("plague destroyed troops
     of yours")
-  - a scheduled or standing order that others foiled as the season resolved (`TurnEngine.ScheduledFailed`):
+  - a scheduled or standing order that others foiled as the season resolved (`TurnEngine.scheduledFailed`):
     a scheduled move stopped by another power's unit (held off, met head on, or beaten to the
-    province; `TurnEngine.StoppedByOthers`), with the battle report's reason ("orders you scheduled could not
+    province; `TurnEngine.stoppedByOthers`), with the battle report's reason ("orders you scheduled could not
     be carried out: sippar -> ekallatum (the unit holding ekallatum (Assyria's army) kept its place;
     your strength 1 against 1)"); a scheduled support that a foreign attack cut ("... (the support
     was cut by an attack from ekallatum)"); a purchase other buyers or another's troops spoiled; a
@@ -166,7 +166,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   plan. Envoys were the most common reason a king woke, and an orders call costs about twice an
   audience.
   - When the only reasons a sleeping seat has are envoys waiting, the wake check does not wake it:
-    it holds court asleep (`SleepState.HoldsCourt`), its orders stand, and its audiences are held
+    it holds court asleep (`SleepState.holdsCourt`), its orders stand, and its audiences are held
     as usual, one call per exchange, by the seat's own model at one effort level lower (the owner's
     rule that the seat's own model makes every decision; the lower effort is that of every
     audience, and whether the reopen choice, a planning decision, should be made at the orders
@@ -199,12 +199,12 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     full view", its opening line ends "You chose at an earlier audience this season to reopen your
     orders", and its schema has `letters` but no `reopen_orders` (since "Requests are rules too": it
     once still read "YOUR ORDERS STAND WHILE YOU SLEEP" and was asked again).
-  - **Letters** sent from such an audience (`HostReply.Letters`: dispatch orders, or a letter to a
-    court nobody knows, refused with the reason) are kept in the seat's state (`CourtLetters`) and
+  - **Letters** sent from such an audience (`HostReply.letters`: dispatch orders, or a letter to a
+    court nobody knows, refused with the reason) are kept in the seat's state (`courtLetters`) and
     validated as usual with the season's orders: they come first among the seat's orders, so their
     gold is reserved first. A later letter for the same person in the same season replaces an earlier
     one; a later exchange or audience shows the letters already sent, in full (to whom, with what gold,
-    the message, the mandate and the tablet: `Prompts.InFull`; until the fix pass after item 4 only
+    the message, the mandate and the tablet: `inFull`; until the fix pass after item 4 only
     "send c4 to Hatti"), and whether the king already chose to reopen, and, when they carry gold, "Gold already committed by these letters: 40
     shekels, not yet taken from the treasury you read here; it is reserved first when the season's
     orders are checked." (the treasury a king reads is the season's, so without it a king could
@@ -213,7 +213,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     only replaced: by a later letter for the same person, or, after reopening, by an order for the
     same person. A refused letter is reported in its news like any order and, if it sleeps on,
     waits in its digest; it does not wake it (as with orders given for a season the seat was awake).
-    The envoy before the king never hears of the letters or the choice (`HostReply.AsHeard`).
+    The envoy before the king never hears of the letters or the choice (`HostReply.asHeard`).
     Letters and the choice in a reply at an ordinary audience are ignored.
     **What a letter from an audience costs and can win** (the fix pass after item 4, part 2: in the
     second agent simulation no king sent one, in 96 audience replies, 4 of them held while orders
@@ -229,7 +229,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     your orders stand and send none, your next letters leave only when you next give orders."), and
     the schema's `letters` adds "each costs what a letter in your orders costs".
   - **Reopening.** If any of its replies that season (any exchange of any audience) says
-    `reopen_orders`, then once the audiences are applied (`TurnEngine.CourtsHeld`) the seat wakes
+    `reopen_orders`, then once the audiences are applied (`TurnEngine.courtsHeld`) the seat wakes
     for an orders call that season, as an ordinary wake: its sleep ends with the envoys plus "you
     chose at your audience to reopen your orders", and the orders
     request opens "You were woken because: an envoy of Egypt waits to be received; you chose at
@@ -242,7 +242,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     chose at your audience to reopen your orders", a choice already spent.
   - **A failed call at court** (from the review of Part H). When a call fails at an audience held
     while the orders stand, the script king answers the envoy as at any audience, and its reply is
-    marked (`HostReply.FromFallback`, set by the runner and logged, so replays stay exact). It
+    marked (`HostReply.fromFallback`, set by the runner and logged, so replays stay exact). It
     decides nothing for the seat: its letters and its choice are ignored, and unless the seat chose
     itself, at another exchange, to reopen its orders, the seat wakes for an orders call that same
     season (its sleep ends with the envoys plus "your counsellors answered an envoy in your place").
@@ -257,7 +257,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     tells it), and an audience request shows "AUDIENCES YOU HAVE HELD SINCE YOU LAST GAVE ORDERS",
     since a king whose orders stand may hold several courts before it gives orders again (this also
     shows a host its earlier audiences of the same season).
-  - Each court held asleep is recorded (`SleepState.Courts`: season, envoys, reopened by its own
+  - Each court held asleep is recorded (`SleepState.courts`: season, envoys, reopened by its own
     choice, and whether the stand-in answered at it). The batch seat report has a `courts` column
     (held/reopened, with "(1 by stand-in)" for courts where a call failed and the king was asked
     for orders without choosing) and a line "Courts held while orders stood: 5; orders reopened at 2
@@ -354,15 +354,15 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   so a king that reaches it can count it, and from then on
   it may anchor that king's plans. Both the exact count and the neutral reason were decided; a
   way out, left to the user, would be to vary the cap a little for each sleep (from
-  `Rng.For(seed, turn, "sleepcap", power)`). The batch seat report prints, per seat, the courts it
+  `Rng.for(seed, turn, "sleepcap", power)`). The batch seat report prints, per seat, the courts it
   held while its orders stood and at how many it reopened them ("held/reopened"), how many
   seasons each sleep lasted ("+" for a sleep still
   running at the end; the seasons it held court asleep count as slept) and every reason it was
   woken, counted by kind over its sleeps.
 - **Scheduled orders**, kept secret in the seat's own state, for any later season, at most 24
-  orders a season and at most 40 seasons. An entry for a season after the game's last (`MaxTurns`)
+  orders a season and at most 40 seasons. An entry for a season after the game's last (`maxTurns`)
   is kept, listed and counted like any other and simply never runs, because the game ends first:
-  what the king reads and the notices it gets are the same whatever `MaxTurns` is, so nothing tells
+  what the king reads and the notices it gets are the same whatever `maxTurns` is, so nothing tells
   it when the game must end (tested). What is not kept (a season already past, orders past the
   24th, seasons past the 40th) is reported as "Scheduled orders not kept", and, like
   any other refusal, wakes nobody (the rulebook: "orders past these limits are refused"). One entry per season
@@ -381,10 +381,10 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
 - **Orders follow their unit** (since the simulation-fixes round; before, a unit was named by where
   it would stand in that season, so a planned march failed at its first bounce). In `schedule` and
   in standing orders the king names each of its own units by the province it stands in when it
-  gives the orders. The engine binds the order to that unit's id (`PlannedOrder.UnitId`), and an
-  own unit named as the unit supported or the army convoyed too (`OtherUnitId`); a foreign unit, or
+  gives the orders. The engine binds the order to that unit's id (`PlannedOrder.unitId`), and an
+  own unit named as the unit supported or the army convoyed too (`otherUnitId`); a foreign unit, or
   walls, stay named by province, and an order for no unit (a levy, an errand) runs as given. When
-  the order runs it is given from where its units then stand (`TurnEngine.AsItStands`). An order
+  the order runs it is given from where its units then stand (`asItStands`). An order
   naming a province where the seat has no unit, or a unit not its own, is refused when given, in the
   validator's words ("- turn 7: nippur -> ur: you have no unit in nippur", in "Scheduled orders not
   kept"; "the unit in X is not yours" only where the seat can see, see "Sight"), which wakes nobody
@@ -401,17 +401,17 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   season), the name means the levy's unit, the latest such levy before the order's season, even
   where another of its units stands there now (so "turn 2: durkurigalzu -> nippur; raise army in
   durkurigalzu; turn 3: durkurigalzu holds" gives turn 2's march to the army there now and turn 3's
-  hold to the new army). The order waits for the levy (`PlannedOrder.UnitLevy`, or `OtherLevy` for
+  hold to the new army). The order waits for the levy (`PlannedOrder.unitLevy`, or `otherLevy` for
   the unit supported or convoyed); when the levy raises its unit, at the end of its season, the order
-  is bound to it (`TurnEngine.LevyRaised`) and follows it like any other. If the levy raises none
+  is bound to it (`TurnEngine.levyRaised`) and follows it like any other. If the levy raises none
   (refused, failed, or replaced before it ran), the orders waiting for it are dropped once that
-  season's levies are raised (`TurnEngine.UnraisedLevies`): the seat reads "Orders for a levy that
+  season's levies are raised (`TurnEngine.unraisedLevies`): the seat reads "Orders for a levy that
   raised no unit dropped" ("These orders were for troops a levy was to raise, and it raised none, so
   they were dropped:", then a line for each, "- turn 3: the army to be raised in sippar in turn 2 ->
   mari"), which wakes nobody since the review of the fix pass after item 4 (a scheduled levy others foiled wakes the seat as a failed order; before, the seat was woken
   ("orders you gave for later could not be carried out: the levy they waited for raised no unit
   (...)")). Until the levy's season the view names the unit as "the army to be raised in ur in turn
-  2" (`TurnEngine.AsShown`). A levy in the same season as the order does not count (the levy is
+  2" (`TurnEngine.asShown`). A levy in the same season as the order does not count (the levy is
   placed after movement, so its unit can first be ordered the season after), and standing orders,
   which have no season, name only units standing now. The rulebook: "A unit you raise can be given
   orders ahead too: name it by the province of its levy, in orders for any season after the levy (a
@@ -439,7 +439,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   the limit of 40 seasons. (The brief allowed a refused move to be tried again too; the round's
   plan for this part did not, and that is what is built.)
 - **Standing orders**, at most 12 (`standing_orders`), kept in the game state for each seat that
-  gave one (`GameState.Standing`, a `StandingBook` per seat with its orders and its last id) until they fire
+  gave one (`GameState.standing`, a `StandingBook` per seat with its orders and its last id) until they fire
   or are cancelled (`cancel_standing`: ids, or "all"; an unknown id is reported as "Standing orders
   not cancelled"). **Every seat may keep them, awake or asleep** (since the owner's additions to the
   fix pass after item 4; see "For every seat" below): until then they were kept in a sleeping seat's
@@ -451,7 +451,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   unit sets out to move into the province where the seat's unit stands as the season begins (named
   by where it stands when the order is given). Each fires on the move as it is ordered, whatever then
   becomes of it (a move stopped at the border still sets it off), and only on a move the seat can
-  see: one from or into a province in its sight as the season begins (`TurnEngine.StandingFires`).
+  see: one from or into a province in its sight as the season begins (`TurnEngine.standingFires`).
   The moves are those each seat was ordered to make this season (its fresh orders, its letters and
   its scheduled orders, or the stand-in's), as the validator accepts them, before any standing order
   fires: a standing order never answers what another standing order gives, so the season still
@@ -468,7 +468,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   begins, and replace the season's other orders for the same units or people: scheduled orders (so
   "when the army in sippar is attacked, it holds" stops the march it was scheduled to make) and, since
   the owner's additions to the fix pass after item 4, the orders the seat gives that season too
-  (`TurnEngine.Compose`). A seat that gives orders every season gives its units their orders as usual
+  (`TurnEngine.compose`). A seat that gives orders every season gives its units their orders as usual
   and leaves the standing order to change them only if the blow comes; to keep one from firing it
   cancels it (cancelled in that season, it does not fire). Until then fresh orders replaced a standing
   order's, which suited a king woken for the season but left a seat that gives orders every season
@@ -527,7 +527,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     "Giving one costs nothing; its orders cost what they cost when they run.", and the orders
     request ends "Now give your orders for this season and the seasons ahead: your troops, your
     envoys and letters, orders scheduled for later seasons, standing orders, and anything else. You
-    sleep after them." (`Prompts.OrdersLine`; since "Requests are rules too" it names the troops only
+    sleep after them." (`ordersLine`; since "Requests are rules too" it names the troops only
     when the king has some, and the envoys and letters only when one of its people is at court and
     ready.) Since the owner's additions this paragraph is the rulebook's STANDING ORDERS section, which
     every king reads, and the sleeping section keeps what concerns sleep (below).
@@ -536,15 +536,15 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     same-season reaction existed for sleeping seats alone). The feature audit of the fix pass had left
     standing orders to sleeping seats ("Script kings give no standing orders: they never sleep"); the
     review asked that it be built rather than deferred. Now:
-    - **The engine** keeps every seat's standing orders alike (`GameState.Standing`). A seat that plays
+    - **The engine** keeps every seat's standing orders alike (`GameState.standing`). A seat that plays
       every season keeps the ones it gives in any season, unless the stand-in gave them
-      (`TurnEngine.AfterValidation`), cancels in the season it gives the cancellation, and has troops it
+      (`TurnEngine.afterValidation`), cancels in the season it gives the cancellation, and has troops it
       lost take their standing orders with them at the wake check, which runs for every seat
-      (`TurnEngine.WakeCheck`, `LostUnits`). Every seat's season is planned and composed the same way
-      (`TurnEngine.PlanSeason`, `Compose`); for a seat that does not sleep there is simply no schedule
+      (`TurnEngine.wakeCheck`, `lostUnits`). Every seat's season is planned and composed the same way
+      (`TurnEngine.planSeason`, `compose`); for a seat that does not sleep there is simply no schedule
       and no letters from audiences. With no standing order waiting anywhere, a season resolves exactly
       as before (tested by the benchmarks of the change before the script kings gave any).
-    - **The view** shows every seat its standing orders (`SeatView.Standing`), and the orders request
+    - **The view** shows every seat its standing orders (`SeatView.standing`), and the orders request
       lists them under YOUR STANDING ORDERS whether or not the king sleeps. Its header repeats the
       precedence ("each fires once, in the season you see the move it waits for, and its orders then
       replace the orders you give that season for the same units or people; … one cancelled does not
