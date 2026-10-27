@@ -72,7 +72,10 @@ async function play(runner: GameRunner, seasons: number): Promise<void> {
 /** A stand-in replier for the ladder alone: answers by model, and keeps what it was asked. */
 class Asker implements JsonAsker {
   readonly asked: CallSpec[] = [];
-  constructor(readonly answer: (spec: CallSpec) => JsonObject) {}
+  readonly answer: (spec: CallSpec) => JsonObject;
+  constructor(answer: (spec: CallSpec) => JsonObject) {
+    this.answer = answer;
+  }
   askJson(spec: CallSpec): Promise<JsonObject> {
     this.asked.push(spec);
     return Promise.resolve(this.answer(spec));

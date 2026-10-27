@@ -608,6 +608,11 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   call words it (below); the host reads in its news "Your standing answer a1 received him in your name." before the
   audience's record. Script seats give none (they make no calls); a human seat has no screen for them yet (see the
   item's report).
+- **Light alerts and routine courts** (item 6c; "Light alerts go to the cheaper model too", "Routine audiences are
+  answered by a cheaper model"). A model king with a small rung has its digest's news of the season read by it while it
+  sleeps on, and is woken for orders ("word came: …") when the small rung judges the news needs his own mind; and a court
+  it holds while its orders stand goes to the small rung first, envoy by envoy, except what the engine passes to its own
+  model by itself. Both, and the budget's waiting orders, are under "Who decides" in `04-models.md`.
 - **When a model call fails** and the script king stands in, the seat has not seen that season:
   it is not put to sleep, its digest and its "while you slept" window are kept, and it is asked
   again next season, told why it was woken in the season it missed (it never read that) and what
