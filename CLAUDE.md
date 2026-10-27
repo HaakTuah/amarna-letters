@@ -130,8 +130,12 @@ variable.
 
 ## Standing instructions
 
-Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (None
-since the refresh of 27 October 2026, which moved that day's two into the builder rules: "You merge, always" under
-"Branches" and "A pull request at every milestone", and "the build order is simply to guideline claude code" under
-"No stopgaps". Their words are in `docs/archive/instructions.md`, items 13 and 14.)
+Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (The
+refresh of 27 October 2026 moved that day's first two into the builder rules: "You merge, always" under "Branches" and
+"A pull request at every milestone", and "the build order is simply to guideline claude code" under "No stopgaps".
+Their words are in `docs/archive/instructions.md`, items 13 and 14.)
+
+- **27 October 2026: push as you go** (`docs/archive/instructions.md`, item 15). Push the item's branch at every passed
+  gate, and at least once an hour while work is under way, even before its pull request opens, so nothing is lost if a
+  session dies or its machine is reclaimed. A branch that is not ready yet is still pushed; mark its PR as a draft.
 
