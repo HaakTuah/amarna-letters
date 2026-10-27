@@ -2,6 +2,7 @@ import { Dict } from "../core/collections.ts";
 import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
+import { type Authority, AuthoritySchema } from "./authority.ts";
 
 export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
@@ -120,11 +121,14 @@ export interface Dispatch {
   clauses: Clause[];
   /** The gold goes with an inventory tablet (item 8); without one it saves the scribe's fee and nobody can check it. */
   inventory: boolean;
+  /** The envoy's authority (item 9): the seal and its limits, shown or hidden. Null: no seal. */
+  authority: Authority | null;
 }
 
 export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
   return {
     inventory: true,
+    authority: null,
     clauses: [],
     letter: "",
     greeting: newGreetingOptions(),
@@ -142,6 +146,7 @@ export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
 
 export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, {
   inventory: B,
+  authority: opt(() => AuthoritySchema),
   clauses: list(() => ClauseSchema),
   letter: S,
   greeting: () => GreetingOptionsSchema,
@@ -366,6 +371,18 @@ export interface Tablet {
   // computed in C#: !Forged && SealedTurn is not null && Partner is not null && Seals.Count >= 2
   /** Its clauses (item 8): the treaty as a script king reads it. None on an inventory. */
   clauses: Clause[];
+  /**
+   * Sealed for its king by his envoy, who carried his seal (item 9): the king whose seal the envoy set on it, and the
+   * envoy's name, which the tablet records ("by the hand of"); null for one its kings sealed themselves.
+   */
+  byHandOf: Power | null;
+  byHand: string | null;
+  /** For one sealed by an envoy: whether it lay within the envoy's authority, as the engine checks it. */
+  within: boolean | null;
+  /** The envoy showed its credentials: the host read its limits, so knows whether the tablet lay within them. */
+  credentialsShown: boolean;
+  /** The season the king whose envoy sealed it repudiated it, as beyond his authority; null if he has not. */
+  repudiatedTurn: number | null;
 }
 
 export function newTablet(init: Partial<Tablet> = {}): Tablet {
@@ -384,6 +401,11 @@ export function newTablet(init: Partial<Tablet> = {}): Tablet {
     forgerId: null,
     forgerEmployer: null,
     forgerSkill: 0,
+    byHandOf: null,
+    byHand: null,
+    within: null,
+    credentialsShown: false,
+    repudiatedTurn: null,
     ...init,
   };
 }
@@ -403,6 +425,11 @@ export const TabletSchema: ObjSchema<Tablet> = obj("Tablet", newTablet, {
   forgerId: S,
   forgerEmployer: opt(S),
   forgerSkill: I,
+  byHandOf: opt(S),
+  byHand: opt(S),
+  within: opt(B),
+  credentialsShown: B,
+  repudiatedTurn: opt(I),
   isSealedAgreement: computed(B, (o: Tablet) => isSealedAgreement(o)),
 });
 
@@ -624,11 +651,14 @@ export interface MessageTrail {
   reportClauses: Clause[];
   /** The gold went without an inventory tablet (item 8). */
   noInventory: boolean;
+  /** The envoy's authority as the king gave it (item 9), or null: no seal. */
+  authority: Authority | null;
 }
 
 export function newMessageTrail(init: Partial<MessageTrail> = {}): MessageTrail {
   return {
     noInventory: false,
+    authority: null,
     reportClauses: [],
     deliveredClauses: [],
     clauses: [],
@@ -657,6 +687,7 @@ export function newMessageTrail(init: Partial<MessageTrail> = {}): MessageTrail 
 
 export const MessageTrailSchema: ObjSchema<MessageTrail> = obj("MessageTrail", newMessageTrail, {
   noInventory: B,
+  authority: opt(() => AuthoritySchema),
   reportClauses: list(() => ClauseSchema),
   deliveredClauses: list(() => ClauseSchema),
   clauses: list(() => ClauseSchema),

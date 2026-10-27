@@ -26,6 +26,9 @@ import {
   release,
   renew,
   roads,
+  revoke,
+  repudiate,
+  newAuthority,
   hire,
   sally,
   seekCandidates,
@@ -37,7 +40,7 @@ import {
   type UnitKind,
 } from "@amarna/engine";
 import { useState } from "react";
-import { describeOrder, dated, powerName, provinceName, shekels, when } from "../ui/format.ts";
+import { describeOrder, dated, grantLine, powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { OrderDraft, byName } from "../ui/order-draft.ts";
 import { Emblem } from "./Emblem.tsx";
 import { Person } from "./Person.tsx";
@@ -67,6 +70,12 @@ interface Form {
   clauses: Clause[];
   tabletClauses: Clause[];
   noInventory: boolean;
+  /** The envoy's seal and its limits, and whether he shows them (item 9). */
+  seal: boolean;
+  showCredentials: boolean;
+  sealGold: number;
+  sealCede: string[];
+  sealOpen: string[];
   mandate: string;
   tabletText: string;
   gold: number;
@@ -119,6 +128,11 @@ function newForm(me: Power): Form {
     clauses: [],
     tabletClauses: [],
     noInventory: false,
+    seal: false,
+    showCredentials: false,
+    sealGold: 0,
+    sealCede: [],
+    sealOpen: [],
     mandate: "",
     tabletText: "",
     gold: 0,
@@ -172,6 +186,8 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
     draft.other.map((o) => (o.type === "dispatch" ? o.envoy : o.type === "spy" ? o.character : o.type === "forge" ? o.character : null)).filter((x) => x !== null),
   );
   const others = AllPowers.filter((p) => p !== me && !v.fallen.includes(p));
+  // The provinces we hold, which an envoy with our seal may cede or open (item 9).
+  const mine = [...v.owner.entries()].filter(([, o]) => o === me).map(([k]) => k);
   const add = (o: Order): void => {
     draft.other.push(o);
     onChanged();
@@ -210,6 +226,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
       dispatch(f.envoy, f.sendTo as Power, structured ? "" : f.letter.trim(), {
         clauses: [...f.clauses],
         noInventory: f.gold > 0 && f.noInventory,
+        authority: f.seal || f.showCredentials ? newAuthority({ seal: f.seal, show: f.showCredentials, maxGold: Math.max(0, f.sealGold), cede: [...f.sealCede], open: [...f.sealOpen] }) : null,
         mandate: f.mandate.trim(),
         greeting: { ...f.g },
         gold: Math.max(0, f.gold),
@@ -218,7 +235,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         copies: f.copies.length > 0 ? [...f.copies] : null,
       }),
     );
-    set({ envoy: "", letter: "", clauses: [], tabletClauses: [], noInventory: false, mandate: "", tabletText: "", gold: 0, purity: 100, oath: false, copies: [], g: newGreetingOptions() });
+    set({ envoy: "", letter: "", clauses: [], tabletClauses: [], noInventory: false, seal: false, showCredentials: false, sealGold: 0, sealCede: [], sealOpen: [], mandate: "", tabletText: "", gold: 0, purity: 100, oath: false, copies: [], g: newGreetingOptions() });
   };
   const addSpy = (): void => {
     add(f.spyAt.startsWith("@") ? placeSpy(f.spyWho, null, f.spyAt.slice(1)) : placeSpy(f.spyWho, f.spyAt as Power));
@@ -296,7 +313,6 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                         <select value={d.to ?? ""} onChange={(e) => change({ to: e.target.value })}>
                           <option value="">to hold</option>
                           {map
-                            .forTurn(draft.view.turn)
                             .movesFrom(unit.kind, at)
                             .filter((x) => x !== d.target)
                             .map((to) => (
@@ -526,7 +542,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
               .filter(([, o]) => o === null)
               .map(([g]) => g)
               .filter((g) =>
-                map.forTurn(v.turn).withinReach(
+                map.withinReach(
                   g,
                   me,
                   v.owner,
@@ -746,6 +762,37 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                   </label>
                 </div>
                 <div className="field" style={{ marginTop: ".4rem" }}>
+                  <span>Authority (AUTHORITY AND PASSAGE in the rules)</span>
+                  <div className="row">
+                    <label title="He may seal, in your name, a tablet the king he visits offers him">
+                      <input type="checkbox" checked={f.seal} onChange={(e) => set({ seal: e.target.checked })} /> carries your seal
+                    </label>
+                    <label title="The king he visits reads his mandate and these limits">
+                      <input type="checkbox" checked={f.showCredentials} onChange={(e) => set({ showCredentials: e.target.checked })} /> shows his credentials
+                    </label>
+                    {f.seal && (
+                      <label>
+                        gold he may give <input type="number" inputMode="numeric" min="0" value={f.sealGold} onChange={(e) => set({ sealGold: num(e.target.value) })} style={{ width: "5em" }} />
+                      </label>
+                    )}
+                  </div>
+                  {f.seal && (
+                    <div className="row" style={{ flexWrap: "wrap" }}>
+                      {mine.map((id) => (
+                        <span key={id} className="muted" style={{ fontSize: ".85rem" }}>
+                          {WorldMap.default.get(id).name}:{" "}
+                          <label>
+                            <input type="checkbox" checked={f.sealCede.includes(id)} onChange={(e) => set({ sealCede: toggle(f.sealCede, id, e.target.checked) })} /> cede
+                          </label>{" "}
+                          <label>
+                            <input type="checkbox" checked={f.sealOpen.includes(id)} onChange={(e) => set({ sealOpen: toggle(f.sealOpen, id, e.target.checked) })} /> open
+                          </label>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="field" style={{ marginTop: ".4rem" }}>
                   <span>A tablet for both kings to seal (optional, {shekels(price("tabletFee"))} for the scribe)</span>
                   {!structured && <textarea maxLength={1200} value={f.tabletText} onChange={(e) => set({ tabletText: e.target.value })} placeholder="By Shamash: ..." />}
                   <ClauseEditor clauses={f.tabletClauses} onChange={(cs) => set({ tabletClauses: cs })} from={v.power} to={f.sendTo as Power} turn={v.turn} />
@@ -799,6 +846,34 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
           })}
         </div>
         {v.roadsClosedToUs.length > 0 && <p className="muted">Closed to your people, as far as you have heard: {v.roadsClosedToUs.map(powerName).join(", ")}.</p>}
+        {v.grants.length > 0 && (
+          <div className="field" style={{ marginTop: ".4rem" }}>
+            <span>Passage and basing on sealed tablets</span>
+            {v.grants.map((g, i) => (
+              <div key={i} className="row">
+                <span style={{ flex: 1 }}>{grantLine(g, v.power)}</span>
+                {g.grantor === v.power && (
+                  <button className="small" disabled={draft.other.some((o) => o.type === "revoke" && o.grantee === g.grantee)} onClick={() => add(revoke(g.grantee, g.province))}>
+                    Revoke
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {v.tablets.some((t) => t.byHandOf === v.power && t.repudiatedTurn === null) && (
+          <div className="row" style={{ marginTop: ".4rem", flexWrap: "wrap" }}>
+            <span>Sealed in your name by your envoys:</span>
+            {v.tablets
+              .filter((t) => t.byHandOf === v.power && t.repudiatedTurn === null)
+              .map((t) => (
+                <button key={t.copyId} className="small" title={t.text} disabled={draft.other.some((o) => o.type === "repudiate" && o.copy === t.copyId)} onClick={() => add(repudiate(t.copyId))}>
+                  Repudiate {t.name}
+                  {t.within === false ? " (beyond his authority)" : ""}
+                </button>
+              ))}
+          </div>
+        )}
         <div className="row" style={{ marginTop: ".4rem" }}>
           <label>
             Term for hiring and renewing <input type="number" min="1" max="30" value={f.term} onChange={(e) => set({ term: num(e.target.value) })} /> seasons
@@ -977,6 +1052,8 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
               Seals: {t.seals.join(", ")}
               {t.sealedTurn !== null ? ` · sealed ${when(t.sealedTurn, me)}` : ""} · {t.source}
               {t.authResult !== null ? ` · examined: ${t.authResult}` : ""}
+              {t.byHand !== null ? ` · sealed for ${powerName(t.byHandOf!)} by the hand of ${t.byHand}${t.within === null ? "" : t.within ? ", within his authority" : ", beyond his authority"}` : ""}
+              {t.repudiatedTurn !== null ? ` · repudiated ${when(t.repudiatedTurn, me)}` : ""}
             </small>
             <div className="row">
               <button className="small" onClick={() => add(authenticate(t.copyId, f.authSpend))}>

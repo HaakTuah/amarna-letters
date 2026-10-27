@@ -12,16 +12,18 @@
  */
 import { connectionDays, connectionKm } from "./distance.ts";
 import { Rivers, crossingBetween } from "./geography.ts";
-import { type Edge, WinterSeason, type WorldMap, closedInWinter } from "./map.ts";
+import { type Edge, WinterSeason, type WorldMap, dangerousInWinter } from "./map.ts";
 
 /** Points to a day on the road: progress counts in tenths of a day, so a factor worth a day or less still counts. */
 export const PointsPerDay = 10;
 
 /**
  * First guesses (item 18 tunes them): a ferry holds a company up a day at a river crossing, and four more in the
- * river's flood season, when its fords are closed; off the road a company takes half as long again ("Sneaking").
+ * river's flood season, when its fords are closed; off the road a company takes half as long again ("Sneaking"); a
+ * snowbound pass takes twice as long in winter (item 9, "Winter is dangerous, never closed"; the open sea in winter costs
+ * no time, only its storms).
  */
-export const TravelData = { ferryDays: 1, floodDays: 4, sneakPercent: 150 } as const;
+export const TravelData = { ferryDays: 1, floodDays: 4, sneakPercent: 150, winterPassPercent: 200 } as const;
 
 /** What a company is, for its pace. Only sneaking is a choice today; the rest of its terms are neutral (above). */
 export interface Company {
@@ -47,10 +49,10 @@ export function edgeBetween(map: WorldMap, a: string, b: string): Edge | null {
   return byKey.get(a + "|" + b) ?? null;
 }
 
-/** Is the connection closed in this season (0 Akhet, 1 Peret, 2 Shemu)? Open sea and mountain passes close in winter. */
-export function closedIn(map: WorldMap, a: string, b: string, season: number): boolean {
+/** Is the connection a snowbound mountain pass in this season (0 Akhet, 1 Peret, 2 Shemu)? Slow, but never closed. */
+export function snowbound(map: WorldMap, a: string, b: string, season: number): boolean {
   const e = edgeBetween(map, a, b);
-  return e === null || (season === WinterSeason && closedInWinter(e));
+  return e !== null && season === WinterSeason && dangerousInWinter(e) && !e.open && e.kind !== "Sea";
 }
 
 /**
@@ -72,11 +74,11 @@ export function boatDays(map: WorldMap, from: string, to: string): number | null
 }
 
 /**
- * The points one connection costs a company in a season, or Infinity when it is closed then. The terms, each a
+ * The points one connection costs a company in a season, or Infinity where there is no connection. The terms, each a
  * percentage of the time or a number of days added, in the order of "What sets a company's pace".
  */
 export function legPoints(map: WorldMap, from: string, to: string, season: number, company: Company = OnTheRoad): number {
-  if (closedIn(map, from, to, season)) return Infinity;
+  if (edgeBetween(map, from, to) === null) return Infinity;
   // The land it crosses: terrain, passes and the desert, and at sea the passage and the current (item 7a's data);
   // a boat on a river where one goes faster than walking.
   let days = connectionDays(map, from, to);
@@ -90,6 +92,8 @@ export function legPoints(map: WorldMap, from: string, to: string, season: numbe
     if (river !== undefined && river.flood === season) days += TravelData.floodDays;
   }
   let percent = 100;
+  // Winter: a mountain pass under snow is slow going, never closed.
+  if (snowbound(map, from, to, season)) percent = (percent * TravelData.winterPassPercent) / 100;
   // Sneaking: off the road on land; at sea a ship is a ship.
   if (company.sneaking && edgeBetween(map, from, to)!.kind !== "Sea") percent = (percent * TravelData.sneakPercent) / 100;
   // Neutral until their items: size and load (9+), water and fodder (10+), an army's size and forced marches (13), the
@@ -156,17 +160,14 @@ export function fastestPoints(map: WorldMap, from: string, to: string, season: n
 }
 
 /**
- * Seasons for word to go from one province to another, setting out in a turn: by the fastest route open in its season,
- * at least one; if none is open (an island in winter), it waits for the next season. Reports, rumours and ransoms travel
- * so by themselves until item 11b gives them carriers ("Messengers are errands"), and news of distant land with them.
+ * Seasons for word to go from one province to another, setting out in a turn: by the fastest route in its season, at
+ * least one. Reports, rumours and ransoms travel so by themselves until item 11b gives them carriers ("Messengers are
+ * errands"), and news of distant land with them.
  */
 export function wordSeasons(travelDays: number, map: WorldMap, from: string, to: string, turn: number): number {
   if (from === to) return 1;
   const perSeason = travelDays * PointsPerDay;
-  for (let wait = 0; wait < 3; wait++) {
-    const season = (((turn - 1 + wait) % 3) + 3) % 3;
-    const points = fastestPoints(map, from, to, season);
-    if (points !== Infinity) return wait + Math.max(1, Math.ceil(points / perSeason));
-  }
-  return 3;
+  const season = (((turn - 1) % 3) + 3) % 3;
+  const points = fastestPoints(map, from, to, season);
+  return points === Infinity ? 3 : Math.max(1, Math.ceil(points / perSeason));
 }

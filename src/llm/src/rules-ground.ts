@@ -64,7 +64,7 @@ export function seaRules(c: GameConfig): string {
       `- The blockade: a besieged coastal city is supplied by sea, and worn down ${c.seaSupply} step less each season, unless a fleet of its besieger holds its waters: so a lone army besieging a harbour that is supplied wears it down not at all. A fleet of the besieger's in a city's waters blockades it; your news says whether each siege of yours, or of your cities, was supplied or blockaded.`,
     );
   lines.push(
-    `- The sea has a season. In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them, no convoy is carried over them, and no city across them can be bought (it lies one voyage away only in the sailing season); an order to cross them is refused. Along the coasts ships sail all year.`,
+    `- The sea has a season. In winter, the second season of each year (Peret in Egypt), the open-sea crossings stay open but are dangerous: a fleet that crosses one may sink, and an army carried over one may be lost with it (NEWS AND TRAVEL gives the chances). Along the coasts ships sail all year.`,
   );
   return joinS(`\n`, lines);
 }

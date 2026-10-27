@@ -37,20 +37,23 @@ export interface Edge {
   readonly a: string;
   readonly b: string;
   readonly kind: EdgeKind;
-  /** An open-sea crossing between two waters, closed in winter: long, and hard to stop anyone on. */
+  /** An open-sea crossing between two waters, dangerous in winter: long, and hard to stop anyone on. */
   readonly open: boolean;
   /** Sailing from a to b goes with the current, so it is quicker than from b to a (a voyage's time is item 7b's). */
   readonly current: boolean;
 }
 
-/** The season of the year (0, 1 or 2) that is winter everywhere: Peret, when the open sea and the mountain passes are closed. */
+/** The season of the year (0, 1 or 2) that is winter everywhere: Peret, when the open sea and the mountain passes are dangerous. */
 export const WinterSeason = 1;
 
 /** The season of the year (0 Akhet, 1 Peret, 2 Shemu) a turn falls in. */
 export const seasonOfTurn = (turn: number): number => (((turn - 1) % 3) + 3) % 3;
 
-/** A connection closed in winter: an open-sea crossing, or a mountain pass. */
-export function closedInWinter(e: Edge): boolean {
+/**
+ * A connection dangerous in winter (item 9, "Winter is dangerous, never closed"): an open-sea crossing, or a mountain
+ * pass. Never closed: a traveller is slowed and meets the road's check, an army or a fleet crossing one may be lost.
+ */
+export function dangerousInWinter(e: Edge): boolean {
   return e.open || crossingBetween(e.a, e.b)?.kind === "Mountain";
 }
 
@@ -87,17 +90,12 @@ export class WorldMap {
 
   private winterMap: WorldMap | undefined;
   /**
-   * The map as it can be crossed in winter: the same provinces, without the open-sea crossings and the mountain passes,
-   * closed by the same season (item 7b, "Land and climate").
+   * The map without the connections winter makes dangerous ({@link dangerousInWinter}): what can be crossed in winter at no
+   * risk to troops. Nothing closes; this is for telling a safe winter move from a dangerous one.
    */
   get winter(): WorldMap {
-    if (this.edges.every((e) => !closedInWinter(e))) return this;
-    return (this.winterMap ??= new WorldMap(this.provinces, this.edges.filter((e) => !closedInWinter(e))));
-  }
-
-  /** The map as it can be crossed in a turn: in winter ({@link WinterSeason}) without the open-sea crossings and the passes. */
-  forTurn(turn: number): WorldMap {
-    return seasonOfTurn(turn) === WinterSeason ? this.winter : this;
+    if (this.edges.every((e) => !dangerousInWinter(e))) return this;
+    return (this.winterMap ??= new WorldMap(this.provinces, this.edges.filter((e) => !dangerousInWinter(e))));
   }
 
   /** The open-sea crossing between two sea zones, if that is what joins them (either way round). */
@@ -246,7 +244,7 @@ export const watersId = (coast: string): string => coast + "waters";
  *
  * The seas ("Finer seas"): each coastal province has waters of its own, its harbour and shore, which only Amurru and the
  * island of Arwad share; coastal hops link neighbouring waters along the shore, and a few open-sea crossings link waters
- * across the open sea, closed in winter ({@link WorldMap.forTurn}). Ships keep to the coasts, so an army is carried only
+ * across the open sea, dangerous in winter ({@link dangerousInWinter}). Ships keep to the coasts, so an army is carried only
  * by fleets standing in the waters it sails through, and lands only from the waters of the coast it lands on: where the
  * enemy's fleet holds those waters, no army lands. Currents run counterclockwise, north along the Levant and west along
  * Anatolia, as data on each sea connection ({@link Edge.current}).
@@ -363,7 +361,7 @@ export function buildMap(): WorldMap {
   const coast = (a: string, ...bs: string[]) => add("Coast", a, bs);
   /** A coastal hop between neighbouring waters; `current` when sailing from a to b goes with the current. */
   const hop = (a: string, b: string, current = false) => add("Sea", a, [b], false, current);
-  /** An open-sea crossing, closed in winter. */
+  /** An open-sea crossing, dangerous in winter. */
   const crossing = (a: string, b: string, current = false) => add("Sea", a, [b], true, current);
 
   // Anatolia

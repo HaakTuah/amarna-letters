@@ -7,7 +7,9 @@ import {
   Dict,
   HSet,
   StartGold,
+  WinterSeason,
   WorldMap,
+  seasonOfTurn,
   cmpNum,
   cmpPower,
   cmpStr,
@@ -29,8 +31,9 @@ import { seasonsLeft } from "./ending-belief.ts";
 export class Board {
   static readonly Map: WorldMap = WorldMap.default;
   /**
-   * The map as it can be crossed in the season the last board was made for: in winter without the open-sea crossings
-   * (build order item 7a). Every move a script king weighs is one it could give this season.
+   * The map a script king plans its season on, for the season the last board was made for: in winter without the
+   * crossings winter makes dangerous (item 9: the passes and the open sea, which may cost the troop), so that its plan,
+   * and what it fears of others, holds to safe moves; a stroke across one is weighed apart (Tactics, "Winter strokes").
    */
   static Sail: WorldMap = WorldMap.default;
 
@@ -53,7 +56,7 @@ export class Board {
     this.v = v;
     this.me = v.power;
     this.treasuries = treasuries;
-    Board.Sail = Board.Map.forTurn(v.turn);
+    Board.Sail = seasonOfTurn(v.turn) === WinterSeason ? Board.Map.winter : Board.Map;
     this.units = [...v.units, ...[...(remembered ?? [])].filter((g) => v.units.every((u) => u.province !== g.province))];
     this.unitAt = new Dict();
     for (const u of this.units) this.unitAt.tryAdd(u.province, u);

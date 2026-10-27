@@ -51,6 +51,10 @@ const o: BatchOptions = {
   roadPlay: true,
   planAheadHalf: false,
   roadPlayHalf: false,
+  winterPlay: true,
+  winterPlayHalf: false,
+  authorityPlay: true,
+  authorityPlayHalf: false,
   clausePlay: true,
   clausePlayHalf: false,
   inventoryPlay: true,
@@ -136,6 +140,20 @@ for (let i = 0; i < args.length; i++) {
       break;
     case "--no-inventory-play":
       o.inventoryPlay = false;
+      break;
+    case "--no-authority-play":
+      o.authorityPlay = false;
+      break;
+    case "--authority-play-half":
+      // Half the script kings play envoy authority and passage (item 9), alternating by seed: the two sides on the same seeds.
+      o.authorityPlayHalf = true;
+      break;
+    case "--no-winter-play":
+      o.winterPlay = false;
+      break;
+    case "--winter-play-half":
+      // Half the script kings make winter strokes over the passes, alternating by seed: the two sides on the same seeds.
+      o.winterPlayHalf = true;
       break;
     case "--road-play-half":
       // Half the script kings close their roads to their foes, alternating by seed: the two sides compared on the same seeds.
@@ -277,7 +295,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -453,6 +471,10 @@ if (results.length > 0) console.log(batchReport(results));
 if (o.versus && results.length > 0) console.log(versusReport(results, sides));
 if (o.roadPlayHalf && results.length > 0)
   console.log("\nScript kings that close their roads to their foes (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
+if (o.authorityPlayHalf && results.length > 0)
+  console.log("\nScript kings that give their envoys the seal and ask and grant passage (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
+if (o.winterPlayHalf && results.length > 0)
+  console.log("\nScript kings that strike over the passes in winter (\"current\") against those that never do (\"baseline\"):" + versusReport(results, sides));
 if (o.clausePlayHalf && results.length > 0)
   console.log("\nScript kings that act on the clauses they read (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.planAheadHalf && results.length > 0)

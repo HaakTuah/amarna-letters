@@ -44,6 +44,7 @@ import { outweighs, rivals, touches } from "./statecraft-strategy.ts";
 import { joints, willing } from "./tactics.ts";
 import { TextKit } from "./textkit.ts";
 import { againstIn, answerLetter, clausePlays, givesAwayIn } from "./statecraft-clauses.ts";
+import { authorityFor, authorityOn, basingTablet, counterFor, grantsOk, passageClause, stagingFor } from "./authority.ts";
 
 const Oath = "By Shamash, Amun, Marduk and Teshub";
 
@@ -153,6 +154,11 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
       if (asked === undefined || v.turn - asked >= 3) missions.push(mission(x, "plea", 0.9, plea.besieger, plea.province));
     }
 
+  // Leave for our troops to stand in a friend's province on the way to our war, where none of our land touches the foe's
+  // (item 9): asked on a tablet, by an envoy with our seal.
+  const staging = stagingFor(b, brain);
+  if (staging !== null) missions.push(mission(staging[0], "basing", 0.6 + 0.3 * p.aggression, staging[2], staging[1]));
+
   // Evidence of broken oaths for a third court.
   const broken =
     v.tablets.find(
@@ -239,12 +245,16 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
     if (sentTo.has(m.to) || m.score <= 0.15) continue;
     // Tablets, and the gold of gifts and tribute, go with the most reliable envoy still at court; the rest with the least
     // reliable.
-    const trusted = m.kind === "coalition" || m.kind === "alliance" || m.kind === "peace" || m.kind === "gift" || m.kind === "tribute" || m.kind === "plea";
+    const trusted = m.kind === "coalition" || m.kind === "alliance" || m.kind === "peace" || m.kind === "gift" || m.kind === "tribute" || m.kind === "plea" || m.kind === "basing";
     const envoy = trusted ? ready[0] : ready[ready.length - 1];
     const d = compose(b, brain, m, envoy.id, rng);
     if (d === null) continue;
+    // Our seal with the envoys we trust with a tablet (item 9), so that a host may answer with a tablet of its own.
+    const authority = authorityFor(b, brain, m.to, trusted && d.proposal != null);
+    if (authority !== null) d.authority = authority;
     send(d);
     if (m.kind === "plea") brain.pleaSent.set(m.to, v.turn);
+    if (m.kind === "basing") brain.basingAsked.set(m.to, v.turn);
     if (m.kind === "accuse") brain.lightFrom.get(m.to)[2] = true;
     if (m.kind === "support") {
       const [from, target] = m.city!.split(">");
@@ -367,10 +377,24 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
             ? `Ask for troops against ${foe} at ${city}. Promise no land.`
             : `Ask for troops against ${foe} at ${city}. You may swear alliance against ${foe} and agree to support each other's troops. Promise no land.`,
           greeting,
-          proposal: sworn ? null : newTabletProposal({ text: coalitionTablet(me, to, foe), allianceOath: false, clauses: [clause("against", { power: foe })] }),
+          // Our land opened to his troops on the way (item 9): passage, granted when he seals it.
+          proposal: !authorityOn(me)
+            ? sworn
+              ? null
+              : newTabletProposal({ text: coalitionTablet(me, to, foe), allianceOath: false, clauses: [clause("against", { power: foe })] })
+            : newTabletProposal({ clauses: sworn ? [passageClause(b.v.turn)] : [clause("against", { power: foe }), passageClause(b.v.turn)] }),
           clauses: [clause("askHelp", { province: m.city!, power: foe }), ...(sworn ? [] : [clause("against", { power: foe })])],
         },
       );
+    }
+    case "basing": {
+      const place = Board.Map.get(m.city!).name;
+      return dispatch(envoy, to, `My brother, my war with ${m.against!} must pass by your land. Let my troops stand in ${place} as your guests: they will take nothing of yours, and they will strike at ${m.against!} from there. ${flavour}`, {
+        mandate: `Ask leave for my troops to stand in ${place}. Promise no land.`,
+        greeting,
+        proposal: basingTablet(m.city!, b.v.turn),
+        clauses: [clause("wellWishes")],
+      });
     }
     case "accuse": {
       const short = brain.lightFrom.get(to)[0];
@@ -606,6 +630,7 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
   }
 
   const proposal = view.proposal;
+  let refusedForGiving = false;
   if (proposal !== null) {
     // The king a coalition names, by any of his names (see Names).
     const named = againstIn(proposal, [me, sender]);
@@ -624,9 +649,13 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
       seal = !ra.allied && !hostile && (race || defence);
     } else seal = !hostile && !(proposal.allianceOath && rivals(b, me, sender));
     if (sender === leader && !friend && p.caution < 0.6) seal = false;
-    // A tablet in someone else's words is read for what it would give away (see givesAway).
-    const gives = seal && givesAway(proposal, b, sender);
+    // A tablet in someone else's words is read for what it would give away (see givesAway); leave it asks for our land
+    // that we would grant is not given away (item 9).
+    const grants = proposal.clauses.filter((x) => x.kind === "askPassage" || x.kind === "askBasing");
+    const granted = grants.length > 0 && grantsOk(b, brain, sender, grants);
+    const gives = seal && (granted ? givesAwayIn(proposal.clauses.filter((x) => !grants.includes(x))) : givesAway(proposal, b, sender));
     if (gives) seal = false;
+    refusedForGiving = gives;
     reply.sealProposal = seal;
     const offered = proposal.clauses.find((x) => ProposalKinds.includes(x.kind))?.kind ?? (named !== null ? "against" : proposal.allianceOath ? "alliance" : "peace");
     reply.clauses.push(clause(seal ? "accept" : "refuse", { answers: offered }));
@@ -650,6 +679,11 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
       if (named !== null) r.against = named;
     }
   }
+
+  // An envoy that carries his king's seal is offered a tablet of ours: the one we would not seal without what it gives away,
+  // or leave for our troops where our war needs his land (item 9).
+  reply.counter = counterFor(b, brain, view, proposal === null || reply.sealProposal ? null : refusedForGiving ? "gives" : "other");
+  if (reply.counter !== null) speech.push("Here is a tablet I will seal with you: set your lord's seal on it, if he allows you.");
 
   // A plea for relief: a city of the sender's besieged by a third king, remembered so that our troops march to its relief
   // while it is fresh. A friend we would fight for hears that we will.

@@ -7,6 +7,8 @@ import {
   PlanAhead,
   SeaPlay,
   RoadPlay,
+  WinterStrokes,
+  AuthorityPlay,
   ClausePlay,
   InventoryPlay,
   ScriptLeader,
@@ -71,6 +73,12 @@ export interface BatchOptions {
   planAheadHalf: boolean;
   /** Only half the kings close their roads (alternating by seed), reported as the current side (`--road-play-half`). */
   roadPlayHalf: boolean;
+  /** Script kings make winter strokes over the passes (item 9); off only to measure it (`--no-winter-play`), or for half (`--winter-play-half`). */
+  winterPlay: boolean;
+  winterPlayHalf: boolean;
+  /** Script kings play envoy authority and passage (item 9); off only to measure it (`--no-authority-play`), or for half. */
+  authorityPlay: boolean;
+  authorityPlayHalf: boolean;
   /** Script kings act on the clauses they read (item 8); off only to measure it (`--no-clause-play`), or for half (`--clause-play-half`). */
   clausePlay: boolean;
   clausePlayHalf: boolean;
@@ -145,14 +153,18 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   PlanAhead.on = o.planAhead;
   SeaPlay.on = o.seaPlay;
   RoadPlay.on = o.roadPlay;
+  WinterStrokes.on = o.winterPlay;
+  AuthorityPlay.on = o.authorityPlay;
   ClausePlay.on = o.clausePlay;
   InventoryPlay.on = o.inventoryPlay;
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
+  WinterStrokes.only = o.winterPlayHalf ? current : null;
+  AuthorityPlay.only = o.authorityPlayHalf ? current : null;
   ClausePlay.only = o.clausePlayHalf ? current : null;
   const [summary] = await playGame(
     s,

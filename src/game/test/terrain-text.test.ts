@@ -40,7 +40,7 @@ describe("TerrainTextTests", () => {
     ],
     ["- The blockade: a besieged coastal city is supplied by sea, and worn down 1 step less each season, unless a fleet of its besieger holds its waters: so a lone army besieging a harbour that is supplied wears it down not at all."],
     [
-      "In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them, no convoy is carried over them, and no city across them can be bought (it lies one voyage away only in the sailing season); an order to cross them is refused.",
+      "In winter, the second season of each year (Peret in Egypt), the open-sea crossings stay open but are dangerous: a fleet that crosses one may sink, and an army carried over one may be lost with it",
     ],
     ["(rough ground, or a pass or a great river crossed; see TERRAIN)"],
     ["nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing."],

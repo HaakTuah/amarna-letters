@@ -51,3 +51,4 @@ claim graded and sourced.
 | [`design/12-the-map-and-the-seas.md`](design/12-the-map-and-the-seas.md) | The map and the seas (item 7a) | 7.5 |
 | [`design/13-travel-and-news.md`](design/13-travel-and-news.md) | Travel and news (item 7b) | 9.3 |
 | [`design/14-structured-press.md`](design/14-structured-press.md) | Structured press, recognition, gold without an inventory, local agent characters (item 8) | 13.4 |
+| [`design/15-envoy-authority-and-passage.md`](design/15-envoy-authority-and-passage.md) | Winter dangerous, spy reports by road, envoy authority, passage and basing (item 9) | 8.6 |

@@ -30,6 +30,7 @@ import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
 import { personalityFor, type Personality } from "./personality.ts";
 import { roadPolicy } from "./roads.ts";
+import { heardRepudiations, keepMoving, repudiations, revocations } from "./authority.ts";
 import { Search } from "./search.ts";
 import { Statecraft } from "./statecraft.ts";
 import { Tactics, type MilitaryPlan } from "./tactics.ts";
@@ -74,10 +75,13 @@ export class ScriptLeader implements ISeat {
     const board = new Board(view, brain.remembered(view), brain.treasury);
     const rng = brain.r(view.turn, "decide");
 
+    heardRepudiations(board, brain);
     Statecraft.strategy(board, brain, rng);
     const plan = Tactics.make(board, brain);
     Search.improve(board, brain, plan, brain.r(view.turn, "search"));
     Tactics.besiege(board, brain, plan);
+    // Guests by passage move on, or they overstay and take a friend's land (item 9).
+    keepMoving(board, plan);
     const sallies = Tactics.sallies(board, plan.orders.values(), brain);
     for (const order of plan.orders.values()) {
       if (order.type !== "move") continue;
@@ -95,6 +99,9 @@ export class ScriptLeader implements ISeat {
     Statecraft.court(board, brain, orders, busy, rng);
     Statecraft.letters(board, brain, orders, busy, rng);
     roadPolicy(board, brain, orders);
+    // Tablets our envoys sealed beyond what we allow, and leave granted to kings turned foe (item 9).
+    repudiations(board, brain, orders);
+    revocations(board, brain, orders);
     // Standing orders last, against the season's whole plan: those kept may change it if the blow comes.
     const [cancel, give] = Contingencies.plan(board, brain, plan, orders);
 

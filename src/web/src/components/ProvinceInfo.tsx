@@ -70,7 +70,7 @@ export function ProvinceInfo({
             ? `The waters of ${WorldMap.default.coastsOf(p.id).map((x) => x.name).join(" and ")}: a fleet here blockades ${WorldMap.default.coastsOf(p.id).length > 1 ? "them" : "it"}, and no army lands there against it.`
             : "The open sea."}{" "}
           Fleets here can convoy armies across, one fleet in each sea zone of the way.
-          {WorldMap.default.edges.some((e) => e.open && (e.a === p.id || e.b === p.id)) ? " An open-sea crossing leaves from here: closed in winter, the second season of the year." : ""}
+          {WorldMap.default.edges.some((e) => e.open && (e.a === p.id || e.b === p.id)) ? " An open-sea crossing leaves from here: dangerous in winter, the second season of the year, when storms may sink a fleet and the army it carries." : ""}
         </p>
       ) : (
         <>

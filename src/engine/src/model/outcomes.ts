@@ -259,6 +259,8 @@ export interface OrderOutcome {
   destroyed: boolean;
   /** Move: who held the destination before the moves (set by the engine; ownership is public). */
   targetOwner: Power | null;
+  /** Move: into land its holder opened to the mover by passage or basing on a sealed tablet (item 9): a guest, no attack. */
+  guest: boolean;
 }
 
 export function newOrderOutcome(init: Partial<OrderOutcome> = {}): OrderOutcome {
@@ -273,6 +275,7 @@ export function newOrderOutcome(init: Partial<OrderOutcome> = {}): OrderOutcome 
     succeeded: false,
     destroyed: false,
     targetOwner: null,
+    guest: false,
     ...init,
   };
 }
@@ -288,6 +291,7 @@ export const OrderOutcomeSchema: ObjSchema<OrderOutcome> = obj("OrderOutcome", n
   succeeded: B,
   destroyed: B,
   targetOwner: opt(S),
+  guest: B,
 });
 
 

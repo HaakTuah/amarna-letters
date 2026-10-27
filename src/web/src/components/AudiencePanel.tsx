@@ -1,4 +1,4 @@
-import { NewsKinds, newHostReply, renderClause, type AudienceView, type Clause, type HostReply, type SeatView } from "@amarna/engine";
+import { NewsKinds, WorldMap, authorityText, newHostReply, newTabletProposal, renderClause, type AudienceView, type Clause, type HostReply, type SeatView } from "@amarna/engine";
 import { useState } from "react";
 import { powerName, shekels, when } from "../ui/format.ts";
 import { ClauseEditor } from "./ClauseEditor.tsx";
@@ -19,6 +19,8 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
   const [seal, setSeal] = useState(false);
   const [detain, setDetain] = useState(false);
   const [end, setEnd] = useState(true);
+  // A tablet of our own for an envoy that carries his king's seal (item 9).
+  const [counter, setCounter] = useState<Clause[]>([]);
 
   const answer = (): void =>
     onAnswer(
@@ -34,6 +36,7 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
         goldBack: Math.max(0, goldBack),
         goldBackPurity: Math.min(Math.max(goldPurity, 10), 100),
         end: end || detain,
+        counter: a.sealCarried && counter.length > 0 ? newTabletProposal({ clauses: [...counter] }) : null,
       }),
     );
 
@@ -106,6 +109,16 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           </small>
         </div>
       ))}
+      {a.sealCarried && (
+        <p className="notice">
+          {a.envoy.name} carries the seal of {powerName(a.from)}: he may seal a tablet of yours in his king's name, which binds his king unless the king repudiates it as beyond his authority.
+        </p>
+      )}
+      {a.credentials !== null && (
+        <div className="notice">
+          {a.envoy.name} shows his credentials. Mandate: “{a.shownMandate ?? ""}”. {authorityText(a.credentials, (x) => WorldMap.default.get(x).name)}
+        </div>
+      )}
       {a.secretMandate !== null && (
         <div className="notice">
           <strong>This envoy secretly serves you.</strong> Their real instructions: “{a.secretLetter}” Mandate:{" "}
@@ -130,6 +143,12 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           {structured ? "Your answer, in clauses (structured press): accept, refuse or counter what the letter sets out." : "Your answer's clauses (kings who read only clauses read these):"}
         </small>
         <ClauseEditor clauses={clauses} onChange={setClauses} from={a.host} to={a.from} turn={a.turn} />
+        {a.sealCarried && (
+          <>
+            <small className="muted">A tablet of your own for {a.envoy.name} to seal in his king's name (optional), from you to {powerName(a.from)}:</small>
+            <ClauseEditor clauses={counter} onChange={setCounter} from={a.host} to={a.from} turn={a.turn} />
+          </>
+        )}
         <div className="row" style={{ marginTop: ".4rem" }}>
           {a.proposal !== null && (
             <label>

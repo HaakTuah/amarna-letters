@@ -3,13 +3,13 @@ import { Dict, HSet } from "../core/collections.ts";
 import { clamp, roundEven, toInt } from "../core/num.ts";
 import type { Rng } from "../core/rng.ts";
 import { cmpNum, distinct, groupBy, sortBy } from "../core/seq.ts";
-import { cmpStr } from "../core/text.ts";
+import { cmpStr, isBlank } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, ForgeOrder } from "../model/orders.ts";
 import { coverOf, newFact, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
-import { alive, char, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
+import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
@@ -318,6 +318,18 @@ P.spyReportArrives = function (j) {
   // A report it sent after its master's belief was frozen (a captive turned and back at its post): word has come from it.
   const cover = coverOf(c, j.to);
   if (cover !== null && j.report.observedTurn >= cover.since) c.covers.splice(c.covers.indexOf(cover), 1);
+  // A report from a watched province brings home who held it and the land beside it when the spy wrote (item 9: by road,
+  // not in live sight); one a host had a turned spy send carries only what the host told it.
+  if (j.report.province !== null && isBlank(j.report.poison) && isAlive(S, j.to)) {
+    let book = S.known.tryGet(j.to);
+    if (book === undefined) S.known.set(j.to, (book = new Dict()));
+    for (const prov of [j.report.province, ...this.map.neighbors(j.report.province)]) {
+      if (this.map.get(prov).isSea) continue;
+      const had = book.tryGet(prov);
+      if (had !== undefined && had.turn >= j.report.observedTurn) continue;
+      book.set(prov, newKnown({ owner: Views.ownerAt(S, this.map, prov, j.report.observedTurn), turn: j.report.observedTurn, source: c.name }));
+    }
+  }
   // The copies it made of the watched court's archive come home with the report.
   const copies = this.archiveCopiesArrive(j, c);
   this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "SpyReport", characterId: c.id, court: j.to, report: j.report, copyIds: copies }));

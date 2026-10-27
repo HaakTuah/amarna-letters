@@ -10,6 +10,7 @@ import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./
 import { type InboxItem, InboxItemSchema } from "./records.ts";
 import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, StandingOrderViewSchema } from "./sleep.ts";
 import { type StandingAnswer, StandingAnswerSchema } from "./answers.ts";
+import { type GrantView, GrantViewSchema } from "./authority.ts";
 
 export interface UnitView {
   power: Power;
@@ -219,6 +220,13 @@ export interface TabletView {
   source: string;
   authResult: string | null;
   clauses: Clause[];
+  /** Sealed by an envoy for this king (item 9): "by the hand of" the envoy, named. */
+  byHand: string | null;
+  byHandOf: Power | null;
+  /** Within the envoy's authority, shown only to its king and to a host that read its credentials; null otherwise. */
+  within: boolean | null;
+  /** The season its envoy's king repudiated it, or null. */
+  repudiatedTurn: number | null;
 }
 
 export function newTabletView(init: Partial<TabletView> = {}): TabletView {
@@ -235,6 +243,10 @@ export function newTabletView(init: Partial<TabletView> = {}): TabletView {
     allianceOath: false,
     source: "",
     authResult: null,
+    byHand: null,
+    byHandOf: null,
+    within: null,
+    repudiatedTurn: null,
     ...init,
   };
 }
@@ -252,6 +264,10 @@ export const TabletViewSchema: ObjSchema<TabletView> = obj("TabletView", newTabl
   allianceOath: B,
   source: S,
   authResult: S,
+  byHand: opt(S),
+  byHandOf: opt(S),
+  within: opt(B),
+  repudiatedTurn: opt(I),
 });
 
 /**
@@ -346,6 +362,8 @@ export interface SeatView {
   roadsClosed: Power[];
   /** The kings this court has heard closed their roads to its people. */
   roadsClosedToUs: Power[];
+  /** Passage and basing standing on sealed tablets (item 9) that this king granted or was granted. */
+  grants: GrantView[];
   /**
    * The walls as this court knows them, by province (a province with none is left out): standing now where it can see
    * troops, elsewhere as it last saw them ({@link Views.WallsKnown}; since the review of the siege package, until
@@ -440,6 +458,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     ownerFrom: new Dict(),
     roadsClosed: [],
     roadsClosedToUs: [],
+    grants: [],
     walls: new Dict(),
     sieges: [],
     conquered: new Dict(),
@@ -495,6 +514,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   ownerFrom: dict(S),
   roadsClosed: list(S),
   roadsClosedToUs: list(S),
+  grants: list(() => GrantViewSchema),
   walls: dict(I),
   sieges: list(() => SiegeViewSchema),
   conquered: dict(I),

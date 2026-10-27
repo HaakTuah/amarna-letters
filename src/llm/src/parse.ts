@@ -14,6 +14,9 @@ import {
   convoy,
   counterIntel,
   roads,
+  revoke,
+  repudiate,
+  newAuthority,
   disband,
   dismiss,
   dispatch,
@@ -275,6 +278,16 @@ export function letters(o: JsonObject): Order[] {
         copies: copies.length > 0 ? copies : null,
         clauses: clausesOf(l, "clauses"),
         noInventory: B(l, "no_inventory"),
+        authority:
+          B(l, "carry_seal") || B(l, "show_credentials")
+            ? newAuthority({
+                seal: B(l, "carry_seal"),
+                show: B(l, "show_credentials"),
+                maxGold: Math.max(0, I(l, "seal_max_gold")),
+                cede: L(l, "seal_may_cede").map(prov),
+                open: L(l, "seal_may_open").map(prov),
+              })
+            : null,
       }),
     );
   }
@@ -363,6 +376,10 @@ function other(x: Node): Order | null {
       const close = S(x, "action") === "close_roads";
       return power !== null ? roads(power, close) : unreadable(`${close ? "close" : "open"} your roads to '${named}'`, nowhere(named, "the court"));
     }
+    case "revoke_passage":
+      return power !== null ? revoke(power, province.length > 0 ? province : null) : unreadable(`revoke the passage you granted '${named}'`, nowhere(named, "the king you granted it"));
+    case "repudiate":
+      return repudiate(S(x, "item"));
     case "assay":
       return assay(S(x, "item"));
     case "authenticate":
@@ -408,6 +425,8 @@ export function host(o: JsonObject): HostReply {
     bribeAsk: S(o, "gift_request"),
     clauses: clausesOf(o, "clauses"),
     bribeClauses: clausesOf(o, "gift_news"),
+    counter:
+      S(o, "your_tablet").length > 0 || clausesOf(o, "your_tablet_clauses").length > 0 ? newTabletProposal({ text: S(o, "your_tablet"), clauses: clausesOf(o, "your_tablet_clauses") }) : null,
     jobOffer: Math.max(0, I(o, "offer_service_wage")),
     sealProposal: B(o, "seal_tablet"),
     detain: B(o, "detain_envoy"),
@@ -439,7 +458,7 @@ export function court(o: JsonObject): Map<string, HostReply> {
 export const present = (o: JsonObject): PresentResult => newPresentResult({ speech: S(o, "speech"), skim: Math.max(0, I(o, "keep_gold")), swapInventory: B(o, "swap_inventory") });
 
 export const react = (o: JsonObject): EnvoyReaction =>
-  newEnvoyReaction({ speech: S(o, "speech"), acceptBribe: B(o, "accept_gift"), acceptJob: B(o, "accept_service"), commitments: S(o, "commitments") });
+  newEnvoyReaction({ speech: S(o, "speech"), acceptBribe: B(o, "accept_gift"), acceptJob: B(o, "accept_service"), commitments: S(o, "commitments"), sealCounter: B(o, "seal_tablet") });
 
 export const reportOf = (o: JsonObject): MindReply => newMindReply({ text: S(o, "report"), number: Math.max(0, I(o, "keep_gold")), swapInventory: B(o, "swap_inventory") });
 

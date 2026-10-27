@@ -20,6 +20,7 @@ export const SignalKinds: readonly string[] = [
   "terrain-held", "terrain-beaten", "desert", "landing", "blockade", "sea-supplied",
   "roads-closed", "roads-opened", "turned-at-border", "road-caught", "road-outlaws", "road-nature",
   "support-kept", "claim-established",
+  "winter-crossed", "winter-loss", "envoy-sealed", "repudiated", "passage-granted", "basing-granted", "grant-revoked",
 ];
 
 const MessengerBlamed = rx(
