@@ -160,7 +160,9 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
 
   const capital = Board.Map.capital(me).id;
   // Gifts and fair words may lull a court, but it trusts its capital only to a sworn ally.
-  const fear = (x: Power, province: string): number => (province === capital && !brain.rel.get(x).allied ? Math.max(hostility.get(x), 0.3) : hostility.get(x));
+  // A king we have heard has fallen, whose troops we still remember, is feared not at all.
+  const fear = (x: Power, province: string): number =>
+    !hostility.has(x) ? 0 : province === capital && !brain.rel.get(x).allied ? Math.max(hostility.get(x), 0.3) : hostility.get(x);
 
   // ---- Threats: the strongest attack any one king could bring, weighted by how likely he is to bring it.
   const danger = (province: string): [number, number] => {
