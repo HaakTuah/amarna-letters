@@ -17,7 +17,12 @@ const expected = new Map<number, number>();
 /** The seasons a king expects the age to run from this one on, this one included. */
 export function seasonsLeft(turn: number, openAge: boolean): number {
   if (process.env.AMARNA_IGNORE_ENDING === "1") return turn < 15 ? 15 - turn + 6.67 : 6.67; // TEMP measurement
-  if (openAge) return (openHorizon ??= seasonsLeft(1, false));
+  if (process.env.AMARNA_HORIZON_CAP !== undefined) return Math.min(Number(process.env.AMARNA_HORIZON_CAP), seasonsLeftRaw(turn, openAge)); // TEMP
+  return seasonsLeftRaw(turn, openAge);
+}
+
+function seasonsLeftRaw(turn: number, openAge: boolean): number {
+  if (openAge) return (openHorizon ??= seasonsLeftRaw(1, false));
   const t = Math.max(1, turn);
   let e = expected.get(t);
   if (e === undefined) {
