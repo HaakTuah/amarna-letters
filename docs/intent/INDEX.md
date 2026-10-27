@@ -15,14 +15,14 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 557 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 50 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 52 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 27 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 50 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 18 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 10 |
-| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 19 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 26 |
+| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 20 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 29 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 9 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 8 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 12 |
@@ -51,7 +51,7 @@ session loads.
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 4.9 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 3.7 |
-| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 6.0 |
+| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 6.1 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.2 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
 | `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 2.0 |
@@ -105,7 +105,7 @@ session loads.
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.5 |
 | `docs/intent/war-travel-and-the-seas/travel-passage-and-distance.md` | Travel, passage and distance | 3.3 |
-| `docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md` | Bands, pirates and outlaws | 8.0 |
+| `docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md` | Bands, pirates and outlaws | 9.8 |
 | `docs/intent/victory-and-the-ending/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 18.6 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 1.9 |
