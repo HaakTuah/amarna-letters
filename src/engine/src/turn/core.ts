@@ -24,12 +24,13 @@ import { StartWalls, WorldMap } from "../model/map.ts";
 import type { Order } from "../model/orders.ts";
 import { coverOf, gain, hiddenAt, remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
-import { alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { Views } from "../rules/views.ts";
 import type { SeatView } from "../model/views.ts";
 import type { PlannedOrder } from "../model/sleep.ts";
+import { wordSeasons } from "../model/travel.ts";
 import type { Firing } from "./plans.ts";
 
 export class TurnEngine {
@@ -86,6 +87,7 @@ export class TurnEngine {
     this.incomeAndUpkeep();
     // Where everyone stood before the season's travellers arrived: one standing at a court now that was not is back.
     const stood = new Dict<string, Power | null>(S.characters.map((c) => [c.id, c.at] as const));
+    this.travel();
     this.arrivals();
     this.payBackPay(stood);
     this.tasksDue();
@@ -385,6 +387,21 @@ export class TurnEngine {
     else this.s.conquered.delete(province);
   }
 
+  /** A province passes to a new holder (or to none): the change is logged, so word of it travels (item 7b). */
+  setOwner(province: string, owner: Power | null): void {
+    const S = this.s;
+    const old = S.owner.getOrDefault(province, null);
+    if (old === owner) return;
+    S.owner.set(province, owner);
+    // The king who lost it knows at once, as his notice tells him, though it leaves his sight.
+    if (old !== null) {
+      let book = S.known.tryGet(old);
+      if (book === undefined) S.known.set(old, (book = new Dict()));
+      book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));
+    }
+    S.ownerLog.push(newOwnerChange({ province, turn: S.turn, owner }));
+  }
+
   quit(c: Character, notice: string): void {
     if (c.employer !== null) notify(this.s, c.employer, "Notice", "A servant leaves", notice, c.id);
     c.employer = null;
@@ -469,6 +486,9 @@ export class TurnEngine {
         case "Ransom":
           this.ransomArrives(j);
           break;
+        case "Word":
+          this.wordArrives(j);
+          break;
         case "Rumor": {
           if (!isAlive(S, j.to)) break;
           if (j.taskId !== null && !this.demandArrives(j)) break;
@@ -486,11 +506,11 @@ export class TurnEngine {
   }
 
   travelTurns(from: Power, to: Power): number {
-    return travelTurns(this.s.config, this.map, this.map.capital(from).id, this.map.capital(to).id);
+    return travelTurns(this.s.config, this.map, this.map.capital(from).id, this.map.capital(to).id, this.s.turn);
   }
 
   travelTurnsBetween(fromProvince: string, toProvince: string): number {
-    return travelTurns(this.s.config, this.map, fromProvince, toProvince);
+    return travelTurns(this.s.config, this.map, fromProvince, toProvince, this.s.turn);
   }
 }
 
@@ -503,13 +523,12 @@ export function idNumber(id: string): number {
   return n > 2147483647 ? 0 : n;
 }
 
-/** Seasons on the road between two provinces, by the travel bands (GameConfig.travelHops). */
-export function travelTurns(config: GameConfig, map: WorldMap, fromProvince: string, toProvince: string): number {
-  const hops = map.hops(fromProvince, toProvince);
-  const bands = config.travelHops;
-  if (hops <= bands[0]) return 1;
-  if (hops <= bands[1]) return 2;
-  return 3;
+/**
+ * Seasons for word to go between two provinces, setting out in a turn, by the fastest route open then
+ * ({@link wordSeasons}): what reports, rumours and ransoms take, and about what a traveller takes on the road.
+ */
+export function travelTurns(config: GameConfig, map: WorldMap, fromProvince: string, toProvince: string, turn: number): number {
+  return wordSeasons(config.travelDays, map, fromProvince, toProvince, turn);
 }
 
 /** How much of a province its holder has absorbed (see TurnEngine.absorbed). */

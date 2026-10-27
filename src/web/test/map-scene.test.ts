@@ -253,20 +253,17 @@ describe("MapSceneTests", () => {
       for (const p of living(state)) {
         let seen = state.lastSeen.tryGet(p) ?? [];
         let scene = buildScene(frames, k, p);
-        // Who holds each province is public, so every view lists the same changes of hands.
-        Assert.equal(
-          god.captures.map((c) => [c.province, c.from, c.to]),
-          scene.captures.map((c) => [c.province, c.from, c.to]),
-        );
-        scene.captures.forEach((c, i) => {
-          let truth = god.captures[i];
+        // Who holds what reaches each court as its news does (item 7b): the changes it reads are changes in what it knows.
+        for (const c of scene.captures) Assert.equal(c.to, scene.owner.get(c.province) ?? null);
+        scene.captures.forEach((c) => {
+          let truth = god.captures.find((g) => g.province === c.province && g.from === c.from && g.to === c.to) ?? null;
           captures++;
-          // How it changed hands is not: "taken" only when the court saw the new owner's troops march in.
+          // How it changed hands is not public: "taken" only when the court saw the new owner's troops march in.
           let sawIt = seen.some((o) => o.order === "move" && o.succeeded && o.target === c.province && o.power === c.to);
           Assert.true(sawIt === (c.how === "Taken"), `seed ${seed}, after turn ${k}: ${p} reads ${c.province} to ${c.to} as ${c.how}, saw the move: ${sawIt}`);
           // A court on either side is told the truth; any other that saw no march, only who holds it now.
           let party = c.from === p || c.to === p;
-          Assert.equal(party || sawIt ? truth.how : "Unseen", c.how);
+          Assert.equal(truth !== null ? (party || sawIt ? truth.how : "Unseen") : sawIt ? "Taken" : party ? "Passed" : "Unseen", c.how);
         });
         // An attack is called one only from what the court could tell: the target's owner, its walls, or a foreign unit
         // standing there in its sight.

@@ -36,7 +36,7 @@ function tints(s: MapScene): string {
   for (const p of Seas) sb += `<path class="hit sea-hit" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(`${p.name}, a sea zone`)}</path>`;
   sb += `</g><g class="politics" clip-path="url(#landclip)">`;
   for (const p of Land) {
-    const owner = s.frame.owner.get(p.id) ?? null;
+    const owner = s.owner.get(p.id) ?? null;
     sb += `<path class="${owner !== null ? `tint t-${glyphId(owner)}` : "tint free"}" d="${Shapes.get(p.id)}" data-province="${p.id}">${title(provinceTitle(p, owner))}</path>`;
   }
   return sb + "</g>";
@@ -45,7 +45,7 @@ function tints(s: MapScene): string {
 function bands(s: MapScene): string {
   let sb = `<g class="bands" clip-path="url(#landclip)">`;
   for (const p of Land) {
-    const o = s.frame.owner.get(p.id) ?? null;
+    const o = s.owner.get(p.id) ?? null;
     if (o === null) continue;
     sb += `<path class="band b-${glyphId(o)}" d="${Shapes.get(p.id)}" clip-path="url(#cl-${p.id})" stroke-dasharray="${dash(o)}"/>`;
   }
@@ -56,7 +56,7 @@ function cities(s: MapScene): string {
   const sieges = new Set(s.sieges.map((x) => x.province));
   let sb = `<g class="cities">`;
   for (const p of Land) {
-    const owner = s.frame.owner.get(p.id) ?? null;
+    const owner = s.owner.get(p.id) ?? null;
     const walls = s.walls.get(p.id) ?? 0;
     sb += `<g transform="translate(${p.x},${p.y})" class="city${p.capital ? " capital" : ""}${owner === null ? " free" : ""}${sieges.has(p.id) ? " besieged" : ""}" data-province="${p.id}"><g class="csym">`;
     // One ring for each level of walls standing.
@@ -94,7 +94,7 @@ function fog(s: MapScene): string {
     const age = s.fogAge.get(p.id);
     if (age === undefined || age === 0) continue;
     const at = city(p.id);
-    sb += `<g transform="translate(${F(at.x)},${F(at.y)})"><text class="fogdate" y="${p.isSea ? 18 : 33}">seen ${esc(shortDate(s.index - age + 1, s.viewer))}</text></g>`;
+    sb += `<g transform="translate(${F(at.x)},${F(at.y)})"><text class="fogdate" y="${p.isSea ? 18 : 33}">${p.isSea ? "seen" : "as of"} ${esc(shortDate(s.index - age + 1, s.viewer))}</text></g>`;
   }
   return sb + "</g>";
 }

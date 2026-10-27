@@ -6,6 +6,7 @@ import {
   BaselineLeader,
   PlanAhead,
   SeaPlay,
+  RoadPlay,
   ScriptLeader,
   ScriptMind,
   TemplateNarrator,
@@ -61,8 +62,12 @@ export interface BatchOptions {
   planAhead: boolean;
   /** Script kings play the finer seas well (item 7a); off only to measure it (`--no-sea-play`). */
   seaPlay: boolean;
+  /** Script kings close their roads to their foes (item 7b); off only to measure it (`--no-road-play`). */
+  roadPlay: boolean;
   /** Only half the kings plan ahead, alternating by seed (the others are the comparison); they are reported as the current side. */
   planAheadHalf: boolean;
+  /** Only half the kings close their roads (alternating by seed), reported as the current side (`--road-play-half`). */
+  roadPlayHalf: boolean;
   simulateApi: boolean;
   /** Providers other than Anthropic (--provider ID=URL), each with its key in <ID>_API_KEY. */
   providers: ProviderSetting[];
@@ -131,11 +136,13 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   const choices = choicesOf(o);
   PlanAhead.on = o.planAhead;
   SeaPlay.on = o.seaPlay;
+  RoadPlay.on = o.roadPlay;
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
+  RoadPlay.only = o.roadPlayHalf ? current : null;
   const [summary] = await playGame(
     s,
     (state) => {

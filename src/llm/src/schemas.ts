@@ -112,6 +112,8 @@ export const OtherActions = [
   "place_spy",
   "recall_spy",
   "counter_intelligence",
+  "close_roads",
+  "open_roads",
   "assay",
   "authenticate",
   "forge",
@@ -147,7 +149,7 @@ const otherOrder = (described = true): ReplySchema =>
       "province",
       str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), or a province to spy on." : null),
     ],
-    ["power", str(described ? "For cede_province, give_unit, or a court to spy on." : null)],
+    ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, or a court to spy on." : null)],
     ["person", str(described ? "Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge." : null)],
     ["amount", int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)],
     [

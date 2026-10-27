@@ -8,7 +8,8 @@ import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
-import { alive, inboxOf, ledger, ownedBy, wallsOf, type GameState } from "../model/state.ts";
+import { alive, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
+import { wordSeasons } from "../model/travel.ts";
 import {
   newCharacterView,
   newLotView,
@@ -34,7 +35,7 @@ import { travelTurns } from "../turn/core.ts";
 
 /**
  * Every power's land-based growth from who holds what, the living best first (ties in the fixed order of powers), then
- * the fallen. The same for every court: ownership is public.
+ * the fallen. Read from who holds what as the court knows it (item 7b: news of distant land travels).
  */
 function landStandings(owner: Dict<string, Power | null>, fallen: Iterable<Power>, map: WorldMap | null = null): LandStanding[] {
   const m = map ?? WorldMap.default;
@@ -98,6 +99,48 @@ function wallsKnown(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | 
   return known;
 }
 
+/** Who held a province after a turn's moves, by the log of changes (GameState.ownerLog); at the start, its homeland's king. */
+function ownerAt(s: GameState, map: WorldMap, province: string, turn: number): Power | null {
+  let o = map.get(province).home;
+  for (const c of s.ownerLog) if (c.province === province && c.turn <= turn) o = c.owner;
+  return o;
+}
+
+/** What a court knows was so of a province it did not see itself: word of it, from its land, reaches the court that late. */
+export const WordSource = "word from abroad";
+export const SeenSource = "seen";
+
+/**
+ * Who a court knows holds each land province, with the season it was so and where the knowledge came from (build order
+ * item 7b, "Hidden by default"): what it sees now ({@link sight}), as it is; elsewhere the newest of what word has brought
+ * (the holder as of the newest season whose word from there, setting out then, has reached the court by now) and what its own people
+ * saw or brought home (GameState.known).
+ */
+function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, Known> {
+  const sightNow = seen ?? sight(s, map, p);
+  const stored = s.known.tryGet(p);
+  const court = map.capital(p).id;
+  const out = new Dict<string, Known>();
+  for (const x of map.landProvinces) {
+    if (sightNow.has(x.id)) {
+      out.set(x.id, newKnown({ owner: s.owner.getOrDefault(x.id, null), turn: s.turn, source: SeenSource }));
+      continue;
+    }
+    // The newest season whose word, setting out then, has arrived by now (as word of a fall is timed: TurnEngine.word).
+    let asOf = 0;
+    for (let d = s.turn - 1; d >= Math.max(1, s.turn - 6); d--)
+      if (d + wordSeasons(s.config.travelDays, map, x.id, court, d) <= s.turn) {
+        asOf = d;
+        break;
+      }
+    let best = newKnown({ owner: ownerAt(s, map, x.id, asOf), turn: asOf, source: WordSource });
+    const own = stored?.tryGet(x.id);
+    if (own !== undefined && own.turn > best.turn) best = own;
+    out.set(x.id, best);
+  }
+  return out;
+}
+
 /** A sleeping seat wakes to at most this many items of the news of the seasons it slept. */
 export const MaxWhileAsleep = 40;
 
@@ -113,6 +156,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const m = map ?? WorldMap.default;
   const engine = new TurnEngine(s, m);
   const seen = sight(s, m, p);
+  const known = knownHolders(s, m, p, seen);
   const t = s.treasuries.get(p);
   const v = newSeatView({
     turn: s.turn,
@@ -132,7 +176,12 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     strength: engine.ledgerStrength(p),
     startStrength: s.startStrength.getOrDefault(p, 0),
     provinceWeight: s.config.provinceWeight,
-    owner: s.owner.clone(),
+    owner: new Dict([...known.entries()].map(([k, x]) => [k, x.owner] as const)),
+    // Dated where the news is older than this season, and newer than the start, which every court knows as it was.
+    ownerAsOf: new Dict([...known.entries()].filter(([, x]) => x.turn < s.turn && x.turn > 0).map(([k, x]) => [k, x.turn] as const)),
+    ownerFrom: new Dict([...known.entries()].filter(([, x]) => x.turn < s.turn && x.turn > 0).map(([k, x]) => [k, x.source] as const)),
+    roadsClosed: [...(s.roadsClosed.tryGet(p) ?? [])],
+    roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     walls: wallsKnown(s, m, p, seen),
     // Its own land's only: how another king's land changed hands is not public, though who holds it is.
     conquered: new Dict([...s.conquered.entries()].filter(([k]) => s.owner.getOrDefault(k, null) === p)),
@@ -151,7 +200,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       ),
     units: s.units.filter((u) => u.power === p || seen.has(u.province)).map((u) => newUnitView({ power: u.power, kind: u.kind, province: u.province })),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
-    fallen: [...s.eliminated],
+    // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
+    fallen: isAlive(s, p) ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x)) : [...s.eliminated],
     inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
     lastSeason: [...(s.lastSeen.tryGet(p) ?? [])],
   });
@@ -218,7 +268,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const asleep = s.sleep.tryGet(p);
   v.letters = letters(s, p, v.court, s.config.sleepingSeats && asleep !== undefined ? asleep.lastCalled : s.turn - 1);
 
-  for (const other of alive(s).filter((x) => x !== p)) v.travelTimes.push(`${other}: ${engine.travelTurns(p, other)} season(s) each way`);
+  // Every court it has not heard has fallen (item 7b).
+  for (const other of AllPowers.filter((x) => x !== p && !v.fallen.includes(x))) v.travelTimes.push(`${other}: ${engine.travelTurns(p, other)} season(s) each way`);
 
   v.prices.set("army", s.config.armyCost);
   v.prices.set("fleet", s.config.fleetCost);
@@ -426,7 +477,7 @@ function timingText(s: GameState, c: Character, map: WorldMap | null = null): st
     (j) => j.characterId === c.id && (j.kind === "EnvoyOutbound" || j.kind === "EnvoyHomebound" || j.kind === "SpyOutbound" || j.kind === "SpyHomebound"),
   );
   const trail = c.currentTrail !== null ? (s.trails.find((x) => x.id === c.currentTrail && x.from === home) ?? null) : null;
-  const back = (from: Power): number => travelTurns(s.config, m, m.capital(from).id, m.capital(home).id);
+  const back = (from: Power): number => travelTurns(s.config, m, m.capital(from).id, m.capital(home).id, s.turn);
   switch (c.duty) {
     // On its way the reckoning is a reckoning ("due there"); only once it stands at that court is it "received there".
     case "EnvoyOutbound":
@@ -556,6 +607,8 @@ export const Views = {
   looksDoomed,
   sight,
   wallsKnown,
+  ownerAt,
+  knownHolders,
   for: seatView,
   letters,
   seenAtCourt,

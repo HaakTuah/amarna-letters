@@ -12,6 +12,8 @@ export interface Crossing {
   readonly b: string;
   readonly kind: CrossingKind;
   readonly name: string;
+  /** For a river crossing, the river ({@link Rivers}), whose flood season slows it ({@link legPoints}). */
+  readonly river?: string;
 }
 
 export function joins(c: Crossing, a: string, b: string): boolean {
@@ -29,6 +31,11 @@ export interface River {
   readonly name: string;
   readonly course: readonly string[];
   readonly reaches: readonly (readonly string[])[];
+  /** The season (0 Akhet, 1 Peret, 2 Shemu) it floods: its fords close and its ferries are slow ("Seasons", "Rivers"). */
+  readonly flood: number;
+  /** A boat's kilometres a day downstream and upstream; 0 where boats do not go upstream ("Rivers are roads"). */
+  readonly down: number;
+  readonly up: number;
 }
 
 /** What the ground gives a defender against one attack: rough ground, a pass or a river. */
@@ -69,7 +76,7 @@ export const Rough: readonly string[] = ["mira", "lukka", "isuwa", "amurru", "ar
 /** Desert provinces (question 5, plan step 15: the Sinai; the Sutean steppe since item 7a). An army in its own land pays no desert cost. */
 export const Desert: readonly string[] = ["sinai", "steppe"];
 
-const crossing = (a: string, b: string, kind: CrossingKind, name: string): Crossing => ({ a, b, kind, name });
+const crossing = (a: string, b: string, kind: CrossingKind, name: string, river?: string): Crossing => (river === undefined ? { a, b, kind, name } : { a, b, kind, name, river });
 
 /**
  * The mountain, river and desert crossings (question 5, plan step 14; the map review of item 7a, from the geography
@@ -85,10 +92,10 @@ export const Crossings: readonly Crossing[] = [
   crossing("kizzuwatna", "alalakh", "Mountain", "the Syrian Gates"),
   crossing("byblos", "damascus", "Mountain", "the Lebanon"),
   crossing("sidon", "damascus", "Mountain", "the Lebanon"),
-  crossing("carchemish", "harran", "River", "the Euphrates at Carchemish"),
-  crossing("aleppo", "harran", "River", "the Euphrates at Emar"),
-  crossing("isuwa", "harran", "River", "the upper Euphrates"),
-  crossing("taidu", "nineveh", "River", "the Tigris"),
+  crossing("carchemish", "harran", "River", "the Euphrates at Carchemish", "euphrates"),
+  crossing("aleppo", "harran", "River", "the Euphrates at Emar", "euphrates"),
+  crossing("isuwa", "harran", "River", "the upper Euphrates", "euphrates"),
+  crossing("taidu", "nineveh", "River", "the Tigris", "tigris"),
   crossing("suhu", "steppe", "Desert", "the Syrian desert"),
   crossing("steppe", "qatna", "Desert", "the Syrian desert"),
   crossing("steppe", "damascus", "Desert", "the Syrian desert"),
@@ -99,14 +106,17 @@ export const Crossings: readonly Crossing[] = [
 
 /** The ordered courses of the great rivers, source to mouth (question 10, plan step 2; Nubia since item 7a), and their reaches. */
 export const Rivers: readonly River[] = [
-  { id: "nile", name: "Nile", course: ["nubia", "thebes", "akhetaten", "memphis", "delta"], reaches: [["nubia"], ["thebes", "akhetaten", "memphis", "delta"]] },
+  { id: "nile", name: "Nile", course: ["nubia", "thebes", "akhetaten", "memphis", "delta"], reaches: [["nubia"], ["thebes", "akhetaten", "memphis", "delta"]], flood: 0, down: 60, up: 40 },
   {
     id: "euphrates",
     name: "Euphrates",
     course: ["carchemish", "terqa", "suhu", "sippar", "babylon", "nippur", "ur"],
     reaches: [["carchemish", "terqa", "suhu", "sippar", "babylon", "nippur", "ur"]],
+    flood: 2,
+    down: 40,
+    up: 0,
   },
-  { id: "tigris", name: "Tigris", course: ["nineveh", "ashur", "ekallate", "durkurigalzu"], reaches: [["nineveh", "ashur", "ekallate", "durkurigalzu"]] },
+  { id: "tigris", name: "Tigris", course: ["nineveh", "ashur", "ekallate", "durkurigalzu"], reaches: [["nineveh", "ashur", "ekallate", "durkurigalzu"]], flood: 2, down: 40, up: 0 },
 ];
 
 /** The terrain of a province: rough, desert, or open (every other land province, and the sea zones). */

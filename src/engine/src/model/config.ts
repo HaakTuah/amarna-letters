@@ -76,8 +76,11 @@ export interface GameConfig {
    * that season's moves were made; an army in its own land pays nothing.
    */
   desertUpkeep: number;
-  /** Envoy travel: up to [0] hops is 1 season, up to [1] hops 2 seasons, beyond that 3. */
-  travelHops: number[];
+  /**
+   * Days on the road a traveller makes in a season (build order item 7b): the points it advances along its route each
+   * season are ten times this ({@link legPoints}). The rest of a season goes on halts, audiences and waiting at borders.
+   */
+  travelDays: number;
   maxDispatchesPerTurn: number;
   maxLetterChars: number;
   audienceRounds: number;
@@ -128,7 +131,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     terrainDefence: 1,
     desertUpkeep: 30,
     seaSupply: 1,
-    travelHops: [5, 9],
+    travelDays: 45,
     maxDispatchesPerTurn: 3,
     maxLetterChars: 1500,
     audienceRounds: 2,
@@ -172,7 +175,7 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   terrainDefence: I,
   desertUpkeep: I,
   seaSupply: I,
-  travelHops: list(I),
+  travelDays: I,
   maxDispatchesPerTurn: I,
   maxLetterChars: I,
   audienceRounds: I,

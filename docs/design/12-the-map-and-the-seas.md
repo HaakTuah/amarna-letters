@@ -32,17 +32,14 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
   steppe to Qatna and Damascus, the Ways of Horus Delta–Gaza, the north Sinai, the Negev), which give no help in battle and
   make the connection long. The great rivers stay as item 5 drew them, borders at the crossings and spines along their
   courses (the Nile now from Nubia), and each `River` lists its reaches, the runs a boat can sail without unloading (the
-  Nile's first cataract between Nubia and Thebes). Boats on the rivers sail with travel, in item 7b.
+  Nile's first cataract between Nubia and Thebes). Boats on the rivers sail with travel since item 7b ([travel and news](13-travel-and-news.md)).
 - **Lengths** (`connectionKm`, `connectionDays`): kilometres from the attested road distances where the dossier gives them
   (`AttestedKm`, each with its basis, such as Thutmose III's ten days from Tjaru to Gaza), otherwise the straight line between
   the towns (latitude and longitude on each province) plus a quarter for the road, a tenth at sea; days at the dossier's
   paces: 25 km a day on open ground, 15 in rough land and over a pass, 20 across the desert, each half of a connection at
   the pace of the province it lies in; 70 km a day coasting, 100 on an open crossing, a fifth quicker with the current and a
-  quarter slower against. Map data only: travel still counts steps (`GameConfig.travelHops`) until item 7b's routes.
-- **Travel bands kept to the old pace.** The new provinces and the waters lengthen step counts (Akhetaten to Hattusa 6 to
-  8 steps, Enkomi to Ugarit 2 to 3), which would have slowed envoys by accident before item 7b measures distance. The bands
-  went from 4 and 7 steps to 5 and 9, which keeps 17 of the 21 journeys between capitals in the same number of seasons (two
-  faster, two slower). A reading, in the report.
+  quarter slower against. Item 7b's routes turn them into travel ([travel and news](13-travel-and-news.md)).
+- **Travel bands kept to the old pace** until item 7b, which replaced them with routes measured in days ([travel and news](13-travel-and-news.md)).
 - **The seas** ("Finer seas"). Every coastal province has its own waters (`Province.waters`, a sea zone `<id>waters`, named
   "Ugarit waters"), except that Amurru and Arwad share theirs (the Arwad blockade of Ṣumur, EA 98, 104-105) and Ur, Dilmun
   and Susa all touch **the Gulf**; the **Western Sea** is the open sea at the Aegean edge. Coastal hops join neighbouring

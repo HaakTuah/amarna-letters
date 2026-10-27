@@ -42,12 +42,12 @@ describe("ViewTimingTests", () => {
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let e = begin(s);
-    let travel = e.travelTurns("Egypt", "Hatti");
     Assert.equal("", lineOf(s, "Egypt", envoy.id).timing); // at court, ready
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Hatti", "Greetings.")] })]]));
 
-    let heard = 1 + travel;
-    let back = heard + travel;
+    // Due there when its route says, and back by the road home as reckoned now (item 7b).
+    let heard = first(s.journeys, (j) => j.characterId === envoy.id).arriveTurn;
+    let back = heard + new TurnEngine(s).travelTurns("Hatti", "Egypt");
     let line = lineOf(s, "Egypt", envoy.id);
     // On its way, a reckoning: "due there"; only once it stands at that court, "received there".
     Assert.equal(
@@ -60,6 +60,7 @@ describe("ViewTimingTests", () => {
       if (s.audiences.length === 0) e.resolve(new Dict<Power, TurnSubmission>());
     }
     Assert.equal(heard, s.turn);
+    back = s.turn + e.travelTurns("Hatti", "Egypt");
     Assert.equal(`set out in turn 1 for Hatti; received there in turn ${heard}; due back about turn ${back}`, lineOf(s, "Egypt", envoy.id).timing);
     e.applyAudience(
       newAudienceRecord({
@@ -69,6 +70,7 @@ describe("ViewTimingTests", () => {
       }),
     );
     line = lineOf(s, "Egypt", envoy.id);
+    back = first(s.journeys, (j) => j.characterId === envoy.id).arriveTurn;
     Assert.equal(["on the road home", `set out in turn 1 for Hatti; due back about turn ${back}`], [line.duty, line.timing]);
 
     while (s.turn < back) {

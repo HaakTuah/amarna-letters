@@ -24,6 +24,7 @@ import {
   recall,
   release,
   renew,
+  roads,
   hire,
   sally,
   seekCandidates,
@@ -755,6 +756,18 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
             Add
           </button>
         </div>
+        <div className="row" style={{ marginTop: ".4rem" }}>
+          <span>Roads (they stand until changed):</span>
+          {others.map((p) => {
+            const closed = v.roadsClosed.includes(p);
+            return (
+              <button key={p} className="small" disabled={draft.other.some((o) => o.type === "roads" && o.court === p)} onClick={() => add(roads(p, !closed))}>
+                {closed ? `Open to ${powerName(p)}` : `Close to ${powerName(p)}`}
+              </button>
+            );
+          })}
+        </div>
+        {v.roadsClosedToUs.length > 0 && <p className="muted">Closed to your people, as far as you have heard: {v.roadsClosedToUs.map(powerName).join(", ")}.</p>}
         <div className="row" style={{ marginTop: ".4rem" }}>
           <label>
             Term for hiring and renewing <input type="number" min="1" max="30" value={f.term} onChange={(e) => set({ term: num(e.target.value) })} /> seasons
