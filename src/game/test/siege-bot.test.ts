@@ -37,7 +37,7 @@ describe("SiegeBotTests", () => {
               { writeChronicles: false },
             ),
           true,
-          newGameConfig({ maxTurns: 16 }),
+          newGameConfig({ capMin: 16, capMax: 16, endMedian: 10000 }),
         )
       )[0];
       Assert.true(summary.replayMatches, `seed ${seed}`);

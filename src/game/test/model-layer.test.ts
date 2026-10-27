@@ -23,7 +23,7 @@ describe("ModelLayerTests", () => {
   // the batch runner alike, so that test has no counterpart here.
   function build(choices: SeatChoices, seed: number = 3, http: Http[] | null = null): [GameRunner, SimulatedApi] {
     let fake = new SimulatedApi();
-    let state = newGame(seed, newGameConfig({ minTurns: 3, endChance: 1.0 }));
+    let state = newGame(seed, newGameConfig({ capMin: 3, capMax: 3, endMedian: 10000 }));
     let runner: GameRunner | null = null;
     let transport: ApiTransport = fake;
     if (http !== null) {
@@ -252,7 +252,7 @@ describe("ModelLayerTests", () => {
     Assert.same(leaderRules(true, state.config), leaderRules(true, state.config));
     Assert.contains("CUSTOMS OF THE AGE", leaderRules(true, state.config));
     Assert.doesNotContain("CUSTOMS OF THE AGE", leaderRules(false, state.config));
-    Assert.contains("15% chance", leaderRules(false, state.config));
+    Assert.contains("Any season may be the last, from the first.", leaderRules(false, state.config));
   });
 
   test("The customs primer carries five echoes from the archive", () => {

@@ -69,7 +69,7 @@ describe("RunnerTests", () => {
             new TemplateNarrator(),
           ),
         true,
-        newGameConfig({ minTurns: 30, endChance: 1.0 }),
+        newGameConfig({ capMin: 30, capMax: 30, endMedian: 10000 }),
       )
     )[0];
     Assert.true(summary.replayMatches);

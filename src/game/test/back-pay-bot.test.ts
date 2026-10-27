@@ -251,7 +251,7 @@ describe("BackPayBotTests", () => {
   }
 
   test("The runner tells an envoy what its lord owes it", async () => {
-    let state = newGame(5, newGameConfig({ catastropheChance: 0, minTurns: 40 }));
+    let state = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
     let envoy = first(state.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let seats = toDict(

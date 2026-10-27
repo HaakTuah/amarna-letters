@@ -38,6 +38,16 @@ export function leaderRules(primer: boolean, c: GameConfig): string {
   return text;
 }
 
+/**
+ * The ending, in words and without numbers (build order item 6a): kings are told the rule, never its chance, median, cap
+ * or the drawn season, so no seat can see a last season coming.
+ */
+export function ending(c: GameConfig): string {
+  return c.openAge
+    ? `- This is an open age: it has no end. The game goes on season after season until only one kingdom is left or the table stops it, and the winner is whoever has grown most when it stops.`
+    : `- Any season may be the last, from the first. Early on it is very unlikely, and it grows likelier with every year. Nobody knows which season is the last, and nothing you see foretells it.`;
+}
+
 function rules(primer: boolean, c: GameConfig): string
     {
 
@@ -50,7 +60,7 @@ function rules(primer: boolean, c: GameConfig): string
 
 HOW YOU WIN
 - The winner is the power whose strength grew most relative to its own starting strength. Strength = ${c.provinceWeight} x (sum of the base yields of the provinces you hold, land you conquered counted as far as you have absorbed it) + the gold in your treasury - the back pay you owe your people. A small kingdom that doubles beats an empire that merely holds its ground.
-- No game ends before turn ${c.minTurns}. From then on, at the end of every season the game ends with a ${fmt(c.endChance * 100, "0")}% chance. Nobody knows which season is the last.${sharedVictory}
+${ending(c)}${sharedVictory}
 - A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him (if he falls too in the same season, it passes on with his own land), your troops disband, and what you owe dies with you. You cannot cede your capital. Take a rival's capital and his whole kingdom is yours.`);
 
         // With sleeping seats on, sleep is the frame of every decision: it comes right after how to win.
@@ -75,7 +85,7 @@ HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
 15. Envoys set out (their gold and the scribe's fee are paid now), detained envoys are released, servants are dismissed, candidates are sent for and background checks paid for. Then hiring and renewals are settled: a person hired this season enters your service at the end of the season and can be sent on an errand from next season; a person takes the highest offer at or above the price it asks, so when two courts bid for one person the higher wage wins.
 16. Intelligence: watchmen are paid; captors decide their captives' fates; spies set out (a spy must be one of your own people at your court, sent to watch a court or a province) or are recalled; assays, examinations and forgeries are paid for; ransoms set out. Then each posted spy may be caught, or else sends its report home.
 17. Catastrophes strike.
-18. Strength and growth are reckoned, and from turn ${c.minTurns} the game may end.
+18. Strength and growth are reckoned, and ${c.openAge ? `the age goes on (it has no end)` : `the age may end`}.
 Everything that happened is reported to you next season. Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).
 
 MOVEMENT AND COMBAT (Diplomacy rules, no dice)

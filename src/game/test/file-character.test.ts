@@ -82,7 +82,7 @@ describe("FileCharacterTests", () => {
 
   function game(turns: number = 2, timeoutSeconds: number = 30): [GameRunner, string] {
     let root = Directory.createTempSubdirectory("amarna-filechars-").fullName;
-    let state = newGame(Seed, newGameConfig({ catastropheChance: 0, maxTurns: turns }));
+    let state = newGame(Seed, newGameConfig({ catastropheChance: 0, capMin: turns, capMax: turns, endMedian: 10000 }));
     let folders = toDict(
       state.characters,
       (c) => c.id,
@@ -211,7 +211,7 @@ describe("FileCharacterTests", () => {
   }
 
   async function play(shadow: boolean): Promise<[GameState, GameLog]> {
-    let state = newGame(Seed, newGameConfig({ catastropheChance: 0, maxTurns: 4 }));
+    let state = newGame(Seed, newGameConfig({ catastropheChance: 0, capMin: 4, capMax: 4, endMedian: 10000 }));
     let runner: GameRunner | null = null;
     let minds = Object.assign(new LlmCharacterMind(new Fixed(), ModelIds.Haiku), { shadow: shadow ? (s: ShadowDecision) => runner!.log.addShadow(s) : null });
     let bot = new ScriptLeader(Seed);

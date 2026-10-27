@@ -39,7 +39,7 @@ describe("SaveVersionTests", () => {
   }
 
   test("New games are saved under the current version", async () => {
-    Assert.equal(7, CURRENT_VERSION);
+    Assert.equal(8, CURRENT_VERSION);
     Assert.equal(CURRENT_VERSION, newGame(1).version);
     let log = await playedLog(4, 1);
     Assert.equal(CURRENT_VERSION, log.header.version);
@@ -87,7 +87,7 @@ describe("SaveVersionTests", () => {
               return Object.assign(new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
             },
             true,
-            newGameConfig({ sleepingSeats: sleeping, maxTurns: 12 }),
+            newGameConfig({ sleepingSeats: sleeping, capMin: 12, capMax: 12, endMedian: 10000 }),
           )
         )[0];
         Assert.true(summary.replayMatches, `seed ${seed}, sleep ${sleeping ? "on" : "off"}`);

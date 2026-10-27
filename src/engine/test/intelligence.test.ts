@@ -269,7 +269,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Sworn allies can share the victory", () => {
-    let s = newGame(10, newGameConfig({ minTurns: 1, endChance: 1.0, sharedVictory: true }));
+    let s = newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000, sharedVictory: true }));
     s.tablets.push(
       newTablet({
         id: "t901",
@@ -291,7 +291,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Sworn allies do not share the victory unless the house rule is on", () => {
-    let s = newGame(10, newGameConfig({ minTurns: 1, endChance: 1.0 }));
+    let s = newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000 }));
     Assert.false(s.config.sharedVictory);
     s.tablets.push(
       newTablet({

@@ -121,7 +121,7 @@ export class ModelRecorder implements JsonAsker {
 }
 
 // <summary>Sleeping seats are on by default: nothing here switches them on.</summary>
-export const Quiet: GameConfig = newGameConfig({ minTurns: 40, catastropheChance: 0 });
+export const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0 });
 
 export function nothing(): TurnSubmission {
   return newTurnSubmission();

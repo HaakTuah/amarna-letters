@@ -90,7 +90,8 @@ tokens). A file request's length is logged with its call (`ModelCall.requestChar
 character, with isolation enforced by construction, not by instruction: see `sim/README.md` and
 `docs/SIMULATION-PROMPT.md`. Starting values for the first experiment, all settings rather than rules:
 seed 7; `--max-turns 10` (the game stops after season 10, whatever the random end; the kings are not
-told, and their rulebook still says no game ends before turn 15); `--sleep-cap 6`; script characters
+told, and their rulebook then said no game ends before turn 15; since item 6a it is a known cap, with the rising chance
+still able to end the age earlier); `--sleep-cap 6`; script characters
 and the template narrator; kings on Sonnet 5.5, the design's default leader model. For the second
 (item 4): seeds 7 and 15, ten seasons each, sleep on with the default hidden cap (12); kings on
 Sonnet and characters on Haiku, the design's defaults ("Every model is the table's choice"); every

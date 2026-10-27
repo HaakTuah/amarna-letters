@@ -252,7 +252,7 @@ describe("SiegePlayTests", () => {
   test("A script king s besieging army with nothing to help it slips away as the relief falls", () => {
     // Babylonia's army besieges Assyria's Mari (walls 2, so the walls may sally); Assyria's army in Ekallatum stands next
     // to it, and no troop of Babylonia's can reach Mari. Damascus, beyond it, is free, open and out of Assyria's reach.
-    let s = newGame(1, newGameConfig({ minTurns: 40, catastropheChance: 0 }));
+    let s = newGame(1, newGameConfig({ endMedian: 10000, catastropheChance: 0 }));
     s.turn = 6;
     removeAll(s.units, (u) => u.province === "sippar");
     let army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "mari" });

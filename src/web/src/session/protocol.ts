@@ -14,6 +14,7 @@ export type ToWorker =
   | { type: "auto"; on: boolean }
   | { type: "delay"; ms: number }
   | { type: "budget"; by: number }
+  | { type: "playOn" }
   | { type: "stop" }
   | { type: "clear" }
   | { type: "orders"; power: Power; json: string }
@@ -43,6 +44,8 @@ export interface Live {
   auto: boolean;
   readOnly: boolean;
   ended: boolean;
+  /** Whether the table may play on into an open age: the age ended by its last season, and this game is not a replay. */
+  canPlayOn: boolean;
   turn: number;
   /** The last few fallback errors, and how many there were. */
   errors: string[];
