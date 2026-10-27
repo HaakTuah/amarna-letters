@@ -39,11 +39,13 @@ function threatened(v: SeatView, by: Power | null = null): Set<string> {
 
 /**
  * What a woken king's orders can move (first guesses, tuned in item 18): a little always, the share of its land with foreign
- * troops in or beside it, and more for each thing that woke it.
+ * troops in or beside it, and more for each thing that woke it; with foreign troops in or beside its capital, they are
+ * always paid ("capital").
  */
 export function ordersStakes(v: SeatView, waited: number): Stakes {
   const land = Math.max(1, own(v).length);
-  return { kind: "orders", moved: 0.15 + threatened(v).size / land + 0.1 * v.wokenBecause.length, waited };
+  const near = threatened(v);
+  return { kind: "orders", moved: 0.15 + near.size / land + 0.1 * v.wokenBecause.length, waited, capital: near.has(WorldMap.default.capital(v.power).id) };
 }
 
 /** What an envoy's audience can move: the gold he brings against the treasury, and more for a tablet or troops at the border. */

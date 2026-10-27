@@ -2,7 +2,7 @@
 
 - **Presets**: Free (all script, no key), Budget (every role on Haiku 5.5, no rung above the characters), Counsel
   (item 6c: Haiku 5.5 plays every king and character, Sonnet 5.5 above them plans each king's year, gives counsel and
-  takes what is passed up; Haiku narrator), Standard (the design document's table: Sonnet 5.5 kings and narrator, Haiku
+  takes what is passed up; Sonnet narrator since item 7a, Haakon's answer to item 6c's review, Haiku before), Standard (the design document's table: Sonnet 5.5 kings and narrator, Haiku
   5.5 envoys, with Haiku as the kings' small rung and Sonnet above the envoys) and Showcase (Opus 5.5 kings and
   narrator, Haiku 5.5 envoys, the same rungs as Standard). Any seat can be set separately, envoys can be Sonnet 5.5,
   and the narrator any of the three; the other rungs are under "Who decides" below.
@@ -316,7 +316,10 @@
     a king's orders wait (his units hold, his schedule and standing orders run, the decision is the script's and no
     fallback, and he is asked again next season with the wait adding to its worth); a character's decision is the
     script mind's, worded by the small rung in a phrasing call where others read it; light alerts wait in the digest; a
-    plan waits. Courts are never refused (see the item's report).
+    plan waits. Courts are never refused (see the item's report). A king's orders with foreign troops in or beside his
+    capital (`Stakes.capital`, from what he sees) are always paid: they start above the script whatever the rate, and
+    may spend a reserve of the limit (`reserveShare`, a tenth, a first guess) that ordinary decisions stop short of, until
+    the whole limit is spent (Haakon's answer to item 6c's review, built in item 7a).
   - **Audits.** One small-rung decision in twenty (`auditShare`; a seeded draw by the call's key) is also put to the rung
     above out of play: the answer is never used, the log keeps how far the two differed and how much that weighed
     (`Audit`, `GameLog.audits`, an "audit" line), and the rates move.
