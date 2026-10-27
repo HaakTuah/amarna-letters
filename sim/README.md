@@ -197,7 +197,7 @@ Claude Code session: with it set, Claude Code bills the API instead of the subsc
    requests and replies left by an earlier game into an `earlier-<time>` folder in each king's folder, and prints that
    it is running. If you restart it in the middle of a game, use `node sim/bridge.js --keep`, which leaves that game's
    waiting requests in place.
-3. **Start the web app,** in another terminal: `npm run dev --workspace src/web`, then open
+3. **Start the web app,** in another terminal (after `npm ci` once): `npm run dev --workspace src/web`, then open
    <http://localhost:5183>. The **Local agents** preset and the "Local agent (Claude Code)" choice under "Customize the
    table" appear only when the app runs on this computer, not on the published site.
 4. **Start the orchestrating session.** Check that `ANTHROPIC_API_KEY` is not set (PowerShell:

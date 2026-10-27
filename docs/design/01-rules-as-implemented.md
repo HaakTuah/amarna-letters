@@ -92,14 +92,14 @@
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, plan steps 1 to 9, and the design document's
   "Tempo of war" and "Walls and terrain"). Walls set how long a city holds out, not how many armies
   a field battle needs:
-  - **Walls by place** (`MapData.StartWalls`, first guesses): every capital 3; the fortresses
+  - **Walls by place** (`StartWalls`, first guesses): every capital 3; the fortresses
     Carchemish, Qadesh, Tyre, Megiddo, Gaza, Mari, Susa, Memphis, Kanesh and Nineveh 2; the walled
     towns Lukka, Isuwa, Ugarit, Amurru, Byblos and Damascus 1; every other land province none. So
     every free city has walls, and so do the capitals and three homeland fortresses. The walls
     standing now are the game state's (`GameState.walls`). THE MAP in the rulebook gives each
     province's walls at the start, which every court knows. **A court sees the walls standing now
     only where it sees troops** (its sight: its land, its troops, its spies' provinces and next to
-    them), and knows them elsewhere as it last saw them (`Views.WallsKnown`, `GameState.wallsSeen`:
+    them), and knows them elsewhere as it last saw them (`Views.wallsKnown`, `GameState.wallsSeen`:
     each living court's, set from the map at the start and, as each season resolves, from what its
     view showed when it gave its orders), in its view ("LANDS ...: mari (walls 2)") and on its map
     (a ring for each level; the province card says "as your court last saw them" out of sight, or
@@ -222,9 +222,9 @@
   rough ground in Mira, Lukka, Isuwa, Amurru, Arbela and Tamassos; the mountain passes of the Cilician Gates
   (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish); the great rivers at the
   Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh).
-  - **The ground helps a unit that stands its ground** (`Geography.DefenceGround`, `Adjudicator.holdStrength`): one that
+  - **The ground helps a unit that stands its ground** (`defenceGround`, `Adjudicator.holdStrength`): one that
     holds, besieges, supports or convoys, or whose own move failed. Against an attack it holds with
-    `GameConfig.TerrainDefence` (1, a first guess) more when it stands on rough ground, when the attack comes over a pass or
+    `GameConfig.terrainDefence` (1, a first guess) more when it stands on rough ground, when the attack comes over a pass or
     a great river (a crossing protects both its sides), or when the attack is a landing from the sea (an army carried by
     convoy: question 5's "a landing by convoy counts as a crossing"); 1 in all however many apply, the first named in that
     order. So one army on rough ground needs three to dislodge it, and Alashiya's island, which armies reach only by convoy,
@@ -247,7 +247,7 @@
     counted in the batch report. The web map's tooltips, province card, legend and about page say what the ground does.
   - **The desert costs an army supplies** (question 5, plan step 15, built as the Build order's item 5 asks: "an army in its
     own land pays no desert cost", so no rule names a power). An army that ends a season's moves in desert land (Sinai,
-    `Desert`) its king did not hold when the moves were made pays `GameConfig.DesertUpkeep` (30, a first guess)
+    `Desert`) its king did not hold when the moves were made pays `GameConfig.desertUpkeep` (30, a first guess)
     with its next upkeep (`TurnEngine.markDesert`, `GameState.inDesert`, cleared once paid; `TurnEngine.desertCost` in
     `upkeep`, so unpaid it makes troops desert like any upkeep). Egypt holds the Sinai at the start, so its armies cross it
     freely (question 5's Ways of Horus), and so does anyone who takes it, from the season after: an invader pays for the
@@ -267,7 +267,7 @@
   an empire to hold, not a lump of score"). A province taken by force (troops standing in it, a storm, a siege, or
   passing with a fallen kingdom's capital) yields its new holder a third of its yield in its first season under him,
   two thirds in the second, and all of it from the third, and counts in his strength the same way
-  (`TurnEngine.Absorbed`, `GameState.conquered`: the season it was taken). The first season is the season it was taken,
+  (`TurnEngine.beginTurn`, `GameState.conquered`: the season it was taken). The first season is the season it was taken,
   for the score reckoned at its end, and the next, for the income paid at its start; the mark goes once it counts in
   full. A province of the taker's own homeland that he takes back counts in full at once (map data, not a check of which
   power it is), and so does land bought or ceded, except land ceded while its giver was still absorbing it: the mark
@@ -277,7 +277,7 @@
   Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
   following the yield (a reading; review question). Revolts, which the design document mentions, are left for later, as
   question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of
-  its yield this season)"), the court's own land only (`SeatView.Conquered`): who holds a province is public, but how it
+  its yield this season)"), the court's own land only (`SeatView.conquered`): who holds a province is public, but how it
   changed hands is not, and a mark on every king's land told every court which land had been conquered and which ceded
   or bought (since the review of the siege package; until then every view carried every mark). The rulebook says so
   under ECONOMY ("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is
@@ -341,7 +341,7 @@
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
 - **Ids: a counter for each kind of object** (since Build order item 4, fix (d); save version 4). Every
-  object the engine makes takes its id from `GameState.NewId(prefix)`: its kind's prefix and that kind's
+  object the engine makes takes its id from `newId(s, prefix)`: its kind's prefix and that kind's
   own count, so tablets are "t1", "t2", ... and copies "k1", "k2", ... (`GameState.idCounters`, saved
   with the state). The prefixes are listed once, in `IdKinds`: a audience, c character, f fact, g lot
   of gold, j journey, k copy of a tablet, m message trail, q task owed to a court, r request to a
@@ -404,7 +404,7 @@
   disband of a unit that was gone, and those last few did nothing in silence; a declined hire did not
   say why; a botched forgery was an ordinary notice.)
 - **Save version.** The state and the log header carry the version of the rules
-  (`GameState.CurrentVersion`: 2 since the simulation-fixes round, 3 since Build order item 3, whose archives,
+  (`CURRENT_VERSION`: 2 since the simulation-fixes round, 3 since Build order item 3, whose archives,
   inventory tablets and swapped inventories change how a seed plays, 4 since Build order item 4, whose hidden spies
   are not paid back pay at the court they watch and do not end that court's cover, and whose fix (d) gives each kind
   of object its own id counter, which renumbers objects and so moves every seed's rolls once; neither was released on
@@ -428,7 +428,7 @@
   earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3, 4 and
   5). The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
-  (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
+  (tested). For analysis only, `GameRunner.forReplay(log, true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
   and decisions), and version 2 was never released, so it stays version 2: a version-2 log saved
   before back pay would replay under the new wage rules and may diverge. The same holds for the rest of

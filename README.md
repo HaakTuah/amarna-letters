@@ -358,7 +358,7 @@ log replays exactly.
 | `src/web` | Vite and React app: setup, SVG map, human orders and audiences, spectator views, timeline, chronicles, IndexedDB saves. The engine, the script kings and characters run in a Web Worker; the page only shows what it sends. |
 | `src/batch` | Node runner for unattended games, on worker threads. |
 | `src/*/test` | The tests (Vitest), ported from the C# suite: engine, script kings and characters, model layer against a simulated API, and the web map's scenes. |
-| `tests/fixtures` | Recorded model games (JSON lines), kept as data. The C# build the game was converted from (build order item 5+) was removed after the fix pass; it is kept at the tag `csharp-final`. |
+| `tests/fixtures` | Recorded model games (JSON lines), kept as data. The C# build the game was converted from (build order item 5+) was removed after the fix pass; it is kept at the tag `csharp-final` (commit `5b4caa2`). |
 
 ### Design notes
 

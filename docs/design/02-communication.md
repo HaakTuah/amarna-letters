@@ -47,7 +47,7 @@
     watches, or watching a court that has fallen, copies nothing), and the web app's Orders tab heads the list "Your
     archive".
   - **Naming tablets** (since the fix pass after item 4). Every court names a tablet the same way, by its kind, seals and
-    the date it bears (`Views.TabletName`: "the tablet sealed by Babylonia and Mitanni, dated turn 2", "the inventory
+    the date it bears (`Views.tabletName`: "the tablet sealed by Babylonia and Mitanni, dated turn 2", "the inventory
     sealed by Egypt, dated turn 3"), with its first eight words added where the archive holds another of the same kind,
     seals and date. A copy's id ("k8") is each court's own mark, for its orders only (`show_tablet_copies`,
     `authenticate`): the archive lists "- the tablet sealed by Hatti and Egypt, dated turn 1 [your copy k900]: "Peace."
@@ -88,7 +88,7 @@
   rules on treaties and evidence (two seals or more, their own among them) never read one.
 - **Swapped inventories** (since item 3; "Swapped tablets and false envoys"). An envoy that kept some, but
   not all, of the gold it carries, out or home, may hand over in place of the sealed inventory one it forges itself,
-  stating only what is left (`AudienceRecord.SwapInventory` from the envoy's presentation; `MindReply.swapInventory` from
+  stating only what is left (`AudienceRecord.swapInventory` from the envoy's presentation; `MindReply.swapInventory` from
   its report home).
   It is a forgery under the forgery rules: it needs the forger's skill (competence at least `ForgeMinCompetence`, 55);
   an envoy without it does not hand its botched forgery over, the true inventory goes, and it remembers that its hand

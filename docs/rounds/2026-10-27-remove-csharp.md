@@ -72,6 +72,16 @@ solution files deleted, and the design notes re-pointed from C# code to its Type
 - 50 script games, seeds 1-50, `--verify-replay`: 50 of 50 replay exactly; a capital fell in 30 of 50 games (as the fix
   pass).
 
+## Review
+
+One reviewer (Opus, high). Blocking: 24 more C# member names in the design notes, missed by the first script because
+they carried arguments or were partly found (`GameState.CurrentVersion` is now `CURRENT_VERSION`,
+`GameRunner.ForReplay(...)` is `GameRunner.forReplay(log, true)`, `FileExchange.request` is `requestText`, and so on):
+all re-pointed, none left. Taken from its minor points: the load-size bullet says the SDK is in the worker's bundle;
+the dead `.loading-progress` rules (Blazor's load percentage) removed; the docs name the commit `5b4caa2` beside the
+tag until the tag is pushed; the local steps say to run `npm ci` once. Left: `.gitignore` is still the .NET template
+(harmless), and a comment in `vite.config.ts` that compares with the Blazor build's worker.
+
 ## Script players
 
 No rule and no feature: the engine, script kings and characters are unchanged, and there is nothing new for script

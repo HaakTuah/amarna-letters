@@ -166,7 +166,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   plan. Envoys were the most common reason a king woke, and an orders call costs about twice an
   audience.
   - When the only reasons a sleeping seat has are envoys waiting, the wake check does not wake it:
-    it holds court asleep (`SleepState.HoldsCourt`), its orders stand, and its audiences are held
+    it holds court asleep (`SleepState.holdsCourt`), its orders stand, and its audiences are held
     as usual, one call per exchange, by the seat's own model at one effort level lower (the owner's
     rule that the seat's own model makes every decision; the lower effort is that of every
     audience, and whether the reopen choice, a planning decision, should be made at the orders
@@ -199,7 +199,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     full view", its opening line ends "You chose at an earlier audience this season to reopen your
     orders", and its schema has `letters` but no `reopen_orders` (since "Requests are rules too": it
     once still read "YOUR ORDERS STAND WHILE YOU SLEEP" and was asked again).
-  - **Letters** sent from such an audience (`HostReply.Letters`: dispatch orders, or a letter to a
+  - **Letters** sent from such an audience (`HostReply.letters`: dispatch orders, or a letter to a
     court nobody knows, refused with the reason) are kept in the seat's state (`courtLetters`) and
     validated as usual with the season's orders: they come first among the seat's orders, so their
     gold is reserved first. A later letter for the same person in the same season replaces an earlier
@@ -229,7 +229,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     your orders stand and send none, your next letters leave only when you next give orders."), and
     the schema's `letters` adds "each costs what a letter in your orders costs".
   - **Reopening.** If any of its replies that season (any exchange of any audience) says
-    `reopen_orders`, then once the audiences are applied (`TurnEngine.CourtsHeld`) the seat wakes
+    `reopen_orders`, then once the audiences are applied (`TurnEngine.courtsHeld`) the seat wakes
     for an orders call that season, as an ordinary wake: its sleep ends with the envoys plus "you
     chose at your audience to reopen your orders", and the orders
     request opens "You were woken because: an envoy of Egypt waits to be received; you chose at
@@ -354,7 +354,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   so a king that reaches it can count it, and from then on
   it may anchor that king's plans. Both the exact count and the neutral reason were decided; a
   way out, left to the user, would be to vary the cap a little for each sleep (from
-  `Rng.For(seed, turn, "sleepcap", power)`). The batch seat report prints, per seat, the courts it
+  `Rng.for(seed, turn, "sleepcap", power)`). The batch seat report prints, per seat, the courts it
   held while its orders stood and at how many it reopened them ("held/reopened"), how many
   seasons each sleep lasted ("+" for a sleep still
   running at the end; the seasons it held court asleep count as slept) and every reason it was
@@ -384,7 +384,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   gives the orders. The engine binds the order to that unit's id (`PlannedOrder.unitId`), and an
   own unit named as the unit supported or the army convoyed too (`otherUnitId`); a foreign unit, or
   walls, stay named by province, and an order for no unit (a levy, an errand) runs as given. When
-  the order runs it is given from where its units then stand (`TurnEngine.AsItStands`). An order
+  the order runs it is given from where its units then stand (`asItStands`). An order
   naming a province where the seat has no unit, or a unit not its own, is refused when given, in the
   validator's words ("- turn 7: nippur -> ur: you have no unit in nippur", in "Scheduled orders not
   kept"; "the unit in X is not yours" only where the seat can see, see "Sight"), which wakes nobody
@@ -439,7 +439,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   the limit of 40 seasons. (The brief allowed a refused move to be tried again too; the round's
   plan for this part did not, and that is what is built.)
 - **Standing orders**, at most 12 (`standing_orders`), kept in the game state for each seat that
-  gave one (`GameState.Standing`, a `StandingBook` per seat with its orders and its last id) until they fire
+  gave one (`GameState.standing`, a `StandingBook` per seat with its orders and its last id) until they fire
   or are cancelled (`cancel_standing`: ids, or "all"; an unknown id is reported as "Standing orders
   not cancelled"). **Every seat may keep them, awake or asleep** (since the owner's additions to the
   fix pass after item 4; see "For every seat" below): until then they were kept in a sleeping seat's
@@ -536,7 +536,7 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
     same-season reaction existed for sleeping seats alone). The feature audit of the fix pass had left
     standing orders to sleeping seats ("Script kings give no standing orders: they never sleep"); the
     review asked that it be built rather than deferred. Now:
-    - **The engine** keeps every seat's standing orders alike (`GameState.Standing`). A seat that plays
+    - **The engine** keeps every seat's standing orders alike (`GameState.standing`). A seat that plays
       every season keeps the ones it gives in any season, unless the stand-in gave them
       (`TurnEngine.afterValidation`), cancels in the season it gives the cancellation, and has troops it
       lost take their standing orders with them at the wake check, which runs for every seat

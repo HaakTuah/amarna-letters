@@ -18,7 +18,7 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   in the engine read them and only the web map drew them; now the adjudicator reads rough ground and the crossings, and
   the map's tooltips, province card, legend and about page say what they do (the drawing is unchanged: peaks beside
   each rough city, a pass or ford mark across each crossing). "A landing by convoy counts as a crossing" is a rule
-  about any convoyed landing, so it is a rule of the adjudicator (`Geography.DefenceGround`) rather than stored on a
+  about any convoyed landing, so it is a rule of the adjudicator (`defenceGround`) rather than stored on a
   connection.
 - **One date label** (`dateLabel`, question 26, plan steps 1-4): the court's season, the year BCE and the
   turn. Years are counted from 1345 BCE: the first year of a game is 1345 BCE and each later year is one less
@@ -95,9 +95,9 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   `pr-<number>/` inside the root worker's scope (since the docs and preview pass), is left to the network by that
   worker, and has no worker of its own: one would delete the root's caches when it activated. Pages serves only the
   root's `404.html`, which sends a deep link inside a preview to that preview's start.
-- **Load size.** The page is a Vite build of TypeScript and React: about 1.2 MB served (the page's bundle 754 KB, 247 KB
-  compressed, carries the engine as well as the worker's), against 9.2 MB for the C# build it replaced (item 5+). The
-  Anthropic SDK (`@anthropic-ai/sdk`) is in the bundle, since the browser calls the API through it (see "Providers"
+- **Load size.** The page is a Vite build of TypeScript and React: about 1.2 MB served at the conversion: the page's bundle and the
+  worker's, each with its own copy of the engine), against 9.2 MB for the C# build it replaced (item 5+). The
+  Anthropic SDK (`@anthropic-ai/sdk`) is in the worker's bundle, since the worker calls the API through it (see "Providers"
   under Models). The loading screen says "Loading the game. Later visits start from this device."
 - **The game in a Web Worker** (since the TypeScript conversion, item 5+). The whole session runs in one module worker
   (`src/web/src/session/worker.ts`, holding a `SessionCore` from `core.ts`): the engine, the script kings and

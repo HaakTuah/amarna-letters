@@ -126,7 +126,7 @@ run on this computer, with a human seat against kings played by the same guarded
 session on the subscription instead of through paid API calls (`sim/README.md`, "Local play"; `docs/PLAY-PROMPT.md`).
 A king set to `"LocalAgent"` ("Local agent") is a model leader seat whose asker is a `BridgeExchange`: a file
 seat whose files are written by the local bridge, `sim/bridge.js`, since a web page cannot write files. The page builds
-the request text itself (`FileExchange.request`, with a one-off mark where the reply's path goes) and posts it with the
+the request text itself (`requestText`, with a one-off mark where the reply's path goes) and posts it with the
 king's name and the request's file name; the bridge, which alone knows the folders (`sim/kings/seats.json`), puts the
 reply path in and writes `<name>.request.md` into the king's folder, and the page asks it every second for the reply
 until it comes. The reply goes through the file seat's checks, one retry and fallback (`converse`, shared

@@ -169,7 +169,7 @@
   cut to 300 characters, with no summary and no ledger; the simulation's kings wrote a median of
   1,989 characters of notes a season, 107 of 134 replies over 1,500.)
 - **The king's letters.** Every seat's view carries the court's own letters as its scribes wrote
-  them (`SeatView.letters`, `Views.Letters`, from the message trails): the latest letter of each of
+  them (`SeatView.letters`, `Views.letters`, from the message trails): the latest letter of each of
   its envoys still away on that errand as far as it knows (one of its people, by what it believes,
   not at court), and every letter whose envoy's report has reached it since it last gave orders. A
   model king reads them in his orders request, after his people: "YOUR LETTERS (your record of what

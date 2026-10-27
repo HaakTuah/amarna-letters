@@ -175,7 +175,7 @@
   season you observed"), with the facts of its life and its secret master as they were then (the
   report keeps them: `SpyReport.factCount`, `SpyReport.secretMaster`), so a report still on the road
   when the spy was caught and turned is not written by the double agent it became. Since the follow-up's review of
-  that pass the report also keeps its lord, wage, purse and back pay then (`SpyReport.lord`, `Wage`, `Purse`,
+  that pass the report also keeps its lord, wage, purse and back pay then (`SpyReport.lord`, `wage`, `purse`,
   `backPay`): a spy dismissed while its report was on the road read "You serve nobody at present" beside "You are
   quietly watching … for your lord". Its persona's trait words are still as its traits are now. A spy at a court also copies
   from its archive, and the copies come home with its report (see "Tablets lie in archives").
@@ -256,7 +256,7 @@
     its word has arrived), never "at court, ready", with its wage and the back pay owed it, which
     keeps growing while it is held; the web app offers the ransom button only then.
   - **When it is due back.** Each of the king's people away reads when it set out and when it is
-    due back, as the travel table lets its master reckon it (`Views.TimingText`): an envoy on its
+    due back, as the travel table lets its master reckon it (`Views.timingText`): an envoy on its
     way out "travelling as envoy to Hatti; set out in turn 4 for Hatti; due there about turn 6; due
     back about turn 8", and once at the foreign court "…; received there in turn 6; due back about
     turn 8" (a reckoning reads "due", a fact "received"); on the road home "set out in turn 4 for Hatti;
