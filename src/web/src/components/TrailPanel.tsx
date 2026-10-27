@@ -1,5 +1,6 @@
 import { AllPowers, findCharacter, idNumber, type Character, type GameState, type MessageTrail, type Power } from "@amarna/engine";
 import type { AuthorKind, Authorship, TrailAuthors } from "@amarna/game";
+import { ModelIds } from "@amarna/llm";
 import { useState } from "react";
 import type { Live } from "../session/protocol.ts";
 import { powerName, shekels, when } from "../ui/format.ts";
@@ -35,7 +36,15 @@ export function Author({ by }: { by: Authorship | null | undefined }) {
         · fallback: a script for {by.name}
       </small>
     );
-  return <small className={`author ${by.kind}`}> · by {by.name}</small>;
+  // The rung of the mind's ladder that took it, and why ("Minds follow what is at stake"): the spectator sees it, no king does.
+  const rung = (by.rung ?? "") === "" ? "" : by.rung === "script" ? " (script rung)" : ` (${by.rung} rung, ${ModelIds.display(by.model ?? "")})`;
+  return (
+    <small className={`author ${by.kind}`} title={by.why ?? ""}>
+      {" "}
+      · by {by.name}
+      {rung}
+    </small>
+  );
 }
 
 /** Every author of a trail, the parts written so far. */

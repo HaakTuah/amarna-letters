@@ -47,6 +47,7 @@ const emptyLive = (): Live => ({
   error: null,
   notice: null,
   cost: 0,
+  costUnknown: false,
   settings: newSettings(),
   config: null,
   seats: {},

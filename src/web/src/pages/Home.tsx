@@ -9,13 +9,14 @@ import {
   bridgeReady,
   choicesFromHeader,
   leaderModel,
+  startProblem,
   type LeaderKind,
   type Preset,
   type SeatChoices,
 } from "@amarna/llm";
 import { useEffect, useState } from "react";
 import { Emblem } from "../components/Emblem.tsx";
-import { ModelPicker, ProvidersPanel } from "../components/ModelSettings.tsx";
+import { ModelPicker, ProvidersPanel, RungsPanel } from "../components/ModelSettings.tsx";
 import { session } from "../session/client.ts";
 import { choicesOf, estimate, handLimitNeeded, newSettings, randomSeed, usesModels, withChoices, type GameSettings } from "../session/settings.ts";
 import { deleteLog, getSessionKey, listLogs, loadLog, setSessionKey, type SavedLog } from "../session/storage.ts";
@@ -140,6 +141,11 @@ export function Home() {
     p.applyTo(c);
     return CostEstimate.perGame(c);
   };
+  const describeFor = (p: Preset): string => {
+    const c = choices.copy();
+    p.applyTo(c);
+    return CostEstimate.describeFor(c);
+  };
 
   const changeSeat = (value: string): void =>
     change((c) => {
@@ -188,6 +194,11 @@ export function Home() {
     // An open age has no end: with model-played seats, its spending limit is the table's own, never the default.
     if (settings.openAge && handLimitNeeded(settings) && !budgetTouched) {
       setProblem("An open age has no end, and its model calls none either: set by hand the spending limit at which the game pauses, below, before it begins.");
+      return;
+    }
+    const unpriced = startProblem(choices, settings.budgetUsd, settings.simulateApi);
+    if (unpriced !== null) {
+      setProblem(unpriced);
       return;
     }
     if (choices.usesLocalAgents) {
@@ -269,7 +280,7 @@ export function Home() {
             const on = selected?.id === p.id;
             const e = estimateFor(p);
             const local = p === Presets.Local;
-            const price = local ? "your Claude subscription" : `${CostEstimate.describe(e)}${e > 0 ? " a game" : ""}`;
+            const price = local ? "your Claude subscription" : `${describeFor(p)}${e > 0 ? " a game" : ""}`;
             return (
               <button
                 key={p.id}
@@ -296,7 +307,7 @@ export function Home() {
         </div>
         {selected === null && (
           <p className="notice">
-            Custom setup: {summary()}. Estimated {CostEstimate.describe(est)}
+            Custom setup: {summary()}. Estimated {CostEstimate.describeFor(choices, settings.endMedian)}
             {est > 0 ? " a game" : ""}.
           </p>
         )}
@@ -450,6 +461,7 @@ export function Home() {
               </label>
             </div>
           </div>
+          <RungsPanel choices={choices} change={change} />
           <ProvidersPanel
             choices={choices}
             keys={keys.others}
@@ -539,7 +551,7 @@ export function Home() {
               </>
             )}
             <p style={{ marginTop: ".6rem" }}>
-              Estimated cost: <strong>{CostEstimate.describe(est)}</strong> for {settings.openAge ? `the first ${settings.endMedian} seasons of an open age, which has no end` : `a game of median length (${settings.endMedian} seasons)`} (a rough figure: the meter
+              Estimated cost: <strong>{CostEstimate.describeFor(choices, settings.endMedian)}</strong> for {settings.openAge ? `the first ${settings.endMedian} seasons of an open age, which has no end` : `a game of median length (${settings.endMedian} seasons)`} (a rough figure: the meter
               in the game shows the real spend).{" "}
               <label>
                 The game pauses at $

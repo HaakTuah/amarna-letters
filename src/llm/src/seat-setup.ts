@@ -13,6 +13,9 @@ import {
 } from "@amarna/game";
 import { BridgeExchange, DefaultAddress, LocalBridge } from "./bridge.ts";
 import { LlmCharacterMind } from "./character-mind.ts";
+import { NewPlan, alertsReply, planReply, routineCourt } from "./king-ladder.ts";
+import { Ladder, counselSchema, withLadder } from "./ladder.ts";
+import { Spending, newSpendingSettings, type SpendingSettings } from "./spending.ts";
 import { AnthropicProvider, type ApiTransport } from "./anthropic.ts";
 import { AnthropicId, ModelClient, splitModel, type Provider } from "./client.ts";
 import { CompatibleProvider, type ProviderSetting } from "./compatible.ts";
@@ -39,13 +42,28 @@ export function leaderModel(k: LeaderKind): string | null {
 export function characterModel(k: CharacterKind): string | null {
   return k === "Script" || k.trim().length === 0 ? null : modelOf(k);
 }
+/** The model a rung names, or null when the table turned it off ("Off", or nothing). */
+export function rungModel(k: string): string | null {
+  return k === "Off" || k === "Script" || k === "Template" || k.trim().length === 0 ? null : modelOf(k);
+}
+
 /**
- * The model that words a king's standing answers ("phrasing calls" under "Minds follow what is at stake"): the small
- * model the table chose for its characters, or the king's own if the characters play by script. Item 6c makes it a job
- * of its own on the setup menu.
+ * A king's small rung ("Three rungs for every job"): its seat's own choice, or the job's; null when it is off, or when it
+ * is the king's own model, which then does everything itself.
  */
-export function phrasingModel(choices: SeatChoices, king: string): string {
-  return characterModel(choices.characters) ?? king;
+export function smallModel(choices: SeatChoices, p: Power): string | null {
+  const king = leaderModel(choices.leaders.get(p));
+  const own = choices.smallFor[p];
+  const m = rungModel(own !== undefined && own.length > 0 ? own : choices.small);
+  return king === null || m === null || m === king ? null : m;
+}
+
+/**
+ * The model that words a king's standing answers ("phrasing calls" under "Minds follow what is at stake"): its small rung,
+ * or else the small model the table chose for its characters, or else the king's own.
+ */
+export function phrasingModel(choices: SeatChoices, king: string, p: Power | null = null): string {
+  return (p !== null ? smallModel(choices, p) : null) ?? characterModel(choices.characters) ?? king;
 }
 
 export function narratorModel(k: NarratorKind): string | null {
@@ -66,12 +84,48 @@ export class SeatChoices {
   providers: ProviderSetting[] = [];
   /** Prices set by the table, by model setting, over the defaults. */
   prices: Record<string, PriceSetting> = {};
+  /**
+   * The kings' small rung ("Every model is the table's choice"): routine audiences, light alerts and the words of standing
+   * answers, Haiku by default; "Off" leaves every envoy to the king's own model, as before item 6c.
+   */
+  small = "Haiku";
+  /** A seat's own small rung over the job's ("" keeps the job's), so that models can be compared. */
+  smallFor: Partial<Record<Power, string>> = {};
+  /** Who plays a woken king: "large", its own model; or "small", its small rung, with its own model above for what is passed up. */
+  plays: "large" | "small" = "large";
+  /** The characters' large rung, for what their own model passes up or asks counsel of; "Off" for none. */
+  charactersUp = "Sonnet";
+  /** The model that writes each king's plan ("Planning"); "Off", the default, plans nothing. */
+  planning = "Off";
+  /** What the game may spend, and how the layer spends it ("A budget, spent where it buys the most"). */
+  spending: SpendingSettings = newSpendingSettings();
 
   /** Every model a job uses, each once. */
   get models(): string[] {
     const all = [...this.leaders.values()].map(leaderModel);
     all.push(characterModel(this.characters), narratorModel(this.narrator));
+    for (const p of AllPowers) all.push(smallModel(this, p));
+    if (characterModel(this.characters) !== null) all.push(rungModel(this.charactersUp));
+    if ([...this.leaders.values()].some((k) => leaderModel(k) !== null)) all.push(rungModel(this.planning));
     return [...new Set(all.filter((m): m is string => m !== null))];
+  }
+
+  /** The table's choices beyond the seats, as the log header keeps them (JSON), so a game can be compared and continued. */
+  get jobs(): string {
+    if (!this.usesModels) return "";
+    return JSON.stringify({ small: this.small, smallFor: this.smallFor, plays: this.plays, charactersUp: this.charactersUp, planning: this.planning, spending: this.spending });
+  }
+
+  /** Reads the table's choices beyond the seats back from a log header's JSON. */
+  readJobs(json: string): void {
+    if (json.trim().length === 0) return;
+    const j = JSON.parse(json) as Partial<{ small: string; smallFor: Partial<Record<Power, string>>; plays: "large" | "small"; charactersUp: string; planning: string; spending: Partial<SpendingSettings> }>;
+    if (typeof j.small === "string") this.small = j.small;
+    if (j.smallFor !== undefined) this.smallFor = { ...j.smallFor };
+    if (j.plays === "small" || j.plays === "large") this.plays = j.plays;
+    if (typeof j.charactersUp === "string") this.charactersUp = j.charactersUp;
+    if (typeof j.planning === "string") this.planning = j.planning;
+    if (j.spending !== undefined) this.spending = newSpendingSettings(j.spending);
   }
 
   /** The providers the models in use name (by id), Anthropic included when a model names no other. */
@@ -99,8 +153,22 @@ export class SeatChoices {
     c.localAgentMinutes = this.localAgentMinutes;
     c.providers = this.providers.map((p) => ({ ...p }));
     c.prices = { ...this.prices };
+    c.small = this.small;
+    c.smallFor = { ...this.smallFor };
+    c.plays = this.plays;
+    c.charactersUp = this.charactersUp;
+    c.planning = this.planning;
+    c.spending = { ...this.spending };
     return c;
   }
+}
+
+/** A preset's choices beyond the seats: each job's other rungs and planning. */
+export interface PresetRungs {
+  small: string;
+  plays: "large" | "small";
+  charactersUp: string;
+  planning: string;
 }
 
 /** A named way to play. Human seats chosen by the player are kept when a preset is applied. */
@@ -111,13 +179,23 @@ export class Preset {
   readonly leaders: LeaderKind;
   readonly characters: CharacterKind;
   readonly narrator: NarratorKind;
-  constructor(id: string, name: string, tagline: string, leaders: LeaderKind, characters: CharacterKind, narrator: NarratorKind) {
+  readonly rungs: PresetRungs;
+  constructor(
+    id: string,
+    name: string,
+    tagline: string,
+    leaders: LeaderKind,
+    characters: CharacterKind,
+    narrator: NarratorKind,
+    rungs: PresetRungs = { small: "Haiku", plays: "large", charactersUp: "Sonnet", planning: "Off" },
+  ) {
     this.id = id;
     this.name = name;
     this.tagline = tagline;
     this.leaders = leaders;
     this.characters = characters;
     this.narrator = narrator;
+    this.rungs = rungs;
   }
   get needsKey(): boolean {
     return leaderModel(this.leaders) !== null || this.characters !== "Script" || this.narrator !== "Template";
@@ -126,6 +204,11 @@ export class Preset {
     for (const p of AllPowers) if (c.leaders.get(p) !== "Human") c.leaders.set(p, this.leaders);
     c.characters = this.characters;
     c.narrator = this.narrator;
+    c.small = this.rungs.small;
+    c.smallFor = {};
+    c.plays = this.rungs.plays;
+    c.charactersUp = this.rungs.charactersUp;
+    c.planning = this.rungs.planning;
   }
   matches(c: SeatChoices): boolean {
     // By the models named, so a shorthand and the model it stands for are the same choice.
@@ -133,13 +216,25 @@ export class Preset {
     return (
       [...c.leaders.values()].filter((v) => v !== "Human").every((v) => same(v, this.leaders, leaderModel)) &&
       same(c.characters, this.characters, characterModel) &&
-      same(c.narrator, this.narrator, narratorModel)
+      same(c.narrator, this.narrator, narratorModel) &&
+      // The other rungs count only where they are in play: a Free table has no small rung to differ by.
+      (!this.needsKey ||
+        (same(c.small, this.rungs.small, rungModel) &&
+          Object.values(c.smallFor).every((v) => v === undefined || v.length === 0) &&
+          c.plays === this.rungs.plays &&
+          same(c.charactersUp, this.rungs.charactersUp, rungModel) &&
+          same(c.planning, this.rungs.planning, rungModel)))
     );
   }
 }
 
 const Free = new Preset("free", "Free", "Script kings, envoys and narrator. No key and no cost; a whole game takes seconds.", "Script", "Script", "Template");
-const Budget = new Preset("budget", "Budget", "Every role on Haiku 5.5. Cheap enough to play often; the kings plan less shrewdly.", "Haiku", "Haiku", "Haiku");
+const Budget = new Preset("budget", "Budget", "Every role on Haiku 5.5. Cheap enough to play often; the kings plan less shrewdly.", "Haiku", "Haiku", "Haiku", {
+  small: "Haiku",
+  plays: "large",
+  charactersUp: "Off",
+  planning: "Off",
+});
 const Standard = new Preset(
   "standard",
   "Standard",
@@ -147,6 +242,15 @@ const Standard = new Preset(
   "Sonnet",
   "Haiku",
   "Sonnet",
+);
+const Counsel = new Preset(
+  "counsel",
+  "Counsel",
+  "Haiku 5.5 plays every king and character; Sonnet 5.5 writes each king's plan once a year, gives counsel and takes whatever is passed up.",
+  "Sonnet",
+  "Haiku",
+  "Haiku",
+  { small: "Haiku", plays: "small", charactersUp: "Sonnet", planning: "Sonnet" },
 );
 const Showcase = new Preset(
   "showcase",
@@ -160,9 +264,10 @@ const Showcase = new Preset(
 export const Presets = {
   Free,
   Budget,
+  Counsel,
   Standard,
   Showcase,
-  all: [Free, Budget, Standard, Showcase] as readonly Preset[],
+  all: [Free, Budget, Counsel, Standard, Showcase] as readonly Preset[],
   /** Local play on a Claude subscription. Not in `all`: offered only when the game runs on this computer. */
   Local: new Preset(
     "local",
@@ -187,34 +292,52 @@ export const CostEstimate = {
   perGame(c: SeatChoices, seasons = 44): number {
     const prices = new PriceTable(c.prices);
     const effort = c.leaderEffort === "low" ? 0.6 : c.leaderEffort === "high" ? 1.6 : 1.0;
+    const cost = (model: string | null, fresh: number, out: number, cached: number): number => {
+      const price = model !== null ? prices.for(model) : null;
+      return price === null ? 0 : price.cost(fresh, out, cached, 0);
+    };
     let total = 0.0;
-    for (const kind of c.leaders.values()) {
-      const model = leaderModel(kind);
+    for (const p of AllPowers) {
+      const model = leaderModel(c.leaders.get(p));
       if (model === null) continue;
-      const price = prices.for(model);
-      if (price === null) continue;
+      const small = smallModel(c, p);
       // As measured in item 6b (src/batch/src/measure.ts, script games shadowed by model kings that sleep): a king gives
       // orders in about three seasons in ten and holds court, all its envoys in one call, in about one in five. Orders
       // read the rulebook and their schema (some 16,000 tokens) from cache and about 4,500 fresh; a court about 14,000 from
       // cache and 3,500 fresh. A standing answer's phrasing call costs next to nothing.
-      const orders = 0.3 * price.cost(4500, Math.trunc(3000 * effort), 16000, 0);
-      const courts = 0.2 * price.cost(3500, Math.trunc(1000 * effort), 14000, 0);
-      total += seasons * (orders + courts);
+      const orders = (m: string | null): number => cost(m, 4500, Math.trunc(3000 * effort), 16000);
+      const courts = (m: string | null): number => cost(m, 3500, Math.trunc(1000 * effort), 14000);
+      // The ladder's first guesses (item 6c, not measured until the model games): a small rung that plays the king passes
+      // one decision in five up; routine courts, most of a sleeping king's, one in three; light alerts come in about one
+      // season in three; one decision in twenty is audited on the rung above; a plan is written once a year and twice more.
+      if (small !== null && c.plays === "small") total += seasons * (0.3 * (orders(small) + 0.2 * orders(model)) + 0.2 * (courts(small) + 0.2 * courts(model)));
+      else total += seasons * (0.3 * orders(model) + 0.2 * (small !== null ? courts(small) + 0.3 * courts(model) : courts(model)));
+      if (small !== null) total += seasons * (0.3 * cost(small, 3000, 300, 16000) + 0.05 * 0.4 * orders(model));
+      const planner = rungModel(c.planning);
+      if (planner !== null) total += (seasons / 3 + 2) * cost(planner, 3000, 1000, 16000);
     }
     const cm = characterModel(c.characters);
-    const cp = cm !== null ? prices.for(cm) : null;
-    if (cp !== null) total += seasons * 15 * cp.cost(1500, 400, 0, 0);
-    const nm = narratorModel(c.narrator);
-    const p = nm !== null ? prices.for(nm) : null;
-    if (p !== null) {
-      total += 18 * p.cost(600, 400, 0, 0) + 7 * p.cost(3000, 1200, 0, 0) + 5 * p.cost(300, 200, 0, 0);
+    if (cm !== null) {
+      const up = rungModel(c.charactersUp);
+      total += seasons * 15 * (cost(cm, 1500, 400, 0) + (up !== null && up !== cm ? 0.15 * cost(up, 1500, 400, 0) : 0));
     }
+    const nm = narratorModel(c.narrator);
+    if (nm !== null) total += 18 * cost(nm, 600, 400, 0) + 7 * cost(nm, 3000, 1200, 0) + 5 * cost(nm, 300, 200, 0);
     return total;
   },
-  /** The models in use that have no price set: the meter counts them as free. */
+  /** The models in use that have no price set: the meter shows their cost as unknown, never as free. */
   unpriced(c: SeatChoices): string[] {
     const prices = new PriceTable(c.prices);
     return c.models.filter((m) => prices.for(m) === null);
+  },
+  /**
+   * The estimate as the setup shows it: unknown while a model in use has no price (never free, so the figure never quietly
+   * under-reports), else as {@link describe} words it.
+   */
+  describeFor(c: SeatChoices, seasons = 44): string {
+    const unpriced = CostEstimate.unpriced(c);
+    if (unpriced.length > 0) return `unknown (no price for ${unpriced.map(ModelIds.display).join(", ")})`;
+    return CostEstimate.describe(CostEstimate.perGame(c, seasons));
   },
   /** "about $9", "under $1", "free". */
   describe(dollars: number): string {
@@ -228,6 +351,18 @@ export const CostEstimate = {
     return dollars <= 0 ? 0 : Math.max(1, Math.ceil(dollars * 1.5));
   },
 };
+
+/**
+ * Why a table cannot start, or null: a game with a spending limit does not start until every model it uses has a price,
+ * since a limit cannot hold against spending it cannot count ("Every model is the table's choice"); a local model the table
+ * prices at nothing is free. A simulated API spends nothing.
+ */
+export function startProblem(c: SeatChoices, limitUsd: number, simulated = false): string | null {
+  if (simulated || !c.usesModels || limitUsd <= 0) return null;
+  const unpriced = CostEstimate.unpriced(c);
+  if (unpriced.length === 0) return null;
+  return `This game has a spending limit, which cannot hold against spending it cannot count: set a price for ${unpriced.map(ModelIds.display).join(", ")} (0 for a free local model) before it begins.`;
+}
 
 export interface SeatSet {
   seats: Dict<Power, ISeat>;
@@ -272,15 +407,39 @@ export function providersFor(
  * variant only leaves fields out of it).
  */
 export function checkJobs(choices: SeatChoices, config: GameConfig): { model: string; schemas: ReplySchema[] }[] {
+  const planned = (s: ReplySchema): ReplySchema => (rungModel(choices.planning) !== null ? s.extend({ new_plan: NewPlan }) : s);
   const jobs: { model: string; schemas: ReplySchema[] }[] = [];
   for (const m of new Set([...choices.leaders.values()].map(leaderModel)))
     if (m !== null) jobs.push({ model: m, schemas: [Replies.leaderOrders(config), Replies.hostReply(config, true), Replies.courtReply(config, true)] });
-  // The phrasing calls of the kings' standing answers go to the characters' model, or the king's own if none.
-  for (const m of new Set([...choices.leaders.values()].map(leaderModel)))
-    if (m !== null) jobs.push({ model: phrasingModel(choices, m), schemas: [Replies.phrase()] });
+  // The phrasing calls of the kings' standing answers go to their small rung, or the characters' model, or the king's own.
+  for (const p of AllPowers) {
+    const m = leaderModel(choices.leaders.get(p));
+    if (m !== null) jobs.push({ model: phrasingModel(choices, m, p), schemas: [Replies.phrase()] });
+  }
+  // A king's small rung: routine courts and light alerts, and his orders with its own fields when it plays him or the
+  // budget gives them to it; above it, the counsel it may ask. Planning: the plan.
+  const counsel = counselSchema();
+  for (const p of AllPowers) {
+    const small = smallModel(choices, p);
+    const m = leaderModel(choices.leaders.get(p));
+    if (small !== null && m !== null) {
+      jobs.push({ model: small, schemas: [withLadder(planned(Replies.leaderOrders(config))), routineCourt(true), alertsReply()] });
+      jobs.push({ model: m, schemas: [counsel] });
+    }
+  }
+  const planner = rungModel(choices.planning);
+  if (planner !== null && [...choices.leaders.values()].some((k) => leaderModel(k) !== null)) {
+    jobs.push({ model: planner, schemas: [planReply()] });
+    // With planning on, a king's orders may ask for a new plan: the largest orders schema has that field too.
+    for (const m of new Set([...choices.leaders.values()].map(leaderModel))) if (m !== null) jobs.push({ model: m, schemas: [planned(Replies.leaderOrders(config))] });
+  }
   const cm = characterModel(choices.characters);
-  if (cm !== null)
-    jobs.push({ model: cm, schemas: [Replies.present(), Replies.react(), Replies.report(), Replies.pitch(), Replies.text("report", "Your report home.")] });
+  if (cm !== null) {
+    const ladder = [Replies.present(), Replies.react(), Replies.report(), Replies.pitch(), Replies.text("report", "Your report home.")];
+    jobs.push({ model: cm, schemas: [...ladder.map((x) => withLadder(x)), Replies.text("speech", "")] });
+    const up = rungModel(choices.charactersUp);
+    if (up !== null && up !== cm) jobs.push({ model: up, schemas: [...ladder, counsel] });
+  }
   const nm = narratorModel(choices.narrator);
   if (nm !== null) jobs.push({ model: nm, schemas: [Replies.text("persona", "The persona prompt, in the second person.")] });
   return jobs;
@@ -292,9 +451,14 @@ export function checkJobs(choices: SeatChoices, config: GameConfig): { model: st
  */
 export function buildSeats(choices: SeatChoices, state: GameState, providers: Provider[] | null, log: () => GameLog): SeatSet & { client: ModelClient | null } {
   let client: ModelClient | null = null;
+  let ladder: Ladder | null = null;
   if (choices.usesModels) {
     if (providers === null || providers.length === 0) throw new Error("Model seats need an Anthropic API key.");
-    client = new ModelClient(providers, (call) => log().addCall(call), new PriceTable(choices.prices));
+    const prices = new PriceTable(choices.prices);
+    client = new ModelClient(providers, (call) => log().addCall(call), prices);
+    // The ladder of every job, and the budget it spends ("Minds follow what is at stake").
+    const spending = new Spending(choices.spending, state.config, state.seed, () => log().totalCost);
+    ladder = new Ladder(client, spending, prices, { route: (key, r) => log().route(key, r), audit: (a) => log().addAudit(a) });
   }
   // Local play: every local agent king goes through the one bridge, as a file seat whose files the bridge writes.
   const bridge = choices.usesLocalAgents ? new LocalBridge(choices.bridgeAddress, Math.min(Math.max(choices.localAgentMinutes, 1), 24 * 60) * 60000) : null;
@@ -319,7 +483,12 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
               LocalAgentLabel,
             )
           : model !== null
-            ? new LlmLeaderSeat(p, client!, model, choices.leaderEffort, state.config.customsPrimer, state.config, null, phrasingModel(choices, model))
+            ? new LlmLeaderSeat(p, client!, model, choices.leaderEffort, state.config.customsPrimer, state.config, null, phrasingModel(choices, model, p), {
+                ladder: ladder!,
+                small: smallModel(choices, p),
+                plays: choices.plays,
+                planning: rungModel(choices.planning),
+              })
             : script,
     );
   }
@@ -327,7 +496,7 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
   const cm = characterModel(choices.characters);
   let minds: ICharacterMind = new ScriptMind();
   if (cm !== null) {
-    const m = new LlmCharacterMind(client!, cm);
+    const m = new LlmCharacterMind(client!, cm, null, { ladder: ladder!, up: rungModel(choices.charactersUp) });
     m.shadow = (s) => log().addShadow(s);
     minds = m;
   }
@@ -351,5 +520,11 @@ export function choicesFromHeader(header: LogHeader, providers: readonly Provide
   c.characters = cm === null || cm === "Script" ? "Script" : cm;
   const nm = model(header.narrator, "narrator");
   c.narrator = nm === null || nm === "Template" ? "Template" : nm;
+  // A game saved before item 6c kept no other rungs: it goes on with the king's own model answering every envoy, as it was played.
+  if (header.jobs.trim().length > 0) c.readJobs(header.jobs);
+  else {
+    c.small = "Off";
+    c.charactersUp = "Off";
+  }
   return c;
 }

@@ -9,7 +9,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync } from "no
 import { basename, join } from "node:path";
 import { AllPowers, cmpNum, fmt, newGameConfig, sortBy, idNumber, PowerValues, type Power } from "@amarna/engine";
 import { batchReport, soloReport, versusReport, type GameSummary } from "@amarna/game";
-import { CostEstimate, Presets, SimulatedApi, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
+import { CostEstimate, Presets, SimulatedApi, SpendModes, newSpendingSettings, startProblem, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
 import { FileCharacters } from "@amarna/llm/node";
 import { choicesOf, playOne, setupCheck, type BatchOptions, type PlayJob, type PlayResult, type SoloJob } from "./play.ts";
 import { runPool } from "./pool.ts";
@@ -51,6 +51,11 @@ const o: BatchOptions = {
   simulateApi: false,
   providers: [],
   prices: {},
+  small: "Haiku",
+  plays: "large",
+  charactersUp: "Sonnet",
+  planning: "Off",
+  spending: newSpendingSettings(),
 };
 let solo = false;
 let fileSeats: string | null = null;
@@ -184,8 +189,39 @@ for (let i = 0; i < args.length; i++) {
       for (const p of AllPowers) o.leaders[p] = c.leaders.get(p);
       o.characters = c.characters;
       o.narrator = c.narrator;
+      o.small = c.small;
+      o.plays = c.plays;
+      o.charactersUp = c.charactersUp;
+      o.planning = c.planning;
       break;
     }
+    case "--small":
+      o.small = kindOf([...CharacterKinds, "Off"], next());
+      break;
+    case "--plays": {
+      const v = next().toLowerCase();
+      if (v !== "small" && v !== "large") throw new Error("--plays takes small or large.");
+      o.plays = v;
+      break;
+    }
+    case "--characters-up":
+      o.charactersUp = kindOf([...CharacterKinds, "Off"], next());
+      break;
+    case "--planning":
+      o.planning = kindOf([...CharacterKinds, "Off"], next());
+      break;
+    case "--pace":
+      o.spending.mode = enumOf(SpendModes, next());
+      break;
+    case "--season-usd":
+      o.spending.seasonUsd = Math.max(0, Number(next()) || 0);
+      break;
+    case "--target":
+      o.spending.target = Math.min(Math.max(Number(next()) || 0, 0), 1);
+      break;
+    case "--audit-share":
+      o.spending.auditShare = Math.min(Math.max(Number(next()) || 0, 0), 1);
+      break;
     case "--leaders": {
       const kind = kindOf(LeaderKinds, next());
       for (const p of AllPowers) o.leaders[p] = kind;
@@ -215,7 +251,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -311,12 +347,16 @@ if (choices.providersInUse.includes("anthropic") && key.trim() === "" && !o.simu
   console.error("Anthropic models need ANTHROPIC_API_KEY set in the environment.");
   process.exit(1);
 }
-const unpriced = CostEstimate.unpriced(choices);
-if (unpriced.length > 0) console.log(`No price set for ${unpriced.join(", ")} (--price MODEL=IN,OUT,CACHE): the cost meter counts them as free.`);
+// Every batch of model games stops at its budget: a limit that cannot count a model's spending cannot hold against it.
+const unpriceable = startProblem(choices, o.budget, o.simulateApi);
+if (unpriceable !== null) {
+  console.error(`${unpriceable} (--price MODEL=IN,OUT,CACHE)`);
+  process.exit(1);
+}
 if (o.outDir !== null) mkdirSync(o.outDir, { recursive: true });
 if (o.parityDir !== null) mkdirSync(o.parityDir, { recursive: true });
 if (choices.usesModels)
-  console.log(`Estimated model cost: ${CostEstimate.describe(CostEstimate.perGame(choices))} per ${CostEstimate.TypicalSeasons}-season game; stopping at $${fmt(o.budget, "0.00")} in total.`);
+  console.log(`Estimated model cost: ${CostEstimate.describeFor(choices)} per ${CostEstimate.TypicalSeasons}-season game; stopping at $${fmt(o.budget, "0.00")} in total.`);
 
 const worker = new URL("./game-worker.ts", import.meta.url);
 

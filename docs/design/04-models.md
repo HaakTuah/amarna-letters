@@ -1,9 +1,11 @@
 ## Models
 
-- **Presets**: Free (all script, no key), Budget (every role on Haiku 5.5), Standard (the design
-  document's table: Sonnet 5.5 kings and narrator, Haiku 5.5 envoys) and Showcase (Opus 5.5 kings
-  and narrator, Haiku 5.5 envoys). Any seat can be set separately, envoys can be Sonnet 5.5, and the
-  narrator any of the three.
+- **Presets**: Free (all script, no key), Budget (every role on Haiku 5.5, no rung above the characters), Counsel
+  (item 6c: Haiku 5.5 plays every king and character, Sonnet 5.5 above them plans each king's year, gives counsel and
+  takes what is passed up; Haiku narrator), Standard (the design document's table: Sonnet 5.5 kings and narrator, Haiku
+  5.5 envoys, with Haiku as the kings' small rung and Sonnet above the envoys) and Showcase (Opus 5.5 kings and
+  narrator, Haiku 5.5 envoys, the same rungs as Standard). Any seat can be set separately, envoys can be Sonnet 5.5,
+  and the narrator any of the three; the other rungs are under "Who decides" below.
 - **Models are settings** ("Built to outlive its models"; fix pass after the conversion, 27 October 2026). Each job (every
   king's seat, the characters, the narrator) names any model: an Anthropic model by its id (`claude-sonnet-5-5`, or a
   model released after the last update), or `<provider>:<model>` for a provider the table sets up
@@ -14,18 +16,26 @@
   `ANTHROPIC_API_KEY` and `<ID>_API_KEY`); a local endpoint needs none. A saved game reads its seats back from the log
   header's labels ("local:llama3.1 leader"); a continued game needs its other providers set up again, since the header
   keeps no endpoints. **Prices** are settings too (`PriceTable`): defaults for the three 5.5 models, and any model's price
-  set on the start page or with `--price MODEL=IN,OUT,CACHE`; a model with no price costs nothing by the meter, and the
-  page and the runner say so. Kings think at a chosen effort (medium by default; host audiences run
+  set on the start page or with `--price MODEL=IN,OUT,CACHE`. A model with no price shows its cost as unknown, never as
+  free (item 6c): the estimate reads "unknown (no price for …)", the meter "$X + unknown" once such a model was called
+  (`ModelCall.unpriced`, `GameLog.costUnknown`), and a game with a spending limit does not start until every model it uses
+  has a price (`startProblem`; the web app always has one, the pause at $…, and so has the batch runner, `--budget`); a
+  local model the table prices at 0 is free. Kings think at a chosen effort (medium by default; host audiences run
   one level lower); characters run at low effort.
 - **Cost estimates** (`CostEstimate`) come from average token counts per call, as item 6b measured them (`src/batch/src/measure.ts`):
   a king that sleeps gives orders in about three seasons in ten, reading the rulebook and schema (some 16,000 tokens)
   from cache and about 4,500 fresh, with 3,000 out; it holds court in about one season in five, 14,000 from cache and
   3,500 fresh; some 15 character calls a season; the narrator's personas and chronicles. For the median game of 44
-  seasons that is roughly $0.50 (Budget), $5.60 (Standard) and $10.50 (Showcase). The spending cap defaults to one and
-  a half times the estimate.
-- **One mind per seat** (the owner's principle, 18 October 2026): small models may only sort or
-  condense; the seat's own model makes every decision: what the king answers, whether it reopens
-  its orders, what it orders. A seat played by one model in one call and a weaker one in the next is
+  seasons that was roughly $0.50 (Budget), $5.60 (Standard) and $10.50 (Showcase) in item 6b. Item 6c adds the ladder's
+  first guesses, not yet measured: routine courts on the small rung with one in three passed up, light alerts in about a
+  season in three, one decision in twenty audited, a plan once a year and twice more (some 3,000 tokens fresh and 1,000
+  out), the small rung that plays a king passing one decision in five up, and one character call in seven going up.
+  The spending cap defaults to one and a half times the estimate.
+- **One mind per seat** (the owner's principle, 18 October 2026; since item 6c, "The seat's model commits; a cheaper
+  model handles what is light"): the seat's own model makes every commitment; since item 6c a small rung answers
+  routine audiences and light alerts in the king's name, playing him from his record, and everything it says is in his
+  record as his own (see "Who decides" below). Before item 6c the seat's own model made every decision: what the king
+  answers, whether it reopens its orders, what it orders. A seat played by one model in one call and a weaker one in the next is
   not one mind, and the weaker call is the one that gets exploited. So the king's summary of older
   seasons and its ledger of dealings are written in its own replies, by its own model. Known
   exceptions: the script king that stands in when a call fails (below, and "When a model call
@@ -166,8 +176,8 @@
   message trail read as before; an envoy the reply leaves out is answered by the stand-in, alone. Script and human
   seats answer each audience in turn, as before, so script games are unchanged. The orders call stays its own
   ("Reopening orders still runs the orders call").
-- **Phrasing calls** (item 6b): a standing answer's words are a model's, worded by the characters' model, or the
-  king's own if the characters play by script (`phrasingModel`; item 6c makes it a job on the setup menu), from the
+- **Phrasing calls** (item 6b): a standing answer's words are a model's, worded by the king's small rung since item 6c
+  (else the characters' model, else the king's own: `phrasingModel`), from the
   answer's clauses and the king's identity, without its record (`LlmLeaderSeat.phraseCall`, at most 600 tokens out).
   A file seat, or a call that fails, has the clauses read out as they are (`plainWords`); a failed phrasing call is
   noted in the runner's errors but is not a fallback, since the answer itself was the king's.
@@ -253,4 +263,65 @@
   The five echoes from the design document's "Echoes from the archive" (rank, detention, words and
   tablets, witnesses, precedent) came in the simulation-fixes round, in our own wording, adding 188
   words to the primer (298 to 486).
+- **Who decides** (item 6c; "Every model is the table's choice", "Minds follow what is at stake"). Every job is a ladder
+  of the script, a small model and a large one, each any provider's model (`src/llm/src/ladder.ts`, `spending.ts`,
+  `king-ladder.ts`). The table sets (`SeatChoices`, kept as JSON in the log header's `jobs` and read back for a continued
+  game; a game saved before 6c goes on with no small rung): the kings' large rung per seat as before; their small rung
+  (`small`, Haiku by default, "Off" for none; `smallFor` per seat); who plays a woken king (`plays`: his own model, or
+  the small one with his own above); the characters' large rung (`charactersUp`, Sonnet by default); planning
+  (`planning`, off by default); and how the game spends (`spending`). On the start page under "Customize the table",
+  "Who decides"; in the batch runner `--small`, `--plays`, `--characters-up`, `--planning`, `--pace`, `--season-usd`,
+  `--target`, `--audit-share`. Summaries stay with the seat's own model ("A cheaper model for condensing" waits for its
+  cheap test); there is no sorting pass to set (the engine routes on what it sees).
+  - **The climb** (`Ladder.climb`). A decision goes to the rung the budget buys, or, with nothing set to spend by,
+    where it starts: the small rung for routine courts, light alerts and characters, the king's own model for his
+    orders (unless the small one plays him). The small rung reads what it may do (`SmallNote`) and answers with two
+    fields more: `pass_up` (a reason: the matter goes up whole, and nothing else of its reply is used) and
+    `ask_counsel` (a brief of a few hundred words: the large rung answers the brief alone, `counselSchema`, and the
+    small rung is asked again with the counsel, which joins the mind's record as its own thought). A small rung's
+    orders that would commit the king go up by themselves (`ordersCommit`: a tablet to seal, a sum past the backstop,
+    land or troops given, a life, a move or support into another king's land, a standing answer that seals).
+  - **Routine courts** (`LlmLeaderSeat.holdCourt`). While a king's orders stand (he sleeps), or always when the small
+    rung plays him, his envoys go to the small rung in one call, except those the engine passes to his own mind by
+    itself, read from what he can see (`passedByEngine`: a tablet offered or shown, gold above the backstop, the
+    envoy's lord's troops in or next to his land, an envoy who serves him). The small rung's answer (`routineCourt`)
+    has no seal, detention, service, letters or reopening; any envoy it passes up, leaves out, or whose gifts and gold
+    sent back would pass the season's backstop (a quarter of the treasury by his ledger, the standing answers'
+    `AnswerGoldShare`), goes to his own model, which answers those in one call with letters and the choice about his
+    orders. An audience stays with the rung that took its first exchange.
+  - **Light alerts** (`readAlerts`, the runner's `alerts` phase after the wake check; `TurnEngine.lightAlerts`,
+    `wakeOnWord`). News that goes "straight to the seat's own model" (a refused or failed order, a check, an assay or an
+    authentication, a caught spy or a taken archive) wakes a king who has a small rung by itself, with no call. A king
+    that sleeps on with only light news in his digest this season (reports home, rumours, candidates, a catastrophe to
+    his fields) has it read by his small rung, in full,
+    with his realm in brief and his record; it notes what it makes of it in his record and may wake him (`wake`),
+    erring toward waking. Its choice is a logged decision (`t<N>/alerts/<Power>`), so a replay wakes the same kings; a
+    woken king reads "word came: …" naming what came, and the season's lines leave his digest (he reads them as news).
+    A failed call wakes nobody.
+  - **Planning** (`LlmLeaderSeat.planIfDue`). When on, the planning model writes the king's plan at his first orders,
+    once a year (three seasons), when he has lost land, his capital is newly threatened or a kingdom has fallen, and
+    when he asks (`new_plan`, in his orders schema only while planning is on), from his realm in brief and his record,
+    and may leave standing answers with it; the plan heads his record ("YOUR PLAN FOR THE SEASONS AHEAD").
+  - **What a call is worth, and the budget** (`Spending`). Stakes are read from what the mind could see: a king's orders
+    by the share of his land with foreign troops in or beside it and what woke him; a court by the gold brought against
+    his treasury and tablets; characters by the gold they carry or are offered against their purse. A rung's worth is
+    the stakes times how often it decides as the large rung would (first guesses: script 0.4, small 0.75, large 1; the
+    audits move them kind by kind), and a decision climbs each step whose added worth per added dollar clears the going
+    rate (first guess 2 per dollar), which rises by half when a season spends past its pace and falls when it spends
+    under 60% of it; a free rung is always taken. Modes (`spending.mode`): off (the default: every decision where it
+    starts, so each job's model decides what it did before), paced from the limit (spread over the seasons the game
+    can be expected to last by the table's median and cap, `expectedSeasonsLeft`, never the drawn last season; an open
+    age by its season's cost), a cost per season, or a target (the share of audited decisions that may differ in a way
+    that matters; the rate falls while audits exceed it). What the budget cannot pay, the script decides where it may:
+    a king's orders wait (his units hold, his schedule and standing orders run, the decision is the script's and no
+    fallback, and he is asked again next season with the wait adding to its worth); a character's decision is the
+    script mind's, worded by the small rung in a phrasing call where others read it; light alerts wait in the digest; a
+    plan waits. Courts are never refused (see the item's report).
+  - **Audits.** One small-rung decision in twenty (`auditShare`; a seeded draw by the call's key) is also put to the rung
+    above out of play: the answer is never used, the log keeps how far the two differed and how much that weighed
+    (`Audit`, `GameLog.audits`, an "audit" line), and the rates move.
+  - **Nothing tells anyone; the log tells all.** No request names a rung or a model. Every routed decision's authorship
+    carries its rung, the model that answered and why (`Authorship.rung`, `model`, `why`, written only when set, so
+    other logs are unchanged); a decision the script took at the bottom of a ladder is the script's ("Script, for …").
+    The message trail shows the rung beside the author.
 

@@ -205,7 +205,8 @@ describe("ModelLayerTests", () => {
     remember(other, 0, "zq-someone-elses-memory");
     await runner.playTurn();
 
-    let calls = fake.requests.filter((r) => has(at(r, "tools", 0, "input_schema", "properties"), "summary"));
+    // An audit (one decision in twenty, put out of play to the rung above) may ask Sonnet the same: only Haiku's counts.
+    let calls = fake.requests.filter((r) => has(at(r, "tools", 0, "input_schema", "properties"), "summary") && str(r, "model") === ModelIds.Haiku);
     let mine = Assert.single(calls);
     Assert.equal(ModelIds.Haiku, str(mine, "model"));
     let text = JSON.stringify(mine);
