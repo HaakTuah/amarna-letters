@@ -120,8 +120,9 @@ P.assignAnswers = function () {
         if (x.brings === "Gold" && (tablet || d.gold < Math.max(1, x.minGold))) continue;
         if (x.brings === "Tablet" && !tablet) continue;
         if (!this.conditionsHold(p, x.conditions)) continue;
+        // The first answer that covers him is the one; if what it sends back would pass the backstop, he is the king's.
         const gold = toInt(roundEven((d.gold * x.goldBack) / 100));
-        if (gold > room) continue;
+        if (gold > room) break;
         room -= gold;
         a.answer = x.id;
         a.answerGold = gold;

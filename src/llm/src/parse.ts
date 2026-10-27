@@ -150,6 +150,8 @@ export function conditionsOf(n: Node): Condition[] {
         province: province !== null ? prov(province) : "",
         amount: Math.max(0, I(c, "amount")),
         person: S(c, "person").toLowerCase(),
+        // A court nobody knows is not read as "any court": its entry is refused with the reason.
+        unreadable: named !== null && P(named) === null ? `its condition names a court nobody knows ('${named}')` : "",
       }),
     );
   }

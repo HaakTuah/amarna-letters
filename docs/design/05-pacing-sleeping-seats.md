@@ -572,13 +572,14 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   a power, or any foreign power's, in a province, where the seat can see them: troops it cannot see count as not
   there), `TreasuryBelow` and `TreasuryAtLeast` (its treasury by its own ledger), `EnvoyBack` (one of its people back
   at its court and ready) and `TabletSealed` (a tablet in its archive sealed by it and a court, or any court), each an
-  "if" or an "unless". They are read from the seat's own view as the season begins (`TurnEngine.conditionsHold`, one
+  "if" or an "unless". They are read from the seat's own view (`TurnEngine.conditionsHold`): a standing answer's as the
+  court begins, an order's once the season's audiences are over (what they gave and sealed counts), one
   view built a season for each seat that has conditions), never from a fact it could not know; item 13 makes that view
   local. Scheduled orders whose conditions do not hold are dropped for that season with the notice "Scheduled orders
   held back by their conditions", which wakes nobody (the seat's own choice); a march held up a season keeps its
   place but is not checked again. A standing order whose conditions do not hold when its move comes does not fire,
   says so in the seat's news ("Standing order s3 did not fire") and still stands. A condition that cannot be read (a
-  province nobody knows, no person, no amount) refuses its entry or standing order like any other refusal. The reply
+  province or court nobody knows, no person, no amount) refuses its entry or standing order like any other refusal. The reply
   names them `troops_in`, `treasury_less_than`, `treasury_at_least`, `envoy_back` and `tablet_sealed` (the old,
   dropped wake trigger `treasury_below` stays out of the schema). Since item 6b the entries a seat gives for one
   season together replace everything scheduled for it, each with its own conditions, so orders of one season can carry
@@ -597,7 +598,9 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   only words; gold, at least an amount his inventory states, and no tablet; a tablet to seal), conditions as above,
   and what is done: seal the tablet or not, send back a share of the gold (100% is a gift of like value), and the gist
   of what is said (at most 300 characters). As a season's court begins (`assignAnswers`, at the top of the wake
-  check), each waiting envoy is matched to the first answer that covers him, by what the court can read as he arrives;
+  check), each waiting envoy is matched to the first answer that covers him, by what the court can read as he arrives
+  (the gold his lord sent, as the sealed inventory states it); if what that answer sends back would pass the backstop,
+  he is the king's (a later answer does not take him);
   an envoy who shows tablets as evidence, or secretly serves the host, is never covered. A hidden backstop: answers
   together send back at most a quarter of the treasury as the season begins (`AnswerGoldShare`); an envoy whose
   answer would pass it is the king's. A covered envoy wakes nobody (`wakeReasons` and the court count skip him):

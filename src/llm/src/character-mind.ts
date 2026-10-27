@@ -409,7 +409,7 @@ export class LlmCharacterMind implements ICharacterMind {
     const user = new Sb();
     user.appendLine(`You have arrived at ${courtOf(ctx.host)}, as the envoy of ${kingOf(ctx.sender)}.`);
     user.appendLine(d.greetingText.length > 0 ? `The sealed greeting will be read out exactly as written: "${d.greetingText}"` : "The tablet carries no greeting at all; the king will notice.");
-    user.appendLine(`Your lord's message, which you must now deliver in your own words: "${d.letter}"`);
+    user.appendLine(`Your lord's message, which you must now deliver, word for word or in your own words: "${d.letter}"`);
     user.appendLine(d.mandate.length > 0 ? `Your mandate (what you may agree to): "${d.mandate}"` : "You were given no mandate to agree to anything.");
     const forger = canForge(ctx.self, ctx.forgeMinCompetence);
     if (d.gold > 0)
@@ -559,9 +559,10 @@ export class LlmCharacterMind implements ICharacterMind {
   }
 }
 
-/** An envoy's report of an audience as given: the king's answers word for word, and what happened, as the engine has them. */
+/** An envoy's report of an audience as given: the king's answers word for word, and nothing of the envoy's own. */
 export function asGiven(t: MessageTrail): string {
   const said = t.exchanges.map((x) => `"${x.host}"`).join(" Then: ");
-  const happened = t.outcomes.filter((o) => commitment(o) === null);
-  return `I was received at the court of ${land(t.to)}. The king answered: ${said}` + (happened.length > 0 ? ` What happened: ${joinS("; ", happened)}.` : "");
+  // Only the king's words: what happened is told by the engine's own record (the envoy's own deeds, a kept share of the
+  // gold or a gift taken, are his to tell or hide, and as given he tells nothing of his own).
+  return `I was received at the court of ${land(t.to)}. The king answered: ${said}`;
 }

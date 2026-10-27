@@ -4,7 +4,7 @@ import type { Power } from "./power.ts";
 /**
  * The conditions of a scheduled entry, a standing order or a standing answer ("Scheduled, conditional orders" under
  * Pacing; built in item 6b): a small structured vocabulary the engine checks, never free text. Each reads only what its
- * seat knows where the order runs, its own view as the season begins: troops where it can see them, its own treasury, its
+ * seat knows where the order runs, its own view when they run (orders once the season's audiences are over, standing answers as its court begins): troops where it can see them, its own treasury, its
  * own people at its court, the tablets in its archive. Until item 13 adds distance inside the realm, the seat's view is
  * known everywhere in its realm at once.
  */
@@ -29,6 +29,8 @@ export interface Condition {
   province: string;
   amount: number;
   person: string;
+  /** Why the reply's condition could not be read (a court nobody knows): its entry is refused with this. */
+  unreadable: string;
 }
 
 export function newCondition(init: Partial<Condition> = {}): Condition {
@@ -39,6 +41,7 @@ export function newCondition(init: Partial<Condition> = {}): Condition {
     province: "",
     amount: 0,
     person: "",
+    unreadable: "",
     ...init,
   };
 }
@@ -50,6 +53,7 @@ export const ConditionSchema: ObjSchema<Condition> = obj("Condition", newConditi
   province: S,
   amount: I,
   person: S,
+  unreadable: S,
 });
 
 /** The most conditions one order, entry or answer may carry. */

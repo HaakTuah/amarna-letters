@@ -163,7 +163,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         {
             sb.appendLine(`YOUR LETTERS (as your scribes wrote them):`);
             // In full when sent at the king's last orders or when the report has come since; older letters in a line.
-            for (const l of v.letters) sb.appendLine(`- ` + (l.reportedTurn !== null || l.turn >= v.lastCalled ? letterLine(l) : letterBrief(l)));
+            for (const l of v.letters) sb.appendLine(`- ` + (l.reportedTurn !== null || l.turn >= (v.lastCalled > 0 ? v.lastCalled : v.turn - 1) ? letterLine(l) : letterBrief(l)));
         }
 
         if (v.tablets.length > 0)

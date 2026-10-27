@@ -16,9 +16,11 @@ import {
   TurnEngine,
   newPendingAudience,
   newDispatch,
+  newMessageTrail,
+  newExchange,
 } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptMind, TemplateNarrator, type ISeat } from "@amarna/game";
-import { LlmLeaderSeat, Parse, Schemas, jsonSchema, situation, withoutHolds, type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
+import { LlmLeaderSeat, asGiven, Parse, Schemas, jsonSchema, situation, withoutHolds, type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
 import { ahead } from "../src/bots/ahead.ts";
 import { Assert, toDict } from "../../engine/test/support.ts";
 import { Scripted, Sleeper } from "./sleep-support.ts";
@@ -141,6 +143,13 @@ describe("CallSizeTests", () => {
    {"test":"if","kind":"envoy_back","power":"","province":"","amount":0,"person":"C3"}]}]}`,
       ) as JsonObject,
     );
+    // A court nobody knows is not read as "any court": the entry is refused with the reason.
+    const bad = Parse.orders(
+      JSON.parse(
+        `{"schedule":[{"turn":5,"units":[],"other_orders":[],"conditions":[{"test":"if","kind":"tablet_sealed","power":"Kush","province":"","amount":0,"person":""}]}]}`,
+      ) as JsonObject,
+    );
+    Assert.equal("its condition names a court nobody knows ('Kush')", new TurnEngine(newGame(1, Quiet)).conditionProblem(bad.scheduled[0].conditions));
     const cs = Assert.single(sub.scheduled).conditions;
     Assert.equal(
       [
@@ -198,7 +207,8 @@ describe("CallSizeTests", () => {
 
   test("Evidence and the hidden backstop leave an envoy to the king", async () => {
     const state = newGame(31, Quiet);
-    const book = newAnswerBook({ answers: [newStandingAnswer({ id: "a1", brings: "Anything", goldBack: 100 })], last: 1 });
+    // a2 would take anyone a1 does not; but an envoy a1 covers and whose gold would pass the backstop is the king's.
+    const book = newAnswerBook({ answers: [newStandingAnswer({ id: "a1", brings: "Anything", goldBack: 100 }), newStandingAnswer({ id: "a2", brings: "Anything" })], last: 2 });
     state.answers.set("Alashiya", book);
     const engine = new TurnEngine(state);
     const egyptian = state.characters.find((c) => c.employer === "Egypt")!.id;
@@ -209,6 +219,14 @@ describe("CallSizeTests", () => {
     engine.assignAnswers();
     // A quarter of 100 may go back: the first envoy's 10 fits, the second's 40 does not; evidence is never covered.
     Assert.equal(["a1", null, null], state.audiences.map((a) => a.answer));
+  });
+
+  test("An envoy who reports as given tells only the king's words, nothing of his own deeds", () => {
+    const t = newMessageTrail({ to: "Hatti", exchanges: [newExchange({ host: "Go in peace.", envoy: "Thank you." })], outcomes: ["kept 20 shekels of the gold", "accepted 50 shekels from Hatti (asked: lie)"] });
+    const text = asGiven(t);
+    Assert.contains('The king answered: "Go in peace."', text);
+    Assert.doesNotContain("kept", text);
+    Assert.doesNotContain("accepted", text);
   });
 
   // ------------------------------------------------------------ compaction

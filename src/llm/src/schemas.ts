@@ -483,7 +483,7 @@ function report(carriesGold = true, canForge = true, toLord = true, received = f
   if (received)
     fields.push([
       "as_given",
-      bool("True: you report the king's answer word for word, as he gave it, with what happened, and add nothing of your own (leave report empty). False: you write your report yourself."),
+      bool("True: you report the king's answer word for word, as he gave it, and add nothing of your own, nothing of what you did there either (leave report empty). False: you write your report yourself."),
     ]);
   fields.push(["report", str((received ? "Only if as_given is false: " : "") + (toLord ? ReportText : ReportToSender))]);
   if (carriesGold) fields.push(["keep_gold", int(KeepGoldHome)]);

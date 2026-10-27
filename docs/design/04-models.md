@@ -175,7 +175,8 @@
   and 2,000 more for each further envoy; character calls 4,000; phrasing 600; the narrator's as before). An envoy may
   pass his lord's message on as written (`as_written`: the engine reads the letter out, "Thus says ...: "..."") and
   report the king's answer as given (`as_given`, asked only after an audience: the engine writes the king's words
-  and what happened), writing nothing but that choice. No reply has a free-text reasoning field (audited: the king's
+  and nothing else, so nothing the envoy did there, a share kept or a gift taken, reaches his lord unless he tells it),
+  writing nothing but that choice. No reply has a free-text reasoning field (audited: the king's
   notes are its memory, an envoy's commitments are its promises).
 - **Leader memory** is a private record in the king's own words (`LeaderJournal`), shown in every
   orders request after its view. First comes its **ledger of dealings**, the per-court ledger of the
