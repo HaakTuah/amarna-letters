@@ -440,7 +440,6 @@ export class Brain {
           const closer = AllPowers.find((x) => x !== this.me && item.body.includes(`king of ${land(x)} `)) ?? null;
           if (closer !== null && this.rel.has(closer)) {
             const r = this.rel.get(closer);
-            r.grudge += 1;
             r.trust = Math.max(-1, r.trust - 0.1);
           }
         }

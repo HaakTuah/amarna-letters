@@ -92,7 +92,10 @@ on sealed tablets comes with item 9.
 
 ### Script kings
 
-`bots/roads.ts`: a king closes his roads to a court he is at war with (a blow either way within 4 seasons, a sworn foe,
-or a grudge) and opens them at peace (a friend, or no blow for 8 seasons); a court that hears another closed its roads to
-it holds a grudge. Script travellers choose their routes by the engine's formula. `--no-road-play` turns the kings' roads
-off, to measure them. The frozen baseline never closes its roads.
+`bots/roads.ts`: a king closes his roads to a court at war with him (one that attacked him within 4 seasons, or a sworn
+foe) and opens them at peace (a friend, or no blow either way for 8 seasons). Closing them to a court he merely distrusts,
+or attacks himself, was tried first and cost the central kings (Mitanni above all) more than it gained, since every
+closure makes the closed court an enemy. A court that hears another closed its roads to it trusts it less. Script
+travellers choose their routes by the engine's formula. `--no-road-play` turns the kings' roads off, and
+`--road-play-half` turns them on for half the kings, alternating by seed, to compare the two sides on the same seeds. The
+frozen baseline never closes its roads.
