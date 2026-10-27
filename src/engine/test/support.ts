@@ -1,0 +1,238 @@
+/**
+ * What the ported tests share: assertions with xUnit's meaning (the C# suite's Assert, so each ported test reads as its
+ * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
+ */
+import { expect } from "vitest";
+import { Dict, HSet, newTurnSubmission, type Power, type TurnSubmission } from "@amarna/engine";
+
+type Coll<T> = Iterable<T> | ArrayLike<T>;
+
+const items = <T>(c: Coll<T> | null | undefined): T[] => {
+  if (c === null || c === undefined) throw new Error("the collection is null");
+  if (c instanceof Dict) return [...c.keys()] as T[];
+  return Array.from(c as Iterable<T>);
+};
+
+/** Plain data for deep equality: Dicts and HSets as arrays of their entries, in their order. */
+function plain(x: unknown): unknown {
+  if (x instanceof Dict) return { dict: [...x].map(([k, v]) => [plain(k), plain(v)]) };
+  if (x instanceof HSet) return { set: [...x].map(plain) };
+  if (x instanceof Map) return { map: [...x].map(([k, v]) => [plain(k), plain(v)]) };
+  if (x instanceof Set) return { set: [...x].map(plain) };
+  if (Array.isArray(x)) return x.map(plain);
+  if (x !== null && typeof x === "object") return Object.fromEntries(Object.entries(x).map(([k, v]) => [k, plain(v)]));
+  return x === undefined ? null : x;
+}
+
+export class Assert {
+  /** Equal values (deeply), or numbers equal to the given number of decimal places. */
+  static equal<T>(expected: T, actual: T, precision?: number): void {
+    if (typeof precision === "number" && typeof expected === "number") {
+      const f = 10 ** precision;
+      expect(Math.round((actual as number) * f) / f).toBe(Math.round(expected * f) / f);
+    } else expect(plain(actual)).toEqual(plain(expected));
+  }
+
+  static notEqual<T>(expected: T, actual: T): void {
+    expect(plain(actual)).not.toEqual(plain(expected));
+  }
+
+  static same(expected: unknown, actual: unknown): void {
+    expect(actual).toBe(expected);
+  }
+
+  static notSame(expected: unknown, actual: unknown): void {
+    expect(actual).not.toBe(expected);
+  }
+
+  static true(condition: boolean | null | undefined, message?: string): void {
+    expect(condition, message).toBe(true);
+  }
+
+  static false(condition: boolean | null | undefined, message?: string): void {
+    expect(condition, message).toBe(false);
+  }
+
+  static null(x: unknown): void {
+    expect(x ?? null).toBeNull();
+  }
+
+  static notNull<T>(x: T | null | undefined): asserts x is T {
+    expect(x ?? null).not.toBeNull();
+  }
+
+  /** A substring in a string; an item in a collection (a key in a Dict); or a collection with an item that matches. */
+  static contains(sub: string, s: string | null | undefined): void;
+  static contains<T>(c: Coll<T>, match: (x: T) => boolean): void;
+  static contains<T>(item: T, c: Coll<T>): void;
+  static contains(a: unknown, b: unknown): void {
+    if (typeof b === "string" || b === null || b === undefined) {
+      expect(b ?? "").toContain(a as string);
+      return;
+    }
+    if (typeof b === "function") {
+      expect(items(a as Coll<unknown>).some(b as (x: unknown) => boolean), "no item matches").toBe(true);
+      return;
+    }
+    expect(items(b as Coll<unknown>).map(plain)).toContainEqual(plain(a));
+  }
+
+  static doesNotContain(sub: string, s: string | null | undefined): void;
+  static doesNotContain<T>(c: Coll<T>, match: (x: T) => boolean): void;
+  static doesNotContain<T>(item: T, c: Coll<T>): void;
+  static doesNotContain(a: unknown, b: unknown): void {
+    if (typeof b === "string" || b === null || b === undefined) {
+      expect(b ?? "").not.toContain(a as string);
+      return;
+    }
+    if (typeof b === "function") {
+      expect(items(a as Coll<unknown>).some(b as (x: unknown) => boolean), "an item matches").toBe(false);
+      return;
+    }
+    expect(items(b as Coll<unknown>).map(plain)).not.toContainEqual(plain(a));
+  }
+
+  static empty(c: Coll<unknown> | string): void {
+    if (typeof c === "string") expect(c).toBe("");
+    else expect(items(c)).toEqual([]);
+  }
+
+  static notEmpty(c: Coll<unknown> | string): void {
+    if (typeof c === "string") expect(c.length).toBeGreaterThan(0);
+    else expect(items(c).length).toBeGreaterThan(0);
+  }
+
+  /** The one item of a collection (that matches the predicate, if given), which it returns. */
+  static single<T>(c: Coll<T>, f?: (x: T) => boolean): T {
+    const all = items(c).filter(f ?? (() => true));
+    expect(all.length, "expected exactly one item").toBe(1);
+    return all[0];
+  }
+
+  static all<T>(c: Coll<T>, check: (x: T) => void): void {
+    for (const x of items(c)) check(x);
+  }
+
+  static startsWith(prefix: string, s: string | null | undefined): void {
+    expect((s ?? "").startsWith(prefix), `expected to start with ${JSON.stringify(prefix)}: ${JSON.stringify(s)}`).toBe(true);
+  }
+
+  static endsWith(suffix: string, s: string | null | undefined): void {
+    expect((s ?? "").endsWith(suffix), `expected to end with ${JSON.stringify(suffix)}: ${JSON.stringify(s)}`).toBe(true);
+  }
+
+  static inRange(x: number, low: number, high: number): void {
+    expect(x).toBeGreaterThanOrEqual(low);
+    expect(x).toBeLessThanOrEqual(high);
+  }
+
+  /** A regular expression (given as a string, as xUnit takes it) that matches. */
+  static matches(pattern: string | RegExp, s: string): void {
+    expect(s).toMatch(typeof pattern === "string" ? new RegExp(pattern, "u") : pattern);
+  }
+
+  static doesNotMatch(pattern: string | RegExp, s: string): void {
+    expect(s).not.toMatch(typeof pattern === "string" ? new RegExp(pattern, "u") : pattern);
+  }
+
+  static throws(f: () => unknown): Error {
+    let caught: unknown = null;
+    try {
+      f();
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught, "expected an exception").not.toBeNull();
+    return caught as Error;
+  }
+
+  static async throwsAsync(f: () => Promise<unknown>): Promise<Error> {
+    let caught: unknown = null;
+    try {
+      await f();
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught, "expected an exception").not.toBeNull();
+    return caught as Error;
+  }
+
+  static fail(message: string): never {
+    throw new Error(message);
+  }
+}
+
+/** LINQ's FirstOrDefault: the first item (that matches), or null. */
+export function firstOrNull<T>(c: Iterable<T>, f: (x: T) => boolean = () => true): T | null {
+  for (const x of c) if (f(x)) return x;
+  return null;
+}
+
+/** LINQ's SingleOrDefault: the one item that matches, null for none; more than one throws. */
+export function singleOrNull<T>(c: Iterable<T>, f: (x: T) => boolean = () => true): T | null {
+  const all = [...c].filter(f);
+  if (all.length > 1) throw new Error("more than one item matches");
+  return all[0] ?? null;
+}
+
+/** LINQ's Last: the last item (that matches); none throws. */
+export function last<T>(c: Iterable<T>, f: (x: T) => boolean = () => true): T {
+  const all = [...c].filter(f);
+  if (all.length === 0) throw new Error("no item matches");
+  return all[all.length - 1];
+}
+
+/** LINQ's LastOrDefault. */
+export function lastOrNull<T>(c: Iterable<T>, f: (x: T) => boolean = () => true): T | null {
+  const all = [...c].filter(f);
+  return all.length === 0 ? null : all[all.length - 1];
+}
+
+const cmp = (a: unknown, b: unknown): number => (a === b ? 0 : (a as never) < (b as never) ? -1 : 1);
+
+/** LINQ's OrderBy (stable, ordinal for strings). */
+export function orderBy<T>(c: Iterable<T>, key: (x: T) => unknown): T[] {
+  return [...c].sort((a, b) => cmp(key(a), key(b)));
+}
+
+export function orderByDesc<T>(c: Iterable<T>, key: (x: T) => unknown): T[] {
+  return [...c].sort((a, b) => cmp(key(b), key(a)));
+}
+
+/** LINQ's ToDictionary. */
+export function toDict<T, K, V>(c: Iterable<T>, key: (x: T) => K, value: (x: T) => V): Dict<K, V> {
+  const d = new Dict<K, V>();
+  for (const x of c) d.add(key(x), value(x));
+  return d;
+}
+
+/** A Dict from an object's entries, in their order: the C# dictionary initializers. */
+export function dictOf<K extends string, V>(o: Partial<Record<K, V>>): Dict<K, V> {
+  return new Dict(Object.entries(o) as [K, V][]);
+}
+
+/** One season's submissions by power: { Hatti: { orders: [...] } }. */
+export function subs(o: Partial<Record<Power, Partial<TurnSubmission>>>): Dict<Power, TurnSubmission> {
+  return new Dict((Object.entries(o) as [Power, Partial<TurnSubmission>][]).map(([p, x]) => [p, newTurnSubmission(x)] as const));
+}
+
+/** C#'s string.Join over any items. */
+export const join = (sep: string, xs: Iterable<unknown>): string => Array.from(xs, (x) => String(x)).join(sep);
+
+/** List<T>.RemoveAll: removes every item that matches, in place, and says how many. */
+export function removeAll<T>(list: T[], f: (x: T) => boolean): number {
+  let kept = 0;
+  const before = list.length;
+  for (const x of list) if (!f(x)) list[kept++] = x;
+  list.length = kept;
+  return before - kept;
+}
+
+/**
+ * A field read again after the engine changed it: TypeScript keeps a narrowing made before a call that mutates the
+ * object, so a comparison right after it looks impossible to the compiler.
+ */
+export const fresh = <T>(x: T): T | string => x;
+
+/** C#'s Regex.Escape, for building a pattern from a name. */
+export const escapeRegex = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
