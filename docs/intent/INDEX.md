@@ -15,7 +15,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 557 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 38 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 39 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 26 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 50 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
@@ -46,7 +46,7 @@ session loads.
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.7 |
 | `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.3 |
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 5.9 |
-| `docs/intent/build-order/item-8.md` | 8. Structured press. The second press mode, with templates for every king and sc | 1.5 |
+| `docs/intent/build-order/item-8.md` | 8. Structured press. First, if item 7b was begun before Haakon's answers to item | 1.8 |
 | `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. Mandates with engine-checkable limits, the autho | 0.5 |
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 4.7 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
