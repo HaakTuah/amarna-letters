@@ -25,9 +25,10 @@ import {
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
-// Terrain (Build order item 5, the siege package; question 5, plan step 14): rough ground, a mountain pass or a great river
-// on the link an attack comes over, and a landing from the sea give a unit that stands its ground 1 more against that attack,
-// at most 1 in all; never a unit that moves or is met head on, never empty land, never walls or a siege's pace.
+// Terrain (Build order item 5, the siege package; question 5, plan step 14): rough ground, or a mountain pass or a great
+// river on the link an attack comes over, give a unit that stands its ground 1 more against that attack, at most 1 in all;
+// never a unit that moves or is met head on, never empty land, never walls or a siege's pace. A landing from the sea counted
+// too until item 7a, when the blockade took its place.
 describe("TerrainTests", () => {
   class Board {
     units: Unit[] = [];
@@ -67,21 +68,22 @@ describe("TerrainTests", () => {
   }
 
   test("The map names the ground of each attack", () => {
-    Assert.equal({ kind: "Rough", name: "mira" }, defenceGround("tuwanuwa", "mira", false));
-    Assert.equal({ kind: "Pass", name: "the Cilician Gates" }, defenceGround("tuwanuwa", "kizzuwatna", false));
+    Assert.equal({ kind: "Rough", name: "mira" }, defenceGround("tuwanuwa", "mira"));
+    Assert.equal({ kind: "Pass", name: "the Cilician Gates" }, defenceGround("tuwanuwa", "kizzuwatna"));
     // A crossing protects both its sides.
-    Assert.equal({ kind: "Pass", name: "the Cilician Gates" }, defenceGround("kizzuwatna", "tuwanuwa", false));
-    Assert.equal({ kind: "River", name: "the Euphrates" }, defenceGround("harran", "carchemish", false));
-    Assert.equal({ kind: "Landing", name: "" }, defenceGround("byblos", "delta", true));
+    Assert.equal({ kind: "Pass", name: "the Cilician Gates" }, defenceGround("kizzuwatna", "tuwanuwa"));
+    Assert.equal({ kind: "River", name: "the Euphrates at Carchemish" }, defenceGround("harran", "carchemish"));
+    // Since item 7a a landing from the sea gives no help (the blockade decides at sea), nor does the desert.
+    Assert.null(defenceGround("enkomiwaters", "enkomi"));
+    Assert.null(defenceGround("steppe", "damascus"));
     // Open ground, attacked over open ground: nothing.
-    Assert.null(defenceGround("lukka", "kizzuwatna", false));
-    Assert.null(defenceGround("sinai", "delta", false));
+    Assert.null(defenceGround("lukka", "kizzuwatna"));
+    Assert.null(defenceGround("sinai", "delta"));
     // Rough ground comes first and is the only one named: they never add up.
-    Assert.equal("Rough", defenceGround("delta", "tamassos", true)!.kind);
+    Assert.equal("Rough", defenceGround("kalavasos", "kalavasos")!.kind);
     Assert.equal("the rough ground of mira", groundText({ kind: "Rough", name: "mira" }));
     Assert.equal("the Cilician Gates, a mountain pass", groundText({ kind: "Pass", name: "the Cilician Gates" }));
-    Assert.equal("the crossing of the Euphrates", groundText({ kind: "River", name: "the Euphrates" }));
-    Assert.equal("a landing from the sea", groundText({ kind: "Landing", name: "" }));
+    Assert.equal("the crossing of the Euphrates at Carchemish", groundText({ kind: "River", name: "the Euphrates at Carchemish" }));
   });
 
   test("A unit holding rough ground needs three to dislodge and empty rough land stays open", () => {
@@ -120,18 +122,18 @@ describe("TerrainTests", () => {
     let b = new Board()
       .a("Hatti", "kizzuwatna")
       .a("Arzawa", "tuwanuwa")
-      .a("Arzawa", "kanesh")
+      .a("Arzawa", "nesa")
       .move("tuwanuwa", "kizzuwatna")
-      .support("kanesh", "tuwanuwa", "kizzuwatna");
+      .support("nesa", "tuwanuwa", "kizzuwatna");
     Assert.equal("kizzuwatna", b.where(b.run(), "kizzuwatna"));
 
     // The same attack from Lukka, along the coast: 2 against 1, and the army is destroyed.
     let c = new Board()
       .a("Hatti", "kizzuwatna")
       .a("Arzawa", "lukka")
-      .a("Arzawa", "kanesh")
+      .a("Arzawa", "nesa")
       .move("lukka", "kizzuwatna")
-      .support("kanesh", "lukka", "kizzuwatna");
+      .support("nesa", "lukka", "kizzuwatna");
     let rc = c.run();
     Assert.null(c.where(rc, "kizzuwatna"));
     Assert.empty(rc.groundFights);
@@ -148,39 +150,40 @@ describe("TerrainTests", () => {
     Assert.equal("River", Assert.single(rd.groundFights).ground.kind);
   });
 
-  test("A landing from the sea counts as a crossing and never adds to rough ground", () => {
-    // Hatti's army sails from Byblos to the Delta in its own ships, with a fleet's support: 2 against Egypt's 1 + 1.
+  test("A landing from the sea gets no help from the ground, and rough ground still counts against it", () => {
+    // Since item 7a the blockade decides at sea: Hatti's army sails from Tyre to the Delta in its own ships, one in each
+    // waters of the way, with an army's support from Sinai: 2 against Egypt's 1, and the Delta is taken.
     let b = new Board()
       .a("Egypt", "delta")
-      .a("Hatti", "byblos")
-      .f("Hatti", "levantsea")
-      .f("Hatti", "greatgreen")
-      .move("byblos", "delta")
-      .convoy("levantsea", "byblos", "delta")
-      .support("greatgreen", "byblos", "delta");
+      .a("Hatti", "tyre")
+      .a("Hatti", "sinai")
+      .f("Hatti", "tyrewaters")
+      .f("Hatti", "gazawaters")
+      .f("Hatti", "deltawaters")
+      .move("tyre", "delta")
+      .convoy("tyrewaters", "tyre", "delta")
+      .convoy("gazawaters", "tyre", "delta")
+      .convoy("deltawaters", "tyre", "delta")
+      .support("sinai", "tyre", "delta");
     let r = b.run();
-    Assert.equal("delta", b.where(r, "delta"));
-    Assert.equal("byblos", b.where(r, "byblos"));
-    Assert.equal("Landing", Assert.single(r.groundFights).ground.kind);
+    Assert.equal("delta", b.where(r, "tyre"));
+    Assert.null(b.where(r, "delta"));
+    Assert.empty(r.groundFights);
 
-    // By land from Sinai, the same strength takes it.
-    let c = new Board().a("Egypt", "delta").a("Hatti", "sinai").f("Hatti", "greatgreen").move("sinai", "delta").support("greatgreen", "sinai", "delta");
-    Assert.equal("delta", c.where(c.run(), "sinai"));
-
-    // Tamassos is rough ground, and an army reaches it only by landing: still only 1 more, so three take it.
+    // Kalavasos is rough ground: a landing there with one support meets 1 + 1 and bounces.
     let d = new Board()
-      .a("Alashiya", "tamassos")
-      .a("Egypt", "delta")
-      .f("Egypt", "greatgreen")
-      .f("Egypt", "cilicia")
+      .a("Alashiya", "kalavasos")
+      .a("Egypt", "lukka")
+      .f("Egypt", "lukkawaters")
+      .f("Egypt", "kalavasoswaters")
       .a("Egypt", "enkomi")
-      .move("delta", "tamassos")
-      .convoy("greatgreen", "delta", "tamassos")
-      .support("cilicia", "delta", "tamassos")
-      .support("enkomi", "delta", "tamassos");
+      .move("lukka", "kalavasos")
+      .convoy("lukkawaters", "lukka", "kalavasos")
+      .convoy("kalavasoswaters", "lukka", "kalavasos")
+      .support("enkomi", "lukka", "kalavasos");
     let rd = d.run();
-    Assert.equal("tamassos", d.where(rd, "delta"));
-    Assert.equal([3, 2], [rd.groundFights[0].strength, rd.groundFights[0].against]);
+    Assert.equal("lukka", d.where(rd, "lukka"));
+    Assert.equal(["Rough", 2, 2], [rd.groundFights[0].ground.kind, rd.groundFights[0].strength, rd.groundFights[0].against]);
   });
 
   test("A unit whose move fails keeps the ground and one met head on has none", () => {
@@ -200,10 +203,10 @@ describe("TerrainTests", () => {
     let c = new Board()
       .a("Hatti", "kizzuwatna")
       .a("Arzawa", "tuwanuwa")
-      .a("Arzawa", "kanesh")
+      .a("Arzawa", "nesa")
       .move("kizzuwatna", "tuwanuwa")
       .move("tuwanuwa", "kizzuwatna")
-      .support("kanesh", "tuwanuwa", "kizzuwatna");
+      .support("nesa", "tuwanuwa", "kizzuwatna");
     let rc = c.run();
     Assert.equal("kizzuwatna", c.where(rc, "tuwanuwa"));
     Assert.null(c.where(rc, "kizzuwatna"));
@@ -256,7 +259,7 @@ describe("TerrainTests", () => {
     let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     // Hatti attacks Arzawa's Mira from Tuwanuwa with Lukka's support; Arzawa's army there holds.
     single(s.units, (u) => u.province === "hattusa").province = "tuwanuwa";
-    single(s.units, (u) => u.province === "kanesh").province = "lukka";
+    single(s.units, (u) => u.province === "nesa").province = "lukka";
     s.walls.delete("lukka");
     s.owner.set("lukka", "Hatti");
     new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [move("tuwanuwa", "mira"), support("lukka", "tuwanuwa", "mira")] })]]));
@@ -276,13 +279,13 @@ describe("TerrainTests", () => {
     s.owner.set("lukka", "Arzawa");
     s.units.push(newUnit({ id: "u90", power: "Arzawa", kind: "Army", province: "lukka" }));
     single(s.units, (u) => u.province === "hattusa").province = "tuwanuwa";
-    single(s.units, (u) => u.province === "kanesh").province = "kizzuwatna";
-    single(s.units, (u) => u.province === "kizzuwatna" && u.kind === "Fleet").province = "cilicia";
+    single(s.units, (u) => u.province === "nesa").province = "kizzuwatna";
+    single(s.units, (u) => u.province === "kizzuwatna" && u.kind === "Fleet").province = "lukkawaters";
     new TurnEngine(s).resolve(
       new Dict([
         [
           "Hatti",
-          newTurnSubmission({ orders: [move("tuwanuwa", "lukka"), support("kizzuwatna", "tuwanuwa", "lukka"), support("cilicia", "tuwanuwa", "lukka")] }),
+          newTurnSubmission({ orders: [move("tuwanuwa", "lukka"), support("kizzuwatna", "tuwanuwa", "lukka"), support("lukkawaters", "tuwanuwa", "lukka")] }),
         ],
       ]),
     );

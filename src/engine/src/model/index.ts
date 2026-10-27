@@ -1,6 +1,7 @@
 export * from "./power.ts";
 export * from "./map.ts";
 export * from "./geography.ts";
+export * from "./distance.ts";
 export * from "./config.ts";
 export * from "./state.ts";
 export * from "./people.ts";

@@ -64,22 +64,23 @@ describe("NoticeTextTests", () => {
     let s = newGame(31, newGameConfig({ sleepingSeats: true, catastropheChance: 0 }));
     s.sleep.set("Alashiya", newSleepState({ asleep: true, wakeAt: 50 }));
     s.sleep.set("Babylonia", newSleepState({ asleep: true, wakeAt: 50 }));
+    single(s.units, (u) => u.province === "delta" && u.kind === "Fleet").province = "lukkawaters";
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(
       new Dict([
-        ["Egypt", newTurnSubmission({ orders: [move("delta", "greatgreen")] })],
-        ["Assyria", newTurnSubmission({ orders: [move("ekallatum", "arbela")] })],
+        ["Egypt", newTurnSubmission({ orders: [move("lukkawaters", "kalavasoswaters")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ashur", "arbela"), move("ekallate", "ashur")] })],
       ]),
     );
     e = new TurnEngine(s);
     e.beginTurn();
     e.wakeCheck();
 
-    // A fleet off Tamassos, away from its capital, wakes Alashiya since the fix pass after item 4 (a threat to a province
+    // A fleet off Kalavasos, away from its capital, wakes Alashiya since the fix pass after item 4 (a threat to a province
     // of its homeland), and the reason names whose fleet it was; an army beyond the border waits in Babylon's digest.
-    Assert.equal([`${HomelandReason}: Egypt's fleet moved delta -> greatgreen, next to tamassos`], s.sleep.get("Alashiya").wokenBecause);
+    Assert.equal([`${HomelandReason}: Egypt's fleet moved lukkawaters -> kalavasoswaters, next to kalavasos`], s.sleep.get("Alashiya").wokenBecause);
     Assert.empty(s.sleep.get("Babylonia").wokenBecause);
-    Assert.contains("turn 1: Assyria's army moved ekallatum -> arbela", s.sleep.get("Babylonia").digest);
+    Assert.contains("turn 1: Assyria's army moved ekallate -> ashur", s.sleep.get("Babylonia").digest);
   });
 });

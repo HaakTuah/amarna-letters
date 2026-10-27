@@ -30,7 +30,7 @@ describe("SealingTests", () => {
     ["Arzawa and Hatti are at peace. Each spring Hatti shall send Arzawa fifty shekels of gold."],
     ["Arzawa and Hatti are at peace, and Hatti shall pay tribute to its brother."],
     ["Arzawa and Hatti are at peace. The land west of the river is Arzawa's."],
-    ["Arzawa and Hatti are at peace, and Kanesh shall be Arzawa's."],
+    ["Arzawa and Hatti are at peace, and Nesa shall be Arzawa's."],
     ["Arzawa and Hatti are at peace; the troops of Arzawa may pass through tuwanuwa."],
   ] as const)("A script host seals no foreign tablet that gives land gold or tribute or names its provinces %s", (text: string) => {
     let reply = hear(text);
@@ -55,7 +55,7 @@ describe("SealingTests", () => {
       ).sealProposal,
     );
     // The same words with a clause added are someone else's, and read for what they give away.
-    Assert.false(hear(Statecraft.peaceTablet("Arzawa", "Hatti") + " Kanesh shall be Arzawa's.").sealProposal);
+    Assert.false(hear(Statecraft.peaceTablet("Arzawa", "Hatti") + " Nesa shall be Arzawa's.").sealProposal);
   });
 
   test("A host never seals a tablet from the king it makes war on however faithless it is", () => {

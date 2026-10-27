@@ -89,7 +89,7 @@ describe("BotTests", () => {
   });
 
   test("Faced with a supported attack a king supports the province under threat", () => {
-    // Mitanni's Terqa borders Assyria's Ashur and Ekallatum: together they can take it unless Washukanni supports it.
+    // Mitanni's Terqa borders Assyria's Ashur and Ekallate: together they can take it unless Washukanni supports it.
     let state = newGame(4);
     let view = Views.for(state, "Mitanni");
     let brain = new Brain("Mitanni", 4);

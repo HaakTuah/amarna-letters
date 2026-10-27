@@ -36,7 +36,7 @@ describe("TerrainBotTests", () => {
     Assert.equal(1, hatti.ground("byblos", "delta"));
     // Against a blow from several sides, a crossing helps only if every side crosses one; rough ground helps against any.
     Assert.equal(0, hatti.groundFrom(["tuwanuwa", "lukka"], "kizzuwatna"));
-    Assert.equal(1, hatti.groundFrom(["tuwanuwa", "kanesh"], "kizzuwatna"));
+    Assert.equal(1, hatti.groundFrom(["tuwanuwa", "nesa"], "kizzuwatna"));
     Assert.equal(1, hatti.groundFrom(["apasa", "seha"], "mira"));
     // The Sinai costs Hatti's armies supplies; Egypt, who holds it, crosses it freely.
     Assert.equal(30, hatti.desertCost("sinai"));
@@ -91,7 +91,7 @@ describe("TerrainBotTests", () => {
   test("A troop that stood its ground against us last season is pictured standing again", () => {
     let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     single(s.units, (u) => u.province === "hattusa").province = "tuwanuwa";
-    single(s.units, (u) => u.province === "kanesh").province = "lukka";
+    single(s.units, (u) => u.province === "nesa").province = "lukka";
     s.walls.delete("lukka");
     s.owner.set("lukka", "Hatti");
     let e = new TurnEngine(s);

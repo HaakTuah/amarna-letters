@@ -73,11 +73,11 @@ describe("WakeTriggerTests", () => {
   test("Foreign troops that end a move next to the capital wake the seat once as next to its homeland", () => {
     let [s, sleep] = sleeping();
     Assert.contains("durkurigalzu", WorldMap.default.neighbors("babylon"));
-    season(s, assyria(move("ekallatum", "durkurigalzu")));
+    season(s, assyria(move("ekallate", "durkurigalzu")));
     Assert.false(sleep.asleep);
     // Durkurigalzu is Assyria's here: the capital, a province of the homeland like any other since the siege package
     // retired its own trigger, is named with the rest.
-    Assert.equal([`${HomelandReason}: Assyria's army moved ekallatum -> durkurigalzu, next to babylon, nippur, sippar`], sleep.wokenBecause);
+    Assert.equal([`${HomelandReason}: Assyria's army moved ekallate -> durkurigalzu, next to babylon, nippur, sippar`], sleep.wokenBecause);
 
     // Standing there the next season is no news: it does not wake the seat again.
     sleepOf(sleep);
@@ -96,32 +96,32 @@ describe("WakeTriggerTests", () => {
   test("A failed move next to the capital wakes the seat only as an attack on its troops", () => {
     // Babylon's own army stands in Durkurigalzu, and holds: the move did not arrive, but it was an attack on its troops.
     let [s, sleep] = sleeping((s) => s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "durkurigalzu" })));
-    season(s, assyria(move("ekallatum", "durkurigalzu")));
+    season(s, assyria(move("ekallate", "durkurigalzu")));
     Assert.false(sleep.asleep);
-    Assert.equal([`${AttackedReason}: Assyria's army tried to move ekallatum -> durkurigalzu`], sleep.wokenBecause);
+    Assert.equal([`${AttackedReason}: Assyria's army tried to move ekallate -> durkurigalzu`], sleep.wokenBecause);
 
     // Two of Assyria's armies bounce in its own empty Durkurigalzu: neither arrived, nor attacked Babylonia's land or troops.
     [s, sleep] = sleeping((s) => s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "susa" })));
-    season(s, assyria(move("ekallatum", "durkurigalzu"), move("susa", "durkurigalzu")));
+    season(s, assyria(move("ekallate", "durkurigalzu"), move("susa", "durkurigalzu")));
     Assert.true(sleep.asleep);
     Assert.empty(sleep.wokenBecause);
   });
 
   test("A failed assault on a walled city it holds wakes the seat", () => {
     // The review's probe (Babylonia's debrief, seed 15): Mitanni's army already stands in Terqa, next to Babylon's bought
-    // Mari, when Babylon last gave orders, so no arrival wakes it. Since the siege package Mitanni's lone attack gets
+    // Suhu, when Babylon last gave orders, so no arrival wakes it. Since the siege package Mitanni's lone attack gets
     // within the walls without storming them: the city is still Babylon's, and the entry into its land wakes it.
     let [s, sleep] = sleeping((s) => {
-      s.owner.set("mari", "Babylonia");
+      s.owner.set("suhu", "Babylonia");
       removeAll(s.units, (u) => u.province === "terqa");
       s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "terqa" }));
     });
-    season(s, subs({ Mitanni: { orders: [move("terqa", "mari")] } }));
-    Assert.equal(2, wallsOf(s, "mari"));
-    Assert.equal("Babylonia", s.owner.get("mari"));
-    Assert.equal("Mitanni", unitAt(s, "mari")?.power);
+    season(s, subs({ Mitanni: { orders: [move("terqa", "suhu")] } }));
+    Assert.equal(2, wallsOf(s, "suhu"));
+    Assert.equal("Babylonia", s.owner.get("suhu"));
+    Assert.equal("Mitanni", unitAt(s, "suhu")?.power);
     Assert.false(sleep.asleep);
-    Assert.equal(["foreign troops entered your land: Mitanni's army moved terqa -> mari"], sleep.wokenBecause);
+    Assert.equal(["foreign troops entered your land: Mitanni's army moved terqa -> suhu"], sleep.wokenBecause);
 
     // A home province with its army in it, attacked in vain: the same reason.
     [s, sleep] = sleeping((s) => {
@@ -161,8 +161,8 @@ describe("WakeTriggerTests", () => {
         s.owner.set(x, "Hatti");
       }
     });
-    season(s, assyria(move("ekallatum", "durkurigalzu")));
-    Assert.equal([`${HomelandReason}: Assyria's army moved ekallatum -> durkurigalzu, next to babylon`], sleep.wokenBecause);
+    season(s, assyria(move("ekallate", "durkurigalzu")));
+    Assert.equal([`${HomelandReason}: Assyria's army moved ekallate -> durkurigalzu, next to babylon`], sleep.wokenBecause);
   });
 
   // ------------------------------------------------------------ a threat to a home province or a walled city (the fix pass after item 4)
@@ -181,13 +181,13 @@ describe("WakeTriggerTests", () => {
   }
 
   test("Foreign troops that end a move next to a home province wake the seat once", () => {
-    // The second simulation's case (seed 7): Egypt's fleet comes beside Tamassos, Alashiya's other province, out of
+    // The second simulation's case (seed 7): Egypt's fleet comes beside Kalavasos, Alashiya's other province, out of
     // reach of Enkomi, its capital. Before the fix pass only an envoy at its door could have woken Alashiya then.
     let [s, sleep] = alashiyaAsleep();
     Assert.doesNotContain("enkomi", WorldMap.default.neighbors("greatgreen"));
     season(s, egypt(move("delta", "greatgreen")));
     Assert.false(sleep.asleep);
-    Assert.equal([`${HomelandReason}: Egypt's fleet moved delta -> greatgreen, next to tamassos`], sleep.wokenBecause);
+    Assert.equal([`${HomelandReason}: Egypt's fleet moved delta -> greatgreen, next to kalavasos`], sleep.wokenBecause);
 
     // Standing there the next season is no news.
     sleepOf(sleep);
@@ -196,16 +196,16 @@ describe("WakeTriggerTests", () => {
   });
 
   test("Foreign troops that end a move next to a walled city it holds wake the seat", () => {
-    // Babylon bought Mari, whose walls hold for it; Mitanni's army comes to Terqa, next to Mari and to none of Babylon's
+    // Babylon bought Suhu, whose walls hold for it; Mitanni's army comes to Terqa, next to Suhu and to none of Babylon's
     // homeland (the second simulation's seed 15: no trigger woke Babylonia for troops next to a bought walled city).
     let [s, sleep] = sleeping((s) => {
-      s.owner.set("mari", "Babylonia");
+      s.owner.set("suhu", "Babylonia");
       removeAll(s.units, (u) => u.province === "terqa");
     });
-    Assert.equal(2, wallsOf(s, "mari"));
+    Assert.equal(2, wallsOf(s, "suhu"));
     season(s, subs({ Mitanni: { orders: [move("washukanni", "terqa")] } }));
     Assert.false(sleep.asleep);
-    Assert.equal([`${WallsReason}: Mitanni's army moved washukanni -> terqa, next to mari`], sleep.wokenBecause);
+    Assert.equal([`${WallsReason}: Mitanni's army moved washukanni -> terqa, next to suhu`], sleep.wokenBecause);
 
     // A free city's walls are not its own: the same move wakes nobody.
     [s, sleep] = sleeping((s) => removeAll(s.units, (u) => u.province === "terqa"));
@@ -221,8 +221,8 @@ describe("WakeTriggerTests", () => {
     Assert.contains("foreign troops entered your land: Assyria's army moved susa -> ur", sleep.wokenBecause);
     Assert.doesNotContain(sleep.wokenBecause, (r) => r.startsWith(HomelandReason));
 
-    // Tamassos already lost: Egypt's fleet beside it is no threat to Alashiya's land.
-    [s, sleep] = alashiyaAsleep((s) => s.owner.set("tamassos", "Egypt"));
+    // Kalavasos already lost: Egypt's fleet beside it is no threat to Alashiya's land.
+    [s, sleep] = alashiyaAsleep((s) => s.owner.set("kalavasos", "Egypt"));
     season(s, egypt(move("delta", "greatgreen")));
     Assert.true(sleep.asleep);
 

@@ -10,7 +10,7 @@ import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, t
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
 
-export const CURRENT_VERSION = 9;
+export const CURRENT_VERSION = 10;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration

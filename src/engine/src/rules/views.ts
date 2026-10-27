@@ -234,6 +234,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("sallyMinWalls", s.config.sallyMinWalls);
   v.prices.set("terrainDefence", s.config.terrainDefence);
   v.prices.set("desertUpkeep", s.config.desertUpkeep);
+  v.prices.set("seaSupply", s.config.seaSupply);
   return v;
 }
 

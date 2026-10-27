@@ -290,7 +290,7 @@ describe("FileSeatTests", () => {
         // The second reply still names a season and a trigger of its own, as a king of version 4 could: it is not read.
         return stem.includes("orders")
           ? stem.startsWith("t2_")
-            ? `{"notes":"Wake me next season.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+            ? `{"notes":"Wake me next season.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"kalavasos","person":"","amount":0,"power":""}]},"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
             : `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text);
       },

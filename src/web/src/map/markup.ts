@@ -5,6 +5,7 @@
 import { AllPowers, Crossings, Rough, WorldMap } from "@amarna/engine";
 import {
   CyprusPath,
+  Gulf,
   Deserts,
   F,
   Fields,
@@ -52,7 +53,7 @@ function buildDefs(): string {
   sb += `<pattern id="fog" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil"/></pattern>`;
   sb += `<pattern id="fogsea" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil-sea"/></pattern>`;
   sb += `<clipPath id="landclip"><path d="${LandPath} ${CyprusPath}" clip-rule="evenodd"/></clipPath>`;
-  sb += `<clipPath id="seaclip"><path d="${smoothClosed(Mediterranean)} ${CyprusPath}" clip-rule="evenodd"/></clipPath>`;
+  sb += `<clipPath id="seaclip"><path d="${smoothClosed(Mediterranean)} ${smoothClosed(Gulf)} ${CyprusPath}" clip-rule="evenodd"/></clipPath>`;
   for (const [id, d] of Shapes) sb += `<clipPath id="cl-${id}"><path d="${d}"/></clipPath>`;
   for (const p of AllPowers) sb += `<symbol id="em-${glyphId(p)}" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem(p)}"/></symbol>`;
   sb += `<symbol id="g-army" viewBox="-12 -12 24 24" overflow="visible"><path d="${Chariot}"/></symbol>`;
@@ -109,8 +110,8 @@ function buildBase(): string {
   sb += `<path class="coast" d="${SeaPath} ${CyprusPath}"/>`;
   // Province borders, thin, under everything that changes.
   for (const [id, d] of Shapes) sb += Map_.get(id).isSea ? `<path class="sea-line" d="${d}"/>` : `<path class="cell-line" d="${d}"/>`;
-  // Crossings: a pass or a ford on the connection, drawn across it.
-  for (const c of Crossings) {
+  // Crossings: a pass or a ford on the connection, drawn across it (a desert road is drawn by the desert itself).
+  for (const c of Crossings.filter((x) => x.kind !== "Desert")) {
     const a = city(c.a);
     const b = city(c.b);
     const mid = mul(add(a, b), 0.5);
@@ -123,11 +124,16 @@ function buildBase(): string {
       "</g>";
   }
   for (const g of GeoLabels) sb += `<text class="geo" transform="translate(${F(g.x)},${F(g.y)}) rotate(${F(g.angle)})">${g.text}</text>`;
-  for (const p of Map_.provinces.filter((x) => x.isSea)) sb += `<text class="sea-name" x="${p.x}" y="${p.y + 4}">${p.name}</text>`;
-  sb += `<text class="geo faint" x="420" y="12">BLACK SEA</text>`;
+  // The open seas by name; each coast's waters by its coast's name, small (the zone's tooltip gives its whole name).
+  for (const p of Map_.provinces.filter((x) => x.isSea)) {
+    const coasts = Map_.coastsOf(p.id);
+    const waters = coasts.length > 0 && p.name.endsWith(" waters");
+    sb += `<text class="sea-name${waters ? " waters" : ""}" x="${p.x}" y="${p.y + 4}">${waters ? "waters" : p.name}</text>`;
+  }
+  sb += `<text class="geo faint" x="300" y="12">BLACK SEA</text>`;
   // A cartouche and a compass, in the empty south.
   sb += `<g class="cartouche" transform="translate(612,690)"><path d="M-74,-15H74L82,0L74,15H-74L-82,0Z"/><text y="4.5">THE LANDS OF THE GREAT KINGS</text></g>`;
-  sb += `<g class="compass" transform="translate(560,600)"><circle r="15"/><path d="M0,-21L4,0L0,21L-4,0Z"/><path d="M-21,0L0,-3L21,0L0,3Z" class="cw"/><text y="-24">N</text></g>`;
+  sb += `<g class="compass" transform="translate(655,620)"><circle r="15"/><path d="M0,-21L4,0L0,21L-4,0Z"/><path d="M-21,0L0,-3L21,0L0,3Z" class="cw"/><text y="-24">N</text></g>`;
   return sb + "</g>";
 }
 

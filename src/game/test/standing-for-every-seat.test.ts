@@ -73,11 +73,11 @@ describe("StandingForEverySeatTests", () => {
 
   const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0 });
 
-  // <summary>Mari is Assyria's, its walls gone, with an Assyrian army in it: two Assyrian armies stand next to Sippar.</summary>
+  // <summary>Suhu is Assyria's, its walls gone, with an Assyrian army in it: two Assyrian armies stand next to Sippar.</summary>
   function assyriaInMari(s: GameState): void {
-    s.walls.delete("mari");
-    s.owner.set("mari", "Assyria");
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "mari" }));
+    s.walls.delete("suhu");
+    s.owner.set("suhu", "Assyria");
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu" }));
   }
 
   async function play(
@@ -100,10 +100,10 @@ describe("StandingForEverySeatTests", () => {
     return runner;
   }
 
-  // <summary>Assyria attacks the army in Sippar in turn 2, from Ekallatum with Mari's support: two against one.</summary>
+  // <summary>Assyria attacks the army in Sippar in turn 2, from Ekallate with Suhu's support: two against one.</summary>
   function assyriaStrikesSippar(): Awake {
     return new Awake((v) =>
-      v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "sippar"), support("mari", "ekallatum", "sippar")] }) : newTurnSubmission(),
+      v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar"), support("suhu", "ekallate", "sippar")] }) : newTurnSubmission(),
     );
   }
 
@@ -153,7 +153,7 @@ describe("StandingForEverySeatTests", () => {
         leaderRules(true, newGameConfig()),
       );
       Assert.equal(
-        "Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallatum for sippar. It gave these orders: durkurigalzu supports sippar holding. They replaced these orders you gave for turn 2: durkurigalzu -> nippur.",
+        "Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallate for sippar. It gave these orders: durkurigalzu supports sippar holding. They replaced these orders you gave for turn 2: durkurigalzu -> nippur.",
         notice(r.state, "Babylonia", standingFiredTitle("s1")).body,
       );
       Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
@@ -188,35 +188,35 @@ describe("StandingForEverySeatTests", () => {
   test("A standing order answers a move as ordered even one the mover s own standing order turns aside", async () => {
     // The follow-up's review: standing orders answer the moves as ordered, before any standing order fires, so one may
     // answer a move that its mover's own standing order then replaces. The rulebook says so. In turn 2 Assyria orders
-    // Ekallatum's army into Sippar, but Babylonia's army in Sippar attacks Mari, and Assyria's standing order turns
-    // Ekallatum's army to support Mari holding. Babylonia's standing order still fires on the march into Sippar.
+    // Ekallate's army into Sippar, but Babylonia's army in Sippar attacks Suhu, and Assyria's standing order turns
+    // Ekallate's army to support Suhu holding. Babylonia's standing order still fires on the march into Sippar.
     let babylon = new Awake((v) =>
       v.turn === 1
         ? newTurnSubmission({ standing: [attacked("sippar", support("durkurigalzu", "sippar"))] })
         : v.turn === 2
-          ? newTurnSubmission({ orders: [move("sippar", "mari")] })
+          ? newTurnSubmission({ orders: [move("sippar", "suhu")] })
           : newTurnSubmission(),
     );
     let assyria = new Awake((v) =>
       v.turn === 1
-        ? newTurnSubmission({ standing: [attacked("mari", support("ekallatum", "mari"))] })
+        ? newTurnSubmission({ standing: [attacked("suhu", support("ekallate", "suhu"))] })
         : v.turn === 2
-          ? newTurnSubmission({ orders: [move("ekallatum", "sippar"), support("mari", "ekallatum", "sippar")] })
+          ? newTurnSubmission({ orders: [move("ekallate", "sippar"), support("suhu", "ekallate", "sippar")] })
           : newTurnSubmission(),
     );
     let r = await play(babylon, assyria, 2, undefined, assyriaInMari);
 
-    // Ekallatum's army never set out; Babylonia's attack on Mari met two and bounced.
-    Assert.equal("Assyria", unitAt(r.state, "ekallatum")?.power);
-    Assert.equal("Assyria", unitAt(r.state, "mari")?.power);
+    // Ekallate's army never set out; Babylonia's attack on Suhu met two and bounced.
+    Assert.equal("Assyria", unitAt(r.state, "ekallate")?.power);
+    Assert.equal("Assyria", unitAt(r.state, "suhu")?.power);
     Assert.equal("Babylonia", unitAt(r.state, "sippar")?.power);
     Assert.startsWith(
-      "Your standing order s1 (when your army in mari is attacked) fired in turn 2: Babylonia's army set out from sippar for mari. It gave these orders: ekallatum supports mari holding. They replaced these orders you gave for turn 2: ekallatum -> sippar.",
+      "Your standing order s1 (when your army in suhu is attacked) fired in turn 2: Babylonia's army set out from sippar for suhu. It gave these orders: ekallate supports suhu holding. They replaced these orders you gave for turn 2: ekallate -> sippar.",
       notice(r.state, "Assyria", standingFiredTitle("s1")).body,
     );
     // Babylonia's fired all the same, on the move as Assyria ordered it.
     Assert.startsWith(
-      "Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallatum for sippar. It gave these orders: durkurigalzu supports sippar holding.",
+      "Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallate for sippar. It gave these orders: durkurigalzu supports sippar holding.",
       notice(r.state, "Babylonia", standingFiredTitle("s1")).body,
     );
     Assert.empty(standingOf(r.state, "Babylonia"));
@@ -332,7 +332,7 @@ describe("StandingForEverySeatTests", () => {
   }
 
   test("A script king guards a troop that could be struck by more than it holds alone", () => {
-    // Two Assyrian armies stand next to Sippar, in Ekallatum and Mari: one support holds it against both. The army in
+    // Two Assyrian armies stand next to Sippar, in Ekallate and Suhu: one support holds it against both. The army in
     // Dur-Kurigalzu, which holds this season and guards less than the army in the capital, is to give it if Sippar is
     // attacked.
     let s = newGame(31, Quiet);
@@ -347,14 +347,14 @@ describe("StandingForEverySeatTests", () => {
     [, give] = Contingencies.plan(b, brain, holding(b, move("durkurigalzu", "nippur")), []);
     Assert.equal([support("babylon", "sippar")], Assert.single(give, (g) => g.place === "sippar").request.orders);
     // With one army next to it, Sippar holds alone: no standing order for it.
-    removeAll(s.units, (u) => u.province === "mari");
+    removeAll(s.units, (u) => u.province === "suhu");
     [b, brain] = read(s, "Babylonia");
     [, give] = Contingencies.plan(b, brain, holding(b), []);
     Assert.doesNotContain(give, (g) => g.place === "sippar");
   });
 
   test("A script king sends a troop into an empty home province as a lone attacker does", () => {
-    // The opening: the Assyrian army in Ekallatum, which Babylon sees, is two moves from its empty Nippur (by Dur-Kurigalzu)
+    // The opening: the Assyrian army in Ekallate, which Babylon sees, is two moves from its empty Nippur (by Dur-Kurigalzu)
     // and next to Sippar and Dur-Kurigalzu, which one army alone cannot take. The army in Dur-Kurigalzu, the least
     // threatened troop next to Nippur by what it guards, is to march in if foreign troops do.
     let s = newGame(31, Quiet);
@@ -375,12 +375,12 @@ describe("StandingForEverySeatTests", () => {
 
   test("A script king s fleet at sea with nothing to help it slips away as the blow falls", () => {
     // Alashiya's fleet in the Great Green, next to Egypt's fleets in the Delta and the Levantine Sea; its armies hold
-    // Tamassos and Enkomi, and no army can help a fleet at sea. The Cilician Sea is empty, and no Egyptian fleet could
+    // Kalavasos and Enkomi, and no army can help a fleet at sea. The Cilician Sea is empty, and no Egyptian fleet could
     // move into it this season.
     let s = newGame(31, Quiet);
     removeAll(s.units, (u) => u.power === "Alashiya");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Fleet", province: "greatgreen" }));
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Army", province: "tamassos" }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Army", province: "kalavasos" }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Army", province: "enkomi" }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Fleet", province: "levantsea" }));
     let [b, brain] = read(s, "Alashiya");
@@ -415,7 +415,7 @@ describe("StandingForEverySeatTests", () => {
       season === "hold"
         ? holding(b)
         : season === "march"
-          ? holding(b, move("sippar", "mari"))
+          ? holding(b, move("sippar", "suhu"))
           : season === "same"
             ? holding(b, support("durkurigalzu", "sippar"))
             : // The plan has Babylon support it: two against two, held without the standing order.

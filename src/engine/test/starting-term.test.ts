@@ -29,7 +29,8 @@ describe("StartingTermTests", () => {
       list(person),
       s.characters.map((c) => ({
         name: c.name,
-        origin: c.origin,
+        // Kanesh took its Hittite name, Nesa, in item 7a's map review; the fingerprint is of the draws, not the names.
+        origin: beforeOf(c.origin),
         calling: c.calling,
         traits: c.traits,
         facts: c.facts.map((f) => ({ text: beforeOf(f.text), secrecy: f.secrecy, tag: f.tag, knownBy: f.knownBy })),
@@ -46,7 +47,7 @@ describe("StartingTermTests", () => {
   }
 
   function beforeOf(text: string): string {
-    return text.replaceAll("as an interpreter", "as a interpreter").replaceAll("once an interpreter", "once a interpreter");
+    return text.replaceAll("as an interpreter", "as a interpreter").replaceAll("once an interpreter", "once a interpreter").replaceAll("Nesa", "Kanesh");
   }
 
   //

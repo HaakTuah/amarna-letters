@@ -30,6 +30,7 @@ import {
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
+import { landingsFrom, seaChains } from "./seas.ts";
 
 /** The season's troop orders, and what the plan still lacks (for levies). */
 export class MilitaryPlan {
@@ -48,7 +49,7 @@ export class MilitaryPlan {
   readonly byFleets = new Dict<string, number>();
 }
 
-/** `other`: the fleet that carries a convoy, or the partner's troop an assist supports. */
+/** `other`: the partner's troop an assist supports. `chain`: the fleets that carry a convoy, one in each sea zone. */
 interface Op {
   kind: string;
   net: number;
@@ -56,9 +57,18 @@ interface Op {
   lead: string;
   helpers: string[];
   other: string | null;
+  chain: string[];
 }
 
-const op = (kind: string, net: number, target: string, lead: string, helpers: string[], other: string | null = null): Op => ({ kind, net, target, lead, helpers, other });
+const op = (kind: string, net: number, target: string, lead: string, helpers: string[], other: string | null = null, chain: string[] = []): Op => ({
+  kind,
+  net,
+  target,
+  lead,
+  helpers,
+  other,
+  chain,
+});
 
 /** A blow struck together at the land of a king sworn against: one troop goes in, the others support it. */
 export interface Joint {
@@ -92,7 +102,7 @@ export function joints(b: Board, brain: Brain): Joint[] {
       [(t: string) => t, cmpStr],
     );
     for (const t of targets) {
-      const near = b.v.units.filter((u) => side.has(u.power) && !used.has(u.province) && Board.Map.canMove(u.kind, u.province, t));
+      const near = b.v.units.filter((u) => side.has(u.power) && !used.has(u.province) && Board.Sail.canMove(u.kind, u.province, t));
       if (!near.some((u) => u.power === b.me) || near.every((u) => u.power === b.me)) continue;
       const lead = sortBy(
         near,
@@ -105,7 +115,7 @@ export function joints(b: Board, brain: Brain): Joint[] {
       // Walls add nothing to the battle: a blow lands if it beats the troop there (behind walls it begins a siege), with the
       // ground's help to it against the troop that goes in.
       const held = b.unitAt.tryGet(t)?.power === foe ? 1 + b.ground(lead.province, t) : 0;
-      const backers = b.units.filter((u) => u.power === foe && u.province !== t && Board.Map.canMove(u.kind, u.province, t)).length;
+      const backers = b.units.filter((u) => u.power === foe && u.province !== t && Board.Sail.canMove(u.kind, u.province, t)).length;
       if (1 + supp.length <= held + idiv(backers + 1, 2)) continue;
       used.add(lead.province);
       for (const s of supp) used.add(s.province);
@@ -178,9 +188,9 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const near = b.others.filter(
       (u) =>
         u.province !== prov &&
-        (Board.Map.canMove(u.kind, u.province, prov) || Board.Map.movesFrom(u.kind, u.province).some((n) => n !== prov && Board.Map.canMove(u.kind, n, prov))),
+        (Board.Sail.canMove(u.kind, u.province, prov) || Board.Sail.movesFrom(u.kind, u.province).some((n) => n !== prov && Board.Sail.canMove(u.kind, n, prov))),
     );
-    if (near.length > 0 && near.every((u) => u.kind === "Fleet") && near.some((u) => Board.Map.canMove(u.kind, u.province, prov)))
+    if (near.length > 0 && near.every((u) => u.kind === "Fleet") && near.some((u) => Board.Sail.canMove(u.kind, u.province, prov)))
       plan.byFleets.set(
         prov,
         max(near, (u) => Math.max(0.25, fear(u.power, prov))),
@@ -193,7 +203,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     for (const u of b.others) {
       const f = fear(u.power, province);
       if (f < 0.25) continue;
-      const close = Board.Map.canMove(u.kind, u.province, province) || Board.Map.movesFrom(u.kind, u.province).some((n) => Board.Map.canMove(u.kind, n, province));
+      const close = Board.Sail.canMove(u.kind, u.province, province) || Board.Sail.movesFrom(u.kind, u.province).some((n) => Board.Sail.canMove(u.kind, n, province));
       if (close) best = Math.max(best, f * 0.6);
     }
     return best;
@@ -214,7 +224,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
 
   const helpersFor = (target: string, exclude: string): string[] =>
     sortBy(
-      [...free].filter((u) => u !== exclude && Board.Map.canMove(b.unitAt.get(u).kind, u, target)),
+      [...free].filter((u) => u !== exclude && Board.Sail.canMove(b.unitAt.get(u).kind, u, target)),
       [
         (u: string) => {
           const t = threat.tryGet(u);
@@ -282,7 +292,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   };
 
   // ---- Attack: every reachable province we would gain from.
-  const targets = distinct([...free].flatMap((u) => Board.Map.movesFrom(b.unitAt.get(u).kind, u))).filter((t) => !Board.Map.get(t).isSea);
+  const targets = distinct([...free].flatMap((u) => Board.Sail.movesFrom(b.unitAt.get(u).kind, u))).filter((t) => !Board.Map.get(t).isSea);
   for (const target of targets) {
     const owner = b.ownerOf(target);
     const occupant = b.unitAt.tryGet(target) ?? null;
@@ -352,29 +362,31 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   // An army on a coast with nothing it could take by land this season: every land or coast link leads to our own land, to
   // walls, or to a king we will not fight. Carried over the sea it can work again.
   const stranded = (army: string): boolean =>
-    !Board.Map.movesFrom("Army", army).some((n) => {
+    !Board.Sail.movesFrom("Army", army).some((n) => {
       if (b.isMine(n)) return false;
       const o = b.ownerOf(n);
       return o === null || isWilling(o);
     });
 
-  // ---- Convoy: an army on the coast, our fleet at sea, a coast beyond. For a stranded army the convoy is worth more than
-  // the fleet taking that coast itself: the army goes in, and the fleet stays at sea to carry or strike again.
-  for (const fleet of [...free].filter((u) => b.unitAt.get(u).kind === "Fleet" && Board.Map.get(u).isSea))
-    for (const army of [...free].filter((u) => b.unitAt.get(u).kind === "Army" && Board.Map.get(u).isCoastal && Board.Map.areAdjacent(u, fleet)))
-      for (const target of Board.Map.neighbors(fleet).filter((t) => t !== army && Board.Map.get(t).isCoastal && !Board.Map.canMove("Army", army, t))) {
+  // ---- Convoy: an army on the coast, our fleets at sea in a chain from its waters to the waters of a coast beyond (build
+  // order item 7a: an army lands only from the waters of the coast it lands on). For a stranded army the convoy is worth
+  // more than the fleets taking that coast themselves: the army goes in, and the fleets stay at sea to carry or strike again.
+  const freeFleetAt = (z: string): boolean => free.has(z) && b.unitAt.get(z).kind === "Fleet" && !stay.has(z);
+  for (const army of [...free].filter((u) => b.unitAt.get(u).kind === "Army" && Board.Map.get(u).isCoastal))
+    for (const [zone, chain] of seaChains(army, freeFleetAt))
+      for (const target of landingsFrom(zone).filter((t) => t !== army && !Board.Sail.canMove("Army", army, t))) {
         const owner = b.ownerOf(target);
         if (b.unitAt.has(target) || owner === me || (owner !== null && !isWilling(owner))) continue;
         const musters = [...b.alive].filter((x) => x !== me).map((x) => b.muster(x, target));
         const required = 1 + Math.min(1, musters.length === 0 ? 0 : max(musters, (x) => x));
         const helpers = helpersFor(target, army)
-          .filter((u) => u !== fleet)
+          .filter((u) => !chain.includes(u))
           .slice(0, Math.max(0, required - 1));
         if (1 + helpers.length < required) continue;
         // A landing that does not storm the walls only begins a siege.
         const landed = b.walls(target) && 1 + helpers.length < b.stormNeeds(target, 0) ? siegeWorth(b.wallLevel(target)) : 1;
         const carried = landed * (stranded(army) ? 0.85 * (b.value(target) * multiplier(owner)) + 60 : 0.75 * b.value(target) * multiplier(owner));
-        ops.push(op("convoy", carried - exposure(army), target, army, helpers, fleet));
+        ops.push(op("convoy", carried - exposure(army) - 10 * (chain.length - 1), target, army, helpers, null, chain));
       }
 
   // ---- Sieges: an army of ours within foreign walls we mean to take stays and besieges the city (each season it holds
@@ -388,7 +400,47 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const x = b.siegeAt(at);
     const left = b.wallLevel(at) - (x !== null && x.besieger === me ? x.progress : 0);
     const helper = left >= 2 ? (helpersFor(at, at).find((u) => !stay.has(u) && !threat.has(u)) ?? null) : null;
-    ops.push(op("siege", (0.9 * b.value(at) * multiplier(holder)) / Math.max(1, left) + 40, at, at, helper === null ? [] : [helper]));
+    const worth = (0.9 * b.value(at) * multiplier(holder)) / Math.max(1, left) + 40;
+    // A coastal city is supplied by sea, and worn down a step less, unless a fleet of ours holds its waters (item 7a).
+    const waters = Board.Map.get(at).waters;
+    const ours = (z: string): boolean => b.unitAt.tryGet(z)?.power === me && b.unitAt.get(z).kind === "Fleet";
+    const blockader =
+      waters === null || b.v.prices.getOrDefault("seaSupply", 1) <= 0
+        ? null
+        : ours(waters)
+          ? waters
+          : b.unitAt.has(waters)
+            ? null
+            : (sortBy(
+                [...free].filter((f) => b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && Board.Sail.canMove("Fleet", f, waters)),
+                [(f: string) => f, cmpStr],
+              )[0] ?? null);
+    const supplied = waters !== null && blockader === null && b.v.prices.getOrDefault("seaSupply", 1) > 0;
+    ops.push(op("siege", supplied && helper === null ? worth / 4 : supplied ? worth / 2 : worth, at, at, helper === null ? [] : [helper]));
+    if (waters !== null && blockader !== null && free.has(blockader)) ops.push(op("blockade", worth / 2 + 20, waters, blockader, []));
+  }
+
+  // ---- Guard the waters of our capital and walled coasts against a landing: an army lands only from the waters of the
+  // coast it lands on, so a fleet of ours standing there stops it, when a foreign fleet not of a friend is near.
+  for (const p of sortBy(
+    Board.Map.landProvinces.filter((x) => x.waters !== null && b.isMine(x.id) && (x.capital || b.wallLevel(x.id) >= 2)),
+    [(x: { id: string }) => x.id, cmpStr],
+  )) {
+    const w = p.waters!;
+    if (b.unitAt.has(w) && b.unitAt.get(w).power !== me) continue;
+    const near = seaChains(p.id, () => true, 3);
+    const menaced = b.others.some(
+      (u) => u.kind === "Fleet" && !brain.isFriend(u.power) && (near.has(u.province) || (Board.Map.get(u.province).waters !== null && near.has(Board.Map.get(u.province).waters!))),
+    );
+    if (!menaced) continue;
+    const guard = free.has(w)
+      ? w
+      : (sortBy(
+          [...free].filter((f) => b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && Board.Sail.canMove("Fleet", f, w)),
+          [(f: string) => (f === p.id ? 0 : 1), cmpNum],
+          [(f: string) => f, cmpStr],
+        )[0] ?? null);
+    if (guard !== null) ops.push(op("guard", 0.3 * b.value(p.id) + 30, w, guard, []));
   }
 
   // ---- Joint blows with sworn partners (see joints): go in when it is our turn, support when it is theirs.
@@ -411,8 +463,8 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     if (o.net <= 0) break;
     if (o.lead.length > 0 && !free.has(o.lead)) continue;
     if (!(o.kind === "defend" || o.kind === "assist" || o.kind === "siege") && stay.has(o.lead)) continue;
-    if ((o.kind === "attack" || o.kind === "block" || o.kind === "convoy" || o.kind === "assist") && plan.destinations.has(o.target)) continue;
-    if (o.kind === "convoy" && !free.has(o.other!)) continue;
+    if ((o.kind === "attack" || o.kind === "block" || o.kind === "convoy" || o.kind === "assist" || o.kind === "blockade" || o.kind === "guard") && plan.destinations.has(o.target) && o.lead !== o.target) continue;
+    if (o.kind === "convoy" && o.chain.some((f) => !free.has(f))) continue;
     const helpers = o.helpers.filter((h) => free.has(h));
     if (o.kind === "attack") {
       const stillNeeded = o.helpers.length;
@@ -436,13 +488,18 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
         break;
       case "convoy":
         assign(plan, free, o.lead, move(o.lead, o.target), "attack");
-        assign(plan, free, o.other!, convoy(o.other!, o.lead, o.target), "convoy");
+        for (const f of o.chain) assign(plan, free, f, convoy(f, o.lead, o.target), "convoy");
         for (const h of helpers) assign(plan, free, h, support(h, o.lead, o.target), "support");
         plan.destinations.add(o.target);
         break;
       case "assist":
         // A unit that supports stays where it is, so one kept home (or defended) may still do it.
         assign(plan, free, o.lead, support(o.lead, o.other!, o.target), "assist");
+        plan.destinations.add(o.target);
+        break;
+      case "blockade":
+      case "guard":
+        assign(plan, free, o.lead, o.lead === o.target ? hold(o.lead) : move(o.lead, o.target), o.kind);
         plan.destinations.add(o.target);
         break;
       case "siege":
@@ -457,7 +514,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   for (const u of [...free]) {
     // Only troops in sight: support for a remembered unit that has moved on would be refused.
     const candidates = b.v.units
-      .filter((o) => o.power !== me && brain.isFriend(o.power) && Board.Map.canMove(b.unitAt.get(u).kind, u, o.province))
+      .filter((o) => o.power !== me && brain.isFriend(o.power) && Board.Sail.canMove(b.unitAt.get(u).kind, u, o.province))
       .map((o) => {
         const ms = [...b.alive].filter((x) => x !== me && x !== o.power && !brain.isFriend(x) && b.muster(x, o.province) > 0).map(menace);
         return { unit: o, menace: ms.length === 0 ? 0 : max(ms, (m) => m) };
@@ -468,42 +525,48 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     assign(plan, free, u, support(u, ally.province), "ally-support");
   }
 
-  // ---- Ready a convoy: an army on a coast with nothing to take by land, and our fleet a move from a sea that touches both
-  // its coast and land worth taking that the army cannot reach by land. The fleet puts to that sea, so that next season the
-  // convoy above can carry the army over.
+  // ---- Ready a convoy: an army on a coast with nothing to take by land, and a chain of sea zones from its waters to the
+  // waters of land worth taking that the army cannot reach by land (one fleet in each, build order item 7a). Our free
+  // fleets put to the zones of the chain they can reach this season, or hold there, so that the convoy above can carry the
+  // army over when the chain is whole.
   for (const army of sortBy(
     [...free].filter((u) => b.unitAt.get(u).kind === "Army" && Board.Map.get(u).isCoastal && !threat.has(u) && !stay.has(u)),
     [(x: string) => x, cmpStr],
   )) {
     if (!stranded(army)) continue;
-    let best: [string | null, string, number] = [null, "", 0.0];
-    for (const sea of Board.Map.neighbors(army).filter((s) => {
-      if (!Board.Map.get(s).isSea || plan.destinations.has(s)) return false;
-      const at = b.unitAt.tryGet(s);
-      return at === undefined || at.power === me;
-    })) {
-      const worths = Board.Map.neighbors(sea)
+    const open = (z: string): boolean => {
+      const at = b.unitAt.tryGet(z);
+      return (at === undefined || at.power === me) && (!plan.destinations.has(z) || free.has(z));
+    };
+    let best: [string[], number] = [[], 0.0];
+    for (const [zone, chain] of seaChains(army, open)) {
+      const worths = landingsFrom(zone)
         .filter((t) => {
-          if (t === army || !Board.Map.get(t).isCoastal || Board.Map.canMove("Army", army, t) || b.isMine(t)) return false;
+          if (t === army || Board.Sail.canMove("Army", army, t) || b.isMine(t)) return false;
           const o = b.ownerOf(t);
           return o === null || isWilling(o);
         })
-        .map((t) => b.value(t) * multiplier(b.ownerOf(t)));
+        .map((t) => b.value(t) * multiplier(b.ownerOf(t)) - 20 * (chain.length - 1));
       const worth = worths.length === 0 ? 0 : max(worths, (x) => x);
-      if (worth <= best[2]) continue;
+      if (worth > best[1]) best = [chain, worth];
+    }
+    if (best[1] < 200) continue;
+    for (const zone of best[0]) {
+      if (free.has(zone) && b.unitAt.get(zone).kind === "Fleet") {
+        // Already at sea there: it waits for the rest of the chain, or for the army.
+        assign(plan, free, zone, hold(zone), "convoy");
+        continue;
+      }
+      if (b.unitAt.has(zone)) continue;
       const fleet =
         sortBy(
-          [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && (f === sea || Board.Map.canMove("Fleet", f, sea))),
-          [(f: string) => (f === sea ? 0 : 1), cmpNum],
+          [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && !best[0].includes(f) && Board.Sail.canMove("Fleet", f, zone)),
           [(f: string) => f, cmpStr],
         )[0] ?? null;
-      if (fleet !== null) best = [fleet, sea, worth];
+      if (fleet === null || plan.destinations.has(zone)) continue;
+      assign(plan, free, fleet, move(fleet, zone), "convoy");
+      plan.destinations.add(zone);
     }
-    const carrier = best[0];
-    if (carrier === null || best[2] < 200) continue;
-    // Already at sea there: it waits for the army (the convoy above did not find a landing it could make this season).
-    assign(plan, free, carrier, carrier === best[1] ? hold(carrier) : move(carrier, best[1]), "convoy");
-    if (carrier !== best[1]) plan.destinations.add(best[1]);
   }
 
   // ---- Everyone else: hold if threatened, otherwise move towards where the value is.
@@ -567,7 +630,7 @@ export function sallies(b: Board, orders: Iterable<Order>, brain: Brain | null =
     if (list.some((y) => y.city === x.province)) continue;
     const friend =
       sortBy(
-        b.v.units.filter((u) => u.power !== b.me && u.power !== x.besieger && brain.isFriend(u.power) && Board.Map.canMove(u.kind, u.province, x.province)),
+        b.v.units.filter((u) => u.power !== b.me && u.power !== x.besieger && brain.isFriend(u.power) && Board.Sail.canMove(u.kind, u.province, x.province)),
         [(u: UnitView) => (u.kind === "Army" ? 0 : 1), cmpNum],
         [(u: UnitView) => u.province, cmpStr],
       )[0] ?? null;
@@ -641,7 +704,7 @@ function approach(b: Board, brain: Brain, from: string, taken: HSet<string>, isW
   while (queue.length > 0) {
     const cur = queue.shift()!;
     if (depth.get(cur)! >= 5) continue;
-    for (const n of sortBy(Board.Map.movesFrom(kind, cur), [(x: string) => x, cmpStr])) {
+    for (const n of sortBy(Board.Sail.movesFrom(kind, cur), [(x: string) => x, cmpStr])) {
       if (prev.has(n)) continue;
       prev.set(n, cur);
       depth.set(n, depth.get(cur)! + 1);

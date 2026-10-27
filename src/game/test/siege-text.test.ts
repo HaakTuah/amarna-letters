@@ -10,14 +10,14 @@ import { removeAll, Assert } from "../../engine/test/support.ts";
 describe("SiegeTextTests", () => {
   test("The view gives the walls standing the sieges known and the land being absorbed", () => {
     let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
-    first(s.units, (u) => u.province === "sippar").province = "mari";
+    first(s.units, (u) => u.province === "sippar").province = "suhu";
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(
       new Dict([
-        ["Babylonia", newTurnSubmission({ orders: [besiege("mari")] })],
-        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallatum")] })],
-        ["Assyria", newTurnSubmission({ orders: [move("ekallatum", "sippar")] })],
+        ["Babylonia", newTurnSubmission({ orders: [besiege("suhu")] })],
+        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallate")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "sippar")] })],
       ]),
     );
     let babylon = situation(Views.for(s, "Babylonia"));
@@ -26,9 +26,9 @@ describe("SiegeTextTests", () => {
       babylon,
     );
     Assert.contains("babylon (walls 3) [Babylonia army]", babylon);
-    Assert.contains("mari (walls 2) [Babylonia army]", babylon);
+    Assert.contains("suhu (walls 2) [Babylonia army]", babylon);
     Assert.contains(
-      "SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges mari (a free city, walls 2): worn down 1 of 2, since turn 1.",
+      "SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges suhu (a free city, walls 2): worn down 1 of 2, since turn 1.",
       babylon,
     );
     // Assyria took Sippar from Babylon by force: a third of it counts this season, which Assyria reads, and nobody else
@@ -37,8 +37,8 @@ describe("SiegeTextTests", () => {
     Assert.contains("sippar [Assyria army]", babylon);
     Assert.doesNotContain("taken by force", babylon);
     Assert.doesNotContain("taken by force", situation(Views.for(s, "Egypt")));
-    // Mitanni, next to Mari, sees the siege too.
-    Assert.contains("Babylonia's army besieges mari (a free city, walls 2): worn down 1 of 2", situation(Views.for(s, "Mitanni")));
+    // Mitanni, next to Suhu, sees the siege too.
+    Assert.contains("Babylonia's army besieges suhu (a free city, walls 2): worn down 1 of 2", situation(Views.for(s, "Mitanni")));
   });
 
   test.each([
@@ -77,10 +77,10 @@ describe("SiegeTextTests", () => {
   test("A fortify order is read from a reply and offered in the schema", () => {
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","letters":[],"units":[{"unit":"mari","order":"besiege","target":"","to":""},{"unit":"Babylon","order":"sally","target":"sippar","to":""}],"other_orders":[{"action":"fortify","province":"Thebes","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","letters":[],"units":[{"unit":"suhu","order":"besiege","target":"","to":""},{"unit":"Babylon","order":"sally","target":"sippar","to":""}],"other_orders":[{"action":"fortify","province":"Thebes","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
       )!,
     );
-    Assert.equal([besiege("mari"), sally("babylon", "sippar"), fortify("thebes")], sub.orders);
+    Assert.equal([besiege("suhu"), sally("babylon", "sippar"), fortify("thebes")], sub.orders);
     Assert.contains("fortify", OtherActions);
   });
 

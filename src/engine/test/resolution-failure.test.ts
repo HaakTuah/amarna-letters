@@ -45,11 +45,11 @@ import { describe as describeOrder } from "@amarna/engine";
 // Every order the validator accepts but the season cannot carry out is reported to its king next season, as a
 // rejection notice with the reason in plain words.
 describe("ResolutionFailureTests", () => {
-  // <summary>Babylonia holds Megiddo and Gaza with an army in each, next to Egypt's Sinai, where Egypt has an army too.</summary>
+  // <summary>Babylonia holds Jerusalem and Gaza with an army in each, next to Egypt's Sinai, where Egypt has an army too.</summary>
   function board(sleeping: boolean = false): GameState {
     let s = newGame(4, newGameConfig({ catastropheChance: 0, sleepingSeats: sleeping }));
     for (const [city, id] of [
-      ["megiddo", "u90"],
+      ["jerusalem", "u90"],
       ["gaza", "u91"],
     ]) {
       s.owner.set(city, "Babylonia");
@@ -66,7 +66,7 @@ describe("ResolutionFailureTests", () => {
     s.treasuries.get("Egypt").lots.push(newGoldLot({ id: "g900", from: "Hatti", stated: 1000, face: 1000, true: 0, arrivedTurn: 1 }));
   }
 
-  const TakeSinai: Order[] = [move("megiddo", "sinai"), support("gaza", "megiddo", "sinai")];
+  const TakeSinai: Order[] = [move("jerusalem", "sinai"), support("gaza", "jerusalem", "sinai")];
 
   test.each([
     ["cession of land lost in battle", "Cession failed", "Sinai was not ceded to Hatti: you no longer held it after movement.", true],
@@ -163,10 +163,13 @@ describe("ResolutionFailureTests", () => {
         egypt(raise("thebes", "Army"));
         break;
       case "purchase between rival buyers":
+        // Egypt reaches Tyre by a fleet in its waters; Babylonia by Gaza.
+        s.units.push(newUnit({ id: "u93", power: "Egypt", kind: "Fleet", province: "tyrewaters" }));
         orders.set("Babylonia", newTurnSubmission({ orders: [buy("tyre")] }));
         egypt(buy("tyre"));
         break;
       case "purchase that cannot be paid":
+        s.units.push(newUnit({ id: "u93", power: "Egypt", kind: "Fleet", province: "tyrewaters" }));
         debased(s);
         egypt(buy("tyre"));
         break;

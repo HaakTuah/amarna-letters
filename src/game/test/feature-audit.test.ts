@@ -233,7 +233,7 @@ describe("FeatureAuditTests", () => {
       s.walls.delete(x);
     }
     add(s, "Hatti", "Army", "carchemish");
-    add(s, "Mitanni", "Army", "mari");
+    add(s, "Mitanni", "Army", "suhu");
     treaty(s, "Egypt", "Mitanni");
 
     let [, orders] = economy(s, "Egypt", (brain) => (brain.rel.get("Hatti").grudge = 5));
@@ -253,19 +253,19 @@ describe("FeatureAuditTests", () => {
     s.turn = 6;
     s.owner.set("qadesh", "Egypt");
     s.walls.delete("qadesh");
-    add(s, "Mitanni", "Army", "mari");
+    add(s, "Mitanni", "Army", "suhu");
     treaty(s, "Egypt", "Mitanni");
     [, orders] = economy(s, "Egypt", (brain) => (brain.rel.get("Hatti").grudge = 5));
     Assert.doesNotContain(orders, (o) => o.type === "cede");
   });
 
-  // Alashiya alone on the map: an army on Tamassos and a fleet, with Lukka a free city whose walls are down; late enough
+  // Alashiya alone on the map: an army on Kalavasos and a fleet, with Lukka a free city whose walls are down; late enough
   // that the troops every court saw at the start are out of mind.
   function island(fleetAt: string): GameState {
     let s = newGame(Seed);
     s.turn = 6;
     s.units.length = 0;
-    add(s, "Alashiya", "Army", "tamassos");
+    add(s, "Alashiya", "Army", "kalavasos");
     add(s, "Alashiya", "Fleet", fleetAt);
     s.walls.delete("lukka");
     return s;
@@ -276,8 +276,8 @@ describe("FeatureAuditTests", () => {
     let s = island("greatgreen");
     let orders = (await new ScriptLeader(Seed).decide(Views.for(s, "Alashiya"))).orders;
     let convoy = Assert.single(orders.filter((o): o is ConvoyOrder => o.type === "convoy"));
-    Assert.equal(["greatgreen", "tamassos"], [convoy.unit, convoy.army]);
-    Assert.contains(move("tamassos", convoy.to), orders);
+    Assert.equal(["greatgreen", "kalavasos"], [convoy.unit, convoy.army]);
+    Assert.contains(move("kalavasos", convoy.to), orders);
 
     // The fleet is in port: it puts to sea next to the army's coast first, ready to carry it.
     s = island("enkomi");

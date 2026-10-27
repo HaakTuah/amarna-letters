@@ -97,7 +97,7 @@ describe("SleepTests", () => {
     Assert.doesNotContain("news you asked to hear", rules);
     Assert.contains("You cannot ask to be woken, at a season you name or for anything else.", rules);
     let plain = `{"notes":"Hold.","units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
-    let asks = `{"notes":"Hold.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":2,"wake_on":[{"trigger":"unit_moves","province":"ekallatum"}]},"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
+    let asks = `{"notes":"Hold.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":2,"wake_on":[{"trigger":"unit_moves","province":"ekallate"}]},"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
     Assert.equal(serialize(TurnSubmissionSchema, Parse.orders(JSON.parse(plain))), serialize(TurnSubmissionSchema, Parse.orders(JSON.parse(asks))));
 
     // Asleep after its first orders, it is not woken again in six quiet seasons: only what concerns it, or the cap, would.
@@ -251,25 +251,25 @@ describe("SleepTests", () => {
   test("Foreign troops entering its land and the land lost wake a sleeper", async () => {
     // Babylon disbands the army in Sippar and sleeps; Assyria walks in.
     let sleeper = new Sleeper((v) => (v.turn === 1 ? newTurnSubmission({ orders: [disband("sippar")] }) : nothing()));
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "sippar")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar")] }) : newTurnSubmission()));
     await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]));
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(
-      ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."],
+      ["foreign troops entered your land: Assyria's army moved ekallate -> sippar", "land lost: Sippar has been taken by Assyria."],
       sleeper.views[1].wokenBecause,
     );
   });
 
   test("Troops destroyed in battle wake a sleeper", async () => {
-    // An Assyrian army stands in Mari (its walls gone, for the test) to support the attack on Sippar.
+    // An Assyrian army stands in Suhu (its walls gone, for the test) to support the attack on Sippar.
     function setup(s: GameState): void {
-      s.walls.delete("mari");
-      s.owner.set("mari", "Assyria");
-      s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "mari" }));
+      s.walls.delete("suhu");
+      s.owner.set("suhu", "Assyria");
+      s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu" }));
     }
     let sleeper = new Sleeper((_) => nothing());
     let assyria = new Scripted((v) =>
-      v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "sippar"), supportOrder("mari", "ekallatum", "sippar")] }) : newTurnSubmission(),
+      v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar"), supportOrder("suhu", "ekallate", "sippar")] }) : newTurnSubmission(),
     );
     await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]), setup);
     Assert.equal([1, 3], sleeper.calls);
@@ -339,25 +339,25 @@ describe("SleepTests", () => {
   });
 
   test("A scheduled move that foreign troops stop wakes the seat with the reason", async () => {
-    // Assyria's army holds Ekallatum against Sippar's lone army.
+    // Assyria's army holds Ekallate against Sippar's lone army.
     let sleeper = new Sleeper((v) =>
-      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [move("sippar", "ekallatum")] })] }) : nothing(),
+      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [move("sippar", "ekallate")] })] }) : nothing(),
     );
     await play("Babylonia", sleeper, 3);
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(
       [
-        "orders you scheduled could not be carried out: sippar -> ekallatum (the unit holding ekallatum (Assyria's army) kept its place; your strength 1 against 1)",
+        "orders you scheduled could not be carried out: sippar -> ekallate (the unit holding ekallate (Assyria's army) kept its place; your strength 1 against 1)",
       ],
       sleeper.views[1].wokenBecause,
     );
   });
 
   test("A scheduled move into walls or stopped by its own unit wakes nobody", async () => {
-    // Mari's walls: a lone army gets within them but does not storm them (since the siege package walls stop no move). The
+    // Suhu's walls: a lone army gets within them but does not storm them (since the siege package walls stop no move). The
     // move succeeds, so nothing wakes the seat, and its report says what came of it.
     let walls = new Sleeper((v) =>
-      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [move("sippar", "mari")] })] }) : nothing(),
+      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [move("sippar", "suhu")] })] }) : nothing(),
     );
     let r = await play("Babylonia", walls, 3);
     Assert.equal([1], walls.calls);
@@ -366,9 +366,9 @@ describe("SleepTests", () => {
       inboxOf(r.state, "Babylonia"),
       (i) =>
         i.title === "Movements last season" &&
-        i.body.includes("sippar -> mari: succeeds: it got within the walls of mari but did not storm them (strength 1 against walls 2 and defenders 0)"),
+        i.body.includes("sippar -> suhu: succeeds: it got within the walls of suhu but did not storm them (strength 1 against walls 2 and defenders 0)"),
     );
-    Assert.null(r.state.owner.get("mari"));
+    Assert.null(r.state.owner.get("suhu"));
 
     // Babylon's own army holds Babylon: the move from Dur-Kurigalzu into it fails against its own unit.
     let own = new Sleeper((v) =>
@@ -380,18 +380,18 @@ describe("SleepTests", () => {
   });
 
   test("A scheduled assault on walls that others troops hold wakes the seat", async () => {
-    // Mari is Assyria's, with an Assyrian army within its walls that the army in Ekallatum supports: strength 2 against 1.
+    // Suhu is Assyria's, with an Assyrian army within its walls that the army in Ekallate supports: strength 2 against 1.
     let sleeper = new Sleeper((v) =>
-      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [move("sippar", "mari")] })] }) : nothing(),
+      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [move("sippar", "suhu")] })] }) : nothing(),
     );
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [supportOrder("ekallatum", "mari")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [supportOrder("ekallate", "suhu")] }) : newTurnSubmission()));
     await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]), (s) => {
-      s.owner.set("mari", "Assyria");
-      s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "mari" }));
+      s.owner.set("suhu", "Assyria");
+      s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu" }));
     });
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(
-      ["orders you scheduled could not be carried out: sippar -> mari (the unit holding mari (Assyria's army) kept its place; your strength 1 against 2)"],
+      ["orders you scheduled could not be carried out: sippar -> suhu (the unit holding suhu (Assyria's army) kept its place; your strength 1 against 2)"],
       sleeper.views[1].wokenBecause,
     );
   });
@@ -417,7 +417,7 @@ describe("SleepTests", () => {
     let sleeper = new Sleeper((v) =>
       v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [supportOrder("sippar", "babylon")] })] }) : nothing(),
     );
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "sippar")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar")] }) : newTurnSubmission()));
     await play("Babylonia", sleeper, 7, cap(3), new Dict([["Assyria", assyria]]));
     Assert.equal([1, 3, 7], sleeper.calls);
     Assert.contains(sleeper.views[1].wokenBecause, (w) => w.startsWith("orders you scheduled could not be carried out"));
@@ -425,24 +425,24 @@ describe("SleepTests", () => {
   });
 
   test("A scheduled support that is cut wakes the seat", async () => {
-    // Sippar is to support Babylon holding in turn 2; Assyria attacks Sippar from Ekallatum and cuts it (the attack fails).
+    // Sippar is to support Babylon holding in turn 2; Assyria attacks Sippar from Ekallate and cuts it (the attack fails).
     let sleeper = new Sleeper((v) =>
       v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [supportOrder("sippar", "babylon")] })] }) : nothing(),
     );
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "sippar")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar")] }) : newTurnSubmission()));
     await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]));
     Assert.equal([1, 3], sleeper.calls);
     // The failed attack wakes it too (since the review of the fix pass after item 4): it was attacked.
     Assert.equal(
       [
-        "orders you scheduled could not be carried out: sippar supports babylon holding (the support was cut by an attack from ekallatum)",
-        `${AttackedReason}: Assyria's army tried to move ekallatum -> sippar`,
+        "orders you scheduled could not be carried out: sippar supports babylon holding (the support was cut by an attack from ekallate)",
+        `${AttackedReason}: Assyria's army tried to move ekallate -> sippar`,
       ],
       sleeper.views[1].wokenBecause,
     );
     Assert.contains(
       sleeper.views[1].inbox,
-      (i) => i.title === "Movements last season" && i.body.includes("sippar supports babylon holding: cut (attacked from ekallatum)"),
+      (i) => i.title === "Movements last season" && i.body.includes("sippar supports babylon holding: cut (attacked from ekallate)"),
     );
   });
 
@@ -451,7 +451,7 @@ describe("SleepTests", () => {
     // a king could give one on purpose to be woken (since the review of the fix pass after item 4).
     let sleeper = new Sleeper((v) =>
       v.turn === 1
-        ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [supportOrder("sippar", "ekallatum", "durkurigalzu")] })] })
+        ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [supportOrder("sippar", "ekallate", "durkurigalzu")] })] })
         : nothing(),
     );
     let r = await play("Babylonia", sleeper, 3);
@@ -459,18 +459,18 @@ describe("SleepTests", () => {
     Assert.empty(r.state.sleep.get("Babylonia").pendingWake);
     Assert.contains(
       inboxOf(r.state, "Babylonia"),
-      (i) => i.title === "Movements last season" && i.body.includes("no unit moved from ekallatum to durkurigalzu"),
+      (i) => i.title === "Movements last season" && i.body.includes("no unit moved from ekallate to durkurigalzu"),
     );
   });
 
   test("An entry for this season counts as orders given now and its failure does not wake the seat", async () => {
-    // Assyria's army holds Ekallatum against a single army: the move sent as this season's entry fails, as a fresh order would.
+    // Assyria's army holds Ekallate against a single army: the move sent as this season's entry fails, as a fresh order would.
     let sleeper = new Sleeper((v) =>
-      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 1, orders: [move("sippar", "ekallatum")] })] }) : nothing(),
+      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 1, orders: [move("sippar", "ekallate")] })] }) : nothing(),
     );
     let r = await play("Babylonia", sleeper, 3);
     Assert.equal([1], sleeper.calls);
-    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.turn === 2 && i.title === "Movements last season" && i.body.includes("sippar -> ekallatum: fails"));
+    Assert.contains(inboxOf(r.state, "Babylonia"), (i) => i.turn === 2 && i.title === "Movements last season" && i.body.includes("sippar -> ekallate: fails"));
     Assert.empty(r.state.sleep.get("Babylonia").pendingWake);
   });
 
@@ -486,7 +486,7 @@ describe("SleepTests", () => {
     await runner.playTurn();
     // The island changes hands by decree, as a test: Alashiya falls at the end of season 2.
     state.owner.set("enkomi", "Egypt");
-    state.owner.set("tamassos", "Egypt");
+    state.owner.set("kalavasos", "Egypt");
     removeAll(state.units, (u) => u.power === "Alashiya");
     await runner.playTurn();
     let sleep = state.sleep.get("Alashiya");
@@ -499,23 +499,23 @@ describe("SleepTests", () => {
 
   test("Foreign troops beyond the border wait in the digest", async () => {
     let sleeper = new Sleeper((_) => nothing());
-    // Arbela lies beyond Babylon's border, next to none of its homeland: Assyria's army leaving Ekallatum, which Babylon
-    // can see, for Arbela is news for the digest. (Troops ending a move next to its homeland, or off Alashiya's Tamassos, wake.)
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "arbela")] }) : newTurnSubmission()));
+    // Arbela lies beyond Babylon's border, next to none of its homeland: Assyria's army leaving Ekallate, which Babylon
+    // can see, for Arbela is news for the digest. (Troops ending a move next to its homeland, or off Alashiya's Kalavasos, wake.)
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "arbela")] }) : newTurnSubmission()));
     let r = await play("Babylonia", sleeper, 4, { ...Quiet, maxSleep: 2 }, new Dict([["Assyria", assyria]]));
     Assert.equal([1, 4], sleeper.calls);
     Assert.equal([CapReason], sleeper.views[1].wokenBecause);
-    Assert.contains("turn 2: Assyria's army moved ekallatum -> arbela", sleeper.views[1].digest);
+    Assert.contains("turn 2: Assyria's army moved ekallate -> arbela", sleeper.views[1].digest);
   });
 
   test("A failed attack on its troops wakes the seat", async () => {
     // Since the review of the fix pass after item 4 ("it is attacked", among the design document's default triggers);
     // before, an attack that did not get in waited in the digest.
     let sleeper = new Sleeper((_) => nothing());
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "sippar")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar")] }) : newTurnSubmission()));
     await play("Babylonia", sleeper, 4, { ...Quiet, maxSleep: 2 }, new Dict([["Assyria", assyria]]));
     Assert.equal([1, 3], sleeper.calls);
-    Assert.equal([`${AttackedReason}: Assyria's army tried to move ekallatum -> sippar`], sleeper.views[1].wokenBecause);
+    Assert.equal([`${AttackedReason}: Assyria's army tried to move ekallate -> sippar`], sleeper.views[1].wokenBecause);
   });
 
   test("An envoy coming home with its report waits in the digest", async () => {
@@ -580,19 +580,19 @@ describe("SleepTests", () => {
   });
 
   test("Distant news waits for the next waking and reads well", async () => {
-    // Assyria's army leaves Ekallatum, next to Babylon's land, for Arbela, which is not: Babylon sees it and sleeps on.
+    // Assyria's army leaves Ekallate, next to Babylon's land, for Arbela, which is not: Babylon sees it and sleeps on.
     let sleeper = new Sleeper((_) => nothing());
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "arbela")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "arbela")] }) : newTurnSubmission()));
     await play("Babylonia", sleeper, 5, { ...Quiet, maxSleep: 3 }, new Dict([["Assyria", assyria]]));
     Assert.equal([1, 5], sleeper.calls);
     let woke = sleeper.views[1];
-    Assert.contains("turn 2: Assyria's army moved ekallatum -> arbela", woke.digest);
+    Assert.contains("turn 2: Assyria's army moved ekallate -> arbela", woke.digest);
     // Routine treasury notices of the seasons it slept are left out: this season's is in its news.
     Assert.doesNotContain(woke.whileAsleep, (i) => i.title === "The treasury");
     Assert.contains(woke.inbox, (i) => i.title === "The treasury" && i.turn === 5);
     let text = situation(woke);
     Assert.contains(
-      "WHILE YOU SLEPT (since you gave orders in turn 1):\nIn brief:\n- turn 2: Assyria's army moved ekallatum -> arbela",
+      "WHILE YOU SLEPT (since you gave orders in turn 1):\nIn brief:\n- turn 2: Assyria's army moved ekallate -> arbela",
       text.replaceAll("\r\n", "\n"),
     );
   });
@@ -648,20 +648,20 @@ describe("SleepTests", () => {
   test("A failed move into its empty land wakes the seat and one elsewhere waits in the digest", () => {
     let [s, sleep] = asleep("Babylonia");
     s.lastSeen.set("Babylonia", [
-      newOrderOutcome({ power: "Assyria", unitKind: "Army", province: "ekallatum", order: "move", target: "sippar", targetOwner: "Babylonia" }),
-      newOrderOutcome({ power: "Assyria", unitKind: "Army", province: "mari", order: "move", target: "terqa", targetOwner: "Assyria" }),
+      newOrderOutcome({ power: "Assyria", unitKind: "Army", province: "ekallate", order: "move", target: "sippar", targetOwner: "Babylonia" }),
+      newOrderOutcome({ power: "Assyria", unitKind: "Army", province: "suhu", order: "move", target: "terqa", targetOwner: "Assyria" }),
     ]);
     new TurnEngine(s).wakeCheck();
     Assert.false(sleep.asleep);
-    Assert.equal([`${AttackedReason}: Assyria's army tried to move ekallatum -> sippar`], sleep.wokenBecause);
+    Assert.equal([`${AttackedReason}: Assyria's army tried to move ekallate -> sippar`], sleep.wokenBecause);
 
     [s, sleep] = asleep("Babylonia");
     s.lastSeen.set("Babylonia", [
-      newOrderOutcome({ power: "Assyria", unitKind: "Army", province: "mari", order: "move", target: "terqa", targetOwner: "Assyria" }),
+      newOrderOutcome({ power: "Assyria", unitKind: "Army", province: "suhu", order: "move", target: "terqa", targetOwner: "Assyria" }),
     ]);
     new TurnEngine(s).wakeCheck();
     Assert.true(sleep.asleep);
-    Assert.equal(["turn 2: Assyria's army tried to move mari -> terqa and failed"], sleep.digest);
+    Assert.equal(["turn 2: Assyria's army tried to move suhu -> terqa and failed"], sleep.digest);
   });
 
   test("A seat whose first call failed is told it gives orders for the first time", async () => {

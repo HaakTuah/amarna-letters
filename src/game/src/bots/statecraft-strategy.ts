@@ -46,7 +46,7 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
     sum(
       [...reach].filter((t) => b.ownerOf(t) === x),
       (t) => {
-        const strikers = b.mine.filter((u) => Board.Map.canMove(u.kind, u.province, t)).map((u) => u.province);
+        const strikers = b.mine.filter((u) => Board.Sail.canMove(u.kind, u.province, t)).map((u) => u.province);
         const strike = strikers.length;
         // Troops we cannot see may stand in his provinces next to it.
         const unseen = Math.max(0, force(x) - count(b.others, (u) => u.power === x));
@@ -178,7 +178,7 @@ export function touches(b: Board, x: Power, y: Power): boolean {
 }
 
 export function reachableLand(b: Board): HSet<string> {
-  return new HSet(b.mine.flatMap((u) => Board.Map.movesFrom(u.kind, u.province)).filter((t) => !Board.Map.get(t).isSea));
+  return new HSet(b.mine.flatMap((u) => Board.Sail.movesFrom(u.kind, u.province)).filter((t) => !Board.Map.get(t).isSea));
 }
 
 // ================================================================= treasury
@@ -244,9 +244,9 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   let raised = 0;
   for (const [near, value] of sortBy(plan.shortfalls, [(s: [string, number]) => s[1], desc(cmpNum)])) {
     if (raised >= 2) break;
-    const spot = spots.find((s) => s.id === near || Board.Map.canMove("Army", s.id, near) || (s.isCoastal && Board.Map.canMove("Fleet", s.id, near))) ?? null;
+    const spot = spots.find((s) => s.id === near || Board.Sail.canMove("Army", s.id, near) || (s.isCoastal && Board.Sail.canMove("Fleet", s.id, near))) ?? null;
     if (spot === null) continue;
-    const fleet = (spot.isCoastal && !Board.Map.canMove("Army", spot.id, near)) || (spot.isCoastal && maritime && count(b.mine, (u) => u.kind === "Fleet") < 2);
+    const fleet = (spot.isCoastal && !Board.Sail.canMove("Army", spot.id, near)) || (spot.isCoastal && maritime && count(b.mine, (u) => u.kind === "Fleet") < 2);
     const cost = fleet ? v.prices.get("fleet") : v.prices.get("army");
     const upkeep = fleet ? v.prices.get("fleetUpkeep") : v.prices.get("armyUpkeep");
     const lifetime = cost + upkeep * Math.min(b.horizon, 10);
@@ -414,10 +414,10 @@ function cession(b: Board, brain: Brain, plan: MilitaryPlan): CedeProvinceOrder 
     const prov = Board.Map.get(x);
     // Land a friend ceded to us is kept: passed on, it would only go round the friends a rival is coming for.
     if (prov.home === me || b.walls(x) || b.unitAt.has(x) || plan.destinations.has(x) || brain.received.has(x)) continue;
-    if (b.mine.some((u) => Board.Map.canMove(u.kind, u.province, x))) continue;
+    if (b.mine.some((u) => Board.Sail.canMove(u.kind, u.province, x))) continue;
     // Next to it, or a move from it: ceded before he arrives, it is a friend's land he would have to march into.
     const coming = (r: Power): boolean =>
-      b.muster(r, x) > 0 || b.others.some((u) => u.power === r && Board.Map.movesFrom(u.kind, u.province).some((n) => Board.Map.canMove(u.kind, n, x)));
+      b.muster(r, x) > 0 || b.others.some((u) => u.power === r && Board.Sail.movesFrom(u.kind, u.province).some((n) => Board.Sail.canMove(u.kind, n, x)));
     const rival =
       [...b.alive].find(
         (r) =>

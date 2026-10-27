@@ -33,6 +33,7 @@ import {
   type GameConfig,
 } from "@amarna/engine";
 import { Sb, joinS } from "./text.ts";
+import { seaRules, terrainRules } from "./rules-ground.ts";
 const rulesCache = new Map<string, string>();
 
 export function leaderRules(primer: boolean, c: GameConfig): string {
@@ -94,17 +95,17 @@ HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
 Everything that happened is reported to you next season. Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).
 
 MOVEMENT AND COMBAT (Diplomacy rules, no dice)
-- One unit per province. Armies move along land and coast links; fleets along sea and coast links. A fleet in a sea zone may convoy an army from one coast to another.
+- One unit per province. Armies move along land and coast links; fleets along sea and coast links. Fleets in a chain of sea zones may convoy an army from one coast to another (see THE SEA).
 - A unit is named by the province it stands in. Orders: hold; move to a linked province; support another unit (of any power) holding, or moving into a province your own unit could move into; convoy (fleet at sea only); disband.
 - Strength is 1 plus valid supports. A move succeeds only if its strength beats the defender's hold strength and the strength of every other move into the same province. Ties bounce.${(c.terrainDefence > 0 ? ` A unit standing its ground may have the ground's help in its hold strength (see TERRAIN).` : ``)} A support is cut if the supporting unit is attacked from anywhere except the province it supports into. You can never dislodge your own unit.
 - A unit dislodged is destroyed; a unit that is destroyed gives no support (your report calls such a support void). A support or convoy counts only if the unit it names does what it helps (stays in place, or makes that very move); otherwise it is void too, and the unit holds. One naming a province you cannot see is never refused for what stands there: if no unit there does what it helps, it is void. A province without walls changes hands when a unit ends a season in it; a walled one only as WALLS AND SIEGES says.
 - Your battle report says why each of your moves that failed was stopped, with the strengths compared where strength decided it, and that the unit stays where it was (a unit whose move fails does not move), and why each of your supports or convoys was void. It names the other side's power only if that unit stood, or was moving, where you could see.
 
 WALLS AND SIEGES
-- Many provinces have walls, from level 1 to 3: every capital 3, the great fortresses 2, the walled towns 1, and every free city-state at least 1 (THE MAP gives each province's walls at the start). You see the walls standing now only where you can see troops; elsewhere LANDS in your view gives them as your court last saw them (at the start, as THE MAP gives them), since walls can be raised, or thrown down by an earthquake or unpaid upkeep, out of your sight. Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other${(c.terrainDefence > 0 ? ` (and the ground's help, see TERRAIN)` : ``)}. What walls decide is whether the province is taken.
+- Many provinces have walls, from level 1 to 3: every capital 3, the great fortresses 2, the walled towns 1, and every free city-state at least 1; the lands without a king have none (THE MAP gives each province's walls at the start). You see the walls standing now only where you can see troops; elsewhere LANDS in your view gives them as your court last saw them (at the start, as THE MAP gives them), since walls can be raised, or thrown down by an earthquake or unpaid upkeep, out of your sight. Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other${(c.terrainDefence > 0 ? ` (and the ground's help, see TERRAIN)` : ``)}. What walls decide is whether the province is taken.
 - Storming: a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the hold strength of the defenders it beat (none if the province was empty or its unit moved away${(c.terrainDefence > 0 ? `; the ground's help to them counts in it` : ``)}). So an empty city with walls 1 needs strength 2, and a capital held by one army needs 5. A city taken by storm loses a level of walls.
 - Otherwise the unit that got in stands within the walls and takes nothing: the province stays its holder's. A foreign unit within walls takes nothing unless it storms them or a siege wears the city down, so an ally's troops may stand in your city as guests. You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them: it takes only coasts without walls.
-- Besieging: an army standing within walls it does not hold may besiege the city (order besiege). Each season it holds there (a besiege or hold order, or no order) wears the city down one step, or two if another unit, of any power, supports it holding and that support is not cut; a season in which it gives a support or a convoy, or tries to move, adds nothing. One besiege order is enough: the siege goes on each season the army holds there. When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls. So an army that gets into a city with walls 1 takes it in the next season, and one before walls 3 in the third season after it got in, or the second with a support each season. If the besieging army leaves or is destroyed, the siege is lifted and what it had worn down is lost.
+- Besieging: an army standing within walls it does not hold may besiege the city (order besiege). Each season it holds there (a besiege or hold order, or no order) wears the city down one step, or two if another unit, of any power, supports it holding and that support is not cut (a coastal city supplied by sea is worn down ${c.seaSupply} less: see THE SEA); a season in which it gives a support or a convoy, or tries to move, adds nothing. One besiege order is enough: the siege goes on each season the army holds there. When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls. So an army that gets into a city with walls 1 takes it in the next season, and one before walls 3 in the third season after it got in, or the second with a support each season. If the besieging army leaves or is destroyed, the siege is lifted and what it had worn down is lost.
 - While besieged, a city stays its holder's and counts in his strength, but it yields nothing to anyone, and he cannot raise troops in it. Each siege costs the besieger ${c.siegeUpkeep} a season on top of the army's upkeep. The holder may still cede the city.
 - Strengthening walls (order fortify, naming the province): the walls of a province you hold rise a level at the end of the season, up to 3, for ${c.fortifyCost} x the new level (${c.fortifyCost}, ${2 * c.fortifyCost}, ${3 * c.fortifyCost}), paid then; a province with no walls can be given them this way. Not while foreign troops stand within it, and nothing is paid if you lost it in the season's moves or foreign troops got into it. Each level above the walls a province has on THE MAP costs ${c.wallUpkeep} a season, paid after your troops' upkeep; walls whose upkeep you cannot pay fall a level, the farthest from your capital first. An earthquake throws the walls of the province it strikes down a level.
 - Sallies: while foreign troops stand within the walls of a city of yours whose walls are ${c.sallyMinWalls} or higher, its defenders may sally (unit order sally: name the city as the unit, and as target the province the attack comes from). The walls then support one attack into the city on those troops, yours or another king's, for +1, as a support that cannot be cut. A sally that finds no such attack is void. So a lone army of yours, or an ally's, that attacks a lone besieger with a sally drives it out${(c.terrainDefence > 0 ? `, unless the ground helps the besieger against that attack (rough ground, a pass or a great river crossed, or a landing; see TERRAIN): then the attack needs one support more` : ``)}.
@@ -112,6 +113,8 @@ WALLS AND SIEGES
 - Breaking a siege is ordinary combat: drive the besieging army out with an attack into the city stronger than its hold. Your battle report and your news say how every assault on walls went, yours and those on your own walled cities, with the strengths, and how far each siege of yours, or of your cities, has gone.
 
 ${terrainRules(c)}
+
+${seaRules(c)}
 
 CONDITIONS
 - ${c.sleepingSeats ? "A scheduled entry or a standing order" : "A standing order"} may carry conditions (at most ${MaxConditions}): it runs only if every "if" holds and no "unless" does when it would run. They are read from what you know when they would run, never from what you cannot see: for orders, once the season's audiences are over (what was given and sealed at them counts); for standing answers, as your court begins; troops_in, troops of a power (or any foreign power's) in a province, where you can see them (troops you cannot see count as not there); treasury_less_than and treasury_at_least, your treasury by your ledger; envoy_back, one of your people back at your court and ready; tablet_sealed, a tablet in your archive sealed by you and a court (or any court).${c.sleepingSeats ? " Scheduled orders whose conditions do not hold are dropped for that season, which your news tells you and which wakes nobody." : ""} A standing order whose conditions do not hold when its move comes does not fire, and still stands.
@@ -129,7 +132,7 @@ STANDING ANSWERS (standing_answers, in your orders or at your court)
 - Give one only for what you would answer the same way whatever else he says: whatever he says beyond his gifts and his tablet goes unanswered until your next letter.
 
 ECONOMY
-- Gold is counted in shekels (60 shekels make a mina). Raise an army for ${c.armyCost} or a fleet for ${c.fleetCost}, only in a province of your own homeland that you still hold and that is empty after movement. Buy a free city-state for ${c.neutralPriceFactor} x its yield if it borders your land or troops, or shares a sea zone with one of your coasts. You may cede provinces or give troops to another power.
+- Gold is counted in shekels (60 shekels make a mina). Raise an army for ${c.armyCost} or a fleet for ${c.fleetCost}, only in a province of your own homeland that you still hold and that is empty after movement. Buy a free city-state for ${c.neutralPriceFactor} x its yield if it borders your land or troops, or lies one voyage from one of your coasts (its waters the same as your coast's, or next to them). A land without a king has no elders to sell it: it is taken only by force. You may cede provinces or give troops to another power.
 - Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you, and counts in your strength, a third of its yield in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third. A province of your own homeland that you take back or are ceded is yours in full at once, and so is land bought, or ceded to you, unless its giver was still absorbing it: then it goes on being absorbed under you as it would have been under him. LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is not shown.
 - Gold sent abroad travels with an envoy and arrives late. You may send it debased (purity below 100%): the receiver sees its weight, not its fineness, until they pay ${c.assayFee} for an assay. Your own treasury figure counts unassayed gold at its weight.
 
@@ -180,19 +183,20 @@ Every king knows these customs, and knows that every other king knows them. They
         }
 
         sb.appendLine();
-        sb.appendLine(`THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; links, with the mountain passes and great rivers on them)`);
+        sb.appendLine(`THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; a coast's waters; links, with the mountain passes, great rivers and deserts on them, and the open-sea crossings)`);
         const map = WorldMap.default;
-        // A link over a mountain pass or a great river says so (see TERRAIN).
+        // A link over a mountain pass, a great river or the desert says so (see TERRAIN), and an open-sea crossing (see THE SEA).
         const link = (from: string, to: string): string => {
           const x = crossingBetween(from, to);
-          return x !== null ? `${to} (across ${x.name})` : to;
+          return x !== null ? `${to} (across ${x.name})` : map.openCrossing(from, to) !== null ? `${to} (open sea)` : to;
         };
         for (const p of map.provinces)
         {
-            const kind = p.isSea ? `sea zone` : p.isCoastal ? `coast` : `land`;
-            const home = p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : `free city-state`;
+            const coasts = p.isSea ? map.coastsOf(p.id).map((x) => x.id) : [];
+            const kind = p.isSea ? (coasts.length > 0 ? `sea zone, the waters of ${joinS(` and `, coasts)}` : `sea zone`) : p.isCoastal ? `coast; waters ${p.waters}` : `land`;
+            const home = p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : p.kingless ? `a land without a king` : `free city-state`;
             const armies = p.isSea ? `` : ` armies: ${joinS(`, `, map.movesFrom("Army", p.id).map(n => link(p.id, n)))}.`;
-            const fleets = p.isSea || p.isCoastal ? ` fleets: ${joinS(`, `, map.movesFrom("Fleet", p.id))}.` : ``;
+            const fleets = p.isSea || p.isCoastal ? ` fleets: ${joinS(`, `, map.movesFrom("Fleet", p.id).map(n => link(p.id, n)))}.` : ``;
             const w = StartWalls.get(p.id) ?? 0;
             const walls = w > 0 ? `; walls ${w}` : ``;
             const t = terrainOf(p.id);
@@ -210,31 +214,6 @@ Every king knows these customs, and knows that every other king knows them. They
 HOW TO ANSWER
 Reply with one JSON object that matches the schema. In your orders, use province ids (like "memphis"), person ids (like "c12") and the marks of your copies of tablets (like "k8") and of your gold (like "g7") exactly as given. Units you give no order hold. Orders that are illegal or unaffordable are refused, and you are told why the next time you give orders. Keep each message under 1,500 characters. Your notes are private: nobody else ever reads them, so record your plans, your promises and your suspicions there. Each set of orders shows the letters you sent under YOUR LETTERS while their envoys are away: in full (message, mandate, tablet and gold) at the next orders after you send them, then by their opening words, and in full once more when the report comes. Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders: the last season's notes in full, the two before by their opening words (the first 400 characters); older notes then leave your record, so keep what you still need in your summary, which you write in your own words and which stays until you replace it. Your ledger of dealings keeps one line per court in your own words (what was promised, sealed, broken and paid), shown in full whenever you give orders or hold an audience, until you change or remove that line; you may write it in either reply. Your thoughts between your orders (what you made of news that reached you while you slept, and counsel you took) are shown with your record and join it with your next orders; a plan you have set down for the seasons ahead is shown above it until you set down another.`);
         return sb.toString();
-    }
-
-    /// <summary>
-    /// The rulebook's TERRAIN section (Build order item 5): what rough ground, the crossings and a landing from the sea give a
-    /// unit that stands its ground, and what they never do, and what the desert costs an army, with the lists from the map
-    /// data (<see cref="Geography"/>), so the text stays true if the map changes. Only what applies in this game is said.
-    /// </summary>
-function terrainRules(c: GameConfig): string
-    {
-        const t = c.terrainDefence;
-        const rough = joinS(`, `, Rough);
-        const crossings = joinS(`, `, groupBy(Crossings, x => x.name)
-            .map(([key, g]) => `${key} (${joinS(` and `, g.map(x => `${x.a}-${x.b}`))})`));
-        const lines: string[] = [`TERRAIN`];
-        if (t <= 0)
-            lines.push(`- In this game the ground gives no unit any help: rough ground, mountain passes, rivers and landings from the sea change nothing in a battle.`);
-        else
-        {
-            lines.push(`- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with ${t} more when it stands on rough ground (${rough}), when the attack comes over a mountain pass or a great river (${crossings}), or when the attack is a landing from the sea (an army carried by convoy): ${t} in all, however many of these apply. THE MAP marks the rough ground and the crossings on the links.`);
-            lines.push(`- The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that. A support is cut as always.`);
-            lines.push(`- So an island is protected by the sea: an army reaches it only by convoy, and a unit there holds with ${t} more against a landing. Your battle report gives the ground's share wherever it counted in the strength you had to beat.`);
-        }
-        if (c.desertUpkeep > 0)
-            lines.push(`- Desert (${joinS(`, `, Desert)}) costs an army supplies: an army that ends a season in desert land its king did not hold when that season's moves were made pays ${c.desertUpkeep} with the next upkeep, and your treasury notice says so. An army in its own land pays nothing: a king who holds the desert crosses it freely, and so does whoever takes it, from the season after. Only armies pay it.`);
-        return joinS(`\n`, lines);
     }
 
     /// <summary>
