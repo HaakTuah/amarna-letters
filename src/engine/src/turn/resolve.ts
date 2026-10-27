@@ -510,11 +510,12 @@ P.fall = function (p, conqueror, taker) {
     if (c.status === "Employed") c.status = "Free";
   }
   const who = taker !== null ? `${taker} took its capital, ${capital.name}` : `its capital, ${capital.name}, was taken`;
-  logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${conqueror !== null ? `, and its land passes to ${conqueror}` : ""}.`, null, null);
   // Word of the fall travels (item 7b): a court that sees the capital hears at once, the rest when word reaches them.
+  const seeing = alive(S).filter((x) => x === conqueror || Views.sight(S, this.map, x).has(capital.id));
+  logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${conqueror !== null ? `, and its land passes to ${conqueror}` : ""}.`, [p, ...seeing], null);
   for (const other of alive(S).filter((x) => x !== conqueror)) {
     const text = `Word spreads that the kingdom of ${land(p)} is no more: ${who}.`;
-    if (Views.sight(S, this.map, other).has(capital.id)) {
+    if (seeing.includes(other)) {
       notify(S, other, "Rumor", "A kingdom falls", text);
       S.fallsHeard.set(other, [...(S.fallsHeard.tryGet(other) ?? []), p]);
     } else this.word(p, other, "KingdomFalls", text);

@@ -58,9 +58,9 @@ const counterpart = (j: Journey): Power => (outbound(j) ? j.to : j.from);
 declare module "./core.ts" {
   interface TurnEngine {
     setOut(j: Journey, from: string, to: string): void;
-    planRoute(j: Journey, from: string, to: string): boolean;
+    planRoute(j: Journey, from: string, to: string, turn?: number): boolean;
     closedTo(host: Power | null, j: Journey): boolean;
-    roadKnowledge(master: Power): RoadKnowledge;
+    roadKnowledge(master: Power, closed: Iterable<Power>): RoadKnowledge;
     roadOdds(j: Journey, c: Character, province: string, sneaking: boolean, known: RoadKnowledge | null): Dict<Stop, number>;
     travel(): void;
     travelOne(j: Journey): void;
@@ -115,16 +115,18 @@ P.setOut = function (j, from, to) {
  * court's knowledge: who holds each province (Views.knownHolders), the kings it has heard closed their roads to it and
  * any it met on the way, and the troops it can see. False when no route is open this season (it waits where it is).
  */
-P.planRoute = function (j, from, to) {
+P.planRoute = function (j, from, to, turn) {
   const S = this.s;
+  const when = turn ?? S.turn;
   const Map = this.map;
   const master = masterOf(j);
   const c = char(S, j.characterId!);
-  const know = this.roadKnowledge(master);
-  const known = know.holders;
+  // The kings it believes closed to its court: those its court heard of, and those it met on the way.
   const closed = new HSet<Power>([...(S.roadsHeard.tryGet(master) ?? []), ...(j.sneak as Power[])]);
   closed.delete(master);
   closed.delete(counterpart(j));
+  const know = this.roadKnowledge(master, closed);
+  const known = know.holders;
   const believedClosed = (prov: string): boolean => {
     const holder = Map.get(prov).isSea ? null : (known.tryGet(prov)?.owner ?? null);
     return holder !== null && closed.has(holder);
@@ -146,7 +148,7 @@ P.planRoute = function (j, from, to) {
   // By this season's roads; if none is open (an island in winter), by the next season's, and it waits for them.
   let r: { route: string[]; cost: number } | null = null;
   for (let wait = 0; wait < 3 && r === null; wait++) {
-    const season = seasonOfTurn(S.turn + wait);
+    const season = seasonOfTurn(when + wait);
     r = cheapestRoute(Map, from, to, (a, b) => {
       const pts = legPoints(Map, a, b, season, { sneaking: believedClosed(a) || believedClosed(b) });
       return pts === Infinity ? pts : pts + (weight * ((risk(a) + risk(b)) / 2) * pts) / perSeason;
@@ -168,10 +170,10 @@ P.closedTo = function (host, j) {
   return (this.s.roadsClosed.tryGet(host) ?? []).includes(master);
 };
 
-P.roadKnowledge = function (master) {
+P.roadKnowledge = function (master, closed) {
   const S = this.s;
   const seen = Views.sight(S, this.map, master);
-  return { holders: Views.knownHolders(S, this.map, master, seen), seen, heard: new HSet<Power>(S.roadsHeard.tryGet(master) ?? []) };
+  return { holders: Views.knownHolders(S, this.map, master, seen), seen, heard: new HSet<Power>(closed) };
 };
 
 /**
@@ -235,13 +237,24 @@ P.travelOne = function (j) {
     const a = j.route[j.leg];
     const b = j.route[j.leg + 1];
     const cost = legPoints(Map, a, b, season, { sneaking: offRoad(a) || offRoad(b) });
-    if (cost === Infinity) break; // closed this season: it waits for the pass or the sea to open
+    // Closed this season: from where it stands it goes round if a road is open, else waits for the pass or the sea.
+    if (cost === Infinity && j.along === 0) {
+      const old = { route: j.route, leg: j.leg };
+      if (this.planRoute(j, a, j.route[j.route.length - 1], S.turn - 1) && j.route.length > 1 && legPoints(Map, a, j.route[1], season) < Infinity) continue;
+      j.route = old.route;
+      j.leg = old.leg;
+      j.along = 0;
+    }
+    if (cost === Infinity) break;
     // The border on the connection: halfway, or at the desert's edge, where the desert lies on one side.
     const half = terrainOf(b) === "Desert" && terrainOf(a) !== "Desert" ? 0 : terrainOf(a) === "Desert" && terrainOf(b) !== "Desert" ? cost : Math.floor(cost / 2);
-    const use = Math.min(budget, cost - j.along);
+    // A connection grown cheaper since (a flood over, a holder changed) is done at once: no road is made for nothing.
+    const use = Math.max(0, Math.min(budget, cost - j.along));
     const end = j.along + use;
-    // Openly into land closed to its master: its king's men turn it back at the border.
-    if (j.along <= half && end > half && !offRoad(b) && this.closedTo(Map.get(b).isSea ? null : S.owner.getOrDefault(b, null), j)) {
+    // Openly into land closed to its master, from outside it: its king's men turn it back at the border.
+    const host = Map.get(b).isSea ? null : S.owner.getOrDefault(b, null);
+    const crosses = j.along <= half && (end > half || (half === cost && end >= half));
+    if (crosses && !offRoad(b) && host !== S.owner.getOrDefault(a, null) && this.closedTo(host, j)) {
       spend(a, half - j.along);
       turnedAt = b;
       break;
@@ -266,7 +279,7 @@ P.travelOne = function (j) {
     logEvent(S, "travel", `${c.name}, of ${masterOf(j)}, was turned back at the border of ${host}'s land (${Map.get(turnedAt).name}).`, [host], "turned-at-border");
     remember(c, S.turn, `${land(host)}'s men turned me back at the border of ${Map.get(turnedAt).name}: their king has closed his roads to my lord's people.`);
     const here = j.route[j.leg];
-    if (!this.planRoute(j, here, j.route[j.route.length - 1])) throw new Error(`No road from ${here} in any season.`);
+    if (!this.planRoute(j, here, j.route[j.route.length - 1], S.turn - 1)) throw new Error(`No road from ${here} in any season.`);
   }
 
   // The road check: one province of the stretch, by the share of the season spent in each.
@@ -374,6 +387,7 @@ P.turnBack = function (j, c, at, why, gold) {
     characterId: c.id,
     cargo: j.kind === "EnvoyOutbound" ? newHomeCargo({ trailId: j.dispatch?.trailId ?? "", gold, goldStated: gold, purityPercent: j.dispatch?.purityPercent ?? 100 }) : null,
     turnedBack: why,
+    gaveUp: true,
     sneak: [...j.sneak],
   });
   S.journeys.push(back);
@@ -395,33 +409,42 @@ P.caughtOnRoad = function (j, c, captor, province) {
   const S = this.s;
   const name = this.map.get(province).name;
   const lord = masterOf(j);
+  const out = outbound(j);
+  const spy = j.kind === "SpyOutbound" || j.kind === "SpyHomebound";
+  const place = spy && c.watchProvince !== null ? this.map.get(c.watchProvince).name : null;
   S.journeys.splice(S.journeys.indexOf(j), 1);
-  if (j.kind === "SpyOutbound" || j.kind === "SpyHomebound") {
-    this.capture(c, captor, this.r("road-capture", c.id));
-    return;
-  }
-  const out = j.kind === "EnvoyOutbound";
-  this.coverFor(c, lord, out ? "EnvoyOutbound" : "EnvoyHomebound");
+  // Its master goes on believing it on its way until word comes. A spy keeps its post, where it goes if its captor turns it.
+  this.coverFor(c, lord, spy ? (out ? "SpyOutbound" : "EnvoyHomebound") : out ? "EnvoyOutbound" : "EnvoyHomebound");
   c.status = "Captured";
   c.heldBy = captor;
   c.at = captor;
   c.duty = "None";
-  c.missionTarget = null;
-  c.watchProvince = null;
   c.intercepted = true;
+  if (!spy) {
+    c.missionTarget = null;
+    c.watchProvince = null;
+  }
   const trail = this.trail(j.dispatch?.trailId ?? j.cargo?.trailId ?? null);
   trail?.outcomes.push(`caught on the road in ${name} by ${captor}'s men`);
-  const lines = this.seize(c, lord, captor, j.dispatch, j.cargo, `taken from ${c.name}, envoy of ${lord}, caught on the road in ${name}`);
-  const said =
-    j.dispatch !== null
-      ? `on his way to the court of ${j.to}. The letter he was to speak: "${j.dispatch.letter}"` + (j.dispatch.mandate.length > 0 ? ` His mandate: "${j.dispatch.mandate}"` : "")
-      : `on his way home from the court of ${j.from}.`;
-  notify(S, captor, "Notice", CaughtOnRoadTitle, `Your men in ${name} caught ${c.name}, envoy of ${lord}, ${said} ${lines.join(" ")} He is your captive: you may execute, ransom or release him.`.replaceAll("  ", " "), c.id);
+  const lines = spy ? [] : this.seize(c, lord, captor, j.dispatch, j.cargo, `taken from ${c.name}, envoy of ${lord}, caught on the road in ${name}`);
+  const said = spy
+    ? `a spy of ${lord}, ${out ? `on the way to watch ${place ?? `the court of ${j.to}`}` : "on the way home"}.`
+    : j.dispatch !== null
+      ? `envoy of ${lord}, on his way to the court of ${j.to}. The letter he was to speak: "${j.dispatch.letter}"` + (j.dispatch.mandate.length > 0 ? ` His mandate: "${j.dispatch.mandate}"` : "")
+      : `envoy of ${lord}, on his way home from the court of ${j.from}.`;
+  notify(
+    S,
+    captor,
+    "Notice",
+    CaughtOnRoadTitle,
+    `Your men in ${name} caught ${c.name}, ${said} ${lines.join(" ")} He is your captive: you may execute, ransom${spy ? ", turn" : ""} or release him.`.replaceAll("  ", " "),
+    c.id,
+  );
   remember(c, S.turn, `${land(captor)}'s men caught me on the road in ${name}.`);
-  logEvent(S, "travel", `${captor}'s men caught ${c.name}, envoy of ${lord}, on the road in ${name}.`, [captor], "road-caught");
+  logEvent(S, "travel", `${captor}'s men caught ${c.name}, ${spy ? "spy" : "envoy"} of ${lord}, on the road in ${name}.`, [captor], "road-caught");
   S.losses.push(newLossAbroad({ turn: S.turn, kind: "Captured", characterId: c.id, court: captor, master: lord }));
-  const due = out ? j.arriveTurn + this.travelTurns(j.to, lord) : j.arriveTurn;
-  this.overdue(lord, c, out ? j.to : j.from, due);
+  const due = out ? j.arriveTurn + this.travelTurns(counterpart(j), lord) : j.arriveTurn;
+  this.overdue(lord, c, counterpart(j), due, place);
 };
 
 /**

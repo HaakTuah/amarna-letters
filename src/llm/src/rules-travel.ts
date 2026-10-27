@@ -3,7 +3,7 @@
  * seas, the road check, closing one's roads, and news of distant land travelling. The numbers come from the map data and
  * the engine's own constants, so the text stays true if they change. Only what applies in this game is said.
  */
-import { AllPowers, Crossings, RoadOdds, Rivers, TravelData, WorldMap, max, min, travelTurns, type GameConfig } from "@amarna/engine";
+import { AllPowers, Crossings, Pace, RoadOdds, Rivers, TravelData, WorldMap, max, min, travelTurns, type GameConfig } from "@amarna/engine";
 import { joinS } from "./text.ts";
 
 /**
@@ -40,7 +40,7 @@ export function travelRules(c: GameConfig): string {
   );
   const lines: string[] = [`NEWS AND TRAVEL`];
   lines.push(
-    `- Envoys and spies travel a road of provinces, link by link, and each link takes as long as its length and ground make it: about 25 km a day on open ground, 15 over rough ground and mountain passes, 20 across the desert, 70 a day by ship along the coast and 100 on an open-sea crossing, quicker with the current. Boats carry them along the great rivers where that is quicker (${boats}). Crossing a great river at a ford or ferry costs ${TravelData.ferryDays} day, ${TravelData.ferryDays + TravelData.floodDays} in its flood season (${floods}). A traveller makes about ${c.travelDays} days of road a season, the rest going on halts, audiences and waiting at borders, and what it does not use carries over to the next season, so a journey's length counts to the day.`,
+    `- Envoys and spies travel a road of provinces, link by link, and each link takes as long as its length and ground make it: about ${Pace.open} km a day on open ground, ${Pace.rough} over rough ground and ${Pace.pass} over mountain passes, ${Pace.desert} across the desert, ${Pace.coasting} a day by ship along the coast and ${Pace.openSea} on an open-sea crossing, quicker with the current. Boats carry them along the great rivers where that is quicker (${boats}). Crossing a great river at a ford or ferry costs ${TravelData.ferryDays} day, ${TravelData.ferryDays + TravelData.floodDays} in its flood season (${floods}). A traveller makes about ${c.travelDays} days of road a season, the rest going on halts, audiences and waiting at borders, and what it does not use carries over to the next season, so a journey's length counts to the day.`,
   );
   lines.push(
     `- Winter closes the mountain passes (${passes}) as it closes the open sea, in the same season: no army crosses them then, an order to is refused, no city across one can be bought then, and travellers go round or wait for spring.`,

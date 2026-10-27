@@ -51,6 +51,9 @@ export class OrderValidator {
     const orders = submission.orders.slice(0, OrderValidator.MaxOrders);
     const assayed = new HSet<string>();
     const roadsSet = new HSet<string>();
+    // A court it has not heard has fallen is, for its orders, still there (item 7b: word of a fall travels); an envoy or a
+    // spy sent to it finds out on arrival.
+    const heardFallen = (x: Power): boolean => !isAlive(S, x) && (S.fallsHeard.tryGet(power) ?? []).includes(x);
     const ceded = new HSet<string>();
     const fortified = new HSet<string>();
     const sallied = new HSet<string>();
@@ -277,7 +280,7 @@ export class OrderValidator {
           const d = order;
           const e = ownCharacter(d.envoy);
           if (e !== null) return e;
-          if (d.to === power || !isAlive(S, d.to)) return `you cannot send an envoy to ${d.to}`;
+          if (d.to === power || heardFallen(d.to)) return `you cannot send an envoy to ${d.to}`;
           if (dispatches >= S.config.maxDispatchesPerTurn) return `at most ${S.config.maxDispatchesPerTurn} envoys may leave in one season`;
           if (d.gold < 0) return "gold cannot be negative";
           if (d.purityPercent < 10 || d.purityPercent > 100) return "purity must be between 10 and 100 percent";
@@ -341,7 +344,7 @@ export class OrderValidator {
           const province = ps.province ?? null;
           if (court === null && province === null) return "a spy must be sent to watch a court or a province: you named neither";
           if (court !== null && province !== null) return "a spy must be sent to watch a court or a province: name only one";
-          if (court !== null && (court === power || !isAlive(S, court))) return `you cannot spy on ${court}`;
+          if (court !== null && (court === power || heardFallen(court))) return `you cannot spy on ${court}`;
           if (province !== null && (!Map.exists(province) || Map.get(province).isSea)) return `there is no province called '${province}'`;
           return null;
         }
@@ -359,7 +362,7 @@ export class OrderValidator {
           return spend(order.spend);
 
         case "roads": {
-          if (order.court === power || !AllPowers.includes(order.court) || !isAlive(S, order.court)) return `you cannot close or open your roads to '${order.court}'`;
+          if (order.court === power || !AllPowers.includes(order.court) || heardFallen(order.court)) return `you cannot close or open your roads to '${order.court}'`;
           if (roadsSet.has(order.court)) return `you had already closed or opened your roads to ${order.court} that season`;
           const closed = (S.roadsClosed.tryGet(power) ?? []).includes(order.court);
           if (closed === order.close) return `your roads are already ${closed ? "closed" : "open"} to the people of ${order.court}`;

@@ -154,4 +154,16 @@ describe("TravelTests", () => {
     for (let i = 0; i < 4; i++) season(s);
     Assert.equal("Assyria", Views.knownHolders(s, Map, "Egypt").get("ur").owner);
   });
+
+  test("A spy caught on the road gives its master no sight of its post, and word that it has not returned", () => {
+    const s = newGame(13);
+    const spy = first(s.characters, (c) => c.employer === "Egypt");
+    season(s, new Dict([["Egypt", newTurnSubmission({ orders: [{ type: "spy", character: spy.id, court: null, province: "carchemish" }] })]]));
+    const j = first(s.journeys, (x) => x.characterId === spy.id);
+    new TurnEngine(s).caughtOnRoad(j, spy, "Hatti", "gaza");
+    Assert.equal("Captured", spy.status);
+    Assert.false(Views.sight(s, Map, "Egypt").has("carchemish"));
+    Assert.true(s.journeys.some((x) => x.kind === "Rumor" && x.to === "Egypt" && x.news === "Overdue"));
+    Assert.true(inboxOf(s, "Hatti").some((i) => i.title === "A traveller is caught"));
+  });
 });

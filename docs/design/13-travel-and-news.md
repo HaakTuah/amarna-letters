@@ -30,8 +30,8 @@ of the old round report). Save version 11. Why, what it cost and what was found:
   engine finds the same route. A traveller's route (`TurnEngine.planRoute`) weighs each connection's points this season
   and the risk of the provinces at its ends, by the share of a season spent on it (the check falls once a season): for each
   percent of risk over a whole season a careful traveller (courage 0) gives 25 points (2.5 days), a bold one (100) 5
-  (`RiskWeight`; "Bold or careful, one goal"). Risk is the road check's odds as its court knows the place (below). The route is chosen when it sets out, and again when it is turned back at a
-  border. Model characters' own choice of route comes with item 11b (reading in the report).
+  (`RiskWeight`; "Bold or careful, one goal"). Risk is the road check's odds as its court knows the place (below). The route is chosen when it sets out, again when it is turned back at a
+  border, and again when it stands before a connection winter has closed (it goes round if a road is open, else waits). Model characters' own choice of route comes with item 11b (reading in the report).
 - **Word** (`wordSeasons`, `TurnEngine.travelTurns`): reports, rumours, overdue notices, ransoms and word of the world
   (`JourneyKind` "Word": roads closed or opened, a kingdom's fall) go by the fastest road open, in whole seasons, at least
   one, waiting a season when none is open (an island in winter). They are never stopped: the engine carries them until
@@ -59,7 +59,8 @@ capture only as an overdue notice, a season after it was due home; of a robbery 
 ### Passage and closed roads
 
 `RoadsOrder` (`close_roads` / `open_roads` naming a power) stands until changed (`GameState.roadsClosed`). An open
-traveller of that court crossing into the king's land (at the border on the connection) is turned back by his men: it
+traveller of that court crossing into the king's land from outside it (at the border on the connection; at the desert's edge where the
+desert lies on one side) is turned back by his men (one already inside when the roads close goes on): it
 learns the land is closed (`Journey.sneak`) and chooses a new route from where it stands, round the land or through it off
 the road. Its master learns of the closure by word from the closer's capital (`GameState.roadsHeard`), or when that
 traveller comes home. Travellers going to or coming from the closer's own court pass. Closing one's roads is the simple
@@ -73,10 +74,16 @@ on sealed tablets comes with item 9.
   that province to its capital, from `GameState.ownerLog`, which `TurnEngine.setOwner` writes at every change) and what
   its own people saw or brought home (`GameState.known`: its sight at the start of each season's resolution, and each
   province a traveller of its passed, as of when it passed, `TurnEngine.bringNews`). A province's age of news is
-  therefore its distance in seasons, unless a traveller brought fresher news. Engine rules (moves, purchases, scoring)
-  read the true holder; only the view is late.
+  therefore its distance in seasons, unless a traveller brought fresher news. A king who loses a province knows it at
+  once (`TurnEngine.setOwner` writes it into his `known`), as his notice tells him. Engine rules (moves, purchases,
+  scoring) read the true holder; only the view is late, and a refusal can still tell a court a province changed hands
+  (an order on a province whose holder changed is refused with the reason, read next season: accepted in question 6).
 - **Fallen kingdoms** (`GameState.fallsHeard`, `SeatView.fallen`): a court that sees the fallen capital hears at once,
-  the rest by word.
+  the rest by word; the fall's event is visible only to the fallen court and those that saw it. Until it hears, a court
+  may still send an envoy or a spy to the fallen court, or close or open its roads to it (the validator accepts them):
+  the envoy turns back on arrival. Ceding land or giving troops to it is still refused, which tells the court (a known
+  leak, kept so that no land or troops go to a dead kingdom). ENVOY TRAVEL lists every court not heard to have fallen.
+  An envoy at an audience weighs whether its lord looks doomed by what the host's court knows.
 - **Structured**: each holder comes with its season and source ("seen", "word from abroad", or a traveller's name), shown
   in the rulebook's LANDS ("heard in turn N, from Hani") and on the web map. Sharing reports with other courts ("Attach a
   report") is not built: it needs the structured press of item 8 and the carriers of item 11b.

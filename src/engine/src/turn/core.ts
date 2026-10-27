@@ -24,7 +24,7 @@ import { StartWalls, WorldMap } from "../model/map.ts";
 import type { Order } from "../model/orders.ts";
 import { coverOf, gain, hiddenAt, remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
-import { newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
+import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { Views } from "../rules/views.ts";
@@ -390,8 +390,15 @@ export class TurnEngine {
   /** A province passes to a new holder (or to none): the change is logged, so word of it travels (item 7b). */
   setOwner(province: string, owner: Power | null): void {
     const S = this.s;
-    if (S.owner.getOrDefault(province, null) === owner) return;
+    const old = S.owner.getOrDefault(province, null);
+    if (old === owner) return;
     S.owner.set(province, owner);
+    // The king who lost it knows at once, as his notice tells him, though it leaves his sight.
+    if (old !== null) {
+      let book = S.known.tryGet(old);
+      if (book === undefined) S.known.set(old, (book = new Dict()));
+      book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));
+    }
     S.ownerLog.push(newOwnerChange({ province, turn: S.turn, owner }));
   }
 

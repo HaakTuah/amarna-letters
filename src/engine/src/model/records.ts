@@ -43,8 +43,10 @@ export interface Journey {
   /** The provinces it has reached on its way, and the turn it reached each: the news it brings of them is of then. */
   seen: string[];
   reached: number[];
-  /** Why it is coming back before its errand was done (turned back on the road), or null. */
+  /** What befell it on the road (turned back, robbed), for its court when it comes home; null if nothing. */
   turnedBack: string | null;
+  /** It gave up its errand on the road and comes home without having reached where it was sent. */
+  gaveUp: boolean;
 }
 
 export function newJourney(init: Partial<Journey> = {}): Journey {
@@ -70,6 +72,7 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     seen: [],
     reached: [],
     turnedBack: null,
+    gaveUp: false,
     ...init,
   };
 }
@@ -96,6 +99,7 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   seen: list(S),
   reached: list(I),
   turnedBack: opt(S),
+  gaveUp: B,
 });
 
 /** What a leader hands an envoy: the spoken message, the mandate, and what it carries. */

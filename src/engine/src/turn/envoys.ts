@@ -523,7 +523,6 @@ P.envoyArrivesHome = function (j) {
   const c = char(S, j.characterId!);
   // Taken into another court's service on the way: it is there already. One dismissed on the way still comes home and reports.
   if (c.status === "Employed" && c.employer !== j.to) return;
-  this.bringNews(j, j.to, c);
   // Home to a besieged capital: the besiegers may catch it as it slips in, with what it carries.
   if (c.status === "Employed") {
     const besieged = this.capitalSiege(j.to);
@@ -532,6 +531,7 @@ P.envoyArrivesHome = function (j) {
       return;
     }
   }
+  this.bringNews(j, j.to, c);
   c.at = j.to;
   c.duty = "None";
   c.heldBy = null;
@@ -539,7 +539,7 @@ P.envoyArrivesHome = function (j) {
   c.missionTarget = null;
   const cargo = j.cargo ?? newHomeCargo();
   // Turned back on the road (item 7b): it tells why, and hands back any gold it still carries; there is no audience to report.
-  if (j.turnedBack !== null && j.kind === "EnvoyHomebound" && this.trail(cargo.trailId)?.audienceTurn == null) {
+  if (j.gaveUp) {
     if (cargo.gold > 0) S.treasuries.get(j.to).gold += toInt(roundEven((cargo.gold * cargo.purityPercent) / 100.0));
     notify(S, j.to, "Notice", `${c.name} returns`, `${c.name} is back at court without having reached ${j.from}: ${j.turnedBack}.` + (cargo.gold > 0 ? ` The ${formatMoney(cargo.gold)} of gold carried is back in the treasury.` : ""), c.id);
     c.currentTrail = null;

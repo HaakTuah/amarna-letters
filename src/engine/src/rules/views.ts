@@ -113,7 +113,7 @@ export const SeenSource = "seen";
 /**
  * Who a court knows holds each land province, with the season it was so and where the knowledge came from (build order
  * item 7b, "Hidden by default"): what it sees now ({@link sight}), as it is; elsewhere the newest of what word has brought
- * (the holder as of the season word from there, setting out then, would reach the court now) and what its own people
+ * (the holder as of the newest season whose word from there, setting out then, has reached the court by now) and what its own people
  * saw or brought home (GameState.known).
  */
 function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, Known> {
@@ -126,7 +126,13 @@ function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<string> 
       out.set(x.id, newKnown({ owner: s.owner.getOrDefault(x.id, null), turn: s.turn, source: SeenSource }));
       continue;
     }
-    const asOf = Math.max(0, s.turn - wordSeasons(s.config.travelDays, map, x.id, court, s.turn));
+    // The newest season whose word, setting out then, has arrived by now (as word of a fall is timed: TurnEngine.word).
+    let asOf = 0;
+    for (let d = s.turn - 1; d >= Math.max(1, s.turn - 6); d--)
+      if (d + wordSeasons(s.config.travelDays, map, x.id, court, d) <= s.turn) {
+        asOf = d;
+        break;
+      }
     let best = newKnown({ owner: ownerAt(s, map, x.id, asOf), turn: asOf, source: WordSource });
     const own = stored?.tryGet(x.id);
     if (own !== undefined && own.turn > best.turn) best = own;
@@ -262,7 +268,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const asleep = s.sleep.tryGet(p);
   v.letters = letters(s, p, v.court, s.config.sleepingSeats && asleep !== undefined ? asleep.lastCalled : s.turn - 1);
 
-  for (const other of alive(s).filter((x) => x !== p)) v.travelTimes.push(`${other}: ${engine.travelTurns(p, other)} season(s) each way`);
+  // Every court it has not heard has fallen (item 7b).
+  for (const other of AllPowers.filter((x) => x !== p && !v.fallen.includes(x))) v.travelTimes.push(`${other}: ${engine.travelTurns(p, other)} season(s) each way`);
 
   v.prices.set("army", s.config.armyCost);
   v.prices.set("fleet", s.config.fleetCost);
