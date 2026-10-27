@@ -17,12 +17,12 @@ the live document wins. If the docs connector is not available, go on with the c
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 549 |
 | Build order | `docs/intent/build-order/` | `f6588701-e47a` | 2 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 2 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 3 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 5 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 2 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 2 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 2 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 2 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 2 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 4 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 2 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 2 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 2 |
@@ -67,10 +67,10 @@ session loads.
 | `docs/intent/world-and-history/the-sources.md` | The sources | 3.9 |
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 12.1 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 10.2 |
+| `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 10.3 |
 | `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 12.1 |
 | `docs/intent/engine-and-models/script-mode-and-press-modes.md` | Script mode and press modes | 3.0 |
-| `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.1 |
+| `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.2 |
 | `docs/intent/engine-and-models/security-prompt-injection-and-information-leakage.md` | Security: prompt injection and information leakage | 1.9 |
 | `docs/intent/diplomacy-and-intelligence/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md` | Envoys: mediated, delayed, agentic communication | 2.2 |
@@ -100,7 +100,7 @@ session loads.
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.6 |
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.8 |
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 9.0 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 9.5 |
 | `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 5.2 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.2 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 10.8 |

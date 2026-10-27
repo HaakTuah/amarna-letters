@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 3 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 5 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Turn structure and the deterministic engine
 
 Each turn is one season, resolved by a deterministic engine from a single seed: the same seed and the same orders always produce the same game. That makes games replayable, debuggable and fair to compare across models.
@@ -17,7 +17,7 @@ Each turn is one season, resolved by a deterministic engine from a single seed: 
 
 **Pacing: sleeping seats and standing orders.** Longer histories, up to the roughly 30 years the letters span, become affordable if model calls scale with events, not with time. The world still advances season by season, but each seat sleeps until something concerns it.
 
-- **Per-seat sleep, never a global skip.** Announcing "nothing happens, skipping three seasons" would tell everyone no armies are moving. Each seat sees only its own wake-ups.
+- **Per-seat sleep, never a global skip.** Announcing "nothing happens, skipping three seasons" would tell everyone no armies are moving. Each seat sees only its own wake-ups. Sleep is for model and file seats; script and human seats play every season.
 - **Default wake triggers set by the engine.** An envoy or report arrives; foreign troops move into or next to its territory; it is attacked or loses a province; a catastrophe strikes it; a tablet, offer or audience awaits an answer; a scheduled order fails or its condition triggers.
 - **A digest for the rest.** Distant troop movements, rumors and market changes are collected and shown at the next wake-up instead of waking the seat. Since 20 October, a light alert is first read by the cheaper model, which may wake the seat's own model if it matters ("Light alerts go to the cheaper model too"); what it judges needs nothing goes to the digest.
 - **No triggers of the seat's own** (dropped 19 October 2026). Seat-defined triggers ("wake me if Babylon's army leaves Babylon"), the five a seat could set, and the option to raise or lower a default trigger's priority are removed. Each is a way for a king to wake himself, which the simulations showed he will use every season, and none matches what a king could know: he does not learn that his army has reached a place until someone tells him.

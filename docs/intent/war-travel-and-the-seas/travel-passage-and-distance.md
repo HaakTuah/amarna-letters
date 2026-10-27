@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 4 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Travel, passage and distance
 
 **Distance and travel** (decided 19 October 2026, build order item 7). Everything travels the map physically, by one measure of distance, so journeys differ greatly in length and in how likely they are to arrive. Each connection has a length weighted by its terrain, so travel time follows real distance rather than equal steps between provinces (decided 21 October 2026; "Map review").

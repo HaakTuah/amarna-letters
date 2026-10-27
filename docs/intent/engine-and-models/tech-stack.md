@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 3 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 5 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Tech stack
 
 The prototype is a static browser game where each player brings their own Anthropic API key. The whole game runs in the browser, including the TypeScript engine (decided 21 October 2026, in place of C# on Blazor WebAssembly; build order item 5+), and model calls go straight from the browser to the Anthropic API. The key never touches a server you run, so nobody can spend on your account, and hosting costs almost nothing.
@@ -44,7 +44,7 @@ The prototype is a static browser game where each player brings their own Anthro
 - **Subscription limits apply.** Usage is shared with the Claude apps; check it with `/usage`. An `ANTHROPIC_API_KEY` environment variable makes Claude Code bill the API instead, so it must not be set.
 - **Personal use only.** Games that other people play use the bring-your-own-key API path.
 
-**Platforms: phone and computer are both primary.** The game is mostly reading, short letters and a few decisions per turn, which suits a phone as well as a desktop.
+**Platforms: phone and computer are both primary.** The game is mostly reading, short letters and a few decisions per turn, which suits a phone as well as a desktop. Watching a whole game on a phone came first (item 2); playing a seat on one comes after.
 
 - **Mobile-first seat view.** Design from the phone screen up; the message trail and panels stack on narrow screens.
 - **Map on small screens.** Pinch-zoom and pan on the SVG map, plus a list view of provinces, since small provinces are hard to tap.
