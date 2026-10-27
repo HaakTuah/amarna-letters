@@ -5,7 +5,7 @@
   "overview": {
    "name": "Overview",
    "node": "320f0886-6acf",
-   "rev": 554,
+   "rev": 556,
    "files": [
     "docs/intent/overview/front.md",
     "docs/intent/overview/vision-and-core-hypothesis.md",
@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 23,
+   "rev": 24,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
