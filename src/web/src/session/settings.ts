@@ -1,5 +1,5 @@
 /** The table's settings, chosen on the start page and carried into the engine's worker (plain data, so it crosses over). */
-import { AllPowers, newGameConfig, type GameConfig, type Power } from "@amarna/engine";
+import { AllPowers, newGameConfig, type GameConfig, type GameState, type Power } from "@amarna/engine";
 import type { LogHeader } from "@amarna/game";
 import { CostEstimate, SeatChoices, choicesFromHeader, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
 
@@ -108,3 +108,12 @@ export function settingsFromHeader(header: LogHeader): GameSettings {
 
 /** The human seats chosen. */
 export const humansOf = (s: GameSettings): Power[] => AllPowers.filter((p) => s.leaders[p] === "Human");
+
+/**
+ * A fallen player's game is over: once every human seat at the table has fallen, and the table's setting allows it (on by
+ * default), the players watch the rest in god view. While one of them still plays, a fallen player on the same screen
+ * would see what the other cannot, so nobody does. With the setting off, a fallen player keeps his own view.
+ */
+export function fallenSeesAll(s: GameState, humans: readonly Power[]): boolean {
+  return s.config.fallenSeeAll && humans.length > 0 && humans.every((p) => s.eliminated.includes(p));
+}

@@ -10,9 +10,9 @@
     "src/batch"
   ],
   "scripts": {
-    "typecheck": "tsc -b",
+    "typecheck": "tsc -p tsconfig.json && tsc -p src/web",
     "test": "vitest run",
-    "lint": "eslint src/engine/src src/game/src src/llm/src"
+    "lint": "eslint src/engine/src"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

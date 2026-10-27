@@ -26,9 +26,9 @@ import {
 } from "@amarna/engine";
 import { GameLog, GameRunner, ReplayExhaustedError, type ISeat } from "@amarna/game";
 import { FetchTransport, SimulatedApi, buildSeats, type ApiTransport } from "@amarna/llm";
-import { frameFrom, type SeasonFrame } from "./frames.ts";
+import { catchUpFrames, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Live, Pending, ToWorker } from "./protocol.ts";
-import { choicesOf, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings } from "./settings.ts";
+import { choicesOf, fallenSeesAll, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings } from "./settings.ts";
 import { saveLog } from "./storage.ts";
 
 /** A human seat whose decisions the page makes: the worker asks, the page answers by message. */
@@ -86,17 +86,7 @@ export class SessionCore {
   // ---------------------------------------------------------------- updates to the page
 
   private catchUp(): void {
-    const r = this.runner;
-    if (r === null) return;
-    while (this.frames.length < r.snapshots.length) {
-      const index = this.frames.length;
-      const previous = this.frames.length === 0 ? null : this.frames[this.frames.length - 1];
-      // The runner calls back right after each snapshot, before the next season touches its state.
-      const live = index === r.snapshots.length - 1 && (r.state.turn === index + 1 || (r.state.ended && r.state.turn === index));
-      const state = live ? r.state : r.stateAt(index);
-      if (state === null) break;
-      this.frames.push(frameFrom(state, index, previous));
-    }
+    if (this.runner !== null) catchUpFrames(this.frames, this.runner);
   }
 
   private changed = (): void => {
@@ -169,7 +159,7 @@ export class SessionCore {
     if (!humans.every((p) => r.state.eliminated.includes(p))) return;
     this.fallTold = true;
     const who = humans.map(land).join(" and ");
-    if (r.state.config.fallenSeeAll) {
+    if (fallenSeesAll(r.state, humans)) {
       this.fallenToGod = true;
       this.notice = `The kingdom of ${who} has fallen with its capital: your game is over. You watch the rest of the game in god view, seeing everything.`;
     } else this.notice = `The kingdom of ${who} has fallen with its capital: your game is over. You watch the rest of the game with what your kingdom knew when it fell.`;

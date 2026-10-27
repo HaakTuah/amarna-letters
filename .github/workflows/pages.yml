@@ -26,19 +26,24 @@ jobs:
       - uses: actions/checkout@v4
         if: github.event.action != 'closed'
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-node@v4
         if: github.event.action != 'closed'
         with:
-          dotnet-version: 10.0.x
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        if: github.event.action != 'closed'
+        run: npm ci
 
       - name: Test
         if: github.event.action != 'closed'
-        run: dotnet test --configuration Release
+        run: npm run lint && npm run typecheck && npx vitest run
 
-      # The build step: swap this one line for the TypeScript build after the conversion.
+      # The build step: the TypeScript web app (Vite), its static output moved to site/.
       - name: Build
         if: github.event.action != 'closed'
-        run: dotnet publish src/Amarna.Web --configuration Release --output publish && mv publish/wwwroot site
+        run: npm run build --workspace src/web && mv src/web/dist site
 
       - name: Prepare the site
         if: github.event.action != 'closed'

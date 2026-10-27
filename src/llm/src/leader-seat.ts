@@ -10,7 +10,8 @@ import type { JsonAsker } from "./client.ts";
 import { LeaderJournal } from "./journal.ts";
 import { ModelIds } from "./models.ts";
 import { Parse } from "./parse.ts";
-import { audience, courtBrief, identity, leaderRules, ordersLine, situation, sleepLine, tabletLine } from "./prompts.ts";
+import { audience, courtBrief, identity, ordersLine, situation, sleepLine, tabletLine } from "./prompts.ts";
+import { leaderRules } from "./rules.ts";
 import { Schemas } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
 

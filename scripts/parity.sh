@@ -4,9 +4,9 @@
 # with its own script kings, and compares its fingerprints both times.
 #   scripts/parity.sh [GAMES] [FIRST_SEED]   (default 200 games from seed 1, plus 60 with sleeping script kings and 60
 #                                             against the frozen baseline)
-# Needs .NET (scripts/cloud-setup.sh) and Node 22. Everything goes to $TMPDIR/amarna-parity; only the summary is printed.
+# Needs the .NET 10 SDK, installed by hand since the conversion (see scripts/cloud-setup.sh), and Node 22. Everything goes to $TMPDIR/amarna-parity; only the summary is printed.
 cd "$(dirname "$0")/.." || exit 2
-command -v dotnet >/dev/null 2>&1 || { echo "dotnet is missing: run scripts/cloud-setup.sh first"; exit 2; }
+command -v dotnet >/dev/null 2>&1 || { echo "dotnet is missing: install the .NET 10 SDK (see scripts/cloud-setup.sh)"; exit 2; }
 GAMES="${1:-200}"
 SEED="${2:-1}"
 OUT="${TMPDIR:-/tmp}/amarna-parity"

@@ -4,6 +4,7 @@ export { Schemas, OtherActions, ReportText, ReportToSender, type AudienceAsks, t
 export { Parse } from "./parse.ts";
 export * from "./journal.ts";
 export * from "./prompts.ts";
+export * from "./rules.ts";
 export * from "./client.ts";
 export * from "./simulated.ts";
 export * from "./exchange.ts";

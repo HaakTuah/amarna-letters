@@ -19,6 +19,7 @@ import {
   type Power,
   type UnitKind,
 } from "@amarna/engine";
+import type { GameRunner } from "@amarna/game";
 
 /** A unit as it stood at the end of a season. */
 export interface FrameUnit {
@@ -298,4 +299,17 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     minTurns: s.config.minTurns,
     endChance: s.config.endChance,
   };
+}
+
+/** Takes a frame of every season the runner has played since the last call (the runner calls back right after each snapshot). */
+export function catchUpFrames(frames: SeasonFrame[], r: GameRunner): void {
+  while (frames.length < r.snapshots.length) {
+    const index = frames.length;
+    const previous = frames.length === 0 ? null : frames[frames.length - 1];
+    // Called right after each snapshot, before the next season touches the state, the live state is that snapshot.
+    const live = index === r.snapshots.length - 1 && (r.state.turn === index + 1 || (r.state.ended && r.state.turn === index));
+    const state = live ? r.state : r.stateAt(index);
+    if (state === null) break;
+    frames.push(frameFrom(state, index, previous));
+  }
 }
