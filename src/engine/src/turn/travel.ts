@@ -19,7 +19,7 @@ import { remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
 import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind } from "../model/records.ts";
 import { char, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
-import { cheapestRoute, legPoints, PointsPerDay } from "../model/travel.ts";
+import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { Views } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
@@ -28,10 +28,11 @@ import { idNumber, TurnEngine } from "./core.ts";
  * The odds of the road check, in percent for one season (first guesses, tuned in item 18). A king's troops (army or
  * fleet) stop a traveller of a court he has closed his roads to; his people find one sneaking through his land, more
  * readily if it carries gold or tablets and if he pays watchmen that season (a third of what he spends); outlaws are
- * worst in land without a king and rare in a king's; at sea storms, worst in winter; in the desert supplies run out. A
+ * worst in land without a king and rare in a king's; at sea storms, worst in winter; on a pass in winter the snow (item 9,
+ * "Winter is dangerous, never closed"); in the desert supplies run out. A
  * traveller's skill (0-100) takes off up to half the odds; escort, policing and roads stay neutral until their items.
  */
-export const RoadOdds = { troops: 40, found: 20, foundGold: 10, foundTablets: 5, kingless: 8, free: 3, royal: 1, storm: 2, winterStorm: 8, desert: 4, skillShare: 50, most: 90 } as const;
+export const RoadOdds = { troops: 40, found: 20, foundGold: 10, foundTablets: 5, kingless: 8, free: 3, royal: 1, storm: 2, winterStorm: 8, snow: 6, desert: 4, skillShare: 50, most: 90 } as const;
 
 /** What stopped a traveller: a hostile king's troops, his people finding it off the road, outlaws, or nature. */
 export type Stop = "troops" | "found" | "outlaws" | "nature";
@@ -59,7 +60,7 @@ declare module "./core.ts" {
   interface TurnEngine {
     setOut(j: Journey, from: string, to: string): void;
     planRoute(j: Journey, from: string, to: string, turn?: number): boolean;
-    closedTo(host: Power | null, j: Journey): boolean;
+    closedTo(host: Power | null, j: Journey, province?: string | null): boolean;
     roadKnowledge(master: Power, closed: Iterable<Power>): RoadKnowledge;
     roadOdds(j: Journey, c: Character, province: string, sneaking: boolean, known: RoadKnowledge | null): Dict<Stop, number>;
     travel(): void;
@@ -96,16 +97,11 @@ P.setOut = function (j, from, to) {
   j.seen = [from];
   j.reached = [S.turn];
   if (!this.planRoute(j, from, to)) throw new Error(`No road from ${from} to ${to} in any season.`);
-  // Due by this season's roads, or, if one of them is closed now, a season later by the next season's.
+  // Due by this season's roads (winter closes none: item 9).
   const perSeason = S.config.travelDays * PointsPerDay;
-  for (let wait = 0; wait < 3; wait++) {
-    let cost = 0;
-    for (let i = 0; i < j.route.length - 1; i++) cost += legPoints(this.map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn + wait));
-    if (cost === Infinity) continue;
-    j.arriveTurn = S.turn + wait + Math.max(1, Math.ceil(cost / perSeason));
-    return;
-  }
-  j.arriveTurn = S.turn + 3;
+  let cost = 0;
+  for (let i = 0; i < j.route.length - 1; i++) cost += legPoints(this.map, j.route[i], j.route[i + 1], seasonOfTurn(S.turn));
+  j.arriveTurn = S.turn + Math.max(1, Math.ceil(cost / perSeason));
 };
 
 /**
@@ -113,7 +109,7 @@ P.setOut = function (j, from, to) {
  * this season, off the road through land it believes closed to its master, and the risk of each province it enters
  * weighed by its courage, a bold traveller taking the short, dangerous road and a careful one the long, safe one. Its
  * court's knowledge: who holds each province (Views.knownHolders), the kings it has heard closed their roads to it and
- * any it met on the way, and the troops it can see. False when no route is open this season (it waits where it is).
+ * any it met on the way, and the troops it can see. False when there is no route at all.
  */
 P.planRoute = function (j, from, to, turn) {
   const S = this.s;
@@ -145,15 +141,12 @@ P.planRoute = function (j, from, to, turn) {
     }
     return x;
   };
-  // By this season's roads; if none is open (an island in winter), by the next season's, and it waits for them.
-  let r: { route: string[]; cost: number } | null = null;
-  for (let wait = 0; wait < 3 && r === null; wait++) {
-    const season = seasonOfTurn(when + wait);
-    r = cheapestRoute(Map, from, to, (a, b) => {
-      const pts = legPoints(Map, a, b, season, { sneaking: believedClosed(a) || believedClosed(b) });
-      return pts === Infinity ? pts : pts + (weight * ((risk(a) + risk(b)) / 2) * pts) / perSeason;
-    });
-  }
+  // By this season's roads.
+  const season = seasonOfTurn(when);
+  const r = cheapestRoute(Map, from, to, (a, b) => {
+    const pts = legPoints(Map, a, b, season, { sneaking: believedClosed(a) || believedClosed(b) });
+    return pts === Infinity ? pts : pts + (weight * ((risk(a) + risk(b)) / 2) * pts) / perSeason;
+  });
   j.sneak = [...closed];
   if (r === null) return false;
   j.route = r.route;
@@ -163,10 +156,12 @@ P.planRoute = function (j, from, to, turn) {
 };
 
 /** Does this king stop the traveller's people passing through his land (never its own king's, nor the one it goes to)? */
-P.closedTo = function (host, j) {
+P.closedTo = function (host, j, province = null) {
   if (host === null) return false;
   const master = masterOf(j);
   if (host === master || host === counterpart(j)) return false;
+  // Passage granted on a sealed tablet lets its travellers through (item 9).
+  if (province !== null && this.passageFor(host, master, province)) return false;
   return (this.s.roadsClosed.tryGet(host) ?? []).includes(master);
 };
 
@@ -188,7 +183,7 @@ P.roadOdds = function (j, c, province, sneaking, known) {
   const season = seasonOfTurn(known !== null ? S.turn : S.turn - 1);
   const out = new Dict<Stop, number>();
   const holder = prov.isSea ? null : known !== null ? (known.holders.tryGet(province)?.owner ?? null) : S.owner.getOrDefault(province, null);
-  const hostile = (k: Power): boolean => k !== master && k !== counterpart(j) && (known !== null ? known.heard.has(k) : this.closedTo(k, j));
+  const hostile = (k: Power): boolean => k !== master && k !== counterpart(j) && (known !== null ? known.heard.has(k) : this.closedTo(k, j, province));
   // Troops: as the court sees them now when choosing, as they stand when the check falls.
   if (S.units.some((u) => u.province === province && hostile(u.power) && (known === null || known.seen.has(province)))) out.set("troops", RoadOdds.troops);
   if (sneaking && holder !== null && hostile(holder)) {
@@ -201,6 +196,9 @@ P.roadOdds = function (j, c, province, sneaking, known) {
   if (!prov.isSea) out.set("outlaws", prov.kingless ? RoadOdds.kingless : holder === null ? RoadOdds.free : RoadOdds.royal);
   if (prov.isSea) out.set("nature", season === WinterSeason ? RoadOdds.winterStorm : RoadOdds.storm);
   else if (terrainOf(province) === "Desert") out.set("nature", RoadOdds.desert);
+  // A snowbound pass on its way, at either end of it.
+  if (!prov.isSea && j.route.some((x, i) => i > 0 && (x === province || j.route[i - 1] === province) && snowbound(Map, j.route[i - 1], x, season)))
+    out.set("nature", out.getOrDefault("nature", 0) + RoadOdds.snow);
   // Its skill takes off up to half; at most RoadOdds.most in all.
   const total = [...out.values()].reduce((a, b) => a + b, 0);
   const scale = (total > RoadOdds.most ? RoadOdds.most / total : 1) * (1 - (clamp(c.traits.competence, 0, 100) * RoadOdds.skillShare) / 10000);
@@ -237,14 +235,6 @@ P.travelOne = function (j) {
     const a = j.route[j.leg];
     const b = j.route[j.leg + 1];
     const cost = legPoints(Map, a, b, season, { sneaking: offRoad(a) || offRoad(b) });
-    // Closed this season: from where it stands it goes round if a road is open, else waits for the pass or the sea.
-    if (cost === Infinity && j.along === 0) {
-      const old = { route: j.route, leg: j.leg };
-      if (this.planRoute(j, a, j.route[j.route.length - 1], S.turn - 1) && j.route.length > 1 && legPoints(Map, a, j.route[1], season) < Infinity) continue;
-      j.route = old.route;
-      j.leg = old.leg;
-      j.along = 0;
-    }
     if (cost === Infinity) break;
     // The border on the connection: halfway, or at the desert's edge, where the desert lies on one side.
     const half = terrainOf(b) === "Desert" && terrainOf(a) !== "Desert" ? 0 : terrainOf(a) === "Desert" && terrainOf(b) !== "Desert" ? cost : Math.floor(cost / 2);
@@ -254,7 +244,7 @@ P.travelOne = function (j) {
     // Openly into land closed to its master, from outside it: its king's men turn it back at the border.
     const host = Map.get(b).isSea ? null : S.owner.getOrDefault(b, null);
     const crosses = j.along <= half && (end > half || (half === cost && end >= half));
-    if (crosses && !offRoad(b) && host !== S.owner.getOrDefault(a, null) && this.closedTo(host, j)) {
+    if (crosses && !offRoad(b) && host !== S.owner.getOrDefault(a, null) && this.closedTo(host, j, b)) {
       spend(a, half - j.along);
       turnedAt = b;
       break;
@@ -341,7 +331,7 @@ P.stopped = function (j, c, province, stop) {
     const captor =
       stop === "troops"
         ? sortBy(
-            S.units.filter((u) => u.province === province && this.closedTo(u.power, j)),
+            S.units.filter((u) => u.province === province && this.closedTo(u.power, j, province)),
             [(u) => idNumber(u.id), cmpNum],
           )[0].power
         : S.owner.getOrDefault(province, null)!;
@@ -520,6 +510,8 @@ P.roads = function (p, o) {
   if (o.close === list.has(o.court)) return;
   if (o.close) list.add(o.court);
   else list.delete(o.court);
+  // Closing one's roads to a court ends the passage and basing one granted it (item 9).
+  if (o.close) this.endGrants(p, o.court, "it closed its roads to them");
   S.roadsClosed.set(p, [...list]);
   logEvent(S, "travel", `${p} ${o.close ? "closes its roads to" : "opens its roads to"} the people of ${o.court}.`, [p], o.close ? "roads-closed" : "roads-opened");
   this.word(

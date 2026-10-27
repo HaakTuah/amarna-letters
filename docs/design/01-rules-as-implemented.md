@@ -35,10 +35,10 @@
   minor finding 5). Other kings who see it read the line with "(it stormed the walls of mari)" or
   "(it stands within the walls of mari and does not take it)". The season's sieges come in a notice
   of their own, "Sieges" (see Walls and sieges).
-- **Sight.** A court sees troops in its own land, where its troops stand and in the provinces its
-  spies watch, and one link of any kind (land, coast or sea) from those (`Views.sight`). A province
-  spy caught or let go unknown to its master still counts while the master's cover believes it at
-  its post, so the capture cannot be read off the sight line before word comes. The rulebook
+- **Sight.** A court sees troops in its own land and where its troops stand, and one link of any
+  kind (land, coast or sea) from those (`Views.sight`). A spy watching a province adds no live sight
+  since item 9: its report travels home by road and brings the troops it saw and who held the land
+  when it wrote (`TurnEngine.spyReportArrives`, into `GameState.known`). The rulebook
   and the view's sight line say so, and that troops two links away, or an army carried across the
   sea, can arrive next season unseen. (Until the simulation-fixes round they said only "in and next
   to your own lands and troops", and empty seas were read as safety.) A refusal says nothing of

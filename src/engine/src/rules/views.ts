@@ -10,6 +10,7 @@ import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { alive, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
+import { grantStands, newGrantView } from "../model/authority.ts";
 import {
   newCharacterView,
   newLotView,
@@ -66,18 +67,13 @@ function looksDoomed(owner: Dict<string, Power | null>, fallen: Iterable<Power>,
 }
 
 /**
- * Provinces a power can see units in: its own lands, where its units stand, the provinces its spies watch, and next to
- * any of those. A province spy caught or let go unknown to its master still counts while the master believes it at its
- * post, so that its sight betrays nothing before word comes.
+ * Provinces a power can see units in: its own lands, where its units stand, and next to any of those. A spy watching a
+ * province adds nothing live: its reports travel home by road like any other (item 9, answering item 7b's review), and
+ * bring the troops it saw and who held the land when it wrote.
  */
 function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
   const core = new HSet<string>(ownedBy(s, p));
   for (const u of s.units) if (u.power === p) core.add(u.province);
-  for (const c of s.characters) {
-    if (c.watchProvince === null) continue;
-    const cover = coverOf(c, p);
-    if (cover !== null ? cover.believed === "SpyPosted" : c.employer === p && c.duty === "SpyPosted") core.add(c.watchProvince);
-  }
   const all = new HSet<string>(core);
   for (const id of core) for (const n of map.neighbors(id)) all.add(n);
   return all;
@@ -184,6 +180,13 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     ownerFrom: new Dict([...known.entries()].filter(([, x]) => x.turn < s.turn && x.turn > 0).map(([k, x]) => [k, x.source] as const)),
     roadsClosed: [...(s.roadsClosed.tryGet(p) ?? [])],
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
+    grants: s.grants
+      // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
+      .filter((g) => (g.grantor === p || g.grantee === p) && grantStands(g, s.turn) && s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId))
+      .map((g) => {
+        const t = s.tablets.find((x) => x.id === g.tabletId);
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "" });
+      }),
     walls: wallsKnown(s, m, p, seen),
     // Its own land's only: how another king's land changed hands is not public, though who holds it is.
     conquered: new Dict([...s.conquered.entries()].filter(([k]) => s.owner.getOrDefault(k, null) === p)),
@@ -289,6 +292,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("terrainDefence", s.config.terrainDefence);
   v.prices.set("desertUpkeep", s.config.desertUpkeep);
   v.prices.set("seaSupply", s.config.seaSupply);
+  v.prices.set("winterArmyLoss", s.config.winterArmyLoss);
+  v.prices.set("winterFleetLoss", s.config.winterFleetLoss);
   return v;
 }
 
@@ -602,6 +607,10 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
     allianceOath: t.allianceOath,
     source: copy.source,
     authResult: copy.authResult,
+    byHand: t.byHand,
+    byHandOf: t.byHandOf,
+    within: copy.holder === t.byHandOf || (copy.holder === t.proposedBy && t.credentialsShown) ? t.within : null,
+    repudiatedTurn: t.repudiatedTurn,
   });
 }
 

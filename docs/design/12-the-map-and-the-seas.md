@@ -51,11 +51,11 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
   waters along the shore, counterclockwise with the current (`Edge.current`: north along the Levant, west along Anatolia,
   east to west round Cyprus). Five **open-sea crossings** (`Edge.open`): Ugarit's waters and Byblos's to Enkomi's, Kalavasos's
   to Kizzuwatna's and to Lukka's, and the Western Sea to the Delta's, all with the current in the circuit's direction.
-- **The sailing season.** Peret, the second season of each year (`WinterSeason`), is winter everywhere: the open-sea
-  crossings are closed (`WorldMap.forTurn` gives the map without them; the validator refuses a fleet move or support over one,
-  "the open sea between ugaritwaters and enkomiwaters is closed in winter", and an army's move by sea that needs one; the
-  adjudicator carries no convoy over one). So Cyprus is cut off by sea each winter. Coastal hops stay open; their risk in
-  winter is nature's, in item 7b's interception check. Buying across the sea follows the same map.
+- **The sailing season.** Peret, the second season of each year (`WinterSeason`), is winter everywhere. Since item 9
+  ("Winter is dangerous, never closed", `docs/design/15-envoy-authority-and-passage.md`) the open-sea crossings stay open
+  but are dangerous: a fleet crossing one, or an army carried over one, may be lost (`turn/winter.ts`). Coastal hops are
+  safe; their risk in winter is nature's, in item 7b's interception check. `WorldMap.winter` is the map without the
+  dangerous crossings, which script kings plan their safe moves on.
 - **Landing.** No new rule: an army sails only by convoy, with a fleet of any power in each sea zone of its way, and the
   only sea zone next to a coast is its own waters, so an army lands only from those waters, and where an enemy fleet holds
   them no fleet of the lander's can stand there to carry it. The landing's +1 from item 5 is gone (`defenceGround` takes no

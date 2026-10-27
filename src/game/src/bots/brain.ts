@@ -121,6 +121,10 @@ export class Brain {
   readonly recalled = new HSet<string>();
   /** The bribe the host offered at an audience still open, by audience, to raise once in a second exchange. */
   readonly bribeOffered = new Dict<string, [number, string]>();
+  /** When we last asked each king leave for our troops to stand in his land (item 9). */
+  readonly basingAsked = new Dict<Power, number>();
+  /** Tablets sealed by an envoy's hand that we have weighed already: honoured, repudiated, or heard repudiated (item 9). */
+  readonly judged = new HSet<string>();
   lastSeek = -10;
   lastSpyCaught = -10;
   warTarget: Power | null = null;
@@ -237,7 +241,8 @@ export class Brain {
       if (o.power === this.me || !this.rel.has(o.power)) continue;
       const r = this.rel.get(o.power);
       const t = o.target;
-      if (o.order === "move" && t !== null && (b.isMine(t) || previous.getOrDefault(t, null) === this.me) && !onAnother(t, o.power)) this.wronged(o.power, 1, -0.25, v.turn);
+      // A guest entering by the passage or basing we granted (item 9) wrongs nobody; one that takes the land does, below.
+      if (o.order === "move" && t !== null && !o.guest && (b.isMine(t) || previous.getOrDefault(t, null) === this.me) && !onAnother(t, o.power)) this.wronged(o.power, 1, -0.25, v.turn);
       if (o.order === "support" && o.helped === this.me && o.succeeded) {
         r.supportsGiven++;
         r.trust = Math.min(1, r.trust + 0.15);

@@ -64,6 +64,7 @@ import {
   type SeatView,
   type TurnSubmission,
   type AudienceView,
+  ownedBy,
 } from "@amarna/engine";
 import {
   PresentResultSchema,
@@ -561,6 +562,7 @@ export class GameRunner {
         forgeMinCompetence: S_.config.forgeMinCompetence,
         audienceKey: key,
         structured: S_.config.pressMode === "structured",
+        senderHolds: ownedBy(S_, a.from),
       });
 
     this.asked(envoy.id, turn);

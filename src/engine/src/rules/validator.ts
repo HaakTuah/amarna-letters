@@ -10,6 +10,7 @@ import { characterOf, unitOf, type CaptiveFate, type HireOrder, type Order, type
 import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
+import { grantStands } from "../model/authority.ts";
 import { findCharacter, isAlive, ledger, siegeOf, unitAt, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
 
@@ -39,12 +40,8 @@ export class OrderValidator {
 
   validate(power: Power, submission: TurnSubmission): ValidationResult {
     const S = this.s;
-    // The map as it can be crossed this season: in winter the open-sea crossings are closed.
-    const Map = this.map.forTurn(S.turn);
-    const closed = (from: string, to: string): string | null =>
-      Map !== this.map && this.map.canMove("Fleet", from, to) && this.map.openCrossing(from, to) !== null
-        ? `the open sea between ${from} and ${to} is closed in winter`
-        : null;
+    // Winter closes nothing (item 9): a move over a pass or the open sea in winter is dangerous, not refused.
+    const Map = this.map;
     const result = new ValidationResult();
     const ledgerGold = ledger(S.treasuries.get(power));
     let budget = ledgerGold;
@@ -150,12 +147,10 @@ export class OrderValidator {
           if (isBlank(order.to)) return "name the province the unit should move to";
           if (!Map.exists(order.to)) return `there is no province called '${order.to}'`;
           if (order.to === order.unit) return "a unit cannot move to where it stands";
-          if (u!.kind === "Fleet") return Map.canMove("Fleet", order.unit, order.to) ? null : (closed(order.unit, order.to) ?? `a fleet in ${order.unit} cannot reach ${order.to}`);
+          if (u!.kind === "Fleet") return Map.canMove("Fleet", order.unit, order.to) ? null : `a fleet in ${order.unit} cannot reach ${order.to}`;
           if (Map.canMove("Army", order.unit, order.to)) return null;
           if (Map.seaRouteExists(order.unit, order.to)) return null;
-          return this.map.seaRouteExists(order.unit, order.to)
-            ? `an army in ${order.unit} cannot reach ${order.to}: the open sea is closed in winter, and no chain of coastal waters joins them`
-            : `an army in ${order.unit} cannot reach ${order.to}`;
+          return `an army in ${order.unit} cannot reach ${order.to}`;
         }
 
         case "support": {
@@ -169,7 +164,7 @@ export class OrderValidator {
           const into = order.to ?? order.supported;
           if (!Map.exists(into)) return `there is no province called '${into}'`;
           if (into === order.unit) return "a unit cannot support a move into its own province";
-          return Map.canMove(u!.kind, order.unit, into) ? null : (closed(order.unit, into) ?? `the unit in ${order.unit} cannot reach ${into} to support there`);
+          return Map.canMove(u!.kind, order.unit, into) ? null : `the unit in ${order.unit} cannot reach ${into} to support there`;
         }
 
         case "convoy": {
@@ -254,7 +249,7 @@ export class OrderValidator {
             S.owner,
             S.units.filter((u) => u.power === power).map((u) => u.province),
           );
-          if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or lie one voyage from one of your coasts: their waters the same or next to each other, and not across the open sea in winter)`;
+          if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or lie one voyage from one of your coasts: their waters the same or next to each other)`;
           if (bought.has(b.province)) return "you already bid for that city";
           return spend(Map.get(b.province).yield * S.config.neutralPriceFactor);
         }
@@ -286,6 +281,11 @@ export class OrderValidator {
           if (d.purityPercent < 10 || d.purityPercent > 100) return "purity must be between 10 and 100 percent";
           if (d.copies && d.copies.length > 0)
             for (const id of d.copies) if (!S.copies.some((x) => x.id === id && x.holder === power)) return `you hold no tablet copy '${id}'`;
+          // The envoy's authority (item 9): provinces it names that the king no longer holds are left out by the engine.
+          if (d.authority != null) {
+            if (d.authority.maxGold < 0) return "the most gold an envoy may give cannot be negative";
+            for (const id of [...d.authority.cede, ...d.authority.open]) if (!Map.exists(id)) return `there is no province called '${id}'`;
+          }
           const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
           // The tablet's scribe, and the inventory's unless the gold goes without one (item 8), as the engine charges them.
           const fee = (d.proposal ? S.config.tabletFee : 0) + (d.gold > 0 && d.noInventory !== true ? S.config.inventoryFee : 0);
@@ -367,6 +367,31 @@ export class OrderValidator {
           if (roadsSet.has(order.court)) return `you had already closed or opened your roads to ${order.court} that season`;
           const closed = (S.roadsClosed.tryGet(power) ?? []).includes(order.court);
           if (closed === order.close) return `your roads are already ${closed ? "closed" : "open"} to the people of ${order.court}`;
+          return null;
+        }
+
+        case "revoke": {
+          // Passage and basing granted on sealed tablets (item 9).
+          if (!AllPowers.includes(order.grantee) || order.grantee === power) return `you granted nothing to '${order.grantee}'`;
+          if (order.province !== null && !Map.exists(order.province)) return `there is no province called '${order.province}'`;
+          // Only what it knows it granted: the tablet's copy is in its archive.
+          const stands = S.grants.some(
+            (g) =>
+              g.grantor === power &&
+              g.grantee === order.grantee &&
+              grantStands(g, S.turn) &&
+              S.copies.some((k) => k.holder === power && k.tabletId === g.tabletId) &&
+              (order.province === null || g.province === order.province || (g.province === null && g.lands.includes(order.province))),
+          );
+          return stands ? null : `you have granted ${order.grantee} no passage or basing${order.province !== null ? ` in ${order.province}` : ""} that still stands`;
+        }
+
+        case "repudiate": {
+          const copy = S.copies.find((x) => x.id === order.copy && x.holder === power);
+          const t = copy === undefined ? undefined : S.tablets.find((x) => x.id === copy.tabletId);
+          if (t === undefined) return `you hold no tablet copy '${order.copy}'`;
+          if (t.byHandOf !== power) return "only a tablet your own envoy sealed in your name can be repudiated as beyond his authority";
+          if (t.repudiatedTurn !== null) return "you have already repudiated that tablet";
           return null;
         }
 

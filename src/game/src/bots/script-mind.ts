@@ -28,7 +28,10 @@ import {
   clause,
   isNews,
   renderClauses,
+  checkClauses,
+  withinAuthority,
 } from "@amarna/engine";
+import { AuthorityPlay } from "./authority.ts";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
 import { TextKit } from "./textkit.ts";
 
@@ -107,6 +110,16 @@ export class ScriptMind implements ICharacterMind {
     }
 
     if (host.detain) speech.push(t.courage < 40 ? "I beg you, let me go home; my lord awaits my word." : "My lord will hear of how his messenger was treated.");
+
+    // A tablet of the host's own, with its lord's seal in its hand (item 9): the faithful seal it only within their authority;
+    // the bought (a gift taken at this audience), the disloyal and the careless (who do not check) seal it whatever it asks.
+    const a = ctx.dispatch.authority;
+    if (host.counter !== null && a !== null && a.seal && AuthorityPlay.envoys) {
+      const within = withinAuthority(checkClauses(host.counter.clauses, ctx.host, ctx.sender, ctx.turn).kept, a, ctx.senderHolds);
+      const bought = ctx.giftTaken || reaction.acceptBribe;
+      reaction.sealCounter = within ? t.loyalty >= 25 || bought : bought || t.loyalty < 40 || t.competence < 35;
+      speech.push(reaction.sealCounter ? "I set my lord's seal on it in his name." : "That goes beyond what my lord allows me: I will carry it to him.");
+    }
 
     if (!isBlank(host.speech)) {
       const oath = host.clauses.some((x) => x.kind === "askOath");

@@ -1,5 +1,5 @@
 /** The interface's text helpers: names, dates and money as every panel writes them. */
-import { WorldMap, dateLabel, describe, formatMoney, land, rx, type Order, type Power, type SeatView } from "@amarna/engine";
+import { WorldMap, dateLabel, describe, formatMoney, land, rx, type GrantView, type Order, type Power, type SeatView } from "@amarna/engine";
 
 export const color = (p: Power | null): string => (p !== null ? `var(--${p.toLowerCase()})` : "var(--neutral)");
 
@@ -38,4 +38,12 @@ export function describeOrder(o: Order, v: SeatView): string {
   let text = describe(o);
   text = text.replace(Ids, (m) => names.get(m) ?? m);
   return text.replace(Words, (m) => (WorldMap.default.exists(m) ? WorldMap.default.get(m).name : m));
+}
+
+/** A grant of passage or basing as its two kings read it (item 9). */
+export function grantLine(g: GrantView, me: Power): string {
+  const where = g.province !== null ? WorldMap.default.get(g.province).name : `all ${g.grantor === me ? "your" : `${powerName(g.grantor)}'s`} land`;
+  const what = g.kind === "passage" ? `pass through ${where}` : `stand within the walls of ${where}`;
+  const who = g.grantor === me ? `${powerName(g.grantee)}'s troops may ${what}` : `Your troops may ${what}, by leave of ${powerName(g.grantor)}`;
+  return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : ", until revoked"} (${g.tablet}).`;
 }

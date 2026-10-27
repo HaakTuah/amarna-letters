@@ -1,7 +1,7 @@
 ## Travel and news (item 7b)
 
 Build order item 7, part 7b: routes and the one measure of distance on the finished map, the one rule for what sets a
-company's pace, passes closed in winter and rivers slower upstream, interception in its simple form with nature in the
+company's pace, passes closed in winter (dangerous instead since item 9) and rivers slower upstream, interception in its simple form with nature in the
 same check, passage and sneaking through a host's land, choosing a route, and news travelling ("What sets a company's
 pace", "A road belongs to the land it crosses", "Interception on the road", "Choosing a route", "Passage and access",
 "Distance and travel", "Land and climate", "Rivers", "Hidden by default", "Information as a structured asset"; question 6
@@ -14,27 +14,27 @@ of the old round report). Save version 11. Why, what it cost and what was found:
   company's pace": the land it crosses (item 7a's `connectionDays`: terrain, passes, desert, the sea's passage and
   current), a boat on a great river where that is quicker (`boatDays`: the Nile 60 km a day down and 40 up, under sail;
   the Euphrates and the Tigris 40 down and no boats up, so upstream a traveller walks), a river crossing (a day for the
-  ferry, four more in the river's flood season: the Euphrates and the Tigris in Shemu; `Rivers[].flood`), winter (an
-  open-sea crossing or a mountain pass is Infinity in Peret), and sneaking (off the road on land, half as long again).
+  ferry, four more in the river's flood season: the Euphrates and the Tigris in Shemu; `Rivers[].flood`), winter (since item
+  9 a mountain pass takes twice as long in Peret, `TravelData.winterPassPercent`; nothing closes), and sneaking (off the road on land, half as long again).
   The terms whose systems do not exist yet are in the function and neutral (100%): size and load (9+), water and fodder
   (10+), the leader (11b), roads (15); an army's size and forced marches come with distance-based marching (13).
 - **Progress carries over**: a traveller makes `GameConfig.travelDays` (45, a first guess) days of road a season, 450
   points, and keeps what it has made on the connection it is on (`Journey.leg`, `Journey.along`). 45 days was chosen so
   most journeys between capitals keep today's 1 or 2 seasons (the rest of a 120-day season goes on halts, audiences and
   waiting at borders): Hatti–Assyria became 2 seasons (60 road days) and journeys to and from Alashiya became quicker by
-  sea (25-47 days), until winter closes the crossings.
-- **Winter** (`closedInWinter`, `WorldMap.winter`): the mountain passes (the Cilician Gates, the Taurus, the Anti-Taurus,
-  the Amanus, the Syrian Gates, the Lebanon twice) close in Peret with the open sea, for armies (an order over one is
-  refused, as at sea; a city across one cannot be bought then) and travellers (who go round or wait).
+  sea (25-47 days).
+- **Winter** (`dangerousInWinter`, `WorldMap.winter`): the mountain passes (the Cilician Gates, the Taurus, the Anti-Taurus,
+  the Amanus, the Syrian Gates, the Lebanon twice) and the open sea are dangerous in Peret, never closed (item 9; see
+  `15-envoy-authority-and-passage.md`): an army or fleet crossing may be lost, a traveller is slowed and meets the snow.
 - **A route** (`cheapestRoute`): Dijkstra over every connection, ties to the province first in the map's order, so every
   engine finds the same route. A traveller's route (`TurnEngine.planRoute`) weighs each connection's points this season
   and the risk of the provinces at its ends, by the share of a season spent on it (the check falls once a season): for each
   percent of risk over a whole season a careful traveller (courage 0) gives 25 points (2.5 days), a bold one (100) 5
-  (`RiskWeight`; "Bold or careful, one goal"). Risk is the road check's odds as its court knows the place (below). The route is chosen when it sets out, again when it is turned back at a
-  border, and again when it stands before a connection winter has closed (it goes round if a road is open, else waits). Model characters' own choice of route comes with item 11b (reading in the report).
+  (`RiskWeight`; "Bold or careful, one goal"). Risk is the road check's odds as its court knows the place (below). The route is chosen when it sets out and again when it is turned back at a
+  border (winter closes no connection since item 9). Model characters' own choice of route comes with item 11b (reading in the report).
 - **Word** (`wordSeasons`, `TurnEngine.travelTurns`): reports, rumours, overdue notices, ransoms and word of the world
-  (`JourneyKind` "Word": roads closed or opened, a kingdom's fall) go by the fastest road open, in whole seasons, at least
-  one, waiting a season when none is open (an island in winter). They are never stopped: the engine carries them until
+  (`JourneyKind` "Word": roads closed or opened, a kingdom's fall) go by the fastest road, in whole seasons, at least
+  one (an island's in winter too, since item 9). They are never stopped: the engine carries them until
   item 11b ("Messengers are errands").
 
 ### The road check
@@ -49,7 +49,7 @@ connection's time counts half in each end's province, all of it in the desert pr
 | Troops (army or fleet) of a king who closed his roads to its court | 40 | his captive (an envoy's letter, mandate, gold and tablets are his; a spy as when caught spying) |
 | Found sneaking through such a king's land | 20, +10 with gold, +5 with tablets, + a third of his watchmen's spend | his captive |
 | Outlaws: land without a king, a free city's land, a king's | 8, 3, 1 | robbed of its gold; on the way out the errand is given up and it comes home |
-| Nature: storms at sea (in winter), the desert | 2 (8), 4 | on the way out it turns back; on the way home it loses the season |
+| Nature: storms at sea (in winter), snow at either end of a pass on its road in winter (item 9), the desert | 2 (8), 6, 4 | on the way out it turns back; on the way home it loses the season |
 
 They add up to at most 90, and its skill (competence) takes off up to half. A traveller's own king never stops it, nor
 does the king it goes to or comes from. Escort, policing and roads are neutral until their items. Its master hears of a

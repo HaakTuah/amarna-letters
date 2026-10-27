@@ -34,6 +34,8 @@ import {
   type StandingOrderView,
   type TabletView,
   type UnitKind,
+  authorityText,
+  type GrantView,
 } from "@amarna/engine";
 import { Sb, joinS } from "./text.ts";
 export function identity(p: Power): string {
@@ -207,6 +209,11 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         sb.appendLine(`ENVOY TRAVEL (about, by the fastest road open this season): ${joinS(`; `, v.travelTimes)}.`);
         if (v.roadsClosed.length > 0) sb.appendLine(`YOUR ROADS ARE CLOSED to the people of: ${joinS(`, `, v.roadsClosed)}.`);
         if (v.roadsClosedToUs.length > 0) sb.appendLine(`ROADS CLOSED TO YOUR PEOPLE, as far as you have heard, by: ${joinS(`, `, v.roadsClosedToUs)}.`);
+        if (v.grants.length > 0)
+        {
+            sb.appendLine(`PASSAGE AND BASING standing on sealed tablets:`);
+            for (const g of v.grants) sb.appendLine(`- ${grantLine(g, v.power)}`);
+        }
 
         if (v.scheduled.length > 0)
         {
@@ -260,7 +267,14 @@ export function siegesLine(v: SeatView): string
     /// copy, which only its orders use (another court numbers its copies differently), then its text.
     /// </summary>
 export function tabletLine(t: TabletView): string {
-  return `${t.name} [your copy ${t.copyId}]: "${t.text}"`;
+  return `${t.name} [your copy ${t.copyId}]${byHand(t)}: "${t.text}"`;
+}
+
+/** Item 9: "sealed for Egypt by the hand of Hani, within his authority; repudiated in turn 9", or nothing. */
+function byHand(t: TabletView): string {
+  if (t.byHand === null) return ``;
+  const within = t.within === null ? `` : t.within ? `, within his authority` : `, beyond his authority`;
+  return ` (sealed for ${t.byHandOf ?? ``} by the hand of ${t.byHand}${within}${t.repudiatedTurn !== null ? `; repudiated in turn ${t.repudiatedTurn}` : ``})`;
 }
 
 /** The conditions of a scheduled entry or a standing order, after its season or event: " (unless ...)", or nothing. */
@@ -276,7 +290,7 @@ const opening = (text: string): string => (text.length <= BriefChars ? text : `$
 
 /** A tablet the king has read in full at an earlier orders: its name, its mark and its opening words. */
 export function tabletBrief(t: TabletView): string {
-  return `${t.name} [your copy ${t.copyId}]: "${opening(t.text)}"`;
+  return `${t.name} [your copy ${t.copyId}]${byHand(t)}: "${opening(t.text)}"`;
 }
 
 /** An older letter in a line: when, by whom, to whom, with what gold, and its opening words. */
@@ -537,6 +551,10 @@ export function audience(a: AudienceView, inCourt = false): string
         if (a.proposal !== null && a.proposal.clauses.length > 0) sb.appendLine(`The tablet's clauses: ${joinS(`; `, a.proposal.clauses.map(clauseTag))}.`);
         for (const t of a.copiesShown)
             sb.appendLine(`The envoy shows you a tablet as evidence, bearing the seals of ${joinS(`, `, t.seals)}${(t.sealedTurn !== null ? `, dated turn ${t.sealedTurn}` : ``)}: "${t.text}"`);
+        // Item 9: the seal is plain to see; the limits and the mandate only with the credentials shown.
+        if (a.sealCarried) sb.appendLine(`${a.envoy.name} carries the seal of ${a.from}: he may seal a tablet of yours in his king's name (your_tablet_clauses), which binds his king unless the king repudiates it as beyond his authority.`);
+        if (a.credentials !== null)
+            sb.appendLine(`${a.envoy.name} shows his credentials. His mandate: "${a.shownMandate ?? ``}". ${authorityText(a.credentials, (x) => WorldMap.default.get(x).name)}`);
         if (a.secretMandate !== null)
             sb.appendLine(`This envoy secretly serves you. Their real instructions were: "${a.secretLetter}" Mandate: "${a.secretMandate}".`);
         if (a.goldBackNamed > 0)
@@ -568,3 +586,11 @@ export function ordersStandAtCourt(a: AudienceView): string
             sb.appendLine(`Letters you have already sent from your audiences this season (a new letter for the same person replaces one): ${joinS(`; `, a.lettersSent.map(inFull))}.${lettersGold(a.lettersSent)}`);
         return sb.toString();
     }
+
+/** A grant as its two kings read it in their view (item 9). */
+export function grantLine(g: GrantView, me: Power): string {
+  const where = g.province !== null ? WorldMap.default.get(g.province).name : `all ${g.grantor === me ? `your` : `${g.grantor}'s`} land`;
+  const what = g.kind === `passage` ? `pass through ${where}` : `stand within the walls of ${where}`;
+  const who = g.grantor === me ? `${g.grantee}'s troops may ${what}` : `your troops may ${what}, by leave of ${g.grantor}`;
+  return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : `, until revoked`} (${g.tablet}).`;
+}

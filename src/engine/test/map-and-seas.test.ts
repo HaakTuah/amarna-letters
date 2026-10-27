@@ -80,16 +80,14 @@ describe("MapAndSeasTests", () => {
     Assert.true(connectionDays(Map, "gazawaters", "tyrewaters") < connectionDays(Map, "tyrewaters", "gazawaters"));
   });
 
-  test("The open-sea crossings close in winter, the second season of each year", () => {
-    Assert.true(Map.forTurn(1) === Map && Map.forTurn(3) === Map && Map.forTurn(4) === Map);
-    const winter = Map.forTurn(2);
-    Assert.true(winter === Map.forTurn(5));
+  test("The open-sea crossings are dangerous in winter, the second season of each year, never closed", () => {
+    const winter = Map.winter;
     Assert.true(Map.canMove("Fleet", "ugaritwaters", "enkomiwaters"));
     Assert.false(winter.canMove("Fleet", "ugaritwaters", "enkomiwaters"));
-    // Along the coasts ships sail all year.
+    // Along the coasts ships sail all year at no risk.
     Assert.true(winter.canMove("Fleet", "ugaritwaters", "kizzuwatnawaters"));
     Assert.true(winter.seaRouteExists("gaza", "ugarit"));
-    // Cyprus is reached only over the open sea, so in winter no army crosses to it or from it.
+    // Cyprus is reached only over the open sea, so in winter every army carried to it or from it risks the storms.
     Assert.true(Map.seaRouteExists("ugarit", "enkomi"));
     Assert.false(winter.seaRouteExists("ugarit", "enkomi"));
   });
@@ -136,8 +134,8 @@ describe("MapAndSeasTests", () => {
       .order(convoy("ugaritwaters", "ugarit", "enkomi"))
       .order(hold("enkomiwaters"));
     Assert.equal("ugarit", held.run(Map).newPositions.get("u0"));
-    // In winter the crossing from Ugarit's waters to Enkomi's is closed, and the same convoy carries nothing.
-    Assert.equal("ugarit", ok.run(Map.forTurn(2)).newPositions.get("u0"));
+    // On the map without winter's dangerous crossings, the same convoy carries nothing.
+    Assert.equal("ugarit", ok.run(Map.winter).newPositions.get("u0"));
   });
 
   function season(s: GameState, p: Power, ...orders: Order[]): void {

@@ -56,8 +56,8 @@ export class OrderDraft {
   }
 
   movesFor(province: string): string[] {
-    // The map as it can be crossed this season: in winter without the open-sea crossings (item 7a).
-    const map = OrderDraft.map.forTurn(this.view.turn);
+    // Winter closes nothing (item 9): a crossing it makes dangerous is offered, and may cost the troop.
+    const map = OrderDraft.map;
     const u = this.unitAt(province);
     if (u === null) return [];
     let direct = map.movesFrom(u.kind, province);

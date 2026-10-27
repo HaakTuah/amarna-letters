@@ -81,6 +81,8 @@ export class Adjudicator {
   private readonly deps: number[] = [];
   private owners: Dict<string, Power | null> = new Dict();
   private walls: Dict<string, number> = new Dict();
+  /** Moves that go in as guests by passage or basing (item 9): they storm no walls. */
+  private guests: ((province: string, power: Power) => boolean) | null = null;
   private sallies: readonly SallyOrder[] = [];
   private sallyBy = new Map<string, Power | null>();
 
@@ -105,7 +107,9 @@ export class Adjudicator {
     owners: Dict<string, Power | null> | null = null,
     walls: Dict<string, number> | null = null,
     sallies: readonly SallyOrder[] | null = null,
+    guests: ((province: string, power: Power) => boolean) | null = null,
   ): AdjudicationResult {
+    this.guests = guests;
     this.orders.length = 0;
     this.at.clear();
     this.owners = owners ?? new Dict();
@@ -551,6 +555,8 @@ export class Adjudicator {
     const mover = move.power;
     const owner = this.owners.getOrDefault(target, null);
     if (owner === mover) return null;
+    // A guest the walls' holder let in goes in through the gates.
+    if (this.guests !== null && this.guests(target, mover)) return null;
     const opp = this.headToHeadOpponent(move);
     const beaten = opp !== null ? this.defendStrength(opp) : this.holdStrength(move);
     // The ground counted in the hold strength the move beat to get in: the storm must beat it too.

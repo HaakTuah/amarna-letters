@@ -292,16 +292,17 @@ describe("CoverTests", () => {
     );
   });
 
-  test("A caught province watcher keeps its province in its masters sight until word comes", () => {
+  test("A province watcher gives its master no live sight of its post, caught or free (item 9: its reports come by road)", () => {
     let [caught, free, id] = caughtSpy("Egypt", "thebes");
     Assert.equal("Captured", char(caught, id).status);
     function sight(g: GameState): string {
       let v = Views.for(g, "Babylonia");
       return JSON.stringify({ visible: v.visible, units: v.units });
     }
-    Assert.contains("thebes", Views.for(caught, "Babylonia").visible);
+    Assert.doesNotContain("thebes", Views.for(caught, "Babylonia").visible);
+    Assert.doesNotContain("thebes", Views.for(free, "Babylonia").visible);
     for (let i = 0; i < 3; i++) {
-      // What it can see, and what it sees there, are as if its spy still watched: the capture is not read off its sight.
+      // What it can see is the same whether its spy was caught or not: the capture is not read off its sight.
       Assert.equal(sight(free), sight(caught));
       Assert.equal(seenOf(free, "Babylonia", id), seenOf(caught, "Babylonia", id));
       new TurnEngine(caught).resolve(none());
@@ -310,7 +311,7 @@ describe("CoverTests", () => {
       begin(free);
     }
 
-    // Once word of the capture comes (here, a ransom demand), the province leaves its sight.
+    // Once word of the capture comes (here, a ransom demand), its master knows.
     new TurnEngine(caught).resolve(orders("Egypt", captiveOrder(id, "Ransom", 90)));
     while (!inboxOf(caught, "Babylonia").some((x) => x.kind === "Rumor" && x.subject === id)) {
       begin(caught);

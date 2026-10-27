@@ -30,6 +30,7 @@ import {
   type UnitView,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { grantedTo } from "./authority.ts";
 import type { Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
 import { LandingPatience, LandingRest, SeaPlay, chooseLanding, landingsFrom, nearestHarbour, seaChains, stepToward } from "./seas.ts";
@@ -127,6 +128,10 @@ export function joints(b: Board, brain: Brain): Joint[] {
   return list;
 }
 
+/** Script kings' winter strokes over the snowbound passes; off to measure them against kings who never try (`--no-winter-play`). */
+// eslint-disable-next-line
+export const WinterStrokes: { on: boolean; only: ReadonlySet<string> | null } = { on: true, only: null };
+
 /** `temper`: plays the season with these weights instead of the king's own (to draw alternative plans). */
 export function makePlan(b: Board, brain: Brain, temper: Personality | null = null): MilitaryPlan {
   const plan = new MilitaryPlan();
@@ -155,7 +160,9 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
 
   const capital = Board.Map.capital(me).id;
   // Gifts and fair words may lull a court, but it trusts its capital only to a sworn ally.
-  const fear = (x: Power, province: string): number => (province === capital && !brain.rel.get(x).allied ? Math.max(hostility.get(x), 0.3) : hostility.get(x));
+  // A king we have heard has fallen, whose troops we still remember, is feared not at all.
+  const fear = (x: Power, province: string): number =>
+    !hostility.has(x) ? 0 : province === capital && !brain.rel.get(x).allied ? Math.max(hostility.get(x), 0.3) : hostility.get(x);
 
   // ---- Threats: the strongest attack any one king could bring, weighted by how likely he is to bring it.
   const danger = (province: string): [number, number] => {
@@ -654,6 +661,33 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     assign(plan, free, u, support(u, ally.province), "ally-support");
   }
 
+  // ---- Winter strokes (item 9, "Winter is dangerous, never closed"): an army may cross a snowbound pass into land we would
+  // take where no troop stands (within walls, to besiege them), since nobody expects troops in winter. Taken only where what it wins, if the army gets
+  // through (never where a foe could step in too), outweighs the army lost if it does not (its price and a year of
+  // upkeep); else it waits for spring.
+  if (Board.Sail !== Board.Map && WinterStrokes.on && (WinterStrokes.only === null || WinterStrokes.only.has(me))) {
+    const loss = b.v.prices.getOrDefault("winterArmyLoss", 30) / 100;
+    const worth = b.v.prices.getOrDefault("army", 100) + 3 * b.v.prices.getOrDefault("armyUpkeep", 30);
+    for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
+      if (threat.has(u) || stay.has(u) || b.unitAt.get(u).kind !== "Army") continue;
+      let best: [string, number] | null = null;
+      for (const t of sortBy(Board.Map.movesFrom("Army", u), [(x: string) => x, cmpStr])) {
+        if (Board.Sail.canMove("Army", u, t) || Board.Map.get(t).isSea || plan.destinations.has(t) || b.unitAt.has(t)) continue;
+        const owner = b.ownerOf(t);
+        if (owner === me || (owner !== null && !isWilling(owner))) continue;
+        // Nobody of a king we would fight could step in to meet it there, by the moves he could give in winter: a stroke
+        // that may be met is not worth the snow.
+        if ([...b.alive].some((x) => x !== me && !brain.isFriend(x) && b.muster(x, t) > 0)) continue;
+        // Within walls it takes nothing at once: it stands and besieges them (siegeWorth).
+        const gain = (1 - loss) * b.value(t) * multiplier(owner) * (b.walls(t) ? siegeWorth(b.wallLevel(t)) : 1) - loss * worth;
+        if (gain > 0 && (best === null || gain > best[1])) best = [t, gain];
+      }
+      if (best === null) continue;
+      assign(plan, free, u, move(u, best[0]), "winter-stroke");
+      plan.destinations.add(best[0]);
+    }
+  }
+
   // ---- Everyone else: hold if threatened, otherwise move towards where the value is.
   for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
     if (threat.has(u) || stay.has(u)) {
@@ -816,7 +850,8 @@ function approach(b: Board, brain: Brain, from: string, taken: HSet<string>, isW
   // Foreign walls are entered only to take the city, by the attacks above; our own we may march through.
   if (taken.has(step) || b.unitAt.has(step) || (b.walls(step) && !b.isMine(step))) return null;
   const stepOwner = b.ownerOf(step);
-  if (stepOwner !== null && stepOwner !== b.me && !isWilling(stepOwner)) return null;
+  // A friend's land we hold leave in (item 9) we may pass through as his guest.
+  if (stepOwner !== null && stepOwner !== b.me && !isWilling(stepOwner) && !grantedTo(b, step)) return null;
   return step;
 }
 

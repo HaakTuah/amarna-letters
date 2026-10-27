@@ -13,6 +13,8 @@ const Uses: Record<ClauseKind, readonly ("king" | "province" | "into" | "season"
   support: ["province", "into", "season"],
   tribute: ["gold"],
   cede: ["province"],
+  passage: ["province", "season"],
+  basing: ["province", "season"],
   askGold: ["gold"],
   askSupport: ["province", "into", "season"],
   askWithdraw: ["province"],
@@ -20,6 +22,8 @@ const Uses: Record<ClauseKind, readonly ("king" | "province" | "into" | "season"
   askTribute: ["gold"],
   askHelp: ["province", "king"],
   askOath: [],
+  askPassage: ["province", "season"],
+  askBasing: ["province", "season"],
   threat: ["province"],
   grievance: ["province"],
   brokenOath: [],
@@ -40,11 +44,11 @@ const Groups: [string, [ClauseKind, string][]][] = [
   ["Courtesies and gifts", [["wellWishes", "may it be well with you"], ["gift", "a greeting-gift of gold"]]],
   [
     "Proposals",
-    [["peace", "peace"], ["noAttack", "my troops will not enter your land"], ["alliance", "alliance"], ["against", "stand together against a king"], ["support", "I will support your move"], ["tribute", "I will pay tribute"], ["cede", "I give you a land"]],
+    [["peace", "peace"], ["noAttack", "my troops will not enter your land"], ["alliance", "alliance"], ["against", "stand together against a king"], ["support", "I will support your move"], ["tribute", "I will pay tribute"], ["cede", "I give you a land"], ["passage", "your troops may pass through my land"], ["basing", "your troops may stand within my walls"]],
   ],
   [
     "Requests",
-    [["askGold", "send me gold"], ["askSupport", "support my move"], ["askWithdraw", "withdraw your troops"], ["askCede", "give me a land"], ["askTribute", "pay me tribute"], ["askHelp", "relieve my besieged city"], ["askOath", "swear your troops will stand with mine"]],
+    [["askGold", "send me gold"], ["askSupport", "support my move"], ["askWithdraw", "withdraw your troops"], ["askCede", "give me a land"], ["askTribute", "pay me tribute"], ["askHelp", "relieve my besieged city"], ["askOath", "swear your troops will stand with mine"], ["askPassage", "let my troops pass through your land"], ["askBasing", "let my troops stand within your walls"]],
   ],
   ["Threats", [["threat", "or my troops will march"]]],
   ["Grievances", [["grievance", "your troops entered my land"], ["brokenOath", "you broke your oath"], ["lightGift", "your gold weighed light"], ["envoyLied", "your messenger lied"], ["habiru", "in league with the Habiru"]]],
@@ -52,7 +56,7 @@ const Groups: [string, [ClauseKind, string][]][] = [
   ["Answers", [["accept", "I accept"], ["refuse", "I refuse"], ["counter", "not that, but this"]]],
 ];
 
-const Answerable: ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "gift"];
+const Answerable: ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing", "gift"];
 const num = (s: string): number => (s.trim() === "" || !Number.isFinite(Number(s)) ? 0 : Math.trunc(Number(s)));
 
 /**
@@ -82,13 +86,15 @@ export function ClauseEditor({
   const [gold, setGold] = useState(0);
   const [answers, setAnswers] = useState<ClauseKind>("peace");
   const uses = Uses[kind];
+  // Passage and basing (item 9) stand until a season named, or until revoked (turn 0); passage may open all the land.
+  const grant = kind === "passage" || kind === "basing" || kind === "askPassage" || kind === "askBasing";
   const land = WorldMap.default.provinces.filter((p) => !p.isSea || uses.includes("into"));
   const add = (): void => {
     const c = clause(kind, {
       power: uses.includes("king") && king !== "" ? king : null,
       province: uses.includes("province") && province !== "" ? province : null,
       to: uses.includes("into") && into !== "" ? into : null,
-      turn: uses.includes("season") && (kind !== "counter" || into !== "") ? season : null,
+      turn: uses.includes("season") && (kind !== "counter" || into !== "") && !(grant && season <= 0) ? season : null,
       amount: uses.includes("gold") && (kind === "newsStrength" || gold > 0) ? gold : null,
       answers: uses.includes("answers") ? answers : null,
     });
@@ -142,7 +148,7 @@ export function ClauseEditor({
         )}
         {uses.includes("province") && (
           <select value={province} onChange={(e) => setProvince(e.target.value)}>
-            <option value="">{uses.includes("into") ? "(from)" : "(land)"}</option>
+            <option value="">{uses.includes("into") ? "(from)" : kind === "passage" || kind === "askPassage" ? "(all the land)" : "(land)"}</option>
             {land.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -164,7 +170,7 @@ export function ClauseEditor({
         )}
         {uses.includes("season") && (
           <label>
-            turn <input type="number" min={turn + 1} value={season} onChange={(e) => setSeason(num(e.target.value))} style={{ width: "4.5em" }} />
+            {grant ? "until turn (0: until revoked)" : "turn"} <input type="number" min={grant ? 0 : turn + 1} value={season} onChange={(e) => setSeason(num(e.target.value))} style={{ width: "4.5em" }} />
           </label>
         )}
         {uses.includes("gold") && (

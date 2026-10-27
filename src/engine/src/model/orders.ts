@@ -12,6 +12,7 @@ import type { UnitKind } from "./map.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema, type GreetingOptions, type TabletProposal } from "./records.ts";
+import { AuthoritySchema, type Authority } from "./authority.ts";
 
 export interface HoldOrder {
   type: "hold";
@@ -101,6 +102,8 @@ export interface DispatchOrder {
   clauses?: Clause[] | null;
   /** Gold sent without an inventory tablet (item 8): saves the scribe's fee, and nobody can check what arrived. */
   noInventory?: boolean | null;
+  /** The envoy's authority (item 9): the seal, the limits the engine checks, and whether it shows them. None: no seal. */
+  authority?: Authority | null;
 }
 /** Let a detained envoy (or captive) go home, optionally with a spoken reply. */
 export interface ReleaseOrder {
@@ -156,6 +159,23 @@ export interface RoadsOrder {
   type: "roads";
   court: Power;
   close: boolean;
+}
+/**
+ * End the passage and basing this king granted another on sealed tablets (item 9), in one province or, with none named,
+ * all of them. Its troops still standing in the land after it ends take it, as any troop does.
+ */
+export interface RevokeOrder {
+  type: "revoke";
+  grantee: Power;
+  province: string | null;
+}
+/**
+ * Repudiate a tablet one's envoy sealed in one's name (item 9), as beyond his authority: the rights it granted end, both
+ * ways, and its partner is told. Named by the copy in one's archive, as an examination names it.
+ */
+export interface RepudiateOrder {
+  type: "repudiate";
+  copy: string;
 }
 export interface AssayOrder {
   type: "assay";
@@ -224,6 +244,8 @@ export type Order =
   | RecallSpyOrder
   | CounterIntelOrder
   | RoadsOrder
+  | RevokeOrder
+  | RepudiateOrder
   | AssayOrder
   | AuthenticateOrder
   | ForgeOrder
@@ -251,7 +273,7 @@ export function dispatch(
   envoy: string,
   to: Power,
   letter: string,
-  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null; clauses?: Clause[] | null; noInventory?: boolean | null } = {},
+  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null; clauses?: Clause[] | null; noInventory?: boolean | null; authority?: Authority | null } = {},
 ): DispatchOrder {
   return {
     type: "dispatch",
@@ -266,6 +288,7 @@ export function dispatch(
     copies: opts.copies ?? null,
     clauses: opts.clauses ?? null,
     noInventory: opts.noInventory ?? null,
+    ...(opts.authority != null ? { authority: opts.authority } : {}),
   };
 }
 export const release = (character: string, reply = ""): ReleaseOrder => ({ type: "release", character, reply });
@@ -278,6 +301,8 @@ export const placeSpy = (character: string, court: Power | null = null, province
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
 export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "counterIntel", spend });
 export const roads = (court: Power, close: boolean): RoadsOrder => ({ type: "roads", court, close });
+export const revoke = (grantee: Power, province: string | null = null): RevokeOrder => ({ type: "revoke", grantee, province });
+export const repudiate = (copy: string): RepudiateOrder => ({ type: "repudiate", copy });
 export const assay = (lot: string): AssayOrder => ({ type: "assay", lot });
 export const authenticate = (copy: string, spend: number): AuthenticateOrder => ({ type: "authenticate", copy, spend });
 export const forge = (character: string, text: string, seals: Power[]): ForgeOrder => ({ type: "forge", character, text, seals });
@@ -343,6 +368,10 @@ export function describe(o: Order): string {
       return `spend ${o.spend} on watching for spies`;
     case "roads":
       return `${o.close ? "close" : "open"} your roads to the people of ${o.court}`;
+    case "revoke":
+      return `revoke the passage and basing you granted ${o.grantee}${o.province !== null ? ` in ${o.province}` : ""}`;
+    case "repudiate":
+      return `repudiate the tablet ${o.copy}, sealed by your envoy, as beyond his authority`;
     case "assay":
       return `assay gold lot ${o.lot}`;
     case "authenticate":
@@ -437,6 +466,7 @@ export const OrderSchema = poly("Order", "type", {
     copies: opt(list(S)),
     clauses: opt(list(() => ClauseSchema)),
     noInventory: opt(B),
+    authority: opt(() => AuthoritySchema),
   }),
   release: v("ReleaseOrder", () => release(""), { character: S, reply: S }),
   seekCandidates: v("SeekCandidatesOrder", () => seekCandidates(), {}),
@@ -448,6 +478,8 @@ export const OrderSchema = poly("Order", "type", {
   recall: v("RecallSpyOrder", () => recall(""), { character: S }),
   counterIntel: v("CounterIntelOrder", () => counterIntel(0), { spend: I }),
   roads: v("RoadsOrder", () => roads("Egypt", true), { court: S, close: B }),
+  revoke: v("RevokeOrder", () => revoke("Egypt"), { grantee: S, province: opt(S) }),
+  repudiate: v("RepudiateOrder", () => repudiate(""), { copy: S }),
   assay: v("AssayOrder", () => assay(""), { lot: S }),
   authenticate: v("AuthenticateOrder", () => authenticate("", 0), { copy: S, spend: I }),
   forge: v("ForgeOrder", () => forge("", "", []), { character: S, text: S, seals: list(S), clauses: opt(list(() => ClauseSchema)) }),

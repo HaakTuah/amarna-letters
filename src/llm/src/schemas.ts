@@ -114,6 +114,8 @@ export const OtherActions = [
   "counter_intelligence",
   "close_roads",
   "open_roads",
+  "revoke_passage",
+  "repudiate",
   "assay",
   "authenticate",
   "forge",
@@ -147,9 +149,9 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), or a province to spy on." : null),
+      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), a province to spy on, or revoke_passage (one province; empty for all you granted that king)." : null),
     ],
-    ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, or a court to spy on." : null)],
+    ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), or a court to spy on." : null)],
     ["person", str(described ? "Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge." : null)],
     ["amount", int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)],
     [
@@ -165,7 +167,7 @@ const otherOrder = (described = true): ReplySchema =>
       "item",
       str(
         described
-          ? "For assay, your mark for the gold (like g7), as your treasury gives it; for authenticate, your mark for your copy of the tablet (like k8), as your archive gives it."
+          ? "For assay, your mark for the gold (like g7), as your treasury gives it; for authenticate or repudiate (a tablet your envoy sealed in your name), your mark for your copy of the tablet (like k8), as your archive gives it."
           : null,
       ),
     ],
@@ -322,7 +324,18 @@ const letter = (c: GameConfig | null): ReplySchema => {
           : "The letter's formulas as clauses (CLAUSES in the rules), carried with your words: kings who read only clauses read these. Where your words and clauses differ, each reader goes by what he reads.",
       ),
     ],
-    ["mandate", str("What the envoy may agree to on your behalf.")],
+    ["mandate", str("What the envoy may agree to on your behalf, in your words: it guides his tone.")],
+    [
+      "carry_seal",
+      bool("Give the envoy your seal: he may then seal, in your name, a tablet the king he visits offers him, and the engine marks it within or beyond the limits below. False: nothing he agrees binds you."),
+    ],
+    ["seal_max_gold", int("With the seal: the most gold he may give or promise in a tablet he seals, or 0.")],
+    ["seal_may_cede", array(str(), "With the seal: ids of your provinces he may give away; empty for none.")],
+    ["seal_may_open", array(str(), "With the seal: ids of your provinces he may open to the other king's troops, by passage or basing; empty for none.")],
+    [
+      "show_credentials",
+      bool("Let him show his credentials: the king he visits reads this mandate and these limits, which builds trust, but you lose the excuse that he went beyond them. False keeps them hidden."),
+    ],
     ["gold", int("Shekels sent with the envoy, or 0.")],
     ["no_inventory", bool("Only with gold: send it without an inventory tablet, saving the scribe's fee. Nobody can then check what arrived. False otherwise.")],
     ["purity", int("Purity of the gold in percent, 10-100 (100 when you send none). Below 100 is debased.")],
@@ -374,6 +387,8 @@ const ledger = () =>
  */
 export interface AudienceAsks {
   ordersStand: boolean;
+  /** The envoy carries its king's seal (item 9): the host may offer a tablet of its own for it to seal. */
+  sealCarried: boolean;
   tabletToSeal: boolean;
   giftOpen: boolean;
   lastExchange: boolean;
@@ -383,6 +398,7 @@ export interface AudienceAsks {
 export function asksOf(a: AudienceView): AudienceAsks {
   return {
     ordersStand: a.ordersStand,
+    sealCarried: a.sealCarried,
     tabletToSeal: a.proposal !== null && !a.proposalSealed,
     giftOpen: a.giftAccepted === 0,
     lastExchange: a.round >= a.maxRounds,
@@ -390,10 +406,19 @@ export function asksOf(a: AudienceView): AudienceAsks {
   };
 }
 
+/** A tablet of the host's own for an envoy that carries its king's seal to seal (item 9): its clauses, and in full press its words. */
+const yourTablet = (structured: boolean, when: string): [string, z.ZodType][] => [
+  ...(structured ? [] : ([["your_tablet", str(`${when}: words of a tablet of your own for him to seal in his king's name, or empty.`)]] as [string, z.ZodType][])),
+  [
+    "your_tablet_clauses",
+    clauses(`${when}: a tablet of your own for him to seal in his king's name, set out in clauses written from you to his king (askPassage or askBasing for leave in his land, askGold, peace, against...; passage or basing would open your own land to his troops); empty for none.`),
+  ],
+];
+
 /** A host's reply with every field, or at one exchange of an audience: only the fields that apply to it. */
 function hostReply(c: GameConfig | null = null, a: AudienceView | boolean = false): ReplySchema {
   const asks: AudienceAsks =
-    typeof a === "boolean" ? { ordersStand: a, tabletToSeal: true, giftOpen: true, lastExchange: false, reopenChosen: false } : asksOf(a);
+    typeof a === "boolean" ? { ordersStand: a, sealCarried: true, tabletToSeal: true, giftOpen: true, lastExchange: false, reopenChosen: false } : asksOf(a);
   const structured = c?.pressMode === "structured";
   const fields: [string, z.ZodType][] = structured ? [] : [["speech", str("What you say to the envoy, to carry home.")]];
   fields.push(["clauses", clauses(AnswerClauses(structured))]);
@@ -406,6 +431,7 @@ function hostReply(c: GameConfig | null = null, a: AudienceView | boolean = fals
   }
   fields.push(["offer_service_wage", int("Offer the envoy service at this wage per season, or 0.")]);
   if (asks.tabletToSeal) fields.push(["seal_tablet", bool("Seal the tablet the envoy brought.")]);
+  if (asks.sealCarried) fields.push(...yourTablet(structured, "The envoy carries his king's seal"));
   fields.push(["detain_envoy", bool("Keep the envoy at your court against its will: it does not go home when the audience ends.")]);
   fields.push([
     "send_gold_back",
@@ -458,6 +484,7 @@ function courtReply(c: GameConfig | null = null, ordersStand = false, reopenChos
     structured ? ["gift_news", clauses(GiftNews)] : ["gift_request", str("What you want from the envoy in return for the gift, or empty.")],
     ["offer_service_wage", int("Offer the envoy service at this wage per season, or 0.")],
     ["seal_tablet", bool("Only if this envoy brought a tablet you have not yet chosen to seal: seal it. False otherwise.")],
+    ...yourTablet(structured, "Only if this envoy carries his king's seal"),
     ["detain_envoy", bool("Keep the envoy at your court against its will: it does not go home when the audience ends.")],
     [
       "send_gold_back",
@@ -507,9 +534,10 @@ function present(carriesGold = true, canForge = true): ReplySchema {
 }
 
 /** An envoy's answer at an audience: whether to take a gift or a post only when one is offered. */
-function react(giftOffered = true, serviceOffered = true): ReplySchema {
+function react(giftOffered = true, serviceOffered = true, tabletOffered = false): ReplySchema {
   const fields: [string, z.ZodType][] = [["speech", str("What you say in answer.")]];
   if (giftOffered) fields.push(["accept_gift", bool("Accept the king's personal gift.")]);
+  if (tabletOffered) fields.push(["seal_tablet", bool("Set your lord's seal on the tablet the king offers you, binding your lord unless he repudiates it.")]);
   if (serviceOffered) fields.push(["accept_service", bool("Leave your lord and enter this king's service.")]);
   fields.push(["commitments", str("Anything you promised on your lord's behalf, or empty.")]);
   return object(...fields);

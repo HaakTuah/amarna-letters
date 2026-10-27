@@ -54,3 +54,8 @@ without a king; save version 12) left the benchmark nearly where it was: 9.83 gr
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
 
+
+Build order item 9 (envoy authority and passage; winter dangerous, never closed; save version 13) left the benchmark
+about where it was: 9.73 growth alone and 1.27 as baseline over all, 91% of wins alone and 14% as baseline (by power, and the same seeds with the authority play or the winter strokes off,
+`--no-authority-play`, `--no-winter-play`, in `docs/rounds/2026-10-27-envoy-authority.md`). The baseline was adapted only
+as the rules required (winter closes nothing for it either; it gives no seal and asks no leave).

@@ -298,7 +298,7 @@ P.wakeReasons = function (p, sl) {
       continue;
     }
     const move = `${o.power}'s ${kindName(o.unitKind)} moved ${o.province} -> ${t}`;
-    if (o.targetOwner === p) add(`foreign troops entered your land: ${move}`);
+    if (o.targetOwner === p) add(o.guest ? `guests entered your land by the passage or basing you granted: ${move}` : `foreign troops entered your land: ${move}`);
     else {
       const near = sortBy(
         Map.neighbors(t).filter((x) => home.has(x) || walled.has(x)),

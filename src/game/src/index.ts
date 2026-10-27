@@ -11,6 +11,8 @@ export { SeaPlay } from "./bots/seas.ts";
 export { InventoryPlay } from "./bots/statecraft-letters.ts";
 export { ClausePlay } from "./bots/statecraft-clauses.ts";
 export { RoadPlay } from "./bots/roads.ts";
+export { WinterStrokes } from "./bots/tactics.ts";
+export { AuthorityPlay } from "./bots/authority.ts";
 export { CharacterChecks } from "./character-checks.ts";
 export * from "./human-seat.ts";
 export * from "./signals.ts";
