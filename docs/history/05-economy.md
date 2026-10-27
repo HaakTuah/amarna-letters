@@ -14,11 +14,11 @@ source, not the number.
 
 | Source (province) | Share of the map's new precious metal | Grade | Evidence |
 | --- | --- | --- | --- |
-| Lower Nubia, Wawat: the Wadi Allaqi and its desert (Nubia, item 7) | 45% [G] | B | Thutmose III's *Annals* list Wawat's gold yearly, about 3,000 deben (some 280 kg) in his year 34; Wadi Allaqi's mines |
-| Egypt's Eastern Desert, by Coptos (`thebes`) | 25% [G] | B | Many New Kingdom workings (Klemm and Klemm, *Gold and Gold Mining in Ancient Egypt and Nubia*, 2013); the Turin mining papyrus (later) |
+| Lower Nubia, Wawat: the Wadi Allaqi and its desert (Nubia, item 7) | 48% [G] | B | Thutmose III's *Annals* list Wawat's gold yearly, about 3,000 deben (some 280 kg) in his year 34; Wadi Allaqi's mines |
+| Egypt's Eastern Desert, by Coptos (`thebes`) | 27% [G] | B | Many New Kingdom workings (Klemm and Klemm, *Gold and Gold Mining in Ancient Egypt and Nubia*, 2013); the Turin mining papyrus (later) |
 | Upper Nubia, Kush (Nubia, item 7) | 10% [G] | B | The *Annals* list Kush's gold separately, in smaller amounts |
 | Hatti's silver: the Taurus (Bolkardağ) and Keban by Isuwa (`tuwanuwa`, `kizzuwatna`, `isuwa`) | 12% [G] | B | The Hittites reckoned in silver; the Taurus silver-lead mines (Yener) |
-| River gold of western Anatolia, the Pactolus by the Hermus (`seha`) | 5% [G] | C | Famous later (Lydia, 7th century); its working in 1346 is unproven |
+| River gold of western Anatolia, the Pactolus by the Hermus (`seha`) | none | C | Famous later (Lydia, 7th and 6th centuries); nothing shows it was worked in 1346, so it stays off the map (Haakon, 27 October 2026; "Places in their own time"). Its 5% went to Egypt's sources, which now give about 85% of the map's precious metal |
 | Others (Arzawa's hills, Cyprus's small silver) | 3% [G] | G | |
 
 Egypt's gold was what every other Great King asked for: "in my brother's land gold is as plentiful as dirt" (EA 19,
