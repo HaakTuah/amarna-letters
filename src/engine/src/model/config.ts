@@ -19,7 +19,8 @@ export interface GameConfig {
    */
   openAge: boolean;
   /**
-   * Strength = ProvinceWeight x (sum of owned base yields) + gold - back pay owed (see {@link Scoring}).
+   * The land's multiple in the wealth of a realm: its worth is this times what it produces a season at reference prices
+   * (see {@link Scoring}).
    */
   provinceWeight: number;
   /**
@@ -35,10 +36,9 @@ export interface GameConfig {
   fallenSeeAll: boolean;
   armyCost: number;
   fleetCost: number;
+  /** The pay of an army's men, and of a fleet's crews, a season in gold (item 9+a: their food is grain, apart). */
   armyUpkeep: number;
   fleetUpkeep: number;
-  /** A neutral city-state sells itself for yield x this. */
-  neutralPriceFactor: number;
   catastropheChance: number;
   /** What each siege costs its besieger a season, on top of the army's upkeep. */
   siegeUpkeep: number;
@@ -72,11 +72,6 @@ export interface GameConfig {
    * "Finer seas"), is worn down this many steps less each season. 0 turns the blockade's part in sieges off.
    */
   seaSupply: number;
-  /**
-   * What an army pays for supplies, with its next upkeep, for a season it ends in desert land its king did not hold when
-   * that season's moves were made; an army in its own land pays nothing.
-   */
-  desertUpkeep: number;
   /**
    * Days on the road a traveller makes in a season (build order item 7b): the points it advances along its route each
    * season are ten times this ({@link legPoints}). The rest of a season goes on halts, audiences and waiting at borders.
@@ -134,9 +129,8 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     fallenSeeAll: true,
     armyCost: 100,
     fleetCost: 120,
-    armyUpkeep: 30,
-    fleetUpkeep: 35,
-    neutralPriceFactor: 10,
+    armyUpkeep: 20,
+    fleetUpkeep: 25,
     catastropheChance: 0.035,
     siegeUpkeep: 15,
     maxWalls: 3,
@@ -147,7 +141,6 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     siegeCatchMin: 5,
     siegeCatchMax: 75,
     terrainDefence: 1,
-    desertUpkeep: 30,
     seaSupply: 1,
     travelDays: 45,
     winterArmyLoss: 30,
@@ -185,7 +178,6 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   fleetCost: I,
   armyUpkeep: I,
   fleetUpkeep: I,
-  neutralPriceFactor: I,
   catastropheChance: D,
   siegeUpkeep: I,
   maxWalls: I,
@@ -196,7 +188,6 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   siegeCatchMin: I,
   siegeCatchMax: I,
   terrainDefence: I,
-  desertUpkeep: I,
   seaSupply: I,
   travelDays: I,
   winterArmyLoss: I,

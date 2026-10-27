@@ -18,6 +18,7 @@ import "./travel.ts";
 import "./press.ts";
 import "./winter.ts";
 import "./authority.ts";
+import "./economy.ts";
 
 export { TurnEngine, idNumber, travelTurns, absorbedIn, BackPayTitle, KingdomFallsTitle } from "./core.ts";
 export { removeAll } from "./resolve.ts";

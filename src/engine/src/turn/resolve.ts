@@ -90,8 +90,6 @@ P.resolveSeason = function (submissions) {
   this.resolveMovement(all(any).filter(([, o]) => o.type === "hold" || o.type === "move" || o.type === "support" || o.type === "convoy" || o.type === "besiege" || o.type === "sally"));
   // Supports that keep a promise made in a letter's clauses (item 8).
   this.promisesKept(all((o): o is SupportOrder => o.type === "support"));
-  // Armies that ended the moves in desert land not their king's pay for supplies with the next upkeep.
-  this.markDesert();
   // A scheduled move that failed is tried again next season, or ends its unit's march.
   this.marches(valid);
   // Sieges are lifted, begun and pressed, and cities worn down surrender; then land changes hands where troops stand.
@@ -109,13 +107,16 @@ P.resolveSeason = function (submissions) {
     const unit = (d as Extract<Order, { type: "disband" }>).unit;
     const u = unitAt(S, unit);
     if (u !== null && u.power === p) {
-      S.units.splice(S.units.indexOf(u), 1);
-      notify(S, p, "Resolution", "Disbanded", `${unitLabel(u)} was disbanded.`);
+      const savings = u.savings;
+      this.disbandUnit(u);
+      notify(S, p, "Resolution", "Disbanded", `${unitLabel(u)} was disbanded` + (savings > 0 ? `: its men went home with their savings, ${formatMoney(savings)}.` : "."));
     }
     // The unit moved by the seat's own orders, or was destroyed (which wakes the seat by itself).
     else this.failed(p, d, "Disband failed", `No unit of yours stood in ${this.map.get(unit).name} after movement, so none was disbanded.`, "the unit is gone", false);
   }
   for (const [p, r] of all((o): o is RaiseOrder => o.type === "raise")) this.raise(p, r);
+  // The season's trades at the markets, grain handed to towns, and caravans setting out (item 9+a).
+  this.settleMarkets(all((o): o is Order => o.type === "sell" || o.type === "purchase" || o.type === "feed" || o.type === "caravan"));
   // Scheduled orders that waited for a levy's unit that was not raised are dropped.
   this.unraisedLevies();
 
@@ -428,7 +429,7 @@ P.resolvePurchases = function (buys) {
       this.scheduledFailed(buyer, bid, "foreign troops stand in it");
       continue;
     }
-    const price = prov.yield * S.config.neutralPriceFactor;
+    const price = this.cityPrice(prov.id);
     if (!this.pay(buyer, price, `the city of ${prov.name}`, bid, "it was not bought")) continue;
     this.setOwner(prov.id, buyer);
     notify(S, buyer, "Resolution", "City bought", `${prov.name} has accepted your gold (${formatMoney(price)}) and your rule. Its walls now stand for you.`);
@@ -460,7 +461,9 @@ P.raise = function (p, r) {
   }
   const cost = r.kind === "Army" ? S.config.armyCost : S.config.fleetCost;
   if (!this.pay(p, cost, `a new ${kind} in ${prov.name}`, r, "none was raised")) return;
-  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id });
+  // The levy's gold pays the province's own men and smiths: it goes into its people's purse (item 9+a).
+  this.spendAt(prov.id, cost);
+  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id });
   S.units.push(u);
   notify(S, p, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}.`);
   this.levyRaised(p, u);
@@ -508,8 +511,8 @@ P.fall = function (p, conqueror, taker) {
   S.falls.push(newKingdomFall({ power: p, turn: S.turn, conqueror, capital: capital.id, land: landHeld }));
   S.eliminated.push(p);
   this.endSleep(p);
-  for (const u of S.units.filter((u) => u.power === p)) this.liftSiegesOf(u.id);
-  S.units = removeAll(S.units, (u) => u.power === p);
+  // Its troops disband, their men going home with their savings, and their sieges are lifted.
+  for (const u of S.units.filter((u) => u.power === p)) this.disbandUnit(u);
   // What a fallen kingdom believed, and what it owed, go with it: back pay owed by it is lost.
   for (const c of S.characters) {
     c.covers = removeAll(c.covers, (k) => k.for === p);
@@ -564,23 +567,22 @@ export function removeAll<T>(list: T[], match: (x: T) => boolean): T[] {
 
 // ---------------------------------------------------------------- scoring and the end
 
-/** The score: land, plus true gold, less the back pay the power really owes. */
+/** The score: the wealth of the realm, its true gold counted (item 9+a, "The wealth of a realm"). */
 P.strength = function (p) {
-  return scoringStrength(this.s.config, this.landYield(p), this.s.treasuries.get(p).gold, this.backPayOwed(p));
+  return scoringStrength(this.s.config, this.landYield(p), this.s.treasuries.get(p).gold, this.holdings(p));
 };
 
 /**
- * Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight, less the
- * back pay it believes it owes. A seat must never see true strength, or it could read debased gold off the difference,
- * or the fate of a servant abroad off its back pay.
+ * Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight. A seat
+ * must never see true strength, or it could read debased gold off the difference.
  */
 P.ledgerStrength = function (p) {
-  return scoringStrength(this.s.config, this.landYield(p), ledger(this.s.treasuries.get(p)), this.believedBackPay(p));
+  return scoringStrength(this.s.config, this.landYield(p), ledger(this.s.treasuries.get(p)), this.holdings(p));
 };
 
-/** The yield of the land a power holds, conquered land counted as far as it is absorbed. */
+/** The worth a season of the land a power holds at reference prices, conquered land counted as far as it is absorbed. */
 P.landYield = function (p) {
-  return sum(ownedBy(this.s, p), (id) => toInt(roundEven(this.map.get(id).yield * this.absorbed(id))));
+  return this.landWorth(p);
 };
 
 P.growth = function (p) {

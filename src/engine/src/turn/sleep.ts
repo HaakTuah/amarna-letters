@@ -5,6 +5,7 @@
  * sees only its own wake-ups, and everything it is told comes from its own view. (Scheduled and standing orders are in
  * plans.ts.)
  */
+import { EconomyData } from "../model/economy.ts";
 import { HSet } from "../core/collections.ts";
 import { sortBy, cmpNum } from "../core/seq.ts";
 import { cmpStr, trimEnd } from "../core/text.ts";
@@ -314,8 +315,11 @@ P.wakeReasons = function (p, sl) {
     [(x) => x.province, cmpStr],
   )) {
     const walls = S.walls.getOrDefault(x.province, 0);
-    const state = `${x.power}'s army besieges ${x.province} (walls ${walls}), worn down ${x.progress} of ${walls}`;
-    if (x.progress + 1 >= walls) add(`${SurrenderReason}: ${state}`);
+    // Item 9+a: it falls by hunger (it could not feed its people as this season began) or once its walls are breached.
+    const breach = walls * EconomyData.breachPerLevel;
+    const state = `${x.power}'s army besieges ${x.province} (walls ${walls}), worn down ${x.progress} of ${breach}`;
+    if (S.starving.includes(x.province)) add(`${SurrenderReason}: ${state}, and its food is gone`);
+    else if (x.progress + 1 >= breach) add(`${SurrenderReason}: ${state}`);
     else if (x.since === S.turn - 1) add(`${SiegeBegunReason}: ${state}`);
   }
   for (const i of inboxOf(S, p).filter((i) => i.turn === S.turn)) {
@@ -338,7 +342,10 @@ P.wakeReason = function (i) {
         const ask = c?.contract?.noticePrice ?? null;
         return "a servant gives notice: " + (c !== null && ask !== null ? `${c.name} asks ${formatMoney(ask)} a season to serve on` : i.body);
       }
-      if (i.title === "The treasury" && i.body.includes("deserted")) return "your unpaid troops deserted";
+      // The economy's failures (item 9+a): troops that mutinied, went hungry or unpaid, a caravan lost.
+      if (i.title === "The treasury" && i.body.includes("mutinied")) return "troops of yours mutinied";
+      if (i.title === "The treasury" && (i.body.includes("Hungry this season") || i.body.includes("Not paid this season"))) return "troops of yours went hungry or unpaid";
+      if (i.title === "Markets and caravans" && (i.body.includes("was taken") || i.body.includes("Outlaws") || i.body.includes("deserted"))) return "a caravan of yours was lost";
       return null;
     }
     case "Rumor":

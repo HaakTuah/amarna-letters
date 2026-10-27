@@ -722,7 +722,8 @@ P.conditionProblem = function (cs) {
   if (cs.length > MaxConditions) return `it has ${cs.length} conditions; at most ${MaxConditions} are allowed`;
   for (const c of cs) {
     if (c.unreadable.length > 0) return c.unreadable;
-    if (c.kind === "TroopsIn" && !this.map.exists(c.province)) return `its condition names no province ('${c.province}')`;
+    if ((c.kind === "TroopsIn" || c.kind === "StoresAtLeast") && !this.map.exists(c.province)) return `its condition names no province ('${c.province}')`;
+    if (c.kind === "StoresAtLeast" && c.amount <= 0) return "its condition names no amount of grain";
     if (c.kind === "EnvoyBack" && isBlank(c.person)) return "its condition names nobody";
     if ((c.kind === "TreasuryBelow" || c.kind === "TreasuryAtLeast") && c.amount <= 0) return "its condition names no amount of gold";
   }

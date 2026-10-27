@@ -37,3 +37,29 @@
   ransoms a caught envoy where it would have turned a spy (a caught envoy cannot be turned).
 - **Cessions** (since the fix pass after item 4), at most one a season: land the king cannot keep goes to a friend before a rival ahead of it takes it. The province is outside its homeland, has no walls, no troop of the king in it, none that could reach it, is not a destination, and was not ceded to the king by a friend (that land is kept, rather than passed round). Next to it, or a move from it, stands a troop of a king who is not a friend, leads the race or stands at or above the king's growth, and has been taking land (belligerence 0.8 or more) or is hostile; and next to it stands a troop, or lies the land, of a friend the king would not betray, who does not lead and whose growth with the province stays below the rival's with it. The land is lost to the king either way; ceded, it does not carry the rival further ahead, and a king at peace with the friend will not march into it. The cession fails, at no cost, if the rival takes the province first.
 
+
+#### The economy at home (item 9+a; `game/src/bots/grain.ts`)
+
+Before the rest of the treasury, each season:
+
+- **What each store keeps**: for every unit it feeds (an army in that province, a fleet in the waters of that coast), two
+  seasons of food and a refill of its baggage; and in a frontier province (one next to land not ours) with our armies
+  next to it, a depot of three seasons of food for each of them.
+- **Caravans**, at most three a season: to each army of ours beyond our land (where its move this season takes it) whose
+  baggage holds a season or less, and to each frontier depot that its stores and next tax will not fill; from the nearest
+  store with that much to spare, by a route through our land of at most two seasons, with enough on top for what the
+  porters eat. Never two to one place at once. Where no store can send it and the market there holds more than its own
+  need, the king buys the grain there instead (if its gold covers three seasons of costs).
+- **Sales** at each market, measure by measure along the curve, while the market pays at least 1.12 of the base price (a
+  sale under the reference price lowers the score), 0.7 while the treasury is below `costs × (2 + caution)`, 0.4 while it
+  is below one season's costs; and at any price for what the next tax would push out of the stores. Its income for the
+  season is the mines and these sales.
+- **Feeding**: what would still be lost for want of room goes to a town whose market holds less than its need.
+- **Flow** for disbanding and levies is the mines plus what the markets can go on paying: no more than the realm's local
+  need, its grain to spare after its troops' food, and the pay its troops spend at home plus a share of the purses
+  (`purses / max(6, horizon)`). A levy's lifetime cost counts its food at the base price.
+
+The baseline (frozen) and kings run with `--plain-economy` keep only two seasons of their troops' food in each store and
+sell the rest every season at whatever the market pays, with no caravans, depots, feeding or purchases
+(`plainGrainOrders`). Rivals' strength is reckoned from public data (`Board.worth`: a province's land worth and its purse
+and stores as at the start).

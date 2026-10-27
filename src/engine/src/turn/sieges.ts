@@ -4,8 +4,10 @@
  * always, and a move that wins its way into a walled province its mover does not hold either storms the walls (its
  * strength beats their level and the defenders it beat together) and takes the province at once, or stands inside and
  * takes nothing. An army standing within walls may then besiege the city: each season it holds there the city is worn down
- * a step, two with an uncut support, and when that reaches the level of the walls the city surrenders and its walls fall
- * a level.
+ * a step, two with an uncut support. Since item 9+a the walls price the storm, not the clock ("How long a siege lasts"):
+ * the city eats from its market and stores (townsEat in economy.ts), unless the sea feeds it, and surrenders once it
+ * cannot feed its people, or when the wear reaches EconomyData.breachPerLevel seasons for each level of its walls; either
+ * way its walls fall a level.
  */
 import { Dict, HSet } from "../core/collections.ts";
 import { clamp, roundEven, toInt } from "../core/num.ts";
@@ -13,6 +15,7 @@ import { cmpNum, count, distinct, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { groundText } from "../model/geography.ts";
 import { StartWalls } from "../model/map.ts";
+import { EconomyData } from "../model/economy.ts";
 import type { Dispatch, HomeCargo } from "../model/records.ts";
 import { newLossAbroad, newTabletCopy } from "../model/records.ts";
 import type { FortifyOrder } from "../model/orders.ts";
@@ -45,7 +48,7 @@ declare module "./core.ts" {
     caughtByBesiegers(c: Character, tightness: number): boolean;
     intercept(c: Character, lord: Power, siege: Siege, leaving: boolean, dispatch: Dispatch | null, cargo: HomeCargo | null, due: number): void;
     seize(c: Character, lord: Power, captor: Power, dispatch: Dispatch | null, cargo: HomeCargo | null, source: string): string[];
-    surrender(x: Siege, owner: Power | null, tell: (p: Power | null, line: string) => void): void;
+    surrender(x: Siege, owner: Power | null, tell: (p: Power | null, line: string) => void, how: "hunger" | "breach"): void;
     assaultText(a: Assault): string;
     ownWallsText(a: Assault): string;
   }
@@ -78,6 +81,8 @@ P.fortify = function (p, f) {
   }
   const level = wallsOf(S, f.province) + 1;
   if (!this.pay(p, S.config.fortifyCost * level, `the walls of ${name}`, f, "they were not strengthened")) return;
+  // The builders are the province's own people: their pay goes into its purse (item 9+a, "What fills a people's purse").
+  this.spendAt(f.province, S.config.fortifyCost * level);
   S.walls.set(f.province, level);
   const above = level - (StartWalls.get(f.province) ?? 0);
   notify(
@@ -166,12 +171,19 @@ P.sieges = function (valid) {
     const name = Map.get(x.province).name;
     const owner = S.owner.getOrDefault(x.province, null);
     const walls = wallsOf(S, x.province);
+    // Walls price the storm, not the clock (item 9+a): they are breached after this much wear.
+    const breach = walls * EconomyData.breachPerLevel;
     const begun = x.since === S.turn;
+    // Stores and mouths are the clock: a city that could not feed its mouths as the season began surrenders.
+    if (!begun && S.starving.includes(x.province)) {
+      this.surrender(x, owner, tell, "hunger");
+      continue;
+    }
     // Only an army that held there presses the siege: one that tried to march out, or gave a support or convoy, did not.
     const order = this._unitOrdersNow.tryGet(x.province);
     if (!(order === undefined || order.type === "hold" || order.type === "besiege")) {
-      tell(x.power, `Your army in ${x.province} did not hold there, so the siege of ${name} (walls ${walls}) did not advance: it stands at ${x.progress} of ${walls}.`);
-      tell(owner, `${x.power}'s army besieging your city of ${name} did not press the siege this season: it stands at ${x.progress} of ${walls}.`);
+      tell(x.power, `Your army in ${x.province} did not hold there, so the siege of ${name} (walls ${walls}) did not advance: it stands at ${x.progress} of ${breach}.`);
+      tell(owner, `${x.power}'s army besieging your city of ${name} did not press the siege this season: it stands at ${x.progress} of ${breach}.`);
       continue;
     }
     const supported = this._battle?.holdSupported.has(x.province) === true;
@@ -182,13 +194,13 @@ P.sieges = function (valid) {
     const steps = Math.max(0, (supported ? 2 : 1) - (supplied ? S.config.seaSupply : 0));
     if (waters !== null && S.config.seaSupply > 0) logEvent(S, "siege", `${name} was ${supplied ? "supplied by sea" : "blockaded"} while besieged by ${x.power}.`, parties(x.power, owner), supplied ? "sea-supplied" : "blockade");
     if (steps === 0) {
-      tell(x.power, `Your siege of ${name} (walls ${walls}) did not advance: no fleet of yours holds ${Map.get(waters!).name}, so the city was supplied by sea. It stands at ${x.progress} of ${walls}.`);
-      tell(owner, `${x.power}'s army besieges your city of ${name} (walls ${walls}), but no fleet of ${x.power}'s holds ${Map.get(waters!).name}: the city was supplied by sea and was not worn down. It stands at ${x.progress} of ${walls}. The city yields you nothing while it is besieged.`);
+      tell(x.power, `Your siege of ${name} (walls ${walls}) did not advance: no fleet of yours holds ${Map.get(waters!).name}, so the city was supplied by sea. It stands at ${x.progress} of ${breach}.`);
+      tell(owner, `${x.power}'s army besieges your city of ${name} (walls ${walls}), but no fleet of ${x.power}'s holds ${Map.get(waters!).name}: the city was supplied by sea and was not worn down. It stands at ${x.progress} of ${breach}. The city yields you nothing while it is besieged, but it eats nothing from its stores while the sea feeds it.`);
       continue;
     }
     x.progress += steps;
-    if (x.progress >= walls) {
-      this.surrender(x, owner, tell);
+    if (x.progress >= breach) {
+      this.surrender(x, owner, tell, "breach");
       continue;
     }
     const how =
@@ -196,11 +208,11 @@ P.sieges = function (valid) {
       (supplied ? ", though the city was supplied by sea" : blockaded && S.config.seaSupply > 0 ? ", with its harbour blockaded" : "");
     tell(
       x.power,
-      `${begun ? "Your siege of" : "The siege of"} ${name} (walls ${walls}${owner !== null ? `, held by ${owner}` : ", a free city"}) ${begun ? "has begun, and it " : ""}wore the city down ${how}: it stands at ${x.progress} of ${walls}. The city surrenders when that reaches ${walls}, if your army holds there.`,
+      `${begun ? "Your siege of" : "The siege of"} ${name} (walls ${walls}${owner !== null ? `, held by ${owner}` : ", a free city"}) ${begun ? "has begun, and it " : ""}wore the city down ${how}: it stands at ${x.progress} of ${breach}. The walls are breached and the city falls when that reaches ${breach}, if your army holds there, or sooner when its food runs out: a besieged city eats from its market and stores, and surrenders once it cannot feed its people.`,
     );
     tell(
       owner,
-      `${x.power}'s army ${begun ? "has laid siege to" : "besieges"} your city of ${name} (walls ${walls}) and wore it down ${how}: it stands at ${x.progress} of ${walls}. The city yields you nothing while it is besieged, and surrenders when that reaches ${walls}, unless the besieging army is driven out or leaves.`,
+      `${x.power}'s army ${begun ? "has laid siege to" : "besieges"} your city of ${name} (walls ${walls}) and wore it down ${how}: it stands at ${x.progress} of ${breach}. The city yields you nothing while it is besieged and eats from its market and stores; it surrenders when its food runs out or the wear reaches ${breach}, unless the besieging army is driven out or leaves.`,
     );
   }
 
@@ -285,8 +297,8 @@ function parties(besieger: Power, owner: Power | null): Power[] {
   return owner !== null ? [besieger, owner] : [besieger];
 }
 
-/** A city worn down to the level of its walls surrenders to its besieger, its walls a level lower. */
-P.surrender = function (x, owner, tell) {
+/** A besieged city surrenders to its besieger, starved or its walls breached, its walls a level lower. */
+P.surrender = function (x, owner, tell, how) {
   const S = this.s;
   const prov = x.province;
   const name = this.map.get(prov).name;
@@ -297,9 +309,11 @@ P.surrender = function (x, owner, tell) {
   this.takenByForce(prov, x.power);
   const w = wallsOf(S, prov);
   const left = w > 0 ? `walls ${w}` : "no walls";
-  tell(x.power, `${name} surrendered to you after a siege of ${seasons} season${seasons === 1 ? "" : "s"}: it is yours, with its walls a level lower (${left}).`);
+  const why = how === "hunger" ? "its food gone" : "its walls breached";
+  if (how === "hunger") logEvent(S, "siege", `${name} was starved into surrender by ${x.power}.`, parties(x.power, owner), "siege-starved");
+  tell(x.power, `${name} surrendered to you after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}: it is yours, with its walls a level lower (${left}).`);
   if (owner !== null) {
-    notify(S, owner, "Battle", "Land lost", `${name} has surrendered to ${x.power} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}.`);
+    notify(S, owner, "Battle", "Land lost", `${name} has surrendered to ${x.power} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}.`);
     logEvent(S, "conquest", `${x.power} took ${name} from ${owner}.`, [x.power, owner]);
   }
   notify(S, x.power, "Battle", "Land taken", `${name} is now yours.`);

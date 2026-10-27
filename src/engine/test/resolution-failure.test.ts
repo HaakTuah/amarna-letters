@@ -166,11 +166,14 @@ describe("ResolutionFailureTests", () => {
         // Egypt reaches Tyre by a fleet in its waters; Babylonia by Gaza.
         s.units.push(newUnit({ id: "u93", power: "Egypt", kind: "Fleet", province: "tyrewaters" }));
         orders.set("Babylonia", newTurnSubmission({ orders: [buy("tyre")] }));
+        for (const t of s.treasuries.values()) t.gold += 5000;
         egypt(buy("tyre"));
         break;
       case "purchase that cannot be paid":
         s.units.push(newUnit({ id: "u93", power: "Egypt", kind: "Fleet", province: "tyrewaters" }));
         debased(s);
+        // Enough by the ledger for a city's price (item 9+a: what it adds), none of it fine.
+        s.treasuries.get("Egypt").lots[0].face = s.treasuries.get("Egypt").lots[0].stated = 10000;
         egypt(buy("tyre"));
         break;
       case "dispatch that cannot be paid":

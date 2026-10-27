@@ -257,7 +257,8 @@ describe("EnvoyTests", () => {
     s.treasuries.get("Egypt").lots.push(newGoldLot({ id: "g1", from: "Babylonia", stated: 120, face: 100, true: 50, arrivedTurn: 1 }));
     let engine = new TurnEngine(s);
     let view = Views.for(s, "Egypt");
-    let land = s.config.provinceWeight * sum(ownedBy(s, "Egypt"), (id) => WorldMap.default.get(id).yield);
+    // Everything but the treasury in the wealth of the realm (item 9+a).
+    let land = s.config.provinceWeight * engine.landYield("Egypt") + engine.holdings("Egypt");
     // The view counts the lot at its weight, everywhere: gold and strength agree, and neither shows the 50 missing.
     Assert.equal(view.gold, view.strength - land);
     Assert.equal(engine.strength("Egypt") + 50, view.strength);

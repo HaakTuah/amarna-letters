@@ -19,6 +19,7 @@ import {
   Rng,
   type SeatView,
   StartGold,
+  publicWorthOf,
   TurnEngine,
   type TurnSubmission,
   Views,
@@ -66,20 +67,21 @@ describe("BackPayBotTests", () => {
     return [s, c];
   }
 
+  /** A province's worth as anyone reckons it from public data: its land, and its purse and stores as at the start. */
   function land(s: GameState, p: Power): number {
-    return sum(ownedBy(s, p), (id) => WorldMap.default.get(id).yield);
+    return sum(ownedBy(s, p), (id) => publicWorthOf(WorldMap.default.get(id), s.config.provinceWeight));
   }
 
   test("Engine seat view and script king reckon strength by the same function", () => {
     let [s] = owingOf();
     let e = new TurnEngine(s);
-    // The score: true gold, less the back pay really owed.
-    Assert.equal(strength(s.config, land(s, "Egypt"), s.treasuries.get("Egypt").gold, 45), e.strength("Egypt"));
+    // The score: the wealth of the realm with its true gold; what is owed counts neither way (item 9+a).
+    Assert.equal(strength(s.config, e.landYield("Egypt"), s.treasuries.get("Egypt").gold, e.holdings("Egypt")), e.strength("Egypt"));
 
-    // The seat's own line: its ledger, less the back pay it believes it owes.
+    // The seat's own line: its ledger.
     let view = Views.for(s, "Egypt");
     Assert.equal(45, view.backPay);
-    Assert.equal(strength(s.config, land(s, "Egypt"), view.gold, 45), view.strength);
+    Assert.equal(strength(s.config, e.landYield("Egypt"), view.gold, e.holdings("Egypt")), view.strength);
 
     // The script king: its own as its view shows it, a rival's from public land and its own estimate of his gold,
     // with no back pay, which nobody can see.
@@ -88,16 +90,7 @@ describe("BackPayBotTests", () => {
     let board = new Board(view, brain.remembered(view), brain.treasury);
     Assert.equal(view.strength, board.strength("Egypt"));
     Assert.equal(view.strength / view.startStrength, board.growth("Egypt"), 9);
-    Assert.equal(strengthOf(10, land(s, "Hatti"), Math.max(0, brain.treasury.get("Hatti")), 0), board.strength("Hatti"));
-    Assert.equal(
-      strengthOf(
-        10,
-        sum(WorldMap.default.homeOf("Hatti"), (x) => x.yield),
-        StartGold.get("Hatti")!,
-        0,
-      ),
-      board.startStrength("Hatti"),
-    );
+    Assert.equal(strengthOf(1, land(s, "Hatti"), Math.max(0, brain.treasury.get("Hatti")), 0), board.strength("Hatti"));
     // At the start, a rival's reckoning is the engine's own.
     Assert.equal(s.startStrength.get("Hatti"), board.startStrength("Hatti"));
   });

@@ -137,6 +137,7 @@ describe("SeasonOrderTests", () => {
 
   test("Rival bids are told how many buyers the elders would not choose between", () => {
     let s = newGame(1);
+    for (const t of s.treasuries.values()) t.gold += 5000;
     s.owner.set("megiddo", "Babylonia");
     s.walls.delete("megiddo");
     s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "megiddo" }));

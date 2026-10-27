@@ -4,9 +4,14 @@
  */
 import {
   AllPowers,
+  EconomyData,
+  landWorthOf,
+  publicWorthOf,
   Dict,
   HSet,
   StartGold,
+  StartUnits,
+  carriedOf,
   WinterSeason,
   WorldMap,
   seasonOfTurn,
@@ -136,9 +141,13 @@ export class Board {
     );
   }
 
-  /** What an army of ours pays for supplies for a season it ends in `place`: the desert's cost if it is desert land we do not hold. */
+  /**
+   * What an army of ours pays to be fed for a season it ends in `place` (item 9+a): desert land feeds nobody, so unless it
+   * is ours, with our stores there, the army eats its baggage, which a caravan must make good: about a season's food and
+   * the caravan's cost, at the base price.
+   */
   desertCost(place: string): number {
-    return terrainOf(place) === "Desert" && !this.isMine(place) ? this.v.prices.getOrDefault("desertUpkeep", 30) : 0;
+    return terrainOf(place) === "Desert" && !this.isMine(place) ? 2 * EconomyData.armyFood : 0;
   }
 
   /**
@@ -161,7 +170,7 @@ export class Board {
   private baseValue(id: string): number {
     const p = Board.Map.get(id);
     if (p.isSea) return 0;
-    let v = 10.0 * p.yield + p.yield * this.horizon;
+    let v = landWorthOf(p, this.v.provinceWeight) + p.yield * this.horizon;
     if (p.capital) v += 80;
     if (p.home !== null && p.home === this.me) v += 30;
     return v - this.absorptionLoss(id);
@@ -212,9 +221,14 @@ export class Board {
     return n;
   }
 
-  /** Gold a city costs per shekel of yield, which is also what a shekel of yield adds to a king's strength. */
+  /** What a shekel of a province's yield adds to a king's strength, about (item 9+a: the land's multiple times its whole harvest). */
   get yieldWorth(): number {
-    return this.v.prices.getOrDefault("cityPricePerYield", 10);
+    return this.v.provinceWeight * EconomyData.harvestPerYield;
+  }
+
+  /** What a province adds to a king's strength as anyone can reckon it (its land, and its purse and stores as at the start). */
+  worth(id: string): number {
+    return publicWorthOf(Board.Map.get(id), this.v.provinceWeight);
   }
 
   /**
@@ -225,21 +239,22 @@ export class Board {
   strength(p: Power): number {
     // A pictured board (see Search) has no treasury of its own: estimate it like any other.
     if (p === this.me && this.v.startStrength > 0) return this.v.strength;
-    let landYield = 0;
-    for (const [k, o] of this.v.owner.entries()) if (o === p) landYield += Board.Map.get(k).yield;
+    let worth = 0;
+    for (const [k, o] of this.v.owner.entries()) if (o === p) worth += this.worth(k);
     const reckoned = this.treasuries?.tryGet(p);
     const gold = reckoned !== undefined ? reckoned : StartGold.get(p)!;
-    return strengthOf(this.yieldWorth, landYield, Math.max(0, gold), 0);
+    return strengthOf(1, worth, Math.max(0, gold), 0);
   }
 
   startStrength(p: Power): number {
     return p === this.me && this.v.startStrength > 0
       ? this.v.startStrength
       : strengthOf(
-          this.yieldWorth,
-          sum(Board.Map.homeOf(p), (x) => x.yield),
+          1,
+          sum(Board.Map.homeOf(p), (x) => this.worth(x.id)),
           StartGold.get(p)!,
-          0,
+          // The opening troops' baggage: so a rival's starting strength is the engine's own.
+          sum(StartUnits.filter((u) => u.power === p), (u) => carriedOf(u.kind)),
         );
   }
 

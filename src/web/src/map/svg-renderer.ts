@@ -3,7 +3,7 @@
  * changes; units and travellers kept as the same elements from season to season, so stepping the timeline slides them
  * along their moves; pinch, pan and wheel zoom move one layer on the GPU (zoom.ts) without drawing anything.
  */
-import { WorldMap, dateLabel, shortDate, terrainOf, type Power, type Province } from "@amarna/engine";
+import { WorldMap, dateLabel, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province } from "@amarna/engine";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { F, Shapes, add, along, arc, arcAt, city, len, mul, normal, route, sub, unit, unitSpot, type Pt } from "./art.ts";
 import { dash, glyphId } from "./glyphs.ts";
@@ -26,7 +26,7 @@ const title = (s: string): string => `<title>${esc(s)}</title>`;
 function provinceTitle(p: Province, owner: Power | null): string {
   const t = terrainOf(p.id);
   return (
-    `${p.name}: ${owner !== null ? `held by ${powerName(owner)}` : "a free city-state"}; yields ${shekels(p.yield)} a season` +
+    `${p.name}: ${owner !== null ? `held by ${powerName(owner)}` : "a free city-state"}; its tax brings in about ${taxOf(harvestOf(p))} measures of grain a season` +
     (t === "Rough" ? "; rough ground: a unit standing its ground here is stronger" : t === "Desert" ? "; desert: an army not in its own land pays for supplies here" : "")
   );
 }

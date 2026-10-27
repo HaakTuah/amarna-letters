@@ -33,6 +33,7 @@ import {
   newId,
   newInboxItem,
   newSiege,
+  EconomyData,
   newTablet,
   newTabletCopy,
   newTurnSubmission,
@@ -295,6 +296,8 @@ describe("SiegePlayTests", () => {
       ]),
     );
     Assert.equal(["Captured", "Babylonia"], [envoy.status, envoy.heldBy]);
+    // Worn nearly through (since item 9+a, three seasons a level): the supported season breaches the walls.
+    single(s.sieges).progress = 3 * EconomyData.breachPerLevel - 2;
     season(s, new Dict([["Babylonia", press]]));
     Assert.contains("Assyria", s.eliminated);
     Assert.equal(["Captured", "Babylonia"], [envoy.status, envoy.heldBy]);

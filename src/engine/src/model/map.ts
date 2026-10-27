@@ -511,13 +511,19 @@ export const StartUnits: readonly StartUnit[] = [
   su("Alashiya", "Fleet", "enkomi"),
 ];
 
+/**
+ * The treasuries at the start (since item 9+a, set from the sources as "Starting positions come from the sources" asks;
+ * the dossiers give no sums, so these are proportions marked [G]): Egypt by far the richest, "in my brother's land gold is
+ * as plentiful as dirt" (EA 19); Babylonia, which reckoned in gold from Egypt's gifts, and Mitanni, which received them,
+ * next; Alashiya rich from its copper; Hatti, Assyria and Arzawa least. Until item 9+a: 600, 300, 650, 500, 350, 300, 350.
+ */
 export const StartGold: ReadonlyMap<Power, number> = new Map<Power, number>([
-  ["Egypt", 600],
+  ["Egypt", 900],
   ["Hatti", 300],
-  ["Babylonia", 650],
-  ["Mitanni", 500],
-  ["Assyria", 350],
+  ["Babylonia", 600],
+  ["Mitanni", 450],
+  ["Assyria", 300],
   ["Arzawa", 300],
-  ["Alashiya", 350],
+  ["Alashiya", 400],
 ]);
 

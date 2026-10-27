@@ -27,10 +27,10 @@ describe("TerrainTextTests", () => {
       "- harran: Harran; land; homeland of Mitanni; yield 35. armies: isuwa (across the upper Euphrates), carchemish (across the Euphrates at Carchemish), washukanni, terqa, aleppo (across the Euphrates at Emar).",
     ],
     [
-      "- Desert (sinai, steppe) costs an army supplies: an army that ends a season in desert land its king did not hold when that season's moves were made pays 30 with the next upkeep, and your treasury notice says so. An army in its own land pays nothing: a king who holds the desert crosses it freely, and so does whoever takes it, from the season after. Only armies pay it.",
+      "- Desert (sinai, steppe) feeds nobody: an army there finds nothing to take from the land and lives on its baggage, its king's stores there if he holds it, and the caravans he sends (see ECONOMY).",
     ],
     [
-      "you pay upkeep for every army (30) and fleet (35), 30 more for each army that ended last season in desert land you did not hold (see TERRAIN), and the wages of your people at court;",
+      "You pay your troops (20 an army, 25 a fleet, nearest your capital first) and the wages of your people at court;",
     ],
     ["- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis."],
     ["- kaska: Kaska Lands; land; a land without a king; yield 10; rough ground. armies: hattusa, sapinuwa."],
@@ -60,8 +60,8 @@ describe("TerrainTextTests", () => {
     let rules = leaderRules(true, newGameConfig({ terrainDefence: 0 }));
     Assert.contains("In this game the ground gives no unit any help", rules);
     Assert.doesNotContain("the ground's help", rules);
-    // The desert still costs supplies: it is a rule of its own.
-    Assert.contains("- Desert (sinai, steppe) costs an army supplies", rules);
+    // The desert still feeds nobody: it is a rule of its own.
+    Assert.contains("- Desert (sinai, steppe) feeds nobody", rules);
   });
 
   test("The view marks the rough ground beside the walls", () => {

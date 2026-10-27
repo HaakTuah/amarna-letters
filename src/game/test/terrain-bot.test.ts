@@ -38,14 +38,13 @@ describe("TerrainBotTests", () => {
     Assert.equal(0, hatti.groundFrom(["tuwanuwa", "lukka"], "kizzuwatna"));
     Assert.equal(1, hatti.groundFrom(["tuwanuwa", "nesa"], "kizzuwatna"));
     Assert.equal(1, hatti.groundFrom(["apasa", "seha"], "mira"));
-    // The Sinai costs Hatti's armies supplies; Egypt, who holds it, crosses it freely.
-    Assert.equal(30, hatti.desertCost("sinai"));
+    // The Sinai feeds no army of Hatti's (item 9+a): it reckons with a caravan's worth of food; Egypt, who holds it, with nothing.
+    Assert.equal(20, hatti.desertCost("sinai"));
     Assert.equal(0, new Board(Views.for(s, "Egypt")).desertCost("sinai"));
 
-    let off = newGame(1, newGameConfig({ catastropheChance: 0, terrainDefence: 0, desertUpkeep: 0 }));
+    let off = newGame(1, newGameConfig({ catastropheChance: 0, terrainDefence: 0 }));
     let flat = new Board(Views.for(off, "Hatti"));
     Assert.equal(0, flat.ground("tuwanuwa", "mira"));
-    Assert.equal(0, flat.desertCost("sinai"));
   });
 
   test("A script king brings a support more against a troop on rough ground", () => {

@@ -4,6 +4,8 @@ import { Rng } from "../core/rng.ts";
 import { range } from "../core/seq.ts";
 import { newGameConfig, type GameConfig } from "../model/config.ts";
 import { StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
+import { carriedOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
+import { newMarket } from "../model/caravans.ts";
 import { StartClaims } from "../model/recognition.ts";
 import { newCharacter, newContract, newFact, newTraits, type Character, type Secrecy } from "../model/people.ts";
 import { AllPowers, adjective, land, type Power } from "../model/power.ts";
@@ -24,8 +26,13 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
     s.owner.set(p.id, p.home);
     const walls = StartWalls.get(p.id) ?? 0;
     if (walls > 0) s.walls.set(p.id, walls);
+    // Its stores, half full, and its market: a season's local need on sale and its people's purse (item 9+a).
+    const stores = startStoresOf(p);
+    if (stores > 0) s.stores.set(p.id, stores);
+    s.markets.set(p.id, newMarket({ stock: needOf(p), purse: startPurseOf(p) }));
   }
-  for (const u of StartUnits) s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province }));
+  for (const u of StartUnits)
+    s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.province, food: carriedOf(u.kind) }));
   for (const p of AllPowers) {
     s.treasuries.set(p, newTreasury({ gold: StartGold.get(p)! }));
     s.inbox.set(p, []);
