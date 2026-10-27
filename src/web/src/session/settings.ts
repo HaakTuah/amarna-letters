@@ -101,7 +101,10 @@ export function toConfig(s: GameSettings): GameConfig {
   });
 }
 
-export function settingsFromHeader(header: LogHeader): GameSettings {
+/** The table's own settings a saved log does not keep, carried over from the page when a game is continued. */
+export type TableSettings = Pick<GameSettings, "providers" | "prices" | "pauseFallbackShare">;
+
+export function settingsFromHeader(header: LogHeader, table: TableSettings | null = null): GameSettings {
   const s = withChoices(
     {
       ...newSettings(),
@@ -112,8 +115,9 @@ export function settingsFromHeader(header: LogHeader): GameSettings {
       sleepingSeats: header.config.sleepingSeats,
       maxSleep: header.config.maxSleep,
       messagesPerTurn: header.config.maxDispatchesPerTurn,
+      ...(table !== null ? { prices: { ...table.prices }, pauseFallbackShare: table.pauseFallbackShare } : {}),
     },
-    choicesFromHeader(header),
+    choicesFromHeader(header, table?.providers ?? []),
   );
   s.budgetUsd = CostEstimate.suggestedBudget(estimate(s));
   return s;

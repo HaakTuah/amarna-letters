@@ -35,6 +35,8 @@ export const keys: {
 
 /** Every key, by provider id, as the engine's worker takes them. */
 const allKeys = (anthropic: string | null): Record<string, string> => ({
+  // A provider set up with no key typed (a local endpoint) is sent with an empty one.
+  ...Object.fromEntries((kept?.providers ?? []).map((p) => [p.id, ""] as const)),
   ...keys.others,
   ...(anthropic !== null && anthropic.trim() !== "" ? { [AnthropicId]: anthropic } : {}),
 });
@@ -209,7 +211,12 @@ export function Home() {
       return;
     }
     if (continuePlay && header !== null) {
-      const seats = choicesFromHeader(header);
+      const seats = choicesFromHeader(header, settings.providers);
+      const missing = seats.providersInUse.filter((id) => id !== AnthropicId && !seats.providers.some((p) => p.id === id));
+      if (missing.length > 0) {
+        setLoadProblem(`This game used models of ${missing.join(", ")}: set that provider up under "Other providers and prices" above, then continue.`);
+        return;
+      }
       if (seats.providersInUse.includes(AnthropicId) && (keys.key ?? key).trim() === "") {
         setLoadProblem("This game used Claude models. Choose any preset that needs a key, enter your key above, then continue.");
         return;
@@ -224,7 +231,7 @@ export function Home() {
       }
     }
     navigate("play");
-    session.load(text, continuePlay, allKeys(keys.key ?? key));
+    session.load(text, continuePlay, allKeys(keys.key ?? key), { providers: settings.providers, prices: settings.prices, pauseFallbackShare: settings.pauseFallbackShare });
   }
 
   async function loadSaved(id: string, continuePlay: boolean): Promise<void> {

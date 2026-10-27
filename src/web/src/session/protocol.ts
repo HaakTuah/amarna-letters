@@ -2,14 +2,14 @@
 import type { GameConfig, Power } from "@amarna/engine";
 import type { SeasonFallbacks, TrailAuthors } from "@amarna/game";
 import type { SeasonFrame } from "./frames.ts";
-import type { GameSettings } from "./settings.ts";
+import type { GameSettings, TableSettings } from "./settings.ts";
 
 /** API keys by provider id ("anthropic", or a provider the table set up), held in memory only. */
 export type Keys = Record<string, string>;
 
 export type ToWorker =
   | { type: "start"; settings: GameSettings; keys: Keys }
-  | { type: "load"; text: string; continuePlay: boolean; keys: Keys }
+  | { type: "load"; text: string; continuePlay: boolean; keys: Keys; table: TableSettings | null }
   | { type: "step" }
   | { type: "auto"; on: boolean }
   | { type: "delay"; ms: number }

@@ -29,7 +29,7 @@ import { GameLog, GameRunner, ReplayExhaustedError, type ISeat, type SeasonFallb
 import { AnthropicId, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { catchUpFrames, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
-import { choicesOf, fallenSeesAll, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings } from "./settings.ts";
+import { choicesOf, fallenSeesAll, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
 import { saveLog } from "./storage.ts";
 
 /** A human seat whose decisions the page makes: the worker asks, the page answers by message. */
@@ -272,7 +272,7 @@ export class SessionCore {
   }
 
   /** Loads a log: replays it fully for the timeline; optionally continues it with live seats. */
-  async load(text: string, continuePlay: boolean, keys: Keys): Promise<void> {
+  async load(text: string, continuePlay: boolean, keys: Keys, table: TableSettings | null = null): Promise<void> {
     this.fresh();
     let log: GameLog;
     try {
@@ -294,7 +294,7 @@ export class SessionCore {
     this.notify();
     try {
       if (continuePlay) {
-        this.settings = settingsFromHeader(log.header);
+        this.settings = settingsFromHeader(log.header, table);
         const built = this.build(this.settings, newGame(log.header.seed, log.header.config), keys);
         if (!(await this.check(built, this.settings, log.header.config))) return;
         this.runner = GameRunner.resume(log, built.seats, built.minds, built.narrator);
@@ -308,7 +308,7 @@ export class SessionCore {
           await r.playTurn(this.abort.signal);
         this.notice = null;
       } else {
-        this.settings = settingsFromHeader(log.header);
+        this.settings = settingsFromHeader(log.header, table);
         this.runner = GameRunner.forReplay(log);
         this.runner.changed.push(this.changed);
         this.runner.writeChronicles = log.decisions.some((d) => d.key.startsWith("end/chronicle/"));
@@ -422,7 +422,7 @@ export class SessionCore {
       case "start":
         return this.start(m.settings, m.keys);
       case "load":
-        return this.load(m.text, m.continuePlay, m.keys);
+        return this.load(m.text, m.continuePlay, m.keys, m.table);
       case "step":
         return this.step();
       case "auto":

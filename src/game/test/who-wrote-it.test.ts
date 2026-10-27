@@ -1,7 +1,7 @@
 import { afterEach, describe, test, vi } from "vitest";
 import { newGame, newGameConfig } from "@amarna/engine";
 import { GameLog, GameRunner, seasonFallbacks } from "@amarna/game";
-import { CompatibleProvider, ModelClient, Replies, SeatChoices, SimulatedApi, buildSeats, choicesFromHeader, providersFor, splitModel, type JsonObject } from "@amarna/llm";
+import { CompatibleProvider, ModelClient, SdkTransport, Replies, SeatChoices, SimulatedApi, buildSeats, choicesFromHeader, providersFor, splitModel, type JsonObject } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 
 // "Who wrote it" (Spectator mode) and "Built to outlive its models": every decision logged with its author, every
@@ -121,5 +121,15 @@ describe("WhoWroteItTests", () => {
     await client.check([{ model: "local:llama3.1:8b", schemas: [Replies.text("speech", "Words.")] }]);
     const ex = await Assert.throwsAsync(() => client.check([{ model: "local:mistral", schemas: [Replies.text("speech", "Words.")] }]));
     Assert.contains("local has no model mistral", ex.message);
+  });
+
+  test("A call stopped through the SDK is an abort, not a fallback", async () => {
+    const hang = ((_url: string, init?: RequestInit): Promise<Response> =>
+      new Promise((_, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))))) as typeof fetch;
+    const stop = new AbortController();
+    const asking = new SdkTransport("sk-ant-test-0000", hang).send({ model: "claude-haiku-5-5", max_tokens: 10, messages: [{ role: "user", content: "x" }] }, stop.signal);
+    stop.abort();
+    const ex = await Assert.throwsAsync(() => asking);
+    Assert.equal("AbortError", ex.name);
   });
 });

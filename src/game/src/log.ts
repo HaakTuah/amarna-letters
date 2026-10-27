@@ -272,7 +272,7 @@ export const AuthorshipSchema: ObjSchema<Authorship> = obj("Authorship", newAuth
 /** What kind of author a label names: the labels of the seats, minds and narrators the game builds. */
 export function authorKind(label: string): AuthorKind {
   if (label === "Human") return "human";
-  if (label === "File seat" || label === "File characters" || label === "Local agent") return "file";
+  if (/^(File seat|File characters|Local agent)\b/.test(label)) return "file";
   if (/^(Script|Baseline|Template)\b/.test(label)) return "script";
   return "model";
 }

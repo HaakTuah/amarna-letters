@@ -322,13 +322,15 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
 }
 
 /** Reads seat choices back from a log header's labels, to continue a saved game. */
-export function choicesFromHeader(header: LogHeader): SeatChoices {
+export function choicesFromHeader(header: LogHeader, providers: readonly ProviderSetting[] = []): SeatChoices {
   // A model's label is its model setting (shown as Opus 5.5 and so on for the 5.5 models) and the job: "Opus 5.5 leader".
   // The 5.5 models read back as the presets' shorthands, so a saved preset game still matches its preset.
   const short = (m: string): string => (m === ModelIds.Opus ? "Opus" : m === ModelIds.Sonnet ? "Sonnet" : m === ModelIds.Haiku ? "Haiku" : m);
   const model = (label: string, job: string): string | null => (label.endsWith(` ${job}`) ? short(ModelIds.fromDisplay(label.slice(0, -job.length - 1))) : null);
   const leader = (label: string): LeaderKind => (label === "Human" ? "Human" : label === LocalAgentLabel ? "LocalAgent" : (model(label, "leader") ?? "Script"));
   const c = new SeatChoices();
+  // The header keeps seat labels, not endpoints or keys: the providers come from the table as it is set up now.
+  c.providers = providers.map((p) => ({ ...p }));
   for (const p of AllPowers) c.leaders.set(p, leader(header.seats.tryGet(p) ?? ""));
   const cm = model(header.minds, "characters");
   c.characters = cm === null || cm === "Script" ? "Script" : cm;

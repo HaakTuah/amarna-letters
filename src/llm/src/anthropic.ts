@@ -129,6 +129,12 @@ export class SdkTransport implements ApiTransport {
 
 /** "Anthropic API 400: <the API's message>", as the log and the viewer show a failed call. */
 function apiError(e: unknown): unknown {
+  // An abort is an abort, as fetch's would be: the runner stops instead of falling back.
+  if (e instanceof Anthropic.APIUserAbortError) {
+    const abort = new Error(e.message);
+    abort.name = "AbortError";
+    return abort;
+  }
   if (e instanceof Anthropic.APIError && e.status !== undefined) {
     const err = (e.error as { error?: { message?: string } } | undefined)?.error?.message;
     return new Error(`Anthropic API ${e.status}: ${err ?? e.message}`);
