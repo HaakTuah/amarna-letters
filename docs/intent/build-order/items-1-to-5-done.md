@@ -1,5 +1,5 @@
-<!-- Generated from the design document, Build order tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
-**The order.** Items 1 to 5 are built: what each found and decided is in the repository's `docs/BUILD-PROGRESS.md`, and their full text in `docs/archive/design-history.md`.
+<!-- Generated from the design document, Build order tab, revision 13 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+**The order.** Items 1 to 5 are built: their state is in the repository's `docs/BUILD-PROGRESS.md`, what each found and decided in `docs/archive/build-log.md`, and their full text in `docs/archive/design-history.md`.
 
 1. **Simulation fixes and default sleep** (built 19 October 2026).
 2. **The visual overhaul** (built 19 October 2026): the map and the spectator view ("The map (built in item 2)" under Spectator mode), with the date labels and the "follow this character" view.

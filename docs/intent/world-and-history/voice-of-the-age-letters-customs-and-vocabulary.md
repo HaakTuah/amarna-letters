@@ -1,4 +1,4 @@
-<!-- Generated from the design document, World and history tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, World and history tab, revision 21 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Voice of the age: letters, customs and vocabulary
 
 Flavor that gives every seat a shared vocabulary of the period. None of it is a rule; it is context all players know, so following or breaking it becomes a signal.
@@ -20,7 +20,7 @@ Flavor that gives every seat a shared vocabulary of the period. None of it is a 
 
 Because the greeting travels on a sealed tablet, the envoy cannot alter it. That makes it one of the few fully reliable signals in the game.
 
-**Language.** Every tablet in the prototype is in Akkadian, the shared diplomatic language. A leader may ask to be written to in its own tongue, as the king of Arzawa, whose letters in the archive are in Hittite (EA 31 and 32), asked Egypt to keep writing to him in Hittite; whether the other side complies is a social signal, not a mechanic. Later, each character speaks some languages and not others (see "Languages"): an envoy who speaks Hittite and Akkadian is worth more to the Hittite court and can deliver letters in the host's language as a courtesy.
+**Language.** Every tablet in the prototype is in Akkadian, the shared diplomatic language. A leader may ask to be written to in another tongue than Akkadian, as the king of Arzawa, whose correspondence with Egypt in the archive (EA 31 and 32) is in Hittite, asked Egypt to keep writing to him in Hittite; whether the other side complies is a social signal, not a mechanic. Later, each character speaks some languages and not others (see "Languages"): an envoy who speaks Hittite and Akkadian is worth more to the Hittite court and can deliver letters in the host's language as a courtesy.
 
 **Postscripts.** A tablet may end with a note to the receiving court's envoy or scribe rather than its king: a request, flattery or a quiet offer. Abdi-Heba of Jerusalem did exactly this, asking the pharaoh's scribe to present his words well. It needs no new mechanic; it is a side channel aimed at the people who carry the words.
 
@@ -28,15 +28,15 @@ Because the greeting travels on a sealed tablet, the envoy cannot alter it. That
 
 **Echoes from the archive.** Moves from the letters themselves, as read in the *Curator's Corner* episode that inspired the game. Each is tied to a rule that exists or a question in the round report.
 
-*Candidates for the customs primer.* Add the best four to six, since every primer line is paid for on every call.
+*Candidates for the customs primer.* Five are in the primer since item 1 (rank, detention, words and tablets, witnesses, precedent); the rest stay candidates, since every primer line is paid for on every call.
 
-- **Rank in the greeting.** Great Kings call each other "brother" to claim equality; vassals fall at the king's feet seven times and seven times; writing your own name above the recipient's was an insult ("The letter formula", "Deliberate deviations"). Rank is claimed, then recognised or refused: Assyria's first letter claims equality with Mitanni, and Babylon called the Assyrians its vassals (EA 9; "Recognition is earned"). The engine already checks greeting deviations; this tells kings what a deviation means.
+- **Rank in the greeting.** Great Kings call each other "brother" to claim equality; vassals fall at the king's feet seven times and seven times; writing your own name above the recipient's was an insult ("The letter formula", "Deliberate deviations"). Rank is claimed, then recognised or refused: Assyria's second letter claims brotherhood with Pharaoh and equality with Mitanni, and Babylon called the Assyrians its vassals (EA 9; "Recognition is earned"). The engine already checks greeting deviations; this tells kings what a deviation means.
 - **Detention answers detention.** Tushratta held Pharaoh's envoy Mane until his own men were released, and asked whether messengers are birds, able to fly home on their own.
 - **Messengers lie for gain.** Amenhotep III complained that Babylon's envoys went home claiming Egypt had given them nothing. Both courts blamed the messenger.
 - **Words are not a tablet.** Arzawa's king would not trust what Pharaoh's messenger said until a tablet confirmed it. This is the game's split between a mandate and a sealed tablet (question 14), in Arzawa's own letter.
 - **Proof needs a witness who knows.** Babylon asked whether his sister in Pharaoh's household still lived. Pharaoh answered that Babylon had sent nobodies who had never known her: send someone who can recognise her.
 - **Distance as an excuse.** Tushratta was angry that Pharaoh ignored his illness, and let it go only after his own messenger confirmed the road is long.
-- **Conquest dressed as protection.** Abdi-Ashirta took Sumur and wrote that he had saved it for the king.
+- **Conquest dressed as protection.** Abdi-Ashirta took Ṣumur and wrote that he had saved it for the king.
 - **A successor's broken promise.** Akhenaten sent gold-plated wooden statues where his father had promised solid gold. Tushratta then appealed to the queen mother, Teye, over the king's head.
 - **Slights.** A festival held without inviting a brother king; a bride escorted by five chariots where an earlier princess had 3,000 soldiers.
 - **Gold talk.** "In your country gold is as plentiful as dirt" is the standing opener of every request, and light or silvery gold is the standing complaint.
@@ -55,6 +55,6 @@ Because the greeting travels on a sealed tablet, the envoy cannot alter it. That
 
 **Calendar** (decided 19 October 2026; first year changed 20 October). Every date in the interface shows the court's season and year, with the turn (built in the visual overhaul, item 2). Years are counted from 1346 BCE, the first year of a game, and each later year is one less, so the game opens as Akhenaten's court settles at Akhetaten (the letters begin around 1360, under his father, which would not fit this cast), and its median end, 1332 BCE, is the conventional end of the archive in the same reckoning (dates shift by a few years between chronologies). This is for the interface only: kings' prompts keep the game's own year ("year 3") and never name a year BCE, since a precise date invites models to replay real history. Item 2 built it counting from 1345 BCE; item 6a moves the start to 1346 BCE.
 
-**Chronicle tone.** The narrator's end-of-game chronicles read like royal annals: each nation's account glorious and self-serving. The model is the Battle of Kadesh (c. 1274 BCE), which Egypt and the Hittites each recorded as their own victory. Kadesh falls about 80 years after the Amarna period, so it sets the tone, not the setting.
+**Chronicle tone.** The narrator's end-of-game chronicles read like royal annals: each nation's account glorious and self-serving. The model is the Battle of Kadesh (c. 1274 BCE), which Egypt and the Hittites each recorded as their own victory. Kadesh falls some 60 to 70 years after the Amarna period, so it sets the tone, not the setting.
 
-**A new Idrimi.** When a character really does go from an outlaw band to ruling a city, the chronicle names it after the legend, "a new Idrimi", rewarding the emergent story without scripting it.
+**A new Idrimi.** When a character really does rise to rule a city of his own, from an outlaw band as Idrimi did or from a governor's or commander's post, the chronicle names it after the legend, "a new Idrimi", rewarding the emergent story without scripting it.

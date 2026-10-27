@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 16 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Lies, tablets and scribes
 
 **Why the envoy lies, and how he is caught** (decided 19 October 2026). Pillar 3: only someone with a motive bends a message, and the envoy has one. He carries the gifts, so he can skim them or take them whole, and he answers for how they were received.
@@ -12,7 +12,7 @@
 - **Kept in a court's archive,** it can be stolen or copied by a spy, and is seized with the city when it falls. Whoever takes a capital takes its archive, and every treaty its king ever sealed. The Amarna letters themselves are the precedent: an archive left behind with its city.
 - **Held until it can be read.** An unreadable tablet shows its seal but not its words, and waits until the king finds a reader. Meanwhile it can be shown, copied or sent on.
 - **Sent to a third court to be read,** it passes into the hands of someone with a motive: that court learns what it says, and may misread it on purpose. Where the chain gains a second mediator with a reason to lie, it is another king.
-- **Examined for forgery** by a character's skill in spotting forgeries, weighed against the forger's skill and what was spent, as authentication works today.
+- **Examined for forgery** by a character's skill in spotting forgeries, weighed against the forger's skill and what was spent; today authentication weighs only what was spent against the forger's skill, and the examiner's skill comes with "What skills cover".
 
 **Swapped tablets and false envoys** (decided 19 October 2026).
 

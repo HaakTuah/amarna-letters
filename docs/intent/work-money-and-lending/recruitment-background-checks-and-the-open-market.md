@@ -1,9 +1,9 @@
-<!-- Generated from the design document, Work, money and lending tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Work, money and lending tab, revision 10 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Recruitment, background checks and the open market
 
 Hiring is the player's first real tradeoff: take a candidate now and accept the risk, or spend gold and turns checking, and maybe miss the moment.
 
-**Recruitment loop.**
+**Recruitment loop.** As built; from item 11a, "Hiring as a negotiation" replaces it.
 
 1. A leader asks for candidates. Three available characters from the pool present themselves.
 2. Each writes its own pitch, in character. A greedy or ambitious candidate oversells; an honest, mediocre one undersells. The pitch is the first clue.
