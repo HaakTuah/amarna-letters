@@ -12,7 +12,7 @@ describe("TerrainTextTests", () => {
       "- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with 1 more when it stands on rough ground (mira, lukka, isuwa, amurru, arbela, kalavasos, shechem, jerusalem, kaska), or when the attack comes over a mountain pass or a great river, crossed at its fords and ferry towns (the Cilician Gates (tuwanuwa-kizzuwatna), the Taurus (nesa-kizzuwatna), the Anti-Taurus (nesa-carchemish), the Amanus (kizzuwatna-carchemish), the Syrian Gates (kizzuwatna-alalakh), the Lebanon (byblos-damascus and sidon-damascus), the Euphrates at Carchemish (carchemish-harran), the Euphrates at Emar (aleppo-harran), the upper Euphrates (isuwa-harran), the Tigris (taidu-nineveh)): 1 in all, however many of these apply.",
     ],
     [
-      "The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor a unit landing or attacked from the sea (at sea the blockade decides: see THE SEA). It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that.",
+      "The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that.",
     ],
     ["- Some links cross the desert (the Syrian desert (suhu-steppe and steppe-qatna and steppe-damascus), the Ways of Horus (delta-gaza), the north Sinai (gaza-sinai), the Negev (jerusalem-sinai)); they give no help in battle."],
     ["A unit standing its ground may have the ground's help in its hold strength (see TERRAIN)."],
@@ -38,8 +38,12 @@ describe("TerrainTextTests", () => {
     [
       "- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out.",
     ],
-    ["- The blockade: a besieged coastal city is supplied by sea, and worn down 1 step less each season, unless a fleet of its besieger holds its waters."],
-    ["In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them and no convoy is carried over them, and an order to cross them is refused."],
+    ["- The blockade: a besieged coastal city is supplied by sea, and worn down 1 step less each season, unless a fleet of its besieger holds its waters: so a lone army besieging a harbour that is supplied wears it down not at all."],
+    [
+      "In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them, no convoy is carried over them, and no city across them can be bought (it lies one voyage away only in the sailing season); an order to cross them is refused.",
+    ],
+    ["(rough ground, or a pass or a great river crossed; see TERRAIN)"],
+    ["nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing."],
     ["(a coastal city supplied by sea is worn down 1 less: see THE SEA)"],
   ] as const)("The rulebook states what the ground does and the map marks it %s", (rule: string) => {
     Assert.contains(rule, Rules);

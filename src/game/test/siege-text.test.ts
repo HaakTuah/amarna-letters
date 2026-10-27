@@ -60,7 +60,7 @@ describe("SiegeTextTests", () => {
       "The walls then support one attack into the city on those troops, yours or another king's, for +1, as a support that cannot be cut. A sally that finds no such attack is void.",
     ],
     [
-      "So a lone army of yours, or an ally's, that attacks a lone besieger with a sally drives it out, unless the ground helps the besieger against that attack (rough ground, a pass or a great river crossed, or a landing; see TERRAIN): then the attack needs one support more.",
+      "So a lone army of yours, or an ally's, that attacks a lone besieger with a sally drives it out, unless the ground helps the besieger against that attack (rough ground, or a pass or a great river crossed; see TERRAIN): then the attack needs one support more.",
     ],
     ["A province without walls changes hands when a unit ends a season in it; a walled one only as WALLS AND SIEGES says."],
     [

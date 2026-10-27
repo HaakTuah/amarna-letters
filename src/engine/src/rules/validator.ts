@@ -250,7 +250,7 @@ export class OrderValidator {
             S.owner,
             S.units.filter((u) => u.power === power).map((u) => u.province),
           );
-          if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or lie one voyage from one of your coasts: their waters the same or next to each other)`;
+          if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or lie one voyage from one of your coasts: their waters the same or next to each other, and not across the open sea in winter)`;
           if (bought.has(b.province)) return "you already bid for that city";
           return spend(Map.get(b.province).yield * S.config.neutralPriceFactor);
         }

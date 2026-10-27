@@ -445,7 +445,8 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     [(x: { id: string }) => x.id, cmpStr],
   )) {
     const w = p.waters!;
-    if (b.unitAt.has(w) && b.unitAt.get(w).power !== me) continue;
+    // Foreign waters are not ours to guard; ours already held by a fleet given other orders need no second one.
+    if (b.unitAt.has(w) && (b.unitAt.get(w).power !== me || !free.has(w))) continue;
     const near = seaChains(p.id, () => true, 3);
     const menaced = b.others.some(
       (u) => u.kind === "Fleet" && !brain.isFriend(u.power) && (near.has(u.province) || (Board.Map.get(u.province).waters !== null && near.has(Board.Map.get(u.province).waters!))),

@@ -33,7 +33,7 @@ export function terrainRules(c: GameConfig): string {
       `- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with ${t} more when it stands on rough ground (${rough}), or when the attack comes over a mountain pass or a great river, crossed at its fords and ferry towns (${crossings}): ${t} in all, however many of these apply. THE MAP marks the rough ground and the crossings on the links.`,
     );
     lines.push(
-      `- The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor a unit landing or attacked from the sea (at sea the blockade decides: see THE SEA). It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that. A support is cut as always. Your battle report gives the ground's share wherever it counted in the strength you had to beat.`,
+      `- The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that. A support is cut as always. Your battle report gives the ground's share wherever it counted in the strength you had to beat.`,
     );
   }
   lines.push(`- Some links cross the desert (${deserts}); they give no help in battle. THE MAP marks them.`);
@@ -61,10 +61,10 @@ export function seaRules(c: GameConfig): string {
   );
   if (c.seaSupply > 0)
     lines.push(
-      `- The blockade: a besieged coastal city is supplied by sea, and worn down ${c.seaSupply} step less each season, unless a fleet of its besieger holds its waters. A fleet of the besieger's in a city's waters blockades it; your news says whether each siege of yours, or of your cities, was supplied or blockaded.`,
+      `- The blockade: a besieged coastal city is supplied by sea, and worn down ${c.seaSupply} step less each season, unless a fleet of its besieger holds its waters: so a lone army besieging a harbour that is supplied wears it down not at all. A fleet of the besieger's in a city's waters blockades it; your news says whether each siege of yours, or of your cities, was supplied or blockaded.`,
     );
   lines.push(
-    `- The sea has a season. In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them and no convoy is carried over them, and an order to cross them is refused. Along the coasts ships sail all year.`,
+    `- The sea has a season. In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them, no convoy is carried over them, and no city across them can be bought (it lies one voyage away only in the sailing season); an order to cross them is refused. Along the coasts ships sail all year.`,
   );
   return joinS(`\n`, lines);
 }

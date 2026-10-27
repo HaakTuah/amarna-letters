@@ -285,7 +285,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
     neutral
       .filter((g) => {
         const there = b.unitAt.tryGet(g);
-        return b.ownerOf(g) === null && (there === undefined || there.power === me) && !plan.destinations.has(g) && Board.Map.withinReach(g, me, v.owner, units);
+        return b.ownerOf(g) === null && (there === undefined || there.power === me) && !plan.destinations.has(g) && Board.Sail.withinReach(g, me, v.owner, units);
       })
       .map((g) => {
         const y = Board.Map.get(g).yield;
@@ -295,7 +295,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
           b.alive,
           (x) =>
             x !== me &&
-            Board.Map.withinReach(
+            Board.Sail.withinReach(
               g,
               x,
               v.owner,

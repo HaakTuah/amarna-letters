@@ -208,11 +208,14 @@ describe("Who decides (item 6c)", () => {
     Assert.true((await l.climb(threat)).rung !== "script");
     spent = 1;
     Assert.equal("script", (await l.climb(threat)).rung);
-    // Read from what the king sees: foreign troops beside its capital.
+    // Read from what the king sees: foreign troops within its capital, or beside it when they woke him; not a neighbour's
+    // army that has stood beside it since the start (Mitanni's in Terqa, beside Ashur).
     const s = newGame(1);
-    s.units.push({ ...s.units.find((u) => u.power === "Assyria")!, id: "u99", power: "Assyria", province: "durkurigalzu" });
+    s.units.find((u) => u.province === "babylon")!.power = "Assyria";
     Assert.true(ordersStakes(Views.for(s, "Babylonia"), 0).capital);
-    Assert.false(ordersStakes(Views.for(newGame(1), "Babylonia"), 0).capital);
+    Assert.false(ordersStakes(Views.for(newGame(1), "Assyria"), 0).capital);
+    const woken = { ...Views.for(newGame(1), "Assyria"), wokenBecause: ["foreign troops came next to your homeland"] };
+    Assert.true(ordersStakes(woken, 0).capital);
   });
 
   test("The pace follows the table's ending settings, never the drawn last season; an open age has no expected end", () => {

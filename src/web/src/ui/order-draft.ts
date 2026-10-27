@@ -52,7 +52,8 @@ export class OrderDraft {
   }
 
   movesFor(province: string): string[] {
-    const map = OrderDraft.map;
+    // The map as it can be crossed this season: in winter without the open-sea crossings (item 7a).
+    const map = OrderDraft.map.forTurn(this.view.turn);
     const u = this.unitAt(province);
     if (u === null) return [];
     let direct = map.movesFrom(u.kind, province);

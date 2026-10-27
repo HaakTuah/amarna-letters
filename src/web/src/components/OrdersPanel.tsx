@@ -280,6 +280,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                         <select value={d.to ?? ""} onChange={(e) => change({ to: e.target.value })}>
                           <option value="">to hold</option>
                           {map
+                            .forTurn(draft.view.turn)
                             .movesFrom(unit.kind, at)
                             .filter((x) => x !== d.target)
                             .map((to) => (
@@ -507,7 +508,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
               .filter(([, o]) => o === null)
               .map(([g]) => g)
               .filter((g) =>
-                map.withinReach(
+                map.forTurn(v.turn).withinReach(
                   g,
                   me,
                   v.owner,
