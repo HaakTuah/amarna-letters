@@ -15,7 +15,7 @@ import { ProvinceInfo } from "../components/ProvinceInfo.tsx";
 import { ProvinceList } from "../components/ProvinceList.tsx";
 import { SeasonPanel } from "../components/SeasonPanel.tsx";
 import { StandingsPanel } from "../components/StandingsPanel.tsx";
-import { TrailPanel } from "../components/TrailPanel.tsx";
+import { FallbackNotice, TrailPanel } from "../components/TrailPanel.tsx";
 import { city } from "../map/art.ts";
 import { pathOf } from "../map/scene.ts";
 import { buildLifeRecord } from "../session/life-record.ts";
@@ -55,7 +55,7 @@ export function Play() {
       const settings = { ...newSettings(), seed };
       const c = choicesOf(settings);
       Presets.Free.applyTo(c);
-      s.start(withChoices(settings, c), null);
+      s.start(withChoices(settings, c), {});
     }
   }, []);
 
@@ -401,16 +401,7 @@ export function Play() {
             (live.phase.endsWith(": orders") || live.phase.endsWith(": audiences")) && (
               <div className="notice">The other kings are deciding: their agents answer in the Claude Code session on this computer, which can take a few minutes.</div>
             )}
-          {live.errorCount > 0 && (s.godView || !s.hasHumans) && (
-            <details className="notice">
-              <summary>{live.errorCount} call(s) failed and used script fallbacks</summary>
-              {live.errors.map((e, i) => (
-                <div key={i}>
-                  <small>{e}</small>
-                </div>
-              ))}
-            </details>
-          )}
+          {(s.godView || !s.hasHumans) && <FallbackNotice live={live} />}
         </div>
         <div className="panelbody">
           {panel()}
@@ -489,7 +480,7 @@ export function Play() {
       case "inbox":
         return <InboxPanel state={displayed} power={viewer!} />;
       case "trail":
-        return <TrailPanel state={displayed} onPerson={follow} />;
+        return <TrailPanel state={displayed} authors={live.trailAuthors} onPerson={follow} />;
       case "people":
         return <PeoplePanel state={displayed} viewer={viewer} onPerson={follow} />;
       case "follow":

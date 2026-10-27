@@ -7,8 +7,8 @@
  */
 import { isLetterOrDigit, trimEnd } from "@amarna/engine";
 import { newModelCall, type ModelCall } from "@amarna/game";
-import type { CallSpec } from "./client.ts";
-import type { JsonObject } from "./schemas.ts";
+import { readObject, retryNote, type CallSpec } from "./client.ts";
+import { jsonSchema, problems, type JsonObject } from "./schemas.ts";
 import { Sb } from "./text.ts";
 
 /** Whom the request asks to decide: a king's file seat decides "as the king", a file character "as yourself". */
@@ -45,13 +45,13 @@ export async function converse(
       call.output = text;
       call.requestChars = chars;
       try {
-        const json = lenient(text);
-        if (json === null) throw new ReplyError("the reply was not one JSON object");
-        // Models get the schema enforced by the API; a file seat's reply is checked here instead.
+        const json = readObject(text);
+        if (json === null) throw new ReplyError("it was not one JSON object");
+        // Every reply is validated against its schema, a file seat's as a model's.
         const found = problems(json, spec.schema);
         if (found.length > 0) throw new ReplyError("it does not match the schema: " + found.join("; "));
         record?.(call);
-        return json;
+        return spec.schema.parse(json) as JsonObject;
       } catch (ex) {
         if (!(ex instanceof ReplyError) || attempt !== 1) throw ex;
         error = ex.message;
@@ -87,7 +87,7 @@ export function requestText(spec: CallSpec, replyPath: string, error: string, ac
   sb.appendLine(trimEnd(spec.user));
   if (error.length > 0) {
     sb.appendLine();
-    sb.appendLine(`(Your previous reply could not be read: ${error}. Reply with one JSON object that matches the schema.)`);
+    sb.appendLine(retryNote(error).trim());
   }
   sb.appendLine();
   sb.appendLine("## HOW TO REPLY");
@@ -95,7 +95,7 @@ export function requestText(spec: CallSpec, replyPath: string, error: string, ac
   sb.appendLine(`Write exactly one JSON object that matches this schema, and nothing else, to: ${replyPath.replaceAll("\\", "/")}`);
   sb.appendLine();
   sb.appendLine("```json");
-  sb.appendLine(readable(spec.schema));
+  sb.appendLine(readable(jsonSchema(spec.schema)));
   sb.appendLine("```");
   sb.appendLine();
   sb.appendLine(Footer);
@@ -121,70 +121,6 @@ export function readable(node: unknown, depth = 0): string {
   if (Array.isArray(node) && node.some(nested)) return "[\n" + node.map((x) => inner + readable(x, depth + 1)).join(",\n") + `\n${pad}]`;
   if (node === null || node === undefined) return "null";
   return JSON.stringify(node);
-}
-
-/** The reply as a JSON object: the whole text, or else the outermost {...} in it (a code fence or a stray line around it is forgiven). */
-export function lenient(text: string): JsonObject | null {
-  const asObject = (s: string): JsonObject | null => {
-    try {
-      const v: unknown = JSON.parse(s);
-      return v !== null && typeof v === "object" && !Array.isArray(v) ? (v as JsonObject) : null;
-    } catch {
-      return null;
-    }
-  };
-  const whole = asObject(text);
-  if (whole !== null) return whole;
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start < 0 || end <= start) return null;
-  return asObject(text.slice(start, end + 1));
-}
-
-/** Where a reply breaks the schema: wrong JSON types and values outside an enum (at most eight). Missing properties are allowed. */
-export function problems(node: unknown, schema: JsonObject): string[] {
-  const found: string[] = [];
-  walk(node, schema, "reply", found);
-  return found;
-}
-
-function walk(node: unknown, schema: JsonObject, path: string, found: string[]): void {
-  if (found.length >= 8) return;
-  const isObject = (x: unknown): x is JsonObject => x !== null && typeof x === "object" && !Array.isArray(x);
-  switch (schema.type) {
-    case "object": {
-      if (!isObject(node)) {
-        found.push(`${path} should be an object`);
-        return;
-      }
-      const props = isObject(schema.properties) ? schema.properties : null;
-      for (const [k, v] of Object.entries(node)) {
-        const inner = props?.[k];
-        if (isObject(inner)) walk(v, inner, `${path}.${k}`, found);
-      }
-      break;
-    }
-    case "array":
-      if (!Array.isArray(node)) {
-        found.push(`${path} should be an array`);
-        return;
-      }
-      if (isObject(schema.items)) for (let i = 0; i < node.length; i++) walk(node[i], schema.items, `${path}[${i}]`, found);
-      break;
-    case "string":
-      if (typeof node !== "string") {
-        found.push(`${path} should be a string`);
-        return;
-      }
-      if (Array.isArray(schema.enum) && !schema.enum.some((e) => e === node)) found.push(`${path} must be one of ${schema.enum.join(", ")}`);
-      break;
-    case "integer":
-      if (!(typeof node === "number" && Number.isInteger(node) && node >= -2147483648 && node <= 2147483647)) found.push(`${path} should be a whole number`);
-      break;
-    case "boolean":
-      if (typeof node !== "boolean") found.push(`${path} should be true or false`);
-      break;
-  }
 }
 
 /** A key as a file name: letters, digits, '-' and '_' kept, anything else '_'. */

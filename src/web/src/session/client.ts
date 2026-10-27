@@ -19,8 +19,8 @@ import {
 } from "@amarna/engine";
 import { buildScene, type MapScene } from "../map/scene.ts";
 import type { SeasonFrame } from "./frames.ts";
-import type { FromWorker, Live, ToWorker } from "./protocol.ts";
-import { newSettings, type GameSettings } from "./settings.ts";
+import type { FromWorker, Keys, Live, ToWorker } from "./protocol.ts";
+import { newSettings, type GameSettings, type TableSettings } from "./settings.ts";
 import { download } from "./storage.ts";
 
 /** A human seat's question, read back into the engine's types. */
@@ -55,6 +55,8 @@ const emptyLive = (): Live => ({
   pending: [],
   gameId: "",
   fallenToGod: false,
+  trailAuthors: {},
+  fallbacks: [],
 });
 
 export class Session {
@@ -219,13 +221,15 @@ export class Session {
 
   // ---------------------------------------------------------------- what the player does
 
-  start(settings: GameSettings, apiKey: string | null): void {
+  /** `keys`: the API key of each provider in use, by provider id. */
+  start(settings: GameSettings, keys: Keys): void {
     this.replaying = false;
-    this.send({ type: "start", settings, apiKey });
+    this.send({ type: "start", settings, keys });
   }
-  load(text: string, continuePlay: boolean, apiKey: string | null): void {
+  /** `table`: the providers, prices and pause share set on the page, which a saved log does not keep. */
+  load(text: string, continuePlay: boolean, keys: Keys, table: TableSettings | null = null): void {
     this.replaying = false;
-    this.send({ type: "load", text, continuePlay, apiKey });
+    this.send({ type: "load", text, continuePlay, keys, table });
   }
   step(): void {
     this.historyTurn = null;

@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { parentPort } from "node:worker_threads";
 import { AllPowers, Dict, GameFactory, newGameConfig, type Power } from "@amarna/engine";
-import { Presets, SeatChoices, SimulatedApi, bodyText, buildSeats } from "@amarna/llm";
+import { Presets, SeatChoices, SimulatedApi, bodyText, buildSeats, providersFor } from "@amarna/llm";
 import { BaselineLeader, GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, attachParity, replayLenient, type ISeat } from "@amarna/game";
 
 /** `play`: instead of replaying the log, play the game afresh with script kings (sleeping ones, as --sleeping-scripts). */
@@ -65,7 +65,7 @@ parentPort!.on("message", async (job: ReplayJob) => {
       if (k % 2 === 1) choices.leaders.set(p, "Script");
     });
     let runner: GameRunner | null = null;
-    const set = buildSeats(choices, state, api, () => runner!.log);
+    const set = buildSeats(choices, state, providersFor(choices, api, {}), () => runner!.log);
     runner = new GameRunner(state, set.seats, set.minds, set.narrator);
     let drained = 0;
     const lines = attachParity(runner, () => {

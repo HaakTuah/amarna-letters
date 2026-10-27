@@ -8,5 +8,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./node": "./src/node/index.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0",
+    "zod": "4.1.12"
   }
 }

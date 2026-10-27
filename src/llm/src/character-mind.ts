@@ -49,7 +49,7 @@ import {
 import type { JsonAsker } from "./client.ts";
 import { ModelIds } from "./models.ts";
 import { Parse } from "./parse.ts";
-import { Schemas, type JsonObject } from "./schemas.ts";
+import { Replies, Schemas, type JsonObject, type ReplySchema } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
 
 export const CharacterSystem = `You are one of the people of the Amarna age (c. 1360-1330 BCE): a messenger, envoy, agent or would-be servant of the Great Kings, who serves for pay. You are not a king and you are not playing to win a game. You live your own life inside the story, with your own motives, and you speak and decide only as yourself.
@@ -218,7 +218,11 @@ export class LlmCharacterMind implements ICharacterMind {
     return this.labelText ?? `${ModelIds.display(this.model)} characters`;
   }
 
-  private ask(key: string, turn: number, role: string, c: Character, user: string, schema: JsonObject, signal?: AbortSignal, asOf: number | null = null, then: SpyReport | null = null): Promise<JsonObject> {
+  authorFor(c: Character): string {
+    return this.askerFor(c) === null ? this.script.label : this.label;
+  }
+
+  private ask(key: string, turn: number, role: string, c: Character, user: string, schema: ReplySchema, signal?: AbortSignal, asOf: number | null = null, then: SpyReport | null = null): Promise<JsonObject> {
     const asker = this.askerFor(c);
     if (asker === null) throw new Error(`No mind for ${c.id}.`);
     return asker.askJson(
@@ -414,7 +418,7 @@ export class LlmCharacterMind implements ICharacterMind {
     if (d.proposal !== null) user.appendLine(`You carry a tablet for the king to seal: "${d.proposal.text}"`);
     user.appendLine("Speak to the king now.");
     // The gold questions only when it carries gold, and the swap only when its hand could fake the seal.
-    const json = await this.ask(`t${ctx.turn}/aud/present/${ctx.self.id}`, ctx.turn, `envoy:${ctx.self.id}`, ctx.self, user.toString(), Schemas.present(d.gold > 0, forger), signal);
+    const json = await this.ask(`t${ctx.turn}/aud/present/${ctx.self.id}`, ctx.turn, `envoy:${ctx.self.id}`, ctx.self, user.toString(), Replies.present(d.gold > 0, forger), signal);
     const r = Parse.present(json);
     r.skim = clamp(r.skim, 0, d.gold);
     // Nothing kept, nothing to hide: the engine ignores a swap then anyway. A swap it was not asked about is not made.
@@ -450,7 +454,7 @@ export class LlmCharacterMind implements ICharacterMind {
       `envoy:${ctx.self.id}`,
       ctx.self,
       user.toString(),
-      Schemas.react(giftOpen, host.jobOffer > 0),
+      Replies.react(giftOpen, host.jobOffer > 0),
       signal,
     );
     const r = Parse.react(json);
@@ -500,7 +504,7 @@ export class LlmCharacterMind implements ICharacterMind {
         const forger = canForge(c, ctx.forgeMinCompetence);
         if (cargo.gold > 0) user.appendLine(`You carry back gold the king sent ${him}, with an inventory tablet sealed by that king that says ${cargo.goldStated} shekels. ` + keepLine(forger));
         user.appendLine(`Write your report to ${still ? "your lord" : "him"} now.`);
-        const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Schemas.report(cargo.gold > 0, forger, still), signal);
+        const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Replies.report(cargo.gold > 0, forger, still), signal);
         const r = Parse.report(json);
         r.number = clamp(r.number, 0, cargo.gold);
         if (r.number === 0 || !forger) r.swapInventory = false;
@@ -512,7 +516,7 @@ export class LlmCharacterMind implements ICharacterMind {
           `${Views.capitalized(courtOf(court))} is looking for envoys and agents, and you have come before the king. ` +
           `Present yourself in a few sentences and name your wage per season. Someone like you usually earns about ${ctx.basePrice} shekels a season; ` +
           `${ctx.demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now"}.`;
-        const json = await this.ask(key, ctx.turn, `candidate:${c.id}`, c, user, Schemas.pitch(), signal);
+        const json = await this.ask(key, ctx.turn, `candidate:${c.id}`, c, user, Replies.pitch(), signal);
         return Parse.pitch(json);
       }
       case "SpyReport": {
@@ -530,7 +534,7 @@ export class LlmCharacterMind implements ICharacterMind {
         if (!isBlank(r.poison)) user.appendLine(`Your secret masters want your lord to hear this, as if you had seen it yourself: "${r.poison}"`);
         user.appendLine("Write your report home, to be carried by a trusted messenger.");
         // Written when it arrives, of the season it was observed: the spy remembers nothing that happened to it since.
-        const json = await this.ask(key, ctx.turn, `spy:${c.id}`, c, user.toString(), Schemas.text("report", "Your report home."), signal, r.observedTurn > 0 ? r.observedTurn : null, r);
+        const json = await this.ask(key, ctx.turn, `spy:${c.id}`, c, user.toString(), Replies.text("report", "Your report home."), signal, r.observedTurn > 0 ? r.observedTurn : null, r);
         return newMindReply({ text: Parse.field(json, "report") });
       }
       case "SummarizeMemory": {
@@ -541,7 +545,7 @@ export class LlmCharacterMind implements ICharacterMind {
         if (c.memorySummary.length > 0) user.appendLine(`Your summary so far: ${c.memorySummary}`);
         user.appendLine("Older memories to fold in:");
         for (const m of req.facts) user.appendLine("- " + cap(m, 500));
-        const json = await this.ask(key, ctx.turn, `memory:${c.id}`, c, user.toString(), Schemas.text("summary", "The new summary of your older memories."), signal);
+        const json = await this.ask(key, ctx.turn, `memory:${c.id}`, c, user.toString(), Replies.text("summary", "The new summary of your older memories."), signal);
         return newMindReply({ text: Parse.field(json, "summary") });
       }
     }

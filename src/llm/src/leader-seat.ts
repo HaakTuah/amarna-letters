@@ -12,7 +12,7 @@ import { ModelIds } from "./models.ts";
 import { Parse } from "./parse.ts";
 import { audience, courtBrief, identity, ordersLine, situation, sleepLine, tabletLine } from "./prompts.ts";
 import { leaderRules } from "./rules.ts";
-import { Schemas } from "./schemas.ts";
+import { Replies, Schemas } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
 
 export class LlmLeaderSeat implements ISeat {
@@ -59,7 +59,7 @@ export class LlmLeaderSeat implements ISeat {
         sharedSystem: this.shared,
         seatSystem: identity(this.power),
         user: user.toString(),
-        schema: Schemas.leaderOrders(this.config),
+        schema: Replies.leaderOrders(this.config),
         effort: this.effort,
         maxTokens: 16000,
       },
@@ -96,7 +96,7 @@ export class LlmLeaderSeat implements ISeat {
         seatSystem: identity(this.power),
         user: user.toString(),
         // With its orders standing it may also send letters and reopen its orders. It is asked only what applies.
-        schema: Schemas.hostReply(this.config, view),
+        schema: Replies.hostReply(this.config, view),
         effort: this.effort === "high" ? "medium" : "low",
         maxTokens: 8000,
       },

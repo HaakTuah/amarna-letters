@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { text } from "../../llm/src/schemas.ts";
 import { type GameState, I, Rng, S, TraitsSchema, dict, distinct, hash, list, newGame, obj, opt, range } from "@amarna/engine";
 import { Assert } from "./support.ts";
 

@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { text } from "../../llm/src/schemas.ts";
 import {
   AllPowers,
   ArchiveTakenTitle,

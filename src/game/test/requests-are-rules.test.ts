@@ -41,6 +41,7 @@ import {
   LlmLeaderSeat,
   Schemas,
   SimulatedApi,
+  jsonSchema,
   leaderRules,
   ordersLine,
   selfText,
@@ -242,8 +243,8 @@ describe("RequestsAreRulesTests", () => {
     // The follow-up's review: with sleep off the simulated API left out standing_orders and cancel_standing, which every
     // king is now asked; and a dismissed envoy's report fell through to the plain report reply.
     async function replyOf(schema: JsonObject): Promise<JsonObject> {
-      let body: JsonObject = { model: "claude-sonnet-5-5", output_config: { format: { schema } } };
-      let result = await new SimulatedApi().send({ key: "", turn: 0, role: "", model: "", sharedSystem: "", user: "", schema }, body);
+      let body: JsonObject = { model: "claude-sonnet-5-5", tools: [{ name: "reply", input_schema: schema }] };
+      let result = await new SimulatedApi().send(body);
       return JSON.parse(result.text) as JsonObject;
     }
 
@@ -257,7 +258,7 @@ describe("RequestsAreRulesTests", () => {
   });
 
   function reportDescription(call: CallSpec): string {
-    return ((call.schema.properties as JsonObject).report as JsonObject).description as string;
+    return ((jsonSchema(call.schema).properties as JsonObject).report as JsonObject).description as string;
   }
 
   test("A king whose title names his land is not named twice", async () => {

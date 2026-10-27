@@ -9,19 +9,21 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync } from "no
 import { basename, join } from "node:path";
 import { AllPowers, cmpNum, fmt, newGameConfig, sortBy, idNumber, PowerValues, type Power } from "@amarna/engine";
 import { batchReport, soloReport, versusReport, type GameSummary } from "@amarna/game";
-import { CostEstimate, Presets, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
+import { CostEstimate, Presets, SimulatedApi, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
 import { FileCharacters } from "@amarna/llm/node";
-import { choicesOf, playOne, type BatchOptions, type PlayJob, type PlayResult, type SoloJob } from "./play.ts";
+import { choicesOf, playOne, setupCheck, type BatchOptions, type PlayJob, type PlayResult, type SoloJob } from "./play.ts";
 import { runPool } from "./pool.ts";
 
 const LeaderKinds = ["Script", "Human", "Haiku", "Sonnet", "Opus", "LocalAgent"] as const;
-const CharacterKinds = ["Script", "Haiku", "Sonnet"] as const;
+const CharacterKinds = ["Script", "Haiku", "Sonnet", "Opus"] as const;
 const NarratorKinds = ["Template", "Haiku", "Sonnet", "Opus"] as const;
 const enumOf = <T extends string>(values: readonly T[], s: string): T => {
   const v = values.find((x) => x.toLowerCase() === s.toLowerCase());
   if (v === undefined) throw new Error(`Requested value '${s}' was not found.`);
   return v;
 };
+/** A known kind by its name in any case, or else any model setting ("claude-sonnet-5-5", "<provider>:<model>"). */
+const kindOf = (values: readonly string[], s: string): string => values.find((x) => x.toLowerCase() === s.toLowerCase()) ?? s;
 
 const args = process.argv.slice(2);
 const o: BatchOptions = {
@@ -45,6 +47,8 @@ const o: BatchOptions = {
   parityDir: null,
   sleepingScripts: false,
   simulateApi: false,
+  providers: [],
+  prices: {},
 };
 let solo = false;
 let fileSeats: string | null = null;
@@ -152,20 +156,35 @@ for (let i = 0; i < args.length; i++) {
       break;
     }
     case "--leaders": {
-      const kind = enumOf(LeaderKinds, next());
+      const kind = kindOf(LeaderKinds, next());
       for (const p of AllPowers) o.leaders[p] = kind;
       break;
     }
     case "--characters":
-      o.characters = enumOf(CharacterKinds, next()) as CharacterKind;
+      o.characters = kindOf(CharacterKinds, next()) as CharacterKind;
       break;
     case "--narrator":
-      o.narrator = enumOf(NarratorKinds, next()) as NarratorKind;
+      o.narrator = kindOf(NarratorKinds, next()) as NarratorKind;
       break;
+    case "--provider": {
+      // ID=URL: a provider with an OpenAI-compatible endpoint; its key is read from <ID>_API_KEY (empty for a local one).
+      const [id, url] = next().split(/=(.*)/s);
+      if (id === undefined || url === undefined || id.length === 0) throw new Error("--provider takes ID=URL.");
+      o.providers.push({ id, baseUrl: url });
+      break;
+    }
+    case "--price": {
+      // MODEL=IN,OUT,CACHE: dollars per million input, output and cache-read tokens.
+      const [model, rest] = next().split(/=(.*)/s);
+      const n = (rest ?? "").split(",").map(Number);
+      if (model === undefined || n.length !== 3 || n.some((x) => !Number.isFinite(x))) throw new Error("--price takes MODEL=IN,OUT,CACHE.");
+      o.prices[model] = [n[0], n[1], n[2]];
+      break;
+    }
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -257,10 +276,12 @@ if (fileCharacters !== null) {
 
 const choices = choicesOf(o);
 const key = process.env.ANTHROPIC_API_KEY ?? "";
-if (choices.usesModels && key.trim() === "" && !o.simulateApi) {
-  console.error("Model seats need ANTHROPIC_API_KEY set in the environment.");
+if (choices.providersInUse.includes("anthropic") && key.trim() === "" && !o.simulateApi) {
+  console.error("Anthropic models need ANTHROPIC_API_KEY set in the environment.");
   process.exit(1);
 }
+const unpriced = CostEstimate.unpriced(choices);
+if (unpriced.length > 0) console.log(`No price set for ${unpriced.join(", ")} (--price MODEL=IN,OUT,CACHE): the cost meter counts them as free.`);
 if (o.outDir !== null) mkdirSync(o.outDir, { recursive: true });
 if (o.parityDir !== null) mkdirSync(o.parityDir, { recursive: true });
 if (choices.usesModels)
@@ -300,7 +321,13 @@ const started = Date.now();
 const played: (PlayResult | null)[] = new Array(o.games).fill(null);
 const jobs: PlayJob[] = Array.from({ length: o.games }, (_, g) => ({ g, options: o }));
 if (choices.usesModels || o.folders.length > 0 || o.characterFolders.length > 0) {
-  // Model and file games run one at a time, in this thread, within the budget.
+  // Model and file games run one at a time, in this thread, within the budget, after the check at setup.
+  try {
+    await setupCheck(o, o.simulateApi ? new SimulatedApi() : null);
+  } catch (e) {
+    console.error(e instanceof Error ? e.message : String(e));
+    process.exit(1);
+  }
   let spent = 0.0;
   for (let g = 0; g < o.games; g++) {
     if (spent >= o.budget) {

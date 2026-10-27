@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import { AllPowers, MindReplySchema, newGame, newGameConfig, newMindReply } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
-import { SeatChoices, SimulatedApi, buildSeats } from "@amarna/llm";
+import { SeatChoices, SimulatedApi, buildSeats, providersFor } from "@amarna/llm";
 import { Assert, toDict } from "../../engine/test/support.ts";
 
 // A log writes each decision's line once and keeps it (the browser saves the whole log every season): the text it
@@ -15,7 +15,7 @@ describe("LogTextTests", () => {
       choices.leaders.set("Egypt", "Haiku");
       choices.characters = "Haiku";
     }
-    let set = buildSeats(choices, state, new SimulatedApi(), () => runner!.log);
+    let set = buildSeats(choices, state, providersFor(choices, new SimulatedApi(), {}), () => runner!.log);
     runner = new GameRunner(state, set.seats, set.minds, set.narrator);
 
     function same(log: GameLog): void {
