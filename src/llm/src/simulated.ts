@@ -69,6 +69,8 @@ export function answer(props: JsonObject | null, user = ""): string {
         gift_news: [],
         offer_service_wage: 0,
         seal_tablet: true,
+        your_tablet: "",
+        your_tablet_clauses: [],
         detain_envoy: false,
         send_gold_back: 0,
         gold_back_purity: 100,
@@ -84,6 +86,8 @@ export function answer(props: JsonObject | null, user = ""): string {
       gift_request: "",
       offer_service_wage: 0,
       seal_tablet: true,
+      your_tablet: "",
+      your_tablet_clauses: [],
       detain_envoy: false,
       send_gold_back: 0,
       gold_back_purity: 100,
@@ -95,6 +99,7 @@ export function answer(props: JsonObject | null, user = ""): string {
     o = { speech: "I thank you, Great King.", commitments: "" };
     if (has("accept_gift")) o.accept_gift = false;
     if (has("accept_service")) o.accept_service = false;
+    if (has("seal_tablet")) o.seal_tablet = false;
   } else if (has("speech")) {
     // An envoy's presentation, with the gold fields only when it carries gold.
     o = { speech: "My lord greets you as a brother." };

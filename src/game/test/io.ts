@@ -64,7 +64,7 @@ export const delay = (ms: number, signal?: AbortSignal): Promise<void> =>
 export function welcomeCourt(request: string): string {
   const answers = [...request.matchAll(/\((c\d+)\), envoy of /g)].map(
     (m) =>
-      `{"envoy":"${m[1]}","speech":"Welcome.","clauses":[],"gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`,
+      `{"envoy":"${m[1]}","speech":"Welcome.","clauses":[],"gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"your_tablet":"","your_tablet_clauses":[],"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`,
   );
   return `{"answers":[${answers.join(",")}],"standing_answers":[],"cancel_answers":[],"ledger":[],"letters":[],"reopen_orders":false}`;
 }

@@ -163,6 +163,7 @@ describe("IdCounterTests", () => {
       { prefix: "j", ids: s.journeys.map((x) => x.id) },
       { prefix: "k", ids: s.copies.map((x) => x.id) },
       { prefix: "m", ids: s.trails.map((x) => x.id) },
+      { prefix: "p", ids: s.grants.map((x) => x.id) },
       { prefix: "q", ids: s.tasks.map((x) => x.id) },
       { prefix: "t", ids: s.tablets.map((x) => x.id) },
       { prefix: "u", ids: s.units.map((x) => x.id) },

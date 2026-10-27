@@ -12,7 +12,7 @@ import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
 import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type Grant, GrantSchema } from "./authority.ts";
 
-export const CURRENT_VERSION = 12;
+export const CURRENT_VERSION = 13;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -491,6 +491,7 @@ export const IdKinds: ReadonlyMap<string, string> = new Map([
   ["j", "journey"],
   ["k", "copy of a tablet"],
   ["m", "message trail"],
+  ["p", "grant of passage or basing"],
   ["q", "task owed to a court"],
   ["r", "request to a character's mind"],
   ["t", "tablet"],

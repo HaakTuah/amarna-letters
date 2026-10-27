@@ -69,10 +69,11 @@ describe("TravelTests", () => {
       Assert.equal(1, v.accepted.filter((o) => o.type === "move").length);
       new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [{ type: "move", unit: "nesa", to: "kizzuwatna" }] })]]));
       const u = s.units.find((x) => x.id === "u-test");
-      if (u === undefined) {
+      // (A plague may take it too: only the winter's loss is counted.)
+      if (s.events.some((x) => x.signal === "winter-loss" && x.visibleTo.includes("Hatti"))) {
         lost++;
-        Assert.true(s.events.some((x) => x.signal === "winter-loss" && x.visibleTo.includes("Hatti")));
-      } else Assert.equal("kizzuwatna", u.province);
+        Assert.true(u === undefined);
+      } else if (u !== undefined) Assert.equal("kizzuwatna", u.province);
     }
     // About GameConfig.winterArmyLoss (30) in 100: lost in some games, through in most.
     Assert.true(lost > 3 && lost < 25);

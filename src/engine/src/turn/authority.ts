@@ -97,7 +97,7 @@ P.grantsFrom = function (t) {
     if (g.grantor === g.grantee) continue;
     if (g.province !== null && S.owner.getOrDefault(g.province, null) !== g.grantor) continue;
     if (g.kind === "basing" && g.province === null) continue;
-    S.grants.push(newGrant({ id: newId(S, "gr"), kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: S.turn, untilTurn: g.untilTurn, tabletId: t.id }));
+    S.grants.push(newGrant({ id: newId(S, "p"), kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: S.turn, untilTurn: g.untilTurn, tabletId: t.id }));
     const where = g.province !== null ? this.map.get(g.province).name : `all the land of ${g.grantor}`;
     logEvent(S, "passage", `${g.grantor} granted ${g.grantee} ${g.kind === "passage" ? "passage through" : "basing within the walls of"} ${where}.`, [g.grantor, g.grantee], g.kind === "passage" ? "passage-granted" : "basing-granted");
   }
