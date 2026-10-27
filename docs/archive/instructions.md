@@ -108,3 +108,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     included, once they are green and (for an item) its reviewer has found nothing blocking. It replaces "Haakon merges
     `develop` into `main`" in the builder rules ("Branches", "A pull request at every milestone"). Listed in `CLAUDE.md`
     under "Standing instructions".
+
+15. **09:00**, in the design chat, after Claude found no pushes from either builder for over an hour and asked whether to add a rule (Claude's question: "Shall I add a 'push at every checkpoint, at least hourly' rule to both projects' instructions?"). Haakon had asked: "And shouldn't they push regularly so they don't risk losing anything?" His answer:
+
+    > Yes to all, expertly!
+
+    A standing instruction, for this game and Barkstreet Snakes alike: push the item's branch at every passed gate and at
+    least once an hour while work is under way. Listed in `CLAUDE.md` under "Standing instructions".

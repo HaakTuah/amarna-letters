@@ -15,7 +15,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 557 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 32 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 33 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 22 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 40 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
@@ -44,7 +44,7 @@ session loads.
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.7 |
-| `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.2 |
+| `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.3 |
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 5.2 |
 | `docs/intent/build-order/item-8.md` | 8. Structured press. The second press mode, with templates for every king and sc | 1.3 |
 | `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. Mandates with engine-checkable limits, the autho | 0.5 |
