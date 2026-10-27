@@ -25,7 +25,10 @@ From the task that started the session (27 October 2026):
 No standing instruction was given, so "Standing instructions" in `CLAUDE.md` is unchanged.
 
 The check for changes was made against the live document when the step began (Build order and Engine and models, through
-Claude Docs): nothing had changed since the copy's revisions.
+Claude Docs): nothing had changed since the copy's revisions. Before the merge, `develop` brought a refreshed copy (Build
+order revision 18, Engine and models revision 27, from #29 to #34): item 5+ now marks the docs pass done and gives the fix
+pass a table setting that pauses a game when more than a chosen share of calls fall back; the Engine rules are unchanged
+but for a date. Nothing in it changes this step.
 
 ## What was built
 
