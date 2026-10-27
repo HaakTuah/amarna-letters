@@ -94,6 +94,13 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   keep a readable size on screen whatever the zoom (tokens about 14 pixels on a phone showing the whole board, 22 on a
   desktop, at most 40), and minor names wait until the map is large enough to hold them. A province list stands in for
   tapping small provinces; in a human seat's orders it picks a destination as a tap on the map would.
+  **The Levant on a phone** (item 8; "Map on small screens": the period first). Names give way by importance
+  (`nameRank` in `map/markup.ts`): capitals always; great cities (yield 35 or more, or a fortress's walls) from the first
+  zoom step; the rest only once a map unit is 0.95 screen pixels or more (the `crowd` class in `zoom.ts`), where the
+  crowded coast has room for Arwad, Ṣumur, Amurru and Byblos side by side. The zoom goes deeper (14 times the whole board,
+  from 8), and every city has a tap target larger than the city drawn (radius 18, 22 for a capital, in the city's own
+  scale). Checked on a 390-pixel screen: at the first zoom step the Levant reads Ugarit, Arwad, Qadesh and Tyre cleanly
+  with the lesser names hidden; one step further every name stands clear. Nothing was given up.
 - **Installable.** A manifest and a service worker (`src/web/service-worker.template.js`, filled in by the build in `vite.config.ts`
   with every built file and its hash): the published build caches
   every file at install and starts from the cache afterwards. Fingerprinted files are taken from the browser's own

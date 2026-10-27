@@ -29,6 +29,15 @@ export interface SupportPromise {
   to: string;
 }
 
+/**
+ * Script kings acting on the clauses they read (item 8): answering requests with deeds, promising and keeping supports,
+ * telling a king his messenger lied, reading their envoys' reports of answers and the news passed on, and sending gold
+ * without an inventory by an envoy they trust. Off (`--no-clause-play`), or for half the kings (`--clause-play-half`), only
+ * to measure it: they still write their letters in clauses, which structured press requires.
+ */
+export const ClausePlay: { on: boolean; only: ReadonlySet<string> | null } = { on: true, only: null };
+export const clausePlays = (p: Power): boolean => ClausePlay.on && (ClausePlay.only === null || ClausePlay.only.has(p));
+
 /** How long, in seasons, a promise of support is looked ahead: further than this, nobody can plan it. */
 export const SupportHorizon = 4;
 
@@ -53,6 +62,7 @@ const answer = (kind: "accept" | "refuse" | "counter", answers: ClauseKind, init
  */
 export function answerLetter(view: AudienceView, b: Board, brain: Brain, reply: HostReply, say: (s: string) => void): void {
   const me = view.host;
+  if (!clausePlays(me)) return;
   const sender = view.from;
   const r = brain.rel.get(sender);
   const friend = brain.isFriend(sender) && brain.betraying !== sender;
@@ -157,6 +167,7 @@ export function answerLetter(view: AudienceView, b: Board, brain: Brain, reply: 
  * little, and his complaint that our gold weighed light tells us our envoy kept some.
  */
 export function readReport(item: InboxItem, brain: Brain, b: Board, turn: number): void {
+  if (!clausePlays(b.me)) return;
   const host = AllPowers.find((x) => item.body.includes(`court of ${land(x)}`)) ?? null;
   if (host === null || !brain.rel.has(host)) return;
   const r = brain.rel.get(host);

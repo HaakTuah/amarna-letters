@@ -5,7 +5,7 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
 `02-geography.md`. The map data is `buildMap` in `src/engine/src/model/map.ts`, the ground `geography.ts`, the lengths
 `distance.ts`.
 
-- **54 land provinces and 15 sea zones** (41 and 5 before). Added, by the bar "a polity or administrative centre that acts
+- **55 land provinces and 15 sea zones** (41 and 5 before item 7a; 54 until item 8 made Ṣumur a province of its own). Added, by the bar "a polity or administrative centre that acts
   in the period's diplomacy or war": Aleppo (walls 2), Qatna (2), Alalakh (1), Nuhashshe (1), Jerusalem (1, rough), Shechem
   (1, rough), Arrapha (1), Sidon (1) and the island of Arwad (2), all free city-states, as the Levant's other vassals are
   until item 11+ makes city-states powers; Nubia (Egypt's, on the Nile above Thebes, yield 30); Dilmun (Babylonia's, an
@@ -15,8 +15,13 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
   walls are first guesses, tuned in item 18.
 - **Kumidi** stays inside Damascus's province: an Egyptian commissioner's seat in the Beqaa, under Biryawaza of Damascus's
   authority (EA 194-197), it never acted as a polity of its own, and a third city between Byblos, Sidon and Damascus would
-  crowd the Levant on a phone. **Ṣumur** was built both ways and kept as Amurru's harbour: see the report for the
-  comparison (script games and the phone).
+  crowd the Levant on a phone. **Ṣumur** was built both ways and kept as Amurru's harbour in item 7a; since item 8, by
+  Haakon's answer to its review ("the period first"), it is a province of its own: Ṣumur (`sumur`, Tell Kazel, Egypt's base on
+  the coast, a free city with a town's walls, yield 15) holds the coast and the waters it shares with Arwad ("Sumur and
+  Arwad waters", `sumurwaters`), and Amurru (yield 20, walls 1, rough) is the hill country behind it, a land province
+  bordering Ugarit, Ṣumur, Qadesh, Nuhashshe and Byblos. **Lukka** is since item 8 a land without a king, like the Kaska
+  lands (no walls, not for sale, yield 15 from 25; the outlaws of a kingless land on its roads), so Arzawa has no city it
+  can buy. The phone reads the Levant (see "Map on small screens" in [the web map](09-the-web-map-and-the-interface.md)).
 - **Names of their time.** `mari` became **Suhu**, the land on the Euphrates between Hana and Babylonia, with a town's walls
   (1) instead of Mari's fortress (2); Terqa, Hana's own capital, already names Mitanni's province at the mouth of the Habur,
   so Hana's land is on the map under Mitanni's reach, as the politics dossier has it. `kanesh` became **Nesa** and

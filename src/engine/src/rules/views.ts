@@ -594,6 +594,7 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
     copyId: copy.id,
     tabletId: t.id,
     text: t.text,
+    clauses: t.clauses.map((c) => ({ ...c })),
     seals: [...t.seals],
     proposedBy: t.proposedBy,
     partner: t.partner,

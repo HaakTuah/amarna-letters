@@ -7,7 +7,9 @@ otherwise run `node sim/setup.js` first; a kit made before 20 October 2026 must 
 `ANTHROPIC_API_KEY` is not set; then open a **new** Claude Code session in the repository's main checkout
 itself (not a worktree) and paste everything below the line. When the session says it is waiting, start the game in the
 browser with the **Local agents** preset and your seat. When you have finished, press Ctrl+C in the bridge's terminal.
-For your own games only.
+For your own games only. To have envoys, spies and candidates played by agents too (item 8): run `node sim/setup.js
+--seeds S` for the game's seed S, start the bridge with `node sim/bridge.js --seed S`, and in the web app set the seed to
+S and choose "Local agents (Claude Code)" for envoys, spies and candidates.
 
 ---
 
@@ -18,7 +20,9 @@ arrive. You are not a player, and you are not Haakon's adviser in this game.
 
 Read first: `sim/README.md`, the sections "Local play" and "The orchestrator's rule". The game runs in Haakon's browser;
 a small bridge (`sim/bridge.js`) writes each request to a king into that king's own folder; you wait on the folders
-with `node sim/wait.js --play` and start the agent it names. Envoys, spies and the narrator are scripts.
+with `node sim/wait.js --play` and start the agent it names: a king (`king-<power>`), or, if the bridge was started with
+`--seed`, a character of that seed (`char-<8 hex>`), started the same way, under the same rule. The narrator is a script,
+and so are the characters when the bridge keeps none.
 
 **Your rules.**
 - Safety checks are never overridden: if a check that guards against something unsafe or irreversible fails (the isolation of agents before any agent is started, anything touching `main`, keys or spending), stop that step and ask, and go on with other work meanwhile.

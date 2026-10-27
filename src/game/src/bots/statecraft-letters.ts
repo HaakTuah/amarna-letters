@@ -43,7 +43,7 @@ import { reliability } from "./statecraft-court.ts";
 import { outweighs, rivals, touches } from "./statecraft-strategy.ts";
 import { joints, willing } from "./tactics.ts";
 import { TextKit } from "./textkit.ts";
-import { againstIn, answerLetter, givesAwayIn } from "./statecraft-clauses.ts";
+import { againstIn, answerLetter, clausePlays, givesAwayIn } from "./statecraft-clauses.ts";
 
 const Oath = "By Shamash, Amun, Marduk and Teshub";
 
@@ -127,13 +127,13 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
       missions.push(mission(x, "tribute", 0.35 + 0.4 * p.caution));
   }
   // A king whose gold our weighers found light (item 8): we tell him his messenger lied, once, while it is fresh.
-  for (const [x, [short, when, told]] of [...brain.lightFrom]) {
+  for (const [x, [, when, told]] of clausePlays(me) ? [...brain.lightFrom] : []) {
     if (told || !b.alive.has(x) || v.turn - when > 4) continue;
     missions.push(mission(x, "accuse", 0.5 + 0.2 * p.vengeance));
   }
   // A blow a sworn partner leads against our common foe, which our troops can support (see Tactics.joints): we promise our
   // support for the season after next, so that a partner who does not reckon as we do knows to make the move (item 8).
-  for (const j of joints(b, brain)) {
+  for (const j of clausePlays(me) ? joints(b, brain) : []) {
     const mine = j.support.find((u) => u.power === me);
     if (j.lead.power === me || mine === undefined || v.turn - brain.supportOfferedTo.getOrDefault(j.lead.power, -99) < 4) continue;
     missions.push(mission(j.lead.power, "support", 0.45 + 0.2 * p.diplomacy, j.against, `${j.lead.province}>${j.target}`));
@@ -198,7 +198,8 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
           ready[ready.length - 1].id,
           shown,
           `My brother, see what ${forged.seals.join(" and ")} have sealed in secret. I send you the tablet itself. Judge for yourself who are your friends.`,
-          { mandate: "Show the tablet. Promise nothing.", greeting: greet(brain, shown), copies: [forged.copyId] },
+          // What it shows is the tablet; the clauses only greet him (item 8).
+          { mandate: "Show the tablet. Promise nothing.", greeting: greet(brain, shown), copies: [forged.copyId], clauses: [clause("wellWishes")] },
         ),
         forged.copyId,
       );
@@ -221,7 +222,12 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
           ready[0].id,
           told,
           `${breaker} sealed this tablet with me before the gods, and then broke it. See for yourself what an oath of ${breaker} is worth. Stand with me, and ${breaker} will learn the price of a broken oath.`,
-          { mandate: `You may agree to act together against ${breaker}. Promise no land.`, greeting: greet(brain, told), copies: [broken.copyId] },
+          {
+            mandate: `You may agree to act together against ${breaker}. Promise no land.`,
+            greeting: greet(brain, told),
+            copies: [broken.copyId],
+            clauses: [clause("against", { power: breaker })],
+          },
         ),
         broken.copyId,
       );
@@ -483,7 +489,7 @@ export function greet(brain: Brain, to: Power, humble = false): GreetingOptions 
  * gold goes with an inventory, so that a host who finds it light can tell us so.
  */
 function bare(brain: Brain, to: Power, envoy: string, b: Board): boolean {
-  if (!InventoryPlay.on) return false;
+  if (!InventoryPlay.on || !clausePlays(b.me)) return false;
   const c = b.v.court.find((x) => x.id === envoy);
   if (c === undefined || reliability(c) < 0) return false;
   return brain.provenLoyal.has(envoy) || (brain.goldTrips.getOrDefault(envoy, 0) >= 2 && !brain.thieves.has(envoy) && to !== brain.warTarget);
