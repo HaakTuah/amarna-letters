@@ -1,5 +1,5 @@
 /* Amarna Letters: a museum map in clay and parchment. Late Bronze Age palette: lapis, carnelian, gold, ochre, clay,
-   bitumen; each power has its colour and also an emblem and a border line (map/Glyphs.cs), for readers who do not see
+   bitumen; each power has its colour and also an emblem and a border line (map/glyphs.ts), for readers who do not see
    the colours. Light and dark follow the system unless the reader picks one in the game's menu. */
 
 :root {
@@ -685,13 +685,7 @@ svg.map text { font-family: var(--serif); }
 
 .chronicle { font-family: var(--serif); white-space: pre-wrap; font-size: 1rem; }
 
-/* ---------------------------------------------------------------- loading and Blazor's own bits */
-
-#blazor-error-ui {
-    color-scheme: light only; background: lightyellow; bottom: 0; box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-    box-sizing: border-box; display: none; left: 0; padding: 0.6rem 1.25rem 0.7rem 1.25rem; position: fixed; width: 100%; z-index: 1000;
-}
-#blazor-error-ui .dismiss { cursor: pointer; position: absolute; right: 0.75rem; top: 0.5rem; }
+/* ---------------------------------------------------------------- loading */
 
 .boot-title { position: absolute; inset: calc(20vh - 3rem) 0 auto 0; text-align: center; font-family: var(--serif); font-size: 1.6rem; font-weight: 600; letter-spacing: .04em; }
 .boot-title span { color: var(--accent); }

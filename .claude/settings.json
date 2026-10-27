@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && ! command -v dotnet >/dev/null 2>&1 && SKIP_PLAYWRIGHT=1 bash \"$CLAUDE_PROJECT_DIR/scripts/cloud-setup.sh\" || true",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = \"true\" ] && SKIP_PLAYWRIGHT=1 bash \"$CLAUDE_PROJECT_DIR/scripts/cloud-setup.sh\" || true",
             "timeout": 600
           }
         ]

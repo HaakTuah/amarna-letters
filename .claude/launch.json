@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "amarna-web",
-      "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "src/Amarna.Web", "--launch-profile", "http"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--workspace", "src/web"],
       "port": 5183
     }
   ]
