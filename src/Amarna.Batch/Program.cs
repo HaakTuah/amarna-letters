@@ -48,6 +48,7 @@ string? fileCharacters = null;
 var listCharacters = false;
 var fileTimeout = 120.0;
 string? parityDir = null;
+var sleepingScripts = false;
 
 for (var i = 0; i < args.Length; i++)
 {
@@ -58,6 +59,8 @@ for (var i = 0; i < args.Length; i++)
         case "--out": outDir = args[++i]; break;
         // The TypeScript conversion's parity check: a fingerprint after every phase of every season, per game (Parity).
         case "--fingerprints": parityDir = args[++i]; break;
+        // Script kings that sleep as model seats do, so that a script game runs the engine's sleeping-seat rules (parity).
+        case "--sleeping-scripts": sleepingScripts = true; break;
         case "--verify-replay": verify = true; break;
         case "--detail": detail = true; break;
         case "--budget": budget = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
@@ -99,7 +102,7 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
@@ -211,6 +214,7 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
             var exchange = new FileExchange(folder, TimeSpan.FromMinutes(fileTimeout), call => last!.Log.AddCall(call), Console.WriteLine);
             seats[p] = new LlmLeaderSeat(p, exchange, "file", choices.LeaderEffort, state.Config.CustomsPrimer, state.Config, label: "File seat");
         }
+        if (sleepingScripts) seats = seats.ToDictionary(x => x.Key, x => (ISeat)new SleepingScript(x.Value));
         if (versus || focus is not null)
         {
             var baseline = new BaselineLeader(state.Seed);
@@ -289,3 +293,15 @@ Console.WriteLine();
 if (results.Count > 0) Console.WriteLine(BatchRunner.Report(results));
 if (versus && results.Count > 0) Console.WriteLine(BatchRunner.Versus(results, sides));
 Console.WriteLine($"\n{clock.Elapsed.TotalSeconds:0.0}s");
+
+/// <summary>
+/// A script king that sleeps as a model seat does (--sleeping-scripts): asked only when something concerns it, so that a
+/// script game runs the engine's sleeping-seat rules, for the TypeScript conversion's parity check.
+/// </summary>
+sealed class SleepingScript(ISeat inner) : ISeat
+{
+    public string Label => inner.Label + " (sleeping)";
+    public bool CanSleep => true;
+    public Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct) => inner.DecideAsync(view, ct);
+    public Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct) => inner.HostAudienceAsync(view, court, ct);
+}

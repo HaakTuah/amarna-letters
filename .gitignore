@@ -493,3 +493,7 @@ $RECYCLE.BIN/
 # Claude Code: local-only files
 .claude/settings.local.json
 .claude/worktrees/
+
+# TypeScript build output
+/.tsbuild/
+/src/web/dist/
