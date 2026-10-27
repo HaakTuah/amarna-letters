@@ -27,7 +27,8 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 2. Find the next item in `docs/BUILD-PROGRESS.md`. For the steps of item 5+, read its brief in `docs/items/`. For
    item 6 onward, the item's own text is its brief: `docs/intent/build-order/item-<n>.md` (`item-6.md`,
    `item-9plus.md`, ...).
-3. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules).
+3. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules), and do it
+   again before opening the item's pull request.
 4. Read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
 5. Check weekly usage with `scripts/usage.sh`, and again after every commit ("Usage" in the builder rules). If it
    says "unknown", this session cannot see usage: say so in the first line of each PR you open, and carry on; Haakon
