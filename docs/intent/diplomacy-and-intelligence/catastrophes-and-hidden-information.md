@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 16 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Catastrophes and hidden information
 
 Catastrophes are seeded, rare, and fully visible only to the power they strike, which turns them into diplomatic material.
@@ -11,5 +11,5 @@ Catastrophes are seeded, rare, and fully visible only to the power they strike, 
 
 The letters record exactly this move: the king of Alashiya excused a small copper shipment because "the hand of Nergal", the god of plague, had killed his men.
 
-**Hidden by default.** Beyond catastrophes, treasuries, unit counts outside sight, contracts and characters' secrets are all private. Players see their own land and what borders it as it is now. News of distant provinces, including who holds them, travels like everything else and arrives late (pillar 4); the rest is whatever their people bring home.
+**Hidden by default.** Beyond catastrophes, treasuries, unit counts outside sight, contracts and characters' secrets are all private. Until item 13 ("Distance inside your own realm"), players see their own land and what borders it as it is now. From item 7, news of distant provinces, including who holds them, travels like everything else and arrives late (pillar 4); the rest is whatever their people bring home.
 

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 16 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Characters' careers
 
 Careers beyond hiring are largely built (see `docs/DESIGN-NOTES.md`): captives can be ransomed or released, a king can dismiss a servant, and servants give notice at the end of their term, when owed back pay, or decline a hire for a better offer; background checks find dismissals among a character's blemishes, since his employment history is part of his past ("A past before the game, then a past made in play"). Decided 19 October 2026: captives can be exchanged between courts like any good, and a character may quit out of loyalty to another court; quitting before his term ends breaks his contract, which is recorded in his past where checks can find it, and back pay already owed is still paid only if he stands at that court again (from item 11a, jobs with a fee replace wages and back pay: "Jobs, not wages").
@@ -25,7 +25,7 @@ A free-text mandate guides the character's judgement along the way. One errand m
 
 His errands may carry conditions in the same engine-checkable vocabulary as a king's scheduled orders ("sell in Ugarit unless the price has fallen; otherwise go on to Alashiya"), but conditions decide what he does, never when he wakes. He sets no triggers of his own: the kings' simulations showed that a seat given a way to wake itself uses it every season, and a merchant in Byblos does not know Ugarit's prices until someone tells him. A character without work sleeps until an offer reaches him. The kings' hidden safety cap applies to characters too, each request tells him how long he slept and why he woke, and his rules say what the kings' rulebook says: you are woken only when something concerns you, so plan as if these errands must carry you until then. Built in item 8, with characters as agents in local play; the engine's full set of errands comes with item 10 ("Errands, not roles").
 
-**A life of their own.** Out of service, characters keep acting, run by scripts, so they cost no model calls:
+**A life of their own.** Out of service, characters keep acting, and sleep between decisions like anyone ("Characters sleep like kings"):
 
 - **Selling what they know.** A free character carries news from the courts and roads it has passed, and offers it at a price it sets (see "Characters as sellers of news").
 - **Seeking work.** It travels to courts that are hiring, or to where its sympathy lies, and pitches there.

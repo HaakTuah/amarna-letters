@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Ideas tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Ideas tab, revision 12 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Beyond the prototype
 
 If the hypothesis holds, the full game becomes a grand strategy whose tech tree is a tree of trust: each era changes how fast information moves, how verifiable it is and how easy it is to fake.
@@ -13,8 +13,8 @@ If the hypothesis holds, the full game becomes a grand strategy whose tech tree 
 **Other expansions.**
 
 - **Succession.** In longer games rulers die; a new leader inherits the old one's promises, debts and enemies and decides whether to honor them.
-- Hidden objectives per power.
-- Grand-strategy layers (population, technology, culture) added only where they feed trust and information.
+- Hidden objectives per power, set aside on 21 October 2026 by "Each court plays differently, with no mission tree".
+- Grand-strategy layers (technology, culture) added only where they feed trust and information.
 - **Voice and music.** Music first: ambient loops per court, with the Hurrian Hymn from Ugarit, the oldest substantially complete notated melody, as a possible anchor. Then a distinct voice archetype per court (Egypt stern, measured, aristocratic), designed rather than imitating any real actor. Test first with free browser speech synthesis behind a toggle in spectator mode.
 - Public spectating: shareable links and live streams of AI-only games, building on the prototype's own spectator mode.
 

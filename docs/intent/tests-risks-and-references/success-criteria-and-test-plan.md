@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Tests, risks and references tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Tests, risks and references tab, revision 10 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Success criteria and test plan
 
 The prototype succeeds if, across ten or more full games, norms of trust appear that no rule created. Decide the signals before building, and read them from the logs.
@@ -28,10 +28,10 @@ The prototype succeeds if, across ten or more full games, norms of trust appear 
 
 - **Next steps** are the numbered items under "Build order". The most important open question, whether envoys and leaders are too honest, can only be answered by real model games.
 - **Simulated API first.** A built-in fake Anthropic endpoint runs the full model path in the browser at zero cost; use it to check plumbing after every change to prompts or schemas.
-- **First live runs.** Use a spend-limited key and a small budget (for example $3), and watch the cost meter for two seasons before letting a game run. Play one game with Sonnet 5.5 leaders and script characters, then one with Haiku 5.5 envoys, since envoys carry the core mechanic. These games wait until the build order is done ("No model games until the build order is done" under Build order).
+- **Live runs.** The first live game (26 October 2026) had nearly all its model calls refused for the size of their schemas, which the fix pass after the conversion fixes ("One source for model schemas"). Further live runs use a spend-limited key and a small budget (for example $3), with the cost meter watched for two seasons before a game is left to run: one game with Sonnet 5.5 leaders and script characters, then one with Haiku 5.5 envoys, since envoys carry the core mechanic. They wait until the build order is done ("No model games until the build order is done" under Build order).
 - **Script bots test the engine, not the hypothesis.** They cannot lie strategically or invent norms. Document their decision rules so balance numbers are read against known behavior.
-- **Bot archetypes** (aggressive, mercantile, loyal to a fault) stress the engine with varied behavior and give model leaders varied opponents.
-- **Balance against bots is provisional.** It will shift once model leaders negotiate; do not over-tune the map before then.
+- **Script kings' temperaments** (each court's historical archetype by default, or rolled per game from item 18) stress the engine with varied behavior and give model leaders varied opponents.
+- **Balance is tuned against the script kings,** at their strongest, in item 18; model games afterwards, when Haakon asks for them, may shift it.
 
 **Primer experiment.** Run matched games with and without the customs primer, to see whether historical framing changes how trust and norms emerge.
 

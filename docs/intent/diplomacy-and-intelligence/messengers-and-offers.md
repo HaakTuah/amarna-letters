@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 16 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Messengers and offers
 
 **Messengers are errands (decided 21 October 2026).** Word from abroad needs someone to carry it. A report or letter from an envoy, a spy or anyone else comes home only with a carrier: someone hired ("Anyone can hire anyone"), a traveller going that way, such as a merchant carrying letters on the side, or the person himself travelling home. Nothing arrives by itself. Carrying is an errand like any other (deliver a letter or a tablet, bring back a reply), so the messenger needs no role of his own.
@@ -13,7 +13,7 @@
 - **The rest emerges.** Fees, speed and trust come out of play: a carrier known for delivering faithfully can ask more, merchants on busy roads carry letters cheaply, and relay stations (build order item 15) make carriers faster.
 - **Every seat uses it.** Script envoys and spies decide when to send word and whom to trust with it, and script carriers decide by their traits whether to read, sell or swap what they carry ("Every feature is every seat's").
 
-In build order item 7 news already travels with people along the route; until item 11b, a report travels that route by itself, as if the engine carried it. From item 11b, when anyone can hire anyone, it needs a real carrier.
+In build order item 7 news already travels with people along the route; until item 11b, a report travels that route by itself, as if the engine carried it. From item 11b it needs a real carrier ("Messengers are errands").
 
 **Offers made in words.** Gold and land move only by engine orders: an offer counts as a payment only when gold is handed over at the audience, as bribes already are, or later through a structured promise. A spoken offer ("fifty shekels if you soften your report") moves nothing, like a promise typed in chat in Civilization beside an empty trade window. Whether the character believes it and acts on it is its own judgement; the host may pay later, or not, and the character has bet on a king's word. Script characters cannot read free text, so they answer by formula to the clauses every letter carries, and when the character layer is set to script bots every king writes only from the templates ("Two press modes"). No extraction pass is needed.
 

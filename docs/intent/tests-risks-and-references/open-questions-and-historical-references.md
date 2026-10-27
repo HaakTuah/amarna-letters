@@ -1,9 +1,9 @@
-<!-- Generated from the design document, Tests, risks and references tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Tests, risks and references tab, revision 10 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Open questions and historical references
 
 **Open questions.**
 
-- Exact starting provinces, gold and units per tier, and the scoring weights between provinces and gold.
+- Exact starting provinces, gold and units per tier, and how the land weighs against gold and goods ("The wealth of a realm": designed in item 11+, tuned in item 18).
 - Game length: the random ending's exact curve ("Random ending"), set in the balance pass (build order item 18) from script games once sieges and travel lengthen wars.
 - How long can a character's memory grow before quality or cost suffers, and how should it be summarized?
 - How many messages per turn keep games fast and affordable?
