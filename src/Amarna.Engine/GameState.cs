@@ -23,9 +23,11 @@ public sealed class GameState
     /// orders, awake or asleep, and a standing order that fires replaces the season's other orders for the same units or
     /// people, those given that season among them; script kings give them. 6 since Build order item 5, the siege package,
     /// one version for the whole item: walls that differ by place in place of the free cities' garrisons, storming and
-    /// sieges, and everything else the item builds.
+    /// sieges, and everything else the item builds. 7 since build order item 5+, before the TypeScript conversion: the dice
+    /// come from xoshiro128** with the roll's key hashed into its whole state (<see cref="Rng"/>), script kings' seat seeds
+    /// are cut to 53 bits, and text is compared and sorted by ordinal everywhere (invariant globalization).
     /// </summary>
-    public const int CurrentVersion = 6;
+    public const int CurrentVersion = 7;
 
     public int Version { get; set; } = CurrentVersion;
     public ulong Seed { get; set; }

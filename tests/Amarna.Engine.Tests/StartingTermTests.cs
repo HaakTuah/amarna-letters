@@ -22,11 +22,12 @@ public class StartingTermTests
     /// <param name="before">
     /// The fingerprint of the starting characters when every term ended with turn 10, ids left out (taken just before fix (d);
     /// the version of this test before then, with the ids in, matched the fingerprint from before terms were staggered).
+    /// Taken again for save version 7, whose new generator draws every trait and fact anew (build order item 5+).
     /// </param>
     [Theory]
-    [InlineData(1ul, "a456cadfeaca4bdc")]
-    [InlineData(7ul, "4ba46718a38551cd")]
-    [InlineData(42ul, "dfb5aed76c8e54e6")]
+    [InlineData(1ul, "8bc56a55bc22b453")]
+    [InlineData(7ul, "f6e59af377749771")]
+    [InlineData(42ul, "eb401e1e13745795")]
     public void Starting_terms_end_between_turns_7_and_13_and_every_other_draw_is_unchanged(ulong seed, string before)
     {
         var s = GameFactory.NewGame(seed);

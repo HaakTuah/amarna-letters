@@ -23,6 +23,10 @@ table was rerun: the same growth over all, 86% of wins instead of 85%:
 | Alashiya | 1.90 | 0.99 | 75% | 10% |
 | All kings | 2.74 | 1.09 | 86% | 14% |
 
+The conversion to TypeScript (build order item 5+) changed the dice (a 32-bit generator, save version 7) and nothing
+else, so the same benchmark gave other numbers, the same in both builds: 3.06 growth alone and 1.08 as baseline over
+all, 91% of wins alone and 14% as baseline (by power in `docs/rounds/2026-10-27-conversion.md`).
+
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
 

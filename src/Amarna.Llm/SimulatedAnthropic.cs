@@ -11,6 +11,18 @@ namespace Amarna.Llm;
 public sealed class SimulatedAnthropic : HttpMessageHandler
 {
     public List<(HttpRequestMessage Request, JsonObject Body)> Requests { get; } = new();
+    private int _drained;
+
+    /// <summary>The bodies of the requests made since the last drain, as JSON text (the TypeScript conversion's text fingerprints).</summary>
+    public IEnumerable<string> Drain()
+    {
+        lock (_gate)
+        {
+            var bodies = Requests.Skip(_drained).Select(r => r.Body.ToJsonString()).ToList();
+            _drained = Requests.Count;
+            return bodies;
+        }
+    }
     public Func<JsonObject, string?>? Override { get; set; }
     public bool Refuse { get; set; }
     /// <summary>Report token usage (tests check cost accounting); the in-app simulator reports none, so it costs nothing.</summary>

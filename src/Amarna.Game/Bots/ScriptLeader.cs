@@ -25,7 +25,8 @@ public sealed class ScriptLeader : ISeat
     public string Label => "Script bot";
 
     /// <summary>
-    /// A script seat's own seed: the first eight bytes of a SHA-256 hash of the game's seed, "seat" and the power. Its
+    /// A script seat's own seed: the first eight bytes of a SHA-256 hash of the game's seed, "seat" and the power, cut to 53
+    /// bits so that it is an exact number in the TypeScript build (since save version 7). Its
     /// temperament and every roll it makes, its pictured rivals' included, come from this seed, so no script king holds
     /// the seed the engine rolls the game's dice with. The hash is one-way: unlike a stream of <see cref="Rng"/>, whose
     /// every step can be undone, the seat seed gives no way back to the game's seed.
@@ -36,7 +37,7 @@ public sealed class ScriptLeader : ISeat
         var input = new byte[8 + tag.Length];
         BinaryPrimitives.WriteUInt64LittleEndian(input, gameSeed);
         tag.CopyTo(input, 8);
-        return BinaryPrimitives.ReadUInt64LittleEndian(SHA256.HashData(input));
+        return BinaryPrimitives.ReadUInt64LittleEndian(SHA256.HashData(input)) & ((1UL << 53) - 1);
     }
 
     /// <summary>The temperament a script king plays with in a game with this seed (drawn from its seat seed).</summary>

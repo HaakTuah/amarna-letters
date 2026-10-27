@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Prepare a built web app for GitHub Pages: set its base path, and make it a root site or a PR preview.
 #   scripts/site-prepare.sh <site-dir> <base-path> root|preview
-# <site-dir> is the static output of the build (today `dotnet publish`'s wwwroot; after the conversion, the
-# TypeScript build's output). <base-path> is where the site is served, such as /amarna-letters/ or
-# /amarna-letters/pr-12/. Only this step and the build command know about the build; publishing does not.
+# <site-dir> is the static output of the build (the web app's, from Vite: src/web/dist). <base-path> is where the site
+# is served, such as /amarna-letters/ or /amarna-letters/pr-12/. Only this step and the build command know about the
+# build; publishing does not.
 set -euo pipefail
 site=$1 base=$2 kind=$3
 [[ $base =~ ^/[A-Za-z0-9._/-]*/$ ]] || { echo "bad base path: $base" >&2; exit 2; }
@@ -28,5 +28,5 @@ case $kind in
     ;;
   *) echo "kind must be root or preview" >&2; exit 2 ;;
 esac
-# Without this, Pages' Jekyll step drops folders starting with an underscore (_framework).
+# Without this, Pages' Jekyll step would drop any file or folder starting with an underscore.
 touch "$site/.nojekyll"

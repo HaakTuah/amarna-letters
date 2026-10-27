@@ -46,7 +46,8 @@ public class ArchiveTests
     [Fact]
     public void A_spy_copies_a_tablet_from_the_archive_it_watches_and_the_copy_comes_home_with_its_report()
     {
-        var (s, spy) = SpyAtAssyria();
+        // Seed 1: with save version 7's dice, seed 8's watchmen catch the spy in its first season.
+        var (s, spy) = SpyAtAssyria(1);
         Sealed(s, "t900", Power.Assyria, Power.Hatti, 1, "Assyria and Hatti swear to stand together against Babylonia.");
 
         Begin(s).Resolve(new Dictionary<Power, TurnSubmission>());
@@ -73,7 +74,8 @@ public class ArchiveTests
     [Fact]
     public void A_spy_copies_one_tablet_a_season_never_one_its_master_holds_agreements_and_the_newest_first()
     {
-        var (s, spy) = SpyAtAssyria();
+        // Seed 1: with save version 7's dice, seed 8's watchmen catch the spy in its first season.
+        var (s, spy) = SpyAtAssyria(1);
         Sealed(s, "t900", Power.Assyria, Power.Hatti, 1, "The oldest treaty.");
         Sealed(s, "t901", Power.Assyria, Power.Babylonia, 2, "A treaty Babylonia holds already.");
         Sealed(s, "t902", Power.Assyria, Power.Egypt, 3, "The newest treaty.");

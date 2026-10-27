@@ -1,0 +1,599 @@
+/**
+ * Diplomacy-style resolution with no dice: strength is one plus supports and ties bounce. Implements Lucas Kruijswijk's
+ * guess-and-check algorithm (from "The Math of Adjudication"), with circular movement resolved as success and convoy
+ * paradoxes by the Szykman rule. Walls add nothing to the battle (Build order item 5): a move that wins its way into a
+ * walled province its mover does not hold storms the walls only if its strength also beats their level plus the hold
+ * strength it beat (Assault); the engine decides what that means for the province. The ground does count (item 5,
+ * terrain): a unit that stands its ground on rough ground, across a pass or a great river from the attack, or against a
+ * landing from the sea holds with GameConfig.terrainDefence more against that attack, at most that in all
+ * (defenceGround); never a unit that moves, nor one met head on, nor empty land.
+ */
+import { Dict, HSet } from "../core/collections.ts";
+import { defenceGround, type Ground } from "../model/geography.ts";
+import type { UnitKind, WorldMap } from "../model/map.ts";
+import type { Order, SallyOrder } from "../model/orders.ts";
+import { newOrderOutcome, type Assault, type GroundFight, type MoveFailure, type MoveResult, type MoveStop, type OrderOutcome, type ReportLine } from "../model/outcomes.ts";
+import type { Power } from "../model/power.ts";
+import type { Unit } from "../model/state.ts";
+
+export class AdjudicationResult {
+  /** Unit id -> province it ends in (for units that survive). */
+  readonly newPositions = new Dict<string, string>();
+  readonly dislodgedUnitIds: string[] = [];
+  /** Every move that got into a walled province its mover does not hold, stormed or not. */
+  readonly assaults: Assault[] = [];
+  readonly moves: MoveResult[] = [];
+  readonly cutSupports: string[] = [];
+  /** Supports that held: (supporter, supported power, province acted on). */
+  readonly givenSupports: [Power, Power | null, string][] = [];
+  /** The provinces whose unit was given at least one support to hold that was not cut (a besieger's speeds its siege). */
+  readonly holdSupported = new HSet<string>();
+  /** Moves on units that stood their ground with the ground's help (only when the battles are explained). */
+  readonly groundFights: GroundFight[] = [];
+  /** Order description per unit province, with its outcome, for reports. */
+  readonly lines: ReportLine[] = [];
+  readonly outcomes: OrderOutcome[] = [];
+}
+
+type Kind = "Hold" | "Move" | "Support" | "Convoy";
+const enum_ = { Unresolved: 0, Guessing: 1, Resolved: 2 } as const;
+type RState = number;
+
+interface O {
+  index: number;
+  at: string;
+  power: Power | null;
+  unitKind: UnitKind;
+  unitId: string | null;
+  kind: Kind;
+  /** move: destination; support/convoy: the supported unit's province */
+  target: string | null;
+  /** support-move / convoy: destination of the supported move */
+  to: string | null;
+  viaConvoy: boolean;
+  paradoxFailed: boolean;
+  text: string;
+  /** a support or convoy that matched nothing (now a hold): the order as given */
+  voided: string | null;
+  /** and why it was void */
+  voidWhy: string | null;
+  /** a besiege order: a hold that wears the city down */
+  besieging: boolean;
+}
+
+function line(province: string, power: Power | null, text: string, ok: boolean, more: Partial<ReportLine> = {}): ReportLine {
+  return { province, power, text, ok, target: null, failure: null, void: null, cut: null, assault: null, ...more };
+}
+
+function failure(stop: MoveStop, province: string, power: Power | null, kind: UnitKind, movingTo: string | null, strength: number, against: number, ground: Ground | null = null, groundBonus = 0): MoveFailure {
+  return { stop, province, power, kind, movingTo, strength, against, ground, groundBonus };
+}
+
+export class Adjudicator {
+  private readonly map: WorldMap;
+  private readonly explain: boolean;
+  private readonly terrain: number;
+  private readonly orders: O[] = [];
+  private readonly at = new Map<string, number>();
+  private state: RState[] = [];
+  private result: boolean[] = [];
+  private readonly deps: number[] = [];
+  private owners: Dict<string, Power | null> = new Dict();
+  private walls: Dict<string, number> = new Dict();
+  private sallies: readonly SallyOrder[] = [];
+  private sallyBy = new Map<string, Power | null>();
+
+  /**
+   * `explain`: also work out why each failed move failed and where each cut came from, for battle reports. `terrain`:
+   * what the ground gives a unit that stands its ground (GameConfig.terrainDefence); 0 turns terrain off.
+   */
+  constructor(map: WorldMap, explain = false, terrain = 1) {
+    this.map = map;
+    this.explain = explain;
+    this.terrain = Math.max(0, terrain);
+  }
+
+  /**
+   * `owners`: who holds each province before the moves: a move into one's own walled province storms nothing. `walls`:
+   * the level of each province's walls (none if left out). `sallies`: walls that sally: each supports the move from its
+   * `from` into its city, for its city's holder in `owners`, as a support that cannot be cut.
+   */
+  run(
+    units: readonly Unit[],
+    ordersByProvince: Dict<string, Order>,
+    owners: Dict<string, Power | null> | null = null,
+    walls: Dict<string, number> | null = null,
+    sallies: readonly SallyOrder[] | null = null,
+  ): AdjudicationResult {
+    this.orders.length = 0;
+    this.at.clear();
+    this.owners = owners ?? new Dict();
+    this.walls = walls ?? new Dict();
+    this.sallies = sallies ?? [];
+    this.sallyBy = new Map();
+    for (const x of this.sallies) if (!this.sallyBy.has(x.city)) this.sallyBy.set(x.city, this.owners.getOrDefault(x.city, null));
+    for (const u of units) {
+      const o: O = {
+        index: 0,
+        at: u.province,
+        power: u.power,
+        unitKind: u.kind,
+        unitId: u.id,
+        kind: "Hold",
+        target: null,
+        to: null,
+        viaConvoy: false,
+        paradoxFailed: false,
+        text: "",
+        voided: null,
+        voidWhy: null,
+        besieging: false,
+      };
+      const order = ordersByProvince.tryGet(u.province);
+      switch (order?.type) {
+        case "move":
+          o.kind = "Move";
+          o.target = order.to;
+          o.viaConvoy = u.kind === "Army" && !this.map.canMove("Army", u.province, order.to);
+          break;
+        case "support":
+          o.kind = "Support";
+          o.target = order.supported;
+          o.to = order.to ?? null;
+          break;
+        case "convoy":
+          o.kind = "Convoy";
+          o.target = order.army;
+          o.to = order.to;
+          break;
+        case "besiege":
+          o.besieging = true;
+          break;
+      }
+      this.add(o);
+    }
+
+    this.voidMismatched();
+
+    this.state = new Array<RState>(this.orders.length).fill(enum_.Unresolved);
+    this.result = new Array<boolean>(this.orders.length).fill(false);
+    this.deps.length = 0;
+    for (let i = 0; i < this.orders.length; i++) this.resolve(i);
+
+    return this.collect();
+  }
+
+  private add(o: O): void {
+    o.index = this.orders.length;
+    this.orders.push(o);
+    this.at.set(o.at, o.index);
+  }
+
+  /**
+   * Supports and convoys that do not match an actual order count as holds. The report still shows the order as given,
+   * void, and tells its own king why: a support of a move, or a convoy, names only the move that did not happen, so it
+   * reveals nothing about a province out of sight.
+   */
+  private voidMismatched(): void {
+    for (const o of this.orders) {
+      if (o.kind === "Support") {
+        let why: string | null;
+        const t = this.at.get(o.target!);
+        if (t === undefined) why = o.to === null ? `no unit stood in ${o.target}` : `no unit moved from ${o.target} to ${o.to}`;
+        else {
+          const sup = this.orders[t];
+          if (o.to === null) why = sup.kind !== "Move" ? null : `the unit in ${o.target} was ordered to move, not to hold`;
+          else why = sup.kind === "Move" && sup.target === o.to ? null : `no unit moved from ${o.target} to ${o.to}`;
+        }
+        if (why !== null) {
+          o.voided = `supports ${o.target}${o.to === null ? " holding" : " -> " + o.to}`;
+          o.voidWhy = why;
+          o.kind = "Hold";
+        }
+      } else if (o.kind === "Convoy") {
+        const t = this.at.get(o.target!);
+        const ok =
+          this.map.get(o.at).isSea &&
+          t !== undefined &&
+          this.orders[t].kind === "Move" &&
+          this.orders[t].viaConvoy &&
+          this.orders[t].target === o.to &&
+          this.orders[t].unitKind === "Army";
+        if (!ok) {
+          o.voided = `convoys ${o.target} -> ${o.to}`;
+          o.voidWhy = this.map.get(o.at).isSea ? `no army moved from ${o.target} to ${o.to} by sea` : "a fleet convoys only at sea";
+          o.kind = "Hold";
+        }
+      }
+    }
+  }
+
+  private resolve(nr: number): boolean {
+    if (this.state[nr] === enum_.Resolved) return this.result[nr];
+    if (this.state[nr] === enum_.Guessing) {
+      if (!this.deps.includes(nr)) this.deps.push(nr);
+      return this.result[nr];
+    }
+
+    const oldCount = this.deps.length;
+    this.result[nr] = false;
+    this.state[nr] = enum_.Guessing;
+    const first = this.adjudicate(nr);
+
+    if (this.deps.length === oldCount) {
+      if (this.state[nr] !== enum_.Resolved) {
+        this.result[nr] = first;
+        this.state[nr] = enum_.Resolved;
+      }
+      return first;
+    }
+
+    if (this.deps[oldCount] !== nr) {
+      // Part of a cycle that started elsewhere; leave it guessing.
+      this.deps.push(nr);
+      this.result[nr] = first;
+      return first;
+    }
+
+    // nr starts a cycle: try the other guess.
+    this.resetDeps(oldCount);
+    this.result[nr] = true;
+    this.state[nr] = enum_.Guessing;
+    const second = this.adjudicate(nr);
+
+    if (first === second) {
+      this.resetDeps(oldCount);
+      this.result[nr] = first;
+      this.state[nr] = enum_.Resolved;
+      return first;
+    }
+
+    this.backupRule(oldCount);
+    return this.resolve(nr);
+  }
+
+  private resetDeps(oldCount: number): void {
+    for (let i = oldCount; i < this.deps.length; i++) this.state[this.deps[i]] = enum_.Unresolved;
+    this.deps.length = oldCount;
+  }
+
+  private backupRule(oldCount: number): void {
+    const cycle = this.deps.slice(oldCount);
+    this.deps.length = oldCount;
+
+    const convoys = cycle.filter((i) => this.orders[i].kind === "Convoy" || (this.orders[i].kind === "Move" && this.orders[i].viaConvoy));
+    if (convoys.length > 0) {
+      // Szykman: the convoyed armies in the paradox stay where they are.
+      for (const i of convoys) {
+        const o = this.orders[i];
+        const army = o.kind === "Move" ? i : (this.at.get(o.target!) ?? -1);
+        if (army >= 0 && this.orders[army].kind === "Move" && this.orders[army].viaConvoy) {
+          this.orders[army].paradoxFailed = true;
+          this.result[army] = false;
+          this.state[army] = enum_.Resolved;
+        }
+      }
+      for (const i of cycle) if (this.state[i] !== enum_.Resolved) this.state[i] = enum_.Unresolved;
+      return;
+    }
+
+    // Circular movement: everybody moves.
+    for (const i of cycle) {
+      if (this.orders[i].kind === "Move") {
+        this.result[i] = true;
+        this.state[i] = enum_.Resolved;
+      } else this.state[i] = enum_.Unresolved;
+    }
+  }
+
+  private adjudicate(nr: number): boolean {
+    const o = this.orders[nr];
+    switch (o.kind) {
+      case "Move": {
+        const attack = this.attackStrength(o);
+        const opp = this.headToHeadOpponent(o);
+        if (opp !== null) {
+          if (attack <= this.defendStrength(opp)) return false;
+        } else if (attack <= this.holdStrength(o)) return false;
+
+        for (const other of this.movesTo(o.target!)) if (other !== o && attack <= this.preventStrength(other)) return false;
+        return true;
+      }
+      case "Support": {
+        for (const m of this.movesTo(o.at)) {
+          if (m.power === o.power) continue;
+          if (o.to !== null && m.at === o.to) continue; // attacked from where it supports into: not cut unless dislodged
+          if (!this.pathOk(m)) continue;
+          return false;
+        }
+        for (const m of this.movesTo(o.at)) if (this.resolve(m.index)) return false; // dislodged
+        return true;
+      }
+      case "Convoy":
+        for (const m of this.movesTo(o.at)) if (this.resolve(m.index)) return false;
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  private movesTo(province: string): O[] {
+    return this.orders.filter((x) => x.kind === "Move" && x.target === province);
+  }
+
+  private headToHeadOpponent(move: O): O | null {
+    if (move.viaConvoy) return null;
+    const i = this.at.get(move.target!);
+    if (i === undefined) return null;
+    const opp = this.orders[i];
+    return opp.kind === "Move" && opp.target === move.at && !opp.viaConvoy ? opp : null;
+  }
+
+  private pathOk(move: O): boolean {
+    if (!move.viaConvoy) return true;
+    if (move.paradoxFailed) return false;
+    // Search through sea zones holding fleets that convoy this exact move and are not dislodged.
+    const seen = new Set<string>();
+    const frontier: string[] = [];
+    for (const n of this.map.neighbors(move.at))
+      if (this.isConvoying(n, move) && !seen.has(n)) {
+        seen.add(n);
+        frontier.push(n);
+      }
+    while (frontier.length > 0) {
+      const sea = frontier.shift()!;
+      if (!this.resolve(this.at.get(sea)!)) continue;
+      for (const n of this.map.neighbors(sea)) {
+        if (n === move.target) return true;
+        if (this.isConvoying(n, move) && !seen.has(n)) {
+          seen.add(n);
+          frontier.push(n);
+        }
+      }
+    }
+    return false;
+  }
+
+  private isConvoying(sea: string, move: O): boolean {
+    if (!this.map.get(sea).isSea) return false;
+    const i = this.at.get(sea);
+    return i !== undefined && this.orders[i].kind === "Convoy" && this.orders[i].target === move.at && this.orders[i].to === move.target;
+  }
+
+  private supports(move: O, excludePower: Power | null): number {
+    let count = 0;
+    for (const s of this.orders)
+      if (s.kind === "Support" && s.target === move.at && s.to === move.target && this.resolve(s.index))
+        if (excludePower === null || s.power !== excludePower) count++;
+    // Walls that sally support the move from where they name into their city, and cannot be cut.
+    for (const w of this.sallies)
+      if (w.city === move.target && w.from === move.at && (excludePower === null || (this.sallyBy.get(w.city) ?? null) !== excludePower)) count++;
+    return count;
+  }
+
+  /** Whether a sally found the move it supports (a move from where it names into its city, whoever made it). */
+  sallyMatched(w: SallyOrder): boolean {
+    return this.orders.some((o) => o.kind === "Move" && o.at === w.from && o.target === w.city);
+  }
+
+  private attackStrength(move: O): number {
+    if (!this.pathOk(move)) return 0;
+    const i = this.at.get(move.target!);
+    if (i === undefined) return 1 + this.supports(move, null);
+    const occ = this.orders[i];
+    const opp = this.headToHeadOpponent(move);
+    if (occ.kind === "Move" && opp === null && this.resolve(occ.index)) return 1 + this.supports(move, null);
+    if (occ.power !== null && occ.power === move.power) return 0;
+    return 1 + this.supports(move, occ.power);
+  }
+
+  /**
+   * The hold strength a move into a province must beat: none if the province is empty or its unit got away; else 1 for
+   * the unit that stays (holding, besieging, supporting, convoying, or whose own move failed), its supports to hold if it
+   * did not try to move, and what the ground gives it against this move ({@link groundAgainst}).
+   */
+  private holdStrength(move: O): number {
+    const province = move.target!;
+    const i = this.at.get(province);
+    if (i === undefined) return 0;
+    const occ = this.orders[i];
+    let count = 1;
+    if (occ.kind === "Move") {
+      if (this.resolve(occ.index)) return 0;
+    } else for (const s of this.orders) if (s.kind === "Support" && s.target === province && s.to === null && this.resolve(s.index)) count++;
+    return count + (this.groundAgainst(move) === null ? 0 : this.terrain);
+  }
+
+  /** The ground that helps a unit standing its ground in the move's target against it, or null (also when terrain is off). */
+  private groundAgainst(move: O): Ground | null {
+    return this.terrain > 0 ? defenceGround(move.at, move.target!, move.viaConvoy) : null;
+  }
+
+  private defendStrength(move: O): number {
+    return 1 + this.supports(move, null);
+  }
+
+  private preventStrength(move: O): number {
+    if (!this.pathOk(move)) return 0;
+    const opp = this.headToHeadOpponent(move);
+    if (opp !== null && this.resolve(opp.index)) return 0;
+    return 1 + this.supports(move, null);
+  }
+
+  private collect(): AdjudicationResult {
+    const r = new AdjudicationResult();
+    const succeededInto = new Set<string>();
+    for (const o of this.orders) if (o.kind === "Move" && this.result[o.index]) succeededInto.add(o.target!);
+
+    for (const o of this.orders) {
+      const moved = o.kind === "Move" && this.result[o.index];
+      const dislodged = !moved && succeededInto.has(o.at);
+      if (o.unitId === null) continue;
+      if (dislodged) r.dislodgedUnitIds.push(o.unitId);
+      else r.newPositions.set(o.unitId, moved ? o.target! : o.at);
+
+      const label = `${o.unitKind === "Army" ? "A" : "F"} ${o.at}`;
+      const helpedAt = o.kind === "Support" ? this.at.get(o.target!) : undefined;
+      r.outcomes.push(
+        newOrderOutcome({
+          power: o.power!,
+          unitKind: o.unitKind,
+          province: o.at,
+          order: o.kind.toLowerCase(),
+          target: o.target,
+          to: o.to,
+          helped: helpedAt !== undefined ? this.orders[helpedAt].power : null,
+          succeeded: o.kind === "Move" ? moved : o.kind === "Hold" ? !dislodged : this.result[o.index],
+          destroyed: dislodged,
+        }),
+      );
+      switch (o.kind) {
+        case "Move": {
+          r.moves.push({ from: o.at, to: o.target!, succeeded: moved });
+          const fight = this.explain ? this.groundFightOf(o, moved) : null;
+          if (fight !== null) r.groundFights.push(fight);
+          const assault = moved ? this.assaultBy(o) : null;
+          if (assault !== null) r.assaults.push(assault);
+          r.lines.push(
+            line(o.at, o.power, `${label} -> ${o.target}${o.viaConvoy ? " (by sea)" : ""}: ${moved ? "succeeds" : "fails"}`, moved, {
+              target: o.target,
+              failure: this.explain && !moved ? this.whyFailed(o) : null,
+              assault,
+            }),
+          );
+          break;
+        }
+        case "Support": {
+          const given = this.result[o.index];
+          const sIdx = this.at.get(o.target!);
+          if (!given) r.cutSupports.push(o.at);
+          else if (o.power !== null && sIdx !== undefined) {
+            r.givenSupports.push([o.power, this.orders[sIdx].power, o.to ?? o.target!]);
+            if (o.to === null) r.holdSupported.add(o.target!);
+          }
+          // A unit that is destroyed gives no support: that is not a cut.
+          const cutFrom = !given && !dislodged && this.explain ? (this.cutBy(o)?.at ?? null) : null;
+          const failed = dislodged ? "void: the supporting unit was destroyed" : cutFrom !== null ? `cut (attacked from ${cutFrom})` : "cut";
+          r.lines.push(
+            line(o.at, o.power, `${label} supports ${o.target}${o.to === null ? " holding" : " -> " + o.to}: ${given ? "given" : failed}`, given, {
+              cut: given || dislodged || !this.explain ? null : cutFrom !== null ? `the support was cut by an attack from ${cutFrom}` : "the support was cut",
+            }),
+          );
+          break;
+        }
+        case "Convoy":
+          r.lines.push(line(o.at, o.power, `${label} convoys ${o.target} -> ${o.to}`, this.result[o.index]));
+          break;
+        default:
+          r.lines.push(
+            o.voided !== null
+              ? line(o.at, o.power, `${label} ${o.voided}: void`, false, { void: this.explain ? o.voidWhy : null })
+              : line(o.at, o.power, `${label} ${o.besieging ? "besieges the city" : "holds"}`, true),
+          );
+          break;
+      }
+      if (dislodged) r.lines.push(line(o.at, o.power, `${label} is destroyed`, false));
+    }
+    return r;
+  }
+
+  /**
+   * Why a resolved move failed, from the same checks {@link adjudicate} made: the convoy, the mover's own unit, the
+   * head-to-head defence, another move that took the province, then in the adjudicator's order the hold and every other
+   * move into the province.
+   */
+  private whyFailed(move: O): MoveFailure | null {
+    if (!this.pathOk(move)) return failure("NoConvoy", move.target!, null, "Army", null, 0, 0);
+    const attack = this.attackStrength(move);
+    const i = this.at.get(move.target!);
+    const occ = i !== undefined ? this.orders[i] : null;
+    if (attack === 0 && occ !== null && occ.power !== null && occ.power === move.power)
+      return failure("OwnUnit", occ.at, occ.power, occ.unitKind, occ.kind === "Move" ? occ.target : null, 0, 0);
+
+    // A head-to-head battle lost is the reason, even when a third move then walked into the province the winner left.
+    const opp = this.headToHeadOpponent(move);
+    if (opp !== null) {
+      const defend = this.defendStrength(opp);
+      if (attack <= defend) return failure("HeadToHead", opp.at, opp.power, opp.unitKind, opp.target, attack, defend);
+    }
+
+    // Another move took the province: that is the news, even if the unit there also held this one off before it fell.
+    const winner = this.movesTo(move.target!).find((m) => m !== move && this.result[m.index]);
+    if (winner !== undefined) return failure("Bounced", winner.at, winner.power, winner.unitKind, winner.target, attack, this.preventStrength(winner));
+
+    if (opp === null && occ !== null) {
+      const hold = this.holdStrength(move);
+      if (attack <= hold) {
+        const stop: MoveStop = occ.kind === "Move" ? "Stayed" : "Held";
+        const ground = this.groundAgainst(move);
+        return failure(stop, occ.at, occ.power, occ.unitKind, occ.kind === "Move" ? occ.target : null, attack, hold, ground, ground === null ? 0 : this.terrain);
+      }
+    }
+
+    for (const other of this.movesTo(move.target!)) {
+      if (other === move) continue;
+      const prevent = this.preventStrength(other);
+      if (attack <= prevent) return failure("Bounced", other.at, other.power, other.unitKind, other.target, attack, prevent);
+    }
+    return null;
+  }
+
+  /**
+   * A move that succeeded into a walled province its mover does not hold: its strength against the walls and the hold
+   * strength it beat (a unit that stayed, or the defence of one it met head on; nothing if the province was empty or its
+   * unit got away). Null for an unwalled province, or the mover's own.
+   */
+  private assaultBy(move: O): Assault | null {
+    const target = move.target!;
+    const walls = this.walls.getOrDefault(target, 0);
+    if (walls <= 0 || move.power === null) return null;
+    const mover = move.power;
+    const owner = this.owners.getOrDefault(target, null);
+    if (owner === mover) return null;
+    const opp = this.headToHeadOpponent(move);
+    const beaten = opp !== null ? this.defendStrength(opp) : this.holdStrength(move);
+    // The ground counted in the hold strength the move beat to get in: the storm must beat it too.
+    const ground = opp === null && beaten > 0 ? this.groundAgainst(move) : null;
+    return {
+      province: target,
+      power: mover,
+      kind: move.unitKind,
+      from: move.at,
+      owner,
+      strength: this.attackStrength(move),
+      walls,
+      defenders: beaten,
+      ground,
+      groundBonus: ground === null ? 0 : this.terrain,
+    };
+  }
+
+  /**
+   * A move on another power's unit that stood its ground with the ground's help, not met head on: whether it got in, and
+   * whether the ground decided it (the unit held it off, and the move beat the hold without the ground). Null for any
+   * other move.
+   */
+  private groundFightOf(move: O, moved: boolean): GroundFight | null {
+    if (this.headToHeadOpponent(move) !== null) return null;
+    const i = this.at.get(move.target!);
+    if (i === undefined) return null;
+    const occ = this.orders[i];
+    if (occ.power === null || move.power === null || occ.power === move.power) return null;
+    const ground = this.groundAgainst(move);
+    if (ground === null) return null;
+    const hold = this.holdStrength(move);
+    if (hold === 0) return null;
+    const attack = this.attackStrength(move);
+    let decided = false;
+    if (!moved && attack <= hold && attack > hold - this.terrain) {
+      const why = this.whyFailed(move);
+      decided = why !== null && (why.stop === "Held" || why.stop === "Stayed");
+    }
+    return { from: move.at, to: move.target!, attacker: move.power, defender: occ.power, defenderKind: occ.unitKind, ground, strength: attack, against: hold, won: moved, decided };
+  }
+
+  /** The move that cut a support, by the same test {@link adjudicate} used. */
+  private cutBy(support: O): O | null {
+    return this.movesTo(support.at).find((m) => m.power !== support.power && !(support.to !== null && m.at === support.to) && this.pathOk(m)) ?? null;
+  }
+}

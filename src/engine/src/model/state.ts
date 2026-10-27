@@ -1,0 +1,448 @@
+import { Dict } from "../core/collections.ts";
+import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
+import { distinct, sortBy, sum } from "../core/seq.ts";
+import { type GameConfig, GameConfigSchema, newGameConfig } from "./config.ts";
+import { type UnitKind, WorldMap } from "./map.ts";
+import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
+import { type Character, CharacterSchema } from "./people.ts";
+import { AllPowers, type Power, cmpPower } from "./power.ts";
+import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
+import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
+
+export const CURRENT_VERSION = 7;
+
+/**
+ * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
+ * that decides anything goes through {@link Powers.All} or the map's province list, never
+ * dictionary order, so results stay deterministic.
+ */
+export interface GameState {
+  version: number;
+  seed: number;
+  config: GameConfig;
+  turn: number;
+  ended: boolean;
+  endReason: string | null;
+  owner: Dict<string, Power | null>;
+  /**
+   * The walls standing now, by province, from 1 to 3; a province with none is left out (Build order item 5, the siege
+   * package, in place of the free cities' garrisons that held with strength 1). They start as the map gives them
+   * ({@link MapData.StartWalls}). Walls add nothing to a field battle: a move into a walled province not its
+   * mover's takes it at once only if it storms the walls, and otherwise stands inside and takes nothing until a siege
+   * wears the city down ({@link Sieges}).
+   */
+  walls: Dict<string, number>;
+  /**
+   * The walls as each court last saw them, by province (a province with none left out): at the start as the map gives
+   * them, then, as each season resolves, those standing in the court's sight as it gave its orders. A court sees the walls
+   * standing now only where it sees troops, and knows them elsewhere as they were when it last saw them
+   * ({@link Views.WallsKnown}): walls fall to an earthquake or to unpaid upkeep, and rise for gold, out of other
+   * courts' sight. Since the review of the siege package; until then every court saw every wall as it stood.
+   */
+  wallsSeen: Dict<Power, Dict<string, number>>;
+  /** The sieges under way: a foreign army standing in a walled city, ordered to besiege it. */
+  sieges: Siege[];
+  /**
+   * Land taken by force and still being absorbed, with the season it was taken (Build order item 5, slow absorption): it
+   * yields, and counts in its holder's strength, a third of its yield in its first season under him, two thirds in the
+   * second, all of it from the third ({@link TurnEngine.Absorbed}). Each court sees the marks of its own land only
+   * ({@link SeatView.Conquered}): who holds a province is public, but how it changed hands is not.
+   */
+  conquered: Dict<string, number>;
+  /**
+   * The armies, by unit id, that ended the last season's moves in desert land their king did not hold when the moves were
+   * made (Build order item 5, terrain): each pays {@link GameConfig.DesertUpkeep} for supplies with the next upkeep,
+   * and the list is then cleared. An army in its own land pays nothing.
+   */
+  inDesert: string[];
+  units: Unit[];
+  treasuries: Dict<Power, Treasury>;
+  startStrength: Dict<Power, number>;
+  eliminated: Power[];
+  /**
+   * Each kingdom's fall: when, to whom, and the land that passed (Build order item 5: a kingdom falls with its capital).
+   */
+  falls: KingdomFall[];
+  /**
+   * The record of wars, for the measures of the pace of war (Build order item 5): for each king, the season each other
+   * king's troops first got into land he held (a move into it that succeeded, whether or not it took the province).
+   */
+  invaded: Dict<Power, Dict<Power, number>>;
+  characters: Character[];
+  journeys: Journey[];
+  audiences: PendingAudience[];
+  tablets: Tablet[];
+  copies: TabletCopy[];
+  catastrophes: Catastrophe[];
+  /**
+   * Servants caught or put to death abroad, at the court that did it: the talk of that court, which envoys and spies there carry home.
+   */
+  losses: LossAbroad[];
+  tasks: PendingTask[];
+  counterIntel: Dict<Power, number>;
+  /**
+   * Seats that may sleep (model and file seats, when {@link GameConfig.SleepingSeats} is on). Each sees only its own.
+   */
+  sleep: Dict<Power, SleepState>;
+  /**
+   * Every seat's standing orders, awake or asleep (since the additions to the fix pass after item 4); a seat that never
+   * kept one has no entry. Each sees only its own.
+   */
+  standing: Dict<Power, StandingBook>;
+  inbox: Dict<Power, InboxItem[]>;
+  /** The orders each power could see resolve last season (its own and those in sight). */
+  lastSeen: Dict<Power, OrderOutcome[]>;
+  trails: MessageTrail[];
+  events: GameEvent[];
+  scores: ScoreRow[];
+  winners: string[];
+  /**
+   * How many ids each kind of object has been given, by its prefix ({@link IdKinds}). Every kind counts on its own,
+   * so making more or fewer objects of one kind, or a kind added later, never shifts the ids of another, nor with them
+   * the rolls keyed by those ids. (Until version 4 all kinds shared one counter, and new inventory tablets shifted the
+   * ids, and so the dice, of everything made after them.)
+   */
+  idCounters: Dict<string, number>;
+  // computed in C#: Powers.All.Where(IsAlive)
+  /** While a season resolves, news is stamped for the next season, when the courts read it. */
+  deliveryOffset: number; // not serialized
+}
+
+export function newGameState(init: Partial<GameState> = {}): GameState {
+  return {
+    version: CURRENT_VERSION,
+    seed: 0,
+    config: newGameConfig(),
+    turn: 1,
+    ended: false,
+    endReason: null,
+    owner: new Dict(),
+    walls: new Dict(),
+    wallsSeen: new Dict(),
+    sieges: [],
+    conquered: new Dict(),
+    inDesert: [],
+    units: [],
+    treasuries: new Dict(),
+    startStrength: new Dict(),
+    eliminated: [],
+    falls: [],
+    invaded: new Dict(),
+    characters: [],
+    journeys: [],
+    audiences: [],
+    tablets: [],
+    copies: [],
+    catastrophes: [],
+    losses: [],
+    tasks: [],
+    counterIntel: new Dict(),
+    sleep: new Dict(),
+    standing: new Dict(),
+    inbox: new Dict(),
+    lastSeen: new Dict(),
+    trails: [],
+    events: [],
+    scores: [],
+    winners: [],
+    idCounters: new Dict(),
+    deliveryOffset: 0,
+    ...init,
+  };
+}
+
+export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameState, {
+  version: I,
+  seed: I,
+  config: () => GameConfigSchema,
+  turn: I,
+  ended: B,
+  endReason: S,
+  owner: dict(opt(S)),
+  walls: dict(I),
+  wallsSeen: dict(dict(I)),
+  sieges: list(() => SiegeSchema),
+  conquered: dict(I),
+  inDesert: list(S),
+  units: list(() => UnitSchema),
+  treasuries: dict(() => TreasurySchema),
+  startStrength: dict(I),
+  eliminated: list(S),
+  falls: list(() => KingdomFallSchema),
+  invaded: dict(dict(I)),
+  characters: list(() => CharacterSchema),
+  journeys: list(() => JourneySchema),
+  audiences: list(() => PendingAudienceSchema),
+  tablets: list(() => TabletSchema),
+  copies: list(() => TabletCopySchema),
+  catastrophes: list(() => CatastropheSchema),
+  losses: list(() => LossAbroadSchema),
+  tasks: list(() => PendingTaskSchema),
+  counterIntel: dict(I),
+  sleep: dict(() => SleepStateSchema),
+  standing: dict(() => StandingBookSchema),
+  inbox: dict(list(() => InboxItemSchema)),
+  lastSeen: dict(list(() => OrderOutcomeSchema)),
+  trails: list(() => MessageTrailSchema),
+  events: list(() => GameEventSchema),
+  scores: list(() => ScoreRowSchema),
+  winners: list(S),
+  idCounters: dict(I),
+  alive: computed(list(S), (o: GameState) => alive(o)),
+});
+
+export interface Unit {
+  id: string;
+  power: Power;
+  kind: UnitKind;
+  province: string;
+  // computed in C#: $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}"
+}
+
+export function newUnit(init: Partial<Unit> = {}): Unit {
+  return {
+    id: "",
+    power: "Egypt",
+    kind: "Army",
+    province: "",
+    ...init,
+  };
+}
+
+export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
+  id: S,
+  power: S,
+  kind: S,
+  province: S,
+  label: computed(S, (o: Unit) => unitLabel(o)),
+});
+
+/**
+ * The fall of a kingdom with its capital: the season, the power that took the capital, and the land that passed to it.
+ */
+export interface KingdomFall {
+  power: Power;
+  turn: number;
+  /** The power that took the capital; null if it fell in the same season, when the land was left free. */
+  conqueror: Power | null;
+  capital: string;
+  /**
+   * The land it still held when its capital was taken, which passed with the capital (the capital not among it).
+   */
+  land: string[];
+}
+
+export function newKingdomFall(init: Partial<KingdomFall> = {}): KingdomFall {
+  return {
+    power: "Egypt",
+    turn: 0,
+    conqueror: null,
+    capital: "",
+    land: [],
+    ...init,
+  };
+}
+
+export const KingdomFallSchema: ObjSchema<KingdomFall> = obj("KingdomFall", newKingdomFall, {
+  power: S,
+  turn: I,
+  conqueror: opt(S),
+  capital: S,
+  land: list(S),
+});
+
+/**
+ * A siege under way (Build order item 5): a foreign army standing in a walled city it does not hold, whose king ordered it
+ * to besiege the city. Each season the army holds there, the city's stores run down by one, or by two if another unit
+ * supports the army holding and the support is not cut; when they reach the level of its walls the city surrenders to the
+ * besieger at the end of that season. The siege ends, and its progress is lost, if the army leaves or is destroyed.
+ */
+export interface Siege {
+  province: string;
+  /** The besieger. */
+  power: Power;
+  /** The besieging army. */
+  unitId: string;
+  /** How far the city has been worn down: it surrenders when this reaches the level of its walls. */
+  progress: number;
+  /** The season the first besiege order ran. */
+  since: number;
+}
+
+export function newSiege(init: Partial<Siege> = {}): Siege {
+  return {
+    province: "",
+    power: "Egypt",
+    unitId: "",
+    progress: 0,
+    since: 0,
+    ...init,
+  };
+}
+
+export const SiegeSchema: ObjSchema<Siege> = obj("Siege", newSiege, {
+  province: S,
+  power: S,
+  unitId: S,
+  progress: I,
+  since: I,
+});
+
+export interface Treasury {
+  /** Fine gold actually held, in shekels. */
+  gold: number;
+  /** Received shipments not yet assayed. The owner's ledger counts them at face value. */
+  lots: GoldLot[];
+  // computed in C#: Gold + Lots.Sum(l => l.Face - l.True)
+}
+
+export function newTreasury(init: Partial<Treasury> = {}): Treasury {
+  return {
+    gold: 0,
+    lots: [],
+    ...init,
+  };
+}
+
+export const TreasurySchema: ObjSchema<Treasury> = obj("Treasury", newTreasury, {
+  gold: I,
+  lots: list(() => GoldLotSchema),
+  ledger: computed(I, (o: Treasury) => ledger(o)),
+});
+
+export interface GoldLot {
+  id: string;
+  from: Power;
+  /** What the tablet's inventory said was sent. */
+  stated: number;
+  /** What was weighed on arrival (after any skimming). */
+  face: number;
+  /** The fine gold in it (after debasement). */
+  true: number;
+  arrivedTurn: number;
+}
+
+export function newGoldLot(init: Partial<GoldLot> = {}): GoldLot {
+  return {
+    id: "",
+    from: "Egypt",
+    stated: 0,
+    face: 0,
+    true: 0,
+    arrivedTurn: 0,
+    ...init,
+  };
+}
+
+export const GoldLotSchema: ObjSchema<GoldLot> = obj("GoldLot", newGoldLot, {
+  id: S,
+  from: S,
+  stated: I,
+  face: I,
+  true: I,
+  arrivedTurn: I,
+});
+
+// ---------------------------------------------------------------- GameState's methods
+
+/** The next id of a kind: its prefix and its own count, "t1", "t2", ... */
+export function newId(s: GameState, prefix: string): string {
+  const n = s.idCounters.getOrDefault(prefix, 0) + 1;
+  s.idCounters.set(prefix, n);
+  return `${prefix}${n}`;
+}
+
+export function unitAt(s: GameState, province: string): Unit | null {
+  return s.units.find((u) => u.province === province) ?? null;
+}
+
+/** The level of a province's walls now (0 for none). */
+export function wallsOf(s: GameState, province: string): number {
+  return s.walls.getOrDefault(province, 0);
+}
+
+/** The siege of a province under way, if any. */
+export function siegeOf(s: GameState, province: string): Siege | null {
+  return s.sieges.find((x) => x.province === province) ?? null;
+}
+
+export function findCharacter(s: GameState, id: string | null | undefined): Character | null {
+  if (id === null || id === undefined) return null;
+  return s.characters.find((c) => c.id === id) ?? null;
+}
+
+/** A character by id; throws when there is none. */
+export function char(s: GameState, id: string): Character {
+  const c = s.characters.find((x) => x.id === id);
+  if (!c) throw new Error("Sequence contains no matching element");
+  return c;
+}
+
+export function isAlive(s: GameState, p: Power): boolean {
+  return !s.eliminated.includes(p);
+}
+
+/** The powers still in the game, in the fixed order. */
+export function alive(s: GameState): Power[] {
+  return AllPowers.filter((p) => isAlive(s, p));
+}
+
+/** The land a power holds, in the map's order. */
+export function ownedBy(s: GameState, p: Power): string[] {
+  return WorldMap.default.landProvinces.filter((x) => s.owner.getOrDefault(x.id, null) === p).map((x) => x.id);
+}
+
+export function inboxOf(s: GameState, p: Power): InboxItem[] {
+  let list = s.inbox.tryGet(p);
+  if (!list) s.inbox.set(p, (list = []));
+  return list;
+}
+
+export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null): void {
+  inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset, kind, title, body, subject }));
+}
+
+export function logEvent(s: GameState, kind: string, text: string, visibleTo: Iterable<Power> | null = null, signal: string | null = null): GameEvent {
+  const e = newGameEvent({
+    turn: s.turn,
+    kind,
+    text,
+    visibleTo: visibleTo === null ? [...AllPowers] : sortBy(distinct(visibleTo), [(p: Power) => p, cmpPower]),
+    signal,
+  });
+  s.events.push(e);
+  return e;
+}
+
+/**
+ * The kinds of object the engine numbers with {@link newId}, by prefix. Each prefix is letters only and belongs to one
+ * kind, so ids stay unique across kinds although each kind counts from 1. A new kind takes a prefix of its own here (the
+ * tests check that every id issued in play has one, and that no two kinds share one).
+ */
+export const IdKinds: ReadonlyMap<string, string> = new Map([
+  ["a", "audience"],
+  ["c", "character"],
+  ["f", "fact about a character"],
+  ["g", "lot of gold"],
+  ["j", "journey"],
+  ["k", "copy of a tablet"],
+  ["m", "message trail"],
+  ["q", "task owed to a court"],
+  ["r", "request to a character's mind"],
+  ["t", "tablet"],
+  ["u", "unit"],
+  ["x", "catastrophe"],
+]);
+
+/** Standing orders are numbered per seat ("s1", "s2", ...) by StandingBook.last, not here; no kind may take "s". */
+export const StandingOrderPrefix = "s";
+
+/** "A memphis", "F delta". */
+export function unitLabel(u: Unit): string {
+  return `${u.kind === "Army" ? "A" : "F"} ${u.province}`;
+}
+
+/** What the owner's ledger counts: fine gold, and received lots at face value. */
+export function ledger(t: Treasury): number {
+  return t.gold + sum(t.lots, (l) => l.face - l.true);
+}

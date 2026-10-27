@@ -2,9 +2,9 @@
 
 A Late Bronze Age grand strategy game: seven Great Kings, played by humans, script bots or language models, negotiate
 through envoys and sealed tablets on a deterministic engine. Haakon (the owner) designs it with Claude in a design
-document; builders like you build it item by item. Built in C# on Blazor WebAssembly today, moving to TypeScript in
-build order item 5+. Every feature answers to the design pillars and tenets in `docs/intent/overview/design-pillars.md`:
-read them once per session.
+document; builders like you build it item by item. Built in TypeScript (Vite and React, the engine in a Web Worker)
+since build order item 5+; the old C# build in `src/Amarna.*` and `tests/` is kept for reference only. Every feature
+answers to the design pillars and tenets in `docs/intent/overview/design-pillars.md`: read them once per session.
 
 ## Where things are
 
@@ -100,11 +100,12 @@ The same in both of Haakon's games; only the list of hard work differs.
 ## Commands
 
 ```bash
-scripts/cloud-setup.sh        # cloud machines: installs the .NET 10 SDK (and tries Playwright's Chromium) if missing
-scripts/test.sh               # dotnet test, quiet: summary and failures only (full log: $TMPDIR/amarna-test.log)
-scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/Amarna.Batch), quiet; see README.md
+scripts/cloud-setup.sh        # cloud machines: npm packages and Playwright's Chromium, if missing
+scripts/test.sh               # type-check, lint and Vitest, quiet: summary and failures only (full log: $TMPDIR/amarna-test.log)
+scripts/sim.sh --games 50 --seed 1 --verify-replay   # the batch runner (src/batch), quiet; see README.md
 scripts/usage.sh              # weekly usage, if this session can read it
-dotnet run --project src/Amarna.Web --launch-profile http   # the web app at http://localhost:5183
+npm run dev --workspace src/web                       # the web app at http://localhost:5183
+npm run build --workspace src/web && node src/web/smoke.mjs   # the Playwright smoke test of the built app
 ```
 
 Benchmarks: `scripts/sim.sh --versus solo ...` ("Benchmarks" in `docs/design/07-script-kings/20-benchmarks.md`). No
