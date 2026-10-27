@@ -10,7 +10,10 @@ report. Work goes on item after item until weekly usage nears 90% ("Usage" in th
 
 Since 27 October 2026 the design document has one tab per system, and its copy one folder per tab
 (`docs/intent/INDEX.md` lists them, with each tab's node and revision for the check for changes). An entry keeps its
-title wherever it moved, so `grep -rn "Title" docs/intent` still finds what an item names.
+title wherever it moved, so `grep -rn "Title" docs/intent` still finds what an item names. On 27 October the document was
+also condensed: passages that record history rather than intent (what was tried or retired, what past runs
+measured, the full text of items 1 to 5) moved word for word to `docs/archive/design-history.md`, so a title that
+`grep` no longer finds in `docs/intent/` is looked up there.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`.
 Haakon's standing instructions given in chat are recorded word for word in `docs/archive/instructions.md`.

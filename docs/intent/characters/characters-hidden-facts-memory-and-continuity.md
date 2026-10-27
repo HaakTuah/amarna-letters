@@ -1,9 +1,9 @@
 <!-- Generated from the design document, Characters tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Characters: hidden facts, memory and continuity
 
-Every character is data first and personality second: the engine owns its traits and facts, and the narrator writes a persona from them once, at creation. The prototype has 18 characters, serving as envoys and spies. As characters take on more roles (generals, governors, later advisors), the pool grows to about 60 ("How many characters"), most of them scripts, while envoys and spies remain a small cast of known figures people talk about rather than consumables. More roles also need more attributes (see "Character attributes for many roles" below).
+Every character is data first and personality second: the engine owns its traits and facts, and the narrator writes a persona from them once, at creation. The prototype has 18 characters, serving as envoys and spies. As characters take on more roles (generals, governors, later advisors), the pool grows to about 60 ("How many characters"), most of them scripts, while envoys and spies remain a small cast of known figures people talk about rather than consumables.
 
-**Hidden traits** (0–100, seeded, never shown to players): loyalty, greed, competence, ambition, courage, and an optional sympathy for one foreign court. Once characters take on several roles, they have the skills that "What skills cover" sets out ("Character attributes for many roles" below).
+**Hidden traits** (0–100, seeded, never shown to players): loyalty, greed, competence, ambition, courage, and an optional sympathy for one foreign court. Skills come on top ("Character attributes for many roles").
 
 **Facts with secrecy levels.** A backstory is a list of discrete facts, each with a level and a record of which courts have uncovered it.
 
@@ -36,9 +36,5 @@ type Character = Readonly<{
 
 The character's model receives only its persona, its memory and the facts it knows about itself. The engine keeps the authoritative copy.
 
-**Character attributes for many roles.** One shared pool serves as envoys, spies, generals and governors, so a single competence is not enough; a brilliant negotiator can be a poor general.
-
-Which skills a character has, and what each governs, is in "What skills cover".
-
-All stay hidden, seeded and engine-owned, revealed only through checks, spies and observed behavior.
+**Character attributes for many roles.** One shared pool serves as envoys, spies, generals and governors, so a single competence is not enough; a brilliant negotiator can be a poor general. Which skills a character has, and what each governs, is in "What skills cover"; all stay hidden, seeded and engine-owned, revealed only through checks, spies and observed behavior.
 

@@ -4,8 +4,7 @@
 **Open questions.**
 
 - Exact starting provinces, gold and units per tier, and the scoring weights between provinces and gold.
-- Game length: the shape of the random ending, decided as a chance that starts tiny from the first season and puts the median end in 1332 BCE ("Random ending"), its exact curve to be set in the balance pass (build order item 18), from script games once sieges and travel lengthen wars; model games wait until the build order is done ("No model games until the build order is done" under Build order).
-- Shared victory is decided: off by default, kept only as an optional house rule (see Victory).
+- Game length: the random ending's exact curve ("Random ending"), set in the balance pass (build order item 18) from script games once sieges and travel lengthen wars.
 - How long can a character's memory grow before quality or cost suffers, and how should it be summarized?
 - How many messages per turn keep games fast and affordable?
 - Is the game fun for humans, or best as a spectator sandbox for AI empires?

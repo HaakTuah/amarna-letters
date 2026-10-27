@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 4 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Bands, pirates and outlaws
 
 **Bands are a character's soldiers (decided 21 October 2026).** A character has no land to levy from, so his soldiers are a band: men he gathers from a province's loose people and pays in gold or the promise of loot, as many as the province has and as he can pay and feed. A band fights by the same rules as any unit. Unpaid or unfed, it melts back into the loose men or turns on its leader, as servants leave a master who does not pay. When a king or a character hires a band, the contract is with its leader, a character, and the men follow him: if he is bribed or turns, the band goes with him. A power may also lend or give troops to a character, as it can to another power, and they become his band under the same rule. This covers the mercenary captain who hires his company out to kings and the Habiru chief who robs caravans alike ("Going outlaw", "Pirates and bandits").
@@ -8,7 +8,7 @@
 - **A crowd in a lawless land.** Loose men drift and rob without a leader ("Bandits rob the purse"), but a crowd large enough, in the Kaska lands, Lukka, the Sutean steppe or the Habiru hills, raises a chief who gathers it into a band ("Bands are a character's soldiers" above). Item 11b.
 - **A band that loses its leader,** killed, captured or turned on: one of its own takes over, or it melts back into the loose men. Pirates are bands at sea and follow the same rule. Item 11b.
 - **Mutineers.** A unit that mutinies for hunger or missing pay disbands until item 11b; from then on it may follow one of its own as a band instead ("Armies need food as well as pay"). Item 11b.
-- **A fallen kingdom's army with no commander.** Instead of disbanding ("A kingdom falls with its capital"), it may raise a captain from its ranks, who faces the commander's choice: serve the conqueror, offer the army to another court, take land of his own or turn outlaw. Item 13, with commanders.
+- **A fallen kingdom's army with no commander** may raise a captain from its ranks instead of disbanding, and he faces the commander's choice ("A kingdom falls with its capital"). Item 13, with commanders.
 - **A revolt with no leader.** Land that breaks free with no governor or commander at its head ("How cities become free") raises a ruler from its own people, who rules the free city as a power with a seat of its own, as every city-state is from item 11+ ("Minds follow what is at stake"). Item 17.
 - **A fallen court's people.** When a kingdom falls, its scribes and officials have lost their king, and one of them may rise among its refugees, carrying the court's language and some of what it knew; whatever he claims for himself is words, since the game has no heirs. Item 11b.
 
