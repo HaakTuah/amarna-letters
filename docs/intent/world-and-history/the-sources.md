@@ -1,4 +1,4 @@
-<!-- Generated from the design document, World and history tab, revision 30 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, World and history tab, revision 33 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## The sources
 
 **Grounded in the sources (decided 21 October 2026, build order item 6+).** Before the map, the people of the land and the opening relations are built, a research pass gathers what the sources say about the world in 1346 BCE, so the start is as historically accurate as the evidence allows. It writes dossiers in the repository (`docs/history/`), every claim with its source and how sure it is:
