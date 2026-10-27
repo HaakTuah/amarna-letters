@@ -1,8 +1,0 @@
-@* A piece of SVG markup written once and never re-rendered. *@
-@((MarkupString)Markup)
-
-@code {
-    [Parameter, EditorRequired] public string Markup { get; set; } = "";
-
-    protected override bool ShouldRender() => false;
-}

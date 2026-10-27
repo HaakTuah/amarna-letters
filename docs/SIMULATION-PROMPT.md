@@ -92,11 +92,10 @@ and ask (on a kit made before 20 October 2026 it fails and says why: the kit mus
 - If the check does not print `ISOLATION HOLDS`, stop and ask. Do not run a game, and start no other agent.
 
 **3. Game 1, seed 7.**
-- Build, then start the game in the background, with the Bash tool (Git Bash, for `mkdir -p` and the redirection):
+- Start the game in the background, with the Bash tool (Git Bash, for `mkdir -p` and the redirection):
   ```
-  dotnet build src/Amarna.Batch
   mkdir -p sim/runs/seed-7
-  dotnet run --project src/Amarna.Batch --no-build -- --games 1 --seed 7 --file-seats sim/kings/seats.json --file-characters sim/characters/seed-7.json --max-turns 10 --file-timeout 240 --characters script --narrator template --no-chronicles --verify-replay --out sim/runs/seed-7 > sim/runs/seed-7/batch.log 2>&1
+  node --experimental-strip-types --no-warnings src/batch/src/main.ts --games 1 --seed 7 --file-seats sim/kings/seats.json --file-characters sim/characters/seed-7.json --max-turns 10 --file-timeout 240 --characters script --narrator template --no-chronicles --verify-replay --out sim/runs/seed-7 > sim/runs/seed-7/batch.log 2>&1
   ```
 - Then loop on `node sim/wait.js sim/runs/seed-7/batch.log 540 --seed 7`:
   - `waiting`: start every listed request in parallel, one Agent call each, with `subagent_type` set to the entry's

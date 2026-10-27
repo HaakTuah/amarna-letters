@@ -1,7 +1,9 @@
 /**
- * The parity check of the TypeScript conversion (`docs/CONVERSION-PLAN.md`). Replays every C# game log in a folder
- * (game-N.jsonl, written by the C# batch runner with --out) through the TypeScript build and compares its fingerprints
- * after every phase with those the C# build wrote (game-N.parity.tsv, with --fingerprints).
+ * The parity check of the TypeScript conversion (`docs/CONVERSION-PLAN.md`). Replays every game log in a folder
+ * (game-N.jsonl, written by a batch runner with --out) through this build and compares its fingerprints after every
+ * phase with those that run wrote (game-N.parity.tsv, with --fingerprints). The C# build it was written against is
+ * kept at the tag csharp-final (scripts/parity.sh there); the batch runner's --fingerprints still lets two TypeScript
+ * runs be compared the same way.
  *   node --experimental-strip-types src/batch/src/parity.ts replay LOGS [FINGERPRINTS]
  */
 import { readdirSync } from "node:fs";

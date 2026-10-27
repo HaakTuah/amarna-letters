@@ -36,7 +36,7 @@
   "(it stands within the walls of mari and does not take it)". The season's sieges come in a notice
   of their own, "Sieges" (see Walls and sieges).
 - **Sight.** A court sees troops in its own land, where its troops stand and in the provinces its
-  spies watch, and one link of any kind (land, coast or sea) from those (`Views.Sight`). A province
+  spies watch, and one link of any kind (land, coast or sea) from those (`Views.sight`). A province
   spy caught or let go unknown to its master still counts while the master's cover believes it at
   its post, so the capture cannot be read off the sight line before word comes. The rulebook
   and the view's sight line say so, and that troops two links away, or an army carried across the
@@ -54,7 +54,7 @@
 - **Ownership changes every season**, whenever a unit ends a season in a province, not only in
   autumn as in Diplomacy.
 - **How a season resolves.** The rulebook's section of that name lists the engine's own order
-  (`TurnEngine.BeginTurn`, `GameRunner.PlayTurnAsync`, `TurnEngine.ResolveSeason`) in 18 short
+  (`TurnEngine.beginTurn`, `GameRunner.playTurn`, `TurnEngine.resolveSeason`) in 18 short
   steps: servants whose notice ran out leave; income, upkeep and wages (the wages of people at
   court; those of people away added to their back pay) and desertion; arrivals, then back pay paid
   to everyone at the court that owes it; the court (candidates, checks and examinations, contract
@@ -92,14 +92,14 @@
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, plan steps 1 to 9, and the design document's
   "Tempo of war" and "Walls and terrain"). Walls set how long a city holds out, not how many armies
   a field battle needs:
-  - **Walls by place** (`MapData.StartWalls`, first guesses): every capital 3; the fortresses
+  - **Walls by place** (`StartWalls`, first guesses): every capital 3; the fortresses
     Carchemish, Qadesh, Tyre, Megiddo, Gaza, Mari, Susa, Memphis, Kanesh and Nineveh 2; the walled
     towns Lukka, Isuwa, Ugarit, Amurru, Byblos and Damascus 1; every other land province none. So
     every free city has walls, and so do the capitals and three homeland fortresses. The walls
-    standing now are the game state's (`GameState.Walls`). THE MAP in the rulebook gives each
+    standing now are the game state's (`GameState.walls`). THE MAP in the rulebook gives each
     province's walls at the start, which every court knows. **A court sees the walls standing now
     only where it sees troops** (its sight: its land, its troops, its spies' provinces and next to
-    them), and knows them elsewhere as it last saw them (`Views.WallsKnown`, `GameState.WallsSeen`:
+    them), and knows them elsewhere as it last saw them (`Views.wallsKnown`, `GameState.wallsSeen`:
     each living court's, set from the map at the start and, as each season resolves, from what its
     view showed when it gave its orders), in its view ("LANDS ...: mari (walls 2)") and on its map
     (a ring for each level; the province card says "as your court last saw them" out of sight, or
@@ -118,7 +118,7 @@
     beats the walls' level plus the hold strength of the defenders it beat (`Assault`; none if the
     province was empty or its unit got away, the defence of a unit met head on). An empty city with
     walls 1 needs 2, as before; Hattusa held by one army needs 5, more than its neighbours can
-    supply. Otherwise the unit stands within the walls and takes nothing (`TurnEngine.UpdateOwnership`).
+    supply. Otherwise the unit stands within the walls and takes nothing (`TurnEngine.updateOwnership`).
     A fleet never storms or besieges walls: it takes only coasts without walls. A foreign unit within
     walls without a siege is a **guest** and takes nothing, so an ally's relief army may stand in
     a friend's city, and turning on the host (a besiege order) is a visible act. A province without
@@ -130,18 +130,18 @@
   - **Besieging** (`BesiegeOrder`, schema "besiege"): an army standing within walls it does not
     hold may besiege the city. The order runs as a hold. Each season the army holds there (a besiege
     or hold order, or none) the city is worn down a step, or two if another unit, of any power,
-    gave it a support to hold that was not cut (`AdjudicationResult.HoldSupported`); a season in
+    gave it a support to hold that was not cut (`AdjudicationResult.holdSupported`); a season in
     which it supports, convoys or tries to move adds nothing. One order is enough: the siege goes
     on while the army holds there. When the city is worn down as far as its walls are high, it
-    **surrenders** to the besieger at the end of that season (`TurnEngine.Sieges`, after movement and
+    **surrenders** to the besieger at the end of that season (`TurnEngine.sieges`, after movement and
     before land changes hands) and its walls fall a level; a city stormed falls a level too. So a
     lone army takes walls 1 in the season after it got in, walls 3 in the third (four seasons
     counting the entry, question 5's timings), with a support each season walls 3 in the second.
     If the besieging army leaves or is destroyed, or deserts, the siege is lifted and its progress
     lost. Breaking a siege is ordinary combat against the besieger.
   - **While besieged** the city stays its holder's and counts in his strength, but yields nothing
-    (`TurnEngine.EffectiveYield`), and no levy can be raised there (the besieger stands in it). Each
-    siege costs its besieger `GameConfig.SiegeUpkeep` (15, a first guess) a season on top of the
+    (`TurnEngine.effectiveYield`), and no levy can be raised there (the besieger stands in it). Each
+    siege costs its besieger `GameConfig.siegeUpkeep` (15, a first guess) a season on top of the
     army's upkeep, paid with upkeep. The holder may still cede the city.
   - **What kings read.** The battle report (above); a "Sieges" notice each season to the besieger
     and to the city's holder: begun ("Your siege of Mari (walls 2, a free city) has begun, and it
@@ -153,8 +153,8 @@
     with the signals `storm`, `siege-begun` and `siege-won` counted in the batch report.
   - **Sallies** (`SallyOrder`, unit order "sally": the city as the unit, the province the attack comes from as the target;
     question 5, plan step 8). While foreign troops stand within the walls of a city of the king's whose walls are
-    `GameConfig.SallyMinWalls` (2) or higher, its defenders may sally: the walls support one attack into the city on those
-    troops, the king's own or another king's, for +1, a support that cannot be cut (counted in `Adjudicator.Supports`, for
+    `GameConfig.sallyMinWalls` (2) or higher, its defenders may sally: the walls support one attack into the city on those
+    troops, the king's own or another king's, for +1, a support that cannot be cut (counted in `Adjudicator.supports`, for
     the city's holder, so it does not help a move into his own unit). One per city a season; refused below the walls
     needed, with no foreign troops within, or from a province not next to the city ("the walls of Mari stand at 1: only
     walls of 2 or more can sally", "Harran has no walls to sally from"). A sally that finds no such attack is void, and the
@@ -168,32 +168,32 @@
   - **Strengthening walls** (`FortifyOrder`, other_orders "fortify", naming the province; the design document's "can be
     strengthened for gold and upkeep, a real choice between defense and expansion"; question 5, plan step 11, first
     guesses): the walls of a province the king holds rise a level at the end of the season (after purchases), up to
-    `GameConfig.MaxWalls` (3), for `FortifyCost` (50) × the new level, reserved when the order is checked and paid when
+    `GameConfig.maxWalls` (3), for `fortifyCost` (50) × the new level, reserved when the order is checked and paid when
     it is done; a province without walls can be given them. Refused at level 3, for land not held, while the province is
     besieged or foreign troops stand within it, or twice in a season; not done, and not paid, if the province was lost in
     the moves, a siege began or foreign troops got into it
     ("Walls not strengthened": a scheduled one then wakes its seat, as others foiled it). Each level above the map's own
-    for the province costs `WallUpkeep` (5) a season, paid after the troops' upkeep (`TurnEngine.WallsUpkeep`; the
+    for the province costs `wallUpkeep` (5) a season, paid after the troops' upkeep (`TurnEngine.wallsUpkeep`; the
     treasury notice reads "upkeep 3 minas 5 shekels, walls 5 shekels, wages ..."); walls whose upkeep the treasury
     cannot pay fall a level, the farthest from the capital first ("Unkept, walls fell a level: Sinai, Thebes."). A city
     that falls loses a level as any other, so a captured capital at 2 can be built back to 3 without upkeep. An
     earthquake throws the walls of the province it strikes down a level (its notice says so: "..., and its walls stand a
     level lower (walls 2)."); until the siege package its text spoke of walls it did not touch. The view shows the walls'
-    upkeep beside the troops' (`SeatView.WallUpkeep`), and the orders panel has "Strengthen walls in…" with the price,
+    upkeep beside the troops' (`SeatView.wallUpkeep`), and the orders panel has "Strengthen walls in…" with the price,
     offering only land the order may be given for (since the review of the siege package, not where foreign troops stand
     within).
     Script kings strengthen walls where a feared king may walk in (see Treasury under Script kings).
   - **Envoys and a besieged capital** (the design document's "Getting a message out depends on the envoy's competence and
     courage and on how tight the siege is; the besieger may capture the envoy and read the tablets"; question 5, plan
-    steps 12 and 13, first guesses in `GameConfig`). While a king's own capital is besieged (`TurnEngine.CapitalSiege`), the
-    siege's **tightness** is the besieger's units in the city and next to it, 1 to 3 (`TurnEngine.Tightness`; shown to the
+    steps 12 and 13, first guesses in `GameConfig`). While a king's own capital is besieged (`TurnEngine.capitalSiege`), the
+    siege's **tightness** is the besieger's units in the city and next to it, 1 to 3 (`TurnEngine.tightness`; shown to the
     holder and the besieger in SIEGES). An envoy of his whose courage is below 20 × tightness **will not leave** that season:
     the letter is not sent and nothing is paid ("An envoy would not leave": "Mane would not leave Ashur while Babylonia's
     army besieges it: the siege is too tight for Mane's courage this season. No gold was paid."; a scheduled letter then
     wakes its seat, since others foiled it). One that goes is **caught** slipping out with a chance in percent of 20 ×
-    tightness − its skill ÷ 4, between 5 and 75 (`SiegeCatchPerUnit`, `SiegeCatchMin`, `SiegeCatchMax`), rolled on the
+    tightness − its skill ÷ 4, between 5 and 75 (`siegeCatchPerUnit`, `siegeCatchMin`, `siegeCatchMax`), rolled on the
     seeded stream "siege-envoy" by its id; so is one coming home to the besieged capital, with what it brings. A caught envoy
-    is the besieger's captive (`TurnEngine.Intercept`, `Character.Intercepted`): the besieger's notice ("An envoy is
+    is the besieger's captive (`TurnEngine.intercept`, `Character.intercepted`): the besieger's notice ("An envoy is
     caught") gives the letter it was to speak and its mandate, the gold goes to his treasury as an unassayed lot, and the
     tablets it carried (the one to be sealed, those shown as evidence, those brought home) go into his archive. He may
     execute, ransom or release it, not turn it ("... is an envoy your besiegers caught, not a spy at a post, and cannot
@@ -222,9 +222,9 @@
   rough ground in Mira, Lukka, Isuwa, Amurru, Arbela and Tamassos; the mountain passes of the Cilician Gates
   (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish); the great rivers at the
   Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh).
-  - **The ground helps a unit that stands its ground** (`Geography.DefenceGround`, `Adjudicator.HoldStrength`): one that
+  - **The ground helps a unit that stands its ground** (`defenceGround`, `Adjudicator.holdStrength`): one that
     holds, besieges, supports or convoys, or whose own move failed. Against an attack it holds with
-    `GameConfig.TerrainDefence` (1, a first guess) more when it stands on rough ground, when the attack comes over a pass or
+    `GameConfig.terrainDefence` (1, a first guess) more when it stands on rough ground, when the attack comes over a pass or
     a great river (a crossing protects both its sides), or when the attack is a landing from the sea (an army carried by
     convoy: question 5's "a landing by convoy counts as a crossing"); 1 in all however many apply, the first named in that
     order. So one army on rough ground needs three to dislodge it, and Alashiya's island, which armies reach only by convoy,
@@ -247,9 +247,9 @@
     counted in the batch report. The web map's tooltips, province card, legend and about page say what the ground does.
   - **The desert costs an army supplies** (question 5, plan step 15, built as the Build order's item 5 asks: "an army in its
     own land pays no desert cost", so no rule names a power). An army that ends a season's moves in desert land (Sinai,
-    `Geography.Desert`) its king did not hold when the moves were made pays `GameConfig.DesertUpkeep` (30, a first guess)
-    with its next upkeep (`TurnEngine.MarkDesert`, `GameState.InDesert`, cleared once paid; `TurnEngine.DesertCost` in
-    `Upkeep`, so unpaid it makes troops desert like any upkeep). Egypt holds the Sinai at the start, so its armies cross it
+    `Desert`) its king did not hold when the moves were made pays `GameConfig.desertUpkeep` (30, a first guess)
+    with its next upkeep (`TurnEngine.markDesert`, `GameState.inDesert`, cleared once paid; `TurnEngine.desertCost` in
+    `upkeep`, so unpaid it makes troops desert like any upkeep). Egypt holds the Sinai at the start, so its armies cross it
     freely (question 5's Ways of Horus), and so does anyone who takes it, from the season after: an invader pays for the
     season he marches in, and every season he stands within walls raised there without taking it. The treasury notice says
     what was paid ("The upkeep includes 30 shekels for supplies in the desert: your army in sinai ended last season in desert
@@ -267,26 +267,26 @@
   an empire to hold, not a lump of score"). A province taken by force (troops standing in it, a storm, a siege, or
   passing with a fallen kingdom's capital) yields its new holder a third of its yield in its first season under him,
   two thirds in the second, and all of it from the third, and counts in his strength the same way
-  (`TurnEngine.Absorbed`, `GameState.Conquered`: the season it was taken). The first season is the season it was taken,
+  (`TurnEngine.beginTurn`, `GameState.conquered`: the season it was taken). The first season is the season it was taken,
   for the score reckoned at its end, and the next, for the income paid at its start; the mark goes once it counts in
   full. A province of the taker's own homeland that he takes back counts in full at once (map data, not a check of which
   power it is), and so does land bought or ceded, except land ceded while its giver was still absorbing it: the mark
   stays, and the receiver goes on absorbing it from the season it was taken, unless it is his own homeland, which is his
-  in full at once as if he had retaken it (`TurnEngine.ResolveTransfers`; since the review of the siege package, which
+  in full at once as if he had retaken it (`TurnEngine.resolveTransfers`; since the review of the siege package, which
   found that a cession clearing the mark let two friends launder a conquest by passing it back and forth).
   Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
   following the yield (a reading; review question). Revolts, which the design document mentions, are left for later, as
   question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of
-  its yield this season)"), the court's own land only (`SeatView.Conquered`): who holds a province is public, but how it
+  its yield this season)"), the court's own land only (`SeatView.conquered`): who holds a province is public, but how it
   changed hands is not, and a mark on every king's land told every court which land had been conquered and which ceded
   or bought (since the review of the siege package; until then every view carried every mark). The rulebook says so
   under ECONOMY ("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is
   not shown") and in HOW YOU WIN's strength. The public land standings still use base yields.
 - **Strength** = 10 × (sum of base yields of provinces held, conquered land counted as far as it is absorbed) + true gold − back pay owed (see
   "Back pay" under Characters). Growth is strength over starting strength. Units are not counted;
-  they cost upkeep and are the means to land. One function computes it (`Scoring.Strength`): the
+  they cost upkeep and are the means to land. One function computes it (`strength`): the
   engine's score with true gold and the back pay a power really owes; a seat's own strength line
-  (`TurnEngine.LedgerStrength`) with its gold by its ledger and the back pay it believes it owes,
+  (`TurnEngine.ledgerStrength`) with its gold by its ledger and the back pay it believes it owes,
   covers included; the script kings with what their view shows (see Script kings). The rulebook's
   HOW YOU WIN says so ("... + the gold in your treasury - the back pay you owe your people"), and the
   view's treasury line says that back pay is counted against it. (Until the simulation-fixes round's
@@ -298,7 +298,7 @@
   so these are not the winning figures, and yours is not your growth on the treasury line): Mitanni
   1.93 (land yield 280, at the start 145); Egypt (you) 1.11 (land yield 210, at the start 190); …
   Fallen: Assyria." The ratio is the base yield of the land a power holds now over its homeland's
-  yield (`Views.LandStandings`), the living best first; it is not the score, which adds gold and
+  yield (`Views.landStandings`), the living best first; it is not the score, which adds gold and
   subtracts back pay, against a starting strength that includes the starting treasury. The rulebook's
   WHAT YOU SEE says so ("LAND STANDINGS in your view give each power's land-yield ratio: … It is not
   growth: …"). The seat's own growth by its ledger stays on its treasury line. The web app's standings
@@ -310,14 +310,14 @@
   four in each misled: "I thought I was fourth of six when I was in fact below my start".)
 - **Opening positions are public.** Every king reads every power's opening troops, treasury,
   homeland yield and starting strength in the rulebook ("OPENING POSITIONS (known to every
-  court)"), generated from `MapData` (`OpeningPositions`), so the cached block stays byte-stable.
+  court)"), generated from the map data (`src/engine/src/model/map.ts`) by `openingLines` (`src/engine/src/rules/opening.ts`), so the cached block stays byte-stable.
   The web app's standings panel shows the same table to every seat, human or not. Script kings
   read the same facts from `MapData`, as before.
 - **Ending.** Not before turn 15; then 15% at the end of each season; hard cap at 60 turns.
 - **A kingdom falls with its capital** (the design document's rule, built with the siege package, Build order item 5;
   until then a kingdom fell only when it held no land, so a king who lost his capital fought on from his last
   provinces). After the moves, sieges and the change of hands, a king whose capital another power now holds has
-  fallen (`TurnEngine.CapitalsTaken`, step 10 of HOW A SEASON RESOLVES): his remaining land passes to the power that
+  fallen (`TurnEngine.capitalsTaken`, step 10 of HOW A SEASON RESOLVES): his remaining land passes to the power that
   took the capital, every troop of his disbands (no army has a commander yet to choose for itself, so all of them do),
   his sieges are lifted, a siege the conqueror pressed against land that is now his is over, and his debts die with him
   (back pay owed by him is lost, as before; debt tablets do not exist yet). His prisoners are let go, his servants are
@@ -333,7 +333,7 @@
   conqueror reads "A kingdom falls to you" ("With Apasa you took the kingdom of Arzawa: its king has fallen, his troops
   have disbanded, and his land is yours: Seha River Land."), every other living court the rumour "Word spreads that the
   kingdom of Arzawa is no more: Hatti took its capital, Apasa." (who holds the capital is public). The game records each
-  fall (`GameState.Falls`: the season, the conqueror, the capital and the land that passed). A king cannot cede his own
+  fall (`GameState.falls`: the season, the conqueror, the capital and the land that passed). A king cannot cede his own
   capital ("you cannot cede your capital: your kingdom falls with it"); a capital that is no longer its king's (his
   kingdom has fallen) can be ceded like any city, and its archive goes with it. The rulebook says so under HOW YOU WIN
   ("A kingdom falls with its capital. If another king takes your capital, ... your game is over").
@@ -341,8 +341,8 @@
   version keyed it by seed XOR turn, so neighbouring seeds shared rolls at shifted turns; fixed,
   with a regression test.)
 - **Ids: a counter for each kind of object** (since Build order item 4, fix (d); save version 4). Every
-  object the engine makes takes its id from `GameState.NewId(prefix)`: its kind's prefix and that kind's
-  own count, so tablets are "t1", "t2", ... and copies "k1", "k2", ... (`GameState.IdCounters`, saved
+  object the engine makes takes its id from `newId(s, prefix)`: its kind's prefix and that kind's
+  own count, so tablets are "t1", "t2", ... and copies "k1", "k2", ... (`GameState.idCounters`, saved
   with the state). The prefixes are listed once, in `IdKinds`: a audience, c character, f fact, g lot
   of gold, j journey, k copy of a tablet, m message trail, q task owed to a court, r request to a
   character's mind, t tablet, u unit, x catastrophe; standing orders are numbered per seat ("s1", ...),
@@ -404,7 +404,7 @@
   disband of a unit that was gone, and those last few did nothing in silence; a declined hire did not
   say why; a botched forgery was an ordinary notice.)
 - **Save version.** The state and the log header carry the version of the rules
-  (`GameState.CurrentVersion`: 2 since the simulation-fixes round, 3 since Build order item 3, whose archives,
+  (`CURRENT_VERSION`: 2 since the simulation-fixes round, 3 since Build order item 3, whose archives,
   inventory tablets and swapped inventories change how a seed plays, 4 since Build order item 4, whose hidden spies
   are not paid back pay at the court they watch and do not end that court's cover, and whose fix (d) gives each kind
   of object its own id counter, which renumbers objects and so moves every seed's rolls once; neither was released on
@@ -428,7 +428,7 @@
   earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3, 4 and
   5). The web app shows that message
   in the saved-games card, next to the buttons that load a game, instead of loading it. Within a version, seeds replay exactly, with sleeping seats on or off
-  (tested). For analysis only, `GameRunner.ForReplay(log, anyVersion: true)` feeds an old log through
+  (tested). For analysis only, `GameRunner.forReplay(log, true)` feeds an old log through
   the current rules; it may diverge. Back pay (Part G) changed rules but not the log format (its header
   and decisions), and version 2 was never released, so it stays version 2: a version-2 log saved
   before back pay would replay under the new wage rules and may diverge. The same holds for the rest of

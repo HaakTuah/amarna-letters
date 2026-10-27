@@ -12,14 +12,14 @@
 - **Tablets are verbatim** but cost a scribe fee (20), so the envoy channel stays the cheap default
   and a written agreement is a deliberate choice. Tablets are evidence only; nothing enforces them.
 - **Tablets lie in archives** (since Build order item 3; "Tablets are objects in a place"). Every copy a
-  court holds (`TabletCopy`) lies in its archive at its capital (`TurnEngine.Archive`): those it sealed, once its copy
+  court holds (`TabletCopy`) lies in its archive at its capital (`TurnEngine.archive`): those it sealed, once its copy
   reached it, and those it was shown, brought, copied or took. Keeping a tablet costs nothing; its cost is that it is
   somewhere. The seat view calls the list "YOUR ARCHIVE".
   - **Spies copy.** A spy posted at a living court, each season it is not caught, copies with a chance of its
     skill/100 one tablet of that court's archive that its master neither holds nor has on the road home in an earlier
     report: tablets bearing two or more seals first (agreements, and forgeries of them), the newest first. The draw has
     its own stream (`archive`), so nothing else the spy sees or risks changed, and detection is unchanged: copying adds
-    no risk. The tablet ids travel in the report (`SpyReport.TabletIds`); when the report arrives, each tablet the master
+    no risk. The tablet ids travel in the report (`SpyReport.tabletIds`); when the report arrives, each tablet the master
     does not hold by then becomes a copy in its archive ("copied from the archive of Assyria by your spy Mane"), and the
     engine adds a line to the report: "[With this report came copies Mane made in the archive of Assyria, now in your
     archive: the tablet sealed by Assyria and Hatti, dated turn 4 (your copy k123).]" (no text there: the archive shows it, and the script
@@ -47,15 +47,15 @@
     watches, or watching a court that has fallen, copies nothing), and the web app's Orders tab heads the list "Your
     archive".
   - **Naming tablets** (since the fix pass after item 4). Every court names a tablet the same way, by its kind, seals and
-    the date it bears (`Views.TabletName`: "the tablet sealed by Babylonia and Mitanni, dated turn 2", "the inventory
+    the date it bears (`Views.tabletName`: "the tablet sealed by Babylonia and Mitanni, dated turn 2", "the inventory
     sealed by Egypt, dated turn 3"), with its first eight words added where the archive holds another of the same kind,
     seals and date. A copy's id ("k8") is each court's own mark, for its orders only (`show_tablet_copies`,
     `authenticate`): the archive lists "- the tablet sealed by Hatti and Egypt, dated turn 1 [your copy k900]: "Peace."
     (how it came)", the audience request's "Tablets you hold" the same, and notices name the tablet before the mark
     ("… (your copy k130)"); the examination notice gives the tablet's text in full. **The scribes**
-    (`TurnEngine.Scribe`) write what other courts read with the writer's own marks as the tablets' names, and the ids of
+    (`TurnEngine.scribe`) write what other courts read with the writer's own marks as the tablets' names, and the ids of
     the people the writer knows ("c12", or "Mane (c12)") as their names: only those its view lists, its court or the
-    people it knows (`Views.Knows`, the test the view itself uses), so an id it does not know stays as written (since
+    people it knows (`Views.knows`, the test the view itself uses), so an id it does not know stays as written (since
     the review of the fix pass after item 4: before, any id became a name, so Egypt's letter "Greetings. c3 c4 c5 c6
     c7" came back in its own YOUR LETTERS naming five people none of its lists held, and the envoy and the host read
     the names too; tested). They scribe a letter, its mandate and its tablet (at dispatch, so the envoy, the
@@ -70,7 +70,7 @@
   - **Marks for gold** (since "Requests are rules too", the same fix pass). A lot of unassayed gold is named the same way:
     the view reads "Unassayed gold from Hatti, weighed in turn 3 [your mark g7]: 15 shekels weighed (the inventory said
     20)", where it read "Unassayed gold g7: …", and the scribes write the writer's own mark as the gold it names
-    (`TurnEngine.GoldName`: "the gold Hatti sent to Egypt, weighed in turn 3", with ", its inventory stating 20 shekels"
+    (`TurnEngine.goldName`: "the gold Hatti sent to Egypt, weighed in turn 3", with ", its inventory stating 20 shekels"
     where another lot of the writer's shares sender and season). The rulebook says so ("Your treasury likewise marks each
     lot of unassayed gold (like g7), for your assay orders only"), HOW TO ANSWER names the gold marks among those used "in
     your orders", and the schema's `item` speaks of "your mark for the gold (like g7)". A standing order's id ("s1") is the
@@ -88,7 +88,7 @@
   rules on treaties and evidence (two seals or more, their own among them) never read one.
 - **Swapped inventories** (since item 3; "Swapped tablets and false envoys"). An envoy that kept some, but
   not all, of the gold it carries, out or home, may hand over in place of the sealed inventory one it forges itself,
-  stating only what is left (`AudienceRecord.SwapInventory` from the envoy's presentation; `MindReply.SwapInventory` from
+  stating only what is left (`AudienceRecord.swapInventory` from the envoy's presentation; `MindReply.swapInventory` from
   its report home).
   It is a forgery under the forgery rules: it needs the forger's skill (competence at least `ForgeMinCompetence`, 55);
   an envoy without it does not hand its botched forgery over, the true inventory goes, and it remembers that its hand

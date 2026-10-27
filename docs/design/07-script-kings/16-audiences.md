@@ -14,7 +14,7 @@ The host answers once and then ends the audience, unless it offered a gift (belo
   - Sealing a coalition or a full alliance, the host asks the envoy for its word: "Swear to me that your lord's troops will stand with mine, as mine will stand with his." A script envoy with a mandate answers with a commitment, within its mandate or, if ambitious and disloyal, beyond it (see Script envoys); before the fix pass no script host's words ever asked for one, so no script envoy ever committed to anything.
 - **Pleas for relief** (since the script players' audit of the siege package). The host reads the envoy's words for a plea:
   a sentence that speaks of a siege ("besieg..."), names a walled city of the sender's and exactly one living king besides
-  the two of them (`Statecraft.PleasIn`; words, so a model king's "Ashur is besieged by the Babylonians" counts as a script
+  the two of them (`pleasIn`; words, so a model king's "Ashur is besieged by the Babylonians" counts as a script
   king's plea). It remembers the city, its besieger and the season, and for four seasons its troops march to relieve it if it
   would (see Tactics). A friend it would fight for, sworn against the besieger now if it has just sealed his tablet, hears:
   "I have heard of the siege of Ashur. Where my troops can reach the troops of Babylonia, they will drive them out."

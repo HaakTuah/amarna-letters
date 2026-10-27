@@ -28,7 +28,7 @@ import {
 } from "@amarna/engine";
 
 export interface LogHeader {
-  /** The rules version the game was played under ({@link GameState.CurrentVersion} for a new game). */
+  /** The rules version the game was played under ({@link CURRENT_VERSION} for a new game). */
   version: number;
   seed: number;
   config: GameConfig;

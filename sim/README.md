@@ -197,7 +197,7 @@ Claude Code session: with it set, Claude Code bills the API instead of the subsc
    requests and replies left by an earlier game into an `earlier-<time>` folder in each king's folder, and prints that
    it is running. If you restart it in the middle of a game, use `node sim/bridge.js --keep`, which leaves that game's
    waiting requests in place.
-3. **Start the web app,** in another terminal: `dotnet run --project src/Amarna.Web --launch-profile http`, then open
+3. **Start the web app,** in another terminal (after `npm ci` once): `npm run dev --workspace src/web`, then open
    <http://localhost:5183>. The **Local agents** preset and the "Local agent (Claude Code)" choice under "Customize the
    table" appear only when the app runs on this computer, not on the published site.
 4. **Start the orchestrating session.** Check that `ANTHROPIC_API_KEY` is not set (PowerShell:
@@ -220,8 +220,7 @@ situation (the log's `shadow` lines; `ScriptMind` draws no dice of the game's ow
 log's seat report is followed by a table of both (gold kept and how much, inventories swapped, gifts and posts taken
 or refused, commitments, what reports hide or contradict, spies' reports, pitches, and the same per character) and the
 size of every kind of request. `summarize.js` prints the same, plus every decision where the two differ, with both
-texts, for a reader to check. The checks of what a report hides read words, not meaning (`CharacterChecks` in
-`src/Amarna.Game`): they flag a gift taken and never mentioned, a detention, gold kept on the way out, a threat to the
+texts, for a reader to check. The checks of what a report hides read words, not meaning (`src/game/src/character-checks.ts`): they flag a gift taken and never mentioned, a detention, gold kept on the way out, a threat to the
 lord that the report drops, a declined offer of service, a seal claimed that never happened, a spy passing on its
 secret masters' words and observations it left out. Read the flagged reports before counting them as lies.
 
