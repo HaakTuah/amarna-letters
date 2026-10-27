@@ -7,6 +7,9 @@ Split into one file per topic under `docs/design/` on 26 October 2026, word for 
 the topics its task needs. The text as it stood before the split is in git history. A new topic gets its own file and a line
 here.
 
+The historical sources behind the data (item 6+) are in [`history/`](history/README.md): dossiers on 1346 BCE, each
+claim graded and sourced.
+
 | File | Topic | KB |
 | --- | --- | --- |
 | [`design/01-rules-as-implemented.md`](design/01-rules-as-implemented.md) | Rules as implemented | 45.0 |
