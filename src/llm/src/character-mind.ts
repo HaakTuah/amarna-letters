@@ -34,6 +34,7 @@ import {
   type Power,
   type SpyReport,
   authorityText,
+  clauseTag,
   renderClauses,
 } from "@amarna/engine";
 import {
@@ -586,6 +587,8 @@ export class LlmCharacterMind implements ICharacterMind {
     if (tabletOffered) {
       const words = host.counter!.text.length > 0 ? host.counter!.text : renderClauses(host.counter!.clauses, ctx.host, ctx.sender);
       user.appendLine(`He offers you a tablet of his own to seal in your lord's name: "${words}"`);
+      // What the engine grants and checks the limits by: its clauses, whatever its words say.
+      if (host.counter!.clauses.length > 0) user.appendLine(`Its clauses, which are what binds your lord: ${host.counter!.clauses.map(clauseTag).join("; ")}.`);
       user.appendLine(authorityText(a!, (x) => WorldMap.default.get(x).name));
     } else if (host.counter !== null) user.appendLine("He offers you a tablet of his own to seal, but you do not carry your lord's seal: you cannot.");
     // Gold for its lord is handed over when the audience ends, and only if the envoy goes home with it and the host can pay.

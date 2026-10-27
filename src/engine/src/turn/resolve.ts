@@ -146,14 +146,14 @@ P.resolveMovement = function (unitOrders) {
   const sallies = unitOrders.map(([, o]) => o).filter((o): o is SallyOrder => o.type === "sally");
   // Winter closes nothing (item 9): a crossing it makes dangerous costs troops after the moves (winterCrossings).
   const adjudicator = new Adjudicator(Map, true, S.config.terrainDefence);
-  const result = adjudicator.run(S.units, byProvince, S.owner, S.walls, sallies);
+  const result = adjudicator.run(S.units, byProvince, S.owner, S.walls, sallies, (p, mover) => this.guestAt(p, mover));
   this._battle = result;
   this._unitOrdersNow = byProvince;
   // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
   for (const o of result.outcomes.filter((o) => o.order === "move" && o.target !== null)) {
     o.targetOwner = S.owner.getOrDefault(o.target!, null);
     // Into land its holder opened to it on a sealed tablet (item 9): a guest, not an attack.
-    o.guest = this.grantCovers(o.targetOwner, o.power, o.target!) !== null;
+    o.guest = this.guestAt(o.target!, o.power);
   }
   // The record of wars: the first season each king's troops got into another's land (a guest's entry is none).
   for (const o of result.outcomes.filter((o) => o.order === "move" && o.succeeded && o.targetOwner !== null && o.targetOwner !== o.power && !o.guest)) {

@@ -320,7 +320,10 @@ export interface AudienceView {
   clauses: Clause[];
   /** The gold came with an inventory tablet (item 8). Without one there is nothing to weigh it against. */
   inventory: boolean;
-  /** The envoy carries its king's seal (item 9): it may seal a tablet the host offers ({@link HostReply.counter}). */
+  /**
+   * The envoy carries its king's seal (item 9) and has not yet sealed a tablet of the host's at this audience: it may seal
+   * one the host offers ({@link HostReply.counter}).
+   */
   sealCarried: boolean;
   /** The envoy showed its credentials (item 9): its mandate's words and the limits of its seal; null when hidden. */
   credentials: Authority | null;

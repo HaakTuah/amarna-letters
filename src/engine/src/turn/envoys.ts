@@ -308,7 +308,9 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
   }
   // Item 9: whether it carries its king's seal is plain to see; its limits and mandate only if it shows its credentials.
   const authority = a.dispatch.authority;
-  view.sealCarried = authority?.seal ?? false;
+  // One tablet sealed by his hand an audience: after it, he is not asked again.
+  const sealedAlready = past.some((x) => x.host !== null && x.host.counter !== null && x.envoy !== null && x.envoy.sealCounter);
+  view.sealCarried = (authority?.seal ?? false) && !sealedAlready;
   if (authority?.show) {
     view.credentials = { ...authority, cede: [...authority.cede], open: [...authority.open] };
     view.shownMandate = a.dispatch.mandate;

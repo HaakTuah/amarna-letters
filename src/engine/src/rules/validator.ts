@@ -281,11 +281,10 @@ export class OrderValidator {
           if (d.purityPercent < 10 || d.purityPercent > 100) return "purity must be between 10 and 100 percent";
           if (d.copies && d.copies.length > 0)
             for (const id of d.copies) if (!S.copies.some((x) => x.id === id && x.holder === power)) return `you hold no tablet copy '${id}'`;
-          // The envoy's authority (item 9): it may cede or open only land the king holds.
+          // The envoy's authority (item 9): provinces it names that the king no longer holds are left out by the engine.
           if (d.authority != null) {
             if (d.authority.maxGold < 0) return "the most gold an envoy may give cannot be negative";
-            for (const id of [...d.authority.cede, ...d.authority.open])
-              if (!Map.exists(id) || S.owner.getOrDefault(id, null) !== power) return `an envoy may cede or open only land you hold, and you do not hold '${id}'`;
+            for (const id of [...d.authority.cede, ...d.authority.open]) if (!Map.exists(id)) return `there is no province called '${id}'`;
           }
           const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
           // The tablet's scribe, and the inventory's unless the gold goes without one (item 8), as the engine charges them.
@@ -375,7 +374,15 @@ export class OrderValidator {
           // Passage and basing granted on sealed tablets (item 9).
           if (!AllPowers.includes(order.grantee) || order.grantee === power) return `you granted nothing to '${order.grantee}'`;
           if (order.province !== null && !Map.exists(order.province)) return `there is no province called '${order.province}'`;
-          const stands = S.grants.some((g) => g.grantor === power && g.grantee === order.grantee && grantStands(g, S.turn) && (order.province === null || g.province === order.province));
+          // Only what it knows it granted: the tablet's copy is in its archive.
+          const stands = S.grants.some(
+            (g) =>
+              g.grantor === power &&
+              g.grantee === order.grantee &&
+              grantStands(g, S.turn) &&
+              S.copies.some((k) => k.holder === power && k.tabletId === g.tabletId) &&
+              (order.province === null || g.province === order.province || (g.province === null && g.lands.includes(order.province))),
+          );
           return stands ? null : `you have granted ${order.grantee} no passage or basing${order.province !== null ? ` in ${order.province}` : ""} that still stands`;
         }
 

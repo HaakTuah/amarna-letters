@@ -53,8 +53,10 @@ export interface Grant {
   kind: GrantKind;
   grantor: Power;
   grantee: Power;
-  /** The province granted; null for all the grantor's land (passage only). */
+  /** The province granted; null for all the grantor's land (passage only), which is then `lands`. */
   province: string | null;
+  /** For passage through all his land: the provinces he held when it was sealed, less any he has since revoked it in. */
+  lands: string[];
   sinceTurn: number;
   /** The last season it stands, or null for as long as it is not revoked. */
   untilTurn: number | null;
@@ -70,6 +72,7 @@ export function newGrant(init: Partial<Grant> = {}): Grant {
     grantor: "Egypt",
     grantee: "Egypt",
     province: null,
+    lands: [],
     sinceTurn: 0,
     untilTurn: null,
     tabletId: "",
@@ -84,6 +87,7 @@ export const GrantSchema: ObjSchema<Grant> = obj("Grant", newGrant, {
   grantor: S,
   grantee: S,
   province: opt(S),
+  lands: list(S),
   sinceTurn: I,
   untilTurn: opt(I),
   tabletId: S,

@@ -60,7 +60,7 @@ declare module "./core.ts" {
   interface TurnEngine {
     setOut(j: Journey, from: string, to: string): void;
     planRoute(j: Journey, from: string, to: string, turn?: number): boolean;
-    closedTo(host: Power | null, j: Journey): boolean;
+    closedTo(host: Power | null, j: Journey, province?: string | null): boolean;
     roadKnowledge(master: Power, closed: Iterable<Power>): RoadKnowledge;
     roadOdds(j: Journey, c: Character, province: string, sneaking: boolean, known: RoadKnowledge | null): Dict<Stop, number>;
     travel(): void;
@@ -156,12 +156,12 @@ P.planRoute = function (j, from, to, turn) {
 };
 
 /** Does this king stop the traveller's people passing through his land (never its own king's, nor the one it goes to)? */
-P.closedTo = function (host, j) {
+P.closedTo = function (host, j, province = null) {
   if (host === null) return false;
   const master = masterOf(j);
   if (host === master || host === counterpart(j)) return false;
   // Passage granted on a sealed tablet lets its travellers through (item 9).
-  if (this.passageFor(host, master)) return false;
+  if (province !== null && this.passageFor(host, master, province)) return false;
   return (this.s.roadsClosed.tryGet(host) ?? []).includes(master);
 };
 
@@ -183,7 +183,7 @@ P.roadOdds = function (j, c, province, sneaking, known) {
   const season = seasonOfTurn(known !== null ? S.turn : S.turn - 1);
   const out = new Dict<Stop, number>();
   const holder = prov.isSea ? null : known !== null ? (known.holders.tryGet(province)?.owner ?? null) : S.owner.getOrDefault(province, null);
-  const hostile = (k: Power): boolean => k !== master && k !== counterpart(j) && (known !== null ? known.heard.has(k) : this.closedTo(k, j));
+  const hostile = (k: Power): boolean => k !== master && k !== counterpart(j) && (known !== null ? known.heard.has(k) : this.closedTo(k, j, province));
   // Troops: as the court sees them now when choosing, as they stand when the check falls.
   if (S.units.some((u) => u.province === province && hostile(u.power) && (known === null || known.seen.has(province)))) out.set("troops", RoadOdds.troops);
   if (sneaking && holder !== null && hostile(holder)) {
@@ -244,7 +244,7 @@ P.travelOne = function (j) {
     // Openly into land closed to its master, from outside it: its king's men turn it back at the border.
     const host = Map.get(b).isSea ? null : S.owner.getOrDefault(b, null);
     const crosses = j.along <= half && (end > half || (half === cost && end >= half));
-    if (crosses && !offRoad(b) && host !== S.owner.getOrDefault(a, null) && this.closedTo(host, j)) {
+    if (crosses && !offRoad(b) && host !== S.owner.getOrDefault(a, null) && this.closedTo(host, j, b)) {
       spend(a, half - j.along);
       turnedAt = b;
       break;
@@ -331,7 +331,7 @@ P.stopped = function (j, c, province, stop) {
     const captor =
       stop === "troops"
         ? sortBy(
-            S.units.filter((u) => u.province === province && this.closedTo(u.power, j)),
+            S.units.filter((u) => u.province === province && this.closedTo(u.power, j, province)),
             [(u) => idNumber(u.id), cmpNum],
           )[0].power
         : S.owner.getOrDefault(province, null)!;

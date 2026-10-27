@@ -17,6 +17,7 @@ import { TurnEngine } from "./core.ts";
 declare module "./core.ts" {
   interface TurnEngine {
     winterCrossings(moves: Dict<string, string>): { unit: Unit; from: string; to: string; how: WinterCrossing }[];
+    coastalConvoy(from: string, to: string): boolean;
     loseToWinter(crossings: { unit: Unit; from: string; to: string; how: WinterCrossing }[], sightBefore: Dict<Power, HSet<string>>): void;
   }
 }
@@ -47,9 +48,31 @@ P.winterCrossings = function (moves) {
       if (Map.openCrossing(from, to) !== null) out.push({ unit: u, from, to, how: "sea" });
     } else if (Map.canMove("Army", from, to)) {
       if (crossingBetween(from, to)?.kind === "Mountain") out.push({ unit: u, from, to, how: "pass" });
-    } else if (!Map.winter.seaRouteExists(from, to)) out.push({ unit: u, from, to, how: "sea" });
+    } else if (!this.coastalConvoy(from, to)) out.push({ unit: u, from, to, how: "sea" });
   }
   return out;
+};
+
+/**
+ * Whether the fleets that carried an army from `from` to `to` this season join its two ends by coastal waters alone, with no
+ * open-sea crossing between them: the army is then carried at no risk.
+ */
+P.coastalConvoy = function (from, to) {
+  const S = this.s;
+  const W = this.map.winter;
+  const zones = new Set<string>();
+  for (const [at, o] of this._unitOrdersNow) if (o.type === "convoy" && o.army === from && o.to === to && S.units.some((u) => u.province === at && u.kind === "Fleet")) zones.add(at);
+  const reached = new Set<string>([...zones].filter((z) => W.areAdjacent(from, z)));
+  const queue = [...reached];
+  while (queue.length > 0) {
+    const z = queue.shift()!;
+    if (W.areAdjacent(z, to)) return true;
+    for (const n of W.neighbors(z)) if (zones.has(n) && !reached.has(n)) {
+      reached.add(n);
+      queue.push(n);
+    }
+  }
+  return false;
 };
 
 /** Each dangerous crossing rolls for its troop: one lost is gone, its king told, and those who saw it go see it so. */

@@ -112,7 +112,7 @@ describe("AuthorityTests", () => {
     s.units = s.units.filter((u) => !["nesa", "kizzuwatna", "tuwanuwa", "hattusa"].includes(u.province));
     s.units.push(newUnit({ id: "u-guest", power: "Egypt", kind: "Army", province: "kizzuwatna" }));
     s.owner.set("kizzuwatna", "Egypt");
-    s.grants.push(newGrant({ id: "gr1", kind: "passage", grantor: "Hatti", grantee: "Egypt", province: null, sinceTurn: 0, tabletId: "t-x" }));
+    s.grants.push(newGrant({ id: "p1", kind: "passage", grantor: "Hatti", grantee: "Egypt", province: null, lands: ["tuwanuwa", "nesa", "hattusa", "sapinuwa"], sinceTurn: 0, tabletId: "t-x" }));
     s.turn = 3; // not winter: the pass costs nothing
     new TurnEngine(s).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [move("kizzuwatna", "tuwanuwa")] })]]));
     Assert.equal("tuwanuwa", s.units.find((u) => u.id === "u-guest")!.province);
@@ -126,8 +126,10 @@ describe("AuthorityTests", () => {
     const b = newGame(7);
     b.units = b.units.filter((u) => !["tuwanuwa", "kizzuwatna", "tuwanuwa", "hattusa"].includes(u.province));
     b.units.push(newUnit({ id: "u-guest", power: "Egypt", kind: "Army", province: "tuwanuwa" }));
-    b.grants.push(newGrant({ id: "gr1", kind: "basing", grantor: "Hatti", grantee: "Egypt", province: "tuwanuwa", sinceTurn: 0, tabletId: "t-x" }));
+    b.grants.push(newGrant({ id: "p1", kind: "basing", grantor: "Hatti", grantee: "Egypt", province: "tuwanuwa", sinceTurn: 0, tabletId: "t-x" }));
     b.turn = 3;
+    // Hatti holds the tablet's copy: it knows what it granted.
+    b.copies.push({ id: "k-x", tabletId: "t-x", holder: "Hatti", acquiredTurn: 0, source: "sealed", authResult: null });
     for (let i = 0; i < 2; i++) new TurnEngine(b).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("tuwanuwa")] })]]));
     Assert.equal("Hatti", b.owner.get("tuwanuwa"));
     // Revoked: from next season the guest takes the land if it stays.
@@ -143,13 +145,15 @@ describe("AuthorityTests", () => {
   test("Passage lets the grantee's travellers through land closed to them; closing the roads ends the grant", () => {
     const s = newGame(9);
     s.roadsClosed.set("Hatti", ["Egypt"]);
-    s.grants.push(newGrant({ id: "gr1", kind: "passage", grantor: "Hatti", grantee: "Egypt", province: null, sinceTurn: 0, tabletId: "t-x" }));
+    s.grants.push(newGrant({ id: "p1", kind: "passage", grantor: "Hatti", grantee: "Egypt", province: null, lands: ["tuwanuwa", "nesa", "hattusa", "sapinuwa"], sinceTurn: 0, tabletId: "t-x" }));
     const e = new TurnEngine(s);
     const j = { kind: "EnvoyOutbound", from: "Egypt", to: "Mitanni" } as unknown as Parameters<TurnEngine["closedTo"]>[1];
-    Assert.false(e.closedTo("Hatti", j));
+    Assert.false(e.closedTo("Hatti", j, "nesa"));
+    // Only in the land granted.
+    Assert.true(e.closedTo("Hatti", j, "kizzuwatna"));
     s.roadsClosed.set("Hatti", []);
     e.roads("Hatti", { type: "roads", court: "Egypt", close: true });
     Assert.notNull(single(s.grants).endedTurn);
-    Assert.true(e.closedTo("Hatti", j));
+    Assert.true(e.closedTo("Hatti", j, "nesa"));
   });
 });

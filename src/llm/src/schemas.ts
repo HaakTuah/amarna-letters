@@ -411,7 +411,7 @@ const yourTablet = (structured: boolean, when: string): [string, z.ZodType][] =>
   ...(structured ? [] : ([["your_tablet", str(`${when}: words of a tablet of your own for him to seal in his king's name, or empty.`)]] as [string, z.ZodType][])),
   [
     "your_tablet_clauses",
-    clauses(`${when}: a tablet of your own for him to seal in his king's name, set out in clauses from you to his king (passage or basing he grants you, gold he pays...); empty for none.`),
+    clauses(`${when}: a tablet of your own for him to seal in his king's name, set out in clauses written from you to his king (askPassage or askBasing for leave in his land, askGold, peace, against...; passage or basing would open your own land to his troops); empty for none.`),
   ],
 ];
 

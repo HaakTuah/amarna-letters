@@ -15,6 +15,7 @@ import type { RepudiateOrder, RevokeOrder } from "../model/orders.ts";
 import type { Character } from "../model/people.ts";
 import { remember } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
+import type { Clause } from "../model/clauses.ts";
 import { logEvent, newId, notify, ownedBy, type Unit } from "../model/state.ts";
 import { TurnEngine } from "./core.ts";
 
@@ -24,7 +25,8 @@ declare module "./core.ts" {
     grantsFrom(t: Tablet): void;
     grantCovers(grantor: Power | null, grantee: Power, province: string): Grant | null;
     guestOf(u: Unit): Grant | null;
-    passageFor(host: Power | null, master: Power): boolean;
+    passageFor(host: Power | null, master: Power, province: string): boolean;
+    guestAt(province: string, power: Power): boolean;
     revokeGrants(p: Power, o: RevokeOrder): void;
     repudiate(p: Power, o: RepudiateOrder): void;
     endGrants(grantor: Power, grantee: Power, why: string): void;
@@ -38,6 +40,11 @@ export const RepudiatedTitle = "A tablet repudiated";
 
 const P = TurnEngine.prototype;
 
+/** The words of a tablet a host offered: as written, or its clauses in the templates' words. */
+function offeredText(e: TurnEngine, host: Power, sender: Power, t: { text: string; clauses: Clause[] }): string {
+  return isBlank(t.text) || e.s.config.pressMode === "structured" ? renderClauses(t.clauses, host, sender) : t.text;
+}
+
 /**
  * The envoy seals the host's own tablet in its king's name, if it carries his seal and chose to: the tablet records it
  * as sealed by the envoy's hand, within or beyond its authority, and grants what its clauses grant. The host keeps a copy;
@@ -49,11 +56,11 @@ P.sealByHand = function (sender, host, c, d, h, e, trail, cargo) {
   if (offered === null) return false;
   const a = d.authority;
   if (a === null || !a.seal) {
-    trail.outcomes.push(`${host} offered a tablet of its own, which ${c.name} could not seal: he did not carry your seal`);
+    trail.outcomes.push(`${host} offered a tablet of its own, which ${c.name} could not seal: he did not carry your seal ("${cap(offeredText(this, host, sender, offered), 300)}")`);
     return false;
   }
   if (!e.sealCounter) {
-    trail.outcomes.push(`${host} offered a tablet of its own, which ${c.name} did not seal`);
+    trail.outcomes.push(`${host} offered a tablet of its own, which ${c.name} did not seal ("${cap(offeredText(this, host, sender, offered), 300)}")`);
     return false;
   }
   const clauses = this.clausesOf(host, sender, offered.clauses, "tablet");
@@ -97,7 +104,9 @@ P.grantsFrom = function (t) {
     if (g.grantor === g.grantee) continue;
     if (g.province !== null && S.owner.getOrDefault(g.province, null) !== g.grantor) continue;
     if (g.kind === "basing" && g.province === null) continue;
-    S.grants.push(newGrant({ id: newId(S, "p"), kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: S.turn, untilTurn: g.untilTurn, tabletId: t.id }));
+    // All his land: the land he holds as it is sealed, not land he wins after.
+    const lands = g.province === null ? ownedBy(S, g.grantor).filter((x) => !this.map.get(x).isSea) : [];
+    S.grants.push(newGrant({ id: newId(S, "p"), kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, lands, sinceTurn: S.turn, untilTurn: g.untilTurn, tabletId: t.id }));
     const where = g.province !== null ? this.map.get(g.province).name : `all the land of ${g.grantor}`;
     logEvent(S, "passage", `${g.grantor} granted ${g.grantee} ${g.kind === "passage" ? "passage through" : "basing within the walls of"} ${where}.`, [g.grantor, g.grantee], g.kind === "passage" ? "passage-granted" : "basing-granted");
   }
@@ -112,7 +121,7 @@ P.grantCovers = function (grantor, grantee, province) {
   if (grantor === null || grantor === grantee) return null;
   for (const g of S.grants) {
     if (g.grantor !== grantor || g.grantee !== grantee || !grantStands(g, S.turn)) continue;
-    if (g.kind === "basing" ? g.province === province : g.province === null || g.province === province) return g;
+    if (g.kind === "basing" ? g.province === province : g.province === null ? g.lands.includes(province) : g.province === province) return g;
   }
   return null;
 };
@@ -134,11 +143,21 @@ P.guestOf = function (u) {
   return null;
 };
 
-/** Does the host let this court's travellers pass through his land, by a passage he granted it on a sealed tablet? */
-P.passageFor = function (host, master) {
+/** Does the host let this court's travellers pass through this province of his, by a passage he granted it on a sealed tablet? */
+P.passageFor = function (host, master, province) {
+  const g = this.grantCovers(host, master, province);
+  return g !== null && g.kind === "passage";
+};
+
+/**
+ * Does a move by `power` into `province` go in as a guest: into land its holder opened to it, where none of the holder's
+ * troops stands (a move on them is an attack, whatever was granted)? Read before the moves.
+ */
+P.guestAt = function (province, power) {
   const S = this.s;
-  if (host === null) return false;
-  return S.grants.some((g) => g.kind === "passage" && g.grantor === host && g.grantee === master && grantStands(g, S.turn));
+  const holder = S.owner.getOrDefault(province, null);
+  if (this.grantCovers(holder, power, province) === null) return false;
+  return !S.units.some((u) => u.province === province && u.power === holder);
 };
 
 /** The king ends what he granted another (in one province, or all of it): from next season the guests must be gone. */
@@ -146,7 +165,15 @@ P.revokeGrants = function (p, o) {
   const S = this.s;
   const ended = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantStands(g, S.turn) && (o.province === null || g.province === o.province));
   for (const g of ended) g.endedTurn = S.turn;
-  if (ended.length === 0) return;
+  // One province of a passage through all his land: the grant stands for the rest.
+  let narrowed = false;
+  if (o.province !== null)
+    for (const g of S.grants)
+      if (g.grantor === p && g.grantee === o.grantee && grantStands(g, S.turn) && g.province === null && g.lands.includes(o.province)) {
+        g.lands = g.lands.filter((x) => x !== o.province);
+        narrowed = true;
+      }
+  if (ended.length === 0 && !narrowed) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
   notify(S, o.grantee, "Notice", GrantTitle, `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what}. Troops of yours still standing there next season will take the land as any troop does, and he will count it an attack.`);
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p, o.grantee], "grant-revoked");
