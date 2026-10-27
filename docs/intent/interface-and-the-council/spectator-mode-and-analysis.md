@@ -1,11 +1,11 @@
-<!-- Generated from the design document, Interface and the council tab, revision 4 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Interface and the council tab, revision 8 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Spectator mode and analysis
 
 AI-only games are part of the prototype, because watching them is the only way to see whether trust emerges and to tune the models. The spectator sees everything the engine knows, which no player ever does.
 
 - **God view.** The true map, every treasury, every character's hidden traits and facts, and who knows what.
 - **The message trail.** For every message, four versions side by side: what the leader wrote, what the envoy said at the foreign court, what the host answered, and what the envoy reported home. The gaps between them are the game.
-- **Who wrote it.** Every message and every decision carries its author: the model that wrote it, a script, a human, or a fallback, a script standing in when a model's call failed. The viewer filters by author, so one model's letter can be found among a season of scripts, and it counts fallbacks aloud, each season saying how many calls fell back and why. A table can set a game to pause when more than a share it chooses fall back, so a broken call cannot quietly turn a model game into a script game.
+- **Who wrote it.** Every message and every decision carries its author: the model that wrote it, a script, a human, or a fallback, a script standing in when a model's call failed. The viewer filters by author, so one model's letter can be found among a season of scripts, and it counts fallbacks aloud, each season saying how many calls fell back and why. A table can set a game to pause when more than a share it chooses fall back, so a broken call cannot quietly turn a model game into a script game. The default is half of a season's model decisions: a starting point, tested and reviewed once model games return (27 October 2026). A decision the budget gives to the script is the script's, not a fallback, and does not count toward the pause ("Minds follow what is at stake").
 - **Seat view.** Switch to any power and see exactly what it saw, to judge whether its decisions were reasonable given its information.
 - **Timeline and replay.** Step through turns from the event log, rewind, and replay from the same seed.
 - **Signal markers.** Highlight events that count toward the success criteria: sealed tablets, accusations, forgeries, broken promises, coalitions.
