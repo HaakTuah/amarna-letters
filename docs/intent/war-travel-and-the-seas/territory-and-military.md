@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 22 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 24 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Territory and military
 
 **Military.**
@@ -17,11 +17,19 @@
 
 **Walls and terrain (decided direction, built with sieges in item 5).** Defense comes from two separate sources:
 
-- **Walls, the built defense.** They vary from place to place (Hattusa's massive walls on a rocky ridge, a Levantine village with none) and can be strengthened for gold and upkeep, a real choice between defense and expansion. With sieges, walls mainly set how long a city holds out, not only how many armies it takes to storm it.
+- **Walls, the built defense.** They vary from place to place (Hattusa's massive walls on a rocky ridge, a Levantine village with none) and can be strengthened for gold and upkeep, a real choice between defense and expansion. With sieges, walls set the price of storming: a besieger's losses rise with their level, so strong walls force a blockade or a long breach, by rams, mining or wear (revised 27 October 2026). How long a blockaded city holds is its stores' and water's, not its walls' ("How long a siege lasts").
 - **Terrain, the natural defense.** Mountains and hills make a province harder to take. Terrain along a route matters as much: crossing a river such as the Euphrates or forcing a pass such as the Cilician Gates between Anatolia and Syria is harder than attacking across open ground, so these belong on the connection between two provinces. Deserts such as Sinai cost an army supplies rather than adding defense, except that an army in its own land pays no desert cost ("Different data, same rules"): Egypt's armies cross Sinai free because Egypt holds it, and so does anyone who takes it. Islands such as Alashiya are protected by the sea: today a landing counts as a crossing, and from item 7a a blockade decides ("Finer seas").
 - **Simple whole numbers** keep resolution deterministic.
 
 This also helps the smaller kings: Arzawa's mountains and Alashiya's sea become real advantages. The risk is tipping from too fast to stalemate if defense rises everywhere at once, which is why walls, terrain and sieges are tuned as one.
+
+**How long a siege lasts (decided 27 October 2026).** A blockaded city holds as long as it can eat and drink, and falls by hunger, a breach or a betrayal, as the cities of the letters did.
+
+- **Stores and mouths are the clock.** A besieged city eats from its stores at the rate of its mouths: its soldiers, its people and those who fled inside. Its ruler can put out the mouths that cannot fight ("People are worth having, not free to keep"), and grain brought by sea or by a relieving army refills the stores wherever the blockade does not hold the coast or the road ("Landing and supply need the coastal waters there"). A ruler with full granaries holds; Tyre on its island, fed from the sea, could hold for years.
+- **Water too.** A spring, well or cistern inside the walls is a trait of the city, like its walls, set from the sources ("Starting positions come from the sources"); a city without one holds only as long as its water. Megiddo and Hazor cut their water shafts for this.
+- **Hunger breaks loyalty.** As the stores run down, the city's loyalty to its ruler falls, until someone opens a gate from within. A ruler his people trust holds longer than one they do not; Rib-Hadda wrote that his people would go over to whoever had grain.
+- **Walls price the storm, not the clock.** A besieger may storm at any time, at a cost that rises with the walls' level and falls once they are breached by rams, mining or wear ("Walls and terrain"), so strong walls force a blockade and a weak one invites an assault.
+- **Built in stages.** Until item 9+, the walls stand in for the clock as item 5 built them. Item 9+, which brings stores and armies that eat, makes stores, mouths and water the clock and walls the price of a storm; item 10+a moves the people, the fled and the put-out; item 17 adds the gate opened from within. First guesses, tuned in item 18 against pillar 8 ("War is slower than diplomacy").
 
 Longer wars mean longer games; sleeping seats are what make those affordable, since model calls scale with events, not with time.
 
