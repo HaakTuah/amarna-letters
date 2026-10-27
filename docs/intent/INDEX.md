@@ -15,8 +15,8 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 557 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 43 |
-| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 26 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 47 |
+| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 27 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 50 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 18 |
@@ -44,7 +44,7 @@ session loads.
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.7 |
-| `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.3 |
+| `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.4 |
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 6.0 |
 | `docs/intent/build-order/item-8.md` | 8. Structured press. First, what the reviews of items 7a and 7b decided | 2.0 |
 | `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. First, whatever of the reviews of items 7a and 7 | 0.7 |
@@ -54,17 +54,17 @@ session loads.
 | `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 6.0 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.2 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
-| `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 1.9 |
+| `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 2.0 |
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
-| `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 1.2 |
+| `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 1.3 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
 | `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 0.8 |
-| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 4.5 |
+| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 4.6 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.3 |
 | `docs/intent/world-and-history/the-map.md` | The map | 7.5 |
-| `docs/intent/world-and-history/the-sources.md` | The sources | 4.1 |
+| `docs/intent/world-and-history/the-sources.md` | The sources | 5.3 |
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 12.3 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.3 |
