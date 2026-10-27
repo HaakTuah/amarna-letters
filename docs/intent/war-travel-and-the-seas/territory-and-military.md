@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 45 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 53 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Territory and military
 
 **Military.**
@@ -39,7 +39,7 @@ Longer wars mean longer games; sleeping seats are what make those affordable, si
 
 **A fallen player's game is over** (decided 19 October 2026). As in Diplomacy, elimination is real; a fallen king does not return as a character. The player may watch the rest of the game in god view, as is standard, seeing everything but the drawn last season ("Random ending"): who lied to him, which envoy betrayed him, what the tablets really said. It is a setting, on by default, so a table of human players worried that a fallen player might pass hidden facts to a friend still in the game can turn it off; he then watches with what his kingdom knew when it fell until the game ends. Spectating an AI-only game keeps both god view and each king's own view, as now.
 
-**How cities become free** (decided 20 October 2026), from systems already decided: conquered land not yet absorbed may revolt and break free, when the conditions below say so ("Revolt follows conditions, not dice"); a governor who turns with the levies he raised, or a commander who keeps his army, may rule a city of his own (the new Idrimi); and a vassal that stops paying is free in practice unless its overlord comes to punish it. A fallen kingdom's land that the conqueror holds by force, or that a governor brings him, is newly conquered land, so it can revolt like any other; the rest goes as "A kingdom falls with its capital" says. Land that breaks free with nobody at its head raises a ruler from its own people ("A head rises where men lack one", decided 21 October 2026).
+**How cities become free** (decided 20 October 2026), from systems already decided: conquered land not yet absorbed may revolt and break free, when the conditions below say so ("Revolt follows conditions, not dice"); a governor who turns with the levies he raised, or a commander who keeps his army, may rule a city of his own (the new Idrimi); and a vassal that stops paying is free in practice unless its overlord comes to punish it. A fallen kingdom's land that the conqueror holds by force, or that a governor brings him, is newly conquered land, so it can revolt like any other; the rest goes as "A kingdom falls with its capital" says. Land that breaks free with nobody at its head is lawless until a ruler rises from its own people ("A head rises where men lack one", decided 21 October 2026; "Land without a ruler").
 
 **Revolt follows conditions, not dice** (decided 20 October 2026). Every province a power holds but has not fully absorbed carries an unrest level, summed from conditions the engine can see, and it revolts when unrest passes a threshold; the seeded dice only settle ties at the margin. What raises unrest:
 
@@ -50,7 +50,7 @@ Longer wars mean longer games; sleeping seats are what make those affordable, si
 - **a cause to rally to:** the province's old ruler alive and free, or a character of standing there who wants it;
 - **outside help:** a rival's gold or envoys stirring it up, which is deniable like any bribe.
 
-What lowers it: troops in or next to the province, a loyal governor there, policing (item 15), time, and a good harvest. A province that revolts becomes a free power of its own, under its old ruler or the character who led it, with the levies it can raise; troops of the master in the province fight them as combat says. The owner does not see the number: he learns of unrest as he learns of anything, from his governor (who may misreport it), his spies and travellers. First guesses for every weight and the threshold, tuned in build order item 18.
+What lowers it: troops in or next to the province, a loyal governor there, policing (item 15), time, and a good harvest. A province that revolts becomes a free power of its own, under its old ruler or the character who led it, with the levies it can raise, and one that revolts with nobody at its head is lawless ("Land without a ruler"); troops of the master in the province fight them as combat says. The owner does not see the number: he learns of unrest as he learns of anything, from his governor (who may misreport it), his spies and travellers. First guesses for every weight and the threshold, tuned in build order item 18.
 
 **What is absent on purpose.** No war declarations, no truces, no alliance flags, no opinion meters. A power at peace is simply one nobody is attacking.
 

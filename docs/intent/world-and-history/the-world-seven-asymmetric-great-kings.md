@@ -1,4 +1,4 @@
-<!-- Generated from the design document, World and history tab, revision 33 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, World and history tab, revision 34 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## The world: seven asymmetric Great Kings
 
 The board holds the seven powers of the Amarna correspondence, deliberately unequal. Strength breeds suspicion: the strongest powers must look less threatening than they are, the weakest must make themselves indispensable, and everyone in between decides who the bigger threat is this year.
@@ -32,7 +32,7 @@ The board holds the seven powers of the Amarna correspondence, deliberately uneq
 - **Mitanni, the toll keeper in a vice.** Horses and the Euphrates crossing that eastern tin takes going west, squeezed between Hatti and a rising Assyria. Historically it collapsed in exactly these years, so its game is survival through position.
 - **Babylonia, the distant merchant prince.** Grain, horses and the start of the eastern tin road, far from the fighting. Its game is prestige, recognition and marriages, and it can tighten the tin.
 - **Assyria, the upstart.** Small, on the tin road, growing by squeezing Mitanni and fighting for recognition: Burna-Buriash protested to Pharaoh at Assyrians being received as if they were independent (EA 9).
-- **Arzawa, the western sea power.** River gold and a coast where western tin lands; Hatti's rival from the other side.
+- **Arzawa, the western sea power.** The timber of its western forests and a coast where western tin lands; Hatti's rival from the other side.
 - **Alashiya, the lottery winner.** Copper and its own timber. Its game is price and balance, and tin is its weak point.
 
 **The Levant, the boiling pot.** Between them lies the board's centre: a crowd of vassal cities where the spheres of Egypt, Mitanni and Hatti meet ("Opening relations as they were"). Each ruler protests his loyalty to Pharaoh while taking his neighbours' towns and denouncing them as traitors, and most of the letters are theirs. Rib-Hadda of Byblos wrote more than sixty, begging for troops and grain against Abdi-Ashirta of Amurru and then his son Aziru, who built a state by playing Egypt against Hatti and in the end went over to Hatti; Abdi-Heba of Jerusalem accused Labaya of Shechem of giving the land to the Habiru, while Labaya swore he was Pharaoh's loyal servant. From item 11+ these cities are powers of their own, with vassal tablets to their overlords and the same goal as everyone, so the knifing needs no rule. For the great kings the Levant is where their spheres meet and the truth is hardest to find: every vassal is a source, every report may be a lie, and a vassal's loyalty shows only in what he does.
