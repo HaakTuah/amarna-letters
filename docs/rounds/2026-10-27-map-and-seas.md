@@ -155,13 +155,13 @@ turn, as today; a known quirk if script kings ever plan boards for other turns.
     besieger not at all), unless a fleet of the besieger's holds its waters. Only the besieger's fleet blockades; a third
     king's fleet there neither helps nor hinders.
 11. **Arrapha does not touch Dur-Kurigalzu**: Ekallate and the Diyala lie between.
+12. **Egypt starts with no great king for a neighbour**: free Gaza and Jerusalem lie between it and every other court,
+    and its sea reaches no royal coast in one voyage. Its script king sends fewer peace tablets for it. Noted for item 18,
+    with Nubia's richer start.
 13. **A threat to a capital**, for the reserve, is foreign troops within the capital, or beside it when they woke the
     king (the review's finding 4); not any foreign unit beside it, which would pay for Assyria from the first season.
 14. **Labaya starts the game** (Haakon's answer to item 6+): no rulers are characters yet, so nothing here names him;
     item 10's characters do.
-12. **Egypt starts with no great king for a neighbour**: free Gaza and Jerusalem lie between it and every other court,
-    and its sea reaches no royal coast in one voyage. Its script king sends fewer peace tablets for it. Noted for item 18,
-    with Nubia's richer start.
 
 ## The review
 
