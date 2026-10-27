@@ -137,3 +137,9 @@ Haakon's standing instructions given since the design document's copy was last r
   introduce temporary features" (`docs/archive/instructions.md`, item 13). Where an item's order or split serves the
   game badly, take the reading that builds the final game best, say so in the PR, and never add a stand-in that a
   later item has to remove ("No stopgaps" in the builder rules).
+- **27 October 2026.** The builder merges, always: "You merge, always." (`docs/archive/instructions.md`, item 14). Merge
+  your own pull requests yourself, the milestone PR from `develop` into `main` included, once CI is green (and, for an
+  item, its reviewer found nothing blocking); this replaces "Haakon merges `develop` into `main`" in the builder rules
+  and "`main` is Haakon's" above. Merge with `merge_method=merge`, never push to `main` directly, and before the next
+  push to `develop` merge `main` back into it as "Git and GitHub" says.
+

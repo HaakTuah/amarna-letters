@@ -153,3 +153,13 @@ for an error and could touch the new game (`step` in `src/web/src/session/core.t
 - CI runs the tests but not the Playwright smoke test (`src/web/smoke.mjs`).
 - The page's bundle (754 KB, 247 KB compressed) carries the engine as well as the worker's: size only.
 - Returning visitors see the cached C# app once more before the new one takes over, as with every update before.
+
+## Haakon's instruction after the milestone PR
+
+Given at 04:20 UTC, once milestone PR #36 was open and green, word for word:
+
+> You merge, always.
+
+A standing instruction, recorded in `CLAUDE.md` ("Standing instructions") and `docs/archive/instructions.md` (item 14).
+#36 was merged into `main` by the builder accordingly.
+
