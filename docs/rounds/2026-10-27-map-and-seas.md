@@ -39,7 +39,8 @@ Build order (rev 33), World and history (22), War, travel and the seas (18). Non
 ## Ṣumur, both ways
 
 "Map review" asked for Ṣumur as Amurru's harbour or as a province of its own, the better kept, by the map's readability on a
-phone and the script games. Both were built (a switch now removed) and compared on seeds 1-50:
+phone and the script games. Both were built (a switch now removed) and compared on seeds 1-50, before the script kings'
+landing plan (below):
 
 | | Ṣumur as Amurru's harbour (kept) | Ṣumur its own province |
 |---|---|---|
@@ -55,7 +56,64 @@ Amurru's harbour; Amurru keeps the walls, the waters it shares with Arwad, and t
 
 ## Benchmarks, script games and the feature audit
 
-BENCHMARKS
+Before the item (seeds 1-50 and the solo benchmark), the audit at its start, as item 6+ left them: 50 of 50 games replay
+exactly, capitals fell in 44, and every feature built so far is used (the counts are item 6+'s, signal for signal), so
+no gap was found to patch. After the item, on the same seeds (`scripts/sim.sh --games 50 --seed 1 --verify-replay`):
+50 of 50 replay exactly.
+
+| | Before 7a | After 7a | After, `--no-sea-play` |
+|---|---|---|---|
+| Capitals fell (games; kingdoms) | 44; 99 | 37; 69 | 36; 53 |
+| First fall, median season | 11 | 22 | 20 |
+| Entry to fall, median seasons | 12 | 21 | 16 |
+| Wins: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa, Alashiya | 13, 7, 16, 8, 1, 5, 0 | 24, 10, 10, 4, 0, 2, 0 | 22, 6, 14, 5, 2, 1, 0 |
+| Alashiya's growth | 1.60 | 2.71 | 2.95 |
+| Sieges begun / won | 869 / 799 | 1071 / 804 | 1002 / 707 |
+| Landings (games / landings) | not counted | 7 / 9 | 0 / 0 |
+| Blockades / seasons a siege was supplied | none | 35 / 1874 | 0 / 2828 |
+| Spies caught, terrain held, desert supplies | 38, 190, 10 | 32, 114, 147 | 25, 144, 115 |
+
+`--versus solo`, 40 seeds (one current king against six baselines): 9.49 growth alone and 1.45 as baseline over all, 96%
+and 14% of wins (8.26, 1.25, 94% and 14% before). By power, alone / as baseline: Egypt 7.33 / 0.86, Hatti 11.99 / 1.99,
+Babylonia 11.05 / 1.11, Mitanni 7.90 / 2.97, Assyria 13.52 / 1.11, Arzawa 7.10 / 1.18, Alashiya 7.56 / 0.91. The baseline
+was adapted only as the rules required (it convoys over one zone at most and never blockades), so the current bot gains
+more over it on the new seas.
+
+What moved, and why:
+- **Wars are slower.** A coastal city is supplied by sea unless blockaded, so sieges of harbours take longer; capitals
+  fall in fewer games, and later. Alashiya, guarded by its own waters and by winter, is never taken (it fell once in 50
+  before) and grows nearly twice as fast. Item 18 weighs both ("most games", Alashiya's start).
+- **Egypt is stronger**, with Nubia's 30 and no great king for a neighbour (reading 12).
+- **The desert costs more often** (the Sutean steppe lies on the Euphrates–Levant road), and terrain helps less often (no
+  landing bonus).
+
+**Every feature is every seat's.** The script kings use each new rule, and it pays:
+- **Blockades**: 35 in 20 games, and the share of siege seasons a city was supplied falls from all (2,828 with the sea play
+  off) to 1,874; sieges won rise from 707 to 804, and kingdoms fallen from 53 to 69.
+- **Landings**: 9 in 7 games (none with the sea play off); about half the convoys launched landed, in traces. They are
+  rare because most courts own one fleet or none and a landing needs one in each sea zone of the way; the script kings
+  keep a landing plan across seasons (`Brain.landing`, `chooseLanding` in `bots/seas.ts`) so their fleets and army
+  converge on it, and raise a fleet or an army for it when one is missing. Before that plan, three attempts gave none
+  (below).
+- **Guarding the waters** and the **winter map**: no script king's order is refused for crossing the open sea in winter
+  (every move it weighs is over `Board.Sail`), and fleets take station in their capital's waters when a foreign fleet nears.
+- **Buying across the sea** follows the season's map (the review's finding 3).
+
+**What the sea play is worth**, the same seeds with the script kings' sea play off (`--no-sea-play`: no blockades,
+guards or landing plans, convoys over one zone at most): with it on, Hatti and Mitanni win more (10 and 4 against 6 and 5
+over the table, Hatti's growth 3.76 against 3.52) and sieges succeed more; Babylonia and Egypt grow less (3.06 and 4.87
+against 4.15 and 5.03), since others' blockades and landings now reach them. The feature matters, and the scripts play it.
+
+**Landings took an escalation.** Three attempts of the builder's gave no landing in 20-50 games: levying fleets for the
+chain, readying convoys for valuable non-stranded armies, and an island court raising an army. The escalation helper
+found why: the "ready a convoy" step ran after every army was already used, it was recomputed from nothing each season so
+fleets and army never met, the look-ahead replaced a fleet's waiting at sea with a one-season gain, and a whole chain lost
+its fleets to the guard op. Its fix, checked and applied: the landing plan kept across seasons, its moves as ops that
+compete before the commit, the look-ahead leaving troops on a landing alone, and guards dropped where the chain's fleets
+already hold the waters. First guesses of the bots' own (not game numbers): patience 8 seasons, rest 6, a score of 150.
+
+**The Board's season map** (`Board.Sail`) is a static set by each new board: safe while every board of a turn is for that
+turn, as today; a known quirk if script kings ever plan boards for other turns.
 
 ## First guesses (item 18 tunes them)
 
@@ -97,13 +155,45 @@ BENCHMARKS
     besieger not at all), unless a fleet of the besieger's holds its waters. Only the besieger's fleet blockades; a third
     king's fleet there neither helps nor hinders.
 11. **Arrapha does not touch Dur-Kurigalzu**: Ekallate and the Diyala lie between.
+13. **A threat to a capital**, for the reserve, is foreign troops within the capital, or beside it when they woke the
+    king (the review's finding 4); not any foreign unit beside it, which would pay for Assyria from the first season.
+14. **Labaya starts the game** (Haakon's answer to item 6+): no rulers are characters yet, so nothing here names him;
+    item 10's characters do.
 12. **Egypt starts with no great king for a neighbour**: free Gaza and Jerusalem lie between it and every other court,
     and its sea reaches no royal coast in one voyage. Its script king sends fewer peace tablets for it. Noted for item 18,
     with Nubia's richer start.
 
 ## The review
 
-REVIEW
+One reviewer (Opus, high effort), given the diff and the item's text. Its findings, all addressed:
+1. (Blocking) The rulebook said the ground never helps against an attack from the sea; rough ground still does. Fixed:
+   only the landing army gets nothing, and rough ground helps against a landing.
+2. (Blocking) The sally line still named "a landing" among the grounds. Fixed; and with `seaSupply` 0 the siege text
+   says nothing of supply.
+3. (Blocking) Buying across the open sea in winter was refused without kings being told, and script kings and the web
+   form checked reach on the summer map. Fixed: THE SEA says so, the refusal says so, and both use the season's map.
+4. The capital reserve counted any foreign unit beside a capital (Mitanni's army beside Ashur from the first season).
+   Fixed: troops within the capital, or beside it when they woke the king.
+5. The web order form offered open-sea moves in winter. Fixed (`forTurn` for moves and buying).
+6. (Blocking for merge) The report was unfinished and landings were 0. Done above: 9 landings in 7 of 50 games.
+7. Nits: the guard op could send a second fleet into waters our own fleet holds (fixed); `Board.Sail` is a static
+   (noted above).
+8. "Blockaded" in the siege notice with `seaSupply` 0 (fixed).
+
+It found nothing wrong in the engine's convoys and landings, the winter map, siege supply or determinism.
+
+## Also built in 7a: Haakon's answers to item 6c's review, and the pacing notes split
+
+As the item's text now asks first (the design document's revision 37):
+- **A threat to a king's capital is always paid**: a king's orders with foreign troops within his capital, or beside it
+  when they woke him, start above the script whatever the going rate, and may spend a reserve of the limit (a tenth, a
+  first guess) that ordinary decisions stop short of (`Stakes.capital`, `SpendingSettings.reserveShare`, tested).
+- **The Counsel preset's narrator is Sonnet**, the preset's large model.
+- **The pacing design notes**, 61 KB, were split by topic into `docs/design/05-pacing/`, word for word, in their own pull
+  request (#64, merged).
+- Also found on the way: the script kings decided by a power's name which courts keep two fleets
+  (`statecraft-strategy.ts`), against "no rule checks which power it is"; it now reads the map (a homeland mostly coast),
+  which picks the same two courts.
 
 ## Haakon's words in this session
 

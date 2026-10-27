@@ -33,7 +33,15 @@
    - **Joint blows**: see Coalitions.
 5. **Commit**, best first, until net worth reaches 0. Each troop is used once, and only one attack, block, convoy or joint blow goes into each province (cuts are not tracked). A troop that must stay never moves; it may still support.
 6. **Support friends.** Each troop still free and not threatened supports a friend's troop in sight that a non-friend menaces: a sworn foe first, then the leader, then any king with hostility above 0.4.
-   **Ready a convoy** (since the fix pass after item 4; chains since item 7a). For each stranded army on a coast that is not threatened and not kept home, the chain of sea zones from its waters (up to three, through zones empty or ours) to the waters of the coast worth most (the best value × multiplier, less 20 for each zone beyond the first, among coasts the army cannot reach by land, not ours, free or of a king we will fight), if that is at least 200: our free fleets already in the chain hold, and each empty zone of it takes a free fleet that is not threatened and can sail there this season. When the chain is whole the convoy above carries the army over.
+   **A landing plan** (item 7a, `Brain.landing`, `chooseLanding` in `bots/seas.ts`), which replaced the two steps below
+   in the same item (they never fired: armies were already used, and the plan was remade each season): a court sets its
+   mind on one landing, from a coast of ours to a coast across the sea the army cannot reach by land, scored by its worth
+   less the exposure of the coast left, over the seasons it takes to make ready (at most one fleet short), and keeps it
+   until it lands, it stops paying, a foreign unit enters the chain, or 8 seasons pass (then 6 seasons' rest). Its moves
+   are ops that compete before the commit: fleets sail to the chain's zones and hold, the army comes to the coast when the
+   chain is at most a fleet short, a fleet or army is levied when one is missing, and the convoy is launched when the
+   chain is whole; the look-ahead leaves troops on a landing alone. 9 landings in 50 script games.
+   **Ready a convoy** (since the fix pass after item 4; chains since item 7a; replaced by the landing plan above). For each stranded army on a coast that is not threatened and not kept home, the chain of sea zones from its waters (up to three, through zones empty or ours) to the waters of the coast worth most (the best value × multiplier, less 20 for each zone beyond the first, among coasts the army cannot reach by land, not ours, free or of a king we will fight), if that is at least 200: our free fleets already in the chain hold, and each empty zone of it takes a free fleet that is not threatened and can sail there this season. When the chain is whole the convoy above carries the army over.
 7. **The rest.** Threatened troops and troops kept home hold. Every other troop takes one step towards the best place within five steps:
    - land that is not ours and is free, or belongs to a king we are willing to fight, scores value ÷ (1 + steps);
    - our own threatened empty land scores 0.8 × value ÷ (1 + steps);
