@@ -115,3 +115,11 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     A standing instruction, for this game and Barkstreet Snakes alike: push the item's branch at every passed gate and at
     least once an hour while work is under way. Listed in `CLAUDE.md` under "Standing instructions".
+
+16. **11:01**, in the design chat, after finding that items 6b's and 6+'s review questions had sat in the progress file unseen:
+
+    > Yes to all, expertly! And we need that all these questions get directly back to me from both projects. Having to hunt them down like this isn't good.
+
+    A standing instruction, for this game and Barkstreet Snakes alike: every question comes back in the session's last
+    message and the milestone PR, and is relayed word for word by the session that started it. Listed in `CLAUDE.md`
+    under "Standing instructions". The same message answered items 6b's and 6+'s review questions (`docs/BUILD-PROGRESS.md`).

@@ -139,4 +139,15 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
 - **27 October 2026: push as you go** (`docs/archive/instructions.md`, item 15). Push the item's branch at every passed
   gate, and at least once an hour while work is under way, even before its pull request opens, so nothing is lost if a
   session dies or its machine is reclaimed. A branch that is not ready yet is still pushed; mark its PR as a draft.
+- **27 October 2026: questions come back to Haakon directly** (`docs/archive/instructions.md`, item 16). He should
+  never have to hunt for a question. Every question, design question or reading he should answer, of an item or of
+  anything else, reaches him three ways:
+  1. **The session's last message,** which the session that started it reads and relays, opens with "Questions for
+     Haakon". It lists each one, numbered, as a question he can answer from his phone, with the reading taken and its
+     alternative. If there are none, it says "Questions for Haakon: none".
+  2. **The milestone PR's description** opens with the same list.
+  3. **The list stays in the "For Haakon" table** of `docs/BUILD-PROGRESS.md` until he answers it.
+
+  A session that starts builder sessions passes each list on to Haakon word for word in its next update. It never sums
+  the list up as "readings in the report".
 
