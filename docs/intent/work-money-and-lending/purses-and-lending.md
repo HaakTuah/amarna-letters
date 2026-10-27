@@ -1,11 +1,11 @@
-<!-- Generated from the design document, Work, money and lending tab, revision 10 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Work, money and lending tab, revision 11 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Purses and lending
 
 **Characters have ongoing costs,** so purses do not grow into fortunes worth killing for:
 
 - living costs each season, paid at the market where he stays, and nothing as a court's guest ("Characters live from the markets too");
 - on the road, what he buys at the markets he passes, unless he lives on what he carries;
-- spending shaped by traits: the ambitious keep followers, the greedy hoard but are robbed or cheated more often, some send money home or pay old debts (the hidden fact "owes a debt to a copper trader" already exists);
+- spending shaped by traits: the ambitious keep followers, the greedy hoard, and a fat purse on the road draws robbers and cheats as any large purse does, some send money home or pay old debts (the hidden fact "owes a debt to a copper trader" already exists);
 - outlaws on the roads, and a bandit chief's band to feed.
 
 A purse stays hidden, so a king never knows exactly what an execution would gain.
