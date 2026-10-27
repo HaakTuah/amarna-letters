@@ -15,16 +15,16 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 556 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 24 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 25 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 22 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 28 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 30 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 17 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 10 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 11 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 18 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 7 |
-| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 4 |
+| Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 5 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 10 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 16 |
 
@@ -43,7 +43,7 @@ session loads.
 | `.claude/rules/builder-rules.md` | Rules for the builder | 9.3 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
-| `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 3.3 |
+| `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 3.4 |
 | `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.2 |
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 5.2 |
 | `docs/intent/build-order/item-8.md` | 8. Structured press. The second press mode, with templates for every king and sc | 1.3 |
@@ -68,9 +68,9 @@ session loads.
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 12.3 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.2 |
-| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 12.8 |
+| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 13.2 |
 | `docs/intent/engine-and-models/script-mode-and-press-modes.md` | Script mode and press modes | 3.0 |
-| `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.2 |
+| `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.5 |
 | `docs/intent/engine-and-models/security-prompt-injection-and-information-leakage.md` | Security: prompt injection and information leakage | 2.0 |
 | `docs/intent/diplomacy-and-intelligence/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md` | Envoys: mediated, delayed, agentic communication | 2.3 |
@@ -110,7 +110,7 @@ session loads.
 | `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 17.8 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 1.9 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 5.4 |
+| `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 5.5 |
 | `docs/intent/interface-and-the-council/the-royal-council.md` | The royal council | 3.8 |
 | `docs/intent/tests-risks-and-references/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md` | Success criteria and test plan | 3.2 |
