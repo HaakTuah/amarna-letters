@@ -430,7 +430,7 @@ export function checkJobs(choices: SeatChoices, config: GameConfig): { model: st
     const small = smallModel(choices, p);
     const m = leaderModel(choices.leaders.get(p));
     if (small !== null && m !== null) {
-      jobs.push({ model: small, schemas: [withLadder(planned(Replies.leaderOrders(config))), routineCourt(true), alertsReply()] });
+      jobs.push({ model: small, schemas: [withLadder(planned(Replies.leaderOrders(config))), routineCourt(true, config), alertsReply()] });
       jobs.push({ model: m, schemas: [counsel] });
     }
   }

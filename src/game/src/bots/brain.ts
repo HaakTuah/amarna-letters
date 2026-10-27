@@ -99,6 +99,8 @@ export class Brain {
   claims: Claim[] = [];
   /** When we last promised each king our support for a blow he leads (item 8). */
   readonly supportOfferedTo = new Dict<Power, number>();
+  /** Where each of our envoys was last sent: the court whose answer his report brings (item 8). */
+  readonly sentTo = new Dict<string, Power>();
   /** The last envoy we sent to each king: the one a "your messenger lied" from him is about. */
   readonly lastEnvoyTo = new Dict<Power, string>();
   /** Gold our weighers found light, by sender: how much short, the season, and whether we have told him so. */

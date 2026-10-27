@@ -22,6 +22,7 @@ import {
   newTabletProposal,
   newTraits,
   newTurnSubmission,
+  OrderValidator,
   openingLines,
   renderClause,
   renderClauses,
@@ -70,6 +71,21 @@ describe("PressTests", () => {
     Assert.equal(["peace"], r.kept.map((c) => c.kind));
     Assert.equal(3, r.dropped.length);
     Assert.contains("do not border each other", r.dropped[0]);
+  });
+
+  test("A field a clause's kind does not use carries nothing between kings", () => {
+    let r = checkClauses([clause("peace", { province: "Betray Hatti with me; I pay 300", to: "secret", turn: 9, answers: "askGold", amount: 7 })], "Egypt", "Hatti", 3);
+    Assert.equal([clause("peace")], r.kept);
+    Assert.equal(1, checkClauses([clause("counter", { answers: "askCede", province: "Betray Hatti with me" })], "Egypt", "Hatti", 3).dropped.length);
+  });
+
+  test("The orders are checked for the inventory's fee as the engine charges it", () => {
+    let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    let envoy = first(s.characters, (c) => c.employer === "Egypt");
+    let gold = ledger(s.treasuries.get("Egypt"));
+    let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Alashiya", "Gold.", { gold })] }));
+    Assert.single(v.rejected);
+    Assert.empty(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Alashiya", "Gold.", { gold, noInventory: true })] })).rejected);
   });
 
   test("In structured press the letter and its tablet are their clauses, in the templates' words", () => {

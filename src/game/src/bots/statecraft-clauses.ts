@@ -3,7 +3,6 @@
  * clauses, whoever wrote the words, and answering every proposal and request a letter sets out.
  */
 import {
-  AllPowers,
   GivingKinds,
   clause,
   isNews,
@@ -13,7 +12,6 @@ import {
   type HostReply,
   type InboxItem,
   type Power,
-  land,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
@@ -132,6 +130,14 @@ export function answerLetter(view: AudienceView, b: Board, brain: Brain, reply: 
           r.trust += 0.05;
         }
         break;
+      case "peace":
+      case "alliance":
+      case "against":
+        // Proposed in words with no tablet to seal (a tablet's own is answered with its sealing): a word given back, which
+        // binds nobody. Peace for any king we bear no grudge; alliance and a common foe only for a friend.
+        if (view.proposal !== null || !once(c.kind)) break;
+        reply.clauses.push(answer((c.kind === "peace" ? !r.hostile : friend && c.power !== me) ? "accept" : "refuse", c.kind));
+        break;
       case "tribute":
       case "cede":
         if (once(c.kind)) reply.clauses.push(answer("accept", c.kind));
@@ -168,7 +174,8 @@ export function answerLetter(view: AudienceView, b: Board, brain: Brain, reply: 
  */
 export function readReport(item: InboxItem, brain: Brain, b: Board, turn: number): void {
   if (!clausePlays(b.me)) return;
-  const host = AllPowers.find((x) => item.body.includes(`court of ${land(x)}`)) ?? null;
+  // The court the envoy reporting was sent to, as we sent him; a report in someone else's words is not searched for it.
+  const host = (item.subject !== null ? brain.sentTo.tryGet(item.subject) : undefined) ?? null;
   if (host === null || !brain.rel.has(host)) return;
   const r = brain.rel.get(host);
   for (const c of item.clauses) {

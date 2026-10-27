@@ -27,6 +27,7 @@ import {
   clause,
   checkClauses,
   isNews,
+  isProposal,
   renderClauses,
   cmpNum,
   cmpPower,
@@ -592,11 +593,13 @@ export class GameRunner {
         const x = engine.answerReply(a, view.goldWeighed);
         const clauses = engine.answerClauses(a, view.goldWeighed);
         x.speech = plainWords(clauses);
-        // In structured press a standing answer speaks in the templates' words, and no phrasing call is made (item 8).
-        if (this.state.config.pressMode === "structured") {
-          x.clauses = [clause("wellWishes")];
-          return x;
-        }
+        // What it decided, in clauses, in either press (item 8): a courtesy, thanks for gold, and the tablet sealed or not.
+        // In structured press they are its words, and no phrasing call is made.
+        x.clauses = [clause("wellWishes")];
+        if (view.goldWeighed > 0) x.clauses.push(clause("accept", { answers: "gift" }));
+        if (a.dispatch.proposal !== null)
+          x.clauses.push(clause(x.sealProposal ? "accept" : "refuse", { answers: a.dispatch.proposal.clauses.find(isProposal)?.kind ?? "peace" }));
+        if (this.state.config.pressMode === "structured") return x;
         if (seat.phrase !== undefined)
           try {
             const words = await seat.phrase({ key: r.key, turn, host: a.host, from: a.from, envoy: r.envoy.name, clauses }, signal);

@@ -258,8 +258,10 @@ export class SessionCore {
       this.notify();
       return;
     }
+    // The press first (item 8), so that the check at setup sends the schemas the game will use.
+    pressFor(state, built.minds);
     if (!(await this.check(built, settings, state.config))) return;
-    this.runner = new GameRunner(pressFor(state, built.minds), built.seats, built.minds, built.narrator, { jobs: choicesOf(settings).jobs });
+    this.runner = new GameRunner(state, built.seats, built.minds, built.narrator, { jobs: choicesOf(settings).jobs });
     this.runner.writeChronicles = settings.chronicles;
     this.runner.changed.push(this.changed);
     this.gameId = `game-${settings.seed}-${this.stamp()}`;

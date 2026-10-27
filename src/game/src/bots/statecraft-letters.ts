@@ -179,6 +179,7 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
     for (let i = ready.length - 1; i >= 0; i--) if (ready[i].id === d.envoy) ready.splice(i, 1);
     if (copy !== null) brain.sentCopies.add(copy);
     brain.lastEnvoyTo.set(d.to, d.envoy);
+    brain.sentTo.set(d.envoy, d.to);
     if (d.gold > 0) brain.goldTrips.set(d.envoy, brain.goldTrips.getOrDefault(d.envoy, 0) + 1);
     const rel = d.proposal !== null ? brain.rel.tryGet(d.to) : undefined;
     if (rel !== undefined) rel.proposedTurn = v.turn;

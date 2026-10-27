@@ -198,10 +198,58 @@ export function clauseError(c: Clause, from: Power, to: Power, turn: number): st
     case "counter":
       if (c.answers === null || !([...ProposalKinds, ...RequestKinds, "gift"] as readonly string[]).includes(c.answers)) return needs("the kind of proposal or request it answers");
       if (c.kind === "counter" && ["askGold", "askTribute", "tribute", "gift"].includes(c.answers) && (c.amount === null || c.amount < 0)) return needs("the amount offered instead");
+      if (c.kind === "counter" && c.province !== null && !anywhere(c.province)) return `there is no province called '${c.province}'`;
+      if (c.kind === "counter" && c.to !== null && (!anywhere(c.to) || c.province === null || !Map.areAdjacent(c.province, c.to))) return "a counter's move must be between bordering provinces";
       return null;
     default:
       return null;
   }
+}
+
+/** The fields each kind uses: any other is cleared, so that no field carries words of its own between kings. */
+export const ClauseFields: Record<ClauseKind, readonly ("power" | "province" | "to" | "turn" | "amount" | "answers")[]> = {
+  wellWishes: [],
+  gift: ["amount"],
+  peace: [],
+  noAttack: [],
+  alliance: [],
+  against: ["power"],
+  support: ["province", "to", "turn"],
+  tribute: ["amount"],
+  cede: ["province"],
+  askGold: ["amount"],
+  askSupport: ["province", "to", "turn"],
+  askWithdraw: ["province"],
+  askCede: ["province"],
+  askTribute: ["amount"],
+  askHelp: ["province", "power"],
+  askOath: [],
+  threat: ["province"],
+  grievance: ["province"],
+  brokenOath: [],
+  lightGift: ["amount"],
+  envoyLied: [],
+  habiru: ["power"],
+  newsTroops: ["power", "province"],
+  newsStrength: ["power", "amount"],
+  newsTaken: ["power", "province"],
+  newsSiege: ["power", "province"],
+  accept: ["answers"],
+  refuse: ["answers"],
+  counter: ["answers", "amount", "province", "to", "turn"],
+};
+
+function cleaned(c: Clause): Clause {
+  const uses = ClauseFields[c.kind];
+  return {
+    kind: c.kind,
+    power: uses.includes("power") ? c.power : null,
+    province: uses.includes("province") ? c.province : null,
+    to: uses.includes("to") ? c.to : null,
+    turn: uses.includes("turn") ? c.turn : null,
+    amount: uses.includes("amount") && c.amount !== null ? Math.trunc(c.amount) : null,
+    answers: uses.includes("answers") ? c.answers : null,
+  };
 }
 
 /** The clauses that stand, each one cleaned of fields its kind does not use, and the reasons the others were dropped. */
@@ -215,7 +263,7 @@ export function checkClauses(cs: readonly Clause[] | null | undefined, from: Pow
     }
     const why = clauseError(c, from, to, turn);
     if (why !== null) dropped.push(why);
-    else kept.push({ ...c, amount: c.amount === null ? null : Math.trunc(c.amount) });
+    else kept.push(cleaned(c));
   }
   return { kept, dropped };
 }
