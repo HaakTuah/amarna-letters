@@ -16,6 +16,7 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 | What is done and next | `docs/BUILD-PROGRESS.md` | One line per item, review questions, "Found during the port". |
 | Briefs for the steps of item 5+ | `docs/items/` | Docs and preview pass, conversion, fix pass. |
 | Specs Haakon wrote for item 5+ | `docs/prompts/DOCS-AND-PREVIEW.md`, `docs/CONVERSION-PLAN.md` | His words, quoted. |
+| The historical sources | `docs/history/` (start at `README.md`) | Dossiers on 1346 BCE from item 6+; cite them when an item builds from them. |
 | Item reports | `docs/rounds/<date>-<item>.md` | Write yours there. |
 | History | `docs/archive/` (build log; Haakon's instructions word for word; the design document's history) | Read only when a task points there. |
 
