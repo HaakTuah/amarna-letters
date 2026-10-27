@@ -27,16 +27,61 @@ export function cmpEnum<T extends string>(values: readonly T[]): Cmp<T> {
   return (a, b) => index.get(a)! - index.get(b)!;
 }
 
-/** Sorts a copy by keys, each with its comparison, the first key first (OrderBy().ThenBy()...). Stable. */
+/**
+ * Sorts a copy by keys, each with its comparison, the first key first (OrderBy().ThenBy()...). Stable. Every key is computed
+ * once per element, a level at a time and in the items' order, as .NET's sort computes them (which matters for a key that
+ * rolls a die).
+ */
 export function sortBy<T>(items: Iterable<T>, ...keys: [(x: T) => unknown, Cmp<never>][]): T[] {
   const list = [...items];
-  return list.sort((a, b) => {
-    for (const [key, cmp] of keys) {
-      const c = (cmp as Cmp<unknown>)(key(a), key(b));
+  const computed = keys.map(([key]) => list.map(key));
+  const index = list.map((_, i) => i);
+  index.sort((a, b) => {
+    for (let k = 0; k < keys.length; k++) {
+      const c = (keys[k][1] as Cmp<unknown>)(computed[k][a], computed[k][b]);
       if (c !== 0) return c;
     }
-    return 0;
+    return a - b;
   });
+  return index.map((i) => list[i]);
+}
+
+/**
+ * The first item by a key and, among ties, a second key (OrderBy().ThenBy().First()), with .NET's lazy evaluation: the
+ * second key is computed only for the first item, for each item that ties with the best so far, and for each new best. For a
+ * second key that rolls a die. Throws on an empty sequence, as First does.
+ */
+export function firstBy<T>(items: Iterable<T>, key: (x: T) => unknown, cmp: Cmp<never>, then: (x: T) => unknown, thenCmp: Cmp<never>): T {
+  const c1 = cmp as Cmp<unknown>;
+  const c2 = thenCmp as Cmp<unknown>;
+  let found = false;
+  let best!: T;
+  let bestKey: unknown;
+  let bestThen: unknown;
+  for (const x of items) {
+    if (!found) {
+      found = true;
+      best = x;
+      bestKey = key(x);
+      bestThen = then(x);
+      continue;
+    }
+    const k = key(x);
+    const c = c1(k, bestKey);
+    if (c === 0) {
+      const t = then(x);
+      if (c2(t, bestThen) < 0) {
+        bestThen = t;
+        best = x;
+      }
+    } else if (c < 0) {
+      bestKey = k;
+      bestThen = then(x);
+      best = x;
+    }
+  }
+  if (!found) throw new Error("Sequence contains no elements");
+  return best;
 }
 
 /** Descending comparison (OrderByDescending). */

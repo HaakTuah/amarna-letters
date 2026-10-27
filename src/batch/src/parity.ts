@@ -10,19 +10,23 @@ import { runPool } from "./pool.ts";
 import type { ReplayJob, ReplayResult } from "./parity-worker.ts";
 
 const [mode, dir, fpDir] = process.argv.slice(2);
-if (mode !== "replay" || !dir) {
-  console.error("usage: parity.ts replay LOGS [FINGERPRINTS]");
+if ((mode !== "replay" && mode !== "play" && mode !== "play-sleeping" && mode !== "play-versus") || !dir) {
+  console.error("usage: parity.ts replay|play|play-sleeping|play-versus LOGS [FINGERPRINTS]");
   process.exit(2);
 }
 const jobs: ReplayJob[] = readdirSync(dir)
   .filter((f) => /^game-\d+\.jsonl$/.test(f))
   .sort((a, b) => Number(a.match(/\d+/)![0]) - Number(b.match(/\d+/)![0]))
-  .map((f) => ({ log: join(dir, f), fingerprints: join(fpDir ?? dir, f.replace(".jsonl", ".parity.tsv")) }));
+  .map((f) => ({
+    log: join(dir, f),
+    fingerprints: join(fpDir ?? dir, f.replace(".jsonl", ".parity.tsv")),
+    play: mode === "replay" ? undefined : { seed: Number(f.match(/\d+/)![0]), sleeping: mode === "play-sleeping", versus: mode === "play-versus" },
+  }));
 const started = Date.now();
 const results = await runPool<ReplayJob, ReplayResult>(new URL("./parity-worker.ts", import.meta.url), jobs);
 const bad = results.filter((r) => r.mismatch !== null || r.error !== null);
 const phases = results.reduce((s, r) => s + r.phases, 0);
 const matched = results.reduce((s, r) => s + r.matched, 0);
-console.log(`Replayed ${results.length} logs: ${results.length - bad.length} match on every phase; ${matched} of ${phases} phase fingerprints match (${((Date.now() - started) / 1000).toFixed(1)}s).`);
+console.log(`${mode === "replay" ? "Replayed" : "Played"} ${results.length} games: ${results.length - bad.length} match on every phase; ${matched} of ${phases} phase fingerprints match (${((Date.now() - started) / 1000).toFixed(1)}s).`);
 for (const r of bad.slice(0, 20)) console.log(`- ${r.log}: ${r.matched}/${r.phases}${r.mismatch ? `; first mismatch: ${r.mismatch}` : ""}${r.error ? `\n  ${r.error}` : ""}`);
 process.exit(bad.length === 0 ? 0 : 1);
