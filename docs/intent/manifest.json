@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 35,
+   "rev": 37,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -46,7 +46,7 @@
   "world-and-history": {
    "name": "World and history",
    "node": "f2f7044b-c6fa",
-   "rev": 22,
+   "rev": 23,
    "files": [
     "docs/intent/world-and-history/front.md",
     "docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md",
@@ -112,7 +112,7 @@
   "land-people-and-economy": {
    "name": "Land, people and economy",
    "node": "3dedb02f-88dd",
-   "rev": 11,
+   "rev": 12,
    "files": [
     "docs/intent/land-people-and-economy/front.md",
     "docs/intent/land-people-and-economy/gold.md",
@@ -160,7 +160,7 @@
   "tests-risks-and-references": {
    "name": "Tests, risks and references",
    "node": "e10064a1-1833",
-   "rev": 11,
+   "rev": 12,
    "files": [
     "docs/intent/tests-risks-and-references/front.md",
     "docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md",
