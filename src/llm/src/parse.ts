@@ -1,5 +1,9 @@
 /** Turns structured model output into ordinary engine orders, which then face the same validator as everyone's. */
 import {
+  ClauseKindValues,
+  clause,
+  type Clause,
+  type ClauseKind,
   WorldMap,
   besiege,
   buy,
@@ -105,6 +109,28 @@ const P = (s: string): Power | null => parsePower(s);
 
 function prov(s: string): string {
   return WorldMap.default.find(s)?.id ?? s.toLowerCase();
+}
+
+/** The clauses of a field (item 8): those of a kind the templates know, with "" and 0 read as not given. The engine checks the rest. */
+export function clausesOf(n: Node, key: string): Clause[] {
+  const out: Clause[] = [];
+  for (const x of items(n, key)) {
+    const kind = S(x, "kind");
+    if (!(ClauseKindValues as readonly string[]).includes(kind)) continue;
+    const answers = S(x, "answers");
+    const place = (k: string): string | null => empty(S(x, k)) === null ? null : prov(S(x, k));
+    out.push(
+      clause(kind as ClauseKind, {
+        power: P(S(x, "king")),
+        province: place("province"),
+        to: place("into"),
+        turn: I(x, "season") > 0 ? I(x, "season") : null,
+        amount: kind === "newsStrength" ? I(x, "gold") : I(x, "gold") > 0 ? I(x, "gold") : null,
+        answers: (ClauseKindValues as readonly string[]).includes(answers) ? (answers as ClauseKind) : null,
+      }),
+    );
+  }
+  return out;
 }
 
 const ConditionKinds: Record<string, ConditionKind> = {
@@ -230,6 +256,7 @@ export function letters(o: JsonObject): Order[] {
       continue;
     }
     const tablet = S(l, "tablet_to_seal");
+    const tabletClauses = clausesOf(l, "tablet_clauses");
     const copies = L(l, "show_tablet_copies");
     const purity = I(l, "purity");
     list.push(
@@ -244,8 +271,10 @@ export function letters(o: JsonObject): Order[] {
         }),
         gold: Math.max(0, I(l, "gold")),
         purityPercent: clamp(purity === 0 ? 100 : purity, 10, 100),
-        proposal: tablet.length > 0 ? newTabletProposal({ text: tablet, allianceOath: B(l, "sworn_alliance") }) : null,
+        proposal: tablet.length > 0 || tabletClauses.length > 0 ? newTabletProposal({ text: tablet, allianceOath: B(l, "sworn_alliance"), clauses: tabletClauses }) : null,
         copies: copies.length > 0 ? copies : null,
+        clauses: clausesOf(l, "clauses"),
+        noInventory: B(l, "no_inventory"),
       }),
     );
   }
@@ -377,6 +406,8 @@ export function host(o: JsonObject): HostReply {
     speech: S(o, "speech"),
     bribe: Math.max(0, I(o, "gift_to_envoy")),
     bribeAsk: S(o, "gift_request"),
+    clauses: clausesOf(o, "clauses"),
+    bribeClauses: clausesOf(o, "gift_news"),
     jobOffer: Math.max(0, I(o, "offer_service_wage")),
     sealProposal: B(o, "seal_tablet"),
     detain: B(o, "detain_envoy"),

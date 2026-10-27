@@ -123,3 +123,11 @@ Given in the design chat with Claude, answering the design questions of the cons
     A standing instruction, for this game and Barkstreet Snakes alike: every question comes back in the session's last
     message and the milestone PR, and is relayed word for word by the session that started it. Listed in `CLAUDE.md`
     under "Standing instructions". The same message answered items 6b's and 6+'s review questions (`docs/BUILD-PROGRESS.md`).
+
+17. **16:56**, in the design chat, on Claude's proposal that builders ask the live design document for changes again
+    before opening their pull request (items 7b and 8 had begun before Haakon's answers reached them):
+
+    > Yes, why not? If you don't object.
+
+    Written into the design document's builder rules ("The specification"), so it reaches `.claude/rules/builder-rules.md`
+    with this refresh; the same for Barkstreet Snakes, by its progress file.

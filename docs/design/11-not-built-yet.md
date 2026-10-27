@@ -24,8 +24,6 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   sections after it; item 11); and lending to kings on debt tablets ("Lending to kings"; item 11). The hoard and the
   debts are the two parts of the richest characters' wealth that count nothing yet (see "Characters' gold, and the
   richest characters").
-- **Full and structured press**: two press modes, free text as today and a structured mode with templates for every
-  king and for script envoys ("Two press modes"; item 8).
 - **Other courts' own calendars and regnal years**: season names for the courts that have only ordinals today
   ("Season names"), and regnal or limmu years (question 26, plan steps 5-7). The one date label with the
   year BCE and the ending line are built (see "The web map and the interface").
@@ -33,8 +31,6 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   game has them (walls are drawn since the siege package, a ring for each level standing, as the viewer knows them, broken
   where the viewer knows of a siege; the province card gives the level and the siege) (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
-- **Gold sent without an inventory**, saving the scribe fee and checkable by nobody ("Why the envoy lies, and
-  how he is caught"): today every gift has an inventory, and it costs nothing. Build order item 8.
 - **Tablets stolen, not only copied**: a spy taking a tablet out of an archive, and a conqueror seizing an archive so
   that its court loses it ("Tablets are objects in a place"; "Tablets have a place"). Item 3 built
   copying only (see "Tablets lie in archives"); build order item 10 builds the rest.
@@ -45,8 +41,12 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   (item 4).
 - **Call size, what 6b left**: a "since you last acted" view of the map (the view stays whole; only the digest of slept
   seasons is shortened, see "Call size" in `04-models.md`), sharing the schema's repeated shapes, and batch processing
-  for unattended games ("Output is the other half"); standing answers for characters, and a screen for a human seat's
-  standing answers (item 6b's report).
+  for unattended games ("Output is the other half"); standing answers for characters (item 6b's report; the screen for a
+  human seat's standing answers is built since item 8, see [structured press](14-structured-press.md)).
+- **Model envoys changing clauses**: a model envoy recites the letter's clauses as written and reports the host's
+  answer in clauses as given, bending only its words (item 8's reading; see [structured press](14-structured-press.md)).
+- **Script kings selling or faking news**: they pass on news in clauses (troops seen, a king's strength) but sell none
+  and invent none yet (items 11a, 11b).
 - **A cheaper summariser**, measured on the same games before it is used ("A cheaper model for condensing,
   to be measured"; the round report, Part E).
 - **Languages** ("Languages"; item 12).

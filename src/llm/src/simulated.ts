@@ -63,8 +63,10 @@ export function answer(props: JsonObject | null, user = ""): string {
       answers: ids.map((envoy) => only({
         envoy,
         speech: "Tell your lord I am his brother.",
+        clauses: [],
         gift_to_envoy: 0,
         gift_request: "",
+        gift_news: [],
         offer_service_wage: 0,
         seal_tablet: true,
         detain_envoy: false,

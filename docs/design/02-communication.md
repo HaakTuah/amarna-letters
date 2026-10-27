@@ -82,8 +82,8 @@
   envoy set out, and gold a host sends back with an envoy has one sealed by the host, dated the audience. The receiving
   court keeps it in its archive ("the inventory brought by Mane, envoy of Egypt"; "the inventory Mane brought home with
   the gold of Hatti"), where it can be examined, shown, copied by a spy or taken with the capital like any tablet. Its
-  scribe costs nothing, as before: the document's gift sent without an inventory, saving the fee, is not built (see Not
-  built yet). The sender keeps no copy (it knows what it sent). Every gold delivery leaves one, whether or not anything
+  scribe costs the inventory fee (20) since item 8, and gold may go without one, saving the fee and checkable by nobody
+  (see [structured press](14-structured-press.md)). The sender keeps no copy (it knows what it sent). Every gold delivery leaves one, whether or not anything
   was swapped, so the presence of an inventory gives nothing away. An inventory bears one seal, so the script kings'
   rules on treaties and evidence (two seals or more, their own among them) never read one.
 - **Swapped inventories** (since item 3; "Swapped tablets and false envoys"). An envoy that kept some, but

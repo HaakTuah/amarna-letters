@@ -10,8 +10,8 @@
 //   {"status":"still-running"} nothing to answer yet within the time limit: call again
 //   {"status":"bridge-stopped"} with --play only: the local bridge is not running (it was stopped, or never started)
 // "agent" is the agent type to start for that request (subagent_type), and "request" the file name to give it. With
-// --seed, only that seed's characters are watched (the kings always are). With --play, only the kings are watched (in
-// local play the characters are scripts), and play goes on while the bridge (sim/bridge.js) runs. It lists file names
+// --seed, only that seed's characters are watched (the kings always are). With --play, the kings are watched, and the
+// characters of the seed the bridge keeps if it was started with --seed (local play with characters as agents, item 8), and play goes on while the bridge (sim/bridge.js) runs. It lists file names
 // only; it never reads a request.
 const fs = require("fs");
 const path = require("path");
@@ -27,7 +27,9 @@ const settle = 3000;
 
 const read = f => fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : {};
 const seats = Object.entries(read(path.resolve(__dirname, "kings", "seats.json"))).map(([power, folder]) => ({ agent: `king-${power.toLowerCase()}`, folder }));
-const characters = play ? [] : Object.entries(read(path.resolve(__dirname, "characters", "agents.json")))
+// In local play the characters are watched only when the bridge keeps a seed's (node sim/bridge.js --seed S, item 8).
+if (play) seed = read(path.resolve(__dirname, "kings", "bridge.json")).seed ?? null;
+const characters = play && seed === null ? [] : Object.entries(read(path.resolve(__dirname, "characters", "agents.json")))
   .filter(([, c]) => seed === null || c.seed === seed).map(([agent, c]) => ({ agent, folder: c.folder }));
 const all = [...seats, ...characters];
 

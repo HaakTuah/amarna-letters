@@ -143,7 +143,7 @@ app offers the "Local agents" preset (`Presets.Local`, not in `Presets.all`) and
 runs on a loopback address, so the published site never shows them; a saved local game continued elsewhere says that it
 needs the bridge. The orchestrator waits with `wait.js --play`, which watches the kings only and ends when the bridge
 stops (`sim/kings/bridge.json` gone or its process dead); `check-isolation.js --kings --since <time>` checks the
-kings' live isolation test of that session alone. Envoys, spies and the narrator are scripts in local play. Settings,
+kings' live isolation test of that session alone. The narrator is a script in local play, and so are envoys, spies and candidates unless the table chooses local agents for them too (item 8; see [structured press](14-structured-press.md), "Characters as agents in local play"). Settings,
 first guesses: the bridge's port 5190, a poll every second, the 60-minute wait, and an empty reply handed back after
 5 seconds as the batch runner's file seats do.
 

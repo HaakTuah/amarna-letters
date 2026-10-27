@@ -1,12 +1,16 @@
-import { newHostReply, type AudienceView, type HostReply, type SeatView } from "@amarna/engine";
+import { NewsKinds, newHostReply, renderClause, type AudienceView, type Clause, type HostReply, type SeatView } from "@amarna/engine";
 import { useState } from "react";
 import { powerName, shekels, when } from "../ui/format.ts";
+import { ClauseEditor } from "./ClauseEditor.tsx";
 
 const num = (s: string): number => (s.trim() === "" || !Number.isFinite(Number(s)) ? 0 : Math.trunc(Number(s)));
 
 /** A foreign envoy stands before you. You hear the envoy, never the king who sent it. The form is new for every round (keyed by the caller). */
-export function AudiencePanel({ a, court, onAnswer }: { a: AudienceView; court: SeatView; onAnswer: (r: HostReply) => void }) {
+export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceView; court: SeatView; structured: boolean; onAnswer: (r: HostReply) => void }) {
   const [speech, setSpeech] = useState("");
+  // The answer in clauses (item 8), and in structured press what a bribed envoy is to tell his lord, as news.
+  const [clauses, setClauses] = useState<Clause[]>([]);
+  const [bribeNews, setBribeNews] = useState<Clause[]>([]);
   const [bribeAsk, setBribeAsk] = useState("");
   const [bribe, setBribe] = useState(0);
   const [job, setJob] = useState(0);
@@ -19,9 +23,11 @@ export function AudiencePanel({ a, court, onAnswer }: { a: AudienceView; court: 
   const answer = (): void =>
     onAnswer(
       newHostReply({
-        speech: speech.trim(),
+        speech: structured ? "" : speech.trim(),
+        clauses,
         bribe: Math.max(0, bribe),
-        bribeAsk: bribeAsk.trim(),
+        bribeAsk: structured ? "" : bribeAsk.trim(),
+        bribeClauses: structured ? bribeNews : [],
         jobOffer: Math.max(0, job),
         sealProposal: seal,
         detain,
@@ -52,6 +58,16 @@ export function AudiencePanel({ a, court, onAnswer }: { a: AudienceView; court: 
 
       <h4 style={{ marginTop: ".7rem" }}>{a.envoy.name} says</h4>
       <div className="speech">{a.spoken}</div>
+      {a.clauses.length > 0 && (
+        <div className="notice">
+          <small className="muted">The clauses {a.envoy.name} recited:</small>
+          <ul>
+            {a.clauses.map((c, i) => (
+              <li key={i}>{renderClause(c, a.from, a.host)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {a.soFar.map((x, i) => (
         <div key={i}>
           <p style={{ marginTop: ".5rem" }}>
@@ -61,7 +77,10 @@ export function AudiencePanel({ a, court, onAnswer }: { a: AudienceView; court: 
         </div>
       ))}
 
-      {a.goldStated > 0 && (
+      {a.goldWeighed > 0 && !a.inventory && (
+        <p className="notice">The gold came with no inventory: nobody can say what was sent. Your weighers find {shekels(a.goldWeighed)}.</p>
+      )}
+      {a.goldStated > 0 && a.inventory && (
         <p className="notice">
           The tablet's inventory lists {shekels(a.goldStated)} of gold. Your weighers find {shekels(a.goldWeighed)}
           {a.goldWeighed < a.goldStated ? ": less than promised." : "."} Its purity you will only know if you pay for an assay.
@@ -104,7 +123,13 @@ export function AudiencePanel({ a, court, onAnswer }: { a: AudienceView; court: 
 
       <div className="section">
         <h4>Your answer</h4>
-        <textarea maxLength={1500} value={speech} onChange={(e) => setSpeech(e.target.value)} placeholder="Speak to the envoy; they will carry it home (in their own words)." />
+        {!structured && (
+          <textarea maxLength={1500} value={speech} onChange={(e) => setSpeech(e.target.value)} placeholder="Speak to the envoy; they will carry it home (in their own words)." />
+        )}
+        <small className="muted">
+          {structured ? "Your answer, in clauses (structured press): accept, refuse or counter what the letter sets out." : "Your answer's clauses (kings who read only clauses read these):"}
+        </small>
+        <ClauseEditor clauses={clauses} onChange={setClauses} from={a.host} to={a.from} turn={a.turn} />
         <div className="row" style={{ marginTop: ".4rem" }}>
           {a.proposal !== null && (
             <label>
@@ -114,8 +139,14 @@ export function AudiencePanel({ a, court, onAnswer }: { a: AudienceView; court: 
           <label>
             Gift to the envoy <input type="number" min="0" value={bribe} onChange={(e) => setBribe(num(e.target.value))} />
           </label>
-          <input value={bribeAsk} onChange={(e) => setBribeAsk(e.target.value)} placeholder="…in return for" style={{ flex: 1 }} />
+          {!structured && <input value={bribeAsk} onChange={(e) => setBribeAsk(e.target.value)} placeholder="…in return for" style={{ flex: 1 }} />}
         </div>
+        {structured && bribe > 0 && (
+          <>
+            <small className="muted">In return for the gift, news the envoy is to tell his lord as what he saw:</small>
+            <ClauseEditor clauses={bribeNews} onChange={setBribeNews} from={a.host} to={a.from} turn={a.turn} only={NewsKinds} />
+          </>
+        )}
         <div className="row" style={{ marginTop: ".4rem" }}>
           <label>
             Offer them service at <input type="number" min="0" value={job} onChange={(e) => setJob(num(e.target.value))} /> a season

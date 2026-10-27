@@ -484,7 +484,7 @@ export class LlmLeaderSeat implements ISeat {
           role: `routine:${this.power}`,
           model: r.small!,
           user: base.user + (counsel === null ? RoutineCourtNote : `${RoutineCourtNoteAfterCounsel}\n\nTHE COUNSEL YOU ASKED FOR: ${counsel}`),
-          schema: routineCourt(counsel === null),
+          schema: routineCourt(counsel === null, this.config),
           effort: "low",
         },
         signal,

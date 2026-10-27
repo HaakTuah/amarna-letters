@@ -298,7 +298,6 @@ export function buildMap(): WorldMap {
     p("enkomi", "Enkomi", "Coast", "Alashiya", 45, true, 365, 395, 35.16, 33.88),
 
     // Free city-states: taken by force (each has walls: see StartWalls) or bought
-    p("lukka", "Lukka", "Coast", null, 25, false, 175, 270, 36.4, 29.4),
     p("isuwa", "Isuwa", "Land", null, 30, false, 565, 105, 38.67, 39.22),
     p("carchemish", "Carchemish", "Land", null, 35, false, 575, 185, 36.83, 38.02),
     p("alalakh", "Alalakh", "Land", null, 25, false, 495, 245, 36.24, 36.38),
@@ -307,8 +306,10 @@ export function buildMap(): WorldMap {
     p("nuhashshe", "Nuhashshe", "Land", null, 25, false, 620, 300, 35.5, 37.0),
     p("qatna", "Qatna", "Land", null, 30, false, 648, 345, 34.84, 36.86),
     p("qadesh", "Qadesh", "Land", null, 30, false, 570, 355, 34.56, 36.52),
-    // Amurru with Ṣumur, Egypt's base on its coast, as its harbour (built both ways in item 7a; see its report).
-    p("amurru", "Amurru", "Coast", null, 20, false, 490, 380, 34.92, 35.98),
+    // Amurru, the hill country behind the coast, and Ṣumur (Tell Kazel), Egypt's base on that coast, a province of its own
+    // since item 8 (Haakon's answer to item 7a's review: the period first, the phone made to read it).
+    p("amurru", "Amurru", "Land", null, 20, false, 520, 390, 34.7, 36.2),
+    p("sumur", "Sumur", "Coast", null, 15, false, 477, 372, 34.82, 35.98),
     p("arwad", "Arwad", "Coast", null, 20, false, 453, 366, 34.86, 35.86),
     p("byblos", "Byblos", "Coast", null, 30, false, 478, 428, 34.12, 35.65),
     p("sidon", "Sidon", "Coast", null, 25, false, 470, 478, 33.56, 35.37),
@@ -322,11 +323,13 @@ export function buildMap(): WorldMap {
     p("arrapha", "Arrapha", "Land", null, 30, false, 930, 262, 35.47, 44.39),
     p("susa", "Susa", "Coast", null, 35, false, 975, 470, 32.19, 48.26),
     // The edges: lands without a king
+    // Lukka, the Lycian coast of seafarers and raiders, ruled by no king (since item 8: Haakon's answer to item 7a's review)
+    { ...p("lukka", "Lukka", "Coast", null, 15, false, 175, 270, 36.4, 29.4), kingless: true },
     { ...p("kaska", "Kaska Lands", "Land", null, 10, false, 440, 28, 41.1, 35.4), kingless: true },
     { ...p("steppe", "Sutean Steppe", "Land", null, 10, false, 690, 478, 34.55, 38.27), kingless: true },
   ];
 
-  // Sea zones: the waters of each coastal province (Amurru's shared with Arwad), the open sea at the Aegean edge, and the Gulf.
+  // Sea zones: the waters of each coastal province (Ṣumur's shared with Arwad), the open sea at the Aegean edge, and the Gulf.
   const waters = (coast: string, name: string, x: number, y: number): Province => {
     const c = provinces.find((q) => q.id === coast)!;
     return p(watersId(coast), name, "Sea", null, 0, false, x, y, c.lat, c.lon);
@@ -339,7 +342,7 @@ export function buildMap(): WorldMap {
     waters("kalavasos", "Kalavasos waters", 240, 450),
     waters("enkomi", "Enkomi waters", 405, 330),
     waters("ugarit", "Ugarit waters", 442, 296),
-    waters("amurru", "Amurru and Arwad waters", 432, 385),
+    waters("sumur", "Sumur and Arwad waters", 432, 385),
     waters("byblos", "Byblos waters", 432, 438),
     waters("sidon", "Sidon waters", 425, 490),
     waters("tyre", "Tyre waters", 415, 545),
@@ -350,7 +353,7 @@ export function buildMap(): WorldMap {
   ];
   provinces.push(...seas);
   const coastal = new Map(provinces.filter((q) => q.isCoastal).map((q) => [q.id, q]));
-  for (const [id, q] of coastal) (q as { waters: string | null }).waters = id === "arwad" ? watersId("amurru") : id === "ur" || id === "dilmun" || id === "susa" ? "gulf" : watersId(id);
+  for (const [id, q] of coastal) (q as { waters: string | null }).waters = id === "arwad" ? watersId("sumur") : id === "ur" || id === "dilmun" || id === "susa" ? "gulf" : watersId(id);
 
   const edges: Edge[] = [];
   const add = (kind: EdgeKind, a: string, bs: string[], open = false, current = false): void => {
@@ -406,9 +409,10 @@ export function buildMap(): WorldMap {
   land("suhu", "steppe");
 
   // The Levant
-  coast("ugarit", "amurru");
-  land("amurru", "qadesh", "nuhashshe");
-  coast("amurru", "byblos");
+  coast("ugarit", "sumur");
+  land("ugarit", "amurru");
+  land("amurru", "sumur", "qadesh", "nuhashshe", "byblos");
+  coast("sumur", "byblos");
   land("qadesh", "byblos", "damascus");
   land("steppe", "damascus");
   land("byblos", "damascus");
@@ -443,8 +447,8 @@ export function buildMap(): WorldMap {
   hop(w("gaza"), w("tyre"), true);
   hop(w("tyre"), w("sidon"), true);
   hop(w("sidon"), w("byblos"), true);
-  hop(w("byblos"), w("amurru"), true);
-  hop(w("amurru"), w("ugarit"), true);
+  hop(w("byblos"), w("sumur"), true);
+  hop(w("sumur"), w("ugarit"), true);
   hop(w("ugarit"), w("kizzuwatna"), true);
   hop(w("kizzuwatna"), w("lukka"), true);
   hop(w("lukka"), w("apasa"), true);
@@ -475,8 +479,8 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   ["carchemish", 2], ["qadesh", 2], ["tyre", 2], ["megiddo", 2], ["gaza", 2], ["susa", 2],
   ["memphis", 2], ["nesa", 2], ["nineveh", 2], ["aleppo", 2], ["qatna", 2], ["arwad", 2],
   // Walled towns
-  ["lukka", 1], ["isuwa", 1], ["ugarit", 1], ["amurru", 1], ["byblos", 1], ["damascus", 1],
-  ["alalakh", 1], ["sidon", 1], ["jerusalem", 1], ["shechem", 1], ["arrapha", 1], ["suhu", 1], ["nuhashshe", 1],
+  ["isuwa", 1], ["ugarit", 1], ["amurru", 1], ["byblos", 1], ["damascus", 1],
+  ["alalakh", 1], ["sidon", 1], ["jerusalem", 1], ["shechem", 1], ["arrapha", 1], ["suhu", 1], ["nuhashshe", 1], ["sumur", 1],
 ]);
 
 export interface StartUnit {

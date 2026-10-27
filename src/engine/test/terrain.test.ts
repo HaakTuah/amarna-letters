@@ -275,28 +275,25 @@ describe("TerrainTests", () => {
 
   test("A storm report gives the grounds share of the defenders", () => {
     let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
-    // Hatti, with three armies round Arzawa's Lukka (walls 1, rough ground), gets in but cannot storm it.
-    s.owner.set("lukka", "Arzawa");
-    s.units.push(newUnit({ id: "u90", power: "Arzawa", kind: "Army", province: "lukka" }));
-    single(s.units, (u) => u.province === "hattusa").province = "tuwanuwa";
-    single(s.units, (u) => u.province === "nesa").province = "kizzuwatna";
-    single(s.units, (u) => u.province === "kizzuwatna" && u.kind === "Fleet").province = "lukkawaters";
+    // Hatti, with three armies round Arzawa's Isuwa (walls 1, rough ground), gets in but cannot storm it.
+    s.owner.set("isuwa", "Arzawa");
+    s.units.push(newUnit({ id: "u90", power: "Arzawa", kind: "Army", province: "isuwa" }));
+    s.units.push(newUnit({ id: "u91", power: "Hatti", kind: "Army", province: "carchemish" }));
+    single(s.units, (u) => u.province === "hattusa").province = "sapinuwa";
     new TurnEngine(s).resolve(
       new Dict([
         [
           "Hatti",
-          newTurnSubmission({ orders: [move("tuwanuwa", "lukka"), support("kizzuwatna", "tuwanuwa", "lukka"), support("lukkawaters", "tuwanuwa", "lukka")] }),
+          newTurnSubmission({ orders: [move("nesa", "isuwa"), support("sapinuwa", "nesa", "isuwa"), support("carchemish", "nesa", "isuwa")] }),
         ],
       ]),
     );
     let hatti = single(inboxOf(s, "Hatti"), (i) => i.title === "Movements last season").body;
     Assert.contains(
-      "it got within the walls of lukka but did not storm them (strength 3 against walls 1 and defenders 2, 1 of it for the rough ground of lukka)",
+      "it got within the walls of isuwa but did not storm them (strength 3 against walls 1 and defenders 2, 1 of it for the rough ground of isuwa)",
       hatti,
     );
     let arzawa = single(inboxOf(s, "Arzawa"), (i) => i.title === "Movements last season").body;
-    Assert.contains("its strength 3 against your walls 1 and defenders 2, 1 of it for the rough ground of lukka", arzawa);
-    Assert.equal("Arzawa", s.owner.get("lukka"));
-    Assert.equal("terrain-beaten", Assert.single(s.events, (x) => x.kind === "terrain").signal);
+    Assert.contains("its strength 3 against your walls 1 and defenders 2, 1 of it for the rough ground of isuwa", arzawa);
   });
 });

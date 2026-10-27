@@ -26,7 +26,7 @@ import {
   type TurnSubmission,
   type GameConfig,
 } from "@amarna/engine";
-import { GameLog, GameRunner, ReplayExhaustedError, type ISeat, type SeasonFallbacks } from "@amarna/game";
+import { GameLog, GameRunner, ReplayExhaustedError, pressFor, type ISeat, type SeasonFallbacks } from "@amarna/game";
 import { AnthropicId, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { catchUpFrames, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
@@ -258,6 +258,8 @@ export class SessionCore {
       this.notify();
       return;
     }
+    // The press first (item 8), so that the check at setup sends the schemas the game will use.
+    pressFor(state, built.minds);
     if (!(await this.check(built, settings, state.config))) return;
     this.runner = new GameRunner(state, built.seats, built.minds, built.narrator, { jobs: choicesOf(settings).jobs });
     this.runner.writeChronicles = settings.chronicles;

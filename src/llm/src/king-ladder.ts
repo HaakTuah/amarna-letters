@@ -4,7 +4,7 @@
  * courts, light alerts, plans). Every judgement here reads only what the king himself could see, never a hidden fact such
  * as a forgery or true gold, so being given its own mind never tells a king that something matters.
  */
-import { AnswerGoldShare, WorldMap, type AudienceView, type Power, type SeatView } from "@amarna/engine";
+import { AnswerGoldShare, WorldMap, type AudienceView, type GameConfig, type Power, type SeatView } from "@amarna/engine";
 import { z } from "zod";
 import { fieldsDiffer, type Ladder } from "./ladder.ts";
 import { Replies } from "./schemas.ts";
@@ -138,13 +138,17 @@ export function answerDiffer(a: JsonObject, b: JsonObject): number {
  * less what only his own mind may do (seal, detain, take an envoy into service), with a way to leave each envoy to fuller
  * deliberation and to ask counsel first.
  */
-export function routineCourt(counsel: boolean): ReplySchema {
-  const full = Replies.courtReply(null, false);
+export function routineCourt(counsel: boolean, config: GameConfig | null = null): ReplySchema {
+  const full = Replies.courtReply(config, false);
+  const shape = (full.shape.answers as z.ZodArray<z.ZodObject<z.ZodRawShape>>).element.shape;
+  // In structured press the answer is its clauses alone (item 8), and a gift asks for news, as at any audience.
+  const structured = config?.pressMode === "structured";
   const answer = object(
     ["envoy", z.string().describe("The id of the envoy you answer (like c13), as the audience names him.")],
-    ["speech", z.string().describe("What you say to this envoy, to carry home. Empty if you leave him to fuller deliberation.")],
+    ...(structured ? [] : ([["speech", z.string().describe("What you say to this envoy, to carry home. Empty if you leave him to fuller deliberation.")]] as [string, z.ZodType][])),
+    ["clauses", shape.clauses as z.ZodType],
     ["gift_to_envoy", z.int().describe("A personal gift to the envoy in shekels, or 0. An envoy takes one gift per audience.")],
-    ["gift_request", z.string().describe("What you want from the envoy in return for the gift, or empty.")],
+    structured ? ["gift_news", shape.gift_news as z.ZodType] : ["gift_request", z.string().describe("What you want from the envoy in return for the gift, or empty.")],
     ["send_gold_back", z.int().describe("Gold sent home with the envoy for his king, or 0: a gift in return, so that he does not go home empty-handed.")],
     ["gold_back_purity", z.int().describe("Purity of that gold in percent, 10-100 (100 when you send none).")],
     ["end_audience", z.boolean().describe("End this audience now. At the last exchange of an audience it ends with your answer whatever you choose.")],

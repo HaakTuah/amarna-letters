@@ -558,6 +558,8 @@ export class LlmCharacterMind implements ICharacterMind {
     // Passed on as written: the lord's own words, read out; the envoy wrote nothing but that choice.
     if (json.as_written === true) r.speech = `Thus says ${kingOf(ctx.sender)}: "${d.letter}"`;
     r.skim = clamp(r.skim, 0, d.gold);
+    // A model envoy recites the letter's clauses as written (item 8); its own words are where it bends the message.
+    r.clauses = d.clauses.map((x) => ({ ...x }));
     // Nothing kept, nothing to hide: the engine ignores a swap then anyway. A swap it was not asked about is not made.
     if (r.skim === 0 || !forger) r.swapInventory = false;
     return r;
@@ -659,6 +661,8 @@ export class LlmCharacterMind implements ICharacterMind {
         if (received && json.as_given === true) r.text = asGiven(t!);
         r.number = clamp(r.number, 0, cargo.gold);
         if (r.number === 0 || !forger) r.swapInventory = false;
+        // The king's answer in clauses goes home as he gave it (item 8): a model envoy bends its report in words.
+        r.clauses = t !== null ? t.exchanges.flatMap((x) => x.clauses.map((y) => ({ ...y }))) : [];
         return r;
       }
       case "Pitch": {

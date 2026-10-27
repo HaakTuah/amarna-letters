@@ -4,6 +4,7 @@ import { Rng } from "../core/rng.ts";
 import { range } from "../core/seq.ts";
 import { newGameConfig, type GameConfig } from "../model/config.ts";
 import { StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
+import { StartClaims } from "../model/recognition.ts";
 import { newCharacter, newContract, newFact, newTraits, type Character, type Secrecy } from "../model/people.ts";
 import { AllPowers, adjective, land, type Power } from "../model/power.ts";
 import { newTreasury, newGameState, newUnit, logEvent, newId, type GameState } from "../model/state.ts";
@@ -33,6 +34,7 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   }
 
   populate(s);
+  s.claims = StartClaims.map((c) => ({ ...c }));
 
   const engine = new TurnEngine(s, m);
   for (const p of AllPowers) s.startStrength.set(p, engine.strength(p));

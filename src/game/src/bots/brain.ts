@@ -22,6 +22,7 @@ import {
   parsePower,
   sortBy,
   type CharacterView,
+  type Claim,
   type InboxItem,
   type Power,
   type SeatView,
@@ -32,6 +33,7 @@ import { Board } from "./board.ts";
 import { Names } from "./names.ts";
 import { personalityFor, type Personality } from "./personality.ts";
 import type { Landing } from "./seas.ts";
+import { againstIn, readReport, type SupportPromise } from "./statecraft-clauses.ts";
 
 /** What a king thinks of another king, learned only from what reached its court. */
 export class Relation {
@@ -87,6 +89,22 @@ export class Brain {
   readonly wouldNotLeave = new Dict<string, number>();
   /** Pleas for relief heard from envoys: a city of the sender's, the king besieging it, and the season we heard it. */
   readonly pleas = new Dict<string, [Power, Power, number]>();
+  /** Supports we promised in letters (item 8): kept in the season named, if a troop of ours can still give it. */
+  readonly promised: SupportPromise[] = [];
+  /** Supports other kings promised us: our plans count on them in the season named. */
+  readonly offered: SupportPromise[] = [];
+  /** How many times each of our envoys has carried our gold out: two trips with no word of light gold earn trust (item 8). */
+  readonly goldTrips = new Dict<string, number>();
+  /** Claims to the rank of Great King as the view last gave them (item 8). */
+  claims: Claim[] = [];
+  /** When we last promised each king our support for a blow he leads (item 8). */
+  readonly supportOfferedTo = new Dict<Power, number>();
+  /** Where each of our envoys was last sent: the court whose answer his report brings (item 8). */
+  readonly sentTo = new Dict<string, Power>();
+  /** The last envoy we sent to each king: the one a "your messenger lied" from him is about. */
+  readonly lastEnvoyTo = new Dict<Power, string>();
+  /** Gold our weighers found light, by sender: how much short, the season, and whether we have told him so. */
+  readonly lightFrom = new Dict<Power, [number, number, boolean]>();
   /** When we last pleaded with each king for the relief of a city of ours. */
   readonly pleaSent = new Dict<Power, number>();
   /** Our envoys who told us they refused a host's offer of a post: proven true. */
@@ -175,7 +193,7 @@ export class Brain {
       [(t) => t.sealedTurn, cmpOpt(cmpNum)],
     )) {
       // A coalition names the king it stands against, by any of his names (see Names).
-      const against = Names.swornAgainstAny(t.text, t.seals);
+      const against = againstIn(t, t.seals);
       for (const other of t.seals.filter((s) => s !== this.me && this.rel.has(s))) {
         const r = this.rel.get(other);
         r.treaty = true;
@@ -228,6 +246,10 @@ export class Brain {
       if (o.order === "support" && o.helped !== this.me && into !== null && previous.getOrDefault(into, null) === this.me && !onAnother(into, o.helped ?? o.power)) r.grudge += 0.5;
     }
 
+    this.claims = v.claims;
+    // Promises of support for seasons gone by are spent (item 8).
+    for (const list of [this.promised, this.offered]) for (let i = list.length - 1; i >= 0; i--) if (list[i].turn < v.turn) list.splice(i, 1);
+
     for (const item of v.inbox) {
       for (const other of this.rel.keys()) {
         const name = other as string;
@@ -266,6 +288,8 @@ export class Brain {
       // Our envoy's word that a host offered it a post and that it refused: the host tried to buy our servant, a small
       // slight, and the servant proved true, so it is the first chosen, among the equally reliable, for the letters that
       // carry tablets or gold.
+      // The host's answer in clauses, as our envoy reported it (item 8).
+      if (item.kind === "EnvoyReport" && item.clauses.length > 0) readReport(item, this, b, v.turn);
       if (item.kind === "EnvoyReport") {
         const refused = /The king of (\S+) offered me a post in his service, and I refused it/.exec(item.body);
         const poacher = refused !== null ? (AllPowers.find((x) => land(x) === refused[1]) ?? null) : null;

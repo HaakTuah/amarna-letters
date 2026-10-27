@@ -2,7 +2,7 @@
 // Pinch-zoom and pan for the map (ported unchanged from the C# app's mapzoom.js): the gesture moves one transformed
 // layer on the GPU, and only when it settles are the map's symbol and label sizes recomputed (CSS variables).
 
-const MAP_W = 1000, MAP_H = 720, MAX_ZOOM = 8;
+const MAP_W = 1000, MAP_H = 720, MAX_ZOOM = 14;
 const states = new WeakMap();
 const reduced = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -210,6 +210,8 @@ function settle(st, now) {
     st.view.classList.toggle("lod0", lod === 0);
     st.view.classList.toggle("lod1", lod === 1);
     st.view.classList.toggle("lod2", lod === 2);
+    // Names of lesser places give way while the crowded coasts (the Levant above all) are too small to hold them all.
+    st.view.classList.toggle("crowd", s < 0.95);
     st.view.dataset.zoom = st.s.toFixed(2);
   };
   if (now) run(); else st.settle = setTimeout(run, 140);

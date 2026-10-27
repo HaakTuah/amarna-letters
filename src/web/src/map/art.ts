@@ -81,7 +81,7 @@ export const Cyprus = P(240, 419, 251, 401, 274, 391, 305, 386, 336, 382, 360, 3
 export const BlackSea = P(196, -300, 206, 0, 222, 11, 262, 19, 302, 22, 346, 20, 400, 24, 452, 18, 500, 14, 542, 16, 582, 10, 612, 0, 650, -300);
 /** The Lower Sea (the Gulf), in the corner beyond Ur, its head reaching up towards Elam. */
 export const Gulf = P(1300, 500, 1000, 520, 990, 560, 975, 600, 962, 640, 952, 680, 945, 720, 940, 1000, 1300, 1000);
-/** The island cities off the coasts: Arwad off Amurru, and Dilmun in the Gulf. Drawn as small round islands. */
+/** The island cities off the coasts: Arwad off Ṣumur, and Dilmun in the Gulf. Drawn as small round islands. */
 const isle = (cx: number, cy: number, r: number): Pt[] => Array.from({ length: 8 }, (_, i) => ({ x: cx + r * Math.cos((i * Math.PI) / 4), y: cy + r * Math.sin((i * Math.PI) / 4) }));
 export const Isles: ReadonlyMap<string, Pt[]> = new Map([
   ["arwad", isle(453, 366, 5)],
@@ -292,7 +292,7 @@ export const unitSpot = city;
 // Names hang below their city (the units stand above it), except where a river, the coast or a neighbour is in the way.
 const LabelOverrides: Record<string, LabelSpot> = { thebes: { dx: 13, dy: 4, anchor: "start" }, akhetaten: { dx: 13, dy: 4, anchor: "start" }, memphis: { dx: 13, dy: 4, anchor: "start" }, delta: { dx: -13, dy: 4, anchor: "end" },
         gaza: { dx: -13, dy: 4, anchor: "end" }, tyre: { dx: -13, dy: 4, anchor: "end" }, sidon: { dx: -13, dy: 4, anchor: "end" }, byblos: { dx: -13, dy: 4, anchor: "end" },
-        ugarit: { dx: -13, dy: 4, anchor: "end" }, arwad: { dx: -10, dy: 4, anchor: "end" }, kaska: { dx: 0, dy: -9, anchor: "middle" }, damascus: { dx: 13, dy: 4, anchor: "start" }, megiddo: { dx: 13, dy: 4, anchor: "start" },
+        ugarit: { dx: -13, dy: 4, anchor: "end" }, arwad: { dx: -9, dy: -6, anchor: "end" }, sumur: { dx: -11, dy: 9, anchor: "end" }, amurru: { dx: 12, dy: 4, anchor: "start" }, kaska: { dx: 0, dy: -9, anchor: "middle" }, damascus: { dx: 13, dy: 4, anchor: "start" }, megiddo: { dx: 13, dy: 4, anchor: "start" },
         shechem: { dx: 13, dy: 4, anchor: "start" }, jerusalem: { dx: 13, dy: 4, anchor: "start" }, alalakh: { dx: -13, dy: 4, anchor: "end" }, aleppo: { dx: 13, dy: 4, anchor: "start" },
         babylon: { dx: 13, dy: 4, anchor: "start" }, terqa: { dx: -13, dy: 4, anchor: "end" }, suhu: { dx: -13, dy: 4, anchor: "end" }, sippar: { dx: -13, dy: 4, anchor: "end" },
         nippur: { dx: -13, dy: 4, anchor: "end" }, ur: { dx: -13, dy: 4, anchor: "end" }, susa: { dx: -4, dy: 21, anchor: "middle" }, dilmun: { dx: -12, dy: 4, anchor: "end" }, nubia: { dx: 0, dy: -14, anchor: "middle" }, };

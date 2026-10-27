@@ -2,6 +2,7 @@ import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import { type Order, OrderSchema } from "./orders.ts";
 import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answers.ts";
 import type { Power } from "./power.ts";
+import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema } from "./records.ts";
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
 
@@ -73,10 +74,13 @@ export interface MindReply {
    * what is left (see {@link AudienceRecord.SwapInventory}).
    */
   swapInventory: boolean;
+  /** For an envoy's report: the host's answer as the envoy reports it, in clauses (item 8). */
+  clauses: Clause[];
 }
 
 export function newMindReply(init: Partial<MindReply> = {}): MindReply {
   return {
+    clauses: [],
     text: "",
     number: 0,
     swapInventory: false,
@@ -85,6 +89,7 @@ export function newMindReply(init: Partial<MindReply> = {}): MindReply {
 }
 
 export const MindReplySchema: ObjSchema<MindReply> = obj("MindReply", newMindReply, {
+  clauses: list(() => ClauseSchema),
   text: S,
   number: I,
   swapInventory: B,
@@ -125,10 +130,16 @@ export interface HostReply {
    * stand ({@link TurnEngine.CourtsHeld}).
    */
   fromFallback: boolean;
+  /** The host's answer in clauses (item 8): in structured press its words are these, in the templates' words. */
+  clauses: Clause[];
+  /** In structured press: what the host asks a bribed envoy to tell its lord, in clauses (news only). */
+  bribeClauses: Clause[];
 }
 
 export function newHostReply(init: Partial<HostReply> = {}): HostReply {
   return {
+    bribeClauses: [],
+    clauses: [],
     speech: "",
     bribe: 0,
     bribeAsk: "",
@@ -149,6 +160,8 @@ export function newHostReply(init: Partial<HostReply> = {}): HostReply {
 }
 
 export const HostReplySchema: ObjSchema<HostReply> = obj("HostReply", newHostReply, {
+  bribeClauses: list(() => ClauseSchema),
+  clauses: list(() => ClauseSchema),
   speech: S,
   bribe: I,
   bribeAsk: S,
@@ -222,10 +235,13 @@ export interface AudienceRecord {
    */
   swapInventory: boolean;
   rounds: AudienceRound[];
+  /** The clauses the envoy recited (item 8). */
+  clauses: Clause[];
 }
 
 export function newAudienceRecord(init: Partial<AudienceRecord> = {}): AudienceRecord {
   return {
+    clauses: [],
     audienceId: "",
     delivered: "",
     skim: 0,
@@ -236,6 +252,7 @@ export function newAudienceRecord(init: Partial<AudienceRecord> = {}): AudienceR
 }
 
 export const AudienceRecordSchema: ObjSchema<AudienceRecord> = obj("AudienceRecord", newAudienceRecord, {
+  clauses: list(() => ClauseSchema),
   audienceId: S,
   delivered: S,
   skim: I,
@@ -287,10 +304,16 @@ export interface AudienceView {
    * With {@link OrdersStand}: the letters it has sent from its audiences this season so far (a later one for the same person replaces it).
    */
   lettersSent: Order[];
+  /** The clauses the envoy recited, which a script king reads (item 8). In structured press they are the letter. */
+  clauses: Clause[];
+  /** The gold came with an inventory tablet (item 8). Without one there is nothing to weigh it against. */
+  inventory: boolean;
 }
 
 export function newAudienceView(init: Partial<AudienceView> = {}): AudienceView {
   return {
+    inventory: true,
+    clauses: [],
     audienceId: "",
     turn: 0,
     round: 0,
@@ -319,6 +342,8 @@ export function newAudienceView(init: Partial<AudienceView> = {}): AudienceView 
 }
 
 export const AudienceViewSchema: ObjSchema<AudienceView> = obj("AudienceView", newAudienceView, {
+  inventory: B,
+  clauses: list(() => ClauseSchema),
   audienceId: S,
   turn: I,
   round: I,

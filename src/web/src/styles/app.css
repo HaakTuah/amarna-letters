@@ -422,6 +422,8 @@ svg.map text { font-family: var(--serif); }
 /* Units stand above their city, lifted by their own (scaled) height, so the seal of the owner stays in view. */
 .map .sym.lift { transform: translate(0, calc(-21px * var(--sym))) scale(var(--sym)); }
 .map .city { cursor: pointer; }
+/* A tap target larger than the city drawn, so a thumb finds a small city on a crowded coast ("Map on small screens"). */
+.map .city .tap-hit { fill: transparent; stroke: none; }
 .map .seal { stroke: var(--bitumen); stroke-width: 1.2; }
 .map .seal.s-free { fill: var(--paper); stroke-dasharray: 2.2 1.6; }
 .map .s-egypt { fill: var(--egypt); } .map .s-hatti { fill: var(--hatti); } .map .s-babylonia { fill: var(--babylonia); }
@@ -439,7 +441,7 @@ svg.map text { font-family: var(--serif); }
     transform: scale(var(--lab)); transform-box: view-box; transform-origin: 0 0;
 }
 .map .plabel.cap { font-size: 13.5px; letter-spacing: .06em; font-variant: small-caps; }
-.lod0 .map .plabel:not(.cap) { display: none; }
+.lod0 .map .plabel:not(.cap), .crowd .map .plabel.minor { display: none; }
 .lod0 .map .seen, .lod0 .map .eta, .lod1 .map .eta, .lod0 .map .fogdates, .lod1 .map .fogdates { display: none; }
 .map .fogdates { pointer-events: none; }
 .map .fogdate { font-size: 7.5px; font-style: italic; text-anchor: middle; fill: var(--muted); paint-order: stroke; stroke: var(--land-halo); stroke-width: 2.2px; font-family: var(--sans); transform: scale(var(--lab)); transform-box: view-box; transform-origin: 0 0; }

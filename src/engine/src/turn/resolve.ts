@@ -2,7 +2,7 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RoadsOrder, type SallyOrder, type TurnSubmission } from "../model/orders.ts";
+import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed } from "../model/outcomes.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
@@ -88,6 +88,8 @@ P.resolveSeason = function (submissions) {
   const any = (o: Order): o is Order => true;
 
   this.resolveMovement(all(any).filter(([, o]) => o.type === "hold" || o.type === "move" || o.type === "support" || o.type === "convoy" || o.type === "besiege" || o.type === "sally"));
+  // Supports that keep a promise made in a letter's clauses (item 8).
+  this.promisesKept(all((o): o is SupportOrder => o.type === "support"));
   // Armies that ended the moves in desert land not their king's pay for supplies with the next upkeep.
   this.markDesert();
   // A scheduled move that failed is tried again next season, or ends its unit's march.
@@ -118,6 +120,8 @@ P.resolveSeason = function (submissions) {
   this.unraisedLevies();
 
   this.resolveCourt(all(any));
+  // A new claim to the rank of Great King becomes established once most kings have long called its king brother (item 8).
+  this.recognise();
   this.resolveIntelligence(all(any));
   for (const [p, o] of all((o): o is RoadsOrder => o.type === "roads")) this.roads(p, o);
   this.coversAtCourt();

@@ -287,7 +287,8 @@ export class OrderValidator {
           if (d.copies && d.copies.length > 0)
             for (const id of d.copies) if (!S.copies.some((x) => x.id === id && x.holder === power)) return `you hold no tablet copy '${id}'`;
           const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
-          const fee = d.proposal ? S.config.tabletFee : 0;
+          // The tablet's scribe, and the inventory's unless the gold goes without one (item 8), as the engine charges them.
+          const fee = (d.proposal ? S.config.tabletFee : 0) + (d.gold > 0 && d.noInventory !== true ? S.config.inventoryFee : 0);
           return spend(fine + fee);
         }
 

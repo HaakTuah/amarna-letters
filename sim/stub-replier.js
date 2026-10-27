@@ -65,7 +65,11 @@ function stubReply(schema, text, file) {
     if (ready && nearest) r.letters.push({
       ...plain(schema.properties.letters.items), envoy: ready[1], to: nearest, gold: 20, purity: 100, call_brother: true, call_them_great_king: true, claim_great_king: true,
       message: "I send you gold as a sign of my love. If you do not withdraw your troops from my border, there will be war.", mandate: "You may agree to peace and an exchange of gifts.",
+      // The letter's clauses (item 8), the same in either press.
+      clauses: [{ kind: "gift", king: "", province: "", into: "", season: 0, gold: 20, answers: "" }, { kind: "threat", king: "", province: "", into: "", season: 0, gold: 0, answers: "" }],
     });
+    // In structured press a letter has no message of its own: its clauses are the letter.
+    if (!("message" in schema.properties.letters.items.properties)) delete r.letters[r.letters.length - 1]?.message;
   }
   if (sieges && /_orders_/.test(file) && Array.isArray(r.units) && schema.properties.units?.items) siegeOrders(r, schema, text, file);
   if (tempted && /_host_/.test(file) && "gift_to_envoy" in r)

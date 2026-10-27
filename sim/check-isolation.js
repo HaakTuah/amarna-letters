@@ -3,6 +3,8 @@
 //   node sim/check-isolation.js          after every agent has taken its isolation test (the live test)
 //   node sim/check-isolation.js --dry    before any agent has run: no agent and no model call needed
 //   --kings                              the kings only (local play, where the characters are scripts)
+//   --seed S                             with --kings: the kings and the characters of seed S (local play with characters
+//                                        as agents, item 8: the bridge started with --seed S)
 //   --since TIME                         the live test counts only what happened from TIME on (an ISO time, as the
 //                                        guard log writes it), so that a test run again in a new session passes on its own
 //   --kit DIR                            a scratch kit made by setup.js --kit DIR instead of the real one (for testing the
@@ -36,6 +38,7 @@ const { kings, characters, agents: agentsDir } = isolation.kitPaths(argv);
 const read = f => fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : {};
 const norm = p => path.resolve(String(p)).replace(/\\/g, "/").toLowerCase();
 const kingsOnly = argv.includes("--kings");
+const seedOnly = argv.includes("--seed") ? argv[argv.indexOf("--seed") + 1] : null;
 const since = argv.includes("--since") ? new Date(argv[argv.indexOf("--since") + 1]) : null;
 if (since && isNaN(since)) { console.log("--since takes a time, for example --since 2026-10-19T20:15:00Z"); process.exit(1); }
 const remake = "the kit was made before the isolation test asked for every step (20 October 2026): remake it with node sim/setup.js --force, then start a new session";
@@ -49,8 +52,8 @@ for (const [power, folder] of Object.entries(read(path.join(kings, "seats.json")
     leak: path.join(kings, `leak-${power.toLowerCase()}.txt`), map: path.join(kings, "seats.json"), test: kingSteps[power] });
 const charWords = read(path.join(characters, "canaries.json"));
 const charSteps = read(path.join(characters, "isolation-steps.json"));
-if (!kingsOnly) for (const [agent, c] of Object.entries(read(path.join(characters, "agents.json"))))
-  seats.push({ agent, label: agent, folder: c.folder, word: charWords[agent], log: path.join(characters, "guard.log"),
+for (const [agent, c] of Object.entries(read(path.join(characters, "agents.json"))))
+  if (!kingsOnly || (seedOnly !== null && String(c.seed) === String(seedOnly))) seats.push({ agent, label: agent, folder: c.folder, word: charWords[agent], log: path.join(characters, "guard.log"),
     leak: path.join(characters, `leak-${agent}.txt`), map: path.join(characters, "agents.json"), test: charSteps[agent] });
 if (seats.length === 0) { console.log("No kit: run node sim/setup.js first."); process.exit(1); }
 

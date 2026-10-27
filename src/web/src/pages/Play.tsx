@@ -483,7 +483,7 @@ export function Play() {
     switch (tab) {
       case "audience": {
         const a = pendingAudience!.audience!;
-        return <AudiencePanel key={aKey!} a={a.view} court={a.court} onAnswer={(r) => s.answer(pendingAudience!.power, r)} />;
+        return <AudiencePanel key={aKey!} a={a.view} court={a.court} structured={state.config.pressMode === "structured"} onAnswer={(r) => s.answer(pendingAudience!.power, r)} />;
       }
       case "orders":
         return (

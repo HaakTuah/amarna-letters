@@ -39,6 +39,8 @@ P.swaps = function (c, kept, carried, swap) {
 
 /** What the inventory a host is shown states: what was sent, or, if the envoy swapped it, what its forgery states. */
 P.inventoryStated = function (a, skim, swap) {
+  // Gold sent without an inventory (item 8): there is nothing to weigh it against, so what is found is all anyone knows.
+  if (!a.dispatch.inventory) return this.weighed(a, skim);
   return this.swaps(char(this.s, a.envoyId), clamp(skim, 0, a.dispatch.gold), a.dispatch.gold, swap) ? this.weighed(a, skim) : a.dispatch.gold;
 };
 

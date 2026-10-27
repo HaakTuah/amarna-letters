@@ -7,8 +7,11 @@ import {
   PlanAhead,
   SeaPlay,
   RoadPlay,
+  ClausePlay,
+  InventoryPlay,
   ScriptLeader,
   ScriptMind,
+  pressFor,
   TemplateNarrator,
   GameRunner,
   attachParity,
@@ -68,6 +71,11 @@ export interface BatchOptions {
   planAheadHalf: boolean;
   /** Only half the kings close their roads (alternating by seed), reported as the current side (`--road-play-half`). */
   roadPlayHalf: boolean;
+  /** Script kings act on the clauses they read (item 8); off only to measure it (`--no-clause-play`), or for half (`--clause-play-half`). */
+  clausePlay: boolean;
+  clausePlayHalf: boolean;
+  /** Script kings send gold without an inventory by envoys they trust (item 8); off only to measure it (`--no-inventory-play`). */
+  inventoryPlay: boolean;
   simulateApi: boolean;
   /** Providers other than Anthropic (--provider ID=URL), each with its key in <ID>_API_KEY. */
   providers: ProviderSetting[];
@@ -137,12 +145,15 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   PlanAhead.on = o.planAhead;
   SeaPlay.on = o.seaPlay;
   RoadPlay.on = o.roadPlay;
+  ClausePlay.on = o.clausePlay;
+  InventoryPlay.on = o.inventoryPlay;
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
+  ClausePlay.only = o.clausePlayHalf ? current : null;
   const [summary] = await playGame(
     s,
     (state) => {
@@ -177,7 +188,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
               (sh) => last!.log.addShadow(sh),
               (line) => console.log(line),
             );
-      last = new GameRunner(state, seats, minds, set.narrator, { jobs: choices.jobs });
+      last = new GameRunner(pressFor(state, minds), seats, minds, set.narrator, { jobs: choices.jobs });
       last.writeChronicles = !o.noChronicles;
       if (o.parityDir !== null) {
         let drained = 0;
@@ -252,7 +263,7 @@ export async function playSolo(job: SoloJob): Promise<GameSummary> {
     (st) => {
       const baseline = new BaselineLeader(st.seed);
       const seats = new Dict<Power, ISeat>(AllPowers.map((x) => [x, x === job.focus ? new ScriptLeader(st.seed) : baseline] as const));
-      const runner = new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator());
+      const runner = new GameRunner(pressFor(st, new ScriptMind()), seats, new ScriptMind(), new TemplateNarrator());
       runner.writeChronicles = false;
       return runner;
     },

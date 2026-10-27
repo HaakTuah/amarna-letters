@@ -241,16 +241,16 @@ describe("SleepTests", () => {
     Assert.equal([supportOrder("sippar", "arbela", "ekallate"), supportOrder("durkurigalzu", "ashur", "ekallate")], supports.accepted);
     Assert.equal("there is no unit in nippur to support", Assert.single(supports.rejected).reason);
 
-    // So is a convoy: Egypt's fleet, off Byblos, sees Byblos (empty) but not Amurru (empty too).
+    // So is a convoy: Egypt's fleet, off Byblos, sees Byblos (empty) but not Ṣumur (empty too).
     unitAt(s, "delta")!.province = "bybloswaters";
     let egypt = Views.sight(s, WorldMap.default, "Egypt");
-    Assert.equal([true, false], [egypt.has("byblos"), egypt.has("amurru")]);
+    Assert.equal([true, false], [egypt.has("byblos"), egypt.has("sumur")]);
     function convoyOf(army: string): string | null {
       return (
         singleOrNull(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [convoyOrder("bybloswaters", army, "tyre")] })).rejected)?.reason ?? null
       );
     }
-    Assert.null(convoyOf("amurru"));
+    Assert.null(convoyOf("sumur"));
     Assert.equal("there is no army in byblos", convoyOf("byblos"));
   });
 

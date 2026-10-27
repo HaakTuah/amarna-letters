@@ -1,5 +1,7 @@
 ### Letters and gifts
 
+Since item 8 every letter, tablet and answer of theirs is also set out in clauses, and they read the clauses of every letter: see [structured press](../14-structured-press.md) (with the missions *accuse* and *support* it adds, and gold sent without an inventory).
+
 - **How many.** Up to min(3, 1 + round(2 × diplomacy)) letters a season, and no more than the envoys ready. That is one letter at diplomacy up to 0.25, two below 0.75, and three from 0.75. At most one letter goes to each king.
 - **Evidence first.**
   - A forged tablet of its own, not yet shown, goes with the least reliable envoy to a king who did not seal it, neighbours first.
