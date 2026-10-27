@@ -15,9 +15,9 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 558 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 61 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 62 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 34 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 51 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 54 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 23 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 18 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 11 |
@@ -48,7 +48,7 @@ session loads.
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 6.0 |
 | `docs/intent/build-order/item-8.md` | 8. Structured press. First, what the reviews of items 7a and 7b decided | 2.1 |
 | `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. First, whatever of the reviews of items 7a and 7 | 0.7 |
-| `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 4.9 |
+| `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 5.1 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 3.8 |
 | `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 6.1 |
@@ -67,7 +67,7 @@ session loads.
 | `docs/intent/world-and-history/the-sources.md` | The sources | 5.5 |
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 12.3 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.3 |
+| `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.8 |
 | `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 21.2 |
 | `docs/intent/engine-and-models/script-mode-and-press-modes.md` | Script mode and press modes | 3.0 |
 | `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.9 |
