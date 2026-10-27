@@ -27,6 +27,12 @@ The conversion to TypeScript (build order item 5+) changed the dice (a 32-bit ge
 else, so the same benchmark gave other numbers, the same in both builds: 3.06 growth alone and 1.08 as baseline over
 all, 91% of wins alone and 14% as baseline (by power in `docs/rounds/2026-10-27-conversion.md`).
 
+Build order item 6a (the random ending: half of all ages over by season 44, so games run about twice as long, median
+42 seasons in 50 script games against about 20 before) raised growth with game length: 8.26 alone and 1.25 as baseline
+over all, 94% of wins alone and 14% as baseline (by power, and the same seeds with script kings that ignore the new
+ending or cap their planning, in `docs/rounds/2026-10-27-ending-and-table.md`). The baseline was adapted only as far as
+the rules required (it reads no ending).
+
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
 
