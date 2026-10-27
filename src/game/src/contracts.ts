@@ -48,7 +48,7 @@ export interface ISeat {
    * from its record, and says whether the king's own mind must give orders this season (true wakes it). A seat without it,
    * or one that leaves them to its digest, is not asked.
    */
-  readAlerts?(view: SeatView, alerts: { line: string; text: string }[], signal?: AbortSignal): Promise<boolean>;
+  readAlerts?(view: SeatView, alerts: { line: string; text: string; weighty: boolean }[], signal?: AbortSignal): Promise<boolean>;
 }
 
 /** What a phrasing call words: a standing answer's clauses, for the envoy of a court. */

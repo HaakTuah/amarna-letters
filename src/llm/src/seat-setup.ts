@@ -13,7 +13,7 @@ import {
 } from "@amarna/game";
 import { BridgeExchange, DefaultAddress, LocalBridge } from "./bridge.ts";
 import { LlmCharacterMind } from "./character-mind.ts";
-import { alertsReply, planReply, routineCourt } from "./king-ladder.ts";
+import { NewPlan, alertsReply, planReply, routineCourt } from "./king-ladder.ts";
 import { Ladder, counselSchema, withLadder } from "./ladder.ts";
 import { Spending, newSpendingSettings, type SpendingSettings } from "./spending.ts";
 import { AnthropicProvider, type ApiTransport } from "./anthropic.ts";
@@ -407,6 +407,7 @@ export function providersFor(
  * variant only leaves fields out of it).
  */
 export function checkJobs(choices: SeatChoices, config: GameConfig): { model: string; schemas: ReplySchema[] }[] {
+  const planned = (s: ReplySchema): ReplySchema => (rungModel(choices.planning) !== null ? s.extend({ new_plan: NewPlan }) : s);
   const jobs: { model: string; schemas: ReplySchema[] }[] = [];
   for (const m of new Set([...choices.leaders.values()].map(leaderModel)))
     if (m !== null) jobs.push({ model: m, schemas: [Replies.leaderOrders(config), Replies.hostReply(config, true), Replies.courtReply(config, true)] });
@@ -422,12 +423,16 @@ export function checkJobs(choices: SeatChoices, config: GameConfig): { model: st
     const small = smallModel(choices, p);
     const m = leaderModel(choices.leaders.get(p));
     if (small !== null && m !== null) {
-      jobs.push({ model: small, schemas: [withLadder(Replies.leaderOrders(config)), routineCourt(true), alertsReply()] });
+      jobs.push({ model: small, schemas: [withLadder(planned(Replies.leaderOrders(config))), routineCourt(true), alertsReply()] });
       jobs.push({ model: m, schemas: [counsel] });
     }
   }
   const planner = rungModel(choices.planning);
-  if (planner !== null && [...choices.leaders.values()].some((k) => leaderModel(k) !== null)) jobs.push({ model: planner, schemas: [planReply()] });
+  if (planner !== null && [...choices.leaders.values()].some((k) => leaderModel(k) !== null)) {
+    jobs.push({ model: planner, schemas: [planReply()] });
+    // With planning on, a king's orders may ask for a new plan: the largest orders schema has that field too.
+    for (const m of new Set([...choices.leaders.values()].map(leaderModel))) if (m !== null) jobs.push({ model: m, schemas: [planned(Replies.leaderOrders(config))] });
+  }
   const cm = characterModel(choices.characters);
   if (cm !== null) {
     const ladder = [Replies.present(), Replies.react(), Replies.report(), Replies.pitch(), Replies.text("report", "Your report home.")];

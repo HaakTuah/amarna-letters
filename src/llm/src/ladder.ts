@@ -18,6 +18,10 @@ import { Spending, callCost, type Rung, type RungOption, type Stakes } from "./s
 export const SmallNote =
   "\n\nBEFORE YOU ANSWER: if this matter is weightier than it looks, or you are unsure what you would want, you may leave it for fuller deliberation: give your reason in pass_up, and nothing else in your reply is used. Or keep it and first take counsel: write in ask_counsel a brief of a few hundred words (the situation, your options and what you are unsure of), and you are asked again with the counsel. Otherwise leave both empty.";
 
+/** What it reads when asked again with the counsel it took: it may still pass the matter up, and ask no more counsel. */
+export const SmallNoteAfterCounsel =
+  "\n\nBEFORE YOU ANSWER: if this matter is weightier than it looks, or you are still unsure what you would want, you may leave it for fuller deliberation: give your reason in pass_up, and nothing else in your reply is used. Otherwise leave it empty.";
+
 const PassUp = z.string().describe("Empty to decide now. Otherwise why this matter needs fuller deliberation: nothing else in your reply is then used.");
 const AskCounsel = z
   .string()
@@ -118,7 +122,7 @@ export class Ladder {
     return {
       ...c.spec,
       model: c.small!,
-      user: c.spec.user + (counsel === null ? SmallNote : `${SmallNote}\n\nTHE COUNSEL YOU ASKED FOR: ${counsel}`),
+      user: c.spec.user + (counsel === null ? SmallNote : `${SmallNoteAfterCounsel}\n\nTHE COUNSEL YOU ASKED FOR: ${counsel}`),
       schema: withLadder(c.spec.schema, counsel === null),
     };
   }
@@ -137,7 +141,13 @@ export class Ladder {
     let counsel = "";
     const brief = String(json.ask_counsel ?? "").trim();
     if (brief.length > 0) {
-      counsel = await this.counsel(c, brief, signal);
+      // Counsel that cannot be had leaves the matter to the rung above, erring toward the stronger mind.
+      try {
+        counsel = await this.counsel(c, brief, signal);
+      } catch (ex) {
+        if (ex instanceof Error && ex.name === "AbortError") throw ex;
+        return await this.top(c, "passed up: counsel could not be had", "", signal);
+      }
       json = await this.client.askJson(this.smallSpec(c, counsel), signal);
     }
     const passed = String(json.pass_up ?? "").trim();
@@ -184,7 +194,7 @@ export class Ladder {
    * failed audit call is let go: the decision stands either way.
    */
   private async audit(c: Climb, json: JsonObject, signal?: AbortSignal): Promise<void> {
-    if (!this.spending.audited(c.spec.key)) return;
+    if (!this.spending.audited(c.spec.key) || this.spending.spentOut) return;
     let above: JsonObject;
     try {
       above = await this.client.askJson({ ...c.spec, key: `${c.spec.key}/audit`, model: c.large }, signal);

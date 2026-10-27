@@ -168,8 +168,8 @@ export class Spending {
    * The rung a decision goes to. With nothing set to spend by it goes where it starts. Otherwise, from the cheapest rung it
    * may take (the script, where it may decide), it climbs each step whose added worth per added dollar clears the going
    * rate, raised while the season spends past its pace; a free rung is always taken, and nothing climbs once the limit is
-   * spent. A price that is unknown counts as free only under a target, which counts no money (a game with a limit does not
-   * start with an unpriced model).
+   * spent. A price that is unknown counts as free (a game with a limit does not start with an unpriced model, so only a
+   * target, which counts no money, meets one).
    */
   choose(turn: number, stakes: Stakes, options: RungOption[], start: Rung): Rung {
     this.season(turn);
@@ -177,7 +177,7 @@ export class Spending {
     const worth = Spending.worth(stakes);
     const over = Number.isFinite(this.pace) && this.pace > 0 ? Math.max(0, (this.spent() - this.spentAtTurn) / this.pace - 1) : 0;
     const rate = this.rate * (1 + 2 * over);
-    const spentOut = this.settings.mode === "limit" && this.settings.limitUsd > 0 && this.spent() >= this.settings.limitUsd;
+    const spentOut = this.spentOut;
     let at = options[0];
     for (const next of options.slice(1)) {
       const added = worth * (this.quality(stakes.kind, next.rung) - this.quality(stakes.kind, at.rung));
@@ -185,6 +185,11 @@ export class Spending {
       if (cost <= 0 ? added >= 0 : !spentOut && added / cost >= rate) at = next;
     }
     return at.rung;
+  }
+
+  /** Whether the limit is spent, when the layer paces by it: nothing more climbs, and no audit is paid. */
+  get spentOut(): boolean {
+    return this.settings.mode === "limit" && this.settings.limitUsd > 0 && this.spent() >= this.settings.limitUsd;
   }
 
   /** Whether this decision is audited: a seeded draw, so a game audits the same decisions however its calls are timed. */

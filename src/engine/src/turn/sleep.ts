@@ -126,7 +126,7 @@ declare module "./core.ts" {
     lostUnits(p: Power, sl: SleepState | null): void;
     endSleep(p: Power): void;
     stoppedByOthers(p: Power, f: MoveFailure): boolean;
-    lightAlerts(p: Power): { line: string; text: string }[];
+    lightAlerts(p: Power): { line: string; text: string; weighty: boolean }[];
     wakeOnWord(p: Power, line: string): void;
   }
 }
@@ -415,10 +415,14 @@ P.lightAlerts = function (p) {
   const S = this.s;
   const sl = this.sleepOf(p);
   if (sl === null || !sl.asleep || sl.holdsCourt || !isAlive(S, p)) return [];
-  const out: { line: string; text: string }[] = [];
+  const out: { line: string; text: string; weighty: boolean }[] = [];
   for (const i of inboxOf(S, p).filter((i) => i.turn === S.turn)) {
     const line = this.digestLine(i);
-    if (line !== null) out.push({ line, text: `${i.title}: ${i.body}` });
+    // "Straight to the seat's own model": a failed or refused order, a check, an assay or an authentication (forgery and
+    // evidence), a caught spy or a taken archive. The rest is light: reports home, rumours, candidates, a catastrophe to
+    // the fields (one that destroys troops or land wakes the king by itself).
+    const weighty = ["Rejected", "CheckResult", "Assay", "Authentication", "Notice"].includes(i.kind);
+    if (line !== null) out.push({ line, text: `${i.title}: ${i.body}`, weighty });
   }
   return out;
 };

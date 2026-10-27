@@ -160,6 +160,8 @@ export function routineCourt(counsel: boolean): ReplySchema {
 }
 
 /** What the small rung reads after a routine court: what it may do, and what it leaves to the king's fuller deliberation. */
+export const RoutineCourtNoteAfterCounsel =
+  "\n\nTHESE ARE ROUTINE AUDIENCES: answer greetings, courtesy gifts, routine requests and renewals of peace as you judge best, and give gifts in return where it is fitting, since an envoy sent home empty-handed is slighted; your treasury is not to be emptied. You do not seal, detain, take anyone into service, send letters or change your orders here. Any envoy whose matter is weightier than it looks, or about whom you are still unsure, leave to fuller deliberation (pass_up, with your reason).";
 export const RoutineCourtNote =
   "\n\nTHESE ARE ROUTINE AUDIENCES: answer greetings, courtesy gifts, routine requests and renewals of peace as you judge best, and give gifts in return where it is fitting, since an envoy sent home empty-handed is slighted; your treasury is not to be emptied. You do not seal, detain, take anyone into service, send letters or change your orders here. Any envoy whose matter is weightier than it looks, or about whom you are unsure, leave to fuller deliberation (pass_up, with your reason). Or first take counsel: write a brief in ask_counsel, and you are asked again with the counsel.";
 

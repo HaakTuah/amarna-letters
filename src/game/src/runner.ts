@@ -428,11 +428,17 @@ export class GameRunner {
       asked.map((p) => {
         const seat = this.seats.get(p);
         const alerts = engine.lightAlerts(p);
+        // What goes straight to the king's own mind wakes him without a reader's call; only light news is read for him.
+        if (alerts.some((a) => a.weighty)) return this.recorded<boolean>(`t${turn}/alerts/${p}`, B, () => Promise.resolve(true));
         // A failed call wakes nobody: the news waits in the digest, as it did before anyone read it.
         return this.recorded<boolean>(`t${turn}/alerts/${p}`, B, () => seat.readAlerts!(Views.for(S_, p), alerts, signal), () => Promise.resolve(false), seat.label);
       }),
     );
-    for (let i = 0; i < asked.length; i++) if (woken[i]) engine.wakeOnWord(asked[i], engine.lightAlerts(asked[i])[0].line);
+    for (let i = 0; i < asked.length; i++)
+      if (woken[i]) {
+        const alerts = engine.lightAlerts(asked[i]);
+        engine.wakeOnWord(asked[i], (alerts.find((a) => a.weighty) ?? alerts[0]).line);
+      }
   }
 
   private context(req: MindRequest, engine: TurnEngine, turn: number): MindContext {

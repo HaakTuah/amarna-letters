@@ -290,7 +290,10 @@
     `AnswerGoldShare`), goes to his own model, which answers those in one call with letters and the choice about his
     orders. An audience stays with the rung that took its first exchange.
   - **Light alerts** (`readAlerts`, the runner's `alerts` phase after the wake check; `TurnEngine.lightAlerts`,
-    `wakeOnWord`). A king that sleeps on with news in his digest this season has it read by his small rung, in full,
+    `wakeOnWord`). News that goes "straight to the seat's own model" (a refused or failed order, a check, an assay or an
+    authentication, a caught spy or a taken archive) wakes a king who has a small rung by itself, with no call. A king
+    that sleeps on with only light news in his digest this season (reports home, rumours, candidates, a catastrophe to
+    his fields) has it read by his small rung, in full,
     with his realm in brief and his record; it notes what it makes of it in his record and may wake him (`wake`),
     erring toward waking. Its choice is a logged decision (`t<N>/alerts/<Power>`), so a replay wakes the same kings; a
     woken king reads "word came: …" naming what came, and the season's lines leave his digest (he reads them as news).

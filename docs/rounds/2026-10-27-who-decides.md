@@ -105,7 +105,27 @@ beaten 12/18, desert supplies 7/10, coalitions 4/4). No gap; nothing patched.
 
 ## The review
 
-To be filled in after the reviewer's pass.
+One reviewer (Opus, high effort) read the diff against the item's text. It found replay, the log's routing merge, the
+seeded audits and script games sound, and no request naming a rung. Fixed after it:
+
+- **Blocking: weighty news went to the small rung.** Failed or refused orders, checks, assays and authentications
+  (forgery and evidence), a caught spy or a taken archive now wake a king by themselves, with no reader's call ("Straight
+  to the seat's own model"); only light news is read (tested). A catastrophe to the fields stays light (one that destroys
+  troops or land already woke him).
+- A court split between the rungs no longer loses answers when one call fails: a failed routine call sends its envoys to
+  the king's own model; a failed own call leaves only its envoys to the stand-in, the routine answers standing.
+- Counsel that cannot be had passes the matter up instead of failing the decision.
+- The request after counsel no longer mentions the counsel field it no longer has ("Requests are rules too").
+- A plan's standing answers are kept until orders carry them (they were lost if the orders waited or failed).
+- Counsel taken while reading light alerts joins the king's record.
+- No audit is paid once the limit is spent.
+- The check at setup compiles the orders schema with `new_plan` when planning is on.
+- The batch runner paces each game by its share of the batch budget.
+
+Left as they are: a character's counsel does not join its memory (characters keep no record of their own thoughts
+beyond the engine's memory; item 10 gives them more); a script rung's phrasing call is not counted against the budget
+(the cheapest call there is); a digest already trimmed to its 60 lines loses those when a light alert wakes the king
+(rare).
 
 ## Readings taken and review questions
 

@@ -24,6 +24,7 @@ import { LeaderJournal } from "./journal.ts";
 import {
   NewPlan,
   RoutineCourtNote,
+  RoutineCourtNoteAfterCounsel,
   alertStakes,
   alertsReply,
   answerDiffer,
@@ -76,6 +77,8 @@ export class LlmLeaderSeat implements ISeat {
   /** When its plan was set down, and why its own mind last asked for a new one. */
   private planAt: PlanMark | null = null;
   private planAsked = "";
+  /** Standing answers a plan left that have not yet gone out with orders (the orders waited, or their call failed). */
+  private planAnswers: { answers: TurnSubmission["answers"]; cancel: string[] } | null = null;
   /** Reads light alerts while it sleeps; set only for a king with a small rung. */
   readAlerts?: (view: SeatView, alerts: { line: string; text: string }[], signal?: AbortSignal) => Promise<boolean>;
 
@@ -133,7 +136,8 @@ export class LlmLeaderSeat implements ISeat {
   }
 
   async decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission> {
-    const plan = await this.planIfDue(view, signal);
+    const plan = (await this.planIfDue(view, signal)) ?? this.planAnswers;
+    this.planAnswers = plan;
     const spec = this.ordersCall(view);
     let json: JsonObject;
     if (this.rungs === null) json = await this.client.askJson(spec, signal);
@@ -168,6 +172,7 @@ export class LlmLeaderSeat implements ISeat {
     if (plan !== null) {
       sub.answers = [...plan.answers, ...sub.answers];
       sub.cancelAnswers = [...plan.cancel, ...sub.cancelAnswers];
+      this.planAnswers = null;
     }
     this.planAsked = typeof json.new_plan === "string" ? json.new_plan : "";
     this.journalOf.record(view.turn, sub);
@@ -263,6 +268,7 @@ export class LlmLeaderSeat implements ISeat {
       signal,
     );
     if (c.json === null) return false;
+    if (c.counsel.length > 0) this.journalOf.thought(view.turn, `Counsel you took: ${c.counsel}`);
     this.journalOf.thought(view.turn, `News reached you while you slept (${joinS("; ", alerts.map((a) => a.line))}); you noted: ${String(c.json.notes ?? "")}`);
     return c.json.wake === true;
   }
@@ -418,16 +424,30 @@ export class LlmLeaderSeat implements ISeat {
     };
     const low = views.filter(routine);
     const out = new Map<string, HostReply | null>();
-    if (low.length > 0) {
-      const answered = await this.routineCourt(low, court, why, signal);
-      for (const [id, reply] of answered) out.set(id, reply);
-    }
+    const failed = (ex: unknown): void => {
+      if (ex instanceof Error && ex.name === "AbortError") throw ex;
+    };
+    if (low.length > 0)
+      try {
+        const answered = await this.routineCourt(low, court, why, signal);
+        for (const [id, reply] of answered) out.set(id, reply);
+      } catch (ex) {
+        // A routine court that fails goes to the king's own mind, erring toward it.
+        failed(ex);
+        for (const v of low) why.set(v.audienceId, "passed up: the routine call failed");
+      }
     const high = views.filter((v) => !out.has(v.audienceId));
-    if (high.length > 0) {
-      const reasons = distinct(high.map((v) => why.get(v.audienceId) ?? "the mind's own"));
-      const replies = await this.ownCourt(high, court, reasons.length === 1 ? reasons[0] : joinS("; ", reasons), signal);
-      high.forEach((v, i) => out.set(v.audienceId, replies[i]));
-    }
+    if (high.length > 0)
+      try {
+        const reasons = distinct(high.map((v) => why.get(v.audienceId) ?? "the mind's own"));
+        const replies = await this.ownCourt(high, court, reasons.length === 1 ? reasons[0] : joinS("; ", reasons), signal);
+        high.forEach((v, i) => out.set(v.audienceId, replies[i]));
+      } catch (ex) {
+        // Its own call failed: those envoys are left out (the stand-in answers each), and those the small rung answered keep
+        // their answers, which are in the king's record.
+        failed(ex);
+        if (out.size === 0) throw ex;
+      }
     return views.map((v) => out.get(v.audienceId) ?? null);
   }
 
@@ -463,7 +483,7 @@ export class LlmLeaderSeat implements ISeat {
           key: `${base.key}/routine`,
           role: `routine:${this.power}`,
           model: r.small!,
-          user: base.user + RoutineCourtNote + (counsel === null ? "" : `\n\nTHE COUNSEL YOU ASKED FOR: ${counsel}`),
+          user: base.user + (counsel === null ? RoutineCourtNote : `${RoutineCourtNoteAfterCounsel}\n\nTHE COUNSEL YOU ASKED FOR: ${counsel}`),
           schema: routineCourt(counsel === null),
           effort: "low",
         },
@@ -473,7 +493,14 @@ export class LlmLeaderSeat implements ISeat {
     let counsel = "";
     const brief = String(json.ask_counsel ?? "").trim();
     if (brief.length > 0) {
-      counsel = await r.ladder.counsel({ spec: base, small: r.small, large: this.model, start: "small", scriptMay: false, stakes: courtStakes(views, court), keys: [], differ: () => 0 }, brief, signal);
+      try {
+        counsel = await r.ladder.counsel({ spec: base, small: r.small, large: this.model, start: "small", scriptMay: false, stakes: courtStakes(views, court), keys: [], differ: () => 0 }, brief, signal);
+      } catch (ex) {
+        // Counsel that cannot be had leaves the court to the king's own mind.
+        if (ex instanceof Error && ex.name === "AbortError") throw ex;
+        for (const v of views) why.set(v.audienceId, "passed up: counsel could not be had");
+        return answered;
+      }
       json = await ask(counsel);
       this.journalOf.thought(first.turn, `Counsel you took at court: ${counsel}`);
     }

@@ -117,7 +117,8 @@ export function choicesOf(o: BatchOptions): SeatChoices {
   c.plays = o.plays;
   c.charactersUp = o.charactersUp;
   c.planning = o.planning;
-  c.spending = { ...o.spending, limitUsd: o.budget };
+  // The batch's budget is for all its games: each game paces by its share.
+  c.spending = { ...o.spending, limitUsd: o.budget / Math.max(1, o.games) };
   return c;
 }
 

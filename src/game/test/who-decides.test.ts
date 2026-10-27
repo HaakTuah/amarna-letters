@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { AllPowers, Dict, GameStateSchema, hash, newGame, newGameConfig, type Power } from "@amarna/engine";
+import { AllPowers, Dict, GameStateSchema, TurnEngine, hash, newGame, newGameConfig, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, newLogHeader, type ISeat } from "@amarna/game";
 import {
   CostEstimate,
@@ -243,7 +243,8 @@ describe("Who decides (item 6c)", () => {
     api.override = (body) => (has(props(body), "wake") ? JSON.stringify({ notes: "My envoy is home; the plan holds.", wake: true, pass_up: "", ask_counsel: "" }) : null);
     const [runner] = build(() => {}, 3, api);
     await play(runner, 10);
-    const read = runner.log.decisions.filter((d) => /^t\d+\/alerts\//.test(d.key));
+    // News that goes straight to his own mind (a refused order, a check, an authentication) wakes him with no reader.
+    const read = runner.log.decisions.filter((d) => /^t\d+\/alerts\//.test(d.key) && d.by !== null);
     Assert.notEmpty(read);
     Assert.all(read, (d) => Assert.equal("small", d.by!.rung));
     // Woken by what came: the king gives orders that season, told what came and never why it woke him.
@@ -253,6 +254,25 @@ describe("Who decides (item 6c)", () => {
     Assert.true(orders !== undefined);
     Assert.contains("you noted: My envoy is home; the plan holds.", userOf(orders!));
     Assert.doesNotContain("small", userOf(orders!).split("word came:")[1].split("\n")[0]);
+  });
+
+  test("News that goes straight to the king's own mind wakes him with no reader's call", async () => {
+    const [runner, api] = build();
+    const engine = Object.getPrototypeOf(new TurnEngine(newGame(1, newGameConfig()))) as TurnEngine;
+    const orig = engine.lightAlerts;
+    // Every alert made weighty: an authentication report, say, that a sealed tablet is forged.
+    engine.lightAlerts = function (this: TurnEngine, p: Power) {
+      return orig.call(this, p).map((a) => ({ ...a, weighty: true }));
+    };
+    try {
+      await play(runner, 6);
+    } finally {
+      engine.lightAlerts = orig;
+    }
+    const woken = runner.log.decisions.filter((d) => /^t\d+\/alerts\//.test(d.key));
+    Assert.notEmpty(woken);
+    Assert.all(woken, (d) => Assert.null(d.by));
+    Assert.empty(api.requests.filter((r) => has(props(r), "wake")));
   });
 
   test("With the small rung off, the king's own model answers every envoy and reads no alerts, as before", async () => {
