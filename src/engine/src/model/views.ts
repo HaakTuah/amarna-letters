@@ -11,6 +11,7 @@ import { type InboxItem, InboxItemSchema } from "./records.ts";
 import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, StandingOrderViewSchema } from "./sleep.ts";
 import { type StandingAnswer, StandingAnswerSchema } from "./answers.ts";
 import { type GrantView, GrantViewSchema } from "./authority.ts";
+import { type Toll, TollSchema } from "./trade.ts";
 
 export interface UnitView {
   power: Power;
@@ -80,7 +81,7 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   price: I,
 });
 
-/** One of the court's caravans on the road (item 9+a). */
+/** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */
 export interface CaravanView {
   from: string;
   to: string;
@@ -88,13 +89,46 @@ export interface CaravanView {
   /** Where it has got to. */
   at: string;
   returning: boolean;
+  /** The gold it carries; whether it trades at `to`, smuggles, or is a fleet in cargo service (item 9+b). */
+  gold: number;
+  trade: boolean;
+  sneak: boolean;
+  ship: boolean;
 }
 
 export function newCaravanView(init: Partial<CaravanView> = {}): CaravanView {
-  return { from: "", to: "", grain: 0, at: "", returning: false, ...init };
+  return { from: "", to: "", grain: 0, at: "", returning: false, gold: 0, trade: false, sneak: false, ship: false, ...init };
 }
 
-export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newCaravanView, { from: S, to: S, grain: I, at: S, returning: B });
+export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newCaravanView, {
+  from: S,
+  to: S,
+  grain: I,
+  at: S,
+  returning: B,
+  gold: I,
+  trade: B,
+  sneak: B,
+  ship: B,
+});
+
+/**
+ * A foreign market as the court last knew it (item 9+b, "Prices are known where they are and through news"): its price
+ * (hundredths of a shekel a measure), its stock and its people's purse, and the season it was seen, by the court's own
+ * eyes where it sees the land or by its caravans and ships that traded there.
+ */
+export interface MarketSeen {
+  price: number;
+  stock: number;
+  purse: number;
+  turn: number;
+}
+
+export function newMarketSeen(init: Partial<MarketSeen> = {}): MarketSeen {
+  return { price: 0, stock: 0, purse: 0, turn: 0, ...init };
+}
+
+export const MarketSeenSchema: ObjSchema<MarketSeen> = obj("MarketSeen", newMarketSeen, { price: I, stock: I, purse: I, turn: I });
 
 /**
  * A siege as a court sees it: the city, the besieger, who holds the city, and how far it has been worn down against its walls.
@@ -491,8 +525,12 @@ export interface SeatView {
   prices: Dict<string, number>;
   /** Its own provinces' stores and markets (item 9+a). */
   provinces: ProvinceEconomyView[];
-  /** Its caravans on the road. */
+  /** Its caravans on the road, and its fleets in cargo service. */
   caravans: CaravanView[];
+  /** Foreign markets as it last knew them (item 9+b), by province. */
+  markets: Dict<string, MarketSeen>;
+  /** The tolls that bear on it and the ones it sets (item 9+b): posted at the borders, so known to all who trade. */
+  tolls: Toll[];
   /** What each free city's elders ask to be bought: what it adds, its land's worth, purse, stores and market (public). */
   cityPrices: Dict<string, number>;
   /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
@@ -556,6 +594,8 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     prices: new Dict(),
     provinces: [],
     caravans: [],
+    markets: new Dict(),
+    tolls: [],
     cityPrices: new Dict(),
     ...init,
   };
@@ -615,6 +655,8 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   prices: dict(I),
   provinces: list(() => ProvinceEconomyViewSchema),
   caravans: list(() => CaravanViewSchema),
+  markets: dict(() => MarketSeenSchema),
+  tolls: list(() => TollSchema),
   cityPrices: dict(I),
 });
 

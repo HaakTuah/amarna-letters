@@ -60,7 +60,7 @@ export function seaRules(c: GameConfig): string {
   );
   if (c.seaSupply > 0)
     lines.push(
-      `- The blockade: a besieged coastal city is supplied by sea, and worn down ${c.seaSupply} step less each season, unless a fleet of its besieger holds its waters: so a lone army besieging a harbour that is supplied wears it down not at all. A fleet of the besieger's in a city's waters blockades it; your news says whether each siege of yours, or of your cities, was supplied or blockaded.`,
+      `- The blockade: a besieged coastal city is supplied by sea, and worn down ${c.seaSupply} step less each season, unless a fleet of its besieger holds its waters: so a lone army besieging a harbour that is supplied wears it down not at all. The sea does not feed it: it eats from its market and stores like any city, and only ships of its king's bring it grain, while its waters are open (ECONOMY). A fleet of the besieger's in a city's waters blockades it; your news says whether each siege of yours, or of your cities, was supplied or blockaded.`,
     );
   lines.push(
     `- The sea has a season. In winter, the second season of each year (Peret in Egypt), the open-sea crossings stay open but are dangerous: a fleet that crosses one may sink, and an army carried over one may be lost with it (NEWS AND TRAVEL gives the chances). Along the coasts ships sail all year.`,

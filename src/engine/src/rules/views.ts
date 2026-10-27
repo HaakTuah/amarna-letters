@@ -310,7 +310,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       newProvinceEconomyView({ province: id, stores: engine.stores(id), capacity: capacityOf(prov), tax: engine.effectiveYield(id), need: needOf(prov), stock: mk.stock, purse: mk.purse, price: priceAt(mk.stock, needOf(prov)) }),
     );
   }
-  for (const c of s.caravans.filter((c) => c.power === p)) v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning }));
+  for (const c of s.caravans.filter((c) => c.power === p))
+    v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
+  // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls posted on it and its own.
+  for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? []) if (s.owner.getOrDefault(k, null) !== p) v.markets.set(k, { ...seen });
+  for (const t of s.tolls) if (t.holder === p || t.partner === null || t.partner === p) v.tolls.push({ ...t });
   for (const prov of m.landProvinces) if (!prov.kingless && s.owner.getOrDefault(prov.id, null) === null) v.cityPrices.set(prov.id, engine.cityPrice(prov.id));
   v.prices.set("basePrice", EconomyData.basePrice);
   return v;
