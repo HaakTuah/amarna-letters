@@ -22,6 +22,7 @@ import {
   type Order,
   type Power,
   type Province,
+  type UnitKind,
   type Rng,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
@@ -242,11 +243,12 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   );
   const maritime = me === "Alashiya" || me === "Arzawa";
   let raised = 0;
-  for (const [near, value] of sortBy(plan.shortfalls, [(s: [string, number]) => s[1], desc(cmpNum)])) {
+  for (const [near, value, kind] of sortBy(plan.shortfalls, [(s: [string, number, UnitKind?]) => s[1], desc(cmpNum)])) {
     if (raised >= 2) break;
     const spot = spots.find((s) => s.id === near || Board.Sail.canMove("Army", s.id, near) || (s.isCoastal && Board.Sail.canMove("Fleet", s.id, near))) ?? null;
     if (spot === null) continue;
-    const fleet = (spot.isCoastal && !Board.Sail.canMove("Army", spot.id, near)) || (spot.isCoastal && maritime && count(b.mine, (u) => u.kind === "Fleet") < 2);
+    const fleet =
+      kind !== undefined ? kind === "Fleet" : (spot.isCoastal && !Board.Sail.canMove("Army", spot.id, near)) || (spot.isCoastal && maritime && count(b.mine, (u) => u.kind === "Fleet") < 2);
     const cost = fleet ? v.prices.get("fleet") : v.prices.get("army");
     const upkeep = fleet ? v.prices.get("fleetUpkeep") : v.prices.get("armyUpkeep");
     const lifetime = cost + upkeep * Math.min(b.horizon, 10);

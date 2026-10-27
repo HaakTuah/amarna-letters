@@ -73,7 +73,7 @@ export class WorldMap {
 
   private static defaultMap: WorldMap | undefined;
   static get default(): WorldMap {
-    return (WorldMap.defaultMap ??= buildMap({ sumur: SumurTrial }));
+    return (WorldMap.defaultMap ??= buildMap());
   }
 
   private winterMap: WorldMap | undefined;
@@ -223,20 +223,8 @@ function p(id: string, name: string, kind: ProvinceKind, home: Power | null, yld
   return { id, name, kind, home, yield: yld, capital, x, y, lat, lon, isSea: kind === "Sea", isCoastal: kind === "Coast", waters: null, kingless: false };
 }
 
-/** The comparison of the two Ṣumurs only: AMARNA_SUMUR=1 in a batch run's environment. Never in a game anyone plays. */
-const SumurTrial = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.AMARNA_SUMUR === "1";
-
 /** The province at sea named for the coast it lies off: "ugaritwaters", "Ugarit waters". */
 export const watersId = (coast: string): string => coast + "waters";
-
-/**
- * Ṣumur as a province of its own rather than Amurru's harbour: the other of the two ways "Map review" asked to build, kept
- * for the comparison in the item's report (`docs/rounds/2026-10-27-map-and-seas.md`). Off in every game.
- */
-export interface MapOptions {
-  /** Ṣumur as a province of its own. */
-  readonly sumur?: boolean;
-}
 
 /**
  * The Late Bronze Age board after the map review of build order item 7a: 54 land provinces and 15 sea zones. Coordinates
@@ -251,8 +239,7 @@ export interface MapOptions {
  * enemy's fleet holds those waters, no army lands. Currents run counterclockwise, north along the Levant and west along
  * Anatolia, as data on each sea connection ({@link Edge.current}).
  */
-export function buildMap(o: MapOptions = {}): WorldMap {
-  const sumur = o.sumur === true;
+export function buildMap(): WorldMap {
   const provinces: Province[] = [
     // Arzawa (weak): western Anatolia
     p("seha", "Seha River Land", "Coast", "Arzawa", 30, false, 85, 95, 38.6, 27.4),
@@ -308,8 +295,8 @@ export function buildMap(o: MapOptions = {}): WorldMap {
     p("nuhashshe", "Nuhashshe", "Land", null, 25, false, 620, 300, 35.5, 37.0),
     p("qatna", "Qatna", "Land", null, 30, false, 648, 345, 34.84, 36.86),
     p("qadesh", "Qadesh", "Land", null, 30, false, 570, 355, 34.56, 36.52),
-    sumur ? p("amurru", "Amurru", "Land", null, 20, false, 520, 390, 34.7, 36.2) : p("amurru", "Amurru", "Coast", null, 20, false, 490, 380, 34.92, 35.98),
-    ...(sumur ? [p("sumur", "Sumur", "Coast", null, 15, false, 477, 372, 34.92, 35.98)] : []),
+    // Amurru with Ṣumur, Egypt's base on its coast, as its harbour (built both ways in item 7a; see its report).
+    p("amurru", "Amurru", "Coast", null, 20, false, 490, 380, 34.92, 35.98),
     p("arwad", "Arwad", "Coast", null, 20, false, 453, 366, 34.86, 35.86),
     p("byblos", "Byblos", "Coast", null, 30, false, 478, 428, 34.12, 35.65),
     p("sidon", "Sidon", "Coast", null, 25, false, 470, 478, 33.56, 35.37),
@@ -332,7 +319,6 @@ export function buildMap(o: MapOptions = {}): WorldMap {
     const c = provinces.find((q) => q.id === coast)!;
     return p(watersId(coast), name, "Sea", null, 0, false, x, y, c.lat, c.lon);
   };
-  const harbour = sumur ? "sumur" : "amurru";
   const seas: Province[] = [
     waters("seha", "Seha waters", 20, 110),
     waters("apasa", "Apasa waters", 12, 228),
@@ -341,7 +327,7 @@ export function buildMap(o: MapOptions = {}): WorldMap {
     waters("kalavasos", "Kalavasos waters", 240, 450),
     waters("enkomi", "Enkomi waters", 405, 330),
     waters("ugarit", "Ugarit waters", 442, 296),
-    waters(harbour, sumur ? "Sumur and Arwad waters" : "Amurru and Arwad waters", 432, 385),
+    waters("amurru", "Amurru and Arwad waters", 432, 385),
     waters("byblos", "Byblos waters", 432, 438),
     waters("sidon", "Sidon waters", 425, 490),
     waters("tyre", "Tyre waters", 415, 545),
@@ -352,7 +338,7 @@ export function buildMap(o: MapOptions = {}): WorldMap {
   ];
   provinces.push(...seas);
   const coastal = new Map(provinces.filter((q) => q.isCoastal).map((q) => [q.id, q]));
-  for (const [id, q] of coastal) (q as { waters: string | null }).waters = id === "arwad" ? watersId(harbour) : id === "ur" || id === "dilmun" || id === "susa" ? "gulf" : watersId(id);
+  for (const [id, q] of coastal) (q as { waters: string | null }).waters = id === "arwad" ? watersId("amurru") : id === "ur" || id === "dilmun" || id === "susa" ? "gulf" : watersId(id);
 
   const edges: Edge[] = [];
   const add = (kind: EdgeKind, a: string, bs: string[], open = false, current = false): void => {
@@ -408,16 +394,9 @@ export function buildMap(o: MapOptions = {}): WorldMap {
   land("suhu", "steppe");
 
   // The Levant
-  if (sumur) {
-    coast("ugarit", "sumur");
-    land("ugarit", "amurru");
-    land("amurru", "sumur", "qadesh", "nuhashshe", "byblos");
-    coast("sumur", "byblos");
-  } else {
-    coast("ugarit", "amurru");
-    land("amurru", "qadesh", "nuhashshe");
-    coast("amurru", "byblos");
-  }
+  coast("ugarit", "amurru");
+  land("amurru", "qadesh", "nuhashshe");
+  coast("amurru", "byblos");
   land("qadesh", "byblos", "damascus");
   land("steppe", "damascus");
   land("byblos", "damascus");
@@ -452,8 +431,8 @@ export function buildMap(o: MapOptions = {}): WorldMap {
   hop(w("gaza"), w("tyre"), true);
   hop(w("tyre"), w("sidon"), true);
   hop(w("sidon"), w("byblos"), true);
-  hop(w("byblos"), w(harbour), true);
-  hop(w(harbour), w("ugarit"), true);
+  hop(w("byblos"), w("amurru"), true);
+  hop(w("amurru"), w("ugarit"), true);
   hop(w("ugarit"), w("kizzuwatna"), true);
   hop(w("kizzuwatna"), w("lukka"), true);
   hop(w("lukka"), w("apasa"), true);
@@ -485,7 +464,7 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   ["memphis", 2], ["nesa", 2], ["nineveh", 2], ["aleppo", 2], ["qatna", 2], ["arwad", 2],
   // Walled towns
   ["lukka", 1], ["isuwa", 1], ["ugarit", 1], ["amurru", 1], ["byblos", 1], ["damascus", 1],
-  ["alalakh", 1], ["sidon", 1], ["jerusalem", 1], ["shechem", 1], ["arrapha", 1], ["suhu", 1], ["nuhashshe", 1], ...(SumurTrial ? ([["sumur", 1]] as [string, number][]) : []),
+  ["alalakh", 1], ["sidon", 1], ["jerusalem", 1], ["shechem", 1], ["arrapha", 1], ["suhu", 1], ["nuhashshe", 1],
 ]);
 
 export interface StartUnit {

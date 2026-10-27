@@ -11,6 +11,7 @@ import {
   cmpPower,
   cmpStr,
   convoy,
+  count,
   desc,
   distinct,
   hold,
@@ -25,20 +26,21 @@ import {
   type Order,
   type Power,
   type SallyOrder,
+  type UnitKind,
   type UnitView,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
-import { SeaPlay, landingsFrom, seaChains } from "./seas.ts";
+import { SeaPlay, landingsFrom, nearestHarbour, seaChains, stepToward } from "./seas.ts";
 
 /** The season's troop orders, and what the plan still lacks (for levies). */
 export class MilitaryPlan {
   readonly orders = new Dict<string, Order>();
   readonly role = new Dict<string, string>();
   readonly destinations = new HSet<string>();
-  /** Places where one more unit would have paid off, with what it was worth. */
-  readonly shortfalls: [string, number][] = [];
+  /** Places where one more unit would have paid off, with what it was worth, and the kind wanted if it matters. */
+  readonly shortfalls: [string, number, UnitKind?][] = [];
   readonly threatened = new HSet<string>();
   /** For each threatened province, the strength of the likeliest attack on it and how likely it is to come. */
   readonly danger = new Dict<string, [number, number]>();
@@ -418,6 +420,22 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const supplied = waters !== null && blockader === null && b.v.prices.getOrDefault("seaSupply", 1) > 0 && SeaPlay.on;
     ops.push(op("siege", supplied && helper === null ? worth / 4 : supplied ? worth / 2 : worth, at, at, helper === null ? [] : [helper]));
     if (waters !== null && blockader !== null && free.has(blockader)) ops.push(op("blockade", worth / 2 + 20, waters, blockader, []));
+    else if (supplied && !b.unitAt.has(waters!)) {
+      // No fleet of ours can reach the city's waters this season: the nearest free one sails towards them, or, with none, a
+      // fleet is wanted in the home harbour nearest them (a levy, if the treasury can carry it).
+      const open = (z: string): boolean => !b.unitAt.has(z) || ours(z);
+      const far = sortBy(
+        [...free].filter((f) => b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f)),
+        [(f: string) => f, cmpStr],
+      )
+        .map((f) => [f, stepToward(f, waters!, open)] as const)
+        .find(([, step]) => step !== null);
+      if (far !== undefined) ops.push(op("blockade", worth / 3 + 10, far[1]!, far[0], []));
+      else {
+        const harbour = nearestHarbour(me, waters!, (x) => b.isMine(x) && !b.unitAt.has(x), open);
+        if (harbour !== null) plan.shortfalls.push([Board.Map.get(harbour).waters!, 0.6 * b.value(at) * multiplier(holder)]);
+      }
+    }
   }
 
   // ---- Guard the waters of our capital and walled coasts against a landing: an army lands only from the waters of the
@@ -525,7 +543,8 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     assign(plan, free, u, support(u, ally.province), "ally-support");
   }
 
-  // ---- Ready a convoy: an army on a coast with nothing to take by land, and a chain of sea zones from its waters to the
+  // ---- Ready a convoy: an army on a coast with nothing to take by land, or one free on a coast across the sea from land
+  // worth a great deal (an island's riches, a capital: 400 or more), and a chain of sea zones from its waters to the
   // waters of land worth taking that the army cannot reach by land (one fleet in each, build order item 7a). Our free
   // fleets put to the zones of the chain they can reach this season, or hold there, so that the convoy above can carry the
   // army over when the chain is whole.
@@ -533,7 +552,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     [...free].filter((u) => b.unitAt.get(u).kind === "Army" && Board.Map.get(u).isCoastal && !threat.has(u) && !stay.has(u)),
     [(x: string) => x, cmpStr],
   )) {
-    if (!stranded(army)) continue;
+    const strandedHere = stranded(army);
     const open = (z: string): boolean => {
       const at = b.unitAt.tryGet(z);
       return (at === undefined || at.power === me) && (!plan.destinations.has(z) || free.has(z));
@@ -547,12 +566,22 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
           return o === null || isWilling(o);
         })
         .map((t) => b.value(t) * multiplier(b.ownerOf(t)) - 20 * (chain.length - 1));
-      const worth = worths.length === 0 ? 0 : max(worths, (x) => x);
+      // A chain our fleets can make whole soon is worth more than a richer one they cannot.
+      const missing = count(chain, (z) => !(free.has(z) && b.unitAt.get(z).kind === "Fleet"));
+      const worth = worths.length === 0 ? 0 : max(worths, (x) => x) / (1 + missing);
       if (worth > best[1]) best = [chain, worth];
     }
     // A chain longer than our free fleets can make whole is no plan: they act on their own instead.
     const fleetsFree = [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f)).length;
-    if (best[1] < 200 || fleetsFree < best[0].length) continue;
+    if (best[1] < (strandedHere ? 200 : 400)) continue;
+    if (fleetsFree < best[0].length) {
+      // A fleet more is wanted, in the home harbour nearest the chain (a levy, if the treasury can carry it).
+      const missing = best[0].find((z) => !(free.has(z) && b.unitAt.get(z).kind === "Fleet"));
+      const harbour =
+        missing === undefined ? null : nearestHarbour(me, missing, (x) => b.isMine(x) && !b.unitAt.has(x), (z) => !b.unitAt.has(z) || b.unitAt.get(z).power === me);
+      if (harbour !== null) plan.shortfalls.push([Board.Map.get(harbour).waters!, best[1]]);
+      continue;
+    }
     for (const zone of best[0]) {
       if (free.has(zone) && b.unitAt.get(zone).kind === "Fleet") {
         // Already at sea there: it waits for the rest of the chain, or for the army.
@@ -570,19 +599,33 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
         plan.destinations.add(zone);
         continue;
       }
-      // None can sail there this season: one that can by next season (a fleet in harbour puts out to its waters) goes a
-      // step towards it.
+      // None can sail there this season: the nearest that can in a few seasons goes a step towards it.
       for (const f of sortBy(fleets, [(f: string) => f, cmpStr])) {
-        const step = sortBy(
-          Board.Sail.movesFrom("Fleet", f).filter((n) => !b.unitAt.has(n) && !plan.destinations.has(n) && Board.Sail.canMove("Fleet", n, zone)),
-          [(n: string) => n, cmpStr],
-        )[0];
-        if (step === undefined || !free.has(f)) continue;
+        const step = stepToward(f, zone, (z) => !b.unitAt.has(z) && !plan.destinations.has(z));
+        if (step === null || !free.has(f) || b.unitAt.has(step) || plan.destinations.has(step)) continue;
         assign(plan, free, f, move(f, step), "convoy");
         plan.destinations.add(step);
         break;
       }
     }
+  }
+
+  // ---- An island court: with fleets enough to carry an army and no army on any coast to carry, an army is wanted in the
+  // home province on the coast from which a landing would pay most (a levy, if the treasury can carry it).
+  if (SeaPlay.on && count(b.mine, (u) => u.kind === "Fleet") >= 2 && !b.mine.some((u) => u.kind === "Army" && Board.Map.get(u.province).isCoastal)) {
+    let best: [string | null, number] = [null, 0];
+    for (const home of sortBy(
+      Board.Map.homeOf(me).filter((x) => x.waters !== null && b.isMine(x.id) && !b.unitAt.has(x.id)),
+      [(x: { id: string }) => x.id, cmpStr],
+    ))
+      for (const [zone, chain] of seaChains(home.id, (z) => !b.unitAt.has(z) || b.unitAt.get(z).power === me))
+        for (const t of landingsFrom(zone).filter((t) => t !== home.id && !Board.Sail.canMove("Army", home.id, t) && !b.isMine(t))) {
+          const o = b.ownerOf(t);
+          if (o !== null && !isWilling(o)) continue;
+          const worth = (b.value(t) * multiplier(o)) / chain.length;
+          if (worth > best[1]) best = [home.id, worth];
+        }
+    if (best[0] !== null && best[1] >= 400) plan.shortfalls.push([best[0], best[1], "Army"]);
   }
 
   // ---- Everyone else: hold if threatened, otherwise move towards where the value is.

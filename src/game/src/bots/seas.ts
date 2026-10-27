@@ -44,3 +44,37 @@ export function seaChains(from: string, through: (zone: string) => boolean, dept
 export function landingsFrom(zone: string): string[] {
   return Board.Map.coastsOf(zone).map((p) => p.id);
 }
+
+/**
+ * The first move of a fleet's shortest way, by sea zones that `through` allows, from where it stands to the sea zone
+ * `to` (at most `depth` moves), or null if there is none; ties in id order.
+ */
+export function stepToward(from: string, to: string, through: (zone: string) => boolean, depth = 5): string | null {
+  if (from === to) return null;
+  const first = new Map<string, string>();
+  let frontier = [from];
+  for (let d = 0; d < depth && frontier.length > 0; d++) {
+    const next: string[] = [];
+    for (const z of frontier)
+      for (const n of [...Board.Sail.movesFrom("Fleet", z)].sort()) {
+        if (!Board.Map.get(n).isSea || first.has(n) || n === from) continue;
+        if (n !== to && !through(n)) continue;
+        first.set(n, z === from ? n : first.get(z)!);
+        if (n === to) return first.get(n)!;
+        next.push(n);
+      }
+    frontier = next;
+  }
+  return null;
+}
+
+/** The waters of our coastal home province nearest a sea zone, by sea zones `through` allows: where a fleet raised there starts. */
+export function nearestHarbour(me: string, to: string, ours: (province: string) => boolean, through: (zone: string) => boolean): string | null {
+  let best: [string | null, number] = [null, 99];
+  for (const p of Board.Map.landProvinces.filter((x) => x.home === me && x.waters !== null && ours(x.id)).sort((a, b) => (a.id < b.id ? -1 : 1))) {
+    const chains = seaChains(p.id, (z) => z === to || through(z), 5);
+    const c = chains.get(to);
+    if (c !== undefined && c.length < best[1]) best = [p.id, c.length];
+  }
+  return best[0];
+}
