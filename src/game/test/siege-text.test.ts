@@ -22,7 +22,7 @@ describe("SiegeTextTests", () => {
     );
     let babylon = situation(Views.for(s, "Babylonia"));
     Assert.contains(
-      "LANDS (see WHAT YOU SEE):",
+      'LANDS (see WHAT YOU SEE and NEWS AND TRAVEL; a province you do not see is listed under its holder as last you heard, "heard in turn N"):',
       babylon,
     );
     Assert.contains("babylon (walls 3) [Babylonia army]", babylon);
@@ -32,7 +32,7 @@ describe("SiegeTextTests", () => {
       babylon,
     );
     // Assyria took Sippar from Babylon by force: a third of it counts this season, which Assyria reads, and nobody else
-    // (who holds a province is public, how it changed hands is not).
+    // (how it changed hands is not public).
     Assert.contains("sippar (taken by force in turn 1: yields and counts a third of its yield this season) [Assyria army]", situation(Views.for(s, "Assyria")));
     Assert.contains("sippar [Assyria army]", babylon);
     Assert.doesNotContain("taken by force", babylon);

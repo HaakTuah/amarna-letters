@@ -113,7 +113,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         sb.appendLine(standings(v));
 
         sb.appendLine();
-        sb.appendLine(`LANDS (see WHAT YOU SEE):`);
+        sb.appendLine(`LANDS (see WHAT YOU SEE and NEWS AND TRAVEL; a province you do not see is listed under its holder as last you heard, "heard in turn N"):`);
         const units = new Map(v.units.map(u => [u.province, u] as const));
         const troop = (id: string): string => {
           const u = units.get(id);
@@ -127,6 +127,12 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             if (w !== undefined) marks.push(`walls ${w}`);
             if (terrainOf(id) === "Rough" && v.prices.getOrDefault(`terrainDefence`, 1) > 0) marks.push(`rough ground`);
             if (terrainOf(id) === "Desert" && v.prices.getOrDefault(`desertUpkeep`, 1) > 0) marks.push(`desert`);
+            // Not seen now (item 7b): how old the news is, and who brought it if one of your people did.
+            const asOf = v.ownerAsOf.tryGet(id);
+            if (asOf !== undefined) {
+              const from = v.ownerFrom.tryGet(id) ?? ``;
+              marks.push(`heard in turn ${asOf}` + (from === `seen` ? `, when you last saw it` : from.length > 0 && from !== `word from abroad` ? `, from ${from}` : ``));
+            }
             return marks.length === 0 ? `` : ` (${joinS(`, `, marks)})`;
         };
         // Our own land taken by force and still being absorbed (the view carries no other king's): what it yields and counts this season.
@@ -172,7 +178,9 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             for (const t of v.tablets)
                 sb.appendLine(`- ${(read.has(t.tabletId) ? tabletBrief(t) : tabletLine(t))}${(t.allianceOath ? ` A sworn alliance.` : ``)} (${t.source}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
         }
-        sb.appendLine(`ENVOY TRAVEL: ${joinS(`; `, v.travelTimes)}.`);
+        sb.appendLine(`ENVOY TRAVEL (about, by the fastest road open this season): ${joinS(`; `, v.travelTimes)}.`);
+        if (v.roadsClosed.length > 0) sb.appendLine(`YOUR ROADS ARE CLOSED to the people of: ${joinS(`, `, v.roadsClosed)}.`);
+        if (v.roadsClosedToUs.length > 0) sb.appendLine(`ROADS CLOSED TO YOUR PEOPLE, as far as you have heard, by: ${joinS(`, `, v.roadsClosedToUs)}.`);
 
         if (v.scheduled.length > 0)
         {

@@ -4,6 +4,7 @@
  */
 import {
   AllPowers,
+  RoadsTitle,
   Dict,
   HSet,
   Rng,
@@ -434,6 +435,14 @@ export class Brain {
       case "Rumor": {
         const thief = ours((c) => item.body.includes(`brought by ${c.name}, envoy of ${this.me}, was forged by ${c.name}`));
         if (thief !== null) this.thieves.add(thief.id);
+        // A king who closes his roads to our people (item 7b) means us no good.
+        if (item.title === RoadsTitle && item.body.includes("has closed his roads")) {
+          const closer = AllPowers.find((x) => x !== this.me && item.body.includes(`king of ${land(x)} `)) ?? null;
+          if (closer !== null && this.rel.has(closer)) {
+            const r = this.rel.get(closer);
+            r.trust = Math.max(-1, r.trust - 0.1);
+          }
+        }
         break;
       }
       case "Rejected":

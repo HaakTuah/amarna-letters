@@ -32,6 +32,12 @@ import {
 import { BaselineLeader, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame, temperament } from "@amarna/game";
 import { average, removeAll, Assert, toDict } from "../../engine/test/support.ts";
 
+/** A province's holder set by hand, as if long ago, so word of it has reached every court (item 7b). */
+function known(s: GameState, province: string, owner: Power | null): void {
+  s.owner.set(province, owner);
+  s.ownerLog.push({ province, turn: 0, owner });
+}
+
 describe("BotTests", () => {
   test("Each king keeps his character from game to game but never quite the same", () => {
     for (const p of AllPowers) {
@@ -156,7 +162,7 @@ describe("BotTests", () => {
 
     // Egypt buys two cities of the Levant: its land grows by a quarter, its treasury shrinks by as much.
     for (const city of ["megiddo", "tyre"]) {
-      s.owner.set(city, "Egypt");
+      known(s, city, "Egypt");
       s.treasuries.get("Egypt").gold -= WorldMap.default.get(city).yield * s.config.neutralPriceFactor;
     }
     s.turn = 6;
@@ -172,7 +178,7 @@ describe("BotTests", () => {
       ["carchemish", "Mitanni"],
       ["alalakh", "Egypt"],
     ] as const) {
-      s.owner.set(city, owner);
+      known(s, city, owner);
       s.walls.delete(city);
     }
     removeAll(s.units, (u) => ["kizzuwatna", "terqa", "memphis"].includes(u.province));
@@ -191,7 +197,8 @@ describe("BotTests", () => {
     );
     for (const holder of ["Mitanni", "Egypt"] as const)
       s.copies.push(newTabletCopy({ id: `k9${holder}`, tabletId: "t90", holder: holder, acquiredTurn: 1, source: "sealed at audience" }));
-    s.turn = 5;
+    // Not in winter, when the passes into Kizzuwatna are closed (item 7b).
+    s.turn = 6;
 
     function courtOf(p: Power): [Board, Brain] {
       let view = Views.for(s, p);

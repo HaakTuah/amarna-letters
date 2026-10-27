@@ -144,8 +144,10 @@ P.dispatch = function (p, d) {
     dispatch.proposalTabletId = tablet.id;
   }
 
-  const travel = this.travelTurns(p, d.to);
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "EnvoyOutbound", departTurn: S.turn, arriveTurn: S.turn + travel, from: p, to: d.to, characterId: c.id, dispatch }));
+  const outJourney = newJourney({ id: newId(S, "j"), kind: "EnvoyOutbound", departTurn: S.turn, from: p, to: d.to, characterId: c.id, dispatch });
+  S.journeys.push(outJourney);
+  this.setOut(outJourney, Map.capital(p).id, Map.capital(d.to).id);
+  const travel = outJourney.arriveTurn - S.turn;
   c.duty = "EnvoyOutbound";
   c.at = null;
   c.missionTarget = d.to;
@@ -158,7 +160,7 @@ P.dispatch = function (p, d) {
       (d.gold > 0 ? ` I carry gold, said to be ${formatMoney(d.gold)}.` : "") +
       (d.proposal ? " I carry a tablet for their king to seal." : ""),
   );
-  notify(S, p, "Notice", "Envoy dispatched", `${c.name} set out for ${d.to} last season; the journey takes ${travel} season(s).`, c.id);
+  notify(S, p, "Notice", "Envoy dispatched", `${c.name} set out for ${d.to} last season; the journey should take about ${travel} season(s).`, c.id);
   // Out of a besieged capital: the besiegers may catch it as it slips out (its king believes it on its way).
   const besieged = this.capitalSiege(p);
   if (besieged !== null) {
@@ -176,6 +178,7 @@ P.envoyArrivesAbroad = function (j) {
   const c = char(S, j.characterId!);
   // Taken into another court's service on the way: it is there already.
   if (c.status === "Employed" && c.employer !== j.from) return;
+  this.bringNews(j, j.to, c);
   if (c.status !== "Employed") {
     // Dismissed on the way, or its kingdom fell: it arrives a free person, with no audience.
     c.at = j.to;
@@ -206,7 +209,9 @@ P.sendHome = function (c, from, cargo) {
   }
   c.duty = "EnvoyHomebound";
   c.at = null;
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "EnvoyHomebound", departTurn: S.turn, arriveTurn: S.turn + this.travelTurns(from, home), from, to: home, characterId: c.id, cargo }));
+  const j = newJourney({ id: newId(S, "j"), kind: "EnvoyHomebound", departTurn: S.turn, from, to: home, characterId: c.id, cargo });
+  S.journeys.push(j);
+  this.setOut(j, this.map.capital(from).id, this.map.capital(home).id);
 };
 
 // ---------------------------------------------------------------- audience
@@ -526,12 +531,21 @@ P.envoyArrivesHome = function (j) {
       return;
     }
   }
+  this.bringNews(j, j.to, c);
   c.at = j.to;
   c.duty = "None";
   c.heldBy = null;
   c.turnsAbroad = 0;
   c.missionTarget = null;
   const cargo = j.cargo ?? newHomeCargo();
+  // Turned back on the road (item 7b): it tells why, and hands back any gold it still carries; there is no audience to report.
+  if (j.gaveUp) {
+    if (cargo.gold > 0) S.treasuries.get(j.to).gold += toInt(roundEven((cargo.gold * cargo.purityPercent) / 100.0));
+    notify(S, j.to, "Notice", `${c.name} returns`, `${c.name} is back at court without having reached ${j.from}: ${j.turnedBack}.` + (cargo.gold > 0 ? ` The ${formatMoney(cargo.gold)} of gold carried is back in the treasury.` : ""), c.id);
+    c.currentTrail = null;
+    return;
+  }
+  if (j.turnedBack !== null) notify(S, j.to, "Notice", "On the road home", `${c.name}, coming home, was ${j.turnedBack}.`, c.id);
   for (const tid of cargo.copyIds) S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: tid, holder: j.to, acquiredTurn: S.turn, source: "brought home by your envoy" }));
   this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "EnvoyReport", characterId: c.id, court: j.to, trailId: cargo.trailId, cargo }));
   c.currentTrail = null;

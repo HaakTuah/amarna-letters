@@ -146,6 +146,12 @@ export interface CounterIntelOrder {
   type: "counterIntel";
   spend: number;
 }
+/** Close or open one's roads to a court's travellers (build order item 7b, "Passage and access"); it stands until changed. */
+export interface RoadsOrder {
+  type: "roads";
+  court: Power;
+  close: boolean;
+}
 export interface AssayOrder {
   type: "assay";
   lot: string;
@@ -210,6 +216,7 @@ export type Order =
   | PlaceSpyOrder
   | RecallSpyOrder
   | CounterIntelOrder
+  | RoadsOrder
   | AssayOrder
   | AuthenticateOrder
   | ForgeOrder
@@ -261,6 +268,7 @@ export const check = (character: string, spend: number): BackgroundCheckOrder =>
 export const placeSpy = (character: string, court: Power | null = null, province: string | null = null): PlaceSpyOrder => ({ type: "spy", character, court, province });
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
 export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "counterIntel", spend });
+export const roads = (court: Power, close: boolean): RoadsOrder => ({ type: "roads", court, close });
 export const assay = (lot: string): AssayOrder => ({ type: "assay", lot });
 export const authenticate = (copy: string, spend: number): AuthenticateOrder => ({ type: "authenticate", copy, spend });
 export const forge = (character: string, text: string, seals: Power[]): ForgeOrder => ({ type: "forge", character, text, seals });
@@ -324,6 +332,8 @@ export function describe(o: Order): string {
       return `recall ${o.character}`;
     case "counterIntel":
       return `spend ${o.spend} on watching for spies`;
+    case "roads":
+      return `${o.close ? "close" : "open"} your roads to the people of ${o.court}`;
     case "assay":
       return `assay gold lot ${o.lot}`;
     case "authenticate":
@@ -426,6 +436,7 @@ export const OrderSchema = poly("Order", "type", {
   spy: v("PlaceSpyOrder", () => placeSpy(""), { character: S, court: S, province: S }),
   recall: v("RecallSpyOrder", () => recall(""), { character: S }),
   counterIntel: v("CounterIntelOrder", () => counterIntel(0), { spend: I }),
+  roads: v("RoadsOrder", () => roads("Egypt", true), { court: S, close: B }),
   assay: v("AssayOrder", () => assay(""), { lot: S }),
   authenticate: v("AuthenticateOrder", () => authenticate("", 0), { copy: S, spend: I }),
   forge: v("ForgeOrder", () => forge("", "", []), { character: S, text: S, seals: list(S) }),

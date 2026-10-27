@@ -18,6 +18,7 @@ import {
   B,
   S,
   Views,
+  WorldMap,
   addLetters,
   asHeard,
   basePrice,
@@ -516,10 +517,12 @@ export class GameRunner {
     const keys = this.trailKeys.get(a.dispatch.trailId) ?? { audience: null, report: null };
     keys.audience = key;
     this.trailKeys.set(a.dispatch.trailId, keys);
-    // What its own lord owes it, and whether he looks doomed, by public facts: a motive it may weigh against an offer.
+    // What its own lord owes it, and whether he looks doomed, by what is known at the court it stands at (item 7b: news of
+    // distant land travels): a motive it may weigh against an offer.
     const lord = envoy.employer;
     const backPay = lord !== null ? envoy.backPay.getOrDefault(lord, 0) : 0;
-    const doomed = lord !== null && Views.looksDoomed(S_.owner, S_.eliminated, lord);
+    const knownHere = new Dict([...Views.knownHolders(S_, WorldMap.default, a.host).entries()].map(([k, x]) => [k, x.owner] as const));
+    const doomed = lord !== null && Views.looksDoomed(knownHere, S_.eliminated.filter((x) => x === a.host || (S_.fallsHeard.tryGet(a.host) ?? []).includes(x)), lord);
     const ctx = (soFar: Exchange[], round: number, delivered: string, skim: number, giftTaken = false): EnvoyContext =>
       newEnvoyContext({
         self: envoy,

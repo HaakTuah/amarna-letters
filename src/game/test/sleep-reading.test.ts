@@ -114,17 +114,19 @@ describe("SleepTests", () => {
       (p) => (p === "Alashiya" ? king : p === "Egypt" ? egypt : new Scripted()),
     );
     let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
-    let travel = new TurnEngine(state).travelTurns("Egypt", "Alashiya");
     await runner.playTurn();
     inboxOf(state, "Alashiya").push(newInboxItem({ turn: 2, kind: "Rumor", title: "Rumor", body: "Word spreads that Hatti is restless." }));
-    for (let i = 0; i < 1 + travel; i++) await runner.playTurn();
+    await runner.playTurn();
+    // The envoy arrives when its road says (item 7b: sent in winter, it waits for the sea to open).
+    let due = firstOf(state.journeys, (j) => j.characterId === envoyId).arriveTurn;
+    while (state.turn <= due) await runner.playTurn();
 
-    let host = firstOf(recorder.specs, (x) => x.key.startsWith(`t${2 + travel}/court/`)).user.replaceAll("\r\n", "\n");
+    let host = firstOf(recorder.specs, (x) => x.key.startsWith(`t${due}/court/`)).user.replaceAll("\r\n", "\n");
     Assert.contains("WHILE YOU SLEPT (since you gave orders in turn 1):", host);
     Assert.contains("[turn 2] [Rumor] Rumor: Word spreads that Hatti is restless.", host);
     // Before the season's news, as in the orders request.
     Assert.true(host.indexOf("WHILE YOU SLEPT") < host.indexOf("NEWS THIS SEASON"));
-    let orders = single(recorder.specs, (x) => x.key === `t${2 + travel}/orders/Alashiya`).user.replaceAll("\r\n", "\n");
+    let orders = single(recorder.specs, (x) => x.key === `t${due}/orders/Alashiya`).user.replaceAll("\r\n", "\n");
     Assert.contains("[turn 2] [Rumor] Rumor: Word spreads that Hatti is restless.", orders);
   });
 

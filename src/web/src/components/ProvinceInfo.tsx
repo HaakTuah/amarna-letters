@@ -1,6 +1,5 @@
 import { Crossings, WorldMap, riversThrough, terrainOf, type Crossing, type GameState, type Province, type Terrain } from "@amarna/engine";
 import { unitKindName, type MapScene } from "../map/scene.ts";
-import { ownerOf } from "../session/frames.ts";
 import { powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 
@@ -45,7 +44,7 @@ export function ProvinceInfo({
 }) {
   const map = WorldMap.default;
   const p = map.get(id);
-  const owner = ownerOf(scene.frame, id);
+  const owner = scene.owner.get(id) ?? null;
   const units = scene.units.filter((u) => u.province === id);
   const people = scene.people.filter((x) => x.province === id);
   const age = scene.viewer === null ? 0 : (scene.fogAge.get(id) ?? -1);
@@ -76,7 +75,8 @@ export function ProvinceInfo({
       ) : (
         <>
           <p className="small">
-            {owner !== null ? `Held by ${powerName(owner)}.` : "A free city-state."} Yields {shekels(p.yield)} a season
+            {owner !== null ? `Held by ${powerName(owner)}` : "A free city-state"}
+            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Yields {shekels(p.yield)} a season
             {p.home !== null && p.home !== owner ? `; part of the homeland of ${powerName(p.home)}` : ""}.
             {walls > 0 && (
               <span>

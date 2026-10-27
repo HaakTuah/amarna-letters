@@ -328,7 +328,19 @@ export interface SeatView {
   startStrength: number;
   /** What a shekel of yield counts in strength (public, in the rulebook). */
   provinceWeight: number;
+  /**
+   * Who this court knows holds each land province (build order item 7b, "Hidden by default"): as it is where it sees, and
+   * elsewhere as of the season in {@link ownerAsOf}, by word or by what its own people brought home ({@link ownerFrom}).
+   */
   owner: Dict<string, Power | null>;
+  /** For a province it does not see now: the season its knowledge of the holder dates from. */
+  ownerAsOf: Dict<string, number>;
+  /** For a province it does not see now: where that knowledge came from ("word from abroad", or a traveller's name). */
+  ownerFrom: Dict<string, string>;
+  /** The courts whose travellers this court's men stop passing through its land. */
+  roadsClosed: Power[];
+  /** The kings this court has heard closed their roads to its people. */
+  roadsClosedToUs: Power[];
   /**
    * The walls as this court knows them, by province (a province with none is left out): standing now where it can see
    * troops, elsewhere as it last saw them ({@link Views.WallsKnown}; since the review of the siege package, until
@@ -413,6 +425,10 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     startStrength: 0,
     provinceWeight: newGameConfig().provinceWeight,
     owner: new Dict(),
+    ownerAsOf: new Dict(),
+    ownerFrom: new Dict(),
+    roadsClosed: [],
+    roadsClosedToUs: [],
     walls: new Dict(),
     sieges: [],
     conquered: new Dict(),
@@ -462,6 +478,10 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   startStrength: I,
   provinceWeight: I,
   owner: dict(opt(S)),
+  ownerAsOf: dict(I),
+  ownerFrom: dict(S),
+  roadsClosed: list(S),
+  roadsClosedToUs: list(S),
   walls: dict(I),
   sieges: list(() => SiegeViewSchema),
   conquered: dict(I),

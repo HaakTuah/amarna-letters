@@ -7,6 +7,7 @@ import {
   OrderValidator,
   type Power,
   TurnEngine,
+  Views,
   type TurnSubmission,
   WorldMap,
   cede,
@@ -67,7 +68,14 @@ describe("KingdomFallTests", () => {
       "With Apasa you took the kingdom of Arzawa: its king has fallen, his troops have disbanded, and his land is yours: Seha River Land.",
       single(inboxOf(s, "Hatti"), (i) => i.title === KingdomFallsTitle).body,
     );
+    // Word of the fall travels (item 7b): Egypt, far away, hears it when the word arrives, and sees Arzawa fallen then.
+    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls");
+    Assert.doesNotContain(Views.for(s, "Egypt").fallen, (p) => p === "Arzawa");
+    let word = single(s.journeys, (j) => j.kind === "Word" && j.to === "Egypt");
+    while (s.turn < word.arriveTurn) season(s, subs({}));
+    new TurnEngine(s).beginTurn();
     Assert.contains("Hatti took its capital, Apasa", single(inboxOf(s, "Egypt"), (i) => i.title === "A kingdom falls").body);
+    Assert.contains(Views.for(s, "Egypt").fallen, (p) => p === "Arzawa");
     Assert.contains(
       s.events,
       (e) => e.kind === "fall" && e.text === "The kingdom of Arzawa has fallen: Hatti took its capital, Apasa, and its land passes to Hatti.",

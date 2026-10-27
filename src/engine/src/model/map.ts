@@ -1,6 +1,7 @@
 import type { Dict } from "../core/collections.ts";
 import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
 import type { Power } from "./power.ts";
+import { crossingBetween } from "./geography.ts";
 
 export const ProvinceKindValues = ["Land", "Coast", "Sea"] as const;
 export type ProvinceKind = (typeof ProvinceKindValues)[number];
@@ -42,8 +43,16 @@ export interface Edge {
   readonly current: boolean;
 }
 
-/** The season of the year (0, 1 or 2) that is winter everywhere: Peret, when the open sea is closed. */
+/** The season of the year (0, 1 or 2) that is winter everywhere: Peret, when the open sea and the mountain passes are closed. */
 export const WinterSeason = 1;
+
+/** The season of the year (0 Akhet, 1 Peret, 2 Shemu) a turn falls in. */
+export const seasonOfTurn = (turn: number): number => (((turn - 1) % 3) + 3) % 3;
+
+/** A connection closed in winter: an open-sea crossing, or a mountain pass. */
+export function closedInWinter(e: Edge): boolean {
+  return e.open || crossingBetween(e.a, e.b)?.kind === "Mountain";
+}
 
 /** The abstract province graph. Static data: never part of the game state. */
 export class WorldMap {
@@ -77,15 +86,18 @@ export class WorldMap {
   }
 
   private winterMap: WorldMap | undefined;
-  /** The map as it can be sailed in winter: the same provinces, without the open-sea crossings. */
+  /**
+   * The map as it can be crossed in winter: the same provinces, without the open-sea crossings and the mountain passes,
+   * closed by the same season (item 7b, "Land and climate").
+   */
   get winter(): WorldMap {
-    if (this.edges.every((e) => !e.open)) return this;
-    return (this.winterMap ??= new WorldMap(this.provinces, this.edges.filter((e) => !e.open)));
+    if (this.edges.every((e) => !closedInWinter(e))) return this;
+    return (this.winterMap ??= new WorldMap(this.provinces, this.edges.filter((e) => !closedInWinter(e))));
   }
 
-  /** The map as it can be crossed in a turn: in winter ({@link WinterSeason}) without the open-sea crossings. */
+  /** The map as it can be crossed in a turn: in winter ({@link WinterSeason}) without the open-sea crossings and the passes. */
   forTurn(turn: number): WorldMap {
-    return (turn - 1) % 3 === WinterSeason ? this.winter : this;
+    return seasonOfTurn(turn) === WinterSeason ? this.winter : this;
   }
 
   /** The open-sea crossing between two sea zones, if that is what joins them (either way round). */

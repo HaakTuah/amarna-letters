@@ -83,13 +83,14 @@ describe("EngineTests", () => {
     );
   });
 
-  test("Travel takes one to three seasons and is symmetric", () => {
+  test("Travel takes one to three seasons, and nearly the same each way", () => {
     let e = new TurnEngine(newGame(1));
     for (const a of AllPowers)
       for (const b of AllPowers.filter((b) => b !== a)) {
         let t = e.travelTurns(a, b);
         Assert.inRange(t, 1, 3);
-        Assert.equal(t, e.travelTurns(b, a));
+        // Currents and rivers make a road quicker one way than the other (item 7b), by a season at most.
+        Assert.inRange(Math.abs(t - e.travelTurns(b, a)), 0, 1);
       }
   });
 

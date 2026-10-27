@@ -305,6 +305,8 @@ describe("FeatureAuditTests", () => {
 
     s.turn = 9;
     s.eliminated.push("Assyria");
+    // Once word of the fall has reached Egypt (item 7b).
+    s.fallsHeard.set("Egypt", ["Assyria"]);
     let sub = await king.decide(Views.for(s, "Egypt"));
     Assert.contains(recall(spy.id), sub.orders);
     Assert.contains(recall(spy.id), new OrderValidator(s).validate("Egypt", sub).accepted);

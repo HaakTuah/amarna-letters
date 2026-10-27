@@ -283,8 +283,8 @@
   Question 5 left the score unchanged; the design document's later words ("not a lump of score") are read as the score
   following the yield (a reading; review question). Revolts, which the design document mentions, are left for later, as
   question 5 planned. The view marks such land in LANDS ("sippar (taken by force in turn 1: yields and counts a third of
-  its yield this season)"), the court's own land only (`SeatView.conquered`): who holds a province is public, but how it
-  changed hands is not, and a mark on every king's land told every court which land had been conquered and which ceded
+  its yield this season)"), the court's own land only (`SeatView.conquered`): who holds a province is known as its news travels (item 7b), and how it
+  changed hands is not public, and a mark on every king's land told every court which land had been conquered and which ceded
   or bought (since the review of the siege package; until then every view carried every mark). The rulebook says so
   under ECONOMY ("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is
   not shown") and in HOW YOU WIN's strength. The public land standings still use base yields.
@@ -297,8 +297,8 @@
   HOW YOU WIN says so ("... + the gold in your treasury - the back pay you owe your people"), and the
   view's treasury line says that back pay is counted against it. (Until the simulation-fixes round's
   Part G, owed gold did not exist: every wage left the treasury each season.)
-- **Land standings.** Every seat's view has one line after its treasury, the same for every court
-  since ownership is public, labelled for what it is: "LAND STANDINGS (a land-yield ratio, not growth:
+- **Land standings.** Every seat's view has one line after its treasury, read from who holds what as each court knows it (since item 7b news of distant land
+  travels), labelled for what it is: "LAND STANDINGS (a land-yield ratio, not growth:
   the yield of the land each power holds now over its homeland's yield at the start, as any court can
   reckon it from who holds what. Growth, which decides who wins, also counts treasuries and back pay,
   so these are not the winning figures, and yours is not your growth on the treasury line): Mitanni
@@ -359,7 +359,8 @@
   with his own land)". The
   conqueror reads "A kingdom falls to you" ("With Apasa you took the kingdom of Arzawa: its king has fallen, his troops
   have disbanded, and his land is yours: Seha River Land."), every other living court the rumour "Word spreads that the
-  kingdom of Arzawa is no more: Hatti took its capital, Apasa." (who holds the capital is public). The game records each
+  kingdom of Arzawa is no more: Hatti took its capital, Apasa.", at once if it sees the capital, else when word of it
+  arrives (item 7b, [travel and news](13-travel-and-news.md)). The game records each
   fall (`GameState.falls`: the season, the conqueror, the capital and the land that passed). A king cannot cede his own
   capital ("you cannot cede your capital: your kingdom falls with it"); a capital that is no longer its king's (his
   kingdom has fallen) can be ceded like any city, and its archive goes with it. The rulebook says so under HOW YOU WIN

@@ -34,6 +34,7 @@ import {
 } from "@amarna/engine";
 import { Sb, joinS } from "./text.ts";
 import { seaRules, terrainRules } from "./rules-ground.ts";
+import { travel, travelRules } from "./rules-travel.ts";
 const rulesCache = new Map<string, string>();
 
 export function leaderRules(primer: boolean, c: GameConfig): string {
@@ -116,6 +117,8 @@ ${terrainRules(c)}
 
 ${seaRules(c)}
 
+${travelRules(c)}
+
 CONDITIONS
 - ${c.sleepingSeats ? "A scheduled entry or a standing order" : "A standing order"} may carry conditions (at most ${MaxConditions}): it runs only if every "if" holds and no "unless" does when it would run. They are read from what you know when they would run, never from what you cannot see: for orders, once the season's audiences are over (what was given and sealed at them counts); for standing answers, as your court begins; troops_in, troops of a power (or any foreign power's) in a province, where you can see them (troops you cannot see count as not there); treasury_less_than and treasury_at_least, your treasury by your ledger; envoy_back, one of your people back at your court and ready; tablet_sealed, a tablet in your archive sealed by you and a court (or any court).${c.sleepingSeats ? " Scheduled orders whose conditions do not hold are dropped for that season, which your news tells you and which wakes nobody." : ""} A standing order whose conditions do not hold when its move comes does not fire, and still stands.
 
@@ -158,7 +161,7 @@ EVIDENCE AND INTELLIGENCE
 - Catastrophes (drought, plague, flood, earthquake) are known exactly only to the power they strike. A court that can see the stricken land hears of it the next season (a drought or plague: any province of that realm in sight; a flood or earthquake: that province in sight). Other courts learn of it only from their envoys and spies.
 
 WHAT YOU SEE
-- Who holds each province is public; how it changed hands is not. You see troops only in your own land, where your troops stand and in the provinces your spies watch, and one link of any kind (land, coast or sea) from those. Troops two links away, or an army carried across the sea by fleets, can still arrive next season without being seen first. You see the walls standing now in the same places; elsewhere you know them as you last saw them. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.
+- Who holds a province you see is as it is; elsewhere you know it as late as news of it reaches you (see NEWS AND TRAVEL), and the fallen kingdoms too. How a province changed hands is not public. You see troops only in your own land, where your troops stand and in the provinces your spies watch, and one link of any kind (land, coast or sea) from those. Troops two links away, or an army carried across the sea by fleets, can still arrive next season without being seen first. You see the walls standing now in the same places; elsewhere you know them as you last saw them. Rivals' treasuries are private. What you know of others comes through your envoys, spies and rumours, and any of them may be wrong.
 - LAND STANDINGS in your view give each power's land-yield ratio: the yield of the land it holds now over its homeland's yield at the start, which anyone can reckon from who holds what. It is not growth: growth, which decides who wins, measures strength (land, treasury and back pay) against a starting strength that includes the starting treasury, and rivals' treasuries are private. Your own growth, by your ledger, is on your treasury line.
 - Your view, part by part: TREASURY is your gold by your ledger, a season's income and costs (wages are paid to your people at court; for those away they build up as back pay, paid when they are back), and your strength and growth. LANDS lists each power's provinces with their walls, rough ground or desert, and the troops in them where you can see them. YOUR ARCHIVE holds the tablets kept at your capital, each named by its seals and date as every court names it, then your own mark for your copy (for your orders only), its text and how it came to you; a tablet you have read in full at earlier orders is shown by its opening words, so keep what it binds you to in your ledger. Battle reports leave out the units that held: they stand where they stood.
 - In your news, a note in square brackets after a report or a pitch (what your weighers found against an inventory, the copies that came home with a spy's report, the wage a candidate asks) is your court's own record, not the words of the envoy, spy or candidate.
@@ -236,18 +239,3 @@ PLANNING AHEAD (how sleeping works)
 - Each time you wake, you are told how long you slept and what woke you, then what happened while you slept: first in brief (the troop movements you saw, the reports that came, the orders that failed, the standing orders that fired), then the news of those seasons in full (the routine treasury notices left out).`;
 }
 
-    /// <summary>
-    /// How long journeys take, as the map and the travel bands make them: between courts, and, if longer, to a distant
-    /// province a spy is sent to watch. Worked out from the map, so it stays true if the bands change.
-    /// </summary>
-function travel(c: GameConfig): string
-    {
-        const map = WorldMap.default;
-        const turns = (from: string, to: string): number => travelTurns(c, map, from, to);
-        const courts = AllPowers.flatMap(a => AllPowers.filter(b => b !== a).map(b => turns(map.capital(a).id, map.capital(b).id)));
-        const fields = max(AllPowers.flatMap(a => map.provinces.filter(x => !x.isSea).map(x => turns(map.capital(a).id, x.id))), x => x);
-        const lo = min(courts, x => x);
-        const hi = max(courts, x => x);
-        const text = `Envoys take ${(lo === hi ? `${lo}` : hi === lo + 1 ? `${lo} or ${hi}` : `${lo} to ${hi}`)} season${(hi === 1 ? `` : `s`)} each way between courts (the table in your view gives each court)`;
-        return text + (fields > hi ? `; a spy sent to watch a distant province may take up to ${fields} seasons to reach it, and its reports as long to come home.` : `.`);
-    }

@@ -29,6 +29,7 @@ import { Board } from "./board.ts";
 import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
 import { personalityFor, type Personality } from "./personality.ts";
+import { roadPolicy } from "./roads.ts";
 import { Search } from "./search.ts";
 import { Statecraft } from "./statecraft.ts";
 import { Tactics, type MilitaryPlan } from "./tactics.ts";
@@ -93,6 +94,7 @@ export class ScriptLeader implements ISeat {
     const busy = new HSet<string>();
     Statecraft.court(board, brain, orders, busy, rng);
     Statecraft.letters(board, brain, orders, busy, rng);
+    roadPolicy(board, brain, orders);
     // Standing orders last, against the season's whole plan: those kept may change it if the blow comes.
     const [cancel, give] = Contingencies.plan(board, brain, plan, orders);
 

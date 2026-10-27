@@ -44,6 +44,7 @@ declare module "./core.ts" {
     tightness(x: Siege): number;
     caughtByBesiegers(c: Character, tightness: number): boolean;
     intercept(c: Character, lord: Power, siege: Siege, leaving: boolean, dispatch: Dispatch | null, cargo: HomeCargo | null, due: number): void;
+    seize(c: Character, lord: Power, captor: Power, dispatch: Dispatch | null, cargo: HomeCargo | null, source: string): string[];
     surrender(x: Siege, owner: Power | null, tell: (p: Power | null, line: string) => void): void;
     assaultText(a: Assault): string;
     ownWallsText(a: Assault): string;
@@ -259,27 +260,7 @@ P.intercept = function (c, lord, siege, leaving, dispatch, cargo, due) {
   c.intercepted = true;
   const trail = this.trail(dispatch?.trailId ?? cargo?.trailId ?? null);
   trail?.outcomes.push(`caught ${leaving ? "leaving" : "coming home to"} ${city} by ${besieger}'s besiegers`);
-  const lines: string[] = [];
-  const gold = dispatch?.gold ?? cargo?.gold ?? 0;
-  const purity = dispatch?.purityPercent ?? cargo?.purityPercent ?? 100;
-  if (gold > 0) {
-    const fine = toInt(roundEven((gold * purity) / 100.0));
-    S.treasuries.get(besieger).gold += fine;
-    S.treasuries.get(besieger).lots.push(newGoldLot({ id: newId(S, "g"), from: lord, stated: gold, face: gold, true: fine, arrivedTurn: S.turn + S.deliveryOffset }));
-    lines.push(`He carried ${formatMoney(gold)} of gold, which your troops took.`);
-  }
-  // The tablets it carried: the one it was to have sealed, those shown as evidence, those it brought home.
-  const tablets: string[] = [];
-  if (dispatch !== null && dispatch.proposalTabletId !== null) tablets.push(dispatch.proposalTabletId);
-  for (const copyId of dispatch?.copyIds ?? []) {
-    const shown = S.copies.find((k) => k.id === copyId);
-    if (shown !== undefined) tablets.push(shown.tabletId);
-  }
-  tablets.push(...(cargo?.copyIds ?? []));
-  const held = new HSet(S.copies.filter((k) => k.holder === besieger).map((k) => k.tabletId));
-  for (const id of distinct(tablets).filter((x) => held.add(x)))
-    S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: id, holder: besieger, acquiredTurn: S.turn, source: `taken from ${c.name}, envoy of ${lord}, caught at ${city}` }));
-  if (tablets.length > 0) lines.push("The tablets he carried are in your archive now.");
+  const lines = this.seize(c, lord, besieger, dispatch, cargo, `taken from ${c.name}, envoy of ${lord}, caught at ${city}`);
   const said =
     dispatch !== null
       ? `leaving the city for the court of ${trail?.to ?? ""}. The letter he was to speak: "${dispatch.letter}"` + (dispatch.mandate.length > 0 ? ` His mandate: "${dispatch.mandate}"` : "")
@@ -312,7 +293,7 @@ P.surrender = function (x, owner, tell) {
   const seasons = S.turn - x.since + 1;
   S.sieges.splice(S.sieges.indexOf(x), 1);
   this.lowerWalls(prov);
-  S.owner.set(prov, x.power);
+  this.setOwner(prov, x.power);
   this.takenByForce(prov, x.power);
   const w = wallsOf(S, prov);
   const left = w > 0 ? `walls ${w}` : "no walls";
@@ -357,4 +338,35 @@ P.ownWallsText = function (a) {
   return stormed(a)
     ? `Your walled city of ${name}: ${who} stormed the walls (${strengths}): ${name} is taken.`
     : `Your walled city of ${name}: ${who} got within the walls but did not storm them (${strengths}): it stands inside, and ${name} stays yours unless a siege wears it down.`;
+};
+
+/**
+ * What a captor takes from an envoy it catches, besieging a city or on the road: the gold it carried, into its treasury
+ * at its fine weight, and the tablets (the one to be sealed, those shown as evidence, those brought home) into its
+ * archive. Returns the lines that tell the captor.
+ */
+P.seize = function (c, lord, captor, dispatch, cargo, source) {
+  const S = this.s;
+  const lines: string[] = [];
+  const gold = dispatch?.gold ?? cargo?.gold ?? 0;
+  const purity = dispatch?.purityPercent ?? cargo?.purityPercent ?? 100;
+  if (gold > 0) {
+    const fine = toInt(roundEven((gold * purity) / 100.0));
+    S.treasuries.get(captor).gold += fine;
+    S.treasuries.get(captor).lots.push(newGoldLot({ id: newId(S, "g"), from: lord, stated: gold, face: gold, true: fine, arrivedTurn: S.turn + S.deliveryOffset }));
+    lines.push(`He carried ${formatMoney(gold)} of gold, which your troops took.`);
+  }
+  // The tablets it carried: the one it was to have sealed, those shown as evidence, those it brought home.
+  const tablets: string[] = [];
+  if (dispatch !== null && dispatch.proposalTabletId !== null) tablets.push(dispatch.proposalTabletId);
+  for (const copyId of dispatch?.copyIds ?? []) {
+    const shown = S.copies.find((k) => k.id === copyId);
+    if (shown !== undefined) tablets.push(shown.tabletId);
+  }
+  tablets.push(...(cargo?.copyIds ?? []));
+  const held = new HSet(S.copies.filter((k) => k.holder === captor).map((k) => k.tabletId));
+  for (const id of distinct(tablets).filter((x) => held.add(x)))
+    S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: id, holder: captor, acquiredTurn: S.turn, source }));
+  if (tablets.length > 0) lines.push("The tablets he carried are in your archive now.");
+  return lines;
 };

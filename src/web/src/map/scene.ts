@@ -4,7 +4,7 @@
  * news that reached it), never from anything it could not know.
  */
 import { WorldMap, newGameConfig, parsePower, travelTurns, type InboxKind, type Power, type UnitKind } from "@amarna/engine";
-import { coverOf, isMove, ownerOf, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
+import { coverOf, isMove, ownerFor, ownerOf, type FrameMove, type FrameSiege, type FrameUnit, type SeasonFrame } from "../session/frames.ts";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { along, city, route, type Pt } from "./art.ts";
 
@@ -96,8 +96,13 @@ export interface MapScene {
   index: number;
   viewer: Power | null;
   frame: SeasonFrame;
-  /** Seat view: seasons since each province was last in sight (0 = in sight now); absent = never seen. */
+  /**
+   * Seat view: how old the court's knowledge of each province is, in seasons (0 = in sight now): at sea since it was last
+   * in sight, on land the age of its news of the holder too (item 7b), whichever is newer; absent = never seen nor heard of.
+   */
   fogAge: Map<string, number>;
+  /** Who holds each land province, as the viewer knows it (god view: as it is). */
+  owner: Map<string, Power | null>;
   units: SceneUnit[];
   moves: SceneMove[];
   destroyed: SceneUnit[];
@@ -152,6 +157,12 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
       }
     }
     for (const [prov, j] of lastSeen) fog.set(prov, index - j);
+    // News of the holder travels (item 7b): a province never seen, or seen long ago, is as old as the news of it.
+    for (const [prov, k] of f.knownOwner.get(p) ?? []) {
+      const age = Math.max(0, f.turn - k.turn);
+      const had = fog.get(prov);
+      if (had === undefined || age < had) fog.set(prov, age);
+    }
     const now = f.sight.get(p) ?? new Set<string>();
     units.push(
       ...stack(
@@ -187,8 +198,8 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const captures: SceneCapture[] = [];
   if (prev !== null)
     for (const prov of Map_.landProvinces) {
-      const was = ownerOf(prev, prov.id);
-      const now = ownerOf(f, prov.id);
+      const was = ownerFor(prev, prov.id, viewer);
+      const now = ownerFor(f, prov.id, viewer);
       if (was === now) continue;
       // Taken by arms only if the viewer saw the new owner march in.
       const taken = now !== null && seen.some((m) => isMove(m) && m.succeeded && m.target === prov.id && m.power === now);
@@ -200,7 +211,8 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const news = viewer !== null ? newsOf(frames, index, viewer) : [];
   const sieges = viewer !== null ? f.sieges.filter((x) => x.besieger === viewer || ownerOf(f, x.province) === viewer || (f.sight.get(viewer)?.has(x.province) ?? false)) : [...f.sieges];
 
-  return { index, viewer, frame: f, fogAge: fog, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer) };
+  const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
+  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer) };
 }
 
 function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt: number): SceneUnit[] {
@@ -420,7 +432,7 @@ function seatPeople(f: SeasonFrame, p: Power): [SceneTraveller[], ScenePerson[]]
           const so = SetOut.exec(cover.timingText);
           const abroad = so !== null ? parsePower(so[2]) : null;
           const from = abroad !== null ? capOf(abroad) : c.mission !== null ? capOf(c.mission) : (c.watch ?? home);
-          const depart = arrive - travelTurns(newGameConfig(), Map_, from, home);
+          const depart = arrive - travelTurns(newGameConfig(), Map_, from, home, now);
           travellers.push({
             key: `b:${c.id}`,
             kind: c.calling.toLowerCase().includes("spy") || cover.whereText.startsWith("in ") ? "Spy" : "Envoy",

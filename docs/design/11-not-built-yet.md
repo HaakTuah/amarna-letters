@@ -5,8 +5,9 @@ of the design document, in whichever tab its system is (`grep -rn "Title" docs/i
 `docs/rounds/2026-10-18-sleep-and-simulation.md`; "item N" is in its Build order; "the round report" is the
 simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixes.md`.
 
-- **News that travels**: distant provinces, and who holds them, shown at their last known state with its date, the
-  news carried by people ("Hidden by default"; question 6; item 7).
+- **Sharing news**: attaching a copy of a report to an envoy, and model kings and script kings selling or faking
+  structured reports ("Information as a structured asset"; items 8 and 11). News of who holds what travels since item 7b
+  ([travel and news](13-travel-and-news.md)).
 - **Envoy authority and passage grants**: mandates with engine-checkable limits, the authority to seal within them,
   credentials shown or hidden, passage, basing and trade rights on sealed tablets ("Envoy authority and
   resident envoys"; questions 2, 3 and 14; item 9).
@@ -71,5 +72,5 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
 - **Echoes kept out of the primer**: Finkel's "Send gold" parody as a rare script king's letter or chronicle line, and
   "a new Idrimi" in the chronicles once outlaws exist ("Echoes from the archive" and "A new Idrimi").
 - **Still to be decided before they are built**: the spec of the economy's later phases, and multiplayer, stages 2
-  and 3 (Build order "Not yet in the order"; "Path to multiplayer"). Distance-based travel and interception (item 7b),
-  the economy's first phase (item 9+) and the royal council (item 16) have been decided and are in the build order.
+  and 3 (Build order "Not yet in the order"; "Path to multiplayer"). Distance-based travel and interception were built in
+  item 7b; the economy's first phase (item 9+) and the royal council (item 16) have been decided and are in the build order.

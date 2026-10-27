@@ -1,7 +1,6 @@
 import { WorldMap, dateLabel, shortDate, type Province } from "@amarna/engine";
 import { useState } from "react";
 import type { MapScene } from "../map/scene.ts";
-import { ownerOf } from "../session/frames.ts";
 import { powerName } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
 
@@ -11,11 +10,10 @@ import { Emblem } from "./Emblem.tsx";
  */
 export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene; selected: string | null; onProvince: (id: string) => void }) {
   const [filter, setFilter] = useState("");
-  const f = scene.frame;
   const groups = new Map<string, Province[]>();
   for (const p of WorldMap.default.provinces) {
     if (filter.length > 0 && !p.name.toLowerCase().includes(filter.toLowerCase())) continue;
-    const o = ownerOf(f, p.id);
+    const o = scene.owner.get(p.id) ?? null;
     const key = p.isSea ? "Sea zones" : o !== null ? powerName(o) : "Free cities";
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(p);
@@ -39,7 +37,7 @@ export function ProvinceList({ scene, selected, onProvince }: { scene: MapScene;
                 return (
                   <li key={p.id} className={selected === p.id ? "on" : ""}>
                     <button className="prow" onClick={() => onProvince(p.id)}>
-                      <Emblem power={p.isSea ? null : ownerOf(f, p.id)} />
+                      <Emblem power={p.isSea ? null : (scene.owner.get(p.id) ?? null)} />
                       <span className="pname">
                         {p.name}
                         {p.capital ? " ♛" : ""}

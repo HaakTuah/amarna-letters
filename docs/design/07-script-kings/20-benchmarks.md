@@ -39,6 +39,12 @@ all, 96% of wins alone and 14% as baseline (by power, and the same seeds with th
 `--no-sea-play`, in `docs/rounds/2026-10-27-map-and-seas.md`). The baseline was adapted only as the rules required (it
 convoys over one zone at most and never blockades).
 
+Build order item 7b (travel and news: routes in days, the road check, closed roads, news that travels; save version 11)
+made Egypt less dominant and Arzawa alone weaker: 9.30 growth alone and 1.38 as baseline over all, 89% of wins alone and
+14% as baseline (by power, and the same seeds with half the kings closing their roads, `--road-play-half`, in
+`docs/rounds/2026-10-27-travel-and-news.md`). The baseline was adapted only as the rules required (it never closes its
+roads).
+
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
 

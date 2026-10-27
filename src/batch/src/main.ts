@@ -48,7 +48,9 @@ const o: BatchOptions = {
   sleepingScripts: false,
   planAhead: true,
   seaPlay: true,
+  roadPlay: true,
   planAheadHalf: false,
+  roadPlayHalf: false,
   simulateApi: false,
   providers: [],
   prices: {},
@@ -115,9 +117,16 @@ for (let i = 0; i < args.length; i++) {
     case "--no-sea-play":
       o.seaPlay = false;
       break;
+    case "--no-road-play":
+      o.roadPlay = false;
+      break;
     case "--no-plan-ahead":
       // Script kings that sleep schedule nothing ahead: to measure what conditional scheduled orders are worth to them.
       o.planAhead = false;
+      break;
+    case "--road-play-half":
+      // Half the script kings close their roads to their foes, alternating by seed: the two sides compared on the same seeds.
+      o.roadPlayHalf = true;
       break;
     case "--plan-ahead-half":
       // Half the sleeping script kings plan ahead, alternating by seed: the two sides compared on the same seeds.
@@ -255,7 +264,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -429,6 +438,8 @@ for (const outcome of played) {
 console.log();
 if (results.length > 0) console.log(batchReport(results));
 if (o.versus && results.length > 0) console.log(versusReport(results, sides));
+if (o.roadPlayHalf && results.length > 0)
+  console.log("\nScript kings that close their roads to their foes (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.planAheadHalf && results.length > 0)
   console.log("\nSleeping script kings that plan ahead (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 console.log(`\n${fmt((Date.now() - started) / 1000, "0.0")}s`);
