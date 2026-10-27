@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 29 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 33 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Command at a distance
 
 **Command at a distance (decided, one package: build order item 13).** These ideas depend on each other and on distance inside your own realm (below, under "Travel, passage and distance"); without internal delay, neither the capital's location nor generals would matter, so they should be introduced together.
