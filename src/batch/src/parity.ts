@@ -10,8 +10,8 @@ import { runPool } from "./pool.ts";
 import type { ReplayJob, ReplayResult } from "./parity-worker.ts";
 
 const [mode, dir, fpDir] = process.argv.slice(2);
-if ((mode !== "replay" && mode !== "play" && mode !== "play-sleeping" && mode !== "play-versus" && mode !== "lenient") || !dir) {
-  console.error("usage: parity.ts replay|play|play-sleeping|play-versus|lenient LOGS [FINGERPRINTS]");
+if ((mode !== "replay" && mode !== "play" && mode !== "play-sleeping" && mode !== "play-versus" && mode !== "play-simulated" && mode !== "play-simulated-awake" && mode !== "lenient") || !dir) {
+  console.error("usage: parity.ts replay|play|play-sleeping|play-versus|play-simulated|play-simulated-awake|lenient LOGS [FINGERPRINTS]");
   process.exit(2);
 }
 const jobs: ReplayJob[] = readdirSync(dir)
@@ -21,7 +21,7 @@ const jobs: ReplayJob[] = readdirSync(dir)
     log: join(dir, f),
     fingerprints: join(fpDir ?? dir, f.replace(".jsonl", ".parity.tsv")),
     lenient: mode === "lenient",
-    play: mode === "replay" || mode === "lenient" ? undefined : { seed: Number(f.match(/\d+/)![0]), sleeping: mode === "play-sleeping", versus: mode === "play-versus" },
+    play: mode === "replay" || mode === "lenient" ? undefined : { seed: Number(f.match(/\d+/)![0]), sleeping: mode === "play-sleeping", versus: mode === "play-versus", simulated: mode.startsWith("play-simulated"), awake: mode === "play-simulated-awake" },
   }));
 const started = Date.now();
 const results = await runPool<ReplayJob, ReplayResult>(new URL("./parity-worker.ts", import.meta.url), jobs);

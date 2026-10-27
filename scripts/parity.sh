@@ -15,12 +15,19 @@ dotnet build src/Amarna.Batch -c Release -v q >"$OUT/build.log" 2>&1 || { tail -
 run() { # name, games, first seed, the TypeScript play mode, extra arguments
   dotnet run --no-build --project src/Amarna.Batch -c Release -- --games "$2" --seed "$3" ${5:-} --fingerprints "$OUT/$1" --out "$OUT/$1" >"$OUT/$1.log" 2>&1 || { tail -20 "$OUT/$1.log"; exit 1; }
   rm -f "$OUT/$1"/*.final.json
-  node --experimental-strip-types --no-warnings src/batch/src/parity.ts replay "$OUT/$1" || rc=1
+  # A replay reads the decisions only: the request-text column, which only a game played afresh can write, is left out.
+  mkdir -p "$OUT/$1.replay"
+  for f in "$OUT/$1"/*.parity.tsv; do cut -f1-4 "$f" >"$OUT/$1.replay/$(basename "$f")"; done
+  node --experimental-strip-types --no-warnings src/batch/src/parity.ts replay "$OUT/$1" "$OUT/$1.replay" || rc=1
   node --experimental-strip-types --no-warnings src/batch/src/parity.ts "$4" "$OUT/$1" || rc=1
 }
 run scripts "$GAMES" "$SEED" play
 run sleeping 60 1001 play-sleeping --sleeping-scripts
 run versus 60 2001 play-versus "--versus baseline"
+# The model layer: every role on the simulated API (canned replies; no call leaves the machine), every other king a script
+# king so that envoys reach the model kings; the fifth column fingerprints every request's text (rulebook, prompts, schemas).
+run simulated 12 3001 play-simulated "--simulate-api --preset showcase --alternate-script"
+run simulated-awake 6 4001 play-simulated-awake "--simulate-api --preset showcase --alternate-script --sleep off"
 # The recorded model games, replayed leniently by both builds (recorded replies where their keys match, scripts elsewhere).
 mkdir -p "$OUT/recorded"
 for f in tests/fixtures/replays/*.jsonl; do

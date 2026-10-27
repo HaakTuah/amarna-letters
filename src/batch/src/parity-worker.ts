@@ -1,14 +1,15 @@
 /** A parity worker: replays one C# game log through the TypeScript build and compares the fingerprints of every phase. */
 import { readFileSync } from "node:fs";
 import { parentPort } from "node:worker_threads";
-import { AllPowers, Dict, GameFactory, type Power } from "@amarna/engine";
+import { AllPowers, Dict, GameFactory, newGameConfig, type Power } from "@amarna/engine";
+import { Presets, SeatChoices, SimulatedApi, bodyText, buildSeats } from "@amarna/llm";
 import { BaselineLeader, GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, attachParity, replayLenient, type ISeat } from "@amarna/game";
 
 /** `play`: instead of replaying the log, play the game afresh with script kings (sleeping ones, as --sleeping-scripts). */
 export interface ReplayJob {
   log: string;
   fingerprints: string;
-  play?: { seed: number; sleeping: boolean; versus?: boolean };
+  play?: { seed: number; sleeping: boolean; versus?: boolean; simulated?: boolean; awake?: boolean };
   /** Replay the log leniently (replayLenient) instead. */
   lenient?: boolean;
 }
@@ -45,6 +46,39 @@ parentPort!.on("message", async (job: ReplayJob) => {
     let error: string | null = null;
     try {
       lines = await replayLenient(GameLog.fromJsonl(readFileSync(job.log, "utf8")));
+    } catch (e) {
+      error = e instanceof Error ? (e.stack ?? e.message).split("\n").slice(0, 6).join("\n") : String(e);
+    }
+    parentPort!.postMessage(compare(job, expected, lines, error));
+    return;
+  }
+  if (job.play?.simulated) {
+    // Every role on the simulated API (the showcase preset): the requests' text is fingerprinted with every phase.
+    // awake: with sleeping seats off (the batch runner's --sleep off).
+    const state = GameFactory.newGame(job.play.seed, job.play.awake ? newGameConfig({ sleepingSeats: false }) : null);
+    const api = new SimulatedApi();
+    api.reportUsage = false;
+    const choices = new SeatChoices();
+    Presets.Showcase.applyTo(choices);
+    // Every other king a script king (--alternate-script), so that envoys reach the model kings and their characters.
+    AllPowers.forEach((p, k) => {
+      if (k % 2 === 1) choices.leaders.set(p, "Script");
+    });
+    let runner: GameRunner | null = null;
+    const set = buildSeats(choices, state, api, () => runner!.log);
+    runner = new GameRunner(state, set.seats, set.minds, set.narrator);
+    let drained = 0;
+    const lines = attachParity(runner, () => {
+      const bodies = api.requests.slice(drained).map(bodyText);
+      drained = api.requests.length;
+      return bodies;
+    });
+    let error: string | null = null;
+    try {
+      await runner.prepare();
+      while (await runner.playTurn()) {
+        /* the whole game */
+      }
     } catch (e) {
       error = e instanceof Error ? (e.stack ?? e.message).split("\n").slice(0, 6).join("\n") : String(e);
     }

@@ -12,8 +12,12 @@ import type { ISeat } from "./contracts.ts";
 import type { GameLog } from "./log.ts";
 import { GameRunner } from "./runner.ts";
 
-/** Fingerprints a runner's game as it plays: the lines are added to the list returned. */
-export function attachParity(runner: GameRunner): string[] {
+/**
+ * Fingerprints a runner's game as it plays: the lines are added to the list returned. With `requests` (the model requests
+ * made since the last phase, as JSON text), a fifth column hashes them, in ordinal order: the rulebook, prompts, request
+ * text and schemas.
+ */
+export function attachParity(runner: GameRunner, requests: (() => string[]) | null = null): string[] {
   const lines: string[] = [];
   let seen = 0;
   runner.phaseDone = (phase) => {
@@ -21,7 +25,9 @@ export function attachParity(runner: GameRunner): string[] {
     seen = runner.log.decisions.length;
     let text = "";
     for (const d of decisions) text += d.key + "\n" + d.json + "\n";
-    lines.push(`${runner.state.seed}\t${phase}\t${hash(GameStateSchema, runner.state)}\t${fnv64(text)}`);
+    let line = `${runner.state.seed}\t${phase}\t${hash(GameStateSchema, runner.state)}\t${fnv64(text)}`;
+    if (requests !== null) line += `\t${fnv64(sortBy(requests(), [(x: string) => x, cmpStr]).join("\n"))}`;
+    lines.push(line);
   };
   return lines;
 }

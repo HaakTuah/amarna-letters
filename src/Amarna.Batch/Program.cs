@@ -42,6 +42,7 @@ var noChronicles = false;
 var config = new GameConfig();
 var versus = false;
 string? replayLenient = null;
+var simulateApi = false;
 var solo = false;
 Power? focus = null;
 string? fileSeats = null;
@@ -63,6 +64,10 @@ for (var i = 0; i < args.Length; i++)
         // Script kings that sleep as model seats do, so that a script game runs the engine's sleeping-seat rules (parity).
         case "--sleeping-scripts": sleepingScripts = true; break;
         case "--replay-lenient": replayLenient = args[++i]; break;
+        // The simulated API (canned replies, no calls leave this program): the TypeScript conversion's text fingerprints.
+        case "--simulate-api": simulateApi = true; break;
+        // Every other king (Hatti, Mitanni, Arzawa) a script king, so that envoys reach the model kings and their characters.
+        case "--alternate-script": foreach (var p in Powers.All.Where((_, k) => k % 2 == 1)) choices.Leaders[p] = LeaderKind.Script; break;
         case "--verify-replay": verify = true; break;
         case "--detail": detail = true; break;
         case "--budget": budget = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
@@ -104,7 +109,7 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --replay-lenient LOG");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --replay-lenient LOG --simulate-api --alternate-script");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
@@ -189,7 +194,7 @@ if (fileCharacters is not null)
 }
 
 var key = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY");
-if (choices.UsesModels && string.IsNullOrWhiteSpace(key))
+if (choices.UsesModels && string.IsNullOrWhiteSpace(key) && !simulateApi)
 {
     Console.Error.WriteLine("Model seats need ANTHROPIC_API_KEY set in the environment.");
     return;
@@ -219,7 +224,10 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
     var current = focus is { } only ? new HashSet<Power> { only } : Powers.All.Where((p, i) => !versus || (i + (int)(s % 2)) % 2 == 0).ToHashSet();
     var summary = await BatchRunner.PlayAsync(s, state =>
     {
-        var set = SeatSetup.Build(choices, state, key, browser: false, () => last!.Log);
+        var simulated = simulateApi ? new SimulatedAnthropic { ReportUsage = false } : null;
+        var set = simulated is not null
+            ? SeatSetup.Build(choices, state, "simulated", browser: true, () => last!.Log, simulated)
+            : SeatSetup.Build(choices, state, key, browser: false, () => last!.Log);
         var seats = set.Seats;
         foreach (var (p, folder) in folders)
         {
@@ -236,7 +244,7 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
         var minds = characterFolders.Count == 0 ? set.Minds
             : FileCharacters.Mind(characterFolders, TimeSpan.FromMinutes(fileTimeout), call => last!.Log.AddCall(call), s => last!.Log.AddShadow(s), Console.WriteLine);
         last = new GameRunner(state, seats, minds, set.Narrator) { WriteChronicles = !noChronicles };
-        if (parityDir is not null) fingerprints = Parity.Attach(last);
+        if (parityDir is not null) fingerprints = Parity.Attach(last, simulated is null ? null : simulated.Drain);
         return last;
     }, verify, log: Console.Error.WriteLine, config: config);
     if (parityDir is not null) await File.WriteAllLinesAsync(Path.Combine(parityDir, $"game-{s}.parity.tsv"), fingerprints!);

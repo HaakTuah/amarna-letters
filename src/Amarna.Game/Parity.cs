@@ -11,8 +11,12 @@ namespace Amarna.Game;
 /// </summary>
 public static class Parity
 {
-    /// <summary>Fingerprints a runner's game as it plays: the lines are added to the list returned.</summary>
-    public static List<string> Attach(GameRunner runner)
+    /// <summary>
+    /// Fingerprints a runner's game as it plays: the lines are added to the list returned. With <paramref name="requests"/>
+    /// (the model requests made since the last phase, as JSON text), a fifth column hashes them, in ordinal order: the
+    /// rulebook, prompts, request text and schemas.
+    /// </summary>
+    public static List<string> Attach(GameRunner runner, Func<IEnumerable<string>>? requests = null)
     {
         var lines = new List<string>();
         var seen = 0;
@@ -22,7 +26,9 @@ public static class Parity
             seen = runner.Log.Decisions.Count;
             var text = new StringBuilder();
             foreach (var (key, json) in decisions) text.Append(key).Append('\n').Append(json).Append('\n');
-            lines.Add($"{runner.State.Seed}\t{phase}\t{Json.Hash(runner.State)}\t{Rng.Fnv(text.ToString()):x16}");
+            var line = $"{runner.State.Seed}\t{phase}\t{Json.Hash(runner.State)}\t{Rng.Fnv(text.ToString()):x16}";
+            if (requests is not null) line += $"\t{Rng.Fnv(string.Join("\n", requests().OrderBy(x => x, StringComparer.Ordinal))):x16}";
+            lines.Add(line);
         };
         return lines;
     }
