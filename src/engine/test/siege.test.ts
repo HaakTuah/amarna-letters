@@ -43,6 +43,9 @@ describe("SiegeTests", () => {
   function board(): GameState {
     // Suhu was Mari until item 7a's map review, which took Mari's walls away: the tests give them back.
     let s = walled(newGame(1, newGameConfig({ catastropheChance: 0 })), "suhu", 2);
+    // Full stores and a stocked market (item 9+a): the city does not starve unless a test empties them.
+    s.stores.set("suhu", 1000);
+    s.markets.get("suhu").stock = 500;
     return s;
   }
 
@@ -61,37 +64,34 @@ describe("SiegeTests", () => {
     return last(inboxOf(s, p), (i) => i.title === title && i.turn === s.turn).body;
   }
 
-  test("A lone army takes walls 2 in the second season after it got in and the walls fall a level", () => {
+  test("A besieged city that runs out of food surrenders, its walls a level lower", () => {
     let s = board();
     season(s, ordersOf("Babylonia", move("sippar", "suhu")));
     Assert.equal("Babylonia", unitAt(s, "suhu")?.power);
     Assert.null(s.owner.get("suhu"));
     Assert.empty(s.sieges);
 
-    // First besiege season: worn down 1 of 2.
+    // First besiege season: worn down 1 of 6 (two levels, three seasons of wear each).
     season(s, ordersOf("Babylonia", besiege("suhu")));
     let siege = Assert.single(s.sieges);
     Assert.equal(["Babylonia", 1, 2], [siege.power, siege.progress, siege.since]);
     Assert.null(s.owner.get("suhu"));
-    Assert.contains(
-      "Your siege of Suhu (walls 2, a free city) has begun, and it wore the city down a step: it stands at 1 of 2.",
-      notice(s, "Babylonia", SiegesTitle),
-    );
+    Assert.contains("Your siege of Suhu (walls 2, a free city) has begun, and it wore the city down a step: it stands at 1 of 6.", notice(s, "Babylonia", SiegesTitle));
     Assert.contains(Views.for(s, "Babylonia").sieges, (x) => x.province === "suhu" && x.progress === 1 && x.walls === 2);
 
-    // One besiege order is enough: holding with no order presses the siege, and Suhu surrenders.
+    // Its stores and market are empty: as the next season begins it cannot feed its people, and it surrenders.
+    s.stores.delete("suhu");
+    s.markets.get("suhu").stock = 0;
     season(s, new Dict());
     Assert.empty(s.sieges);
     Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal(1, wallsOf(s, "suhu"));
-    Assert.contains(
-      "Suhu surrendered to you after a siege of 2 seasons: it is yours, with its walls a level lower (walls 1).",
-      notice(s, "Babylonia", SiegesTitle),
-    );
+    Assert.contains("Suhu surrendered to you after a siege of 2 seasons, its food gone: it is yours, with its walls a level lower (walls 1).", notice(s, "Babylonia", SiegesTitle));
     Assert.contains(s.events, (e) => e.kind === "siege" && e.text === "Suhu surrendered to Babylonia after a siege of 2 seasons.");
+    Assert.contains(s.events, (e) => e.signal === "siege-starved");
   });
 
-  test("A support to hold wears the city down two steps and a cut one does not", () => {
+  test("A support to hold wears the city down two steps and a cut one does not; worn through, the walls are breached", () => {
     let s = board();
     s.owner.set("suhu", "Mitanni");
     s.walls.set("suhu", 3);
@@ -99,12 +99,9 @@ describe("SiegeTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
     season(s, ordersOf("Babylonia", besiege("suhu"), support("sippar", "suhu")));
     Assert.equal(2, Assert.single(s.sieges).progress);
-    Assert.contains(
-      "Babylonia's army has laid siege to your city of Suhu (walls 3) and wore it down two steps, with a support: it stands at 2 of 3.",
-      notice(s, "Mitanni", SiegesTitle),
-    );
+    Assert.contains("Babylonia's army has laid siege to your city of Suhu (walls 3) and wore it down two steps, with a support: it stands at 2 of 9.", notice(s, "Mitanni", SiegesTitle));
 
-    // The support is cut by an attack on Sippar: one step only, and Suhu surrenders at 3.
+    // The support is cut by an attack on Sippar: one step only.
     season(
       s,
       subs({
@@ -112,9 +109,14 @@ describe("SiegeTests", () => {
         Assyria: { orders: [move("ekallate", "sippar")] },
       }),
     );
+    Assert.equal(3, Assert.single(s.sieges).progress);
+    Assert.equal("Mitanni", s.owner.get("suhu"));
+    // Worn to the last step, the next season breaches the walls.
+    Assert.single(s.sieges).progress = 8;
+    season(s, new Dict());
     Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal(2, wallsOf(s, "suhu"));
-    Assert.contains(inboxOf(s, "Mitanni"), (i) => i.title === "Land lost" && i.body === "Suhu has surrendered to Babylonia after a siege of 2 seasons.");
+    Assert.contains(inboxOf(s, "Mitanni"), (i) => i.title === "Land lost" && i.body.startsWith("Suhu has surrendered to Babylonia") && i.body.endsWith("its walls breached."));
   });
 
   test("A siege whose army leaves is lifted and its progress lost", () => {
@@ -139,11 +141,11 @@ describe("SiegeTests", () => {
     s.owner.set("suhu", "Mitanni");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
     let e = new TurnEngine(s);
-    let income = e.income("Mitanni");
+    Assert.true(e.effectiveYield("suhu") > 0);
     let upkeep = e.upkeep("Babylonia");
     season(s, ordersOf("Babylonia", besiege("suhu")));
     e = new TurnEngine(s);
-    Assert.equal(income - 35, e.income("Mitanni"));
+    Assert.equal(0, e.effectiveYield("suhu"));
     Assert.equal(upkeep + s.config.siegeUpkeep, e.upkeep("Babylonia"));
     // The city still counts in its holder's strength.
     Assert.contains("suhu", ownedBy(s, "Mitanni"));

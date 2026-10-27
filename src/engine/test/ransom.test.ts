@@ -6,6 +6,9 @@ import {
   type CharacterView,
   CharacterViewSchema,
   Dict,
+  WorldMap,
+  economyOf,
+  ownedBy,
   type GameConfig,
   type GameState,
   GameStateSchema,
@@ -325,7 +328,8 @@ describe("RansomTests", () => {
     let [purse, gold] = [spy.purse, s.treasuries.get("Egypt").gold];
     let e = new TurnEngine(s);
     let [income, upkeep, others] = [
-      e.income("Egypt"),
+      // Gold comes in from the mines as the season begins (item 9+a), and from sales, none here.
+      sum(ownedBy(s, "Egypt"), (id) => economyOf(WorldMap.default.get(id)).mine),
       e.upkeep("Egypt"),
       sum(
         Views.for(s, "Egypt").court.filter((c) => c.id !== spy.id && c.ready),

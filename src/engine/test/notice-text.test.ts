@@ -42,7 +42,7 @@ describe("NoticeTextTests", () => {
     let s = newGame(5);
     new TurnEngine(s).beginTurn();
     let notice = single(inboxOf(s, "Egypt"), (i) => i.title === "The treasury");
-    Assert.contains("After income, upkeep and wages, the treasury holds", notice.body);
+    Assert.contains("The treasury now holds", notice.body);
     Assert.contains("gold received at audiences or brought home by your envoys this season is added later", notice.body);
   });
 

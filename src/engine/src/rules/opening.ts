@@ -4,12 +4,15 @@
  */
 import { WorldMap, StartGold, StartUnits, type StartUnit, type UnitKind } from "../model/map.ts";
 import type { GameConfig } from "../model/config.ts";
+import { carriedOf, economyOf, grainWorth, harvestOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
+import { strengthOf } from "./scoring.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import { StartClaims } from "../model/recognition.ts";
 
 export interface Opening {
   power: Power;
   units: readonly StartUnit[];
+  /** What its homeland produces a season at reference prices (item 9+a): the whole harvest and the mines. */
   homelandYield: number;
   gold: number;
   strength: number;
@@ -31,10 +34,18 @@ export function openingTroops(o: Opening): string {
 export function openings(config: GameConfig, map: WorldMap | null = null): Opening[] {
   const m = map ?? WorldMap.default;
   return AllPowers.map((p) => {
+    // The wealth of the realm at the start (item 9+a): its land's worth, its treasury, and its provinces' purses, stores
+    // and markets and its troops' baggage, as rules/factory.ts sets them.
     let y = 0;
-    for (const x of m.homeOf(p)) y += x.yield;
+    let held = 0;
+    for (const x of m.homeOf(p)) {
+      y += grainWorth(harvestOf(x)) + economyOf(x).mine;
+      held += startPurseOf(x) + grainWorth(startStoresOf(x) + needOf(x));
+    }
+    const units = StartUnits.filter((u) => u.power === p);
+    for (const u of units) held += grainWorth(carriedOf(u.kind));
     const gold = StartGold.get(p)!;
-    return { power: p, units: StartUnits.filter((u) => u.power === p), homelandYield: y, gold, strength: config.provinceWeight * y + gold };
+    return { power: p, units, homelandYield: y, gold, strength: strengthOf(config.provinceWeight, y, gold, held) };
   });
 }
 
@@ -47,5 +58,5 @@ export function openingRank(p: Power): string {
 
 /** One line per power, as the rulebook gives it. */
 export function openingLines(config: GameConfig): string[] {
-  return openings(config).map((o) => `${o.power}: ${openingTroops(o)}; treasury ${o.gold} shekels; homeland yield ${o.homelandYield}; starting strength ${o.strength}.${openingRank(o.power)}`);
+  return openings(config).map((o) => `${o.power}: ${openingTroops(o)}; treasury ${o.gold} shekels; its land produces ${o.homelandYield} shekels' worth a season; starting strength ${o.strength}.${openingRank(o.power)}`);
 }

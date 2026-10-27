@@ -2,6 +2,8 @@ import { describe, test } from "vitest";
 import {
   AllPowers,
   Dict,
+  GameStateSchema,
+  clone,
   type GameState,
   HSet,
   type Order,
@@ -174,12 +176,15 @@ describe("IntelligenceTests", () => {
     let e = begin(s);
     e.resolve(orders("Mitanni", captive(spy.id, "Ransom", 90)));
     Assert.contains(s.tasks, (t) => t.kind === "RansomDemand" && t.requester === "Hatti");
-    let before = s.treasuries.get("Mitanni").gold;
+    // The same seasons with no ransom paid: the captor ends with that much less (its own costs are the same either way).
+    let unpaid = clone(GameStateSchema, s);
     e = begin(s);
     e.resolve(orders("Hatti", payRansom(spy.id)));
     advance(s, 4);
+    begin(unpaid).resolve(new Dict<Power, TurnSubmission>());
+    advance(unpaid, 4);
     Assert.notEqual("Captured", spy.status);
-    Assert.true(s.treasuries.get("Mitanni").gold > before);
+    Assert.true(s.treasuries.get("Mitanni").gold > unpaid.treasuries.get("Mitanni").gold);
   });
 
   test("Candidates pitch and the higher wage wins a contested hire", () => {
@@ -257,10 +262,11 @@ describe("IntelligenceTests", () => {
   test("Spending debased gold exposes it", () => {
     let s = newGame(9);
     let t = s.treasuries.get("Hatti");
+    // The ledger shows the city's price and a little more; the purchase passes validation but the true treasury cannot pay.
+    const price = new TurnEngine(s).cityPrice("alalakh");
     t.gold = 120;
-    t.lots.push(newGoldLot({ id: "g900", from: "Egypt", stated: 200, face: 200, true: 60, arrivedTurn: 1 }));
-    // The ledger shows 260; a 200-shekel purchase passes validation but the true treasury cannot pay.
-    Assert.equal(260, ledger(t));
+    t.lots.push(newGoldLot({ id: "g900", from: "Egypt", stated: price, face: price, true: 60, arrivedTurn: 1 }));
+    Assert.equal(price + 60, ledger(t));
     let e = new TurnEngine(s);
     e.resolve(orders("Hatti", buy("alalakh")));
     Assert.null(s.owner.get("alalakh"));

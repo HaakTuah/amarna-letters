@@ -41,6 +41,7 @@ import {
   seekCandidates,
   sortBy,
   sum,
+  economyOf,
   support,
   tier,
   trimEnd,
@@ -53,6 +54,7 @@ import {
   type TurnSubmission,
   type UnitView,
 } from "@amarna/engine";
+import { plainGrainOrders } from "./grain.ts";
 import type { ISeat } from "../contracts.ts";
 
 class Memory {
@@ -343,7 +345,8 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
     [(p) => p.yield, desc(cmpNum)],
   );
   let raised = 0;
-  let surplus = v.income - v.upkeep - v.wages;
+  // Grain, the plain way (item 9+a): sell it all each season; its sales and the mines are the season's income.
+  let surplus = plainGrainOrders(v, orders) + sum(v.provinces, (x) => economyOf(Map_.get(x.province)).mine) - v.upkeep - v.wages;
   for (const spot of spots) {
     // Small kingdoms keep their gold for buying cities rather than for troops they cannot feed.
     if (units + raised >= provinces + (weak ? 0 : 1)) break;
@@ -367,7 +370,7 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
       neutral.filter((g) => v.owner.getOrDefault(g, null) === null && !destinations.has(g) && Map_.withinReach(g, me, v.owner, myUnits)),
       [(g: string) => Map_.get(g).yield, desc(cmpNum)],
       [(g: string) => g, cmpStr],
-    ).find((g) => gold - Map_.get(g).yield * v.prices.get("cityPricePerYield") >= reserve + (weak ? 20 : 50)) ?? null;
+    ).find((g) => gold - v.cityPrices.getOrDefault(g, 0) >= reserve + (weak ? 20 : 50)) ?? null;
   // Small kingdoms grow by gold rather than by conquest.
   if (toBuy !== null && rng.chance(weak ? 0.8 : 0.35 + m.greed * 0.25)) orders.push(buy(toBuy));
 }

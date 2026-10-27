@@ -20,6 +20,8 @@ export type ToWorker =
   | { type: "clear" }
   | { type: "orders"; power: Power; json: string }
   | { type: "answer"; power: Power; json: string }
+  /** A sleeping human seat wakes itself next season (item 9+a). */
+  | { type: "wake"; power: Power }
   | { type: "stateAt"; id: number; turn: number }
   | { type: "export"; id: number };
 
@@ -62,6 +64,8 @@ export interface Live {
   snapshots: number;
   chronicles: Record<string, string>;
   humans: Power[];
+  /** The human seats asleep now: seasons pass without asking them until something concerns them or they wake. */
+  humansAsleep: Power[];
   pending: Pending[];
   gameId: string;
   /** Set once every human seat has fallen and the table lets the players watch in god view. */

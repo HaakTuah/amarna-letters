@@ -9,6 +9,7 @@ import {
   RoadPlay,
   WinterStrokes,
   AuthorityPlay,
+  GrainPlay,
   ClausePlay,
   InventoryPlay,
   ScriptLeader,
@@ -79,6 +80,9 @@ export interface BatchOptions {
   /** Script kings play envoy authority and passage (item 9); off only to measure it (`--no-authority-play`), or for half. */
   authorityPlay: boolean;
   authorityPlayHalf: boolean;
+  /** Script kings play the economy plainly (item 9+a: sell everything, no caravans or depots), only to measure it (`--plain-economy`), or half of them (`--plain-economy-half`). */
+  plainEconomy: boolean;
+  plainEconomyHalf: boolean;
   /** Script kings act on the clauses they read (item 8); off only to measure it (`--no-clause-play`), or for half (`--clause-play-half`). */
   clausePlay: boolean;
   clausePlayHalf: boolean;
@@ -160,11 +164,13 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
   AuthorityPlay.only = o.authorityPlayHalf ? current : null;
+  GrainPlay.plain = o.plainEconomy || o.plainEconomyHalf;
+  GrainPlay.only = o.plainEconomyHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   ClausePlay.only = o.clausePlayHalf ? current : null;
   const [summary] = await playGame(
     s,

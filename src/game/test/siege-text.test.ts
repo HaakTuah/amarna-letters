@@ -42,9 +42,9 @@ describe("SiegeTextTests", () => {
   });
 
   test.each([
-    ["Strength = 10 x (sum of the base yields of the provinces you hold, land you conquered counted as far as you have absorbed it)"],
+    ["Strength is the wealth of your realm, reckoned in shekels: 10 x what your land produces in a season (its whole harvest at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it)"],
     [
-      "Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you, and counts in your strength, a third of its yield in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third.",
+      "Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you its tax and its mines' gold, and counts in your strength, a third of its full worth in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third.",
     ],
     ["- apasa: Apasa; coast; waters apasawaters; homeland of Arzawa; capital; yield 40; walls 3."],
     [

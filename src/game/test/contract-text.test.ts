@@ -23,10 +23,10 @@ describe("ContractTextTests", () => {
     let json = JSON.parse(
       `{
   "notes": "", "units": [], "letters": [],
-  "other_orders": [ { "action": "renew", "province": "", "power": "", "person": "c3", "amount": 20, "term": 0, "text": "", "item": "", "seals": [] },
-                    { "action": "renew", "province": "", "power": "", "person": "c4", "amount": 25, "term": 9, "text": "", "item": "", "seals": [] },
-                    { "action": "hire", "province": "", "power": "", "person": "c9", "amount": 30, "term": 12, "text": "", "item": "", "seals": [] },
-                    { "action": "hire", "province": "", "power": "", "person": "c10", "amount": 30, "term": 0, "text": "", "item": "", "seals": [] } ],
+  "other_orders": [ { "action": "renew", "province": "", "to": "", "power": "", "person": "c3", "amount": 20, "term": 0, "text": "", "item": "", "seals": [] },
+                    { "action": "renew", "province": "", "to": "", "power": "", "person": "c4", "amount": 25, "term": 9, "text": "", "item": "", "seals": [] },
+                    { "action": "hire", "province": "", "to": "", "power": "", "person": "c9", "amount": 30, "term": 12, "text": "", "item": "", "seals": [] },
+                    { "action": "hire", "province": "", "to": "", "power": "", "person": "c10", "amount": 30, "term": 0, "text": "", "item": "", "seals": [] } ],
   "summary": "", "ledger": [], "schedule": [], "standing_orders": [], "cancel_standing": [], "standing_answers": [], "cancel_answers": []
 }`,
     ) as JsonObject;

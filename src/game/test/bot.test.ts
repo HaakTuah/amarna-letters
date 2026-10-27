@@ -15,6 +15,7 @@ import {
   TurnSubmissionSchema,
   Views,
   WorldMap,
+  TurnEngine,
   distinct,
   fmt,
   newAudienceView,
@@ -164,7 +165,7 @@ describe("BotTests", () => {
     // Egypt buys two cities of the Levant: its land grows by a quarter, its treasury shrinks by as much.
     for (const city of ["megiddo", "tyre"]) {
       known(s, city, "Egypt");
-      s.treasuries.get("Egypt").gold -= WorldMap.default.get(city).yield * s.config.neutralPriceFactor;
+      s.treasuries.get("Egypt").gold -= new TurnEngine(s).cityPrice(city);
     }
     s.turn = 6;
     let view = Views.for(s, "Hatti");
@@ -205,6 +206,9 @@ describe("BotTests", () => {
       let view = Views.for(s, p);
       let brain = new Brain(p, 11);
       brain.learn(view, new Board(view));
+      // Hatti has been taking land: the partners stand against it however their own growth compares (since item 9+a a city
+      // given each of them adds its purse and stores too, so Hatti no longer races them).
+      brain.belligerence.set("Hatti", 1);
       return [new Board(view, brain.remembered(view), brain.treasury), brain];
     }
     let [mb, mitanni] = courtOf("Mitanni");

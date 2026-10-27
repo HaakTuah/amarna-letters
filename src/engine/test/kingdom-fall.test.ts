@@ -10,6 +10,7 @@ import {
   Views,
   type TurnSubmission,
   WorldMap,
+  EconomyData,
   cede,
   first,
   inboxOf,
@@ -87,7 +88,7 @@ describe("KingdomFallTests", () => {
     removeAll(s.units, (u) => u.province === "ashur");
     let besieger = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(besieger);
-    s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: besieger.id, progress: 2, since: 1 }));
+    s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: besieger.id, progress: 3 * EconomyData.breachPerLevel - 1, since: 1 }));
     season(s, new Dict());
     Assert.contains("Assyria", s.eliminated);
     Assert.all(WorldMap.default.homeOf("Assyria"), (p) => Assert.equal("Babylonia", s.owner.get(p.id)));
@@ -104,7 +105,7 @@ describe("KingdomFallTests", () => {
       removeAll(s.units, (u) => u.province === capital);
       let army = newUnit({ id: newId(s, "u"), power: by, kind: "Army", province: capital });
       s.units.push(army);
-      s.sieges.push(newSiege({ province: capital, power: by, unitId: army.id, progress: wallsOf(s, capital) - 1, since: 1 }));
+      s.sieges.push(newSiege({ province: capital, power: by, unitId: army.id, progress: wallsOf(s, capital) * EconomyData.breachPerLevel - 1, since: 1 }));
     }
     return s;
   }

@@ -7,6 +7,11 @@ import {
   assay,
   authenticate,
   buy,
+  caravan,
+  feed,
+  priceForTen,
+  purchase,
+  sell,
   captive,
   cede,
   check,
@@ -57,6 +62,10 @@ interface Form {
   raiseKind: string;
   buyCity: string;
   fortifyAt: string;
+  grainAt: string;
+  grainAction: string;
+  grainAmount: string;
+  grainTo: string;
   sallyCity: string;
   sallyFrom: string;
   cedeWhat: string;
@@ -116,6 +125,10 @@ function newForm(me: Power): Form {
     raiseKind: "Army",
     buyCity: "",
     fortifyAt: "",
+    grainAt: "",
+    grainAction: "sell",
+    grainAmount: "",
+    grainTo: "",
     sallyCity: "",
     sallyFrom: "",
     cedeWhat: "",
@@ -166,7 +179,7 @@ function newForm(me: Power): Form {
 }
 
 /** A human seat's orders for one season: units, treasury, envoys, court and tablets. */
-export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: OrderDraft; state: GameState; onChanged: () => void; onSubmit: () => void }) {
+export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: OrderDraft; state: GameState; onChanged: () => void; onSubmit: (sleep: boolean) => void }) {
   const v = draft.view;
   const me = v.power;
   const [f, setF] = useState<Form>(() => newForm(me));
@@ -250,7 +263,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
       <div className="section">
         <h3>Orders for {when(v.turn, me)}</h3>
         <p className="muted">
-          Treasury {shekels(v.gold)} · income {shekels(v.income)} · upkeep {shekels(v.upkeep)}
+          Treasury {shekels(v.gold)} · gold in since your last orders {shekels(v.income)} · troops' pay {shekels(v.upkeep)}
           {v.wallUpkeep > 0 ? ` · walls ${shekels(v.wallUpkeep)}` : ""} · wages {shekels(v.wages)} (for people away, owed as back pay) · back pay owed{" "}
           {shekels(v.backPay)}. Growth so far: {v.startStrength > 0 ? (v.strength / v.startStrength).toFixed(2) : "-"}.
         </p>
@@ -552,7 +565,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
               .sort(byName)
               .map((g) => (
                 <option key={g} value={g}>
-                  {provinceName(g)} ({shekels(map.get(g).yield * price("cityPricePerYield"))})
+                  {provinceName(g)} ({shekels(v.cityPrices.getOrDefault(g, 0))})
                 </option>
               ))}
           </select>
@@ -585,6 +598,53 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
               })}
           </select>
           <button className="small" disabled={f.fortifyAt === ""} onClick={() => add(fortify(f.fortifyAt))}>
+            Add
+          </button>
+        </div>
+        {/* Grain (item 9+a): sell or buy at a province's own market, hand it to its town, or send a caravan with it. */}
+        <div className="row" style={{ marginTop: ".4rem" }}>
+          <select value={f.grainAction} onChange={(e) => set({ grainAction: e.target.value })}>
+            <option value="sell">Sell grain</option>
+            <option value="purchase">Buy grain</option>
+            <option value="feed">Feed the town</option>
+            <option value="caravan">Send a caravan</option>
+          </select>
+          <select value={f.grainAt} onChange={(e) => set({ grainAt: e.target.value })}>
+            <option value="">{f.grainAction === "caravan" ? "from…" : "at…"}</option>
+            {v.provinces
+              .map((x) => x.province)
+              .sort(byName)
+              .map((id) => {
+                const x = v.provinces.find((y) => y.province === id)!;
+                return (
+                  <option key={id} value={id}>
+                    {provinceName(id)} (stores {x.stores}/{x.capacity}, market {x.stock}, {shekels(priceForTen(x.price))} for ten, purse {shekels(x.purse)})
+                  </option>
+                );
+              })}
+          </select>
+          {f.grainAction === "caravan" && (
+            <select value={f.grainTo} onChange={(e) => set({ grainTo: e.target.value })}>
+              <option value="">to…</option>
+              {[...new Set([...v.provinces.map((x) => x.province), ...v.units.filter((u) => u.power === me && !map.get(u.province).isSea).map((u) => u.province)])]
+                .filter((id) => id !== f.grainAt)
+                .sort(byName)
+                .map((id) => (
+                  <option key={id} value={id}>
+                    {provinceName(id)}
+                  </option>
+                ))}
+            </select>
+          )}
+          <input type="number" min={1} placeholder="measures" value={f.grainAmount} onChange={(e) => set({ grainAmount: e.target.value })} style={{ width: "6rem" }} />
+          <button
+            className="small"
+            disabled={f.grainAt === "" || !(Number(f.grainAmount) > 0) || (f.grainAction === "caravan" && f.grainTo === "")}
+            onClick={() => {
+              const n = Math.floor(Number(f.grainAmount));
+              add(f.grainAction === "sell" ? sell(f.grainAt, n) : f.grainAction === "purchase" ? purchase(f.grainAt, n) : f.grainAction === "feed" ? feed(f.grainAt, n) : caravan(f.grainAt, f.grainTo, n));
+            }}
+          >
             Add
           </button>
         </div>
@@ -1127,9 +1187,20 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
             }}
           />
         </div>
-        <button className="primary" onClick={onSubmit}>
+        <button className="primary" onClick={() => onSubmit(false)}>
           Seal the orders for this season
         </button>
+        {/* Sleep is for every seat (item 9+a): the seasons pass by themselves until something concerns you, or you wake. */}
+        {state.config.sleepingSeats && (
+          <button
+            className="small"
+            style={{ marginLeft: ".5rem" }}
+            title="Your orders, scheduled orders, standing orders and answers act for you; you are woken when something concerns you, or when you choose to wake"
+            onClick={() => onSubmit(true)}
+          >
+            Seal and sleep until something concerns me
+          </button>
+        )}
       </div>
     </div>
   );

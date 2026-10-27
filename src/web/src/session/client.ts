@@ -54,6 +54,7 @@ const emptyLive = (): Live => ({
   snapshots: 0,
   chronicles: {},
   humans: [],
+  humansAsleep: [],
   pending: [],
   gameId: "",
   fallenToGod: false,
@@ -262,6 +263,9 @@ export class Session {
   }
   submitOrders(power: Power, s: TurnSubmission): void {
     this.send({ type: "orders", power, json: serialize(TurnSubmissionSchema, s) });
+  }
+  wake(power: Power): void {
+    this.send({ type: "wake", power });
   }
   answer(power: Power, r: HostReply): void {
     this.send({ type: "answer", power, json: serialize(HostReplySchema, r) });

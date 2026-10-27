@@ -104,6 +104,10 @@ export const OtherActions = [
   "cede_province",
   "give_unit",
   "fortify",
+  "sell_grain",
+  "buy_grain",
+  "feed_town",
+  "caravan",
   "seek_candidates",
   "hire",
   "renew",
@@ -149,11 +153,12 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), a province to spy on, or revoke_passage (one province; empty for all you granted that king)." : null),
+      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan (where it sets out from), a province to spy on, or revoke_passage (one province; empty for all you granted that king)." : null),
     ],
+    ["to", str(described ? "For caravan: the province it carries the grain to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), or a court to spy on." : null)],
     ["person", str(described ? "Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge." : null)],
-    ["amount", int(described ? "Wage (hire, renew), spend or ransom in shekels, as the action needs; else 0." : null)],
+    ["amount", int(described ? "Wage (hire, renew), spend or ransom in shekels, or measures of grain (sell_grain, buy_grain, feed_town, caravan), as the action needs; else 0." : null)],
     [
       "term",
       int(
@@ -182,10 +187,10 @@ const conditions = (what: string): z.ZodType =>
   array(
     object(
       ["test", enumOf(["if", "unless"])],
-      ["kind", enumOf(["troops_in", "treasury_less_than", "treasury_at_least", "envoy_back", "tablet_sealed"])],
+      ["kind", enumOf(["troops_in", "treasury_less_than", "treasury_at_least", "envoy_back", "tablet_sealed", "stores_at_least"])],
       ["power", str("troops_in: whose troops, or empty for any foreign power's. tablet_sealed: the court that sealed it with you, or empty for any. Otherwise empty.")],
-      ["province", str("troops_in: the province. Otherwise empty.")],
-      ["amount", int("treasury_less_than, treasury_at_least: shekels. Otherwise 0.")],
+      ["province", str("troops_in, stores_at_least: the province. Otherwise empty.")],
+      ["amount", int("treasury_less_than, treasury_at_least: shekels. stores_at_least: measures of grain. Otherwise 0.")],
       ["person", str("envoy_back: the id of one of your people (like c3), back at your court and ready. Otherwise empty.")],
     ),
     `${what} only if every "if" holds and no "unless" does, as you know things then (see CONDITIONS). At most ${MaxConditions}; empty for none.`,

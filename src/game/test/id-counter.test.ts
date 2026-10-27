@@ -167,6 +167,7 @@ describe("IdCounterTests", () => {
       { prefix: "q", ids: s.tasks.map((x) => x.id) },
       { prefix: "t", ids: s.tablets.map((x) => x.id) },
       { prefix: "u", ids: s.units.map((x) => x.id) },
+      { prefix: "v", ids: s.caravans.map((x) => x.id) },
       { prefix: "x", ids: s.catastrophes.map((x) => x.id) },
     ];
     // Requests to characters' minds ("r") last one season and are not kept in the state; every other kind is checked here.

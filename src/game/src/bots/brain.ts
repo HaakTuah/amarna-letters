@@ -221,12 +221,12 @@ export class Brain {
       const now = b.ownerOf(prov);
       if (now === null || now === was || now === this.me) continue;
       if (was === null && !v.visible.includes(prov)) {
-        this.treasury.set(now, this.treasury.get(now) - (Board.Map.get(prov).yield * b.yieldWorth) / 2);
+        this.treasury.set(now, this.treasury.get(now) - b.worth(prov) / 2);
         this.belligerence.set(now, this.belligerence.getOrDefault(now, 0) + 0.5);
         continue;
       }
       if (was === null && b.walls(prov) && b.wallLevel(prov) === this.lastWalls.getOrDefault(prov, 0)) {
-        this.treasury.set(now, this.treasury.get(now) - Board.Map.get(prov).yield * b.yieldWorth);
+        this.treasury.set(now, this.treasury.get(now) - b.worth(prov));
         continue;
       }
       this.belligerence.set(now, this.belligerence.getOrDefault(now, 0) + (was === null ? 1 : 1.5));

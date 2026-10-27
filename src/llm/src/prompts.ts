@@ -37,6 +37,7 @@ import {
   authorityText,
   type GrantView,
 } from "@amarna/engine";
+import { economyLines } from "./prompt-economy.ts";
 import { Sb, joinS } from "./text.ts";
 export function identity(p: Power): string {
   return `You are ${king(p)}, Great King of ${land(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
@@ -134,7 +135,8 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
-        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Income ${v.income}, upkeep ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages} a season. Back pay owed to your people: ${v.backPay}. Strength ${v.strength} by your ledger (back pay owed counted against it), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
+        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages}. Back pay owed to your people: ${v.backPay}. Strength ${v.strength} by your ledger (the wealth of your realm, back pay owed counted against it), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
+        for (const l of economyLines(v)) sb.appendLine(l);
         // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
         for (const lot of v.unassayedGold)
             sb.appendLine(`  Unassayed gold from ${lot.from}, weighed in turn ${lot.arrivedTurn} [your mark ${lot.id}]: ${lot.weighed} shekels weighed (the inventory said ${lot.stated}).`);
@@ -154,7 +156,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             const w = v.walls.tryGet(id);
             if (w !== undefined) marks.push(`walls ${w}`);
             if (terrainOf(id) === "Rough" && v.prices.getOrDefault(`terrainDefence`, 1) > 0) marks.push(`rough ground`);
-            if (terrainOf(id) === "Desert" && v.prices.getOrDefault(`desertUpkeep`, 1) > 0) marks.push(`desert`);
+            if (terrainOf(id) === "Desert") marks.push(`desert`);
             // Not seen now (item 7b): how old the news is, and who brought it if one of your people did.
             const asOf = v.ownerAsOf.tryGet(id);
             if (asOf !== undefined) {
@@ -363,7 +365,9 @@ export function realmBrief(v: SeatView): string
         const sb = new Sb();
         const kindOf = (k: UnitKind): string => (k === "Army" ? `army` : `fleet`);
         sb.appendLine(`YOUR REALM IN BRIEF (enough to judge whether the news changes your plan; you see the full map only if you reopen your orders):`);
-        sb.appendLine(`- Treasury: ${v.gold} shekels by your ledger; income ${v.income}, upkeep ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages} a season; back pay owed to your people ${v.backPay}.`);
+        sb.appendLine(`- Treasury: ${v.gold} shekels by your ledger; gold in since your last orders ${v.income}; a season your troops' pay ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages}; back pay owed to your people ${v.backPay}.`);
+        const hungry = v.units.filter((u) => u.power === v.power && (u.hungry > 0 || u.unpaid > 0));
+        if (hungry.length > 0) sb.appendLine(`- Troops hungry or unpaid: ${joinS(`, `, hungry.map((u) => `${u.province}${u.hungry > 0 ? ` hungry ${u.hungry}` : ``}${u.unpaid > 0 ? ` unpaid ${u.unpaid}` : ``}`))}.`);
         const land = sortBy([...v.owner].filter(x => x[1] === v.power).map(x => x[0]), [x => x, cmpStr]);
         sb.appendLine(`- Your land: ${(land.length === 0 ? `none` : joinS(`, `, land))}.`);
         const troops = v.units.filter(u => u.power === v.power).map(u => `${kindOf(u.kind)} in ${u.province}`);

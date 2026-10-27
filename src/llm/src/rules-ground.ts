@@ -37,10 +37,9 @@ export function terrainRules(c: GameConfig): string {
     );
   }
   lines.push(`- Some links cross the desert (${deserts}); they give no help in battle. THE MAP marks them.`);
-  if (c.desertUpkeep > 0)
-    lines.push(
-      `- Desert (${joinS(`, `, Desert)}) costs an army supplies: an army that ends a season in desert land its king did not hold when that season's moves were made pays ${c.desertUpkeep} with the next upkeep, and your treasury notice says so. An army in its own land pays nothing: a king who holds the desert crosses it freely, and so does whoever takes it, from the season after. Only armies pay it.`,
-    );
+  lines.push(
+    `- Desert (${joinS(`, `, Desert)}) feeds nobody: an army there finds nothing to take from the land and lives on its baggage, its king's stores there if he holds it, and the caravans he sends (see ECONOMY).`,
+  );
   return joinS(`\n`, lines);
 }
 

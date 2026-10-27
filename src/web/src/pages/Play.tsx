@@ -410,6 +410,15 @@ export function Play() {
               )}
             </div>
           )}
+          {/* A human seat asleep (item 9+a): the seasons pass by themselves until something concerns it, or it wakes itself. */}
+          {live.humansAsleep.map((p) => (
+            <div className="notice" key={`asleep-${p}`}>
+              {powerName(p)} sleeps: the seasons pass until something concerns you.{" "}
+              <button className="small" onClick={() => s.wake(p)}>
+                Wake now
+              </button>
+            </div>
+          ))}
           {/* Local play: nothing moves while the other kings' agents think. Which kings are asked is not said: it would tell who sleeps. */}
           {live.busy &&
             !history &&
@@ -492,7 +501,7 @@ export function Play() {
             draft={draft!}
             state={state}
             onChanged={() => bump((x) => x + 1)}
-            onSubmit={() => s.submitOrders(pendingOrders!.power, draft!.build())}
+            onSubmit={(sleep) => s.submitOrders(pendingOrders!.power, { ...draft!.build(), stayAwake: !sleep })}
           />
         );
       case "inbox":
@@ -517,7 +526,7 @@ export function Play() {
               first, then your other orders in the order you added them. The record of notes, summary and ledger that HOW TO ANSWER describes is kept for
               model kings; here you keep your own.
               {state.config.sleepingSeats
-                ? " A human seat never sleeps: it is asked for orders every season, so the sections on sleeping and planning ahead do not apply to you."
+                ? " A human seat sleeps only when you choose to: seal your orders with a sleep and the seasons pass by themselves, your standing and scheduled orders acting for you, until something concerns you or you wake yourself."
                 : ""}{" "}
               Standing orders do: give them in the orders tab, under Standing orders. If your kingdom falls with its capital, your game is over: you watch the
               rest{" "}

@@ -59,3 +59,11 @@ Build order item 9 (envoy authority and passage; winter dangerous, never closed;
 about where it was: 9.73 growth alone and 1.27 as baseline over all, 91% of wins alone and 14% as baseline (by power, and the same seeds with the authority play or the winter strokes off,
 `--no-authority-play`, `--no-winter-play`, in `docs/rounds/2026-10-27-envoy-authority.md`). The baseline was adapted only
 as the rules required (winter closes nothing for it either; it gives no seal and asks no leave).
+
+Build order item 9+a (the economy at home: grain, stores, markets and purses, troops' pay and food, caravans, the siege's
+clock, and strength as the wealth of the realm; save version 14) changed the measure itself, so its numbers are not
+comparable with those above: 2.12 growth alone and 0.99 as baseline over all, 60% of wins alone and 14% as baseline (by
+power, and the same seeds with half the kings playing the economy plainly, `--plain-economy-half`, in
+`docs/rounds/2026-10-27-economy-at-home.md`). The baseline was adapted only as the rules required (it sells all its
+grain every season and sends no caravans).
+

@@ -11,6 +11,7 @@ import { coverOf, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { grantStands } from "../model/authority.ts";
+import { buyAlongCurve, cityPriceOf, needOf } from "../model/economy.ts";
 import { findCharacter, isAlive, ledger, siegeOf, unitAt, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
 
@@ -224,6 +225,31 @@ export class OrderValidator {
           return null;
         }
 
+        case "sell":
+        case "purchase":
+        case "feed": {
+          const what = order.type === "sell" ? "sell" : order.type === "purchase" ? "buy" : "hand to its town";
+          if (isBlank(order.province)) return `name the province whose grain to ${what}`;
+          if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
+          const name = Map.get(order.province).name;
+          if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${name}: you trade only at your own markets until caravans trade abroad`;
+          if (siegeOf(S, order.province) !== null) return `${name} is besieged: nothing goes in or out of its market`;
+          if (!(order.amount > 0)) return "name how many measures of grain";
+          if (order.type !== "purchase") return null;
+          const m = S.markets.tryGet(order.province);
+          return spend(buyAlongCurve(m?.stock ?? 0, needOf(Map.get(order.province)), Number.MAX_SAFE_INTEGER, order.amount).paid);
+        }
+
+        case "caravan": {
+          if (isBlank(order.from) || isBlank(order.to)) return "name the province the caravan sets out from and the one it goes to";
+          for (const x of [order.from, order.to]) if (!Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
+          if (order.from === order.to) return "a caravan must go somewhere else";
+          if (S.owner.getOrDefault(order.from, null) !== power) return `you do not hold ${Map.get(order.from).name}`;
+          if (siegeOf(S, order.from) !== null) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
+          if (!(order.amount > 0)) return "name how many measures of grain";
+          return null;
+        }
+
         case "raise": {
           const r = order;
           if (!Map.exists(r.province)) return `there is no province called '${r.province}'`;
@@ -251,7 +277,8 @@ export class OrderValidator {
           );
           if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or lie one voyage from one of your coasts: their waters the same or next to each other)`;
           if (bought.has(b.province)) return "you already bid for that city";
-          return spend(Map.get(b.province).yield * S.config.neutralPriceFactor);
+          const m = S.markets.tryGet(b.province);
+          return spend(cityPriceOf(Map.get(b.province), S.config.provinceWeight, m?.purse ?? 0, S.stores.getOrDefault(b.province, 0) + (m?.stock ?? 0)));
         }
 
         case "cede": {

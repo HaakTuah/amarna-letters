@@ -10,6 +10,8 @@ import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { alive, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
+import { capacityOf, carriedOf, EconomyData, needOf, priceAt } from "../model/economy.ts";
+import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
   newCharacterView,
@@ -19,6 +21,8 @@ import {
   newTabletView,
   newUnitView,
   newLetterView,
+  newProvinceEconomyView,
+  newCaravanView,
   landGrowth,
   type CharacterView,
   type LandStanding,
@@ -203,7 +207,13 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           tightness: x.power === p || s.owner.getOrDefault(x.province, null) === p ? engine.tightness(x) : null,
         }),
       ),
-    units: s.units.filter((u) => u.power === p || seen.has(u.province)).map((u) => newUnitView({ power: u.power, kind: u.kind, province: u.province })),
+    units: s.units
+      .filter((u) => u.power === p || seen.has(u.province))
+      .map((u) =>
+        u.power === p
+          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: carriedOf(u.kind), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings })
+          : newUnitView({ power: u.power, kind: u.kind, province: u.province }),
+      ),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
     fallen: isAlive(s, p) ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x)) : [...s.eliminated],
@@ -284,16 +294,25 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("inventoryFee", s.config.inventoryFee);
   v.prices.set("assay", s.config.assayFee);
   v.prices.set("forgery", s.config.forgeFee);
-  v.prices.set("cityPricePerYield", s.config.neutralPriceFactor);
   v.prices.set("siegeUpkeep", s.config.siegeUpkeep);
   v.prices.set("fortifyPerLevel", s.config.fortifyCost);
   v.prices.set("wallUpkeep", s.config.wallUpkeep);
   v.prices.set("sallyMinWalls", s.config.sallyMinWalls);
   v.prices.set("terrainDefence", s.config.terrainDefence);
-  v.prices.set("desertUpkeep", s.config.desertUpkeep);
   v.prices.set("seaSupply", s.config.seaSupply);
   v.prices.set("winterArmyLoss", s.config.winterArmyLoss);
   v.prices.set("winterFleetLoss", s.config.winterFleetLoss);
+  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans, and the free cities' asking prices.
+  for (const id of ownedBy(s, p)) {
+    const prov = m.get(id);
+    const mk = engine.market(id);
+    v.provinces.push(
+      newProvinceEconomyView({ province: id, stores: engine.stores(id), capacity: capacityOf(prov), tax: engine.effectiveYield(id), need: needOf(prov), stock: mk.stock, purse: mk.purse, price: priceAt(mk.stock, needOf(prov)) }),
+    );
+  }
+  for (const c of s.caravans.filter((c) => c.power === p)) v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning }));
+  for (const prov of m.landProvinces) if (!prov.kingless && s.owner.getOrDefault(prov.id, null) === null) v.cityPrices.set(prov.id, engine.cityPrice(prov.id));
+  v.prices.set("basePrice", EconomyData.basePrice);
   return v;
 }
 

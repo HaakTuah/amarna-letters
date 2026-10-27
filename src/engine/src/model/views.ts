@@ -16,6 +16,12 @@ export interface UnitView {
   power: Power;
   kind: UnitKind;
   province: string;
+  /** Of the court's own units only (item 9+a; zero for others'): the grain it carries and the most it can, seasons it went hungry and unpaid in a row, its men's savings. */
+  food: number;
+  carried: number;
+  hungry: number;
+  unpaid: number;
+  savings: number;
 }
 
 export function newUnitView(init: Partial<UnitView> = {}): UnitView {
@@ -23,6 +29,11 @@ export function newUnitView(init: Partial<UnitView> = {}): UnitView {
     power: "Egypt",
     kind: "Army",
     province: "",
+    food: 0,
+    carried: 0,
+    hungry: 0,
+    unpaid: 0,
+    savings: 0,
     ...init,
   };
 }
@@ -31,7 +42,59 @@ export const UnitViewSchema: ObjSchema<UnitView> = obj("UnitView", newUnitView, 
   power: S,
   kind: S,
   province: S,
+  food: I,
+  carried: I,
+  hungry: I,
+  unpaid: I,
+  savings: I,
 });
+
+/**
+ * One of the court's own provinces, as its stewards report it (item 9+a): the grain in its stores and the most they hold,
+ * the tax in grain it brings in a season as things stand, its town's need a season, and its market's stock, purse and
+ * price (in hundredths of a shekel for a measure).
+ */
+export interface ProvinceEconomyView {
+  province: string;
+  stores: number;
+  capacity: number;
+  tax: number;
+  need: number;
+  stock: number;
+  purse: number;
+  price: number;
+}
+
+export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, ...init };
+}
+
+export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
+  province: S,
+  stores: I,
+  capacity: I,
+  tax: I,
+  need: I,
+  stock: I,
+  purse: I,
+  price: I,
+});
+
+/** One of the court's caravans on the road (item 9+a). */
+export interface CaravanView {
+  from: string;
+  to: string;
+  grain: number;
+  /** Where it has got to. */
+  at: string;
+  returning: boolean;
+}
+
+export function newCaravanView(init: Partial<CaravanView> = {}): CaravanView {
+  return { from: "", to: "", grain: 0, at: "", returning: false, ...init };
+}
+
+export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newCaravanView, { from: S, to: S, grain: I, at: S, returning: B });
 
 /**
  * A siege as a court sees it: the city, the besieger, who holds the city, and how far it has been worn down against its walls.
@@ -426,6 +489,12 @@ export interface SeatView {
   /** Letters it sent from its audiences this season, which go out with its orders (checked before them). */
   courtLetters: Order[];
   prices: Dict<string, number>;
+  /** Its own provinces' stores and markets (item 9+a). */
+  provinces: ProvinceEconomyView[];
+  /** Its caravans on the road. */
+  caravans: CaravanView[];
+  /** What each free city's elders ask to be bought: what it adds, its land's worth, purse, stores and market (public). */
+  cityPrices: Dict<string, number>;
   /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
@@ -485,6 +554,9 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     holdsCourt: false,
     courtLetters: [],
     prices: new Dict(),
+    provinces: [],
+    caravans: [],
+    cityPrices: new Dict(),
     ...init,
   };
 }
@@ -541,6 +613,9 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   holdsCourt: B,
   courtLetters: list(() => OrderSchema),
   prices: dict(I),
+  provinces: list(() => ProvinceEconomyViewSchema),
+  caravans: list(() => CaravanViewSchema),
+  cityPrices: dict(I),
 });
 
 /**

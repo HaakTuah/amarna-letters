@@ -1,7 +1,30 @@
-import { Crossings, WorldMap, riversThrough, terrainOf, type Crossing, type GameState, type Province, type Terrain } from "@amarna/engine";
+import {
+  Crossings,
+  WorldMap,
+  capacityOf,
+  cityPriceOf,
+  economyOf,
+  harvestOf,
+  needOf,
+  priceAt,
+  priceForTen,
+  riversThrough,
+  taxOf,
+  terrainOf,
+  type Crossing,
+  type GameState,
+  type Province,
+  type Terrain,
+} from "@amarna/engine";
 import { unitKindName, type MapScene } from "../map/scene.ts";
 import { powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
+
+/** What a free city asks to be bought: what it adds, its land's worth, purse, stores and market (item 9+a). */
+function cityPrice(state: GameState, p: Province): number {
+  const m = state.markets.tryGet(p.id);
+  return cityPriceOf(p, state.config.provinceWeight, m?.purse ?? 0, state.stores.getOrDefault(p.id, 0) + (m?.stock ?? 0));
+}
 
 /**
  * What the ground does here (Build order item 5, terrain): rough ground and the crossings on its links give a unit that
@@ -21,9 +44,8 @@ function groundText(state: GameState, p: Province, terrain: Terrain, crossings: 
     lines.push(`An army lands here from the sea only when no enemy fleet holds ${waters}.`);
     if (state.config.seaSupply > 0) lines.push(`Besieged, the city is supplied by sea, and worn down more slowly, unless its besieger's fleet holds ${waters}.`);
   }
-  // The desert costs an army supplies unless its king holds it.
-  if (terrain === "Desert" && state.config.desertUpkeep > 0)
-    lines.push(`An army that ends a season here while its king does not hold it pays ${shekels(state.config.desertUpkeep)} for supplies; in its own land it pays nothing.`);
+  // The desert feeds nobody (item 9+a): an army here lives on its baggage, its king's stores and his caravans.
+  if (terrain === "Desert") lines.push("The desert feeds nobody: an army here finds nothing to take from the land, and lives on its baggage, its king's stores and his caravans.");
   if (lines.length === 0) lines.push("The ground gives a defender nothing here.");
   return lines.join(" ");
 }
@@ -76,7 +98,7 @@ export function ProvinceInfo({
         <>
           <p className="small">
             {owner !== null ? `Held by ${powerName(owner)}` : "A free city-state"}
-            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Yields {shekels(p.yield)} a season
+            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
             {p.home !== null && p.home !== owner ? `; part of the homeland of ${powerName(p.home)}` : ""}.
             {walls > 0 && (
               <span>
@@ -84,11 +106,19 @@ export function ProvinceInfo({
                 Walls of level {walls}
                 {scene.viewer === null || age === 0 ? "" : age < 0 ? " as the map gave them at the start" : " as your court last saw them"}: an attacker takes it
                 at once only by storming them (a strength above the walls and the defenders together); otherwise its army stands inside and must besiege the
-                city for as many seasons as the walls are high.
+                city until it starves or the walls are breached.
               </span>
             )}
-            {walls > 0 && owner === null && <span> Buy it for {shekels(p.yield * state.config.neutralPriceFactor)}.</span>}
+            {walls > 0 && owner === null && !p.kingless && <span> Buy it for {shekels(cityPrice(state, p))}.</span>}
           </p>
+          {(scene.viewer === null || owner === scene.viewer) && (
+            <p className="small">
+              {/* The economy at home (item 9+a): what its own king's stewards report, or anyone in god view. */}
+              Stores {state.stores.getOrDefault(p.id, 0)} of {capacityOf(p)} measures of grain. Its market holds {state.markets.tryGet(p.id)?.stock ?? 0} (its town
+              needs {needOf(p)} a season) at {shekels(priceForTen(priceAt(state.markets.tryGet(p.id)?.stock ?? 0, needOf(p))))} for ten measures; its people&apos;s purse holds{" "}
+              {shekels(state.markets.tryGet(p.id)?.purse ?? 0)}.
+            </p>
+          )}
           {siege !== undefined && (
             <p className="small">
               <Emblem power={siege.besieger} /> Besieged by {powerName(siege.besieger)} since {when(siege.since, scene.viewer)}: worn down {siege.progress} of{" "}

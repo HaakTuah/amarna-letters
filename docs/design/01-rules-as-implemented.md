@@ -55,8 +55,8 @@
   autumn as in Diplomacy.
 - **How a season resolves.** The rulebook's section of that name lists the engine's own order
   (`TurnEngine.beginTurn`, `GameRunner.playTurn`, `TurnEngine.resolveSeason`) in 18 short
-  steps: servants whose notice ran out leave; income, upkeep and wages (the wages of people at
-  court; those of people away added to their back pay) and desertion; arrivals, then back pay paid
+  steps: servants whose notice ran out leave; the economy (since item 9+a: harvest, mines, towns' meals, troops' pay,
+  wages, food, mutiny and caravans; `16-the-economy-at-home.md`); arrivals, then back pay paid
   to everyone at the court that owes it; the court (candidates, checks and examinations, contract
   ends and notices, a servant still owed back pay giving notice); audiences; orders;
   movement and battles; sieges (since the siege package); land changes hands; a kingdom falls with
@@ -134,11 +134,12 @@
     or hold order, or none) the city is worn down a step, or two if another unit, of any power,
     gave it a support to hold that was not cut (`AdjudicationResult.holdSupported`); a season in
     which it supports, convoys or tries to move adds nothing. One order is enough: the siege goes
-    on while the army holds there. When the city is worn down as far as its walls are high, it
-    **surrenders** to the besieger at the end of that season (`TurnEngine.sieges`, after movement and
-    before land changes hands) and its walls fall a level; a city stormed falls a level too. So a
-    lone army takes walls 1 in the season after it got in, walls 3 in the third (four seasons
-    counting the entry, question 5's timings), with a support each season walls 3 in the second.
+    on while the army holds there. Since item 9+a the walls price the storm, not the clock: the city
+    **surrenders** by hunger (it could not feed its people as the season began) or once it is worn down three steps for
+    each level of its walls, a breach (`16-the-economy-at-home.md`, "Sieges"); until 9+a it surrendered when worn down as
+    far as its walls were high, at the end of that season (`TurnEngine.sieges`, after movement and
+    before land changes hands) and its walls fall a level; a city stormed falls a level too. Before 9+a a
+    lone army took walls 1 in the season after it got in and walls 3 in the third.
     If the besieging army leaves or is destroyed, or deserts, the siege is lifted and its progress
     lost. Breaking a siege is ordinary combat against the besieger.
   - **While besieged** the city stays its holder's and counts in his strength, but yields nothing
@@ -251,23 +252,16 @@
     the rough ground of lukka"), on both sides. The record logs "terrain" events where the ground decided a battle (the
     move beat the hold without it: signal `terrain-held`) or an attack beat a unit the ground helped (`terrain-beaten`),
     counted in the batch report. The web map's tooltips, province card, legend and about page say what the ground does.
-  - **The desert costs an army supplies** (question 5, plan step 15, built as the Build order's item 5 asks: "an army in its
-    own land pays no desert cost", so no rule names a power). An army that ends a season's moves in desert land (Sinai,
-    `Desert`) its king did not hold when the moves were made pays `GameConfig.desertUpkeep` (30, a first guess)
-    with its next upkeep (`TurnEngine.markDesert`, `GameState.inDesert`, cleared once paid; `TurnEngine.desertCost` in
-    `upkeep`, so unpaid it makes troops desert like any upkeep). Egypt holds the Sinai at the start, so its armies cross it
-    freely (question 5's Ways of Horus), and so does anyone who takes it, from the season after: an invader pays for the
-    season he marches in, and every season he stands within walls raised there without taking it. The treasury notice says
-    what was paid ("The upkeep includes 30 shekels for supplies in the desert: your army in sinai ended last season in desert
-    land you did not hold."); the view's upkeep line, a forecast, leaves it out. The rulebook's TERRAIN and step 2 of HOW A
-    SEASON RESOLVES say so; THE MAP and LANDS mark the desert. The record marks each army that pays (`desert`). 0 turns it
-    off.
+  - **The desert feeds nobody** (since item 9+a, which replaced item 5's desert supply cost, `desertUpkeep`, with real
+    food): an army in desert land finds nothing to forage and lives on its baggage, its king's stores there and his
+    caravans (`16-the-economy-at-home.md`).
 - **Levies** are raised after movement, only in a province of the power's own homeland that it
   still holds and that is empty after movement; otherwise nothing is raised or paid, and the king is
   told which ("No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.",
   or "…: you no longer held Thebes after movement.", or, for land the king itself ceded earlier in
-  the resolution, "…: you ceded Sinai to Hatti last season, before the levy."). Army 100, fleet 120; upkeep 30 and 35 a season. Troops the treasury cannot pay desert at the
-  start of the season, the one farthest from the capital first (the rulebook says so).
+  the resolution, "…: you ceded Sinai to Hatti last season, before the levy."). Army 100, fleet 120 (into the purse of the province raised in, since item 9+a); pay 20 and 25 a season in gold and 10
+  measures of grain. Since item 9+a troops the treasury cannot pay no longer desert at once: they mutiny after three
+  seasons unpaid, or two hungry (`16-the-economy-at-home.md`).
 - **Slow absorption** (Build order item 5, the siege package; question 5, plan step 16, and the design document's "A
   kingdom falls with its capital": "the land becomes the conqueror's over time rather than at once, so a conqueror gains
   an empire to hold, not a lump of score"). A province taken by force (troops standing in it, a storm, a siege, or

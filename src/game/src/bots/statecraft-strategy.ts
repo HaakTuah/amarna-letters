@@ -24,8 +24,11 @@ import {
   type Province,
   type UnitKind,
   type Rng,
+  EconomyData,
+  economyOf,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
@@ -190,9 +193,20 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   const me = b.me;
   // Back pay owed is gold already spent: the people it is owed to will claim it when they are back at court.
   let gold = v.gold - v.backPay;
-  let flow = v.income - v.upkeep - v.wallUpkeep - v.wages;
-  // While income covers upkeep, a small cushion is enough; a treasury that bleeds needs a season or two in hand.
   const costs = v.upkeep + v.wallUpkeep + v.wages;
+  // Grain first (item 9+a): what its sales this season should bring, with the mines, is the season's income.
+  const sales = plainGrain(b.me) ? plainGrainOrders(v, orders) : grainOrders(b, brain, plan, orders, gold, costs);
+  const mines = sum(v.provinces, (x) => economyOf(Board.Map.get(x.province)).mine);
+  // What the markets can go on paying a season: no more than the towns eat, nor the grain to spare, nor the gold that comes
+  // back into the purses (the part of the troops' pay spent at home) and a share of what the purses hold now.
+  const homePay = sum(b.mine.filter((u) => depotFor(b, u) !== null), (u) => (u.kind === "Army" ? v.prices.get("armyUpkeep") : v.prices.get("fleetUpkeep")));
+  const sustainable = Math.min(
+    sum(v.provinces, (x) => x.need),
+    Math.max(0, sum(v.provinces, (x) => x.tax) - sum(b.mine, (u) => EconomyData.armyFood)),
+    (homePay * EconomyData.spentPercent) / 100 + sum(v.provinces, (x) => x.purse) / Math.max(6, b.horizon),
+  );
+  let flow = mines + Math.max(sustainable, Math.min(sales, sustainable * 1.5)) - costs;
+  // While income covers upkeep, a small cushion is enough; a treasury that bleeds needs a season or two in hand.
   const reserve = (flow >= 0 ? costs * 0.3 * (0.5 + p.caution) : costs * (1 + p.caution)) + p.greed * 40 + 20;
 
   // Disband before the troops desert: the least needed unit goes first. A unit that must go is given instead to a friend
@@ -253,7 +267,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
       kind !== undefined ? kind === "Fleet" : (spot.isCoastal && !Board.Sail.canMove("Army", spot.id, near)) || (spot.isCoastal && maritime && count(b.mine, (u) => u.kind === "Fleet") < 2);
     const cost = fleet ? v.prices.get("fleet") : v.prices.get("army");
     const upkeep = fleet ? v.prices.get("fleetUpkeep") : v.prices.get("armyUpkeep");
-    const lifetime = cost + upkeep * Math.min(b.horizon, 10);
+    // Its pay and its food, the grain at its base price (item 9+a).
+    const lifetime = cost + (upkeep + EconomyData.armyFood) * Math.min(b.horizon, 10);
     if (value < lifetime * (0.7 + 0.5 * p.caution) * (1.3 - 0.6 * p.aggression)) continue;
     if (gold - cost < reserve) continue;
     if (flow - upkeep < -(gold - cost - reserve) / Math.max(3, b.horizon)) continue;
@@ -305,7 +320,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
         // A city whose elders lately would not choose between us and another buyer may draw the same rival again.
         const when = brain.outbid.tryGet(g);
         const contested = when !== undefined && v.turn - when <= 3 ? 0.6 : 1;
-        return { id: g, price: y * v.prices.get("cityPricePerYield"), score: (y * b.horizon - danger * 10 * y) * (rivalCount === 0 ? 1.15 : 1 - 0.1 * Math.min(3, rivalCount)) * contested };
+        return { id: g, price: v.cityPrices.getOrDefault(g, b.worth(g)), score: (y * b.horizon - danger * 10 * y) * (rivalCount === 0 ? 1.15 : 1 - 0.1 * Math.min(3, rivalCount)) * contested };
       })
       .filter((o) => o.score > 0),
     [(o: { id: string; price: number; score: number }) => o.score / o.price, desc(cmpNum)],
@@ -432,7 +447,7 @@ function cession(b: Board, brain: Brain, plan: MilitaryPlan): CedeProvinceOrder 
           (brain.belligerence.getOrDefault(r, 0) >= 0.8 || brain.rel.get(r).hostile),
       ) ?? null;
     if (rival === null) continue;
-    const gain = prov.yield * b.yieldWorth;
+    const gain = b.worth(prov.id);
     const against = (b.strength(rival) + gain) / b.startStrength(rival);
     const friend =
       sortBy(

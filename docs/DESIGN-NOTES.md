@@ -52,3 +52,4 @@ claim graded and sourced.
 | [`design/13-travel-and-news.md`](design/13-travel-and-news.md) | Travel and news (item 7b) | 9.3 |
 | [`design/14-structured-press.md`](design/14-structured-press.md) | Structured press, recognition, gold without an inventory, local agent characters (item 8) | 13.4 |
 | [`design/15-envoy-authority-and-passage.md`](design/15-envoy-authority-and-passage.md) | Winter dangerous, spy reports by road, envoy authority, passage and basing (item 9) | 8.6 |
+| [`design/16-the-economy-at-home.md`](design/16-the-economy-at-home.md) | The economy at home: grain, stores, markets, pay and food, caravans, the siege's clock, the wealth of a realm (item 9+a) | 9.5 |

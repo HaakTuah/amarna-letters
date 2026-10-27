@@ -276,11 +276,11 @@ describe("SleepTests", () => {
     Assert.contains("your army in sippar was destroyed", sleeper.views[1].wokenBecause);
   });
 
-  test("Troops deserting for lack of pay wake a sleeper", async () => {
+  test("Troops going unpaid wake a sleeper", async () => {
     let sleeper = new Sleeper((_) => nothing());
     await play("Babylonia", sleeper, 3, { ...Quiet, armyUpkeep: 300 });
     Assert.equal(2, sleeper.calls[1]);
-    Assert.contains("your unpaid troops deserted", sleeper.views[1].wokenBecause);
+    Assert.contains("troops of yours went hungry or unpaid", sleeper.views[1].wokenBecause);
   });
 
   // <summary>The news that wakes a seat: land lost, troops lost to plague or desertion, a ransom demanded, a servant's notice.</summary>
@@ -292,7 +292,7 @@ describe("SleepTests", () => {
       "The hand of Nergal is on the land. Plague will cut income by a quarter for two seasons, and it has destroyed your A babylon.",
       "plague destroyed troops of yours",
     ],
-    ["Notice", "The treasury", "Income 200, upkeep 0, wages 0. Unpaid troops deserted: A ur.", "your unpaid troops deserted"],
+    ["Notice", "The treasury", "A ur mutinied, unpaid 3 seasons running, and disbanded: its men went home.", "troops of yours mutinied"],
     ["Rumor", "Rumor", "Hatti holds Mane and demands 100 shekels for their return (order pay_ransom for c3).", "a ransom is demanded for one of your people"],
     ["Notice", NoticeTitle, "Mane's term has ended.", "a servant gives notice: Mane's term has ended."],
   ] as const)("News that concerns a seat wakes it %s", (kind: InboxKind, title: string, body: string, reason: string) => {
@@ -406,7 +406,10 @@ describe("SleepTests", () => {
           }),
     );
     let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [buy("suhu")] }) : newTurnSubmission()));
-    await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]));
+    // Both rich enough for the city's price (item 9+a: what it adds).
+    await play("Babylonia", sleeper, 3, undefined, new Dict([["Assyria", assyria]]), (s) => {
+      for (const t of s.treasuries.values()) t.gold += 5000;
+    });
     Assert.equal([1, 3], sleeper.calls);
     Assert.contains(sleeper.views[1].wokenBecause, (w) => w.includes("suhu") && w.includes("would not choose between 2 buyers"));
   });

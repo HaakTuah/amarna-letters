@@ -6,7 +6,7 @@
  *
  * The pace is one function ({@link legPoints}) with one term per factor. A term whose system does not exist yet stays
  * neutral (100%) until the item that brings it turns it on: terrain and river crossings, winter passes, the sea and
- * sneaking are on from item 7b; size, load and pack animals come with caravans (9+), water, fodder and the season on land
+ * sneaking are on from item 7b; size, load, pack animals and the slowest part with caravans (9+a), water, fodder and the season on land
  * with land and climate (10+), an army's size and forced marches with distance-based marching (13), the leader's skill
  * with characters who travel (11b), roads (15) and horses for messengers (the economy's second phase).
  */
@@ -25,10 +25,31 @@ export const PointsPerDay = 10;
  */
 export const TravelData = { ferryDays: 1, floodDays: 4, sneakPercent: 150, winterPassPercent: 200 } as const;
 
-/** What a company is, for its pace. Only sneaking is a choice today; the rest of its terms are neutral (above). */
+/**
+ * First guesses for the pace of a large company (item 9+a, tuned in item 18): a long column takes a percent longer for
+ * every `sizePer` men or measures beyond the first `sizeFree`, at most `sizeMost` percent longer; an empty company goes
+ * `emptyPercent` of the time of a fully loaded one, in proportion to its load; oxcarts take `oxcartPercent` and porters
+ * `portersPercent` of the time donkeys do.
+ */
+export const PaceData = { sizeFree: 20, sizePer: 4, sizeMost: 100, emptyPercent: 80, oxcartPercent: 150, portersPercent: 110 } as const;
+
+/** Pack animals: donkeys are the pack animals of the age; oxcarts carry heavy loads slowly; porters carry on their backs. */
+export type Animals = "Donkeys" | "Oxcarts" | "Porters";
+
+/**
+ * What a company is, for its pace (item 9+a): whether it sneaks, its size (men and beasts, counted for a caravan by the
+ * measures it carries), its load against what its animals can carry, and its animals. A company made of parts moving
+ * together goes at the pace of its slowest part. A lone traveller leaves size, load and animals out: they are neutral.
+ */
 export interface Company {
   /** Off the road, to pass unseen through a land closed to it. */
   readonly sneaking: boolean;
+  readonly size?: number;
+  readonly load?: number;
+  readonly capacity?: number;
+  readonly animals?: Animals;
+  /** The parts moving together, each with its own terms: the slowest sets the pace. */
+  readonly parts?: readonly Company[];
 }
 
 export const OnTheRoad: Company = { sneaking: false };
@@ -79,6 +100,8 @@ export function boatDays(map: WorldMap, from: string, to: string): number | null
  */
 export function legPoints(map: WorldMap, from: string, to: string, season: number, company: Company = OnTheRoad): number {
   if (edgeBetween(map, from, to) === null) return Infinity;
+  // The slowest part sets the pace of a company moving together.
+  if (company.parts !== undefined && company.parts.length > 0) return Math.max(...company.parts.map((c) => legPoints(map, from, to, season, c)));
   // The land it crosses: terrain, passes and the desert, and at sea the passage and the current (item 7a's data);
   // a boat on a river where one goes faster than walking.
   let days = connectionDays(map, from, to);
@@ -96,13 +119,22 @@ export function legPoints(map: WorldMap, from: string, to: string, season: numbe
   if (snowbound(map, from, to, season)) percent = (percent * TravelData.winterPassPercent) / 100;
   // Sneaking: off the road on land; at sea a ship is a ship.
   if (company.sneaking && edgeBetween(map, from, to)!.kind !== "Sea") percent = (percent * TravelData.sneakPercent) / 100;
-  // Neutral until their items: size and load (9+), water and fodder (10+), an army's size and forced marches (13), the
-  // leader (11b), roads (15), horses (the economy's second phase).
+  // Size, load and animals (9+a); neutral until their items: water and fodder (10+), an army's size and forced marches
+  // (13), the leader (11b), roads (15), horses (the economy's second phase).
   percent = (percent * sizeAndLoad(company) * waterAndFodder(company) * leader(company) * roads(company)) / 100_000_000;
   return Math.max(1, Math.round(days * PointsPerDay * (percent / 100)));
 }
 
-const sizeAndLoad = (_c: Company): number => 100;
+/** The company's size, load and pack animals, as a percentage of a lone traveller's time (on land and on the river alike). */
+function sizeAndLoad(c: Company): number {
+  const size = c.size ?? 0;
+  const long = Math.min(PaceData.sizeMost, Math.max(0, Math.floor((size - PaceData.sizeFree) / PaceData.sizePer)));
+  const cap = c.capacity ?? 0;
+  const load = cap > 0 ? Math.min(100, Math.floor(((c.load ?? 0) * 100) / cap)) : 100;
+  const loaded = PaceData.emptyPercent + Math.floor(((100 - PaceData.emptyPercent) * load) / 100);
+  const beasts = c.animals === "Oxcarts" ? PaceData.oxcartPercent : c.animals === "Porters" ? PaceData.portersPercent : 100;
+  return Math.floor(((100 + long) * loaded * beasts) / 10_000);
+}
 const waterAndFodder = (_c: Company): number => 100;
 const leader = (_c: Company): number => 100;
 const roads = (_c: Company): number => 100;
