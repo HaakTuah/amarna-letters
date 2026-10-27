@@ -1,0 +1,520 @@
+import { Dict } from "../core/collections.ts";
+import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
+import { newGameConfig } from "./config.ts";
+import type { UnitKind } from "./map.ts";
+import { type Order, OrderSchema } from "./orders.ts";
+import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
+import type { Power } from "./power.ts";
+import { type InboxItem, InboxItemSchema } from "./records.ts";
+import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, StandingOrderViewSchema } from "./sleep.ts";
+
+export interface UnitView {
+  power: Power;
+  kind: UnitKind;
+  province: string;
+}
+
+export function newUnitView(init: Partial<UnitView> = {}): UnitView {
+  return {
+    power: "Egypt",
+    kind: "Army",
+    province: "",
+    ...init,
+  };
+}
+
+export const UnitViewSchema: ObjSchema<UnitView> = obj("UnitView", newUnitView, {
+  power: S,
+  kind: S,
+  province: S,
+});
+
+/**
+ * A siege as a court sees it: the city, the besieger, who holds the city, and how far it has been worn down against its walls.
+ */
+export interface SiegeView {
+  province: string;
+  besieger: Power;
+  holder: Power | null;
+  /** How far the city has been worn down; it surrenders when this reaches {@link Walls}. */
+  progress: number;
+  walls: number;
+  /** The season the siege began. */
+  since: number;
+  /**
+   * For the city's holder and the besieger only: the besieger's units in the city and next to it, from 1 to 3, which sets
+   * the odds that an envoy leaving or coming home to a besieged capital is caught.
+   */
+  tightness: number | null;
+}
+
+export function newSiegeView(init: Partial<SiegeView> = {}): SiegeView {
+  return {
+    province: "",
+    besieger: "Egypt",
+    holder: null,
+    progress: 0,
+    walls: 0,
+    since: 0,
+    tightness: null,
+    ...init,
+  };
+}
+
+export const SiegeViewSchema: ObjSchema<SiegeView> = obj("SiegeView", newSiegeView, {
+  province: S,
+  besieger: S,
+  holder: opt(S),
+  progress: I,
+  walls: I,
+  since: I,
+  tightness: opt(I),
+});
+
+export interface LotView {
+  id: string;
+  from: Power;
+  stated: number;
+  weighed: number;
+  arrivedTurn: number;
+}
+
+export function newLotView(init: Partial<LotView> = {}): LotView {
+  return {
+    id: "",
+    from: "Egypt",
+    stated: 0,
+    weighed: 0,
+    arrivedTurn: 0,
+    ...init,
+  };
+}
+
+export const LotViewSchema: ObjSchema<LotView> = obj("LotView", newLotView, {
+  id: S,
+  from: S,
+  stated: I,
+  weighed: I,
+  arrivedTurn: I,
+});
+
+export interface CharacterView {
+  id: string;
+  name: string;
+  origin: string;
+  ours: boolean;
+  status: string;
+  employer: Power | null;
+  duty: string;
+  where: string;
+  /**
+   * Your servant away: when it set out and when it is due back, as you can reckon it (see {@link Views.TimingText}).
+   */
+  timing: string;
+  wage: number | null;
+  /** The last season of your servant's term. */
+  contractUntil: number | null;
+  /** One of your people who has given notice: the wage they ask to serve on. */
+  noticePrice: number | null;
+  /** With a notice: the season at whose start they leave unless renewed. */
+  leavesTurn: number | null;
+  /**
+   * Your servant's term in plain words: the wage, until when, and what happens then (see {@link Views.TermText}).
+   */
+  term: string;
+  knownFacts: string[];
+  pitch: string | null;
+  /**
+   * What someone not in your service asks you a season: named in a pitch, or asked by a free person at your court.
+   */
+  askingPrice: number | null;
+  /** In your service, at your court, with no task: can be sent somewhere this season. */
+  ready: boolean;
+  /** An envoy or spy you are holding against their will. */
+  heldByYou: boolean;
+  /**
+   * Your captive is an envoy your besiegers caught at a city you besiege (it can be executed, ransomed or released, not turned).
+   */
+  intercepted: boolean;
+  /**
+   * One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.
+   */
+  ransomDemand: number | null;
+  /**
+   * The back pay you owe them (as you believe it, for one of your people abroad), paid when they are back at your court; null if none.
+   */
+  backPay: number | null;
+}
+
+export function newCharacterView(init: Partial<CharacterView> = {}): CharacterView {
+  return {
+    id: "",
+    name: "",
+    origin: "",
+    ours: false,
+    status: "",
+    employer: null,
+    duty: "",
+    where: "",
+    timing: "",
+    wage: null,
+    contractUntil: null,
+    noticePrice: null,
+    leavesTurn: null,
+    term: "",
+    knownFacts: [],
+    pitch: null,
+    askingPrice: null,
+    ready: false,
+    heldByYou: false,
+    intercepted: false,
+    ransomDemand: null,
+    backPay: null,
+    ...init,
+  };
+}
+
+export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView", newCharacterView, {
+  id: S,
+  name: S,
+  origin: S,
+  ours: B,
+  status: S,
+  employer: opt(S),
+  duty: S,
+  where: S,
+  timing: S,
+  wage: opt(I),
+  contractUntil: opt(I),
+  noticePrice: opt(I),
+  leavesTurn: opt(I),
+  term: S,
+  knownFacts: list(S),
+  pitch: S,
+  askingPrice: opt(I),
+  ready: B,
+  heldByYou: B,
+  intercepted: B,
+  ransomDemand: opt(I),
+  backPay: opt(I),
+});
+
+export interface TabletView {
+  /** The tablet as every court names it, by its seals and date (see {@link Views.TabletName}). */
+  name: string;
+  /**
+   * This court's own mark for its copy, for its orders only: every court numbers its copies differently.
+   */
+  copyId: string;
+  tabletId: string;
+  text: string;
+  seals: Power[];
+  proposedBy: Power;
+  partner: Power | null;
+  sealedTurn: number | null;
+  allianceOath: boolean;
+  source: string;
+  authResult: string | null;
+}
+
+export function newTabletView(init: Partial<TabletView> = {}): TabletView {
+  return {
+    name: "",
+    copyId: "",
+    tabletId: "",
+    text: "",
+    seals: [],
+    proposedBy: "Egypt",
+    partner: null,
+    sealedTurn: null,
+    allianceOath: false,
+    source: "",
+    authResult: null,
+    ...init,
+  };
+}
+
+export const TabletViewSchema: ObjSchema<TabletView> = obj("TabletView", newTabletView, {
+  name: S,
+  copyId: S,
+  tabletId: S,
+  text: S,
+  seals: list(S),
+  proposedBy: S,
+  partner: opt(S),
+  sealedTurn: opt(I),
+  allianceOath: B,
+  source: S,
+  authResult: S,
+});
+
+/**
+ * A letter the king sent, as his scribes wrote it ({@link MessageTrail}): his record of what he sent with an envoy,
+ * to set beside what the envoy reports.
+ */
+export interface LetterView {
+  turn: number;
+  envoyId: string;
+  envoyName: string;
+  to: Power;
+  gold: number;
+  message: string;
+  mandate: string;
+  /** The tablet the envoy carried to be sealed, or null. */
+  tablet: string | null;
+  /** The season the envoy's report reached the king, or null while it is still away. */
+  reportedTurn: number | null;
+}
+
+export function newLetterView(init: Partial<LetterView> = {}): LetterView {
+  return {
+    turn: 0,
+    envoyId: "",
+    envoyName: "",
+    to: "Egypt",
+    gold: 0,
+    message: "",
+    mandate: "",
+    tablet: null,
+    reportedTurn: null,
+    ...init,
+  };
+}
+
+export const LetterViewSchema: ObjSchema<LetterView> = obj("LetterView", newLetterView, {
+  turn: I,
+  envoyId: S,
+  envoyName: S,
+  to: S,
+  gold: I,
+  message: S,
+  mandate: S,
+  tablet: S,
+  reportedTurn: opt(I),
+});
+
+/**
+ * One seat's view of the world: the public map, its own treasury and people, what its
+ * characters chose to tell it. Every seat - human, model or script - receives exactly this.
+ */
+export interface SeatView {
+  turn: number;
+  season: string;
+  power: Power;
+  king: string;
+  ended: boolean;
+  minTurns: number;
+  endChance: number;
+  gold: number;
+  unassayedGold: LotView[];
+  income: number;
+  upkeep: number;
+  /** The upkeep of walls it raised above the map's own, a season (paid after its troops'). */
+  wallUpkeep: number;
+  /** The wages of all its people a season: paid to those at court, built up as back pay for those away. */
+  wages: number;
+  /**
+   * The back pay it believes it owes (to its people, and to anyone at its court), paid when each is back at its court.
+   */
+  backPay: number;
+  /**
+   * Strength by the seat's own ledger (unassayed gold at its weight), less the back pay it believes it owes; never the
+   * true figure (see {@link Scoring}).
+   */
+  strength: number;
+  startStrength: number;
+  /** What a shekel of yield counts in strength (public, in the rulebook). */
+  provinceWeight: number;
+  owner: Dict<string, Power | null>;
+  /**
+   * The walls as this court knows them, by province (a province with none is left out): standing now where it can see
+   * troops, elsewhere as it last saw them ({@link Views.WallsKnown}; since the review of the siege package, until
+   * which every court saw every wall as it stood).
+   */
+  walls: Dict<string, number>;
+  /** The sieges this court knows of: its own, those of its cities, and those it can see. */
+  sieges: SiegeView[];
+  /**
+   * This court's own land taken by force and still being absorbed, with the season it was taken. Only its own: who holds
+   * a province is public, but how it changed hands is not (since the review of the siege package; until then every court
+   * saw every king's marks, and so which land had been conquered and which ceded or bought).
+   */
+  conquered: Dict<string, number>;
+  units: UnitView[];
+  visible: string[];
+  fallen: Power[];
+  court: CharacterView[];
+  known: CharacterView[];
+  tablets: TabletView[];
+  /**
+   * Its own letters in full, oldest first: each envoy's latest, while the envoy is away on that errand as far as the court
+   * knows, and once more when its report has come since the court last gave orders (see {@link Views.Letters}).
+   */
+  letters: LetterView[];
+  inbox: InboxItem[];
+  travelTimes: string[];
+  /** Last season's orders as they resolved, for every unit this court could see. */
+  lastSeason: OrderOutcome[];
+  /**
+   * Whether this seat sleeps after its orders (see {@link GameConfig.SleepingSeats}). The cap on its sleep is never shown.
+   */
+  sleeps: boolean;
+  /** Why this seat was woken this season; empty when it was awake anyway. */
+  wokenBecause: string[];
+  /** The last season this seat gave orders before this one (0 if it never has). */
+  lastCalled: number;
+  /**
+   * News delivered while this seat slept, oldest first: routine treasury notices left out (this season's is in its
+   * news), and at most {@link Views.MaxWhileAsleep} items, the latest.
+   */
+  whileAsleep: InboxItem[];
+  /** Older news of the seasons it slept that did not fit. */
+  whileAsleepLeftOut: number;
+  /** What happened while it slept that did not wake it, in brief, one line each. */
+  digest: string[];
+  /** Older digest lines that did not fit. */
+  digestLeftOut: number;
+  /** Its own orders queued for later seasons, each of its units named by where it stands now. */
+  scheduled: ScheduledOrders[];
+  /** Its standing orders, each of its units named by where it stands now. */
+  standing: StandingOrderView[];
+  /**
+   * It sleeps and was woken for its audiences only ({@link WokenBecause} names the envoys): its orders stand unless
+   * it reopens them at an audience.
+   */
+  holdsCourt: boolean;
+  /** Letters it sent from its audiences this season, which go out with its orders (checked before them). */
+  courtLetters: Order[];
+  prices: Dict<string, number>;
+}
+
+export function newSeatView(init: Partial<SeatView> = {}): SeatView {
+  return {
+    turn: 0,
+    season: "",
+    power: "Egypt",
+    king: "",
+    ended: false,
+    minTurns: 0,
+    endChance: 0,
+    gold: 0,
+    unassayedGold: [],
+    income: 0,
+    upkeep: 0,
+    wallUpkeep: 0,
+    wages: 0,
+    backPay: 0,
+    strength: 0,
+    startStrength: 0,
+    provinceWeight: newGameConfig().provinceWeight,
+    owner: new Dict(),
+    walls: new Dict(),
+    sieges: [],
+    conquered: new Dict(),
+    units: [],
+    visible: [],
+    fallen: [],
+    court: [],
+    known: [],
+    tablets: [],
+    letters: [],
+    inbox: [],
+    travelTimes: [],
+    lastSeason: [],
+    sleeps: false,
+    wokenBecause: [],
+    lastCalled: 0,
+    whileAsleep: [],
+    whileAsleepLeftOut: 0,
+    digest: [],
+    digestLeftOut: 0,
+    scheduled: [],
+    standing: [],
+    holdsCourt: false,
+    courtLetters: [],
+    prices: new Dict(),
+    ...init,
+  };
+}
+
+export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, {
+  turn: I,
+  season: S,
+  power: S,
+  king: S,
+  ended: B,
+  minTurns: I,
+  endChance: D,
+  gold: I,
+  unassayedGold: list(() => LotViewSchema),
+  income: I,
+  upkeep: I,
+  wallUpkeep: I,
+  wages: I,
+  backPay: I,
+  strength: I,
+  startStrength: I,
+  provinceWeight: I,
+  owner: dict(opt(S)),
+  walls: dict(I),
+  sieges: list(() => SiegeViewSchema),
+  conquered: dict(I),
+  units: list(() => UnitViewSchema),
+  visible: list(S),
+  fallen: list(S),
+  court: list(() => CharacterViewSchema),
+  known: list(() => CharacterViewSchema),
+  tablets: list(() => TabletViewSchema),
+  letters: list(() => LetterViewSchema),
+  inbox: list(() => InboxItemSchema),
+  travelTimes: list(S),
+  lastSeason: list(() => OrderOutcomeSchema),
+  sleeps: B,
+  wokenBecause: list(S),
+  lastCalled: I,
+  whileAsleep: list(() => InboxItemSchema),
+  whileAsleepLeftOut: I,
+  digest: list(S),
+  digestLeftOut: I,
+  scheduled: list(() => ScheduledOrdersSchema),
+  standing: list(() => StandingOrderViewSchema),
+  holdsCourt: B,
+  courtLetters: list(() => OrderSchema),
+  prices: dict(I),
+});
+
+/**
+ * One power's standing as any court can reckon it from public ownership alone: the base yield of the land it holds now
+ * against the yield of its homeland, which it held at the start. Treasuries are left out, so it is only an estimate of growth.
+ */
+export interface LandStanding {
+  power: Power;
+  yield: number;
+  startYield: number;
+  fallen: boolean;
+  // computed in C#: StartYield <= 0 ? 0 : (double)Yield / StartYield
+}
+
+export function newLandStanding(init: Partial<LandStanding> = {}): LandStanding {
+  return {
+    power: "Egypt",
+    yield: 0,
+    startYield: 0,
+    fallen: false,
+    ...init,
+  };
+}
+
+export const LandStandingSchema: ObjSchema<LandStanding> = obj("LandStanding", newLandStanding, {
+  power: S,
+  yield: I,
+  startYield: I,
+  fallen: B,
+  growth: computed(D, (o: LandStanding) => landGrowth(o)),
+});
+
+
+/** A land's growth: its yield over its starting yield (0 for none at the start). */
+export function landGrowth(o: LandStanding): number {
+  return o.startYield <= 0 ? 0 : o.yield / o.startYield;
+}

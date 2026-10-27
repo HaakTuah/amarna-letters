@@ -296,10 +296,11 @@ the app installs to the home screen and starts from cache.
 
 ### Run locally
 
-You need the .NET 10 SDK.
+You need Node 22 or later.
 
 ```bash
-dotnet run --project src/Amarna.Web --launch-profile http
+npm ci
+npm run dev --workspace src/web
 ```
 
 Then open <http://localhost:5183>, pick a preset, choose whether to watch or take a seat, and begin.
@@ -307,11 +308,11 @@ Then open <http://localhost:5183>, pick a preset, choose whether to watch or tak
 ### Tests and the batch runner
 
 ```bash
-dotnet test
+scripts/test.sh          # type-check, the engine's determinism lint, and every test (Vitest)
 ```
 
 ```bash
-dotnet run --project src/Amarna.Batch -- --games 50 --seed 1 --verify-replay
+scripts/sim.sh --games 50 --seed 1 --verify-replay
 ```
 
 The batch runner plays games unattended and prints wins by power and the success signals.
@@ -338,10 +339,10 @@ folder (`scripts/site-prepare.sh`, `scripts/site-publish.sh`). No pull request's
 none can replace the root. To publish the static files somewhere else, such as S3:
 
 ```bash
-dotnet publish src/Amarna.Web -c Release -o publish
+npm run build --workspace src/web
 ```
 
-The site is `publish/wwwroot`. If it is served from a sub-path, set `<base href>` in its
+The site is `src/web/dist`. If it is served from a sub-path, set `<base href>` in its
 `index.html` to that path.
 
 ### How it is put together
@@ -349,15 +350,15 @@ The site is `publish/wwwroot`. If it is served from a sub-path, set `<base href>
 Every game is deterministic: the same seed and the same decisions give the same game, and every
 log replays exactly.
 
-| Project | What it is |
+| Package | What it is |
 |---|---|
-| `src/Amarna.Engine` | The deterministic engine: map, state, orders, validator, adjudicator, economy, envoys, tablets, spies, catastrophes, scoring. Pure C#, no I/O. |
-| `src/Amarna.Game` | Seats, character minds and the narrator as interfaces; the runner that records every decision; script kings (temperaments, memory, a look-ahead over likely rival orders) and script characters; signal detection; batch runner. |
-| `src/Amarna.Llm` | Claude leaders (Sonnet 5.5 / Opus 5.5), characters (Haiku 5.5) and narrator (Sonnet 5.5): prompts, JSON schemas, parsing, cost accounting, the API simulator. In the browser, calls are posted with HttpClient. |
-| `src/Amarna.Llm.Sdk` | The official Anthropic SDK as the way model calls leave the console runner and tests (kept apart so that the web app does not download it). |
-| `src/Amarna.Web` | Blazor WebAssembly app: setup, SVG map, human orders and audiences, spectator views, timeline, chronicles, IndexedDB saves. Script kings and characters think in a Web Worker. |
-| `src/Amarna.Batch` | Console runner for unattended games. |
-| `tests/` | Engine tests (adjudication, determinism, envoys, intelligence) and game/model-layer tests against a fake HTTP API. |
+| `src/engine` | The deterministic engine: map, state, orders, validator, adjudicator, economy, envoys, tablets, spies, catastrophes, scoring. Pure TypeScript, no I/O; a lint config keeps out clocks, unseeded randomness, culture-sensitive text and inexact `Math`. |
+| `src/game` | Seats, character minds and the narrator as interfaces; the runner that records every decision; script kings (temperaments, memory, a look-ahead over likely rival orders) and script characters; signal detection. |
+| `src/llm` | Claude leaders (Sonnet 5.5 / Opus 5.5), characters (Haiku 5.5) and narrator (Sonnet 5.5): prompts, JSON schemas, parsing, cost accounting, the API simulator, file seats and the local bridge. Calls are posted with `fetch`, in the browser and the batch runner alike. |
+| `src/web` | Vite and React app: setup, SVG map, human orders and audiences, spectator views, timeline, chronicles, IndexedDB saves. The engine, the script kings and characters run in a Web Worker; the page only shows what it sends. |
+| `src/batch` | Node runner for unattended games, on worker threads. |
+| `src/*/test` | The tests (Vitest), ported from the C# suite: engine, script kings and characters, model layer against a simulated API, and the web map's scenes. |
+| `src/Amarna.*`, `tests/` | The C# build the game was converted from (build order item 5+), kept for reference; `scripts/parity.sh` compares the two (it needs .NET). |
 
 ### Design notes
 

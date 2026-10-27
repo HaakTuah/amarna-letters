@@ -1,0 +1,675 @@
+/**
+ * Plans a season of troop orders. It reads threats to every province it holds, values every reachable target by what it
+ * adds to the score over the rest of the game, sizes each attack to beat the likely defence (supports included), and
+ * commits units to the best operations first: defending, blocking, cutting supports, attacking, convoying, then moving up.
+ */
+import {
+  Dict,
+  HSet,
+  besiege,
+  cmpNum,
+  cmpPower,
+  cmpStr,
+  convoy,
+  desc,
+  distinct,
+  hold,
+  max,
+  move,
+  roundEven,
+  sally,
+  sortBy,
+  support,
+  toInt,
+  idiv,
+  type Order,
+  type Power,
+  type SallyOrder,
+  type UnitView,
+} from "@amarna/engine";
+import { Board } from "./board.ts";
+import type { Brain } from "./brain.ts";
+import type { Personality } from "./personality.ts";
+
+/** The season's troop orders, and what the plan still lacks (for levies). */
+export class MilitaryPlan {
+  readonly orders = new Dict<string, Order>();
+  readonly role = new Dict<string, string>();
+  readonly destinations = new HSet<string>();
+  /** Places where one more unit would have paid off, with what it was worth. */
+  readonly shortfalls: [string, number][] = [];
+  readonly threatened = new HSet<string>();
+  /** For each threatened province, the strength of the likeliest attack on it and how likely it is to come. */
+  readonly danger = new Dict<string, [number, number]>();
+  /**
+   * Land of ours that only fleets threaten: a foreign fleet could move into it this season, and every foreign troop that
+   * could move into it now, or move next to it first, is a fleet; with how much the most feared such king is feared.
+   */
+  readonly byFleets = new Dict<string, number>();
+}
+
+/** `other`: the fleet that carries a convoy, or the partner's troop an assist supports. */
+interface Op {
+  kind: string;
+  net: number;
+  target: string;
+  lead: string;
+  helpers: string[];
+  other: string | null;
+}
+
+const op = (kind: string, net: number, target: string, lead: string, helpers: string[], other: string | null = null): Op => ({ kind, net, target, lead, helpers, other });
+
+/** A blow struck together at the land of a king sworn against: one troop goes in, the others support it. */
+export interface Joint {
+  target: string;
+  against: Power;
+  lead: UnitView;
+  support: UnitView[];
+}
+
+/**
+ * Attacks on the land of a king we have sworn with partners to stand against, made by a rule each of them can work out
+ * from its own side of the board, so that no letter has to settle who does what: next to each of his provinces (the
+ * richest first, each troop once), the troops of the partner with the least land go in (an army before a fleet, then by
+ * province) and every other sworn troop there supports them. Only troops in sight count, and only blows that could land.
+ */
+export function joints(b: Board, brain: Brain): Joint[] {
+  const list: Joint[] = [];
+  const coalitions = brain.coalitions(b);
+  if (coalitions.length === 0) return list;
+  const used = new HSet<string>();
+  const landOf = (x: Power): number => {
+    let s = 0;
+    for (const [k, o] of b.v.owner.entries()) if (o === x) s += Board.Map.get(k).yield;
+    return s;
+  };
+  for (const foe of sortBy(distinct(coalitions.map(([, a]) => a)), [(x: Power) => x, cmpPower])) {
+    const side = new HSet([...coalitions.filter(([, a]) => a === foe).map(([p]) => p), b.me]);
+    const targets = sortBy(
+      [...b.v.owner.entries()].filter(([k, o]) => o === foe && b.v.visible.includes(k)).map(([k]) => k),
+      [(t: string) => Board.Map.get(t).yield, desc(cmpNum)],
+      [(t: string) => t, cmpStr],
+    );
+    for (const t of targets) {
+      const near = b.v.units.filter((u) => side.has(u.power) && !used.has(u.province) && Board.Map.canMove(u.kind, u.province, t));
+      if (!near.some((u) => u.power === b.me) || near.every((u) => u.power === b.me)) continue;
+      const lead = sortBy(
+        near,
+        [(u: UnitView) => landOf(u.power), cmpNum],
+        [(u: UnitView) => u.power, cmpPower],
+        [(u: UnitView) => (u.kind === "Army" ? 0 : 1), cmpNum],
+        [(u: UnitView) => u.province, cmpStr],
+      )[0];
+      const supp = near.filter((u) => u !== lead);
+      // Walls add nothing to the battle: a blow lands if it beats the troop there (behind walls it begins a siege), with the
+      // ground's help to it against the troop that goes in.
+      const held = b.unitAt.tryGet(t)?.power === foe ? 1 + b.ground(lead.province, t) : 0;
+      const backers = b.units.filter((u) => u.power === foe && u.province !== t && Board.Map.canMove(u.kind, u.province, t)).length;
+      if (1 + supp.length <= held + idiv(backers + 1, 2)) continue;
+      used.add(lead.province);
+      for (const s of supp) used.add(s.province);
+      list.push({ target: t, against: foe, lead, support: supp });
+    }
+  }
+  return list;
+}
+
+/** `temper`: plays the season with these weights instead of the king's own (to draw alternative plans). */
+export function makePlan(b: Board, brain: Brain, temper: Personality | null = null): MilitaryPlan {
+  const plan = new MilitaryPlan();
+  const p = temper ?? brain.p;
+  const me = b.me;
+  const free = new HSet(b.mine.map((u) => u.province));
+  // Units that must not move this season. They may still support, which holds just as well.
+  const stay = new HSet<string>();
+  const leader = b.leader();
+  const hostility = new Dict<Power, number>(
+    [...b.alive].filter((x) => x !== me).map((x) => [x, brain.hostility(x, b) * (brain.isFriend(x) && brain.betraying !== x ? 0.25 : 1)] as const),
+  );
+
+  const isWilling = (owner: Power): boolean => willing(b, brain, owner, leader);
+  const sworn = brain.swornFoes(b);
+
+  const multiplier = (owner: Power | null): number => {
+    if (owner === null) return 1 - 0.45 * p.commerce;
+    if (owner === me) return 1;
+    if (owner === brain.betraying) return 1.1;
+    if (owner === brain.warTarget || sworn.has(owner)) return 1.3;
+    if (owner === leader) return 1.2;
+    if (brain.rel.get(owner).hostile) return 1.0 + 0.3 * p.vengeance;
+    return 0.55 + 0.45 * p.aggression;
+  };
+
+  const capital = Board.Map.capital(me).id;
+  // Gifts and fair words may lull a court, but it trusts its capital only to a sworn ally.
+  const fear = (x: Power, province: string): number => (province === capital && !brain.rel.get(x).allied ? Math.max(hostility.get(x), 0.3) : hostility.get(x));
+
+  // ---- Threats: the strongest attack any one king could bring, weighted by how likely he is to bring it.
+  const danger = (province: string): [number, number] => {
+    let best: [number, number] = [0, 0.0];
+    for (const x of [...b.alive].filter((x) => x !== me)) {
+      const m = b.muster(x, province);
+      if (m === 0) continue;
+      const chance = fear(x, province);
+      if (chance < 0.25) continue;
+      if (m > best[0] || (m === best[0] && chance > best[1])) best = [m, chance];
+    }
+    return best;
+  };
+
+  const threat = new Dict<string, [number, number]>();
+  const ownedNow: string[] = [];
+  for (const [k, o] of b.v.owner.entries()) if (o === me) ownedNow.push(k);
+  for (const prov of distinct([...ownedNow, ...free])) {
+    const d = danger(prov);
+    if (d[0] > 0) {
+      threat.set(prov, d);
+      plan.threatened.add(prov);
+      plan.danger.set(prov, d);
+    }
+  }
+  // Land of ours that only fleets threaten, a fleet next to it now (see MilitaryPlan.byFleets). A friend's fleet counts too, at
+  // the least fear that counts at all.
+  for (const prov of sortBy(
+    ownedNow.filter((k) => !Board.Map.get(k).isSea),
+    [(x: string) => x, cmpStr],
+  )) {
+    const near = b.others.filter(
+      (u) =>
+        u.province !== prov &&
+        (Board.Map.canMove(u.kind, u.province, prov) || Board.Map.movesFrom(u.kind, u.province).some((n) => n !== prov && Board.Map.canMove(u.kind, n, prov))),
+    );
+    if (near.length > 0 && near.every((u) => u.kind === "Fleet") && near.some((u) => Board.Map.canMove(u.kind, u.province, prov)))
+      plan.byFleets.set(
+        prov,
+        max(near, (u) => Math.max(0.25, fear(u.power, prov))),
+      );
+  }
+
+  // The chance that some hostile king walks into a province within two moves, for the homeland and capital.
+  const nearby = (province: string): number => {
+    let best = 0.0;
+    for (const u of b.others) {
+      const f = fear(u.power, province);
+      if (f < 0.25) continue;
+      const close = Board.Map.canMove(u.kind, u.province, province) || Board.Map.movesFrom(u.kind, u.province).some((n) => Board.Map.canMove(u.kind, n, province));
+      if (close) best = Math.max(best, f * 0.6);
+    }
+    return best;
+  };
+
+  // What we risk by marching a unit out of a province we hold.
+  const exposure = (origin: string): number => {
+    if (!b.isMine(origin)) return 0;
+    const t = threat.tryGet(origin);
+    let chance = t !== undefined ? t[1] : 0;
+    const prov = Board.Map.get(origin);
+    if (prov.capital || prov.home === me) chance = Math.max(chance, nearby(origin));
+    return chance * b.value(origin) * (0.6 + 0.5 * p.caution);
+  };
+
+  // The capital keeps its garrison while enemies are near.
+  if (free.has(capital) && nearby(capital) >= (b.mine.length <= 2 ? 0.15 : 0.2) && (b.mine.length <= 2 || p.caution > 0.5)) stay.add(capital);
+
+  const helpersFor = (target: string, exclude: string): string[] =>
+    sortBy(
+      [...free].filter((u) => u !== exclude && Board.Map.canMove(b.unitAt.get(u).kind, u, target)),
+      [
+        (u: string) => {
+          const t = threat.tryGet(u);
+          return t !== undefined ? t[1] * b.value(u) : 0;
+        },
+        cmpNum,
+      ],
+      [(u: string) => u, cmpStr],
+    );
+
+  const ops: Op[] = [];
+
+  // ---- Defend: hold threatened units and walls with enough supports.
+  for (const [prov, t] of threat) {
+    const hasUnit = free.has(prov);
+    if (!hasUnit) {
+      // Empty land, walled or not (walls do not hold in a battle): march in to bounce whoever comes.
+      const blocker = helpersFor(prov, "").find((u) => !stay.has(u) && (!threat.has(u) || b.value(u) < b.value(prov))) ?? null;
+      if (blocker !== null && !b.unitAt.has(prov)) ops.push(op("block", t[1] * b.value(prov) * 0.6 - exposure(blocker), prov, blocker, []));
+      continue;
+    }
+    // The likeliest attacker; the ground's help against his blow counts with our troop.
+    const attacker =
+      sortBy(
+        [...b.alive].filter((x) => x !== me && b.muster(x, prov) === t[0]),
+        [(x: Power) => hostility.get(x), desc(cmpNum)],
+      )[0] ?? "Egypt";
+    const needed = t[0] - 1 - b.groundAgainst(prov, attacker);
+    if (needed <= 0) continue;
+    const helpers = helpersFor(prov, prov).slice(0, needed);
+    const worth = (b.isMine(prov) ? b.value(prov) : 0) + (hasUnit ? 120 : 0);
+    const share = helpers.length >= needed ? 1.0 : (0.5 * helpers.length) / needed;
+    if (helpers.length > 0 || hasUnit) ops.push(op("defend", t[1] * worth * share * (0.7 + 0.6 * p.caution), prov, hasUnit ? prov : "", helpers));
+    if (helpers.length < needed) plan.shortfalls.push([prov, t[1] * worth]);
+
+    // Cut the supports of the attack, from anywhere but the province under threat.
+    for (const supporter of b.canReach(prov, (u) => u.power === attacker).map((u) => u.province)) {
+      const cutter = helpersFor(supporter, prov).find((u) => u !== prov) ?? null;
+      if (cutter !== null) ops.push(op("cut", t[1] * worth * 0.35 - exposure(cutter), supporter, cutter, []));
+    }
+  }
+
+  // A relief of a friend's besieged city: one of our armies moves in on the besiegers with enough supports to beat their
+  // likely hold, never so many that it could storm the walls (the city would be ours, not our friend's). Worth a share of
+  // the city to its holder, as a support for a friend's blow is, and the besiegers' troop.
+  const reliefOp = (besieger: UnitView): Op | null => {
+    const target = besieger.province;
+    const backers = b.canReach(target, (u) => u.power === besieger.power && u.province !== target).length;
+    const able = helpersFor(target, "");
+    const lead =
+      sortBy(
+        able.filter((u) => !stay.has(u) && b.unitAt.get(u).kind === "Army"),
+        [(u: string) => b.ground(u, target), cmpNum],
+        [(u: string) => exposure(u), cmpNum],
+        [(u: string) => u, cmpStr],
+      )[0] ?? null;
+    if (lead === null) return null;
+    const defence = 1 + toInt(roundEven(backers * (0.5 + 0.3 * p.caution))) + b.ground(lead, target);
+    const sallyBonus = b.wallLevel(target) >= b.v.prices.getOrDefault("sallyMinWalls", 2) ? 1 : 0;
+    if (defence > b.wallLevel(target) - sallyBonus) return null;
+    const helpers = able.filter((u) => u !== lead).slice(0, defence);
+    if (helpers.length < defence) return null;
+    const gain = (0.25 + 0.25 * p.honesty) * b.value(target) + 120 * (multiplier(besieger.power) >= 1 ? 1 : 0.5);
+    return op("attack", 0.85 * gain - exposure(lead) - 6 * helpers.length - (b.unitAt.get(lead).kind === "Army" ? b.desertCost(target) : 0), target, lead, helpers);
+  };
+
+  // ---- Attack: every reachable province we would gain from.
+  const targets = distinct([...free].flatMap((u) => Board.Map.movesFrom(b.unitAt.get(u).kind, u))).filter((t) => !Board.Map.get(t).isSea);
+  for (const target of targets) {
+    const owner = b.ownerOf(target);
+    const occupant = b.unitAt.tryGet(target) ?? null;
+    if (occupant?.power === me) continue;
+    if (owner === me && occupant === null) continue;
+    // A friend's city besieged by a king we would fight: drive the besiegers out (see relief).
+    const besieger = relief(b, brain, target, isWilling);
+    if (besieger !== null) {
+      const r = reliefOp(besieger);
+      if (r !== null) ops.push(r);
+      continue;
+    }
+    if (owner !== null && owner !== me && !isWilling(owner)) continue;
+    if (occupant !== null && occupant.power !== me && !isWilling(occupant.power) && owner !== me) continue;
+    // A friend's troop standing within our walls as a guest is left alone; one that besieges them is driven out.
+    const besieged = owner === me && b.siegeAt(target) !== null;
+    if (owner === me && occupant !== null && occupant.power !== me && !isWilling(occupant.power) && !besieged) continue;
+
+    // Walls add nothing to the battle (the siege package): the defence is the troop there and its likely supports.
+    let defence: number;
+    if (occupant !== null) {
+      const backers = b.canReach(target, (u) => u.power === occupant.power && u.province !== target).length;
+      defence = 1 + toInt(roundEven(backers * (0.5 + 0.3 * p.caution)));
+    } else defence = 0;
+
+    const musters = [...b.alive].filter((x) => x !== me && x !== occupant?.power).map((x) => b.muster(x, target));
+    const rivals = musters.length === 0 ? 0 : max(musters, (x) => x);
+    const contest = rivals === 0 ? 0 : p.caution > 0.5 ? rivals : Math.max(0, rivals - 1);
+
+    let gain = (owner === me ? 0 : b.value(target)) * multiplier(owner) + (occupant !== null ? 120 : 0);
+    if (owner !== null && owner !== me && Board.Map.get(target).capital) gain += 60;
+    // Our own city besieged: driving the besieger out saves it.
+    if (besieged) gain += 0.9 * b.value(target);
+
+    const able = helpersFor(target, "");
+    if (able.length === 0) continue;
+    // Within foreign walls only an army can do anything: storm them, or stand and besiege the city.
+    const walled = b.walls(target) && owner !== me;
+    const movers = able.filter((u) => !stay.has(u) && (!walled || b.unitAt.get(u).kind === "Army"));
+    if (movers.length === 0) continue;
+    // Against a troop standing its ground, lead from where the ground helps it least: a move over open ground needs one
+    // support fewer than one over a pass or a river.
+    const lead = sortBy(
+      movers,
+      [(u: string) => (occupant === null ? 0 : b.ground(u, target)), cmpNum],
+      [(u: string) => exposure(u), cmpNum],
+      [(u: string) => (b.unitAt.get(u).kind === "Army" ? 0 : 1), cmpNum],
+      [(u: string) => u, cmpStr],
+    )[0];
+    if (occupant !== null) defence += b.ground(lead, target);
+    const required = Math.max(defence, contest) + 1;
+    // Strong enough to storm the walls, the attack takes the city at once; only strong enough to get in, the army stands
+    // inside and besieges it, which takes seasons and may be broken: worth less, the higher the walls.
+    const storm = walled ? Math.max(required, b.stormNeeds(target, occupant === null ? 0 : defence)) : required;
+    const stormHelpers = able.filter((u) => u !== lead).slice(0, Math.max(0, storm - 1));
+    const helpers = 1 + stormHelpers.length >= storm ? stormHelpers : able.filter((u) => u !== lead).slice(0, Math.max(0, required - 1));
+    const stormed = !walled || 1 + helpers.length >= storm;
+    if (1 + helpers.length >= required) {
+      const chance = 0.85 - (defence > 1 ? 0.1 : 0);
+      const worth = stormed ? gain : gain * siegeWorth(b.wallLevel(target)) + (occupant !== null ? 60 : 0);
+      // An army that ends the season in desert land not ours pays for supplies.
+      const desert = b.unitAt.get(lead).kind === "Army" ? b.desertCost(target) : 0;
+      ops.push(op("attack", chance * worth - exposure(lead) - 6 * helpers.length - desert, target, lead, helpers));
+    } else if (gain > 150) plan.shortfalls.push([target, gain * 0.5]);
+  }
+
+  // An army on a coast with nothing it could take by land this season: every land or coast link leads to our own land, to
+  // walls, or to a king we will not fight. Carried over the sea it can work again.
+  const stranded = (army: string): boolean =>
+    !Board.Map.movesFrom("Army", army).some((n) => {
+      if (b.isMine(n)) return false;
+      const o = b.ownerOf(n);
+      return o === null || isWilling(o);
+    });
+
+  // ---- Convoy: an army on the coast, our fleet at sea, a coast beyond. For a stranded army the convoy is worth more than
+  // the fleet taking that coast itself: the army goes in, and the fleet stays at sea to carry or strike again.
+  for (const fleet of [...free].filter((u) => b.unitAt.get(u).kind === "Fleet" && Board.Map.get(u).isSea))
+    for (const army of [...free].filter((u) => b.unitAt.get(u).kind === "Army" && Board.Map.get(u).isCoastal && Board.Map.areAdjacent(u, fleet)))
+      for (const target of Board.Map.neighbors(fleet).filter((t) => t !== army && Board.Map.get(t).isCoastal && !Board.Map.canMove("Army", army, t))) {
+        const owner = b.ownerOf(target);
+        if (b.unitAt.has(target) || owner === me || (owner !== null && !isWilling(owner))) continue;
+        const musters = [...b.alive].filter((x) => x !== me).map((x) => b.muster(x, target));
+        const required = 1 + Math.min(1, musters.length === 0 ? 0 : max(musters, (x) => x));
+        const helpers = helpersFor(target, army)
+          .filter((u) => u !== fleet)
+          .slice(0, Math.max(0, required - 1));
+        if (1 + helpers.length < required) continue;
+        // A landing that does not storm the walls only begins a siege.
+        const landed = b.walls(target) && 1 + helpers.length < b.stormNeeds(target, 0) ? siegeWorth(b.wallLevel(target)) : 1;
+        const carried = landed * (stranded(army) ? 0.85 * (b.value(target) * multiplier(owner)) + 60 : 0.75 * b.value(target) * multiplier(owner));
+        ops.push(op("convoy", carried - exposure(army), target, army, helpers, fleet));
+      }
+
+  // ---- Sieges: an army of ours within foreign walls we mean to take stays and besieges the city (each season it holds
+  // there wears the city down a step), with a support from a neighbouring troop when that saves a season.
+  for (const at of sortBy(
+    [...free].filter((u) => b.unitAt.get(u).kind === "Army" && b.walls(u) && !b.isMine(u)),
+    [(u: string) => u, cmpStr],
+  )) {
+    const holder = b.ownerOf(at);
+    if (holder !== null && !isWilling(holder)) continue;
+    const x = b.siegeAt(at);
+    const left = b.wallLevel(at) - (x !== null && x.besieger === me ? x.progress : 0);
+    const helper = left >= 2 ? (helpersFor(at, at).find((u) => !stay.has(u) && !threat.has(u)) ?? null) : null;
+    ops.push(op("siege", (0.9 * b.value(at) * multiplier(holder)) / Math.max(1, left) + 40, at, at, helper === null ? [] : [helper]));
+  }
+
+  // ---- Joint blows with sworn partners (see joints): go in when it is our turn, support when it is theirs.
+  for (const j of joints(b, brain)) {
+    const taken = b.value(j.target) * (b.unitAt.has(j.target) ? 1 : 0.85);
+    if (j.lead.power === me) {
+      // At peace with him, we leave the blow to a partner rather than break the oath.
+      if (!isWilling(j.against)) continue;
+      const helpers = j.support.filter((u) => u.power === me).map((u) => u.province);
+      const gain = b.value(j.target) * multiplier(j.against) + (b.unitAt.has(j.target) ? 120 : 0);
+      ops.push(op("attack", 0.85 * gain + 40 - exposure(j.lead.province) - 6 * helpers.length, j.target, j.lead.province, helpers));
+    } else {
+      // A support sends no troops into his land, so even a king at peace with him may give it.
+      for (const s of j.support.filter((u) => u.power === me)) ops.push(op("assist", (0.25 + 0.25 * p.honesty) * taken + 40, j.target, s.province, [], j.lead.province));
+    }
+  }
+
+  // ---- Commit: best value first, each unit once.
+  for (const o of sortBy(ops, [(o: Op) => o.net, desc(cmpNum)], [(o: Op) => o.target, cmpStr])) {
+    if (o.net <= 0) break;
+    if (o.lead.length > 0 && !free.has(o.lead)) continue;
+    if (!(o.kind === "defend" || o.kind === "assist" || o.kind === "siege") && stay.has(o.lead)) continue;
+    if ((o.kind === "attack" || o.kind === "block" || o.kind === "convoy" || o.kind === "assist") && plan.destinations.has(o.target)) continue;
+    if (o.kind === "convoy" && !free.has(o.other!)) continue;
+    const helpers = o.helpers.filter((h) => free.has(h));
+    if (o.kind === "attack") {
+      const stillNeeded = o.helpers.length;
+      if (helpers.length < stillNeeded) continue;
+    }
+
+    switch (o.kind) {
+      case "defend":
+        if (o.lead.length > 0) stay.add(o.lead);
+        for (const h of helpers) assign(plan, free, h, support(h, o.target), "support");
+        break;
+      case "block":
+      case "cut":
+        assign(plan, free, o.lead, move(o.lead, o.target), o.kind);
+        if (o.kind === "block") plan.destinations.add(o.target);
+        break;
+      case "attack":
+        assign(plan, free, o.lead, move(o.lead, o.target), "attack");
+        for (const h of helpers) assign(plan, free, h, support(h, o.lead, o.target), "support");
+        plan.destinations.add(o.target);
+        break;
+      case "convoy":
+        assign(plan, free, o.lead, move(o.lead, o.target), "attack");
+        assign(plan, free, o.other!, convoy(o.other!, o.lead, o.target), "convoy");
+        for (const h of helpers) assign(plan, free, h, support(h, o.lead, o.target), "support");
+        plan.destinations.add(o.target);
+        break;
+      case "assist":
+        // A unit that supports stays where it is, so one kept home (or defended) may still do it.
+        assign(plan, free, o.lead, support(o.lead, o.other!, o.target), "assist");
+        plan.destinations.add(o.target);
+        break;
+      case "siege":
+        assign(plan, free, o.lead, besiege(o.lead), "siege");
+        for (const h of helpers) assign(plan, free, h, support(h, o.lead), "support");
+        break;
+    }
+  }
+
+  // ---- Help allies hold against a common enemy: first against a king we are sworn against, then the leader.
+  const menace = (x: Power): number => (sworn.has(x) ? 2 : x === leader ? 1.5 : hostility.getOrDefault(x, 0) > 0.4 ? 1 : 0);
+  for (const u of [...free]) {
+    // Only troops in sight: support for a remembered unit that has moved on would be refused.
+    const candidates = b.v.units
+      .filter((o) => o.power !== me && brain.isFriend(o.power) && Board.Map.canMove(b.unitAt.get(u).kind, u, o.province))
+      .map((o) => {
+        const ms = [...b.alive].filter((x) => x !== me && x !== o.power && !brain.isFriend(x) && b.muster(x, o.province) > 0).map(menace);
+        return { unit: o, menace: ms.length === 0 ? 0 : max(ms, (m) => m) };
+      })
+      .filter((x) => x.menace > 0);
+    const ally = sortBy(candidates, [(x: { unit: UnitView; menace: number }) => x.menace, desc(cmpNum)], [(x: { unit: UnitView; menace: number }) => x.unit.province, cmpStr])[0]?.unit ?? null;
+    if (ally === null || threat.has(u)) continue;
+    assign(plan, free, u, support(u, ally.province), "ally-support");
+  }
+
+  // ---- Ready a convoy: an army on a coast with nothing to take by land, and our fleet a move from a sea that touches both
+  // its coast and land worth taking that the army cannot reach by land. The fleet puts to that sea, so that next season the
+  // convoy above can carry the army over.
+  for (const army of sortBy(
+    [...free].filter((u) => b.unitAt.get(u).kind === "Army" && Board.Map.get(u).isCoastal && !threat.has(u) && !stay.has(u)),
+    [(x: string) => x, cmpStr],
+  )) {
+    if (!stranded(army)) continue;
+    let best: [string | null, string, number] = [null, "", 0.0];
+    for (const sea of Board.Map.neighbors(army).filter((s) => {
+      if (!Board.Map.get(s).isSea || plan.destinations.has(s)) return false;
+      const at = b.unitAt.tryGet(s);
+      return at === undefined || at.power === me;
+    })) {
+      const worths = Board.Map.neighbors(sea)
+        .filter((t) => {
+          if (t === army || !Board.Map.get(t).isCoastal || Board.Map.canMove("Army", army, t) || b.isMine(t)) return false;
+          const o = b.ownerOf(t);
+          return o === null || isWilling(o);
+        })
+        .map((t) => b.value(t) * multiplier(b.ownerOf(t)));
+      const worth = worths.length === 0 ? 0 : max(worths, (x) => x);
+      if (worth <= best[2]) continue;
+      const fleet =
+        sortBy(
+          [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && (f === sea || Board.Map.canMove("Fleet", f, sea))),
+          [(f: string) => (f === sea ? 0 : 1), cmpNum],
+          [(f: string) => f, cmpStr],
+        )[0] ?? null;
+      if (fleet !== null) best = [fleet, sea, worth];
+    }
+    const carrier = best[0];
+    if (carrier === null || best[2] < 200) continue;
+    // Already at sea there: it waits for the army (the convoy above did not find a landing it could make this season).
+    assign(plan, free, carrier, carrier === best[1] ? hold(carrier) : move(carrier, best[1]), "convoy");
+    if (carrier !== best[1]) plan.destinations.add(best[1]);
+  }
+
+  // ---- Everyone else: hold if threatened, otherwise move towards where the value is.
+  for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
+    if (threat.has(u) || stay.has(u)) {
+      assign(plan, free, u, hold(u), "hold");
+      continue;
+    }
+    const step = approach(b, brain, u, plan.destinations, isWilling, threat);
+    if (step !== null) {
+      assign(plan, free, u, move(u, step), "move");
+      plan.destinations.add(step);
+    } else assign(plan, free, u, hold(u), "hold");
+  }
+  return plan;
+}
+
+/**
+ * After the look-ahead: an army of ours left holding within foreign walls we mean to take besieges the city instead (a
+ * besiege order is a hold that wears the city down; the look-ahead weighs holds and moves, and a siege, once begun, goes on
+ * while the army holds there, but it must be ordered to begin).
+ */
+export function besiegeAll(b: Board, brain: Brain, plan: MilitaryPlan): void {
+  const leader = b.leader();
+  for (const u of b.mine.filter((u) => u.kind === "Army" && b.walls(u.province) && !b.isMine(u.province)).map((u) => u.province)) {
+    const o = plan.orders.tryGet(u);
+    if (!(o === undefined || o.type === "hold")) continue;
+    const holder = b.ownerOf(u);
+    if (holder !== null && !willing(b, brain, holder, leader)) continue;
+    plan.orders.set(u, besiege(u));
+    plan.role.set(u, "siege");
+  }
+}
+
+/**
+ * The sallies that go with a plan (the siege package): each of our moves into a city of ours whose walls can sally, with
+ * foreign troops within them, is supported by the walls (+1, a support that cannot be cut).
+ */
+export function sallies(b: Board, orders: Iterable<Order>, brain: Brain | null = null): SallyOrder[] {
+  const min = b.v.prices.getOrDefault("sallyMinWalls", 2);
+  if (min <= 0) return [];
+  const moves = [...orders].filter((m): m is Extract<Order, { type: "move" }> => m.type === "move");
+  const eligible = moves.filter((m) => b.isMine(m.to) && b.wallLevel(m.to) >= min && b.v.units.some((u) => u.province === m.to && u.power !== b.me));
+  const byCity = new Map<string, Extract<Order, { type: "move" }>[]>();
+  for (const m of eligible) {
+    let g = byCity.get(m.to);
+    if (!g) byCity.set(m.to, (g = []));
+    g.push(m);
+  }
+  const list: SallyOrder[] = [...byCity.values()].map((g) => {
+    const m = sortBy(g, [(x: Extract<Order, { type: "move" }>) => x.unit, cmpStr])[0];
+    return sally(m.to, m.unit);
+  });
+  if (brain === null) return list;
+  // A city of ours besieged by a king who is no friend, with no move of ours into it: its walls sally for a friend's troop
+  // next to it, should it come to drive the besiegers out.
+  for (const x of sortBy(
+    b.v.sieges.filter((x) => x.holder === b.me && b.wallLevel(x.province) >= min && !brain.isFriend(x.besieger)),
+    [(x) => x.province, cmpStr],
+  )) {
+    if (list.some((y) => y.city === x.province)) continue;
+    const friend =
+      sortBy(
+        b.v.units.filter((u) => u.power !== b.me && u.power !== x.besieger && brain.isFriend(u.power) && Board.Map.canMove(u.kind, u.province, x.province)),
+        [(u: UnitView) => (u.kind === "Army" ? 0 : 1), cmpNum],
+        [(u: UnitView) => u.province, cmpStr],
+      )[0] ?? null;
+    if (friend !== null) list.push(sally(x.province, friend.province));
+  }
+  return list;
+}
+
+/**
+ * The besiegers of a friend's city, if this court would drive them out: a city of a friend we are not betraying, under
+ * siege by the troop standing within it, whose king we are willing to fight, or who is no friend of ours while the city's
+ * holder is our full ally.
+ */
+export function relief(b: Board, brain: Brain, city: string, isWilling: (p: Power) => boolean): UnitView | null {
+  const holder = b.ownerOf(city);
+  if (holder === null || holder === b.me || !brain.isFriend(holder) || brain.betraying === holder) return null;
+  const within = b.unitAt.tryGet(city) ?? null;
+  if (within === null || within.power === holder || within.power === b.me) return null;
+  const siege = b.siegeAt(city);
+  if (siege === null || siege.besieger !== within.power) return null;
+  return isWilling(within.power) || (brain.rel.get(holder).allied && !brain.isFriend(within.power)) ? within : null;
+}
+
+/**
+ * Whether our troops should march to a friend's city to relieve it: we see it besieged by a king we would drive out (see
+ * relief), or its holder pleaded with us in the last four seasons, it is still his, he is still our friend, we would fight
+ * its besieger, and we do not see the siege over.
+ */
+export function relieving(b: Board, brain: Brain, city: string, isWilling: (p: Power) => boolean): boolean {
+  if (relief(b, brain, city, isWilling) !== null) return true;
+  const plea = brain.pleas.tryGet(city);
+  if (plea === undefined || b.v.turn - plea[2] > 4 || b.ownerOf(city) !== plea[0]) return false;
+  if (!brain.isFriend(plea[0]) || brain.betraying === plea[0] || !b.alive.has(plea[1])) return false;
+  if (b.v.visible.includes(city) && b.siegeAt(city) === null) return false;
+  return isWilling(plea[1]) || (brain.rel.get(plea[0]).allied && !brain.isFriend(plea[1]));
+}
+
+/** Whether the king will send troops against another king this season. Decided by his own temper, never by a trial plan. */
+export function willing(b: Board, brain: Brain, owner: Power, leader: Power | null): boolean {
+  if (owner === b.me) return false;
+  if (owner === brain.betraying) return true;
+  if (brain.isFriend(owner)) return false;
+  if (owner === brain.warTarget || brain.rel.get(owner).hostile || brain.swornFoes(b).has(owner)) return true;
+  if (owner === leader) return brain.p.aggression > 0.25;
+  // While another king runs away with the game, only the most warlike still pick fights among the rest.
+  return brain.p.aggression > (leader !== null && leader !== b.me ? 0.8 : 0.55);
+}
+
+/**
+ * What getting within walls without storming them is worth against taking the city at once: the army then stands and
+ * besieges it for as many seasons as the walls are high (fewer with support), and may be driven out meanwhile.
+ */
+export function siegeWorth(walls: number): number {
+  return 0.6 / (1 + 0.25 * walls);
+}
+
+function assign(plan: MilitaryPlan, free: HSet<string>, unit: string, order: Order, role: string): void {
+  if (!free.delete(unit)) return;
+  plan.orders.set(unit, order);
+  plan.role.set(unit, role);
+}
+
+/** One step along the shortest path to the most attractive place within five steps. */
+function approach(b: Board, brain: Brain, from: string, taken: HSet<string>, isWilling: (p: Power) => boolean, threat: Dict<string, [number, number]>): string | null {
+  const kind = b.unitAt.get(from).kind;
+  const prev = new Map<string, string>([[from, ""]]);
+  const depth = new Map<string, number>([[from, 0]]);
+  const queue = [from];
+  let best: string | null = null;
+  let bestScore = 0.0;
+  while (queue.length > 0) {
+    const cur = queue.shift()!;
+    if (depth.get(cur)! >= 5) continue;
+    for (const n of sortBy(Board.Map.movesFrom(kind, cur), [(x: string) => x, cmpStr])) {
+      if (prev.has(n)) continue;
+      prev.set(n, cur);
+      depth.set(n, depth.get(cur)! + 1);
+      queue.push(n);
+      const owner = b.ownerOf(n);
+      let lure = 0;
+      if (!Board.Map.get(n).isSea && owner !== b.me && (owner === null || isWilling(owner))) lure = b.value(n);
+      // Desert land not ours costs an army supplies for each season it ends there.
+      if (kind === "Army") lure = Math.max(0, lure - b.desertCost(n));
+      if (b.isMine(n) && threat.has(n) && !b.unitAt.has(n)) lure = Math.max(lure, b.value(n) * 0.8);
+      // A friend's city besieged, as we see it or as he pleaded with us: worth marching next to it, to drive the besiegers
+      // out (see relief); its walls keep us from stepping in before the blow.
+      if (relieving(b, brain, n, isWilling)) lure = Math.max(lure, (0.25 + 0.25 * brain.p.honesty) * b.value(n));
+      const score = lure / (1 + depth.get(n)!);
+      if (score > bestScore) {
+        bestScore = score;
+        best = n;
+      }
+    }
+  }
+  if (best === null) return null;
+  let step = best;
+  while (prev.get(step) !== from) step = prev.get(step)!;
+  // Foreign walls are entered only to take the city, by the attacks above; our own we may march through.
+  if (taken.has(step) || b.unitAt.has(step) || (b.walls(step) && !b.isMine(step))) return null;
+  const stepOwner = b.ownerOf(step);
+  if (stepOwner !== null && stepOwner !== b.me && !isWilling(stepOwner)) return null;
+  return step;
+}
+
+export const Tactics = { joints, make: makePlan, besiege: besiegeAll, sallies, relief, relieving, willing, siegeWorth };

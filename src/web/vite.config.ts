@@ -1,0 +1,42 @@
+import react from "@vitejs/plugin-react";
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { join, sep } from "node:path";
+import { defineConfig, type Plugin } from "vite";
+
+/**
+ * The offline cache: writes service-worker.js beside the built files, listing every one of them with its hash, so the
+ * installed app starts from cache and a new build replaces them together (as the Blazor build's published worker did).
+ */
+function serviceWorker(): Plugin {
+  let outDir = "dist";
+  return {
+    name: "amarna-service-worker",
+    apply: "build",
+    configResolved(config) {
+      outDir = config.build.outDir;
+    },
+    closeBundle() {
+      const files = (readdirSync(outDir, { recursive: true }) as string[])
+        .map((f) => f.split(sep).join("/"))
+        .filter((f) => statSync(join(outDir, f)).isFile() && f !== "service-worker.js")
+        .sort();
+      const assets = files.map((url) => ({ url, hash: "sha256-" + createHash("sha256").update(readFileSync(join(outDir, url))).digest("base64") }));
+      const all = JSON.stringify(assets);
+      const version = createHash("sha256").update(all).digest("hex").slice(0, 16);
+      const worker = readFileSync(new URL("./service-worker.template.js", import.meta.url), "utf8")
+        .replace("__ASSETS__", all)
+        .replace("__VERSION__", version);
+      writeFileSync(join(outDir, "service-worker.js"), worker);
+    },
+  };
+}
+
+export default defineConfig({
+  // Relative URLs throughout: the site lives under a sub-path on GitHub Pages, set by the page's <base href>.
+  base: "./",
+  plugins: [react(), serviceWorker()],
+  worker: { format: "es" },
+  build: { outDir: "dist", target: "es2022", chunkSizeWarningLimit: 2000 },
+  server: { port: 5183 },
+});

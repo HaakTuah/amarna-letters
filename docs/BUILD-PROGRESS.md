@@ -37,7 +37,7 @@ Haakon's standing instructions given in chat are recorded word for word in `docs
 | 4+ | Fix pass, item 4's follow-up (Haakon, 20 Oct), with the feature audit | done (20 Oct), merged into `develop`; PR #11 merged into `main` | `item/fix-pass` | `docs/archive/rounds/2026-10-20-fix-pass.md` |
 | 5 | The siege package (stop for review) | done (20 Oct), merged into `develop`; PR #12 merged into `main` | `item/sieges` | `docs/archive/rounds/2026-10-20-sieges.md` |
 | 5+ | TypeScript conversion, step 1: the rest of the docs and preview pass (`docs/items/docs-and-preview.md`) | done (26 Oct): #19 into `develop`, carried to `main` by #20, with three follow-up fixes (#21, #23, carried by #22 and #26) under the pass's exception. Round reports archived (six decisions recorded nowhere else are listed in the report). Previews work on the live site through the `gh-pages` branch; the site root showed GitHub's 404 page for a few minutes on 26 Oct (about 23:16-23:20 UTC) until it was republished, see the report. Pages setting for Haakon in the report. 11 GitHub branches ready to delete but not deleted (this session may not delete branches); `wip/scratch-review-H` kept. Next: step 2, the conversion (`docs/items/conversion.md`), in its own session | `docs/archive-and-preview` | `docs/rounds/2026-10-26-docs-and-preview.md` |
-| 5+ | TypeScript conversion, step 2: the conversion (`docs/items/conversion.md`) | not started | | |
+| 5+ | TypeScript conversion, step 2: the conversion (`docs/items/conversion.md`) | done (27 Oct: #35 into `develop`, carried to `main` by the milestone PR; the session ran below the high effort asked for): gates 0 to 4 passed. The C# build switched to the 32-bit keyed generator (save version 7); the TypeScript engine, script kings and characters, model layer and batch runner match the C# build on every phase of 260 script games, 60 against the baseline, 18 with every role on the simulated API (request text included) and the recorded model games (156 of 156 phases); the web app is Vite and React with the engine in a Web Worker; the 91 C# test files are 93 Vitest files, 996 tests passing (the script worker's test and the SDK transport's have no counterpart); `scripts/test.sh`, `scripts/sim.sh`, `CLAUDE.md` and the preview workflow run the TypeScript build, and `scripts/cloud-setup.sh` no longer installs .NET (the C# build stays for reference and `scripts/parity.sh`). Phone, CPU slowed 4x: first load 5.50 s to 1.50 s, one Free season 7.96 s to 0.77 s. Readings: Zod and providers left to the fix pass; should the C# build be removed? | `item-5plus/conversion` (#35) | `docs/rounds/2026-10-27-conversion.md` |
 | 5+ | TypeScript conversion, step 3: the fix pass for "Found during the port" (`docs/items/fix-pass.md`) | not started | | |
 | 6a | The ending and the table | not started | | |
 | 6b | Calls | not started | | |
@@ -64,5 +64,13 @@ Haakon's standing instructions given in chat are recorded word for word in `docs
 
 ## Found during the port
 
-Flaws found while porting to TypeScript (`docs/CONVERSION-PLAN.md`): listed here, not fixed during the port. Empty
-until the conversion starts.
+Flaws found while porting to TypeScript (`docs/CONVERSION-PLAN.md`): listed here, not fixed during the port. The fix
+pass (step 3, `docs/items/fix-pass.md`) handles them; details in `docs/rounds/2026-10-27-conversion.md`.
+
+- **Model schemas are hand-built JSON, not Zod** (kept for byte parity with the C# build): no startup compile against
+  each provider, and no test measuring the schemas against the providers' documented limits ("One source for model
+  schemas" in Engine rules, `docs/intent/engine-and-models/tech-stack.md`).
+- **One provider.** Calls go through the `ApiTransport` interface with `fetch`, to Anthropic only; "Built to outlive its
+  models" asks for any provider and model as settings. Check what the model layer still lacks.
+- **A file seat's readable JSON** (the schema printed in a request) escapes a few characters differently from the C#
+  build's, through `JSON.stringify`: harmless, but the text a file seat's agent reads differs by those characters.

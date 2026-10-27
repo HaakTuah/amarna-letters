@@ -1,0 +1,192 @@
+/** One game of the batch runner, as the C# batch runner plays it: in a worker thread for script games, in the main thread otherwise. */
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { AllPowers, Dict, GameStateSchema, fmt, serialize, align, type GameConfig, type Power } from "@amarna/engine";
+import {
+  BaselineLeader,
+  ScriptLeader,
+  ScriptMind,
+  TemplateNarrator,
+  GameRunner,
+  attachParity,
+  callSizes,
+  characterReport,
+  playGame,
+  seatReport,
+  type GameSummary,
+  type ISeat,
+} from "@amarna/game";
+import { FetchTransport, LlmLeaderSeat, SeatChoices, SimulatedApi, bodyText, buildSeats, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
+import { FileCharacters, FileExchange } from "@amarna/llm/node";
+
+export interface BatchOptions {
+  games: number;
+  seed: number;
+  outDir: string | null;
+  verify: boolean;
+  detail: boolean;
+  leaders: Record<string, LeaderKind>;
+  characters: CharacterKind;
+  narrator: NarratorKind;
+  effort: string;
+  budget: number;
+  noChronicles: boolean;
+  config: GameConfig;
+  versus: boolean;
+  focus: Power | null;
+  folders: [Power, string][];
+  characterFolders: [string, string][];
+  fileTimeoutMinutes: number;
+  parityDir: string | null;
+  sleepingScripts: boolean;
+  simulateApi: boolean;
+}
+
+export interface PlayJob {
+  g: number;
+  options: BatchOptions;
+}
+
+export interface PlayResult {
+  summary: GameSummary;
+  current: Power[];
+  /** What the C# batch runner prints for this game, after all games are played. */
+  printed: string;
+}
+
+export function choicesOf(o: BatchOptions): SeatChoices {
+  const c = new SeatChoices();
+  for (const p of AllPowers) c.leaders.set(p, o.leaders[p]);
+  c.characters = o.characters;
+  c.narrator = o.narrator;
+  c.leaderEffort = o.effort;
+  return c;
+}
+
+export async function playOne(job: PlayJob): Promise<PlayResult> {
+  const o = job.options;
+  const s = o.seed + job.g;
+  const choices = choicesOf(o);
+  let last: GameRunner | null = null;
+  let fingerprints: string[] | null = null;
+  // In a benchmark, these kings play the current bot and the rest the frozen baseline.
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !o.versus || (i + (s % 2)) % 2 === 0));
+  const [summary] = await playGame(
+    s,
+    (state) => {
+      const simulated = o.simulateApi ? new SimulatedApi() : null;
+      if (simulated !== null) simulated.reportUsage = false;
+      const key = process.env.ANTHROPIC_API_KEY ?? "";
+      const transport = simulated ?? (choices.usesModels ? new FetchTransport(key) : null);
+      const set = buildSeats(choices, state, transport, () => last!.log);
+      let seats = set.seats;
+      for (const [p, folder] of o.folders) {
+        const exchange = new FileExchange(folder, o.fileTimeoutMinutes * 60000, (call) => last!.log.addCall(call), (line) => console.log(line));
+        seats.set(p, new LlmLeaderSeat(p, exchange, "file", choices.leaderEffort, state.config.customsPrimer, state.config, "File seat"));
+      }
+      if (o.sleepingScripts)
+        seats = new Dict<Power, ISeat>(
+          [...seats].map(([p, inner]) => [
+            p,
+            { label: inner.label + " (sleeping)", canSleep: true, decide: (v, sg) => inner.decide(v, sg), hostAudience: (v, c, sg) => inner.hostAudience(v, c, sg) } as ISeat,
+          ] as const),
+        );
+      if (o.versus || o.focus !== null) {
+        const baseline = new BaselineLeader(state.seed);
+        seats = new Dict<Power, ISeat>(AllPowers.map((p) => [p, current.has(p) ? set.seats.get(p) : baseline] as const));
+      }
+      // Each file character's decision is logged beside the script's for the same situation.
+      const minds =
+        o.characterFolders.length === 0
+          ? set.minds
+          : FileCharacters.mind(
+              new Map(o.characterFolders),
+              o.fileTimeoutMinutes * 60000,
+              (call) => last!.log.addCall(call),
+              (sh) => last!.log.addShadow(sh),
+              (line) => console.log(line),
+            );
+      last = new GameRunner(state, seats, minds, set.narrator);
+      last.writeChronicles = !o.noChronicles;
+      if (o.parityDir !== null) {
+        let drained = 0;
+        fingerprints = attachParity(
+          last,
+          simulated === null
+            ? null
+            : () => {
+                const bodies = simulated.requests.slice(drained).map(bodyText);
+                drained = simulated.requests.length;
+                return bodies;
+              },
+        );
+      }
+      return last;
+    },
+    o.verify,
+    o.config,
+    (line) => console.error(line),
+  );
+  if (o.parityDir !== null) writeFileSync(join(o.parityDir, `game-${s}.parity.tsv`), fingerprints!.join("\n") + "\n");
+  const runner = last as GameRunner | null;
+  // Sleeping seats are on by default, but only model and file seats sleep: a game of script kings keeps no runner for them.
+  const sleepers = runner !== null && runner.state.sleep.size > 0;
+  const keep = o.outDir !== null || o.detail || o.folders.length > 0 || o.characterFolders.length > 0 || sleepers || choices.usesModels ? runner : null;
+
+  const out: string[] = [];
+  if (o.outDir !== null && keep !== null) {
+    mkdirSync(o.outDir, { recursive: true });
+    writeFileSync(join(o.outDir, `game-${s}.jsonl`), keep.log.toJsonl());
+    writeFileSync(join(o.outDir, `game-${s}.final.json`), serialize(GameStateSchema, keep.state));
+  }
+  out.push(
+    `seed ${s}: ${summary.turns} turns, winner ${summary.winners.join(" & ")}` +
+      (o.verify ? (summary.replayMatches ? ", replay ok" : ", REPLAY MISMATCH") : "") +
+      (summary.costUsd > 0 ? `, $${fmt(summary.costUsd, "0.00")}` : "") +
+      (summary.errors > 0 ? `, ${summary.errors} fallbacks` : ""),
+  );
+  // Beside the kings' result, the richest characters: the top three, or with --detail the whole ranking.
+  const richest = summary.richest.slice(0, o.detail ? summary.richest.length : 3).map((line, i) => `${i + 1}. ${line}`);
+  if (richest.length > 0) out.push(o.detail ? "  Richest characters:\n" + richest.map((r) => "    " + r).join("\n") : `  Richest characters: ${richest.join("; ")}`);
+  if (keep !== null && (o.folders.length > 0 || o.characterFolders.length > 0 || keep.state.sleep.size > 0 || choices.usesModels)) out.push(seatReport(keep));
+  // Model or file characters beside the script with the same traits, and how large each kind of request was.
+  if (keep !== null && keep.log.shadows.length > 0) out.push(characterReport(keep.log));
+  if (keep !== null && keep.log.calls.length > 0) out.push(callSizes(keep.log));
+  if (o.detail && keep !== null) {
+    const st = keep.state;
+    for (const p of AllPowers) {
+      const rows = st.scores.filter((x) => x.power === p);
+      const curve = rows
+        .filter((_, i) => i % 3 === 0)
+        .map((r) => `${r.provinces}/${r.units}/${r.gold}`)
+        .join(" ");
+      out.push(`   ${align(p, -10)} growth ${fmt(summary.growth[p], "0.00")}  prov/units/gold every 3 turns: ${curve}`);
+    }
+    for (const e of st.events.filter((e) => ["conquest", "fall", "desertion", "purchase", "catastrophe"].includes(e.kind)).slice(0, 60)) out.push(`     t${e.turn} ${e.kind}: ${e.text}`);
+    for (const err of keep.errors.slice(0, 10)) out.push(`     error: ${err}`);
+  }
+  return { summary, current: [...current], printed: out.join("\n") };
+}
+
+/** One game of the solo benchmark: `focus` plays the current bot against six baselines, or none (all baseline). */
+export interface SoloJob {
+  soloSeed: number;
+  focus: Power | null;
+  config: GameConfig;
+}
+
+export async function playSolo(job: SoloJob): Promise<GameSummary> {
+  const [summary] = await playGame(
+    job.soloSeed,
+    (st) => {
+      const baseline = new BaselineLeader(st.seed);
+      const seats = new Dict<Power, ISeat>(AllPowers.map((x) => [x, x === job.focus ? new ScriptLeader(st.seed) : baseline] as const));
+      const runner = new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator());
+      runner.writeChronicles = false;
+      return runner;
+    },
+    false,
+    job.config,
+  );
+  return summary;
+}

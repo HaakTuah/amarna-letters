@@ -100,3 +100,11 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     A standing instruction: listed in `CLAUDE.md` under "Standing instructions". It agrees with the builder rule "No stopgaps".
 
+14. **04:20**, in the conversion's session (item 5+, step 2), once milestone PR #36 was open and green:
+
+    > You merge, always.
+
+    A standing instruction: the builder merges its own pull requests, the milestone PRs from `develop` into `main`
+    included, once they are green and (for an item) its reviewer has found nothing blocking. It replaces "Haakon merges
+    `develop` into `main`" in the builder rules ("Branches", "A pull request at every milestone"). Listed in `CLAUDE.md`
+    under "Standing instructions".
