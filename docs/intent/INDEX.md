@@ -15,9 +15,9 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 557 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 37 |
-| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 23 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 49 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 38 |
+| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 26 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 50 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 18 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 10 |
@@ -45,7 +45,7 @@ session loads.
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.7 |
 | `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.3 |
-| `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 5.6 |
+| `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 5.9 |
 | `docs/intent/build-order/item-8.md` | 8. Structured press. The second press mode, with templates for every king and sc | 1.5 |
 | `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. Mandates with engine-checkable limits, the autho | 0.5 |
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 4.7 |
@@ -63,14 +63,14 @@ session loads.
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.3 |
-| `docs/intent/world-and-history/the-map.md` | The map | 7.0 |
+| `docs/intent/world-and-history/the-map.md` | The map | 7.5 |
 | `docs/intent/world-and-history/the-sources.md` | The sources | 4.1 |
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 12.3 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.3 |
 | `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 21.2 |
 | `docs/intent/engine-and-models/script-mode-and-press-modes.md` | Script mode and press modes | 3.0 |
-| `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.5 |
+| `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.9 |
 | `docs/intent/engine-and-models/security-prompt-injection-and-information-leakage.md` | Security: prompt injection and information leakage | 2.0 |
 | `docs/intent/diplomacy-and-intelligence/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md` | Envoys: mediated, delayed, agentic communication | 2.3 |
