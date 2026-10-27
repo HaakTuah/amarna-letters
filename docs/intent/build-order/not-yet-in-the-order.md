@@ -1,2 +1,2 @@
-<!-- Generated from the design document, Build order tab, revision 49 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Build order tab, revision 55 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 **Not yet in the order,** because they need a decision first: the economy's later phases (copper, tin, timber and horses, unit types, the levels of arms and ships built from timber; then edge markets, storage and caravans with leaders), whose direction was decided on 21 October 2026 ("Economy and resources") and which need their spec first, while its first phase is item 9+; and multiplayer. (Finer seas was decided on 21 October 2026 and is built in item 7.)
