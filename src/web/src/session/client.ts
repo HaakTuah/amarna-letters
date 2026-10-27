@@ -40,6 +40,7 @@ const emptyLive = (): Live => ({
   auto: false,
   readOnly: false,
   ended: false,
+  canPlayOn: false,
   turn: 0,
   errors: [],
   errorCount: 0,
@@ -244,6 +245,10 @@ export class Session {
     this.send({ type: "delay", ms });
     this.notify();
   }
+  playOn(): void {
+    this.send({ type: "playOn" });
+  }
+
   raiseBudget(by: number): void {
     this.send({ type: "budget", by });
   }

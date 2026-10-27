@@ -103,7 +103,7 @@ describe("AudienceRunnerTests", () => {
   }
 
   test("The second exchange carries the gold and the gift named in the first", async () => {
-    let state = newGame(5, newGameConfig({ catastropheChance: 0, minTurns: 40 }));
+    let state = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
     let envoy = first(state.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     let host = new Host();

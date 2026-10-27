@@ -20,7 +20,17 @@ export interface GameSettings {
   sleepingSeats: boolean;
   /** The hidden safety cap on one sleep, in seasons; the kings are never told it. */
   maxSleep: number;
-  /** The game pauses when its model spend reaches this. */
+  /**
+   * The ending ("Random ending" and "An open age" under Victory): the season by which half of all ages have ended, the hard
+   * cap's range (drawn from in secret at the start) or none, and the open age with no end. The kings are told the rule in
+   * words only.
+   */
+  endMedian: number;
+  capped: boolean;
+  capMin: number;
+  capMax: number;
+  openAge: boolean;
+  /** The game pauses when its model spend reaches this: the spending limit an open age needs, since it makes calls with no end. */
   budgetUsd: number;
   messagesPerTurn: number;
   /** Answer model calls inside the browser with canned replies: for trying the app without a key or cost. */
@@ -32,6 +42,8 @@ export interface GameSettings {
   /** The game pauses when more than this share of a season's model calls fell back to scripts (0 never pauses). */
   pauseFallbackShare: number;
 }
+
+const Ending = newGameConfig();
 
 export const randomSeed = (): number => 1 + Math.floor(Math.random() * 999_999);
 
@@ -50,6 +62,11 @@ export function newSettings(): GameSettings {
     fallenSeeAll: true,
     sleepingSeats: true,
     maxSleep: 12,
+    endMedian: Ending.endMedian,
+    capped: Ending.capped,
+    capMin: Ending.capMin,
+    capMax: Ending.capMax,
+    openAge: Ending.openAge,
     budgetUsd: 0,
     messagesPerTurn: 3,
     simulateApi: false,
@@ -88,7 +105,8 @@ export function withChoices(s: GameSettings, c: SeatChoices): GameSettings {
 }
 
 export const usesModels = (s: GameSettings): boolean => choicesOf(s).usesModels;
-export const estimate = (s: GameSettings): number => CostEstimate.perGame(choicesOf(s));
+/** The estimate for a game of median length; an open age has no end, so it is the spend of the same span, before the limit. */
+export const estimate = (s: GameSettings): number => CostEstimate.perGame(choicesOf(s), s.endMedian);
 
 export function toConfig(s: GameSettings): GameConfig {
   return newGameConfig({
@@ -98,6 +116,11 @@ export function toConfig(s: GameSettings): GameConfig {
     sleepingSeats: s.sleepingSeats,
     maxSleep: Math.min(Math.max(s.maxSleep, 1), 30),
     maxDispatchesPerTurn: s.messagesPerTurn,
+    endMedian: Number.isFinite(s.endMedian) ? Math.min(Math.max(Math.round(s.endMedian), 3), 150) : Ending.endMedian,
+    capped: s.capped,
+    capMin: Math.max(1, Math.round(Math.min(s.capMin, s.capMax)) || Ending.capMin),
+    capMax: Math.max(1, Math.round(Math.max(s.capMin, s.capMax)) || Ending.capMax),
+    openAge: s.openAge,
   });
 }
 
@@ -115,6 +138,11 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
       sleepingSeats: header.config.sleepingSeats,
       maxSleep: header.config.maxSleep,
       messagesPerTurn: header.config.maxDispatchesPerTurn,
+      endMedian: header.config.endMedian,
+      capped: header.config.capped,
+      capMin: header.config.capMin,
+      capMax: header.config.capMax,
+      openAge: header.config.openAge,
       ...(table !== null ? { prices: { ...table.prices }, pauseFallbackShare: table.pauseFallbackShare } : {}),
     },
     choicesFromHeader(header, table?.providers ?? []),

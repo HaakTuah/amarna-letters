@@ -127,7 +127,7 @@ describe("ScriptCourtTests", () => {
 
   test("Script games with notices and renewals replay exactly", async () => {
     // Twenty seasons: every starting term ends by turn 13, so notices are given and answered.
-    let config = newGameConfig({ minTurns: 20, endChance: 1.0 });
+    let config = newGameConfig({ capMin: 20, capMax: 20, endMedian: 10000 });
     let runner = Object.assign(
       new GameRunner(
         newGame(Seed, config),

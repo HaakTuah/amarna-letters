@@ -9,6 +9,7 @@ import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
 import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf } from "../model/state.ts";
 import { newScoreRow } from "../model/records.ts";
+import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -572,9 +573,9 @@ P.endOfTurn = function () {
   for (const c of S.characters.filter((c) => c.at !== null && c.employer !== null && c.at !== c.employer)) c.turnsAbroad++;
 
   let reason: string | null = null;
-  if (alive(S).length <= 1) reason = "only one kingdom remains";
-  else if (S.turn >= S.config.maxTurns) reason = "the age has run its course";
-  else if (S.turn >= S.config.minTurns && this.r("end").chance(S.config.endChance)) reason = "the gods have ended the age";
+  if (alive(S).length <= 1) reason = OneKingdomLeft;
+  // The last season was drawn in secret at the start (rules/ending.ts); an open age has none.
+  else if (S.finalSeason !== null && S.turn >= S.finalSeason) reason = S.finalByCap ? "the age has run its course" : "the gods have ended the age";
 
   if (reason !== null) {
     S.ended = true;

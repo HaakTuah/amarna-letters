@@ -1,6 +1,5 @@
 /** Display helpers. The engine counts in shekels and turns; people read minas and seasons. */
 import { idiv } from "../core/num.ts";
-import { fmt } from "../core/num.ts";
 import type { Power } from "../model/power.ts";
 
 export const SeasonsPerYear = 3;
@@ -41,9 +40,9 @@ export function neutral(turn: number): string {
 // view or prompt reads these, so kings are never told the year BCE.
 
 /** The first year of every game, counted BCE; each later year is one less. */
-export const FirstYearBce = 1345;
+export const FirstYearBce = 1346;
 
-/** The year BCE of a turn: 1345 for turns 1-3, 1344 for turns 4-6, and so on. */
+/** The year BCE of a turn: 1346 for turns 1-3, 1345 for turns 4-6, and so on. */
 export function yearBce(turn: number): number {
   return FirstYearBce - (year(turn) - 1);
 }
@@ -57,24 +56,32 @@ export function seasonName(turn: number, court: Power | null): string {
 }
 
 /**
- * The date label: "Peret, 1343 BCE (turn 8)" at Egypt's court, "the second season, 1343 BCE (turn 8)" at the others, and
- * for the spectator (no court) "season 2, 1343 BCE (turn 8)".
+ * The date label: "Peret, 1344 BCE (turn 8)" at Egypt's court, "the second season, 1344 BCE (turn 8)" at the others, and
+ * for the spectator (no court) "season 2, 1344 BCE (turn 8)".
  */
 export function dateLabel(turn: number, court: Power | null = null): string {
   return `${seasonName(turn, court)}, ${yearBce(turn)} BCE (turn ${turn})`;
 }
 
-/** The short form for dense lists: "Peret 1343 BCE", "s2 1343 BCE". The turn goes in a tooltip ({@link dateLabel}). */
+/** The short form for dense lists: "Peret 1344 BCE", "s2 1344 BCE". The turn goes in a tooltip ({@link dateLabel}). */
 export function shortDate(turn: number, court: Power | null = null): string {
   return court === "Egypt" ? `${seasonName(turn, court)} ${yearBce(turn)} BCE` : `s${seasonIndex(turn) + 1} ${yearBce(turn)} BCE`;
 }
 
 /**
- * The ending line for the header: before the first season that may end the age, "The age cannot end before …"; from it
- * on, "Any season may now be the last (15% each season)".
+ * The ending line for the header, in words and without numbers (build order item 6a): the rule as the kings are told it,
+ * never the chance, the median, the cap or the drawn season. In an open age, that it has no end; after the table played on
+ * past the age's end, also when it ended and who won it.
  */
-export function ending(turn: number, minTurns: number, endChance: number, court: Power | null = null): string {
-  return turn < minTurns ? `The age cannot end before ${dateLabel(minTurns, court)}.` : `Any season may now be the last (${fmt(endChance * 100, "0.#")}% each season).`;
+export function ending(openAge: boolean, ageEnded: { turn: number; winners: readonly string[] } | null = null, court: Power | null = null): string {
+  if (!openAge) return "Any season may be the last: early on it is very unlikely, and it grows likelier with every year.";
+  const past = ageEnded === null ? "" : ` The age ended in ${dateLabel(ageEnded.turn, court)}; ${ageEnded.winners.join(" and ")} won it.`;
+  return `An open age: this age has no end.${past}`;
+}
+
+/** The short form, for the phone header. */
+export function shortEnding(openAge: boolean): string {
+  return openAge ? "An open age, with no end" : "Any season may be the last";
 }
 
 export const ShekelsPerMina = 60;

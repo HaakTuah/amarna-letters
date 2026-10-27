@@ -31,7 +31,7 @@ export function siegeBoard(): GameState {
 
 /** A game of random but legal-looking orders, every model task answered with filler. */
 export function playRandom(seed: number, turns: number, config: GameConfig | null = null): GameState {
-  let s = newGame(seed, config ?? newGameConfig({ minTurns: 99, maxTurns: 99 }));
+  let s = newGame(seed, config ?? newGameConfig({ capMin: 99, capMax: 99, endMedian: 10000 }));
   let map = WorldMap.default;
   for (let i = 0; i < turns && !s.ended; i++) {
     let e = new TurnEngine(s);

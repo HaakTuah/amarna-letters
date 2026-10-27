@@ -224,13 +224,13 @@ describe("EngineTests", () => {
     Assert.null(s.owner.get("gaza"));
   });
 
-  test("Game never ends before the minimum and always by the maximum", () => {
+  test("Game ends at its drawn last season, and always by the cap", () => {
     for (let seed = 1; seed <= 20; seed++) {
-      let s = playRandom(seed, 200, newGameConfig({ minTurns: 15, maxTurns: 40 }));
+      let s = playRandom(seed, 200, newGameConfig({ capMin: 40, capMax: 40 }));
       Assert.true(s.ended);
       let last = max(s.scores, (x) => x.turn);
-      Assert.inRange(last, Math.min(15, last), 40);
-      if (alive(s).length > 1) Assert.true(last >= 15);
+      Assert.inRange(last, 1, 40);
+      if (alive(s).length > 1) Assert.equal(s.finalSeason, last);
       Assert.notEmpty(s.winners);
     }
   });

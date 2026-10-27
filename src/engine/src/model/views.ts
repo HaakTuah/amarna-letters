@@ -303,8 +303,8 @@ export interface SeatView {
   power: Power;
   king: string;
   ended: boolean;
-  minTurns: number;
-  endChance: number;
+  /** Whether the age has no end ("An open age"). The ending itself is told in words; no number or season of it is shown. */
+  openAge: boolean;
   gold: number;
   unassayedGold: LotView[];
   income: number;
@@ -395,8 +395,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     power: "Egypt",
     king: "",
     ended: false,
-    minTurns: 0,
-    endChance: 0,
+    openAge: false,
     gold: 0,
     unassayedGold: [],
     income: 0,
@@ -443,8 +442,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   power: S,
   king: S,
   ended: B,
-  minTurns: I,
-  endChance: D,
+  openAge: B,
   gold: I,
   unassayedGold: list(() => LotViewSchema),
   income: I,

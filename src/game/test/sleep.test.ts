@@ -183,7 +183,7 @@ describe("SleepTests", () => {
   test("Orders scheduled past the last season are kept so nothing tells when the game must end", () => {
     // Two games that differ only in their hard end. The seat schedules 41 seasons, turns 3 to 43, and turn 70 too.
     function scheduled(maxTurns: number): [string, string, number[]] {
-      let s = newGame(31, newGameConfig({ catastropheChance: 0, maxTurns: maxTurns }));
+      let s = newGame(31, newGameConfig({ catastropheChance: 0, capMin: maxTurns, capMax: maxTurns, endMedian: 10000 }));
       let sleep = newSleepState();
       s.sleep.set("Babylonia", sleep);
       let plans = range(3, 41)

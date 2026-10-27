@@ -9,7 +9,7 @@ import { AllPowers, type Power, cmpPower } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 
-export const CURRENT_VERSION = 7;
+export const CURRENT_VERSION = 8;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -23,6 +23,20 @@ export interface GameState {
   turn: number;
   ended: boolean;
   endReason: string | null;
+  /**
+   * The last season, drawn once in secret at the start ({@link drawFinalSeason}), or null in an open age. Nothing shown
+   * reads it: no view, request, look-ahead or frame (build order item 6a).
+   */
+  finalSeason: number | null;
+  /** Whether the drawn last season is the hard cap's rather than the rising chance's. Secret like it. */
+  finalByCap: boolean;
+  /**
+   * The season the age ended in, when the table chose to play on into an open age after it ("An open age"); its winners
+   * and reason stay recorded in {@link winners} and {@link endReason}. Null otherwise.
+   */
+  ageEndedTurn: number | null;
+  /** The winners of the age, recorded when the table played on past its end (later endings never overwrite them). */
+  ageWinners: string[];
   owner: Dict<string, Power | null>;
   /**
    * The walls standing now, by province, from 1 to 3; a province with none is left out (Build order item 5, the siege
@@ -116,6 +130,10 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     turn: 1,
     ended: false,
     endReason: null,
+    finalSeason: null,
+    finalByCap: false,
+    ageEndedTurn: null,
+    ageWinners: [],
     owner: new Dict(),
     walls: new Dict(),
     wallsSeen: new Dict(),
@@ -158,6 +176,10 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   turn: I,
   ended: B,
   endReason: S,
+  finalSeason: opt(I),
+  finalByCap: B,
+  ageEndedTurn: opt(I),
+  ageWinners: list(S),
   owner: dict(opt(S)),
   walls: dict(I),
   wallsSeen: dict(dict(I)),

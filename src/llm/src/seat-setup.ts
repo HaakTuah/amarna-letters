@@ -173,8 +173,9 @@ export const Presets = {
 
 /** A rough cost for a typical game, from average token counts per call. The in-game meter shows the actual figure. */
 export const CostEstimate = {
-  TypicalSeasons: 20,
-  perGame(c: SeatChoices, seasons = 20): number {
+  /** The median game: half of all ages have ended by season 44 (1332 BCE) by default. */
+  TypicalSeasons: 44,
+  perGame(c: SeatChoices, seasons = 44): number {
     const prices = new PriceTable(c.prices);
     const effort = c.leaderEffort === "low" ? 0.6 : c.leaderEffort === "high" ? 1.6 : 1.0;
     let total = 0.0;

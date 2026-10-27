@@ -5,6 +5,7 @@
 import {
 
   AudienceViewSchema,
+  canPlayOn,
   Dict,
   GameStateSchema,
   HostReplySchema,
@@ -63,6 +64,9 @@ export function fallbackLine(f: SeasonFallbacks): string {
   const why = f.fallen.slice(0, 3).map((x) => `${x.key} (${cut(x.reason)})`);
   return `${f.fallen.length} of ${f.asked} model decisions fell back to scripts this season: ${why.join("; ")}${f.fallen.length > 3 ? "; and more" : ""}.`;
 }
+
+/** The state as the page gets it: without the drawn last season, which nothing shown may read (build order item 6a). */
+const forPage = (s: GameState): GameState => ({ ...s, finalSeason: null, finalByCap: false });
 
 export class SessionCore {
   private runner: GameRunner | null = null;
@@ -123,7 +127,7 @@ export class SessionCore {
         orders: seat.orders !== null ? serialize(SeatViewSchema, seat.orders.view) : null,
         audience: seat.audience !== null ? { view: serialize(AudienceViewSchema, seat.audience.view), court: serialize(SeatViewSchema, seat.audience.court) } : null,
       });
-    const stateJson = r !== null && this.stateVersion !== this.sentVersion ? serialize(GameStateSchema, r.state) : null;
+    const stateJson = r !== null && this.stateVersion !== this.sentVersion ? serialize(GameStateSchema, forPage(r.state)) : null;
     if (stateJson !== null) this.sentVersion = this.stateVersion;
     const live: Live = {
       hasRunner: r !== null,
@@ -135,6 +139,7 @@ export class SessionCore {
       auto: this.auto,
       readOnly: this.readOnly,
       ended: r?.state.ended ?? false,
+      canPlayOn: r !== null && !this.readOnly && canPlayOn(r.state),
       turn: r?.state.turn ?? 0,
       errors: r === null ? [] : r.errors.slice(-8),
       errorCount: r?.errors.length ?? 0,
@@ -304,8 +309,13 @@ export class SessionCore {
         this.notice = "Replaying the saved seasons…";
         // Fast-forward through the logged seasons; live seats take over where the log ends.
         const r = this.runner;
-        while (!r.state.ended && log.decisions.some((d) => d.key === `t${r.state.turn}/season` || d.key.startsWith(`t${r.state.turn}/orders/`)))
+        const recorded = (t: number): boolean => log.decisions.some((d) => d.key === `t${t}/season` || d.key.startsWith(`t${t}/orders/`));
+        for (;;) {
+          // A table that played on past the age's end plays on again ("An open age").
+          if (r.state.ended && log.has(`t${r.state.turn}/play-on`)) await r.playOn();
+          if (r.state.ended || !recorded(r.state.turn)) break;
           await r.playTurn(this.abort.signal);
+        }
         this.notice = null;
       } else {
         this.settings = settingsFromHeader(log.header, table);
@@ -366,6 +376,14 @@ export class SessionCore {
       await sleep(1);
       await this.save();
     }
+  }
+
+  /** Plays on into an open age after the age has ended ("An open age"); the game then never ends by itself. */
+  async playOn(): Promise<void> {
+    const r = this.runner;
+    if (r === null || this.busy || this.readOnly || !(await r.playOn())) return;
+    this.changed();
+    await this.save();
   }
 
   setAuto(on: boolean): void {
@@ -434,6 +452,8 @@ export class SessionCore {
         this.settings = { ...this.settings, budgetUsd: this.settings.budgetUsd + m.by };
         this.notice = null;
         return this.notify();
+      case "playOn":
+        return this.playOn();
       case "stop":
         return this.stop();
       case "clear":
@@ -458,7 +478,7 @@ export class SessionCore {
       }
       case "stateAt": {
         const st = this.runner?.stateAt(m.turn) ?? null;
-        return this.post({ type: "stateAt", id: m.id, json: st === null ? null : serialize(GameStateSchema, st) });
+        return this.post({ type: "stateAt", id: m.id, json: st === null ? null : serialize(GameStateSchema, forPage(st)) });
       }
       case "export":
         return this.post({ type: "export", id: m.id, name: `${this.gameId}.jsonl`, text: this.runner?.log.toJsonl() ?? "" });

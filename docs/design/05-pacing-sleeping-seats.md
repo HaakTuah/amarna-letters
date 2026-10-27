@@ -360,9 +360,9 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   running at the end; the seasons it held court asleep count as slept) and every reason it was
   woken, counted by kind over its sleeps.
 - **Scheduled orders**, kept secret in the seat's own state, for any later season, at most 24
-  orders a season and at most 40 seasons. An entry for a season after the game's last (`maxTurns`)
+  orders a season and at most 40 seasons. An entry for a season after the game's last (the secret `finalSeason`)
   is kept, listed and counted like any other and simply never runs, because the game ends first:
-  what the king reads and the notices it gets are the same whatever `maxTurns` is, so nothing tells
+  what the king reads and the notices it gets are the same whatever the last season is, so nothing tells
   it when the game must end (tested). What is not kept (a season already past, orders past the
   24th, seasons past the 40th) is reported as "Scheduled orders not kept", and, like
   any other refusal, wakes nobody (the rulebook: "orders past these limits are refused"). One entry per season

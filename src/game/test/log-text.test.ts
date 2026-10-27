@@ -8,7 +8,7 @@ import { Assert, toDict } from "../../engine/test/support.ts";
 // writes as a game goes on must be exactly the text a log holding the same record writes from scratch.
 describe("LogTextTests", () => {
   test.each([[false], [true]] as const)("The log written season by season is the log written at once %s", async (models: boolean) => {
-    let state = newGame(8, newGameConfig({ minTurns: 6, endChance: 1.0 }));
+    let state = newGame(8, newGameConfig({ capMin: 6, capMax: 6, endMedian: 10000 }));
     let runner: GameRunner | null = null;
     let choices = new SeatChoices();
     if (models) {

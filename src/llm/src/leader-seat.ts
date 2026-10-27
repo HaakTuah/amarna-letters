@@ -41,8 +41,9 @@ export class LlmLeaderSeat implements ISeat {
     return this.journalOf;
   }
 
-  private get shared(): string {
-    return leaderRules(this.primer, this.config);
+  /** The rulebook: the table's settings, with the age open once the view says so (the table may play on past its end). */
+  private shared(view: SeatView): string {
+    return leaderRules(this.primer, view.openAge === this.config.openAge ? this.config : { ...this.config, openAge: view.openAge });
   }
 
   async decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission> {
@@ -56,7 +57,7 @@ export class LlmLeaderSeat implements ISeat {
         turn: view.turn,
         role: `leader:${this.power}`,
         model: this.model,
-        sharedSystem: this.shared,
+        sharedSystem: this.shared(view),
         seatSystem: identity(this.power),
         user: user.toString(),
         schema: Replies.leaderOrders(this.config),
@@ -92,7 +93,7 @@ export class LlmLeaderSeat implements ISeat {
         turn: view.turn,
         role: `host:${this.power}`,
         model: this.model,
-        sharedSystem: this.shared,
+        sharedSystem: this.shared(court),
         seatSystem: identity(this.power),
         user: user.toString(),
         // With its orders standing it may also send letters and reopen its orders. It is asked only what applies.

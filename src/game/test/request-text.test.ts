@@ -231,7 +231,7 @@ describe("RequestTextTests", () => {
   }
 
   test("A hosts marks for his copies reach the envoy as the tablets names", async () => {
-    let state = newGame(5, newGameConfig({ catastropheChance: 0, minTurns: 40 }));
+    let state = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
     state.tablets.push(
       newTablet({ id: "t900", text: "Peace.", proposedBy: "Egypt", partner: "Hatti", seals: ["Egypt", "Hatti"], createdTurn: 1, sealedTurn: 1 }),
     );

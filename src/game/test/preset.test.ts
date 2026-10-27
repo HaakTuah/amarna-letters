@@ -44,11 +44,11 @@ describe("PresetTests", () => {
     let showcase = CostEstimate.perGame(doWith(Presets.Showcase));
     console.log(`free ${fmt(free, "0.00")}, budget ${fmt(budget, "0.00")}, standard ${fmt(standard, "0.00")}, showcase ${fmt(showcase, "0.00")}`);
     Assert.equal(0, free);
-    Assert.inRange(budget, 0.05, 1.0);
+    Assert.inRange(budget, 0.1, 2.5);
     Assert.true(standard > budget * 5);
     Assert.true(showcase > standard * 1.5);
     Assert.equal("free", CostEstimate.describe(free));
-    Assert.equal("under $1", CostEstimate.describe(budget));
+    Assert.equal("about $1", CostEstimate.describe(budget));
     Assert.true(CostEstimate.suggestedBudget(standard) >= standard);
 
     let human = CostEstimate.perGame(doWith(Presets.Standard, "Egypt"));
@@ -57,7 +57,7 @@ describe("PresetTests", () => {
 
   test("Haiku kings play through the simulated api", async () => {
     let fake = new SimulatedApi();
-    let state = newGame(5, newGameConfig({ minTurns: 2, endChance: 1.0 }));
+    let state = newGame(5, newGameConfig({ capMin: 2, capMax: 2, endMedian: 10000 }));
     let runner: GameRunner | null = null;
     let budget = doWith(Presets.Budget);
     let set = buildSeats(budget, state, providersFor(budget, fake, {}), () => runner!.log);

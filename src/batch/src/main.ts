@@ -127,9 +127,30 @@ for (let i = 0; i < args.length; i++) {
     case "--sleep-cap":
       o.config = { ...o.config, maxSleep: Number.parseInt(next(), 10) };
       break;
-    case "--max-turns":
-      o.config = { ...o.config, maxTurns: Number.parseInt(next(), 10) };
+    case "--max-turns": {
+      // A known cap: the drawn cap's range of a single season (the rising chance still applies before it).
+      const n = Number.parseInt(next(), 10);
+      if (!(n >= 1)) throw new Error("Use --max-turns N, in seasons.");
+      o.config = { ...o.config, capped: true, capMin: n, capMax: n };
       break;
+    }
+    case "--cap": {
+      // "80-100", a single season, or "none".
+      const v = next();
+      if (v === "none") o.config = { ...o.config, capped: false };
+      else {
+        const [a, b] = v.split("-").map((x) => Number.parseInt(x, 10));
+        if (!(a >= 1) || (b !== undefined && !(b >= 1))) throw new Error("Use --cap A-B, --cap N or --cap none, in seasons.");
+        o.config = { ...o.config, capped: true, capMin: a, capMax: b ?? a };
+      }
+      break;
+    }
+    case "--median": {
+      const m = Number.parseInt(next(), 10);
+      if (!(m >= 1)) throw new Error("Use --median N, in seasons.");
+      o.config = { ...o.config, endMedian: m };
+      break;
+    }
     case "--file-seats":
       fileSeats = next();
       break;
@@ -184,7 +205,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --simulate-api --alternate-script",
       );
       process.exit(0);
     default:

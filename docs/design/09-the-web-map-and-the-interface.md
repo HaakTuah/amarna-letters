@@ -21,12 +21,17 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   about any convoyed landing, so it is a rule of the adjudicator (`defenceGround`) rather than stored on a
   connection.
 - **One date label** (`dateLabel`, question 26, plan steps 1-4): the court's season, the year BCE and the
-  turn. Years are counted from 1345 BCE: the first year of a game is 1345 BCE and each later year is one less
-  (`FirstYearBce`, `yearBce`; Haakon, 19 October). Egypt's court reads "Peret, 1344 BCE (turn 5)", the
-  others "the second season, 1344 BCE (turn 5)", and the spectator "season 2, 1344 BCE (turn 5)". Dense lists use
-  the short form, "Peret 1344 BCE" or "s2 1344 BCE", with the full label in a tooltip. The header's ending line
-  reads "The age cannot end before Shemu, 1341 BCE (turn 15)." until the first season that may end the age, then
-  "Any season may now be the last (15% each season)." The year BCE is shown in the interface only: the seat view's
+  turn. Years are counted from 1346 BCE (since build order item 6a; 1345 BCE before): the first year of a game is
+  1346 BCE and each later year is one less, so the median ending, season 44, falls in 1332 BCE (`FirstYearBce`,
+  `yearBce`). Egypt's court reads "Peret, 1345 BCE (turn 5)", the
+  others "the second season, 1345 BCE (turn 5)", and the spectator "season 2, 1345 BCE (turn 5)". Dense lists use
+  the short form, "Peret 1345 BCE" or "s2 1345 BCE", with the full label in a tooltip. The header's ending line says
+  the rule in words, without numbers (item 6a): "Any season may be the last: early on it is very unlikely, and it grows
+  likelier with every year." (on the phone, "Any season may be the last"); in an open age "An open age: this age has
+  no end.", with, once the table has played on past the age's end, when it ended and who won it. When the age has
+  ended by its last season, the header offers "Play on into an open age". The setup menu sets the ending: an open age,
+  the year by which half of all ages end (1342 to 1322 BCE, the middle season of that year), and the hard cap's range
+  in seasons or none; the cost estimate is for a game of median length. The year BCE is shown in the interface only: the seat view's
   own `Season` text ("Peret (growing), year 3") and the prompts are unchanged, so kings are never told the year
   (question 26: a precise year invites models to replay real history), and the annals still count game years. Every date the web app writes uses the label; engine texts shown
   in the interface (a servant's timing and term, inbox items, events) have each "turn N" given its label for display
