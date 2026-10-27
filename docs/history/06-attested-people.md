@@ -162,5 +162,4 @@ marked [G].
 | Suteans, Habiru | West Semitic names, as the Levant | B |
 
 Women are attested chiefly as queens, princesses and brides, and as the writers of a few letters (EA 48, EA 273-274 from
-the "Lady of the Lions", Baʿlat-nese, a ruler in southern Canaan) [A]; the game's characters follow the same rules
-whatever their sex ("Different data, same rules").
+the "Lady of the Lions", Baʿlat-nese, a ruler in southern Canaan) [A].
