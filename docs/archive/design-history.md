@@ -1,6 +1,6 @@
 # Design history
 
-Passages taken out of the design document on 27 October 2026, when it was condensed, because they record history rather than intent: what was tried, dropped, replaced or retired, what a past run measured, and the full text of build order items already built. Each is copied here word for word, with the tab and section it stood in. What was decided in them is still in the document. The design document's version history keeps them too, and the copy of the document before the condensing is `docs/intent/` at commit c6efb32.
+Passages taken out of the design document on 27 October 2026, when it was condensed, because they record history rather than intent: what was tried, dropped, replaced or retired, what a past run measured, and the full text of build order items already built. Each is copied here word for word, with the tab and section it stood in. What was decided in them is still in the document. The copy of the whole document before the condensing is `docs/intent/` at commit c6efb32.
 
 ## Overview: (top)
 
