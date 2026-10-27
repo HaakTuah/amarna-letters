@@ -1,11 +1,11 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 8 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Gold
 
 Gold is the only currency, and everything of value can change hands. The economy exists for one reason: war must cost something and peace must be worth something, so trust has a price without any rule saying so.
 
 **Gold.**
 
-- Provinces yield gold each turn; units and characters cost upkeep. Under review: from the economy's first phase (build order item 9+), provinces yield goods and gold buys labour ("Economy and resources").
+- Provinces yield gold each turn; units and characters cost upkeep. From the economy's first phase (build order item 9+a, decided 21 October 2026), provinces produce goods instead, and gold buys labour ("Economy and resources").
 - Gold can be paid, promised, lent, withheld or used as a bribe, to any seat or character.
 - Gold travels physically with an envoy, so it arrives late and can be skimmed by a greedy carrier.
 - **Purity.** A sender may debase a shipment. The receiver sees its face value until it pays for an assay. This recreates the Amarna complaint about Egyptian gold that melted down impure. Once gold is money, markets assay what they are paid ("Markets").

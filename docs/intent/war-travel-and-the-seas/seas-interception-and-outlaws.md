@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 4 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 17 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Seas, interception and outlaws
 
 **Seas, interception and outlaws (interception on the road, pirates and bandits decided, build order items 7 and 11; deniable attacks decided, needing no rule; finer seas decided, build order item 7).**
@@ -9,13 +9,13 @@
   - **Ships kept to the coasts.** Hulls were light, with one square sail, and sailed well only with the wind behind or abeam, so voyages went coast to coast in daytime stages with island stops, and long open crossings were the hard legs, taking days.
   - **The sea had a season.** Sailing ran roughly April to October in the eastern Mediterranean; winter was unsuited to it.
   - **Currents ran counterclockwise:** north along the Levant, west along southern Anatolia. A voyage from Cyprus home to the Aegean went by the Anatolian coast rather than straight back, so routes were easier one way than the other.
-  - **Naval power was raiding, blockading harbours and seizing ships.** In the Amarna letters Arwad's ships lay off the coast to stop grain reaching Ṣumur (EA 98), blockaded its shore with the sons of ʿAbdi-Aširta so Rib-Hadda could not relieve it (EA 104–105), and threatened his own ships at sea. Blockades were of particular harbours and coasts, not of whole seas, and ships served mostly as transports and raiders, joining sieges from the sea.
+  - **Naval power was raiding, blockading harbours and seizing ships.** In the Amarna letters Arwad's ships lay off the coast to stop grain reaching Ṣumur (EA 98), blockaded its shore with the sons of Abdi-Ashirta so Rib-Hadda could not relieve it (EA 104–105), and threatened his own ships at sea. Blockades were of particular harbours and coasts, not of whole seas, and ships served mostly as transports and raiders, joining sieges from the sea.
   - **No island could guard every shore.** The king of Alashiya complained that "men of Lukki, year by year, seize villages in my own country" (EA 38): raiders landed where no ships stood.
 
   What the game does:
   - **Coastal waters per coastal province.** Each coastal province gets waters of its own, its harbour and shore; two neighbouring provinces with a short shared coast may share them. Both Cypriot provinces, Enkomi and the western one ("Map review"), have their own.
   - **Landing and supply need the coastal waters there.** Troops land, and a besieged coastal city or island is supplied, only where the enemy's fleets do not hold that province's waters. A fleet holding a harbour's waters blockades it, as Arwad did Ṣumur.
-  - **A few open-sea crossings** link coastal waters, such as Cyprus to Anatolia or to the Levant, and Crete to the Aegean coasts. They are hard to stop anyone in and slow to cross, and the fight happens where one comes ashore.
+  - **A few open-sea crossings** link coastal waters, such as Cyprus to Anatolia or to the Levant, and the western sea towards the Aegean edge. They are hard to stop anyone in and slow to cross, and the fight happens where one comes ashore.
   - **The sailing season.** In the winter season open crossings are closed or much riskier, and coastal hops riskier; first guesses, tuned in item 18.
   - **Currents as data.** A crossing can take longer one way than the other, so the counterclockwise circuit shapes trade and war without a rule of its own.
 
@@ -25,7 +25,7 @@
 - **Choosing a route (decided 21 October 2026).** The traveller chooses his route from what he knows, and the sender may lay it down in the errand's mandate. He knows threats only from news that has reached him, so old news makes bad routes. A bold traveller takes the short, dangerous road and a careful one the long, safe one ("Bold or careful, one goal"): script travellers weigh time against risk by formula, and model travellers choose for themselves. Built with travel in item 7.
 - **Pirates and bandits. (Decided 19 October 2026, build order item 11.)** The Lukka raided Alashiya, and the vassal letters are full of the Habiru, outlaws and mercenaries the vassals accused each other of using. Banditry and piracy rise where an owner spends little on patrols and garrisons, and with poverty, war and disaster. They intercept envoys, gold shipments and caravans, giving policing a real price.
 - **Deniable attacks. (Decided 19 October 2026: possible, and needing no rule of its own. With outlaws on the roads, gold that can be handed over and characters dealing with each other, a king can pay a band and deny it; a captured outlaw may confess who paid him, as caught spies confess their master.)** A king may quietly sponsor bandits or pirates against a rival's envoys and then blame the Habiru; the victim cannot prove who did it. This fits the core of the game: an attack whose author cannot be proven.
-- Outlaws are a world force run by scripts, so they cost no model calls. They belong after sieges and distance-based travel, since they only matter once routes take time.
+- Outlaws are a world force; script outlaws cost no model calls, and a model character who turns outlaw sleeps between decisions like any other ("Characters sleep like kings"). They belong after sieges and distance-based travel, since they only matter once routes take time.
 
 **What sets a company's pace (decided 21 October 2026).** One rule for everything that moves, armies, caravans, couriers and envoys alike, so a big army is slow for the same reasons as a big caravan. A company moves at the pace of its slowest part, so a king chooses between one large, safe convoy and several small, quick ones. Its pace comes from:
 

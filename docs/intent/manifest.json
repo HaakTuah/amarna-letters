@@ -5,7 +5,7 @@
   "overview": {
    "name": "Overview",
    "node": "320f0886-6acf",
-   "rev": 549,
+   "rev": 552,
    "files": [
     "docs/intent/overview/front.md",
     "docs/intent/overview/vision-and-core-hypothesis.md",
@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 2,
+   "rev": 13,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -46,7 +46,7 @@
   "world-and-history": {
    "name": "World and history",
    "node": "f2f7044b-c6fa",
-   "rev": 2,
+   "rev": 21,
    "files": [
     "docs/intent/world-and-history/front.md",
     "docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md",
@@ -58,7 +58,7 @@
   "engine-and-models": {
    "name": "Engine and models",
    "node": "23452eff-9a74",
-   "rev": 5,
+   "rev": 26,
    "files": [
     "docs/intent/engine-and-models/front.md",
     "docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md",
@@ -71,7 +71,7 @@
   "diplomacy-and-intelligence": {
    "name": "Diplomacy and intelligence",
    "node": "83ac9cba-81ca",
-   "rev": 2,
+   "rev": 16,
    "files": [
     "docs/intent/diplomacy-and-intelligence/front.md",
     "docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md",
@@ -88,7 +88,7 @@
   "characters": {
    "name": "Characters",
    "node": "0051b400-09bd",
-   "rev": 2,
+   "rev": 16,
    "files": [
     "docs/intent/characters/front.md",
     "docs/intent/characters/characters-hidden-facts-memory-and-continuity.md",
@@ -101,7 +101,7 @@
   "work-money-and-lending": {
    "name": "Work, money and lending",
    "node": "016f3c32-0e2b",
-   "rev": 2,
+   "rev": 10,
    "files": [
     "docs/intent/work-money-and-lending/front.md",
     "docs/intent/work-money-and-lending/recruitment-background-checks-and-the-open-market.md",
@@ -112,7 +112,7 @@
   "land-people-and-economy": {
    "name": "Land, people and economy",
    "node": "3dedb02f-88dd",
-   "rev": 2,
+   "rev": 8,
    "files": [
     "docs/intent/land-people-and-economy/front.md",
     "docs/intent/land-people-and-economy/gold.md",
@@ -126,7 +126,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 4,
+   "rev": 17,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military.md",
@@ -140,7 +140,7 @@
   "victory-and-the-ending": {
    "name": "Victory and the ending",
    "node": "58b70949-2c17",
-   "rev": 2,
+   "rev": 7,
    "files": [
     "docs/intent/victory-and-the-ending/front.md",
     "docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md",
@@ -150,7 +150,7 @@
   "interface-and-the-council": {
    "name": "Interface and the council",
    "node": "ed35e82f-6e5a",
-   "rev": 2,
+   "rev": 4,
    "files": [
     "docs/intent/interface-and-the-council/front.md",
     "docs/intent/interface-and-the-council/spectator-mode-and-analysis.md",
@@ -160,7 +160,7 @@
   "tests-risks-and-references": {
    "name": "Tests, risks and references",
    "node": "e10064a1-1833",
-   "rev": 2,
+   "rev": 10,
    "files": [
     "docs/intent/tests-risks-and-references/front.md",
     "docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md",
@@ -171,7 +171,7 @@
   "ideas": {
    "name": "Ideas",
    "node": "c1a09612-6320",
-   "rev": 2,
+   "rev": 12,
    "files": [
     "docs/intent/ideas/front.md",
     "docs/intent/ideas/other-ideas-under-consideration.md",

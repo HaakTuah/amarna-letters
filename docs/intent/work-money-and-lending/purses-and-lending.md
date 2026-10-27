@@ -1,10 +1,10 @@
-<!-- Generated from the design document, Work, money and lending tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Work, money and lending tab, revision 10 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Purses and lending
 
 **Characters have ongoing costs,** so purses do not grow into fortunes worth killing for:
 
-- living costs each season, higher at rich courts;
-- travel costs per journey;
+- living costs each season, paid at the market where he stays, and nothing as a court's guest ("Characters live from the markets too");
+- on the road, what he buys at the markets he passes, unless he lives on what he carries;
 - spending shaped by traits: the ambitious keep followers, the greedy hoard but are robbed or cheated more often, some send money home or pay old debts (the hidden fact "owes a debt to a copper trader" already exists);
 - outlaws on the roads, and a bandit chief's band to feed.
 
@@ -14,9 +14,9 @@ A purse stays hidden, so a king never knows exactly what an execution would gain
 
 - **A purse on his person:** at hand wherever he goes, and earning nothing. Carried alone it costs nothing but is easily robbed on the road, which gives outlaws something worth hunting. An escort makes robbery harder and costs a fee for every journey, more the more he carries, so carrying with company is the dearest way to keep gold. It is seized when he is captured and taken if he is executed.
 - **A hoard in one city he chooses,** kept with a temple or a merchant house, as Assyrian merchants kept their accounts at Kanesh, for a storage fee every season: safer than the road, but seized if that city's king turns on him, and lost if the city falls. It earns nothing, so it shrinks by the fee. Moving gold between purse and hoard takes him there.
-- **Lent to a king, against a debt tablet:** the only way that earns. It costs nothing to keep, and its risk is the borrower: he may never repay, and if his kingdom falls the debt dies with it. See "Lending to kings" below.
+- **Lent, against a debt tablet,** to a king or, from item 11a, to anyone ("Lending to anyone"): the only way of keeping gold that earns. It costs nothing to keep, and its risk is the borrower: he may never repay, and if a borrowing king's kingdom falls, the debt dies with it. See "Lending to kings" below.
 
-**Lending to kings** (decided 19 October 2026). A character wants more gold, but he cannot put gold to work the way a king can: a king buys cities, raises troops and holds an army together through a lean season. So the character lends to a king, at an interest he sets himself. Lending is then the safest way he has to keep gold, and the only one that earns, where purse and hoard only cost.
+**Lending to kings** (decided 19 October 2026). A character wants more gold, but he cannot put gold to work the way a king can: a king raises troops, builds walls and holds an army together through a lean season. So the character lends to a king, at an interest he sets himself. Lending is then the safest way he has to keep gold, and the only way of keeping it that earns, where purse and hoard only cost.
 
 - **What the engine knows.** The gold moves from the lender to the king's treasury, and travels like any gold. A debt tablet, sealed by both, records who owes whom and the sum to be repaid, interest included. Nothing forces repayment, and the score counts what each side holds, so the borrowed gold counts as the king's until he pays it back ("Debts are facts; repayment is a choice", as changed on 21 October 2026). The tablet is an object in a place like any other, and the lender keeps it.
 - **What is only words.** The interest, the due date, collateral (a hostage, a city's yield sent each season, a post at court), what happens on default and any renegotiation are agreed at the audience or written on the tablet, and nothing enforces them. A king may refuse to pay and keep the gold. What he risks is what the world does about it: the lender's word, backed by the tablet anyone can read; the tablet sold to someone who can collect; and dearer credit, or none, the next time he needs it.
