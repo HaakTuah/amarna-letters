@@ -24,6 +24,7 @@ import {
   type TurnSubmission,
 } from "@amarna/engine";
 import type { ISeat } from "../contracts.ts";
+import { ahead } from "./ahead.ts";
 import { Board } from "./board.ts";
 import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
@@ -114,6 +115,8 @@ export class ScriptLeader implements ISeat {
       notes,
       standing: give.map((g) => g.request),
       cancelStanding: cancel.map(([id]) => id),
+      // A king that sleeps also schedules what stays sound while it sleeps, each order with its condition.
+      scheduled: ahead(view, orders),
     });
   }
 

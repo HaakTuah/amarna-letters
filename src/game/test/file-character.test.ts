@@ -72,9 +72,9 @@ describe("FileCharacterTests", () => {
 
   // <summary>A plain reply for each kind of character request, with the given words.</summary>
   function plainOf(stem: string, words: string, keep: number = 0, gift: boolean = false): string {
-    if (stem.includes("_aud_present_")) return `{"speech":"${words}","keep_gold":${keep},"swap_inventory":false}`;
+    if (stem.includes("_aud_present_")) return `{"as_written":false,"speech":"${words}","keep_gold":${keep},"swap_inventory":false}`;
     if (stem.includes("_aud_react_")) return `{"speech":"${words}","accept_gift":${gift ? "true" : "false"},"accept_service":false,"commitments":""}`;
-    if (stem.includes("_report_")) return `{"report":"${words}","keep_gold":0,"swap_inventory":false}`;
+    if (stem.includes("_report_")) return `{"as_given":false,"report":"${words}","keep_gold":0,"swap_inventory":false}`;
     if (stem.includes("_pitch_")) return `{"pitch":"${words}","asking_price":14}`;
     if (stem.includes("_spy_")) return `{"report":"${words}"}`;
     return `{"summary":"${words}"}`;

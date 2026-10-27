@@ -323,10 +323,17 @@
   age", or at the cap "the age has run its course"), or when one kingdom is left. Nothing shown reads the drawn season:
   no seat view, request, look-ahead or web frame (tested). The rulebook and the web app's header say the rule in words,
   without numbers ("Any season may be the last: early on it is very unlikely, and it grows likelier with every year.").
+  Since item 6b (Haakon's answer to 6a's review) a table's median moves the words, in three bands with no numbers
+  (`ageBand`, `bandWords` in `rules/ending.ts`; first guesses: a median up to 30 seasons is "likely to be short", from
+  60 "likely to be long"), the same for every seat in the rulebook, the view (`SeatView.ageBand`) and the header; a
+  script king believes the band's own median (24, 44 or 75 seasons, `bots/ending-belief.ts`), never the table's.
   **An open age** (`openAge`): no last season and no cap, set at the start, or chosen when the age has ended by its last
   season (not with one kingdom left): the table plays on (`playOn`; the runner records `t<N>/play-on` so a replay plays
   on too), the winners and the reason stay recorded (`ageEndedTurn`), the chronicles are not written again, and the
-  rulebook then says the age has no end. The game pauses at the table's spending limit, as every model game does. Save
+  rulebook then says the age has no end. The game pauses at the table's spending limit, as every model game does; since
+  item 6b a table with any model-played seat (a simulated API aside) sets that limit by hand before an open age starts
+  or plays on (`handLimitNeeded`: the setup refuses to begin while the limit is the suggested one, and playing on asks
+  for a limit above what the game has spent). Save
   version 8.
 - **A kingdom falls with its capital** (the design document's rule, built with the siege package, Build order item 5;
   until then a kingdom fell only when it held no land, so a king who lost his capital fought on from his last
@@ -437,7 +444,9 @@
   season's other orders for its units and people, those given that season among them, and script kings give them,
   which changes what existing seeds do, under the same unreleased version 5; 6 since Build order item 5, the siege
   package, one version for the whole item: walls by place in place of the free cities' garrisons, storming and
-  sieges, terrain, and the rest of the item as it is built). A log
+  sieges, terrain, and the rest of the item as it is built; 9 since item 6b: conditions on scheduled entries and
+  standing orders, a season's entries standing together, standing answers, and a model king's court answered in one
+  call). A log
   saved under another version is refused, both for replay and for continuing it: "This game was saved under an
   earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3, 4 and
   5). The web app shows that message

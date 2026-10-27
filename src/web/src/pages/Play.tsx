@@ -19,7 +19,7 @@ import { FallbackNotice, TrailPanel } from "../components/TrailPanel.tsx";
 import { city } from "../map/art.ts";
 import { pathOf } from "../map/scene.ts";
 import { buildLifeRecord } from "../session/life-record.ts";
-import { choicesOf, newSettings, usesModels, withChoices } from "../session/settings.ts";
+import { choicesOf, handLimitNeeded, newSettings, usesModels, withChoices } from "../session/settings.ts";
 import { powerName, when, whenCap } from "../ui/format.ts";
 import { OrderDraft } from "../ui/order-draft.ts";
 import { navigate } from "../ui/router.ts";
@@ -169,9 +169,18 @@ export function Play() {
       ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.`
       : playedOn
         ? ending(true, { turn: frame.index, winners: frame.winners }, viewer)
-        : ending(frame.openAge, frame.ageEnded, viewer);
+        : ending(frame.openAge, frame.ageEnded, viewer, frame.ageBand);
   const shortLine = frame.ended && !playedOn ? `Ended · winner ${frame.winners.join(" and ")}` : shortEnding(frame.openAge || playedOn);
   const showsCost = usesModels(live.settings) || live.cost > 0;
+  // An open age has no end, so with model-played seats the table sets the spending limit itself before playing on.
+  const playOn = (): void => {
+    if (!handLimitNeeded(live.settings)) return s.playOn();
+    const answer = window.prompt(
+      `An open age has no end, and its model calls none either. The game has spent $${live.cost.toFixed(2)}. At how many dollars in all should it pause?`,
+    );
+    if (answer === null) return;
+    s.playOn(Number(answer));
+  };
   const localAgents = choicesOf(live.settings).usesLocalAgents;
 
   return (
@@ -204,7 +213,7 @@ export function Play() {
             {/* The short form, as in dense lists: the turn is in the tooltip. */}
             <span className="short">{shortLine}</span>
             {!history && live.canPlayOn && (
-              <button className="link" onClick={() => s.playOn()} title="The winner stays recorded; the game goes on with no end">
+              <button className="link" onClick={() => playOn()} title="The winner stays recorded; the game goes on with no end">
                 Play on into an open age
               </button>
             )}

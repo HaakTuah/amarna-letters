@@ -110,8 +110,15 @@ export class ModelRecorder implements JsonAsker {
 
   askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
     this.specs.push(spec);
+    // A court reply welcomes every envoy the request names, by his id.
+    if (spec.key.includes("/court/")) {
+      const answers = [...spec.user.matchAll(/\((c\d+)\), envoy of /g)].map(
+        (m) => `{"envoy":"${m[1]}","speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`,
+      );
+      return Promise.resolve(JSON.parse(`{"answers":[${answers.join(",")}],"letters":[],"reopen_orders":${this.#reopen},"ledger":[],"standing_answers":[],"cancel_answers":[]}`)!);
+    }
     let json = spec.key.includes("/orders/")
-      ? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
+      ? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
       : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":REOPEN}`.replaceAll(
           "REOPEN",
           this.#reopen ? "true" : "false",
@@ -236,9 +243,9 @@ export class Replying implements JsonAsker {
 
 // <summary>A reply with a march, two standing orders (one for any foreign power, one for a power nobody knows) and cancellations.</summary>
 export const PlanningReply: string = `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],
- "schedule":[{"turn":3,"units":[{"unit":"Babylon","order":"move","target":"nippur","to":""}],"other_orders":[]}],
+ "schedule":[{"turn":3,"units":[{"unit":"Babylon","order":"move","target":"nippur","to":""}],"other_orders":[],"conditions":[]}],
  "standing_orders":[
- {"when":"unit_attacked","province":"Sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[{"action":"counter_intelligence","province":"","power":"","person":"","amount":20,"term":0,"text":"","item":"","seals":[]}]},
- {"when":"unit_enters","province":"mari","power":"","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[]},
- {"when":"unit_enters","province":"mari","power":"Kush","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[]}],
- "cancel_standing":["s9", "all"]}`;
+ {"when":"unit_attacked","province":"Sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[{"action":"counter_intelligence","province":"","power":"","person":"","amount":20,"term":0,"text":"","item":"","seals":[]}],"conditions":[]},
+ {"when":"unit_enters","province":"mari","power":"","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]},
+ {"when":"unit_enters","province":"mari","power":"Kush","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]}],
+ "cancel_standing":["s9", "all"],"standing_answers":[],"cancel_answers":[]}`;

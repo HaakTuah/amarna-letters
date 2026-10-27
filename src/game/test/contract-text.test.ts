@@ -27,7 +27,7 @@ describe("ContractTextTests", () => {
                     { "action": "renew", "province": "", "power": "", "person": "c4", "amount": 25, "term": 9, "text": "", "item": "", "seals": [] },
                     { "action": "hire", "province": "", "power": "", "person": "c9", "amount": 30, "term": 12, "text": "", "item": "", "seals": [] },
                     { "action": "hire", "province": "", "power": "", "person": "c10", "amount": 30, "term": 0, "text": "", "item": "", "seals": [] } ],
-  "summary": "", "ledger": [], "schedule": [], "standing_orders": [], "cancel_standing": []
+  "summary": "", "ledger": [], "schedule": [], "standing_orders": [], "cancel_standing": [], "standing_answers": [], "cancel_answers": []
 }`,
     ) as JsonObject;
     Assert.empty(problems(json, Replies.leaderOrders(newGameConfig())));

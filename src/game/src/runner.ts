@@ -63,6 +63,7 @@ import {
   PresentResultSchema,
   newEnvoyContext,
   newMindContext,
+  plainWords,
   type ChronicleContext,
   type CheckContext,
   type EnvoyContext,
@@ -92,6 +93,18 @@ export class ReplayExhaustedError extends Error {
 class Court {
   readonly letters: Order[] = [];
   reopen = false;
+}
+
+/** One audience as the runner holds it: the envoy, its presentation, the exchanges so far, and whether it has ended. */
+interface AudienceRun {
+  a: PendingAudience;
+  key: string;
+  envoy: Character;
+  ctx: (soFar: Exchange[], round: number, delivered: string, skim: number, giftTaken?: boolean) => EnvoyContext;
+  present: PresentResult;
+  record: AudienceRecord;
+  soFar: Exchange[];
+  done: boolean;
 }
 
 export interface RunnerOptions {
@@ -417,12 +430,44 @@ export class GameRunner {
       [([k]: [Power, PendingAudience[]]) => k, cmpPower],
     );
     const hostTasks = byHost.map(async ([host, group]) => {
-      const records: AudienceRecord[] = [];
       // A sleeping host was woken for its audiences only: its orders stand unless it reopens them, and it may send letters.
       // What it chose so far this season, in its earlier audiences and exchanges, is shown to it at each later one.
       const court = engine.isAsleep(host) ? new Court() : null;
-      for (const a of sortBy(group, [(a: PendingAudience) => idNumber(a.id), cmpNum])) records.push(await this.audience(engine, a, turn, court, signal));
-      return records;
+      const runs: AudienceRun[] = [];
+      for (const a of sortBy(group, [(a: PendingAudience) => idNumber(a.id), cmpNum])) runs.push(await this.openAudience(a, turn, signal));
+      const seat = this.seats.get(host);
+      // Envoys the king's standing answers cover are answered first, for it, in one exchange each.
+      for (const r of runs) if (r.a.answer !== null) await this.answered(engine, r, turn, court, signal);
+      // A seat that answers its whole court in one call ("One call per wake-up") is asked once for each exchange, every
+      // envoy still before it together; any other answers each audience in turn, both its exchanges before the next.
+      if (seat.holdCourt !== undefined) {
+        for (let round = 1; round <= this.state.config.audienceRounds; round++) {
+          const open = runs.filter((r) => !r.done);
+          if (open.length === 0) break;
+          const views = open.map((r) => this.audienceView(engine, r, round, court));
+          const seen = Views.for(this.state, host);
+          let batch: Promise<(HostReply | null)[]> | null = null;
+          const replies: HostReply[] = [];
+          for (let i = 0; i < open.length; i++)
+            replies.push(
+              await this.hostReply(open[i], round, views[i], seen, signal, async () => {
+                batch ??= seat.holdCourt!(views, seen, signal);
+                const reply = (await batch!)[i] ?? null;
+                if (reply === null) throw new Error(`the reply to the court left out the envoy ${views[i].envoy.id}`);
+                return reply;
+              }),
+            );
+          for (let i = 0; i < open.length; i++) await this.exchange(engine, open[i], round, replies[i], court, signal);
+        }
+      } else
+        for (const r of runs)
+          for (let round = 1; round <= this.state.config.audienceRounds && !r.done; round++) {
+            const view = this.audienceView(engine, r, round, court);
+            const seen = Views.for(this.state, host);
+            const reply = await this.hostReply(r, round, view, seen, signal, () => seat.hostAudience(view, seen, signal));
+            await this.exchange(engine, r, round, reply, court, signal);
+          }
+      return runs.map((r) => r.record);
     });
     const all = sortBy((await Promise.all(hostTasks)).flat(), [(r: AudienceRecord) => idNumber(r.audienceId), cmpNum]);
     for (const record of all) engine.applyAudience(record);
@@ -430,7 +475,8 @@ export class GameRunner {
     engine.courtsHeld();
   }
 
-  private async audience(engine: TurnEngine, a: PendingAudience, turn: number, court: Court | null, signal?: AbortSignal): Promise<AudienceRecord> {
+  /** An audience begins: the envoy presents its lord's message. */
+  private async openAudience(a: PendingAudience, turn: number, signal?: AbortSignal): Promise<AudienceRun> {
     const S_ = this.state;
     const envoy = char(S_, a.envoyId);
     const key = `t${turn}/aud/${a.id}`;
@@ -468,56 +514,96 @@ export class GameRunner {
       this.mindOf(envoy),
     );
     present.skim = clamp(present.skim, 0, a.dispatch.gold);
-
     const record = newAudienceRecord({ audienceId: a.id, delivered: present.speech, skim: present.skim, swapInventory: present.swapInventory });
-    const soFar: Exchange[] = [];
-    for (let round = 1; round <= S_.config.audienceRounds; round++) {
-      const view: AudienceView = engine.buildAudienceView(a, present.speech, present.skim, soFar, round, record.rounds, present.swapInventory);
-      if (court !== null) {
-        view.ordersStand = true;
-        view.reopenChosen = court.reopen;
-        view.lettersSent = [...court.letters];
-      }
-      const seat = Views.for(S_, a.host);
-      const host = await this.recorded<HostReply>(
-        `${key}/host/${round}`,
-        HostReplySchema,
-        () => this.seats.get(a.host).hostAudience(view, seat, signal),
-        async () => {
-          // The script king answers the envoy; marked (and logged) so that, at a court held while the seat's orders stand,
-          // it decides nothing for the seat, which is then asked for orders (TurnEngine.courtsHeld).
-          const stand = await this.fallbackSeat.hostAudience(view, seat, signal);
-          stand.fromFallback = true;
-          return stand;
-        },
-        this.seats.get(a.host).label,
-      );
-      // What the host says reaches the envoy as any court could read it: its own marks for its copies of tablets, and
-      // person ids, become the tablets' and the people's names (as in its letters).
-      host.speech = engine.scribe(a.host, host.speech);
-      host.bribeAsk = engine.scribe(a.host, host.bribeAsk);
-      // Only the seat's own replies send letters or choose about its orders.
-      if (court !== null && !host.fromFallback) {
-        addLetters(court.letters, host.letters);
-        court.reopen = court.reopen || host.reopenOrders;
-      }
-      // A gift it took at an earlier exchange, as the engine counts one (the first accepted): no later gift is given.
-      const giftTaken = record.rounds.some((x) => x.host !== null && x.host.bribe > 0 && x.envoy !== null && x.envoy.acceptBribe);
-      const context = ctx([...soFar], round, present.speech, present.skim, giftTaken);
-      // The envoy meets only what is said and done to it: the host's letters and its choice about its orders are its own.
-      const heard = asHeard(host);
-      const reaction = await this.recorded<EnvoyReaction>(
-        `${key}/envoy/${round}`,
-        EnvoyReactionSchema,
-        () => this.minds.react(context, heard, signal),
-        () => this.fallbackMind.react(context, heard, signal),
-        this.mindOf(envoy),
-      );
-      record.rounds.push(newAudienceRound({ host, envoy: reaction }));
-      soFar.push(newExchange({ host: host.speech, envoy: reaction.speech }));
-      if (host.end || host.detain || reaction.acceptJob) break;
+    return { a, key, envoy, ctx, present, record, soFar: [], done: false };
+  }
+
+  /**
+   * An envoy a standing answer of the host covers: the engine answers him as the answer decided, and the host's phrasing
+   * call words it (the plain clauses if it has none, or the call fails). The king is not asked, and the audience ends.
+   */
+  private async answered(engine: TurnEngine, r: AudienceRun, turn: number, court: Court | null, signal?: AbortSignal): Promise<void> {
+    const a = r.a;
+    const seat = this.seats.get(a.host);
+    const view = this.audienceView(engine, r, 1, court);
+    const reply = await this.recorded<HostReply>(
+      `${r.key}/host/1`,
+      HostReplySchema,
+      async () => {
+        const x = engine.answerReply(a, view.goldWeighed);
+        const clauses = engine.answerClauses(a, view.goldWeighed);
+        x.speech = plainWords(clauses);
+        if (seat.phrase !== undefined)
+          try {
+            const words = await seat.phrase({ key: r.key, turn, host: a.host, from: a.from, envoy: r.envoy.name, clauses }, signal);
+            if (words.trim().length > 0) x.speech = words;
+          } catch (ex) {
+            if (ex instanceof Error && ex.name === "AbortError") throw ex;
+            this.errors.push(`${r.key}/phrase: ${ex instanceof Error ? ex.message : String(ex)}`);
+          }
+        return x;
+      },
+      null,
+      `${seat.label}, standing answer`,
+    );
+    await this.exchange(engine, r, 1, reply, court, signal);
+  }
+
+  /** What the host has before it at one exchange of an audience. */
+  private audienceView(engine: TurnEngine, r: AudienceRun, round: number, court: Court | null): AudienceView {
+    const view: AudienceView = engine.buildAudienceView(r.a, r.present.speech, r.present.skim, r.soFar, round, r.record.rounds, r.present.swapInventory);
+    if (court !== null) {
+      view.ordersStand = true;
+      view.reopenChosen = court.reopen;
+      view.lettersSent = [...court.letters];
     }
-    return record;
+    return view;
+  }
+
+  /** The host's answer at one exchange, recorded under its own key, or the script king's if the seat's call fails. */
+  private hostReply(r: AudienceRun, round: number, view: AudienceView, seen: SeatView, signal: AbortSignal | undefined, produce: () => Promise<HostReply>): Promise<HostReply> {
+    return this.recorded<HostReply>(
+      `${r.key}/host/${round}`,
+      HostReplySchema,
+      produce,
+      async () => {
+        // The script king answers the envoy; marked (and logged) so that, at a court held while the seat's orders stand,
+        // it decides nothing for the seat, which is then asked for orders (TurnEngine.courtsHeld).
+        const stand = await this.fallbackSeat.hostAudience(view, seen, signal);
+        stand.fromFallback = true;
+        return stand;
+      },
+      this.seats.get(r.a.host).label,
+    );
+  }
+
+  /** The host's answer reaches the envoy, and the envoy answers it; the audience ends when either ends it. */
+  private async exchange(engine: TurnEngine, r: AudienceRun, round: number, host: HostReply, court: Court | null, signal?: AbortSignal): Promise<void> {
+    const a = r.a;
+    // What the host says reaches the envoy as any court could read it: its own marks for its copies of tablets, and
+    // person ids, become the tablets' and the people's names (as in its letters).
+    host.speech = engine.scribe(a.host, host.speech);
+    host.bribeAsk = engine.scribe(a.host, host.bribeAsk);
+    // Only the seat's own replies send letters or choose about its orders.
+    if (court !== null && !host.fromFallback) {
+      addLetters(court.letters, host.letters);
+      court.reopen = court.reopen || host.reopenOrders;
+    }
+    // A gift it took at an earlier exchange, as the engine counts one (the first accepted): no later gift is given.
+    const giftTaken = r.record.rounds.some((x) => x.host !== null && x.host.bribe > 0 && x.envoy !== null && x.envoy.acceptBribe);
+    const context = r.ctx([...r.soFar], round, r.present.speech, r.present.skim, giftTaken);
+    // The envoy meets only what is said and done to it: the host's letters and its choice about its orders are its own.
+    const heard = asHeard(host);
+    const reaction = await this.recorded<EnvoyReaction>(
+      `${r.key}/envoy/${round}`,
+      EnvoyReactionSchema,
+      () => this.minds.react(context, heard, signal),
+      () => this.fallbackMind.react(context, heard, signal),
+      this.mindOf(r.envoy),
+    );
+    r.record.rounds.push(newAudienceRound({ host, envoy: reaction }));
+    r.soFar.push(newExchange({ host: host.speech, envoy: reaction.speech }));
+    if (host.end || host.detain || reaction.acceptJob) r.done = true;
   }
 
   private async orders(turn: number, signal?: AbortSignal): Promise<Dict<Power, TurnSubmission>> {

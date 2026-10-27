@@ -1,8 +1,9 @@
 /**
  * A model king's private record of earlier seasons, all of it in its own words: the notes, audiences and orders of the last
- * three seasons it gave orders, shown in full; its own summary of the seasons before those, which it rewrites in its replies
- * when it chooses; and its ledger of dealings, one line per court, carried in full, which it writes with its orders or at an
- * audience. Nothing in it is condensed by anyone else: the king that reads it wrote all of it.
+ * three seasons it gave orders, the last season's notes in full and the two before by their opening words (item 6b: "the
+ * journal folding older notes"); its own summary of the seasons before those, which it rewrites in its replies when it
+ * chooses; and its ledger of dealings, one line per court, carried in full, which it writes with its orders or at an
+ * audience. Nothing in it is reworded by anyone else: the king that reads it wrote all of it.
  */
 import { AllPowers, MaxSpeech, cap, describe, trim, type LedgerLine, type Power, type TurnSubmission } from "@amarna/engine";
 import { Sb, joinS } from "./text.ts";
@@ -32,6 +33,8 @@ export class LeaderJournal {
   static readonly SeasonsShown = 3;
   /** The seasons whose notes an audience request shows. */
   static readonly SeasonsShownAtAudience = 2;
+  /** Notes older than the last season's are folded to this many characters, their opening words, until they leave. */
+  static readonly FoldedNotes = 400;
 
   private readonly seasons: Season[] = [];
   private readonly audiences: HeldAudience[] = [];
@@ -39,6 +42,18 @@ export class LeaderJournal {
   private summaryTurn = 0;
   private leftThrough = 0;
   private readonly ledger = new Map<Power, [string, number]>();
+  /** The tablets it has read in full in an orders request it answered: later requests show them by their opening words. */
+  private readonly read = new Set<string>();
+
+  /** The tablets the king has read in full at earlier orders. */
+  get tabletsRead(): ReadonlySet<string> {
+    return this.read;
+  }
+
+  /** The tablets an orders request it answered showed it (in full or by their opening words). */
+  readTablets(ids: Iterable<string>): void {
+    for (const id of ids) this.read.add(id);
+  }
 
   /**
    * An audience the king held: what it said to whose envoy, and the letters it sent from it (while its orders stood). It
@@ -98,8 +113,9 @@ export class LeaderJournal {
     if (this.seasons.length === 0) return sb.append("YOUR RECORD OF EARLIER SEASONS: none yet; these are the first orders you give.").toString();
     sb.appendLine("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):");
     this.writeSummary(sb);
+    const last = this.seasons[this.seasons.length - 1];
     for (const s of this.seasons) {
-      sb.appendLine(`turn ${s.turn} notes: ${s.notes.length > 0 ? s.notes : "none"}`);
+      sb.appendLine(`turn ${s.turn} notes${s === last ? "" : ", folded"}: ${s.notes.length > 0 ? (s === last ? s.notes : LeaderJournal.fold(s.notes)) : "none"}`);
       if (s.audiences.length > 0) sb.appendLine(`turn ${s.turn} audiences: ${joinS("; ", s.audiences)}`);
       sb.appendLine(`turn ${s.turn} orders: ${s.orders.length > 0 ? joinS("; ", s.orders) : "none"}`);
     }
@@ -117,12 +133,21 @@ export class LeaderJournal {
     else {
       sb.appendLine("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):");
       this.writeSummary(sb);
+      const last = this.seasons[this.seasons.length - 1];
       for (const s of this.seasons.slice(Math.max(0, this.seasons.length - LeaderJournal.SeasonsShownAtAudience)))
-        sb.appendLine(`turn ${s.turn} notes: ${s.notes.length > 0 ? s.notes : "none"}`);
+        sb.appendLine(`turn ${s.turn} notes${s === last ? "" : ", folded"}: ${s.notes.length > 0 ? (s === last ? s.notes : LeaderJournal.fold(s.notes)) : "none"}`);
     }
     if (this.audiences.length > 0)
       sb.appendLine("AUDIENCES YOU HAVE HELD SINCE YOU LAST GAVE ORDERS: " + joinS("; ", this.audiences.map((a) => LeaderJournal.audienceLine(a, null))));
     return sb.toString();
+  }
+
+  /** Older notes by their opening words, cut at a word with "…" ("the journal folding older notes"). */
+  static fold(notes: string): string {
+    if (notes.length <= LeaderJournal.FoldedNotes) return notes;
+    const cut = notes.slice(0, LeaderJournal.FoldedNotes);
+    const space = cut.lastIndexOf(" ");
+    return `${trim(space > LeaderJournal.FoldedNotes / 2 ? cut.slice(0, space) : cut)}…`;
   }
 
   private writeSummary(sb: Sb): void {

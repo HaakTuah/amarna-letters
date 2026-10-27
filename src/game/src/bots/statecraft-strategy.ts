@@ -137,7 +137,7 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
       [...b.alive].filter((x) => x !== me && brain.isFriend(x)),
       [(x: Power) => x, cmpPower],
     )) {
-      if (brain.rel.get(ally).allied && endMayBeNear(b.v.turn, b.v.openAge)) continue;
+      if (brain.rel.get(ally).allied && endMayBeNear(b.v.turn, b.v.openAge, b.v.ageBand)) continue;
       // A broken oath costs a name for honesty with every court that hears of it: worth it only for a real prize.
       if (b.v.turn <= 3 || brain.rel.get(ally).supportsGiven > 0) continue;
       const open = sum(

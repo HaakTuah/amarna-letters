@@ -29,6 +29,7 @@ import {
   type Character,
   type EnvoyReaction,
   type HostReply,
+  type MessageTrail,
   type MindReply,
   type Power,
   type SpyReport,
@@ -47,7 +48,7 @@ import {
   type ShadowDecision,
 } from "@amarna/game";
 import type { JsonAsker } from "./client.ts";
-import { ModelIds } from "./models.ts";
+import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
 import { Replies, Schemas, type JsonObject, type ReplySchema } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
@@ -226,7 +227,7 @@ export class LlmCharacterMind implements ICharacterMind {
     const asker = this.askerFor(c);
     if (asker === null) throw new Error(`No mind for ${c.id}.`);
     return asker.askJson(
-      { key, turn, role, model: this.model, sharedSystem: CharacterSystem, seatSystem: selfText(c, turn, asOf, then), user, schema, effort: "low", maxTokens: 4000 },
+      { key, turn, role, model: this.model, sharedSystem: CharacterSystem, seatSystem: selfText(c, turn, asOf, then), user, schema, effort: "low", maxTokens: OutputCaps.character },
       signal,
     );
   }
@@ -408,7 +409,7 @@ export class LlmCharacterMind implements ICharacterMind {
     const user = new Sb();
     user.appendLine(`You have arrived at ${courtOf(ctx.host)}, as the envoy of ${kingOf(ctx.sender)}.`);
     user.appendLine(d.greetingText.length > 0 ? `The sealed greeting will be read out exactly as written: "${d.greetingText}"` : "The tablet carries no greeting at all; the king will notice.");
-    user.appendLine(`Your lord's message, which you must now deliver in your own words: "${d.letter}"`);
+    user.appendLine(`Your lord's message, which you must now deliver, word for word or in your own words: "${d.letter}"`);
     user.appendLine(d.mandate.length > 0 ? `Your mandate (what you may agree to): "${d.mandate}"` : "You were given no mandate to agree to anything.");
     const forger = canForge(ctx.self, ctx.forgeMinCompetence);
     if (d.gold > 0)
@@ -420,6 +421,8 @@ export class LlmCharacterMind implements ICharacterMind {
     // The gold questions only when it carries gold, and the swap only when its hand could fake the seal.
     const json = await this.ask(`t${ctx.turn}/aud/present/${ctx.self.id}`, ctx.turn, `envoy:${ctx.self.id}`, ctx.self, user.toString(), Replies.present(d.gold > 0, forger), signal);
     const r = Parse.present(json);
+    // Passed on as written: the lord's own words, read out; the envoy wrote nothing but that choice.
+    if (json.as_written === true) r.speech = `Thus says ${kingOf(ctx.sender)}: "${d.letter}"`;
     r.skim = clamp(r.skim, 0, d.gold);
     // Nothing kept, nothing to hide: the engine ignores a swap then anyway. A swap it was not asked about is not made.
     if (r.skim === 0 || !forger) r.swapInventory = false;
@@ -504,8 +507,11 @@ export class LlmCharacterMind implements ICharacterMind {
         const forger = canForge(c, ctx.forgeMinCompetence);
         if (cargo.gold > 0) user.appendLine(`You carry back gold the king sent ${him}, with an inventory tablet sealed by that king that says ${cargo.goldStated} shekels. ` + keepLine(forger));
         user.appendLine(`Write your report to ${still ? "your lord" : "him"} now.`);
-        const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Replies.report(cargo.gold > 0, forger, still), signal);
+        const received = t !== null && t.exchanges.length > 0;
+        const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Replies.report(cargo.gold > 0, forger, still, received), signal);
         const r = Parse.report(json);
+        // Reported as given: the king's answer word for word, and what happened, as the engine has them.
+        if (received && json.as_given === true) r.text = asGiven(t!);
         r.number = clamp(r.number, 0, cargo.gold);
         if (r.number === 0 || !forger) r.swapInventory = false;
         return r;
@@ -551,4 +557,12 @@ export class LlmCharacterMind implements ICharacterMind {
     }
     return newMindReply();
   }
+}
+
+/** An envoy's report of an audience as given: the king's answers word for word, and nothing of the envoy's own. */
+export function asGiven(t: MessageTrail): string {
+  const said = t.exchanges.map((x) => `"${x.host}"`).join(" Then: ");
+  // Only the king's words: what happened is told by the engine's own record (the envoy's own deeds, a kept share of the
+  // gold or a gift taken, are his to tell or hide, and as given he tells nothing of his own).
+  return `I was received at the court of ${land(t.to)}. The king answered: ${said}`;
 }

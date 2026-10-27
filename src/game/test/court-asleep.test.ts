@@ -168,6 +168,13 @@ describe("CourtAsleepTests", () => {
 
     askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
       this.specs.push(spec);
+      // A court reply answers every envoy the request names, by his id.
+      if (spec.key.includes("/court/")) {
+        const answers = [...spec.user.matchAll(/\((c\d+)\), envoy of /g)].map(
+          (m) => `{"envoy":"${m[1]}","speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`,
+        );
+        return Promise.resolve(JSON.parse(`{"answers":[${answers.join(",")}],"letters":[],"reopen_orders":${this.#reopen},"ledger":[]}`)!);
+      }
       let json = spec.key.includes("/orders/")
         ? `{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}`
         : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"letters":[],"reopen_orders":REOPEN}`.replaceAll(
@@ -373,7 +380,7 @@ describe("CourtAsleepTests", () => {
     let state = newGame(31, Quiet);
     let king = new LlmLeaderSeat("Alashiya", recorder, ModelIds.Opus, "high", true, state.config);
     await play(king, t);
-    let host = single(recorder.specs, (x) => x.key.startsWith(`t${t}/aud/`));
+    let host = single(recorder.specs, (x) => x.key.startsWith(`t${t}/court/`));
     Assert.doesNotContain(recorder.specs, (x) => x.key === `t${t}/orders/Alashiya`);
     // The seat's own model decides; only the effort is lower than for its orders.
     Assert.equal([ModelIds.Opus, "medium"], [host.model, host.effort]);
@@ -471,7 +478,7 @@ describe("CourtAsleepTests", () => {
     let king = new LlmLeaderSeat("Alashiya", recorder, "claude-sonnet-5-5", "medium", true, off);
     let t = courtTurn(off);
     let r = await play(king, t, off);
-    let host = single(recorder.specs, (x) => x.key.startsWith(`t${t}/aud/`));
+    let host = single(recorder.specs, (x) => x.key.startsWith(`t${t}/court/`));
     // No letters and no choice about its orders (the other fields are those that apply at that exchange: RequestsAreRulesTests).
     Assert.doesNotContain('"letters"', JSON.stringify(host.schema));
     Assert.doesNotContain('"reopen_orders"', JSON.stringify(host.schema));

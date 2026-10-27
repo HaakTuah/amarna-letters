@@ -17,11 +17,12 @@
   set on the start page or with `--price MODEL=IN,OUT,CACHE`; a model with no price costs nothing by the meter, and the
   page and the runner say so. Kings think at a chosen effort (medium by default; host audiences run
   one level lower); characters run at low effort.
-- **Cost estimates** (`CostEstimate`) come from average token counts per call: a king's orders
-  read the 5,000-token rulebook from cache and add about 5,000 fresh tokens and 3,000 out; about one
-  audience a season; some 15 character calls a season; the narrator's personas and chronicles.
-  For 20 seasons that is roughly $0.55 (Budget), $9 (Standard) and $18 (Showcase). The spending cap
-  defaults to one and a half times the estimate.
+- **Cost estimates** (`CostEstimate`) come from average token counts per call, as item 6b measured them (`src/batch/src/measure.ts`):
+  a king that sleeps gives orders in about three seasons in ten, reading the rulebook and schema (some 16,000 tokens)
+  from cache and about 4,500 fresh, with 3,000 out; it holds court in about one season in five, 14,000 from cache and
+  3,500 fresh; some 15 character calls a season; the narrator's personas and chronicles. For the median game of 44
+  seasons that is roughly $0.50 (Budget), $5.60 (Standard) and $10.50 (Showcase). The spending cap defaults to one and
+  a half times the estimate.
 - **One mind per seat** (the owner's principle, 18 October 2026): small models may only sort or
   condense; the seat's own model makes every decision: what the king answers, whether it reopens
   its orders, what it orders. A seat played by one model in one call and a weaker one in the next is
@@ -129,7 +130,11 @@
   to the script character.
 - **Prompt caching**: the leader rulebook, map, opening positions and customs primer form one
   byte-stable system block marked for caching, shared across seats and seasons; per-seat identity and the season's
-  situation come after it.
+  situation come after it. The reply schema goes as the request's one tool, and a provider's cached prefix begins with
+  the tools, so a schema that changes from call to call is a prefix of its own: since item 6b the court's schema is the
+  same at every court of a game (two variants: with the king's orders standing or not), where the audience schema,
+  which asked only what applied to the exchange, made five or so prefixes a game (measured: 5.2 a game, at most 9,
+  before; 2.0 after). The orders schema was already one per game.
 - **Providers** (`Provider` in `src/llm/src/client.ts`): one small interface, with each provider's adapter handling its own
   format for system prompts and structured replies. Anthropic (`AnthropicProvider`) goes through the official TypeScript
   SDK (`SdkTransport`, `@anthropic-ai/sdk`) in the browser, the batch runner and the tests alike, with the
@@ -139,6 +144,40 @@
   the branch `archive/csharp-final`).
 - **Prompt-injection boundaries**: a character's prompt holds only its own persona, memory and
   facts (tested); text never changes state; the narrator receives only released facts.
+- **Call size** (item 6b; "Call size matters as much as call count", "Output is the other half"). Measured by
+  `src/batch/src/measure.ts` (`node --experimental-strip-types src/batch/src/measure.ts --games 20 --seed 1`, with
+  `--per-audience` for the old one-audience calls and `--dump DIR` for sample requests): script games in which every
+  king is shadowed by a model king, its request for the same view built and split into parts, its record written with
+  realistic notes, summary and ledger. Built: the last season's notes in full and the two before folded to their first
+  400 characters (`LeaderJournal.fold`); a tablet read in full at earlier orders shown by its first 120 characters
+  (`LeaderJournal.tabletsRead`), and at a court only the tablets bearing an envoy's court's seal in full; a letter
+  still away in full only at the next orders after it was sent (then its opening words), and in full again when its
+  report comes; battle reports without the units that held (`withoutHolds`); the explanations repeated in every view's
+  headings moved to the rulebook's cached part (WHAT YOU SEE, "Your view, part by part"); one call per court
+  (`LlmLeaderSeat.holdCourt`, below) with a schema stable enough to cache. Not built: a "since you last acted" view of
+  the map, which the king has no earlier copy of in its request to read changes against (the digest of slept seasons
+  is the part that grows with sleep, and it is shortened); terser tables of people (their contract terms stay in the
+  engine's words). The numbers are in the item's report (`docs/rounds/2026-10-27-call-size.md`).
+- **One call per wake-up** (item 6b): a model or file king answers every envoy at its court in one call
+  (`ISeat.holdCourt`, `t<N>/court/<Power>/<round>`): one call for the first exchange of every audience, one for the
+  second of those still open (an audience has at most two). Its reply has one answer per envoy, by his id
+  (`answers`), and the court's letters, its choice about its orders, its ledger lines and standing answers once. Each
+  answer is still logged under its own audience's key (`t<N>/aud/<id>/host/<round>`), so replays, authorship and the
+  message trail read as before; an envoy the reply leaves out is answered by the stand-in, alone. Script and human
+  seats answer each audience in turn, as before, so script games are unchanged. The orders call stays its own
+  ("Reopening orders still runs the orders call").
+- **Phrasing calls** (item 6b): a standing answer's words are a model's, worded by the characters' model, or the
+  king's own if the characters play by script (`phrasingModel`; item 6c makes it a job on the setup menu), from the
+  answer's clauses and the king's identity, without its record (`LlmLeaderSeat.phraseCall`, at most 600 tokens out).
+  A file seat, or a call that fails, has the clauses read out as they are (`plainWords`); a failed phrasing call is
+  noted in the runner's errors but is not a fallback, since the answer itself was the king's.
+- **The output side** (item 6b): each job's cap on output is in one table (`OutputCaps`: orders 16,000; a court 6,000
+  and 2,000 more for each further envoy; character calls 4,000; phrasing 600; the narrator's as before). An envoy may
+  pass his lord's message on as written (`as_written`: the engine reads the letter out, "Thus says ...: "..."") and
+  report the king's answer as given (`as_given`, asked only after an audience: the engine writes the king's words
+  and nothing else, so nothing the envoy did there, a share kept or a gift taken, reaches his lord unless he tells it),
+  writing nothing but that choice. No reply has a free-text reasoning field (audited: the king's
+  notes are its memory, an envoy's commitments are its promises).
 - **Leader memory** is a private record in the king's own words (`LeaderJournal`), shown in every
   orders request after its view. First comes its **ledger of dealings**, the per-court ledger of the
   design document's risk table, carried in full: "YOUR LEDGER OF DEALINGS (your own words, per
@@ -151,7 +190,8 @@
   in the seat's record and are not part of the `HostReply`, which the engine applies and the envoy's
   mind reads. Then comes the king's own summary of earlier
   seasons ("YOUR SUMMARY OF EARLIER SEASONS (your own words, turn 6): ..."), then the last three
-  seasons it gave orders in full: its notes, the audiences it held (what it said to whose envoy, in
+  seasons it gave orders: its notes (the last season's in full, the two before folded to their opening words since
+  item 6b), the audiences it held (what it said to whose envoy, in
   full up to the 1,500 characters an envoy hears) and its orders. Older seasons leave the record, and the request says which turn's notes leave it after
   this season ("Your notes from turn 4 leave this record after this season; keep what you need in
   your summary."). Each season's notes are kept up to 2,000 characters; longer notes are cut with

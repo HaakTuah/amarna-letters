@@ -42,9 +42,10 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   item 12); and an archive that moves with the court ("Command at a distance"; item 13).
 - **Model characters in the simulation kit**: envoys and spies as isolated agents, for the second agent simulation
   (item 4).
-- **Memory and call size**: older letters summarized to a line, a "since you last acted" view, terser state tables,
-  requests ordered so the stable part is cached, the schema's repeated shapes shared, and the setup screen's cost
-  estimate brought up to date ("Call size matters as much as call count"; the round report, Part E; item 6).
+- **Call size, what 6b left**: a "since you last acted" view of the map (the view stays whole; only the digest of slept
+  seasons is shortened, see "Call size" in `04-models.md`), sharing the schema's repeated shapes, and batch processing
+  for unattended games ("Output is the other half"); standing answers for characters, and a screen for a human seat's
+  standing answers (item 6b's report).
 - **A cheaper summariser**, measured on the same games before it is used ("A cheaper model for condensing,
   to be measured"; the round report, Part E).
 - **Languages** ("Languages"; item 12).
@@ -53,9 +54,6 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   item 13).
 - **Legends**: biographies of characters, histories of tablets and the rise and fall of courts, grown from the
   "follow this character" view ("The narrator illuminates; it never steers"; item 14).
-- **Conditional orders beyond the two standing-order events** ("unless" conditions; the treasury, an envoy's return or
-  a sealed tablet as conditions), with item 6 ("Pacing: sleeping
-  seats and standing orders").
 - **The message-kind fallback for reopening orders**, if kings reopen too often after audiences: reopening offered
   only for a coalition or alliance tablet, evidence of a broken tablet, a ransom demand, or a threat or news of war,
   sorted by a small model that errs toward offering, for model seats only ("If kings reopen almost every

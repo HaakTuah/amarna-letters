@@ -245,8 +245,8 @@ export class Session {
     this.send({ type: "delay", ms });
     this.notify();
   }
-  playOn(): void {
-    this.send({ type: "playOn" });
+  playOn(budgetUsd: number | null = null): void {
+    this.send({ type: "playOn", budgetUsd });
   }
 
   raiseBudget(by: number): void {

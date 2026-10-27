@@ -18,7 +18,7 @@ The design document records intent; these notes record what is built. Where they
   item 5" was built in the fix pass after item 4: a king's named season and his triggers of his own removed (see "Kings
   never choose when they wake"), the missing triggers for a threat to a home province or a walled city, standing orders
   that answer a move in the season it is made rather than a season late, and scheduled orders for new levies. The rest
-  of conditional orders comes with item 6.
+  of conditional orders came with item 6b (see "Conditions" in `05-pacing-sleeping-seats.md`).
 - **What wakes a sleeping seat** was a difference until 27 October 2026: the code follows the simulation-fixes
   round's prompt and the owner's later instructions (see "What wakes it" in `05-pacing-sleeping-seats.md`), and the
   design document's default triggers, order triggers and rulebook quote now say the same ("Default wake triggers set
@@ -30,8 +30,9 @@ The design document records intent; these notes record what is built. Where they
 - **Conditions.** No seat-defined triggers exist, and no priority on a default trigger (the document dropped both).
   Of its "scheduled, conditional orders", orders that follow their unit and two standing orders (`unit_enters`,
   `unit_attacked`, each answering a move in the season it is made, as the document's "if Hatti enters Mira, support
-  Mira" needs) are built; its wider vocabulary ("unless"; treasury below, envoy returned, tablet sealed as
-  conditions on orders) is not (item 6). Triggers count only moves the seat saw, so a foreign levy wakes nobody.
+  Mira" needs) are built, and since item 6b its wider vocabulary as conditions on scheduled entries and standing
+  orders ("unless"; troops in a province, the treasury, an envoy back at court, a tablet sealed). Triggers count only
+  moves the seat saw, so a foreign levy wakes nobody.
 - **Who holds each province is public at once.** The document's "Hidden by default" has news of distant provinces,
   including who holds them, arrive late. In the code every seat sees every province's owner the season it changes,
   and the standings line is computed from it.

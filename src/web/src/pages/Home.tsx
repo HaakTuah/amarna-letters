@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { Emblem } from "../components/Emblem.tsx";
 import { ModelPicker, ProvidersPanel } from "../components/ModelSettings.tsx";
 import { session } from "../session/client.ts";
-import { choicesOf, estimate, newSettings, randomSeed, usesModels, withChoices, type GameSettings } from "../session/settings.ts";
+import { choicesOf, estimate, handLimitNeeded, newSettings, randomSeed, usesModels, withChoices, type GameSettings } from "../session/settings.ts";
 import { deleteLog, getSessionKey, listLogs, loadLog, setSessionKey, type SavedLog } from "../session/storage.ts";
 import { powerName } from "../ui/format.ts";
 import { navigate } from "../ui/router.ts";
@@ -185,6 +185,11 @@ export function Home() {
 
   async function start(): Promise<void> {
     if (!keyReady()) return;
+    // An open age has no end: with model-played seats, its spending limit is the table's own, never the default.
+    if (settings.openAge && handLimitNeeded(settings) && !budgetTouched) {
+      setProblem("An open age has no end, and its model calls none either: set by hand the spending limit at which the game pauses, below, before it begins.");
+      return;
+    }
     if (choices.usesLocalAgents) {
       const b = await bridgeCheck(choices);
       if (!b.ok) {

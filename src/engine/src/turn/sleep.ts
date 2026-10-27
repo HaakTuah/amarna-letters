@@ -152,6 +152,8 @@ P.wakeCheck = function () {
   // Every seat may keep standing orders: troops a seat that does not sleep has lost take their standing orders with them
   // here too, so that its view shows only those that can still fire (a sleeping seat's go below, with its schedule).
   for (const p of alive(S).filter((p) => this.sleepOf(p) === null)) this.lostUnits(p, null);
+  // Envoys a king's standing answers cover are answered for it: they wake nobody.
+  this.assignAnswers();
   if (!S.config.sleepingSeats) return;
   for (const [p, sl] of sortBy(S.sleep.entries(), [([k]: [Power, SleepState]) => k, cmpPower])) {
     const before = sl.wokenBecause;
@@ -186,7 +188,7 @@ P.wakeCheck = function () {
     if (reasons.every(isEnvoyWaiting)) {
       sl.holdsCourt = true;
       sl.wokenBecause = reasons;
-      sl.courts.push(newCourtHeld({ turn: S.turn, envoys: S.audiences.filter((a) => a.host === p).length }));
+      sl.courts.push(newCourtHeld({ turn: S.turn, envoys: S.audiences.filter((a) => a.host === p && a.answer === null).length }));
       continue;
     }
     this.wake(sl, reasons);
@@ -258,7 +260,7 @@ P.wakeReasons = function (p, sl) {
   if (sl.asleep && S.turn >= sl.wakeAt) add(CapReason);
 
   for (const a of sortBy(
-    S.audiences.filter((a) => a.host === p),
+    S.audiences.filter((a) => a.host === p && a.answer === null),
     [(a) => idNumber(a.id), cmpNum],
   ))
     add(envoyWaits(a.from));

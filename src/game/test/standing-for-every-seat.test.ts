@@ -145,10 +145,12 @@ describe("StandingForEverySeatTests", () => {
         "- s1: when your army now in sippar is attacked, then: the army now in durkurigalzu supports the army now in sippar holding",
         situation(babylon.views[1]),
       );
-      // Its header says that its orders replace those the king gives in the season it fires (the follow-up's review).
+      // Its header points to the rulebook, which says that its orders replace those the king gives in the season it fires
+      // (the follow-up's review; the explanation moved to the rulebook's fixed part in item 6b).
+      Assert.contains("YOUR STANDING ORDERS (see STANDING ORDERS):", situation(babylon.views[1]));
       Assert.contains(
-        "YOUR STANDING ORDERS (each fires once, in the season you see the move it waits for, and its orders then replace the orders you give that season for the same units or people; cancel_standing removes them by their ids, which are for your orders only, and one cancelled does not fire in that season):",
-        situation(babylon.views[1]),
+        "When it fires, its orders replace your other orders that season for the same units or people, those you give that season among them",
+        leaderRules(true, newGameConfig()),
       );
       Assert.equal(
         "Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallatum for sippar. It gave these orders: durkurigalzu supports sippar holding. They replaced these orders you gave for turn 2: durkurigalzu -> nippur.",

@@ -31,6 +31,34 @@ export interface ISeat {
   readonly canSleep?: boolean;
   decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission>;
   hostAudience(view: AudienceView, court: SeatView, signal?: AbortSignal): Promise<HostReply>;
+  /**
+   * A seat that settles everything waiting at its court in one call ("One call per wake-up" under "Minds follow what is at
+   * stake"): one exchange of every audience still open, in the order given. An answer it leaves out (null) is answered by
+   * the stand-in. Model and file kings have it; script and human seats answer each audience in turn.
+   */
+  holdCourt?(views: AudienceView[], court: SeatView, signal?: AbortSignal): Promise<(HostReply | null)[]>;
+  /**
+   * Words what one of its standing answers decided, in a phrasing call to a small model (in full press words are always a
+   * model's): from the clauses decided and the king's voice, without its record. A seat without it, or whose call fails,
+   * has the clauses read out as they are.
+   */
+  phrase?(req: PhraseRequest, signal?: AbortSignal): Promise<string>;
+}
+
+/** What a phrasing call words: a standing answer's clauses, for the envoy of a court. */
+export interface PhraseRequest {
+  key: string;
+  turn: number;
+  host: Power;
+  from: Power;
+  envoy: string;
+  clauses: string[];
+}
+
+/** A standing answer's words when no phrasing call makes them: the clauses, as the king's scribe records them. */
+export function plainWords(clauses: readonly string[]): string {
+  const text = clauses.join("; ");
+  return text.length === 0 ? "" : text[0].toUpperCase() + text.slice(1) + ".";
 }
 
 /** A character's voice: envoys, spies and candidates. The engine keeps the authoritative copy. */

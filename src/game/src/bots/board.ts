@@ -58,7 +58,7 @@ export class Board {
     this.others = this.units.filter((u) => u.power !== this.me);
     this.alive = new HSet(AllPowers.filter((p) => !v.fallen.includes(p)));
     // Seasons the game can still be expected to run, as this king reads the rule.
-    this.horizon = seasonsLeft(v.turn, v.openAge);
+    this.horizon = seasonsLeft(v.turn, v.openAge, v.ageBand);
   }
 
   get Map(): WorldMap {

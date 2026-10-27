@@ -69,8 +69,9 @@ describe("SchemaLimitTests", () => {
     const api = new SimulatedApi();
     const client = new ModelClient(providersFor(choices, api, {}), () => {});
     await client.check(checkJobs(choices, configs[2]));
-    // Orders and the fullest audience reply for the Sonnet kings, five for the Haiku characters, one for the narrator.
-    Assert.equal(2 + 5 + 1, api.counted.length);
+    // Orders, the fullest audience reply and the court reply for the Sonnet kings, five for the Haiku characters and the
+    // kings' phrasing calls on the characters' model, one for the narrator.
+    Assert.equal(3 + 5 + 1 + 1, api.counted.length);
     Assert.empty(api.requests);
     api.refuseCheck = "Anthropic API 400: The compiled grammar is too large";
     const ex = await Assert.throwsAsync(() => client.check(checkJobs(choices, configs[2])));

@@ -14,7 +14,8 @@ export type ToWorker =
   | { type: "auto"; on: boolean }
   | { type: "delay"; ms: number }
   | { type: "budget"; by: number }
-  | { type: "playOn" }
+  /** With the spending limit the table set by hand for the open age, where one is needed (handLimitNeeded). */
+  | { type: "playOn"; budgetUsd: number | null }
   | { type: "stop" }
   | { type: "clear" }
   | { type: "orders"; power: Power; json: string }
