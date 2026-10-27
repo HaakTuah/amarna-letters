@@ -47,11 +47,33 @@ import {
   type PresentResult,
   type ShadowDecision,
 } from "@amarna/game";
-import type { JsonAsker } from "./client.ts";
+import type { CallSpec, JsonAsker } from "./client.ts";
+import { fieldsDiffer, type Ladder } from "./ladder.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
 import { Replies, Schemas, type JsonObject, type ReplySchema } from "./schemas.ts";
+import type { Stakes } from "./spending.ts";
 import { Sb, joinS } from "./text.ts";
+
+/** The characters' ladder ("Minds follow what is at stake"): the small rung is their own model; above it, what they pass up. */
+export interface CharacterRungs {
+  ladder: Ladder;
+  /** The large rung, or null: the small rung decides everything it decides today. */
+  up: string | null;
+}
+
+/** One decision as the ladder weighs it: its stakes, its log keys, and how two replies to it are compared in an audit. */
+interface Weighed {
+  stakes: Stakes;
+  keys: string[];
+  fields: readonly string[];
+}
+
+/** The budget could not pay for a character's call: the script decides, and the small rung words what others will read. */
+class ScriptRung extends Error {}
+
+/** What a character has to lose, in its own terms: the gold it carries or is offered against its purse. */
+const share = (c: Character, gold: number): number => Math.max(0, gold) / (Math.max(0, c.purse) + 50);
 
 export const CharacterSystem = `You are one of the people of the Amarna age (c. 1360-1330 BCE): a messenger, envoy, agent or would-be servant of the Great Kings, who serves for pay. You are not a king and you are not playing to win a game. You live your own life inside the story, with your own motives, and you speak and decide only as yourself.
 
@@ -200,16 +222,19 @@ export class LlmCharacterMind implements ICharacterMind {
   shadow: ((s: ShadowDecision) => void) | null = null;
   /** The script's own choices at each audience the model played, by character, host and season (only with shadow set). */
   private readonly scriptAudiences = new Map<string, ScriptAudience>();
+  /** Their ladder; null for file characters, whose own mind decides everything. */
+  private readonly rungs: CharacterRungs | null;
 
-  constructor(askerFor: JsonAsker | ((c: Character) => JsonAsker | null), model: string = ModelIds.Haiku, label: string | null = null) {
+  constructor(askerFor: JsonAsker | ((c: Character) => JsonAsker | null), model: string = ModelIds.Haiku, label: string | null = null, rungs: CharacterRungs | null = null) {
     this.askerFor = typeof askerFor === "function" ? askerFor : () => askerFor;
     this.model = model;
     this.labelText = label;
+    this.rungs = rungs;
   }
 
   /** The same model characters, with `script` as their script mind. */
   withScript(script: ICharacterMind): LlmCharacterMind {
-    const m = new LlmCharacterMind(this.askerFor, this.model, this.labelText);
+    const m = new LlmCharacterMind(this.askerFor, this.model, this.labelText, this.rungs);
     m.shadow = this.shadow;
     m.script = script;
     return m;
@@ -223,13 +248,78 @@ export class LlmCharacterMind implements ICharacterMind {
     return this.askerFor(c) === null ? this.script.label : this.label;
   }
 
-  private ask(key: string, turn: number, role: string, c: Character, user: string, schema: ReplySchema, signal?: AbortSignal, asOf: number | null = null, then: SpyReport | null = null): Promise<JsonObject> {
+  private async ask(
+    key: string,
+    turn: number,
+    role: string,
+    c: Character,
+    user: string,
+    schema: ReplySchema,
+    signal?: AbortSignal,
+    asOf: number | null = null,
+    then: SpyReport | null = null,
+    weighed: Weighed | null = null,
+  ): Promise<JsonObject> {
     const asker = this.askerFor(c);
     if (asker === null) throw new Error(`No mind for ${c.id}.`);
-    return asker.askJson(
-      { key, turn, role, model: this.model, sharedSystem: CharacterSystem, seatSystem: selfText(c, turn, asOf, then), user, schema, effort: "low", maxTokens: OutputCaps.character },
+    const spec: CallSpec = { key, turn, role, model: this.model, sharedSystem: CharacterSystem, seatSystem: selfText(c, turn, asOf, then), user, schema, effort: "low", maxTokens: OutputCaps.character };
+    const r = this.rungs;
+    if (r === null || weighed === null) return await asker.askJson(spec, signal);
+    // The ladder: the character's own (small) model first; it may pass a matter up, or ask counsel, to the rung above.
+    const climbed = await r.ladder.climb(
+      {
+        spec,
+        small: this.model,
+        large: r.up ?? this.model,
+        start: "small",
+        scriptMay: r.ladder.spending.active,
+        stakes: weighed.stakes,
+        keys: weighed.keys,
+        differ: (a, b) => fieldsDiffer(a, b, weighed.fields),
+      },
       signal,
     );
+    if (climbed.json === null) throw new ScriptRung();
+    return climbed.json;
+  }
+
+  /**
+   * The script rung: when the budget cannot pay for a character's call, the script decides, and where others will read what
+   * it decided, the small model words it in a phrasing call from the decision and the character's persona, without its
+   * memory (in full press words are always a model's). A failed phrasing call leaves the script's own words.
+   */
+  private async orScript<T>(model: () => Promise<T>, script: () => Promise<T>, words: ((r: T) => [string, (s: string) => void]) | null, c: Character, turn: number, key: string, signal?: AbortSignal): Promise<T> {
+    try {
+      return await model();
+    } catch (ex) {
+      if (!(ex instanceof ScriptRung)) throw ex;
+    }
+    const r = await script();
+    if (words === null) return r;
+    const [text, set] = words(r);
+    if (text.trim().length === 0) return r;
+    try {
+      const json = await this.rungs!.ladder.client.askJson(
+        {
+          key: `${key}/phrase`,
+          turn,
+          role: `phrase:${c.id}`,
+          model: this.model,
+          sharedSystem: "You put a decision already made into the words of one of the people of the Amarna age, in their own voice. Say nothing that is not in it, and promise nothing more. Reply with the reply tool.",
+          seatSystem: `You speak as ${c.name}. ${currentPersona(c)}`,
+          user: `Put this into your own words, as you would say or write it: "${text}"`,
+          schema: Replies.text("speech", "The words, in one to four sentences."),
+          effort: "low",
+          maxTokens: OutputCaps.phrase,
+        },
+        signal,
+      );
+      const said = String(json.speech ?? "").trim();
+      if (said.length > 0) set(said);
+    } catch (ex) {
+      if (ex instanceof Error && ex.name === "AbortError") throw ex;
+    }
+    return r;
   }
 
   private scriptAt(character: string, host: Power, turn: number): ScriptAudience {
@@ -278,7 +368,16 @@ export class LlmCharacterMind implements ICharacterMind {
       "present",
       ctx.self,
       ctx.turn,
-      () => this.modelPresent(ctx, signal),
+      () =>
+        this.orScript(
+          () => this.modelPresent(ctx, signal),
+          () => this.script.present(ctx, signal),
+          (r) => [r.speech, (x) => (r.speech = x)],
+          ctx.self,
+          ctx.turn,
+          `t${ctx.turn}/aud/present/${ctx.self.id}`,
+          signal,
+        ),
       async () => {
         const r = await this.script.present(ctx, signal);
         // What the script would have kept, and whether its forgery would have hidden it, as the engine would judge.
@@ -303,7 +402,16 @@ export class LlmCharacterMind implements ICharacterMind {
       "react",
       ctx.self,
       ctx.turn,
-      () => this.modelReact(ctx, host, signal),
+      () =>
+        this.orScript(
+          () => this.modelReact(ctx, host, signal),
+          () => this.script.react(ctx, host, signal),
+          (r) => [r.speech, (x) => (r.speech = x)],
+          ctx.self,
+          ctx.turn,
+          `t${ctx.turn}/aud/react/${ctx.self.id}/${ctx.round}`,
+          signal,
+        ),
       async () => {
         const r = await this.script.react(ctx, host, signal);
         // The gift the script would have taken: the first it accepts at the audience, as the engine counts one.
@@ -340,7 +448,17 @@ export class LlmCharacterMind implements ICharacterMind {
       kind,
       ctx.self,
       ctx.turn,
-      () => this.modelWrite(ctx, key, signal),
+      () =>
+        this.orScript(
+          () => this.modelWrite(ctx, key, signal),
+          () => this.script.write(ctx, signal),
+          // A summary of its own memory is read by nobody else: it needs no words of a model's.
+          ctx.request.task === "SummarizeMemory" ? null : (r) => [r.text, (x) => (r.text = x)],
+          ctx.self,
+          ctx.turn,
+          key,
+          signal,
+        ),
       () => this.script.write(mine, signal),
       (r) => choiceOf(ctx, r),
       (s) => {
@@ -419,7 +537,23 @@ export class LlmCharacterMind implements ICharacterMind {
     if (d.proposal !== null) user.appendLine(`You carry a tablet for the king to seal: "${d.proposal.text}"`);
     user.appendLine("Speak to the king now.");
     // The gold questions only when it carries gold, and the swap only when its hand could fake the seal.
-    const json = await this.ask(`t${ctx.turn}/aud/present/${ctx.self.id}`, ctx.turn, `envoy:${ctx.self.id}`, ctx.self, user.toString(), Replies.present(d.gold > 0, forger), signal);
+    const weighed: Weighed = {
+      stakes: { kind: "present", moved: 0.1 + share(ctx.self, d.gold) + (d.proposal !== null ? 0.3 : 0) },
+      keys: ctx.audienceKey.length > 0 ? [`${ctx.audienceKey}/present`] : [],
+      fields: ["keep_gold", "swap_inventory", "as_written"],
+    };
+    const json = await this.ask(
+      `t${ctx.turn}/aud/present/${ctx.self.id}`,
+      ctx.turn,
+      `envoy:${ctx.self.id}`,
+      ctx.self,
+      user.toString(),
+      Replies.present(d.gold > 0, forger),
+      signal,
+      null,
+      null,
+      weighed,
+    );
     const r = Parse.present(json);
     // Passed on as written: the lord's own words, read out; the envoy wrote nothing but that choice.
     if (json.as_written === true) r.speech = `Thus says ${kingOf(ctx.sender)}: "${d.letter}"`;
@@ -459,6 +593,13 @@ export class LlmCharacterMind implements ICharacterMind {
       user.toString(),
       Replies.react(giftOpen, host.jobOffer > 0),
       signal,
+      null,
+      null,
+      {
+        stakes: { kind: "react", moved: 0.1 + share(ctx.self, (giftOpen ? host.bribe : 0) + host.jobOffer * 4) + (host.detain ? 0.5 : 0) },
+        keys: ctx.audienceKey.length > 0 ? [`${ctx.audienceKey}/envoy/${ctx.round}`] : [],
+        fields: ["accept_gift", "accept_service"],
+      },
     );
     const r = Parse.react(json);
     if (!giftOpen) r.acceptBribe = false;
@@ -508,7 +649,11 @@ export class LlmCharacterMind implements ICharacterMind {
         if (cargo.gold > 0) user.appendLine(`You carry back gold the king sent ${him}, with an inventory tablet sealed by that king that says ${cargo.goldStated} shekels. ` + keepLine(forger));
         user.appendLine(`Write your report to ${still ? "your lord" : "him"} now.`);
         const received = t !== null && t.exchanges.length > 0;
-        const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Replies.report(cargo.gold > 0, forger, still, received), signal);
+        const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Replies.report(cargo.gold > 0, forger, still, received), signal, null, null, {
+          stakes: { kind: "report", moved: 0.15 + share(c, cargo.gold) },
+          keys: [`t${ctx.turn}/mind/${req.id}`],
+          fields: ["keep_gold", "swap_inventory", "as_given"],
+        });
         const r = Parse.report(json);
         // Reported as given: the king's answer word for word, and what happened, as the engine has them.
         if (received && json.as_given === true) r.text = asGiven(t!);
@@ -522,7 +667,11 @@ export class LlmCharacterMind implements ICharacterMind {
           `${Views.capitalized(courtOf(court))} is looking for envoys and agents, and you have come before the king. ` +
           `Present yourself in a few sentences and name your wage per season. Someone like you usually earns about ${ctx.basePrice} shekels a season; ` +
           `${ctx.demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now"}.`;
-        const json = await this.ask(key, ctx.turn, `candidate:${c.id}`, c, user, Replies.pitch(), signal);
+        const json = await this.ask(key, ctx.turn, `candidate:${c.id}`, c, user, Replies.pitch(), signal, null, null, {
+          stakes: { kind: "pitch", moved: 0.1 },
+          keys: [`t${ctx.turn}/mind/${req.id}`],
+          fields: ["asking_price"],
+        });
         return Parse.pitch(json);
       }
       case "SpyReport": {
@@ -540,7 +689,11 @@ export class LlmCharacterMind implements ICharacterMind {
         if (!isBlank(r.poison)) user.appendLine(`Your secret masters want your lord to hear this, as if you had seen it yourself: "${r.poison}"`);
         user.appendLine("Write your report home, to be carried by a trusted messenger.");
         // Written when it arrives, of the season it was observed: the spy remembers nothing that happened to it since.
-        const json = await this.ask(key, ctx.turn, `spy:${c.id}`, c, user.toString(), Replies.text("report", "Your report home."), signal, r.observedTurn > 0 ? r.observedTurn : null, r);
+        const json = await this.ask(key, ctx.turn, `spy:${c.id}`, c, user.toString(), Replies.text("report", "Your report home."), signal, r.observedTurn > 0 ? r.observedTurn : null, r, {
+          stakes: { kind: "spy", moved: 0.2 },
+          keys: [`t${ctx.turn}/mind/${req.id}`],
+          fields: [],
+        });
         return newMindReply({ text: Parse.field(json, "report") });
       }
       case "SummarizeMemory": {
@@ -551,7 +704,11 @@ export class LlmCharacterMind implements ICharacterMind {
         if (c.memorySummary.length > 0) user.appendLine(`Your summary so far: ${c.memorySummary}`);
         user.appendLine("Older memories to fold in:");
         for (const m of req.facts) user.appendLine("- " + cap(m, 500));
-        const json = await this.ask(key, ctx.turn, `memory:${c.id}`, c, user.toString(), Replies.text("summary", "The new summary of your older memories."), signal);
+        const json = await this.ask(key, ctx.turn, `memory:${c.id}`, c, user.toString(), Replies.text("summary", "The new summary of your older memories."), signal, null, null, {
+          stakes: { kind: "memory", moved: 0.05 },
+          keys: [`t${ctx.turn}/mind/${req.id}`],
+          fields: [],
+        });
         return newMindReply({ text: Parse.field(json, "summary") });
       }
     }

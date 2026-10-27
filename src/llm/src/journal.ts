@@ -13,6 +13,7 @@ interface Season {
   notes: string;
   orders: string[];
   audiences: string[];
+  thoughts: string[];
 }
 
 interface HeldAudience {
@@ -38,6 +39,10 @@ export class LeaderJournal {
 
   private readonly seasons: Season[] = [];
   private readonly audiences: HeldAudience[] = [];
+  /** What the king thought between its orders: news it read while it slept, and counsel it took. */
+  private readonly thoughts: string[] = [];
+  /** The plan it plays by, when planning is on, and the season it was set down. */
+  private plan: [string, number] | null = null;
   private summary = "";
   private summaryTurn = 0;
   private leftThrough = 0;
@@ -63,6 +68,21 @@ export class LeaderJournal {
     this.audiences.push({ turn, who: `${from}'s envoy ${envoy}`, speech, sent: sent === null ? [] : [...sent] });
   }
 
+  /**
+   * A thought of the king's between its orders, in its own record as its own ("One mind"): what it made of news that
+   * reached it while it slept, or counsel it took. It joins the record with the next orders it gives.
+   */
+  thought(turn: number, text: string): void {
+    const t = trim(text);
+    if (t.length > 0) this.thoughts.push(`(turn ${turn}) ${cap(t, LeaderJournal.NotesMax)}`);
+  }
+
+  /** The plan the king plays by ("Planning"), set down in a season; it replaces the one before. */
+  setPlan(turn: number, text: string): void {
+    const t = trim(text);
+    if (t.length > 0) this.plan = [cap(t, LeaderJournal.SummaryMax), turn];
+  }
+
   /** One audience as the record shows it: whose envoy, what the king said, and the letters it gave there. */
   private static audienceLine(a: HeldAudience, season: number | null): string {
     return (
@@ -80,7 +100,8 @@ export class LeaderJournal {
     // An audience held in an earlier season (its orders call then failed) is marked with its own season.
     const audiences = this.audiences.map((a) => LeaderJournal.audienceLine(a, turn));
     this.audiences.length = 0;
-    this.seasons.push({ turn, notes: cap(trim(sub.notes), LeaderJournal.NotesMax), orders: sub.orders.map(describe), audiences });
+    const thoughts = this.thoughts.splice(0);
+    this.seasons.push({ turn, notes: cap(trim(sub.notes), LeaderJournal.NotesMax), orders: sub.orders.map(describe), audiences, thoughts });
     while (this.seasons.length > LeaderJournal.SeasonsShown) {
       this.leftThrough = this.seasons[0].turn;
       this.seasons.shift();
@@ -110,15 +131,22 @@ export class LeaderJournal {
   forOrders(): string {
     const sb = new Sb();
     this.writeLedgerText(sb);
-    if (this.seasons.length === 0) return sb.append("YOUR RECORD OF EARLIER SEASONS: none yet; these are the first orders you give.").toString();
+    this.writePlan(sb);
+    if (this.seasons.length === 0 && this.thoughts.length === 0) return sb.append("YOUR RECORD OF EARLIER SEASONS: none yet; these are the first orders you give.").toString();
+    if (this.seasons.length === 0) {
+      sb.appendLine("YOUR RECORD OF EARLIER SEASONS: none yet; these are the first orders you give.");
+      return sb.append(`YOUR THOUGHTS SINCE: ${joinS("; ", this.thoughts)}`).toString();
+    }
     sb.appendLine("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):");
     this.writeSummary(sb);
     const last = this.seasons[this.seasons.length - 1];
     for (const s of this.seasons) {
       sb.appendLine(`turn ${s.turn} notes${s === last ? "" : ", folded"}: ${s.notes.length > 0 ? (s === last ? s.notes : LeaderJournal.fold(s.notes)) : "none"}`);
+      if (s.thoughts.length > 0) sb.appendLine(`before turn ${s.turn} orders, your thoughts: ${joinS("; ", s.thoughts)}`);
       if (s.audiences.length > 0) sb.appendLine(`turn ${s.turn} audiences: ${joinS("; ", s.audiences)}`);
       sb.appendLine(`turn ${s.turn} orders: ${s.orders.length > 0 ? joinS("; ", s.orders) : "none"}`);
     }
+    if (this.thoughts.length > 0) sb.appendLine(`YOUR THOUGHTS SINCE: ${joinS("; ", this.thoughts)}`);
     if (this.seasons.length === LeaderJournal.SeasonsShown)
       sb.appendLine(`Your notes from turn ${this.seasons[0].turn} leave this record after this season; keep what you need in your summary.`);
     return sb.toString();
@@ -128,7 +156,8 @@ export class LeaderJournal {
   forAudience(): string {
     const sb = new Sb();
     this.writeLedgerText(sb);
-    if (this.seasons.length === 0 && this.audiences.length === 0) return sb.append("YOUR RECORD OF EARLIER SEASONS: none yet.").toString();
+    this.writePlan(sb);
+    if (this.seasons.length === 0 && this.audiences.length === 0 && this.thoughts.length === 0) return sb.append("YOUR RECORD OF EARLIER SEASONS: none yet.").toString();
     if (this.seasons.length === 0) sb.appendLine("YOUR RECORD OF EARLIER SEASONS: none yet.");
     else {
       sb.appendLine("YOUR RECORD OF EARLIER SEASONS (yours alone: nobody else ever reads it):");
@@ -139,6 +168,7 @@ export class LeaderJournal {
     }
     if (this.audiences.length > 0)
       sb.appendLine("AUDIENCES YOU HAVE HELD SINCE YOU LAST GAVE ORDERS: " + joinS("; ", this.audiences.map((a) => LeaderJournal.audienceLine(a, null))));
+    if (this.thoughts.length > 0) sb.appendLine(`YOUR THOUGHTS SINCE YOU LAST GAVE ORDERS: ${joinS("; ", this.thoughts)}`);
     return sb.toString();
   }
 
@@ -148,6 +178,10 @@ export class LeaderJournal {
     const cut = notes.slice(0, LeaderJournal.FoldedNotes);
     const space = cut.lastIndexOf(" ");
     return `${trim(space > LeaderJournal.FoldedNotes / 2 ? cut.slice(0, space) : cut)}…`;
+  }
+
+  private writePlan(sb: Sb): void {
+    if (this.plan !== null) sb.appendLine(`YOUR PLAN FOR THE SEASONS AHEAD (set down in turn ${this.plan[1]}): ${this.plan[0]}`);
   }
 
   private writeSummary(sb: Sb): void {

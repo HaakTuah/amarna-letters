@@ -74,6 +74,16 @@ export const ReopenReason = "you chose at your audience to reopen your orders";
  * audiences and the script king answered the envoy in its place, so the choice to let its orders stand was never its own.
  */
 export const StandInCourtReason = "your counsellors answered an envoy in your place";
+/**
+ * Why a sleeping seat gives orders after a light alert it read ("Light alerts go to the cheaper model too"): it names
+ * what came, never why it woke the king.
+ */
+export function wordCame(what: string): string {
+  return `word came: ${what}`;
+}
+
+/** How many digest lines each seat's digest took this season, so that a seat woken by a light alert reads them as news. */
+const digestAdded = new WeakMap<TurnEngine, Map<Power, number>>();
 
 /**
  * Adds letters sent from an audience to those sent before it this season: only letters (dispatches, or one that could not
@@ -116,6 +126,8 @@ declare module "./core.ts" {
     lostUnits(p: Power, sl: SleepState | null): void;
     endSleep(p: Power): void;
     stoppedByOthers(p: Power, f: MoveFailure): boolean;
+    lightAlerts(p: Power): { line: string; text: string; weighty: boolean }[];
+    wakeOnWord(p: Power, line: string): void;
   }
 }
 
@@ -343,6 +355,9 @@ P.wakeReason = function (i) {
  */
 P.collectDigest = function (p, sl) {
   const S = this.s;
+  const before = sl.digest.length;
+  let added = digestAdded.get(this);
+  if (added === undefined) digestAdded.set(this, (added = new Map()));
   for (const o of S.lastSeen.tryGet(p) ?? []) {
     if (o.power === p || o.order !== "move" || o.target === null) continue;
     const who = `${o.power}'s ${kindName(o.unitKind)}`;
@@ -353,6 +368,7 @@ P.collectDigest = function (p, sl) {
     const line = this.digestLine(i);
     if (line !== null) sl.digest.push(`turn ${isFiring(i) ? S.turn - 1 : S.turn}: ${line}`);
   }
+  added.set(p, (added.get(p) ?? 0) + sl.digest.length - before);
   if (sl.digest.length > MaxDigest) {
     sl.digestLeftOut += sl.digest.length - MaxDigest;
     sl.digest.splice(0, sl.digest.length - MaxDigest);
@@ -388,6 +404,39 @@ P.digestLine = function (i) {
     default:
       return null;
   }
+};
+
+/**
+ * The light alerts of a seat that sleeps on this season ("Light alerts go to the cheaper model too"): the season's news
+ * that went to its digest, each with its digest line and its full text. None for a seat awake, holding court or fallen:
+ * those read their news in their own call. Only what the seat itself could see, so routing never tells it anything.
+ */
+P.lightAlerts = function (p) {
+  const S = this.s;
+  const sl = this.sleepOf(p);
+  if (sl === null || !sl.asleep || sl.holdsCourt || !isAlive(S, p)) return [];
+  const out: { line: string; text: string; weighty: boolean }[] = [];
+  for (const i of inboxOf(S, p).filter((i) => i.turn === S.turn)) {
+    const line = this.digestLine(i);
+    // "Straight to the seat's own model": a failed or refused order, a check, an assay or an authentication (forgery and
+    // evidence), a caught spy or a taken archive. The rest is light: reports home, rumours, candidates, a catastrophe to
+    // the fields (one that destroys troops or land wakes the king by itself).
+    const weighty = ["Rejected", "CheckResult", "Assay", "Authentication", "Notice"].includes(i.kind);
+    if (line !== null) out.push({ line, text: `${i.title}: ${i.body}`, weighty });
+  }
+  return out;
+};
+
+/**
+ * A sleeping seat is woken for an orders call by a light alert its cheaper model read: the season's lines leave its digest
+ * (it reads them in full as this season's news), and it is told what came, never why that woke it.
+ */
+P.wakeOnWord = function (p, line) {
+  const sl = this.sleepOf(p);
+  if (sl === null || !sl.asleep || sl.holdsCourt) return;
+  const n = Math.min(digestAdded.get(this)?.get(p) ?? 0, sl.digest.length);
+  sl.digest.splice(sl.digest.length - n, n);
+  this.wake(sl, [wordCame(line)]);
 };
 
 /**

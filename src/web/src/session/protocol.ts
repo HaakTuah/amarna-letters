@@ -54,6 +54,8 @@ export interface Live {
   error: string | null;
   notice: string | null;
   cost: number;
+  /** A call went to a model with no price: the meter shows its spend as unknown beside what it counts. */
+  costUnknown: boolean;
   settings: GameSettings;
   config: GameConfig | null;
   seats: Record<string, string>;

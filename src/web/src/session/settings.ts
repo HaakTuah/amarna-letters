@@ -1,7 +1,18 @@
 /** The table's settings, chosen on the start page and carried into the engine's worker (plain data, so it crosses over). */
 import { AllPowers, newGameConfig, type GameConfig, type GameState, type Power } from "@amarna/engine";
 import type { LogHeader } from "@amarna/game";
-import { CostEstimate, SeatChoices, choicesFromHeader, type CharacterKind, type LeaderKind, type NarratorKind, type PriceSetting, type ProviderSetting } from "@amarna/llm";
+import {
+  CostEstimate,
+  SeatChoices,
+  choicesFromHeader,
+  newSpendingSettings,
+  type CharacterKind,
+  type LeaderKind,
+  type NarratorKind,
+  type PriceSetting,
+  type ProviderSetting,
+  type SpendMode,
+} from "@amarna/llm";
 
 export interface GameSettings {
   seed: number;
@@ -41,9 +52,24 @@ export interface GameSettings {
   prices: Record<string, PriceSetting>;
   /** The game pauses when more than this share of a season's model calls fell back to scripts (0 never pauses). */
   pauseFallbackShare: number;
+  /**
+   * Who decides ("Every model is the table's choice", "Minds follow what is at stake"): the kings' small rung and each
+   * seat's own, who plays a woken king, the characters' large rung, and planning ("Off" for none).
+   */
+  small: string;
+  smallFor: Record<string, string>;
+  plays: "large" | "small";
+  charactersUp: string;
+  planning: string;
+  /** How the ladder spends: off, paced from the limit above, a cost per season, or a target; and the share audited. */
+  pace: SpendMode;
+  seasonUsd: number;
+  target: number;
+  auditShare: number;
 }
 
 const Ending = newGameConfig();
+const Spend = newSpendingSettings();
 
 export const randomSeed = (): number => 1 + Math.floor(Math.random() * 999_999);
 
@@ -73,6 +99,15 @@ export function newSettings(): GameSettings {
     providers: [],
     prices: {},
     pauseFallbackShare: 0.5,
+    small: "Haiku",
+    smallFor: {},
+    plays: "large",
+    charactersUp: "Sonnet",
+    planning: "Off",
+    pace: Spend.mode,
+    seasonUsd: Spend.seasonUsd,
+    target: Spend.target,
+    auditShare: Spend.auditShare,
   };
 }
 
@@ -86,6 +121,12 @@ export function choicesOf(s: GameSettings): SeatChoices {
   c.localAgentMinutes = s.localAgentMinutes;
   c.providers = s.providers.map((p) => ({ ...p }));
   c.prices = { ...s.prices };
+  c.small = s.small;
+  c.smallFor = { ...s.smallFor };
+  c.plays = s.plays;
+  c.charactersUp = s.charactersUp;
+  c.planning = s.planning;
+  c.spending = newSpendingSettings({ mode: s.pace, limitUsd: s.budgetUsd, seasonUsd: s.seasonUsd, target: s.target, auditShare: s.auditShare });
   return c;
 }
 
@@ -101,6 +142,15 @@ export function withChoices(s: GameSettings, c: SeatChoices): GameSettings {
     localAgentMinutes: c.localAgentMinutes,
     providers: c.providers.map((p) => ({ ...p })),
     prices: { ...c.prices },
+    small: c.small,
+    smallFor: Object.fromEntries(Object.entries(c.smallFor).filter((e): e is [string, string] => e[1] !== undefined)),
+    plays: c.plays,
+    charactersUp: c.charactersUp,
+    planning: c.planning,
+    pace: c.spending.mode,
+    seasonUsd: c.spending.seasonUsd,
+    target: c.spending.target,
+    auditShare: c.spending.auditShare,
   };
 }
 
