@@ -45,6 +45,12 @@ made Egypt less dominant and Arzawa alone weaker: 9.30 growth alone and 1.38 as 
 `docs/rounds/2026-10-27-travel-and-news.md`). The baseline was adapted only as the rules required (it never closes its
 roads).
 
+Build order item 8 (structured press, which script games are now played in; gold without an inventory; Lukka a land
+without a king; save version 12) left the benchmark nearly where it was: 9.83 growth alone and 1.24 as baseline over all,
+91% of wins alone and 14% as baseline (by power, and the same seeds with half the kings acting on the clauses they read,
+`--clause-play-half`, in `docs/rounds/2026-10-27-structured-press.md`). The baseline was adapted only as the rules required
+(it writes its letters, tablets and forgeries in clauses).
+
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
 

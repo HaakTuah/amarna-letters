@@ -24,15 +24,18 @@ local play, and a screen for a human seat's standing answers. The report is `doc
   model prompts list ("askGold (gold 50)").
 - **Checks** (`checkClauses`): an unknown kind, a clause missing what its kind needs, a move between provinces that do not
   border each other, a season gone by, a stand together against the writer or the recipient, more than 8 clauses
-  (`MaxClauses`): the clause is left out and the writer gets a notice ("Clauses left out", with the reasons). Clauses oblige
-  nobody, as tablets do not.
+  (`MaxClauses`): the clause is left out and the writer gets a notice ("Clauses left out", with the reasons). Every field a
+  clause's kind does not use is cleared (`ClauseFields`), so that no field carries words of its own between kings (found
+  by the review: a `peace` clause's unused province reached the host as free text). Clauses oblige nobody, as tablets do
+  not.
 - **Where they go.** A dispatch carries the letter's clauses and its tablet's (`DispatchOrder.clauses`,
   `TabletProposal.clauses`); the tablet keeps them (`Tablet.clauses`, shown in `TabletView.clauses`); the envoy recites
   them (`PresentResult.clauses`, the host's `AudienceView.clauses`); the host answers in clauses (`HostReply.clauses`, and
   in structured press `bribeClauses`, news only, for what a bribed envoy is to tell his lord); the envoy reports the
   answer home (`MindReply.clauses`, on the report's notice as `InboxItem.clauses`). The record of a mission keeps the
   clauses written, recited and reported (`MessageTrail.clauses`, `deliveredClauses`, `reportClauses`) and each
-  exchange's (`Exchange.clauses`). Forgeries are set out in clauses too (`ForgeOrder.clauses`).
+  exchange's (`Exchange.clauses`). Forgeries are set out in clauses too (`ForgeOrder.clauses`), checked as their first sealer would write them to the
+  second; in structured press a forgery none of whose clauses stand is not made, and its fee is not paid.
 
 ### The two press modes
 
@@ -46,8 +49,8 @@ local play, and a screen for a human seat's standing answers. The report is `doc
   words.
 - **Structured press.** The letter, the tablet, the forgery and the host's answer are their clauses in the templates'
   words; the model schemas ask no free words for them (no `message`, `tablet_to_seal` or `speech`; `gift_news` in place
-  of `gift_request`), and the web app hides those fields. A standing answer speaks a courtesy (`wellWishes`) and no
-  phrasing call is made. The mandate stays the king's own words to his envoy (a reading: see the report).
+  of `gift_request`), and the web app hides those fields. A standing answer speaks in clauses what it decided, in either press (a courtesy, thanks for gold, the tablet sealed or
+  not), and in structured press no phrasing call is made. The small rung's routine court asks in the game's press. The mandate stays the king's own words to his envoy (a reading: see the report).
 
 ### Envoys
 
@@ -97,7 +100,9 @@ local play, and a screen for a human seat's standing answers. The report is `doc
   sealing is answered too; gold received is thanked (`accept` gift) or complained of (`lightGift`); `askOath` is asked of
   an envoy whose oath-tablet was sealed; a friend hears `wellWishes`, a hostile king `grievance`. A bribe asks the envoy to
   pass on `newsStrength` of the host.
-- **Reports** (`readReport`): a refusal of what we asked costs the host a little trust, an acceptance gains it; a
+- **Proposals in words** (`peace`, `alliance`, `against` in a letter with no tablet) are answered too: peace accepted
+  from a king we bear no grudge, alliance and a common foe from a friend. A word given back binds nobody.
+- **Reports** (`readReport`, by the court the reporting envoy was sent to, as we sent him): a refusal of what we asked costs the host a little trust, an acceptance gains it; a
   complaint of light gold marks our envoy a thief; a threat is a grudge; news is heard as above.
 - **Supports kept.** In the season named, a promised support becomes an `assist` in the plan where a free troop can give
   it, and a support promised to us makes the move an `attack` worth taking. A support given that keeps a promise made in a
@@ -110,7 +115,7 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 - **The inventory costs the scribe's fee** (`GameConfig.inventoryFee`, 20, the tablet's fee). A dispatch may send its
   gold without one (`DispatchOrder.noInventory`, `no_inventory` in the schema, "no inventory" in the web app): the fee is
   saved, no inventory reaches the host's archive, the host sees "The gold came with no inventory; your weighers found …"
-  and the lot is stated as weighed, so no shortfall can show. Without an inventory nothing can be swapped. A script envoy
+  and the lot is stated as weighed, so no shortfall can show. The orders are checked for the fee as the engine charges it. Without an inventory nothing can be swapped. A script envoy
   is tempted at loyalty below 70 instead of 60 when nobody can check. Gold a host sends back keeps its inventory, free, as
   before (a reading).
 
@@ -132,7 +137,8 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 
 - **The bridge keeps a seed's characters** (`node sim/bridge.js --seed S`, after `node sim/setup.js --seeds S`): it
   serves them by id beside the kings, writes their requests into their folders with the characters' footer ("Decide as
-  yourself"), and `wait.js --play` watches them. The web app offers "Local agents (Claude Code)" for envoys, spies and
+  yourself"), and `wait.js --play` watches them, and the isolation checks take `--seed S` beside `--kings` so that the seed's character
+  agents take the test before any game (docs/PLAY-PROMPT.md). The web app offers "Local agents (Claude Code)" for envoys, spies and
   candidates on this computer only; starting checks that the bridge keeps this game's seed's characters (ids differ from
   seed to seed). Characters the bridge keeps no folder for are scripts. The game is then in full press. A saved game reads
   "Local agent characters" back.
