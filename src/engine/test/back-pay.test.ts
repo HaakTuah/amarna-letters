@@ -269,22 +269,22 @@ describe("BackPayTests", () => {
     );
   });
 
-  test("Strength and growth do not count back pay owed (what is owed counts neither way, since item 9+a)", () => {
+  test("Strength and growth count back pay owed against the wealth of the realm", () => {
     let [s, envoy] = start();
     begin(s).resolve(orders("Egypt", dispatch(envoy.id, "Babylonia", "Greetings.")));
     begin(s);
     let e = new TurnEngine(s);
     let land = e.landYield("Egypt");
     Assert.equal(12, e.backPayOwed("Egypt"));
-    Assert.equal(strength(s.config, land, s.treasuries.get("Egypt").gold, e.holdings("Egypt")), e.strength("Egypt"));
-    Assert.equal(10 * land + s.treasuries.get("Egypt").gold + e.holdings("Egypt"), e.strength("Egypt"));
+    Assert.equal(strength(s.config, land, s.treasuries.get("Egypt").gold, e.holdings("Egypt"), 12), e.strength("Egypt"));
+    Assert.equal(10 * land + s.treasuries.get("Egypt").gold + e.holdings("Egypt") - 12, e.strength("Egypt"));
     Assert.equal(e.strength("Egypt") / s.startStrength.get("Egypt"), e.growth("Egypt"));
     let v = Views.for(s, "Egypt");
-    Assert.equal(10 * land + v.gold + e.holdings("Egypt"), v.strength);
+    Assert.equal(10 * land + v.gold + e.holdings("Egypt") - v.backPay, v.strength);
     Assert.equal(e.ledgerStrength("Egypt"), v.strength);
     // The season's score is reckoned the same way.
     e.resolve(none());
     let row = last(s.scores, (r) => r.power === "Egypt");
-    Assert.equal(10 * e.landYield("Egypt") + row.gold + e.holdings("Egypt"), row.strength);
+    Assert.equal(10 * e.landYield("Egypt") + row.gold + e.holdings("Egypt") - envoy.backPay.get("Egypt"), row.strength);
   });
 });

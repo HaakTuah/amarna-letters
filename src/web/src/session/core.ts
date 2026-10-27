@@ -47,6 +47,8 @@ class PageSeat implements ISeat {
     this.changed = changed;
   }
   decide(view: SeatView): Promise<TurnSubmission> {
+    // Asked for orders, it is awake: a wish to wake made in the same season is spent.
+    this.wakeNow = false;
     return new Promise((resolve) => {
       this.orders = { view, resolve };
       this.changed();

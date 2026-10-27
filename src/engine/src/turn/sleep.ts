@@ -51,9 +51,9 @@ export const AskedAgainReason = "your counsellors woke you";
 export const HomelandReason = "foreign troops came next to your homeland";
 /** Why a seat is woken when a siege of a city it holds began last season (followed by the siege). */
 export const SiegeBegunReason = "a siege of a city of yours has begun";
-/** Why a seat is woken when a city of its own will surrender at the end of this season if its besiegers hold. */
 /** Why a seat that woke itself was woken (item 9+a: a human may wake himself to act whenever he likes). */
 export const SelfWakeReason = "you woke yourself";
+/** Why a seat is woken when a city of its own will surrender at the end of this season if its besiegers hold. */
 export const SurrenderReason = "a city of yours surrenders at the end of this season unless the siege is broken";
 /** Why a seat is woken when foreign troops end a move next to a walled city it holds (a bought city), and none of its homeland. */
 export const WallsReason = "foreign troops came next to a walled city of yours";
@@ -143,13 +143,13 @@ P.isAsleep = function (p) {
   return S.config.sleepingSeats && isAlive(S, p) && sl !== undefined && sl.asleep;
 };
 
-/** The sleep state of a seat that may sleep, or null for one that plays every season. */
 /** A sleeping seat wakes itself this season (a human who wants to act), as any other reason would wake it. */
 P.wakeSelf = function (p) {
   const sl = this.sleepOf(p);
   if (sl !== null && sl.asleep) this.wake(sl, [SelfWakeReason]);
 };
 
+/** The sleep state of a seat that may sleep, or null for one that plays every season. */
 P.sleepOf = function (p) {
   return this.s.config.sleepingSeats ? (this.s.sleep.tryGet(p) ?? null) : null;
 };

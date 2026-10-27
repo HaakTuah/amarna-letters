@@ -135,7 +135,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
-        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages}. Back pay owed to your people: ${v.backPay}. Strength ${v.strength} by your ledger (the wealth of your realm), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
+        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages}. Back pay owed to your people: ${v.backPay}. Strength ${v.strength} by your ledger (the wealth of your realm, back pay owed counted against it), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
         for (const l of economyLines(v)) sb.appendLine(l);
         // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
         for (const lot of v.unassayedGold)

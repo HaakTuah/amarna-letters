@@ -35,6 +35,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import { alive, isAlive, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
+import { RoadOdds } from "./travel.ts";
 import { Views } from "../rules/views.ts";
 import { absorbedIn, TurnEngine } from "./core.ts";
 
@@ -373,8 +374,9 @@ P.caravanRoute = function (p, from, to) {
 /**
  * The caravans on the road go on: each pays its porters (spent where it stands, if that is its king's land) or they
  * desert with the cargo, eats from its grain for the time on the road (little by boat), advances a season's travel at its
- * pace, meets the road's check once (foreign troops standing in a province it crossed take it; outlaws, more readily
- * for a big caravan), and hands over its grain where it arrives.
+ * pace, meets the road's check once (the troops of a king who closed his roads to its king, standing in a province it
+ * reached, take it with the road check's odds; outlaws, more readily for a big caravan), and hands over its grain where
+ * it arrives.
  */
 P.caravansTravel = function () {
   const S = this.s;
@@ -419,10 +421,13 @@ P.caravansTravel = function () {
     const onBoat = Math.min(boat, used);
     const eat = Math.ceil((c.grain * (EconomyData.caravanEatPercent * (used - onBoat) + EconomyData.boatEatPercent * onBoat)) / (100 * perSeason));
     c.grain = Math.max(0, c.grain - eat);
-    // The road check, once: foreign troops in a province it reached, or outlaws.
+    // The road check, once, as for any traveller (item 7b's odds): the troops of a king who has closed his roads to its
+    // king, where he has no passage, in a province it reached; or outlaws.
     const seen = crossed.length > 0 ? crossed : [caravanAt(c)];
-    const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power) ?? null).find((u) => u !== null) ?? null;
-    if (taker !== null && c.grain > 0) {
+    const hostile = (k: Power, at: string): boolean => (S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, at);
+    const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power && hostile(u.power, x)) ?? null).find((u) => u !== null) ?? null;
+    const roll = this.r("caravan", c.id).nextDouble() * 100;
+    if (taker !== null && c.grain > 0 && roll < RoadOdds.troops) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
       const kept = Math.min(c.grain, carriedOf(taker.kind) - taker.food);
       taker.food += Math.max(0, kept);
@@ -433,7 +438,7 @@ P.caravansTravel = function () {
       continue;
     }
     const odds = (EconomyData.caravanOutlawPercent * (100 + c.grain)) / 100;
-    if (c.grain > 0 && this.r("caravan", c.id).nextDouble() * 100 < odds) {
+    if (c.grain > 0 && this.r("caravan-outlaws", c.id).nextDouble() * 100 < odds) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
       notify(S, c.power, "Notice", MarketsTitle, `Outlaws fell on your caravan to ${this.map.get(c.to).name} near ${this.map.get(caravanAt(c)).name} and carried off its ${c.grain} measures of grain.`);
       logEvent(S, "caravan-robbed", `Outlaws robbed ${c.power}'s caravan.`, [c.power], "caravan-robbed");
@@ -482,7 +487,7 @@ P.caravanArrives = function (c) {
     }
   }
   S.caravans.splice(S.caravans.indexOf(c), 1);
-  const lostLine = c.grain > 0 ? ` The other ${c.grain} measures had nowhere to go and were sold off for nothing.` : "";
+  const lostLine = c.grain > 0 ? ` The other ${c.grain} measures had nowhere to go and were lost.` : "";
   notify(S, c.power, "Notice", MarketsTitle, `Your caravan ${c.returning ? "came home to" : "reached"} ${name}${parts.length > 0 ? ` and handed over ${parts.join(", ")}` : ""}.${lostLine}`);
   logEvent(S, "caravan", `${c.power}'s caravan reached ${name}.`, [c.power], "caravan");
 };

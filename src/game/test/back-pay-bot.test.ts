@@ -75,13 +75,13 @@ describe("BackPayBotTests", () => {
   test("Engine seat view and script king reckon strength by the same function", () => {
     let [s] = owingOf();
     let e = new TurnEngine(s);
-    // The score: the wealth of the realm with its true gold; what is owed counts neither way (item 9+a).
-    Assert.equal(strength(s.config, e.landYield("Egypt"), s.treasuries.get("Egypt").gold, e.holdings("Egypt")), e.strength("Egypt"));
+    // The score: the wealth of the realm with its true gold, less the back pay really owed.
+    Assert.equal(strength(s.config, e.landYield("Egypt"), s.treasuries.get("Egypt").gold, e.holdings("Egypt"), 45), e.strength("Egypt"));
 
-    // The seat's own line: its ledger.
+    // The seat's own line: its ledger, less the back pay it believes it owes.
     let view = Views.for(s, "Egypt");
     Assert.equal(45, view.backPay);
-    Assert.equal(strength(s.config, e.landYield("Egypt"), view.gold, e.holdings("Egypt")), view.strength);
+    Assert.equal(strength(s.config, e.landYield("Egypt"), view.gold, e.holdings("Egypt"), 45), view.strength);
 
     // The script king: its own as its view shows it, a rival's from public land and its own estimate of his gold,
     // with no back pay, which nobody can see.

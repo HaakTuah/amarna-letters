@@ -567,17 +567,18 @@ export function removeAll<T>(list: T[], match: (x: T) => boolean): T[] {
 
 // ---------------------------------------------------------------- scoring and the end
 
-/** The score: the wealth of the realm, its true gold counted (item 9+a, "The wealth of a realm"). */
+/** The score: the wealth of the realm, its true gold counted (item 9+a), less the back pay it really owes (until 11a). */
 P.strength = function (p) {
-  return scoringStrength(this.s.config, this.landYield(p), this.s.treasuries.get(p).gold, this.holdings(p));
+  return scoringStrength(this.s.config, this.landYield(p), this.s.treasuries.get(p).gold, this.holdings(p), this.backPayOwed(p));
 };
 
 /**
- * Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight. A seat
- * must never see true strength, or it could read debased gold off the difference.
+ * Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight, less the
+ * back pay it believes it owes. A seat must never see true strength, or it could read debased gold off the difference,
+ * or the fate of a servant abroad off its back pay.
  */
 P.ledgerStrength = function (p) {
-  return scoringStrength(this.s.config, this.landYield(p), ledger(this.s.treasuries.get(p)), this.holdings(p));
+  return scoringStrength(this.s.config, this.landYield(p), ledger(this.s.treasuries.get(p)), this.holdings(p), this.believedBackPay(p));
 };
 
 /** The worth a season of the land a power holds at reference prices, conquered land counted as far as it is absorbed. */

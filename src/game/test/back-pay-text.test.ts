@@ -6,14 +6,14 @@ import { situation as situationOf } from "@amarna/llm";
 
 // <summary>What a king reads of back pay: the rule, the debt to each of its people, and its treasury line.</summary>
 describe("BackPayTextTests", () => {
-  test("The rulebook says that people away are paid on their return and that what is owed counts neither way in strength", () => {
+  test("The rulebook says that people away are paid on their return and that back pay counts against strength", () => {
     let rules = leaderRules(true, newGameConfig());
     Assert.contains(
       "- People away from your court (on a mission, watching as a spy, held or captive) are not paid while away: their wages build up as back pay, paid in gold when they are back at your court. If your treasury cannot pay it all, the rest stays owed and counts as missed pay. Anyone who never comes back is never paid, and if your kingdom falls, what it owed is lost. Back pay owed counts against your strength.",
       rules,
     );
     Assert.contains(
-      "What you owe counts neither way.",
+      "what your own men carry (your troops' grain and their savings, your caravans' grain) - the back pay you owe your people.",
       rules,
     );
     Assert.contains("still appears on its mission until word comes, and its back pay builds up in your books as for anyone away.", rules);
@@ -36,7 +36,7 @@ describe("BackPayTextTests", () => {
     Assert.contains("; owed: 45 shekels of back pay", person(single(v.court, (x) => x.id === c.id)));
     let situation = situationOf(v);
     Assert.contains(
-      `wages ${v.wages}. Back pay owed to your people: 45. Strength ${v.strength} by your ledger (the wealth of your realm)`,
+      `wages ${v.wages}. Back pay owed to your people: 45. Strength ${v.strength} by your ledger (the wealth of your realm, back pay owed counted against it)`,
       situation,
     );
 
