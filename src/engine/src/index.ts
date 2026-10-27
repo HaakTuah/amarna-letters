@@ -9,6 +9,7 @@ export * from "./core/regex.ts";
 export * from "./turn/turn-engine.ts";
 export * from "./rules/adjudicator.ts";
 export * from "./rules/calendar.ts";
+export * from "./rules/conditions.ts";
 export * from "./rules/ending.ts";
 export * from "./rules/factory.ts";
 export * from "./rules/greeting.ts";

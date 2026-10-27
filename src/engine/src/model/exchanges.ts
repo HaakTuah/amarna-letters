@@ -1,5 +1,6 @@
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import { type Order, OrderSchema } from "./orders.ts";
+import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answers.ts";
 import type { Power } from "./power.ts";
 import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema } from "./records.ts";
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
@@ -112,6 +113,11 @@ export interface HostReply {
    * after its audiences, as when anything else wakes it. Once chosen it holds for the season. Ignored at any other audience.
    */
   reopenOrders: boolean;
+  /** Standing answers the host gives at its court (item 6b), kept as those of its orders; and those it cancels. */
+  answers: StandingAnswerRequest[];
+  cancelAnswers: string[];
+  /** The id of the host's standing answer that gave this answer (the engine's, worded by a phrasing call), or null. */
+  byAnswer: string | null;
   /**
    * The script king stood in because the seat's call failed (set by the runner and logged, so replays stay exact). At an
    * audience held while the host's orders stand, a stand-in reply decides nothing for the seat: its letters and its choice
@@ -134,6 +140,9 @@ export function newHostReply(init: Partial<HostReply> = {}): HostReply {
     end: false,
     letters: [],
     reopenOrders: false,
+    answers: [],
+    cancelAnswers: [],
+    byAnswer: null,
     fromFallback: false,
     ...init,
   };
@@ -151,6 +160,9 @@ export const HostReplySchema: ObjSchema<HostReply> = obj("HostReply", newHostRep
   end: B,
   letters: list(() => OrderSchema),
   reopenOrders: B,
+  answers: list(() => StandingAnswerRequestSchema),
+  cancelAnswers: list(S),
+  byAnswer: opt(S),
   fromFallback: B,
 });
 

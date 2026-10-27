@@ -18,6 +18,8 @@ import {
   type JourneyKind,
   type Power,
   type UnitKind,
+  ageBand,
+  type AgeBand,
 } from "@amarna/engine";
 import type { GameRunner } from "@amarna/game";
 
@@ -157,6 +159,8 @@ export interface SeasonFrame {
   inboxCount: Map<Power, number>;
   /** Whether the age has no end, and, once the table played on past the age's end, when it ended and who won it. */
   openAge: boolean;
+  /** What every seat is told of the table's median, in words ("Short", "Usual", "Long"). */
+  ageBand: AgeBand;
   ageEnded: { turn: number; winners: string[] } | null;
 }
 
@@ -299,6 +303,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     inboxCount: counts,
     // The ending is shown in words only: the drawn last season (s.finalSeason) is never copied into a frame.
     openAge: s.config.openAge,
+    ageBand: ageBand(s.config.endMedian),
     ageEnded: s.ageEndedTurn === null ? null : { turn: s.ageEndedTurn, winners: [...s.ageWinners] },
   };
 }

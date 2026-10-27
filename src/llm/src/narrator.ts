@@ -5,7 +5,7 @@
 import { king, land, personaTemplate, year, type Character } from "@amarna/engine";
 import type { CheckContext, ChronicleContext, INarrator } from "@amarna/game";
 import type { ModelClient } from "./client.ts";
-import { ModelIds } from "./models.ts";
+import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
 import { Replies, Schemas } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
@@ -46,7 +46,7 @@ Facts: ${joinS(
         user,
         schema: Replies.text("persona", "The persona prompt, in the second person."),
         effort: "low",
-        maxTokens: 4000,
+        maxTokens: OutputCaps.persona,
       },
       signal,
     );
@@ -66,7 +66,7 @@ Facts: ${joinS(
         user,
         schema: Replies.text("report", "The inquirers' report."),
         effort: "low",
-        maxTokens: 2000,
+        maxTokens: OutputCaps.checkReport,
       },
       signal,
     );
@@ -94,7 +94,7 @@ ${events.toString()}`;
         user,
         schema: Replies.text("chronicle", "The annals."),
         effort: "low",
-        maxTokens: 6000,
+        maxTokens: OutputCaps.chronicle,
       },
       signal,
     );

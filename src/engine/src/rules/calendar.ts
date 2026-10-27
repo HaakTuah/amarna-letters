@@ -1,6 +1,7 @@
 /** Display helpers. The engine counts in shekels and turns; people read minas and seasons. */
 import { idiv } from "../core/num.ts";
 import type { Power } from "../model/power.ts";
+import { bandWords, type AgeBand } from "./ending.ts";
 
 export const SeasonsPerYear = 3;
 
@@ -73,8 +74,8 @@ export function shortDate(turn: number, court: Power | null = null): string {
  * never the chance, the median, the cap or the drawn season. In an open age, that it has no end; after the table played on
  * past the age's end, also when it ended and who won it.
  */
-export function ending(openAge: boolean, ageEnded: { turn: number; winners: readonly string[] } | null = null, court: Power | null = null): string {
-  if (!openAge) return "Any season may be the last: early on it is very unlikely, and it grows likelier with every year.";
+export function ending(openAge: boolean, ageEnded: { turn: number; winners: readonly string[] } | null = null, court: Power | null = null, band: AgeBand = "Usual"): string {
+  if (!openAge) return band === "Usual" ? "Any season may be the last: early on it is very unlikely, and it grows likelier with every year." : bandWords(band);
   const past = ageEnded === null ? "" : ` The age ended in ${dateLabel(ageEnded.turn, court)}; ${ageEnded.winners.join(" and ")} won it.`;
   return `An open age: this age has no end.${past}`;
 }

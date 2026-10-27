@@ -22,7 +22,7 @@ describe("SiegeTextTests", () => {
     );
     let babylon = situation(Views.for(s, "Babylonia"));
     Assert.contains(
-      "LANDS (who holds what, with the walls, the rough ground and the desert; troops, and the walls standing now, only where you can see them, the walls elsewhere as you last saw them):",
+      "LANDS (see WHAT YOU SEE):",
       babylon,
     );
     Assert.contains("babylon (walls 3) [Babylonia army]", babylon);

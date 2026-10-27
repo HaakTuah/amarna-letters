@@ -121,7 +121,7 @@ describe("RequestsAreRulesTests", () => {
     let present = await mind.present(audience(clumsy, 40));
     let report = await mind.write(reportOf(clumsy, 30));
 
-    Assert.equal(["speech", "keep_gold"], Recorder.fields(asker.calls[0]));
+    Assert.equal(["as_written", "speech", "keep_gold"], Recorder.fields(asker.calls[0]));
     Assert.equal(["report", "keep_gold"], Recorder.fields(asker.calls[1]));
     Assert.all(asker.calls, (call) => {
       Assert.doesNotContain("hand over in place of the inventory", call.user);
@@ -136,7 +136,7 @@ describe("RequestsAreRulesTests", () => {
     // A skilled hand is asked, and the field no longer speaks of a hand that cannot.
     let skilled = new Answers({ ["speech"]: "Words.", ["keep_gold"]: 10, ["swap_inventory"]: true });
     Assert.true((await new LlmCharacterMind(skilled).present(audience(envoy(70), 40))).swapInventory);
-    Assert.equal(["speech", "keep_gold", "swap_inventory"], Recorder.fields(skilled.calls[0]));
+    Assert.equal(["as_written", "speech", "keep_gold", "swap_inventory"], Recorder.fields(skilled.calls[0]));
     Assert.doesNotContain("you are told whether yours is one", str(Schemas.present(), "properties", "swap_inventory", "description"));
     Assert.contains("if your hand can fake a seal, whether to swap its inventory tablet", CharacterSystem);
   });

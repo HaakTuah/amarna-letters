@@ -21,7 +21,10 @@ import {
   terrainOf,
   trimEnd,
   type AudienceView,
+  answerText,
+  conditionsText,
   type CharacterView,
+  type Condition,
   type LetterView,
   type Order,
   type Power,
@@ -95,7 +98,7 @@ export function ordersLine(v: SeatView): string
     }
 
     /// <summary>A seat's view as text: what this king knows this season.</summary>
-export function situation(v: SeatView): string
+export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): string
     {
         const map = WorldMap.default;
         const sb = new Sb();
@@ -103,14 +106,14 @@ export function situation(v: SeatView): string
         if (woke.length > 0) sb.appendLine(woke);
         sb.appendLine(`SEASON: turn ${v.turn}, ${v.season} by your court's reckoning.`);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
-        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Income ${v.income}, upkeep ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages} a season (paid to your people at court; for those away they build up as back pay). Back pay owed to your people: ${v.backPay}, paid when they are back at your court. Strength ${v.strength} by your ledger (back pay owed counted against it), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
+        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Income ${v.income}, upkeep ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages} a season. Back pay owed to your people: ${v.backPay}. Strength ${v.strength} by your ledger (back pay owed counted against it), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
         // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
         for (const lot of v.unassayedGold)
             sb.appendLine(`  Unassayed gold from ${lot.from}, weighed in turn ${lot.arrivedTurn} [your mark ${lot.id}]: ${lot.weighed} shekels weighed (the inventory said ${lot.stated}).`);
         sb.appendLine(standings(v));
 
         sb.appendLine();
-        sb.appendLine(`LANDS (who holds what, with the walls, the rough ground and the desert; troops, and the walls standing now, only where you can see them, the walls elsewhere as you last saw them):`);
+        sb.appendLine(`LANDS (see WHAT YOU SEE):`);
         const units = new Map(v.units.map(u => [u.province, u] as const));
         const troop = (id: string): string => {
           const u = units.get(id);
@@ -144,7 +147,7 @@ export function situation(v: SeatView): string
         if (sieges.length > 0) sb.appendLine(sieges);
         const atSea = v.units.filter(u => map.get(u.province).isSea);
         if (atSea.length > 0) sb.appendLine(`- At sea: ${joinS(`, `, atSea.map(u => `${u.province} [${u.power} fleet]`))}`);
-        sb.appendLine(`You can see troops in (your land, your troops and what your spies watch, and one link of any kind from those; troops two links away can still arrive next season unseen): ${joinS(`, `, v.visible)}.`);
+        sb.appendLine(`You can see troops in: ${joinS(`, `, v.visible)}.`);
 
         sb.appendLine();
         sb.appendLine(`YOUR PEOPLE:`);
@@ -158,27 +161,33 @@ export function situation(v: SeatView): string
 
         if (v.letters.length > 0)
         {
-            sb.appendLine(`YOUR LETTERS (your record of what you sent, as your scribes wrote it: each envoy's letter while he is away on that errand, and once more when his report has come since you last gave orders):`);
-            for (const l of v.letters) sb.appendLine(`- ` + letterLine(l));
+            sb.appendLine(`YOUR LETTERS (as your scribes wrote them):`);
+            // In full when sent at the king's last orders or when the report has come since; older letters in a line.
+            for (const l of v.letters) sb.appendLine(`- ` + (l.reportedTurn !== null || l.turn >= (v.lastCalled > 0 ? v.lastCalled : v.turn - 1) ? letterLine(l) : letterBrief(l)));
         }
 
         if (v.tablets.length > 0)
         {
-            sb.appendLine(`YOUR ARCHIVE (the tablets you hold, kept at your capital: each as every court names it, by its seals and date; your own mark for your copy, for your orders only; its text; how it came to you):`);
+            sb.appendLine(`YOUR ARCHIVE (kept at your capital; a tablet you have read in full at an earlier orders by its opening words):`);
             for (const t of v.tablets)
-                sb.appendLine(`- ${tabletLine(t)}${(t.allianceOath ? ` A sworn alliance.` : ``)} (${t.source}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
+                sb.appendLine(`- ${(read.has(t.tabletId) ? tabletBrief(t) : tabletLine(t))}${(t.allianceOath ? ` A sworn alliance.` : ``)} (${t.source}${(t.authResult !== null ? `; examined: ` + t.authResult : ``)})`);
         }
         sb.appendLine(`ENVOY TRAVEL: ${joinS(`; `, v.travelTimes)}.`);
 
         if (v.scheduled.length > 0)
         {
-            sb.appendLine(`ORDERS YOU HAVE SCHEDULED (each follows its unit, named here by where it stands now; they run in their season unless you give the same units or people other orders, send an entry for that season to replace them, or a standing order of yours that fires that season gives them orders):`);
-            for (const plan of v.scheduled) sb.appendLine(`- turn ${plan.turn}: ${joinS(`; `, plan.orders.map(o => planned(o, v)))}`);
+            sb.appendLine(`ORDERS YOU HAVE SCHEDULED (each unit named by where it stands now; see PLANNING AHEAD):`);
+            for (const plan of v.scheduled) sb.appendLine(`- turn ${plan.turn}${whenMet(plan.conditions)}: ${joinS(`; `, plan.orders.map(o => planned(o, v)))}`);
         }
         if (v.standing.length > 0)
         {
-            sb.appendLine(`YOUR STANDING ORDERS (each fires once, in the season you see the move it waits for, and its orders then replace the orders you give that season for the same units or people; cancel_standing removes them by their ids, which are for your orders only, and one cancelled does not fire in that season):`);
+            sb.appendLine(`YOUR STANDING ORDERS (see STANDING ORDERS):`);
             for (const st of v.standing) sb.appendLine(`- ${standingLine(st, v)}`);
+        }
+        if (v.answers.length > 0)
+        {
+            sb.appendLine(`YOUR STANDING ANSWERS (see STANDING ANSWERS):`);
+            for (const x of v.answers) sb.appendLine(`- ${answerText(x)}`);
         }
         if (v.courtLetters.length > 0)
             sb.appendLine(`LETTERS YOU SENT FROM YOUR AUDIENCES THIS SEASON (they go out with your orders and are checked before them; an order you give now for the same person replaces its letter): `
@@ -220,6 +229,42 @@ export function tabletLine(t: TabletView): string {
   return `${t.name} [your copy ${t.copyId}]: "${t.text}"`;
 }
 
+/** The conditions of a scheduled entry or a standing order, after its season or event: " (unless ...)", or nothing. */
+export function whenMet(cs: readonly Condition[]): string {
+  return cs.length === 0 ? `` : ` (${conditionsText(cs)})`;
+}
+
+/** No tablet read before: every tablet in full. */
+export const NoneRead: ReadonlySet<string> = new Set<string>();
+/** How many characters of a text its line keeps once it has been read in full (an older letter, a tablet read before). */
+export const BriefChars = 120;
+const opening = (text: string): string => (text.length <= BriefChars ? text : `${trimEnd(text.slice(0, BriefChars))}…`);
+
+/** A tablet the king has read in full at an earlier orders: its name, its mark and its opening words. */
+export function tabletBrief(t: TabletView): string {
+  return `${t.name} [your copy ${t.copyId}]: "${opening(t.text)}"`;
+}
+
+/** An older letter in a line: when, by whom, to whom, with what gold, and its opening words. */
+export function letterBrief(l: LetterView): string {
+  return `turn ${l.turn}, ${l.envoyName} (${l.envoyId}) to ${l.to}${(l.gold > 0 ? `, with ${l.gold} shekels` : ``)} (still away): "${opening(l.message)}"${(l.tablet !== null ? `, with a tablet to seal` : ``)}`;
+}
+
+/**
+ * A battle report without the units that held: they stand where they stood, as the map shows. A report of nothing but
+ * holds keeps its first line.
+ */
+export function withoutHolds(body: string): string {
+  const hold = /^- (?:[A-Za-z]+: )?[AF] [a-z]+ holds$/;
+  const lines = body.split("\n");
+  const first = /^(.*:) (- [AF] [a-z]+ holds)$/.exec(lines[0]);
+  if (first !== null && hold.test(first[2])) lines[0] = first[1];
+  const kept = lines.filter((l, i) => i === 0 || !hold.test(l));
+  const shown = kept.filter((l, i) => !(l === "Seen nearby:" && (i === kept.length - 1 || !kept[i + 1].startsWith("- "))));
+  if (first !== null && shown.length === 1) return `${shown[0]} every unit you saw held.`;
+  return joinS("\n", shown);
+}
+
     /// <summary>
     /// An order as the king reads it back: a letter in full (to whom, with what gold, its message, mandate and tablet), as it
     /// goes out with this season's orders; any other order as it describes itself.
@@ -256,7 +301,7 @@ function standingLine(st: StandingOrderView, v: SeatView): string
         const when = st.when === "UnitAttacked"
             ? `when your ${ownKind(st.province, v) ?? `unit`} now in ${st.province} is attacked`
             : entersText(v.power, st.power, st.province);
-        return `${st.id}: ${when}, then: ${joinS(`; `, st.orders.map(o => planned(o, v)))}`;
+        return `${st.id}: ${when}${whenMet(st.conditions)}, then: ${joinS(`; `, st.orders.map(o => planned(o, v)))}`;
     }
 
     /// <summary>
@@ -290,7 +335,7 @@ export function realmBrief(v: SeatView): string
         else
         {
             sb.appendLine(`- Your scheduled orders (each follows its unit, named here by where it stands now):`);
-            for (const plan of v.scheduled) sb.appendLine(`  turn ${plan.turn}: ${joinS(`; `, plan.orders.map(o => planned(o, v)))}`);
+            for (const plan of v.scheduled) sb.appendLine(`  turn ${plan.turn}${whenMet(plan.conditions)}: ${joinS(`; `, plan.orders.map(o => planned(o, v)))}`);
         }
         if (v.standing.length === 0) sb.appendLine(`- Your standing orders: none.`);
         else
@@ -298,6 +343,7 @@ export function realmBrief(v: SeatView): string
             sb.appendLine(`- Your standing orders:`);
             for (const st of v.standing) sb.appendLine(`  ${standingLine(st, v)}`);
         }
+        if (v.answers.length > 0) sb.appendLine(`- Your standing answers: ${joinS(`; `, v.answers.map(answerText))}.`);
         const ready = v.court.filter(c => c.ready).map(c => `${c.id} ${c.name}`);
         sb.appendLine(`- Your people at court and ready to be sent: ${(ready.length === 0 ? `nobody` : joinS(`; `, ready))}.`);
         const away = v.court.filter(c => !c.ready).map(c => `${c.id} ${c.name} (${c.duty}${(c.timing.length > 0 ? `; ` + c.timing : ``)})`);
@@ -352,7 +398,7 @@ export function whileYouSlept(v: SeatView): string
         if (v.whileAsleep.length > 0)
         {
             sb.appendLine(`The news of those seasons, oldest first (routine treasury notices left out${(v.whileAsleepLeftOut > 0 ? `; ${v.whileAsleepLeftOut} earlier items left out` : ``)}):`);
-            for (const i of v.whileAsleep) sb.appendLine(`[turn ${i.turn}] [${i.kind}] ${i.title}: ${i.body}`);
+            for (const i of v.whileAsleep) sb.appendLine(`[turn ${i.turn}] [${i.kind}] ${i.title}: ${i.kind === "Battle" ? withoutHolds(i.body) : i.body}`);
         }
         return sb.toString();
     }
@@ -363,7 +409,7 @@ export function news(v: SeatView): string
         const sb = new Sb();
         sb.appendLine(`NEWS THIS SEASON:`);
         if (v.inbox.length === 0) sb.appendLine(`- nothing`);
-        for (const i of v.inbox) sb.appendLine(`[${i.kind}] ${i.title}: ${i.body}`);
+        for (const i of v.inbox) sb.appendLine(`[${i.kind}] ${i.title}: ${i.kind === "Battle" ? withoutHolds(i.body) : i.body}`);
         return sb.toString();
     }
 
@@ -402,7 +448,7 @@ export function standings(v: SeatView): string
         const living = all.filter(x => !x.fallen).map(x =>
             `${x.power}${(x.power === v.power ? ` (you)` : ``)} ${fmt(landGrowth(x), "0.00")} (land yield ${x.yield}, at the start ${x.startYield})`);
         const fallen = all.filter(x => x.fallen).map(x => x.power);
-        return `LAND STANDINGS (a land-yield ratio, not growth: the yield of the land each power holds now over its homeland's yield at the start, as any court can reckon it from who holds what. Growth, which decides who wins, also counts treasuries and back pay, so these are not the winning figures, and yours is not your growth on the treasury line): ${joinS(`; `, living)}.`
+        return `LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE): ${joinS(`; `, living)}.`
                + (fallen.length > 0 ? ` Fallen: ${joinS(`, `, fallen)}.` : ``);
     }
 
@@ -429,7 +475,7 @@ export function person(c: CharacterView): string
         return joinS(`; `, parts);
     }
 
-export function audience(a: AudienceView): string
+export function audience(a: AudienceView, inCourt = false): string
     {
         const sb = new Sb();
         sb.appendLine(`AN AUDIENCE (round ${a.round} of at most ${a.maxRounds}). ${a.envoy.name} (${a.envoy.id}), envoy of ${a.from}, stands before you.`);
@@ -456,20 +502,28 @@ export function audience(a: AudienceView): string
             sb.appendLine(`You have already named ${a.goldBackNamed} shekels to send home with the envoy; a new amount replaces it, 0 keeps it.`);
         if (a.giftAccepted > 0)
             sb.appendLine(`${a.envoy.name} has already accepted your gift of ${a.giftAccepted} shekels. An envoy takes one gift per audience: another gift would not be given.`);
-        if (a.ordersStand)
-        {
-            // Once it chose to reopen its orders, they no longer stand, and it is not asked again (its schema has no reopen_orders).
-            if (a.reopenChosen)
-                sb.appendLine(`You have already chosen to reopen your orders this season: you give orders after your audiences, with your full view. `
-                              + `At this audience you may still send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season).`);
-            else
-                sb.appendLine(`YOUR ORDERS STAND WHILE YOU SLEEP. At this audience you may also send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season); if you let your orders stand and send none, your next letters leave only when you next give orders. `
-                              + `Reopen your orders (reopen_orders) if the news changes your plan: you then give orders this season, with your full view, after your audiences. Otherwise your orders stand and you sleep on.`);
-            if (a.lettersSent.length > 0)
-                sb.appendLine(`Letters you have already sent from your audiences this season (a new letter for the same person replaces one): ${joinS(`; `, a.lettersSent.map(inFull))}.${lettersGold(a.lettersSent)}`);
-        }
+        if (a.ordersStand && !inCourt) sb.append(ordersStandAtCourt(a));
         sb.appendLine(a.round < a.maxRounds
             ? `Answer the envoy. You may end the audience now, or leave it open for one more exchange.`
             : `This is the last exchange of the audience: it ends with your answer.`);
+        return sb.toString();
+    }
+
+    /// <summary>
+    /// What a king whose orders stand may do at its court besides answering the envoys: send letters, and reopen its orders
+    /// unless it has already chosen to; and the letters it has already sent from its court this season. Said once a court.
+    /// </summary>
+export function ordersStandAtCourt(a: AudienceView): string
+    {
+        const sb = new Sb();
+        // Once it chose to reopen its orders, they no longer stand, and it is not asked again (its schema has no reopen_orders).
+        if (a.reopenChosen)
+            sb.appendLine(`You have already chosen to reopen your orders this season: you give orders after your audiences, with your full view. `
+                          + `At this audience you may still send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season).`);
+        else
+            sb.appendLine(`YOUR ORDERS STAND WHILE YOU SLEEP. At this audience you may also send envoys of yours who are at court and ready, with letters, tablets and gifts (letters, as in your orders): they set out at the end of this season with everyone's orders and are checked first. A letter sent now costs what it would in your orders (its gold, the scribe's fee for a tablet, one of the envoys who may leave your court this season); if you let your orders stand and send none, your next letters leave only when you next give orders. `
+                          + `Reopen your orders (reopen_orders) if the news changes your plan: you then give orders this season, with your full view, after your audiences. Otherwise your orders stand and you sleep on.`);
+        if (a.lettersSent.length > 0)
+            sb.appendLine(`Letters you have already sent from your audiences this season (a new letter for the same person replaces one): ${joinS(`; `, a.lettersSent.map(inFull))}.${lettersGold(a.lettersSent)}`);
         return sb.toString();
     }

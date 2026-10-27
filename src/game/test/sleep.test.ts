@@ -143,10 +143,12 @@ describe("SleepTests", () => {
     Assert.equal([1, 5], sleeper.calls);
     Assert.contains(sleeper.views[1].scheduled, (x) => x.turn === 7);
     Assert.contains("- turn 7: the army now in babylon -> nippur", situation(sleeper.views[1]));
-    // The header says what replaces them, a standing order that fires among them (the follow-up's review).
+    // The header points to the rulebook, which says what replaces them, a standing order that fires among them (the
+    // follow-up's review; the explanation moved to the rulebook's fixed part in item 6b).
+    Assert.contains("ORDERS YOU HAVE SCHEDULED (each unit named by where it stands now; see PLANNING AHEAD):", situation(sleeper.views[1]));
     Assert.contains(
-      "they run in their season unless you give the same units or people other orders, send an entry for that season to replace them, or a standing order of yours that fires that season gives them orders):",
-      situation(sleeper.views[1]),
+      "in the season one fires, its units do its orders instead of their scheduled ones",
+      leaderRules(true, newGameConfig()),
     );
     Assert.contains(r.state.units, (u) => u.power === "Babylonia" && u.province === "nippur");
   });

@@ -59,3 +59,12 @@ export const delay = (ms: number, signal?: AbortSignal): Promise<void> =>
       reject(signal.reason);
     });
   });
+
+/** A court reply that welcomes every envoy the request names, by his id ("One call per wake-up"), and sends no letters. */
+export function welcomeCourt(request: string): string {
+  const answers = [...request.matchAll(/\((c\d+)\), envoy of /g)].map(
+    (m) =>
+      `{"envoy":"${m[1]}","speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`,
+  );
+  return `{"answers":[${answers.join(",")}],"standing_answers":[],"cancel_answers":[],"ledger":[],"letters":[],"reopen_orders":false}`;
+}

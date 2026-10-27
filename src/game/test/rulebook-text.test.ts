@@ -75,7 +75,7 @@ describe("RulebookTextTests", () => {
     );
     let text = situation(Views.for(s, "Egypt"));
     Assert.contains(
-      "YOUR ARCHIVE (the tablets you hold, kept at your capital: each as every court names it, by its seals and date; your own mark for your copy, for your orders only; its text; how it came to you):",
+      "YOUR ARCHIVE (kept at your capital; a tablet you have read in full at an earlier orders by its opening words):",
       text,
     );
     Assert.contains(
@@ -292,7 +292,7 @@ describe("StandingsAndTravelTests", () => {
     let mitanni = (home("Mitanni") + home("Assyria")) / home("Mitanni");
     // Labelled for what it is: a land-yield ratio, not the growth that wins, as the rulebook says too.
     Assert.startsWith(
-      "LAND STANDINGS (a land-yield ratio, not growth: the yield of the land each power holds now over its homeland's yield at the start, as any court can reckon it from who holds what. Growth, which decides who wins, also counts treasuries and back pay, so these are not the winning figures, and yours is not your growth on the treasury line): Mitanni ",
+      "LAND STANDINGS (land-yield ratios, not growth; see WHAT YOU SEE): Mitanni ",
       line,
     );
     Assert.contains(
@@ -382,7 +382,7 @@ describe("ViewTextTests", () => {
 
     let text = situation(Views.for(s, "Egypt"));
     Assert.contains(
-      "You can see troops in (your land, your troops and what your spies watch, and one link of any kind from those; troops two links away can still arrive next season unseen): ",
+      "You can see troops in: ",
       text,
     );
     Assert.contains(

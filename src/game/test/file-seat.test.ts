@@ -19,7 +19,7 @@ import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from 
 import { type CallSpec, Footer, type JsonAsker, type JsonObject, LlmLeaderSeat, Replies, Schemas, readObject as lenient, readable, requestText, situation } from "@amarna/llm";
 import { FileExchange } from "@amarna/llm/node";
 import { Assert, toDict } from "../../engine/test/support.ts";
-import { File, Directory, Path, delay } from "./io.ts";
+import { File, Directory, Path, delay, welcomeCourt } from "./io.ts";
 
 describe("FileSeatTests", () => {
   function newFolder(): string {
@@ -43,7 +43,7 @@ describe("FileSeatTests", () => {
     }
   }
 
-  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
+  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
 
   function game(config: GameConfig | null = null, timeoutSeconds: number = 30): [GameRunner, string] {
     let folder = newFolder();
@@ -69,8 +69,8 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         seen.push(text);
         return stem.includes("orders")
-          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
-          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
+          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          : welcomeCourt(text);
       },
       stop.signal,
     );
@@ -101,8 +101,8 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         seen.push(text);
         return stem.includes("orders")
-          ? `{"notes":"zq-notes","summary":"zq-summary of what I learned","ledger":[{"court":"Egypt","entry":"zq-ledger: Egypt owes me 40."}],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
-          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
+          ? `{"notes":"zq-notes","summary":"zq-summary of what I learned","ledger":[{"court":"Egypt","entry":"zq-ledger: Egypt owes me 40."}],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          : welcomeCourt(text);
       },
       stop.signal,
     );
@@ -131,7 +131,7 @@ describe("FileSeatTests", () => {
       this.specs.push(spec);
       let json = spec.key.includes("/orders/")
         ? HoldEverything
-        : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
+        : welcomeCourt(spec.user);
       return Promise.resolve(JSON.parse(json) as JsonObject);
     }
   }
@@ -253,10 +253,10 @@ describe("FileSeatTests", () => {
         if (stem === "t1_orders_Alashiya") request = text;
         return stem.includes("orders")
           ? `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],
- "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"other_orders":[]}],
- "standing_orders":[{"when":"unit_attacked","province":"enkomi","power":"","units":[{"unit":"enkomi","order":"hold","target":"","to":""}],"other_orders":[]}],
- "cancel_standing":[]}`
-          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
+ "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"other_orders":[],"conditions":[]}],
+ "standing_orders":[{"when":"unit_attacked","province":"enkomi","power":"","units":[{"unit":"enkomi","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]}],
+ "cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          : welcomeCourt(text);
       },
       stop.signal,
     );
@@ -290,9 +290,9 @@ describe("FileSeatTests", () => {
         // The second reply still names a season and a trigger of its own, as a king of version 4 could: it is not read.
         return stem.includes("orders")
           ? stem.startsWith("t2_")
-            ? `{"notes":"Wake me next season.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[],"standing_orders":[],"cancel_standing":[]}`
-            : `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
-          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
+            ? `{"notes":"Wake me next season.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+            : `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          : welcomeCourt(text);
       },
       stop.signal,
     );
@@ -310,7 +310,7 @@ describe("FileSeatTests", () => {
     Assert.startsWith("This is your first season.\n", decision("t1_orders_Alashiya"));
     // (A script king's fleet also ends a move next to Enkomi that season, which wakes it too.)
     let woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt came to your court";
-    Assert.startsWith(woken, decision(first([...requests.keys()], (k) => k.startsWith("t2_aud_"))));
+    Assert.startsWith(woken, decision(first([...requests.keys()], (k) => k.startsWith("t2_court_"))));
     // By its orders it has received the envoy (the audiences come first).
     Assert.startsWith(
       "You gave orders last season (turn 1). You were woken because: an envoy of Egypt came to your court (you received him before these orders)",

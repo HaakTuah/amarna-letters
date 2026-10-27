@@ -324,6 +324,11 @@ such game costs real money. `--no-primer` runs the
 customs-primer experiment; `--out logs` keeps every game's log. `--versus solo` measures the
 script king against the frozen first version (one king at a time, against six of the old), and
 `--versus baseline` and `--focus <Power>` mix the two. Script games run on every core.
+`--sleeping-scripts` lets script kings sleep as model kings do; they then schedule conditional orders ahead, which
+`--no-plan-ahead` turns off and `--plan-ahead-half` gives to half of them, to measure what it is worth.
+The measure of call size (item 6b) shadows script games with model kings and splits their requests into parts:
+`node --experimental-strip-types --no-warnings src/batch/src/measure.ts --games 20 --seed 1` (`--per-audience` for
+one call per audience, `--dump DIR` for sample requests). It calls no model.
 `--sleep off` turns off sleeping seats, `--sleep-cap N` sets
 the hidden safety cap on a sleep, `--max-turns N` stops a game after season N at the latest (a known cap), `--cap 80-100` or `--cap none` sets
 the hard cap's range, and `--median N` the season by which half of all ages have ended (44 by default).

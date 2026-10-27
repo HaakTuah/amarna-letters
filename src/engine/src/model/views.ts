@@ -7,6 +7,7 @@ import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import type { Power } from "./power.ts";
 import { type InboxItem, InboxItemSchema } from "./records.ts";
 import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, StandingOrderViewSchema } from "./sleep.ts";
+import { type StandingAnswer, StandingAnswerSchema } from "./answers.ts";
 
 export interface UnitView {
   power: Power;
@@ -305,6 +306,8 @@ export interface SeatView {
   ended: boolean;
   /** Whether the age has no end ("An open age"). The ending itself is told in words; no number or season of it is shown. */
   openAge: boolean;
+  /** What every seat is told of the table's median, in a word ("Short", "Usual", "Long"; rules/ending.ts). */
+  ageBand: string;
   gold: number;
   unassayedGold: LotView[];
   income: number;
@@ -378,6 +381,8 @@ export interface SeatView {
   scheduled: ScheduledOrders[];
   /** Its standing orders, each of its units named by where it stands now. */
   standing: StandingOrderView[];
+  /** Its standing answers for what arrives at its court (item 6b). */
+  answers: StandingAnswer[];
   /**
    * It sleeps and was woken for its audiences only ({@link WokenBecause} names the envoys): its orders stand unless
    * it reopens them at an audience.
@@ -396,6 +401,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     king: "",
     ended: false,
     openAge: false,
+    ageBand: "Usual",
     gold: 0,
     unassayedGold: [],
     income: 0,
@@ -429,6 +435,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     digestLeftOut: 0,
     scheduled: [],
     standing: [],
+    answers: [],
     holdsCourt: false,
     courtLetters: [],
     prices: new Dict(),
@@ -443,6 +450,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   king: S,
   ended: B,
   openAge: B,
+  ageBand: S,
   gold: I,
   unassayedGold: list(() => LotViewSchema),
   income: I,
@@ -476,6 +484,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   digestLeftOut: I,
   scheduled: list(() => ScheduledOrdersSchema),
   standing: list(() => StandingOrderViewSchema),
+  answers: list(() => StandingAnswerSchema),
   holdsCourt: B,
   courtLetters: list(() => OrderSchema),
   prices: dict(I),

@@ -116,26 +116,30 @@ describe("KingRecordTests", () => {
       newLetterView({ turn: 2, envoyId: "c8", envoyName: "Paser", to: "Hatti", message: "Peace.", reportedTurn: 5 }),
     ];
     let text = situation(v);
-    Assert.contains(
-      "YOUR LETTERS (your record of what you sent, as your scribes wrote it: each envoy's letter while he is away on that errand, and once more when his report has come since you last gave orders):",
-      text,
-    );
+    Assert.contains("YOUR LETTERS (as your scribes wrote them):", text);
     Assert.contains(
       '- turn 3, Mane (c7) to Babylonia, with 50 shekels (still away): message "Brother, Mari is yours when Ashur falls."; mandate "May name the day; may not seal."; tablet to seal "Mari to Babylonia."',
       text,
     );
     Assert.contains('- turn 2, Paser (c8) to Hatti (his report came in turn 5): message "Peace."; mandate none', text);
     Assert.contains(
-      "Each set of orders shows the letters you sent (message, mandate, tablet and gold) in full under YOUR LETTERS while their envoys are away, and once more when the report comes.",
+      "Each set of orders shows the letters you sent under YOUR LETTERS while their envoys are away: in full (message, mandate, tablet and gold) at the next orders after you send them, then by their opening words, and in full once more when the report comes.",
       leaderRules(true, newGameConfig()),
     );
+    // Once the king has given orders since, a letter still away is read by its opening words (item 6b).
+    v.lastCalled = 4;
+    const long = "Brother, ".repeat(30).trim();
+    v.letters[0].message = long;
+    Assert.contains(`- turn 3, Mane (c7) to Babylonia, with 50 shekels (still away): "${long.slice(0, 119)}`, situation(v));
+    Assert.doesNotContain(long, situation(v));
+    Assert.contains('- turn 2, Paser (c8) to Hatti (his report came in turn 5): message "Peace."; mandate none', situation(v));
 
     // Letters sent from this season's audiences, before they go out, are read back in full too.
     v.courtLetters = [dispatch("c9", "Mitanni", "Come to terms.", { mandate: "May offer 30 shekels.", gold: 30 })];
     Assert.contains('send c9 to Mitanni with 30 shekels: message "Come to terms."; mandate "May offer 30 shekels."', situation(v));
   });
 
-  test("At an audience a king reads the tablets he holds in full by their names", async () => {
+  test("At an audience a king reads in full by their names the tablets that bear the envoy's court's seal", async () => {
     let text = "Hatti and Egypt shall not cross into each other's homeland, and the free cities between them stay free. ".repeat(5).trim();
     let s = newGame(5);
     s.tablets.push(newTablet({ id: "t900", text: text, proposedBy: "Egypt", partner: "Hatti", seals: ["Egypt", "Hatti"], createdTurn: 1, sealedTurn: 1 }));
@@ -144,8 +148,14 @@ describe("KingRecordTests", () => {
     await new LlmLeaderSeat("Hatti", asker, "m", "medium", true, s.config).hostAudience(envoy(2), view(s, 2));
 
     Assert.contains(
-      `Tablets you hold, in full: the tablet sealed by Egypt and Hatti, dated turn 1 [your copy k901]: "${text}"`,
+      `Tablets you hold (in full those that bear the seal of the envoy's court, the others by their opening words): the tablet sealed by Egypt and Hatti, dated turn 1 [your copy k901]: "${text}"`,
       Assert.single(asker.asked).user,
     );
+    // A tablet that does not concern the envoy's court is read by its opening words.
+    s.copies[s.copies.length - 1].tabletId = "t901";
+    s.tablets.push(newTablet({ id: "t901", text: text, proposedBy: "Assyria", partner: "Hatti", seals: ["Assyria", "Hatti"], createdTurn: 1, sealedTurn: 1 }));
+    await new LlmLeaderSeat("Hatti", asker, "m", "medium", true, s.config).hostAudience(envoy(2), view(s, 2));
+    Assert.contains(`the tablet sealed by Assyria and Hatti, dated turn 1 [your copy k901]: "${text.slice(0, 100)}`, asker.asked[1].user);
+    Assert.doesNotContain(text, asker.asked[1].user);
   });
 });
