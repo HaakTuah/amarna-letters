@@ -78,3 +78,60 @@ export function nearestHarbour(me: string, to: string, ours: (province: string) 
   }
   return best[0];
 }
+
+/**
+ * A landing a court has set its mind on, kept from season to season (Brain.landing) so that its fleets and its army come
+ * together on it instead of each going its own way: the army waits on the coast `from` while a fleet of ours comes to stand
+ * in each sea zone of `chain` (from the waters of `from` to the waters of `target`), and then it is carried over. A chain
+ * needs a fleet in every zone, and most courts own one fleet or none, so without a plan that outlasts the season the pieces
+ * never meet. Chosen in turn `since`.
+ */
+export interface Landing {
+  readonly from: string;
+  readonly target: string;
+  readonly chain: readonly string[];
+  readonly since: number;
+}
+
+/** How many seasons a court waits for a landing to come together before giving it up, and then rests from the idea. */
+export const LandingPatience = 8;
+export const LandingRest = 6;
+
+/**
+ * The landing most worth setting our mind on, or null: from a coast of ours (or one our army stands on) where an army stands,
+ * can march in this season, or can be raised, over a chain of at most `depth` sea zones that `open` allows, to a coast the
+ * army cannot reach by land and `worth` values. Each landing is weighed by its worth, less what the army's going leaves
+ * open (`exposure`: a capital's garrison rarely sails), over the seasons it takes to make ready: one a zone, one a fleet we
+ * lack (at most one), one if the army is not there yet. Short chains to islands and to coasts beyond the land's reach come
+ * first by that measure.
+ */
+export function chooseLanding(
+  b: Board,
+  turn: number,
+  worth: (target: string) => number,
+  open: (zone: string) => boolean,
+  armyCanCome: (from: string) => boolean,
+  exposure: (from: string) => number,
+  least: number,
+  depth = 3,
+): Landing | null {
+  const fleets = b.mine.filter((u) => u.kind === "Fleet").length;
+  let best: [Landing | null, number] = [null, least];
+  for (const from of Board.Map.landProvinces.filter((p) => p.waters !== null).map((p) => p.id).sort()) {
+    const there = b.unitAt.tryGet(from);
+    const armyThere = there !== undefined && there.power === b.me && there.kind === "Army";
+    if (!armyThere && (there !== undefined || !b.isMine(from) || !armyCanCome(from))) continue;
+    for (const [zone, chain] of seaChains(from, open, depth)) {
+      // A court more than a fleet short of the chain would spend seasons and gold it does not have before it sails.
+      if (chain.length - fleets > 1) continue;
+      for (const target of landingsFrom(zone)) {
+        if (target === from || Board.Sail.canMove("Army", from, target) || b.unitAt.has(target)) continue;
+        const w = worth(target) - exposure(from);
+        if (w <= 0) continue;
+        const steps = chain.length + Math.max(0, chain.length - fleets) + (armyThere ? 0 : 1);
+        if (w / steps > best[1]) best = [{ from, target, chain, since: turn }, w / steps];
+      }
+    }
+  }
+  return best[0];
+}

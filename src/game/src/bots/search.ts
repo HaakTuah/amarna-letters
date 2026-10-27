@@ -203,6 +203,9 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
   for (let pass = 0; pass < 2; pass++) {
     let improved = false;
     for (const u of mine) {
+      // A troop readying a landing (see Landing in seas.ts) keeps to it: a single season cannot see what waiting at sea or
+      // on the coast is worth, only the seasons that follow can.
+      if (plan.role.tryGet(u) === "landing") continue;
       for (const change of alternatives(b, best, u, ctx.willing, ctx.joints)) {
         if (ctx.runs + Samples > Budget) break;
         const trial = best.clone();

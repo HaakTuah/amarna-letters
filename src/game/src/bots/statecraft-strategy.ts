@@ -241,7 +241,9 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
     [(x: Province) => x.capital, desc(cmpBool)],
     [(x: Province) => x.yield, desc(cmpNum)],
   );
-  const maritime = me === "Alashiya" || me === "Arzawa";
+  // A court whose homeland is mostly coast keeps two fleets (map data, never which power it is: Arzawa and Alashiya today).
+  const home = Board.Map.homeOf(me);
+  const maritime = 3 * count(home, (x) => x.isCoastal) >= 2 * home.length;
   let raised = 0;
   for (const [near, value, kind] of sortBy(plan.shortfalls, [(s: [string, number, UnitKind?]) => s[1], desc(cmpNum)])) {
     if (raised >= 2) break;

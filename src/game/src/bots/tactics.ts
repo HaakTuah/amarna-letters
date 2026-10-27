@@ -32,7 +32,7 @@ import {
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
-import { SeaPlay, landingsFrom, nearestHarbour, seaChains, stepToward } from "./seas.ts";
+import { LandingPatience, LandingRest, SeaPlay, chooseLanding, landingsFrom, nearestHarbour, seaChains, stepToward } from "./seas.ts";
 
 /** The season's troop orders, and what the plan still lacks (for levies). */
 export class MilitaryPlan {
@@ -476,12 +476,102 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     }
   }
 
+  // ---- A landing in mind (see Landing in seas.ts): kept from season to season, so that our fleets put to sea in the zones
+  // of its chain and hold there, the army comes to its coast and waits, and a fleet more is raised if we lack one; when the
+  // chain is whole the army is carried over. Given up once landed, when the target is no longer worth it, or after
+  // LandingPatience seasons. Only the king's own plan keeps it (a trial plan with another temper reads it as it stands).
+  if (SeaPlay.on) {
+    const landingWorth = (t: string): number => {
+      const o = b.ownerOf(t);
+      if (o === me || (o !== null && !isWilling(o))) return 0;
+      return b.value(t) * multiplier(o) * (b.walls(t) ? siegeWorth(b.wallLevel(t)) : 1);
+    };
+    const seaOpen = (z: string): boolean => !b.unitAt.has(z) || b.unitAt.get(z).power === me;
+    if (temper === null) {
+      const L = brain.landing;
+      if (L !== null) {
+        const army = b.unitAt.tryGet(L.from);
+        const lost = !b.isMine(L.from) && !(army?.power === me && army.kind === "Army");
+        if (lost || landingWorth(L.target) <= 0 || L.chain.some((z) => !seaOpen(z))) brain.landing = null;
+        else if (b.v.turn - L.since >= LandingPatience) {
+          brain.landing = null;
+          brain.landingRest = b.v.turn + LandingRest;
+        }
+      }
+      if (brain.landing === null && b.v.turn >= brain.landingRest)
+        brain.landing = chooseLanding(
+          b,
+          b.v.turn,
+          landingWorth,
+          seaOpen,
+          (from) =>
+            !threat.has(from) &&
+            (Board.Map.get(from).home === me || [...free].some((u) => b.unitAt.get(u).kind === "Army" && Board.Sail.canMove("Army", u, from))),
+          exposure,
+          150,
+        );
+    }
+    const L = brain.landing;
+    if (L !== null) {
+      const w = landingWorth(L.target);
+      const fleetsOwned = count(b.mine, (u) => u.kind === "Fleet");
+      const armyThere = free.has(L.from) && b.unitAt.get(L.from).kind === "Army" && !stay.has(L.from) && !threat.has(L.from);
+      const whole = L.chain.every((z, i) => freeFleetAt(z) && (i === 0 || Board.Sail.neighbors(L.chain[i - 1]).includes(z)));
+      const launch = whole && armyThere && !b.unitAt.has(L.target);
+      if (launch) {
+        // Carried over, and nothing waits any longer: a king who could put a troop into the target this season may bounce
+        // us, which costs only the season.
+        const rivals = [...b.alive].some((x) => x !== me && b.muster(x, L.target) > 0);
+        ops.push(op("convoy", (rivals ? 0.6 : 0.85) * w + 60 - exposure(L.from), L.target, L.from, [], null, [...L.chain]));
+        // A fleet that convoys still stands in its waters, and no army lands from them: guarding them gives it no reason to
+        // stay out of the chain.
+        for (let i = ops.length - 1; i >= 0; i--) if (ops[i].kind === "guard" && ops[i].lead === ops[i].target && L.chain.includes(ops[i].lead)) ops.splice(i, 1);
+      }
+      // The fleets: each zone of the chain held by one of ours, the nearest spare fleet sailing to it (or a step towards it).
+      // A fleet under threat at sea or off land not ours guards nothing by staying, so it may go too.
+      const spare = sortBy(
+        [...free].filter((f) => b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && (!threat.has(f) || !b.isMine(f)) && !L.chain.includes(f)),
+        [(f: string) => f, cmpStr],
+      );
+      for (const z of L.chain) {
+        if (freeFleetAt(z)) {
+          if (!launch) ops.push(op("landing", 0.4 * w, z, z, []));
+          continue;
+        }
+        if (b.unitAt.has(z)) continue;
+        const near = spare.find((f) => Board.Sail.canMove("Fleet", f, z));
+        const way = near !== undefined ? ([near, z] as const) : spare.map((f) => [f, stepToward(f, z, (x) => !b.unitAt.has(x))] as const).find(([, s]) => s !== null);
+        if (way === undefined || way[1] === null) continue;
+        spare.splice(spare.indexOf(way[0]), 1);
+        ops.push(op("landing", 0.35 * w, way[1], way[0], []));
+      }
+      if (fleetsOwned < L.chain.length) {
+        // A fleet more, raised in the home harbour nearest the chain (a levy, if the treasury can carry it).
+        const harbour = nearestHarbour(me, L.chain[0], (x) => b.isMine(x) && !b.unitAt.has(x), seaOpen);
+        if (harbour !== null) plan.shortfalls.push([Board.Map.get(harbour).waters!, w, "Fleet"]);
+      } else if (count(L.chain, (z) => freeFleetAt(z)) < L.chain.length - 1) {
+        // The army keeps to its work until the chain is all but whole: a season or two of waiting, not the whole voyage.
+      } else if (armyThere) {
+        if (!launch) ops.push(op("landing", 0.5 * w, L.from, L.from, []));
+      } else if (!b.unitAt.has(L.from)) {
+        // The army comes to the coast: one of ours next to it marches in, or one is raised there.
+        const comer = sortBy(
+          [...free].filter((u) => b.unitAt.get(u).kind === "Army" && !stay.has(u) && !threat.has(u) && Board.Sail.canMove("Army", u, L.from)),
+          [(u: string) => b.value(u), cmpNum],
+          [(u: string) => u, cmpStr],
+        )[0];
+        if (comer !== undefined) ops.push(op("landing", 0.4 * w, L.from, comer, []));
+        else if (Board.Map.get(L.from).home === me && b.isMine(L.from)) plan.shortfalls.push([L.from, w, "Army"]);
+      }
+    }
+  }
+
   // ---- Commit: best value first, each unit once.
   for (const o of sortBy(ops, [(o: Op) => o.net, desc(cmpNum)], [(o: Op) => o.target, cmpStr])) {
     if (o.net <= 0) break;
     if (o.lead.length > 0 && !free.has(o.lead)) continue;
     if (!(o.kind === "defend" || o.kind === "assist" || o.kind === "siege") && stay.has(o.lead)) continue;
-    if ((o.kind === "attack" || o.kind === "block" || o.kind === "convoy" || o.kind === "assist" || o.kind === "blockade" || o.kind === "guard") && plan.destinations.has(o.target) && o.lead !== o.target) continue;
+    if ((o.kind === "attack" || o.kind === "block" || o.kind === "convoy" || o.kind === "assist" || o.kind === "blockade" || o.kind === "guard" || o.kind === "landing") && plan.destinations.has(o.target) && o.lead !== o.target) continue;
     if (o.kind === "convoy" && o.chain.some((f) => !free.has(f))) continue;
     const helpers = o.helpers.filter((h) => free.has(h));
     if (o.kind === "attack") {
@@ -517,6 +607,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
         break;
       case "blockade":
       case "guard":
+      case "landing":
         assign(plan, free, o.lead, o.lead === o.target ? hold(o.lead) : move(o.lead, o.target), o.kind);
         plan.destinations.add(o.target);
         break;
@@ -541,91 +632,6 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const ally = sortBy(candidates, [(x: { unit: UnitView; menace: number }) => x.menace, desc(cmpNum)], [(x: { unit: UnitView; menace: number }) => x.unit.province, cmpStr])[0]?.unit ?? null;
     if (ally === null || threat.has(u)) continue;
     assign(plan, free, u, support(u, ally.province), "ally-support");
-  }
-
-  // ---- Ready a convoy: an army on a coast with nothing to take by land, or one free on a coast across the sea from land
-  // worth a great deal (an island's riches, a capital: 400 or more), and a chain of sea zones from its waters to the
-  // waters of land worth taking that the army cannot reach by land (one fleet in each, build order item 7a). Our free
-  // fleets put to the zones of the chain they can reach this season, or hold there, so that the convoy above can carry the
-  // army over when the chain is whole.
-  for (const army of sortBy(
-    [...free].filter((u) => b.unitAt.get(u).kind === "Army" && Board.Map.get(u).isCoastal && !threat.has(u) && !stay.has(u)),
-    [(x: string) => x, cmpStr],
-  )) {
-    const strandedHere = stranded(army);
-    const open = (z: string): boolean => {
-      const at = b.unitAt.tryGet(z);
-      return (at === undefined || at.power === me) && (!plan.destinations.has(z) || free.has(z));
-    };
-    let best: [string[], number] = [[], 0.0];
-    for (const [zone, chain] of seaChains(army, open)) {
-      const worths = landingsFrom(zone)
-        .filter((t) => {
-          if (t === army || Board.Sail.canMove("Army", army, t) || b.isMine(t)) return false;
-          const o = b.ownerOf(t);
-          return o === null || isWilling(o);
-        })
-        .map((t) => b.value(t) * multiplier(b.ownerOf(t)) - 20 * (chain.length - 1));
-      // A chain our fleets can make whole soon is worth more than a richer one they cannot.
-      const missing = count(chain, (z) => !(free.has(z) && b.unitAt.get(z).kind === "Fleet"));
-      const worth = worths.length === 0 ? 0 : max(worths, (x) => x) / (1 + missing);
-      if (worth > best[1]) best = [chain, worth];
-    }
-    // A chain longer than our free fleets can make whole is no plan: they act on their own instead.
-    const fleetsFree = [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f)).length;
-    if (best[1] < (strandedHere ? 200 : 400)) continue;
-    if (fleetsFree < best[0].length) {
-      // A fleet more is wanted, in the home harbour nearest the chain (a levy, if the treasury can carry it).
-      const missing = best[0].find((z) => !(free.has(z) && b.unitAt.get(z).kind === "Fleet"));
-      const harbour =
-        missing === undefined ? null : nearestHarbour(me, missing, (x) => b.isMine(x) && !b.unitAt.has(x), (z) => !b.unitAt.has(z) || b.unitAt.get(z).power === me);
-      if (harbour !== null) plan.shortfalls.push([Board.Map.get(harbour).waters!, best[1]]);
-      continue;
-    }
-    for (const zone of best[0]) {
-      if (free.has(zone) && b.unitAt.get(zone).kind === "Fleet") {
-        // Already at sea there: it waits for the rest of the chain, or for the army.
-        assign(plan, free, zone, hold(zone), "convoy");
-        continue;
-      }
-      if (b.unitAt.has(zone) || plan.destinations.has(zone)) continue;
-      const fleets = [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && !best[0].includes(f));
-      const fleet = sortBy(
-        fleets.filter((f) => Board.Sail.canMove("Fleet", f, zone)),
-        [(f: string) => f, cmpStr],
-      )[0];
-      if (fleet !== undefined) {
-        assign(plan, free, fleet, move(fleet, zone), "convoy");
-        plan.destinations.add(zone);
-        continue;
-      }
-      // None can sail there this season: the nearest that can in a few seasons goes a step towards it.
-      for (const f of sortBy(fleets, [(f: string) => f, cmpStr])) {
-        const step = stepToward(f, zone, (z) => !b.unitAt.has(z) && !plan.destinations.has(z));
-        if (step === null || !free.has(f) || b.unitAt.has(step) || plan.destinations.has(step)) continue;
-        assign(plan, free, f, move(f, step), "convoy");
-        plan.destinations.add(step);
-        break;
-      }
-    }
-  }
-
-  // ---- An island court: with fleets enough to carry an army and no army on any coast to carry, an army is wanted in the
-  // home province on the coast from which a landing would pay most (a levy, if the treasury can carry it).
-  if (SeaPlay.on && count(b.mine, (u) => u.kind === "Fleet") >= 2 && !b.mine.some((u) => u.kind === "Army" && Board.Map.get(u.province).isCoastal)) {
-    let best: [string | null, number] = [null, 0];
-    for (const home of sortBy(
-      Board.Map.homeOf(me).filter((x) => x.waters !== null && b.isMine(x.id) && !b.unitAt.has(x.id)),
-      [(x: { id: string }) => x.id, cmpStr],
-    ))
-      for (const [zone, chain] of seaChains(home.id, (z) => !b.unitAt.has(z) || b.unitAt.get(z).power === me))
-        for (const t of landingsFrom(zone).filter((t) => t !== home.id && !Board.Sail.canMove("Army", home.id, t) && !b.isMine(t))) {
-          const o = b.ownerOf(t);
-          if (o !== null && !isWilling(o)) continue;
-          const worth = (b.value(t) * multiplier(o)) / chain.length;
-          if (worth > best[1]) best = [home.id, worth];
-        }
-    if (best[0] !== null && best[1] >= 400) plan.shortfalls.push([best[0], best[1], "Army"]);
   }
 
   // ---- Everyone else: hold if threatened, otherwise move towards where the value is.
