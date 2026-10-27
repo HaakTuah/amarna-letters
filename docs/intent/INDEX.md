@@ -15,9 +15,9 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 558 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 61 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 64 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 34 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 51 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 55 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 23 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 18 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 11 |
@@ -25,7 +25,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 53 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 9 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 10 |
-| Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 12 |
+| Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 16 |
 
 Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent .claude/rules`.
@@ -48,7 +48,7 @@ session loads.
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 6.0 |
 | `docs/intent/build-order/item-8.md` | 8. Structured press. First, what the reviews of items 7a and 7b decided | 2.1 |
 | `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. First, whatever of the reviews of items 7a and 7 | 0.7 |
-| `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 4.9 |
+| `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 5.1 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 3.8 |
 | `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 6.1 |
@@ -59,7 +59,7 @@ session loads.
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 1.3 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
 | `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 0.9 |
-| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 4.6 |
+| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 4.8 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.3 |
@@ -67,8 +67,8 @@ session loads.
 | `docs/intent/world-and-history/the-sources.md` | The sources | 5.5 |
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 12.3 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.3 |
-| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 21.2 |
+| `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.8 |
+| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 22.0 |
 | `docs/intent/engine-and-models/script-mode-and-press-modes.md` | Script mode and press modes | 3.0 |
 | `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.9 |
 | `docs/intent/engine-and-models/security-prompt-injection-and-information-leakage.md` | Security: prompt injection and information leakage | 2.0 |
@@ -113,7 +113,7 @@ session loads.
 | `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 5.7 |
 | `docs/intent/interface-and-the-council/the-royal-council.md` | The royal council | 3.9 |
 | `docs/intent/tests-risks-and-references/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md` | Success criteria and test plan | 3.5 |
+| `docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md` | Success criteria and test plan | 6.6 |
 | `docs/intent/tests-risks-and-references/known-risks-and-mitigations.md` | Known risks and mitigations | 3.8 |
 | `docs/intent/tests-risks-and-references/open-questions-and-historical-references.md` | Open questions and historical references | 2.4 |
 | `docs/intent/ideas/front.md` | Title and what the tab holds | 0.3 |
