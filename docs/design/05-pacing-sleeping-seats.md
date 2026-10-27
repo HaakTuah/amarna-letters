@@ -495,7 +495,8 @@ rulebook's STANDING ORDERS section (see "Standing orders" below).
   Cancellation is applied before the season's standing orders fire, new standing orders after the
   season's orders are checked. The design document's wider vocabulary ("unless" conditions,
   treasury below, envoy returned, tablet sealed) is not built (item 6).
-  - **Why same season** (the fix pass after item 4; the document's "Status of sleeping seats":
+  - **Why same season** (the fix pass after item 4; the document's "Status of sleeping seats", now in
+    `docs/archive/design-history.md`:
     "standing orders that fire a season late"). Until then a standing order's event was checked after
     movement, from what the seat saw (`unit_enters`: the unit got there; `unit_attacked`: the unit
     was still there afterwards), and its orders ran the next season. That is the season a king woken

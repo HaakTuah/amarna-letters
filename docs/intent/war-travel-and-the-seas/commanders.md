@@ -12,3 +12,5 @@
 
 Commanders become worth choosing well, since a good plan is only as good as the man carrying it out. Script kings give standing orders through their commanders too ("Every feature is every seat's").
 
+**What a good general does better** (settled 19 October 2026, for build order item 13). Combat is deterministic, so command competence needs a defined lever, or handing an army to a negotiator has no visible consequence. Competence sets how well a commander interprets a mandate far from the king, through the size of his tactical look-ahead (question 7 of the round report), so a poor general misses moves and a good one finds them; loyalty sets how strictly he keeps to his limits. A second lever, if needed, is siege progress. A flat combat bonus is the last resort, since it compounds snowballing and blurs the adjudicator.
+

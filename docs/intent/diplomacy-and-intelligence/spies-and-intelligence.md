@@ -11,5 +11,3 @@ Spies come from the same character pool and follow the same rules: hidden traits
 
 **Double agents** are the natural endgame of the design. A player never knows for certain whether an accurate-looking report was planted.
 
-**Information has a market too.** Intelligence can be sold to third powers through envoys, true or not.
-

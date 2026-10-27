@@ -8,7 +8,7 @@
 - **A crowd in a lawless land.** Loose men drift and rob without a leader ("Bandits rob the purse"), but a crowd large enough, in the Kaska lands, Lukka, the Sutean steppe or the Habiru hills, raises a chief who gathers it into a band ("Bands are a character's soldiers" above). Item 11b.
 - **A band that loses its leader,** killed, captured or turned on: one of its own takes over, or it melts back into the loose men. Pirates are bands at sea and follow the same rule. Item 11b.
 - **Mutineers.** A unit that mutinies for hunger or missing pay disbands until item 11b; from then on it may follow one of its own as a band instead ("Armies need food as well as pay"). Item 11b.
-- **A fallen kingdom's army with no commander.** Instead of disbanding ("A kingdom falls with its capital"), it may raise a captain from its ranks, who faces the commander's choice: serve the conqueror, offer the army to another court, take land of his own or turn outlaw. Item 13, with commanders.
+- **A fallen kingdom's army with no commander** may raise a captain from its ranks instead of disbanding, and he faces the commander's choice ("A kingdom falls with its capital"). Item 13, with commanders.
 - **A revolt with no leader.** Land that breaks free with no governor or commander at its head ("How cities become free") raises a ruler from its own people, who rules the free city as a power with a seat of its own, as every city-state is from item 11+ ("Minds follow what is at stake"). Item 17.
 - **A fallen court's people.** When a kingdom falls, its scribes and officials have lost their king, and one of them may rise among its refugees, carrying the court's language and some of what it knew; whatever he claims for himself is words, since the game has no heirs. Item 11b.
 

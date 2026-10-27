@@ -6,6 +6,7 @@ History, kept for the record. Sessions read it only when a task points here.
 | --- | --- |
 | `build-log.md` | What each built item found and decided, moved word for word from `docs/BUILD-PROGRESS.md` on 26 October 2026. |
 | `rounds/` | The round and item reports up to item 5, with their screenshots and the round prompts (`ROUND-PROMPT.md`, `ROUND-PROMPT-ADDITIONS.md`), moved from `docs/rounds/` and `docs/` by the docs and preview pass (`build-log.md` keeps their old paths, as recorded at the time). `docs/rounds/2026-10-18-sleep-and-simulation.md` stays where it was: the builder rules cite it as a specification. |
+| `design-history.md` | Passages taken out of the design document when it was condensed on 27 October 2026 (what was tried, dropped or retired, what past runs measured, and the full text of build order items 1 to 5), word for word, each with the tab and section it stood in. |
 | `instructions.md` | Haakon's standing instructions given in chat, word for word with their dates. Add new ones here. |
 
 ## What came from Haakon's computer (PR #15, 26 October 2026)

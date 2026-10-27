@@ -5,7 +5,7 @@
   "overview": {
    "name": "Overview",
    "node": "320f0886-6acf",
-   "rev": 548,
+   "rev": 549,
    "files": [
     "docs/intent/overview/front.md",
     "docs/intent/overview/vision-and-core-hypothesis.md",
@@ -15,7 +15,7 @@
   },
   "build-order": {
    "name": "Build order",
-   "node": "59558436-4f3f",
+   "node": "f6588701-e47a",
    "rev": 2,
    "files": [
     "docs/intent/build-order/front.md",
@@ -45,7 +45,7 @@
   },
   "world-and-history": {
    "name": "World and history",
-   "node": "fd9811ff-8795",
+   "node": "f2f7044b-c6fa",
    "rev": 2,
    "files": [
     "docs/intent/world-and-history/front.md",
@@ -57,7 +57,7 @@
   },
   "engine-and-models": {
    "name": "Engine and models",
-   "node": "be5e0840-a553",
+   "node": "23452eff-9a74",
    "rev": 3,
    "files": [
     "docs/intent/engine-and-models/front.md",
@@ -70,7 +70,7 @@
   },
   "diplomacy-and-intelligence": {
    "name": "Diplomacy and intelligence",
-   "node": "a6c8229d-198e",
+   "node": "83ac9cba-81ca",
    "rev": 2,
    "files": [
     "docs/intent/diplomacy-and-intelligence/front.md",
@@ -87,7 +87,7 @@
   },
   "characters": {
    "name": "Characters",
-   "node": "65871379-8a01",
+   "node": "0051b400-09bd",
    "rev": 2,
    "files": [
     "docs/intent/characters/front.md",
@@ -100,7 +100,7 @@
   },
   "work-money-and-lending": {
    "name": "Work, money and lending",
-   "node": "253e6610-301a",
+   "node": "016f3c32-0e2b",
    "rev": 2,
    "files": [
     "docs/intent/work-money-and-lending/front.md",
@@ -111,7 +111,7 @@
   },
   "land-people-and-economy": {
    "name": "Land, people and economy",
-   "node": "ab1c10ef-1a1f",
+   "node": "3dedb02f-88dd",
    "rev": 2,
    "files": [
     "docs/intent/land-people-and-economy/front.md",
@@ -125,21 +125,21 @@
   },
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
-   "node": "852923e6-f254",
+   "node": "98ebd607-ce90",
    "rev": 2,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military.md",
-    "docs/intent/war-travel-and-the-seas/tempo-of-war-further-ways-to-slow-it.md",
     "docs/intent/war-travel-and-the-seas/command-at-a-distance.md",
     "docs/intent/war-travel-and-the-seas/commanders.md",
     "docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md",
+    "docs/intent/war-travel-and-the-seas/travel-passage-and-distance.md",
     "docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md"
    ]
   },
   "victory-and-the-ending": {
    "name": "Victory and the ending",
-   "node": "3988d048-01b1",
+   "node": "58b70949-2c17",
    "rev": 2,
    "files": [
     "docs/intent/victory-and-the-ending/front.md",
@@ -149,7 +149,7 @@
   },
   "interface-and-the-council": {
    "name": "Interface and the council",
-   "node": "12e1f631-61ef",
+   "node": "ed35e82f-6e5a",
    "rev": 2,
    "files": [
     "docs/intent/interface-and-the-council/front.md",
@@ -159,7 +159,7 @@
   },
   "tests-risks-and-references": {
    "name": "Tests, risks and references",
-   "node": "495c7340-3457",
+   "node": "e10064a1-1833",
    "rev": 2,
    "files": [
     "docs/intent/tests-risks-and-references/front.md",
@@ -170,7 +170,7 @@
   },
   "ideas": {
    "name": "Ideas",
-   "node": "28131945-444e",
+   "node": "c1a09612-6320",
    "rev": 2,
    "files": [
     "docs/intent/ideas/front.md",
