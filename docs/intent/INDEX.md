@@ -15,11 +15,11 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 552 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 14 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 18 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 22 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 27 |
-| Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 16 |
-| Characters | `docs/intent/characters/` | `0051b400-09bd` | 16 |
+| Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
+| Characters | `docs/intent/characters/` | `0051b400-09bd` | 17 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 10 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 11 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 18 |
@@ -42,14 +42,14 @@ session loads.
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
 | `.claude/rules/builder-rules.md` | Rules for the builder | 8.8 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
-| `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 0.9 |
+| `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.0 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 3.3 |
 | `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.2 |
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 5.2 |
-| `docs/intent/build-order/item-8.md` | 8. Structured press. The second press mode, with templates for every king and sc | 1.2 |
+| `docs/intent/build-order/item-8.md` | 8. Structured press. The second press mode, with templates for every king and sc | 1.3 |
 | `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. Mandates with engine-checkable limits, the autho | 0.5 |
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 4.7 |
-| `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.3 |
+| `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 3.5 |
 | `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 5.8 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.1 |
@@ -60,7 +60,7 @@ session loads.
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
 | `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 0.8 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 4.1 |
-| `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.8 |
+| `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.3 |
 | `docs/intent/world-and-history/the-map.md` | The map | 6.8 |
@@ -77,7 +77,7 @@ session loads.
 | `docs/intent/diplomacy-and-intelligence/messengers-and-offers.md` | Messengers and offers | 5.8 |
 | `docs/intent/diplomacy-and-intelligence/envoy-authority-and-resident-envoys.md` | Envoy authority and resident envoys | 2.2 |
 | `docs/intent/diplomacy-and-intelligence/written-agreements-seals-and-forgery.md` | Written agreements, seals and forgery | 10.3 |
-| `docs/intent/diplomacy-and-intelligence/lies-tablets-and-scribes.md` | Lies, tablets and scribes | 4.5 |
+| `docs/intent/diplomacy-and-intelligence/lies-tablets-and-scribes.md` | Lies, tablets and scribes | 4.6 |
 | `docs/intent/diplomacy-and-intelligence/languages.md` | Languages | 12.7 |
 | `docs/intent/diplomacy-and-intelligence/spies-and-intelligence.md` | Spies and intelligence | 1.0 |
 | `docs/intent/diplomacy-and-intelligence/catastrophes-and-hidden-information.md` | Catastrophes and hidden information | 1.3 |

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 16 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 17 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 # Characters
 
 Who characters are: hidden traits and facts, memory, errands, the pool, skills, reputation and what they know, and how scripts and models play them.
