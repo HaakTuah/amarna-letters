@@ -11,8 +11,11 @@ says why, what it cost and what was found. Weekly usage: unknown (this session c
 
 The live design document (Claude Docs) was asked for changes since the copy's revisions in the tabs this item reads:
 Build order (rev 37), War, travel and the seas (18), Diplomacy and intelligence (18), World and history (23). None: the
-copy in `docs/intent/` is current. Item 7a's ten questions are still open in "For Haakon"; this item builds on their
-readings (winter closes the open sea; travel bands kept until now, which 7b replaces).
+copy in `docs/intent/` was current when the item began. While it was being built Haakon answered item 7a's review
+(the copy's Build order revision 39, merged into `develop` as #69 and #71): readings 6 and 8, which this item builds on
+(winter closes the open sea; the travel bands, which 7b replaces), stand. Ṣumur as a province of its own, with the phone
+made to read the Levant, and Lukka as a land without a king were added to the start of 7b, "or first in item 8, if 7b
+began before these answers reached it": this item began before them, so item 8 builds them first.
 
 ## What was built
 
