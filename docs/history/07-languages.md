@@ -19,7 +19,7 @@ tongue), and a court read what its scribes could write, which is a separate fact
 | Ugaritic | Semitic | Its own alphabetic cuneiform | Ugarit | A |
 | Amorite and steppe West Semitic | Semitic | Not written | The middle Euphrates, the Suteans, inland Syria | B |
 | Hurrian | Hurro-Urartian (isolate family) | Cuneiform (EA 24, Tushratta's long Hurrian letter) | Mitanni, Kizzuwatna, north Syria (Aleppo, Alalakh, Qatna's elite), Arrapha, Isuwa in part | A |
-| Hittite (Nesite) | Indo-European (Anatolian) | Cuneiform; Arzawa's letters to Egypt (EA 31-32) | The court and elite of Hatti; Hattusa's heartland | A |
+| Hittite (Nesite) | Indo-European (Anatolian) | Cuneiform; the Arzawa correspondence (EA 31-32) | The court and elite of Hatti; Hattusa's heartland | A |
 | Luwian | Indo-European (Anatolian) | Cuneiform and the first hieroglyphic seals | Most of Anatolia outside the Hittite core: Arzawa's lands, Kizzuwatna, the Lower Land, Lukka; much of Hatti's own people | B |
 | Hattic | Isolate | In Hittite ritual texts only | Little spoken; a dying language of north-central Anatolia | B |
 | Elamite | Isolate | Cuneiform | Susa and the Elamite highlands | A |
@@ -82,7 +82,7 @@ Item 12 sets the numbers; these are what the sources show about kinds of people 
 - **Scribes** wrote Akkadian across the whole region, trained in the Babylonian curriculum (lexical lists and the epic
   tablets found at Amarna, Hattusa and Ugarit) [A]. A Levantine scribe also spoke Canaanite and wrote a mixed Akkadian
   ("Canaano-Akkadian") [A]. Scribes at Ugarit and Hattusa knew several languages [A].
-- **Envoys** were often chosen for languages; Tushratta's interpreter is named in his letters [A, C on the name], and
+- **Envoys** were often chosen for languages; Pharaoh's interpreter Hane, who travelled with Mane, is named (EA 21) [A], and
   the word for interpreter, *targumannu*, is attested [A].
 - **Merchants** of Ugarit and Alashiya traded with every coast; several languages are likely [B].
 - **Soldiers and their captains** spoke their home tongue: Nubian troops in Canaan, Sherden at Byblos [A, that they

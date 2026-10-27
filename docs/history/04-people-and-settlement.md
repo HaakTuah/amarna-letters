@@ -4,7 +4,7 @@ For "People of the land" (item 10+) and city-states as powers (item 11+). Grades
 [README](README.md).
 
 **In one line:** ancient numbers are uncertain to a factor of two, so this dossier gives ranges; Egypt alone held
-perhaps as many people as all the others but Babylonia and Hatti together, the Levant's famous cities were small (a few
+about as many people as all the other powers together, the Levant's famous cities were small (a few
 thousand people each), and nine in ten people everywhere worked the land or herded.
 
 **How the estimates are made.** Few texts count people. Estimates come from the settled area that surveys and

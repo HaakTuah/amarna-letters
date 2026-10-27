@@ -24,6 +24,7 @@ Every claim carries a grade in brackets:
 - **[B] Accepted.** An inference most scholars share, from the sources cited.
 - **[C] Disputed or estimated.** Scholars disagree, or the figure is an estimate from thin evidence; the range or the
   rival readings are given.
+- **[S] Silent.** The sources record nothing either way.
 - **[G] First guess.** The sources are silent; the builder's reasonable guess, for the game only. Item 18 may tune it.
 
 Where a figure has to become a game number, the dossier says which end of a range to start from.

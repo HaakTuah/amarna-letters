@@ -29,7 +29,7 @@ can know, with its letter; how much it weighs is item 10's to set.
 | Burna-Buriash | Egypt | grievance | Assyrians received at Pharaoh's court as if independent (EA 9) | A |
 | Burna-Buriash | Egypt | grievance | Only five carriages sent to escort his daughter (EA 11) | A |
 | Burna-Buriash | Assyria | claim | "The Assyrians, my vassals" (EA 9) | A |
-| Burna-Buriash | Egypt | sympathy | His fathers' friendship with Pharaoh's; he refused Canaanite rebels who asked for his help against Egypt, he says (EA 9) | A |
+| Burna-Buriash | Egypt | sympathy | His fathers' friendship with Pharaoh's; his father Kurigalzu refused Canaanites who asked for help against Egypt, he recalls (EA 9) | A |
 | Ashur-uballit (Assyria) | Egypt | grievance | Pharaoh's gift too small for a Great King; when his ancestor Ashur-nadin-ahhe wrote, twenty talents of gold were sent (EA 16) | A |
 | Ashur-uballit | Egypt | grievance | His envoys kept standing in the sun until they die (EA 16) | A |
 | Suppiluliuma (Hatti) | Egypt | grievance | The new Pharaoh has not written or sent gifts as his father did (EA 41) | A |
@@ -42,7 +42,7 @@ can know, with its letter; how much it weighs is item 10's to set.
 | From | Towards | Kind | What | Grade |
 | --- | --- | --- | --- | --- |
 | Rib-Hadda (Byblos) | Abdi-Ashirta and Aziru (Amurru) | grievance | They took the towns of Byblos and Sumur and made the Habiru masters of the land (EA 68-138) | A |
-| Rib-Hadda | Zimrida (Sidon), Yapah-Hadda (Beirut) | grievance | They side with Aziru and seize Byblos's ships (EA 105, 114, 118) | A |
+| Rib-Hadda | Zimrida (Sidon), Yapah-Hadda (of Beirut before Ammunira, or of another coastal town [C]) | grievance | They side with Aziru and seize Byblos's ships (EA 105, 114, 118) | A |
 | Abi-Milku (Tyre) | Zimrida (Sidon) | grievance | Sidon cuts Tyre off from water and wood on the mainland and reports to Aziru (EA 147-149) | A |
 | Aziru (Amurru) | Tutu (Egypt's chamberlain) | sympathy | "My father", his friend at court (EA 158, 164) | A |
 | Abdi-Heba (Jerusalem) | Milkilu (Gezer), Shuwardata, the sons of Labaya | grievance | They gave the king's land to the Habiru (EA 287, 289) | A |
@@ -85,11 +85,11 @@ to Moran's, **(p)** where paraphrased.
 - **Hard times (q):** "The hand of Nergal is now in my country; it has slain all the men of my country, and there is
   not a single copper-worker." (EA 35)
 - **Language (p):** Write to me in Hittite. (EA 32)
-- **Precedent (p):** When my ancestor wrote to your father, twenty talents of gold were sent; send me as much. (EA 16)
+- **Precedent (p):** When my ancestor wrote to Egypt, twenty talents of gold were sent; send me as much. (EA 16)
 
 ## Norms of the age, and the letters' own proof that they were tools
 
-| Norm | Evidence | The same letters using it to win | Grade |
+| Norm | Evidence | The same letters bending it | Grade |
 | --- | --- | --- | --- |
 | Great Kings are brothers, equals who greet each other's households | EA 1-41 | Tushratta calls Pharaoh brother while accusing him of cheating (EA 27-29); Burna-Buriash calls him brother while threatening to cut ties (EA 7-10) | A |
 | Gifts answer gifts, weighed and compared; a greeting gift with every embassy | EA 7, 10, 14, 16, 19 | Gifts weighed in the kiln and complained of; gifts asked for by precedent (EA 16) | A |
@@ -100,5 +100,6 @@ to Moran's, **(p)** where paraphrased.
 | Oaths before the gods bind treaties | Beckman, the treaties | Treaties are broken and replaced as power shifts (Ugarit, Amurru, Qadesh) | A |
 | A ruler asks after his brother's health and household | EA 7, 17-29 | Not asking is a grievance (EA 7) | A |
 
-**For item 17:** teach the norms as the shared language of the game, the way to make a demand sound just and a refusal
-sound reasonable, never as a reason to give in. The letters show no king giving way because the forms required it.
+**For item 17:** teach the norms as the shared language of the age, the way a demand is made to sound just and a
+refusal reasonable; whether to honour one is each ruler's choice ("Style, not strategy": tools of play, never limits
+on it).

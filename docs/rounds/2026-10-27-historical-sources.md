@@ -58,7 +58,17 @@ applies to the items that build from the dossiers. Run once at the start as the 
 
 ## The review
 
-(Filled in after the review.)
+One reviewer (Opus, high effort), given the item's text and the diff. It found no gap against the brief and most EA
+citations and quotations right, and three blocking errors, all fixed: the economy's shares carried the evidence's
+grade (now every share is [G] and the grade column grades the evidence; Ergani's Late Bronze working is [C]);
+Ahutabu went on to Egypt and the merchants left behind were killed (EA 8), not he; and in EA 9 it was Burna-Buriash's
+father Kurigalzu who refused the Canaanites. Its smaller points were fixed too: Tushratta's reign from about 1365;
+Labaya's death in EA 245; "Namhurya", EA 41's "Huriya", Kurigalzu's Susa, Heba of Ugarit, Knossos in 1346 and
+Meluhha graded as doubts; Yanhamu's grain at Yarimuta; Sharrupshi in the Tette treaty; Amanappa's letters; Kalbaya
+[A]; Nubian name examples limited to the attested; EA 31-32 as the Arzawa correspondence; Pharaoh's interpreter Hane
+(EA 21); the Gezer calendar's farming cycle graded [B]; a new grade [S] for "the sources are silent"; Egypt's people
+about as many as all the other powers'; EA 16's precedent "to Egypt"; Yapah-Hadda's city a doubt; and the note for
+item 17 reworded so the norms are a shared language, whether to honour one each ruler's choice.
 
 ## Readings taken and design questions
 

@@ -22,7 +22,7 @@ The game's seasons, as months of the real year (Egyptian civil calendar near its
 | Assyria (`ashur`, `nineveh`, `arbela`, `ekallatum`) | Rain-fed north of Ashur (250-500 mm); some irrigation | Peret (Nov-Dec) | late Shemu (May-Jun) | cool, some frost | hot, dry | B |
 | Mitanni (`washukanni`, `taidu`, `harran`, `terqa`) | Rain-fed in the Habur triangle; steppe to the south; the Habur and Balikh for irrigation | Peret | late Shemu (May-Jun) | cool | hot, dry | B |
 | Middle Euphrates (`mari`) | The river only; steppe around | Peret | Shemu | mild | very hot | B |
-| Levant coast and hills (`ugarit`, `amurru`, `byblos`, `tyre`, `gaza`, `megiddo`, `damascus`, `qadesh`, `carchemish`) | Winter rain (Oct-Apr), 400-1,000 mm on the coast and western slopes, less inland | with the first rains (Nov-Dec) | barley Apr-May, wheat May-Jun (Shemu); grapes and figs in Akhet; olives at its end | wet, mild on the coast, cold inland | dry | A for the cycle (the Gezer calendar, later), B for the rest |
+| Levant coast and hills (`ugarit`, `amurru`, `byblos`, `tyre`, `gaza`, `megiddo`, `damascus`, `qadesh`, `carchemish`) | Winter rain (Oct-Apr), 400-1,000 mm on the coast and western slopes, less inland | with the first rains (Nov-Dec) | barley Apr-May, wheat May-Jun (Shemu); grapes and figs in Akhet; olives at its end | wet, mild on the coast, cold inland | dry | B (the cycle as the Gezer calendar gives it, 400 years later) |
 | Anatolian plateau (`hattusa`, `sapinuwa`, `kanesh`, `tuwanuwa`, `isuwa`) | Rain and snow, 300-600 mm; rain-fed; drought-prone | autumn (winter wheat) or spring | Jul-Aug (early Akhet) | **hard**: snow, passes closed Nov-Mar | warm | B |
 | Kizzuwatna (`kizzuwatna`) | The Cilician plain, rain and rivers; fertile | Peret | Shemu | mild | hot | B |
 | Western Anatolia (`apasa`, `seha`, `mira`, `lukka`) | Mediterranean rain; river valleys (Hermus, Meander) | Peret | Shemu | mild on the coast, cold inland | dry | B |
@@ -39,7 +39,7 @@ with "I went into winter quarters" [A].
   harvest [A]. A low flood means hunger; a very high one breaks dykes and floods villages [A: Egyptian texts across
   periods]. How often: the medieval Roda nilometer record suggests a poor flood about one year in five and a
   disastrous one rarely, perhaps once a generation [C: Hassan's studies of the Roda record]. No bad flood is recorded
-  for Akhenaten's reign [—]. **First guess [G]:** a low Nile one Akhet in eight, a ruinous one one in thirty.
+  for Akhenaten's reign [S]. **First guess [G]:** a low Nile one Akhet in eight, a ruinous one one in thirty.
 - **The Tigris and the Euphrates** rise with the snowmelt in the Taurus and Zagros, the Tigris peaking in April and
   the Euphrates in May, at or just before the harvest, so their floods do harm, breaking levees and changing course
   [A: Mesopotamian texts on floods across periods; B for the months]. The rivers also silt and salt the fields of the

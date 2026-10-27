@@ -7,18 +7,19 @@ For "Mines are where they were", "Six resources", "Edge markets", "What each edg
 **In one line:** gold came from Egypt's Eastern Desert and Nubia, copper from Cyprus above all, tin from beyond the map
 by two roads, cedar from the Lebanon, horses from the northern grasslands, and grain from everywhere, with the surplus
 in the flood valleys; absolute outputs are mostly unknown, so the shares below are proportions, most of them marked
-estimates.
+estimates. **Every share in the tables below is a first guess [G]**; the grade column grades the evidence for the
+source, not the number.
 
 ## Gold (precious metal: gold and silver)
 
 | Source (province) | Share of the map's new precious metal | Grade | Evidence |
 | --- | --- | --- | --- |
-| Lower Nubia, Wawat: the Wadi Allaqi and its desert (Nubia, item 7) | 45% | B | Thutmose III's *Annals* list Wawat's gold yearly, about 3,000 deben (some 280 kg) in his year 34; Wadi Allaqi's mines |
-| Egypt's Eastern Desert, by Coptos (`thebes`) | 25% | B | Many New Kingdom workings (Klemm and Klemm, *Gold and Gold Mining in Ancient Egypt and Nubia*, 2013); the Turin mining papyrus (later) |
-| Upper Nubia, Kush (Nubia, item 7) | 10% | B | The *Annals* list Kush's gold separately, in smaller amounts |
-| Hatti's silver: the Taurus (Bolkardağ) and Keban by Isuwa (`tuwanuwa`, `kizzuwatna`, `isuwa`) | 12% | B | The Hittites reckoned in silver; the Taurus silver-lead mines (Yener) |
-| River gold of western Anatolia, the Pactolus by the Hermus (`seha`) | 5% | C | Famous later (Lydia, 7th century); its working in 1346 is unproven |
-| Others (Arzawa's hills, Cyprus's small silver) | 3% | G | |
+| Lower Nubia, Wawat: the Wadi Allaqi and its desert (Nubia, item 7) | 45% [G] | B | Thutmose III's *Annals* list Wawat's gold yearly, about 3,000 deben (some 280 kg) in his year 34; Wadi Allaqi's mines |
+| Egypt's Eastern Desert, by Coptos (`thebes`) | 25% [G] | B | Many New Kingdom workings (Klemm and Klemm, *Gold and Gold Mining in Ancient Egypt and Nubia*, 2013); the Turin mining papyrus (later) |
+| Upper Nubia, Kush (Nubia, item 7) | 10% [G] | B | The *Annals* list Kush's gold separately, in smaller amounts |
+| Hatti's silver: the Taurus (Bolkardağ) and Keban by Isuwa (`tuwanuwa`, `kizzuwatna`, `isuwa`) | 12% [G] | B | The Hittites reckoned in silver; the Taurus silver-lead mines (Yener) |
+| River gold of western Anatolia, the Pactolus by the Hermus (`seha`) | 5% [G] | C | Famous later (Lydia, 7th century); its working in 1346 is unproven |
+| Others (Arzawa's hills, Cyprus's small silver) | 3% [G] | G | |
 
 Egypt's gold was what every other Great King asked for: "in my brother's land gold is as plentiful as dirt" (EA 19,
 Tushratta) [A]; Burna-Buriash (EA 7-11) and Ashur-uballit (EA 16) ask for it too [A]. Babylonia under the Kassites
@@ -30,11 +31,11 @@ times in Babylonia and Hatti; the game's single precious metal keeps them as one
 
 | Source (province) | Share of the map's copper | Grade | Evidence |
 | --- | --- | --- | --- |
-| Cyprus, the Troodos ore bodies: Apliki, Skouriotissa and the Morphou side; Politiko; Kalavasos (`tamassos`) | 55% | B | Late Cypriot mines and slag heaps; the oxhide ingots of Uluburun and Cape Gelidonya mostly Cypriot by lead isotopes (Gale and Stos-Gale) |
-| Cyprus: Enkomi and the east, smelting and export (`enkomi`) | 20% | B | Enkomi's copper workshops; the king of Alashiya sends 100 and 500 (talents?) of copper (EA 34, EA 35) [A; the unit is disputed: Papadopoulou, [AURA 2020](https://epub.lib.uoa.gr/index.php/aura/article/view/2173)] |
-| Ergani Maden, the land of Alzi by Isuwa (`isuwa`) | 15% | B | The largest copper mine of Anatolia; fought over by Hatti and Mitanni (the Shattiwaza treaty names Alzi and Isuwa) |
-| The Sinai and the Arabah (`sinai`) | 3% | C | Small Egyptian workings at this date; Timna's big Egyptian phase is Ramesside, Faynan's mostly later |
-| Other Anatolian sources (`lukka`, `kanesh`) | 7% | G | Small ores in the Taurus |
+| Cyprus, the Troodos ore bodies: Apliki, Skouriotissa and the Morphou side; Politiko; Kalavasos (`tamassos`) | 55% [G] | B | Late Cypriot mines and slag heaps; the oxhide ingots of Uluburun and Cape Gelidonya mostly Cypriot by lead isotopes (Gale and Stos-Gale) |
+| Cyprus: Enkomi and the east, smelting and export (`enkomi`) | 20% [G] | B | Enkomi's copper workshops; the king of Alashiya sends 100 and 500 (talents?) of copper (EA 34, EA 35) [A; the unit is disputed: Papadopoulou, [AURA 2020](https://epub.lib.uoa.gr/index.php/aura/article/view/2173)] |
+| Ergani Maden, the land of Alzi by Isuwa (`isuwa`) | 15% [G] | C | The largest copper mine of Anatolia; fought over by Hatti and Mitanni (the Shattiwaza treaty names Alzi and Isuwa) |
+| The Sinai and the Arabah (`sinai`) | 3% [G] | C | Small Egyptian workings at this date; Timna's big Egyptian phase is Ramesside, Faynan's mostly later |
+| Other Anatolian sources (`lukka`, `kanesh`) | 7% [G] | G | Small ores in the Taurus |
 
 **Magan** (Oman) sells a little copper at the Gulf edge [B: Dilmun-Magan trade, smaller by this period than in the
 third millennium].
@@ -45,8 +46,8 @@ No tin was mined on the map in 1346, as far as the sources tell [B]; it came fro
 
 | Road | Share | Grade | Evidence |
 | --- | --- | --- | --- |
-| East, overland from Central Asia through Iran, into Elam (`susa`), up the Euphrates (`mari`) to Syria | 50% | C | The Mari letters (18th century) show tin from Elam passing through Mari to Aleppo, Qatna and Ugarit [A, earlier]; Powell et al. (2022) put about a third of the Uluburun tin at Mušiston in Central Asia |
-| West, by sea, arriving on Arzawa's coast, at Alashiya and in the Levantine ports | 50% | C | Berger et al. (2019, *PLOS ONE*) and Williams et al. (2025, *Antiquity*) match tin ingots from wrecks off Israel to Cornwall and Devon, about 1300 BCE ([Science News](https://www.sciencenews.org/article/british-tin-bronze-age-civilizations)); Berger et al. (2023) argue part of the Uluburun tin shares that origin |
+| East, overland from Central Asia through Iran, into Elam (`susa`), up the Euphrates (`mari`) to Syria | 50% [G] | C | The Mari letters (18th century) show tin from Elam passing through Mari to Aleppo, Qatna and Ugarit [A, earlier]; Powell et al. (2022) put about a third of the Uluburun tin at Mušiston in Central Asia |
+| West, by sea, arriving on Arzawa's coast, at Alashiya and in the Levantine ports | 50% [G] | C | Berger et al. (2019, *PLOS ONE*) and Williams et al. (2025, *Antiquity*) match tin ingots from wrecks off Israel to Cornwall and Devon, about 1300 BCE ([Science News](https://www.sciencenews.org/article/british-tin-bronze-age-civilizations)); Berger et al. (2023) argue part of the Uluburun tin shares that origin |
 
 **The debate, weighed.** Powell et al. (2022, [doi](https://doi.org/10.1126/sciadv.abq3766)) attribute about **two thirds**
 of the Uluburun tin to **Kestel in the Taurus**, on the map in Hatti's lands near Tuwanuwa and Kizzuwatna, and a third
@@ -63,10 +64,10 @@ would give one court both metals, against "no court has both" ("Six resources").
 
 | Source (province) | Share | Grade | Evidence |
 | --- | --- | --- | --- |
-| The Lebanon's cedar and fir, behind Byblos, Sidon, Tyre and Sumur (`byblos`, `amurru`, `tyre`, Sidon) | 45% | A | Egypt's "cedar of the Lebanon" for ships, temples and coffins across periods (Wenamun, later); Aziru promises ship timber to Pharaoh (EA 160-161) |
-| The Amanus and the Taurus (`kizzuwatna`, Mukish) | 20% | B | Mesopotamian kings' "cedar mountain"; Hittite timber |
-| Cyprus's Troodos pine (`tamassos`, `enkomi`) | 15% | B | It fuelled the island's smelting ("Alashiya, the copper island"); the king sends Pharaoh timber (EA 35, ship's wood) [B] |
-| Anatolia's northern and western forests (`sapinuwa`, `apasa`, `seha`, `mira`, `lukka`; the Kaska lands) | 20% | B | |
+| The Lebanon's cedar and fir, behind Byblos, Sidon, Tyre and Sumur (`byblos`, `amurru`, `tyre`, Sidon) | 45% [G] | A | Egypt's "cedar of the Lebanon" for ships, temples and coffins across periods (Wenamun, later); Aziru promises ship timber to Pharaoh (EA 160-161) |
+| The Amanus and the Taurus (`kizzuwatna`, Mukish) | 20% [G] | B | Mesopotamian kings' "cedar mountain"; Hittite timber |
+| Cyprus's Troodos pine (`tamassos`, `enkomi`) | 15% [G] | B | It fuelled the island's smelting ("Alashiya, the copper island"); the king sends Pharaoh timber (EA 35, ship's wood) [B] |
+| Anatolia's northern and western forests (`sapinuwa`, `apasa`, `seha`, `mira`, `lukka`; the Kaska lands) | 20% [G] | B | |
 
 None in Egypt beyond acacia and sycamore, none in Babylonia or Assyria beyond poplar and palm [A].
 
@@ -74,11 +75,11 @@ None in Egypt beyond acacia and sycamore, none in Babylonia or Assyria beyond po
 
 | Source (province) | Share | Grade | Evidence |
 | --- | --- | --- | --- |
-| Mitanni's steppe, the Habur and Balikh (`washukanni`, `taidu`, `harran`) | 30% | B | The *maryannu* chariot class; Kikkuli's horse-training manual, by a trainer from Mitanni (CTH 284) |
-| Hatti's plateau (`tuwanuwa`, `kanesh`, `hattusa`) | 25% | B | Hittite chariotry; later fame of Cappadocian horses |
-| Babylonia, through the Kassites (`durkurigalzu`, `sippar`) | 20% | B | Kassite horse texts and breeders' names; horses among Babylon's gifts to Egypt (EA 9) [B] |
-| Assyria (`nineveh`, `arbela`) | 15% | A, B | "A chariot, two horses" with Ashur-uballit's first letter (EA 15) [A] |
-| Others (Isuwa, Carchemish, Nuhashshe) | 10% | G | |
+| Mitanni's steppe, the Habur and Balikh (`washukanni`, `taidu`, `harran`) | 30% [G] | B | The *maryannu* chariot class; Kikkuli's horse-training manual, by a trainer from Mitanni (CTH 284) |
+| Hatti's plateau (`tuwanuwa`, `kanesh`, `hattusa`) | 25% [G] | B | Hittite chariotry; later fame of Cappadocian horses |
+| Babylonia, through the Kassites (`durkurigalzu`, `sippar`) | 20% [G] | B | Kassite horse texts and breeders' names; horses among Babylon's gifts to Egypt (EA 9) [B] |
+| Assyria (`nineveh`, `arbela`) | 15% [G] | A, B | "A chariot, two horses" with Ashur-uballit's first letter (EA 15) [A] |
+| Others (Isuwa, Carchemish, Nuhashshe) | 10% [G] | G | |
 
 Egypt bred few and relied on tribute and gifts [B]; Tushratta sends Pharaoh chariots and horses from Hittite booty (EA
 17) [A]; vassals ask Pharaoh for horses (Rib-Hadda, EA 71) and send him some [A].

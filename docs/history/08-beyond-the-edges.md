@@ -45,8 +45,8 @@ across Iran [G].
   most prominent in the 13th; a Great King in one Hittite text of the 13th century [A]. Linear B names for their men
   ("Name styles" in the people dossier). Language: Mycenaean Greek [A].
 - **Keftiu** (Crete). Theban tomb paintings (Rekhmire, Senenmut) show Keftiu bringing gifts; Amenhotep III's statue
-  base at Kom el-Hetan lists Knossos, Amnisos, Phaistos, Kydonia, Mycenae and Kythera [A]. In 1346 Knossos is under
-  Greek rulers writing Linear B [B]. Keftiu names survive in an Egyptian school exercise, "names of the Keftiu" [A];
+  base at Kom el-Hetan lists Knossos, Amnisos, Phaistos, Kydonia, Mycenae and Kythera [A]. In 1346 Knossos is probably under
+  Greek rulers writing Linear B [C: the dates of the tablets and of the palace's fall are argued]. Keftiu names survive in an Egyptian school exercise, "names of the Keftiu" [A];
   most newcomers take Linear B names [B].
 - **Sherden** (*shirdanu*). Fighting men at Byblos in Rib-Hadda's letters (EA 81, 122-123) [A]; later Ramesses II's
   guard. Their homeland is unknown (Sardinia is a later guess) [C]. Names: none survive, invented and marked [G].
@@ -66,11 +66,11 @@ across Iran [G].
 - **Dilmun and Magan.** Dilmun was Babylonia's in 1346 (a Kassite governor) [B]; Magan, its copper trade past its
   height, was known by name [A]. Their languages are unknown [C].
 - **Meluhha.** In the third millennium the Indus; in the Amarna letters, the name for Nubia (EA 70, 95, 108, 112, 117,
-  127, 131-133) [A]. The Indus cities were gone by 1346 [A], so nobody comes from there.
+  127, 131-133) [B: an identification]. The Indus cities were gone by 1346 [A], so nobody comes from there.
 - **Kush, Irem and the Medjay.** Beyond Egypt's frontier at the Fourth Cataract lay Irem and other lands Egypt raided
   and traded with [B]; the Medjay, once desert nomads of the east, had become Egypt's police by name [B]. Names: Nubian,
   mostly unknown; Egyptian names among those who served Egypt [B].
-- **Punt.** Hatshepsut's expedition (about 1470) is the great record [A]; under Akhenaten no voyage is attested [—].
+- **Punt.** Hatshepsut's expedition (about 1470) is the great record [A]; under Akhenaten no voyage is attested [S].
 
 ## What each door's men know of a map language
 

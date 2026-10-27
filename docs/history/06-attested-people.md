@@ -32,7 +32,7 @@ What each person is known for is a fact about him, for his traits ("Attested cha
 | Hani | Envoy to Aziru; later to Hatti | yes | A | EA 161; the *Deeds* (the Dahamunzu affair, later) |
 | Pahanate | Commissioner at Sumur | doubt | A | EA 60, 62, 68; Sumur's fall (about 1346) |
 | Yanhamu | Commissioner, in charge of the grain at Yarimuta; perhaps of Semitic birth | yes | A | EA 83, 85, 86, 118, 270, 296 |
-| Amanappa | Official; Rib-Hadda's contact | yes | A | EA 73-79, 86-87 |
+| Amanappa | Official; Rib-Hadda's contact | yes | A | EA 73, 77, 82, 86, 87, 93 |
 | Maya | Commissioner in the south | likely | A | EA 216-218, 300, 337 |
 | Pawura | Commissioner; killed in the north | doubt | A | EA 287, 362 |
 | Addaya | Commissioner at Gaza | yes | A | EA 254, 285, 287 |
@@ -47,7 +47,7 @@ What each person is known for is a fact about him, for his traits ("Attested cha
 | (unnamed) | Captains of Nubian troops (Meluhha, Kashi) garrisoning Canaan; men of Kashi broke into Abdi-Heba's house (EA 287) | yes | A | EA 70, 95, 108, 112, 117, 127, 131-133, 287 |
 | Panehesy | See above: a Nubian name, origin unknown | yes | C | |
 
-Name style for more: Egyptian names, as Nubians in Egyptian service bore them (Hekanefer, Penre, Paser) [A]; a few
+Name style for more: Egyptian names, as Nubians in Egyptian service bore them (Hekanefer; Panehesy, "the Nubian") [B]; a few
 Nubian names survive in Egyptian writing only [C], so invented Nubian personal names are marked [G].
 
 ## Hatti
@@ -87,7 +87,7 @@ Nubian names survive in Egyptian writing only [C], so invented Nubian personal n
 | Burna-Buriash II | King | yes | A | EA 6-14 |
 | His daughter (unnamed) | Bride for Akhenaten's house; escorted by only five carriages | yes | A | EA 11 |
 | Salmu | Envoy, whose caravan was robbed twice in Egypt's lands | yes | A | EA 7 |
-| Ahutabu | Merchant, leader of the caravan robbed and killed at Hinnatuna | dead | A | EA 8 |
+| Ahutabu | Burna-Buriash's man (messenger or caravan leader) who went on to Egypt; the merchants left behind were killed at Hinnatuna | likely | A | EA 8 |
 | Enlil-kidinni | Governor of Nippur | yes | A | The Nippur letters |
 | Ili-ippashra | Governor of Dilmun, writing to Enlil-kidinni | likely | B | The Dilmun letters from Nippur |
 | Kurigalzu (II) | A son or grandson, later king | yes (young) | B | Kassite chronicles |
@@ -106,7 +106,7 @@ Nubian names survive in Egyptian writing only [C], so invented Nubian personal n
 | Name | Who | In 1346 | Grade | Source |
 | --- | --- | --- | --- | --- |
 | Tarhundaradu | King | doubt | A | EA 31-32 |
-| Kalbaya | Arzawa's envoy | doubt | B | EA 31 |
+| Kalbaya | Arzawa's envoy | doubt | A | EA 31 |
 | Irshappa | Egypt's envoy to Arzawa | doubt | A | EA 31 |
 | Uhhaziti | Later king | later | A | Mursili II's *Annals* |
 | Manapa-Tarhunta | Ruler of the Seha River Land | later | A | His treaty and letter (about 1320-1300) |

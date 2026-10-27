@@ -14,7 +14,7 @@ independent Assyria quarrel over Assyria's standing; Arzawa has passed its peak;
 | --- | --- | --- | --- | --- |
 | Egypt | Akhenaten (Amenhotep IV; *Naphurureya* in the letters) | B | 1353-1336 | Whether he shared the throne with Amenhotep III for some years is argued; most say no or briefly [C] |
 | Hatti | Suppiluliuma I (*Shuppiluliuma*) | C | c. 1350-1322 (Bryce) or c. 1344-1322 | On the shorter dating his predecessor (Tudhaliya III, or the short-lived "Tudhaliya the Younger") still reigns in 1346. The game starts with Suppiluliuma: his letter EA 41 and the *Deeds* put him on the throne during the Amarna years, and the opening conflicts are his |
-| Mitanni | Tushratta | B | c. 1380s-c. 1340 | His rival Artatama II claims the kingship as "king of the Hurrians" with Hittite backing [B]; Tushratta is murdered by one of his sons a few years after 1346 [A: Shattiwaza treaty, Beckman no. 6A] |
+| Mitanni | Tushratta | B | c. 1365-c. 1340 [C] | His rival Artatama II claims the kingship as "king of the Hurrians" with Hittite backing [B]; Tushratta is murdered by one of his sons a few years after 1346 [A: Shattiwaza treaty, Beckman no. 6A] |
 | Babylonia | Burna-Buriash II | B | 1359-1333 (Brinkman) | Kassite dynasty; firm within about ten years |
 | Assyria | Ashur-uballit I | B | c. 1363-1328 (or 1353-1318) | Writes to Pharaoh as an equal (EA 15, EA 16); Assyrian dates carry about ten years of play |
 | Arzawa | Tarhundaradu, or an unnamed successor | C | known from EA 31-32 only | EA 31 is Amenhotep III's letter to him, so he reigned before 1353; nobody knows who ruled in 1346. The next named king, Uhhaziti, fought Mursili II around 1320 [A: Mursili's *Annals*] |
@@ -64,7 +64,7 @@ is whose sphere the ruler is in during 1346.
 
 | Province | Ruler in 1346 | Holder | Grade | Notes |
 | --- | --- | --- | --- | --- |
-| Ugarit (`ugarit`) | Niqmaddu II (or his father Ammistamru I) | Egypt, turning to Hatti | C | Ammistamru wrote EA 45, Niqmaddu EA 49 (with his queen Heba, EA 48); Niqmaddu's treaty with Suppiluliuma (Beckman no. 4) makes him Hatti's vassal, around the Great Syrian War. Start under Egypt |
+| Ugarit (`ugarit`) | Niqmaddu II (or his father Ammistamru I) | Egypt, turning to Hatti | C | Ammistamru wrote EA 45, Niqmaddu EA 49 (EA 48 may be from his queen Heba [C]); Niqmaddu's treaty with Suppiluliuma (Beckman no. 4) makes him Hatti's vassal, around the Great Syrian War. Start under Egypt |
 | Amurru (`amurru`) | Aziru, son of Abdi-Ashirta | Egypt, nominally | B | Abdi-Ashirta died at about the start of Akhenaten's reign; Aziru takes Sumur and the coast towns, is summoned to Egypt and held about a year (EA 164-170), then goes over to Hatti (treaty, Beckman no. 5) |
 | Sumur (item 7) | Egyptian commissioner (Pahanate earlier) | Egypt | B | Egypt's base on the north coast; besieged and taken by Aziru around 1346 (EA 103-106, Rib-Hadda's reports) [C on the exact year] |
 | Arwad (item 7) | Unnamed ruler(s) | hostile to Byblos | A | The ships of Arwad blockade Byblos with Amurru (EA 98, EA 105) |
@@ -73,16 +73,16 @@ is whose sphere the ruler is in during 1346.
 | Sidon (item 7) | Zimrida | Egypt, friendly to Aziru | A | EA 144-145; accused by Abi-Milku of Tyre of siding with Amurru (EA 147-149) |
 | Tyre (`tyre`) | Abi-Milku | Egypt (loyal) | A | EA 146-155; the island city short of water and wood, blockaded from the mainland by Sidon (EA 148-149, 154). EA 155 names Akhenaten's daughter Meritaten, so these are Akhenaten's years |
 | Qadesh (`qadesh`) | Aitakama, son of Shutatarra | Egypt, then Hatti | A | Taken over in the Great Syrian War; raids Egyptian lands with Hittite backing (EA 189, EA 53, EA 197) |
-| Qatna (item 7) | Akizzi | Egypt (loyal) | A | EA 52-55 to Akhenaten ("Namhurya"), complains of Aitakama and of the Hittites taking the statue of Shamash (EA 55) |
-| Nuhashshe (item 7) | Addu-nirari; Sharrupshi | Mitanni, then Hatti | B | Addu-nirari asks Egypt for help (EA 51); Sharrupshi's treaty with Hatti is attested |
+| Qatna (item 7) | Akizzi | Egypt (loyal) | A | EA 52-55 to "Namhurya" (Akhenaten or Amenhotep III [C]), complains of Aitakama and of the Hittites taking the statue of Shamash (EA 55) |
+| Nuhashshe (item 7) | Addu-nirari; Sharrupshi | Mitanni, then Hatti | B | Addu-nirari asks Egypt for help (EA 51); Sharrupshi appears in the historical prologue of the Tette treaty (Beckman no. 7) |
 | Aleppo / Halab (item 7) | Unnamed | Mitanni | B | Taken in the Great Syrian War; later Telipinu, a son of Suppiluliuma, is made its king [A] |
 | Alalakh / Mukish (item 7) | Itur-Addu | Mitanni | B | Joins Nuhashshe against Ugarit when Ugarit sides with Hatti (Beckman no. 4) |
 | Carchemish (`carchemish`) | Unnamed Mitanni vassal | Mitanni | B | Mitanni's Euphrates crossing until Suppiluliuma's siege (about 1327 [C]), after which his son Piyassili (Sharri-Kushuh) rules it [A] |
 | Damascus (`damascus`) / Kumidi (item 7) | Biryawaza | Egypt | A | EA 194-197; an Egyptian vassal in Upe (the Damascus land) with authority around Kumidi |
 | Megiddo (`megiddo`) | Biridiya | Egypt (loyal) | A | EA 242-248; besieged by Labaya and calling for 100 men to guard the city (EA 244) |
-| Shechem (item 7) | Labaya, or his sons | Egypt, nominally | C | EA 252-254. He was killed by the men of Gina, and his sons carried on (EA 250, EA 255-256: Mut-Baal of Pihil). Most place his death late in Amenhotep III's reign or early in Akhenaten's, so by 1346 he is **probably dead** and his sons hold his lands. See "Design questions" |
+| Shechem (item 7) | Labaya, or his sons | Egypt, nominally | C | EA 252-254. He was killed by the men of Gina (EA 245, Biridiya's report), and his sons carried on (EA 250, EA 255-256: Mut-Baal of Pihil). Most place his death late in Amenhotep III's reign or early in Akhenaten's, so by 1346 he is **probably dead** and his sons hold his lands. See "Design questions" |
 | Jerusalem (item 7) | Abdi-Heba | Egypt (loyal) | A | EA 285-290; accuses Milkilu of Gezer and the sons of Labaya of giving the land to the Habiru (EA 287, 289) |
-| Gaza (`gaza`) | Egyptian commissioner | Egypt | A | An Egyptian centre (EA 289, EA 296); Yanhamu, an Egyptian official, is in charge of supplies in the south (EA 83, 85, 86) [A] |
+| Gaza (`gaza`) | Egyptian commissioner | Egypt | A | An Egyptian centre (EA 289, EA 296); Yanhamu, an Egyptian official, is in charge of the grain at Yarimuta (EA 83, 85, 86) [A] |
 | Others in Canaan | Milkilu (Gezer), Shuwardata (Hebron hills), Yidya (Ashkelon), Surata (Akko), Abdi-Tirshi (Hazor), Zimreddi (Lachish) | Egypt | A | Within the current provinces' areas; useful as characters and future city-states |
 
 **Lands with no king** (start lawless or unruled, as "The edges of the map" and "People of the land" say):
@@ -93,7 +93,7 @@ is whose sphere the ruler is in during 1346.
 - **The middle Euphrates** (`mari`): by 1346 the land of Hana (Terqa its centre) under local kings, within Mitanni's
   reach [B]. Mari itself is a ruin since Hammurabi (about 1760) [A].
 - **Susa** (`susa`): Elam under the dynasty of the Igihalkids [B], unconnected with the letters. A generation before
-  1346 a Kassite Kurigalzu took Susa [B]; whether Babylonia still holds it in 1346 is unknown [C]. Start neutral, as now.
+  1346 a Kassite Kurigalzu took Susa [C: Kurigalzu I or II]; whether Babylonia still holds it in 1346 is unknown [C]. Start neutral, as now.
 - **Kaska lands, Sutean steppe** (item 7): tribes without kings ("The edges of the map").
 - **Habiru** (*'apiru*): not a people but outcasts, runaways and hired fighters, everywhere in the vassals' letters [B].
 
@@ -104,7 +104,7 @@ is whose sphere the ruler is in during 1346.
 | Egypt-Mitanni | Brothers, allied by marriage; souring over gold | A | EA 17-29; Tushratta complains to Akhenaten that the solid-gold statues promised by Amenhotep III came as gilded wood, and that his envoys Mane and Keliya were detained (EA 27, 29) |
 | Egypt-Babylonia | Brothers, by marriage; quarrelsome | A | EA 2-14: gifts that shrink in the kiln (EA 7, EA 10), envoys held, his merchants killed at Hinnatuna in Canaan (EA 8) |
 | Egypt-Assyria | New brothers, by Assyria's claim | A | EA 15-16; Ashur-uballit asks for gold "as plentiful as dust" and complains Egypt's envoys gave too little |
-| Egypt-Hatti | Correct but wary | A | EA 41 (Suppiluliuma asks why the new Pharaoh has not written), and Hittite pressure on Egypt's vassals (EA 55, EA 75, EA 126) |
+| Egypt-Hatti | Correct but wary | B/C | EA 41 (its "Huriya" may be Akhenaten, Smenkhkare or Tutankhamun) (Suppiluliuma asks why the new Pharaoh has not written), and Hittite pressure on Egypt's vassals (EA 55, EA 75, EA 126) |
 | Egypt-Arzawa | Friendly, an old marriage negotiation | A | EA 31-32, in Amenhotep III's time |
 | Egypt-Alashiya | Brothers, trading partners | A | EA 33-40: copper for silver and goods; the Lukka raids |
 | Hatti-Mitanni | Enemies, at war soon | A | Shattiwaza treaty; Tushratta reports beating a Hittite army (EA 17) |
