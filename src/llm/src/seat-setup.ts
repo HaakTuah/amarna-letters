@@ -39,6 +39,15 @@ export function leaderModel(k: LeaderKind): string | null {
 export function characterModel(k: CharacterKind): string | null {
   return k === "Script" || k.trim().length === 0 ? null : modelOf(k);
 }
+/**
+ * The model that words a king's standing answers ("phrasing calls" under "Minds follow what is at stake"): the small
+ * model the table chose for its characters, or the king's own if the characters play by script. Item 6c makes it a job
+ * of its own on the setup menu.
+ */
+export function phrasingModel(choices: SeatChoices, king: string): string {
+  return characterModel(choices.characters) ?? king;
+}
+
 export function narratorModel(k: NarratorKind): string | null {
   return k === "Template" || k.trim().length === 0 ? null : modelOf(k);
 }
@@ -263,7 +272,10 @@ export function providersFor(
 export function checkJobs(choices: SeatChoices, config: GameConfig): { model: string; schemas: ReplySchema[] }[] {
   const jobs: { model: string; schemas: ReplySchema[] }[] = [];
   for (const m of new Set([...choices.leaders.values()].map(leaderModel)))
-    if (m !== null) jobs.push({ model: m, schemas: [Replies.leaderOrders(config), Replies.hostReply(config, true)] });
+    if (m !== null) jobs.push({ model: m, schemas: [Replies.leaderOrders(config), Replies.hostReply(config, true), Replies.courtReply(config, true)] });
+  // The phrasing calls of the kings' standing answers go to the characters' model, or the king's own if none.
+  for (const m of new Set([...choices.leaders.values()].map(leaderModel)))
+    if (m !== null) jobs.push({ model: phrasingModel(choices, m), schemas: [Replies.phrase()] });
   const cm = characterModel(choices.characters);
   if (cm !== null)
     jobs.push({ model: cm, schemas: [Replies.present(), Replies.react(), Replies.report(), Replies.pitch(), Replies.text("report", "Your report home.")] });
@@ -305,7 +317,7 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
               LocalAgentLabel,
             )
           : model !== null
-            ? new LlmLeaderSeat(p, client!, model, choices.leaderEffort, state.config.customsPrimer, state.config)
+            ? new LlmLeaderSeat(p, client!, model, choices.leaderEffort, state.config.customsPrimer, state.config, null, phrasingModel(choices, model))
             : script,
     );
   }

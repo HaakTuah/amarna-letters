@@ -89,8 +89,8 @@ describe("RequestTextTests", () => {
     await mind.write(reportOf(envoy, 25));
 
     let [bare, laden, home, homeLaden] = [asker.calls[0], asker.calls[1], asker.calls[2], asker.calls[3]];
-    Assert.equal(["speech"], Recorder.fields(bare));
-    Assert.equal(["speech", "keep_gold", "swap_inventory"], Recorder.fields(laden));
+    Assert.equal(["as_written", "speech"], Recorder.fields(bare));
+    Assert.equal(["as_written", "speech", "keep_gold", "swap_inventory"], Recorder.fields(laden));
     Assert.equal(["report"], Recorder.fields(home));
     Assert.equal(["report", "keep_gold", "swap_inventory"], Recorder.fields(homeLaden));
     // Nor does its request speak of gold or of faking a seal when it carries none.

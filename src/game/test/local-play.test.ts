@@ -21,7 +21,7 @@ import {
 } from "@amarna/llm";
 import { FileExchange } from "@amarna/llm/node";
 import { Assert, toDict, join } from "../../engine/test/support.ts";
-import { File, Directory, Path, delay } from "./io.ts";
+import { File, Directory, Path, delay, welcomeCourt } from "./io.ts";
 
 // Local play on a Claude subscription: kings played by local agents, whose requests go through the local bridge
 // (sim/bridge.js) into their folders. The bridge here is a stand-in with the same endpoints over temporary folders.
@@ -33,8 +33,7 @@ describe("LocalPlayTests", () => {
     vi.unstubAllGlobals();
   });
 
-  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
-  const Welcome: string = `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
+  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
 
   // <summary>The bridge's endpoints, as sim/bridge.js serves them, over one temporary folder per king.</summary>
   class FakeBridge {
@@ -148,10 +147,10 @@ describe("LocalPlayTests", () => {
     const stop = new AbortController();
     let answering = answer(
       bridge,
-      (stem, _) =>
+      (stem, text) =>
         stem.includes("orders")
-          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
-          : Welcome,
+          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          : welcomeCourt(text),
       stop.signal,
     );
     await runner.playTurn();
@@ -189,7 +188,7 @@ describe("LocalPlayTests", () => {
       while (!stop2.signal.aborted) {
         for (const r of Directory.getFiles(folder, "*.request.md")) {
           let reply = r.slice(0, -".request.md".length) + ".reply.json";
-          if (!File.exists(reply)) await File.writeAllText(reply, r.includes("orders") ? HoldEverything : Welcome);
+          if (!File.exists(reply)) await File.writeAllText(reply, r.includes("orders") ? HoldEverything : welcomeCourt(await File.readAllText(r)));
         }
         try {
           await delay(20, stop2.signal);
@@ -212,7 +211,7 @@ describe("LocalPlayTests", () => {
     const stop = new AbortController();
     let answering = answer(
       bridge,
-      (stem, _) => (stem === "t1_orders_Alashiya" ? "this is not json" : stem === "t1_orders_Alashiya.retry" ? HoldEverything : Welcome),
+      (stem, text) => (stem === "t1_orders_Alashiya" ? "this is not json" : stem === "t1_orders_Alashiya.retry" ? HoldEverything : welcomeCourt(text)),
       stop.signal,
     );
     await runner.playTurn();
@@ -339,9 +338,9 @@ describe("LocalPlayTests", () => {
     let asked: string[] = [];
     let answering = answer(
       bridge,
-      (stem, _) => {
+      (stem, text) => {
         asked.push(stem);
-        return stem.includes("orders") ? `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}` : Welcome;
+        return stem.includes("orders") ? `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}` : welcomeCourt(text);
       },
       stop.signal,
     );

@@ -112,15 +112,20 @@ describe("LeaderMemoryTests", () => {
     Assert.contains("at most 2,000 characters (longer notes are cut)", str(Schemas.leaderOrders(Game.config), "properties", "notes", "description"));
   });
 
-  test("An orders request shows the last three seasons in full and says which notes leave", async () => {
+  test("An orders request shows the last three seasons, the older notes folded, and says which notes leave", async () => {
     let [seat, asker] = await played(4);
     await seat.decide(view(5));
     let request = lastOrdersRequest(asker);
     Assert.doesNotContain("notes of turn 1", request);
     for (const t of [2, 3, 4]) {
-      Assert.contains(`turn ${t} notes: notes of turn ${t}`, request);
+      Assert.contains(`turn ${t} notes${t === 4 ? "" : ", folded"}: notes of turn ${t}`, request);
       Assert.contains(`turn ${t} orders: hattusa holds`, request);
     }
+    // Notes older than the last season's are folded to their opening words ("the journal folding older notes").
+    const long = "word ".repeat(200).trim();
+    Assert.equal(long.slice(0, LeaderJournal.FoldedNotes), LeaderJournal.fold(long.slice(0, LeaderJournal.FoldedNotes)));
+    Assert.true(LeaderJournal.fold(long).length <= LeaderJournal.FoldedNotes + 1);
+    Assert.true(LeaderJournal.fold(long).endsWith("word…"));
     Assert.contains("Your notes from turn 2 leave this record after this season; keep what you need in your summary.", request);
     // No summary was written, and turn 1 has left: the king is told so.
     Assert.contains("YOUR SUMMARY OF EARLIER SEASONS: you have written none, and your notes from turn 1 and before have left this record.", request);
@@ -139,7 +144,7 @@ describe("LeaderMemoryTests", () => {
     let request = lastOrdersRequest(asker);
     Assert.contains("YOUR SUMMARY OF EARLIER SEASONS (your own words, turn 2): Egypt owes me 50; Mitanni is false.", request);
     // The summary comes first in the record, before the seasons shown in full.
-    Assert.true(request.indexOf("YOUR SUMMARY") < request.indexOf("turn 2 notes:"));
+    Assert.true(request.indexOf("YOUR SUMMARY") < request.indexOf("turn 2 notes"));
 
     let [again, againAsker] = await played(5, { summary: (t) => (t === 2 ? "old summary" : t === 5 ? "new summary" : "  ") });
     await again.decide(view(6));
@@ -159,7 +164,7 @@ describe("LeaderMemoryTests", () => {
     await seat.hostAudience(envoy(4), view(4));
     let request = last(asker.asked).user;
     Assert.contains("YOUR SUMMARY OF EARLIER SEASONS (your own words, turn 3): Babylon is my friend.", request);
-    Assert.contains("turn 2 notes: notes of turn 2", request);
+    Assert.contains("turn 2 notes, folded: notes of turn 2", request);
     Assert.contains("turn 3 notes: notes of turn 3", request);
     Assert.doesNotContain("notes of turn 1", request);
     Assert.doesNotContain("orders: hattusa holds", request);
@@ -178,7 +183,7 @@ describe("LeaderMemoryTests", () => {
     Assert.contains("summary", at(schema, "required") as string[]);
     Assert.contains("It replaces your previous summary; leave it empty to keep it.", str(schema, "properties", "summary", "description"));
     Assert.contains(
-      "Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders, in full; older notes then leave your record, so keep what you still need in your summary",
+      "Each set of orders shows you the notes, audiences and orders of the last three seasons you gave orders: the last season's notes in full, the two before by their opening words (the first 400 characters); older notes then leave your record, so keep what you still need in your summary",
       leaderRules(true, Game.config),
     );
   });

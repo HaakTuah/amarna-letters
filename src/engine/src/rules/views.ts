@@ -6,7 +6,8 @@ import { StartWalls, WorldMap } from "../model/map.ts";
 import { coverOf, factsKnownTo, hiddenAt, type Character, type Contract, type Cover } from "../model/people.ts";
 import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
-import { newScheduledOrders } from "../model/sleep.ts";
+import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
+import { sameConditions } from "./conditions.ts";
 import { alive, inboxOf, ledger, ownedBy, wallsOf, type GameState } from "../model/state.ts";
 import {
   newCharacterView,
@@ -166,9 +167,14 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     v.digest = [...sleep.digest];
     v.digestLeftOut = sleep.digestLeftOut;
     // Orders follow their units: each is shown as it would be given from where its unit stands now.
-    v.scheduled = sortBy(groupBy(sleep.scheduled, (x) => x.turn), [([k]: [number, unknown]) => k, cmpNum]).map(([k, g]) =>
-      newScheduledOrders({ turn: k, orders: g.map((x) => asShown(s, p, x)) }),
-    );
+    // Orders of one season with different conditions (a march held up a season among them) are shown apart.
+    const entries: ScheduledOrders[] = [];
+    for (const x of sleep.scheduled) {
+      const last = entries.length > 0 ? entries[entries.length - 1] : null;
+      if (last !== null && last.turn === x.turn && sameConditions(last.conditions, x.conditions)) last.orders.push(asShown(s, p, x));
+      else entries.push(newScheduledOrders({ turn: x.turn, orders: [asShown(s, p, x)], conditions: [...x.conditions] }));
+    }
+    v.scheduled = sortBy(entries, [(e: ScheduledOrders) => e.turn, cmpNum]);
   }
   // Every seat's standing orders, awake or asleep, each of its units named by where it stands now.
   const book = s.standing.tryGet(p);
@@ -180,8 +186,12 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         power: x.power,
         province: (x.when === "UnitAttacked" ? (s.units.find((u) => u.id === x.unitId && u.power === p)?.province ?? x.province) : x.province) ?? "",
         orders: x.orders.map((o) => asShown(s, p, o)),
+        conditions: [...x.conditions],
       }),
     );
+
+  // Its standing answers for what arrives at its court.
+  v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({ ...x, conditions: [...x.conditions] }));
 
   for (const c of s.characters) {
     if (!knows(c, p)) continue;

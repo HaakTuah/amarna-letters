@@ -71,7 +71,7 @@ describe("SleepTests", () => {
     Assert.doesNotContain('"wake_in_turn"', JSON.stringify(first.schema));
     let slept = travel - 1;
     let since = slept === 0 ? "You gave orders last season (turn 1)." : `You slept ${slept} season${slept === 1 ? "" : "s"} (you last gave orders in turn 1).`;
-    let host = firstOf(recorder.specs, (x) => x.key.startsWith(`t${1 + travel}/aud/`));
+    let host = firstOf(recorder.specs, (x) => x.key.startsWith(`t${1 + travel}/court/`));
     Assert.startsWith(
       since + " You were woken to receive an envoy: an envoy of Egypt came to your court. Your orders stand unless you reopen them at your audience.\n",
       host.user.replaceAll("\r\n", "\n"),
@@ -119,7 +119,7 @@ describe("SleepTests", () => {
     inboxOf(state, "Alashiya").push(newInboxItem({ turn: 2, kind: "Rumor", title: "Rumor", body: "Word spreads that Hatti is restless." }));
     for (let i = 0; i < 1 + travel; i++) await runner.playTurn();
 
-    let host = firstOf(recorder.specs, (x) => x.key.startsWith(`t${2 + travel}/aud/`)).user.replaceAll("\r\n", "\n");
+    let host = firstOf(recorder.specs, (x) => x.key.startsWith(`t${2 + travel}/court/`)).user.replaceAll("\r\n", "\n");
     Assert.contains("WHILE YOU SLEPT (since you gave orders in turn 1):", host);
     Assert.contains("[turn 2] [Rumor] Rumor: Word spreads that Hatti is restless.", host);
     // Before the season's news, as in the orders request.

@@ -28,6 +28,7 @@ import { alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { Views } from "../rules/views.ts";
+import type { SeatView } from "../model/views.ts";
 import type { PlannedOrder } from "../model/sleep.ts";
 import type { Firing } from "./plans.ts";
 
@@ -64,6 +65,8 @@ export class TurnEngine {
   readonly _firedNow = new Dict<Power, Firing[]>();
   /** The scheduled moves running this season, per seat, with what was kept: a move that fails holds up its unit's march. */
   readonly _marchNow = new Dict<Power, [Order, PlannedOrder][]>();
+  /** Each seat's view as the season begins, built once for the conditions of its orders (plans.ts). */
+  readonly _viewsNow = new Dict<Power, SeatView>();
 
   // ---------------------------------------------------------------- phase 1
 

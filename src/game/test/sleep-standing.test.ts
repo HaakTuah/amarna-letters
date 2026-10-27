@@ -469,7 +469,7 @@ describe("SleepTests", () => {
     Assert.contains("standing_orders", props);
     Assert.contains("cancel_standing", props);
     Assert.doesNotContain("schedule", props);
-    Assert.equal(["notes", "summary", "ledger", "units", "letters", "other_orders", "standing_orders", "cancel_standing"], off.required as string[]);
+    Assert.equal(["notes", "summary", "ledger", "units", "letters", "other_orders", "standing_orders", "cancel_standing", "standing_answers", "cancel_answers"], off.required as string[]);
     let described = str(off, "properties", "standing_orders", "description");
     Assert.equal(
       "New standing orders, kept until they fire or you cancel them (at most 12 in all, each with at most 24 orders). When you see the move it waits for, its orders run in that same season, once, so they meet the move: they replace your other orders for the same units or people that season, those you give then among them (cancel it to stop it). It first fires in the season after you give it. Giving one costs nothing; its orders cost what they cost when they run.",

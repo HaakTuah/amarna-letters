@@ -18,6 +18,8 @@ import {
   hire,
   hold,
   move,
+  newCondition,
+  newStandingAnswerRequest,
   newEnvoyReaction,
   newGreetingOptions,
   newHostReply,
@@ -40,6 +42,10 @@ import {
   authenticate,
   trim,
   unreadable,
+  type AnswerBrings,
+  type Condition,
+  type StandingAnswerRequest,
+  type ConditionKind,
   type EnvoyReaction,
   type HostReply,
   type LedgerLine,
@@ -100,6 +106,56 @@ function prov(s: string): string {
   return WorldMap.default.find(s)?.id ?? s.toLowerCase();
 }
 
+const ConditionKinds: Record<string, ConditionKind> = {
+  troops_in: "TroopsIn",
+  treasury_less_than: "TreasuryBelow",
+  treasury_at_least: "TreasuryAtLeast",
+  envoy_back: "EnvoyBack",
+  tablet_sealed: "TabletSealed",
+};
+
+const Brings: Record<string, AnswerBrings> = { anything: "Anything", words: "Words", gold: "Gold", tablet: "Tablet" };
+
+/** The standing answers of a reply (orders or court). */
+export function answersOf(o: Node): StandingAnswerRequest[] {
+  return items(o, "standing_answers").map((x) => {
+    const from = S(x, "from");
+    const brings = Brings[S(x, "brings").toLowerCase()];
+    return newStandingAnswerRequest({
+      from: from.length > 0 ? P(from) : null,
+      brings: brings ?? "Anything",
+      minGold: Math.max(0, I(x, "min_gold")),
+      seal: B(x, "seal"),
+      goldBack: I(x, "gold_back_percent"),
+      say: S(x, "say"),
+      conditions: conditionsOf(x),
+      unreadable: brings === undefined ? "name what the envoy brings: anything, words, gold or tablet" : from.length > 0 && P(from) === null ? `there is no court called '${from}'` : null,
+    });
+  });
+}
+
+/** The conditions of an entry, a standing order or a standing answer; one of a kind nobody knows is left out. */
+export function conditionsOf(n: Node): Condition[] {
+  const out: Condition[] = [];
+  for (const c of items(n, "conditions")) {
+    const kind = ConditionKinds[S(c, "kind").toLowerCase()];
+    if (kind === undefined) continue;
+    const named = empty(S(c, "power"));
+    const province = empty(S(c, "province"));
+    out.push(
+      newCondition({
+        kind,
+        unless: S(c, "test").toLowerCase() === "unless",
+        power: named !== null ? P(named) : null,
+        province: province !== null ? prov(province) : "",
+        amount: Math.max(0, I(c, "amount")),
+        person: S(c, "person").toLowerCase(),
+      }),
+    );
+  }
+  return out;
+}
+
 export function orders(o: JsonObject): TurnSubmission {
   // The king's notes and its summary of older seasons are for its own record; the engine ignores them. Its ledger too.
   const sub = newTurnSubmission({ notes: S(o, "notes"), summary: S(o, "summary"), ledger: ledger(o) });
@@ -124,6 +180,7 @@ export function orders(o: JsonObject): TurnSubmission {
       const order = other(x);
       if (order !== null) scheduled.orders.push(order);
     }
+    scheduled.conditions = conditionsOf(plan);
     if (scheduled.turn > 0) sub.scheduled.push(scheduled);
   }
   // Standing orders: when this move is seen, give these orders in the same season; and those to cancel.
@@ -151,14 +208,17 @@ export function orders(o: JsonObject): TurnSubmission {
       const order = other(x);
       if (order !== null) standing.orders.push(order);
     }
+    standing.conditions = conditionsOf(s);
     sub.standing.push(standing);
   }
   sub.cancelStanding = L(o, "cancel_standing");
+  sub.answers = answersOf(o);
+  sub.cancelAnswers = L(o, "cancel_answers");
   return sub;
 }
 
 /** The letters of a reply: each a dispatch order, or, for a court that cannot be read, an order the validator refuses. */
-function letters(o: JsonObject): Order[] {
+export function letters(o: JsonObject): Order[] {
   const list: Order[] = [];
   for (const l of items(o, "letters")) {
     const to = P(S(l, "to"));
@@ -321,6 +381,22 @@ export function host(o: JsonObject): HostReply {
   });
 }
 
+/** The answers of a court reply, by the id of the envoy each answers (the first answer for an envoy counts). */
+export function court(o: JsonObject): Map<string, HostReply> {
+  const out = new Map<string, HostReply>();
+  for (const x of items(o, "answers")) {
+    const id = trim(S(x, "envoy")).toLowerCase();
+    if (id.length > 0 && !out.has(id)) {
+      // Letters and the choice about its orders are the court's, not one answer's: they are read once, from the reply.
+      const reply = host(x as JsonObject);
+      reply.letters = [];
+      reply.reopenOrders = false;
+      out.set(id, reply);
+    }
+  }
+  return out;
+}
+
 export const present = (o: JsonObject): PresentResult => newPresentResult({ speech: S(o, "speech"), skim: Math.max(0, I(o, "keep_gold")), swapInventory: B(o, "swap_inventory") });
 
 export const react = (o: JsonObject): EnvoyReaction =>
@@ -332,4 +408,4 @@ export const pitchOf = (o: JsonObject): MindReply => newMindReply({ text: S(o, "
 
 export const fieldOf = (o: JsonObject, key: string): string => S(o, key);
 
-export const Parse = { orders, ledger, host, present, react, report: reportOf, pitch: pitchOf, field: fieldOf };
+export const Parse = { orders, ledger, host, court, letters, answers: answersOf, cancelAnswers: (o: JsonObject): string[] => L(o, "cancel_answers"), present, react, report: reportOf, pitch: pitchOf, field: fieldOf };

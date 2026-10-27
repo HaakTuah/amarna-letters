@@ -6,6 +6,7 @@
  */
 import { B, I, S, list, obj, opt, poly, type ObjSchema } from "../core/json.ts";
 import { ScheduledOrdersSchema, StandingRequestSchema, type ScheduledOrders, type StandingRequest } from "./sleep.ts";
+import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answers.ts";
 import { isBlank } from "../core/text.ts";
 import type { UnitKind } from "./map.ts";
 import type { Power } from "./power.ts";
@@ -466,12 +467,16 @@ export interface TurnSubmission {
   standing: StandingRequest[];
   /** Every seat, awake or asleep: ids of standing orders to cancel, or "all". */
   cancelStanding: string[];
+  /** Model, file and human seats: new standing answers for what arrives at its court (item 6b). */
+  answers: StandingAnswerRequest[];
+  /** Ids of standing answers to cancel, or "all". */
+  cancelAnswers: string[];
   /** Set by the runner when the script king stood in for a seat whose call failed: the seat has not seen this season. */
   fromFallback: boolean;
 }
 
 export function newTurnSubmission(init: Partial<TurnSubmission> = {}): TurnSubmission {
-  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], fromFallback: false, ...init };
+  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, ...init };
 }
 
 export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTurnSubmission, {
@@ -482,5 +487,7 @@ export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTur
   scheduled: list(() => ScheduledOrdersSchema),
   standing: list(() => StandingRequestSchema),
   cancelStanding: list(S),
+  answers: list(() => StandingAnswerRequestSchema),
+  cancelAnswers: list(S),
   fromFallback: B,
 });

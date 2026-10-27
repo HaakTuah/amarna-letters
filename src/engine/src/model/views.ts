@@ -7,6 +7,7 @@ import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import type { Power } from "./power.ts";
 import { type InboxItem, InboxItemSchema } from "./records.ts";
 import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, StandingOrderViewSchema } from "./sleep.ts";
+import { type StandingAnswer, StandingAnswerSchema } from "./answers.ts";
 
 export interface UnitView {
   power: Power;
@@ -378,6 +379,8 @@ export interface SeatView {
   scheduled: ScheduledOrders[];
   /** Its standing orders, each of its units named by where it stands now. */
   standing: StandingOrderView[];
+  /** Its standing answers for what arrives at its court (item 6b). */
+  answers: StandingAnswer[];
   /**
    * It sleeps and was woken for its audiences only ({@link WokenBecause} names the envoys): its orders stand unless
    * it reopens them at an audience.
@@ -429,6 +432,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     digestLeftOut: 0,
     scheduled: [],
     standing: [],
+    answers: [],
     holdsCourt: false,
     courtLetters: [],
     prices: new Dict(),
@@ -476,6 +480,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   digestLeftOut: I,
   scheduled: list(() => ScheduledOrdersSchema),
   standing: list(() => StandingOrderViewSchema),
+  answers: list(() => StandingAnswerSchema),
   holdsCourt: B,
   courtLetters: list(() => OrderSchema),
   prices: dict(I),

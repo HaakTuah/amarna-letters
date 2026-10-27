@@ -20,6 +20,24 @@ export const ModelIds = {
   },
 };
 
+/**
+ * Each job's cap on output ("Output is the other half"): the most a call of that job may write, thinking included. A reply
+ * is as long as its decision; the caps only stop a runaway one (a cut reply is retried once, then the script stands in).
+ * First guesses, not tuned.
+ */
+export const OutputCaps = {
+  orders: 16000,
+  /** A court with one envoy; each further envoy adds courtPerEnvoy, up to orders. */
+  court: 6000,
+  courtPerEnvoy: 2000,
+  audience: 8000,
+  character: 4000,
+  phrase: 600,
+  persona: 4000,
+  checkReport: 2000,
+  chronicle: 6000,
+};
+
 /** Dollars per million tokens. Cache writes (5-minute) cost 1.25x input. */
 export class Price {
   readonly input: number;

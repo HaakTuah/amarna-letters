@@ -8,8 +8,9 @@ import { type Character, CharacterSchema } from "./people.ts";
 import { AllPowers, type Power, cmpPower } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
+import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
 
-export const CURRENT_VERSION = 8;
+export const CURRENT_VERSION = 9;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -103,6 +104,8 @@ export interface GameState {
    * kept one has no entry. Each sees only its own.
    */
   standing: Dict<Power, StandingBook>;
+  /** Each king's standing answers for what arrives at its court (item 6b); a king that never gave one has none. */
+  answers: Dict<Power, AnswerBook>;
   inbox: Dict<Power, InboxItem[]>;
   /** The orders each power could see resolve last season (its own and those in sight). */
   lastSeen: Dict<Power, OrderOutcome[]>;
@@ -157,6 +160,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     counterIntel: new Dict(),
     sleep: new Dict(),
     standing: new Dict(),
+    answers: new Dict(),
     inbox: new Dict(),
     lastSeen: new Dict(),
     trails: [],
@@ -203,6 +207,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   counterIntel: dict(I),
   sleep: dict(() => SleepStateSchema),
   standing: dict(() => StandingBookSchema),
+  answers: dict(() => AnswerBookSchema),
   inbox: dict(list(() => InboxItemSchema)),
   lastSeen: dict(list(() => OrderOutcomeSchema)),
   trails: list(() => MessageTrailSchema),

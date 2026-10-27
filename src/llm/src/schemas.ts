@@ -6,7 +6,7 @@
  * `Replies` builds the Zod objects; `Schemas` gives the JSON schemas sent, for the request text and the tests.
  */
 import { z } from "zod";
-import { AllPowers, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, fmtN, type AudienceView, type GameConfig } from "@amarna/engine";
+import { AllPowers, MaxAnswerSay, MaxAnswers, MaxConditions, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, fmtN, type AudienceView, type GameConfig } from "@amarna/engine";
 import { LeaderJournal } from "./journal.ts";
 
 export type JsonObject = { [key: string]: unknown };
@@ -171,6 +171,46 @@ const otherOrder = (described = true): ReplySchema =>
   );
 
 /**
+ * The conditions of a scheduled entry, a standing order or a standing answer, in the engine's own vocabulary ("Scheduled,
+ * conditional orders"): read when they would run, from what the king knows then.
+ */
+const conditions = (what: string): z.ZodType =>
+  array(
+    object(
+      ["test", enumOf(["if", "unless"])],
+      ["kind", enumOf(["troops_in", "treasury_less_than", "treasury_at_least", "envoy_back", "tablet_sealed"])],
+      ["power", str("troops_in: whose troops, or empty for any foreign power's. tablet_sealed: the court that sealed it with you, or empty for any. Otherwise empty.")],
+      ["province", str("troops_in: the province. Otherwise empty.")],
+      ["amount", int("treasury_less_than, treasury_at_least: shekels. Otherwise 0.")],
+      ["person", str("envoy_back: the id of one of your people (like c3), back at your court and ready. Otherwise empty.")],
+    ),
+    `${what} only if every "if" holds and no "unless" does, as you know things then (see CONDITIONS). At most ${MaxConditions}; empty for none.`,
+  );
+
+/**
+ * A king's standing answers ("Standing answers" under "Minds follow what is at stake"): its own answers given in advance
+ * for the envoys that arrive at its court, in the engine's vocabulary; and the ids of those it cancels.
+ */
+const standingAnswers = (): [string, z.ZodType][] => [
+  [
+    "standing_answers",
+    array(
+      object(
+        ["from", str("Whose envoys it answers: a court, or empty for any court's.")],
+        ["brings", enumOf(["anything", "words", "gold", "tablet"])],
+        ["min_gold", int("gold: the least his inventory must state, in shekels. Otherwise 0.")],
+        ["seal", bool("tablet or anything: set your seal on the tablet he brings. Otherwise false.")],
+        ["gold_back_percent", int("The share of the gold he brings to send back with him for his lord, 0-100 (100: a gift of like value). 0 for none.")],
+        ["say", str(`The gist of what you say to him, in your own words, at most ${MaxAnswerSay} characters; your scribes word it.`)],
+        ["conditions", conditions("It answers")],
+      ),
+      `New standing answers (at most ${MaxAnswers} in all), kept until you cancel them: the engine answers for you, in one exchange and for nothing, an envoy one covers, and he wakes nobody (see STANDING ANSWERS). Empty for none.`,
+    ),
+  ],
+  ["cancel_answers", array(str(), 'Ids of your standing answers to cancel (like a2), or "all".')],
+];
+
+/**
  * A king's orders. Every king may give and cancel standing orders. With sleeping seats on, it sleeps after them until
  * something concerns it: it never chooses when it wakes, so it also schedules orders for later seasons.
  */
@@ -191,8 +231,9 @@ function leaderOrders(c: GameConfig | null = null): ReplySchema {
             ),
           ],
           ["other_orders", array(otherOrder())],
+          ["conditions", conditions("They run")],
         ),
-        `Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. An entry for a season replaces everything you scheduled for it; an entry with no orders cancels it. At most ${MaxScheduledPerSeason} orders a season, for at most ${MaxScheduledSeasons} seasons. A scheduled order wakes you only if others foil it, never if it is refused or fails by your own orders; a scheduled move that is stopped is tried once more (see the rulebook).`,
+        `Orders for later seasons (or this one). Secret, and checked when they run, after the orders you give that season. The entries you give for a season together replace everything you scheduled for it, each with its own conditions; an entry with no orders cancels it. At most ${MaxScheduledPerSeason} orders a season, for at most ${MaxScheduledSeasons} seasons. A scheduled order wakes you only if others foil it, never if it is refused or fails by your own orders; a scheduled move that is stopped is tried once more (see the rulebook).`,
       ),
     ]);
   }
@@ -211,6 +252,7 @@ function leaderOrders(c: GameConfig | null = null): ReplySchema {
           ),
         ],
         ["other_orders", array(otherOrder(false), "As in other_orders.")],
+        ["conditions", conditions("When its move comes, it fires")],
       ),
       `New standing orders, kept until they fire or you cancel them (at most ${MaxStanding} in all, each with at most ${MaxScheduledPerSeason} orders). When you see the move it waits for, its orders run in that same season, once, so they meet the move: they replace your other orders for the same units or people that season, those you give then among them${sleeps ? " and your scheduled ones" : ""} (cancel it to stop it). It first fires in the season after you give it.` +
         (sleeps ? " Firing does not wake you; an order of it that others foil does." : "") +
@@ -218,6 +260,7 @@ function leaderOrders(c: GameConfig | null = null): ReplySchema {
     ),
   ]);
   props.push(["cancel_standing", array(str(), 'Ids of your standing orders to cancel (like s3), or "all". Cancelled now, one does not fire this season.')]);
+  props.push(...standingAnswers());
   return object(...props);
 }
 
@@ -225,7 +268,7 @@ const leaderOrdersBase = (sharedVictory: boolean): [string, z.ZodType][] => [
   [
     "notes",
     str(
-      `Private notes to yourself, at most ${thousands(LeaderJournal.NotesMax)} characters (longer notes are cut): plans, promises made, suspicions. They are shown in full the next ${LeaderJournal.SeasonsShown} times you give orders, then leave your record.`,
+      `Private notes to yourself, at most ${thousands(LeaderJournal.NotesMax)} characters (longer notes are cut): plans, promises made, suspicions. They are shown in full the next time you give orders, by their opening words the ${LeaderJournal.SeasonsShown - 1} times after, then leave your record: put what matters most first.`,
     ),
   ],
   [
@@ -350,18 +393,70 @@ function hostReply(c: GameConfig | null = null, a: AudienceView | boolean = fals
   return object(...fields);
 }
 
+/**
+ * What a king is asked when it holds court ("One call per wake-up"): one answer for every envoy before it, each by the
+ * envoy's id, in one call. The shape of an answer is the same at every court of the game, so the request's fixed part,
+ * which a provider caches together with the schema, stays the same from call to call; a field that does not apply to an
+ * envoy says so, and the engine ignores it there (Schemas.asksOf). With its orders standing it may also send letters and,
+ * unless it has already chosen to, reopen its orders.
+ */
+function courtReply(c: GameConfig | null = null, ordersStand = false, reopenChosen = false): ReplySchema {
+  const answer = object(
+    ["envoy", str("The id of the envoy you answer (like c13), as the audience names him.")],
+    ["speech", str("What you say to this envoy, to carry home.")],
+    [
+      "gift_to_envoy",
+      int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once he has accepted one, a later gift is not given."),
+    ],
+    ["gift_request", str("What you want from the envoy in return for the gift, or empty.")],
+    ["offer_service_wage", int("Offer the envoy service at this wage per season, or 0.")],
+    ["seal_tablet", bool("Only if this envoy brought a tablet you have not yet chosen to seal: seal it. False otherwise.")],
+    ["detain_envoy", bool("Keep the envoy at your court against its will: it does not go home when the audience ends.")],
+    [
+      "send_gold_back",
+      int("Gold sent home with the envoy for their king, or 0. In a later exchange of the same audience, a new amount replaces the one you named before, and 0 keeps it."),
+    ],
+    ["gold_back_purity", int("Purity of that gold in percent, 10-100 (100 when you send none). The purity named with the amount that is sent applies.")],
+    ["end_audience", bool("End this audience now. At the last exchange of an audience it ends with your answer whatever you choose.")],
+  );
+  const fields: [string, z.ZodType][] = [["answers", array(answer, "One answer for each envoy before you, by his id.")], ...standingAnswers()];
+  if (ordersStand) {
+    fields.push([
+      "letters",
+      array(
+        letter(c?.sharedVictory ?? false),
+        "Envoys of yours to send from your court, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give, and each costs what a letter in your orders costs. A new letter for a person you already sent this season replaces it. Empty for none.",
+      ),
+    ]);
+    if (!reopenChosen)
+      fields.push([
+        "reopen_orders",
+        bool(
+          "True if the news changes your plan: after your audiences you give orders this season with your full view, as when anything else wakes you. False: your orders stand and you sleep on. Once true, it holds for the season.",
+        ),
+      ]);
+  }
+  fields.push(["ledger", ledger()]);
+  return object(...fields);
+}
+
 const KeepGold = "Shekels of the gold you carry that you quietly keep for yourself, or 0.";
-const PresentSpeech = "What you say to the king, delivering your lord's message in your own words.";
+const PresentSpeech = "Only if as_written is false: what you say to the king, delivering your lord's message in your own words. Empty if as_written is true.";
+/** Passing the lord's words on as written: the engine reads them out, and the envoy writes nothing ("Output is the other half"). */
+const AsWritten: [string, z.ZodType] = [
+  "as_written",
+  bool("True: you deliver your lord's message word for word, as he wrote it, and say nothing of your own (leave speech empty). False: you deliver it in your own words, in speech."),
+];
 /** What an envoy that keeps gold, and whose hand can fake a seal (the only one asked), may do with the inventory tablet it carries. */
 const SwapInventory =
   "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
 
 /** An envoy's presentation: the gold fields only of an envoy that carries gold, the swap only of one whose hand can fake a seal. */
 function present(carriesGold = true, canForge = true): ReplySchema {
-  if (!carriesGold) return object(["speech", str(PresentSpeech)]);
+  if (!carriesGold) return object(AsWritten, ["speech", str(PresentSpeech)]);
   return canForge
-    ? object(["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)], ["swap_inventory", bool(SwapInventory)])
-    : object(["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)]);
+    ? object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)], ["swap_inventory", bool(SwapInventory)])
+    : object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)]);
 }
 
 /** An envoy's answer at an audience: whether to take a gift or a post only when one is offered. */
@@ -379,11 +474,21 @@ export const ReportText = "Your report to your lord.";
 /** What the report of an envoy dismissed while away is: its king is no longer its lord. */
 export const ReportToSender = "Your report to the king who sent you on this mission.";
 
-/** An envoy's report home, with the gold fields only when it carries gold home, and the swap only when its hand can fake a seal. */
-function report(carriesGold = true, canForge = true, toLord = true): ReplySchema {
-  const r: [string, z.ZodType] = ["report", str(toLord ? ReportText : ReportToSender)];
-  if (!carriesGold) return object(r);
-  return canForge ? object(r, ["keep_gold", int(KeepGoldHome)], ["swap_inventory", bool(SwapInventory)]) : object(r, ["keep_gold", int(KeepGoldHome)]);
+/**
+ * An envoy's report home, with the gold fields only when it carries gold home, and the swap only when its hand can fake a
+ * seal; after an audience, also the choice to report the king's answer as given, which the engine then writes.
+ */
+function report(carriesGold = true, canForge = true, toLord = true, received = false): ReplySchema {
+  const fields: [string, z.ZodType][] = [];
+  if (received)
+    fields.push([
+      "as_given",
+      bool("True: you report the king's answer word for word, as he gave it, with what happened, and add nothing of your own (leave report empty). False: you write your report yourself."),
+    ]);
+  fields.push(["report", str((received ? "Only if as_given is false: " : "") + (toLord ? ReportText : ReportToSender))]);
+  if (carriesGold) fields.push(["keep_gold", int(KeepGoldHome)]);
+  if (carriesGold && canForge) fields.push(["swap_inventory", bool(SwapInventory)]);
+  return object(...fields);
 }
 
 const pitch = (): ReplySchema =>
@@ -391,18 +496,22 @@ const pitch = (): ReplySchema =>
 
 const text = (field: string, description: string): ReplySchema => object([field, str(description)]);
 
+/** A phrasing call's reply: only the words. */
+const phrase = (): ReplySchema => object(["speech", str("The king's words to the envoy, as he would speak them, in one to three sentences.")]);
+
 /** The reply schemas in Zod, as calls carry them. */
-export const Replies = { leaderOrders, hostReply, present, react, report, pitch, text };
+export const Replies = { leaderOrders, hostReply, courtReply, phrase, present, react, report, pitch, text };
 
 /** The same schemas as the JSON sent to a provider. */
 export const Schemas = {
   object: (...props: [string, z.ZodType][]): JsonObject => jsonSchema(object(...props)),
   leaderOrders: (c: GameConfig | null = null): JsonObject => jsonSchema(leaderOrders(c)),
   hostReply: (c: GameConfig | null = null, a: AudienceView | boolean = false): JsonObject => jsonSchema(hostReply(c, a)),
+  courtReply: (c: GameConfig | null = null, ordersStand = false, reopenChosen = false): JsonObject => jsonSchema(courtReply(c, ordersStand, reopenChosen)),
   asksOf,
   present: (carriesGold = true, canForge = true): JsonObject => jsonSchema(present(carriesGold, canForge)),
   react: (giftOffered = true, serviceOffered = true): JsonObject => jsonSchema(react(giftOffered, serviceOffered)),
-  report: (carriesGold = true, canForge = true, toLord = true): JsonObject => jsonSchema(report(carriesGold, canForge, toLord)),
+  report: (carriesGold = true, canForge = true, toLord = true, received = false): JsonObject => jsonSchema(report(carriesGold, canForge, toLord, received)),
   pitch: (): JsonObject => jsonSchema(pitch()),
   text: (field: string, description: string): JsonObject => jsonSchema(text(field, description)),
   ReportText,

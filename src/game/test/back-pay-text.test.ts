@@ -36,7 +36,7 @@ describe("BackPayTextTests", () => {
     Assert.contains("; owed: 45 shekels of back pay", person(single(v.court, (x) => x.id === c.id)));
     let situation = situationOf(v);
     Assert.contains(
-      `wages ${v.wages} a season (paid to your people at court; for those away they build up as back pay). Back pay owed to your people: 45, paid when they are back at your court. Strength ${v.strength} by your ledger (back pay owed counted against it)`,
+      `wages ${v.wages} a season. Back pay owed to your people: 45. Strength ${v.strength} by your ledger (back pay owed counted against it)`,
       situation,
     );
 

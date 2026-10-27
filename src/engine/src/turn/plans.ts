@@ -24,9 +24,14 @@ import {
 import { notify, unitAt, type GameState, type Unit } from "../model/state.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
+import { conditionsMet, conditionsText } from "../rules/conditions.ts";
+import { MaxConditions, type Condition } from "../model/conditions.ts";
 import { removeAll } from "./resolve.ts";
 import { entersText, kindName, MarchEndsTitle, MarchHeldUpTitle, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, standingFiredTitle } from "./sleep.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+
+/** The notice that scheduled orders did not run because their conditions did not hold. */
+export const HeldBackTitle = "Scheduled orders held back by their conditions";
 
 /** The notice that scheduled orders waiting for a levy's unit were dropped, because the levy raised none. */
 export const UnraisedTitle = "Orders for a levy that raised no unit dropped";
@@ -58,6 +63,8 @@ export interface Firing {
 declare module "./core.ts" {
   interface TurnEngine {
     planSeason(p: Power, sub: TurnSubmission): SeasonPlan;
+    conditionsHold(p: Power, cs: readonly Condition[]): boolean;
+    conditionProblem(cs: readonly Condition[]): string | null;
     compose(p: Power, plan: SeasonPlan, fired: readonly [StandingOrder, string][]): TurnSubmission;
     standingFires(seasons: Dict<Power, SeasonPlan>, validator: OrderValidator): Dict<Power, [StandingOrder, string][]>;
     tellFired(p: Power, f: Firing, v: ValidationResult): void;
@@ -96,21 +103,36 @@ P.planSeason = function (p, sub) {
   if (!standIn && sub.cancelStanding.length > 0) this.cancelStanding(p, sub.cancelStanding);
   if (sl === null) return { sub, now: standIn ? [] : [...sub.orders], due: [], standIn };
 
-  let replacement: ScheduledOrders | null = null;
-  if (!standIn) for (const x of sub.scheduled) if (x.turn === S.turn) replacement = x;
+  // Entries for this season count as orders given now, each if its conditions hold as the seat knows things now.
+  const entries = standIn ? [] : sub.scheduled.filter((x) => x.turn === S.turn);
+  const replacement = entries.length > 0 ? entries : null;
   const now: Order[] = standIn ? [] : [...sub.orders];
-  if (replacement !== null) now.push(...survivors(sub.orders, replacement.orders, (o) => o));
+  for (const x of entries) if (this.conditionsHold(p, x.conditions)) now.push(...survivors(now, x.orders, (o) => o));
   // Letters it sent from its audiences this season are its own orders, given before any it gives now: checked first, so
   // their gold is reserved first. One it gives now for the same person replaces the letter (when it reopened its orders).
   if (sl.courtLetters.length > 0) {
     now.unshift(...survivors(now, sl.courtLetters, (o) => o));
     sl.courtLetters.length = 0;
   }
+  // Scheduled orders whose conditions do not hold are held back: the seat's own choice, told in its news, waking nobody.
+  const held = replacement !== null ? [] : sl.scheduled.filter((x) => x.turn === S.turn && !this.conditionsHold(p, x.conditions));
+  if (held.length > 0)
+    notify(
+      S,
+      p,
+      "Notice",
+      HeldBackTitle,
+      `Orders you scheduled for turn ${S.turn} did not run, as you had ordered: ` +
+        groupBy(held, (x) => conditionsText(x.conditions))
+          .map(([why, g]) => `${g.map((x) => describe(x.order)).join("; ")} (${why})`)
+          .join("; ") +
+        ".",
+    );
   const due: [Order | null, PlannedOrder][] =
     replacement !== null
       ? []
       : sl.scheduled
-          .filter((x) => x.turn === S.turn)
+          .filter((x) => x.turn === S.turn && !held.includes(x))
           .map((x) => [asItStands(S, p, x), x] as [Order | null, PlannedOrder])
           .filter(([o]) => o !== null);
   removeAll(sl.scheduled, (x) => x.turn <= S.turn);
@@ -184,6 +206,8 @@ P.compose = function (p, plan, fired) {
     scheduled: sub.scheduled,
     standing: sub.standing,
     cancelStanding: sub.cancelStanding,
+    answers: sub.answers,
+    cancelAnswers: sub.cancelAnswers,
     fromFallback: sub.fromFallback,
   });
 };
@@ -228,6 +252,11 @@ P.standingFires = function (seasons, validator) {
       }
       if (hit === null) continue;
       const [hq, m] = hit;
+      // Its conditions are read as the season begins, as the seat knows things then; one that does not hold waits on.
+      if (!this.conditionsHold(p, st.conditions)) {
+        notify(S, p, "Notice", `Standing order ${st.id} did not fire`, `Your standing order ${st.id} (${this.whenText(p, st)}) saw the move it waits for (${hq}'s troops set out from ${m.unit} for ${m.to}), but did not fire: ${conditionsText(st.conditions)}. It still stands.`);
+        continue;
+      }
       list.push([st, `${hq}'s ${kindName(unitAt(S, m.unit)?.kind ?? "Army")} set out from ${m.unit} for ${m.to}`]);
     }
     if (list.length > 0) fires.set(p, list);
@@ -360,8 +389,11 @@ P.afterValidation = function (p, sub, v) {
   for (const f of this._firedNow.tryGet(p) ?? []) this.tellFired(p, f, v);
   const sl = this.sleepOf(p);
   if (sl === null) {
-    // A seat that plays every season keeps the standing orders it gives now; the stand-in's are not the seat's.
-    if (!sub.fromFallback) this.keepStanding(p, sub.standing);
+    // A seat that plays every season keeps the standing orders and answers it gives now; the stand-in's are not the seat's.
+    if (!sub.fromFallback) {
+      this.keepStanding(p, sub.standing);
+      this.keepAnswers(p, sub.answers, sub.cancelAnswers);
+    }
     return;
   }
   // A seat asked this season has seen earlier failures in its own news; only this season's count.
@@ -377,6 +409,7 @@ P.afterValidation = function (p, sub, v) {
   sl.digestLeftOut = 0;
   this.keepScheduled(p, sl, sub.scheduled, v.accepted);
   this.keepStanding(p, sub.standing);
+  this.keepAnswers(p, sub.answers, sub.cancelAnswers);
 
   // It sleeps until something concerns it, or, at the latest, the hidden cap: it names no season and sets no triggers.
   sl.asleep = true;
@@ -482,32 +515,43 @@ P.keepScheduled = function (p, sl, plans, accepted) {
   const raisedNow = [...accepted];
   const notKept: string[] = [];
   const refused: string[] = [];
-  const entries = sortBy(
+  // The entries for one season together replace everything scheduled for it, each with its own conditions.
+  const seasonsGiven = sortBy(
     groupBy(
       plans.filter((x) => x.turn !== S.turn),
       (x) => x.turn,
-    ).map(([, g]) => g[g.length - 1]),
-    [(x: ScheduledOrders) => x.turn, cmpNum],
+    ),
+    [([t]: [number, ScheduledOrders[]]) => t, cmpNum],
   );
-  for (const plan of entries) {
-    if (plan.turn < S.turn) {
-      if (plan.orders.length > 0) notKept.push(`turn ${plan.turn}: that season has passed`);
+  for (const [turn, group] of seasonsGiven) {
+    if (turn < S.turn) {
+      if (group.some((x) => x.orders.length > 0)) notKept.push(`turn ${turn}: that season has passed`);
       continue;
     }
     // A season after the game's last is kept like any other, under the same limits: its orders never run, because the
     // game ends first, and nothing the king reads depends on when the game must end.
-    removeAll(sl.scheduled, (x) => x.turn === plan.turn);
-    if (plan.orders.length === 0) continue;
-    if (plan.orders.length > MaxScheduledPerSeason)
-      notKept.push(`turn ${plan.turn}: only the first ${MaxScheduledPerSeason} of its ${plan.orders.length} orders were kept; at most ${MaxScheduledPerSeason} orders may be scheduled for one season`);
-    // The levies under way as this season's orders are kept: this season's, and those scheduled so far, earlier seasons'
-    // among them (the entries are kept in season order).
-    const lv = levies(sl, raisedNow, S.turn);
-    for (const o of plan.orders.slice(0, MaxScheduledPerSeason)) {
-      const [bound, why] = this.bind(p, plan.turn, o, lv);
-      if (bound !== null) sl.scheduled.push(bound);
-      else refused.push(`turn ${plan.turn}: ${describe(o)}: ${why}`);
-    }
+    removeAll(sl.scheduled, (x) => x.turn === turn);
+    let room = MaxScheduledPerSeason;
+    const keepEntry = (plan: ScheduledOrders): void => {
+      if (plan.orders.length === 0) return;
+      const problem = this.conditionProblem(plan.conditions);
+      if (problem !== null) {
+        refused.push(`turn ${plan.turn}: ${problem}`);
+        return;
+      }
+      if (plan.orders.length > room)
+        notKept.push(`turn ${plan.turn}: only the first ${room} of its ${plan.orders.length} orders were kept; at most ${MaxScheduledPerSeason} orders may be scheduled for one season`);
+      // The levies under way as this season's orders are kept: this season's, and those scheduled so far, earlier seasons'
+      // among them (the entries are kept in season order).
+      const lv = levies(sl, raisedNow, S.turn);
+      for (const o of plan.orders.slice(0, room)) {
+        const [bound, why] = this.bind(p, plan.turn, o, lv);
+        if (bound !== null) sl.scheduled.push({ ...bound, conditions: [...plan.conditions] });
+        else refused.push(`turn ${plan.turn}: ${describe(o)}: ${why}`);
+      }
+      room = Math.max(0, room - plan.orders.length);
+    };
+    for (const plan of group) keepEntry(plan);
   }
   // By season, then as given (a stable sort).
   sl.scheduled = sortBy(sl.scheduled, [(x: PlannedOrder) => x.turn, cmpNum]);
@@ -545,6 +589,7 @@ P.keepStanding = function (p, requests) {
       (!this.map.exists(r.province) ? `there is no province called '${r.province ?? ""}'` : null) ??
       (r.when === "UnitAttacked" && unit === null ? `you have no unit in ${province}` : null) ??
       (r.orders.length === 0 ? "it gives no orders" : null) ??
+      this.conditionProblem(r.conditions) ??
       (r.orders.length > MaxScheduledPerSeason ? `it gives ${r.orders.length} orders; a standing order may give at most ${MaxScheduledPerSeason}` : null) ??
       (book.orders.length >= MaxStanding ? `you may keep at most ${MaxStanding} standing orders` : null);
     const bound: PlannedOrder[] = [];
@@ -569,6 +614,7 @@ P.keepStanding = function (p, requests) {
         province: r.province,
         unitId: r.when === "UnitAttacked" ? unit!.id : null,
         orders: bound,
+        conditions: [...r.conditions],
       }),
     );
   }
@@ -658,4 +704,26 @@ P.endMarch = function (p, sl, plan, unit, what, quietIfNothingDropped) {
     `${what}: its march ends` +
       (dropped.length === 0 ? "." : ", and its remaining scheduled orders were dropped: " + dropped.map((d) => `turn ${d.turn}: ${describe(asShown(S, p, d))}`).join("; ") + "."),
   );
+};
+
+/**
+ * Whether conditions hold for a seat, read from its own view as the season begins: only what it knows where the order runs
+ * ("Scheduled, conditional orders"). The view is built once a season per seat, and only for a seat with conditions.
+ */
+P.conditionsHold = function (p, cs) {
+  if (cs.length === 0) return true;
+  let v = this._viewsNow.tryGet(p);
+  if (v === undefined) this._viewsNow.set(p, (v = Views.for(this.s, p)));
+  return conditionsMet(cs, v);
+};
+
+/** Why conditions cannot be kept (too many, a province nobody knows, no person named), or null. */
+P.conditionProblem = function (cs) {
+  if (cs.length > MaxConditions) return `it has ${cs.length} conditions; at most ${MaxConditions} are allowed`;
+  for (const c of cs) {
+    if (c.kind === "TroopsIn" && !this.map.exists(c.province)) return `its condition names no province ('${c.province}')`;
+    if (c.kind === "EnvoyBack" && isBlank(c.person)) return "its condition names nobody";
+    if ((c.kind === "TreasuryBelow" || c.kind === "TreasuryAtLeast") && c.amount <= 0) return "its condition names no amount of gold";
+  }
+  return null;
 };

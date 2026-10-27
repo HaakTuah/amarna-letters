@@ -285,6 +285,8 @@ P.applyAudience = function (record) {
       addLetters(court.courtLetters, said.letters);
       court.reopen = court.reopen || said.reopenOrders;
     }
+  // Standing answers the host gave at its court are kept as those of its orders; the stand-in's are not its own.
+  for (const round of record.rounds) if (round.host !== null && !round.host.fromFallback) this.keepAnswers(host, round.host.answers, round.host.cancelAnswers);
 
   trail.delivered = cap(record.delivered ?? "", MaxSpeech);
 
@@ -416,7 +418,8 @@ P.applyAudience = function (record) {
     }
   }
 
-  const audienceText = this.audienceTranscript(a, c, trail, stated, weighed, unseen);
+  const answered = record.rounds[0]?.host?.byAnswer ?? null;
+  const audienceText = (answered !== null ? `Your standing answer ${answered} received him in your name. ` : "") + this.audienceTranscript(a, c, trail, stated, weighed, unseen);
   notify(S, host, "Audience", `Audience with ${c.name}, envoy of ${sender}`, audienceText, c.id);
   remember(c, S.turn, `I was received by the king of ${land(host)}. ` + trail.exchanges.map((x) => `He said: "${cap(x.host, 300)}" I answered: "${cap(x.envoy, 200)}"`).join(" "));
 

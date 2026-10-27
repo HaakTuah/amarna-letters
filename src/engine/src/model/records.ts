@@ -264,6 +264,10 @@ export interface PendingAudience {
   host: Power;
   dispatch: Dispatch;
   goldWeighed: number;
+  /** The host's standing answer that answers this envoy, chosen as the season's court begins (item 6b), or null. */
+  answer: string | null;
+  /** The most gold that answer may send back with the envoy, within the hidden backstop. */
+  answerGold: number;
 }
 
 export function newPendingAudience(init: Partial<PendingAudience> = {}): PendingAudience {
@@ -274,6 +278,8 @@ export function newPendingAudience(init: Partial<PendingAudience> = {}): Pending
     host: "Egypt",
     dispatch: newDispatch(),
     goldWeighed: 0,
+    answer: null,
+    answerGold: 0,
     ...init,
   };
 }
@@ -285,6 +291,8 @@ export const PendingAudienceSchema: ObjSchema<PendingAudience> = obj("PendingAud
   host: S,
   dispatch: () => DispatchSchema,
   goldWeighed: I,
+  answer: opt(S),
+  answerGold: I,
 });
 
 export interface Tablet {

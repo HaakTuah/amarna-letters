@@ -1,4 +1,5 @@
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
+import { type Condition, ConditionSchema } from "./conditions.ts";
 import type { UnitKind } from "./map.ts";
 import { type Order, OrderSchema } from "./orders.ts";
 import type { Power } from "./power.ts";
@@ -10,12 +11,15 @@ import type { Power } from "./power.ts";
 export interface ScheduledOrders {
   turn: number;
   orders: Order[];
+  /** The entry runs only if these hold when its season comes, as the seat then knows (item 6b). */
+  conditions: Condition[];
 }
 
 export function newScheduledOrders(init: Partial<ScheduledOrders> = {}): ScheduledOrders {
   return {
     turn: 0,
     orders: [],
+    conditions: [],
     ...init,
   };
 }
@@ -23,6 +27,7 @@ export function newScheduledOrders(init: Partial<ScheduledOrders> = {}): Schedul
 export const ScheduledOrdersSchema: ObjSchema<ScheduledOrders> = obj("ScheduledOrders", newScheduledOrders, {
   turn: I,
   orders: list(() => OrderSchema),
+  conditions: list(() => ConditionSchema),
 });
 
 /**
@@ -49,6 +54,8 @@ export interface PlannedOrder {
   otherLevy: LevyRef | null;
   /** A scheduled move tried again because it failed: if it fails again, its unit's march ends. */
   retry: boolean;
+  /** A scheduled order: the conditions of its entry, checked when its season comes (none among a standing order's). */
+  conditions: Condition[];
 }
 
 export function newPlannedOrder(init: Partial<PlannedOrder> = {}): PlannedOrder {
@@ -60,6 +67,7 @@ export function newPlannedOrder(init: Partial<PlannedOrder> = {}): PlannedOrder 
     unitLevy: null,
     otherLevy: null,
     retry: false,
+    conditions: [],
     ...init,
   };
 }
@@ -72,6 +80,7 @@ export const PlannedOrderSchema: ObjSchema<PlannedOrder> = obj("PlannedOrder", n
   unitLevy: () => LevyRefSchema,
   otherLevy: () => LevyRefSchema,
   retry: B,
+  conditions: list(() => ConditionSchema),
 });
 
 /**
@@ -124,6 +133,8 @@ export interface StandingRequest {
   province: string;
   /** The orders, the seat's own units named by where they stand now. */
   orders: Order[];
+  /** It fires only if these hold as the season begins, as the seat then knows (item 6b). */
+  conditions: Condition[];
   /** Why the reply could not be read (a power nobody knows): the request is refused with this reason. */
   unreadable: string | null;
 }
@@ -134,6 +145,7 @@ export function newStandingRequest(init: Partial<StandingRequest> = {}): Standin
     power: null,
     province: "",
     orders: [],
+    conditions: [],
     unreadable: null,
     ...init,
   };
@@ -144,6 +156,7 @@ export const StandingRequestSchema: ObjSchema<StandingRequest> = obj("StandingRe
   power: opt(S),
   province: S,
   orders: list(() => OrderSchema),
+  conditions: list(() => ConditionSchema),
   unreadable: S,
 });
 
@@ -158,6 +171,8 @@ export interface StandingOrder {
   /** For {@link StandingWhen.UnitAttacked}: the seat's own unit. */
   unitId: string | null;
   orders: PlannedOrder[];
+  /** It fires only if these hold as the season begins, as its seat then knows. */
+  conditions: Condition[];
 }
 
 export function newStandingOrder(init: Partial<StandingOrder> = {}): StandingOrder {
@@ -168,6 +183,7 @@ export function newStandingOrder(init: Partial<StandingOrder> = {}): StandingOrd
     province: null,
     unitId: null,
     orders: [],
+    conditions: [],
     ...init,
   };
 }
@@ -179,6 +195,7 @@ export const StandingOrderSchema: ObjSchema<StandingOrder> = obj("StandingOrder"
   province: S,
   unitId: S,
   orders: list(() => PlannedOrderSchema),
+  conditions: list(() => ConditionSchema),
 });
 
 /**
@@ -216,6 +233,7 @@ export interface StandingOrderView {
    */
   province: string;
   orders: Order[];
+  conditions: Condition[];
 }
 
 export function newStandingOrderView(init: Partial<StandingOrderView> = {}): StandingOrderView {
@@ -225,6 +243,7 @@ export function newStandingOrderView(init: Partial<StandingOrderView> = {}): Sta
     power: null,
     province: "",
     orders: [],
+    conditions: [],
     ...init,
   };
 }
@@ -235,6 +254,7 @@ export const StandingOrderViewSchema: ObjSchema<StandingOrderView> = obj("Standi
   power: opt(S),
   province: S,
   orders: list(() => OrderSchema),
+  conditions: list(() => ConditionSchema),
 });
 
 /**

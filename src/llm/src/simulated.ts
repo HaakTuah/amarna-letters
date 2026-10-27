@@ -27,7 +27,8 @@ export class SimulatedApi implements ApiTransport {
     this.requests.push(body);
     const tool = (body.tools as JsonObject[] | undefined)?.[0];
     const props = ((tool?.input_schema as JsonObject | undefined)?.properties as JsonObject | undefined) ?? null;
-    const output = this.override?.(body) ?? answer(props);
+    const content = (body.messages as JsonObject[] | undefined)?.[0]?.content;
+    const output = this.override?.(body) ?? answer(props, typeof content === "string" ? content : "");
     const model = typeof body.model === "string" ? body.model : "claude-sonnet-5-5";
     return Promise.resolve({
       text: output,
@@ -43,7 +44,7 @@ export class SimulatedApi implements ApiTransport {
 }
 
 /** The canned reply to a request whose schema has these properties. */
-export function answer(props: JsonObject | null): string {
+export function answer(props: JsonObject | null, user = ""): string {
   const has = (name: string): boolean => props !== null && Object.prototype.hasOwnProperty.call(props, name);
   let o: JsonObject;
   const gold = (reply: JsonObject): void => {
@@ -52,6 +53,25 @@ export function answer(props: JsonObject | null): string {
     reply.swap_inventory = false;
   };
   if (has("units")) o = { notes: "Hold the line; keep Hatti friendly.", summary: "", ledger: [], units: [], letters: [], other_orders: [] };
+  else if (has("answers")) {
+    // A king holding court: one answer for each envoy the request names, by his id.
+    const ids = [...user.matchAll(/\((c\d+)\), envoy of /g)].map((m) => m[1]);
+    o = {
+      answers: ids.map((envoy) => ({
+        envoy,
+        speech: "Tell your lord I am his brother.",
+        gift_to_envoy: 0,
+        gift_request: "",
+        offer_service_wage: 0,
+        seal_tablet: true,
+        detain_envoy: false,
+        send_gold_back: 0,
+        gold_back_purity: 100,
+        end_audience: true,
+      })),
+      ledger: [],
+    };
+  }
   else if (has("gift_to_envoy"))
     o = {
       speech: "Tell your lord I am his brother.",
@@ -74,7 +94,7 @@ export function answer(props: JsonObject | null): string {
     // An envoy's presentation, with the gold fields only when it carries gold.
     o = { speech: "My lord greets you as a brother." };
     gold(o);
-  } else if (has("report") && (has("keep_gold") || [ReportText, ReportToSender].includes(((props!.report as JsonObject)?.description as string) ?? ""))) {
+  } else if (has("report") && (has("keep_gold") || [ReportText, ReportToSender].some((t) => (((props!.report as JsonObject)?.description as string) ?? "").endsWith(t)))) {
     // An envoy's report home, to its lord or to the king who dismissed it while it was away.
     o = { report: "The king received me kindly." };
     gold(o);
