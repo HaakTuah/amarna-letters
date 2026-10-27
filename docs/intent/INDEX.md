@@ -14,8 +14,8 @@ the live document wins. If the docs connector is not available, go on with the c
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
-| Overview | `docs/intent/overview/` | `320f0886-6acf` | 554 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 23 |
+| Overview | `docs/intent/overview/` | `320f0886-6acf` | 555 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 24 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 22 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 28 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |

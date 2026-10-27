@@ -108,7 +108,7 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   beside each model character's (its shadow line, which nothing in the game reads) is worked out there too, by the
   script character's own text code (`LlmCharacterMind.script`). If the worker stops, the page says so ("The game's
   worker stopped: ..."). Until the conversion the C# build ran the engine in the page's one WebAssembly thread with only
-  the script seats in a worker of their own; that build is kept at the tag `csharp-final`.
+  the script seats in a worker of their own; that build is kept on the branch `archive/csharp-final`.
 - **What the worker sends** is coalesced: a season's redraws are made in a task of their own, after the engine's work
   rather than within it (`SessionCore.notifySoon`), the page draws that a season is under way before its work begins,
   and a season is shown before it is saved. The log writes each decision's line once and keeps it (`GameLog.toJsonl`,
