@@ -22,7 +22,7 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 ## Starting a task
 
 1. Work from `develop`: if you are on `main`, check out `develop` first (this file and the docs it names live there
-   until Haakon next merges `develop` into `main`).
+   until the next milestone PR merges `develop` into `main`).
 2. Find the next item in `docs/BUILD-PROGRESS.md`. For the steps of item 5+, read its brief in `docs/items/`. For
    item 6 onward, the item's own text is its brief: `docs/intent/build-order/item-<n>.md` (`item-6.md`,
    `item-9plus.md`, ...).
@@ -113,8 +113,8 @@ model games: no API key is set in cloud sessions, and the builder rules forbid t
 
 ## Git and GitHub
 
-Branches, merges and PRs follow the builder rules; `main` is Haakon's (the one exception is the docs and preview PR, as
-its spec says). Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
+Branches, merges and PRs follow the builder rules: the builder merges its own PRs, the milestone PR into `main`
+included, once CI is green, and never pushes to `main` directly. Cloud sessions can't use GitHub's GraphQL API, so `gh pr create`, `gh pr list` and `gh pr view` fail.
 Use the REST API (repository `HaakTuah/amarna-letters`):
 
 ```bash
@@ -130,16 +130,8 @@ variable.
 
 ## Standing instructions
 
-Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last.
-
-- **27 October 2026.** The build order guides the builders; what counts is the finished game, with no temporary
-  features: "the build order is simply to guideline claude code. I only care about the final product and that we don't
-  introduce temporary features" (`docs/archive/instructions.md`, item 13). Where an item's order or split serves the
-  game badly, take the reading that builds the final game best, say so in the PR, and never add a stand-in that a
-  later item has to remove ("No stopgaps" in the builder rules).
-- **27 October 2026.** The builder merges, always: "You merge, always." (`docs/archive/instructions.md`, item 14). Merge
-  your own pull requests yourself, the milestone PR from `develop` into `main` included, once CI is green (and, for an
-  item, its reviewer found nothing blocking); this replaces "Haakon merges `develop` into `main`" in the builder rules
-  and "`main` is Haakon's" above. Merge with `merge_method=merge`, never push to `main` directly, and before the next
-  push to `develop` merge `main` back into it as "Git and GitHub" says.
+Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (None
+since the refresh of 27 October 2026, which moved that day's two into the builder rules: "You merge, always" under
+"Branches" and "A pull request at every milestone", and "the build order is simply to guideline claude code" under
+"No stopgaps". Their words are in `docs/archive/instructions.md`, items 13 and 14.)
 
