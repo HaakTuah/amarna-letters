@@ -6,6 +6,7 @@ import {
   type Power,
   PointsPerDay,
   RoadOdds,
+  TravelData,
   TurnEngine,
   type TurnSubmission,
   Views,
@@ -52,19 +53,36 @@ describe("TravelTests", () => {
     Assert.equal(4 * PointsPerDay, flood - dry);
   });
 
-  test("Winter closes the mountain passes as it closes the open sea, for armies and travellers", () => {
-    const winter = Map.forTurn(2);
-    Assert.false(winter.canMove("Army", "nesa", "kizzuwatna"));
-    Assert.false(winter.canMove("Army", "byblos", "damascus"));
-    Assert.true(Map.forTurn(1).canMove("Army", "nesa", "kizzuwatna"));
-    Assert.equal(Infinity, legPoints(Map, "nesa", "kizzuwatna", 1));
-    Assert.true(legPoints(Map, "nesa", "kizzuwatna", 0) < Infinity);
-    // An army ordered over a pass in winter is refused.
+  test("Winter closes nothing: a pass is slow for travellers, and an army over it in winter may be lost", () => {
+    // Twice as long over a snowbound pass, never closed (item 9, "Winter is dangerous, never closed").
+    Assert.equal(legPoints(Map, "nesa", "kizzuwatna", 0) * (TravelData.winterPassPercent / 100), legPoints(Map, "nesa", "kizzuwatna", 1));
+    Assert.true(Map.canMove("Army", "nesa", "kizzuwatna"));
+    Assert.false(Map.winter.canMove("Army", "nesa", "kizzuwatna"));
+    // An army ordered over a pass in winter is accepted, and each crossing rolls for the army.
+    let lost = 0;
+    for (let g = 1; g <= 40; g++) {
+      const s = newGame(g);
+      s.turn = 2;
+      s.units = s.units.filter((u) => u.province !== "nesa" && u.province !== "kizzuwatna");
+      s.units.push(newUnit({ id: "u-test", power: "Hatti", kind: "Army", province: "nesa" }));
+      const v = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [{ type: "move", unit: "nesa", to: "kizzuwatna" }] }));
+      Assert.equal(1, v.accepted.filter((o) => o.type === "move").length);
+      new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [{ type: "move", unit: "nesa", to: "kizzuwatna" }] })]]));
+      const u = s.units.find((x) => x.id === "u-test");
+      if (u === undefined) {
+        lost++;
+        Assert.true(s.events.some((x) => x.signal === "winter-loss" && x.visibleTo.includes("Hatti")));
+      } else Assert.equal("kizzuwatna", u.province);
+    }
+    // About GameConfig.winterArmyLoss (30) in 100: lost in some games, through in most.
+    Assert.true(lost > 3 && lost < 25);
+    // Outside winter the pass costs nothing.
     const s = newGame(3);
-    s.turn = 2;
+    s.turn = 1;
+    s.units = s.units.filter((u) => u.province !== "nesa" && u.province !== "kizzuwatna");
     s.units.push(newUnit({ id: "u-test", power: "Hatti", kind: "Army", province: "nesa" }));
-    const v = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [{ type: "move", unit: "nesa", to: "kizzuwatna" }] }));
-    Assert.equal(0, v.accepted.filter((o) => o.type === "move").length);
+    new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [{ type: "move", unit: "nesa", to: "kizzuwatna" }] })]]));
+    Assert.equal("kizzuwatna", s.units.find((x) => x.id === "u-test")!.province);
   });
 
   test("Sneaking takes half as long again, on land only", () => {
@@ -72,11 +90,11 @@ describe("TravelTests", () => {
     Assert.equal(legPoints(Map, "ugaritwaters", "enkomiwaters", 0), legPoints(Map, "ugaritwaters", "enkomiwaters", 0, { sneaking: true }));
   });
 
-  test("Word goes by the fastest road open, and an island's waits for spring", () => {
+  test("Word goes by the fastest road, an island's in winter too", () => {
     Assert.equal(1, wordSeasons(45, Map, "babylon", "ashur", 1));
     Assert.true(wordSeasons(45, Map, "akhetaten", "babylon", 1) >= 2);
-    // Enkomi in winter: no crossing is open, so word waits a season.
-    Assert.true(wordSeasons(45, Map, "enkomi", "ugarit", 2) > wordSeasons(45, Map, "enkomi", "ugarit", 1));
+    // Enkomi in winter: the crossing is open, only stormier (item 9).
+    Assert.equal(wordSeasons(45, Map, "enkomi", "ugarit", 1), wordSeasons(45, Map, "enkomi", "ugarit", 2));
   });
 
   test("An envoy goes by a route of provinces and arrives when it has made the whole road", () => {
@@ -135,6 +153,13 @@ describe("TravelTests", () => {
     Assert.equal(RoadOdds.winterStorm, e.roadOdds(j, envoy, "gazawaters", false, null).getOrDefault("nature", 0));
     envoy.traits.competence = 100;
     Assert.equal(RoadOdds.winterStorm / 2, e.roadOdds(j, envoy, "gazawaters", false, null).getOrDefault("nature", 0));
+    // Snow at either end of a pass on its road in winter.
+    envoy.traits.competence = 0;
+    j.route = ["nesa", "kizzuwatna", "alalakh"];
+    Assert.equal(RoadOdds.snow, e.roadOdds(j, envoy, "nesa", false, null).getOrDefault("nature", 0));
+    Assert.equal(RoadOdds.snow, e.roadOdds(j, envoy, "alalakh", false, null).getOrDefault("nature", 0));
+    s.turn = 2;
+    Assert.equal(0, e.roadOdds(j, envoy, "nesa", false, null).getOrDefault("nature", 0));
   });
 
   test("Who holds distant land is known as late as word of it travels", () => {

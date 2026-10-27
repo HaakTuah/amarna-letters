@@ -3,7 +3,8 @@ import { type Order, OrderSchema } from "./orders.ts";
 import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answers.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
-import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema } from "./records.ts";
+import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema, type TabletProposal, TabletProposalSchema } from "./records.ts";
+import { type Authority, AuthoritySchema } from "./authority.ts";
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
 
 /** Text the engine needs written by a character or the narrator before it can be delivered. */
@@ -134,10 +135,16 @@ export interface HostReply {
   clauses: Clause[];
   /** In structured press: what the host asks a bribed envoy to tell its lord, in clauses (news only). */
   bribeClauses: Clause[];
+  /**
+   * A tablet of the host's own for the envoy to seal in its king's name (item 9): only an envoy that carries its king's
+   * seal can. Its clauses are written from the host to the envoy's king. No sworn alliance: an envoy's seal never swears one.
+   */
+  counter: TabletProposal | null;
 }
 
 export function newHostReply(init: Partial<HostReply> = {}): HostReply {
   return {
+    counter: null,
     bribeClauses: [],
     clauses: [],
     speech: "",
@@ -160,6 +167,7 @@ export function newHostReply(init: Partial<HostReply> = {}): HostReply {
 }
 
 export const HostReplySchema: ObjSchema<HostReply> = obj("HostReply", newHostReply, {
+  counter: opt(() => TabletProposalSchema),
   bribeClauses: list(() => ClauseSchema),
   clauses: list(() => ClauseSchema),
   speech: S,
@@ -185,6 +193,8 @@ export interface EnvoyReaction {
   acceptBribe: boolean;
   acceptJob: boolean;
   commitments: string;
+  /** The envoy seals the host's tablet in its king's name (item 9): only with its king's seal. */
+  sealCounter: boolean;
 }
 
 export function newEnvoyReaction(init: Partial<EnvoyReaction> = {}): EnvoyReaction {
@@ -193,6 +203,7 @@ export function newEnvoyReaction(init: Partial<EnvoyReaction> = {}): EnvoyReacti
     acceptBribe: false,
     acceptJob: false,
     commitments: "",
+    sealCounter: false,
     ...init,
   };
 }
@@ -202,6 +213,7 @@ export const EnvoyReactionSchema: ObjSchema<EnvoyReaction> = obj("EnvoyReaction"
   acceptBribe: B,
   acceptJob: B,
   commitments: S,
+  sealCounter: B,
 });
 
 export interface AudienceRound {
@@ -308,10 +320,18 @@ export interface AudienceView {
   clauses: Clause[];
   /** The gold came with an inventory tablet (item 8). Without one there is nothing to weigh it against. */
   inventory: boolean;
+  /** The envoy carries its king's seal (item 9): it may seal a tablet the host offers ({@link HostReply.counter}). */
+  sealCarried: boolean;
+  /** The envoy showed its credentials (item 9): its mandate's words and the limits of its seal; null when hidden. */
+  credentials: Authority | null;
+  shownMandate: string | null;
 }
 
 export function newAudienceView(init: Partial<AudienceView> = {}): AudienceView {
   return {
+    sealCarried: false,
+    credentials: null,
+    shownMandate: null,
     inventory: true,
     clauses: [],
     audienceId: "",
@@ -342,6 +362,9 @@ export function newAudienceView(init: Partial<AudienceView> = {}): AudienceView 
 }
 
 export const AudienceViewSchema: ObjSchema<AudienceView> = obj("AudienceView", newAudienceView, {
+  sealCarried: B,
+  credentials: opt(() => AuthoritySchema),
+  shownMandate: opt(S),
   inventory: B,
   clauses: list(() => ClauseSchema),
   audienceId: S,
@@ -390,5 +413,8 @@ export function asHeard(h: HostReply): HostReply {
     goldBack: h.goldBack,
     goldBackPurity: h.goldBackPurity,
     end: h.end,
+    // What it says in clauses (item 8), and a tablet of its own it offers the envoy to seal (item 9).
+    clauses: h.clauses.map((c) => ({ ...c })),
+    counter: h.counter === null ? null : { ...h.counter, clauses: h.counter.clauses.map((c) => ({ ...c })) },
   });
 }

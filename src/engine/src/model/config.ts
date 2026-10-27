@@ -82,6 +82,13 @@ export interface GameConfig {
    * season are ten times this ({@link legPoints}). The rest of a season goes on halts, audiences and waiting at borders.
    */
   travelDays: number;
+  /**
+   * Winter is dangerous, never closed (item 9): the chance in percent that an army crossing a mountain pass in winter, or
+   * carried over the open sea then, is lost to cold, hunger and desertion or to the storms, and that a fleet crossing the
+   * open sea in winter is lost to the storms. Size, supplies and the commander are neutral until their items (9+a, 10+a, 13).
+   */
+  winterArmyLoss: number;
+  winterFleetLoss: number;
   maxDispatchesPerTurn: number;
   maxLetterChars: number;
   /**
@@ -143,6 +150,8 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     desertUpkeep: 30,
     seaSupply: 1,
     travelDays: 45,
+    winterArmyLoss: 30,
+    winterFleetLoss: 25,
     maxDispatchesPerTurn: 3,
     maxLetterChars: 1500,
     pressMode: "full",
@@ -190,6 +199,8 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   desertUpkeep: I,
   seaSupply: I,
   travelDays: I,
+  winterArmyLoss: I,
+  winterFleetLoss: I,
   maxDispatchesPerTurn: I,
   maxLetterChars: I,
   pressMode: S,

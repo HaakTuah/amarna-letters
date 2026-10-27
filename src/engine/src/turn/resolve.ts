@@ -2,7 +2,7 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TurnSubmission } from "../model/orders.ts";
+import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed } from "../model/outcomes.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
@@ -124,6 +124,9 @@ P.resolveSeason = function (submissions) {
   this.recognise();
   this.resolveIntelligence(all(any));
   for (const [p, o] of all((o): o is RoadsOrder => o.type === "roads")) this.roads(p, o);
+  // Grants revoked and tablets repudiated (item 9) take effect from next season: guests still there then take the land.
+  for (const [p, o] of all((o): o is RevokeOrder => o.type === "revoke")) this.revokeGrants(p, o);
+  for (const [p, o] of all((o): o is RepudiateOrder => o.type === "repudiate")) this.repudiate(p, o);
   this.coversAtCourt();
 
   this.worldEvents();
@@ -141,15 +144,19 @@ P.resolveMovement = function (unitOrders) {
   }
 
   const sallies = unitOrders.map(([, o]) => o).filter((o): o is SallyOrder => o.type === "sally");
-  // In winter the open-sea crossings are closed, to fleets and to the armies they carry.
-  const adjudicator = new Adjudicator(Map.forTurn(S.turn), true, S.config.terrainDefence);
+  // Winter closes nothing (item 9): a crossing it makes dangerous costs troops after the moves (winterCrossings).
+  const adjudicator = new Adjudicator(Map, true, S.config.terrainDefence);
   const result = adjudicator.run(S.units, byProvince, S.owner, S.walls, sallies);
   this._battle = result;
   this._unitOrdersNow = byProvince;
   // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
-  for (const o of result.outcomes.filter((o) => o.order === "move" && o.target !== null)) o.targetOwner = S.owner.getOrDefault(o.target!, null);
-  // The record of wars: the first season each king's troops got into another's land.
-  for (const o of result.outcomes.filter((o) => o.order === "move" && o.succeeded && o.targetOwner !== null && o.targetOwner !== o.power)) {
+  for (const o of result.outcomes.filter((o) => o.order === "move" && o.target !== null)) {
+    o.targetOwner = S.owner.getOrDefault(o.target!, null);
+    // Into land its holder opened to it on a sealed tablet (item 9): a guest, not an attack.
+    o.guest = this.grantCovers(o.targetOwner, o.power, o.target!) !== null;
+  }
+  // The record of wars: the first season each king's troops got into another's land (a guest's entry is none).
+  for (const o of result.outcomes.filter((o) => o.order === "move" && o.succeeded && o.targetOwner !== null && o.targetOwner !== o.power && !o.guest)) {
     let by = S.invaded.tryGet(o.targetOwner!);
     if (!by) S.invaded.set(o.targetOwner!, (by = new Dict()));
     by.tryAdd(o.power, S.turn);
@@ -183,7 +190,11 @@ P.resolveMovement = function (unitOrders) {
     S.units.splice(S.units.indexOf(u), 1);
     logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), u.power]);
   }
+  const lostToWinter = this.winterCrossings(result.newPositions);
+  this._movedNow.clear();
+  for (const [id, prov] of result.newPositions) if (S.units.find((x) => x.id === id)?.province !== prov) this._movedNow.add(id);
   for (const [id, prov] of result.newPositions) S.units.find((x) => x.id === id)!.province = prov;
+  this.loseToWinter(lostToWinter, sightBefore);
   // Walls stormed: the province is taken when land changes hands, and its walls fall a level then.
   for (const a of result.assaults.filter((a) => assaultStormed(a)))
     logEvent(
@@ -323,6 +334,8 @@ P.updateOwnership = function () {
     if (prov.isSea) continue;
     const before = S.owner.getOrDefault(u.province, null);
     if (before === u.power) continue;
+    // A guest by passage or basing on a sealed tablet takes none of the land it stands in by leave (item 9).
+    if (this.guestOf(u) !== null) continue;
     if (wallsOf(S, u.province) > 0) {
       if (!stormed.has(u.province)) continue;
       this.lowerWalls(u.province);

@@ -1,5 +1,6 @@
 /** Envoys: dispatch, travel, audience, return and report. (Recruitment and contracts are in court.ts.) */
 import { clamp, roundEven, toInt } from "../core/num.ts";
+import { distinct } from "../core/seq.ts";
 import { isBlank, trim } from "../core/text.ts";
 import type { AudienceRecord, AudienceRound, AudienceView, MindReply, MindRequest } from "../model/exchanges.ts";
 import { newAudienceView, newEnvoyReaction, newHostReply, newMindRequest, requestFor } from "../model/exchanges.ts";
@@ -24,7 +25,8 @@ import {
   type MessageTrail,
   type PendingAudience,
 } from "../model/records.ts";
-import { char, findCharacter, inboxOf, isAlive, logEvent, newGoldLot, newId, notify } from "../model/state.ts";
+import { char, findCharacter, inboxOf, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
+import { authorityText, newAuthority } from "../model/authority.ts";
 
 import { formatMoney } from "../rules/calendar.ts";
 import { cap, deviations, renderGreeting, stopped } from "../rules/greeting.ts";
@@ -127,6 +129,18 @@ P.dispatch = function (p, d) {
   // In full press a letter given only in clauses is written out in their words, as in structured press.
   const letter = structured || isBlank(d.letter) ? renderClauses(clauses, p, d.to) : this.scribe(p, cap(d.letter ?? "", S.config.maxLetterChars));
   const mandate = this.scribe(p, cap(d.mandate ?? "", 600));
+  // The envoy's authority (item 9): the seal, and the provinces it may cede or open, of those the king holds.
+  const held = new Set(ownedBy(S, p));
+  const authority =
+    d.authority != null && (d.authority.seal || d.authority.show)
+      ? newAuthority({
+          seal: d.authority.seal,
+          show: d.authority.show,
+          maxGold: Math.max(0, Math.trunc(d.authority.maxGold)),
+          cede: distinct(d.authority.cede.filter((x) => held.has(x))),
+          open: distinct(d.authority.open.filter((x) => held.has(x))),
+        })
+      : null;
   const tabletClauses = d.proposal ? this.clausesOf(p, d.to, d.proposal.clauses, "tablet") : [];
   const proposal = d.proposal
     ? newTabletProposal({
@@ -151,6 +165,7 @@ P.dispatch = function (p, d) {
     proposalText: proposal?.text ?? null,
     clauses,
     noInventory: d.gold > 0 && !inventory,
+    authority,
   });
   S.trails.push(trail);
 
@@ -166,6 +181,7 @@ P.dispatch = function (p, d) {
     trailId: trail.id,
     clauses,
     inventory,
+    authority,
   });
   if (proposal !== null) {
     const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, clauses: tabletClauses });
@@ -187,7 +203,9 @@ P.dispatch = function (p, d) {
     `My lord of ${land(p)} sent me to ${land(d.to)}. The message: "${letter}"` +
       (mandate.length > 0 ? ` I may agree to: ${stopped(mandate)}` : "") +
       (d.gold > 0 ? ` I carry gold, said to be ${formatMoney(d.gold)}${inventory ? "" : ", with no inventory: nobody can check it"}.` : "") +
-      (d.proposal ? " I carry a tablet for their king to seal." : ""),
+      (d.proposal ? " I carry a tablet for their king to seal." : "") +
+      (authority?.seal ? ` I carry my lord's seal. ${authorityText(authority, (x) => Map.get(x).name)}` : "") +
+      (authority?.show ? " I am to show my credentials." : ""),
   );
   notify(S, p, "Notice", "Envoy dispatched", `${c.name} set out for ${d.to} last season; the journey should take about ${travel} season(s).`, c.id);
   // Out of a besieged capital: the besiegers may catch it as it slips out (its king believes it on its way).
@@ -288,6 +306,13 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
     const tab = copy === undefined ? undefined : S.tablets.find((t) => t.id === copy.tabletId);
     if (tab !== undefined) view.copiesShown.push(Views.tablet(tab, newTabletCopy({ id: "", tabletId: tab.id, holder: a.host, source: `shown by ${a.from}` })));
   }
+  // Item 9: whether it carries its king's seal is plain to see; its limits and mandate only if it shows its credentials.
+  const authority = a.dispatch.authority;
+  view.sealCarried = authority?.seal ?? false;
+  if (authority?.show) {
+    view.credentials = { ...authority, cede: [...authority.cede], open: [...authority.open] };
+    view.shownMandate = a.dispatch.mandate;
+  }
   if (c.secretMaster === a.host) {
     view.secretMandate = a.dispatch.mandate;
     view.secretLetter = a.dispatch.letter;
@@ -378,6 +403,9 @@ P.applyAudience = function (record) {
   // Gold to send home with the envoy: the latest amount named stands (0 in a later exchange keeps it), at that exchange's purity.
   let goldBack = 0;
   let goldBackPurity = 100;
+  const cargo = newHomeCargo({ trailId: trail.id, observations: this.observe(c, host) });
+  // An envoy with its king's seal may seal one tablet of the host's own an audience (item 9).
+  let sealedByHand = false;
   for (const round of record.rounds.slice(0, S.config.audienceRounds)) {
     const h = round.host ?? newHostReply();
     const e = round.envoy ?? newEnvoyReaction();
@@ -425,7 +453,9 @@ P.applyAudience = function (record) {
       S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: tablet.id, holder: host, acquiredTurn: S.turn, source: "sealed at audience" }));
       trail.outcomes.push(SealedOutcome);
       logEvent(S, "tablet", `${sender} and ${host} sealed a tablet: "${cap(tablet.text, 160)}"`, [sender, host], "tablet-sealed");
+      this.grantsFrom(tablet);
     }
+    if (!sealedByHand && h.counter !== null && !detained && !defected) sealedByHand = this.sealByHand(sender, host, c, d, h, e, trail, cargo);
 
     if (!isBlank(e.commitments)) trail.outcomes.push(CommittedPrefix + cap(e.commitments, MaxSpeech));
 
@@ -438,7 +468,6 @@ P.applyAudience = function (record) {
     if (h.end || detained || defected) break;
   }
 
-  const cargo = newHomeCargo({ trailId: trail.id, observations: this.observe(c, host) });
   const pid = d.proposalTabletId;
   if (pid !== null) {
     const sealed = S.tablets.find((t) => t.id === pid);

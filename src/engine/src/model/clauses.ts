@@ -19,6 +19,8 @@ export const ClauseKindValues = [
   "support",
   "tribute",
   "cede",
+  "passage",
+  "basing",
   // Requests
   "askGold",
   "askSupport",
@@ -27,6 +29,8 @@ export const ClauseKindValues = [
   "askTribute",
   "askHelp",
   "askOath",
+  "askPassage",
+  "askBasing",
   // Threats
   "threat",
   // Grievances and accusations
@@ -48,18 +52,25 @@ export const ClauseKindValues = [
 export type ClauseKind = (typeof ClauseKindValues)[number];
 
 /** The kinds a king offers or asks for, which an answer (accept, refuse, counter) can name. */
-export const ProposalKinds: readonly ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede"];
-export const RequestKinds: readonly ClauseKind[] = ["askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath"];
+export const ProposalKinds: readonly ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing"];
+export const RequestKinds: readonly ClauseKind[] = ["askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing"];
 export const NewsKinds: readonly ClauseKind[] = ["newsTroops", "newsStrength", "newsTaken", "newsSiege"];
 export const AnswerKinds: readonly ClauseKind[] = ["accept", "refuse", "counter"];
-/** What the one who receives the letter would give, were he to agree: a script king never seals a tablet that holds one. */
-export const GivingKinds: readonly ClauseKind[] = ["askGold", "askCede", "askTribute", "askWithdraw"];
+/**
+ * What the one who receives the letter would give, were he to agree: a script king never seals a tablet that holds one,
+ * except the passage or basing he means to grant (item 9).
+ */
+export const GivingKinds: readonly ClauseKind[] = ["askGold", "askCede", "askTribute", "askWithdraw", "askPassage", "askBasing"];
+/** The clauses that grant a right once the tablet that holds them is sealed (item 9): every other clause obliges nobody. */
+export const GrantingKinds: readonly ClauseKind[] = ["passage", "basing", "askPassage", "askBasing"];
 
 /**
  * One clause. Only the fields its kind uses are set; the rest stay null. `power`: the king it names (against whom, whose
  * troops, who is in league with the Habiru, who besieges). `province`: the land it names (ceded, asked for, attacked, a
  * move's start). `to`: a move's end. `turn`: the season of a move. `amount`: shekels of gold, or for `newsStrength` 0
- * (few) or 1 (many). `answers`: for an answer, the kind of clause it answers.
+ * (few) or 1 (many). `answers`: for an answer, the kind of clause it answers. For passage and basing (item 9), `province` is
+ * the land opened (none: all the granting king's land, for passage) and `turn` the last season the grant stands (none: until
+ * revoked).
  */
 export interface Clause {
   kind: ClauseKind;

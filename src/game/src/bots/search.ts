@@ -206,6 +206,8 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
       // A troop readying a landing (see Landing in seas.ts) keeps to it: a single season cannot see what waiting at sea or
       // on the coast is worth, only the seasons that follow can.
       if (plan.role.tryGet(u) === "landing") continue;
+      // So does a winter stroke (Tactics, item 9): the pictured seasons, on the safe winter map, cannot picture it.
+      if (plan.role.tryGet(u) === "winter-stroke") continue;
       for (const change of alternatives(b, best, u, ctx.willing, ctx.joints)) {
         if (ctx.runs + Samples > Budget) break;
         const trial = best.clone();
@@ -222,9 +224,14 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
     if (!improved || ctx.runs + Samples > Budget) break;
   }
 
-  // Write the chosen orders back into the plan.
+  // Write the chosen orders back into the plan. A winter stroke (Tactics, item 9) stands, which the pictured seasons cannot
+  // picture, unless another troop of ours now moves where it was going.
   for (const [u, o] of best) {
     const old = plan.orders.tryGet(u);
+    if (plan.role.tryGet(u) === "winter-stroke" && old !== undefined && old.type === "move") {
+      const target = old.to;
+      if (![...best].some(([w, x]) => w !== u && x.type === "move" && x.to === target)) continue;
+    }
     if (old !== undefined && orderEquals(old, o)) continue;
     plan.orders.set(u, o);
     let role: string;

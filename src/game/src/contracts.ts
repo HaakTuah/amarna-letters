@@ -134,6 +134,8 @@ export interface EnvoyContext {
   audienceKey: string;
   /** The game is in structured press (item 8): the envoy recites the letter's clauses, in the templates' words. */
   structured: boolean;
+  /** The provinces its lord holds (item 9): an envoy with his seal judges by them whether a tablet lies within its authority. */
+  senderHolds: string[];
 }
 
 export function newEnvoyContext(init: Pick<EnvoyContext, "self" | "sender" | "host" | "dispatch" | "turn" | "seed"> & Partial<EnvoyContext>): EnvoyContext {
@@ -149,6 +151,7 @@ export function newEnvoyContext(init: Pick<EnvoyContext, "self" | "sender" | "ho
     forgeMinCompetence: newGameConfig().forgeMinCompetence,
     audienceKey: "",
     structured: false,
+    senderHolds: [],
     ...init,
   };
 }

@@ -58,6 +58,8 @@ export class TurnEngine {
   _battle: AdjudicationResult | null = null;
   /** The unit orders of the season, by the province of the unit. */
   _unitOrdersNow = new Dict<string, Order>();
+  /** The units that moved this season (item 9: a guest passing through, not staying). */
+  readonly _movedNow = new HSet<string>();
   /** The scheduled and standing orders running this season, per seat, to tell their failures from the seat's fresh ones. */
   readonly _scheduledNow = new Dict<Power, Order[]>();
   /** Of those, the ones from standing orders that fired, with the standing order's id. */

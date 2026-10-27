@@ -10,6 +10,7 @@ import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, t
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
 import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
+import { type Grant, GrantSchema } from "./authority.ts";
 
 export const CURRENT_VERSION = 12;
 
@@ -71,6 +72,8 @@ export interface GameState {
   roadsClosed: Dict<Power, Power[]>;
   /** The kings each court has heard closed their roads to its people, as far as word has reached it. */
   roadsHeard: Dict<Power, Power[]>;
+  /** Passage and basing granted on sealed tablets (item 9), oldest first, ended ones kept as the record. */
+  grants: Grant[];
   /** The fallen kingdoms each court has heard of: word of a fall travels too. */
   fallsHeard: Dict<Power, Power[]>;
   /** The sieges under way: a foreign army standing in a walled city, ordered to besiege it. */
@@ -164,6 +167,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     known: new Dict(),
     roadsClosed: new Dict(),
     roadsHeard: new Dict(),
+    grants: [],
     fallsHeard: new Dict(),
     sieges: [],
     conquered: new Dict(),
@@ -218,6 +222,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   known: dict(dict(() => KnownSchema)),
   roadsClosed: dict(list(S)),
   roadsHeard: dict(list(S)),
+  grants: list(() => GrantSchema),
   fallsHeard: dict(list(S)),
   sieges: list(() => SiegeSchema),
   conquered: dict(I),
