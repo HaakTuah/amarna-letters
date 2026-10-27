@@ -2,7 +2,7 @@
  * The parts of the map that never change during a game, written once as plain SVG markup. Colours come from CSS variables,
  * so light and dark modes need no re-render.
  */
-import { AllPowers, Crossings, Rough, WorldMap } from "@amarna/engine";
+import { AllPowers, Crossings, Rough, StartWalls, WorldMap } from "@amarna/engine";
 import {
   CyprusPath,
   Gulf,
@@ -137,12 +137,22 @@ function buildBase(): string {
   return sb + "</g>";
 }
 
+/**
+ * How much a name matters, for the names that give way as the map grows small on screen ("Map on small screens"): 0 a
+ * capital, shown always; 1 a great city (a yield of 35 or more, or a fortress), shown from the first zoom step; 2 the
+ * rest, shown from the second, where the crowded coasts (the Levant above all) have room for every name.
+ */
+export function nameRank(p: { id: string; capital: boolean; yield: number }): number {
+  if (p.capital) return 0;
+  return p.yield >= 35 || (StartWalls.get(p.id) ?? 0) >= 2 ? 1 : 2;
+}
+
 function buildLabels(): string {
   let sb = `<g class="labels">`;
   // Each name hangs from its city and grows about it when the map is small on screen (see zoom.ts, --lab).
   for (const p of Map_.provinces.filter((x) => !x.isSea)) {
     const s = labelAt(p.id);
-    sb += `<g transform="translate(${p.x},${p.y})"><text class="plabel${p.capital ? " cap" : ""}" x="${F(s.dx)}" y="${F(s.dy)}" text-anchor="${s.anchor}">${escape(p.name)}</text></g>`;
+    sb += `<g transform="translate(${p.x},${p.y})"><text class="plabel${p.capital ? " cap" : nameRank(p) === 1 ? " major" : " minor"}" x="${F(s.dx)}" y="${F(s.dy)}" text-anchor="${s.anchor}">${escape(p.name)}</text></g>`;
   }
   return sb + "</g>";
 }

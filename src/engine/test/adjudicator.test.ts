@@ -172,47 +172,47 @@ describe("AdjudicatorTests", () => {
 
   test("Army crosses the sea by convoy", () => {
     // Amurru and the island of Arwad share their waters: one fleet carries the army over.
-    let b = new Board().a("Egypt", "amurru").f("Egypt", "amurruwaters").move("amurru", "arwad").convoy("amurruwaters", "amurru", "arwad");
-    Assert.equal("arwad", b.where(b.run(), "amurru"));
+    let b = new Board().a("Egypt", "sumur").f("Egypt", "sumurwaters").move("sumur", "arwad").convoy("sumurwaters", "sumur", "arwad");
+    Assert.equal("arwad", b.where(b.run(), "sumur"));
   });
 
   test("Army without a convoying fleet stays", () => {
-    let b = new Board().a("Egypt", "amurru").move("amurru", "arwad");
-    Assert.equal("amurru", b.where(b.run(), "amurru"));
+    let b = new Board().a("Egypt", "sumur").move("sumur", "arwad");
+    Assert.equal("sumur", b.where(b.run(), "sumur"));
   });
 
   test("Dislodged fleet breaks the convoy", () => {
     let b = new Board()
-      .a("Egypt", "amurru")
-      .f("Egypt", "amurruwaters")
+      .a("Egypt", "sumur")
+      .f("Egypt", "sumurwaters")
       .f("Arzawa", "bybloswaters")
       .f("Arzawa", "ugaritwaters")
-      .move("amurru", "arwad")
-      .convoy("amurruwaters", "amurru", "arwad")
-      .move("bybloswaters", "amurruwaters")
-      .support("ugaritwaters", "bybloswaters", "amurruwaters");
+      .move("sumur", "arwad")
+      .convoy("sumurwaters", "sumur", "arwad")
+      .move("bybloswaters", "sumurwaters")
+      .support("ugaritwaters", "bybloswaters", "sumurwaters");
     let r = b.run();
-    Assert.equal("amurru", b.where(r, "amurru"));
-    Assert.equal("amurruwaters", b.where(r, "bybloswaters"));
-    Assert.null(b.where(r, "amurruwaters"));
+    Assert.equal("sumur", b.where(r, "sumur"));
+    Assert.equal("sumurwaters", b.where(r, "bybloswaters"));
+    Assert.null(b.where(r, "sumurwaters"));
   });
 
   test("Convoy paradox resolves by the Szykman rule", () => {
     // The convoyed army attacks the unit supporting the attack on its own convoy.
     let b = new Board()
-      .a("Egypt", "amurru")
-      .f("Egypt", "amurruwaters")
+      .a("Egypt", "sumur")
+      .f("Egypt", "sumurwaters")
       .f("Arzawa", "bybloswaters")
       .f("Arzawa", "arwad")
-      .move("amurru", "arwad")
-      .convoy("amurruwaters", "amurru", "arwad")
-      .move("bybloswaters", "amurruwaters")
-      .support("arwad", "bybloswaters", "amurruwaters");
+      .move("sumur", "arwad")
+      .convoy("sumurwaters", "sumur", "arwad")
+      .move("bybloswaters", "sumurwaters")
+      .support("arwad", "bybloswaters", "sumurwaters");
     let r = b.run();
-    Assert.equal("amurru", b.where(r, "amurru"));
-    Assert.equal("amurruwaters", b.where(r, "bybloswaters"));
+    Assert.equal("sumur", b.where(r, "sumur"));
+    Assert.equal("sumurwaters", b.where(r, "bybloswaters"));
     Assert.equal("arwad", b.where(r, "arwad"));
-    Assert.null(b.where(r, "amurruwaters"));
+    Assert.null(b.where(r, "sumurwaters"));
   });
 
   test("Walls add nothing to the battle and are stormed only by more than walls and defenders", () => {

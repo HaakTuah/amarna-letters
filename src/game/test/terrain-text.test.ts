@@ -34,7 +34,7 @@ describe("TerrainTextTests", () => {
     ],
     ["- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis."],
     ["- kaska: Kaska Lands; land; a land without a king; yield 10; rough ground. armies: hattusa, sapinuwa."],
-    ["- ugaritwaters: Ugarit waters; sea zone, the waters of ugarit. fleets: ugarit, amurruwaters, kizzuwatnawaters, enkomiwaters (open sea)."],
+    ["- ugaritwaters: Ugarit waters; sea zone, the waters of ugarit. fleets: ugarit, sumurwaters, kizzuwatnawaters, enkomiwaters (open sea)."],
     [
       "- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out.",
     ],
@@ -67,7 +67,7 @@ describe("TerrainTextTests", () => {
   test("The view marks the rough ground beside the walls", () => {
     let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     let hatti = situation(Views.for(s, "Hatti"));
-    Assert.contains("lukka (walls 1, rough ground)", hatti);
+    Assert.contains("lukka (rough ground)", hatti);
     Assert.contains("isuwa (walls 1, rough ground)", hatti);
     Assert.contains("mira (rough ground) [Arzawa army]", hatti);
     Assert.contains("sinai (desert)", hatti);
