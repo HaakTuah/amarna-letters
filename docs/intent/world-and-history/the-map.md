@@ -1,4 +1,4 @@
-<!-- Generated from the design document, World and history tab, revision 21 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, World and history tab, revision 22 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## The map
 
 **Map review (decided 21 October 2026, built with the redrawn seas in build order item 7).** The map's density follows the politics: the Levant, where most of the Amarna letters were written, is finely divided, and Anatolia and Mesopotamia coarsely. That is right for the game, with these corrections:
@@ -17,7 +17,7 @@ Also:
   - **Dilmun and the Gulf.** Dilmun (Bahrain) was Babylonia's in this period, under a Kassite governor, so it starts as Babylonia's land, with a Gulf sea zone from Ur that Elam's coast also touches. It gives Babylonia its sea and its route towards Magan's copper; trade (decided 21 October 2026) gives that route its full meaning ("Economy and resources" under Land, people and economy).
   - **The Kaska lands.** North of Hattusa lived the Kaska, raiders without a king who burned Hattusa itself in the generation before 1346. They start as a lawless land of loose men, like Lukka, and are Hatti's standing threat from the north ("People of the land", "Bands are a character's soldiers").
   - **The Sutean steppe.** The nomads of the Syrian steppe raided travellers and served as hired fighters. The desert routes from the middle Euphrates cross their land, which starts as desert with loose men and no ruler.
-  - **Off the map, as the far ends of routes:** Magan, Punt and Elam's eastern lands beyond Susa; with the economy, these are edge markets ("Edge markets").
+  - **Off the map, as the far ends of routes:** Magan, Punt and Elam's eastern lands beyond Susa; with the economy, Magan and the eastern road are edge markets, and Punt only a door ("What each edge trades").
   - **The western edge:** Ahhiyawa and Millawanda (Miletus) mattered more in the following century; they stay off the map, and with the economy Ahhiyawa is the western edge market, "Keftiu and Ahhiyawa" ("Edge markets"; "The Aegean's far shore" under Ideas).
 - **Roads are paid for by those who build them.** A road (build order item 15) is built by the gold and labour put into it. When neighbours build one together, the split is agreed on a sealed tablet and, like every term, is only words. Who owns it is set by "A road belongs to the land it crosses", so building through another's land is an investment he can take, which is why it needs passage rights (item 9) and trust.
 

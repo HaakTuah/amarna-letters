@@ -15,18 +15,18 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 552 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 13 |
-| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 21 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 26 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 14 |
+| World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 22 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 27 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 16 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 16 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 10 |
-| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 8 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 17 |
+| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 11 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 18 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 7 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 4 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 10 |
-| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 12 |
+| Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 16 |
 
 Find a section or entry by its title, whichever tab it is in: `grep -rn "Title words" docs/intent .claude/rules`.
 Entries start with a bold title. The builder rules are in `.claude/rules/builder-rules.md`, which every
@@ -68,7 +68,7 @@ session loads.
 | `docs/intent/world-and-history/voice-of-the-age-letters-customs-and-vocabulary.md` | Voice of the age: letters, customs and vocabulary | 12.3 |
 | `docs/intent/engine-and-models/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md` | Turn structure and the deterministic engine | 11.2 |
-| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 12.5 |
+| `docs/intent/engine-and-models/architecture-seats-engine-characters-narrator.md` | Architecture: seats, engine, characters, narrator | 12.8 |
 | `docs/intent/engine-and-models/script-mode-and-press-modes.md` | Script mode and press modes | 3.0 |
 | `docs/intent/engine-and-models/tech-stack.md` | Tech stack | 11.2 |
 | `docs/intent/engine-and-models/security-prompt-injection-and-information-leakage.md` | Security: prompt injection and information leakage | 2.0 |
@@ -94,13 +94,13 @@ session loads.
 | `docs/intent/work-money-and-lending/purses-and-lending.md` | Purses and lending | 11.8 |
 | `docs/intent/land-people-and-economy/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/land-people-and-economy/gold.md` | Gold | 3.4 |
-| `docs/intent/land-people-and-economy/economy-and-resources-part1.md` | Economy and resources (part 1) | 22.0 |
+| `docs/intent/land-people-and-economy/economy-and-resources-part1.md` | Economy and resources (part 1) | 23.1 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part2.md` | Economy and resources (part 2) | 23.3 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part3.md` | Economy and resources (part 3) | 0.3 |
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.7 |
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.8 |
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 9.7 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 9.9 |
 | `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 5.3 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 10.9 |
