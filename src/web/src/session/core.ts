@@ -312,20 +312,24 @@ export class SessionCore {
     this.busy = true;
     this.notify();
     let played = false;
+    // Kept now: a new or loaded game replaces the controller (stop), and this step's game is then not the current one.
+    const signal = this.abort.signal;
     try {
-      await r.playTurn(this.abort.signal);
+      await r.playTurn(signal);
       played = true;
     } catch (e) {
-      if (!this.abort.signal.aborted) {
+      if (!signal.aborted) {
         this.error = e instanceof Error ? e.message : String(e);
         this.auto = false;
       }
     } finally {
-      this.busy = false;
-      this.changed();
+      if (this.runner === r) {
+        this.busy = false;
+        this.changed();
+      }
     }
     // The season is shown first; the save (the whole log, to IndexedDB) follows.
-    if (played) {
+    if (played && this.runner === r) {
       await sleep(1);
       await this.save();
     }
