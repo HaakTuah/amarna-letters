@@ -12,8 +12,8 @@ and access"; questions 2, 3 and 14 of the old round report). Save version 13. Th
   and the adjudicator use the whole map in every season (`WorldMap.forTurn` is gone). `WorldMap.winter` is the map without
   the dangerous crossings: script kings plan on it in winter (`Board.Sail`), and the engine uses it to tell an army carried
   over the open sea from one carried along the coasts.
-- **Troops** (`turn/winter.ts`, after the moves): an army that crossed a pass in winter, or was carried where no chain of
-  coastal waters joins its ends, is lost with `GameConfig.winterArmyLoss` (30) in 100; a fleet that crossed an open-sea
+- **Troops** (`turn/winter.ts`, after the moves): an army that crossed a pass in winter, or was carried by fleets that do
+  not join its ends by coastal waters alone (`coastalConvoy`), is lost with `GameConfig.winterArmyLoss` (30) in 100; a fleet that crossed an open-sea
   crossing in winter, with `winterFleetLoss` (25). Its king gets "Lost to winter"; those who saw either end see the event
   (`winter-loss`); one that got through is the event `winter-crossed` (its king's only). Size, supplies and the commander,
   which cut the losses in the design, are neutral until 9+a, 10+a and 13.
@@ -22,7 +22,7 @@ and access"; questions 2, 3 and 14 of the old round report). Save version 13. Th
   costs no time; its storms were already 8. Word goes by the fastest road in every season, an island's too.
 - **Script kings** (`Tactics`, "Winter strokes"): in winter they plan on the safe map, so they neither move over a
   dangerous crossing nor fear one; then each free army weighs each pass into land it would take where no troop stands
-  (within walls, to besiege them: `siegeWorth`): it goes if (1 − loss) × (½ where a foe could step in too) × value ×
+  (within walls, to besiege them: `siegeWorth`): it goes, where no foe could step in too, if (1 − loss) × value ×
   willingness exceeds loss × (its price + a year of upkeep). The look-ahead cannot picture the move on the safe map, so it
   keeps it unless another troop now goes there. `--no-winter-play`, `--winter-play-half`.
 
@@ -65,7 +65,10 @@ report brings no holders.
   there under passage alone has overstayed and takes it, as any troop takes land. Its move in is no invasion
   (`OrderOutcome.guest`, not in `GameState.invaded`), wakes a sleeping grantor as guests ("guests entered your land by the
   passage or basing you granted"), and a script grantor counts it no wrong. The grantee's travellers are not turned back
-  at the grantor's border nor seized by his troops (`passageFor`, in `closedTo`), even where his roads are closed to them.
+  at the border of the land granted nor seized by the grantor's troops there (`passageFor`, in `closedTo`), even where his
+  roads are closed to them. Passage through all one's land is the land held when the tablet is sealed (`Grant.lands`); a
+  revocation of one province narrows it. A guest's move goes in through the gates: it storms no walls (the adjudicator's
+  `guests`), and a move on the grantor's own troops is an attack, not a guest's entry (`guestAt`).
 - **Ending**: at the season it names; by the grantor's `RevokeOrder` (`revoke`: a king, and a province or none), resolved
   at the end of the season with the roads, so guests have that season to leave (event `grant-revoked`, a notice to the
   grantee); by closing one's roads to the grantee (`endGrants`); or by repudiation.

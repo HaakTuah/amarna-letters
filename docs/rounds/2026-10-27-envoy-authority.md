@@ -68,10 +68,87 @@ the pull request: see "Asked again" at the end.
     more. The alternative: a script rule for watching a province.
 11. **`asHeard` fixed**: what an envoy hears of the host's reply now carries the host's clauses, which item 8 dropped, so a
     script envoy never heard a call for an oath given in clauses; and the host's tablet.
+12. **Script kings make no winter crossings by sea**: they plan winter on the map without the dangerous crossings and weigh
+    strokes over the passes only. The alternative: weigh convoys to Cyprus in winter too.
 
-BENCHMARKS_AND_AUDIT
+## Benchmarks, script games and the feature audit
+
+**The audit at the start** (seeds 1-50 and the solo benchmark, from a clean copy of `develop`): the same figures as item
+8's after-numbers, signal for signal. Every feature built so far is used by the script players but one: they never post
+a spy to watch a province (reading 10). Found while building: what an envoy hears of the host's reply had lost the host's
+clauses since item 8 (reading 11), fixed; and a script king could look up the fear of a king it had heard had fallen
+while it still remembered his troops, which crashed a game once the item's changes moved the seeds (fixed: he is feared
+not at all).
+
+**After the item**, the same seeds (`scripts/sim.sh --games 50 --seed 1 --verify-replay`): 50 of 50 replay exactly.
+
+| | Before 9 | After 9 | After, `--no-winter-play` | After, `--no-authority-play` |
+|---|---|---|---|---|
+| Capitals fell (games; kingdoms) | 39; 70 | 38; 69 | 40; 67 | 38; 70 |
+| First fall, median season | 19 | 19 | | |
+| Entry to fall, median seasons | 16 | 15 | | |
+| Wins: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa, Alashiya | 18, 11, 10, 3, 5, 1, 2 | 27, 11, 5, 4, 3, 0, 0 | 29, 11, 4, 3, 3, 0, 0 | 26, 7, 9, 4, 3, 0, 1 |
+| Mean growth (same order) | 4.86, 3.87, 3.34, 2.00, 1.32, 0.58, 2.91 | 4.98, 4.03, 2.82, 2.56, 1.00, 0.67, 2.83 | 4.98, 4.05, 2.90, 2.57, 1.02, 0.66, 2.83 | 4.85, 3.26, 3.19, 2.63, 1.07, 0.75, 2.92 |
+| Tablets sealed; detentions | 1632; 343 | 1788; 404 | | |
+| Sieges begun / won | 1022 / 819 | 979 / 788 | | |
+
+`--versus solo`, 40 seeds (one current king against six baselines): 9.73 growth alone and 1.27 as baseline over all, 91% and 14% of wins. By power, alone / as baseline: Egypt 7.53 / 0.87, Hatti 11.39 / 1.29, Babylonia 11.57 / 1.09, Mitanni 8.12 / 2.49, Assyria 14.57 / 1.17, Arzawa 6.64 / 1.43, Alashiya 8.25 / 0.58 (9.83 growth alone and 1.24 as baseline over all, 91% and 14% of wins, before). The baseline was adapted only as the rules required (winter
+closes nothing for it either; it gives no seal and asks no leave).
+
+What moved, and why: **Egypt wins more and Babylonia less** (27 and 5 wins, from 18 and 10). The same seeds with the
+script kings' authority play off give Babylonia 9 and Hatti 7: Egypt and Hatti gain most from the seal and from leave
+granted (Hatti's growth 4.03 against 3.26), Babylonia loses by them (2.82 against 3.19). The winter's strokes change
+little (14 in 50 games). The rest of what moved comes from winter closing nothing: Cyprus and the passes are open to
+everyone in every season, and the seeds play otherwise from the first winter. Egypt's lead is a balance matter for item 18.
+
+**Every feature is every seat's.** The script players use each new rule (50 games):
+- **The seal**: given with every tablet a trusted envoy carries; 247 tablets sealed by an envoy's hand (in 45 games): a
+  host's own tablet in place of the one it would not seal, a stand against its own foe, peace, leave for its troops, or a
+  greedy host's ask of gold beyond the envoy's authority.
+- **Repudiation**: 16 tablets repudiated (in 14 games), each one an envoy sealed beyond its authority (a careless,
+  disloyal or bought envoy sealing a greedy host's ask of gold).
+- **Passage**: 98 grants (in 24 games), almost all on the tablets of pleas for relief; 85 accepted and 20 refused in
+  answers; 24 revoked when the grantee turned foe. **Basing**: 5 grants (in 5 games): a script king's war target must
+  touch its land under its war rule, so it needs a friend's land only against a king it is sworn against.
+- **Winter strokes**: 10 armies crossed a snowbound pass in winter, 2 were lost (in 8 games): rare, as the design asks.
+  Against the same seeds with no strokes (`--no-winter-play`): mean growth 2.70 with them and 2.72 without; Egypt wins 27
+  against 29. They matter little, and the scripts make them only where they pay; they make no winter crossings by sea
+  (they plan winter on the safe map), a gap left for item 13's marching by distance, where a crossing's surprise can be
+  weighed against its losses over more than one season.
+- **Against the same seeds with the authority play off** (`--no-authority-play`): mean growth 2.70 with it, 2.67 without.
+  With half the kings playing it (`--authority-play-half`): those that play it grow 2.81 against 2.61, and win 23 games to 27.
+  It helps growth a little and the strong most; why it does not win more is not analysed further: each power's two sides
+  there are different seeds, and Babylonia alone loses by it in the full comparison.
+
+
+## The review
+
+One reviewer (the diff and the item's text) found two blocking issues and eleven others; all fixed but three:
+- Blocking, fixed: a model envoy was shown only the words of a host's tablet, not the clauses the engine grants by (it
+  now reads them, "which are what binds your lord"); passage through one province let the grantee's travellers through
+  all the grantor's closed roads (now only the land granted).
+- Fixed: a move on the grantor's own troops in granted land was counted a guest's entry (now an attack, recorded and
+  woken as one); a guest moving into its host's walled city could storm the walls (guests go in through the gates);
+  passage through all one's land covered land won after the tablet was sealed (now the land held then); a revocation of
+  one province of such a grant was refused (now it narrows the grant); an army carried over an open crossing between two
+  ends a coastal chain also joins risked nothing in winter (now the route its convoy took decides); the host's tablet's
+  field description suggested `passage` for leave in the envoy's land (corrected: `askPassage`); a host and envoy were
+  asked about a second tablet after one was sealed (no longer); a host's tablet the envoy did not seal reached its king as
+  a bare line (its words now go in the trail); a letter whose seal limits named land since lost was refused whole (the
+  engine now leaves such provinces out); a revoke could probe a grant the king did not yet know of (it answers only from
+  tablets in his archive).
+- Not changed: the court reply asks every envoy's answer for a tablet of the host's own, conditioned in words ("Only if
+  this envoy carries his king's seal"), so that its schema stays the same for the cache (item 6b's reading); no winter
+  sea strokes by script kings (reading 12); the report's placeholder, written since.
 
 ## First guesses (item 18 tunes them)
 
 `winterArmyLoss` 30, `winterFleetLoss` 25, `winterPassPercent` 200, `RoadOdds.snow` 6; leave asked for 9 seasons and passage
 on a plea for 6; a greedy host asks 50 shekels for his seal; the script thresholds in the design notes.
+
+## Asked again
+
+Before the pull request the live document was asked again (Build order since 55, War, travel and the seas since 37,
+Diplomacy and intelligence since 18): "A kingdom falls with its capital" was revised (the realm comes apart province by
+province, built in item 13 with governors) and item 13's text says so; "A crowd in a lawless land" gained the seed's
+draw of chiefs (item 11b). Nothing this item touches.

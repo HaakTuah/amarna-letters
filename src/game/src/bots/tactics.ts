@@ -663,7 +663,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
 
   // ---- Winter strokes (item 9, "Winter is dangerous, never closed"): an army may cross a snowbound pass into land we would
   // take where no troop stands (within walls, to besiege them), since nobody expects troops in winter. Taken only where what it wins, if the army gets
-  // through (half as likely where a foe could step in too), outweighs the army lost if it does not (its price and a year of
+  // through (never where a foe could step in too), outweighs the army lost if it does not (its price and a year of
   // upkeep); else it waits for spring.
   if (Board.Sail !== Board.Map && WinterStrokes.on && (WinterStrokes.only === null || WinterStrokes.only.has(me))) {
     const loss = b.v.prices.getOrDefault("winterArmyLoss", 30) / 100;
@@ -675,11 +675,11 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
         if (Board.Sail.canMove("Army", u, t) || Board.Map.get(t).isSea || plan.destinations.has(t) || b.unitAt.has(t)) continue;
         const owner = b.ownerOf(t);
         if (owner === me || (owner !== null && !isWilling(owner))) continue;
-        // A king we would fight who could step in by the moves he could give in winter may meet it there by chance: then it
-        // gets in only half the time.
-        const met = [...b.alive].some((x) => x !== me && !brain.isFriend(x) && b.muster(x, t) > 0);
+        // Nobody of a king we would fight could step in to meet it there, by the moves he could give in winter: a stroke
+        // that may be met is not worth the snow.
+        if ([...b.alive].some((x) => x !== me && !brain.isFriend(x) && b.muster(x, t) > 0)) continue;
         // Within walls it takes nothing at once: it stands and besieges them (siegeWorth).
-        const gain = (1 - loss) * (met ? 0.5 : 1) * b.value(t) * multiplier(owner) * (b.walls(t) ? siegeWorth(b.wallLevel(t)) : 1) - loss * worth;
+        const gain = (1 - loss) * b.value(t) * multiplier(owner) * (b.walls(t) ? siegeWorth(b.wallLevel(t)) : 1) - loss * worth;
         if (gain > 0 && (best === null || gain > best[1])) best = [t, gain];
       }
       if (best === null) continue;
