@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 27 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 28 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Tech stack
 
 The prototype is a static browser game where each player brings their own Anthropic API key. The whole game runs in the browser, including the TypeScript engine (decided 21 October 2026, in place of C# on Blazor WebAssembly; build order item 5+), and model calls go straight from the browser to the Anthropic API. The key never touches a server you run, so nobody can spend on your account, and hosting costs almost nothing.
@@ -50,7 +50,7 @@ The prototype is a static browser game where each player brings their own Anthro
 - **Map on small screens.** Pinch-zoom and pan on the SVG map, plus a list view of provinces, since small provinces are hard to tap.
 - **Installable web app (PWA).** Home-screen install, cached for fast start, and later push notifications when an envoy arrives (also supported on iPhone for installed web apps).
 - **Short letters.** The interface encourages brief letters, which suits phone keyboards and dictation and saves tokens.
-- **Load size.** Blazor WebAssembly ships a .NET runtime: measured on 21 October 2026, a first visit downloaded 3.5 MB compressed in 62 files before the first screen. That is why the engine and frontend move to TypeScript (build order item 5+). Keep measuring first-load time and the time of one season on a phone, before and after the conversion and as the game grows.
+- **Load size.** Blazor WebAssembly shipped a .NET runtime: on 21 October 2026 a first visit downloaded 3.5 MB compressed in 62 files before the first screen, which is why the game moved to TypeScript (build order item 5+). On an emulated phone with its processor slowed four times, the conversion took the first load from 5.50 s to 1.50 s and one season of a free game from 7.96 s to 0.77 s (27 October 2026). Keep measuring both as the game grows.
 
 **Hosting on GitHub Pages.** The static build runs from the repository like any static site, with nothing to install: set the base path to the repository name, add a `.nojekyll` file, add a `404.html` redirect for client-side routing, and publish with a GitHub Actions workflow. Pages is free for public repositories; private ones need a paid plan.
 
