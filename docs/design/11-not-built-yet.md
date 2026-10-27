@@ -72,6 +72,6 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
 - **Push notifications** when an envoy arrives ("Platforms"); the web app installs and starts from cache.
 - **Echoes kept out of the primer**: Finkel's "Send gold" parody as a rare script king's letter or chronicle line, and
   "a new Idrimi" in the chronicles once outlaws exist ("Echoes from the archive" and "A new Idrimi").
-- **Still to be decided before they are built**: distance-based travel and interception (which outlaws and bandit
-  chiefs depend on), the royal council, trade, and multiplayer, stages 2 and 3 (Build order "Not yet in the order";
-  "Path to multiplayer").
+- **Still to be decided before they are built**: the spec of the economy's later phases, and multiplayer, stages 2
+  and 3 (Build order "Not yet in the order"; "Path to multiplayer"). Distance-based travel and interception (item 7b),
+  the economy's first phase (item 9+) and the royal council (item 16) have been decided and are in the build order.
