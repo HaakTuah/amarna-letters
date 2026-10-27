@@ -105,6 +105,12 @@ export function withChoices(s: GameSettings, c: SeatChoices): GameSettings {
 }
 
 export const usesModels = (s: GameSettings): boolean => choicesOf(s).usesModels;
+/**
+ * Whether opening the age asks for the spending limit by hand ("An open age", decided 27 October 2026, built in item 6b):
+ * a game with no end makes model calls with no end, so a table with any model-played seat sets the limit itself, never
+ * the default, before it starts or plays on. A simulated API spends nothing.
+ */
+export const handLimitNeeded = (s: GameSettings): boolean => usesModels(s) && !s.simulateApi;
 /** The estimate for a game of median length; an open age has no end, so it is the spend of the same span, before the limit. */
 export const estimate = (s: GameSettings): number => CostEstimate.perGame(choicesOf(s), s.endMedian);
 

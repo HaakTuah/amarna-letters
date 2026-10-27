@@ -27,6 +27,7 @@ import {
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
+import { ageBand } from "./ending.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { asShown, basePrice } from "../turn/turn-engine.ts";
 import { travelTurns } from "../turn/core.ts";
@@ -120,6 +121,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     king: king(p),
     ended: s.ended,
     openAge: s.config.openAge,
+    ageBand: ageBand(s.config.endMedian),
     gold: ledger(t),
     unassayedGold: t.lots.map((l) => newLotView({ id: l.id, from: l.from, stated: l.stated, weighed: l.face, arrivedTurn: l.arrivedTurn })),
     income: engine.income(p),

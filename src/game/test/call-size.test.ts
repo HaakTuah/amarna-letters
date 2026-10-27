@@ -18,10 +18,13 @@ import {
   newDispatch,
   newMessageTrail,
   newExchange,
+  ageBand,
+  ending,
 } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptMind, TemplateNarrator, type ISeat } from "@amarna/game";
-import { LlmLeaderSeat, asGiven, Parse, Schemas, jsonSchema, situation, withoutHolds, type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
+import { LlmLeaderSeat, asGiven, leaderRules, Parse, Schemas, jsonSchema, situation, withoutHolds, type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
 import { ahead } from "../src/bots/ahead.ts";
+import { endMayBeNear, seasonsLeft } from "../src/bots/ending-belief.ts";
 import { Assert, toDict } from "../../engine/test/support.ts";
 import { Scripted, Sleeper } from "./sleep-support.ts";
 import { welcomeCourt } from "./io.ts";
@@ -227,6 +230,21 @@ describe("CallSizeTests", () => {
     Assert.contains('The king answered: "Go in peace."', text);
     Assert.doesNotContain("kept", text);
     Assert.doesNotContain("accepted", text);
+  });
+
+  // ------------------------------------------------------------ Haakon's answers to item 6a's review
+
+  test("A table's median reaches every seat in words, in bands, and script kings believe the band", () => {
+    Assert.equal(["Short", "Usual", "Long"], [ageBand(24), ageBand(44), ageBand(80)]);
+    const short = newGameConfig({ endMedian: 20 });
+    Assert.contains("This age is likely to be short", leaderRules(true, short));
+    Assert.doesNotContain("20", ending(false, null, null, "Short").replace(/\D+/g, " ").trim());
+    Assert.equal("Short", Views.for(newGame(1, short), "Egypt").ageBand);
+    Assert.contains("Early on it is very unlikely", leaderRules(true, newGameConfig()));
+    // A script king believes the band's own median: it expects a short age to end sooner than the usual one.
+    Assert.true(seasonsLeft(1, false, "Short") < seasonsLeft(1, false, "Usual"));
+    Assert.true(seasonsLeft(1, false, "Usual") < seasonsLeft(1, false, "Long"));
+    Assert.true(endMayBeNear(10, false, "Short") && !endMayBeNear(10, false, "Usual"));
   });
 
   // ------------------------------------------------------------ compaction

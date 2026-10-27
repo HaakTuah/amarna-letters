@@ -35,6 +35,31 @@ export function endSlope(median: number): number {
   return (lo + hi) / 2;
 }
 
+/**
+ * What every seat is told of a table's median, in words with no numbers ("What kings are told" under "Random ending";
+ * decided 27 October 2026, built in item 6b): an age likely to be short, of the usual length, or long. First guesses:
+ * a median up to 30 seasons is short, from 60 long. A script king believes the band's own median, never the table's.
+ */
+export const AgeBandValues = ["Short", "Usual", "Long"] as const;
+export type AgeBand = (typeof AgeBandValues)[number];
+export const BandMedian: Record<AgeBand, number> = { Short: 24, Usual: 44, Long: 75 };
+
+export function ageBand(median: number): AgeBand {
+  return median <= 30 ? "Short" : median >= 60 ? "Long" : "Usual";
+}
+
+/** The rule in the band's words, as every seat reads it. */
+export function bandWords(band: AgeBand): string {
+  switch (band) {
+    case "Short":
+      return "Any season may be the last, from the first. This age is likely to be short: early on the end is unlikely, but it grows likelier quickly, with every year.";
+    case "Long":
+      return "Any season may be the last, from the first. This age is likely to be long: for many years the end is very unlikely, and it grows likelier only slowly, with every year.";
+    default:
+      return "Any season may be the last, from the first. Early on it is very unlikely, and it grows likelier with every year.";
+  }
+}
+
 /** The public chance that season t is the last, if the age reaches it. */
 export function endChanceAt(turn: number, median: number): number {
   return Math.min(1, endSlope(median) * turn);

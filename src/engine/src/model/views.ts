@@ -306,6 +306,8 @@ export interface SeatView {
   ended: boolean;
   /** Whether the age has no end ("An open age"). The ending itself is told in words; no number or season of it is shown. */
   openAge: boolean;
+  /** What every seat is told of the table's median, in a word ("Short", "Usual", "Long"; rules/ending.ts). */
+  ageBand: string;
   gold: number;
   unassayedGold: LotView[];
   income: number;
@@ -399,6 +401,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     king: "",
     ended: false,
     openAge: false,
+    ageBand: "Usual",
     gold: 0,
     unassayedGold: [],
     income: 0,
@@ -447,6 +450,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   king: S,
   ended: B,
   openAge: B,
+  ageBand: S,
   gold: I,
   unassayedGold: list(() => LotViewSchema),
   income: I,

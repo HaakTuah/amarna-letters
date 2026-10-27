@@ -30,7 +30,7 @@ import { GameLog, GameRunner, ReplayExhaustedError, type ISeat, type SeasonFallb
 import { AnthropicId, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { catchUpFrames, type SeasonFrame } from "./frames.ts";
 import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
-import { choicesOf, fallenSeesAll, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
+import { choicesOf, fallenSeesAll, handLimitNeeded, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings, type TableSettings } from "./settings.ts";
 import { saveLog } from "./storage.ts";
 
 /** A human seat whose decisions the page makes: the worker asks, the page answers by message. */
@@ -379,9 +379,20 @@ export class SessionCore {
   }
 
   /** Plays on into an open age after the age has ended ("An open age"); the game then never ends by itself. */
-  async playOn(): Promise<void> {
+  async playOn(budgetUsd: number | null = null): Promise<void> {
     const r = this.runner;
-    if (r === null || this.busy || this.readOnly || !(await r.playOn())) return;
+    if (r === null || this.busy || this.readOnly) return;
+    // An open age with model-played seats plays on only once the table has set its spending limit by hand, above what
+    // the game has spent so far ("An open age").
+    if (handLimitNeeded(this.settings)) {
+      if (budgetUsd === null || !Number.isFinite(budgetUsd) || budgetUsd <= r.log.totalCost) {
+        this.notice = `To play on into an open age, set by hand the spending limit at which the game pauses, above the $${fmt(r.log.totalCost, "0.00")} it has spent.`;
+        this.notify();
+        return;
+      }
+      this.settings = { ...this.settings, budgetUsd };
+    }
+    if (!(await r.playOn())) return;
     this.changed();
     await this.save();
   }
@@ -453,7 +464,7 @@ export class SessionCore {
         this.notice = null;
         return this.notify();
       case "playOn":
-        return this.playOn();
+        return this.playOn(m.budgetUsd);
       case "stop":
         return this.stop();
       case "clear":

@@ -9,6 +9,8 @@ import {
   GameConfigSchema,
   LossNewsSeasons,
   MaxAnswers,
+  ageBand,
+  bandWords,
   MaxConditions,
   MaxScheduledPerSeason,
   MaxScheduledSeasons,
@@ -42,12 +44,13 @@ export function leaderRules(primer: boolean, c: GameConfig): string {
 
 /**
  * The ending, in words and without numbers (build order item 6a): kings are told the rule, never its chance, median, cap
- * or the drawn season, so no seat can see a last season coming.
+ * or the drawn season, so no seat can see a last season coming. A table's median moves the words, in bands with no
+ * numbers (item 6b, answering 6a's review).
  */
 export function ending(c: GameConfig): string {
   return c.openAge
     ? `- This is an open age: it has no end. The game goes on season after season until only one kingdom is left or the table stops it, and the winner is whoever has grown most when it stops.`
-    : `- Any season may be the last, from the first. Early on it is very unlikely, and it grows likelier with every year. Nobody knows which season is the last, and nothing you see foretells it.`;
+    : `- ${bandWords(ageBand(c.endMedian))} Nobody knows which season is the last, and nothing you see foretells it.`;
 }
 
 function rules(primer: boolean, c: GameConfig): string
