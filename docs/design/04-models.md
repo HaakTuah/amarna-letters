@@ -241,7 +241,7 @@
   so the sections on sleeping and planning ahead do not apply to it.
 - **The customs primer** (on by default; `--no-primer` turns it off) covers the forms of address
   and rank in the greeting ("brother" between Great Kings claims equal rank, as Assyria's king did
-  when he first wrote to the pharaoh as a brother; one's own name above the recipient's reads as an
+  when, after a modest first letter (EA 15), he began writing to the pharaoh as a brother (EA 16); one's own name above the recipient's reads as an
   insult), gifts as a measure of respect, precedent as a floor (more than was given to one's father;
   a son who breaks his father's promise, as Akhenaten did with gilded wooden statues, hands the
   argument to the other side), detained envoys and blaming the messenger, detention answering

@@ -260,7 +260,7 @@ describe("ModelLayerTests", () => {
     let rules = leaderRules(true, config);
     // Rank in the greeting: the existing line, extended rather than repeated.
     Assert.contains(
-      'Between Great Kings, "brother" claims equal rank, and withholding it is a slight: when the king of Assyria first wrote to the pharaoh as a brother',
+      'Between Great Kings, "brother" claims equal rank, and withholding it is a slight: when the king of Assyria, after a modest first letter, began writing to the pharaoh as a brother',
       rules,
     );
     Assert.contains("Writing your own name above the recipient's reads as an insult", rules);
