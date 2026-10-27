@@ -67,7 +67,7 @@ const Styled: Seed[] = [
   seed("Kidin-Adad", "Nippur", false),
   seed("Ubaru", "Sippar", false),
   seed("Tattamaru", "Hattusa", false),
-  seed("Pihhuniya", "Kanesh", false),
+  seed("Pihhuniya", "Nesa", false),
   seed("Ehli-Teshub", "Carchemish", false),
   seed("Tehip-tilla", "Arrapha", false),
   seed("Ashur-nadin", "Ashur", false),

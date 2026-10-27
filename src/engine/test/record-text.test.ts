@@ -211,21 +211,21 @@ describe("RecordTextTests", () => {
   }
 
   test("A stopped move says where the unit now stands", () => {
-    // Assyria and Mitanni meet head to head between Ekallatum and Terqa at equal strength: both bounce and stay.
+    // Assyria and Mitanni meet head to head between Ekallate and Terqa at equal strength: both bounce and stay.
     let s = newGame(1);
     new TurnEngine(s).resolve(
       new Dict([
-        ["Assyria", newTurnSubmission({ orders: [move("ekallatum", "terqa")] })],
-        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallatum")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "terqa")] })],
+        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallate")] })],
       ]),
     );
 
     Assert.contains(
-      "- A ekallatum -> terqa: fails: it met the unit from terqa (Mitanni's army) coming the other way; your strength 1 against 1; so your army stays in ekallatum",
+      "- A ekallate -> terqa: fails: it met the unit from terqa (Mitanni's army) coming the other way; your strength 1 against 1; so your army stays in ekallate",
       battle(s, "Assyria"),
     );
     Assert.contains(
-      "- A terqa -> ekallatum: fails: it met the unit from ekallatum (Assyria's army) coming the other way; your strength 1 against 1; so your army stays in terqa",
+      "- A terqa -> ekallate: fails: it met the unit from ekallate (Assyria's army) coming the other way; your strength 1 against 1; so your army stays in terqa",
       battle(s, "Mitanni"),
     );
 
@@ -233,14 +233,14 @@ describe("RecordTextTests", () => {
     let t = newGame(1);
     new TurnEngine(t).resolve(
       new Dict([
-        ["Assyria", newTurnSubmission({ orders: [move("ekallatum", "terqa"), support("ashur", "ekallatum", "terqa")] })],
-        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallatum")] })],
-        ["Babylonia", newTurnSubmission({ orders: [support("sippar", "terqa", "ekallatum"), support("durkurigalzu", "terqa", "ekallatum")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "terqa"), support("ashur", "ekallate", "terqa")] })],
+        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallate")] })],
+        ["Babylonia", newTurnSubmission({ orders: [support("sippar", "terqa", "ekallate"), support("durkurigalzu", "terqa", "ekallate")] })],
       ]),
     );
     let assyria = battle(t, "Assyria");
-    Assert.contains("- A ekallatum is destroyed", assyria);
-    Assert.doesNotContain("stays in ekallatum", assyria);
+    Assert.contains("- A ekallate is destroyed", assyria);
+    Assert.doesNotContain("stays in ekallate", assyria);
   });
 
   test("A kings letter is in his view in full while its envoy is away and beside the report when it comes", () => {

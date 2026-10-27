@@ -194,7 +194,7 @@ export function noticeOf(s: GameState, p: Power, title: string): InboxItem {
   return Assert.single(inboxOf(s, p), (i) => i.title === title);
 }
 
-// <summary>Babylon's army in Durkurigalzu is gone, so that an Assyrian army from Ekallatum can contest the province.</summary>
+// <summary>Babylon's army in Durkurigalzu is gone, so that an Assyrian army from Ekallate can contest the province.</summary>
 export function emptyDurkurigalzu(s: GameState): void {
   removeAll(s.units, (u) => u.province === "durkurigalzu");
 }
@@ -206,20 +206,20 @@ export function assyriaInSusa(s: GameState): void {
   s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "susa" }));
 }
 
-// <summary>A standing order of Babylon's waiting for Assyria to enter Arbela, bound to its units.</summary>
+// <summary>A standing order of Babylon's waiting for Assyria to enter Arrapha, bound to its units.</summary>
 export function waiting(s: GameState, id: string, ...orders: Order[]): StandingOrder {
   return newStandingOrder({
     id: id,
     when: "UnitEnters",
     power: "Assyria",
-    province: "arbela",
+    province: "arrapha",
     orders: orders.map((o) => newPlannedOrder({ order: o, unitId: unitOf(o) !== null ? unitAt(s, unitOf(o)!)!.id : null })),
   });
 }
 
-// <summary>Assyria's army leaves Ekallatum, which Babylon can see, for Arbela.</summary>
+// <summary>Assyria's army leaves Ekallate, which Babylon can see, for Arrapha.</summary>
 export function assyriaToArbela(babylon: TurnSubmission | null = null): Dict<Power, TurnSubmission> {
-  let orders = new Dict<Power, TurnSubmission>([["Assyria", newTurnSubmission({ orders: [move("ekallatum", "arbela")] })]]);
+  let orders = new Dict<Power, TurnSubmission>([["Assyria", newTurnSubmission({ orders: [move("ekallate", "arrapha")] })]]);
   if (babylon !== null) orders.set("Babylonia", babylon);
   return orders;
 }
@@ -246,6 +246,6 @@ export const PlanningReply: string = `{"notes":"Plan ahead.","summary":"","ledge
  "schedule":[{"turn":3,"units":[{"unit":"Babylon","order":"move","target":"nippur","to":""}],"other_orders":[],"conditions":[]}],
  "standing_orders":[
  {"when":"unit_attacked","province":"Sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[{"action":"counter_intelligence","province":"","power":"","person":"","amount":20,"term":0,"text":"","item":"","seals":[]}],"conditions":[]},
- {"when":"unit_enters","province":"mari","power":"","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]},
- {"when":"unit_enters","province":"mari","power":"Kush","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]}],
+ {"when":"unit_enters","province":"suhu","power":"","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]},
+ {"when":"unit_enters","province":"suhu","power":"Kush","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]}],
  "cancel_standing":["s9", "all"],"standing_answers":[],"cancel_answers":[]}`;

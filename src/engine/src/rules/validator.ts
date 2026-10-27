@@ -39,7 +39,12 @@ export class OrderValidator {
 
   validate(power: Power, submission: TurnSubmission): ValidationResult {
     const S = this.s;
-    const Map = this.map;
+    // The map as it can be crossed this season: in winter the open-sea crossings are closed.
+    const Map = this.map.forTurn(S.turn);
+    const closed = (from: string, to: string): string | null =>
+      Map !== this.map && this.map.canMove("Fleet", from, to) && this.map.openCrossing(from, to) !== null
+        ? `the open sea between ${from} and ${to} is closed in winter`
+        : null;
     const result = new ValidationResult();
     const ledgerGold = ledger(S.treasuries.get(power));
     let budget = ledgerGold;
@@ -141,9 +146,12 @@ export class OrderValidator {
           if (isBlank(order.to)) return "name the province the unit should move to";
           if (!Map.exists(order.to)) return `there is no province called '${order.to}'`;
           if (order.to === order.unit) return "a unit cannot move to where it stands";
-          if (u!.kind === "Fleet") return Map.canMove("Fleet", order.unit, order.to) ? null : `a fleet in ${order.unit} cannot reach ${order.to}`;
+          if (u!.kind === "Fleet") return Map.canMove("Fleet", order.unit, order.to) ? null : (closed(order.unit, order.to) ?? `a fleet in ${order.unit} cannot reach ${order.to}`);
           if (Map.canMove("Army", order.unit, order.to)) return null;
-          return Map.seaRouteExists(order.unit, order.to) ? null : `an army in ${order.unit} cannot reach ${order.to}`;
+          if (Map.seaRouteExists(order.unit, order.to)) return null;
+          return this.map.seaRouteExists(order.unit, order.to)
+            ? `an army in ${order.unit} cannot reach ${order.to}: the open sea is closed in winter, and no chain of coastal waters joins them`
+            : `an army in ${order.unit} cannot reach ${order.to}`;
         }
 
         case "support": {
@@ -157,7 +165,7 @@ export class OrderValidator {
           const into = order.to ?? order.supported;
           if (!Map.exists(into)) return `there is no province called '${into}'`;
           if (into === order.unit) return "a unit cannot support a move into its own province";
-          return Map.canMove(u!.kind, order.unit, into) ? null : `the unit in ${order.unit} cannot reach ${into} to support there`;
+          return Map.canMove(u!.kind, order.unit, into) ? null : (closed(order.unit, into) ?? `the unit in ${order.unit} cannot reach ${into} to support there`);
         }
 
         case "convoy": {
@@ -235,13 +243,14 @@ export class OrderValidator {
           const b = order;
           if (!Map.exists(b.province) || Map.get(b.province).isSea) return `there is no city called '${b.province}'`;
           if (S.owner.getOrDefault(b.province, null) !== null) return `${Map.get(b.province).name} is not a free city-state`;
+          if (Map.get(b.province).kingless) return `${Map.get(b.province).name} has no king and no elders to sell it: it is taken only by force`;
           const near = Map.withinReach(
             b.province,
             power,
             S.owner,
             S.units.filter((u) => u.power === power).map((u) => u.province),
           );
-          if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or share a sea with one of your coasts)`;
+          if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or lie one voyage from one of your coasts: their waters the same or next to each other, and not across the open sea in winter)`;
           if (bought.has(b.province)) return "you already bid for that city";
           return spend(Map.get(b.province).yield * S.config.neutralPriceFactor);
         }

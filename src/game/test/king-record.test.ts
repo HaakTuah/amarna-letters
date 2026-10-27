@@ -109,16 +109,16 @@ describe("KingRecordTests", () => {
         envoyName: "Mane",
         to: "Babylonia",
         gold: 50,
-        message: "Brother, Mari is yours when Ashur falls.",
+        message: "Brother, Suhu is yours when Ashur falls.",
         mandate: "May name the day; may not seal.",
-        tablet: "Mari to Babylonia.",
+        tablet: "Suhu to Babylonia.",
       }),
       newLetterView({ turn: 2, envoyId: "c8", envoyName: "Paser", to: "Hatti", message: "Peace.", reportedTurn: 5 }),
     ];
     let text = situation(v);
     Assert.contains("YOUR LETTERS (as your scribes wrote them):", text);
     Assert.contains(
-      '- turn 3, Mane (c7) to Babylonia, with 50 shekels (still away): message "Brother, Mari is yours when Ashur falls."; mandate "May name the day; may not seal."; tablet to seal "Mari to Babylonia."',
+      '- turn 3, Mane (c7) to Babylonia, with 50 shekels (still away): message "Brother, Suhu is yours when Ashur falls."; mandate "May name the day; may not seal."; tablet to seal "Suhu to Babylonia."',
       text,
     );
     Assert.contains('- turn 2, Paser (c8) to Hatti (his report came in turn 5): message "Peace."; mandate none', text);

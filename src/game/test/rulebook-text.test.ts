@@ -107,7 +107,7 @@ describe("RulebookTextTests", () => {
 
   test("Every court reads every power s opening troops treasury and starting strength", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
-    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 600 shekels; homeland yield 190; starting strength 2500.", Rules);
+    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 600 shekels; homeland yield 220; starting strength 2800.", Rules);
     Assert.contains("- Babylonia: armies in babylon, sippar and durkurigalzu; treasury 650 shekels;", Rules);
     Assert.contains("- Alashiya: a fleet in enkomi; treasury 350 shekels;", Rules);
 
@@ -234,7 +234,7 @@ describe("SeasonRulebookTests", () => {
         `{"notes":"","letters":[],
  "units":[{"unit":"memphis","order":"move","target":"","to":""},
           {"unit":"akhetaten","order":"support","target":"","to":"sinai"},
-          {"unit":"levantsea","order":"convoy","target":"memphis","to":""}],
+          {"unit":"deltawaters","order":"convoy","target":"memphis","to":""}],
  "other_orders":[{"action":"cede_province","province":"sinai","power":"","person":"","amount":0,"term":0,"text":"","item":"","seals":[]},
                  {"action":"give_unit","province":"memphis","power":"the Hittites","person":"","amount":0,"term":0,"text":"","item":"","seals":[]},
                  {"action":"place_spy","province":"","power":"Kush","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]},
@@ -243,13 +243,13 @@ describe("SeasonRulebookTests", () => {
     );
     Assert.equal(7, sub.orders.length);
     let s = newGame(5);
-    single(s.units, (u) => u.province === "delta").province = "levantsea";
+    single(s.units, (u) => u.province === "delta").province = "deltawaters";
     let reasons = new OrderValidator(s).validate("Egypt", sub).rejected.map((r) => `${describeOrder(r.order)}: ${r.reason}`);
     Assert.equal(
       [
         "memphis -> ?: name the province the unit should move to",
         "akhetaten supports ? -> sinai: name the unit to support, by the province it stands in",
-        "levantsea convoys memphis -> ?: name the coast where the army should land",
+        "deltawaters convoys memphis -> ?: name the coast where the army should land",
         "cede sinai to '': name the power to cede it to",
         "give memphis to 'the Hittites': there is no power called 'the Hittites'",
         "send c3 to spy on 'Kush': there is no power called 'Kush'",
@@ -300,7 +300,7 @@ describe("StandingsAndTravelTests", () => {
       leaderRules(true, newGameConfig()),
     );
     Assert.contains(
-      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.11 (land yield 210, at the start 190); `,
+      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.09 (land yield 240, at the start 220); `,
       line,
     );
     Assert.contains(`Hatti 1.00 (land yield ${home("Hatti")}, at the start ${home("Hatti")})`, line);
@@ -424,7 +424,7 @@ describe("ViewTextTests", () => {
     await seat.hostAudience(view, Views.for(s, "Egypt"), undefined);
 
     let user = Assert.single(recorder.specs).user;
-    Assert.contains("YOUR LAND: akhetaten, delta, memphis, sinai, thebes. YOUR TROOPS: army in memphis, army in akhetaten, fleet in delta.", user);
+    Assert.contains("YOUR LAND: akhetaten, delta, memphis, nubia, sinai, thebes. YOUR TROOPS: army in memphis, army in akhetaten, fleet in delta.", user);
     Assert.contains("NEWS THIS SEASON:", user);
     Assert.contains("[Rejected] Purchase failed: The elders of Gaza would not choose between 2 buyers last season. No gold was paid.", user);
     Assert.contains("[Notice] The treasury: ", user);

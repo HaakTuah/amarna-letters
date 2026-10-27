@@ -16,7 +16,12 @@ claim graded and sourced.
 | [`design/02-communication.md`](design/02-communication.md) | Communication | 16.4 |
 | [`design/03-characters.md`](design/03-characters.md) | Characters | 34.1 |
 | [`design/04-models.md`](design/04-models.md) | Models | 16.9 |
-| [`design/05-pacing-sleeping-seats.md`](design/05-pacing-sleeping-seats.md) | Pacing: sleeping seats | 56.0 |
+| [`design/05-pacing/00-overview-and-what-wakes-a-king.md`](design/05-pacing/00-overview-and-what-wakes-a-king.md) | Pacing: sleeping seats: overview, and what wakes a king | 14.5 |
+| [`design/05-pacing/01-an-envoy-at-the-door.md`](design/05-pacing/01-an-envoy-at-the-door.md) | Pacing: an envoy at the door | 10.9 |
+| [`design/05-pacing/02-the-digest-what-kings-are-told-and-the-cap.md`](design/05-pacing/02-the-digest-what-kings-are-told-and-the-cap.md) | Pacing: changes, the digest, what the kings are told, and the cap | 8.0 |
+| [`design/05-pacing/03-scheduled-orders-and-the-march.md`](design/05-pacing/03-scheduled-orders-and-the-march.md) | Pacing: scheduled orders and the march | 7.9 |
+| [`design/05-pacing/04-standing-orders.md`](design/05-pacing/04-standing-orders.md) | Pacing: standing orders | 12.5 |
+| [`design/05-pacing/05-conditions-answers-alerts-and-replay.md`](design/05-pacing/05-conditions-answers-alerts-and-replay.md) | Pacing: conditions, planning ahead, standing answers, light alerts, failures and replay | 7.5 |
 | [`design/06-file-seats-and-the-agent-simulation.md`](design/06-file-seats-and-the-agent-simulation.md) | File seats and the agent simulation | 15.4 |
 | [`design/07-script-kings/00-overview.md`](design/07-script-kings/00-overview.md) | Script kings: overview and "Every feature is every seat's" | 2.8 |
 | [`design/07-script-kings/01-a-season-in-order.md`](design/07-script-kings/01-a-season-in-order.md) | Script kings: A season, in order | 1.3 |
@@ -43,3 +48,4 @@ claim graded and sourced.
 | [`design/09-the-web-map-and-the-interface.md`](design/09-the-web-map-and-the-interface.md) | The web map and the interface (visual overhaul) | 16.1 |
 | [`design/10-where-the-code-differs-from-the-design-document.md`](design/10-where-the-code-differs-from-the-design-document.md) | Where the code differs from the design document (as it stood on 19 October 2026) | 6.6 |
 | [`design/11-not-built-yet.md`](design/11-not-built-yet.md) | Not built yet | 7.3 |
+| [`design/12-the-map-and-the-seas.md`](design/12-the-map-and-the-seas.md) | The map and the seas (item 7a) | 7.5 |

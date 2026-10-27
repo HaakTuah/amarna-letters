@@ -4,9 +4,10 @@
  * paradoxes by the Szykman rule. Walls add nothing to the battle (Build order item 5): a move that wins its way into a
  * walled province its mover does not hold storms the walls only if its strength also beats their level plus the hold
  * strength it beat (Assault); the engine decides what that means for the province. The ground does count (item 5,
- * terrain): a unit that stands its ground on rough ground, across a pass or a great river from the attack, or against a
- * landing from the sea holds with GameConfig.terrainDefence more against that attack, at most that in all
- * (defenceGround); never a unit that moves, nor one met head on, nor empty land.
+ * terrain): a unit that stands its ground on rough ground, or across a pass or a great river from the attack, holds with
+ * GameConfig.terrainDefence more against that attack, at most that in all (defenceGround); never a unit that moves, nor one
+ * met head on, nor empty land. At sea the blockade decides (item 7a): an army lands only from the waters of the coast it
+ * lands on, through fleets that convoy it there, so no army lands where an enemy fleet holds those waters.
  */
 import { Dict, HSet } from "../core/collections.ts";
 import { defenceGround, type Ground } from "../model/geography.ts";
@@ -406,7 +407,7 @@ export class Adjudicator {
 
   /** The ground that helps a unit standing its ground in the move's target against it, or null (also when terrain is off). */
   private groundAgainst(move: O): Ground | null {
-    return this.terrain > 0 ? defenceGround(move.at, move.target!, move.viaConvoy) : null;
+    return this.terrain > 0 ? defenceGround(move.at, move.target!) : null;
   }
 
   private defendStrength(move: O): number {

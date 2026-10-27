@@ -33,6 +33,12 @@ over all, 94% of wins alone and 14% as baseline (by power, and the same seeds wi
 ending or cap their planning, in `docs/rounds/2026-10-27-ending-and-table.md`). The baseline was adapted only as far as
 the rules required (it reads no ending).
 
+Build order item 7a (the map and the seas: 54 provinces, each coast's waters, the blockade; save version 10) made wars
+slower (a harbour is supplied by sea unless blockaded) and Egypt richer: 9.49 growth alone and 1.45 as baseline over
+all, 96% of wins alone and 14% as baseline (by power, and the same seeds with the script kings' sea play off,
+`--no-sea-play`, in `docs/rounds/2026-10-27-map-and-seas.md`). The baseline was adapted only as the rules required (it
+convoys over one zone at most and never blockades).
+
 The batch runner plays script games side by side on every core; model games run one at a time,
 within the budget.
 

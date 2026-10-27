@@ -341,7 +341,7 @@ describe("MapSceneTests", () => {
     for (let i = 0; i < 8 && !state.ended; i++) {
       if (i === 2) {
         state.owner.set("enkomi", "Egypt");
-        state.owner.set("tamassos", "Egypt");
+        state.owner.set("kalavasos", "Egypt");
         removeAll(state.units, (u) => u.power === "Alashiya");
       }
       await runner.playTurn();

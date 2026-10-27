@@ -72,12 +72,12 @@ describe("OrderDraftTests", () => {
   test("A human seat besieges a city its army stands within", () => {
     // The siege package (Build order item 5): the orders panel offers Besiege to an army within walls the seat does not hold.
     let s = newGame(31);
-    first(s.units, (u) => u.province === "sippar").province = "mari";
+    first(s.units, (u) => u.province === "sippar").province = "suhu";
     let draft = new OrderDraft(Views.for(s, "Babylonia"));
-    draft.units.get("mari")!.kind = "besiege";
+    draft.units.get("suhu")!.kind = "besiege";
     draft.other.push(fortify("nippur"));
     let sub = draft.build();
-    Assert.contains(besiege("mari"), sub.orders);
+    Assert.contains(besiege("suhu"), sub.orders);
     Assert.contains(fortify("nippur"), sub.orders);
     Assert.empty(new OrderValidator(s).validate("Babylonia", sub).rejected);
   });

@@ -73,7 +73,7 @@ describe("AdjudicatorTests", () => {
   });
 
   test("Supported attack dislodges and the loser is destroyed", () => {
-    let b = new Board().a("Mitanni", "terqa").a("Assyria", "ashur").a("Assyria", "ekallatum").move("ashur", "terqa").support("ekallatum", "ashur", "terqa");
+    let b = new Board().a("Mitanni", "terqa").a("Assyria", "ashur").a("Assyria", "ekallate").move("ashur", "terqa").support("ekallate", "ashur", "terqa");
     let r = b.run();
     Assert.equal("terqa", b.where(r, "ashur"));
     Assert.single(r.dislodgedUnitIds);
@@ -81,7 +81,7 @@ describe("AdjudicatorTests", () => {
   });
 
   test("Support from another power counts", () => {
-    let b = new Board().a("Mitanni", "terqa").a("Assyria", "ashur").a("Babylonia", "ekallatum").move("ashur", "terqa").support("ekallatum", "ashur", "terqa");
+    let b = new Board().a("Mitanni", "terqa").a("Assyria", "ashur").a("Babylonia", "ekallate").move("ashur", "terqa").support("ekallate", "ashur", "terqa");
     Assert.equal("terqa", b.where(b.run(), "ashur"));
   });
 
@@ -89,33 +89,33 @@ describe("AdjudicatorTests", () => {
     let b = new Board()
       .a("Mitanni", "terqa")
       .a("Assyria", "ashur")
-      .a("Assyria", "ekallatum")
+      .a("Assyria", "ekallate")
       .a("Babylonia", "sippar")
       .move("ashur", "terqa")
-      .support("ekallatum", "ashur", "terqa")
-      .move("sippar", "ekallatum");
+      .support("ekallate", "ashur", "terqa")
+      .move("sippar", "ekallate");
     let r = b.run();
     Assert.equal("ashur", b.where(r, "ashur"));
-    Assert.contains("ekallatum", r.cutSupports);
+    Assert.contains("ekallate", r.cutSupports);
   });
 
   test("Support is not cut by an attack from the province it supports into", () => {
-    // Ekallatum supports Ashur into Terqa; Terqa's unit attacks Ekallatum: the support still stands.
+    // Ekallate supports Ashur into Terqa; Terqa's unit attacks Ekallate: the support still stands.
     let b = new Board()
       .a("Mitanni", "terqa")
       .a("Assyria", "ashur")
-      .a("Assyria", "ekallatum")
+      .a("Assyria", "ekallate")
       .move("ashur", "terqa")
-      .support("ekallatum", "ashur", "terqa")
-      .move("terqa", "ekallatum");
+      .support("ekallate", "ashur", "terqa")
+      .move("terqa", "ekallate");
     let r = b.run();
     Assert.equal("terqa", b.where(r, "ashur"));
-    Assert.equal("ekallatum", b.where(r, "ekallatum"));
+    Assert.equal("ekallate", b.where(r, "ekallate"));
     Assert.single(r.dislodgedUnitIds);
   });
 
   test("Own units cannot cut support or be dislodged by their own side", () => {
-    let b = new Board().a("Assyria", "terqa").a("Assyria", "ashur").a("Assyria", "ekallatum").move("ashur", "terqa").support("ekallatum", "ashur", "terqa");
+    let b = new Board().a("Assyria", "terqa").a("Assyria", "ashur").a("Assyria", "ekallate").move("ashur", "terqa").support("ekallate", "ashur", "terqa");
     let r = b.run();
     Assert.equal("ashur", b.where(r, "ashur"));
     Assert.empty(r.dislodgedUnitIds);
@@ -130,10 +130,10 @@ describe("AdjudicatorTests", () => {
     let strong = new Board()
       .a("Mitanni", "terqa")
       .a("Assyria", "ashur")
-      .a("Assyria", "ekallatum")
+      .a("Assyria", "ekallate")
       .move("terqa", "ashur")
       .move("ashur", "terqa")
-      .support("ekallatum", "ashur", "terqa");
+      .support("ekallate", "ashur", "terqa");
     let r2 = strong.run();
     Assert.equal("terqa", strong.where(r2, "ashur"));
     Assert.null(strong.where(r2, "terqa"));
@@ -171,77 +171,78 @@ describe("AdjudicatorTests", () => {
   });
 
   test("Army crosses the sea by convoy", () => {
-    let b = new Board().a("Egypt", "delta").f("Egypt", "greatgreen").move("delta", "tamassos").convoy("greatgreen", "delta", "tamassos");
-    Assert.equal("tamassos", b.where(b.run(), "delta"));
+    // Amurru and the island of Arwad share their waters: one fleet carries the army over.
+    let b = new Board().a("Egypt", "amurru").f("Egypt", "amurruwaters").move("amurru", "arwad").convoy("amurruwaters", "amurru", "arwad");
+    Assert.equal("arwad", b.where(b.run(), "amurru"));
   });
 
   test("Army without a convoying fleet stays", () => {
-    let b = new Board().a("Egypt", "delta").move("delta", "tamassos");
-    Assert.equal("delta", b.where(b.run(), "delta"));
+    let b = new Board().a("Egypt", "amurru").move("amurru", "arwad");
+    Assert.equal("amurru", b.where(b.run(), "amurru"));
   });
 
   test("Dislodged fleet breaks the convoy", () => {
     let b = new Board()
-      .a("Egypt", "delta")
-      .f("Egypt", "greatgreen")
-      .f("Arzawa", "westsea")
-      .f("Arzawa", "lukka")
-      .move("delta", "tamassos")
-      .convoy("greatgreen", "delta", "tamassos")
-      .move("westsea", "greatgreen")
-      .support("lukka", "westsea", "greatgreen");
+      .a("Egypt", "amurru")
+      .f("Egypt", "amurruwaters")
+      .f("Arzawa", "bybloswaters")
+      .f("Arzawa", "ugaritwaters")
+      .move("amurru", "arwad")
+      .convoy("amurruwaters", "amurru", "arwad")
+      .move("bybloswaters", "amurruwaters")
+      .support("ugaritwaters", "bybloswaters", "amurruwaters");
     let r = b.run();
-    Assert.equal("delta", b.where(r, "delta"));
-    Assert.equal("greatgreen", b.where(r, "westsea"));
-    Assert.null(b.where(r, "greatgreen"));
+    Assert.equal("amurru", b.where(r, "amurru"));
+    Assert.equal("amurruwaters", b.where(r, "bybloswaters"));
+    Assert.null(b.where(r, "amurruwaters"));
   });
 
   test("Convoy paradox resolves by the Szykman rule", () => {
     // The convoyed army attacks the unit supporting the attack on its own convoy.
     let b = new Board()
-      .a("Egypt", "delta")
-      .f("Egypt", "greatgreen")
-      .f("Arzawa", "westsea")
-      .f("Arzawa", "lukka")
-      .move("delta", "lukka")
-      .convoy("greatgreen", "delta", "lukka")
-      .move("westsea", "greatgreen")
-      .support("lukka", "westsea", "greatgreen");
+      .a("Egypt", "amurru")
+      .f("Egypt", "amurruwaters")
+      .f("Arzawa", "bybloswaters")
+      .f("Arzawa", "arwad")
+      .move("amurru", "arwad")
+      .convoy("amurruwaters", "amurru", "arwad")
+      .move("bybloswaters", "amurruwaters")
+      .support("arwad", "bybloswaters", "amurruwaters");
     let r = b.run();
-    Assert.equal("delta", b.where(r, "delta"));
-    Assert.equal("greatgreen", b.where(r, "westsea"));
-    Assert.equal("lukka", b.where(r, "lukka"));
-    Assert.null(b.where(r, "greatgreen"));
+    Assert.equal("amurru", b.where(r, "amurru"));
+    Assert.equal("amurruwaters", b.where(r, "bybloswaters"));
+    Assert.equal("arwad", b.where(r, "arwad"));
+    Assert.null(b.where(r, "amurruwaters"));
   });
 
   test("Walls add nothing to the battle and are stormed only by more than walls and defenders", () => {
     // A lone army gets within empty walls of level 1 but does not storm them: 1 against 1 + 0.
-    let single = new Board().a("Hatti", "kanesh").move("kanesh", "carchemish");
+    let single = new Board().a("Hatti", "isuwa").move("isuwa", "carchemish");
     single.walls.set("carchemish", 1);
     let r1 = single.run();
-    Assert.equal("carchemish", single.where(r1, "kanesh"));
+    Assert.equal("carchemish", single.where(r1, "isuwa"));
     let a1 = Assert.single(r1.assaults);
     Assert.equal([1, 1, 0, false], [a1.strength, a1.walls, a1.defenders, stormed(a1)]);
     Assert.empty(stormedIn(r1));
 
     // A supported one storms them: 2 against 1 + 0.
-    let supported = new Board().a("Hatti", "kanesh").a("Hatti", "kizzuwatna").move("kanesh", "carchemish").support("kizzuwatna", "kanesh", "carchemish");
+    let supported = new Board().a("Hatti", "isuwa").a("Hatti", "aleppo").move("isuwa", "carchemish").support("aleppo", "isuwa", "carchemish");
     supported.walls.set("carchemish", 1);
     let r2 = supported.run();
-    Assert.equal("carchemish", supported.where(r2, "kanesh"));
+    Assert.equal("carchemish", supported.where(r2, "isuwa"));
     Assert.equal(["carchemish"], stormedIn(r2));
 
     // Walls 2 held by an army: 2 dislodges the army but storms nothing (2 against 2 + 1).
     let held = new Board()
-      .a("Hatti", "kanesh")
-      .a("Hatti", "kizzuwatna")
+      .a("Hatti", "isuwa")
+      .a("Hatti", "aleppo")
       .a("Mitanni", "carchemish")
-      .move("kanesh", "carchemish")
-      .support("kizzuwatna", "kanesh", "carchemish");
+      .move("isuwa", "carchemish")
+      .support("aleppo", "isuwa", "carchemish");
     held.walls.set("carchemish", 2);
     held.owners.set("carchemish", "Mitanni");
     let r3 = held.run();
-    Assert.equal("carchemish", held.where(r3, "kanesh"));
+    Assert.equal("carchemish", held.where(r3, "isuwa"));
     Assert.null(held.where(r3, "carchemish"));
     Assert.equal([2, 2, 1, false], [r3.assaults[0].strength, r3.assaults[0].walls, r3.assaults[0].defenders, stormed(r3.assaults[0])]);
 
@@ -255,32 +256,32 @@ describe("AdjudicatorTests", () => {
   });
 
   test("A fleet never storms walls", () => {
-    let b = new Board().f("Hatti", "cilicia").f("Hatti", "kizzuwatna").move("cilicia", "ugarit").support("kizzuwatna", "cilicia", "ugarit");
+    let b = new Board().f("Hatti", "ugaritwaters").f("Hatti", "amurru").move("ugaritwaters", "ugarit").support("amurru", "ugaritwaters", "ugarit");
     b.walls.set("ugarit", 1);
     let r = b.run();
-    Assert.equal("ugarit", b.where(r, "cilicia"));
+    Assert.equal("ugarit", b.where(r, "ugaritwaters"));
     Assert.false(stormed(Assert.single(r.assaults)));
   });
 
   test("Mismatched support is void", () => {
-    // Ekallatum "supports" Ashur into Terqa, but Ashur actually holds.
+    // Ekallate "supports" Ashur into Terqa, but Ashur actually holds.
     let b = new Board()
       .a("Mitanni", "terqa")
       .a("Assyria", "ashur")
-      .a("Assyria", "ekallatum")
+      .a("Assyria", "ekallate")
       .a("Babylonia", "sippar")
-      .support("ekallatum", "ashur", "terqa")
-      .move("sippar", "ekallatum");
+      .support("ekallate", "ashur", "terqa")
+      .move("sippar", "ekallate");
     let r = b.run();
-    Assert.equal("ekallatum", b.where(r, "ekallatum"));
+    Assert.equal("ekallate", b.where(r, "ekallate"));
     Assert.equal("sippar", b.where(r, "sippar"));
   });
 
   test("Unit moving away lets the attacker in", () => {
-    let b = new Board().a("Mitanni", "terqa").a("Assyria", "ashur").move("terqa", "mari").move("ashur", "terqa");
-    b.walls.delete("mari");
+    let b = new Board().a("Mitanni", "terqa").a("Assyria", "ashur").move("terqa", "suhu").move("ashur", "terqa");
+    b.walls.delete("suhu");
     let r = b.run();
-    Assert.equal("mari", b.where(r, "terqa"));
+    Assert.equal("suhu", b.where(r, "terqa"));
     Assert.equal("terqa", b.where(r, "ashur"));
   });
 });

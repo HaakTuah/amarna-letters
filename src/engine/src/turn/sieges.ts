@@ -174,12 +174,25 @@ P.sieges = function (valid) {
       continue;
     }
     const supported = this._battle?.holdSupported.has(x.province) === true;
-    x.progress += supported ? 2 : 1;
+    // A coastal city is supplied by sea unless a fleet of its besieger holds its waters (build order item 7a, "Finer seas").
+    const waters = Map.get(x.province).waters;
+    const blockaded = waters !== null && S.units.some((u) => u.province === waters && u.kind === "Fleet" && u.power === x.power);
+    const supplied = waters !== null && !blockaded && S.config.seaSupply > 0;
+    const steps = Math.max(0, (supported ? 2 : 1) - (supplied ? S.config.seaSupply : 0));
+    if (waters !== null && S.config.seaSupply > 0) logEvent(S, "siege", `${name} was ${supplied ? "supplied by sea" : "blockaded"} while besieged by ${x.power}.`, parties(x.power, owner), supplied ? "sea-supplied" : "blockade");
+    if (steps === 0) {
+      tell(x.power, `Your siege of ${name} (walls ${walls}) did not advance: no fleet of yours holds ${Map.get(waters!).name}, so the city was supplied by sea. It stands at ${x.progress} of ${walls}.`);
+      tell(owner, `${x.power}'s army besieges your city of ${name} (walls ${walls}), but no fleet of ${x.power}'s holds ${Map.get(waters!).name}: the city was supplied by sea and was not worn down. It stands at ${x.progress} of ${walls}. The city yields you nothing while it is besieged.`);
+      continue;
+    }
+    x.progress += steps;
     if (x.progress >= walls) {
       this.surrender(x, owner, tell);
       continue;
     }
-    const how = supported ? "two steps, with a support" : "a step";
+    const how =
+      (steps === 2 ? "two steps, with a support" : supported ? "a step, with a support" : "a step") +
+      (supplied ? ", though the city was supplied by sea" : blockaded && S.config.seaSupply > 0 ? ", with its harbour blockaded" : "");
     tell(
       x.power,
       `${begun ? "Your siege of" : "The siege of"} ${name} (walls ${walls}${owner !== null ? `, held by ${owner}` : ", a free city"}) ${begun ? "has begun, and it " : ""}wore the city down ${how}: it stands at ${x.progress} of ${walls}. The city surrenders when that reaches ${walls}, if your army holds there.`,

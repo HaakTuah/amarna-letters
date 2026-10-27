@@ -250,15 +250,15 @@ describe("SleepTests", () => {
       if (calls === 2) throw new Error("the model did not answer");
       return v.turn === 1 ? newTurnSubmission({ orders: [disband("sippar")] }) : nothing();
     });
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallatum", "sippar")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar")] }) : newTurnSubmission()));
     let r = await play("Babylonia", sleeper, 5, undefined, new Dict([["Assyria", assyria]]));
     Assert.contains(r.errors, (e) => e.startsWith("t3/orders/Babylonia:"));
     Assert.equal([1, 3, 4], sleeper.calls);
-    let woke = ["foreign troops entered your land: Assyria's army moved ekallatum -> sippar", "land lost: Sippar has been taken by Assyria."];
+    let woke = ["foreign troops entered your land: Assyria's army moved ekallate -> sippar", "land lost: Sippar has been taken by Assyria."];
     Assert.equal(woke, sleeper.views[1].wokenBecause);
     Assert.equal(woke, sleeper.views[2].wokenBecause);
     Assert.equal(
-      "You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallatum -> sippar; land lost: Sippar has been taken by Assyria.",
+      "You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallate -> sippar; land lost: Sippar has been taken by Assyria.",
       sleepLine(sleeper.views[2]),
     );
     // Having answered itself in turn 4, it sleeps on: the reasons it has now read wake it no more.
@@ -313,7 +313,7 @@ describe("SleepTests", () => {
               // among script kings; a short hidden cap wakes them often.
               let nap = new Sleeper((v) =>
                 newTurnSubmission({
-                  standing: [attackedOf("enkomi", hold("enkomi")), enters(null, "cilicia", move("enkomi", "cilicia"))],
+                  standing: [attackedOf("enkomi", hold("enkomi")), enters(null, "enkomiwaters", move("enkomi", "enkomiwaters"))],
                   cancelStanding: v.turn % 3 === 0 ? ["all"] : ["s1"],
                 }),
               );
@@ -321,10 +321,10 @@ describe("SleepTests", () => {
                 newTurnSubmission({
                   scheduled: [
                     newScheduledOrders({ turn: v.turn + 1, orders: [hold("babylon")] }),
-                    newScheduledOrders({ turn: v.turn + 2, orders: [move("sippar", "mari"), supportOrder("durkurigalzu", "sippar", "mari")] }),
+                    newScheduledOrders({ turn: v.turn + 2, orders: [move("sippar", "suhu"), supportOrder("durkurigalzu", "sippar", "suhu")] }),
                     newScheduledOrders({ turn: v.turn + 3, orders: [move("sippar", "damascus"), move("babylon", "sippar")] }),
                   ],
-                  standing: [attackedOf("babylon", move("babylon", "nippur")), enters("Assyria", "ekallatum", supportOrder("sippar", "durkurigalzu"))],
+                  standing: [attackedOf("babylon", move("babylon", "nippur")), enters("Assyria", "ekallate", supportOrder("sippar", "durkurigalzu"))],
                   cancelStanding: v.turn % 2 === 0 ? ["all"] : [],
                 }),
               );

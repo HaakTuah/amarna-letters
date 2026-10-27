@@ -93,9 +93,11 @@
   "Tempo of war" and "Walls and terrain"). Walls set how long a city holds out, not how many armies
   a field battle needs:
   - **Walls by place** (`StartWalls`, first guesses): every capital 3; the fortresses
-    Carchemish, Qadesh, Tyre, Megiddo, Gaza, Mari, Susa, Memphis, Kanesh and Nineveh 2; the walled
-    towns Lukka, Isuwa, Ugarit, Amurru, Byblos and Damascus 1; every other land province none. So
-    every free city has walls, and so do the capitals and three homeland fortresses. The walls
+    Carchemish, Qadesh, Tyre, Megiddo, Gaza, Susa, Memphis, Nesa and Nineveh 2, and since item 7a Aleppo, Qatna and Arwad;
+    the walled towns Lukka, Isuwa, Ugarit, Amurru, Byblos and Damascus 1, and since item 7a Suhu (Mari's fortress until
+    then), Nuhashshe, Alalakh, Sidon, Jerusalem, Shechem and Arrapha; every other land province none. So every free city
+    has walls, and so do the capitals and three homeland fortresses; the two lands without a king (the Kaska lands and the
+    Sutean steppe) have none, and cannot be bought ([the map and the seas](12-the-map-and-the-seas.md)). The walls
     standing now are the game state's (`GameState.walls`). THE MAP in the rulebook gives each
     province's walls at the start, which every court knows. **A court sees the walls standing now
     only where it sees troops** (its sight: its land, its troops, its spies' provinces and next to
@@ -218,17 +220,21 @@
 - **Terrain** (Build order item 5, the siege package; save version 6; question 5 of
   `docs/rounds/2026-10-18-sleep-and-simulation.md`, plan step 14, and the design document's "Walls and terrain": "Mountains
   and hills make a province harder to take", passes and rivers "belong on the connection between two provinces", "Islands
-  such as Alashiya are protected by the sea"). The lists are `Geography`'s, unchanged since the visual overhaul drew them:
-  rough ground in Mira, Lukka, Isuwa, Amurru, Arbela and Tamassos; the mountain passes of the Cilician Gates
-  (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish); the great rivers at the
-  Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh).
+  such as Alashiya are protected by the sea"). The lists are `Geography`'s, as the visual overhaul drew them and item 7a's
+  map review extended them ([the map and the seas](12-the-map-and-the-seas.md)): rough ground in Mira, Lukka, Isuwa,
+  Amurru, Arbela, Kalavasos, Shechem, Jerusalem and the Kaska lands; the mountain passes of the Cilician Gates
+  (Tuwanuwa–Kizzuwatna), the Taurus (Nesa–Kizzuwatna), the Anti-Taurus (Nesa–Carchemish), the Amanus
+  (Kizzuwatna–Carchemish), the Syrian Gates (Kizzuwatna–Alalakh) and the Lebanon (Byblos–Damascus, Sidon–Damascus); the
+  great rivers at their fords and ferry towns, the Euphrates at Carchemish and at Emar and the upper Euphrates
+  (Carchemish–Harran, Aleppo–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh). Desert connections give no help.
   - **The ground helps a unit that stands its ground** (`defenceGround`, `Adjudicator.holdStrength`): one that
     holds, besieges, supports or convoys, or whose own move failed. Against an attack it holds with
-    `GameConfig.terrainDefence` (1, a first guess) more when it stands on rough ground, when the attack comes over a pass or
-    a great river (a crossing protects both its sides), or when the attack is a landing from the sea (an army carried by
-    convoy: question 5's "a landing by convoy counts as a crossing"); 1 in all however many apply, the first named in that
-    order. So one army on rough ground needs three to dislodge it, and Alashiya's island, which armies reach only by convoy,
-    meets every landing with that help (Tamassos is rough ground besides). 0 turns terrain off.
+    `GameConfig.terrainDefence` (1, a first guess) more when it stands on rough ground, or when the attack comes over a pass
+    or a great river (a crossing protects both its sides); 1 in all however many apply, the first named in that order. So one
+    army on rough ground needs three to dislodge it. 0 turns terrain off. Until item 7a a landing from the sea counted too
+    (question 5's "a landing by convoy counts as a crossing"), to protect Alashiya's island; the blockade replaced it, as
+    item 7 asked ("it replaces whatever item 5 built to protect islands in its place"): see
+    [the map and the seas](12-the-map-and-the-seas.md).
   - **What it never does.** It never helps a unit that moves, nor one met head on (both armies are on the road, as in a
     swap across the Cilician Gates), nor empty land, which stays open (question 5: "only to a defending unit"); it adds
     nothing to walls and nothing to a siege's pace ("never in sieges"). A storm must beat the walls plus the hold strength

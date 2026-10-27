@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { Dict, HSet, newTurnSubmission, type Power, type TurnSubmission } from "@amarna/engine";
+import { AllPowers, Dict, type GameState, HSet, newTurnSubmission, type Power, type TurnSubmission } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -257,3 +257,13 @@ export const average = (xs: readonly number[]): number => xs.reduce((a, b) => a 
 
 /** C#'s list.Contains(record): whether a list holds an item equal by value (records compare by value in C#). */
 export const holds = <T>(xs: readonly T[], x: T): boolean => xs.some((y) => JSON.stringify(plain(y)) === JSON.stringify(plain(x)));
+
+/**
+ * Walls for a city in a test, as if the map gave them at the start: standing, and known to every court. The siege tests
+ * were written for Mari (walls 2), which the map review of item 7a renamed Suhu and left without walls.
+ */
+export function walled(s: GameState, province: string, level: number): GameState {
+  s.walls.set(province, level);
+  for (const p of AllPowers) s.wallsSeen.get(p).set(province, level);
+  return s;
+}

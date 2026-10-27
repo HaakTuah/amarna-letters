@@ -11,16 +11,16 @@ The design document records intent; these notes record what is built. Where they
   round it said "1 to 3 seasons each way". Until the siege package, a temporary wake trigger (foreign troops arriving next
   to a capital) stood in for the warning walls would give; it was retired with the walls, and since the fix pass after
   item 4 troops arriving next to any province of the homeland, or a walled city the king holds, wake him (see "What
-  wakes it" in `05-pacing-sleeping-seats.md`).
+  wakes it" in `05-pacing/00-overview-and-what-wakes-a-king.md`).
 - **Sleeping seats against the document's status paragraph** ("Status of sleeping seats", 19 October 2026; since 27 October in `docs/archive/design-history.md`). Built as
   it says: sleep by default for model and file seats (the switch stays), a hidden cap of 12 seasons, triggers that fire
   on changes, audience calls that may reopen orders, and orders that follow their unit. Its "still to build, before
   item 5" was built in the fix pass after item 4: a king's named season and his triggers of his own removed (see "Kings
   never choose when they wake"), the missing triggers for a threat to a home province or a walled city, standing orders
   that answer a move in the season it is made rather than a season late, and scheduled orders for new levies. The rest
-  of conditional orders came with item 6b (see "Conditions" in `05-pacing-sleeping-seats.md`).
+  of conditional orders came with item 6b (see "Conditions" in `05-pacing/05-conditions-answers-alerts-and-replay.md`).
 - **What wakes a sleeping seat** was a difference until 27 October 2026: the code follows the simulation-fixes
-  round's prompt and the owner's later instructions (see "What wakes it" in `05-pacing-sleeping-seats.md`), and the
+  round's prompt and the owner's later instructions (see "What wakes it" in `05-pacing/00-overview-and-what-wakes-a-king.md`), and the
   design document's default triggers, order triggers and rulebook quote now say the same ("Default wake triggers set
   by the engine", "What the kings are told", "An envoy wakes a king for an audience only").
 - **An audience held while the orders stand** gives the king the compact picture the document describes, with its

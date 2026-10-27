@@ -32,10 +32,15 @@ export interface SpendingSettings {
   target: number;
   /** The share of lower rungs' decisions also put, out of play, to the rung above (first guess: one in twenty). */
   auditShare: number;
+  /**
+   * The share of the limit kept in reserve for decisions on a threat to a king's capital, which are always paid (answering
+   * item 6c's review; built in item 7a): ordinary decisions stop climbing once the rest is spent (first guess: a tenth).
+   */
+  reserveShare: number;
 }
 
 export function newSpendingSettings(init: Partial<SpendingSettings> = {}): SpendingSettings {
-  return { mode: "off", limitUsd: 0, seasonUsd: 0, target: 0.1, auditShare: 0.05, ...init };
+  return { mode: "off", limitUsd: 0, seasonUsd: 0, target: 0.1, auditShare: 0.05, reserveShare: 0.1, ...init };
 }
 
 /** One decision as the layer weighs it, from what the mind itself could see. */
@@ -49,6 +54,11 @@ export interface Stakes {
   moved: number;
   /** Seasons the decision has already waited for a call: what waits grows in worth. */
   waited?: number;
+  /**
+   * Foreign troops stand in or next to the mind's own capital, as far as it can see: the decision is always paid, from the
+   * reserve if need be, and never left to the script (Haakon, answering item 6c's review, 27 October 2026).
+   */
+  capital?: boolean;
 }
 
 /**
@@ -169,11 +179,16 @@ export class Spending {
    * may take (the script, where it may decide), it climbs each step whose added worth per added dollar clears the going
    * rate, raised while the season spends past its pace; a free rung is always taken, and nothing climbs once the limit is
    * spent. A price that is unknown counts as free (a game with a limit does not start with an unpriced model, so only a
-   * target, which counts no money, meets one).
+   * target, which counts no money, meets one). A threat to the capital starts above the script, whatever the rate, and may
+   * spend the reserve; nothing is paid once the whole limit is spent.
    */
   choose(turn: number, stakes: Stakes, options: RungOption[], start: Rung): Rung {
     this.season(turn);
     if (!this.active || options.length === 0) return start;
+    if (stakes.capital === true && !this.allSpent) {
+      const paid = options.filter((o) => o.rung !== "script");
+      if (paid.length > 0) options = paid;
+    }
     const worth = Spending.worth(stakes);
     const over = Number.isFinite(this.pace) && this.pace > 0 ? Math.max(0, (this.spent() - this.spentAtTurn) / this.pace - 1) : 0;
     const rate = this.rate * (1 + 2 * over);
@@ -182,13 +197,21 @@ export class Spending {
     for (const next of options.slice(1)) {
       const added = worth * (this.quality(stakes.kind, next.rung) - this.quality(stakes.kind, at.rung));
       const cost = (next.cost ?? 0) - (at.cost ?? 0);
-      if (cost <= 0 ? added >= 0 : !spentOut && added / cost >= rate) at = next;
+      if (cost <= 0 ? added >= 0 : !(stakes.capital === true ? this.allSpent : spentOut) && added / cost >= rate) at = next;
     }
     return at.rung;
   }
 
-  /** Whether the limit is spent, when the layer paces by it: nothing more climbs, and no audit is paid. */
+  /**
+   * Whether the limit is spent but for its reserve, when the layer paces by it: nothing more climbs but a threat to a
+   * capital, and no audit is paid.
+   */
   get spentOut(): boolean {
+    return this.settings.mode === "limit" && this.settings.limitUsd > 0 && this.spent() >= this.settings.limitUsd * (1 - this.settings.reserveShare);
+  }
+
+  /** Whether the whole limit, reserve and all, is spent: then nothing is paid. */
+  get allSpent(): boolean {
     return this.settings.mode === "limit" && this.settings.limitUsd > 0 && this.spent() >= this.settings.limitUsd;
   }
 

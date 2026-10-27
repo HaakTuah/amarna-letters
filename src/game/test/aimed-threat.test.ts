@@ -26,7 +26,7 @@ describe("AimedThreatTests", () => {
     ["I will burn your fields, or else send me gold."],
     ["My armies will march on your capital."],
     ["I will make war on you."],
-    ["Withdraw from Mari, or my armies will crush you."],
+    ["Withdraw from Suhu, or my armies will crush you."],
     ["Pay what you owe, or I will march."],
     ["This is my last warning."],
     ["You are my enemy, and I will remember it."],
@@ -50,7 +50,7 @@ describe("AimedThreatTests", () => {
   test.each([
     ["Karduniash will not march against Hatti, and I ask the same of my brother; let each warn the other of any muster.", "Hatti", "Babylonia"],
     ["Mitanni will not march against Arzawa; I ask that Arzawa aid Hatti in nothing.", "Arzawa", "Mitanni"],
-    ["I will not move against Ugarit, Tamassos or Enkomi, and I will support you if you are attacked in that sea.", "Alashiya", "Arzawa"],
+    ["I will not move against Ugarit, Kalavasos or Enkomi, and I will support you if you are attacked in that sea.", "Alashiya", "Arzawa"],
     [
       "I propose that Mitanni and Karduniash do not attack one another nor aid any who does, and that each warns the other of any muster against him.",
       "Babylonia",
@@ -64,13 +64,13 @@ describe("AimedThreatTests", () => {
     ["I have sworn brotherhood with Karduniash, but that oath makes no war on you.", "Assyria", "Mitanni"],
     ["Do not aid Hatti or Arzawa against me, and I will aid no enemy against you.", "Egypt", "Mitanni"],
     [
-      "Let us act together the season after next (turn 5): your army at Terqa supports my army from Sippar into Ekallatum, my second army at Dur-Kurigalzu supports it too, and I will support your march on Ashur or Nineveh in turn.",
+      "Let us act together the season after next (turn 5): your army at Terqa supports my army from Sippar into Ekallate, my second army at Dur-Kurigalzu supports it too, and I will support your march on Ashur or Nineveh in turn.",
       "Mitanni",
       "Babylonia",
     ],
     ["Held by me it is a shut gate against Egypt, and your fleet is free for your war with Hatti.", "Arzawa", "Alashiya"],
     [
-      "The tablets of turns 2 to 4 stand: Mari, Susa and the southern roads are yours, Isuwa and Carchemish are mine, and I march on no land of yours.",
+      "The tablets of turns 2 to 4 stand: Suhu, Susa and the southern roads are yours, Isuwa and Carchemish are mine, and I march on no land of yours.",
       "Babylonia",
       "Mitanni",
     ],
@@ -85,9 +85,9 @@ describe("AimedThreatTests", () => {
       "Babylonia",
       "Mitanni",
     ],
-    ["My men stand on the roads of Kanesh and Sapinuwa to keep them from Arzawa, not to march on your capital.", "Hatti", "Mitanni"],
+    ["My men stand on the roads of Nesa and Sapinuwa to keep them from Arzawa, not to march on your capital.", "Hatti", "Mitanni"],
     ["Send word of the season you will march.", "Mitanni", "Babylonia"],
-    ["In the same season your army took Ashur and destroyed my men there, and your army from Mari came against Terqa.", "Babylonia", "Mitanni"],
+    ["In the same season your army took Ashur and destroyed my men there, and your army from Suhu came against Terqa.", "Babylonia", "Mitanni"],
     [
       "Assyria's three provinces prop each other up, so we must strike all at once, in the season of turn 7, before they can be warned.",
       "Mitanni",
@@ -114,7 +114,7 @@ describe("AimedThreatTests", () => {
     ["Tell your lord that I will crush him.", true],
     ["Egypt will regret this.", true],
     ["I will crush Assyria and burn his cities.", false],
-    ["Tell me now, envoy: how many armies does your lord have near Terqa and Mari, and in what season does he march?", false],
+    ["Tell me now, envoy: how many armies does your lord have near Terqa and Suhu, and in what season does he march?", false],
     ["A captain who marches without his king's leave is rightly rebuked, and I will hold my own captains to the same rule.", false],
   ] as const)("A host speaking of the lord aims at him as he him and his %s", (sentence: string, aimed: boolean) => {
     Assert.equal(aimed, TextKit.isThreatTo(sentence, "Egypt", "Hatti", true));
@@ -134,7 +134,7 @@ describe("AimedThreatTests", () => {
 
   test("A timid envoy carries a peace offer whole", async () => {
     let letter =
-      "I will not move against Ugarit, Tamassos or Enkomi, and I will support you if you are attacked in that sea. If you take Lukka, you will regret it.";
+      "I will not move against Ugarit, Kalavasos or Enkomi, and I will support you if you are attacked in that sea. If you take Lukka, you will regret it.";
     let ctx = newEnvoyContext({ self: envoy(70, 20), sender: "Arzawa", host: "Alashiya", dispatch: newDispatch({ letter: letter }), turn: 1, seed: 1 });
     let speech = (await new ScriptMind().present(ctx)).speech;
     Assert.contains("I will support you if you are attacked in that sea.", speech);

@@ -52,7 +52,7 @@ describe("SignalTests", () => {
     ["You are a liar and a thief."],
     ["You lie!"],
     ["You swore before the gods and broke your oath."],
-    ["Hatti betrayed us at Kanesh."],
+    ["Hatti betrayed us at Nesa."],
     ["The gold you sent is false."],
     ["You seek to deceive me."],
   ] as const)("Accusations are found %s", (text: string) => {

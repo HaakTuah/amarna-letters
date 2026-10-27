@@ -113,7 +113,7 @@ export function plan(b: Board, brain: Brain, mplan: MilitaryPlan, orders: readon
         (u) =>
           u.power === x &&
           u.province !== place &&
-          (Board.Map.canMove(u.kind, u.province, place) || Board.Map.movesFrom(u.kind, u.province).some((m) => m !== place && Board.Map.canMove(u.kind, m, place))),
+          (Board.Sail.canMove(u.kind, u.province, place) || Board.Sail.movesFrom(u.kind, u.province).some((m) => m !== place && Board.Sail.canMove(u.kind, m, place))),
       );
       if (n > best[0] || (n === best[0] && n > 0 && chance > best[1])) best = [n, chance];
     }
@@ -203,7 +203,7 @@ export function plan(b: Board, brain: Brain, mplan: MilitaryPlan, orders: readon
       const troop = mine.tryGet(u);
       if (troop === undefined || going.has(u)) return "a troop gone";
       const reach = o.type === "support" ? (o.to ?? o.supported) : o.type === "move" ? o.to : null;
-      if (reach !== null && !Board.Map.canMove(troop.kind, u, reach)) return "out of reach";
+      if (reach !== null && !Board.Sail.canMove(troop.kind, u, reach)) return "out of reach";
       // A troop that slips away must still have somewhere safe to go.
       if (o.type === "move" && u === place && (b.unitAt.has(o.to) || muster(o.to) > 0)) return "no refuge";
       // A troop that marches out to block is stopped with the attacker and stays where it was, holding alone: not one the
@@ -239,7 +239,7 @@ export function plan(b: Board, brain: Brain, mplan: MilitaryPlan, orders: readon
   // Where a troop could slip away to: next to it, empty, ours, free or at sea, and where no feared king's troop could move in.
   const refuge = (from: string, kind: UnitKind): string | null =>
     sortBy(
-      Board.Map.movesFrom(kind, from).filter((q) => {
+      Board.Sail.movesFrom(kind, from).filter((q) => {
         if (b.unitAt.has(q) || (b.walls(q) && !b.isMine(q)) || muster(q) !== 0) return false;
         const o = b.ownerOf(q);
         return o === null || o === me || Board.Map.get(q).isSea;
@@ -261,7 +261,7 @@ export function plan(b: Board, brain: Brain, mplan: MilitaryPlan, orders: readon
     if (give.length >= room) break;
     // Our troops next to it that stay where they are this season, the least threatened first.
     const helpers = sortBy(
-      [...mine.keys()].filter((u) => u !== place && !used.has(u) && stays(u) && !besieging(u) && Board.Map.canMove(mine.get(u).kind, u, place)),
+      [...mine.keys()].filter((u) => u !== place && !used.has(u) && stays(u) && !besieging(u) && Board.Sail.canMove(mine.get(u).kind, u, place)),
       [(u: string) => threat(u)[1] * worth(u), cmpNum],
       [(u: string) => u, cmpStr],
     );

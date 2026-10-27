@@ -17,7 +17,7 @@ export const SignalKinds: readonly string[] = [
   "forgery", "authentication", "forgery-exposed", "pact-with-consequences", "bribe", "defection",
   "detention", "skim", "debasement-found", "spy-caught", "double-agent", "evidence-shown", "shared-victory",
   "archive-copied", "archive-taken", "inventory-swapped", "storm", "siege-begun", "siege-won", "fortify", "sally", "sally-won", "envoy-out", "envoy-caught", "envoy-stayed",
-  "terrain-held", "terrain-beaten", "desert",
+  "terrain-held", "terrain-beaten", "desert", "landing", "blockade", "sea-supplied",
 ];
 
 const MessengerBlamed = rx(

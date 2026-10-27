@@ -149,7 +149,7 @@ describe("LocalPlayTests", () => {
       bridge,
       (stem, text) =>
         stem.includes("orders")
-          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"enkomiwaters","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text),
       stop.signal,
     );
@@ -164,7 +164,7 @@ describe("LocalPlayTests", () => {
     Assert.contains("Great King of Alashiya", request);
     Assert.contains(`to: ${bridge.replyPath("Alashiya", "t1_orders_Alashiya")}`, request);
     Assert.endsWith(Footer, request.trimEnd());
-    Assert.contains(runner.state.units, (u) => u.power === "Alashiya" && u.province === "cilicia");
+    Assert.contains(runner.state.units, (u) => u.power === "Alashiya" && u.province === "enkomiwaters");
     Assert.empty(runner.errors);
     let call = Assert.single(runner.log.calls, (c) => c.key === "t1/orders/Alashiya");
     Assert.equal(BridgeExchange.Model, call.model);

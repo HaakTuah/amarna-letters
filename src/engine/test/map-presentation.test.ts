@@ -72,9 +72,9 @@ describe("MapPresentationTests", () => {
 
   test("The Rivers run in the decided order through land provinces", () => {
     let map = WorldMap.default;
-    Assert.equal(["thebes", "akhetaten", "memphis", "delta"], single(Rivers, (r) => r.id === "nile").course);
-    Assert.equal(["carchemish", "terqa", "mari", "sippar", "babylon", "nippur", "ur"], single(Rivers, (r) => r.id === "euphrates").course);
-    Assert.equal(["nineveh", "ashur", "ekallatum", "durkurigalzu"], single(Rivers, (r) => r.id === "tigris").course);
+    Assert.equal(["nubia", "thebes", "akhetaten", "memphis", "delta"], single(Rivers, (r) => r.id === "nile").course);
+    Assert.equal(["carchemish", "terqa", "suhu", "sippar", "babylon", "nippur", "ur"], single(Rivers, (r) => r.id === "euphrates").course);
+    Assert.equal(["nineveh", "ashur", "ekallate", "durkurigalzu"], single(Rivers, (r) => r.id === "tigris").course);
     for (const r of Rivers) for (const id of r.course) Assert.true(map.exists(id) && !map.get(id).isSea, id);
     Assert.equal(
       ["Euphrates"],

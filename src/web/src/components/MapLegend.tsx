@@ -5,11 +5,11 @@ import { Emblem } from "./Emblem.tsx";
 
 /** The map's key, compact: opened from the map and closed back to it. Icons reuse the map's own symbols. */
 export function MapLegend({ config, onClose }: { config: GameConfig; onClose: () => void }) {
-  // What the ground does, in one line: rough ground, passes, river crossings and landings from the sea help a unit that stands its ground.
+  // What the ground does, in one line: rough ground, passes and river crossings help a unit that stands its ground.
   const ground =
     config.terrainDefence <= 0
       ? "The ground gives no defence in this game."
-      : `Rough ground, a pass or a river crossing on the attacker's way, and a landing from the sea give a unit standing its ground ${config.terrainDefence} more against that attack (${config.terrainDefence} in all).`;
+      : `Rough ground, and a pass or a river crossing on the attacker's way, give a unit standing its ground ${config.terrainDefence} more against that attack (${config.terrainDefence} in all). At sea the blockade decides: an army lands only where no enemy fleet holds the coast's waters.`;
   return (
     <div className="legend map-ui" role="dialog" aria-label="Map legend">
       <div className="legend-head">
