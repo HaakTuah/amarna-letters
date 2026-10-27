@@ -31,7 +31,7 @@ import {
   support,
   unitAt,
 } from "@amarna/engine";
-import { type JsonObject, LlmLeaderSeat, Parse, Schemas, leaderRules, problems, situation } from "@amarna/llm";
+import { type JsonObject, LlmLeaderSeat, Parse, Replies, Schemas, leaderRules, problems, situation } from "@amarna/llm";
 import { at, str, Assert, last } from "../../engine/test/support.ts";
 import { Sleeper } from "./sleep-support.ts";
 import { Scripted } from "./sleep-support.ts";
@@ -456,10 +456,7 @@ describe("SleepTests", () => {
 
   test("A reply naming an event the schema does not know breaks the schema", () => {
     let reply = PlanningReply.replaceAll('"unit_attacked"', '"unit_besieged"');
-    Assert.contains(
-      "reply.standing_orders[0].when must be one of unit_enters, unit_attacked",
-      problems(JSON.parse(reply), Schemas.leaderOrders(newGameConfig())),
-    );
+    Assert.contains(problems(JSON.parse(reply), Replies.leaderOrders(newGameConfig())), (p) => p.startsWith("standing_orders[0].when: Invalid option"));
     // Read anyway (as a model reply that ignored its schema would be), it is refused with the reason, not dropped.
     Assert.equal("name the event it waits for: unit_enters or unit_attacked", Parse.orders(JSON.parse(reply)).standing[0].unreadable);
   });

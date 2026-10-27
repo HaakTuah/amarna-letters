@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { text } from "../../llm/src/schemas.ts";
 import { TextKit } from "../src/bots/textkit.ts";
 import { type GameState, newGame, newGameEvent, newMessageTrail, newTablet } from "@amarna/engine";
 import { type Signal, SignalDetector } from "@amarna/game";

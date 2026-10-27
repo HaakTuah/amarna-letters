@@ -16,7 +16,22 @@ import {
   type GameSummary,
   type ISeat,
 } from "@amarna/game";
-import { FetchTransport, LlmLeaderSeat, SeatChoices, SimulatedApi, bodyText, buildSeats, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
+import {
+  LlmLeaderSeat,
+  ModelClient,
+  SdkTransport,
+  SeatChoices,
+  SimulatedApi,
+  bodyText,
+  buildSeats,
+  checkJobs,
+  providersFor,
+  type CharacterKind,
+  type LeaderKind,
+  type NarratorKind,
+  type PriceSetting,
+  type ProviderSetting,
+} from "@amarna/llm";
 import { FileCharacters, FileExchange } from "@amarna/llm/node";
 
 export interface BatchOptions {
@@ -40,6 +55,29 @@ export interface BatchOptions {
   parityDir: string | null;
   sleepingScripts: boolean;
   simulateApi: boolean;
+  /** Providers other than Anthropic (--provider ID=URL), each with its key in <ID>_API_KEY. */
+  providers: ProviderSetting[];
+  /** Prices set with --price, over the defaults. */
+  prices: Record<string, PriceSetting>;
+}
+
+/** The keys of the providers in use: ANTHROPIC_API_KEY, and <ID>_API_KEY for each other one (empty for a local endpoint). */
+export function providerKeys(o: BatchOptions): Record<string, string> {
+  const keys: Record<string, string> = {};
+  for (const p of o.providers) keys[p.id] = process.env[`${p.id.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_API_KEY`] ?? "";
+  return keys;
+}
+
+/**
+ * The check at setup, before the first game: each model's largest schemas compiled once against its provider. Throws,
+ * naming each failure, so a schema too large or a model a provider lacks stops the run before any game is played.
+ */
+export async function setupCheck(o: BatchOptions, simulated: SimulatedApi | null = null): Promise<void> {
+  const choices = choicesOf(o);
+  if (!choices.usesModels) return;
+  const anthropic = simulated ?? new SdkTransport(process.env.ANTHROPIC_API_KEY ?? "");
+  const client = new ModelClient(providersFor(choices, anthropic, providerKeys(o)), () => {});
+  await client.check(checkJobs(choices, o.config));
 }
 
 export interface PlayJob {
@@ -60,6 +98,8 @@ export function choicesOf(o: BatchOptions): SeatChoices {
   c.characters = o.characters;
   c.narrator = o.narrator;
   c.leaderEffort = o.effort;
+  c.providers = o.providers.map((p) => ({ ...p }));
+  c.prices = { ...o.prices };
   return c;
 }
 
@@ -76,9 +116,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
     (state) => {
       const simulated = o.simulateApi ? new SimulatedApi() : null;
       if (simulated !== null) simulated.reportUsage = false;
-      const key = process.env.ANTHROPIC_API_KEY ?? "";
-      const transport = simulated ?? (choices.usesModels ? new FetchTransport(key) : null);
-      const set = buildSeats(choices, state, transport, () => last!.log);
+      const anthropic = simulated ?? (choices.usesModels ? new SdkTransport(process.env.ANTHROPIC_API_KEY ?? "") : null);
+      const set = buildSeats(choices, state, choices.usesModels ? providersFor(choices, anthropic, providerKeys(o)) : null, () => last!.log);
       let seats = set.seats;
       for (const [p, folder] of o.folders) {
         const exchange = new FileExchange(folder, o.fileTimeoutMinutes * 60000, (call) => last!.log.addCall(call), (line) => console.log(line));

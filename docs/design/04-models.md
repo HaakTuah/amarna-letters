@@ -3,7 +3,19 @@
 - **Presets**: Free (all script, no key), Budget (every role on Haiku 5.5), Standard (the design
   document's table: Sonnet 5.5 kings and narrator, Haiku 5.5 envoys) and Showcase (Opus 5.5 kings
   and narrator, Haiku 5.5 envoys). Any seat can be set separately, envoys can be Sonnet 5.5, and the
-  narrator any of the three. Kings think at a chosen effort (medium by default; host audiences run
+  narrator any of the three.
+- **Models are settings** ("Built to outlive its models"; fix pass after the conversion, 27 October 2026). Each job (every
+  king's seat, the characters, the narrator) names any model: an Anthropic model by its id (`claude-sonnet-5-5`, or a
+  model released after the last update), or `<provider>:<model>` for a provider the table sets up
+  (`SeatChoices.providers`: an id and an OpenAI-compatible endpoint, such as another provider's API or a local model's,
+  `http://localhost:11434/v1`). "Haiku", "Sonnet" and "Opus" are only the presets' shorthands for the 5.5 models. The start
+  page's "Other model…" and the batch runner's `--leaders MODEL`, `--provider ID=URL` set them. Keys are held per
+  provider, in memory (the Anthropic key also in session storage when the player asks; the batch runner reads
+  `ANTHROPIC_API_KEY` and `<ID>_API_KEY`); a local endpoint needs none. A saved game reads its seats back from the log
+  header's labels ("local:llama3.1 leader"); a continued game needs its other providers set up again, since the header
+  keeps no endpoints. **Prices** are settings too (`PriceTable`): defaults for the three 5.5 models, and any model's price
+  set on the start page or with `--price MODEL=IN,OUT,CACHE`; a model with no price costs nothing by the meter, and the
+  page and the runner say so. Kings think at a chosen effort (medium by default; host audiences run
   one level lower); characters run at low effort.
 - **Cost estimates** (`CostEstimate`) come from average token counts per call: a king's orders
   read the 5,000-token rulebook from cache and add about 5,000 fresh tokens and 3,000 out; about one
@@ -31,9 +43,34 @@
   (your promise, not anything the king did or sealed): "…""). (Until the fix pass after item 4 both
   listed it among the outcomes, and in the second agent simulation an envoy read his own "the tablet
   sealed exactly as written" as a sealing that never happened.)
-- Every state-changing output uses structured output (a JSON schema). Orders face the same
-  validator as any seat. An unreadable reply is retried once with the error; then the runner
-  uses a script decision for that call and logs the failure.
+- **One source for model schemas** (fix pass after the conversion). The reply schemas are defined once, in Zod
+  (`Replies` in `src/llm/src/schemas.ts`); the JSON sent is derived from them (`jsonSchema`, `Schemas`), and every reply,
+  a model's or a file seat's, is validated against them (`problems`). They stay small: every field required (the model
+  writes the default instead of leaving one out), every object closed, one flat shape per reply with a field naming an
+  order's type, and provinces, units and people as plain strings the engine checks. No call is strict: the schema goes
+  as the one tool a model answers with (`reply`, `tool_choice` auto, since Opus and Sonnet 5.5 refuse a forced tool),
+  so no grammar is compiled, and the first live game's "The compiled grammar is too large" cannot recur; `CallSpec.strict`
+  is there for a call where a malformed reply would do real harm, and none does today, since every reply is validated and a
+  script stands in. A reply that does not fit is sent back once with its errors ("Your previous reply could not be used:
+  …"); the first call's log line says why (`error`) and the second is `attempt` 2; a second unfit reply, a refusal or an
+  API error falls back to the script, logged as a fallback with its reason. A model that writes its JSON as text instead
+  of calling the tool is read too. Orders then face the same validator as any seat.
+- **The check at setup**: before a game starts (the web app, and the batch runner before its first model game), each
+  model in use has its provider take the largest schema of each of its jobs (`checkJobs`: orders and the fullest audience
+  reply for a king; present, react, report, pitch and a text reply for characters; a text reply for the narrator; every
+  other variant only leaves fields out of these). For Anthropic it is a token count with the reply tool, which costs
+  nothing; for a compatible endpoint, its model list must name the model (such endpoints document no schema limits). A
+  failure stops the game before it starts and names the model and the provider's reason. A test measures every schema
+  variant against Anthropic's documented limits (20 strict tools, 24 optional parameters, 16 union-type parameters;
+  `AnthropicLimits`, `measure`) with no key and no spending.
+- **Who wrote it, and fallbacks never silent** ("Who wrote it" under Spectator mode). Every decision in the log carries its
+  author (`Decision.by`: model, script, human, file, or fallback with the seat it stood in for and the reason), kept on
+  replay and in a continued game. Each season counts how many decisions models and file seats were asked for and how
+  many fell back (`seasonFallbacks`), shown aloud on the game page in god view or a spectator's game; the table sets a
+  share past which the game pauses ("Pause when more than …% of a season's model calls fall back", 50% by default, 0 never
+  pauses), so a broken call cannot quietly turn a model game into a script game. The message trail shows its four parts
+  (what the king wrote, what the envoy said abroad, what the host answered, what the envoy reported home), each with its
+  author, and filters by author or kind of author.
 - **Requests are rules too** (a builder rule, decided 20 October 2026; applied in the fix pass after item 4, whose report
   has the field-by-field audit under "Additions: requests are rules too"). Models read their requests literally, so every
   field is a nudge: no field may imply something that is not true. Each request asks only what applies, shows no internal
@@ -93,13 +130,13 @@
 - **Prompt caching**: the leader rulebook, map, opening positions and customs primer form one
   byte-stable system block marked for caching, shared across seats and seasons; per-seat identity and the season's
   situation come after it.
-- **Transport**: the official C# SDK is used in the console runner and tests. It cannot run in the
-  browser (its constructor enables HTTP decompression, which WebAssembly forbids), so the browser
-  posts the same Messages API request with `HttpClient`, with the
-  `anthropic-dangerous-direct-browser-access` header. The SDK path lives in a project of its own,
-  `Amarna.Llm.Sdk`, which the web app does not reference, so the browser never downloads the SDK; a
-  console program registers it once (`AnthropicSdk.Use()`, as the batch runner does), and a model client
-  built outside the browser without it says so.
+- **Providers** (`Provider` in `src/llm/src/client.ts`): one small interface, with each provider's adapter handling its own
+  format for system prompts and structured replies. Anthropic (`AnthropicProvider`) goes through the official TypeScript
+  SDK (`SdkTransport`, `@anthropic-ai/sdk`) in the browser, the batch runner and the tests alike, with the
+  `anthropic-dangerous-direct-browser-access` header; the simulated API stands in for it (and, with "Simulate the API",
+  for every provider). Other providers and local models go through `CompatibleProvider` (chat completions, the schema as a
+  JSON-schema response format, the shared and seat system texts as one system message). The C# build's transport is kept
+  for reference only.
 - **Prompt-injection boundaries**: a character's prompt holds only its own persona, memory and
   facts (tested); text never changes state; the narrator receives only released facts.
 - **Leader memory** is a private record in the king's own words (`LeaderJournal`), shown in every

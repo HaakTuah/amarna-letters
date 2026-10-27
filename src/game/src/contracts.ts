@@ -36,6 +36,8 @@ export interface ISeat {
 /** A character's voice: envoys, spies and candidates. The engine keeps the authoritative copy. */
 export interface ICharacterMind {
   readonly label: string;
+  /** Who plays this character, as labelled, when the minds leave some characters to another (the script). */
+  authorFor?(c: Character): string;
   present(ctx: EnvoyContext, signal?: AbortSignal): Promise<PresentResult>;
   react(ctx: EnvoyContext, host: HostReply, signal?: AbortSignal): Promise<EnvoyReaction>;
   /** Envoy reports, recruitment pitches and spy reports. */

@@ -1,7 +1,7 @@
 /** The table's settings, chosen on the start page and carried into the engine's worker (plain data, so it crosses over). */
 import { AllPowers, newGameConfig, type GameConfig, type GameState, type Power } from "@amarna/engine";
 import type { LogHeader } from "@amarna/game";
-import { CostEstimate, SeatChoices, choicesFromHeader, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
+import { CostEstimate, SeatChoices, choicesFromHeader, type CharacterKind, type LeaderKind, type NarratorKind, type PriceSetting, type ProviderSetting } from "@amarna/llm";
 
 export interface GameSettings {
   seed: number;
@@ -25,6 +25,12 @@ export interface GameSettings {
   messagesPerTurn: number;
   /** Answer model calls inside the browser with canned replies: for trying the app without a key or cost. */
   simulateApi: boolean;
+  /** Providers other than Anthropic, each with an OpenAI-compatible endpoint (their keys are held apart, in memory). */
+  providers: ProviderSetting[];
+  /** Prices the table set, by model, over the defaults. */
+  prices: Record<string, PriceSetting>;
+  /** The game pauses when more than this share of a season's model calls fell back to scripts (0 never pauses). */
+  pauseFallbackShare: number;
 }
 
 export const randomSeed = (): number => 1 + Math.floor(Math.random() * 999_999);
@@ -47,6 +53,9 @@ export function newSettings(): GameSettings {
     budgetUsd: 0,
     messagesPerTurn: 3,
     simulateApi: false,
+    providers: [],
+    prices: {},
+    pauseFallbackShare: 0.5,
   };
 }
 
@@ -58,6 +67,8 @@ export function choicesOf(s: GameSettings): SeatChoices {
   c.leaderEffort = s.leaderEffort;
   c.bridgeAddress = s.bridgeAddress;
   c.localAgentMinutes = s.localAgentMinutes;
+  c.providers = s.providers.map((p) => ({ ...p }));
+  c.prices = { ...s.prices };
   return c;
 }
 
@@ -71,6 +82,8 @@ export function withChoices(s: GameSettings, c: SeatChoices): GameSettings {
     leaderEffort: c.leaderEffort,
     bridgeAddress: c.bridgeAddress,
     localAgentMinutes: c.localAgentMinutes,
+    providers: c.providers.map((p) => ({ ...p })),
+    prices: { ...c.prices },
   };
 }
 

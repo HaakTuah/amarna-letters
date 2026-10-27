@@ -2,7 +2,8 @@
  * Stands in for the Anthropic API (tests and the "simulate" option): records every request and answers with valid JSON
  * chosen by looking at the schema the request asks for. Optional hooks inject bad output or refusals.
  */
-import type { ApiResult, ApiTransport, CallSpec } from "./client.ts";
+import type { ApiTransport } from "./anthropic.ts";
+import type { ApiResult } from "./client.ts";
 import { ReportText, ReportToSender, type JsonObject } from "./schemas.ts";
 
 export class SimulatedApi implements ApiTransport {
@@ -12,10 +13,20 @@ export class SimulatedApi implements ApiTransport {
   /** Report token usage (tests check cost accounting); the in-app simulator reports none, so it costs nothing. */
   reportUsage = true;
 
-  send(_spec: CallSpec, body: JsonObject): Promise<ApiResult> {
+  /** Bodies of the checks at setup it was asked to count. */
+  readonly counted: JsonObject[] = [];
+  /** A check at setup fails with this, as the API's error would read. */
+  refuseCheck: string | null = null;
+
+  count(body: JsonObject): Promise<void> {
+    this.counted.push(body);
+    return this.refuseCheck === null ? Promise.resolve() : Promise.reject(new Error(this.refuseCheck));
+  }
+
+  send(body: JsonObject): Promise<ApiResult> {
     this.requests.push(body);
-    const format = (body.output_config as JsonObject | undefined)?.format as JsonObject | undefined;
-    const props = ((format?.schema as JsonObject | undefined)?.properties as JsonObject | undefined) ?? null;
+    const tool = (body.tools as JsonObject[] | undefined)?.[0];
+    const props = ((tool?.input_schema as JsonObject | undefined)?.properties as JsonObject | undefined) ?? null;
     const output = this.override?.(body) ?? answer(props);
     const model = typeof body.model === "string" ? body.model : "claude-sonnet-5-5";
     return Promise.resolve({
@@ -79,5 +90,11 @@ export function answer(props: JsonObject | null): string {
     if (has("standing_orders")) o.standing_orders = [];
     if (has("cancel_standing")) o.cancel_standing = [];
   }
+  // Every other field the schema asks for gets its default, as a model is asked to write it: letters none, choices no.
+  for (const [name, p] of Object.entries(props ?? {}))
+    if (!(name in o)) {
+      const type = (p as JsonObject).type;
+      o[name] = type === "array" ? [] : type === "boolean" ? false : type === "integer" ? 0 : "";
+    }
   return JSON.stringify(o);
 }

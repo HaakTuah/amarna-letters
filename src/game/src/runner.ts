@@ -47,6 +47,7 @@ import {
   type GameState,
   type HostReply,
   type MindReply,
+  type MessageTrail,
   type MindRequest,
   type Order,
   type PendingAudience,
@@ -69,7 +70,7 @@ import {
   type MindContext,
   type PresentResult,
 } from "./contracts.ts";
-import { GameLog, newLogHeader, type LogHeader } from "./log.ts";
+import { GameLog, authorKind, newAuthorship, newLogHeader, seasonFallbacks, type Authorship, type LogHeader, type SeasonFallbacks, type TrailAuthors } from "./log.ts";
 import { ScriptLeader } from "./bots/script-leader.ts";
 import { ScriptMind } from "./bots/script-mind.ts";
 import { TemplateNarrator } from "./bots/template-narrator.ts";
@@ -205,31 +206,73 @@ export class GameRunner {
     return this.fallbackSeat;
   }
 
+  /** The log keys of each message trail's audience and report, as the runner meets them (live and on replay alike). */
+  private readonly trailKeys = new Map<string, { audience: string | null; report: string | null }>();
+
+  /**
+   * Who wrote each of a message's four parts ("Who wrote it" under Spectator mode): the king's letter (the orders that
+   * sent it, or the seat itself for a letter sent from an audience, which only the seat's own reply can send), what the
+   * envoy said at the foreign court, what the host answered at each exchange, the envoy's answers, and its report home.
+   */
+  trailAuthors(t: MessageTrail): TrailAuthors {
+    const keys = this.trailKeys.get(t.id) ?? { audience: null, report: null };
+    const seat = this.log.header.seats.tryGet(t.from) ?? "";
+    const letter = this.log.authorOf(`t${t.turn}/orders/${t.from}`) ?? (seat.length > 0 ? newAuthorship({ kind: authorKind(seat), name: seat }) : null);
+    const rounds = t.exchanges.map((_, i) => i + 1);
+    return {
+      letter,
+      said: keys.audience !== null ? this.log.authorOf(`${keys.audience}/present`) : null,
+      answered: keys.audience !== null ? rounds.map((r) => this.log.authorOf(`${keys.audience}/host/${r}`)) : [],
+      replied: keys.audience !== null ? rounds.map((r) => this.log.authorOf(`${keys.audience}/envoy/${r}`)) : [],
+      report: keys.report !== null ? this.log.authorOf(keys.report) : null,
+    };
+  }
+
+  /** Who plays a character: the minds' label, or the script's for a character they leave to it. */
+  private mindOf(c: Character): string {
+    return this.minds.authorFor?.(c) ?? this.minds.label;
+  }
+
+  /**
+   * A season's fallbacks, as the viewer counts them aloud: of the decisions models and file seats were asked for in the
+   * season, how many a script made in their place, and why.
+   */
+  fallbacksIn(turn: number): SeasonFallbacks {
+    return seasonFallbacks(this.log, turn);
+  }
+
   private setPhase(phase: string): void {
     this.phase = phase;
     for (const f of this.changed) f();
   }
 
-  /** Returns the logged decision when replaying; otherwise produces, records and returns it (as read back from the log). */
-  private async recorded<T>(key: string, schema: Schema, produce: () => Promise<T>, fallback: (() => Promise<T>) | null = null): Promise<T> {
+  /**
+   * Returns the logged decision when replaying; otherwise produces, records and returns it (as read back from the log).
+   * `who`: the label of whoever produces it, logged as its author; when its call fails and the fallback stands in, the
+   * decision is logged as a fallback for it, with the reason, so no fallback is silent.
+   */
+  private async recorded<T>(key: string, schema: Schema, produce: () => Promise<T>, fallback: (() => Promise<T>) | null = null, who: string | null = null): Promise<T> {
     if (this.replay !== null) {
       const logged = this.replay.tryGet<T>(key, schema);
       if (logged !== undefined) {
-        this.log.record(key, schema, logged);
+        this.log.record(key, schema, logged, this.replay.authorOf(key));
         return logged;
       }
       if (this.strict) throw new ReplayExhaustedError(key);
     }
 
     let value: T;
+    let by: Authorship | null = who !== null ? newAuthorship({ kind: authorKind(who), name: who }) : null;
     try {
       value = await produce();
     } catch (ex) {
       if (fallback === null || (ex instanceof Error && ex.name === "AbortError")) throw ex;
-      this.errors.push(`${key}: ${ex instanceof Error ? ex.message : String(ex)}`);
+      const reason = ex instanceof Error ? ex.message : String(ex);
+      this.errors.push(`${key}: ${reason}`);
+      by = newAuthorship({ kind: "fallback", name: who ?? "", reason });
       value = await fallback();
     }
-    this.log.record(key, schema, value);
+    this.log.record(key, schema, value, by);
     // Use the round-tripped value so live play and replay match exactly.
     return this.log.tryGet<T>(key, schema)!;
   }
@@ -239,7 +282,13 @@ export class GameRunner {
     this.setPhase("The narrator meets the characters");
     const results = await Promise.all(
       this.state.characters.map(async (c) => {
-        const persona = await this.recorded<string>(`setup/persona/${c.id}`, S, () => this.narrator.persona(c, signal), () => Promise.resolve(c.persona));
+        const persona = await this.recorded<string>(
+          `setup/persona/${c.id}`,
+          S,
+          () => this.narrator.persona(c, signal),
+          () => Promise.resolve(c.persona),
+          this.narrator.label,
+        );
         return [c, persona] as const;
       }),
     );
@@ -291,6 +340,12 @@ export class GameRunner {
 
   private async fulfil(engine: TurnEngine, turn: number, signal?: AbortSignal): Promise<void> {
     const requests = [...engine.mindRequests];
+    for (const req of requests)
+      if (req.trailId !== null && req.task !== "CheckReport") {
+        const k = this.trailKeys.get(req.trailId) ?? { audience: null, report: null };
+        k.report = `t${turn}/mind/${req.id}`;
+        this.trailKeys.set(req.trailId, k);
+      }
     const produce = async (req: MindRequest): Promise<MindReply> => {
       if (req.task === "CheckReport") {
         const subject = char(this.state, req.characterId);
@@ -314,6 +369,7 @@ export class GameRunner {
           MindReplySchema,
           () => produce(req),
           () => fallback(req),
+          req.task === "CheckReport" ? this.narrator.label : this.mindOf(char(this.state, req.characterId)),
         ),
       ),
     );
@@ -359,6 +415,9 @@ export class GameRunner {
     const S_ = this.state;
     const envoy = char(S_, a.envoyId);
     const key = `t${turn}/aud/${a.id}`;
+    const keys = this.trailKeys.get(a.dispatch.trailId) ?? { audience: null, report: null };
+    keys.audience = key;
+    this.trailKeys.set(a.dispatch.trailId, keys);
     // What its own lord owes it, and whether he looks doomed, by public facts: a motive it may weigh against an offer.
     const lord = envoy.employer;
     const backPay = lord !== null ? envoy.backPay.getOrDefault(lord, 0) : 0;
@@ -387,6 +446,7 @@ export class GameRunner {
       PresentResultSchema,
       () => this.minds.present(ctx([], 0, "", 0), signal),
       () => this.fallbackMind.present(ctx([], 0, "", 0), signal),
+      this.mindOf(envoy),
     );
     present.skim = clamp(present.skim, 0, a.dispatch.gold);
 
@@ -411,6 +471,7 @@ export class GameRunner {
           stand.fromFallback = true;
           return stand;
         },
+        this.seats.get(a.host).label,
       );
       // What the host says reaches the envoy as any court could read it: its own marks for its copies of tablets, and
       // person ids, become the tablets' and the people's names (as in its letters).
@@ -431,6 +492,7 @@ export class GameRunner {
         EnvoyReactionSchema,
         () => this.minds.react(context, heard, signal),
         () => this.fallbackMind.react(context, heard, signal),
+        this.mindOf(envoy),
       );
       record.rounds.push(newAudienceRound({ host, envoy: reaction }));
       soFar.push(newExchange({ host: host.speech, envoy: reaction.speech }));
@@ -461,6 +523,7 @@ export class GameRunner {
             stand.fromFallback = true;
             return stand;
           },
+          this.seats.get(p).label,
         ),
       ),
     );
@@ -483,7 +546,7 @@ export class GameRunner {
           winners: [...S_.winners],
           lastTurn: S_.scores.length === 0 ? S_.turn : max(S_.scores, (s) => s.turn),
         };
-        const text = await this.recorded<string>(`end/chronicle/${p}`, S, () => this.narrator.chronicle(ctx, signal), () => new TemplateNarrator().chronicle(ctx, signal));
+        const text = await this.recorded<string>(`end/chronicle/${p}`, S, () => this.narrator.chronicle(ctx, signal), () => new TemplateNarrator().chronicle(ctx, signal), this.narrator.label);
         return [p, text] as const;
       }),
     );

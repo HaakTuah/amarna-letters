@@ -1,8 +1,21 @@
 import { AllPowers, tier, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, type LogHeader } from "@amarna/game";
-import { CostEstimate, LocalBridge, Presets, bridgeReady, choicesFromHeader, type CharacterKind, type LeaderKind, type NarratorKind, type Preset, type SeatChoices } from "@amarna/llm";
+import {
+  AnthropicId,
+  CostEstimate,
+  LocalBridge,
+  ModelIds,
+  Presets,
+  bridgeReady,
+  choicesFromHeader,
+  leaderModel,
+  type LeaderKind,
+  type Preset,
+  type SeatChoices,
+} from "@amarna/llm";
 import { useEffect, useState } from "react";
 import { Emblem } from "../components/Emblem.tsx";
+import { ModelPicker, ProvidersPanel } from "../components/ModelSettings.tsx";
 import { session } from "../session/client.ts";
 import { choicesOf, estimate, newSettings, randomSeed, usesModels, withChoices, type GameSettings } from "../session/settings.ts";
 import { deleteLog, getSessionKey, listLogs, loadLog, setSessionKey, type SavedLog } from "../session/storage.ts";
@@ -10,8 +23,21 @@ import { powerName } from "../ui/format.ts";
 import { navigate } from "../ui/router.ts";
 import { useSession } from "../ui/use-session.ts";
 
-/** The player's API key, held in memory for this tab only. */
-export const keys: { key: string | null; remember: boolean } = { key: null, remember: false };
+/**
+ * The player's API keys, held in memory for this tab only: the Anthropic key (in session storage too if the player asks),
+ * and the key of each other provider by its id (memory only).
+ */
+export const keys: {
+  key: string | null;
+  remember: boolean;
+  others: Record<string, string>;
+} = { key: null, remember: false, others: {} };
+
+/** Every key, by provider id, as the engine's worker takes them. */
+const allKeys = (anthropic: string | null): Record<string, string> => ({
+  ...keys.others,
+  ...(anthropic !== null && anthropic.trim() !== "" ? { [AnthropicId]: anthropic } : {}),
+});
 
 function freshSettings(): GameSettings {
   const s = newSettings();
@@ -24,10 +50,32 @@ function freshSettings(): GameSettings {
 const isLocal = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
 const shownPresets: readonly Preset[] = isLocal ? [...Presets.all, Presets.Local] : Presets.all;
 
-const kindName = (k: LeaderKind): string => (k === "Script" ? "script" : k === "Human" ? "you" : k === "LocalAgent" ? "local agents" : `${k} 5.5`);
+const kindName = (k: LeaderKind): string =>
+  k === "Script" ? "script" : k === "Human" ? "you" : k === "LocalAgent" ? "local agents" : ModelIds.display(leaderModel(k) ?? k);
+/** Envoys' or the narrator's choice as the page names it: "script", "template" or the model. */
+const jobName = (k: string, none: string): string => (k === none ? none.toLowerCase() : kindName(k));
 
 const roles = (p: Preset): string =>
-  `Kings: ${kindName(p.leaders)} · Envoys: ${p.characters === "Script" ? "script" : `${p.characters} 5.5`} · Narrator: ${p.narrator === "Template" ? "template" : `${p.narrator} 5.5`}`;
+  `Kings: ${kindName(p.leaders)} · Envoys: ${jobName(p.characters, "Script")} · Narrator: ${jobName(p.narrator, "Template")}`;
+
+const LeaderOptions: [string, string][] = [
+  ["Script", "Script bot"],
+  ["Human", "Human (you)"],
+  ["Haiku", "Haiku 5.5"],
+  ["Sonnet", "Sonnet 5.5"],
+  ["Opus", "Opus 5.5"],
+];
+const CharacterOptions: [string, string][] = [
+  ["Script", "Script characters (free)"],
+  ["Haiku", "Haiku 5.5"],
+  ["Sonnet", "Sonnet 5.5 (sharper, costs more)"],
+];
+const NarratorOptions: [string, string][] = [
+  ["Template", "Template narrator (free)"],
+  ["Haiku", "Haiku 5.5"],
+  ["Sonnet", "Sonnet 5.5"],
+  ["Opus", "Opus 5.5"],
+];
 
 const localKings = (c: SeatChoices): Power[] => AllPowers.filter((p) => c.leaders.get(p) === "LocalAgent");
 
@@ -96,20 +144,28 @@ export function Home() {
     const counts = new Map<LeaderKind, number>();
     for (const p of AllPowers) if (settings.leaders[p] !== "Human") counts.set(settings.leaders[p], (counts.get(settings.leaders[p]) ?? 0) + 1);
     const kings = [...counts].map(([k, n]) => `${n} ${kindName(k)}`);
-    return `kings ${kings.join(", ")}; envoys ${settings.characters.toLowerCase()}; narrator ${settings.narrator.toLowerCase()}`;
+    return `kings ${kings.join(", ")}; envoys ${jobName(settings.characters, "Script")}; narrator ${jobName(settings.narrator, "Template")}`;
   };
 
   /** Asks the local bridge whether it runs and keeps a folder for every king played by a local agent. */
   async function bridgeCheck(c: SeatChoices): Promise<{ line: string; ok: boolean }> {
     const status = await LocalBridge.check(c.bridgeAddress, localKings(c));
     const ok = bridgeReady(status);
-    return { ok, line: ok ? `The bridge is running and keeps a folder for each of the ${localKings(c).length} kings played by local agents.` : status.problem };
+    return {
+      ok,
+      line: ok ? `The bridge is running and keeps a folder for each of the ${localKings(c).length} kings played by local agents.` : status.problem,
+    };
   }
 
   function keyReady(): boolean {
     setProblem(null);
     if (!usesModels(settings) || settings.simulateApi) return true;
-    if (key.trim() === "") {
+    const missing = choices.providersInUse.filter((id) => id !== AnthropicId && !choices.providers.some((p) => p.id === id));
+    if (missing.length > 0) {
+      setProblem(`A seat names the provider ${missing.join(", ")}, which is not set up under "Other providers".`);
+      return false;
+    }
+    if (choices.providersInUse.includes(AnthropicId) && key.trim() === "") {
       setProblem("This setup uses Claude models: enter your Anthropic API key above, or choose Free.");
       return false;
     }
@@ -134,7 +190,7 @@ export function Home() {
     const game = settings;
     setSettings({ ...settings, seed: randomSeed() });
     navigate("play");
-    session.start(game, keys.key);
+    session.start(game, allKeys(keys.key));
     setStarting(false);
   }
 
@@ -154,7 +210,7 @@ export function Home() {
     }
     if (continuePlay && header !== null) {
       const seats = choicesFromHeader(header);
-      if (seats.usesModels && (keys.key ?? key).trim() === "") {
+      if (seats.providersInUse.includes(AnthropicId) && (keys.key ?? key).trim() === "") {
         setLoadProblem("This game used Claude models. Choose any preset that needs a key, enter your key above, then continue.");
         return;
       }
@@ -168,7 +224,7 @@ export function Home() {
       }
     }
     navigate("play");
-    session.load(text, continuePlay, keys.key ?? (key.trim() === "" ? null : key));
+    session.load(text, continuePlay, allKeys(keys.key ?? key));
   }
 
   async function loadSaved(id: string, continuePlay: boolean): Promise<void> {
@@ -184,8 +240,8 @@ export function Home() {
     <div className="page">
       <h1>Amarna Letters</h1>
       <p className="muted" style={{ maxWidth: "46rem" }}>
-        Seven Great Kings of the Late Bronze Age. The engine enforces movement, combat and gold; every treaty, alliance and betrayal is invented by the
-        players. Kings never speak to each other directly: every word travels with an envoy, who has motives of their own.
+        Seven Great Kings of the Late Bronze Age. The engine enforces movement, combat and gold; every treaty, alliance and betrayal is invented by the players.
+        Kings never speak to each other directly: every word travels with an envoy, who has motives of their own.
       </p>
 
       <div className="card">
@@ -261,14 +317,13 @@ export function Home() {
                       </td>
                       <td className="muted">{tier(p)}</td>
                       <td>
-                        <select value={settings.leaders[p]} onChange={(e) => change((c) => c.leaders.set(p, e.target.value as LeaderKind))}>
-                          <option value="Script">Script bot</option>
-                          <option value="Human">Human (you)</option>
-                          <option value="Haiku">Haiku 5.5</option>
-                          <option value="Sonnet">Sonnet 5.5</option>
-                          <option value="Opus">Opus 5.5</option>
-                          {(isLocal || settings.leaders[p] === "LocalAgent") && <option value="LocalAgent">Local agent (Claude Code)</option>}
-                        </select>
+                        <ModelPicker
+                          value={settings.leaders[p]}
+                          options={
+                            isLocal || settings.leaders[p] === "LocalAgent" ? [...LeaderOptions, ["LocalAgent", "Local agent (Claude Code)"]] : LeaderOptions
+                          }
+                          onChange={(v) => change((c) => c.leaders.set(p, v))}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -278,20 +333,11 @@ export function Home() {
             <div>
               <div className="field">
                 <span>Envoys, spies and candidates</span>
-                <select value={settings.characters} onChange={(e) => change((c) => (c.characters = e.target.value as CharacterKind))}>
-                  <option value="Script">Script characters (free)</option>
-                  <option value="Haiku">Haiku 5.5</option>
-                  <option value="Sonnet">Sonnet 5.5 (sharper, costs more)</option>
-                </select>
+                <ModelPicker value={settings.characters} options={CharacterOptions} onChange={(v) => change((c) => (c.characters = v))} />
               </div>
               <div className="field">
                 <span>Narrator (personas, check reports, chronicles)</span>
-                <select value={settings.narrator} onChange={(e) => change((c) => (c.narrator = e.target.value as NarratorKind))}>
-                  <option value="Template">Template narrator (free)</option>
-                  <option value="Haiku">Haiku 5.5</option>
-                  <option value="Sonnet">Sonnet 5.5</option>
-                  <option value="Opus">Opus 5.5</option>
-                </select>
+                <ModelPicker value={settings.narrator} options={NarratorOptions} onChange={(v) => change((c) => (c.narrator = v))} />
               </div>
               <div className="field">
                 <span>How hard model kings think</span>
@@ -309,15 +355,18 @@ export function Home() {
                   <input type="checkbox" checked={settings.customsPrimer} onChange={(e) => set("customsPrimer", e.target.checked)} /> Customs primer for kings
                 </label>
                 <label>
-                  <input type="checkbox" checked={settings.sharedVictory} onChange={(e) => set("sharedVictory", e.target.checked)} /> Shared victory for sworn allies
+                  <input type="checkbox" checked={settings.sharedVictory} onChange={(e) => set("sharedVictory", e.target.checked)} /> Shared victory for sworn
+                  allies
                 </label>
                 <label title="A player whose kingdom falls watches the rest of the game seeing everything. Off, a fallen player watches with what his kingdom knew when it fell, so he cannot pass hidden facts to a friend still playing.">
-                  <input type="checkbox" checked={settings.fallenSeeAll} onChange={(e) => set("fallenSeeAll", e.target.checked)} /> A fallen player watches in god view
+                  <input type="checkbox" checked={settings.fallenSeeAll} onChange={(e) => set("fallenSeeAll", e.target.checked)} /> A fallen player watches in
+                  god view
                 </label>
               </div>
               <div className="row" style={{ marginTop: ".6rem" }}>
                 <label title="The world still moves every season; after its orders a model king sleeps, and is called again only when something concerns it: it never chooses when it wakes. Off, every king is called every season. Script and human kings play every season.">
-                  <input type="checkbox" checked={settings.sleepingSeats} onChange={(e) => set("sleepingSeats", e.target.checked)} /> Sleeping seats for model kings
+                  <input type="checkbox" checked={settings.sleepingSeats} onChange={(e) => set("sleepingSeats", e.target.checked)} /> Sleeping seats for model
+                  kings
                 </label>
                 {settings.sleepingSeats && (
                   <label title="A safety net only: a sleeping king is woken after this many seasons at the latest. The kings are never told it.">
@@ -335,12 +384,35 @@ export function Home() {
                   Seed <input type="number" min="1" value={settings.seed} onChange={(e) => set("seed", Math.max(1, Math.floor(Number(e.target.value) || 1)))} />
                 </label>
               </div>
+              <label
+                style={{ marginTop: ".6rem" }}
+                title="A model call that fails or does not fit is played by a script in its place, and the viewer counts these fallbacks. Past this share of a season's calls the game pauses, so a broken call cannot quietly turn a model game into a script game. 0 never pauses."
+              >
+                Pause when more than{" "}
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={Math.round(settings.pauseFallbackShare * 100)}
+                  onChange={(e) => set("pauseFallbackShare", Math.min(Math.max(Number(e.target.value) || 0, 0), 100) / 100)}
+                />
+                % of a season's model calls fall back to scripts
+              </label>
               <label style={{ marginTop: ".6rem" }}>
                 <input type="checkbox" checked={settings.simulateApi} onChange={(e) => set("simulateApi", e.target.checked)} />
                 Simulate the API (canned replies, nothing leaves the browser, no cost: for testing the app)
               </label>
             </div>
           </div>
+          <ProvidersPanel
+            choices={choices}
+            keys={keys.others}
+            onKey={(id, k) => {
+              keys.others[id] = k;
+              setSettings({ ...settings });
+            }}
+            change={change}
+          />
         </details>
 
         {choices.usesLocalAgents && (
@@ -367,7 +439,13 @@ export function Home() {
               </label>
               <label title="After this, the script king stands in for that one decision.">
                 Wait for an agent up to{" "}
-                <input type="number" min="1" max="600" value={settings.localAgentMinutes} onChange={(e) => set("localAgentMinutes", Number(e.target.value) || 1)} />{" "}
+                <input
+                  type="number"
+                  min="1"
+                  max="600"
+                  value={settings.localAgentMinutes}
+                  onChange={(e) => set("localAgentMinutes", Number(e.target.value) || 1)}
+                />{" "}
                 minutes
               </label>
               <button className="small" onClick={() => void bridgeCheck(choices).then(setBridge)}>
@@ -380,39 +458,43 @@ export function Home() {
 
         {usesModels(settings) && !settings.simulateApi && (
           <div className="section">
-            <h3>Your Anthropic API key</h3>
-            <p className="muted">
-              Model calls go straight from this page to the Anthropic API with your own key. The key stays in this tab's memory (and, if you tick the box,
-              in this tab's session storage); it is never written to local storage, a cookie or any server. Use a dedicated key with a spend limit set in the
-              Anthropic Console.
-            </p>
-            <div className="row">
-              <input
-                type="password"
-                style={{ width: "28rem" }}
-                placeholder="sk-ant-..."
-                autoComplete="off"
-                value={key}
-                onChange={(e) => {
-                  setKey(e.target.value);
-                  keys.key = e.target.value;
-                }}
-              />
-              <label>
-                <input
-                  type="checkbox"
-                  checked={remember}
-                  onChange={(e) => {
-                    setRemember(e.target.checked);
-                    keys.remember = e.target.checked;
-                  }}
-                />{" "}
-                Keep for this tab
-              </label>
-            </div>
+            {choices.providersInUse.includes(AnthropicId) && (
+              <>
+                <h3>Your Anthropic API key</h3>
+                <p className="muted">
+                  Model calls go straight from this page to the Anthropic API with your own key. The key stays in this tab's memory (and, if you tick the box,
+                  in this tab's session storage); it is never written to local storage, a cookie or any server. Use a dedicated key with a spend limit set in
+                  the Anthropic Console.
+                </p>
+                <div className="row">
+                  <input
+                    type="password"
+                    style={{ width: "28rem" }}
+                    placeholder="sk-ant-..."
+                    autoComplete="off"
+                    value={key}
+                    onChange={(e) => {
+                      setKey(e.target.value);
+                      keys.key = e.target.value;
+                    }}
+                  />
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={remember}
+                      onChange={(e) => {
+                        setRemember(e.target.checked);
+                        keys.remember = e.target.checked;
+                      }}
+                    />{" "}
+                    Keep for this tab
+                  </label>
+                </div>
+              </>
+            )}
             <p style={{ marginTop: ".6rem" }}>
-              Estimated cost: <strong>{CostEstimate.describe(est)}</strong> for a typical {CostEstimate.TypicalSeasons}-season game (a rough figure: the
-              meter in the game shows the real spend).{" "}
+              Estimated cost: <strong>{CostEstimate.describe(est)}</strong> for a typical {CostEstimate.TypicalSeasons}-season game (a rough figure: the meter
+              in the game shows the real spend).{" "}
               <label>
                 The game pauses at $
                 <input
@@ -480,14 +562,7 @@ export function Home() {
                     <button className="small" onClick={() => void loadSaved(x.id, true)}>
                       Continue
                     </button>{" "}
-                    <button
-                      className="small danger"
-                      onClick={() =>
-                        void deleteLog(x.id)
-                          .then(listLogs)
-                          .then(setSaved)
-                      }
-                    >
+                    <button className="small danger" onClick={() => void deleteLog(x.id).then(listLogs).then(setSaved)}>
                       Delete
                     </button>
                   </td>

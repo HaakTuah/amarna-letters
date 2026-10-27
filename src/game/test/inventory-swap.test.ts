@@ -29,7 +29,7 @@ import {
   single,
 } from "@amarna/engine";
 import { GameLog, GameRunner, type ISeat, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext, swaps } from "@amarna/game";
-import { ClaudeClient, LlmCharacterMind, Parse, Schemas, SimulatedApi } from "@amarna/llm";
+import { AnthropicProvider, ModelClient, LlmCharacterMind, Parse, Schemas, SimulatedApi } from "@amarna/llm";
 import { str, Assert, toDict } from "../../engine/test/support.ts";
 import { kept as keptOf } from "@amarna/game";
 
@@ -267,7 +267,7 @@ describe("InventorySwapTests", () => {
   // <summary>A model character over the simulated API, and the user text of each request it made.</summary>
   function modelMind(): [LlmCharacterMind, () => string[]] {
     let fake = new SimulatedApi();
-    let mind = new LlmCharacterMind(new ClaudeClient(fake, () => {}));
+    let mind = new LlmCharacterMind(new ModelClient(new AnthropicProvider(fake), () => {}));
     return [mind, () => fake.requests.map((r) => str(r, "messages", 0, "content"))];
   }
 

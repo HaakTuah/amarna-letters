@@ -23,11 +23,12 @@ import {
   type Power,
   type SeatView,
   type TurnSubmission,
+  type GameConfig,
 } from "@amarna/engine";
-import { GameLog, GameRunner, ReplayExhaustedError, type ISeat } from "@amarna/game";
-import { FetchTransport, SimulatedApi, buildSeats, type ApiTransport } from "@amarna/llm";
+import { GameLog, GameRunner, ReplayExhaustedError, type ISeat, type SeasonFallbacks } from "@amarna/game";
+import { AnthropicId, SdkTransport, SimulatedApi, buildSeats, checkJobs, providersFor, type Provider } from "@amarna/llm";
 import { catchUpFrames, type SeasonFrame } from "./frames.ts";
-import type { FromWorker, Live, Pending, ToWorker } from "./protocol.ts";
+import type { FromWorker, Keys, Live, Pending, ToWorker } from "./protocol.ts";
 import { choicesOf, fallenSeesAll, newSettings, settingsFromHeader, toConfig, usesModels, type GameSettings } from "./settings.ts";
 import { saveLog } from "./storage.ts";
 
@@ -55,6 +56,13 @@ class PageSeat implements ISeat {
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+/** "3 of 12 model decisions fell back to scripts this season: Hatti's orders (Anthropic API 400: ...); ..." */
+export function fallbackLine(f: SeasonFallbacks): string {
+  const cut = (x: string): string => (x.length > 160 ? x.slice(0, 157) + "..." : x);
+  const why = f.fallen.slice(0, 3).map((x) => `${x.key} (${cut(x.reason)})`);
+  return `${f.fallen.length} of ${f.asked} model decisions fell back to scripts this season: ${why.join("; ")}${f.fallen.length > 3 ? "; and more" : ""}.`;
+}
 
 export class SessionCore {
   private runner: GameRunner | null = null;
@@ -142,6 +150,8 @@ export class SessionCore {
       pending,
       gameId: this.gameId,
       fallenToGod: this.fallenToGod,
+      trailAuthors: r === null ? {} : Object.fromEntries(r.state.trails.map((t) => [t.id, r.trailAuthors(t)] as const)),
+      fallbacks: r === null ? [] : Array.from({ length: Math.max(0, r.state.turn - 1) }, (_, i) => ({ turn: i + 1, ...r.fallbacksIn(i + 1) })),
     };
     const frames = this.frames.slice(this.resetPending ? 0 : this.sentFrames);
     this.post({ type: "update", live, frames, reset: this.resetPending });
@@ -167,17 +177,21 @@ export class SessionCore {
 
   // ---------------------------------------------------------------- building a game
 
-  private transport(settings: GameSettings, apiKey: string | null): ApiTransport | null {
+  /** The providers of the models in use, each with its own key (held here, in memory, by provider id). */
+  private providers(settings: GameSettings, keys: Keys): Provider[] | null {
+    const choices = choicesOf(settings);
+    if (!choices.usesModels) return null;
     if (settings.simulateApi) {
       const api = new SimulatedApi();
       api.reportUsage = false;
-      return api;
+      return providersFor(choices, null, {}, undefined, api);
     }
-    return usesModels(settings) && apiKey ? new FetchTransport(apiKey.trim()) : null;
+    const anthropic = (keys[AnthropicId] ?? "").trim();
+    return providersFor(choices, anthropic.length > 0 ? new SdkTransport(anthropic) : null, keys);
   }
 
-  private build(settings: GameSettings, state: GameState, apiKey: string | null): ReturnType<typeof buildSeats> {
-    const set = buildSeats(choicesOf(settings), state, this.transport(settings, apiKey), () => this.runner!.log);
+  private build(settings: GameSettings, state: GameState, keys: Keys): ReturnType<typeof buildSeats> {
+    const set = buildSeats(choicesOf(settings), state, this.providers(settings, keys), () => this.runner!.log);
     this.humans.clear();
     const seats = new Dict<Power, ISeat>();
     for (const [p, seat] of set.seats) {
@@ -208,19 +222,37 @@ export class SessionCore {
     return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
   }
 
-  async start(settings: GameSettings, apiKey: string | null): Promise<void> {
+  /** The check at setup: each model's schemas compiled once against its provider, before the game begins. */
+  private async check(built: ReturnType<typeof buildSeats>, settings: GameSettings, config: GameConfig): Promise<boolean> {
+    if (built.client === null) return true;
+    this.notice = "Checking the models with their providers…";
+    this.notify();
+    try {
+      await built.client.check(checkJobs(choicesOf(settings), config), this.abort.signal);
+      this.notice = null;
+      return true;
+    } catch (e) {
+      this.notice = null;
+      this.error = e instanceof Error ? e.message : String(e);
+      this.notify();
+      return false;
+    }
+  }
+
+  async start(settings: GameSettings, keys: Keys): Promise<void> {
     this.fresh();
     this.settings = settings;
     this.readOnly = false;
     const state = newGame(settings.seed, toConfig(settings));
     let built;
     try {
-      built = this.build(settings, state, apiKey);
+      built = this.build(settings, state, keys);
     } catch (e) {
       this.error = e instanceof Error ? e.message : String(e);
       this.notify();
       return;
     }
+    if (!(await this.check(built, settings, state.config))) return;
     this.runner = new GameRunner(state, built.seats, built.minds, built.narrator);
     this.runner.writeChronicles = settings.chronicles;
     this.runner.changed.push(this.changed);
@@ -240,7 +272,7 @@ export class SessionCore {
   }
 
   /** Loads a log: replays it fully for the timeline; optionally continues it with live seats. */
-  async load(text: string, continuePlay: boolean, apiKey: string | null): Promise<void> {
+  async load(text: string, continuePlay: boolean, keys: Keys): Promise<void> {
     this.fresh();
     let log: GameLog;
     try {
@@ -263,7 +295,8 @@ export class SessionCore {
     try {
       if (continuePlay) {
         this.settings = settingsFromHeader(log.header);
-        const built = this.build(this.settings, newGame(log.header.seed, log.header.config), apiKey);
+        const built = this.build(this.settings, newGame(log.header.seed, log.header.config), keys);
+        if (!(await this.check(built, this.settings, log.header.config))) return;
         this.runner = GameRunner.resume(log, built.seats, built.minds, built.narrator);
         this.runner.changed.push(this.changed);
         this.readOnly = false;
@@ -349,8 +382,17 @@ export class SessionCore {
         this.auto = false;
         break;
       }
+      const turn = this.runner.state.turn;
       await this.step();
       if (!this.auto) break;
+      // Fallbacks are never silent: past the table's share, the game pauses and says why.
+      const f = this.runner?.fallbacksIn(turn);
+      const share = this.settings.pauseFallbackShare ?? 0.5;
+      if (f !== undefined && share > 0 && f.asked > 0 && f.fallen.length / f.asked > share) {
+        this.notice = `Paused: ${fallbackLine(f)} That is more than the ${Math.round(share * 100)}% this table allows, so the game waits for you. Play on with the next season, or change the setup.`;
+        this.auto = false;
+        break;
+      }
       await sleep(this.humans.size > 0 ? 50 : this.delayMs);
     }
     this.auto = false;
@@ -378,9 +420,9 @@ export class SessionCore {
   async handle(m: ToWorker): Promise<void> {
     switch (m.type) {
       case "start":
-        return this.start(m.settings, m.apiKey);
+        return this.start(m.settings, m.keys);
       case "load":
-        return this.load(m.text, m.continuePlay, m.apiKey);
+        return this.load(m.text, m.continuePlay, m.keys);
       case "step":
         return this.step();
       case "auto":

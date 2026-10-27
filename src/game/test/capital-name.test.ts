@@ -1,5 +1,4 @@
 import { describe, test } from "vitest";
-import { text } from "../../llm/src/schemas.ts";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { host } from "../src/bots/statecraft-letters.ts";

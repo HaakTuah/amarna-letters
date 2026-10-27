@@ -86,6 +86,8 @@ export interface ModelCall {
    * retried), since such a call has no token counts. 0 for API calls, whose size is in the token counts.
    */
   requestChars: number;
+  /** 1 for a call, 2 for the retry that sends an unfit reply back with its errors. */
+  attempt: number;
 }
 
 export function newModelCall(init: Partial<ModelCall> = {}): ModelCall {
@@ -105,6 +107,7 @@ export function newModelCall(init: Partial<ModelCall> = {}): ModelCall {
     usedFallback: false,
     error: null,
     requestChars: 0,
+    attempt: 1,
     ...init,
   };
 }
@@ -125,6 +128,7 @@ export const ModelCallSchema: ObjSchema<ModelCall> = obj("ModelCall", newModelCa
   usedFallback: B,
   error: S,
   requestChars: I,
+  attempt: I,
 });
 
 /**
@@ -245,10 +249,67 @@ export const CharacterChoiceSchema: ObjSchema<CharacterChoice> = obj("CharacterC
  * decision any seat or character made (keyed, so replays are exact), and every model call.
  */
 
-/** One logged decision: its key and its JSON, as recorded. */
+/**
+ * Who wrote a decision ("Who wrote it" under Spectator mode): a model, a script, a human, a file seat or file character
+ * (an agent answering through files), or a fallback, the script standing in when the call of the seat named failed.
+ */
+export type AuthorKind = "model" | "script" | "human" | "file" | "fallback";
+
+export interface Authorship {
+  kind: AuthorKind;
+  /** The seat, characters or narrator as labelled ("Sonnet 5.5 leader", "Script bot"); for a fallback, the one it stood in for. */
+  name: string;
+  /** Why a fallback stood in: the failed call's error. Empty otherwise. */
+  reason: string;
+}
+
+export function newAuthorship(init: Partial<Authorship> = {}): Authorship {
+  return { kind: "script", name: "", reason: "", ...init };
+}
+
+export const AuthorshipSchema: ObjSchema<Authorship> = obj("Authorship", newAuthorship, { kind: S, name: S, reason: S });
+
+/** What kind of author a label names: the labels of the seats, minds and narrators the game builds. */
+export function authorKind(label: string): AuthorKind {
+  if (label === "Human") return "human";
+  if (label === "File seat" || label === "File characters" || label === "Local agent") return "file";
+  if (/^(Script|Baseline|Template)\b/.test(label)) return "script";
+  return "model";
+}
+
+/** A season's fallbacks: how many decisions models and file seats were asked for, and those a script made in their place. */
+export interface SeasonFallbacks {
+  asked: number;
+  fallen: { key: string; name: string; reason: string }[];
+}
+
+/** Who wrote each part of one message trail (null where nothing was written yet, or in a log that kept no authors). */
+export interface TrailAuthors {
+  letter: Authorship | null;
+  said: Authorship | null;
+  /** By exchange, the host's answers and the envoy's. */
+  answered: (Authorship | null)[];
+  replied: (Authorship | null)[];
+  report: Authorship | null;
+}
+
+/** The fallbacks of a season (turn), read from the authors in the log. */
+export function seasonFallbacks(log: GameLog, turn: number): SeasonFallbacks {
+  const out: SeasonFallbacks = { asked: 0, fallen: [] };
+  const prefix = `t${turn}/`;
+  for (const d of log.decisions) {
+    if (d.by === null || !d.key.startsWith(prefix) || !(d.by.kind === "model" || d.by.kind === "file" || d.by.kind === "fallback")) continue;
+    out.asked++;
+    if (d.by.kind === "fallback") out.fallen.push({ key: d.key, name: d.by.name, reason: d.by.reason });
+  }
+  return out;
+}
+
+/** One logged decision: its key and its JSON, as recorded, and who wrote it (null in logs written before authors were kept). */
 export interface Decision {
   key: string;
   json: string;
+  by: Authorship | null;
 }
 
 export class GameLog {
@@ -258,13 +319,20 @@ export class GameLog {
   /** Model characters' decisions beside the script's for the same situations. Not used in replay. */
   readonly shadows: ShadowDecision[] = [];
   private readonly index = new Map<string, string>();
+  private readonly authors = new Map<string, Authorship>();
 
   /** Records a decision under its key, once: a key already recorded keeps its first value. */
-  record<T>(key: string, schema: Schema, value: T): void {
+  record<T>(key: string, schema: Schema, value: T, by: Authorship | null = null): void {
     if (this.index.has(key)) return;
     const json = serialize(schema, value);
     this.index.set(key, json);
-    this.decisions.push({ key, json });
+    this.decisions.push({ key, json, by });
+    if (by !== null) this.authors.set(key, by);
+  }
+
+  /** Who wrote the decision under a key, or null. */
+  authorOf(key: string): Authorship | null {
+    return this.authors.get(key) ?? null;
   }
 
   /** The decision recorded under a key, read back by its schema, or undefined. */
@@ -293,7 +361,8 @@ export class GameLog {
   /** The log as JSON lines: the header, every decision, every call, then the shadows ordered by turn and key. */
   toJsonl(): string {
     let out = withType(serialize(LogHeaderSchema, this.header), "header") + "\n";
-    for (const d of this.decisions) out += `{"type":"decision","key":${quote(d.key)},"value":${d.json}}\n`;
+    for (const d of this.decisions)
+      out += `{"type":"decision","key":${quote(d.key)}${d.by !== null ? `,"by":${serialize(AuthorshipSchema, d.by)}` : ""},"value":${d.json}}\n`;
     for (const c of this.calls) out += withType(serialize(ModelCallSchema, c), "call") + "\n";
     // Ordered by key, so that two runs of a game write the same lines whatever order parallel calls finished in.
     for (const sh of sortBy(this.shadows, [(x: ShadowDecision) => x.turn, cmpNum], [(x: ShadowDecision) => x.key, cmpStr]))
@@ -316,8 +385,10 @@ export class GameLog {
           // The value's JSON as written: the rest of the line after its "value" key (the last in the line).
           const at = line.indexOf('"value":');
           const json = at < 0 ? "null" : line.slice(at + 8, line.length - 1);
+          const by = node.by !== undefined && node.by !== null ? deserialize<Authorship>(AuthorshipSchema, JSON.stringify(node.by)) : null;
           log.index.set(key, json);
-          log.decisions.push({ key, json });
+          log.decisions.push({ key, json, by });
+          if (by !== null) log.authors.set(key, by);
           break;
         }
         case "call":
