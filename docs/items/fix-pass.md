@@ -11,4 +11,5 @@ says (`docs/intent/build-order/item-5plus.md`). The sections it names are in `do
   spending are a safety check in the builder rules).
 
 **Done when:** every entry on the list is fixed or moved with a reason, and the PR says how to see each fix. Then go on
-with item 6a.
+with step 4 of item 5+, the removal of the old C# build in a PR of its own (its text is in
+`docs/intent/build-order/item-5plus.md`; add its row to `docs/BUILD-PROGRESS.md`), and then item 6a.
