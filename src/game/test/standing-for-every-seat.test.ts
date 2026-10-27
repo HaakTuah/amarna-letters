@@ -71,7 +71,7 @@ describe("StandingForEverySeatTests", () => {
     }
   }
 
-  const Quiet: GameConfig = newGameConfig({ minTurns: 40, catastropheChance: 0 });
+  const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0 });
 
   // <summary>Mari is Assyria's, its walls gone, with an Assyrian army in it: two Assyrian armies stand next to Sippar.</summary>
   function assyriaInMari(s: GameState): void {

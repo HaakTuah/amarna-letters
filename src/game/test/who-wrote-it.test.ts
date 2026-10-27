@@ -10,7 +10,7 @@ describe("WhoWroteItTests", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   function game(choices: SeatChoices, api: SimulatedApi): GameRunner {
-    const state = newGame(4, newGameConfig({ minTurns: 3, endChance: 1.0, sleepingSeats: false }));
+    const state = newGame(4, newGameConfig({ capMin: 3, capMax: 3, endMedian: 10000, sleepingSeats: false }));
     let runner: GameRunner | null = null;
     const set = buildSeats(choices, state, providersFor(choices, api, {}), () => runner!.log);
     runner = new GameRunner(state, set.seats, set.minds, set.narrator);

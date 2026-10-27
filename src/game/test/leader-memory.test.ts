@@ -185,7 +185,7 @@ describe("LeaderMemoryTests", () => {
 
   test("The summary and ledger are logged with the orders and a replay reads them", async () => {
     // Asked every season, so that every season has its orders.
-    let state = newGame(4, newGameConfig({ minTurns: 3, endChance: 1.0, catastropheChance: 0, sleepingSeats: false }));
+    let state = newGame(4, newGameConfig({ capMin: 3, capMax: 3, endMedian: 10000, catastropheChance: 0, sleepingSeats: false }));
     let asker = new Scripted((spec) =>
       spec.key.includes("/aud/") ? Host : ordersOf(`notes ${spec.turn}`, `summary written in turn ${spec.turn}`, ["Egypt", `ledger line of turn ${spec.turn}`]),
     );

@@ -321,15 +321,15 @@ describe("MapSceneTests", () => {
 
   test("Engine texts get their date label for display", () => {
     Assert.equal(
-      "set out in Akhet, 1345 BCE (turn 1) for Hatti; due back about Peret, 1344 BCE (turn 5)",
+      "set out in Akhet, 1346 BCE (turn 1) for Hatti; due back about Peret, 1345 BCE (turn 5)",
       dated("set out in turn 1 for Hatti; due back about turn 5", "Egypt"),
     );
-    Assert.equal("serves at 8 a season through season 3, 1342 BCE (turn 12)", dated("serves at 8 a season through turn 12", null));
+    Assert.equal("serves at 8 a season through season 3, 1343 BCE (turn 12)", dated("serves at 8 a season through turn 12", null));
     Assert.equal("Turn them", dated("Turn them", null));
     // A spy's report dates what it saw by "season of turn N": the label alone names the season.
-    Assert.equal("From Arzawa, the second season, 1343 BCE (turn 8).", dated("From Arzawa, season of turn 8.", "Hatti"));
-    Assert.equal("From Arzawa, season 2, 1343 BCE (turn 8).", dated("From Arzawa, season of turn 8.", null));
-    Assert.equal("Season 2, 1343 BCE (turn 8) was quiet", dated("Turn 8 was quiet", null));
+    Assert.equal("From Arzawa, the second season, 1344 BCE (turn 8).", dated("From Arzawa, season of turn 8.", "Hatti"));
+    Assert.equal("From Arzawa, season 2, 1344 BCE (turn 8).", dated("From Arzawa, season of turn 8.", null));
+    Assert.equal("Season 2, 1344 BCE (turn 8) was quiet", dated("Turn 8 was quiet", null));
   });
 
   test("A fallen courts last orders are not drawn again", async () => {

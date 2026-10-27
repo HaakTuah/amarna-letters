@@ -24,6 +24,7 @@ import {
   type SiegeView,
   type UnitView,
 } from "@amarna/engine";
+import { seasonsLeft } from "./ending-belief.ts";
 
 export class Board {
   static readonly Map: WorldMap = WorldMap.default;
@@ -56,9 +57,8 @@ export class Board {
     );
     this.others = this.units.filter((u) => u.power !== this.me);
     this.alive = new HSet(AllPowers.filter((p) => !v.fallen.includes(p)));
-    // Seasons the game can still be expected to run: the minimum, then 1/p on average.
-    const tail = 1.0 / Math.max(0.05, v.endChance);
-    this.horizon = v.turn < v.minTurns ? v.minTurns - v.turn + tail : tail;
+    // Seasons the game can still be expected to run, as this king reads the rule.
+    this.horizon = seasonsLeft(v.turn, v.openAge);
   }
 
   get Map(): WorldMap {

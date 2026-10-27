@@ -1,4 +1,4 @@
-import { AllPowers, tier, type Power } from "@amarna/engine";
+import { AllPowers, FirstYearBce, SeasonsPerYear, dateLabel, tier, yearBce, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, type LogHeader } from "@amarna/game";
 import {
   AnthropicId,
@@ -84,6 +84,10 @@ const localKings = (c: SeatChoices): Power[] => AllPowers.filter((p) => c.leader
 let kept: GameSettings | null = null;
 let budgetTouched = false;
 
+/** The years a table may choose for the median ending, and the middle season of each (1332 BCE: season 44). */
+const MedianYears = Array.from({ length: 21 }, (_, i) => FirstYearBce - 4 - i);
+const medianSeason = (y: number): number => (FirstYearBce - y) * SeasonsPerYear + 2;
+
 export function Home() {
   const s = useSession();
   const [settings, setSettingsRaw] = useState<GameSettings>(() => kept ?? recost(freshSettings()));
@@ -128,6 +132,8 @@ export function Home() {
     setSettings(recost(withChoices(settings, c)));
   };
   const set = <K extends keyof GameSettings>(k: K, v: GameSettings[K]): void => setSettings({ ...settings, [k]: v });
+  // The ending sets how long a game runs, and so what it is likely to cost.
+  const setEnding = (v: Partial<Pick<GameSettings, "endMedian" | "capped" | "capMin" | "capMax" | "openAge">>): void => setSettings(recost({ ...settings, ...v }));
 
   const estimateFor = (p: Preset): number => {
     const c = choices.copy();
@@ -371,6 +377,34 @@ export function Home() {
                 </label>
               </div>
               <div className="row" style={{ marginTop: ".6rem" }}>
+                <label title="An age with no end: no last season and no cap. Kings are told the age has no end. It makes model calls with no end, so the game pauses at the spending limit below.">
+                  <input type="checkbox" checked={settings.openAge} onChange={(e) => setEnding({ openAge: e.target.checked })} /> An open age, with no end
+                </label>
+                {!settings.openAge && (
+                  <>
+                    <label title="Any season may be the last, from the first, and the chance grows every season: half of all ages have ended by this year. Kings are told the rule in words only.">
+                      Half of all ages end by{" "}
+                      <select value={yearBce(settings.endMedian)} onChange={(e) => setEnding({ endMedian: medianSeason(Number(e.target.value)) })}>
+                        {MedianYears.map((y) => (
+                          <option key={y} value={y}>
+                            {y} BCE{y === yearBce(newSettings().endMedian) ? " (the archive's end)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label title="The last possible season, drawn in secret at the start from this range, so nobody at the table knows it. A range of one season is a known cap.">
+                      <input type="checkbox" checked={settings.capped} onChange={(e) => setEnding({ capped: e.target.checked })} /> A hard cap, from
+                    </label>
+                    {settings.capped && (
+                      <label title={`${dateLabel(Math.max(1, settings.capMin))} to ${dateLabel(Math.max(1, settings.capMax))}`}>
+                        <input type="number" min="1" max="300" value={settings.capMin} onChange={(e) => setEnding({ capMin: Math.max(1, Math.floor(Number(e.target.value) || 1)) })} /> to{" "}
+                        <input type="number" min="1" max="300" value={settings.capMax} onChange={(e) => setEnding({ capMax: Math.max(1, Math.floor(Number(e.target.value) || 1)) })} /> seasons
+                      </label>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="row" style={{ marginTop: ".6rem" }}>
                 <label title="The world still moves every season; after its orders a model king sleeps, and is called again only when something concerns it: it never chooses when it wakes. Off, every king is called every season. Script and human kings play every season.">
                   <input type="checkbox" checked={settings.sleepingSeats} onChange={(e) => set("sleepingSeats", e.target.checked)} /> Sleeping seats for model
                   kings
@@ -500,7 +534,7 @@ export function Home() {
               </>
             )}
             <p style={{ marginTop: ".6rem" }}>
-              Estimated cost: <strong>{CostEstimate.describe(est)}</strong> for a typical {CostEstimate.TypicalSeasons}-season game (a rough figure: the meter
+              Estimated cost: <strong>{CostEstimate.describe(est)}</strong> for {settings.openAge ? `the first ${settings.endMedian} seasons of an open age, which has no end` : `a game of median length (${settings.endMedian} seasons)`} (a rough figure: the meter
               in the game shows the real spend).{" "}
               <label>
                 The game pauses at $

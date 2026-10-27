@@ -105,8 +105,10 @@ A king's strength is ten times the yield of the land he holds, plus his gold, mi
 owes. Conquered land counts as it is absorbed: a third in its first season, two thirds in the
 second, all of it from the third. The winner is whoever grew most relative to their own start.
 
-No game ends before turn 15, the third season of year 5. After that, each season ends the age with a 15% chance, and
-nobody knows which season is the last.
+Any season may be the last, from the first: early on it is very unlikely, and it grows likelier with every year, so
+that half of all ages have ended by 1332 BCE (season 44). The engine draws the last season once, in secret, at the start,
+with a hard cap drawn from 80 to 100 seasons; nothing shown reads it. The median and the cap's range (or none) are table
+settings, and a table can play an open age with no end, from the start or by playing on once the age has ended.
 
 A kingdom falls with its capital: its remaining land passes to the conqueror, and its troops
 disband. A fallen player watches the rest of the game in god view (a table setting).
@@ -323,7 +325,8 @@ customs-primer experiment; `--out logs` keeps every game's log. `--versus solo` 
 script king against the frozen first version (one king at a time, against six of the old), and
 `--versus baseline` and `--focus <Power>` mix the two. Script games run on every core.
 `--sleep off` turns off sleeping seats, `--sleep-cap N` sets
-the hidden safety cap on a sleep, and `--max-turns N` stops a game after season N.
+the hidden safety cap on a sleep, `--max-turns N` stops a game after season N at the latest (a known cap), `--cap 80-100` or `--cap none` sets
+the hard cap's range, and `--median N` the season by which half of all ages have ended (44 by default).
 `--file-seats DIR` makes every king a file seat:
 it writes what a model king would see to its own folder and waits for a JSON reply file, which is
 how `sim/` plays a game with Claude Code agents as the kings (see `sim/README.md`).

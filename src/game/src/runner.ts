@@ -5,6 +5,8 @@
  */
 import {
   AllPowers,
+  canPlayOn,
+  playOn,
   CURRENT_VERSION,
   Dict,
   GameStateSchema,
@@ -299,11 +301,12 @@ export class GameRunner {
     this.setPhase("Ready");
   }
 
-  /** Plays one season. Returns false once the game has ended. */
+  /** Plays one season. Returns false once the game has ended (and, on replay, the recorded table did not play on). */
   async playTurn(signal?: AbortSignal): Promise<boolean> {
     if (!this.prepared) await this.prepare(signal);
     const S_ = this.state;
-    if (S_.ended) return false;
+    // A replay or a continued game plays on where the recorded table chose to ("An open age").
+    if (S_.ended && !(this.replay?.has(`t${S_.turn}/play-on`) === true && (await this.playOn()))) return false;
     const turn = S_.turn;
     const engine = new TurnEngine(S_);
 
@@ -333,9 +336,25 @@ export class GameRunner {
     this.snapshots.push(serialize(GameStateSchema, S_));
     this.phaseDone?.(`t${turn}/resolve`);
 
-    if (S_.ended && this.writeChronicles) await this.chronicleAll(signal);
+    // The chronicles are of the age: written when it ends, and not again if the table plays on into an open age.
+    if (S_.ended && this.writeChronicles && this.chronicles.size === 0) await this.chronicleAll(signal);
     this.setPhase(S_.ended ? "The game has ended" : "Ready");
-    return !S_.ended;
+    // On replay, a game the recorded table played on past the age's end goes on.
+    return !S_.ended || this.replay?.has(`t${turn}/play-on`) === true;
+  }
+
+  /**
+   * Plays on after the age has ended, into an open age with no end ("An open age" under Victory): the winners stay
+   * recorded, and the choice goes into the log so a replay plays on too. False when the age cannot be played on (it has
+   * not ended, or only one kingdom is left).
+   */
+  async playOn(): Promise<boolean> {
+    const S_ = this.state;
+    if (!canPlayOn(S_)) return false;
+    await this.recorded<boolean>(`t${S_.turn}/play-on`, B, () => Promise.resolve(true));
+    playOn(S_);
+    this.setPhase("Ready");
+    return true;
   }
 
   private async fulfil(engine: TurnEngine, turn: number, signal?: AbortSignal): Promise<void> {

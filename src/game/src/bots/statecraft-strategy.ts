@@ -25,6 +25,7 @@ import {
   type Rng,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { endMayBeNear } from "./ending-belief.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 
@@ -136,7 +137,7 @@ export function strategy(b: Board, brain: Brain, rng: Rng): void {
       [...b.alive].filter((x) => x !== me && brain.isFriend(x)),
       [(x: Power) => x, cmpPower],
     )) {
-      if (brain.rel.get(ally).allied && b.v.turn >= b.v.minTurns) continue;
+      if (brain.rel.get(ally).allied && endMayBeNear(b.v.turn, b.v.openAge)) continue;
       // A broken oath costs a name for honesty with every court that hears of it: worth it only for a real prize.
       if (b.v.turn <= 3 || brain.rel.get(ally).supportsGiven > 0) continue;
       const open = sum(

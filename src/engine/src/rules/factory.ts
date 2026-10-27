@@ -8,11 +8,16 @@ import { newCharacter, newContract, newFact, newTraits, type Character, type Sec
 import { AllPowers, adjective, land, type Power } from "../model/power.ts";
 import { newTreasury, newGameState, newUnit, logEvent, newId, type GameState } from "../model/state.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
+import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
 
 export function newGame(seed: number, config: GameConfig | null = null, map: WorldMap | null = null): GameState {
   const m = map ?? WorldMap.default;
   const s = newGameState({ seed, config: config ?? newGameConfig(), turn: 1 });
+  // The last season, drawn once in secret from its own stream before anything else is rolled.
+  const last = drawFinalSeason(seed, s.config);
+  s.finalSeason = last?.season ?? null;
+  s.finalByCap = last?.byCap ?? false;
 
   for (const p of m.landProvinces) {
     s.owner.set(p.id, p.home);

@@ -127,7 +127,7 @@ describe("TerrainBotTests", () => {
               { writeChronicles: false },
             ),
           true,
-          newGameConfig({ maxTurns: 20 }),
+          newGameConfig({ capMin: 20, capMax: 20, endMedian: 10000 }),
         )
       )[0];
       Assert.true(summary.replayMatches, `seed ${seed}`);

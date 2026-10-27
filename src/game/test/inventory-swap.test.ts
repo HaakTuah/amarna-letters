@@ -206,7 +206,7 @@ describe("InventorySwapTests", () => {
   }
 
   test("A swap decided at the audience is logged shown to the host as the forgery and replays exactly", async () => {
-    let state = newGame(5, newGameConfig({ catastropheChance: 0, minTurns: 40 }));
+    let state = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
     let envoy = first(state.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     [envoy.traits.greed, envoy.traits.loyalty, envoy.traits.competence, envoy.traits.courage] = [80, 40, 70, 60];
@@ -226,7 +226,7 @@ describe("InventorySwapTests", () => {
     Assert.true(single(state.tablets, (t) => t.inventory).forged);
 
     // Replayed from its log (on the same game, the envoy as greedy), the game comes out the same: no seat or mind is asked.
-    let again = newGame(5, newGameConfig({ catastropheChance: 0, minTurns: 40 }));
+    let again = newGame(5, newGameConfig({ catastropheChance: 0, endMedian: 10000 }));
     let same = single(again.characters, (c) => c.id === envoy.id);
     same.secretMaster = null;
     [same.traits.greed, same.traits.loyalty, same.traits.competence, same.traits.courage] = [80, 40, 70, 60];

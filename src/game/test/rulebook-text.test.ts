@@ -126,8 +126,8 @@ describe("RulebookTextTests", () => {
 
   test("The opening positions keep the rulebook byte stable", () => {
     // The rulebook is one cached block: building it again, from a fresh cache key, gives the same bytes.
-    let a = leaderRules(false, newGameConfig({ maxTurns: 61 }));
-    let b = leaderRules(false, newGameConfig({ maxTurns: 61 }));
+    let a = leaderRules(false, newGameConfig({ capMin: 61, capMax: 61, endMedian: 10000 }));
+    let b = leaderRules(false, newGameConfig({ capMin: 61, capMax: 61, endMedian: 10000 }));
     Assert.equal(a, b);
     let opening = a.slice(a.indexOf("OPENING POSITIONS"), a.indexOf("HOW TO ANSWER"));
     Assert.equal(opening, Rules.slice(Rules.indexOf("OPENING POSITIONS"), Rules.indexOf("HOW TO ANSWER")));

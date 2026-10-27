@@ -313,7 +313,21 @@
   court)"), generated from the map data (`src/engine/src/model/map.ts`) by `openingLines` (`src/engine/src/rules/opening.ts`), so the cached block stays byte-stable.
   The web app's standings panel shows the same table to every seat, human or not. Script kings
   read the same facts from `MapData`, as before.
-- **Ending.** Not before turn 15; then 15% at the end of each season; hard cap at 60 turns.
+- **Ending** (build order item 6a, "Random ending" and "An open age" under Victory; `src/engine/src/rules/ending.ts`).
+  Any season may be the last from the first: the chance that season t is the last, if the age reaches it, is k × t,
+  with k found so that half of all ages have ended by the median season (`endMedian`, 44 by default: 1332 BCE; about
+  0.07% in season 1, 1% in season 15, 2% in season 30, 3% in season 44). The hard cap is drawn from `capMin` to
+  `capMax` (80 to 100 by default; `capped` off for none; a range of one season is a known cap). Both are drawn once, in
+  secret, at the start (`drawFinalSeason`, from the stream keyed to the seed and "end" alone, so no other roll shifts
+  them) into `GameState.finalSeason` and `finalByCap`, and the game ends after that season ("the gods have ended the
+  age", or at the cap "the age has run its course"), or when one kingdom is left. Nothing shown reads the drawn season:
+  no seat view, request, look-ahead or web frame (tested). The rulebook and the web app's header say the rule in words,
+  without numbers ("Any season may be the last: early on it is very unlikely, and it grows likelier with every year.").
+  **An open age** (`openAge`): no last season and no cap, set at the start, or chosen when the age has ended by its last
+  season (not with one kingdom left): the table plays on (`playOn`; the runner records `t<N>/play-on` so a replay plays
+  on too), the winners and the reason stay recorded (`ageEndedTurn`), the chronicles are not written again, and the
+  rulebook then says the age has no end. The game pauses at the table's spending limit, as every model game does. Save
+  version 8.
 - **A kingdom falls with its capital** (the design document's rule, built with the siege package, Build order item 5;
   until then a kingdom fell only when it held no land, so a king who lost his capital fought on from his last
   provinces). After the moves, sieges and the change of hands, a king whose capital another power now holds has

@@ -2,9 +2,21 @@ import { B, D, I, type ObjSchema, list, obj } from "../core/json.ts";
 
 /** Every tunable number in one place. The defaults are first proposals, tuned by batch runs. */
 export interface GameConfig {
-  minTurns: number;
-  endChance: number;
-  maxTurns: number;
+  /**
+   * The random ending ("Random ending" under Victory, build order item 6a): the season by which half of all games have
+   * ended, the chance of each season being the last growing in proportion to its number ({@link endSlope}). 44 seasons is
+   * 1332 BCE, the conventional end of the archive. A table setting; kings are told the rule in words, never this number.
+   */
+  endMedian: number;
+  /** Whether the game has a hard cap, drawn in secret at the start from capMin to capMax seasons (a single season is a known cap). */
+  capped: boolean;
+  capMin: number;
+  capMax: number;
+  /**
+   * "An open age": no drawn last season and no cap. Set at the start, or chosen when the age ends, to play on after the
+   * winner is recorded. Only one kingdom left still ends it.
+   */
+  openAge: boolean;
   /**
    * Strength = ProvinceWeight x (sum of owned base yields) + gold - back pay owed (see {@link Scoring}).
    */
@@ -87,9 +99,11 @@ export interface GameConfig {
 
 export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
   return {
-    minTurns: 15,
-    endChance: 0.15,
-    maxTurns: 60,
+    endMedian: 44,
+    capped: true,
+    capMin: 80,
+    capMax: 100,
+    openAge: false,
     provinceWeight: 10,
     sharedVictory: false,
     fallenSeeAll: true,
@@ -128,9 +142,11 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
 }
 
 export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGameConfig, {
-  minTurns: I,
-  endChance: D,
-  maxTurns: I,
+  endMedian: I,
+  capped: B,
+  capMin: I,
+  capMax: I,
+  openAge: B,
   provinceWeight: I,
   sharedVictory: B,
   fallenSeeAll: B,

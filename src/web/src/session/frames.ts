@@ -155,8 +155,9 @@ export interface SeasonFrame {
   news: FrameNews[];
   /** Each court's inbox length, to find what arrived after this frame. */
   inboxCount: Map<Power, number>;
-  minTurns: number;
-  endChance: number;
+  /** Whether the age has no end, and, once the table played on past the age's end, when it ended and who won it. */
+  openAge: boolean;
+  ageEnded: { turn: number; winners: string[] } | null;
 }
 
 export const ownerOf = (f: SeasonFrame, province: string): Power | null => f.owner.get(province) ?? null;
@@ -296,8 +297,9 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     events: s.events.filter((e) => e.turn === index),
     news,
     inboxCount: counts,
-    minTurns: s.config.minTurns,
-    endChance: s.config.endChance,
+    // The ending is shown in words only: the drawn last season (s.finalSeason) is never copied into a frame.
+    openAge: s.config.openAge,
+    ageEnded: s.ageEndedTurn === null ? null : { turn: s.ageEndedTurn, winners: [...s.ageWinners] },
   };
 }
 

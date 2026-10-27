@@ -1,4 +1,4 @@
-import { AllPowers, ending, shortDate, type Power } from "@amarna/engine";
+import { AllPowers, ending, shortDate, shortEnding, type Power } from "@amarna/engine";
 import { Presets, leaderRules } from "@amarna/llm";
 import { useEffect, useRef, useState } from "react";
 import { AudiencePanel } from "../components/AudiencePanel.tsx";
@@ -162,12 +162,15 @@ export function Play() {
     setTab("season");
   };
 
-  const endingLine = frame.ended ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.` : ending(frame.turn, frame.minTurns, frame.endChance, viewer);
-  const shortEnding = frame.ended
-    ? `Ended · winner ${frame.winners.join(" and ")}`
-    : frame.turn < frame.minTurns
-      ? `Can end from ${shortDate(frame.minTurns, viewer)}`
-      : `Any season may be the last (${Number((frame.endChance * 100).toFixed(1))}%)`;
+  // The last season's frame still shows the age's end until the next season is played, after the table played on.
+  const playedOn = !history && frame.ended && !live.ended;
+  const endingLine =
+    frame.ended && !playedOn
+      ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.`
+      : playedOn
+        ? ending(true, { turn: frame.index, winners: frame.winners }, viewer)
+        : ending(frame.openAge, frame.ageEnded, viewer);
+  const shortLine = frame.ended && !playedOn ? `Ended · winner ${frame.winners.join(" and ")}` : shortEnding(frame.openAge || playedOn);
   const showsCost = usesModels(live.settings) || live.cost > 0;
   const localAgents = choicesOf(live.settings).usesLocalAgents;
 
@@ -199,7 +202,12 @@ export function Play() {
             {!history && <span className="phase">{phaseText(live.phase)} · </span>}
             <span className="long">{endingLine}</span>
             {/* The short form, as in dense lists: the turn is in the tooltip. */}
-            <span className="short">{shortEnding}</span>
+            <span className="short">{shortLine}</span>
+            {!history && live.canPlayOn && (
+              <button className="link" onClick={() => s.playOn()} title="The winner stays recorded; the game goes on with no end">
+                Play on into an open age
+              </button>
+            )}
           </div>
         </div>
         <div className="gctl">

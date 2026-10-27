@@ -10,7 +10,7 @@ import {
   ending,
   joins,
   neutral,
-  newGameConfig,
+  shortEnding,
   riversThrough,
   season,
   shortDate,
@@ -23,31 +23,33 @@ import { Assert } from "./support.ts";
 // The date labels and the terrain data added for the visual overhaul (Build order item 2). Both are display data:
 // no rule reads them, so they must name only real places and connections and the labels must count as the engine does.
 describe("MapPresentationTests", () => {
-  test("Turn 1 is the first season of 1345 BCE and each later year is one less", () => {
-    Assert.equal("Akhet, 1345 BCE (turn 1)", dateLabel(1, "Egypt"));
-    Assert.equal("the first season, 1345 BCE (turn 1)", dateLabel(1, "Hatti"));
-    Assert.equal("season 1, 1345 BCE (turn 1)", dateLabel(1));
-    Assert.equal("Shemu, 1345 BCE (turn 3)", dateLabel(3, "Egypt"));
-    Assert.equal("Akhet, 1344 BCE (turn 4)", dateLabel(4, "Egypt"));
-    Assert.equal("Peret, 1344 BCE (turn 5)", dateLabel(5, "Egypt"));
-    Assert.equal("Shemu, 1341 BCE (turn 15)", dateLabel(15, "Egypt"));
-    Assert.equal("the third season, 1341 BCE (turn 15)", dateLabel(15, "Babylonia"));
-    Assert.equal("Peret, 1343 BCE (turn 8)", dateLabel(8, "Egypt"));
-    Assert.equal("season 2, 1343 BCE (turn 8)", dateLabel(8));
-    Assert.equal(1326, yearBce(60));
+  test("Turn 1 is the first season of 1346 BCE and each later year is one less", () => {
+    Assert.equal("Akhet, 1346 BCE (turn 1)", dateLabel(1, "Egypt"));
+    Assert.equal("the first season, 1346 BCE (turn 1)", dateLabel(1, "Hatti"));
+    Assert.equal("season 1, 1346 BCE (turn 1)", dateLabel(1));
+    Assert.equal("Shemu, 1346 BCE (turn 3)", dateLabel(3, "Egypt"));
+    Assert.equal("Akhet, 1345 BCE (turn 4)", dateLabel(4, "Egypt"));
+    Assert.equal("Peret, 1345 BCE (turn 5)", dateLabel(5, "Egypt"));
+    Assert.equal("Shemu, 1342 BCE (turn 15)", dateLabel(15, "Egypt"));
+    Assert.equal("the third season, 1342 BCE (turn 15)", dateLabel(15, "Babylonia"));
+    Assert.equal("Peret, 1344 BCE (turn 8)", dateLabel(8, "Egypt"));
+    Assert.equal("season 2, 1344 BCE (turn 8)", dateLabel(8));
+    Assert.equal(1327, yearBce(60));
+    Assert.equal(1332, yearBce(44));
   });
 
   test("The short form keeps the year and season", () => {
-    Assert.equal("Peret 1343 BCE", shortDate(8, "Egypt"));
-    Assert.equal("s2 1343 BCE", shortDate(8, "Mitanni"));
-    Assert.equal("s3 1341 BCE", shortDate(15));
+    Assert.equal("Peret 1344 BCE", shortDate(8, "Egypt"));
+    Assert.equal("s2 1344 BCE", shortDate(8, "Mitanni"));
+    Assert.equal("s3 1342 BCE", shortDate(15));
   });
 
-  test("The ending line names the first season that may end the age then the chance", () => {
-    let c = newGameConfig();
-    Assert.equal("The age cannot end before Shemu, 1341 BCE (turn 15).", ending(8, c.minTurns, c.endChance, "Egypt"));
-    Assert.equal("The age cannot end before season 3, 1341 BCE (turn 15).", ending(14, c.minTurns, c.endChance));
-    Assert.equal("Any season may now be the last (15% each season).", ending(15, c.minTurns, c.endChance));
+  test("The ending line says the rule in words, without numbers", () => {
+    Assert.equal("Any season may be the last: early on it is very unlikely, and it grows likelier with every year.", ending(false));
+    Assert.equal("An open age: this age has no end.", ending(true));
+    Assert.equal("An open age: this age has no end. The age ended in Shemu, 1333 BCE (turn 42); Hatti won it.", ending(true, { turn: 42, winners: ["Hatti"] }, "Egypt"));
+    Assert.equal("Any season may be the last", shortEnding(false));
+    for (const line of [ending(false), shortEnding(false)]) Assert.false(/\d/.test(line), line);
   });
 
   test("The old court reckoning is unchanged", () => {

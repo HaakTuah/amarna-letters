@@ -91,7 +91,7 @@ describe("StandInTests", () => {
     // Egypt sleeps after its orders (sleeping seats are on by default) among kings who do nothing to wake it; the
     // stand-in reads its view every season all the same.
     let model = new Flaky(99);
-    let state = newGame(31, newGameConfig({ maxSleep: 6, minTurns: 40, catastropheChance: 0 }));
+    let state = newGame(31, newGameConfig({ maxSleep: 6, endMedian: 10000, catastropheChance: 0 }));
     let seats = toDict(
       AllPowers,
       (p) => p,
@@ -138,7 +138,7 @@ describe("StandInTests", () => {
             return Object.assign(new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
           },
           true,
-          newGameConfig({ sleepingSeats: sleeping, maxTurns: 10 }),
+          newGameConfig({ sleepingSeats: sleeping, capMin: 10, capMax: 10, endMedian: 10000 }),
         )
       )[0];
       Assert.true(summary.replayMatches, `sleeping ${sleeping}`);
