@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 26 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 27 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Turn structure and the deterministic engine
 
 Each turn is one season, resolved by a deterministic engine from a single seed: the same seed and the same orders always produce the same game. That makes games replayable, debuggable and fair to compare across models.

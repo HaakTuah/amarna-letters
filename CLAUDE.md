@@ -129,5 +129,10 @@ variable.
 
 ## Standing instructions
 
-Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (None
-yet.)
+Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last.
+
+- **27 October 2026.** The build order guides the builders; what counts is the finished game, with no temporary
+  features: "the build order is simply to guideline claude code. I only care about the final product and that we don't
+  introduce temporary features" (`docs/archive/instructions.md`, item 13). Where an item's order or split serves the
+  game badly, take the reading that builds the final game best, say so in the PR, and never add a stand-in that a
+  later item has to remove ("No stopgaps" in the builder rules).

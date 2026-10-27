@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 13,
+   "rev": 18,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -46,7 +46,7 @@
   "world-and-history": {
    "name": "World and history",
    "node": "f2f7044b-c6fa",
-   "rev": 21,
+   "rev": 22,
    "files": [
     "docs/intent/world-and-history/front.md",
     "docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md",
@@ -58,7 +58,7 @@
   "engine-and-models": {
    "name": "Engine and models",
    "node": "23452eff-9a74",
-   "rev": 26,
+   "rev": 27,
    "files": [
     "docs/intent/engine-and-models/front.md",
     "docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md",
@@ -71,7 +71,7 @@
   "diplomacy-and-intelligence": {
    "name": "Diplomacy and intelligence",
    "node": "83ac9cba-81ca",
-   "rev": 16,
+   "rev": 18,
    "files": [
     "docs/intent/diplomacy-and-intelligence/front.md",
     "docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md",
@@ -88,7 +88,7 @@
   "characters": {
    "name": "Characters",
    "node": "0051b400-09bd",
-   "rev": 16,
+   "rev": 17,
    "files": [
     "docs/intent/characters/front.md",
     "docs/intent/characters/characters-hidden-facts-memory-and-continuity.md",
@@ -112,7 +112,7 @@
   "land-people-and-economy": {
    "name": "Land, people and economy",
    "node": "3dedb02f-88dd",
-   "rev": 8,
+   "rev": 11,
    "files": [
     "docs/intent/land-people-and-economy/front.md",
     "docs/intent/land-people-and-economy/gold.md",
@@ -126,7 +126,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 17,
+   "rev": 18,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military.md",
@@ -171,7 +171,7 @@
   "ideas": {
    "name": "Ideas",
    "node": "c1a09612-6320",
-   "rev": 12,
+   "rev": 16,
    "files": [
     "docs/intent/ideas/front.md",
     "docs/intent/ideas/other-ideas-under-consideration.md",
