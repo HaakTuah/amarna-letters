@@ -139,7 +139,8 @@ describe("TravelTests", () => {
 
   test("Who holds distant land is known as late as word of it travels", () => {
     const s = newGame(11);
-    // Babylonia's Ur passes to Egypt by the engine's hand: Egypt sees nothing of Ur, Babylonia sees it at once.
+    s.turn = 6;
+    // Babylonia's Ur passes to Assyria by the engine's hand: Egypt sees nothing of Ur, Babylonia sees it at once.
     const e = new TurnEngine(s);
     e.setOwner("ur", "Assyria");
     const near = Views.knownHolders(s, Map, "Babylonia");
