@@ -57,7 +57,7 @@ if (made.length > 0 && !args.includes("--force")) {
 // Read every seed's pool before touching anything, so a failure leaves the old kit in place.
 const pools = {};
 for (const seed of seeds) {
-  const out = execFileSync("dotnet", ["run", "--project", path.join(repo, "src", "Amarna.Batch"), "--", "--seed", seed, "--list-characters"], { cwd: repo, encoding: "utf8" });
+  const out = execFileSync(process.execPath, ["--experimental-strip-types", "--no-warnings", path.join(repo, "src", "batch", "src", "main.ts"), "--seed", seed, "--list-characters"], { cwd: repo, encoding: "utf8" });
   const list = JSON.parse(out.slice(out.indexOf("{")));
   if (list.seed !== seed || !Array.isArray(list.characters) || list.characters.length === 0) { console.error(`Could not read the characters of seed ${seed}.`); process.exit(1); }
   pools[seed] = list.characters;
