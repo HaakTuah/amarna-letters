@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 16 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 17 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Skills, names and knowledge
 
 **Skills are hard-coded; decisions belong to the character** (decided 18 October 2026). The split applies to every character: envoys, spies, commanders, candidates and outlaws.

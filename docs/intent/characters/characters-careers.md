@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 16 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 17 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Characters' careers
 
 Careers beyond hiring are largely built (see `docs/DESIGN-NOTES.md`): captives can be ransomed or released, a king can dismiss a servant, and servants give notice at the end of their term, when owed back pay, or decline a hire for a better offer; background checks find dismissals among a character's blemishes, since his employment history is part of his past ("A past before the game, then a past made in play"). Decided 19 October 2026: captives can be exchanged between courts like any good, and a character may quit out of loyalty to another court; quitting before his term ends breaks his contract, which is recorded in his past where checks can find it, and back pay already owed is still paid only if he stands at that court again (from item 11a, jobs with a fee replace wages and back pay: "Jobs, not wages").
@@ -6,7 +6,7 @@ Careers beyond hiring are largely built (see `docs/DESIGN-NOTES.md`): captives c
 **Errands, not roles** (decided 18 October 2026). Characters have no fixed position or career. A king sends a person somewhere to do something, and the "role" is only what that errand happens to be. The same people are already sent as envoys or posted as spies. To keep code deciding facts, an errand is a destination plus a few things to do there, from a set the engine can carry out:
 
 - deliver a letter, a tablet or gold;
-- observe a court, a province or an army;
+- observe a court, a province or an army, or copy or steal a tablet from a court's archive;
 - carry a candidate an offer, or check a claim ("did Babylon really offer him 30?");
 - pay or collect a ransom;
 - buy a city or bribe someone;

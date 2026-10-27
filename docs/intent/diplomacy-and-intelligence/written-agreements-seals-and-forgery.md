@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 16 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 18 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Written agreements, seals and forgery
 
 A sealed tablet is evidence, not enforcement. The engine records that both parties sealed a text; it never makes anyone obey it. Its value is that a broken promise can be proven to third parties.
@@ -7,7 +7,7 @@ A sealed tablet is evidence, not enforcement. The engine records that both parti
 
 **Using evidence.** A copy can be sent by envoy to a third court as proof: "Hatti sealed this and broke it." Whether the third court believes it is up to them.
 
-**Tablets have a place.** A tablet lies in a court's archive, where a spy can copy it and a conqueror can seize it with the city ("Tablets are objects in a place"). Archives and swapped inventories were built in item 3, with spies and conquerors copying a tablet rather than taking it (stealing and seizing are in no item yet: "Not yet in the order" under Build order); false envoys come with item 10, and reading foreign tablets with item 12 (all).
+**Tablets have a place.** A tablet lies in a court's archive, where a spy can copy it and a conqueror can seize it with the city ("Tablets are objects in a place"). Archives and swapped inventories were built in item 3, with spies and conquerors copying a tablet rather than taking it (stealing and seizing come with item 10); false envoys come with item 10, and reading foreign tablets with item 12 (all).
 
 **Verbal agreements** made through envoys remain possible and common. They are faster and cheaper, but they leave no evidence, which is exactly the tradeoff.
 
