@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 18 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Written agreements, seals and forgery
 
 A sealed tablet is evidence, not enforcement. The engine records that both parties sealed a text; it never makes anyone obey it. Its value is that a broken promise can be proven to third parties.
@@ -7,7 +7,7 @@ A sealed tablet is evidence, not enforcement. The engine records that both parti
 
 **Using evidence.** A copy can be sent by envoy to a third court as proof: "Hatti sealed this and broke it." Whether the third court believes it is up to them.
 
-**Tablets have a place.** The scribe fee pays for making a tablet; keeping it costs nothing, but it lies in a court's archive, where a spy can copy it and a conqueror can seize it with the city. Whoever takes a capital takes every treaty its king sealed. Archives and swapped inventories were built in item 3; false envoys come with item 10, and reading foreign tablets with item 12 (all).
+**Tablets have a place.** A tablet lies in a court's archive, where a spy can copy it and a conqueror can seize it with the city ("Tablets are objects in a place"). Archives and swapped inventories were built in item 3, with spies and conquerors copying a tablet rather than taking it (stealing and seizing come with item 10); false envoys come with item 10, and reading foreign tablets with item 12 (all).
 
 **Verbal agreements** made through envoys remain possible and common. They are faster and cheaper, but they leave no evidence, which is exactly the tradeoff.
 
@@ -32,7 +32,7 @@ The builder's starting point for each place outside the seven powers' own land, 
 | Ṣumur | Egypt's own land | Egypt | Egyptian base; blockaded by Arwad's ships | Province or Amurru's harbour ("Map review") |
 | Nubia (Kush) | Egypt's own land | Egypt | Ruled by the King's Son of Kush |  |
 | Byblos | Vassal | Egypt | Rib-Hadda, loyal and pleading |  |
-| Tyre | Vassal | Egypt | Abimilki |  |
+| Tyre | Vassal | Egypt | Abi-milku |  |
 | Sidon | Vassal | Egypt | Zimredda, wavering |  |
 | Megiddo | Vassal | Egypt | Biridiya |  |
 | Jerusalem | Vassal | Egypt | Abdi-Heba, pleading for archers and accusing his neighbours | Its rivalry with Shechem |
@@ -47,10 +47,10 @@ The builder's starting point for each place outside the seven powers' own land, 
 | Aleppo | Vassal | Mitanni |  |  |
 | Alalakh (Mukish) | Vassal | Mitanni | Idrimi's city |  |
 | Arrapha | Vassal | Mitanni | Nuzi's adoption tablets |  |
-| Middle Euphrates below Hana (Mari's old land) | Vassal | Mitanni |  | Mitanni's or the Kassites' |
+| Middle Euphrates, downstream of Terqa (Mari's old land, by then in Hana) | Vassal | Mitanni |  | Mitanni's or the Kassites' |
 | Arwad | Free |  | Allied with Amurru against Byblos |  |
 | Isuwa | Free |  | A buffer between Hatti and Mitanni |  |
-| Lukka | Free |  | Raiders' lands rather than a state |  |
+| Lukka | Free, lawless |  | Raiders' lands rather than a state |  |
 | Elam (Susa) | Free |  | A kingdom outside the Great Kings' circle |  |
 | Nineveh | Assyria's own land | Assyria | Tushratta sent the Ishtar of Nineveh to Egypt | Mitanni's or Assyria's in 1346 |
 | Dilmun | Babylonia's own land | Babylonia | A Kassite governor; the route to Magan's copper | The dates of Kassite rule |
@@ -60,7 +60,7 @@ The builder's starting point for each place outside the seven powers' own land, 
 | Mira | Vassal | Arzawa | One of the Arzawa lands, a kingdom of its own in later Hittite treaties; today drawn as Arzawa's own land | Vassal or Arzawa's own in 1346 |
 | Seha River Land | Vassal | Arzawa | One of the Arzawa lands, as Mira; today drawn as Arzawa's own land | Vassal or Arzawa's own in 1346 |
 
-The last three rows are land the map today draws as a Great King's own, which may have been vassal kingdoms in 1346; the builder settles each from the sources, and Arzawa, a weak power already, is the one whose start most depends on it. Dilmun, Nubia and Kizzuwatna stay their kings' own land: governed by a Kassite governor, by Egypt's viceroy, and by Hatti since it was annexed. Kumidi in the Beqaa, the third of Egypt's administrative centres in Canaan beside Gaza and Ṣumur, is missing from the table: it is Egypt's own, and the map review decides whether it earns a province. Amurru's ruler in 1346 is a doubt: most of Abdi-Ashirta's letters date from Amenhotep III's last years, so it was probably already Aziru. None starts with a Great King's size or rank. Several are realms of many towns drawn as one province (Ugarit, Amurru, Nuhashshe, Hana), and the nearest to a great power is Elam, a real kingdom that stays outside the club of brothers because it is absent from the letters. Size and rank are starting data, so any of them can grow: Amurru under Aziru took city after city, and an outlaw can become another Idrimi ("Recognition is earned").
+The last three rows are land the map today draws as a Great King's own, which may have been vassal kingdoms in 1346; the builder settles each from the sources, and Arzawa, a weak power already, is the one whose start most depends on it. Dilmun, Nubia and Kizzuwatna stay their kings' own land: governed by a Kassite governor, by Egypt's viceroy, and by Hatti since it was annexed. Kumidi is Egypt's own and missing from the table until the map review decides whether it earns a province ("What earns a place"). None starts with a Great King's size or rank. Several are realms of many towns drawn as one province (Ugarit, Amurru, Nuhashshe, Hana), and the nearest to a great power is Elam, a real kingdom that stays outside the club of brothers because it is absent from the letters. Size and rank are starting data, so any of them can grow: Amurru under Aziru took city after city, and an outlaw can become another Idrimi ("Recognition is earned").
 
 **Forgery (basic, in the prototype).**
 

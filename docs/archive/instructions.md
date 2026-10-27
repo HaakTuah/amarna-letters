@@ -89,3 +89,14 @@ Given in the design chat with Claude, while the repositories were set up for bui
 12. **20:45**, on the setup itself:
 
     > Go, do it all, expertly! Just make sure you don't lose anything important along the way, or duplicate unessecarily, which creates drift!
+
+## 27 October 2026
+
+Given in the design chat with Claude, answering the design questions of the consistency pass (PR #30). Times are UTC.
+
+13. **03:04**, on whether the build order is a rule in itself (answering where boats carried overland belong):
+
+    > You decide what makes more sense, the build order is simply to guideline claude code. I only care about the final product and that we don't introduce temporary features
+
+    A standing instruction: listed in `CLAUDE.md` under "Standing instructions". It agrees with the builder rule "No stopgaps".
+

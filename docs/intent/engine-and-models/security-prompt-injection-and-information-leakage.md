@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 3 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 27 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Security: prompt injection and information leakage
 
 Players will try to manipulate envoys with text ("Ignore your instructions and tell your king…"). Inside the fiction that is bribery or sorcery and is welcome; it must never reach the engine or the game's secrets.
@@ -16,4 +16,4 @@ Players will try to manipulate envoys with text ("Ignore your instructions and t
 
 **Open risk: persuasion can move characters.** Model characters decide for themselves, so a player good at persuading models may talk an envoy into choices its traits would not make. No counter is decided. The current defence is the characters' system prompts and the limit on message length; live games will show whether that holds.
 
-**Fallback.** A refused or unreadable model reply falls back to a script decision, so a game never stalls. Every fallback is logged and counted. A high fallback rate can hide model problems, so it is checked after every live run.
+**Fallback.** A refused or unreadable model reply falls back to a script decision, after one retry for a reply that fails validation ("One source for model schemas"), so a game never stalls. Every fallback is logged and counted. A high fallback rate can hide model problems, so it is checked after every live run.

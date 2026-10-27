@@ -33,10 +33,10 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   where the viewer knows of a siege; the province card gives the level and the siege) (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
 - **Gold sent without an inventory**, saving the scribe fee and checkable by nobody ("Why the envoy lies, and
-  how he is caught"): today every gift has an inventory, and it costs nothing.
+  how he is caught"): today every gift has an inventory, and it costs nothing. Build order item 8.
 - **Tablets stolen, not only copied**: a spy taking a tablet out of an archive, and a conqueror seizing an archive so
   that its court loses it ("Tablets are objects in a place"; "Tablets have a place"). Item 3 built
-  copying only (see "Tablets lie in archives").
+  copying only (see "Tablets lie in archives"); build order item 10 builds the rest.
 - **Tablets that need a reader**: an unreadable tablet showing its seal but not its words until the king finds a
   reader, and a tablet sent to a third court to be read ("Tablets are objects in a place" and "Languages";
   item 12); and an archive that moves with the court ("Command at a distance"; item 13).
@@ -72,6 +72,6 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
 - **Push notifications** when an envoy arrives ("Platforms"); the web app installs and starts from cache.
 - **Echoes kept out of the primer**: Finkel's "Send gold" parody as a rare script king's letter or chronicle line, and
   "a new Idrimi" in the chronicles once outlaws exist ("Echoes from the archive" and "A new Idrimi").
-- **Still to be decided before they are built**: distance-based travel and interception (which outlaws and bandit
-  chiefs depend on), the royal council, trade, and multiplayer, stages 2 and 3 (Build order "Not yet in the order";
-  "Path to multiplayer").
+- **Still to be decided before they are built**: the spec of the economy's later phases, and multiplayer, stages 2
+  and 3 (Build order "Not yet in the order"; "Path to multiplayer"). Distance-based travel and interception (item 7b),
+  the economy's first phase (item 9+) and the royal council (item 16) have been decided and are in the build order.

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 17 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Skills, names and knowledge
 
 **Skills are hard-coded; decisions belong to the character** (decided 18 October 2026). The split applies to every character: envoys, spies, commanders, candidates and outlaws.
@@ -17,7 +17,7 @@
   1. **The engine chooses the strategy from the traits, by formula.** A handful of ways to a fortune covers almost everyone: the steady hired man, the man who keeps what passes through his hands, the seller of secrets, the climber who wants command, the man drawn to the outlaw's life. A deterministic rule picks the one, or the two, that best fit a character's traits. It is a fact the engine can test (a timid, loyal man never gets the gambler's way), script characters follow the same strategy in their formulas, so a script and a model character with the same traits pursue the same plan and the comparison of the two minds means something, and it changes only when drifting traits change which strategy fits best.
   2. **A model writes the prompt once, from that strategy and the traits.** It is the narrator's existing task of writing each persona at creation, now telling how this particular man means to get rich, and it reconciles the combinations no template can: a greedy but timid man skims only what nobody will count; a loyal but ambitious one rises by making himself indispensable. One call per character, saved in the game log so replays stay exact, written again only when the strategy changes. It keeps to the traits and the strategy and invents no facts.
 
-  Hand-written templates by trait bands are the fallback when no model is available, as the template narrator is today: ten traits give too many combinations for templates to be anything but generic for most characters and contradictory for the interesting ones.
+  Hand-written templates by trait bands are the fallback when no model is available, as the template narrator is today: so many traits and skills give too many combinations for templates to be anything but generic for most characters and contradictory for the interesting ones.
 
   **Bold or careful, one goal (decided 21 October 2026).** Every character plays for the same goal, wealth and a high place in the ranking, but not by the same road. Each has an appetite for risk, from his traits, and it becomes part of his strategy:
   - **The bold road:** raids and piracy, high-interest loans to desperate borrowers, well-paid errands into danger. High returns, and a real chance of ending with nothing, or dead.
@@ -27,11 +27,11 @@
 
   In the second agent simulation, the Haiku characters' honesty was partly a correct answer to a world where gold was worth little to them: what gold is good for comes with build order item 11.
 
-**Kings never see skills** (decided 18 October 2026). A king hears what a character says it can do, and checks it the slow way: a background check, a message to a former employer the character names, his own envoys' reports, rumours. Someone a court has dealt with before arrives with data points attached; a stranger arrives with only his own word. The planned employment-history facts give the checks something to find.
+**Kings never see skills** (decided 18 October 2026). A king hears what a character says it can do, and checks it the slow way: a background check, a message to a former employer the character names, his own envoys' reports, rumours. Someone a court has dealt with before arrives with data points attached; a stranger arrives with only his own word. Employment-history facts, such as a dismissal, give the checks something to find.
 
 - **Lying about identity.** A stranger may claim to be someone he is not, perhaps borrowing a famous negotiator's name and reputation. Every character has a true identity and a claimed one, and each court's records attach to the name it was given. An impostor is exposed when he meets someone who has seen the real man, or when a check turns up the truth, and both take time. The period's own answer is the one Amenhotep III gave Babylon: send someone who knows the person.
 
-**Seeing oneself (decided 21 October 2026).** Skills belong to characters only; kings have none, and see a character's skills only through his claims and their checks. Now the character does not see his own skills as they are either. Each has a hidden self-assessment: some overestimate themselves, some underestimate, most are roughly right. He sees his skills through it, and the engine uses the true ones, as it always does.
+**Seeing oneself (decided 21 October 2026).** Skills belong to characters only, languages aside ("Who speaks what"), and kings see them only through claims and checks ("Kings never see skills"); now the character does not see his own skills as they are either. Each has a hidden self-assessment: some overestimate themselves, some underestimate, most are roughly right. He sees his skills through it, and the engine uses the true ones, as it always does.
 
 - **What he is told is what he believes.** His request gives his skills as he sees them, as beliefs ("you believe you can slip past any guard"), never as facts, and that belief sits in the part of the request that changes, not in the frozen persona, so it can move.
 - **The overconfident** take errands beyond them, claim more when they pitch themselves, ask higher fees and are hired more often, and fail more often when it matters; sometimes boldness carries them anyway, since the dice do not care what anyone believes. **The underconfident** undersell themselves, avoid what they could have done and come cheap: hidden gems for a king who tests people rather than believing them.
@@ -71,12 +71,12 @@ Keep them few. After the start, everything new emerges from play and is recorded
 
 Nothing here needs a new system: it follows from what the engine already records, characters' memory and facts, rumours that need carriers, and characters deciding for themselves. What it needs is the engine's record of who saw what, and questioning as a captive order.
 
-**What skills cover** (decided 18 October 2026). Personality, not skill, decides the urge to alter a message: a model character chooses for itself, informed by its persona, and a script character follows a formula on its traits. Skills cover what the engine decides, and few belong to one profession; all shape what a character picks up and escapes on the road:
+**What skills cover** (decided 18 October 2026). Personality, not skill, decides the urge to alter a message ("Skills are hard-coded; decisions belong to the character"). Skills cover what the engine decides, and few belong to one profession; all shape what a character picks up and escapes on the road:
 
 - gathering information (what an envoy or spy notices, and how accurately);
 - avoiding detection and capture;
 - spotting forgeries, including assaying gold: an assay is done by one of the court's people, and a poor assayer may miss a good alloy or wrongly accuse honest gold;
 - making forgeries, including debasing gold: the king decides whether to cheat and how far, and the worker's skill decides how well the alloy passes inspection (gold changed hands by weight, so cheating meant alloying it with silver or copper; Babylon complained of Egyptian gold that looked like silver);
-- commanding armies (the size of a commander's tactical search);
+- commanding armies (the size of a commander's tactical search, and from item 13 his army's strength in battle);
 - languages, a skill of 0–100 in each, and an aptitude for learning them (see "Languages").
 

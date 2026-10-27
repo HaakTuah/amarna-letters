@@ -17,7 +17,7 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
 | Briefs for the steps of item 5+ | `docs/items/` | Docs and preview pass, conversion, fix pass. |
 | Specs Haakon wrote for item 5+ | `docs/prompts/DOCS-AND-PREVIEW.md`, `docs/CONVERSION-PLAN.md` | His words, quoted. |
 | Item reports | `docs/rounds/<date>-<item>.md` | Write yours there. |
-| History | `docs/archive/` (build log; Haakon's instructions word for word) | Read only when a task points there. |
+| History | `docs/archive/` (build log; Haakon's instructions word for word; the design document's history) | Read only when a task points there. |
 
 ## Starting a task
 
@@ -130,5 +130,10 @@ variable.
 
 ## Standing instructions
 
-Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last. (None
-yet.)
+Haakon's standing instructions given since the design document's copy was last refreshed, dated, newest last.
+
+- **27 October 2026.** The build order guides the builders; what counts is the finished game, with no temporary
+  features: "the build order is simply to guideline claude code. I only care about the final product and that we don't
+  introduce temporary features" (`docs/archive/instructions.md`, item 13). Where an item's order or split serves the
+  game badly, take the reading that builds the final game best, say so in the PR, and never add a stand-in that a
+  later item has to remove ("No stopgaps" in the builder rules).

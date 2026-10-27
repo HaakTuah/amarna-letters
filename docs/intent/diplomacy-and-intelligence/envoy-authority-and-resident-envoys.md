@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 18 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Envoy authority and resident envoys
 
 **Envoy authority and resident envoys (authority to seal, structured limits and credentials decided: build order item 9; resident envoys decided 19 October 2026 as the errand "stay and report" of build order item 10).** Two extensions of the envoy that trade speed for risk.

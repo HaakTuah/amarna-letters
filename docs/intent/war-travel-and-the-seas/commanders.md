@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 18 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Commanders
 
 **No commander, no mandate.** An army needs a person to carry the king's intent. Near the king, he commands it directly; far away, an army without a commander has nobody to give a mandate to (decided 20 October 2026). It still follows plain orders, to the letter: it moves where it is told, holds where it is told, attacks where it is told, and supports as it is told, when the order reaches it, and a schedule of such orders runs as written. What it lacks is judgment: no intent to pursue, no standing orders, no adapting when things change. If the order no longer fits, because the city has fallen or an enemy stands in the way, it marches, bounces or holds as the order and the engine decide. Fighting needs no decision: an army that meets an enemy fights as the rules of combat say, commander or not. A commander is what turns orders into intent, so a shortage of commanders has a visible cost without any special rule.
@@ -11,4 +11,6 @@
 4. **The commander's traits shape how it is carried out**, as for any mandate: loyalty sets how strictly he keeps to it, so a disloyal commander may look the other way; competence sets how well he reads the moment, so a poor one may answer a feint that a good one sees through.
 
 Commanders become worth choosing well, since a good plan is only as good as the man carrying it out. Script kings give standing orders through their commanders too ("Every feature is every seat's").
+
+**What a good general does better** (settled 19 October 2026, for build order item 13). Combat is deterministic, so command competence needs a defined lever, or handing an army to a negotiator has no visible consequence. Competence sets how well a commander interprets a mandate far from the king, through the size of his tactical look-ahead (question 7 of the round report), so a poor general misses moves and a good one finds them; loyalty sets how strictly he keeps to his limits. A second lever, if needed, is siege progress. Decided 26 October 2026: from item 13 his skill also shapes his army's strength in battle, with its size and the ground ("Battles: one season, losses, no dice"), in place of the flat combat bonus this entry kept as a last resort.
 

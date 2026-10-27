@@ -1,33 +1,28 @@
-## Where the code differs from the design document (as it stood on 19 October 2026)
+## Where the code differs from the design document (begun 19 October 2026, kept up as items are built)
 
 The design document records intent; these notes record what is built. Where they differ today:
 
-- **Pillar 8, war slower than diplomacy, is being built** (Build order item 5, the siege package). Walls that differ
+- **Pillar 8, war slower than diplomacy, is built** (Build order item 5, the siege package). Walls that differ
   by place, storming and sieges are built (see Walls and sieges): a capital held by one army falls to a storm of 5, or
   to a lone besieger in the fourth season counting the one it got in. An army moves one link a season. Provinces without
   walls still fall to a single army, and a held one to two. An envoy between capitals takes one or two seasons each way, so a letter and its reply take two seasons
   between neighbouring capitals and four otherwise; only a spy sent to a distant province can take three. The rulebook says
   so, worked out from the map ("Envoys take 1 or 2 seasons each way between courts …"); until the simulation-fixes
-  round it said "1 to 3 seasons each way". Until sieges exist, a temporary wake trigger (foreign troops arriving next
-  to a capital) stands in for the warning walls would give; since the fix pass after item 4, troops arriving next to any
-  province of the homeland, or a walled city the king holds, wake him too.
-- **Sleeping seats against the document's status paragraph** ("Status of sleeping seats", 19 October 2026). Built as
+  round it said "1 to 3 seasons each way". Until the siege package, a temporary wake trigger (foreign troops arriving next
+  to a capital) stood in for the warning walls would give; it was retired with the walls, and since the fix pass after
+  item 4 troops arriving next to any province of the homeland, or a walled city the king holds, wake him (see "What
+  wakes it" in `05-pacing-sleeping-seats.md`).
+- **Sleeping seats against the document's status paragraph** ("Status of sleeping seats", 19 October 2026; since 27 October in `docs/archive/design-history.md`). Built as
   it says: sleep by default for model and file seats (the switch stays), a hidden cap of 12 seasons, triggers that fire
   on changes, audience calls that may reopen orders, and orders that follow their unit. Its "still to build, before
   item 5" was built in the fix pass after item 4: a king's named season and his triggers of his own removed (see "Kings
   never choose when they wake"), the missing triggers for a threat to a home province or a walled city, standing orders
   that answer a move in the season it is made rather than a season late, and scheduled orders for new levies. The rest
   of conditional orders comes with item 6.
-- **What wakes a sleeping seat** follows the simulation-fixes round's prompt and the owner's later instructions, not
-  the document's list of default triggers ("an envoy or report arrives; foreign troops move into or next to its
-  territory; it is attacked or loses a province; a catastrophe strikes it; a tablet, offer or audience awaits an
-  answer; a scheduled order fails"). A report coming home, foreign troops next to its land (unless they arrive next to
-  its homeland or a walled city it holds), an attack that did not get in and a catastrophe that kills no unit go to the digest; troops lost, a
-  ransom demand, a servant's notice and the cap wake it too (see "Pacing: sleeping seats"). So the kings read "foreign
-  troops in your land, or arriving next to your homeland or a walled city you hold", "a scheduled or standing order that failed", "a servant giving notice"
-  and "a ransom demanded" where the document's decided text says "foreign troops at your border" and "a failed order",
-  plus the owner's sentence on envoys. The document's list of order triggers (under "What the replay showed") leaves
-  out a ransom demand; it reopens orders in the code, as the owner's instruction for Part H lists it.
+- **What wakes a sleeping seat** was a difference until 27 October 2026: the code follows the simulation-fixes
+  round's prompt and the owner's later instructions (see "What wakes it" in `05-pacing-sleeping-seats.md`), and the
+  design document's default triggers, order triggers and rulebook quote now say the same ("Default wake triggers set
+  by the engine", "What the kings are told", "An envoy wakes a king for an audience only").
 - **An audience held while the orders stand** gives the king the compact picture the document describes, with its
   standing orders and its people away as well, and the one line counting every power's provinces that opens every
   audience. From it the king can send letters only: releasing a detained envoy or any other order waits until it
@@ -45,7 +40,7 @@ The design document records intent; these notes record what is built. Where they
   Communication). The design document also has a spy steal a tablet, and a conqueror seize the archive; in
   the code both only copy, so no court ever loses a tablet. Unreadable tablets, a tablet sent to a third court to be
   read, and moving the court are not built (see Not built yet).
-- **Call size.** The document says a king's orders call grew from about 26k to over 60k tokens in ten seasons, "almost
+- **Call size.** The document said, until 27 October 2026, that a king's orders call grew from about 26k to over 60k tokens in ten seasons, "almost
   all of it journal and letters", with a fixed part of about 5k. Measured in the simulation-fixes round (Part E of
   `docs/archive/rounds/2026-10-19-simulation-fixes.md`), those are what the file-seat agents used per call. The requests themselves were about 6k-8k
   tokens in season 1 and 11.5k-13.5k by seasons 9-10, of which the journal grew about 3.5k; the rest was the agent's
@@ -59,4 +54,7 @@ The design document records intent; these notes record what is built. Where they
 - **Wages on return.** The document leaves the check on the loophole (reputation from losses abroad) to be worked
   out. The code carries news of losses abroad (captures and executions) to other courts with envoys and spies, and
   script envoys weigh back pay against offers of service; no character yet grows wary of a court from such news.
-
+- **The primer's Assyria line.** The customs primer says "brother" claims equal rank "as Assyria's king did when he
+  first wrote to the pharaoh as a brother" (see `04-models.md`). In the letters his first letter (EA 15) is modest, and
+  his second (EA 16) claims brotherhood; the design document says so ("Titles" and "Rank in the greeting" under Voice
+  of the age). The primer's wording is for the fix pass after the conversion, or the next item that touches the primer.

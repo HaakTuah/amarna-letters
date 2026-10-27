@@ -1,9 +1,9 @@
-<!-- Generated from the design document, Overview tab, revision 548 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 552 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 # Amarna Letters — Prototype Design Document
 
 Oct 17, 2026 · @Jesus
 
-**Status (26 October 2026).** Build order items 1–5 are built and merged into `main`, with the fix pass after item 4. Two agent simulations have run with isolated Claude kings, the second with model characters. The first live API game, on 26 October 2026, ran almost wholly on script fallbacks, since all but one of its model calls were refused for the size of their schemas ("One source for model schemas"). The same day the repository was made ready for building in the cloud: the design notes split by topic, a copy of this document by section for the builders ("The specification" under Build order), the builder rules loaded into every building session, and the builders' working conventions in `CLAUDE.md`. Next comes the rest of the docs and preview pass (spec: `docs/prompts/DOCS-AND-PREVIEW.md`), then the TypeScript conversion (build order item 5+; spec: `docs/CONVERSION-PLAN.md`), then the fix pass for "Found during the port", then item 6 and on, built without stopping until usage nears 90% of the week ("Usage" under Build order).
+**Status.** Build order items 1–5 are built; of the TypeScript conversion (item 5+), the docs and preview pass is done (26 October 2026), and the conversion itself comes next. What is built and what comes next, item by item, is kept in the repository's `docs/BUILD-PROGRESS.md`.
 
 **How this document relates to the code.** This document records intent: what the game is for, its rules of thumb and its systems. The design notes in the repository (`docs/design/`, one file per topic, indexed by `docs/DESIGN-NOTES.md`) are the source of truth for formulas, exact rules, the map and balance numbers. When they disagree on a number, the design notes win; when they disagree on intent, update one of them deliberately.
 

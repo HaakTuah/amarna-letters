@@ -13,7 +13,7 @@ its section moves to another tab; the order lives in docs/intent/manifest.json. 
 that every docs/intent path named in the repository's own docs still exists, and fails if one does not.
 
 Usage (run by whoever refreshes the copy after a design session, never by builders):
-  python3 scripts/design-copy.py --exports DIR --rev overview=548 --rev build-order=2 ... --date YYYY-MM-DD
+  python3 scripts/design-copy.py --exports DIR --rev overview=549 --rev build-order=2 ... --date YYYY-MM-DD
   python3 scripts/design-copy.py --verify DIR    # check an existing copy against the exports in DIR
 DIR holds one export per tab, named <tab>.md (Claude Docs `export`, format markdown). Every tab needs a --rev.
 A tab added to the document gets a line in TABS (its slug, name and body node id) in the same commit.
@@ -26,18 +26,18 @@ RULES = os.path.join(ROOT, '.claude', 'rules', 'builder-rules.md')
 DOC = '7f857750-39dc-464a-a739-c9f59dfe3dcd'
 TABS = [  # (folder, tab name, the tab's body node), in the document's order
     ('overview', 'Overview', '320f0886-6acf'),
-    ('build-order', 'Build order', '59558436-4f3f'),
-    ('world-and-history', 'World and history', 'fd9811ff-8795'),
-    ('engine-and-models', 'Engine and models', 'be5e0840-a553'),
-    ('diplomacy-and-intelligence', 'Diplomacy and intelligence', 'a6c8229d-198e'),
-    ('characters', 'Characters', '65871379-8a01'),
-    ('work-money-and-lending', 'Work, money and lending', '253e6610-301a'),
-    ('land-people-and-economy', 'Land, people and economy', 'ab1c10ef-1a1f'),
-    ('war-travel-and-the-seas', 'War, travel and the seas', '852923e6-f254'),
-    ('victory-and-the-ending', 'Victory and the ending', '3988d048-01b1'),
-    ('interface-and-the-council', 'Interface and the council', '12e1f631-61ef'),
-    ('tests-risks-and-references', 'Tests, risks and references', '495c7340-3457'),
-    ('ideas', 'Ideas', '28131945-444e'),
+    ('build-order', 'Build order', 'f6588701-e47a'),
+    ('world-and-history', 'World and history', 'f2f7044b-c6fa'),
+    ('engine-and-models', 'Engine and models', '23452eff-9a74'),
+    ('diplomacy-and-intelligence', 'Diplomacy and intelligence', '83ac9cba-81ca'),
+    ('characters', 'Characters', '0051b400-09bd'),
+    ('work-money-and-lending', 'Work, money and lending', '016f3c32-0e2b'),
+    ('land-people-and-economy', 'Land, people and economy', '3dedb02f-88dd'),
+    ('war-travel-and-the-seas', 'War, travel and the seas', '98ebd607-ce90'),
+    ('victory-and-the-ending', 'Victory and the ending', '58b70949-2c17'),
+    ('interface-and-the-council', 'Interface and the council', 'ed35e82f-6e5a'),
+    ('tests-risks-and-references', 'Tests, risks and references', 'e10064a1-1833'),
+    ('ideas', 'Ideas', 'c1a09612-6320'),
 ]
 SPLIT_ABOVE = 30000  # a section above this many bytes is cut into parts of about PART_BYTES, at entry boundaries
 PART_BYTES = 22000
