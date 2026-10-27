@@ -1,7 +1,7 @@
 <!-- Generated from the design document, Interface and the council tab, revision 2 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## The royal council
 
-**The royal council (decided 19 October 2026; build order item 16).** Instead of one advisor, each king hears a council of four, built from the script kings' tactics with different weightings. With one advisor the easy path is to copy it; with four who disagree, the king has to choose, and how far they diverge shows how open the situation is. When all four agree, the move is almost certainly right. It is a toggle: on by default for human seats, who can turn it off, as with the advisors in Civilization, and comparing model kings with and without it waits until Haakon asks for model games.
+**The royal council (decided 19 October 2026; build order item 16).** Instead of one advisor, each king hears a council of four, built from the script kings' tactics with different weightings. With one advisor the easy path is to copy it; with four who disagree, the king has to choose, and how far they diverge shows how open the situation is. When all four agree, the move is almost certainly right. It is a toggle, recorded in the log so experiments can report whether it was on: on by default for human seats, who can turn it off, as with the advisors in Civilization, and comparing model kings with and without it waits until Haakon asks for model games.
 
 | Advisor | Weighting | Looks for | Example |
 | --- | --- | --- | --- |
@@ -16,7 +16,6 @@
 - **Tactics only.** Troop orders, levies and purchases, each with a one-line reason. No letters, tablets, gifts or alliances; diplomacy stays with the king.
 - **The Diviner speaks in omens but is never random.** Its advice is computed from the same estimates as the others, using the shared score function, and only phrased as signs.
 - **Compact display.** One line for what all four agree on; full proposals only where they differ.
-- **A toggle,** recorded in the log, so experiments can report whether the council was on.
 - **For model and human kings only.** Script kings already run these calculations to decide, so a council adds nothing for them. The same code later drives scripted generals and city-states.
 - **Period titles per court,** with the same four archetypes underneath; to be verified before use. Egypt: the tjaty (vizier), an overseer of the army, the overseer of the treasury, and the chief lector priest as diviner. Babylonia and Assyria: the sukkallu as high minister and the bārû ("the one who sees") as diviner. Hatti: the chief of the royal bodyguard (GAL MEŠEDI) as general, with augurs, entrail readers and the "Old Woman" of the lot oracles as diviners. Mitanni can use the bārû too. Alashiya: an eagle diviner, after the king of Alashiya's request to the pharaoh for "a specialist in eagle-omens" (EA 35).
 - **Advisors are not characters** (decided 19 October 2026). They only inform: they have no loyalties, no price and nothing a rival can buy. The council is analysis on the king's screen, not people at his court.

@@ -13,5 +13,3 @@ The letters record exactly this move: the king of Alashiya excused a small coppe
 
 **Hidden by default.** Beyond catastrophes, treasuries, unit counts outside sight, contracts and characters' secrets are all private. Players see their own land and what borders it as it is now. News of distant provinces, including who holds them, travels like everything else and arrives late (pillar 4); the rest is whatever their people bring home.
 
-**Information as an asset** (decided 19 October 2026). News is structured, so it shows in the visuals and the game's tracking, and characters sell what they know ("Information as a structured asset" and "Characters as sellers of news"; build order items 7 and 11).
-

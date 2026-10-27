@@ -10,7 +10,10 @@ report. Work goes on item after item until weekly usage nears 90% ("Usage" in th
 
 Since 27 October 2026 the design document has one tab per system, and its copy one folder per tab
 (`docs/intent/INDEX.md` lists them, with each tab's node and revision for the check for changes). An entry keeps its
-title wherever it moved, so `grep -rn "Title" docs/intent` still finds what an item names.
+title wherever it moved, so `grep -rn "Title" docs/intent` still finds what an item names. On 27 October the document was
+also condensed: passages that record history rather than intent (what was tried or retired, what past runs
+measured, the full text of items 1 to 5) moved word for word to `docs/archive/design-history.md`, so a title that
+`grep` no longer finds in `docs/intent/` is looked up there.
 
 What each built item found and decided, word for word as recorded at the time, is in `docs/archive/build-log.md`.
 Haakon's standing instructions given in chat are recorded word for word in `docs/archive/instructions.md`.
@@ -33,7 +36,7 @@ Haakon's standing instructions given in chat are recorded word for word in `docs
 | 4 | Second agent simulation, with model characters (stop for review) | done (19 Oct), merged into `develop`; PR #10 merged into `main`; review accepted (20 Oct) | `item/second-simulation` | `docs/archive/rounds/2026-10-19-second-simulation.md` |
 | 4+ | Fix pass, item 4's follow-up (Haakon, 20 Oct), with the feature audit | done (20 Oct), merged into `develop`; PR #11 merged into `main` | `item/fix-pass` | `docs/archive/rounds/2026-10-20-fix-pass.md` |
 | 5 | The siege package (stop for review) | done (20 Oct), merged into `develop`; PR #12 merged into `main` | `item/sieges` | `docs/archive/rounds/2026-10-20-sieges.md` |
-| 5+ | TypeScript conversion, step 1: the rest of the docs and preview pass (`docs/items/docs-and-preview.md`) | done (26 Oct), merged into `develop`. Round reports archived (six decisions recorded nowhere else are listed in the report); previews through the `gh-pages` branch (Pages setting for Haakon in the report); 11 GitHub branches ready to delete but not deleted (this session may not delete branches), `wip/scratch-review-H` kept | `docs/archive-and-preview` | `docs/rounds/2026-10-26-docs-and-preview.md` |
+| 5+ | TypeScript conversion, step 1: the rest of the docs and preview pass (`docs/items/docs-and-preview.md`) | done (26 Oct): #19 into `develop`, carried to `main` by #20, with three follow-up fixes (#21, #23, carried by #22 and #26) under the pass's exception. Round reports archived (six decisions recorded nowhere else are listed in the report). Previews work on the live site through the `gh-pages` branch; the site root showed GitHub's 404 page for a few minutes on 26 Oct (about 23:16-23:20 UTC) until it was republished, see the report. Pages setting for Haakon in the report. 11 GitHub branches ready to delete but not deleted (this session may not delete branches); `wip/scratch-review-H` kept. Next: step 2, the conversion (`docs/items/conversion.md`), in its own session | `docs/archive-and-preview` | `docs/rounds/2026-10-26-docs-and-preview.md` |
 | 5+ | TypeScript conversion, step 2: the conversion (`docs/items/conversion.md`) | not started | | |
 | 5+ | TypeScript conversion, step 3: the fix pass for "Found during the port" (`docs/items/fix-pass.md`) | not started | | |
 | 6a | The ending and the table | not started | | |

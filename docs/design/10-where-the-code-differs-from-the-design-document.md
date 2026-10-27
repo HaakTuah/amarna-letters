@@ -11,7 +11,7 @@ The design document records intent; these notes record what is built. Where they
   round it said "1 to 3 seasons each way". Until sieges exist, a temporary wake trigger (foreign troops arriving next
   to a capital) stands in for the warning walls would give; since the fix pass after item 4, troops arriving next to any
   province of the homeland, or a walled city the king holds, wake him too.
-- **Sleeping seats against the document's status paragraph** ("Status of sleeping seats", 19 October 2026). Built as
+- **Sleeping seats against the document's status paragraph** ("Status of sleeping seats", 19 October 2026; since 27 October in `docs/archive/design-history.md`). Built as
   it says: sleep by default for model and file seats (the switch stays), a hidden cap of 12 seasons, triggers that fire
   on changes, audience calls that may reopen orders, and orders that follow their unit. Its "still to build, before
   item 5" was built in the fix pass after item 4: a king's named season and his triggers of his own removed (see "Kings

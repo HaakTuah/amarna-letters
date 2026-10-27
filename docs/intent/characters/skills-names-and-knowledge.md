@@ -31,7 +31,7 @@
 
 - **Lying about identity.** A stranger may claim to be someone he is not, perhaps borrowing a famous negotiator's name and reputation. Every character has a true identity and a claimed one, and each court's records attach to the name it was given. An impostor is exposed when he meets someone who has seen the real man, or when a check turns up the truth, and both take time. The period's own answer is the one Amenhotep III gave Babylon: send someone who knows the person.
 
-**Seeing oneself (decided 21 October 2026).** Skills belong to characters only; kings have none, and see a character's skills only through his claims and their checks. Now the character does not see his own skills as they are either. Each has a hidden self-assessment: some overestimate themselves, some underestimate, most are roughly right. He sees his skills through it, and the engine uses the true ones, as it always does.
+**Seeing oneself (decided 21 October 2026).** Skills belong to characters only, and kings see them only through claims and checks ("Kings never see skills"); now the character does not see his own skills as they are either. Each has a hidden self-assessment: some overestimate themselves, some underestimate, most are roughly right. He sees his skills through it, and the engine uses the true ones, as it always does.
 
 - **What he is told is what he believes.** His request gives his skills as he sees them, as beliefs ("you believe you can slip past any guard"), never as facts, and that belief sits in the part of the request that changes, not in the frozen persona, so it can move.
 - **The overconfident** take errands beyond them, claim more when they pitch themselves, ask higher fees and are hired more often, and fail more often when it matters; sometimes boldness carries them anyway, since the dice do not care what anyone believes. **The underconfident** undersell themselves, avoid what they could have done and come cheap: hidden gems for a king who tests people rather than believing them.
@@ -71,7 +71,7 @@ Keep them few. After the start, everything new emerges from play and is recorded
 
 Nothing here needs a new system: it follows from what the engine already records, characters' memory and facts, rumours that need carriers, and characters deciding for themselves. What it needs is the engine's record of who saw what, and questioning as a captive order.
 
-**What skills cover** (decided 18 October 2026). Personality, not skill, decides the urge to alter a message: a model character chooses for itself, informed by its persona, and a script character follows a formula on its traits. Skills cover what the engine decides, and few belong to one profession; all shape what a character picks up and escapes on the road:
+**What skills cover** (decided 18 October 2026). Personality, not skill, decides the urge to alter a message ("Skills are hard-coded; decisions belong to the character"). Skills cover what the engine decides, and few belong to one profession; all shape what a character picks up and escapes on the road:
 
 - gathering information (what an envoy or spy notices, and how accurately);
 - avoiding detection and capture;
