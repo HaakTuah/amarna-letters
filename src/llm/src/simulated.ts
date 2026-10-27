@@ -56,8 +56,11 @@ export function answer(props: JsonObject | null, user = ""): string {
   else if (has("answers")) {
     // A king holding court: one answer for each envoy the request names, by his id.
     const ids = [...user.matchAll(/\((c\d+)\), envoy of /g)].map((m) => m[1]);
+    // Only the fields an answer asks: a small rung's routine answer has no seal, detention or service, and may pass him up.
+    const item = (((props!.answers as JsonObject).items as JsonObject | undefined)?.properties as JsonObject | undefined) ?? {};
+    const only = (a: JsonObject): JsonObject => (Object.keys(item).length === 0 ? a : Object.fromEntries(Object.keys(item).map((k) => [k, k in a ? a[k] : ""])));
     o = {
-      answers: ids.map((envoy) => ({
+      answers: ids.map((envoy) => only({
         envoy,
         speech: "Tell your lord I am his brother.",
         gift_to_envoy: 0,

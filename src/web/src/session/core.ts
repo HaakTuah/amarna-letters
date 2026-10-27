@@ -146,6 +146,7 @@ export class SessionCore {
       error: this.error,
       notice: this.notice,
       cost: r?.log.totalCost ?? 0,
+      costUnknown: r?.log.costUnknown ?? false,
       settings: this.settings,
       config: r?.state.config ?? null,
       seats: r === null ? {} : Object.fromEntries([...r.log.header.seats]),
@@ -258,7 +259,7 @@ export class SessionCore {
       return;
     }
     if (!(await this.check(built, settings, state.config))) return;
-    this.runner = new GameRunner(state, built.seats, built.minds, built.narrator);
+    this.runner = new GameRunner(state, built.seats, built.minds, built.narrator, { jobs: choicesOf(settings).jobs });
     this.runner.writeChronicles = settings.chronicles;
     this.runner.changed.push(this.changed);
     this.gameId = `game-${settings.seed}-${this.stamp()}`;

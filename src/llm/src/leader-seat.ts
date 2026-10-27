@@ -4,16 +4,52 @@
  * engine validates like anyone else's. The asker is the Anthropic API, or a file exchange for a file seat, which then sees
  * exactly the same text.
  */
-import { describe, distinct, groupBy, type AudienceView, type TabletView, type GameConfig, type HostReply, type Power, type SeatView, type TurnSubmission } from "@amarna/engine";
-import { plainWords, type ISeat, type PhraseRequest } from "@amarna/game";
+import {
+  SeasonsPerYear,
+  describe,
+  distinct,
+  groupBy,
+  newTurnSubmission,
+  type AudienceView,
+  type TabletView,
+  type GameConfig,
+  type HostReply,
+  type Power,
+  type SeatView,
+  type TurnSubmission,
+} from "@amarna/engine";
+import { newAudit, plainWords, type ISeat, type PhraseRequest } from "@amarna/game";
 import type { CallSpec, JsonAsker } from "./client.ts";
 import { LeaderJournal } from "./journal.ts";
+import {
+  NewPlan,
+  RoutineCourtNote,
+  alertStakes,
+  alertsReply,
+  answerDiffer,
+  backstop,
+  courtStakes,
+  ordersCommit,
+  ordersDiffer,
+  ordersStakes,
+  passedByEngine,
+  planDue,
+  planMark,
+  planReply,
+  routineCourt,
+  type KingRungs,
+  type PlanMark,
+} from "./king-ladder.ts";
+import { fieldsDiffer } from "./ladder.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
-import { audience, courtBrief, identity, ordersLine, ordersStandAtCourt, situation, sleepLine, tabletBrief, tabletLine } from "./prompts.ts";
+import { audience, courtBrief, identity, ordersLine, ordersStandAtCourt, realmBrief, situation, sleepLine, tabletBrief, tabletLine } from "./prompts.ts";
 import { leaderRules } from "./rules.ts";
-import { Replies, Schemas } from "./schemas.ts";
+import { Replies, Schemas, type JsonObject } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
+
+/** The log key of one exchange of an audience: each answer is logged under it, whatever call made it. */
+const courtKey = (v: AudienceView): string => `t${v.turn}/aud/${v.audienceId}/host/${v.round}`;
 
 /** The fixed part of every phrasing call: what the job is, shared by every king (and cached). */
 const PhrasingSystem =
@@ -31,6 +67,17 @@ export class LlmLeaderSeat implements ISeat {
   private readonly config: GameConfig;
   /** The small model that words its standing answers; null words them as the plain clauses (a file seat). */
   private readonly phrasing: string | null;
+  /** Its ladder ("Minds follow what is at stake"); null for a file seat or local agent, whose own mind decides everything. */
+  private readonly rungs: KingRungs | null;
+  /** Seasons its orders have waited for a call the budget could not pay. */
+  private waited = 0;
+  /** The rung that took each audience at its first exchange, so that the same mind answers it to the end. */
+  private readonly courtRung = new Map<string, "small" | "large">();
+  /** When its plan was set down, and why its own mind last asked for a new one. */
+  private planAt: PlanMark | null = null;
+  private planAsked = "";
+  /** Reads light alerts while it sleeps; set only for a king with a small rung. */
+  readAlerts?: (view: SeatView, alerts: { line: string; text: string }[], signal?: AbortSignal) => Promise<boolean>;
 
   constructor(
     power: Power,
@@ -41,8 +88,11 @@ export class LlmLeaderSeat implements ISeat {
     config: GameConfig,
     label: string | null = null,
     phrasing: string | null = null,
+    rungs: KingRungs | null = null,
   ) {
     this.phrasing = phrasing;
+    this.rungs = rungs;
+    if (rungs !== null && rungs.small !== null) this.readAlerts = (view, alerts, signal) => this.lightAlerts(view, alerts, signal);
     this.power = power;
     this.client = client;
     this.model = model;
@@ -76,18 +126,145 @@ export class LlmLeaderSeat implements ISeat {
       sharedSystem: this.shared(view),
       seatSystem: identity(this.power),
       user: user.toString(),
-      schema: Replies.leaderOrders(this.config),
+      schema: this.rungs?.planning != null ? Replies.leaderOrders(this.config).extend({ new_plan: NewPlan }) : Replies.leaderOrders(this.config),
       effort: this.effort,
       maxTokens: OutputCaps.orders,
     };
   }
 
   async decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission> {
-    const json = await this.client.askJson(this.ordersCall(view), signal);
+    const plan = await this.planIfDue(view, signal);
+    const spec = this.ordersCall(view);
+    let json: JsonObject;
+    if (this.rungs === null) json = await this.client.askJson(spec, signal);
+    else {
+      const r = this.rungs;
+      const c = await r.ladder.climb(
+        {
+          spec,
+          small: r.small,
+          large: this.model,
+          start: r.plays,
+          scriptMay: true,
+          stakes: ordersStakes(view, this.waited),
+          keys: [spec.key],
+          commits: (j) => ordersCommit(j, view),
+          differ: ordersDiffer,
+        },
+        signal,
+      );
+      if (c.json === null) {
+        // The budget cannot pay for its orders this season: what stands is carried out (its schedule and standing orders),
+        // its units hold, and it is asked again next season, its orders worth more for the wait. It has not seen the
+        // season, so nothing joins its record.
+        this.waited++;
+        return newTurnSubmission({ fromFallback: true });
+      }
+      json = c.json;
+      if (c.counsel.length > 0) this.journalOf.thought(view.turn, `Counsel you took: ${c.counsel}`);
+    }
+    this.waited = 0;
     const sub = Parse.orders(json);
+    if (plan !== null) {
+      sub.answers = [...plan.answers, ...sub.answers];
+      sub.cancelAnswers = [...plan.cancel, ...sub.cancelAnswers];
+    }
+    this.planAsked = typeof json.new_plan === "string" ? json.new_plan : "";
     this.journalOf.record(view.turn, sub);
     this.journalOf.readTablets(view.tablets.map((t) => t.tabletId));
     return sub;
+  }
+
+  /**
+   * Planning ("Every model is the table's choice"): when it is on, a strong model writes the king's plan into his record at
+   * the start, once a year, when something large happens, and when the king asks, from a digest of the year (his record and
+   * his realm in brief), never the whole request; it leaves standing answers with the plan. A plan the budget cannot pay
+   * waits, as orders do; a failed call leaves the plan as it was.
+   */
+  private async planIfDue(view: SeatView, signal?: AbortSignal): Promise<{ answers: TurnSubmission["answers"]; cancel: string[] } | null> {
+    const r = this.rungs;
+    if (r === null || r.planning === null) return null;
+    const why = planDue(this.planAt, view, this.planAsked, SeasonsPerYear);
+    if (why === null) return null;
+    const user = new Sb();
+    user.appendLine(`SEASON: turn ${view.turn}. You set down your plan for the seasons ahead (${why === "the first plan" ? "your first" : "anew"}), from your record and your realm as they stand.`);
+    user.append(realmBrief(view));
+    user.appendLine(this.journalOf.forOrders());
+    user.appendLine(
+      "Write your plan: your aims, your friends and enemies, what to do in the seasons ahead and what to watch for. You play each season by it, and may ask for it to be written anew. Leave standing answers with it for the envoys you expect.",
+    );
+    const spec: CallSpec = {
+      key: `t${view.turn}/plan/${this.power}`,
+      turn: view.turn,
+      role: `plan:${this.power}`,
+      model: r.planning,
+      sharedSystem: this.shared(view),
+      seatSystem: identity(this.power),
+      user: user.toString(),
+      schema: planReply(),
+      effort: this.effort,
+      maxTokens: OutputCaps.orders,
+    };
+    try {
+      const c = await r.ladder.climb(
+        { spec, small: null, large: r.planning, start: "large", scriptMay: true, stakes: { kind: "plan", moved: 0.5 }, keys: [spec.key], differ: () => 0 },
+        signal,
+      );
+      if (c.json === null) return null;
+      this.journalOf.setPlan(view.turn, String(c.json.plan ?? ""));
+      this.planAt = planMark(view);
+      this.planAsked = "";
+      return { answers: Parse.answers(c.json), cancel: Parse.cancelAnswers(c.json) };
+    } catch (ex) {
+      if (ex instanceof Error && ex.name === "AbortError") throw ex;
+      return null;
+    }
+  }
+
+  /**
+   * Light alerts ("Light alerts go to the cheaper model too"): the small rung, playing the king from his record, reads the
+   * news that reached him while he sleeps against his plan, notes what it makes of it in his record, and wakes his own
+   * mind whenever anything might need new orders, erring toward waking. What the budget cannot pay waits in his digest.
+   */
+  async lightAlerts(view: SeatView, alerts: { line: string; text: string }[], signal?: AbortSignal): Promise<boolean> {
+    const r = this.rungs!;
+    const user = new Sb();
+    user.appendLine(`SEASON: turn ${view.turn}. You sleep; your orders stand. This news reached you.`);
+    user.append(realmBrief(view));
+    user.appendLine("NEWS THAT REACHED YOU THIS SEASON:");
+    for (const a of alerts) user.appendLine(`- ${a.text}`);
+    user.appendLine(this.journalOf.forAudience());
+    user.appendLine(
+      "Read the news against your plan and your record. Note what you make of it. Wake (wake true) if anything in it may need new orders from you this season; when in doubt, wake. Otherwise your orders stand and you sleep on.",
+    );
+    const spec: CallSpec = {
+      key: `t${view.turn}/alerts/${this.power}`,
+      turn: view.turn,
+      role: `alerts:${this.power}`,
+      model: r.small!,
+      sharedSystem: this.shared(view),
+      seatSystem: identity(this.power),
+      user: user.toString(),
+      schema: alertsReply(),
+      effort: "low",
+      maxTokens: OutputCaps.character,
+    };
+    const c = await r.ladder.climb(
+      {
+        spec,
+        small: r.small,
+        large: this.model,
+        start: "small",
+        scriptMay: true,
+        stakes: alertStakes(alerts.length),
+        keys: [spec.key],
+        differ: (a, b) => fieldsDiffer(a, b, ["wake"]),
+      },
+      signal,
+    );
+    if (c.json === null) return false;
+    this.journalOf.thought(view.turn, `News reached you while you slept (${joinS("; ", alerts.map((a) => a.line))}); you noted: ${String(c.json.notes ?? "")}`);
+    return c.json.wake === true;
   }
 
   /** What a king has before it as it holds court: how it slept, its realm and news, its tablets and its record. */
@@ -137,7 +314,7 @@ export class LlmLeaderSeat implements ISeat {
    * The request for one exchange of every audience still open at the king's court, in one call ("One call per wake-up").
    * Its schema is the same at every court of the game, so the fixed part of the request stays cached.
    */
-  courtCall(views: readonly AudienceView[], court: SeatView): CallSpec {
+  courtCall(views: readonly AudienceView[], court: SeatView, routine = false): CallSpec {
     const first = views[0];
     const user = new Sb();
     this.courtOpening(user, first, court, distinct(views.map((v) => v.from)));
@@ -150,7 +327,7 @@ export class LlmLeaderSeat implements ISeat {
       user.appendLine();
       user.append(audience(v, true));
     }
-    if (first.ordersStand) {
+    if (first.ordersStand && !routine) {
       user.appendLine();
       user.append(ordersStandAtCourt(first));
     }
@@ -221,8 +398,160 @@ export class LlmLeaderSeat implements ISeat {
     return Parse.field(await this.client.askJson(spec, signal), "speech");
   }
 
+  /**
+   * The king holds court ("One call per wake-up"). With a small rung, routine audiences go to it first ("Routine audiences
+   * are answered by a cheaper model"): those of a king whose orders stand (it serves sleeping kings), or of every king the
+   * small rung plays. The engine passes to the king's own mind by itself whatever it can see matters (passedByEngine); the
+   * small rung answers the rest in one call and may leave any envoy to the king's own mind, which then answers those, and
+   * the others, in one call of its own. An audience stays with the rung that took its first exchange.
+   */
   async holdCourt(views: AudienceView[], court: SeatView, signal?: AbortSignal): Promise<(HostReply | null)[]> {
-    const json = await this.client.askJson(this.courtCall(views, court), signal);
+    const r = this.rungs;
+    const why = new Map<string, string>();
+    const routine = (v: AudienceView): boolean => {
+      const known = this.courtRung.get(v.audienceId);
+      if (known !== undefined) return known === "small";
+      if (r === null || r.small === null || r.small === this.model || !(v.ordersStand || r.plays === "small")) return false;
+      const passed = passedByEngine(v, court);
+      if (passed !== null) why.set(v.audienceId, `passed up by the engine: ${passed}`);
+      return passed === null;
+    };
+    const low = views.filter(routine);
+    const out = new Map<string, HostReply | null>();
+    if (low.length > 0) {
+      const answered = await this.routineCourt(low, court, why, signal);
+      for (const [id, reply] of answered) out.set(id, reply);
+    }
+    const high = views.filter((v) => !out.has(v.audienceId));
+    if (high.length > 0) {
+      const reasons = distinct(high.map((v) => why.get(v.audienceId) ?? "the mind's own"));
+      const replies = await this.ownCourt(high, court, reasons.length === 1 ? reasons[0] : joinS("; ", reasons), signal);
+      high.forEach((v, i) => out.set(v.audienceId, replies[i]));
+    }
+    return views.map((v) => out.get(v.audienceId) ?? null);
+  }
+
+  /**
+   * The small rung answers routine envoys for the king, playing him from his record: one call for them all, each answer his
+   * own and in his record. An envoy it leaves to fuller deliberation, or whose gifts would pass the season's backstop (a
+   * share of the treasury by the king's own ledger: not a cap, since nothing is refused), goes to the king's own mind. It
+   * may first ask counsel from a brief. Returns the envoys it answered.
+   */
+  private async routineCourt(views: AudienceView[], court: SeatView, why: Map<string, string>, signal?: AbortSignal): Promise<Map<string, HostReply>> {
+    const r = this.rungs!;
+    const first = views[0];
+    const spending = r.ladder.spending;
+    const base = this.courtCall(views, court, true);
+    const rung = spending.choose(
+      first.turn,
+      courtStakes(views, court),
+      [
+        { rung: "small", model: r.small!, cost: r.ladder.cost(base, r.small!) },
+        { rung: "large", model: this.model, cost: r.ladder.cost(base, this.model) },
+      ],
+      "small",
+    );
+    const answered = new Map<string, HostReply>();
+    if (rung === "large") {
+      for (const v of views) why.set(v.audienceId, "the budget");
+      return answered;
+    }
+    const ask = (counsel: string | null) =>
+      this.client.askJson(
+        {
+          ...base,
+          key: `${base.key}/routine`,
+          role: `routine:${this.power}`,
+          model: r.small!,
+          user: base.user + RoutineCourtNote + (counsel === null ? "" : `\n\nTHE COUNSEL YOU ASKED FOR: ${counsel}`),
+          schema: routineCourt(counsel === null),
+          effort: "low",
+        },
+        signal,
+      );
+    let json = await ask(null);
+    let counsel = "";
+    const brief = String(json.ask_counsel ?? "").trim();
+    if (brief.length > 0) {
+      counsel = await r.ladder.counsel({ spec: base, small: r.small, large: this.model, start: "small", scriptMay: false, stakes: courtStakes(views, court), keys: [], differ: () => 0 }, brief, signal);
+      json = await ask(counsel);
+      this.journalOf.thought(first.turn, `Counsel you took at court: ${counsel}`);
+    }
+    const replies = Parse.court(json);
+    const passUp = new Map<string, string>();
+    for (const a of Array.isArray(json.answers) ? (json.answers as JsonObject[]) : []) {
+      const reason = String(a.pass_up ?? "").trim();
+      if (reason.length > 0) passUp.set(String(a.envoy ?? "").trim().toLowerCase(), reason);
+    }
+    // The hidden backstop: what the small rung gives in a season, gifts and gold sent back together.
+    let room = backstop(court) - this.givenAt(first.turn);
+    for (const v of views) {
+      const reply = replies.get(v.envoy.id.toLowerCase()) ?? null;
+      const passed = passUp.get(v.envoy.id.toLowerCase());
+      if (passed !== undefined) {
+        why.set(v.audienceId, `passed up: ${passed}`);
+        continue;
+      }
+      if (reply === null) {
+        why.set(v.audienceId, "passed up: left unanswered");
+        continue;
+      }
+      const gives = reply.bribe + reply.goldBack;
+      if (gives > room) {
+        why.set(v.audienceId, "passed up: past the backstop");
+        continue;
+      }
+      room -= gives;
+      this.given.set(first.turn, this.givenAt(first.turn) + gives);
+      const settled = this.settle(v, reply);
+      settled.sealProposal = false;
+      settled.detain = false;
+      settled.jobOffer = 0;
+      this.journalOf.audience(v.turn, v.from, v.envoy.name, settled.speech, []);
+      this.courtRung.set(v.audienceId, "small");
+      answered.set(v.audienceId, settled);
+    }
+    if (answered.size === 0) return answered;
+    this.journalOf.writeLedger(first.turn, Parse.ledger(json));
+    const keys = views.filter((v) => answered.has(v.audienceId)).map(courtKey);
+    r.ladder.routeKeys(keys, "small", r.small!, counsel.length > 0 ? "routine, with counsel" : "routine");
+    await this.auditCourt(views.filter((v) => answered.has(v.audienceId)), court, json, signal);
+    return answered;
+  }
+
+  /** What the small rung has given at court in a season, against the backstop. */
+  private readonly given = new Map<number, number>();
+  private givenAt(turn: number): number {
+    return this.given.get(turn) ?? 0;
+  }
+
+  /** An audit of a routine court: the king's own mind answers the same envoys out of play; its answers are never used. */
+  private async auditCourt(views: AudienceView[], court: SeatView, json: JsonObject, signal?: AbortSignal): Promise<void> {
+    const r = this.rungs!;
+    const spec = this.courtCall(views, court, true);
+    if (!r.ladder.spending.audited(spec.key)) return;
+    let above: JsonObject;
+    try {
+      above = await this.client.askJson({ ...spec, key: `${spec.key}/audit` }, signal);
+    } catch (ex) {
+      if (ex instanceof Error && ex.name === "AbortError") throw ex;
+      return;
+    }
+    const byId = (j: JsonObject): Map<string, JsonObject> =>
+      new Map((Array.isArray(j.answers) ? (j.answers as JsonObject[]) : []).map((a) => [String(a.envoy ?? "").trim().toLowerCase(), a] as const));
+    const mine = byId(json);
+    const theirs = byId(above);
+    const differ = views.reduce((s, v) => s + answerDiffer(mine.get(v.envoy.id.toLowerCase()) ?? {}, theirs.get(v.envoy.id.toLowerCase()) ?? {}), 0) / views.length;
+    const stakes = courtStakes(views, court);
+    r.ladder.recordAudit(newAudit({ key: spec.key, turn: spec.turn, kind: "court", rung: "small", model: r.small!, above: this.model, differ, mattered: Math.min(1, differ * stakes.moved) }));
+  }
+
+  /** The king's own mind holds court for these envoys: one call, its letters and its choice about its orders with it. */
+  private async ownCourt(views: AudienceView[], court: SeatView, why: string, signal?: AbortSignal): Promise<(HostReply | null)[]> {
+    const spec = this.courtCall(views, court);
+    const json = await this.client.askJson(spec, signal);
+    for (const v of views) this.courtRung.set(v.audienceId, "large");
+    this.rungs?.ladder.routeKeys(views.map(courtKey), "large", this.model, why);
     const answers = Parse.court(json);
     // The letters and the choice about its orders are the court's, given once: they ride with the first envoy answered.
     const letters = Parse.letters(json);

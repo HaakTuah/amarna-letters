@@ -147,6 +147,7 @@ export class ModelClient implements JsonAsker {
       call.cacheReadTokens = r.cacheRead;
       call.cacheWriteTokens = r.cacheWrite;
       call.costUsd = this.prices.cost(spec.model, r.input, r.output, r.cacheRead, r.cacheWrite);
+      call.unpriced = this.prices.for(spec.model) === null;
       call.usedFallback = r.model.length > 0 && r.model !== model;
       call.output = r.text;
       if (r.stopReason === "refusal") {

@@ -32,6 +32,7 @@ import {
   type NarratorKind,
   type PriceSetting,
   type ProviderSetting,
+  type SpendingSettings,
 } from "@amarna/llm";
 import { FileCharacters, FileExchange } from "@amarna/llm/node";
 
@@ -64,6 +65,13 @@ export interface BatchOptions {
   providers: ProviderSetting[];
   /** Prices set with --price, over the defaults. */
   prices: Record<string, PriceSetting>;
+  /** Each job's other rungs and planning (--small, --plays, --characters-up, --planning; "Every model is the table's choice"). */
+  small: string;
+  plays: "large" | "small";
+  charactersUp: string;
+  planning: string;
+  /** How the ladder spends (--pace, --season-usd, --target, --audit-share); its limit is --budget. */
+  spending: SpendingSettings;
 }
 
 /** The keys of the providers in use: ANTHROPIC_API_KEY, and <ID>_API_KEY for each other one (empty for a local endpoint). */
@@ -105,6 +113,11 @@ export function choicesOf(o: BatchOptions): SeatChoices {
   c.leaderEffort = o.effort;
   c.providers = o.providers.map((p) => ({ ...p }));
   c.prices = { ...o.prices };
+  c.small = o.small;
+  c.plays = o.plays;
+  c.charactersUp = o.charactersUp;
+  c.planning = o.planning;
+  c.spending = { ...o.spending, limitUsd: o.budget };
   return c;
 }
 
@@ -152,7 +165,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
               (sh) => last!.log.addShadow(sh),
               (line) => console.log(line),
             );
-      last = new GameRunner(state, seats, minds, set.narrator);
+      last = new GameRunner(state, seats, minds, set.narrator, { jobs: choices.jobs });
       last.writeChronicles = !o.noChronicles;
       if (o.parityDir !== null) {
         let drained = 0;

@@ -113,6 +113,8 @@ export interface RunnerOptions {
   strictReplay?: boolean;
   /** Replay a log saved under another rules version anyway (for analysis only: it may diverge). */
   anyVersion?: boolean;
+  /** The table's choices beyond the seats, for the log header (LogHeader.jobs); a replay or a continued game keeps its log's. */
+  jobs?: string;
 }
 
 export class GameRunner {
@@ -172,6 +174,7 @@ export class GameRunner {
       sleepers,
       minds: minds.label,
       narrator: narrator.label,
+      jobs: options.jobs ?? replay?.header.jobs ?? "",
     });
   }
 
@@ -334,6 +337,7 @@ export class GameRunner {
     this.setPhase(`Turn ${turn}: reports and pitches`);
     await this.fulfil(engine, turn, signal);
     engine.wakeCheck();
+    await this.alerts(engine, turn, signal);
     this.phaseDone?.(`t${turn}/reports`);
 
     this.setPhase(`Turn ${turn}: audiences`);
@@ -406,6 +410,29 @@ export class GameRunner {
       ),
     );
     for (let i = 0; i < requests.length; i++) engine.fulfil(requests[i], replies[i]);
+  }
+
+  /**
+   * Light alerts ("Light alerts go to the cheaper model too"): each king that sleeps on with news in its digest this season
+   * has it read, if its seat reads alerts, and is woken for orders if its reader judges the news needs its own mind. The
+   * choice is a decision in the log, so a replay wakes the same kings; a seat that reads none is never asked.
+   */
+  private async alerts(engine: TurnEngine, turn: number, signal?: AbortSignal): Promise<void> {
+    const S_ = this.state;
+    const asked = alive(S_).filter((p) => {
+      if (engine.lightAlerts(p).length === 0) return false;
+      const key = `t${turn}/alerts/${p}`;
+      return this.replay !== null && this.replay.has(key) ? true : !this.isReplay && this.seats.get(p).readAlerts !== undefined;
+    });
+    const woken = await Promise.all(
+      asked.map((p) => {
+        const seat = this.seats.get(p);
+        const alerts = engine.lightAlerts(p);
+        // A failed call wakes nobody: the news waits in the digest, as it did before anyone read it.
+        return this.recorded<boolean>(`t${turn}/alerts/${p}`, B, () => seat.readAlerts!(Views.for(S_, p), alerts, signal), () => Promise.resolve(false), seat.label);
+      }),
+    );
+    for (let i = 0; i < asked.length; i++) if (woken[i]) engine.wakeOnWord(asked[i], engine.lightAlerts(asked[i])[0].line);
   }
 
   private context(req: MindRequest, engine: TurnEngine, turn: number): MindContext {
@@ -504,6 +531,7 @@ export class GameRunner {
         backPay,
         employerDoomed: doomed,
         forgeMinCompetence: S_.config.forgeMinCompetence,
+        audienceKey: key,
       });
 
     const present = await this.recorded<PresentResult>(

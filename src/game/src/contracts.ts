@@ -43,6 +43,12 @@ export interface ISeat {
    * has the clauses read out as they are.
    */
   phrase?(req: PhraseRequest, signal?: AbortSignal): Promise<string>;
+  /**
+   * Reads the light alerts that reached it while it sleeps on ("Light alerts go to the cheaper model too"), playing the king
+   * from its record, and says whether the king's own mind must give orders this season (true wakes it). A seat without it,
+   * or one that leaves them to its digest, is not asked.
+   */
+  readAlerts?(view: SeatView, alerts: { line: string; text: string }[], signal?: AbortSignal): Promise<boolean>;
 }
 
 /** What a phrasing call words: a standing answer's clauses, for the envoy of a court. */
@@ -117,6 +123,8 @@ export interface EnvoyContext {
   employerDoomed: boolean;
   /** The skill it takes to fake a seal (GameConfig.forgeMinCompetence): a script envoy weighs its own against it. */
   forgeMinCompetence: number;
+  /** The audience's key in the log ("t3/aud/a12"): its decisions are logged under it, with the rung that took each. */
+  audienceKey: string;
 }
 
 export function newEnvoyContext(init: Pick<EnvoyContext, "self" | "sender" | "host" | "dispatch" | "turn" | "seed"> & Partial<EnvoyContext>): EnvoyContext {
@@ -130,6 +138,7 @@ export function newEnvoyContext(init: Pick<EnvoyContext, "self" | "sender" | "ho
     backPay: 0,
     employerDoomed: false,
     forgeMinCompetence: newGameConfig().forgeMinCompetence,
+    audienceKey: "",
     ...init,
   };
 }

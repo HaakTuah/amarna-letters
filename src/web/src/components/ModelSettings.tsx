@@ -2,7 +2,8 @@
  * Models are settings ("Built to outlive its models"): each job names any model, and a table may set up other providers
  * (any OpenAI-compatible endpoint, a local model's included) and set the price of a model the game does not know.
  */
-import { CostEstimate, ModelIds, type PriceSetting, type ProviderSetting, type SeatChoices } from "@amarna/llm";
+import { AllPowers } from "@amarna/engine";
+import { CostEstimate, ModelIds, leaderModel, type PriceSetting, type ProviderSetting, type SeatChoices, type SpendMode } from "@amarna/llm";
 import { useState } from "react";
 
 const Other = "__other__";
@@ -101,7 +102,8 @@ export function ProvidersPanel(props: {
       </button>
       {unpriced.length > 0 && (
         <p className="notice" style={{ marginTop: ".6rem" }}>
-          No price is set for {unpriced.map(ModelIds.display).join(", ")}: the cost meter and the spending cap count it as free until you set one below.
+          No price is set for {unpriced.map(ModelIds.display).join(", ")}: its cost shows as unknown, never as free, and the game does not start with a
+          spending limit until you set one below (0 for a free local model).
         </p>
       )}
       {choices.models
@@ -124,6 +126,107 @@ export function ProvidersPanel(props: {
             ))}
           </div>
         ))}
+    </div>
+  );
+}
+
+const RungOptions: [string, string][] = [
+  ["Haiku", "Haiku 5.5"],
+  ["Sonnet", "Sonnet 5.5"],
+  ["Opus", "Opus 5.5"],
+  ["Off", "Off"],
+];
+
+/**
+ * Who decides ("Every model is the table's choice", "Minds follow what is at stake"): each job is a ladder of the script,
+ * a small model and a large one. The kings' small rung (routine audiences, light alerts, the words of standing answers),
+ * each seat's own, who plays a woken king, the characters' large rung, planning, and how the game spends.
+ */
+export function RungsPanel(props: { choices: SeatChoices; change: (f: (c: SeatChoices) => void) => void }) {
+  const { choices, change } = props;
+  const sp = choices.spending;
+  const kings = AllPowers.filter((p) => leaderModel(choices.leaders.get(p)) !== null);
+  if (!choices.usesModels) return null;
+  return (
+    <div className="section">
+      <h3>Who decides</h3>
+      <p className="muted" style={{ maxWidth: "46rem" }}>
+        Every job is a ladder: the script, a small model and a large one. Only a king's own model commits him: a smaller one answers what is routine and
+        passes anything weighty up, or asks the larger one's counsel from a brief. No king is ever told which of them decided; the message trail shows it.
+      </p>
+      <div className="grid2">
+        <div>
+          <div className="field" title="Answers routine envoys for a sleeping king, reads the news that reaches him and wakes him when it might matter, and words his standing answers. Off: the king's own model answers every envoy.">
+            <span>Kings' small model (routine audiences, light alerts)</span>
+            <ModelPicker value={choices.small} options={RungOptions} onChange={(v) => change((c) => (c.small = v))} />
+          </div>
+          <div className="field">
+            <span>A woken king is played by</span>
+            <select value={choices.plays} onChange={(e) => change((c) => (c.plays = e.target.value === "small" ? "small" : "large"))}>
+              <option value="large">his own model</option>
+              <option value="small">the small model, his own above it for what is passed up</option>
+            </select>
+          </div>
+          <div className="field" title="What the envoys', spies' and candidates' own model passes up, or asks counsel of.">
+            <span>Above the characters</span>
+            <ModelPicker value={choices.charactersUp} options={RungOptions} onChange={(v) => change((c) => (c.charactersUp = v))} />
+          </div>
+          <div className="field" title="A strong model writes each king's plan at the start, once a year and when something large happens; the king plays each season by it and may ask for a new one.">
+            <span>Planning</span>
+            <ModelPicker value={choices.planning} options={[["Off", "Off"], ...RungOptions.filter(([v]) => v !== "Off")]} onChange={(v) => change((c) => (c.planning = v))} />
+          </div>
+        </div>
+        <div>
+          <div className="field" title="Off: every decision goes to the model its job names. Otherwise calls go to the decisions worth the most for their price, each to the rung that buys the most for it; what cannot be paid for, the script decides where it may, and the rest waits.">
+            <span>Spend calls where they matter most</span>
+            <select value={sp.mode} onChange={(e) => change((c) => (c.spending.mode = e.target.value as SpendMode))}>
+              <option value="off">off: each job's model decides everything</option>
+              <option value="limit">paced from the spending limit</option>
+              <option value="season">at a cost per season</option>
+              <option value="target">to a target</option>
+            </select>
+          </div>
+          {sp.mode === "season" && (
+            <label>
+              Each season may cost $
+              <input type="number" min="0" step="0.05" value={sp.seasonUsd} onChange={(e) => change((c) => (c.spending.seasonUsd = Math.max(0, Number(e.target.value) || 0)))} />
+            </label>
+          )}
+          {sp.mode === "target" && (
+            <label title="How often a smaller model may decide otherwise than the one above it, in a way that matters, by the audits.">
+              A smaller model may differ in{" "}
+              <input type="number" min="1" max="100" value={Math.round(sp.target * 100)} onChange={(e) => change((c) => (c.spending.target = Math.min(Math.max(Number(e.target.value) || 0, 1), 100) / 100))} />% of
+              decisions
+            </label>
+          )}
+          <label title="A share of the smaller models' decisions is also put, out of play, to the model above; its answer is never used, and the log records how often the two differed.">
+            Audit one decision in{" "}
+            <input
+              type="number"
+              min="0"
+              max="1000"
+              value={sp.auditShare > 0 ? Math.round(1 / sp.auditShare) : 0}
+              onChange={(e) => change((c) => (c.spending.auditShare = (Number(e.target.value) || 0) > 0 ? 1 / Number(e.target.value) : 0))}
+            />{" "}
+            (0: none)
+          </label>
+          {kings.length > 0 && (
+            <details style={{ marginTop: ".5rem" }}>
+              <summary>Each king's own small model</summary>
+              {kings.map((p) => (
+                <div className="field" key={p}>
+                  <span>{p}</span>
+                  <ModelPicker
+                    value={choices.smallFor[p] ?? ""}
+                    options={[["", "the table's"], ...RungOptions]}
+                    onChange={(v) => change((c) => (c.smallFor[p] = v))}
+                  />
+                </div>
+              ))}
+            </details>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

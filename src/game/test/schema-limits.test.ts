@@ -69,9 +69,11 @@ describe("SchemaLimitTests", () => {
     const api = new SimulatedApi();
     const client = new ModelClient(providersFor(choices, api, {}), () => {});
     await client.check(checkJobs(choices, configs[2]));
-    // Orders, the fullest audience reply and the court reply for the Sonnet kings, five for the Haiku characters and the
-    // kings' phrasing calls on the characters' model, one for the narrator.
-    Assert.equal(3 + 5 + 1 + 1, api.counted.length);
+    // Orders, the fullest audience reply and the court reply for the Sonnet kings; their small rung (Haiku by default): the
+    // phrasing call, the orders with the ladder's fields, the routine court and light alerts, and the counsel it may ask of
+    // Sonnet; six for the Haiku characters (five with the ladder's fields, and the script rung's phrasing call) and the five
+    // their Sonnet rung above may take; one for the narrator. Each once, however many seats share it.
+    Assert.equal(3 + 1 + 3 + 1 + 6 + 5 + 1, api.counted.length);
     Assert.empty(api.requests);
     api.refuseCheck = "Anthropic API 400: The compiled grammar is too large";
     const ex = await Assert.throwsAsync(() => client.check(checkJobs(choices, configs[2])));

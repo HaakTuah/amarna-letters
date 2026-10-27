@@ -247,8 +247,9 @@ export function Play() {
             )}
           </select>
           {showsCost && (
-            <span className="pill cost" title="Model spend for this game">
+            <span className="pill cost" title={live.costUnknown ? "Model spend for this game: a model with no price was called, so its part is unknown" : "Model spend for this game"}>
               ${live.cost.toFixed(2)}
+              {live.costUnknown && " + unknown"}
               <span className="hide-sm"> / ${live.settings.budgetUsd.toFixed(2)}</span>
             </span>
           )}
