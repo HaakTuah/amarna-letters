@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Tests, risks and references tab, revision 12 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Tests, risks and references tab, revision 13 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Known risks and mitigations
 
 The biggest risk is that the models are too honest: if envoys relay everything faithfully and leaders stay polite, the core mechanic goes flat. The milestones are built, but most risks below wait for the model games after the build order ("No model games until the build order is done" under Build order).

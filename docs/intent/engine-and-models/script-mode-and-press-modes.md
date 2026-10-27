@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 54 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 55 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Script mode and press modes
 
 **Script mode makes no model calls** (decided 18 October 2026). Each layer (kings, characters and the narrator) is set to models or to script bots. Script bots make no model calls at all: they exist for cheap testing and as the fallback when a model call fails, not as the intended way to play. Script text has tells: its stock phrasing would tell a model king that an envoy is a script and its changes mechanical, which breaks pillar 7 from the character side. That is accepted:

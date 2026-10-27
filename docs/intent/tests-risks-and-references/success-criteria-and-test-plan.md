@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Tests, risks and references tab, revision 12 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Tests, risks and references tab, revision 13 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Success criteria and test plan
 
 The prototype succeeds if, across ten or more full games, norms of trust appear that no rule created. Decide the signals before building, and read them from the logs.
@@ -23,6 +23,8 @@ The prototype succeeds if, across ten or more full games, norms of trust appear 
 6. **Narrator chronicle.** Optional per-nation chronicles after each game.
 
 **Experiments once it runs.** All-AI games for tuning; mixed human and AI tables; model comparisons in the same seat (an Opus Egypt against a Sonnet Hatti); tuning starting tiers until each power wins some games.
+
+**Script against model** (decided 27 October 2026). The first model games after the build order measure two things before the ladder's defaults hand any decision of a model seat to the script. Divergence: the shadow scripts' log ("Shadow scripts" under "Minds follow what is at stake") shows, kind by kind, where script and model decide alike. Outcome: matched games on the same seeds, model seats deciding everything against model seats on the ladder, show whether the ladder costs them in score and wins; if it costs more than a little, it hands decisions back to the models until it does not. The same data improve the scripts: where model seats do better and the two diverge, the script kings and characters are taught to play more like the models there, as rules of their own that stay deterministic, never copied replies, and only where the models win, since models make mistakes too. The new scripts are then shadowed and measured again, and a change is kept only if it holds on fresh seeds. Stronger scripts make better stand-ins for model seats, better sparring partners and a better balance proxy. Each round needs model games, so it runs only when Haakon asks for them.
 
 **Process notes.**
 
