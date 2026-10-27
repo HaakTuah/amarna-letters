@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 25 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 26 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Territory and military
 
 **Military.**
@@ -30,6 +30,8 @@ This also helps the smaller kings: Arzawa's mountains and Alashiya's sea become 
 - **Hunger breaks loyalty.** As the stores run down, the city's loyalty to its ruler falls, until someone opens a gate from within. A ruler his people trust holds longer than one they do not; Rib-Hadda wrote that his people would go over to whoever had grain.
 - **Walls price the storm, not the clock.** A besieger may storm at any time, at a cost that rises with the walls' level and falls once they are breached by rams, mining or wear ("Walls and terrain"), so strong walls force a blockade and a weak one invites an assault.
 - **Built in stages.** Until item 9+, the walls stand in for the clock as item 5 built them. Item 9+, which brings stores and armies that eat, makes stores, mouths and water the clock and walls the price of a storm; item 10+a moves the people, the fled and the put-out; item 17 adds the gate opened from within. First guesses, tuned in item 18 against pillar 8 ("War is slower than diplomacy").
+
+**The people defend their land (decided 27 October 2026).** An army that enters a province not its own meets its men of fighting age, whoever rules the province or none: they resist by their number, by how hostile they are to the invader and by the ground, so hill land full of hardy men is dear to take and a plain of peasants cheap. It is one rule for every province: a kingdom's land whose garrison has gone still fights, and a land without a ruler is defended by its people alone ("Land without a ruler"). The Kaska had no king and no standing army, yet Hatti campaigned against them for generations without holding their land. After conquest the same hostility goes on as harassment and, from item 17, revolt ("Revolt follows conditions, not dice"). Built with the men of fighting age in item 10+a; first guesses, tuned in item 18 against pillar 8 ("War is slower than diplomacy").
 
 Longer wars mean longer games; sleeping seats are what make those affordable, since model calls scale with events, not with time.
 
