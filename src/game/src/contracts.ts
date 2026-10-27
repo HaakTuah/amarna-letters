@@ -30,8 +30,13 @@ import {
 
 export interface ISeat {
   readonly label: string;
-  /** Whether this seat may sleep when the game allows it (model and file seats). Script and human seats play every season. */
+  /**
+   * Whether this seat may sleep when the game allows it: model, file and (since item 9+a) human seats, a human ending his
+   * turn with a sleep. Script seats cost nothing to wake, so they decide every season.
+   */
   readonly canSleep?: boolean;
+  /** A sleeping seat that wants to act now (a human waking himself): read once a season, before the wake check. */
+  wakeRequested?(): boolean;
   decide(view: SeatView, signal?: AbortSignal): Promise<TurnSubmission>;
   hostAudience(view: AudienceView, court: SeatView, signal?: AbortSignal): Promise<HostReply>;
   /**

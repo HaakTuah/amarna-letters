@@ -179,7 +179,7 @@ function newForm(me: Power): Form {
 }
 
 /** A human seat's orders for one season: units, treasury, envoys, court and tablets. */
-export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: OrderDraft; state: GameState; onChanged: () => void; onSubmit: () => void }) {
+export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: OrderDraft; state: GameState; onChanged: () => void; onSubmit: (sleep: boolean) => void }) {
   const v = draft.view;
   const me = v.power;
   const [f, setF] = useState<Form>(() => newForm(me));
@@ -1187,9 +1187,20 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
             }}
           />
         </div>
-        <button className="primary" onClick={onSubmit}>
+        <button className="primary" onClick={() => onSubmit(false)}>
           Seal the orders for this season
         </button>
+        {/* Sleep is for every seat (item 9+a): the seasons pass by themselves until something concerns you, or you wake. */}
+        {state.config.sleepingSeats && (
+          <button
+            className="small"
+            style={{ marginLeft: ".5rem" }}
+            title="Your orders, scheduled orders, standing orders and answers act for you; you are woken when something concerns you, or when you choose to wake"
+            onClick={() => onSubmit(true)}
+          >
+            Seal and sleep until something concerns me
+          </button>
+        )}
       </div>
     </div>
   );

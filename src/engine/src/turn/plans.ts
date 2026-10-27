@@ -209,6 +209,7 @@ P.compose = function (p, plan, fired) {
     answers: sub.answers,
     cancelAnswers: sub.cancelAnswers,
     fromFallback: sub.fromFallback,
+    stayAwake: sub.stayAwake,
   });
 };
 
@@ -411,6 +412,8 @@ P.afterValidation = function (p, sub, v) {
   this.keepStanding(p, sub.standing);
   this.keepAnswers(p, sub.answers, sub.cancelAnswers);
 
+  // A seat that asked to stay awake (a human ending his turn without sleeping) is asked again next season.
+  if (sub.stayAwake) return;
   // It sleeps until something concerns it, or, at the latest, the hidden cap: it names no season and sets no triggers.
   sl.asleep = true;
   sl.wakeAt = S.turn + 1 + Math.max(0, S.config.maxSleep);

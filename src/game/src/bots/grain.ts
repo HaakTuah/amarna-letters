@@ -37,7 +37,7 @@ import type { MilitaryPlan } from "./tactics.ts";
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 /** How many seasons of food a frontier depot keeps for each army near it (a first guess of the script's own). */
-const DepotSeasons = 3;
+const DepotSeasons = 2;
 
 /** The province whose stores feed a unit of ours where it stands, or null: our land, or for a fleet our coast of its waters. */
 export function depotFor(b: Board, u: UnitView): string | null {
@@ -101,6 +101,16 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
   }
   let caravans = 0;
   for (const [to, n] of wants) {
+    // A depot of ours whose market holds more than its own need buys the grain there: it costs nothing in strength (the
+    // gold stays in our people's purse), where a caravan's porters eat a share of the load and must be paid.
+    const local = ps.get(to);
+    const spareStock = local === undefined ? 0 : Math.min(n, local.stock - Math.ceil(local.need / 2));
+    if (local !== undefined && !besieged.has(to) && local.stock >= local.need && spareStock > 0 && gold >= 2 * costs) {
+      orders.push(purchase(to, spareStock));
+      local.stores += spareStock;
+      local.stock -= spareStock;
+      if (spareStock >= n) continue;
+    }
     if (caravans >= 3) break;
     const source = sortBy(
       [...ps.values()].filter((x) => x.province !== to && spare(x) >= n),
@@ -120,10 +130,11 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
     caravans++;
   }
 
-  // Sales: at a price worth the grain (selling under its reference price lowers the score) unless gold is needed; at any
-  // price for what the next tax would push out of the stores.
+  // Sales: while the market pays about what the grain is worth (grain kept loses a twentieth a season to spoiling, so a
+  // little under its reference price still pays), lower when gold is needed; at any price for what the next tax would push
+  // out of the stores.
   const target = costs * (2 + p.caution);
-  const floor = gold < costs ? (EconomyData.basePrice * 4) / 10 : gold < target ? (EconomyData.basePrice * 7) / 10 : (EconomyData.basePrice * 112) / 100;
+  const floor = gold < costs ? (EconomyData.basePrice * 35) / 100 : gold < target ? (EconomyData.basePrice * 6) / 10 : (EconomyData.basePrice * 9) / 10;
   let expected = 0;
   for (const x of sortBy([...ps.values()], [(x: Mutable<ProvinceEconomyView>) => x.province, cmpStr])) {
     if (besieged.has(x.province)) continue;

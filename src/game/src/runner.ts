@@ -354,6 +354,14 @@ export class GameRunner {
 
     this.setPhase(`Turn ${turn}: reports and pitches`);
     await this.fulfil(engine, turn, signal);
+    // A sleeping seat may wake itself (a human who wants to act): a decision in the log, kept only when it happens.
+    for (const p of alive(S_).filter((p) => engine.isAsleep(p))) {
+      const key = `t${turn}/wake/${p}`;
+      if (this.replay?.has(key) === true || this.seats.get(p).wakeRequested?.() === true) {
+        await this.recorded<boolean>(key, B, () => Promise.resolve(true));
+        engine.wakeSelf(p);
+      }
+    }
     engine.wakeCheck();
     await this.alerts(engine, turn, signal);
     this.phaseDone?.(`t${turn}/reports`);

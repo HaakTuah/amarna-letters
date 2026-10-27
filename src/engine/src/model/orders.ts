@@ -578,10 +578,15 @@ export interface TurnSubmission {
   cancelAnswers: string[];
   /** Set by the runner when the script king stood in for a seat whose call failed: the seat has not seen this season. */
   fromFallback: boolean;
+  /**
+   * A seat that may sleep asks to be asked again next season instead of sleeping (item 9+a: a human ends his turn without
+   * sleeping; "Per-seat sleep, never a global skip"). Model and file seats leave it false and sleep after their orders.
+   */
+  stayAwake: boolean;
 }
 
 export function newTurnSubmission(init: Partial<TurnSubmission> = {}): TurnSubmission {
-  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, ...init };
+  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, stayAwake: false, ...init };
 }
 
 export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTurnSubmission, {
@@ -595,4 +600,5 @@ export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTur
   answers: list(() => StandingAnswerRequestSchema),
   cancelAnswers: list(S),
   fromFallback: B,
+  stayAwake: B,
 });

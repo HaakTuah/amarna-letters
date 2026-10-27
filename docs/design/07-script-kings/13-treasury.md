@@ -48,8 +48,9 @@ Before the rest of the treasury, each season:
 - **Caravans**, at most three a season: to each army of ours beyond our land (where its move this season takes it) whose
   baggage holds a season or less, and to each frontier depot that its stores and next tax will not fill; from the nearest
   store with that much to spare, by a route through our land of at most two seasons, with enough on top for what the
-  porters eat. Never two to one place at once. Where no store can send it and the market there holds more than its own
-  need, the king buys the grain there instead (if its gold covers three seasons of costs).
+  porters eat. Never two to one place at once. A depot whose own market holds more than its need buys the grain there
+  instead (if its gold covers two seasons of costs): that costs nothing in strength, where a caravan's porters eat a share
+  of the load and must be paid. Troops depending on a store that their food and its next tax will not fill buy there too.
 - **Sales** at each market, measure by measure along the curve, while the market pays at least 1.12 of the base price (a
   sale under the reference price lowers the score), 0.7 while the treasury is below `costs × (2 + caution)`, 0.4 while it
   is below one season's costs; and at any price for what the next tax would push out of the stores. Its income for the
