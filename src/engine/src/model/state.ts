@@ -9,8 +9,9 @@ import { AllPowers, type Power, cmpPower } from "./power.ts";
 import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, type InboxItem, InboxItemSchema, type InboxKind, type Journey, JourneySchema, type LossAbroad, LossAbroadSchema, type MessageTrail, MessageTrailSchema, type PendingAudience, PendingAudienceSchema, type PendingTask, PendingTaskSchema, type ScoreRow, ScoreRowSchema, type Tablet, type TabletCopy, TabletCopySchema, TabletSchema, newGameEvent, newInboxItem } from "./records.ts";
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
+import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 
-export const CURRENT_VERSION = 11;
+export const CURRENT_VERSION = 12;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -31,6 +32,10 @@ export interface GameState {
   finalSeason: number | null;
   /** Whether the drawn last season is the hard cap's rather than the rising chance's. Secret like it. */
   finalByCap: boolean;
+  /** Claims to the rank of Great King, new or established (item 8, "Recognition is earned"). */
+  claims: Claim[];
+  /** Who called whom brother and granted whom the title, in the greetings sent (item 8). */
+  recognition: Recognition[];
   /**
    * The season the age ended in, when the table chose to play on into an open age after it ("An open age"); its winners
    * and reason stay recorded in {@link winners} and {@link endReason}. Null otherwise.
@@ -148,6 +153,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     endReason: null,
     finalSeason: null,
     finalByCap: false,
+    claims: [],
+    recognition: [],
     ageEndedTurn: null,
     ageWinners: [],
     owner: new Dict(),
@@ -200,6 +207,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   endReason: S,
   finalSeason: opt(I),
   finalByCap: B,
+  claims: list(() => ClaimSchema),
+  recognition: list(() => RecognitionSchema),
   ageEndedTurn: opt(I),
   ageWinners: list(S),
   owner: dict(opt(S)),

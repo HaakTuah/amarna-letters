@@ -22,6 +22,8 @@ export interface GameSettings {
   leaderEffort: string;
   bridgeAddress: string;
   localAgentMinutes: number;
+  /** Characters played by local agents (item 8): the ids the bridge keeps folders for, as its status gave them at the start. */
+  bridgeCharacters?: string[];
   chronicles: boolean;
   customsPrimer: boolean;
   sharedVictory: boolean;
@@ -119,6 +121,7 @@ export function choicesOf(s: GameSettings): SeatChoices {
   c.leaderEffort = s.leaderEffort;
   c.bridgeAddress = s.bridgeAddress;
   c.localAgentMinutes = s.localAgentMinutes;
+  c.bridgeCharacters = [...(s.bridgeCharacters ?? [])];
   c.providers = s.providers.map((p) => ({ ...p }));
   c.prices = { ...s.prices };
   c.small = s.small;
@@ -181,7 +184,7 @@ export function toConfig(s: GameSettings): GameConfig {
 }
 
 /** The table's own settings a saved log does not keep, carried over from the page when a game is continued. */
-export type TableSettings = Pick<GameSettings, "providers" | "prices" | "pauseFallbackShare">;
+export type TableSettings = Pick<GameSettings, "providers" | "prices" | "pauseFallbackShare" | "bridgeCharacters">;
 
 export function settingsFromHeader(header: LogHeader, table: TableSettings | null = null): GameSettings {
   const s = withChoices(
@@ -199,7 +202,7 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
       capMin: header.config.capMin,
       capMax: header.config.capMax,
       openAge: header.config.openAge,
-      ...(table !== null ? { prices: { ...table.prices }, pauseFallbackShare: table.pauseFallbackShare } : {}),
+      ...(table !== null ? { prices: { ...table.prices }, pauseFallbackShare: table.pauseFallbackShare, bridgeCharacters: [...(table.bridgeCharacters ?? [])] } : {}),
     },
     choicesFromHeader(header, table?.providers ?? []),
   );

@@ -12,6 +12,7 @@ import { newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, new
 import { alive, char, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
+import { renderClauses } from "../rules/clauses.ts";
 import { OrderValidator } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { removeAll } from "./resolve.ts";
@@ -599,9 +600,14 @@ P.forge = function (p, f) {
   }
   if (!this.pay(p, S.config.forgeFee, "a forger's materials", f, "nothing was forged")) return;
   const seals = distinct(f.seals);
+  // Set out in clauses like any tablet (item 8): in structured press its words are theirs.
+  const by = seals[0] ?? p;
+  const partner = seals.length > 1 ? seals[1] : by;
+  const clauses = this.clausesOf(p, partner, f.clauses, "forgery");
   const tablet = newTablet({
     id: newId(S, "t"),
-    text: this.scribe(p, cap(f.text, 1200)),
+    text: S.config.pressMode === "structured" ? renderClauses(clauses, by, partner) : this.scribe(p, cap(f.text, 1200)),
+    clauses,
     proposedBy: seals[0],
     partner: seals.length > 1 ? seals[1] : null,
     seals,

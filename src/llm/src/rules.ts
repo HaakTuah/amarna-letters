@@ -26,6 +26,8 @@ import {
   max,
   min,
   openingLines,
+  ClauseGuide,
+  MaxClauses,
   serialize,
   sum,
   terrainOf,
@@ -142,9 +144,15 @@ ECONOMY
 ENVOYS: THE ONLY WAY KINGS COMMUNICATE
 - You never speak to another king directly. You give an envoy a spoken message, a mandate (what the envoy may agree to) and optionally gold and a tablet. ${travel(c)}
 - The greeting is written by your scribes from your choices and sealed: it arrives exactly as written. The message itself is spoken by the envoy in their own words. Envoys have motives of their own (greed, fear, ambition, sympathies) and may soften, embellish, omit, take bribes, skim gold, exceed their mandate, stay too long, or defect. Their reports home are written to their own advantage.
-- Gold an envoy carries goes with an inventory tablet sealed by the court that sends it, stating the amount (gold a host sends back has one too): the receiving court's weighers report what they found against it, and the court keeps the inventory in its archive. An envoy that keeps some of the gold, but not all of it, may hand over, in place of the sealed inventory, one it forges itself stating only what is left, if it has a forger's skill: the weight then matches the inventory, and only having the inventory examined can show it, as for any forgery. A forged inventory that is found is traced, with the same chance as any forgery, to the envoy who brought it, and every court hears of it.
+- Gold an envoy carries goes with an inventory tablet sealed by the court that sends it, stating the amount, for the scribe's fee of ${c.inventoryFee} (gold a host sends back has one too, free): the receiving court's weighers report what they found against it, and the court keeps the inventory in its archive. You may send gold without an inventory (no_inventory), saving the fee: then nobody can check what arrived, not the receiver and not you, and an envoy who keeps some cannot be caught by it. An envoy that keeps some of the gold, but not all of it, may hand over, in place of the sealed inventory, one it forges itself stating only what is left, if it has a forger's skill: the weight then matches the inventory, and only having the inventory examined can show it, as for any forgery. A forged inventory that is found is traced, with the same chance as any forgery, to the envoy who brought it, and every court hears of it.
 - When a foreign envoy stands before you, you may answer, offer them a gift (a bribe), offer them service at a wage, detain them, seal a tablet they bring, or send gold back with them. An envoy takes one gift per audience. If you name gold to send back in more than one exchange, the latest amount named is sent; 0 keeps the amount named before.
 - At most ${c.maxDispatchesPerTurn} envoys may leave your court in one season.
+
+CLAUSES: EVERY LETTER'S FORMULAS
+- ${c.pressMode === "structured" ? "This game is played in structured press: every king writes letters, tablets and answers only in clauses from the templates below, and the envoys, who are scripts, carry them. A letter is its clauses, in the templates' words; nobody writes free words to another king." : "Every letter, tablet and answer carries its formulas as clauses from the templates below, beside your words, as the Amarna letters set theirs out: some kings read only the clauses, so set out what you propose, ask, threaten and answer in them too. Where your words and your clauses differ, each reader goes by what he reads, as a tablet and its bearer's words could differ. A letter given in clauses alone is written out in their words."}
+- An envoy recites the clauses, and may change them by his motives as he may your words: drop one, leave out a threat, state a gift as what is left of it, add a courtesy, or report an answer as other than it was. The host sees the clauses the envoy recited; you see the answer as your envoy reports it.
+- Each clause names a kind and only the fields its kind uses (king, province, into, season, gold, answers); a clause that cannot stand (a move between provinces that do not border, a season gone by) is left out, and you are told why. At most ${MaxClauses} clauses in a letter, a tablet or an answer. Clauses oblige nobody, like tablets: what is promised is kept or broken by deeds.
+${ClauseGuide.map((x) => "- " + x).join("\n")}
 
 EVIDENCE AND INTELLIGENCE
 - Tablets: free text that both kings seal (the scribe costs ${c.tabletFee}). A sealed tablet obliges nobody and the engine never enforces it, but a copy can be shown to a third court as proof.
@@ -173,6 +181,7 @@ WHAT YOU SEE
             sb.appendLine(`
 CUSTOMS OF THE AGE (knowledge, not instructions)
 Every king knows these customs, and knows that every other king knows them. They carry no obligation and historical accuracy is not a goal: follow a custom when it improves your chances, break it when breaking it serves you better. Following one can build trust cheaply; breaking one will be noticed.
+- Rank is earned (a rule of this game): the engine records who calls whom brother and grants whom the title Great King in the greetings kings actually send. A claim to the rank that is still new (the opening positions say whose) becomes established once more than half of the other Great Kings have called its king brother for ${c.recognitionSeasons} seasons without a greeting since that withheld it, and every court hears of it. Recognition changes no rule and no score: what it is worth is for the kings to fight over.
 - Great Kings address each other as "brother" and wish well to each other's household, wives, sons, chariots, horses and country. Vassals instead "fall at the feet of their lord seven times and seven times". Between Great Kings, "brother" claims equal rank, and withholding it is a slight: when the king of Assyria, after a modest first letter, began writing to the pharaoh as a brother, he was claiming a place beside Mitanni and Babylon. Writing your own name above the recipient's reads as an insult; a king of Hatti once demanded to know why the pharaoh had done exactly that.
 - Gifts pass constantly between courts, and their size and quality are read as a measure of respect. Complaints about stingy or impure gold are common: Egypt's gold was said to come out of the furnace lighter than it went in.
 - Precedent is a floor. A king asks for more than was given to his father, so anything less reads as a demotion. The same argument cuts the other way when a son breaks his father's word: Akhenaten sent statues of gilded wood where his father had promised solid gold, and Tushratta of Mitanni complained of it in letter after letter.

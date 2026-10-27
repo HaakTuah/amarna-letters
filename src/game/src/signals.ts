@@ -19,6 +19,7 @@ export const SignalKinds: readonly string[] = [
   "archive-copied", "archive-taken", "inventory-swapped", "storm", "siege-begun", "siege-won", "fortify", "sally", "sally-won", "envoy-out", "envoy-caught", "envoy-stayed",
   "terrain-held", "terrain-beaten", "desert", "landing", "blockade", "sea-supplied",
   "roads-closed", "roads-opened", "turned-at-border", "road-caught", "road-outlaws", "road-nature",
+  "support-kept", "claim-established",
 ];
 
 const MessengerBlamed = rx(

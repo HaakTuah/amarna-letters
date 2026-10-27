@@ -69,10 +69,12 @@ const LeaderOptions: [string, string][] = [
   ["Opus", "Opus 5.5"],
 ];
 const CharacterOptions: [string, string][] = [
-  ["Script", "Script characters (free)"],
+  ["Script", "Script characters (free; structured press)"],
   ["Haiku", "Haiku 5.5"],
   ["Sonnet", "Sonnet 5.5 (sharper, costs more)"],
 ];
+/** On this computer only: characters played by local agents through the bridge, as kings may be (item 8). */
+const LocalCharacterOption: [string, string] = ["LocalAgent", "Local agents (Claude Code)"];
 const NarratorOptions: [string, string][] = [
   ["Template", "Template narrator (free)"],
   ["Haiku", "Haiku 5.5"],
@@ -162,12 +164,16 @@ export function Home() {
   };
 
   /** Asks the local bridge whether it runs and keeps a folder for every king played by a local agent. */
-  async function bridgeCheck(c: SeatChoices): Promise<{ line: string; ok: boolean }> {
-    const status = await LocalBridge.check(c.bridgeAddress, localKings(c));
+  async function bridgeCheck(c: SeatChoices, seed: number | null = null): Promise<{ line: string; ok: boolean; characters: string[] }> {
+    // Characters played by local agents need the folders of this game's seed: ids differ from seed to seed.
+    const charactersOf = c.characters === "LocalAgent" ? seed : null;
+    const status = await LocalBridge.check(c.bridgeAddress, localKings(c), charactersOf);
     const ok = bridgeReady(status);
+    const chars = charactersOf !== null ? ` and the ${status.characters.length} characters of seed ${charactersOf}` : "";
     return {
       ok,
-      line: ok ? `The bridge is running and keeps a folder for each of the ${localKings(c).length} kings played by local agents.` : status.problem,
+      characters: status.characters,
+      line: ok ? `The bridge is running and keeps a folder for each of the ${localKings(c).length} kings played by local agents${chars}.` : status.problem,
     };
   }
 
@@ -201,17 +207,19 @@ export function Home() {
       setProblem(unpriced);
       return;
     }
+    let characters: string[] = [];
     if (choices.usesLocalAgents) {
-      const b = await bridgeCheck(choices);
+      const b = await bridgeCheck(choices, settings.seed);
       if (!b.ok) {
         // Said once, next to the button that was pressed.
         setProblem(b.line);
         setBridge(null);
         return;
       }
+      characters = b.characters;
     }
     setStarting(true);
-    const game = settings;
+    const game = settings.characters === "LocalAgent" ? { ...settings, bridgeCharacters: characters } : settings;
     setSettings({ ...settings, seed: randomSeed() });
     navigate("play");
     session.start(game, allKeys(keys.key));
@@ -232,6 +240,7 @@ export function Home() {
       setLoadProblem(old);
       return;
     }
+    let characters: string[] = [];
     if (continuePlay && header !== null) {
       const seats = choicesFromHeader(header, settings.providers);
       const missing = seats.providersInUse.filter((id) => id !== AnthropicId && !seats.providers.some((p) => p.id === id));
@@ -245,15 +254,16 @@ export function Home() {
       }
       // A saved game with kings played by local agents goes on through the bridge at its usual address.
       if (seats.usesLocalAgents) {
-        const b = await bridgeCheck(seats);
+        const b = await bridgeCheck(seats, header.seed);
         if (!b.ok) {
           setLoadProblem(b.line);
           return;
         }
+        characters = b.characters;
       }
     }
     navigate("play");
-    session.load(text, continuePlay, allKeys(keys.key ?? key), { providers: settings.providers, prices: settings.prices, pauseFallbackShare: settings.pauseFallbackShare });
+    session.load(text, continuePlay, allKeys(keys.key ?? key), { providers: settings.providers, prices: settings.prices, pauseFallbackShare: settings.pauseFallbackShare, bridgeCharacters: characters });
   }
 
   async function loadSaved(id: string, continuePlay: boolean): Promise<void> {
@@ -362,7 +372,11 @@ export function Home() {
             <div>
               <div className="field">
                 <span>Envoys, spies and candidates</span>
-                <ModelPicker value={settings.characters} options={CharacterOptions} onChange={(v) => change((c) => (c.characters = v))} />
+                <ModelPicker
+                  value={settings.characters}
+                  options={isLocal || settings.characters === "LocalAgent" ? [...CharacterOptions, LocalCharacterOption] : CharacterOptions}
+                  onChange={(v) => change((c) => (c.characters = v))}
+                />
               </div>
               <div className="field">
                 <span>Narrator (personas, check reports, chronicles)</span>

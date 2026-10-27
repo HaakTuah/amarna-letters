@@ -6,7 +6,7 @@
  * `Replies` builds the Zod objects; `Schemas` gives the JSON schemas sent, for the request text and the tests.
  */
 import { z } from "zod";
-import { AllPowers, MaxAnswerSay, MaxAnswers, MaxConditions, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, fmtN, type AudienceView, type GameConfig } from "@amarna/engine";
+import { AllPowers, ClauseKindValues, MaxAnswerSay, MaxAnswers, MaxConditions, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, fmtN, type AudienceView, type GameConfig } from "@amarna/engine";
 import { LeaderJournal } from "./journal.ts";
 
 export type JsonObject = { [key: string]: unknown };
@@ -217,7 +217,7 @@ const standingAnswers = (): [string, z.ZodType][] => [
  * something concerns it: it never chooses when it wakes, so it also schedules orders for later seasons.
  */
 function leaderOrders(c: GameConfig | null = null): ReplySchema {
-  const props = leaderOrdersBase(c?.sharedVictory ?? false);
+  const props = leaderOrdersBase(c);
   const sleeps = c !== null && c.sleepingSeats;
   if (sleeps) {
     props.push([
@@ -266,7 +266,7 @@ function leaderOrders(c: GameConfig | null = null): ReplySchema {
   return object(...props);
 }
 
-const leaderOrdersBase = (sharedVictory: boolean): [string, z.ZodType][] => [
+const leaderOrdersBase = (c: GameConfig | null): [string, z.ZodType][] => [
   [
     "notes",
     str(
@@ -281,18 +281,50 @@ const leaderOrdersBase = (sharedVictory: boolean): [string, z.ZodType][] => [
   ],
   ["ledger", ledger()],
   ["units", array(unitOrder())],
-  ["letters", array(letter(sharedVictory))],
+  ["letters", array(letter(c))],
   ["other_orders", array(otherOrder())],
 ];
 
-/** One letter: an envoy sent abroad. The same in an orders reply and in an audience held while the king's orders stand. */
-const letter = (sharedVictory: boolean): ReplySchema =>
+/** One clause of a letter, a tablet or an answer (item 8): its kind, and the fields its kind uses (see CLAUSES in the rules). */
+const clauseObject = (): ReplySchema =>
   object(
+    ["kind", enumOf(ClauseKindValues as unknown as [string, ...string[]], "The clause's kind, as CLAUSES in the rules lists them.")],
+    ["king", enumOf(["", ...AllPowers] as [string, ...string[]], "The king the clause names (against whom, whose troops, who besieges, who is in league with the Habiru), or empty.")],
+    ["province", str("The province it names (given, asked for, attacked, besieged, told of), or the start of a move; empty if none.")],
+    ["into", str("The end of a move (support, askSupport), or empty.")],
+    ["season", int("The turn a move is to be made, a turn to come (support, askSupport), or 0.")],
+    ["gold", int("Shekels of gold (gift, tribute, askGold, askTribute, counter), or for newsStrength 0 (few) or 1 (many); otherwise 0.")],
+    ["answers", enumOf(["", ...ClauseKindValues] as [string, ...string[]], "For accept, refuse or counter: the kind of clause it answers; otherwise empty.")],
+  );
+
+const clauses = (description: string): z.ZodType => array(clauseObject(), description);
+
+/** What a host's answer in clauses is, in either press. */
+const AnswerClauses = (structured: boolean): string =>
+  structured
+    ? "Your answer, set out in clauses (CLAUSES in the rules): accept, refuse or counter what the letter proposes or asks, and anything else you would say. In this game it is all you say."
+    : "Your answer's formulas as clauses (CLAUSES in the rules): accept, refuse or counter what the letter proposes or asks. Kings who read only clauses read these.";
+const GiftNews = "Only with a gift: news the envoy is to tell his lord as what he saw for himself (newsTroops, newsStrength, newsTaken, newsSiege), or empty.";
+
+/** One letter: an envoy sent abroad. The same in an orders reply and in an audience held while the king's orders stand. */
+const letter = (c: GameConfig | null): ReplySchema => {
+  const structured = c?.pressMode === "structured";
+  const sharedVictory = c?.sharedVictory ?? false;
+  return object(
     ["envoy", str("Id of one of your people who is at court and ready.")],
     ["to", enumOf(powerNames)],
-    ["message", str("What the envoy should say, in your words.")],
+    ...(structured ? [] : ([["message", str("What the envoy should say, in your words. Empty: the envoy speaks your clauses alone.")]] as [string, z.ZodType][])),
+    [
+      "clauses",
+      clauses(
+        structured
+          ? "The letter, set out in clauses from the templates (CLAUSES in the rules): in this game kings write only these, and the envoy recites them."
+          : "The letter's formulas as clauses (CLAUSES in the rules), carried with your words: kings who read only clauses read these. Where your words and clauses differ, each reader goes by what he reads.",
+      ),
+    ],
     ["mandate", str("What the envoy may agree to on your behalf.")],
     ["gold", int("Shekels sent with the envoy, or 0.")],
+    ["no_inventory", bool("Only with gold: send it without an inventory tablet, saving the scribe's fee. Nobody can then check what arrived. False otherwise.")],
     ["purity", int("Purity of the gold in percent, 10-100 (100 when you send none). Below 100 is debased.")],
     // The sealed greeting is written from these flags alone: say what each one claims or withholds.
     [
@@ -306,7 +338,15 @@ const letter = (sharedVictory: boolean): ReplySchema =>
     ],
     ["your_name_first", bool("Put your own name before the recipient's: presumptuous, and the recipient will notice. False keeps the custom, his name first.")],
     ["omit_greeting", bool("Send no greeting at all, which is a slight. The other greeting flags are then ignored.")],
-    ["tablet_to_seal", str("Text for both kings to seal, or empty.")],
+    ...(structured ? [] : ([["tablet_to_seal", str("Text for both kings to seal, or empty.")]] as [string, z.ZodType][])),
+    [
+      "tablet_clauses",
+      clauses(
+        structured
+          ? "A tablet for both kings to seal, set out in clauses; empty for none."
+          : "The clauses of the tablet to seal, carried with its text (or alone, written out in their words); empty for none.",
+      ),
+    ],
     [
       "sworn_alliance",
       bool(
@@ -317,6 +357,7 @@ const letter = (sharedVictory: boolean): ReplySchema =>
     ],
     ["show_tablet_copies", array(str(), "Your marks for the copies of tablets you hold (like k8), as your archive gives them, to show as evidence.")],
   );
+};
 
 /** The king's ledger of dealings, written the same way in an orders reply and in an audience reply. */
 const ledger = () =>
@@ -353,13 +394,15 @@ export function asksOf(a: AudienceView): AudienceAsks {
 function hostReply(c: GameConfig | null = null, a: AudienceView | boolean = false): ReplySchema {
   const asks: AudienceAsks =
     typeof a === "boolean" ? { ordersStand: a, tabletToSeal: true, giftOpen: true, lastExchange: false, reopenChosen: false } : asksOf(a);
-  const fields: [string, z.ZodType][] = [["speech", str("What you say to the envoy, to carry home.")]];
+  const structured = c?.pressMode === "structured";
+  const fields: [string, z.ZodType][] = structured ? [] : [["speech", str("What you say to the envoy, to carry home.")]];
+  fields.push(["clauses", clauses(AnswerClauses(structured))]);
   if (asks.giftOpen) {
     fields.push([
       "gift_to_envoy",
       int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once one is accepted, a later gift is not given."),
     ]);
-    fields.push(["gift_request", str("What you want from the envoy in return for the gift, or empty.")]);
+    fields.push(structured ? ["gift_news", clauses(GiftNews)] : ["gift_request", str("What you want from the envoy in return for the gift, or empty.")]);
   }
   fields.push(["offer_service_wage", int("Offer the envoy service at this wage per season, or 0.")]);
   if (asks.tabletToSeal) fields.push(["seal_tablet", bool("Seal the tablet the envoy brought.")]);
@@ -379,7 +422,7 @@ function hostReply(c: GameConfig | null = null, a: AudienceView | boolean = fals
     fields.push([
       "letters",
       array(
-        letter(c?.sharedVictory ?? false),
+        letter(c),
         "Envoys of yours to send from this audience, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give, and each costs what a letter in your orders costs. A new letter for a person you already sent this season replaces it. Empty for none.",
       ),
     ]);
@@ -403,14 +446,16 @@ function hostReply(c: GameConfig | null = null, a: AudienceView | boolean = fals
  * unless it has already chosen to, reopen its orders.
  */
 function courtReply(c: GameConfig | null = null, ordersStand = false, reopenChosen = false): ReplySchema {
+  const structured = c?.pressMode === "structured";
   const answer = object(
     ["envoy", str("The id of the envoy you answer (like c13), as the audience names him.")],
-    ["speech", str("What you say to this envoy, to carry home.")],
+    ...(structured ? [] : ([["speech", str("What you say to this envoy, to carry home.")]] as [string, z.ZodType][])),
+    ["clauses", clauses(AnswerClauses(structured))],
     [
       "gift_to_envoy",
       int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once he has accepted one, a later gift is not given."),
     ],
-    ["gift_request", str("What you want from the envoy in return for the gift, or empty.")],
+    structured ? ["gift_news", clauses(GiftNews)] : ["gift_request", str("What you want from the envoy in return for the gift, or empty.")],
     ["offer_service_wage", int("Offer the envoy service at this wage per season, or 0.")],
     ["seal_tablet", bool("Only if this envoy brought a tablet you have not yet chosen to seal: seal it. False otherwise.")],
     ["detain_envoy", bool("Keep the envoy at your court against its will: it does not go home when the audience ends.")],
@@ -426,7 +471,7 @@ function courtReply(c: GameConfig | null = null, ordersStand = false, reopenChos
     fields.push([
       "letters",
       array(
-        letter(c?.sharedVictory ?? false),
+        letter(c),
         "Envoys of yours to send from your court, as the letters of your orders: they set out at the end of this season with everyone's orders and are checked like them, before any orders you give, and each costs what a letter in your orders costs. A new letter for a person you already sent this season replaces it. Empty for none.",
       ),
     ]);

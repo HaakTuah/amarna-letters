@@ -1,5 +1,7 @@
 /** Plays games unattended and summarizes winners and signals across them (the batch runner's shared half). */
 import {
+  ClauseKindValues,
+  type Clause,
   AllPowers,
   GameStateSchema,
   TurnEngine,
@@ -74,6 +76,57 @@ export interface GameSummary {
   falls: FallMeasure[];
   /** What every character gained in the game, by source, the dead included. */
   gained: Earnings;
+  /** The press in clauses (item 8): counts by what was written, recited, answered and reported (see pressOf). */
+  press: Record<string, number>;
+  /** The characters' decisions ("Characters sleep like kings", item 8): calls, wake-ups (character-seasons asked), pool, seasons. */
+  characterCalls: number;
+  characterWakeups: number;
+  characterPool: number;
+}
+
+/**
+ * The press of one game in counts (item 8): clauses written by kind ("w:askGold"), letters whose clauses an envoy changed
+ * in reciting them ("recited-changed") and how ("threat-dropped", "gift-lowered", "courtesy-added", "clause-dropped"),
+ * answers given ("accept:askGold"), answers reported other than given ("misreported"), and gold sent without an inventory.
+ */
+export function pressOf(s: GameState): Record<string, number> {
+  const out: Record<string, number> = {};
+  const add = (k: string, n = 1): void => {
+    out[k] = (out[k] ?? 0) + n;
+  };
+  const kinds = (cs: readonly Clause[], k: string): number => cs.filter((x) => x.kind === k).length;
+  for (const t of s.trails) {
+    add("letters");
+    if (t.clauses.length > 0) add("letters-with-clauses");
+    for (const c of t.clauses) add(`w:${c.kind}`);
+    if (t.noInventory) add("gold-without-inventory");
+    if (t.audienceTurn === null) continue;
+    const said = t.clauses;
+    const heard = t.deliveredClauses;
+    if (JSON.stringify(said) !== JSON.stringify(heard)) add("recited-changed");
+    if (kinds(heard, "threat") < kinds(said, "threat")) add("threat-dropped");
+    if (kinds(heard, "wellWishes") > kinds(said, "wellWishes")) add("courtesy-added");
+    const gift = (cs: readonly Clause[]): number => cs.filter((x) => x.kind === "gift").reduce((a, x) => a + (x.amount ?? 0), 0);
+    if (gift(heard) < gift(said)) add("gift-lowered");
+    if (heard.filter((x) => x.kind !== "wellWishes").length < said.filter((x) => x.kind !== "threat" && x.kind !== "wellWishes").length) add("clause-dropped");
+    const given = t.exchanges.flatMap((x) => x.clauses);
+    for (const c of given) if (c.answers !== null) add(`${c.kind}:${c.answers}`);
+    if (t.reportTurn !== null && JSON.stringify(given.filter((x) => x.answers !== null)) !== JSON.stringify(t.reportClauses.filter((x) => x.answers !== null))) add("misreported");
+  }
+  return out;
+}
+
+/** The press over many games: the clauses script players wrote, how envoys changed them, and how kings answered (item 8). */
+export function pressReport(games: readonly GameSummary[]): string[] {
+  const total: Record<string, number> = {};
+  for (const g of games) for (const [k, v] of Object.entries(g.press)) total[k] = (total[k] ?? 0) + v;
+  const n = (k: string): number => total[k] ?? 0;
+  const lines = [`Press: ${n("letters")} letters, ${n("letters-with-clauses")} with clauses; gold sent without an inventory ${n("gold-without-inventory")} times.`];
+  lines.push(`  Written: ${ClauseKindValues.filter((k) => n(`w:${k}`) > 0).map((k) => `${k} ${n(`w:${k}`)}`).join(", ")}.`);
+  lines.push(`  Recited changed ${n("recited-changed")}: threat dropped ${n("threat-dropped")}, gift lowered ${n("gift-lowered")}, courtesy added ${n("courtesy-added")}, a clause lost ${n("clause-dropped")}; answers misreported ${n("misreported")}.`);
+  const answers = Object.keys(total).filter((k) => /^(accept|refuse|counter):/.test(k)).sort();
+  lines.push(`  Answers: ${answers.map((k) => `${k} ${total[k]}`).join(", ")}.`);
+  return lines;
 }
 
 /** The falls of a game, measured. */
@@ -136,6 +189,10 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
     richest: ranking.map(Wealth.line),
     topWealth: ranking.length === 0 ? 0 : ranking[0].total,
     gained,
+    press: pressOf(s),
+    characterCalls: sum([...runner.characterAsks.values()], (x) => x.length),
+    characterWakeups: sum([...runner.characterAsks.values()], (x) => new Set(x).size),
+    characterPool: s.characters.length,
     courtsHeld: held,
     courtsReopened: reopened,
     courtsStoodIn: stoodIn,
@@ -428,6 +485,16 @@ export function batchReport(games: readonly GameSummary[]): string {
   );
   lines.push("");
   lines.push(...warReport(games));
+  lines.push("");
+  lines.push(...pressReport(games));
+  const seasons = sum(games, (g) => g.turns);
+  const pool = sum(games, (g) => g.characterPool * g.turns);
+  if (seasons > 0 && pool > 0)
+    lines.push(
+      `Characters as agents would be asked ${fmt(sum(games, (g) => g.characterCalls) / seasons, "0.0")} times a season (calls), ` +
+        `${fmt(sum(games, (g) => g.characterWakeups) / seasons, "0.0")} wake-ups a season over a pool of ${fmt(mean(games.map((g) => g.characterPool)), "0")}: ` +
+        `${fmt(sum(games, (g) => g.characterWakeups) / pool, "0.00")} wake-ups and ${fmt(sum(games, (g) => g.characterCalls) / pool, "0.00")} calls per character per season.`,
+    );
   lines.push("");
   lines.push(...richestReport(games));
   const cost = sum(games, (g) => g.costUsd);

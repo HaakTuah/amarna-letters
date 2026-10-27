@@ -171,13 +171,13 @@ describe("CourtAsleepTests", () => {
       // A court reply answers every envoy the request names, by his id.
       if (spec.key.includes("/court/")) {
         const answers = [...spec.user.matchAll(/\((c\d+)\), envoy of /g)].map(
-          (m) => `{"envoy":"${m[1]}","speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`,
+          (m) => `{"envoy":"${m[1]}","speech":"Welcome.","clauses":[],"gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`,
         );
         return Promise.resolve(JSON.parse(`{"answers":[${answers.join(",")}],"letters":[],"reopen_orders":${this.#reopen},"ledger":[]}`)!);
       }
       let json = spec.key.includes("/orders/")
         ? `{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}`
-        : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"letters":[],"reopen_orders":REOPEN}`.replaceAll(
+        : `{"speech":"Welcome.","clauses":[],"gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"letters":[],"reopen_orders":REOPEN}`.replaceAll(
             "REOPEN",
             this.#reopen ? "true" : "false",
           );
@@ -267,7 +267,8 @@ describe("CourtAsleepTests", () => {
     Assert.equal([1], host.calls);
     let envoy = char(r.state, sent!);
     Assert.equal(["EnvoyOutbound", "Egypt"], [envoy.duty, envoy.missionTarget]);
-    Assert.equal(gold - 10, ledger(r.state.treasuries.get("Alashiya")));
+    // The gold and its inventory's scribe fee (item 8).
+    Assert.equal(gold - 10 - r.state.config.inventoryFee, ledger(r.state.treasuries.get("Alashiya")));
     Assert.empty(r.state.sleep.get("Alashiya").courtLetters);
     // The envoy before the king heard what was said, never what the king sent elsewhere or chose about its orders.
     let heard = Assert.single(listening.heard);
@@ -346,7 +347,7 @@ describe("CourtAsleepTests", () => {
         return newHostReply({
           end: true,
           reopenOrders: true,
-          letters: [dispatch(second, "Babylonia", "All my gold.", { gold: gold }), dispatch(first, "Egypt", "To Egypt.")],
+          letters: [dispatch(second, "Babylonia", "All my gold.", { gold: gold, noInventory: true }), dispatch(first, "Egypt", "To Egypt.")],
         });
       },
     );
@@ -494,7 +495,7 @@ describe("CourtAsleepTests", () => {
   });
 
   test("A reply carries letters and the choice and the journal keeps them", () => {
-    let json = JSON.parse(`{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,
+    let json = JSON.parse(`{"speech":"Welcome.","clauses":[],"gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,
  "send_gold_back":0,"gold_back_purity":100,"end_audience":true,"reopen_orders":true,"ledger":[],
  "letters":[{"envoy":"c4","to":"Hatti","message":"Brother.","mandate":"","gold":15,"purity":100,"call_brother":true,"call_them_great_king":true,
              "claim_great_king":true,"your_name_first":false,"omit_greeting":false,"tablet_to_seal":"","sworn_alliance":false,"show_tablet_copies":[]},

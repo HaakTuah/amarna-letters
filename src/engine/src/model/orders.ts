@@ -10,6 +10,7 @@ import { StandingAnswerRequestSchema, type StandingAnswerRequest } from "./answe
 import { isBlank } from "../core/text.ts";
 import type { UnitKind } from "./map.ts";
 import type { Power } from "./power.ts";
+import { type Clause, ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema, type GreetingOptions, type TabletProposal } from "./records.ts";
 
 export interface HoldOrder {
@@ -96,6 +97,10 @@ export interface DispatchOrder {
   purityPercent: number;
   proposal?: TabletProposal | null;
   copies?: string[] | null;
+  /** The letter's clauses (item 8): beside the words in full press, the whole letter in structured press. */
+  clauses?: Clause[] | null;
+  /** Gold sent without an inventory tablet (item 8): saves the scribe's fee, and nobody can check what arrived. */
+  noInventory?: boolean | null;
 }
 /** Let a detained envoy (or captive) go home, optionally with a spoken reply. */
 export interface ReleaseOrder {
@@ -166,6 +171,8 @@ export interface ForgeOrder {
   character: string;
   text: string;
   seals: Power[];
+  /** In structured press the forgery is set out in clauses too (item 8), its text their words. */
+  clauses?: Clause[] | null;
 }
 
 export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release"] as const;
@@ -244,7 +251,7 @@ export function dispatch(
   envoy: string,
   to: Power,
   letter: string,
-  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null } = {},
+  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null; clauses?: Clause[] | null; noInventory?: boolean | null } = {},
 ): DispatchOrder {
   return {
     type: "dispatch",
@@ -257,6 +264,8 @@ export function dispatch(
     purityPercent: opts.purityPercent ?? 100,
     proposal: opts.proposal ?? null,
     copies: opts.copies ?? null,
+    clauses: opts.clauses ?? null,
+    noInventory: opts.noInventory ?? null,
   };
 }
 export const release = (character: string, reply = ""): ReleaseOrder => ({ type: "release", character, reply });
@@ -426,6 +435,8 @@ export const OrderSchema = poly("Order", "type", {
     purityPercent: I,
     proposal: opt(() => TabletProposalSchema),
     copies: opt(list(S)),
+    clauses: opt(list(() => ClauseSchema)),
+    noInventory: opt(B),
   }),
   release: v("ReleaseOrder", () => release(""), { character: S, reply: S }),
   seekCandidates: v("SeekCandidatesOrder", () => seekCandidates(), {}),
@@ -439,7 +450,7 @@ export const OrderSchema = poly("Order", "type", {
   roads: v("RoadsOrder", () => roads("Egypt", true), { court: S, close: B }),
   assay: v("AssayOrder", () => assay(""), { lot: S }),
   authenticate: v("AuthenticateOrder", () => authenticate("", 0), { copy: S, spend: I }),
-  forge: v("ForgeOrder", () => forge("", "", []), { character: S, text: S, seals: list(S) }),
+  forge: v("ForgeOrder", () => forge("", "", []), { character: S, text: S, seals: list(S), clauses: opt(list(() => ClauseSchema)) }),
   captive: v("CaptiveOrder", () => captive("", "Execute"), { character: S, fate: S, ransom: I, poison: S }),
   payRansom: v("PayRansomOrder", () => payRansom(""), { character: S }),
   unreadable: v("UnreadableOrder", () => unreadable("", ""), { text: S, reason: S }),

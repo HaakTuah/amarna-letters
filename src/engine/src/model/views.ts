@@ -5,6 +5,8 @@ import type { UnitKind } from "./map.ts";
 import { type Order, OrderSchema } from "./orders.ts";
 import { type OrderOutcome, OrderOutcomeSchema } from "./outcomes.ts";
 import type { Power } from "./power.ts";
+import { type Clause, ClauseSchema } from "./clauses.ts";
+import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type InboxItem, InboxItemSchema } from "./records.ts";
 import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, StandingOrderViewSchema } from "./sleep.ts";
 import { type StandingAnswer, StandingAnswerSchema } from "./answers.ts";
@@ -216,10 +218,12 @@ export interface TabletView {
   allianceOath: boolean;
   source: string;
   authResult: string | null;
+  clauses: Clause[];
 }
 
 export function newTabletView(init: Partial<TabletView> = {}): TabletView {
   return {
+    clauses: [],
     name: "",
     copyId: "",
     tabletId: "",
@@ -236,6 +240,7 @@ export function newTabletView(init: Partial<TabletView> = {}): TabletView {
 }
 
 export const TabletViewSchema: ObjSchema<TabletView> = obj("TabletView", newTabletView, {
+  clauses: list(() => ClauseSchema),
   name: S,
   copyId: S,
   tabletId: S,
@@ -403,10 +408,16 @@ export interface SeatView {
   /** Letters it sent from its audiences this season, which go out with its orders (checked before them). */
   courtLetters: Order[];
   prices: Dict<string, number>;
+  /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
+  claims: Claim[];
+  /** What this court called others, and they it, in the greetings sent between them (item 8). */
+  greetings: Recognition[];
 }
 
 export function newSeatView(init: Partial<SeatView> = {}): SeatView {
   return {
+    greetings: [],
+    claims: [],
     turn: 0,
     season: "",
     power: "Egypt",
@@ -460,6 +471,8 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
 }
 
 export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, {
+  greetings: list(() => RecognitionSchema),
+  claims: list(() => ClaimSchema),
   turn: I,
   season: S,
   power: S,

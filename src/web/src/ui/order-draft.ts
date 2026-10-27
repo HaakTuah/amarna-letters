@@ -13,6 +13,7 @@ import {
   type Power,
   type SeatView,
   type StandingRequest,
+  type StandingAnswerRequest,
   type StandingWhen,
   type TurnSubmission,
   type UnitView,
@@ -39,6 +40,9 @@ export class OrderDraft {
   readonly standing: StandingRequest[] = [];
   /** The ids of standing orders kept so far that are to be cancelled with these orders. */
   readonly cancelStanding = new Set<string>();
+  /** New standing answers for envoys at court, which a human seat may set too (item 8), and the ids of kept ones to cancel. */
+  readonly answers: StandingAnswerRequest[] = [];
+  readonly cancelAnswers = new Set<string>();
   selected: string | null = null;
   notes = "";
 
@@ -110,6 +114,8 @@ export class OrderDraft {
       notes: this.notes,
       standing: [...this.standing],
       cancelStanding: this.view.standing.map((s) => s.id).filter((id) => this.cancelStanding.has(id)),
+      answers: [...this.answers],
+      cancelAnswers: this.view.answers.map((a) => a.id).filter((id) => this.cancelAnswers.has(id)),
     });
   }
 

@@ -9,6 +9,7 @@ import {
   RoadPlay,
   ScriptLeader,
   ScriptMind,
+  pressFor,
   TemplateNarrator,
   GameRunner,
   attachParity,
@@ -177,7 +178,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
               (sh) => last!.log.addShadow(sh),
               (line) => console.log(line),
             );
-      last = new GameRunner(state, seats, minds, set.narrator, { jobs: choices.jobs });
+      last = new GameRunner(pressFor(state, minds), seats, minds, set.narrator, { jobs: choices.jobs });
       last.writeChronicles = !o.noChronicles;
       if (o.parityDir !== null) {
         let drained = 0;
@@ -252,7 +253,7 @@ export async function playSolo(job: SoloJob): Promise<GameSummary> {
     (st) => {
       const baseline = new BaselineLeader(st.seed);
       const seats = new Dict<Power, ISeat>(AllPowers.map((x) => [x, x === job.focus ? new ScriptLeader(st.seed) : baseline] as const));
-      const runner = new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator());
+      const runner = new GameRunner(pressFor(st, new ScriptMind()), seats, new ScriptMind(), new TemplateNarrator());
       runner.writeChronicles = false;
       return runner;
     },

@@ -143,6 +143,8 @@ export function routineCourt(counsel: boolean): ReplySchema {
   const answer = object(
     ["envoy", z.string().describe("The id of the envoy you answer (like c13), as the audience names him.")],
     ["speech", z.string().describe("What you say to this envoy, to carry home. Empty if you leave him to fuller deliberation.")],
+    // The answer's formulas as clauses (item 8), as at any audience.
+    ["clauses", ((full.shape.answers as z.ZodArray<z.ZodObject<z.ZodRawShape>>).element.shape.clauses as z.ZodType)],
     ["gift_to_envoy", z.int().describe("A personal gift to the envoy in shekels, or 0. An envoy takes one gift per audience.")],
     ["gift_request", z.string().describe("What you want from the envoy in return for the gift, or empty.")],
     ["send_gold_back", z.int().describe("Gold sent home with the envoy for his king, or 0: a gift in return, so that he does not go home empty-handed.")],

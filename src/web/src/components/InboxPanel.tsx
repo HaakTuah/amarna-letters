@@ -1,4 +1,4 @@
-import { inboxOf, ledger, type GameState, type InboxKind, type Power } from "@amarna/engine";
+import { clauseTag, inboxOf, ledger, type GameState, type InboxKind, type Power } from "@amarna/engine";
 import { useState } from "react";
 import { dated, powerName, shekels, whenCap } from "../ui/format.ts";
 
@@ -42,6 +42,7 @@ export function InboxPanel({ state, power }: { state: GameState; power: Power })
                   {item.title} <span className="pill">{kindName(item.kind)}</span>
                 </h4>
                 <div className="body">{dated(item.body, power)}</div>
+                {item.clauses.length > 0 && <small className="muted">The answer in clauses, as reported: {item.clauses.map(clauseTag).join("; ")}.</small>}
               </div>
             ))}
         </div>

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { parentPort } from "node:worker_threads";
 import { AllPowers, Dict, GameFactory, newGameConfig, type Power } from "@amarna/engine";
 import { Presets, SeatChoices, SimulatedApi, bodyText, buildSeats, providersFor } from "@amarna/llm";
-import { BaselineLeader, GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, attachParity, replayLenient, type ISeat } from "@amarna/game";
+import { BaselineLeader, GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, attachParity, pressFor, replayLenient, type ISeat } from "@amarna/game";
 
 /** `play`: instead of replaying the log, play the game afresh with script kings (sleeping ones, as --sleeping-scripts). */
 export interface ReplayJob {
@@ -28,7 +28,7 @@ function playRunner(seed: number, sleeping: boolean, versus = false): GameRunner
     : script;
   const baseline = versus ? new BaselineLeader(state.seed) : null;
   const seats = new Dict<Power, ISeat>(AllPowers.map((p, i) => [p, baseline !== null && (i + (seed % 2)) % 2 !== 0 ? baseline : seat] as const));
-  return new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator());
+  return new GameRunner(pressFor(state, new ScriptMind()), seats, new ScriptMind(), new TemplateNarrator());
 }
 
 export interface ReplayResult {
@@ -66,7 +66,7 @@ parentPort!.on("message", async (job: ReplayJob) => {
     });
     let runner: GameRunner | null = null;
     const set = buildSeats(choices, state, providersFor(choices, api, {}), () => runner!.log);
-    runner = new GameRunner(state, set.seats, set.minds, set.narrator);
+    runner = new GameRunner(pressFor(state, set.minds), set.seats, set.minds, set.narrator);
     let drained = 0;
     const lines = attachParity(runner, () => {
       const bodies = api.requests.slice(drained).map(bodyText);

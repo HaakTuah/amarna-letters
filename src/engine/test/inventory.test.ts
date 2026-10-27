@@ -51,6 +51,7 @@ describe("InventoryTests", () => {
     return {
       audienceId: a.id,
       delivered: "Greetings.",
+      clauses: [],
       skim: skim,
       swapInventory: swap,
       rounds: [newAudienceRound({ host: host ?? newHostReply({ speech: "Welcome.", end: true }), envoy: newEnvoyReaction({ speech: "I thank you." }) })],

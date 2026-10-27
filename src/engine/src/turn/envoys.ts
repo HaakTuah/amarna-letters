@@ -24,9 +24,12 @@ import {
   type MessageTrail,
   type PendingAudience,
 } from "../model/records.ts";
-import { char, findCharacter, isAlive, logEvent, newGoldLot, newId, notify } from "../model/state.ts";
+import { char, findCharacter, inboxOf, isAlive, logEvent, newGoldLot, newId, notify } from "../model/state.ts";
+
 import { formatMoney } from "../rules/calendar.ts";
 import { cap, deviations, renderGreeting, stopped } from "../rules/greeting.ts";
+import { checkClauses, renderClauses } from "../rules/clauses.ts";
+import type { Clause } from "../model/clauses.ts";
 import { Views } from "../rules/views.ts";
 import { removeAll } from "./resolve.ts";
 import { addLetters } from "./sleep.ts";
@@ -57,7 +60,8 @@ declare module "./core.ts" {
     envoyArrivesAbroad(j: Journey): void;
     sendHome(c: Character, from: Power, cargo: HomeCargo): void;
     weighed(a: PendingAudience, skim: number): number;
-    buildAudienceView(a: PendingAudience, spoken: string, skim: number, soFar: readonly Exchange[], round: number, earlier?: readonly AudienceRound[] | null, swap?: boolean): AudienceView;
+    buildAudienceView(a: PendingAudience, spoken: string, skim: number, soFar: readonly Exchange[], round: number, earlier?: readonly AudienceRound[] | null, swap?: boolean, recited?: readonly Clause[] | null): AudienceView;
+    clausesOf(writer: Power, to: Power, cs: readonly Clause[] | null | undefined, what: string): Clause[];
     applyAudience(record: AudienceRecord): void;
     overdue(sender: Power, c: Character, host: Power, when: number, place?: string | null): void;
     audienceTranscript(a: PendingAudience, c: Character, trail: MessageTrail, stated: number, weighed: number, unseen: readonly string[]): string;
@@ -70,6 +74,13 @@ declare module "./core.ts" {
 }
 
 const P = TurnEngine.prototype;
+
+/** A letter's, tablet's or answer's clauses that stand (item 8); the writer is told of any left out, and why. */
+P.clausesOf = function (writer, to, cs, what) {
+  const r = checkClauses(cs, writer, to, this.s.turn);
+  if (r.dropped.length > 0) notify(this.s, writer, "Notice", "Clauses left out", `In your ${what} to ${to} the scribes left out what could not stand: ${r.dropped.join("; ")}.`);
+  return r.kept;
+};
 
 P.trail = function (id) {
   if (id === null || id === undefined) return null;
@@ -103,15 +114,29 @@ P.dispatch = function (p, d) {
     return;
   }
   const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
-  const fee = d.proposal ? S.config.tabletFee : 0;
+  // The scribe's fee for the tablet to seal, and for the inventory of any gold, unless it goes without one (item 8).
+  const inventory = d.gold > 0 && d.noInventory !== true;
+  const fee = (d.proposal ? S.config.tabletFee : 0) + (inventory ? S.config.inventoryFee : 0);
   if (!this.pay(p, fine + fee, `${c.name}'s mission to ${d.to}`, d, `${c.name} stayed at your court`)) return;
 
   // The scribes write the king's own marks for the copies in his archive as tablets every court can name, and person ids
   // as names: the envoy and the host read what any court could read.
-  const letter = this.scribe(p, cap(d.letter ?? "", S.config.maxLetterChars));
+  // The letter's clauses (item 8), checked; in structured press they are the letter, and the tablet's are the tablet.
+  const structured = S.config.pressMode === "structured";
+  const clauses = this.clausesOf(p, d.to, d.clauses, "letter");
+  // In full press a letter given only in clauses is written out in their words, as in structured press.
+  const letter = structured || isBlank(d.letter) ? renderClauses(clauses, p, d.to) : this.scribe(p, cap(d.letter ?? "", S.config.maxLetterChars));
   const mandate = this.scribe(p, cap(d.mandate ?? "", 600));
-  const proposal = d.proposal ? newTabletProposal({ text: this.scribe(p, cap(d.proposal.text, 1200)), allianceOath: d.proposal.allianceOath }) : null;
+  const tabletClauses = d.proposal ? this.clausesOf(p, d.to, d.proposal.clauses, "tablet") : [];
+  const proposal = d.proposal
+    ? newTabletProposal({
+        text: structured || isBlank(d.proposal.text) ? renderClauses(tabletClauses, p, d.to) : this.scribe(p, cap(d.proposal.text, 1200)),
+        allianceOath: d.proposal.allianceOath,
+        clauses: tabletClauses,
+      })
+    : null;
   const greeting = renderGreeting(p, d.to, d.greeting ?? null);
+  this.recordGreeting(p, d.to, d.greeting ?? null);
   const trail = newMessageTrail({
     id: newId(S, "m"),
     turn: S.turn,
@@ -124,6 +149,8 @@ P.dispatch = function (p, d) {
     mandate,
     goldStated: d.gold,
     proposalText: proposal?.text ?? null,
+    clauses,
+    noInventory: d.gold > 0 && !inventory,
   });
   S.trails.push(trail);
 
@@ -137,9 +164,11 @@ P.dispatch = function (p, d) {
     proposal,
     copyIds: d.copies ? [...d.copies] : [],
     trailId: trail.id,
+    clauses,
+    inventory,
   });
   if (proposal !== null) {
-    const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath });
+    const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, clauses: tabletClauses });
     S.tablets.push(tablet);
     dispatch.proposalTabletId = tablet.id;
   }
@@ -157,7 +186,7 @@ P.dispatch = function (p, d) {
     S.turn,
     `My lord of ${land(p)} sent me to ${land(d.to)}. The message: "${letter}"` +
       (mandate.length > 0 ? ` I may agree to: ${stopped(mandate)}` : "") +
-      (d.gold > 0 ? ` I carry gold, said to be ${formatMoney(d.gold)}.` : "") +
+      (d.gold > 0 ? ` I carry gold, said to be ${formatMoney(d.gold)}${inventory ? "" : ", with no inventory: nobody can check it"}.` : "") +
       (d.proposal ? " I carry a tablet for their king to seal." : ""),
   );
   notify(S, p, "Notice", "Envoy dispatched", `${c.name} set out for ${d.to} last season; the journey should take about ${travel} season(s).`, c.id);
@@ -221,7 +250,7 @@ P.sendHome = function (c, from, cargo) {
  * already named and given. `swap`: the envoy chose to swap the inventory for its forgery (it does only if it kept gold and
  * has the skill).
  */
-P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, swap = false) {
+P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, swap = false, recited = null) {
   const S = this.s;
   const c = char(S, a.envoyId);
   const past = earlier ?? [];
@@ -239,6 +268,8 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
     greeting: a.dispatch.greetingText,
     greetingDeviations: deviations(a.dispatch.greeting),
     spoken,
+    clauses: [...(recited ?? a.dispatch.clauses)],
+    inventory: a.dispatch.inventory,
     goldStated: this.inventoryStated(a, skim, swap),
     goldWeighed: weighedGold(a, skim),
     soFar: [...soFar],
@@ -294,14 +325,16 @@ P.applyAudience = function (record) {
   for (const round of record.rounds) if (round.host !== null && !round.host.fromFallback) this.keepAnswers(host, round.host.answers, round.host.cancelAnswers);
 
   trail.delivered = cap(record.delivered ?? "", MaxSpeech);
+  trail.deliveredClauses = [...(record.clauses ?? [])];
 
   // Gold changes hands, minus whatever stuck to the envoy's fingers.
   const skim = clamp(record.skim, 0, d.gold);
   const weighed = d.gold - skim;
   const fine = toInt(roundEven((weighed * d.purityPercent) / 100.0));
   // An envoy that kept some may have swapped the inventory for a forgery stating only what is left.
-  const swapped = this.swaps(c, skim, d.gold, record.swapInventory);
-  const stated = swapped ? weighed : d.gold;
+  // Without an inventory (item 8) nothing can be swapped, and what the weighers find is all the host knows.
+  const swapped = d.inventory && this.swaps(c, skim, d.gold, record.swapInventory);
+  const stated = swapped || !d.inventory ? weighed : d.gold;
   // What the envoy did that the host does not see in its record of the audience: what it kept, once its forgery hides it.
   const unseen: string[] = [];
   if (skim > 0) {
@@ -310,7 +343,7 @@ P.applyAudience = function (record) {
     c.facts.push(newFact({ id: newId(S, "f"), text: `Kept part of the gold ${land(sender)} sent to ${land(host)}.`, secrecy: "Hidden", tag: "skim" }));
     trail.outcomes.push(`kept ${skim} shekels of the gold`);
     logEvent(S, "skim", `${c.name} kept ${skim} of the ${d.gold} shekels ${sender} sent to ${host}.`, [], "skim");
-    const swap = this.swapInventory(c, sender, host, skim, weighed, record.swapInventory);
+    const swap = d.inventory ? this.swapInventory(c, sender, host, skim, weighed, record.swapInventory) : null;
     if (swap !== null) {
       unseen.push(trail.outcomes[trail.outcomes.length - 1]);
       trail.outcomes.push(swap);
@@ -323,7 +356,7 @@ P.applyAudience = function (record) {
     t.lots.push(newGoldLot({ id: newId(S, "g"), from: sender, stated, face: weighed, true: fine, arrivedTurn: S.turn }));
   }
   // The inventory, sealed when the envoy set out, or its forgery, goes into the host's archive.
-  if (d.gold > 0) this.inventory(c, sender, host, stated, trail.turn, swapped, `the inventory brought by ${c.name}, envoy of ${sender}`);
+  if (d.gold > 0 && d.inventory) this.inventory(c, sender, host, stated, trail.turn, swapped, `the inventory brought by ${c.name}, envoy of ${sender}`);
   trail.goldDelivered = weighed;
   trail.goldFine = fine;
   if (d.purityPercent < 100 && d.gold > 0) logEvent(S, "debasement", `${sender} sent ${host} gold of only ${d.purityPercent}% purity.`, [sender], "debased-gift");
@@ -348,7 +381,7 @@ P.applyAudience = function (record) {
   for (const round of record.rounds.slice(0, S.config.audienceRounds)) {
     const h = round.host ?? newHostReply();
     const e = round.envoy ?? newEnvoyReaction();
-    trail.exchanges.push(newExchange({ host: cap(h.speech ?? "", MaxSpeech), envoy: cap(e.speech ?? "", MaxSpeech) }));
+    trail.exchanges.push(newExchange({ host: cap(h.speech ?? "", MaxSpeech), envoy: cap(e.speech ?? "", MaxSpeech), clauses: [...(h.clauses ?? [])], bribeClauses: [...(h.bribeClauses ?? [])] }));
 
     // An envoy takes one gift per audience: the first it accepts, whether or not the treasury can then pay it.
     if (h.bribe > 0 && giftTaken) trail.outcomes.push("a second gift was not given: an envoy takes one gift per audience");
@@ -478,7 +511,12 @@ P.audienceTranscript = function (a, c, trail, stated, weighed, unseen) {
   const lines: string[] = [];
   lines.push(a.dispatch.greetingText.length > 0 ? `The sealed greeting reads: "${a.dispatch.greetingText}"` : "The tablet bears no greeting at all.");
   lines.push(`${c.name} said: "${trail.delivered}"`);
-  if (a.dispatch.gold > 0) lines.push(`The inventory lists ${formatMoney(stated)} of gold; your weighers found ${formatMoney(weighed)}.`);
+  if (a.dispatch.gold > 0)
+    lines.push(
+      a.dispatch.inventory
+        ? `The inventory lists ${formatMoney(stated)} of gold; your weighers found ${formatMoney(weighed)}.`
+        : `The gold came with no inventory; your weighers found ${formatMoney(weighed)}.`,
+    );
   for (const x of trail.exchanges) {
     lines.push(`You said: "${x.host}"`);
     lines.push(`${c.name} answered: "${x.envoy}"`);
@@ -620,11 +658,16 @@ P.fulfil = function (req, reply) {
         text += `\n\n[The inventory lists ${formatMoney(stated)} of gold; your weighers found ${formatMoney(face)}.]`;
       }
       const trail = this.trail(req.trailId);
+      // The host's answer as the envoy reports it, in clauses (item 8): what a script king reads.
+      const host = trail?.to ?? lord;
+      const answer = checkClauses(reply.clauses, host, lord, S.turn).kept;
       if (trail !== null) {
         trail.report = text;
         trail.reportTurn = S.turn;
+        trail.reportClauses = answer;
       }
       notify(S, lord, "EnvoyReport", `${c.name} returns`, text, c.id);
+      if (answer.length > 0) inboxOf(S, lord).at(-1)!.clauses = answer;
       remember(c, S.turn, `I reported to ${c.employer === lord ? "my lord" : `the king of ${land(lord)}`}: "${cap(own, 300)}"`);
       break;
     }

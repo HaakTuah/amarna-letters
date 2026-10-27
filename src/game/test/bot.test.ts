@@ -7,6 +7,7 @@ import { Statecraft } from "../src/bots/statecraft.ts";
 import { Tactics } from "../src/bots/tactics.ts";
 import {
   AllPowers,
+  StartClaims,
   type GameState,
   type MoveOrder,
   type Power,
@@ -251,6 +252,8 @@ describe("BotTests", () => {
   test("Babylon will not call Assyria brother", () => {
     for (let seed = 1; seed <= 10; seed++) {
       let brain = new Brain("Babylonia", seed);
+      // Assyria's claim is new at the start, and Babylonia holds Assyria its vassal (item 8: "Recognition is earned").
+      brain.claims = StartClaims.map((c) => ({ ...c }));
       let greeting = Statecraft.greet(brain, "Assyria");
       Assert.false(greeting.callBrother);
       Assert.false(greeting.grantGreatKing);

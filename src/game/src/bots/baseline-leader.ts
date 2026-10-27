@@ -32,6 +32,7 @@ import {
   newGreetingOptions,
   newHostReply,
   newTabletProposal,
+  clause,
   newTurnSubmission,
   payRansom,
   placeSpy,
@@ -416,7 +417,7 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
           envoy.id,
           to,
           `My brother, see what ${forged.seals.join(" and ")} have sealed in secret. I send you the tablet itself. Judge for yourself who are your friends.`,
-          { mandate: "Show the tablet. Promise nothing.", copies: [forged.copyId] },
+          { mandate: "Show the tablet. Promise nothing.", copies: [forged.copyId], clauses: [clause("wellWishes")] },
         );
         m.sentCopies.add(forged.copyId);
       }
@@ -433,7 +434,7 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
         envoy.id,
         third,
         `${foe} sealed this tablet with me before the gods, and then broke it. See for yourself what an oath of ${foe} is worth. Stand with me, and we will teach ${foe} the price of a broken oath.`,
-        { mandate: "You may agree to act together against " + foe + ". Promise no land.", copies: [broken.copyId] },
+        { mandate: "You may agree to act together against " + foe + ". Promise no land.", copies: [broken.copyId], clauses: [clause("against", { power: foe })] },
       );
       m.sentCopies.add(broken.copyId);
     } else if (enemy !== null) {
@@ -442,7 +443,11 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
       const letter = gold
         ? "The gold you sent me was not good. When it was put into the furnace it did not come out whole. Is this how a brother treats a brother?"
         : `Your troops have entered my land. Is this brotherhood? Withdraw them, and send me a fitting gift, or I will not forget it.`;
-      order = dispatch(envoy.id, foe2, letter, { mandate: "Demand withdrawal and gifts. Agree to nothing less.", greeting: newGreetingOptions({ callBrother: false }) });
+      order = dispatch(envoy.id, foe2, letter, {
+        mandate: "Demand withdrawal and gifts. Agree to nothing less.",
+        greeting: newGreetingOptions({ callBrother: false }),
+        clauses: [clause("grievance"), clause("askGold", { amount: 50 })],
+      });
     } else {
       const top = leaderOf(v);
       if (top !== null && alive.length > 2 && rng.chance(0.5)) {
@@ -462,7 +467,9 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
             proposal: newTabletProposal({
               text: `${Oath}: ${me} and ${partner} swear to stand together against ${top}. Neither shall make peace with ${top} alone. If one breaks this oath, may the gods destroy his name and his seed.`,
               allianceOath: true,
+              clauses: [clause("against", { power: top })],
             }),
+            clauses: [clause("against", { power: top })],
           },
         );
       } else {
@@ -491,7 +498,8 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
               mandate: "You may agree to peace and an exchange of gifts. Promise no land.",
               gold: gift,
               purityPercent: purity,
-              proposal: newTabletProposal({ text, allianceOath: alliance }),
+              proposal: newTabletProposal({ text, allianceOath: alliance, clauses: alliance ? [clause("peace"), clause("alliance")] : [clause("peace")] }),
+              clauses: [clause("peace"), ...(gift > 0 ? [clause("gift", { amount: gift })] : [])],
             },
           );
         } else {
@@ -500,7 +508,7 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
             to,
             "I have heard that all is well with you, and I rejoice. Send me your messenger quickly, and let gifts pass between us as is fitting between brothers." +
               (gift > 0 ? " Here is a gift for you." : ""),
-            { mandate: "Speak of friendship. Promise nothing.", gold: gift, purityPercent: purity },
+            { mandate: "Speak of friendship. Promise nothing.", gold: gift, purityPercent: purity, clauses: [clause("wellWishes"), ...(gift > 0 ? [clause("gift", { amount: gift })] : [])] },
           );
         }
       }
@@ -593,7 +601,7 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
           AllPowers.filter((p) => p !== me && !rivals.includes(p) && !v.fallen.includes(p)),
           [() => rng.next(100), cmpNum],
         )[0] ?? "Egypt"; // FirstOrDefault on a Power: Egypt when none is left
-      orders.push(forge(idle[0].id, `${rivals[0]} swears to ${rivals[1]}: when the harvest is in, we shall march together against ${victim} and divide its land.`, rivals));
+      orders.push({ ...forge(idle[0].id, `${rivals[0]} swears to ${rivals[1]}: when the harvest is in, we shall march together against ${victim} and divide its land.`, rivals), clauses: [clause("against", { power: victim })] });
     }
   }
 

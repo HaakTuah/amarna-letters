@@ -39,7 +39,7 @@ describe("LeaderMemoryTests", () => {
     }
   }
 
-  const Host: string = `{"speech":"Tell your lord I am his brother.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
+  const Host: string = `{"speech":"Tell your lord I am his brother.","clauses":[],"gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
 
   // <summary>An orders reply with these notes, summary and ledger lines, holding Hatti's capital.</summary>
   function ordersOf(notes: string, summary: string = "", ...ledger: [string, string][]): string {

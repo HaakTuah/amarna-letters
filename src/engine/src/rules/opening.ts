@@ -5,6 +5,7 @@
 import { WorldMap, StartGold, StartUnits, type StartUnit, type UnitKind } from "../model/map.ts";
 import type { GameConfig } from "../model/config.ts";
 import { AllPowers, type Power } from "../model/power.ts";
+import { StartClaims } from "../model/recognition.ts";
 
 export interface Opening {
   power: Power;
@@ -37,7 +38,14 @@ export function openings(config: GameConfig, map: WorldMap | null = null): Openi
   });
 }
 
+/** What the opening positions say of a power's rank ("Recognition is earned"): a claim to it that is still new, and who holds him a vassal. */
+export function openingRank(p: Power): string {
+  const c = StartClaims.find((x) => x.power === p);
+  if (c === undefined) return "";
+  return ` Its claim to be a Great King is new${c.overlord !== null ? `: ${c.overlord} holds ${p} to be its vassal` : ""}.`;
+}
+
 /** One line per power, as the rulebook gives it. */
 export function openingLines(config: GameConfig): string[] {
-  return openings(config).map((o) => `${o.power}: ${openingTroops(o)}; treasury ${o.gold} shekels; homeland yield ${o.homelandYield}; starting strength ${o.strength}.`);
+  return openings(config).map((o) => `${o.power}: ${openingTroops(o)}; treasury ${o.gold} shekels; homeland yield ${o.homelandYield}; starting strength ${o.strength}.${openingRank(o.power)}`);
 }

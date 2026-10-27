@@ -159,6 +159,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   const known = knownHolders(s, m, p, seen);
   const t = s.treasuries.get(p);
   const v = newSeatView({
+    claims: s.claims.map((c) => ({ ...c })),
+    greetings: s.recognition.filter((r) => r.from === p || r.to === p).map((r) => ({ ...r })),
     turn: s.turn,
     season: season(s.turn, p),
     power: p,
@@ -276,6 +278,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("armyUpkeep", s.config.armyUpkeep);
   v.prices.set("fleetUpkeep", s.config.fleetUpkeep);
   v.prices.set("tabletFee", s.config.tabletFee);
+  v.prices.set("inventoryFee", s.config.inventoryFee);
   v.prices.set("assay", s.config.assayFee);
   v.prices.set("forgery", s.config.forgeFee);
   v.prices.set("cityPricePerYield", s.config.neutralPriceFactor);
