@@ -139,4 +139,21 @@ letters never use those words), and shared victory is a house rule, off. No new 
 
 ## Review
 
-<!-- the reviewer's findings -->
+One reviewer (Opus, high effort), given the diff and the item's text. Its findings, all fixed:
+
+1. **Blocking: after playing on, model kings were still told the age may end.** A model seat built its rulebook from the
+   config it was given at the start, while playing on opens the age in the state's own config. The seat now takes the
+   open age from the view it is asked with (`LlmLeaderSeat.shared(view)`), so the rulebook and the view agree (tested).
+   The saved header's config is never changed, so a replay still draws the same last season.
+2. **The drawn season reached the page** in the state the worker sends it (nothing displayed it, but devtools could read
+   it). The page now gets the state with `finalSeason` and `finalByCap` blanked (`forPage` in `core.ts`).
+3. **The age's winners could be overwritten** if the open age later ended with one kingdom left. They are now recorded
+   apart (`GameState.ageWinners`, tested), and the header reads them.
+4. **A median that is not a number hung the draw** with no cap. The engine falls back to 44, the setup clamps it, and
+   the batch runner refuses bad `--median`, `--cap` and `--max-turns` values.
+5. **Cosmetic: the header kept saying the age had ended** until the next season after playing on. The live header now
+   switches at once (checked in the browser).
+
+Checked by the reviewer and found correct: the bisection, the draw's stream and range, play-on replay (read-only and
+continued), no leak into views, frames, the look-ahead or prompts, the settings' round trip, the script kings' belief,
+no remaining use of the removed fields, save version 8, and the calendar.

@@ -65,6 +65,9 @@ export function fallbackLine(f: SeasonFallbacks): string {
   return `${f.fallen.length} of ${f.asked} model decisions fell back to scripts this season: ${why.join("; ")}${f.fallen.length > 3 ? "; and more" : ""}.`;
 }
 
+/** The state as the page gets it: without the drawn last season, which nothing shown may read (build order item 6a). */
+const forPage = (s: GameState): GameState => ({ ...s, finalSeason: null, finalByCap: false });
+
 export class SessionCore {
   private runner: GameRunner | null = null;
   private settings: GameSettings = newSettings();
@@ -124,7 +127,7 @@ export class SessionCore {
         orders: seat.orders !== null ? serialize(SeatViewSchema, seat.orders.view) : null,
         audience: seat.audience !== null ? { view: serialize(AudienceViewSchema, seat.audience.view), court: serialize(SeatViewSchema, seat.audience.court) } : null,
       });
-    const stateJson = r !== null && this.stateVersion !== this.sentVersion ? serialize(GameStateSchema, r.state) : null;
+    const stateJson = r !== null && this.stateVersion !== this.sentVersion ? serialize(GameStateSchema, forPage(r.state)) : null;
     if (stateJson !== null) this.sentVersion = this.stateVersion;
     const live: Live = {
       hasRunner: r !== null,
@@ -475,7 +478,7 @@ export class SessionCore {
       }
       case "stateAt": {
         const st = this.runner?.stateAt(m.turn) ?? null;
-        return this.post({ type: "stateAt", id: m.id, json: st === null ? null : serialize(GameStateSchema, st) });
+        return this.post({ type: "stateAt", id: m.id, json: st === null ? null : serialize(GameStateSchema, forPage(st)) });
       }
       case "export":
         return this.post({ type: "export", id: m.id, name: `${this.gameId}.jsonl`, text: this.runner?.log.toJsonl() ?? "" });

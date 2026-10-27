@@ -35,6 +35,8 @@ export interface GameState {
    * and reason stay recorded in {@link winners} and {@link endReason}. Null otherwise.
    */
   ageEndedTurn: number | null;
+  /** The winners of the age, recorded when the table played on past its end (later endings never overwrite them). */
+  ageWinners: string[];
   owner: Dict<string, Power | null>;
   /**
    * The walls standing now, by province, from 1 to 3; a province with none is left out (Build order item 5, the siege
@@ -131,6 +133,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     finalSeason: null,
     finalByCap: false,
     ageEndedTurn: null,
+    ageWinners: [],
     owner: new Dict(),
     walls: new Dict(),
     wallsSeen: new Dict(),
@@ -176,6 +179,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   finalSeason: opt(I),
   finalByCap: B,
   ageEndedTurn: opt(I),
+  ageWinners: list(S),
   owner: dict(opt(S)),
   walls: dict(I),
   wallsSeen: dict(dict(I)),

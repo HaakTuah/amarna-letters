@@ -162,8 +162,15 @@ export function Play() {
     setTab("season");
   };
 
-  const endingLine = frame.ended ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.` : ending(frame.openAge, frame.ageEnded, viewer);
-  const shortLine = frame.ended ? `Ended · winner ${frame.winners.join(" and ")}` : shortEnding(frame.openAge);
+  // The last season's frame still shows the age's end until the next season is played, after the table played on.
+  const playedOn = !history && frame.ended && !live.ended;
+  const endingLine =
+    frame.ended && !playedOn
+      ? `The age has ended: ${frame.endReason}. Winner: ${frame.winners.join(" and ")}.`
+      : playedOn
+        ? ending(true, { turn: frame.index, winners: frame.winners }, viewer)
+        : ending(frame.openAge, frame.ageEnded, viewer);
+  const shortLine = frame.ended && !playedOn ? `Ended · winner ${frame.winners.join(" and ")}` : shortEnding(frame.openAge || playedOn);
   const showsCost = usesModels(live.settings) || live.cost > 0;
   const localAgents = choicesOf(live.settings).usesLocalAgents;
 

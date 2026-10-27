@@ -116,10 +116,10 @@ export function toConfig(s: GameSettings): GameConfig {
     sleepingSeats: s.sleepingSeats,
     maxSleep: Math.min(Math.max(s.maxSleep, 1), 30),
     maxDispatchesPerTurn: s.messagesPerTurn,
-    endMedian: Math.min(Math.max(Math.round(s.endMedian), 3), 150),
+    endMedian: Number.isFinite(s.endMedian) ? Math.min(Math.max(Math.round(s.endMedian), 3), 150) : Ending.endMedian,
     capped: s.capped,
-    capMin: Math.max(1, Math.round(Math.min(s.capMin, s.capMax))),
-    capMax: Math.max(1, Math.round(Math.max(s.capMin, s.capMax))),
+    capMin: Math.max(1, Math.round(Math.min(s.capMin, s.capMax)) || Ending.capMin),
+    capMax: Math.max(1, Math.round(Math.max(s.capMin, s.capMax)) || Ending.capMax),
     openAge: s.openAge,
   });
 }

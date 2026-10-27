@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
-import { AllPowers, GameStateSchema, newGame, newGameConfig, serialize } from "@amarna/engine";
+import { AllPowers, GameStateSchema, Views, newGame, newGameConfig, serialize } from "@amarna/engine";
+import { leaderRules } from "@amarna/llm";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { Assert, toDict } from "../../engine/test/support.ts";
 
@@ -25,6 +26,9 @@ describe("PlayOnTests", () => {
     Assert.equal(6, r.state.turn);
     Assert.equal(3, r.state.ageEndedTurn);
     Assert.equal(winners.join(), r.state.winners.join());
+    Assert.equal(winners.join(), r.state.ageWinners.join());
+    // A model king's rulebook follows the age as its view shows it: open once the table played on.
+    Assert.contains("This is an open age", leaderRules(false, { ...state.config, openAge: Views.for(r.state, "Egypt").openAge }));
 
     const replay = GameRunner.forReplay(GameLog.fromJsonl(r.log.toJsonl()));
     replay.writeChronicles = false;

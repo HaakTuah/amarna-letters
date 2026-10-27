@@ -130,6 +130,7 @@ for (let i = 0; i < args.length; i++) {
     case "--max-turns": {
       // A known cap: the drawn cap's range of a single season (the rising chance still applies before it).
       const n = Number.parseInt(next(), 10);
+      if (!(n >= 1)) throw new Error("Use --max-turns N, in seasons.");
       o.config = { ...o.config, capped: true, capMin: n, capMax: n };
       break;
     }
@@ -139,13 +140,17 @@ for (let i = 0; i < args.length; i++) {
       if (v === "none") o.config = { ...o.config, capped: false };
       else {
         const [a, b] = v.split("-").map((x) => Number.parseInt(x, 10));
+        if (!(a >= 1) || (b !== undefined && !(b >= 1))) throw new Error("Use --cap A-B, --cap N or --cap none, in seasons.");
         o.config = { ...o.config, capped: true, capMin: a, capMax: b ?? a };
       }
       break;
     }
-    case "--median":
-      o.config = { ...o.config, endMedian: Number.parseInt(next(), 10) };
+    case "--median": {
+      const m = Number.parseInt(next(), 10);
+      if (!(m >= 1)) throw new Error("Use --median N, in seasons.");
+      o.config = { ...o.config, endMedian: m };
       break;
+    }
     case "--file-seats":
       fileSeats = next();
       break;

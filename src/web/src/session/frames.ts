@@ -299,7 +299,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     inboxCount: counts,
     // The ending is shown in words only: the drawn last season (s.finalSeason) is never copied into a frame.
     openAge: s.config.openAge,
-    ageEnded: s.ageEndedTurn === null ? null : { turn: s.ageEndedTurn, winners: [...s.winners] },
+    ageEnded: s.ageEndedTurn === null ? null : { turn: s.ageEndedTurn, winners: [...s.ageWinners] },
   };
 }
 

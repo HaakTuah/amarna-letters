@@ -16,7 +16,7 @@ import { type GameState, logEvent } from "../model/state.ts";
 const slopes = new Map<number, number>();
 
 export function endSlope(median: number): number {
-  const m = Math.max(1, Math.round(median));
+  const m = Number.isFinite(median) ? Math.max(1, Math.round(median)) : 44;
   const known = slopes.get(m);
   if (known !== undefined) return known;
   const outlives = (k: number): number => {
@@ -54,8 +54,8 @@ export interface FinalSeason {
 export function drawFinalSeason(seed: number, c: GameConfig): FinalSeason | null {
   if (c.openAge) return null;
   const r = Rng.for(seed, 0, "end");
-  const lo = Math.max(1, Math.min(c.capMin, c.capMax));
-  const cap = c.capped ? r.range(lo, Math.max(lo, c.capMax)) : null;
+  const lo = Math.max(1, Math.min(c.capMin, c.capMax) || 1);
+  const cap = c.capped ? r.range(lo, Math.max(lo, c.capMax || lo)) : null;
   const k = endSlope(c.endMedian);
   for (let t = 1; cap === null || t < cap; t++) if (r.chance(Math.min(1, k * t))) return { season: t, byCap: false };
   return { season: cap!, byCap: true };
@@ -77,6 +77,7 @@ export function playOn(s: GameState): void {
   if (!canPlayOn(s)) throw new Error("Only an age that ended by its last season can be played on.");
   s.ended = false;
   s.ageEndedTurn = s.turn;
+  s.ageWinners = [...s.winners];
   s.finalSeason = null;
   s.finalByCap = false;
   s.config = { ...s.config, openAge: true };
