@@ -4,20 +4,20 @@
  */
 import { king, land, personaTemplate, year, type Character } from "@amarna/engine";
 import type { CheckContext, ChronicleContext, INarrator } from "@amarna/game";
-import type { ClaudeClient } from "./client.ts";
+import type { ModelClient } from "./client.ts";
 import { ModelIds } from "./models.ts";
 import { Parse } from "./parse.ts";
-import { Schemas } from "./schemas.ts";
+import { Replies, Schemas } from "./schemas.ts";
 import { Sb, joinS } from "./text.ts";
 
 const Shared =
   "You are the narrator of Amarna Letters, a strategy game set among the Great Kings of the Late Bronze Age (c. 1360-1330 BCE). You never decide what is true: the game's engine does. You only phrase what you are given, with the voice and vocabulary of the age (minas and shekels, clay tablets in envelopes, cylinder seals, messengers, the gods Shamash, Amun, Marduk, Teshub and Nergal). Never add a fact you were not given. Reply with one JSON object matching the schema.";
 
 export class LlmNarrator implements INarrator {
-  private readonly client: ClaudeClient;
+  private readonly client: ModelClient;
   private readonly model: string;
 
-  constructor(client: ClaudeClient, model: string = ModelIds.Sonnet) {
+  constructor(client: ModelClient, model: string = ModelIds.Sonnet) {
     this.client = client;
     this.model = model;
   }
@@ -44,7 +44,7 @@ Facts: ${joinS(
         model: this.model,
         sharedSystem: Shared,
         user,
-        schema: Schemas.text("persona", "The persona prompt, in the second person."),
+        schema: Replies.text("persona", "The persona prompt, in the second person."),
         effort: "low",
         maxTokens: 4000,
       },
@@ -64,7 +64,7 @@ Facts: ${joinS(
         model: this.model,
         sharedSystem: Shared,
         user,
-        schema: Schemas.text("report", "The inquirers' report."),
+        schema: Replies.text("report", "The inquirers' report."),
         effort: "low",
         maxTokens: 2000,
       },
@@ -92,7 +92,7 @@ ${events.toString()}`;
         model: this.model,
         sharedSystem: Shared,
         user,
-        schema: Schemas.text("chronicle", "The annals."),
+        schema: Replies.text("chronicle", "The annals."),
         effort: "low",
         maxTokens: 6000,
       },

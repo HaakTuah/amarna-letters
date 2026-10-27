@@ -1,11 +1,13 @@
 export * from "./text.ts";
 export * from "./models.ts";
-export { Schemas, OtherActions, ReportText, ReportToSender, type AudienceAsks, type JsonObject } from "./schemas.ts";
+export { Schemas, Replies, OtherActions, ReportText, ReportToSender, jsonSchema, measure, problems, type AudienceAsks, type JsonObject, type ReplySchema, type SchemaMeasure, type LeaderOrdersReply } from "./schemas.ts";
 export { Parse } from "./parse.ts";
 export * from "./journal.ts";
 export * from "./prompts.ts";
 export * from "./rules.ts";
 export * from "./client.ts";
+export * from "./anthropic.ts";
+export * from "./compatible.ts";
 export * from "./simulated.ts";
 export * from "./exchange.ts";
 export * from "./bridge.ts";

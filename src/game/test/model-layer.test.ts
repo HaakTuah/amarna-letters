@@ -3,12 +3,12 @@ import { AllPowers, type DispatchOrder, GameStateSchema, Views, first, hash, kin
 import { GameLog, GameRunner } from "@amarna/game";
 import {
   type ApiTransport,
-  type CallSpec,
-  FetchTransport,
+  SdkTransport,
+  providersFor,
   type JsonObject,
   ModelIds,
   Parse,
-  Price,
+  PriceTable,
   SeatChoices,
   SimulatedApi,
   buildSeats,
@@ -30,14 +30,18 @@ describe("ModelLayerTests", () => {
       // The real transport, over a fetch that hands the body to the stand-in and keeps the headers.
       vi.stubGlobal("fetch", async (_url: string, init: RequestInit): Promise<Response> => {
         const body = JSON.parse(String(init.body)) as JsonObject;
-        http.push({ headers: init.headers as Record<string, string>, body });
-        const r = await fake.send(null as unknown as CallSpec, body);
+        http.push({ headers: Object.fromEntries(new Headers(init.headers).entries()), body });
+        const r = await fake.send(body);
         const usage = { input_tokens: r.input, output_tokens: r.output, cache_read_input_tokens: r.cacheRead, cache_creation_input_tokens: r.cacheWrite };
-        return new Response(JSON.stringify({ content: [{ type: "text", text: r.text }], stop_reason: r.stopReason, model: r.model, usage }), { status: 200 });
+        const content = [{ type: "tool_use", id: "toolu_1", name: "reply", input: JSON.parse(r.text) as unknown }];
+        return new Response(JSON.stringify({ id: "msg_1", type: "message", role: "assistant", content, stop_reason: r.stopReason, model: r.model, usage }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
       });
-      transport = new FetchTransport("sk-ant-test-0000");
+      transport = new SdkTransport("sk-ant-test-0000");
     }
-    let set = buildSeats(choices, state, transport, () => runner!.log);
+    let set = buildSeats(choices, state, providersFor(choices, transport, {}), () => runner!.log);
     runner = new GameRunner(state, set.seats, set.minds, set.narrator);
     return [runner, fake];
   }
@@ -81,11 +85,15 @@ describe("ModelLayerTests", () => {
     for (const { headers, body } of http) {
       Assert.equal("sk-ant-test-0000", headers["x-api-key"]);
       Assert.equal("true", headers["anthropic-dangerous-direct-browser-access"]);
-      Assert.equal("json_schema", str(body, "output_config", "format", "type"));
+      // The schema goes as the one reply tool, not strict, so no grammar is compiled; the model is asked to call it.
+      Assert.equal("reply", str(body, "tools", 0, "name"));
+      Assert.equal("object", str(body, "tools", 0, "input_schema", "type"));
+      Assert.true(at(body, "tools", 0, "strict") === undefined);
+      Assert.equal("auto", str(body, "tool_choice", "type"));
       Assert.equal("ephemeral", str(body, "system", 0, "cache_control", "type"));
     }
 
-    let leader = first(http, (r) => str(r.body, "model") === ModelIds.Sonnet && has(at(r.body, "output_config", "format", "schema", "properties"), "units"));
+    let leader = first(http, (r) => str(r.body, "model") === ModelIds.Sonnet && has(at(r.body, "tools", 0, "input_schema", "properties"), "units"));
     Assert.contains("server-side-fallback-2026-07-01", leader.headers["anthropic-beta"] ?? "");
     Assert.equal("default", str(leader.body, "fallbacks"));
     Assert.contains(http, (r) => str(r.body, "model") === ModelIds.Opus);
@@ -135,7 +143,7 @@ describe("ModelLayerTests", () => {
     fake2.override = (_body) => (++n === 1 ? "{oops" : null);
     await runner2.playTurn();
     Assert.empty(runner2.errors);
-    Assert.contains("could not be read", JSON.stringify(at(fake2.requests[1], "messages", 0, "content")));
+    Assert.contains("could not be used", JSON.stringify(at(fake2.requests[1], "messages", 0, "content")));
   });
 
   test("A refusal falls back to the script decision", async () => {
@@ -197,7 +205,7 @@ describe("ModelLayerTests", () => {
     remember(other, 0, "zq-someone-elses-memory");
     await runner.playTurn();
 
-    let calls = fake.requests.filter((r) => has(at(r, "output_config", "format", "schema", "properties"), "summary"));
+    let calls = fake.requests.filter((r) => has(at(r, "tools", 0, "input_schema", "properties"), "summary"));
     let mine = Assert.single(calls);
     Assert.equal(ModelIds.Haiku, str(mine, "model"));
     let text = JSON.stringify(mine);
@@ -276,8 +284,9 @@ describe("ModelLayerTests", () => {
   });
 
   test("Pricing matches the published rates", () => {
-    Assert.equal(2.0 + 10.0, Price.for(ModelIds.Sonnet).cost(1_000_000, 1_000_000, 0, 0), 6);
-    Assert.equal(0.2, Price.for(ModelIds.Opus).cost(0, 0, 1_000_000, 0), 6);
-    Assert.equal(0.125, Price.for(ModelIds.Haiku).cost(0, 0, 0, 1_000_000), 6);
+    let prices = new PriceTable();
+    Assert.equal(2.0 + 10.0, prices.cost(ModelIds.Sonnet, 1_000_000, 1_000_000, 0, 0), 6);
+    Assert.equal(0.2, prices.cost(ModelIds.Opus, 0, 0, 1_000_000, 0), 6);
+    Assert.equal(0.125, prices.cost(ModelIds.Haiku, 0, 0, 0, 1_000_000), 6);
   });
 });

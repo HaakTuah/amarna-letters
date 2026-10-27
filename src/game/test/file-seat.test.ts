@@ -16,7 +16,7 @@ import {
   single,
 } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
-import { type CallSpec, Footer, type JsonAsker, type JsonObject, LlmLeaderSeat, Schemas, lenient, readable, requestText, situation } from "@amarna/llm";
+import { type CallSpec, Footer, type JsonAsker, type JsonObject, LlmLeaderSeat, Replies, Schemas, readObject as lenient, readable, requestText, situation } from "@amarna/llm";
 import { FileExchange } from "@amarna/llm/node";
 import { Assert, toDict } from "../../engine/test/support.ts";
 import { File, Directory, Path, delay } from "./io.ts";
@@ -43,7 +43,7 @@ describe("FileSeatTests", () => {
     }
   }
 
-  const HoldEverything: string = `{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}`;
+  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
 
   function game(config: GameConfig | null = null, timeoutSeconds: number = 30): [GameRunner, string] {
     let folder = newFolder();
@@ -69,8 +69,8 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         seen.push(text);
         return stem.includes("orders")
-          ? `{"notes":"Buy the copper coast.","units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[]}`
-          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
+          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
+          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
       },
       stop.signal,
     );
@@ -101,8 +101,8 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         seen.push(text);
         return stem.includes("orders")
-          ? `{"notes":"zq-notes","summary":"zq-summary of what I learned","ledger":[{"court":"Egypt","entry":"zq-ledger: Egypt owes me 40."}],"units":[],"letters":[],"other_orders":[]}`
-          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
+          ? `{"notes":"zq-notes","summary":"zq-summary of what I learned","ledger":[{"court":"Egypt","entry":"zq-ledger: Egypt owes me 40."}],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
+          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
       },
       stop.signal,
     );
@@ -131,7 +131,7 @@ describe("FileSeatTests", () => {
       this.specs.push(spec);
       let json = spec.key.includes("/orders/")
         ? HoldEverything
-        : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
+        : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
       return Promise.resolve(JSON.parse(json) as JsonObject);
     }
   }
@@ -166,7 +166,7 @@ describe("FileSeatTests", () => {
     Assert.true(text.length < indented * 0.75, `${text.length} against ${indented}`);
     Assert.contains('    "notes": {"type":"string","description":', text);
     Assert.contains("that court's line", text);
-    let spec: CallSpec = { key: "t1/orders/Egypt", turn: 1, role: "leader", model: "file seat", sharedSystem: "Rules.", user: "Your view.", schema: schema };
+    let spec: CallSpec = { key: "t1/orders/Egypt", turn: 1, role: "leader", model: "file seat", sharedSystem: "Rules.", user: "Your view.", schema: Replies.leaderOrders(newGameConfig()) };
     let request = requestText(spec, "x.reply.json", "");
     Assert.contains("```json\n" + text + "\n```", request.replaceAll("\r\n", "\n"));
   });
@@ -192,7 +192,7 @@ describe("FileSeatTests", () => {
     await runner.playTurn();
     Assert.empty(runner.errors);
     Assert.true(File.exists(Path.combine(folder, "t1_orders_Alashiya.retry.request.md")));
-    Assert.contains("could not be read", await File.readAllText(Path.combine(folder, "t1_orders_Alashiya.retry.request.md")));
+    Assert.contains("could not be used", await File.readAllText(Path.combine(folder, "t1_orders_Alashiya.retry.request.md")));
 
     await runner.playTurn();
     stop.abort();
@@ -217,7 +217,7 @@ describe("FileSeatTests", () => {
       folder,
       (stem, _) =>
         stem === "t1_orders_Alashiya"
-          ? `{"notes":"x","units":["enkomi -> cilicia"],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[]}]}`
+          ? `{"notes":"x","summary":"","ledger":[],"units":["enkomi -> cilicia"],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[]}]}`
           : HoldEverything,
       stop.signal,
     );
@@ -226,8 +226,8 @@ describe("FileSeatTests", () => {
     await answering;
     Assert.empty(runner.errors);
     let retry = await File.readAllText(Path.combine(folder, "t1_orders_Alashiya.retry.request.md"));
-    Assert.contains("reply.units[0] should be an object", retry);
-    Assert.contains("reply.other_orders[0].action must be one of", retry);
+    Assert.contains("units[0]: Invalid input: expected object", retry);
+    Assert.contains("other_orders[0].action: Invalid option: expected one of", retry);
   });
 
   test("A reply wrapped in a code fence or a stray line is still read", () => {
@@ -252,11 +252,11 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         if (stem === "t1_orders_Alashiya") request = text;
         return stem.includes("orders")
-          ? `{"notes":"Plan ahead.","units":[],"letters":[],"other_orders":[],
+          ? `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],
  "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"other_orders":[]}],
  "standing_orders":[{"when":"unit_attacked","province":"enkomi","power":"","units":[{"unit":"enkomi","order":"hold","target":"","to":""}],"other_orders":[]}],
  "cancel_standing":[]}`
-          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
+          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
       },
       stop.signal,
     );
@@ -290,9 +290,9 @@ describe("FileSeatTests", () => {
         // The second reply still names a season and a trigger of its own, as a king of version 4 could: it is not read.
         return stem.includes("orders")
           ? stem.startsWith("t2_")
-            ? `{"notes":"Wake me next season.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[]}`
-            : `{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"schedule":[]}`
-          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
+            ? `{"notes":"Wake me next season.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"tamassos","person":"","amount":0,"power":""}]},"schedule":[],"standing_orders":[],"cancel_standing":[]}`
+            : `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
+          : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
       },
       stop.signal,
     );

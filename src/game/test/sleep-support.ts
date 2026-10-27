@@ -111,8 +111,8 @@ export class ModelRecorder implements JsonAsker {
   askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
     this.specs.push(spec);
     let json = spec.key.includes("/orders/")
-      ? `{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}`
-      : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"letters":[],"reopen_orders":REOPEN}`.replaceAll(
+      ? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
+      : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":REOPEN}`.replaceAll(
           "REOPEN",
           this.#reopen ? "true" : "false",
         );
@@ -228,14 +228,14 @@ export class Replying implements JsonAsker {
   askJson(spec: CallSpec, ct: AbortSignal): Promise<JsonObject> {
     this.specs.push(spec);
     let json = spec.key.includes("/orders/")
-      ? (this.#orders(spec.turn) ?? `{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}`)
-      : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
+      ? (this.#orders(spec.turn) ?? `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`)
+      : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
     return Promise.resolve(JSON.parse(json)!);
   }
 }
 
 // <summary>A reply with a march, two standing orders (one for any foreign power, one for a power nobody knows) and cancellations.</summary>
-export const PlanningReply: string = `{"notes":"Plan ahead.","units":[],"letters":[],"other_orders":[],
+export const PlanningReply: string = `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],
  "schedule":[{"turn":3,"units":[{"unit":"Babylon","order":"move","target":"nippur","to":""}],"other_orders":[]}],
  "standing_orders":[
  {"when":"unit_attacked","province":"Sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[{"action":"counter_intelligence","province":"","power":"","person":"","amount":20,"term":0,"text":"","item":"","seals":[]}]},

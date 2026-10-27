@@ -1,11 +1,15 @@
 /** The messages between the page and the engine's worker. The engine is the only state: the page shows what it is sent. */
 import type { GameConfig, Power } from "@amarna/engine";
+import type { SeasonFallbacks, TrailAuthors } from "@amarna/game";
 import type { SeasonFrame } from "./frames.ts";
-import type { GameSettings } from "./settings.ts";
+import type { GameSettings, TableSettings } from "./settings.ts";
+
+/** API keys by provider id ("anthropic", or a provider the table set up), held in memory only. */
+export type Keys = Record<string, string>;
 
 export type ToWorker =
-  | { type: "start"; settings: GameSettings; apiKey: string | null }
-  | { type: "load"; text: string; continuePlay: boolean; apiKey: string | null }
+  | { type: "start"; settings: GameSettings; keys: Keys }
+  | { type: "load"; text: string; continuePlay: boolean; keys: Keys; table: TableSettings | null }
   | { type: "step" }
   | { type: "auto"; on: boolean }
   | { type: "delay"; ms: number }
@@ -56,6 +60,10 @@ export interface Live {
   gameId: string;
   /** Set once every human seat has fallen and the table lets the players watch in god view. */
   fallenToGod: boolean;
+  /** Who wrote each part of each message trail, by trail id ("Who wrote it"). */
+  trailAuthors: Record<string, TrailAuthors>;
+  /** Each season played: how many decisions models and file seats were asked for, and those scripts made in their place. */
+  fallbacks: ({ turn: number } & SeasonFallbacks)[];
 }
 
 export type FromWorker =

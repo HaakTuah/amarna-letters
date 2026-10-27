@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import { AllPowers, type Power, fmt, newGame, newGameConfig } from "@amarna/engine";
 import { GameLog, GameRunner } from "@amarna/game";
-import { CostEstimate, ModelIds, Preset, Presets, SeatChoices, SimulatedApi, buildSeats, choicesFromHeader } from "@amarna/llm";
+import { CostEstimate, ModelIds, Preset, Presets, SeatChoices, SimulatedApi, buildSeats, choicesFromHeader, providersFor } from "@amarna/llm";
 import { str, Assert } from "../../engine/test/support.ts";
 
 describe("PresetTests", () => {
@@ -59,7 +59,8 @@ describe("PresetTests", () => {
     let fake = new SimulatedApi();
     let state = newGame(5, newGameConfig({ minTurns: 2, endChance: 1.0 }));
     let runner: GameRunner | null = null;
-    let set = buildSeats(doWith(Presets.Budget), state, fake, () => runner!.log);
+    let budget = doWith(Presets.Budget);
+    let set = buildSeats(budget, state, providersFor(budget, fake, {}), () => runner!.log);
     runner = new GameRunner(state, set.seats, set.minds, set.narrator);
     while (await runner.playTurn()) {}
     Assert.empty(runner.errors);
@@ -74,7 +75,7 @@ describe("PresetTests", () => {
     c.characters = "Sonnet";
     let state = newGame(1);
     let runner: GameRunner | null = null;
-    let set = buildSeats(c, state, new SimulatedApi(), () => runner!.log);
+    let set = buildSeats(c, state, providersFor(c, new SimulatedApi(), {}), () => runner!.log);
     runner = new GameRunner(state, set.seats, set.minds, set.narrator);
     let back = choicesFromHeader(GameLog.fromJsonl(runner.log.toJsonl()).header);
     Assert.equal(c.leaders, back.leaders);

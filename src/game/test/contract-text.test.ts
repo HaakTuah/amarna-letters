@@ -1,6 +1,6 @@
 import { describe, test } from "vitest";
 import { Views, basePrice, first, hire, newContract, newGame, newGameConfig, renew, single } from "@amarna/engine";
-import { type JsonObject, Parse, Schemas, leaderRules, person, problems } from "@amarna/llm";
+import { type JsonObject, Parse, Replies, Schemas, leaderRules, person, problems } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
@@ -26,10 +26,11 @@ describe("ContractTextTests", () => {
   "other_orders": [ { "action": "renew", "province": "", "power": "", "person": "c3", "amount": 20, "term": 0, "text": "", "item": "", "seals": [] },
                     { "action": "renew", "province": "", "power": "", "person": "c4", "amount": 25, "term": 9, "text": "", "item": "", "seals": [] },
                     { "action": "hire", "province": "", "power": "", "person": "c9", "amount": 30, "term": 12, "text": "", "item": "", "seals": [] },
-                    { "action": "hire", "province": "", "power": "", "person": "c10", "amount": 30, "text": "", "item": "", "seals": [] } ]
+                    { "action": "hire", "province": "", "power": "", "person": "c10", "amount": 30, "term": 0, "text": "", "item": "", "seals": [] } ],
+  "summary": "", "ledger": [], "schedule": [], "standing_orders": [], "cancel_standing": []
 }`,
     ) as JsonObject;
-    Assert.empty(problems(json, Schemas.leaderOrders(newGameConfig())));
+    Assert.empty(problems(json, Replies.leaderOrders(newGameConfig())));
     let sub = Parse.orders(json);
     Assert.equal([renew("c3", 20, 6), renew("c4", 25, 9), hire("c9", 30, 12), hire("c10", 30, 6)], sub.orders);
     Assert.equal("renew c3 at 20 a season for 6 seasons", describeOrder(sub.orders[0]));

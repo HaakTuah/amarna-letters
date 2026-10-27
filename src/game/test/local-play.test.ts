@@ -13,6 +13,7 @@ import {
   LocalAgentLabel,
   LocalBridge,
   Presets,
+  Replies,
   SeatChoices,
   bridgeReady,
   buildSeats,
@@ -32,8 +33,8 @@ describe("LocalPlayTests", () => {
     vi.unstubAllGlobals();
   });
 
-  const HoldEverything: string = `{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}`;
-  const Welcome: string = `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
+  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
+  const Welcome: string = `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"ledger":[],"letters":[],"reopen_orders":false}`;
 
   // <summary>The bridge's endpoints, as sim/bridge.js serves them, over one temporary folder per king.</summary>
   class FakeBridge {
@@ -149,7 +150,7 @@ describe("LocalPlayTests", () => {
       bridge,
       (stem, _) =>
         stem.includes("orders")
-          ? `{"notes":"Buy the copper coast.","units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[]}`
+          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`
           : Welcome,
       stop.signal,
     );
@@ -219,7 +220,7 @@ describe("LocalPlayTests", () => {
     await answering;
     Assert.empty(runner.errors);
     let retry = await File.readAllText(Path.combine(bridge.folders.get("Alashiya"), "t1_orders_Alashiya.retry.request.md"));
-    Assert.contains("could not be read", retry);
+    Assert.contains("could not be used", retry);
     Assert.contains(`to: ${bridge.replyPath("Alashiya", "t1_orders_Alashiya.retry")}`, retry);
   });
 
@@ -235,7 +236,7 @@ describe("LocalPlayTests", () => {
       model: BridgeExchange.Model,
       sharedSystem: "Rules.",
       user: "Your orders.",
-      schema: JSON.parse(`{"type":"object","properties":{"notes":{"type":"string"}}}`) as JsonObject,
+      schema: Replies.text("notes", "Notes."),
     };
     let ex = await Assert.throwsAsync(() => seat.askJson(spec, undefined));
     Assert.contains("Alashiya", ex.message);
@@ -256,7 +257,7 @@ describe("LocalPlayTests", () => {
       model: BridgeExchange.Model,
       sharedSystem: "Rules.",
       user: "An envoy waits.",
-      schema: JSON.parse(`{"type":"object","properties":{"speech":{"type":"string"}}}`) as JsonObject,
+      schema: Replies.text("speech", "Speech."),
     };
     const stop = new AbortController();
     let asking = seat.askJson(spec, stop.signal);
@@ -340,7 +341,7 @@ describe("LocalPlayTests", () => {
       bridge,
       (stem, _) => {
         asked.push(stem);
-        return stem.includes("orders") ? `{"notes":"Sleep.","units":[],"letters":[],"other_orders":[],"schedule":[]}` : Welcome;
+        return stem.includes("orders") ? `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}` : Welcome;
       },
       stop.signal,
     );
