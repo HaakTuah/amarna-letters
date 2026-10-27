@@ -138,3 +138,18 @@ Listed in `docs/BUILD-PROGRESS.md` ("Found during the port") for the fix pass (s
 
 No flaw in the game's rules or the script players' play was recorded while porting the tests: every C# test passes as written
 in TypeScript, with the C# build's own dice.
+
+## Review
+
+One reviewer (Opus, high effort) on the diff and the item's text: nothing blocking. It ran the tests, `npm ci` from the
+lockfile alone, the Vite build through `scripts/site-prepare.sh` in both modes, and a short `scripts/sim.sh`, and checked
+the service worker, the determinism lint, the key's handling (in memory, in sessionStorage only when the player asks,
+never logged or saved) and file sizes. Fixed from it: a season still running when a new game started took its own abort
+for an error and could touch the new game (`step` in `src/web/src/session/core.ts`). Left as noted, not blocking:
+
+- An abandoned game's human seat leaves its promise unsettled (a harmless leak, with the rest of the fix pass).
+- The determinism lint covers the engine, as the Engine rules ask; the script kings in `src/game/src` also feed
+  replays and pass it today, so the fix pass could widen it.
+- CI runs the tests but not the Playwright smoke test (`src/web/smoke.mjs`).
+- The page's bundle (754 KB, 247 KB compressed) carries the engine as well as the worker's: size only.
+- Returning visitors see the cached C# app once more before the new one takes over, as with every update before.
