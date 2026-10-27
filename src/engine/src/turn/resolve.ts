@@ -2,7 +2,7 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type SallyOrder, type TurnSubmission } from "../model/orders.ts";
+import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RoadsOrder, type SallyOrder, type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed } from "../model/outcomes.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
@@ -61,6 +61,8 @@ P.resolveSeason = function (submissions) {
   this._cededNow.clear();
   // Each living court remembers the walls as it saw them when it gave its orders (its view's), for when it no longer sees them.
   for (const p of alive(S)) S.wallsSeen.set(p, Views.wallsKnown(S, this.map, p));
+  // And who held the land it saw (item 7b): elsewhere it knows only what word and its travellers bring.
+  this.seeLand();
   // Each seat's season before its standing orders fire; then the standing orders, any seat's, that answer this season's moves.
   const seasons = new Dict(alive(S).map((p) => [p, this.planSeason(p, submissions.tryGet(p) ?? newTurnSubmission())] as const));
   const fires = this.standingFires(seasons, validator);
@@ -117,6 +119,7 @@ P.resolveSeason = function (submissions) {
 
   this.resolveCourt(all(any));
   this.resolveIntelligence(all(any));
+  for (const [p, o] of all((o): o is RoadsOrder => o.type === "roads")) this.roads(p, o);
   this.coversAtCourt();
 
   this.worldEvents();
@@ -320,7 +323,7 @@ P.updateOwnership = function () {
       if (!stormed.has(u.province)) continue;
       this.lowerWalls(u.province);
     }
-    S.owner.set(u.province, u.power);
+    this.setOwner(u.province, u.power);
     this.takenByForce(u.province, u.power);
     if (before !== null) {
       notify(S, before, "Battle", "Land lost", `${prov.name} has been taken by ${u.power}.`);
@@ -347,7 +350,7 @@ P.resolveTransfers = function (cessions, gifts) {
       this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: your own troops still stood in it after movement.`, "your own troops stood there", false);
       continue;
     }
-    S.owner.set(c.province, c.to);
+    this.setOwner(c.province, c.to);
     // Land still being absorbed goes on being absorbed under the receiver as it would have been under the giver, so
     // that a friend cannot launder a conquest by passing it back and forth; land of the receiver's own homeland is
     // his in full at once, as if he had retaken it.
@@ -410,7 +413,7 @@ P.resolvePurchases = function (buys) {
     }
     const price = prov.yield * S.config.neutralPriceFactor;
     if (!this.pay(buyer, price, `the city of ${prov.name}`, bid, "it was not bought")) continue;
-    S.owner.set(prov.id, buyer);
+    this.setOwner(prov.id, buyer);
     notify(S, buyer, "Resolution", "City bought", `${prov.name} has accepted your gold (${formatMoney(price)}) and your rule. Its walls now stand for you.`);
     logEvent(S, "purchase", `${buyer} bought ${prov.name} for ${formatMoney(price)}.`, [...AllPowers.filter((p) => Views.sight(S, this.map, p).has(prov.id)), buyer]);
   }
@@ -480,7 +483,7 @@ P.fall = function (p, conqueror, taker) {
   const capital = this.map.capital(p);
   const landHeld = ownedBy(S, p);
   for (const id of landHeld) {
-    S.owner.set(id, conqueror);
+    this.setOwner(id, conqueror);
     this.takenByForce(id, conqueror);
     // A siege the conqueror pressed against land that is now his is over.
     if (conqueror !== null) S.sieges = removeAll(S.sieges, (x) => x.province === id && x.power === conqueror);
@@ -508,8 +511,15 @@ P.fall = function (p, conqueror, taker) {
   }
   const who = taker !== null ? `${taker} took its capital, ${capital.name}` : `its capital, ${capital.name}, was taken`;
   logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${conqueror !== null ? `, and its land passes to ${conqueror}` : ""}.`, null, null);
-  for (const other of alive(S).filter((x) => x !== conqueror))
-    notify(S, other, "Rumor", "A kingdom falls", `Word spreads that the kingdom of ${land(p)} is no more: ${who}.`);
+  // Word of the fall travels (item 7b): a court that sees the capital hears at once, the rest when word reaches them.
+  for (const other of alive(S).filter((x) => x !== conqueror)) {
+    const text = `Word spreads that the kingdom of ${land(p)} is no more: ${who}.`;
+    if (Views.sight(S, this.map, other).has(capital.id)) {
+      notify(S, other, "Rumor", "A kingdom falls", text);
+      S.fallsHeard.set(other, [...(S.fallsHeard.tryGet(other) ?? []), p]);
+    } else this.word(p, other, "KingdomFalls", text);
+  }
+  if (conqueror !== null) S.fallsHeard.set(conqueror, [...(S.fallsHeard.tryGet(conqueror) ?? []), p]);
   if (conqueror !== null) {
     const winner = conqueror;
     const rest = landHeld.filter((x) => x !== capital.id).map((x) => this.map.get(x).name);

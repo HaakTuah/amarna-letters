@@ -13,3 +13,4 @@ export * from "./exchanges.ts";
 export * from "./orders.ts";
 export * from "./outcomes.ts";
 export * from "./views.ts";
+export * from "./travel.ts";

@@ -286,6 +286,9 @@ describe("StandingsAndTravelTests", () => {
     for (const x of map.homeOf("Assyria")) s.owner.set(x.id, "Mitanni");
     removeAll(s.units, (u) => u.power === "Assyria");
     s.eliminated.push("Assyria");
+    // Long enough ago for word of it to have reached every court (item 7b).
+    s.ownerLog.push({ province: "gaza", turn: 0, owner: "Egypt" }, ...map.homeOf("Assyria").map((x) => ({ province: x.id, turn: 0, owner: "Mitanni" as Power })));
+    for (const p of ["Egypt", "Hatti"] as Power[]) s.fallsHeard.set(p, ["Assyria"]);
     s.treasuries.get("Egypt").gold = 5000; // treasuries are left out
 
     let line = standings(Views.for(s, "Egypt"));
@@ -308,7 +311,7 @@ describe("StandingsAndTravelTests", () => {
     Assert.doesNotContain("Assyria 0", line);
     Assert.contains(line, situation(Views.for(s, "Egypt")));
 
-    // Every court reads the same figures: ownership is public.
+    // Every court reads the same figures once the news has reached it.
     Assert.equal(line.replaceAll("Egypt (you)", "Egypt"), standings(Views.for(s, "Hatti")).replaceAll("Hatti (you)", "Hatti"));
   });
 
@@ -316,7 +319,7 @@ describe("StandingsAndTravelTests", () => {
     let rules = leaderRules(true, newGameConfig());
     Assert.doesNotContain("1 to 3 seasons each way", rules);
     Assert.contains(
-      "Envoys take 1 or 2 seasons each way between courts (the table in your view gives each court); a spy sent to watch a distant province may take up to 3 seasons to reach it, and its reports as long to come home.",
+      "Envoys take about 1 or 2 seasons each way between courts in the sailing season (ENVOY TRAVEL in your view gives each court this season; see NEWS AND TRAVEL); a spy sent to watch a distant province may take up to 3 seasons to reach it, and its reports as long to come home.",
       rules,
     );
 
@@ -377,8 +380,10 @@ describe("ViewTextTests", () => {
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     let e = new TurnEngine(s);
     e.beginTurn();
-    let travel = e.travelTurns("Egypt", "Hatti");
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Hatti", "Greetings.")] })]]));
+    // Due there when its route says (item 7b); due back by the word's road home from there, as reckoned now.
+    let due = first(s.journeys, (j) => j.characterId === envoy.id).arriveTurn;
+    let back = e.travelTurns("Hatti", "Egypt");
 
     let text = situation(Views.for(s, "Egypt"));
     Assert.contains(
@@ -386,7 +391,7 @@ describe("ViewTextTests", () => {
       text,
     );
     Assert.contains(
-      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${1 + travel}; due back about turn ${1 + 2 * travel}; serves at`,
+      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; serves at`,
       text,
     );
   });

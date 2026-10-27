@@ -35,11 +35,11 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
         <span><svg viewBox="0 0 40 14"><path className="lg-arrow" d="M2,7H22" /><path className="lg-bar" d="M23,1V13" /></svg> bounced</span>
         <span><svg viewBox="0 0 40 14"><path className="lg-sup" d="M2,7H32" /><circle className="lg-dot" cx="34" cy="7" r="3" /></svg> support</span>
         <span><svg viewBox="-12 -12 24 24"><circle className="lg-cap" r="9" /></svg> changed hands</span>
-        <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fog" fill="url(#fog)" /></svg> out of sight: the denser, the older</span>
+        <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fog" fill="url(#fog)" /></svg> out of sight: the denser, the older the news (land: of who holds it)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fert" fill="url(#fert4)" /></svg> rich land (close furrows)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-desert" fill="url(#stipple)" /></svg> desert (the Sinai costs an army not in its own land supplies)</span>
         <span><svg viewBox="0 0 30 14"><path className="peaks" d="M2,12L8,4L14,12M14,12L20,3L26,12" /></svg> mountains, rough ground</span>
-        <span><svg viewBox="0 0 30 14"><path className="pass-lg" d="M11,1Q15,7 11,13M19,1Q15,7 19,13" /></svg> pass · <svg viewBox="0 0 30 14"><path className="ford-lg" d="M12,1V13M18,1V13" /></svg> river crossing</span>
+        <span><svg viewBox="0 0 30 14"><path className="pass-lg" d="M11,1Q15,7 11,13M19,1Q15,7 19,13" /></svg> pass · <svg viewBox="0 0 30 14"><path className="ford-lg" d="M12,1V13M18,1V13" /></svg> river crossing (passes closed in winter)</span>
     </div>
       <p className="muted small">{ground}</p>
       <p className="muted small">Each power has a colour, an emblem and its own border line:</p>

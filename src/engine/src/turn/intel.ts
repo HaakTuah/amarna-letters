@@ -94,14 +94,16 @@ P.placeSpy = function (p, ps) {
   const court = ps.court ?? null;
   const province = ps.province ?? null;
   const target = court !== null ? Map.capital(court).id : province!;
-  const travel = this.travelTurnsBetween(Map.capital(p).id, target);
   c.duty = "SpyOutbound";
   c.at = null;
   c.missionTarget = court;
   c.watchProvince = province;
-  S.journeys.push(newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, arriveTurn: S.turn + travel, from: p, to: court ?? p, characterId: c.id }));
+  const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: p, to: court ?? p, characterId: c.id });
+  S.journeys.push(j);
+  this.setOut(j, Map.capital(p).id, target);
+  const travel = j.arriveTurn - S.turn;
   remember(c, S.turn, `My lord of ${land(p)} sent me quietly to watch ${court !== null ? land(court) : Map.get(province!).name}.`);
-  notify(S, p, "Notice", "Agent sent", `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey takes ${travel} season(s).`, c.id);
+  notify(S, p, "Notice", "Agent sent", `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey should take about ${travel} season(s).`, c.id);
 };
 
 P.spyArrives = function (j) {
@@ -129,17 +131,9 @@ P.recall = function (p, c) {
   const from = c.missionTarget !== null ? Map.capital(c.missionTarget).id : (c.watchProvince ?? Map.capital(p).id);
   c.duty = "EnvoyHomebound";
   c.at = null;
-  S.journeys.push(
-    newJourney({
-      id: newId(S, "j"),
-      kind: "SpyHomebound",
-      departTurn: S.turn,
-      arriveTurn: S.turn + this.travelTurnsBetween(from, Map.capital(p).id),
-      from: c.missionTarget ?? p,
-      to: p,
-      characterId: c.id,
-    }),
-  );
+  const j = newJourney({ id: newId(S, "j"), kind: "SpyHomebound", departTurn: S.turn, from: c.missionTarget ?? p, to: p, characterId: c.id });
+  S.journeys.push(j);
+  this.setOut(j, from, Map.capital(p).id);
 };
 
 /**
@@ -172,7 +166,8 @@ P.spyComesHome = function (j) {
   c.missionTarget = null;
   c.watchProvince = null;
   c.turnsAbroad = 0;
-  if (!free) notify(S, j.to, "Notice", "Agent returns", `${c.name} is back at court.`, c.id);
+  this.bringNews(j, j.to, c);
+  if (!free) notify(S, j.to, "Notice", "Agent returns", `${c.name} is back at court` + (j.turnedBack !== null ? `: ${j.turnedBack}.` : "."), c.id);
 };
 
 /** Every posted spy risks detection, then observes what its competence allows and sends word home. */

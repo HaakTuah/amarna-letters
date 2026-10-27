@@ -2,11 +2,14 @@ import { Dict } from "../core/collections.ts";
 import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
-/** What a rumour about one of a court's own people tells it: news that ends a {@link Cover}. */
-export const NewsKindValues = ["Overdue", "Ransom", "Death"] as const;
+/**
+ * What a rumour about one of a court's own people tells it: news that ends a {@link Cover}. For word ("Word"), what it
+ * tells a court of the world: a king closed or opened his roads to it, or a kingdom fell.
+ */
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -26,6 +29,22 @@ export interface Journey {
   news: NewsKind | null;
   /** For a ransom demand's rumour: the demand it announces, unless a newer one has replaced it. */
   taskId: string | null;
+  /**
+   * A traveller's road (item 7b): the provinces from where it set out to where it goes. Empty for word, which the engine
+   * carries until item 11b and which arrives in the season set ({@link arriveTurn}); a traveller arrives when it reaches
+   * the route's end, and {@link arriveTurn} is only when it is due.
+   */
+  route: string[];
+  /** The route's province it last reached (an index), and the points it has made on the connection beyond it. */
+  leg: number;
+  along: number;
+  /** The kings whose land it goes through off the road, unseen if it can be: those it believes closed to its master. */
+  sneak: string[];
+  /** The provinces it has reached on its way, and the turn it reached each: the news it brings of them is of then. */
+  seen: string[];
+  reached: number[];
+  /** Why it is coming back before its errand was done (turned back on the road), or null. */
+  turnedBack: string | null;
 }
 
 export function newJourney(init: Partial<Journey> = {}): Journey {
@@ -44,6 +63,13 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     gold: 0,
     news: null,
     taskId: null,
+    route: [],
+    leg: 0,
+    along: 0,
+    sneak: [],
+    seen: [],
+    reached: [],
+    turnedBack: null,
     ...init,
   };
 }
@@ -63,6 +89,13 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   gold: I,
   news: opt(S),
   taskId: S,
+  route: list(S),
+  leg: I,
+  along: I,
+  sneak: list(S),
+  seen: list(S),
+  reached: list(I),
+  turnedBack: opt(S),
 });
 
 /** What a leader hands an envoy: the spoken message, the mandate, and what it carries. */

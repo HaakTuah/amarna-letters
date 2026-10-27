@@ -8,7 +8,7 @@ import { isBlank } from "../core/text.ts";
 import { WorldMap } from "../model/map.ts";
 import { characterOf, unitOf, type CaptiveFate, type HireOrder, type Order, type RejectedOrder, type TurnSubmission } from "../model/orders.ts";
 import { coverOf, type Character } from "../model/people.ts";
-import type { Power } from "../model/power.ts";
+import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { findCharacter, isAlive, ledger, siegeOf, unitAt, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
@@ -50,6 +50,7 @@ export class OrderValidator {
     let budget = ledgerGold;
     const orders = submission.orders.slice(0, OrderValidator.MaxOrders);
     const assayed = new HSet<string>();
+    const roadsSet = new HSet<string>();
     const ceded = new HSet<string>();
     const fortified = new HSet<string>();
     const sallied = new HSet<string>();
@@ -357,6 +358,14 @@ export class OrderValidator {
           if (counterIntel) return "you had already set your watch that season";
           return spend(order.spend);
 
+        case "roads": {
+          if (order.court === power || !AllPowers.includes(order.court) || !isAlive(S, order.court)) return `you cannot close or open your roads to '${order.court}'`;
+          if (roadsSet.has(order.court)) return `you had already closed or opened your roads to ${order.court} that season`;
+          const closed = (S.roadsClosed.tryGet(power) ?? []).includes(order.court);
+          if (closed === order.close) return `your roads are already ${closed ? "closed" : "open"} to the people of ${order.court}`;
+          return null;
+        }
+
         case "assay":
           if (!S.treasuries.get(power).lots.some((l) => l.id === order.lot)) return `there is no unassayed gold '${order.lot}'`;
           if (assayed.has(order.lot)) return `gold lot ${order.lot} was already to be assayed by an earlier order`;
@@ -410,6 +419,7 @@ export class OrderValidator {
         if (order.type === "dispatch") dispatches++;
         if (order.type === "seekCandidates") seekCount++;
         if (order.type === "counterIntel") counterIntel = true;
+        if (order.type === "roads") roadsSet.add(order.court);
         if (order.type === "raise") raisedIn.add(order.province);
         if (order.type === "buy") bought.add(order.province);
         if (order.type === "renew") renewed.add(order.character);

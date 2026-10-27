@@ -9,6 +9,7 @@ import {
   clamp,
   convoy,
   counterIntel,
+  roads,
   disband,
   dismiss,
   dispatch,
@@ -328,6 +329,11 @@ function other(x: Node): Order | null {
       return recall(person);
     case "counter_intelligence":
       return counterIntel(amount);
+    case "close_roads":
+    case "open_roads": {
+      const close = S(x, "action") === "close_roads";
+      return power !== null ? roads(power, close) : unreadable(`${close ? "close" : "open"} your roads to '${named}'`, nowhere(named, "the court"));
+    }
     case "assay":
       return assay(S(x, "item"));
     case "authenticate":

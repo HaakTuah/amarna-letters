@@ -49,3 +49,4 @@ claim graded and sourced.
 | [`design/10-where-the-code-differs-from-the-design-document.md`](design/10-where-the-code-differs-from-the-design-document.md) | Where the code differs from the design document (as it stood on 19 October 2026) | 6.6 |
 | [`design/11-not-built-yet.md`](design/11-not-built-yet.md) | Not built yet | 7.3 |
 | [`design/12-the-map-and-the-seas.md`](design/12-the-map-and-the-seas.md) | The map and the seas (item 7a) | 7.5 |
+| [`design/13-travel-and-news.md`](design/13-travel-and-news.md) | Travel and news (item 7b) | 8.6 |

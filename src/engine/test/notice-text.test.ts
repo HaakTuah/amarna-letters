@@ -25,14 +25,15 @@ describe("NoticeTextTests", () => {
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     let e = new TurnEngine(s);
     e.beginTurn();
-    let travel = e.travelTurns("Egypt", "Hatti");
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [move("memphis", "sinai"), dispatch(envoy.id, "Hatti", "Greetings, brother.")] })]]));
+    // As long as its route makes it (item 7b).
+    let travel = first(s.journeys, (j) => j.characterId === envoy.id).arriveTurn - s.turn + 1;
 
     let inbox = inboxOf(s, "Egypt");
     Assert.contains(inbox, (i) => i.kind === "Battle" && i.title === "Movements last season" && i.body.includes("A memphis -> sinai: succeeds"));
     Assert.contains(
       inbox,
-      (i) => i.title === "Envoy dispatched" && i.body === `${envoy.name} set out for Hatti last season; the journey takes ${travel} season(s).`,
+      (i) => i.title === "Envoy dispatched" && i.body === `${envoy.name} set out for Hatti last season; the journey should take about ${travel} season(s).`,
     );
     Assert.doesNotContain(inbox, (i) => i.title.includes("this season"));
   });

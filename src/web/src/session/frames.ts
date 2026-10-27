@@ -139,6 +139,8 @@ export interface SeasonFrame {
   walls: Map<string, number>;
   /** The walls as each court knows them: standing now in its sight, elsewhere as it last saw them. */
   knownWalls: Map<Power, Map<string, number>>;
+  /** Who each court knows holds each land province, and the season that news dates from (item 7b). */
+  knownOwner: Map<Power, Map<string, { owner: Power | null; turn: number }>>;
   sieges: FrameSiege[];
   units: FrameUnit[];
   /** Every order of the season just resolved (the union of what each court saw). */
@@ -165,6 +167,10 @@ export interface SeasonFrame {
 }
 
 export const ownerOf = (f: SeasonFrame, province: string): Power | null => f.owner.get(province) ?? null;
+
+/** Who holds a province as a viewer knows it (item 7b): as it is in god view, else as the news that reached the court. */
+export const ownerFor = (f: SeasonFrame, province: string, viewer: Power | null): Power | null =>
+  viewer === null ? ownerOf(f, province) : (f.knownOwner.get(viewer)?.get(province)?.owner ?? ownerOf(f, province));
 
 /** Copies what the map needs from a state at the end of a season. Nothing here holds on to the live state. */
 export function frameFrom(s: GameState, index: number, previous: SeasonFrame | null, map: WorldMap = WorldMap.default): SeasonFrame {
@@ -252,6 +258,9 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
   const knownWalls = new Map<Power, Map<string, number>>(
     AllPowers.map((p) => [p, new Map(Views.wallsKnown(s, map, p, null).entries())] as const),
   );
+  const knownOwner = new Map<Power, Map<string, { owner: Power | null; turn: number }>>(
+    AllPowers.map((p) => [p, new Map([...Views.knownHolders(s, map, p).entries()].map(([k, x]) => [k, { owner: x.owner, turn: x.turn }] as const))] as const),
+  );
   const sleep = new Map<Power, FrameSleep>();
   for (const [p, x] of s.sleep) {
     const woke = x.history.filter((h) => h.wokeAt > 0);
@@ -280,6 +289,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     seenBy,
     sight,
     knownWalls,
+    knownOwner,
     journeys: s.journeys.map((j) => ({
       id: j.id,
       kind: j.kind,

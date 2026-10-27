@@ -10,7 +10,7 @@ import { type Catastrophe, CatastropheSchema, type GameEvent, GameEventSchema, t
 import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchema } from "./sleep.ts";
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
 
-export const CURRENT_VERSION = 10;
+export const CURRENT_VERSION = 11;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -55,6 +55,19 @@ export interface GameState {
    * courts' sight. Since the review of the siege package; until then every court saw every wall as it stood.
    */
   wallsSeen: Dict<Power, Dict<string, number>>;
+  /** Every change of a province's holder, oldest first (item 7b): word of it travels, so courts far away learn it late. */
+  ownerLog: OwnerChange[];
+  /**
+   * What each court knows of who holds each province, besides what word has brought (item 7b): what it saw itself, and
+   * what its travellers brought home, each with the season it was true and where it came from.
+   */
+  known: Dict<Power, Dict<string, Known>>;
+  /** The courts whose travellers each king stops passing through his land (item 7b, "Passage and access"). */
+  roadsClosed: Dict<Power, Power[]>;
+  /** The kings each court has heard closed their roads to its people, as far as word has reached it. */
+  roadsHeard: Dict<Power, Power[]>;
+  /** The fallen kingdoms each court has heard of: word of a fall travels too. */
+  fallsHeard: Dict<Power, Power[]>;
   /** The sieges under way: a foreign army standing in a walled city, ordered to besiege it. */
   sieges: Siege[];
   /**
@@ -140,6 +153,11 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     owner: new Dict(),
     walls: new Dict(),
     wallsSeen: new Dict(),
+    ownerLog: [],
+    known: new Dict(),
+    roadsClosed: new Dict(),
+    roadsHeard: new Dict(),
+    fallsHeard: new Dict(),
     sieges: [],
     conquered: new Dict(),
     inDesert: [],
@@ -187,6 +205,11 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   owner: dict(opt(S)),
   walls: dict(I),
   wallsSeen: dict(dict(I)),
+  ownerLog: list(() => OwnerChangeSchema),
+  known: dict(dict(() => KnownSchema)),
+  roadsClosed: dict(list(S)),
+  roadsHeard: dict(list(S)),
+  fallsHeard: dict(list(S)),
   sieges: list(() => SiegeSchema),
   conquered: dict(I),
   inDesert: list(S),
@@ -473,3 +496,29 @@ export function unitLabel(u: Unit): string {
 export function ledger(t: Treasury): number {
   return t.gold + sum(t.lots, (l) => l.face - l.true);
 }
+
+/** A province changed holder in a turn (GameState.ownerLog). */
+export interface OwnerChange {
+  province: string;
+  turn: number;
+  owner: Power | null;
+}
+
+export function newOwnerChange(init: Partial<OwnerChange> = {}): OwnerChange {
+  return { province: "", turn: 0, owner: null, ...init };
+}
+
+export const OwnerChangeSchema: ObjSchema<OwnerChange> = obj("OwnerChange", newOwnerChange, { province: S, turn: I, owner: opt(S) });
+
+/** Who a court knows holds a province: as of a season, and from where (seen by its own people, or a traveller's name). */
+export interface Known {
+  owner: Power | null;
+  turn: number;
+  source: string;
+}
+
+export function newKnown(init: Partial<Known> = {}): Known {
+  return { owner: null, turn: 0, source: "", ...init };
+}
+
+export const KnownSchema: ObjSchema<Known> = obj("Known", newKnown, { owner: opt(S), turn: I, source: S });

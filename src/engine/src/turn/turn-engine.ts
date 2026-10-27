@@ -14,6 +14,7 @@ import "./court.ts";
 import "./sleep.ts";
 import "./plans.ts";
 import "./answers.ts";
+import "./travel.ts";
 
 export { TurnEngine, idNumber, travelTurns, absorbedIn, BackPayTitle, KingdomFallsTitle } from "./core.ts";
 export { removeAll } from "./resolve.ts";
@@ -25,3 +26,4 @@ export { NoticeTitle, askingPrice, basePrice, renewalPrice } from "./court.ts";
 export * from "./sleep.ts";
 export { answerText } from "./answers.ts";
 export { UnraisedTitle, asShown, asItStands, survivors, type SeasonPlan, type Firing } from "./plans.ts";
+export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker } from "./travel.ts";
