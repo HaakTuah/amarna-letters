@@ -5,6 +5,8 @@ import {
   type AudienceView,
   type Character,
   Dict,
+  Rng,
+  TurnEngine,
   type GameState,
   GameStateSchema,
   type HostReply,
@@ -158,32 +160,26 @@ describe("BlindnessTests", () => {
     }
   });
 
-  test("A court that caught a spy has on record only the master it confessed to", async () => {
-    // Script games, seed by seed, until a caught spy kept silent. The seeds are searched rather than named, because a
-    // change to the rolls (as fix (d)'s id counters made) moves which games have one.
-    let silent = 0;
-    for (let seed = 1; seed <= 80 && silent === 0; seed++) {
-      let [runner] = await played(seed, 16);
-      let s = runner.state;
-      for (const l of s.losses.filter((l) => l.kind === "Captured")) {
-        let name = char(s, l.characterId).name;
-        // An envoy caught at a besieged city (the siege package) is a captive too, on the record as such.
-        if (s.events.some((e) => e.turn === l.turn && e.signal === "envoy-caught" && e.text.includes(name))) continue;
-        // What the captor's court has on record (in the web app, its Events and Season panels).
-        let line = Assert.single(s.events, (e) => e.turn === l.turn && e.kind === "spy-caught" && e.visibleTo.includes(l.court) && e.text.includes(name)).text;
-        const master = l.master;
-        if (master !== null && master !== undefined) Assert.equal(`${l.court} caught ${name}, a spy of ${master}.`, line);
-        else {
-          silent++;
-          Assert.equal(`${l.court} caught ${name}, a spy who will not say whom they serve.`, line);
-          Assert.single(
-            s.events,
-            (e) => e.turn === l.turn && e.kind === "spy-caught" && e.visibleTo.length === 0 && e.text.startsWith(`${l.court} caught ${name}, a spy of `),
-          );
-        }
-      }
+  test("A court that caught a spy has on record only the master it confessed to", () => {
+    // Built directly since item 7a: the seed search this test used (script games until a caught spy kept silent) found none
+    // in 80 games once the map changed which games have one. A spy with courage confesses only on a roll of 0.4.
+    for (const brave of [false, true]) {
+      const s = newGame(1);
+      const spy = first(s.characters, (c) => c.employer === "Egypt");
+      spy.traits.courage = brave ? 100 : 0;
+      spy.duty = "SpyPosted";
+      spy.missionTarget = "Hatti";
+      spy.at = "Hatti";
+      let i = 0;
+      while (Rng.for(1, 1, "capture-test", String(i)).chance(0.4)) i++;
+      new TurnEngine(s).capture(spy, "Hatti", Rng.for(1, 1, "capture-test", String(i)));
+      const line = Assert.single(s.events, (e) => e.kind === "spy-caught" && e.visibleTo.includes("Hatti") && e.text.includes(spy.name)).text;
+      Assert.equal(brave ? `Hatti caught ${spy.name}, a spy who will not say whom they serve.` : `Hatti caught ${spy.name}, a spy of Egypt.`, line);
+      // The truth is on a line nobody sees, only when the captor's record does not hold it.
+      const hidden = s.events.filter((e) => e.kind === "spy-caught" && e.visibleTo.length === 0 && e.text.startsWith(`Hatti caught ${spy.name}, a spy of `));
+      Assert.equal(brave ? 1 : 0, hidden.length);
+      Assert.equal(brave ? null : "Egypt", Assert.single(s.losses, (l) => l.kind === "Captured").master);
     }
-    Assert.true(silent > 0, "no caught spy kept silent in these games");
   });
 
   test("Seat labels change nothing a script king does", async () => {

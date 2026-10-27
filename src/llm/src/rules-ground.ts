@@ -51,10 +51,10 @@ export function seaRules(c: GameConfig): string {
     `, `,
     map.edges.filter((e) => e.open).map((e) => `${e.a}-${e.b}`),
   );
-  const shared = map.provinces.filter((p) => p.isSea && map.coastsOf(p.id).length > 1).map((p) => `${p.id} (${joinS(` and `, map.coastsOf(p.id).map((x) => x.id))})`);
+  const shared = map.provinces.filter((p) => p.isSea && map.coastsOf(p.id).length > 1).map((p) => `${p.id} by ${joinS(` and `, map.coastsOf(p.id).map((x) => x.id))}`);
   const lines: string[] = [`THE SEA`];
   lines.push(
-    `- Ships keep to the coasts. Every coast has waters of its own, a sea zone off its harbour and shore (THE MAP names each coast's waters)${shared.length > 0 ? `; ${joinS(`, `, shared)} are shared` : ``}. A fleet moves between a coast and its waters, along the shore between neighbouring coasts or neighbouring waters, and across the open sea only by the open-sea crossings (${open}).`,
+    `- Ships keep to the coasts. Every coast has waters of its own, a sea zone off its harbour and shore (THE MAP names each coast's waters)${shared.length > 0 ? `, shared only by neighbours that share a short shore: ${joinS(`; `, shared)}` : ``}. A fleet moves between a coast and its waters, along the shore between neighbouring coasts or neighbouring waters, and across the open sea only by the open-sea crossings (${open}).`,
   );
   lines.push(
     `- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out. An island is reached only this way.`,
@@ -64,7 +64,7 @@ export function seaRules(c: GameConfig): string {
       `- The blockade: a besieged coastal city is supplied by sea, and worn down ${c.seaSupply} step less each season, unless a fleet of its besieger holds its waters. A fleet of the besieger's in a city's waters blockades it; your news says whether each siege of yours, or of your cities, was supplied or blockaded.`,
     );
   lines.push(
-    `- The sea has a season. In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them and no convoy is carried over them, and an order to is refused. Along the coasts ships sail all year.`,
+    `- The sea has a season. In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them and no convoy is carried over them, and an order to cross them is refused. Along the coasts ships sail all year.`,
   );
   return joinS(`\n`, lines);
 }

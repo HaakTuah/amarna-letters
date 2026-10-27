@@ -42,7 +42,7 @@ import {
   support,
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
-import { removeAll, Assert, holds, orderBy } from "../../engine/test/support.ts";
+import { removeAll, Assert, holds, orderBy, walled } from "../../engine/test/support.ts";
 import { move as moveOrder } from "@amarna/engine";
 
 // The script players' audit of the siege package (Build order item 5, "Every feature is every seat's"): weaknesses found in
@@ -179,7 +179,7 @@ describe("SiegePlayTests", () => {
     let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     s.turn = turn;
     s.treasuries.get("Alashiya").gold = 2000;
-    single(s.units, (u) => u.province === "delta").province = "greatgreen";
+    single(s.units, (u) => u.province === "delta").province = "kalavasoswaters";
     if (walls > 0) s.walls.set("kalavasos", walls);
     let sub = await new ScriptLeader(1).decide(Views.for(s, "Alashiya"));
     Assert.equal(fortifies, holds(sub.orders, fortify("kalavasos")));
@@ -214,7 +214,9 @@ describe("SiegePlayTests", () => {
     Assert.doesNotContain(loyal.id, before.provenLoyal);
 
     // Among the equally reliable it is the first sent with a tablet or gold: here, with a gift to a friend, or a peace tablet.
+    // Since item 7a free Gaza and Jerusalem lie between Egypt and every great king: Babylonia's Jerusalem makes a neighbour.
     treaty(s, "Egypt", "Hatti", false);
+    s.owner.set("jerusalem", "Babylonia");
     let sub = await new ScriptLeader(1).decide(Views.for(s, "Egypt"));
     let trusted = sub.orders.filter((o): o is DispatchOrder => o.type === "dispatch").filter((d) => d.proposal !== null || d.gold > 0);
     Assert.notEmpty(trusted);
@@ -250,16 +252,16 @@ describe("SiegePlayTests", () => {
   });
 
   test("A script king s besieging army with nothing to help it slips away as the relief falls", () => {
-    // Babylonia's army besieges Assyria's Suhu (walls 2, so the walls may sally); Assyria's army in Ekallate stands next
-    // to it, and no troop of Babylonia's can reach Suhu. Damascus, beyond it, is free, open and out of Assyria's reach.
-    let s = newGame(1, newGameConfig({ endMedian: 10000, catastropheChance: 0 }));
+    // Babylonia's army besieges Assyria's Suhu (walls 2 here, so the walls may sally); Assyria's army in Ekallate stands
+    // next to it, and no troop of Babylonia's can reach Suhu. The Sutean steppe, beyond it, is free, open and out of
+    // Assyria's reach.
+    let s = walled(newGame(1, newGameConfig({ endMedian: 10000, catastropheChance: 0 })), "suhu", 2);
     s.turn = 6;
     removeAll(s.units, (u) => u.province === "sippar");
     let army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" });
     s.units.push(army);
     s.owner.set("suhu", "Assyria");
     s.sieges.push(newSiege({ province: "suhu", power: "Babylonia", unitId: army.id, progress: 1, since: 5 }));
-    s.walls.delete("damascus");
     let v = Views.for(s, "Babylonia");
     let brain = new Brain("Babylonia", 9);
     brain.learn(v, new Board(v));
@@ -271,7 +273,7 @@ describe("SiegePlayTests", () => {
     // siege is lost either way).
     let g = Assert.single(give, (x) => x.place === "suhu");
     Assert.equal(["Retreat", "UnitAttacked"], [g.kind, g.request.when]);
-    Assert.equal([moveOrder("suhu", "damascus")], g.request.orders);
+    Assert.equal([moveOrder("suhu", "steppe")], g.request.orders);
     // A besieging army is never called away to help elsewhere: it would not press its siege.
     Assert.doesNotContain(give, (x) =>
       x.request.orders.some((o) => (o.type === "support" && o.unit === "suhu") || (o.type === "move" && o.unit === "suhu" && x.place !== "suhu")),

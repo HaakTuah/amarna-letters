@@ -313,7 +313,7 @@ describe("SleepTests", () => {
               // among script kings; a short hidden cap wakes them often.
               let nap = new Sleeper((v) =>
                 newTurnSubmission({
-                  standing: [attackedOf("enkomi", hold("enkomi")), enters(null, "cilicia", move("enkomi", "cilicia"))],
+                  standing: [attackedOf("enkomi", hold("enkomi")), enters(null, "enkomiwaters", move("enkomi", "enkomiwaters"))],
                   cancelStanding: v.turn % 3 === 0 ? ["all"] : ["s1"],
                 }),
               );

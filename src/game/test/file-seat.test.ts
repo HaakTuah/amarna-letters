@@ -69,7 +69,7 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         seen.push(text);
         return stem.includes("orders")
-          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"enkomiwaters","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text);
       },
       stop.signal,
@@ -87,7 +87,7 @@ describe("FileSeatTests", () => {
     Assert.contains('"other_orders"', request);
     Assert.contains("t1_orders_Alashiya.reply.json", request);
     Assert.endsWith(Footer, request.trimEnd());
-    Assert.contains(runner.state.units, (u) => u.power === "Alashiya" && u.province === "cilicia");
+    Assert.contains(runner.state.units, (u) => u.power === "Alashiya" && u.province === "enkomiwaters");
     Assert.empty(runner.errors);
     Assert.contains(runner.log.calls, (c) => c.key === "t1/orders/Alashiya" && c.model === "file seat" && c.output.includes("copper coast"));
   });
@@ -217,7 +217,7 @@ describe("FileSeatTests", () => {
       folder,
       (stem, _) =>
         stem === "t1_orders_Alashiya"
-          ? `{"notes":"x","summary":"","ledger":[],"units":["enkomi -> cilicia"],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[]}]}`
+          ? `{"notes":"x","summary":"","ledger":[],"units":["enkomi -> enkomiwaters"],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[]}]}`
           : HoldEverything,
       stop.signal,
     );
@@ -253,7 +253,7 @@ describe("FileSeatTests", () => {
         if (stem === "t1_orders_Alashiya") request = text;
         return stem.includes("orders")
           ? `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],
- "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"cilicia","to":""}],"other_orders":[],"conditions":[]}],
+ "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"enkomiwaters","to":""}],"other_orders":[],"conditions":[]}],
  "standing_orders":[{"when":"unit_attacked","province":"enkomi","power":"","units":[{"unit":"enkomi","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]}],
  "cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text);
@@ -300,27 +300,20 @@ describe("FileSeatTests", () => {
     stop.abort();
     await answering;
 
-    // The script kings of seed 8 send Egypt's envoy to Alashiya at once: it wakes the sleeping king in turn 2. The
-    // king cannot ask to be woken in turn 3.
+    // It sleeps after its first orders, and nothing in these seasons wakes it (since item 7a no script king's fleet comes
+    // next to Enkomi, whose waters are its own): the envoys the script kings send it are received at audiences while it
+    // sleeps, and it gives no orders again. It cannot ask to be woken.
     function decision(stem: string): string {
       return requests.get(stem).replaceAll("\r\n", "\n").split("## THIS DECISION\n\n")[1];
     }
     Assert.contains("YOU SLEEP BETWEEN YOUR ORDERS", requests.get("t1_orders_Alashiya"));
     Assert.doesNotContain("wake_in_turn", requests.get("t1_orders_Alashiya"));
     Assert.startsWith("This is your first season.\n", decision("t1_orders_Alashiya"));
-    // (A script king's fleet also ends a move next to Enkomi that season, which wakes it too.)
-    let woken = "You gave orders last season (turn 1). You were woken because: an envoy of Egypt came to your court";
-    Assert.startsWith(woken, decision(first([...requests.keys()], (k) => k.startsWith("t2_court_"))));
-    // By its orders it has received the envoy (the audiences come first).
-    Assert.startsWith(
-      "You gave orders last season (turn 1). You were woken because: an envoy of Egypt came to your court (you received him before these orders)",
-      decision("t2_orders_Alashiya"),
-    );
-    // Turn 3 is not the season it named (it cannot): a script king's troops arriving next to or in its homeland wake it.
-    Assert.matches(
-      "^You gave orders last season \\(turn 2\\)\\. You were woken because: [^\\n]*foreign troops (came next to your|entered your)",
-      decision("t3_orders_Alashiya"),
-    );
+    let sleep = runner.state.sleep.get("Alashiya");
+    Assert.true(sleep.asleep);
+    Assert.equal(["t1_orders_Alashiya"], [...requests.keys()].filter((k) => k.includes("orders")));
+    Assert.notEmpty(sleep.courts);
+    Assert.contains([...requests.keys()], (k) => k.startsWith(`t${sleep.courts[0].turn}_court_Alashiya`));
     Assert.doesNotContain([...requests.values()], (r) => r.includes("you asked to be woken"));
 
     let replay = GameRunner.forReplay(GameLog.fromJsonl(runner.log.toJsonl()));

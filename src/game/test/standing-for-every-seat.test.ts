@@ -374,20 +374,21 @@ describe("StandingForEverySeatTests", () => {
   });
 
   test("A script king s fleet at sea with nothing to help it slips away as the blow falls", () => {
-    // Alashiya's fleet in the Great Green, next to Egypt's fleets in the Delta and the Levantine Sea; its armies hold
-    // Kalavasos and Enkomi, and no army can help a fleet at sea. The Cilician Sea is empty, and no Egyptian fleet could
-    // move into it this season.
+    // Alashiya's fleet in Kalavasos's waters, next to Egypt's fleets off Lukka and off Kizzuwatna; its armies hold
+    // Kalavasos and Enkomi, and no army can help a fleet at sea. Enkomi's waters are empty, and no Egyptian fleet could
+    // move into them this season.
     let s = newGame(31, Quiet);
     removeAll(s.units, (u) => u.power === "Alashiya");
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Fleet", province: "greatgreen" }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Fleet", province: "kalavasoswaters" }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Army", province: "kalavasos" }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Alashiya", kind: "Army", province: "enkomi" }));
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Fleet", province: "levantsea" }));
+    first(s.units, (u) => u.province === "delta" && u.kind === "Fleet").province = "lukkawaters";
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Fleet", province: "kizzuwatnawaters" }));
     let [b, brain] = read(s, "Alashiya");
     let [, give] = Contingencies.plan(b, brain, holding(b), []);
     let g = Assert.single(give);
-    Assert.equal(["Retreat", "greatgreen", "UnitAttacked"], [g.kind, g.place, g.request.when]);
-    Assert.equal([move("greatgreen", "cilicia")], g.request.orders);
+    Assert.equal(["Retreat", "kalavasoswaters", "UnitAttacked"], [g.kind, g.place, g.request.when]);
+    Assert.equal([move("kalavasoswaters", "enkomiwaters")], g.request.orders);
   });
 
   // <summary>Babylonia keeps standing order s1: when the army in Sippar is attacked, the army in Dur-Kurigalzu supports it.</summary>

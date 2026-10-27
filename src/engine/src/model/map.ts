@@ -391,7 +391,7 @@ export function buildMap(o: MapOptions = {}): WorldMap {
   land("ashur", "ekallate", "arrapha");
 
   // Babylonia and Elam
-  land("arrapha", "ekallate", "durkurigalzu", "susa");
+  land("arrapha", "ekallate", "susa");
   land("ekallate", "sippar", "durkurigalzu", "suhu");
   land("susa", "durkurigalzu", "nippur", "ur");
   land("sippar", "durkurigalzu", "babylon", "suhu");

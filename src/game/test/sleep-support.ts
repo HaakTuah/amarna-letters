@@ -206,20 +206,20 @@ export function assyriaInSusa(s: GameState): void {
   s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "susa" }));
 }
 
-// <summary>A standing order of Babylon's waiting for Assyria to enter Arbela, bound to its units.</summary>
+// <summary>A standing order of Babylon's waiting for Assyria to enter Arrapha, bound to its units.</summary>
 export function waiting(s: GameState, id: string, ...orders: Order[]): StandingOrder {
   return newStandingOrder({
     id: id,
     when: "UnitEnters",
     power: "Assyria",
-    province: "arbela",
+    province: "arrapha",
     orders: orders.map((o) => newPlannedOrder({ order: o, unitId: unitOf(o) !== null ? unitAt(s, unitOf(o)!)!.id : null })),
   });
 }
 
-// <summary>Assyria's army leaves Ekallate, which Babylon can see, for Arbela.</summary>
+// <summary>Assyria's army leaves Ekallate, which Babylon can see, for Arrapha.</summary>
 export function assyriaToArbela(babylon: TurnSubmission | null = null): Dict<Power, TurnSubmission> {
-  let orders = new Dict<Power, TurnSubmission>([["Assyria", newTurnSubmission({ orders: [move("ekallate", "arbela")] })]]);
+  let orders = new Dict<Power, TurnSubmission>([["Assyria", newTurnSubmission({ orders: [move("ekallate", "arrapha")] })]]);
   if (babylon !== null) orders.set("Babylonia", babylon);
   return orders;
 }

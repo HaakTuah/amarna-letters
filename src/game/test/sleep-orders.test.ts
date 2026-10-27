@@ -241,13 +241,13 @@ describe("SleepTests", () => {
     Assert.equal([supportOrder("sippar", "arbela", "ekallate"), supportOrder("durkurigalzu", "ashur", "ekallate")], supports.accepted);
     Assert.equal("there is no unit in nippur to support", Assert.single(supports.rejected).reason);
 
-    // So is a convoy: Egypt's fleet, out in the Levant sea, sees Byblos (empty) but not Amurru (empty too).
-    unitAt(s, "delta")!.province = "levantsea";
+    // So is a convoy: Egypt's fleet, off Byblos, sees Byblos (empty) but not Amurru (empty too).
+    unitAt(s, "delta")!.province = "bybloswaters";
     let egypt = Views.sight(s, WorldMap.default, "Egypt");
     Assert.equal([true, false], [egypt.has("byblos"), egypt.has("amurru")]);
     function convoyOf(army: string): string | null {
       return (
-        singleOrNull(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [convoyOrder("levantsea", army, "tyre")] })).rejected)?.reason ?? null
+        singleOrNull(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [convoyOrder("bybloswaters", army, "tyre")] })).rejected)?.reason ?? null
       );
     }
     Assert.null(convoyOf("amurru"));
@@ -280,8 +280,8 @@ describe("SleepTests", () => {
     let helper = unitAt(s, "akhetaten")!;
     let convoy = newPlannedOrder({ order: convoyOrder("delta", "memphis", "gaza"), unitId: fleet.id, otherUnitId: army.id });
     let support = newPlannedOrder({ order: supportOrder("akhetaten", "memphis", "sinai"), unitId: helper.id, otherUnitId: army.id });
-    [fleet.province, army.province, helper.province] = ["levantsea", "tyre", "memphis"];
-    Assert.equal(convoyOrder("levantsea", "tyre", "gaza"), asItStands(s, "Egypt", convoy));
+    [fleet.province, army.province, helper.province] = ["tyrewaters", "tyre", "memphis"];
+    Assert.equal(convoyOrder("tyrewaters", "tyre", "gaza"), asItStands(s, "Egypt", convoy));
     Assert.equal(supportOrder("memphis", "tyre", "sinai"), asItStands(s, "Egypt", support));
     // Given away, the army supported takes the order with it.
     army.power = "Hatti";

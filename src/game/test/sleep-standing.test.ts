@@ -60,16 +60,16 @@ describe("SleepTests", () => {
   // ------------------------------------------------------------ standing orders (answering a move in the season it is made, since the fix pass after item 4)
 
   test("A standing order answers a move in the season it is made once and does not wake the seat", async () => {
-    // When Assyria's troops enter Arbela, the army in Babylon falls back to Nippur. Turn 1: Assyria's army leaves
-    // Ekallate, which Babylon can see, for Arbela; a standing order first fires the season after it is given, so not yet.
-    // Turn 2: the army in Susa sets out for Arbela and is stopped there, and the standing order answers it that season.
+    // When Assyria's troops enter Arrapha, the army in Babylon falls back to Nippur. Turn 1: Assyria's army leaves
+    // Ekallate, which Babylon can see, for Arrapha; a standing order first fires the season after it is given, so not yet.
+    // Turn 2: the army in Susa sets out for Arrapha and is stopped there, and the standing order answers it that season.
     // Turn 3: it sets out again; the standing order is spent.
-    let sleeper = new Sleeper((v) => (v.turn === 1 ? newTurnSubmission({ standing: [enters("Assyria", "arbela", move("babylon", "nippur"))] }) : nothing()));
+    let sleeper = new Sleeper((v) => (v.turn === 1 ? newTurnSubmission({ standing: [enters("Assyria", "arrapha", move("babylon", "nippur"))] }) : nothing()));
     let assyria = new Scripted((v) =>
       v.turn === 1
-        ? newTurnSubmission({ orders: [move("ekallate", "arbela")] })
+        ? newTurnSubmission({ orders: [move("ekallate", "arrapha")] })
         : v.turn === 2 || v.turn === 3
-          ? newTurnSubmission({ orders: [move("susa", "arbela")] })
+          ? newTurnSubmission({ orders: [move("susa", "arrapha")] })
           : newTurnSubmission(),
     );
     let r = await play("Babylonia", sleeper, 1, undefined, new Dict([["Assyria", assyria]]), assyriaInSusa);
@@ -77,7 +77,7 @@ describe("SleepTests", () => {
     Assert.equal("Babylonia", unitAt(r.state, "babylon")?.power);
     // Its view lists it with its id; nothing tells a king in advance whether it will fire.
     let line = single(situation(Views.for(r.state, "Babylonia")).replaceAll("\r\n", "\n").split("\n"), (l) => l.startsWith("- s1:"));
-    Assert.equal("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur", line);
+    Assert.equal("- s1: when Assyria's troops enter arrapha, then: the army now in babylon -> nippur", line);
 
     await r.playTurn();
     Assert.equal("Babylonia", unitAt(r.state, "nippur")?.power);
@@ -88,7 +88,7 @@ describe("SleepTests", () => {
     let notice = noticeOf(r.state, "Babylonia", standingFiredTitle("s1"));
     Assert.equal(["Resolution", 3], [notice.kind, notice.turn]);
     Assert.equal(
-      "Your standing order s1 (when Assyria's troops enter arbela) fired in turn 2: Assyria's army set out from susa for arbela. It gave these orders: babylon -> nippur.",
+      "Your standing order s1 (when Assyria's troops enter arrapha) fired in turn 2: Assyria's army set out from susa for arrapha. It gave these orders: babylon -> nippur.",
       notice.body,
     );
     // In brief, the firing is dated by the season it fired, as the movements are by the season they were made.
@@ -194,7 +194,7 @@ describe("SleepTests", () => {
   });
 
   test("Standing orders that fire together go by id and the notice says what became of each order", () => {
-    // Asleep in turn 3, three standing orders fire as Assyria enters Arbela. s1 and s2 both order the army in Babylon: s1,
+    // Asleep in turn 3, three standing orders fire as Assyria enters Arrapha. s1 and s2 both order the army in Babylon: s1,
     // the lower id, goes first (wherever it stands in the list). One of s3's is refused.
     let [s, sleep] = asleep("Babylonia");
     s.standing.set(
@@ -210,17 +210,17 @@ describe("SleepTests", () => {
 
     Assert.equal("Babylonia", unitAt(s, "nippur")?.power);
     Assert.empty(standingOf(s, "Babylonia"));
-    let fired = "fired in turn 3: Assyria's army set out from ekallate for arbela.";
+    let fired = "fired in turn 3: Assyria's army set out from ekallate for arrapha.";
     Assert.equal(
-      `Your standing order s1 (when Assyria's troops enter arbela) ${fired} It gave these orders: babylon -> nippur.`,
+      `Your standing order s1 (when Assyria's troops enter arrapha) ${fired} It gave these orders: babylon -> nippur.`,
       noticeOf(s, "Babylonia", standingFiredTitle("s1")).body,
     );
     Assert.equal(
-      `Your standing order s2 (when Assyria's troops enter arbela) ${fired} It gave these orders: durkurigalzu holds. Replaced by standing order s1, which fired in the same season: babylon holds.`,
+      `Your standing order s2 (when Assyria's troops enter arrapha) ${fired} It gave these orders: durkurigalzu holds. Replaced by standing order s1, which fired in the same season: babylon holds.`,
       noticeOf(s, "Babylonia", standingFiredTitle("s2")).body,
     );
     Assert.equal(
-      `Your standing order s3 (when Assyria's troops enter arbela) ${fired} Refused: sippar -> ur (an army in sippar cannot reach ur).`,
+      `Your standing order s3 (when Assyria's troops enter arrapha) ${fired} Refused: sippar -> ur (an army in sippar cannot reach ur).`,
       noticeOf(s, "Babylonia", standingFiredTitle("s3")).body,
     );
     // Only the refused order fails; the one replaced by s1 is no second order for the unit. A refusal wakes nobody.
@@ -253,7 +253,7 @@ describe("SleepTests", () => {
   });
 
   test("A standing order fires only on the move it names as the seat sees it", () => {
-    // Turn 1: Babylon gives its standing orders. Turn 2, as it sleeps: Assyria's army sets out for Arbela; Mitanni's sets
+    // Turn 1: Babylon gives its standing orders. Turn 2, as it sleeps: Assyria's army sets out for Arrapha; Mitanni's sets
     // out for Suhu and fails against the Assyrian army standing within its walls; Mitanni's army in Taidu sets out for
     // Nineveh, out of Babylon's sight; Babylon's own army marches to Nippur, and another sets out against its own army in Sippar.
     let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
@@ -269,9 +269,9 @@ describe("SleepTests", () => {
           newTurnSubmission({
             scheduled: [newScheduledOrders({ turn: 2, orders: [move("babylon", "nippur"), move("durkurigalzu", "sippar")] })],
             standing: [
-              enters("Hatti", "arbela", hold("sippar")) /* s1: another power entered */,
-              enters("Assyria", "arbela", hold("sippar")) /* s2: fires */,
-              enters(null, "arbela", hold("sippar")) /* s3: fires */,
+              enters("Hatti", "arrapha", hold("sippar")) /* s1: another power entered */,
+              enters("Assyria", "arrapha", hold("sippar")) /* s2: fires */,
+              enters(null, "arrapha", hold("sippar")) /* s3: fires */,
               enters(null, "nippur", hold("sippar")) /* s4: only its own troops entered */,
               enters(null, "suhu", hold("sippar")) /* s5: fires, though the move into Suhu failed */,
               attackedOf("sippar", hold("sippar")) /* s6: only its own army moved against Sippar */,
@@ -287,7 +287,7 @@ describe("SleepTests", () => {
     e.wakeCheck();
     e.resolve(
       new Dict([
-        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "arbela")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "arrapha")] })],
         ["Mitanni", newTurnSubmission({ orders: [move("terqa", "suhu"), move("taidu", "nineveh")] })],
       ]),
     );
@@ -322,7 +322,7 @@ describe("SleepTests", () => {
     Assert.equal("Babylonia", unitAt(s, "sippar")?.power);
     Assert.empty(standingOf(s, "Babylonia"));
     Assert.equal(
-      "Your standing order s1 (when Assyria's troops enter arbela) fired in turn 3: Assyria's army set out from ekallate for arbela. It gave these orders: babylon -> nippur.",
+      "Your standing order s1 (when Assyria's troops enter arrapha) fired in turn 3: Assyria's army set out from ekallate for arrapha. It gave these orders: babylon -> nippur.",
       noticeOf(s, "Babylonia", standingFiredTitle("s1")).body,
     );
     Assert.doesNotContain(inboxOf(s, "Babylonia"), (i) => i.kind === "Rejected");
@@ -333,11 +333,11 @@ describe("SleepTests", () => {
   });
 
   test("Standing orders are cancelled by id or all even in the season they would fire", async () => {
-    // Woken every season (a hidden cap of 0, for the test). In turn 2 Assyria enters Arbela, but s1 is cancelled that season.
+    // Woken every season (a hidden cap of 0, for the test). In turn 2 Assyria enters Arrapha, but s1 is cancelled that season.
     let sleeper = new Sleeper((v) =>
       v.turn === 1
         ? newTurnSubmission({
-            standing: [enters("Assyria", "arbela", move("babylon", "nippur")), attackedOf("sippar", move("durkurigalzu", "nippur"))],
+            standing: [enters("Assyria", "arrapha", move("babylon", "nippur")), attackedOf("sippar", move("durkurigalzu", "nippur"))],
           })
         : v.turn === 2
           ? newTurnSubmission({ cancelStanding: ["s1", "s7"] })
@@ -345,11 +345,11 @@ describe("SleepTests", () => {
             ? newTurnSubmission({ cancelStanding: ["all"] })
             : nothing(),
     );
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "arbela")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "arrapha")] }) : newTurnSubmission()));
     let r = await play("Babylonia", sleeper, 2, cap(0), new Dict([["Assyria", assyria]]));
     let sleep = r.state.sleep.get("Babylonia");
 
-    Assert.contains("- s1: when Assyria's troops enter arbela, then: the army now in babylon -> nippur", situation(last(sleeper.views)));
+    Assert.contains("- s1: when Assyria's troops enter arrapha, then: the army now in babylon -> nippur", situation(last(sleeper.views)));
     Assert.null(unitAt(r.state, "nippur"));
     Assert.equal("s2", Assert.single(standingOf(r.state, "Babylonia")).id);
     Assert.equal("- s7: you have no standing order s7", noticeOf(r.state, "Babylonia", "Standing orders not cancelled").body);

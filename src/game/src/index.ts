@@ -7,6 +7,7 @@ export * from "./bots/script-mind.ts";
 export * from "./bots/template-narrator.ts";
 export * from "./bots/baseline-leader.ts";
 export { PlanAhead } from "./bots/ahead.ts";
+export { SeaPlay } from "./bots/seas.ts";
 export { CharacterChecks } from "./character-checks.ts";
 export * from "./human-seat.ts";
 export * from "./signals.ts";

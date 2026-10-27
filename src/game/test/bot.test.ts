@@ -166,18 +166,18 @@ describe("BotTests", () => {
   }
 
   test("Sworn partners work out the same joint blow and the supporter gives the support", () => {
-    // Mitanni (Carchemish) and Egypt (Ugarit) have sworn against Hatti; both stand next to Hatti's Kizzuwatna, which lies empty.
+    // Mitanni (Carchemish) and Egypt (Alalakh) have sworn against Hatti; both stand next to Hatti's Kizzuwatna, which lies empty.
     let s = newGame(11);
     for (const [city, owner] of [
       ["carchemish", "Mitanni"],
-      ["ugarit", "Egypt"],
+      ["alalakh", "Egypt"],
     ] as const) {
       s.owner.set(city, owner);
       s.walls.delete(city);
     }
     removeAll(s.units, (u) => ["kizzuwatna", "terqa", "memphis"].includes(u.province));
     s.units.push(newUnit({ id: "u90", power: "Mitanni", kind: "Army", province: "carchemish" }));
-    s.units.push(newUnit({ id: "u91", power: "Egypt", kind: "Army", province: "ugarit" }));
+    s.units.push(newUnit({ id: "u91", power: "Egypt", kind: "Army", province: "alalakh" }));
     s.tablets.push(
       newTablet({
         id: "t90",
@@ -208,14 +208,14 @@ describe("BotTests", () => {
       // Mitanni holds less land, so Mitanni goes in and Egypt supports.
       Assert.equal("carchemish", j.lead.province);
       Assert.equal(
-        ["ugarit"],
+        ["alalakh"],
         j.support.map((u) => u.province),
       );
     });
 
     let plan = Tactics.make(eb, egypt);
     Search.improve(eb, egypt, plan, egypt.r(5, "search"));
-    Assert.equal(support("ugarit", "carchemish", "kizzuwatna"), plan.orders.get("ugarit"));
+    Assert.equal(support("alalakh", "carchemish", "kizzuwatna"), plan.orders.get("alalakh"));
   });
 
   test("A king who seals a peace at an audience keeps it that same season", () => {

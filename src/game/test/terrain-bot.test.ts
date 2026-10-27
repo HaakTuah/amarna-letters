@@ -32,8 +32,8 @@ describe("TerrainBotTests", () => {
     Assert.equal(1, hatti.ground("tuwanuwa", "mira"));
     Assert.equal(1, hatti.ground("tuwanuwa", "kizzuwatna"));
     Assert.equal(0, hatti.ground("lukka", "kizzuwatna"));
-    // A move from a province not next to the target comes by sea: a landing.
-    Assert.equal(1, hatti.ground("byblos", "delta"));
+    // A landing from the sea gets no help from the ground since item 7a: the blockade decides at sea.
+    Assert.equal(0, hatti.ground("byblos", "delta"));
     // Against a blow from several sides, a crossing helps only if every side crosses one; rough ground helps against any.
     Assert.equal(0, hatti.groundFrom(["tuwanuwa", "lukka"], "kizzuwatna"));
     Assert.equal(1, hatti.groundFrom(["tuwanuwa", "nesa"], "kizzuwatna"));

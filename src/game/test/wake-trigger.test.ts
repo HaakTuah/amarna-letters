@@ -89,8 +89,9 @@ describe("WakeTriggerTests", () => {
     let s = newGame(31, Quiet);
     let sleep = newSleepState({ asleep: true, lastCalled: 1, wakeAt: 50, history: [newSleepSpell({ from: 2 })] });
     s.sleep.set("Alashiya", sleep);
-    season(s, subs({ Egypt: { orders: [move("delta", "levantsea")] } }));
-    Assert.equal([`${HomelandReason}: Egypt's fleet moved delta -> levantsea, next to enkomi`], sleep.wokenBecause);
+    first(s.units, (u) => u.province === "delta").province = "ugaritwaters";
+    season(s, subs({ Egypt: { orders: [move("ugaritwaters", "enkomiwaters")] } }));
+    Assert.equal([`${HomelandReason}: Egypt's fleet moved ugaritwaters -> enkomiwaters, next to enkomi`], sleep.wokenBecause);
   });
 
   test("A failed move next to the capital wakes the seat only as an attack on its troops", () => {
@@ -117,7 +118,7 @@ describe("WakeTriggerTests", () => {
       s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "terqa" }));
     });
     season(s, subs({ Mitanni: { orders: [move("terqa", "suhu")] } }));
-    Assert.equal(2, wallsOf(s, "suhu"));
+    Assert.equal(1, wallsOf(s, "suhu"));
     Assert.equal("Babylonia", s.owner.get("suhu"));
     Assert.equal("Mitanni", unitAt(s, "suhu")?.power);
     Assert.false(sleep.asleep);
@@ -180,14 +181,19 @@ describe("WakeTriggerTests", () => {
     return subs({ Egypt: { orders: orders } });
   }
 
+  /** Egypt's fleet off Lukka, one open crossing from Kalavasos's waters (item 7a: each coast has its own waters). */
+  const offLukka = (s: GameState): void => {
+    first(s.units, (u) => u.province === "delta" && u.kind === "Fleet").province = "lukkawaters";
+  };
+
   test("Foreign troops that end a move next to a home province wake the seat once", () => {
     // The second simulation's case (seed 7): Egypt's fleet comes beside Kalavasos, Alashiya's other province, out of
     // reach of Enkomi, its capital. Before the fix pass only an envoy at its door could have woken Alashiya then.
-    let [s, sleep] = alashiyaAsleep();
-    Assert.doesNotContain("enkomi", WorldMap.default.neighbors("greatgreen"));
-    season(s, egypt(move("delta", "greatgreen")));
+    let [s, sleep] = alashiyaAsleep(offLukka);
+    Assert.doesNotContain("enkomi", WorldMap.default.neighbors("kalavasoswaters"));
+    season(s, egypt(move("lukkawaters", "kalavasoswaters")));
     Assert.false(sleep.asleep);
-    Assert.equal([`${HomelandReason}: Egypt's fleet moved delta -> greatgreen, next to kalavasos`], sleep.wokenBecause);
+    Assert.equal([`${HomelandReason}: Egypt's fleet moved lukkawaters -> kalavasoswaters, next to kalavasos`], sleep.wokenBecause);
 
     // Standing there the next season is no news.
     sleepOf(sleep);
@@ -202,7 +208,7 @@ describe("WakeTriggerTests", () => {
       s.owner.set("suhu", "Babylonia");
       removeAll(s.units, (u) => u.province === "terqa");
     });
-    Assert.equal(2, wallsOf(s, "suhu"));
+    Assert.equal(1, wallsOf(s, "suhu"));
     season(s, subs({ Mitanni: { orders: [move("washukanni", "terqa")] } }));
     Assert.false(sleep.asleep);
     Assert.equal([`${WallsReason}: Mitanni's army moved washukanni -> terqa, next to suhu`], sleep.wokenBecause);
@@ -222,15 +228,15 @@ describe("WakeTriggerTests", () => {
     Assert.doesNotContain(sleep.wokenBecause, (r) => r.startsWith(HomelandReason));
 
     // Kalavasos already lost: Egypt's fleet beside it is no threat to Alashiya's land.
-    [s, sleep] = alashiyaAsleep((s) => s.owner.set("kalavasos", "Egypt"));
-    season(s, egypt(move("delta", "greatgreen")));
+    [s, sleep] = alashiyaAsleep((s) => (offLukka(s), s.owner.set("kalavasos", "Egypt")));
+    season(s, egypt(move("lukkawaters", "kalavasoswaters")));
     Assert.true(sleep.asleep);
 
-    // Alashiya's own fleet holds the Great Green: Egypt's move fails, and wakes it as an attack on its troops (since the
+    // Alashiya's own fleet holds Kalavasos's waters: Egypt's move fails, and wakes it as an attack on its troops (since the
     // review of the fix pass after item 4; before, an attack that did not get in waited in the digest), not as a threat.
-    [s, sleep] = alashiyaAsleep((s) => (first(s.units, (u) => u.province === "enkomi").province = "greatgreen"));
-    season(s, egypt(move("delta", "greatgreen")));
-    Assert.equal([`${AttackedReason}: Egypt's fleet tried to move delta -> greatgreen`], sleep.wokenBecause);
+    [s, sleep] = alashiyaAsleep((s) => (offLukka(s), (first(s.units, (u) => u.province === "enkomi").province = "kalavasoswaters")));
+    season(s, egypt(move("lukkawaters", "kalavasoswaters")));
+    Assert.equal([`${AttackedReason}: Egypt's fleet tried to move lukkawaters -> kalavasoswaters`], sleep.wokenBecause);
   });
 
   test("The rulebook says that troops next to the homeland or a walled city wake a king", () => {

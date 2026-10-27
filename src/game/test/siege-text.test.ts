@@ -4,12 +4,12 @@ import { fortification } from "../src/bots/statecraft-strategy.ts";
 import { MilitaryPlan, sallies } from "../src/bots/tactics.ts";
 import { Dict, TurnEngine, Views, besiege, first, fortify, move, newGame, newGameConfig, newId, newTurnSubmission, newUnit, sally } from "@amarna/engine";
 import { OtherActions, Parse, leaderRules, situation } from "@amarna/llm";
-import { removeAll, Assert } from "../../engine/test/support.ts";
+import { removeAll, Assert, walled } from "../../engine/test/support.ts";
 
 // <summary>What a king reads of walls, sieges and land being absorbed (Build order item 5), in the rulebook and his view.</summary>
 describe("SiegeTextTests", () => {
   test("The view gives the walls standing the sieges known and the land being absorbed", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = walled(newGame(1, newGameConfig({ catastropheChance: 0 })), "suhu", 2);
     first(s.units, (u) => u.province === "sippar").province = "suhu";
     let e = new TurnEngine(s);
     e.beginTurn();
@@ -46,7 +46,7 @@ describe("SiegeTextTests", () => {
     [
       "Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you, and counts in your strength, a third of its yield in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third.",
     ],
-    ["- apasa: Apasa; coast; homeland of Arzawa; capital; yield 40; walls 3."],
+    ["- apasa: Apasa; coast; waters apasawaters; homeland of Arzawa; capital; yield 40; walls 3."],
     [
       "Strengthening walls (order fortify, naming the province): the walls of a province you hold rise a level at the end of the season, up to 3, for 50 x the new level (50, 100, 150), paid then",
     ],

@@ -43,3 +43,4 @@ claim graded and sourced.
 | [`design/09-the-web-map-and-the-interface.md`](design/09-the-web-map-and-the-interface.md) | The web map and the interface (visual overhaul) | 16.1 |
 | [`design/10-where-the-code-differs-from-the-design-document.md`](design/10-where-the-code-differs-from-the-design-document.md) | Where the code differs from the design document (as it stood on 19 October 2026) | 6.6 |
 | [`design/11-not-built-yet.md`](design/11-not-built-yet.md) | Not built yet | 7.3 |
+| [`design/12-the-map-and-the-seas.md`](design/12-the-map-and-the-seas.md) | The map and the seas (item 7a) | 7.5 |

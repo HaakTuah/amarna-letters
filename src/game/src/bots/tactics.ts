@@ -30,7 +30,7 @@ import {
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
-import { landingsFrom, seaChains } from "./seas.ts";
+import { SeaPlay, landingsFrom, seaChains } from "./seas.ts";
 
 /** The season's troop orders, and what the plan still lacks (for levies). */
 export class MilitaryPlan {
@@ -405,7 +405,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const waters = Board.Map.get(at).waters;
     const ours = (z: string): boolean => b.unitAt.tryGet(z)?.power === me && b.unitAt.get(z).kind === "Fleet";
     const blockader =
-      waters === null || b.v.prices.getOrDefault("seaSupply", 1) <= 0
+      waters === null || b.v.prices.getOrDefault("seaSupply", 1) <= 0 || !SeaPlay.on
         ? null
         : ours(waters)
           ? waters
@@ -415,7 +415,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
                 [...free].filter((f) => b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && Board.Sail.canMove("Fleet", f, waters)),
                 [(f: string) => f, cmpStr],
               )[0] ?? null);
-    const supplied = waters !== null && blockader === null && b.v.prices.getOrDefault("seaSupply", 1) > 0;
+    const supplied = waters !== null && blockader === null && b.v.prices.getOrDefault("seaSupply", 1) > 0 && SeaPlay.on;
     ops.push(op("siege", supplied && helper === null ? worth / 4 : supplied ? worth / 2 : worth, at, at, helper === null ? [] : [helper]));
     if (waters !== null && blockader !== null && free.has(blockader)) ops.push(op("blockade", worth / 2 + 20, waters, blockader, []));
   }
@@ -423,7 +423,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   // ---- Guard the waters of our capital and walled coasts against a landing: an army lands only from the waters of the
   // coast it lands on, so a fleet of ours standing there stops it, when a foreign fleet not of a friend is near.
   for (const p of sortBy(
-    Board.Map.landProvinces.filter((x) => x.waters !== null && b.isMine(x.id) && (x.capital || b.wallLevel(x.id) >= 2)),
+    Board.Map.landProvinces.filter((x) => SeaPlay.on && x.waters !== null && b.isMine(x.id) && (x.capital || b.wallLevel(x.id) >= 2)),
     [(x: { id: string }) => x.id, cmpStr],
   )) {
     const w = p.waters!;
@@ -550,22 +550,38 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       const worth = worths.length === 0 ? 0 : max(worths, (x) => x);
       if (worth > best[1]) best = [chain, worth];
     }
-    if (best[1] < 200) continue;
+    // A chain longer than our free fleets can make whole is no plan: they act on their own instead.
+    const fleetsFree = [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f)).length;
+    if (best[1] < 200 || fleetsFree < best[0].length) continue;
     for (const zone of best[0]) {
       if (free.has(zone) && b.unitAt.get(zone).kind === "Fleet") {
         // Already at sea there: it waits for the rest of the chain, or for the army.
         assign(plan, free, zone, hold(zone), "convoy");
         continue;
       }
-      if (b.unitAt.has(zone)) continue;
-      const fleet =
-        sortBy(
-          [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && !best[0].includes(f) && Board.Sail.canMove("Fleet", f, zone)),
-          [(f: string) => f, cmpStr],
-        )[0] ?? null;
-      if (fleet === null || plan.destinations.has(zone)) continue;
-      assign(plan, free, fleet, move(fleet, zone), "convoy");
-      plan.destinations.add(zone);
+      if (b.unitAt.has(zone) || plan.destinations.has(zone)) continue;
+      const fleets = [...free].filter((f) => f !== army && b.unitAt.get(f).kind === "Fleet" && !stay.has(f) && !threat.has(f) && !best[0].includes(f));
+      const fleet = sortBy(
+        fleets.filter((f) => Board.Sail.canMove("Fleet", f, zone)),
+        [(f: string) => f, cmpStr],
+      )[0];
+      if (fleet !== undefined) {
+        assign(plan, free, fleet, move(fleet, zone), "convoy");
+        plan.destinations.add(zone);
+        continue;
+      }
+      // None can sail there this season: one that can by next season (a fleet in harbour puts out to its waters) goes a
+      // step towards it.
+      for (const f of sortBy(fleets, [(f: string) => f, cmpStr])) {
+        const step = sortBy(
+          Board.Sail.movesFrom("Fleet", f).filter((n) => !b.unitAt.has(n) && !plan.destinations.has(n) && Board.Sail.canMove("Fleet", n, zone)),
+          [(n: string) => n, cmpStr],
+        )[0];
+        if (step === undefined || !free.has(f)) continue;
+        assign(plan, free, f, move(f, step), "convoy");
+        plan.destinations.add(step);
+        break;
+      }
     }
   }
 

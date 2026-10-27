@@ -5,6 +5,7 @@ import { AllPowers, Dict, GameStateSchema, fmt, serialize, align, type GameConfi
 import {
   BaselineLeader,
   PlanAhead,
+  SeaPlay,
   ScriptLeader,
   ScriptMind,
   TemplateNarrator,
@@ -58,6 +59,8 @@ export interface BatchOptions {
   sleepingScripts: boolean;
   /** Script kings that sleep schedule conditional orders ahead (off with --no-plan-ahead, to measure them). */
   planAhead: boolean;
+  /** Script kings play the finer seas well (item 7a); off only to measure it (`--no-sea-play`). */
+  seaPlay: boolean;
   /** Only half the kings plan ahead, alternating by seed (the others are the comparison); they are reported as the current side. */
   planAheadHalf: boolean;
   simulateApi: boolean;
@@ -127,6 +130,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   const s = o.seed + job.g;
   const choices = choicesOf(o);
   PlanAhead.on = o.planAhead;
+  SeaPlay.on = o.seaPlay;
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.

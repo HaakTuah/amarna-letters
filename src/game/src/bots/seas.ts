@@ -6,11 +6,20 @@
 import { Board } from "./board.ts";
 
 /**
+ * Whether script kings play the finer seas well: chains of fleets for a convoy, blockades of the coastal cities they
+ * besiege, and fleets guarding the waters of their walled coasts. Off only to measure what that play is worth
+ * (`--no-sea-play`): then a convoy needs one fleet touching both coasts, as before item 7a, and no blockade or guard is
+ * planned.
+ */
+export const SeaPlay: { on: boolean } = { on: true };
+
+/**
  * The sea zones from the waters of `from` (a coast) to every zone reachable through zones that `through` allows, each with
  * the chain of zones that leads there (the first is `from`'s waters), breadth first and in id order, up to `depth` zones.
  */
 export function seaChains(from: string, through: (zone: string) => boolean, depth = 3): Map<string, string[]> {
   const out = new Map<string, string[]>();
+  if (!SeaPlay.on) depth = 1;
   const start = Board.Map.get(from).waters;
   if (start === null || !through(start)) return out;
   out.set(start, [start]);
