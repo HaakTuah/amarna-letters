@@ -21,4 +21,10 @@ run() { # name, games, first seed, the TypeScript play mode, extra arguments
 run scripts "$GAMES" "$SEED" play
 run sleeping 60 1001 play-sleeping --sleeping-scripts
 run versus 60 2001 play-versus "--versus baseline"
+# The recorded model games, replayed leniently by both builds (recorded replies where their keys match, scripts elsewhere).
+mkdir -p "$OUT/recorded"
+for f in tests/fixtures/replays/*.jsonl; do
+  dotnet run --no-build --project src/Amarna.Batch -c Release -- --replay-lenient "$f" --fingerprints "$OUT/recorded" >>"$OUT/recorded.log" 2>&1 || { tail -20 "$OUT/recorded.log"; exit 1; }
+done
+node --experimental-strip-types --no-warnings src/batch/src/parity.ts lenient tests/fixtures/replays "$OUT/recorded" || rc=1
 exit ${rc:-0}

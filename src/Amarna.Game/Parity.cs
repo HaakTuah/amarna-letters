@@ -26,4 +26,31 @@ public static class Parity
         };
         return lines;
     }
+
+    /// <summary>
+    /// Replays a recorded game leniently, as both builds must for the recorded model games (CONVERSION-PLAN.md, Notes): a
+    /// recorded reply wherever its key still comes up, the script stand-in (script kings, characters and narrator)
+    /// elsewhere, whatever the log's save version. The kings that could sleep in the recorded game sleep again.
+    /// </summary>
+    public static async Task<List<string>> ReplayLenient(GameLog log)
+    {
+        var state = GameFactory.NewGame(log.Header.Seed, log.Header.Config);
+        var script = new Bots.ScriptLeader(state.Seed);
+        var sleepers = log.Header.Sleepers.ToHashSet();
+        var seats = Powers.All.ToDictionary(p => p, p => sleepers.Contains(p) ? (ISeat)new Sleeping(script) : script);
+        var runner = new GameRunner(state, seats, new Bots.ScriptMind(), new Bots.TemplateNarrator(), replay: log, strictReplay: false, anyVersion: true);
+        var lines = Attach(runner);
+        await runner.PrepareAsync();
+        while (await runner.PlayTurnAsync()) { }
+        return lines;
+    }
+
+    /// <summary>A seat that may sleep, played by another.</summary>
+    private sealed class Sleeping(ISeat inner) : ISeat
+    {
+        public string Label => inner.Label + " (sleeping)";
+        public bool CanSleep => true;
+        public Task<TurnSubmission> DecideAsync(SeatView view, CancellationToken ct) => inner.DecideAsync(view, ct);
+        public Task<HostReply> HostAudienceAsync(AudienceView view, SeatView court, CancellationToken ct) => inner.HostAudienceAsync(view, court, ct);
+    }
 }

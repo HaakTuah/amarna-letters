@@ -2,13 +2,15 @@
 import { readFileSync } from "node:fs";
 import { parentPort } from "node:worker_threads";
 import { AllPowers, Dict, GameFactory, type Power } from "@amarna/engine";
-import { BaselineLeader, GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, attachParity, type ISeat } from "@amarna/game";
+import { BaselineLeader, GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, attachParity, replayLenient, type ISeat } from "@amarna/game";
 
 /** `play`: instead of replaying the log, play the game afresh with script kings (sleeping ones, as --sleeping-scripts). */
 export interface ReplayJob {
   log: string;
   fingerprints: string;
   play?: { seed: number; sleeping: boolean; versus?: boolean };
+  /** Replay the log leniently (replayLenient) instead. */
+  lenient?: boolean;
 }
 
 /** `versus`: as the batch runner's --versus baseline, every other king (by the seed) plays the frozen baseline. */
@@ -38,6 +40,17 @@ export interface ReplayResult {
 
 parentPort!.on("message", async (job: ReplayJob) => {
   const expected = readFileSync(job.fingerprints, "utf8").trim().split("\n");
+  if (job.lenient) {
+    let lines: string[] = [];
+    let error: string | null = null;
+    try {
+      lines = await replayLenient(GameLog.fromJsonl(readFileSync(job.log, "utf8")));
+    } catch (e) {
+      error = e instanceof Error ? (e.stack ?? e.message).split("\n").slice(0, 6).join("\n") : String(e);
+    }
+    parentPort!.postMessage(compare(job, expected, lines, error));
+    return;
+  }
   const runner = job.play ? playRunner(job.play.seed, job.play.sleeping, job.play.versus) : GameRunner.forReplay(GameLog.fromJsonl(readFileSync(job.log, "utf8")));
   const lines = attachParity(runner);
   let error: string | null = null;
@@ -49,14 +62,17 @@ parentPort!.on("message", async (job: ReplayJob) => {
   } catch (e) {
     error = e instanceof Error ? (e.stack ?? e.message).split("\n").slice(0, 6).join("\n") : String(e);
   }
+  parentPort!.postMessage(compare(job, expected, lines, error));
+});
+
+function compare(job: ReplayJob, expected: string[], lines: string[], error: string | null): ReplayResult {
   let i = 0;
   while (i < expected.length && i < lines.length && expected[i] === lines[i]) i++;
-  const result: ReplayResult = {
+  return {
     log: job.log,
     phases: expected.length,
     matched: i,
     mismatch: i < expected.length || lines.length !== expected.length ? `C# ${expected[i] ?? "(end)"} | TS ${lines[i] ?? "(end)"}` : null,
     error,
   };
-  parentPort!.postMessage(result);
-});
+}

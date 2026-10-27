@@ -41,6 +41,7 @@ var budget = 5.0;
 var noChronicles = false;
 var config = new GameConfig();
 var versus = false;
+string? replayLenient = null;
 var solo = false;
 Power? focus = null;
 string? fileSeats = null;
@@ -61,6 +62,7 @@ for (var i = 0; i < args.Length; i++)
         case "--fingerprints": parityDir = args[++i]; break;
         // Script kings that sleep as model seats do, so that a script game runs the engine's sleeping-seat rules (parity).
         case "--sleeping-scripts": sleepingScripts = true; break;
+        case "--replay-lenient": replayLenient = args[++i]; break;
         case "--verify-replay": verify = true; break;
         case "--detail": detail = true; break;
         case "--budget": budget = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
@@ -102,12 +104,22 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --replay-lenient LOG");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
             return;
     }
+}
+
+// The TypeScript conversion's parity check of a recorded game (Parity.ReplayLenient): its fingerprints, to --fingerprints DIR.
+if (replayLenient is not null)
+{
+    var lines = await Parity.ReplayLenient(GameLog.FromJsonl(await File.ReadAllTextAsync(replayLenient)));
+    Directory.CreateDirectory(parityDir ?? ".");
+    await File.WriteAllLinesAsync(Path.Combine(parityDir ?? ".", Path.GetFileNameWithoutExtension(replayLenient) + ".parity.tsv"), lines);
+    Console.WriteLine($"{replayLenient}: {lines.Count} phases");
+    return;
 }
 
 // The seed's characters, fixed when the game is made: what the simulation kit makes a folder and an agent for.
