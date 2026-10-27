@@ -5,7 +5,7 @@
   "overview": {
    "name": "Overview",
    "node": "320f0886-6acf",
-   "rev": 554,
+   "rev": 556,
    "files": [
     "docs/intent/overview/front.md",
     "docs/intent/overview/vision-and-core-hypothesis.md",
@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 23,
+   "rev": 25,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -58,7 +58,7 @@
   "engine-and-models": {
    "name": "Engine and models",
    "node": "23452eff-9a74",
-   "rev": 28,
+   "rev": 30,
    "files": [
     "docs/intent/engine-and-models/front.md",
     "docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md",
@@ -150,7 +150,7 @@
   "interface-and-the-council": {
    "name": "Interface and the council",
    "node": "ed35e82f-6e5a",
-   "rev": 4,
+   "rev": 5,
    "files": [
     "docs/intent/interface-and-the-council/front.md",
     "docs/intent/interface-and-the-council/spectator-mode-and-analysis.md",
