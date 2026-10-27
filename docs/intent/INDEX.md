@@ -15,7 +15,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 557 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 41 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 42 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 26 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 50 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
@@ -47,7 +47,7 @@ session loads.
 | `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.3 |
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 6.0 |
 | `docs/intent/build-order/item-8.md` | 8. Structured press. First, what the reviews of items 7a and 7b decided | 2.0 |
-| `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. Mandates with engine-checkable limits, the autho | 0.5 |
+| `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. First, whatever of the reviews of items 7a and 7 | 0.7 |
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 4.7 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 3.5 |
