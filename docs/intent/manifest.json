@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 53,
+   "rev": 55,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -46,7 +46,7 @@
   "world-and-history": {
    "name": "World and history",
    "node": "f2f7044b-c6fa",
-   "rev": 30,
+   "rev": 33,
    "files": [
     "docs/intent/world-and-history/front.md",
     "docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md",
@@ -126,7 +126,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 33,
+   "rev": 37,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military.md",
