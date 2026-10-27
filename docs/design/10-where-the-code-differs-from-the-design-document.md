@@ -54,7 +54,3 @@ The design document records intent; these notes record what is built. Where they
 - **Wages on return.** The document leaves the check on the loophole (reputation from losses abroad) to be worked
   out. The code carries news of losses abroad (captures and executions) to other courts with envoys and spies, and
   script envoys weigh back pay against offers of service; no character yet grows wary of a court from such news.
-- **The primer's Assyria line.** The customs primer says "brother" claims equal rank "as Assyria's king did when he
-  first wrote to the pharaoh as a brother" (see `04-models.md`). In the letters his first letter (EA 15) is modest, and
-  his second (EA 16) claims brotherhood; the design document says so ("Titles" and "Rank in the greeting" under Voice
-  of the age). The primer's wording is for the fix pass after the conversion, or the next item that touches the primer.

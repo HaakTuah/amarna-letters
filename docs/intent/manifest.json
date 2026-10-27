@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 29,
+   "rev": 32,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -58,7 +58,7 @@
   "engine-and-models": {
    "name": "Engine and models",
    "node": "23452eff-9a74",
-   "rev": 39,
+   "rev": 40,
    "files": [
     "docs/intent/engine-and-models/front.md",
     "docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md",
@@ -140,7 +140,7 @@
   "victory-and-the-ending": {
    "name": "Victory and the ending",
    "node": "58b70949-2c17",
-   "rev": 7,
+   "rev": 9,
    "files": [
     "docs/intent/victory-and-the-ending/front.md",
     "docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md",
