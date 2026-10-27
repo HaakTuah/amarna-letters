@@ -7,7 +7,9 @@ otherwise run `node sim/setup.js` first; a kit made before 20 October 2026 must 
 `ANTHROPIC_API_KEY` is not set; then open a **new** Claude Code session in the repository's main checkout
 itself (not a worktree) and paste everything below the line. When the session says it is waiting, start the game in the
 browser with the **Local agents** preset and your seat. When you have finished, press Ctrl+C in the bridge's terminal.
-For your own games only.
+For your own games only. To have envoys, spies and candidates played by agents too (item 8): run `node sim/setup.js
+--seeds S` for the game's seed S, start the bridge with `node sim/bridge.js --seed S`, and in the web app set the seed to
+S and choose "Local agents (Claude Code)" for envoys, spies and candidates.
 
 ---
 
@@ -18,7 +20,9 @@ arrive. You are not a player, and you are not Haakon's adviser in this game.
 
 Read first: `sim/README.md`, the sections "Local play" and "The orchestrator's rule". The game runs in Haakon's browser;
 a small bridge (`sim/bridge.js`) writes each request to a king into that king's own folder; you wait on the folders
-with `node sim/wait.js --play` and start the agent it names. Envoys, spies and the narrator are scripts.
+with `node sim/wait.js --play` and start the agent it names: a king (`king-<power>`), or, if the bridge was started with
+`--seed`, a character of that seed (`char-<8 hex>`), started the same way, under the same rule. The narrator is a script,
+and so are the characters when the bridge keeps none.
 
 **Your rules.**
 - Safety checks are never overridden: if a check that guards against something unsafe or irreversible fails (the isolation of agents before any agent is started, anything touching `main`, keys or spending), stop that step and ask, and go on with other work meanwhile.
@@ -34,7 +38,7 @@ with `node sim/wait.js --play` and start the agent it names. Envoys, spies and t
 - Haakon is a player. During the game, tell him nothing about the other kings: not which kings you started, not what
   any request or reply holds, nothing an agent said. If he asks, say that it waits until the game is over. After the
   game he may read everything, and so may you.
-- Start no agent but a `king-` agent for a listed request (and the isolation test below). Change no code, no rule and no
+- Start no agent but a `king-` agent, or a `char-` agent of the bridge's seed, for a listed request (and the isolation test below). Change no code, no rule and no
   file of the game.
 - The ANTHROPIC_API_KEY environment variable must not be set: with it, these agents would bill the API instead of the
   subscription.
@@ -54,13 +58,17 @@ with `node sim/wait.js --play` and start the agent it names. Envoys, spies and t
 **1. Check the agents and the walls.**
 - The seven `king-` agent types must be available. If any is missing, stop, start no agent, and ask Haakon (he runs
   `node sim/setup.js` and starts a new session).
+- Find whether the characters are agents too: `node -e "const f='sim/kings/bridge.json';console.log(require('fs').existsSync(f)?JSON.parse(require('fs').readFileSync(f,'utf8')).seed:null)"`
+  prints the seed S whose characters the bridge keeps, or `null`. With a seed, add `--seed S` to both isolation checks
+  below, and the test of step 2 is taken by the seed's `char-` agents too (`sim/characters/agents.json` lists them by
+  seed); a `char-` agent of that seed is then started only for a listed request, like a king.
 - Run `node sim/check-isolation.js --dry --kings`. It must print `DRY ISOLATION HOLDS`; if not, stop, start no agent,
   and ask Haakon (on a kit made before 20 October 2026 it fails and says why: he runs `node sim/setup.js --force` and
   starts a new session).
 
 **2. Isolation test of the kings, before the game.**
 - Note the time: `node -e "console.log(new Date().toISOString())"`.
-- Start all seven king agents in parallel, each with this prompt: "Isolation test: your request file is
+- Start all seven king agents in parallel (and, with a seed, every `char-` agent of that seed), each with this prompt: "Isolation test: your request file is
   isolation-test.request.md in your folder. Take the test as your definition asks: make every step it lists, one call
   each, then write the reply it asks for." Each agent's own definition asks it to make every step of the test, even
   those that reach outside its folder.

@@ -1,4 +1,5 @@
-import { B, D, I, type ObjSchema, list, obj } from "../core/json.ts";
+import { B, D, I, type ObjSchema, S, list, obj } from "../core/json.ts";
+import type { PressMode } from "./clauses.ts";
 
 /** Every tunable number in one place. The defaults are first proposals, tuned by batch runs. */
 export interface GameConfig {
@@ -83,8 +84,18 @@ export interface GameConfig {
   travelDays: number;
   maxDispatchesPerTurn: number;
   maxLetterChars: number;
+  /**
+   * The press (build order item 8, "Two press modes"): "full", kings write free words and every letter carries its clauses
+   * beside them; "structured", kings write only clauses from the templates and every letter is its clauses in the
+   * templates' words. Structured is required whenever the characters are script (set at setup; see `requiresStructured`).
+   */
+  pressMode: PressMode;
   audienceRounds: number;
   tabletFee: number;
+  /** The scribe's fee for the inventory of gold an envoy carries (item 8): saved by sending the gold without one. */
+  inventoryFee: number;
+  /** Seasons most Great Kings must have called a new claimant brother for his claim to become established (item 8). */
+  recognitionSeasons: number;
   assayFee: number;
   forgeFee: number;
   forgeMinCompetence: number;
@@ -134,8 +145,11 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     travelDays: 45,
     maxDispatchesPerTurn: 3,
     maxLetterChars: 1500,
+    pressMode: "full",
     audienceRounds: 2,
     tabletFee: 20,
+    inventoryFee: 20,
+    recognitionSeasons: 9,
     assayFee: 10,
     forgeFee: 40,
     forgeMinCompetence: 55,
@@ -178,8 +192,11 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   travelDays: I,
   maxDispatchesPerTurn: I,
   maxLetterChars: I,
+  pressMode: S,
   audienceRounds: I,
   tabletFee: I,
+  inventoryFee: I,
+  recognitionSeasons: I,
   assayFee: I,
   forgeFee: I,
   forgeMinCompetence: I,

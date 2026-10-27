@@ -155,8 +155,15 @@ files: for each decision the page sends the bridge the request text (exactly a f
 schema and footer), the bridge writes it as `<name>.request.md` into that king's own folder, and hands the page the
 `<name>.reply.json` its agent writes. The orchestrating Claude Code session, started from `docs/PLAY-PROMPT.md`, waits on
 the folders with `wait.js --play` and starts the king agents exactly as in the simulation, under the same orchestrator's
-rule. Envoys, spies and the narrator are scripts. Every exchange is logged as a call, so the game saves and replays
-exactly like any other.
+rule. Every exchange is logged as a call, so the game saves and replays exactly like any other.
+
+**Characters as agents too** (item 8). Envoys, spies and candidates may be played by local agents as well, as the
+simulation's file characters are: make the kit for the game's seed (`node sim/setup.js --seeds S`, and start a new session
+so the agent types load), start the bridge with that seed (`node sim/bridge.js --seed S`), set the seed in the web app's
+setup and choose "Local agents (Claude Code)" for envoys, spies and candidates. The bridge then keeps the seed's
+character folders beside the kings', `wait.js --play` watches them too, and the orchestrator starts the `char-*` agent a
+request names exactly as in the simulation. With script characters the game is in structured press (kings write only
+clauses); with characters as agents it is in full press. The narrator stays the template.
 
 **Isolation, as in the simulation.** One agent type per king with only Read and Write, the guard hook that blocks any
 path outside its own folder, folder names of 32 random hex digits, and a pre-game check: `check-isolation.js --dry

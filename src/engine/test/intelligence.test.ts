@@ -256,16 +256,16 @@ describe("IntelligenceTests", () => {
 
   test("Spending debased gold exposes it", () => {
     let s = newGame(9);
-    let t = s.treasuries.get("Arzawa");
+    let t = s.treasuries.get("Hatti");
     t.gold = 120;
     t.lots.push(newGoldLot({ id: "g900", from: "Egypt", stated: 200, face: 200, true: 60, arrivedTurn: 1 }));
     // The ledger shows 260; a 200-shekel purchase passes validation but the true treasury cannot pay.
     Assert.equal(260, ledger(t));
     let e = new TurnEngine(s);
-    e.resolve(orders("Arzawa", buy("lukka")));
-    Assert.null(s.owner.get("lukka"));
+    e.resolve(orders("Hatti", buy("alalakh")));
+    Assert.null(s.owner.get("alalakh"));
     Assert.empty(t.lots);
-    Assert.contains(inboxOf(s, "Arzawa"), (i) => i.title === "The treasury is short" && i.body.includes("Egypt"));
+    Assert.contains(inboxOf(s, "Hatti"), (i) => i.title === "The treasury is short" && i.body.includes("Egypt"));
   });
 
   test("Sworn allies can share the victory", () => {

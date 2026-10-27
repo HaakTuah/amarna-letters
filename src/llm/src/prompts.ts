@@ -6,6 +6,7 @@ import {
   AllPowers,
   Views,
   WorldMap,
+  clauseTag,
   cmpNum,
   cmpStr,
   describe,
@@ -98,6 +99,29 @@ export function ordersLine(v: SeatView): string
     }
 
     /// <summary>A seat's view as text: what this king knows this season.</summary>
+/**
+ * Rank (item 8, "Recognition is earned"): each claim to it that is new, or became established in play, and what this court
+ * and the others have called each other in the greetings sent between them. Empty when there is nothing to tell.
+ */
+export function rankLine(v: SeatView): string
+    {
+        const parts: string[] = [];
+        for (const c of v.claims)
+            parts.push(c.established === null
+                ? `${c.power}'s claim to be a Great King is still new${c.overlord !== null ? ` (${c.overlord} holds ${c.power} its vassal)` : ``}`
+                : `${c.power}'s claim to be a Great King is established (since turn ${c.established})`);
+        const called = (to: Power, from: Power): string => {
+            const r = v.greetings.find((x) => x.from === from && x.to === to);
+            if (r === undefined) return "";
+            return r.brotherSince !== null ? `brother since turn ${r.brotherSince}` : `not brother in the last greeting (turn ${r.lastTurn})`;
+        };
+        const others = v.greetings.filter((x) => x.to === v.power).map((x) => `${x.from}: ${called(v.power, x.from)}`);
+        const mine = v.greetings.filter((x) => x.from === v.power).map((x) => `${x.to}: ${called(x.to, v.power)}`);
+        if (others.length > 0) parts.push(`what other kings call you: ${joinS(`; `, others)}`);
+        if (mine.length > 0) parts.push(`what you call them: ${joinS(`; `, mine)}`);
+        return parts.length === 0 ? "" : `RANK: ${joinS(`. `, parts)}.`;
+    }
+
 export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): string
     {
         const map = WorldMap.default;
@@ -105,6 +129,8 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const woke = sleepLine(v, true);
         if (woke.length > 0) sb.appendLine(woke);
         sb.appendLine(`SEASON: turn ${v.turn}, ${v.season} by your court's reckoning.`);
+        const rank = rankLine(v);
+        if (rank.length > 0) sb.appendLine(rank);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
         sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Income ${v.income}, upkeep ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages} a season. Back pay owed to your people: ${v.backPay}. Strength ${v.strength} by your ledger (back pay owed counted against it), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
         // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
@@ -417,7 +443,10 @@ export function news(v: SeatView): string
         const sb = new Sb();
         sb.appendLine(`NEWS THIS SEASON:`);
         if (v.inbox.length === 0) sb.appendLine(`- nothing`);
-        for (const i of v.inbox) sb.appendLine(`[${i.kind}] ${i.title}: ${i.kind === "Battle" ? withoutHolds(i.body) : i.body}`);
+        for (const i of v.inbox) {
+            sb.appendLine(`[${i.kind}] ${i.title}: ${i.kind === "Battle" ? withoutHolds(i.body) : i.body}`);
+            if (i.clauses.length > 0) sb.appendLine(`  The answer in clauses, as reported: ${joinS(`; `, i.clauses.map(clauseTag))}.`);
+        }
         return sb.toString();
     }
 
@@ -491,17 +520,21 @@ export function audience(a: AudienceView, inCourt = false): string
         sb.appendLine(a.greeting.length > 0 ? `The sealed greeting reads: "${a.greeting}"` : `The tablet bears no greeting at all.`);
         if (a.greetingDeviations.length > 0) sb.appendLine(`It departs from the custom: ${joinS(`; `, a.greetingDeviations)}.`);
         sb.appendLine(`${a.envoy.name} says: "${a.spoken}"`);
+        if (a.clauses.length > 0) sb.appendLine(`The clauses ${a.envoy.name} recited: ${joinS(`; `, a.clauses.map(clauseTag))}.`);
         for (const x of a.soFar)
         {
             sb.appendLine(`You answered: "${x.host}"`);
             sb.appendLine(`${a.envoy.name} replied: "${x.envoy}"`);
         }
-        if (a.goldStated > 0)
+        if (a.goldWeighed > 0 && !a.inventory)
+            sb.appendLine(`The gold came with no inventory: nobody can say what was sent. Your weighers found ${a.goldWeighed} shekels. Its purity is unknown until you pay for an assay.`);
+        else if (a.goldStated > 0)
             sb.appendLine(`The inventory on the tablet lists ${a.goldStated} shekels of gold; your weighers found ${a.goldWeighed}. Its purity is unknown until you pay for an assay.`);
         if (a.proposal !== null)
             sb.appendLine(a.proposalSealed
                 ? `You chose at an earlier exchange to seal the tablet the envoy brought (already sealed by ${joinS(`, `, a.proposal.seals)}${(a.proposal.allianceOath ? ` as a sworn alliance` : ``)}), and your seal is set on it when the audience ends: "${a.proposal.text}"`
                 : `The envoy brings a tablet for you to seal, already sealed by ${joinS(`, `, a.proposal.seals)}${(a.proposal.allianceOath ? ` as a sworn alliance` : ``)}: "${a.proposal.text}"`);
+        if (a.proposal !== null && a.proposal.clauses.length > 0) sb.appendLine(`The tablet's clauses: ${joinS(`; `, a.proposal.clauses.map(clauseTag))}.`);
         for (const t of a.copiesShown)
             sb.appendLine(`The envoy shows you a tablet as evidence, bearing the seals of ${joinS(`, `, t.seals)}${(t.sealedTurn !== null ? `, dated turn ${t.sealedTurn}` : ``)}: "${t.text}"`);
         if (a.secretMandate !== null)

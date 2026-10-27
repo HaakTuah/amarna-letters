@@ -16,6 +16,9 @@ export const DefaultAddress = "http://localhost:5190";
 export interface BridgeStatus {
   running: boolean;
   seats: Power[];
+  /** The seed whose characters the bridge keeps folders for (started with --seed), or null; and their ids. */
+  seed: number | null;
+  characters: string[];
   problem: string;
 }
 
@@ -50,12 +53,12 @@ export class LocalBridge {
   }
 
   /** Asks the bridge whether it runs and which kings it has folders for, and says what is wrong if it does not serve them all. */
-  static async check(address: string, kings: Iterable<Power>): Promise<BridgeStatus> {
+  static async check(address: string, kings: Iterable<Power>, charactersOf: number | null = null): Promise<BridgeStatus> {
     let at: URL;
     try {
       at = normalize(address);
     } catch {
-      return { running: false, seats: [], problem: `"${address}" is not an address: the bridge listens at ${DefaultAddress} unless it was started with another --port.` };
+      return { running: false, seats: [], seed: null, characters: [], problem: `"${address}" is not an address: the bridge listens at ${DefaultAddress} unless it was started with another --port.` };
     }
     let body: JsonObject | null;
     try {
@@ -66,23 +69,36 @@ export class LocalBridge {
       return {
         running: false,
         seats: [],
+        seed: null,
+        characters: [],
         problem: `No local bridge answers at ${at}. Kings played by local agents need it: start it with node sim/bridge.js (see "Local play" in sim/README.md). It works only when the game runs on this computer, not on the published site.`,
       };
     }
-    if (body?.bridge !== "amarna-letters") return { running: false, seats: [], problem: `Something answers at ${at}, but it is not the Amarna Letters bridge.` };
+    if (body?.bridge !== "amarna-letters") return { running: false, seats: [], seed: null, characters: [], problem: `Something answers at ${at}, but it is not the Amarna Letters bridge.` };
     const seats = (Array.isArray(body.seats) ? body.seats : []).map((x) => (typeof x === "string" ? parsePower(x) : null)).filter((p): p is Power => p !== null);
+    const seed = typeof body.seed === "number" ? body.seed : null;
+    const characters = (Array.isArray(body.characters) ? body.characters : []).filter((x): x is string => typeof x === "string");
     const missing = [...kings].filter((k) => !seats.includes(k));
-    if (missing.length > 0) return { running: true, seats, problem: `The bridge has no folder for ${missing.join(", ")}: run node sim/setup.js, then restart the bridge.` };
-    return { running: true, seats, problem: "" };
+    if (missing.length > 0) return { running: true, seats, seed, characters, problem: `The bridge has no folder for ${missing.join(", ")}: run node sim/setup.js, then restart the bridge.` };
+    // Characters as local agents (item 8): the bridge must keep this game's seed's, since ids differ from seed to seed.
+    if (charactersOf !== null && (seed !== charactersOf || characters.length === 0))
+      return {
+        running: true,
+        seats,
+        seed,
+        characters,
+        problem: `The bridge keeps no character folders for seed ${charactersOf}: run node sim/setup.js --seeds ${charactersOf}, then start the bridge with --seed ${charactersOf}.`,
+      };
+    return { running: true, seats, seed, characters, problem: "" };
   }
 
   /**
    * One request to one king: the bridge writes it into his folder and the page asks every poll for the reply until it comes
    * or the timeout passes. A request that times out, or whose game is stopped, is taken back.
    */
-  async askOnce(seat: Power, spec: CallSpec, stem: string, error: string, signal?: AbortSignal): Promise<[string, number]> {
+  async askOnce(seat: string, spec: CallSpec, stem: string, error: string, signal?: AbortSignal, actor: string = King): Promise<[string, number]> {
     const mark = `<reply path ${crypto.randomUUID().replaceAll("-", "")}>`;
-    const text = requestText(spec, mark, error, King);
+    const text = requestText(spec, mark, error, actor);
     const sent = await this.post("ask", { seat, name: stem, text, mark }, signal);
     const chars = typeof sent?.chars === "number" && Number.isInteger(sent.chars) ? sent.chars : text.length;
     const deadline = Date.now() + this.timeoutMs;
@@ -129,7 +145,7 @@ export class LocalBridge {
     }
   }
 
-  private async withdraw(seat: Power, stem: string): Promise<void> {
+  private async withdraw(seat: string, stem: string): Promise<void> {
     try {
       await this.post("cancel", { seat, name: stem });
     } catch {
@@ -145,16 +161,19 @@ export class LocalBridge {
 export class BridgeExchange implements JsonAsker {
   static readonly Model = "local agent";
   private readonly bridge: LocalBridge;
-  private readonly seat: Power;
+  /** A king's name, or a character's id (item 8: characters played by local agents). */
+  private readonly seat: string;
   private readonly record: ((call: ModelCall) => void) | null;
+  private readonly actor: string;
 
-  constructor(bridge: LocalBridge, seat: Power, record: ((call: ModelCall) => void) | null = null) {
+  constructor(bridge: LocalBridge, seat: string, record: ((call: ModelCall) => void) | null = null, actor: string = King) {
     this.bridge = bridge;
     this.seat = seat;
     this.record = record;
+    this.actor = actor;
   }
 
   askJson(spec: CallSpec, signal?: AbortSignal): Promise<JsonObject> {
-    return converse(spec, BridgeExchange.Model, (stem, error) => this.bridge.askOnce(this.seat, spec, stem, error, signal), this.record);
+    return converse(spec, BridgeExchange.Model, (stem, error) => this.bridge.askOnce(this.seat, spec, stem, error, signal, this.actor), this.record);
   }
 }

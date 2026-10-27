@@ -1,6 +1,7 @@
 import { Dict } from "../core/collections.ts";
 import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
+import { type Clause, ClauseSchema } from "./clauses.ts";
 
 export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
@@ -115,10 +116,16 @@ export interface Dispatch {
   proposalTabletId: string | null;
   copyIds: string[];
   trailId: string;
+  /** The letter's clauses as the king set them out (item 8). */
+  clauses: Clause[];
+  /** The gold goes with an inventory tablet (item 8); without one it saves the scribe's fee and nobody can check it. */
+  inventory: boolean;
 }
 
 export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
   return {
+    inventory: true,
+    clauses: [],
     letter: "",
     greeting: newGreetingOptions(),
     greetingText: "",
@@ -134,6 +141,8 @@ export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
 }
 
 export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, {
+  inventory: B,
+  clauses: list(() => ClauseSchema),
   letter: S,
   greeting: () => GreetingOptionsSchema,
   greetingText: S,
@@ -149,10 +158,13 @@ export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, 
 export interface TabletProposal {
   text: string;
   allianceOath: boolean;
+  /** The tablet's clauses (item 8): what a script king reads; in structured press its text is these in the templates' words. */
+  clauses: Clause[];
 }
 
 export function newTabletProposal(init: Partial<TabletProposal> = {}): TabletProposal {
   return {
+    clauses: [],
     text: "",
     allianceOath: false,
     ...init,
@@ -160,6 +172,7 @@ export function newTabletProposal(init: Partial<TabletProposal> = {}): TabletPro
 }
 
 export const TabletProposalSchema: ObjSchema<TabletProposal> = obj("TabletProposal", newTabletProposal, {
+  clauses: list(() => ClauseSchema),
   text: S,
   allianceOath: B,
 });
@@ -351,10 +364,13 @@ export interface Tablet {
   forgerEmployer: Power | null;
   forgerSkill: number;
   // computed in C#: !Forged && SealedTurn is not null && Partner is not null && Seals.Count >= 2
+  /** Its clauses (item 8): the treaty as a script king reads it. None on an inventory. */
+  clauses: Clause[];
 }
 
 export function newTablet(init: Partial<Tablet> = {}): Tablet {
   return {
+    clauses: [],
     id: "",
     text: "",
     proposedBy: "Egypt",
@@ -373,6 +389,7 @@ export function newTablet(init: Partial<Tablet> = {}): Tablet {
 }
 
 export const TabletSchema: ObjSchema<Tablet> = obj("Tablet", newTablet, {
+  clauses: list(() => ClauseSchema),
   id: S,
   text: S,
   proposedBy: S,
@@ -553,10 +570,13 @@ export interface InboxItem {
   title: string;
   body: string;
   subject: string | null;
+  /** For an envoy's report: the host's answer in clauses, as the envoy reported it (item 8). */
+  clauses: Clause[];
 }
 
 export function newInboxItem(init: Partial<InboxItem> = {}): InboxItem {
   return {
+    clauses: [],
     turn: 0,
     kind: "Resolution",
     title: "",
@@ -567,6 +587,7 @@ export function newInboxItem(init: Partial<InboxItem> = {}): InboxItem {
 }
 
 export const InboxItemSchema: ObjSchema<InboxItem> = obj("InboxItem", newInboxItem, {
+  clauses: list(() => ClauseSchema),
   turn: I,
   kind: S,
   title: S,
@@ -595,10 +616,22 @@ export interface MessageTrail {
   outcomes: string[];
   reportTurn: number | null;
   report: string;
+  /** The letter's clauses as written (item 8). */
+  clauses: Clause[];
+  /** The clauses the envoy recited at the audience: a script envoy may drop, soften or change some. */
+  deliveredClauses: Clause[];
+  /** The host's answer as the envoy reported it home, which may not be what the host said. */
+  reportClauses: Clause[];
+  /** The gold went without an inventory tablet (item 8). */
+  noInventory: boolean;
 }
 
 export function newMessageTrail(init: Partial<MessageTrail> = {}): MessageTrail {
   return {
+    noInventory: false,
+    reportClauses: [],
+    deliveredClauses: [],
+    clauses: [],
     id: "",
     turn: 0,
     from: "Egypt",
@@ -623,6 +656,10 @@ export function newMessageTrail(init: Partial<MessageTrail> = {}): MessageTrail 
 }
 
 export const MessageTrailSchema: ObjSchema<MessageTrail> = obj("MessageTrail", newMessageTrail, {
+  noInventory: B,
+  reportClauses: list(() => ClauseSchema),
+  deliveredClauses: list(() => ClauseSchema),
+  clauses: list(() => ClauseSchema),
   id: S,
   turn: I,
   from: S,
@@ -647,10 +684,16 @@ export const MessageTrailSchema: ObjSchema<MessageTrail> = obj("MessageTrail", n
 export interface Exchange {
   host: string;
   envoy: string;
+  /** The host's clauses in this exchange (item 8). */
+  clauses: Clause[];
+  /** With a gift in this exchange, in structured press: the news the host asked the envoy to tell its lord (item 8). */
+  bribeClauses: Clause[];
 }
 
 export function newExchange(init: Partial<Exchange> = {}): Exchange {
   return {
+    bribeClauses: [],
+    clauses: [],
     host: "",
     envoy: "",
     ...init,
@@ -658,6 +701,8 @@ export function newExchange(init: Partial<Exchange> = {}): Exchange {
 }
 
 export const ExchangeSchema: ObjSchema<Exchange> = obj("Exchange", newExchange, {
+  bribeClauses: list(() => ClauseSchema),
+  clauses: list(() => ClauseSchema),
   host: S,
   envoy: S,
 });

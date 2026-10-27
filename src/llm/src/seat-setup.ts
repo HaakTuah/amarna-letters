@@ -12,6 +12,7 @@ import {
   type LogHeader,
 } from "@amarna/game";
 import { BridgeExchange, DefaultAddress, LocalBridge } from "./bridge.ts";
+import { CharacterActor } from "./exchange.ts";
 import { LlmCharacterMind } from "./character-mind.ts";
 import { NewPlan, alertsReply, planReply, routineCourt } from "./king-ladder.ts";
 import { Ladder, counselSchema, withLadder } from "./ladder.ts";
@@ -40,7 +41,7 @@ export function leaderModel(k: LeaderKind): string | null {
   return k === "Script" || k === "Human" || k === "LocalAgent" || k.trim().length === 0 ? null : modelOf(k);
 }
 export function characterModel(k: CharacterKind): string | null {
-  return k === "Script" || k.trim().length === 0 ? null : modelOf(k);
+  return k === "Script" || k === "LocalAgent" || k.trim().length === 0 ? null : modelOf(k);
 }
 /** The model a rung names, or null when the table turned it off ("Off", or nothing). */
 export function rungModel(k: string): string | null {
@@ -80,6 +81,8 @@ export class SeatChoices {
   bridgeAddress = DefaultAddress;
   /** Local play: how long one decision waits for a king's agent before the script king stands in for it. */
   localAgentMinutes = 60;
+  /** With characters played by local agents: the ids the bridge keeps folders for (its seed's), as its status gave them. */
+  bridgeCharacters: string[] = [];
   /** Providers other than Anthropic, each with an OpenAI-compatible endpoint; a model setting names one by its id. */
   providers: ProviderSetting[] = [];
   /** Prices set by the table, by model setting, over the defaults. */
@@ -136,11 +139,11 @@ export class SeatChoices {
 
   /** Local agent kings are not model calls from this program: they need the local bridge, not a key, and cost nothing here. */
   get usesModels(): boolean {
-    return [...this.leaders.values()].some((v) => leaderModel(v) !== null) || this.characters !== "Script" || this.narrator !== "Template";
+    return [...this.leaders.values()].some((v) => leaderModel(v) !== null) || characterModel(this.characters) !== null || this.narrator !== "Template";
   }
 
   get usesLocalAgents(): boolean {
-    return [...this.leaders.values()].some((v) => v === "LocalAgent");
+    return [...this.leaders.values()].some((v) => v === "LocalAgent") || this.characters === "LocalAgent";
   }
 
   copy(): SeatChoices {
@@ -151,6 +154,7 @@ export class SeatChoices {
     c.leaderEffort = this.leaderEffort;
     c.bridgeAddress = this.bridgeAddress;
     c.localAgentMinutes = this.localAgentMinutes;
+    c.bridgeCharacters = [...this.bridgeCharacters];
     c.providers = this.providers.map((p) => ({ ...p }));
     c.prices = { ...this.prices };
     c.small = this.small;
@@ -373,6 +377,8 @@ export interface SeatSet {
 
 /** A local agent king's label, in the log header and wherever seats are listed. */
 export const LocalAgentLabel = "Local agent";
+/** The characters' label when local agents play them (item 8). */
+export const LocalAgentCharactersLabel = "Local agent characters";
 
 /**
  * The providers for the models in use: Anthropic through `anthropic` (the SDK with the player's key, or the simulated
@@ -424,7 +430,7 @@ export function checkJobs(choices: SeatChoices, config: GameConfig): { model: st
     const small = smallModel(choices, p);
     const m = leaderModel(choices.leaders.get(p));
     if (small !== null && m !== null) {
-      jobs.push({ model: small, schemas: [withLadder(planned(Replies.leaderOrders(config))), routineCourt(true), alertsReply()] });
+      jobs.push({ model: small, schemas: [withLadder(planned(Replies.leaderOrders(config))), routineCourt(true, config), alertsReply()] });
       jobs.push({ model: m, schemas: [counsel] });
     }
   }
@@ -464,6 +470,7 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
   // Local play: every local agent king goes through the one bridge, as a file seat whose files the bridge writes.
   const bridge = choices.usesLocalAgents ? new LocalBridge(choices.bridgeAddress, Math.min(Math.max(choices.localAgentMinutes, 1), 24 * 60) * 60000) : null;
 
+  const bridgeCharacters = new Set(choices.bridgeCharacters);
   const script = new ScriptLeader(state.seed);
   const seats = new Dict<Power, ISeat>();
   for (const p of AllPowers) {
@@ -496,7 +503,17 @@ export function buildSeats(choices: SeatChoices, state: GameState, providers: Pr
   // Model characters' decisions are logged beside the script's for the same situations (the log's shadow lines).
   const cm = characterModel(choices.characters);
   let minds: ICharacterMind = new ScriptMind();
-  if (cm !== null) {
+  // Characters played by local agents (item 8): each through the bridge, by its id, as the simulation kit's file characters
+  // are through their folders; one the bridge keeps no folder for is a script.
+  if (choices.characters === "LocalAgent") {
+    const m = new LlmCharacterMind(
+      (c) => (bridgeCharacters.has(c.id) ? new BridgeExchange(bridge!, c.id, (call) => log().addCall(call), CharacterActor) : null),
+      BridgeExchange.Model,
+      LocalAgentCharactersLabel,
+    );
+    m.shadow = (s) => log().addShadow(s);
+    minds = m;
+  } else if (cm !== null) {
     const m = new LlmCharacterMind(client!, cm, null, { ladder: ladder!, up: rungModel(choices.charactersUp) });
     m.shadow = (s) => log().addShadow(s);
     minds = m;
@@ -518,7 +535,7 @@ export function choicesFromHeader(header: LogHeader, providers: readonly Provide
   c.providers = providers.map((p) => ({ ...p }));
   for (const p of AllPowers) c.leaders.set(p, leader(header.seats.tryGet(p) ?? ""));
   const cm = model(header.minds, "characters");
-  c.characters = cm === null || cm === "Script" ? "Script" : cm;
+  c.characters = header.minds === LocalAgentCharactersLabel ? "LocalAgent" : cm === null || cm === "Script" ? "Script" : cm;
   const nm = model(header.narrator, "narrator");
   c.narrator = nm === null || nm === "Template" ? "Template" : nm;
   // A game saved before item 6c kept no other rungs: it goes on with the king's own model answering every envoy, as it was played.

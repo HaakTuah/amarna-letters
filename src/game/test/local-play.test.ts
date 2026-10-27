@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, describe, test, vi } from "vitest";
 import { AllPowers, Dict, type GameConfig, GameStateSchema, HSet, type Power, count, hash, newGame, newGameConfig } from "@amarna/engine";
-import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, newLogHeader } from "@amarna/game";
+import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, newLogHeader, pressFor } from "@amarna/game";
 import {
   BridgeExchange,
   type CallSpec,
@@ -18,6 +18,7 @@ import {
   bridgeReady,
   buildSeats,
   choicesFromHeader,
+  LocalAgentCharactersLabel,
 } from "@amarna/llm";
 import { FileExchange } from "@amarna/llm/node";
 import { Assert, toDict, join } from "../../engine/test/support.ts";
@@ -318,6 +319,22 @@ describe("LocalPlayTests", () => {
     Assert.equal("LocalAgent", back.leaders.get("Egypt"));
     Assert.equal("Human", back.leaders.get("Alashiya"));
     Assert.equal("Script", back.leaders.get("Mitanni"));
+    // Script characters: the game is in structured press (item 8).
+    Assert.equal("structured", pressFor(newGame(8, newGameConfig()), set.minds).config.pressMode);
+
+    // Characters played by local agents too (item 8): those the bridge keeps folders for go through it, by id; they are no
+    // model calls of this program, the game is in full press, and a saved game reads them back.
+    let withCharacters = c.copy();
+    withCharacters.characters = "LocalAgent";
+    withCharacters.bridgeCharacters = [state.characters[0].id];
+    Assert.false(withCharacters.usesModels);
+    Assert.true(withCharacters.usesLocalAgents);
+    let both = buildSeats(withCharacters, state, null, () => new GameLog());
+    Assert.equal(LocalAgentCharactersLabel, both.minds.label);
+    Assert.equal(LocalAgentCharactersLabel, both.minds.authorFor!(state.characters[0]));
+    Assert.equal("Script characters", both.minds.authorFor!(state.characters[1]));
+    Assert.equal("full", pressFor(newGame(8, newGameConfig()), both.minds).config.pressMode);
+    Assert.equal("LocalAgent", choicesFromHeader(newLogHeader({ minds: both.minds.label })).characters);
 
     // The preset is offered only where the bridge can be reached (the web app on this computer), so it is not in All.
     Assert.doesNotContain(Presets.Local, Presets.all);

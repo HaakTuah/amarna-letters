@@ -1,4 +1,5 @@
 import {
+  type Clause,
   AllPowers,
   Greeting,
   MaxStanding,
@@ -40,6 +41,8 @@ import { describeOrder, dated, powerName, provinceName, shekels, when } from "..
 import { OrderDraft, byName } from "../ui/order-draft.ts";
 import { Emblem } from "./Emblem.tsx";
 import { Person } from "./Person.tsx";
+import { ClauseEditor } from "./ClauseEditor.tsx";
+import { StandingAnswersPanel } from "./StandingAnswersPanel.tsx";
 
 const map = WorldMap.default;
 const clamp = (x: number, lo: number, hi: number): number => Math.min(Math.max(x, lo), hi);
@@ -60,6 +63,10 @@ interface Form {
   envoy: string;
   sendTo: string;
   letter: string;
+  /** The letter's clauses, and its tablet's (item 8): beside the words in full press, the whole letter in structured press. */
+  clauses: Clause[];
+  tabletClauses: Clause[];
+  noInventory: boolean;
   mandate: string;
   tabletText: string;
   gold: number;
@@ -109,6 +116,9 @@ function newForm(me: Power): Form {
     envoy: "",
     sendTo: other("Hatti"),
     letter: "",
+    clauses: [],
+    tabletClauses: [],
+    noInventory: false,
     mandate: "",
     tabletText: "",
     gold: 0,
@@ -147,6 +157,8 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
   const me = v.power;
   const [f, setF] = useState<Form>(() => newForm(me));
   const set = (patch: Partial<Form>): void => setF((x) => ({ ...x, ...patch }));
+  // Structured press (item 8): letters and tablets are clauses only.
+  const structured = state.config.pressMode === "structured";
   const wage = (id: string, fallback: number): number => f.wages[id] ?? fallback;
   for (const c of v.known) if (c.askingPrice !== null && f.wages[c.id] === undefined) f.wages[c.id] = c.askingPrice;
   for (const c of v.court) {
@@ -192,9 +204,12 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
     onChanged();
   };
   const addDispatch = (): void => {
-    const proposal = f.tabletText.trim() === "" ? null : newTabletProposal({ text: f.tabletText.trim(), allianceOath: f.oath });
+    const words = structured ? "" : f.tabletText.trim();
+    const proposal = words === "" && f.tabletClauses.length === 0 ? null : newTabletProposal({ text: words, allianceOath: f.oath, clauses: [...f.tabletClauses] });
     add(
-      dispatch(f.envoy, f.sendTo as Power, f.letter.trim(), {
+      dispatch(f.envoy, f.sendTo as Power, structured ? "" : f.letter.trim(), {
+        clauses: [...f.clauses],
+        noInventory: f.gold > 0 && f.noInventory,
         mandate: f.mandate.trim(),
         greeting: { ...f.g },
         gold: Math.max(0, f.gold),
@@ -203,7 +218,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         copies: f.copies.length > 0 ? [...f.copies] : null,
       }),
     );
-    set({ envoy: "", letter: "", mandate: "", tabletText: "", gold: 0, purity: 100, oath: false, copies: [], g: newGreetingOptions() });
+    set({ envoy: "", letter: "", clauses: [], tabletClauses: [], noInventory: false, mandate: "", tabletText: "", gold: 0, purity: 100, oath: false, copies: [], g: newGreetingOptions() });
   };
   const addSpy = (): void => {
     add(f.spyAt.startsWith("@") ? placeSpy(f.spyWho, null, f.spyAt.slice(1)) : placeSpy(f.spyWho, f.spyAt as Power));
@@ -324,6 +339,8 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
           })}
       </div>
 
+      {/* Standing answers: a human seat may set them too (item 8). */}
+      <StandingAnswersPanel draft={draft} structured={structured} onChanged={onChanged} />
       {/* Standing orders: every seat may keep them, awake or asleep (since the additions to the fix pass after item 4). */}
       <div className="section standing">
         <h3>Standing orders</h3>
@@ -690,6 +707,15 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                   </div>
                 </div>
                 <div className="field">
+                  <span>
+                    {structured
+                      ? "Your letter, in clauses (structured press: kings write only these, and the envoy recites them)"
+                      : "The letter's clauses (kings who read only clauses read these; optional beside your words)"}
+                  </span>
+                  <ClauseEditor clauses={f.clauses} onChange={(cs) => set({ clauses: cs })} from={v.power} to={f.sendTo as Power} turn={v.turn} />
+                </div>
+                {!structured && (
+                <div className="field">
                   <span>Your message (the envoy will speak it in their own words)</span>
                   <textarea
                     maxLength={1500}
@@ -703,6 +729,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                     {f.letter.length} / 1500{f.letter.length > 600 ? " · long: kings and envoys read short letters best" : ""}
                   </small>
                 </div>
+                )}
                 <div className="field">
                   <span>Mandate: what the envoy may agree to</span>
                   <input value={f.mandate} onChange={(e) => set({ mandate: e.target.value })} enterKeyHint="done" autoComplete="off" placeholder="e.g. peace and gifts; no land" />
@@ -714,10 +741,14 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                   <label title="Below 100% the gold is debased: the receiver sees only its weight until they pay for an assay">
                     purity % <input type="number" inputMode="numeric" min="10" max="100" value={f.purity} onChange={(e) => set({ purity: num(e.target.value) })} />
                   </label>
+                  <label title={`An inventory costs the scribe ${shekels(price("inventoryFee"))}; without one nobody can check what arrived`}>
+                    <input type="checkbox" checked={f.noInventory} disabled={f.gold <= 0} onChange={(e) => set({ noInventory: e.target.checked })} /> no inventory
+                  </label>
                 </div>
                 <div className="field" style={{ marginTop: ".4rem" }}>
                   <span>A tablet for both kings to seal (optional, {shekels(price("tabletFee"))} for the scribe)</span>
-                  <textarea maxLength={1200} value={f.tabletText} onChange={(e) => set({ tabletText: e.target.value })} placeholder="By Shamash: ..." />
+                  {!structured && <textarea maxLength={1200} value={f.tabletText} onChange={(e) => set({ tabletText: e.target.value })} placeholder="By Shamash: ..." />}
+                  <ClauseEditor clauses={f.tabletClauses} onChange={(cs) => set({ tabletClauses: cs })} from={v.power} to={f.sendTo as Power} turn={v.turn} />
                   <label>
                     <input type="checkbox" checked={f.oath} onChange={(e) => set({ oath: e.target.checked })} /> a sworn alliance
                     {state.config.sharedVictory ? " (counts for a shared victory)" : ""}
@@ -734,7 +765,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                     ))}
                   </div>
                 )}
-                <button className="primary small" disabled={f.letter.trim().length === 0} onClick={addDispatch}>
+                <button className="primary small" disabled={structured ? f.clauses.length === 0 : f.letter.trim().length === 0 && f.clauses.length === 0} onClick={addDispatch}>
                   Send this envoy
                 </button>
               </>

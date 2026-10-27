@@ -6,6 +6,9 @@ import {
   B,
   I,
   S,
+  ClauseSchema,
+  list,
+  type Clause,
   newGameConfig,
   obj,
   type AudienceView,
@@ -70,6 +73,8 @@ export function plainWords(clauses: readonly string[]): string {
 /** A character's voice: envoys, spies and candidates. The engine keeps the authoritative copy. */
 export interface ICharacterMind {
   readonly label: string;
+  /** Every character is a script (item 8): the game is then played in structured press. */
+  readonly allScript?: boolean;
   /** Who plays this character, as labelled, when the minds leave some characters to another (the script). */
   authorFor?(c: Character): string;
   present(ctx: EnvoyContext, signal?: AbortSignal): Promise<PresentResult>;
@@ -88,16 +93,18 @@ export interface INarrator {
 
 export interface PresentResult {
   speech: string;
+  /** The clauses the envoy recites (item 8): a script envoy may drop, soften or change some; a model envoy recites them as written. */
+  clauses: Clause[];
   skim: number;
   /** With gold kept: replace the inventory tablet with one the envoy forges, stating only what the host's weighers find. */
   swapInventory: boolean;
 }
 
 export function newPresentResult(init: Partial<PresentResult> = {}): PresentResult {
-  return { speech: "", skim: 0, swapInventory: false, ...init };
+  return { speech: "", clauses: [], skim: 0, swapInventory: false, ...init };
 }
 
-export const PresentResultSchema: ObjSchema<PresentResult> = obj("PresentResult", newPresentResult, { speech: S, skim: I, swapInventory: B });
+export const PresentResultSchema: ObjSchema<PresentResult> = obj("PresentResult", newPresentResult, { speech: S, clauses: list(() => ClauseSchema), skim: I, swapInventory: B });
 
 /** What an envoy has in front of it at a foreign court. */
 export interface EnvoyContext {
@@ -125,6 +132,8 @@ export interface EnvoyContext {
   forgeMinCompetence: number;
   /** The audience's key in the log ("t3/aud/a12"): its decisions are logged under it, with the rung that took each. */
   audienceKey: string;
+  /** The game is in structured press (item 8): the envoy recites the letter's clauses, in the templates' words. */
+  structured: boolean;
 }
 
 export function newEnvoyContext(init: Pick<EnvoyContext, "self" | "sender" | "host" | "dispatch" | "turn" | "seed"> & Partial<EnvoyContext>): EnvoyContext {
@@ -139,6 +148,7 @@ export function newEnvoyContext(init: Pick<EnvoyContext, "self" | "sender" | "ho
     employerDoomed: false,
     forgeMinCompetence: newGameConfig().forgeMinCompetence,
     audienceKey: "",
+    structured: false,
     ...init,
   };
 }
@@ -155,10 +165,12 @@ export interface MindContext {
   demand: number;
   /** For an envoy's report with gold: the skill it takes to fake a seal (see EnvoyContext.forgeMinCompetence). */
   forgeMinCompetence: number;
+  /** The game is in structured press (item 8): the report is set out in clauses, and its words are theirs. */
+  structured: boolean;
 }
 
 export function newMindContext(init: Pick<MindContext, "request" | "self" | "turn" | "seed"> & Partial<MindContext>): MindContext {
-  return { trail: null, basePrice: 0, demand: 0, forgeMinCompetence: newGameConfig().forgeMinCompetence, ...init };
+  return { trail: null, basePrice: 0, demand: 0, forgeMinCompetence: newGameConfig().forgeMinCompetence, structured: false, ...init };
 }
 
 export interface CheckContext {

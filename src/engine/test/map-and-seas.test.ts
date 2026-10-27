@@ -33,18 +33,23 @@ describe("MapAndSeasTests", () => {
   const Map = WorldMap.default;
 
   test("The map has the provinces of the review, each coast its waters, and fifteen sea zones", () => {
-    Assert.equal(54, Map.landProvinces.length);
+    Assert.equal(55, Map.landProvinces.length);
     Assert.equal(15, Map.provinces.filter((p) => p.isSea).length);
     for (const id of ["aleppo", "qatna", "alalakh", "nuhashshe", "jerusalem", "shechem", "arrapha", "sidon", "arwad", "nubia", "dilmun", "kaska", "steppe"])
       Assert.true(Map.exists(id), id);
-    // Names of their time; Kumidi stays within Damascus's land, and Ṣumur is Amurru's harbour.
-    for (const id of ["mari", "kanesh", "ekallatum", "tamassos", "kumidi", "sumur"]) Assert.false(Map.exists(id), id);
+    // Names of their time; Kumidi stays within Damascus's land. Ṣumur is a province of its own on Amurru's coast, and Lukka
+    // a land without a king (item 8: Haakon's answers to item 7a's review).
+    for (const id of ["mari", "kanesh", "ekallatum", "tamassos", "kumidi"]) Assert.false(Map.exists(id), id);
+    Assert.equal(["Coast", "Land"], [Map.get("sumur").kind, Map.get("amurru").kind]);
+    Assert.true(Map.areAdjacent("sumur", "amurru") && Map.areAdjacent("sumur", "ugarit") && Map.areAdjacent("sumur", "byblos"));
+    Assert.true(Map.get("lukka").kingless);
+    Assert.equal([1, undefined], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
     Assert.equal(["Suhu", "Nesa", "Ekallate", "Kalavasos"], ["suhu", "nesa", "ekallate", "kalavasos"].map((id) => Map.get(id).name));
     // Suhu keeps the walls of a town (1), not Mari's fortress walls (2).
     Assert.equal(1, StartWalls.get("suhu"));
     Assert.equal(["Egypt", "Babylonia"], [Map.get("nubia").home, Map.get("dilmun").home]);
     for (const p of Map.landProvinces.filter((x) => x.isCoastal)) Assert.true(p.waters !== null && Map.get(p.waters).isSea && Map.areAdjacent(p.id, p.waters), p.id);
-    Assert.equal("amurruwaters", Map.get("arwad").waters);
+    Assert.equal("sumurwaters", Map.get("arwad").waters);
     Assert.equal(["dilmun", "susa", "ur"], Map.coastsOf("gulf").map((p) => p.id).sort());
     // Each Cypriot province has waters of its own, so Alashiya's one fleet can guard its capital's shore.
     Assert.false(Map.get("enkomi").waters === Map.get("kalavasos").waters);
@@ -92,7 +97,7 @@ describe("MapAndSeasTests", () => {
   test("A city one voyage away can be bought: Ugarit from Enkomi, not Gaza; Arwad shares Amurru's waters", () => {
     Assert.true(Map.sharesSea("enkomi", "ugarit"));
     Assert.false(Map.sharesSea("enkomi", "gaza"));
-    Assert.true(Map.sharesSea("amurru", "arwad"));
+    Assert.true(Map.sharesSea("sumur", "arwad"));
     Assert.true(Map.sharesSea("gaza", "tyre"));
   });
 

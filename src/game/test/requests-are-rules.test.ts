@@ -325,7 +325,7 @@ describe("RequestsAreRulesTests", () => {
     let c = newGameConfig();
     // No tablet brought: no question about sealing one.
     Assert.equal(
-      ["speech", "gift_to_envoy", "gift_request", "offer_service_wage", "detain_envoy", "send_gold_back", "gold_back_purity", "end_audience", "ledger"],
+      ["speech", "clauses", "gift_to_envoy", "gift_request", "offer_service_wage", "detain_envoy", "send_gold_back", "gold_back_purity", "end_audience", "ledger"],
       fields(Schemas.hostReply(c, court())),
     );
     Assert.contains("seal_tablet", fields(Schemas.hostReply(c, court(undefined, true))));

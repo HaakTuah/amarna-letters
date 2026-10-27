@@ -86,7 +86,7 @@ describe("RulebookTextTests", () => {
 
   test("The rulebook says that gold comes with an inventory an envoy may swap for a forgery", () => {
     Assert.contains(
-      "- Gold an envoy carries goes with an inventory tablet sealed by the court that sends it, stating the amount (gold a host sends back has one too): the receiving court's weighers report what they found against it, and the court keeps the inventory in its archive. " +
+      "- Gold an envoy carries goes with an inventory tablet sealed by the court that sends it, stating the amount, for the scribe's fee of 20 (gold a host sends back has one too, free): the receiving court's weighers report what they found against it, and the court keeps the inventory in its archive. You may send gold without an inventory (no_inventory), saving the fee: then nobody can check what arrived, not the receiver and not you, and an envoy who keeps some cannot be caught by it. " +
         "An envoy that keeps some of the gold, but not all of it, may hand over, in place of the sealed inventory, one it forges itself stating only what is left, if it has a forger's skill: the weight then matches the inventory, and only having the inventory examined can show it, as for any forgery. " +
         "A forged inventory that is found is traced, with the same chance as any forgery, to the envoy who brought it, and every court hears of it.",
       Rules,

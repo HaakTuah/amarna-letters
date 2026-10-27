@@ -5,12 +5,15 @@
 // name), and hands the reply file's contents back to the page once the king's agent has written it. The orchestrating
 // session waits on the folders with sim/wait.js --play and starts the agents, as in the simulation (docs/PLAY-PROMPT.md).
 //
-//   node sim/bridge.js [--port 5190] [--verbose] [--keep]
+//   node sim/bridge.js [--port 5190] [--seed S] [--verbose] [--keep]
 //
+// With --seed S it also keeps the folders of seed S's characters (sim/setup.js --seeds S), so that the game's envoys,
+// spies and candidates may be played by local agents too (build order item 8): the page names a character by its id,
+// and a game of that seed alone may use them.
 // It listens on this computer only (127.0.0.1 and ::1), answers only pages served from this computer (localhost,
 // 127.0.0.1 or [::1]), and never tells a page a folder's name: the page names a king, the bridge knows his folder.
 // Endpoints (JSON in, JSON or text out):
-//   GET  /status                       {"bridge":"amarna-letters","version":1,"seats":["Egypt",...]}
+//   GET  /status                       {"bridge":"amarna-letters","version":2,"seats":["Egypt",...],"seed":S|null,"characters":["c8",...]}
 //   POST /ask    {seat,name,text,mark} writes <folder>/<name>.request.md: the text with the one mark replaced by the
 //                                      reply file's path; answers {"ok":true,"chars":N}
 //   GET  /reply?seat=&name=            204 while there is no reply; 200 with the reply file's text once it has stopped
@@ -41,6 +44,21 @@ if (!fs.existsSync(mapFile)) { console.error("No king folders: run node sim/setu
 const seats = JSON.parse(fs.readFileSync(mapFile, "utf8"));
 for (const [power, folder] of Object.entries(seats))
   if (!fs.existsSync(folder)) { console.error(`The folder of ${power} is missing (${folder}): run node sim/setup.js --force.`); process.exit(1); }
+// The characters of one seed, by id, when asked for: the kit's map for that seed (sim/setup.js --seeds S).
+const seed = opt("--seed", null);
+const characters = {};
+if (seed !== null) {
+  const charMap = path.join(__dirname, "characters", `seed-${seed}.json`);
+  if (!/^\d+$/.test(seed) || !fs.existsSync(charMap)) { console.error(`No character folders for seed ${seed}: run node sim/setup.js --seeds ${seed} first.`); process.exit(1); }
+  const map = JSON.parse(fs.readFileSync(charMap, "utf8"));
+  for (const [id, folder] of Object.entries(map)) {
+    if (id === "seed") continue;
+    if (!/^c\d+$/.test(id) || !fs.existsSync(folder)) { console.error(`The folder of character ${id} is missing (${folder}): run node sim/setup.js --seeds ${seed} --force.`); process.exit(1); }
+    characters[id] = folder;
+  }
+}
+// Kings by name, characters by id: one name space, since a king's name never looks like an id.
+const folders = { ...seats, ...characters };
 
 // One bridge at a time: a second would hand the same folders to two games.
 if (fs.existsSync(pidFile)) {
@@ -60,7 +78,7 @@ function moveAside(folder, files) {
   for (const f of files) fs.renameSync(path.join(folder, f), path.join(aside, f));
 }
 let moved = 0;
-if (!keep) for (const folder of Object.values(seats)) {
+if (!keep) for (const folder of Object.values(folders)) {
   const old = fs.readdirSync(folder).filter(f => gameFile.test(f));
   moved += old.length;
   moveAside(folder, old);
@@ -74,7 +92,7 @@ const hostOk = h => [`localhost:${port}`, `127.0.0.1:${port}`, `[::1]:${port}`].
 const seen = new Map(); // reply path -> { size, emptySince }
 
 function files(seat, name) {
-  const folder = seats[seat];
+  const folder = folders[seat];
   return { folder, request: path.join(folder, `${name}.request.md`), reply: path.join(folder, `${name}.reply.json`) };
 }
 
@@ -111,12 +129,12 @@ async function handle(req, res) {
   const url = new URL(req.url, `http://localhost:${port}`);
 
   if (req.method === "GET" && url.pathname === "/status")
-    return send(res, 200, { bridge: "amarna-letters", version: 1, seats: Object.keys(seats) });
+    return send(res, 200, { bridge: "amarna-letters", version: 2, seats: Object.keys(seats), seed: seed === null ? null : Number(seed), characters: Object.keys(characters) });
 
   if (req.method === "GET" && url.pathname === "/reply") {
     const seat = url.searchParams.get("seat");
     const name = url.searchParams.get("name");
-    if (!Object.hasOwn(seats, String(seat)) || !nameOk(name)) return send(res, 400, { error: "unknown king or request name" });
+    if (!Object.hasOwn(folders, String(seat)) || !nameOk(name)) return send(res, 400, { error: "unknown king, character or request name" });
     const f = files(seat, name);
     if (!fs.existsSync(f.request)) return send(res, 404, { error: "no such request" });
     let size;
@@ -146,7 +164,7 @@ async function handle(req, res) {
     let body;
     try { body = await readBody(req); } catch (e) { return send(res, 400, { error: e.message }); }
     const { seat, name } = body ?? {};
-    if (!Object.hasOwn(seats, String(seat)) || !nameOk(name)) return send(res, 400, { error: "unknown king or request name" });
+    if (!Object.hasOwn(folders, String(seat)) || !nameOk(name)) return send(res, 400, { error: "unknown king, character or request name" });
     const f = files(seat, name);
 
     if (url.pathname === "/cancel") {
@@ -189,8 +207,8 @@ for (const host of ["127.0.0.1", "::1"]) {
   });
   server.listen(port, host, () => {
     if (++listening > 1) return;
-    fs.writeFileSync(pidFile, JSON.stringify({ pid: process.pid, port, started: new Date().toISOString() }) + "\n");
-    say(`The bridge is running at http://localhost:${port} for ${Object.keys(seats).join(", ")}.`);
+    fs.writeFileSync(pidFile, JSON.stringify({ pid: process.pid, port, seed: seed === null ? null : seed, started: new Date().toISOString() }) + "\n");
+    say(`The bridge is running at http://localhost:${port} for ${Object.keys(seats).join(", ")}${seed !== null ? `, and the ${Object.keys(characters).length} characters of seed ${seed}` : ""}.`);
     say("Start the web app and the Claude Code session (docs/PLAY-PROMPT.md). Press Ctrl+C here when you have finished playing.");
   });
   servers.push(server);

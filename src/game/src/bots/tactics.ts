@@ -477,6 +477,25 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     }
   }
 
+  // ---- Supports promised in letters (item 8): we keep our word where a troop of ours can still give it, and make the move
+  // a partner promised to support, counting his troop with ours.
+  if (temper === null) {
+    for (const pr of brain.promised.filter((x) => x.turn === b.v.turn)) {
+      if (b.unitAt.tryGet(pr.from)?.power !== pr.of) continue;
+      const giver = sortBy(
+        [...free].filter((f) => f !== pr.to && Board.Sail.canMove(b.unitAt.get(f).kind, f, pr.to)),
+        [(f: string) => f, cmpStr],
+      )[0];
+      if (giver !== undefined) ops.push(op("assist", (0.3 + 0.4 * p.honesty) * b.value(pr.to) + 60, pr.to, giver, [], pr.from));
+    }
+    for (const pr of brain.offered.filter((x) => x.turn === b.v.turn)) {
+      const owner = b.ownerOf(pr.to);
+      if (b.unitAt.tryGet(pr.from)?.power !== me || !free.has(pr.from) || owner === me || (owner !== null && !isWilling(owner))) continue;
+      if (!Board.Sail.canMove(b.unitAt.get(pr.from).kind, pr.from, pr.to)) continue;
+      ops.push(op("attack", 0.85 * b.value(pr.to) * (owner === null ? 1 : multiplier(owner)) + 60 - exposure(pr.from), pr.to, pr.from, []));
+    }
+  }
+
   // ---- A landing in mind (see Landing in seas.ts): kept from season to season, so that our fleets put to sea in the zones
   // of its chain and hold there, the army comes to its coast and waits, and a fleet more is raised if we lack one; when the
   // chain is whole the army is carried over. Given up once landed, when the target is no longer worth it, or after

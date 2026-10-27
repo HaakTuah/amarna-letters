@@ -12,6 +12,7 @@ import { newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, new
 import { alive, char, findCharacter, isAlive, logEvent, newId, notify, ownedBy } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
+import { checkClauses, renderClauses } from "../rules/clauses.ts";
 import { OrderValidator } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { removeAll } from "./resolve.ts";
@@ -597,11 +598,23 @@ P.forge = function (p, f) {
     this.pay(p, S.config.forgeFee, "spoiled clay");
     return;
   }
-  if (!this.pay(p, S.config.forgeFee, "a forger's materials", f, "nothing was forged")) return;
   const seals = distinct(f.seals);
+  // Set out in clauses like any tablet (item 8), as its first sealer would write them to the second; in structured press
+  // its words are theirs, and a forgery with no clause that stands is not made (nor paid for).
+  const by = seals[0] ?? p;
+  const partner = seals.length > 1 ? seals[1] : by;
+  const checked = checkClauses(f.clauses, by, partner, S.turn);
+  if (checked.dropped.length > 0) notify(S, p, "Notice", "Clauses left out", `In the forgery the scribes left out what could not stand: ${checked.dropped.join("; ")}.`);
+  const clauses = checked.kept;
+  if (S.config.pressMode === "structured" && clauses.length === 0) {
+    this.failed(p, f, "Nothing to forge", "In this game a tablet is set out in clauses, and none of the forgery's could stand: nothing was forged and nothing paid.", "it had no clause that could stand", false, c.id);
+    return;
+  }
+  if (!this.pay(p, S.config.forgeFee, "a forger's materials", f, "nothing was forged")) return;
   const tablet = newTablet({
     id: newId(S, "t"),
-    text: this.scribe(p, cap(f.text, 1200)),
+    text: S.config.pressMode === "structured" ? renderClauses(clauses, by, partner) : this.scribe(p, cap(f.text, 1200)),
+    clauses,
     proposedBy: seals[0],
     partner: seals.length > 1 ? seals[1] : null,
     seals,

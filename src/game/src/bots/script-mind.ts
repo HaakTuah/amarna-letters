@@ -24,6 +24,10 @@ import {
   type MessageTrail,
   type MindReply,
   type Traits,
+  type Clause,
+  clause,
+  isNews,
+  renderClauses,
 } from "@amarna/engine";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
 import { TextKit } from "./textkit.ts";
@@ -37,6 +41,7 @@ const containsIgnoreCase = (s: string, x: string): boolean => s.toUpperCase().in
 
 export class ScriptMind implements ICharacterMind {
   readonly label: string = "Script characters";
+  readonly allScript = true;
 
   present(ctx: EnvoyContext, _signal?: AbortSignal): Promise<PresentResult> {
     const c = ctx.self;
@@ -54,6 +59,12 @@ export class ScriptMind implements ICharacterMind {
       sentences = kept;
     }
     if (t.competence < 35 && sentences.length > 2) sentences.pop();
+    // The clauses it recites (item 8), changed by the same motives: the timid and the fond drop the threat, leaving its
+    // demand a request; the careless drop the last; one that kept gold states the gift as what is left; the ambitious and
+    // the fond add a flattering clause. In structured press they are the letter it speaks.
+    const skim = kept(ctx.dispatch.gold, t, ctx.dispatch.inventory);
+    const clauses = recite(ctx.dispatch.clauses, t, fearful, fond, skim);
+    if (ctx.structured) sentences = TextKit.sentences(renderClauses(clauses, ctx.sender, host));
 
     const speech: string[] = [];
     speech.push(
@@ -64,10 +75,11 @@ export class ScriptMind implements ICharacterMind {
     speech.push(sentences.length > 0 ? `He says: "${TextKit.join(sentences)}"` : "He sends his greetings.");
     if (t.ambition >= 65) speech.push("My lord holds you dearest of all his brothers, and great gifts will follow if you are gracious to me, his chosen messenger.");
     if (fond) speech.push("For myself, I have always admired your court above all others.");
-    if (ctx.dispatch.gold > 0) speech.push(`I carry the gold my lord sends, as the inventory on the tablet shows.`);
+    if (ctx.dispatch.gold > 0) speech.push(ctx.dispatch.inventory ? `I carry the gold my lord sends, as the inventory on the tablet shows.` : "I carry the gold my lord sends.");
 
-    const skim = kept(ctx.dispatch.gold, t);
-    return Promise.resolve(newPresentResult({ speech: TextKit.join(speech), skim, swapInventory: swaps(t, skim, ctx.forgeMinCompetence) }));
+    return Promise.resolve(
+      newPresentResult({ speech: TextKit.join(speech), clauses, skim, swapInventory: ctx.dispatch.inventory && swaps(t, skim, ctx.forgeMinCompetence) }),
+    );
   }
 
   react(ctx: EnvoyContext, host: HostReply, _signal?: AbortSignal): Promise<EnvoyReaction> {
@@ -97,7 +109,8 @@ export class ScriptMind implements ICharacterMind {
     if (host.detain) speech.push(t.courage < 40 ? "I beg you, let me go home; my lord awaits my word." : "My lord will hear of how his messenger was treated.");
 
     if (!isBlank(host.speech)) {
-      if (ctx.dispatch.mandate.length > 0 && (containsIgnoreCase(host.speech, "agree") || containsIgnoreCase(host.speech, "swear"))) {
+      const oath = host.clauses.some((x) => x.kind === "askOath");
+      if (ctx.dispatch.mandate.length > 0 && (oath || containsIgnoreCase(host.speech, "agree") || containsIgnoreCase(host.speech, "swear"))) {
         const overreach = t.ambition > 70 && t.loyalty < 50;
         reaction.commitments = overreach ? Overreach : "said my lord will consider these words";
         speech.push(overreach ? "My lord will agree to all of it, I promise you." : "I will carry your words to my lord faithfully.");
@@ -128,8 +141,37 @@ export class ScriptMind implements ICharacterMind {
  * What a greedy, disloyal envoy (greed above 60, loyalty below 60) keeps of a lot of gold it carries, out or home: gold ×
  * (greed − 50) ÷ 250, rounded to the nearest whole shekel.
  */
-export function kept(gold: number, t: Traits): number {
-  return gold > 0 && t.greed > 60 && t.loyalty < 60 ? Math.min(gold, toInt(roundAway((gold * (t.greed - 50)) / 250.0))) : 0;
+export function kept(gold: number, t: Traits, inventory = true): number {
+  // Gold with no inventory (item 8) can be checked by nobody: a servant of middling loyalty is tempted too.
+  return gold > 0 && t.greed > 60 && t.loyalty < (inventory ? 60 : 70) ? Math.min(gold, toInt(roundAway((gold * (t.greed - 50)) / 250.0))) : 0;
+}
+
+/** The letter's clauses as a script envoy recites them (item 8). */
+export function recite(cs: readonly Clause[], t: Traits, fearful: boolean, fond: boolean, skim: number): Clause[] {
+  let out = cs.map((x) => ({ ...x }));
+  if ((fearful || fond) && out.some((x) => x.kind === "threat")) {
+    out = out.filter((x) => x.kind !== "threat");
+    if (!out.some((x) => x.kind === "wellWishes")) out.push(clause("wellWishes"));
+  }
+  if (t.competence < 35 && out.length > 2) out.pop();
+  if (skim > 0) for (const x of out) if (x.kind === "gift" && x.amount !== null) x.amount = Math.max(0, x.amount - skim);
+  if ((t.ambition >= 65 || fond) && !out.some((x) => x.kind === "wellWishes")) out.unshift(clause("wellWishes"));
+  return out;
+}
+
+/**
+ * The host's answer as a script envoy reports it home (item 8): the faithful word for word; the bribed and the timid leave
+ * out the threats against their lord, and the bribed turn a refusal into acceptance and pass on the host's news as their
+ * own; the careless lose the last clause.
+ */
+export function reportClauses(heard: readonly Clause[], bribeNews: readonly Clause[], t: Traits, faithful: boolean, bribed: boolean, fearful: boolean): Clause[] {
+  let out = heard.map((x) => ({ ...x }));
+  if (faithful) return out;
+  if (bribed || fearful) out = out.filter((x) => x.kind !== "threat");
+  if (bribed) for (const x of out) if (x.kind === "refuse") x.kind = "accept";
+  if (!bribed && !fearful && t.competence < 40 && out.length > 1) out.pop();
+  if (bribed) out.push(...bribeNews.map((x) => ({ ...x })));
+  return out;
 }
 
 /**
@@ -154,6 +196,8 @@ function report(ctx: MindContext): MindReply {
   // The envoy's lord, whom the host's threats would be aimed at.
   const lord = trail?.from ?? requestFor(ctx.request);
   const lines: string[] = [];
+  let answer: Clause[] = [];
+  let bribeNews: Clause[] = [];
 
   if (trail === null || host === null) {
     lines.push("My lord, I have returned.");
@@ -163,7 +207,14 @@ function report(ctx: MindContext): MindReply {
     const hostWords = trail.exchanges.map((x) => x.host).filter((x) => x.length > 0);
     // An envoy that kept some of the gold it carried leaves out what the host said of the weighing.
     const keptSome = trail.outcomes.some((o) => o.startsWith("kept "));
-    for (const words of hostWords) {
+    // The host's answer in clauses, as it reports them (item 8); in structured press they are its words.
+    const heard = trail.exchanges.flatMap((x) => x.clauses).filter((x) => !(keptSome && x.kind === "lightGift"));
+    bribeNews = bribed ? trail.exchanges.flatMap((x) => x.bribeClauses) : [];
+    answer = reportClauses(heard, bribeNews, t, faithful, bribed, fearful);
+    // The bribe's news comes last, and is told as what the envoy saw for itself.
+    const told = answer.slice(0, answer.length - bribeNews.length);
+    if (ctx.structured && told.length > 0) lines.push(`The king answered: "${renderClauses(told, host, lord)}"`);
+    for (const words of ctx.structured ? [] : hostWords) {
       const sentences = TextKit.sentences(words).filter((s) => !keptSome || !TextKit.speaksOfWeighing(s));
       if (sentences.length === 0) continue;
       if (faithful) lines.push(`The king said: "${TextKit.join(sentences)}"`);
@@ -199,7 +250,10 @@ function report(ctx: MindContext): MindReply {
   const observations = cargo.observations.filter((o) => !(bribed && host !== null && o.startsWith(host)));
   // A bribed envoy passes on what the host asked it to tell its lord, in the host's own words, and vouches for it as
   // something it saw for itself. Asked to speak well of a king, it calls him a friend.
-  if (bribed && host !== null && trail !== null) {
+  if (ctx.structured && bribed && host !== null) {
+    const news = answer.slice(answer.length - bribeNews.length);
+    if (news.length > 0) observations.unshift(`At the court of ${land(host)} I saw for myself that it is so: ${renderClauses(news, host, lord)}`);
+  } else if (bribed && host !== null && trail !== null) {
     const asked = askedOf(trail);
     const claim = TextKit.claim(asked, lord);
     if (claim !== null) observations.unshift(`At the court of ${land(host)} the king told me "${claim}", and I saw for myself that it is so.`);
@@ -212,7 +266,7 @@ function report(ctx: MindContext): MindReply {
 
   const skim = kept(cargo.gold, t);
   if (cargo.gold > 0) lines.push("I bring the gifts the king sent you.");
-  return newMindReply({ text: TextKit.join(lines), number: skim, swapInventory: swaps(t, skim, ctx.forgeMinCompetence) });
+  return newMindReply({ text: TextKit.join(lines), number: skim, swapInventory: swaps(t, skim, ctx.forgeMinCompetence), clauses: answer });
 }
 
 /** What the host asked in return for a gift this envoy took on this mission ("accepted 40 shekels from Hatti (asked: …)"). */

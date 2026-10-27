@@ -16,7 +16,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { AllPowers, Dict, newGameConfig, type AudienceView, type HostReply, type Power, type SeatView, type TurnSubmission } from "@amarna/engine";
 import * as Game from "@amarna/game";
-import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame, type ISeat } from "@amarna/game";
+import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame, pressFor, type ISeat } from "@amarna/game";
 import { LlmLeaderSeat, jsonSchema, type CallSpec } from "@amarna/llm";
 
 interface Measured {
@@ -178,7 +178,7 @@ for (let g = 0; g < games; g++) {
     (state) => {
       const script = new ScriptLeader(state.seed);
       const seats = new Dict<Power, ISeat>(AllPowers.map((p) => [p, new ShadowKing(p, script, all, g === 0 ? dump : null, s)] as const));
-      return new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator());
+      return new GameRunner(pressFor(state, new ScriptMind()), seats, new ScriptMind(), new TemplateNarrator());
     },
     false,
   );

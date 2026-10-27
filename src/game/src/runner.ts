@@ -24,6 +24,11 @@ import {
   basePrice,
   char,
   clamp,
+  clause,
+  checkClauses,
+  isNews,
+  isProposal,
+  renderClauses,
   cmpNum,
   cmpPower,
   deserialize,
@@ -146,6 +151,17 @@ export class GameRunner {
    * "t3/resolve", "end/chronicles"): the parity check of the TypeScript conversion fingerprints the state there.
    */
   phaseDone: ((phase: string) => void) | null = null;
+  /**
+   * Every decision a character was asked for, by character id, as the seasons it was asked in ("Characters sleep like
+   * kings", item 8): a character played by an agent is woken for each, so these are its calls and its wake-ups.
+   */
+  readonly characterAsks = new Map<string, number[]>();
+
+  private asked(characterId: string, turn: number): void {
+    const list = this.characterAsks.get(characterId) ?? [];
+    list.push(turn);
+    this.characterAsks.set(characterId, list);
+  }
 
   constructor(state: GameState, seats: Dict<Power, ISeat>, minds: ICharacterMind, narrator: INarrator, options: RunnerOptions = {}) {
     const replay = options.replay ?? null;
@@ -386,7 +402,7 @@ export class GameRunner {
     const produce = async (req: MindRequest): Promise<MindReply> => {
       if (req.task === "CheckReport") {
         const subject = char(this.state, req.characterId);
-        return { text: await this.narrator.checkReport({ subject, court: requestFor(req), facts: req.facts, turn }, signal), number: 0, swapInventory: false };
+        return { text: await this.narrator.checkReport({ subject, court: requestFor(req), facts: req.facts, turn }, signal), number: 0, swapInventory: false, clauses: [] };
       }
       return await this.minds.write(this.context(req, engine, turn), signal);
     };
@@ -396,9 +412,11 @@ export class GameRunner {
           text: await new TemplateNarrator().checkReport({ subject: char(this.state, req.characterId), court: requestFor(req), facts: req.facts, turn }, signal),
           number: 0,
           swapInventory: false,
+          clauses: [],
         };
       return await this.fallbackMind.write(this.context(req, engine, turn), signal);
     };
+    for (const req of requests) if (req.task !== "CheckReport") this.asked(req.characterId, turn);
     const replies = await Promise.all(
       requests.map((req) =>
         this.recorded<MindReply>(
@@ -455,6 +473,7 @@ export class GameRunner {
       basePrice: req.task === "Pitch" ? basePrice(c, requestFor(req)) : 0,
       demand: S_.tasks.filter((t) => t.kind === "Candidates").length + engine.mindRequests.filter((r) => r.task === "Pitch" && r.characterId === c.id).length,
       forgeMinCompetence: S_.config.forgeMinCompetence,
+      structured: S_.config.pressMode === "structured",
     });
   }
 
@@ -541,8 +560,10 @@ export class GameRunner {
         employerDoomed: doomed,
         forgeMinCompetence: S_.config.forgeMinCompetence,
         audienceKey: key,
+        structured: S_.config.pressMode === "structured",
       });
 
+    this.asked(envoy.id, turn);
     const present = await this.recorded<PresentResult>(
       `${key}/present`,
       PresentResultSchema,
@@ -551,7 +572,9 @@ export class GameRunner {
       this.mindOf(envoy),
     );
     present.skim = clamp(present.skim, 0, a.dispatch.gold);
-    const record = newAudienceRecord({ audienceId: a.id, delivered: present.speech, skim: present.skim, swapInventory: present.swapInventory });
+    // What the envoy recites, in clauses (item 8): a script envoy may have changed some; they stand only as the templates allow.
+    present.clauses = checkClauses(present.clauses, a.from, a.host, turn).kept;
+    const record = newAudienceRecord({ audienceId: a.id, delivered: present.speech, skim: present.skim, swapInventory: present.swapInventory, clauses: [...present.clauses] });
     return { a, key, envoy, ctx, present, record, soFar: [], done: false };
   }
 
@@ -570,6 +593,13 @@ export class GameRunner {
         const x = engine.answerReply(a, view.goldWeighed);
         const clauses = engine.answerClauses(a, view.goldWeighed);
         x.speech = plainWords(clauses);
+        // What it decided, in clauses, in either press (item 8): a courtesy, thanks for gold, and the tablet sealed or not.
+        // In structured press they are its words, and no phrasing call is made.
+        x.clauses = [clause("wellWishes")];
+        if (view.goldWeighed > 0) x.clauses.push(clause("accept", { answers: "gift" }));
+        if (a.dispatch.proposal !== null)
+          x.clauses.push(clause(x.sealProposal ? "accept" : "refuse", { answers: a.dispatch.proposal.clauses.find(isProposal)?.kind ?? "peace" }));
+        if (this.state.config.pressMode === "structured") return x;
         if (seat.phrase !== undefined)
           try {
             const words = await seat.phrase({ key: r.key, turn, host: a.host, from: a.from, envoy: r.envoy.name, clauses }, signal);
@@ -588,7 +618,7 @@ export class GameRunner {
 
   /** What the host has before it at one exchange of an audience. */
   private audienceView(engine: TurnEngine, r: AudienceRun, round: number, court: Court | null): AudienceView {
-    const view: AudienceView = engine.buildAudienceView(r.a, r.present.speech, r.present.skim, r.soFar, round, r.record.rounds, r.present.swapInventory);
+    const view: AudienceView = engine.buildAudienceView(r.a, r.present.speech, r.present.skim, r.soFar, round, r.record.rounds, r.present.swapInventory, r.present.clauses);
     if (court !== null) {
       view.ordersStand = true;
       view.reopenChosen = court.reopen;
@@ -621,6 +651,14 @@ export class GameRunner {
     // person ids, become the tablets' and the people's names (as in its letters).
     host.speech = engine.scribe(a.host, host.speech);
     host.bribeAsk = engine.scribe(a.host, host.bribeAsk);
+    // The host's answer in clauses (item 8); what it asks a bribed envoy to tell its lord can only be news. In structured
+    // press its clauses are its words.
+    host.clauses = checkClauses(host.clauses, a.host, a.from, this.state.turn).kept;
+    host.bribeClauses = checkClauses(host.bribeClauses, a.host, a.from, this.state.turn).kept.filter(isNews);
+    if (this.state.config.pressMode === "structured") {
+      host.speech = renderClauses(host.clauses, a.host, a.from);
+      host.bribeAsk = host.bribe > 0 && host.bribeClauses.length > 0 ? `Tell your lord: ${renderClauses(host.bribeClauses, a.host, a.from)}` : "";
+    }
     // Only the seat's own replies send letters or choose about its orders.
     if (court !== null && !host.fromFallback) {
       addLetters(court.letters, host.letters);
@@ -631,6 +669,7 @@ export class GameRunner {
     const context = r.ctx([...r.soFar], round, r.present.speech, r.present.skim, giftTaken);
     // The envoy meets only what is said and done to it: the host's letters and its choice about its orders are its own.
     const heard = asHeard(host);
+    this.asked(r.envoy.id, this.state.turn);
     const reaction = await this.recorded<EnvoyReaction>(
       `${r.key}/envoy/${round}`,
       EnvoyReactionSchema,
@@ -639,7 +678,7 @@ export class GameRunner {
       this.mindOf(r.envoy),
     );
     r.record.rounds.push(newAudienceRound({ host, envoy: reaction }));
-    r.soFar.push(newExchange({ host: host.speech, envoy: reaction.speech }));
+    r.soFar.push(newExchange({ host: host.speech, envoy: reaction.speech, clauses: [...host.clauses], bribeClauses: [...host.bribeClauses] }));
     if (host.end || host.detain || reaction.acceptJob) r.done = true;
   }
 
@@ -700,6 +739,16 @@ export class GameRunner {
   stateAt(turn: number): GameState | null {
     return turn >= 0 && turn < this.snapshots.length ? deserialize<GameState>(GameStateSchema, this.snapshots[turn]) : null;
   }
+}
+
+/**
+ * Structured press is required whenever the characters are script (item 8, "Two press modes"): every king writes in
+ * clauses, and script envoys carry them. Each table sets it up so before its game's first season; a replay keeps the
+ * press its game was played under (it is in the config the log keeps).
+ */
+export function pressFor(state: GameState, minds: ICharacterMind): GameState {
+  if (minds.allScript === true) state.config.pressMode = "structured";
+  return state;
 }
 
 function ensureVersion(header: LogHeader): void {

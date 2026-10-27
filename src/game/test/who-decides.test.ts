@@ -249,7 +249,7 @@ describe("Who decides (item 6c)", () => {
     api.override = (body) => {
       if (!userOf(body).includes("THESE ARE ROUTINE AUDIENCES")) return null;
       const ids = [...userOf(body).matchAll(/\((c\d+)\), envoy of /g)].map((m) => m[1]);
-      const answers = ids.map((envoy) => ({ envoy, speech: "", gift_to_envoy: 0, gift_request: "", send_gold_back: 0, gold_back_purity: 100, end_audience: true, pass_up: "he hints at war" }));
+      const answers = ids.map((envoy) => ({ envoy, speech: "", clauses: [], gift_to_envoy: 0, gift_request: "", send_gold_back: 0, gold_back_purity: 100, end_audience: true, pass_up: "he hints at war" }));
       return JSON.stringify({ answers, ledger: [], ask_counsel: "" });
     };
     const [runner] = build(() => {}, 3, api, true);

@@ -1,5 +1,6 @@
 /** The non-military half of a script king, second part: its people (court, spies, captives, evidence). */
 import {
+  clause,
   HSet,
   assay,
   authenticate,
@@ -251,7 +252,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     // The most reliable servant whose hand has not already botched a forgery (see Brain.noHand).
     const forger = ready.find((c) => !brain.noHand.has(c.id));
     if (victim !== null && forger !== undefined) {
-      orders.push(forge(forger.id, `${top} swears to ${friendOfTop}: when the harvest is in, we shall march together against ${victim} and divide its land.`, [top, friendOfTop]));
+      orders.push({ ...forge(forger.id, `${top} swears to ${friendOfTop}: when the harvest is in, we shall march together against ${victim} and divide its land.`, [top, friendOfTop]), clauses: [clause("against", { power: victim })] });
       busy.add(forger.id);
     }
   }

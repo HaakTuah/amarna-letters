@@ -58,7 +58,7 @@ function cities(s: MapScene): string {
   for (const p of Land) {
     const owner = s.owner.get(p.id) ?? null;
     const walls = s.walls.get(p.id) ?? 0;
-    sb += `<g transform="translate(${p.x},${p.y})" class="city${p.capital ? " capital" : ""}${owner === null ? " free" : ""}${sieges.has(p.id) ? " besieged" : ""}" data-province="${p.id}"><g class="csym">`;
+    sb += `<g transform="translate(${p.x},${p.y})" class="city${p.capital ? " capital" : ""}${owner === null ? " free" : ""}${sieges.has(p.id) ? " besieged" : ""}" data-province="${p.id}"><g class="csym"><circle class="tap-hit" r="${p.capital ? 22 : 18}"/>`;
     // One ring for each level of walls standing.
     for (let level = walls; level >= 1; level--) sb += `<circle class="walls w${level}" r="${(p.capital ? 12 : 8.5) + 2 * level}"/>`;
     if (p.capital) sb += `<circle class="cap-ring" r="12.6"/>`;
