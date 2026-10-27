@@ -437,7 +437,9 @@
   season's other orders for its units and people, those given that season among them, and script kings give them,
   which changes what existing seeds do, under the same unreleased version 5; 6 since Build order item 5, the siege
   package, one version for the whole item: walls by place in place of the free cities' garrisons, storming and
-  sieges, terrain, and the rest of the item as it is built). A log
+  sieges, terrain, and the rest of the item as it is built; 9 since item 6b: conditions on scheduled entries and
+  standing orders, a season's entries standing together, standing answers, and a model king's court answered in one
+  call). A log
   saved under another version is refused, both for replay and for continuing it: "This game was saved under an
   earlier version of the rules (version 3) and cannot be replayed by this version." (tested for versions 1, 3, 4 and
   5). The web app shows that message

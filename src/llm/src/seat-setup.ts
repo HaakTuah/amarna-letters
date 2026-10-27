@@ -193,11 +193,13 @@ export const CostEstimate = {
       if (model === null) continue;
       const price = prices.for(model);
       if (price === null) continue;
-      // Orders: the rulebook is read from cache, the season's situation is fresh.
-      const orders = price.cost(5000, Math.trunc(3000 * effort), 5000, 0);
-      // About one audience a season, at lower effort.
-      const audiences = 1.2 * price.cost(3500, Math.trunc(1000 * effort), 5000, 0);
-      total += seasons * (orders + audiences);
+      // As measured in item 6b (src/batch/src/measure.ts, script games shadowed by model kings that sleep): a king gives
+      // orders in about three seasons in ten and holds court, all its envoys in one call, in about one in five. Orders
+      // read the rulebook and their schema (some 16,000 tokens) from cache and about 4,500 fresh; a court about 14,000 from
+      // cache and 3,500 fresh. A standing answer's phrasing call costs next to nothing.
+      const orders = 0.3 * price.cost(4500, Math.trunc(3000 * effort), 16000, 0);
+      const courts = 0.2 * price.cost(3500, Math.trunc(1000 * effort), 14000, 0);
+      total += seasons * (orders + courts);
     }
     const cm = characterModel(c.characters);
     const cp = cm !== null ? prices.for(cm) : null;

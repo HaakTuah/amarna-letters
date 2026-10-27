@@ -16,11 +16,14 @@ const LevyAhead = 2;
 /** A levy is repeated only while the treasury holds this many times its cost (it must still pay upkeep). */
 const LevyReserve = 2;
 
-/** Whether script kings plan ahead when they sleep (off only to measure what planning ahead is worth, `--no-plan-ahead`). */
-export const PlanAhead = { on: true };
+/**
+ * Whether script kings plan ahead when they sleep, and which of them (null: all); off, or for half the kings, only to
+ * measure what planning ahead is worth (`--no-plan-ahead`, `--plan-ahead-half`).
+ */
+export const PlanAhead: { on: boolean; only: ReadonlySet<string> | null } = { on: true, only: null };
 
 export function ahead(v: SeatView, orders: readonly Order[]): ScheduledOrders[] {
-  if (!v.sleeps || !PlanAhead.on) return [];
+  if (!v.sleeps || !PlanAhead.on || (PlanAhead.only !== null && !PlanAhead.only.has(v.power))) return [];
   const out: ScheduledOrders[] = [];
   for (const o of orders) {
     if (o.type !== "dispatch") continue;

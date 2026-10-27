@@ -15,6 +15,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { AllPowers, Dict, newGameConfig, type AudienceView, type HostReply, type Power, type SeatView, type TurnSubmission } from "@amarna/engine";
+import * as Game from "@amarna/game";
 import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame, type ISeat } from "@amarna/game";
 import { LlmLeaderSeat, jsonSchema, type CallSpec } from "@amarna/llm";
 
@@ -71,6 +72,16 @@ function split(spec: CallSpec): Map<string, number> {
   return m;
 }
 
+/**
+ * What each envoy brought, as a standing answer could match it: the share of audiences a king could leave to standing
+ * answers ("Standing answers"), since script kings give none and the shadowed games cannot show their use.
+ */
+const broughtCount = new Map<string, number>();
+function brought(v: AudienceView): void {
+  const kind = v.copiesShown.length > 0 ? "evidence (never covered)" : v.proposal !== null ? "a tablet to seal" : v.goldStated > 0 ? "gold, no tablet" : "only words";
+  broughtCount.set(kind, (broughtCount.get(kind) ?? 0) + 1);
+}
+
 class ShadowKing implements ISeat {
   readonly label = "Shadow model king";
   readonly canSleep = true;
@@ -110,7 +121,8 @@ class ShadowKing implements ISeat {
       ledger: [...this.courts].map((court) => ({ court, entry: filler(350, `${court} promised`) })),
     };
     this.llm.journal.record(view.turn, record);
-    this.llm.journal.readTablets(view.tablets.map((t) => t.tabletId));
+    // (Optional: the record kept no such memory before item 6b, and the measure also runs on that code for "before".)
+    this.llm.journal.readTablets?.(view.tablets.map((t) => t.tabletId));
     return sub;
   }
 
@@ -121,6 +133,7 @@ class ShadowKing implements ISeat {
 
   private async court(views: AudienceView[], court: SeatView): Promise<(HostReply | null)[]> {
     this.measure("audience", views[0].turn, this.llm.courtCall(views, court));
+    for (const v of views) if (v.round === 1) brought(v);
     const replies: HostReply[] = [];
     for (const view of views) {
       const reply = await this.script.hostAudience(view, court);
@@ -133,6 +146,7 @@ class ShadowKing implements ISeat {
 
   async hostAudience(view: AudienceView, court: SeatView): Promise<HostReply> {
     this.measure("audience", view.turn, this.llm.audienceCall(view, court));
+    if (view.round === 1) brought(view);
     const reply = await this.script.hostAudience(view, court);
     this.courts.add(view.from);
     this.llm.journal.audience(view.turn, view.from, view.envoy.name, reply.speech, []);
@@ -150,6 +164,11 @@ const seed = Number(opt("--seed", "1"));
 const dump = args.includes("--dump") ? opt("--dump", "") : null;
 const perAudience = args.includes("--per-audience");
 if (dump !== null) mkdirSync(dump, { recursive: true });
+
+// The same games before and after: the shadowed script kings do not plan ahead (item 6b taught sleeping script kings to),
+// which would change the games, not the requests. (Optional: before item 6b there was nothing to turn off.)
+const planAhead = (Game as { PlanAhead?: { on: boolean } }).PlanAhead;
+if (planAhead !== undefined) planAhead.on = false;
 
 const all: Measured[] = [];
 for (let g = 0; g < games; g++) {
@@ -182,8 +201,13 @@ for (const kind of ["orders", "audience"] as const) {
     const cells = groups.map(([, r]) => (r.length === 0 ? "-" : tok(r.reduce((a, m) => a + (k === "total" ? m.total : (m.sections.get(k) ?? 0)), 0) / r.length)).padStart(16));
     console.log([k.padEnd(20), ...cells].join(""));
   }
-  const uncached = rows.reduce((a, m) => a + m.total - (m.sections.get("rulebook (cached)") ?? 0), 0);
+  // The reply schema is sent as the tool, which comes first in the cached prefix: with the rulebook, it is read from cache.
+  const uncached = rows.reduce((a, m) => a + m.total - (m.sections.get("rulebook (cached)") ?? 0) - (m.sections.get("schema") ?? 0), 0);
   const variants = [...new Set(rows.map((m) => m.game))].map((g) => new Set(rows.filter((m) => m.game === g).map((m) => m.schema)).size);
   console.log(`  distinct ${kind} schemas (cached prefixes) per game: mean ${(variants.reduce((a, b) => a + b, 0) / variants.length).toFixed(1)}, at most ${Math.max(...variants)}`);
-  console.log(`  all ${kind} requests together: ${tok(rows.reduce((a, m) => a + m.total, 0))} tokens, of which outside the cached rulebook ${tok(uncached)}`);
+  console.log(`  all ${kind} requests together: ${tok(rows.reduce((a, m) => a + m.total, 0))} tokens, of which fresh (outside the cached rulebook and schema) ${tok(uncached)}`);
 }
+
+const envoys = [...broughtCount.values()].reduce((a, b) => a + b, 0);
+console.log(`\nWhat the ${envoys} envoys received brought (a standing answer may cover all but evidence):`);
+for (const [kind, n] of [...broughtCount].sort((a, b) => b[1] - a[1])) console.log(`  ${kind.padEnd(26)} ${n} (${((100 * n) / envoys).toFixed(0)}%)`);

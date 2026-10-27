@@ -57,6 +57,8 @@ export interface BatchOptions {
   sleepingScripts: boolean;
   /** Script kings that sleep schedule conditional orders ahead (off with --no-plan-ahead, to measure them). */
   planAhead: boolean;
+  /** Only half the kings plan ahead, alternating by seed (the others are the comparison); they are reported as the current side. */
+  planAheadHalf: boolean;
   simulateApi: boolean;
   /** Providers other than Anthropic (--provider ID=URL), each with its key in <ID>_API_KEY. */
   providers: ProviderSetting[];
@@ -114,7 +116,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !o.versus || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf) || (i + (s % 2)) % 2 === 0));
+  PlanAhead.only = o.planAheadHalf ? current : null;
   const [summary] = await playGame(
     s,
     (state) => {
