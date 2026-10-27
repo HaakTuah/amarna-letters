@@ -33,6 +33,7 @@ import {
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
+import { TradePlay, tradeOrders } from "./trade.ts";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
@@ -60,11 +61,11 @@ function route(b: Board, from: string, to: string): { route: string[]; seasons: 
   return { route: r.route, seasons: Math.max(1, Math.ceil(r.cost / (45 * PointsPerDay))) };
 }
 
-export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: Order[], gold: number, costs: number): number {
+export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: Order[], gold: number, costs: number): { sales: number; abroad: number } {
   const v = b.v;
   const p = brain.p;
   const ps = new Map(v.provinces.map((x) => [x.province, { ...x } as Mutable<ProvinceEconomyView>] as const));
-  if (ps.size === 0) return 0;
+  if (ps.size === 0) return { sales: 0, abroad: 0 };
   const besieged = new Set(v.sieges.filter((x) => x.holder === b.me).map((x) => x.province));
 
   // What each province must keep: its troops' food and refills for two seasons, and a depot on the frontier.
@@ -130,6 +131,9 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
     caravans++;
   }
 
+  // Trade abroad (item 9+b): what pays better at a foreign market goes there before the home markets take the rest.
+  const abroad = TradePlay.on(b.me) ? tradeOrders(b, brain, plan, orders, ps, spare, gold, costs) : 0;
+
   // Sales: while the market pays about what the grain is worth (grain kept loses a twentieth a season to spoiling, so a
   // little under its reference price still pays), lower when gold is needed; at any price for what the next tax would push
   // out of the stores.
@@ -161,7 +165,7 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
     if (gold + expected < 3 * costs || x.stock < x.need) continue;
     orders.push(purchase(x.province, need - x.stores - x.tax));
   }
-  return expected;
+  return { sales: expected, abroad };
 }
 
 /**

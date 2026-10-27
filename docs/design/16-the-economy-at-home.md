@@ -55,13 +55,13 @@ slowest part, the siege's clock, and strength as the wealth of the realm. Save v
 ### Orders (validated in rules/validator.ts, settled in `settleMarkets` after the levies)
 
 - `sell {province, amount}` and `purchase {province, amount}` at the province's own market (only one's own, never while
-  besieged: foreign markets are 9+b). A market's trades are netted and the rest priced along the curve, measure by
+  besieged: a foreign market is reached by a trading caravan or ship, item 9+b). A market's trades are netted and the rest priced along the curve, measure by
   measure (`sellAlongCurve`, `buyAlongCurve`); a sale stops when the purse cannot pay the next measure. The price is
   `base × normal / stock` between a quarter and four times the base (the ceiling at a stock of none); the market buys
   `cutPercent` 10% under it and sells 10% over.
 - `feed {province, amount}`: stores to the market's stock, for nothing.
 - `caravan {from, to, amount}`: from a province's stores through the king's own land (the destination may be foreign land
-  his troops stand in), by road or river, never by sea until 9+b.
+  his troops stand in), by road or river; from item 9+b through any land open to it, and by sea as a ship.
 - The condition `StoresAtLeast` (stores of a province of the seat's at least an amount) lets scheduled orders keep a
   floor, as "Building it" asks.
 - The levy's cost goes into the purse of the province where it is raised, and the fortify cost into the walled
@@ -81,7 +81,7 @@ marches armies by distance.
 A city falls by hunger (it was `starving` as the season began and the siege still stands) or by a breach, once its wear
 reaches `breachPerLevel` 3 for each level of its walls (it was the walls' level until 9+a). Wear still advances as in
 item 5 (a step, two with an uncut support, less when the city is supplied by sea). An unblockaded coastal city is fed from
-the sea and eats nothing from its stores, the built rule of item 7a kept until ships carry cargo in 9+b. Water inside the
+the sea and ate nothing from its stores until item 9+b; since then ships carry its grain (`17-the-economy-abroad.md`). Water inside the
 walls is not built: the dossiers give no city's wells, so every city holds as long as its food (reading in the report).
 The event `siege-starved` marks a fall by hunger.
 

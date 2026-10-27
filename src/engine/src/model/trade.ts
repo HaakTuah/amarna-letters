@@ -20,6 +20,8 @@ import type { Unit } from "./state.ts";
  * - `sackPercent`: the share of a province's purse its taker carries off when he takes it by force ("a sacked city's
  *   purse is the natural loot").
  * - `harbourStart`: the harbour level every coastal province starts with, until item 15 makes harbours a built level.
+ * - `wordSeasonsShare`: word of a foreign market's price reaches a court from within a season's travel divided by this
+ *   (2: half a season, some three weeks of road or sail), as it stood when the season began.
  */
 export const TradeData = {
   shipCapacity: 400,
@@ -29,6 +31,7 @@ export const TradeData = {
   smuggleGold: 10,
   sackPercent: 33,
   harbourStart: 1,
+  wordSeasonsShare: 2,
 } as const;
 
 /** A province's harbour level: every coast starts with one; inland and at sea, none ("Ships carry goods"). */

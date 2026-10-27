@@ -114,21 +114,22 @@ export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newC
 
 /**
  * A foreign market as the court last knew it (item 9+b, "Prices are known where they are and through news"): its price
- * (hundredths of a shekel a measure), its stock and its people's purse, and the season it was seen, by the court's own
- * eyes where it sees the land or by its caravans and ships that traded there.
+ * (hundredths of a shekel a measure), its stock, its normal stock (a season of its town's need) and its people's purse,
+ * and the season it was known, by word from nearby, its own eyes, or its caravans and ships that traded there.
  */
 export interface MarketSeen {
   price: number;
   stock: number;
+  need: number;
   purse: number;
   turn: number;
 }
 
 export function newMarketSeen(init: Partial<MarketSeen> = {}): MarketSeen {
-  return { price: 0, stock: 0, purse: 0, turn: 0, ...init };
+  return { price: 0, stock: 0, need: 0, purse: 0, turn: 0, ...init };
 }
 
-export const MarketSeenSchema: ObjSchema<MarketSeen> = obj("MarketSeen", newMarketSeen, { price: I, stock: I, purse: I, turn: I });
+export const MarketSeenSchema: ObjSchema<MarketSeen> = obj("MarketSeen", newMarketSeen, { price: I, stock: I, need: I, purse: I, turn: I });
 
 /**
  * A siege as a court sees it: the city, the besieger, who holds the city, and how far it has been worn down against its walls.

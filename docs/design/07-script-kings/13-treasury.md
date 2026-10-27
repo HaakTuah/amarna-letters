@@ -64,3 +64,29 @@ The baseline (frozen) and kings run with `--plain-economy` keep only two seasons
 sell the rest every season at whatever the market pays, with no caravans, depots, feeding or purchases
 (`plainGrainOrders`). Rivals' strength is reckoned from public data (`Board.worth`: a province's land worth and its purse
 and stores as at the start).
+
+#### The economy abroad (item 9+b; `game/src/bots/trade.ts`)
+
+Inside the grain plan, after what each store keeps and the caravans to troops, before the home sales:
+
+- **A besieged harbour of ours** whose waters no fleet of the besieger holds, its stores under two seasons of its need, is
+  sent grain first: up to a ship's load from the store with most to spare that has an idle fleet (one the military plan
+  leaves holding, or gives no order) in its harbour or waters, within two seasons' sail.
+- **Ventures**, at most three trading caravans and ships abroad at once. For each province with grain to spare, the most
+  spare first, every foreign market known within six seasons is weighed three ways where they exist: an open caravan (at
+  most 100 measures, by the land open to us, paying the tolls posted on its way), a smuggler (at most 50, off the road,
+  paying none but risking the odds of being found entering each realm, going and coming), and a ship (from the province's
+  harbour with an idle fleet, not in winter, not with a hostile fleet within two moves of its waters; up to 400). Each
+  reckons what arrives (the tolls and what the porters eat), what it sells for along that market's curve, and, where our
+  town there is short or its grain dear, what the gold we send (at most 150, keeping two seasons of costs and a margin for
+  caution) buys and brings home, worth our own price; less the porters' pay, a ship's risk of a storm (the fleet and its
+  cargo) and what the grain would have fetched at home. The best venture is sent if it gains at least 15 shekels and a
+  share of its worth of `0.25 − 0.15 × commerce`, at most three seasons away.
+- **Tolls**: a rate on everyone's goods entering our land of `10 + 10 × greed`, rounded to five (10 to 20 in a hundred), and
+  none for each partner we promised free passage on a sealed tablet, nor for an ally. Only changes are ordered.
+- **Trade rights**: a peace or alliance tablet a script king proposes carries free passage both ways (`tollFree` and
+  `askTollFree`) where tolls stand between the two; a script king seals such a tablet, since a mutual exemption gives
+  nothing away (`givesAwayIn`).
+
+The gold sent abroad is taken from the treasury the rest of the season reckons with. The frozen baseline trades nothing
+abroad and sets no tolls; `--no-trade-play` and `--trade-play-half` turn this part off for all script kings or half.

@@ -15,9 +15,9 @@ import { Views } from "../rules/views.ts";
 import type { Province } from "../model/map.ts";
 import type { Order, ShipOrder, TollOrder, TradeOrder } from "../model/orders.ts";
 import type { Power } from "../model/power.ts";
-import { alive, logEvent, newId, notify, siegeOf, unitAt, type Unit } from "../model/state.ts";
+import { alive, logEvent, newId, notify, ownedBy, siegeOf, unitAt, type Unit } from "../model/state.ts";
 import { harbourOf, newToll, shipFleet, smuggleOdds, tollOn, tollRate, TradeData } from "../model/trade.ts";
-import { cheapestRoute, legPoints } from "../model/travel.ts";
+import { cheapestRoute, legPoints, PointsPerDay } from "../model/travel.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
@@ -381,17 +381,44 @@ P.seeMarket = function (p, province) {
   const m = this.market(province);
   let book = S.marketsSeen.tryGet(p);
   if (book === undefined) S.marketsSeen.set(p, (book = new Dict()));
-  book.set(province, newMarketSeen({ price: priceAt(m.stock, needOf(this.map.get(province))), stock: m.stock, purse: m.purse, turn: S.turn }));
+  const need = needOf(this.map.get(province));
+  book.set(province, newMarketSeen({ price: priceAt(m.stock, need), stock: m.stock, need, purse: m.purse, turn: S.turn }));
 };
 
-/** Each season every court sees the foreign markets in the land it sees ("Prices are known where they are"). */
+/**
+ * Each season every court learns the foreign markets within half a season's travel of its land, by road, river or sea, and
+ * those in the land it sees, as they stand when the season begins ("Prices are known where they are and through news":
+ * word of a nearby market's price comes with the traders who use it; a far one's only with its own traders).
+ */
 P.seeMarkets = function () {
   const S = this.s;
+  const Map = this.map;
+  const reach = idiv(S.config.travelDays * PointsPerDay, TradeData.wordSeasonsShare);
+  const season = seasonOfTurn(S.turn);
   for (const p of alive(S)) {
-    const sight = Views.sight(S, this.map, p);
-    for (const prov of this.map.landProvinces) {
-      if (prov.kingless || !sight.has(prov.id) || S.owner.getOrDefault(prov.id, null) === p) continue;
-      this.seeMarket(p, prov.id);
+    // Every province within a season's travel of the king's land: the nearest first, from all his provinces at once.
+    const dist = new globalThis.Map<string, number>();
+    const queue: [string, number][] = [];
+    for (const id of ownedBy(S, p)) {
+      dist.set(id, 0);
+      queue.push([id, 0]);
+    }
+    while (queue.length > 0) {
+      let i = 0;
+      for (let j = 1; j < queue.length; j++) if (queue[j][1] < queue[i][1] || (queue[j][1] === queue[i][1] && queue[j][0] < queue[i][0])) i = j;
+      const [at, d] = queue.splice(i, 1)[0];
+      if (d > (dist.get(at) ?? Infinity)) continue;
+      for (const n of Map.neighbors(at)) {
+        const nd = d + legPoints(Map, at, n, season);
+        if (nd > reach || nd >= (dist.get(n) ?? Infinity)) continue;
+        dist.set(n, nd);
+        queue.push([n, nd]);
+      }
+    }
+    const sight = Views.sight(S, Map, p);
+    for (const prov of Map.landProvinces) {
+      if (prov.kingless || S.owner.getOrDefault(prov.id, null) === p) continue;
+      if (dist.has(prov.id) || sight.has(prov.id)) this.seeMarket(p, prov.id);
     }
   }
 };
