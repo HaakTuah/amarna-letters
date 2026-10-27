@@ -1,9 +1,9 @@
-<!-- Generated from the design document, Overview tab, revision 555 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 556 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 # Amarna Letters — Prototype Design Document
 
 Oct 17, 2026 · @Jesus
 
-**Status.** Build order items 1–5 and 5+ are built: since 27 October 2026 the game runs in TypeScript, with the fix pass after the conversion done and the old C# build removed. Item 6a comes next. What is built and what comes next, item by item, is kept in the repository's `docs/BUILD-PROGRESS.md`.
+**Status.** The game runs in TypeScript since 27 October 2026 (build order item 5+). What is built and what comes next, item by item, is kept in the repository's `docs/BUILD-PROGRESS.md`.
 
 **How this document relates to the code.** This document records intent: what the game is for, its rules of thumb and its systems. The design notes in the repository (`docs/design/`, one file per topic, indexed by `docs/DESIGN-NOTES.md`) are the source of truth for formulas, exact rules, the map and balance numbers. When they disagree on a number, the design notes win; when they disagree on intent, update one of them deliberately.
 
