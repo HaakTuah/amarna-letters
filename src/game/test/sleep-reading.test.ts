@@ -12,6 +12,7 @@ import {
   disband,
   dispatch,
   hold,
+  sell,
   inboxOf,
   move,
   newGame,
@@ -322,7 +323,8 @@ describe("SleepTests", () => {
               let babylon = new Sleeper((v) =>
                 newTurnSubmission({
                   scheduled: [
-                    newScheduledOrders({ turn: v.turn + 1, orders: [hold("babylon")] }),
+                    // It sells its grain while it sleeps (item 9+a), or its troops would go unpaid and mutiny.
+                    newScheduledOrders({ turn: v.turn + 1, orders: [hold("babylon"), sell("babylon", 60), sell("nippur", 40), sell("ur", 40)] }),
                     newScheduledOrders({ turn: v.turn + 2, orders: [move("sippar", "suhu"), supportOrder("durkurigalzu", "sippar", "suhu")] }),
                     newScheduledOrders({ turn: v.turn + 3, orders: [move("sippar", "damascus"), move("babylon", "sippar")] }),
                   ],

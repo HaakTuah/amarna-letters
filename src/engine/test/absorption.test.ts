@@ -8,6 +8,11 @@ import {
   type TurnSubmission,
   Views,
   WorldMap,
+  EconomyData,
+  economyOf,
+  grainWorth,
+  harvestOf,
+  taxOf,
   cede,
   move,
   newGame,
@@ -42,21 +47,24 @@ describe("AbsorptionTests", () => {
     let e = season(s, subs({ Mitanni: { orders: [move("isuwa", "sapinuwa")] } }));
     Assert.equal("Mitanni", s.owner.get("sapinuwa"));
     Assert.equal(1, s.conquered.get("sapinuwa"));
-    // Its strength counts a third of Sapinuwa's 30 beside its homeland's 145.
-    Assert.equal(s.config.provinceWeight * (145 + 10) + s.treasuries.get("Mitanni").gold - e.backPayOwed("Mitanni"), e.strength("Mitanni"));
+    // Its strength counts a third of Sapinuwa's land worth beside its homeland's.
+    const worth = (id: string): number => grainWorth(harvestOf(WorldMap.default.get(id))) + economyOf(WorldMap.default.get(id)).mine;
+    const home = WorldMap.default.homeOf("Mitanni").reduce((a, x) => a + worth(x.id), 0);
+    Assert.equal(home + Math.round(worth("sapinuwa") / 3), e.landYield("Mitanni"));
     // Its taker sees the mark; no other court does, not even the loser (how land changed hands is not public).
     Assert.equal(1, Views.for(s, "Mitanni").conquered.get("sapinuwa"));
     Assert.empty(Views.for(s, "Hatti").conquered);
     Assert.empty(Views.for(s, "Egypt").conquered);
 
     // Turn 2: it yields a third of its yield; turn 3 two thirds; turn 4 all of it, and the mark is gone.
-    Assert.equal(10, new TurnEngine(s).effectiveYield("sapinuwa"));
+    const tax = taxOf(harvestOf(WorldMap.default.get("sapinuwa")));
+    Assert.equal(Math.round(tax / 3), new TurnEngine(s).effectiveYield("sapinuwa"));
     season(s);
-    Assert.equal(20, new TurnEngine(s).effectiveYield("sapinuwa"));
+    Assert.equal(Math.round((tax * 2) / 3), new TurnEngine(s).effectiveYield("sapinuwa"));
     season(s);
     Assert.equal(4, s.turn);
     new TurnEngine(s).beginTurn();
-    Assert.equal(30, new TurnEngine(s).effectiveYield("sapinuwa"));
+    Assert.equal(tax, new TurnEngine(s).effectiveYield("sapinuwa"));
     Assert.false(s.conquered.has("sapinuwa"));
   });
 
@@ -104,7 +112,7 @@ describe("AbsorptionTests", () => {
     removeAll(s.units, (u) => u.province === "ashur");
     let besieger = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(besieger);
-    s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: besieger.id, progress: 2, since: 1 }));
+    s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: besieger.id, progress: 3 * EconomyData.breachPerLevel - 1, since: 1 }));
     season(s);
     Assert.all(WorldMap.default.homeOf("Assyria"), (p) => Assert.equal(1, s.conquered.get(p.id)));
     Assert.equal(1 / 3.0, new TurnEngine(s).absorbed("nineveh"));

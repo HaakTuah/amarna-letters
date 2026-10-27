@@ -24,6 +24,8 @@ describe("PurchaseTests", () => {
   // <summary>Babylonia holds Megiddo and Tyre, with an army in each, ready to storm Gaza's walls (brought down to level 1, so a supported attack storms them).</summary>
   function board(config: GameConfig | null = null): GameState {
     let s = newGame(1, config);
+    // Treasuries rich enough for a city's price, what it adds (item 9+a).
+    for (const t of s.treasuries.values()) t.gold += 5000;
     s.walls.set("gaza", 1);
     for (const city of ["megiddo", "tyre"]) {
       s.owner.set(city, "Babylonia");

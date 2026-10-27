@@ -22,6 +22,10 @@ import {
   dispatch,
   forge,
   fortify,
+  sell,
+  purchase,
+  feed,
+  caravan,
   giftUnit,
   hire,
   hold,
@@ -142,6 +146,7 @@ const ConditionKinds: Record<string, ConditionKind> = {
   treasury_at_least: "TreasuryAtLeast",
   envoy_back: "EnvoyBack",
   tablet_sealed: "TabletSealed",
+  stores_at_least: "StoresAtLeast",
 };
 
 const Brings: Record<string, AnswerBrings> = { anything: "Anything", words: "Words", gold: "Gold", tablet: "Tablet" };
@@ -347,6 +352,16 @@ function other(x: Node): Order | null {
       return buy(province);
     case "fortify":
       return fortify(province);
+    case "sell_grain":
+      return sell(province, amount);
+    case "buy_grain":
+      return purchase(province, amount);
+    case "feed_town":
+      return feed(province, amount);
+    case "caravan": {
+      const to = empty(S(x, "to"));
+      return caravan(province, to !== null ? prov(to) : "", amount);
+    }
     case "cede_province":
       return power !== null ? cede(province, power) : unreadable(`cede ${province} to '${named}'`, nowhere(named, "the power to cede it to"));
     case "give_unit":

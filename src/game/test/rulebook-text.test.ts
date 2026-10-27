@@ -35,9 +35,9 @@ import { describe as describeOrder } from "@amarna/engine";
 describe("RulebookTextTests", () => {
   const Rules: string = leaderRules(true, newGameConfig());
 
-  test("The rulebook states dislodgement and desertion", () => {
+  test("The rulebook states dislodgement, hunger and mutiny", () => {
     Assert.contains("A unit dislodged is destroyed; a unit that is destroyed gives no support", Rules);
-    Assert.contains("If you cannot pay upkeep, troops desert, the one farthest from your capital first", Rules);
+    Assert.contains("A unit that cannot eat in full goes hungry; one hungry 2 seasons running mutinies. One not paid in full counts a season of missing pay; one unpaid 3 seasons running mutinies.", Rules);
     Assert.contains("Your battle report says why each of your moves that failed was stopped", Rules);
   });
 
@@ -107,9 +107,9 @@ describe("RulebookTextTests", () => {
 
   test("Every court reads every power s opening troops treasury and starting strength", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
-    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 600 shekels; homeland yield 220; starting strength 2800.", Rules);
-    Assert.contains("- Babylonia: armies in babylon, sippar and durkurigalzu; treasury 650 shekels;", Rules);
-    Assert.contains("- Alashiya: a fleet in enkomi; treasury 350 shekels;", Rules);
+    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 900 shekels; its land produces 832 shekels' worth a season; starting strength 17175.", Rules);
+    Assert.contains("- Babylonia: armies in babylon, sippar and durkurigalzu; treasury 600 shekels;", Rules);
+    Assert.contains("- Alashiya: a fleet in enkomi; treasury 400 shekels;", Rules);
 
     // The figures are the game's own: every unit, treasury and starting strength as a new game sets them.
     let s = newGame(9);
@@ -162,7 +162,7 @@ describe("SeasonRulebookTests", () => {
     let section = Rules.slice(Rules.indexOf("HOW A SEASON RESOLVES"), Rules.indexOf("MOVEMENT AND COMBAT"));
     let steps = [
       "1. Departures",
-      "2. Income, upkeep and wages",
+      "2. The economy",
       "3. Arrivals",
       "4. Your court",
       "5. Audiences",
@@ -204,7 +204,7 @@ describe("SeasonRulebookTests", () => {
       "a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid.",
     ],
     ["a spy must be one of your own people at your court, sent to watch a court or a province"],
-    ["If you cannot pay upkeep, troops desert, the one farthest from your capital first"],
+    ["You pay your troops (20 an army, 25 a fleet, nearest your capital first)"],
     [
       "Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).",
     ],
@@ -217,9 +217,9 @@ describe("SeasonRulebookTests", () => {
     ],
     ["You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them"],
     [
-      "When the city has been worn down as many steps as its walls are high, it surrenders to the besieger at the end of that season and loses a level of walls.",
+      "Walls price a storm, not how long a city holds: a city falls by hunger, or once it has been worn down 3 steps for each level of its walls, when they are breached.",
     ],
-    ["Each siege costs the besieger 15 a season on top of the army's upkeep."],
+    ["Each siege costs the besieger 15 a season on top of the army's pay."],
     [
       "A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him (if he falls too in the same season, it passes on with his own land), your troops disband, and what you owe dies with you. You cannot cede your capital.",
     ],

@@ -5,6 +5,7 @@
  * sees only its own wake-ups, and everything it is told comes from its own view. (Scheduled and standing orders are in
  * plans.ts.)
  */
+import { EconomyData } from "../model/economy.ts";
 import { HSet } from "../core/collections.ts";
 import { sortBy, cmpNum } from "../core/seq.ts";
 import { cmpStr, trimEnd } from "../core/text.ts";
@@ -50,6 +51,8 @@ export const AskedAgainReason = "your counsellors woke you";
 export const HomelandReason = "foreign troops came next to your homeland";
 /** Why a seat is woken when a siege of a city it holds began last season (followed by the siege). */
 export const SiegeBegunReason = "a siege of a city of yours has begun";
+/** Why a seat that woke itself was woken (item 9+a: a human may wake himself to act whenever he likes). */
+export const SelfWakeReason = "you woke yourself";
 /** Why a seat is woken when a city of its own will surrender at the end of this season if its besiegers hold. */
 export const SurrenderReason = "a city of yours surrenders at the end of this season unless the siege is broken";
 /** Why a seat is woken when foreign troops end a move next to a walled city it holds (a bought city), and none of its homeland. */
@@ -114,6 +117,7 @@ export function kindName(k: UnitKind): string {
 declare module "./core.ts" {
   interface TurnEngine {
     isAsleep(p: Power): boolean;
+    wakeSelf(p: Power): void;
     sleepOf(p: Power): SleepState | null;
     standingOf(p: Power): StandingOrder[];
     wakeCheck(): void;
@@ -137,6 +141,12 @@ P.isAsleep = function (p) {
   const S = this.s;
   const sl = S.sleep.tryGet(p);
   return S.config.sleepingSeats && isAlive(S, p) && sl !== undefined && sl.asleep;
+};
+
+/** A sleeping seat wakes itself this season (a human who wants to act), as any other reason would wake it. */
+P.wakeSelf = function (p) {
+  const sl = this.sleepOf(p);
+  if (sl !== null && sl.asleep) this.wake(sl, [SelfWakeReason]);
 };
 
 /** The sleep state of a seat that may sleep, or null for one that plays every season. */
@@ -314,8 +324,11 @@ P.wakeReasons = function (p, sl) {
     [(x) => x.province, cmpStr],
   )) {
     const walls = S.walls.getOrDefault(x.province, 0);
-    const state = `${x.power}'s army besieges ${x.province} (walls ${walls}), worn down ${x.progress} of ${walls}`;
-    if (x.progress + 1 >= walls) add(`${SurrenderReason}: ${state}`);
+    // Item 9+a: it falls by hunger (it could not feed its people as this season began) or once its walls are breached.
+    const breach = walls * EconomyData.breachPerLevel;
+    const state = `${x.power}'s army besieges ${x.province} (walls ${walls}), worn down ${x.progress} of ${breach}`;
+    if (S.starving.includes(x.province)) add(`${SurrenderReason}: ${state}, and its food is gone`);
+    else if (x.progress + 1 >= breach) add(`${SurrenderReason}: ${state}`);
     else if (x.since === S.turn - 1) add(`${SiegeBegunReason}: ${state}`);
   }
   for (const i of inboxOf(S, p).filter((i) => i.turn === S.turn)) {
@@ -338,7 +351,10 @@ P.wakeReason = function (i) {
         const ask = c?.contract?.noticePrice ?? null;
         return "a servant gives notice: " + (c !== null && ask !== null ? `${c.name} asks ${formatMoney(ask)} a season to serve on` : i.body);
       }
-      if (i.title === "The treasury" && i.body.includes("deserted")) return "your unpaid troops deserted";
+      // The economy's failures (item 9+a): troops that mutinied, went hungry or unpaid, a caravan lost.
+      if (i.title === "The treasury" && i.body.includes("mutinied")) return "troops of yours mutinied";
+      if (i.title === "The treasury" && (i.body.includes("Hungry this season") || i.body.includes("Not paid this season"))) return "troops of yours went hungry or unpaid";
+      if (i.title === "Markets and caravans" && (i.body.includes("was taken") || i.body.includes("Outlaws") || i.body.includes("deserted"))) return "a caravan of yours was lost";
       return null;
     }
     case "Rumor":

@@ -6,7 +6,7 @@ switches them off so that every seat is asked every season, for comparison). The
 advances every season, but a model or file seat sleeps after every set of orders and is asked
 again only when something concerns it or the hidden cap is reached: a king never chooses when he
 wakes (the document's "Decided: sleep is the default" and "No triggers of the seat's own"; since the
-fix pass after item 4, save version 5). Script and human seats play every season as before. There is never a global skip, and each seat
+fix pass after item 4, save version 5). Script seats play every season as before. Since item 9+a (Haakon, 27 October 2026: sleep is for every seat) a human seat may sleep too: in the web app it seals its orders either awake (`TurnSubmission.stayAwake`, asked again next season) or with a sleep, and is then woken by the same triggers as any seat, or by itself ("Wake now": `ISeat.wakeRequested`, read once a season before the wake check, logged as the decision `t<turn>/wake/<power>` only when it happens, so a replay wakes it the same; the reason is "you woke yourself"). There is never a global skip, and each seat
 sees only its own wake-ups. With sleeping seats off, a king reads nothing of any of this: no sleep
 sections in the rulebook, no sleep fields in the schema, no opening sleep line. Standing orders are not
 a sleeping seat's alone: every seat may keep them, awake or asleep, and every king reads how they work in the

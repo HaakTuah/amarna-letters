@@ -7,6 +7,7 @@ import { MilitaryPlan } from "../src/bots/tactics.ts";
 import { TextKit } from "../src/bots/textkit.ts";
 import {
   AllPowers,
+  ownedBy,
   type AudienceView,
   type AuthenticateOrder,
   type CaptiveOrder,
@@ -194,6 +195,8 @@ describe("FeatureAuditTests", () => {
     // And Alashiya's land next to Sinai too.
     s.owner.set("gaza", "Alashiya");
     s.walls.delete("gaza");
+    // Its people's purses empty (item 9+a): its markets can pay it next to nothing.
+    for (const p of ownedBy(s, "Egypt")) s.markets.get(p).purse = 0;
 
     let [plan] = economy(s, "Egypt");
     Assert.equal(giftUnit("enkomiwaters", "Alashiya"), plan.orders.get("enkomiwaters"));

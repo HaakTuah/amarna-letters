@@ -5,7 +5,7 @@
   "overview": {
    "name": "Overview",
    "node": "320f0886-6acf",
-   "rev": 557,
+   "rev": 558,
    "files": [
     "docs/intent/overview/front.md",
     "docs/intent/overview/vision-and-core-hypothesis.md",
@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 57,
+   "rev": 64,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -46,7 +46,7 @@
   "world-and-history": {
    "name": "World and history",
    "node": "f2f7044b-c6fa",
-   "rev": 33,
+   "rev": 34,
    "files": [
     "docs/intent/world-and-history/front.md",
     "docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md",
@@ -58,7 +58,7 @@
   "engine-and-models": {
    "name": "Engine and models",
    "node": "23452eff-9a74",
-   "rev": 50,
+   "rev": 55,
    "files": [
     "docs/intent/engine-and-models/front.md",
     "docs/intent/engine-and-models/turn-structure-and-the-deterministic-engine.md",
@@ -71,7 +71,7 @@
   "diplomacy-and-intelligence": {
    "name": "Diplomacy and intelligence",
    "node": "83ac9cba-81ca",
-   "rev": 18,
+   "rev": 23,
    "files": [
     "docs/intent/diplomacy-and-intelligence/front.md",
     "docs/intent/diplomacy-and-intelligence/envoys-mediated-delayed-agentic-communication.md",
@@ -101,7 +101,7 @@
   "work-money-and-lending": {
    "name": "Work, money and lending",
    "node": "016f3c32-0e2b",
-   "rev": 10,
+   "rev": 11,
    "files": [
     "docs/intent/work-money-and-lending/front.md",
     "docs/intent/work-money-and-lending/recruitment-background-checks-and-the-open-market.md",
@@ -112,7 +112,7 @@
   "land-people-and-economy": {
    "name": "Land, people and economy",
    "node": "3dedb02f-88dd",
-   "rev": 21,
+   "rev": 24,
    "files": [
     "docs/intent/land-people-and-economy/front.md",
     "docs/intent/land-people-and-economy/gold.md",
@@ -126,7 +126,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 45,
+   "rev": 53,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military.md",
@@ -150,7 +150,7 @@
   "interface-and-the-council": {
    "name": "Interface and the council",
    "node": "ed35e82f-6e5a",
-   "rev": 8,
+   "rev": 10,
    "files": [
     "docs/intent/interface-and-the-council/front.md",
     "docs/intent/interface-and-the-council/spectator-mode-and-analysis.md",
@@ -160,7 +160,7 @@
   "tests-risks-and-references": {
    "name": "Tests, risks and references",
    "node": "e10064a1-1833",
-   "rev": 12,
+   "rev": 14,
    "files": [
     "docs/intent/tests-risks-and-references/front.md",
     "docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md",

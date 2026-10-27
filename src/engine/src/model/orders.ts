@@ -63,6 +63,37 @@ export interface SallyOrder {
   city: string;
   from: string;
 }
+/**
+ * Sell grain from a province's stores at its own market (build order item 9+a, "Markets"): the market pays from its
+ * people's purse, a little under its price, the lot priced along the curve, and buys no more than its purse can pay for.
+ */
+export interface SellOrder {
+  type: "sell";
+  province: string;
+  amount: number;
+}
+/** Buy grain at a province's market into its stores, paid from the treasury a little over the market's price (item 9+a). */
+export interface PurchaseOrder {
+  type: "purchase";
+  province: string;
+  amount: number;
+}
+/** Hand grain from a province's stores to its town for nothing, into its market (item 9+a, "Kings can feed their towns"). */
+export interface FeedOrder {
+  type: "feed";
+  province: string;
+  amount: number;
+}
+/**
+ * Send a caravan with grain from a province's stores to another province through the king's own land (item 9+a,
+ * "Caravans carry a kingdom's goods"): it fills the baggage of his troops standing there and puts the rest in its stores.
+ */
+export interface CaravanOrder {
+  type: "caravan";
+  from: string;
+  to: string;
+  amount: number;
+}
 export interface RaiseOrder {
   type: "raise";
   province: string;
@@ -228,6 +259,10 @@ export type Order =
   | BesiegeOrder
   | FortifyOrder
   | SallyOrder
+  | SellOrder
+  | PurchaseOrder
+  | FeedOrder
+  | CaravanOrder
   | RaiseOrder
   | DisbandOrder
   | BuyProvinceOrder
@@ -297,6 +332,10 @@ export const hire = (character: string, wage: number, term = 6): HireOrder => ({
 export const renew = (character: string, wage: number, term = 6): RenewOrder => ({ type: "renew", character, wage, term });
 export const dismiss = (character: string): DismissOrder => ({ type: "dismiss", character });
 export const check = (character: string, spend: number): BackgroundCheckOrder => ({ type: "check", character, spend });
+export const sell = (province: string, amount: number): SellOrder => ({ type: "sell", province, amount });
+export const purchase = (province: string, amount: number): PurchaseOrder => ({ type: "purchase", province, amount });
+export const feed = (province: string, amount: number): FeedOrder => ({ type: "feed", province, amount });
+export const caravan = (from: string, to: string, amount: number): CaravanOrder => ({ type: "caravan", from, to, amount });
 export const placeSpy = (character: string, court: Power | null = null, province: string | null = null): PlaceSpyOrder => ({ type: "spy", character, court, province });
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
 export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "counterIntel", spend });
@@ -336,6 +375,14 @@ export function describe(o: Order): string {
       return `strengthen the walls of ${named(o.province)}`;
     case "sally":
       return `the walls of ${named(o.city)} sally in support of the attack from ${named(o.from)}`;
+    case "sell":
+      return `sell ${o.amount} measures of grain from the stores of ${named(o.province)}`;
+    case "purchase":
+      return `buy ${o.amount} measures of grain at the market of ${named(o.province)}`;
+    case "feed":
+      return `hand ${o.amount} measures of grain to the town of ${named(o.province)}`;
+    case "caravan":
+      return `send a caravan with ${o.amount} measures of grain from ${named(o.from)} to ${named(o.to)}`;
     case "raise":
       return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}`;
     case "disband":
@@ -449,6 +496,10 @@ export const OrderSchema = poly("Order", "type", {
   besiege: v("BesiegeOrder", () => besiege(""), { unit: S }),
   fortify: v("FortifyOrder", () => fortify(""), { province: S }),
   sally: v("SallyOrder", () => sally("", ""), { city: S, from: S }),
+  sell: v("SellOrder", () => sell("", 0), { province: S, amount: I }),
+  purchase: v("PurchaseOrder", () => purchase("", 0), { province: S, amount: I }),
+  feed: v("FeedOrder", () => feed("", 0), { province: S, amount: I }),
+  caravan: v("CaravanOrder", () => caravan("", "", 0), { from: S, to: S, amount: I }),
   raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S }),
   disband: v("DisbandOrder", () => disband(""), { unit: S }),
   buy: v("BuyProvinceOrder", () => buy(""), { province: S }),
@@ -527,10 +578,15 @@ export interface TurnSubmission {
   cancelAnswers: string[];
   /** Set by the runner when the script king stood in for a seat whose call failed: the seat has not seen this season. */
   fromFallback: boolean;
+  /**
+   * A seat that may sleep asks to be asked again next season instead of sleeping (item 9+a: a human ends his turn without
+   * sleeping; "Per-seat sleep, never a global skip"). Model and file seats leave it false and sleep after their orders.
+   */
+  stayAwake: boolean;
 }
 
 export function newTurnSubmission(init: Partial<TurnSubmission> = {}): TurnSubmission {
-  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, ...init };
+  return { orders: [], notes: "", summary: "", ledger: [], scheduled: [], standing: [], cancelStanding: [], answers: [], cancelAnswers: [], fromFallback: false, stayAwake: false, ...init };
 }
 
 export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTurnSubmission, {
@@ -544,4 +600,5 @@ export const TurnSubmissionSchema = obj<TurnSubmission>("TurnSubmission", newTur
   answers: list(() => StandingAnswerRequestSchema),
   cancelAnswers: list(S),
   fromFallback: B,
+  stayAwake: B,
 });

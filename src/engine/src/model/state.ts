@@ -11,8 +11,9 @@ import { type SleepState, SleepStateSchema, type StandingBook, StandingBookSchem
 import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
 import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type Grant, GrantSchema } from "./authority.ts";
+import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
 
-export const CURRENT_VERSION = 13;
+export const CURRENT_VERSION = 14;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -86,11 +87,20 @@ export interface GameState {
    */
   conquered: Dict<string, number>;
   /**
-   * The armies, by unit id, that ended the last season's moves in desert land their king did not hold when the moves were
-   * made (Build order item 5, terrain): each pays {@link GameConfig.DesertUpkeep} for supplies with the next upkeep,
-   * and the list is then cleared. An army in its own land pays nothing.
+   * The grain in each land province's stores, in measures (build order item 9+a, "Production is local"): the tax in goods
+   * goes in, armies standing there by their king's leave eat from it, caravans carry it away, and it falls with the
+   * province. A province with none is left out.
    */
-  inDesert: string[];
+  stores: Dict<string, number>;
+  /** Each land province's local market (item 9+a, "Markets"): its stock of grain and its people's purse. */
+  markets: Dict<string, Market>;
+  /** The caravans on the road (item 9+a, "Caravans carry a kingdom's goods"). */
+  caravans: Caravan[];
+  /**
+   * The besieged cities that could not feed their mouths in full when the season began (item 9+a, "How long a siege
+   * lasts"): each surrenders to its besieger with the season's sieges, if the siege still stands.
+   */
+  starving: string[];
   units: Unit[];
   treasuries: Dict<Power, Treasury>;
   startStrength: Dict<Power, number>;
@@ -171,7 +181,10 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     fallsHeard: new Dict(),
     sieges: [],
     conquered: new Dict(),
-    inDesert: [],
+    stores: new Dict(),
+    markets: new Dict(),
+    caravans: [],
+    starving: [],
     units: [],
     treasuries: new Dict(),
     startStrength: new Dict(),
@@ -226,7 +239,10 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   fallsHeard: dict(list(S)),
   sieges: list(() => SiegeSchema),
   conquered: dict(I),
-  inDesert: list(S),
+  stores: dict(I),
+  markets: dict(() => MarketSchema),
+  caravans: list(() => CaravanSchema),
+  starving: list(S),
   units: list(() => UnitSchema),
   treasuries: dict(() => TreasurySchema),
   startStrength: dict(I),
@@ -260,6 +276,15 @@ export interface Unit {
   power: Power;
   kind: UnitKind;
   province: string;
+  /** Where it was raised (its men's homes): their savings go into that province's purse when it disbands (item 9+a). */
+  home: string;
+  /** The grain it carries, in measures (item 9+a, "Armies need food as well as pay"). */
+  food: number;
+  /** The part of its men's pay and loot they have not spent, carried home ("Soldiers carry savings home"). */
+  savings: number;
+  /** Seasons in a row it went hungry, and went unpaid: a few of either and it mutinies. */
+  hungry: number;
+  unpaid: number;
   // computed in C#: $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}"
 }
 
@@ -269,6 +294,11 @@ export function newUnit(init: Partial<Unit> = {}): Unit {
     power: "Egypt",
     kind: "Army",
     province: "",
+    home: "",
+    food: 0,
+    savings: 0,
+    hungry: 0,
+    unpaid: 0,
     ...init,
   };
 }
@@ -278,6 +308,11 @@ export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
   power: S,
   kind: S,
   province: S,
+  home: S,
+  food: I,
+  savings: I,
+  hungry: I,
+  unpaid: I,
   label: computed(S, (o: Unit) => unitLabel(o)),
 });
 
@@ -357,6 +392,8 @@ export interface Treasury {
   gold: number;
   /** Received shipments not yet assayed. The owner's ledger counts them at face value. */
   lots: GoldLot[];
+  /** The gold that came in last season from the mines and from sales at its markets (item 9+a). */
+  income: number;
   // computed in C#: Gold + Lots.Sum(l => l.Face - l.True)
 }
 
@@ -364,6 +401,7 @@ export function newTreasury(init: Partial<Treasury> = {}): Treasury {
   return {
     gold: 0,
     lots: [],
+    income: 0,
     ...init,
   };
 }
@@ -371,6 +409,7 @@ export function newTreasury(init: Partial<Treasury> = {}): Treasury {
 export const TreasurySchema: ObjSchema<Treasury> = obj("Treasury", newTreasury, {
   gold: I,
   lots: list(() => GoldLotSchema),
+  income: I,
   ledger: computed(I, (o: Treasury) => ledger(o)),
 });
 
@@ -496,6 +535,7 @@ export const IdKinds: ReadonlyMap<string, string> = new Map([
   ["r", "request to a character's mind"],
   ["t", "tablet"],
   ["u", "unit"],
+  ["v", "caravan"],
   ["x", "catastrophe"],
 ]);
 

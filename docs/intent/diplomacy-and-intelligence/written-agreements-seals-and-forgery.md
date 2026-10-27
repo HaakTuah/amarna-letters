@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 18 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 23 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Written agreements, seals and forgery
 
 A sealed tablet is evidence, not enforcement. The engine records that both parties sealed a text; it never makes anyone obey it. Its value is that a broken promise can be proven to third parties.
@@ -50,12 +50,12 @@ The builder's starting point for each place outside the seven powers' own land, 
 | Middle Euphrates, downstream of Terqa (Mari's old land, by then in Hana) | Vassal | Mitanni |  | Mitanni's or the Kassites' |
 | Arwad | Free |  | Allied with Amurru against Byblos |  |
 | Isuwa | Free |  | A buffer between Hatti and Mitanni |  |
-| Lukka | Free, lawless |  | Raiders' lands rather than a state |  |
+| Lukka | Free, under one leader |  | Communities without a king, raiding Alashiya by sea (EA 38); played as a city-state from item 11+ |  |
 | Elam (Susa) | Free |  | A kingdom outside the Great Kings' circle |  |
 | Nineveh | Assyria's own land | Assyria | Tushratta sent the Ishtar of Nineveh to Egypt | Mitanni's or Assyria's in 1346 |
 | Dilmun | Babylonia's own land | Babylonia | A Kassite governor; the route to Magan's copper | The dates of Kassite rule |
-| Kaska lands | Free, lawless |  | Raiders without a king; burned Hattusa in the generation before |  |
-| Sutean steppe | Free, lawless |  | Nomads who raided travellers and served as hired fighters |  |
+| Kaska lands | Free, under one leader |  | Villages under chiefs and elders, no king; burned Hattusa in the generation before; played as a city-state from item 11+ |  |
+| Sutean steppe | Free, under one leader |  | Herding tribes under chiefs who raided travellers and served as hired fighters; played as a city-state from item 11+ |  |
 | Terqa (Hana) | Vassal | Mitanni | Capital of the kingdom of Hana, today drawn as Mitanni's own land | Vassal or Mitanni's own; one province or two with the land below it |
 | Mira | Vassal | Arzawa | One of the Arzawa lands, a kingdom of its own in later Hittite treaties; today drawn as Arzawa's own land | Vassal or Arzawa's own in 1346 |
 | Seha River Land | Vassal | Arzawa | One of the Arzawa lands, as Mira; today drawn as Arzawa's own land | Vassal or Arzawa's own in 1346 |
@@ -66,7 +66,7 @@ The last three rows are land the map today draws as a Great King's own, which ma
 
 - A character with high competence can forge a tablet bearing another power's seal.
 - Any court can pay to authenticate a tablet. The engine compares the forger's skill with the examiner's spending and decides the result from the seed.
-- A detected forgery damages the forger's employer, if it can be traced.
+- A detected forgery that can be traced to the forger's employer becomes a fact the examining court knows, and news it can carry or show to others, who judge that employer by it as they choose (decided 27 October 2026).
 
 **What we hope to see.** Players start demanding sealed tablets for important deals, then start doubting them. The Donation of Constantine, a forged decree that held for centuries until exposed in 1440, is the long-run version of this mechanic.
 

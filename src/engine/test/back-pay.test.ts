@@ -12,6 +12,7 @@ import {
   type TurnSubmission,
   Views,
   WorldMap,
+  economyOf,
   captive,
   dismiss,
   dispatch,
@@ -72,7 +73,9 @@ describe("BackPayTests", () => {
     // Turn 2: on the road, its wage is owed, not paid, and the treasury notice says so.
     let gold = s.treasuries.get("Egypt").gold;
     let e = new TurnEngine(s);
-    let [income, upkeep, wages] = [e.income("Egypt"), e.upkeep("Egypt"), e.wages("Egypt")];
+    // Gold comes in from the mines as the season begins (item 9+a), and from sales, none here.
+    let income = sum(ownedBy(s, "Egypt"), (id) => economyOf(WorldMap.default.get(id)).mine);
+    let [upkeep, wages] = [e.upkeep("Egypt"), e.wages("Egypt")];
     begin(s);
     Assert.equal(12, envoy.backPay.get("Egypt"));
     Assert.equal(purse, envoy.purse);
@@ -83,7 +86,7 @@ describe("BackPayTests", () => {
         i.turn === 2 &&
         i.title === "The treasury" &&
         i.body.includes(
-          `wages ${formatMoney(wages - 12)} (paid to your people at court). The wages of your people away, 12 shekels, were added to their back pay, which is paid when they are back at your court.`,
+          `wages ${formatMoney(wages - 12)} (to your people at court). The wages of your people away, 12 shekels, were added to their back pay, which is paid when they are back at your court.`,
         ),
     );
     let line = single(Views.for(s, "Egypt").court, (c) => c.id === envoy.id);
@@ -266,22 +269,22 @@ describe("BackPayTests", () => {
     );
   });
 
-  test("Strength and growth count back pay owed against the treasury", () => {
+  test("Strength and growth count back pay owed against the wealth of the realm", () => {
     let [s, envoy] = start();
     begin(s).resolve(orders("Egypt", dispatch(envoy.id, "Babylonia", "Greetings.")));
     begin(s);
     let e = new TurnEngine(s);
-    let land = sum(ownedBy(s, "Egypt"), (id) => WorldMap.default.get(id).yield);
+    let land = e.landYield("Egypt");
     Assert.equal(12, e.backPayOwed("Egypt"));
-    Assert.equal(strength(s.config, land, s.treasuries.get("Egypt").gold, 12), e.strength("Egypt"));
-    Assert.equal(10 * land + s.treasuries.get("Egypt").gold - 12, e.strength("Egypt"));
+    Assert.equal(strength(s.config, land, s.treasuries.get("Egypt").gold, e.holdings("Egypt"), 12), e.strength("Egypt"));
+    Assert.equal(10 * land + s.treasuries.get("Egypt").gold + e.holdings("Egypt") - 12, e.strength("Egypt"));
     Assert.equal(e.strength("Egypt") / s.startStrength.get("Egypt"), e.growth("Egypt"));
     let v = Views.for(s, "Egypt");
-    Assert.equal(10 * land + v.gold - v.backPay, v.strength);
+    Assert.equal(10 * land + v.gold + e.holdings("Egypt") - v.backPay, v.strength);
     Assert.equal(e.ledgerStrength("Egypt"), v.strength);
     // The season's score is reckoned the same way.
     e.resolve(none());
     let row = last(s.scores, (r) => r.power === "Egypt");
-    Assert.equal(10 * land + row.gold - envoy.backPay.get("Egypt"), row.strength);
+    Assert.equal(10 * e.landYield("Egypt") + row.gold + e.holdings("Egypt") - envoy.backPay.get("Egypt"), row.strength);
   });
 });

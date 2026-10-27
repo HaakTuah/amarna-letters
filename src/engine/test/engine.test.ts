@@ -9,6 +9,7 @@ import {
   Rng,
   TurnEngine,
   WorldMap,
+  economyOf,
   alive,
   buy,
   clone,
@@ -98,27 +99,34 @@ describe("EngineTests", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
     let before = s.treasuries.get("Egypt").gold;
-    let expected = before + e.income("Egypt") - e.upkeep("Egypt") - e.wages("Egypt");
+    // Since item 9+a gold comes in from the mines and from sales: at the start, the mines alone.
+    const mines = WorldMap.default.homeOf("Egypt").reduce((a, x) => a + economyOf(x).mine, 0);
+    let expected = before + mines - e.upkeep("Egypt") - e.wages("Egypt");
     e.beginTurn();
     Assert.equal(expected, s.treasuries.get("Egypt").gold);
   });
 
-  test("Unpaid troops desert farthest first", () => {
+  test("Unpaid troops mutiny after a few seasons", () => {
     let s = newGame(1);
-    s.treasuries.get("Egypt").gold = -1000;
     s.owner.set("thebes", null);
     s.owner.set("akhetaten", null);
     s.owner.set("memphis", null);
     s.owner.set("delta", null);
+    s.owner.set("nubia", null);
     let e = new TurnEngine(s);
-    e.beginTurn();
+    for (let i = 0; i < 3; i++) {
+      s.treasuries.get("Egypt").gold = 0;
+      e.beginTurn();
+      s.turn++;
+    }
     Assert.true(count(s.units, (u) => u.power === "Egypt") < 3);
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("deserted"));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("mutinied, unpaid 3 seasons running"));
   });
 
   test("Validator rejects illegal and unaffordable orders", () => {
     let s = newGame(1);
-    s.treasuries.get("Egypt").gold = 450;
+    // Two levies, Gaza's price and a little more: Jerusalem's is more than is left.
+    s.treasuries.get("Egypt").gold = 2 * s.config.armyCost + new TurnEngine(s).cityPrice("gaza") + 50;
     let v = new OrderValidator(s);
     let result = v.validate(
       "Egypt",
@@ -132,8 +140,8 @@ describe("EngineTests", () => {
           move("memphis", "delta") /* second order for the same unit */,
           raise("thebes", "Army"),
           raise("akhetaten", "Army"),
-          buy("gaza") /* 200 shekels: leaves 50 */,
-          buy("jerusalem") /* 150 more: more than is left */,
+          buy("gaza") /* leaves 50 */,
+          buy("jerusalem") /* more than is left */,
         ],
       }),
     );
@@ -156,6 +164,7 @@ describe("EngineTests", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
     e.beginTurn();
+    s.treasuries.get("Egypt").gold = 5000;
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [buy("gaza")] })]]));
     Assert.equal("Egypt", s.owner.get("gaza"));
     Assert.equal(2, wallsOf(s, "gaza")); // a bought city keeps its walls, now for its owner
@@ -164,6 +173,7 @@ describe("EngineTests", () => {
   test("Islands can buy across the sea but not inland", () => {
     let s = newGame(1);
     removeAll(s.units, (u) => u.power === "Alashiya");
+    s.treasuries.get("Alashiya").gold = 5000;
     let v = new OrderValidator(s).validate("Alashiya", newTurnSubmission({ orders: [buy("byblos"), buy("suhu")] }));
     Assert.single(v.accepted);
     Assert.contains(v.rejected, (r) => r.order.type === "buy" && r.order.province === "suhu");

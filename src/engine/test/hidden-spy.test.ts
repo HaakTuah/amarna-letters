@@ -220,6 +220,7 @@ describe("HiddenSpyTests", () => {
     Assert.doesNotContain(inboxOf(s, "Assyria"), (x) => x.subject === spy.id);
 
     // Seen at the court (its master dismissed it, and it is free there), it is paid.
+    s.treasuries.get("Assyria").gold += 1000;
     spy.employer = null;
     spy.status = "Free";
     spy.duty = "None";

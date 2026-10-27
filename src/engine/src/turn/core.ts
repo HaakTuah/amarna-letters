@@ -21,6 +21,7 @@ import type { GameConfig } from "../model/config.ts";
 import { newMindRequest, type MindRequest } from "../model/exchanges.ts";
 import { terrainOf } from "../model/geography.ts";
 import { StartWalls, WorldMap } from "../model/map.ts";
+import { EconomyData, harvestOf, taxOf } from "../model/economy.ts";
 import type { Order } from "../model/orders.ts";
 import { coverOf, gain, hiddenAt, remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
@@ -119,34 +120,20 @@ export class TurnEngine {
     }
   }
 
+  /**
+   * The season's economy as it begins (build order item 9+a): the harvest's tax into the stores and the mines' gold into
+   * the treasury, spoiling, the towns' meals and the sieges' clocks; then each king pays his troops, the walls he raised
+   * (their builders' pay goes into the province's purse) and his people at court; then every unit eats, the hungry and
+   * the unpaid mutiny in time, and the caravans go on. Each king reads it in one notice.
+   */
   incomeAndUpkeep(): void {
     const S = this.s;
     const Map = this.map;
+    const notes = this.harvestSeason();
+    this.townsEat();
     for (const p of alive(S)) {
       const t = S.treasuries.get(p);
-      const income = sum(ownedBy(S, p), (x) => this.effectiveYield(x));
-      t.gold += income;
-
-      const deserted: string[] = [];
-      while (true) {
-        const upkeep = this.upkeep(p);
-        if (t.gold >= upkeep || !S.units.some((u) => u.power === p)) break;
-        const cap = Map.capital(p).id;
-        const victim = sortBy(
-          S.units.filter((u) => u.power === p),
-          [(u: Unit) => Map.hops(cap, u.province), desc(cmpNum)],
-          [(u: Unit) => u.id, cmpStr],
-        )[0];
-        S.units.splice(S.units.indexOf(victim), 1);
-        // A besieging army that deserts lifts its siege, and its cost with it.
-        this.liftSiegesOf(victim.id);
-        deserted.push(unitLabel(victim));
-      }
-      const paid = Math.max(0, Math.min(t.gold, this.upkeep(p)));
-      // The desert's share of it: the armies that ended last season in desert land not their king's, and still stand.
-      const desert = this.desertCost(p);
-      const parched = this.desertArmies(p).map((u) => u.province);
-      t.gold -= paid;
+      const troops = this.payTroops(p);
       // Walls above the map's own are kept up after the troops: what the treasury cannot keep falls a level.
       const crumbled: string[] = [];
       while (this.wallsUpkeep(p) > Math.max(0, t.gold)) {
@@ -162,6 +149,7 @@ export class TurnEngine {
       }
       const walls = this.wallsUpkeep(p);
       t.gold -= walls;
+      for (const x of ownedBy(S, p)) this.spendAt(x, Math.max(0, wallsOf(S, x) - (StartWalls.get(x) ?? 0)) * S.config.wallUpkeep);
 
       let wages = 0;
       let owed = 0;
@@ -195,23 +183,23 @@ export class TurnEngine {
       }
 
       // Written before the season's audiences and envoys' returns: their gold comes after this figure.
-      const lines = [
-        `Income ${formatMoney(income)}, upkeep ${formatMoney(paid)}${walls > 0 ? `, walls ${formatMoney(walls)}` : ""}, wages ${formatMoney(wages)} (paid to your people at court).` +
-          (desert > 0
-            ? ` The upkeep includes ${formatMoney(desert)} for supplies in the desert: your ${parched.length === 1 ? "army" : "armies"} in ${parched.join(", ")} ended last season in desert land you did not hold.`
-            : "") +
+      const lines = notes.getOrDefault(p, []);
+      lines.push(
+        `Gold in since your last orders: ${formatMoney(t.income)}, from your mines and your sales at your markets. Paid: your troops ${formatMoney(troops.paid)}${walls > 0 ? `, walls ${formatMoney(walls)}` : ""}, wages ${formatMoney(wages)} (to your people at court).` +
           (owed > 0 ? ` The wages of your people away, ${formatMoney(owed)}, were added to their back pay, which is paid when they are back at your court.` : "") +
-          ` After income, upkeep and wages, the treasury holds ${formatMoney(ledger(t))}; gold received at audiences or brought home by your envoys this season is added later.`,
-      ];
-      if (deserted.length > 0) lines.push(`Unpaid troops deserted: ${deserted.join(", ")}.`);
+          ` The treasury now holds ${formatMoney(ledger(t))}; gold received at audiences or brought home by your envoys this season is added later.`,
+      );
+      if (troops.unpaid.length > 0)
+        lines.push(`Not paid this season: ${troops.unpaid.join(", ")}. Missing pay acts slowly: a unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
       if (crumbled.length > 0)
         lines.push(`Unkept, walls fell a level: ${groupBy(crumbled, (x) => x).map(([k, g]) => (g.length === 1 ? k : `${k} (${g.length} levels)`)).join(", ")}.`);
       if (unpaid.length > 0) lines.push(`Could not pay: ${unpaid.join(", ")}.`);
-      notify(S, p, "Notice", "The treasury", lines.join(" "));
-      if (deserted.length > 0) logEvent(S, "desertion", `${p} could not pay its troops: ${deserted.join(", ")} deserted.`, [p]);
+      notes.set(p, lines);
+      if (troops.unpaid.length > 0) logEvent(S, "unpaid", `${p} could not pay its troops: ${troops.unpaid.join(", ")}.`, [p], "unpaid");
     }
-    // The desert's cost is paid once, with this upkeep.
-    S.inDesert.length = 0;
+    const fed = this.feedTroops();
+    for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));
+    this.caravansTravel();
   }
 
   /**
@@ -275,10 +263,7 @@ export class TurnEngine {
     return sum(ownedBy(S, p), (x) => Math.max(0, wallsOf(S, x) - (StartWalls.get(x) ?? 0))) * S.config.wallUpkeep;
   }
 
-  /**
-   * The upkeep of a power's troops, the cost of each siege it presses (GameConfig.siegeUpkeep), and the desert's cost for
-   * each of its armies that ended the last season in desert land it did not hold ({@link desertCost}).
-   */
+  /** The pay of a power's troops a season in gold, and the cost of each siege it presses (GameConfig.siegeUpkeep). */
   upkeep(p: Power): number {
     const S = this.s;
     return (
@@ -286,47 +271,8 @@ export class TurnEngine {
         S.units.filter((u) => u.power === p),
         (u) => (u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep),
       ) +
-      count(S.sieges, (x) => x.power === p) * S.config.siegeUpkeep +
-      this.desertCost(p)
+      count(S.sieges, (x) => x.power === p) * S.config.siegeUpkeep
     );
-  }
-
-  /**
-   * What a power pays for supplies in the desert with this season's upkeep (Build order item 5, terrain):
-   * GameConfig.desertUpkeep for each of its armies that ended the last season's moves in desert land it did not hold when
-   * the moves were made (GameState.inDesert). Nothing once the upkeep is paid, as the list is cleared.
-   */
-  desertCost(p: Power): number {
-    return this.desertArmies(p).length * this.s.config.desertUpkeep;
-  }
-
-  desertArmies(p: Power): Unit[] {
-    const S = this.s;
-    return S.units.filter((u) => u.power === p && S.inDesert.includes(u.id));
-  }
-
-  /**
-   * After the moves (Build order item 5, terrain): each army standing in desert land that its king did not hold when the
-   * moves were made pays for supplies with the next upkeep. Its king holding the desert is the only exemption, whoever he
-   * is: no rule names a power.
-   */
-  markDesert(): void {
-    const S = this.s;
-    S.inDesert.length = 0;
-    if (S.config.desertUpkeep <= 0) return;
-    for (const u of sortBy(
-      S.units.filter((u) => u.kind === "Army" && terrainOf(u.province) === "Desert" && S.owner.getOrDefault(u.province, null) !== u.power),
-      [(u: Unit) => idNumber(u.id), cmpNum],
-    )) {
-      S.inDesert.push(u.id);
-      logEvent(
-        S,
-        "desert",
-        `${u.power}'s army ended the season in ${this.map.get(u.province).name}, desert land ${u.power} did not hold: it pays ${formatMoney(S.config.desertUpkeep)} for supplies.`,
-        [u.power],
-        "desert",
-      );
-    }
   }
 
   /**
@@ -351,24 +297,16 @@ export class TurnEngine {
   }
 
   /**
-   * What a province yields its holder this season: its base yield, cut by catastrophes, and nothing while it is besieged
-   * (its holder keeps it and counts it in his strength, but its yield goes to nobody).
+   * The grain a province's tax brings into its stores this season: its harvest's share at the default rate, cut by
+   * absorption and catastrophes, and nothing while it is besieged (its holder keeps it and counts it, but it yields nothing).
    */
   effectiveYield(province: string): number {
-    const S = this.s;
-    const p = this.map.get(province);
-    if (siegeOf(S, province) !== null) return 0;
-    const owner = S.owner.getOrDefault(province, null);
-    let factor = this.absorbed(province);
-    for (const c of S.catastrophes) {
-      if (c.startTurn > S.turn || c.endTurn < S.turn) continue;
-      if (c.province === province || (c.province === null && owner === c.power)) factor *= c.incomeFactor;
-    }
-    return toInt(roundEven(p.yield * factor));
+    return toInt(roundEven(taxOf(harvestOf(this.map.get(province))) * this.yieldFactor(province)));
   }
 
+  /** The gold that came in since a king's last orders: his mines this season and his sales at his markets last season. */
   income(p: Power): number {
-    return sum(ownedBy(this.s, p), (x) => this.effectiveYield(x));
+    return this.s.treasuries.get(p).income;
   }
 
   /**

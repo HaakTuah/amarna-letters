@@ -36,6 +36,10 @@ import { saveLog } from "./storage.ts";
 /** A human seat whose decisions the page makes: the worker asks, the page answers by message. */
 class PageSeat implements ISeat {
   readonly label = "Human";
+  /** A human may sleep too (item 9+a): ending a turn with a sleep, he is woken by the same triggers as any seat, or by himself. */
+  readonly canSleep = true;
+  /** Set when the player asks to wake: read once, by the runner's next season. */
+  wakeNow = false;
   orders: { view: SeatView; resolve: (s: TurnSubmission) => void } | null = null;
   audience: { view: AudienceView; court: SeatView; resolve: (r: HostReply) => void } | null = null;
   private readonly changed: () => void;
@@ -43,6 +47,8 @@ class PageSeat implements ISeat {
     this.changed = changed;
   }
   decide(view: SeatView): Promise<TurnSubmission> {
+    // Asked for orders, it is awake: a wish to wake made in the same season is spent.
+    this.wakeNow = false;
     return new Promise((resolve) => {
       this.orders = { view, resolve };
       this.changed();
@@ -53,6 +59,11 @@ class PageSeat implements ISeat {
       this.audience = { view, court, resolve };
       this.changed();
     });
+  }
+  wakeRequested(): boolean {
+    const w = this.wakeNow;
+    this.wakeNow = false;
+    return w;
   }
 }
 
@@ -153,6 +164,7 @@ export class SessionCore {
       snapshots: r?.snapshots.length ?? 0,
       chronicles: r === null ? {} : Object.fromEntries([...r.chronicles]),
       humans: [...this.humans.keys()],
+      humansAsleep: r === null ? [] : [...this.humans.keys()].filter((p) => r.state.sleep.tryGet(p)?.asleep === true),
       pending,
       gameId: this.gameId,
       fallenToGod: this.fallenToGod,
@@ -480,6 +492,11 @@ export class SessionCore {
         if (seat === undefined || pending === null || pending === undefined) return;
         seat.orders = null;
         pending.resolve(deserialize<TurnSubmission>(TurnSubmissionSchema, m.json));
+        return this.changed();
+      }
+      case "wake": {
+        const seat = this.humans.get(m.power);
+        if (seat !== undefined) seat.wakeNow = true;
         return this.changed();
       }
       case "answer": {

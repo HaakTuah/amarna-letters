@@ -13,14 +13,14 @@ describe("BackPayTextTests", () => {
       rules,
     );
     Assert.contains(
-      "Strength = 10 x (sum of the base yields of the provinces you hold, land you conquered counted as far as you have absorbed it) + the gold in your treasury - the back pay you owe your people.",
+      "what your own men carry (your troops' grain and their savings, your caravans' grain) - the back pay you owe your people.",
       rules,
     );
     Assert.contains("still appears on its mission until word comes, and its back pay builds up in your books as for anyone away.", rules);
     Assert.doesNotContain("you keep paying its wage", rules);
     Assert.contains("back pay you already owe them is still paid if they ever stand at your court again", rules);
     Assert.contains(
-      "2. Income, upkeep and wages: your provinces pay their yield in gold; you pay upkeep for every army (30) and fleet (35), 30 more for each army that ended last season in desert land you did not hold (see TERRAIN), and the wages of your people at court; the wages of your people away are added to their back pay.",
+      "and the wages of your people at court; the wages of your people away are added to their back pay; unpaid people lose loyalty and may leave.",
       rules,
     );
     Assert.contains("Then everyone you see at your court whom you owe back pay is paid it, as far as your treasury allows.", rules);
@@ -36,7 +36,7 @@ describe("BackPayTextTests", () => {
     Assert.contains("; owed: 45 shekels of back pay", person(single(v.court, (x) => x.id === c.id)));
     let situation = situationOf(v);
     Assert.contains(
-      `wages ${v.wages} a season. Back pay owed to your people: 45. Strength ${v.strength} by your ledger (back pay owed counted against it)`,
+      `wages ${v.wages}. Back pay owed to your people: 45. Strength ${v.strength} by your ledger (the wealth of your realm, back pay owed counted against it)`,
       situation,
     );
 

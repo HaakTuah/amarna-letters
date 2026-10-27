@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 557 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 558 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 # Amarna Letters — Prototype Design Document
 
 Oct 17, 2026 · @Jesus

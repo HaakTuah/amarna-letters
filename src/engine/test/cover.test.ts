@@ -237,6 +237,7 @@ describe("CoverTests", () => {
         c.secretMaster = null;
         c.traits.competence = 10;
         s.treasuries.get(host).gold = 100000;
+        s.treasuries.get("Babylonia").gold = 100000;
         return s;
       }
       let [caught, free] = [game(), game()];

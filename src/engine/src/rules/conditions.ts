@@ -17,6 +17,8 @@ export function conditionHolds(c: Condition, v: SeatView): boolean {
       return v.court.some((x) => x.id === c.person && x.ready);
     case "TabletSealed":
       return v.tablets.some((t) => t.seals.includes(p) && (c.power === null ? t.seals.some((x) => x !== p) : t.seals.includes(c.power)));
+    case "StoresAtLeast":
+      return (v.provinces.find((x) => x.province === c.province)?.stores ?? 0) >= c.amount;
   }
 }
 
@@ -39,6 +41,8 @@ export function conditionText(c: Condition): string {
         return `${c.person} is back at your court and ready`;
       case "TabletSealed":
         return `you hold a tablet sealed by you and ${c.power ?? "another court"}`;
+      case "StoresAtLeast":
+        return `the stores of your ${c.province} hold at least ${c.amount} measures of grain`;
     }
   })();
   return `${c.unless ? "unless" : "if"} ${what}`;
