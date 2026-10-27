@@ -21,7 +21,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 18 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 10 |
-| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 12 |
+| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 14 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 18 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 9 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 8 |
@@ -94,7 +94,7 @@ session loads.
 | `docs/intent/work-money-and-lending/purses-and-lending.md` | Purses and lending | 11.8 |
 | `docs/intent/land-people-and-economy/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/land-people-and-economy/gold.md` | Gold | 3.4 |
-| `docs/intent/land-people-and-economy/economy-and-resources-part1.md` | Economy and resources (part 1) | 23.4 |
+| `docs/intent/land-people-and-economy/economy-and-resources-part1.md` | Economy and resources (part 1) | 23.6 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part2.md` | Economy and resources (part 2) | 23.3 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part3.md` | Economy and resources (part 3) | 0.3 |
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.7 |
