@@ -268,7 +268,10 @@ public class EngineTests
         var seen = new HashSet<ulong>();
         for (ulong seed = 1; seed <= 200; seed++)
             for (var turn = 1; turn <= 60; turn++)
-                Assert.True(seen.Add(Rng.For(seed, turn, "catastrophe", "Alashiya").NextULong()), $"seed {seed} turn {turn}");
+            {
+                var r = Rng.For(seed, turn, "catastrophe", "Alashiya");
+                Assert.True(seen.Add(((ulong)r.NextUInt() << 32) | r.NextUInt()), $"seed {seed} turn {turn}");
+            }
     }
 
     [Fact]

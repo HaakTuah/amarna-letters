@@ -47,6 +47,7 @@ string? fileSeats = null;
 string? fileCharacters = null;
 var listCharacters = false;
 var fileTimeout = 120.0;
+string? parityDir = null;
 
 for (var i = 0; i < args.Length; i++)
 {
@@ -55,6 +56,8 @@ for (var i = 0; i < args.Length; i++)
         case "--games": games = int.Parse(args[++i]); break;
         case "--seed": seed = ulong.Parse(args[++i]); break;
         case "--out": outDir = args[++i]; break;
+        // The TypeScript conversion's parity check: a fingerprint after every phase of every season, per game (Parity).
+        case "--fingerprints": parityDir = args[++i]; break;
         case "--verify-replay": verify = true; break;
         case "--detail": detail = true; break;
         case "--budget": budget = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
@@ -96,7 +99,7 @@ for (var i = 0; i < args.Length; i++)
         case "--characters": choices.Characters = Enum.Parse<CharacterKind>(args[++i], ignoreCase: true); break;
         case "--narrator": choices.Narrator = Enum.Parse<NarratorKind>(args[++i], ignoreCase: true); break;
         case "-h" or "--help":
-            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES");
+            Console.WriteLine("Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|standard|showcase --leaders script|haiku|sonnet|opus --characters script|haiku|sonnet --narrator template|haiku|sonnet|opus --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR");
             return;
         default:
             Console.Error.WriteLine($"Unknown option {args[i]}");
@@ -177,6 +180,7 @@ if (choices.UsesModels && string.IsNullOrWhiteSpace(key))
     return;
 }
 if (outDir is not null) Directory.CreateDirectory(outDir);
+if (parityDir is not null) Directory.CreateDirectory(parityDir);
 if (choices.UsesModels)
     Console.WriteLine($"Estimated model cost: {CostEstimate.Describe(CostEstimate.PerGame(choices))} per {CostEstimate.TypicalSeasons}-season game; stopping at ${budget:0.00} in total.");
 
@@ -195,6 +199,7 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
 {
     var s = seed + (ulong)g;
     GameRunner? last = null;
+    List<string>? fingerprints = null;
     // In a benchmark, these kings play the current bot and the rest the frozen baseline.
     var current = focus is { } only ? new HashSet<Power> { only } : Powers.All.Where((p, i) => !versus || (i + (int)(s % 2)) % 2 == 0).ToHashSet();
     var summary = await BatchRunner.PlayAsync(s, state =>
@@ -215,8 +220,10 @@ async Task<(GameSummary Summary, GameRunner? Runner, HashSet<Power> Current)> Pl
         var minds = characterFolders.Count == 0 ? set.Minds
             : FileCharacters.Mind(characterFolders, TimeSpan.FromMinutes(fileTimeout), call => last!.Log.AddCall(call), s => last!.Log.AddShadow(s), Console.WriteLine);
         last = new GameRunner(state, seats, minds, set.Narrator) { WriteChronicles = !noChronicles };
+        if (parityDir is not null) fingerprints = Parity.Attach(last);
         return last;
     }, verify, log: Console.Error.WriteLine, config: config);
+    if (parityDir is not null) await File.WriteAllLinesAsync(Path.Combine(parityDir, $"game-{s}.parity.tsv"), fingerprints!);
     // Sleeping seats are on by default, but only model and file seats sleep: a game of script kings keeps no runner for them.
     var sleepers = last?.State.Sleep.Count > 0;
     return (summary, outDir is not null || detail || fileSeats is not null || fileCharacters is not null || sleepers || choices.UsesModels ? last : null, current);

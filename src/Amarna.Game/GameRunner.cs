@@ -32,6 +32,13 @@ public sealed class GameRunner
 
     public event Action? Changed;
 
+    /// <summary>
+    /// Called after each phase of a season, with its name ("setup", "t3/begin", "t3/reports", "t3/audiences", "t3/orders",
+    /// "t3/resolve", "end/chronicles"): the parity check of the TypeScript conversion fingerprints the state there
+    /// (<see cref="Parity"/>), so a mismatch shows the phase it arose in.
+    /// </summary>
+    public Action<string>? PhaseDone { get; set; }
+
     /// <param name="anyVersion">Replay a log saved under another rules version anyway (for analysis only: it may diverge).</param>
     public GameRunner(GameState state, IReadOnlyDictionary<Power, ISeat> seats, ICharacterMind minds, INarrator narrator,
         GameLog? log = null, GameLog? replay = null, bool strictReplay = true, bool anyVersion = false)
@@ -154,6 +161,7 @@ public sealed class GameRunner
             if (!string.IsNullOrWhiteSpace(persona)) c.Persona = persona;
         Snapshots.Add(Json.Serialize(State));
         Prepared = true;
+        PhaseDone?.Invoke("setup");
         SetPhase("Ready");
     }
 
@@ -171,20 +179,25 @@ public sealed class GameRunner
 
         SetPhase($"Turn {turn}: income and arrivals");
         engine.BeginTurn();
+        PhaseDone?.Invoke($"t{turn}/begin");
 
         SetPhase($"Turn {turn}: reports and pitches");
         await FulfilAsync(engine, turn, ct);
         engine.WakeCheck();
+        PhaseDone?.Invoke($"t{turn}/reports");
 
         SetPhase($"Turn {turn}: audiences");
         await AudiencesAsync(engine, turn, ct);
+        PhaseDone?.Invoke($"t{turn}/audiences");
 
         SetPhase($"Turn {turn}: orders");
         var subs = await OrdersAsync(turn, ct);
+        PhaseDone?.Invoke($"t{turn}/orders");
 
         SetPhase($"Turn {turn}: resolution");
         engine.Resolve(subs);
         Snapshots.Add(Json.Serialize(State));
+        PhaseDone?.Invoke($"t{turn}/resolve");
 
         if (State.Ended && WriteChronicles) await ChroniclesAsync(ct);
         SetPhase(State.Ended ? "The game has ended" : "Ready");
@@ -378,6 +391,7 @@ public sealed class GameRunner
             return (p, text);
         }).ToList();
         foreach (var (p, text) in await Task.WhenAll(tasks)) Chronicles[p] = text;
+        PhaseDone?.Invoke("end/chronicles");
     }
 
     /// <summary>The state at the end of a given turn (0 = start), from the snapshots.</summary>
