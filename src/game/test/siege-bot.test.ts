@@ -11,9 +11,9 @@ describe("SiegeBotTests", () => {
     // this army to it; here it keeps the peace, and the army besieges the city it stands within.
     let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     s.turn = 2;
-    first(s.units, (u) => u.province === "sippar").province = "mari";
+    first(s.units, (u) => u.province === "sippar").province = "suhu";
     let sub = await new ScriptLeader(1).decide(Views.for(s, "Babylonia"));
-    Assert.contains(besiege("mari"), sub.orders);
+    Assert.contains(besiege("suhu"), sub.orders);
     Assert.doesNotContain(new OrderValidator(s).validate("Babylonia", sub).rejected, (r) => r.order.type === "besiege");
   });
 

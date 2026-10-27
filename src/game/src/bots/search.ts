@@ -102,7 +102,7 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
     const list: [number, Plan][] = [];
     for (const t of ours) {
       const near = sortBy(
-        b.others.filter((u) => u.power === x && Board.Map.canMove(u.kind, u.province, t)),
+        b.others.filter((u) => u.power === x && Board.Sail.canMove(u.kind, u.province, t)),
         [(u) => (u.kind === "Army" ? 0 : 1), cmpNum],
         [(u) => u.province, cmpStr],
       );
@@ -171,7 +171,7 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
     joints,
     coalitions: [...brain.coalitions(b)],
     // The game's own adjudicator, the ground included, so the pictured seasons count it.
-    adj: new Adjudicator(Board.Map, false, b.v.prices.getOrDefault("terrainDefence", 1)),
+    adj: new Adjudicator(Board.Sail, false, b.v.prices.getOrDefault("terrainDefence", 1)),
     units: b.units.map((u) => newUnit({ id: u.province, power: u.power, kind: u.kind, province: u.province })),
     willing: (x) => tacticsWilling(b, brain, x, leader),
     prey: (owner) =>
@@ -203,6 +203,9 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
   for (let pass = 0; pass < 2; pass++) {
     let improved = false;
     for (const u of mine) {
+      // A troop readying a landing (see Landing in seas.ts) keeps to it: a single season cannot see what waiting at sea or
+      // on the coast is worth, only the seasons that follow can.
+      if (plan.role.tryGet(u) === "landing") continue;
       for (const change of alternatives(b, best, u, ctx.willing, ctx.joints)) {
         if (ctx.runs + Samples > Budget) break;
         const trial = best.clone();
@@ -338,7 +341,7 @@ export function stoodAgainstUs(b: Board): HSet<string> {
 /** A unit that does something nobody planned: holds, or moves somewhere at random. */
 function wander(b: Board, at: string, rng: Rng): Order {
   const u = b.unitAt.get(at);
-  const moves = sortBy(Board.Map.movesFrom(u.kind, at), [(x: string) => x, cmpStr]);
+  const moves = sortBy(Board.Sail.movesFrom(u.kind, at), [(x: string) => x, cmpStr]);
   const pick = rng.next(moves.length + 1);
   return pick === moves.length ? hold(at) : move(at, moves[pick]);
 }
@@ -387,14 +390,14 @@ function* alternatives(b: Board, plan: Plan, u: string, willing: (p: Power) => b
   const kind = b.unitAt.get(u).kind;
   yield [hold(u)];
 
-  const moves = sortBy(Board.Map.movesFrom(kind, u), [(x: string) => x, cmpStr]);
+  const moves = sortBy(Board.Sail.movesFrom(kind, u), [(x: string) => x, cmpStr]);
   for (const to of moves) {
     if (!open(to)) continue;
     yield [move(u, to)];
     // The same move with the best placed of our other units in support.
     if (Board.Map.get(to).isSea) continue;
     const helpers = sortBy(
-      [...plan.keys()].filter((h) => h !== u && h !== to && Board.Map.canMove(b.unitAt.get(h).kind, h, to)),
+      [...plan.keys()].filter((h) => h !== u && h !== to && Board.Sail.canMove(b.unitAt.get(h).kind, h, to)),
       [(h: string) => (plan.get(h).type === "hold" ? 0 : plan.get(h).type === "support" ? 1 : 2), cmpNum],
       [(h: string) => h, cmpStr],
     ).slice(0, 2);
@@ -407,8 +410,8 @@ function* alternatives(b: Board, plan: Plan, u: string, willing: (p: Power) => b
   for (const [other, o] of sortBy([...plan], [(x: [string, Order]) => x[0], cmpStr])) {
     if (other === u) continue;
     if (o.type === "move") {
-      if (o.to !== u && open(o.to) && Board.Map.canMove(kind, u, o.to)) yield [support(u, other, o.to)];
-    } else if (Board.Map.canMove(kind, u, other)) yield [support(u, other)];
+      if (o.to !== u && open(o.to) && Board.Sail.canMove(kind, u, o.to)) yield [support(u, other, o.to)];
+    } else if (Board.Sail.canMove(kind, u, other)) yield [support(u, other)];
   }
   // And a sworn partner's troop going in on a joint blow.
   for (const j of joints.filter((j) => j.lead.power !== b.me && j.support.some((s) => s.province === u))) yield [support(u, j.lead.province, j.target)];
@@ -551,7 +554,7 @@ function score(c: Ctx, r: AdjudicationResult, orders: Plan): number {
     const here = occ !== undefined && occ.power === me;
     // Walls add nothing to the defence, but an attacker gets them only by storming them (more than walls and defence).
     const walls = b.wallLevel(p);
-    const helpers = count(mineAfter, ([k, u]) => k !== p && Board.Map.canMove(u.kind, k, p));
+    const helpers = count(mineAfter, ([k, u]) => k !== p && Board.Sail.canMove(u.kind, k, p));
     const defence = here ? 1 + helpers : Math.min(1, helpers);
     let risk = 0.0;
     const capital = Board.Map.get(p).capital && Board.Map.get(p).home === me;
@@ -560,7 +563,7 @@ function score(c: Ctx, r: AdjudicationResult, orders: Plan): number {
       const h = capital && !c.brain.rel.get(x).allied ? Math.max(fear, 0.3) : fear;
       if (h < 0.15) continue;
       const from: string[] = [];
-      for (const [k, u] of at) if (u.power === x && Board.Map.canMove(u.kind, k, p)) from.push(k);
+      for (const [k, u] of at) if (u.power === x && Board.Sail.canMove(u.kind, k, p)) from.push(k);
       const attackers = from.length;
       if (attackers === 0) continue;
       // Our troop standing its ground there has the ground's help against his blow.
@@ -586,7 +589,7 @@ function score(c: Ctx, r: AdjudicationResult, orders: Plan): number {
 
   // Troops placed to strike next season.
   for (const [p, u] of mineAfter) {
-    const reaches = Board.Map.movesFrom(u.kind, p)
+    const reaches = Board.Sail.movesFrom(u.kind, p)
       .filter((n) => !Board.Map.get(n).isSea && owner(n) !== me && c.prey(owner(n)))
       .map((n) => b.value(n));
     score += 0.05 * (reaches.length === 0 ? 0 : max(reaches, (x) => x));

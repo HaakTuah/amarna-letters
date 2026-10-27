@@ -30,6 +30,7 @@ import {
 import { Board } from "./board.ts";
 import { Names } from "./names.ts";
 import { personalityFor, type Personality } from "./personality.ts";
+import type { Landing } from "./seas.ts";
 
 /** What a king thinks of another king, learned only from what reached its court. */
 export class Relation {
@@ -106,6 +107,9 @@ export class Brain {
   warTarget: Power | null = null;
   warSince = 0;
   betraying: Power | null = null;
+  /** The landing we have set our mind on (see seas.ts), and the turn before which we set our mind on no other. */
+  landing: Landing | null = null;
+  landingRest = 0;
   /** Gold left over after troops, levies and cities this season: what gifts, bribes and spies may spend. */
   spareGold = 0;
   giftTurn = -1;

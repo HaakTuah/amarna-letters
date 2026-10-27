@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { AllPowers, Dict, GameStateSchema, TurnEngine, hash, newGame, newGameConfig, type Power } from "@amarna/engine";
+import { AllPowers, Dict, GameStateSchema, TurnEngine, Views, hash, newGame, newGameConfig, type Power } from "@amarna/engine";
 import { GameLog, GameRunner, newLogHeader, type ISeat } from "@amarna/game";
 import {
   CostEstimate,
@@ -14,6 +14,7 @@ import {
   choicesFromHeader,
   expectedSeasonsLeft,
   newSpendingSettings,
+  ordersStakes,
   providersFor,
   startProblem,
   type CallSpec,
@@ -194,6 +195,27 @@ describe("Who decides (item 6c)", () => {
       audit: () => {},
     });
     Assert.equal("small", (await free.climb({ ...climb("local:llama", "large") })).rung);
+  });
+
+  test("A threat to a king's capital is always paid, from the reserve the budget keeps", async () => {
+    // Haakon, answering item 6c's review (built in item 7a): with the limit spent but for its reserve, an ordinary decision
+    // is left to the script; one on a threat to the capital is still paid, until the whole limit is spent.
+    const asker = new Asker(() => ({ choice: "x", pass_up: "", ask_counsel: "" }));
+    let spent = 0.95;
+    const [l] = ladder(asker, newSpendingSettings({ mode: "limit", limitUsd: 1, auditShare: 0 }), () => spent);
+    Assert.equal("script", (await l.climb(climb(ModelIds.Haiku, "large"))).rung);
+    const threat = { ...climb(ModelIds.Haiku, "large"), stakes: { kind: "orders", moved: 0.3, capital: true } };
+    Assert.true((await l.climb(threat)).rung !== "script");
+    spent = 1;
+    Assert.equal("script", (await l.climb(threat)).rung);
+    // Read from what the king sees: foreign troops within its capital, or beside it when they woke him; not a neighbour's
+    // army that has stood beside it since the start (Mitanni's in Terqa, beside Ashur).
+    const s = newGame(1);
+    s.units.find((u) => u.province === "babylon")!.power = "Assyria";
+    Assert.true(ordersStakes(Views.for(s, "Babylonia"), 0).capital);
+    Assert.false(ordersStakes(Views.for(newGame(1), "Assyria"), 0).capital);
+    const woken = { ...Views.for(newGame(1), "Assyria"), wokenBecause: ["foreign troops came next to your homeland"] };
+    Assert.true(ordersStakes(woken, 0).capital);
   });
 
   test("The pace follows the table's ending settings, never the drawn last season; an open age has no expected end", () => {

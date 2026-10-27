@@ -32,16 +32,17 @@ import {
   unitAt,
   wallsOf,
 } from "@amarna/engine";
-import { removeAll, Assert, last, subs } from "./support.ts";
+import { removeAll, Assert, last, subs, walled } from "./support.ts";
 import { siegeBoard } from "./games.ts";
 
 // Walls and sieges (Build order item 5): walls add nothing to a battle; a move into walls not its own takes the province
 // only by storming them; an army within them besieges the city, which surrenders when worn down as far as its walls are
 // high, a level lower; a siege is lifted when its army leaves or is destroyed.
 describe("SiegeTests", () => {
-  // <summary>Seed 1 with no catastrophes, Babylonia's army in Sippar next to Mari (walls 2, a free city), Mitanni's in Terqa.</summary>
+  // <summary>Seed 1 with no catastrophes, Babylonia's army in Sippar next to Suhu (walls 2 in these tests, a free city), Mitanni's in Terqa.</summary>
   function board(): GameState {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    // Suhu was Mari until item 7a's map review, which took Mari's walls away: the tests give them back.
+    let s = walled(newGame(1, newGameConfig({ catastropheChance: 0 })), "suhu", 2);
     return s;
   }
 
@@ -62,116 +63,116 @@ describe("SiegeTests", () => {
 
   test("A lone army takes walls 2 in the second season after it got in and the walls fall a level", () => {
     let s = board();
-    season(s, ordersOf("Babylonia", move("sippar", "mari")));
-    Assert.equal("Babylonia", unitAt(s, "mari")?.power);
-    Assert.null(s.owner.get("mari"));
+    season(s, ordersOf("Babylonia", move("sippar", "suhu")));
+    Assert.equal("Babylonia", unitAt(s, "suhu")?.power);
+    Assert.null(s.owner.get("suhu"));
     Assert.empty(s.sieges);
 
     // First besiege season: worn down 1 of 2.
-    season(s, ordersOf("Babylonia", besiege("mari")));
+    season(s, ordersOf("Babylonia", besiege("suhu")));
     let siege = Assert.single(s.sieges);
     Assert.equal(["Babylonia", 1, 2], [siege.power, siege.progress, siege.since]);
-    Assert.null(s.owner.get("mari"));
+    Assert.null(s.owner.get("suhu"));
     Assert.contains(
-      "Your siege of Mari (walls 2, a free city) has begun, and it wore the city down a step: it stands at 1 of 2.",
+      "Your siege of Suhu (walls 2, a free city) has begun, and it wore the city down a step: it stands at 1 of 2.",
       notice(s, "Babylonia", SiegesTitle),
     );
-    Assert.contains(Views.for(s, "Babylonia").sieges, (x) => x.province === "mari" && x.progress === 1 && x.walls === 2);
+    Assert.contains(Views.for(s, "Babylonia").sieges, (x) => x.province === "suhu" && x.progress === 1 && x.walls === 2);
 
-    // One besiege order is enough: holding with no order presses the siege, and Mari surrenders.
+    // One besiege order is enough: holding with no order presses the siege, and Suhu surrenders.
     season(s, new Dict());
     Assert.empty(s.sieges);
-    Assert.equal("Babylonia", s.owner.get("mari"));
-    Assert.equal(1, wallsOf(s, "mari"));
+    Assert.equal("Babylonia", s.owner.get("suhu"));
+    Assert.equal(1, wallsOf(s, "suhu"));
     Assert.contains(
-      "Mari surrendered to you after a siege of 2 seasons: it is yours, with its walls a level lower (walls 1).",
+      "Suhu surrendered to you after a siege of 2 seasons: it is yours, with its walls a level lower (walls 1).",
       notice(s, "Babylonia", SiegesTitle),
     );
-    Assert.contains(s.events, (e) => e.kind === "siege" && e.text === "Mari surrendered to Babylonia after a siege of 2 seasons.");
+    Assert.contains(s.events, (e) => e.kind === "siege" && e.text === "Suhu surrendered to Babylonia after a siege of 2 seasons.");
   });
 
   test("A support to hold wears the city down two steps and a cut one does not", () => {
     let s = board();
-    s.owner.set("mari", "Mitanni");
-    s.walls.set("mari", 3);
+    s.owner.set("suhu", "Mitanni");
+    s.walls.set("suhu", 3);
     removeAll(s.units, (u) => u.province === "terqa");
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "mari" }));
-    season(s, ordersOf("Babylonia", besiege("mari"), support("sippar", "mari")));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
+    season(s, ordersOf("Babylonia", besiege("suhu"), support("sippar", "suhu")));
     Assert.equal(2, Assert.single(s.sieges).progress);
     Assert.contains(
-      "Babylonia's army has laid siege to your city of Mari (walls 3) and wore it down two steps, with a support: it stands at 2 of 3.",
+      "Babylonia's army has laid siege to your city of Suhu (walls 3) and wore it down two steps, with a support: it stands at 2 of 3.",
       notice(s, "Mitanni", SiegesTitle),
     );
 
-    // The support is cut by an attack on Sippar: one step only, and Mari surrenders at 3.
+    // The support is cut by an attack on Sippar: one step only, and Suhu surrenders at 3.
     season(
       s,
       subs({
-        Babylonia: { orders: [support("sippar", "mari")] },
-        Assyria: { orders: [move("ekallatum", "sippar")] },
+        Babylonia: { orders: [support("sippar", "suhu")] },
+        Assyria: { orders: [move("ekallate", "sippar")] },
       }),
     );
-    Assert.equal("Babylonia", s.owner.get("mari"));
-    Assert.equal(2, wallsOf(s, "mari"));
-    Assert.contains(inboxOf(s, "Mitanni"), (i) => i.title === "Land lost" && i.body === "Mari has surrendered to Babylonia after a siege of 2 seasons.");
+    Assert.equal("Babylonia", s.owner.get("suhu"));
+    Assert.equal(2, wallsOf(s, "suhu"));
+    Assert.contains(inboxOf(s, "Mitanni"), (i) => i.title === "Land lost" && i.body === "Suhu has surrendered to Babylonia after a siege of 2 seasons.");
   });
 
   test("A siege whose army leaves is lifted and its progress lost", () => {
     let s = board();
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "mari" }));
-    s.walls.set("mari", 3);
-    season(s, ordersOf("Babylonia", besiege("mari")));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
+    s.walls.set("suhu", 3);
+    season(s, ordersOf("Babylonia", besiege("suhu")));
     Assert.equal(1, Assert.single(s.sieges).progress);
     // A season in which the army supports elsewhere adds nothing, and the siege stands.
-    season(s, ordersOf("Babylonia", support("mari", "sippar")));
+    season(s, ordersOf("Babylonia", support("suhu", "sippar")));
     Assert.equal(1, Assert.single(s.sieges).progress);
-    Assert.contains("did not hold there, so the siege of Mari (walls 3) did not advance", notice(s, "Babylonia", SiegesTitle));
+    Assert.contains("did not hold there, so the siege of Suhu (walls 3) did not advance", notice(s, "Babylonia", SiegesTitle));
     // It marches out: the siege is lifted.
-    season(s, ordersOf("Babylonia", move("mari", "damascus")));
+    season(s, ordersOf("Babylonia", move("suhu", "steppe")));
     Assert.empty(s.sieges);
-    Assert.contains("Your siege of Mari is lifted: the besieging army marched out.", notice(s, "Babylonia", SiegesTitle));
-    Assert.null(s.owner.get("mari"));
+    Assert.contains("Your siege of Suhu is lifted: the besieging army marched out.", notice(s, "Babylonia", SiegesTitle));
+    Assert.null(s.owner.get("suhu"));
   });
 
   test("A besieged city yields nothing and the besieger pays for the siege", () => {
     let s = board();
-    s.owner.set("mari", "Mitanni");
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "mari" }));
+    s.owner.set("suhu", "Mitanni");
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
     let e = new TurnEngine(s);
     let income = e.income("Mitanni");
     let upkeep = e.upkeep("Babylonia");
-    season(s, ordersOf("Babylonia", besiege("mari")));
+    season(s, ordersOf("Babylonia", besiege("suhu")));
     e = new TurnEngine(s);
     Assert.equal(income - 35, e.income("Mitanni"));
     Assert.equal(upkeep + s.config.siegeUpkeep, e.upkeep("Babylonia"));
     // The city still counts in its holder's strength.
-    Assert.contains("mari", ownedBy(s, "Mitanni"));
-    Assert.equal("Mitanni", s.owner.get("mari"));
+    Assert.contains("suhu", ownedBy(s, "Mitanni"));
+    Assert.equal("Mitanni", s.owner.get("suhu"));
   });
 
   test("A guest within walls takes nothing and an attack that drives the besieger out lifts the siege", () => {
     let s = board();
-    s.owner.set("mari", "Mitanni");
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "mari" }));
+    s.owner.set("suhu", "Mitanni");
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
     // Holding without a besiege order: a guest, season after season.
     season(s, new Dict());
     season(s, new Dict());
-    Assert.equal("Mitanni", s.owner.get("mari"));
+    Assert.equal("Mitanni", s.owner.get("suhu"));
     Assert.empty(s.sieges);
-    // Turning on the host: a siege begins. Mitanni's army in Terqa, supported by Assyria's in Ekallatum, drives it out.
-    season(s, ordersOf("Babylonia", besiege("mari")));
+    // Turning on the host: a siege begins. Mitanni's army in Terqa, supported by Assyria's in Ekallate, drives it out.
+    season(s, ordersOf("Babylonia", besiege("suhu")));
     Assert.single(s.sieges);
     season(
       s,
       subs({
-        Mitanni: { orders: [move("terqa", "mari")] },
-        Assyria: { orders: [support("ekallatum", "terqa", "mari")] },
+        Mitanni: { orders: [move("terqa", "suhu")] },
+        Assyria: { orders: [support("ekallate", "terqa", "suhu")] },
       }),
     );
-    Assert.equal("Mitanni", unitAt(s, "mari")?.power);
+    Assert.equal("Mitanni", unitAt(s, "suhu")?.power);
     Assert.empty(s.sieges);
-    Assert.equal("Mitanni", s.owner.get("mari"));
-    Assert.contains("Your siege of Mari is lifted: the besieging army is gone.", notice(s, "Babylonia", SiegesTitle));
+    Assert.equal("Mitanni", s.owner.get("suhu"));
+    Assert.contains("Your siege of Suhu is lifted: the besieging army is gone.", notice(s, "Babylonia", SiegesTitle));
   });
 
   test("Only an army within walls it does not hold may besiege", () => {
@@ -188,60 +189,60 @@ describe("SiegeTests", () => {
 
   test("A storm takes the city at once a level lower", () => {
     let s = board();
-    s.walls.set("mari", 1);
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "damascus" }));
-    season(s, ordersOf("Babylonia", move("sippar", "mari"), support("damascus", "sippar", "mari")));
-    Assert.equal("Babylonia", s.owner.get("mari"));
-    Assert.equal(0, wallsOf(s, "mari"));
-    Assert.false(s.walls.has("mari"));
-    Assert.contains(s.events, (e) => e.kind === "storm" && e.text === "Babylonia stormed the walls of Mari.");
+    s.walls.set("suhu", 1);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "steppe" }));
+    season(s, ordersOf("Babylonia", move("sippar", "suhu"), support("steppe", "sippar", "suhu")));
+    Assert.equal("Babylonia", s.owner.get("suhu"));
+    Assert.equal(0, wallsOf(s, "suhu"));
+    Assert.false(s.walls.has("suhu"));
+    Assert.contains(s.events, (e) => e.kind === "storm" && e.text === "Babylonia stormed the walls of Suhu.");
   });
 
   test("A besiege order kept for later follows its army and replays", () => {
     let s = board();
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "mari" }));
-    let plan = newPlannedOrder({ turn: 2, order: besiege("mari"), unitId: unitAt(s, "mari")!.id });
-    Assert.equal(besiege("mari"), asItStands(s, "Babylonia", plan));
-    let round = deserialize<Order>(OrderSchema, serialize(OrderSchema, besiege("mari")));
-    Assert.equal(besiege("mari"), round);
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "suhu" }));
+    let plan = newPlannedOrder({ turn: 2, order: besiege("suhu"), unitId: unitAt(s, "suhu")!.id });
+    Assert.equal(besiege("suhu"), asItStands(s, "Babylonia", plan));
+    let round = deserialize<Order>(OrderSchema, serialize(OrderSchema, besiege("suhu")));
+    Assert.equal(besiege("suhu"), round);
   });
 
   test("Walls that sally add one to an attack on the troops within them", () => {
-    // Mitanni holds Mari (walls 2); Babylonia's army besieges it. Mitanni's lone army from Terqa, with the walls' sally,
+    // Mitanni holds Suhu (walls 2); Babylonia's army besieges it. Mitanni's lone army from Terqa, with the walls' sally,
     // beats the besieger's 1 and drives it out; without the sally it bounces.
     function board(): GameState {
       let s = siegeBoard();
-      s.owner.set("mari", "Mitanni");
-      first(s.units, (u) => u.province === "sippar").province = "mari";
-      s.sieges.push(newSiege({ province: "mari", power: "Babylonia", unitId: unitAt(s, "mari")!.id, progress: 1, since: 1 }));
+      s.owner.set("suhu", "Mitanni");
+      first(s.units, (u) => u.province === "sippar").province = "suhu";
+      s.sieges.push(newSiege({ province: "suhu", power: "Babylonia", unitId: unitAt(s, "suhu")!.id, progress: 1, since: 1 }));
       return s;
     }
     let bounced = board();
-    season(bounced, ordersOf("Mitanni", move("terqa", "mari")));
-    Assert.equal("Babylonia", unitAt(bounced, "mari")?.power);
+    season(bounced, ordersOf("Mitanni", move("terqa", "suhu")));
+    Assert.equal("Babylonia", unitAt(bounced, "suhu")?.power);
 
     let s = board();
-    season(s, ordersOf("Mitanni", move("terqa", "mari"), sally("mari", "terqa")));
-    Assert.equal("Mitanni", unitAt(s, "mari")?.power);
+    season(s, ordersOf("Mitanni", move("terqa", "suhu"), sally("suhu", "terqa")));
+    Assert.equal("Mitanni", unitAt(s, "suhu")?.power);
     Assert.empty(s.sieges);
     Assert.contains(
-      "- The walls of mari sally in support of the attack from terqa: given",
+      "- The walls of suhu sally in support of the attack from terqa: given",
       single(inboxOf(s, "Mitanni"), (i) => i.title === "Movements last season" && i.turn === s.turn).body,
     );
     Assert.contains(s.events, (e) => e.signal === "sally-won");
 
     // A sally that finds no attack is void, and walls below 2 cannot sally.
     let v = board();
-    season(v, ordersOf("Mitanni", sally("mari", "damascus")));
+    season(v, ordersOf("Mitanni", sally("suhu", "steppe")));
     Assert.contains(
-      "- The walls of mari sally in support of the attack from damascus: void: no unit moved from damascus to mari",
+      "- The walls of suhu sally in support of the attack from steppe: void: no unit moved from steppe to suhu",
       single(inboxOf(v, "Mitanni"), (i) => i.title === "Movements last season" && i.turn === v.turn).body,
     );
     let low = board();
-    low.walls.set("mari", 1);
-    let refused = new OrderValidator(low).validate("Mitanni", newTurnSubmission({ orders: [sally("mari", "terqa"), sally("harran", "terqa")] }));
+    low.walls.set("suhu", 1);
+    let refused = new OrderValidator(low).validate("Mitanni", newTurnSubmission({ orders: [sally("suhu", "terqa"), sally("harran", "terqa")] }));
     Assert.equal(
-      ["the walls of Mari stand at 1: only walls of 2 or more can sally", "Harran has no walls to sally from"],
+      ["the walls of Suhu stand at 1: only walls of 2 or more can sally", "Harran has no walls to sally from"],
       refused.rejected.map((r) => r.reason),
     );
   });

@@ -68,7 +68,7 @@ describe("AbsorptionTests", () => {
     season(
       s,
       subs({
-        Hatti: { orders: [move("hattusa", "sapinuwa"), support("kanesh", "hattusa", "sapinuwa")] },
+        Hatti: { orders: [move("hattusa", "sapinuwa"), support("nesa", "hattusa", "sapinuwa")] },
       }),
     );
     Assert.equal("Hatti", s.owner.get("sapinuwa"));

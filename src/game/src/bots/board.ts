@@ -28,6 +28,11 @@ import { seasonsLeft } from "./ending-belief.ts";
 
 export class Board {
   static readonly Map: WorldMap = WorldMap.default;
+  /**
+   * The map as it can be crossed in the season the last board was made for: in winter without the open-sea crossings
+   * (build order item 7a). Every move a script king weighs is one it could give this season.
+   */
+  static Sail: WorldMap = WorldMap.default;
 
   readonly v: SeatView;
   readonly me: Power;
@@ -48,6 +53,7 @@ export class Board {
     this.v = v;
     this.me = v.power;
     this.treasuries = treasuries;
+    Board.Sail = Board.Map.forTurn(v.turn);
     this.units = [...v.units, ...[...(remembered ?? [])].filter((g) => v.units.every((u) => u.province !== g.province))];
     this.unitAt = new Dict();
     for (const u of this.units) this.unitAt.tryAdd(u.province, u);
@@ -102,11 +108,10 @@ export class Board {
   }
 
   /**
-   * The ground's help to a unit standing in `to` against a move from `from`: rough ground, a pass or a river on the link,
-   * or a landing from the sea (a move from a province not next to it comes by convoy).
+   * The ground's help to a unit standing in `to` against a move from `from`: rough ground, or a pass or a river on the link.
    */
   ground(from: string, to: string): number {
-    return this.groundBonus > 0 && defenceGround(from, to, !Board.Map.areAdjacent(from, to)) !== null ? this.groundBonus : 0;
+    return this.groundBonus > 0 && defenceGround(from, to) !== null ? this.groundBonus : 0;
   }
 
   /**
@@ -179,7 +184,7 @@ export class Board {
 
   /** Units (of a given power, or any but mine) that could move into a province this season. */
   canReach(target: string, who: (u: UnitView) => boolean): UnitView[] {
-    return this.units.filter((u) => u.province !== target && who(u) && Board.Map.canMove(u.kind, u.province, target));
+    return this.units.filter((u) => u.province !== target && who(u) && Board.Sail.canMove(u.kind, u.province, target));
   }
 
   muster(p: Power, target: string): number {
@@ -187,7 +192,7 @@ export class Board {
   }
 
   armyMoves(u: UnitView): string[] {
-    return Board.Map.movesFrom(u.kind, u.province);
+    return Board.Sail.movesFrom(u.kind, u.province);
   }
 
   /** Land yield a power holds now, against what its homeland yields. */
@@ -275,7 +280,7 @@ export class Board {
     const close = (p: Power): boolean => {
       for (const [k, o] of this.v.owner.entries())
         if (o === p && (M.neighbors(k).some((n) => mineSet.has(n)) || mine.some((m) => M.sharesSea(m, k)))) return true;
-      return this.others.some((u) => u.power === p && mine.some((m) => M.canMove(u.kind, u.province, m) || M.movesFrom(u.kind, u.province).some((n) => M.canMove(u.kind, n, m))));
+      return this.others.some((u) => u.power === p && mine.some((m) => Board.Sail.canMove(u.kind, u.province, m) || Board.Sail.movesFrom(u.kind, u.province).some((n) => Board.Sail.canMove(u.kind, n, m))));
     };
     return [...this.alive].filter((p) => p !== this.me && close(p));
   }

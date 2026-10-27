@@ -33,14 +33,14 @@ import { removeAll, Assert, subs } from "./support.ts";
 // or coming home, may be caught; one whose courage the siege outweighs will not go; a caught envoy is the besieger's
 // captive, its letter read, its gold and tablets taken, and its king hears only that it has not returned.
 describe("SiegeEnvoyTests", () => {
-  // <summary>Seed 1: Babylonia's army besieges Ashur (just begun, walls 3), with its army in Ekallatum next to it (tightness 2).</summary>
+  // <summary>Seed 1: Babylonia's army besieges Ashur (just begun, walls 3), with its army in Ekallate next to it (tightness 2).</summary>
   function besieged(config: GameConfig): [GameState, Character] {
     let s = newGame(1, { ...config, catastropheChance: 0 });
-    removeAll(s.units, (u) => ["ashur", "ekallatum"].includes(u.province));
+    removeAll(s.units, (u) => ["ashur", "ekallate"].includes(u.province));
     let army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(army);
-    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ekallatum" }));
-    s.owner.set("ekallatum", "Babylonia");
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ekallate" }));
+    s.owner.set("ekallate", "Babylonia");
     s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: army.id, progress: 0, since: 1 }));
     let envoy = first(s.characters, (c) => c.employer === "Assyria" && c.secretMaster === null);
     envoy.traits.courage = 100;
@@ -60,7 +60,7 @@ describe("SiegeEnvoyTests", () => {
         orders: [dispatch(envoy.id, "Egypt", "Send your armies, brother: Ashur is besieged.", { mandate: "Promise anything.", gold: gold, proposal: tablet })],
       },
       // The besieger holds and presses the siege.
-      Babylonia: { orders: [hold("ashur"), support("ekallatum", "ashur")] },
+      Babylonia: { orders: [hold("ashur"), support("ekallate", "ashur")] },
     });
   }
 

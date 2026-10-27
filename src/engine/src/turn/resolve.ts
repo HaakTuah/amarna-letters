@@ -134,7 +134,8 @@ P.resolveMovement = function (unitOrders) {
   }
 
   const sallies = unitOrders.map(([, o]) => o).filter((o): o is SallyOrder => o.type === "sally");
-  const adjudicator = new Adjudicator(Map, true, S.config.terrainDefence);
+  // In winter the open-sea crossings are closed, to fleets and to the armies they carry.
+  const adjudicator = new Adjudicator(Map.forTurn(S.turn), true, S.config.terrainDefence);
   const result = adjudicator.run(S.units, byProvince, S.owner, S.walls, sallies);
   this._battle = result;
   this._unitOrdersNow = byProvince;
@@ -198,6 +199,10 @@ P.resolveMovement = function (unitOrders) {
       g.won ? "terrain-beaten" : "terrain-held",
     );
   }
+
+  // Armies carried by sea that came ashore (build order item 7a: they land only where no enemy fleet holds the waters).
+  for (const o of result.outcomes.filter((o) => o.order === "move" && o.unitKind === "Army" && o.succeeded && o.target !== null && !Map.canMove("Army", o.province, o.target)))
+    logEvent(S, "landing", `${o.power}'s army landed in ${Map.get(o.target!).name} from the sea.`, distinct([...AllPowers.filter((p) => sightBefore.get(p).has(o.target!)), o.power]), "landing");
 
   for (const p of alive(S))
     S.lastSeen.set(

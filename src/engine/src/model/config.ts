@@ -63,10 +63,14 @@ export interface GameConfig {
   siegeCatchMax: number;
   /**
    * What the ground gives a unit that stands its ground against an attack ({@link Geography.DefenceGround}): on rough
-   * ground, across a mountain pass or a great river, or against a landing from the sea; this much in all, however many
-   * apply. 0 turns terrain off.
+   * ground, or across a mountain pass or a great river; this much in all, however many apply. 0 turns terrain off.
    */
   terrainDefence: number;
+  /**
+   * A besieged coastal city supplied by sea, because no fleet of its besieger holds its waters (build order item 7a,
+   * "Finer seas"), is worn down this many steps less each season. 0 turns the blockade's part in sieges off.
+   */
+  seaSupply: number;
   /**
    * What an army pays for supplies, with its next upkeep, for a season it ends in desert land its king did not hold when
    * that season's moves were made; an army in its own land pays nothing.
@@ -123,7 +127,8 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     siegeCatchMax: 75,
     terrainDefence: 1,
     desertUpkeep: 30,
-    travelHops: [4, 7],
+    seaSupply: 1,
+    travelHops: [5, 9],
     maxDispatchesPerTurn: 3,
     maxLetterChars: 1500,
     audienceRounds: 2,
@@ -166,6 +171,7 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   siegeCatchMax: I,
   terrainDefence: I,
   desertUpkeep: I,
+  seaSupply: I,
   travelHops: list(I),
   maxDispatchesPerTurn: I,
   maxLetterChars: I,

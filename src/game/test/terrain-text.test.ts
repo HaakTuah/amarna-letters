@@ -3,34 +3,48 @@ import { Views, newGame, newGameConfig } from "@amarna/engine";
 import { leaderRules, situation } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
 
-// <summary>What a king reads of terrain (Build order item 5, the siege package), in the rulebook and his view.</summary>
+// <summary>What a king reads of terrain (Build order item 5, the siege package) and the sea (item 7a), in the rulebook and his view.</summary>
 describe("TerrainTextTests", () => {
   const Rules: string = leaderRules(true, newGameConfig());
 
   test.each([
     [
-      "- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with 1 more when it stands on rough ground (mira, lukka, isuwa, amurru, arbela, tamassos), when the attack comes over a mountain pass or a great river (the Cilician Gates (tuwanuwa-kizzuwatna), the Taurus (kanesh-kizzuwatna), the Amanus (kizzuwatna-carchemish), the Euphrates (carchemish-harran and isuwa-harran), the Tigris (taidu-nineveh)), or when the attack is a landing from the sea (an army carried by convoy): 1 in all, however many of these apply.",
+      "- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with 1 more when it stands on rough ground (mira, lukka, isuwa, amurru, arbela, kalavasos, shechem, jerusalem, kaska), or when the attack comes over a mountain pass or a great river, crossed at its fords and ferry towns (the Cilician Gates (tuwanuwa-kizzuwatna), the Taurus (nesa-kizzuwatna), the Anti-Taurus (nesa-carchemish), the Amanus (kizzuwatna-carchemish), the Syrian Gates (kizzuwatna-alalakh), the Lebanon (byblos-damascus and sidon-damascus), the Euphrates at Carchemish (carchemish-harran), the Euphrates at Emar (aleppo-harran), the upper Euphrates (isuwa-harran), the Tigris (taidu-nineveh)): 1 in all, however many of these apply.",
     ],
     [
-      "The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that.",
+      "The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that.",
     ],
-    ["So an island is protected by the sea: an army reaches it only by convoy, and a unit there holds with 1 more against a landing."],
+    ["- Some links cross the desert (the Syrian desert (suhu-steppe and steppe-qatna and steppe-damascus), the Ways of Horus (delta-gaza), the north Sinai (gaza-sinai), the Negev (jerusalem-sinai)); they give no help in battle."],
     ["A unit standing its ground may have the ground's help in its hold strength (see TERRAIN)."],
     ["(none if the province was empty or its unit moved away; the ground's help to them counts in it)"],
     [
-      "THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; links, with the mountain passes and great rivers on them)",
+      "THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; a coast's waters; links, with the mountain passes, great rivers and deserts on them, and the open-sea crossings)",
     ],
     ["- mira: Mira; land; homeland of Arzawa; yield 30; rough ground. armies: seha, apasa, lukka, tuwanuwa."],
-    ["- tamassos: Tamassos; coast; homeland of Alashiya; yield 40; rough ground. armies: enkomi."],
-    ["- tuwanuwa: Tuwanuwa; land; homeland of Hatti; yield 30. armies: seha, mira, lukka, hattusa, kanesh, kizzuwatna (across the Cilician Gates)."],
-    ["- harran: Harran; land; homeland of Mitanni; yield 35. armies: isuwa (across the Euphrates), carchemish (across the Euphrates), washukanni, terqa."],
+    ["- kalavasos: Kalavasos; coast; waters kalavasoswaters; homeland of Alashiya; yield 40; rough ground. armies: enkomi. fleets: enkomi, kalavasoswaters."],
+    ["- tuwanuwa: Tuwanuwa; land; homeland of Hatti; yield 30. armies: seha, mira, lukka, hattusa, nesa, kizzuwatna (across the Cilician Gates)."],
     [
-      "- Desert (sinai) costs an army supplies: an army that ends a season in desert land its king did not hold when that season's moves were made pays 30 with the next upkeep, and your treasury notice says so. An army in its own land pays nothing: a king who holds the desert crosses it freely, and so does whoever takes it, from the season after. Only armies pay it.",
+      "- harran: Harran; land; homeland of Mitanni; yield 35. armies: isuwa (across the upper Euphrates), carchemish (across the Euphrates at Carchemish), washukanni, terqa, aleppo (across the Euphrates at Emar).",
+    ],
+    [
+      "- Desert (sinai, steppe) costs an army supplies: an army that ends a season in desert land its king did not hold when that season's moves were made pays 30 with the next upkeep, and your treasury notice says so. An army in its own land pays nothing: a king who holds the desert crosses it freely, and so does whoever takes it, from the season after. Only armies pay it.",
     ],
     [
       "you pay upkeep for every army (30) and fleet (35), 30 more for each army that ended last season in desert land you did not hold (see TERRAIN), and the wages of your people at court;",
     ],
-    ["- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: megiddo, gaza, delta, memphis."],
+    ["- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis."],
+    ["- kaska: Kaska Lands; land; a land without a king; yield 10; rough ground. armies: hattusa, sapinuwa."],
+    ["- ugaritwaters: Ugarit waters; sea zone, the waters of ugarit. fleets: ugarit, amurruwaters, kizzuwatnawaters, enkomiwaters (open sea)."],
+    [
+      "- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out.",
+    ],
+    ["- The blockade: a besieged coastal city is supplied by sea, and worn down 1 step less each season, unless a fleet of its besieger holds its waters: so a lone army besieging a harbour that is supplied wears it down not at all."],
+    [
+      "In winter, the second season of each year (Peret in Egypt), the open-sea crossings are closed: no fleet crosses them, no convoy is carried over them, and no city across them can be bought (it lies one voyage away only in the sailing season); an order to cross them is refused.",
+    ],
+    ["(rough ground, or a pass or a great river crossed; see TERRAIN)"],
+    ["nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing."],
+    ["(a coastal city supplied by sea is worn down 1 less: see THE SEA)"],
   ] as const)("The rulebook states what the ground does and the map marks it %s", (rule: string) => {
     Assert.contains(rule, Rules);
   });
@@ -47,7 +61,7 @@ describe("TerrainTextTests", () => {
     Assert.contains("In this game the ground gives no unit any help", rules);
     Assert.doesNotContain("the ground's help", rules);
     // The desert still costs supplies: it is a rule of its own.
-    Assert.contains("- Desert (sinai) costs an army supplies", rules);
+    Assert.contains("- Desert (sinai, steppe) costs an army supplies", rules);
   });
 
   test("The view marks the rough ground beside the walls", () => {

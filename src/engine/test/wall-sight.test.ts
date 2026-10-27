@@ -16,7 +16,7 @@ import {
   newUnit,
   wallsOf,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, walled } from "./support.ts";
 
 // A court sees the walls standing now only where it can see troops, and knows them elsewhere as it last saw them (at the
 // start, as the map gives them). Walls rise for gold and fall to an earthquake or unpaid upkeep out of other courts'
@@ -44,34 +44,35 @@ describe("WallSightTests", () => {
   });
 
   test("A court sees walls where it sees troops and remembers them as last seen", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
-    Assert.contains("mari", Views.sight(s, WorldMap.default, "Mitanni"));
-    Assert.doesNotContain("mari", Views.sight(s, WorldMap.default, "Egypt"));
+    let s = walled(newGame(1, newGameConfig({ catastropheChance: 0 })), "suhu", 2);
+    Assert.contains("suhu", Views.sight(s, WorldMap.default, "Mitanni"));
+    Assert.doesNotContain("suhu", Views.sight(s, WorldMap.default, "Egypt"));
 
-    // Mari's walls rise out of Egypt's sight: Mitanni, next to it, sees them; Egypt knows them as the map gives them.
-    s.walls.set("mari", 3);
-    Assert.equal(3, Views.for(s, "Mitanni").walls.get("mari"));
-    Assert.equal(2, Views.for(s, "Egypt").walls.get("mari"));
+    // Suhu's walls rise out of Egypt's sight: Mitanni, next to it, sees them; Egypt knows them as the map gives them (2 in this test).
+    s.walls.set("suhu", 3);
+    Assert.equal(3, Views.for(s, "Mitanni").walls.get("suhu"));
+    Assert.equal(2, Views.for(s, "Egypt").walls.get("suhu"));
 
-    // An Egyptian army in Damascus, next to Mari, sees them; the season resolves, and Egypt remembers them as it saw them.
-    let army = newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: "damascus" });
+    // An Egyptian army in the Sutean steppe, next to Suhu, sees them; the season resolves, and Egypt remembers them as it saw them.
+    let army = newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: "steppe" });
     s.units.push(army);
-    Assert.equal(3, Views.for(s, "Egypt").walls.get("mari"));
+    Assert.equal(3, Views.for(s, "Egypt").walls.get("suhu"));
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(new Dict<Power, TurnSubmission>());
-    Assert.equal(3, s.wallsSeen.get("Egypt").get("mari"));
+    Assert.equal(3, s.wallsSeen.get("Egypt").get("suhu"));
 
-    // The army gone, Mari's walls fall: Egypt still knows them at 3, Mitanni sees them at 1.
-    s.units.splice(s.units.indexOf(army), 1);
-    s.walls.set("mari", 1);
-    Assert.equal(3, Views.for(s, "Egypt").walls.get("mari"));
-    Assert.equal(1, Views.for(s, "Mitanni").walls.get("mari"));
+    // The army gone, Suhu's walls fall: Egypt still knows them at 3, Mitanni sees them at 1.
+    s.units.splice(s.units.findIndex((u) => u.id === army.id), 1);
+    s.owner.set("steppe", null); // the army took the unwalled steppe by standing in it: give it back
+    s.walls.set("suhu", 1);
+    Assert.equal(3, Views.for(s, "Egypt").walls.get("suhu"));
+    Assert.equal(1, Views.for(s, "Mitanni").walls.get("suhu"));
 
     // Walls thrown down where a court cannot see are still there for it; where it sees, they are gone.
-    s.walls.delete("mari");
-    Assert.equal(3, Views.for(s, "Egypt").walls.get("mari"));
-    Assert.false(Views.for(s, "Mitanni").walls.has("mari"));
+    s.walls.delete("suhu");
+    Assert.equal(3, Views.for(s, "Egypt").walls.get("suhu"));
+    Assert.false(Views.for(s, "Mitanni").walls.has("suhu"));
   });
 
   test("Walls that fall for want of upkeep are seen only where troops are seen", () => {

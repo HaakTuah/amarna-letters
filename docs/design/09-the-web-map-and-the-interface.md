@@ -8,7 +8,9 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
 `docs/archive/rounds/2026-10-19-second-simulation.md`).
 
 - **Terrain is map data** (`Geography` in the engine project), given its effects by the siege package (Build order item 5;
-  see Terrain under Rules as implemented); until then it was drawn only. Rough provinces: Mira, Lukka,
+  see Terrain under Rules as implemented); until then it was drawn only. The lists below are as the visual overhaul drew
+  them; item 7a's map review extended them, and drew Arwad and Dilmun as islands, the Gulf, Nubia and each coast's waters
+  ([the map and the seas](12-the-map-and-the-seas.md)). Rough provinces: Mira, Lukka,
   Isuwa, Amurru, Arbela, Tamassos. Desert: Sinai. Crossings on six connections: the Cilician Gates
   (Tuwanuwa–Kizzuwatna), the Taurus (Kanesh–Kizzuwatna) and the Amanus (Kizzuwatna–Carchemish) as mountain passes;
   the Euphrates (Carchemish–Harran, Isuwa–Harran) and the Tigris (Taidu–Nineveh) as river crossings. The ordered
@@ -17,9 +19,9 @@ under "Each view sees only what its court knows"), and fix (b), phone performanc
   sleep-and-simulation round, so the siege package can use them unchanged, and it did. Until the siege package nothing
   in the engine read them and only the web map drew them; now the adjudicator reads rough ground and the crossings, and
   the map's tooltips, province card, legend and about page say what they do (the drawing is unchanged: peaks beside
-  each rough city, a pass or ford mark across each crossing). "A landing by convoy counts as a crossing" is a rule
-  about any convoyed landing, so it is a rule of the adjudicator (`defenceGround`) rather than stored on a
-  connection.
+  each rough city, a pass or ford mark across each crossing). "A landing by convoy counts as a crossing" was a rule
+  about any convoyed landing, so it was a rule of the adjudicator (`defenceGround`) rather than stored on a
+  connection; item 7a's blockade replaced it.
 - **One date label** (`dateLabel`, question 26, plan steps 1-4): the court's season, the year BCE and the
   turn. Years are counted from 1346 BCE (since build order item 6a; 1345 BCE before): the first year of a game is
   1346 BCE and each later year is one less, so the median ending, season 44, falls in 1332 BCE (`FirstYearBce`,

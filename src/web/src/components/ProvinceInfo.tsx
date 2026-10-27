@@ -6,7 +6,8 @@ import { Emblem } from "./Emblem.tsx";
 
 /**
  * What the ground does here (Build order item 5, terrain): rough ground and the crossings on its links give a unit that
- * stands its ground more against an attack, and so does a landing from the sea on a coast.
+ * stands its ground more against an attack. On a coast, the sea (item 7a): an army lands only where no enemy fleet holds
+ * its waters, and a besieged city is supplied by sea unless its besieger's fleet does.
  */
 function groundText(state: GameState, p: Province, terrain: Terrain, crossings: readonly Crossing[]): string {
   const t = state.config.terrainDefence;
@@ -15,7 +16,11 @@ function groundText(state: GameState, p: Province, terrain: Terrain, crossings: 
   else if (terrain === "Rough") lines.push(`A unit standing its ground here holds with ${t} more against any attack.`);
   else {
     if (crossings.length > 0) lines.push(`A unit standing its ground here holds with ${t} more against an attack over ${[...new Set(crossings.map((c) => c.name))].join(" or ")}.`);
-    if (p.isCoastal) lines.push(`An army landing here from the sea meets a defender with ${t} more.`);
+  }
+  if (p.waters !== null) {
+    const waters = WorldMap.default.get(p.waters).name;
+    lines.push(`An army lands here from the sea only when no enemy fleet holds ${waters}.`);
+    if (state.config.seaSupply > 0) lines.push(`Besieged, the city is supplied by sea, and worn down more slowly, unless its besieger's fleet holds ${waters}.`);
   }
   // The desert costs an army supplies unless its king holds it.
   if (terrain === "Desert" && state.config.desertUpkeep > 0)
@@ -46,7 +51,7 @@ export function ProvinceInfo({
   const age = scene.viewer === null ? 0 : (scene.fogAge.get(id) ?? -1);
   const terrain = terrainOf(id);
   const rivers = riversThrough(id).map((r) => r.name);
-  const crossings = Crossings.filter((c) => c.a === id || c.b === id);
+  const crossings = Crossings.filter((c) => (c.a === id || c.b === id) && c.kind !== "Desert");
   const walls = scene.walls.get(id) ?? 0;
   const siege = scene.sieges.find((x) => x.province === id);
   return (
@@ -61,7 +66,13 @@ export function ProvinceInfo({
         </button>
       </div>
       {p.isSea ? (
-        <p className="small">A sea zone. Fleets move through it; fleets here can convoy armies across.</p>
+        <p className="small">
+          {WorldMap.default.coastsOf(p.id).length > 0
+            ? `The waters of ${WorldMap.default.coastsOf(p.id).map((x) => x.name).join(" and ")}: a fleet here blockades ${WorldMap.default.coastsOf(p.id).length > 1 ? "them" : "it"}, and no army lands there against it.`
+            : "The open sea."}{" "}
+          Fleets here can convoy armies across, one fleet in each sea zone of the way.
+          {WorldMap.default.edges.some((e) => e.open && (e.a === p.id || e.b === p.id)) ? " An open-sea crossing leaves from here: closed in winter, the second season of the year." : ""}
+        </p>
       ) : (
         <>
           <p className="small">

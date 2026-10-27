@@ -53,15 +53,16 @@ describe("EngineTests", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
     Assert.equal(19, s.units.length);
-    // Walls by place: the seven capitals 3, ten fortresses 2, six walled towns 1; every free city has some.
-    Assert.equal(23, s.walls.size);
+    // Walls by place: the seven capitals 3, twelve fortresses 2, thirteen walled towns 1; every free city has some, and the
+    // lands without a king none.
+    Assert.equal(32, s.walls.size);
     Assert.equal(
       7,
       count(s.walls, (w) => w[1] === 3),
     );
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.home === null),
-      (p) => Assert.true(wallsOf(s, p.id) > 0, p.id),
+      (p) => Assert.true(wallsOf(s, p.id) > 0 !== p.kingless, p.id),
     );
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.capital),
@@ -123,7 +124,7 @@ describe("EngineTests", () => {
       newTurnSubmission({
         orders: [
           move("memphis", "hattusa") /* not adjacent */,
-          move("hattusa", "kanesh") /* not Egypt's unit */,
+          move("hattusa", "nesa") /* not Egypt's unit */,
           raise("babylon", "Army") /* not Egypt's homeland */,
           raise("akhetaten", "Fleet") /* no harbour */,
           move("memphis", "sinai"),
@@ -131,7 +132,7 @@ describe("EngineTests", () => {
           raise("thebes", "Army"),
           raise("akhetaten", "Army"),
           buy("gaza") /* 200 shekels: leaves 50 */,
-          buy("megiddo") /* 200 more: more than is left */,
+          buy("jerusalem") /* 150 more: more than is left */,
         ],
       }),
     );
@@ -162,9 +163,9 @@ describe("EngineTests", () => {
   test("Islands can buy across the sea but not inland", () => {
     let s = newGame(1);
     removeAll(s.units, (u) => u.power === "Alashiya");
-    let v = new OrderValidator(s).validate("Alashiya", newTurnSubmission({ orders: [buy("amurru"), buy("mari")] }));
+    let v = new OrderValidator(s).validate("Alashiya", newTurnSubmission({ orders: [buy("byblos"), buy("suhu")] }));
     Assert.single(v.accepted);
-    Assert.contains(v.rejected, (r) => r.order.type === "buy" && r.order.province === "mari");
+    Assert.contains(v.rejected, (r) => r.order.type === "buy" && r.order.province === "suhu");
   });
 
   test("Bought walls stand for their owner who may enter them", () => {

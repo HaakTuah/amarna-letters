@@ -88,17 +88,17 @@ describe("FortifyTests", () => {
   });
 
   test("Walls whose upkeep cannot be paid fall a level the farthest first", () => {
-    // Egypt's walls of Thebes (2) and Sinai (1) are three levels above the map's: 15 a season. Five armies and a fleet eat
-    // all but 5 of its income of 190, so Sinai's walls fall, then a level of Thebes', until what is left can be paid.
+    // Egypt's walls of Thebes (2) and Sinai (1) are three levels above the map's: 15 a season. Six armies and a fleet eat
+    // all but 5 of its income of 220, so Sinai's walls fall, then a level of Thebes', until what is left can be paid.
     let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     s.walls.set("thebes", 2);
     s.walls.set("sinai", 1);
     s.treasuries.get("Egypt").gold = 0;
-    for (const at of ["thebes", "sinai", "gaza"]) s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: at }));
+    for (const at of ["thebes", "sinai", "gaza", "nubia"]) s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: at }));
     new TurnEngine(s).beginTurn();
     Assert.equal([0, 1], [wallsOf(s, "sinai"), wallsOf(s, "thebes")]);
     let notice = single(inboxOf(s, "Egypt"), (i) => i.title === "The treasury").body;
-    Assert.contains("upkeep 3 minas 5 shekels, walls 5 shekels, wages", notice);
+    Assert.contains("upkeep 3 minas 35 shekels, walls 5 shekels, wages", notice);
     Assert.contains("Unkept, walls fell a level: Sinai, Thebes.", notice);
   });
 

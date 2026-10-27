@@ -79,13 +79,20 @@ export const Mediterranean = P(-300, -300, 36, -300, 34, 0, 41, 28, 30, 56, 47, 
 export const Cyprus = P(240, 419, 251, 401, 274, 391, 305, 386, 336, 382, 360, 376, 386, 367, 410, 354, 421, 349, 415, 362, 399, 379, 389, 397, 372, 412, 350, 422, 320, 430, 290, 436, 262, 432, 244, 427);
 /** A sliver of the Black Sea along the top edge, north of Hatti. */
 export const BlackSea = P(196, -300, 206, 0, 222, 11, 262, 19, 302, 22, 346, 20, 400, 24, 452, 18, 500, 14, 542, 16, 582, 10, 612, 0, 650, -300);
-/** The Lower Sea (the Gulf), in the corner beyond Ur. */
-export const Gulf = P(1300, 560, 1000, 606, 990, 626, 982, 650, 972, 676, 962, 700, 955, 720, 948, 1000, 1300, 1000);
+/** The Lower Sea (the Gulf), in the corner beyond Ur, its head reaching up towards Elam. */
+export const Gulf = P(1300, 500, 1000, 520, 990, 560, 975, 600, 962, 640, 952, 680, 945, 720, 940, 1000, 1300, 1000);
+/** The island cities off the coasts: Arwad off Amurru, and Dilmun in the Gulf. Drawn as small round islands. */
+const isle = (cx: number, cy: number, r: number): Pt[] => Array.from({ length: 8 }, (_, i) => ({ x: cx + r * Math.cos((i * Math.PI) / 4), y: cy + r * Math.sin((i * Math.PI) / 4) }));
+export const Isles: ReadonlyMap<string, Pt[]> = new Map([
+  ["arwad", isle(453, 366, 5)],
+  ["dilmun", isle(985, 702, 9)],
+]);
 
 /** All the land, as one path (a rectangle with the seas cut out, even-odd). */
 export const LandPath = `M-300,-300H1300V1000H-300Z ${smoothClosed(Mediterranean)} ${smoothClosed(BlackSea)} ${smoothClosed(Gulf)}`;
 export const SeaPath = `${smoothClosed(Mediterranean)} ${smoothClosed(BlackSea)} ${smoothClosed(Gulf)}`;
-export const CyprusPath = smoothClosed(Cyprus);
+/** Cyprus and the island cities, as one path. */
+export const CyprusPath = [smoothClosed(Cyprus), ...[...Isles.values()].map(smoothClosed)].join(" ");
 
 // ---------------------------------------------------------------- rivers, mountains, deserts, fields
 
@@ -99,7 +106,7 @@ export interface Line {
 
 /** The rivers: the three great ones of the engine's geography first, then smaller ones for the eye. */
 export const Rivers: readonly Line[] = [
-        { id: "nile", name: "Nile", path: smooth(P(0, 707, 45, 709, 90, 707, 140, 703, 195, 699, 245, 690, 290, 677, 316, 654, 330, 630)), width: 4.2, labelled: true },
+        { id: "nile", name: "Nile", path: smooth(P(-10, 628, 16, 646, 40, 676, 72, 699, 110, 705, 150, 703, 195, 699, 245, 690, 290, 677, 316, 654, 330, 630)), width: 4.2, labelled: true },
         { id: "nile-w", name: "", path: smooth(P(330, 630, 319, 606, 312, 578)), width: 2.4, labelled: false },
         { id: "nile-e", name: "", path: smooth(P(330, 630, 352, 607, 366, 578)), width: 2.4, labelled: false },
         { id: "euphrates", name: "Euphrates", path: smooth(P(604, 40, 594, 88, 586, 138, 579, 186, 576, 228, 590, 252, 624, 263, 662, 273, 700, 291, 713, 322, 709, 360, 708, 397, 731, 421, 768, 440, 797, 472, 808, 522, 842, 553, 882, 582, 924, 630, 940, 680, 960, 702)), width: 3.6, labelled: true },
@@ -236,14 +243,17 @@ export function hash01(n: number): number {
 
 // ---------------------------------------------------------------- province shapes
 
+/** The provinces of Cyprus, shaped among themselves; with the island cities, every province not shaped with the mainland. */
+const Cypriots = new Set(["kalavasos", "enkomi"]);
+const Islanders = new Set([...Cypriots, ...Isles.keys()]);
+
 /** Points that claim the empty land no province holds (the deserts and the Zagros). Their shapes are left unclaimed. */
-const Wastes = P(660, 520, 712, 600, 600, 640, 790, 668, 540, 690, 985, 330, 640, 22, 980, 30);
+const Wastes = P(712, 600, 620, 655, 790, 668, 985, 330, 640, 22, 980, 30);
 
 function buildShapes(): Map<string, string> {
-  const cyprus = new Set(["tamassos", "enkomi"]);
-  const land = Map_.provinces.filter((p) => !p.isSea && !cyprus.has(p.id));
+  const land = Map_.provinces.filter((p) => !p.isSea && !Islanders.has(p.id));
   const sea = Map_.provinces.filter((p) => p.isSea);
-  const island = Map_.provinces.filter((p) => cyprus.has(p.id));
+  const island = Map_.provinces.filter((p) => Cypriots.has(p.id));
   const shapes = new Map<string, string>();
   const group = (g: readonly { id: string; x: number; y: number }[], extra: readonly Pt[], wobble: number): void => {
     const sites: [string, Pt][] = [...g.map((p) => [p.id, { x: p.x, y: p.y }] as [string, Pt]), ...extra.map((e, i) => [`~${i}`, e] as [string, Pt])];
@@ -252,6 +262,7 @@ function buildShapes(): Map<string, string> {
   group(land, Wastes, 5);
   group(sea, [], 0);
   group(island, [], 3);
+  for (const [id, pts] of Isles) shapes.set(id, smoothClosed(pts));
   return shapes;
 }
 
@@ -260,7 +271,7 @@ export const Shapes: ReadonlyMap<string, string> = buildShapes();
 
 export const WasteShapes: readonly string[] = voronoiCells(
   [
-    ...Map_.provinces.filter((p) => !p.isSea && p.id !== "tamassos" && p.id !== "enkomi").map((p) => [p.id, { x: p.x, y: p.y }] as [string, Pt]),
+    ...Map_.provinces.filter((p) => !p.isSea && !Islanders.has(p.id)).map((p) => [p.id, { x: p.x, y: p.y }] as [string, Pt]),
     ...Wastes.map((e, i) => [`~${i}`, e] as [string, Pt]),
   ],
   5,
@@ -280,10 +291,11 @@ export const unitSpot = city;
 
 // Names hang below their city (the units stand above it), except where a river, the coast or a neighbour is in the way.
 const LabelOverrides: Record<string, LabelSpot> = { thebes: { dx: 13, dy: 4, anchor: "start" }, akhetaten: { dx: 13, dy: 4, anchor: "start" }, memphis: { dx: 13, dy: 4, anchor: "start" }, delta: { dx: -13, dy: 4, anchor: "end" },
-        gaza: { dx: 13, dy: 4, anchor: "start" }, tyre: { dx: 13, dy: 4, anchor: "start" }, byblos: { dx: 13, dy: 4, anchor: "start" }, amurru: { dx: 13, dy: 4, anchor: "start" },
-        ugarit: { dx: 13, dy: 4, anchor: "start" }, qadesh: { dx: 13, dy: 4, anchor: "start" }, damascus: { dx: 13, dy: 4, anchor: "start" }, megiddo: { dx: 13, dy: 4, anchor: "start" },
-        babylon: { dx: 13, dy: 4, anchor: "start" }, terqa: { dx: -13, dy: 4, anchor: "end" }, mari: { dx: -13, dy: 4, anchor: "end" }, sippar: { dx: -13, dy: 4, anchor: "end" },
-        nippur: { dx: -13, dy: 4, anchor: "end" }, ur: { dx: -13, dy: 4, anchor: "end" }, susa: { dx: -4, dy: 21, anchor: "middle" }, };
+        gaza: { dx: -13, dy: 4, anchor: "end" }, tyre: { dx: -13, dy: 4, anchor: "end" }, sidon: { dx: -13, dy: 4, anchor: "end" }, byblos: { dx: -13, dy: 4, anchor: "end" },
+        ugarit: { dx: -13, dy: 4, anchor: "end" }, arwad: { dx: -10, dy: 4, anchor: "end" }, kaska: { dx: 0, dy: -9, anchor: "middle" }, damascus: { dx: 13, dy: 4, anchor: "start" }, megiddo: { dx: 13, dy: 4, anchor: "start" },
+        shechem: { dx: 13, dy: 4, anchor: "start" }, jerusalem: { dx: 13, dy: 4, anchor: "start" }, alalakh: { dx: -13, dy: 4, anchor: "end" }, aleppo: { dx: 13, dy: 4, anchor: "start" },
+        babylon: { dx: 13, dy: 4, anchor: "start" }, terqa: { dx: -13, dy: 4, anchor: "end" }, suhu: { dx: -13, dy: 4, anchor: "end" }, sippar: { dx: -13, dy: 4, anchor: "end" },
+        nippur: { dx: -13, dy: 4, anchor: "end" }, ur: { dx: -13, dy: 4, anchor: "end" }, susa: { dx: -4, dy: 21, anchor: "middle" }, dilmun: { dx: -12, dy: 4, anchor: "end" }, nubia: { dx: 0, dy: -14, anchor: "middle" }, };
 
 export function labelAt(id: string): LabelSpot {
   return LabelOverrides[id] ?? { dx: 0, dy: 21, anchor: "middle" };

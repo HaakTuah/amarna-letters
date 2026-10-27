@@ -397,6 +397,7 @@ svg.map text { font-family: var(--serif); }
 .map .geo { font-size: 8.5px; font-style: italic; font-weight: 600; letter-spacing: .28em; fill: var(--geo-ink); text-anchor: middle; pointer-events: none; }
 .map .geo.faint { font-size: 7px; opacity: .8; }
 .map .sea-name { font-size: 12.5px; font-style: italic; letter-spacing: .14em; fill: var(--sea-ink); text-anchor: middle; pointer-events: none; }
+.map .sea-name.waters { font-size: 7px; letter-spacing: .08em; opacity: .75; }
 .map .cartouche path { fill: var(--paper); stroke: var(--peak); stroke-width: 1.2; opacity: .9; }
 .map .cartouche text { font-size: 8.6px; letter-spacing: .22em; fill: var(--peak); text-anchor: middle; font-weight: 600; }
 .map .compass circle { fill: none; stroke: var(--peak); stroke-width: 1; opacity: .7; }

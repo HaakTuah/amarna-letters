@@ -113,16 +113,16 @@ describe("SeasonOrderTests", () => {
 
   test("A levy needs a province you still hold that is empty after movement", () => {
     let s = newGame(4, newGameConfig({ catastropheChance: 0 }));
-    s.owner.set("megiddo", "Babylonia");
-    s.walls.delete("megiddo");
-    s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "megiddo" }));
+    s.owner.set("jerusalem", "Babylonia");
+    s.walls.delete("jerusalem");
+    s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "jerusalem" }));
     let e = new TurnEngine(s);
     e.beginTurn();
     let gold = s.treasuries.get("Egypt").gold;
     e.resolve(
       new Dict([
         // Babylonia takes Sinai as Egypt raises an army there; Egypt marches into Thebes and raises one there too.
-        ["Babylonia", newTurnSubmission({ orders: [move("megiddo", "sinai")] })],
+        ["Babylonia", newTurnSubmission({ orders: [move("jerusalem", "sinai")] })],
         ["Egypt", newTurnSubmission({ orders: [move("akhetaten", "thebes"), raise("sinai", "Army"), raise("thebes", "Army")] })],
       ]),
     );

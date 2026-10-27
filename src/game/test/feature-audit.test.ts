@@ -187,19 +187,21 @@ describe("FeatureAuditTests", () => {
     treaty(s, "Egypt", "Alashiya");
     add(s, "Egypt", "Army", "thebes");
     add(s, "Egypt", "Army", "sinai");
+    // Nubia (added in item 7a, after this test was written) is left out of Egypt's land, so its income is what it was.
+    s.owner.set("nubia", null);
     // A fleet at sea next to Enkomi, Alashiya's: upkeep the treasury cannot carry.
-    add(s, "Egypt", "Fleet", "levantsea");
+    add(s, "Egypt", "Fleet", "enkomiwaters");
     // And Alashiya's land next to Sinai too.
     s.owner.set("gaza", "Alashiya");
     s.walls.delete("gaza");
 
     let [plan] = economy(s, "Egypt");
-    Assert.equal(giftUnit("levantsea", "Alashiya"), plan.orders.get("levantsea"));
-    Assert.doesNotContain([...plan.orders.values()], (o) => o.type === "giftUnit" && o.unit !== "levantsea");
+    Assert.equal(giftUnit("enkomiwaters", "Alashiya"), plan.orders.get("enkomiwaters"));
+    Assert.doesNotContain([...plan.orders.values()], (o) => o.type === "giftUnit" && o.unit !== "enkomiwaters");
 
     // Without the fleet at sea, and with wages the treasury cannot carry, the unit that goes stands in Egypt's own land,
     // next to Alashiya's Gaza: it is disbanded, since a friend's army standing in Sinai would take Sinai with it.
-    removeAll(s.units, (u) => u.province === "levantsea");
+    removeAll(s.units, (u) => u.province === "enkomiwaters");
     for (const c of s.characters.filter((c) => c.employer === "Egypt")) c.contract!.wage = 40;
     [plan] = economy(s, "Egypt");
     Assert.equal(disband("sinai"), plan.orders.get("sinai"));
@@ -228,12 +230,12 @@ describe("FeatureAuditTests", () => {
     // Egypt holds Qadesh, far from its troops. Hatti, hostile and well ahead, stands next to it; so does Mitanni, a friend.
     s.owner.set("qadesh", "Egypt");
     s.walls.delete("qadesh");
-    for (const x of ["isuwa", "ugarit", "carchemish"]) {
+    for (const x of ["isuwa", "ugarit", "carchemish", "nuhashshe"]) {
       s.owner.set(x, "Hatti");
       s.walls.delete(x);
     }
-    add(s, "Hatti", "Army", "carchemish");
-    add(s, "Mitanni", "Army", "mari");
+    add(s, "Hatti", "Army", "nuhashshe");
+    add(s, "Mitanni", "Army", "qatna");
     treaty(s, "Egypt", "Mitanni");
 
     let [, orders] = economy(s, "Egypt", (brain) => (brain.rel.get("Hatti").grudge = 5));
@@ -253,36 +255,38 @@ describe("FeatureAuditTests", () => {
     s.turn = 6;
     s.owner.set("qadesh", "Egypt");
     s.walls.delete("qadesh");
-    add(s, "Mitanni", "Army", "mari");
+    add(s, "Mitanni", "Army", "qatna");
     treaty(s, "Egypt", "Mitanni");
     [, orders] = economy(s, "Egypt", (brain) => (brain.rel.get("Hatti").grudge = 5));
     Assert.doesNotContain(orders, (o) => o.type === "cede");
   });
 
-  // Alashiya alone on the map: an army on Tamassos and a fleet, with Lukka a free city whose walls are down; late enough
-  // that the troops every court saw at the start are out of mind.
-  function island(fleetAt: string): GameState {
+  // Alashiya alone on the map: an army on Kalavasos and its fleets, with Lukka a free city whose walls are down; late
+  // enough that the troops every court saw at the start are out of mind, and in summer, when the open sea is sailed.
+  function island(...fleetsAt: string[]): GameState {
     let s = newGame(Seed);
     s.turn = 6;
     s.units.length = 0;
-    add(s, "Alashiya", "Army", "tamassos");
-    add(s, "Alashiya", "Fleet", fleetAt);
+    add(s, "Alashiya", "Army", "kalavasos");
+    for (const at of fleetsAt) add(s, "Alashiya", "Fleet", at);
     s.walls.delete("lukka");
     return s;
   }
 
   test("An army with nothing to take by land is carried over the sea", async () => {
-    // The fleet is at sea next to the army's coast: the army is convoyed to the empty coast beyond.
-    let s = island("greatgreen");
+    // A fleet in its coast's waters and one in Lukka's, across the open sea: the army is convoyed to the empty coast beyond,
+    // each fleet of the chain convoying it (item 7a: an army lands only from the waters of the coast it lands on).
+    let s = island("kalavasoswaters", "lukkawaters");
     let orders = (await new ScriptLeader(Seed).decide(Views.for(s, "Alashiya"))).orders;
-    let convoy = Assert.single(orders.filter((o): o is ConvoyOrder => o.type === "convoy"));
-    Assert.equal(["greatgreen", "tamassos"], [convoy.unit, convoy.army]);
-    Assert.contains(move("tamassos", convoy.to), orders);
+    let convoys = orders.filter((o): o is ConvoyOrder => o.type === "convoy");
+    Assert.equal(["kalavasoswaters", "lukkawaters"], convoys.map((c) => c.unit).sort());
+    Assert.true(convoys.every((c) => c.army === "kalavasos" && c.to === "lukka"));
+    Assert.contains(move("kalavasos", "lukka"), orders);
 
-    // The fleet is in port: it puts to sea next to the army's coast first, ready to carry it.
-    s = island("enkomi");
+    // The fleets are in port at Enkomi and off Lukka: the one in port puts to sea first, ready to carry the army.
+    s = island("enkomi", "lukkawaters");
     orders = (await new ScriptLeader(Seed).decide(Views.for(s, "Alashiya"))).orders;
-    Assert.contains(move("enkomi", "cilicia"), orders);
+    Assert.contains(move("enkomi", "enkomiwaters"), orders);
     Assert.empty(orders.filter((o): o is ConvoyOrder => o.type === "convoy"));
   });
 

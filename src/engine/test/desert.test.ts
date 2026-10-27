@@ -69,7 +69,7 @@ describe("DesertTests", () => {
     let s = game();
     let e = new TurnEngine(s);
     single(s.units, (u) => u.province === "memphis").province = "delta";
-    single(s.units, (u) => u.province === "delta" && u.kind === "Fleet").province = "levantsea";
+    single(s.units, (u) => u.province === "delta" && u.kind === "Fleet").province = "deltawaters";
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [move("delta", "sinai")] })]]));
     Assert.equal("Egypt", unitAt(s, "sinai")!.power);
     Assert.empty(s.inDesert);

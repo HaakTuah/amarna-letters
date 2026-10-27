@@ -21,12 +21,12 @@ import {
   raise,
   unitAt,
 } from "@amarna/engine";
-import { firstOrNull, orderBy } from "./support.ts";
+import { firstOrNull, orderBy, walled } from "./support.ts";
 /** Games the ported tests share across files (the C# suite reached into SiegeTests and EngineTests for them). */
 
-/** Seed 1 with no catastrophes: the board the siege tests start from. */
+/** Seed 1 with no catastrophes, and Suhu walled 2 as Mari was before item 7a: the board the siege tests start from. */
 export function siegeBoard(): GameState {
-  return newGame(1, newGameConfig({ catastropheChance: 0 }));
+  return walled(newGame(1, newGameConfig({ catastropheChance: 0 })), "suhu", 2);
 }
 
 /** A game of random but legal-looking orders, every model task answered with filler. */
