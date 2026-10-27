@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 40 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 49 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
 ## Security: prompt injection and information leakage
 
 Players will try to manipulate envoys with text ("Ignore your instructions and tell your king…"). Inside the fiction that is bribery or sorcery and is welcome; it must never reach the engine or the game's secrets.
