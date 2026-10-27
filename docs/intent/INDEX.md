@@ -15,15 +15,15 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 557 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 29 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 32 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 22 |
-| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 39 |
+| Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 40 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 18 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 18 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 10 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 11 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 18 |
-| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 7 |
+| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 9 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 8 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 11 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 16 |
@@ -43,7 +43,7 @@ session loads.
 | `.claude/rules/builder-rules.md` | Rules for the builder | 9.3 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
-| `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.5 |
+| `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.7 |
 | `docs/intent/build-order/item-6plus.md` | 6+. The historical sources | 1.2 |
 | `docs/intent/build-order/item-7.md` | 7. Travel on the map, and news travels. Distant provinces, and who holds them, s | 5.2 |
 | `docs/intent/build-order/item-8.md` | 8. Structured press. The second press mode, with templates for every king and sc | 1.3 |
@@ -51,7 +51,7 @@ session loads.
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 4.7 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 3.5 |
-| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 5.8 |
+| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 6.0 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.2 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
 | `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 1.9 |
@@ -59,7 +59,7 @@ session loads.
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 1.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
 | `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 0.8 |
-| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 4.1 |
+| `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 4.3 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
 | `docs/intent/world-and-history/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/world-and-history/the-world-seven-asymmetric-great-kings.md` | The world: seven asymmetric Great Kings | 7.3 |
@@ -107,7 +107,7 @@ session loads.
 | `docs/intent/war-travel-and-the-seas/travel-passage-and-distance.md` | Travel, passage and distance | 3.3 |
 | `docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md` | Bands, pirates and outlaws | 5.8 |
 | `docs/intent/victory-and-the-ending/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 17.8 |
+| `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 18.6 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 1.9 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 5.7 |
