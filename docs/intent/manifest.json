@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 63,
+   "rev": 64,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -160,7 +160,7 @@
   "tests-risks-and-references": {
    "name": "Tests, risks and references",
    "node": "e10064a1-1833",
-   "rev": 13,
+   "rev": 14,
    "files": [
     "docs/intent/tests-risks-and-references/front.md",
     "docs/intent/tests-risks-and-references/success-criteria-and-test-plan.md",
