@@ -242,3 +242,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     captives; renewing is a new offer; no rule punishes a hard act), "Jobs, not wages", "Fees clear the market",
     "Governors" and the resident envoy; the answers moved to the start of item 11b, the next item, since it brings
     carriers and reputations.
+
+26. **19:29**, in the design chat, answering item 11b's review questions, which Claude had relayed word for word with
+    its takes:
+
+    > Agree to all, expertly.
+
+    Written into the design document as item 11b+, next, before city-states.
