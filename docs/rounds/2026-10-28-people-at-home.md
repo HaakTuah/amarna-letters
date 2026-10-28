@@ -42,7 +42,7 @@ the next item, as the builder rules say (and said in the pull request):
 6. A captive handed over travels under guard like any company, so he can be intercepted or freed on the way.
 
 Also new: "Using a feature must pay" (28 October 2026): every item adds its use-against-ignore numbers to one running
-table in the progress file. Started there with this item's numbers and those of earlier items whose reports give them.
+table in the progress file. Added there: this item's numbers, and those of items 8, 9 and 9+b from their reports.
 
 ## The audit at the start
 

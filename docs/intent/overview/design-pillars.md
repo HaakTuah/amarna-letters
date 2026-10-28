@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 558 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 561 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Design pillars
 
 Eight principles decide every feature; a mechanic that breaks one needs a strong reason.
@@ -17,4 +17,21 @@ Eight principles decide every feature; a mechanic that breaks one needs a strong
 **Every feature is every seat's** (decided 20 October 2026, a core tenet). Any feature a player can use, the AI must be able to use too, and leverage sensibly, with at least occasional success: script kings and script characters as much as model ones. A rule only humans or models exploit is a rule the game is not really testing, and it hands that seat an edge no rule intended. So no feature counts as built until the script players use it. Concretely, the work is in the scripts: the script kings (the bots that play a seat) and the script characters (`ScriptMind`, which plays envoys, spies and every other character by formula), both under `src/game/src/bots`, and later the script city-states of item 11+. Model kings and characters must use every feature too, and well. Each feature is described in the rulebook and in their requests clearly enough to be used, with what it costs and what it can win, and the model games after the build order is done check that they do; the second agent simulation found kings sending no letters from audiences and giving no standing orders, the kind of gap to close by explaining, never by priming. A model using a feature never stands in for the script players using it, nor the other way round.
 
 **Models only where they matter** (decided 27 October 2026, a core tenet). A model call is spent only where a model's judgement can change what happens. The obvious, the routine and the mechanical are the engine's and the scripts', and standing answers carry out what a mind has already decided. So every decision an item adds says which rungs may take it, script, small model or large, and how the worth of a call to it is judged, and nothing calls a model because it can. It holds for every mind alike: kings, city-states, vassals and characters ("Minds follow what is at stake" under Engine and models).
+
+**Reason from the pillars** (decided 28 October 2026, a core tenet). Most questions a rule raises are answered by reasoning from what already holds, and a builder answers them so before asking. Haakon: "I feel like the principles answer most of these questions, if one just reasons."
+
+- **Don't prohibit; give it its real cost.** An action people could realistically take is never closed off: what it costs and risks makes it as rare as it was ("not blocking off decisions people realistically could make, but reflect the incentive structures which also made them very rare occurrences").
+- **Information moves in physical time** (pillar 4). Every fact anyone learns, a price, a toll, a rumour, a fall, reaches him by someone carrying it or by his own eyes, never posted or known at once.
+- **Skills set the odds; the character decides.** A skill decides how likely something is to work; what to attempt, claim or say is the character's own, a model's from its goal and what it sees, a script's from its traits.
+- **Deceit is information.** A lie is found out by investigation and evidence, never by a roll against the liar. Judging whether a tablet is genuine is the exception that proves it, since that really is a skill.
+- **Numbers come from their causes.** A quantity follows what set it in the period, men, time, discipline, wealth and ground, never a flat share standing in for them.
+- **Gold buys only what is there.** Gold is a claim on things, never their source: it hires the men who are present and buys what a market or a place holds, so gold piled up where nothing can reach is worth little, and no loop turns gold into goods or work that are not there. Strong script players find such loops first, so an action they repeat beyond reason is checked for one (decided 28 October 2026).
+- **Nothing appears or vanishes without a cause.** Gold, grain, people and tablets are conserved: every stock has inflows and outflows that can be named, gold coming only from the mines and leaving only by being spent, lost or carried off, people born, dying or moving (decided 28 October 2026).
+- **Everything is somewhere.** Every man, coin, tablet and load of grain has a place, and to be used it must be brought there; nothing acts at a distance except through someone carrying it, as pillar 4 says of news (decided 28 October 2026).
+- **The order of resolution never decides.** When two act in the same season, the outcome does not depend on whom the engine settles first: they share, or the seed decides (decided 28 October 2026).
+- **Incentives, not quotas.** Every body of people, soldiers, farmers, loose men or merchants, acts from what pays it, so how many desert, flee, rob or trade follows from their interests, as banditry finds its own balance, never from a fixed share of them (decided 28 October 2026).
+- **No menus.** One thing happens by rule, and everything after it goes through ordinary actions, orders, envoys, tablets and armies, never a choice from a list.
+- **Period first.** The period as it was, given up for playability only after trying to keep both.
+
+Every reading a builder takes is listed in its item's report with the principle it rests on, so it can be checked afterwards ("Unattended work" under Build order).
 

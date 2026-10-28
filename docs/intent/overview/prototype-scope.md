@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 558 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 561 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Prototype scope
 
 The prototype is an expanded Diplomacy set in one era, not a grand-strategy game. Its only job is to test the core hypothesis cheaply; every system that does not feed trust, mediation or verification is cut. The table records that first scope. The build order goes further, item by item, and where an item takes something from the right-hand column, the row says so.

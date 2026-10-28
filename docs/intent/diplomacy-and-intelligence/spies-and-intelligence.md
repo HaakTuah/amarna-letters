@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 23 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 24 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Spies and intelligence
 
 Spies come from the same character pool and follow the same rules: hidden traits, costs, delay, and the possibility that your spy also works for someone else.
