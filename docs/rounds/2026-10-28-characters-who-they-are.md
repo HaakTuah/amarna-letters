@@ -14,7 +14,7 @@ styles).
 
 Asked at the start (Build order since 64, Characters since 18, Diplomacy and intelligence since 23): nothing new.
 Haakon had not answered the questions of items 8, 9, 9+a or 9+b in `docs/BUILD-PROGRESS.md`, so their readings stand.
-Asked again before the pull request: CHECK_AGAIN.
+Asked again before the pull request: nothing newer than the copy (Build order, Characters, Diplomacy and intelligence), and nothing new on `develop`.
 
 ## The audit at the start
 
@@ -53,11 +53,58 @@ patch.
 
 ## Script kings and characters
 
-SCRIPTS
+What script kings do with each feature is in `docs/design/07-script-kings/14-court-and-intelligence.md`, "Who they
+are". How often they used each, seeds 1-50, every king a script king (games with at least one / total):
+
+| Feature | Used | Succeeded |
+|---|---|---|
+| False name given at a pitch (script characters) | 48 / 413 | 235 seen through (43 games); the rest stood |
+| False envoy (script characters) | 20 / 24 | 4 paid a host's gift (3 games) |
+| Questioning a captive | 41 / 135 | 65 truthful recitals (29 games), 22 lies recited (16 games) |
+| Handing a captive over | 10 / 19 | all |
+| Stealing a tablet | 26 / 67 | 67 taken |
+| Outcomes and their talk | every game | hiring by successes, spies chosen by their record |
+
+Weaknesses found and patched while measuring:
+
+- **No false envoy ever appeared** (0 in 50 games): a free person was counted as already seen by the king of the city it
+  lives in, so it was never a stranger there. A free person living in a city is now a stranger to its king until it
+  presents itself (`met` holds only a servant's own court at the start): 24 false envoys in 50 games.
+- **Questioning and stealing cost more than they bought**: `--people-play-half` first gave the kings that use the
+  features 21 wins to 29, with the same mean growth (1.01 and 1.01). Gold spent is score lost, and a spy caught while
+  stealing is lost. Now a king questions only a captive of a king it is at odds with (hostile, or its war) when 150 can be
+  spared, and steals only at the court of its war: 22 wins to 28, mean growth 1.01 to 1.00. Per power the difference goes
+  both ways (Arzawa 1.07 to 0.68, Hatti 0.94 to 1.11), which reads as noise around a small effect.
+- **The features hardly matter to winning yet, and the report says so**: they act on people and on what courts know.
+  Script kings read little of what a tablet says beyond its seals, and nothing yet makes a courtier's name decide a war.
+  Item 11 makes the pool live (fees and offers), so it is where good people first pay. The scripts are not playing them
+  badly: they use every feature, and none of them costs a king more than the noise.
 
 ## Benchmarks and script games
 
-BENCH
+**Before** (the audit: item 9+b's after-numbers) and **after**, seeds 1-50, `scripts/sim.sh --games 50 --seed 1
+--verify-replay`: 50 of 50 replay exactly.
+
+| | Before 10 | After 10 |
+|---|---|---|
+| Capitals fell (games; kingdoms) | 38; 67 | 38; 67 |
+| First fall, median season | 19.5 | 19.5 |
+| Entry to fall, median seasons | 19.5 | 22 |
+| Wins: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa, Alashiya | 0, 8, 6, 23, 2, 11, 0 | 2, 11, 11, 17, 4, 5, 0 |
+| Mean growth (same order) | 1.12, 0.88, 1.38, 1.36, 0.45, 0.99, 0.92 | 1.14, 1.08, 1.33, 1.34, 0.50, 0.82, 0.87 |
+| Tablets sealed; detentions | 1505; 417 | 1547; 416 |
+| Sieges begun / won | 1211 / 771 | 1259 / 819 |
+| Spies caught | 47 | 57 |
+
+`--versus solo`, 40 seeds (one current king against six baselines): 2.50 growth alone and 1.00 as baseline over all, 67%
+and 14% of wins (2.57, 1.00, 68% and 14% before). By power, alone / as baseline: Egypt 1.48 / 1.20, Hatti 3.55 / 0.67,
+Babylonia 2.03 / 1.00, Mitanni 2.92 / 1.27, Assyria 4.19 / 0.92, Arzawa 2.52 / 1.23, Alashiya 0.84 / 0.70.
+
+What moved, and why: the starting envoys' traits changed (attested envoys from the sources), and with them wages and
+what envoys notice; free people now cost their pool's draws and live at their region's courts. Wins spread out (Mitanni 17
+from 23, Hatti and Babylonia 11 each); nothing reads as a new imbalance. Games are about a sixth slower to play (60
+characters, and more rumours on the road); two long tests were given more time. Characters as agents would be woken 0.15
+times a season each, 9 a season over the pool (item 8's measure).
 
 ## Readings taken and design questions
 
@@ -97,7 +144,8 @@ Each is a question Haakon can answer; the reading taken comes first, the alterna
 12. **Attested traits from the sources**: Mane loyal and brave, Keliya trusted and able, Yanhamu able and ambitious,
    Tutu greedy and ambitious, Salmu brave and loyal, Lupakki a brave general, Ilimilku a fine scribe, and so on
    (`rules/cast.ts`), each within 10 points either way (or other readings of them)?
-BALANCEQ
+13. **Balance**: wins spread more evenly (Mitanni 17 of 50, Hatti and Babylonia 11 each), and a feature-using king wins no
+   more than one that ignores them: leave both to item 18 and item 11 (or look now)?
 
 ## First guesses (item 18 tunes them)
 

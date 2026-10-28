@@ -33,12 +33,13 @@
   bad outcome known (caught, turned back, an imposture) counts as a blemish, as a dismissal does. A false envoy is never
   hired.
 - **Choosing a spy**: the servant the court has seen slip past guards, if any; else, as before, the least trusted.
-- **Questioning**: every captive is questioned once, for 30 + 40 × cunning shekels, when the treasury can spare 80 and its
-  lord still stands; then ransomed, turned, executed or released as before.
+- **Questioning**: a captive of a king the court is at odds with (hostile, or its war) is questioned once, for 30 + 40 ×
+  cunning shekels, when the treasury can spare 150 and someone would still pay for it; then ransomed, turned, executed or
+  released as before. (Questioning every captive cost more gold than it bought.)
 - **Handing over**: a captive nobody will pay for, whose lord is hostile to the king, goes to a sworn ally (once), before
   the king lets it go.
-- **Stealing**: a cunning king (above 0.6) has a spy at the court of its war or of the leader steal a tablet now and then
-  (chance 0.4 × cunning a season, at most once in four seasons a spy).
+- **Stealing**: a cunning king (above 0.6) has a spy at the court of its war steal a tablet now and then (chance 0.4 ×
+  cunning a season, at most once in four seasons a spy); a spy caught stealing is lost where it matters most.
 - **False envoys**: a careful king pays 30 for inquiries into a person who says it is an envoy with no letter; a trusting
   one gives a host's gift (10 + 20 × (1 − greed)) to the envoy of a king it is not hostile to; and every letter the king
   sends to the court a person claims to serve carries `checkClaim` for that person.
