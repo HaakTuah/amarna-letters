@@ -83,11 +83,19 @@ P.carryLetters = function () {
     const spy = findCharacter(S, letter.characterId);
     const waited = S.turn - letter.departTurn;
     const court = courtAt(this, at);
-    if (passer !== null) {
-      carrier = findCharacter(S, passer.characterId)!;
-      // Haakon's answers to item 11a: a traveller carries it for a fee on delivery only for a court whose standing order is
-      // to pay carriers; for any other it carries it as a favour, owed nothing.
-      fee = own !== null || !S.payCarriers.includes(letter.to) ? 0 : idiv(basePrice(carrier, letter.to) * seasons * LetterData.sidePercent, 100);
+    const passing = passer === null ? null : findCharacter(S, passer.characterId)!;
+    const side = passing === null ? 0 : idiv(basePrice(passing, letter.to) * seasons * LetterData.sidePercent, 100);
+    // Haakon's answers to item 11a: a traveller carries it for a fee on delivery from a court whose standing order is to
+    // pay carriers; for any other court only if the spy pays it now from its purse.
+    const paysNow = own === null && passing !== null && !S.payCarriers.includes(letter.to);
+    if (passing !== null && (!paysNow || (spy !== null && spy.purse >= side))) {
+      carrier = passing;
+      if (own !== null) fee = 0;
+      else if (paysNow) {
+        spy!.purse -= side;
+        spy!.earned.spent += side;
+        gain(carrier, side, "News");
+      } else fee = side;
     } else if (spy !== null && waited >= LetterData.hireAfter && court !== null) {
       // Hired at the court where it waits: a free person standing there, half now from the spy's purse, or all of it on
       // delivery from a court whose standing order is to pay carriers and whose record of paying, as it heard it, it trusts.
