@@ -168,6 +168,21 @@ describe("BordersTests", () => {
     Assert.contains("freed", lines.get("Hatti")?.join(" ") ?? "");
   });
 
+  test("Deportees shipped by sea are freed only on land, never lost in the waters (item 11a+, from the review)", () => {
+    const s = quiet();
+    const e = new TurnEngine(s);
+    s.owner.set("gaza", "Egypt");
+    s.owner.set("sidon", "Egypt");
+    e.beginTurn();
+    e.resolve(orders("Egypt", deport("gaza", "sidon", 1000, true)));
+    const w = single(s.walking, (y) => y.deported);
+    s.roadsClosed.set("Hatti", ["Egypt"]);
+    for (const p of w.route.filter((x) => Map.get(x).isSea)) s.units.push(newUnit({ id: `u-sea-${p}`, power: "Hatti", kind: "Fleet", province: p, men: LandData.fleetMen }));
+    e.deporteesOnRoad();
+    Assert.true(s.walking.includes(w));
+    Assert.false(w.route.some((p) => Map.get(p).isSea && (s.people.tryGet(p)?.loose ?? 0) > 0));
+  });
+
   test("The king chooses how many mouths to put out of a besieged city, up to most of the town (item 11a+)", () => {
     const s = quiet();
     const e = new TurnEngine(s);

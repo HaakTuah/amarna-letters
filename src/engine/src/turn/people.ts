@@ -214,7 +214,9 @@ P.peopleSeason = function (food) {
     const r = reckonedOf(Map, prov.id);
     const need = countryNeed(prov, x.settled, r.settled);
     if (need <= 0) continue;
-    const land = idiv(food.getOrDefault(prov.id, 0) * 1000, need);
+    // What the farmers keep a season (item 11a+): a third of the last harvest less the tax, as far as their granary holds.
+    const keep = Math.min(food.getOrDefault(prov.id, 0), idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * (100 - this.taxRate(prov.id)), 100));
+    const land = idiv(keep * 1000, need);
     const roads = idiv(idiv(wealth(prov.id) * LandData.robPermille, 1000) * x.settled * 1000, Math.max(1, (x.loose + 1000) * need));
     if (roads > land) {
       const [n, men] = share(x, idiv(idiv(x.settled * LandData.switchPercent, 100) * (roads - land), roads));

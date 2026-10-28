@@ -195,7 +195,9 @@ P.grantByOrder = function (p, o) {
         ? "basing is granted in one city"
         : !isAlive(S, o.grantee)
           ? `${o.grantee} has fallen`
-          : null;
+          : (S.roadsClosed.tryGet(p) ?? []).includes(o.grantee)
+            ? `your roads are closed to ${o.grantee}'s people: open them first`
+            : null;
   const where = o.province !== null ? Map.get(o.province).name : "all your land";
   if (why !== null) {
     notify(S, p, "Rejected", "Order failed", `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`);
@@ -212,7 +214,7 @@ P.grantByOrder = function (p, o) {
 /** Closing one's roads to a court ends what one granted it. */
 P.endGrants = function (grantor, grantee, why) {
   const S = this.s;
-  const ended = S.grants.filter((g) => g.grantor === grantor && g.grantee === grantee && grantStands(g, S.turn));
+  const ended = S.grants.filter((g) => g.grantor === grantor && g.grantee === grantee && grantLive(g, S.turn));
   for (const g of ended) g.endedTurn = S.turn;
   if (ended.length === 0) return;
   logEvent(S, "passage", `${grantor} ended the passage and basing it granted ${grantee}: ${why}.`, [grantor, grantee], "grant-revoked");

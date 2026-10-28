@@ -269,7 +269,8 @@ P.deporteesOnRoad = function () {
     const by = w.by as Power;
     const homeland = Map.get(w.from).home;
     const frees = (k: Power): boolean => k !== by && ((homeland !== null && k === homeland) || (S.roadsClosed.tryGet(k) ?? []).includes(by));
-    const where = stretch.find((x) => S.units.some((u) => u.province === x && frees(u.power)));
+    // Freed only on land, where they can stand (a fleet in the waters they are shipped across cannot take them off).
+    const where = stretch.find((x) => !Map.get(x).isSea && S.units.some((u) => u.province === x && frees(u.power)));
     if (where === undefined) continue;
     const freer = sortBy(
       S.units.filter((u) => u.province === where && frees(u.power)),
@@ -371,7 +372,7 @@ P.expel = function (p, o) {
   const before = S.expelled.getOrDefault(o.province, 0);
   const after = Math.min(LandData.expelMost, before + idiv((100 - before) * clamp(o.percent, 0, 100), 100));
   if (S.owner.getOrDefault(o.province, null) !== p || siegeOf(S, o.province) === null || after <= before) {
-    notify(S, p, "Rejected", "Order failed", `Nobody was put out of ${prov.name}: ${S.owner.getOrDefault(o.province, null) !== p ? "you no longer hold it" : siegeOf(S, o.province) === null ? "it is not besieged" : before >= LandData.expelMost ? "only the fighting men and those who feed them are left" : "you named nobody to put out"}.`);
+    notify(S, p, "Rejected", "Order failed", `Nobody was put out of ${prov.name}: ${S.owner.getOrDefault(o.province, null) !== p ? "you no longer hold it" : siegeOf(S, o.province) === null ? "it is not besieged" : before > 0 && after <= before ? "only the fighting men and those who feed them are left" : "you named nobody to put out"}.`);
     return;
   }
   S.expelled.set(o.province, after);

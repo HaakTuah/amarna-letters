@@ -163,7 +163,8 @@ P.harvestSeason = function () {
     } else S.crop.set(prov.id, crop);
     // A land without a king collects no tax: its people keep their whole harvest.
     if (!prov.kingless) {
-      const due = toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * this.yieldFactor(prov.id)));
+      // The harvest already bore the catastrophes; the tax bears only absorption, and nothing reaches it under a siege.
+      const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * absorbedIn(S, prov.id)));
       const tax = Math.min(granary, due);
       granary -= tax;
       const over = this.putInStores(prov.id, tax);
