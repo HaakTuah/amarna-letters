@@ -3,7 +3,7 @@
  * large band works there and with armies it can spare; and it buys news of the courts it fears or
  * fights or does not trust from the people at its court who sell it ("Characters as sellers of news"), fresh and cheap enough to be worth it.
  */
-import { BandData, buyNews, cmpStr, hunt, huntBands as huntBandsOrder, sortBy, move, type Order, type Power, type SeatView } from "@amarna/engine";
+import { BandData, buyNews, cmpStr, hunt, huntBands as huntBandsOrder, sortBy, sum, move, type BandSeen, type Order, type Power, type SeatView } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
@@ -25,11 +25,12 @@ const BandHunt = { loss: BandData.huntLoss, least: BandData.least };
 
 /**
  * An army holding in its own land with no foreign troops beside it marches on a band working in a province of its own
- * next door, where nobody else of ours stands or goes.
+ * next door, where nobody else of ours stands or goes, if a hunt there would pay (`worthHunting`, for an army of our
+ * armies' mean size).
  */
 export function huntBands(b: Board, plan: MilitaryPlan): void {
   if (!OutlawPlay.on(b.me)) return;
-  const bands = b.v.bands.filter((x) => x.men >= HuntMen && b.isMine(x.province));
+  const bands = b.v.bands.filter((x) => x.men >= HuntMen && b.isMine(x.province) && worthHunting(b, x, sum(b.mine.filter((u) => u.kind === "Army"), (u) => u.men) / Math.max(1, b.mine.filter((u) => u.kind === "Army").length)));
   if (bands.length === 0) return;
   const target = new Set(bands.map((x) => x.province));
   for (const u of sortBy([...b.mine], [(u) => u.province, cmpStr])) {
@@ -63,12 +64,15 @@ export function huntOrders(b: Board, orders: Order[]): void {
   for (const x of sortBy([...b.v.bands], [(x) => x.province, cmpStr])) {
     if (!b.isMine(x.province)) continue;
     const army = b.mine.filter((u) => u.kind === "Army" && u.province === x.province).reduce((a, u) => a + u.men, 0);
-    if (army === 0) continue;
-    const lost = Math.min(x.men, Math.floor((Math.floor((x.men * BandHunt.loss) / 100) * army) / (army + x.men)) + 1);
-    const breaks = x.men - lost < BandHunt.least;
-    const refuge = Board.Map.movesFrom("Army", x.province).some((n) => !Board.Map.get(n).isSea && b.isMine(n) && !b.unitAt.has(n));
-    if (breaks || !refuge) orders.push(hunt(x.province));
+    if (army > 0 && worthHunting(b, x, army)) orders.push(hunt(x.province));
   }
+}
+
+/** A hunt by an army of `army` men ends the band, or drives it out of our land: it has no province of ours to flee to. */
+function worthHunting(b: Board, x: BandSeen, army: number): boolean {
+  const lost = Math.min(x.men, Math.floor((Math.floor((x.men * BandHunt.loss) / 100) * army) / (army + x.men)) + 1);
+  if (x.men - lost < BandHunt.least) return true;
+  return !Board.Map.movesFrom("Army", x.province).some((n) => n !== x.province && !Board.Map.get(n).isSea && b.isMine(n) && !b.unitAt.has(n));
 }
 
 /** At most one purchase a season: the freshest news of a foe or the court it means to fight, if the treasury can spare it. */
