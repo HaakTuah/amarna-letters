@@ -32,6 +32,7 @@ import {
   type HostReply,
   type Order,
   type Power,
+  type SeatView,
   type Province,
   type Rng,
   type TabletView,
@@ -45,6 +46,7 @@ import { joints, willing } from "./tactics.ts";
 import { TextKit } from "./textkit.ts";
 import { againstIn, answerLetter, clausePlays, givesAwayIn } from "./statecraft-clauses.ts";
 import { authorityFor, authorityOn, basingTablet, counterFor, grantsOk, passageClause, stagingFor } from "./authority.ts";
+import { wantsTradeRights } from "./trade.ts";
 
 const Oath = "By Shamash, Amun, Marduk and Teshub";
 
@@ -307,7 +309,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
         {
           mandate: "You may swear a full alliance. Promise no land.",
           greeting,
-          proposal: newTabletProposal({ text: allianceTablet(me, to), allianceOath: true, clauses: [clause("alliance")] }),
+          proposal: newTabletProposal({ text: allianceTablet(me, to), allianceOath: true, clauses: [clause("alliance"), ...tradeRights(b.v, to)] }),
           clauses: [clause("alliance")],
         },
       );
@@ -326,7 +328,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
           gold: g,
           purityPercent: g > 0 ? purity() : 100,
           noInventory: g > 0 && bare(brain, to, envoy, b),
-          proposal: newTabletProposal({ text: peaceTablet(me, to), clauses: [clause("peace")] }),
+          proposal: newTabletProposal({ text: peaceTablet(me, to), clauses: [clause("peace"), ...tradeRights(b.v, to)] }),
           clauses: [clause("peace"), ...(g > 0 ? [clause("gift", { amount: g })] : [])],
         },
       );
@@ -483,6 +485,11 @@ export function givesAway(proposal: TabletView, b: Board, from: Power): boolean 
   return Board.Map.provinces
     .filter((x) => !x.isSea && (b.isMine(x.id) || x.home === b.me))
     .some((x) => (x.capital ? sentences.some((s) => named(s, x) && TextKit.handsOver(s)) : named(text, x)));
+}
+
+/** Free passage for each other's goods (item 9+b), written into a peace or an alliance where tolls stand between us. */
+function tradeRights(v: SeatView, to: Power): Clause[] {
+  return wantsTradeRights(v, to) ? [clause("tollFree"), clause("askTollFree")] : [];
 }
 
 /** The greeting a king chooses, from his pride and his feelings for the recipient. `humble`: tribute. */

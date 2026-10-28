@@ -94,6 +94,44 @@ export interface CaravanOrder {
   to: string;
   amount: number;
 }
+/**
+ * Send a trading caravan (item 9+b, "Caravans carry a kingdom's goods"): grain from a province's stores and gold from the
+ * treasury, through land open to it, to a foreign market, where it sells its grain and buys grain with its gold, and
+ * home again with what it got. Smuggling (`sneak`): off the road and round the toll posts, through closed land too,
+ * paying no tolls but at the risk of being found and losing its goods ("Tolls and smuggling").
+ */
+export interface TradeOrder {
+  type: "trade";
+  from: string;
+  to: string;
+  grain: number;
+  gold: number;
+  sneak: boolean;
+}
+/**
+ * Put a fleet into cargo service (item 9+b, "Ships carry goods"): it loads grain from the stores of a harbour of its
+ * king's on its waters and gold from the treasury, sails to another harbour, trades at its market (`trade`) or hands its
+ * grain to its king's troops and stores there, and sails home, out of the war until it is back.
+ */
+export interface ShipOrder {
+  type: "ship";
+  fleet: string;
+  from: string;
+  to: string;
+  grain: number;
+  gold: number;
+  trade: boolean;
+}
+/**
+ * Set a toll on goods entering one's land (item 9+b, "Tolls and smuggling"): a percent of what crosses, in one province
+ * or all one's land (`province` null), for one partner or everyone (`partner` null). It stands until changed.
+ */
+export interface TollOrder {
+  type: "toll";
+  province: string | null;
+  partner: Power | null;
+  percent: number;
+}
 export interface RaiseOrder {
   type: "raise";
   province: string;
@@ -263,6 +301,9 @@ export type Order =
   | PurchaseOrder
   | FeedOrder
   | CaravanOrder
+  | TradeOrder
+  | ShipOrder
+  | TollOrder
   | RaiseOrder
   | DisbandOrder
   | BuyProvinceOrder
@@ -336,6 +377,9 @@ export const sell = (province: string, amount: number): SellOrder => ({ type: "s
 export const purchase = (province: string, amount: number): PurchaseOrder => ({ type: "purchase", province, amount });
 export const feed = (province: string, amount: number): FeedOrder => ({ type: "feed", province, amount });
 export const caravan = (from: string, to: string, amount: number): CaravanOrder => ({ type: "caravan", from, to, amount });
+export const trade = (from: string, to: string, grain: number, gold: number, sneak = false): TradeOrder => ({ type: "trade", from, to, grain, gold, sneak });
+export const ship = (fleet: string, from: string, to: string, grain: number, gold: number, trade = true): ShipOrder => ({ type: "ship", fleet, from, to, grain, gold, trade });
+export const toll = (percent: number, partner: Power | null = null, province: string | null = null): TollOrder => ({ type: "toll", province, partner, percent });
 export const placeSpy = (character: string, court: Power | null = null, province: string | null = null): PlaceSpyOrder => ({ type: "spy", character, court, province });
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
 export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "counterIntel", spend });
@@ -383,6 +427,12 @@ export function describe(o: Order): string {
       return `hand ${o.amount} measures of grain to the town of ${named(o.province)}`;
     case "caravan":
       return `send a caravan with ${o.amount} measures of grain from ${named(o.from)} to ${named(o.to)}`;
+    case "trade":
+      return `send a caravan${o.sneak ? ", smuggling," : ""} with ${o.grain} measures of grain and ${o.gold} shekels from ${named(o.from)} to trade at ${named(o.to)}`;
+    case "ship":
+      return `load the fleet in ${o.fleet} with ${o.grain} measures of grain and ${o.gold} shekels at ${named(o.from)} and sail to ${o.trade ? "trade at" : "deliver to"} ${named(o.to)}`;
+    case "toll":
+      return `set a toll of ${o.percent}% on ${o.partner === null ? "everyone's" : `${o.partner}'s`} goods entering ${o.province === null ? "your land" : named(o.province)}`;
     case "raise":
       return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}`;
     case "disband":
@@ -500,6 +550,9 @@ export const OrderSchema = poly("Order", "type", {
   purchase: v("PurchaseOrder", () => purchase("", 0), { province: S, amount: I }),
   feed: v("FeedOrder", () => feed("", 0), { province: S, amount: I }),
   caravan: v("CaravanOrder", () => caravan("", "", 0), { from: S, to: S, amount: I }),
+  trade: v("TradeOrder", () => trade("", "", 0, 0), { from: S, to: S, grain: I, gold: I, sneak: B }),
+  ship: v("ShipOrder", () => ship("", "", "", 0, 0), { fleet: S, from: S, to: S, grain: I, gold: I, trade: B }),
+  toll: v("TollOrder", () => toll(0), { province: opt(S), partner: opt(S), percent: I }),
   raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S }),
   disband: v("DisbandOrder", () => disband(""), { unit: S }),
   buy: v("BuyProvinceOrder", () => buy(""), { province: S }),

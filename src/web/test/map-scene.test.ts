@@ -345,8 +345,9 @@ describe("MapSceneTests", () => {
     }
     let after = 0;
     for (let k = 1; k < frames.length; k++) {
-      // Every order of the season was given by a unit standing where it was given from as the season began.
-      for (const m of frames[k].moves) Assert.contains(frames[k - 1].units, (u) => u.province === m.from && u.power === m.power && u.kind === m.kind);
+      // Every order of the season was given by a unit standing where it was given from as the season began, or by a fleet
+      // back from cargo service as it began (item 9+b), which the last frame did not show.
+      for (const m of frames[k].moves.filter((x) => x.kind !== "Fleet")) Assert.contains(frames[k - 1].units, (u) => u.province === m.from && u.power === m.power && u.kind === m.kind);
       if (frames[k - 1].eliminated.size > 0) after++;
     }
     Assert.true(after > 0, "no court fell early enough in the game to check");

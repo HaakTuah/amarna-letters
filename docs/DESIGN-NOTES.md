@@ -53,3 +53,4 @@ claim graded and sourced.
 | [`design/14-structured-press.md`](design/14-structured-press.md) | Structured press, recognition, gold without an inventory, local agent characters (item 8) | 13.4 |
 | [`design/15-envoy-authority-and-passage.md`](design/15-envoy-authority-and-passage.md) | Winter dangerous, spy reports by road, envoy authority, passage and basing (item 9) | 8.6 |
 | [`design/16-the-economy-at-home.md`](design/16-the-economy-at-home.md) | The economy at home: grain, stores, markets, pay and food, caravans, the siege's clock, the wealth of a realm (item 9+a) | 9.5 |
+| [`design/17-the-economy-abroad.md`](design/17-the-economy-abroad.md) | The economy abroad: trade at foreign markets, ships in cargo service, tolls, smuggling, troops abroad by leave, the sack (item 9+b) | 7.5 |

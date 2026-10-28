@@ -14,6 +14,7 @@ export { RoadPlay } from "./bots/roads.ts";
 export { WinterStrokes } from "./bots/tactics.ts";
 export { AuthorityPlay } from "./bots/authority.ts";
 export { GrainPlay } from "./bots/grain.ts";
+export { TradePlay } from "./bots/trade.ts";
 export { CharacterChecks } from "./character-checks.ts";
 export * from "./human-seat.ts";
 export * from "./signals.ts";

@@ -48,7 +48,8 @@ export function againstIn(t: { clauses: readonly Clause[]; text: string }, excep
 
 /** Whether clauses would make the one who agrees to them give something away: gold, tribute, land or a withdrawal. */
 export function givesAwayIn(cs: readonly Clause[]): boolean {
-  return cs.some((x) => GivingKinds.includes(x.kind));
+  // Free passage for goods asked in return for the same (item 9+b) gives nothing away.
+  return cs.some((x) => GivingKinds.includes(x.kind) && !(x.kind === "askTollFree" && cs.some((y) => y.kind === "tollFree")));
 }
 
 const answer = (kind: "accept" | "refuse" | "counter", answers: ClauseKind, init: Partial<Clause> = {}): Clause => clause(kind, { answers, ...init });

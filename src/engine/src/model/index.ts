@@ -19,3 +19,4 @@ export * from "./recognition.ts";
 export * from "./authority.ts";
 export * from "./economy.ts";
 export * from "./caravans.ts";
+export * from "./trade.ts";

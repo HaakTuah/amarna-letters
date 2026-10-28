@@ -2,7 +2,7 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TurnSubmission } from "../model/orders.ts";
+import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed } from "../model/outcomes.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
@@ -116,7 +116,7 @@ P.resolveSeason = function (submissions) {
   }
   for (const [p, r] of all((o): o is RaiseOrder => o.type === "raise")) this.raise(p, r);
   // The season's trades at the markets, grain handed to towns, and caravans setting out (item 9+a).
-  this.settleMarkets(all((o): o is Order => o.type === "sell" || o.type === "purchase" || o.type === "feed" || o.type === "caravan"));
+  this.settleMarkets(all((o): o is Order => o.type === "sell" || o.type === "purchase" || o.type === "feed" || o.type === "caravan" || o.type === "trade" || o.type === "ship"));
   // Scheduled orders that waited for a levy's unit that was not raised are dropped.
   this.unraisedLevies();
 
@@ -125,6 +125,8 @@ P.resolveSeason = function (submissions) {
   this.recognise();
   this.resolveIntelligence(all(any));
   for (const [p, o] of all((o): o is RoadsOrder => o.type === "roads")) this.roads(p, o);
+  // Tolls (item 9+b) stand from next season.
+  for (const [p, o] of all((o): o is TollOrder => o.type === "toll")) this.setToll(p, o);
   // Grants revoked and tablets repudiated (item 9) take effect from next season: guests still there then take the land.
   for (const [p, o] of all((o): o is RevokeOrder => o.type === "revoke")) this.revokeGrants(p, o);
   for (const [p, o] of all((o): o is RepudiateOrder => o.type === "repudiate")) this.repudiate(p, o);
@@ -343,6 +345,7 @@ P.updateOwnership = function () {
     }
     this.setOwner(u.province, u.power);
     this.takenByForce(u.province, u.power);
+    this.sack(u.province, u.power);
     if (before !== null) {
       notify(S, before, "Battle", "Land lost", `${prov.name} has been taken by ${u.power}.`);
       logEvent(S, "conquest", `${u.power} took ${prov.name} from ${before}.`, [u.power, before]);

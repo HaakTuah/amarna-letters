@@ -12,6 +12,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { grantStands } from "../model/authority.ts";
 import { buyAlongCurve, cityPriceOf, needOf } from "../model/economy.ts";
+import { harbourOf, shipFleet, TradeData } from "../model/trade.ts";
 import { findCharacter, isAlive, ledger, siegeOf, unitAt, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
 
@@ -61,6 +62,7 @@ export class OrderValidator {
     const busyCharacters = new HSet<string>();
     const ransomed = new HSet<string>();
     const renewed = new HSet<string>();
+    const tollsSet = new HSet<string>();
     let dispatches = 0;
     let seekCount = 0;
     let counterIntel = false;
@@ -232,7 +234,7 @@ export class OrderValidator {
           if (isBlank(order.province)) return `name the province whose grain to ${what}`;
           if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
           const name = Map.get(order.province).name;
-          if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${name}: you trade only at your own markets until caravans trade abroad`;
+          if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${name}: at a foreign market you trade by a caravan (order trade) or a ship (order ship)`;
           if (siegeOf(S, order.province) !== null) return `${name} is besieged: nothing goes in or out of its market`;
           if (!(order.amount > 0)) return "name how many measures of grain";
           if (order.type !== "purchase") return null;
@@ -247,6 +249,50 @@ export class OrderValidator {
           if (S.owner.getOrDefault(order.from, null) !== power) return `you do not hold ${Map.get(order.from).name}`;
           if (siegeOf(S, order.from) !== null) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
           if (!(order.amount > 0)) return "name how many measures of grain";
+          return null;
+        }
+
+        case "trade": {
+          if (isBlank(order.from) || isBlank(order.to)) return "name the province the caravan sets out from and the market it goes to";
+          for (const x of [order.from, order.to]) if (!Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
+          if (S.owner.getOrDefault(order.from, null) !== power) return `you do not hold ${Map.get(order.from).name}`;
+          if (siegeOf(S, order.from) !== null) return `${Map.get(order.from).name} is besieged: no caravan can leave it`;
+          if (S.owner.getOrDefault(order.to, null) === power) return `${Map.get(order.to).name} is your own market: sell or buy there with the orders sell and purchase`;
+          if (Map.get(order.to).kingless) return `${Map.get(order.to).name} has no town and no market to trade at`;
+          if (!(order.grain >= 0) || !(order.gold >= 0) || order.grain + order.gold <= 0) return "name the grain it carries to sell, the gold it carries to buy with, or both";
+          return spend(order.gold);
+        }
+
+        case "ship": {
+          for (const x of [order.from, order.to]) if (isBlank(x) || !Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
+          const fleet = shipFleet(S.units, Map.get(order.from), order.fleet, power);
+          if (fleet === null || (fleet.province !== order.from && fleet.province !== Map.get(order.from).waters)) return `you have no fleet in ${Map.get(order.from).name} or its waters to load`;
+          if (orderedUnits.has(fleet.province)) return `the fleet in ${fleet.province} already has an order`;
+          const from = Map.get(order.from);
+          const to = Map.get(order.to);
+          if (harbourOf(from) <= 0) return `${from.name} has no harbour`;
+          if (S.owner.getOrDefault(order.from, null) !== power) return `you do not hold ${from.name}`;
+          if (siegeOf(S, order.from) !== null) return `${from.name} is besieged: nothing is loaded there`;
+          if (harbourOf(to) <= 0) return `${to.name} has no harbour`;
+          if (order.from === order.to) return "a ship must sail somewhere else";
+          if (order.trade && S.owner.getOrDefault(order.to, null) === power) return `${to.name} is your own market: deliver there (trade false), and sell with the order sell`;
+          if (order.trade && to.kingless) return `${to.name} has no town and no market to trade at`;
+          if (!(order.grain >= 0) || !(order.gold >= 0) || order.grain + order.gold <= 0) return "name the grain it loads, the gold it carries, or both";
+          if (order.grain > TradeData.shipCapacity) return `a fleet carries at most ${TradeData.shipCapacity} measures`;
+          if (!order.trade && order.gold > 0) return "a ship that delivers carries grain only: gold goes with a ship that trades";
+          const paid = spend(order.gold);
+          if (paid === null) orderedUnits.add(fleet.province);
+          return paid;
+        }
+
+        case "toll": {
+          if (order.province !== null && (!Map.exists(order.province) || Map.get(order.province).isSea)) return `there is no province called '${order.province}'`;
+          if (order.province !== null && S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${Map.get(order.province).name}`;
+          if (order.partner !== null && (!AllPowers.includes(order.partner) || order.partner === power)) return `there is no other king called '${order.partner}'`;
+          if (!(order.percent >= 0) || order.percent > TradeData.tollMost) return `a toll is a percent from 0 to ${TradeData.tollMost}`;
+          const key = `${order.province ?? ""}|${order.partner ?? ""}`;
+          if (tollsSet.has(key)) return "you had already set that toll this season";
+          tollsSet.add(key);
           return null;
         }
 

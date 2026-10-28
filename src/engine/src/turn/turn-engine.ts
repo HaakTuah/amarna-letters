@@ -19,6 +19,7 @@ import "./press.ts";
 import "./winter.ts";
 import "./authority.ts";
 import "./economy.ts";
+import "./trade.ts";
 
 export { TurnEngine, idNumber, travelTurns, absorbedIn, BackPayTitle, KingdomFallsTitle } from "./core.ts";
 export { removeAll } from "./resolve.ts";
@@ -34,3 +35,4 @@ export { ClaimEstablishedTitle } from "./press.ts";
 export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker } from "./travel.ts";
 export { WinterLossTitle, type WinterCrossing } from "./winter.ts";
 export { GrantTitle, RepudiatedTitle } from "./authority.ts";
+export { TollsTitle } from "./trade.ts";
