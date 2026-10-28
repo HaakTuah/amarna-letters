@@ -122,11 +122,11 @@ their court could not see. Left as a design question: carriers' fees paid on del
     `LeaderPace` ±10, a bandit's share 20 shekels a thousand men a season.
 15. **Free travellers' arrival** now follows their road (`setOut`) instead of the fastest seasons between capitals, so
     some arrive a season later or sooner.
+16. **People die of plague** 5 in a hundred a season where it strikes, of famine 2 where the people had under half their
+    food.
 17. **A carrier's fee is paid on delivery from the treasury by itself**, and counts against the record if the treasury
     cannot pay it (the review's point 5). Haakon's answer that every payment is the payer's own order belongs to the rework
     of jobs (question 13), which will move this payment with the others.
 18. **A report left at a watch post whose spy is gone is lost** after two seasons, with no court there to hire a carrier.
 19. **A chief taken by a king's army is a captive like any other**, but no court counts it as one of its people lost
     abroad, and nobody ransoms him.
-16. **People die of plague** 5 in a hundred a season where it strikes, of famine 2 where the people had under half their
-    food.
