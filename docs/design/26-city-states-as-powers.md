@@ -22,11 +22,12 @@ and the script players' vassal judgements (`bots/vassals.ts`).
   20 men a shekel; the lands without a town, where every man fights, 250 men a shekel (Kaska 2,500). Gold: four
   seasons of yield. `StartUnit.men` carries a levy smaller than a full unit; its baggage is in proportion (`forMen`).
 - **Walls**: every capital 3, the city-states' cities among them, as the rulebook's walls rule says; Gaza, Memphis, Nesa
-  and Nineveh 2; Sumur 1; the lands without a town none. Until item 11+ the cities were fortresses (2) or walled towns
-  (1); at those, a neighbour's army stormed one in the first season.
-- **Lands without a town** (`Province.kingless`: Kaska, Lukka, the Sutean steppe) keep no walls and no market, but under
-  their leader they are taxed like any land held (`harvestSeason`); only a land without a town that nobody holds keeps
-  its whole harvest.
+  and Nineveh 2; Sumur 1; the lands without a town 2, their chiefs' strongholds [G] (from the review: without them Lukka
+  fell in seasons 1-3 in every script game). Until item 11+ the cities were fortresses (2) or walled towns (1); at those,
+  a neighbour's army stormed one in the first season.
+- **Lands without a town** (`Province.kingless`: Kaska, Lukka, the Sutean steppe) keep no market, but under their leader
+  they are taxed like any land held (`harvestSeason`). Land nobody holds pays no tax and keeps its whole harvest ("Land
+  without a ruler"; until item 11+ a free city's tax filled its own stores); every harvest bears the season's catastrophes.
 - **No purchase.** The order `buy`, `cityPrices` in the view, the validator's and engine's purchase and `withinReach` are
   gone: a city comes under another's power by conquest, or by agreement as his vassal; a capital still cannot be ceded.
   `cityPriceOf` is `provinceWorthOf`, what a province adds to its holder's strength.
@@ -50,7 +51,8 @@ and the script players' vassal judgements (`bots/vassals.ts`).
 ### The scoreboard (`rules/scoring.ts`, `turn/resolve.ts`)
 
 - **Par** for each starting position: the growth a power that started there usually reaches by the end of a script game,
-  in the games it survives (a fallen power cannot win), tribute paid and received included. `parOf` (never below 0.1;
+  in the games it survives (a fallen power cannot win), tribute paid and received included: `Par`, from 50 script games
+  (seeds 1-50), the lands without a town from a second run after their strongholds. `parOf` (never below 0.1;
   1 where unmeasured) and `standingOf` = growth / par. The winner is the living power with the highest standing; the
   shared victory compares a pair's growth against their par, weighted by starting strength. The scripts' reckoning of
   rivals (`Board.growth`) is the same standing, so they pursue what the game rewards.
