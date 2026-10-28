@@ -12,7 +12,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { grantStands } from "../model/authority.ts";
 import { buyAlongCurve, cityPriceOf, needOf } from "../model/economy.ts";
-import { harvestIn, LandData, menOf } from "../model/land.ts";
+import { harvestIn, LandData, menAvailable, menOf } from "../model/land.ts";
 import { harbourOf, shipFleet, TradeData } from "../model/trade.ts";
 import { findCharacter, isAlive, ledger, siegeOf, unitAt, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
@@ -316,8 +316,8 @@ export class OrderValidator {
           if (S.owner.getOrDefault(p.id, null) !== power) return `you do not hold ${p.name}`;
           if (r.kind === "Fleet" && !p.isCoastal) return `${p.name} has no harbour for a fleet`;
           if (raisedIn.has(p.id)) return `you already raise a unit in ${p.name}`;
-          const men = S.people.tryGet(p.id)?.men ?? 0;
-          if (men < menOf(r.kind)) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (${menOf(r.kind)} needed, ${men} there)`;
+          const men = menAvailable(S, p.id);
+          if (men < menOf(r.kind)) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (${menOf(r.kind)} needed, ${men} at home and not carrying or building)`;
           return spend(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost);
         }
 

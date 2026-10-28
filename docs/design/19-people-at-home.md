@@ -32,9 +32,14 @@ each man of fighting age 6 more in a busy season and 3 in the slack one, less th
 the caravan carries, and the corvée, 3,000 for a season when walls are built). `g(r)` is `√r` below full strength (half
 the people reap seven in ten; a levy of a twentieth costs about a fortieth) and `1 + (r−1)/4` above. The climate share is
 the product of the droughts and floods striking the province. The land's worth in the score (`landWorth`) and a free
-city's price use the harvest without the climate share: the score counts the people, not a passing season's weather.
+city's price use the harvest without the climate share or the men away, and with a man's weight averaged over the three seasons: the score
+counts the people over the year, not a passing season's weather or work. A province's countryside needs at least a
+measure, so even a nearly emptied one has room to fill.
 
 ### The season (turn/people.ts, `peopleSeason`, after the towns eat)
+
+It runs after the troops eat: troops foraging in a province take their share from what its farmers kept
+(`_foodNow`), before the countryside eats.
 
 1. Discharged men whose walk ends arrive home (`walking`); the corvée is cleared.
 2. The countryside eats: its food is what it kept of the harvest after the tax (`_foodNow`, set in `harvestSeason`: the
@@ -55,12 +60,13 @@ city's price use the harvest without the climate share: the score counts the peo
 
 ### Orders
 
-- `tax {province | null, percent}` (0 to 80): stands until changed or the province changes hands (`taxes`, by province,
+- `tax {province | null, percent}` (0 to 100: "no rule caps the rate"): stands until changed or the province changes hands (`taxes`, by province,
   left out at the default 33). Validated in `rules/validator.ts`, set in `setTax`.
 - `disband {unit, settle}`: `settle` in a province of one's own settles the men there (`menHome`). Otherwise they walk
   home, arriving after the fastest route's days at 45 a season; one in a hundred more for every 3 days beyond 15 (at most
   half) turn loose where they stood. A mutinous unit and a fallen kingdom's troops walk home too.
-- `raise` needs the men: refused at validation and at resolution where the province's men of fighting age are fewer.
+- `raise` needs the men: refused at validation and at resolution where the province's men of fighting age at home and
+  not away carrying or building (`menAvailable`) are fewer. The corvée takes at most the men available.
 
 ### Battle, sieges and catastrophes
 
@@ -69,12 +75,12 @@ city's price use the harvest without the climate share: the score counts the peo
 - A city stormed (`updateOwnership`) or surrendering to a siege (`surrender`): 5% of its settled dead and 5% loose.
 - Plague kills 5% of the stricken realm's settled; an earthquake 2% of its province's. Drought and flood are no longer
   drawn by power: `catastropheChance` halved to 0.0175, so plague and earthquakes come as often as before.
-- **Droughts** (`climateSeason`, called from `worldEvents`): at the start of each year, one draw a region (the plateau
-  1 in 6, the Levant and Syria and the Habur and Assyria 1 in 8, the western coasts and Cyprus 1 in 10): its rain-fed
-  provinces reap half for three seasons. **Floods**: one draw a river a year in its flood season (the Nile in Akhet, the
-  Tigris and Euphrates in Shemu): a bad one (Nile 1 in 8, the others 1 in 6) leaves 60% for three seasons along the whole
-  course, a ruinous one (1 in 30, 1 in 20) 30% and drowns 1%. Holders are told at once, courts that see the land the next
-  season (as catastrophes).
+- **Droughts** (`climateSeason`, called from `worldEvents`): once a year, in Shemu, one draw a region (the plateau 1 in
+  6, the Levant and Syria and the Habur and Assyria 1 in 8, the western coasts and Cyprus and the Susiana plain 1 in 10):
+  its rain-fed provinces reap half for the next three seasons. **Floods**: one draw a river a year, the season before its
+  flood season (the Nile floods in Akhet, the Tigris and Euphrates in Shemu), striking from it: a bad one (Nile 1 in 8, the others 1 in 6) leaves 60% for three seasons along the whole
+  course, a ruinous one (1 in 30, 1 in 20) 30% and drowns 1%. Droughts and floods are drawn only while catastrophes are
+  on (`catastropheChance` above 0). Holders are told when it is drawn, as are courts that see any of the land.
 
 ### The people defend their land (rules/adjudicator.ts)
 
@@ -95,20 +101,25 @@ their walls: the people resist in every province alike (reading in the report).
 
 ### What a king sees
 
-`ProvinceEconomyView` gains `settled`, `men`, `loose`, `room`, `taxRate`, `harvest` and `fed`; `SeatView.yields` (every
-land province's yield as its people bring it in now, on the map's scale, public as strength is), `resistance` (what this
-court's troops would meet, where any) and `walking`. The rulebook's PEOPLE part is `llm/src/rules-people.ts`; model kings
+`ProvinceEconomyView` gains `settled`, `men`, `loose`, `room`, `taxRate`, `harvest` and `fed`; `SeatView.yields` (the
+yield of its own land and the land in its sight as its people bring it in now, on the map's scale; elsewhere the court
+knows only the map's), `resistance` (what this court's troops would meet in the land it sees, where any) and `walking`.
+A model king reads them compactly (`peopleLines` in `llm/src/prompt-economy.ts`): YOUR PEOPLE, the hungry, the rates,
+land with room, the men for levies, YIELDS that changed and RESISTANCE. A free city's asking price (`cityPrices`) is public
+as before and follows its people. The rulebook's PEOPLE part is `llm/src/rules-people.ts`; model kings
 order `set_tax` and the unit order `settle`. The web app shows a province's people in its panel and has "Set the tax" in
 the grain row and "Disband and settle its men here" for a unit.
 
 ### Script kings (game/src/bots/land.ts)
 
 - Each province's tax is set to the highest its farmers can bear this season without going hungry, less 3 points
-  (`bearableTax`), and at least 5 under its rate where it went short; grain from the stores feeds a countryside that
+  (`bearableTax`), and at least 5 under its rate where it went short; a rate comes down at once and goes up only once
+  the farmers can bear 3 points more, so it is not reset every season; grain from the stores feeds a countryside that
   will go short, before any is sold (`famineFeeding`).
 - Levies only where the men are (`canLevy`), cheapest in harvest first (`levyCost`, which also enters a levy's price).
 - A unit disbanded in a province of ours with room settles its men there (`settleThere`).
 - Tactics count the people's resistance as the defence of empty land (`Board.resistance`), in attacks, landings, winter
-  strokes, marching and the look-ahead (for its own moves); land values use `SeatView.yields` (`Board.yieldOf`).
+  strokes, marching and the look-ahead (for its own moves only: a rival's it does not reckon); land values use
+  `SeatView.yields` where the court sees the land and the map's yield elsewhere (`Board.yieldOf`).
 - `--no-land-play` / `--land-play-half` turn off the tax, feeding, levy costing and colonists (the resistance is a rule
   every script king keeps).

@@ -11,7 +11,7 @@ import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { EconomyData, grainWorth } from "../model/economy.ts";
 import { climateOf, DroughtRegions, RiverFloods, Rivers } from "../model/geography.ts";
-import { climatePercentIn, countryNeed, harvestIn, LandData, menOf, reckonedOf, resistanceOf, type People } from "../model/land.ts";
+import { climatePercentIn, countryNeed, harvestIn, LandData, menAvailable, menOf, reckonedOf, resistanceOf, type People } from "../model/land.ts";
 import { seasonOfTurn, type UnitKind } from "../model/map.ts";
 import type { TaxOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
@@ -241,7 +241,7 @@ function people(n: number): string {
 P.levyMen = function (province, kind) {
   const x = this.peopleOf(province);
   const n = menOf(kind);
-  if (x.men < n) return false;
+  if (menAvailable(this.s, province) < n) return false;
   shift(x, -n, -n);
   return true;
 };
@@ -312,8 +312,8 @@ P.resistance = function (province, mover) {
 };
 
 /**
- * The year's droughts and floods: at the start of each year (Akhet) a drought is drawn for each region of rain-fed land,
- * striking its provinces for the year; in each great river's flood season one flood is drawn for it, shared along its
+ * The year's droughts and floods: at the end of each year (Shemu) a drought is drawn for each region of rain-fed land,
+ * striking its provinces for the next year; the season before each great river's flood one flood is drawn for it, shared along its
  * course, a bad one or, rarely, a ruinous one that also drowns people. Each holder hears of his own land's at once, and
  * courts that see the land hear of it the next season. None while catastrophes are off (`catastropheChance` 0).
  */
@@ -327,7 +327,7 @@ P.climateSeason = function () {
   const Map = this.map;
   const season = seasonOfTurn(S.turn);
   const struck: ClimateEvent[] = [];
-  if (season === 0)
+  if (season === 2)
     for (const d of DroughtRegions) {
       if (!this.r("drought", d.id).chance(1 / d.oneIn)) continue;
       const provinces = Map.landProvinces.filter((p) => climateOf(p.id).drought === d.id && climateOf(p.id).water === "Rain").map((p) => p.id);
@@ -335,7 +335,8 @@ P.climateSeason = function () {
     }
   for (const river of Rivers) {
     const f = RiverFloods.get(river.id);
-    if (f === undefined || river.flood !== season) continue;
+    // Drawn the season before its flood, so it strikes the flood season and the two after it.
+    if (f === undefined || (river.flood + 2) % 3 !== season) continue;
     const rng = this.r("flood", river.id);
     const roll = rng.next(10_000);
     const ruin = roll < idiv(10_000, f.ruinOneIn);

@@ -579,7 +579,9 @@ export class Adjudicator {
     const opp = this.headToHeadOpponent(move);
     const beaten = opp !== null ? this.defendStrength(opp) : this.holdStrength(move);
     // The ground counted in the hold strength the move beat to get in: the storm must beat it too.
-    const ground = opp === null && beaten > 0 ? this.groundAgainst(move) : null;
+    // (Not when only the land's people resisted: the ground is already in their resistance.)
+    const stood = this.at.get(target) !== undefined && !(this.orders[this.at.get(target)!].kind === "Move" && this.resolve(this.orders[this.at.get(target)!].index));
+    const ground = opp === null && beaten > 0 && stood ? this.groundAgainst(move) : null;
     return {
       province: target,
       power: mover,

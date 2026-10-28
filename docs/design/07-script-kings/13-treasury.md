@@ -100,7 +100,8 @@ abroad and sets no tolls; `--no-trade-play` and `--trade-play-half` turn this pa
 ### People at home (item 10+a)
 
 Each season a script king sets each province's tax to the highest its farmers can bear without going hungry this
-season, less three points, and at least five under its rate where it went short; it feeds a countryside that will go
+season, less three points, and at least five under its rate where it went short (raising it only once they can bear
+three points more); it feeds a countryside that will go
 short from its stores before selling any grain; it levies only where the men are, cheapest in harvest first, and counts
 the harvest a levy costs in its price; and it settles a unit it disbands in a province of its own with room. Its
 tactics count the people's resistance as the defence of empty land. The details are in `../19-people-at-home.md`,

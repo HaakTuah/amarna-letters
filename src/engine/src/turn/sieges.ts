@@ -21,7 +21,7 @@ import type { Dispatch, HomeCargo } from "../model/records.ts";
 import { newLossAbroad, newTabletCopy } from "../model/records.ts";
 import type { FortifyOrder } from "../model/orders.ts";
 import { stormed, type Assault } from "../model/outcomes.ts";
-import { LandData } from "../model/land.ts";
+import { LandData, menAvailable } from "../model/land.ts";
 import { remember, type Character } from "../model/people.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
 import { isAlive, logEvent, newGoldLot, newId, newSiege, notify, siegeOf, unitAt, wallsOf, type Siege } from "../model/state.ts";
@@ -88,7 +88,7 @@ P.fortify = function (p, f) {
   this.spendAt(f.province, S.config.fortifyCost * level);
   S.walls.set(f.province, level);
   // The corvée: the province's men build them, away from its next harvest (item 10+a).
-  S.corvee.set(f.province, S.corvee.getOrDefault(f.province, 0) + LandData.builders);
+  S.corvee.set(f.province, S.corvee.getOrDefault(f.province, 0) + Math.min(LandData.builders, menAvailable(S, f.province)));
   const above = level - (StartWalls.get(f.province) ?? 0);
   notify(
     S,

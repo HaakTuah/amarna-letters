@@ -13,7 +13,7 @@ import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notif
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
-import { LandData, menOf } from "../model/land.ts";
+import { LandData, menAvailable, menOf } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { strength as scoringStrength } from "../rules/scoring.ts";
@@ -483,7 +483,7 @@ P.raise = function (p, r) {
     if (S.owner.getOrDefault(prov.id, null) !== p && !this._cededNow.has(prov.id)) this.scheduledFailed(p, r, why);
     return;
   }
-  if (this.peopleOf(prov.id).men < menOf(r.kind)) {
+  if (menAvailable(S, prov.id) < menOf(r.kind)) {
     notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: it has too few men of fighting age left (${menOf(r.kind)} are needed). No gold was paid.`);
     this.scheduledFailed(p, r, "too few men of fighting age");
     return;

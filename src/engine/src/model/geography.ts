@@ -206,7 +206,7 @@ export const Climates: ReadonlyMap<string, Climate> = new Map([
   ["babylon", cl("River", "Mild", Sown)],
   ["nippur", cl("River", "Mild", Sown)],
   ["ur", cl("River", "Mild", Sown)],
-  ["susa", cl("Rain", "Mild", Sown, "west")],
+  ["susa", cl("Rain", "Mild", Sown, "susiana")],
   ["dilmun", cl("Arid", "Mild", Sown)],
   ["delta", cl("River", "Mild", Sown)],
   ["memphis", cl("River", "Mild", Sown)],
@@ -247,13 +247,15 @@ export function climateOf(province: string): Climate {
 /**
  * The regions whose rains fail together, and how often, one year in so many (the environment dossier's first guesses:
  * the Anatolian plateau one in six, the Levant and north Syria and the Habur and Assyria one in eight; the milder west
- * one in ten [G]). A drought is drawn once a year for each, at the start of Akhet.
+ * one in ten, and Elam's Susiana, watered by rain and canals, as often [G]). A drought is drawn once a year for each, in
+ * Shemu, and strikes the year after.
  */
 export const DroughtRegions: readonly { readonly id: string; readonly name: string; readonly oneIn: number }[] = [
   { id: "plateau", name: "the Anatolian plateau", oneIn: 6 },
   { id: "levant", name: "the Levant and Syria", oneIn: 8 },
   { id: "north", name: "the Habur and Assyria", oneIn: 8 },
   { id: "west", name: "the western coasts and Cyprus", oneIn: 10 },
+  { id: "susiana", name: "the Susiana plain", oneIn: 10 },
 ];
 
 /**

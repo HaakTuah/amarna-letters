@@ -101,7 +101,7 @@ export function ProvinceInfo({
         <>
           <p className="small">
             {owner !== null ? `Held by ${powerName(owner)}` : "A free city-state"}
-            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(harvestIn(WorldMap.default, state, p.id))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
+            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(scene.viewer === null || owner === scene.viewer ? harvestIn(WorldMap.default, state, p.id) : harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
             {p.home !== null && p.home !== owner ? `; part of the homeland of ${powerName(p.home)}` : ""}.
             {walls > 0 && (
               <span>

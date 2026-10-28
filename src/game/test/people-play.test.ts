@@ -1,8 +1,9 @@
 import { describe, test } from "vitest";
 import { Board } from "../src/bots/board.ts";
 import { bearableTax, canLevy, levyCost, settleThere, taxOrders } from "../src/bots/land.ts";
-import { Views, disband, newGame, newGameConfig, tax } from "@amarna/engine";
+import { LandData, OrderValidator, TurnEngine, Views, disband, menAvailable, newGame, newGameConfig, newTurnSubmission, raise, tax } from "@amarna/engine";
 import { OtherActions, Parse, leaderRules } from "@amarna/llm";
+import { peopleLines } from "../../llm/src/prompt-economy.ts";
 import { Assert } from "../../engine/test/support.ts";
 
 // People at home (build order item 10+a) as kings read and play it: the rulebook, the orders a model king gives, and what
@@ -41,5 +42,27 @@ describe("PeoplePlayTests", () => {
     Assert.false(settleThere(v, "Hatti", "sapinuwa", "Army"));
     // The board reckons each province's yield as its people bring it in.
     Assert.equal(30, new Board(v).yieldOf("sapinuwa"));
+  });
+
+  test("A court sees the people's yield and resistance only in its own land and its sight, and reads them in its prompt", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const v = Views.for(s, "Egypt");
+    Assert.true(v.yields.has("delta"));
+    Assert.false(v.yields.has("hattusa"));
+    Assert.false(v.resistance.has("sapinuwa"));
+    const lines = peopleLines(v).join("\n");
+    Assert.contains("YOUR PEOPLE: settled", lines);
+    Assert.contains("Tax: 33% in", lines);
+    Assert.contains("Men of fighting age in your homeland", lines);
+  });
+
+  test("Men away building walls or carrying grain cannot be levied", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const x = s.people.get("sapinuwa");
+    s.corvee.set("sapinuwa", x.men - LandData.armyMen + 1);
+    Assert.equal(LandData.armyMen - 1, menAvailable(s, "sapinuwa"));
+    const v = new OrderValidator(s).validate("Hatti", newTurnSubmission({ orders: [raise("sapinuwa", "Army")] }));
+    Assert.contains(v.rejected, (r) => r.reason.includes("too few men of fighting age"));
+    Assert.false(new TurnEngine(s).levyMen("sapinuwa", "Army"));
   });
 });

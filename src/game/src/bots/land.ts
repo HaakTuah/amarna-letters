@@ -35,6 +35,9 @@ export const LandPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me
 /** A margin under the highest rate the farmers can bear, in points of the tax, against a worse season than this one. */
 const TaxMargin = 3;
 
+/** How far the bearable rate must rise above the rate set before a script king raises it. */
+const TaxStep = 3;
+
 /**
  * The highest tax a province's farmers can bear this season without going hungry, less a margin: what they keep of
  * its harvest must cover what its countryside eats.
@@ -49,7 +52,7 @@ export function bearableTax(x: ProvinceEconomyView): number {
 
 /**
  * The tax orders: each province's rate moved to what its farmers can bear, a province already short of food at least
- * five points under its rate; only where the rate changes.
+ * five points under its rate; a rate comes down at once, and goes up only once the farmers can bear three points more.
  */
 export function taxOrders(v: SeatView, me: string): Order[] {
   if (!LandPlay.on(me)) return [];
@@ -57,7 +60,8 @@ export function taxOrders(v: SeatView, me: string): Order[] {
   for (const x of v.provinces) {
     let rate = bearableTax(x);
     if (x.fed < 1000) rate = Math.min(rate, Math.max(0, x.taxRate - 5));
-    if (rate !== x.taxRate) orders.push(tax(rate, x.province));
+    // A rate the farmers cannot bear comes down at once; otherwise it moves only by a few points, not every season.
+    if (rate < x.taxRate || rate >= x.taxRate + TaxStep) orders.push(tax(rate, x.province));
   }
   return orders;
 }

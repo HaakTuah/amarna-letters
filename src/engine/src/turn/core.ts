@@ -135,8 +135,6 @@ export class TurnEngine {
     const Map = this.map;
     const notes = this.harvestSeason();
     this.townsEat();
-    // The people of the land: hunger, births and the flows between them (item 10+a).
-    for (const [p, l] of this.peopleSeason(this._foodNow).entries()) notes.set(p, [...notes.getOrDefault(p, []), ...l]);
     for (const p of alive(S)) {
       const t = S.treasuries.get(p);
       const troops = this.payTroops(p);
@@ -204,6 +202,9 @@ export class TurnEngine {
       if (troops.unpaid.length > 0) logEvent(S, "unpaid", `${p} could not pay its troops: ${troops.unpaid.join(", ")}.`, [p], "unpaid");
     }
     const fed = this.feedTroops();
+    // The people of the land, after troops foraging there took their share of the farmers' food: hunger, births and the
+    // flows between them (item 10+a).
+    for (const [p, l] of this.peopleSeason(this._foodNow).entries()) fed.set(p, [...fed.getOrDefault(p, []), ...l]);
     for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));
     this.caravansTravel();
     // The foreign markets each court sees this season (item 9+b).

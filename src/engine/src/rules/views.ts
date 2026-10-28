@@ -330,8 +330,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       }),
     );
   }
-  // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a).
+  // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a): where the
+  // court sees the land (its own and what its troops and watchers see), as its walls are; elsewhere it knows nothing new.
   for (const prov of m.landProvinces) {
+    if (!seen.has(prov.id) && s.owner.getOrDefault(prov.id, null) !== p) continue;
     const full = harvestOf(prov);
     v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * engine.harvestNow(prov.id, false), full));
     const r = engine.resistance(prov.id, p);

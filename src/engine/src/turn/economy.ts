@@ -330,6 +330,8 @@ P.feedTroops = function () {
         const take = Math.min(landFood(prov), need - eaten);
         if (take > 0) {
           forage.set(prov.id, forage.get(prov.id) - take);
+          // Taken from what the farmers would eat (item 10+a).
+          this._foodNow.set(prov.id, Math.max(0, this._foodNow.getOrDefault(prov.id, 0) - take));
           eaten += take;
           foraged.set(u.power, foraged.getOrDefault(u.power, 0) + take);
         }

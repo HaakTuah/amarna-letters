@@ -562,11 +562,12 @@ export interface SeatView {
   /** What each free city's elders ask to be bought: what it adds, its land's worth, purse, stores and market (public). */
   cityPrices: Dict<string, number>;
   /**
-   * Every land province's yield as its people bring it in now (item 10+a), on the scale of the map's yields: a ravaged
-   * or emptied province yields less than at the start. Public, as the strength it adds is.
+   * The yield of each land province the court sees (its own and those in its sight), as its people bring it in now
+   * (item 10+a), on the scale of the map's yields: a ravaged or emptied province yields less than at the start.
+   * Provinces out of sight are left out: the court knows only the map's yield for them.
    */
   yields: Dict<string, number>;
-  /** The resistance this court's armies would meet from each land's people where no troop stands (item 10+a), where any. */
+  /** The resistance this court's armies would meet from the people of each land in its sight where no troop stands (item 10+a), where any. */
   resistance: Dict<string, number>;
   /** Its discharged men still walking home (item 10+a). */
   walking: number;

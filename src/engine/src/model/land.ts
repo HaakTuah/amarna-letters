@@ -29,7 +29,7 @@ export interface People {
  *   in halves, in a province's sowing and harvest seasons and in its slack season ("Settled": most at sowing and harvest).
  * - `aboveHalf`: beyond the land's reckoned labour, extra hands add this many halves less (one in four of their share).
  * - `foodPercent`: what the countryside eats a season, in percent of its harvest at the start.
- * - `taxMost`: the highest rate a king may set (no rule caps it below that: hunger answers it).
+ * - `taxMost`: the highest rate a king may set: all of it ("no rule caps the rate": hunger answers it).
  * - `hungerLeave`: of the share of their food the settled went without, the share of them that leave the land that
  *   season, in percent ("hunger answers in the season it bites"); `hungerDead` of those die, the rest turn loose.
  * - `birthPercent`: a season's growth of the settled while the land has room, in proportion to the room left.
@@ -59,7 +59,7 @@ export const LandData = {
   slackWeight: 3,
   aboveHalf: 3,
   foodPercent: 60,
-  taxMost: 80,
+  taxMost: 100,
   hungerLeave: 10,
   hungerDead: 33,
   birthPercent: 8,
@@ -177,7 +177,8 @@ export function harvestPermille(labour: number, full: number): number {
 /** What the countryside of a province eats a season, for this many settled, against the reckoned settled (`full`). */
 export function countryNeed(p: Province, settled: number, full: number): number {
   if (full <= 0) return 0;
-  return idiv(idiv(harvestOf(p) * LandData.foodPercent, 100) * Math.max(0, settled), full);
+  // At least a measure, so a nearly emptied province still has room to fill and food to judge by.
+  return Math.max(1, idiv(idiv(harvestOf(p) * LandData.foodPercent, 100) * Math.max(0, settled), full));
 }
 
 /**
@@ -211,12 +212,25 @@ export function harvestIn(map: WorldMap, s: GameState, province: string, weather
   const season = seasonOfTurn(s.turn);
   const x = s.people.tryGet(province) ?? { settled: 0, men: 0, loose: 0 };
   const r = reckonedOf(map, province);
-  const porters = s.caravans.filter((c) => c.from === province && c.ship === null).reduce((a, c) => a + c.grain * LandData.porterPer, 0);
-  const away = Math.min(x.men, porters + s.corvee.getOrDefault(province, 0));
+  // Porters and builders are away from this season's fields, not from the land's worth.
+  const away = weather ? awayFrom(s, province) : 0;
   // The weather left out, so is the season: the land's worth counts its labour over the whole year.
   const seasons = weather ? [season] : [0, 1, 2];
   const labour = seasons.reduce((a, k) => a + labourOf(province, x.settled - away, x.men - away, k), 0);
   const full = seasons.reduce((a, k) => a + labourOf(province, r.settled, r.men, k), 0);
   const h = idiv(harvestOf(p) * harvestPermille(labour, full), 1000);
   return weather ? idiv(h * climatePercentIn(s, province), 100) : h;
+}
+
+/** The men of fighting age away from a province's fields this season: its caravans' porters and the corvée. */
+export function awayFrom(s: GameState, province: string): number {
+  const x = s.people.tryGet(province);
+  if (x === undefined) return 0;
+  const porters = s.caravans.filter((c) => c.from === province && c.ship === null).reduce((a, c) => a + c.grain * LandData.porterPer, 0);
+  return Math.min(x.men, porters + s.corvee.getOrDefault(province, 0));
+}
+
+/** The men of fighting age a levy can take from a province now: those at home, less those away carrying and building. */
+export function menAvailable(s: GameState, province: string): number {
+  return Math.max(0, (s.people.tryGet(province)?.men ?? 0) - awayFrom(s, province));
 }
