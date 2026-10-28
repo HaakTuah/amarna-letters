@@ -59,6 +59,9 @@ import {
   newTurnSubmission,
   parsePower,
   payRansom,
+  payCarriers,
+  seize,
+  sellDebt,
   placeSpy,
   raise,
   recall,
@@ -306,6 +309,7 @@ export function letters(o: JsonObject): Order[] {
         clauses: clausesOf(l, "clauses"),
         noInventory: B(l, "no_inventory"),
         checkClaim: S(l, "check_claim") || null,
+        collect: S(l, "collect") || null,
         authority:
           B(l, "carry_seal") || B(l, "show_credentials")
             ? newAuthority({
@@ -370,9 +374,9 @@ function other(x: Node): Order | null {
   const seals = L(x, "seals");
   switch (S(x, "action")) {
     case "raise_army":
-      return raise(province, "Army");
+      return raise(province, "Army", amount > 0 ? amount : null);
     case "raise_fleet":
-      return raise(province, "Fleet");
+      return raise(province, "Fleet", amount > 0 ? amount : null);
     case "buy_city":
       return buy(province);
     case "fortify":
@@ -419,10 +423,31 @@ function other(x: Node): Order | null {
       return seekCandidates();
     case "hire":
     case "renew": {
-      const advance = I(x, "gold");
-      const make = S(x, "action") === "hire" ? hire : renew;
-      return make(person, amount, term, advance > 0 ? Math.min(advance, amount) : null);
+      // Haakon's answers to item 11a: the advance is what the king names, nothing assumed; the errand, the standing orders,
+      // and the envoy carrying an offer abroad (item) as he gives them.
+      const advance = Math.max(0, Math.min(I(x, "gold"), amount));
+      const what = S(x, "errand");
+      const standing = S(x, "standing");
+      const via = S(x, "action") === "hire" ? empty(S(x, "item")) : null;
+      const job = {
+        what: what === "envoy" || what === "spy" ? what : null,
+        where: power ?? (pr !== null ? province : named || null),
+        payOnDone: standing === "pay_on_done" || standing === "both",
+        offerAgain: standing === "offer_again" || standing === "both",
+        via,
+      } as const;
+      return S(x, "action") === "hire" ? hire(person, amount, term, advance, job) : renew(person, amount, term, advance, job);
     }
+    case "seize_hoard":
+      return seize(person);
+    case "sell_tablet":
+      return sellDebt(S(x, "item"), person, amount);
+    case "pay_carriers":
+      return payCarriers(true);
+    case "stop_paying_carriers":
+      return payCarriers(false);
+    case "captive_take_purse":
+      return captive(person, "TakePurse");
     case "pay_fee":
       return payFee(person, true);
     case "withhold_fee":

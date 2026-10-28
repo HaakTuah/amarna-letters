@@ -11,37 +11,36 @@ import {
   type TurnSubmission,
   Views,
   basePrice,
-  feeFor,
   trustIn,
   newSkills,
-  characterOf,
-  coverOf,
-  dismiss,
+  captive,
   dispatch,
   first,
-  formatMoney,
   hire,
   inboxOf,
-  newAudienceRecord,
-  newAudienceRound,
+  MoneyData,
   newContract,
-  newCover,
   newGame,
   newGameConfig,
-  newHostReply,
+  newHoard,
+  newJobErrand,
   newMindReply,
-  newPlannedOrder,
-  newSleepSpell,
-  newSleepState,
   newTurnSubmission,
+  payCarriers,
+  payFee,
   placeSpy,
+  raise,
   renew,
-  renewalPrice,
+  seize,
+  sellDebt,
   single,
 } from "@amarna/engine";
-import { removeAll, Assert } from "./support.ts";
+import { Assert } from "./support.ts";
 
-// <summary>Jobs, notice and renewal (item 11a, "Jobs, not wages"): when a job is done the rest of its fee falls due; a servant who wants more gives a season's notice and names a price; its master renews it with a new job or it leaves.</summary>
+// <summary>Jobs as errands (item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): a job is one
+// errand with a fee; it ends when it is done; every payment is the payer's order; renewing is a new offer; offers go abroad
+// with envoys; a court's record of paying is news; and the hard acts: seizing a hoard, selling a tablet, taking a captive's
+// purse, a levy of the king's size.</summary>
 describe("ContractTests", () => {
   function begin(s: GameState): TurnEngine {
     let e = new TurnEngine(s);
@@ -58,22 +57,17 @@ describe("ContractTests", () => {
     return new Dict([[p, newTurnSubmission({ orders: orders })]]);
   }
 
-  function refusal(s: GameState, o: Order): string {
-    return single(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [o] })).rejected).reason;
+  function refusal(s: GameState, ...o: Order[]): string {
+    return new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: o })).rejected.map((r) => r.reason).join(" | ");
   }
 
-  // Nobody seeks service and nobody hires, so the going rate of service stays where it starts and prices stay put.
+  // Nobody seeks service and nobody lives their own season in these tests' way.
   function still(s: GameState): GameState {
     for (const c of s.characters) c.seeking = false;
     return s;
   }
 
-  // A job of `term` seasons at `rate` a season, the whole fee handed over now: what any person takes, whatever its trust.
-  const paidUp = (id: string, rate: number, term: number): Order => renew(id, rate * term, term, rate * term);
-
-  // One of Egypt's envoys, on a one-season job for 12 (6 handed over), whose term ends with turn 1. Greedy and able, it asks 33 to serve on
-  // (6 + 80/8 + 80/8 + reputation 10/5 = 28, and 5 more for its greed: since item 10 by the skill it believes it has, with
-  // no debts or ties pressing on it); a modest one asks only 6.
+  // One of Egypt's servants at court, on a one-season job for 12 (6 handed over) whose first errand is not named yet.
   function servant(wantsMore: boolean = true, config: GameConfig | null = null): [GameState, Character] {
     let s = still(newGame(5, config ?? newGameConfig({ catastropheChance: 0 })));
     let c = first(s.characters, (c) => c.employer === "Egypt");
@@ -83,455 +77,246 @@ describe("ContractTests", () => {
     const believed = wantsMore ? 80 : 20;
     c.belief = newSkills({ gather: believed, stealth: believed, forge: believed });
     c.ties = [];
+    [c.at, c.duty] = ["Egypt", "None"];
     c.contract = newContract({ fee: 12, advance: 6, startTurn: 1, untilTurn: 1 });
-    Assert.equal(wantsMore ? 33 : 6, renewalPrice(c, "Egypt"));
     return [s, c];
   }
 
-  test("A servant who wants more gives a season s notice and names a price", () => {
+  // A free person standing at Egypt's court.
+  function freeAt(s: GameState, court: Power = "Egypt"): Character {
+    const c = first(s.characters, (x) => x.status === "Free" && x.errand === null);
+    [c.at, c.duty, c.heldBy] = [court, "None", null];
+    c.pitches.clear();
+    c.askingPrice.clear();
+    return c;
+  }
+
+  test("A job done ends: the man is free at court, and the rest falls due unpaid unless his master orders it paid", () => {
     let [s, c] = servant();
     begin(s).resolve(none());
     begin(s);
-    Assert.equal(2, s.turn);
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) =>
-        i.turn === 2 &&
-        i.kind === "Notice" &&
-        i.title === "A servant gives notice" &&
-        i.body ===
-          `${c.name} has done their job. They ask 33 shekels a season of a new term to serve on: renew them this season (order renew, a new fee and advance), or they leave at the start of turn 3 (or, if you send them out first, when they are next at your court).`,
-    );
-    // The rest of the fee fell due and was paid.
-    Assert.equal(["Employed", "Egypt", 12, 12], [c.status, c.employer!, c.contract!.fee, c.contract!.advance]);
-    Assert.contains(s.events, (e) => e.kind === "fee-paid");
+    Assert.equal(["Free", null, null, "Egypt"], [c.status, c.employer, c.contract, c.at]);
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A job done" && i.subject === c.id);
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A fee due" && i.subject === c.id);
+    Assert.equal(6, c.owed.get("Egypt"));
+    // Nothing is broken yet: the king may still pay it this season. Unpaid by the end of the next, it is broken.
+    Assert.false(s.payRecords.has("Egypt"));
+    begin(s).resolve(none());
+    begin(s);
+    Assert.equal(1, s.payRecords.get("Egypt").broken);
+    Assert.equal(6, c.owed.get("Egypt"));
+    // Its view: one free at court whom Egypt owes.
+    Assert.equal(6, single(Views.for(s, "Egypt").known, (x) => x.id === c.id).owed);
+  });
+
+  test("Paid by its master's standing order when the job is done, or by pay_fee the season after, a promise is kept", () => {
+    let [s, c] = servant();
+    c.contract!.payOnDone = true;
+    const fees = c.earned.fees;
+    begin(s).resolve(none());
+    begin(s);
+    Assert.equal(fees + 6, c.earned.fees);
     Assert.equal(1, s.payRecords.get("Egypt").kept);
-    Assert.equal([33, 3], [c.contract!.noticePrice!, c.contract!.leavesTurn!]);
+    Assert.contains(s.events, (e) => e.kind === "fee-paid");
 
-    // The king reads it in plain words, and it is still at court, ready to be sent.
-    let line = single(Views.for(s, "Egypt").court, (x) => x.id === c.id);
-    Assert.true(line.ready);
-    Assert.equal(
-      "a job for 12 shekels, 12 handed over and 0 due when it is done; has given notice: asks 33 a season of a new term to serve on; leaves at the start of turn 3 unless renewed",
-      line.term,
-    );
-    Assert.equal([33, 3], [line.noticePrice!, line.leavesTurn!]);
-  });
-
-  test("A servant not renewed leaves at the start of the next season free at court and asking its price", () => {
-    let [s, c] = servant();
+    [s, c] = servant();
     begin(s).resolve(none());
-    begin(s).resolve(none());
-    let fees = c.earned.fees;
+    begin(s).resolve(orders("Egypt", payFee(c.id, true)));
+    Assert.false(c.owed.has("Egypt"));
     begin(s);
-    Assert.equal(["Free", "Egypt"], [c.status, c.at!]);
-    Assert.null(c.employer);
-    // Nothing accrues: the season of its notice earned it nothing more (free now, it pays its own living).
-    Assert.equal(fees, c.earned.fees);
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) =>
-        i.turn === 3 &&
-        i.title === "A servant leaves" &&
-        i.body === `${c.name}'s job is done and they were not renewed. They ask 33 shekels a season of a new term to serve again.`,
-    );
-    let known = single(Views.for(s, "Egypt").known, (x) => x.id === c.id);
-    Assert.equal(["free", 33], [known.status, known.askingPrice!]);
-
-    // The old master may hire it back at its price, the whole fee for six seasons handed over now.
-    new TurnEngine(s).resolve(orders("Egypt", hire(c.id, 33 * 6, 6, 33 * 6)));
-    Assert.equal(["Egypt", 198], [c.employer!, c.contract!.fee]);
-    // The price it asked as a free person stays on its record, but means nothing now: one's own servant shows no asking price.
-    Assert.equal(33, c.askingPrice.get("Egypt"));
-    Assert.null(single(Views.for(s, "Egypt").court, (x) => x.id === c.id).askingPrice);
+    Assert.equal([1, 0], [s.payRecords.get("Egypt").kept, s.payRecords.get("Egypt").broken]);
   });
 
-  test("A servant away when its notice runs out leaves when it is next at court", () => {
-    let [s, c] = servant();
-    begin(s).resolve(none());
-    // A servant on notice may still be sent on an errand: two seasons to Babylon, two back.
-    begin(s).resolve(orders("Egypt", dispatch(c.id, "Babylonia", "Greetings.")));
-    let e = begin(s);
-    Assert.equal([3, "Employed", "EnvoyOutbound"], [s.turn, c.status, c.duty]);
-    Assert.equal(
-      "a job for 12 shekels, 12 handed over and 0 due when it is done; has given notice: asks 33 a season of a new term to serve on; leaves when next at your court unless renewed",
-      single(Views.for(s, "Egypt").court, (x) => x.id === c.id).term,
-    );
-    e.resolve(none());
-    e = begin(s);
-    e.applyAudience(
-      newAudienceRecord({ audienceId: single(s.audiences).id, delivered: "Greetings.", rounds: [newAudienceRound({ host: newHostReply({ end: true }) })] }),
-    );
-    e.resolve(none());
-    begin(s).resolve(none());
-    Assert.equal("Employed", c.status);
-
-    e = new TurnEngine(s);
-    e.beginTurn();
-    Assert.equal(6, s.turn);
-    Assert.equal(["Free", "Egypt", "None"], [c.status, c.at!, c.duty]);
-    // It still reports on its errand.
-    Assert.contains(e.mindRequests, (r) => r.task === "EnvoyReport" && r.characterId === c.id && r.court === "Egypt");
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.turn === 6 && i.title === "A servant leaves" && i.subject === c.id);
-  });
-
-  test("A renewal at the price starts a new job and ends the notice", () => {
-    let [s, c] = servant();
-    begin(s).resolve(none());
-    begin(s);
-    let purse = c.purse;
-    // Half now: the rest counted only as far as it trusts Egypt, which has kept its one promise (84 in a hundred).
-    Assert.equal(84, trustIn(s, "Egypt"));
-    const fee = feeFor(33, 8, 50, 84);
-    Assert.equal(288, fee);
-    new TurnEngine(s).resolve(orders("Egypt", renew(c.id, fee, 8)));
-    Assert.equal([288, 144, 2, 10], [c.contract!.fee, c.contract!.advance, c.contract!.startTurn, c.contract!.untilTurn]);
-    Assert.null(c.contract!.noticePrice);
-    Assert.null(c.contract!.leavesTurn);
-    Assert.equal(purse + 144, c.purse);
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) => i.turn === 3 && i.title === "Contract renewed" && i.body === `${c.name} stays in your service through turn 10, for ${formatMoney(288)}, of which you handed over ${formatMoney(144)} now.`,
-    );
-    // A shekel less is refused.
-    let [t, d] = servant();
-    begin(t).resolve(none());
-    begin(t).resolve(orders("Egypt", renew(d.id, fee - 1, 8)));
-    Assert.equal(12, d.contract!.fee);
-    Assert.contains(inboxOf(t, "Egypt"), (i) => i.title === "Not renewed");
-
-    begin(s);
-    Assert.equal(
-      "a job for 288 shekels, 144 handed over and 144 due when it is done, through turn 10; when it is done at your court, if content they serve on for 6 seasons on the same terms, otherwise they give a season's notice and name a price",
-      single(Views.for(s, "Egypt").court, (x) => x.id === c.id).term,
-    );
-  });
-
-  test("A renewal below the price is refused with the price and the servant leaves", () => {
-    let [s, c] = servant();
-    begin(s).resolve(none());
-    begin(s).resolve(orders("Egypt", paidUp(c.id, 20, 6)));
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) =>
-        i.turn === 3 &&
-        i.kind === "Rejected" &&
-        i.title === "Not renewed" &&
-        i.body === `${c.name} will not serve on for ${formatMoney(120)} for 6 seasons with ${formatMoney(120)} now; they ask 33 shekels a season, counting the rest only as far as they trust your court to pay it.`,
-    );
-    Assert.equal(12, c.contract!.fee);
-    begin(s);
-    Assert.equal("Free", c.status);
-  });
-
-  test("A servant away on notice may be renewed where it is", () => {
-    let [s, c] = servant();
-    begin(s).resolve(none());
-    // Renewing is not a task: it may be renewed and sent out in the same season, or renewed while it is away.
-    let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [dispatch(c.id, "Babylonia", "Greetings."), renew(c.id, 120)] }));
-    Assert.equal(2, v.accepted.length);
-    // In either order: a renewal gives the servant no task, so it does not stand in the way of one.
-    v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [renew(c.id, 120), dispatch(c.id, "Babylonia", "Greetings.")] }));
-    Assert.equal(2, v.accepted.length);
-    Assert.null(characterOf(renew(c.id, 120)));
-    begin(s).resolve(orders("Egypt", dispatch(c.id, "Babylonia", "Greetings.")));
-    begin(s).resolve(orders("Egypt", paidUp(c.id, 40, 6)));
-    Assert.equal([240, 9], [c.contract!.fee, c.contract!.untilTurn]);
-    while (c.duty !== "None") {
-      let e = begin(s);
-      for (const a of s.audiences)
-        e.applyAudience(newAudienceRecord({ audienceId: a.id, delivered: "Greetings.", rounds: [newAudienceRound({ host: newHostReply({ end: true }) })] }));
-      e.resolve(none());
-    }
-    Assert.equal(["Employed", "Egypt"], [c.status, c.employer!]);
-  });
-
-  test("A content servant serves on for six seasons on the same terms", () => {
+  test("The standing offer of the same job again is a new job the man takes if it is worth his while", () => {
     let [s, c] = servant(false);
+    [c.contract!.payOnDone, c.contract!.offerAgain] = [true, true];
     begin(s).resolve(none());
-    let purse = c.purse;
     begin(s);
-    // The rest of the old job (6) paid, and half of the new one (36 of 72) handed over now.
-    Assert.equal([72, 36, 8], [c.contract!.fee, c.contract!.advance, c.contract!.untilTurn]);
-    Assert.equal(purse + 6 + 36, c.purse);
-    Assert.null(c.contract!.noticePrice);
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) =>
-        i.turn === 2 &&
-        i.title === "Contract renewed" &&
-        i.body === `${c.name} has done their job, and was paid the rest of the fee, 6 shekels. They serve on for another 6 seasons, through turn 8, for ${formatMoney(72)}, of which 36 shekels was handed over now.`,
-    );
-    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "A servant gives notice");
-  });
-
-  test("One of your people at court may be renewed at any time at its price", () => {
-    let [s, c] = servant();
-    c.contract!.untilTurn = 10;
-    // Below what it would ask at the end of its term: refused, with the price.
-    new TurnEngine(s).resolve(orders("Egypt", paidUp(c.id, 30, 6)));
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) =>
-        i.title === "Not renewed" &&
-        i.body === `${c.name} will not serve on for ${formatMoney(180)} for 6 seasons with ${formatMoney(180)} now; they ask 33 shekels a season, counting the rest only as far as they trust your court to pay it.`,
-    );
-    Assert.equal([12, 10], [c.contract!.fee, c.contract!.untilTurn]);
-    // A renewal sought raised the going rate a step, and with it the price.
-    Assert.equal(105, s.goingRate);
-    const price = renewalPrice(c, "Egypt", s.goingRate);
-    begin(s).resolve(orders("Egypt", paidUp(c.id, price, 12)));
-    // The 6 still to come from the job before is carried into the new one.
-    Assert.equal([price * 12 + 6, 14], [c.contract!.fee, c.contract!.untilTurn]);
-  });
-
-  test("A servant renewed early takes no cut from what its present job pays", () => {
-    // A free person at Egypt's court who pitched 60, hired at that, all of it now.
-    let s = still(newGame(5, newGameConfig({ catastropheChance: 0 })));
-    let c = first(s.characters, (x) => x.status === "Free" && x.heldBy === null && x.duty === "None");
-    c.at = "Egypt";
-    c.askingPrice.set("Egypt", 60);
-    new TurnEngine(s).resolve(orders("Egypt", hire(c.id, 360, 6, 360)));
-    Assert.equal(["Egypt", 360, 7], [c.employer!, c.contract!.fee, c.contract!.untilTurn]);
-    let formula = renewalPrice(c, "Egypt");
-    Assert.true(formula < 60);
-
-    // What it would ask at the end of its term is less than its job pays now: renewed early, it still asks that.
-    begin(s).resolve(orders("Egypt", renew(c.id, formula * 30, 30, 0)));
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) =>
-        i.kind === "Rejected" &&
-        i.title === "Not renewed" &&
-        i.body.startsWith(`${c.name} will not serve on for ${formatMoney(formula * 30)} for 30 seasons with 0 shekels now; they ask `),
-    );
-    Assert.equal([360, 7], [c.contract!.fee, c.contract!.untilTurn]);
-
-    // At what its present job pays (or what it would ask now, if the going rate has risen past it) it serves on, for the longer term.
-    const price = Math.max(60, renewalPrice(c, "Egypt", s.goingRate));
-    s.treasuries.get("Egypt").gold += 1000;
-    begin(s).resolve(orders("Egypt", paidUp(c.id, price, 12)));
-    Assert.equal([price * 12, 15], [c.contract!.fee, c.contract!.untilTurn]);
-  });
-
-  test("A servant dismissed earlier in the season is not renewed", () => {
-    let [s, c] = servant();
-    c.contract!.untilTurn = 10;
-    let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [dismiss(c.id), renew(c.id, 40)] }));
-    Assert.equal(2, v.accepted.length);
-    new TurnEngine(s).resolve(orders("Egypt", dismiss(c.id), renew(c.id, 40)));
+    Assert.equal(["Employed", "Egypt"], [c.status, c.employer!]);
+    Assert.equal([12, 6, 2, 3], [c.contract!.fee, c.contract!.advance, c.contract!.startTurn, c.contract!.untilTurn]);
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "The same job again");
+    // A greedy one asks more than the same job pays: he is free.
+    [s, c] = servant(true);
+    [c.contract!.payOnDone, c.contract!.offerAgain] = [true, true];
+    begin(s).resolve(none());
+    begin(s);
     Assert.equal("Free", c.status);
-    Assert.null(c.employer);
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) => i.kind === "Rejected" && i.title === "Not renewed" && i.body === `${c.name} is no longer in your service, so could not be renewed.`,
-    );
   });
 
-  test("Renew needs one of your people at court or on notice and hire is only for people not in your service", () => {
+  test("Another errand is a new job, offered at court, which the man may refuse; the old job's rest is carried into it", () => {
     let [s, c] = servant();
-    c.contract!.untilTurn = 10;
-    Assert.equal(`${c.name} is already in your service; to keep them on, order renew`, refusal(s, hire(c.id, 240)));
-    begin(s).resolve(orders("Egypt", dispatch(c.id, "Babylonia", "Greetings.")));
-    Assert.equal(`${c.name} is not at your court and has not given notice`, refusal(s, renew(c.id, 240)));
-    let stranger = first(s.characters, (x) => x.employer === "Hatti");
-    Assert.equal(`${stranger.name} is not in your service`, refusal(s, renew(stranger.id, 240)));
-    let [t, d] = servant();
-    // A fee with an advance more than the whole is refused.
-    Assert.equal("the advance must be between nothing and the whole fee", refusal(t, renew(d.id, 100, 6, 101)));
-    let twice = new OrderValidator(t).validate("Egypt", newTurnSubmission({ orders: [renew(d.id, 240), renew(d.id, 300)] }));
-    Assert.equal(`${d.name} was already renewed by an earlier order`, single(twice.rejected).reason);
+    c.contract = newContract({ fee: 600, advance: 300, startTurn: 1, untilTurn: 30, errand: newJobErrand({ what: "envoy", where: "Hatti" }) });
+    const ask = basePrice(c, "Egypt");
+    // Sent elsewhere than his job says: refused by the validator, with the way to do it.
+    Assert.contains("another errand is a new job, offered with order renew", refusal(s, dispatch(c.id, "Babylonia", "Greetings.")));
+    // Offered a new job below his price: refused.
+    new TurnEngine(s).resolve(orders("Egypt", renew(c.id, ask * 20 - 20, 20, ask * 20 - 20, { what: "envoy", where: "Babylonia" }), dispatch(c.id, "Babylonia", "Greetings.")));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "Not renewed" && i.body.includes(`they ask ${ask} shekels a season`));
+    Assert.equal("Hatti", c.contract!.errand!.where);
+    Assert.equal("None", c.duty);
+    // At his price he takes it and goes at once; the old job's rest (300) comes with the new job's.
+    Assert.equal("", refusal(s, renew(c.id, ask * 20, 20, ask * 20, { what: "envoy", where: "Babylonia" }), dispatch(c.id, "Babylonia", "Greetings.")));
+    new TurnEngine(s).resolve(orders("Egypt", renew(c.id, ask * 20, 20, ask * 20, { what: "envoy", where: "Babylonia" }), dispatch(c.id, "Babylonia", "Greetings.")));
+    Assert.equal(["Babylonia", 300, "EnvoyOutbound"], [c.contract!.errand!.where, c.contract!.carried, c.duty]);
   });
 
-  test("A servant giving notice wakes a sleeping seat", () => {
-    let [s, c] = servant(undefined, newGameConfig({ catastropheChance: 0, sleepingSeats: true }));
-    s.sleep.set("Egypt", newSleepState({ asleep: true, wakeAt: 50, history: [newSleepSpell({ from: 1 })] }));
-    begin(s).resolve(none());
-    let e = begin(s);
-    e.wakeCheck();
-    Assert.false(s.sleep.get("Egypt").asleep);
-    Assert.equal([`a servant gives notice: ${c.name} asks 33 shekels a season to serve on`], s.sleep.get("Egypt").wokenBecause);
-  });
-
-  test("A servant believed away on notice is renewed as its master believes", () => {
+  test("An envoy's job is done when it is back from its audience; a starting servant's first errand names its job", () => {
     let [s, c] = servant();
-    begin(s).resolve(none());
-    begin(s).resolve(orders("Egypt", placeSpy(c.id, "Hatti")));
-    // Caught at Hatti's court, as its master does not know: it still reads as on notice, watching Hatti.
-    c.covers.push(
-      newCover({
-        for: "Egypt",
-        since: s.turn,
-        believed: "SpyPosted",
-        dutyText: "watching Hatti",
-        whereText: "at the court of Hatti",
-        fee: 12,
-        advance: 12,
-        contractUntil: 1,
-        noticePrice: 33,
-        leavesTurn: 3,
-      }),
-    );
-    c.status = "Captured";
-    c.heldBy = "Hatti";
-    c.at = "Hatti";
-    c.duty = "None";
-    removeAll(s.journeys, (j) => j.characterId === c.id);
-    Assert.equal(
-      "a job for 12 shekels, 12 handed over and 0 due when it is done; has given notice: asks 33 a season of a new term to serve on; leaves when next at your court unless renewed",
-      single(Views.for(s, "Egypt").court, (x) => x.id === c.id).term,
-    );
-    begin(s).resolve(orders("Egypt", paidUp(c.id, 35, 6)));
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) => i.title === "Contract renewed" && i.body === `${c.name} stays in your service through turn 9, for ${formatMoney(210)}, of which you handed over ${formatMoney(210)} now.`,
-    );
-    let line = single(Views.for(s, "Egypt").court, (x) => x.id === c.id);
-    Assert.equal(
-      [
-        "watching Hatti",
-        "a job for 210 shekels, 210 handed over and 0 due when it is done, through turn 9; when it is done at your court, if content they serve on for 6 seasons on the same terms, otherwise they give a season's notice and name a price",
-      ],
-      [line.duty, line.term],
-    );
-    Assert.equal([210, 9], [c.contract!.fee, c.contract!.untilTurn]);
-    Assert.equal([210, 9], [coverOf(c, "Egypt")!.fee, coverOf(c, "Egypt")!.contractUntil!]);
-
+    c.contract!.untilTurn = 40;
+    new TurnEngine(s).resolve(orders("Egypt", dispatch(c.id, "Babylonia", "Greetings.")));
+    Assert.equal(["envoy", "Babylonia", false], [c.contract!.errand!.what, c.contract!.errand!.where, c.contract!.errand!.done]);
+    const out = s.journeys.find((j) => j.kind === "EnvoyOutbound" && j.characterId === c.id)!;
+    s.turn = out.arriveTurn;
+    new TurnEngine(s).arrivals();
+    Assert.true(c.contract!.errand!.done);
+    // Back at court with nothing to do, its job is done though the term runs on.
+    [c.at, c.duty] = ["Egypt", "None"];
+    s.journeys = s.journeys.filter((j) => j.characterId !== c.id);
+    s.audiences.length = 0;
+    new TurnEngine(s).jobsDone(new Dict());
+    Assert.equal("Free", c.status);
   });
 
-  test("An envoy on notice detained abroad keeps its notice in its master s eyes", () => {
-    let [s, c] = servant();
-    begin(s).resolve(none());
-    begin(s).resolve(orders("Egypt", dispatch(c.id, "Alashiya", "Greetings.")));
-    let e = begin(s);
-    while (s.audiences.length === 0) {
-      e.resolve(none());
-      e = begin(s);
-    }
-
-    // Alashiya holds it; Egypt, which has not heard, sees it on the road home, still on notice.
-    e.applyAudience(
-      newAudienceRecord({ audienceId: single(s.audiences).id, delivered: "Greetings.", rounds: [newAudienceRound({ host: newHostReply({ detain: true }) })] }),
-    );
-    Assert.equal(["Detained", "Alashiya"], [c.duty, c.heldBy!]);
-    Assert.notNull(coverOf(c, "Egypt"));
-    let line = single(Views.for(s, "Egypt").court, (x) => x.id === c.id);
-    Assert.equal(
-      [
-        "on the road home",
-        "a job for 12 shekels, 12 handed over and 0 due when it is done; has given notice: asks 33 a season of a new term to serve on; leaves when next at your court unless renewed",
-      ],
-      [line.duty, line.term],
-    );
-
-    // So the renewal the notice asked for is accepted, at the price it named.
-    Assert.empty(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [paidUp(c.id, 33, 6)] })).rejected);
-    let until = s.turn + 6;
-    e.resolve(orders("Egypt", paidUp(c.id, 33, 6)));
-    Assert.contains(
-      inboxOf(s, "Egypt"),
-      (i) => i.title === "Contract renewed" && i.body === `${c.name} stays in your service through turn ${until}, for ${formatMoney(198)}, of which you handed over ${formatMoney(198)} now.`,
-    );
-    Assert.equal([198, until], [c.contract!.fee, c.contract!.untilTurn]);
+  test("A person offered a job at court this season can be sent on its errand at once; the term must fit the errand", () => {
+    let s = still(newGame(5, newGameConfig({ catastropheChance: 0 })));
+    const c = freeAt(s);
+    const ask = basePrice(c, "Egypt");
+    Assert.contains("name the job's errand", refusal(s, hire(c.id, ask * 20, 20, ask * 20)));
+    // Too short a term for the road to Babylonia and back.
+    new TurnEngine(s).resolve(orders("Egypt", hire(c.id, ask * 30, 1, ask * 30, { what: "envoy", where: "Babylonia" })));
+    Assert.equal("Free", c.status);
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "Not hired" && i.body.includes("the errand takes"));
+    const job = hire(c.id, ask * 20, 20, ask * 20, { what: "envoy", where: "Babylonia", payOnDone: true });
+    Assert.equal("", refusal(s, job, dispatch(c.id, "Babylonia", "Greetings.")));
+    new TurnEngine(s).resolve(orders("Egypt", job, dispatch(c.id, "Babylonia", "Greetings.")));
+    Assert.equal(["Employed", "EnvoyOutbound", true], [c.status, c.duty, c.contract!.payOnDone]);
   });
 
-  // Egypt awake in the season of its servant's notice, with orders scheduled for that season: resolves the
-  // scheduled orders together with the fresh ones.
-  function awake(scheduled: (a0: string) => Order[], fresh: (a0: string) => Order[]): [GameState, Character] {
-    let [s, c] = servant(undefined, newGameConfig({ catastropheChance: 0, sleepingSeats: true }));
-    begin(s).resolve(none());
-    let e = begin(s);
-    s.sleep.set(
-      "Egypt",
-      newSleepState({ wakeAt: 50, lastCalled: s.turn, scheduled: [...scheduled(c.id).map((o) => newPlannedOrder({ turn: s.turn, order: o }))] }),
-    );
-    e.resolve(orders("Egypt", ...fresh(c.id)));
-    return [s, c];
-  }
+  test("An offer to a person abroad goes with an envoy, who brings the advance home if it is declined", () => {
+    let [s, envoy] = servant();
+    envoy.contract!.untilTurn = 40;
+    const far = freeAt(s, "Babylonia");
+    const ask = basePrice(far, "Egypt");
+    Assert.contains("goes with an envoy you send this season", refusal(s, hire(far.id, ask * 20, 20, 10, { what: "spy", where: "Babylonia" })));
+    const gold = s.treasuries.get("Egypt").gold;
+    const offer = hire(far.id, ask * 20, 20, ask * 20, { what: "spy", where: "Babylonia", via: envoy.id });
+    Assert.equal("", refusal(s, dispatch(envoy.id, "Babylonia", "Greetings."), offer));
+    new TurnEngine(s).resolve(orders("Egypt", dispatch(envoy.id, "Babylonia", "Greetings."), offer));
+    Assert.equal(gold - ask * 20, s.treasuries.get("Egypt").gold);
+    const out = s.journeys.find((j) => j.kind === "EnvoyOutbound" && j.characterId === envoy.id)!;
+    s.turn = out.arriveTurn;
+    new TurnEngine(s).arrivals();
+    // Taken: a spy whose post is where it stands takes it up at once.
+    Assert.equal(["Employed", "Egypt", "SpyPosted", "Babylonia"], [far.status, far.employer!, far.duty, far.missionTarget!]);
 
-  test("A fresh renewal replaces a scheduled dismissal or renewal of the same person", () => {
-    // Woken by the notice, the king renews the servant it had meant to dismiss.
-    let [s, c] = awake(
-      (id) => [dismiss(id)],
-      (id) => [paidUp(id, 40, 6)],
-    );
-    Assert.equal(["Employed", "Egypt", 240], [c.status, c.employer!, c.contract!.fee]);
-    Assert.empty(s.sleep.get("Egypt").pendingWake);
-    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => ["A servant leaves", "Not renewed"].includes(i.title));
-
-    // A fresh renewal at another wage replaces the scheduled one, which neither fails nor wakes the seat.
-    [s, c] = awake(
-      (id) => [paidUp(id, 35, 6)],
-      (id) => [paidUp(id, 40, 8)],
-    );
-    Assert.equal([320, 2 + 8], [c.contract!.fee, c.contract!.untilTurn]);
-    Assert.empty(s.sleep.get("Egypt").pendingWake);
-    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.kind === "Rejected");
+    // Declined: the advance rides home with the envoy.
+    [s, envoy] = servant();
+    envoy.contract!.untilTurn = 40;
+    const other = freeAt(s, "Babylonia");
+    const low = hire(other.id, 20, 20, 10, { what: "spy", where: "Babylonia", via: envoy.id });
+    new TurnEngine(s).resolve(orders("Egypt", dispatch(envoy.id, "Babylonia", "Greetings."), low));
+    const j = s.journeys.find((x) => x.kind === "EnvoyOutbound" && x.characterId === envoy.id)!;
+    s.turn = j.arriveTurn;
+    new TurnEngine(s).arrivals();
+    Assert.equal(["Free", 10], [other.status, envoy.carriedFor]);
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "An offer declined");
+    const before = s.treasuries.get("Egypt").gold;
+    new TurnEngine(s).carriedHome(envoy, "Egypt");
+    Assert.equal([before + 10, 0], [s.treasuries.get("Egypt").gold, envoy.carriedFor]);
   });
 
-  test("A fresh dismissal replaces a scheduled renewal of the same person", () => {
-    let [s, c] = awake(
-      (id) => [paidUp(id, 40, 6)],
-      (id) => [dismiss(id)],
-    );
-    Assert.null(c.employer);
-    Assert.empty(s.sleep.get("Egypt").pendingWake);
-    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.title === "Not renewed");
+  test("A court's record of paying is news: it reaches other courts by the roads, and people hear it where they stand", () => {
+    let s = still(newGame(5, newGameConfig({ catastropheChance: 0 })));
+    const e = new TurnEngine(s);
+    e.recordPay("Egypt", false, "Egypt");
+    // Egypt knows its own at once; Hatti only once word has come.
+    Assert.equal(MoneyData.trustStart - MoneyData.trustBroken, trustIn(s, "Egypt", "Egypt"));
+    Assert.equal(MoneyData.trustStart, trustIn(s, "Egypt", "Hatti"));
+    const at = s.payFacts[0].heardAt.get("Hatti");
+    Assert.true(at > s.turn);
+    const c = freeAt(s, "Hatti");
+    Assert.equal(MoneyData.trustStart, trustIn(s, "Egypt", c));
+    s.turn = at;
+    Assert.equal(MoneyData.trustStart - MoneyData.trustBroken, trustIn(s, "Egypt", "Hatti"));
+    new TurnEngine(s).newsSeason();
+    Assert.equal(MoneyData.trustStart - MoneyData.trustBroken, trustIn(s, "Egypt", c));
   });
 
-  test("A renewal and an errand for the same person both run whichever was scheduled", () => {
-    let [s, c] = awake(
-      (id) => [dispatch(id, "Babylonia", "Greetings.")],
-      (id) => [paidUp(id, 40, 6)],
-    );
-    Assert.equal(["EnvoyOutbound", 240], [c.duty, c.contract!.fee]);
-    Assert.empty(s.sleep.get("Egypt").pendingWake);
-
-    [s, c] = awake(
-      (id) => [paidUp(id, 40, 6)],
-      (id) => [dispatch(id, "Babylonia", "Greetings.")],
-    );
-    Assert.equal(["EnvoyOutbound", 240], [c.duty, c.contract!.fee]);
-    Assert.empty(s.sleep.get("Egypt").pendingWake);
+  test("What people ask follows what they heard jobs pay, with no going rate", () => {
+    let s = still(newGame(5));
+    const c = freeAt(s);
+    const own = basePrice(c, "Egypt");
+    new TurnEngine(s).heardFee(c, own * 3);
+    Assert.true(basePrice(c, "Egypt") > own);
+    // A job agreed where people stand is heard there.
+    const [d, e] = s.characters.filter((x) => x.status === "Free" && x !== c && x.errand === null);
+    for (const x of [d, e]) [x.at, x.duty, x.heldBy] = ["Egypt", "None", null];
+    new TurnEngine(s).resolve(orders("Egypt", hire(e.id, 800, 20, 800, { what: "envoy", where: "Hatti" })));
+    Assert.equal("Employed", e.status);
+    Assert.notNull(d.heardRate);
   });
 
-  test("A captive on notice shows its notice and its job and may be renewed", () => {
-    let [s, c] = servant();
-    [c.contract!.noticePrice, c.contract!.leavesTurn] = [33, 1];
-    [c.status, c.heldBy, c.at] = ["Captured", "Hatti", "Hatti"];
-    let line = single(Views.for(s, "Egypt").court, (x) => x.id === c.id);
-    // Its job stands while it is held, so its line names it.
-    Assert.equal(
-      [
-        "held captive at the court of Hatti",
-        "a job for 12 shekels, 6 handed over and 6 due when it is done; has given notice: asks 33 a season of a new term to serve on; leaves when next at your court unless renewed",
-      ],
-      [line.duty, line.term],
-    );
-    Assert.equal(12, line.fee);
-    Assert.empty(new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [paidUp(c.id, 33, 6)] })).rejected);
+  test("Hard acts: a hoard seized, a tablet sold, a captive's purse kept until its captor takes it, and a levy of every man", () => {
+    let s = still(newGame(5, newGameConfig({ catastropheChance: 0 })));
+    const rich = freeAt(s);
+    rich.hoard = newHoard({ at: "Egypt", gold: 300 });
+    const gold = s.treasuries.get("Egypt").gold;
+    new TurnEngine(s).resolve(orders("Egypt", seize(rich.id)));
+    Assert.equal([gold + 300, null], [s.treasuries.get("Egypt").gold, rich.hoard]);
+    Assert.contains(s.losses, (l) => l.kind === "Seized" && l.court === "Egypt" && l.characterId === rich.id);
+    Assert.contains(rich.facts, (f) => f.tag === "seized");
 
-    // One dead in your service has no term.
-    c.status = "Dead";
-    c.facts[0].knownBy.push("Egypt");
-    c.facts[0].secrecy = "Hidden";
-    Assert.equal("", single(Views.for(s, "Egypt").known, (x) => x.id === c.id).term);
+    // A tablet in Egypt's archive, sold to a person at its court who thinks the claim worth the price.
+    const e = new TurnEngine(s);
+    const d = e.sealDebt("Egypt", "Hatti", 100, 200, 4);
+    const buyer = freeAt(s);
+    buyer.purse = 150;
+    new TurnEngine(s).resolve(orders("Egypt", sellDebt(d.id, buyer.id, 199)));
+    Assert.equal("Egypt", d.holder);
+    new TurnEngine(s).resolve(orders("Egypt", sellDebt(d.id, buyer.id, 100)));
+    Assert.equal([buyer.id, 50], [d.holder!, buyer.purse]);
+
+    // A captive's purse stays on it until its captor orders it taken.
+    const held = first(s.characters, (x) => x.employer === "Hatti");
+    [held.status, held.heldBy, held.at, held.purse] = ["Captured", "Egypt", "Egypt", 40];
+    new TurnEngine(s).goldAndTabletsTaken();
+    Assert.equal(40, held.purse);
+    Assert.equal(40, single(Views.for(s, "Egypt").known, (x) => x.id === held.id).carries);
+    const before = s.treasuries.get("Egypt").gold;
+    new TurnEngine(s).resolve(orders("Egypt", captive(held.id, "TakePurse")));
+    Assert.equal([before + 40, 0, "Captured"], [s.treasuries.get("Egypt").gold, held.purse, held.status]);
   });
 
-  test("A free person at your court shows what they ask", () => {
+  test("The king chooses how many men a levy takes, up to all", () => {
+    let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    const home = first(
+      [...s.owner.entries()].filter(([id, o]) => o === "Egypt" && !s.units.some((u) => u.province === id)).map(([id]) => id),
+      () => true,
+    );
+    Assert.contains("a levy takes", refusal(s, raise(home, "Army", 3)));
+    new TurnEngine(s).resolve(orders("Egypt", raise(home, "Army", 600)));
+    const u = s.units.find((x) => x.province === home && x.power === "Egypt");
+    if (u !== undefined) Assert.true(u.men <= 600);
+  });
+
+  test("Carriers of letters are paid on delivery only by their court's standing order", () => {
+    let s = still(newGame(5));
+    Assert.false(Views.for(s, "Egypt").payCarriers);
+    new TurnEngine(s).resolve(orders("Egypt", payCarriers(true)));
+    Assert.true(Views.for(s, "Egypt").payCarriers);
+    new TurnEngine(s).resolve(orders("Egypt", payCarriers(false)));
+    Assert.false(Views.for(s, "Egypt").payCarriers);
+  });
+
+  test("A free person at your court shows what they ask; a spy sent on another errand than its job's is refused", () => {
     let s = newGame(5);
-    let free = first(s.characters, (c) => c.status === "Free");
-    free.at = "Egypt";
-    free.pitches.clear();
-    free.askingPrice.clear();
+    let free = freeAt(s);
     let line = single(Views.for(s, "Egypt").known, (x) => x.id === free.id);
     Assert.equal(basePrice(free, "Egypt"), line.askingPrice);
-    // Nobody else sees a price for them.
     Assert.doesNotContain(Views.for(s, "Hatti").known, (x) => x.id === free.id && x.askingPrice !== null);
-    // Hired at that price for six seasons, all of it now; one not at your court cannot be hired.
-    new TurnEngine(s).resolve(orders("Egypt", hire(free.id, line.askingPrice! * 6, 6, line.askingPrice! * 6)));
-    Assert.equal("Egypt", free.employer);
-    let away = first(s.characters, (c) => c.status === "Free" && c.at !== "Egypt" && c.at !== null);
-    Assert.equal(`${away.name} is not at your court: a person is hired in person, where it stands`, refusal(s, hire(away.id, 600, 6)));
+    let [t, c] = servant();
+    c.contract = newContract({ fee: 600, advance: 300, startTurn: 1, untilTurn: 30, errand: newJobErrand({ what: "spy", where: "Hatti" }) });
+    Assert.equal("", refusal(t, placeSpy(c.id, "Hatti")));
+    Assert.contains("job is to watch Hatti", refusal(t, placeSpy(c.id, "Babylonia")));
   });
 });

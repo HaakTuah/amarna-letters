@@ -4,6 +4,36 @@ import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
 import { type Word, WordSchema, newWord } from "./word.ts";
+import { type JobErrand, JobErrandSchema } from "./people.ts";
+
+/**
+ * A job offered by a king to a person away from his court, carried by his envoy (Haakon's answers to item 11a: "a job is
+ * offered through any character carrying the offer, wherever the man is"). The advance goes with the envoy, and is handed
+ * over only if the man takes the job; otherwise the envoy brings it home.
+ */
+export interface JobOffer {
+  character: string;
+  fee: number;
+  advance: number;
+  term: number;
+  errand: JobErrand | null;
+  payOnDone: boolean;
+  offerAgain: boolean;
+}
+
+export function newJobOffer(init: Partial<JobOffer> = {}): JobOffer {
+  return { character: "", fee: 0, advance: 0, term: 1, errand: null, payOnDone: false, offerAgain: false, ...init };
+}
+
+export const JobOfferSchema: ObjSchema<JobOffer> = obj("JobOffer", newJobOffer, {
+  character: S,
+  fee: I,
+  advance: I,
+  term: I,
+  errand: () => JobErrandSchema,
+  payOnDone: B,
+  offerAgain: B,
+});
 
 export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
@@ -12,7 +42,7 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
  * What a rumour about one of a court's own people tells it: news that ends a {@link Cover}. For word ("Word"), what it
  * tells a court of the world: a king closed or opened his roads to it, or a kingdom fell.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name", "Grant"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -152,12 +182,18 @@ export interface Dispatch {
    * to come from the sender and carries no letter, seal or tablet, and whatever it is given it keeps.
    */
   pretended: boolean;
+  /** Jobs offered to people at the court the envoy goes to, their advances carried with it. */
+  offers: JobOffer[];
+  /** A debt tablet from its king's archive the envoy carries to present to the borrower (Haakon's answers to item 11a). */
+  collect: string | null;
 }
 
 export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
   return {
     checkClaim: null,
     pretended: false,
+    offers: [],
+    collect: null,
     inventory: true,
     authority: null,
     clauses: [],
@@ -191,6 +227,8 @@ export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, 
   trailId: S,
   checkClaim: opt(S),
   pretended: B,
+  offers: list(() => JobOfferSchema),
+  collect: opt(S),
 });
 
 export interface TabletProposal {
@@ -555,7 +593,7 @@ export const CatastropheSchema: ObjSchema<Catastrophe> = obj("Catastrophe", newC
   text: S,
 });
 
-export const LossKindValues = ["Captured", "PutToDeath"] as const;
+export const LossKindValues = ["Captured", "PutToDeath", "Seized"] as const;
 export type LossKind = (typeof LossKindValues)[number];
 
 /**

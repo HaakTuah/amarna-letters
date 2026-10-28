@@ -43,6 +43,7 @@ import {
 import { Board } from "./board.ts";
 import { SeasonPlay } from "./land.ts";
 import { shekels, type Brain } from "./brain.ts";
+import { atHand, oursFirst, fewAtHand, freeAtCourt } from "./errands.ts";
 import type { Personality } from "./personality.ts";
 
 const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as"];
@@ -92,11 +93,11 @@ function thief(brain: Brain, c: CharacterView): boolean {
 }
 
 /**
- * The hiring test, for a new servant or one kept on: a fee a season the king's greed allows, scaled by the going rate of
- * service (item 11a: a king pays what the market asks or goes without), with three seasons of it to spare.
+ * The hiring test, for a job offered: a fee a season the king's greed allows, with three seasons of it to spare. (Haakon's
+ * answers to item 11a: no going rate; a king pays what the man asks, or goes without.)
  */
-function wouldPay(p: Personality, rate: number, spare: number, goingRate = 100): boolean {
-  return rate <= ((15 + 25 * (1 - p.greed)) * Math.max(100, goingRate)) / 100 && spare > rate * 3;
+export function wouldPay(p: Personality, rate: number, spare: number): boolean {
+  return rate <= 15 + 25 * (1 - p.greed) && spare > rate * 3;
 }
 
 /**
@@ -116,13 +117,8 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   const v = b.v;
   let spare = brain.spareGold;
   let staff = v.court.filter((c) => c.status === "employed");
-  const flow = v.income - v.upkeep - v.fees;
-  // More people only while the treasury can carry their wages: a third or fourth servant only for a king with letters (or
-  // plots) to fill it, and a surplus to match the size of his kingdom.
-  const wanted = flow < 25 + 0.25 * v.income ? 2 : 2 + (p.diplomacy > 0.8 ? 1 : 0) + (p.cunning > 0.7 && flow > 50 + 0.25 * v.income ? 1 : 0);
 
-  // A servant given up for lost: its line has read "has not returned" for three seasons and still does. It is dismissed, and
-  // the court counts itself one short, so it may hire.
+  // A servant given up for lost: its line has read "has not returned" for three seasons and still does. It is dismissed.
   for (const c of v.court.filter((c) => {
     const since = brain.missingSince.tryGet(c.id);
     return since !== undefined && v.turn - since >= 3;
@@ -132,53 +128,31 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     staff = staff.filter((x) => x.id !== c.id);
   }
 
-  // A servant found keeping gold it carried is let go once it is back at court with nothing on its hands. Away, it is never
-  // renewed.
+  // A servant found keeping gold it carried is let go once it is back at court with nothing on its hands.
   for (const c of v.court.filter((c) => c.ready && !busy.has(c.id) && thief(brain, c))) {
     orders.push(dismiss(c.id));
     busy.add(c.id);
     staff = staff.filter((x) => x.id !== c.id);
     brain.thieves.delete(c.id);
   }
-  staff = staff.filter((c) => !(c.noticePrice !== null && thief(brain, c)));
 
-  // A servant who has given notice is kept on at its price while the court still wants it and the price passes the hiring
-  // test; the most reliable first. Otherwise it is let go. Never early.
-  const leaving = sortBy(
-    staff.filter((c) => c.noticePrice !== null),
-    ...byReliability(brain),
-  );
-  let keeping = staff.length - leaving.length;
-  for (const c of leaving) {
-    if (keeping >= wanted || !wouldPay(p, c.noticePrice!, spare, v.goingRate)) continue;
-    orders.push(renew(c.id, offerFee(c.noticePrice!, 6, v.trust), 6));
-    keeping++;
-  }
-
-  if (staff.length < wanted && v.turn - brain.lastSeek >= 2 && spare > 40) {
+  // Haakon's answers to item 11a: a job is one errand, so the court keeps no idle staff; it wants people at hand to offer
+  // its errands to, and asks for candidates when few stand at court.
+  if (fewAtHand(b, brain) && v.turn - brain.lastSeek >= 2 && spare > 40) {
     orders.push(seekCandidates());
     brain.lastSeek = v.turn;
   }
 
-  // Item 10: a name made of outcomes is worth paying for, a dearer one by a shekel a season for each success known; a
-  // credulous king also takes a person at its word, a careful one only at what it was seen to do.
+  // Item 10: a careful king checks the person it would most likely send before offering it an errand.
   const careful = (p.caution + p.cunning) / 2 > 0.5;
   const people = PeoplePlay.on(b.me);
   const worth = (c: CharacterView): number =>
     !people ? c.askingPrice! : c.askingPrice! - 3 * successes(c) - (careful ? 0 : count(c.claims, (x) => /see what|miss nothing|slip past/.test(x)));
-  const candidates = sortBy(
-    // Item 11a: hired in person, so only those standing at court.
-    v.known.filter((c) => c.status === "free" && c.where === "at your court" && c.pitch !== null && c.askingPrice !== null && c.claimsToServe === null && reliability(c) === 0 && !brain.heldElsewhere.has(c.id)),
-    [(c: CharacterView) => worth(c), cmpNum],
-    [(c: CharacterView) => c.id, cmpStr],
-  );
-  if (staff.length < wanted && candidates.length > 0) {
-    const best = candidates[0];
-    if (careful && !brain.checked.has(best.id) && spare > 30 + v.income / 2) {
-      orders.push(check(best.id, 25));
-      brain.checked.add(best.id);
-      spare -= 25;
-    } else if (wouldPay(p, best.askingPrice!, spare, v.goingRate)) orders.push(hire(best.id, offerFee(best.askingPrice!, 6, v.trust), 6));
+  const candidates = sortBy(freeAtCourt(b, brain), [(c: CharacterView) => worth(c), cmpNum], [(c: CharacterView) => c.id, cmpStr]);
+  if (candidates.length > 0 && careful && !brain.checked.has(candidates[0].id) && spare > 30 + v.income / 2) {
+    orders.push(check(candidates[0].id, 25));
+    brain.checked.add(candidates[0].id);
+    spare -= 25;
   }
 
   // Assay gold from those we do not trust, or that weighed light.
@@ -243,8 +217,10 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     }
   }
 
+  // People at hand for an errand: servants at court, then the free people there (each sent is offered the job: errands.ts).
   const ready = sortBy(
-    v.court.filter((c) => c.ready && !busy.has(c.id)),
+    atHand(b, brain).filter((c) => !busy.has(c.id)),
+    [oursFirst, desc(cmpBool)],
     ...byReliability(brain),
   );
   const leader = b.leader();
@@ -320,7 +296,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
         [(x: Power) => x, cmpPower],
       )[0] ?? null;
     // The most reliable servant whose hand has not already botched a forgery (see Brain.noHand).
-    const forger = ready.find((c) => !brain.noHand.has(c.id));
+    const forger = ready.find((c) => c.ours && !brain.noHand.has(c.id));
     if (victim !== null && forger !== undefined) {
       orders.push({ ...forge(forger.id, `${top} swears to ${friendOfTop}: when the harvest is in, we shall march together against ${victim} and divide its land.`, [top, friendOfTop]), clauses: [clause("against", { power: victim })] });
       busy.add(forger.id);
@@ -341,6 +317,13 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     // treasury can spare it.
     // Gold spent is score lost: worth it only against a king the court is at odds with, whose secrets matter to it.
     const atOdds = mr !== undefined && (mr.hostile || c.employer === brain.warTarget);
+    // Haakon's answers to item 11a: what a captive carries stays on him until his captor orders it taken; a king takes it
+    // first, unless the captive's lord is a sworn ally or the king too honest to rob a prisoner.
+    if ((c.carries ?? 0) >= 10 && !ally && p.honesty < 0.8 && !brain.stripped.has(c.id)) {
+      orders.push(captive(c.id, "TakePurse"));
+      brain.stripped.add(c.id);
+      continue;
+    }
     if (people && atOdds && !worthless && !ally && !brain.questioned.has(c.id) && spare > 150) {
       const spend = Math.trunc(30 + 40 * p.cunning);
       orders.push(question(c.id, spend));

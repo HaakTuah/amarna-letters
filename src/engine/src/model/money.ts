@@ -2,13 +2,16 @@
  * Money and work (build order item 11a): what jobs, purses, hoards and loans are made of. A party to a job or a loan is a
  * power (its name) or a character (its id): "Anyone can hire anyone", "Lending to anyone".
  */
-import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
+import { Dict } from "../core/collections.ts";
+import { B, I, type ObjSchema, S, dict, list, obj, opt } from "../core/json.ts";
 import { AllPowers, type Power } from "./power.ts";
 
 /**
  * First guesses (item 18 tunes them):
- * - `rate*`: the going rate of service, in percent of what a person would ask on its own ("Fees clear the market"): it
- *   starts at 100, moves by `rateStep` a season towards demand, between `rateLow` and `rateHigh`.
+ * - `heardWeight`: how far what a person has heard a job pays a season moves what it asks, in percent (Haakon's answers to
+ *   item 11a: "what others were paid is only what a character has heard, and he bargains from it"); `heardKeep`: how
+ *   many promises kept or broken a person keeps in mind.
+ * - `errandStay`: the seasons an envoy's errand counts for its stay at the court it goes to, beside the road there and back.
  * - `trust*`: how much of the rest of a fee a person counts on, in percent, from a court's record of paying what fell due
  *   ("Work on any terms"): `trustStart` with no record, `trustKept` more for each kept, `trustBroken` less for each broken.
  * - `living`: the grain a free person eats a season, bought at the market where it stays ("Characters live from the markets too").
@@ -21,10 +24,9 @@ import { AllPowers, type Power } from "./power.ts";
  * - `patience`: the seasons a candidate waits unhired at a court before it may move on.
  */
 export const MoneyData = {
-  rateStart: 100,
-  rateStep: 5,
-  rateLow: 50,
-  rateHigh: 300,
+  heardWeight: 50,
+  heardKeep: 60,
+  errandStay: 1,
   trustStart: 80,
   trustKept: 4,
   trustBroken: 30,
@@ -58,6 +60,25 @@ export function newPayRecord(init: Partial<PayRecord> = {}): PayRecord {
 }
 
 export const PayRecordSchema: ObjSchema<PayRecord> = obj("PayRecord", newPayRecord, { kept: I, broken: I });
+
+/**
+ * A promise to pay kept or broken, as news (Haakon's answers to item 11a: "a court's record of paying travels as news"):
+ * who promised, whether it was kept, and the season word of it reaches each court, by the roads from where it happened.
+ * People hear it at the courts where they stand, and from those they meet; the payer and the payee know it at once.
+ */
+export interface PayFact {
+  id: string;
+  party: string;
+  kept: boolean;
+  turn: number;
+  heardAt: Dict<Power, number>;
+}
+
+export function newPayFact(init: Partial<PayFact> = {}): PayFact {
+  return { id: "", party: "", kept: true, turn: 0, heardAt: new Dict(), ...init };
+}
+
+export const PayFactSchema: ObjSchema<PayFact> = obj("PayFact", newPayFact, { id: S, party: S, kept: B, turn: I, heardAt: dict(I) });
 
 /** Where a debt tablet lies: on its holder's person, in his hoard, in a court's archive, or gone missing. */
 export const DebtKeptValues = ["Person", "Hoard", "Archive", "Missing"] as const;
@@ -96,6 +117,13 @@ export interface Debt {
    * who never came to be paid.
    */
   presented: number | null;
+  /**
+   * The party a carrier holds the tablet for (a king's envoy sent to collect it, Haakon's answers to item 11a): what is
+   * repaid to it is carried home to that party, and so is the tablet. Null when the holder holds it for itself.
+   */
+  for: string | null;
+  /** The season the borrower hears that the debt ended: at once, except a tablet gone missing, whose end is news. */
+  endHeard: number | null;
 }
 
 export function newDebt(init: Partial<Debt> = {}): Debt {
@@ -114,6 +142,8 @@ export function newDebt(init: Partial<Debt> = {}): Debt {
     how: "",
     defaulted: false,
     presented: null,
+    for: null,
+    endHeard: null,
     ...init,
   };
 }
@@ -133,7 +163,12 @@ export const DebtSchema: ObjSchema<Debt> = obj("Debt", newDebt, {
   how: S,
   defaulted: B,
   presented: opt(I),
+  for: opt(S),
+  endHeard: opt(I),
 });
+
+/** Whether a debt still stands as its borrower knows it: not ended, or ended where word has not reached him yet. */
+export const standsForBorrower = (d: Debt, turn: number): boolean => d.ended === null || (d.endHeard !== null && d.endHeard > turn);
 
 /** What is left to repay on a debt. */
 export const debtLeft = (d: Debt): number => Math.max(0, d.owed - d.repaid);
@@ -191,6 +226,8 @@ export interface Approach {
   /** With a job: the debt to collect, the whole fee and the advance; null if none. */
   collect: string | null;
   fee: number;
+  /** With a job: the offerer's standing order to pay the rest when the collector hands over what it collected. */
+  payOnDone: boolean;
   /** Answered: null while waiting, true accepted (and done), false refused or failed. */
   accepted: boolean | null;
 }
@@ -210,6 +247,7 @@ export function newApproach(init: Partial<Approach> = {}): Approach {
     seasons: 0,
     collect: null,
     fee: 0,
+    payOnDone: false,
     accepted: null,
     ...init,
   };
@@ -229,6 +267,7 @@ export const ApproachSchema: ObjSchema<Approach> = obj("Approach", newApproach, 
   seasons: I,
   collect: opt(S),
   fee: I,
+  payOnDone: B,
   accepted: opt(B),
 });
 
@@ -249,13 +288,15 @@ export interface Errand {
   since: number;
   /** It reached the borrower's court with the tablet: the errand's steps walked, so its job is done when it is back. */
   reached: boolean;
+  /** Its employer's standing order, given with the job, to pay the rest when it hands over what it collected. */
+  payOnDone: boolean;
 }
 
 export function newErrand(init: Partial<Errand> = {}): Errand {
-  return { employer: "", debtId: "", fee: 0, advance: 0, home: "Egypt", collected: 0, since: 0, reached: false, ...init };
+  return { employer: "", debtId: "", fee: 0, advance: 0, home: "Egypt", collected: 0, since: 0, reached: false, payOnDone: false, ...init };
 }
 
-export const ErrandSchema: ObjSchema<Errand> = obj("Errand", newErrand, { employer: S, debtId: S, fee: I, advance: I, home: S, collected: I, since: I, reached: B });
+export const ErrandSchema: ObjSchema<Errand> = obj("Errand", newErrand, { employer: S, debtId: S, fee: I, advance: I, home: S, collected: I, since: I, reached: B, payOnDone: B });
 
 /**
  * The ways to a fortune ("How the strategy is made"): the steady hired man, the man who keeps what passes through his hands,

@@ -158,28 +158,50 @@ export const MemoryEntrySchema: ObjSchema<MemoryEntry> = obj("MemoryEntry", newM
   text: S,
 });
 
+/** What a job's errand is (Haakon's answers to item 11a): carrying a mission to a court, or watching a court or a province. */
+export const JobWhatValues = ["envoy", "spy"] as const;
+export type JobWhat = (typeof JobWhatValues)[number];
+
 /**
- * A job (item 11a, "Jobs, not wages"): a post with a term and a fee, not a wage. The advance was handed over when the job
- * was agreed; the rest falls due when the job is done (the term served, the servant back at court with no task), a
- * promise its employer keeps or breaks. Nothing accrues: a job that runs long costs what was agreed.
+ * A job's errand ("A job is always an errand", Haakon's answers to items 11a and 11a+): what to do and where; the term is
+ * by when. `where` is the court an envoy goes to, or the court or province a spy watches. `done`: the envoy has had its
+ * audience there, or the spy has come home from its post.
+ */
+export interface JobErrand {
+  what: JobWhat;
+  where: string;
+  done: boolean;
+}
+
+export function newJobErrand(init: Partial<JobErrand> = {}): JobErrand {
+  return { what: "envoy", where: "", done: false, ...init };
+}
+
+export const JobErrandSchema: ObjSchema<JobErrand> = obj("JobErrand", newJobErrand, { what: S, where: S, done: B });
+
+/**
+ * A job (item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): one errand, with what to do,
+ * where and by when, and a fee: the advance handed over when the job was agreed, the rest due when it is done (the errand
+ * done, or its term served, and the servant back at court with no task). The rest is paid only by its employer's order:
+ * by hand (order pay_fee) or by his own standing order given with the job (`payOnDone`). When the job is done it ends;
+ * another errand is a new offer, which the employer may make in advance (`offerAgain`) and the man must still accept.
  */
 export interface Contract {
-  /** The whole fee agreed for the term. */
+  /** The whole fee agreed for the job. */
   fee: number;
   /** The part of the fee handed over when the job was agreed. */
   advance: number;
   startTurn: number;
-  /** The last season of the term. */
+  /** The last season of the term: the errand is to be done by then. */
   untilTurn: number;
-  /**
-   * Set when the term has ended and the servant, wanting more, has given notice: the fee a season of a new term it asks
-   * to serve on. Its master may renew it at that price or more; otherwise it leaves at {@link LeavesTurn}.
-   */
-  noticePrice: number | null;
-  /**
-   * With a notice: the season at whose start it leaves unless renewed (if it is away then, when it is next at court with no task).
-   */
-  leavesTurn: number | null;
+  /** The rest of earlier jobs carried into this one (a stay renewed at a post abroad, or a new job before the old was done). */
+  carried: number;
+  /** The job's errand; null for a starting servant's or one taken over at an audience, whose first errand names it. */
+  errand: JobErrand | null;
+  /** The employer's standing order with the job: pay the rest when the job is done. */
+  payOnDone: boolean;
+  /** The employer's standing offer with the job: when it is done, the same job again, which the man may take or not. */
+  offerAgain: boolean;
   /** Its master ordered the rest withheld when it falls due (order pay_fee with pay false). */
   withheld: boolean;
   /** It was taken captive during the term: a captured man has not done his job, so the rest never falls due. */
@@ -192,8 +214,10 @@ export function newContract(init: Partial<Contract> = {}): Contract {
     advance: 0,
     startTurn: 0,
     untilTurn: 0,
-    noticePrice: null,
-    leavesTurn: null,
+    carried: 0,
+    errand: null,
+    payOnDone: false,
+    offerAgain: false,
     withheld: false,
     captured: false,
     ...init,
@@ -205,8 +229,10 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
   advance: I,
   startTurn: I,
   untilTurn: I,
-  noticePrice: opt(I),
-  leavesTurn: opt(I),
+  carried: I,
+  errand: () => JobErrandSchema,
+  payOnDone: B,
+  offerAgain: B,
   withheld: B,
   captured: B,
 });
@@ -288,6 +314,17 @@ export interface Character {
    * kingdom falls.
    */
   owed: Dict<Power, number>;
+  /**
+   * The season each fee in {@link owed} fell due (Haakon's answers to item 11a: unpaid is unpaid): unpaid by the end of
+   * the next season, it counts once as a broken promise, and the season is set to -1.
+   */
+  owedDue: Dict<Power, number>;
+  /** Gold it carries for its master, an advance a man it was sent to hire did not take: handed over when it is home. */
+  carriedFor: number;
+  /** The promises to pay it has heard kept or broken (ids of {@link PayFact}), newest last: a court's record is news. */
+  heardPay: string[];
+  /** What it has heard a job pays a season, from the jobs agreed where it stood and from those it met; null if nothing. */
+  heardRate: number | null;
   /** Item 10: the true skills the engine rolls on. */
   skills: Skills;
   /**
@@ -372,6 +409,10 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     covers: [],
     formerEmployer: null,
     owed: new Dict(),
+    owedDue: new Dict(),
+    carriedFor: 0,
+    heardPay: [],
+    heardRate: null,
     skills: newSkills(),
     inclination: 0,
     belief: newSkills(),
@@ -432,6 +473,10 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   covers: list(() => CoverSchema),
   formerEmployer: opt(S),
   owed: dict(I),
+  owedDue: dict(I),
+  carriedFor: I,
+  heardPay: list(S),
+  heardRate: opt(I),
   skills: () => SkillsSchema,
   inclination: I,
   belief: () => SkillsSchema,
@@ -555,11 +600,10 @@ export interface Cover {
   advance: number;
   startTurn: number;
   contractUntil: number | null;
-  /**
-   * The notice the master believes the servant has given (the price it asks to serve on, and when it leaves), if any.
-   */
-  noticePrice: number | null;
-  leavesTurn: number | null;
+  /** The job's errand and standing orders as the master agreed them (Haakon's answers to item 11a). */
+  errand: JobErrand | null;
+  payOnDone: boolean;
+  offerAgain: boolean;
   /**
    * The facts the master knew of the servant then, and public ones its inquiries have found since. A public fact
    * added meanwhile, such as a defection, stays unseen until an inquiry finds it; hidden facts the master learns
@@ -582,8 +626,9 @@ export function newCover(init: Partial<Cover> = {}): Cover {
     advance: 0,
     startTurn: 0,
     contractUntil: null,
-    noticePrice: null,
-    leavesTurn: null,
+    errand: null,
+    payOnDone: false,
+    offerAgain: false,
     factIds: [],
     ...init,
   };
@@ -602,8 +647,9 @@ export const CoverSchema: ObjSchema<Cover> = obj("Cover", newCover, {
   advance: I,
   startTurn: I,
   contractUntil: opt(I),
-  noticePrice: opt(I),
-  leavesTurn: opt(I),
+  errand: () => JobErrandSchema,
+  payOnDone: B,
+  offerAgain: B,
   factIds: list(S),
 });
 
@@ -654,15 +700,18 @@ export function gain(c: Character, amount: number, source: GoldSource): void {
  * Item 11b, reputation from losses abroad: of the losses it heard of, how many of `court`'s own people were caught or put
  * to death abroad, and how many people `court` put to death.
  */
-export function lossesHeardOf(c: Character, court: Power): { lost: number; killed: number } {
+export function lossesHeardOf(c: Character, court: Power): { lost: number; killed: number; seized: number } {
   let lost = 0;
   let killed = 0;
+  let seized = 0;
   for (const k of c.heard) {
     const [kind, at, master] = k.split("|");
     if (master === court) lost++;
     if (kind === "PutToDeath" && at === court) killed++;
+    // Haakon's answers to item 11a: a king who seized a living man's hoard, talked of like the losses.
+    if (kind === "Seized" && at === court) seized++;
   }
-  return { lost, killed };
+  return { lost, killed, seized };
 }
 
 /** The false name a character still goes by at a court (item 10, "Declaring a name"), or null if it goes by its own there. */

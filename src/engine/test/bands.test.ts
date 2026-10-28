@@ -183,15 +183,15 @@ describe("BandTests", () => {
     const s = newGame(7);
     const c = first(s.characters, (x) => x.status === "Free");
     c.traits.courage = 20;
-    const before = basePrice(c, "Assyria", 100);
-    const beforeHatti = basePrice(c, "Hatti", 100);
+    const before = basePrice(c, "Assyria");
+    const beforeHatti = basePrice(c, "Hatti");
     for (let i = 0; i < 4; i++) {
       c.heard.push(lossKey(newLossAbroad({ turn: 1, kind: "PutToDeath", characterId: `c99${i}`, court: "Hatti", master: "Assyria" })));
       c.heard.push(lossKey(newLossAbroad({ turn: 1, kind: "Captured", characterId: `c98${i}`, court: "Egypt", master: "Assyria" })));
     }
-    Assert.true(basePrice(c, "Assyria", 100) > before);
+    Assert.true(basePrice(c, "Assyria") > before);
     // The court that put a man to death is feared too.
-    Assert.true(basePrice(c, "Hatti", 100) > beforeHatti);
+    Assert.true(basePrice(c, "Hatti") > beforeHatti);
   });
 
   test("Personas speak of experience, never of age", () => {

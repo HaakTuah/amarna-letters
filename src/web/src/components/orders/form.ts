@@ -67,6 +67,10 @@ export interface Form {
   authSpend: number;
   ransom: number;
   term: number;
+  /** Haakon's answers to item 11a: the errand of a job offered (envoy or spy, and where), and the standing order to pay the rest when it is done. */
+  errandWhat: "envoy" | "spy";
+  errandWhere: string;
+  payOnDone: boolean;
   oath: boolean;
   g: GreetingOptions;
   copies: string[];
@@ -148,6 +152,9 @@ export function newForm(me: Power): Form {
     authSpend: 40,
     ransom: 80,
     term: 6,
+    errandWhat: "envoy",
+    errandWhere: other("Hatti"),
+    payOnDone: true,
     oath: false,
     g: newGreetingOptions(),
     copies: [],

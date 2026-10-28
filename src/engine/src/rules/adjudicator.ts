@@ -44,10 +44,14 @@ type Kind = "Hold" | "Move" | "Support" | "Convoy";
 /** A full unit's strength, in the thousandths every strength in a result is reckoned in (item 11a+). */
 export const FullUnit = 1000;
 
-/** What a unit counts in battle, in thousandths: its men against a full levy of its kind (none known counts as full). */
+/**
+ * What a unit counts in battle, in thousandths: its men against a full levy of its kind (none known counts as full); a
+ * levy of more men than a full unit (Haakon's answers to item 11a+, "the king chooses how many men a levy takes, up to
+ * all") counts for more.
+ */
 export function unitWeight(u: { kind: UnitKind; men: number }, full: number): number {
   if (u.men <= 0 || full <= 0) return FullUnit;
-  return Math.max(1, Math.min(FullUnit, Math.floor((u.men * FullUnit) / full)));
+  return Math.max(1, Math.floor((u.men * FullUnit) / full));
 }
 const enum_ = { Unresolved: 0, Guessing: 1, Resolved: 2 } as const;
 type RState = number;

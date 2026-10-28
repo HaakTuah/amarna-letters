@@ -16,7 +16,7 @@ import { type Toll, TollSchema } from "./trade.ts";
 import { type MarketSeen, MarketSeenSchema } from "./views.ts";
 import type { People } from "./land.ts";
 import { type Band, BandSchema } from "./bands.ts";
-import { type Approach, ApproachSchema, type Debt, DebtSchema, MoneyData, type PayRecord, PayRecordSchema } from "./money.ts";
+import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
@@ -80,7 +80,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 21;
+export const CURRENT_VERSION = 22;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -184,10 +184,10 @@ export interface GameState {
   marketsSeen: Dict<Power, Dict<string, MarketSeen>>;
   /** Item 11a: each party's record of paying what fell due, fees and loans ("A name made of outcomes"). */
   payRecords: Dict<string, PayRecord>;
-  /** Item 11a, "Fees clear the market": the going rate of service, in percent of what people would ask on their own. */
-  goingRate: number;
-  /** Item 11a: the hires and renewals offered last season, and the people free to take them, which move the going rate. */
-  hireDemand: number;
+  /** Every promise to pay kept or broken, as news that travels (Haakon's answers to item 11a). */
+  payFacts: PayFact[];
+  /** The courts whose standing order is to pay the carriers of their people's letters on delivery (order payCarriers). */
+  payCarriers: Power[];
   /** Item 11a: every debt tablet sealed, standing or ended ("The debt tablet is the claim"). */
   debts: Debt[];
   /** Item 11a: approaches between characters waiting for an answer, and those answered this season. */
@@ -314,8 +314,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     tolls: [],
     marketsSeen: new Dict(),
     payRecords: new Dict(),
-    goingRate: MoneyData.rateStart,
-    hireDemand: 0,
+    payFacts: [],
+    payCarriers: [],
     debts: [],
     approaches: [],
     baseline: 0,
@@ -403,8 +403,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
   payRecords: dict(() => PayRecordSchema),
-  goingRate: I,
-  hireDemand: I,
+  payFacts: list(() => PayFactSchema),
+  payCarriers: list(S),
   debts: list(() => DebtSchema),
   approaches: list(() => ApproachSchema),
   baseline: I,

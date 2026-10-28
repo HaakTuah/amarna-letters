@@ -19,6 +19,7 @@ import type { RoadsOrder } from "../model/orders.ts";
 import { remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
 import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind } from "../model/records.ts";
+import { GrantTitle } from "./authority.ts";
 import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -611,6 +612,9 @@ P.wordArrives = function (j) {
       notify(S, j.to, "Rumor", RoadsTitle, j.text ?? "");
       break;
     }
+    case "Grant":
+      notify(S, j.to, "Notice", GrantTitle, j.text ?? "");
+      break;
     case "KingdomFalls": {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);
       heard.add(j.from);

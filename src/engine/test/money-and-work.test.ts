@@ -311,15 +311,4 @@ describe("MoneyAndWorkTests", () => {
     Assert.false(/\d/.test(words));
     Assert.contains("open age", endingWords(true, 44));
   });
-
-  test("The going rate of service rises when more hires are sought than people seek service, and falls when far fewer are", () => {
-    const s = newGame(5);
-    for (const c of s.characters) c.seeking = false;
-    const e = new TurnEngine(s);
-    e.goingRateMoves(3);
-    Assert.equal(100 + MoneyData.rateStep, s.goingRate);
-    for (const c of s.characters.filter((c) => c.status === "Free")) c.seeking = true;
-    e.goingRateMoves(1);
-    Assert.equal(100, s.goingRate);
-  });
 });

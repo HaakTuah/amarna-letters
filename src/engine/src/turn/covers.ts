@@ -6,7 +6,7 @@
  * over to a host is covered for its old master, and again for its new one if something happens to it on the new master's
  * errand.
  */
-import { coverOf, factsKnownTo, hiddenAt, newCover, type Character, type Duty } from "../model/people.ts";
+import { coverOf, factsKnownTo, hiddenAt, newCover, newJobErrand, type Character, type Duty, type JobWhat } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import type { Journey } from "../model/records.ts";
 import { findCharacter, isAlive } from "../model/state.ts";
@@ -51,8 +51,9 @@ P.coverFor = function (c, master, believed, duty = null, where = null, seen = nu
       advance: view.advance ?? c.contract?.advance ?? 0,
       startTurn: view.contractFrom ?? c.contract?.startTurn ?? S.turn,
       contractUntil: view.contractUntil,
-      noticePrice: view.noticePrice,
-      leavesTurn: view.leavesTurn,
+      errand: view.errandWhat === null ? null : newJobErrand({ what: view.errandWhat as JobWhat, where: view.errandWhere ?? "", done: view.errandDone }),
+      payOnDone: view.payOnDone,
+      offerAgain: view.offerAgain,
       factIds: factIds ?? factsKnownTo(c, master).map((f) => f.id),
     }),
   );
