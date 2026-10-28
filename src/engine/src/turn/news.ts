@@ -14,6 +14,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import { NewsData, newsOffered } from "../rules/news.ts";
 import { Views } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { foldOldPay, hearPay } from "./jobs.ts";
 
 /** How many losses abroad a person keeps in mind, newest last; and how long one is talked of, in seasons. */
 export const HeardData = { keep: 40, seasons: 12 } as const;
@@ -41,8 +42,10 @@ P.newsSeason = function () {
   )) {
     const court = c.at!;
     present.set(court, [...present.getOrDefault(court, []), c]);
-    // The talk of the court where it stands: whose people it holds or put to death.
+    // The talk of the court where it stands: whose people it holds or put to death, and (Haakon's answers to item 11a) the
+    // promises to pay kept and broken whose word has reached it.
     for (const l of S.losses) if (l.court === court && S.turn - l.turn <= HeardData.seasons) hear(c, lossKey(l));
+    for (const f of S.payFacts) if (S.turn - f.turn <= HeardData.seasons && f.heardAt.getOrDefault(court, Number.MAX_SAFE_INTEGER) <= S.turn) hearPay(c, f.id);
     // A free person notes what it sees of the court, to sell elsewhere, once every few seasons.
     if (c.status !== "Free" || hiddenAt(c, court)) continue;
     const had = c.news.find((n) => n.court === court) ?? null;
@@ -72,7 +75,10 @@ P.newsSeason = function () {
     if (here.length < 2) continue;
     const all = [...new Set(here.flatMap((c) => c.heard))];
     for (const c of here) for (const k of all) hear(c, k);
+    const paid = [...new Set(here.flatMap((c) => c.heardPay))];
+    for (const c of here) for (const k of paid) hearPay(c, k);
   }
+  foldOldPay(S, HeardData.seasons);
 };
 
 function hear(c: Character, key: string): void {

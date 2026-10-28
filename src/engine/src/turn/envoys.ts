@@ -4,8 +4,10 @@ import { distinct } from "../core/seq.ts";
 import { isBlank, trim } from "../core/text.ts";
 import type { AudienceRecord, AudienceRound, AudienceView, MindReply, MindRequest } from "../model/exchanges.ts";
 import { newAudienceView, newEnvoyReaction, newHostReply, newMindRequest, requestFor } from "../model/exchanges.ts";
-import type { DispatchOrder, ReleaseOrder } from "../model/orders.ts";
-import { factsKnownTo, falseNameAt, gain, nameKnownAt, newContract, newFact, remember, type Character } from "../model/people.ts";
+import { hire, type DispatchOrder, type ReleaseOrder } from "../model/orders.ts";
+import { factsKnownTo, falseNameAt, gain, nameKnownAt, newContract, newFact, newJobErrand, remember, type Character } from "../model/people.ts";
+import { debtLeft, isPowerParty } from "../model/money.ts";
+import { errandOf } from "./court.ts";
 import { land, type Power } from "../model/power.ts";
 import {
   SealedOutcome,
@@ -13,6 +15,7 @@ import {
   newExchange,
   newGreetingOptions,
   newHomeCargo,
+  newJobOffer,
   newJourney,
   newMessageTrail,
   newPendingAudience,
@@ -21,6 +24,7 @@ import {
   newTabletProposal,
   type Exchange,
   type HomeCargo,
+  type JobOffer,
   type Journey,
   type MessageTrail,
   type PendingAudience,
@@ -75,6 +79,8 @@ declare module "./core.ts" {
     releaseEnvoy(host: Power, r: ReleaseOrder): void;
     letEnvoyGo(host: Power, c: Character, reply: string | null): void;
     fulfil(req: MindRequest, reply: MindReply): void;
+    envoyBusinessAbroad(c: Character, j: Journey): void;
+    carriedHome(c: Character, home: Power): void;
   }
 }
 
@@ -102,6 +108,17 @@ P.dispatch = function (p, d) {
   const S = this.s;
   const Map = this.map;
   const c = char(S, d.envoy);
+  // Haakon's answers to item 11a: a job is one errand. One offered a job this season that it did not take, or whose job is
+  // another errand, does not go.
+  if (c.employer !== p || c.status !== "Employed") {
+    this.failed(p, d, "Envoy not sent", `${c.name} is not in your service: they did not take the job offered.`, "not in your service", true, c.id);
+    return;
+  }
+  const job = c.contract?.errand ?? null;
+  if (job !== null && (job.what !== "envoy" || job.where !== d.to || job.done)) {
+    this.failed(p, d, "Envoy not sent", `${c.name}'s job is not to carry a mission to ${d.to}: another errand is a new job (order renew).`, "not the errand of their job", true, c.id);
+    return;
+  }
   // From a besieged capital (the siege package): an envoy whose courage the siege outweighs will not go this season.
   const siege = this.capitalSiege(p);
   if (siege !== null && c.traits.courage < S.config.siegeCatchPerUnit * siege[1]) {
@@ -123,6 +140,28 @@ P.dispatch = function (p, d) {
   const inventory = d.gold > 0 && d.noInventory !== true;
   const fee = (d.proposal ? S.config.tabletFee : 0) + (inventory ? S.config.inventoryFee : 0);
   if (!this.pay(p, fine + fee, `${c.name}'s mission to ${d.to}`, d, `${c.name} stayed at your court`)) return;
+  // A starting servant's first errand names its job's errand.
+  if (c.contract !== null && c.contract.errand === null) c.contract.errand = newJobErrand({ what: "envoy", where: d.to });
+  // Offers of jobs it carries, their advances in its hands, and a debt tablet to present.
+  const offers: JobOffer[] = [];
+  for (const [, h] of this._offersNow.getOrDefault(c.id, [])) {
+    const advance = clamp(h.advance, 0, h.fee);
+    const t = S.treasuries.get(p);
+    if (t.gold < advance) {
+      this.failed(p, h, "Offer not sent", `The treasury could not hand ${c.name} the advance of ${formatMoney(advance)} for the offer to ${findCharacter(S, h.character)?.name ?? h.character}.`, "the treasury could not pay the advance", false, h.character);
+      continue;
+    }
+    t.gold -= advance;
+    // In the envoy's hands: handed over if the offer is taken, brought home (or lost with the envoy) if not.
+    c.carriedFor += advance;
+    offers.push(newJobOffer({ character: h.character, fee: h.fee, advance, term: h.term, errand: errandOf(h), payOnDone: h.payOnDone === true, offerAgain: h.offerAgain === true }));
+  }
+  this._offersNow.delete(c.id);
+  const collect = d.collect != null ? (S.debts.find((x) => x.id === d.collect && x.ended === null && x.holder === p) ?? null) : null;
+  if (collect !== null) {
+    this.passTablet(collect, c.id, "Person");
+    collect.for = p;
+  }
 
   // The scribes write the king's own marks for the copies in his archive as tablets every court can name, and person ids
   // as names: the envoy and the host read what any court could read.
@@ -186,6 +225,8 @@ P.dispatch = function (p, d) {
     inventory,
     authority,
     checkClaim: d.checkClaim ?? null,
+    offers,
+    collect: collect?.id ?? null,
   });
   if (proposal !== null) {
     const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, clauses: tabletClauses });
@@ -215,7 +256,9 @@ P.dispatch = function (p, d) {
       (d.gold > 0 ? ` I carry gold, said to be ${formatMoney(d.gold)}${inventory ? "" : ", with no inventory: nobody can check it"}.` : "") +
       (d.proposal ? " I carry a tablet for their king to seal." : "") +
       (authority?.seal ? ` I carry my lord's seal. ${authorityText(authority, (x) => Map.get(x).name)}` : "") +
-      (authority?.show ? " I am to show my credentials." : ""),
+      (authority?.show ? " I am to show my credentials." : "") +
+      (offers.length > 0 ? ` I carry ${offers.length === 1 ? "an offer of a job" : `${offers.length} offers of jobs`}, with the advances.` : "") +
+      (collect !== null ? ` I carry the tablet of a debt of ${this.partyName(collect.borrower)}, to present for my lord.` : ""),
   );
   notify(S, p, "Notice", "Envoy dispatched", `${c.name} set out for ${d.to} last season; the journey should take about ${travel} season(s).`, c.id);
   // Out of a besieged capital: the besiegers may catch it as it slips out (its king believes it on its way).
@@ -254,6 +297,9 @@ P.envoyArrivesAbroad = function (j) {
   c.at = j.to;
   c.duty = "EnvoyAtCourt";
   this.meet(c, j.to);
+  // Its job's errand is done when it has its audience; the job is done when it is home.
+  if (c.contract?.errand?.what === "envoy" && c.contract.errand.where === j.to) c.contract.errand.done = true;
+  this.envoyBusinessAbroad(c, j);
   const aud = newPendingAudience({ id: newId(S, "a"), envoyId: c.id, from: j.from, host: j.to, dispatch: j.dispatch! });
   S.audiences.push(aud);
   const trail = this.trail(j.dispatch!.trailId);
@@ -657,6 +703,7 @@ P.envoyArrivesHome = function (j) {
   c.heldBy = null;
   c.turnsAbroad = 0;
   c.missionTarget = null;
+  this.carriedHome(c, j.to);
   const cargo = j.cargo ?? newHomeCargo();
   this.hearWord(j.to, cargo.word);
   // Turned back on the road (item 7b): it tells why, and hands back any gold it still carries; there is no audience to report.
@@ -806,3 +853,40 @@ P.fulfil = function (req, reply) {
       break;
   }
 };
+
+/**
+ * What an envoy carries for its king beside its letter, on arriving at the court it was sent to (Haakon's answers to item
+ * 11a): the offers of jobs, put to the people standing there, and a debt tablet, presented to the borrower there.
+ */
+P.envoyBusinessAbroad = function (c, j) {
+  const S = this.s;
+  const d = j.dispatch!;
+  if (d.offers.length > 0)
+    this.hireAll(
+      d.offers.map((o) => ({
+        p: j.from,
+        h: hire(o.character, o.fee, o.term, o.advance, { what: o.errand?.what ?? null, where: o.errand?.where ?? null, payOnDone: o.payOnDone, offerAgain: o.offerAgain, via: c.id }),
+      })),
+      j.to,
+    );
+  const debt = d.collect !== null ? (S.debts.find((x) => x.id === d.collect && x.ended === null && x.holder === c.id) ?? null) : null;
+  if (debt === null) return;
+  if (debt.borrower === j.to)
+    notify(S, j.to, "Notice", "A debt presented", `${c.name}, envoy of ${j.from}, stands at your court with the tablet of your debt ${debt.id}: ${formatMoney(debtLeft(debt))} is left to repay to whoever holds it (order repay, while the envoy is here).`, c.id);
+  else {
+    const b = isPowerParty(debt.borrower) ? null : findCharacter(S, debt.borrower);
+    if (b !== null && b.at === j.to) remember(b, S.turn, `${c.name}, envoy of ${j.from}, is here with the tablet of my debt, ${formatMoney(debtLeft(debt))} left to repay.`);
+  }
+};
+
+/** An envoy home hands over what it carried for its king: gold it was paid on a tablet or an advance not taken, and the tablet. */
+P.carriedHome = function (c, home) {
+  const S = this.s;
+  if (c.carriedFor > 0 && isAlive(S, home) && c.employer === home) {
+    S.treasuries.get(home).gold += c.carriedFor;
+    notify(S, home, "Notice", "Gold brought home", `${c.name} brought home ${formatMoney(c.carriedFor)} of yours: what was repaid on a tablet it carried, or an advance not taken.`, c.id);
+    c.carriedFor = 0;
+  }
+  for (const d of S.debts.filter((x) => x.ended === null && x.holder === c.id && x.for === home)) this.passTablet(d, home, "Archive");
+};
+

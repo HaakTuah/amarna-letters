@@ -39,7 +39,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert, join, skilled } from "./support.ts";
+import { Assert, join, skilled, homeJob } from "./support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
 // Every order the validator accepts but the season cannot carry out is reported to its king next season, as a
@@ -104,7 +104,7 @@ describe("ResolutionFailureTests", () => {
     ["ransom that cannot be paid", "Not enough gold", "There was not enough gold to pay for the ransom for {envoy}; none was sent.", true],
     ["ransom for a captive let go that season", "Ransom not sent", "The ransom for {envoy} could not be sent: {envoy} is no longer held by Hatti.", true],
     ["hire below the price", "Not hired", "{stranger} declined your offer of 1 shekels for 6 seasons: they ask", false],
-    ["renewal below the price", "Not renewed", "{envoy} will not serve on for 1 shekels for 6 seasons with 0 shekels now; they ask", false],
+    ["renewal below the price", "Not renewed", "{envoy} will not take a new job for 1 shekels within 6 seasons with 0 shekels now; they ask", false],
     [
       "captive turned once its king dismissed it",
       "Captive order failed",
@@ -243,10 +243,10 @@ describe("ResolutionFailureTests", () => {
         break;
       case "hire below the price":
         stranger.at = "Egypt";
-        egypt(hire(stranger.id, 1));
+        egypt(hire(stranger.id, 1, 6, 0, homeJob("Egypt")));
         break;
       case "renewal below the price":
-        egypt(renew(envoy.id, 1));
+        egypt(renew(envoy.id, 1, 6, 0, homeJob("Egypt")));
         break;
       case "captive turned once its king dismissed it":
         who = "Hatti";

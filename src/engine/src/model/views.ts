@@ -247,10 +247,15 @@ export interface CharacterView {
   /** The season your servant's job began, and the last season of its term. */
   contractFrom: number | null;
   contractUntil: number | null;
-  /** One of your people who has given notice: what they ask a season of a new term to serve on. */
-  noticePrice: number | null;
-  /** With a notice: the season at whose start they leave unless renewed. */
-  leavesTurn: number | null;
+  /**
+   * Haakon's answers to item 11a: your servant's job's errand ("envoy" to a court, or "spy" on a court or province), null
+   * for one whose first errand names it; whether it is done; and the standing orders that go with the job.
+   */
+  errandWhat: string | null;
+  errandWhere: string | null;
+  errandDone: boolean;
+  payOnDone: boolean;
+  offerAgain: boolean;
   /**
    * Your servant's job in plain words: the fee, until when, and what happens then (see {@link Views.TermText}).
    */
@@ -279,6 +284,10 @@ export interface CharacterView {
   ransomDemand: number | null;
   /** Item 11a: the rest of a fee you let fall due and did not pay them, a promise broken (order pay_fee pays it at your court); null if none. */
   owed: number | null;
+  /** Haakon's answers to item 11a: the hoard this person keeps in your capital, which you may seize (order seize); null if none. */
+  hoardHere: number | null;
+  /** Haakon's answers to item 11a: what your captive carries on it, its purse and any gold it carried for its master. */
+  carries: number | null;
   /** Item 11a: what they offer to lend you, if they stand at your court and would ("Lending to kings"). */
   lends: LendOffer | null;
   /** Item 11b: the news of other courts they offer you, if they stand at your court (order buy_news). */
@@ -328,8 +337,11 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     advance: null,
     contractFrom: null,
     contractUntil: null,
-    noticePrice: null,
-    leavesTurn: null,
+    errandWhat: null,
+    errandWhere: null,
+    errandDone: false,
+    payOnDone: false,
+    offerAgain: false,
     term: "",
     knownFacts: [],
     pitch: null,
@@ -341,6 +353,8 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     intercepted: false,
     ransomDemand: null,
     owed: null,
+    hoardHere: null,
+    carries: null,
     lends: null,
     news: [],
     ...init,
@@ -361,8 +375,11 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   advance: opt(I),
   contractFrom: opt(I),
   contractUntil: opt(I),
-  noticePrice: opt(I),
-  leavesTurn: opt(I),
+  errandWhat: opt(S),
+  errandWhere: opt(S),
+  errandDone: B,
+  payOnDone: B,
+  offerAgain: B,
   term: S,
   knownFacts: list(S),
   pitch: S,
@@ -374,6 +391,8 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   intercepted: B,
   ransomDemand: opt(I),
   owed: opt(I),
+  hoardHere: opt(I),
+  carries: opt(I),
   lends: () => LendOfferSchema,
   news: list(() => NewsOfferSchema),
 });
@@ -554,10 +573,16 @@ export interface SeatView {
   /** Item 11a: its record of paying what fell due: promises kept and broken. */
   kept: number;
   broken: number;
-  /** Item 11a: the going rate of service, in percent of what people would ask on their own ("Fees clear the market"). */
-  goingRate: number;
+  /** Haakon's answers to item 11a: whether its standing order is to pay the carriers of its people's letters on delivery. */
+  payCarriers: boolean;
   /** Item 11a: the debt tablets of its debts that stand, as it knows them. */
   debts: DebtView[];
+  /**
+   * Haakon's answers to item 11a: the debt tablets in your archive of others' debts (yours as creditor), which you may send
+   * with an envoy to collect (dispatch collect) or sell to a person at your court (order sellDebt). `holder` is the
+   * borrower here, and `here` whether the borrower stands at your court.
+   */
+  debtsHeld: DebtView[];
   /**
    * Strength by the seat's own ledger (unassayed gold at its weight); never the true figure (see {@link Scoring}).
    */
@@ -692,8 +717,9 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     trust: 0,
     kept: 0,
     broken: 0,
-    goingRate: 100,
+    payCarriers: false,
     debts: [],
+    debtsHeld: [],
     strength: 0,
     startStrength: 0,
     provinceWeight: newGameConfig().provinceWeight,
@@ -763,8 +789,9 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   trust: I,
   kept: I,
   broken: I,
-  goingRate: I,
+  payCarriers: B,
   debts: list(() => DebtViewSchema),
+  debtsHeld: list(() => DebtViewSchema),
   strength: I,
   startStrength: I,
   provinceWeight: I,

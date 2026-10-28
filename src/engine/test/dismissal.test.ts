@@ -28,7 +28,7 @@ import {
   release,
   single,
 } from "@amarna/engine";
-import { Assert, last, orderBy } from "./support.ts";
+import { Assert, last, orderBy, homeJob } from "./support.ts";
 
 // <summary>Nobody is moved by a dismissal: a servant dismissed while away keeps going where it was going, and one held stays held.</summary>
 describe("DismissalTests", () => {
@@ -103,12 +103,12 @@ describe("DismissalTests", () => {
         dispatch: newDispatch(),
       }),
     );
-    e.resolve(orders("Hatti", hire(envoy.id, 72, 6, 72)));
+    e.resolve(orders("Hatti", hire(envoy.id, 72, 6, 72, homeJob("Hatti"))));
     Assert.null(envoy.employer);
     begin(s);
     // It arrives where it was going, free, and Hatti was told why it could not hire it.
     Assert.equal(["Babylonia", "None", "Free"], [envoy.at!, envoy.duty, envoy.status]);
-    Assert.contains(inboxOf(s, "Hatti"), (i) => i.body.includes("hired in person"));
+    Assert.contains(inboxOf(s, "Hatti"), (i) => i.body.includes("goes with an envoy"));
   });
 
   test("An envoy dismissed on the way home still comes home reports and hands over the gold", () => {
@@ -155,7 +155,7 @@ describe("DismissalTests", () => {
     // Hatti cannot hire it while it is still on the road; it comes home free, and reports.
     envoy.pitches.set("Hatti", "I would serve you.");
     envoy.askingPrice.set("Hatti", 10);
-    begin(s).resolve(orders("Hatti", hire(envoy.id, 72, 6, 72)));
+    begin(s).resolve(orders("Hatti", hire(envoy.id, 72, 6, 72, homeJob("Hatti"))));
     Assert.null(envoy.employer);
     while (s.journeys.includes(journey)) begin(s).resolve(none());
     Assert.equal(["Egypt", "None", "Free"], [envoy.at!, envoy.duty, envoy.status]);

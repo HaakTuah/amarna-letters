@@ -42,6 +42,7 @@ import { Board, LeadFloor } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import { Names } from "./names.ts";
 import { PeoplePlay, reliability } from "./statecraft-court.ts";
+import { atHand, oursFirst } from "./errands.ts";
 import { outweighs, rivals, touches } from "./statecraft-strategy.ts";
 import { joints, willing } from "./tactics.ts";
 import { TextKit } from "./textkit.ts";
@@ -75,12 +76,14 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
   // From a besieged capital an envoy may be caught slipping out, and one whose courage failed him will fail again while the
   // siege is as tight: he is not asked for two seasons, and no gold goes out to be taken.
   const besieged = v.sieges.some((x) => x.holder === me && x.province === Board.Map.capital(me).id);
+  // People at hand: servants at court and the free people there, each sent offered the errand's job (errands.ts).
   const ready = sortBy(
-    v.court.filter((c) => {
-      if (!c.ready || busy.has(c.id)) return false;
+    atHand(b, brain).filter((c) => {
+      if (busy.has(c.id)) return false;
       const t = brain.wouldNotLeave.tryGet(c.id);
       return !(besieged && t !== undefined && v.turn - t <= 2);
     }),
+    [oursFirst, desc(cmpBool)],
     ...byReliability(brain),
   );
   if (ready.length === 0) return;

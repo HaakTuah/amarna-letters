@@ -535,7 +535,8 @@ describe("CoverTests", () => {
       Assert.equal("has not returned from Alashiya", single(Views.for(s, "Egypt").court, (c) => c.id === envoy.id).duty);
       e.resolve(none());
     }
-    Assert.true(single(Views.for(s, "Egypt").court, (c) => c.id === envoy.id).ready);
+    // Home, its errand done: its job ends, and it stands free at court (Haakon's answers to item 11a).
+    Assert.equal("at your court", single(Views.for(s, "Egypt").known, (c) => c.id === envoy.id).where);
     Assert.contains(inboxOf(s, "Egypt"), (x) => x.kind === "EnvoyReport" && x.subject === envoy.id);
   });
 
@@ -573,7 +574,7 @@ describe("CoverTests", () => {
       e.resolve(none());
     }
     Assert.empty(char(caught, id).covers);
-    Assert.true(single(Views.for(caught, "Babylonia").court, (c) => c.id === id).ready);
+    Assert.equal("at your court", single(Views.for(caught, "Babylonia").known, (c) => c.id === id).where);
     Assert.contains(inboxOf(caught, "Babylonia"), (x) => x.title === "Agent returns" && x.subject === id);
   });
 
@@ -660,6 +661,7 @@ describe("CoverTests", () => {
 
     // However heavy the watch it once paid for, nobody is left to catch a spy still watching its court.
     [watcher.duty, watcher.at, watcher.missionTarget] = ["SpyPosted", "Assyria", "Assyria"];
+    watcher.contract!.untilTurn = 50;
     for (let i = 0; i < 10; i++) {
       let e = begin(s);
       s.counterIntel.set("Assyria", 50000);

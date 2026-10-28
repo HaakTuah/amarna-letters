@@ -22,6 +22,8 @@ export interface CourtSeen {
   /** Item 11b: what it heard of the court: people it put to death, and its own people lost abroad (caught or put to death). */
   executions: number;
   lost: number;
+  /** Haakon's answers to item 11a: hoards of living people it heard the court seized. */
+  seized: number;
   /** The price of a measure of grain at its capital's market, in hundredths of a shekel (100 is the usual price). */
   grain: number;
   /** Its strength against its start, in percent, as all can reckon it; and whether its capital is besieged. */
@@ -34,7 +36,7 @@ export interface CourtSeen {
 }
 
 export function newCourtSeen(init: Partial<CourtSeen> = {}): CourtSeen {
-  return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, executions: 0, lost: 0, grain: 100, growth: 100, besieged: false, ask: 0, stranger: false, ...init };
+  return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, executions: 0, lost: 0, seized: 0, grain: 100, growth: 100, besieged: false, ask: 0, stranger: false, ...init };
 }
 
 export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSeen, {
@@ -46,6 +48,7 @@ export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSe
   broken: I,
   executions: I,
   lost: I,
+  seized: I,
   grain: I,
   growth: I,
   besieged: B,
@@ -102,10 +105,12 @@ export interface ApproachSeen {
   seasons: number;
   collect: string | null;
   fee: number;
+  /** With a job: whether the offerer says it will pay the rest when the collector hands over what it collected. */
+  payOnDone: boolean;
 }
 
 export function newApproachSeen(init: Partial<ApproachSeen> = {}): ApproachSeen {
-  return { id: "", from: "", fromName: "", words: "", giveGold: 0, askGold: 0, giveDebts: [], askDebts: [], repay: 0, seasons: 0, collect: null, fee: 0, ...init };
+  return { id: "", from: "", fromName: "", words: "", giveGold: 0, askGold: 0, giveDebts: [], askDebts: [], repay: 0, seasons: 0, collect: null, fee: 0, payOnDone: false, ...init };
 }
 
 export const ApproachSeenSchema: ObjSchema<ApproachSeen> = obj("ApproachSeen", newApproachSeen, {
@@ -120,6 +125,7 @@ export const ApproachSeenSchema: ObjSchema<ApproachSeen> = obj("ApproachSeen", n
   repay: I,
   seasons: I,
   collect: opt(S),
+  payOnDone: B,
   fee: I,
 });
 
@@ -133,6 +139,8 @@ export interface LifeView {
   /** Its job: the last season of its term, and the rest of the fee still to come. */
   jobUntil: number | null;
   restDue: number;
+  /** Whether its master ordered the rest paid when the job is done (else it is paid only if he orders it then). */
+  payOnDone: boolean;
   seeking: boolean;
   waited: number;
   purse: number;
@@ -140,8 +148,8 @@ export interface LifeView {
   lendOffer: LendOffer | null;
   /** What its living costs a season where it stands, in shekels (nothing as a guest). */
   living: number;
-  /** The going rate of service, in percent of what people would ask on their own. */
-  goingRate: number;
+  /** What it has heard a job pays a season (Haakon's answers to item 11a: no going rate, only what one hears), or null. */
+  heardRate: number | null;
   courts: CourtSeen[];
   /** Item 11a+: an invented name it may give at a court it sets out for that knows nothing of it, or null. */
   alias: string | null;
@@ -152,7 +160,7 @@ export interface LifeView {
   here: PersonHere[];
   approaches: ApproachSeen[];
   /** On an errand: whose, the debt to collect, the borrower's court, what it has collected, and where its employer waits. */
-  errand: { employer: string; employerName: string; debtId: string; borrower: string; collected: number; home: Power; since: number; reached: boolean } | null;
+  errand: { employer: string; employerName: string; debtId: string; borrower: string; collected: number; home: Power; since: number; reached: boolean; payOnDone: boolean } | null;
   /** Real offers made to it last season, a season's rate by court, which it may cite. */
   offers: { court: Power; rate: number }[];
   /** The ending, in words (what every seat is told). */
@@ -174,13 +182,14 @@ export function newLifeView(init: Partial<LifeView> = {}): LifeView {
     employer: null,
     jobUntil: null,
     restDue: 0,
+    payOnDone: false,
     seeking: true,
     waited: 0,
     purse: 0,
     hoard: null,
     lendOffer: null,
     living: 0,
-    goingRate: 100,
+    heardRate: null,
     courts: [],
     alias: null,
     held: [],
@@ -197,7 +206,7 @@ export function newLifeView(init: Partial<LifeView> = {}): LifeView {
   };
 }
 
-const ErrandSeenSchema = obj("ErrandSeen", () => ({ employer: "", employerName: "", debtId: "", borrower: "", collected: 0, home: "Egypt" as Power, since: 0, reached: false }), {
+const ErrandSeenSchema = obj("ErrandSeen", () => ({ employer: "", employerName: "", debtId: "", borrower: "", collected: 0, home: "Egypt" as Power, since: 0, reached: false, payOnDone: false }), {
   employer: S,
   employerName: S,
   debtId: S,
@@ -206,6 +215,7 @@ const ErrandSeenSchema = obj("ErrandSeen", () => ({ employer: "", employerName: 
   home: S,
   since: I,
   reached: B,
+  payOnDone: B,
 });
 
 export const LifeViewSchema: ObjSchema<LifeView> = obj("LifeView", newLifeView, {
@@ -215,13 +225,14 @@ export const LifeViewSchema: ObjSchema<LifeView> = obj("LifeView", newLifeView, 
   employer: opt(S),
   jobUntil: opt(I),
   restDue: I,
+  payOnDone: B,
   seeking: B,
   waited: I,
   purse: I,
   hoard: () => HoardSchema,
   lendOffer: () => LendOfferSchema,
   living: I,
-  goingRate: I,
+  heardRate: opt(I),
   courts: list(() => CourtSeenSchema),
   alias: opt(S),
   held: list(() => DebtSeenSchema),
@@ -248,10 +259,12 @@ export interface ApproachMade {
   seasons: number;
   collect: string | null;
   fee: number;
+  /** With a job: its standing order to pay the rest when the collector hands over what it collected. */
+  payOnDone?: boolean;
 }
 
 export function newApproachMade(init: Partial<ApproachMade> = {}): ApproachMade {
-  return { to: "", words: "", giveGold: 0, askGold: 0, giveDebts: [], askDebts: [], repay: 0, seasons: 0, collect: null, fee: 0, ...init };
+  return { to: "", words: "", giveGold: 0, askGold: 0, giveDebts: [], askDebts: [], repay: 0, seasons: 0, collect: null, fee: 0, payOnDone: false, ...init };
 }
 
 export const ApproachMadeSchema: ObjSchema<ApproachMade> = obj("ApproachMade", newApproachMade, {
@@ -265,6 +278,7 @@ export const ApproachMadeSchema: ObjSchema<ApproachMade> = obj("ApproachMade", n
   seasons: I,
   collect: opt(S),
   fee: I,
+  payOnDone: opt(B),
 });
 
 /** What a character decides for its season. Every field defaults to leaving things as they are. */

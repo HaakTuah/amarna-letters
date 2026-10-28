@@ -13,6 +13,7 @@ import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema, type GreetingOptions, type TabletProposal } from "./records.ts";
 import { AuthoritySchema, type Authority, type GrantKind } from "./authority.ts";
+import type { JobWhat } from "./people.ts";
 
 export interface HoldOrder {
   type: "hold";
@@ -174,6 +175,8 @@ export interface RaiseOrder {
   type: "raise";
   province: string;
   kind: UnitKind;
+  /** Haakon's answers to item 11a+: how many men the levy takes, up to every man of fighting age there; none: a unit's full size. */
+  men?: number | null;
 }
 export interface DisbandOrder {
   type: "disband";
@@ -218,6 +221,11 @@ export interface DispatchOrder {
    * and brings home whether they do.
    */
   checkClaim?: string | null;
+  /**
+   * Haakon's answers to item 11a: a debt tablet in your archive the envoy carries to the court it goes to, to present to
+   * the borrower there; what is repaid to it, and the tablet if not repaid in full, it brings home.
+   */
+  collect?: string | null;
 }
 /** Let a detained envoy (or captive) go home, optionally with a spoken reply. */
 export interface ReleaseOrder {
@@ -229,8 +237,12 @@ export interface SeekCandidatesOrder {
   type: "seekCandidates";
 }
 /**
- * Item 11a, "Jobs, not wages": hire a person standing at your court for a job of `term` seasons, for a whole `fee`, of which
- * `advance` is handed over now and the rest falls due when the job is done.
+ * Item 11a, "Jobs, not wages", as Haakon's answers rework it: offer a person a job, which is one errand: `what` ("envoy" to
+ * the court `where`, or "spy" on the court or province `where`), done by `term` seasons from now, for a whole `fee`, of
+ * which `advance` is handed over now and the rest falls due when the job is done. `payOnDone`: your standing order to pay
+ * the rest then; otherwise you pay it by order pay_fee, or not. `offerAgain`: when it is done, the same job is offered again,
+ * which the man may take or not. A person at your court is offered it there; one elsewhere only through `via`, one of
+ * your envoys you send this season to the court where the person stands, carrying the offer and the advance.
  */
 export interface HireOrder {
   type: "hire";
@@ -238,10 +250,15 @@ export interface HireOrder {
   fee: number;
   advance: number;
   term: number;
+  what?: JobWhat | null;
+  where?: string | null;
+  payOnDone?: boolean | null;
+  offerAgain?: boolean | null;
+  via?: string | null;
 }
 /**
- * Keep one of your own people on for a new job: a new fee for a new term, the advance handed over now. Not a task: the
- * servant may be renewed and sent on an errand in the same season.
+ * A new job offered to one of your own people at your court (a new errand, fee and term), the advance handed over now, if
+ * the man takes it. Not a task: the servant may be renewed and sent on the new job's errand in the same season.
  */
 export interface RenewOrder {
   type: "renew";
@@ -249,6 +266,30 @@ export interface RenewOrder {
   fee: number;
   advance: number;
   term: number;
+  what?: JobWhat | null;
+  where?: string | null;
+  payOnDone?: boolean | null;
+  offerAgain?: boolean | null;
+}
+/** Haakon's answers to item 11a: seize the hoard a living person keeps in your capital, with the tablets kept in it. */
+export interface SeizeHoardOrder {
+  type: "seize";
+  character: string;
+}
+/** Haakon's answers to item 11a: sell a debt tablet in your archive to a person at your court, for `price` from its purse. */
+export interface SellDebtOrder {
+  type: "sellDebt";
+  debt: string;
+  character: string;
+  price: number;
+}
+/**
+ * Haakon's answers to item 11a: your standing order, until changed, to pay on delivery the fee of whoever carries your
+ * people's letters home (or not).
+ */
+export interface PayCarriersOrder {
+  type: "payCarriers";
+  pay: boolean;
 }
 /**
  * Item 11a: the rest of a servant's fee. `pay` true pays what you let fall due unpaid, if the person stands at your court;
@@ -370,7 +411,7 @@ export interface ForgeOrder {
   clauses?: Clause[] | null;
 }
 
-export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release", "Question", "HandOver"] as const;
+export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release", "Question", "HandOver", "TakePurse"] as const;
 export type CaptiveFate = (typeof CaptiveFateValues)[number];
 
 /** Decide the fate of a caught spy held at this court. */
@@ -448,6 +489,9 @@ export type Order =
   | ForgeOrder
   | CaptiveOrder
   | PayRansomOrder
+  | SeizeHoardOrder
+  | SellDebtOrder
+  | PayCarriersOrder
   | UnreadableOrder;
 
 export type OrderType = Order["type"];
@@ -461,7 +505,7 @@ export const convoy = (unit: string, army: string, to: string): ConvoyOrder => (
 export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit });
 export const fortify = (province: string): FortifyOrder => ({ type: "fortify", province });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
-export const raise = (province: string, kind: UnitKind): RaiseOrder => ({ type: "raise", province, kind });
+export const raise = (province: string, kind: UnitKind, men: number | null = null): RaiseOrder => (men === null ? { type: "raise", province, kind } : { type: "raise", province, kind, men });
 export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
 export const buy = (province: string): BuyProvinceOrder => ({ type: "buy", province });
 export const cede = (province: string, to: Power): CedeProvinceOrder => ({ type: "cede", province, to });
@@ -470,7 +514,7 @@ export function dispatch(
   envoy: string,
   to: Power,
   letter: string,
-  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null; clauses?: Clause[] | null; noInventory?: boolean | null; authority?: Authority | null; checkClaim?: string | null } = {},
+  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null; clauses?: Clause[] | null; noInventory?: boolean | null; authority?: Authority | null; checkClaim?: string | null; collect?: string | null } = {},
 ): DispatchOrder {
   return {
     type: "dispatch",
@@ -487,13 +531,34 @@ export function dispatch(
     noInventory: opts.noInventory ?? null,
     ...(opts.authority != null ? { authority: opts.authority } : {}),
     ...(opts.checkClaim != null ? { checkClaim: opts.checkClaim } : {}),
+    ...(opts.collect != null ? { collect: opts.collect } : {}),
   };
 }
 export const release = (character: string, reply = ""): ReleaseOrder => ({ type: "release", character, reply });
 export const seekCandidates = (): SeekCandidatesOrder => ({ type: "seekCandidates" });
-/** A job: by default the whole fee for `term` seasons at `rate` a season, half of it handed over now. */
-export const hire = (character: string, fee: number, term = 6, advance: number | null = null): HireOrder => ({ type: "hire", character, fee, advance: advance ?? Math.trunc(fee / 2), term });
-export const renew = (character: string, fee: number, term = 6, advance: number | null = null): RenewOrder => ({ type: "renew", character, fee, advance: advance ?? Math.trunc(fee / 2), term });
+/** A job's terms beyond its fee: its errand, the standing orders that go with it, and the envoy carrying an offer abroad. */
+export interface JobTerms {
+  what?: JobWhat | null;
+  where?: string | null;
+  payOnDone?: boolean;
+  offerAgain?: boolean;
+  via?: string | null;
+}
+const terms = (t: JobTerms): Omit<Partial<HireOrder>, "type"> => ({
+  ...(t.what != null ? { what: t.what, where: t.where ?? null } : {}),
+  ...(t.payOnDone === true ? { payOnDone: true } : {}),
+  ...(t.offerAgain === true ? { offerAgain: true } : {}),
+  ...(t.via != null ? { via: t.via } : {}),
+});
+/** A job: by default the whole fee for `term` seasons, half of it handed over now. */
+export const hire = (character: string, fee: number, term = 6, advance: number | null = null, t: JobTerms = {}): HireOrder => ({ type: "hire", character, fee, advance: advance ?? Math.trunc(fee / 2), term, ...terms(t) });
+export const renew = (character: string, fee: number, term = 6, advance: number | null = null, t: JobTerms = {}): RenewOrder => {
+  const { via: _via, ...rest } = terms(t);
+  return { type: "renew", character, fee, advance: advance ?? Math.trunc(fee / 2), term, ...rest };
+};
+export const seize = (character: string): SeizeHoardOrder => ({ type: "seize", character });
+export const sellDebt = (debt: string, character: string, price: number): SellDebtOrder => ({ type: "sellDebt", debt, character, price });
+export const payCarriers = (pay: boolean): PayCarriersOrder => ({ type: "payCarriers", pay });
 export const payFee = (character: string, pay = true): PayFeeOrder => ({ type: "payFee", character, pay });
 export const borrow = (character: string, amount: number, repay: number, seasons = 6): BorrowOrder => ({ type: "borrow", character, amount, repay, seasons });
 export const repay = (debt: string, amount: number): RepayOrder => ({ type: "repay", debt, amount });
@@ -579,7 +644,7 @@ export function describe(o: Order): string {
     case "returnRunaways":
       return `send ${o.to}'s runaways in ${named(o.province)} back to ${o.to}`;
     case "raise":
-      return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}`;
+      return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}${o.men != null ? ` of ${o.men} men` : ""}`;
     case "disband":
       return o.settle === true ? `disband ${o.unit} and settle its men there as colonists` : `disband ${o.unit}`;
     case "tax":
@@ -591,15 +656,21 @@ export function describe(o: Order): string {
     case "giftUnit":
       return `give ${o.unit} to ${o.to}`;
     case "dispatch":
-      return `send ${o.envoy} to ${o.to}` + (o.gold > 0 ? ` with ${o.gold} shekels` : "") + (o.proposal ? " bearing a tablet to seal" : "");
+      return `send ${o.envoy} to ${o.to}` + (o.gold > 0 ? ` with ${o.gold} shekels` : "") + (o.proposal ? " bearing a tablet to seal" : "") + (o.collect != null ? ` carrying debt tablet ${o.collect}` : "");
     case "release":
       return `release ${o.character}`;
     case "seekCandidates":
       return "ask for candidates";
     case "hire":
-      return `hire ${o.character} for ${o.term} seasons for ${o.fee} shekels, ${o.advance} of them now`;
+      return `offer ${o.character} a job${jobText(o)} within ${o.term} seasons for ${o.fee} shekels, ${o.advance} of them now${o.via != null ? `, the offer carried by ${o.via}` : ""}`;
     case "renew":
-      return `renew ${o.character} for ${o.term} seasons for ${o.fee} shekels, ${o.advance} of them now`;
+      return `offer ${o.character} a new job${jobText(o)} within ${o.term} seasons for ${o.fee} shekels, ${o.advance} of them now`;
+    case "seize":
+      return `seize the hoard ${o.character} keeps in your capital`;
+    case "sellDebt":
+      return `sell debt tablet ${o.debt} to ${o.character} for ${o.price} shekels`;
+    case "payCarriers":
+      return o.pay ? "pay the carriers of your people's letters on delivery" : "stop paying the carriers of your people's letters on delivery";
     case "payFee":
       return o.pay ? `pay ${o.character} the rest of the fee owed` : `withhold the rest of ${o.character}'s fee`;
     case "borrow":
@@ -637,7 +708,9 @@ export function describe(o: Order): string {
         ? `question the captive ${o.character} (${o.spend ?? 0} shekels)`
         : o.fate === "HandOver"
           ? `hand the captive ${o.character} over to ${o.to ?? "?"}`
-          : `${o.fate.toLowerCase()} the captive ${o.character}`;
+          : o.fate === "TakePurse"
+            ? `take the purse of the captive ${o.character}`
+            : `${o.fate.toLowerCase()} the captive ${o.character}`;
     case "steal":
       return `have ${o.character} steal a tablet from the archive they watch`;
     case "gift":
@@ -645,6 +718,12 @@ export function describe(o: Order): string {
     case "payRansom":
       return `pay the ransom for ${o.character}`;
   }
+}
+
+/** A job's errand and standing orders in words, for an order's line. */
+function jobText(o: HireOrder | RenewOrder): string {
+  const errand = o.what === "envoy" ? ` as envoy to ${o.where ?? "?"}` : o.what === "spy" ? ` to watch ${o.where ?? "?"}` : "";
+  return errand + (o.payOnDone === true ? ", the rest paid when it is done" : "") + (o.offerAgain === true ? ", offered again when done" : "");
 }
 
 /** Which unit an order acts on (one order each per season). */
@@ -663,20 +742,24 @@ export function unitOf(o: Order): string | null {
   }
 }
 
-/** The person an order gives a task to. A renewal is not a task, so it is not counted here. */
+/**
+ * The person an order gives a task to. A job offered (hire, renew) is not a task (Haakon's answers to item 11a: the man may
+ * be sent on its errand in the same season), so it is not counted here.
+ */
 export function characterOf(o: Order): string | null {
   switch (o.type) {
     case "dispatch":
       return o.envoy;
     case "release":
-    case "hire":
     case "dismiss":
     case "spy":
     case "recall":
     case "forge":
-    case "captive":
     case "steal":
       return o.character;
+    // Taking what a captive carries is no task (Haakon's answers to item 11a): its fate may be decided the same season.
+    case "captive":
+      return o.fate === "TakePurse" ? null : o.character;
     default:
       return null;
   }
@@ -719,7 +802,7 @@ export const OrderSchema = poly("Order", "type", {
   trade: v("TradeOrder", () => trade("", "", 0, 0), { from: S, to: S, grain: I, gold: I, sneak: B }),
   ship: v("ShipOrder", () => ship("", "", "", 0, 0), { fleet: S, from: S, to: S, grain: I, gold: I, trade: B }),
   toll: v("TollOrder", () => toll(0), { province: opt(S), partner: opt(S), percent: I }),
-  raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S }),
+  raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S, men: opt(I) }),
   disband: v("DisbandOrder", () => disband(""), { unit: S, settle: opt(B) }),
   tax: v("TaxOrder", () => tax(0), { province: opt(S), percent: I }),
   welcome: v("WelcomeOrder", () => welcome(""), { province: S }),
@@ -743,11 +826,15 @@ export const OrderSchema = poly("Order", "type", {
     noInventory: opt(B),
     authority: opt(() => AuthoritySchema),
     checkClaim: opt(S),
+    collect: opt(S),
   }),
   release: v("ReleaseOrder", () => release(""), { character: S, reply: S }),
   seekCandidates: v("SeekCandidatesOrder", () => seekCandidates(), {}),
-  hire: v("HireOrder", () => hire("", 0), { character: S, fee: I, advance: I, term: I }),
-  renew: v("RenewOrder", () => renew("", 0), { character: S, fee: I, advance: I, term: I }),
+  hire: v("HireOrder", () => hire("", 0), { character: S, fee: I, advance: I, term: I, what: opt(S), where: opt(S), payOnDone: opt(B), offerAgain: opt(B), via: opt(S) }),
+  renew: v("RenewOrder", () => renew("", 0), { character: S, fee: I, advance: I, term: I, what: opt(S), where: opt(S), payOnDone: opt(B), offerAgain: opt(B) }),
+  seize: v("SeizeHoardOrder", () => seize(""), { character: S }),
+  sellDebt: v("SellDebtOrder", () => sellDebt("", "", 0), { debt: S, character: S, price: I }),
+  payCarriers: v("PayCarriersOrder", () => payCarriers(true), { pay: B }),
   payFee: v("PayFeeOrder", () => payFee(""), { character: S, pay: B }),
   borrow: v("BorrowOrder", () => borrow("", 0, 0), { character: S, amount: I, repay: I, seasons: I }),
   repay: v("RepayOrder", () => repay("", 0), { debt: S, amount: I }),

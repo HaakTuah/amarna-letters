@@ -6,7 +6,7 @@ import { cmpNum, distinct, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr, isBlank } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, ForgeOrder } from "../model/orders.ts";
-import { coverOf, newFact, remember, type Character, type Cover } from "../model/people.ts";
+import { coverOf, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
 import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
@@ -56,7 +56,8 @@ P.resolveIntelligence = function (orders) {
 
   // Captors decide first, so that a ransom paid the same season meets the captive as its captor left them,
   // whichever court comes first.
-  for (const [p, o] of orders) if (o.type === "captive") this.captive(p, o);
+  for (const [p, o] of orders) if (o.type === "captive" && o.fate === "TakePurse") this.captive(p, o);
+  for (const [p, o] of orders) if (o.type === "captive" && o.fate !== "TakePurse") this.captive(p, o);
 
   for (const [p, o] of orders) {
     switch (o.type) {
@@ -101,6 +102,13 @@ P.placeSpy = function (p, ps) {
   const court = ps.court ?? null;
   const province = ps.province ?? null;
   const target = court !== null ? Map.capital(court).id : province!;
+  // Haakon's answers to item 11a: a job is one errand; one who did not take the job offered, or whose job is another, stays.
+  const job = c.contract?.errand ?? null;
+  if (c.employer !== p || c.status !== "Employed" || (job !== null && (job.what !== "spy" || job.where !== (court ?? province) || job.done))) {
+    this.failed(p, ps, "Spy not sent", c.employer !== p ? `${c.name} is not in your service: they did not take the job offered.` : `${c.name}'s job is not to watch ${court ?? Map.get(province!).name}: another errand is a new job (order renew).`, "not the errand of their job", true, c.id);
+    return;
+  }
+  if (c.contract !== null && job === null) c.contract.errand = newJobErrand({ what: "spy", where: court ?? province! });
   c.duty = "SpyOutbound";
   c.at = null;
   c.missionTarget = court;
@@ -136,6 +144,8 @@ P.spyArrives = function (j) {
 P.recall = function (p, c) {
   const S = this.s;
   const Map = this.map;
+  // Its stay is over, recalled or its term served: its job is done when it is home.
+  if (c.contract?.errand?.what === "spy") c.contract.errand.done = true;
   const from = c.missionTarget !== null ? Map.capital(c.missionTarget).id : (c.watchProvince ?? Map.capital(p).id);
   c.duty = "EnvoyHomebound";
   c.at = null;
@@ -469,6 +479,9 @@ P.captive = function (host, co) {
       break;
     case "HandOver":
       this.handOver(host, c, co.to!);
+      break;
+    case "TakePurse":
+      this.takePurse(host, c);
       break;
   }
 };

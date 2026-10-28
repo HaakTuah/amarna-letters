@@ -184,14 +184,16 @@ export const WinterData = { suppliedPercent: 50, desertPercent: 50 } as const;
  * where it has the men, else every man of fighting age at home and not away, so a small city raises its few hundred; none
  * below `levyLeast`. 0: too few to raise anything.
  */
-export function levySize(s: GameState, province: string, kind: UnitKind): number {
-  const n = Math.min(menOf(kind), menAvailable(s, province));
+export function levySize(s: GameState, province: string, kind: UnitKind, men: number | null = null): number {
+  // Haakon's answers to item 11a+: the king chooses how many men a levy takes, up to all; none named, a full unit's.
+  const n = Math.min(men ?? menOf(kind), menAvailable(s, province));
   return n >= LandData.levyLeast ? n : 0;
 }
 
 /** A unit's share of a full levy of its kind, in thousandths: what its pay, food and price are of a full unit's (item 11a+). */
 export function shareOfFull(kind: UnitKind, men: number): number {
-  return men <= 0 ? 1000 : Math.max(1, Math.min(1000, Math.floor((men * 1000) / menOf(kind))));
+  // A levy larger than a full unit (Haakon's answers to item 11a+) costs and eats in proportion too.
+  return men <= 0 ? 1000 : Math.max(1, Math.floor((men * 1000) / menOf(kind)));
 }
 
 /** A unit's food a season and the most it carries, in proportion to its men (item 11a+). */

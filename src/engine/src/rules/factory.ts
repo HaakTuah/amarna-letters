@@ -145,7 +145,9 @@ export function populate(s: GameState): void {
       // Item 11a: a job like any other, its fee for the seasons it runs at what the old wage paid, half handed over before the game.
       const until = Rng.for(s.seed, 0, "start-term", c.id).range(7, 13);
       const fee = (6 + Math.trunc(c.traits.competence / 10)) * (until - 1);
-      c.contract = newContract({ fee, advance: Math.trunc(fee / 2), startTurn: 1, untilTurn: until });
+      // Haakon's answers to item 11a: its first errand is named when it is first sent, and the job, agreed before the game,
+      // carries the king's word to pay the rest when it is done (his standing order, which he may cancel: withhold_fee).
+      c.contract = newContract({ fee, advance: Math.trunc(fee / 2), startTurn: 1, untilTurn: until, payOnDone: true });
       c.purse = Math.trunc(fee / 2);
       c.earned.fees = c.purse;
       c.reputation.set(p, 10);

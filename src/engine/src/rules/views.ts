@@ -6,7 +6,7 @@ import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { split } from "../core/text.ts";
 import { seasonOfTurn, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
-import { coverOf, factsKnownTo, falseNameAt, hiddenAt, type Character, type Contract, type Cover } from "../model/people.ts";
+import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
@@ -45,7 +45,7 @@ import { formatMoney, season } from "./calendar.ts";
 import { ageBand } from "./ending.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { asShown, basePrice, trustIn } from "../turn/turn-engine.ts";
-import { debtLeft, isPowerParty } from "../model/money.ts";
+import { debtLeft, isPowerParty, standsForBorrower } from "../model/money.ts";
 import { travelTurns } from "../turn/core.ts";
 
 /**
@@ -189,8 +189,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     trust: trustIn(s, p),
     kept: s.payRecords.tryGet(p)?.kept ?? 0,
     broken: s.payRecords.tryGet(p)?.broken ?? 0,
-    goingRate: s.goingRate,
+    payCarriers: s.payCarriers.includes(p),
     debts: debtViews(s, p),
+    debtsHeld: claimViews(s, p),
     strength: engine.ledgerStrength(p),
     startStrength: s.startStrength.getOrDefault(p, 0),
     provinceWeight: s.config.provinceWeight,
@@ -287,7 +288,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({ ...x, conditions: [...x.conditions] }));
 
   for (const c of s.characters) {
-    if (!knows(c, p)) continue;
+    if (!knows(c, p) || unheardHire(s, c, p)) continue;
     const cv = characterView(s, c, p);
     // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
     if (coverOf(c, p) !== null || isOurs(c, p)) v.court.push(cv);
@@ -439,6 +440,11 @@ function isOurs(c: Character, viewer: Power): boolean {
   return c.employer === viewer && (c.status === "Employed" || c.status === "Captured");
 }
 
+/** One its court does not know took its job yet (an offer taken abroad, whose word is on the road): it sees nothing of it. */
+function unheardHire(s: GameState, c: Character, viewer: Power): boolean {
+  return c.employer === viewer && !jobKnown(c, s.turn);
+}
+
 /**
  * Whom a spy `court` caught confessed to serving when it was caught there (its latest capture there), or null if it would
  * not say: all the court learned of its master.
@@ -482,25 +488,31 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     duty: captive ? captiveText(s, c.id, c.heldBy!, viewer) : ours ? dutyText(c) : "",
     where: ours || here ? whereText(c, viewer) : "",
     timing: ours ? timingText(s, c) : "",
-    fee: k?.fee ?? null,
+    fee: k === null ? null : k.fee + k.carried,
     advance: k?.advance ?? null,
     contractFrom: k?.startTurn ?? null,
     contractUntil: k?.untilTurn ?? null,
-    noticePrice: k?.noticePrice ?? null,
-    leavesTurn: k?.leavesTurn ?? null,
-    term: k === null ? "" : termText(k.fee, k.advance, k.untilTurn, k.noticePrice, k.leavesTurn, s.turn),
+    errandWhat: k?.errand?.what ?? null,
+    errandWhere: k?.errand?.where ?? null,
+    // Whether its errand is done its master knows once it is home with nothing to do.
+    errandDone: (k?.errand?.done ?? false) && c.duty === "None" && c.at === viewer,
+    payOnDone: k?.payOnDone ?? false,
+    offerAgain: k?.offerAgain ?? false,
+    term: k === null ? "" : termText(k.fee + k.carried, k.advance, k.untilTurn, s.turn, k),
     knownFacts: facts,
     pitch: c.pitches.tryGet(viewer) ?? null,
     // What it said it can do when it pitched to you (item 10, "Kings never see skills"): words, never its skill.
     claims: c.pitches.has(viewer) && c.claimed !== null ? claimWords(c.claimed) : [],
     claimsToServe: alias?.employer ?? null,
     // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
-    askingPrice: ours ? null : price !== undefined ? price : freeHere ? basePrice(c, viewer, s.goingRate) : null,
+    askingPrice: ours ? null : price !== undefined ? price : freeHere ? basePrice(c, viewer) : null,
     ready: ours && c.status === "Employed" && c.duty === "None" && c.at === viewer,
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
     ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,
+    hoardHere: c.hoard !== null && c.hoard.at === viewer && c.status !== "Dead" ? c.hoard.gold : null,
+    carries: c.status === "Captured" && c.heldBy === viewer ? c.purse + c.carriedFor : null,
     // Item 11a: one standing at your court, free to deal, who offers to lend you gold.
     lends: c.lendOffer !== null && c.at === viewer && c.heldBy === null && c.status !== "Dead" && !hiddenAt(c, viewer) && c.lendOffer.amount > 0 ? c.lendOffer : null,
     // Item 11b: the news of other courts they offer you, standing at your court.
@@ -510,11 +522,12 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
 
 /**
  * Item 11a: a court's own debts that stand, as it knows them: who lent, who holds the tablet now (a holder that stands at
- * its court, or the lender as far as it knows), and what is left. A tablet gone missing still shows until the debt ends.
+ * its court, or the lender as far as it knows), and what is left. A tablet gone missing still shows until word of it
+ * reaches the court (Haakon's answers to item 11a).
  */
 function debtViews(s: GameState, p: Power): DebtView[] {
   return s.debts
-    .filter((d) => d.borrower === p && d.ended === null)
+    .filter((d) => d.borrower === p && standsForBorrower(d, s.turn))
     .map((d) => {
       const h = d.holder !== null ? (s.characters.find((c) => c.id === d.holder) ?? null) : null;
       const here = h !== null && h.at === p && h.status !== "Dead" && (h.heldBy === null || h.heldBy === p);
@@ -531,6 +544,27 @@ function debtViews(s: GameState, p: Power): DebtView[] {
         sealedTurn: d.sealedTurn,
         dueTurn: d.dueTurn,
         here,
+      });
+    });
+}
+
+/** Haakon's answers to item 11a: the tablets in a court's archive of others' debts, with the borrower and where it stands. */
+function claimViews(s: GameState, p: Power): DebtView[] {
+  return s.debts
+    .filter((d) => d.holder === p && d.ended === null && d.borrower !== p)
+    .map((d) => {
+      const b = isPowerParty(d.borrower) ? null : (s.characters.find((c) => c.id === d.borrower) ?? null);
+      return newDebtView({
+        id: d.id,
+        holder: b?.name ?? d.borrower,
+        holderId: d.borrower,
+        lender: s.characters.find((c) => c.id === d.lender)?.name ?? d.lender,
+        principal: d.principal,
+        owed: d.owed,
+        left: debtLeft(d),
+        sealedTurn: d.sealedTurn,
+        dueTurn: d.dueTurn,
+        here: b !== null && b.at === p && b.status !== "Dead" && b.heldBy === null && !hiddenAt(b, p),
       });
     });
 }
@@ -552,9 +586,12 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
     advance: cover.advance,
     contractFrom: cover.startTurn,
     contractUntil: cover.contractUntil,
-    noticePrice: cover.noticePrice,
-    leavesTurn: cover.leavesTurn,
-    term: termText(cover.fee, cover.advance, cover.contractUntil, cover.noticePrice, cover.leavesTurn, s.turn),
+    errandWhat: cover.errand?.what ?? null,
+    errandWhere: cover.errand?.where ?? null,
+    errandDone: cover.errand?.done ?? false,
+    payOnDone: cover.payOnDone,
+    offerAgain: cover.offerAgain,
+    term: termText(cover.fee, cover.advance, cover.contractUntil, s.turn, newContract({ fee: cover.fee, advance: cover.advance, errand: cover.errand, payOnDone: cover.payOnDone, offerAgain: cover.offerAgain })),
     // What it knew then and what its inquiries have found since, as for a servant really away.
     knownFacts: c.facts.filter((f) => cover.factIds.includes(f.id) || (f.secrecy !== "Public" && f.knownBy.includes(cover.for))).map((f) => f.text),
     pitch: c.pitches.tryGet(cover.for) ?? null,
@@ -564,24 +601,20 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
 }
 
 /**
- * A servant's job in plain words, as its master reads it (item 11a): the fee, what was handed over and what falls due when
- * it is done, the last season of the term and what happens then, or, once it has given notice, its price to serve on and
- * when it leaves. `fee` is null when no job is to be said.
+ * A servant's job in plain words, as its master reads it (item 11a, with Haakon's answers): its errand, the fee, what was
+ * handed over and what falls due when it is done, by when, and the standing orders that go with it. `fee` is null when
+ * no job is to be said.
  */
-function termText(fee: number | null, advance: number | null, until: number | null, noticePrice: number | null, leavesTurn: number | null, turn: number): string {
-  const serves = fee !== null ? `a job for ${fee} shekels, ${advance ?? 0} handed over and ${Math.max(0, fee - (advance ?? 0))} due when it is done` : null;
-  if (noticePrice !== null)
-    return (
-      (serves === null ? "" : serves + "; ") +
-      `has given notice: asks ${noticePrice} a season of a new term to serve on; ` +
-      (leavesTurn !== null && leavesTurn > turn ? `leaves at the start of turn ${leavesTurn} unless renewed` : "leaves when next at your court unless renewed")
-    );
-  if (serves === null) return "";
-  if (until === null) return serves;
-  const notice = "otherwise they give a season's notice and name a price";
+function termText(fee: number | null, advance: number | null, until: number | null, turn: number, k: Contract | null = null): string {
+  if (fee === null) return "";
+  const e = k?.errand ?? null;
+  const errand = e === null ? "a job whose first errand you name when you send them" : `a job as ${e.what === "envoy" ? `envoy to ${e.where}` : `spy on ${e.where}`}`;
+  const serves = `${errand}, for ${fee} shekels, ${advance ?? 0} handed over and ${Math.max(0, fee - (advance ?? 0))} due when it is done`;
+  const standing = k === null ? "" : `${k.payOnDone ? "; you ordered the rest paid when it is done" : "; the rest is paid only if you order it (pay_fee)"}${k.offerAgain ? "; the same job is offered again when it is done" : ""}`;
+  if (until === null) return serves + standing;
   return until >= turn
-    ? `${serves}, through turn ${until}; when it is done at your court, if content they serve on for 6 seasons on the same terms, ${notice}`
-    : `${serves}; the term ended with turn ${until}: the job is done when they are next at your court with no task, and then, if content, they serve on for 6 seasons on the same terms, ${notice}`;
+    ? `${serves}, by turn ${until}${standing}. When it is done at your court, the job ends`
+    : `${serves}; its term ended with turn ${until}: the job is done when they are next at your court with no task${standing}`;
 }
 
 /**

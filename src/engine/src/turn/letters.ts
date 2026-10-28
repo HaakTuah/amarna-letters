@@ -83,29 +83,40 @@ P.carryLetters = function () {
     const spy = findCharacter(S, letter.characterId);
     const waited = S.turn - letter.departTurn;
     const court = courtAt(this, at);
-    if (passer !== null) {
-      carrier = findCharacter(S, passer.characterId)!;
-      fee = own !== null ? 0 : idiv(basePrice(carrier, letter.to, S.goingRate) * seasons * LetterData.sidePercent, 100);
+    const passing = passer === null ? null : findCharacter(S, passer.characterId)!;
+    const side = passing === null ? 0 : idiv(basePrice(passing, letter.to) * seasons * LetterData.sidePercent, 100);
+    // Haakon's answers to item 11a: a traveller carries it for a fee on delivery from a court whose standing order is to
+    // pay carriers; for any other court only if the spy pays it now from its purse.
+    const paysNow = own === null && passing !== null && !S.payCarriers.includes(letter.to);
+    if (passing !== null && (!paysNow || (spy !== null && spy.purse >= side))) {
+      carrier = passing;
+      if (own !== null) fee = 0;
+      else if (paysNow) {
+        spy!.purse -= side;
+        spy!.earned.spent += side;
+        gain(carrier, side, "News");
+      } else fee = side;
     } else if (spy !== null && waited >= LetterData.hireAfter && court !== null) {
       // Hired at the court where it waits: a free person standing there, half now from the spy's purse, or all of it on
-      // delivery from a court whose record of paying the carrier trusts.
-      const ask = (c: Character): number => idiv(basePrice(c, letter.to, S.goingRate) * seasons * LetterData.hiredPercent, 100);
-      const trusted = trustIn(S, letter.to) >= LetterData.trustOnDelivery;
+      // delivery from a court whose standing order is to pay carriers and whose record of paying, as it heard it, it trusts.
+      const ask = (c: Character): number => idiv(basePrice(c, letter.to) * seasons * LetterData.hiredPercent, 100);
+      const trusted = (c: Character): boolean => S.payCarriers.includes(letter.to) && trustIn(S, letter.to, c) >= LetterData.trustOnDelivery;
       const hire =
         sortBy(
-          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted || spy.purse >= Math.ceil(ask(c) / 2))),
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || spy.purse >= ask(c))),
           [(c: Character) => ask(c), cmpNum],
           [(c: Character) => idNumber(c.id), cmpNum],
         )[0] ?? null;
       if (hire !== null) {
+        // The rest on delivery only by its court's standing order; without it the spy pays it all now from its purse.
         const whole = ask(hire);
-        const now = Math.min(spy.purse, Math.ceil(whole / 2));
+        const now = S.payCarriers.includes(letter.to) ? Math.min(spy.purse, Math.ceil(whole / 2)) : Math.min(spy.purse, whole);
         spy.purse -= now;
         spy.earned.spent += now;
         gain(hire, now, "News");
         fee = whole - now;
         this.startTravel(hire, letter.to);
-        remember(hire, S.turn, `${spy.name} paid me ${formatMoney(now)} to carry a sealed letter to the court of ${letter.to}, the rest on delivery.`);
+        remember(hire, S.turn, `${spy.name} paid me ${formatMoney(now)} to carry a sealed letter to the court of ${letter.to}${fee > 0 ? ", the rest on delivery" : ""}.`);
         carrier = hire;
       }
     }
@@ -156,9 +167,14 @@ P.letterDelivered = function (j) {
   const S = this.s;
   const c = findCharacter(S, j.carrier);
   if (c === null || j.fee <= 0 || c.status === "Dead") return;
+  // Haakon's answers to item 11a: paid on delivery only by the court's own standing order (payCarriers); else it falls
+  // due, paid by order pay_fee while the carrier stands at court, or not.
   const t = S.treasuries.get(j.to);
-  const paid = Math.min(j.fee, Math.max(0, t.gold));
-  t.gold -= paid;
-  gain(c, paid, "News");
-  this.recordPay(j.to, paid >= j.fee);
+  if (S.payCarriers.includes(j.to) && t.gold >= j.fee) {
+    t.gold -= j.fee;
+    gain(c, j.fee, "News");
+    this.recordPay(j.to, true, j.to, c);
+    return;
+  }
+  this.fallsDue(c, j.to, j.fee, `I carried a letter to the court of ${j.to}, and was not paid on delivery.`);
 };

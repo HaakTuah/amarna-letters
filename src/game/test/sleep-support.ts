@@ -245,7 +245,7 @@ export class Replying implements JsonAsker {
 export const PlanningReply: string = `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],
  "schedule":[{"turn":3,"units":[{"unit":"Babylon","order":"move","target":"nippur","to":""}],"other_orders":[],"conditions":[]}],
  "standing_orders":[
- {"when":"unit_attacked","province":"Sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[{"action":"counter_intelligence","province":"","to":"","power":"","person":"","amount":20,"term":0,"gold":0,"text":"","item":"","seals":[]}],"conditions":[]},
+ {"when":"unit_attacked","province":"Sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[{"action":"counter_intelligence","province":"","to":"","power":"","person":"","amount":20,"term":0,"gold":0,"text":"","item":"","seals":[],"errand":"","standing":""}],"conditions":[]},
  {"when":"unit_enters","province":"suhu","power":"","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]},
  {"when":"unit_enters","province":"suhu","power":"Kush","units":[{"unit":"sippar","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]}],
  "cancel_standing":["s9", "all"],"standing_answers":[],"cancel_answers":[]}`;

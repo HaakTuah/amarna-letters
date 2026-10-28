@@ -176,7 +176,8 @@ P.revokeGrants = function (p, o) {
       }
   if (ended.length === 0 && !narrowed) return;
   const what = o.province !== null ? `in ${this.map.get(o.province).name}` : "in his land";
-  notify(S, o.grantee, "Notice", GrantTitle, `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what}. Troops of yours still standing there next season will take the land as any troop does, and he will count it an attack.`);
+  // Haakon's answers to item 11a: word of it travels to the grantee's court as any news does, never known there at once.
+  this.word(p, o.grantee, "Grant", `The king of ${land(p)} has revoked the passage and basing he granted your troops ${what} (in season ${S.turn}). Troops of yours still standing there will take the land as any troop does, and he will count it an attack.`);
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p, o.grantee], "grant-revoked");
 };
 
