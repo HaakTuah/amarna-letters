@@ -717,6 +717,7 @@ export function logEvent(s: GameState, kind: string, text: string, visibleTo: It
  */
 export const IdKinds: ReadonlyMap<string, string> = new Map([
   ["a", "audience"],
+  ["b", "band"],
   ["c", "character"],
   ["d", "debt tablet"],
   ["f", "fact about a character"],

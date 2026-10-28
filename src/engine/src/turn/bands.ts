@@ -375,7 +375,8 @@ P.bandsSeason = function () {
         b.men -= leave;
         this.peopleOf(b.province).loose += leave;
       }
-      if (b.short >= BandData.shortMutiny) {
+      // A large band long unpaid turns on its chief; a small one just drifts away from him.
+      if (b.short >= BandData.shortMutiny && b.men >= BandData.splitMen) {
         // They take what he has and go their way, or follow one of their own.
         remember(chief, S.turn, `My men turned on me in ${here.name}: they had not been paid.`);
         const robbed = chief.purse;
