@@ -50,7 +50,7 @@ export function want(t: Traits): string {
     case "Climber":
       return "wealth and rank, by rising to command in a great king's service";
     case "Outlaw":
-      return "wealth, taken where nobody guards it, serving no one if it comes to that";
+      return "wealth, kept for yourself and owed to nobody";
   }
 }
 

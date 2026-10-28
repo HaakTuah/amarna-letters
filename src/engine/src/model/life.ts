@@ -145,7 +145,7 @@ export interface LifeView {
   here: PersonHere[];
   approaches: ApproachSeen[];
   /** On an errand: whose, the debt to collect, the borrower's court, what it has collected, and where its employer waits. */
-  errand: { employer: string; employerName: string; debtId: string; borrower: string; collected: number; home: Power; since: number } | null;
+  errand: { employer: string; employerName: string; debtId: string; borrower: string; collected: number; home: Power; since: number; reached: boolean } | null;
   /** Real offers made to it last season, a season's rate by court, which it may cite. */
   offers: { court: Power; rate: number }[];
   /** The ending, in words (what every seat is told). */
@@ -180,7 +180,7 @@ export function newLifeView(init: Partial<LifeView> = {}): LifeView {
   };
 }
 
-const ErrandSeenSchema = obj("ErrandSeen", () => ({ employer: "", employerName: "", debtId: "", borrower: "", collected: 0, home: "Egypt" as Power, since: 0 }), {
+const ErrandSeenSchema = obj("ErrandSeen", () => ({ employer: "", employerName: "", debtId: "", borrower: "", collected: 0, home: "Egypt" as Power, since: 0, reached: false }), {
   employer: S,
   employerName: S,
   debtId: S,
@@ -188,6 +188,7 @@ const ErrandSeenSchema = obj("ErrandSeen", () => ({ employer: "", employerName: 
   collected: I,
   home: S,
   since: I,
+  reached: B,
 });
 
 export const LifeViewSchema: ObjSchema<LifeView> = obj("LifeView", newLifeView, {

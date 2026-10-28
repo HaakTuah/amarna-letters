@@ -501,8 +501,9 @@ function debtViews(s: GameState, p: Power): DebtView[] {
       const lender = s.characters.find((c) => c.id === d.lender)?.name ?? d.lender;
       return newDebtView({
         id: d.id,
-        holder: here ? h!.name : d.holder !== null && !isPowerParty(d.holder) ? (h?.name ?? lender) : (d.holder ?? lender),
-        holderId: d.holder ?? "",
+        // Who holds it now, as far as the court can know: one standing at its court; else the lender it sealed it with.
+        holder: here ? h!.name : lender,
+        holderId: here ? h!.id : d.lender,
         lender,
         principal: d.principal,
         owed: d.owed,

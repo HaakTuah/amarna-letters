@@ -108,11 +108,12 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
   const e = v.errand;
   if (e !== null) {
     const stillHeld = v.held.some((d) => d.id === e.debtId);
-    if (v.at === e.home && (e.collected > 0 || !stillHeld || v.turn - e.since >= 2)) ch.deliver = handsOver(c);
+    const done = e.collected > 0 || !stillHeld || e.reached;
+    if (v.at === e.home && done) ch.deliver = handsOver(c);
     else if (v.at === e.borrower) {
       const waited = v.turn - e.since;
       if (e.collected > 0 || !stillHeld || waited >= MoneyData.patience + 4) ch.go = e.home;
-    } else if (stillHeld && e.borrower !== "" && v.courts.some((k) => k.court === e.borrower)) ch.go = e.borrower as Power;
+    } else if (!done && e.borrower !== "" && v.courts.some((k) => k.court === e.borrower)) ch.go = e.borrower as Power;
     else ch.go = e.home;
   }
 
@@ -127,6 +128,9 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
     // Where to stand: the best court for what it seeks, if it beats where it stands by a margin; dear bread pushes it on.
     const best = [...v.courts].sort((a, b) => courtScore(c, v, b, ch.seek) - courtScore(c, v, a, ch.seek) || a.court.localeCompare(b.court))[0];
     if (best !== undefined && here !== null && best.court !== v.at && courtScore(c, v, best, ch.seek) > courtScore(c, v, here, ch.seek) + 10) ch.go = best.court;
+    // A debt falling due on a king it can reach: it goes to his court to be repaid, unless it stands there already.
+    const due = v.held.find((d) => d.dueTurn <= v.turn + 1 && d.kept !== "missing" && v.courts.some((k) => k.court === d.otherId));
+    if (due !== undefined) ch.go = due.otherId === v.at ? null : (due.otherId as Power);
   }
 
   // Its hoard: the careful keep one where they stand, if that court looks safe; anyone pulls it out of a court in danger.

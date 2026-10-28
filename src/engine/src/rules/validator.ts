@@ -87,7 +87,7 @@ export class OrderValidator {
       // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
       if (covered(c) || (c.employer === power && (c.status === "Employed" || c.status === "Captured")))
         return [`${c.name} is already in your service; to keep them on, order renew`, c];
-      if (c.status !== "Free") return [`${c.name} is not available for hire`, c];
+      if (c.status !== "Free" || c.errand !== null) return [`${c.name} is not available for hire`, c];
       if (c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
       // Item 11a, "Hiring as a negotiation": a person is hired in person, where it stands.
       if (c.at !== power && c.heldBy !== power) return [`${c.name} is not at your court: a person is hired in person, where it stands`, c];

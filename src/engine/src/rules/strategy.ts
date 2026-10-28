@@ -54,7 +54,8 @@ export function chooseStrategy(c: Character): boolean {
 export function impatience(c: Character): number {
   const t = c.traits;
   const base = 5 + Math.round((t.greed + t.ambition - t.loyalty) / 10);
-  const danger = c.duty === "SpyPosted" || c.duty === "SpyOutbound" ? 15 : c.duty !== "None" && c.duty !== "Travelling" ? 8 : 0;
+  // A servant's life is a king's errands: abroad, held, or caught as a spy, whenever it is sent.
+  const danger = c.duty === "SpyPosted" || c.duty === "SpyOutbound" ? 15 : c.status === "Employed" || c.errand !== null ? 8 : 0;
   return Math.max(2, base + danger + (c.bold ? 5 : 0) - (c.hoard !== null ? 3 : 0));
 }
 
@@ -64,7 +65,7 @@ export const StrategyWords: Readonly<Record<Strategy, string>> = {
   Keeper: "what you can keep of what passes through your hands, gold carried, gifts and fees, taking only what will not be missed or traced back to you",
   Seller: "selling what you know: what you see and hear in courts and on the roads is worth gold to someone, and you know who pays",
   Climber: "rising to command, and in time to a city of your own: making yourself indispensable to a great king and taking the posts that lead upward",
-  Outlaw: "the outlaw's life, if it comes to it: a man who serves nobody takes what the roads and seas offer, and leads others who will follow him",
+  Outlaw: "serving nobody's interest but your own: you take what falls to you where nobody guards it, keep it, and owe nobody an account of it",
 };
 
 /** The two roads in words. */

@@ -22,7 +22,7 @@ export function lifeText(v: LifeView): string {
   if (v.jobUntil !== null) sb.appendLine(`Your job runs through season ${v.jobUntil}; ${v.restDue} shekels of its fee fall due when it is done and you are back at your master's court.`);
   for (const f of v.owedFees) sb.appendLine(`The king of ${land(f.court)} let ${f.amount} shekels of your fee fall due and did not pay them.`);
   sb.appendLine(
-    `Your purse holds ${v.purse} shekels${v.hoard !== null ? `; your hoard at ${land(v.hoard.at)} holds ${v.hoard.gold} (its temple or merchant house keeps it for a fee each season; it is safe from the road, but lost if that city falls, and its king could seize it)` : ""}. Living here costs you ${v.living} shekels a season${v.living === 0 ? " (you are your master's guest)" : ", paid at the market"}.`,
+    `Your purse holds ${v.purse} shekels${v.hoard !== null ? `; your hoard at ${land(v.hoard.at)} holds ${v.hoard.gold} (its temple or merchant house keeps it for a fee each season; it is safe from the road, but lost if that city falls)` : ""}. Living here costs you ${v.living} shekels a season${v.living === 0 ? " (you are your master's guest)" : ", paid at the market"}.`,
   );
   if (v.lendOffer !== null) sb.appendLine(`You offer to lend the king here up to ${v.lendOffer.amount}, asking ${v.lendOffer.perHundred} in a hundred more back after ${v.lendOffer.seasons} seasons.`);
   for (const d of v.held) sb.appendLine(`You hold the debt tablet ${d.id}: ${d.other} owes ${d.left}, to be repaid by season ${d.dueTurn}; it lies ${d.kept}. Whoever holds a tablet holds the claim.`);
@@ -58,7 +58,7 @@ export function lifeText(v: LifeView): string {
     }
   }
   sb.appendLine(
-    "Choose for yourself. Everything you leave as it is stays as it is. Gold you give away or lend leaves your purse; weigh what it buys you, and when, against what you may lose. Words bind nobody; gold and tablets move only when both sides agree, at once.",
+    "Choose for yourself. Everything you leave as it is stays as it is, except an offer to lend, which you name anew each time you decide. Gold you give away or lend leaves your purse; weigh what it buys you, and when, against what you may lose. Words bind nobody; gold and tablets move only when both sides agree, at once.",
   );
   return sb.toString();
 }

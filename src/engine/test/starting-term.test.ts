@@ -61,7 +61,7 @@ describe("StartingTermTests", () => {
   test.each([
     [1, "ee248003e1538c8c"],
     [7, "f27db726c93cfcc6"],
-    [42, "faffd1169733f96a"],
+    [42, "bab42b34f185eb6e"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);

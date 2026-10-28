@@ -90,6 +90,12 @@ export interface Debt {
   how: string;
   /** Whether a season passed due without it being repaid, which counts once as a broken promise. */
   defaulted: boolean;
+  /**
+   * The first season past due its holder stood where the borrower could pay it (the borrower's court, or the same place for
+   * a person); null until then. A default is counted only a season after that: nobody breaks a promise to pay a creditor
+   * who never came to be paid.
+   */
+  presented: number | null;
 }
 
 export function newDebt(init: Partial<Debt> = {}): Debt {
@@ -107,6 +113,7 @@ export function newDebt(init: Partial<Debt> = {}): Debt {
     ended: null,
     how: "",
     defaulted: false,
+    presented: null,
     ...init,
   };
 }
@@ -125,6 +132,7 @@ export const DebtSchema: ObjSchema<Debt> = obj("Debt", newDebt, {
   ended: opt(I),
   how: S,
   defaulted: B,
+  presented: opt(I),
 });
 
 /** What is left to repay on a debt. */
@@ -239,13 +247,15 @@ export interface Errand {
   collected: number;
   /** The season it set out. */
   since: number;
+  /** It reached the borrower's court with the tablet: the errand's steps walked, so its job is done when it is back. */
+  reached: boolean;
 }
 
 export function newErrand(init: Partial<Errand> = {}): Errand {
-  return { employer: "", debtId: "", fee: 0, advance: 0, home: "Egypt", collected: 0, since: 0, ...init };
+  return { employer: "", debtId: "", fee: 0, advance: 0, home: "Egypt", collected: 0, since: 0, reached: false, ...init };
 }
 
-export const ErrandSchema: ObjSchema<Errand> = obj("Errand", newErrand, { employer: S, debtId: S, fee: I, advance: I, home: S, collected: I, since: I });
+export const ErrandSchema: ObjSchema<Errand> = obj("Errand", newErrand, { employer: S, debtId: S, fee: I, advance: I, home: S, collected: I, since: I, reached: B });
 
 /**
  * The ways to a fortune ("How the strategy is made"): the steady hired man, the man who keeps what passes through his hands,

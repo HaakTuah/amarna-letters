@@ -6,7 +6,7 @@
  * one who does not finds no lender. Borrowed gold counts as its own until it repays, so repaying costs score now for
  * credit later: a king in its last straits keeps the gold.
  */
-import { borrow, repay, type CharacterView, type Order, type SeatView } from "@amarna/engine";
+import { borrow, payFee, repay, type CharacterView, type Order, type SeatView } from "@amarna/engine";
 import type { Personality } from "./personality.ts";
 
 /** Script kings borrow and repay (`--no-money-play`), or half of them leave it alone (`--money-play-half`). */
@@ -35,6 +35,13 @@ function lenders(v: SeatView): CharacterView[] {
 export function creditOrders(v: SeatView, p: Personality, gold: number, costs: number, losing: boolean, orders: Order[]): number {
   if (!MoneyPlay.on(v.power)) return 0;
   let net = 0;
+  // A fee it let fall due unpaid, to one standing at its court, is paid as soon as two seasons of costs stay in hand.
+  for (const c of [...v.court, ...v.known]) {
+    if (c.owed === null || c.where !== "at your court" || gold + net - c.owed < 2 * costs) continue;
+    if (orders.some((o) => o.type === "payFee" && o.character === c.id)) continue;
+    orders.push(payFee(c.id, true));
+    net -= c.owed;
+  }
   // Repay what is due, to holders standing here, while two seasons of costs stay in hand; a king about to fall keeps it.
   for (const d of [...v.debts].sort((a, b) => a.dueTurn - b.dueTurn || a.id.localeCompare(b.id))) {
     if (!d.here || losing || d.dueTurn > v.turn + 1) continue;

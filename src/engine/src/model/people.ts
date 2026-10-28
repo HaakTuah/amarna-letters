@@ -182,6 +182,8 @@ export interface Contract {
   leavesTurn: number | null;
   /** Its master ordered the rest withheld when it falls due (order pay_fee with pay false). */
   withheld: boolean;
+  /** It was taken captive during the term: a captured man has not done his job, so the rest never falls due. */
+  captured: boolean;
 }
 
 export function newContract(init: Partial<Contract> = {}): Contract {
@@ -193,6 +195,7 @@ export function newContract(init: Partial<Contract> = {}): Contract {
     noticePrice: null,
     leavesTurn: null,
     withheld: false,
+    captured: false,
     ...init,
   };
 }
@@ -205,6 +208,7 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
   noticePrice: opt(I),
   leavesTurn: opt(I),
   withheld: B,
+  captured: B,
 });
 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
@@ -307,6 +311,8 @@ export interface Character {
   diedWith: number | null;
   /** Item 11a: the last season it decided a season of its own; null since it arrived somewhere new (or never). */
   lastLife: number | null;
+  /** Item 11a: a newcomer's mark in the data ("invented name", "first recorded later"), never told in the game; null if none. */
+  marked: string | null;
 }
 
 export function newCharacter(init: Partial<Character> = {}): Character {
@@ -362,6 +368,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     seeking: true,
     diedWith: null,
     lastLife: null,
+    marked: null,
     ...init,
   };
 }
@@ -418,6 +425,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   seeking: B,
   diedWith: opt(I),
   lastLife: opt(I),
+  marked: opt(S),
   isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
 });
 

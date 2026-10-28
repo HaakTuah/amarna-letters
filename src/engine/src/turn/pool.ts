@@ -93,14 +93,14 @@ P.newcomer = function (rng, door) {
     c.facts.push(newFact({ id: newId(S, "f"), text, secrecy, tag }));
   };
   add(home ? `Born in ${origin}.` : `Came from ${beyond.land}, ${beyond.people}.`, "Public", "origin");
-  add(`Came onto the map through ${door.name} at ${this.map.get(doorAt).name}, ${ReasonWords[reason]}.`, "Public", "door");
+  add(`Came by ${door.name} to ${this.map.get(doorAt).name}, ${ReasonWords[reason]}.`, "Public", "door");
   add(
     home ? `Speaks the tongue of ${land(homeCourt)}, and something of the lands beyond ${door.name}.` : reason === "trade" || reason === "soldiering" ? `Speaks ${beyond.tongue}, and some of the map's: ${door.mapTongue}.` : `Speaks ${beyond.tongue}, and nothing of the map's.`,
     "Public",
     "tongue",
   );
-  if (!home && (beyond.invented || beyond.later))
-    add(beyond.later ? "This people is first recorded in Egypt's annals generations after this age." : "No name of this people survives; this one is invented in their style.", "Hidden", "generated");
+  // Marked in the data, never told to anyone in the game: a name invented where none survive, a people recorded later.
+  c.marked = home ? null : beyond.later ? "first recorded later" : beyond.invented ? "invented name" : null;
   // A backstory beyond the map may say anything: nothing on the map can check it.
   const story = reason === "feud" ? `Fled a blood feud in ${origin}.` : reason === "flight" ? `Lost house and household in a war in ${origin}.` : reason === "home" ? `Spent years beyond ${door.name}, and came back with little to show for it.` : reason === "trade" ? `Owes his partners in ${origin} for the goods he sold on the way.` : `Left ${origin} with nothing but his name.`;
   add(story, "Hidden", "backstory");

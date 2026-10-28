@@ -18,6 +18,7 @@ import { newJourney, type Journey } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { ageBand, bandWords } from "../rules/ending.ts";
+import { chooseStrategy } from "../rules/strategy.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { askingPrice } from "./court.ts";
 import { trustIn } from "./jobs.ts";
@@ -42,6 +43,21 @@ export function endingWords(openAge: boolean, median: number): string {
   return openAge
     ? "This is an open age: it has no end. It goes on season after season until one kingdom is left or the table stops it."
     : `${bandWords(ageBand(median))} Nobody knows which season is the last, and nothing anyone sees foretells it.`;
+}
+
+/**
+ * A court's land against its start, in percent, as anyone can reckon it from who holds what (the land standings): the
+ * yield of the land it holds over its homeland's. Never its strength, which counts its private treasury.
+ */
+function landRatio(e: TurnEngine, p: Power): number {
+  let now = 0;
+  let start = 0;
+  for (const x of e.map.provinces) {
+    if (x.isSea) continue;
+    if (e.s.owner.getOrDefault(x.id, null) === p) now += x.yield;
+    if (x.home === p) start += x.yield;
+  }
+  return start <= 0 ? 0 : Math.round((100 * now) / start);
 }
 
 /** What a party's record of paying is, for a court or a person. */
@@ -86,6 +102,8 @@ P.lifeRequests = function () {
     S.characters.filter((c) => this.wantsLife(c)),
     [(c: Character) => idNumber(c.id), cmpNum],
   )) {
+    // Its strategy follows its traits as they are now ("When his traits drift, his strategy is rewritten with them").
+    chooseStrategy(c);
     this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "Life", characterId: c.id, court: c.employer ?? c.at, life: this.lifeView(c) }));
     c.lastLife = S.turn;
   }
@@ -115,7 +133,7 @@ P.lifeView = function (c) {
       broken: r.broken,
       executions: executions.getOrDefault(p, 0),
       grain: grainAt(p),
-      growth: Math.round(this.growth(p) * 100),
+      growth: landRatio(this, p),
       besieged: this.capitalSiege(p) !== null,
       ask: askingPrice(c, p, S.goingRate),
     });
@@ -139,7 +157,13 @@ P.lifeView = function (c) {
     goingRate: S.goingRate,
     courts,
     held: S.debts.filter((d) => d.ended === null && d.holder === c.id).map((d) => debtSeen(d, d.borrower)),
-    owes: S.debts.filter((d) => d.ended === null && d.borrower === c.id).map((d) => debtSeen(d, d.holder ?? d.lender)),
+    // Who holds a tablet it owes on, as far as it can know: one standing here, else the lender it sealed it with.
+    owes: S.debts
+      .filter((d) => d.ended === null && d.borrower === c.id)
+      .map((d) => {
+        const h = d.holder !== null && !isPowerParty(d.holder) ? findCharacter(S, d.holder) : null;
+        return debtSeen(d, h !== null && h.at === here && h.status !== "Dead" ? h.id : d.lender);
+      }),
     owedFees: AllPowers.filter((p) => c.owed.getOrDefault(p, 0) > 0).map((p) => ({ court: p, amount: c.owed.get(p) })),
     here: sortBy(
       S.characters.filter((x) => x !== c && x.at === here && x.status !== "Dead" && x.heldBy === null && !hiddenAt(x, here)),
@@ -156,7 +180,7 @@ P.lifeView = function (c) {
     errand:
       e === null
         ? null
-        : { employer: e.employer, employerName: findCharacter(S, e.employer)?.name ?? e.employer, debtId: e.debtId, borrower: S.debts.find((d) => d.id === e.debtId)?.borrower ?? "", collected: e.collected, home: e.home, since: e.since },
+        : { employer: e.employer, employerName: findCharacter(S, e.employer)?.name ?? e.employer, debtId: e.debtId, borrower: S.debts.find((d) => d.id === e.debtId)?.borrower ?? "", collected: e.collected, home: e.home, since: e.since, reached: e.reached },
     offers: AllPowers.filter((p) => c.offers.has(p)).map((p) => ({ court: p, rate: c.offers.get(p) })),
     ending: endingWords(S.config.openAge, S.config.endMedian),
   });
@@ -201,9 +225,14 @@ P.applyLife = function (c, ch) {
     remember(h, S.turn, `${c.name} repaid me ${formatMoney(left)}.`);
     logEvent(S, "character-repaid", `${c.name} repaid ${h.name}.`, [], "character-repaid");
   }
-  if (c.errand !== null && c.errand.home === c.at && (c.errand.collected > 0 || S.debts.find((d) => d.id === c.errand!.debtId)?.ended !== null || S.turn - c.errand.since >= 2)) this.deliverErrand(c, ch.deliver);
+  // Back from an errand: it hands over to its employer if it finds it here; one that moved on is followed to where it is.
+  if (c.errand !== null && c.errand.home === c.at && (c.errand.collected > 0 || c.errand.reached || S.debts.find((d) => d.id === c.errand!.debtId)?.ended !== null)) {
+    const emp = findCharacter(S, c.errand.employer);
+    if (emp !== null && emp.status !== "Dead" && emp.heldBy === null && emp.at !== null && emp.at !== c.at && isAlive(S, emp.at)) c.errand.home = emp.at;
+    else this.deliverErrand(c, ch.deliver);
+  }
   // Its hoard, kept with a temple or merchant house in the city where it stands: one city only.
-  if (ch.hoard > 0 && c.purse > 0 && (c.hoard === null || c.hoard.at === c.at)) {
+  if (ch.hoard > 0 && c.purse > 0 && isAlive(S, c.at) && (c.hoard === null || c.hoard.at === c.at)) {
     const amount = Math.min(ch.hoard, c.purse);
     c.purse -= amount;
     c.hoard = { at: c.at, gold: (c.hoard?.gold ?? 0) + amount };
@@ -270,7 +299,7 @@ P.deal = function (a) {
   const A = findCharacter(S, a.from);
   const B = findCharacter(S, a.to);
   if (A === null || B === null || A.at === null || A.at !== B.at || A.status === "Dead" || B.status === "Dead" || A.heldBy !== null || B.heldBy !== null) return false;
-  const holds = (x: Character, ids: string[]): boolean => ids.every((id) => S.debts.some((d) => d.id === id && d.ended === null && d.holder === x.id));
+  const holds = (x: Character, ids: string[]): boolean => ids.every((id) => S.debts.some((d) => d.id === id && d.ended === null && d.holder === x.id && d.kept === "Person"));
   if (A.purse < a.giveGold || B.purse < a.askGold || !holds(A, a.giveDebts) || !holds(B, a.askDebts)) return false;
   if (a.collect !== null) {
     const d = S.debts.find((x) => x.id === a.collect && x.ended === null && x.holder === A.id) ?? null;
@@ -339,13 +368,15 @@ P.deliverErrand = function (c, deliver) {
   c.earned.spent += handed;
   gain(emp, handed, "Loans");
   if (d !== null && d.ended === null && d.holder === c.id) this.passTablet(d, emp.id, "Person");
-  const rest = Math.max(0, e.fee - e.advance);
+  // The rest is due only for a job done: the borrower's court reached with the tablet (item 11a, "done" is what the engine
+  // can see). One that turned back on the way is owed nothing more, and breaks nothing.
+  const rest = e.reached ? Math.max(0, e.fee - e.advance) : 0;
   const paid = Math.min(rest, emp.purse);
   emp.purse -= paid;
   emp.earned.spent += paid;
   gain(c, paid, "Fees");
-  this.recordPay(emp.id, paid >= rest);
-  this.recordPay(c.id, true);
+  if (rest > 0) this.recordPay(emp.id, paid >= rest);
+  if (e.reached) this.recordPay(c.id, true);
   remember(c, S.turn, `I handed ${emp.name} the ${formatMoney(handed)} I collected${paid >= rest ? `, and was paid the rest of my fee, ${formatMoney(paid)}` : `; they paid me only ${formatMoney(paid)} of the ${formatMoney(rest)} they owed`}.`);
   remember(emp, S.turn, `${c.name} handed me the ${formatMoney(handed)} they collected.`);
   logEvent(S, "collected", `${c.name} delivered ${handed} collected for ${emp.name}.`, [], "collected");
@@ -392,6 +423,7 @@ P.travellerArrives = function (j) {
   const e = c.errand;
   if (e !== null) {
     const d = S.debts.find((x) => x.id === e.debtId) ?? null;
+    if (d !== null && d.borrower === to) e.reached = true;
     if (d !== null && d.ended === null && d.borrower === to && d.holder === c.id)
       notify(S, to, "Notice", "A debt presented", `${c.name} stands at your court with the tablet of your debt ${d.id}: ${formatMoney(debtLeft(d))} is left to repay to whoever holds it (order repay). Whoever holds the tablet holds the claim.`, c.id);
   }

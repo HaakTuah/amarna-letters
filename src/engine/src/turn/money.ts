@@ -180,12 +180,15 @@ P.debtsDie = function (p) {
     if (taker !== null && isAlive(S, taker)) S.treasuries.get(taker).gold += c.hoard!.gold;
     remember(c, S.turn, `${land(p)} fell, and my hoard there, ${formatMoney(c.hoard!.gold)}, was lost with it.`);
     c.earned.spent += c.hoard!.gold;
+    // The tablets kept with it go with the rest to whoever took the city.
+    for (const d of S.debts.filter((d) => d.ended === null && d.holder === c.id && d.kept === "Hoard")) this.passTablet(d, taker, "Archive");
     c.hoard = null;
   }
 };
 
 /**
- * Debts that pass their season unpaid: each counts once as a broken promise of its borrower ("A name made of outcomes"),
+ * Debts that pass their season unpaid: once the tablet's holder has stood where the borrower could pay it (his court, or the
+ * same place) for a whole season past due, it counts once as a broken promise of the borrower ("A name made of outcomes"),
  * and the holder remembers it. Nothing else follows: what the world does about it is up to the world.
  */
 P.debtsSeason = function () {
@@ -194,9 +197,20 @@ P.debtsSeason = function () {
     S.debts.filter((x) => x.ended === null && !x.defaulted && x.dueTurn < S.turn),
     [(x) => idNumber(x.id), cmpNum],
   )) {
+    const h = d.holder !== null && !isPowerParty(d.holder) ? findCharacter(S, d.holder) : null;
+    const where = isPowerParty(d.borrower) ? d.borrower : (findCharacter(S, d.borrower)?.at ?? null);
+    const present = h !== null && h.status !== "Dead" && h.heldBy === null && where !== null && h.at === where;
+    if (d.presented === null) {
+      if (present) {
+        d.presented = S.turn;
+        if (isPowerParty(d.borrower) && isAlive(S, d.borrower))
+          notify(S, d.borrower, "Notice", "A debt presented", `${h!.name} stands at your court with the tablet of your debt ${d.id}, past its season: ${formatMoney(debtLeft(d))} is left to repay (order repay).`, h!.id);
+      }
+      continue;
+    }
+    if (!present || d.presented >= S.turn) continue;
     d.defaulted = true;
     this.recordPay(d.borrower, false);
-    const h = d.holder !== null && !isPowerParty(d.holder) ? findCharacter(S, d.holder) : null;
     if (h !== null) remember(h, S.turn, `${this.partyName(d.borrower)} has not repaid by the season agreed: ${formatMoney(debtLeft(d))} is still owed on the tablet I hold.`);
     if (isPowerParty(d.borrower) && isAlive(S, d.borrower)) notify(S, d.borrower, "Notice", "A debt past its season", `Debt ${d.id}, ${formatMoney(debtLeft(d))} to ${this.partyName(d.holder ?? d.lender)}, was to be repaid by turn ${d.dueTurn}. Those who lend hear of it.`);
     logEvent(S, "default", `${d.borrower} let debt ${d.id} pass its season.`, isPowerParty(d.borrower) ? [d.borrower] : [], "default");
@@ -232,7 +246,11 @@ P.livingSeason = function () {
     h.gold -= fee;
     c.earned.spent += fee;
     this.market(this.map.capital(h.at).id).purse += fee;
-    if (h.gold <= 0) c.hoard = null;
+    if (h.gold <= 0) {
+      // An empty hoard is closed: the tablets kept with it come back to its owner's person.
+      for (const d of S.debts.filter((d) => d.ended === null && d.holder === c.id && d.kept === "Hoard")) d.kept = "Person";
+      c.hoard = null;
+    }
   }
 };
 
@@ -250,6 +268,7 @@ P.goldAndTabletsTaken = function () {
     const held = S.debts.filter((d) => d.ended === null && d.holder === c.id);
     if (c.status === "Captured" && c.heldBy !== null) {
       const captor = c.heldBy;
+      if (c.contract !== null) c.contract.captured = true;
       if (c.purse > 0) {
         S.treasuries.get(captor).gold += c.purse;
         remember(c, S.turn, `The king of ${land(captor)} took my purse, ${formatMoney(c.purse)}.`);
@@ -267,8 +286,8 @@ P.goldAndTabletsTaken = function () {
     c.diedWith ??= c.purse + (c.hoard?.gold ?? 0);
     const court = c.at;
     for (const d of held) {
-      if (d.kept === "Hoard" && c.hoard !== null) this.passTablet(d, c.hoard.at, "Archive");
-      else if (d.kept === "Person") this.passTablet(d, court, court === null ? "Missing" : "Archive");
+      if (d.kept === "Hoard") this.passTablet(d, c.hoard !== null && isAlive(S, c.hoard.at) ? c.hoard.at : null, "Archive");
+      else this.passTablet(d, court, court === null ? "Missing" : "Archive");
     }
     if (c.hoard !== null) {
       if (isAlive(S, c.hoard.at)) {

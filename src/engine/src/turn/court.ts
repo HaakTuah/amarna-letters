@@ -66,10 +66,9 @@ P.resolveCourt = function (orders) {
   // the king who holds it), for a job with a fee. It takes the offer worth most to it, the advance in hand and the rest as
   // far as it trusts the court, if that reaches what it asks for the term; every real offer is one it may cite elsewhere.
   const hires = orders.filter(([, o]) => o.type === "hire").map(([p, o]) => ({ p, h: o as HireOrder }));
-  for (const c of S.characters) c.offers.clear();
   for (const [key, group] of groupBy(hires, (x) => x.h.character)) {
     const c = char(S, key);
-    if (c.status !== "Free") {
+    if (c.status !== "Free" || c.errand !== null) {
       for (const { p, h } of group) this.failed(p, h, "Not hired", `${c.name} was no longer free to take service.`, "no longer free", true, c.id);
       continue;
     }
@@ -112,6 +111,7 @@ P.resolveCourt = function (orders) {
     c.heldBy = null;
     c.waited = 0;
     c.pitches.clear();
+    c.offers.clear();
     c.reputation.set(winner, c.reputation.getOrDefault(winner, 0) + 5);
     this.meet(c, winner);
     remember(c, S.turn, `I took a job with ${land(winner)} for ${term} seasons, for ${formatMoney(hire.fee)}, ${formatMoney(advance)} of it handed over now.`);

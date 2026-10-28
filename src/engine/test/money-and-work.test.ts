@@ -132,12 +132,21 @@ describe("MoneyAndWorkTests", () => {
     Assert.empty(Views.for(s, "Egypt").debts);
   });
 
-  test("A debt past its season is a promise broken, and a fallen kingdom's debts die with it", () => {
+  test("A debt past its season is a promise broken once its holder stood there unpaid, and a fallen kingdom's debts die with it", () => {
     const [s] = servant();
     const l = lender(s);
     new TurnEngine(s).resolve(orders("Egypt", borrow(l.id, 100, 112, 1)));
     const d = s.debts[0];
+    // A holder who is away when it falls due presents nothing, and nothing is broken.
+    l.at = "Hatti";
     begin(s).resolve(none());
+    begin(s).resolve(none());
+    Assert.equal([false, null], [d.defaulted, d.presented]);
+    // Back at the court past due: it presents the tablet, and a season later, unpaid, the promise is broken.
+    l.at = "Egypt";
+    begin(s).resolve(none());
+    Assert.notNull(d.presented);
+    Assert.false(d.defaulted);
     begin(s);
     Assert.true(d.defaulted);
     Assert.equal(1, s.payRecords.get("Egypt").broken);
@@ -273,7 +282,7 @@ describe("MoneyAndWorkTests", () => {
       y.characters.filter((c) => c.arrived !== null).map((c) => `${c.name}|${c.origin}|${c.purse}|${c.at}`),
     );
     for (const c of arrived) {
-      Assert.contains(c.facts, (f) => f.tag === "door" && f.text.startsWith("Came onto the map through "));
+      Assert.contains(c.facts, (f) => f.tag === "door" && f.text.startsWith("Came by "));
       Assert.equal("Free", c.status);
       Assert.true(c.at !== null || c.duty === "Travelling");
     }

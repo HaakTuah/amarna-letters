@@ -70,7 +70,7 @@ P.recordPay = function (party, kept) {
 P.settleRest = function (c, p, late) {
   const S = this.s;
   const k = c.contract;
-  const rest = late ? c.owed.getOrDefault(p, 0) : k === null ? 0 : Math.max(0, k.fee - k.advance);
+  const rest = late ? c.owed.getOrDefault(p, 0) : k === null || k.captured ? 0 : Math.max(0, k.fee - k.advance);
   if (rest <= 0) return true;
   const t = S.treasuries.get(p);
   if (!late && k !== null && k.withheld) {
