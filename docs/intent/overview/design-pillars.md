@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 560 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 561 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Design pillars
 
 Eight principles decide every feature; a mechanic that breaks one needs a strong reason.
@@ -26,6 +26,10 @@ Eight principles decide every feature; a mechanic that breaks one needs a strong
 - **Deceit is information.** A lie is found out by investigation and evidence, never by a roll against the liar. Judging whether a tablet is genuine is the exception that proves it, since that really is a skill.
 - **Numbers come from their causes.** A quantity follows what set it in the period, men, time, discipline, wealth and ground, never a flat share standing in for them.
 - **Gold buys only what is there.** Gold is a claim on things, never their source: it hires the men who are present and buys what a market or a place holds, so gold piled up where nothing can reach is worth little, and no loop turns gold into goods or work that are not there. Strong script players find such loops first, so an action they repeat beyond reason is checked for one (decided 28 October 2026).
+- **Nothing appears or vanishes without a cause.** Gold, grain, people and tablets are conserved: every stock has inflows and outflows that can be named, gold coming only from the mines and leaving only by being spent, lost or carried off, people born, dying or moving (decided 28 October 2026).
+- **Everything is somewhere.** Every man, coin, tablet and load of grain has a place, and to be used it must be brought there; nothing acts at a distance except through someone carrying it, as pillar 4 says of news (decided 28 October 2026).
+- **The order of resolution never decides.** When two act in the same season, the outcome does not depend on whom the engine settles first: they share, or the seed decides (decided 28 October 2026).
+- **Incentives, not quotas.** Every body of people, soldiers, farmers, loose men or merchants, acts from what pays it, so how many desert, flee, rob or trade follows from their interests, as banditry finds its own balance, never from a fixed share of them (decided 28 October 2026).
 - **No menus.** One thing happens by rule, and everything after it goes through ordinary actions, orders, envoys, tablets and armies, never a choice from a list.
 - **Period first.** The period as it was, given up for playability only after trying to keep both.
 
