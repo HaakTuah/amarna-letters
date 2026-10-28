@@ -151,4 +151,22 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
 
   A session that starts builder sessions passes each list on to Haakon word for word in its next update. It never sums
   the list up as "readings in the report".
-
+- **28 October 2026: pipeline, don't wait.** "Yes, please, organize it expertly so we maximize token caching, time spent, and all other concerns." (to Claude's proposal; the words are in
+  `docs/archive/instructions.md`). Waiting is lost time and, past an hour, a lost cache, so:
+  1. **Review in the background.** Open the PR, start its reviewer as a background agent (or `@codex review`, once Codex
+     is connected), and go on meanwhile with what comes next: the next item's text, its sections, the check for
+     changes. Fix what the review finds when it returns, then merge.
+  2. **The next item on top.** The next item depends on this one, so branch it from this item's PR branch, not
+     from `develop`, and merge this branch (or `develop`, once it is merged) into it before its own PR.
+  3. **Bigger review fixes in a session of their own.** If a review asks for more than about an hour's work, the
+     orchestrator starts a fresh session for it with the PR, the review and nothing else, at the item's effort; the
+     builder goes on.
+  4. **Keep the cache warm.** One session per item, continued for its review fixes and its milestone while its context
+     is under an hour old, rather than a fresh session reading everything again; a fresh session for a new item, or when a
+     session's context has grown large. Long runs and checks go in the background; no turn sits idle waiting. Files every
+     session reads stay small (the workshop check), since they are the start of every call.
+  5. **Hand over at once.** The last message says what merged and what is next. The orchestrator starts the next session
+     as soon as a item merges, woken by the PR's merge rather than a clock, with an hourly check as the fallback.
+  6. **The same helpers, used better.** Pipelining spends the same tokens sooner and adds no agents beyond "Models,
+     effort and helpers": a reviewer or search helper may run in the background while the builder works, and the Haiku
+     search helper, not the builder reading large files itself, is the cheap way to look across many files.
