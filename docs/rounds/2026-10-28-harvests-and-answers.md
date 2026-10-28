@@ -124,11 +124,35 @@ PLACEHOLDER-BENCH
 
 ## The review
 
-PLACEHOLDER-REVIEW
+One reviewer (Opus, high effort) read the diff and the item's text. It confirmed the battle weights, levy sizing, the
+winter split between dead and deserters, the expel cap, robbing after the granary is set, foraging from the granary, the
+starting crop and granary, the water data against the dossier (55 rows, Megiddo "Outside") and determinism. Its findings,
+all fixed before merging:
+
+1. **Blocking: freed deportees could be lost at sea.** Deportees shipped between coasts (Gaza to Sidon goes by the
+   waters) were freed where a fleet of a freeing king stood, into a sea zone no rule reads again. Now they are freed only
+   on land; the script check of a safe road ignores the waters too; a test covers it.
+2. Catastrophes cut the tax twice (the harvest bore them, then the tax again): the tax now bears only absorption, and
+   nothing under a siege.
+3. Men weighed the land against the roads by the whole granary, so right after a reaping the land looked three or four
+   times as good: now by a season's keep (a third of the last harvest less the tax, as far as the granary holds).
+4. A grant by order could stand over roads the grantor had closed to the grantee: refused now, and closing one's roads
+   ends a grant not yet begun.
+5. A model envoy passing a letter on "as written", or a report "as given", could still change its clauses: those choices
+   now keep the clauses as they are.
+6. The script control side (`--season-play-half`'s ignorers) put out mouths every season: it puts them out once, as
+   item 10+b's kings did.
+7. The view's `tax` was capped by the granary after eating, showing little before a reaping: it now shows what the tax
+   takes a season.
+8. The refusal when the most mouths are out read "you named nobody": corrected.
 
 ## Tests
 
-PLACEHOLDER-TESTS
+`scripts/test.sh`: PLACEHOLDER-TESTCOUNT. New and rewritten tests: levies by men and strength in thousandths
+(`people-play.test.ts`), winter losses by size and supplies (`travel.test.ts`), the harvest in its season, the granaries
+and hunger before the next harvest (`people.test.ts`), deportees freed on land and never at sea, mouths by share, water by
+the dossier (`borders.test.ts`); the adjudicator, terrain, battle-report and save-version tests read strengths in
+thousandths and save version 20; the memory test plays a seed on which random play folds a memory.
 
 ## Left for later
 
