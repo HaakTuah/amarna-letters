@@ -150,6 +150,14 @@ export const OtherActions = [
   "give_gift",
   "release_detained",
   "pay_ransom",
+  "seize_hoard",
+  "sell_tablet",
+  "pay_carriers",
+  "stop_paying_carriers",
+  "captive_take_purse",
+  "hunt_bands",
+  "hunt_bands_always",
+  "stop_hunting_bands",
 ] as const;
 
 // The shapes of a unit order and of any other order. Repeated in the schedule and in standing orders; the copy in standing
@@ -174,18 +182,18 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours)." : null),
+      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],
-    ["person", str(described ? "Person id, for hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift." : null)],
-    ["amount", int(described ? "The whole fee for the job (hire, renew), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
-    ["gold", int(described ? "trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; hire, renew: the part of the fee handed over now (0 means half); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
+    ["person", str(described ? "Person id, for hire, renew, pay_fee, withhold_fee, borrow, buy_news, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift, seize_hoard, sell_tablet (the buyer)." : null)],
+    ["amount", int(described ? "The whole fee for the job (hire, renew), the price (sell_tablet), the men a levy takes (raise_army, raise_fleet; 0 for a full unit), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
+    ["gold", int(described ? "trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; hire, renew: the part of the fee handed over now (0 means nothing now); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
     [
       "term",
       int(
         described
-          ? "hire, renew: the seasons of the job, 1-30 (0 means 6). Hire is only for people not in your service, standing at your court; renew keeps one of your own on, at your court or once they have given notice; borrow: the seasons to repay in; else 0."
+          ? "hire, renew: the seasons by which the job's errand is to be done, 1-30 (0 means 6). Hire offers a job to someone not in your service, at your court or, through an envoy you send this season to where they stand (item: the envoy's id), elsewhere; renew offers one of your own at your court a new job; borrow: the seasons to repay in; else 0."
           : null,
       ),
     ],
@@ -199,6 +207,17 @@ const otherOrder = (described = true): ReplySchema =>
       ),
     ],
     ["seals", array(str(), described ? "Powers whose seals a forgery bears." : null)],
+    [
+      "errand",
+      enumOf(["", "envoy", "spy"], described ? "hire, renew: the job's errand: envoy (to the court named in power) or spy (on the court in power, or the province in province). Else empty." : null),
+    ],
+    [
+      "standing",
+      enumOf(
+        ["", "pay_on_done", "offer_again", "both"],
+        described ? "hire, renew: your standing orders with the job: pay the rest when it is done, offer the same job again when it is done, or both; empty for neither (the rest is then paid only by pay_fee)." : null,
+      ),
+    ],
   );
 
 /**
@@ -366,6 +385,7 @@ const letter = (c: GameConfig | null): ReplySchema => {
     ["gold", int("Shekels sent with the envoy, or 0.")],
     ["no_inventory", bool("Only with gold: send it without an inventory tablet, saving the scribe's fee. Nobody can then check what arrived. False otherwise.")],
     ["check_claim", str("The id of a person at your court who says they serve the king you write to (like c31): your envoy asks there whether they do. Empty otherwise.")],
+    ["collect", str("A debt tablet in your archive (like d3, as DEBT TABLETS YOU HOLD gives it) your envoy carries to present to its borrower where it goes, bringing home what is repaid. Empty otherwise.")],
     ["purity", int("Purity of the gold in percent, 10-100 (100 when you send none). Below 100 is debased.")],
     // The sealed greeting is written from these flags alone: say what each one claims or withholds.
     [

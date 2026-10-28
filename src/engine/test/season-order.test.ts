@@ -46,22 +46,20 @@ describe("SeasonOrderTests", () => {
     Assert.equal("not enough gold: it needs 100 shekels, and your treasury held 50 by your ledger", Assert.single(refused).reason);
   });
 
-  test("A person hired cannot be sent on an errand the same season", () => {
+  test("A person offered a job may be sent on its errand the same season, and on no other", () => {
     let s = newGame(4);
     let c = first(s.characters, (c) => c.status === "Free");
     c.at = "Egypt";
-    let why =
-      "was to be hired that season: a person hired enters your service only at the end of the season, and can be sent on an errand from the next season";
-
-    // Hired first, or sent first: either way the errand is refused with the rule, and the hire stands.
+    // Haakon's answers to item 11a: the job is the errand; offered first or sent first, both stand.
     for (const orders of [
-      [hire(c.id, 40), dispatch(c.id, "Hatti", "Greetings.")],
-      [placeSpy(c.id, "Hatti"), hire(c.id, 40)],
+      [hire(c.id, 400, 20, 200, { what: "envoy", where: "Hatti" }), dispatch(c.id, "Hatti", "Greetings.")],
+      [placeSpy(c.id, "Hatti"), hire(c.id, 400, 20, 200, { what: "spy", where: "Hatti" })],
     ]) {
       let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: orders }));
-      Assert.contains(v.accepted, (o) => o.type === "hire");
-      Assert.endsWith(`${c.name} ${why}`, Assert.single(v.rejected).reason);
+      Assert.empty(v.rejected);
     }
+    let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [hire(c.id, 400, 20, 200, { what: "envoy", where: "Hatti" }), dispatch(c.id, "Babylonia", "Greetings.")] }));
+    Assert.contains("another errand is a new job", Assert.single(v.rejected).reason);
   });
 
   test("An errand for someone whose hire is refused reads as for anyone not in your service", () => {

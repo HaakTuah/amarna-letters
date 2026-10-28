@@ -23,7 +23,7 @@ import { terrainOf } from "../model/geography.ts";
 import { StartWalls, WorldMap } from "../model/map.ts";
 import { EconomyData, harvestOf, taxOf } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
-import type { Order } from "../model/orders.ts";
+import type { HireOrder, Order } from "../model/orders.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
@@ -53,6 +53,8 @@ export class TurnEngine {
 
   /** Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short. */
   readonly _missedPayNow = new HSet<string>();
+  /** Jobs offered this season through an envoy (the hire order's `via`), by the envoy, until it is sent. */
+  readonly _offersNow = new Dict<string, [Power, HireOrder][]>();
   /** What each province's countryside kept of this season's harvest, after the tax (item 10+a): what its people eat. */
   readonly _foodNow = new Dict<string, number>();
   /** Provinces ceded while this season resolves, and to whom: a levy there later in the season is told so. */
@@ -89,8 +91,6 @@ export class TurnEngine {
     this.liftLostSieges();
     // Land absorbed in full is no longer marked.
     for (const done of [...S.conquered.entries()].filter(([, v]) => S.turn - v >= 3).map(([k]) => k)) S.conquered.delete(done);
-    // A servant whose notice has run out leaves before it is paid again.
-    this.noticesRunOut();
     this.incomeAndUpkeep();
     // Where everyone stood before the season's travellers arrived: one standing at a court now that was not is back.
     const stood = new Dict<string, Power | null>(S.characters.map((c) => [c.id, c.at] as const));
@@ -232,7 +232,7 @@ export class TurnEngine {
       const k = coverOf(c, p);
       if (k !== null) return idiv(k.fee, Math.max(1, (k.contractUntil ?? k.startTurn) - k.startTurn));
       const j = c.contract;
-      return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null ? idiv(j.fee, Math.max(1, j.untilTurn - j.startTurn)) : 0;
+      return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null && (j.knownFrom ?? 0) <= this.s.turn ? idiv(j.fee, Math.max(1, j.untilTurn - j.startTurn)) : 0;
     });
   }
 

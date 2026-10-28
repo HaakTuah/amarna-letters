@@ -39,7 +39,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { fresh, Assert, toDict, skilled } from "./support.ts";
+import { fresh, Assert, toDict, skilled, homeJob } from "./support.ts";
 
 describe("EnvoyTests", () => {
   function start(): [GameState, Character] {
@@ -181,10 +181,10 @@ describe("EnvoyTests", () => {
     envoy.status = "Free";
     envoy.pitches.set("Assyria", "I can serve you well.");
 
-    let rejected = new OrderValidator(s).validate("Assyria", newTurnSubmission({ orders: [hire(envoy.id, 100, 6)] })).rejected;
+    let rejected = new OrderValidator(s).validate("Assyria", newTurnSubmission({ orders: [hire(envoy.id, 100, 6, null, homeJob("Assyria"))] })).rejected;
     Assert.contains(rejected, (r) => r.reason.includes("held at the court of Alashiya"));
 
-    e.resolve(new Dict([["Alashiya", newTurnSubmission({ orders: [hire(envoy.id, 100, 6)] })]]));
+    e.resolve(new Dict([["Alashiya", newTurnSubmission({ orders: [hire(envoy.id, 100, 6, 100, homeJob("Alashiya"))] })]]));
     Assert.equal("Alashiya", envoy.employer);
     Assert.null(envoy.heldBy);
     Assert.equal("None", envoy.duty);

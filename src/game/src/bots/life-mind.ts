@@ -55,6 +55,10 @@ function courtScore(c: Character, v: LifeView, k: CourtSeen, seeking: boolean): 
   s -= k.executions * (t.courage < 40 ? 10 : 4);
   // Item 11b: a court that loses its people abroad is a dangerous master, above all to the timid.
   s -= k.lost * (t.courage < 40 ? 6 : 2);
+  // Haakon's answers to item 11a: a court heard to seize hoards is shunned by those who keep one.
+  if (v.hoard !== null) s -= k.seized * 10;
+  // Where many already wait for work, it sees its chances are thin (the weakness item 11b found: everyone at one court).
+  if (k.court === v.at && seeking) s -= 5 * Math.max(0, v.here.filter((p) => p.standing === "free").length - 4);
   s -= Math.max(0, k.grain - 150) / 5;
   if (k.besieged) s -= 40;
   if (t.sympathy === k.court) s += 15;
@@ -70,7 +74,9 @@ function accepts(c: Character, v: LifeView, a: ApproachSeen, record: { kept: num
     if (!v.free || v.errand !== null) return false;
     const here = v.courts.find((k) => k.court === v.at);
     const ask = here?.ask ?? 8;
-    return a.fee >= ask * 2 && (record.broken <= record.kept || c.bold);
+    // Haakon's answers to item 11a: the rest is paid only if the employer orders it; without its word to pay on delivery,
+    // only the advance counts.
+    return (a.payOnDone ? a.fee : a.giveGold) >= ask * 2 && (record.broken <= record.kept || c.bold);
   }
   if (a.repay > 0 && a.giveGold > 0) {
     // It is offered a loan: taken in need, or when the rate is below its impatience (it values gold now more).
@@ -145,7 +151,10 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
     ch.seek = service >= enterprise;
     // Where to stand: the best court for what it seeks, if it beats where it stands by a margin; dear bread pushes it on.
     const best = [...v.courts].sort((a, b) => courtScore(c, v, b, ch.seek) - courtScore(c, v, a, ch.seek) || a.court.localeCompare(b.court))[0];
-    if (best !== undefined && here !== null && best.court !== v.at && courtScore(c, v, best, ch.seek) > courtScore(c, v, here, ch.seek) + 10) ch.go = best.court;
+    // It gives a court a few seasons before it moves on, unless the court is in danger (the wandering of item 11b's
+    // rework: people forever on the road are at no court to be hired).
+    const settled = !ch.seek || v.waited >= 2 || here === null || here.besieged;
+    if (best !== undefined && here !== null && settled && best.court !== v.at && courtScore(c, v, best, ch.seek) > courtScore(c, v, here, ch.seek) + 20) ch.go = best.court;
     // A debt falling due on a king it can reach: it goes to his court to be repaid, unless it stands there already.
     // One seeking service at a court that is hiring stays and sends a collector instead (below), if there is one to send.
     const due = v.held.find((d) => d.dueTurn <= v.turn + 1 && d.kept !== "missing" && v.courts.some((k) => k.court === d.otherId));
@@ -159,7 +168,8 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
   // to gather where it stands or next door, it takes to the hills; sooner if its way to a fortune is the outlaw's.
   // One who gave up the road lately tries a court's service first.
   if (v.free && e === null && v.crowds.length > 0 && (v.leftRoad === null || v.turn - v.leftRoad >= BandData.outlawAgain)) {
-    const pushed = v.waited >= (c.strategy === "Outlaw" ? 3 : BandData.outlawWait) || (purse < v.living && v.waited >= 3);
+    // The weakness item 11b found (about 30 a game): only the outlaw's way, or a purse near its end, sends a man to the hills.
+    const pushed = (c.strategy === "Outlaw" && v.waited >= 3) || (purse < v.living * 3 && v.waited >= BandData.outlawWait) || (purse < v.living && v.waited >= 3);
     const willing = (t.courage + t.greed + t.ambition) / 3 >= 55 && t.loyalty < 50;
     const crowd = sortBy(v.crowds, [(x) => x.band - x.loose, cmpNum], [(x) => x.province, cmpStr])[0];
     if (pushed && willing && crowd !== undefined) {
@@ -170,7 +180,7 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
 
   // Its hoard: the careful keep one where they stand, if that court looks safe; anyone pulls it out of a court in danger.
   if (here !== null && ch.go === null) {
-    const safe = !here.besieged && here.growth >= 90;
+    const safe = !here.besieged && here.growth >= 90 && here.seized === 0;
     if (v.hoard !== null && v.hoard.at === v.at && !safe) ch.hoard = -v.hoard.gold;
     else if (!c.bold && safe && purse > 150 && (v.hoard === null || v.hoard.at === v.at)) {
       ch.hoard = purse - 60;
@@ -195,10 +205,11 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
     const overdue = v.held.find((d) => d.dueTurn <= v.turn + 1 && d.kept !== "missing" && v.courts.some((k) => k.court === d.otherId) && d.otherId !== v.at);
     const freeHere = v.here.filter((p) => p.standing === "free" && p.broken <= p.kept).sort((a, b) => a.broken - b.broken || b.kept - a.kept || a.id.localeCompare(b.id));
     if (overdue !== undefined && freeHere.length > 0 && e === null) {
-      // A fee for the journey there and back, at the going rate, or a share of what it brings, whichever is more.
+      // A fee for the journey there and back, at what it has heard a job pays, or a share of what it brings, whichever is more.
       const travel = v.courts.find((k) => k.court === overdue.otherId)?.travel ?? 2;
-      const fee = Math.max(Math.trunc((overdue.left * 15) / 100), Math.trunc((8 * (2 * travel + 1) * v.goingRate) / 100));
-      ch.approach = newApproachMade({ to: freeHere[0].id, words: `Carry this tablet to ${overdue.other} and bring me what is paid on it, and you will have ${fee} shekels.`, giveGold: Math.trunc(fee / 3), fee, collect: overdue.id });
+      const fee = Math.max(Math.trunc((overdue.left * 15) / 100), (v.heardRate ?? here?.ask ?? 8) * (2 * travel + 1));
+      // An honest employer gives its word to pay the rest on delivery, and keeps it (Haakon's answers: paid only by order).
+      ch.approach = newApproachMade({ to: freeHere[0].id, words: `Carry this tablet to ${overdue.other} and bring me what is paid on it, and you will have ${fee} shekels.`, giveGold: Math.trunc(fee / 3), fee, collect: overdue.id, payOnDone: handsOver(c) });
     } else if (purse < v.living * 2 + 5 && v.here.length > 0 && v.free && ch.seek && v.owes.length === 0 && here !== null && here.hiring !== null && v.turn - here.hiring <= 2) {
       // In need, seeking service at a court that is hiring: it borrows to live until the first advance, once.
       const lender = v.here.find((p) => p.standing !== "free") ?? v.here[0];

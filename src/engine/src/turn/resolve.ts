@@ -132,8 +132,6 @@ P.resolveSeason = function (submissions) {
   this.unraisedLevies();
 
   this.resolveCourt(all(any));
-  // The going rate of service moves with the hires sought this season (item 11a, "Fees clear the market").
-  this.goingRateMoves(all((o): o is Order => o.type === "hire" || o.type === "renew" || o.type === "seekCandidates").length);
   // A new claim to the rank of Great King becomes established once most kings have long called its king brother (item 8).
   this.recognise();
   this.resolveIntelligence(all(any));
@@ -496,7 +494,7 @@ P.raise = function (p, r) {
   }
   // Sized by the men the province has (item 11a+): a full levy where it can, else every man at home; its price, pay and
   // food are in proportion.
-  const men = levySize(S, prov.id, r.kind);
+  const men = levySize(S, prov.id, r.kind, r.men ?? null);
   if (men <= 0) {
     notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: it has too few men of fighting age left (${LandData.levyLeast} at least are needed). No gold was paid.`);
     this.scheduledFailed(p, r, "too few men of fighting age");
@@ -510,7 +508,7 @@ P.raise = function (p, r) {
   this.levyMen(prov.id, men);
   const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
   S.units.push(u);
-  notify(S, p, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men < menOf(r.kind) ? `, ${men} men strong: all the men of fighting age the province had to give, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
+  notify(S, p, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men !== menOf(r.kind) ? `, ${men} men strong${men < (r.men ?? menOf(r.kind)) ? ": all the men of fighting age the province had to give" : ""}, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
   this.levyRaised(p, u);
 };
 

@@ -30,14 +30,14 @@ export function lifeText(v: LifeView): string {
   const e = v.errand;
   if (e !== null)
     sb.appendLine(
-      `You are on an errand for ${e.employerName}: to collect debt ${e.debtId} at the court of ${e.borrower}, and bring what is paid back to them at the court of ${e.home}. You have collected ${e.collected}. Handing it over earns you the rest of your fee; keeping it is a job broken, which others will hear of.`,
+      `You are on an errand for ${e.employerName}: to collect debt ${e.debtId} at the court of ${e.borrower}, and bring what is paid back to them at the court of ${e.home}. You have collected ${e.collected}. Handing it over is your side of the job, and they said ${e.payOnDone ? "they would" : "nothing of whether they would"} pay you the rest then; keeping it is a job broken, which others will hear of.`,
     );
   for (const o of v.offers) sb.appendLine(`The court of ${o.court} offered you ${o.rate} a season last season.`);
-  sb.appendLine(`The going rate of service is ${v.goingRate} in a hundred of what people would ask on their own.`);
+  sb.appendLine(v.heardRate !== null ? `You have heard jobs pay about ${v.heardRate} a season; nobody sets the price of work: you ask what you will, and bargain from what you heard.` : "You have heard nothing of what jobs pay; nobody sets the price of work: you ask what you will.");
   sb.appendLine("The courts as you know them (seasons of travel from here; when each last asked for candidates; how far its promises to pay are kept; grain at its market, 100 the usual price; what you would ask it a season):");
   for (const k of v.courts)
     sb.appendLine(
-      `- ${k.court}: ${k.travel === 0 ? "here" : `${k.travel} seasons away`}; ${k.hiring === null ? "not hiring" : `asked for candidates in season ${k.hiring}`}; promises kept ${k.kept}, broken ${k.broken} (people count on ${k.trust} in a hundred); ${k.executions > 0 ? `you heard it put ${k.executions} to death; ` : ""}${k.lost > 0 ? `you heard ${k.lost} of its people were caught or put to death abroad; ` : ""}grain ${k.grain}; growth ${k.growth} in a hundred${k.besieged ? "; its capital is besieged" : ""}; you would ask ${k.ask}.`,
+      `- ${k.court}: ${k.travel === 0 ? "here" : `${k.travel} seasons away`}; ${k.hiring === null ? "not hiring" : `asked for candidates in season ${k.hiring}`}; promises to pay you heard it kept ${k.kept}, broke ${k.broken} (you count on ${k.trust} in a hundred); ${k.executions > 0 ? `you heard it put ${k.executions} to death; ` : ""}${k.lost > 0 ? `you heard ${k.lost} of its people were caught or put to death abroad; ` : ""}${k.seized > 0 ? `you heard it seized ${k.seized} hoard${k.seized === 1 ? "" : "s"}; ` : ""}grain ${k.grain}; growth ${k.growth} in a hundred${k.besieged ? "; its capital is besieged" : ""}; you would ask ${k.ask}.`,
     );
   if (v.here.length > 0) {
     sb.appendLine("Others here (id: name, standing, their record of paying what they promised):");

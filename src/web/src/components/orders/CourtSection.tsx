@@ -22,6 +22,10 @@ import {
   buyNews,
   repay,
   seekCandidates,
+  seize,
+  sellDebt,
+  payCarriers,
+  huntBands,
   type Power,
 } from "@amarna/engine";
 import { dated, grantLine, powerName, shekels } from "../../ui/format.ts";
@@ -122,9 +126,26 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             ))}
         </div>
       )}
-      <div className="row" style={{ marginTop: ".4rem" }}>
+      <div className="row" style={{ marginTop: ".4rem", flexWrap: "wrap" }}>
         <label>
-          Term for hiring and renewing <input type="number" min="1" max="30" value={f.term} onChange={(e) => set({ term: num(e.target.value) })} /> seasons
+          A job offered:{" "}
+          <select value={f.errandWhat} onChange={(e) => set({ errandWhat: e.target.value as "envoy" | "spy" })}>
+            <option value="envoy">envoy to</option>
+            <option value="spy">spy on</option>
+          </select>{" "}
+          <select value={f.errandWhere} onChange={(e) => set({ errandWhere: e.target.value })}>
+            {AllPowers.filter((p) => p !== me).map((p) => (
+              <option key={p} value={p}>
+                {powerName(p)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          within <input type="number" min="1" max="30" value={f.term} onChange={(e) => set({ term: num(e.target.value) })} /> seasons
+        </label>
+        <label>
+          <input type="checkbox" checked={f.payOnDone} onChange={(e) => set({ payOnDone: e.target.checked })} /> pay the rest when it is done
         </label>
       </div>
       {v.known
@@ -137,9 +158,18 @@ export function CourtSection({ c }: { c: OrdersContext }) {
                 Fee{" "}
                 <input type="number" min="1" value={f.wages[c.id] ?? wage(c.id, c.askingPrice ?? 15)} onChange={(e) => set({ wages: { ...f.wages, [c.id]: num(e.target.value) } })} />
               </label>
-              <button className="small" disabled={c.where !== "at your court"} onClick={() => add(hire(c.id, wage(c.id, c.askingPrice ?? 15), term))}>
-                Hire for {term} seasons, half now
+              <button
+                className="small"
+                disabled={c.where !== "at your court"}
+                onClick={() => add(hire(c.id, wage(c.id, c.askingPrice ?? 15), term, null, { what: f.errandWhat, where: f.errandWhere, payOnDone: f.payOnDone }))}
+              >
+                Offer the job ({f.errandWhat} {f.errandWhat === "envoy" ? "to" : "on"} {powerName(f.errandWhere as Power)}), half now
               </button>
+              {c.hoardHere !== null && (
+                <button className="small danger" disabled={draft.other.some((o) => o.type === "seize" && o.character === c.id)} onClick={() => add(seize(c.id))}>
+                  Seize their hoard here ({shekels(c.hoardHere)})
+                </button>
+              )}
               {c.lends !== null && (
                 <button className="small" onClick={() => add(borrow(c.id, c.lends!.amount, c.lends!.amount + Math.ceil((c.lends!.amount * c.lends!.perHundred) / 100), c.lends!.seasons))}>
                   Borrow {shekels(c.lends.amount)}, {c.lends.perHundred} in 100 more back in {c.lends.seasons} seasons
@@ -153,9 +183,9 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             </div>
           </div>
         ))}
-      {/* Your own people: at court at any time, or wherever they are once they have given notice. Hire is only for people not in your service. */}
+      {/* Your own people at court: a new job is a new errand, which they may refuse. Hire is only for people not in your service. */}
       {v.court
-        .filter((c) => c.ready || c.noticePrice !== null)
+        .filter((c) => c.ready)
         .map((c) => (
           <div className="row" style={{ marginTop: ".3rem" }} key={c.id}>
             <small>
@@ -163,14 +193,14 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             </small>
             <label>
               Fee{" "}
-              <input type="number" min="1" value={f.wages[c.id] ?? wage(c.id, c.noticePrice ?? Math.trunc((c.fee ?? 90) / 6))} onChange={(e) => set({ wages: { ...f.wages, [c.id]: num(e.target.value) } })} />
+              <input type="number" min="1" value={f.wages[c.id] ?? wage(c.id, Math.trunc((c.fee ?? 90) / 6))} onChange={(e) => set({ wages: { ...f.wages, [c.id]: num(e.target.value) } })} />
             </label>
             <button
               className="small"
               disabled={draft.other.some((o) => o.type === "renew" && o.character === c.id)}
-              onClick={() => add(renew(c.id, wage(c.id, c.noticePrice ?? Math.trunc((c.fee ?? 90) / 6)), term))}
+              onClick={() => add(renew(c.id, wage(c.id, Math.trunc((c.fee ?? 90) / 6)), term, null, { what: f.errandWhat, where: f.errandWhere, payOnDone: f.payOnDone }))}
             >
-              Renew for {term} seasons, half now
+              Offer a new job ({f.errandWhat} {f.errandWhat === "envoy" ? "to" : "on"} {powerName(f.errandWhere as Power)}), half now
             </button>
             <button className="small" disabled={draft.other.some((o) => o.type === "payFee" && o.character === c.id)} onClick={() => add(payFee(c.id, false))}>
               Withhold the rest of the fee
@@ -203,10 +233,34 @@ export function CourtSection({ c }: { c: OrdersContext }) {
           )}
         </div>
       ))}
+      {v.debtsHeld.map((d) => (
+        <div className="row" key={`held-${d.id}`}>
+          <small>
+            Tablet {d.id} in your archive: {d.holder} owes {shekels(d.left)}, by turn {d.dueTurn}
+            {d.here ? "; they stand at your court" : ""}. Send it with an envoy to collect, or sell it to a lender here.
+          </small>
+          {[...v.court, ...v.known]
+            .filter((c) => c.lends !== null && c.id !== d.holderId)
+            .slice(0, 2)
+            .map((c) => (
+              <button className="small" key={c.id} onClick={() => add(sellDebt(d.id, c.id, Math.trunc(d.left / 2)))}>
+                Sell to {c.name} for {shekels(Math.trunc(d.left / 2))}
+              </button>
+            ))}
+        </div>
+      ))}
+      <div className="row">
+        <button className="small" disabled={draft.other.some((o) => o.type === "payCarriers")} onClick={() => add(payCarriers(!v.payCarriers))}>
+          {v.payCarriers ? "Stop paying letter carriers on delivery" : "Pay letter carriers on delivery"}
+        </button>
+        <button className="small" disabled={draft.other.some((o) => o.type === "huntBands")} onClick={() => add(huntBands(!v.huntBands))}>
+          {v.huntBands ? "Stop hunting bands in your land" : "Armies hunt any band in your land"}
+        </button>
+      </div>
       <p className="muted">
         <small>
-          People count on {v.trust} in a hundred of what you promise (kept {v.kept}, broken {v.broken}); the going rate of service is {v.goingRate} in a hundred. A
-          person is hired in person, at your court.
+          People count on {v.trust} in a hundred of what you promise, as far as they have heard your record (kept {v.kept}, broken {v.broken}). A job is one errand,
+          offered to a person at your court (or abroad, by an envoy); nothing is paid but by your order.
         </small>
       </p>
       <div className="row" style={{ marginTop: ".4rem" }}>
@@ -309,6 +363,11 @@ export function CourtSection({ c }: { c: OrdersContext }) {
               <button className="small" onClick={() => add(captive(c.id, "Turn", 0, f.poisonText))}>
                 Turn them
               </button>
+              {(c.carries ?? 0) > 0 && (
+                <button className="small" onClick={() => add(captive(c.id, "TakePurse"))}>
+                  Take what they carry ({shekels(c.carries!)})
+                </button>
+              )}
               <button className="small" onClick={() => add(captive(c.id, "Release"))}>
                 Release
               </button>

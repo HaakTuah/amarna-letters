@@ -18,7 +18,7 @@ import {
   seekCandidates,
   single,
 } from "@amarna/engine";
-import { escapeRegex, Assert, last } from "./support.ts";
+import { escapeRegex, Assert, last, homeJob } from "./support.ts";
 
 // <summary>The kind and words of notices a king reads the season after it gave the orders behind them.</summary>
 describe("FailureNoticeTests", () => {
@@ -39,19 +39,19 @@ describe("FailureNoticeTests", () => {
     other.askingPrice.set("Assyria", 20);
     e.resolve(
       new Dict([
-        ["Egypt", newTurnSubmission({ orders: [hire(free.id, 600, 6, 600)] }) /* not where the person stands */],
-        ["Hatti", newTurnSubmission({ orders: [hire(free.id, 120, 6, 120)] }) /* wins */],
-        ["Assyria", newTurnSubmission({ orders: [hire(other.id, 60, 6, 60)] }) /* below the price */],
+        ["Egypt", newTurnSubmission({ orders: [hire(free.id, 600, 6, 600, homeJob("Egypt"))] }) /* not where the person stands */],
+        ["Hatti", newTurnSubmission({ orders: [hire(free.id, 120, 6, 120, homeJob("Hatti"))] }) /* wins */],
+        ["Assyria", newTurnSubmission({ orders: [hire(other.id, 60, 6, 60, homeJob("Assyria"))] }) /* below the price */],
       ]),
     );
     begin(s);
 
     Assert.equal("Hatti", free.employer);
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.kind === "Rejected" && i.body.includes("hired in person"));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.kind === "Rejected" && i.body.includes("goes with an envoy"));
     let notice = single(inboxOf(s, "Assyria"), (i) => i.title === "Not hired");
     Assert.equal("Rejected", notice.kind);
     Assert.equal(
-      `${other.name} declined your offer of ${formatMoney(60)} for 6 seasons: they ask 20 shekels a season of the term, ${formatMoney(feeFor(20, 6, 100, 80))} for this one with this advance, counting the rest only as far as they trust your court to pay it.`,
+      `${other.name} declined your offer of ${formatMoney(60)} for 6 seasons: they ask 20 shekels a season of the term, ${formatMoney(feeFor(20, 6, 100, 80))} for this one with this advance, counting the rest only as far as they trust your court to pay it, from what they have heard.`,
       notice.body,
     );
     Assert.doesNotContain(inboxOf(s, "Hatti"), (i) => i.title === "Not hired");

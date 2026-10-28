@@ -9,7 +9,7 @@
 import { idiv } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { gain, remember, type Character } from "../model/people.ts";
-import type { Power } from "../model/power.ts";
+import { land, type Power } from "../model/power.ts";
 import { Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -25,7 +25,13 @@ import { isWalker } from "./travel.ts";
  * A carrier takes every letter waiting there for the same court. With nobody to carry them for `selfAfter` seasons, the
  * spy carries them home himself.
  */
-export const LetterData = { hiredPercent: 50, sidePercent: 20, hireAfter: 1, selfAfter: 2, trustOnDelivery: 60 } as const;
+export const LetterData = { hiredPercent: 50, sidePercent: 20, hireAfter: 1, selfAfter: 2, trustOnDelivery: 60, payLoyalty: 30 } as const;
+
+/**
+ * How many seasons a spy waits for a carrier before it carries its reports home itself (Haakon's answers to item 11b: the
+ * spy decides, a script spy by its traits): `selfAfter`, a season more for a brave one and for a loyal one.
+ */
+export const selfWait = (c: Character): number => LetterData.selfAfter + (c.traits.courage >= 60 ? 1 : 0) + (c.traits.loyalty >= 60 ? 1 : 0);
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -59,6 +65,11 @@ P.carryLetters = function () {
       S.journeys.splice(S.journeys.indexOf(letter), 1);
       continue;
     }
+    // A ransom demand replaced by a newer one, or lapsed, is no longer the captor's to send.
+    if (letter.kind !== "SpyReport" && letter.taskId !== null && !S.tasks.some((t) => t.id === letter.taskId)) {
+      S.journeys.splice(S.journeys.indexOf(letter), 1);
+      continue;
+    }
     const at = letter.waitAt!;
     // A report left at a watch post whose spy is gone (recalled, caught or dead), with no court there to hire a carrier
     // at: nobody keeps it, and it is lost.
@@ -80,37 +91,72 @@ P.carryLetters = function () {
     const passer = own ?? going.find((j) => findCharacter(S, j.characterId)?.status !== "Captured") ?? null;
     let carrier: Character | null = null;
     let fee = 0;
-    const spy = findCharacter(S, letter.characterId);
+    // A ransom demand (Haakon's answers to item 11b: a message someone sends, which needs a carrier) has no spy behind it:
+    // it goes with whoever sets out that way, as the captor asks of them.
+    const spy = letter.kind === "SpyReport" ? findCharacter(S, letter.characterId) : null;
+    const demand = letter.kind !== "SpyReport";
+    // The spy decides (no rule moves it): one loyal enough pays from its own purse; how long it waits before carrying its
+    // reports home itself is its own, the brave and loyal waiting longest.
+    const willing = spy !== null && spy.traits.loyalty >= LetterData.payLoyalty;
     const waited = S.turn - letter.departTurn;
     const court = courtAt(this, at);
-    if (passer !== null) {
-      carrier = findCharacter(S, passer.characterId)!;
-      fee = own !== null ? 0 : idiv(basePrice(carrier, letter.to, S.goingRate) * seasons * LetterData.sidePercent, 100);
-    } else if (spy !== null && waited >= LetterData.hireAfter && court !== null) {
-      // Hired at the court where it waits: a free person standing there, half now from the spy's purse, or all of it on
-      // delivery from a court whose record of paying the carrier trusts.
-      const ask = (c: Character): number => idiv(basePrice(c, letter.to, S.goingRate) * seasons * LetterData.hiredPercent, 100);
-      const trusted = trustIn(S, letter.to) >= LetterData.trustOnDelivery;
+    const passing = passer === null ? null : findCharacter(S, passer.characterId)!;
+    const side = passing === null ? 0 : idiv(basePrice(passing, letter.to) * seasons * LetterData.sidePercent, 100);
+    // Haakon's answers to item 11a: a traveller carries it for a fee on delivery from a court whose standing order is to
+    // pay carriers; for any other court only if the spy pays it now from its purse.
+    const paysNow = own === null && passing !== null && !demand && !S.payCarriers.includes(letter.to);
+    if (passing !== null && (demand || !paysNow || (willing && spy!.purse >= side))) {
+      carrier = passing;
+      if (own !== null || demand) fee = 0;
+      else if (paysNow) {
+        spy!.purse -= side;
+        spy!.earned.spent += side;
+        gain(carrier, side, "News");
+      } else fee = side;
+    } else if (demand && court !== null && isAlive(S, court)) {
+      // The captor who demands a ransom sends it: with nobody going that way, it hires a free person at its court, paying
+      // the whole fee now from its treasury as part of the demand it ordered.
+      const ask = (c: Character): number => idiv(basePrice(c, letter.to) * seasons * LetterData.hiredPercent, 100);
+      const t = S.treasuries.get(court);
       const hire =
         sortBy(
-          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted || spy.purse >= Math.ceil(ask(c) / 2))),
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && t.gold >= ask(c)),
           [(c: Character) => ask(c), cmpNum],
           [(c: Character) => idNumber(c.id), cmpNum],
         )[0] ?? null;
       if (hire !== null) {
+        t.gold -= ask(hire);
+        gain(hire, ask(hire), "News");
+        this.startTravel(hire, letter.to);
+        remember(hire, S.turn, `The king of ${land(court)} paid me ${formatMoney(ask(hire))} to carry his word to the court of ${letter.to}.`);
+        carrier = hire;
+      }
+    } else if (spy !== null && willing && waited >= LetterData.hireAfter && court !== null) {
+      // Hired at the court where it waits: a free person standing there, half now from the spy's purse, or all of it on
+      // delivery from a court whose standing order is to pay carriers and whose record of paying, as it heard it, it trusts.
+      const ask = (c: Character): number => idiv(basePrice(c, letter.to) * seasons * LetterData.hiredPercent, 100);
+      const trusted = (c: Character): boolean => S.payCarriers.includes(letter.to) && trustIn(S, letter.to, c) >= LetterData.trustOnDelivery;
+      const hire =
+        sortBy(
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || spy.purse >= ask(c))),
+          [(c: Character) => ask(c), cmpNum],
+          [(c: Character) => idNumber(c.id), cmpNum],
+        )[0] ?? null;
+      if (hire !== null) {
+        // The rest on delivery only by its court's standing order; without it the spy pays it all now from its purse.
         const whole = ask(hire);
-        const now = Math.min(spy.purse, Math.ceil(whole / 2));
+        const now = S.payCarriers.includes(letter.to) ? Math.min(spy.purse, Math.ceil(whole / 2)) : Math.min(spy.purse, whole);
         spy.purse -= now;
         spy.earned.spent += now;
         gain(hire, now, "News");
         fee = whole - now;
         this.startTravel(hire, letter.to);
-        remember(hire, S.turn, `${spy.name} paid me ${formatMoney(now)} to carry a sealed letter to the court of ${letter.to}, the rest on delivery.`);
+        remember(hire, S.turn, `${spy.name} paid me ${formatMoney(now)} to carry a sealed letter to the court of ${letter.to}${fee > 0 ? ", the rest on delivery" : ""}.`);
         carrier = hire;
       }
     }
     // Nobody to carry it, long enough: the spy carries it home himself, leaving its post ("or the person himself").
-    if (carrier === null && spy !== null && waited >= LetterData.selfAfter && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
+    if (carrier === null && spy !== null && waited >= selfWait(spy) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
       // Its master goes on believing it at its post until it stands at court again.
       this.coverFor(spy, letter.to, "SpyPosted");
       this.recall(letter.to, spy);
@@ -119,7 +165,7 @@ P.carryLetters = function () {
     }
     if (carrier === null) continue;
     letter.fee = fee;
-    for (const l of waiting.filter((x) => x.carrier === null && x.waitAt === at && x.to === letter.to)) {
+    for (const l of waiting.filter((x) => x.carrier === null && x.waitAt === at && x.to === letter.to && (x.kind === "SpyReport") === !demand)) {
       l.carrier = carrier.id;
       S.lettersCarried.set(l.from, S.lettersCarried.getOrDefault(l.from, 0) + 1);
       S.lettersWaited.set(l.from, S.lettersWaited.getOrDefault(l.from, 0) + (S.turn - l.departTurn));
@@ -156,9 +202,14 @@ P.letterDelivered = function (j) {
   const S = this.s;
   const c = findCharacter(S, j.carrier);
   if (c === null || j.fee <= 0 || c.status === "Dead") return;
+  // Haakon's answers to item 11a: paid on delivery only by the court's own standing order (payCarriers); else it falls
+  // due, paid by order pay_fee while the carrier stands at court, or not.
   const t = S.treasuries.get(j.to);
-  const paid = Math.min(j.fee, Math.max(0, t.gold));
-  t.gold -= paid;
-  gain(c, paid, "News");
-  this.recordPay(j.to, paid >= j.fee);
+  if (S.payCarriers.includes(j.to) && t.gold >= j.fee) {
+    t.gold -= j.fee;
+    gain(c, j.fee, "News");
+    this.recordPay(j.to, true, j.to, c);
+    return;
+  }
+  this.fallsDue(c, j.to, j.fee, `I carried a letter to the court of ${j.to}, and was not paid on delivery.`);
 };

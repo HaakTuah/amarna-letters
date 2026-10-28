@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import {
   BandData,
-  LetterData,
+  selfWait,
   TurnEngine,
   Waiting,
   WorldMap,
@@ -13,6 +13,7 @@ import {
   newGame,
   newLossAbroad,
   newNewsHeld,
+  newPendingTask,
   newUnit,
   newId,
   newsOffered,
@@ -79,14 +80,22 @@ describe("BandTests", () => {
     Assert.equal(chief.purse, chief.earned.loot - chief.earned.spent);
   });
 
-  test("The holder's army standing where a band works falls on it and drives it off", () => {
+  test("The holder's army falls on a band where it stands only on his order, and drives it off", () => {
     const s = newGame(3);
     const prov = quiet(s, "Egypt");
     const e = new TurnEngine(s);
     const b = e.headRises(prov, 80, "crowd", e.r("test"));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: prov, home: prov, men: 5000, food: 20 }));
     s.turn++;
+    // No order: the army leaves it alone (Haakon's answers to item 11b).
     new TurnEngine(s).bandsSeason();
+    Assert.false(s.events.some((x) => x.signal === "band-hunted"));
+    b.province = prov;
+    // Ordered to hunt there this season: it falls on it as the next season begins.
+    s.huntNow.push(`Egypt|${prov}`);
+    s.turn++;
+    new TurnEngine(s).bandsSeason();
+    Assert.empty(s.huntNow);
     Assert.true(s.events.some((x) => x.signal === "band-hunted"));
     // It lost men and fled, or lost its chief; either way it no longer works there unmolested.
     const still = s.bands.find((x) => x.id === b.id) ?? null;
@@ -126,7 +135,8 @@ describe("BandTests", () => {
     const letter = first(s.journeys, (j) => j.kind === "SpyReport" && j.characterId === spy.id);
     Assert.equal(Waiting, letter.arriveTurn);
     Assert.equal(Map.capital("Hatti").id, letter.waitAt);
-    for (let i = 0; i < LetterData.selfAfter; i++) {
+    // It decides how long to wait: two seasons, a season more if brave, another if loyal (selfWait).
+    for (let i = 0; i < selfWait(spy); i++) {
       s.turn++;
       new TurnEngine(s).carryLetters();
     }
@@ -158,7 +168,8 @@ describe("BandTests", () => {
     new TurnEngine(s).carryLetters();
     Assert.true(letters.every((l) => l.carrier !== null && l.carrier === letters[0].carrier));
     Assert.equal(travelling + 1, s.journeys.filter((j) => j.kind === "Travel").length);
-    Assert.equal(1, letters.filter((l) => l.fee > 0).length);
+    // Without its court's standing order to pay carriers, the spy paid it all now: nothing is owed on delivery.
+    Assert.equal(0, letters.filter((l) => l.fee > 0).length);
   });
 
   test("A free person sells the news it saw at one court at another", () => {
@@ -179,19 +190,97 @@ describe("BandTests", () => {
     Assert.empty(newsOffered(s, c, "Hatti"));
   });
 
+  test("A ruthless chief kills a king's servant only where no army of the land stands near; a careful one never", () => {
+    const s = newGame(8);
+    const prov = quiet(s, "Egypt");
+    const e = new TurnEngine(s);
+    const b = e.headRises(prov, 60, "crowd", e.r("test"));
+    const chief = first(s.characters, (c) => c.id === b.leaderId);
+    const servant = first(s.characters, (c) => c.employer !== null && c.id !== chief.id);
+    const free = first(s.characters, (c) => c.status === "Free" && c.id !== chief.id);
+    chief.traits.loyalty = 20;
+    const near = new Set([prov, ...Map.neighbors(prov)]);
+    s.units = s.units.filter((u) => !(u.power === "Egypt" && near.has(u.province)));
+    Assert.true(e.chiefKills(b, servant, prov));
+    // A free traveller's word reaches nobody who would hunt him.
+    Assert.false(e.chiefKills(b, free, prov));
+    // The land's army next door: he lets the witness go.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: Map.neighbors(prov)[0], home: prov, men: 2000, food: 20 }));
+    Assert.false(e.chiefKills(b, servant, prov));
+    s.units.pop();
+    chief.traits.loyalty = 80;
+    chief.traits.greed = 30;
+    Assert.false(e.chiefKills(b, servant, prov));
+  });
+
+  test("A ransom demand never carries a spy's reports, and one no longer standing is dropped unsent", () => {
+    const s = newGame(9);
+    const at = Map.capital("Hatti").id;
+    const e = new TurnEngine(s);
+    const demand = newPendingTask({ id: newId(s, "q"), kind: "RansomDemand", requester: "Babylonia", other: "Hatti", spend: 100, dueTurn: s.turn + 8 });
+    s.tasks.push(demand);
+    e.rumor("Babylonia", "Hatti", "Hatti demands a ransom.", null, "Ransom", demand.id);
+    const word = s.journeys[s.journeys.length - 1];
+    [word.arriveTurn, word.waitAt] = [Waiting, at];
+    const spy = first(s.characters, (c) => c.employer === "Babylonia" && c.at === "Babylonia");
+    [spy.duty, spy.at, spy.missionTarget, spy.purse] = ["SpyPosted", "Hatti", "Hatti", 0];
+    spy.traits.loyalty = 10;
+    e.watchAndReport();
+    const report = first(s.journeys, (j) => j.kind === "SpyReport" && j.characterId === spy.id);
+    s.turn++;
+    new TurnEngine(s).carryLetters();
+    // Whoever took the demand (a traveller, or a carrier the captor hired) did not take the spy's report with it.
+    if (word.carrier !== null) Assert.true(report.carrier === null || report.carrier !== word.carrier);
+    // A demand replaced or lapsed: its word is dropped, and nobody is paid to carry it.
+    const again = newPendingTask({ id: newId(s, "q"), kind: "RansomDemand", requester: "Babylonia", other: "Hatti", spend: 100, dueTurn: s.turn + 8 });
+    e.rumor("Babylonia", "Hatti", "Hatti demands a ransom.", null, "Ransom", again.id);
+    const gone = s.journeys[s.journeys.length - 1];
+    [gone.arriveTurn, gone.waitAt] = [Waiting, at];
+    const gold = s.treasuries.get("Hatti").gold;
+    new TurnEngine(s).carryLetters();
+    Assert.false(s.journeys.includes(gone));
+    Assert.equal(gold, s.treasuries.get("Hatti").gold, 0);
+  });
+
+  test("A servant caught selling its master's secrets: word of it reaches its master by the roads", () => {
+    let caught = false;
+    for (let seed = 1; seed <= 40 && !caught; seed++) {
+      const s = newGame(seed);
+      const c = first(s.characters, (x) => x.employer === "Hatti" && x.status === "Employed");
+      c.at = "Mitanni";
+      c.duty = "EnvoyAtCourt";
+      [c.traits.greed, c.traits.loyalty] = [90, 10];
+      c.news = [newNewsHeld({ court: "Hatti", turn: s.turn, lines: ["Hatti had an army in Nesa."] })];
+      if (newsOffered(s, c, "Mitanni").length === 0) return;
+      new TurnEngine(s).resolve(subs({ Mitanni: { orders: [buyNews(c.id, "Hatti")] } }));
+      const f = c.facts.find((x) => x.tag === "sold-secrets") ?? null;
+      if (f === null) continue;
+      caught = true;
+      // Not known at once: the word is on the road from Mitanni.
+      Assert.empty(f.knownBy);
+      const word = first(s.journeys, (j) => j.kind === "Rumor" && j.news === "Name" && j.taskId === f.id);
+      Assert.equal("Hatti", word.to);
+      Assert.true(word.arriveTurn > word.departTurn);
+      new TurnEngine(s).nameHeard(word);
+      Assert.true(f.knownBy.includes("Hatti"));
+      Assert.contains(inboxOf(s, "Hatti"), (i) => i.title === "Secrets sold");
+    }
+    Assert.true(caught);
+  });
+
   test("A person asks more of a court it heard loses its people abroad", () => {
     const s = newGame(7);
     const c = first(s.characters, (x) => x.status === "Free");
     c.traits.courage = 20;
-    const before = basePrice(c, "Assyria", 100);
-    const beforeHatti = basePrice(c, "Hatti", 100);
+    const before = basePrice(c, "Assyria");
+    const beforeHatti = basePrice(c, "Hatti");
     for (let i = 0; i < 4; i++) {
       c.heard.push(lossKey(newLossAbroad({ turn: 1, kind: "PutToDeath", characterId: `c99${i}`, court: "Hatti", master: "Assyria" })));
       c.heard.push(lossKey(newLossAbroad({ turn: 1, kind: "Captured", characterId: `c98${i}`, court: "Egypt", master: "Assyria" })));
     }
-    Assert.true(basePrice(c, "Assyria", 100) > before);
+    Assert.true(basePrice(c, "Assyria") > before);
     // The court that put a man to death is feared too.
-    Assert.true(basePrice(c, "Hatti", 100) > beforeHatti);
+    Assert.true(basePrice(c, "Hatti") > beforeHatti);
   });
 
   test("Personas speak of experience, never of age", () => {

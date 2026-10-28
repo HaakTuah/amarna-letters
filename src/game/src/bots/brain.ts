@@ -86,6 +86,8 @@ export class Brain {
   readonly noHand = new HSet<string>();
   /** Item 10: captives already questioned, handed over, persons at court who claimed to be envoys, and spies' last thefts. */
   readonly questioned = new HSet<string>();
+  /** Captives whose purse it took (Haakon's answers to item 11a: a captive's purse stays on him until his captor takes it). */
+  readonly stripped = new HSet<string>();
   readonly handedOver = new HSet<string>();
   readonly hosted = new HSet<string>();
   readonly lastSteal = new Dict<string, number>();

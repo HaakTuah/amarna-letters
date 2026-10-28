@@ -10,6 +10,7 @@ import { WorldMap } from "../model/map.ts";
 import { characterOf, unitOf, type CaptiveFate, type HireOrder, type Order, type RejectedOrder, type TurnSubmission } from "../model/orders.ts";
 import { coverOf, falseNameAt, hiddenAt, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
+import { standsForBorrower } from "../model/money.ts";
 import type { PendingTask } from "../model/records.ts";
 import { grantStands, grantLive } from "../model/authority.ts";
 import { buyAlongCurve, cityPriceOf, needOf } from "../model/economy.ts";
@@ -64,6 +65,7 @@ export class OrderValidator {
     const busyCharacters = new HSet<string>();
     const ransomed = new HSet<string>();
     const renewed = new HSet<string>();
+    const hiredNow = new HSet<string>();
     const tollsSet = new HSet<string>();
     const taxesSet = new HSet<string>();
     const peopleSet = new HSet<string>();
@@ -88,19 +90,63 @@ export class OrderValidator {
       // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
       if (covered(c) || (c.employer === power && (c.status === "Employed" || c.status === "Captured")))
         return [`${c.name} is already in your service; to keep them on, order renew`, c];
-      if (c.status !== "Free" || c.errand !== null) return [`${c.name} is not available for hire`, c];
-      if (c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
-      // Item 11a, "Hiring as a negotiation": a person is hired in person, where it stands.
-      if (c.at !== power && c.heldBy !== power) return [`${c.name} is not at your court: a person is hired in person, where it stands`, c];
+      // Item 11a, "Hiring as a negotiation", with Haakon's answers: offered where it stands, at your court or by an envoy
+      // you send this season to the court where it is. Of a person abroad the court knows only what it heard: whether it is
+      // still there and free is settled when the envoy comes (the engine), never told now.
+      const via = h.via ?? null;
+      if (via === null && (c.status !== "Free" || c.errand !== null)) return [`${c.name} is not available for hire`, c];
+      if (via === null && c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
+      if (via === null && c.at !== power && c.heldBy !== power)
+        return [`${c.name} is not at your court: an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
+      if (via !== null) {
+        const d = orders.find((o) => o.type === "dispatch" && o.envoy === via) ?? null;
+        if (d === null || d.type !== "dispatch") return [`you send no envoy '${via}' this season to carry the offer`, c];
+      }
       if (h.fee <= 0 || h.term <= 0) return ["fee and term must be positive", c];
       if (h.advance < 0 || h.advance > h.fee) return ["the advance must be between nothing and the whole fee", c];
+      const e = errandRefusal(h);
+      if (e !== null) return [e, c];
       return [null, c];
     };
 
-    // People this season's orders hire: they enter service only at the end of the season, so no errand can be given them
-    // now. Only a hire that stands counts (one refused for its wage, or for someone not free to take it, does not), and it
-    // counts wherever it is listed, so that an errand listed before it is refused in the same words.
-    const hiring = new HSet(orders.filter((o): o is HireOrder => o.type === "hire" && hireRefusal(o)[0] === null).map((h) => h.character));
+    // A job's errand as an order names it: an envoy to a living court not one's own, or a spy on such a court or a province.
+    const errandRefusal = (o: { what?: string | null; where?: string | null }): string | null => {
+      const what = o.what ?? null;
+      if (what === null) return "name the job's errand: what (envoy or spy) and where";
+      const where = o.where ?? "";
+      if (what === "envoy") return AllPowers.includes(where as Power) && where !== power && !heardFallen(where as Power) ? null : `an envoy's errand is to a court other than your own: '${where}' is not one`;
+      if (what === "spy") {
+        if (AllPowers.includes(where as Power)) return where !== power && !heardFallen(where as Power) ? null : `you cannot spy on ${where}`;
+        return Map.exists(where) && !Map.get(where).isSea ? null : `there is no court or province called '${where}'`;
+      }
+      return `a job's errand is "envoy" or "spy", not '${what}'`;
+    };
+
+    // Whether a person may be sent on an errand by this submission: its job's errand is this one (or not yet named), or an
+    // order earlier in the list offers it a job for this one.
+    const errandFits = (id: string, what: string, where: string): string | null => {
+      const c = findCharacter(S, id);
+      if (c === null) return null;
+      const offered = orders.some((o) => (o.type === "hire" || o.type === "renew") && o.character === id && o.what === what && o.where === where);
+      if (offered) return null;
+      const cover = coverOf(c, power);
+      // One not in your service is sent only on the errand of the job offered it now.
+      if (cover === null && c.employer !== power) {
+        const job = orders.find((o) => o.type === "hire" && o.character === id);
+        return job !== undefined && job.type === "hire"
+          ? `the job offered ${c.name} is ${job.what === "envoy" ? `as envoy to ${job.where}` : `to watch ${job.where}`}: another errand is a new job`
+          : null;
+      }
+      const e = cover !== null ? null : (c.contract?.errand ?? null);
+      if (e === null) return null;
+      if (e.what === what && e.where === where && !e.done) return null;
+      const job = e.done ? `${c.name}'s job's errand is done` : `${c.name}'s job is ${e.what === "envoy" ? `as envoy to ${e.where}` : `to watch ${e.where}`}`;
+      return `${job}: another errand is a new job, offered with order renew (what, where), which they may take or not`;
+    };
+
+    // People this season's orders offer a job at court: they may be sent on its errand at once, if they take it. Only a hire
+    // that stands counts, wherever it is listed.
+    const hiring = new HSet(orders.filter((o): o is HireOrder => o.type === "hire" && (o.via ?? null) === null && hireRefusal(o)[0] === null).map((h) => h.character));
 
     if (!isAlive(S, power)) {
       for (const o of submission.orders) result.rejected.push({ order: o, reason: "your realm has fallen" });
@@ -131,11 +177,11 @@ export class OrderValidator {
     const ownCharacter = (id: string, mustBeHome = true): string | null => {
       const c = findCharacter(S, id);
       if (c === null) return nobody(id);
+      // Haakon's answers to item 11a: one offered a job at your court by an earlier order may be sent on its errand at once
+      // (if it takes the job).
+      if (hiring.has(c.id) && c.at === power) return busyCharacters.has(c.id) ? `${c.name} was already given a task by an earlier order` : null;
       const away = covered(c) || (c.employer === power && c.status === "Captured");
-      if (!away && (c.employer !== power || c.status !== "Employed"))
-        return hiring.has(c.id)
-          ? `${c.name} was to be hired that season: a person hired enters your service only at the end of the season, and can be sent on an errand from the next season`
-          : `${c.name} is not in your service`;
+      if (!away && (c.employer !== power || c.status !== "Employed")) return `${c.name} is not in your service`;
       if (mustBeHome && (away || c.duty !== "None" || c.at !== power)) return `${c.name} is not at your court`;
       if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
       return null;
@@ -337,6 +383,7 @@ export class OrderValidator {
 
         case "raise": {
           const r = order;
+          if (r.men != null && (!Number.isInteger(r.men) || r.men <= 0)) return "say how many men the levy takes, or leave it out for a unit's full size";
           if (!Map.exists(r.province)) return `there is no province called '${r.province}'`;
           const p = Map.get(r.province);
           if (p.home !== power) return `${p.name} is not part of your homeland`;
@@ -345,7 +392,8 @@ export class OrderValidator {
           if (raisedIn.has(p.id)) return `you already raise a unit in ${p.name}`;
           const men = menAvailable(S, p.id);
           if (men < LandData.levyLeast) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (${LandData.levyLeast} at least, ${men} at home and not carrying or building)`;
-          return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(men, menOf(r.kind))));
+          if (r.men != null && r.men < LandData.levyLeast) return `a levy takes ${LandData.levyLeast} men at least`;
+          return spend(forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, Math.min(men, r.men ?? menOf(r.kind))));
         }
 
         case "disband": {
@@ -394,6 +442,14 @@ export class OrderValidator {
           const e = ownCharacter(d.envoy);
           if (e !== null) return e;
           if (d.to === power || heardFallen(d.to)) return `you cannot send an envoy to ${d.to}`;
+          const fit = errandFits(d.envoy, "envoy", d.to);
+          if (fit !== null) return fit;
+          if (d.collect != null) {
+            const debt = S.debts.find((x) => x.id === d.collect) ?? null;
+            if (debt === null || debt.ended !== null || debt.holder !== power) return `you hold no tablet of a standing debt '${d.collect}' in your archive`;
+          }
+          // The advances of the offers it carries go with it.
+          const carried = orders.filter((o): o is HireOrder => o.type === "hire" && o.via === d.envoy && hireRefusal(o)[0] === null).reduce((a, h) => a + Math.min(h.advance, h.fee), 0);
           if (dispatches >= S.config.maxDispatchesPerTurn) return `at most ${S.config.maxDispatchesPerTurn} envoys may leave in one season`;
           if (d.gold < 0) return "gold cannot be negative";
           if (d.purityPercent < 10 || d.purityPercent > 100) return "purity must be between 10 and 100 percent";
@@ -412,7 +468,7 @@ export class OrderValidator {
           const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
           // The tablet's scribe, and the inventory's unless the gold goes without one (item 8), as the engine charges them.
           const fee = (d.proposal ? S.config.tabletFee : 0) + (d.gold > 0 && d.noInventory !== true ? S.config.inventoryFee : 0);
-          return spend(fine + fee);
+          return spend(fine + fee + carried);
         }
 
         case "release": {
@@ -429,9 +485,9 @@ export class OrderValidator {
         case "hire": {
           const [e, c] = hireRefusal(order);
           if (e !== null) return e;
-          if (busyCharacters.has(c!.id)) return `${c!.name} was already given a task by an earlier order`;
-          // Item 11a: the advance is handed over when the job is agreed, so it is reserved now.
-          return spend(Math.min(order.advance, order.fee));
+          if (hiredNow.has(c!.id)) return `${c!.name} was already offered a job by an earlier order`;
+          // Item 11a: the advance is handed over when the job is agreed, so it is reserved now (carried abroad, with the envoy).
+          return (order.via ?? null) !== null ? null : spend(Math.min(order.advance, order.fee));
         }
 
         case "dismiss":
@@ -444,13 +500,14 @@ export class OrderValidator {
           if (c === null) return nobody(rn.character);
           const cover = coverOf(c, power);
           if (cover === null && (c.employer !== power || !(c.status === "Employed" || c.status === "Captured"))) return `${c.name} is not in your service`;
-          // One who has given notice may be renewed wherever they are; anyone else only at your court. A servant
-          // abroad whose fate this court has not heard of counts as it believes.
-          const notice = cover !== null ? cover.noticePrice !== null : (c.contract?.noticePrice ?? null) !== null;
+          // A new job is offered at your court, where the man stands; a servant abroad whose fate this court has not heard
+          // of counts as away.
           const home = cover === null && c.status === "Employed" && c.duty === "None" && c.at === power;
-          if (!notice && !home) return `${c.name} is not at your court and has not given notice`;
+          if (!home) return `${c.name} is not at your court: a new job is offered where the man stands`;
           if (rn.fee <= 0 || rn.term <= 0) return "fee and term must be positive";
           if (rn.advance < 0 || rn.advance > rn.fee) return "the advance must be between nothing and the whole fee";
+          const ee = errandRefusal(rn);
+          if (ee !== null) return ee;
           if (renewed.has(c.id)) return `${c.name} was already renewed by an earlier order`;
           return spend(rn.advance);
         }
@@ -470,6 +527,8 @@ export class OrderValidator {
           const province = ps.province ?? null;
           if (court === null && province === null) return "a spy must be sent to watch a court or a province: you named neither";
           if (court !== null && province !== null) return "a spy must be sent to watch a court or a province: name only one";
+          const sfit = errandFits(ps.character, "spy", court ?? province!);
+          if (sfit !== null) return sfit;
           if (court !== null && (court === power || heardFallen(court))) return `you cannot spy on ${court}`;
           if (province !== null && (!Map.exists(province) || Map.get(province).isSea)) return `there is no province called '${province}'`;
           return null;
@@ -573,6 +632,8 @@ export class OrderValidator {
           if (c === null || c.status !== "Captured" || c.heldBy !== power) return `you hold no captive '${co.character}'`;
           // Item 10+b: a captive handed over travels under guard; it is nobody's to dispose of until it arrives.
           if (c.duty === "UnderGuard") return `${c.name} is on the road under guard and has not reached your court yet`;
+          // Taking what it carries is no task: the captive's fate may be decided too (Haakon's answers to item 11a).
+          if (co.fate === "TakePurse") return orders.some((o, i) => i < orders.indexOf(co) && o.type === "captive" && o.character === co.character && o.fate === "TakePurse") ? `you already take what ${c.name} carries` : c.purse + c.carriedFor > 0 || S.debts.some((d) => d.ended === null && d.holder === c.id && d.kept === "Person") ? null : `${c.name} carries nothing to take`;
           if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
           if (co.fate === "Ransom" && co.ransom <= 0) return "name a ransom";
           // Item 10: questioning costs what is spent on it; a captive is handed over to a living court other than one's own.
@@ -610,7 +671,8 @@ export class OrderValidator {
 
         case "repay": {
           const d = S.debts.find((x) => x.id === order.debt) ?? null;
-          if (d === null || d.borrower !== power || d.ended !== null) return `you have no debt '${order.debt}' standing`;
+          // A debt whose tablet went missing stands, as far as you know, until word of its end reaches you.
+          if (d === null || d.borrower !== power || !standsForBorrower(d, S.turn)) return `you have no debt '${order.debt}' standing`;
           if (order.amount <= 0) return "name the gold to repay";
           return spend(order.amount);
         }
@@ -623,6 +685,31 @@ export class OrderValidator {
           if (n === null) return `${c.name} offers no news of ${order.court}`;
           return spend(n.price);
         }
+
+        case "seize": {
+          // Haakon's answers to item 11a: the hoard of a living person, kept in your capital.
+          const c = findCharacter(S, order.character);
+          if (c === null || c.status === "Dead") return nobody(order.character);
+          if (c.hoard === null || c.hoard.at !== power) return `${c.name} keeps no hoard in your city that you know of`;
+          return null;
+        }
+
+        case "sellDebt": {
+          const d = S.debts.find((x) => x.id === order.debt) ?? null;
+          if (d === null || d.ended !== null || d.holder !== power) return `you hold no tablet of a standing debt '${order.debt}' in your archive`;
+          const c = findCharacter(S, order.character);
+          if (c === null || c.status === "Dead" || c.at !== power || c.heldBy !== null || hiddenAt(c, power)) return `there is nobody at your court called '${order.character}'`;
+          if (order.price <= 0) return "name the price";
+          return null;
+        }
+
+        case "payCarriers":
+        case "huntBands":
+          return null;
+
+        case "hunt":
+          if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
+          return S.owner.getOrDefault(order.province, null) === power ? null : `you do not hold ${Map.get(order.province).name}`;
 
         case "payRansom": {
           const c = findCharacter(S, order.character);
@@ -654,6 +741,7 @@ export class OrderValidator {
         if (order.type === "raise") raisedIn.add(order.province);
         if (order.type === "buy") bought.add(order.province);
         if (order.type === "renew") renewed.add(order.character);
+        if (order.type === "hire") hiredNow.add(order.character);
         if (order.type === "assay") assayed.add(order.lot);
         if (order.type === "cede") ceded.add(order.province);
         if (order.type === "fortify") fortified.add(order.province);

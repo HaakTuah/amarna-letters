@@ -333,7 +333,7 @@ describe("FeatureAuditTests", () => {
       `- ransom the captive ${spy.id}: Hatti's kingdom has fallen: nobody is left to pay. ${spy.name} remains your captive`,
     );
     let orders = (await new ScriptLeader(Seed).decide(Views.for(s, "Mitanni"))).orders;
-    let fate = Assert.single(orders.filter((o): o is CaptiveOrder => o.type === "captive")).fate;
+    let fate = Assert.single(orders.filter((o): o is CaptiveOrder => o.type === "captive" && o.fate !== "TakePurse")).fate;
     Assert.equal(temperament("Mitanni", Seed).vengeance > 0.75 ? "Execute" : "Release", fate);
   });
 

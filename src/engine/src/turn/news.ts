@@ -6,14 +6,15 @@
 import { cmpNum, sortBy } from "../core/seq.ts";
 import type { BuyNewsOrder } from "../model/orders.ts";
 import type { LossAbroad } from "../model/records.ts";
-import { gain, hiddenAt, newNewsHeld, remember, type Character } from "../model/people.ts";
+import { gain, hiddenAt, newFact, newNewsHeld, remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
-import { char, isAlive, logEvent, newKnown, notify, ownedBy } from "../model/state.ts";
+import { char, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
 import { Dict } from "../core/collections.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { NewsData, newsOffered } from "../rules/news.ts";
 import { Views } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { foldOldPay, hearPay } from "./jobs.ts";
 
 /** How many losses abroad a person keeps in mind, newest last; and how long one is talked of, in seasons. */
 export const HeardData = { keep: 40, seasons: 12 } as const;
@@ -41,10 +42,15 @@ P.newsSeason = function () {
   )) {
     const court = c.at!;
     present.set(court, [...present.getOrDefault(court, []), c]);
-    // The talk of the court where it stands: whose people it holds or put to death.
+    // The talk of the court where it stands: whose people it holds or put to death, and (Haakon's answers to item 11a) the
+    // promises to pay kept and broken whose word has reached it.
     for (const l of S.losses) if (l.court === court && S.turn - l.turn <= HeardData.seasons) hear(c, lossKey(l));
-    // A free person notes what it sees of the court, to sell elsewhere, once every few seasons.
-    if (c.status !== "Free" || hiddenAt(c, court)) continue;
+    for (const f of S.payFacts) if (S.turn - f.turn <= HeardData.seasons && f.heardAt.getOrDefault(court, Number.MAX_SAFE_INTEGER) <= S.turn) hearPay(c, f.id);
+    // A person notes what it sees of the court, to sell elsewhere, once every few seasons (Haakon's answers to item 11b:
+    // anyone may sell what he knows): a free person, a servant abroad, and a servant at its master's court only if it is
+    // one who would sell its master's secrets (greedy and disloyal).
+    if (c.status === "Captured" || hiddenAt(c, court)) continue;
+    if (c.status === "Employed" && c.employer === court && !sellsSecrets(c)) continue;
     const had = c.news.find((n) => n.court === court) ?? null;
     if (had !== null && S.turn - had.turn < 2) continue;
     const rng = this.r("news", c.id);
@@ -72,8 +78,14 @@ P.newsSeason = function () {
     if (here.length < 2) continue;
     const all = [...new Set(here.flatMap((c) => c.heard))];
     for (const c of here) for (const k of all) hear(c, k);
+    const paid = [...new Set(here.flatMap((c) => c.heardPay))];
+    for (const c of here) for (const k of paid) hearPay(c, k);
   }
+  foldOldPay(S, HeardData.seasons);
 };
+
+/** A servant who would sell its master's secrets: greedy and disloyal. */
+export const sellsSecrets = (c: Character): boolean => c.traits.greed > 70 && c.traits.loyalty < 40;
 
 function hear(c: Character, key: string): void {
   if (c.heard.includes(key)) return;
@@ -99,6 +111,14 @@ P.buyNewsOrder = function (p, o) {
     const had = book.tryGet(prov);
     if (had !== undefined && had.turn >= n.turn) continue;
     book.set(prov, newKnown({ owner: Views.ownerAt(S, this.map, prov, n.turn), turn: n.turn, source: c.name }));
+  }
+  // A servant selling its master's secrets does it at its real cost if caught: its master may hear of it.
+  if (c.employer === o.court && c.status === "Employed" && this.r("secrets-caught", `${c.id}|${S.turn}`).chance(NewsData.secretsCaught / 100)) {
+    // Word of it goes from the buyer's court by the roads (Everything travels): its master knows when it arrives.
+    const f = newFact({ id: newId(S, "f"), text: `Sold the secrets of ${land(o.court)}, whom they served, to ${land(p)} (season ${S.turn}).`, secrecy: "Hidden", tag: "sold-secrets", knownBy: [] });
+    c.facts.push(f);
+    this.rumor(o.court, p, f.text, c.id, "Name", f.id);
+    logEvent(S, "secrets-sold", `${c.name} was caught selling ${o.court}'s secrets to ${p}.`, [], "secrets-caught");
   }
   notify(S, p, "SpyReport", `News of ${o.court} from ${c.name}`, `${c.name} sold you what they saw at the court of ${o.court} in season ${n.turn} (${S.turn - n.turn} seasons ago), for ${formatMoney(n.price)}: ${n.lines.join(" ")} A seller's word: it may be stale, and a greedy seller may make more of it than he saw.`, c.id);
   logEvent(S, "news-sold", `${c.name} sold ${p} news of ${o.court}${n.honest ? "" : ", made out larger than he saw"}.`, [p], "news-sold");

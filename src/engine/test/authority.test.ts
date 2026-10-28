@@ -135,7 +135,9 @@ describe("AuthorityTests", () => {
     // Revoked: from next season the guest takes the land if it stays.
     new TurnEngine(b).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [revoke("Egypt")] })]]));
     Assert.equal("Hatti", b.owner.get("tuwanuwa"));
-    Assert.true(inboxOf(b, "Egypt").some((i) => i.title === "Passage and basing"));
+    // Word of it travels to Egypt's court (Haakon's answers to item 11a), never known there at once.
+    Assert.false(inboxOf(b, "Egypt").some((i) => i.title === "Passage and basing"));
+    Assert.true(b.journeys.some((j) => j.kind === "Word" && j.news === "Grant" && j.to === "Egypt"));
     new TurnEngine(b).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("tuwanuwa")] })]]));
     Assert.equal("Egypt", b.owner.get("tuwanuwa"));
     // Nothing left to revoke.

@@ -10,7 +10,7 @@ import {
   type InboxKind,
   MaxDigest,
   MaxWhileAsleep,
-  NoticeTitle,
+  FeeDueTitle,
   type Order,
   type SeatView,
   SeatViewSchema,
@@ -294,7 +294,7 @@ describe("SleepTests", () => {
     ],
     ["Notice", "The treasury", "A ur mutinied, unpaid 3 seasons running, and disbanded: its men went home.", "troops of yours mutinied"],
     ["Rumor", "Rumor", "Hatti holds Mane and demands 100 shekels for their return (order pay_ransom for c3).", "a ransom is demanded for one of your people"],
-    ["Notice", NoticeTitle, "Mane's term has ended.", "a servant gives notice: Mane's term has ended."],
+    ["Notice", FeeDueTitle, "Mane: my job is done.", "a fee fell due unpaid: Mane: my job is done."],
   ] as const)("News that concerns a seat wakes it %s", (kind: InboxKind, title: string, body: string, reason: string) => {
     let [s, sleep] = asleep("Babylonia");
     notify(s, "Babylonia", kind, title, body);

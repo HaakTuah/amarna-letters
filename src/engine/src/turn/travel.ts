@@ -19,6 +19,7 @@ import type { RoadsOrder } from "../model/orders.ts";
 import { remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
 import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind } from "../model/records.ts";
+import { GrantTitle } from "./authority.ts";
 import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -370,7 +371,7 @@ P.stopped = function (j, c, province, stop) {
     c.purse = 0;
     c.earned.spent += purse;
     const band = this.robbedBy(province, gold + purse);
-    if (band !== null && this.r("road-kill", j.id).chance(BandData.killPercent / 100)) {
+    if (band !== null && this.chiefKills(band, c, province)) {
       if (j.dispatch !== null) j.dispatch.gold = 0;
       if (j.cargo !== null) j.cargo.gold = 0;
       S.journeys.splice(S.journeys.indexOf(j), 1);
@@ -611,6 +612,12 @@ P.wordArrives = function (j) {
       notify(S, j.to, "Rumor", RoadsTitle, j.text ?? "");
       break;
     }
+    case "Grant":
+      notify(S, j.to, "Notice", GrantTitle, j.text ?? "");
+      break;
+    case "Job":
+      notify(S, j.to, "Notice", "An offer abroad", j.text ?? "");
+      break;
     case "KingdomFalls": {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);
       heard.add(j.from);

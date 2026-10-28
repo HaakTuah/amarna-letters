@@ -75,6 +75,8 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
         noInventory: f.gold > 0 && f.noInventory,
         // Item 10: an envoy to a king asks there about anyone at your court who says they are his envoy.
         checkClaim: v.known.find((c) => c.claimsToServe === f.sendTo)?.id ?? null,
+        // Haakon's answers to item 11a: a tablet in your archive owed by that king goes with the envoy, to be presented.
+        collect: v.debtsHeld.find((d) => d.holderId === f.sendTo)?.id ?? null,
         authority: f.seal || f.showCredentials ? newAuthority({ seal: f.seal, show: f.showCredentials, maxGold: Math.max(0, f.sealGold), cede: [...f.sealCede], open: [...f.sealOpen] }) : null,
         mandate: f.mandate.trim(),
         greeting: { ...f.g },

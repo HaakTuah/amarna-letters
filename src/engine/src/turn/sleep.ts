@@ -16,9 +16,8 @@ import { cmpPower, type Power } from "../model/power.ts";
 import type { InboxItem } from "../model/records.ts";
 import { newCourtHeld, type PlannedOrder, type SleepState, type StandingOrder } from "../model/sleep.ts";
 import { alive, findCharacter, inboxOf, isAlive, notify } from "../model/state.ts";
-import { formatMoney } from "../rules/calendar.ts";
 import { ArchiveTakenTitle } from "./archives.ts";
-import { NoticeTitle } from "./court.ts";
+import { FeeDueTitle } from "./court.ts";
 import { removeAll } from "./resolve.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 
@@ -346,11 +345,7 @@ P.wakeReason = function (i) {
     case "Catastrophe":
       return i.body.includes("it has destroyed your") ? "plague destroyed troops of yours" : null;
     case "Notice": {
-      if (i.title === NoticeTitle) {
-        const c = findCharacter(this.s, i.subject);
-        const ask = c?.contract?.noticePrice ?? null;
-        return "a servant gives notice: " + (c !== null && ask !== null ? `${c.name} asks ${formatMoney(ask)} a season to serve on` : i.body);
-      }
+      if (i.title === FeeDueTitle) return `a fee fell due unpaid: ${findCharacter(this.s, i.subject)?.name ?? i.body}`;
       // The economy's failures (item 9+a): troops that mutinied, went hungry or unpaid, a caravan lost.
       if (i.title === "The treasury" && i.body.includes("mutinied")) return "troops of yours mutinied";
       if (i.title === "The treasury" && (i.body.includes("Hungry this season") || i.body.includes("Not paid this season"))) return "troops of yours went hungry or unpaid";

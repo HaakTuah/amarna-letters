@@ -392,7 +392,7 @@ describe("ViewTextTests", () => {
       text,
     );
     Assert.contains(
-      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; a job for`,
+      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; a job as envoy to Hatti, for`,
       text,
     );
   });

@@ -55,8 +55,10 @@ import {
   type UnitView,
   feeFor,
   menOf,
+  type CharacterView,
 } from "@amarna/engine";
 import { plainGrainOrders } from "./grain.ts";
+import { jobsForErrands } from "./errands.ts";
 import type { ISeat } from "../contracts.ts";
 
 class Memory {
@@ -134,6 +136,9 @@ export class BaselineLeader implements ISeat {
     economy(view, m, rng, orders, destinations);
     diplomacy(view, m, rng, orders);
     court(view, m, rng, orders);
+    // Haakon's answers to item 11a: each errand is a job, offered to the man sent, at what he asks up to 40 a season.
+    const gold = view.gold;
+    jobsForErrands(view, orders, freeHere(view), (rate, spent) => rate <= 40 && gold - spent > rate * 4, true);
     m.lastOwner = view.owner.clone();
     m.lastTurnSeen = view.turn;
     const notes = `Grudges: ${[...m.grudge]
@@ -387,8 +392,9 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
 
 function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
   const me = v.power;
+  // Haakon's answers to item 11a: servants at court and the free people there, each sent offered the errand's job.
   const ready = sortBy(
-    v.court.filter((c) => c.ready),
+    [...v.court.filter((c) => c.ready), ...freeHere(v)],
     [(c) => c.id, cmpStr],
   );
   if (ready.length === 0) return;
@@ -532,6 +538,17 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
 
 // ================================================================= court
 
+/** The free people standing at court the baseline would send on an errand: priced, and never seen to abandon or forge. */
+function freeHere(v: SeatView): CharacterView[] {
+  return sortBy(
+    v.known
+      .filter((c) => c.askingPrice !== null && c.status === "free" && c.where === "at your court" && c.claimsToServe === null)
+      .filter((c) => !c.knownFacts.some((f) => f.startsWith("Abandoned the service") || f.startsWith("Exposed as a forger"))),
+    [(c) => c.askingPrice!, cmpNum],
+    [(c) => c.id, cmpStr],
+  );
+}
+
 function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
   const me = v.power;
   let gold = v.gold - sum(
@@ -541,26 +558,17 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
   const staff = v.court.filter((c) => c.status === "employed");
   const busy = new HSet(orders.flatMap((o) => (o.type === "dispatch" ? [o.envoy] : [])));
 
-  if (staff.length < 2 && v.turn - m.lastSeek >= 3 && gold > 150) {
+  const atHand = [...staff.filter((c) => c.ready), ...freeHere(v)];
+  if (atHand.length < 2 && v.turn - m.lastSeek >= 3 && gold > 150) {
     orders.push(seekCandidates());
     m.lastSeek = v.turn;
   }
 
-  const candidates = sortBy(
-    v.known
-      // Item 11a: hired in person, so only those standing at court.
-      .filter((c) => c.pitch !== null && c.askingPrice !== null && c.status === "free" && c.where === "at your court")
-      .filter((c) => !c.knownFacts.some((f) => f.startsWith("Abandoned the service") || f.startsWith("Exposed as a forger"))),
-    [(c) => c.askingPrice!, cmpNum],
-    [(c) => c.id, cmpStr],
-  );
-  if (staff.length < 2 && candidates.length > 0) {
-    const best = candidates[0];
-    if (!m.checked.has(best.id) && gold > 250 && rng.chance(0.5)) {
-      orders.push(check(best.id, 20));
-      m.checked.add(best.id);
-      gold -= 20;
-    } else if (best.askingPrice! <= 40 && gold > best.askingPrice! * 4) orders.push(hire(best.id, feeFor(best.askingPrice!, 6, 50, v.trust), 6));
+  const candidates = freeHere(v);
+  if (candidates.length > 0 && !m.checked.has(candidates[0].id) && gold > 250 && rng.chance(0.5)) {
+    orders.push(check(candidates[0].id, 20));
+    m.checked.add(candidates[0].id);
+    gold -= 20;
   }
 
   for (const lot of v.unassayedGold)
@@ -582,7 +590,7 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
       gold -= 40;
     }
 
-  const idle = staff.filter((c) => c.ready && !busy.has(c.id));
+  const idle = atHand.filter((c) => !busy.has(c.id));
   if (gold > 450 && idle.length >= 2 && rng.chance(0.12)) {
     const mineProv = new HSet<string>();
     for (const [k, o] of v.owner) if (o === me) mineProv.add(k);
@@ -601,7 +609,8 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
     idle.shift();
   }
 
-  if (m.honesty < 0.25 && gold > 300 && idle.length > 0 && rng.chance(0.04)) {
+  const forgers = idle.filter((c) => c.ours);
+  if (m.honesty < 0.25 && gold > 300 && forgers.length > 0 && rng.chance(0.04)) {
     const rivals = sortBy(
       AllPowers.filter((p) => p !== me && !v.fallen.includes(p)),
       [(p: Power) => G(m, p), desc(cmpNum)],
@@ -613,7 +622,7 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
           AllPowers.filter((p) => p !== me && !rivals.includes(p) && !v.fallen.includes(p)),
           [() => rng.next(100), cmpNum],
         )[0] ?? "Egypt"; // FirstOrDefault on a Power: Egypt when none is left
-      orders.push({ ...forge(idle[0].id, `${rivals[0]} swears to ${rivals[1]}: when the harvest is in, we shall march together against ${victim} and divide its land.`, rivals), clauses: [clause("against", { power: victim })] });
+      orders.push({ ...forge(forgers[0].id, `${rivals[0]} swears to ${rivals[1]}: when the harvest is in, we shall march together against ${victim} and divide its land.`, rivals), clauses: [clause("against", { power: victim })] });
     }
   }
 

@@ -59,10 +59,14 @@ describe("RansomBotTests", () => {
     e.beginTurn();
     e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [captive(spy.id, "Ransom", 80)] })]]));
     let payer = new ScriptLeader(9);
-    while (!inboxOf(s, "Mitanni").some((i) => i.kind === "Rumor" && i.subject === spy.id)) {
+    // The demand's word waits at Hatti's court for a carrier (Haakon's answers to item 11b): it comes when one goes.
+    const demanded = (): boolean => inboxOf(s, "Mitanni").some((i) => i.kind === "Rumor" && i.subject === spy.id && i.body.includes("pay_ransom"));
+    while (!demanded()) {
       e = new TurnEngine(s);
       e.beginTurn();
-      if (inboxOf(s, "Mitanni").some((i) => i.kind === "Rumor" && i.subject === spy.id)) break;
+      if (demanded()) break;
+      // Rich enough, whatever the seasons of waiting cost it, to spare the ransom when the word comes.
+      s.treasuries.get("Mitanni").gold = 3000;
       e.resolve(new Dict<Power, TurnSubmission>());
     }
     let sub = await payer.decide(Views.for(s, "Mitanni"));

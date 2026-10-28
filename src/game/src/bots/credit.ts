@@ -6,7 +6,7 @@
  * one who does not finds no lender. Borrowed gold counts as its own until it repays, so repaying costs score now for
  * credit later: a king in its last straits keeps the gold.
  */
-import { borrow, payFee, repay, type CharacterView, type Order, type SeatView } from "@amarna/engine";
+import { borrow, payCarriers, payFee, repay, seize, sellDebt, type CharacterView, type Order, type SeatView } from "@amarna/engine";
 import type { Personality } from "./personality.ts";
 
 /** Script kings borrow and repay (`--no-money-play`), or half of them leave it alone (`--money-play-half`). */
@@ -35,6 +35,20 @@ function lenders(v: SeatView): CharacterView[] {
 export function creditOrders(v: SeatView, p: Personality, gold: number, costs: number, losing: boolean, orders: Order[]): number {
   if (!MoneyPlay.on(v.power)) return 0;
   let net = 0;
+  // Haakon's answers to item 11a: carriers of its people's letters are paid on delivery only by its own standing order.
+  if (!v.payCarriers) orders.push(payCarriers(true));
+  // A tablet of someone else's debt in its archive (from a captive, the dead or a fall) is sold for half what is left to a
+  // lender at its court, who has the gold; a borrower at its court is left to repay it there.
+  const buyers = lenders(v);
+  for (const d of v.debtsHeld) {
+    if (d.here) continue;
+    const price = Math.trunc(d.left / 2);
+    const buyer = buyers.find((c) => c.lends!.amount >= price && c.id !== d.holderId);
+    if (buyer === undefined || price < 10) continue;
+    orders.push(sellDebt(d.id, buyer.id, price));
+    net += price;
+    break;
+  }
   // A fee it let fall due unpaid, to one standing at its court, is paid as soon as two seasons of costs stay in hand.
   for (const c of [...v.court, ...v.known]) {
     if (c.owed === null || c.where !== "at your court" || gold + net - c.owed < 2 * costs) continue;
@@ -51,6 +65,7 @@ export function creditOrders(v: SeatView, p: Personality, gold: number, costs: n
   }
   // Borrow when two seasons of costs are not in hand, from the cheapest lender whose rate it will pay, enough for three.
   const short = 2 * costs - (gold + net);
+  let borrowed = false;
   if (short > 0 && !losing) {
     for (const c of lenders(v)) {
       const l = c.lends!;
@@ -60,7 +75,17 @@ export function creditOrders(v: SeatView, p: Personality, gold: number, costs: n
       if (amount < 10) continue;
       orders.push(borrow(c.id, amount, amount + Math.ceil((amount * l.perHundred) / 100), l.seasons));
       net += amount;
+      borrowed = true;
       break;
+    }
+  }
+  // Haakon's answers to item 11a, a hard act at its real cost: a king who cannot pay a season of his costs, and finds no
+  // lender, seizes the largest hoard kept in his city, if a greedy king or one about to fall; people hear of it.
+  if (!borrowed && costs > gold + net && (losing || p.greed > 0.6)) {
+    const hoard = [...v.known].filter((c) => (c.hoardHere ?? 0) >= 50).sort((a, b) => b.hoardHere! - a.hoardHere! || a.id.localeCompare(b.id))[0];
+    if (hoard !== undefined) {
+      orders.push(seize(hoard.id));
+      net += hoard.hoardHere!;
     }
   }
   return net;

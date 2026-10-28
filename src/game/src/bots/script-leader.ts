@@ -5,7 +5,7 @@
  * sees exactly what any seat sees: the SeatView. The same bot stands in for a model seat whenever a model call fails,
  * playing in that king's character.
  */
-import { huntBands } from "./outlaws.ts";
+import { huntBands, huntOrders } from "./outlaws.ts";
 import {
   AllPowers,
   Dict,
@@ -34,6 +34,7 @@ import { roadPolicy } from "./roads.ts";
 import { heardRepudiations, keepMoving, leaveByOrder, repudiations, revocations } from "./authority.ts";
 import { Search } from "./search.ts";
 import { Statecraft } from "./statecraft.ts";
+import { collecting, errandJobs } from "./errands.ts";
 import { Tactics, type MilitaryPlan } from "./tactics.ts";
 
 export class ScriptLeader implements ISeat {
@@ -101,6 +102,11 @@ export class ScriptLeader implements ISeat {
     const busy = new HSet<string>();
     Statecraft.court(board, brain, orders, busy, rng);
     Statecraft.letters(board, brain, orders, busy, rng);
+    // Haakon's answers to item 11a: each errand is a job offered to the man sent, and tablets owed ride with envoys.
+    errandJobs(board, brain, orders);
+    // Haakon's answers to item 11b: armies fall on bands only by the king's order.
+    huntOrders(board, orders);
+    orders.splice(0, orders.length, ...collecting(board, orders));
     roadPolicy(board, brain, orders);
     // Tablets our envoys sealed beyond what we allow, and leave granted to kings turned foe (item 9).
     repudiations(board, brain, orders);

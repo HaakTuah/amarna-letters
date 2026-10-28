@@ -39,7 +39,7 @@ import {
   seekCandidates,
   single,
 } from "@amarna/engine";
-import { Assert, firstOrNull, toDict, join, skilled } from "./support.ts";
+import { Assert, firstOrNull, toDict, join, skilled, homeJob } from "./support.ts";
 
 describe("IntelligenceTests", () => {
   function begin(s: GameState): TurnEngine {
@@ -99,6 +99,8 @@ describe("IntelligenceTests", () => {
     for (const [spy, at] of spies.map((x, i) => [x, ["tyre", "babylon"][i]] as const)) {
       [spy.secretMaster, spy.traits.competence] = [null, 0];
       [spy.duty, spy.at, spy.watchProvince] = ["SpyPosted", null, at];
+      // A stay longer than the test, so its term does not send it home.
+      spy.contract!.untilTurn = 50;
     }
     Assert.null(s.owner.get("tyre"));
     s.treasuries.get("Babylonia").gold = 100000;
@@ -176,6 +178,8 @@ describe("IntelligenceTests", () => {
     let e = begin(s);
     e.resolve(orders("Mitanni", captive(spy.id, "Ransom", 90)));
     Assert.contains(s.tasks, (t) => t.kind === "RansomDemand" && t.requester === "Hatti");
+    // Its word waits at Mitanni's court for a carrier (Haakon's answers to item 11b): here one sets out at once.
+    for (const j of s.journeys.filter((x) => x.news === "Ransom" && x.waitAt !== null)) [j.waitAt, j.arriveTurn] = [null, s.turn];
     // The same seasons with no ransom paid: the captor ends with that much less (its own costs are the same either way).
     let unpaid = clone(GameStateSchema, s);
     e = begin(s);
@@ -211,14 +215,14 @@ describe("IntelligenceTests", () => {
     target.at = "Hatti";
     e.resolve(
       new Dict([
-        ["Egypt", newTurnSubmission({ orders: [hire(target.id, 240, 6, 240)] })],
-        ["Hatti", newTurnSubmission({ orders: [hire(target.id, 150, 6, 150)] })],
+        ["Egypt", newTurnSubmission({ orders: [hire(target.id, 240, 6, 240, homeJob("Egypt"))] })],
+        ["Hatti", newTurnSubmission({ orders: [hire(target.id, 150, 6, 150, homeJob("Hatti"))] })],
       ]),
     );
     Assert.equal("Hatti", target.employer);
     Assert.equal(150, target.contract!.fee);
     begin(s);
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("hired in person"));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("goes with an envoy"));
   });
 
   test("A wage below the asking price is refused", () => {

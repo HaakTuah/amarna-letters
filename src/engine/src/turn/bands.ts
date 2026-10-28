@@ -6,7 +6,7 @@
  * travellers on its roads (and, with a ship, the sea beside its coast), feeds and pays its men from what it takes, and
  * keeps only as many as it can pay: men join it while it has a surplus to pay them and leave when it is short, so no
  * number sets how many bands a land holds or how large they grow. A chief's share is his own gold. Its holder's armies
- * hunt it where they stand. Everything is drawn from seeded streams ("Deterministic").
+ * hunt it where they stand on his order or standing order. Everything is drawn from seeded streams ("Deterministic").
  */
 import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
@@ -31,6 +31,7 @@ export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "ou
 declare module "./core.ts" {
   interface TurnEngine {
     bandsSeason(): Dict<Power, string[]>;
+    chiefKills(b: Band, victim: Character, province: string): boolean;
     bandOf(c: Character): Band | null;
     bandsAt(province: string): Band[];
     /** A head rises from `men` men in `province`: a new character leading them as a band. */
@@ -245,7 +246,7 @@ P.dies = function (c, where, how) {
 
 /**
  * The season of the bands, in the people's season after the loose men robbed: chiefs rise from the crowds, the holders'
- * armies hunt the bands where they stand, each band robs, pays and feeds its men, grows or shrinks, splits, turns on its
+ * armies hunt the bands where they stand by order, each band robs, pays and feeds its men, grows or shrinks, splits, turns on its
  * chief, moves to richer land, buys a ship, or its chief gives up the road. Returns each holder's lines.
  */
 P.bandsSeason = function () {
@@ -286,8 +287,10 @@ P.bandsSeason = function () {
     const holder = S.owner.getOrDefault(b.province, null);
     const rng = this.r("band", b.id);
 
-    // Hunted: the holder's army standing in its province falls on it; it loses men, may lose its chief, and flees.
-    const hunters = S.units.filter((u) => u.province === b.province && u.kind === "Army" && u.power === holder);
+    // Hunted (Haakon's answers to item 11b: only on its king's order, for this season or standing): the holder's army
+    // standing in its province falls on it; it loses men, may lose its chief, and flees.
+    const ordered = holder !== null && (S.huntBands.includes(holder) || S.huntNow.includes(`${holder}|${b.province}`));
+    const hunters = ordered ? S.units.filter((u) => u.province === b.province && u.kind === "Army" && u.power === holder) : [];
     if (hunters.length > 0 && holder !== null) {
       const army = sum(hunters, (u) => u.men);
       const lost = Math.min(b.men, idiv(idiv(b.men * BandData.huntLoss, 100) * army, army + b.men) + 1);
@@ -456,6 +459,8 @@ P.bandsSeason = function () {
       top.men += n;
     }
   }
+  // The hunts ordered for this season are done.
+  S.huntNow = [];
   return lines;
 };
 
@@ -488,3 +493,26 @@ P.naturalLosses = function () {
     this.dies(c, where, plague ? "of the plague" : "of hunger");
   }
 };
+
+/**
+ * Haakon's answers to item 11b: robbers choose whether to kill a traveller, with no fixed odds. A chief weighs the witness
+ * (a king's servant would name him to his king, a free man to whoever pays for news) against being hunted for murder (the
+ * land's king hunts bands, or has an army there or next door): a ruthless chief (disloyal or greedy) kills a witness when
+ * nobody is hunting him there; a careful one never does. Model chiefs decide by the same weighing until a chief's own
+ * request is built.
+ */
+P.chiefKills = function (b, victim, province) {
+  const S = this.s;
+  const chief = S.characters.find((x) => x.id === b.leaderId) ?? null;
+  if (chief === null) return false;
+  const ruthless = chief.traits.loyalty < 40 || chief.traits.greed > 70;
+  // A witness worth silencing serves a king, who would hear his word and could send men; a free traveller's word reaches
+  // nobody who would. The chief weighs only what he can see: the land's armies in or next to the province, not its
+  // king's orders.
+  const witness = victim.employer !== null;
+  const holder = S.owner.getOrDefault(province, null);
+  const near = new Set([province, ...this.map.neighbors(province)]);
+  const hunted = holder !== null && S.units.some((u) => u.power === holder && u.kind === "Army" && near.has(u.province));
+  return ruthless && witness && !hunted;
+};
+

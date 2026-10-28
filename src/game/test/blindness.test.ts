@@ -120,7 +120,9 @@ describe("BlindnessTests", () => {
     let n = 0;
     for (const prov of WorldMap.default.provinces.filter((x) => !x.isSea && !sight.has(x.id) && unitAt(s, x.id) === null).slice(0, 3))
       s.units.push(newUnit({ id: `u9${n++}`, power: rival, kind: "Army", province: prov.id }));
-    for (const c of s.characters) {
+    // Everyone's traits but those of the free people standing at this court, who tell it what they ask (a price the court
+    // hears, which their traits set): since Haakon's answers to item 11a the script king offers its errands to them.
+    for (const c of s.characters.filter((c) => !(c.status === "Free" && c.at === p))) {
       let t = c.traits;
       [t.loyalty, t.greed, t.competence, t.ambition, t.courage] = [100 - t.loyalty, 100 - t.greed, 100 - t.competence, 100 - t.ambition, 100 - t.courage];
       t.sympathy = null;

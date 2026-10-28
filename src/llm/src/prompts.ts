@@ -136,10 +136,13 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
-        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}; your people's jobs come to about ${v.fees} a season, ${v.feesDue} of their fees still to fall due as their jobs are done${v.feesOwed > 0 ? `, and you let ${v.feesOwed} fall due unpaid` : ``}. People count on ${v.trust} in a hundred of what you promise (you kept ${v.kept} promises to pay and broke ${v.broken}); the going rate of service is ${v.goingRate} in a hundred of what people would ask on their own. Strength ${v.strength} by your ledger (the wealth of your realm: what you hold, never what you owe or are owed), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
+        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}; your people's jobs come to about ${v.fees} a season, ${v.feesDue} of their fees still to fall due as their jobs are done${v.feesOwed > 0 ? `, and you let ${v.feesOwed} fall due unpaid` : ``}. People count on ${v.trust} in a hundred of what you promise (you kept ${v.kept} promises to pay and broke ${v.broken}); ${v.payCarriers ? "you pay the carriers of your letters on delivery, by your standing order" : "you do not pay the carriers of your letters on delivery (pay_carriers would)"}; what people ask follows only what they have heard jobs pay`);
         sb.appendLine(GoldLifeline);
         for (const d of v.debts)
             sb.appendLine(`  Your debt ${d.id}: ${d.left} shekels left of ${d.owed} to repay (${d.principal} lent by ${d.lender} in turn ${d.sealedTurn}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court (order repay)` : ``}.`);
+        if (v.debtsHeld.length > 0) sb.appendLine("DEBT TABLETS YOU HOLD (claims on others: collect by envoy, or sell_tablet):");
+        for (const d of v.debtsHeld)
+            sb.appendLine(`  Tablet ${d.id}: ${d.holder} owes ${d.left} (lent by ${d.lender} in turn ${d.sealedTurn}, to be repaid by turn ${d.dueTurn})${d.here ? `; they stand at your court` : ``}.`);
         for (const l of economyLines(v)) sb.appendLine(l);
         // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
         for (const lot of v.unassayedGold)

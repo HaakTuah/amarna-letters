@@ -62,7 +62,7 @@ export function PeoplePanel({ state, viewer, onPerson }: { state: GameState; vie
               {c.at !== null ? ` · at ${powerName(c.at)}` : ""}
               {c.heldBy !== null ? ` · held by ${powerName(c.heldBy)}` : ""} · purse {shekels(c.purse)}
               {c.contract !== null
-                ? ` · ${dated(Views.termText(c.contract.fee, c.contract.advance, c.contract.untilTurn, c.contract.noticePrice, c.contract.leavesTurn, state.turn), null)}`
+                ? ` · ${dated(Views.termText(c.contract.fee + c.contract.carried, c.contract.advance, c.contract.untilTurn, state.turn, c.contract), null)}`
                 : ""}
             </small>
           </div>
