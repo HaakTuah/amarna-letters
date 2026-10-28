@@ -4,7 +4,7 @@ Build order item 9+b ("The economy abroad", the second part of 9+): caravans and
 have passage to, ships carrying cargo with a starting harbour level on every coast, armies spending only where they stand
 by leave and foraging and looting where they do not, tolls with a rate for each partner, and smuggling through item 7b's
 sneaking check ("Caravans carry a kingdom's goods", "Ships carry goods", "Where gold comes from and where it goes",
-"Prices", "Tolls and smuggling"). Save version 15. The report is `docs/rounds/2026-10-27-economy-abroad.md`. Every number
+"Prices", "Tolls and smuggling"). Save version 15. The report is `docs/rounds/2026-10-28-economy-abroad.md`. Every number
 is a first guess (item 18 tunes them), in `TradeData` (`src/engine/src/model/trade.ts`).
 
 ### Where a caravan may go

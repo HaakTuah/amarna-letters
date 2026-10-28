@@ -67,3 +67,8 @@ power, and the same seeds with half the kings playing the economy plainly, `--pl
 `docs/rounds/2026-10-27-economy-at-home.md`). The baseline was adapted only as the rules required (it sells all its
 grain every season and sends no caravans).
 
+
+Build order item 9+b (the economy abroad: trade at foreign markets, ships in cargo service, tolls, smuggling, troops abroad
+by leave, the sack; save version 15) raised it: 2.57 growth alone and 1.00 as baseline over all, 68% of wins alone and 14%
+as baseline (by power, and the same seeds with half the kings leaving trade alone, `--trade-play-half`, in
+`docs/rounds/2026-10-28-economy-abroad.md`). The baseline trades nothing abroad and sets no tolls, as no rule requires it to.
