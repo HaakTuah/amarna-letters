@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 566 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 567 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## The game in one page
 
 Every builder reads this page before an item, and the reviewer reads it with the diff (decided 28 October 2026). Most questions an item raises answer themselves from it; an item's own rule never quietly overrides it. Haakon: "Everything has to happen through giving a message and following up on promises." And: "Freedom to do, consequences that emerge."
@@ -16,6 +16,8 @@ Worked examples, each with the wrong turn to avoid:
 - **Prices.** Every fee is what the two sides agree, and goods sell by supply and demand in the markets. What others were paid is only what a character has heard, and he bargains from it. Not: a going rate or a floor set by the engine.
 - **Privileges.** Governorship and command of an army are grants of authority, not jobs: what the man gets is what holding them gives him, the yield or the spoils passing through his hands, the men and his standing. The king takes the grant back by sending word, and enforces that only with troops. Not: a governor or commander on a fee, or a grant revoked at a distance at once.
 - **Captives.** A captive's purse stays on him, where he is held; his captor may order it taken. Not: the purse passing to the captor by itself.
+- **Memory.** A model character chooses what to keep when his older notes are condensed, so an old betrayal that matters to him survives; a script character weighs old news less as it ages, by his own formula, and never loses it; the tablets and a court's records stay as they are. Not: a rule that forgets after so many seasons.
+- **Reports.** A report is the servant's own words: he may leave things out or lie, and the engine checks only that he delivered it. If he then sells what belonged in it, to his employer or to anyone the employer hears of, that is evidence of a broken job, which the employer may act on and tell others. Not: the engine judging whether a report was complete or true.
 - **Debts.** A debt tablet records the debt; repaying is the borrower's order, collecting is the creditor's errand, and a king who holds the tablet may collect or sell it. Not: automatic repayment or automatic default.
 - **Reputation.** A court learns that a king broke a tablet, dismissed a servant early or paid badly when someone tells it or shows the tablet. Not: a record known to all at once.
 - **Passage.** Granted by tablet or by order; the grantee learns of it when the grantor's word reaches him, or when his troops pass unchallenged. Not: told at once.

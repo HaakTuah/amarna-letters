@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Ideas tab, revision 16 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Ideas tab, revision 16 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## Other ideas under consideration
 
 **Ideas under consideration.** Raised for assessment; each stays open until it is decided, then moves to the tab of its system. An entry decided in part keeps its open part here.
