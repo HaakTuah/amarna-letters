@@ -15,7 +15,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 561 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 72 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 73 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 34 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 55 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 24 |
@@ -40,7 +40,7 @@ session loads.
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 2.8 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
-| `.claude/rules/builder-rules.md` | Rules for the builder | 10.4 |
+| `.claude/rules/builder-rules.md` | Rules for the builder | 11.2 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.7 |
