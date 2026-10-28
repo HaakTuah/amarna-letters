@@ -326,8 +326,8 @@ export const LifeChoiceSchema: ObjSchema<LifeChoice> = obj("LifeChoice", newLife
 
 /**
  * A province as a chief sees it from where his band works (Haakon's answer to item 11b: a model chief decides raids, ships
- * and the way back in a request of his own): what its people and stores hold, the armies standing there, the other bands'
- * men, and whether it has a coast.
+ * and the way back in a request of his own): what its people and stores hold, whether its king's troops stand there, the
+ * other bands' men, and whether it has a coast.
  */
 export interface LandSeen {
   province: string;

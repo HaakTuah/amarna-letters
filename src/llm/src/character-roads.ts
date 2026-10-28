@@ -13,8 +13,11 @@ const KillWords: Record<Kill, string> = { none: "nobody", servants: "kings' serv
 const killOf = (s: unknown): Kill | null => (Object.entries(KillWords).find(([, w]) => w === s)?.[0] as Kill | undefined) ?? null;
 
 function landLine(l: LandSeen, here: boolean): string {
-  const whose = l.holder === null ? "no king's land" : `land of ${land(l.holder)}`;
-  return `- ${l.name}${here ? " (where you are)" : ""}: ${whose}; its people's purse about ${l.purse} shekels, its stores about ${l.stores} measures of grain; ${l.army ? "an army stands there" : "no army stands there"}${l.bands > 0 ? `; other bands of ${l.bands} men work there` : ""}${l.coast ? "; it has a coast" : ""}.`;
+  const parts = [l.holder === null ? "no king's land" : `land of ${land(l.holder)}`, `its people's purse about ${l.purse} shekels, its stores about ${l.stores} measures of grain`];
+  if (l.holder !== null) parts.push(l.army ? "its king's troops stand there" : "none of its king's troops stand there");
+  if (l.bands > 0) parts.push(`other bands of ${l.bands} men work there`);
+  if (l.coast) parts.push("it has a coast");
+  return `- ${l.name}${here ? " (where you are)" : ""}: ${parts.join("; ")}.`;
 }
 
 /** The chief's request: his band, the land he could work, and what each choice means. */
@@ -29,7 +32,7 @@ export function chiefText(v: ChiefView): string {
   sb.appendLine(landLine(v.here, true));
   for (const l of v.next) sb.appendLine(landLine(l, false));
   sb.appendLine(
-    "A band takes more where the people and the stores are rich and fewer others rob, and half as much where the land's troops stand; an army standing where you work falls on your band if its king orders it, and men are lost.",
+    "A band takes more where the people and the stores are rich and fewer others rob, and half as much where the king's troops stand; his army standing where you work falls on your band if he orders it, and men are lost.",
   );
   if (v.shipCost !== null)
     sb.appendLine(

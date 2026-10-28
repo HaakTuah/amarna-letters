@@ -79,7 +79,8 @@ P.chiefView = function (c, b) {
       // What one hears of a land's wealth: in round numbers.
       purse: Math.round(this.market(id).purse / 50) * 50,
       stores: Math.round(this.stores(id) / 50) * 50,
-      army: S.units.some((u) => u.province === id && u.kind === "Army"),
+      // The land's own troops: they halve what a band takes, and only its king's army hunts it.
+      army: S.units.some((u) => u.province === id && u.power === S.owner.getOrDefault(id, null)),
       bands: sum(
         S.bands.filter((o) => o !== b && o.province === id),
         (o) => o.men,
