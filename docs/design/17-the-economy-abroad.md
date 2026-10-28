@@ -14,8 +14,9 @@ A caravan (`caravan`, and the new `trade`) goes by road or river through land op
 court has heard he closed his roads to it (`roadsHeard`) and he granted it no passage there. This is the reading of "a
 foreign market they have passage to": passage is the travellers' rule of items 7b and 9, open unless closed. At each border
 into a foreign king's land (`atBorder`): an open caravan whose roads that king has in fact closed (and granted no passage)
-is turned back home, and its court learns the closure; otherwise it pays his toll there. A besieged city takes in nothing
-by land.
+is turned back and goes home round that land (lost only if no way home is left), and its court learns the
+closure; otherwise it pays his toll there. A besieged city takes in nothing
+by land, whether a caravan arrives or comes home.
 
 ### Trade at a foreign market
 
@@ -23,7 +24,8 @@ by land.
 validator like any spending), to a market not the king's own. On arrival (`tradeAtMarket`) it sells its grain along that
 market's curve, from its people's purse, and buys grain with the gold it brought (the proceeds of the sale go home, they do
 not buy), then goes home (`caravanHome`): grain into the stores it set out from, gold into the treasury (`income`). Porters
-are paid `ceil((grain + gold/10) / caravanPayPer)` a season and eat the load as in 9+a; outlaws' odds count gold at a tenth.
+are paid `ceil((grain + gold/10) / caravanPayPer)` a season, spent where they stand in land open to them (a smuggler's go
+home to `from` at once), and eat the load as in 9+a; outlaws' odds count gold at a tenth.
 Troops of a king who closed his roads to it take the grain into their baggage and the gold into his treasury. A besieged
 market trades with nobody.
 
@@ -51,10 +53,11 @@ open, men and materials come in.
 
 `TollOrder {province, partner, percent}` (`toll`), standing until changed (`GameState.tolls`, `Toll`): a percent of the
 goods entering the holder's land, at most `tollMost` 50, in all his land or one province, on everyone or one partner. The
-most particular rate applies (`tollRate`: province and partner, then province, then partner, then all). Goods pay at each
+most particular rate applies (`tollRate`: partner and province, then partner, then province, then all: a promise to a
+partner holds in all the land). Goods pay at each
 border into a king's land, from a province not his (a ship at his harbour too): grain in kind into that province's stores
 (what does not fit is lost), gold into his treasury. A free city and land without a king charge none (city-states set
-their own in item 11+). A rate of nothing is kept only as the exception to a wider rate. Each holder reads one notice a
+their own in item 11+). A rate of nothing for a partner or a province is kept, as the exception to any wider rate. Each holder reads one notice a
 season of what his tolls and seizures brought (`TollsTitle`). Tolls are posted at the borders, so every court sees those
 that bear on it and its own (`SeatView.tolls`).
 

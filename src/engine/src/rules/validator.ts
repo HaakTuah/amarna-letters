@@ -266,7 +266,7 @@ export class OrderValidator {
         case "ship": {
           for (const x of [order.from, order.to]) if (isBlank(x) || !Map.exists(x) || Map.get(x).isSea) return `there is no province called '${x}'`;
           const fleet = shipFleet(S.units, Map.get(order.from), order.fleet, power);
-          if (fleet === null) return `you have no fleet in ${Map.get(order.from).name} or its waters to load`;
+          if (fleet === null || (fleet.province !== order.from && fleet.province !== Map.get(order.from).waters)) return `you have no fleet in ${Map.get(order.from).name} or its waters to load`;
           if (orderedUnits.has(fleet.province)) return `the fleet in ${fleet.province} already has an order`;
           const from = Map.get(order.from);
           const to = Map.get(order.to);

@@ -59,7 +59,9 @@ describe("TradeTests", () => {
     const tolls = [newToll({ holder: "Mitanni", percent: 10 }), newToll({ holder: "Mitanni", partner: "Hatti", percent: 0 }), newToll({ holder: "Mitanni", province: "harran", percent: 30 })];
     Assert.equal(0, tollRate(tolls, "Mitanni", "washukanni", "Hatti"));
     Assert.equal(10, tollRate(tolls, "Mitanni", "washukanni", "Egypt"));
-    Assert.equal(30, tollRate(tolls, "Mitanni", "harran", "Hatti"));
+    // A partner's own rate holds in all the land, before a province's.
+    Assert.equal(0, tollRate(tolls, "Mitanni", "harran", "Hatti"));
+    Assert.equal(30, tollRate(tolls, "Mitanni", "harran", "Egypt"));
     Assert.equal(0, tollRate(tolls, "Egypt", "memphis", "Hatti"));
 
     const s = game();

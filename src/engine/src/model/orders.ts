@@ -493,8 +493,6 @@ export function unitOf(o: Order): string | null {
     case "disband":
     case "giftUnit":
       return o.unit;
-    case "ship":
-      return o.fleet;
     default:
       return null;
   }

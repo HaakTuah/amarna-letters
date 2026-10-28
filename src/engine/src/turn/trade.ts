@@ -213,7 +213,9 @@ P.caravanHome = function (c) {
   const at = caravanAt(c);
   const name = this.map.get(at).name;
   const parts: string[] = [];
-  if (c.grain > 0 && S.owner.getOrDefault(at, null) === c.power) {
+  // A besieged city takes in nothing by land, and by sea only while its waters are open.
+  const open = siegeOf(S, at) === null || (c.ship !== null && openToSea(this, at));
+  if (c.grain > 0 && S.owner.getOrDefault(at, null) === c.power && open) {
     const before = c.grain;
     c.grain = this.putInStores(at, c.grain);
     if (before > c.grain) parts.push(`${before - c.grain} measures of grain into the stores`);
@@ -317,9 +319,9 @@ P.setToll = function (p, o) {
   const S = this.s;
   const i = S.tolls.findIndex((t) => t.holder === p && t.province === o.province && t.partner === o.partner);
   if (i >= 0) S.tolls.splice(i, 1);
-  // A rate of nothing is kept when it is the exception to a wider one (a partner let through free), else dropped.
-  const wider = S.tolls.some((t) => t.holder === p && (t.province === null || t.province === o.province) && (t.partner === null || t.partner === o.partner) && t.percent > 0);
-  if (o.percent > 0 || wider) S.tolls.push(newToll({ holder: p, province: o.province, partner: o.partner, percent: o.percent }));
+  // A rate of nothing for a partner or a province is kept, as the exception to any wider rate set before or after it; the
+  // general rate of nothing is no toll at all.
+  if (o.percent > 0 || o.partner !== null || o.province !== null) S.tolls.push(newToll({ holder: p, province: o.province, partner: o.partner, percent: o.percent }));
   const where = o.province === null ? "your land" : this.map.get(o.province).name;
   notify(S, p, "Resolution", TollsTitle, `The toll on ${o.partner === null ? "everyone's" : `${o.partner}'s`} goods entering ${where} is now ${o.percent}%.`);
   logEvent(S, "toll-set", `${p} set a toll of ${o.percent}% on ${o.partner ?? "everyone"}'s goods entering ${where}.`, [p], "toll-set");

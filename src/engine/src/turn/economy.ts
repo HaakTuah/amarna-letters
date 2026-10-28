@@ -411,8 +411,12 @@ P.caravansTravel = function () {
       continue;
     }
     t.gold -= pay;
-    if (S.owner.getOrDefault(here, null) === c.power) this.spendAt(here, pay);
-    else if (c.ship !== null) c.ship.savings += pay;
+    // The porters spend their pay where they stand openly (at home or in land open to them); smugglers off the road and
+    // a crew at sea keep it, the smugglers' going to their homes at once and the crew's into its savings.
+    if (this.map.get(here).isSea) {
+      if (c.ship !== null) c.ship.savings += pay;
+    } else if (c.sneak && S.owner.getOrDefault(here, null) !== c.power && S.owner.getOrDefault(here, null) !== null) this.spendAt(c.from, pay);
+    else this.spendAt(here, pay);
     // Advance along the route at its pace, counting how much of the season went by boat, meeting each border it crosses.
     const start = perSeason + c.points;
     let budget = start;
@@ -443,9 +447,11 @@ P.caravansTravel = function () {
     }
     if (stopped === "turned") {
       const at = caravanAt(c);
-      const back = c.returning ? null : c.ship !== null ? this.shipRoute(at, c.from) : this.tradeRoute(c.power, at, c.from, c.sneak);
+      // A new way home, round the land it now knows is closed to it.
+      const back = c.ship !== null ? this.shipRoute(at, c.from) : this.tradeRoute(c.power, at, c.from, c.sneak);
       if (back === null && at !== c.from) {
         S.caravans.splice(S.caravans.indexOf(c), 1);
+        if (c.ship !== null) this.rejoinFleet(c);
         notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} found no way home from ${this.map.get(at).name}: its ${what(c)} were lost.`);
         continue;
       }

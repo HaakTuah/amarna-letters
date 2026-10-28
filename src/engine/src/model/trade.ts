@@ -40,7 +40,7 @@ export const harbourOf = (p: Province): number => (!p.isSea && p.isCoastal && p.
 /**
  * A toll a power sets on goods entering its land ("Tolls and smuggling"): in one province or all its land (`province`
  * null), on one partner's caravans and ships or everyone's (`partner` null), as a percent of what crosses. It stands
- * until changed; the most particular rate applies.
+ * until changed; the most particular rate applies, a partner's before a province's (see {@link tollRate}).
  */
 export interface Toll {
   holder: Power;
@@ -55,7 +55,10 @@ export function newToll(init: Partial<Toll> = {}): Toll {
 
 export const TollSchema: ObjSchema<Toll> = obj("Toll", newToll, { holder: S, province: opt(S), partner: opt(S), percent: I });
 
-/** The rate a holder charges a partner's goods entering one of his provinces: the most particular of his tolls, or none. */
+/**
+ * The rate a holder charges a partner's goods entering one of his provinces, or none: his rate for that partner in that
+ * province, else for that partner, else for that province, else for everyone.
+ */
 export function tollRate(tolls: readonly Toll[], holder: Power, province: string, partner: Power): number {
   let best = -1;
   let rate = 0;
@@ -63,7 +66,8 @@ export function tollRate(tolls: readonly Toll[], holder: Power, province: string
     if (t.holder !== holder) continue;
     if (t.province !== null && t.province !== province) continue;
     if (t.partner !== null && t.partner !== partner) continue;
-    const rank = (t.province !== null ? 2 : 0) + (t.partner !== null ? 1 : 0);
+    // A partner's own rate comes before a province's: a promise to one partner holds in all the land.
+    const rank = (t.partner !== null ? 2 : 0) + (t.province !== null ? 1 : 0);
     if (rank > best) {
       best = rank;
       rate = t.percent;
