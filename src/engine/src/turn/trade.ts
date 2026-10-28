@@ -7,6 +7,8 @@
  * comes from and where it goes").
  */
 import { Dict } from "../core/collections.ts";
+import { sortBy } from "../core/seq.ts";
+import { cmpStr } from "../core/text.ts";
 import { idiv } from "../core/num.ts";
 import { caravanAt, newCaravan, type Caravan } from "../model/caravans.ts";
 import { buyAlongCurve, needOf, priceAt, sellAlongCurve } from "../model/economy.ts";
@@ -46,7 +48,8 @@ declare module "./core.ts" {
     rejoinFleet(c: Caravan): string | null;
     sendTraders(orders: [Power, Order][], tell: (p: Power, line: string) => void): void;
     setToll(p: Power, o: TollOrder): void;
-    sack(province: string, taker: Power): void;
+    sack(province: string, taker: Power, stormed?: boolean): void;
+    lootHome(taker: Power, from: string, gold: number, archive: readonly string[], archiveOf: string): boolean;
     byLeave(u: Unit): boolean;
     tellTolls(book: TollBook): void;
     marketNow(province: string): MarketSeen;
@@ -274,8 +277,9 @@ P.caravanHome = function (c) {
     parts.push(`${formatMoney(c.gold)} into the treasury`);
     c.gold = 0;
   }
-  // What it learned abroad of markets and tolls, its court learns now.
+  // What it learned abroad of markets and tolls, its court learns now; a captured archive it carried is its king's now.
   this.hearWord(c.power, c.word);
+  if (c.archive.length > 0) this.archiveArrives(c.power, c.archive, c.archiveOf, this.map.get(c.to).name);
   const fleet = this.rejoinFleet(c);
   S.caravans.splice(S.caravans.indexOf(c), 1);
   const lostLine = c.grain > 0 ? ` The other ${c.grain} measures had nowhere to go and were lost.` : "";
@@ -376,17 +380,61 @@ P.setToll = function (p, o) {
   logEvent(S, "toll-set", `${p} set a toll of ${o.percent}% on ${o.partner ?? "everyone"}'s goods entering ${where}.`, [p], "toll-set");
 };
 
-/** A province taken by force is sacked: its taker carries off a share of its people's purse into his treasury. */
-P.sack = function (province, taker) {
+/**
+ * A province taken by force is sacked (item 10+b, "What a sack takes follows its causes"): its taker's men there carry off
+ * what they can of its people's purse, more when they stormed it than when it surrendered, and no more than so many
+ * shekels a hundred men can carry; the king's share travels home to his capital as a load that can be waylaid, and the
+ * rest goes into the soldiers' packs, to be spent or carried home ("Soldiers carry savings home").
+ */
+P.sack = function (province, taker, stormed = true) {
   const S = this.s;
   const m = this.market(province);
-  const loot = idiv(m.purse * TradeData.sackPercent, 100);
+  const units = sortBy(
+    S.units.filter((u) => u.province === province && u.power === taker && u.men > 0),
+    [(u: Unit) => u.id, cmpStr],
+  );
+  const men = units.reduce((a, u) => a + u.men, 0);
+  const share = stormed ? TradeData.sackStormedPercent : TradeData.sackSurrenderPercent;
+  const loot = Math.min(idiv(m.purse * share, 100), idiv(men * TradeData.lootPerHundred, 100));
   if (loot <= 0) return;
   m.purse -= loot;
-  S.treasuries.get(taker).gold += loot;
-  S.treasuries.get(taker).income += loot;
-  notify(S, taker, "Battle", "Loot", `Your troops sacked ${this.map.get(province).name} and carried off ${formatMoney(loot)} from its people's purse.`);
-  logEvent(S, "sack", `${taker} sacked ${this.map.get(province).name}.`, [taker], "sack");
+  const king = idiv(loot * TradeData.kingSharePercent, 100);
+  let packs = loot - king;
+  units.forEach((u, i) => {
+    const part = i === units.length - 1 ? packs : idiv((loot - king) * u.men, men);
+    u.savings += part;
+    packs -= part;
+  });
+  const name = this.map.get(province).name;
+  const home = this.lootHome(taker, province, king, [], "");
+  notify(
+    S,
+    taker,
+    "Battle",
+    "Loot",
+    `Your troops sacked ${name} and carried off ${formatMoney(loot)} from its people's purse: ${formatMoney(loot - king)} in their packs` +
+      (king <= 0 ? "." : home ? `, and your share of ${formatMoney(king)} is on its way to your treasury.` : `, and your share of ${formatMoney(king)} is in your treasury.`),
+  );
+  logEvent(S, "sack", `${taker} sacked ${name}.`, [taker], "sack");
+};
+
+/**
+ * Loot going home to the taker's capital as a load (item 10+b): gold, a captured archive, or both. Where the taker holds
+ * his capital and a road leads there, it travels like a caravan and can be waylaid; otherwise it reaches him at once
+ * (true: it is on the road).
+ */
+P.lootHome = function (taker, from, gold, archive, archiveOf) {
+  const S = this.s;
+  const cap = this.map.capital(taker).id;
+  const route = from === cap || S.owner.getOrDefault(cap, null) !== taker ? null : this.tradeRoute(taker, from, cap, false);
+  if (route === null) {
+    S.treasuries.get(taker).gold += gold;
+    S.treasuries.get(taker).income += gold;
+    this.archiveArrives(taker, archive, archiveOf, this.map.get(from).name);
+    return false;
+  }
+  S.caravans.push(newCaravan({ id: newId(S, "v"), power: taker, from: cap, to: from, gold, route, at: 0, returning: true, since: S.turn, archive: [...archive], archiveOf }));
+  return true;
 };
 
 /** Does a unit stand by leave: in its king's own land, or land whose holder granted it passage or basing there? */

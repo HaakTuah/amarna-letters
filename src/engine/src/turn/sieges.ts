@@ -333,7 +333,7 @@ P.surrender = function (x, owner, tell, how) {
   this.lowerWalls(prov);
   this.setOwner(prov, x.power);
   this.takenByForce(prov, x.power);
-  this.sack(prov, x.power);
+  this.sack(prov, x.power, false);
   // The siege's dead and the runaways among the townspeople (item 10+a).
   this.killSettled(prov, LandData.stormDead * 10, LandData.stormDead * 10);
   const w = wallsOf(S, prov);

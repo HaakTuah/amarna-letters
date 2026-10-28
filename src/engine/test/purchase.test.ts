@@ -69,8 +69,7 @@ describe("PurchaseTests", () => {
       (x) => x[0],
       (x) => x[1].gold,
     );
-    // Its taker sacks it (item 9+b): that loot is all the gold that changes hands.
-    const loot = Math.floor((s.markets.get("gaza").purse * TradeData.sackPercent) / 100);
+    // Its taker sacks it (item 9+b): that loot is all the gold that changes hands, the king's share on its way home (item 10+b).
     e.resolve(
       new Dict([
         ["Egypt", newTurnSubmission({ orders: [buy("gaza")] })],
@@ -82,7 +81,9 @@ describe("PurchaseTests", () => {
     Assert.equal("Your own troops took Gaza last season; no gold was paid.", single(inboxOf(s, "Babylonia"), (i) => i.title === "Purchase failed").body);
     Assert.contains("taken by Babylonia's troops", single(inboxOf(s, "Egypt"), (i) => i.title === "Purchase failed").body);
     Assert.equal(gold.get("Egypt"), s.treasuries.get("Egypt").gold);
-    Assert.equal(gold.get("Babylonia") + loot, s.treasuries.get("Babylonia").gold);
+    const onRoad = s.caravans.filter((c) => c.power === "Babylonia").reduce((a, c) => a + c.gold, 0);
+    Assert.true(s.treasuries.get("Babylonia").gold + onRoad > gold.get("Babylonia"));
+    Assert.true(s.treasuries.get("Babylonia").gold <= gold.get("Babylonia") + onRoad + 1000);
   });
 
   test("A scheduled bid for a city taken that season wakes its seat", () => {

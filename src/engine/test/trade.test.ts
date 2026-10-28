@@ -156,14 +156,26 @@ describe("TradeTests", () => {
     Assert.equal(t.config.armyUpkeep, v.savings);
   });
 
-  test("A province taken by force is sacked: its taker carries off a share of its purse", () => {
-    const s = game();
-    const e = new TurnEngine(s);
-    const m = s.markets.get("harran");
-    m.purse = 900;
-    const gold = s.treasuries.get("Hatti").gold;
-    e.sack("harran", "Hatti");
-    Assert.equal(900 - Math.floor((900 * TradeData.sackPercent) / 100), m.purse);
-    Assert.equal(gold + Math.floor((900 * TradeData.sackPercent) / 100), s.treasuries.get("Hatti").gold);
+  test("A sack takes what its men can carry, more stormed than surrendered; the king's share goes home as a load (item 10+b)", () => {
+    for (const stormed of [true, false]) {
+      const s = game();
+      const e = new TurnEngine(s);
+      const u = single(s.units, (x) => x.province === "hattusa");
+      u.province = "harran";
+      s.owner.set("harran", "Hatti");
+      const m = s.markets.get("harran");
+      m.purse = 900;
+      const gold = s.treasuries.get("Hatti").gold;
+      const savings = u.savings;
+      e.sack("harran", "Hatti", stormed);
+      const loot = Math.min(Math.floor((900 * (stormed ? TradeData.sackStormedPercent : TradeData.sackSurrenderPercent)) / 100), Math.floor((u.men * TradeData.lootPerHundred) / 100));
+      const king = Math.floor((loot * TradeData.kingSharePercent) / 100);
+      Assert.equal(900 - loot, m.purse);
+      Assert.equal(savings + loot - king, u.savings);
+      // Nothing reaches the treasury until the load arrives.
+      Assert.equal(gold, s.treasuries.get("Hatti").gold);
+      Assert.equal(king, single(s.caravans).gold);
+      Assert.equal("hattusa", single(s.caravans).route.at(-1));
+    }
   });
 });
