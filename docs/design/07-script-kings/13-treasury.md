@@ -74,7 +74,7 @@ Inside the grain plan, after what each store keeps and the caravans to troops, b
   leaves holding, or gives no order) in its harbour or waters, within two seasons' sail.
 - **Ventures**, at most three trading caravans abroad at once (fleets are their own limit). For each province with grain
   to spare, the most spare first, every foreign market known within six seasons is weighed three ways where they exist:
-  an open caravan (at most 100 measures, by the land open to us, paying the tolls posted on its way), a smuggler (at most
+  an open caravan (at most 100 measures, by the land open to us, paying the tolls it knows of on its way), a smuggler (at most
   50, off the road, paying none but risking the odds of being found entering each realm, going and coming), and a ship
   (from the province's harbour with an idle fleet, not in winter, not with a hostile fleet within two moves of its waters;
   up to 400). Each reckons what arrives (the tolls and what the porters eat), what it sells for along that market's
@@ -106,3 +106,10 @@ short from its stores before selling any grain; it levies only where the men are
 the harvest a levy costs in its price; and it settles a unit it disbands in a province of its own with room. Its
 tactics count the people's resistance as the defence of empty land. The details are in `../19-people-at-home.md`,
 "Script kings" (`game/src/bots/land.ts`).
+
+### People across borders (item 10+b)
+
+It sends back the runaways of a king it promised them to on a sealed tablet (and writes that promise, `fugitives`, into
+its peace and alliance tablets with neighbours), settles the loose where the land has room and fed its people, puts out
+a besieged city's mouths once its stores run low, and deports people from land it took that is at risk to its homeland.
+The details are in `../20-people-across-borders.md`, "Script kings" (`game/src/bots/borders.ts`).

@@ -46,7 +46,7 @@ with its cargo. Ships do not smuggle.
 
 **A besieged harbour**: the sea no longer feeds it (`TurnEngine.supplied` is gone): it eats from its market and stores as
 any city, and a ship of its king's may unload grain into its stores while no fleet of the besieger holds its waters
-(`openToSea`). The wear's slower pace for a city "supplied by sea" (item 7a) stays as it was, reworded: the harbour is
+(`openToSea`); since item 10+b anyone's ships may also sell it grain (`20-people-across-borders.md`). The wear's slower pace for a city "supplied by sea" (item 7a) stays as it was, reworded: the harbour is
 open, men and materials come in.
 
 ### Tolls
@@ -58,8 +58,8 @@ partner holds in all the land). Goods pay at each
 border into a king's land, from a province not his (a ship at his harbour too): grain in kind into that province's stores
 (what does not fit is lost), gold into his treasury. A free city and land without a king charge none (city-states set
 their own in item 11+). A rate of nothing for a partner or a province is kept, as the exception to any wider rate. Each holder reads one notice a
-season of what his tolls and seizures brought (`TollsTitle`). Tolls are posted at the borders, so every court sees those
-that bear on it and its own (`SeatView.tolls`).
+season of what his tolls and seizures brought (`TollsTitle`). Since item 10+b a court knows other kings' tolls on its goods
+only as last reported (`20-people-across-borders.md`); its own it always knows (`SeatView.tolls`).
 
 **Trade rights** are the clauses `tollFree` (the writer takes no toll on the reader's goods) and `askTollFree` (asks it of
 the reader). Like every clause but passage and basing they oblige nobody: the rate is what the engine charges, so a
@@ -82,15 +82,15 @@ treasury; events `smuggler-found`, else `smuggled`).
 there (`grantCovers`). Its men spend their pay (`spentPercent`) only there, into that province's purse; elsewhere they keep
 it all. Abroad by leave its king buys its food at the market where it stands, at the market's ask, from the treasury,
 before it eats into its baggage (event `food-bought`); in land without leave it forages as in 9+a. A province taken by
-force (stormed, surrendered to a siege, or taken by troops standing in it) is sacked (`sack`): `sackPercent` 33 of its
-people's purse goes into the taker's treasury.
+force (stormed, surrendered to a siege, or taken by troops standing in it) is sacked (`sack`); since item 10+b the take follows its
+causes and the king's share travels home as a load (`20-people-across-borders.md`).
 
 ### What a king knows of foreign markets
 
 `GameState.marketsSeen` (`MarketSeen`: price, stock, normal stock, purse, the season): each season, after the caravans,
-every court learns the markets within half a season's travel of its land (`wordSeasonsShare` 2), by road, river or sea,
-and those in the land it sees, as they stand then; a caravan or ship that trades at a market brings home what it found
-(`seeMarkets`, `seeMarket`). The reading of "Prices are known where they are and through news". `SeatView.markets`; the
+every court learns the markets in the land it sees, as they stand then; since item 10+b the rest only as its caravans,
+ships and envoys bring word home, and the half-season reach (`wordSeasonsShare` 2) is what it knows at the start
+(`20-people-across-borders.md`). The reading of "Prices are known where they are and through news". `SeatView.markets`; the
 model's view lists the dearest and cheapest it knows (FOREIGN MARKETS) and the tolls on its goods.
 
 ### Orders, rulebook and the web app
