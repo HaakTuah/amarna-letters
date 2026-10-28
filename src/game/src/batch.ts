@@ -446,12 +446,12 @@ export function versusReport(games: readonly GameSummary[], current: readonly Se
     }
   }
   const newSeats = sum(current, (c) => c.size);
-  const oldSeats = games.length * 7 - newSeats;
+  const oldSeats = games.length * AllPowers.length - newSeats;
   lines.push(
-    `  Current bot: mean growth ${fmt(mean(newGrowth), "0.00")}, wins ${fmt(newWins, "0.0")} of ${games.length} (${fmt((100 * newWins) / games.length, "0")}%) from ${fmt((100.0 * newSeats) / (games.length * 7), "0")}% of the seats`,
+    `  Current bot: mean growth ${fmt(mean(newGrowth), "0.00")}, wins ${fmt(newWins, "0.0")} of ${games.length} (${fmt((100 * newWins) / games.length, "0")}%) from ${fmt((100.0 * newSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
   );
   lines.push(
-    `  Baseline:    mean growth ${fmt(mean(oldGrowth), "0.00")}, wins ${fmt(oldWins, "0.0")} of ${games.length} (${fmt((100 * oldWins) / games.length, "0")}%) from ${fmt((100.0 * oldSeats) / (games.length * 7), "0")}% of the seats`,
+    `  Baseline:    mean growth ${fmt(mean(oldGrowth), "0.00")}, wins ${fmt(oldWins, "0.0")} of ${games.length} (${fmt((100 * oldWins) / games.length, "0")}%) from ${fmt((100.0 * oldSeats) / (games.length * AllPowers.length), "0")}% of the seats`,
   );
   lines.push("  Per power, mean growth as current / as baseline:");
   for (const p of AllPowers) {
@@ -536,7 +536,7 @@ export function batchReport(games: readonly GameSummary[]): string {
 
 /** The solo benchmark's table: each king alone with the current bot against six baselines, against the same seed all-baseline. */
 export function soloReport(seeds: number, baseGrowth: Record<string, number[]>, soloGrowth: Record<string, number[]>, baseWins: Record<string, number>, soloWins: Record<string, number>): string {
-  const lines = [`One current king against six baselines, ${seeds} seeds:`, "  Power       growth alone / all-baseline   wins alone / all-baseline"];
+  const lines = [`One current king against ${AllPowers.length - 1} baselines, ${seeds} seeds:`, "  Power       growth alone / all-baseline   wins alone / all-baseline"];
   for (const p of AllPowers)
     lines.push(
       `  ${align(p, -10)}  ${align(fmt(mean(soloGrowth[p]), "0.00"), 5)} / ${align(fmt(mean(baseGrowth[p]), "0.00"), 4)}                  ${align(fmt((100 * soloWins[p]) / seeds, "0"), 3)}% / ${align(fmt((100 * baseWins[p]) / seeds, "0"), 3)}%`,

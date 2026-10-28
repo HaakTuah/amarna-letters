@@ -142,3 +142,33 @@ tablets and forgeries carry no vassal mark (words like any tablet; a model or hu
     three times the strength (`bots/vassals.ts`).
 
 Model games: a budget game of model seats is estimated at about $1.34 now (under $1 before) and a standard one at about $21: thirty seats, each on the same ladder and budget (Minds follow what is at stake).
+
+**Solo benchmark** (`--versus solo`, 40 seeds; one current king against the 29 frozen baselines, all thirty powers in
+turn): all powers 1.26 growth alone against 0.99 all-baseline, 30% wins alone against 14% (before, seven powers: 2.48 /
+1.02, 69% / 14%). The Great Kings alone: Egypt 1.01 / 0.75, Hatti 1.09 / 0.96, Babylonia 1.06 / 0.74, Mitanni 1.21 /
+0.92, Assyria 1.78 / 0.85, Arzawa 1.32 / 0.90, Alashiya 1.04 / 1.10. The current bot still outgrows the baseline almost
+everywhere, by less: a single king among 29 others moves the game less than one among six. The bot test of the same
+kind ("A king alone on the new brain outgrows...") measured 0.22 against its old bar of 0.4, which was set for seven
+powers; its bar is now 0.15.
+
+## Use against ignore
+
+`--vassal-play-half` (the same 50 seeds; half the powers pay, demand and offer vassalage, the rest do none of it, and
+keep no vassal as a friend): users 0.88 growth to 0.88, 25 wins to 25. **Not paying yet**: a vassal that pays gives up
+what it pays, and an overlord that spares its paying vassals forgoes their conquest (Hatti 0.90 as a user to 0.99,
+Assyria 0.91 to 1.09), while tribute is about 500 shekels a game in all. Tribute counts as wealth that crosses a border,
+so it moves score from vassal to overlord, never makes it; what the bond buys (no war, protection) shows only where the
+overlord would otherwise have attacked. Re-measure when command at a distance (13) and policing (15) make wars dearer.
+
+## Questions for Haakon
+
+1. The Kaska, Lukka and Sutean chiefs' lands start with walls 2 for their strongholds [G] (or no walls, as the sources
+   give none, when Lukka fell in seasons 1-3 in every script game)?
+2. Each city-state's city has a capital's walls, 3 (or walls by the city from the walls dossier, item 15, with the early
+   falls that brings)?
+3. Par is a power's mean growth in the games it survives (or in all games, falls counted as 0, so survival itself scores)?
+4. The land weighs against gold at the fixed 10 × a season's worth (or by the seasons likely left, land cheaper as the
+   omens darken)?
+5. Terqa, Mira and Seha stay their kings' own land as drawn (or start as vassal city-states of Mitanni and Arzawa)?
+6. A capital cannot be ceded, so a city-state cannot hand itself over whole; it comes under another's power as his
+   vassal (or allow ceding one's capital)?
