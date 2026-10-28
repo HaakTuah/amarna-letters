@@ -228,7 +228,7 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("Routine audiences go to the small rung while a king sleeps; what the engine sees matters goes to his own model", async () => {
-    const [runner, api] = build(() => {}, 3, new SimulatedApi(), true);
+    const [runner, api] = build(() => {}, 2, new SimulatedApi(), true); // seed 2 since item 9+b: on seed 3 the script armies now wake the model kings every season
     await play(runner, 8);
     const routine = api.requests.filter((r) => str(r, "messages", 0, "content").includes("THESE ARE ROUTINE AUDIENCES"));
     Assert.notEmpty(routine);
@@ -252,7 +252,7 @@ describe("Who decides (item 6c)", () => {
       const answers = ids.map((envoy) => ({ envoy, speech: "", clauses: [], gift_to_envoy: 0, gift_request: "", send_gold_back: 0, gold_back_purity: 100, end_audience: true, pass_up: "he hints at war" }));
       return JSON.stringify({ answers, ledger: [], ask_counsel: "" });
     };
-    const [runner] = build(() => {}, 3, api, true);
+    const [runner] = build(() => {}, 2, api, true);
     await play(runner, 8);
     const up = runner.log.decisions.filter((d) => d.by?.why === "passed up: he hints at war");
     Assert.notEmpty(up);

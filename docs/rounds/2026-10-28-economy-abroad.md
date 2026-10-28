@@ -178,6 +178,16 @@ and noted here: trades on arrival and food bought abroad are settled caravan by 
 market as "Prices" says for the season's orders; two caravans at one market in a season get slightly different prices.
 The two design questions it raised (smuggling without leaders, the sea's feeding) are readings 2 and 3.
 
+## Tests
+
+New: `src/engine/test/trade.test.ts` (a caravan trading at a free city's market, tolls and their ranking, smuggling over
+twelve seeds, a caravan turned back, a fleet in cargo service coming home, troops by leave and without, the sack). Changed
+because the play changed, not the rules they test: model-reply fixtures gained the `gold` field; the sack's loot in the
+purchase test; two sleep tests now also list "a caravan of yours was lost" (the stand-in's trading caravan, which wakes a
+king as any lost caravan does; a ship sunk or smugglers seized now wake one too); the 6c audience tests play seed 2, since
+on seed 3 the script armies now wake the model kings every season; the map test lets a fleet back from cargo service give
+an order from where the last frame did not show it; and the runner's five replayed games have five minutes, not two.
+
 ## Left for later
 
 - Netting arrivals at a market together (above).

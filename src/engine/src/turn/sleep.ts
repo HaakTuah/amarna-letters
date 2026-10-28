@@ -354,7 +354,7 @@ P.wakeReason = function (i) {
       // The economy's failures (item 9+a): troops that mutinied, went hungry or unpaid, a caravan lost.
       if (i.title === "The treasury" && i.body.includes("mutinied")) return "troops of yours mutinied";
       if (i.title === "The treasury" && (i.body.includes("Hungry this season") || i.body.includes("Not paid this season"))) return "troops of yours went hungry or unpaid";
-      if (i.title === "Markets and caravans" && (i.body.includes("was taken") || i.body.includes("Outlaws") || i.body.includes("deserted"))) return "a caravan of yours was lost";
+      if (i.title === "Markets and caravans" && (i.body.includes("was taken") || i.body.includes("Outlaws") || i.body.includes("deserted") || i.body.includes("sank") || i.body.includes("were seized"))) return "a caravan of yours was lost";
       return null;
     }
     case "Rumor":
