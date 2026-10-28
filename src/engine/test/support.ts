@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { AllPowers, Dict, type Character, type GameState, HSet, newSkills, newTurnSubmission, type Power, type TurnSubmission } from "@amarna/engine";
+import { AllPowers, Dict, type Character, type GameState, HSet, type JobTerms, newSkills, newTurnSubmission, type Power, type TurnSubmission, WorldMap } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -278,3 +278,6 @@ export function skilled(c: Character, n: number): void {
   c.belief = newSkills({ gather: n, stealth: n, forge: n });
   c.inclination = 0;
 }
+
+/** A job any hiring court can offer in a test: watching its own capital's province, an errand of a season (Haakon's answers to item 11a). */
+export const homeJob = (p: Power): JobTerms => ({ what: "spy", where: WorldMap.default.capital(p).id });

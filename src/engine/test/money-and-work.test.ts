@@ -69,25 +69,30 @@ describe("MoneyAndWorkTests", () => {
 
   test("A fee withheld is a promise broken: the person is owed it, and people trust the court less", () => {
     const [s, c] = servant();
+    c.contract!.payOnDone = true;
     Assert.equal(MoneyData.trustStart, trustIn(s, "Egypt"));
     new TurnEngine(s).resolve(orders("Egypt", payFee(c.id, false)));
-    Assert.true(c.contract!.withheld);
-    const purse = c.purse;
+    Assert.equal([true, false], [c.contract!.withheld, c.contract!.payOnDone]);
+    const fees = c.earned.fees;
     begin(s);
-    Assert.equal(purse, c.purse);
+    Assert.equal(fees, c.earned.fees);
     Assert.equal(6, c.owed.get("Egypt"));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A fee due");
+    // Unpaid through the next season: a promise broken.
+    new TurnEngine(s).resolve(none());
+    begin(s);
     Assert.equal(1, s.payRecords.get("Egypt").broken);
     Assert.equal(MoneyData.trustStart - MoneyData.trustBroken, trustIn(s, "Egypt"));
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A fee withheld");
     // The king's view says what it owes, and its record.
     const v = Views.for(s, "Egypt");
     Assert.equal([6, 1, 0], [v.feesOwed, v.broken, v.kept]);
-    Assert.equal(6, v.court.find((x) => x.id === c.id)!.owed);
-    // Paid later, at court: the debt of honour is made good, and counted as a promise kept.
+    Assert.equal(6, v.known.find((x) => x.id === c.id)!.owed);
+    // Paid later, at court: the debt is made good, but the broken promise stands.
+    c.at = "Egypt";
     new TurnEngine(s).resolve(orders("Egypt", payFee(c.id, true)));
-    Assert.equal(purse + 6, c.purse);
+    Assert.equal(fees + 6, c.earned.fees);
     Assert.false(c.owed.has("Egypt"));
-    Assert.equal(1, s.payRecords.get("Egypt").kept);
+    Assert.equal([0, 1], [s.payRecords.get("Egypt").kept, s.payRecords.get("Egypt").broken]);
   });
 
   test("The score counts what a king holds: a fee owed is not subtracted, and borrowed gold counts as his", () => {
@@ -133,7 +138,9 @@ describe("MoneyAndWorkTests", () => {
   });
 
   test("A debt past its season is a promise broken once its holder stood there unpaid, and a fallen kingdom's debts die with it", () => {
-    const [s] = servant();
+    const [s, c] = servant();
+    // Its own job's fee paid when done, so the only promise broken is the debt's.
+    c.contract!.payOnDone = true;
     const l = lender(s);
     new TurnEngine(s).resolve(orders("Egypt", borrow(l.id, 100, 112, 1)));
     const d = s.debts[0];
@@ -204,13 +211,15 @@ describe("MoneyAndWorkTests", () => {
     Assert.equal(112, agent.errand!.collected);
   });
 
-  test("A captive's purse and tablets go to its captor; the dead rank below the living by what they held", () => {
+  test("A captive's purse and tablets stay on it until its captor takes them; the dead rank below the living by what they held", () => {
     const [s] = servant();
     const l = lender(s);
     new TurnEngine(s).resolve(orders("Egypt", borrow(l.id, 100, 112, 6)));
     [l.status, l.heldBy, l.at] = ["Captured", "Hatti", "Hatti"];
     const gold = s.treasuries.get("Hatti").gold;
     new TurnEngine(s).goldAndTabletsTaken();
+    Assert.equal([gold, 100], [s.treasuries.get("Hatti").gold, l.purse]);
+    new TurnEngine(s).takePurse("Hatti", l);
     Assert.equal([gold + 100, 0], [s.treasuries.get("Hatti").gold, l.purse]);
     Assert.equal(["Hatti", "Archive"], [s.debts[0].holder!, s.debts[0].kept]);
 

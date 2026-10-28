@@ -755,9 +755,11 @@ export function characterOf(o: Order): string | null {
     case "spy":
     case "recall":
     case "forge":
-    case "captive":
     case "steal":
       return o.character;
+    // Taking what a captive carries is no task (Haakon's answers to item 11a): its fate may be decided the same season.
+    case "captive":
+      return o.fate === "TakePurse" ? null : o.character;
     default:
       return null;
   }

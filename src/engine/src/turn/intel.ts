@@ -56,7 +56,8 @@ P.resolveIntelligence = function (orders) {
 
   // Captors decide first, so that a ransom paid the same season meets the captive as its captor left them,
   // whichever court comes first.
-  for (const [p, o] of orders) if (o.type === "captive") this.captive(p, o);
+  for (const [p, o] of orders) if (o.type === "captive" && o.fate === "TakePurse") this.captive(p, o);
+  for (const [p, o] of orders) if (o.type === "captive" && o.fate !== "TakePurse") this.captive(p, o);
 
   for (const [p, o] of orders) {
     switch (o.type) {

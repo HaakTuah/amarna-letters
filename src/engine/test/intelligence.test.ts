@@ -39,7 +39,7 @@ import {
   seekCandidates,
   single,
 } from "@amarna/engine";
-import { Assert, firstOrNull, toDict, join, skilled } from "./support.ts";
+import { Assert, firstOrNull, toDict, join, skilled, homeJob } from "./support.ts";
 
 describe("IntelligenceTests", () => {
   function begin(s: GameState): TurnEngine {
@@ -99,6 +99,8 @@ describe("IntelligenceTests", () => {
     for (const [spy, at] of spies.map((x, i) => [x, ["tyre", "babylon"][i]] as const)) {
       [spy.secretMaster, spy.traits.competence] = [null, 0];
       [spy.duty, spy.at, spy.watchProvince] = ["SpyPosted", null, at];
+      // A stay longer than the test, so its term does not send it home.
+      spy.contract!.untilTurn = 50;
     }
     Assert.null(s.owner.get("tyre"));
     s.treasuries.get("Babylonia").gold = 100000;
@@ -211,14 +213,14 @@ describe("IntelligenceTests", () => {
     target.at = "Hatti";
     e.resolve(
       new Dict([
-        ["Egypt", newTurnSubmission({ orders: [hire(target.id, 240, 6, 240)] })],
-        ["Hatti", newTurnSubmission({ orders: [hire(target.id, 150, 6, 150)] })],
+        ["Egypt", newTurnSubmission({ orders: [hire(target.id, 240, 6, 240, homeJob("Egypt"))] })],
+        ["Hatti", newTurnSubmission({ orders: [hire(target.id, 150, 6, 150, homeJob("Hatti"))] })],
       ]),
     );
     Assert.equal("Hatti", target.employer);
     Assert.equal(150, target.contract!.fee);
     begin(s);
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("hired in person"));
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("goes with an envoy"));
   });
 
   test("A wage below the asking price is refused", () => {

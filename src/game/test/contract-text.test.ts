@@ -18,7 +18,7 @@ describe("ContractTextTests", () => {
     Assert.doesNotContain("going rate", rules);
     Assert.contains("Your strength is what you hold, never what you owe or are owed", rules);
     Assert.doesNotContain("back pay", rules);
-    Assert.contains("a servant's job done", leaderRules(true, newGameConfig({ sleepingSeats: true })));
+    Assert.contains("a fee you let fall due unpaid", leaderRules(true, newGameConfig({ sleepingSeats: true })));
   });
 
   test("Kings order a renewal with a fee an advance and a term and hire takes them too", () => {

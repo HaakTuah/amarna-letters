@@ -9,6 +9,8 @@ import {
   WorldMap,
   alive,
   dispatch,
+  hire,
+  renew,
   move,
   newAudienceRecord,
   newAudienceRound,
@@ -59,9 +61,16 @@ export function playRandom(seed: number, turns: number, config: GameConfig | nul
       }
       let home = map.homeOf(p).filter((x) => s.owner.get(x.id) === p && unitAt(s, x.id) === null);
       if (home.length > 0 && s.treasuries.get(p).gold > 300) sub.orders.push(raise(home[0].id, "Army"));
-      let envoy = firstOrNull(s.characters, (c) => c.employer === p && c.duty === "None" && c.at === p && c.status === "Employed");
+      // Each errand is a job (Haakon's answers to item 11a): a servant at court whose job is another errand, or a free
+      // person standing there, is offered the job for this one, generously, and sent at once.
+      let envoy =
+        firstOrNull(s.characters, (c) => c.employer === p && c.duty === "None" && c.at === p && c.status === "Employed") ??
+        firstOrNull(s.characters, (c) => c.status === "Free" && c.at === p && c.duty === "None" && c.heldBy === null && c.errand === null);
       if (envoy !== null && rng.chance(0.3)) {
         let to = rng.pick(alive(s).filter((x) => x !== p));
+        const job = { what: "envoy", where: to, payOnDone: true } as const;
+        if (envoy.status === "Free") sub.orders.push(hire(envoy.id, 600, 20, 100, job));
+        else if (envoy.contract?.errand != null) sub.orders.push(renew(envoy.id, 600, 20, 100, job));
         sub.orders.push(dispatch(envoy.id, to, "Greetings, brother.", { gold: 30, proposal: newTabletProposal({ text: "Peace between us." }) }));
       }
       subs.set(p, sub);

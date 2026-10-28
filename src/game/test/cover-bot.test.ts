@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
-import { type Power, Views, characterOf, first, newCover, newGame, newPendingTask, single } from "@amarna/engine";
+import { type Power, Views, characterOf, first, newCover,
+  newJobErrand, newGame, newPendingTask, single } from "@amarna/engine";
 import { ScriptLeader } from "@amarna/game";
 import { person, situation } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
@@ -25,6 +26,7 @@ describe("CoverBotTests", () => {
         advance: caught.contract!.advance,
         startTurn: caught.contract!.startTurn,
         contractUntil: caught.contract!.untilTurn,
+        errand: newJobErrand({ what: "spy", where: "Hatti" }),
       }),
     );
     let gone = servants[1];
@@ -59,7 +61,7 @@ describe("CoverBotTests", () => {
     // A model king reads the same: the caught spy at its post, never "at court, ready".
     let text = situation(view);
     Assert.contains(
-      `${caught.id} ${caught.name} of ${caught.origin}; watching Hatti; a job for ${caught.contract!.fee} shekels, ${caught.contract!.advance} handed over and ${rest(caught.contract!)} due when it is done, through turn ${caught.contract!.untilTurn};`,
+      `${caught.id} ${caught.name} of ${caught.origin}; watching Hatti; a job as spy on Hatti, for ${caught.contract!.fee} shekels, ${caught.contract!.advance} handed over and ${rest(caught.contract!)} due when it is done, by turn ${caught.contract!.untilTurn};`,
       text,
     );
     Assert.contains(`${gone.id} ${gone.name} of ${gone.origin}; on the road home;`, text);
@@ -87,7 +89,7 @@ describe("CoverBotTests", () => {
     Assert.contains("held captive at the court of Mitanni;", line);
     Assert.doesNotContain("ready", line);
     // Its job stands while it is held: its line names the job.
-    Assert.contains(`a job for ${spy.contract!.fee} shekels`, line);
+    Assert.contains(`for ${spy.contract!.fee} shekels`, line);
 
     // A demand shows only once its word has arrived.
     let demand = newPendingTask({ id: "q900", kind: "RansomDemand", requester: "Hatti", other: "Mitanni", characterId: spy.id, spend: 90, dueTurn: 6 });

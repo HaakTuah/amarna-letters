@@ -12,8 +12,10 @@ import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { feeFor, jobValue, rateOf, restOf, trustIn } from "./jobs.ts";
 
-/** The title of the notice that a servant's job is done: it wakes a sleeping seat. */
+/** The title of the notice that a servant's job is done. */
 export const NoticeTitle = "A job done";
+/** The title of the notice that a fee fell due unpaid: it wakes a sleeping seat, which has a season to pay it. */
+export const FeeDueTitle = "A fee due";
 
 declare module "./core.ts" {
   interface TurnEngine {

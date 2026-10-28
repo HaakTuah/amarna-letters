@@ -130,6 +130,13 @@ export class OrderValidator {
       const offered = orders.some((o) => (o.type === "hire" || o.type === "renew") && o.character === id && o.what === what && o.where === where);
       if (offered) return null;
       const cover = coverOf(c, power);
+      // One not in your service is sent only on the errand of the job offered it now.
+      if (cover === null && c.employer !== power) {
+        const job = orders.find((o) => o.type === "hire" && o.character === id);
+        return job !== undefined && job.type === "hire"
+          ? `the job offered ${c.name} is ${job.what === "envoy" ? `as envoy to ${job.where}` : `to watch ${job.where}`}: another errand is a new job`
+          : null;
+      }
       const e = cover !== null ? null : (c.contract?.errand ?? null);
       if (e === null) return null;
       if (e.what === what && e.where === where && !e.done) return null;
@@ -625,9 +632,10 @@ export class OrderValidator {
           if (c === null || c.status !== "Captured" || c.heldBy !== power) return `you hold no captive '${co.character}'`;
           // Item 10+b: a captive handed over travels under guard; it is nobody's to dispose of until it arrives.
           if (c.duty === "UnderGuard") return `${c.name} is on the road under guard and has not reached your court yet`;
+          // Taking what it carries is no task: the captive's fate may be decided too (Haakon's answers to item 11a).
+          if (co.fate === "TakePurse") return orders.some((o, i) => i < orders.indexOf(co) && o.type === "captive" && o.character === co.character && o.fate === "TakePurse") ? `you already take what ${c.name} carries` : c.purse + c.carriedFor > 0 || S.debts.some((d) => d.ended === null && d.holder === c.id && d.kept === "Person") ? null : `${c.name} carries nothing to take`;
           if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
           if (co.fate === "Ransom" && co.ransom <= 0) return "name a ransom";
-          if (co.fate === "TakePurse") return c.purse + c.carriedFor > 0 || S.debts.some((d) => d.ended === null && d.holder === c.id && d.kept === "Person") ? null : `${c.name} carries nothing to take`;
           // Item 10: questioning costs what is spent on it; a captive is handed over to a living court other than one's own.
           if (co.fate === "Question") {
             if ((co.spend ?? 0) < 10) return "questioning costs at least 10 shekels";

@@ -10,17 +10,12 @@ import { MoneyData, feeFor, hire, renew, travelTurns, newGameConfig, type Charac
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import { reliability, wouldPay } from "./statecraft-court.ts";
+// Script kings give each errand its own job always (the rule has no way round it); those that leave money alone
+// (`--money-play-half`) give no standing order to pay on completion and carry no tablets to collect.
+import { MoneyPlay } from "./credit.ts";
 
 const Config = newGameConfig();
 
-/** Script kings give each errand its own job (always: the rule has no way round it); `--no-errand-play` only drops the standing orders and offers abroad. */
-export const ErrandPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
-  off: false,
-  only: null,
-  on(me: string): boolean {
-    return !(this.off && (this.only === null || this.only.has(me)));
-  },
-};
 
 /** The free people standing at our court whom the court would send on an errand: priced, not claiming another king, unblemished. */
 export function freeAtCourt(b: Board, brain: Brain): CharacterView[] {
@@ -97,12 +92,12 @@ export function jobsForErrands(v: SeatView, orders: Order[], free: CharacterView
 export function errandJobs(b: Board, brain: Brain, orders: Order[]): void {
   const spare = brain.spareGold;
   // The fee a season its greed allows, and the advances out of the gold it can spare.
-  brain.spareGold -= jobsForErrands(b.v, orders, freeAtCourt(b, brain), (rate, spent) => wouldPay(brain.p, rate, Number.MAX_SAFE_INTEGER) && spent <= spare, ErrandPlay.on(b.me));
+  brain.spareGold -= jobsForErrands(b.v, orders, freeAtCourt(b, brain), (rate, spent) => wouldPay(brain.p, rate, Number.MAX_SAFE_INTEGER) && spent <= spare, MoneyPlay.on(b.me));
 }
 
 /** A tablet of our archive owed by the king an envoy goes to rides with it, to be presented there. */
 export function collecting(b: Board, orders: Order[]): Order[] {
-  if (!ErrandPlay.on(b.me)) return orders;
+  if (!MoneyPlay.on(b.me)) return orders;
   return orders.map((o) => {
     if (o.type !== "dispatch" || o.collect != null) return o;
     const d = b.v.debtsHeld.find((x) => x.holderId === o.to);

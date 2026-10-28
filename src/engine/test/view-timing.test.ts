@@ -77,8 +77,9 @@ describe("ViewTimingTests", () => {
       e.resolve(new Dict<Power, TurnSubmission>());
       e = begin(s);
     }
-    line = lineOf(s, "Egypt", envoy.id);
-    Assert.true(line.ready);
+    // Home from its errand, its job is done (Haakon's answers to item 11a): it stands free at court, with no timing.
+    line = single(Views.for(s, "Egypt").known, (c) => c.id === envoy.id);
+    Assert.equal("at your court", line.where);
     Assert.equal("", line.timing);
   });
 

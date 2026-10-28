@@ -16,7 +16,7 @@ import { AllPowers, land, type Power } from "../model/power.ts";
 import { isAlive, logEvent, newId, notify, char, type GameState } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
-import { askingPrice, NoticeTitle } from "./court.ts";
+import { askingPrice, FeeDueTitle, NoticeTitle } from "./court.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -146,7 +146,7 @@ P.fallsDue = function (c, p, amount, what) {
   c.owedDue.set(p, S.turn);
   remember(c, S.turn, `${what} The king of ${land(p)} owes me ${formatMoney(amount)}.`);
   if (isAlive(S, p))
-    notify(S, p, "Notice", "A fee due", `${c.name}: ${what} You owe them ${formatMoney(c.owed.get(p))}. Nothing is paid unless you order it: pay_fee pays it while they stand at your court; unpaid by the end of next season, it is a broken promise others will hear of.`, c.id);
+    notify(S, p, "Notice", FeeDueTitle, `${c.name}: ${what} You owe them ${formatMoney(c.owed.get(p))}. Nothing is paid unless you order it: pay_fee pays it while they stand at your court; unpaid by the end of next season, it is a broken promise others will hear of.`, c.id);
 };
 
 /**

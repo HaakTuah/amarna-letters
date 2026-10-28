@@ -318,11 +318,10 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     // Gold spent is score lost: worth it only against a king the court is at odds with, whose secrets matter to it.
     const atOdds = mr !== undefined && (mr.hostile || c.employer === brain.warTarget);
     // Haakon's answers to item 11a: what a captive carries stays on him until his captor orders it taken; a king takes it
-    // first, unless the captive's lord is a sworn ally or the king too honest to rob a prisoner.
+    // (beside deciding its fate), unless the captive's lord is a sworn ally or the king too honest to rob a prisoner.
     if ((c.carries ?? 0) >= 10 && !ally && p.honesty < 0.8 && !brain.stripped.has(c.id)) {
       orders.push(captive(c.id, "TakePurse"));
       brain.stripped.add(c.id);
-      continue;
     }
     if (people && atOdds && !worthless && !ally && !brain.questioned.has(c.id) && spare > 150) {
       const spend = Math.trunc(30 + 40 * p.cunning);

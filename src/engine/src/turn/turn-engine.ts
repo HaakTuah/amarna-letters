@@ -38,7 +38,7 @@ export { ArchiveTakenTitle, goldName } from "./archives.ts";
 export { SiegesTitle, EnvoyCaughtTitle } from "./sieges.ts";
 export { LossNewsSeasons } from "./intel.ts";
 export { MaxSpeech, CommittedPrefix, commitment, weighedGold } from "./envoys.ts";
-export { NoticeTitle, askingPrice, basePrice, errandWords } from "./court.ts";
+export { NoticeTitle, FeeDueTitle, askingPrice, basePrice, errandWords } from "./court.ts";
 export { trustIn, recordKnown, jobValue, feeFor, rateOf, restOf } from "./jobs.ts";
 export { endingWords } from "./life.ts";
 export { arrivalChance } from "./pool.ts";
