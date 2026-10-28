@@ -263,3 +263,15 @@ Given in the design chat with Claude, answering the design questions of the cons
     > omitted, to their employeer, or their employeer gets word of it, then that reveals they broke their contract.
 
     Written into the design document as item 11b++ and as "Memory" and "Reports" in "The game in one page".
+
+28. **00:39 to 00:43**, in the design chat, after the builder of item 11+ reported that code-PR checks had grown from
+    about 6.5 to 10 minutes because test games now have 30 powers, and Claude proposed asking for small test games:
+
+    > I don't want it to stop development though. I am going to bed now, but I want it to get to the bottom of it, yes.
+
+    Then, to Claude's proposal to make it a standing rule in both games:
+
+    > Yes, make it expertly so! Are there more optimizations we can aplly to the development of the 2 games, maestro?
+
+    A standing instruction in `CLAUDE.md` ("the smallest game that tests the rule"), for this game and Barkstreet
+    Snakes alike.
