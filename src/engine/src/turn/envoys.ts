@@ -188,6 +188,8 @@ P.dispatch = function (p, d) {
     ? newTabletProposal({
         text: structured || isBlank(d.proposal.text) ? renderClauses(tabletClauses, p, d.to) : this.scribe(p, cap(d.proposal.text, 1200)),
         allianceOath: d.proposal.allianceOath,
+        // The vassal mark names one of the two kings, or nothing (item 11+).
+        vassal: d.proposal.vassal === p || d.proposal.vassal === d.to ? d.proposal.vassal : null,
         clauses: tabletClauses,
       })
     : null;
@@ -229,7 +231,7 @@ P.dispatch = function (p, d) {
     collect: collect?.id ?? null,
   });
   if (proposal !== null) {
-    const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, clauses: tabletClauses });
+    const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, vassal: proposal.vassal, clauses: tabletClauses });
     S.tablets.push(tablet);
     dispatch.proposalTabletId = tablet.id;
     this.saw(c, tablet.id);

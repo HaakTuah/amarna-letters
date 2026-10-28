@@ -4,6 +4,10 @@
  */
 import {
   GameConfigSchema,
+  AllPowers,
+  StartVassals,
+  fmt,
+  parOf,
   MaxAnswers,
   ageBand,
   bandWords,
@@ -51,18 +55,31 @@ export function ending(c: GameConfig): string {
     : `- ${bandWords(ageBand(c.endMedian))} Nobody knows which season is the last, and nothing you see foretells it.`;
 }
 
+/** The opening vassal bonds, by overlord, as every court knows them (item 11+, "Opening relations as they were"). */
+function openingBondsLine(): string {
+  const by = new Map<string, string[]>();
+  for (const b of StartVassals) by.set(b.overlord, [...(by.get(b.overlord) ?? []), `${b.vassal} ${b.tribute}`]);
+  return [...by.entries()].map(([o, vs]) => `${o}'s vassals ${vs.join(", ")}`).join("; ");
+}
+
+/** Par for each starting position, as the rulebook gives it (item 11+). */
+export function parLine(): string {
+  return AllPowers.map((p) => `${p} ${fmt(parOf(p), "0.00")}`).join(", ");
+}
+
 function rules(primer: boolean, c: GameConfig): string
     {
 
         const sb = new Sb();
         // A house rule: the kings read it only in games that use it.
         const sharedVictory = c.sharedVictory
-            ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their combined growth beats every other power's growth.`
+            ? `\n- Shared victory: two powers that sealed a tablet marked as a sworn alliance win together if their combined growth against their par beats every other power's.`
             : ``;
-        sb.appendLine(`You are playing Amarna Letters, a strategy game set among the seven Great Kings of the Late Bronze Age (c. 1360-1330 BCE): Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus). The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one king. Your only goal is to win.
+        sb.appendLine(`You are playing Amarna Letters, a strategy game set in the Late Bronze Age (c. 1360-1330 BCE), among the seven Great Kings, Egypt, Hatti, Babylonia (Karduniash), Mitanni, Assyria, Arzawa and Alashiya (Cyprus), and the city-states and chiefs between them (Byblos, Amurru, Ugarit, Carchemish and the rest; the Kaska, the Lukka men and the Suteans under their chiefs), every one a power with the same rules and the same goal. The engine enforces only physics: movement, combat, production and payment. Every treaty, alliance and betrayal is invented by the players. You play one power, a king or the ruler of a city. Your only goal is to win.
 
 HOW YOU WIN
-- The winner is the power whose strength grew most relative to its own starting strength. Strength is the wealth of your realm, reckoned in shekels: ${c.provinceWeight} x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it) + the gold in your treasury + the gold in the people's purses of your provinces + the grain in their stores and markets (a shekel a measure) + what your own men carry (your troops' grain and their savings, your caravans' grain): what you hold, never what you owe or are owed. Gold that moves within your land changes nothing: pay spent at home goes into your people's purses, and your sales at your markets draw it back. Food eaten, grain spoiled and gold that leaves your land lower it. A small kingdom that doubles beats an empire that merely holds its ground.
+- The winner is the power whose growth (its strength against its own starting strength) stands highest against par for its starting position (PAR, below): a power that grows as powers that started where it did usually grow is at par, and one-city powers and empires stand level. Strength is the wealth of your realm, reckoned in shekels: ${c.provinceWeight} x what your land produces in a season (its harvest in a season as your people bring it in over the year (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it) + the gold in your treasury + the gold in the people's purses of your provinces + the grain in their stores and markets (a shekel a measure) + what your own men carry (your troops' grain and their savings, your caravans' grain): what you hold, never what you owe or are owed. Gold that moves within your land changes nothing: pay spent at home goes into your people's purses, and your sales at your markets draw it back. Food eaten, grain spoiled and gold that leaves your land lower it. A small kingdom that doubles beats an empire that merely holds its ground.
+- PAR, the growth a power that started where it did usually reaches by the end, in the games it survives, from script games: ${parLine()}.
 ${ending(c)}${sharedVictory}
 - A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him (if he falls too in the same season, it passes on with his own land), your troops disband, and what you owe dies with you. You cannot cede your capital. Take a rival's capital and his whole kingdom is yours.`);
 
@@ -115,8 +132,8 @@ STANDING ANSWERS (standing_answers, in your orders or at your court)
 - Give one only for what you would answer the same way whatever else he says: whatever he says beyond his gifts and his tablet goes unanswered until your next letter.
 
 ECONOMY
-- Gold is counted in shekels (60 shekels make a mina). Raise an army for ${c.armyCost} or a fleet for ${c.fleetCost}, only in a province of your own homeland that you still hold and that is empty after movement. Buy a free city-state for what it adds to your strength (its land's worth, its people's purse and the grain in its stores and market; FREE CITIES in your view gives each one's price, which leaves the world, paid to its notables) if it borders your land or troops, or lies one voyage from one of your coasts (its waters the same as your coast's, or next to them). A land without a king has no elders to sell it: it is taken only by force. You may cede provinces or give troops to another power.
-- Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you its tax and its mines' gold, and counts in your strength, a third of its full worth in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third. A province of your own homeland that you take back or are ceded is yours in full at once, and so is land bought, or ceded to you, unless its giver was still absorbing it: then it goes on being absorbed under you as it would have been under him. LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is not shown.
+- Gold is counted in shekels (60 shekels make a mina). Raise an army for ${c.armyCost} or a fleet for ${c.fleetCost}, only in a province of your own homeland that you still hold and that is empty after movement. No city is bought: a city comes under another's power by conquest, or by agreement as his vassal, and a vassal stays a power of its own (VASSALS). You may cede provinces (never your capital) or give troops to another power.
+- Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you its tax and its mines' gold, and counts in your strength, a third of its full worth in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third. A province of your own homeland that you take back or are ceded is yours in full at once, and so is land ceded to you, unless its giver was still absorbing it: then it goes on being absorbed under you as it would have been under him. LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is not shown.
 ${economyRules(c)}
 - Gold sent abroad travels with an envoy and arrives late. You may send it debased (purity below 100%): the receiver sees its weight, not its fineness, until they pay ${c.assayFee} for an assay. Your own treasury figure counts unassayed gold at its weight.
 
@@ -140,6 +157,11 @@ CLAUSES: EVERY LETTER'S FORMULAS
 - An envoy recites the clauses, and may change them by his motives as he may your words: drop one, leave out a threat, state a gift as what is left of it, add a courtesy, or report an answer as other than it was. The host sees the clauses the envoy recited; you see the answer as your envoy reports it.
 - Each clause names a kind and only the fields its kind uses (king, province, into, season, gold, answers); a clause that cannot stand (a move between provinces that do not border, a season gone by) is left out, and you are told why. At most ${MaxClauses} clauses in a letter, a tablet or an answer. Clauses oblige nobody, like tablets: what is promised is kept or broken by deeds. The one exception is passage and basing on a sealed tablet (AUTHORITY AND PASSAGE).
 ${ClauseGuide.map((x) => "- " + x).join("\n")}
+
+VASSALS
+- Between any two powers, a king over a king included, vassalage is an agreement like any other: a sealed tablet marked as a vassal treaty (vassal_treaty names the vassal), usually in the template's clauses: tribute or askTribute (gold each year), protect or askProtect (the overlord guards the vassal's land), serve or askServe (the vassal takes up no arms against the overlord or his friends, and sends troops when called). The mark changes no rule and binds nobody: tribute is gold sent by envoy, troops are troops sent, and the rest is words, kept or broken by choice.
+- Tribute counts like any gold that crosses a border: it leaves the vassal's wealth and joins the overlord's as it arrives, and nothing else of the bond counts. A vassal is a power of its own on the same scoreboard, so holding a vassal is not holding his land.
+- At the start these cities hold sealed vassal tablets with their overlords (tribute a year in shekels): ${openingBondsLine()}. The others serve nobody.
 
 ${intelligenceRules(c)}`);
 
@@ -174,7 +196,7 @@ Every king knows these customs, and knows that every other king knows them. They
         {
             const coasts = p.isSea ? map.coastsOf(p.id).map((x) => x.id) : [];
             const kind = p.isSea ? (coasts.length > 0 ? `sea zone, the waters of ${joinS(` and `, coasts)}` : `sea zone`) : p.isCoastal ? `coast; waters ${p.waters}` : `land`;
-            const home = p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : p.kingless ? `a land without a king` : `free city-state`;
+            const home = p.home !== null ? `homeland of ${p.home}` : p.isSea ? `` : `held by no one`;
             const armies = p.isSea ? `` : ` armies: ${joinS(`, `, map.movesFrom("Army", p.id).map(n => link(p.id, n)))}.`;
             const fleets = p.isSea || p.isCoastal ? ` fleets: ${joinS(`, `, map.movesFrom("Fleet", p.id).map(n => link(p.id, n)))}.` : ``;
             const w = StartWalls.get(p.id) ?? 0;

@@ -95,7 +95,8 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
           <div className="tablet">{a.proposal.text}</div>
           <small>
             Already sealed by {a.proposal.seals.join(", ")}
-            {a.proposal.allianceOath ? " · a sworn alliance" : ""}.
+            {a.proposal.allianceOath ? " · a sworn alliance" : ""}
+            {a.proposal.vassal ? ` · a vassal treaty: ${a.proposal.vassal} the vassal` : ""}.
           </small>
         </>
       )}

@@ -15,6 +15,7 @@ import {
   TurnSubmissionSchema,
   Views,
   WorldMap,
+  publicWorthOf,
   TurnEngine,
   distinct,
   fmt,
@@ -162,10 +163,10 @@ describe("BotTests", () => {
     let first = Views.for(s, "Hatti");
     brain.learn(first, new Board(first));
 
-    // Egypt buys two cities of the Levant: its land grows by a quarter, its treasury shrinks by as much.
+    // Egypt takes two cities of the Levant and pays as much out: its land grows by a quarter, its treasury shrinks by as much.
     for (const city of ["megiddo", "tyre"]) {
       known(s, city, "Egypt");
-      s.treasuries.get("Egypt").gold -= new TurnEngine(s).cityPrice(city);
+      s.treasuries.get("Egypt").gold -= publicWorthOf(WorldMap.default.get(city), s.config.provinceWeight);
     }
     s.turn = 6;
     let view = Views.for(s, "Hatti");

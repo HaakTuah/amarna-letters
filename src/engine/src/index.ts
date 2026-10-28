@@ -15,6 +15,7 @@ export * from "./rules/ending.ts";
 export * from "./rules/factory.ts";
 export * from "./rules/greeting.ts";
 export * from "./rules/opening.ts";
+export * from "./rules/realm.ts";
 export * from "./rules/wealth.ts";
 export * from "./rules/personas.ts";
 export * from "./rules/scoring.ts";

@@ -6,7 +6,6 @@ import {
   type ClauseKind,
   WorldMap,
   besiege,
-  buy,
   captive,
   question,
   handOver,
@@ -306,7 +305,7 @@ export function letters(o: JsonObject): Order[] {
         }),
         gold: Math.max(0, I(l, "gold")),
         purityPercent: clamp(purity === 0 ? 100 : purity, 10, 100),
-        proposal: tablet.length > 0 || tabletClauses.length > 0 ? newTabletProposal({ text: tablet, allianceOath: B(l, "sworn_alliance"), clauses: tabletClauses }) : null,
+        proposal: tablet.length > 0 || tabletClauses.length > 0 ? newTabletProposal({ text: tablet, allianceOath: B(l, "sworn_alliance"), vassal: P(S(l, "vassal_treaty")), clauses: tabletClauses }) : null,
         copies: copies.length > 0 ? copies : null,
         clauses: clausesOf(l, "clauses"),
         noInventory: B(l, "no_inventory"),
@@ -379,8 +378,6 @@ function other(x: Node): Order | null {
       return raise(province, "Army", amount > 0 ? amount : null);
     case "raise_fleet":
       return raise(province, "Fleet", amount > 0 ? amount : null);
-    case "buy_city":
-      return buy(province);
     case "fortify":
       return fortify(province);
     case "sell_grain":

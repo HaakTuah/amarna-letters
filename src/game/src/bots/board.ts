@@ -3,6 +3,7 @@
  * it last saw where it cannot see now), what each province is worth, who could strike where.
  */
 import {
+  standingOf,
   AllPowers,
   EconomyData,
   landWorthOf,
@@ -12,6 +13,8 @@ import {
   StartGold,
   StartUnits,
   carriedOf,
+  forMen,
+  menOf,
   WinterSeason,
   WorldMap,
   seasonOfTurn,
@@ -268,14 +271,17 @@ export class Board {
           sum(Board.Map.homeOf(p), (x) => this.worth(x.id)),
           StartGold.get(p)!,
           // The opening troops' baggage: so a rival's starting strength is the engine's own.
-          sum(StartUnits.filter((u) => u.power === p), (u) => carriedOf(u.kind)),
+          sum(StartUnits.filter((u) => u.power === p), (u) => forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind))),
         );
   }
 
-  /** Strength against what the king started with: the measure the game is won by. */
+  /**
+   * Strength against what the king started with, against par for his starting position: the measure the game is won by
+   * (item 11+, "One scoreboard for every power"), so a king weighs rivals by the engine's own function.
+   */
   growth(p: Power): number {
     let g = this.growthCache.tryGet(p);
-    if (g === undefined) this.growthCache.set(p, (g = this.alive.has(p) ? this.strength(p) / this.startStrength(p) : 0));
+    if (g === undefined) this.growthCache.set(p, (g = this.alive.has(p) ? standingOf(p, this.strength(p) / this.startStrength(p)) : 0));
     return g;
   }
 

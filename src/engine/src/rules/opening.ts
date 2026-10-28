@@ -6,6 +6,7 @@ import { WorldMap, StartGold, StartUnits, type StartUnit, type UnitKind } from "
 import type { GameConfig } from "../model/config.ts";
 import { carriedOf, economyOf, grainWorth, harvestOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
 import { strengthOf } from "./scoring.ts";
+import { forMen, menOf } from "../model/land.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import { StartClaims } from "../model/recognition.ts";
 
@@ -43,7 +44,7 @@ export function openings(config: GameConfig, map: WorldMap | null = null): Openi
       held += startPurseOf(x) + grainWorth(startStoresOf(x) + needOf(x));
     }
     const units = StartUnits.filter((u) => u.power === p);
-    for (const u of units) held += grainWorth(carriedOf(u.kind));
+    for (const u of units) held += grainWorth(forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind)));
     const gold = StartGold.get(p)!;
     return { power: p, units, homelandYield: y, gold, strength: strengthOf(config.provinceWeight, y, gold, held) };
   });

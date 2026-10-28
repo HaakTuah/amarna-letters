@@ -236,10 +236,10 @@ export const grainWorth = (measures: number): number => idiv(measures * EconomyD
 export const priceForTen = (centi: number): number => idiv(centi * 10 + 50, 100);
 
 /**
- * What a free city asks to be bought ("a bought city's price is what it adds"): the worth of its land at the land's multiple,
- * its people's purse, and the grain in its stores and market at reference prices.
+ * What a province adds to its holder's strength: the worth of its land at the land's multiple, its people's purse, and the
+ * grain in its stores and market at reference prices. Until item 11+ it was also a free city's price; no city is bought now.
  */
-export function cityPriceOf(p: Province, weight: number, purse: number, grain: number, harvest: number = harvestOf(p)): number {
+export function provinceWorthOf(p: Province, weight: number, purse: number, grain: number, harvest: number = harvestOf(p)): number {
   return weight * (grainWorth(harvest) + economyOf(p).mine) + purse + grainWorth(grain);
 }
 
@@ -248,7 +248,7 @@ export function cityPriceOf(p: Province, weight: number, purse: number, grain: n
  * its purse, stores and market as they stood at the start. The script kings' estimate of a rival's wealth.
  */
 export function publicWorthOf(p: Province, weight: number): number {
-  return cityPriceOf(p, weight, startPurseOf(p), startStoresOf(p) + needOf(p));
+  return provinceWorthOf(p, weight, startPurseOf(p), startStoresOf(p) + needOf(p));
 }
 
 /** What a province's land adds to strength: the land's multiple times what it produces a season at reference prices. */

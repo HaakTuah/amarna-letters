@@ -444,6 +444,8 @@ export interface TabletView {
   partner: Power | null;
   sealedTurn: number | null;
   allianceOath: boolean;
+  /** The vassal it names, if marked as a vassal treaty (item 11+). */
+  vassal: Power | null;
   source: string;
   authResult: string | null;
   clauses: Clause[];
@@ -468,6 +470,7 @@ export function newTabletView(init: Partial<TabletView> = {}): TabletView {
     partner: null,
     sealedTurn: null,
     allianceOath: false,
+    vassal: null,
     source: "",
     authResult: null,
     byHand: null,
@@ -489,6 +492,7 @@ export const TabletViewSchema: ObjSchema<TabletView> = obj("TabletView", newTabl
   partner: opt(S),
   sealedTurn: opt(I),
   allianceOath: B,
+  vassal: opt(S),
   source: S,
   authResult: S,
   byHand: opt(S),
@@ -679,8 +683,6 @@ export interface SeatView {
   markets: Dict<string, MarketSeen>;
   /** The tolls it sets, and those on its goods as last reported to it (item 10+b: never posted). */
   tolls: Toll[];
-  /** What each free city's elders ask to be bought: what it adds, its land's worth, purse, stores and market (public). */
-  cityPrices: Dict<string, number>;
   /**
    * The yield of each land province the court sees (its own and those in its sight), as its people bring it in now
    * (item 10+a), on the scale of the map's yields: a ravaged or emptied province yields less than at the start.
@@ -763,7 +765,6 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     caravans: [],
     markets: new Dict(),
     tolls: [],
-    cityPrices: new Dict(),
     yields: new Dict(),
     resistance: new Dict(),
     walking: 0,
@@ -836,7 +837,6 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   caravans: list(() => CaravanViewSchema),
   markets: dict(() => MarketSeenSchema),
   tolls: list(() => TollSchema),
-  cityPrices: dict(I),
   yields: dict(I),
   resistance: dict(I),
   walking: I,

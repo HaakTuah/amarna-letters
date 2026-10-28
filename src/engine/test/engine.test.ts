@@ -11,7 +11,6 @@ import {
   WorldMap,
   economyOf,
   alive,
-  buy,
   clone,
   count,
   formatMoney,
@@ -126,8 +125,8 @@ describe("EngineTests", () => {
 
   test("Validator rejects illegal and unaffordable orders", () => {
     let s = newGame(1);
-    // Two levies, Gaza's price and a little more: Jerusalem's is more than is left.
-    s.treasuries.get("Egypt").gold = 2 * s.config.armyCost + new TurnEngine(s).cityPrice("gaza") + 50;
+    // One levy and a little more: the second is more than is left.
+    s.treasuries.get("Egypt").gold = s.config.armyCost + 50;
     let v = new OrderValidator(s);
     let result = v.validate(
       "Egypt",
@@ -140,13 +139,11 @@ describe("EngineTests", () => {
           move("memphis", "sinai"),
           move("memphis", "delta") /* second order for the same unit */,
           raise("thebes", "Army"),
-          raise("akhetaten", "Army"),
-          buy("gaza") /* leaves 50 */,
-          buy("jerusalem") /* more than is left */,
+          raise("akhetaten", "Army") /* more than is left */,
         ],
       }),
     );
-    Assert.equal(4, result.accepted.length);
+    Assert.equal(2, result.accepted.length);
     Assert.equal(6, result.rejected.length);
     Assert.contains(result.rejected, (r) => r.reason.includes("not enough gold"));
   });
@@ -161,28 +158,9 @@ describe("EngineTests", () => {
     Assert.equal(gold - s.config.armyCost, s.treasuries.get("Egypt").gold);
   });
 
-  test("Buying a neutral city transfers it", () => {
-    let s = newGame(1);
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    s.treasuries.get("Egypt").gold = 5000;
-    e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [buy("gaza")] })]]));
-    Assert.equal("Egypt", s.owner.get("gaza"));
-    Assert.equal(2, wallsOf(s, "gaza")); // a bought city keeps its walls, now for its owner
-  });
-
-  test("Islands can buy across the sea but not inland", () => {
-    let s = newGame(1);
-    removeAll(s.units, (u) => u.power === "Alashiya");
-    s.treasuries.get("Alashiya").gold = 5000;
-    let v = new OrderValidator(s).validate("Alashiya", newTurnSubmission({ orders: [buy("byblos"), buy("suhu")] }));
-    Assert.single(v.accepted);
-    Assert.contains(v.rejected, (r) => r.order.type === "buy" && r.order.province === "suhu");
-  });
-
   test("Bought walls stand for their owner who may enter them", () => {
     let s = newGame(1);
-    s.owner.set("gaza", "Egypt"); // bought: the walls stay
+    s.owner.set("gaza", "Egypt"); // its own: the walls stand for it
     s.units.length = 0;
     s.units.push(newUnit({ id: "u1", power: "Egypt", kind: "Army", province: "sinai" }));
     s.units.push(newUnit({ id: "u2", power: "Babylonia", kind: "Army", province: "megiddo" }));
@@ -220,21 +198,6 @@ describe("EngineTests", () => {
     Assert.equal("foreign-support:Hatti", held.signal);
     Assert.contains("against Hatti", held.text);
     Assert.equal("Mitanni", unitAt(s, "washukanni")?.power);
-  });
-
-  test("Rival buyers bounce", () => {
-    let s = newGame(1);
-    s.owner.set("megiddo", "Babylonia");
-    s.walls.delete("megiddo");
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    e.resolve(
-      new Dict([
-        ["Egypt", newTurnSubmission({ orders: [buy("gaza")] })],
-        ["Babylonia", newTurnSubmission({ orders: [buy("gaza")] })],
-      ]),
-    );
-    Assert.null(s.owner.get("gaza"));
   });
 
   test("Game ends at its drawn last season, and always by the cap", () => {

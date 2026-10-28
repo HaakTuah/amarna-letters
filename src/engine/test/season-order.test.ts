@@ -8,7 +8,6 @@ import {
   type RejectedOrder,
   TurnEngine,
   assay,
-  buy,
   cede,
   check,
   dispatch,
@@ -135,26 +134,4 @@ describe("SeasonOrderTests", () => {
     Assert.equal(gold, s.treasuries.get("Egypt").gold);
   });
 
-  test("Rival bids are told how many buyers the elders would not choose between", () => {
-    let s = newGame(1);
-    for (const t of s.treasuries.values()) t.gold += 5000;
-    s.owner.set("megiddo", "Babylonia");
-    s.walls.delete("megiddo");
-    s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "megiddo" }));
-    let e = new TurnEngine(s);
-    e.beginTurn();
-    e.resolve(
-      new Dict([
-        ["Egypt", newTurnSubmission({ orders: [buy("gaza")] })],
-        ["Babylonia", newTurnSubmission({ orders: [buy("gaza")] })],
-      ]),
-    );
-
-    for (const p of ["Egypt", "Babylonia"] as const) {
-      let notice = single(inboxOf(s, p), (i) => i.title === "Purchase failed");
-      Assert.equal("Rejected", notice.kind);
-      Assert.equal("The elders of Gaza would not choose between 2 buyers last season. No gold was paid.", notice.body);
-    }
-    Assert.null(s.owner.get("gaza"));
-  });
 });

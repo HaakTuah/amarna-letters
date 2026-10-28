@@ -124,6 +124,68 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
     names: ["Eshuwara", "Kushmeshu-ziti", "Tamarisa"],
     callings: ["copper trader", "sailor", "merchant"],
   },
+  // The city-states' regions (item 11+), in the dossier's styles for the Levant, Ugarit, Syria (Hurrian and Amorite), Nuzi,
+  // Elam, the Suteans (West Semitic, as the Levant) and, where no names survive, Kaska and Lukka in the Anatolian style [G].
+  {
+    court: "Byblos",
+    origins: ["Byblos", "Beirut", "Sidon", "Tyre"],
+    names: ["Zimri-Addu", "Abdi-Baalu", "Ilu-rapi", "Shum-Hadda", "Milku-ahi"],
+    callings: ["merchant of the coast", "sailor", "scribe", "timber trader"],
+  },
+  {
+    court: "Megiddo",
+    origins: ["Megiddo", "Shechem", "Jerusalem", "Hazor"],
+    names: ["Ammu-rapi", "Hadda-yaqar", "Zimri-Baalu", "Abdi-Rasha"],
+    callings: ["caravan master", "soldier", "scribe", "herdsman"],
+  },
+  {
+    court: "Aleppo",
+    origins: ["Aleppo", "Alalakh", "Qatna", "Carchemish"],
+    names: ["Akit-Teshup", "Kili-Teshup", "Addu-mutu", "Shatu-ili"],
+    callings: ["charioteer", "merchant", "interpreter", "scribe"],
+  },
+  {
+    court: "Ugarit",
+    origins: ["Ugarit"],
+    names: ["Abdi-Anati", "Puzru", "Yadinu", "Ilu-shalim"],
+    callings: ["merchant", "sailor", "scribe", "copper trader"],
+  },
+  {
+    court: "Damascus",
+    origins: ["Damascus", "Qadesh", "Kumidi"],
+    names: ["Addu-bani", "Shuttiya"],
+    callings: ["caravan master", "soldier"],
+  },
+  {
+    court: "Arrapha",
+    origins: ["Arrapha", "Nuzi"],
+    names: ["Akip-tilla", "Hut-Teshup", "Kipaya"],
+    callings: ["scribe", "merchant", "charioteer"],
+  },
+  {
+    court: "Elam",
+    origins: ["Susa", "Anshan"],
+    names: ["Pahir-ili", "Humban-ahpi", "Kutir-Huban"],
+    callings: ["merchant", "soldier", "scribe"],
+  },
+  {
+    court: "Suteans",
+    origins: ["the Sutean steppe", "Tadmor"],
+    names: ["Ammu-ili", "Yaqqim-Addu", "Sumu-ilu"],
+    callings: ["herdsman", "caravan guide", "hired fighter"],
+  },
+  {
+    court: "Kaska",
+    origins: ["the Kaska hills"],
+    names: ["Piyapili", "Hinnuwa"],
+    callings: ["herdsman", "hired fighter"],
+  },
+  {
+    court: "Lukka",
+    origins: ["Lukka"],
+    names: ["Kuwatalla", "Zarniya"],
+    callings: ["sailor", "hired fighter"],
+  },
 ];
 
 /** Names invented by a character who gives a false one (item 10, "Declaring a name"), in the regions' styles. */

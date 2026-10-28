@@ -1,6 +1,6 @@
 import type { Dict } from "../core/collections.ts";
 import { eqIgnoreCase, isBlank, trim } from "../core/text.ts";
-import type { Power } from "./power.ts";
+import { isGreatKing, type Power } from "./power.ts";
 import { crossingBetween } from "./geography.ts";
 
 export const ProvinceKindValues = ["Land", "Coast", "Sea"] as const;
@@ -29,7 +29,10 @@ export interface Province {
   readonly isCoastal: boolean;
   /** A coastal province's waters: the sea zone off its harbour and shore. Null inland and at sea. */
   readonly waters: string | null;
-  /** A land without a king (the Kaska lands, the Sutean steppe): no walls, and no elders to sell it ("The edges of the map"). */
+  /**
+   * A land without a town (the Kaska lands, Lukka, the Sutean steppe): villages and herders under chiefs, with no walls and
+   * no market ("The edges of the map"). Since item 11+ each starts under one leader of its own ("Land without a ruler").
+   */
   readonly kingless: boolean;
 }
 
@@ -171,19 +174,6 @@ export class WorldMap {
     return wa !== null && wb !== null && (wa === wb || this.areAdjacent(wa, wb));
   }
 
-  /**
-   * Can a power buy this free city? It must border the power's land or troops, or lie one voyage from one of the
-   * power's coasts ({@link sharesSea}): islands trade by ship.
-   */
-  withinReach(city: string, power: Power, owner: Dict<string, Power | null>, ownUnitProvinces: Iterable<string>): boolean {
-    if (this.get(city).kingless) return false;
-    const units = [...ownUnitProvinces];
-    if (this.neighbors(city).some((n) => owner.getOrDefault(n, null) === power || units.includes(n))) return true;
-    if (!this.get(city).isCoastal) return false;
-    for (const [k, v] of owner.entries()) if (v === power && this.sharesSea(k, city)) return true;
-    return false;
-  }
-
   /** Is there a chain of sea zones linking two coastal provinces (ignoring fleets)? */
   seaRouteExists(from: string, to: string): boolean {
     if (!this.get(from).isCoastal || !this.get(to).isCoastal || from === to) return false;
@@ -295,36 +285,38 @@ export function buildMap(): WorldMap {
     p("kalavasos", "Kalavasos", "Coast", "Alashiya", 40, false, 290, 410, 34.77, 33.3),
     p("enkomi", "Enkomi", "Coast", "Alashiya", 45, true, 365, 395, 35.16, 33.88),
 
-    // Free city-states: taken by force (each has walls: see StartWalls) or bought
-    p("isuwa", "Isuwa", "Land", null, 30, false, 565, 105, 38.67, 39.22),
-    p("carchemish", "Carchemish", "Land", null, 35, false, 575, 185, 36.83, 38.02),
-    p("alalakh", "Alalakh", "Land", null, 25, false, 495, 245, 36.24, 36.38),
-    p("aleppo", "Aleppo", "Land", null, 35, false, 560, 255, 36.2, 37.16),
-    p("ugarit", "Ugarit", "Coast", null, 40, false, 478, 302, 35.6, 35.78),
-    p("nuhashshe", "Nuhashshe", "Land", null, 25, false, 620, 300, 35.5, 37.0),
-    p("qatna", "Qatna", "Land", null, 30, false, 648, 345, 34.84, 36.86),
-    p("qadesh", "Qadesh", "Land", null, 30, false, 570, 355, 34.56, 36.52),
+    // The city-states, each a power of its own since item 11+ ("City-states as powers"), its one city its capital: taken by
+    // force (each has walls: see StartWalls) or by agreement, never bought. Gaza and Sumur are Egypt's own land, governed
+    // by its commissioners ("Opening relations as they were"; the politics dossier).
+    p("isuwa", "Isuwa", "Land", "Isuwa", 30, true, 565, 105, 38.67, 39.22),
+    p("carchemish", "Carchemish", "Land", "Carchemish", 35, true, 575, 185, 36.83, 38.02),
+    p("alalakh", "Alalakh", "Land", "Alalakh", 25, true, 495, 245, 36.24, 36.38),
+    p("aleppo", "Aleppo", "Land", "Aleppo", 35, true, 560, 255, 36.2, 37.16),
+    p("ugarit", "Ugarit", "Coast", "Ugarit", 40, true, 478, 302, 35.6, 35.78),
+    p("nuhashshe", "Nuhashshe", "Land", "Nuhashshe", 25, true, 620, 300, 35.5, 37.0),
+    p("qatna", "Qatna", "Land", "Qatna", 30, true, 648, 345, 34.84, 36.86),
+    p("qadesh", "Qadesh", "Land", "Qadesh", 30, true, 570, 355, 34.56, 36.52),
     // Amurru, the hill country behind the coast, and Ṣumur (Tell Kazel), Egypt's base on that coast, a province of its own
     // since item 8 (Haakon's answer to item 7a's review: the period first, the phone made to read it).
-    p("amurru", "Amurru", "Land", null, 20, false, 520, 390, 34.7, 36.2),
-    p("sumur", "Sumur", "Coast", null, 15, false, 477, 372, 34.82, 35.98),
-    p("arwad", "Arwad", "Coast", null, 20, false, 453, 366, 34.86, 35.86),
-    p("byblos", "Byblos", "Coast", null, 30, false, 478, 428, 34.12, 35.65),
-    p("sidon", "Sidon", "Coast", null, 25, false, 470, 478, 33.56, 35.37),
-    p("damascus", "Damascus", "Land", null, 25, false, 580, 450, 33.51, 36.29),
-    p("tyre", "Tyre", "Coast", null, 25, false, 462, 530, 33.27, 35.2),
-    p("megiddo", "Megiddo", "Land", null, 20, false, 540, 525, 32.58, 35.18),
-    p("shechem", "Shechem", "Land", null, 20, false, 548, 585, 32.21, 35.28),
-    p("jerusalem", "Jerusalem", "Land", null, 15, false, 515, 632, 31.78, 35.23),
-    p("gaza", "Gaza", "Coast", null, 20, false, 450, 595, 31.5, 34.46),
-    p("suhu", "Suhu", "Land", null, 35, false, 690, 395, 34.47, 41.95),
-    p("arrapha", "Arrapha", "Land", null, 30, false, 930, 262, 35.47, 44.39),
-    p("susa", "Susa", "Coast", null, 35, false, 975, 470, 32.19, 48.26),
-    // The edges: lands without a king
+    p("amurru", "Amurru", "Land", "Amurru", 20, true, 520, 390, 34.7, 36.2),
+    p("sumur", "Sumur", "Coast", "Egypt", 15, false, 477, 372, 34.82, 35.98),
+    p("arwad", "Arwad", "Coast", "Arwad", 20, true, 453, 366, 34.86, 35.86),
+    p("byblos", "Byblos", "Coast", "Byblos", 30, true, 478, 428, 34.12, 35.65),
+    p("sidon", "Sidon", "Coast", "Sidon", 25, true, 470, 478, 33.56, 35.37),
+    p("damascus", "Damascus", "Land", "Damascus", 25, true, 580, 450, 33.51, 36.29),
+    p("tyre", "Tyre", "Coast", "Tyre", 25, true, 462, 530, 33.27, 35.2),
+    p("megiddo", "Megiddo", "Land", "Megiddo", 20, true, 540, 525, 32.58, 35.18),
+    p("shechem", "Shechem", "Land", "Shechem", 20, true, 548, 585, 32.21, 35.28),
+    p("jerusalem", "Jerusalem", "Land", "Jerusalem", 15, true, 515, 632, 31.78, 35.23),
+    p("gaza", "Gaza", "Coast", "Egypt", 20, false, 450, 595, 31.5, 34.46),
+    p("suhu", "Suhu", "Land", "Suhu", 35, true, 690, 395, 34.47, 41.95),
+    p("arrapha", "Arrapha", "Land", "Arrapha", 30, true, 930, 262, 35.47, 44.39),
+    p("susa", "Susa", "Coast", "Elam", 35, true, 975, 470, 32.19, 48.26),
+    // The edges: lands without a king, each under one leader of its own since item 11+ ("Land without a ruler")
     // Lukka, the Lycian coast of seafarers and raiders, ruled by no king (since item 8: Haakon's answer to item 7a's review)
-    { ...p("lukka", "Lukka", "Coast", null, 15, false, 175, 270, 36.4, 29.4), kingless: true },
-    { ...p("kaska", "Kaska Lands", "Land", null, 10, false, 440, 28, 41.1, 35.4), kingless: true },
-    { ...p("steppe", "Sutean Steppe", "Land", null, 10, false, 690, 478, 34.55, 38.27), kingless: true },
+    { ...p("lukka", "Lukka", "Coast", "Lukka", 15, true, 175, 270, 36.4, 29.4), kingless: true },
+    { ...p("kaska", "Kaska Lands", "Land", "Kaska", 10, true, 440, 28, 41.1, 35.4), kingless: true },
+    { ...p("steppe", "Sutean Steppe", "Land", "Suteans", 10, true, 690, 478, 34.55, 38.27), kingless: true },
   ];
 
   // Sea zones: the waters of each coastal province (Ṣumur's shared with Arwad), the open sea at the Aegean edge, and the Gulf.
@@ -466,28 +458,44 @@ export function buildMap(): WorldMap {
 }
 
 /**
- * The walls each land province starts with, from 0 (none) to 3 (Build order item 5, the siege package): every capital 3;
- * the fortresses 2; the walled towns 1; every other land province none, and so it is left out. First guesses, tuned in
- * item 18. The walls standing now are the game state's (GameState.walls).
+ * The walls each land province starts with, from 0 (none) to 3 (Build order item 5, the siege package): every capital 3,
+ * the city-states' cities among them since item 11+ (until then they were fortresses at 2 or walled towns at 1); the
+ * fortresses 2; the walled towns 1; every other land province none, and so it is left out. The lands without a town
+ * (Kaska, Lukka, the Sutean steppe) have none. First guesses, tuned in item 18. The walls standing now are the game state's (GameState.walls).
  */
 export const StartWalls: ReadonlyMap<string, number> = new Map([
-  // Capitals
+  // Capitals: the Great Kings' and, since item 11+, the city-states' (each city-state's city is its capital)
   ["hattusa", 3], ["babylon", 3], ["ashur", 3], ["washukanni", 3], ["akhetaten", 3], ["apasa", 3], ["enkomi", 3],
+  ["isuwa", 3], ["carchemish", 3], ["alalakh", 3], ["aleppo", 3], ["ugarit", 3], ["nuhashshe", 3], ["qadesh", 3], ["qatna", 3],
+  ["arwad", 3], ["amurru", 3], ["byblos", 3], ["sidon", 3], ["damascus", 3], ["tyre", 3], ["megiddo", 3], ["shechem", 3],
+  ["jerusalem", 3], ["suhu", 3], ["arrapha", 3], ["susa", 3],
   // Fortresses
-  ["carchemish", 2], ["qadesh", 2], ["tyre", 2], ["megiddo", 2], ["gaza", 2], ["susa", 2],
-  ["memphis", 2], ["nesa", 2], ["nineveh", 2], ["aleppo", 2], ["qatna", 2], ["arwad", 2],
+  ["gaza", 2], ["memphis", 2], ["nesa", 2], ["nineveh", 2],
   // Walled towns
-  ["isuwa", 1], ["ugarit", 1], ["amurru", 1], ["byblos", 1], ["damascus", 1],
-  ["alalakh", 1], ["sidon", 1], ["jerusalem", 1], ["shechem", 1], ["arrapha", 1], ["suhu", 1], ["nuhashshe", 1], ["sumur", 1],
+  ["sumur", 1],
 ]);
 
 export interface StartUnit {
   readonly power: Power;
   readonly kind: UnitKind;
   readonly province: string;
+  /** Its men, when fewer than a full levy's (a city-state's, item 11+); null for a full unit. */
+  readonly men: number | null;
 }
 
-const su = (power: Power, kind: UnitKind, province: string): StartUnit => ({ power, kind, province });
+const su = (power: Power, kind: UnitKind, province: string, men: number | null = null): StartUnit => ({ power, kind, province, men });
+
+/**
+ * The city-states' own troops (item 11+, first guesses for item 18): an army at its city of 50 men for each shekel its land
+ * yields a season (Byblos, 30, keeps 1,500), a tenth to a third of a Great King's full levy; Arwad, the island whose ships
+ * blockade Byblos (EA 98 and 105), a fleet of 20 men for each shekel instead. The lands without a town, whose villages and
+ * herders all fight (the Kaska who burned Hattusa, the Lukka men raiding Alashiya, EA 38, the Suteans robbing travellers),
+ * start with 250 men for each shekel.
+ */
+const cityUnits = (): StartUnit[] =>
+  WorldMap.default.provinces
+    .filter((x) => x.capital && x.home !== null && !isGreatKing(x.home))
+    .map((x) => (x.home === "Arwad" ? su(x.home, "Fleet", x.id, 20 * x.yield) : su(x.home!, "Army", x.id, (x.kingless ? 250 : 50) * x.yield)));
 
 export const StartUnits: readonly StartUnit[] = [
   su("Egypt", "Army", "memphis"),
@@ -509,6 +517,7 @@ export const StartUnits: readonly StartUnit[] = [
   su("Arzawa", "Army", "apasa"),
   su("Arzawa", "Fleet", "seha"),
   su("Alashiya", "Fleet", "enkomi"),
+  ...cityUnits(),
 ];
 
 /**
@@ -525,5 +534,7 @@ export const StartGold: ReadonlyMap<Power, number> = new Map<Power, number>([
   ["Assyria", 300],
   ["Arzawa", 300],
   ["Alashiya", 400],
+  // The city-states (item 11+): four seasons of what their land yields, a first guess for item 18 (the dossiers give no sums).
+  ...WorldMap.default.provinces.filter((x) => x.capital && x.home !== null && !isGreatKing(x.home)).map((x) => [x.home!, 4 * x.yield] as [Power, number]),
 ]);
 

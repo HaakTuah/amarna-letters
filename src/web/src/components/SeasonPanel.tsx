@@ -52,7 +52,7 @@ export const SeasonPanel = memo(function SeasonPanel({
       {scene.index === 0 ? (
         <>
           <h3>The opening positions</h3>
-          <p className="muted">Every king holds his homeland; the free cities hold their walls. Step forward to see the first season.</p>
+          <p className="muted">Every power holds its homeland, the city-states their cities. Step forward to see the first season.</p>
         </>
       ) : (
         <>

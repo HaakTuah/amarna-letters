@@ -379,7 +379,6 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   // Its own tolls it knows; the others only as last reported to it (item 10+b), never posted.
   for (const t of s.tolls) if (t.holder === p) v.tolls.push({ ...t });
   for (const t of s.tollsKnown.tryGet(p) ?? []) if (t.holder !== p && isAlive(s, t.holder)) v.tolls.push({ ...t });
-  for (const prov of m.landProvinces) if (!prov.kingless && s.owner.getOrDefault(prov.id, null) === null) v.cityPrices.set(prov.id, engine.cityPrice(prov.id));
   v.prices.set("basePrice", EconomyData.basePrice);
   return v;
 }
@@ -756,6 +755,7 @@ function tabletView(t: Tablet, copy: TabletCopy): TabletView {
     partner: t.partner,
     sealedTurn: t.sealedTurn,
     allianceOath: t.allianceOath,
+    vassal: t.vassal,
     source: copy.source,
     authResult: copy.authResult,
     byHand: t.byHand,

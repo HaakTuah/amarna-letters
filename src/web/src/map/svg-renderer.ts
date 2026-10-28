@@ -26,7 +26,7 @@ const title = (s: string): string => `<title>${esc(s)}</title>`;
 function provinceTitle(p: Province, owner: Power | null): string {
   const t = terrainOf(p.id);
   return (
-    `${p.name}: ${owner !== null ? `held by ${powerName(owner)}` : "a free city-state"}; its tax brings in about ${taxOf(harvestOf(p))} measures of grain a season` +
+    `${p.name}: ${owner !== null ? `held by ${powerName(owner)}` : "held by no one"}; its tax brings in about ${taxOf(harvestOf(p))} measures of grain a season` +
     (t === "Rough" ? "; rough ground: a unit standing its ground here is stronger" : t === "Desert" ? "; desert: it feeds no army, which lives on its baggage, its king's stores and his caravans" : "")
   );
 }

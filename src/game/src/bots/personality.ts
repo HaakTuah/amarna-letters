@@ -29,7 +29,7 @@ export interface Personality {
   readonly commerce: number;
 }
 
-const archetypes: Record<Power, Personality> = {
+const greatArchetypes = {
   Egypt: {
     epithet: "Pharaoh of the gilded gifts",
     description: "Proud and lavish, sends gold to keep the other kings in his debt (not always fine gold), and expands by buying the cities of Canaan.",
@@ -129,6 +129,53 @@ const archetypes: Record<Power, Personality> = {
     commerce: 1.0,
   },
 };
+
+/**
+ * The city-states' archetypes (item 11+), from what the letters show of each ruler (the politics dossier); the weights
+ * in the order aggression, caution, honesty, greed, generosity, pride, diplomacy, cunning, vengeance, commerce.
+ */
+const city = (epithet: string, description: string, w: readonly number[]): Personality => ({
+  epithet,
+  description,
+  aggression: w[0],
+  caution: w[1],
+  honesty: w[2],
+  greed: w[3],
+  generosity: w[4],
+  pride: w[5],
+  diplomacy: w[6],
+  cunning: w[7],
+  vengeance: w[8],
+  commerce: w[9],
+});
+
+const cityArchetypes: Record<Exclude<Power, "Egypt" | "Hatti" | "Babylonia" | "Mitanni" | "Assyria" | "Arzawa" | "Alashiya">, Personality> = {
+  Kaska: city("the burner of Hattusa", "Chiefs of the hill villages who raid the Hittite lands and bow to no king.", [0.8, 0.3, 0.4, 0.6, 0.2, 0.5, 0.2, 0.5, 0.7, 0.1]),
+  Lukka: city("the sea raider", "Seafarers without a king who fall on Alashiya year by year.", [0.75, 0.3, 0.35, 0.7, 0.2, 0.4, 0.25, 0.6, 0.5, 0.4]),
+  Isuwa: city("the buffer", "A small kingdom between Hatti and Mitanni that goes with whoever is stronger.", [0.3, 0.75, 0.5, 0.5, 0.4, 0.4, 0.6, 0.55, 0.4, 0.4]),
+  Carchemish: city("the warden of the crossing", "Mitanni's city on the Euphrates crossing, proud of its walls.", [0.4, 0.65, 0.6, 0.5, 0.4, 0.6, 0.5, 0.4, 0.5, 0.6]),
+  Alalakh: city("the king of Mukish", "Mitanni's vassal on the Orontes, quick to join a league against a neighbour who changes sides.", [0.5, 0.5, 0.5, 0.5, 0.4, 0.5, 0.6, 0.5, 0.6, 0.5]),
+  Aleppo: city("the city of the Storm-god", "An old royal city under Mitanni, rich and wary.", [0.35, 0.65, 0.55, 0.55, 0.45, 0.7, 0.55, 0.45, 0.5, 0.6]),
+  Ugarit: city("the merchant port", "A rich harbour writing to Pharaoh as a servant while it weighs the Hittite's offer.", [0.2, 0.7, 0.5, 0.6, 0.5, 0.4, 0.75, 0.6, 0.3, 0.95]),
+  Nuhashshe: city("the contested land", "Kings of Nuhashshe who ask Egypt for help against the Hittite, and change sides when they must.", [0.45, 0.55, 0.45, 0.5, 0.4, 0.5, 0.6, 0.55, 0.5, 0.4]),
+  Qadesh: city("the turncoat", "Aitakama, who goes over to the Hittite and raids Pharaoh's lands with Hittite backing.", [0.7, 0.4, 0.25, 0.6, 0.3, 0.55, 0.5, 0.75, 0.6, 0.3]),
+  Qatna: city("the loyal city", "Akizzi, who writes to Pharaoh of his loyalty and of Aitakama's treachery.", [0.3, 0.6, 0.75, 0.4, 0.5, 0.5, 0.7, 0.35, 0.5, 0.4]),
+  Arwad: city("the island of ships", "Its ships blockade Byblos in league with Amurru.", [0.6, 0.45, 0.4, 0.65, 0.3, 0.5, 0.45, 0.6, 0.5, 0.8]),
+  Amurru: city("the house of Abdi-Ashirta", "Aziru, who builds a state by playing Egypt against Hatti and takes the coast towns.", [0.85, 0.3, 0.2, 0.7, 0.3, 0.6, 0.7, 0.9, 0.6, 0.3]),
+  Byblos: city("the pleading servant", "Rib-Hadda, loyal to Pharaoh, begging for troops and grain in letter after letter.", [0.15, 0.85, 0.8, 0.4, 0.4, 0.5, 0.9, 0.3, 0.6, 0.5]),
+  Sidon: city("the wavering port", "Zimrida, Pharaoh's servant in name, friend to Aziru in deed.", [0.45, 0.5, 0.3, 0.6, 0.35, 0.45, 0.6, 0.7, 0.4, 0.75]),
+  Damascus: city("the warden of Upe", "Biryawaza, Pharaoh's man in the Damascus land, with a hand in his neighbours' quarrels.", [0.55, 0.5, 0.5, 0.55, 0.4, 0.55, 0.55, 0.55, 0.5, 0.4]),
+  Tyre: city("the island short of water", "Abi-Milku, loyal and hard pressed by Sidon from the mainland.", [0.2, 0.75, 0.7, 0.5, 0.45, 0.45, 0.8, 0.4, 0.5, 0.8]),
+  Megiddo: city("the guard of the pass", "Biridiya, loyal, calling for men to guard his city.", [0.3, 0.75, 0.7, 0.45, 0.4, 0.45, 0.65, 0.4, 0.55, 0.45]),
+  Shechem: city("the sons of Labaya", "Labaya's sons, taking their neighbours' towns while swearing they are Pharaoh's loyal servants.", [0.8, 0.3, 0.25, 0.65, 0.3, 0.55, 0.5, 0.75, 0.7, 0.3]),
+  Jerusalem: city("the accuser", "Abdi-Heba, pleading for archers and denouncing his neighbours as traitors.", [0.3, 0.7, 0.55, 0.45, 0.35, 0.5, 0.75, 0.6, 0.7, 0.35]),
+  Suhu: city("the river land", "The middle Euphrates under local kings, within Mitanni's reach.", [0.4, 0.6, 0.5, 0.55, 0.4, 0.45, 0.5, 0.45, 0.5, 0.65]),
+  Suteans: city("the steppe raiders", "Herding tribes whose chiefs rob travellers and hire out as fighters.", [0.7, 0.35, 0.35, 0.7, 0.2, 0.35, 0.3, 0.6, 0.5, 0.3]),
+  Arrapha: city("the land of Nuzi", "Mitanni's vassal beyond the Tigris, close to Assyria's reach.", [0.3, 0.65, 0.6, 0.5, 0.45, 0.45, 0.55, 0.4, 0.45, 0.55]),
+  Elam: city("the king beyond the circle", "A kingdom outside the Great Kings' circle, watching Babylon.", [0.5, 0.55, 0.5, 0.55, 0.35, 0.75, 0.4, 0.5, 0.6, 0.5]),
+};
+
+const archetypes: Record<Power, Personality> = { ...greatArchetypes, ...cityArchetypes };
 
 /** The archetype for a power, varied by a seed: a script seat's own (see ScriptLeader.seatSeed), never the game's. */
 export function personalityFor(p: Power, seed: number): Personality {

@@ -1,5 +1,7 @@
 import { describe, test } from "vitest";
 import {
+  raise,
+  unitAt,
   AllPowers,
   Dict,
   GameStateSchema,
@@ -12,7 +14,6 @@ import {
   type TurnSubmission,
   Views,
   WorldMap,
-  buy,
   captive,
   counterIntel,
   dispatch,
@@ -269,14 +270,14 @@ describe("IntelligenceTests", () => {
   test("Spending debased gold exposes it", () => {
     let s = newGame(9);
     let t = s.treasuries.get("Hatti");
-    // The ledger shows the city's price and a little more; the purchase passes validation but the true treasury cannot pay.
-    const price = new TurnEngine(s).cityPrice("alalakh");
-    t.gold = 120;
+    // The ledger shows a levy's price and a little more; the levy passes validation but the true treasury cannot pay.
+    const price = s.config.armyCost;
+    t.gold = 60;
     t.lots.push(newGoldLot({ id: "g900", from: "Egypt", stated: price, face: price, true: 60, arrivedTurn: 1 }));
     Assert.equal(price + 60, ledger(t));
     let e = new TurnEngine(s);
-    e.resolve(orders("Hatti", buy("alalakh")));
-    Assert.null(s.owner.get("alalakh"));
+    e.resolve(orders("Hatti", raise("sapinuwa", "Army")));
+    Assert.null(unitAt(s, "sapinuwa"));
     Assert.empty(t.lots);
     Assert.contains(inboxOf(s, "Hatti"), (i) => i.title === "The treasury is short" && i.body.includes("Egypt"));
   });

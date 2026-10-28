@@ -1,0 +1,128 @@
+/*
+ * The city-states' colours (item 11+): muted tones, one each, so the Great Kings' colours still stand out on the board.
+ * Generated with the list of powers; the rules repeat app.css's per-power classes for each city-state.
+ */
+:root {
+    --kaska: #894d4d;
+    --lukka: #57894d;
+    --isuwa: #4d6189;
+    --carchemish: #894d6c;
+    --alalakh: #76894d;
+    --aleppo: #4d8189;
+    --ugarit: #864d89;
+    --nuhashshe: #897c4d;
+    --qadesh: #4d8971;
+    --qatna: #674d89;
+    --arwad: #895c4d;
+    --amurru: #4d8952;
+    --byblos: #4d5289;
+    --sidon: #894d5c;
+    --damascus: #67894d;
+    --tyre: #4d7189;
+    --megiddo: #894d7c;
+    --shechem: #86894d;
+    --jerusalem: #4d8981;
+    --suhu: #764d89;
+    --suteans: #896c4d;
+    --arrapha: #4d8961;
+    --elam: #574d89;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+      --kaska: #c98787;
+      --lukka: #92c987;
+      --isuwa: #879ec9;
+      --carchemish: #c987a9;
+      --alalakh: #b5c987;
+      --aleppo: #87c0c9;
+      --ugarit: #c687c9;
+      --nuhashshe: #c9ba87;
+      --qadesh: #87c9af;
+      --qatna: #a487c9;
+      --arwad: #c99887;
+      --amurru: #87c98d;
+      --byblos: #878dc9;
+      --sidon: #c98798;
+      --damascus: #a4c987;
+      --tyre: #87afc9;
+      --megiddo: #c987ba;
+      --shechem: #c6c987;
+      --jerusalem: #87c9c0;
+      --suhu: #b587c9;
+      --suteans: #c9a987;
+      --arrapha: #87c99e;
+      --elam: #9287c9;
+  }
+}
+:root[data-theme="dark"] {
+    --kaska: #c98787;
+    --lukka: #92c987;
+    --isuwa: #879ec9;
+    --carchemish: #c987a9;
+    --alalakh: #b5c987;
+    --aleppo: #87c0c9;
+    --ugarit: #c687c9;
+    --nuhashshe: #c9ba87;
+    --qadesh: #87c9af;
+    --qatna: #a487c9;
+    --arwad: #c99887;
+    --amurru: #87c98d;
+    --byblos: #878dc9;
+    --sidon: #c98798;
+    --damascus: #a4c987;
+    --tyre: #87afc9;
+    --megiddo: #c987ba;
+    --shechem: #c6c987;
+    --jerusalem: #87c9c0;
+    --suhu: #b587c9;
+    --suteans: #c9a987;
+    --arrapha: #87c99e;
+    --elam: #9287c9;
+}
+
+.e-kaska .ei-bg, .f-kaska, .e-kaska, .ah-kaska { fill: var(--kaska); } .map .t-kaska, .map .s-kaska { fill: var(--kaska); } .b-kaska, .r-kaska { stroke: var(--kaska); }
+.map .m-kaska .shaft, .map .m-kaska .sup, .map .m-kaska .conv, .map .c-kaska circle { stroke: var(--kaska); }
+.e-lukka .ei-bg, .f-lukka, .e-lukka, .ah-lukka { fill: var(--lukka); } .map .t-lukka, .map .s-lukka { fill: var(--lukka); } .b-lukka, .r-lukka { stroke: var(--lukka); }
+.map .m-lukka .shaft, .map .m-lukka .sup, .map .m-lukka .conv, .map .c-lukka circle { stroke: var(--lukka); }
+.e-isuwa .ei-bg, .f-isuwa, .e-isuwa, .ah-isuwa { fill: var(--isuwa); } .map .t-isuwa, .map .s-isuwa { fill: var(--isuwa); } .b-isuwa, .r-isuwa { stroke: var(--isuwa); }
+.map .m-isuwa .shaft, .map .m-isuwa .sup, .map .m-isuwa .conv, .map .c-isuwa circle { stroke: var(--isuwa); }
+.e-carchemish .ei-bg, .f-carchemish, .e-carchemish, .ah-carchemish { fill: var(--carchemish); } .map .t-carchemish, .map .s-carchemish { fill: var(--carchemish); } .b-carchemish, .r-carchemish { stroke: var(--carchemish); }
+.map .m-carchemish .shaft, .map .m-carchemish .sup, .map .m-carchemish .conv, .map .c-carchemish circle { stroke: var(--carchemish); }
+.e-alalakh .ei-bg, .f-alalakh, .e-alalakh, .ah-alalakh { fill: var(--alalakh); } .map .t-alalakh, .map .s-alalakh { fill: var(--alalakh); } .b-alalakh, .r-alalakh { stroke: var(--alalakh); }
+.map .m-alalakh .shaft, .map .m-alalakh .sup, .map .m-alalakh .conv, .map .c-alalakh circle { stroke: var(--alalakh); }
+.e-aleppo .ei-bg, .f-aleppo, .e-aleppo, .ah-aleppo { fill: var(--aleppo); } .map .t-aleppo, .map .s-aleppo { fill: var(--aleppo); } .b-aleppo, .r-aleppo { stroke: var(--aleppo); }
+.map .m-aleppo .shaft, .map .m-aleppo .sup, .map .m-aleppo .conv, .map .c-aleppo circle { stroke: var(--aleppo); }
+.e-ugarit .ei-bg, .f-ugarit, .e-ugarit, .ah-ugarit { fill: var(--ugarit); } .map .t-ugarit, .map .s-ugarit { fill: var(--ugarit); } .b-ugarit, .r-ugarit { stroke: var(--ugarit); }
+.map .m-ugarit .shaft, .map .m-ugarit .sup, .map .m-ugarit .conv, .map .c-ugarit circle { stroke: var(--ugarit); }
+.e-nuhashshe .ei-bg, .f-nuhashshe, .e-nuhashshe, .ah-nuhashshe { fill: var(--nuhashshe); } .map .t-nuhashshe, .map .s-nuhashshe { fill: var(--nuhashshe); } .b-nuhashshe, .r-nuhashshe { stroke: var(--nuhashshe); }
+.map .m-nuhashshe .shaft, .map .m-nuhashshe .sup, .map .m-nuhashshe .conv, .map .c-nuhashshe circle { stroke: var(--nuhashshe); }
+.e-qadesh .ei-bg, .f-qadesh, .e-qadesh, .ah-qadesh { fill: var(--qadesh); } .map .t-qadesh, .map .s-qadesh { fill: var(--qadesh); } .b-qadesh, .r-qadesh { stroke: var(--qadesh); }
+.map .m-qadesh .shaft, .map .m-qadesh .sup, .map .m-qadesh .conv, .map .c-qadesh circle { stroke: var(--qadesh); }
+.e-qatna .ei-bg, .f-qatna, .e-qatna, .ah-qatna { fill: var(--qatna); } .map .t-qatna, .map .s-qatna { fill: var(--qatna); } .b-qatna, .r-qatna { stroke: var(--qatna); }
+.map .m-qatna .shaft, .map .m-qatna .sup, .map .m-qatna .conv, .map .c-qatna circle { stroke: var(--qatna); }
+.e-arwad .ei-bg, .f-arwad, .e-arwad, .ah-arwad { fill: var(--arwad); } .map .t-arwad, .map .s-arwad { fill: var(--arwad); } .b-arwad, .r-arwad { stroke: var(--arwad); }
+.map .m-arwad .shaft, .map .m-arwad .sup, .map .m-arwad .conv, .map .c-arwad circle { stroke: var(--arwad); }
+.e-amurru .ei-bg, .f-amurru, .e-amurru, .ah-amurru { fill: var(--amurru); } .map .t-amurru, .map .s-amurru { fill: var(--amurru); } .b-amurru, .r-amurru { stroke: var(--amurru); }
+.map .m-amurru .shaft, .map .m-amurru .sup, .map .m-amurru .conv, .map .c-amurru circle { stroke: var(--amurru); }
+.e-byblos .ei-bg, .f-byblos, .e-byblos, .ah-byblos { fill: var(--byblos); } .map .t-byblos, .map .s-byblos { fill: var(--byblos); } .b-byblos, .r-byblos { stroke: var(--byblos); }
+.map .m-byblos .shaft, .map .m-byblos .sup, .map .m-byblos .conv, .map .c-byblos circle { stroke: var(--byblos); }
+.e-sidon .ei-bg, .f-sidon, .e-sidon, .ah-sidon { fill: var(--sidon); } .map .t-sidon, .map .s-sidon { fill: var(--sidon); } .b-sidon, .r-sidon { stroke: var(--sidon); }
+.map .m-sidon .shaft, .map .m-sidon .sup, .map .m-sidon .conv, .map .c-sidon circle { stroke: var(--sidon); }
+.e-damascus .ei-bg, .f-damascus, .e-damascus, .ah-damascus { fill: var(--damascus); } .map .t-damascus, .map .s-damascus { fill: var(--damascus); } .b-damascus, .r-damascus { stroke: var(--damascus); }
+.map .m-damascus .shaft, .map .m-damascus .sup, .map .m-damascus .conv, .map .c-damascus circle { stroke: var(--damascus); }
+.e-tyre .ei-bg, .f-tyre, .e-tyre, .ah-tyre { fill: var(--tyre); } .map .t-tyre, .map .s-tyre { fill: var(--tyre); } .b-tyre, .r-tyre { stroke: var(--tyre); }
+.map .m-tyre .shaft, .map .m-tyre .sup, .map .m-tyre .conv, .map .c-tyre circle { stroke: var(--tyre); }
+.e-megiddo .ei-bg, .f-megiddo, .e-megiddo, .ah-megiddo { fill: var(--megiddo); } .map .t-megiddo, .map .s-megiddo { fill: var(--megiddo); } .b-megiddo, .r-megiddo { stroke: var(--megiddo); }
+.map .m-megiddo .shaft, .map .m-megiddo .sup, .map .m-megiddo .conv, .map .c-megiddo circle { stroke: var(--megiddo); }
+.e-shechem .ei-bg, .f-shechem, .e-shechem, .ah-shechem { fill: var(--shechem); } .map .t-shechem, .map .s-shechem { fill: var(--shechem); } .b-shechem, .r-shechem { stroke: var(--shechem); }
+.map .m-shechem .shaft, .map .m-shechem .sup, .map .m-shechem .conv, .map .c-shechem circle { stroke: var(--shechem); }
+.e-jerusalem .ei-bg, .f-jerusalem, .e-jerusalem, .ah-jerusalem { fill: var(--jerusalem); } .map .t-jerusalem, .map .s-jerusalem { fill: var(--jerusalem); } .b-jerusalem, .r-jerusalem { stroke: var(--jerusalem); }
+.map .m-jerusalem .shaft, .map .m-jerusalem .sup, .map .m-jerusalem .conv, .map .c-jerusalem circle { stroke: var(--jerusalem); }
+.e-suhu .ei-bg, .f-suhu, .e-suhu, .ah-suhu { fill: var(--suhu); } .map .t-suhu, .map .s-suhu { fill: var(--suhu); } .b-suhu, .r-suhu { stroke: var(--suhu); }
+.map .m-suhu .shaft, .map .m-suhu .sup, .map .m-suhu .conv, .map .c-suhu circle { stroke: var(--suhu); }
+.e-suteans .ei-bg, .f-suteans, .e-suteans, .ah-suteans { fill: var(--suteans); } .map .t-suteans, .map .s-suteans { fill: var(--suteans); } .b-suteans, .r-suteans { stroke: var(--suteans); }
+.map .m-suteans .shaft, .map .m-suteans .sup, .map .m-suteans .conv, .map .c-suteans circle { stroke: var(--suteans); }
+.e-arrapha .ei-bg, .f-arrapha, .e-arrapha, .ah-arrapha { fill: var(--arrapha); } .map .t-arrapha, .map .s-arrapha { fill: var(--arrapha); } .b-arrapha, .r-arrapha { stroke: var(--arrapha); }
+.map .m-arrapha .shaft, .map .m-arrapha .sup, .map .m-arrapha .conv, .map .c-arrapha circle { stroke: var(--arrapha); }
+.e-elam .ei-bg, .f-elam, .e-elam, .ah-elam { fill: var(--elam); } .map .t-elam, .map .s-elam { fill: var(--elam); } .b-elam, .r-elam { stroke: var(--elam); }
+.map .m-elam .shaft, .map .m-elam .sup, .map .m-elam .conv, .map .c-elam circle { stroke: var(--elam); }

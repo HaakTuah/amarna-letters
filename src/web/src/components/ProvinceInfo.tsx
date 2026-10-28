@@ -2,7 +2,6 @@ import {
   Crossings,
   WorldMap,
   capacityOf,
-  cityPriceOf,
   EconomyData,
   harvestIn,
   reapSeasonOf,
@@ -23,12 +22,6 @@ import {
 import { unitKindName, type MapScene } from "../map/scene.ts";
 import { powerName, provinceName, shekels, when } from "../ui/format.ts";
 import { Emblem } from "./Emblem.tsx";
-
-/** What a free city asks to be bought: what it adds, its land's worth, purse, stores and market (item 9+a). */
-function cityPrice(state: GameState, p: Province): number {
-  const m = state.markets.tryGet(p.id);
-  return cityPriceOf(p, state.config.provinceWeight, m?.purse ?? 0, state.stores.getOrDefault(p.id, 0) + (m?.stock ?? 0), harvestIn(WorldMap.default, state, p.id, false));
-}
 
 /**
  * What the ground does here (Build order item 5, terrain): rough ground and the crossings on its links give a unit that
@@ -101,7 +94,7 @@ export function ProvinceInfo({
       ) : (
         <>
           <p className="small">
-            {owner !== null ? `Held by ${powerName(owner)}` : "A free city-state"}
+            {owner !== null ? `Held by ${powerName(owner)}` : "Held by no one"}
             {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(scene.viewer === null || owner === scene.viewer ? Math.floor(state.reaped.getOrDefault(p.id, 0) / 3) : harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
             {p.home !== null && p.home !== owner ? `; part of the homeland of ${powerName(p.home)}` : ""}.
             {walls > 0 && (
@@ -113,7 +106,6 @@ export function ProvinceInfo({
                 city until it starves or the walls are breached.
               </span>
             )}
-            {walls > 0 && owner === null && !p.kingless && <span> Buy it for {shekels(cityPrice(state, p))}.</span>}
           </p>
           {(scene.viewer === null || owner === scene.viewer) && (
             <p className="small">

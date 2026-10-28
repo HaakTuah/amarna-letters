@@ -1,14 +1,54 @@
 import { cmpEnum } from "../core/seq.ts";
 
-/** The seven Great Kings of the Amarna correspondence, in their fixed order (C#'s enum order: sorting goes by it). */
-export const PowerValues = ["Egypt", "Hatti", "Babylonia", "Mitanni", "Assyria", "Arzawa", "Alashiya"] as const;
+/**
+ * The powers, in their fixed order (C#'s enum order: sorting goes by it): the seven Great Kings of the Amarna
+ * correspondence, then, since build order item 11+ ("City-states as powers"), the city-states and the lands under one
+ * leader, each a power like the kings ("One scoreboard for every power"), north to south and west to east. Who they are
+ * comes from the politics dossier (`docs/history/01-politics.md`).
+ */
+export const PowerValues = [
+  "Egypt",
+  "Hatti",
+  "Babylonia",
+  "Mitanni",
+  "Assyria",
+  "Arzawa",
+  "Alashiya",
+  "Kaska",
+  "Lukka",
+  "Isuwa",
+  "Carchemish",
+  "Alalakh",
+  "Aleppo",
+  "Ugarit",
+  "Nuhashshe",
+  "Qadesh",
+  "Qatna",
+  "Arwad",
+  "Amurru",
+  "Byblos",
+  "Sidon",
+  "Damascus",
+  "Tyre",
+  "Megiddo",
+  "Shechem",
+  "Jerusalem",
+  "Suhu",
+  "Suteans",
+  "Arrapha",
+  "Elam",
+] as const;
 export type Power = (typeof PowerValues)[number];
 
-export const TierValues = ["Strong", "Middle", "Weak"] as const;
+/** How a power is reckoned at the start: data, never a rule ("Different data, same rules"). */
+export const TierValues = ["Strong", "Middle", "Weak", "City"] as const;
 export type Tier = (typeof TierValues)[number];
 
 /** Every power in the fixed order. */
 export const AllPowers: readonly Power[] = PowerValues;
+
+/** The seven Great Kings, who call each other brother: presentation and the claims to the rank (item 8), never a rule. */
+export const GreatKings: readonly Power[] = PowerValues.slice(0, 7);
 
 /** Powers in their fixed order (C#'s OrderBy on the enum). */
 export const cmpPower = cmpEnum(PowerValues);
@@ -19,71 +59,82 @@ export function powerOrdinal(p: Power): number {
   return powerIndex.get(p)!;
 }
 
+/** Whether a power is one of the seven Great Kings (presentation: greetings, titles, the start's words). */
+export function isGreatKing(p: Power): boolean {
+  return powerIndex.get(p)! < 7;
+}
+
+interface PowerData {
+  /** The land's name as letters use it. */
+  readonly land: string;
+  /** The reigning ruler in 1346, by the name the letters use; "the king of ..." where the sources name none. */
+  readonly king: string;
+  readonly adjective: string;
+  readonly tier: Tier;
+}
+
+const d = (land: string, king: string, adjective: string, tier: Tier = "City"): PowerData => ({ land, king, adjective, tier });
+
+/**
+ * Each power's names. The Great Kings' as before; the city-states' rulers from the politics dossier ("The Levant and
+ * northern Syria, city by city"): Shechem under Mut-Baal, a son of Labaya, as item 7 read it; the lands without a king
+ * (Kaska, Lukka, the Suteans) under a chief ("Land without a ruler").
+ */
+const Data: Record<Power, PowerData> = {
+  Egypt: d("Egypt", "Napkhururiya", "Egyptian", "Strong"),
+  Hatti: d("Hatti", "Suppiluliuma", "Hittite", "Strong"),
+  Babylonia: d("Karduniash", "Burna-Buriash", "Babylonian", "Strong"),
+  Mitanni: d("Mitanni", "Tushratta", "Mitannian", "Middle"),
+  Assyria: d("Assyria", "Ashur-uballit", "Assyrian", "Middle"),
+  Arzawa: d("Arzawa", "Tarhundaradu", "Arzawan", "Weak"),
+  Alashiya: d("Alashiya", "the King of Alashiya", "Alashiyan", "Weak"),
+  Kaska: d("Kaska", "the chief of the Kaska", "Kaskan"),
+  Lukka: d("Lukka", "the chief of the Lukka men", "Lukkan"),
+  Isuwa: d("Isuwa", "the king of Isuwa", "Isuwan"),
+  Carchemish: d("Carchemish", "the king of Carchemish", "Carchemishite"),
+  Alalakh: d("Mukish", "Itur-Addu", "Mukishite"),
+  Aleppo: d("Halab", "the king of Halab", "Halabite"),
+  Ugarit: d("Ugarit", "Niqmaddu", "Ugaritic"),
+  Nuhashshe: d("Nuhashshe", "Addu-nirari", "Nuhashshean"),
+  Qadesh: d("Qadesh", "Aitakama", "Qadeshite"),
+  Qatna: d("Qatna", "Akizzi", "Qatnean"),
+  Arwad: d("Arwad", "the king of Arwad", "Arwadite"),
+  Amurru: d("Amurru", "Aziru", "Amorite"),
+  Byblos: d("Byblos", "Rib-Hadda", "Byblian"),
+  Sidon: d("Sidon", "Zimrida", "Sidonian"),
+  Damascus: d("Upe", "Biryawaza", "Damascene"),
+  Tyre: d("Tyre", "Abi-Milku", "Tyrian"),
+  Megiddo: d("Megiddo", "Biridiya", "Megiddite"),
+  Shechem: d("Shechem", "Mut-Baal", "Shechemite"),
+  Jerusalem: d("Jerusalem", "Abdi-Heba", "Jerusalemite"),
+  Suhu: d("Suhu", "the king of Suhu", "Suhean"),
+  Suteans: d("the Sutean steppe", "the chief of the Suteans", "Sutean"),
+  Arrapha: d("Arrapha", "the king of Arrapha", "Arraphan"),
+  Elam: d("Elam", "the king of Elam", "Elamite"),
+};
+
+/** A power's tier at the start (data for script players' styles and the start screen; no rule reads it). */
 export function tier(p: Power): Tier {
-  switch (p) {
-    case "Egypt":
-    case "Hatti":
-    case "Babylonia":
-      return "Strong";
-    case "Mitanni":
-    case "Assyria":
-      return "Middle";
-    default:
-      return "Weak";
-  }
+  return Data[p].tier;
 }
 
 /** The land's name as it appears in letters. */
 export function land(p: Power): string {
-  switch (p) {
-    case "Hatti":
-      return "Hatti";
-    case "Babylonia":
-      return "Karduniash";
-    case "Mitanni":
-      return "Mitanni";
-    default:
-      return p;
-  }
+  return Data[p].land;
 }
 
-/** The reigning king, by the names the letters use. */
+/** The reigning king (or chief), by the names the letters use. */
 export function king(p: Power): string {
-  switch (p) {
-    case "Egypt":
-      return "Napkhururiya";
-    case "Hatti":
-      return "Suppiluliuma";
-    case "Babylonia":
-      return "Burna-Buriash";
-    case "Mitanni":
-      return "Tushratta";
-    case "Assyria":
-      return "Ashur-uballit";
-    case "Arzawa":
-      return "Tarhundaradu";
-    case "Alashiya":
-      return "the King of Alashiya";
-  }
+  return Data[p].king;
+}
+
+/** Whether the sources name the ruler: an unnamed one is "the king of ...", and is written so. */
+export function rulerNamed(p: Power): boolean {
+  return !Data[p].king.toLowerCase().startsWith("the ");
 }
 
 export function adjective(p: Power): string {
-  switch (p) {
-    case "Egypt":
-      return "Egyptian";
-    case "Hatti":
-      return "Hittite";
-    case "Babylonia":
-      return "Babylonian";
-    case "Mitanni":
-      return "Mitannian";
-    case "Assyria":
-      return "Assyrian";
-    case "Arzawa":
-      return "Arzawan";
-    case "Alashiya":
-      return "Alashiyan";
-  }
+  return Data[p].adjective;
 }
 
 /**

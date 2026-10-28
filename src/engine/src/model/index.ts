@@ -26,3 +26,4 @@ export * from "./money.ts";
 export * from "./life.ts";
 export * from "./doors.ts";
 export * from "./bands.ts";
+export * from "./vassals.ts";

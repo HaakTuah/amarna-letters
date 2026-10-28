@@ -5,14 +5,19 @@ import { range } from "../core/seq.ts";
 import { newGameConfig, type GameConfig } from "../model/config.ts";
 import { seasonOfTurn, StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
-import { harvestIn, menOf, reckonedOf, startPeople } from "../model/land.ts";
+import { forMen, harvestIn, menOf, reckonedOf, startPeople } from "../model/land.ts";
 import { carriedOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
 import { newMarket } from "../model/caravans.ts";
 import { StartClaims } from "../model/recognition.ts";
+import { StartVassals } from "../model/vassals.ts";
+import { clause } from "../model/clauses.ts";
+import { newTablet, newTabletCopy } from "../model/records.ts";
+import { renderClauses } from "./clauses.ts";
 import { clamp } from "../core/num.ts";
 import { newCharacter, newContract, newFact, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
-import { AllPowers, adjective, land, type Power } from "../model/power.ts";
-import { newTreasury, newGameState, newUnit, logEvent, newId, type GameState } from "../model/state.ts";
+import { AllPowers, adjective, isGreatKing, land, type Power } from "../model/power.ts";
+import { newTreasury, newGameState, newUnit, logEvent, newId, notify, type GameState } from "../model/state.ts";
+import { StateOfRealmTitle, stateOfRealm } from "./realm.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
@@ -50,7 +55,7 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
     s.granary.set(p.id, h * d);
   }
   for (const u of StartUnits)
-    s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.province, food: carriedOf(u.kind), men: menOf(u.kind) }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.province, food: forMen(carriedOf(u.kind), u.kind, u.men ?? menOf(u.kind)), men: u.men ?? menOf(u.kind) }));
   for (const p of AllPowers) {
     s.treasuries.set(p, newTreasury({ gold: StartGold.get(p)! }));
     s.inbox.set(p, []);
@@ -60,11 +65,38 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
 
   populate(s);
   s.claims = StartClaims.map((c) => ({ ...c }));
+  openingBonds(s);
 
   const engine = new TurnEngine(s, m);
   for (const p of AllPowers) s.startStrength.set(p, engine.strength(p));
-  logEvent(s, "start", "The age begins. Seven Great Kings hold their thrones.");
+  // Each court's state of the realm, from the data by one rule for all (item 11+).
+  for (const p of AllPowers) notify(s, p, "Notice", StateOfRealmTitle, stateOfRealm(s, m, p));
+  logEvent(s, "start", "The age begins. Seven Great Kings hold their thrones, and the city-states and chiefs between them their own.");
   return s;
+}
+
+/**
+ * The vassal tablets sealed before the age began ("Opening relations as they were", item 11+): each city that was a vassal in
+ * 1346 holds a tablet marked as a vassal treaty with its overlord, in the template's clauses (its tribute each year, its
+ * service, and its plea for protection), sealed by both, a copy in each archive. Words, like every tablet.
+ */
+function openingBonds(s: GameState): void {
+  for (const b of StartVassals) {
+    const clauses = [clause("tribute", { amount: b.tribute }), clause("serve"), clause("askProtect")];
+    const t = newTablet({
+      id: newId(s, "t"),
+      text: renderClauses(clauses, b.vassal, b.overlord),
+      proposedBy: b.vassal,
+      partner: b.overlord,
+      seals: [b.vassal, b.overlord],
+      createdTurn: 0,
+      sealedTurn: 0,
+      vassal: b.vassal,
+      clauses,
+    });
+    s.tablets.push(t);
+    for (const holder of [b.vassal, b.overlord]) s.copies.push(newTabletCopy({ id: newId(s, "k"), tabletId: t.id, holder, acquiredTurn: 0, source: "sealed before the age began" }));
+  }
 }
 
 interface Seed {
@@ -112,6 +144,11 @@ const Lapses = ["theft", "drunkenness", "insolence to a prince", "losing a royal
 // Where a lover is kept: at a court, so that the tie has a court to draw the character and to hold it (item 10).
 const Lovers: Power[] = ["Mitanni", "Alashiya", "Babylonia", "Egypt", "Hatti"];
 
+/** A power's starting staff: the table's number for a Great King, half of it (at least one) for a city-state (item 11+). */
+export function startStaff(c: GameConfig, p: Power): number {
+  return isGreatKing(p) ? c.startEnvoysPerPower : Math.max(1, Math.ceil(c.startEnvoysPerPower / 2));
+}
+
 /** The first pool, whose draws every seed keeps (item 10 adds the rest from a stream of its own). */
 export const FirstPool = 18;
 
@@ -127,7 +164,9 @@ export function populate(s: GameState): void {
   let pool = [...attested.slice(0, Math.min(7, Math.trunc(first / 2))), ...styled].slice(0, first);
   pool = rng.shuffle(pool);
 
-  const employers: Power[] = AllPowers.flatMap((p) => range(0, s.config.startEnvoysPerPower).map(() => p));
+  // A power's starting staff follows its size ("How many characters", item 11+): a Great King's the table's number, a
+  // city-state's half of it, at least one.
+  const employers: Power[] = AllPowers.flatMap((p) => range(0, startStaff(s.config, p)).map(() => p));
   // Two of the starting envoys are plants, secretly in the pay of another power.
   const plantSlots = new Set(rng.shuffle(range(0, employers.length)).slice(0, 2));
   let slot = 0;
@@ -136,29 +175,7 @@ export function populate(s: GameState): void {
     const c = create(s, rng, sd);
     finish(s, c, FirstCores.get(sd.name) ?? null, sd.attested);
     if (employers.length > 0) {
-      const p = employers.shift()!;
-      c.status = "Employed";
-      c.employer = p;
-      c.at = p;
-      // Terms end between turns 7 and 13, so the starting corps does not come up for renewal all at once. Each is drawn
-      // from its own stream, so that no other draw (traits, facts, posts) changes.
-      // Item 11a: a job like any other, its fee for the seasons it runs at what the old wage paid, half handed over before the game.
-      const until = Rng.for(s.seed, 0, "start-term", c.id).range(7, 13);
-      const fee = (6 + Math.trunc(c.traits.competence / 10)) * (until - 1);
-      // Haakon's answers to item 11a: its first errand is named when it is first sent, and the job, agreed before the game,
-      // carries the king's word to pay the rest when it is done (his standing order, which he may cancel: withhold_fee).
-      c.contract = newContract({ fee, advance: Math.trunc(fee / 2), startTurn: 1, untilTurn: until, payOnDone: true });
-      c.purse = Math.trunc(fee / 2);
-      c.earned.fees = c.purse;
-      c.reputation.set(p, 10);
-      if (plantSlots.has(slot)) {
-        const master = rng.pick(AllPowers.filter((x) => x !== p));
-        c.secretMaster = master;
-        c.traits.sympathy = master;
-        c.traits.sympathyStrength = Math.max(c.traits.sympathyStrength, 60);
-        c.facts = c.facts.filter((f) => f.tag !== "sympathy");
-        c.facts.push(newFact({ id: newId(s, "f"), text: `Is secretly in the pay of ${land(master)}.`, secrecy: "Deep", tag: "plant", knownBy: [master] }));
-      }
+      employ(s, rng, c, employers.shift()!, plantSlots.has(slot));
       slot++;
     } else {
       c.status = "Free";
@@ -173,6 +190,18 @@ export function populate(s: GameState): void {
     s.characters.push(c);
   }
   more(s, attested.slice(Math.min(7, Math.trunc(first / 2))));
+  // The staff the first pool could not fill (item 11+: some thirty powers to some eighteen first servants) is taken from the
+  // free people of the larger pool, each from its own court where it can be, in the powers' fixed order.
+  const r = Rng.for(s.seed, 0, "staff");
+  for (const p of employers) {
+    const free = s.characters.filter((c) => c.status === "Free" && !c.facts.some((f) => f.tag === "nubian"));
+    if (free.length === 0) break;
+    const home = free.filter((c) => c.at === p);
+    const c = home.length > 0 ? home[0] : r.pick(free);
+    employ(s, r, c, p, plantSlots.has(slot));
+    c.met = [p];
+    slot++;
+  }
   // Item 11a: a free person's savings from the life before the game, from a stream of their own; every character's way to
   // a fortune and road ("How the strategy is made"); and the pool's baseline ("A baseline, not a limit").
   for (const c of s.characters) {
@@ -180,6 +209,35 @@ export function populate(s: GameState): void {
     chooseStrategy(c);
   }
   s.baseline = s.characters.length;
+}
+
+/**
+ * A starting servant (item 11a: a job like any other): employed by `p` at its court, its first errand named when it is first
+ * sent, the rest of its fee carried by its master's standing order; a plant is secretly in another power's pay.
+ */
+function employ(s: GameState, rng: Rng, c: Character, p: Power, plant: boolean): void {
+  c.status = "Employed";
+  c.employer = p;
+  c.at = p;
+  // Terms end between turns 7 and 13, so the starting corps does not come up for renewal all at once. Each is drawn
+  // from its own stream, so that no other draw (traits, facts, posts) changes.
+  // Item 11a: a job like any other, its fee for the seasons it runs at what the old wage paid, half handed over before the game.
+  const until = Rng.for(s.seed, 0, "start-term", c.id).range(7, 13);
+  const fee = (6 + Math.trunc(c.traits.competence / 10)) * (until - 1);
+  // Haakon's answers to item 11a: its first errand is named when it is first sent, and the job, agreed before the game,
+  // carries the king's word to pay the rest when it is done (his standing order, which he may cancel: withhold_fee).
+  c.contract = newContract({ fee, advance: Math.trunc(fee / 2), startTurn: 1, untilTurn: until, payOnDone: true });
+  c.purse = Math.trunc(fee / 2);
+  c.earned.fees = c.purse;
+  c.reputation.set(p, 10);
+  if (plant) {
+    const master = rng.pick(AllPowers.filter((x) => x !== p));
+    c.secretMaster = master;
+    c.traits.sympathy = master;
+    c.traits.sympathyStrength = Math.max(c.traits.sympathyStrength, 60);
+    c.facts = c.facts.filter((f) => f.tag !== "sympathy");
+    c.facts.push(newFact({ id: newId(s, "f"), text: `Is secretly in the pay of ${land(master)}.`, secrecy: "Deep", tag: "plant", knownBy: [master] }));
+  }
 }
 
 /**

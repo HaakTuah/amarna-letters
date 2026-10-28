@@ -17,7 +17,6 @@ import { caravanAt, newCaravan, newMarket, type Caravan, type Market } from "../
 import {
   buyAlongCurve,
   capacityOf,
-  cityPriceOf,
   economyOf,
   EconomyData,
   grainWorth,
@@ -65,7 +64,6 @@ declare module "./core.ts" {
     caravanRoute(p: Power, from: string, to: string): string[] | null;
     caravanArrives(c: Caravan, traded?: string[] | null): void;
     settleMarkets(orders: [Power, Order][]): void;
-    cityPrice(province: string): number;
     landWorth(p: Power): number;
     holdings(p: Power): number;
     townNeed(province: string): number;
@@ -163,8 +161,9 @@ P.harvestSeason = function () {
       S.crop.set(prov.id, 0);
       if (owner !== null) reaped.set(owner, [...reaped.getOrDefault(owner, []), `${prov.name} ${harvest}`]);
     } else S.crop.set(prov.id, crop);
-    // A land without a king collects no tax: its people keep their whole harvest.
-    if (!prov.kingless) {
+    // A land without a town that nobody holds collects no tax: its people keep their whole harvest. Under a leader (the
+    // Kaska lands, Lukka and the Sutean steppe from item 11+, "Land without a ruler") it is taxed like any other land.
+    if (!prov.kingless || owner !== null) {
       // The harvest already bore the catastrophes; the tax bears only absorption, and nothing reaches it under a siege.
       const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * absorbedIn(S, prov.id)));
       const tax = Math.min(granary, due);
@@ -766,14 +765,6 @@ P.settleMarkets = function (orders) {
 
 // ---------------------------------------------------------------- wealth
 
-/**
- * What a free city asks to be bought ("a bought city's price is what it adds"): the worth of its land, its people's purse,
- * and the grain in its stores and market at reference prices. The gold leaves the world, paid to its notables.
- */
-P.cityPrice = function (province) {
-  const m = this.market(province);
-  return cityPriceOf(this.map.get(province), this.s.config.provinceWeight, m.purse, this.stores(province) + m.stock, this.harvestNow(province, false));
-};
 /**
  * The land's worth a season, by what it produces at reference prices: the whole harvest its people bring in now (item
  * 10+a: a ravaged or emptied province is worth less at once) and the mines, as far as it is absorbed.
