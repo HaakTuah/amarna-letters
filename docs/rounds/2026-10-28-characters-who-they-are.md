@@ -61,7 +61,43 @@ BENCH
 
 ## Readings taken and design questions
 
-READINGS
+Each is a question Haakon can answer; the reading taken comes first, the alternative in brackets.
+
+1. **Skills**: three skills the engine rolls on (gathering, slipping past guards, forging), drawn within 20 points of
+   competence, which stays a trait for judgement; assaying and commanding wait for the items that use them (or one skill,
+   competence, until "What skills cover" is scheduled; or every skill in that list now)?
+2. **Claims**: what a person says it can do when it pitches is its belief, 15 more for one loyal mostly to itself and
+   fond of gold, set by the engine for model characters too, whose words may say more (or a structured claim each model
+   character chooses)?
+3. **Talk of outcomes**: what one court saw travels as rumour to every other court, as word travels, except the
+   person's own master and courts holding a cover for it (whose news comes its own ways) and the court a spy watched
+   unseen; +6 a success, -10 a failure, a good tale growing 15% a season on the road (or only through carriers at that
+   court, as captures already spread)?
+4. **False names**: invented names only, offered only at a court that knows nothing of the person; borrowing a living
+   person's name needs each court to have its own handle for each name it is given, since today a court that lists the
+   real man would see two people of one name with different ids (or build those handles now)?
+5. **Exposure**: 50% a season where someone at that court has seen the person under its own name, 60% where a real envoy
+   of the king a false envoy names stands there, 3% otherwise, and a background check with a hidden fact's chance (or
+   other odds)?
+6. **False envoys** get no audience: the host is told, may give a gift (the new order `gift`), and a letter to the king
+   named checks the claim; a free person living in a city is a stranger to its king until it presents itself, so it can
+   pose there (or a full audience with return gifts, which needs a trail no court sent)?
+7. **Questioning**: whether a captive lies is a formula (loyal 60+ and brave 50+ lie), for model characters too, and a
+   lie is a forged tablet in its own hand (its master and another king in league against the captor) (or a request to
+   the character's mind)?
+8. **Captives handed over** pass at once, as a province ceded does, and their price is the kings' to agree in letters,
+   with no clause for it (or the captive travels under guard, and a clause "give me your captive")?
+9. **Debts** raise the wage a person asks and give the creditor's court a hold (a host's gift, questioning); nothing is
+   repaid, since purses never shrink yet (or repaid from wages now)?
+10. **A capital's archive** is carried off whole: the court loses every tablet in it, even those the taker held already
+   (or it keeps its copies of tablets the taker already held)?
+11. **Errands left for the items that bring their consequence**: carrying a candidate an offer (item 11), carrying a
+   ransom or a bribe by hand and chaining several stops (item 11b), taking command (item 13) (or build them now with
+   stand-ins)?
+12. **Attested traits from the sources**: Mane loyal and brave, Keliya trusted and able, Yanhamu able and ambitious,
+   Tutu greedy and ambitious, Salmu brave and loyal, Lupakki a brave general, Ilimilku a fine scribe, and so on
+   (`rules/cast.ts`), each within 10 points either way (or other readings of them)?
+BALANCEQ
 
 ## First guesses (item 18 tunes them)
 
@@ -78,7 +114,21 @@ READINGS
 
 ## The review
 
-REVIEW
+One reviewer (Opus, high effort), given the diff and the item's text. It found seven problems, all fixed before merging:
+
+1. `checkClaim` let any king ask whom any person serves (hidden spies included): accepted now only for a person at the
+   court who claims to be an envoy of the king written to.
+2. A gift to every id would find a hidden spy at one's court: a hidden spy is nobody there, refused as a stranger is.
+3. The steal order's refusal told a king its spy was caught before word came: it follows the recall's rule, by what the
+   court believes.
+4. A false name kept the person's id, so a court that listed it already would see the same person renamed, and a
+   borrowed name showed two people of one name: invented names only, offered only at a court that knows nothing of the
+   person (reading 4).
+5. A post watched unseen was told to the court watched: that court is left out of the talk.
+6. The false-name test could pass without checking anything: it now pitches, and asserts the view.
+7. A false name carried the real name's standing: each declared name has its own (`Declared.rep`).
+
+A test checks the three leaks (the claim, the gift, the steal).
 
 ## Tests
 
