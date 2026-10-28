@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Work, money and lending tab, revision 15 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Work, money and lending tab, revision 15 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## Hiring and jobs
 
 **Hiring as a negotiation.** Today a king asks for candidates, up to three random free characters pitch from wherever they are, kings bid blind, and the highest bid at or above the asking price wins. Nobody travels, nobody haggles, and nobody learns there was a bidding war. Instead:

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Tests, risks and references tab, revision 14 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Tests, risks and references tab, revision 14 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## Open questions and historical references
 
 **Open questions.**
