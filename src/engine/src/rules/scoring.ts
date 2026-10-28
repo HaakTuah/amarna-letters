@@ -38,7 +38,8 @@ export function strength(
  */
 export const Par: ReadonlyMap<Power, number> = new Map<Power, number>([
   // Item 11+: 50 script games (seeds 1-50), each power's mean growth in the games it survived, where it survived five or
-  // more; Lukka (fallen in all 50) and the Suteans (2 survivals) have no measure yet.
+  // more; the lands without a town (Kaska, Lukka, the Suteans) from a second run of the same seeds after they had their
+  // strongholds (in the first, Lukka fell in all 50 and the Suteans in 48).
   ["Egypt", 0.85],
   ["Hatti", 0.87],
   ["Babylonia", 0.96],
@@ -46,7 +47,8 @@ export const Par: ReadonlyMap<Power, number> = new Map<Power, number>([
   ["Assyria", 1.01],
   ["Arzawa", 1.15],
   ["Alashiya", 0.96],
-  ["Kaska", 1.14],
+  ["Kaska", 1.26],
+  ["Lukka", 1.23],
   ["Isuwa", 1.14],
   ["Carchemish", 0.88],
   ["Alalakh", 1.14],
@@ -65,6 +67,7 @@ export const Par: ReadonlyMap<Power, number> = new Map<Power, number>([
   ["Shechem", 1.07],
   ["Jerusalem", 1.01],
   ["Suhu", 1.18],
+  ["Suteans", 1.58],
   ["Arrapha", 0.93],
   ["Elam", 0.96],
 ]);

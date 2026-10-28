@@ -43,7 +43,7 @@ describe("MapAndSeasTests", () => {
     Assert.equal(["Coast", "Land"], [Map.get("sumur").kind, Map.get("amurru").kind]);
     Assert.true(Map.areAdjacent("sumur", "amurru") && Map.areAdjacent("sumur", "ugarit") && Map.areAdjacent("sumur", "byblos"));
     Assert.true(Map.get("lukka").kingless);
-    Assert.equal([1, undefined], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
+    Assert.equal([1, 2], [StartWalls.get("sumur"), StartWalls.get("lukka")]);
     Assert.equal(["Suhu", "Nesa", "Ekallate", "Kalavasos"], ["suhu", "nesa", "ekallate", "kalavasos"].map((id) => Map.get(id).name));
     // Suhu, a city-state's city since item 11+, has a capital's walls.
     Assert.equal(3, StartWalls.get("suhu"));

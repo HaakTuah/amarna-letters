@@ -148,8 +148,10 @@ export async function play(
   config: GameConfig | null = null,
   others: Dict<Power, ISeat> | null = null,
   setup: ((a0: GameState) => void) | null = null,
+  // The world before item 11+ (see oldWorld); a game to be replayed from its log needs the world as it starts.
+  old: boolean = true,
 ): Promise<GameRunner> {
-  let state = oldWorld(newGame(31, config ?? Quiet));
+  let state = old ? oldWorld(newGame(31, config ?? Quiet)) : newGame(31, config ?? Quiet);
   setup?.(state);
   let seats = toDict(
     AllPowers,

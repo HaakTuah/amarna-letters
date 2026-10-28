@@ -34,8 +34,8 @@ describe("City-states as powers (item 11+)", () => {
       Assert.true(s.units.some((u) => u.power === p && u.province === cap.id));
       Assert.true(s.treasuries.get(p).gold > 0);
       Assert.true(s.startStrength.get(p) > 0);
-      // A city's walls are a capital's; the lands without a town have none.
-      Assert.equal(cap.kingless ? 0 : 3, s.walls.getOrDefault(cap.id, 0));
+      // A city's walls are a capital's; the lands without a town have their chiefs' strongholds.
+      Assert.equal(cap.kingless ? 2 : 3, s.walls.getOrDefault(cap.id, 0));
     }
     // Egypt's garrison towns are its own land; no land province starts without a holder.
     Assert.equal("Egypt", s.owner.get("gaza"));

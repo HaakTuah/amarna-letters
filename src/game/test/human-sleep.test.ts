@@ -32,7 +32,7 @@ describe("HumanSleepTests", () => {
   test("A sleeping seat that wakes itself is asked that season, and a replay wakes it the same", async () => {
     // It sleeps after turn 1; nothing concerns it; it wakes itself in turn 4.
     const human = new Human(() => nothing(), [4]);
-    const r = await play("Babylonia", human, 5, Quiet);
+    const r = await play("Babylonia", human, 5, Quiet, null, null, false);
     Assert.equal(1, human.calls[0]);
     Assert.contains(4, human.calls);
     Assert.contains(SelfWakeReason, human.views[human.calls.indexOf(4)].wokenBecause);

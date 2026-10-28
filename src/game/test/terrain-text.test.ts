@@ -33,7 +33,7 @@ describe("TerrainTextTests", () => {
       "You pay your troops (20 an army, 25 a fleet, nearest your capital first). Then every unit eats",
     ],
     ["- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis."],
-    ["- kaska: Kaska Lands; land; homeland of Kaska; a land without a town; capital; yield 10; rough ground. armies: hattusa, sapinuwa."],
+    ["- kaska: Kaska Lands; land; homeland of Kaska; a land without a town; capital; yield 10; walls 2; rough ground. armies: hattusa, sapinuwa."],
     ["- ugaritwaters: Ugarit waters; sea zone, the waters of ugarit. fleets: ugarit, sumurwaters, kizzuwatnawaters, enkomiwaters (open sea)."],
     [
       "- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out.",
