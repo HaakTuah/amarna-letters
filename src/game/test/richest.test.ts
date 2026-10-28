@@ -39,7 +39,8 @@ describe("RichestTests", () => {
       sum(state.characters, (c) => earningsTotal(c.earned)),
       earningsTotal(summary.gained),
     );
-    Assert.true(ranking.slice(1).every((x, i) => ranking[i].total >= x.total));
+    // The living first, richest first; then the dead, by what they held when they died (item 11b: people die of the road).
+    Assert.true(ranking.slice(1).every((x, i) => (ranking[i].dead === x.dead ? ranking[i].total >= x.total : !ranking[i].dead)));
 
     let report = batchReport([summary]);
     Assert.contains("The richest characters (the second game, played under the kings'):", report);

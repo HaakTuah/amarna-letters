@@ -232,6 +232,8 @@ P.peopleSeason = function (food) {
 
   // The loose men rob the purse and the stores (item 10+b).
   for (const [p, l] of this.robbing().entries()) say(p, `Loose men robbed ${l.join("; ")}. Your troops standing in a province halve what they take.`);
+  // Item 11b: the bands, gathered from them by chiefs; an army of yours standing where one works falls on it.
+  for (const [p, l] of this.bandsSeason().entries()) say(p, `${l.join(" ")} An army of yours standing where a band works falls on it.`);
 
   // The loose drift freely towards richer land, across borders too.
   const drift: [string, string, number][] = [];

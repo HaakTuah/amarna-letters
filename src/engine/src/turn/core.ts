@@ -103,6 +103,9 @@ export class TurnEngine {
     this.debtsSeason();
     this.goldAndTabletsTaken();
     this.livingSeason();
+    // Item 11b: news travels with people.
+    this.newsSeason();
+    this.naturalLosses();
     this.newcomers();
     this.lifeRequests();
     this.memoriesDue();

@@ -1,6 +1,8 @@
 /** The season's resolution (phase 4 of TurnEngine): movement, land changing hands, transfers, levies, the end. */
 import { Dict, HSet } from "../core/collections.ts";
-import { roundEven, roundTo, toInt, fmt } from "../core/num.ts";
+import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
+import { BandData } from "../model/bands.ts";
+import { shift } from "./people.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
 import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
@@ -556,6 +558,18 @@ P.fall = function (p, conqueror, taker) {
   this.endSleep(p);
   // Its troops disband, their men going home with their savings, and their sieges are lifted.
   for (const u of S.units.filter((u) => u.power === p)) this.disbandUnit(u);
+  // Item 11b: its court's refugees at the fallen capital may raise a head of their own, carrying its tongue ("A fallen
+  // court's people"): the loose there, or, with too few, the townsfolk who fled their homes.
+  const heads = this.r("refugees", p);
+  if (heads.chance(BandData.refugeesHead / 100)) {
+    const x = this.peopleOf(capital.id);
+    const men = Math.min(BandData.startMost, Math.max(BandData.least, idiv(x.loose * BandData.startShare, 100)));
+    if (x.loose >= men) {
+      x.loose -= men;
+      this.looseLeave(capital.id, 0);
+    } else shift(x, -Math.min(men, x.settled), -Math.min(x.men, idiv(men, 2)));
+    this.headRises(capital.id, men, "refugees", heads, p);
+  }
   // What a fallen kingdom believed, and what it owed, go with it: fees it owed are lost, and its debts die with it (item 11a).
   for (const c of S.characters) {
     c.covers = removeAll(c.covers, (k) => k.for === p);

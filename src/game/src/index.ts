@@ -19,6 +19,7 @@ export { PeoplePlay } from "./bots/statecraft-court.ts";
 export { LandPlay } from "./bots/land.ts";
 export { BorderPlay } from "./bots/borders.ts";
 export { MoneyPlay } from "./bots/credit.ts";
+export { OutlawPlay } from "./bots/outlaws.ts";
 export { SeasonPlay } from "./bots/land.ts";
 export { scriptLife, handsOver, rateAsked } from "./bots/life-mind.ts";
 export { CharacterChecks } from "./character-checks.ts";

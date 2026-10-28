@@ -28,6 +28,7 @@ import { authorityRules } from "./rules-authority.ts";
 import { economyRules } from "./rules-economy.ts";
 import { peopleRules } from "./rules-people.ts";
 import { moneyRules } from "./rules-money.ts";
+import { roadRules } from "./rules-roads.ts";
 import { warRules } from "./rules-war.ts";
 import { intelligenceRules } from "./rules-intelligence.ts";
 const rulesCache = new Map<string, string>();
@@ -123,6 +124,8 @@ ${peopleRules(c)}
 
 ${moneyRules(c)}
 
+${roadRules(c)}
+
 ENVOYS: THE ONLY WAY KINGS COMMUNICATE
 - You never speak to another king directly. You give an envoy a spoken message, a mandate (what the envoy may agree to), optionally your seal with its limits (AUTHORITY AND PASSAGE), and optionally gold and a tablet. ${travel(c)}
 - The greeting is written by your scribes from your choices and sealed: it arrives exactly as written. The message itself is spoken by the envoy in their own words. Envoys have motives of their own (greed, fear, ambition, sympathies) and may soften, embellish, omit, take bribes, skim gold, exceed their mandate, stay too long, or defect. Their reports home are written to their own advantage.
@@ -155,7 +158,8 @@ Every king knows these customs, and knows that every other king knows them. They
 - Proof needs a witness who knows. When the king of Babylon asked whether his sister in the pharaoh's household still lived, he was told that the men he had sent were nobodies who had never known her, and that he should send someone who could recognise her.
 - Oaths are sworn before the gods: Shamash the sun god, witness of oaths, with Amun, Marduk and Teshub.
 - Catastrophes serve as excuses: a king of Alashiya blamed "the hand of Nergal", the god of plague, for sending less copper than promised.
-- Blame has its own vocabulary. "Habiru" (Egyptian 'Apiru) means outlaws, runaways and mercenaries living outside any city's control: a status, not a people. Vassals used the word as a weapon. Rib-Hadda of Byblos warned that the whole land was going over to the Habiru, and calling a rival "in league with the Habiru" branded him a traitor to his lord.`);
+- Blame has its own vocabulary. "Habiru" (Egyptian 'Apiru) means outlaws, runaways and mercenaries living outside any city's control: a status, not a people. Vassals used the word as a weapon. Rib-Hadda of Byblos warned that the whole land was going over to the Habiru, and calling a rival "in league with the Habiru" branded him a traitor to his lord.
+- Idrimi of Alalakh is a legend already: a king's son who fled, lived seven years among the Habiru, and came back to take a city. A chief of outlaws may dream of being another Idrimi; a king may fear one.`);
         }
 
         sb.appendLine();

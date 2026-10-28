@@ -44,6 +44,7 @@ import {
   payFee,
   borrow,
   repay,
+  buyNews,
   hold,
   move,
   newCondition,
@@ -430,6 +431,8 @@ function other(x: Node): Order | null {
       return borrow(person, amount, Math.max(amount, I(x, "gold")), term);
     case "repay":
       return repay(S(x, "item"), amount);
+    case "buy_news":
+      return power !== null ? buyNews(person, power) : unreadable(`buy news of '${named}'`, nowhere(named, "the court"));
     case "dismiss":
       return dismiss(person);
     case "background_check":

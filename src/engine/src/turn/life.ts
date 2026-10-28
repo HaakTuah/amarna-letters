@@ -6,13 +6,14 @@
  * people travel on their own way between courts, to volunteer where kings are hiring ("Hiring as a negotiation").
  */
 import { clamp } from "../core/num.ts";
-import { cmpNum, count, sortBy } from "../core/seq.ts";
+import { cmpNum, count, sortBy, sum } from "../core/seq.ts";
+import { BandData } from "../model/bands.ts";
 import { Dict } from "../core/collections.ts";
 import { needOf, priceAt } from "../model/economy.ts";
 import { newApproachSeen, newCourtSeen, newDebtSeen, newLifeView, newPersonHere, type LifeChoice, type LifeView } from "../model/life.ts";
 import { debtLeft, isPowerParty, MoneyData, newApproach, newErrand, type Approach, type Debt } from "../model/money.ts";
 import { newMindRequest } from "../model/exchanges.ts";
-import { gain, hiddenAt, newFact, remember, type Character } from "../model/people.ts";
+import { gain, hiddenAt, lossesHeardOf, newFact, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { newJourney, type Journey } from "../model/records.ts";
 import { alive, findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
@@ -32,7 +33,7 @@ declare module "./core.ts" {
     applyLife(c: Character, ch: LifeChoice): void;
     deal(a: Approach): boolean;
     deliverErrand(c: Character, deliver: boolean): void;
-    startTravel(c: Character, to: Power, asName?: string | null): void;
+    startTravel(c: Character, to: Power, asName?: string | null, fromProvince?: string | null): void;
     travellerArrives(j: Journey): void;
   }
 }
@@ -115,8 +116,6 @@ P.lifeView = function (c) {
   const S = this.s;
   const Map = this.map;
   const here = c.at!;
-  const executions = new Dict<Power, number>();
-  for (const e of S.events) if (e.kind === "execution") for (const p of e.visibleTo) executions.set(p, executions.getOrDefault(p, 0) + 1);
   const grainAt = (p: Power): number => {
     const cap = Map.capital(p);
     return priceAt(this.market(cap.id).stock, needOf(cap));
@@ -132,7 +131,9 @@ P.lifeView = function (c) {
       trust: trustIn(S, p),
       kept: r.kept,
       broken: r.broken,
-      executions: executions.getOrDefault(p, 0),
+      // Item 11b: as it heard of them, news that travels with people.
+      executions: lossesHeardOf(c, p).killed,
+      lost: lossesHeardOf(c, p).lost,
       grain: grainAt(p),
       growth: landRatio(this, p),
       besieged: this.capitalSiege(p) !== null,
@@ -187,6 +188,12 @@ P.lifeView = function (c) {
         : { employer: e.employer, employerName: findCharacter(S, e.employer)?.name ?? e.employer, debtId: e.debtId, borrower: S.debts.find((d) => d.id === e.debtId)?.borrower ?? "", collected: e.collected, home: e.home, since: e.since, reached: e.reached },
     offers: AllPowers.filter((p) => c.offers.has(p)).map((p) => ({ court: p, rate: c.offers.get(p) })),
     ending: endingWords(S.config.openAge, S.config.endMedian),
+    // Item 11b: crowds it could gather into a band, where it stands and next door.
+    crowds: c.status !== "Free"
+      ? []
+      : [Map.capital(here).id, ...Map.neighbors(Map.capital(here).id)]
+          .filter((x) => !Map.get(x).isSea && this.peopleOf(x).loose >= BandData.gatherLoose)
+          .map((x) => ({ province: x, name: Map.get(x).name, loose: this.peopleOf(x).loose, band: sum(this.bandsAt(x), (b) => b.men) })),
   });
 };
 
@@ -291,6 +298,14 @@ P.applyLife = function (c, ch) {
     }
   }
   // Setting out: a free person on its own way, or one on an errand to the borrower's court or home.
+  // Item 11b: a free person takes to the hills with a crowd where it stands or next door ("Turning outlaw").
+  if (ch.outlaw !== null && c.status === "Free" && c.errand === null && c.duty === "None") {
+    const cap = this.map.capital(c.at).id;
+    if ((ch.outlaw === cap || this.map.neighbors(cap).includes(ch.outlaw)) && !this.map.get(ch.outlaw).isSea && this.peopleOf(ch.outlaw).loose >= BandData.gatherLoose) {
+      this.turnOutlaw(c, ch.outlaw);
+      return;
+    }
+  }
   if (ch.go !== null && ch.go !== c.at && isAlive(S, ch.go) && (c.status === "Free" || c.errand !== null) && c.duty === "None") this.startTravel(c, ch.go, ch.goAs);
 };
 
@@ -387,13 +402,14 @@ P.deliverErrand = function (c, deliver) {
 };
 
 /** A free person (or a collector) sets out on its own way to a court. */
-P.startTravel = function (c, to, asName = null) {
+P.startTravel = function (c, to, asName = null, fromProvince = null) {
   const S = this.s;
   const from = c.at;
-  if (from === null) return;
-  const fromProv = this.map.capital(from).id;
-  const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from, to, characterId: c.id, seen: [fromProv], reached: [S.turn], asName });
-  j.arriveTurn = S.turn + Math.max(1, this.travelTurnsBetween(fromProv, this.map.capital(to).id));
+  if (from === null && fromProvince === null) return;
+  const fromProv = fromProvince ?? this.map.capital(from!).id;
+  // Item 11b: it walks the road like any traveller, and meets its outlaws ("Robbing purses on the road").
+  const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: from ?? to, to, characterId: c.id, asName });
+  this.setOut(j, fromProv, this.map.capital(to).id);
   S.journeys.push(j);
   c.at = null;
   c.duty = "Travelling";

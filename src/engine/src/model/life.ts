@@ -20,7 +20,9 @@ export interface CourtSeen {
   kept: number;
   broken: number;
   /** Executions it is said to have done (item 4's wariness). */
+  /** Item 11b: what it heard of the court: people it put to death, and its own people lost abroad (caught or put to death). */
   executions: number;
+  lost: number;
   /** The price of a measure of grain at its capital's market, in hundredths of a shekel (100 is the usual price). */
   grain: number;
   /** Its strength against its start, in percent, as all can reckon it; and whether its capital is besieged. */
@@ -33,7 +35,7 @@ export interface CourtSeen {
 }
 
 export function newCourtSeen(init: Partial<CourtSeen> = {}): CourtSeen {
-  return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, executions: 0, grain: 100, growth: 100, besieged: false, ask: 0, stranger: false, ...init };
+  return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, executions: 0, lost: 0, grain: 100, growth: 100, besieged: false, ask: 0, stranger: false, ...init };
 }
 
 export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSeen, {
@@ -44,6 +46,7 @@ export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSe
   kept: I,
   broken: I,
   executions: I,
+  lost: I,
   grain: I,
   growth: I,
   besieged: B,
@@ -155,6 +158,11 @@ export interface LifeView {
   offers: { court: Power; rate: number }[];
   /** The ending, in words (what every seat is told). */
   ending: string;
+  /**
+   * Item 11b, "Turning outlaw": the crowds of loose men where it stands and next door, as many as a man could gather into
+   * a band, with the men of the bands already working there.
+   */
+  crowds: { province: string; name: string; loose: number; band: number }[];
 }
 
 export function newLifeView(init: Partial<LifeView> = {}): LifeView {
@@ -182,6 +190,7 @@ export function newLifeView(init: Partial<LifeView> = {}): LifeView {
     errand: null,
     offers: [],
     ending: "",
+    crowds: [],
     ...init,
   };
 }
@@ -221,6 +230,7 @@ export const LifeViewSchema: ObjSchema<LifeView> = obj("LifeView", newLifeView, 
   errand: () => ErrandSeenSchema,
   offers: list(obj("OfferSeen", () => ({ court: "Egypt" as Power, rate: 0 }), { court: S, rate: I })),
   ending: S,
+  crowds: list(obj("CrowdSeen", () => ({ province: "", name: "", loose: 0, band: 0 }), { province: S, name: S, loose: I, band: I })),
 });
 
 /** An approach it makes: the same fields as an {@link Approach}, to someone in the same place. */
@@ -275,10 +285,12 @@ export interface LifeChoice {
   deliver: boolean;
   /** Debts it owes that it repays in full now, to whoever holds each tablet, if they stand in the same place. */
   repay: string[];
+  /** Item 11b, "Turning outlaw": a free person takes to the hills with the loose men of this province (one of its crowds). */
+  outlaw: string | null;
 }
 
 export function newLifeChoice(init: Partial<LifeChoice> = {}): LifeChoice {
-  return { go: null, goAs: null, seek: true, hoard: 0, lend: null, approach: null, accept: [], quit: false, deliver: true, repay: [], ...init };
+  return { go: null, goAs: null, seek: true, hoard: 0, lend: null, approach: null, accept: [], quit: false, deliver: true, repay: [], outlaw: null, ...init };
 }
 
 export const LifeChoiceSchema: ObjSchema<LifeChoice> = obj("LifeChoice", newLifeChoice, {
@@ -292,4 +304,5 @@ export const LifeChoiceSchema: ObjSchema<LifeChoice> = obj("LifeChoice", newLife
   quit: B,
   deliver: B,
   repay: list(S),
+  outlaw: opt(S),
 });

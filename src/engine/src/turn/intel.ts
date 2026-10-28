@@ -8,7 +8,7 @@ import { newMindRequest } from "../model/exchanges.ts";
 import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, ForgeOrder } from "../model/orders.ts";
 import { coverOf, newFact, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
-import { newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
+import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
 import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
@@ -238,16 +238,21 @@ P.watchAndReport = function () {
       report.tabletIds = this.copyFromArchive(c, c.missionTarget, employer);
     }
     const from = c.missionTarget !== null ? Map.capital(c.missionTarget).id : (c.watchProvince ?? Map.capital(employer).id);
+    // Item 11b ("Messengers are errands"): from abroad it waits for a carrier; inside its master's own land the realm's
+    // couriers carry it ("Distance inside your own realm").
+    // A watch post just across its master's border slips it to the realm's couriers there.
+    const abroad = S.owner.getOrDefault(from, null) !== employer && (c.missionTarget !== null || !Map.neighbors(from).some((n) => S.owner.getOrDefault(n, null) === employer));
     S.journeys.push(
       newJourney({
         id: newId(S, "j"),
         kind: "SpyReport",
         departTurn: S.turn,
-        arriveTurn: S.turn + this.travelTurnsBetween(from, Map.capital(employer).id),
+        arriveTurn: abroad ? Waiting : S.turn + this.travelTurnsBetween(from, Map.capital(employer).id),
         from: host ?? employer,
         to: employer,
         characterId: c.id,
         report,
+        waitAt: abroad ? from : null,
       }),
     );
   }
@@ -337,6 +342,7 @@ P.lossesHeard = function (carrier, court, held, death) {
 
 P.spyReportArrives = function (j) {
   const S = this.s;
+  if (j.carrier !== null) this.letterDelivered(j);
   const c = findCharacter(S, j.characterId);
   if (c === null || j.report === null) return;
   // A report it sent after its master's belief was frozen (a captive turned and back at its post): word has come from it.

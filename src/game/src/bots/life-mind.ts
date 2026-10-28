@@ -8,7 +8,11 @@
  * hands over what it collected unless it is a man who keeps what passes through his hands. First guesses throughout.
  */
 import {
+  BandData,
   MoneyData,
+  cmpNum,
+  cmpStr,
+  sortBy,
   impatience,
   newApproachMade,
   newLifeChoice,
@@ -49,6 +53,8 @@ function courtScore(c: Character, v: LifeView, k: CourtSeen, seeking: boolean): 
   const hiring = k.hiring !== null && v.turn - k.hiring <= 4 ? 30 : 0;
   let s = (seeking ? hiring + k.ask * (k.trust / 100) : k.trust / 4) - k.travel * 5;
   s -= k.executions * (t.courage < 40 ? 10 : 4);
+  // Item 11b: a court that loses its people abroad is a dangerous master, above all to the timid.
+  s -= k.lost * (t.courage < 40 ? 6 : 2);
   s -= Math.max(0, k.grain - 150) / 5;
   if (k.besieged) s -= 40;
   if (t.sympathy === k.court) s += 15;
@@ -147,6 +153,18 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
     if (due !== undefined && !staying) ch.go = due.otherId === v.at ? null : (due.otherId as Power);
     // At a court that knows nothing of it, one with a name to escape or a scheme gives the invented name (item 11a+).
     if (ch.go !== null && v.alias !== null && v.courts.some((k) => k.court === ch.go && k.stranger) && wantsFalseName(c)) ch.goAs = v.alias;
+  }
+
+  // Item 11b, "Turning outlaw": long without work or near the end of its purse, bold or greedy and not loyal, with a crowd
+  // to gather where it stands or next door, it takes to the hills; sooner if its way to a fortune is the outlaw's.
+  if (v.free && e === null && v.crowds.length > 0) {
+    const pushed = v.waited >= (c.strategy === "Outlaw" ? 3 : BandData.outlawWait) || (purse < v.living && v.waited >= 2);
+    const willing = (t.courage + t.greed + t.ambition) / 3 >= 55 && t.loyalty < 50;
+    const crowd = sortBy(v.crowds, [(x) => x.band - x.loose, cmpNum], [(x) => x.province, cmpStr])[0];
+    if (pushed && willing && crowd !== undefined) {
+      ch.outlaw = crowd.province;
+      return ch;
+    }
   }
 
   // Its hoard: the careful keep one where they stand, if that court looks safe; anyone pulls it out of a court in danger.

@@ -520,7 +520,7 @@ export class Brain {
   }
 }
 
-const SpiedUnit = /([\p{L}\p{Mn}\p{Nd}\p{Pc}]+) has (?:an army|a fleet) in/gu;
+const SpiedUnit = /([\p{L}\p{Mn}\p{Nd}\p{Pc}]+) (?:has|had) (?:an army|a fleet) in/gu;
 
 /** One of our people whose line reads that they have not returned: the overdue word has come, and nothing since. */
 function overdue(c: CharacterView): boolean {
