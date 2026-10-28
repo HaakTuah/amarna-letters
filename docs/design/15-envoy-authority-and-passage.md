@@ -59,7 +59,7 @@ report brings no holders.
   (requests), each with a province (none: all the land, passage only) and a last season (none: until revoked). They are the
   one exception to "clauses oblige nobody": `grantsIn` reads a tablet's clauses when both seal it (by the host at the
   audience, or by an envoy's hand), and each grant over land its grantor holds then becomes a `Grant` in `GameState.grants`
-  (events `passage-granted`, `basing-granted`). Trade rights wait for item 9+b, where caravans first trade abroad.
+  (events `passage-granted`, `basing-granted`). Trade rights came with item 9+b (`tollFree`, `askTollFree`: words, see `17-the-economy-abroad.md`).
 - **What a grant does** (`turn/authority.ts`): `grantCovers`, `guestOf`. A guest's troop takes none of the land it stands
   in by basing, or by passage in a season it moved there (`TurnEngine._movedNow`); one that holds, supports or is stopped
   there under passage alone has overstayed and takes it, as any troop takes land. Its move in is no invasion

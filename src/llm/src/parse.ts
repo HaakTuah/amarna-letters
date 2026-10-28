@@ -26,6 +26,9 @@ import {
   purchase,
   feed,
   caravan,
+  trade,
+  ship,
+  toll,
   giftUnit,
   hire,
   hold,
@@ -362,6 +365,18 @@ function other(x: Node): Order | null {
       const to = empty(S(x, "to"));
       return caravan(province, to !== null ? prov(to) : "", amount);
     }
+    case "trade":
+    case "smuggle": {
+      const to = empty(S(x, "to"));
+      return trade(province, to !== null ? prov(to) : "", amount, Math.max(0, I(x, "gold")), S(x, "action") === "smuggle");
+    }
+    case "ship_trade":
+    case "ship_deliver": {
+      const to = empty(S(x, "to"));
+      return ship(province, province, to !== null ? prov(to) : "", amount, Math.max(0, I(x, "gold")), S(x, "action") === "ship_trade");
+    }
+    case "set_toll":
+      return named.trim() !== "" && power === null ? unreadable(`set a toll on '${named}'`, nowhere(named, "the partner")) : toll(amount, power, pr !== null ? province : null);
     case "cede_province":
       return power !== null ? cede(province, power) : unreadable(`cede ${province} to '${named}'`, nowhere(named, "the power to cede it to"));
     case "give_unit":

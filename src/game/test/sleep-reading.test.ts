@@ -236,9 +236,10 @@ describe("SleepTests", () => {
     Assert.equal([1, 3, 4], sleeper.calls);
     let after = last(sleeper.views);
     Assert.equal(1, after.lastCalled);
-    Assert.equal([CapReason], after.wokenBecause);
+    // A trading caravan of the stand-in's was lost too (item 9+b), which wakes a king as any caravan lost does.
+    Assert.equal([CapReason, "a caravan of yours was lost"], after.wokenBecause);
     Assert.equal(
-      "You slept 2 seasons (you last gave orders in turn 1). You were woken because: your counsellors woke you after a long sleep.",
+      "You slept 2 seasons (you last gave orders in turn 1). You were woken because: your counsellors woke you after a long sleep; a caravan of yours was lost.",
       sleepLine(after),
     );
     Assert.contains(after.whileAsleep, (i) => i.turn === 2 && i.title === "Movements last season");
@@ -259,9 +260,10 @@ describe("SleepTests", () => {
     Assert.equal([1, 3, 4], sleeper.calls);
     let woke = ["foreign troops entered your land: Assyria's army moved ekallate -> sippar", "land lost: Sippar has been taken by Assyria."];
     Assert.equal(woke, sleeper.views[1].wokenBecause);
-    Assert.equal(woke, sleeper.views[2].wokenBecause);
+    // In the season it missed, the stand-in's trading caravan was lost too (item 9+b), which wakes a king as well.
+    Assert.equal([...woke, "a caravan of yours was lost"], sleeper.views[2].wokenBecause);
     Assert.equal(
-      "You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallate -> sippar; land lost: Sippar has been taken by Assyria.",
+      "You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallate -> sippar; land lost: Sippar has been taken by Assyria; a caravan of yours was lost.",
       sleepLine(sleeper.views[2]),
     );
     // Having answered itself in turn 4, it sleeps on: the reasons it has now read wake it no more.

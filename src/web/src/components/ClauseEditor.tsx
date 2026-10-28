@@ -15,6 +15,7 @@ const Uses: Record<ClauseKind, readonly ("king" | "province" | "into" | "season"
   cede: ["province"],
   passage: ["province", "season"],
   basing: ["province", "season"],
+  tollFree: [],
   askGold: ["gold"],
   askSupport: ["province", "into", "season"],
   askWithdraw: ["province"],
@@ -24,6 +25,7 @@ const Uses: Record<ClauseKind, readonly ("king" | "province" | "into" | "season"
   askOath: [],
   askPassage: ["province", "season"],
   askBasing: ["province", "season"],
+  askTollFree: [],
   threat: ["province"],
   grievance: ["province"],
   brokenOath: [],
@@ -44,11 +46,11 @@ const Groups: [string, [ClauseKind, string][]][] = [
   ["Courtesies and gifts", [["wellWishes", "may it be well with you"], ["gift", "a greeting-gift of gold"]]],
   [
     "Proposals",
-    [["peace", "peace"], ["noAttack", "my troops will not enter your land"], ["alliance", "alliance"], ["against", "stand together against a king"], ["support", "I will support your move"], ["tribute", "I will pay tribute"], ["cede", "I give you a land"], ["passage", "your troops may pass through my land"], ["basing", "your troops may stand within my walls"]],
+    [["peace", "peace"], ["noAttack", "my troops will not enter your land"], ["alliance", "alliance"], ["against", "stand together against a king"], ["support", "I will support your move"], ["tribute", "I will pay tribute"], ["cede", "I give you a land"], ["passage", "your troops may pass through my land"], ["basing", "your troops may stand within my walls"], ["tollFree", "no toll on your goods in my land"]],
   ],
   [
     "Requests",
-    [["askGold", "send me gold"], ["askSupport", "support my move"], ["askWithdraw", "withdraw your troops"], ["askCede", "give me a land"], ["askTribute", "pay me tribute"], ["askHelp", "relieve my besieged city"], ["askOath", "swear your troops will stand with mine"], ["askPassage", "let my troops pass through your land"], ["askBasing", "let my troops stand within your walls"]],
+    [["askGold", "send me gold"], ["askSupport", "support my move"], ["askWithdraw", "withdraw your troops"], ["askCede", "give me a land"], ["askTribute", "pay me tribute"], ["askHelp", "relieve my besieged city"], ["askOath", "swear your troops will stand with mine"], ["askPassage", "let my troops pass through your land"], ["askBasing", "let my troops stand within your walls"], ["askTollFree", "take no toll on my goods"]],
   ],
   ["Threats", [["threat", "or my troops will march"]]],
   ["Grievances", [["grievance", "your troops entered my land"], ["brokenOath", "you broke your oath"], ["lightGift", "your gold weighed light"], ["envoyLied", "your messenger lied"], ["habiru", "in league with the Habiru"]]],
@@ -56,7 +58,7 @@ const Groups: [string, [ClauseKind, string][]][] = [
   ["Answers", [["accept", "I accept"], ["refuse", "I refuse"], ["counter", "not that, but this"]]],
 ];
 
-const Answerable: ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing", "gift"];
+const Answerable: ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "tollFree", "askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing", "askTollFree", "gift"];
 const num = (s: string): number => (s.trim() === "" || !Number.isFinite(Number(s)) ? 0 : Math.trunc(Number(s)));
 
 /**

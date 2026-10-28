@@ -9,7 +9,12 @@ import {
   buy,
   caravan,
   feed,
+  harbourOf,
   priceForTen,
+  ship,
+  toll,
+  trade,
+  TradeData,
   purchase,
   sell,
   captive,
@@ -66,6 +71,14 @@ interface Form {
   grainAction: string;
   grainAmount: string;
   grainTo: string;
+  tradeAction: string;
+  tradeFrom: string;
+  tradeTo: string;
+  tradeGrain: string;
+  tradeGold: string;
+  tollPercent: string;
+  tollPartner: string;
+  tollAt: string;
   sallyCity: string;
   sallyFrom: string;
   cedeWhat: string;
@@ -129,6 +142,14 @@ function newForm(me: Power): Form {
     grainAction: "sell",
     grainAmount: "",
     grainTo: "",
+    tradeAction: "trade",
+    tradeFrom: "",
+    tradeTo: "",
+    tradeGrain: "",
+    tradeGold: "",
+    tollPercent: "",
+    tollPartner: "",
+    tollAt: "",
     sallyCity: "",
     sallyFrom: "",
     cedeWhat: "",
@@ -647,6 +668,98 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
           >
             Add
           </button>
+        </div>
+        {/* Trade abroad (item 9+b): a caravan or a smuggler to a foreign market, or a fleet in cargo service. */}
+        <div className="row" style={{ marginTop: ".4rem" }}>
+          <select value={f.tradeAction} onChange={(e) => set({ tradeAction: e.target.value, tradeFrom: "", tradeTo: "" })}>
+            <option value="trade">Trade abroad by caravan</option>
+            <option value="smuggle">Smuggle abroad</option>
+            <option value="shipTrade">Trade abroad by ship</option>
+            <option value="shipDeliver">Ship grain to</option>
+          </select>
+          <select value={f.tradeFrom} onChange={(e) => set({ tradeFrom: e.target.value })}>
+            <option value="">from…</option>
+            {v.provinces
+              .map((x) => x.province)
+              .filter((id) => !f.tradeAction.startsWith("ship") || (harbourOf(map.get(id)) > 0 && v.units.some((u) => u.power === me && u.kind === "Fleet" && (u.province === id || u.province === map.get(id).waters))))
+              .sort(byName)
+              .map((id) => (
+                <option key={id} value={id}>
+                  {provinceName(id)} (stores {v.provinces.find((y) => y.province === id)!.stores})
+                </option>
+              ))}
+          </select>
+          <select value={f.tradeTo} onChange={(e) => set({ tradeTo: e.target.value })}>
+            <option value="">to…</option>
+            {map.landProvinces
+              .filter((x) => !x.kingless && x.id !== f.tradeFrom && (f.tradeAction === "shipDeliver" || !v.provinces.some((y) => y.province === x.id)) && (!f.tradeAction.startsWith("ship") || harbourOf(x) > 0))
+              .map((x) => x.id)
+              .sort(byName)
+              .map((id) => {
+                const seen = v.markets.tryGet(id);
+                return (
+                  <option key={id} value={id}>
+                    {provinceName(id)}
+                    {seen !== undefined ? ` (${shekels(priceForTen(seen.price))} for ten, purse ${shekels(seen.purse)}, seen season ${seen.turn})` : ""}
+                  </option>
+                );
+              })}
+          </select>
+          <input type="number" min={0} max={f.tradeAction.startsWith("ship") ? TradeData.shipCapacity : undefined} placeholder="measures" value={f.tradeGrain} onChange={(e) => set({ tradeGrain: e.target.value })} style={{ width: "6rem" }} />
+          {f.tradeAction !== "shipDeliver" && <input type="number" min={0} placeholder="gold to buy with" value={f.tradeGold} onChange={(e) => set({ tradeGold: e.target.value })} style={{ width: "7rem" }} />}
+          <button
+            className="small"
+            disabled={f.tradeFrom === "" || f.tradeTo === "" || !(Math.max(0, Number(f.tradeGrain) || 0) + (f.tradeAction === "shipDeliver" ? 0 : Math.max(0, Number(f.tradeGold) || 0)) > 0)}
+            onClick={() => {
+              const grain = Math.max(0, Math.floor(Number(f.tradeGrain) || 0));
+              const gold = f.tradeAction === "shipDeliver" ? 0 : Math.max(0, Math.floor(Number(f.tradeGold) || 0));
+              const fleet = v.units.find((u) => u.power === me && u.kind === "Fleet" && u.province === f.tradeFrom)?.province ?? map.get(f.tradeFrom).waters ?? f.tradeFrom;
+              add(
+                f.tradeAction === "trade" || f.tradeAction === "smuggle"
+                  ? trade(f.tradeFrom, f.tradeTo, grain, gold, f.tradeAction === "smuggle")
+                  : ship(fleet, f.tradeFrom, f.tradeTo, grain, gold, f.tradeAction === "shipTrade"),
+              );
+            }}
+          >
+            Add
+          </button>
+        </div>
+        {/* Tolls (item 9+b): a percent of the goods entering your land, for everyone or one partner, in all your land or one province. */}
+        <div className="row" style={{ marginTop: ".4rem" }}>
+          <span>Toll</span>
+          <input type="number" min={0} max={TradeData.tollMost} placeholder="%" value={f.tollPercent} onChange={(e) => set({ tollPercent: e.target.value })} style={{ width: "4rem" }} />
+          <select value={f.tollPartner} onChange={(e) => set({ tollPartner: e.target.value })}>
+            <option value="">on everyone</option>
+            {others.map((p) => (
+              <option key={p} value={p}>
+                on {p}
+              </option>
+            ))}
+          </select>
+          <select value={f.tollAt} onChange={(e) => set({ tollAt: e.target.value })}>
+            <option value="">in all your land</option>
+            {v.provinces
+              .map((x) => x.province)
+              .sort(byName)
+              .map((id) => (
+                <option key={id} value={id}>
+                  at {provinceName(id)}
+                </option>
+              ))}
+          </select>
+          <button
+            className="small"
+            disabled={f.tollPercent.trim() === "" || !(Number(f.tollPercent) >= 0 && Number(f.tollPercent) <= TradeData.tollMost)}
+            onClick={() => add(toll(Math.floor(Number(f.tollPercent)), f.tollPartner === "" ? null : (f.tollPartner as Power), f.tollAt === "" ? null : f.tollAt))}
+          >
+            Add
+          </button>
+          {v.tolls.length > 0 && (
+            <span className="muted">
+              {" "}
+              Posted: {v.tolls.map((t) => `${t.holder} ${t.percent}%${t.partner !== null ? ` on ${t.partner}` : ""}${t.province !== null ? ` at ${provinceName(t.province)}` : ""}`).join("; ")}
+            </span>
+          )}
         </div>
         {sallying.length > 0 && (
           // A sally (the siege package): the walls of a city with foreign troops within them support one attack on them, for +1.

@@ -12,8 +12,10 @@ import { type AnswerBook, AnswerBookSchema } from "./answers.ts";
 import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type Grant, GrantSchema } from "./authority.ts";
 import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
+import { type Toll, TollSchema } from "./trade.ts";
+import { type MarketSeen, MarketSeenSchema } from "./views.ts";
 
-export const CURRENT_VERSION = 14;
+export const CURRENT_VERSION = 15;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -94,8 +96,12 @@ export interface GameState {
   stores: Dict<string, number>;
   /** Each land province's local market (item 9+a, "Markets"): its stock of grain and its people's purse. */
   markets: Dict<string, Market>;
-  /** The caravans on the road (item 9+a, "Caravans carry a kingdom's goods"). */
+  /** The caravans on the road (item 9+a, "Caravans carry a kingdom's goods"), and ships in cargo service (item 9+b). */
   caravans: Caravan[];
+  /** The tolls each power sets on goods entering its land (item 9+b, "Tolls and smuggling"); standing until changed. */
+  tolls: Toll[];
+  /** Foreign markets as each court last knew them (item 9+b): seen where it sees the land, or found by its traders. */
+  marketsSeen: Dict<Power, Dict<string, MarketSeen>>;
   /**
    * The besieged cities that could not feed their mouths in full when the season began (item 9+a, "How long a siege
    * lasts"): each surrenders to its besieger with the season's sieges, if the siege still stands.
@@ -184,6 +190,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     stores: new Dict(),
     markets: new Dict(),
     caravans: [],
+    tolls: [],
+    marketsSeen: new Dict(),
     starving: [],
     units: [],
     treasuries: new Dict(),
@@ -242,6 +250,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   stores: dict(I),
   markets: dict(() => MarketSchema),
   caravans: list(() => CaravanSchema),
+  tolls: list(() => TollSchema),
+  marketsSeen: dict(dict(() => MarketSeenSchema)),
   starving: list(S),
   units: list(() => UnitSchema),
   treasuries: dict(() => TreasurySchema),

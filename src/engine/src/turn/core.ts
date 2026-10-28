@@ -200,6 +200,8 @@ export class TurnEngine {
     const fed = this.feedTroops();
     for (const p of alive(S)) notify(S, p, "Notice", "The treasury", [...notes.getOrDefault(p, []), ...fed.getOrDefault(p, [])].join(" "));
     this.caravansTravel();
+    // The foreign markets each court sees this season (item 9+b).
+    this.seeMarkets();
   }
 
   /**

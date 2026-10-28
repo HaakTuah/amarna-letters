@@ -29,6 +29,7 @@ import {
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
+import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
@@ -195,7 +196,11 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   let gold = v.gold - v.backPay;
   const costs = v.upkeep + v.wallUpkeep + v.wages;
   // Grain first (item 9+a): what its sales this season should bring, with the mines, is the season's income.
-  const sales = plainGrain(b.me) ? plainGrainOrders(v, orders) : grainOrders(b, brain, plan, orders, gold, costs);
+  const grain = plainGrain(b.me) ? { sales: plainGrainOrders(v, orders), abroad: 0 } : grainOrders(b, brain, plan, orders, gold, costs);
+  const sales = grain.sales;
+  // Gold sent abroad to buy grain (item 9+b) is gone from the treasury until its caravans come home; and the tolls.
+  gold -= grain.abroad;
+  if (TradePlay.on(b.me)) tollOrders(b, brain, orders);
   const mines = sum(v.provinces, (x) => economyOf(Board.Map.get(x.province)).mine);
   // What the markets can go on paying a season: no more than the towns eat, nor the grain to spare, nor the gold that comes
   // back into the purses (the part of the troops' pay spent at home) and a share of what the purses hold now.
