@@ -147,7 +147,8 @@ P.chiefDecides = function (b, chief) {
     this.wayBack(b, "he chose to");
     return "gone";
   }
-  if (plan.ship) this.buyShip(b, chief);
+  // A ship is bought only where the band stays by the sea: moved inland, it would be left behind at once.
+  if (plan.ship && (plan.go === null || plan.go === b.province || this.map.get(plan.go).isCoastal)) this.buyShip(b, chief);
   if (plan.go !== null && plan.go !== b.province && this.map.movesFrom("Army", b.province).includes(plan.go) && !this.map.get(plan.go).isSea) {
     b.province = plan.go;
     chief.watchProvince = plan.go;

@@ -11,7 +11,7 @@ script's side ([`24-jobs-and-money-answers.md`](24-jobs-and-money-answers.md)); 
   for carriers, the engine asks every chief leading a band (task `Chief`) and every posted spy with reports waiting at
   its post for a carrier (task `Reports`). The choices are taken when the next season begins (`freshPlan`: made last
   season). A script mind answers nothing (`ScriptMind`), so its traits decide as before; script games are unchanged
-  apart from the request ids.
+  apart from the request ids (save version 23).
 - **A chief sees** (`ChiefView`): his men, ship and purse, what his men cost a season and how long they went unpaid; the
   land where he works and the land next door as he hears of it, in round numbers (its people's purse and stores, whether
   an army stands there, other bands' men, a coast); a ship's price where he could buy one, or the men one needs; whom he
@@ -19,7 +19,8 @@ script's side ([`24-jobs-and-money-answers.md`](24-jobs-and-money-answers.md)); 
 - **A chief decides** (`ChiefChoice`, on `Character.chiefPlan`): land next door to move to (or stay), buying a ship
   (only asked when he can), whom his men kill of the travellers they rob ("nobody", "kings' servants", "everyone",
   standing until he says otherwise, `killsByChoice`), and giving up the road (`wayBack`). A chief who chose this season
-  does nothing by formula (`chiefDecides`, at the start of his band's season; hunted, he flees as anyone). A chief whose
+  does nothing by formula (`chiefDecides`, at the start of his band's season; hunted, he flees as anyone; a ship is
+  not bought for a move inland, where it would be left behind). A man who leads a new band starts with no choices. A chief whose
   call failed or who has not yet been asked (his first season) decides by the formula of his traits, as the stand-in.
 - **A spy sees** (`ReportsView`): its post, its master, how many reports wait and for how long, its purse, the seasons
   home, about what a passing traveller and a man hired at the court there would ask (reckoned from what it would ask
@@ -35,4 +36,8 @@ script's side ([`24-jobs-and-money-answers.md`](24-jobs-and-money-answers.md)); 
 1. The choices are taken the season after they are made (the request comes as a season begins, after the band's
    season), so a model chief's first season, before he has been asked, is decided by the formula of his traits.
 2. A spy's prices are what it reckons a carrier would ask, from its own price; the carrier it finds asks his own.
-3. No new save version: script games play the same, and saves of version 22 load with no choices made.
+3. **Save version 23**: script games play the same, but the new requests take request ids, by which a game's log keeps
+   its replies, so a log of version 22 would hand replies to the wrong requests.
+4. Known limits: the script's side of the shadow log says only "by its traits" (the formulas decide later, in the
+   engine); the batch runner's count of characters asked (`characterCalls`, `characterWakeups`) now counts these
+   requests, which a script mind answers without a call.

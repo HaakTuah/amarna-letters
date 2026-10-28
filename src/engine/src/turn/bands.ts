@@ -155,6 +155,8 @@ declare module "./core.ts" {
 
 P.lead = function (c, b) {
   c.duty = "Leading";
+  // A new band: nothing he chose for another one holds.
+  c.chiefPlan = null;
   c.at = null;
   c.watchProvince = b.province;
   c.lendOffer = null;

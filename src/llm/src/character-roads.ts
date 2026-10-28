@@ -37,7 +37,7 @@ export function chiefText(v: ChiefView): string {
   if (v.shipCost !== null)
     sb.appendLine(
       v.purse >= v.shipCost
-        ? `A ship costs ${v.shipCost} shekels in this port. With one, your band also falls on travellers and ships at sea off the coast where it works.`
+        ? `A ship costs ${v.shipCost} shekels in this port. With one, your band also falls on travellers and ships at sea off the coast where it works; a band that moves to land without a coast leaves its ship behind, so none is bought if you move inland.`
         : `A ship costs ${v.shipCost} shekels in this port; you have not the gold for one.`,
     );
   else if (!v.ship && v.here.coast) sb.appendLine(`A ship needs at least ${v.shipMen} men to man it.`);
@@ -46,7 +46,7 @@ export function chiefText(v: ChiefView): string {
     `When your men rob a traveller, you choose whom they kill${v.kill !== null ? ` (now: ${KillWords[v.kill]})` : ""}. A king's servant let go may name you to his king, who may send his army after you; one killed names nobody, but a death on the road is heard of. A free traveller's word reaches nobody who would hunt you.`,
   );
   sb.appendLine("You may give up the road: your men go back to the loose men, and you seek service like anyone, carrying the hidden fact that you rode with the Habiru.");
-  sb.appendLine("Choose for yourself. Your band stays where it is unless you move it.");
+  sb.appendLine("Choose for yourself. Your band stays where it is unless you move it, or a king's army falls on it and drives it off.");
   return sb.toString();
 }
 
@@ -89,7 +89,7 @@ export function reportsText(v: ReportsView): string {
   if (v.hired !== null)
     sb.appendLine(
       v.paysOnDelivery
-        ? `- A free person at the court here would ask about ${v.hired} shekels to be hired for the journey: half now from your purse, the rest from your master on delivery, or none now from one who trusts your master's record of paying.`
+        ? `- A free person at the court here would ask about ${v.hired} shekels to be hired for the journey: half now from your purse and the rest from your master on delivery; one who trusts your master's record of paying takes what you give now, even nothing.`
         : `- A free person at the court here would ask about ${v.hired} shekels to be hired for the journey, all now from your purse.`,
     );
   sb.appendLine(

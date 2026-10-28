@@ -143,14 +143,15 @@ P.carryLetters = function () {
       const nowOf = (c: Character): number => (S.payCarriers.includes(letter.to) ? Math.ceil(ask(c) / 2) : ask(c));
       const hire =
         sortBy(
-          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || spy.purse >= ask(c)) && nowOf(c) <= most),
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || (spy.purse >= ask(c) && nowOf(c) <= most))),
           [(c: Character) => ask(c), cmpNum],
           [(c: Character) => idNumber(c.id), cmpNum],
         )[0] ?? null;
       if (hire !== null) {
         // The rest on delivery only by its court's standing order; without it the spy pays it all now from its purse.
         const whole = ask(hire);
-        const now = S.payCarriers.includes(letter.to) ? Math.min(spy.purse, Math.ceil(whole / 2)) : Math.min(spy.purse, whole);
+        // One who trusts the court's record takes what the spy gives now, no more than it chose to pay.
+        const now = S.payCarriers.includes(letter.to) ? Math.min(spy.purse, most, Math.ceil(whole / 2)) : Math.min(spy.purse, whole);
         spy.purse -= now;
         spy.earned.spent += now;
         gain(hire, now, "News");

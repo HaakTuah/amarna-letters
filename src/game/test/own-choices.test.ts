@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { BandData, TurnEngine, WorldMap, first, newGame, newMindReply, type GameState, type MindRequest } from "@amarna/engine";
+import { BandData, LetterData, TurnEngine, WorldMap, first, newGame, newMindReply, trustIn, type GameState, type MindRequest } from "@amarna/engine";
 import { ScriptMind, newMindContext } from "@amarna/game";
 import { LlmCharacterMind, type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
 import { Assert } from "../../engine/test/support.ts";
@@ -164,6 +164,45 @@ describe("OwnChoicesTests", () => {
     // Its request names its post and its master, never an id.
     Assert.false(enough.req.reports === null);
     Assert.equal("Babylonia", enough.req.reports!.master);
+  });
+
+  test("A model spy whose master pays carriers hires one who trusts him for no more than it chose to pay now", async () => {
+    const w = spyWaiting(5);
+    w.s.payCarriers.push("Babylonia");
+    w.s.payRecords.set("Babylonia", { kept: 20, broken: 0 });
+    const free = first(w.s.characters, (c) => c.status === "Free" && c.at !== null && c.errand === null);
+    free.at = "Hatti";
+    free.duty = "None";
+    Assert.true(trustIn(w.s, "Babylonia", free) >= LetterData.trustOnDelivery);
+    w.e.fulfil(w.req, await answer(new LlmCharacterMind(new Answers({ pay_up_to: 0, carry_home: false })), w.s, w.req));
+    w.s.turn++;
+    new TurnEngine(w.s).carryLetters();
+    Assert.equal(free.id, w.letter.carrier);
+    Assert.equal(500, w.spy.purse);
+    Assert.true(w.letter.fee > 0);
+  });
+
+  test("A model chief buys a ship where his band stays by the sea, and none if he moves it inland", async () => {
+    const run = async (inland: boolean) => {
+      const s = newGame(3);
+      const prov = first(Map.landProvinces, (p) => p.isCoastal && !Map.get(p.id).kingless && !s.units.some((u) => u.province === p.id) && Map.movesFrom("Army", p.id).some((n) => !Map.get(n).isSea && !Map.get(n).isCoastal)).id;
+      const e = new TurnEngine(s);
+      const b = e.headRises(prov, BandData.shipMen + 20, "crowd", e.r("test"));
+      const chief = first(s.characters, (c) => c.id === b.leaderId);
+      chief.purse = BandData.shipCost * 3;
+      e.ownRequests();
+      const req = first(e.mindRequests, (r) => r.task === "Chief" && r.characterId === chief.id);
+      const rec = new Recorder();
+      await answer(new LlmCharacterMind(rec), s, req);
+      Assert.contains(Recorder.fields(rec.calls[0]), (f) => f === "buy_ship");
+      const to = inland ? first(req.chief!.next, (l) => !l.coast).name : "";
+      e.fulfil(req, await answer(new LlmCharacterMind(new Answers({ go: to, buy_ship: true, kill: "nobody", give_up_the_road: false })), s, req));
+      s.turn++;
+      new TurnEngine(s).bandsSeason();
+      return [chief.purse < BandData.shipCost * 3, s.bands.find((x) => x.leaderId === chief.id)?.ship ?? false];
+    };
+    Assert.equal([true, true], await run(false));
+    Assert.equal([false, false], await run(true));
   });
 
   test("A request answered with no choice leaves the script's traits deciding", () => {

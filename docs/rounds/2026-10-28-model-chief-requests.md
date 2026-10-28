@@ -46,6 +46,18 @@ BENCH
 No use-against-ignore row: nothing changes for script players, and model games are not run until the build order is
 done.
 
+## The review
+
+One reviewer (Opus, high effort) read the diff against the item and "The game in one page". Fixed: (1, blocking) the new
+requests shift the request ids a log keys its replies by, so the save version goes to 23; (3) a spy whose master pays
+carriers was told a trusting carrier takes what it gives now, but always paid half: it now pays no more than it chose;
+(4) a ship bought and sailed inland the same season was lost: none is bought for a move inland, and the request says so;
+(5) the request said the band stays unless moved, but a hunt drives it off: it says so; (8) a man leading a new band
+kept whom he chose to kill with an old one: leading a band starts with no choices; (9) tests for buying a ship, a move
+inland and the trusted carrier. Kept, as known limits in the design note: (6) the batch runner's count of characters
+asked now counts these requests, which a script answers without a call; (7) the script's side of the shadow log says
+only "by its traits", since its formulas decide later in the engine.
+
 ## Readings taken (each also in "For Haakon")
 
 1. **A chief's choices are taken the season after he makes them** (the request comes as a season begins, after his
@@ -59,4 +71,5 @@ done.
    a season. (Freedom to do: the season's wait was the script's patience, not a rule.)
 4. **A spy is told about what a carrier would ask, reckoned from its own price**; the man it finds asks his own.
    Alternative: not told, learning only by trying. (Prices: what a character has heard, and bargains from.)
-5. **No new save version**: script games play the same, and saves of version 22 load with no choices made.
+5. **Save version 23** (the reviewer's finding): script games play the same, but the new requests take request ids, by
+   which a log keeps its replies, so a version-22 log would replay replies into the wrong requests.
