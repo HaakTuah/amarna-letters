@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Work, money and lending tab, revision 12 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Work, money and lending tab, revision 15 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Purses and lending
 
 **Characters have ongoing costs,** so purses do not grow into fortunes worth killing for:
