@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Characters tab, revision 18 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Characters tab, revision 19 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Skills, names and knowledge
 
 **Skills are hard-coded; decisions belong to the character** (decided 18 October 2026). The split applies to every character: envoys, spies, commanders, candidates and outlaws.
@@ -71,7 +71,7 @@ Keep them few. After the start, everything new emerges from play and is recorded
 
 Nothing here needs a new system: it follows from what the engine already records, characters' memory and facts, rumours that need carriers, and characters deciding for themselves. What it needs is the engine's record of who saw what, and questioning as a captive order.
 
-**What skills cover** (decided 18 October 2026). Personality, not skill, decides the urge to alter a message ("Skills are hard-coded; decisions belong to the character"). Skills cover what the engine decides, and few belong to one profession; all shape what a character picks up and escapes on the road:
+**What skills cover** (decided 18 October 2026; each skill comes with the item whose errand first uses it, item 10 building the first three, decided 28 October 2026). Personality, not skill, decides the urge to alter a message ("Skills are hard-coded; decisions belong to the character"). Skills cover what the engine decides, and few belong to one profession; all shape what a character picks up and escapes on the road:
 
 - gathering information (what an envoy or spy notices, and how accurately);
 - avoiding detection and capture;
