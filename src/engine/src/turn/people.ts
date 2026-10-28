@@ -117,7 +117,7 @@ P.peopleSeason = function (food) {
   }
   for (const [p, l] of hungry.entries()) {
     say(p, `Hunger: ${l.join("; ")}. Grain on sale at a province's market feeds its countryside; a lighter tax leaves the farmers more.`);
-    logEvent(S, "hunger", `Hunger in ${p}'s land: ${l.join("; ")}.`, [p], "hunger");
+    logEvent(S, "famine", `Hunger in ${p}'s land: ${l.join("; ")}.`, [p], "famine");
   }
 
   // Births let the settled grow back towards what the land carries; boys coming of age restore the men more slowly.
@@ -263,6 +263,7 @@ P.menHome = function (u, settle) {
   }
   if (settle) {
     shift(this.peopleOf(u.province), men, men);
+    logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, [u.power], "colonists");
     return `its ${people(men)} men were settled in ${where.name} as colonists`;
   }
   if (u.province === u.home) {
@@ -305,7 +306,7 @@ P.killSettled = function (province, permille, loosePermille = 0) {
 P.resistance = function (province, mover) {
   const S = this.s;
   const p = this.map.get(province);
-  if (p.isSea || S.owner.getOrDefault(province, null) === mover) return 0;
+  if (S.config.peopleDefence <= 0 || p.isSea || S.owner.getOrDefault(province, null) === mover) return 0;
   const hostility = p.home === mover ? LandData.hostileHome : 100;
   return resistanceOf(province, this.peopleOf(province).men, hostility);
 };
@@ -314,10 +315,15 @@ P.resistance = function (province, mover) {
  * The year's droughts and floods: at the start of each year (Akhet) a drought is drawn for each region of rain-fed land,
  * striking its provinces for the year; in each great river's flood season one flood is drawn for it, shared along its
  * course, a bad one or, rarely, a ruinous one that also drowns people. Each holder hears of his own land's at once, and
- * courts that see the land hear of it the next season.
+ * courts that see the land hear of it the next season. None while catastrophes are off (`catastropheChance` 0).
  */
 P.climateSeason = function () {
   const S = this.s;
+  // With catastrophes off, the weather is kind too: droughts and floods were catastrophes before item 10+a.
+  if (S.config.catastropheChance <= 0) {
+    S.climate = S.climate.filter((c) => c.endTurn >= S.turn);
+    return;
+  }
   const Map = this.map;
   const season = seasonOfTurn(S.turn);
   const struck: ClimateEvent[] = [];
@@ -356,7 +362,7 @@ P.climateSeason = function () {
       }
       if (c.provinces.some((x) => sight.get(p).has(x))) notify(S, p, "Notice", "News from nearby", `Travellers say ${c.kind === "Drought" ? `the rains have failed over ${c.name}` : `${c.name} has flooded badly`}.`);
     }
-    logEvent(S, "catastrophe", `${what}.`, c.provinces.map((x) => S.owner.getOrDefault(x, null)).filter((x): x is Power => x !== null), "catastrophe");
+    logEvent(S, "catastrophe", `${what}.`, c.provinces.map((x) => S.owner.getOrDefault(x, null)).filter((x): x is Power => x !== null), c.kind === "Drought" ? "drought" : "flood");
   }
   S.climate = S.climate.filter((c) => c.endTurn >= S.turn);
 };

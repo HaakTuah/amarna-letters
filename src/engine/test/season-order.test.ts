@@ -112,10 +112,12 @@ describe("SeasonOrderTests", () => {
   });
 
   test("A levy needs a province you still hold that is empty after movement", () => {
-    let s = newGame(4, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(4, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
     s.owner.set("jerusalem", "Babylonia");
     s.walls.delete("jerusalem");
     s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "jerusalem" }));
+    // Sinai's own men are too few for an army (item 10+a): give it enough, so only the loss of the land stops the levy.
+    s.people.get("sinai").men = s.people.get("sinai").settled = 20000;
     let e = new TurnEngine(s);
     e.beginTurn();
     let gold = s.treasuries.get("Egypt").gold;

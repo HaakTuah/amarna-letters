@@ -207,6 +207,9 @@ P.resolveMovement = function (unitOrders) {
     this.unitDestroyed(u);
     logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), u.power]);
   }
+  // Moves the people of a land held off (item 10+a).
+  for (const l of result.lines.filter((x) => x.failure?.stop === "Resisted"))
+    logEvent(S, "resisted", `The people of ${Map.get(l.failure!.province).name} held off ${l.power}'s troops.`, [...AllPowers.filter((p) => sightBefore.get(p).has(l.failure!.province)), ...(l.power !== null ? [l.power] : [])], "resisted");
   const lostToWinter = this.winterCrossings(result.newPositions);
   this._movedNow.clear();
   for (const [id, prov] of result.newPositions) if (S.units.find((x) => x.id === id)?.province !== prov) this._movedNow.add(id);

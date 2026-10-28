@@ -16,7 +16,7 @@ describe("TerrainTextTests", () => {
     ],
     ["- Some links cross the desert (the Syrian desert (suhu-steppe and steppe-qatna and steppe-damascus), the Ways of Horus (delta-gaza), the north Sinai (gaza-sinai), the Negev (jerusalem-sinai)); they give no help in battle."],
     ["A unit standing its ground may have the ground's help in its hold strength (see TERRAIN)."],
-    ["(none if the province was empty or its unit moved away; the ground's help to them counts in it)"],
+    ["(if the province was empty or its unit moved away, the resistance of its people: see PEOPLE; the ground's help to them counts in it)"],
     [
       "THE MAP (id: name; kind; homeland; yield per season; walls at the start; rough ground or desert; a coast's waters; links, with the mountain passes, great rivers and deserts on them, and the open-sea crossings)",
     ],

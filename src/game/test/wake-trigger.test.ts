@@ -35,7 +35,7 @@ import { removeAll, Assert, subs } from "../../engine/test/support.ts";
 // The engine's wake triggers fire on a change, not on a condition that merely holds: foreign troops arriving next to the
 // homeland, a siege begun or about to end. A king has no triggers of his own (removed in the fix pass after item 4).
 describe("WakeTriggerTests", () => {
-  const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0 });
+  const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0, peopleDefence: 0 });
 
   // <summary>A game in which Babylonia sleeps (it gave orders in turn 1) and Durkurigalzu, next to Babylon, is Assyria's and empty.</summary>
   function sleeping(setup: ((a0: GameState) => void) | null = null): [GameState, SleepState] {

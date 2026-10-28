@@ -56,7 +56,7 @@ describe("ArchiveTests", () => {
 
   // <summary>A Babylonian spy of the highest skill already posted at the court of Assyria.</summary>
   function spyAtAssyria(seed: number = 8): [GameState, Character] {
-    let s = newGame(seed, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(seed, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     let spy = first(s.characters, (c) => c.employer === "Babylonia");
     spy.secretMaster = null;
     skilled(spy, 100);
@@ -142,7 +142,7 @@ describe("ArchiveTests", () => {
 
   // <summary>Assyria's capital, empty, with a Babylonian army one move from it.</summary>
   function babyloniaNextToAshur(): [GameState, string, string] {
-    let s = newGame(3, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(3, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     let map = WorldMap.default;
     let capital = map.capital("Assyria").id;
     let from = first(map.movesFrom("Army", capital), (x) => !map.get(x).isSea && map.get(x).home === "Assyria");

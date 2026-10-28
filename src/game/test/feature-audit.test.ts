@@ -273,6 +273,8 @@ describe("FeatureAuditTests", () => {
     add(s, "Alashiya", "Army", "kalavasos");
     for (const at of fleetsAt) add(s, "Alashiya", "Fleet", at);
     s.walls.delete("lukka");
+    // Lukka's hill men would hold off a lone army (item 10+a): here its men are away, so the landing is the test.
+    s.people.get("lukka").men = 0;
     return s;
   }
 

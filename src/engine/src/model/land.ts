@@ -203,7 +203,7 @@ export function climatePercentIn(s: GameState, province: string): number {
  * A province's whole harvest this season, before tax, absorption and catastrophes: its harvest at the start, by the
  * hands on its land now against the labour it was reckoned at, the men of fighting age counting more at sowing and
  * harvest; its caravans' porters and the corvée are away from it. Droughts and floods cut it unless `weather` is false:
- * the land's worth in the score counts its people, not a passing season's weather.
+ * the land's worth in the score counts its people over the whole year, not a passing season's weather or work.
  */
 export function harvestIn(map: WorldMap, s: GameState, province: string, weather = true): number {
   const p = map.get(province);
@@ -213,8 +213,10 @@ export function harvestIn(map: WorldMap, s: GameState, province: string, weather
   const r = reckonedOf(map, province);
   const porters = s.caravans.filter((c) => c.from === province && c.ship === null).reduce((a, c) => a + c.grain * LandData.porterPer, 0);
   const away = Math.min(x.men, porters + s.corvee.getOrDefault(province, 0));
-  const labour = labourOf(province, x.settled - away, x.men - away, season);
-  const full = labourOf(province, r.settled, r.men, season);
+  // The weather left out, so is the season: the land's worth counts its labour over the whole year.
+  const seasons = weather ? [season] : [0, 1, 2];
+  const labour = seasons.reduce((a, k) => a + labourOf(province, x.settled - away, x.men - away, k), 0);
+  const full = seasons.reduce((a, k) => a + labourOf(province, r.settled, r.men, k), 0);
   const h = idiv(harvestOf(p) * harvestPermille(labour, full), 1000);
   return weather ? idiv(h * climatePercentIn(s, province), 100) : h;
 }

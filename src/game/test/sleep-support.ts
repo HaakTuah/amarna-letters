@@ -128,7 +128,7 @@ export class ModelRecorder implements JsonAsker {
 }
 
 // <summary>Sleeping seats are on by default: nothing here switches them on.</summary>
-export const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0 });
+export const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0, peopleDefence: 0 });
 
 export function nothing(): TurnSubmission {
   return newTurnSubmission();
@@ -164,7 +164,7 @@ export async function play(
 
 // <summary>A sleeping seat in an engine-only game: it gave orders in turn 1 and sleeps in turn 3, with nothing scheduled.</summary>
 export function asleep(p: Power): [GameState, SleepState] {
-  let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+  let s = newGame(31, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
   let sleep = newSleepState({ asleep: true, lastCalled: 1, wakeAt: 50, history: [newSleepSpell({ from: 2 })] });
   s.sleep.set(p, sleep);
   s.turn = 3;
