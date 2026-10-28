@@ -21,6 +21,7 @@ import type { Dispatch, HomeCargo } from "../model/records.ts";
 import { newLossAbroad, newTabletCopy } from "../model/records.ts";
 import type { FortifyOrder } from "../model/orders.ts";
 import { stormed, type Assault } from "../model/outcomes.ts";
+import { LandData } from "../model/land.ts";
 import { remember, type Character } from "../model/people.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
 import { isAlive, logEvent, newGoldLot, newId, newSiege, notify, siegeOf, unitAt, wallsOf, type Siege } from "../model/state.ts";
@@ -86,6 +87,8 @@ P.fortify = function (p, f) {
   // The builders are the province's own people: their pay goes into its purse (item 9+a, "What fills a people's purse").
   this.spendAt(f.province, S.config.fortifyCost * level);
   S.walls.set(f.province, level);
+  // The corvée: the province's men build them, away from its next harvest (item 10+a).
+  S.corvee.set(f.province, S.corvee.getOrDefault(f.province, 0) + LandData.builders);
   const above = level - (StartWalls.get(f.province) ?? 0);
   notify(
     S,
@@ -315,6 +318,8 @@ P.surrender = function (x, owner, tell, how) {
   this.setOwner(prov, x.power);
   this.takenByForce(prov, x.power);
   this.sack(prov, x.power);
+  // The siege's dead and the runaways among the townspeople (item 10+a).
+  this.killSettled(prov, LandData.stormDead * 10, LandData.stormDead * 10);
   const w = wallsOf(S, prov);
   const left = w > 0 ? `walls ${w}` : "no walls";
   const why = how === "hunger" ? "its food gone" : "its walls breached";

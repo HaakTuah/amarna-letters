@@ -2,7 +2,8 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TurnSubmission } from "../model/orders.ts";
+import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder,
+  type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
@@ -12,6 +13,7 @@ import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notif
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
+import { LandData, menOf } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { strength as scoringStrength } from "../rules/scoring.ts";
@@ -113,8 +115,10 @@ P.resolveSeason = function (submissions) {
     const u = unitAt(S, unit);
     if (u !== null && u.power === p) {
       const savings = u.savings;
-      this.disbandUnit(u);
-      notify(S, p, "Resolution", "Disbanded", `${unitLabel(u)} was disbanded` + (savings > 0 ? `: its men went home with their savings, ${formatMoney(savings)}.` : "."));
+      // Men settled as colonists where the unit stands, in a province of the king's own (item 10+a).
+      const settle = (d as Extract<Order, { type: "disband" }>).settle === true && S.owner.getOrDefault(u.province, null) === p && !this.map.get(u.province).isSea;
+      const home = this.disbandUnit(u, settle);
+      notify(S, p, "Resolution", "Disbanded", `${unitLabel(u)} was disbanded` + (home !== "" ? `: ${home}` : "") + (savings > 0 ? `; their savings, ${formatMoney(savings)}, went into the purse of ${this.map.get(u.home).name}.` : "."));
     }
     // The unit moved by the seat's own orders, or was destroyed (which wakes the seat by itself).
     else this.failed(p, d, "Disband failed", `No unit of yours stood in ${this.map.get(unit).name} after movement, so none was disbanded.`, "the unit is gone", false);
@@ -134,6 +138,7 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is RoadsOrder => o.type === "roads")) this.roads(p, o);
   // Tolls (item 9+b) stand from next season.
   for (const [p, o] of all((o): o is TollOrder => o.type === "toll")) this.setToll(p, o);
+  for (const [p, o] of all((o): o is TaxOrder => o.type === "tax")) this.setTax(p, o);
   // Grants revoked and tablets repudiated (item 9) take effect from next season: guests still there then take the land.
   for (const [p, o] of all((o): o is RevokeOrder => o.type === "revoke")) this.revokeGrants(p, o);
   for (const [p, o] of all((o): o is RepudiateOrder => o.type === "repudiate")) this.repudiate(p, o);
@@ -156,7 +161,7 @@ P.resolveMovement = function (unitOrders) {
   const sallies = unitOrders.map(([, o]) => o).filter((o): o is SallyOrder => o.type === "sally");
   // Winter closes nothing (item 9): a crossing it makes dangerous costs troops after the moves (winterCrossings).
   const adjudicator = new Adjudicator(Map, true, S.config.terrainDefence);
-  const result = adjudicator.run(S.units, byProvince, S.owner, S.walls, sallies, (p, mover) => this.guestAt(p, mover));
+  const result = adjudicator.run(S.units, byProvince, S.owner, S.walls, sallies, (p, mover) => this.guestAt(p, mover), (p, mover) => this.resistance(p, mover));
   this._battle = result;
   this._unitOrdersNow = byProvince;
   // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
@@ -198,6 +203,8 @@ P.resolveMovement = function (unitOrders) {
   for (const id of result.dislodgedUnitIds) {
     const u = S.units.find((x) => x.id === id)!;
     S.units.splice(S.units.indexOf(u), 1);
+    // Some of its men die, and the rest run and turn loose where it fell (item 10+a).
+    this.unitDestroyed(u);
     logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), u.power]);
   }
   const lostToWinter = this.winterCrossings(result.newPositions);
@@ -326,6 +333,8 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
       return `the unit in ${f.province}${seen ? ` (${whose})` : ""} could not leave, so it kept its place${held}`;
     case "Bounced":
       return `it met a move into ${to} from ${f.province}${seen ? ` by ${whose}` : ""}${strengths}`;
+    case "Resisted":
+      return `the people of ${to} rose against it and held it off${strengths}: a land's men of fighting age resist an invader where no troop stands, more on rough ground`;
     default:
       return "it was stopped";
   }
@@ -349,6 +358,8 @@ P.updateOwnership = function () {
     if (wallsOf(S, u.province) > 0) {
       if (!stormed.has(u.province)) continue;
       this.lowerWalls(u.province);
+      // Storming kills townspeople as well as soldiers, and sends more running (item 10+a).
+      this.killSettled(u.province, LandData.stormDead * 10, LandData.stormDead * 10);
     }
     this.setOwner(u.province, u.power);
     this.takenByForce(u.province, u.power);
@@ -469,11 +480,18 @@ P.raise = function (p, r) {
     if (S.owner.getOrDefault(prov.id, null) !== p && !this._cededNow.has(prov.id)) this.scheduledFailed(p, r, why);
     return;
   }
+  if (this.peopleOf(prov.id).men < menOf(r.kind)) {
+    notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: it has too few men of fighting age left (${menOf(r.kind)} are needed). No gold was paid.`);
+    this.scheduledFailed(p, r, "too few men of fighting age");
+    return;
+  }
   const cost = r.kind === "Army" ? S.config.armyCost : S.config.fleetCost;
   if (!this.pay(p, cost, `a new ${kind} in ${prov.name}`, r, "none was raised")) return;
   // The levy's gold pays the province's own men and smiths: it goes into its people's purse (item 9+a).
   this.spendAt(prov.id, cost);
-  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id });
+  // Its men come from the province's men of fighting age (item 10+a).
+  this.levyMen(prov.id, r.kind);
+  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men: menOf(r.kind) });
   S.units.push(u);
   notify(S, p, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}.`);
   this.levyRaised(p, u);

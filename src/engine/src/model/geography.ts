@@ -147,3 +147,124 @@ export function defenceGround(from: string, to: string): Ground | null {
   if (c && c.kind !== "Desert") return { kind: c.kind === "Mountain" ? "Pass" : "River", name: c.name };
   return null;
 }
+
+/**
+ * A province's water ("Land and climate", item 10+a): river-fed land floods with its river, rain-fed land is prone to
+ * drought, and arid land carries few people.
+ */
+export type Water = "River" | "Rain" | "Arid";
+
+/** How hard its winter is ("Winter in the field"): mild in Egypt and Babylonia, hard on the Anatolian plateau. */
+export type Winter = "Mild" | "Cool" | "Hard";
+
+/**
+ * A province's climate (item 10+a, from `docs/history/03-environment-and-seasons.md`): its water, its winter, the seasons
+ * its fields are sown and harvested in (a levy then costs more of its harvest: "Seasons"), and the region whose rains fail
+ * together, if it is rain-fed ({@link DroughtRegions}).
+ */
+export interface Climate {
+  readonly water: Water;
+  readonly winter: Winter;
+  readonly busy: readonly number[];
+  readonly drought: string | null;
+}
+
+const cl = (water: Water, winter: Winter, busy: readonly number[], drought: string | null = null): Climate => ({ water, winter, busy, drought });
+const Sown = [1, 2];
+const Plateau = [0];
+
+/**
+ * By province. The Nile and Babylonia's canals are river-fed, sown in Peret and harvested in Shemu, slack during the flood
+ * (Akhet); the Levant, Syria, Mitanni, Assyria, Cyprus and western Anatolia are rain-fed, sown with the first rains in
+ * Peret and harvested in Shemu; the Anatolian plateau reaps in early Akhet and sows in the autumn, so Akhet is its busy
+ * season. Hard winters on the plateau, cool inland Syria, the Habur and Assyria, mild elsewhere.
+ */
+export const Climates: ReadonlyMap<string, Climate> = new Map([
+  ["seha", cl("Rain", "Mild", Sown, "west")],
+  ["apasa", cl("Rain", "Mild", Sown, "west")],
+  ["mira", cl("Rain", "Cool", Sown, "west")],
+  ["lukka", cl("Rain", "Mild", Sown, "west")],
+  ["tuwanuwa", cl("Rain", "Hard", Plateau, "plateau")],
+  ["hattusa", cl("Rain", "Hard", Plateau, "plateau")],
+  ["sapinuwa", cl("Rain", "Hard", Plateau, "plateau")],
+  ["nesa", cl("Rain", "Hard", Plateau, "plateau")],
+  ["isuwa", cl("Rain", "Hard", Plateau, "plateau")],
+  ["kaska", cl("Rain", "Hard", Plateau, "plateau")],
+  ["kizzuwatna", cl("Rain", "Mild", Sown, "west")],
+  ["harran", cl("Rain", "Cool", Sown, "north")],
+  ["washukanni", cl("Rain", "Cool", Sown, "north")],
+  ["taidu", cl("Rain", "Cool", Sown, "north")],
+  ["terqa", cl("River", "Mild", Sown)],
+  ["nineveh", cl("Rain", "Cool", Sown, "north")],
+  ["arbela", cl("Rain", "Cool", Sown, "north")],
+  ["arrapha", cl("Rain", "Cool", Sown, "north")],
+  ["ashur", cl("River", "Cool", Sown)],
+  ["ekallate", cl("River", "Mild", Sown)],
+  ["suhu", cl("River", "Mild", Sown)],
+  ["sippar", cl("River", "Mild", Sown)],
+  ["durkurigalzu", cl("River", "Mild", Sown)],
+  ["babylon", cl("River", "Mild", Sown)],
+  ["nippur", cl("River", "Mild", Sown)],
+  ["ur", cl("River", "Mild", Sown)],
+  ["susa", cl("Rain", "Mild", Sown, "west")],
+  ["dilmun", cl("Arid", "Mild", Sown)],
+  ["delta", cl("River", "Mild", Sown)],
+  ["memphis", cl("River", "Mild", Sown)],
+  ["akhetaten", cl("River", "Mild", Sown)],
+  ["thebes", cl("River", "Mild", Sown)],
+  ["nubia", cl("River", "Mild", Sown)],
+  ["sinai", cl("Arid", "Mild", Sown)],
+  ["steppe", cl("Arid", "Cool", Sown)],
+  ["kalavasos", cl("Rain", "Mild", Sown, "west")],
+  ["enkomi", cl("Rain", "Mild", Sown, "west")],
+  ["carchemish", cl("Rain", "Cool", Sown, "levant")],
+  ["alalakh", cl("Rain", "Cool", Sown, "levant")],
+  ["aleppo", cl("Rain", "Cool", Sown, "levant")],
+  ["nuhashshe", cl("Rain", "Cool", Sown, "levant")],
+  ["qatna", cl("Rain", "Cool", Sown, "levant")],
+  ["qadesh", cl("Rain", "Cool", Sown, "levant")],
+  ["damascus", cl("Rain", "Cool", Sown, "levant")],
+  ["ugarit", cl("Rain", "Mild", Sown, "levant")],
+  ["amurru", cl("Rain", "Mild", Sown, "levant")],
+  ["sumur", cl("Rain", "Mild", Sown, "levant")],
+  ["arwad", cl("Rain", "Mild", Sown, "levant")],
+  ["byblos", cl("Rain", "Mild", Sown, "levant")],
+  ["sidon", cl("Rain", "Mild", Sown, "levant")],
+  ["tyre", cl("Rain", "Mild", Sown, "levant")],
+  ["megiddo", cl("Rain", "Mild", Sown, "levant")],
+  ["shechem", cl("Rain", "Mild", Sown, "levant")],
+  ["jerusalem", cl("Rain", "Mild", Sown, "levant")],
+  ["gaza", cl("Rain", "Mild", Sown, "levant")],
+]);
+
+const AtSea: Climate = cl("Arid", "Mild", []);
+
+/** A province's climate (a sea zone's is neutral). */
+export function climateOf(province: string): Climate {
+  return Climates.get(province) ?? AtSea;
+}
+
+/**
+ * The regions whose rains fail together, and how often, one year in so many (the environment dossier's first guesses:
+ * the Anatolian plateau one in six, the Levant and north Syria and the Habur and Assyria one in eight; the milder west
+ * one in ten [G]). A drought is drawn once a year for each, at the start of Akhet.
+ */
+export const DroughtRegions: readonly { readonly id: string; readonly name: string; readonly oneIn: number }[] = [
+  { id: "plateau", name: "the Anatolian plateau", oneIn: 6 },
+  { id: "levant", name: "the Levant and Syria", oneIn: 8 },
+  { id: "north", name: "the Habur and Assyria", oneIn: 8 },
+  { id: "west", name: "the western coasts and Cyprus", oneIn: 10 },
+];
+
+/**
+ * Each great river's floods, drawn once a year in its flood season and shared by every province along it ("Rivers"): a
+ * bad flood one year in so many (`badOneIn`), cutting the harvest to `badPercent` for the year, and a ruinous one one in
+ * `ruinOneIn`, to `ruinPercent`, drowning `ruinDeadPermille` of the people. The Nile is steady (a low Nile one Akhet in
+ * eight, a ruinous flood one in thirty: the environment dossier's first guesses); the Tigris and the Euphrates flood at
+ * the harvest, irregularly (a damaging flood one Shemu in six) [G].
+ */
+export const RiverFloods: ReadonlyMap<string, { readonly badOneIn: number; readonly badPercent: number; readonly ruinOneIn: number; readonly ruinPercent: number; readonly ruinDeadPermille: number }> = new Map([
+  ["nile", { badOneIn: 8, badPercent: 60, ruinOneIn: 30, ruinPercent: 30, ruinDeadPermille: 10 }],
+  ["euphrates", { badOneIn: 6, badPercent: 60, ruinOneIn: 20, ruinPercent: 30, ruinDeadPermille: 10 }],
+  ["tigris", { badOneIn: 6, badPercent: 60, ruinOneIn: 20, ruinPercent: 30, ruinDeadPermille: 10 }],
+]);

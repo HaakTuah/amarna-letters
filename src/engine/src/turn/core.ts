@@ -53,6 +53,8 @@ export class TurnEngine {
 
   /** Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short. */
   readonly _missedPayNow = new HSet<string>();
+  /** What each province's countryside kept of this season's harvest, after the tax (item 10+a): what its people eat. */
+  readonly _foodNow = new Dict<string, number>();
   /** Provinces ceded while this season resolves, and to whom: a levy there later in the season is told so. */
   readonly _cededNow = new Dict<string, Power>();
   /** The season's battle, once the moves are resolved. */
@@ -133,6 +135,8 @@ export class TurnEngine {
     const Map = this.map;
     const notes = this.harvestSeason();
     this.townsEat();
+    // The people of the land: hunger, births and the flows between them (item 10+a).
+    for (const [p, l] of this.peopleSeason(this._foodNow).entries()) notes.set(p, [...notes.getOrDefault(p, []), ...l]);
     for (const p of alive(S)) {
       const t = S.treasuries.get(p);
       const troops = this.payTroops(p);
@@ -301,11 +305,11 @@ export class TurnEngine {
   }
 
   /**
-   * The grain a province's tax brings into its stores this season: its harvest's share at the default rate, cut by
+   * The grain a province's tax brings into its stores this season: its harvest's share at its tax rate, cut by
    * absorption and catastrophes, and nothing while it is besieged (its holder keeps it and counts it, but it yields nothing).
    */
   effectiveYield(province: string): number {
-    return toInt(roundEven(taxOf(harvestOf(this.map.get(province))) * this.yieldFactor(province)));
+    return toInt(roundEven(idiv(this.harvestNow(province) * this.taxRate(province), 100) * this.yieldFactor(province)));
   }
 
   /** The gold that came in since a king's last orders: his mines this season and his sales at his markets last season. */
@@ -337,6 +341,8 @@ export class TurnEngine {
     const old = S.owner.getOrDefault(province, null);
     if (old === owner) return;
     S.owner.set(province, owner);
+    // The old holder's tax goes with him: the new one collects the default until he sets his own (item 10+a).
+    S.taxes.delete(province);
     // The king who lost it knows at once, as his notice tells him, though it leaves his sight.
     if (old !== null) {
       let book = S.known.tryGet(old);

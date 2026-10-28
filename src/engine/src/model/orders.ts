@@ -132,6 +132,15 @@ export interface TollOrder {
   partner: Power | null;
   percent: number;
 }
+/**
+ * Set the tax in goods on a province of one's own, or on all one's land (`province` null), in percent of its harvest
+ * (item 10+a, "How a king lives"). It stands until changed; hunger answers a heavy one.
+ */
+export interface TaxOrder {
+  type: "tax";
+  province: string | null;
+  percent: number;
+}
 export interface RaiseOrder {
   type: "raise";
   province: string;
@@ -140,6 +149,8 @@ export interface RaiseOrder {
 export interface DisbandOrder {
   type: "disband";
   unit: string;
+  /** Its men settle where it stands, in a province of one's own, as colonists, instead of walking home (item 10+a). */
+  settle?: boolean | null;
 }
 export interface BuyProvinceOrder {
   type: "buy";
@@ -325,6 +336,7 @@ export type Order =
   | TradeOrder
   | ShipOrder
   | TollOrder
+  | TaxOrder
   | RaiseOrder
   | DisbandOrder
   | BuyProvinceOrder
@@ -362,7 +374,7 @@ export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit 
 export const fortify = (province: string): FortifyOrder => ({ type: "fortify", province });
 export const sally = (city: string, from: string): SallyOrder => ({ type: "sally", city, from });
 export const raise = (province: string, kind: UnitKind): RaiseOrder => ({ type: "raise", province, kind });
-export const disband = (unit: string): DisbandOrder => ({ type: "disband", unit });
+export const disband = (unit: string, settle = false): DisbandOrder => (settle ? { type: "disband", unit, settle } : { type: "disband", unit });
 export const buy = (province: string): BuyProvinceOrder => ({ type: "buy", province });
 export const cede = (province: string, to: Power): CedeProvinceOrder => ({ type: "cede", province, to });
 export const giftUnit = (unit: string, to: Power): GiftUnitOrder => ({ type: "giftUnit", unit, to });
@@ -401,6 +413,7 @@ export const feed = (province: string, amount: number): FeedOrder => ({ type: "f
 export const caravan = (from: string, to: string, amount: number): CaravanOrder => ({ type: "caravan", from, to, amount });
 export const trade = (from: string, to: string, grain: number, gold: number, sneak = false): TradeOrder => ({ type: "trade", from, to, grain, gold, sneak });
 export const ship = (fleet: string, from: string, to: string, grain: number, gold: number, trade = true): ShipOrder => ({ type: "ship", fleet, from, to, grain, gold, trade });
+export const tax = (percent: number, province: string | null = null): TaxOrder => ({ type: "tax", province, percent });
 export const toll = (percent: number, partner: Power | null = null, province: string | null = null): TollOrder => ({ type: "toll", province, partner, percent });
 export const placeSpy = (character: string, court: Power | null = null, province: string | null = null): PlaceSpyOrder => ({ type: "spy", character, court, province });
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
@@ -462,7 +475,9 @@ export function describe(o: Order): string {
     case "raise":
       return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}`;
     case "disband":
-      return `disband ${o.unit}`;
+      return o.settle === true ? `disband ${o.unit} and settle its men there as colonists` : `disband ${o.unit}`;
+    case "tax":
+      return `set the tax to ${o.percent}% of the harvest in ${o.province === null ? "all your land" : named(o.province)}`;
     case "buy":
       return `buy the city-state of ${o.province}`;
     case "cede":
@@ -589,7 +604,8 @@ export const OrderSchema = poly("Order", "type", {
   ship: v("ShipOrder", () => ship("", "", "", 0, 0), { fleet: S, from: S, to: S, grain: I, gold: I, trade: B }),
   toll: v("TollOrder", () => toll(0), { province: opt(S), partner: opt(S), percent: I }),
   raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S }),
-  disband: v("DisbandOrder", () => disband(""), { unit: S }),
+  disband: v("DisbandOrder", () => disband(""), { unit: S, settle: opt(B) }),
+  tax: v("TaxOrder", () => tax(0), { province: opt(S), percent: I }),
   buy: v("BuyProvinceOrder", () => buy(""), { province: S }),
   cede: v("CedeProvinceOrder", () => cede("", "Egypt"), { province: S, to: S }),
   giftUnit: v("GiftUnitOrder", () => giftUnit("", "Egypt"), { unit: S, to: S }),

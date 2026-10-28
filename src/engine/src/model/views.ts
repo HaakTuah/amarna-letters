@@ -64,10 +64,22 @@ export interface ProvinceEconomyView {
   stock: number;
   purse: number;
   price: number;
+  /**
+   * Its people (item 10+a): the settled and the men of fighting age among them, the loose, and how many settled its
+   * land carries; its tax in percent of the harvest; its whole harvest this season; and how well its countryside ate
+   * last season, in thousandths (1000 when it ate its fill).
+   */
+  settled: number;
+  men: number;
+  loose: number;
+  room: number;
+  taxRate: number;
+  harvest: number;
+  fed: number;
 }
 
 export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, ...init };
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, ...init };
 }
 
 export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
@@ -79,6 +91,13 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   stock: I,
   purse: I,
   price: I,
+  settled: I,
+  men: I,
+  loose: I,
+  room: I,
+  taxRate: I,
+  harvest: I,
+  fed: I,
 });
 
 /** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */
@@ -542,6 +561,15 @@ export interface SeatView {
   tolls: Toll[];
   /** What each free city's elders ask to be bought: what it adds, its land's worth, purse, stores and market (public). */
   cityPrices: Dict<string, number>;
+  /**
+   * Every land province's yield as its people bring it in now (item 10+a), on the scale of the map's yields: a ravaged
+   * or emptied province yields less than at the start. Public, as the strength it adds is.
+   */
+  yields: Dict<string, number>;
+  /** The resistance this court's armies would meet from each land's people where no troop stands (item 10+a), where any. */
+  resistance: Dict<string, number>;
+  /** Its discharged men still walking home (item 10+a). */
+  walking: number;
   /** Claims to the rank of Great King and whether each is still new (item 8): public facts. */
   claims: Claim[];
   /** What this court called others, and they it, in the greetings sent between them (item 8). */
@@ -606,6 +634,9 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     markets: new Dict(),
     tolls: [],
     cityPrices: new Dict(),
+    yields: new Dict(),
+    resistance: new Dict(),
+    walking: 0,
     ...init,
   };
 }
@@ -667,6 +698,9 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   markets: dict(() => MarketSeenSchema),
   tolls: list(() => TollSchema),
   cityPrices: dict(I),
+  yields: dict(I),
+  resistance: dict(I),
+  walking: I,
 });
 
 /**

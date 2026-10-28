@@ -4,6 +4,7 @@ import { Rng } from "../core/rng.ts";
 import { range } from "../core/seq.ts";
 import { newGameConfig, type GameConfig } from "../model/config.ts";
 import { StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
+import { menOf, reckonedOf, startPeople } from "../model/land.ts";
 import { carriedOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
 import { newMarket } from "../model/caravans.ts";
 import { StartClaims } from "../model/recognition.ts";
@@ -33,9 +34,12 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
     const stores = startStoresOf(p);
     if (stores > 0) s.stores.set(p.id, stores);
     s.markets.set(p.id, newMarket({ stock: needOf(p), purse: startPurseOf(p) }));
+    // Its people, from the people dossier, less the men of the armies already levied there (item 10+a).
+    const r = reckonedOf(m, p.id);
+    s.people.set(p.id, { settled: r.settled, men: r.men, loose: startPeople(m).get(p.id)!.loose });
   }
   for (const u of StartUnits)
-    s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.province, food: carriedOf(u.kind) }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.province, food: carriedOf(u.kind), men: menOf(u.kind) }));
   for (const p of AllPowers) {
     s.treasuries.set(p, newTreasury({ gold: StartGold.get(p)! }));
     s.inbox.set(p, []);

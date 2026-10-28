@@ -34,6 +34,7 @@ import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 import { TradePlay, tradeOrders } from "./trade.ts";
+import { famineFeeding } from "./land.ts";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
@@ -129,6 +130,14 @@ export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: 
     source.stores -= amount;
     sending.add(to);
     caravans++;
+  }
+
+  // A countryside that will go short is fed from its stores before any grain is sold (item 10+a).
+  for (const o of famineFeeding(v, b.me, besieged, (k) => spare(ps.get(k)!))) {
+    orders.push(o);
+    const x = ps.get((o as Extract<Order, { type: "feed" }>).province)!;
+    x.stores -= (o as Extract<Order, { type: "feed" }>).amount;
+    x.stock += (o as Extract<Order, { type: "feed" }>).amount;
   }
 
   // Trade abroad (item 9+b): what pays better at a foreign market goes there before the home markets take the rest.

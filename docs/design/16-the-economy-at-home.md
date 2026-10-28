@@ -17,7 +17,8 @@ slowest part, the siege's clock, and strength as the wealth of the realm. Save v
   without a king). The province's `yield` keeps its meaning as the king's share at the default tax, so the old values
   still describe what a province brings in. Even each season (a harvest season of its own waits for 10+'s land and
   climate).
-- **Tax** in grain at the default rate, `taxPercent` 33, into the province's own stores. A free city's tax goes into its
+- **Tax** in grain at the default rate, `taxPercent` 33, into the province's own stores; since item 10+a each king sets
+  his own rate by province, and the harvest follows the province's people (`19-people-at-home.md`). A free city's tax goes into its
   own stores; a land without a king collects none.
 - **Mines** (gold a season, straight into the holder's treasury; a free city's into its purse): Nubia 70, Thebes 30,
   Tuwanuwa 6, Kizzuwatna 5, Isuwa 4, Mira 2, Enkomi 2. About 120 a season, the dossier's shares (Egypt 84%); the absolute

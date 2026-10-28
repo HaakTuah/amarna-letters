@@ -28,7 +28,8 @@ import {
   sellAlongCurve,
   taxOf,
 } from "../model/economy.ts";
-import { terrainOf } from "../model/geography.ts";
+import { climateOf, terrainOf } from "../model/geography.ts";
+import { LandData } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
@@ -58,7 +59,7 @@ declare module "./core.ts" {
     townsEat(): void;
     payTroops(p: Power): { paid: number; unpaid: string[] };
     feedTroops(): Dict<Power, string[]>;
-    disbandUnit(u: Unit): void;
+    disbandUnit(u: Unit, settle?: boolean): string;
     caravansTravel(): void;
     caravanCompany(c: Caravan): Company;
     caravanRoute(p: Power, from: string, to: string): string[] | null;
@@ -139,13 +140,23 @@ P.harvestSeason = function () {
   const lines = new Dict<Power, string[]>();
   const taxed = new Dict<Power, number>();
   const lost = new Dict<Power, number>();
+  this._foodNow.clear();
   const mined = new Dict<Power, number>();
   for (const prov of this.map.landProvinces) {
-    if (prov.kingless) continue;
+    // A land without a king collects no tax: its people keep their whole harvest.
+    if (prov.kingless) {
+      this._foodNow.set(prov.id, this.harvestNow(prov.id));
+      continue;
+    }
     const owner = S.owner.getOrDefault(prov.id, null);
     if (owner !== null && !isAlive(S, owner)) continue;
     const factor = this.yieldFactor(prov.id);
-    const tax = toInt(roundEven(taxOf(harvestOf(prov)) * factor));
+    const harvest = this.harvestNow(prov.id);
+    const tax = toInt(roundEven(idiv(harvest * this.taxRate(prov.id), 100) * factor));
+    // What the farmers keep (item 10+a): the harvest as catastrophes leave it, less the tax collected; their fields grow
+    // even under a siege, when the tax cannot reach them, and the tax not yet collected in land being absorbed is theirs.
+    const grown = toInt(roundEven(harvest * (this.yieldFactor(prov.id, true) / absorbedIn(S, prov.id))));
+    this._foodNow.set(prov.id, Math.max(0, grown - tax));
     const over = this.putInStores(prov.id, tax);
     const metal = toInt(roundEven(economyOf(prov).mine * factor));
     if (owner === null) {
@@ -271,7 +282,7 @@ P.feedTroops = function () {
     if (prov.isSea || terrainOf(prov.id) === "Desert") return 0;
     let left = forage.tryGet(prov.id);
     if (left === undefined) {
-      const farmers = toInt(roundEven((harvestOf(prov) - taxOf(harvestOf(prov))) * this.yieldFactor(prov.id, true)));
+      const farmers = this._foodNow.getOrDefault(prov.id, 0);
       left = idiv(farmers * EconomyData.forageShare, winter ? 200 : 100);
       forage.set(prov.id, left);
     }
@@ -281,7 +292,9 @@ P.feedTroops = function () {
   const foraged = new Dict<Power, number>();
   const bought = new Dict<Power, number>();
   for (const u of sortBy(S.units, [(u: Unit) => u.id, cmpStr])) {
-    const need = foodOf(u.kind);
+    // An army outside its own land in winter pays supplies, by how hard the winter is there (item 10+a, "Winter in the field").
+    const abroad = u.kind === "Army" && winter && S.owner.getOrDefault(u.province, null) !== u.power;
+    const need = foodOf(u.kind) + (abroad ? idiv(foodOf(u.kind) * LandData.winterFood[climateOf(u.province).winter], 100) : 0);
     let eaten = 0;
     const depot = depotOf(this, u);
     if (depot !== null) eaten += this.takeFromStores(depot, need);
@@ -344,21 +357,27 @@ P.feedTroops = function () {
     [(u: Unit) => u.id, cmpStr],
   )) {
     const why = u.hungry >= EconomyData.hungryMutiny ? `hungry ${u.hungry} seasons running` : `unpaid ${u.unpaid} seasons running`;
-    tell(u.power, `${unitLabel(u)} mutinied, ${why}, and disbanded: its men went home${u.savings > 0 ? ` with their savings, ${formatMoney(u.savings)}` : ""}.`);
+    const savings = u.savings;
     logEvent(S, "mutiny", `${u.power}'s ${unitLabel(u)} mutinied (${why}) and disbanded.`, [...AllPowers.filter((x) => Views.sight(S, this.map, x).has(u.province)), u.power], "mutiny");
-    this.disbandUnit(u);
+    const home = this.disbandUnit(u);
+    tell(u.power, `${unitLabel(u)} mutinied, ${why}, and disbanded${savings > 0 ? `, its men taking their savings, ${formatMoney(savings)}` : ""}${home !== "" ? `: ${home}` : ""}.`);
   }
   return lines;
 };
 
-/** A unit disbands: its men go home, their savings into their home province's purse; any siege it pressed is lifted. */
-P.disbandUnit = function (u) {
+/**
+ * A unit disbands: its men go home, walking there from where it stood (item 10+a), or settle where it stands as
+ * colonists (`settle`); their savings go into their home province's purse; any siege it pressed is lifted. Returns what
+ * became of its men.
+ */
+P.disbandUnit = function (u, settle = false) {
   const S = this.s;
   const i = S.units.indexOf(u);
   if (i >= 0) S.units.splice(i, 1);
   this.liftSiegesOf(u.id);
   if (u.home !== "") this.spendAt(u.home, u.savings);
   u.savings = 0;
+  return this.menHome(u, settle);
 };
 
 // ---------------------------------------------------------------- caravans
@@ -672,13 +691,16 @@ P.settleMarkets = function (orders) {
  */
 P.cityPrice = function (province) {
   const m = this.market(province);
-  return cityPriceOf(this.map.get(province), this.s.config.provinceWeight, m.purse, this.stores(province) + m.stock);
+  return cityPriceOf(this.map.get(province), this.s.config.provinceWeight, m.purse, this.stores(province) + m.stock, this.harvestNow(province, false));
 };
-/** The land's worth a season, by what it produces at reference prices: the whole harvest and the mines, as far as it is absorbed. */
+/**
+ * The land's worth a season, by what it produces at reference prices: the whole harvest its people bring in now (item
+ * 10+a: a ravaged or emptied province is worth less at once) and the mines, as far as it is absorbed.
+ */
 P.landWorth = function (p) {
   return sum(ownedBy(this.s, p), (id) => {
     const prov = this.map.get(id);
-    return toInt(roundEven((grainWorth(harvestOf(prov)) + economyOf(prov).mine) * absorbedIn(this.s, id)));
+    return toInt(roundEven((grainWorth(this.harvestNow(id, false)) + economyOf(prov).mine) * absorbedIn(this.s, id)));
   });
 };
 

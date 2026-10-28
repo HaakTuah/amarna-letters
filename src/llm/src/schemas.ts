@@ -113,6 +113,7 @@ export const OtherActions = [
   "ship_trade",
   "ship_deliver",
   "set_toll",
+  "set_tax",
   "seek_candidates",
   "hire",
   "renew",
@@ -145,7 +146,7 @@ export const OtherActions = [
 const unitOrder = (described = true): ReplySchema =>
   object(
     ["unit", str(described ? "Province id where your unit stands (sally: your walled city whose walls sally)." : null)],
-    ["order", enumOf(["hold", "move", "support", "convoy", "disband", "besiege", "sally"])],
+    ["order", enumOf(["hold", "move", "support", "convoy", "disband", "settle", "besiege", "sally"])],
     [
       "target",
       str(
@@ -162,12 +163,12 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll (the province it applies in; empty for all your land), a province to spy on, or revoke_passage (one province; empty for all you granted that king)." : null),
+      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), a province to spy on, or revoke_passage (one province; empty for all you granted that king)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), set_toll (the partner it applies to; empty for everyone), a court to spy on, or captive_hand_over (the king you hand the captive to)." : null)],
     ["person", str(described ? "Person id, for hire, renew, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift." : null)],
-    ["amount", int(described ? "Wage (hire, renew), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), as the action needs; else 0." : null)],
+    ["amount", int(described ? "Wage (hire, renew), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), as the action needs; else 0." : null)],
     ["gold", int(described ? "trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; else 0." : null)],
     [
       "term",

@@ -360,7 +360,7 @@ export class Brain {
       const raised = Math.max(0, troops - this.mostSeen.getOrDefault(x, 0));
       this.mostSeen.set(x, Math.max(troops, this.mostSeen.getOrDefault(x, 0)));
       let income = 0;
-      for (const [k, o] of v.owner.entries()) if (o === x) income += Board.Map.get(k).yield;
+      for (const [k, o] of v.owner.entries()) if (o === x) income += v.yields.tryGet(k) ?? Board.Map.get(k).yield;
       const flow = income - troops * v.prices.getOrDefault("armyUpkeep", 30) - WagesGuess - raised * v.prices.getOrDefault("army", 100);
       // Troops that cannot be paid desert: a treasury runs dry, it does not go into debt.
       this.treasury.set(x, Math.max(0, this.treasury.get(x) + flow));

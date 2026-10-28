@@ -1,5 +1,6 @@
 /** What each court sees: the seat view, sight, the walls it knows, and how it sees each person and tablet. */
 import { Dict, HSet } from "../core/collections.ts";
+import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { split } from "../core/text.ts";
 import { StartWalls, WorldMap } from "../model/map.ts";
@@ -11,7 +12,8 @@ import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { alive, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
-import { capacityOf, carriedOf, EconomyData, needOf, priceAt } from "../model/economy.ts";
+import { capacityOf, carriedOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
+import { reckonedOf } from "../model/land.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
@@ -308,9 +310,34 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     const prov = m.get(id);
     const mk = engine.market(id);
     v.provinces.push(
-      newProvinceEconomyView({ province: id, stores: engine.stores(id), capacity: capacityOf(prov), tax: engine.effectiveYield(id), need: needOf(prov), stock: mk.stock, purse: mk.purse, price: priceAt(mk.stock, needOf(prov)) }),
+      newProvinceEconomyView({
+        province: id,
+        stores: engine.stores(id),
+        capacity: capacityOf(prov),
+        tax: engine.effectiveYield(id),
+        need: needOf(prov),
+        stock: mk.stock,
+        purse: mk.purse,
+        price: priceAt(mk.stock, needOf(prov)),
+        // Its people (item 10+a).
+        settled: engine.peopleOf(id).settled,
+        men: engine.peopleOf(id).men,
+        loose: engine.peopleOf(id).loose,
+        room: reckonedOf(m, id).room,
+        taxRate: engine.taxRate(id),
+        harvest: engine.harvestNow(id),
+        fed: s.fed.getOrDefault(id, 1000),
+      }),
     );
   }
+  // Yields as the people bring them in now, and the people's resistance to this court's armies (item 10+a).
+  for (const prov of m.landProvinces) {
+    const full = harvestOf(prov);
+    v.yields.set(prov.id, full <= 0 ? prov.yield : idiv(prov.yield * engine.harvestNow(prov.id, false), full));
+    const r = engine.resistance(prov.id, p);
+    if (r > 0) v.resistance.set(prov.id, r);
+  }
+  v.walking = sum(s.walking.filter((w) => s.owner.getOrDefault(w.home, null) === p), (w) => w.men);
   for (const c of s.caravans.filter((c) => c.power === p))
     v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls posted on it and its own.

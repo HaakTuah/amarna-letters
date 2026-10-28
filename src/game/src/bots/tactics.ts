@@ -94,14 +94,14 @@ export function joints(b: Board, brain: Brain): Joint[] {
   const used = new HSet<string>();
   const landOf = (x: Power): number => {
     let s = 0;
-    for (const [k, o] of b.v.owner.entries()) if (o === x) s += Board.Map.get(k).yield;
+    for (const [k, o] of b.v.owner.entries()) if (o === x) s += b.yieldOf(k);
     return s;
   };
   for (const foe of sortBy(distinct(coalitions.map(([, a]) => a)), [(x: Power) => x, cmpPower])) {
     const side = new HSet([...coalitions.filter(([, a]) => a === foe).map(([p]) => p), b.me]);
     const targets = sortBy(
       [...b.v.owner.entries()].filter(([k, o]) => o === foe && b.v.visible.includes(k)).map(([k]) => k),
-      [(t: string) => Board.Map.get(t).yield, desc(cmpNum)],
+      [(t: string) => b.yieldOf(t), desc(cmpNum)],
       [(t: string) => t, cmpStr],
     );
     for (const t of targets) {
@@ -325,7 +325,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     if (occupant !== null) {
       const backers = b.canReach(target, (u) => u.power === occupant.power && u.province !== target).length;
       defence = 1 + toInt(roundEven(backers * (0.5 + 0.3 * p.caution)));
-    } else defence = 0;
+    } else defence = b.resistance(target); // Empty land not ours: its people resist (item 10+a).
 
     const musters = [...b.alive].filter((x) => x !== me && x !== occupant?.power).map((x) => b.muster(x, target));
     const rivals = musters.length === 0 ? 0 : max(musters, (x) => x);
@@ -355,7 +355,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const required = Math.max(defence, contest) + 1;
     // Strong enough to storm the walls, the attack takes the city at once; only strong enough to get in, the army stands
     // inside and besieges it, which takes seasons and may be broken: worth less, the higher the walls.
-    const storm = walled ? Math.max(required, b.stormNeeds(target, occupant === null ? 0 : defence)) : required;
+    const storm = walled ? Math.max(required, b.stormNeeds(target, defence)) : required;
     const stormHelpers = able.filter((u) => u !== lead).slice(0, Math.max(0, storm - 1));
     const helpers = 1 + stormHelpers.length >= storm ? stormHelpers : able.filter((u) => u !== lead).slice(0, Math.max(0, required - 1));
     const stormed = !walled || 1 + helpers.length >= storm;
@@ -387,13 +387,13 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
         const owner = b.ownerOf(target);
         if (b.unitAt.has(target) || owner === me || (owner !== null && !isWilling(owner))) continue;
         const musters = [...b.alive].filter((x) => x !== me).map((x) => b.muster(x, target));
-        const required = 1 + Math.min(1, musters.length === 0 ? 0 : max(musters, (x) => x));
+        const required = 1 + Math.max(b.resistance(target), Math.min(1, musters.length === 0 ? 0 : max(musters, (x) => x)));
         const helpers = helpersFor(target, army)
           .filter((u) => !chain.includes(u))
           .slice(0, Math.max(0, required - 1));
         if (1 + helpers.length < required) continue;
         // A landing that does not storm the walls only begins a siege.
-        const landed = b.walls(target) && 1 + helpers.length < b.stormNeeds(target, 0) ? siegeWorth(b.wallLevel(target)) : 1;
+        const landed = b.walls(target) && 1 + helpers.length < b.stormNeeds(target, b.resistance(target)) ? siegeWorth(b.wallLevel(target)) : 1;
         const carried = landed * (stranded(army) ? 0.85 * (b.value(target) * multiplier(owner)) + 60 : 0.75 * b.value(target) * multiplier(owner));
         ops.push(op("convoy", carried - exposure(army) - 10 * (chain.length - 1), target, army, helpers, null, chain));
       }
@@ -673,6 +673,8 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       let best: [string, number] | null = null;
       for (const t of sortBy(Board.Map.movesFrom("Army", u), [(x: string) => x, cmpStr])) {
         if (Board.Sail.canMove("Army", u, t) || Board.Map.get(t).isSea || plan.destinations.has(t) || b.unitAt.has(t)) continue;
+        // A lone army does not beat a land's people that resist (item 10+a).
+        if (b.resistance(t) > 0) continue;
         const owner = b.ownerOf(t);
         if (owner === me || (owner !== null && !isWilling(owner))) continue;
         // Nobody of a king we would fight could step in to meet it there, by the moves he could give in winter: a stroke
@@ -849,6 +851,8 @@ function approach(b: Board, brain: Brain, from: string, taken: HSet<string>, isW
   while (prev.get(step) !== from) step = prev.get(step)!;
   // Foreign walls are entered only to take the city, by the attacks above; our own we may march through.
   if (taken.has(step) || b.unitAt.has(step) || (b.walls(step) && !b.isMine(step))) return null;
+  // A land whose people would hold off a lone army is entered only by the attacks above, with support (item 10+a).
+  if (!b.isMine(step) && b.resistance(step) > 0 && !grantedTo(b, step)) return null;
   const stepOwner = b.ownerOf(step);
   // A friend's land we hold leave in (item 9) we may pass through as his guest.
   if (stepOwner !== null && stepOwner !== b.me && !isWilling(stepOwner) && !grantedTo(b, step)) return null;

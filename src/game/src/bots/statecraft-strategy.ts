@@ -29,6 +29,7 @@ import {
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { depotFor, grainOrders, plainGrain, plainGrainOrders } from "./grain.ts";
+import { canLevy, levyCost, settleThere, taxOrders } from "./land.ts";
 import { TradePlay, tollOrders } from "./trade.ts";
 import { endMayBeNear } from "./ending-belief.ts";
 import type { Brain } from "./brain.ts";
@@ -197,6 +198,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   const costs = v.upkeep + v.wallUpkeep + v.wages;
   // Grain first (item 9+a): what its sales this season should bring, with the mines, is the season's income.
   const grain = plainGrain(b.me) ? { sales: plainGrainOrders(v, orders), abroad: 0 } : grainOrders(b, brain, plan, orders, gold, costs);
+  // Each province's tax, as high as its farmers can bear (item 10+a).
+  orders.push(...taxOrders(v, b.me));
   const sales = grain.sales;
   // Gold sent abroad to buy grain (item 9+b) is gone from the treasury until its caravans come home; and the tolls.
   gold -= grain.abroad;
@@ -245,7 +248,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
       plan.orders.set(idle, giftUnit(idle, friend));
       plan.role.set(idle, "gift");
     } else {
-      plan.orders.set(idle, disband(idle));
+      // In a province of ours with room, its men settle there as colonists rather than walk home (item 10+a).
+      plan.orders.set(idle, disband(idle, b.isMine(idle) && settleThere(v, b.me, idle, b.unitAt.get(idle).kind)));
       plan.role.set(idle, "disband");
     }
     flow += upkeep;
@@ -255,10 +259,12 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   // province is still ours after movement, so the provinces a rival is least likely to walk into this season come first:
   // those under no threat, then the least likely to be attacked, then the capital and the richest.
   const spots: Province[] = sortBy(
-    Board.Map.homeOf(me).filter((x) => b.ownerOf(x.id) === me && !b.unitAt.has(x.id) && !plan.destinations.has(x.id)),
+    Board.Map.homeOf(me).filter((x) => b.ownerOf(x.id) === me && !b.unitAt.has(x.id) && !plan.destinations.has(x.id) && canLevy(v, x.id, "Fleet")),
     [(x: Province) => plan.danger.tryGet(x.id)?.[1] ?? 0, cmpNum],
     [(x: Province) => x.capital, desc(cmpBool)],
-    [(x: Province) => x.yield, desc(cmpNum)],
+    // Where the men cost the harvest least (item 10+a), else the richest.
+    [(x: Province) => levyCost(v, me, x.id, "Army"), cmpNum],
+    [(x: Province) => b.yieldOf(x.id), desc(cmpNum)],
   );
   // A court whose homeland is mostly coast keeps two fleets (map data, never which power it is: Arzawa and Alashiya today).
   const home = Board.Map.homeOf(me);
@@ -272,8 +278,9 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
       kind !== undefined ? kind === "Fleet" : (spot.isCoastal && !Board.Sail.canMove("Army", spot.id, near)) || (spot.isCoastal && maritime && count(b.mine, (u) => u.kind === "Fleet") < 2);
     const cost = fleet ? v.prices.get("fleet") : v.prices.get("army");
     const upkeep = fleet ? v.prices.get("fleetUpkeep") : v.prices.get("armyUpkeep");
-    // Its pay and its food, the grain at its base price (item 9+a).
-    const lifetime = cost + (upkeep + EconomyData.armyFood) * Math.min(b.horizon, 10);
+    if (!canLevy(v, spot.id, fleet ? "Fleet" : "Army")) continue;
+    // Its pay and its food, the grain at its base price (item 9+a), and the harvest its men no longer bring in (item 10+a).
+    const lifetime = cost + (upkeep + EconomyData.armyFood + levyCost(v, me, spot.id, fleet ? "Fleet" : "Army")) * Math.min(b.horizon, 10);
     if (value < lifetime * (0.7 + 0.5 * p.caution) * (1.3 - 0.6 * p.aggression)) continue;
     if (gold - cost < reserve) continue;
     if (flow - upkeep < -(gold - cost - reserve) / Math.max(3, b.horizon)) continue;
@@ -283,7 +290,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
     flow -= upkeep;
     raised++;
   }
-  if (b.mine.length === 0 && spots.length > 0 && gold - v.prices.get("army") >= reserve) {
+  if (b.mine.length === 0 && spots.length > 0 && canLevy(v, spots[0].id, "Army") && gold - v.prices.get("army") >= reserve) {
     orders.push(raise(spots[0].id, "Army"));
     gold -= v.prices.get("army");
   }

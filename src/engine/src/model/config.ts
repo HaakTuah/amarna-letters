@@ -131,7 +131,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     fleetCost: 120,
     armyUpkeep: 20,
     fleetUpkeep: 25,
-    catastropheChance: 0.035,
+    catastropheChance: 0.0175,
     siegeUpkeep: 15,
     maxWalls: 3,
     fortifyCost: 50,
