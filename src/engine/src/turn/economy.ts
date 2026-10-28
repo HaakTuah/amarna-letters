@@ -507,7 +507,7 @@ P.caravansTravel = function () {
     const hostile = (k: Power, at: string): boolean => (S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, at);
     const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power && hostile(u.power, x)) ?? null).find((u) => u !== null) ?? null;
     const roll = this.r("caravan", c.id).nextDouble() * 100;
-    if (taker !== null && c.grain + c.gold > 0 && roll < RoadOdds.troops) {
+    if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
       const kept = Math.min(c.grain, carriedOf(taker.kind) - taker.food);
       taker.food += Math.max(0, kept);
@@ -530,7 +530,7 @@ P.caravansTravel = function () {
       }
     } else {
       const odds = (EconomyData.caravanOutlawPercent * (100 + c.grain + idiv(c.gold, 10))) / 100;
-      if (c.grain + c.gold > 0 && this.r("caravan-outlaws", c.id).nextDouble() * 100 < odds) {
+      if (c.grain + c.gold + c.archive.length > 0 && this.r("caravan-outlaws", c.id).nextDouble() * 100 < odds) {
         S.caravans.splice(S.caravans.indexOf(c), 1);
         notify(S, c.power, "Notice", MarketsTitle, `Outlaws fell on your caravan to ${this.map.get(c.to).name} near ${this.map.get(caravanAt(c)).name} and carried off its ${what(c)}.`);
         logEvent(S, "caravan-robbed", `Outlaws robbed ${c.power}'s caravan.`, [c.power], "caravan-robbed");

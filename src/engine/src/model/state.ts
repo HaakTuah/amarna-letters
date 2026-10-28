@@ -473,6 +473,8 @@ export interface Siege {
   progress: number;
   /** The season the first besiege order ran. */
   since: number;
+  /** Item 10+b: the seasons an island city without water of its own has been blockaded at sea ("Water too"). */
+  blockaded: number;
 }
 
 export function newSiege(init: Partial<Siege> = {}): Siege {
@@ -482,6 +484,7 @@ export function newSiege(init: Partial<Siege> = {}): Siege {
     unitId: "",
     progress: 0,
     since: 0,
+    blockaded: 0,
     ...init,
   };
 }
@@ -492,6 +495,7 @@ export const SiegeSchema: ObjSchema<Siege> = obj("Siege", newSiege, {
   unitId: S,
   progress: I,
   since: I,
+  blockaded: I,
 });
 
 export interface Treasury {

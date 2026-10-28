@@ -741,7 +741,9 @@ export class LlmCharacterMind implements ICharacterMind {
       case "Questioned": {
         // Item 10+b: the questioning broke it on these tablets; what it says now is its own choice.
         const host = requestFor(req);
-        const lord = c.employer ?? c.formerEmployer;
+        // A lie needs a lord to lie for: one whose kingdom fell is offered none.
+        const was = c.employer ?? c.formerEmployer;
+        const lord = was !== null && ctx.alive.includes(was) ? was : null;
         const user = new Sb();
         user.appendLine(`You are a captive at the court of ${kingOf(host)}, and its questioners have pressed you until you gave way.`);
         user.appendLine("They will have from you what you know of these tablets, which passed through your hands:");

@@ -280,7 +280,7 @@ P.travelOne = function (j) {
   }
 
   // The road check: one province of the stretch, by the share of the season spent in each.
-  if (c.status === "Employed" || convoy(j)) {
+  if (c.status === "Employed" || (convoy(j) && c.status === "Captured" && c.duty === "UnderGuard")) {
     const rng = this.r("road", j.id);
     const total = [...spent.values()].reduce((x, y) => x + y, 0);
     let pick = rng.next(total);
@@ -383,6 +383,8 @@ P.convoyStopped = function (j, c, province, stop) {
   const S = this.s;
   const name = this.map.get(province).name;
   S.journeys.splice(S.journeys.indexOf(j), 1);
+  // Let go on the road already (its giver fell): nobody guards it any more.
+  if (c.status !== "Captured" || c.duty !== "UnderGuard") return;
   const giver = j.from;
   const meant = j.to;
   const lord = c.employer;

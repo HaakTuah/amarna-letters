@@ -187,9 +187,10 @@ P.sieges = function (valid) {
     }
     // And water (item 10+b, "Water too"): a city that has drunk its cisterns dry holds no longer, whatever its food; an
     // island without water of its own runs dry once its besieger's fleet holds its waters.
-    const dry = waterSeasons(x.province);
-    const drinking = IslandWater.has(x.province) && openToSea(this, x.province) ? Infinity : dry;
-    if (!begun && S.turn - x.since >= drinking) {
+    const island = IslandWater.has(x.province);
+    if (island) x.blockaded = openToSea(this, x.province) ? 0 : x.blockaded + 1;
+    const drinking = island ? (x.blockaded > 0 ? waterSeasons(x.province) : Infinity) : waterSeasons(x.province);
+    if (!begun && (island ? x.blockaded > drinking : S.turn - x.since >= drinking)) {
       this.surrender(x, owner, tell, "thirst");
       continue;
     }
@@ -226,7 +227,7 @@ P.sieges = function (valid) {
         ? IslandWater.has(x.province)
           ? " Its water comes by boat while its waters are open."
           : " Its water never fails."
-        : ` Its water lasts ${Math.max(0, x.since + drinking - S.turn)} more season(s) of siege.`;
+        : ` Its water lasts ${Math.max(0, island ? drinking - x.blockaded + 1 : x.since + drinking - S.turn)} more season(s) of siege.`;
     tell(
       x.power,
       `${begun ? "Your siege of" : "The siege of"} ${name} (walls ${walls}${owner !== null ? `, held by ${owner}` : ", a free city"}) ${begun ? "has begun, and it " : ""}wore the city down ${how}: it stands at ${x.progress} of ${breach}. The walls are breached and the city falls when that reaches ${breach}, if your army holds there, or sooner when its food runs out: a besieged city eats from its market and stores, and surrenders once it cannot feed its people.${water}`,

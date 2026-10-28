@@ -139,10 +139,10 @@ P.resolveSeason = function (submissions) {
   // Tolls (item 9+b) stand from next season.
   for (const [p, o] of all((o): o is TollOrder => o.type === "toll")) this.setToll(p, o);
   for (const [p, o] of all((o): o is TaxOrder => o.type === "tax")) this.setTax(p, o);
-  // People in a king's hands (item 10+b): settling the loose, deporting, sending runaways back, putting mouths out.
+  // People in a king's hands (item 10+b): runaways sent back first, then the loose settled, deportation, mouths put out.
+  for (const [p, o] of all((o): o is ReturnRunawaysOrder => o.type === "returnRunaways")) this.returnRunaways(p, o);
   for (const [p, o] of all((o): o is WelcomeOrder => o.type === "welcome")) this.welcome(p, o);
   for (const [p, o] of all((o): o is DeportOrder => o.type === "deport")) this.deport(p, o);
-  for (const [p, o] of all((o): o is ReturnRunawaysOrder => o.type === "returnRunaways")) this.returnRunaways(p, o);
   for (const [p, o] of all((o): o is ExpelOrder => o.type === "expel")) this.expel(p, o);
   // Grants revoked and tablets repudiated (item 9) take effect from next season: guests still there then take the land.
   for (const [p, o] of all((o): o is RevokeOrder => o.type === "revoke")) this.revokeGrants(p, o);

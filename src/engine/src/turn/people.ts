@@ -91,7 +91,7 @@ P.peopleSeason = function (food) {
     this.spendAt(w.home, w.savings);
     const holder = owner(w.home);
     if (w.deported && holder !== null && holder !== w.by)
-      say(holder, `${people(w.men)} of your people, sent back by ${w.by}, reached ${Map.get(w.home).name} and settled there.`);
+      say(holder, `${people(w.men)} people sent on the road by ${w.by}, deported or sent back as runaways, reached ${Map.get(w.home).name} and settled there.`);
   }
   S.walking = S.walking.filter((w) => w.arrives > S.turn);
   S.corvee.clear();
@@ -114,7 +114,7 @@ P.peopleSeason = function (food) {
     if (ran > 0) {
       shift(x, -ran, -ranMen);
       x.loose += ran;
-      fleeing.push([prov.id, ran, "a heavy tax"]);
+      fleeing.push([prov.id, ran, this.taxRate(prov.id) > 0 ? "a heavy tax" : "a poor harvest"]);
     }
     const m = this.market(prov.id);
     const bought = Math.min(m.stock, short);

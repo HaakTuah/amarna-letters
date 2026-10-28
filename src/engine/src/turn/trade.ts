@@ -241,7 +241,8 @@ P.tradeTogether = function (cs, parts) {
   // What a capped share could not hold stays in the market, unpaid for.
   const left = bought.taken - got.reduce((a, b) => a + b, 0);
   m.stock += left;
-  const cost = shares(bought.paid - (left > 0 && bought.taken > 0 ? idiv(bought.paid * left, bought.taken) : 0), spend);
+  // Each pays for what it got, at the one price.
+  const cost = shares(bought.paid - (left > 0 && bought.taken > 0 ? idiv(bought.paid * left, bought.taken) : 0), got);
   m.purse -= bought.paid - cost.reduce((a, b) => a + b, 0);
   open.forEach((c, i) => {
     if (got[i] <= 0) return;

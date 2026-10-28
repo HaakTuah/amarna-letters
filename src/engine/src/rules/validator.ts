@@ -317,7 +317,7 @@ export class OrderValidator {
           if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
           const name = Map.get(order.province).name;
           if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${name}`;
-          const key = `${order.type}|${order.province}`;
+          const key = `${order.type}|${order.province}|${order.type === "returnRunaways" ? order.to : ""}`;
           if (peopleSet.has(key)) return `you had already given that order for ${name} this season`;
           if (order.type === "expel" && siegeOf(S, order.province) === null) return `${name} is not besieged`;
           if (order.type === "returnRunaways" && (!AllPowers.includes(order.to) || order.to === power)) return `you cannot send runaways to '${order.to}'`;

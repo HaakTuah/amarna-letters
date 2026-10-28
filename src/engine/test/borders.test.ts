@@ -121,7 +121,7 @@ describe("BordersTests", () => {
     }
     Assert.false(s.walking.includes(w));
     Assert.true(e.peopleOf(w.home).settled > settled - 2000);
-    Assert.contains(inboxOf(s, a), (i) => i.body.includes(`sent back by ${b}`));
+    Assert.contains(inboxOf(s, a), (i) => i.body.includes(`sent on the road by ${b}`));
   });
 
   test("A conqueror deports settled people from land he took to his own; never from his homeland", () => {

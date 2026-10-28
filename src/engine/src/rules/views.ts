@@ -342,7 +342,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     const r = engine.resistance(prov.id, p);
     if (r > 0) v.resistance.set(prov.id, r);
   }
-  v.walking = sum(s.walking.filter((w) => s.owner.getOrDefault(w.home, null) === p), (w) => w.men);
+  v.walking = sum(s.walking.filter((w) => !w.deported && s.owner.getOrDefault(w.home, null) === p), (w) => w.men);
   for (const c of s.caravans.filter((c) => c.power === p))
     v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
   // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
