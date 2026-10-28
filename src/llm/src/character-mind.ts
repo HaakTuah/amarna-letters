@@ -59,6 +59,7 @@ import { fieldsDiffer, type Ladder } from "./ladder.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
 import { lifeOf, lifeSchema, lifeSummary, lifeText } from "./character-life.ts";
+import { chiefOf, chiefSchema, chiefSummary, chiefText, reportsOf, reportsSchema, reportsSummary, reportsText } from "./character-roads.ts";
 import { Replies, Schemas, type JsonObject, type ReplySchema } from "./schemas.ts";
 import type { Stakes } from "./spending.ts";
 import { Sb, joinS } from "./text.ts";
@@ -459,6 +460,7 @@ export class LlmCharacterMind implements ICharacterMind {
   write(ctx: MindContext, signal?: AbortSignal): Promise<MindReply> {
     if (this.askerFor(ctx.self) === null) return this.script.write(ctx, signal);
     if (ctx.request.task === "Life") return this.live(ctx, signal);
+    if (ctx.request.task === "Chief" || ctx.request.task === "Reports") return this.onTheRoad(ctx, signal);
     const key = writeKey(ctx);
     if (key === null) return Promise.resolve(newMindReply());
     const kind = ctx.request.task === "EnvoyReport" ? "report" : ctx.request.task === "Pitch" ? "pitch" : ctx.request.task === "SpyReport" ? "spy" : "memory";
@@ -511,6 +513,40 @@ export class LlmCharacterMind implements ICharacterMind {
     return this.shadowed(
       key,
       "life",
+      c,
+      ctx.turn,
+      () => this.orScript(model, () => this.script.write(ctx, signal), null, c, ctx.turn, key, signal),
+      () => this.script.write(ctx, signal),
+      choice,
+    );
+  }
+
+  /**
+   * A chief's season for his band, or a spy's choice for its waiting reports (Haakon's answers to item 11b): one call each,
+   * on the ladder like its own season, shadowed by the script, which leaves both to the traits.
+   */
+  private onTheRoad(ctx: MindContext, signal?: AbortSignal): Promise<MindReply> {
+    const c = ctx.self;
+    const chief = ctx.request.task === "Chief" ? ctx.request.chief : null;
+    const reports = ctx.request.task === "Reports" ? ctx.request.reports : null;
+    if (chief === null && reports === null) return Promise.resolve(newMindReply());
+    const kind = chief !== null ? "chief" : "carry";
+    const key = `t${ctx.turn}/${kind}/${c.id}`;
+    const model = async (): Promise<MindReply> => {
+      const user = chief !== null ? chiefText(chief) : reportsText(reports!);
+      const schema = chief !== null ? chiefSchema(chief) : reportsSchema(reports!);
+      // A chief stakes his men, his purse and his neck; a spy its post and a little of its purse.
+      const json = await this.ask(key, ctx.turn, `${kind}:${c.id}`, c, user, schema, signal, null, null, {
+        stakes: { kind, moved: chief !== null ? 0.5 : 0.2 },
+        keys: [`t${ctx.turn}/mind/${ctx.request.id}`],
+        fields: [],
+      });
+      return chief !== null ? newMindReply({ chief: chiefOf(json, chief) }) : newMindReply({ reports: reportsOf(json, reports!) });
+    };
+    const choice = (r: MindReply): CharacterChoice => newCharacterChoice({ text: chief !== null ? chiefSummary(r.chief) : reportsSummary(r.reports) });
+    return this.shadowed(
+      key,
+      kind,
       c,
       ctx.turn,
       () => this.orScript(model, () => this.script.write(ctx, signal), null, c, ctx.turn, key, signal),

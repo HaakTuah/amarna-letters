@@ -44,9 +44,9 @@ describe("MemoryTests", () => {
     e.fulfil(doFor(wanderer), newMindReply({ text: "I have walked the roads alone." }));
     Assert.equal("I have walked the roads alone.", wanderer.memorySummary);
     Assert.equal(s.config.memoryKeep / 2, wanderer.memory.length);
-    // Every request that is for a court names one.
+    // Every request that is for a court names one (a chief's season is for nobody's court).
     Assert.all(
-      e.mindRequests.filter((r) => r.task !== "SummarizeMemory"),
+      e.mindRequests.filter((r) => r.task !== "SummarizeMemory" && r.task !== "Chief"),
       (r) => Assert.notNull(r.court),
     );
   });
