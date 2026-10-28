@@ -196,3 +196,49 @@ Given in the design chat with Claude, answering the design questions of the cons
     A standing instruction in `CLAUDE.md` ("as many lanes as can run in parallel"), for this game and Barkstreet
     Snakes alike.
 
+24. **16:22**, in the design chat, answering items 11a's and 11a+'s review questions, which Claude had relayed with its
+    takes:
+
+    > Agree. It seems claude code isn't quiet getting the idea. Everything has to happen through giving a message and
+    > following up on promises. A jib doesnt have to given at court, but it has to be given through a character,
+    > somewhere, and the engine only records it if it is by signed tablet. And money paid out as promised is something
+    > the king must choose to do. He can automate it, but he doesn't have to pay anything. But if a signed tablet
+    > dictated it, then it is recorded that he broke a deal. That kind of thing, you know? Doesn't it come across from
+    > the principles and all the rest. And yes, do all your recomedation, and that. Just wish claude code would
+    > understand the vision better. These kinds of question suggests it is not really getting it?
+
+    Written into the design document as "The game in one page" (Overview), which every builder reads before an item and
+    the reviewer reads with the diff (`CLAUDE.md`, "Starting a task" and "Models, effort and helpers"); the answers
+    open item 11+.
+
+25. **16:37, 16:43 and 16:45**, in the design chat, after the answers to items 11a and 11a+:
+
+    > As for jobs, didn't we agree they were  just errands, to keep it simple? Do this this and this, by this time,
+    > this is the money up front and this is the money after completion? Since almost every task can be submitted like
+    > that. Meanwhile governorship i guess must be more of offering a privelege.
+    >
+    > And every piece of information has to travel. Imagine the sun disappearing. The earth doesn't know until the last
+    > light has made its way here.
+    >
+    > And every action is possible (within the confines of what's possible for us to enable) a king may exercise as
+    > horrendous action as he wants. The consequences are not hardcoded, but follow from what that does to population
+    > contentness and charcaters incentives.
+    >
+    > And prices aren't fixed, characters negotiate them. And for wares it is supply and demand.
+    >
+    > And food can rot, no special conditions from being in a farmer's granary, it doesn't magically become resistant
+    > by that.
+    >
+    > Is it in this vain we have answered every question?
+    >
+    > Freedom to do, consequences that emerge.
+
+    > I agree with your take about armies. Governorship and commander then both become privileges.
+
+    > Yes, write all above, expertly! Have we corrected and fixed all records then, so this will be fixed in time by
+    > claude code?
+
+    Written into "The game in one page" (Overview: "Freedom to do, consequences that emerge"; prices, privileges,
+    captives; renewing is a new offer; no rule punishes a hard act), "Jobs, not wages", "Fees clear the market",
+    "Governors" and the resident envoy; the answers moved to the start of item 11b, the next item, since it brings
+    carriers and reputations.

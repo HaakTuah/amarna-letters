@@ -29,7 +29,9 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
    `item-9plus.md`, ...).
 3. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules), and do it
    again before opening the item's pull request.
-4. Read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
+4. Read "The game in one page" (`docs/intent/overview/the-game-in-one-page.md`) before every item: most questions
+   an item raises answer themselves from it, and a reading that contradicts it is a mistake, not a design question.
+   Then read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
 5. Check weekly usage with `scripts/usage.sh`, and again after every commit ("Usage" in the builder rules). If it
    says "unknown", this session cannot see usage: say so in the first line of each PR you open, and carry on; Haakon
    then watches usage himself and pauses the work at about 90%.
@@ -86,7 +88,7 @@ The same in both of Haakon's games; only the list of hard work differs.
 | --- | --- | --- | --- |
 | You, the builder | Opus | medium; high for the TypeScript conversion and the fix pass after it | the item itself |
 | Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files; it returns file:line and one-line conclusions |
-| Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | every item, once, before it is merged (the builder rules): give it the diff and the item's text, nothing else |
+| Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | every item, once, before it is merged (the builder rules): give it the diff, the item's text and "The game in one page", nothing else; it checks the diff against that page first |
 | Escalation | Opus (`model: "opus"`, `effort: "high"`, or `"xhigh"` if you already run at high) | high or extra high | one problem that has defeated you twice: give it a self-contained brief (the problem, what you tried, the files and lines), then apply and check its answer yourself |
 
 - **Never more than two helpers at a time,** and only these four uses. No workflows and no ultracode. No agent kept
