@@ -14,7 +14,10 @@ Asked at the start (Build order since 72; Land, people and economy since 29; War
 since 561): nothing new. `docs/BUILD-PROGRESS.md` held no new answers from Haakon to earlier items. The copy at revision
 72 showed that 10+a's text had gained, after 10+a's check, a list of readings by "Reason from the pillars" that 10+a never
 built (its report does not mention them); since they were 10+a's and this item comes next, they were taken up here, all
-but one (below). Asked again before the pull request: FILLED IN BELOW.
+but one (below). Asked again before the pull request (Build order 73; the other tabs unchanged): one new builder rule,
+"The workshop check" at every milestone (Haakon: "Yes please, sound good! Do it expertly for both!"). Done for this
+milestone: the progress file was 44 KB and is now 11 KB, its answered review points, the rows of items 1 to 10 and the
+port's findings moved word for word to `docs/archive/progress-done.md`; the rest is measured in the milestone PR.
 
 ## The audit at the start
 
@@ -99,7 +102,14 @@ rests on ("Reason from the pillars").
     seasons of siege in rain-fed land and wells 2 in arid ground; Tyre and Arwad, islands without water of their own,
     last a season once blockaded (or water for each city from a dossier of its own, when one is written). Principle:
     period first; numbers come from their causes.
-16. **Using the item's choices barely pays** at these first guesses: FILLED IN BELOW.
+16. **Deportees and returned runaways are not a company on the road**: they walk as discharged men do (losses settled
+    when they set out, arriving when the road's time is up), so nobody can free them on the way, as "Deportation" says
+    they can be (or a company of their own, like a captive's convoy, which waits for bands and escorts in item 11b).
+    Principle: everything is somewhere; carried as a known gap.
+17. **Refugees weigh how a land fed and taxed, not its room**, and runaways count against the king whose land they
+    fled at that moment (after a surrender, the conqueror) (or weigh room too). Principle: incentives, not quotas.
+18. **Loose men outside a besieged city's walls still rob its people's purse**, though not its stores (or nothing while
+    besieged). Principle: everything is somewhere (the purse is the people's, partly outside the walls).
 
 ## First guesses (item 18 tunes them)
 
@@ -110,15 +120,70 @@ the king's share 33%. `WaterData` (`model/geography.ts`): cisterns 4 seasons, we
 
 ## Script kings and the feature
 
-FILLED IN BELOW.
+What the script kings do is in `docs/design/20-people-across-borders.md`, "Script kings". How often each feature was used
+in the 50 games after (seeds 1-50, every king a script king), and how it went:
+
+| Feature | Used | Outcome |
+|---|---|---|
+| Flight across borders (`refugees`) | all 50 games, 6,053 times | the engine's: hunger, heavy taxes and war send people to better land |
+| Settling the loose (`welcomed`) | all 50, 33,842 orders | each settles as many as the land has room for |
+| Returning runaways (`runaways-returned`) | 34 games, 909 | only to kings they sealed `fugitives` with |
+| Deportation (`deported`) | 47 games, 2,812 | from taken land at risk; a first version deporting from all taken land lost (21 wins to 29) and was narrowed |
+| Mouths put out (`mouths-expelled`) | 45 games, 247 | besieged cities whose stores ran low |
+| Robbing (`robbed`) | all 50, 1,421 holder-seasons | the engine's; troops standing halve it |
+| Ships feeding a besieged harbour (`besieged-fed`) | 30 games, 40 | foreign ships selling where grain was dearest |
+| Captives under guard (`captive-arrived`) | 5 games, 10 handed over, all arrived | none intercepted at these numbers |
+| Water (`siege-thirst`) | 49 games, 177 surrenders | beside 252 starved: sieges of rain-fed cities end sooner |
+
+**Using against ignoring** (`--border-play-half`, seeds 1-50): 1.08 growth and 30 wins of 50 for the kings that use
+this item's choices, against 1.02 and 20 for those that ignore them. Per power the gain is not even (Hatti 0.80 using
+against 1.03 ignoring, Mitanni 1.76 against 1.33, Arzawa 1.41 against 1.04): deportation pays a king whose taken land is
+often lost, not one that holds it.
 
 ## Benchmarks and script games
 
-FILLED IN BELOW.
+**Before** (the audit, `develop`'s head) and **after**, seeds 1-50, `scripts/sim.sh --games 50 --seed 1
+--verify-replay`: 50 of 50 replay exactly.
+
+| | Before 10+b | After 10+b |
+|---|---|---|
+| Capitals fell (games; kingdoms) | 27; 42 | 27; 34 |
+| First fall, median season | 19 | 18 |
+| Entry to fall, median seasons | 16 | 16 |
+| Wins: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa, Alashiya | 0, 14, 2, 27, 0, 7, 0 | 2, 7, 6, 24, 0, 11, 0 |
+| Mean growth (same order) | 1.12, 1.21, 1.28, 1.45, 0.44, 0.96, 0.79 | 1.15, 0.91, 1.27, 1.45, 0.45, 1.30, 0.81 |
+| Tablets sealed; detentions | 1511; 408 | 1501; 405 |
+| Sieges begun / won; starved; out of water | 1150 / 789; 449; - | 1098 / 746; 252; 177 |
+| Troops hungry; mutinies | 823; 206 | 874; 220 |
+| Sacks; archives taken | 1367; 42 | 1323; 34 |
+
+`--versus solo`, 40 seeds: 2.29 growth alone and 0.96 as baseline, 73% and 14% of wins (2.20, 0.96, 71% and 14%
+before).
+
+What moved, and probably why (not traced game by game): fewer kingdoms fall (34 from 42); Hatti grows and wins less (0.91
+from 1.21) and Arzawa more (1.30 from 0.96): Hatti's plateau cities drink cisterns (rain-fed land), so its wars of siege end sooner either way, and its
+hungry, heavily taxed people run to its neighbours, Arzawa first; Babylonia's cities, on the rivers, never run dry. Sieges
+end by thirst in 177 cases that hunger ended later before. Nothing reads as unplayable; the balance pass (item 18) tunes
+it.
 
 ## The review
 
-FILLED IN BELOW.
+One reviewer (Opus, high effort), given the diff and the item's text. Its findings, and what was done:
+
+1. **Blocking: gold was created** when several caravans bought at one market and a ship's share was capped by its hold:
+   each paid in proportion to its gold, not to what it got. Fixed: each pays for what it got.
+2. Settling the loose ran before sending runaways back, so a promised return found none: runaways now go back first.
+3. A captured archive travelling alone (no gold) could never be waylaid: the road check now counts it as a load.
+4. An island's water clock counted from the start of the siege, not the blockade: a city held at sea now counts its own
+   seasons of blockade (`Siege.blockaded`).
+5. Deportees are not a company on the road: kept as built, listed as reading 16, the rulebook's words made true.
+6. A released captive's convoy went on: releasing a captive now ends its convoy, and a convoy checks it is still guarded.
+7. Only one return of runaways a province a season: one per king now.
+8. Untrue notices: runaways from a drought with no tax were said to flee "a heavy tax" (now "a poor harvest"); deportees
+   were called "sent back"; deportees counted as discharged men walking home. All fixed.
+9. A model captive whose king had fallen was offered a lie the engine would not record: it is no longer offered one.
+10. Readings to list (refugees ignoring room, whose runaways they are after a surrender, robbing at a besieged city):
+    readings 17 and 18; the mouths put out and outlaws' gold left as they are (a gold sink that predates the item).
 
 ## Tests
 
