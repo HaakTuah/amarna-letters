@@ -249,3 +249,17 @@ Given in the design chat with Claude, answering the design questions of the cons
     > Agree to all, expertly.
 
     Written into the design document as item 11b+, next, before city-states.
+
+27. **29 October, 00:22**, in the design chat, answering item 11b+'s review questions, which Claude had relayed word
+    for word with its takes:
+
+    > Agree to all. But:
+    >
+    > 5. Should models themselves not choose what to keep in memory when condensing? Something important that happened
+    > more thsn 12 seasons ago sound strange to forget? Or am I misunderstanding. And why does scripts need to forget at
+    > all?
+    > 12. Agreed, but like we have settled. Hired people can be treacherous, so someone could choose to leave stuff out
+    > of their reports or lie in them. But obviously if they try to sell information that should be in the report but is
+    > omitted, to their employeer, or their employeer gets word of it, then that reveals they broke their contract.
+
+    Written into the design document as item 11b++ and as "Memory" and "Reports" in "The game in one page".

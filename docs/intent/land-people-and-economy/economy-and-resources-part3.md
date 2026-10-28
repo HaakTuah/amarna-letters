@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 29 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 29 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 **Merchants.** A character who buys goods, carries them and sells them where they are dear is working for himself ("Working for oneself"). A king may fund a trading trip for a share of its gain, as palace merchants often worked, which is lending again ("Lending to anyone"). Merchants carry letters as they go ("Messengers are errands").
 
 **Building it (proposed 21 October 2026; its first phase is build order items 9+a and 9+b).** The economy is as large as everything built so far, and the main risk is that it buries the letter game, so:
