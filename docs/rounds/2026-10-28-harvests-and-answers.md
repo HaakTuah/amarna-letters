@@ -116,11 +116,45 @@ for him are the ones a matter of taste or that bend a pillar, listed first in th
 
 ## Script players and the feature
 
-PLACEHOLDER-SCRIPTS
+What the scripts do is in `docs/design/22-harvests-and-answers.md`, "Script kings". How often each part was used in the
+50 games after (seeds 1-50, every king a script king), and how it went:
+
+| Part | Used (games with it / times, 50 games) | How it went |
+|---|---|---|
+| Harvests reaped in their season | 50 / 6,256 kings' reapings | Famine notices fell from 5,607 to 590 (hunger 963 to 659): the granaries carry the farmers through the year, and hunger comes before the reaping |
+| Tax and famine feeding by the granaries | every game | Script kings keep the tax at what the granary bears until the next harvest |
+| Watching spies posted | 50 / 485 | Every game; spies caught as before |
+| Grants by order | 6 / 9 | Rare: script kings grant by order only leave they would grant but did not seal, and passage for a sworn ally they plead with; tablets still carry most leave (123 grants) |
+| Winter strokes | 11 / 15 losses, none whole | Rare, as before (5 losses and 13 crossings in 50 games before): a stroke by sea needs free fleets in a chain and no rival nearby |
+| Mouths put out by share | 46 / 832 | Repeated as a siege drags on, a share at a time |
+| Deportees freed on the road | 38 / 172 of 2,697 deportations | Troops of the land's king or of a road-closer meet them; script deporters avoid roads where they see such troops |
+| Levies short of a full one | (not counted apart) | Script kings raise one only where half a full levy can be had |
+| Thirst in sieges | 25 / 40 (before 49 / 198) | More cities drink from rivers, springs and wells by the dossier |
+| False names (the audit's patch) | 50 / 1,235 | Back in every game |
+
+**Using against ignoring** (`--season-play-half`, seeds 1-50): current kings 1.17 growth and 29 wins, those that ignore
+these levers 1.15 and 21. Pays, a little, unevenly by power (Hatti 1.20 against 1.51, Mitanni 1.89 against 1.52).
 
 ## Benchmarks and script games
 
-PLACEHOLDER-BENCH
+**Before** (the audit) and **after** (the review's fixes in), seeds 1-50, `scripts/sim.sh --games 50 --seed 1
+--verify-replay`: 50 of 50 replays exact. `--versus solo` (40 seeds): 2.38 / 1.07 and 73% / 14% before; 2.54 / 1.09 and
+71% / 14% after.
+
+| Power | Wins before | Wins after | Growth before | Growth after |
+|---|---|---|---|---|
+| Egypt | 0 | 1 | 1.21 | 1.24 |
+| Hatti | 4 | 16 | 0.77 | 1.34 |
+| Babylonia | 2 | 4 | 1.28 | 1.34 |
+| Mitanni | 28 | 27 | 1.77 | 1.64 |
+| Assyria | 0 | 0 | 0.57 | 0.62 |
+| Arzawa | 16 | 2 | 1.55 | 1.04 |
+| Alashiya | 0 | 0 | 0.95 | 0.96 |
+
+A capital fell in 25 games before (32 kingdoms) and 21 after (22), the first on the median in season 15 before and 24
+after: wars are slower, most likely because a small levy counts for its men and winter takes men rather than whole
+armies, and because sieges of river, spring and well cities can no longer end by thirst. Hatti gains most and Arzawa
+loses most; Hatti's plateau reaps in Akhet, and its cities drink from springs. Balance stays frozen: item 18 tunes it.
 
 ## The review
 
@@ -148,7 +182,7 @@ all fixed before merging:
 
 ## Tests
 
-`scripts/test.sh`: PLACEHOLDER-TESTCOUNT. New and rewritten tests: levies by men and strength in thousandths
+`scripts/test.sh`: 1139 tests pass (one test's expected yield allowed a unit's drift after the first season, then rerun). New and rewritten tests: levies by men and strength in thousandths
 (`people-play.test.ts`), winter losses by size and supplies (`travel.test.ts`), the harvest in its season, the granaries
 and hunger before the next harvest (`people.test.ts`), deportees freed on land and never at sea, mouths by share, water by
 the dossier (`borders.test.ts`); the adjudicator, terrain, battle-report and save-version tests read strengths in

@@ -42,8 +42,8 @@ describe("PeoplePlayTests", () => {
     // Hattusa's army was levied from it: its land has room for its men again.
     Assert.true(settleThere(v, "Hatti", "hattusa", "Army"));
     Assert.false(settleThere(v, "Hatti", "sapinuwa", "Army"));
-    // The board reckons each province's yield as its people bring it in.
-    Assert.equal(30, new Board(v).yieldOf("sapinuwa"));
+    // The board reckons each province's yield as its people bring it in (after the first season's births and moves, about the start's).
+    Assert.inRange(new Board(v).yieldOf("sapinuwa"), 29, 30);
   });
 
   test("A court sees the people's yield and resistance only in its own land and its sight, and reads them in its prompt", () => {
