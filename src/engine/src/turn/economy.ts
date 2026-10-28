@@ -193,6 +193,11 @@ P.harvestSeason = function () {
     if (rot > 0) S.stores.set(k, v - rot);
   }
   for (const m of S.markets.values()) m.stock -= idiv(m.stock * EconomyData.spoilPercent, 100);
+  // Haakon's answer to item 11a+ (opening item 11b): the farmers' granaries rot like the king's stores.
+  for (const [k, v] of [...S.granary.entries()]) {
+    const rot = idiv(v * EconomyData.spoilPercent, 100);
+    if (rot > 0) S.granary.set(k, v - rot);
+  }
   for (const p of alive(S)) {
     const l: string[] = [];
     if (reaped.has(p)) {

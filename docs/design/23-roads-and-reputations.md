@@ -98,12 +98,22 @@ item 18 tunes them.
 ### Script players
 
 - **Script kings** (`bots/outlaws.ts`): an army holding in its own land with no foreign troops beside it marches on a
-  band of 40 men or more working next door in its land (`huntBands`); and once a season it buys the freshest news (3
-  seasons old at most) of its war target or a court it distrusts, at no more than a thirtieth of its gold or 10 shekels
+  band of 40 men or more working next door in its land (`huntBands`); and once a season it buys the freshest news (4
+  seasons old at most) of its war target or a court it does not trust (trust under 0.1), at no more than a thirtieth of its gold or 10 shekels
   (`buyNewsOrders`). Spied and bought sightings ("had an army in") count in what it believes of other kings' troops.
   `--no-outlaw-play` turns this off, `--outlaw-play-half` for half the kings, alternating by seed.
 - **Script characters** (`bots/life-mind.ts`): a free person with a crowd of 500 or more loose men where it stands or
-  next door turns outlaw when it is pushed (6 seasons unhired, 3 if its way to a fortune is the outlaw's, or unable to pay
-  its living after 2) and willing ((courage + greed + ambition)/3 at least 55, loyalty under 50).
+  next door turns outlaw when it is pushed (8 seasons unhired, 3 if its way to a fortune is the outlaw's, or unable to pay
+  its living after 3) and willing ((courage + greed + ambition)/3 at least 55, loyalty under 50), unless it gave up the
+  road within 12 seasons (`Character.leftRoad`).
 - **Model characters** see the crowds near them (`LifeView.crowds`) and may take to the hills (`take_to_hills`). Model
   chiefs' own choices (raids, ships, the way back) are the formula above (a reading).
+
+### Haakon's answers to items 11a and 11a+ built here
+
+- Farmers' granaries rot like the king's stores (5 in a hundred a season).
+- Dismissing a servant before its job's term ends is a broken promise on the court's record.
+- The rest (jobs as errands offered through carriers, every payment by the payer's order, no going rate, records and
+  grants as news, seizing hoards, collecting and selling tablets, dealing anywhere in a shared province, the levy's size,
+  a captive's purse) is a rework of item 11a's jobs, left to the start of the next item that touches them (the report says
+  why).

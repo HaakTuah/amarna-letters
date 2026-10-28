@@ -188,6 +188,7 @@ P.lifeView = function (c) {
         : { employer: e.employer, employerName: findCharacter(S, e.employer)?.name ?? e.employer, debtId: e.debtId, borrower: S.debts.find((d) => d.id === e.debtId)?.borrower ?? "", collected: e.collected, home: e.home, since: e.since, reached: e.reached },
     offers: AllPowers.filter((p) => c.offers.has(p)).map((p) => ({ court: p, rate: c.offers.get(p) })),
     ending: endingWords(S.config.openAge, S.config.endMedian),
+    leftRoad: c.leftRoad,
     // Item 11b: crowds it could gather into a band, where it stands and next door.
     crowds: c.status !== "Free"
       ? []

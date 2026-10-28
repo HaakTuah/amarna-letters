@@ -157,8 +157,9 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
 
   // Item 11b, "Turning outlaw": long without work or near the end of its purse, bold or greedy and not loyal, with a crowd
   // to gather where it stands or next door, it takes to the hills; sooner if its way to a fortune is the outlaw's.
-  if (v.free && e === null && v.crowds.length > 0) {
-    const pushed = v.waited >= (c.strategy === "Outlaw" ? 3 : BandData.outlawWait) || (purse < v.living && v.waited >= 2);
+  // One who gave up the road lately tries a court's service first.
+  if (v.free && e === null && v.crowds.length > 0 && (v.leftRoad === null || v.turn - v.leftRoad >= BandData.outlawAgain)) {
+    const pushed = v.waited >= (c.strategy === "Outlaw" ? 3 : BandData.outlawWait) || (purse < v.living && v.waited >= 3);
     const willing = (t.courage + t.greed + t.ambition) / 3 >= 55 && t.loyalty < 50;
     const crowd = sortBy(v.crowds, [(x) => x.band - x.loose, cmpNum], [(x) => x.province, cmpStr])[0];
     if (pushed && willing && crowd !== undefined) {

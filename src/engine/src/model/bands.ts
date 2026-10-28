@@ -53,7 +53,8 @@ export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderI
  * - `mutinyHead`: the chance in a hundred that a mutinous unit follows one of its own as a band, plus a percent for each
  *   500 men; `refugeesHead` the chance a fallen court's refugees raise one.
  * - `outlawWait`: seasons unhired after which a poor, bold free person may take to the hills; `gatherLoose` the crowd it
- *   needs where it stands or next door.
+ *   needs where it stands or next door; `outlawAgain`: seasons after giving up the road before a script person turns
+ *   outlaw again.
  * - `wayBack`: a chief whose band is down to this many men gives up the road.
  */
 export const BandData = {
@@ -82,7 +83,8 @@ export const BandData = {
   captureChief: 25,
   mutinyHead: 20,
   refugeesHead: 50,
-  outlawWait: 6,
+  outlawWait: 8,
+  outlawAgain: 12,
   gatherLoose: 500,
   wayBack: 15,
 } as const;

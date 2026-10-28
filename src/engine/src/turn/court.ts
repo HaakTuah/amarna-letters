@@ -200,6 +200,8 @@ P.dismiss = function (p, c, order) {
     return;
   }
   remember(c, S.turn, `The king of ${land(p)} dismissed me.`);
+  // Haakon's answer to item 11a (opening item 11b): a dismissal before the job's term ends is a broken promise on record.
+  if (c.contract !== null && c.contract.untilTurn > S.turn) this.recordPay(p, false);
   c.formerEmployer = p;
   c.employer = null;
   c.contract = null;

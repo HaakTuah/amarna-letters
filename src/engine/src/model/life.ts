@@ -163,6 +163,8 @@ export interface LifeView {
    * a band, with the men of the bands already working there.
    */
   crowds: { province: string; name: string; loose: number; band: number }[];
+  /** Item 11b: the last season it gave up the road, or null. */
+  leftRoad: number | null;
 }
 
 export function newLifeView(init: Partial<LifeView> = {}): LifeView {
@@ -191,6 +193,7 @@ export function newLifeView(init: Partial<LifeView> = {}): LifeView {
     offers: [],
     ending: "",
     crowds: [],
+    leftRoad: null,
     ...init,
   };
 }
@@ -230,6 +233,7 @@ export const LifeViewSchema: ObjSchema<LifeView> = obj("LifeView", newLifeView, 
   errand: () => ErrandSeenSchema,
   offers: list(obj("OfferSeen", () => ({ court: "Egypt" as Power, rate: 0 }), { court: S, rate: I })),
   ending: S,
+  leftRoad: opt(I),
   crowds: list(obj("CrowdSeen", () => ({ province: "", name: "", loose: 0, band: 0 }), { province: S, name: S, loose: I, band: I })),
 });
 

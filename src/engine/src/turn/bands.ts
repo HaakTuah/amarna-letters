@@ -202,6 +202,7 @@ P.wayBack = function (b, why) {
 
 P.chiefLeaves = function (c, province, why) {
   const S = this.s;
+  c.leftRoad = S.turn;
   c.duty = "None";
   c.watchProvince = null;
   c.seeking = true;

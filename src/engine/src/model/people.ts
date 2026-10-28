@@ -335,6 +335,8 @@ export interface Character {
   news: NewsHeld[];
   /** Item 11b: the losses abroad it has heard of (`kind|court|master|character`), news that travels with people. */
   heard: string[];
+  /** Item 11b: the last season it gave up the road ("The way back"), or null if it never led a band. */
+  leftRoad: number | null;
 }
 
 export function newCharacter(init: Partial<Character> = {}): Character {
@@ -393,6 +395,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     marked: null,
     news: [],
     heard: [],
+    leftRoad: null,
     ...init,
   };
 }
@@ -452,6 +455,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   marked: opt(S),
   news: list(() => NewsHeldSchema),
   heard: list(S),
+  leftRoad: opt(I),
   isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
 });
 
