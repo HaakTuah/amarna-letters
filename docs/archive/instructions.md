@@ -142,3 +142,22 @@ Given in the design chat with Claude, answering the design questions of the cons
     item 18 (no feature left whose users do not come out ahead), so it reaches `.claude/rules/builder-rules.md` with
     this refresh; the running table is "Use against ignore" in `docs/BUILD-PROGRESS.md`. The same message's companion
     answered items 9+a's, 9+b's and 10's review questions ("For Haakon").
+
+19. **07:24 and 07:33**, in the design chat, after answering items 9+a's, 9+b's and 10's questions:
+
+    > I feel like the principles answer most of these questions, if one just reasons:
+    >
+    > - Dont prohibit an action, reflect its real cost
+    > - information always travel in physics time
+    > - skills govern the likelihood you can accomplish something, while the rest is up to the character. Governed by either an llm and an prompt telling them their goal and path, or governed by attitude traits for scripts
+    > - deceipt is the same as information, it must be gathered to find out if someone lies. You can't skillcheck if someone uses a false name, you must investigate. A forgery can be detected, because it is a actaully an skill to evaluate the realness of documents/tablets
+    > - and the rest should follow physics really, the way it was. I don't think armies ever took exactly 1/3, probably depended on a lot of factors, you know?
+
+    Then, on Claude's proposal to write them down as a tenet with five changes:
+
+    > Yes, write them down please, expertly! [...] Code's should probably note where it has made an assumption, like it does now with questions, so we can check it afterwards.
+
+    Written into the design document as the core tenet "Reason from the pillars" (Overview), with "No menus" and
+    "Period first" from his earlier words, and into the builder rules ("Unattended work": every reading listed with
+    the principle it rests on, checked by the design session at each milestone). Item 10+a opens with the five
+    changes they imply.

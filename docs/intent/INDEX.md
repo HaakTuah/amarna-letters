@@ -14,15 +14,15 @@ the live document wins. If the docs connector is not available, go on with the c
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
-| Overview | `docs/intent/overview/` | `320f0886-6acf` | 558 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 67 |
+| Overview | `docs/intent/overview/` | `320f0886-6acf` | 559 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 69 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 34 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 55 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 24 |
-| Characters | `docs/intent/characters/` | `0051b400-09bd` | 19 |
+| Characters | `docs/intent/characters/` | `0051b400-09bd` | 20 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 11 |
-| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 26 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 54 |
+| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 27 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 55 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 9 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 10 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
@@ -36,11 +36,11 @@ session loads.
 | --- | --- | --- |
 | `docs/intent/overview/front.md` | Title, status, how the document relates to the code | 2.1 |
 | `docs/intent/overview/vision-and-core-hypothesis.md` | Vision and core hypothesis | 1.4 |
-| `docs/intent/overview/design-pillars.md` | Design pillars | 4.2 |
+| `docs/intent/overview/design-pillars.md` | Design pillars | 6.0 |
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 2.8 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
-| `.claude/rules/builder-rules.md` | Rules for the builder | 10.1 |
+| `.claude/rules/builder-rules.md` | Rules for the builder | 10.4 |
 | `docs/intent/build-order/items-1-to-5-done.md` | The order: items 1 to 5 (built) | 1.0 |
 | `docs/intent/build-order/item-5plus.md` | 5+. TypeScript conversion | 1.3 |
 | `docs/intent/build-order/item-6.md` | 6. Memory and call size. The compaction candidates under "Call size matters as m | 4.7 |
@@ -50,7 +50,7 @@ session loads.
 | `docs/intent/build-order/item-9.md` | 9. Envoy authority and passage. First, whatever of the reviews of items 7a and 7 | 0.7 |
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 5.1 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
-| `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 4.8 |
+| `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 5.6 |
 | `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 6.1 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.4 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
@@ -86,7 +86,7 @@ session loads.
 | `docs/intent/characters/characters-hidden-facts-memory-and-continuity.md` | Characters: hidden facts, memory and continuity | 3.0 |
 | `docs/intent/characters/characters-careers.md` | Characters' careers | 5.4 |
 | `docs/intent/characters/the-pool-of-characters.md` | The pool of characters | 14.3 |
-| `docs/intent/characters/skills-names-and-knowledge.md` | Skills, names and knowledge | 17.0 |
+| `docs/intent/characters/skills-names-and-knowledge.md` | Skills, names and knowledge | 17.1 |
 | `docs/intent/characters/how-scripts-and-models-play-characters.md` | How scripts and models play characters | 1.4 |
 | `docs/intent/work-money-and-lending/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/work-money-and-lending/recruitment-background-checks-and-the-open-market.md` | Recruitment, background checks and the open market | 5.5 |
@@ -95,12 +95,12 @@ session loads.
 | `docs/intent/land-people-and-economy/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/land-people-and-economy/gold.md` | Gold | 3.4 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part1.md` | Economy and resources (part 1) | 23.6 |
-| `docs/intent/land-people-and-economy/economy-and-resources-part2.md` | Economy and resources (part 2) | 22.1 |
+| `docs/intent/land-people-and-economy/economy-and-resources-part2.md` | Economy and resources (part 2) | 22.5 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part3.md` | Economy and resources (part 3) | 2.9 |
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.7 |
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.9 |
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 15.6 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 15.7 |
 | `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 5.3 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.5 |
