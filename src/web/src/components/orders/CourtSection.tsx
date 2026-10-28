@@ -25,6 +25,7 @@ import {
   seize,
   sellDebt,
   payCarriers,
+  huntBands,
   type Power,
 } from "@amarna/engine";
 import { dated, grantLine, powerName, shekels } from "../../ui/format.ts";
@@ -251,6 +252,9 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       <div className="row">
         <button className="small" disabled={draft.other.some((o) => o.type === "payCarriers")} onClick={() => add(payCarriers(!v.payCarriers))}>
           {v.payCarriers ? "Stop paying letter carriers on delivery" : "Pay letter carriers on delivery"}
+        </button>
+        <button className="small" disabled={draft.other.some((o) => o.type === "huntBands")} onClick={() => add(huntBands(!v.huntBands))}>
+          {v.huntBands ? "Stop hunting bands in your land" : "Armies hunt any band in your land"}
         </button>
       </div>
       <p className="muted">

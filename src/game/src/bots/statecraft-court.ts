@@ -46,7 +46,7 @@ import { shekels, type Brain } from "./brain.ts";
 import { atHand, oursFirst, fewAtHand, freeAtCourt } from "./errands.ts";
 import type { Personality } from "./personality.ts";
 
-const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as"];
+const Blemishes = ["Owes", "dismissed", "Took", "Abandoned", "forger", "fled", "Kept part", "secretly", "in the pay", "Was caught", "Turned back", "Posed as", "Sold the secrets"];
 /** What a court saw a person do well (item 10, "A name made of outcomes"). */
 const Successes = ["Carried a mission", "Watched ", "Slipped out"];
 /** What a court saw of a person's hand at slipping past guards. */
@@ -85,7 +85,7 @@ export function isInventory(t: TabletView): boolean {
 }
 
 /** The known facts that show a servant kept gold it carried: a theft found by inquiries, or a forged inventory exposed. */
-const Thefts = ["Kept part of the gold", "Forged the inventory", "Exposed as the forger of an inventory"];
+const Thefts = ["Kept part of the gold", "Forged the inventory", "Exposed as the forger of an inventory", "Sold the secrets"];
 
 /** One of our people found keeping gold it carried (Brain.thieves), or whose known facts show it. */
 function thief(brain: Brain, c: CharacterView): boolean {

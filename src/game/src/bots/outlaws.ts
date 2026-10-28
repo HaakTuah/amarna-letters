@@ -1,9 +1,9 @@
 /**
- * A script king and the roads (build order item 11b): it hunts the bands that rob its land with armies it can spare, since
- * an army standing where a band works falls on it and halves what it takes; and it buys news of the courts it fears or
+ * A script king and the roads (build order item 11b): it hunts the bands that rob its land, by the standing order while a
+ * large band works there and with armies it can spare; and it buys news of the courts it fears or
  * fights or does not trust from the people at its court who sell it ("Characters as sellers of news"), fresh and cheap enough to be worth it.
  */
-import { buyNews, cmpStr, sortBy, move, type Order, type Power, type SeatView } from "@amarna/engine";
+import { BandData, buyNews, cmpStr, hunt, huntBands as huntBandsOrder, sortBy, sum, move, type BandSeen, type Order, type Power, type SeatView } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
@@ -20,14 +20,17 @@ export const OutlawPlay: { off: boolean; only: ReadonlySet<string> | null; on: (
 /** The smallest band worth sending an army after, and the freshest news worth buying, in seasons (first guesses of the bots). */
 const HuntMen = 40;
 const NewsAge = 4;
+/** What the bots know of a hunt: the rulebook's share of a band's men an army kills, and the least men a band keeps. */
+const BandHunt = { loss: BandData.huntLoss, least: BandData.least };
 
 /**
  * An army holding in its own land with no foreign troops beside it marches on a band working in a province of its own
- * next door, where nobody else of ours stands or goes.
+ * next door, where nobody else of ours stands or goes, if a hunt there would pay (`worthHunting`, for an army of our
+ * armies' mean size).
  */
 export function huntBands(b: Board, plan: MilitaryPlan): void {
   if (!OutlawPlay.on(b.me)) return;
-  const bands = b.v.bands.filter((x) => x.men >= HuntMen && b.isMine(x.province));
+  const bands = b.v.bands.filter((x) => x.men >= HuntMen && b.isMine(x.province) && worthHunting(b, x, sum(b.mine.filter((u) => u.kind === "Army"), (u) => u.men) / Math.max(1, b.mine.filter((u) => u.kind === "Army").length)));
   if (bands.length === 0) return;
   const target = new Set(bands.map((x) => x.province));
   for (const u of sortBy([...b.mine], [(u) => u.province, cmpStr])) {
@@ -47,11 +50,38 @@ export function huntBands(b: Board, plan: MilitaryPlan): void {
   }
 }
 
+/**
+ * Haakon's answers to item 11b: an army falls on a band only on its king's order. Item 11b+ (hunting did not pay): a
+ * hunted band that survives flees to a province next door with no army in it, often another of ours, where it robs at
+ * the full rate instead of the half it took beside our troops. So a script king orders a hunt (`hunt`, for the next
+ * season) only where it ends the band or drives it out of our land: an army of ours stands with it, and either the band
+ * is small enough to break (fewer than its least men left after the losses an army that size deals) or no province of
+ * ours without troops lies next door for it to flee to. It never gives the standing order, which hunts everywhere.
+ */
+export function huntOrders(b: Board, orders: Order[]): void {
+  if (!OutlawPlay.on(b.me)) return;
+  if (b.v.huntBands) orders.push(huntBandsOrder(false));
+  for (const x of sortBy([...b.v.bands], [(x) => x.province, cmpStr])) {
+    if (!b.isMine(x.province)) continue;
+    const army = b.mine.filter((u) => u.kind === "Army" && u.province === x.province).reduce((a, u) => a + u.men, 0);
+    if (army > 0 && worthHunting(b, x, army)) orders.push(hunt(x.province));
+  }
+}
+
+/** A hunt by an army of `army` men ends the band, or drives it out of our land: it has no province of ours to flee to. */
+function worthHunting(b: Board, x: BandSeen, army: number): boolean {
+  const lost = Math.min(x.men, Math.floor((Math.floor((x.men * BandHunt.loss) / 100) * army) / (army + x.men)) + 1);
+  if (x.men - lost < BandHunt.least) return true;
+  return !Board.Map.movesFrom("Army", x.province).some((n) => n !== x.province && !Board.Map.get(n).isSea && b.isMine(n) && !b.unitAt.has(n));
+}
+
 /** At most one purchase a season: the freshest news of a foe or the court it means to fight, if the treasury can spare it. */
 export function buyNewsOrders(v: SeatView, brain: Brain, gold: number, orders: Order[]): number {
   if (!OutlawPlay.on(v.power)) return 0;
-  const wanted = (p: Power): boolean => p === brain.warTarget || (brain.rel.tryGet(p)?.trust ?? 0) < 0.1;
-  const offers = [...v.court].flatMap((c) => c.news.map((n) => ({ c, n }))).filter(({ n }) => v.turn - n.turn <= NewsAge && wanted(n.court as Power) && n.price <= Math.max(10, Math.floor(gold / 30)));
+  // Item 11b+ (the script players' news did not pay): only news of the court it fights or that is hostile to it, which
+  // its plans read, not of every court it does not trust.
+  const wanted = (p: Power): boolean => p === brain.warTarget || brain.rel.tryGet(p)?.hostile === true;
+  const offers = [...v.court].flatMap((c) => c.news.map((n) => ({ c, n }))).filter(({ n }) => v.turn - n.turn <= NewsAge && wanted(n.court as Power) && n.price <= Math.max(10, Math.floor(gold / 50)));
   const best = sortBy(offers, [({ n }) => n.turn, (a: number, b: number) => b - a], [({ n }) => n.price, (a: number, b: number) => a - b], [({ c }) => c.id, cmpStr])[0];
   if (best === undefined) return 0;
   orders.push(buyNews(best.c.id, best.n.court as Power));

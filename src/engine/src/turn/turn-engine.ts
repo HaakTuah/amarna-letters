@@ -48,7 +48,7 @@ export { UnraisedTitle, asShown, asItStands, survivors, type SeasonPlan, type Fi
 export { ClaimEstablishedTitle } from "./press.ts";
 export { RoadOdds, CaughtOnRoadTitle, RoadsTitle, isWalker, LeaderPace } from "./travel.ts";
 export { BandsTitle } from "./bands.ts";
-export { LetterData } from "./letters.ts";
+export { LetterData, selfWait } from "./letters.ts";
 export { HeardData, lossKey } from "./news.ts";
 export { WinterLossTitle, type WinterCrossing } from "./winter.ts";
 export { GrantTitle, RepudiatedTitle } from "./authority.ts";

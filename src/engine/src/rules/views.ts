@@ -190,6 +190,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     kept: s.payRecords.tryGet(p)?.kept ?? 0,
     broken: s.payRecords.tryGet(p)?.broken ?? 0,
     payCarriers: s.payCarriers.includes(p),
+    huntBands: s.huntBands.includes(p),
     debts: debtViews(s, p),
     debtsHeld: claimViews(s, p),
     strength: engine.ledgerStrength(p),

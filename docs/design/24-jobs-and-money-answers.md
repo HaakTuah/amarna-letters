@@ -92,3 +92,31 @@ and the man hired, hear its rate. It asks more of a court it heard seized hoards
   item 11b found), turn outlaw only on the outlaw's road or near the end of their purse (it was about 30 a game), keep
   no hoard where a court seized one, answer a collector's job by the advance alone without the employer's word to pay,
   and give that word when they are honest.
+
+### The answers to item 11b's review (11b+, second part)
+
+- **A ransom demand needs a carrier** (`captive` "Ransom"): its word waits at the captor's capital (`Journey.waitAt`) until
+  someone sets out for the payer's court, the payer's own people or any traveller, for nothing (`carryLetters`, a
+  journey that is not a `SpyReport`), or, with nobody going, a free person at the captor's court hired from his treasury
+  as part of his order; the demand stands 8 seasons. A carrier takes the waiting letters of one kind only (a demand never
+  carries a spy's reports), and a demand replaced or lapsed is dropped unsent. Rumours and word of the world stay talk by the roads.
+- **The spy decides** (`carryLetters`): a passing traveller is paid on delivery by its court's standing order, else by
+  the spy from its purse if it is loyal enough (`LetterData.payLoyalty`); so is a carrier it hires; it carries its
+  reports home itself after `selfWait` seasons (two, a season more for a brave spy and for a loyal one).
+- **The border walk** (`reportRoad`): a watcher just across its master's border walks its reports to the nearest
+  province of his, where the realm's couriers take them.
+- **Hunting only on order** (`hunt` for next season, `huntBands` standing; `GameState.huntNow`, `huntBands`): an army
+  falls on a band where it stands only so; troops standing there still halve what bands take.
+- **Robbers choose** (`chiefKills`): a ruthless chief (disloyal or greedy) kills a robbed king's servant, a witness whose
+  master would hear him, where no army of the land's king stands in the province or next to it (what a chief can see,
+  not the king's orders); a careful one never does, and a free traveller is let go. No fixed odds.
+- **Anyone may sell what he knows** (`newsSeason`, `buyNewsOrder`): servants abroad note news too; a greedy, disloyal
+  servant notes its master's court, and selling it is found out `NewsData.secretsCaught` times in a hundred: a hidden
+  fact whose word goes from the buyer's court to its master by the roads (a "Name" rumour), with a notice on arrival.
+- **Not built here**: a band hired as soldiers (item 13); a pardon has no order (words, or a sealed promise); **a model
+  chief's own request** for raids, ships and the way back (chiefs, model and script, still decide by formula).
+- **Script kings** (`game/src/bots/outlaws.ts`) order a hunt (`hunt`) only where an army of theirs stands with a band and
+  the hunt breaks it or leaves it no province of theirs without troops to flee to (`worthHunting`), never the standing
+  order (a band driven off robs a neighbouring province at the full rate); spare armies march on a band only where such a
+  hunt would pay. They buy news only of the court they fight or a hostile one, at most a fiftieth of their gold, and
+  dismiss a servant found selling their secrets.

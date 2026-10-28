@@ -47,7 +47,6 @@ export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderI
  * - `successorPercent`: the chance a band that lost its chief raises one of its own, plus a percent for each 10 men.
  * - `shipCost`: a ship bought in a port (spent at its market); `shipMen`: the men a band needs to man one.
  * - `roadOdds`: a band's road check in its province (and, with a ship, the sea beside), times men / (men + `roadHalf`).
- * - `killPercent`: the chance a traveller a band robs is killed ("the road", "Natural losses").
  * - `huntLoss`: of a band caught by an army hunting it, the share of its men lost, in a hundred; `captureChief` the
  *   chance its chief is taken.
  * - `mutinyHead`: the chance in a hundred that a mutinous unit follows one of its own as a band, plus a percent for each
@@ -78,7 +77,6 @@ export const BandData = {
   shipMen: 30,
   roadOdds: 20,
   roadHalf: 200,
-  killPercent: 10,
   huntLoss: 40,
   captureChief: 25,
   mutinyHead: 20,

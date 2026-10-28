@@ -26,6 +26,7 @@ export const LossNewsSeasons = 3;
 declare module "./core.ts" {
   interface TurnEngine {
     resolveIntelligence(orders: [Power, Order][]): void;
+    reportRoad(from: string, employer: Power): number;
     placeSpy(p: Power, ps: PlaceSpyOrder): void;
     spyArrives(j: Journey): void;
     recall(p: Power, c: Character): void;
@@ -257,7 +258,7 @@ P.watchAndReport = function () {
         id: newId(S, "j"),
         kind: "SpyReport",
         departTurn: S.turn,
-        arriveTurn: abroad ? Waiting : S.turn + this.travelTurnsBetween(from, Map.capital(employer).id),
+        arriveTurn: abroad ? Waiting : S.turn + this.reportRoad(from, employer),
         from: host ?? employer,
         to: employer,
         characterId: c.id,
@@ -266,6 +267,23 @@ P.watchAndReport = function () {
       }),
     );
   }
+};
+
+/**
+ * How long a report from a post inside, or just across, its master's land takes to reach him: the realm's couriers carry
+ * it from his own land; a watcher across the border walks it to the nearest province of his master's first (Haakon's
+ * answers to item 11b: "at the border, after the walk there").
+ */
+P.reportRoad = function (from, employer) {
+  const S = this.s;
+  const home = this.map.capital(employer).id;
+  if (S.owner.getOrDefault(from, null) === employer) return this.travelTurnsBetween(from, home);
+  const border = sortBy(
+    this.map.neighbors(from).filter((n) => S.owner.getOrDefault(n, null) === employer),
+    [(n: string) => this.travelTurnsBetween(n, home), cmpNum],
+    [(n: string) => n, cmpStr],
+  )[0];
+  return border === undefined ? this.travelTurnsBetween(from, home) : this.travelTurnsBetween(from, border) + this.travelTurnsBetween(border, home);
 };
 
 P.spyObserve = function (c, rng) {
@@ -448,7 +466,11 @@ P.captive = function (host, co) {
       removeAll(S.tasks, (t) => t.kind === "RansomDemand" && t.characterId === c.id && !t.announced);
       const demand = newPendingTask({ id: newId(S, "q"), kind: "RansomDemand", requester: payer, other: host, characterId: c.id, spend: co.ransom, dueTurn: S.turn + 5 });
       S.tasks.push(demand);
+      // Haakon's answers to item 11b: a demand is a message, which waits at the captor's court for someone going that way.
+      const before = S.journeys.length;
       this.rumor(payer, host, `${host} holds ${c.name} and demands ${formatMoney(co.ransom)} for their return (order pay_ransom for ${c.id}).`, c.id, "Ransom", demand.id);
+      if (S.journeys.length > before) [S.journeys[before].arriveTurn, S.journeys[before].waitAt] = [Waiting, this.map.capital(host).id];
+      demand.dueTurn = S.turn + 8;
       break;
     }
     case "Turn": {

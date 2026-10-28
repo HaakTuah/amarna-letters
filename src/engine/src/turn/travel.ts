@@ -371,7 +371,7 @@ P.stopped = function (j, c, province, stop) {
     c.purse = 0;
     c.earned.spent += purse;
     const band = this.robbedBy(province, gold + purse);
-    if (band !== null && this.r("road-kill", j.id).chance(BandData.killPercent / 100)) {
+    if (band !== null && this.chiefKills(band, c, province)) {
       if (j.dispatch !== null) j.dispatch.gold = 0;
       if (j.cargo !== null) j.cargo.gold = 0;
       S.journeys.splice(S.journeys.indexOf(j), 1);
