@@ -154,6 +154,32 @@ export function defenceGround(from: string, to: string): Ground | null {
  */
 export type Water = "River" | "Rain" | "Arid";
 
+/**
+ * Where a city drinks under siege (item 10+b, "Water too": set by where it stands, so the land and the sources decide how
+ * long it can drink). River land drinks from its river, and a city with a spring inside its walls, or a walled way down
+ * to one, from that: neither fails. Elsewhere a besieged city drinks from what its cisterns hold and its wells reach:
+ * `CisternSeasons` in rain-fed land, `WellSeasons` in arid ground. A city on an island with no water of its own drinks
+ * what boats bring it: once its besieger's fleet holds its waters it has `IslandSeasons`. First guesses (item 18).
+ */
+export const WaterData = { CisternSeasons: 4, WellSeasons: 2, IslandSeasons: 1 } as const;
+
+/**
+ * Cities whose water never fails under siege though they stand in rain-fed land: Jerusalem's builders had walled their way
+ * down to the Gihon spring, and Megiddo cut its water shaft for this ("Water too").
+ */
+export const SafeWater: ReadonlySet<string> = new Set(["jerusalem", "megiddo"]);
+
+/** Island cities with no water of their own, whose water comes by boat like their grain: Tyre (EA 146-155) and Arwad. */
+export const IslandWater: ReadonlySet<string> = new Set(["tyre", "arwad"]);
+
+/** How many seasons a besieged city can drink from its own stores (Infinity: it never runs dry; islands: once blockaded). */
+export function waterSeasons(province: string): number {
+  if (IslandWater.has(province)) return WaterData.IslandSeasons;
+  const w = Climates.get(province)?.water ?? "Rain";
+  if (w === "River" || SafeWater.has(province)) return Infinity;
+  return w === "Arid" ? WaterData.WellSeasons : WaterData.CisternSeasons;
+}
+
 /** How hard its winter is ("Winter in the field"): mild in Egypt and Babylonia, hard on the Anatolian plateau. */
 export type Winter = "Mild" | "Cool" | "Hard";
 

@@ -21,6 +21,8 @@ import {
   newMindReply,
   newMindRequest,
   newCaravan,
+  WaterData,
+  besiege,
   newGame,
   newGameConfig,
   newSiege,
@@ -255,6 +257,23 @@ describe("BordersTests", () => {
     Assert.equal(one[1], one[3], 1);
     Assert.equal(one[0], two[0], 1);
     Assert.true(one[0] > 0);
+  });
+
+  test("A besieged city holds no longer than its water: cisterns run dry in rain-fed land, a river never fails", () => {
+    for (const [city, dry] of [["carchemish", true], ["babylon", false]] as const) {
+      const s = quiet();
+      const e = new TurnEngine(s);
+      const u = single(s.units, (x) => x.province === "hattusa");
+      u.province = city;
+      const holder = s.owner.getOrDefault(city, null);
+      s.sieges.push(newSiege({ province: city, power: "Hatti", unitId: u.id, since: s.turn - WaterData.CisternSeasons }));
+      s.stores.set(city, 5000);
+      s.markets.get(city).stock = 5000;
+      e.beginTurn();
+      e.resolve(orders("Hatti", besiege(city)));
+      Assert.equal(dry, s.events.some((x) => x.signal === "siege-thirst"));
+      Assert.equal(dry ? "Hatti" : holder, s.owner.getOrDefault(city, null));
+    }
   });
 
   test("A court knows a far market and the tolls on its goods only as its traders bring word home", () => {
