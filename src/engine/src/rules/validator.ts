@@ -89,8 +89,10 @@ export class OrderValidator {
         return [`${c.name} is already in your service; to keep them on, order renew`, c];
       if (c.status !== "Free") return [`${c.name} is not available for hire`, c];
       if (c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
-      if (!c.pitches.has(power) && c.at !== power) return [`${c.name} has not presented themselves to your court`, c];
-      if (h.wage <= 0 || h.term <= 0) return ["wage and term must be positive", c];
+      // Item 11a, "Hiring as a negotiation": a person is hired in person, where it stands.
+      if (c.at !== power && c.heldBy !== power) return [`${c.name} is not at your court: a person is hired in person, where it stands`, c];
+      if (h.fee <= 0 || h.term <= 0) return ["fee and term must be positive", c];
+      if (h.advance < 0 || h.advance > h.fee) return ["the advance must be between nothing and the whole fee", c];
       return [null, c];
     };
 
@@ -444,7 +446,8 @@ export class OrderValidator {
           const notice = cover !== null ? cover.noticePrice !== null : (c.contract?.noticePrice ?? null) !== null;
           const home = cover === null && c.status === "Employed" && c.duty === "None" && c.at === power;
           if (!notice && !home) return `${c.name} is not at your court and has not given notice`;
-          if (rn.wage <= 0 || rn.term <= 0) return "wage and term must be positive";
+          if (rn.fee <= 0 || rn.term <= 0) return "fee and term must be positive";
+          if (rn.advance < 0 || rn.advance > rn.fee) return "the advance must be between nothing and the whole fee";
           if (renewed.has(c.id)) return `${c.name} was already renewed by an earlier order`;
           return null;
         }

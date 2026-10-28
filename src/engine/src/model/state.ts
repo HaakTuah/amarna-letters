@@ -15,6 +15,7 @@ import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./carava
 import { type Toll, TollSchema } from "./trade.ts";
 import { type MarketSeen, MarketSeenSchema } from "./views.ts";
 import type { People } from "./land.ts";
+import { type Approach, ApproachSchema, type Debt, DebtSchema, MoneyData, type PayRecord, PayRecordSchema } from "./money.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
@@ -62,7 +63,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 18;
+export const CURRENT_VERSION = 19;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -164,6 +165,20 @@ export interface GameState {
   tolls: Toll[];
   /** Foreign markets as each court last knew them (item 9+b): seen where it sees the land, or found by its traders. */
   marketsSeen: Dict<Power, Dict<string, MarketSeen>>;
+  /** Item 11a: each party's record of paying what fell due, fees and loans ("A name made of outcomes"). */
+  payRecords: Dict<string, PayRecord>;
+  /** Item 11a, "Fees clear the market": the going rate of service, in percent of what people would ask on their own. */
+  goingRate: number;
+  /** Item 11a: the hires and renewals offered last season, and the people free to take them, which move the going rate. */
+  hireDemand: number;
+  /** Item 11a: every debt tablet sealed, standing or ended ("The debt tablet is the claim"). */
+  debts: Debt[];
+  /** Item 11a: approaches between characters waiting for an answer, and those answered this season. */
+  approaches: Approach[];
+  /** Item 11a, "A baseline, not a limit": the pool the world keeps near, set at the start. */
+  baseline: number;
+  /** Item 11a: the last season each court asked for candidates, which those seeking service hear of. */
+  hiring: Dict<Power, number>;
   /** Item 10+b: the gold the loose men of each province carry, robbed from purses and stores ("Bandits rob the purse"). */
   loot: Dict<string, number>;
   /** Item 10+b: the loose men standing in each province who fled another kingdom, by the king whose land they fled. */
@@ -265,6 +280,13 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     caravans: [],
     tolls: [],
     marketsSeen: new Dict(),
+    payRecords: new Dict(),
+    goingRate: MoneyData.rateStart,
+    hireDemand: 0,
+    debts: [],
+    approaches: [],
+    baseline: 0,
+    hiring: new Dict(),
     loot: new Dict(),
     runaways: new Dict(),
     expelled: new Dict(),
@@ -341,6 +363,13 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   caravans: list(() => CaravanSchema),
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
+  payRecords: dict(() => PayRecordSchema),
+  goingRate: I,
+  hireDemand: I,
+  debts: list(() => DebtSchema),
+  approaches: list(() => ApproachSchema),
+  baseline: I,
+  hiring: dict(I),
   loot: dict(I),
   runaways: dict(dict(I)),
   expelled: dict(I),
@@ -644,8 +673,10 @@ export function logEvent(s: GameState, kind: string, text: string, visibleTo: It
 export const IdKinds: ReadonlyMap<string, string> = new Map([
   ["a", "audience"],
   ["c", "character"],
+  ["d", "debt tablet"],
   ["f", "fact about a character"],
   ["g", "lot of gold"],
+  ["h", "approach between characters"],
   ["j", "journey"],
   ["k", "copy of a tablet"],
   ["m", "message trail"],

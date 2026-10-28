@@ -8,6 +8,7 @@ import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Claim, ClaimSchema, type Recognition, RecognitionSchema } from "./recognition.ts";
 import { type InboxItem, InboxItemSchema } from "./records.ts";
+import { type LendOffer, LendOfferSchema } from "./money.ts";
 import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, StandingOrderViewSchema } from "./sleep.ts";
 import { type StandingAnswer, StandingAnswerSchema } from "./answers.ts";
 import { type GrantView, GrantViewSchema } from "./authority.ts";
@@ -224,15 +225,17 @@ export interface CharacterView {
    * Your servant away: when it set out and when it is due back, as you can reckon it (see {@link Views.TimingText}).
    */
   timing: string;
-  wage: number | null;
+  /** Item 11a: your servant's job: its whole fee and the advance handed over (the rest falls due when it is done). */
+  fee: number | null;
+  advance: number | null;
   /** The last season of your servant's term. */
   contractUntil: number | null;
-  /** One of your people who has given notice: the wage they ask to serve on. */
+  /** One of your people who has given notice: what they ask a season of a new term to serve on. */
   noticePrice: number | null;
   /** With a notice: the season at whose start they leave unless renewed. */
   leavesTurn: number | null;
   /**
-   * Your servant's term in plain words: the wage, until when, and what happens then (see {@link Views.TermText}).
+   * Your servant's job in plain words: the fee, until when, and what happens then (see {@link Views.TermText}).
    */
   term: string;
   knownFacts: string[];
@@ -257,10 +260,10 @@ export interface CharacterView {
    * One of your people held captive abroad: the ransom its captor demands, once that demand has reached you.
    */
   ransomDemand: number | null;
-  /**
-   * The back pay you owe them (as you believe it, for one of your people abroad), paid when they are back at your court; null if none.
-   */
-  backPay: number | null;
+  /** Item 11a: the rest of a fee you let fall due and did not pay them, a promise broken (order pay_fee pays it at your court); null if none. */
+  owed: number | null;
+  /** Item 11a: what they offer to lend you, if they stand at your court and would ("Lending to kings"). */
+  lends: LendOffer | null;
 }
 
 export function newCharacterView(init: Partial<CharacterView> = {}): CharacterView {
@@ -274,7 +277,8 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     duty: "",
     where: "",
     timing: "",
-    wage: null,
+    fee: null,
+    advance: null,
     contractUntil: null,
     noticePrice: null,
     leavesTurn: null,
@@ -288,7 +292,8 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     heldByYou: false,
     intercepted: false,
     ransomDemand: null,
-    backPay: null,
+    owed: null,
+    lends: null,
     ...init,
   };
 }
@@ -303,7 +308,8 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   duty: S,
   where: S,
   timing: S,
-  wage: opt(I),
+  fee: opt(I),
+  advance: opt(I),
   contractUntil: opt(I),
   noticePrice: opt(I),
   leavesTurn: opt(I),
@@ -317,7 +323,41 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   heldByYou: B,
   intercepted: B,
   ransomDemand: opt(I),
-  backPay: opt(I),
+  owed: opt(I),
+  lends: () => LendOfferSchema,
+});
+
+/** Item 11a: a debt of the seat's own, as its tablet reads: whom it owes, what is left, and whether the holder stands at its court. */
+export interface DebtView {
+  id: string;
+  /** Who holds the tablet now, by name, as far as the court knows ("Mane", or the lender's name if it went missing unseen). */
+  holder: string;
+  holderId: string;
+  lender: string;
+  principal: number;
+  owed: number;
+  left: number;
+  sealedTurn: number;
+  dueTurn: number;
+  /** The holder stands at your court, so it can be repaid this season (order repay). */
+  here: boolean;
+}
+
+export function newDebtView(init: Partial<DebtView> = {}): DebtView {
+  return { id: "", holder: "", holderId: "", lender: "", principal: 0, owed: 0, left: 0, sealedTurn: 0, dueTurn: 0, here: false, ...init };
+}
+
+export const DebtViewSchema: ObjSchema<DebtView> = obj("DebtView", newDebtView, {
+  id: S,
+  holder: S,
+  holderId: S,
+  lender: S,
+  principal: I,
+  owed: I,
+  left: I,
+  sealedTurn: I,
+  dueTurn: I,
+  here: B,
 });
 
 export interface TabletView {
@@ -452,15 +492,23 @@ export interface SeatView {
   upkeep: number;
   /** The upkeep of walls it raised above the map's own, a season (paid after its troops'). */
   wallUpkeep: number;
-  /** The wages of all its people a season: paid to those at court, built up as back pay for those away. */
-  wages: number;
+  /** Item 11a: the rest of its servants' fees, due as their jobs are done (as it believes it for those abroad). */
+  feesDue: number;
+  /** Item 11a: the fees it let fall due and did not pay, to anyone: broken promises, counted in no score. */
+  feesOwed: number;
+  /** Item 11a: what its servants' jobs cost a season, each job's fee over its term (as it reckons them). */
+  fees: number;
+  /** Item 11a: how much of a promised fee or loan people count on from this court, in percent, by its record of paying. */
+  trust: number;
+  /** Item 11a: its record of paying what fell due: promises kept and broken. */
+  kept: number;
+  broken: number;
+  /** Item 11a: the going rate of service, in percent of what people would ask on their own ("Fees clear the market"). */
+  goingRate: number;
+  /** Item 11a: the debt tablets of its debts that stand, as it knows them. */
+  debts: DebtView[];
   /**
-   * The back pay it believes it owes (to its people, and to anyone at its court), paid when each is back at its court.
-   */
-  backPay: number;
-  /**
-   * Strength by the seat's own ledger (unassayed gold at its weight), less the back pay it believes it owes; never the
-   * true figure (see {@link Scoring}).
+   * Strength by the seat's own ledger (unassayed gold at its weight); never the true figure (see {@link Scoring}).
    */
   strength: number;
   startStrength: number;
@@ -585,8 +633,14 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     income: 0,
     upkeep: 0,
     wallUpkeep: 0,
-    wages: 0,
-    backPay: 0,
+    feesDue: 0,
+    feesOwed: 0,
+    fees: 0,
+    trust: 0,
+    kept: 0,
+    broken: 0,
+    goingRate: 100,
+    debts: [],
     strength: 0,
     startStrength: 0,
     provinceWeight: newGameConfig().provinceWeight,
@@ -649,8 +703,14 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   income: I,
   upkeep: I,
   wallUpkeep: I,
-  wages: I,
-  backPay: I,
+  feesDue: I,
+  feesOwed: I,
+  fees: I,
+  trust: I,
+  kept: I,
+  broken: I,
+  goingRate: I,
+  debts: list(() => DebtViewSchema),
   strength: I,
   startStrength: I,
   provinceWeight: I,

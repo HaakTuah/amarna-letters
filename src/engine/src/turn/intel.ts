@@ -218,9 +218,9 @@ P.watchAndReport = function () {
       factCount: c.facts.length,
       secretMaster: c.secretMaster,
       lord: employer,
-      wage: c.contract?.wage ?? 0,
+      fee: c.contract?.fee ?? 0,
       purse: c.purse,
-      backPay: c.backPay.clone(),
+      owed: c.owed.clone(),
     });
     report.observations.push(...this.spyObserve(c, rng));
     if (c.secretMaster !== null && c.secretMaster === host) {
@@ -412,8 +412,8 @@ P.captive = function (host, co) {
       if (employer !== null) this.coverFor(c, employer, "None");
       c.status = "Dead";
       c.duty = "None";
-      // The dead are never paid: what any court owed it is gone (a court that has not heard keeps its own belief).
-      c.backPay.clear();
+      // The dead are never paid: what any court owed it is gone.
+      c.owed.clear();
       logEvent(S, "execution", `${host} executed ${c.name}.`, [host]);
       // The rumour reaches its king, and every court that still believes the dead one serves it.
       for (const heard of AllPowers.filter((p) => p === employer || coverOf(c, p) !== null)) this.rumor(heard, host, `It is said that ${c.name} was put to death in ${host}.`, c.id, "Death");

@@ -1,6 +1,7 @@
 import { Dict } from "../core/collections.ts";
 import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
+import { type Errand, ErrandSchema, type Hoard, HoardSchema, type LendOffer, LendOfferSchema, type Strategy } from "./money.ts";
 
 export const SecrecyValues = ["Public", "Hidden", "Deep"] as const;
 export type Secrecy = (typeof SecrecyValues)[number];
@@ -157,13 +158,21 @@ export const MemoryEntrySchema: ObjSchema<MemoryEntry> = obj("MemoryEntry", newM
   text: S,
 });
 
+/**
+ * A job (item 11a, "Jobs, not wages"): a post with a term and a fee, not a wage. The advance was handed over when the job
+ * was agreed; the rest falls due when the job is done (the term served, the servant back at court with no task), a
+ * promise its employer keeps or breaks. Nothing accrues: a job that runs long costs what was agreed.
+ */
 export interface Contract {
-  wage: number;
+  /** The whole fee agreed for the term. */
+  fee: number;
+  /** The part of the fee handed over when the job was agreed. */
+  advance: number;
   startTurn: number;
   /** The last season of the term. */
   untilTurn: number;
   /**
-   * Set when the term has ended and the servant, wanting more than its wage, has given notice: the wage it asks
+   * Set when the term has ended and the servant, wanting more, has given notice: the fee a season of a new term it asks
    * to serve on. Its master may renew it at that price or more; otherwise it leaves at {@link LeavesTurn}.
    */
   noticePrice: number | null;
@@ -171,31 +180,37 @@ export interface Contract {
    * With a notice: the season at whose start it leaves unless renewed (if it is away then, when it is next at court with no task).
    */
   leavesTurn: number | null;
+  /** Its master ordered the rest withheld when it falls due (order pay_fee with pay false). */
+  withheld: boolean;
 }
 
 export function newContract(init: Partial<Contract> = {}): Contract {
   return {
-    wage: 0,
+    fee: 0,
+    advance: 0,
     startTurn: 0,
     untilTurn: 0,
     noticePrice: null,
     leavesTurn: null,
+    withheld: false,
     ...init,
   };
 }
 
 export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, {
-  wage: I,
+  fee: I,
+  advance: I,
   startTurn: I,
   untilTurn: I,
   noticePrice: opt(I),
   leavesTurn: opt(I),
+  withheld: B,
 });
 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
 export type CharacterStatus = (typeof CharacterStatusValues)[number];
 
-export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard"] as const;
+export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling"] as const;
 export type Duty = (typeof DutyValues)[number];
 
 export interface Character {
@@ -246,11 +261,11 @@ export interface Character {
   /** The court it last served, once that service ended by dismissal or by the court's fall. */
   formerEmployer: Power | null;
   /**
-   * Wages owed by each court, built up while the character was away in its service (on a mission, posted as a spy,
-   * detained or captive). Paid when it stands at that court and is not held there, whether or not it still serves it;
-   * forfeited when it goes over to another court, cleared at its death, lost when the court's kingdom falls.
+   * Item 11a: the rest of a fee each court let fall due and did not pay: a fact, a broken promise the court may still
+   * make good (order pay_fee), counted in no score ("Debts are facts; repayment is a choice"); lost when the court's
+   * kingdom falls.
    */
-  backPay: Dict<Power, number>;
+  owed: Dict<Power, number>;
   /** Item 10: the true skills the engine rolls on. */
   skills: Skills;
   /**
@@ -271,7 +286,27 @@ export interface Character {
   declared: Declared[];
   /** A real person of the period (item 10, "Attested characters"); else generated in its region's style. */
   attested: boolean;
-  // computed in C#: Status == CharacterStatus.Free
+  /** Item 11a, "Where characters keep their gold": its hoard in one city, if it keeps one. */
+  hoard: Hoard | null;
+  /** Item 11a, "Lending to kings": what it offers to lend the king of the court where it stands, if anything. */
+  lendOffer: LendOffer | null;
+  /** Item 11a: the fees a season each court really offered it this season, which it may cite elsewhere ("Hiring as a negotiation"). */
+  offers: Dict<Power, number>;
+  /** Item 11a, "How the strategy is made": its way to a fortune, chosen from its traits, and whether it takes the bold road. */
+  strategy: Strategy;
+  bold: boolean;
+  /** Item 11a: an errand for another character (collecting a debt), if it is on one. */
+  errand: Errand | null;
+  /** Item 11a: the season it came through a door onto the map, or rose from the crowd; null for one there from the start. */
+  arrived: number | null;
+  /** Item 11a: seasons it has waited unhired at the court where it stands, seeking work. */
+  waited: number;
+  /** Item 11a, "Working for oneself": a free person seeking service; false while it works for itself. */
+  seeking: boolean;
+  /** Item 11a, "The richest characters": what it held, purse and hoard, when it died; null while it lives. */
+  diedWith: number | null;
+  /** Item 11a: the last season it decided a season of its own; null since it arrived somewhere new (or never). */
+  lastLife: number | null;
 }
 
 export function newCharacter(init: Partial<Character> = {}): Character {
@@ -306,7 +341,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     pitches: new Dict(),
     covers: [],
     formerEmployer: null,
-    backPay: new Dict(),
+    owed: new Dict(),
     skills: newSkills(),
     inclination: 0,
     belief: newSkills(),
@@ -316,6 +351,17 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     met: [],
     declared: [],
     attested: false,
+    hoard: null,
+    lendOffer: null,
+    offers: new Dict(),
+    strategy: "Steady",
+    bold: false,
+    errand: null,
+    arrived: null,
+    waited: 0,
+    seeking: true,
+    diedWith: null,
+    lastLife: null,
     ...init,
   };
 }
@@ -351,7 +397,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   pitches: dict(S),
   covers: list(() => CoverSchema),
   formerEmployer: opt(S),
-  backPay: dict(I),
+  owed: dict(I),
   skills: () => SkillsSchema,
   inclination: I,
   belief: () => SkillsSchema,
@@ -361,14 +407,27 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   met: list(S),
   declared: list(() => DeclaredSchema),
   attested: B,
+  hoard: () => HoardSchema,
+  lendOffer: () => LendOfferSchema,
+  offers: dict(I),
+  strategy: S,
+  bold: B,
+  errand: () => ErrandSchema,
+  arrived: opt(I),
+  waited: I,
+  seeking: B,
+  diedWith: opt(I),
+  lastLife: opt(I),
   isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
 });
 
 /** Where gold in a character's purse came from. */
-export const GoldSourceValues = ["Wages", "Skimmed", "Gifts", "Carried"] as const;
+export const GoldSourceValues = ["Fees", "Skimmed", "Gifts", "Carried", "Loans"] as const;
 export type GoldSource =
-  /** Its wage paid at court, and back pay paid when it came back. */
-  | "Wages"
+  /** Fees for its jobs: the advance when a job was agreed, the rest when it was done (item 11a). */
+  | "Fees"
+  /** Loans repaid to it, and gold borrowed or bought from others (item 11a): what it came by in dealing. */
+  | "Loans"
   /** Kept from gold it carried, out to a court or home. */
   | "Skimmed"
   /** A king's personal gift at an audience. */
@@ -377,19 +436,24 @@ export type GoldSource =
   | "Carried";
 
 /**
- * What a character has gained, by source. Characters spend nothing yet (no escort, storage fee or loan exists).
+ * What a character has gained, by source, and (item 11a) what it has spent.
  */
 export interface Earnings {
-  wages: number;
+  fees: number;
+  /** Item 11a: what came in by lending and dealing (repayments, loans taken, sales); what went out is in {@link Spent}. */
+  dealt: number;
+  /** Item 11a: what it spent: its living, its hoard's keep, loans it made, what it bought. */
+  spent: number;
   skimmed: number;
   gifts: number;
   carried: number;
-  // computed in C#: Wages + Skimmed + Gifts + Carried
 }
 
 export function newEarnings(init: Partial<Earnings> = {}): Earnings {
   return {
-    wages: 0,
+    fees: 0,
+    dealt: 0,
+    spent: 0,
     skimmed: 0,
     gifts: 0,
     carried: 0,
@@ -398,7 +462,9 @@ export function newEarnings(init: Partial<Earnings> = {}): Earnings {
 }
 
 export const EarningsSchema: ObjSchema<Earnings> = obj("Earnings", newEarnings, {
-  wages: I,
+  fees: I,
+  dealt: I,
+  spent: I,
   skimmed: I,
   gifts: I,
   carried: I,
@@ -407,8 +473,7 @@ export const EarningsSchema: ObjSchema<Earnings> = obj("Earnings", newEarnings, 
 /**
  * A servant abroad whose master cannot see what happened to it (caught as a spy, detained, gone over to
  * the host, put to death, let go) keeps appearing to that master as it was, until word of it comes: a
- * rumour, a report from it, the servant standing at the master's court, or the master dismissing it. In its
- * master's books its back pay builds up by the wage it believes it owes, as for any servant away.
+ * rumour, a report from it, the servant standing at the master's court, or the master dismissing it.
  */
 export interface Cover {
   /** The master who still believes it. */
@@ -432,12 +497,9 @@ export interface Cover {
    * When the master believes the servant set out and is due back, as its view read then (see {@link Views.TimingText}).
    */
   timingText: string;
-  wage: number;
-  /**
-   * The back pay the master believes it owes: the real back pay when the cover was made, grown by {@link Wage}
-   * each season since, exactly as for a servant still on its mission. No gold moves either way.
-   */
-  backPay: number;
+  /** The job's fee and advance as the master agreed them (item 11a). */
+  fee: number;
+  advance: number;
   contractUntil: number | null;
   /**
    * The notice the master believes the servant has given (the price it asks to serve on, and when it leaves), if any.
@@ -462,8 +524,8 @@ export function newCover(init: Partial<Cover> = {}): Cover {
     dutyText: "",
     whereText: "",
     timingText: "",
-    wage: 0,
-    backPay: 0,
+    fee: 0,
+    advance: 0,
     contractUntil: null,
     noticePrice: null,
     leavesTurn: null,
@@ -481,8 +543,8 @@ export const CoverSchema: ObjSchema<Cover> = obj("Cover", newCover, {
   dutyText: S,
   whereText: S,
   timingText: S,
-  wage: I,
-  backPay: I,
+  fee: I,
+  advance: I,
   contractUntil: opt(I),
   noticePrice: opt(I),
   leavesTurn: opt(I),
@@ -495,13 +557,24 @@ export function remember(c: Character, turn: number, text: string): void {
   c.memory.push(newMemoryEntry({ turn, text }));
 }
 
+/** Gold out of its purse (item 11a): its living, its hoard's keep, a loan made, a purchase. Never more than it holds. */
+export function spend(c: Character, amount: number): number {
+  const paid = Math.max(0, Math.min(amount, c.purse));
+  c.purse -= paid;
+  c.earned.spent += paid;
+  return paid;
+}
+
 /** Gold into its purse, counted by where it came from. */
 export function gain(c: Character, amount: number, source: GoldSource): void {
   if (amount <= 0) return;
   c.purse += amount;
   switch (source) {
-    case "Wages":
-      c.earned.wages += amount;
+    case "Fees":
+      c.earned.fees += amount;
+      break;
+    case "Loans":
+      c.earned.dealt += amount;
       break;
     case "Skimmed":
       c.earned.skimmed += amount;
@@ -559,12 +632,15 @@ export function hiddenAt(c: Character, court: Power): boolean {
   return c.at === court && c.status === "Employed" && c.duty === "SpyPosted" && c.employer !== court && c.secretMaster !== court;
 }
 
+/** All it has gained (not net of what it spent). */
 export function earningsTotal(e: Earnings): number {
-  return e.wages + e.skimmed + e.gifts + e.carried;
+  return e.fees + e.dealt + e.skimmed + e.gifts + e.carried;
 }
 
 export function addEarnings(e: Earnings, other: Earnings): void {
-  e.wages += other.wages;
+  e.fees += other.fees;
+  e.dealt += other.dealt;
+  e.spent += other.spent;
   e.skimmed += other.skimmed;
   e.gifts += other.gifts;
   e.carried += other.carried;

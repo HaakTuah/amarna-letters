@@ -5,7 +5,7 @@ import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
 import { type Word, WordSchema, newWord } from "./word.ts";
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy", "Travel"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
@@ -292,14 +292,14 @@ export interface SpyReport {
   /** Whom the spy secretly served when it observed (with {@link FactCount} set), if anyone. */
   secretMaster: Power | null;
   /**
-   * Its lord, wage, purse and back pay when it observed, so that a report arriving after it was dismissed or hired
+   * Its lord, fee, purse and the fees owed it when it observed, so that a report arriving after it was dismissed or hired
    * elsewhere is still written by the servant it was then (the follow-up's review of the fix pass after item 4); null in
    * a report made before these were kept, which shows them as they are when it arrives.
    */
   lord: Power | null;
-  wage: number | null;
+  fee: number | null;
   purse: number | null;
-  backPay: Dict<Power, number> | null;
+  owed: Dict<Power, number> | null;
 }
 
 export function newSpyReport(init: Partial<SpyReport> = {}): SpyReport {
@@ -315,9 +315,9 @@ export function newSpyReport(init: Partial<SpyReport> = {}): SpyReport {
     factCount: null,
     secretMaster: null,
     lord: null,
-    wage: null,
+    fee: null,
     purse: null,
-    backPay: null,
+    owed: null,
     ...init,
   };
 }
@@ -334,9 +334,9 @@ export const SpyReportSchema: ObjSchema<SpyReport> = obj("SpyReport", newSpyRepo
   factCount: opt(I),
   secretMaster: opt(S),
   lord: opt(S),
-  wage: opt(I),
+  fee: opt(I),
   purse: opt(I),
-  backPay: dict(I),
+  owed: dict(I),
 });
 
 export interface PendingAudience {

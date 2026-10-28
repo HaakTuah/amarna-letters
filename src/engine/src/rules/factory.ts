@@ -17,6 +17,7 @@ import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
 import { AttestedCast, FirstCores, NubianCast, NubiansAttested, Styles, type CastSeed, type Core } from "./cast.ts";
 import { drawSkills } from "./skills.ts";
+import { chooseStrategy } from "./strategy.ts";
 
 export function newGame(seed: number, config: GameConfig | null = null, map: WorldMap | null = null): GameState {
   const m = map ?? WorldMap.default;
@@ -131,7 +132,12 @@ export function populate(s: GameState): void {
       c.at = p;
       // Terms end between turns 7 and 13, so the starting corps does not come up for renewal all at once. Each is drawn
       // from its own stream, so that no other draw (traits, facts, posts) changes.
-      c.contract = newContract({ wage: 6 + Math.trunc(c.traits.competence / 10), startTurn: 1, untilTurn: Rng.for(s.seed, 0, "start-term", c.id).range(7, 13) });
+      // Item 11a: a job like any other, its fee for the seasons it runs at what the old wage paid, half handed over before the game.
+      const until = Rng.for(s.seed, 0, "start-term", c.id).range(7, 13);
+      const fee = (6 + Math.trunc(c.traits.competence / 10)) * (until - 1);
+      c.contract = newContract({ fee, advance: Math.trunc(fee / 2), startTurn: 1, untilTurn: until });
+      c.purse = Math.trunc(fee / 2);
+      c.earned.fees = c.purse;
       c.reputation.set(p, 10);
       if (plantSlots.has(slot)) {
         const master = rng.pick(AllPowers.filter((x) => x !== p));
@@ -155,6 +161,13 @@ export function populate(s: GameState): void {
     s.characters.push(c);
   }
   more(s, attested.slice(Math.min(7, Math.trunc(first / 2))));
+  // Item 11a: a free person's savings from the life before the game, from a stream of their own; every character's way to
+  // a fortune and road ("How the strategy is made"); and the pool's baseline ("A baseline, not a limit").
+  for (const c of s.characters) {
+    if (c.status === "Free") c.purse = Rng.for(s.seed, 0, "savings", c.id).range(10, 60);
+    chooseStrategy(c);
+  }
+  s.baseline = s.characters.length;
 }
 
 /**

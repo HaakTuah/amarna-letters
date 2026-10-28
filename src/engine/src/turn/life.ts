@@ -1,0 +1,400 @@
+/**
+ * A life of their own (build order item 11a): each season a character with something to decide decides it for itself, a
+ * script by formula and a model by its own judgement: where to go, whether to seek service or work for itself ("Working
+ * for oneself"), its hoard, what it offers to lend the king where it stands, one approach to someone in the same place
+ * and its answers to approaches made to it ("Characters deal with each other"), quitting, and an errand's gold. Free
+ * people travel on their own way between courts, to volunteer where kings are hiring ("Hiring as a negotiation").
+ */
+import { clamp } from "../core/num.ts";
+import { cmpNum, count, sortBy } from "../core/seq.ts";
+import { Dict } from "../core/collections.ts";
+import { needOf, priceAt } from "../model/economy.ts";
+import { newApproachSeen, newCourtSeen, newDebtSeen, newLifeView, newPersonHere, type LifeChoice, type LifeView } from "../model/life.ts";
+import { debtLeft, isPowerParty, MoneyData, newApproach, newErrand, type Approach, type Debt } from "../model/money.ts";
+import { newMindRequest } from "../model/exchanges.ts";
+import { gain, hiddenAt, newFact, remember, type Character } from "../model/people.ts";
+import { AllPowers, land, type Power } from "../model/power.ts";
+import { newJourney, type Journey } from "../model/records.ts";
+import { alive, findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
+import { formatMoney } from "../rules/calendar.ts";
+import { ageBand, bandWords } from "../rules/ending.ts";
+import { idNumber, TurnEngine } from "./core.ts";
+import { askingPrice } from "./court.ts";
+import { trustIn } from "./jobs.ts";
+
+declare module "./core.ts" {
+  interface TurnEngine {
+    lifeRequests(): void;
+    wantsLife(c: Character): boolean;
+    lifeView(c: Character): LifeView;
+    applyLife(c: Character, ch: LifeChoice): void;
+    deal(a: Approach): boolean;
+    deliverErrand(c: Character, deliver: boolean): void;
+    startTravel(c: Character, to: Power): void;
+    travellerArrives(j: Journey): void;
+  }
+}
+
+const P = TurnEngine.prototype;
+
+/** The ending in words, as every seat is told it ("What kings are told"; characters from item 11a). */
+export function endingWords(openAge: boolean, median: number): string {
+  return openAge
+    ? "This is an open age: it has no end. It goes on season after season until one kingdom is left or the table stops it."
+    : `${bandWords(ageBand(median))} Nobody knows which season is the last, and nothing anyone sees foretells it.`;
+}
+
+/** What a party's record of paying is, for a court or a person. */
+const recordOf = (e: TurnEngine, party: string): { kept: number; broken: number } => e.s.payRecords.tryGet(party) ?? { kept: 0, broken: 0 };
+
+/** Where a debt tablet lies, in words for its holder. */
+function keptWords(d: Debt): string {
+  switch (d.kept) {
+    case "Person":
+      return "on your person";
+    case "Hoard":
+      return "in your hoard";
+    case "Archive":
+      return d.holder !== null ? `in the archive of ${d.holder}` : "missing";
+    default:
+      return "missing";
+  }
+}
+
+/**
+ * Who decides a season of its own: anyone free and standing at a court, anyone an approach waits for, anyone on an errand
+ * at a court, and a servant at its master's court with no task every third season (staggered by person) or when its master
+ * owes it a fee. Nobody held, travelling, on a king's errand abroad or dead: they have their hands full.
+ */
+P.wantsLife = function (c) {
+  const S = this.s;
+  if (c.status === "Dead" || c.status === "Captured" || c.heldBy !== null || c.at === null || c.duty !== "None" || hiddenAt(c, c.at)) return false;
+  if (S.approaches.some((a) => a.to === c.id && a.accepted === null)) return true;
+  if (c.errand !== null) return true;
+  // Characters sleep like kings: a free person decides when it has just arrived, when it has waited long enough, and otherwise every third season (staggered by person).
+  const turn = (S.turn + idNumber(c.id)) % 3 === 0;
+  if (c.status === "Free")
+    return turn || c.lastLife === null || c.waited === MoneyData.patience;
+  if (c.status === "Employed" && c.at === c.employer) return turn || c.owed.getOrDefault(c.employer, 0) > 0;
+  return false;
+};
+
+/** Each season, after the jobs done: a request for every character with a season of its own to decide. */
+P.lifeRequests = function () {
+  const S = this.s;
+  for (const c of sortBy(
+    S.characters.filter((c) => this.wantsLife(c)),
+    [(c: Character) => idNumber(c.id), cmpNum],
+  )) {
+    this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "Life", characterId: c.id, court: c.employer ?? c.at, life: this.lifeView(c) }));
+    c.lastLife = S.turn;
+  }
+};
+
+/** What a character knows of its own situation, from where it stands. */
+P.lifeView = function (c) {
+  const S = this.s;
+  const Map = this.map;
+  const here = c.at!;
+  const executions = new Dict<Power, number>();
+  for (const e of S.events) if (e.kind === "execution") for (const p of e.visibleTo) executions.set(p, executions.getOrDefault(p, 0) + 1);
+  const grainAt = (p: Power): number => {
+    const cap = Map.capital(p);
+    return priceAt(this.market(cap.id).stock, needOf(cap));
+  };
+  const guest = c.status === "Employed" && c.at === c.employer;
+  const k = c.contract;
+  const courts = alive(S).map((p) => {
+    const r = recordOf(this, p);
+    return newCourtSeen({
+      court: p,
+      travel: p === here ? 0 : this.travelTurnsBetween(Map.capital(here).id, Map.capital(p).id),
+      hiring: S.hiring.tryGet(p) ?? null,
+      trust: trustIn(S, p),
+      kept: r.kept,
+      broken: r.broken,
+      executions: executions.getOrDefault(p, 0),
+      grain: grainAt(p),
+      growth: Math.round(this.growth(p) * 100),
+      besieged: this.capitalSiege(p) !== null,
+      ask: askingPrice(c, p, S.goingRate),
+    });
+  });
+  const debtSeen = (d: Debt, other: string): ReturnType<typeof newDebtSeen> =>
+    newDebtSeen({ id: d.id, other: this.partyName(other), otherId: other, left: debtLeft(d), dueTurn: d.dueTurn, kept: keptWords(d) });
+  const e = c.errand;
+  return newLifeView({
+    turn: S.turn,
+    at: here,
+    free: c.status === "Free",
+    employer: c.employer,
+    jobUntil: k?.untilTurn ?? null,
+    restDue: k === null ? 0 : Math.max(0, k.fee - k.advance),
+    seeking: c.seeking,
+    waited: c.waited,
+    purse: c.purse,
+    hoard: c.hoard,
+    lendOffer: c.lendOffer,
+    living: guest ? 0 : Math.ceil((MoneyData.living * grainAt(here)) / 100),
+    goingRate: S.goingRate,
+    courts,
+    held: S.debts.filter((d) => d.ended === null && d.holder === c.id).map((d) => debtSeen(d, d.borrower)),
+    owes: S.debts.filter((d) => d.ended === null && d.borrower === c.id).map((d) => debtSeen(d, d.holder ?? d.lender)),
+    owedFees: AllPowers.filter((p) => c.owed.getOrDefault(p, 0) > 0).map((p) => ({ court: p, amount: c.owed.get(p) })),
+    here: sortBy(
+      S.characters.filter((x) => x !== c && x.at === here && x.status !== "Dead" && x.heldBy === null && !hiddenAt(x, here)),
+      [(x: Character) => idNumber(x.id), cmpNum],
+    ).map((x) => {
+      const r = recordOf(this, x.id);
+      return newPersonHere({ id: x.id, name: x.name, standing: x.status === "Free" ? "free" : x.employer !== null ? `serving ${x.employer}` : x.status.toLowerCase(), kept: r.kept, broken: r.broken });
+    }),
+    approaches: S.approaches
+      .filter((a) => a.to === c.id && a.accepted === null)
+      .map((a) =>
+        newApproachSeen({ id: a.id, from: a.from, fromName: findCharacter(S, a.from)?.name ?? a.from, words: a.words, giveGold: a.giveGold, askGold: a.askGold, giveDebts: [...a.giveDebts], askDebts: [...a.askDebts], repay: a.repay, seasons: a.seasons, collect: a.collect, fee: a.fee }),
+      ),
+    errand:
+      e === null
+        ? null
+        : { employer: e.employer, employerName: findCharacter(S, e.employer)?.name ?? e.employer, debtId: e.debtId, borrower: S.debts.find((d) => d.id === e.debtId)?.borrower ?? "", collected: e.collected, home: e.home, since: e.since },
+    offers: AllPowers.filter((p) => c.offers.has(p)).map((p) => ({ court: p, rate: c.offers.get(p) })),
+    ending: endingWords(S.config.openAge, S.config.endMedian),
+  });
+};
+
+/** Its choices, applied at once, in the order the requests were made. */
+P.applyLife = function (c, ch) {
+  const S = this.s;
+  if (c.at === null || c.status === "Dead" || c.heldBy !== null) return;
+  // Answers first: an approach it accepts is dealt now, if both are still here and have what was offered.
+  for (const a of sortBy(
+    S.approaches.filter((a) => a.to === c.id && a.accepted === null && a.turn < S.turn),
+    [(a: Approach) => idNumber(a.id), cmpNum],
+  )) {
+    if (ch.accept.includes(a.id) && this.deal(a)) continue;
+    a.accepted = false;
+    const from = findCharacter(S, a.from);
+    if (from !== null) remember(from, S.turn, `${c.name} ${ch.accept.includes(a.id) ? "agreed to my offer, but it could not be done" : "refused my offer"}.`);
+  }
+  // A servant quits: its job broken, which is recorded, and its master hears of it.
+  if (ch.quit && c.status === "Employed" && c.at === c.employer && c.duty === "None") {
+    const emp = c.employer!;
+    c.facts.push(newFact({ id: newId(S, "f"), text: `Left the service of ${land(emp)} before the job was done.`, secrecy: "Public", tag: "quit" }));
+    c.reputation.set(emp, c.reputation.getOrDefault(emp, 0) - 20);
+    this.recordPay(c.id, false);
+    remember(c, S.turn, `I left the service of ${land(emp)}${c.owed.getOrDefault(emp, 0) > 0 ? ", which owes me a fee it did not pay" : ""}.`);
+    this.quit(c, `${c.name} has left your service before the job was done${c.owed.getOrDefault(emp, 0) > 0 ? ", owed a fee you did not pay" : ""}.`);
+    c.formerEmployer = emp;
+    c.at = emp;
+    logEvent(S, "quit", `${c.name} quit the service of ${emp}.`, [emp], "quit");
+  }
+  // Debts it repays, to holders standing in the same place.
+  for (const id of ch.repay) {
+    const d = S.debts.find((x) => x.id === id && x.ended === null && x.borrower === c.id) ?? null;
+    const h = d?.holder != null && !isPowerParty(d.holder) ? findCharacter(S, d.holder) : null;
+    if (d === null || h === null || h.at !== c.at || h.status === "Dead" || h.heldBy !== null || c.purse < debtLeft(d)) continue;
+    const left = debtLeft(d);
+    c.purse -= left;
+    c.earned.spent += left;
+    this.payDebt(d, c.id, left);
+    remember(c, S.turn, `I repaid ${h.name} the ${formatMoney(left)} I owed.`);
+    remember(h, S.turn, `${c.name} repaid me ${formatMoney(left)}.`);
+    logEvent(S, "character-repaid", `${c.name} repaid ${h.name}.`, [], "character-repaid");
+  }
+  if (c.errand !== null && c.errand.home === c.at && (c.errand.collected > 0 || S.debts.find((d) => d.id === c.errand!.debtId)?.ended !== null || S.turn - c.errand.since >= 2)) this.deliverErrand(c, ch.deliver);
+  // Its hoard, kept with a temple or merchant house in the city where it stands: one city only.
+  if (ch.hoard > 0 && c.purse > 0 && (c.hoard === null || c.hoard.at === c.at)) {
+    const amount = Math.min(ch.hoard, c.purse);
+    c.purse -= amount;
+    c.hoard = { at: c.at, gold: (c.hoard?.gold ?? 0) + amount };
+    // The tablets it holds go into the hoard with the gold, all but one it carries on an errand.
+    for (const d of S.debts.filter((d) => d.ended === null && d.holder === c.id && d.kept === "Person" && d.id !== c.errand?.debtId)) d.kept = "Hoard";
+    logEvent(S, "hoard", `${c.name} put ${amount} into a hoard at ${c.at}.`, [], "hoard");
+  } else if (ch.hoard < 0 && c.hoard !== null && c.hoard.at === c.at) {
+    const amount = Math.min(-ch.hoard, c.hoard.gold);
+    c.hoard.gold -= amount;
+    c.purse += amount;
+    if (c.hoard.gold <= 0) {
+      c.hoard = null;
+      for (const d of S.debts.filter((d) => d.ended === null && d.holder === c.id && d.kept === "Hoard")) d.kept = "Person";
+    }
+  }
+  // What it offers to lend the king where it stands, from what it carries.
+  const l = ch.lend;
+  c.lendOffer = l !== null && l.amount > 0 && c.purse > 0 ? { amount: Math.min(l.amount, c.purse), perHundred: clamp(l.perHundred, 0, 200), seasons: clamp(l.seasons, 1, 30) } : null;
+  if (c.status === "Free") {
+    c.seeking = ch.seek;
+    c.waited = c.seeking ? c.waited + 1 : 0;
+  }
+  // One approach a season, to someone in the same place.
+  const m = ch.approach;
+  if (m !== null) {
+    const to = findCharacter(S, m.to);
+    if (to !== null && to !== c && to.at === c.at && to.status !== "Dead" && to.heldBy === null && !hiddenAt(to, c.at)) {
+      const a = newApproach({
+        id: newId(S, "h"),
+        from: c.id,
+        to: to.id,
+        turn: S.turn,
+        words: m.words.slice(0, 600),
+        giveGold: Math.max(0, m.giveGold),
+        askGold: Math.max(0, m.askGold),
+        giveDebts: [...m.giveDebts],
+        askDebts: [...m.askDebts],
+        repay: Math.max(0, m.repay),
+        seasons: clamp(m.seasons, 0, 30),
+        collect: m.collect,
+        fee: Math.max(0, m.fee),
+      });
+      S.approaches.push(a);
+      remember(c, S.turn, `I approached ${to.name}${a.words !== "" ? `: "${a.words.slice(0, 160)}"` : ""}.`);
+      // Meetings can be seen: others in the same place may notice, and what they saw is something they know.
+      const rng = this.r("meeting-seen", a.id);
+      for (const w of sortBy(
+        S.characters.filter((x) => x !== c && x !== to && x.at === c.at && x.status !== "Dead" && x.heldBy === null),
+        [(x: Character) => idNumber(x.id), cmpNum],
+      ))
+        if (rng.chance(0.2)) remember(w, S.turn, `I saw ${c.name} and ${to.name} meet at the court of ${c.at}.`);
+    }
+  }
+  // Setting out: a free person on its own way, or one on an errand to the borrower's court or home.
+  if (ch.go !== null && ch.go !== c.at && isAlive(S, ch.go) && (c.status === "Free" || c.errand !== null) && c.duty === "None") this.startTravel(c, ch.go);
+};
+
+/**
+ * An approach accepted: both sides change hands together, if both are still in the same place and have what was offered.
+ * A loan seals a debt tablet for the receiver of the gold; a job hands the collector the tablet and the advance.
+ */
+P.deal = function (a) {
+  const S = this.s;
+  const A = findCharacter(S, a.from);
+  const B = findCharacter(S, a.to);
+  if (A === null || B === null || A.at === null || A.at !== B.at || A.status === "Dead" || B.status === "Dead" || A.heldBy !== null || B.heldBy !== null) return false;
+  const holds = (x: Character, ids: string[]): boolean => ids.every((id) => S.debts.some((d) => d.id === id && d.ended === null && d.holder === x.id));
+  if (A.purse < a.giveGold || B.purse < a.askGold || !holds(A, a.giveDebts) || !holds(B, a.askDebts)) return false;
+  if (a.collect !== null) {
+    const d = S.debts.find((x) => x.id === a.collect && x.ended === null && x.holder === A.id) ?? null;
+    if (d === null || B.status !== "Free" || B.errand !== null || !isPowerParty(d.borrower) || !isAlive(S, d.borrower)) return false;
+    A.purse -= a.giveGold;
+    A.earned.spent += a.giveGold;
+    gain(B, a.giveGold, "Fees");
+    this.passTablet(d, B.id, "Person");
+    B.errand = newErrand({ employer: A.id, debtId: d.id, fee: Math.max(a.fee, a.giveGold), advance: a.giveGold, home: A.at, since: S.turn });
+    B.seeking = false;
+    remember(B, S.turn, `${A.name} hired me to collect the debt of ${this.partyName(d.borrower)} (${formatMoney(debtLeft(d))}), for ${formatMoney(B.errand.fee)}, ${formatMoney(a.giveGold)} of it now; I carry the tablet.`);
+    remember(A, S.turn, `I hired ${B.name} to collect the debt of ${this.partyName(d.borrower)}; they carry the tablet.`);
+    logEvent(S, "collector-hired", `${A.name} hired ${B.name} to collect a debt.`, [], "collector-hired");
+    a.accepted = true;
+    if (B.at !== d.borrower) this.startTravel(B, d.borrower);
+    return true;
+  }
+  // Gold both ways, and tablets both ways.
+  const move = (from: Character, to: Character, gold: number, lent: boolean): void => {
+    if (gold <= 0) return;
+    from.purse -= gold;
+    if (!lent) from.earned.spent += gold;
+    gain(to, gold, "Loans");
+  };
+  move(A, B, a.giveGold, a.repay > 0 && a.giveGold > 0);
+  move(B, A, a.askGold, a.repay > 0 && a.askGold > 0);
+  for (const id of a.giveDebts) this.passTablet(S.debts.find((d) => d.id === id)!, B.id, "Person");
+  for (const id of a.askDebts) this.passTablet(S.debts.find((d) => d.id === id)!, A.id, "Person");
+  if (a.repay > 0) {
+    if (a.giveGold > 0) this.sealDebt(A.id, B.id, a.giveGold, a.repay, Math.max(1, a.seasons));
+    else if (a.askGold > 0) this.sealDebt(B.id, A.id, a.askGold, a.repay, Math.max(1, a.seasons));
+  }
+  const what = a.repay > 0 ? "a loan" : a.giveDebts.length + a.askDebts.length > 0 ? "a sale of tablets" : "an exchange";
+  remember(A, S.turn, `${B.name} accepted my offer: ${what}.`);
+  remember(B, S.turn, `I accepted ${A.name}'s offer: ${what}.`);
+  logEvent(S, a.repay > 0 ? "character-loan" : "character-deal", `${A.name} and ${B.name} dealt: ${what}.`, [], a.repay > 0 ? "character-loan" : "character-deal");
+  a.accepted = true;
+  return true;
+};
+
+/**
+ * A collector back with its employer: it hands over what it collected and the tablet if the debt still stands, and its
+ * employer pays the rest of the fee if it can; or it keeps the gold, a job broken, which is recorded. If its employer is
+ * gone, the errand ends and it keeps what it carries.
+ */
+P.deliverErrand = function (c, deliver) {
+  const S = this.s;
+  const e = c.errand!;
+  const emp = findCharacter(S, e.employer);
+  const d = S.debts.find((x) => x.id === e.debtId) ?? null;
+  c.errand = null;
+  if (emp === null || emp.status === "Dead" || emp.at !== c.at || emp.heldBy !== null) {
+    remember(c, S.turn, `My employer was not there to take what I collected; I keep it.`);
+    return;
+  }
+  if (!deliver) {
+    this.recordPay(c.id, false);
+    c.facts.push(newFact({ id: newId(S, "f"), text: `Kept the gold collected for ${emp.name}.`, secrecy: "Public", tag: "kept-collection" }));
+    remember(emp, S.turn, `${c.name} came back and kept what they collected for me, ${formatMoney(e.collected)}.`);
+    remember(c, S.turn, `I kept what I collected for ${emp.name}.`);
+    logEvent(S, "collector-kept", `${c.name} kept what they collected for ${emp.name}.`, [], "collector-kept");
+    return;
+  }
+  const handed = Math.min(c.purse, e.collected);
+  c.purse -= handed;
+  gain(emp, handed, "Loans");
+  if (d !== null && d.ended === null && d.holder === c.id) this.passTablet(d, emp.id, "Person");
+  const rest = Math.max(0, e.fee - e.advance);
+  const paid = Math.min(rest, emp.purse);
+  emp.purse -= paid;
+  emp.earned.spent += paid;
+  gain(c, paid, "Fees");
+  this.recordPay(emp.id, paid >= rest);
+  this.recordPay(c.id, true);
+  remember(c, S.turn, `I handed ${emp.name} the ${formatMoney(handed)} I collected${paid >= rest ? `, and was paid the rest of my fee, ${formatMoney(paid)}` : `; they paid me only ${formatMoney(paid)} of the ${formatMoney(rest)} they owed`}.`);
+  remember(emp, S.turn, `${c.name} handed me the ${formatMoney(handed)} they collected.`);
+  logEvent(S, "collected", `${c.name} delivered ${handed} collected for ${emp.name}.`, [], "collected");
+};
+
+/** A free person (or a collector) sets out on its own way to a court. */
+P.startTravel = function (c, to) {
+  const S = this.s;
+  const from = c.at;
+  if (from === null) return;
+  const fromProv = this.map.capital(from).id;
+  const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from, to, characterId: c.id, seen: [fromProv], reached: [S.turn] });
+  j.arriveTurn = S.turn + Math.max(1, this.travelTurnsBetween(fromProv, this.map.capital(to).id));
+  S.journeys.push(j);
+  c.at = null;
+  c.duty = "Travelling";
+  c.waited = 0;
+  c.lendOffer = null;
+  remember(c, S.turn, `I set out for the court of ${to}.`);
+};
+
+/** Where a traveller on its own way is, for its living: where it set out from. */
+P.travellerAt = function (c) {
+  const j = this.s.journeys.find((x) => x.kind === "Travel" && x.characterId === c.id) ?? null;
+  return j?.seen[0] ?? null;
+};
+
+/**
+ * A traveller arrives: it stands at the court, free (or on its errand). One whose court fell on the way goes on to whoever
+ * took its capital. A collector at the borrower's court presents the tablet: the king learns who holds his debt.
+ */
+P.travellerArrives = function (j) {
+  const S = this.s;
+  const c = findCharacter(S, j.characterId);
+  if (c === null || c.status === "Dead" || c.duty !== "Travelling") return;
+  let to = j.to;
+  if (!isAlive(S, to)) to = S.falls.find((f) => f.power === to)?.conqueror ?? alive(S)[0];
+  if (to === undefined || !isAlive(S, to)) return;
+  c.at = to;
+  c.duty = "None";
+  c.lastLife = null;
+  this.meet(c, to);
+  remember(c, S.turn, `I arrived at the court of ${to}.`);
+  const e = c.errand;
+  if (e !== null) {
+    const d = S.debts.find((x) => x.id === e.debtId) ?? null;
+    if (d !== null && d.ended === null && d.borrower === to && d.holder === c.id)
+      notify(S, to, "Notice", "A debt presented", `${c.name} stands at your court with the tablet of your debt ${d.id}: ${formatMoney(debtLeft(d))} is left to repay to whoever holds it (order repay). Whoever holds the tablet holds the claim.`, c.id);
+  }
+};
+
+/** How many characters are alive, which the pool keeps near its baseline. */
+export const living = (e: TurnEngine): number => count(e.s.characters, (c) => c.status !== "Dead");

@@ -456,7 +456,7 @@ export function richestReport(games: readonly GameSummary[]): string[] {
   return [
     "The richest characters (the second game, played under the kings'):",
     `  The richest held ${fmt(mean(top), "0")} shekels at the end on average (range ${min(top, (x) => x)}-${max(top, (x) => x)}).`,
-    `  All the gold characters gained, ${total} shekels: wages ${share(gained.wages)}, skimmed ${share(gained.skimmed)}, gifts ${share(gained.gifts)}, gold kept on dismissal ${share(gained.carried)}.`,
+    `  All the gold characters gained, ${total} shekels: fees ${share(gained.fees)}, lending and dealing ${share(gained.dealt)}, skimmed ${share(gained.skimmed)}, gifts ${share(gained.gifts)}, gold kept on dismissal ${share(gained.carried)}; they spent ${gained.spent}.`,
     "  " + Wealth.WhatCounts,
   ];
 }

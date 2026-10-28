@@ -53,6 +53,7 @@ import {
   type SeatView,
   type TurnSubmission,
   type UnitView,
+  feeFor,
 } from "@amarna/engine";
 import { plainGrainOrders } from "./grain.ts";
 import { canLevy } from "./land.ts";
@@ -335,7 +336,7 @@ function stepToward(u: UnitView, v: SeatView, me: Power, peace: HSet<Power>, m: 
 function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations: HSet<string>): void {
   const me = v.power;
   let gold = v.gold;
-  const reserve = v.upkeep + v.wages + 80;
+  const reserve = v.upkeep + v.fees + 80;
   let provinces = 0;
   for (const [, o] of v.owner) if (o === me) provinces++;
   const units = count(v.units, (u) => u.power === me);
@@ -350,7 +351,7 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
   );
   let raised = 0;
   // Grain, the plain way (item 9+a): sell it all each season; its sales and the mines are the season's income.
-  let surplus = plainGrainOrders(v, orders) + sum(v.provinces, (x) => economyOf(Map_.get(x.province)).mine) - v.upkeep - v.wages;
+  let surplus = plainGrainOrders(v, orders) + sum(v.provinces, (x) => economyOf(Map_.get(x.province)).mine) - v.upkeep - v.fees;
   for (const spot of spots) {
     // Small kingdoms keep their gold for buying cities rather than for troops they cannot feed.
     if (units + raised >= provinces + (weak ? 0 : 1)) break;
@@ -399,7 +400,7 @@ function diplomacy(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
     return false;
   };
   const neighbors = alive.filter((p) => borders(p, (n) => mineProv.has(n)));
-  const reserve = v.upkeep + v.wages + 120;
+  const reserve = v.upkeep + v.fees + 120;
   let sent = 0;
   let spent = 0;
 
@@ -546,7 +547,8 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
 
   const candidates = sortBy(
     v.known
-      .filter((c) => c.pitch !== null && c.askingPrice !== null && c.status === "free")
+      // Item 11a: hired in person, so only those standing at court.
+      .filter((c) => c.pitch !== null && c.askingPrice !== null && c.status === "free" && c.where === "at your court")
       .filter((c) => !c.knownFacts.some((f) => f.startsWith("Abandoned the service") || f.startsWith("Exposed as a forger"))),
     [(c) => c.askingPrice!, cmpNum],
     [(c) => c.id, cmpStr],
@@ -557,7 +559,7 @@ function court(v: SeatView, m: Memory, rng: Rng, orders: Order[]): void {
       orders.push(check(best.id, 20));
       m.checked.add(best.id);
       gold -= 20;
-    } else if (best.askingPrice! <= 40 && gold > best.askingPrice! * 4) orders.push(hire(best.id, best.askingPrice!, 6));
+    } else if (best.askingPrice! <= 40 && gold > best.askingPrice! * 4) orders.push(hire(best.id, feeFor(best.askingPrice!, 6, 50, v.trust), 6));
   }
 
   for (const lot of v.unassayedGold)

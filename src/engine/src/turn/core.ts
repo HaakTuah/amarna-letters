@@ -13,7 +13,7 @@
  * which loads them all.
  */
 import { Dict, HSet } from "../core/collections.ts";
-import { clamp, idiv, roundEven, toInt } from "../core/num.ts";
+import { idiv, roundEven, toInt } from "../core/num.ts";
 import { Rng } from "../core/rng.ts";
 import { cmpNum, count, desc, distinct, groupBy, sortBy, sum } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
@@ -23,12 +23,11 @@ import { terrainOf } from "../model/geography.ts";
 import { StartWalls, WorldMap } from "../model/map.ts";
 import { EconomyData, harvestOf, taxOf } from "../model/economy.ts";
 import type { Order } from "../model/orders.ts";
-import { coverOf, gain, hiddenAt, remember, type Character } from "../model/people.ts";
-import { land, type Power } from "../model/power.ts";
+import { coverOf, remember, type Character } from "../model/people.ts";
+import type { Power } from "../model/power.ts";
 import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import type { AdjudicationResult } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { Views } from "../rules/views.ts";
 import type { SeatView } from "../model/views.ts";
 import type { PlannedOrder } from "../model/sleep.ts";
 import { wordSeasons } from "../model/travel.ts";
@@ -96,8 +95,15 @@ export class TurnEngine {
     const stood = new Dict<string, Power | null>(S.characters.map((c) => [c.id, c.at] as const));
     this.travel();
     this.arrivals();
-    this.payBackPay(stood);
     this.tasksDue();
+    this.jobsDone(stood);
+    // Item 11a: the characters' money and their own seasons.
+    S.approaches = S.approaches.filter((a) => a.accepted === null && a.turn >= S.turn - 2);
+    this.debtsSeason();
+    this.goldAndTabletsTaken();
+    this.livingSeason();
+    this.newcomers();
+    this.lifeRequests();
     this.memoriesDue();
   }
 
@@ -155,49 +161,16 @@ export class TurnEngine {
       t.gold -= walls;
       for (const x of ownedBy(S, p)) this.spendAt(x, Math.max(0, wallsOf(S, x) - (StartWalls.get(x) ?? 0)) * S.config.wallUpkeep);
 
-      let wages = 0;
-      let owed = 0;
-      const unpaid: string[] = [];
-      // Only people at court are paid their wage. The wages of those away (on a mission, posted as a spy, detained or
-      // captive) build up as back pay, paid when they are back, and no gold leaves for them, so the treasury betrays
-      // nothing of what befell anyone away. A servant abroad whose fate the court has not heard of is owed it as the
-      // court believes it (its cover), and its real back pay builds up too if it still truly serves.
-      for (const c of sortBy(S.characters, [(c: Character) => c.id, cmpStr])) {
-        const cover = coverOf(c, p);
-        if (cover !== null) {
-          cover.backPay += cover.wage;
-          owed += cover.wage;
-        }
-        const k = c.contract;
-        if (c.employer !== p || !(c.status === "Employed" || c.status === "Captured") || k === null || !(k.wage > 0)) continue;
-        if (c.status === "Captured" || c.at !== p || c.duty !== "None") {
-          c.backPay.set(p, c.backPay.getOrDefault(p, 0) + k.wage);
-          if (cover === null) owed += k.wage;
-          continue;
-        }
-        if (t.gold >= k.wage) {
-          t.gold -= k.wage;
-          gain(c, k.wage, "Wages");
-          c.unpaidTurns = 0;
-          wages += k.wage;
-          continue;
-        }
-        this.missedPay(c, p, `My wage from ${land(p)} was not paid this season.`);
-        unpaid.push(c.name);
-      }
-
       // Written before the season's audiences and envoys' returns: their gold comes after this figure.
       const lines = notes.getOrDefault(p, []);
       lines.push(
-        `Gold in since your last orders: ${formatMoney(t.income)}, from your mines and your sales at your markets. Paid: your troops ${formatMoney(troops.paid)}${walls > 0 ? `, walls ${formatMoney(walls)}` : ""}, wages ${formatMoney(wages)} (to your people at court).` +
-          (owed > 0 ? ` The wages of your people away, ${formatMoney(owed)}, were added to their back pay, which is paid when they are back at your court.` : "") +
+        `Gold in since your last orders: ${formatMoney(t.income)}, from your mines and your sales at your markets. Paid: your troops ${formatMoney(troops.paid)}${walls > 0 ? `, walls ${formatMoney(walls)}` : ""}.` +
           ` The treasury now holds ${formatMoney(ledger(t))}; gold received at audiences or brought home by your envoys this season is added later.`,
       );
       if (troops.unpaid.length > 0)
         lines.push(`Not paid this season: ${troops.unpaid.join(", ")}. Missing pay acts slowly: a unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
       if (crumbled.length > 0)
         lines.push(`Unkept, walls fell a level: ${groupBy(crumbled, (x) => x).map(([k, g]) => (g.length === 1 ? k : `${k} (${g.length} levels)`)).join(", ")}.`);
-      if (unpaid.length > 0) lines.push(`Could not pay: ${unpaid.join(", ")}.`);
       notes.set(p, lines);
       if (troops.unpaid.length > 0) logEvent(S, "unpaid", `${p} could not pay its troops: ${troops.unpaid.join(", ")}.`, [p], "unpaid");
     }
@@ -212,55 +185,14 @@ export class TurnEngine {
   }
 
   /**
-   * A servant not paid in full (its wage at court, or its back pay once it is back): it loses loyalty, remembers it and
-   * counts another unpaid season, once a season; if its loyalty falls low while it is at court with no task, it leaves.
+   * A servant whose fee its master let fall due unpaid, withheld or could not pay (item 11a): it loses loyalty, remembers
+   * it and counts another broken promise, once a season.
    */
   missedPay(c: Character, p: Power, memory: string): void {
     if (!this._missedPayNow.add(c.id)) return;
     c.unpaidTurns++;
     c.traits.loyalty = Math.max(0, c.traits.loyalty - 15);
     remember(c, this.s.turn, memory);
-    if (c.traits.loyalty < 20 && c.duty === "None") this.quit(c, `${c.name} has left your service, unpaid.`);
-  }
-
-  /**
-   * Back pay, once the season's travellers have arrived: everyone standing at a court that owes it back pay, and not
-   * held there, is paid from that court's true treasury, as much as it holds, whether or not it still serves that
-   * court. What the treasury cannot pay stays owed, and for one of the court's own servants counts as missed pay.
-   * `stood`: where each character stood before the arrivals: one now at a court it was not at is back.
-   */
-  payBackPay(stood: Dict<string, Power | null>): void {
-    const S = this.s;
-    for (const c of sortBy(S.characters, [(c: Character) => c.id, cmpStr])) {
-      // A foreign spy posted at the court in secret does not stand there in the open, so it is not paid there.
-      const court = c.at;
-      if (court === null || c.heldBy === court || c.status === "Dead" || !isAlive(S, court) || hiddenAt(c, court)) continue;
-      const owed = c.backPay.getOrDefault(court, 0);
-      if (owed <= 0) continue;
-      const t = S.treasuries.get(court);
-      // As for any payment, a shortfall shows the treasurers that the ledger counted debased gold.
-      if (t.gold < owed) this.exposeDebasement(court, `${c.name}'s back pay`);
-      const paid = clamp(t.gold, 0, owed);
-      t.gold -= paid;
-      gain(c, paid, "Wages");
-      if (paid === owed) c.backPay.delete(court);
-      else c.backPay.set(court, owed - paid);
-      const who = stood.getOrDefault(c.id, null) !== court ? `${c.name} is back at your court and` : c.name;
-      if (paid > 0) remember(c, S.turn, `The king of ${land(court)} paid me ${formatMoney(paid)} of the wages he owed me.`);
-      if (paid === owed) {
-        notify(S, court, "Notice", BackPayTitle, `${who} was paid ${formatMoney(paid)} of back pay.`, c.id);
-        continue;
-      }
-      notify(
-        S,
-        court,
-        "Notice",
-        BackPayTitle,
-        `${who} is owed ${formatMoney(owed)} of back pay, but the treasury could pay only ${formatMoney(paid)}: the other ${formatMoney(owed - paid)} stays owed, and counts as missed pay.`,
-        c.id,
-      );
-      if (c.employer === court && c.status === "Employed") this.missedPay(c, court, `The king of ${land(court)} could not pay all the wages he owes me.`);
-    }
   }
 
   /**
@@ -284,25 +216,24 @@ export class TurnEngine {
     );
   }
 
-  /**
-   * The wages a court owes its people each season, as it reckons them (a covered servant's as it believes it): paid to
-   * those at court, built up as back pay for those away.
-   */
-  wages(p: Power): number {
-    return sum(this.s.characters, (c) => this.wageOf(c, p));
+  /** Item 11a: the rest of its servants' fees a court will owe when their jobs are done, as it reckons them (a covered servant's as it believes it). */
+  feesDue(p: Power): number {
+    return sum(this.s.characters, (c) => this.restOf(c, p));
   }
 
-  /** The back pay a court really owes, to anyone, servant or not: what its score counts. */
-  backPayOwed(p: Power): number {
-    return sum(this.s.characters, (c) => c.backPay.getOrDefault(p, 0));
+  /** What a court's servants' jobs cost it a season, each fee over its term, as it reckons them (item 11a). */
+  feeRates(p: Power): number {
+    return sum(this.s.characters, (c) => {
+      const k = coverOf(c, p);
+      if (k !== null) return idiv(k.fee, 6);
+      const j = c.contract;
+      return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null ? idiv(j.fee, Math.max(1, j.untilTurn - j.startTurn)) : 0;
+    });
   }
 
-  /**
-   * The back pay a court believes it owes: to its people (a covered servant's as it believes it), and to anyone standing
-   * at its court. What its seat sees, and what its strength by its ledger counts.
-   */
-  believedBackPay(p: Power): number {
-    return sum(this.s.characters, (c) => Views.backPayOwed(c, p) ?? 0);
+  /** The fees a court let fall due unpaid, to anyone (item 11a): facts, counted in no score. */
+  feesOwed(p: Power): number {
+    return sum(this.s.characters, (c) => c.owed.getOrDefault(p, 0));
   }
 
   /**
@@ -442,6 +373,9 @@ export class TurnEngine {
           break;
         case "CaptiveConvoy":
           this.captiveArrives(j);
+          break;
+        case "Travel":
+          this.travellerArrives(j);
           break;
         case "Rumor": {
           if (!isAlive(S, j.to)) break;

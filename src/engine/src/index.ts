@@ -23,3 +23,4 @@ export * from "./rules/views.ts";
 export * from "./core/sha256.ts";
 export * from "./rules/skills.ts";
 export * from "./rules/cast.ts";
+export * from "./rules/strategy.ts";
