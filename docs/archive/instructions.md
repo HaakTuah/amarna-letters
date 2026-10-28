@@ -188,3 +188,11 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     A standing instruction in `CLAUDE.md` ("pipeline, don't wait"), for this game and Barkstreet Snakes alike.
 
+23. **15:48**, in the design chat, after Claude proposed a second builder for independent work (Wildcard's hair in
+    Barkstreet Snakes, while an AI task ran) and asked for a yes, since it overrides the limit of two agents:
+
+    > Yes, allow for as many lanes as can be parallelized, expert.
+
+    A standing instruction in `CLAUDE.md` ("as many lanes as can run in parallel"), for this game and Barkstreet
+    Snakes alike.
+
