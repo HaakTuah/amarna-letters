@@ -304,7 +304,9 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     const ally = mr !== undefined && mr.allied && mr.oathsBroken === 0;
     // First, what it knows (item 10, "What servants know"): a captive still worth something is questioned once, if the
     // treasury can spare it.
-    if (people && !worthless && !ally && !brain.questioned.has(c.id) && spare > 80) {
+    // Gold spent is score lost: worth it only against a king the court is at odds with, whose secrets matter to it.
+    const atOdds = mr !== undefined && (mr.hostile || c.employer === brain.warTarget);
+    if (people && atOdds && !worthless && !ally && !brain.questioned.has(c.id) && spare > 150) {
       const spend = Math.trunc(30 + 40 * p.cunning);
       orders.push(question(c.id, spend));
       brain.questioned.add(c.id);
@@ -369,7 +371,8 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     for (const [id, [post]] of sortBy([...brain.posted], [(x: [string, [string, number]]) => x[0], cmpStr])) {
       const watched = parsePower(post);
       if (busy.has(id) || brain.recalled.has(id) || watched === null || v.fallen.includes(watched)) continue;
-      if (watched !== brain.warTarget && watched !== leader) continue;
+      // Only at the court of the war: a spy caught there is a spy lost where it matters most, so it steals only there.
+      if (watched !== brain.warTarget) continue;
       if (v.turn - brain.lastSteal.getOrDefault(id, -99) < 4 || !rng.chance(0.4 * p.cunning)) continue;
       orders.push(steal(id));
       busy.add(id);
