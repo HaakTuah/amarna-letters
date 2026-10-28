@@ -27,7 +27,7 @@ declare module "./core.ts" {
     harvestNow(province: string, weather?: boolean): number;
     climatePercent(province: string): number;
     peopleSeason(food: Dict<string, number>): Dict<Power, string[]>;
-    levyMen(province: string, kind: UnitKind): boolean;
+    levyMen(province: string, n: number): boolean;
     menHome(u: Unit, settle: boolean): string;
     unitDestroyed(u: Unit): void;
     killSettled(province: string, permille: number, loosePermille?: number): number;
@@ -85,6 +85,8 @@ P.peopleSeason = function (food) {
   };
   const owner = (id: string): Power | null => S.owner.getOrDefault(id, null);
 
+  // Deportees on the road may be freed by a king whose troops stand on their way (item 11a+).
+  for (const [p, l] of this.deporteesOnRoad().entries()) for (const line of l) say(p, line);
   // Discharged men arrive home; people a king sent on the road (item 10+b) become the settled where they arrive.
   for (const w of S.walking.filter((w) => w.arrives <= S.turn)) {
     shift(this.peopleOf(w.home), w.men, w.deported ? idiv(w.men * LandData.menPercent, 100) : w.men);
@@ -264,10 +266,9 @@ export function people(n: number): string {
   return n >= 10_000 ? `${Math.round(n / 1000)} thousand` : n >= 1000 ? `${(n / 1000).toFixed(1)} thousand` : `${n}`;
 }
 
-/** A levy takes its men from the men of fighting age of the province: false, taking none, if it has too few. */
-P.levyMen = function (province, kind) {
+/** A levy takes its `n` men from the men of fighting age of the province: false, taking none, if it has too few. */
+P.levyMen = function (province, n) {
   const x = this.peopleOf(province);
-  const n = menOf(kind);
   if (menAvailable(this.s, province) < n) return false;
   shift(x, -n, -n);
   return true;
@@ -287,7 +288,7 @@ P.menHome = function (u, settle) {
   if (u.home === "") return "";
   const where = this.map.get(u.province);
   if (where.isSea) {
-    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings, deported: false, by: "" });
+    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings, deported: false, by: "", route: [], departs: S.turn, from: "" });
     return "its crews sail home with their savings";
   }
   if (settle) {
@@ -308,7 +309,7 @@ P.menHome = function (u, settle) {
   const kept = men <= 0 ? savings : savings - idiv(savings * lost, men);
   this.peopleOf(u.province).loose += lost;
   const seasons = Math.max(1, Math.ceil((Number.isFinite(days) ? days : S.config.travelDays) / Math.max(1, S.config.travelDays)));
-  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept, deported: false, by: "" });
+  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept, deported: false, by: "", route: [], departs: S.turn, from: "" });
   return `its men walk home to ${this.map.get(u.home).name} with their savings, ${seasons === 1 ? "next season" : `in ${seasons} seasons`}` + (lost > 0 ? `; ${people(lost)} of them never set out and stay as loose men in ${where.name}` : "");
 };
 

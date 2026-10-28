@@ -7,7 +7,7 @@
  * and `--border-play-half` leave all of it alone, only to measure what playing it is worth. Every number below is a first
  * guess of the script's own.
  */
-import { LandData, WorldMap, clause, cmpStr, deport, expel, returnRunaways, sortBy, welcome, type Clause, type Order, type Power, type SeatView } from "@amarna/engine";
+import { LandData, WorldMap, cheapestRoute, clause, legPoints, seasonOfTurn, cmpStr, deport, expel, returnRunaways, sortBy, welcome, type Clause, type Order, type Power, type SeatView } from "@amarna/engine";
 import type { Board } from "./board.ts";
 
 /** Script kings that leave item 10+b's choices alone (`--no-border-play`, `--border-play-half`). None by default. */
@@ -79,8 +79,14 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
   );
   const filled = new Map<string, number>();
   for (const x of taken) {
+    // Not by a road where troops that would free them stand (item 11a+): the land's own king's, or a king's who closed his
+    // roads to us, as far as we see them.
+    const homeland = W.get(x.province).home;
+    const freer = (k: Power): boolean => k !== b.me && (k === homeland || v.roadsClosedToUs.includes(k));
+    const safe = (y: { province: string }): boolean =>
+      (cheapestRoute(W, x.province, y.province, (a, c) => legPoints(W, a, c, seasonOfTurn(v.turn)))?.route ?? []).every((p) => !v.units.some((u) => u.province === p && freer(u.power)));
     const to = sortBy(
-      home.filter((y) => W.hops(x.province, y.province) <= 4),
+      home.filter((y) => W.hops(x.province, y.province) <= 4 && safe(y)),
       [(y) => -(y.room - y.settled - (filled.get(y.province) ?? 0)), (a: number, c: number) => a - c],
       [(y) => y.province, cmpStr],
     )[0];

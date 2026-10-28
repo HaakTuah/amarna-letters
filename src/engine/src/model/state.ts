@@ -32,16 +32,32 @@ export interface Walk {
    */
   deported: boolean;
   by: string;
+  /**
+   * Item 11a+ ("Deportation": deportees walk the route like any company, so they can be freed on the way): for deportees,
+   * the road they walk, the season they set out and the province they were taken from. A king whose troops stand on the
+   * stretch they walk this season and who is not the deporter's friend frees them: the king whose land they were taken
+   * from, or one who closed his roads to the deporter. Empty for everyone else.
+   */
+  route: string[];
+  departs: number;
+  from: string;
 }
 
-export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, deported: false, by: "", ...init }), {
-  home: S,
-  men: I,
-  arrives: I,
-  savings: I,
-  deported: B,
-  by: S,
-});
+export const WalkSchema: ObjSchema<Walk> = obj(
+  "Walk",
+  (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, deported: false, by: "", route: [], departs: 0, from: "", ...init }),
+  {
+    home: S,
+    men: I,
+    arrives: I,
+    savings: I,
+    deported: B,
+    by: S,
+    route: list(S),
+    departs: I,
+    from: S,
+  },
+);
 
 /**
  * A drought over a region's rain-fed land or a river's bad flood along its course (item 10+a): the provinces it strikes,

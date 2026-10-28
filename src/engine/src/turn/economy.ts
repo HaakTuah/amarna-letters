@@ -17,11 +17,9 @@ import { caravanAt, newCaravan, newMarket, type Caravan, type Market } from "../
 import {
   buyAlongCurve,
   capacityOf,
-  carriedOf,
   cityPriceOf,
   economyOf,
   EconomyData,
-  foodOf,
   grainWorth,
   harvestOf,
   needOf,
@@ -29,7 +27,7 @@ import {
   taxOf,
 } from "../model/economy.ts";
 import { climateOf, terrainOf } from "../model/geography.ts";
-import { LandData } from "../model/land.ts";
+import { forMen, LandData, unitCarried, unitFood } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
@@ -234,7 +232,7 @@ P.payTroops = function (p) {
     [(u: Unit) => Map.hops(cap, u.province), cmpNum],
     [(u: Unit) => u.id, cmpStr],
   )) {
-    const pay = (u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
+    const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
     if (t.gold < pay) {
       u.unpaid++;
       unpaid.push(unitLabel(u));
@@ -303,7 +301,7 @@ P.feedTroops = function () {
   for (const u of sortBy(S.units, [(u: Unit) => u.id, cmpStr])) {
     // An army outside its own land in winter pays supplies, by how hard the winter is there (item 10+a, "Winter in the field").
     const abroad = u.kind === "Army" && winter && S.owner.getOrDefault(u.province, null) !== u.power;
-    const need = foodOf(u.kind) + (abroad ? idiv(foodOf(u.kind) * LandData.winterFood[climateOf(u.province).winter], 100) : 0);
+    const need = unitFood(u) + (abroad ? idiv(unitFood(u) * LandData.winterFood[climateOf(u.province).winter], 100) : 0);
     let eaten = 0;
     const depot = depotOf(this, u);
     if (depot !== null) eaten += this.takeFromStores(depot, need);
@@ -326,7 +324,7 @@ P.feedTroops = function () {
       u.food -= b;
       eaten += b;
     }
-    if (depot !== null) u.food += this.takeFromStores(depot, carriedOf(u.kind) - u.food);
+    if (depot !== null) u.food += this.takeFromStores(depot, unitCarried(u) - u.food);
     const prov = this.map.get(u.province);
     if (eaten < need && !prov.isSea) {
       if (S.owner.getOrDefault(prov.id, null) === u.power) {
@@ -509,7 +507,7 @@ P.caravansTravel = function () {
     const roll = this.r("caravan", c.id).nextDouble() * 100;
     if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
-      const kept = Math.min(c.grain, carriedOf(taker.kind) - taker.food);
+      const kept = Math.min(c.grain, unitCarried(taker) - taker.food);
       taker.food += Math.max(0, kept);
       S.treasuries.get(taker.power).gold += c.gold;
       const where = this.map.get(taker.province).name;
@@ -573,7 +571,7 @@ P.caravanArrives = function (c, traded = null) {
         [(u: Unit) => u.food, cmpNum],
         [(u: Unit) => u.id, cmpStr],
       )) {
-        const give = Math.min(c.grain, carriedOf(u.kind) - u.food);
+        const give = Math.min(c.grain, unitCarried(u) - u.food);
         if (give <= 0) continue;
         u.food += give;
         c.grain -= give;

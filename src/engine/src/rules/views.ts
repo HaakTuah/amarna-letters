@@ -12,8 +12,8 @@ import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { alive, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
-import { capacityOf, carriedOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
-import { reckonedOf } from "../model/land.ts";
+import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
+import { reckonedOf, unitCarried } from "../model/land.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
@@ -229,8 +229,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       .filter((u) => u.power === p || seen.has(u.province))
       .map((u) =>
         u.power === p
-          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: carriedOf(u.kind), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings })
-          : newUnitView({ power: u.power, kind: u.kind, province: u.province }),
+          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men })
+          : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
       ),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.

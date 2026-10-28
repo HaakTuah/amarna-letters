@@ -28,6 +28,9 @@ import {
   type SallyOrder,
   type UnitKind,
   type UnitView,
+  WinterData,
+  shareOfFull,
+  unitFood,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
 import { grantedTo } from "./authority.ts";
@@ -666,10 +669,11 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
   // through (never where a foe could step in too), outweighs the army lost if it does not (its price and a year of
   // upkeep); else it waits for spring.
   if (Board.Sail !== Board.Map && WinterStrokes.on && (WinterStrokes.only === null || WinterStrokes.only.has(me))) {
-    const loss = b.v.prices.getOrDefault("winterArmyLoss", 30) / 100;
     const worth = b.v.prices.getOrDefault("army", 100) + 3 * b.v.prices.getOrDefault("armyUpkeep", 30);
     for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
       if (threat.has(u) || stay.has(u) || b.unitAt.get(u).kind !== "Army") continue;
+      // The share of its men the snow takes (item 11a+): by its size, halved if it carries a season's food.
+      const loss = winterLoss(b, b.unitAt.get(u));
       let best: [string, number] | null = null;
       for (const t of sortBy(Board.Map.movesFrom("Army", u), [(x: string) => x, cmpStr])) {
         if (Board.Sail.canMove("Army", u, t) || Board.Map.get(t).isSea || plan.destinations.has(t) || b.unitAt.has(t)) continue;
@@ -681,6 +685,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
         // that may be met is not worth the snow.
         if ([...b.alive].some((x) => x !== me && !brain.isFriend(x) && b.muster(x, t) > 0)) continue;
         // Within walls it takes nothing at once: it stands and besieges them (siegeWorth).
+        // What it wins, if enough of it gets through to hold the land, against the men it loses (their part of its worth).
         const gain = (1 - loss) * b.value(t) * multiplier(owner) * (b.walls(t) ? siegeWorth(b.wallLevel(t)) : 1) - loss * worth;
         if (gain > 0 && (best === null || gain > best[1])) best = [t, gain];
       }
@@ -710,6 +715,16 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
  * besiege order is a hold that wears the city down; the look-ahead weighs holds and moves, and a siege, once begun, goes on
  * while the army holds there, but it must be ordered to begin).
  */
+/**
+ * The share of a troop's men a winter crossing is expected to take (item 11a+, as the rulebook gives it): of a full unit
+ * the rate the prices name, in proportion to its men, the less if it carries a season's food.
+ */
+export function winterLoss(b: Board, u: UnitView): number {
+  const base = b.v.prices.getOrDefault(u.kind === "Army" ? "winterArmyLoss" : "winterFleetLoss", 30) / 100;
+  const fed = u.food >= unitFood(u) ? WinterData.suppliedPercent / 100 : 1;
+  return (base * shareOfFull(u.kind, u.men) * fed) / 1000;
+}
+
 export function besiegeAll(b: Board, brain: Brain, plan: MilitaryPlan): void {
   const leader = b.leader();
   for (const u of b.mine.filter((u) => u.kind === "Army" && b.walls(u.province) && !b.isMine(u.province)).map((u) => u.province)) {

@@ -1,7 +1,7 @@
 import { describe, test } from "vitest";
 import { Board } from "../src/bots/board.ts";
 import { bearableTax, canLevy, levyCost, settleThere, taxOrders } from "../src/bots/land.ts";
-import { LandData, OrderValidator, TurnEngine, Views, disband, menAvailable, newGame, newGameConfig, newTurnSubmission, raise, tax } from "@amarna/engine";
+import { LandData, OrderValidator, TurnEngine, Views, disband, forMen, levySize, menAvailable, shareOfFull, unitWeight, newGame, newGameConfig, newTurnSubmission, raise, tax } from "@amarna/engine";
 import { OtherActions, Parse, leaderRules } from "@amarna/llm";
 import { peopleLines } from "../../llm/src/prompt-economy.ts";
 import { Assert } from "../../engine/test/support.ts";
@@ -59,10 +59,24 @@ describe("PeoplePlayTests", () => {
   test("Men away building walls or carrying grain cannot be levied", () => {
     const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     const x = s.people.get("sapinuwa");
-    s.corvee.set("sapinuwa", x.men - LandData.armyMen + 1);
-    Assert.equal(LandData.armyMen - 1, menAvailable(s, "sapinuwa"));
+    s.corvee.set("sapinuwa", x.men - LandData.levyLeast + 1);
+    Assert.equal(LandData.levyLeast - 1, menAvailable(s, "sapinuwa"));
     const v = new OrderValidator(s).validate("Hatti", newTurnSubmission({ orders: [raise("sapinuwa", "Army")] }));
     Assert.contains(v.rejected, (r) => r.reason.includes("too few men of fighting age"));
-    Assert.false(new TurnEngine(s).levyMen("sapinuwa", "Army"));
+    Assert.equal(0, levySize(s, "sapinuwa", "Army"));
+    Assert.false(new TurnEngine(s).levyMen("sapinuwa", LandData.levyLeast));
+  });
+
+  test("A levy is sized by the men a province has: a small one raises its few hundred, at a share of the price (item 11a+)", () => {
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    const x = s.people.get("sapinuwa");
+    s.corvee.set("sapinuwa", x.men - 600);
+    Assert.equal(600, levySize(s, "sapinuwa", "Army"));
+    const v = new OrderValidator(s).validate("Hatti", newTurnSubmission({ orders: [raise("sapinuwa", "Army")] }));
+    Assert.equal(0, v.rejected.length);
+    // Six hundred men are 120 thousandths of a full army: its price, pay and food are that share, rounded up.
+    Assert.equal(120, shareOfFull("Army", 600));
+    Assert.equal(Math.ceil((s.config.armyCost * 120) / 1000), forMen(s.config.armyCost, "Army", 600));
+    Assert.equal(120, unitWeight({ kind: "Army", men: 600 }, LandData.armyMen));
   });
 });

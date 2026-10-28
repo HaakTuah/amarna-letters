@@ -13,6 +13,7 @@ import {
   newUnit,
   stormed,
   support,
+  FullUnit,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -222,7 +223,7 @@ describe("AdjudicatorTests", () => {
     let r1 = single.run();
     Assert.equal("carchemish", single.where(r1, "isuwa"));
     let a1 = Assert.single(r1.assaults);
-    Assert.equal([1, 1, 0, false], [a1.strength, a1.walls, a1.defenders, stormed(a1)]);
+    Assert.equal([1, 1, 0, false], [a1.strength / FullUnit, a1.walls / FullUnit, a1.defenders / FullUnit, stormed(a1)]);
     Assert.empty(stormedIn(r1));
 
     // A supported one storms them: 2 against 1 + 0.
@@ -244,7 +245,7 @@ describe("AdjudicatorTests", () => {
     let r3 = held.run();
     Assert.equal("carchemish", held.where(r3, "isuwa"));
     Assert.null(held.where(r3, "carchemish"));
-    Assert.equal([2, 2, 1, false], [r3.assaults[0].strength, r3.assaults[0].walls, r3.assaults[0].defenders, stormed(r3.assaults[0])]);
+    Assert.equal([2, 2, 1, false], [r3.assaults[0].strength / FullUnit, r3.assaults[0].walls / FullUnit, r3.assaults[0].defenders / FullUnit, stormed(r3.assaults[0])]);
 
     // A move into one's own walled province is no assault.
     let own = new Board().a("Mitanni", "harran").move("harran", "carchemish");

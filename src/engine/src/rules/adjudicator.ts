@@ -1,5 +1,7 @@
 /**
- * Diplomacy-style resolution with no dice: strength is one plus supports and ties bounce. Implements Lucas Kruijswijk's
+ * Diplomacy-style resolution with no dice: strength is one plus supports and ties bounce, each unit counting by its men
+ * (item 11a+: a unit at full strength counts one, a levy of a few hundred a fraction; strengths, walls, the ground and the
+ * people's resistance are reckoned in thousandths of a full unit, {@link FullUnit}, in every result). Implements Lucas Kruijswijk's
  * guess-and-check algorithm (from "The Math of Adjudication"), with circular movement resolved as success and convoy
  * paradoxes by the Szykman rule. Walls add nothing to the battle (Build order item 5): a move that wins its way into a
  * walled province its mover does not hold storms the walls only if its strength also beats their level plus the hold
@@ -16,6 +18,7 @@ import type { Order, SallyOrder } from "../model/orders.ts";
 import { newOrderOutcome, type Assault, type GroundFight, type MoveFailure, type MoveResult, type MoveStop, type OrderOutcome, type ReportLine } from "../model/outcomes.ts";
 import type { Power } from "../model/power.ts";
 import type { Unit } from "../model/state.ts";
+import { menOf } from "../model/land.ts";
 
 export class AdjudicationResult {
   /** Unit id -> province it ends in (for units that survive). */
@@ -37,6 +40,15 @@ export class AdjudicationResult {
 }
 
 type Kind = "Hold" | "Move" | "Support" | "Convoy";
+
+/** A full unit's strength, in the thousandths every strength in a result is reckoned in (item 11a+). */
+export const FullUnit = 1000;
+
+/** What a unit counts in battle, in thousandths: its men against a full levy of its kind (none known counts as full). */
+export function unitWeight(u: { kind: UnitKind; men: number }, full: number): number {
+  if (u.men <= 0 || full <= 0) return FullUnit;
+  return Math.max(1, Math.min(FullUnit, Math.floor((u.men * FullUnit) / full)));
+}
 const enum_ = { Unresolved: 0, Guessing: 1, Resolved: 2 } as const;
 type RState = number;
 
@@ -60,6 +72,8 @@ interface O {
   voidWhy: string | null;
   /** a besiege order: a hold that wears the city down */
   besieging: boolean;
+  /** what the unit counts in battle, in thousandths of a full unit (item 11a+) */
+  weight: number;
 }
 
 function line(province: string, power: Power | null, text: string, ok: boolean, more: Partial<ReportLine> = {}): ReportLine {
@@ -95,7 +109,7 @@ export class Adjudicator {
   constructor(map: WorldMap, explain = false, terrain = 1) {
     this.map = map;
     this.explain = explain;
-    this.terrain = Math.max(0, terrain);
+    this.terrain = Math.max(0, terrain) * FullUnit;
   }
 
   /**
@@ -137,6 +151,7 @@ export class Adjudicator {
         voided: null,
         voidWhy: null,
         besieging: false,
+        weight: unitWeight(u, menOf(u.kind)),
       };
       const order = ordersByProvince.tryGet(u.province);
       switch (order?.type) {
@@ -373,10 +388,10 @@ export class Adjudicator {
     let count = 0;
     for (const s of this.orders)
       if (s.kind === "Support" && s.target === move.at && s.to === move.target && this.resolve(s.index))
-        if (excludePower === null || s.power !== excludePower) count++;
+        if (excludePower === null || s.power !== excludePower) count += s.weight;
     // Walls that sally support the move from where they name into their city, and cannot be cut.
     for (const w of this.sallies)
-      if (w.city === move.target && w.from === move.at && (excludePower === null || (this.sallyBy.get(w.city) ?? null) !== excludePower)) count++;
+      if (w.city === move.target && w.from === move.at && (excludePower === null || (this.sallyBy.get(w.city) ?? null) !== excludePower)) count += FullUnit;
     return count;
   }
 
@@ -388,12 +403,12 @@ export class Adjudicator {
   private attackStrength(move: O): number {
     if (!this.pathOk(move)) return 0;
     const i = this.at.get(move.target!);
-    if (i === undefined) return 1 + this.supports(move, null);
+    if (i === undefined) return move.weight + this.supports(move, null);
     const occ = this.orders[i];
     const opp = this.headToHeadOpponent(move);
-    if (occ.kind === "Move" && opp === null && this.resolve(occ.index)) return 1 + this.supports(move, null);
+    if (occ.kind === "Move" && opp === null && this.resolve(occ.index)) return move.weight + this.supports(move, null);
     if (occ.power !== null && occ.power === move.power) return 0;
-    return 1 + this.supports(move, occ.power);
+    return move.weight + this.supports(move, occ.power);
   }
 
   /**
@@ -406,10 +421,10 @@ export class Adjudicator {
     const i = this.at.get(province);
     if (i === undefined) return this.peopleAgainst(move);
     const occ = this.orders[i];
-    let count = 1;
+    let count = occ.weight;
     if (occ.kind === "Move") {
       if (this.resolve(occ.index)) return this.peopleAgainst(move);
-    } else for (const s of this.orders) if (s.kind === "Support" && s.target === province && s.to === null && this.resolve(s.index)) count++;
+    } else for (const s of this.orders) if (s.kind === "Support" && s.target === province && s.to === null && this.resolve(s.index)) count += s.weight;
     return count + (this.groundAgainst(move) === null ? 0 : this.terrain);
   }
 
@@ -420,7 +435,7 @@ export class Adjudicator {
   private peopleAgainst(move: O): number {
     if (this.resist === null || move.power === null) return 0;
     if (this.guests !== null && this.guests(move.target!, move.power)) return 0;
-    return this.resist(move.target!, move.power);
+    return this.resist(move.target!, move.power) * FullUnit;
   }
 
   /** The ground that helps a unit standing its ground in the move's target against it, or null (also when terrain is off). */
@@ -429,14 +444,14 @@ export class Adjudicator {
   }
 
   private defendStrength(move: O): number {
-    return 1 + this.supports(move, null);
+    return move.weight + this.supports(move, null);
   }
 
   private preventStrength(move: O): number {
     if (!this.pathOk(move)) return 0;
     const opp = this.headToHeadOpponent(move);
     if (opp !== null && this.resolve(opp.index)) return 0;
-    return 1 + this.supports(move, null);
+    return move.weight + this.supports(move, null);
   }
 
   private collect(): AdjudicationResult {
@@ -589,7 +604,7 @@ export class Adjudicator {
       from: move.at,
       owner,
       strength: this.attackStrength(move),
-      walls,
+      walls: walls * FullUnit,
       defenders: beaten,
       ground,
       groundBonus: ground === null ? 0 : this.terrain,

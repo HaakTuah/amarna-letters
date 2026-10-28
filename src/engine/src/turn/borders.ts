@@ -16,7 +16,7 @@ import { seasonOfTurn } from "../model/map.ts";
 import type { DeportOrder, ExpelOrder, ReturnRunawaysOrder, WelcomeOrder } from "../model/orders.ts";
 import { land, type Power } from "../model/power.ts";
 import { isAlive, logEvent, notify, ownedBy, siegeOf } from "../model/state.ts";
-import { fastestPoints, PointsPerDay } from "../model/travel.ts";
+import { cheapestRoute, fastestPoints, legPoints, PointsPerDay } from "../model/travel.ts";
 import { TurnEngine } from "./core.ts";
 import { people, share, shift } from "./people.ts";
 
@@ -35,7 +35,8 @@ declare module "./core.ts" {
     deport(p: Power, o: DeportOrder): void;
     returnRunaways(p: Power, o: ReturnRunawaysOrder): void;
     expel(p: Power, o: ExpelOrder): void;
-    sendPeople(by: Power, from: string, to: string, n: number, gold: number): [number, number, number];
+    sendPeople(by: Power, from: string, to: string, n: number, gold: number, freeable?: boolean): [number, number, number];
+    deporteesOnRoad(): Dict<Power, string[]>;
   }
 }
 
@@ -222,7 +223,7 @@ P.welcome = function (p, o) {
  * the way and on a long road some slip away and stay loose where they set out, as discharged men do; the rest arrive
  * as the settled people of `to`, with the gold they carry. Returns those who set out, died and slipped away.
  */
-P.sendPeople = function (by, from, to, n, gold) {
+P.sendPeople = function (by, from, to, n, gold, freeable = false) {
   const S = this.s;
   const days = idiv(fastestPoints(this.map, from, to, seasonOfTurn(S.turn)), PointsPerDay);
   const stray = !Number.isFinite(days) ? LandData.strayMost : clamp(idiv(days - LandData.strayAfter, LandData.strayPerDays), 0, LandData.strayMost);
@@ -230,8 +231,50 @@ P.sendPeople = function (by, from, to, n, gold) {
   const dead = idiv((n - fled) * LandData.deportDead, 100);
   this.peopleOf(from).loose += fled;
   const seasons = Math.max(1, Math.ceil((Number.isFinite(days) ? days : S.config.travelDays) / Math.max(1, S.config.travelDays)));
-  S.walking.push({ home: to, men: n - fled - dead, arrives: S.turn + seasons, savings: gold, deported: true, by });
+  // Deportees walk a road of their own, where they can be freed (item 11a+).
+  const route = freeable ? (cheapestRoute(this.map, from, to, (a, b) => legPoints(this.map, a, b, seasonOfTurn(S.turn)))?.route ?? []) : [];
+  S.walking.push({ home: to, men: n - fled - dead, arrives: S.turn + seasons, savings: gold, deported: true, by, route, departs: S.turn, from });
   return [n - fled - dead, dead, fled];
+};
+
+/**
+ * Deportees on the road (item 11a+, Haakon's answer to item 10+b's review: "Deportees walk the route like any company, so
+ * they can die, flee or be freed on the way"): each season they cover their share of the road, and where the stretch
+ * they cover holds troops of a king who would free them, the deporter's guards give them up. He frees them who held the
+ * land they were taken from as its homeland, or who closed his roads to the deporter's people. The freed are loose men
+ * where they were freed, with the gold they carried, free to go home or to be settled by whoever holds the land. Returns
+ * the lines each king reads.
+ */
+P.deporteesOnRoad = function () {
+  const S = this.s;
+  const Map = this.map;
+  const lines = new Dict<Power, string[]>();
+  const say = (p: Power, line: string): void => {
+    if (isAlive(S, p)) lines.set(p, [...lines.getOrDefault(p, []), line]);
+  };
+  for (const w of [...S.walking]) {
+    if (!w.deported || w.route.length < 2 || w.men <= 0) continue;
+    const span = Math.max(1, w.arrives - w.departs);
+    const at = (turn: number): number => Math.min(w.route.length - 1, Math.floor(((w.route.length - 1) * clamp(turn - w.departs, 0, span)) / span));
+    const stretch = w.route.slice(at(S.turn - 1), at(S.turn) + 1);
+    const by = w.by as Power;
+    const homeland = Map.get(w.from).home;
+    const frees = (k: Power): boolean => k !== by && ((homeland !== null && k === homeland) || (S.roadsClosed.tryGet(k) ?? []).includes(by));
+    const where = stretch.find((x) => S.units.some((u) => u.province === x && frees(u.power)));
+    if (where === undefined) continue;
+    const freer = sortBy(
+      S.units.filter((u) => u.province === where && frees(u.power)),
+      [(u) => u.id, cmpStr],
+    )[0].power;
+    S.walking.splice(S.walking.indexOf(w), 1);
+    this.peopleOf(where).loose += w.men;
+    if (w.savings > 0) S.loot.set(where, S.loot.getOrDefault(where, 0) + w.savings);
+    const name = Map.get(where).name;
+    say(by, `${freer}'s troops in ${name} freed ${people(w.men)} people you were deporting from ${Map.get(w.from).name}: they are loose men there now.`);
+    say(freer, `Your troops in ${name} freed ${people(w.men)} people ${by} was deporting from ${Map.get(w.from).name}: they are loose men there now${S.owner.getOrDefault(where, null) === freer ? ", and you may settle them (order welcome)" : ""}.`);
+    logEvent(S, "deport", `${freer}'s troops freed ${people(w.men)} people ${by} was deporting, in ${name}.`, [by, freer], "deportees-freed");
+  }
+  return lines;
 };
 
 /**
@@ -263,7 +306,7 @@ P.deport = function (p, o) {
   const gold = o.purse ? idiv(m.purse * n, Math.max(1, x.settled + x.loose)) : 0;
   m.purse -= gold;
   shift(x, -n, -men);
-  const [arrive, dead, fled] = this.sendPeople(p, o.province, o.to, n, gold);
+  const [arrive, dead, fled] = this.sendPeople(p, o.province, o.to, n, gold, true);
   notify(
     S,
     p,

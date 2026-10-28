@@ -22,6 +22,7 @@ import { newMindRequest, type MindRequest } from "../model/exchanges.ts";
 import { terrainOf } from "../model/geography.ts";
 import { StartWalls, WorldMap } from "../model/map.ts";
 import { EconomyData, harvestOf, taxOf } from "../model/economy.ts";
+import { forMen } from "../model/land.ts";
 import type { Order } from "../model/orders.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
@@ -210,7 +211,8 @@ export class TurnEngine {
     return (
       sum(
         S.units.filter((u) => u.power === p),
-        (u) => (u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep),
+        // In proportion to its men (item 11a+).
+        (u) => forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men),
       ) +
       count(S.sieges, (x) => x.power === p) * S.config.siegeUpkeep
     );

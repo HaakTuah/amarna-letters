@@ -156,28 +156,48 @@ export type Water = "River" | "Rain" | "Arid";
 
 /**
  * Where a city drinks under siege (item 10+b, "Water too": set by where it stands, so the land and the sources decide how
- * long it can drink). River land drinks from its river, and a city with a spring inside its walls, or a walled way down
- * to one, from that: neither fails. Elsewhere a besieged city drinks from what its cisterns hold and its wells reach:
- * `CisternSeasons` in rain-fed land, `WellSeasons` in arid ground. A city on an island with no water of its own drinks
- * what boats bring it: once its besieger's fleet holds its waters it has `IslandSeasons`. First guesses (item 18).
+ * long it can drink). Since item 11a+ each city's water comes from the water dossier (`docs/history/10-water.md`,
+ * Haakon's answer to item 10+b's review): a river or canal at its walls, a spring inside its defences or a walled way
+ * down to one, or wells reaching groundwater never fail; a spring outside the walls is cut off by the besieger, and the
+ * city then drinks its cisterns, as one that never had more does: `CisternSeasons`; wells in arid ground `WellSeasons`.
+ * A city on an island with no water of its own drinks what boats bring it: once its besieger's fleet holds its waters it
+ * has `IslandSeasons`. First guesses (item 18).
  */
 export const WaterData = { CisternSeasons: 4, WellSeasons: 2, IslandSeasons: 1 } as const;
 
-/**
- * Cities whose water never fails under siege though they stand in rain-fed land: Jerusalem's builders had walled their way
- * down to the Gihon spring, and Megiddo cut its water shaft for this ("Water too").
- */
-export const SafeWater: ReadonlySet<string> = new Set(["jerusalem", "megiddo"]);
+/** Where a city drinks: the water dossier's kinds (`docs/history/10-water.md`). */
+export type CityWater = "River" | "Spring" | "Wells" | "Outside" | "Cisterns" | "Arid" | "Island";
 
-/** Island cities with no water of their own, whose water comes by boat like their grain: Tyre (EA 146-155) and Arwad. */
-export const IslandWater: ReadonlySet<string> = new Set(["tyre", "arwad"]);
+const W = (kind: CityWater, ...ids: string[]): [string, CityWater][] => ids.map((id) => [id, kind]);
+
+/** Each land province's chief city's water, from the water dossier. */
+export const CityWaters: ReadonlyMap<string, CityWater> = new Map<string, CityWater>([
+  ...W("River", "seha", "apasa", "kizzuwatna", "terqa", "nineveh", "ashur", "ekallate", "sippar", "durkurigalzu", "babylon", "nippur", "ur", "delta", "memphis", "akhetaten", "thebes", "nubia", "isuwa", "carchemish", "alalakh", "qadesh", "damascus", "suhu", "susa"),
+  ...W("Spring", "hattusa", "washukanni", "dilmun", "qatna", "byblos", "jerusalem"),
+  ...W("Wells", "harran", "arbela", "kalavasos", "enkomi", "aleppo", "ugarit", "sumur", "sidon", "gaza"),
+  ...W("Outside", "tuwanuwa", "megiddo", "shechem"),
+  ...W("Cisterns", "mira", "sapinuwa", "nesa", "taidu", "nuhashshe", "amurru", "arrapha", "lukka", "kaska"),
+  ...W("Arid", "sinai", "steppe"),
+  ...W("Island", "tyre", "arwad"),
+]);
+
+/** The island cities with no water of their own, whose water comes by boat like their grain: Tyre (EA 146-155) and Arwad. */
+export const isIslandWater = (province: string): boolean => CityWaters.get(province) === "Island";
 
 /** How many seasons a besieged city can drink from its own stores (Infinity: it never runs dry; islands: once blockaded). */
 export function waterSeasons(province: string): number {
-  if (IslandWater.has(province)) return WaterData.IslandSeasons;
-  const w = Climates.get(province)?.water ?? "Rain";
-  if (w === "River" || SafeWater.has(province)) return Infinity;
-  return w === "Arid" ? WaterData.WellSeasons : WaterData.CisternSeasons;
+  switch (CityWaters.get(province) ?? (Climates.get(province)?.water === "Arid" ? "Arid" : Climates.get(province)?.water === "River" ? "River" : "Cisterns")) {
+    case "River":
+    case "Spring":
+    case "Wells":
+      return Infinity;
+    case "Island":
+      return WaterData.IslandSeasons;
+    case "Arid":
+      return WaterData.WellSeasons;
+    default:
+      return WaterData.CisternSeasons;
+  }
 }
 
 /** How hard its winter is ("Winter in the field"): mild in Egypt and Babylonia, hard on the Anatolian plateau. */

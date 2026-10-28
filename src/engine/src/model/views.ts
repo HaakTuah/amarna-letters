@@ -24,6 +24,8 @@ export interface UnitView {
   hungry: number;
   unpaid: number;
   savings: number;
+  /** Item 11a+: its men, as anyone who sees it can count them (a full army 5,000, a fleet's crews 2,000). */
+  men: number;
 }
 
 export function newUnitView(init: Partial<UnitView> = {}): UnitView {
@@ -36,6 +38,7 @@ export function newUnitView(init: Partial<UnitView> = {}): UnitView {
     hungry: 0,
     unpaid: 0,
     savings: 0,
+    men: 0,
     ...init,
   };
 }
@@ -49,6 +52,7 @@ export const UnitViewSchema: ObjSchema<UnitView> = obj("UnitView", newUnitView, 
   hungry: I,
   unpaid: I,
   savings: I,
+  men: I,
 });
 
 /**

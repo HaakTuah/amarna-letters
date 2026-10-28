@@ -96,21 +96,24 @@ export function levyCost(v: SeatView, me: string, province: string, kind: UnitKi
   const season = seasonOfTurn(v.turn);
   const labour = labourOf(province, x.settled, x.men, season);
   if (labour <= 0) return x.harvest;
-  const taken = menOf(kind) * (2 + menWeight(province, season));
+  const taken = Math.min(menOf(kind), x.men) * (2 + menWeight(province, season));
   return Math.ceil((x.harvest * taken) / (2 * labour));
 }
 
-/** Whether a province has the men of fighting age a levy of this kind needs (a rule every script king keeps to). */
+/**
+ * Whether a province has the men of fighting age for a levy of this kind worth raising: a levy is sized by the men a
+ * province has (item 11a+), and a script king raises one of at least half a full unit, where one counts for something.
+ */
 export function canLevy(v: SeatView, province: string, kind: UnitKind): boolean {
   const x = v.provinces.find((p) => p.province === province);
-  return x !== undefined && x.men >= menOf(kind);
+  return x !== undefined && x.men >= Math.max(LandData.levyLeast, menOf(kind) / 2);
 }
 
 /** Whether a unit disbanding in a province of ours should settle its men there: the land has room for them. */
-export function settleThere(v: SeatView, me: string, province: string, kind: UnitKind): boolean {
+export function settleThere(v: SeatView, me: string, province: string, kind: UnitKind, men = menOf(kind)): boolean {
   if (!LandPlay.on(me)) return false;
   const x = v.provinces.find((p) => p.province === province);
-  return x !== undefined && x.settled + menOf(kind) <= x.room;
+  return x !== undefined && x.settled + men <= x.room;
 }
 
 /** The reference price of a measure of grain in shekels, for weighing grain against gold. */

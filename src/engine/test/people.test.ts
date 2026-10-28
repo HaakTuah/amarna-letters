@@ -65,15 +65,15 @@ describe("PeopleTests", () => {
       s.turn = turn;
       const e = new TurnEngine(s);
       const before = e.harvestNow("sapinuwa");
-      Assert.true(e.levyMen("sapinuwa", "Army"));
+      Assert.true(e.levyMen("sapinuwa", LandData.armyMen));
       return before - e.harvestNow("sapinuwa");
     };
     // Turn 2 is Peret, sown everywhere but the Anatolian plateau, which reaps and sows in Akhet (turn 1).
     Assert.true(loss(1) > loss(2), `${loss(1)} against ${loss(2)}`);
     Assert.true(loss(2) > 0);
-    // A province with too few men raises nothing: the order is refused, saying why.
+    // A province with too few men raises nothing (fewer than a levy's least, item 11a+): the order is refused, saying why.
     const s = quiet();
-    s.people.get("nesa").men = menOf("Army") - 1;
+    s.people.get("nesa").men = LandData.levyLeast - 1;
     const v = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [raise("sapinuwa", "Army"), raise("tuwanuwa", "Army")] }));
     Assert.equal(2, v.accepted.length);
     const r = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [move("nesa", "kizzuwatna"), raise("nesa", "Army")] }));
