@@ -248,7 +248,7 @@ describe("BandTests", () => {
       const s = newGame(seed);
       const c = first(s.characters, (x) => x.employer === "Hatti" && x.status === "Employed");
       c.at = "Mitanni";
-      c.duty = "EnvoyAbroad";
+      c.duty = "EnvoyAtCourt";
       [c.traits.greed, c.traits.loyalty] = [90, 10];
       c.news = [newNewsHeld({ court: "Hatti", turn: s.turn, lines: ["Hatti had an army in Nesa."] })];
       if (newsOffered(s, c, "Mitanni").length === 0) return;
