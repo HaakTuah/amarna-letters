@@ -19,6 +19,7 @@ import {
   harbourOf,
   idiv,
   legPoints,
+  move,
   seasonOfTurn,
   sellAlongCurve,
   ship,
@@ -40,7 +41,7 @@ import type { MilitaryPlan } from "./tactics.ts";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
-/** At most this many trading caravans and ships of ours abroad at once, and the most a caravan carries (its pace). */
+/** At most this many trading caravans of ours abroad at once (fleets are their own limit), and the most a caravan carries (its pace). */
 const MaxTraders = 3;
 const CaravanLot = 100;
 /** A smuggler carries no more than this, since the odds of being found grow with the load. */
@@ -162,7 +163,8 @@ export function tradeOrders(
   let spent = 0;
   const winter = seasonOfTurn(v.turn) === WinterSeason;
   const usedFleets = new Set<string>();
-  let traders = v.caravans.filter((c) => c.trade || c.ship).length;
+  // Caravans abroad count against the cap; fleets are their own limit.
+  let traders = v.caravans.filter((c) => c.trade && !c.ship).length;
   const fleetUpkeep = v.prices.getOrDefault("fleetUpkeep", 25);
   const fleetCost = v.prices.getOrDefault("fleet", 150);
 
@@ -179,9 +181,10 @@ export function tradeOrders(
       if (fleet === null || way === null || way.seasons > 2) continue;
       const n = Math.min(TradeData.shipCapacity, spare(src));
       orders.push(ship(fleet.province, src.province, x.province, n, 0, false));
+      // Its hold in the military plan gives way to the voyage (one order a unit).
+      plan.orders.delete(fleet.province);
       usedFleets.add(fleet.province);
       src.stores -= n;
-      traders++;
       break;
     }
   }
@@ -196,8 +199,8 @@ export function tradeOrders(
   const margin = 0.25 - 0.15 * p.commerce;
 
   for (const x of sortBy([...ps.values()], [(y: Mutable<ProvinceEconomyView>) => spare(y), desc(cmpNum)], [(y: Mutable<ProvinceEconomyView>) => y.province, cmpStr])) {
-    if (traders >= MaxTraders) break;
     const home = x;
+    const caravansFull = traders >= MaxTraders;
     const free = spare(home);
     // What its grain would fetch at home, and what grain costs there now.
     let best: { order: Order; gain: number; grain: number; gold: number; fleet: string | null } | null = null;
@@ -206,7 +209,7 @@ export function tradeOrders(
       const normal = normalOf(m);
       const fleet = winter ? null : idleFleet(b, plan, home.province, usedFleets);
       const byShip = fleet !== null && harbourOf(Board.Map.get(k)) > 0 && !seasDangerous(b, brain, home.province);
-      const ways: [string, Way | null][] = [["land", landWay(b, home.province, k, false)], ["smuggle", landWay(b, home.province, k, true)]];
+      const ways: [string, Way | null][] = caravansFull ? [] : [["land", landWay(b, home.province, k, false)], ["smuggle", landWay(b, home.province, k, true)]];
       if (byShip) ways.push(["ship", seaWay(b, home.province, k)]);
       for (const [how, way] of ways) {
         if (way === null || way.seasons > FarSeasons) continue;
@@ -217,7 +220,9 @@ export function tradeOrders(
         const n = Math.min(free, lotCap);
         const arrive = Math.floor((n * keep * Math.max(0, 100 - eat * way.seasons)) / 10000);
         const sale = sellAlongCurve(m.stock, normal, m.purse, arrive);
-        const atHome = sellAlongCurve(home.stock, home.need, home.purse, n).paid;
+        // What the grain is worth to us kept or sold at home: its reference price, since a sale at home only moves our own
+        // people's gold into the treasury, where a sale abroad brings in another realm's.
+        const atHome = Math.floor((n * EconomyData.basePrice) / 100);
         // Buying: where grain is cheap and our towns are short or dear.
         const short = home.stock < home.need || home.price >= 2 * EconomyData.basePrice;
         const buyGold = short && how !== "smuggle" ? budget : 0;
@@ -234,7 +239,9 @@ export function tradeOrders(
         const survive = Math.pow(1 - found, 2 * way.realms);
         const gain = (proceeds + worthBack) * survive - cost - atHome - (buyGold > 0 ? bought.paid : 0);
         const worth = proceeds + worthBack;
-        if (worth <= 0 || gain < Math.max(15, margin * worth)) continue;
+        // An idle fleet's pay is the same at war or in cargo service, so a voyage need clear less than a caravan.
+        const bar = how === "ship" ? Math.max(5, (margin / 2) * worth) : Math.max(15, margin * worth);
+        if (worth <= 0 || gain < bar) continue;
         if (best !== null && gain <= best.gain) continue;
         const goldOut = buyGold > 0 && bought.taken > 0 ? Math.min(buyGold, Math.ceil((bought.paid * 100) / Math.max(1, keep))) : 0;
         if (n <= 0 && goldOut <= 0) continue;
@@ -251,9 +258,30 @@ export function tradeOrders(
     orders.push(best.order);
     home.stores -= best.grain;
     spent += best.gold;
-    if (best.fleet !== null) usedFleets.add(best.fleet);
-    traders++;
+    if (best.fleet !== null) {
+      plan.orders.delete(best.fleet);
+      usedFleets.add(best.fleet);
+    } else traders++;
   }
+
+  // An idle fleet whose harbour has little to carry moves to a harbour of ours next to it that has much, to load there
+  // next season.
+  if (!winter)
+    for (const u of sortBy(b.mine.filter((x) => x.kind === "Fleet" && !usedFleets.has(x.province)), [(x: UnitView) => x.province, cmpStr])) {
+      const o = plan.orders.tryGet(u.province);
+      if (o !== undefined && o.type !== "hold") continue;
+      const here = Board.Map.landProvinces.find((x) => (x.id === u.province || x.waters === u.province) && ps.has(x.id));
+      if (here !== undefined && spare(ps.get(here.id)!) >= 60) continue;
+      const target = sortBy(
+        Board.Sail.movesFrom("Fleet", u.province).filter((t) => ps.has(t) && harbourOf(Board.Map.get(t)) > 0 && !b.unitAt.has(t) && !plan.destinations.has(t) && spare(ps.get(t)!) >= 80 && !seasDangerous(b, brain, t)),
+        [(t: string) => spare(ps.get(t)!), desc(cmpNum)],
+        [(t: string) => t, cmpStr],
+      )[0];
+      if (target === undefined) continue;
+      plan.orders.set(u.province, move(u.province, target));
+      plan.destinations.add(target);
+      break;
+    }
   return spent;
 }
 
