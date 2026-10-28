@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Interface and the council tab, revision 10 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Interface and the council tab, revision 10 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Spectator mode and analysis
 
 AI-only games are part of the prototype, because watching them is the only way to see whether trust emerges and to tune the models. The spectator sees everything the engine knows, which no player ever does.

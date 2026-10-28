@@ -131,3 +131,14 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into the design document's builder rules ("The specification"), so it reaches `.claude/rules/builder-rules.md`
     with this refresh; the same for Barkstreet Snakes, by its progress file.
+
+## 28 October 2026
+
+18. **07:07**, in the design chat, after item 10's report found that script kings using its features won no more than those ignoring them (22 to 28):
+
+    > But it is a big problem that using mechanics don't benefit the ai right now! Must pay careful attention to that! Can't draw conclusion right now, as the game isn't fully constructed yet, but once it starts being feature complete,  this cannot be the case.
+
+    Written into the design document's builder rules ("Using a feature must pay", under the script kings' rule) and
+    item 18 (no feature left whose users do not come out ahead), so it reaches `.claude/rules/builder-rules.md` with
+    this refresh; the running table is "Use against ignore" in `docs/BUILD-PROGRESS.md`. The same message's companion
+    answered items 9+a's, 9+b's and 10's review questions ("For Haakon").

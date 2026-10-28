@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Victory and the ending tab, revision 9 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Victory and the ending tab, revision 9 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Victory, relative scoring and the random ending
 
 The winner is the power that grew most relative to where it started, and nobody knows which turn will be the last. Both choices protect the core hypothesis: relative scoring keeps weak powers in contention, and an unknown end keeps reputation valuable until the final turn.

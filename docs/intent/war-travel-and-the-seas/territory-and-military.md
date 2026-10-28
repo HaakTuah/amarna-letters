@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 53 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 54 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Territory and military
 
 **Military.**
@@ -25,7 +25,7 @@ This also helps the smaller kings: Arzawa's mountains and Alashiya's sea become 
 
 **How long a siege lasts (decided 27 October 2026).** A blockaded city holds as long as it can eat and drink, and falls by hunger, a breach or a betrayal, as the cities of the letters did.
 
-- **Stores and mouths are the clock.** A besieged city eats from its stores at the rate of its mouths: its soldiers, its people and those who fled inside. Its ruler can put out the mouths that cannot fight ("People are worth having, not free to keep"), and grain brought by sea or by a relieving army refills the stores wherever the blockade does not hold the coast or the road ("Landing and supply need the coastal waters there"). A ruler with full granaries holds; Tyre on its island, fed from the sea, could hold for years.
+- **Stores and mouths are the clock.** A besieged city eats from its stores at the rate of its mouths: its soldiers, its people and those who fled inside. Its ruler can put out the mouths that cannot fight ("People are worth having, not free to keep"), and grain brought by sea or by a relieving army refills the stores wherever the blockade does not hold the coast or the road ("Landing and supply need the coastal waters there"); anyone's ships may bring it, a merchant's for what a starving market pays, at the risk of the besieger's ships (decided 28 October 2026). A ruler with full granaries holds; Tyre on its island, fed from the sea, could hold for years.
 - **Water too.** A spring, well or cistern inside the walls is a trait of the city, like its walls, set from the sources ("Starting positions come from the sources"); a city without one holds only as long as its water. Megiddo and Hazor cut their water shafts for this.
 - **Hunger breaks loyalty.** As the stores run down, the city's loyalty to its ruler falls, until someone opens a gate from within. A ruler his people trust holds longer than one they do not; Rib-Hadda wrote that his people would go over to whoever had grain.
 - **Walls price the storm, not the clock.** A besieger may storm at any time, at a cost that rises with the walls' level and falls once they are breached by rams, mining or wear ("Walls and terrain"), so strong walls force a blockade and a weak one invites an assault.

@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Engine and models tab, revision 55 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Engine and models tab, revision 55 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Tech stack
 
 The prototype is a static browser game where each player brings their own Anthropic API key. The whole game runs in the browser, including the TypeScript engine (decided 21 October 2026, in place of C# on Blazor WebAssembly; build order item 5+), and model calls go straight from the browser to the Anthropic API. The key never touches a server you run, so nobody can spend on your account, and hosting costs almost nothing.
