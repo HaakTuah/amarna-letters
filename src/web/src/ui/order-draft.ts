@@ -105,6 +105,7 @@ export class OrderDraft {
       else if (d.kind === "support" && d.target !== null) orders.push(support(at, d.target, d.to === null || d.to === "" ? null : d.to));
       else if (d.kind === "convoy" && d.target !== null && d.to !== null) orders.push(convoy(at, d.target, d.to));
       else if (d.kind === "disband") orders.push(disband(at));
+      else if (d.kind === "settle") orders.push(disband(at, true));
       else if (d.kind === "besiege") orders.push(besiege(at));
       else orders.push(hold(at));
     }

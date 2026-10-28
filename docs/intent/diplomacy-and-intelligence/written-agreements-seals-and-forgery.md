@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 23 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 24 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Written agreements, seals and forgery
 
 A sealed tablet is evidence, not enforcement. The engine records that both parties sealed a text; it never makes anyone obey it. Its value is that a broken promise can be proven to third parties.

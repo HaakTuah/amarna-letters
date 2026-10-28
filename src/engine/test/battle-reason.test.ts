@@ -12,6 +12,7 @@ import {
   inboxOf,
   move,
   newGame,
+  newGameConfig,
   newUnit,
   single,
   support,
@@ -33,7 +34,7 @@ describe("BattleReasonTests", () => {
 
   test("A head to head lost is the reason even when a third move takes the province", () => {
     // Assyria (2) and Mitanni (3) meet head to head between Ekallate and Terqa; Hatti walks into the Terqa Mitanni left.
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     s.units.push(newUnit({ id: "u90", power: "Hatti", kind: "Army", province: "harran" }));
     resolve(
       s,
@@ -60,7 +61,7 @@ describe("BattleReasonTests", () => {
     // Egypt's army in the Delta crosses the open sea in Alashiya's ships, one in each sea zone of the way, to Lukka, which Arzawa
     // holds; Lukka lies beyond Egypt's sight.
     function board(): GameState {
-      let s = newGame(1);
+      let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
       single(s.units, (u) => u.province === "delta").kind = "Army";
       single(s.units, (u) => u.province === "enkomi").province = "deltawaters";
       s.units.push(newUnit({ id: "u91", power: "Alashiya", kind: "Fleet", province: "westsea" }));
@@ -104,7 +105,7 @@ describe("BattleReasonTests", () => {
 
   test("A unit that could not leave kept its place", () => {
     // Mitanni's army in Terqa and Babylon's in Sippar strike Suhu and bounce, so Assyria's move into Terqa meets it still there.
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     resolve(
       s,
       subs({
@@ -121,7 +122,7 @@ describe("BattleReasonTests", () => {
   });
 
   test("A support that matches nothing is void and only its own king is told why", () => {
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     resolve(
       s,
       subs({

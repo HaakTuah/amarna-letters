@@ -25,6 +25,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         if: github.event.action != 'closed'
+        with:
+          fetch-depth: 0
+
+      # Tests run only where they can be affected (Haakon, 28 October 2026:
+      # "tests should only run where they impact something"): notes alone
+      # (docs/, .claude/, any .md) skip them; the build still runs for the preview.
+      - name: What changed
+        id: what
+        if: github.event.action != 'closed'
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ -z "$BASE" ] || [ "$BASE" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            echo "code=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          files=$(git diff --name-only "$BASE" HEAD)
+          echo "$files"
+          code=$(echo "$files" | grep -v -E '^(docs/|\.claude/)|\.md$' | grep -c . || true)
+          echo "code=$([ "$code" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@v4
         if: github.event.action != 'closed'
@@ -37,7 +57,7 @@ jobs:
         run: npm ci
 
       - name: Test
-        if: github.event.action != 'closed'
+        if: github.event.action != 'closed' && steps.what.outputs.code == 'true'
         run: npm run lint && npm run typecheck && npx vitest run
 
       # The build step: the TypeScript web app (Vite), its static output moved to site/.

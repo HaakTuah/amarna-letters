@@ -22,6 +22,7 @@ import {
   repudiate,
   newAuthority,
   disband,
+  tax,
   dismiss,
   dispatch,
   forge,
@@ -329,6 +330,8 @@ function unit(u: Node): Order | null {
       return convoy(at, target, to ?? "");
     case "disband":
       return disband(at);
+    case "settle":
+      return disband(at, true);
     case "hold":
       return hold(at);
     case "besiege":
@@ -380,6 +383,8 @@ function other(x: Node): Order | null {
       const to = empty(S(x, "to"));
       return ship(province, province, to !== null ? prov(to) : "", amount, Math.max(0, I(x, "gold")), S(x, "action") === "ship_trade");
     }
+    case "set_tax":
+      return tax(amount, pr !== null ? province : null);
     case "set_toll":
       return named.trim() !== "" && power === null ? unreadable(`set a toll on '${named}'`, nowhere(named, "the partner")) : toll(amount, power, pr !== null ? province : null);
     case "cede_province":

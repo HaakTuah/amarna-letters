@@ -14,8 +14,42 @@ import { type Grant, GrantSchema } from "./authority.ts";
 import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./caravans.ts";
 import { type Toll, TollSchema } from "./trade.ts";
 import { type MarketSeen, MarketSeenSchema } from "./views.ts";
+import type { People } from "./land.ts";
 
-export const CURRENT_VERSION = 16;
+export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
+
+/** Discharged men on their way home: how many, to which province, the season they arrive, and the savings they carry. */
+export interface Walk {
+  home: string;
+  men: number;
+  arrives: number;
+  /** The savings they carry, into their home's purse when they arrive ("Soldiers carry savings home"). */
+  savings: number;
+}
+
+export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, ...init }), { home: S, men: I, arrives: I, savings: I });
+
+/**
+ * A drought over a region's rain-fed land or a river's bad flood along its course (item 10+a): the provinces it strikes,
+ * the seasons it lasts, the share of the harvest left (`percent`), and its name for the notices.
+ */
+export interface ClimateEvent {
+  id: string;
+  kind: "Drought" | "Flood";
+  name: string;
+  provinces: string[];
+  startTurn: number;
+  endTurn: number;
+  percent: number;
+}
+
+export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
+  "ClimateEvent",
+  (init: Partial<ClimateEvent> = {}) => ({ id: "", kind: "Drought" as const, name: "", provinces: [], startTurn: 0, endTurn: 0, percent: 100, ...init }),
+  { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
+);
+
+export const CURRENT_VERSION = 17;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -96,6 +130,21 @@ export interface GameState {
   stores: Dict<string, number>;
   /** Each land province's local market (item 9+a, "Markets"): its stock of grain and its people's purse. */
   markets: Dict<string, Market>;
+  /**
+   * Each land province's people at home (item 10+a, "People of the land"): the settled, its men of fighting age among
+   * them, and the loose. The men under arms are counted on their units ({@link Unit.men}).
+   */
+  people: Dict<string, People>;
+  /** Discharged men walking home ("Disbanding takes time"): they bring in no harvest until they arrive. */
+  walking: Walk[];
+  /** Droughts and river floods under way (item 10+a, "Land and climate", "Rivers"), oldest first. */
+  climate: ClimateEvent[];
+  /** The tax each king set on a province of his, in percent, where it is not the default (item 10+a, "How a king lives"). */
+  taxes: Dict<string, number>;
+  /** The men levied this season to build walls (the corvée), by province: away from the next harvest. */
+  corvee: Dict<string, number>;
+  /** How well each province's countryside ate last season, in thousandths, where it went short (item 10+a). */
+  fed: Dict<string, number>;
   /** The caravans on the road (item 9+a, "Caravans carry a kingdom's goods"), and ships in cargo service (item 9+b). */
   caravans: Caravan[];
   /** The tolls each power sets on goods entering its land (item 9+b, "Tolls and smuggling"); standing until changed. */
@@ -205,6 +254,12 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     tablets: [],
     copies: [],
     catastrophes: [],
+    people: new Dict(),
+    walking: [],
+    climate: [],
+    taxes: new Dict(),
+    corvee: new Dict(),
+    fed: new Dict(),
     losses: [],
     tasks: [],
     counterIntel: new Dict(),
@@ -249,6 +304,12 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   conquered: dict(I),
   stores: dict(I),
   markets: dict(() => MarketSchema),
+  people: dict(() => PeopleSchema),
+  walking: list(() => WalkSchema),
+  climate: list(() => ClimateEventSchema),
+  taxes: dict(I),
+  corvee: dict(I),
+  fed: dict(I),
   caravans: list(() => CaravanSchema),
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
@@ -295,6 +356,8 @@ export interface Unit {
   /** Seasons in a row it went hungry, and went unpaid: a few of either and it mutinies. */
   hungry: number;
   unpaid: number;
+  /** Its men, levied from the men of fighting age of its home (item 10+a); they go home when it disbands. */
+  men: number;
   // computed in C#: $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}"
 }
 
@@ -309,6 +372,7 @@ export function newUnit(init: Partial<Unit> = {}): Unit {
     savings: 0,
     hungry: 0,
     unpaid: 0,
+    men: 0,
     ...init,
   };
 }
@@ -323,6 +387,7 @@ export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
   savings: I,
   hungry: I,
   unpaid: I,
+  men: I,
   label: computed(S, (o: Unit) => unitLabel(o)),
 });
 

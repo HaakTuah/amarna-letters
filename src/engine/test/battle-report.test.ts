@@ -11,6 +11,7 @@ import {
   inboxOf,
   move,
   newGame,
+  newGameConfig,
   newUnit,
   single,
   support,
@@ -31,7 +32,7 @@ describe("BattleReportTests", () => {
 
   test("A move from out of sight that bounces your move is reported with where it came from", () => {
     // The Sutean steppe lies beyond Babylon's sight; Suhu, next to Sippar, within it.
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     s.units.push(newUnit({ id: "u90", power: "Assyria", kind: "Army", province: "steppe" }));
     Assert.doesNotContain("steppe", Views.sight(s, WorldMap.default, "Babylonia"));
     resolve(
@@ -48,7 +49,7 @@ describe("BattleReportTests", () => {
   });
 
   test("A failed attack on a held province gives the strengths", () => {
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     resolve(
       s,
       subs({
@@ -63,7 +64,7 @@ describe("BattleReportTests", () => {
 
   test("When a stronger move takes the province that is the reason given", () => {
     // Babylon's army in Suhu and Assyria's from Ashur both strike Terqa; only Assyria's is supported.
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     s.owner.set("suhu", "Babylonia");
     s.walls.delete("suhu");
     s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "suhu" }));
@@ -80,7 +81,7 @@ describe("BattleReportTests", () => {
   });
 
   test("A support whose unit is destroyed is void and a cut support says from where", () => {
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     resolve(
       s,
       subs({
@@ -93,7 +94,7 @@ describe("BattleReportTests", () => {
     Assert.contains("- A ekallate is destroyed", destroyed);
     Assert.contains("- A ashur -> terqa: fails: the unit holding terqa (Mitanni's army) kept its place; your strength 1 against 1", destroyed);
 
-    let t = newGame(1);
+    let t = newGame(1, newGameConfig({ peopleDefence: 0 }));
     resolve(
       t,
       subs({
@@ -109,7 +110,7 @@ describe("BattleReportTests", () => {
   });
 
   test("Your own units and a unit moving the other way are named as the reason and walls say what came of getting in", () => {
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     resolve(
       s,
       subs({
@@ -131,7 +132,7 @@ describe("BattleReportTests", () => {
 
   test("An assault on a walled city of the king s own is told among his own lines with his side and the strengths", () => {
     // The fix pass after item 4, minor finding 5: until the siege package such an assault showed only under "Seen nearby".
-    let s = walled(newGame(1), "suhu", 2);
+    let s = walled(newGame(1, newGameConfig({ peopleDefence: 0 })), "suhu", 2);
     s.owner.set("suhu", "Babylonia");
     resolve(s, subs({ Mitanni: { orders: [move("terqa", "suhu")] } }));
     let own = reportOf(s, "Babylonia").split("\nSeen nearby:")[0];
@@ -141,7 +142,7 @@ describe("BattleReportTests", () => {
     );
 
     // Stormed with three against walls 2 and an army of Babylon's within them.
-    s = walled(newGame(1), "suhu", 2);
+    s = walled(newGame(1, newGameConfig({ peopleDefence: 0 })), "suhu", 2);
     s.owner.set("suhu", "Babylonia");
     s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "suhu" }));
     removeAll(s.units, (u) => u.province === "sippar");
@@ -170,7 +171,7 @@ describe("BattleReportTests", () => {
   });
 
   test("The reasons reveal nothing to other kings", () => {
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     resolve(
       s,
       subs({

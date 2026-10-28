@@ -68,6 +68,11 @@ export interface GameConfig {
    */
   terrainDefence: number;
   /**
+   * Whether a land's people resist an army that enters it where no troop stands (item 10+a, "The people defend their
+   * land"): 1 on, 0 off.
+   */
+  peopleDefence: number;
+  /**
    * A besieged coastal city supplied by sea, because no fleet of its besieger holds its waters (build order item 7a,
    * "Finer seas"), is worn down this many steps less each season. 0 turns the blockade's part in sieges off.
    */
@@ -131,7 +136,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     fleetCost: 120,
     armyUpkeep: 20,
     fleetUpkeep: 25,
-    catastropheChance: 0.035,
+    catastropheChance: 0.0175,
     siegeUpkeep: 15,
     maxWalls: 3,
     fortifyCost: 50,
@@ -141,6 +146,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     siegeCatchMin: 5,
     siegeCatchMax: 75,
     terrainDefence: 1,
+    peopleDefence: 1,
     seaSupply: 1,
     travelDays: 45,
     winterArmyLoss: 30,
@@ -188,6 +194,7 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   siegeCatchMin: I,
   siegeCatchMax: I,
   terrainDefence: I,
+  peopleDefence: I,
   seaSupply: I,
   travelDays: I,
   winterArmyLoss: I,

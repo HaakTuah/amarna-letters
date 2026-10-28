@@ -96,13 +96,14 @@ describe("EconomyTests", () => {
     e.beginTurn();
     Assert.equal(0, u.unpaid);
     Assert.equal(0, u.hungry);
-    Assert.equal(purse + Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100), s.markets.get("hattusa").purse);
+    // Within a few shekels: settled people moving between provinces take their share of the purse (item 10+a).
+    Assert.inRange(s.markets.get("hattusa").purse, purse + Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100) - 3, purse + Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100) + 3);
     Assert.equal(s.config.armyUpkeep - Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100), u.savings);
     Assert.true(s.stores.get("hattusa") < stores + taxOf(harvestOf(Map.get("hattusa"))));
     Assert.equal(carriedOf("Army"), u.food);
   });
 
-  test("Troops with nothing to eat go hungry and mutiny; their savings go home", () => {
+  test("Troops with nothing to eat go hungry and mutiny; their men carry their savings home", () => {
     const s = game();
     const e = new TurnEngine(s);
     const u = single(s.units, (x) => x.province === "hattusa");
@@ -117,8 +118,15 @@ describe("EconomyTests", () => {
     e.beginTurn();
     Assert.false(s.units.includes(u));
     Assert.true(s.events.some((x) => x.signal === "mutiny"));
-    Assert.true(s.markets.get("hattusa").purse >= purse + 30);
     Assert.contains("mutinied, hungry 2 seasons running", notice(s, "The treasury"));
+    // The men carry their savings home, and nothing reaches home before they do (Haakon, 28 October 2026).
+    const walk = single(s.walking, (w) => w.home === "hattusa");
+    Assert.true(walk.savings >= 30);
+    while (s.walking.length > 0) {
+      s.turn++;
+      new TurnEngine(s).beginTurn();
+    }
+    Assert.true(s.markets.get("hattusa").purse >= purse + walk.savings - 5);
   });
 
   test("Troops unpaid for a few seasons mutiny", () => {

@@ -1,2 +1,2 @@
-<!-- Generated from the design document, Build order tab, revision 64 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Build order tab, revision 72 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 16. **The royal council.** Four advisors built from the script kings' tactics, who only inform and are never characters ("The royal council"). A toggle: on by default for human seats, which can turn it off; comparing model kings with and without it waits until Haakon asks for model games. Also "Omens of the end" under Victory, shown to every seat and character whether or not the council is on.

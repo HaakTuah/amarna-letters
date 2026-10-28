@@ -25,6 +25,7 @@ export const SignalKinds: readonly string[] = [
   "trade-out", "ship-out", "traded", "sale-abroad", "purchase-abroad", "toll-set", "toll-paid", "smuggled", "smuggler-found", "ship-lost", "food-bought", "sack",
   "false-name", "false-envoy", "impostor-exposed", "false-envoy-paid", "gift-to-person", "questioned", "questioned-truth", "questioned-lie",
   "captive-handed", "tablet-stolen",
+  "tax-set", "famine", "colonists", "resisted", "drought", "flood",
 ];
 
 const MessengerBlamed = rx(

@@ -11,7 +11,7 @@
  * with characters who travel (11b), roads (15) and horses for messengers (the economy's second phase).
  */
 import { connectionDays, connectionKm } from "./distance.ts";
-import { Rivers, crossingBetween } from "./geography.ts";
+import { Rivers, climateOf, crossingBetween } from "./geography.ts";
 import { type Edge, WinterSeason, type WorldMap, dangerousInWinter } from "./map.ts";
 
 /** Points to a day on the road: progress counts in tenths of a day, so a factor worth a day or less still counts. */
@@ -24,6 +24,15 @@ export const PointsPerDay = 10;
  * no time, only its storms).
  */
 export const TravelData = { ferryDays: 1, floodDays: 4, sneakPercent: 150, winterPassPercent: 200 } as const;
+
+/**
+ * First guesses for land and climate on the road (item 10+a, tuned in item 18): in arid land a company can be only as
+ * large as the wells allow, `wells` men or measures, and takes `dryPer` percent longer for each beyond, at most `dryMost`
+ * ("Water"); in winter or arid land its animals' fodder is carried, `fodderPercent` of what they can carry, which eats
+ * into the load ("Fodder"); and in winter the land itself is slower where its winter is cool or hard, rain and snow on
+ * the roads ("The land it crosses": `coolWinter`, `hardWinter` percent of the time).
+ */
+export const ClimatePace = { wells: 30, dryPer: 2, dryMost: 100, fodderPercent: 25, coolWinter: 110, hardWinter: 125 } as const;
 
 /**
  * First guesses for the pace of a large company (item 9+a, tuned in item 18): a long column takes a percent longer for
@@ -117,11 +126,19 @@ export function legPoints(map: WorldMap, from: string, to: string, season: numbe
   let percent = 100;
   // Winter: a mountain pass under snow is slow going, never closed.
   if (snowbound(map, from, to, season)) percent = (percent * TravelData.winterPassPercent) / 100;
+  // The season on land (item 10+a): roads in rain and snow where the winter is cool or hard.
+  const land = edgeBetween(map, from, to)!.kind !== "Sea";
+  if (land && season === WinterSeason) {
+    const w = climateOf(to).winter;
+    if (w !== "Mild") percent = (percent * (w === "Hard" ? ClimatePace.hardWinter : ClimatePace.coolWinter)) / 100;
+  }
   // Sneaking: off the road on land; at sea a ship is a ship.
   if (company.sneaking && edgeBetween(map, from, to)!.kind !== "Sea") percent = (percent * TravelData.sneakPercent) / 100;
-  // Size, load and animals (9+a); neutral until their items: water and fodder (10+), an army's size and forced marches
+  // Size, load and animals (9+a); water and fodder (10+a); neutral until their items: an army's size and forced marches
   // (13), the leader (11b), roads (15), horses (the economy's second phase).
-  percent = (percent * sizeAndLoad(company) * waterAndFodder(company) * leader(company) * roads(company)) / 100_000_000;
+  const dry = land && (climateOf(to).water === "Arid" || climateOf(from).water === "Arid" || crossingBetween(from, to)?.kind === "Desert");
+  const fed = withFodder(company, dry || (land && season === WinterSeason && climateOf(to).winter !== "Mild"));
+  percent = (percent * sizeAndLoad(fed) * water(company, dry) * leader(company) * roads(company)) / 100_000_000;
   return Math.max(1, Math.round(days * PointsPerDay * (percent / 100)));
 }
 
@@ -135,7 +152,19 @@ function sizeAndLoad(c: Company): number {
   const beasts = c.animals === "Oxcarts" ? PaceData.oxcartPercent : c.animals === "Porters" ? PaceData.portersPercent : 100;
   return Math.floor(((100 + long) * loaded * beasts) / 10_000);
 }
-const waterAndFodder = (_c: Company): number => 100;
+/** In arid land, a company larger than the wells allow is slow to water (item 10+a). */
+function water(c: Company, dry: boolean): number {
+  if (!dry) return 100;
+  const size = c.size ?? 0;
+  return 100 + Math.min(ClimatePace.dryMost, Math.max(0, (size - ClimatePace.wells) * ClimatePace.dryPer));
+}
+
+/** In winter or arid land, pack animals carry their own fodder, which eats into the load (porters need none). */
+function withFodder(c: Company, needed: boolean): Company {
+  const cap = c.capacity ?? 0;
+  if (!needed || cap <= 0 || c.animals === "Porters") return c;
+  return { ...c, load: Math.min(cap, (c.load ?? 0) + Math.floor((cap * ClimatePace.fodderPercent) / 100)) };
+}
 const leader = (_c: Company): number => 100;
 const roads = (_c: Company): number => 100;
 

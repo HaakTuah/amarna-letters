@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 23 (2026-10-27). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 24 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Lies, tablets and scribes
 
 **Why the envoy lies, and how he is caught** (decided 19 October 2026). Pillar 3: only someone with a motive bends a message, and the envoy has one. He carries the gifts, so he can skim them or take them whole, and he answers for how they were received.
@@ -17,7 +17,7 @@
 **Swapped tablets and false envoys** (decided 19 October 2026).
 
 - **A swapped inventory.** Tablets travelled in sealed clay envelopes. An envoy who skimmed the gold can replace the inventory tablet with a forgery stating less, which needs the forgery skill to fake the sender's seal and is caught when the tablet is examined. Envoy forgery gains a motive.
-- **A false envoy.** A character can claim to serve a king he does not: he declares his employer at a court as he declares his name (see "Declaring a name"), and may carry a forged tablet as credentials. The motive is the host's return gifts; Amenhotep III boasted that no envoy left Egypt without silver, gold and fine clothes. The check is the period's: send someone to the claimed king and ask, which takes seasons.
+- **A false envoy.** A character can claim to serve a king he does not: he declares his employer at a court as he declares his name (see "Declaring a name"), and may carry a forged tablet as credentials. He is received as any envoy is, in a full audience (decided 28 October 2026). The motive is the host's return gifts; Amenhotep III boasted that no envoy left Egypt without silver, gold and fine clothes. The check is the period's: send someone to the claimed king and ask, which takes seasons.
 
 **A king seals what his scribe wrote** (decided 19 October 2026). Forgery stays a skill, because a forger must fool the people who can read a tablet, the receiving court's scribes and anyone paid to examine it, not the king who cannot. But most kings could not read the tablets they sealed: Tushratta dictated in Hurrian and pressed his seal on an Akkadian text he took on trust. So:
 

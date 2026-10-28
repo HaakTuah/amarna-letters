@@ -4,7 +4,7 @@
  * cheapest of his markets, his troops' food, his caravans and ships, the foreign markets he knows of and the tolls that
  * bear on him (item 9+b), and what the free cities ask.
  */
-import { cmpNum, cmpStr, desc, priceForTen, sortBy, sum, type SeatView } from "@amarna/engine";
+import { WorldMap, cmpNum, cmpStr, desc, groupBy, menOf, priceForTen, sortBy, sum, type SeatView } from "@amarna/engine";
 import { joinS as join } from "./text.ts";
 
 export function economyLines(v: SeatView): string[] {
@@ -25,6 +25,7 @@ export function economyLines(v: SeatView): string[] {
     const dry = ps.filter((x) => x.purse < 10 && x.need >= 4);
     if (dry.length > 0) lines.push(`- Purses nearly empty, their markets buying little: ${join(", ", dry.map((x) => x.province))}.`);
   }
+  lines.push(...peopleLines(v));
   const mine = v.units.filter((u) => u.power === v.power);
   if (mine.length > 0) {
     const kind = (k: string): string => (k === "Army" ? "army" : "fleet");
@@ -54,5 +55,38 @@ export function economyLines(v: SeatView): string[] {
     lines.push(`- Tolls on your goods abroad: ${join(", ", onYou.map((t) => `${t.holder} ${t.percent}%${t.partner === null ? "" : " on yours alone"}${t.province !== null ? ` at ${t.province}` : ""}`))}.`);
   if (v.cityPrices.size > 0)
     lines.push(`FREE CITIES' PRICES (what each adds to its buyer's strength, in shekels): ${join(", ", sortBy([...v.cityPrices.entries()], [([k]: [string, number]) => k, cmpStr]).map(([k, p]) => `${k} ${p}`))}.`);
+  return lines;
+}
+
+/** A count of people in thousands, as a king reads it. */
+const k = (n: number): string => `${Math.round(n / 1000)}k`;
+
+/**
+ * The people at home (item 10+a), compact: totals, the provinces that went hungry, the rates set, the land well below
+ * what it carries, where an army can be raised, the yields that changed and the resistance the court's troops would meet.
+ */
+export function peopleLines(v: SeatView): string[] {
+  const lines: string[] = [];
+  const ps = v.provinces;
+  if (ps.length > 0) {
+    lines.push(
+      `YOUR PEOPLE: settled ${k(sum(ps, (x) => x.settled))} (men of fighting age ${k(sum(ps, (x) => x.men))}), loose ${k(sum(ps, (x) => x.loose))}${v.walking > 0 ? `; ${k(v.walking)} discharged men walking home` : ""}. Harvest this season ${sum(ps, (x) => x.harvest)} measures.`,
+    );
+    const hungry = ps.filter((x) => x.fed < 1000);
+    if (hungry.length > 0) lines.push(`- Went hungry last season (share of their food the farmers had): ${join(", ", hungry.map((x) => `${x.province} ${Math.round(x.fed / 10)}%`))}.`);
+    lines.push(`- Tax: ${join("; ", groupBy(sortBy(ps, [(x) => x.taxRate, cmpNum], [(x) => x.province, cmpStr]), (x) => x.taxRate).map(([rate, g]) => `${rate}% in ${join(", ", g.map((x) => x.province))}`))}.`);
+    const empty = ps.filter((x) => x.room > 0 && x.settled * 10 < x.room * 9);
+    if (empty.length > 0) lines.push(`- Land with room for more settled (settled of what it carries): ${join(", ", empty.map((x) => `${x.province} ${k(x.settled)} of ${k(x.room)}`))}.`);
+    const home = new Set(WorldMap.default.homeOf(v.power).map((p) => p.id));
+    const levy = ps.filter((x) => home.has(x.province));
+    if (levy.length > 0)
+      lines.push(`- Men of fighting age in your homeland (an army takes ${k(menOf("Army"))}, a fleet ${k(menOf("Fleet"))}): ${join(", ", levy.map((x) => `${x.province} ${k(x.men)}`))}.`);
+  }
+  const changed = sortBy([...v.yields.entries()].filter(([id, y]) => y !== WorldMap.default.get(id).yield), [([id]: [string, number]) => id, cmpStr]);
+  if (changed.length > 0) lines.push(`YIELDS as their people bring them in now, where they differ from the map's (yours and those in sight): ${join(", ", changed.map(([id, y]) => `${id} ${y} (map ${WorldMap.default.get(id).yield})`))}.`);
+  if (v.resistance.size > 0)
+    lines.push(
+      `RESISTANCE your troops would meet entering empty land in sight (a move must be stronger): ${join("; ", groupBy(sortBy([...v.resistance.entries()], [([id]: [string, number]) => id, cmpStr]), ([, r]) => r).map(([r, g]) => `${r}: ${join(", ", g.map(([id]) => id))}`))}.`,
+    );
   return lines;
 }
