@@ -49,7 +49,7 @@ describe("RequestTextTests", () => {
       calling: "scribe",
       status: "Employed",
       employer: "Egypt",
-      contract: newContract({ wage: 10 }),
+      contract: newContract({ fee: 60, advance: 30, untilTurn: 6 }),
       at: "Hatti",
       traits: newTraits({ loyalty: loyalty, greed: greed, competence: 60, ambition: 40, courage: 50 }),
       // Item 10: it believes what it can do.

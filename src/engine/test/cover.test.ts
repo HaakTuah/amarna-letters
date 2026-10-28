@@ -70,8 +70,8 @@ describe("CoverTests", () => {
       person: singleOrNull(v.court, (c) => c.id === id),
       gold: v.gold,
       fine: s.treasuries.get(p).gold,
-      wages: v.wages,
-      backPay: v.backPay,
+      fees: v.fees,
+      feesDue: v.feesDue,
       strength: v.strength,
       court: v.court.length,
     });
@@ -113,22 +113,18 @@ describe("CoverTests", () => {
     let held = endAudience(at, newHostReply({ detain: true }));
     Assert.equal("Detained", char(held, envoy.id).duty);
 
-    // From the audience until the season it would have come home, Egypt sees the same in both games: its treasury,
-    // its strength, and the back pay it owes, growing by the wage each season, though the envoy held earns nothing it
-    // will collect until it is let go.
+    // From the audience until the season it would have come home, Egypt sees the same in both games: its treasury, its
+    // strength, and the job as agreed, the rest of its fee still to fall due (item 11a: nothing accrues either way).
     Assert.equal(seenOf(home, "Egypt", envoy.id), seenOf(held, "Egypt", envoy.id));
     Assert.contains('"duty":"on the road home"', seenOf(held, "Egypt", envoy.id));
-    function owedOf(): number | null {
-      return single(Views.for(held, "Egypt").court, (c) => c.id === envoy.id).backPay;
-    }
-    let [owed, wage] = [owedOf()!, envoy.contract!.wage];
+    const fee = envoy.contract!.fee;
     for (let i = 1; i < travel; i++) {
       new TurnEngine(home).resolve(none());
       new TurnEngine(held).resolve(none());
       begin(home);
       begin(held);
       Assert.equal(seenOf(home, "Egypt", envoy.id), seenOf(held, "Egypt", envoy.id));
-      Assert.equal(owed + i * wage, owedOf());
+      Assert.equal(fee, single(Views.for(held, "Egypt").court, (c) => c.id === envoy.id).fee);
     }
 
     // Then the rumour that it is overdue: the cover ends, and Egypt sees what it has heard.
@@ -143,21 +139,19 @@ describe("CoverTests", () => {
     Assert.false(seen.ready);
   });
 
-  test("An envoy who changes sides stays on its lords list and owed its back pay until dismissed", () => {
+  test("An envoy who changes sides stays on its lords list with its job as agreed until dismissed", () => {
     let [at, envoy] = atAudience();
     let travel = new TurnEngine(at).travelTurns("Alashiya", "Egypt");
-    let owedBefore = char(at, envoy.id).backPay.get("Egypt");
-    Assert.true(owedBefore > 0);
+    let feeBefore = char(at, envoy.id).contract!.fee;
     let home = endAudience(at, newHostReply({ end: true }));
     let gone = endAudience(at, newHostReply({ jobOffer: 40 }), newEnvoyReaction({ acceptJob: true }));
     let defector = char(gone, envoy.id);
     Assert.equal("Alashiya", defector.employer);
     Assert.contains(defector.facts, (f) => f.tag === "defected" && f.secrecy === "Public");
-    // It will never go back to collect what Egypt owed it; Egypt's books still count it.
-    Assert.false(defector.backPay.has("Egypt"));
-    Assert.equal(owedBefore, coverOf(defector, "Egypt")!.backPay);
+    // It broke its job with Egypt; Egypt's books still count the job as agreed.
+    Assert.equal(feeBefore, coverOf(defector, "Egypt")!.fee);
 
-    // Egypt sees an envoy on the road home, with no word of the public fact, its back pay growing as before.
+    // Egypt sees an envoy on the road home, with no word of the public fact.
     Assert.equal(seenOf(home, "Egypt", envoy.id), seenOf(gone, "Egypt", envoy.id));
     for (let i = 1; i < travel; i++) {
       new TurnEngine(home).resolve(none());
@@ -168,7 +162,7 @@ describe("CoverTests", () => {
     }
     Assert.contains(Views.for(gone, "Alashiya").court, (c) => c.id === envoy.id && c.ready);
 
-    // Word comes only that it has not returned, as for an envoy who is held: it stays on the list, its back pay still growing.
+    // Word comes only that it has not returned, as for an envoy who is held: it stays on the list, its job as agreed.
     while (!inboxOf(gone, "Egypt").some((x) => x.kind === "Rumor" && x.subject === envoy.id)) {
       new TurnEngine(gone).resolve(none());
       begin(gone);
@@ -179,26 +173,22 @@ describe("CoverTests", () => {
     // No longer due back: the word that it has not returned clears the reckoning, as for an envoy really held.
     Assert.equal("", seen.timing);
     Assert.doesNotContain(seen.knownFacts, (f) => f.includes("Abandoned"));
-    let [wage, owed] = [seen.wage!, seen.backPay!];
-    let purse = defector.purse;
-    new TurnEngine(gone).resolve(none());
-    begin(gone);
-    // Only its new master, at whose court it stands, pays it.
-    Assert.equal(purse + 40, defector.purse);
-    Assert.equal(owed + wage, single(Views.for(gone, "Egypt").court, (c) => c.id === envoy.id).backPay);
+    Assert.equal(feeBefore, seen.fee);
+    // Its new master handed over the advance of its new job when it went over (half of six seasons at 40).
+    Assert.equal([240, 120], [defector.contract!.fee, defector.contract!.advance]);
 
-    // Dismissing it is accepted, like any servant away, and ends the cover, its wage and the back pay Egypt believed it owed.
+    // Dismissing it is accepted, like any servant away, and ends the cover and the rest of the fee Egypt believed would fall due.
     let v = new OrderValidator(gone).validate("Egypt", newTurnSubmission({ orders: [dismiss(envoy.id)] }));
     Assert.empty(v.rejected);
-    let backPay = Views.for(gone, "Egypt").backPay;
+    let due = Views.for(gone, "Egypt").feesDue;
     new TurnEngine(gone).resolve(orders("Egypt", dismiss(envoy.id)));
     Assert.null(coverOf(defector, "Egypt"));
-    Assert.equal(backPay - owed - wage, Views.for(gone, "Egypt").backPay);
+    Assert.equal(due - (seen.fee! - seen.advance!), Views.for(gone, "Egypt").feesDue);
     Assert.contains(inboxOf(gone, "Egypt"), (i) => i.title === "A servant leaves" && i.body === `${defector.name} has been dismissed.`);
     begin(gone);
     Assert.doesNotContain(Views.for(gone, "Egypt").court, (c) => c.id === envoy.id);
     Assert.equal("Alashiya", defector.employer);
-    Assert.equal(purse + 40 + 40, defector.purse);
+    Assert.equal(240, defector.contract!.fee);
   });
 
   test("Orders for a servant its master believes away never betray what happened", () => {
@@ -287,11 +277,11 @@ describe("CoverTests", () => {
     Assert.equal("held captive at the court of Assyria; Assyria demands 1 mina 30 shekels for their return (order pay_ransom)", known.duty);
     Assert.equal(90, known.ransomDemand);
     Assert.false(known.ready);
-    // A captive's wage builds up as back pay, as it did while its master believed it at its post: the figure goes on.
-    Assert.equal(char(caught, id).backPay.get("Babylonia"), known.backPay);
+    // A captive's job stands, as it did while its master believed it at its post: the rest of its fee is still to fall due.
+    Assert.equal(char(caught, id).contract!.fee, known.fee);
     Assert.equal(
-      new TurnEngine(caught).wages("Babylonia"),
-      sum(Views.for(caught, "Babylonia").court, (c) => c.wage ?? 0),
+      new TurnEngine(caught).feesDue("Babylonia"),
+      sum(Views.for(caught, "Babylonia").court, (c) => (c.fee ?? 0) - (c.advance ?? 0)),
     );
   });
 
@@ -404,7 +394,7 @@ describe("CoverTests", () => {
     let [s, defector] = defectorOf();
     let audience = sendTo(s, "Alashiya", defector, "Hatti");
     let egypt = seenOf(s, "Egypt", defector.id);
-    let wages = new TurnEngine(s).wages("Alashiya");
+    let wages = new TurnEngine(s).feesDue("Alashiya");
     Assert.equal("at the court of Hatti as envoy", single(Views.for(s, "Alashiya").court, (c) => c.id === defector.id).duty);
 
     // Hatti holds it: Alashiya, which sent it, sees it on the road home, as Egypt still does.
@@ -414,7 +404,7 @@ describe("CoverTests", () => {
     Assert.notNull(coverOf(defector, "Egypt"));
     let seen = single(Views.for(s, "Alashiya").court, (c) => c.id === defector.id);
     Assert.equal(["on the road home", "travelling"], [seen.duty, seen.where]);
-    Assert.equal(wages, new TurnEngine(s).wages("Alashiya"));
+    Assert.equal(wages, new TurnEngine(s).feesDue("Alashiya"));
     Assert.equal(egypt, seenOf(s, "Egypt", defector.id));
 
     // Hatti lets it go: Egypt's list and wages do not change for an event between two other courts.
@@ -424,16 +414,16 @@ describe("CoverTests", () => {
     Assert.equal("on the road home", single(Views.for(s, "Alashiya").court, (c) => c.id === defector.id).duty);
   });
 
-  test("A defector that goes over again stays on both former masters lists and is paid by both", () => {
+  test("A defector that goes over again stays on both former masters lists", () => {
     let [s, defector] = defectorOf();
     let audience = sendTo(s, "Alashiya", defector, "Hatti");
     let egypt = seenOf(s, "Egypt", defector.id);
-    let wages = new TurnEngine(s).wages("Alashiya");
+    let wages = new TurnEngine(s).feesDue("Alashiya");
     let court = Views.for(s, "Alashiya").court.length;
 
     answer(s, audience, newHostReply({ jobOffer: 50 }), newEnvoyReaction({ acceptJob: true }));
     Assert.equal("Hatti", defector.employer);
-    Assert.equal(wages, new TurnEngine(s).wages("Alashiya"));
+    Assert.equal(wages, new TurnEngine(s).feesDue("Alashiya"));
     Assert.equal(court, Views.for(s, "Alashiya").court.length);
     Assert.equal("on the road home", single(Views.for(s, "Alashiya").court, (c) => c.id === defector.id).duty);
     Assert.equal(egypt, seenOf(s, "Egypt", defector.id));

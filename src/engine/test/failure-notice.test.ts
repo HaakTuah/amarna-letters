@@ -9,6 +9,7 @@ import {
   dispatch,
   first,
   formatMoney,
+  feeFor,
   hire,
   inboxOf,
   newGame,
@@ -29,57 +30,31 @@ describe("FailureNoticeTests", () => {
 
   test("A hire the person declines is a rejection notice", () => {
     let s = newGame(6);
-    let free = first(s.characters, (c) => c.status === "Free");
+    for (const c of s.characters) c.seeking = false;
+    let [free, other] = s.characters.filter((c) => c.status === "Free" && c.duty === "None").slice(0, 2);
+    free.at = "Hatti";
+    other.at = "Assyria";
     let e = begin(s);
-    for (const p of ["Egypt", "Hatti", "Assyria"] as const) {
-      free.pitches.set(p, "I am worth it.");
-      free.askingPrice.set(p, 20);
-    }
+    free.askingPrice.set("Hatti", 20);
+    other.askingPrice.set("Assyria", 20);
     e.resolve(
       new Dict([
-        ["Egypt", newTurnSubmission({ orders: [hire(free.id, 25)] }) /* outbid */],
-        ["Hatti", newTurnSubmission({ orders: [hire(free.id, 40)] }) /* wins */],
-        ["Assyria", newTurnSubmission({ orders: [hire(free.id, 10)] }) /* below the price */],
+        ["Egypt", newTurnSubmission({ orders: [hire(free.id, 600, 6, 600)] }) /* not where the person stands */],
+        ["Hatti", newTurnSubmission({ orders: [hire(free.id, 120, 6, 120)] }) /* wins */],
+        ["Assyria", newTurnSubmission({ orders: [hire(other.id, 60, 6, 60)] }) /* below the price */],
       ]),
     );
+    begin(s);
 
     Assert.equal("Hatti", free.employer);
-    for (const [p, wage, why] of [
-      ["Egypt", 25, "another court offered more"],
-      ["Assyria", 10, "they ask 20 shekels"],
-    ] as const) {
-      let notice = single(inboxOf(s, p), (i) => i.title === "Not hired");
-      Assert.equal("Rejected", notice.kind);
-      Assert.equal(`${free.name} declined your offer of ${formatMoney(wage)} a season: ${why}.`, notice.body);
-    }
-    Assert.doesNotContain(inboxOf(s, "Hatti"), (i) => i.title === "Not hired");
-    // The winner reads the rulebook's words: in service at the end of the season, sent on errands from the next.
-    Assert.equal(
-      `${free.name} entered your service at the end of last season, at ${formatMoney(40)} a season, and can be sent on an errand now.`,
-      single(inboxOf(s, "Hatti"), (i) => i.title === "Hired").body,
-    );
-  });
-
-  test("A hire lost to an equal offer says so", () => {
-    let s = newGame(6);
-    let free = first(s.characters, (c) => c.status === "Free");
-    free.traits.sympathy = null;
-    let e = begin(s);
-    for (const p of ["Egypt", "Hatti"] as const) {
-      free.pitches.set(p, "I am worth it.");
-      free.askingPrice.set(p, 20);
-    }
-    e.resolve(
-      new Dict([
-        ["Egypt", newTurnSubmission({ orders: [hire(free.id, 30)] })],
-        ["Hatti", newTurnSubmission({ orders: [hire(free.id, 30)] })],
-      ]),
-    );
-
-    let loser: Power = free.employer === "Egypt" ? "Hatti" : "Egypt";
-    let notice = single(inboxOf(s, loser), (i) => i.title === "Not hired");
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.kind === "Rejected" && i.body.includes("hired in person"));
+    let notice = single(inboxOf(s, "Assyria"), (i) => i.title === "Not hired");
     Assert.equal("Rejected", notice.kind);
-    Assert.equal(`${free.name} declined your offer of ${formatMoney(30)} a season: they chose another court that offered as much.`, notice.body);
+    Assert.equal(
+      `${other.name} declined your offer of ${formatMoney(60)} for 6 seasons: they ask 20 shekels a season of the term, ${formatMoney(feeFor(20, 6, 100, 80))} for this one with this advance, counting the rest only as far as they trust your court to pay it.`,
+      notice.body,
+    );
+    Assert.doesNotContain(inboxOf(s, "Hatti"), (i) => i.title === "Not hired");
   });
 
   test("A spy sent out is reported as having left last season", () => {

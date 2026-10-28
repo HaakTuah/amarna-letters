@@ -27,6 +27,7 @@ import { travel, travelRules } from "./rules-travel.ts";
 import { authorityRules } from "./rules-authority.ts";
 import { economyRules } from "./rules-economy.ts";
 import { peopleRules } from "./rules-people.ts";
+import { moneyRules } from "./rules-money.ts";
 import { warRules } from "./rules-war.ts";
 import { intelligenceRules } from "./rules-intelligence.ts";
 const rulesCache = new Map<string, string>();
@@ -70,9 +71,9 @@ ${ending(c)}${sharedVictory}
         sb.appendLine(`
 HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
 1. Departures: a servant whose notice has run out, and who was not renewed, leaves if at your court with no task.
-2. The economy (see ECONOMY): the harvest's tax in grain goes into each province's stores and your mines' gold into your treasury; stores and markets spoil a little; each town eats from its market, and a besieged city from its stores; then the people of the land (see PEOPLE): discharged men arrive home, the countryside eats and the hungry leave the land, births, and the settled and the loose move. You pay your troops (${c.armyUpkeep} an army, ${c.fleetUpkeep} a fleet, nearest your capital first) and the wages of your people at court; the wages of your people away are added to their back pay; unpaid people lose loyalty and may leave. Then every unit eats, and caravans on the road go on.
-3. Arrivals: envoys reach the courts they were sent to, or come home and report; spies reach their posts; spies' reports, ransoms and rumours arrive. Then everyone you see at your court whom you owe back pay is paid it, as far as your treasury allows.
-4. Your court: candidates you sent for last season present themselves; background checks and examinations ordered last season report; terms end (a servant content with the wage serves on, one who wants more or is still owed back pay gives notice); a servant on notice who has come home leaves.
+2. The economy (see ECONOMY): the harvest's tax in grain goes into each province's stores and your mines' gold into your treasury; stores and markets spoil a little; each town eats from its market, and a besieged city from its stores; then the people of the land (see PEOPLE): discharged men arrive home, the countryside eats and the hungry leave the land, births, and the settled and the loose move. You pay your troops (${c.armyUpkeep} an army, ${c.fleetUpkeep} a fleet, nearest your capital first). Then every unit eats, and caravans on the road go on.
+3. Arrivals: envoys reach the courts they were sent to, or come home and report; spies reach their posts; spies' reports, ransoms and rumours arrive, and people travelling on their own way reach the courts they set out for.
+4. Your court: candidates you sent for last season present themselves; background checks and examinations ordered last season report; jobs are done and the rest of their fees fall due (see WORK AND MONEY); a servant on notice who has come home leaves. Then the people of the age decide their own seasons: they move between courts, keep hoards, offer loans and deal with each other, and newcomers come onto the map through its doors.
 5. Audiences: you receive the foreign envoys at your court and answer them. Gifts and gold you send back are paid when the audience ends.
 6. Orders: every king gives orders at once, in secret. Then each standing order that fires (see STANDING ORDERS) answers the moves just ordered and puts its orders in place of yours for the same units or people. Yours are checked in the order your reply lists them (units, then letters, then other orders), then those of your standing orders that fire, and the gold each needs is reserved as it is accepted, so a later order can be refused for lack of gold. There is no "else": a refused order is not replaced by another, and a purchase meant as a fallback is refused if an earlier bid has reserved the gold, even if that city is then not sold.
 7. Movement and battles: all units move at once.
@@ -83,7 +84,7 @@ HOW A SEASON RESOLVES (one turn; three seasons make a year), step by step:
 12. Purchases and walls: a city's price is paid only when it accepts. A city taken by troops this season is not sold; when two or more kings bid for one city, its elders will not choose between them and sell to none. Then walls ordered strengthened rise a level, and are paid for.
 13. Disbanding: the men go home, their savings into the purse of the province they were raised in.
 14. Levies: a new army or fleet is raised only in a province of your homeland that you still hold and that is empty after movement; otherwise none is raised and nothing is paid. Then the markets: grain handed to towns, sales and purchases of grain (all of one market's together), and caravans setting out.
-15. Envoys set out (their gold and the scribe's fee are paid now), detained envoys are released, servants are dismissed, candidates are sent for and background checks paid for. Then hiring and renewals are settled: a person hired this season enters your service at the end of the season and can be sent on an errand from next season; a person takes the highest offer at or above the price it asks, so when two courts bid for one person the higher wage wins.
+15. Envoys set out (their gold and the scribe's fee are paid now), detained envoys are released, servants are dismissed, candidates are sent for and background checks paid for. Then loans, repayments and fees are paid, and hiring and renewals are settled: a person hired this season enters your service at the end of the season and can be sent on an errand from next season; a person takes the offer worth most to it, if it reaches what it asks for the term.
 16. Intelligence: watchmen are paid; captors decide their captives' fates; spies set out (a spy must be one of your own people at your court, sent to watch a court or a province) or are recalled; assays, examinations and forgeries are paid for; ransoms set out. Then each posted spy may be caught, or else sends its report home.
 17. Catastrophes strike.
 18. Strength and growth are reckoned, and ${c.openAge ? `the age goes on (it has no end)` : `the age may end`}.
@@ -120,11 +121,13 @@ ${economyRules(c)}
 
 ${peopleRules(c)}
 
+${moneyRules(c)}
+
 ENVOYS: THE ONLY WAY KINGS COMMUNICATE
 - You never speak to another king directly. You give an envoy a spoken message, a mandate (what the envoy may agree to), optionally your seal with its limits (AUTHORITY AND PASSAGE), and optionally gold and a tablet. ${travel(c)}
 - The greeting is written by your scribes from your choices and sealed: it arrives exactly as written. The message itself is spoken by the envoy in their own words. Envoys have motives of their own (greed, fear, ambition, sympathies) and may soften, embellish, omit, take bribes, skim gold, exceed their mandate, stay too long, or defect. Their reports home are written to their own advantage.
 - Gold an envoy carries goes with an inventory tablet sealed by the court that sends it, stating the amount, for the scribe's fee of ${c.inventoryFee} (gold a host sends back has one too, free): the receiving court's weighers report what they found against it, and the court keeps the inventory in its archive. You may send gold without an inventory (no_inventory), saving the fee: then nobody can check what arrived, not the receiver and not you, and an envoy who keeps some cannot be caught by it. An envoy that keeps some of the gold, but not all of it, may hand over, in place of the sealed inventory, one it forges itself stating only what is left, if it has a forger's skill: the weight then matches the inventory, and only having the inventory examined can show it, as for any forgery. A forged inventory that is found is traced, with the same chance as any forgery, to the envoy who brought it, and every court hears of it.
-- When a foreign envoy stands before you, you may answer, offer them a gift (a bribe), offer them service at a wage, detain them, seal a tablet they bring, or send gold back with them. An envoy takes one gift per audience. If you name gold to send back in more than one exchange, the latest amount named is sent; 0 keeps the amount named before.
+- When a foreign envoy stands before you, you may answer, offer them a gift (a bribe), offer them a job in your service, detain them, seal a tablet they bring, or send gold back with them. An envoy takes one gift per audience. If you name gold to send back in more than one exchange, the latest amount named is sent; 0 keeps the amount named before.
 - At most ${c.maxDispatchesPerTurn} envoys may leave your court in one season.
 
 ${authorityRules(c)}

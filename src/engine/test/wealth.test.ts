@@ -22,6 +22,8 @@ import {
   newHostReply,
   newTurnSubmission,
   single,
+  spend,
+  newHoard,
 } from "@amarna/engine";
 import { Assert, last, orderBy } from "./support.ts";
 
@@ -39,23 +41,27 @@ describe("WealthTests", () => {
 
   test("Gold into a purse is counted by where it came from", () => {
     let c = newCharacter({ id: "c1", name: "Mane" });
-    gain(c, 30, "Wages");
+    gain(c, 30, "Fees");
     gain(c, 12, "Skimmed");
     gain(c, 40, "Gifts");
     gain(c, 60, "Carried");
+    gain(c, 20, "Loans");
     gain(c, 0, "Gifts");
-    Assert.equal(142, c.purse);
-    Assert.equal([30, 12, 40, 60, 142], [c.earned.wages, c.earned.skimmed, c.earned.gifts, c.earned.carried, earningsTotal(c.earned)]);
-    Assert.equal("wages 30, skimmed 12, gifts 40, gold kept on dismissal 60", Wealth.sources(c.earned));
+    Assert.equal(162, c.purse);
+    Assert.equal([30, 12, 40, 60, 20, 162], [c.earned.fees, c.earned.skimmed, c.earned.gifts, c.earned.carried, c.earned.dealt, earningsTotal(c.earned)]);
+    // Item 11a: what it spends is counted too.
+    Assert.equal(15, spend(c, 15));
+    Assert.equal([147, 15], [c.purse, c.earned.spent]);
+    Assert.equal("fees 30, lending and dealing 20, skimmed 12, gifts 40, gold kept on dismissal 60; spent 15", Wealth.sources(c.earned));
   });
 
-  test("Wages skims gifts and gold kept on dismissal are all counted as the engine pays them", () => {
+  test("Fees skims gifts and gold kept on dismissal are all counted as the engine pays them", () => {
     let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
-    // A season at court: its wage.
+    // Item 11a: the advance of its starting job, handed over before the game.
     begin(s).resolve(orders("Egypt", dispatch(envoy.id, "Alashiya", "Greetings.", { gold: 100 })));
-    Assert.equal(envoy.contract!.wage, envoy.earned.wages);
+    Assert.equal(envoy.contract!.advance, envoy.earned.fees);
     while (s.audiences.length === 0) {
       let next = begin(s);
       if (s.audiences.length === 0) next.resolve(new Dict<Power, TurnSubmission>());
@@ -70,7 +76,7 @@ describe("WealthTests", () => {
       }),
     );
     Assert.equal([20, 30], [envoy.earned.skimmed, envoy.earned.gifts]);
-    Assert.equal(earningsTotal(envoy.earned), envoy.purse);
+    Assert.equal(earningsTotal(envoy.earned) - envoy.earned.spent, envoy.purse);
 
     // Another envoy dismissed on the way out keeps the gold it carried.
     let other = last(s.characters, (c) => c.employer === "Egypt" && c.id !== envoy.id);
@@ -79,48 +85,40 @@ describe("WealthTests", () => {
     e.resolve(orders("Egypt", dispatch(other.id, "Hatti", "Greetings.", { gold: 50 })));
     begin(s).resolve(orders("Egypt", dismiss(other.id)));
     Assert.equal(50, other.earned.carried);
-    Assert.equal(earningsTotal(other.earned), other.purse);
+    Assert.equal(earningsTotal(other.earned) - other.earned.spent, other.purse);
   });
 
-  test("The living are ranked by purse and back pay owed and the dead are left out", () => {
+  test("Everyone is ranked by purse and hoard, the dead below the living by what they held when they died", () => {
     let s = newGame(5);
     let people = s.characters.slice(0, 4);
-    for (const c of s.characters) [c.purse, c.backPay] = [0, new Dict()];
+    for (const c of s.characters) [c.purse, c.hoard] = [0, null];
     people[0].purse = 100;
-    [people[1].purse, people[1].backPay] = [
-      60,
-      new Dict([
-        ["Egypt", 30],
-        ["Hatti", 20],
-      ]),
-    ];
+    people[1].purse = 60;
+    people[1].hoard = newHoard({ at: "Egypt", gold: 50 });
     people[2].purse = 500;
     people[2].status = "Dead";
+    people[2].diedWith = 500;
     people[3].purse = 120;
 
     let ranking = Wealth.ranking(s);
-    Assert.doesNotContain(ranking, (w) => w.character === people[2]);
     Assert.equal(
       [people[3], people[1], people[0]],
       ranking.slice(0, 3).map((w) => w.character),
     );
-    Assert.equal([60, 50, 110], [ranking[1].purse, ranking[1].backPay, ranking[1].total]);
-    Assert.equal(s.characters.length - 1, ranking.length);
+    Assert.equal([60, 50, 110], [ranking[1].purse, ranking[1].hoard, ranking[1].total]);
+    // Dying never beats surviving: the richest of the dead ranks last.
+    Assert.equal(people[2], ranking[ranking.length - 1].character);
+    Assert.equal(s.characters.length, ranking.length);
     // Ties are broken by id, so the order is the same every time.
-    Assert.equal(
-      ranking.slice(3).map((w) => w.character.id),
-      orderBy(
-        ranking.slice(3).map((w) => w.character.id),
-        idNumber,
-      ),
-    );
+    const living = ranking.slice(3, ranking.length - 1).map((w) => w.character.id);
+    Assert.equal(living, orderBy(living, idNumber));
   });
 
   test("A ranking line says who the character is at the end and where its gold came from", () => {
-    let c = newCharacter({ id: "c1", name: "Mane", origin: "Thebes", status: "Employed", employer: "Egypt", backPay: new Dict([["Egypt", 32]]) });
-    gain(c, 250, "Wages");
+    let c = newCharacter({ id: "c1", name: "Mane", origin: "Thebes", status: "Employed", employer: "Egypt", hoard: newHoard({ at: "Egypt", gold: 32 }) });
+    gain(c, 250, "Fees");
     gain(c, 30, "Skimmed");
-    Assert.equal("Mane of Thebes (serving Egypt): 312 (purse 280, back pay owed 32; wages 250, skimmed 30)", Wealth.line(Wealth.of(c)));
+    Assert.equal("Mane of Thebes (serving Egypt): 312 (purse 280, hoard 32; fees 250, skimmed 30)", Wealth.line(Wealth.of(c)));
     [c.status, c.heldBy] = ["Captured", "Hatti"];
     Assert.equal("captive in Hatti, serving Egypt", Wealth.standing(c));
     [c.status, c.heldBy, c.employer] = ["Free", null, null];

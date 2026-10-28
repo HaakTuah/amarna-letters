@@ -1,5 +1,5 @@
 import { describe, test } from "vitest";
-import { AllPowers, Dict, type GameState, Wealth, earningsTotal, gain, newCharacter, newContract, sum } from "@amarna/engine";
+import { AllPowers, Dict, type GameState, Wealth, earningsTotal, gain, newCharacter, newContract, newHoard, sum } from "@amarna/engine";
 import { GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator, batchReport, playGame } from "@amarna/game";
 import { selfText } from "@amarna/llm";
 import { Assert, toDict } from "../../engine/test/support.ts";
@@ -55,21 +55,22 @@ describe("RichestTests", () => {
       persona: "A careful man.",
       status: "Employed",
       employer: "Egypt",
-      contract: newContract({ wage: 10 }),
-      backPay: new Dict([
-        ["Egypt", 30],
-        ["Hatti", 12],
-      ]),
+      contract: newContract({ fee: 60, advance: 30, untilTurn: 6 }),
+      owed: new Dict([["Hatti", 12]]),
+      hoard: newHoard({ at: "Egypt", gold: 40 }),
     });
-    gain(c, 100, "Wages");
+    gain(c, 100, "Fees");
     let self = selfText(c, 9);
-    Assert.contains("Your lord owes you 30 shekels of back pay, paid when you return to his court.", self);
-    Assert.contains("The king of Hatti owes you 12 shekels of back pay, paid if you ever stand at his court again.", self);
-    Assert.contains("Your purse holds 100 shekels; with the back pay kings owe you, you are worth 142 shekels. It is now season 9.", self);
-    Assert.doesNotContain("richest", self);
-    Assert.doesNotContain("rank", self);
+    Assert.contains("You are on a job for the king of Egypt: 60 shekels for the term, through season 6; 30 were handed over when you took it, and the rest, 30, falls due when the job is done", self);
+    Assert.contains("The king of Hatti let 12 shekels of your fee fall due and did not pay them.", self);
+    Assert.contains("Your purse holds 100 shekels; your hoard at Egypt holds 40. It is now season 9.", self);
+    // Item 11a: its goal and its way to it.
+    Assert.contains("Your goal is wealth", self);
+    Assert.doesNotContain("rank of", self);
+    Assert.doesNotContain("back pay", self);
 
-    c.backPay.clear();
+    c.owed.clear();
+    c.hoard = null;
     Assert.contains("Your purse holds 100 shekels. It is now season 9.", selfText(c, 9));
   });
 });

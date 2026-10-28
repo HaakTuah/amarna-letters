@@ -1,5 +1,6 @@
 /** Personas: the prompt a character is played with, written from its traits and facts. */
 import type { Character, Traits } from "../model/people.ts";
+import { strategiesOf } from "./strategy.ts";
 
 /** A persona prompt from traits and facts, used until (or instead of) the narrator's version. */
 export function personaTemplate(c: Character): string {
@@ -34,15 +35,23 @@ export function temperament(t: Traits): string {
   ].join("; ");
 }
 
-/** What a character wants most, from its traits. */
+/**
+ * What a character wants most (item 11a, "Stakes, not dispositions"): wealth, by the way to a fortune its traits give it
+ * ("How the strategy is made"), the template's words for the strategy a model would write the persona from.
+ */
 export function want(t: Traits): string {
-  return t.ambition >= 65
-    ? "rank and the favour of a great king"
-    : t.greed >= 65
-      ? "gold, enough to never serve again"
-      : t.loyalty >= 65
-        ? "to serve well and be trusted"
-        : "to come home safely with something to show for it";
+  switch (strategiesOf(t)[0]) {
+    case "Steady":
+      return "wealth, earned by steady, trusted work and a good name";
+    case "Keeper":
+      return "wealth, kept from what passes through your hands where nobody will count it";
+    case "Seller":
+      return "wealth, from what you know and who will pay for it";
+    case "Climber":
+      return "wealth and rank, by rising to command in a great king's service";
+    case "Outlaw":
+      return "wealth, taken where nobody guards it, serving no one if it comes to that";
+  }
 }
 
 /**

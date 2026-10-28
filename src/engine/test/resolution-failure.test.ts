@@ -103,8 +103,8 @@ describe("ResolutionFailureTests", () => {
     ["forgery by a servant without the skill", "Forgery botched", "{envoy} said they could not fake a seal; the clay is ruined and nothing usable came of it.", false],
     ["ransom that cannot be paid", "Not enough gold", "There was not enough gold to pay for the ransom for {envoy}; none was sent.", true],
     ["ransom for a captive let go that season", "Ransom not sent", "The ransom for {envoy} could not be sent: {envoy} is no longer held by Hatti.", true],
-    ["hire below the price", "Not hired", "{stranger} declined your offer of 1 shekels a season: they ask", false],
-    ["renewal below the price", "Not renewed", "{envoy} will not serve on for 1 shekels a season; they ask", false],
+    ["hire below the price", "Not hired", "{stranger} declined your offer of 1 shekels for 6 seasons: they ask", false],
+    ["renewal below the price", "Not renewed", "{envoy} will not serve on for 1 shekels for 6 seasons with 0 shekels now; they ask", false],
     [
       "captive turned once its king dismissed it",
       "Captive order failed",

@@ -89,6 +89,8 @@ describe("EconomyTests", () => {
 
   test("Troops are paid in gold, spend part of it at home, and eat from the stores where they stand", () => {
     const s = game();
+    // Item 11a: free people at Hatti's court buy their living at its market too; here they carry nothing.
+    for (const c of s.characters) c.purse = 0;
     const e = new TurnEngine(s);
     const u = single(s.units, (x) => x.province === "hattusa");
     const stores = s.stores.get("hattusa");

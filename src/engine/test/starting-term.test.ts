@@ -40,7 +40,8 @@ describe("StartingTermTests", () => {
         secretMaster: c.secretMaster,
         persona: beforeOf(c.persona),
         reputation: c.reputation,
-        wage: c.contract?.wage ?? null,
+        // Item 11a: a job's fee for the seasons it runs, at what the old wage paid: the wage is its fee over those seasons.
+        wage: c.contract !== null ? c.contract.fee / (c.contract.untilTurn - 1) : null,
         start: c.contract?.startTurn ?? null,
       })),
     );
@@ -54,12 +55,13 @@ describe("StartingTermTests", () => {
   // The fingerprint of the starting characters when every term ended with turn 10, ids left out (taken just before fix (d);
   // the version of this test before then, with the ids in, matched the fingerprint from before terms were staggered).
   // Taken again for save version 7, whose new generator draws every trait and fact anew (build order item 5+), and for save
-  // version 16 (item 10: attested envoys' traits from the sources, lovers kept at courts, and 42 more characters).
+  // version 16 (item 10: attested envoys' traits from the sources, lovers kept at courts, and 42 more characters), and for
+  // save version 19 (item 11a: a template persona's "what you want most" follows the character's strategy; no draw moved).
   //
   test.each([
-    [1, "94cd258953402969"],
-    [7, "1cd05cbdedce8870"],
-    [42, "f70257b0604262f5"],
+    [1, "ee248003e1538c8c"],
+    [7, "f27db726c93cfcc6"],
+    [42, "faffd1169733f96a"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);

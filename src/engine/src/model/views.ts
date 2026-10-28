@@ -228,7 +228,8 @@ export interface CharacterView {
   /** Item 11a: your servant's job: its whole fee and the advance handed over (the rest falls due when it is done). */
   fee: number | null;
   advance: number | null;
-  /** The last season of your servant's term. */
+  /** The season your servant's job began, and the last season of its term. */
+  contractFrom: number | null;
   contractUntil: number | null;
   /** One of your people who has given notice: what they ask a season of a new term to serve on. */
   noticePrice: number | null;
@@ -279,6 +280,7 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     timing: "",
     fee: null,
     advance: null,
+    contractFrom: null,
     contractUntil: null,
     noticePrice: null,
     leavesTurn: null,
@@ -310,6 +312,7 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   timing: S,
   fee: opt(I),
   advance: opt(I),
+  contractFrom: opt(I),
   contractUntil: opt(I),
   noticePrice: opt(I),
   leavesTurn: opt(I),

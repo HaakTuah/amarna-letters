@@ -44,7 +44,7 @@ describe("InventorySwapTests", () => {
       calling: "scribe",
       status: "Employed",
       employer: "Egypt",
-      contract: newContract({ wage: 10 }),
+      contract: newContract({ fee: 60, advance: 30, untilTurn: 6 }),
       traits: newTraits({ loyalty: loyalty, greed: greed, competence: competence, ambition: 30, courage: courage }),
       // Item 10: it believes what it can do.
       belief: newSkills({ gather: competence, stealth: competence, forge: competence }),

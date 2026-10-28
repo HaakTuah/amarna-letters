@@ -40,13 +40,13 @@ describe("ScriptCourtTests", () => {
     s.turn = 8;
     s.treasuries.get(me).gold = 5000;
     let c = first(s.characters, (x) => x.employer === me);
-    c.contract = newContract({ wage: 10, startTurn: 1, untilTurn: 7, noticePrice: price, leavesTurn: price === null ? null : 9 });
+    c.contract = newContract({ fee: 60, advance: 60, startTurn: 1, untilTurn: 7, noticePrice: price, leavesTurn: price === null ? null : 9 });
     if (price === null) c.contract.untilTurn = 12;
     for (const more of s.characters.filter((x) => x.status === "Free").slice(0, extra)) {
       more.status = "Employed";
       more.employer = me;
       more.at = me;
-      more.contract = newContract({ wage: 10, startTurn: 1, untilTurn: 20 });
+      more.contract = newContract({ fee: 190, advance: 95, startTurn: 1, untilTurn: 20 });
     }
     return [s, c];
   }
@@ -85,11 +85,11 @@ describe("ScriptCourtTests", () => {
     let servants = s.characters.filter((c) => c.employer === "Egypt");
     let gone = servants[0];
     gone.covers.push(
-      newCover({ for: "Egypt", since: 2, believed: "Detained", dutyText: "has not returned from Hatti", whereText: "unknown", wage: 12, contractUntil: 20 }),
+      newCover({ for: "Egypt", since: 2, believed: "Detained", dutyText: "has not returned from Hatti", whereText: "unknown", fee: 228, advance: 114, startTurn: 1, contractUntil: 20 }),
     );
     gone.employer = "Hatti";
     gone.at = "Hatti";
-    servants[1].contract = newContract({ wage: 500, startTurn: 1, untilTurn: 30 });
+    servants[1].contract = newContract({ fee: 14500, advance: 7000, startTurn: 1, untilTurn: 30 });
     return [s, gone];
   }
 

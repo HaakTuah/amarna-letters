@@ -49,6 +49,7 @@ P.coverFor = function (c, master, believed, duty = null, where = null, seen = nu
       timingText: timing ?? (duty === null ? view.timing : ""),
       fee: view.fee ?? c.contract?.fee ?? 0,
       advance: view.advance ?? c.contract?.advance ?? 0,
+      startTurn: view.contractFrom ?? c.contract?.startTurn ?? S.turn,
       contractUntil: view.contractUntil,
       noticePrice: view.noticePrice,
       leavesTurn: view.leavesTurn,

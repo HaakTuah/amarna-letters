@@ -10,6 +10,7 @@ import {
   type GameState,
   type Order,
   type Power,
+  feeFor,
 } from "@amarna/engine";
 import { OrderDraft, byName } from "../../ui/order-draft.ts";
 import { useState } from "react";
@@ -23,12 +24,8 @@ export function useOrders(draft: OrderDraft, state: GameState, onChanged: () => 
   const set = (patch: Partial<Form>): void => setF((x) => ({ ...x, ...patch }));
   // Structured press (item 8): letters and tablets are clauses only.
   const structured = state.config.pressMode === "structured";
-  const wage = (id: string, fallback: number): number => f.wages[id] ?? fallback;
-  for (const c of v.known) if (c.askingPrice !== null && f.wages[c.id] === undefined) f.wages[c.id] = c.askingPrice;
-  for (const c of v.court) {
-    const w = c.noticePrice ?? c.wage;
-    if (w !== null && f.wages[c.id] === undefined) f.wages[c.id] = w;
-  }
+  // Item 11a: a job's whole fee, as typed, else what the person would take for the term with half handed over now.
+  const wage = (id: string, ask: number): number => f.wages[id] ?? feeFor(ask, clamp(f.term, 1, 30), 50, v.trust);
 
   const visibleUnits = [...v.units].sort((a, b) => AllPowers.indexOf(a.power) - AllPowers.indexOf(b.power) || byName(a.province, b.province));
   const ready = v.court.filter((c) => c.ready);

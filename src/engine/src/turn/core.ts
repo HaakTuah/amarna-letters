@@ -225,7 +225,7 @@ export class TurnEngine {
   feeRates(p: Power): number {
     return sum(this.s.characters, (c) => {
       const k = coverOf(c, p);
-      if (k !== null) return idiv(k.fee, 6);
+      if (k !== null) return idiv(k.fee, Math.max(1, (k.contractUntil ?? k.startTurn) - k.startTurn));
       const j = c.contract;
       return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null ? idiv(j.fee, Math.max(1, j.untilTurn - j.startTurn)) : 0;
     });

@@ -81,7 +81,7 @@ describe("RequestsAreRulesTests", () => {
       calling: "scribe",
       status: employer === null ? "Free" : "Employed",
       employer: employer,
-      contract: employer === null ? null : newContract({ wage: 10 }),
+      contract: employer === null ? null : newContract({ fee: 60, advance: 30, untilTurn: 6 }),
       at: "Hatti",
       traits: newTraits({ loyalty: 50, greed: 50, competence: competence, ambition: 40, courage: 50 }),
       // Item 10: it believes what it can do.
@@ -533,19 +533,19 @@ describe("RequestsAreRulesTests", () => {
     Assert.null(report.secretMaster);
     // And its service and money then (the follow-up's review).
     Assert.equal("Egypt", report.lord);
-    Assert.equal(spy.contract!.wage, report.wage);
+    Assert.equal(spy.contract!.fee, report.fee);
     Assert.notNull(report.purse);
-    Assert.notNull(report.backPay);
+    Assert.notNull(report.owed);
   });
 
   test("A spy dismissed while its report is on the road writes it as the servant it was", async () => {
     // The follow-up's review: its request said "You are quietly watching … for your lord" beside "You serve nobody at
-    // present". It writes as it was when it observed: in Egypt's service, at its wage then, with its purse and back pay then.
+    // present". It writes as it was when it observed: in Egypt's service, on its job then, with its purse and the fees owed it then.
     let asker = new Recorder();
     let mind = new LlmCharacterMind(asker);
     let spy = envoy(undefined, null);
     spy.purse = 90;
-    spy.backPay.set("Egypt", 30);
+    spy.owed.set("Egypt", 30);
     remember(spy, 4, "The king of Egypt dismissed me.");
 
     await mind.write(
@@ -561,12 +561,9 @@ describe("RequestsAreRulesTests", () => {
             observedTurn: 3,
             factCount: 0,
             lord: "Egypt",
-            wage: 12,
+            fee: 72,
             purse: 40,
-            backPay: new Dict([
-              ["Egypt", 24],
-              ["Hatti", 5],
-            ]),
+            owed: new Dict([["Hatti", 5]]),
           }),
         }),
         self: spy,
@@ -577,10 +574,10 @@ describe("RequestsAreRulesTests", () => {
 
     let call = Assert.single(asker.calls);
     Assert.contains("You are quietly watching the court of Assyria for your lord.", call.user);
-    Assert.contains("You serve the king of Egypt for 12 shekels a season.", call.seatSystem);
-    Assert.contains("Your lord owes you 24 shekels of back pay, paid when you return to his court.", call.seatSystem);
-    Assert.contains("The king of Hatti owes you 5 shekels of back pay, paid if you ever stand at his court again.", call.seatSystem);
-    Assert.contains("Your purse holds 40 shekels; with the back pay kings owe you, you are worth 69 shekels. It is now season 3.", call.seatSystem);
+    Assert.contains("You are on a job for the king of Egypt: 72 shekels for the term.", call.seatSystem);
+    Assert.contains("The king of Hatti let 5 shekels of your fee fall due and did not pay them.", call.seatSystem);
+    Assert.doesNotContain("Egypt let 30", call.seatSystem);
+    Assert.contains("Your purse holds 40 shekels. It is now season 3.", call.seatSystem);
     Assert.doesNotContain("You serve nobody", call.seatSystem);
     Assert.doesNotContain("dismissed", call.seatSystem);
   });

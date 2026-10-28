@@ -497,9 +497,10 @@ export interface Cover {
    * When the master believes the servant set out and is due back, as its view read then (see {@link Views.TimingText}).
    */
   timingText: string;
-  /** The job's fee and advance as the master agreed them (item 11a). */
+  /** The job's fee and advance as the master agreed them, and the season it began (item 11a). */
   fee: number;
   advance: number;
+  startTurn: number;
   contractUntil: number | null;
   /**
    * The notice the master believes the servant has given (the price it asks to serve on, and when it leaves), if any.
@@ -526,6 +527,7 @@ export function newCover(init: Partial<Cover> = {}): Cover {
     timingText: "",
     fee: 0,
     advance: 0,
+    startTurn: 0,
     contractUntil: null,
     noticePrice: null,
     leavesTurn: null,
@@ -545,6 +547,7 @@ export const CoverSchema: ObjSchema<Cover> = obj("Cover", newCover, {
   timingText: S,
   fee: I,
   advance: I,
+  startTurn: I,
   contractUntil: opt(I),
   noticePrice: opt(I),
   leavesTurn: opt(I),

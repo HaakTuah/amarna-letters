@@ -16,6 +16,9 @@ import {
   revoke,
   repudiate,
   hire,
+  payFee,
+  borrow,
+  repay,
   seekCandidates,
   type Power,
 } from "@amarna/engine";
@@ -24,7 +27,7 @@ import { Person } from "../Person.tsx";
 import { map, num } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
 
-/** The orders panel's Court: split from OrdersPanel.tsx, unchanged. */
+/** The orders panel's Court: servants, candidates, jobs and their fees, lenders and debts, inquiries and captives. */
 export function CourtSection({ c }: { c: OrdersContext }) {
   const { draft, v, me, f, set, wage, ready, reserved, others, add, term, addSpy } = c;
   return (
@@ -94,12 +97,17 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             <Person c={c} court={me} />
             <div className="row">
               <label>
-                Wage{" "}
-                <input type="number" min="1" value={f.wages[c.id] ?? ""} onChange={(e) => set({ wages: { ...f.wages, [c.id]: num(e.target.value) } })} />
+                Fee{" "}
+                <input type="number" min="1" value={f.wages[c.id] ?? wage(c.id, c.askingPrice ?? 15)} onChange={(e) => set({ wages: { ...f.wages, [c.id]: num(e.target.value) } })} />
               </label>
-              <button className="small" onClick={() => add(hire(c.id, wage(c.id, c.askingPrice ?? 15), term))}>
-                Hire for {term} seasons
+              <button className="small" disabled={c.where !== "at your court"} onClick={() => add(hire(c.id, wage(c.id, c.askingPrice ?? 15), term))}>
+                Hire for {term} seasons, half now
               </button>
+              {c.lends !== null && (
+                <button className="small" onClick={() => add(borrow(c.id, c.lends!.amount, c.lends!.amount + Math.ceil((c.lends!.amount * c.lends!.perHundred) / 100), c.lends!.seasons))}>
+                  Borrow {shekels(c.lends.amount)}, {c.lends.perHundred} in 100 more back in {c.lends.seasons} seasons
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -112,18 +120,53 @@ export function CourtSection({ c }: { c: OrdersContext }) {
               {c.name}: {dated(c.term, me)}.
             </small>
             <label>
-              Wage{" "}
-              <input type="number" min="1" value={f.wages[c.id] ?? ""} onChange={(e) => set({ wages: { ...f.wages, [c.id]: num(e.target.value) } })} />
+              Fee{" "}
+              <input type="number" min="1" value={f.wages[c.id] ?? wage(c.id, c.noticePrice ?? Math.trunc((c.fee ?? 90) / 6))} onChange={(e) => set({ wages: { ...f.wages, [c.id]: num(e.target.value) } })} />
             </label>
             <button
               className="small"
               disabled={draft.other.some((o) => o.type === "renew" && o.character === c.id)}
-              onClick={() => add(renew(c.id, wage(c.id, c.noticePrice ?? c.wage ?? 15), term))}
+              onClick={() => add(renew(c.id, wage(c.id, c.noticePrice ?? Math.trunc((c.fee ?? 90) / 6)), term))}
             >
-              Renew for {term} seasons
+              Renew for {term} seasons, half now
+            </button>
+            <button className="small" disabled={draft.other.some((o) => o.type === "payFee" && o.character === c.id)} onClick={() => add(payFee(c.id, false))}>
+              Withhold the rest of the fee
             </button>
           </div>
         ))}
+      {/* Item 11a: people you let a fee fall due unpaid, and your debts. */}
+      {[...v.court, ...v.known]
+        .filter((c) => c.owed !== null && c.where === "at your court")
+        .map((c) => (
+          <div className="row" key={`owed-${c.id}`}>
+            <small>
+              You owe {c.name} {shekels(c.owed!)} of a fee that fell due.
+            </small>
+            <button className="small" onClick={() => add(payFee(c.id, true))}>
+              Pay it
+            </button>
+          </div>
+        ))}
+      {v.debts.map((d) => (
+        <div className="row" key={d.id}>
+          <small>
+            Debt {d.id}: {shekels(d.left)} left to repay by turn {d.dueTurn}; the tablet is held by {d.holder}
+            {d.here ? ", who stands at your court" : ""}.
+          </small>
+          {d.here && (
+            <button className="small" onClick={() => add(repay(d.id, d.left))}>
+              Repay it
+            </button>
+          )}
+        </div>
+      ))}
+      <p className="muted">
+        <small>
+          People count on {v.trust} in a hundred of what you promise (kept {v.kept}, broken {v.broken}); the going rate of service is {v.goingRate} in a hundred. A
+          person is hired in person, at your court.
+        </small>
+      </p>
       <div className="row" style={{ marginTop: ".4rem" }}>
         <select value={f.checkWho} onChange={(e) => set({ checkWho: e.target.value })}>
           <option value="">Inquire into…</option>

@@ -40,6 +40,9 @@ import {
   toll,
   giftUnit,
   hire,
+  payFee,
+  borrow,
+  repay,
   hold,
   move,
   newCondition,
@@ -413,9 +416,19 @@ function other(x: Node): Order | null {
     case "seek_candidates":
       return seekCandidates();
     case "hire":
-      return hire(person, amount, term);
-    case "renew":
-      return renew(person, amount, term);
+    case "renew": {
+      const advance = I(x, "gold");
+      const make = S(x, "action") === "hire" ? hire : renew;
+      return make(person, amount, term, advance > 0 ? Math.min(advance, amount) : null);
+    }
+    case "pay_fee":
+      return payFee(person, true);
+    case "withhold_fee":
+      return payFee(person, false);
+    case "borrow":
+      return borrow(person, amount, Math.max(amount, I(x, "gold")), term);
+    case "repay":
+      return repay(S(x, "item"), amount);
     case "dismiss":
       return dismiss(person);
     case "background_check":

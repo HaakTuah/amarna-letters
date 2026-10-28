@@ -165,6 +165,7 @@ P.renew = function (p, r) {
   if (cover !== null) {
     cover.fee = r.fee;
     cover.advance = advance;
+    cover.startTurn = S.turn;
     cover.contractUntil = until;
     cover.noticePrice = null;
     cover.leavesTurn = null;

@@ -37,6 +37,7 @@ import {
   authorityText,
   clauseTag,
   renderClauses,
+  strategyText,
 } from "@amarna/engine";
 import {
   CharacterChecks,
@@ -55,6 +56,7 @@ import type { CallSpec, JsonAsker } from "./client.ts";
 import { fieldsDiffer, type Ladder } from "./ladder.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
 import { Parse } from "./parse.ts";
+import { lifeOf, lifeSchema, lifeText } from "./character-life.ts";
 import { Replies, Schemas, type JsonObject, type ReplySchema } from "./schemas.ts";
 import type { Stakes } from "./spending.ts";
 import { Sb, joinS } from "./text.ts";
@@ -106,27 +108,30 @@ export function selfText(c: Character, turn: number, asOf: number | null = null,
   const knownFacts = then?.factCount !== null && then?.factCount !== undefined ? c.facts.slice(0, then.factCount) : c.facts;
   const secret = then?.factCount !== null && then?.factCount !== undefined ? then.secretMaster : c.secretMaster;
   // Its service and money as they were when it observed, where the report kept them; else as they are now.
-  const kept = then !== null && then.wage !== null;
+  const kept = then !== null && then.fee !== null;
   const employer = kept ? then!.lord : c.employer;
-  const wage = kept ? then!.wage! : (c.contract?.wage ?? 0);
+  const k = c.contract;
+  const fee = kept ? then!.fee! : (k?.fee ?? 0);
   const purse = kept ? (then!.purse ?? c.purse) : c.purse;
-  const backPay = kept ? (then!.backPay ?? null) : c.backPay;
-  const owedTo = (p: Power): number => backPay?.getOrDefault(p, 0) ?? 0;
+  const owed = kept ? (then!.owed ?? null) : c.owed;
   sb.appendLine("Facts of your own life: " + joinS(" ", knownFacts.map((f) => f.text)));
   // What it believes it can do (item 10, "Seeing oneself"): beliefs, never facts, in the part of the request that changes.
   sb.appendLine("What you believe of yourself: " + beliefWords(c.belief) + ".");
-  sb.appendLine(employer !== null ? `You serve the king of ${landName(employer)} for ${wage} shekels a season.` : "You serve nobody at present.");
-  // Wages are paid at court: what he owes for seasons away is paid when the servant is back there.
-  if (employer !== null && owedTo(employer) > 0) sb.appendLine(`Your lord owes you ${owedTo(employer)} shekels of back pay, paid when you return to his court.`);
-  // Back pay other courts owe it: paid only if it stands at that court again.
-  if (backPay !== null)
-    for (const court of AllPowers.filter((p) => backPay.has(p) && p !== employer && backPay.get(p) > 0))
-      sb.appendLine(`The king of ${land(court)} owes you ${backPay.get(court)} shekels of back pay, paid if you ever stand at his court again.`);
+  // Item 11a, "Stakes, not dispositions": its goal, its way to it and its road, in every request.
+  sb.appendLine(strategyText(c));
+  sb.appendLine(
+    employer !== null
+      ? `You are on a job for the king of ${landName(employer)}: ${fee} shekels for the term${!kept && k !== null ? `, through season ${k.untilTurn}; ${k.advance} were handed over when you took it, and the rest, ${Math.max(0, k.fee - k.advance)}, falls due when the job is done and you are back at his court (a promise he may keep or break)` : ""}.`
+      : "You serve nobody at present.",
+  );
+  // Fees courts let fall due and did not pay: promises broken, which it remembers.
+  if (owed !== null)
+    for (const court of AllPowers.filter((p) => owed.has(p) && owed.get(p) > 0))
+      sb.appendLine(`The king of ${land(court)} let ${owed.get(court)} shekels of your fee fall due and did not pay them.`);
   if (secret !== null) sb.appendLine(`In secret you serve ${landName(secret)}, and you protect its interests.`);
   // It knows its own wealth, never how it stands against others.
-  let owedAll = 0;
-  if (backPay !== null) for (const v of backPay.values()) owedAll += v;
-  sb.appendLine(`Your purse holds ${purse} shekels${owedAll > 0 ? `; with the back pay kings owe you, you are worth ${purse + owedAll} shekels` : ""}. It is now season ${asOf ?? turn}.`);
+  const hoard = c.hoard !== null ? `; your hoard at ${land(c.hoard.at)} holds ${c.hoard.gold}` : "";
+  sb.appendLine(`Your purse holds ${purse} shekels${kept ? "" : hoard}. It is now season ${asOf ?? turn}.`);
   if (c.memorySummary.length > 0) sb.appendLine("Long ago: " + c.memorySummary);
   const remembered = c.memory.filter((m) => asOf === null || m.turn <= asOf);
   const recent = remembered.slice(Math.max(0, remembered.length - 10));
@@ -162,11 +167,16 @@ export const kingOf = (p: Power): string => (king(p).includes(land(p)) ? king(p)
 /** A king's court ("the court of Tushratta, king of Mitanni", or "the court of the King of Alashiya"). */
 export const courtOf = (p: Power): string => (king(p).includes(land(p)) ? `the court of ${king(p)}` : `the court of ${king(p)}, king of ${land(p)}`);
 
-/** A host's offer of service, with what the envoy's lord pays it and, if any, the back pay it would give up by leaving him. */
-export const offerLine = (ctx: EnvoyContext, offer: number): string =>
-  `He offers to take you into his service at ${offer} shekels a season (your lord pays you ${ctx.self.contract?.wage ?? 0}` +
-  (ctx.backPay > 0 ? `, and owes you ${ctx.backPay} shekels of back pay, which you would never be paid if you left his service` : "") +
-  ").";
+/** A host's offer of service, with what the envoy's job pays it and, if any, the rest of its fee it would give up by leaving. */
+export const offerLine = (ctx: EnvoyContext, offer: number): string => {
+  const k = ctx.self.contract;
+  const rate = k === null ? 0 : Math.trunc(k.fee / Math.max(1, k.untilTurn - k.startTurn));
+  return (
+    `He offers to take you into his service for ${offer} shekels a season of a six-season job, half of it now (your present job pays about ${rate} a season` +
+    (ctx.restDue > 0 ? `, and ${ctx.restDue} shekels of its fee are still to come when it is done, which you would never be paid if you left` : "") +
+    ")."
+  );
+};
 
 /** What the script itself chose at one audience the model played: the gold it kept, its forged inventory, the gift it took. */
 interface ScriptAudience {
@@ -446,6 +456,7 @@ export class LlmCharacterMind implements ICharacterMind {
 
   write(ctx: MindContext, signal?: AbortSignal): Promise<MindReply> {
     if (this.askerFor(ctx.self) === null) return this.script.write(ctx, signal);
+    if (ctx.request.task === "Life") return this.live(ctx, signal);
     const key = writeKey(ctx);
     if (key === null) return Promise.resolve(newMindReply());
     const kind = ctx.request.task === "EnvoyReport" ? "report" : ctx.request.task === "Pitch" ? "pitch" : ctx.request.task === "SpyReport" ? "spy" : "memory";
@@ -475,6 +486,27 @@ export class LlmCharacterMind implements ICharacterMind {
       },
       (r) => choiceOf(mine, r),
     );
+  }
+
+  /**
+   * Its own season (item 11a): one call, decided by the model; the script decides if the call fails. A share of its gold is
+   * what the decision can move.
+   */
+  private async live(ctx: MindContext, signal?: AbortSignal): Promise<MindReply> {
+    const v = ctx.request.life;
+    if (v === null) return newMindReply();
+    const c = ctx.self;
+    const key = `t${ctx.turn}/life/${c.id}`;
+    try {
+      const json = await this.ask(key, ctx.turn, `life:${c.id}`, c, lifeText(v), lifeSchema(v), signal, null, null, {
+        stakes: { kind: "life", moved: 0.3 },
+        keys: [`t${ctx.turn}/mind/${ctx.request.id}`],
+        fields: [],
+      });
+      return newMindReply({ life: lifeOf(json, v) });
+    } catch {
+      return this.script.write(ctx, signal);
+    }
   }
 
   /**

@@ -45,7 +45,10 @@ export const jobValue = (fee: number, advance: number, trust: number): number =>
  */
 export function feeFor(ask: number, term: number, advancePercent: number, trust: number): number {
   const share = advancePercent * 100 + (100 - advancePercent) * trust; // in ten-thousandths
-  return Math.ceil((ask * term * 10000) / Math.max(1, share));
+  let fee = Math.ceil((ask * term * 10000) / Math.max(1, share));
+  // Whole shekels round the advance down and the trusted rest down: add what that loses.
+  while (jobValue(fee, idiv(fee * advancePercent, 100), trust) < ask * term) fee++;
+  return fee;
 }
 
 /** The rate a job pays a season, as a person compares it: its fee over its term. */
@@ -145,16 +148,20 @@ P.jobsDone = function (stood) {
     const k = c.contract!;
     const term = Math.max(1, k.untilTurn - k.startTurn);
     const rate = rateOf(k.fee, term);
+    const rest = Math.max(0, k.fee - k.advance);
+    // The new job's advance keeps the old job's share: a servant who took half now takes half again.
+    const advance = toInt(roundEven((k.advance * 6) / term));
     const paid = this.settleRest(c, emp, false);
+    // Settled either way: paid, or owed as a broken promise (c.owed); nothing more falls due on this job.
+    k.advance = k.fee;
     const back = stood.getOrDefault(c.id, null) !== emp ? " is back at your court and" : "";
     const ask = paid ? renewalPrice(c, emp, S.goingRate) : Math.max(renewalPrice(c, emp, S.goingRate), rate + Math.max(1, idiv(rate, 5)));
-    const advance = toInt(roundEven((k.advance * 6) / term));
     const t = S.treasuries.get(emp);
     if (paid && ask <= rate * 1.2 && t.gold >= advance) {
       t.gold -= advance;
       gain(c, advance, "Fees");
       c.contract = newContract({ fee: rate * 6, advance, startTurn: S.turn, untilTurn: S.turn + 6 });
-      notify(S, emp, "Notice", "Contract renewed", `${c.name}${back} has done their job${k.fee > k.advance ? `, and was paid the rest of the fee, ${formatMoney(k.fee - k.advance)}` : ""}. They serve on for another 6 seasons, through turn ${S.turn + 6}, for ${formatMoney(rate * 6)}, of which ${formatMoney(advance)} was handed over now.`, c.id);
+      notify(S, emp, "Notice", "Contract renewed", `${c.name}${back} has done their job${rest > 0 ? `, and was paid the rest of the fee, ${formatMoney(rest)}` : ""}. They serve on for another 6 seasons, through turn ${S.turn + 6}, for ${formatMoney(rate * 6)}, of which ${formatMoney(advance)} was handed over now.`, c.id);
       continue;
     }
     k.noticePrice = ask;

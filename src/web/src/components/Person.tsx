@@ -26,9 +26,16 @@ export function Person({ c, court, onFollow }: { c: CharacterView; court: Power 
           </small>
         </div>
       )}
-      {c.backPay !== null && (
+      {c.owed !== null && (
         <div>
-          <small>Owed {shekels(c.backPay)} of back pay, paid when they are back at your court.</small>
+          <small>You let {shekels(c.owed)} of their fee fall due unpaid.</small>
+        </div>
+      )}
+      {c.lends !== null && (
+        <div>
+          <small>
+            Offers to lend you up to {shekels(c.lends.amount)}, {c.lends.perHundred} in a hundred more back after {c.lends.seasons} seasons.
+          </small>
         </div>
       )}
       {c.employer !== null && !c.ours && (

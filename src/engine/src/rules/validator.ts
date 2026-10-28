@@ -575,6 +575,33 @@ export class OrderValidator {
           return OrderValidator.captiveRefusal(S, c, co.fate);
         }
 
+        case "payFee": {
+          // Item 11a: pay what fell due unpaid to a person at your court, or withhold the rest of a servant's job.
+          const c = findCharacter(S, order.character);
+          if (c === null) return nobody(order.character);
+          if (!order.pay) return c.employer === power && c.contract !== null ? null : `${c.name} has no job of yours whose fee you could withhold`;
+          const owed = c.owed.getOrDefault(power, 0);
+          if (owed <= 0) return c.employer === power && c.contract !== null && c.contract.withheld ? null : `you owe ${c.name} nothing that fell due`;
+          if (c.at !== power || hiddenAt(c, power)) return `${c.name} is not at your court to be paid`;
+          return spend(owed);
+        }
+
+        case "borrow": {
+          // Item 11a: from a person at your court who offers to lend.
+          const c = findCharacter(S, order.character);
+          if (c === null || c.status === "Dead" || c.at !== power || hiddenAt(c, power)) return `there is nobody at your court called '${order.character}'`;
+          if (c.lendOffer === null || c.lendOffer.amount <= 0) return `${c.name} offers no loan`;
+          if (order.amount <= 0 || order.repay < order.amount) return "name the gold to borrow, and a sum to repay no smaller";
+          return null;
+        }
+
+        case "repay": {
+          const d = S.debts.find((x) => x.id === order.debt) ?? null;
+          if (d === null || d.borrower !== power || d.ended !== null) return `you have no debt '${order.debt}' standing`;
+          if (order.amount <= 0) return "name the gold to repay";
+          return spend(order.amount);
+        }
+
         case "payRansom": {
           const c = findCharacter(S, order.character);
           if (c === null) return nobody(order.character);
