@@ -96,6 +96,10 @@ export function pressOf(s: GameState): Record<string, number> {
   };
   const kinds = (cs: readonly Clause[], k: string): number => cs.filter((x) => x.kind === k).length;
   for (const t of s.trails) {
+    if (t.pretended) {
+      add("false-envoy-audiences");
+      continue;
+    }
     add("letters");
     if (t.clauses.length > 0) add("letters-with-clauses");
     for (const c of t.clauses) add(`w:${c.kind}`);

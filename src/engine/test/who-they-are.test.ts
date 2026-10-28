@@ -26,6 +26,7 @@ import {
   newTablet,
   newTabletCopy,
   newTurnSubmission,
+  newWord,
   question,
   single,
   steal,
@@ -159,7 +160,7 @@ describe("WhoTheyAreTests", () => {
     Assert.equal(purse + 30, c.purse);
     // The envoy asks at Babylon; home again, the answer exposes the claim.
     const envoy = first(s.characters, (x) => x.employer === "Egypt");
-    const cargo = { trailId: "", copyIds: [], gold: 0, purityPercent: 100, goldStated: 0, observations: [], wasDetained: false, claimChecked: c.id, claimHeld: false };
+    const cargo = { trailId: "", copyIds: [], gold: 0, purityPercent: 100, goldStated: 0, observations: [], wasDetained: false, claimChecked: c.id, claimHeld: false, word: newWord() };
     begin(s).claimAnswered("Egypt", "Babylonia", cargo);
     Assert.notNull(c.declared[0].exposed);
     Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "A claim checked" && i.body.includes("does not serve their king"));

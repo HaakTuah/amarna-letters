@@ -6,7 +6,7 @@
  * `Replies` builds the Zod objects; `Schemas` gives the JSON schemas sent, for the request text and the tests.
  */
 import { z } from "zod";
-import { AllPowers, ClauseKindValues, MaxAnswerSay, MaxAnswers, MaxConditions, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, fmtN, type AudienceView, type GameConfig } from "@amarna/engine";
+import { AllPowers, ClauseKindValues, SkillBands, MaxAnswerSay, MaxAnswers, MaxConditions, MaxScheduledPerSeason, MaxScheduledSeasons, MaxStanding, fmtN, type AudienceView, type GameConfig } from "@amarna/engine";
 import { LeaderJournal } from "./journal.ts";
 
 export type JsonObject = { [key: string]: unknown };
@@ -591,9 +591,26 @@ const pitch = (alias: string | null = null, envoyOf: string | null = null): Repl
   const fields: [string, z.ZodType][] = [
     ["pitch", str("How you present yourself, in a few sentences.")],
     ["asking_price", int("Your wage per season in shekels.")],
+    // Item 10+b: what it says it can do is its own choice, from what it believes of itself (its request says so).
+    ["say_gather", enumOf(SkillBands.gather, "What you tell this court you can do at gathering what a court knows (you may claim more or less than you believe).")],
+    ["say_stealth", enumOf(SkillBands.stealth, "What you tell this court you can do at slipping past guards.")],
+    ["say_forge", enumOf(SkillBands.forge, "What you tell this court you can do at copying a hand and faking a seal.")],
   ];
   if (alias !== null) fields.push(["name", str(`The name you give this court: empty for your own, or "${alias}" to go by that name here instead.`)]);
   if (envoyOf !== null) fields.push(["envoy_of", bool(`True: instead of seeking service, you say you are an envoy of the king of ${envoyOf}, whom you do not serve, hoping for a host's gifts.`)]);
+  return object(...fields);
+};
+
+/**
+ * A captive that gave way under questioning (item 10+b): its words, and whether it tells what it saw or recites a league
+ * of its lord's against its captor that never was; the king it names only when there is one to name.
+ */
+const questioned = (kings: readonly string[]): ReplySchema => {
+  const fields: [string, z.ZodType][] = [
+    ["words", str("What you say to your questioners, in one to three sentences.")],
+    ["lie", bool("True: instead of the tablets you saw, you recite one that never was, a league of your lord's against your captor, to mislead them. False: you tell them what you saw.")],
+  ];
+  if (kings.length > 0) fields.push(["league_with", enumOf(kings as [string, ...string[]], "Only if lie is true: the king you say your lord sealed that league with.")]);
   return object(...fields);
 };
 
@@ -603,7 +620,7 @@ const text = (field: string, description: string): ReplySchema => object([field,
 const phrase = (): ReplySchema => object(["speech", str("The king's words to the envoy, as he would speak them, in one to three sentences.")]);
 
 /** The reply schemas in Zod, as calls carry them. */
-export const Replies = { leaderOrders, hostReply, courtReply, phrase, present, react, report, pitch, text };
+export const Replies = { leaderOrders, hostReply, courtReply, phrase, present, react, report, pitch, questioned, text };
 
 /** The same schemas as the JSON sent to a provider. */
 export const Schemas = {

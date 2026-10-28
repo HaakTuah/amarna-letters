@@ -785,7 +785,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
           {v.tolls.length > 0 && (
             <span className="muted">
               {" "}
-              Posted: {v.tolls.map((t) => `${t.holder} ${t.percent}%${t.partner !== null ? ` on ${t.partner}` : ""}${t.province !== null ? ` at ${provinceName(t.province)}` : ""}`).join("; ")}
+              Known: {v.tolls.map((t) => `${t.holder} ${t.percent}%${t.partner !== null ? ` on ${t.partner}` : ""}${t.province !== null ? ` at ${provinceName(t.province)}` : ""}`).join("; ")}
             </span>
           )}
         </div>

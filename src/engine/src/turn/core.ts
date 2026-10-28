@@ -440,6 +440,9 @@ export class TurnEngine {
         case "Word":
           this.wordArrives(j);
           break;
+        case "CaptiveConvoy":
+          this.captiveArrives(j);
+          break;
         case "Rumor": {
           if (!isAlive(S, j.to)) break;
           // Talk of what a character was seen to do (item 10): it goes into the court's records, not its inbox.

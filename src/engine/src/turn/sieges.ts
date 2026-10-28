@@ -200,7 +200,7 @@ P.sieges = function (valid) {
     if (waters !== null && S.config.seaSupply > 0) logEvent(S, "siege", `${name} was ${supplied ? "supplied by sea" : "blockaded"} while besieged by ${x.power}.`, parties(x.power, owner), supplied ? "sea-supplied" : "blockade");
     if (steps === 0) {
       tell(x.power, `Your siege of ${name} (walls ${walls}) did not advance: no fleet of yours holds ${Map.get(waters!).name}, so the city was supplied by sea and not worn down; it still eats from its stores. It stands at ${x.progress} of ${breach}.`);
-      tell(owner, `${x.power}'s army besieges your city of ${name} (walls ${walls}), but no fleet of ${x.power}'s holds ${Map.get(waters!).name}: the city was supplied by sea and was not worn down. It stands at ${x.progress} of ${breach}. The city yields you nothing while it is besieged and eats from its market and stores; while its waters are open, your ships can bring it grain (order ship).`);
+      tell(owner, `${x.power}'s army besieges your city of ${name} (walls ${walls}), but no fleet of ${x.power}'s holds ${Map.get(waters!).name}: the city was supplied by sea and was not worn down. It stands at ${x.progress} of ${breach}. The city yields you nothing while it is besieged and eats from its market and stores; while its waters are open, your ships can bring it grain (order ship), and merchants' ships may sell it grain at what its market pays.`);
       continue;
     }
     x.progress += steps;

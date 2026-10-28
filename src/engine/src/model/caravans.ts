@@ -8,6 +8,7 @@
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 import { UnitSchema, type Unit } from "./state.ts";
+import { type Word, WordSchema, newWord } from "./word.ts";
 
 export interface Market {
   /** Grain on sale, in measures. */
@@ -47,10 +48,12 @@ export interface Caravan {
   sneak: boolean;
   /** The fleet in cargo service that carries it by sea (item 9+b), out of the war until it comes home; null on land. */
   ship: Unit | null;
+  /** What it learned abroad of markets and tolls, which its court hears when it comes home (item 10+b). */
+  word: Word;
 }
 
 export function newCaravan(init: Partial<Caravan> = {}): Caravan {
-  return { id: "", power: "Egypt", from: "", to: "", grain: 0, route: [], at: 0, points: 0, returning: false, since: 0, gold: 0, trade: false, sneak: false, ship: null, ...init };
+  return { id: "", power: "Egypt", from: "", to: "", grain: 0, route: [], at: 0, points: 0, returning: false, since: 0, gold: 0, trade: false, sneak: false, ship: null, word: newWord(), ...init };
 }
 
 export const CaravanSchema: ObjSchema<Caravan> = obj("Caravan", newCaravan, {
@@ -68,6 +71,7 @@ export const CaravanSchema: ObjSchema<Caravan> = obj("Caravan", newCaravan, {
   trade: B,
   sneak: B,
   ship: opt(() => UnitSchema),
+  word: () => WordSchema,
 });
 
 /** Where a caravan stands now. */

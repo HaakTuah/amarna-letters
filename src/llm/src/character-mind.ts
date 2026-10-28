@@ -194,6 +194,8 @@ function writeKey(ctx: MindContext): string | null {
       return `t${ctx.turn}/spy/${ctx.self.id}`;
     case "SummarizeMemory":
       return `t${ctx.turn}/memory/${ctx.self.id}`;
+    case "Questioned":
+      return `t${ctx.turn}/questioned/${ctx.self.id}`;
     default:
       return null;
   }
@@ -531,6 +533,19 @@ export class LlmCharacterMind implements ICharacterMind {
   private async modelPresent(ctx: EnvoyContext, signal?: AbortSignal): Promise<PresentResult> {
     const d = ctx.dispatch;
     const user = new Sb();
+    // A false envoy (item 10+b): nobody sent it; it has only its own words.
+    if (d.pretended) {
+      user.appendLine(
+        `You stand before the king at ${courtOf(ctx.host)}, saying you are the envoy of ${kingOf(ctx.sender)}, whom you do not serve. You bring no letter, no sealed greeting and no seal; you came for the gifts a host gives an envoy, and whatever he gives you, or sends with you for that king, is yours to keep.`,
+      );
+      user.appendLine("Speak to the king now.");
+      const json = await this.ask(`t${ctx.turn}/aud/present/${ctx.self.id}`, ctx.turn, `envoy:${ctx.self.id}`, ctx.self, user.toString(), Replies.text("speech", "What you say to the king, in a few sentences."), signal, null, null, {
+        stakes: { kind: "present", moved: 0.1 },
+        keys: ctx.audienceKey.length > 0 ? [`${ctx.audienceKey}/present`] : [],
+        fields: [],
+      });
+      return Parse.present(json);
+    }
     user.appendLine(`You have arrived at ${courtOf(ctx.host)}, as the envoy of ${kingOf(ctx.sender)}.`);
     user.appendLine(d.greetingText.length > 0 ? `The sealed greeting will be read out exactly as written: "${d.greetingText}"` : "The tablet carries no greeting at all; the king will notice.");
     user.appendLine(`Your lord's message, which you must now deliver, word for word or in your own words: "${d.letter}"`);
@@ -573,7 +588,11 @@ export class LlmCharacterMind implements ICharacterMind {
 
   private async modelReact(ctx: EnvoyContext, host: HostReply, signal?: AbortSignal): Promise<EnvoyReaction> {
     const user = new Sb();
-    user.appendLine(`You stand before ${kingOf(ctx.host)} as envoy of ${land(ctx.sender)}. You said: "${ctx.delivered}"`);
+    user.appendLine(
+      ctx.dispatch.pretended
+        ? `You stand before ${kingOf(ctx.host)}, saying you are the envoy of ${land(ctx.sender)}, whom you do not serve. You said: "${ctx.delivered}"`
+        : `You stand before ${kingOf(ctx.host)} as envoy of ${land(ctx.sender)}. You said: "${ctx.delivered}"`,
+    );
     for (const x of ctx.soFar) user.appendLine(`The king said: "${x.host}" You answered: "${x.envoy}"`);
     user.appendLine(`The king now says: "${host.speech}"`);
     // An envoy takes one gift per audience: a gift offered after it took one is not given, so it is not asked about it.
@@ -718,6 +737,32 @@ export class LlmCharacterMind implements ICharacterMind {
           fields: [],
         });
         return newMindReply({ text: Parse.field(json, "report") });
+      }
+      case "Questioned": {
+        // Item 10+b: the questioning broke it on these tablets; what it says now is its own choice.
+        const host = requestFor(req);
+        const lord = c.employer ?? c.formerEmployer;
+        const user = new Sb();
+        user.appendLine(`You are a captive at the court of ${kingOf(host)}, and its questioners have pressed you until you gave way.`);
+        user.appendLine("They will have from you what you know of these tablets, which passed through your hands:");
+        for (const id of req.copyIds) {
+          const t = ctx.tablets.get(id);
+          if (t !== undefined) user.appendLine(`- ${cap(t, 400)}`);
+        }
+        const kings = lord === null ? [] : AllPowers.filter((q) => q !== host && q !== lord && ctx.alive.includes(q)).map((q) => land(q));
+        if (lord !== null)
+          user.appendLine(
+            `You may tell them what these say, or recite instead a tablet that never was, a league of ${kingOf(lord)} with another king against your captor, to mislead them; only an examination of the tablet can show it false.`,
+          );
+        user.appendLine("Say what you say to them.");
+        const json = await this.ask(key, ctx.turn, `captive:${c.id}`, c, user.toString(), Replies.questioned(kings), signal, null, null, {
+          stakes: { kind: "questioned", moved: 0.2 },
+          keys: [`t${ctx.turn}/mind/${req.id}`],
+          fields: ["lie"],
+        });
+        const r = Parse.questioned(json);
+        if (lord === null) r.lies = false;
+        return r;
       }
       case "SummarizeMemory": {
         const user = new Sb();

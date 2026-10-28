@@ -73,6 +73,11 @@ import {
   type Order,
   type Power,
   type TurnSubmission,
+  type Skills,
+  newSkills,
+  SkillValues,
+  SkillBands,
+  BandValues,
 } from "@amarna/engine";
 import { newPresentResult, type PresentResult } from "@amarna/game";
 import type { JsonObject } from "./schemas.ts";
@@ -512,9 +517,30 @@ export const react = (o: JsonObject): EnvoyReaction =>
 
 export const reportOf = (o: JsonObject): MindReply => newMindReply({ text: S(o, "report"), number: Math.max(0, I(o, "keep_gold")), swapInventory: B(o, "swap_inventory") });
 
+/** A claim given as a band's words (item 10+b), at the middle of the band; null where any is missing or unknown. */
+function claimsOf(o: JsonObject): Skills | null {
+  const out = newSkills();
+  for (const k of SkillValues) {
+    const i = SkillBands[k].indexOf(S(o, `say_${k}`));
+    if (i < 0) return null;
+    out[k] = BandValues[i];
+  }
+  return out;
+}
+
 export const pitchOf = (o: JsonObject, envoyOf: Power | null = null): MindReply =>
-  newMindReply({ text: S(o, "pitch"), number: Math.max(1, I(o, "asking_price")), name: S(o, "name") || null, claimsToServe: envoyOf !== null && B(o, "envoy_of") ? envoyOf : null });
+  newMindReply({
+    text: S(o, "pitch"),
+    number: Math.max(1, I(o, "asking_price")),
+    name: S(o, "name") || null,
+    claimsToServe: envoyOf !== null && B(o, "envoy_of") ? envoyOf : null,
+    claims: claimsOf(o),
+  });
+
+/** A captive's answer under questioning (item 10+b). */
+export const questionedOf = (o: JsonObject): MindReply =>
+  newMindReply({ text: S(o, "words"), lies: B(o, "lie"), league: B(o, "lie") ? (parsePower(S(o, "league_with")) ?? null) : null });
 
 export const fieldOf = (o: JsonObject, key: string): string => S(o, key);
 
-export const Parse = { orders, ledger, host, court, letters, answers: answersOf, cancelAnswers: (o: JsonObject): string[] => L(o, "cancel_answers"), present, react, report: reportOf, pitch: pitchOf, field: fieldOf };
+export const Parse = { orders, ledger, host, court, letters, answers: answersOf, cancelAnswers: (o: JsonObject): string[] => L(o, "cancel_answers"), present, react, report: reportOf, pitch: pitchOf, questioned: questionedOf, field: fieldOf };

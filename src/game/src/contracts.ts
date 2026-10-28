@@ -175,10 +175,14 @@ export interface MindContext {
   forgeMinCompetence: number;
   /** The game is in structured press (item 8): the report is set out in clauses, and its words are theirs. */
   structured: boolean;
+  /** For a captive questioned (item 10+b): the texts of the tablets it gave way on, by tablet id. */
+  tablets: Map<string, string>;
+  /** The kings still on their thrones. */
+  alive: Power[];
 }
 
 export function newMindContext(init: Pick<MindContext, "request" | "self" | "turn" | "seed"> & Partial<MindContext>): MindContext {
-  return { trail: null, basePrice: 0, demand: 0, forgeMinCompetence: newGameConfig().forgeMinCompetence, structured: false, ...init };
+  return { trail: null, basePrice: 0, demand: 0, forgeMinCompetence: newGameConfig().forgeMinCompetence, structured: false, tablets: new Map(), alive: [], ...init };
 }
 
 export interface CheckContext {

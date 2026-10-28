@@ -13,6 +13,7 @@ import {
   HostReplySchema,
   EnvoyReactionSchema,
   MindReplySchema,
+  newMindReply,
   TurnEngine,
   TurnSubmissionSchema,
   B,
@@ -411,20 +412,13 @@ export class GameRunner {
     const produce = async (req: MindRequest): Promise<MindReply> => {
       if (req.task === "CheckReport") {
         const subject = char(this.state, req.characterId);
-        return { text: await this.narrator.checkReport({ subject, court: requestFor(req), facts: req.facts, turn }, signal), number: 0, swapInventory: false, clauses: [], name: null, claimsToServe: null };
+        return newMindReply({ text: await this.narrator.checkReport({ subject, court: requestFor(req), facts: req.facts, turn }, signal) });
       }
       return await this.minds.write(this.context(req, engine, turn), signal);
     };
     const fallback = async (req: MindRequest): Promise<MindReply> => {
       if (req.task === "CheckReport")
-        return {
-          text: await new TemplateNarrator().checkReport({ subject: char(this.state, req.characterId), court: requestFor(req), facts: req.facts, turn }, signal),
-          number: 0,
-          swapInventory: false,
-          clauses: [],
-          name: null,
-          claimsToServe: null,
-        };
+        return newMindReply({ text: await new TemplateNarrator().checkReport({ subject: char(this.state, req.characterId), court: requestFor(req), facts: req.facts, turn }, signal) });
       return await this.fallbackMind.write(this.context(req, engine, turn), signal);
     };
     for (const req of requests) if (req.task !== "CheckReport") this.asked(req.characterId, turn);
@@ -485,6 +479,8 @@ export class GameRunner {
       demand: S_.tasks.filter((t) => t.kind === "Candidates").length + engine.mindRequests.filter((r) => r.task === "Pitch" && r.characterId === c.id).length,
       forgeMinCompetence: S_.config.forgeMinCompetence,
       structured: S_.config.pressMode === "structured",
+      tablets: new Map(req.task === "Questioned" ? S_.tablets.filter((t) => req.copyIds.includes(t.id)).map((t) => [t.id, t.text] as const) : []),
+      alive: alive(S_),
     });
   }
 

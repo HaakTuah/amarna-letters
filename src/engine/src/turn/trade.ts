@@ -10,12 +10,13 @@ import { Dict } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { caravanAt, newCaravan, type Caravan } from "../model/caravans.ts";
 import { buyAlongCurve, needOf, priceAt, sellAlongCurve } from "../model/economy.ts";
-import { newMarketSeen } from "../model/views.ts";
+import { newMarketSeen, type MarketSeen } from "../model/views.ts";
+import { newWord, noteMarket, noteTolls, type Word } from "../model/word.ts";
 import { Views } from "../rules/views.ts";
 import type { Province } from "../model/map.ts";
 import type { Order, ShipOrder, TollOrder, TradeOrder } from "../model/orders.ts";
-import type { Power } from "../model/power.ts";
-import { alive, logEvent, newId, notify, ownedBy, siegeOf, unitAt, type Unit } from "../model/state.ts";
+import { AllPowers, type Power } from "../model/power.ts";
+import { alive, isAlive, logEvent, newId, notify, ownedBy, siegeOf, unitAt, type Unit } from "../model/state.ts";
 import { harbourOf, newToll, shipFleet, smuggleOdds, tollOn, tollRate, TradeData } from "../model/trade.ts";
 import { cheapestRoute, legPoints, PointsPerDay } from "../model/travel.ts";
 import { seasonOfTurn } from "../model/map.ts";
@@ -47,7 +48,9 @@ declare module "./core.ts" {
     sack(province: string, taker: Power): void;
     byLeave(u: Unit): boolean;
     tellTolls(book: TollBook): void;
+    marketNow(province: string): MarketSeen;
     seeMarket(p: Power, province: string): void;
+    hearWord(p: Power, w: Word): void;
     seeMarkets(): void;
   }
 }
@@ -113,6 +116,8 @@ P.atBorder = function (c, a, b, book) {
   const k = S.owner.getOrDefault(b, null);
   if (k === null || k === c.power || this.map.get(b).isSea || S.owner.getOrDefault(a, null) === k) return "pass";
   const name = this.map.get(b).name;
+  // Whatever happens at the border, the traders learn the tolls that stand there on their king's goods.
+  noteTolls(c.word, S.tolls, k, c.power);
   const entry = (): { grain: number; gold: number; found: number } => {
     let e = book.tryGet(k);
     if (e === undefined) book.set(k, (e = { grain: 0, gold: 0, found: 0 }));
@@ -162,18 +167,21 @@ P.atBorder = function (c, a, b, book) {
 
 /**
  * A caravan or ship trades at the market it came to: it sells its grain there along the curve, from the people's purse,
- * and buys grain with the gold it carries (a ship no more than it holds). A besieged market trades with nobody.
+ * and buys grain with the gold it carries (a ship no more than it holds). A besieged market trades by land with nobody;
+ * anyone's ship may sell it grain while its waters are open, at what its starving market pays, but buys none there
+ * ("Stores and mouths are the clock", Haakon's answer of 28 October 2026).
  */
 P.tradeAtMarket = function (c, parts) {
   const S = this.s;
   const at = caravanAt(c);
-  if (siegeOf(S, at) !== null) {
-    parts.push("found the city besieged and its market shut");
+  const besieged = siegeOf(S, at) !== null;
+  if (besieged && (c.ship === null || !openToSea(this, at))) {
+    parts.push(c.ship === null ? "found the city besieged and its market shut" : "found the harbour blockaded by the besieger's ships");
     return;
   }
   const m = this.market(at);
   const normal = needOf(this.map.get(at));
-  this.seeMarket(c.power, at);
+  noteMarket(c.word, at, this.marketNow(at));
   // The proceeds of the sale go home; only the gold it brought buys grain.
   let proceeds = 0;
   if (c.grain > 0) {
@@ -185,9 +193,9 @@ P.tradeAtMarket = function (c, parts) {
     proceeds = r.paid;
     if (r.taken > 0) parts.push(`sold ${r.taken} measures of grain for ${formatMoney(r.paid)}`);
     if (c.grain > 0) parts.push(`its people's purse could pay for no more (${c.grain} unsold)`);
-    if (r.taken > 0) logEvent(S, "sale-abroad", `${c.power} sold grain at ${this.map.get(at).name}.`, [c.power], "sale-abroad");
+    if (r.taken > 0) logEvent(S, "sale-abroad", `${c.power} sold grain at ${this.map.get(at).name}${besieged ? ", besieged" : ""}.`, [c.power], besieged ? "besieged-fed" : "sale-abroad");
   }
-  const spend = c.gold - proceeds;
+  const spend = besieged ? 0 : c.gold - proceeds;
   if (spend > 0) {
     const room = c.ship !== null ? Math.max(0, TradeData.shipCapacity - c.grain) : m.stock;
     const r = buyAlongCurve(m.stock, normal, spend, room);
@@ -201,7 +209,7 @@ P.tradeAtMarket = function (c, parts) {
     }
   }
   // What it found after its trades, which it carries home.
-  this.seeMarket(c.power, at);
+  noteMarket(c.word, at, this.marketNow(at));
 };
 
 /**
@@ -227,6 +235,8 @@ P.caravanHome = function (c) {
     parts.push(`${formatMoney(c.gold)} into the treasury`);
     c.gold = 0;
   }
+  // What it learned abroad of markets and tolls, its court learns now.
+  this.hearWord(c.power, c.word);
   const fleet = this.rejoinFleet(c);
   S.caravans.splice(S.caravans.indexOf(c), 1);
   const lostLine = c.grain > 0 ? ` The other ${c.grain} measures had nowhere to go and were lost.` : "";
@@ -368,7 +378,7 @@ P.tellTolls = function (book) {
 /** Harbour levels, for the views: every coast's. */
 export const harboursOf = (provinces: readonly Province[]): [string, number][] => provinces.filter((p) => harbourOf(p) > 0).map((p) => [p.id, harbourOf(p)]);
 
-/** Whether a ship can unload at a besieged harbour of its king's: only while no fleet of the besieger holds its waters. */
+/** Whether a ship, anyone's, can reach a besieged harbour: only while no fleet of the besieger holds its waters. */
 export function openToSea(e: TurnEngine, province: string): boolean {
   const x = siegeOf(e.s, province);
   const waters = e.map.get(province).waters;
@@ -377,34 +387,59 @@ export function openToSea(e: TurnEngine, province: string): boolean {
   return !e.s.units.some((u) => u.province === waters && u.kind === "Fleet" && u.power === x.power);
 }
 
-/** A court takes note of a foreign market as it stands now: its price, stock and purse, and the season. */
-P.seeMarket = function (p, province) {
-  const S = this.s;
+/** A foreign market as it stands now: its price, stock and purse, and the season. */
+P.marketNow = function (province) {
   const m = this.market(province);
-  let book = S.marketsSeen.tryGet(p);
-  if (book === undefined) S.marketsSeen.set(p, (book = new Dict()));
   const need = needOf(this.map.get(province));
-  book.set(province, newMarketSeen({ price: priceAt(m.stock, need), stock: m.stock, need, purse: m.purse, turn: S.turn }));
+  return newMarketSeen({ price: priceAt(m.stock, need), stock: m.stock, need, purse: m.purse, turn: this.s.turn });
+};
+
+/** A court takes note of a foreign market as it stands now, seen with its own eyes. */
+P.seeMarket = function (p, province) {
+  this.hearWord(p, newWord({ markets: new Dict([[province, this.marketNow(province)]]) }));
 };
 
 /**
- * Each season every court learns the foreign markets within half a season's travel of its land, by road, river or sea, and
- * those in the land it sees, as they stand when the season begins ("Prices are known where they are and through news":
- * word of a nearby market's price comes with the traders who use it; a far one's only with its own traders).
+ * Word brought home reaches its court (item 10+b): each market it tells of, unless the court knows a later state of it,
+ * and the tolls of each holder it learned, in place of what the court knew of that holder's.
+ */
+P.hearWord = function (p, w) {
+  const S = this.s;
+  if (!isAlive(S, p)) return;
+  let book = S.marketsSeen.tryGet(p);
+  if (book === undefined) S.marketsSeen.set(p, (book = new Dict()));
+  for (const [k, seen] of w.markets.entries()) {
+    if (S.owner.getOrDefault(k, null) === p) continue;
+    const had = book.tryGet(k);
+    if (had === undefined || had.turn <= seen.turn) book.set(k, { ...seen });
+  }
+  if (w.holders.length === 0) return;
+  const known = (S.tollsKnown.tryGet(p) ?? []).filter((t) => !w.holders.includes(t.holder));
+  for (const t of w.tolls) if (t.holder !== p) known.push({ ...t });
+  S.tollsKnown.set(p, known);
+};
+
+/**
+ * Each season every court sees the foreign markets in the land it sees, as they stand when the season begins ("Prices are
+ * known where they are and through news"); the rest it knows only as its caravans, ships and envoys bring word home
+ * (item 10+b). At the start of the game it knows those within half a season's travel of its land, as they were last
+ * reported to it before the game began, and the tolls standing on its goods there.
  */
 P.seeMarkets = function () {
   const S = this.s;
   const Map = this.map;
   const reach = idiv(S.config.travelDays * PointsPerDay, TradeData.wordSeasonsShare);
   const season = seasonOfTurn(S.turn);
+  const first = ![...S.marketsSeen.values()].some((x) => x.size > 0);
   for (const p of alive(S)) {
-    // Every province within a season's travel of the king's land: the nearest first, from all his provinces at once.
+    // At the start: every province within half a season's travel of the king's land, from all his provinces at once.
     const dist = new globalThis.Map<string, number>();
     const queue: [string, number][] = [];
-    for (const id of ownedBy(S, p)) {
-      dist.set(id, 0);
-      queue.push([id, 0]);
-    }
+    if (first)
+      for (const id of ownedBy(S, p)) {
+        dist.set(id, 0);
+        queue.push([id, 0]);
+      }
     while (queue.length > 0) {
       let i = 0;
       for (let j = 1; j < queue.length; j++) if (queue[j][1] < queue[i][1] || (queue[j][1] === queue[i][1] && queue[j][0] < queue[i][0])) i = j;
@@ -416,6 +451,11 @@ P.seeMarkets = function () {
         dist.set(n, nd);
         queue.push([n, nd]);
       }
+    }
+    if (first) {
+      const w = newWord();
+      for (const k of AllPowers) if (k !== p && [...dist.keys()].some((x) => S.owner.getOrDefault(x, null) === k)) noteTolls(w, S.tolls, k, p);
+      this.hearWord(p, w);
     }
     const sight = Views.sight(S, Map, p);
     for (const prov of Map.landProvinces) {

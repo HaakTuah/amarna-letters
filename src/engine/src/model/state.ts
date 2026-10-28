@@ -49,7 +49,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 17;
+export const CURRENT_VERSION = 18;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -152,6 +152,11 @@ export interface GameState {
   /** Foreign markets as each court last knew them (item 9+b): seen where it sees the land, or found by its traders. */
   marketsSeen: Dict<Power, Dict<string, MarketSeen>>;
   /**
+   * The tolls each court knows to stand on its goods (item 10+b): never posted, only as last reported to it, by its
+   * caravans, ships and envoys coming home ("Tolls and smuggling"). Its own tolls it always knows.
+   */
+  tollsKnown: Dict<Power, Toll[]>;
+  /**
    * The besieged cities that could not feed their mouths in full when the season began (item 9+a, "How long a siege
    * lasts"): each surrenders to its besieger with the season's sieges, if the siege still stands.
    */
@@ -241,6 +246,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     caravans: [],
     tolls: [],
     marketsSeen: new Dict(),
+    tollsKnown: new Dict(),
     starving: [],
     units: [],
     treasuries: new Dict(),
@@ -313,6 +319,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   caravans: list(() => CaravanSchema),
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
+  tollsKnown: dict(list(() => TollSchema)),
   starving: list(S),
   units: list(() => UnitSchema),
   treasuries: dict(() => TreasurySchema),

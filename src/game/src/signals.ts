@@ -26,6 +26,7 @@ export const SignalKinds: readonly string[] = [
   "false-name", "false-envoy", "impostor-exposed", "false-envoy-paid", "gift-to-person", "questioned", "questioned-truth", "questioned-lie",
   "captive-handed", "tablet-stolen",
   "tax-set", "famine", "colonists", "resisted", "drought", "flood",
+  "besieged-fed", "captive-arrived", "captive-freed", "captive-taken", "captive-escaped",
 ];
 
 const MessengerBlamed = rx(
@@ -48,7 +49,7 @@ export function detectSignals(s: GameState): Signal[] {
     if (kind !== null && kind !== "assay" && kind !== "debased-gift" && kind !== "catastrophe") list.push({ turn: e.turn, kind, text: e.text });
   }
 
-  for (const t of s.trails) {
+  for (const t of s.trails.filter((x) => !x.pretended)) {
     // What the kings themselves said (the leader's letter and the host's replies), once per kind per message.
     const texts = [t.leaderLetter, ...t.exchanges.map((x) => x.host)].filter((x) => !isBlank(x));
     const turn = t.audienceTurn ?? t.turn;

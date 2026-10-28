@@ -342,9 +342,11 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.walking = sum(s.walking.filter((w) => s.owner.getOrDefault(w.home, null) === p), (w) => w.men);
   for (const c of s.caravans.filter((c) => c.power === p))
     v.caravans.push(newCaravanView({ from: c.from, to: c.to, grain: c.grain, at: caravanAt(c), returning: c.returning, gold: c.gold, trade: c.trade, sneak: c.sneak, ship: c.ship !== null }));
-  // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls posted on it and its own.
+  // The economy abroad (item 9+b): foreign markets as it last knew them, and the tolls on it as last reported and its own.
   for (const [k, seen] of s.marketsSeen.tryGet(p)?.entries() ?? []) if (s.owner.getOrDefault(k, null) !== p) v.markets.set(k, { ...seen });
-  for (const t of s.tolls) if (t.holder === p || t.partner === null || t.partner === p) v.tolls.push({ ...t });
+  // Its own tolls it knows; the others only as last reported to it (item 10+b), never posted.
+  for (const t of s.tolls) if (t.holder === p) v.tolls.push({ ...t });
+  for (const t of s.tollsKnown.tryGet(p) ?? []) if (t.holder !== p && isAlive(s, t.holder)) v.tolls.push({ ...t });
   for (const prov of m.landProvinces) if (!prov.kingless && s.owner.getOrDefault(prov.id, null) === null) v.cityPrices.set(prov.id, engine.cityPrice(prov.id));
   v.prices.set("basePrice", EconomyData.basePrice);
   return v;
@@ -358,9 +360,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
  */
 function letters(s: GameState, p: Power, court: readonly CharacterView[], since: number): LetterView[] {
   const away = new Set(court.filter((c) => c.ours && !c.ready).map((c) => c.id));
-  const latest = new Set(groupBy(s.trails.filter((t) => t.from === p), (t) => t.envoyId).map(([, g]) => g[g.length - 1].id));
+  const latest = new Set(groupBy(s.trails.filter((t) => t.from === p && !t.pretended), (t) => t.envoyId).map(([, g]) => g[g.length - 1].id));
   return s.trails
-    .filter((t) => t.from === p && (t.reportTurn !== null ? t.reportTurn > since : away.has(t.envoyId) && latest.has(t.id)))
+    .filter((t) => t.from === p && !t.pretended && (t.reportTurn !== null ? t.reportTurn > since : away.has(t.envoyId) && latest.has(t.id)))
     .map((t) =>
       newLetterView({
         turn: t.turn,
@@ -593,6 +595,7 @@ function knownDemand(s: GameState, id: string, heldAt: Power, payer: Power): Pen
 }
 
 function dutyText(c: Character): string {
+  if (c.duty === "UnderGuard") return "a captive on the road under guard";
   if (c.status === "Captured" && c.heldBy !== null) return `held captive at the court of ${c.heldBy}`;
   switch (c.duty) {
     case "None":

@@ -10,7 +10,7 @@ import { clause } from "../model/clauses.ts";
 import type { CaptiveOrder } from "../model/orders.ts";
 import { newFact, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
-import { newTablet, newTabletCopy, type Tablet } from "../model/records.ts";
+import { newJourney, newPendingTask, newTablet, newTabletCopy, type Tablet } from "../model/records.ts";
 import { isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
 import { learn } from "../rules/skills.ts";
@@ -25,6 +25,7 @@ declare module "./core.ts" {
   interface TurnEngine {
     saw(c: Character, tabletId: string): void;
     questionCaptive(host: Power, c: Character, co: CaptiveOrder): void;
+    questionedSays(host: Power, c: Character, tabletIds: readonly string[], lies: boolean, league: Power | null, words: string): void;
     handOver(host: Power, c: Character, to: Power): void;
     stealFromArchive(spy: Character, court: Power, master: Power): string | null;
   }
@@ -39,10 +40,9 @@ P.saw = function (c, tabletId) {
 
 /**
  * A captor questions a captive. How much the questioning draws out is a roll on its courage and loyalty against what is
- * spent, and a court that holds its lover or family has a hold on it; what it says is its own decision. A script captive
- * (and, until characters decide it themselves, every captive) that is loyal and brave lies: it tells of a tablet that never
- * was, a forgery in its own hand. Otherwise it tells the truth: the tablets it saw, which go into the captor's archive as it
- * recited them.
+ * spent, and a court that holds its lover or family has a hold on it ("Skills set the odds; the character decides"). What
+ * it then says is its own decision, the next season, in its own words (item 10+b, Haakon's answer of 28 October 2026):
+ * the tablets it gave way on, or a tablet that never was (questionedSays).
  */
 P.questionCaptive = function (host, c, co) {
   const S = this.s;
@@ -61,8 +61,6 @@ P.questionCaptive = function (host, c, co) {
     [(t: Tablet) => idNumber(t.id), desc(cmpNum)],
   );
   const drawn = known.filter(() => rng.chance(p)).slice(0, MostDrawnOut);
-  const master = c.employer ?? c.formerEmployer;
-  const lies = c.traits.loyalty >= 60 && c.traits.courage >= 50 && master !== null;
   c.facts.push(newFact({ id: newId(S, "f"), text: `Was questioned at the court of ${land(host)} (season ${S.turn}).`, secrecy: "Hidden", tag: "questioned", knownBy: [host] }));
   if (drawn.length === 0) {
     remember(c, S.turn, `${land(host)} questioned me. I told them nothing of worth.`);
@@ -70,12 +68,27 @@ P.questionCaptive = function (host, c, co) {
     logEvent(S, "question", `${host} questioned ${c.name}, who told nothing.`, [host], "questioned");
     return;
   }
+  // It gave way: what it says, it decides as the next season begins.
+  S.tasks.push(newPendingTask({ id: newId(S, "q"), kind: "Questioning", requester: host, dueTurn: S.turn + 1, characterId: c.id, tabletIds: drawn.map((t) => t.id) }));
+  notify(S, host, "Notice", "A captive questioned", `${c.name} gave way under questioning; your scribes will have what they say next season.`, c.id);
+};
+
+/**
+ * What a captive that gave way says, as it decided: the tablets it saw, which go into the captor's archive as it recited
+ * them; or, lying, a tablet that never was, a forgery in its own hand (its master's seal beside another king's, in a league
+ * against the captor), which only an examination can show. A captive with no master left has no one to lie for.
+ */
+P.questionedSays = function (host, c, tabletIds, lies, league, words) {
+  const S = this.s;
+  if (c.status !== "Captured" || c.heldBy !== host || !isAlive(S, host)) return;
   const source = `told by ${c.name} under questioning`;
-  if (lies) {
-    // A tablet that never was: its master's seal beside another king's, in a league against the captor.
+  const said = words.trim().length > 0 ? ` In their words: "${words.trim()}"` : "";
+  const master = c.employer ?? c.formerEmployer;
+  if (lies && master !== null && isAlive(S, master)) {
+    const rng = this.r("question-lie", c.id);
     const others = AllPowers.filter((q) => q !== host && q !== master && isAlive(S, q));
-    const other = others.length > 0 ? rng.pick(others) : undefined;
-    const seals = other !== undefined ? [master!, other] : [master!];
+    const other = league !== null && others.includes(league) ? league : others.length > 0 ? rng.pick(others) : undefined;
+    const seals = other !== undefined ? [master, other] : [master];
     const clauses = checkClauses([clause("alliance"), clause("against", { power: host })], seals[0], seals[1] ?? seals[0], S.turn).kept;
     const tablet = newTablet({
       id: newId(S, "t"),
@@ -95,23 +108,27 @@ P.questionCaptive = function (host, c, co) {
     const copy = newTabletCopy({ id: newId(S, "k"), tabletId: tablet.id, holder: host, acquiredTurn: S.turn, source });
     S.copies.push(copy);
     remember(c, S.turn, `${land(host)} questioned me. I told them of a tablet that never was, to mislead them.`);
-    notify(S, host, "Notice", "A captive questioned", `${c.name} gave way under questioning and recited a tablet: ${this.copyLine(copy)}.`, c.id);
+    notify(S, host, "Notice", "A captive questioned", `${c.name} recited a tablet under questioning: ${this.copyLine(copy)}.${said}`, c.id);
     logEvent(S, "question", `${host} questioned ${c.name}, who lied, reciting a tablet that never was.`, [], "questioned-lie");
     return;
   }
-  const copies = drawn.map((t) => {
-    const k = newTabletCopy({ id: newId(S, "k"), tabletId: t.id, holder: host, acquiredTurn: S.turn, source });
-    S.copies.push(k);
-    return k;
-  });
+  const held = new Set(S.copies.filter((k) => k.holder === host).map((k) => k.tabletId));
+  const copies = tabletIds
+    .filter((id) => !held.has(id) && S.tablets.some((t) => t.id === id))
+    .map((id) => {
+      const k = newTabletCopy({ id: newId(S, "k"), tabletId: id, holder: host, acquiredTurn: S.turn, source });
+      S.copies.push(k);
+      return k;
+    });
   remember(c, S.turn, `${land(host)} questioned me, and I told them of ${copies.length} tablet(s) I had seen.`);
-  notify(S, host, "Notice", "A captive questioned", `${c.name} gave way under questioning and recited what they had seen: ${copies.map((k) => this.copyLine(k)).join(", ")}.`, c.id);
+  notify(S, host, "Notice", "A captive questioned", copies.length > 0 ? `${c.name} recited what they had seen: ${copies.map((k) => this.copyLine(k)).join(", ")}.${said}` : `${c.name} told your questioners nothing you did not hold already.${said}`, c.id);
   logEvent(S, "question", `${host} questioned ${c.name}, who told of ${copies.length} tablet(s).`, [host], "questioned-truth");
 };
 
 /**
- * A captor hands its captive over to another court, like any good: the captive is that court's to hold from now on, and
- * any ransom its captor asked lapses.
+ * A captor hands its captive over to another court, like any good; any ransom it asked lapses. The captive travels under
+ * the giver's guard like any company (item 10+b, Haakon's answer of 28 October 2026), so it can be intercepted or freed on
+ * the way (see convoyStopped); the other court holds it once it arrives.
  */
 P.handOver = function (host, c, to) {
   const S = this.s;
@@ -119,21 +136,16 @@ P.handOver = function (host, c, to) {
     notify(S, host, "Rejected", "Captive order failed", `${c.name} could not be handed over: the kingdom of ${land(to)} has fallen.`, c.id);
     return;
   }
-  c.heldBy = to;
-  c.at = to;
   S.tasks = S.tasks.filter((t) => !(t.kind === "RansomDemand" && t.characterId === c.id));
-  this.meet(c, to);
-  remember(c, S.turn, `${land(host)} handed me over to ${land(to)}, whose captive I now am.`);
-  notify(S, host, "Notice", "A captive handed over", `You handed ${c.name} over to the king of ${land(to)}.`, c.id);
-  notify(
-    S,
-    to,
-    "Notice",
-    "A captive given to you",
-    `The king of ${land(host)} has handed ${c.name} over to you as a captive. You may question, ransom, execute or release them${c.intercepted ? "" : ", or turn them"}.`,
-    c.id,
-  );
-  logEvent(S, "captive-handed", `${host} handed ${c.name} over to ${to}.`, [host, to], "captive-handed");
+  c.duty = "UnderGuard";
+  c.at = null;
+  const j = newJourney({ id: newId(S, "j"), kind: "CaptiveConvoy", departTurn: S.turn, from: host, to, characterId: c.id });
+  S.journeys.push(j);
+  this.setOut(j, this.map.capital(host).id, this.map.capital(to).id);
+  remember(c, S.turn, `${land(host)} handed me over to ${land(to)}, and its guards are taking me there.`);
+  notify(S, host, "Notice", "A captive handed over", `You handed ${c.name} over to the king of ${land(to)}; your guards are taking them there, due in season ${j.arriveTurn}.`, c.id);
+  notify(S, to, "Notice", "A captive on the way", `The king of ${land(host)} is sending you ${c.name} as a captive, under his guard.`, c.id);
+  logEvent(S, "captive-handed", `${host} handed ${c.name} over to ${to}, sent under guard.`, [host, to], "captive-handed");
 };
 
 /**

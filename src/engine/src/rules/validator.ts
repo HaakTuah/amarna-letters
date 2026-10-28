@@ -532,6 +532,8 @@ export class OrderValidator {
           const co = order;
           const c = findCharacter(S, co.character);
           if (c === null || c.status !== "Captured" || c.heldBy !== power) return `you hold no captive '${co.character}'`;
+          // Item 10+b: a captive handed over travels under guard; it is nobody's to dispose of until it arrives.
+          if (c.duty === "UnderGuard") return `${c.name} is on the road under guard and has not reached your court yet`;
           if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
           if (co.fate === "Ransom" && co.ransom <= 0) return "name a ransom";
           // Item 10: questioning costs what is spent on it; a captive is handed over to a living court other than one's own.
