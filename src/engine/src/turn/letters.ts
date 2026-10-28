@@ -9,7 +9,7 @@
 import { idiv } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { gain, remember, type Character } from "../model/people.ts";
-import type { Power } from "../model/power.ts";
+import { land, type Power } from "../model/power.ts";
 import { Waiting, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -108,6 +108,24 @@ P.carryLetters = function () {
         spy!.earned.spent += side;
         gain(carrier, side, "News");
       } else fee = side;
+    } else if (demand && court !== null && isAlive(S, court)) {
+      // The captor who demands a ransom sends it: with nobody going that way, it hires a free person at its court, paying
+      // the whole fee now from its treasury as part of the demand it ordered.
+      const ask = (c: Character): number => idiv(basePrice(c, letter.to) * seasons * LetterData.hiredPercent, 100);
+      const t = S.treasuries.get(court);
+      const hire =
+        sortBy(
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && t.gold >= ask(c)),
+          [(c: Character) => ask(c), cmpNum],
+          [(c: Character) => idNumber(c.id), cmpNum],
+        )[0] ?? null;
+      if (hire !== null) {
+        t.gold -= ask(hire);
+        gain(hire, ask(hire), "News");
+        this.startTravel(hire, letter.to);
+        remember(hire, S.turn, `The king of ${land(court)} paid me ${formatMoney(ask(hire))} to carry his word to the court of ${letter.to}.`);
+        carrier = hire;
+      }
     } else if (spy !== null && willing && waited >= LetterData.hireAfter && court !== null) {
       // Hired at the court where it waits: a free person standing there, half now from the spy's purse, or all of it on
       // delivery from a court whose standing order is to pay carriers and whose record of paying, as it heard it, it trusts.

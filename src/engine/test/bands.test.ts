@@ -2,6 +2,7 @@ import { describe, test } from "vitest";
 import {
   BandData,
   LetterData,
+  selfWait,
   TurnEngine,
   Waiting,
   WorldMap,
@@ -79,14 +80,22 @@ describe("BandTests", () => {
     Assert.equal(chief.purse, chief.earned.loot - chief.earned.spent);
   });
 
-  test("The holder's army standing where a band works falls on it and drives it off", () => {
+  test("The holder's army falls on a band where it stands only on his order, and drives it off", () => {
     const s = newGame(3);
     const prov = quiet(s, "Egypt");
     const e = new TurnEngine(s);
     const b = e.headRises(prov, 80, "crowd", e.r("test"));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: prov, home: prov, men: 5000, food: 20 }));
     s.turn++;
+    // No order: the army leaves it alone (Haakon's answers to item 11b).
     new TurnEngine(s).bandsSeason();
+    Assert.false(s.events.some((x) => x.signal === "band-hunted"));
+    b.province = prov;
+    // Ordered to hunt there this season: it falls on it as the next season begins.
+    s.huntNow.push(`Egypt|${prov}`);
+    s.turn++;
+    new TurnEngine(s).bandsSeason();
+    Assert.empty(s.huntNow);
     Assert.true(s.events.some((x) => x.signal === "band-hunted"));
     // It lost men and fled, or lost its chief; either way it no longer works there unmolested.
     const still = s.bands.find((x) => x.id === b.id) ?? null;
@@ -126,7 +135,8 @@ describe("BandTests", () => {
     const letter = first(s.journeys, (j) => j.kind === "SpyReport" && j.characterId === spy.id);
     Assert.equal(Waiting, letter.arriveTurn);
     Assert.equal(Map.capital("Hatti").id, letter.waitAt);
-    for (let i = 0; i < LetterData.selfAfter; i++) {
+    // It decides how long to wait: two seasons, a season more if brave, another if loyal (selfWait).
+    for (let i = 0; i < selfWait(spy); i++) {
       s.turn++;
       new TurnEngine(s).carryLetters();
     }

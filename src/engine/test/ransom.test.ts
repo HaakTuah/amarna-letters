@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import {
+  travelTurns,
   AllPowers,
   type CaptiveFate,
   type Character,
@@ -41,8 +42,14 @@ import { Assert } from "./support.ts";
 
 // <summary>One open demand per captive, known to the payer only once its rumour has arrived, and paid once.</summary>
 describe("RansomTests", () => {
+  // Since Haakon's answers to item 11b a demand waits at the captor's court for a carrier: these tests give each one a
+  // carrier who sets out at once, so its word arrives at the pace of the road, as the rules here are about.
   function begin(s: GameState): TurnEngine {
     let e = new TurnEngine(s);
+    for (const j of s.journeys.filter((x) => x.news === "Ransom" && x.waitAt !== null && x.carrier === null)) {
+      j.waitAt = null;
+      j.arriveTurn = j.departTurn + travelTurns(s.config, WorldMap.default, WorldMap.default.capital(j.from).id, WorldMap.default.capital(j.to).id, j.departTurn);
+    }
     e.beginTurn();
     for (const r of e.mindRequests) e.fulfil(r, newMindReply({ text: `[${r.task}]`, number: 15 }));
     return e;

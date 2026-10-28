@@ -92,3 +92,26 @@ and the man hired, hear its rate. It asks more of a court it heard seized hoards
   item 11b found), turn outlaw only on the outlaw's road or near the end of their purse (it was about 30 a game), keep
   no hoard where a court seized one, answer a collector's job by the advance alone without the employer's word to pay,
   and give that word when they are honest.
+
+### The answers to item 11b's review (11b+, second part)
+
+- **A ransom demand needs a carrier** (`captive` "Ransom"): its word waits at the captor's capital (`Journey.waitAt`) until
+  someone sets out for the payer's court, the payer's own people or any traveller, for nothing (`carryLetters`, a
+  journey that is not a `SpyReport`); the demand stands 8 seasons. Rumours and word of the world stay talk by the roads.
+- **The spy decides** (`carryLetters`): a passing traveller is paid on delivery by its court's standing order, else by
+  the spy from its purse if it is loyal enough (`LetterData.payLoyalty`); so is a carrier it hires; it carries its
+  reports home itself after `selfWait` seasons (two, a season more for a brave spy and for a loyal one).
+- **The border walk** (`reportRoad`): a watcher just across its master's border walks its reports to the nearest
+  province of his, where the realm's couriers take them.
+- **Hunting only on order** (`hunt` for next season, `huntBands` standing; `GameState.huntNow`, `huntBands`): an army
+  falls on a band where it stands only so; troops standing there still halve what bands take.
+- **Robbers choose** (`chiefKills`): a ruthless chief (disloyal or greedy) kills a robbed traveller where nobody hunts him
+  (the land's king has no standing hunt and no army there or next door); a careful one never does. No fixed odds.
+- **Anyone may sell what he knows** (`newsSeason`, `buyNewsOrder`): servants abroad note news too; a greedy, disloyal
+  servant notes its master's court, and selling it is found out `NewsData.secretsCaught` times in a hundred (a hidden
+  fact its master knows, a notice, signal `secrets-caught`).
+- **Not built here**: a band hired as soldiers (item 13); a pardon has no order (words, or a sealed promise); **a model
+  chief's own request** for raids, ships and the way back (chiefs, model and script, still decide by formula).
+- **Script kings** give the standing hunt while a band of 40 men or more works in their land (`huntOrders`), march spare
+  armies on such bands as before, buy news only of the court they fight or a hostile one, at most a fiftieth of their
+  gold, and dismiss a servant found selling their secrets.
