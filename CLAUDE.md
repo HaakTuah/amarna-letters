@@ -29,7 +29,9 @@ answers to the design pillars and tenets in `docs/intent/overview/design-pillars
    `item-9plus.md`, ...).
 3. Do the check for changes that `docs/intent/INDEX.md` describes ("The specification" in the builder rules), and do it
    again before opening the item's pull request.
-4. Read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
+4. Read "The game in one page" (`docs/intent/overview/the-game-in-one-page.md`) before every item: most questions
+   an item raises answer themselves from it, and a reading that contradicts it is a mistake, not a design question.
+   Then read the sections the item names, and only those. Find them with `grep -rn "Title words" docs/intent docs/design`.
 5. Check weekly usage with `scripts/usage.sh`, and again after every commit ("Usage" in the builder rules). If it
    says "unknown", this session cannot see usage: say so in the first line of each PR you open, and carry on; Haakon
    then watches usage himself and pauses the work at about 90%.
@@ -86,7 +88,7 @@ The same in both of Haakon's games; only the list of hard work differs.
 | --- | --- | --- | --- |
 | You, the builder | Opus | medium; high for the TypeScript conversion and the fix pass after it | the item itself |
 | Search helper | Haiku (`model: "haiku"`) | as it comes | finding where things are across many files; it returns file:line and one-line conclusions |
-| Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | every item, once, before it is merged (the builder rules): give it the diff and the item's text, nothing else |
+| Reviewer | Opus (`model: "opus"`, `effort: "high"`) | high | every item, once, before it is merged (the builder rules): give it the diff, the item's text and "The game in one page", nothing else; it checks the diff against that page first |
 | Escalation | Opus (`model: "opus"`, `effort: "high"`, or `"xhigh"` if you already run at high) | high or extra high | one problem that has defeated you twice: give it a self-contained brief (the problem, what you tried, the files and lines), then apply and check its answer yourself |
 
 - **Never more than two helpers at a time,** and only these four uses. No workflows and no ultracode. No agent kept
@@ -170,3 +172,17 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
   6. **The same helpers, used better.** Pipelining spends the same tokens sooner and adds no agents beyond "Models,
      effort and helpers": a reviewer or search helper may run in the background while the builder works, and the Haiku
      search helper, not the builder reading large files itself, is the cheap way to look across many files.
+- **28 October 2026: as many lanes as can run in parallel.** "Yes, allow for as many lanes as can be parallelized, expert." (the words are in `docs/archive/instructions.md`).
+  This replaces the limit of two agents in "How to work" for builders; each builder keeps its own limit of helpers.
+  1. **A lane is independent work:** it touches different files from every other open lane (or parts of one file
+     nobody else touches), shares no measurement with another, and does not wait on another's result. Here, the build order's numbered items stay one lane, one item at a time, since each builds on the last; beside it run independent work: file splits from the workshop check, history dossiers, script kings' play improved outside the current item's code, tests, and interface polish on screens the current item does not touch.
+  2. **Claim it on GitHub first.** Before starting, open a draft PR from a fresh branch off `develop`, its title naming
+     the entry, and push; that PR is the claim. Look at the open PRs before choosing, and take only what nobody has
+     claimed. The progress file is changed only when the work merges, so lanes never fight over it.
+  3. **Each lane on its own.** It merges `develop` into its branch before asking for review, is reviewed and merged by
+     the usual rules, and is not stacked on another lane's branch. A lane that finds it needs another's work waits,
+     says so in its PR, or folds into that lane.
+  4. **The orchestrator opens a lane for every independent entry it can see,** each a builder session with its own
+     brief and check-in, and passes on every lane's "Questions for Haakon" word for word.
+  5. **The brake closes lanes first.** From about 85% of the weekly usage, no new side lane opens and open ones finish;
+     from about 90%, as "Usage" says, only small things in the main lane.

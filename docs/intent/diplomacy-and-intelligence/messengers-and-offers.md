@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Diplomacy and intelligence tab, revision 24 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Diplomacy and intelligence tab, revision 25 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Messengers and offers
 
 **Messengers are errands (decided 21 October 2026).** Word from abroad needs someone to carry it. A report or letter from an envoy, a spy or anyone else comes home only with a carrier: someone hired ("Anyone can hire anyone"), a traveller going that way, such as a merchant carrying letters on the side, or the person himself travelling home. Nothing arrives by itself. Carrying is an errand like any other (deliver a letter or a tablet, bring back a reply), so the messenger needs no role of his own.
