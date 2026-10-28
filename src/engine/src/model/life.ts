@@ -19,7 +19,6 @@ export interface CourtSeen {
   /** Its record: promises to pay kept and broken. */
   kept: number;
   broken: number;
-  /** Executions it is said to have done (item 4's wariness). */
   /** Item 11b: what it heard of the court: people it put to death, and its own people lost abroad (caught or put to death). */
   executions: number;
   lost: number;

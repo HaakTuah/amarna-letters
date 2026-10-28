@@ -19,7 +19,6 @@ import { LandData } from "../model/land.ts";
 import { coverOf, gain, newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { alive, isAlive, logEvent, newId, notify, siegeOf } from "../model/state.ts";
-import { newLossAbroad } from "../model/records.ts";
 import { Styles } from "../rules/cast.ts";
 import { personaTemplate } from "../rules/personas.ts";
 import { drawSkills } from "../rules/skills.ts";
@@ -237,6 +236,9 @@ P.dies = function (c, where, how) {
   const name = this.map.get(where).name;
   remember(c, S.turn, `I died ${how} in ${name}.`);
   logEvent(S, "death", `${c.name} died ${how} in ${name}.`, [], "death");
+  // A chief's band is without him at once: it takes no more loot in his name.
+  const band = this.bandOf(c);
+  if (band !== null) this.leaderLost(band, "he is dead");
   const from = S.owner.getOrDefault(where, null) ?? employer;
   if (from !== null) for (const heard of AllPowers.filter((p) => p === employer || coverOf(c, p) !== null)) this.rumor(heard, from, `It is said that ${c.name} died ${how} in ${name}.`, c.id, "Death");
 };
@@ -296,7 +298,7 @@ P.bandsSeason = function () {
       remember(chief, S.turn, `${land(holder)}'s army fell on my band in ${prov.name}: ${lost} of my men were lost.`);
       logEvent(S, "band", `${holder}'s army fell on ${chief.name}'s band in ${prov.name}: ${lost} men lost${taken ? ", and the chief taken" : ""}.`, [holder], "band-hunted");
       if (taken) {
-        say(holder, `Your army in ${prov.name} fell on ${chief.name}'s band, killing or scattering ${lost} men, and took the chief captive: you may execute, ransom, question or release him.`);
+        say(holder, `Your army in ${prov.name} fell on ${chief.name}'s band, killing or scattering ${lost} men, and took the chief captive: you may execute, question or release him (nobody would ransom him).`);
         chief.status = "Captured";
         chief.heldBy = holder;
         chief.at = holder;
@@ -304,7 +306,6 @@ P.bandsSeason = function () {
         chief.watchProvince = null;
         chief.intercepted = true;
         this.meet(chief, holder);
-        S.losses.push(newLossAbroad({ turn: S.turn, kind: "Captured", characterId: chief.id, court: holder, master: null }));
         this.leaderLost(b, "taken captive");
         continue;
       }
@@ -476,7 +477,9 @@ P.naturalLosses = function () {
     S.characters.filter((c) => c.status !== "Dead"),
     [(c: Character) => idNumber(c.id), cmpNum],
   )) {
-    const where = c.at !== null ? this.map.capital(c.at).id : c.duty === "Leading" || c.duty === "SpyPosted" ? c.watchProvince : null;
+    // Envoys at an audience, travellers and captives under guard are left to their own perils.
+    if (c.duty !== "None" && c.duty !== "Leading" && c.duty !== "SpyPosted") continue;
+    const where = c.at !== null ? this.map.capital(c.at).id : c.watchProvince;
     if (where === null) continue;
     const plague = S.catastrophes.some((x) => x.kind === "Plague" && x.startTurn <= S.turn && x.endTurn >= S.turn && (x.province === where || (x.province === null && S.owner.getOrDefault(where, null) === x.power)));
     const starving = S.fed.getOrDefault(where, 1000) < LossData.starving;

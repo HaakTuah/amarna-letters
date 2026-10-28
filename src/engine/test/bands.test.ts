@@ -136,6 +136,31 @@ describe("BandTests", () => {
     Assert.notNull(spy.covers.find((k) => k.for === "Babylonia") ?? null);
   });
 
+  test("One carrier takes every report waiting for the same court, for one fee", () => {
+    const s = newGame(5);
+    const spy = first(s.characters, (c) => c.employer === "Babylonia" && c.at === "Babylonia");
+    spy.duty = "SpyPosted";
+    spy.at = "Hatti";
+    spy.missionTarget = "Hatti";
+    spy.purse = 500;
+    const e = new TurnEngine(s);
+    e.watchAndReport();
+    s.turn++;
+    new TurnEngine(s).watchAndReport();
+    const letters = s.journeys.filter((j) => j.kind === "SpyReport" && j.characterId === spy.id);
+    Assert.equal(2, letters.length);
+    // Somebody free at Hatti to hire, nobody going to Babylon.
+    const free = first(s.characters, (c) => c.status === "Free" && c.at !== null && c.errand === null);
+    free.at = "Hatti";
+    free.duty = "None";
+    const travelling = s.journeys.filter((j) => j.kind === "Travel").length;
+    s.turn++;
+    new TurnEngine(s).carryLetters();
+    Assert.true(letters.every((l) => l.carrier !== null && l.carrier === letters[0].carrier));
+    Assert.equal(travelling + 1, s.journeys.filter((j) => j.kind === "Travel").length);
+    Assert.equal(1, letters.filter((l) => l.fee > 0).length);
+  });
+
   test("A free person sells the news it saw at one court at another", () => {
     const s = newGame(6);
     const c = first(s.characters, (x) => x.status === "Free" && x.at !== null);

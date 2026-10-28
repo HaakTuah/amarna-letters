@@ -69,6 +69,17 @@ seek work.
 
 AFTER_NUMBERS
 
+## The review
+
+One reviewer (Opus, high effort) read the code diff against the item. Fixed: letters already given a carrier were handled
+again in the same season, hiring a second carrier and charging a second fee; plague or famine could kill an envoy in the
+middle of an audience (natural losses now strike only people at rest, chiefs and posted spies); a dead chief's band
+went on taking loot in his name until the next season (it now loses him at once); reports left at a deserted watch post
+waited forever; the capture notice offered a ransom nobody could pay; a chief's capture was talked of as a spy's;
+pirates took a king's ship without saying that the fleet was lost, and its crew vanished (now loose on the pirates'
+coast); a traveller on its own way planned its road from its destination court's closed roads, and routes avoided bands
+their court could not see. Left as a design question: carriers' fees paid on delivery without an order (reading 17).
+
 ## Readings taken and design questions
 
 1. **Only spies' reports from abroad wait for a carrier**; rumours, word of the world, overdue notices and ransom
@@ -111,5 +122,11 @@ AFTER_NUMBERS
     `LeaderPace` ±10, a bandit's share 20 shekels a thousand men a season.
 15. **Free travellers' arrival** now follows their road (`setOut`) instead of the fastest seasons between capitals, so
     some arrive a season later or sooner.
+17. **A carrier's fee is paid on delivery from the treasury by itself**, and counts against the record if the treasury
+    cannot pay it (the review's point 5). Haakon's answer that every payment is the payer's own order belongs to the rework
+    of jobs (question 13), which will move this payment with the others.
+18. **A report left at a watch post whose spy is gone is lost** after two seasons, with no court there to hire a carrier.
+19. **A chief taken by a king's army is a captive like any other**, but no court counts it as one of its people lost
+    abroad, and nobody ransoms him.
 16. **People die of plague** 5 in a hundred a season where it strikes, of famine 2 where the people had under half their
     food.

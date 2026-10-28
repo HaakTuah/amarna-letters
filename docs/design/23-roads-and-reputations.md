@@ -43,7 +43,8 @@ item 18 tunes them.
 - **On the road** (`bandOdds`, `robbedBy`): a band adds 20 × men / (men + 200) in a hundred to the outlaws' odds of the
   road check in its province, and with a ship in the sea zone off its coast (halved where the holder's troops stand). It
   falls on caravans and ships passing there with those odds (signals `caravan-banded`, `ship-pirated`), selling the grain
-  where it stands. What is robbed, from a traveller, a caravan or a ship, goes to the band's chief, or, with no band, to
+  where it stands; a ship taken is lost with its fleet, its crew put ashore loose on the pirates' coast. A chief who dies
+  loses his band at once (`dies` calls `leaderLost`); a chief taken captive is nobody's servant lost abroad. What is robbed, from a traveller, a caravan or a ship, goes to the band's chief, or, with no band, to
   the loose men there (`S.loot`) and the grain to the market: nothing vanishes.
 
 ### Travellers on the road (`turn/travel.ts`, `turn/life.ts`, `turn/pool.ts`)
@@ -65,7 +66,8 @@ item 18 tunes them.
   seasons with nobody, by the spy itself, which leaves its post (its master believes it posted until it is home). A
   carrier takes every report waiting there for that court. The report goes with its carrier (`lettersGo`): lost if he is
   robbed of it or killed, read by whoever catches him (signal `letter-read`). A fee unpaid on delivery is a broken
-  promise. A watch post in its master's land, or next to it, hands its reports to the realm's couriers as before.
+  promise. A watch post in its master's land, or next to it, hands its reports to the realm's couriers as before. A
+  report left at a watch post whose spy is gone (with no court there) is lost after two seasons.
 - Rumours, word of the world and ransom demands are talk and still travel by themselves (a reading); envoys carry their
   own letters and reports as before.
 - `GameState.lettersCarried` and `lettersWaited` count, by the court a letter was written at, the letters carried and the
@@ -91,7 +93,7 @@ item 18 tunes them.
 
 ### Natural losses (`naturalLosses`; "No age in this game")
 
-- People die only of risk: the road (above), plague where they stand (5 in a hundred a season) and famine (2 where the
+- People at rest (duty none), chiefs and posted spies die only of risk: the road (above), plague where they stand (5 in a hundred a season) and famine (2 where the
   people had less than half their food). `dies` sets `diedWith`, and its master hears by rumour from where it died. Nobody
   ages; personas never state an age.
 

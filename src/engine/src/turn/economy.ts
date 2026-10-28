@@ -569,7 +569,9 @@ P.caravansTravel = function () {
         m.purse -= fetched;
       }
       const band = this.robbedBy(raider, c.gold + fetched);
-      notify(S, c.power, "Notice", MarketsTitle, `${band !== null && c.ship !== null ? "Pirates" : "A band of outlaws"} fell on your ${noun(c)} to ${this.map.get(c.to).name} near ${this.map.get(raider).name} and carried off its ${what(c)}.`);
+      // A ship taken is lost with its fleet; its crew put ashore among the loose men of the pirates' coast.
+      if (c.ship !== null && !this.map.get(coast).isSea) this.peopleOf(coast).loose += c.ship.men;
+      notify(S, c.power, "Notice", MarketsTitle, `${band !== null && c.ship !== null ? "Pirates" : "A band of outlaws"} fell on your ${noun(c)} to ${this.map.get(c.to).name} near ${this.map.get(raider).name} and carried off its ${what(c)}${c.ship !== null ? "; the ship is theirs, and the fleet is lost" : ""}.`);
       logEvent(S, "caravan-robbed", `A band robbed ${c.power}'s ${noun(c)} near ${this.map.get(raider).name}.`, [c.power], c.ship !== null ? "ship-pirated" : "caravan-banded");
       continue;
     }

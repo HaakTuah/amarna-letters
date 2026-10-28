@@ -127,7 +127,8 @@ P.planRoute = function (j, from, to, turn) {
   const master = masterOf(j);
   const c = char(S, j.characterId!);
   // The kings it believes closed to its court: those its court heard of, and those it met on the way.
-  const closed = new HSet<Power>([...(S.roadsHeard.tryGet(master) ?? []), ...(j.sneak as Power[])]);
+  // A person on its own way is nobody's people: it sneaks round no king's land (item 11b).
+  const closed = new HSet<Power>(j.kind === "Travel" ? [] : [...(S.roadsHeard.tryGet(master) ?? []), ...(j.sneak as Power[])]);
   closed.delete(master);
   closed.delete(counterpart(j));
   const know = this.roadKnowledge(master, closed);
@@ -204,7 +205,8 @@ P.roadOdds = function (j, c, province, sneaking, known) {
     out.set("found", found);
   }
   // The loose men of the land, and since item 11b the bands working it (at sea, the pirates off its coasts).
-  const bands = this.bandOdds(province);
+  // Choosing a route, only the bands its court sees count.
+  const bands = known === null || known.seen.has(province) ? this.bandOdds(province) : 0;
   if (!prov.isSea || bands > 0) out.set("outlaws", (prov.isSea ? 0 : prov.kingless ? RoadOdds.kingless : holder === null ? RoadOdds.free : RoadOdds.royal) + bands);
   if (prov.isSea) out.set("nature", season === WinterSeason ? RoadOdds.winterStorm : RoadOdds.storm);
   else if (terrainOf(province) === "Desert") out.set("nature", RoadOdds.desert);

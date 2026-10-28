@@ -53,11 +53,22 @@ P.carryLetters = function () {
     [(j: Journey) => idNumber(j.id), cmpNum],
   );
   for (const letter of waiting) {
+    // Taken already this season, with another letter waiting there for the same court.
+    if (letter.carrier !== null) continue;
     if (!isAlive(S, letter.to)) {
       S.journeys.splice(S.journeys.indexOf(letter), 1);
       continue;
     }
     const at = letter.waitAt!;
+    // A report left at a watch post whose spy is gone (recalled, caught or dead), with no court there to hire a carrier
+    // at: nobody keeps it, and it is lost.
+    const writer = findCharacter(S, letter.characterId);
+    const posted = writer !== null && writer.status === "Employed" && writer.employer === letter.to && writer.duty === "SpyPosted";
+    if (!posted && courtAt(this, at) === null && S.turn - letter.departTurn >= LetterData.selfAfter) {
+      S.journeys.splice(S.journeys.indexOf(letter), 1);
+      logEvent(S, "letter", `A report to ${letter.to} left at ${this.map.get(at).name} was lost: nobody was there to carry it.`, [], "letter-lost");
+      continue;
+    }
     const home = this.map.capital(letter.to).id;
     const seasons = Math.max(1, this.travelTurnsBetween(at, home));
     // Travellers setting out from here for its master's capital.
