@@ -552,12 +552,28 @@ const AsWritten: [string, z.ZodType] = [
 const SwapInventory =
   "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
 
+/**
+ * Item 11a+ (Haakon's answer to item 8's review, "Full press"): a model envoy may alter the letter's clauses as a script
+ * envoy can, in the same call: leave some out, state the gift as less, add a courtesy. Asked only of a letter with clauses,
+ * the gift only where one names an amount.
+ */
+const ReciteFields = (clauses: number, gift: boolean): [string, z.ZodType][] => {
+  if (clauses <= 0) return [];
+  const f: [string, z.ZodType][] = [
+    ["leave_out", array(z.int(), "The numbers of the letter's clauses you leave out when you recite them, or none: the king's scribes hear the rest as you recite them.")],
+    ["add_courtesy", bool("True: you add a clause of good wishes from your lord that he did not write.")],
+  ];
+  if (gift) f.push(["gift_stated", int("The gift you state, in shekels: as written, or less if you keep some of the gold and say so to match.")]);
+  return f;
+};
+
 /** An envoy's presentation: the gold fields only of an envoy that carries gold, the swap only of one whose hand can fake a seal. */
-function present(carriesGold = true, canForge = true): ReplySchema {
-  if (!carriesGold) return object(AsWritten, ["speech", str(PresentSpeech)]);
+function present(carriesGold = true, canForge = true, clauses = 0, gift = false): ReplySchema {
+  const recite = ReciteFields(clauses, gift);
+  if (!carriesGold) return object(AsWritten, ["speech", str(PresentSpeech)], ...recite);
   return canForge
-    ? object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)], ["swap_inventory", bool(SwapInventory)])
-    : object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)]);
+    ? object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)], ["swap_inventory", bool(SwapInventory)], ...recite)
+    : object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)], ...recite);
 }
 
 /** An envoy's answer at an audience: whether to take a gift or a post only when one is offered. */
@@ -580,7 +596,7 @@ export const ReportToSender = "Your report to the king who sent you on this miss
  * An envoy's report home, with the gold fields only when it carries gold home, and the swap only when its hand can fake a
  * seal; after an audience, also the choice to report the king's answer as given, which the engine then writes.
  */
-function report(carriesGold = true, canForge = true, toLord = true, received = false): ReplySchema {
+function report(carriesGold = true, canForge = true, toLord = true, received = false, answers = 0): ReplySchema {
   const fields: [string, z.ZodType][] = [];
   if (received)
     fields.push([
@@ -590,6 +606,11 @@ function report(carriesGold = true, canForge = true, toLord = true, received = f
   fields.push(["report", str((received ? "Only if as_given is false: " : "") + (toLord ? ReportText : ReportToSender))]);
   if (carriesGold) fields.push(["keep_gold", int(KeepGoldHome)]);
   if (carriesGold && canForge) fields.push(["swap_inventory", bool(SwapInventory)]);
+  // Item 11a+: the king's answer in clauses as the envoy reports it, changed as a script envoy may change it.
+  if (answers > 0) {
+    fields.push(["answers_left_out", array(z.int(), "The numbers of the king's answers (in clauses) you leave out of your report, or none.")]);
+    fields.push(["refusals_as_accepted", array(z.int(), "The numbers of the king's refusals you report as acceptance, or none.")]);
+  }
   return object(...fields);
 }
 
@@ -639,9 +660,9 @@ export const Schemas = {
   hostReply: (c: GameConfig | null = null, a: AudienceView | boolean = false): JsonObject => jsonSchema(hostReply(c, a)),
   courtReply: (c: GameConfig | null = null, ordersStand = false, reopenChosen = false): JsonObject => jsonSchema(courtReply(c, ordersStand, reopenChosen)),
   asksOf,
-  present: (carriesGold = true, canForge = true): JsonObject => jsonSchema(present(carriesGold, canForge)),
+  present: (carriesGold = true, canForge = true, clauses = 0, gift = false): JsonObject => jsonSchema(present(carriesGold, canForge, clauses, gift)),
   react: (giftOffered = true, serviceOffered = true): JsonObject => jsonSchema(react(giftOffered, serviceOffered)),
-  report: (carriesGold = true, canForge = true, toLord = true, received = false): JsonObject => jsonSchema(report(carriesGold, canForge, toLord, received)),
+  report: (carriesGold = true, canForge = true, toLord = true, received = false, answers = 0): JsonObject => jsonSchema(report(carriesGold, canForge, toLord, received, answers)),
   pitch: (): JsonObject => jsonSchema(pitch()),
   text: (field: string, description: string): JsonObject => jsonSchema(text(field, description)),
   ReportText,

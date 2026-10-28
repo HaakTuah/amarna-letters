@@ -29,6 +29,7 @@ import {
   type UnitKind,
   type UnitView,
   WinterData,
+  sum,
   shareOfFull,
   unitFood,
 } from "@amarna/engine";
@@ -691,6 +692,35 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       }
       if (best === null) continue;
       assign(plan, free, u, move(u, best[0]), "winter-stroke");
+      plan.destinations.add(best[0]);
+    }
+
+    // By sea too (item 11a+, Haakon's answer to item 9's review): an army on a coast carried by our free fleets over the open
+    // sea, where winter's storms take men from it and from the fleets, to a coast it could not reach by safe waters this
+    // season; taken where what it wins, if enough of it lands, outweighs the men the storms take from it and the fleets.
+    const freeFleet = (z: string): boolean => free.has(z) && b.unitAt.get(z).kind === "Fleet" && !stay.has(z) && !threat.has(z);
+    for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
+      if (threat.has(u) || stay.has(u) || b.unitAt.get(u).kind !== "Army" || !Board.Map.get(u).isCoastal) continue;
+      const army = b.unitAt.get(u);
+      let best: [string, string[], number] | null = null;
+      for (const [zone, chain] of seaChains(u, freeFleet, 3, Board.Map)) {
+        // Only where the open sea is crossed: a chain safe in winter is an ordinary convoy.
+        if (seaChains(u, freeFleet, 3).has(zone)) continue;
+        for (const t of landingsFrom(zone)) {
+          if (t === u || plan.destinations.has(t) || b.unitAt.has(t) || b.resistance(t) > 0) continue;
+          const owner = b.ownerOf(t);
+          if (owner === me || (owner !== null && !isWilling(owner))) continue;
+          if ([...b.alive].some((x) => x !== me && !brain.isFriend(x) && b.muster(x, t) > 0)) continue;
+          const loss = winterLoss(b, army);
+          const fleetLoss = sum(chain, (z) => winterLoss(b, b.unitAt.get(z)));
+          const fleetWorth = b.v.prices.getOrDefault("fleet", 100) + 3 * b.v.prices.getOrDefault("fleetUpkeep", 30);
+          const gain = (1 - loss) * b.value(t) * multiplier(owner) * (b.walls(t) ? siegeWorth(b.wallLevel(t)) : 1) - loss * worth - fleetLoss * fleetWorth - exposure(u);
+          if (gain > 0 && (best === null || gain > best[2])) best = [t, chain, gain];
+        }
+      }
+      if (best === null) continue;
+      assign(plan, free, u, move(u, best[0]), "winter-stroke");
+      for (const f of best[1]) assign(plan, free, f, convoy(f, u, best[0]), "convoy");
       plan.destinations.add(best[0]);
     }
   }
