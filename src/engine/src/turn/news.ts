@@ -14,7 +14,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import { NewsData, newsOffered } from "../rules/news.ts";
 import { Views } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
-import { hearPay } from "./jobs.ts";
+import { foldOldPay, hearPay } from "./jobs.ts";
 
 /** How many losses abroad a person keeps in mind, newest last; and how long one is talked of, in seasons. */
 export const HeardData = { keep: 40, seasons: 12 } as const;
@@ -78,6 +78,7 @@ P.newsSeason = function () {
     const paid = [...new Set(here.flatMap((c) => c.heardPay))];
     for (const c of here) for (const k of paid) hearPay(c, k);
   }
+  foldOldPay(S, HeardData.seasons);
 };
 
 function hear(c: Character, key: string): void {

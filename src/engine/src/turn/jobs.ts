@@ -39,6 +39,8 @@ export function recordKnown(s: GameState, party: string, knower: Character | Pow
   let kept = 0;
   let broken = 0;
   if (typeof knower === "string") {
+    const old = s.payKnown.tryGet(`${knower}|${party}`);
+    if (old !== undefined) [kept, broken] = [old.kept, old.broken];
     for (const f of s.payFacts)
       if (f.party === party && f.heardAt.getOrDefault(knower, Number.MAX_SAFE_INTEGER) <= s.turn) {
         if (f.kept) kept++;
@@ -131,7 +133,10 @@ P.jobFits = function (c, p, k, term) {
   const from = c.at ?? p;
   const there = e.what === "envoy" || isPowerParty(e.where) ? this.map.capital(e.where as Power).id : e.where;
   if (!this.map.exists(there)) return `there is no ${e.what === "envoy" ? "court" : "court or province"} '${e.where}'`;
-  const road = this.travelTurnsBetween(this.map.capital(from).id, there) + this.travelTurnsBetween(there, this.map.capital(p).id);
+  // One hired away from its master's court first walks to it to be sent, unless it is a spy whose post is where it stands.
+  const here = e.what === "spy" && (e.where === from || there === this.map.capital(from).id);
+  const toMaster = from === p || here ? 0 : this.travelTurns(from, p);
+  const road = toMaster + this.travelTurnsBetween(here ? there : this.map.capital(toMaster > 0 ? p : from).id, there) + this.travelTurnsBetween(there, this.map.capital(p).id);
   const least = road + MoneyData.errandStay;
   return term < least ? `the errand takes ${least} seasons from here, there and back, more than the ${term} offered` : null;
 };
@@ -220,8 +225,13 @@ P.duesSeason = function () {
   ))
     for (const [p, due] of [...c.owedDue.entries()]) {
       if (due < 0 || due >= S.turn) continue;
+      if (c.owed.getOrDefault(p, 0) <= 0) {
+        c.owedDue.set(p, -1);
+        continue;
+      }
+      // Broken only once the man stood at the payer's court a season unpaid: nobody breaks a promise to pay a man who left.
+      if (c.at !== p || c.heldBy !== null) continue;
       c.owedDue.set(p, -1);
-      if (c.owed.getOrDefault(p, 0) <= 0) continue;
       this.recordPay(p, false, c.at ?? p, c);
       this.missedPay(c, p, `The king of ${land(p)} did not pay me the ${formatMoney(c.owed.get(p))} he owed for my job.`);
       logEvent(S, "fee-unpaid", `${p} let ${c.name}'s fee go unpaid.`, [p], "fee-unpaid");
@@ -307,3 +317,23 @@ P.jobsDone = function (stood) {
     logEvent(S, "job-done", `${c.name}'s job for ${emp} is done.`, [emp], "job-done");
   }
 };
+
+/**
+ * Old news folded away, once a season: a promise kept or broken more than a dozen seasons ago, heard by every court,
+ * leaves the talk; each court keeps it in its record, and people forget it.
+ */
+export function foldOldPay(s: GameState, keep: number): void {
+  const old = s.payFacts.filter((f) => s.turn - f.turn > keep && [...f.heardAt.values()].every((t) => t <= s.turn));
+  if (old.length === 0) return;
+  const gone = new Set(old.map((f) => f.id));
+  for (const f of old)
+    for (const [k] of f.heardAt.entries()) {
+      const key = `${k}|${f.party}`;
+      let r = s.payKnown.tryGet(key);
+      if (r === undefined) s.payKnown.set(key, (r = newPayRecord()));
+      if (f.kept) r.kept++;
+      else r.broken++;
+    }
+  s.payFacts = s.payFacts.filter((f) => !gone.has(f.id));
+  for (const c of s.characters) if (c.heardPay.some((id) => gone.has(id))) c.heardPay = c.heardPay.filter((id) => !gone.has(id));
+}

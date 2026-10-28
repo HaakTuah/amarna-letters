@@ -206,7 +206,15 @@ export interface Contract {
   withheld: boolean;
   /** It was taken captive during the term: a captured man has not done his job, so the rest never falls due. */
   captured: boolean;
+  /**
+   * The season its employer learns that the man took the job: at once at court, and for an offer taken abroad when word of
+   * it comes home by the roads (Haakon's answers to item 11a). Until then the court does not count him its own.
+   */
+  knownFrom: number;
 }
+
+/** Whether a court knows that a man in its employ took his job (see {@link Contract.knownFrom}). */
+export const jobKnown = (c: { contract: Contract | null }, turn: number): boolean => (c.contract?.knownFrom ?? 0) <= turn;
 
 export function newContract(init: Partial<Contract> = {}): Contract {
   return {
@@ -220,6 +228,7 @@ export function newContract(init: Partial<Contract> = {}): Contract {
     offerAgain: false,
     withheld: false,
     captured: false,
+    knownFrom: 0,
     ...init,
   };
 }
@@ -235,6 +244,7 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
   offerAgain: B,
   withheld: B,
   captured: B,
+  knownFrom: I,
 });
 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;

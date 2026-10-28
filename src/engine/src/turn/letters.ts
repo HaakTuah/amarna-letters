@@ -85,7 +85,9 @@ P.carryLetters = function () {
     const court = courtAt(this, at);
     if (passer !== null) {
       carrier = findCharacter(S, passer.characterId)!;
-      fee = own !== null ? 0 : idiv(basePrice(carrier, letter.to) * seasons * LetterData.sidePercent, 100);
+      // Haakon's answers to item 11a: a traveller carries it for a fee on delivery only for a court whose standing order is
+      // to pay carriers; for any other it carries it as a favour, owed nothing.
+      fee = own !== null || !S.payCarriers.includes(letter.to) ? 0 : idiv(basePrice(carrier, letter.to) * seasons * LetterData.sidePercent, 100);
     } else if (spy !== null && waited >= LetterData.hireAfter && court !== null) {
       // Hired at the court where it waits: a free person standing there, half now from the spy's purse, or all of it on
       // delivery from a court whose standing order is to pay carriers and whose record of paying, as it heard it, it trusts.
@@ -93,19 +95,20 @@ P.carryLetters = function () {
       const trusted = (c: Character): boolean => S.payCarriers.includes(letter.to) && trustIn(S, letter.to, c) >= LetterData.trustOnDelivery;
       const hire =
         sortBy(
-          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || spy.purse >= Math.ceil(ask(c) / 2))),
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || spy.purse >= ask(c))),
           [(c: Character) => ask(c), cmpNum],
           [(c: Character) => idNumber(c.id), cmpNum],
         )[0] ?? null;
       if (hire !== null) {
+        // The rest on delivery only by its court's standing order; without it the spy pays it all now from its purse.
         const whole = ask(hire);
-        const now = Math.min(spy.purse, Math.ceil(whole / 2));
+        const now = S.payCarriers.includes(letter.to) ? Math.min(spy.purse, Math.ceil(whole / 2)) : Math.min(spy.purse, whole);
         spy.purse -= now;
         spy.earned.spent += now;
         gain(hire, now, "News");
         fee = whole - now;
         this.startTravel(hire, letter.to);
-        remember(hire, S.turn, `${spy.name} paid me ${formatMoney(now)} to carry a sealed letter to the court of ${letter.to}, the rest on delivery.`);
+        remember(hire, S.turn, `${spy.name} paid me ${formatMoney(now)} to carry a sealed letter to the court of ${letter.to}${fee > 0 ? ", the rest on delivery" : ""}.`);
         carrier = hire;
       }
     }

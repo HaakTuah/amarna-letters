@@ -90,17 +90,17 @@ export class OrderValidator {
       // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
       if (covered(c) || (c.employer === power && (c.status === "Employed" || c.status === "Captured")))
         return [`${c.name} is already in your service; to keep them on, order renew`, c];
-      if (c.status !== "Free" || c.errand !== null) return [`${c.name} is not available for hire`, c];
-      if (c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
       // Item 11a, "Hiring as a negotiation", with Haakon's answers: offered where it stands, at your court or by an envoy
-      // you send this season to the court where it is.
+      // you send this season to the court where it is. Of a person abroad the court knows only what it heard: whether it is
+      // still there and free is settled when the envoy comes (the engine), never told now.
       const via = h.via ?? null;
+      if (via === null && (c.status !== "Free" || c.errand !== null)) return [`${c.name} is not available for hire`, c];
+      if (via === null && c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
       if (via === null && c.at !== power && c.heldBy !== power)
         return [`${c.name} is not at your court: an offer to a person elsewhere goes with an envoy you send this season to where they are (via)`, c];
       if (via !== null) {
         const d = orders.find((o) => o.type === "dispatch" && o.envoy === via) ?? null;
         if (d === null || d.type !== "dispatch") return [`you send no envoy '${via}' this season to carry the offer`, c];
-        if (c.at === null || c.at !== d.to) return [`${d.envoy} goes to ${d.to}, and ${c.name} is not known to stand there`, c];
       }
       if (h.fee <= 0 || h.term <= 0) return ["fee and term must be positive", c];
       if (h.advance < 0 || h.advance > h.fee) return ["the advance must be between nothing and the whole fee", c];

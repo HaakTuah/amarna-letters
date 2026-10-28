@@ -10,8 +10,8 @@ import { MoneyData, feeFor, hire, renew, travelTurns, newGameConfig, type Charac
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import { reliability, wouldPay } from "./statecraft-court.ts";
-// Script kings give each errand its own job always (the rule has no way round it); those that leave money alone
-// (`--money-play-half`) give no standing order to pay on completion and carry no tablets to collect.
+// Every script king gives each errand its own job and its word to pay on completion; those that leave money alone
+// (`--money-play-half`) carry no tablets to collect.
 import { MoneyPlay } from "./credit.ts";
 
 const Config = newGameConfig();
@@ -59,7 +59,8 @@ export function jobsForErrands(v: SeatView, orders: Order[], free: CharacterView
       if (ours.errandWhat === null || (ours.errandWhat === what && ours.errandWhere === where && !ours.errandDone)) continue;
       // A new job: what the last one paid a season, and a tenth more.
       const span = Math.max(1, (ours.contractUntil ?? v.turn) - (ours.contractFrom ?? v.turn));
-      ask = Math.max(3, Math.ceil(((ours.fee ?? 60) / span) * 1.1));
+      // (Its fee may carry the rest of an earlier job: never more than a free man's price.)
+      ask = Math.min(40, Math.max(3, Math.ceil(((ours.fee ?? 60) / span) * 1.1)));
     } else {
       const c = free.find((x) => x.id === id) ?? null;
       if (c === null) {
@@ -92,7 +93,7 @@ export function jobsForErrands(v: SeatView, orders: Order[], free: CharacterView
 export function errandJobs(b: Board, brain: Brain, orders: Order[]): void {
   const spare = brain.spareGold;
   // The fee a season its greed allows, and the advances out of the gold it can spare.
-  brain.spareGold -= jobsForErrands(b.v, orders, freeAtCourt(b, brain), (rate, spent) => wouldPay(brain.p, rate, Number.MAX_SAFE_INTEGER) && spent <= spare, MoneyPlay.on(b.me));
+  brain.spareGold -= jobsForErrands(b.v, orders, freeAtCourt(b, brain), (rate, spent) => wouldPay(brain.p, rate, Number.MAX_SAFE_INTEGER) && spent <= spare, true);
 }
 
 /** A tablet of our archive owed by the king an envoy goes to rides with it, to be presented there. */

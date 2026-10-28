@@ -303,12 +303,11 @@ P.goldAndTabletsTaken = function () {
     if (c.status !== "Dead") continue;
     c.diedWith ??= c.purse + (c.hoard?.gold ?? 0);
     const court = c.at ?? c.heldBy;
-    // What it carried passes, like the tablets on it, to the court where it died; on the road it is lost with it.
+    // What it carried goes, as nobody orders otherwise, into the town where it died (Haakon's answers to item 11a: a
+    // captive's purse passes to its captor only by his order); on the road, to the province it died in.
     const carried = c.purse + c.carriedFor;
-    if (carried > 0 && court !== null && isAlive(S, court)) {
-      S.treasuries.get(court).gold += carried;
-      notify(S, court, "Notice", "A dead man's purse", `${c.name} died at your court carrying ${formatMoney(carried)}, now in your treasury.`, c.id);
-    }
+    const where = court !== null ? this.map.capital(court).id : this.provinceOf(c);
+    if (carried > 0 && where !== null && !this.map.get(where).isSea) this.market(where).purse += carried;
     if (carried > 0) {
       c.earned.spent += c.purse;
       c.purse = 0;

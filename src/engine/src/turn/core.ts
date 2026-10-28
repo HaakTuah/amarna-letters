@@ -232,7 +232,7 @@ export class TurnEngine {
       const k = coverOf(c, p);
       if (k !== null) return idiv(k.fee, Math.max(1, (k.contractUntil ?? k.startTurn) - k.startTurn));
       const j = c.contract;
-      return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null ? idiv(j.fee, Math.max(1, j.untilTurn - j.startTurn)) : 0;
+      return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null && (j.knownFrom ?? 0) <= this.s.turn ? idiv(j.fee, Math.max(1, j.untilTurn - j.startTurn)) : 0;
     });
   }
 

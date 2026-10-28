@@ -6,7 +6,7 @@ import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { split } from "../core/text.ts";
 import { seasonOfTurn, StartWalls, WorldMap } from "../model/map.ts";
 import { reapSeasonOf } from "../model/geography.ts";
-import { coverOf, factsKnownTo, falseNameAt, hiddenAt, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
+import { coverOf, factsKnownTo, falseNameAt, hiddenAt, jobKnown, newContract, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
@@ -288,7 +288,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.answers = (s.answers.tryGet(p)?.answers ?? []).map((x) => ({ ...x, conditions: [...x.conditions] }));
 
   for (const c of s.characters) {
-    if (!knows(c, p)) continue;
+    if (!knows(c, p) || unheardHire(s, c, p)) continue;
     const cv = characterView(s, c, p);
     // A servant abroad whose fate this court has not heard of appears as it believes, and only there.
     if (coverOf(c, p) !== null || isOurs(c, p)) v.court.push(cv);
@@ -438,6 +438,11 @@ function knows(c: Character, viewer: Power): boolean {
 /** A servant of the court's, at home, abroad or held captive. */
 function isOurs(c: Character, viewer: Power): boolean {
   return c.employer === viewer && (c.status === "Employed" || c.status === "Captured");
+}
+
+/** One its court does not know took its job yet (an offer taken abroad, whose word is on the road): it sees nothing of it. */
+function unheardHire(s: GameState, c: Character, viewer: Power): boolean {
+  return c.employer === viewer && !jobKnown(c, s.turn);
 }
 
 /**

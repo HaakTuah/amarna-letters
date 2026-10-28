@@ -198,16 +198,22 @@ describe("ContractTests", () => {
     const far = freeAt(s, "Babylonia");
     const ask = basePrice(far, "Egypt");
     Assert.contains("goes with an envoy you send this season", refusal(s, hire(far.id, ask * 20, 20, 10, { what: "spy", where: "Babylonia" })));
+    // Where a person abroad stands, and whether it is free, the validator never tells: the envoy finds out.
     const gold = s.treasuries.get("Egypt").gold;
     const offer = hire(far.id, ask * 20, 20, ask * 20, { what: "spy", where: "Babylonia", via: envoy.id });
     Assert.equal("", refusal(s, dispatch(envoy.id, "Babylonia", "Greetings."), offer));
     new TurnEngine(s).resolve(orders("Egypt", dispatch(envoy.id, "Babylonia", "Greetings."), offer));
-    Assert.equal(gold - ask * 20, s.treasuries.get("Egypt").gold);
+    Assert.equal([gold - ask * 20, ask * 20], [s.treasuries.get("Egypt").gold, envoy.carriedFor]);
     const out = s.journeys.find((j) => j.kind === "EnvoyOutbound" && j.characterId === envoy.id)!;
     s.turn = out.arriveTurn;
     new TurnEngine(s).arrivals();
-    // Taken: a spy whose post is where it stands takes it up at once.
-    Assert.equal(["Employed", "Egypt", "SpyPosted", "Babylonia"], [far.status, far.employer!, far.duty, far.missionTarget!]);
+    // Taken: a spy whose post is where it stands takes it up at once, and the advance leaves the envoy's hands.
+    Assert.equal(["Employed", "Egypt", "SpyPosted", "Babylonia", 0], [far.status, far.employer!, far.duty, far.missionTarget!, envoy.carriedFor]);
+    // Egypt learns of it only when word comes home: until then it does not see him as its own.
+    Assert.doesNotContain(Views.for(s, "Egypt").court, (x) => x.id === far.id);
+    Assert.contains(s.journeys, (j) => j.kind === "Word" && j.news === "Job" && j.to === "Egypt");
+    s.turn = far.contract!.knownFrom;
+    Assert.contains(Views.for(s, "Egypt").court, (x) => x.id === far.id);
 
     // Declined: the advance rides home with the envoy.
     [s, envoy] = servant();
@@ -219,7 +225,7 @@ describe("ContractTests", () => {
     s.turn = j.arriveTurn;
     new TurnEngine(s).arrivals();
     Assert.equal(["Free", 10], [other.status, envoy.carriedFor]);
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "An offer declined");
+    Assert.contains(s.journeys, (j) => j.kind === "Word" && j.news === "Job" && j.to === "Egypt" && (j.text ?? "").includes("declined"));
     const before = s.treasuries.get("Egypt").gold;
     new TurnEngine(s).carriedHome(envoy, "Egypt");
     Assert.equal([before + 10, 0], [s.treasuries.get("Egypt").gold, envoy.carriedFor]);

@@ -361,7 +361,12 @@ P.deal = function (a) {
     remember(A, S.turn, `I hired ${B.name} to collect the debt of ${this.partyName(d.borrower)}; they carry the tablet.`);
     logEvent(S, "collector-hired", `${A.name} hired ${B.name} to collect a debt.`, [], "collector-hired");
     a.accepted = true;
-    if (B.at !== d.borrower) this.startTravel(B, d.borrower, null, B.at === null ? this.provinceOf(B) : null);
+    if (B.at !== d.borrower) {
+      // One met on the road leaves its own way for the errand's.
+      const from = B.at === null ? this.provinceOf(B) : null;
+      if (B.at === null) S.journeys = S.journeys.filter((j) => !(j.kind === "Travel" && j.characterId === B.id));
+      this.startTravel(B, d.borrower, null, from);
+    }
     return true;
   }
   // Gold both ways, and tablets both ways.

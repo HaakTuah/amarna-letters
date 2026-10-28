@@ -6,7 +6,7 @@
  * over to a host is covered for its old master, and again for its new one if something happens to it on the new master's
  * errand.
  */
-import { coverOf, factsKnownTo, hiddenAt, newCover, newJobErrand, type Character, type Duty, type JobWhat } from "../model/people.ts";
+import { coverOf, factsKnownTo, hiddenAt, jobKnown, newCover, newJobErrand, type Character, type Duty, type JobWhat } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import type { Journey } from "../model/records.ts";
 import { findCharacter, isAlive } from "../model/state.ts";
@@ -103,5 +103,5 @@ P.restOf = function (c, p) {
   const k = coverOf(c, p);
   if (k !== null) return Math.max(0, k.fee - k.advance);
   const j = c.contract;
-  return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null ? Math.max(0, j.fee - j.advance) : 0;
+  return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null && jobKnown(c, this.s.turn) ? Math.max(0, j.fee - j.advance) + j.carried : 0;
 };

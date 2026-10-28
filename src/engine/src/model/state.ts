@@ -186,6 +186,11 @@ export interface GameState {
   payRecords: Dict<string, PayRecord>;
   /** Every promise to pay kept or broken, as news that travels (Haakon's answers to item 11a). */
   payFacts: PayFact[];
+  /**
+   * Promises kept and broken folded out of {@link payFacts} once old news (`knower|party`): what each court had heard of
+   * them. People forget talk older than a dozen seasons; courts keep their records.
+   */
+  payKnown: Dict<string, PayRecord>;
   /** The courts whose standing order is to pay the carriers of their people's letters on delivery (order payCarriers). */
   payCarriers: Power[];
   /** Item 11a: every debt tablet sealed, standing or ended ("The debt tablet is the claim"). */
@@ -315,6 +320,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     marketsSeen: new Dict(),
     payRecords: new Dict(),
     payFacts: [],
+    payKnown: new Dict(),
     payCarriers: [],
     debts: [],
     approaches: [],
@@ -404,6 +410,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   marketsSeen: dict(dict(() => MarketSeenSchema)),
   payRecords: dict(() => PayRecordSchema),
   payFacts: list(() => PayFactSchema),
+  payKnown: dict(() => PayRecordSchema),
   payCarriers: list(S),
   debts: list(() => DebtSchema),
   approaches: list(() => ApproachSchema),

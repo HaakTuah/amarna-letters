@@ -152,6 +152,8 @@ P.dispatch = function (p, d) {
       continue;
     }
     t.gold -= advance;
+    // In the envoy's hands: handed over if the offer is taken, brought home (or lost with the envoy) if not.
+    c.carriedFor += advance;
     offers.push(newJobOffer({ character: h.character, fee: h.fee, advance, term: h.term, errand: errandOf(h), payOnDone: h.payOnDone === true, offerAgain: h.offerAgain === true }));
   }
   this._offersNow.delete(c.id);

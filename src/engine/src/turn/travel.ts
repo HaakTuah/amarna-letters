@@ -615,6 +615,9 @@ P.wordArrives = function (j) {
     case "Grant":
       notify(S, j.to, "Notice", GrantTitle, j.text ?? "");
       break;
+    case "Job":
+      notify(S, j.to, "Notice", "An offer abroad", j.text ?? "");
+      break;
     case "KingdomFalls": {
       const heard = new HSet<Power>(S.fallsHeard.tryGet(j.to) ?? []);
       heard.add(j.from);

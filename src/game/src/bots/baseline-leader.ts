@@ -138,7 +138,7 @@ export class BaselineLeader implements ISeat {
     court(view, m, rng, orders);
     // Haakon's answers to item 11a: each errand is a job, offered to the man sent, at what he asks up to 40 a season.
     const gold = view.gold;
-    jobsForErrands(view, orders, freeHere(view), (rate, spent) => rate <= 40 && gold - spent > rate * 4, false);
+    jobsForErrands(view, orders, freeHere(view), (rate, spent) => rate <= 40 && gold - spent > rate * 4, true);
     m.lastOwner = view.owner.clone();
     m.lastTurnSeen = view.turn;
     const notes = `Grudges: ${[...m.grudge]

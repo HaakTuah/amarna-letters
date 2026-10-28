@@ -110,7 +110,9 @@ P.hireAll = function (hires, carriedTo = null) {
   for (const [key, group] of groupBy(hires, (x) => x.h.character)) {
     const c = char(S, key);
     if (c.status !== "Free" || c.errand !== null) {
-      for (const { p, h } of group) this.failed(p, h, "Not hired", `${c.name} was no longer free to take service.`, "no longer free", true, c.id);
+      for (const { p, h } of group)
+        if (carried) this.word(carriedTo!, p, "Job", `${findCharacter(S, h.via ?? "")?.name ?? "Your envoy"} could not put your offer to ${c.name} at the court of ${carriedTo}: they were no longer free to take service. The advance comes home with your envoy.`);
+        else this.failed(p, h, "Not hired", `${c.name} was no longer free to take service.`, "no longer free", true, c.id);
       continue;
     }
     const term = (b: { h: HireOrder }): number => clamp(b.h.term, 1, 30);
@@ -144,16 +146,19 @@ P.hireAll = function (hires, carriedTo = null) {
               ? "the treasury could not hand over the advance"
               : "another court offered more";
       if (carried) {
-        // The advance stays with the envoy, which brings it home.
+        // The advance stays with the envoy, which brings it home; word of the answer comes home by the roads.
         const envoy = findCharacter(S, lost.h.via ?? "");
-        if (envoy !== null) envoy.carriedFor += Math.min(lost.h.advance, lost.h.fee);
-        notify(S, lost.p, "Notice", "An offer declined", `${envoy?.name ?? "Your envoy"} put your offer of a job to ${c.name}, who declined: ${why}. The advance comes home with your envoy.`, c.id);
+        this.word(carriedTo!, lost.p, "Job", `${envoy?.name ?? "Your envoy"} put your offer of a job to ${c.name} at the court of ${carriedTo}, who declined: ${why}. The advance comes home with your envoy.`);
       } else this.failed(lost.p, lost.h, "Not hired", `${c.name} declined your offer of ${formatMoney(lost.h.fee)} for ${term(lost)} seasons: ${why}.`, why, present(lost) && !short, c.id);
     }
     if (bids.length === 0) continue;
     const { p: winner, h: hire } = bids[0];
     const advance = clamp(hire.advance, 0, hire.fee);
     if (!carried) S.treasuries.get(winner).gold -= advance;
+    else {
+      const envoy = findCharacter(S, hire.via ?? "");
+      if (envoy !== null) envoy.carriedFor = Math.max(0, envoy.carriedFor - advance);
+    }
     gain(c, advance, "Fees");
     c.status = "Employed";
     c.employer = winner;
@@ -192,7 +197,9 @@ P.hireAll = function (hires, carriedTo = null) {
       this.startTravel(c, winner);
       c.duty = "Travelling";
     }
-    notify(S, winner, "Notice", "Hired abroad", `${c.name} took the job your envoy offered at the court of ${at}${errand}, within ${term(bids[0])} seasons and for ${formatMoney(hire.fee)}; your envoy handed over ${formatMoney(advance)}. ${here ? "They took up their post there at once." : "They set out for your court."}`, c.id);
+    // The court learns it only when word comes home by the roads; until then it does not count him its own.
+    c.contract.knownFrom = S.turn + (at === winner ? 0 : this.travelTurns(at, winner));
+    this.word(at, winner, "Job", `${c.name} took the job your envoy offered at the court of ${at}${errand}, within ${term(bids[0])} seasons and for ${formatMoney(hire.fee)}, in season ${S.turn}; your envoy handed over ${formatMoney(advance)}. ${here ? "They took up their post there at once." : "They set out for your court."}`);
   }
 };
 
