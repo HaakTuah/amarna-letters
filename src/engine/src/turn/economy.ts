@@ -368,17 +368,16 @@ P.feedTroops = function () {
 };
 
 /**
- * A unit disbands: its men go home, walking there from where it stood (item 10+a), or settle where it stands as
- * colonists (`settle`); their savings go into their home province's purse; any siege it pressed is lifted. Returns what
- * became of its men.
+ * A unit disbands: its men go home, walking there from where it stood with their savings, which reach their home's purse
+ * when they do (item 10+a), or settle where it stands as colonists (`settle`), their savings into its purse; any siege it
+ * pressed is lifted. Returns what became of its men.
  */
 P.disbandUnit = function (u, settle = false) {
   const S = this.s;
   const i = S.units.indexOf(u);
   if (i >= 0) S.units.splice(i, 1);
   this.liftSiegesOf(u.id);
-  if (u.home !== "") this.spendAt(u.home, u.savings);
-  u.savings = 0;
+  // The men carry their savings with them: home when they arrive, or where they settle (Haakon, 28 October 2026).
   return this.menHome(u, settle);
 };
 
@@ -718,6 +717,8 @@ P.holdings = function (p) {
     w += m.purse + grainWorth(this.stores(id) + m.stock);
   }
   for (const u of S.units) if (u.power === p) w += grainWorth(u.food) + u.savings;
+  // Discharged men walking home carry their savings to a province of this realm (item 10+a).
+  for (const x of S.walking) if (S.owner.getOrDefault(x.home, null) === p) w += x.savings;
   for (const c of S.caravans) if (c.power === p) w += grainWorth(c.grain) + c.gold + (c.ship !== null ? grainWorth(c.ship.food) + c.ship.savings : 0);
   return w;
 };

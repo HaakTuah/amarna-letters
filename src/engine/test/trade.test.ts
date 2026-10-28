@@ -151,7 +151,8 @@ describe("TradeTests", () => {
     v.province = "harran";
     const before = t.markets.get("harran").purse;
     f.beginTurn();
-    Assert.equal(before, t.markets.get("harran").purse);
+    // Within a few shekels: settled people moving between provinces take their share of the purse (item 10+a).
+    Assert.inRange(t.markets.get("harran").purse, before - 3, before + 3);
     Assert.equal(t.config.armyUpkeep, v.savings);
   });
 

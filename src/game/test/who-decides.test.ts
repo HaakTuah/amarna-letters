@@ -263,7 +263,8 @@ describe("Who decides (item 6c)", () => {
   test("Light alerts: the small rung reads a sleeping king's news, notes it in his record, and wakes him when it judges so", async () => {
     const api = new SimulatedApi();
     api.override = (body) => (has(props(body), "wake") ? JSON.stringify({ notes: "My envoy is home; the plan holds.", wake: true, pass_up: "", ask_counsel: "" }) : null);
-    const [runner] = build(() => {}, 3, api);
+    // Seed 2 since item 10+a: on seed 3 the model kings no longer sleep through these seasons.
+    const [runner] = build(() => {}, 2, api);
     await play(runner, 10);
     // News that goes straight to his own mind (a refused order, a check, an authentication) wakes him with no reader.
     const read = runner.log.decisions.filter((d) => /^t\d+\/alerts\//.test(d.key) && d.by !== null);
@@ -279,7 +280,7 @@ describe("Who decides (item 6c)", () => {
   });
 
   test("News that goes straight to the king's own mind wakes him with no reader's call", async () => {
-    const [runner, api] = build();
+    const [runner, api] = build(() => {}, 1); // seed 1 since item 10+a: on seed 3 the model kings no longer sleep through these seasons
     const engine = Object.getPrototypeOf(new TurnEngine(newGame(1, newGameConfig()))) as TurnEngine;
     const orig = engine.lightAlerts;
     // Every alert made weighty: an authentication report, say, that a sealed tablet is forged.

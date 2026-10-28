@@ -18,14 +18,16 @@ import type { People } from "./land.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
-/** Discharged men on their way home: how many, to which province, and the season they arrive. */
+/** Discharged men on their way home: how many, to which province, the season they arrive, and the savings they carry. */
 export interface Walk {
   home: string;
   men: number;
   arrives: number;
+  /** The savings they carry, into their home's purse when they arrive ("Soldiers carry savings home"). */
+  savings: number;
 }
 
-export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, ...init }), { home: S, men: I, arrives: I });
+export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, ...init }), { home: S, men: I, arrives: I, savings: I });
 
 /**
  * A drought over a region's rain-fed land or a river's bad flood along its course (item 10+a): the provinces it strikes,

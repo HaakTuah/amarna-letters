@@ -121,12 +121,12 @@ describe("PeopleTests", () => {
     Assert.null(unitAt(s, "tuwanuwa"));
     Assert.single(s.walking, (w) => w.home === "nesa" && w.men === LandData.armyMen);
     // Walking, they are no one's settled yet.
-    Assert.equal(hatti(control), hatti(s), 2000);
+    Assert.inRange(hatti(s), hatti(control) - 2000, hatti(control) + 2000);
     while (s.walking.length > 0) {
       season(s);
       season(control);
     }
-    Assert.equal(hatti(control) + LandData.armyMen, hatti(s), 2000);
+    Assert.inRange(hatti(s), hatti(control) + LandData.armyMen - 2000, hatti(control) + LandData.armyMen + 2000);
 
     // Settled where it stands, in land of its own king's.
     const t = quiet();
@@ -193,7 +193,7 @@ describe("PeopleTests", () => {
       }),
     );
     Assert.false(s.units.some((u) => u.power === "Mitanni" && u.province === "isuwa"));
-    Assert.equal(loose + LandData.armyMen - Math.floor((LandData.armyMen * LandData.battleDead) / 100), s.people.get("isuwa").loose, 2000);
+    Assert.inRange(s.people.get("isuwa").loose, loose + LandData.armyMen - Math.floor((LandData.armyMen * LandData.battleDead) / 100) - 2000, loose + LandData.armyMen - Math.floor((LandData.armyMen * LandData.battleDead) / 100) + 2000);
   });
 
   test("A drought halves the harvest of its region's rain-fed land, and a river's flood strikes its whole course", () => {

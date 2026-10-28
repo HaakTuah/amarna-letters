@@ -86,7 +86,10 @@ P.peopleSeason = function (food) {
   const owner = (id: string): Power | null => S.owner.getOrDefault(id, null);
 
   // Discharged men arrive home.
-  for (const w of S.walking.filter((w) => w.arrives <= S.turn)) shift(this.peopleOf(w.home), w.men, w.men);
+  for (const w of S.walking.filter((w) => w.arrives <= S.turn)) {
+    shift(this.peopleOf(w.home), w.men, w.men);
+    this.spendAt(w.home, w.savings);
+  }
   S.walking = S.walking.filter((w) => w.arrives > S.turn);
   S.corvee.clear();
 
@@ -254,29 +257,35 @@ P.levyMen = function (province, kind) {
 P.menHome = function (u, settle) {
   const S = this.s;
   const men = u.men;
+  const savings = u.savings;
   u.men = 0;
-  if (men <= 0 || u.home === "") return "";
+  u.savings = 0;
+  if (u.home === "") return "";
   const where = this.map.get(u.province);
   if (where.isSea) {
-    S.walking.push({ home: u.home, men, arrives: S.turn + 1 });
-    return "its crews sail home";
+    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings });
+    return "its crews sail home with their savings";
   }
   if (settle) {
     shift(this.peopleOf(u.province), men, men);
+    this.spendAt(u.province, savings);
     logEvent(S, "colonists", `${u.power} settled the men of its ${u.kind === "Army" ? "army" : "fleet"} in ${where.name} as colonists.`, [u.power], "colonists");
-    return `its ${people(men)} men were settled in ${where.name} as colonists`;
+    return `its ${people(men)} men were settled in ${where.name} as colonists, their savings into its purse`;
   }
   if (u.province === u.home) {
     shift(this.peopleOf(u.home), men, men);
+    this.spendAt(u.home, savings);
     return "its men are back in their fields";
   }
   const days = idiv(fastestPoints(this.map, u.province, u.home, seasonOfTurn(S.turn)), PointsPerDay);
-  const stray = days === Infinity || !Number.isFinite(days) ? LandData.strayMost : clamp(idiv(days - LandData.strayAfter, LandData.strayPerDays), 0, LandData.strayMost);
+  const stray = !Number.isFinite(days) ? LandData.strayMost : clamp(idiv(days - LandData.strayAfter, LandData.strayPerDays), 0, LandData.strayMost);
   const lost = idiv(men * stray, 100);
+  // Those who never set out keep their share: loose men's gold counts for no realm ("The wealth of a realm").
+  const kept = men <= 0 ? savings : savings - idiv(savings * lost, men);
   this.peopleOf(u.province).loose += lost;
   const seasons = Math.max(1, Math.ceil((Number.isFinite(days) ? days : S.config.travelDays) / Math.max(1, S.config.travelDays)));
-  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons });
-  return `its men walk home to ${this.map.get(u.home).name}, ${seasons === 1 ? "next season" : `in ${seasons} seasons`}` + (lost > 0 ? `; ${people(lost)} of them never set out and stay as loose men in ${where.name}` : "");
+  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept });
+  return `its men walk home to ${this.map.get(u.home).name} with their savings, ${seasons === 1 ? "next season" : `in ${seasons} seasons`}` + (lost > 0 ? `; ${people(lost)} of them never set out and stay as loose men in ${where.name}` : "");
 };
 
 /** A unit destroyed in battle: some of its men die, lost to their homes for good, and the rest run and turn loose there. */
