@@ -41,6 +41,7 @@ import {
   feeFor,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { SeasonPlay } from "./land.ts";
 import { shekels, type Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
 
@@ -284,7 +285,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   // A spy to watch a province (item 11a+, Haakon's answer to item 9's review: script kings post watching spies when it pays):
   // the land of the king we make war on, or who most threatens us, nearest our capital that we cannot see, where his troops
   // would gather against us or ours would strike; one at a time each, by the careful as well as the cunning.
-  if (ready.length >= 2 && spare > 80 && (p.cunning > 0.4 || p.caution > 0.6)) {
+  if (SeasonPlay.on(b.me) && ready.length >= 2 && spare > 80 && (p.cunning > 0.4 || p.caution > 0.6)) {
     const foe = brain.warTarget ?? sortBy([...b.neighbours()].filter((x) => brain.hostility(x, b) > 0), [(x: Power) => brain.hostility(x, b), desc(cmpNum)])[0] ?? null;
     if (foe !== null) {
       const cap = Board.Map.capital(b.me).id;

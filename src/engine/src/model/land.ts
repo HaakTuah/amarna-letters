@@ -57,7 +57,9 @@ export interface People {
  *   land must be for those leaving to cross to it rather than stay loose at home; `deportDead`: of people deported or
  *   returned, the share who die on the road (more turn loose on long roads, as discharged men do); `expelPercent`: the
  *   share of a besieged city's mouths put out when an order names none (item 11a+: the king chooses it, of the mouths
- *   still inside, up to `expelMost` of the town in all, so the fighting men and the hands that feed them stay); `policedPercent`: what the loose take where their
+ *   still inside, up to `expelMost` of the town in all, so the fighting men and the hands that feed them stay);
+ * - Item 11a+ ("Period first": the harvest in each land's own season): `reserveSeasons`, the seasons of their own need the
+ *   farmers keep in their granaries beyond a whole harvest; more they eat better with, feed to their animals or lose; `policedPercent`: what the loose take where their
  *   holder's troops stand, in percent of what they take elsewhere; `lootSpentPercent`: what the loose spend a season of
  *   the gold they carry, at their province's market.
  */
@@ -97,6 +99,7 @@ export const LandData = {
   deportDead: 5,
   expelPercent: 50,
   expelMost: 90,
+  reserveSeasons: 1,
   policedPercent: 50,
   lootSpentPercent: 50,
 } as const;

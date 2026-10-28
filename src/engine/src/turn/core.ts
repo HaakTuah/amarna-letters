@@ -239,11 +239,13 @@ export class TurnEngine {
   }
 
   /**
-   * The grain a province's tax brings into its stores this season: its harvest's share at its tax rate, cut by
-   * absorption and catastrophes, and nothing while it is besieged (its holder keeps it and counts it, but it yields nothing).
+   * The grain a province's tax brings into its stores a season: a third of its last harvest at its tax rate (item 11a+),
+   * cut by absorption and catastrophes, and nothing while it is besieged (its holder keeps it and counts it, but it yields
+   * nothing); never more than the farmers' granary holds.
    */
   effectiveYield(province: string): number {
-    return toInt(roundEven(idiv(this.harvestNow(province) * this.taxRate(province), 100) * this.yieldFactor(province)));
+    const due = toInt(roundEven(idiv(idiv(this.s.reaped.getOrDefault(province, 0), 3) * this.taxRate(province), 100) * this.yieldFactor(province)));
+    return Math.min(due, this.s.granary.getOrDefault(province, 0));
   }
 
   /** The gold that came in since a king's last orders: his mines this season and his sales at his markets last season. */

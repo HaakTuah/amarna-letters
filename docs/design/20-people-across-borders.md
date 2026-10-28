@@ -1,5 +1,7 @@
 ## People across borders and in kings' hands (item 10+b)
 
+**Since item 11a+** some of this is changed: see [`22-harvests-and-answers.md`](22-harvests-and-answers.md) (runaways by what they keep; mouths chosen; water from a dossier per city; deportees freed on the road; robbing outside a siege).
+
 Build order item 10+b ("Where people go", "Deportation", "People are worth having, not free to keep", "Bandits rob the
 purse"), opened by Haakon's answers carried from 10+a and the "Reason from the pillars" list that 10+a's text gained after
 it was built. Save version 18. The report is `docs/rounds/2026-10-28-people-across-borders.md`. Every number is a first

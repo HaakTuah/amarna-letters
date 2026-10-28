@@ -54,9 +54,9 @@ import {
   type TurnSubmission,
   type UnitView,
   feeFor,
+  menOf,
 } from "@amarna/engine";
 import { plainGrainOrders } from "./grain.ts";
-import { canLevy } from "./land.ts";
 import type { ISeat } from "../contracts.ts";
 
 class Memory {
@@ -359,8 +359,9 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
     const cost = fleet ? v.prices.get("fleet") : v.prices.get("army");
     const upkeep = fleet ? v.prices.get("fleetUpkeep") : v.prices.get("armyUpkeep");
     if (gold - cost < reserve || surplus - upkeep < (weak ? 15 : -5)) break;
-    // Only where the men of fighting age are (item 10+a, as the rule requires).
-    if (!canLevy(v, spot.id, fleet ? "Fleet" : "Army")) continue;
+    // Only where the men of fighting age for a full levy are (item 10+a, as the rule required then; the baseline raises no
+    // smaller levy, item 11a+).
+    if ((v.provinces.find((x) => x.province === spot.id)?.men ?? 0) < menOf(fleet ? "Fleet" : "Army")) continue;
     surplus -= upkeep;
     orders.push(raise(spot.id, fleet ? "Fleet" : "Army"));
     gold -= cost;

@@ -110,6 +110,7 @@ P.placeSpy = function (p, ps) {
   this.setOut(j, Map.capital(p).id, target);
   const travel = j.arriveTurn - S.turn;
   remember(c, S.turn, `My lord of ${land(p)} sent me quietly to watch ${court !== null ? land(court) : Map.get(province!).name}.`);
+  if (province !== null) logEvent(S, "spy", `${p} sent a spy to watch ${Map.get(province).name}.`, [p], "spy-watching");
   notify(S, p, "Notice", "Agent sent", `${c.name} left last season to watch ${court ?? Map.get(province!).name}; the journey should take about ${travel} season(s).`, c.id);
 };
 

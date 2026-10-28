@@ -34,6 +34,7 @@ import {
   unitFood,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { SeasonPlay } from "./land.ts";
 import { grantedTo } from "./authority.ts";
 import type { Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
@@ -673,8 +674,9 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     const worth = b.v.prices.getOrDefault("army", 100) + 3 * b.v.prices.getOrDefault("armyUpkeep", 30);
     for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
       if (threat.has(u) || stay.has(u) || b.unitAt.get(u).kind !== "Army") continue;
-      // The share of its men the snow takes (item 11a+): by its size, halved if it carries a season's food.
-      const loss = winterLoss(b, b.unitAt.get(u));
+      // The share of its men the snow takes (item 11a+): by its size, halved if it carries a season's food; a king that
+      // ignores it reckons as before, the whole army at the old chance.
+      const loss = SeasonPlay.on(me) ? winterLoss(b, b.unitAt.get(u)) : b.v.prices.getOrDefault("winterArmyLoss", 30) / 100;
       let best: [string, number] | null = null;
       for (const t of sortBy(Board.Map.movesFrom("Army", u), [(x: string) => x, cmpStr])) {
         if (Board.Sail.canMove("Army", u, t) || Board.Map.get(t).isSea || plan.destinations.has(t) || b.unitAt.has(t)) continue;
@@ -700,7 +702,7 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
     // season; taken where what it wins, if enough of it lands, outweighs the men the storms take from it and the fleets.
     const freeFleet = (z: string): boolean => free.has(z) && b.unitAt.get(z).kind === "Fleet" && !stay.has(z) && !threat.has(z);
     for (const u of sortBy([...free], [(x: string) => x, cmpStr])) {
-      if (threat.has(u) || stay.has(u) || b.unitAt.get(u).kind !== "Army" || !Board.Map.get(u).isCoastal) continue;
+      if (!SeasonPlay.on(me) || threat.has(u) || stay.has(u) || b.unitAt.get(u).kind !== "Army" || !Board.Map.get(u).isCoastal) continue;
       const army = b.unitAt.get(u);
       let best: [string, string[], number] | null = null;
       for (const [zone, chain] of seaChains(u, freeFleet, 3, Board.Map)) {

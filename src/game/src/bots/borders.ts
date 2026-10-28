@@ -9,6 +9,7 @@
  */
 import { LandData, WorldMap, cheapestRoute, clause, legPoints, seasonOfTurn, cmpStr, deport, expel, returnRunaways, sortBy, welcome, type Clause, type Order, type Power, type SeatView } from "@amarna/engine";
 import type { Board } from "./board.ts";
+import { SeasonPlay } from "./land.ts";
 
 /** Script kings that leave item 10+b's choices alone (`--no-border-play`, `--border-play-half`). None by default. */
 export const BorderPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -64,7 +65,7 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
     // A besieged city of ours whose stores will not last: as many of the mouths that cannot fight go out as make them last
     // `ExpelBelow` seasons (item 11a+: the king chooses how many), a tenth at least; none once the most are out.
     if (besieged.has(x.province) && x.expelled < LandData.expelMost && x.need > 0 && x.stores < ExpelBelow * x.need)
-      orders.push(expel(x.province, Math.min(90, Math.max(10, 100 - Math.floor((x.stores * 100) / (ExpelBelow * x.need))))));
+      orders.push(SeasonPlay.on(b.me) ? expel(x.province, Math.min(90, Math.max(10, 100 - Math.floor((x.stores * 100) / (ExpelBelow * x.need))))) : expel(x.province));
   }
   // Deportation: from land we took (not our homeland) that a foreign army stands next to, and so may be lost, to the
   // homeland province with the most room near it: the people moved are kept whatever becomes of the land.
@@ -84,6 +85,7 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
     const homeland = W.get(x.province).home;
     const freer = (k: Power): boolean => k !== b.me && (k === homeland || v.roadsClosedToUs.includes(k));
     const safe = (y: { province: string }): boolean =>
+      !SeasonPlay.on(b.me) ||
       (cheapestRoute(W, x.province, y.province, (a, c) => legPoints(W, a, c, seasonOfTurn(v.turn)))?.route ?? []).every((p) => !v.units.some((u) => u.province === p && freer(u.power)));
     const to = sortBy(
       home.filter((y) => W.hops(x.province, y.province) <= 4 && safe(y)),

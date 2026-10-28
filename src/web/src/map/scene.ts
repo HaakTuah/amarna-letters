@@ -19,6 +19,8 @@ export interface SceneUnit {
   kind: UnitKind;
   province: string;
   count: number;
+  /** Item 11a+: the men of the units stacked here, all together. */
+  men: number;
   ghost: boolean;
   age: number;
   seenAt: number;
@@ -229,6 +231,7 @@ function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt:
     kind: g[0].kind,
     province: g[0].province,
     count: g.length,
+    men: g.reduce((a, u) => a + (u.men ?? 0), 0),
     ghost,
     age,
     seenAt,
@@ -244,7 +247,7 @@ function movesOf(f: SeasonFrame, prev: SeasonFrame | null, seen: readonly FrameM
   const destroyed: SceneUnit[] = [];
   if (prev === null) return [moves, destroyed];
   for (const m of seen) {
-    if (m.destroyed) destroyed.push({ key: `x:${m.power}:${m.from}`, power: m.power, kind: m.kind, province: m.from, count: 1, ghost: false, age: 0, seenAt: f.index });
+    if (m.destroyed) destroyed.push({ key: `x:${m.power}:${m.from}`, power: m.power, kind: m.kind, province: m.from, count: 1, men: 0, ghost: false, age: 0, seenAt: f.index });
     if (m.order === "move" && m.target !== null) {
       const t = m.target;
       // Foreign troops in the way: standing there as the season began (in the court's sight) and not marched out of it.

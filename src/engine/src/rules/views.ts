@@ -3,7 +3,8 @@ import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { split } from "../core/text.ts";
-import { StartWalls, WorldMap } from "../model/map.ts";
+import { seasonOfTurn, StartWalls, WorldMap } from "../model/map.ts";
+import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
@@ -340,11 +341,15 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         loose: engine.peopleOf(id).loose,
         room: reckonedOf(m, id).room,
         taxRate: engine.taxRate(id),
-        harvest: engine.harvestNow(id),
+        // A season's share of the last harvest, what the tax is reckoned from (item 11a+).
+        harvest: idiv(s.reaped.getOrDefault(id, 0), 3),
         fed: s.fed.getOrDefault(id, 1000),
         // Item 10+b.
         runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
         expelled: s.expelled.getOrDefault(id, 0),
+        granary: s.granary.getOrDefault(id, 0),
+        crop: s.crop.getOrDefault(id, 0),
+        reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
       }),
     );
   }

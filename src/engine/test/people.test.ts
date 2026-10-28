@@ -8,6 +8,7 @@ import {
   WorldMap,
   ClimatePace,
   LandData,
+  reapSeasonOf,
   OrderValidator,
   harvestOf,
   legPoints,
@@ -80,19 +81,23 @@ describe("PeopleTests", () => {
     Assert.contains(r.rejected, (x) => x.reason.includes("too few men of fighting age"));
   });
 
-  test("A heavy tax leaves the farmers hungry, and the hungry leave the land in the season it bites", () => {
+  test("A heavy tax empties the farmers' granaries, and the hungry leave the land in the season it bites", () => {
     const s = quiet();
     season(s, subs({ Hatti: { orders: [tax(70, "nesa")] } }));
     Assert.equal(70, s.taxes.get("nesa"));
-    const before = s.people.get("nesa").settled;
-    const loose = s.people.get("nesa").loose;
-    const stores = s.stores.getOrDefault("nesa", 0);
-    new TurnEngine(s).beginTurn();
-    Assert.true(s.fed.get("nesa") < 1000);
-    Assert.true(s.people.get("nesa").settled < before);
-    Assert.true(s.people.get("nesa").loose > loose);
-    // The king's stores filled more than at the default rate would have.
-    Assert.true(s.stores.getOrDefault("nesa", 0) > stores);
+    // The granaries carry them for a while (item 11a+: the harvest comes once a year); before the year is out they run dry.
+    let bit = false;
+    for (let k = 0; k < 6 && !bit; k++) {
+      const before = s.people.get("nesa").settled;
+      const loose = s.people.get("nesa").loose;
+      new TurnEngine(s).beginTurn();
+      if ((s.fed.tryGet("nesa") ?? 1000) < 1000) {
+        bit = true;
+        Assert.true(s.people.get("nesa").settled < before);
+        Assert.true(s.people.get("nesa").loose > loose);
+      } else new TurnEngine(s).resolve(new Dict());
+    }
+    Assert.true(bit);
     // Its neighbours at the default tax ate their fill.
     Assert.false(s.fed.has("hattusa"));
     // A province changing hands keeps no tax of its old holder's.
@@ -104,10 +109,29 @@ describe("PeopleTests", () => {
     const hungry = (fed: boolean): number => {
       const s = quiet();
       season(s, subs({ Hatti: { orders: [tax(70, "nesa"), ...(fed ? [feed("nesa", s.stores.getOrDefault("nesa", 0))] : [])] } }));
+      // Their granaries empty (item 11a+): they eat what the market holds.
+      s.granary.set("nesa", 0);
       new TurnEngine(s).beginTurn();
       return s.fed.getOrDefault("nesa", 1000);
     };
     Assert.true(hungry(true) > hungry(false));
+  });
+
+  test("The harvest comes in each land's own season into the farmers' granaries, and the tax is taken from them (item 11a+)", () => {
+    const s = quiet();
+    // The plateau reaps in Akhet, Egypt and the rain-fed south in Shemu.
+    Assert.equal(0, reapSeasonOf("nesa"));
+    Assert.equal(2, reapSeasonOf("memphis"));
+    const crop = s.crop.get("memphis");
+    const granary = s.granary.get("memphis");
+    new TurnEngine(s).beginTurn(); // Akhet: Memphis grows, Nesa reaps.
+    Assert.true(s.crop.get("memphis") > crop);
+    Assert.equal(0, s.crop.get("nesa"));
+    Assert.true(s.events.some((x) => x.signal === "harvest-reaped" && x.text.includes("Nesa")));
+    Assert.true(s.granary.get("nesa") > s.reaped.get("nesa") / 2);
+    Assert.false(s.events.some((x) => x.signal === "harvest-reaped" && x.text.includes("Memphis")));
+    // The tax came out of Memphis's granary, and its farmers ate from it.
+    Assert.true(s.granary.get("memphis") < granary);
   });
 
   test("Discharged men walk home, or settle where they stand as colonists", () => {

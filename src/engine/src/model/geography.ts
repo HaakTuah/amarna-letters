@@ -200,6 +200,15 @@ export function waterSeasons(province: string): number {
   }
 }
 
+/**
+ * The season a province reaps its harvest (item 11a+, "Period first": the harvest in each land's own season): the last of
+ * its busy seasons, Shemu from Egypt to Babylonia and across the rain-fed lands, Akhet on the Anatolian plateau.
+ */
+export function reapSeasonOf(province: string): number {
+  const busy = Climates.get(province)?.busy ?? [1, 2];
+  return busy[busy.length - 1];
+}
+
 /** How hard its winter is ("Winter in the field"): mild in Egypt and Babylonia, hard on the Anatolian plateau. */
 export type Winter = "Mild" | "Cool" | "Hard";
 

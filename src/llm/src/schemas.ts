@@ -563,7 +563,7 @@ const ReciteFields = (clauses: number, gift: boolean): [string, z.ZodType][] => 
     ["leave_out", array(z.int(), "The numbers of the letter's clauses you leave out when you recite them, or none: the king's scribes hear the rest as you recite them.")],
     ["add_courtesy", bool("True: you add a clause of good wishes from your lord that he did not write.")],
   ];
-  if (gift) f.push(["gift_stated", int("The gift you state, in shekels: as written, or less if you keep some of the gold and say so to match.")]);
+  if (gift) f.push(["gift_stated", int("The gift you state, in shekels: less than written if you keep some of the gold and say so to match; 0 states it as written.")]);
   return f;
 };
 

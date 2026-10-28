@@ -273,7 +273,8 @@ describe("Who decides (item 6c)", () => {
     // Woken by what came: the king gives orders that season, told what came and never why it woke him.
     const k = read[0].key.split("/");
     Assert.true(runner.log.has(`${k[0]}/orders/${k[2]}`));
-    const orders = api.requests.find((r) => has(props(r), "units") && userOf(r).includes("word came:"));
+    // (Other news, such as a spy caught, wakes him with no reader: the orders of a season the reader woke him.)
+    const orders = api.requests.find((r) => has(props(r), "units") && userOf(r).includes("word came:") && userOf(r).includes("you noted:"));
     Assert.true(orders !== undefined);
     Assert.contains("you noted: My envoy is home; the plan holds.", userOf(orders!));
     Assert.doesNotContain("small", userOf(orders!).split("word came:")[1].split("\n")[0]);
@@ -324,7 +325,7 @@ describe("Who decides (item 6c)", () => {
 
   test("Characters climb too: what their own model passes up, the rung above answers", async () => {
     const api = new SimulatedApi();
-    api.override = (body) => (str(body, "model") === ModelIds.Haiku && has(props(body), "pass_up") && has(props(body), "speech") ? JSON.stringify({ speech: "", keep_gold: 0, swap_inventory: false, as_written: false, pass_up: "too much gold", ask_counsel: "" }) : null);
+    api.override = (body) => (str(body, "model") === ModelIds.Haiku && has(props(body), "pass_up") && has(props(body), "speech") ? JSON.stringify({ speech: "", keep_gold: 0, swap_inventory: false, as_written: false, leave_out: [], add_courtesy: false, gift_stated: 0, pass_up: "too much gold", ask_counsel: "" }) : null);
     const [runner] = build((c) => (c.characters = "Haiku"), 3, api);
     await play(runner, 4);
     const up = runner.log.decisions.filter((d) => d.key.endsWith("/present") && d.by?.rung === "large");

@@ -160,7 +160,8 @@ P.looseLeave = function (province, n) {
 };
 
 /**
- * The loose men nobody polices rob their province's purse and its holder's stores each season ("Bandits rob the purse"):
+ * The loose men nobody polices rob their province's purse and its holder's stores each season ("Bandits rob the purse"),
+ * or, outside a besieged city, only its countryside's granaries (item 11a+):
  * what the roads pay them, the same share of the province's wealth that draws men to the roads, so each man's take falls
  * as they multiply and a robbed land has less to take; where its holder's troops stand they take half. The grain they
  * eat; the gold they carry, spending some where they are and the rest where they drift. Returns each holder's lines.
@@ -178,13 +179,18 @@ P.robbing = function () {
       const t = idiv(idiv(of * permille, 1000) * x.loose, x.loose + 1000);
       return policed ? idiv(t * LandData.policedPercent, 100) : t;
     };
-    const gold = rate(LandData.robPermille, m.purse);
-    const grain = siegeOf(S, prov.id) !== null ? 0 : rate(LandData.robPermille, this.stores(prov.id));
+    // Outside a besieged city's walls they rob only its countryside, the farmers' granaries: its purse and its stores are
+    // inside the walls (item 11a+, "Everything is somewhere").
+    const besieged = siegeOf(S, prov.id) !== null;
+    const gold = besieged ? 0 : rate(LandData.robPermille, m.purse);
+    const grain = besieged ? 0 : rate(LandData.robPermille, this.stores(prov.id));
+    const country = besieged ? rate(LandData.robPermille, S.granary.getOrDefault(prov.id, 0)) : 0;
     if (gold > 0) {
       m.purse -= gold;
       S.loot.set(prov.id, S.loot.getOrDefault(prov.id, 0) + gold);
     }
     if (grain > 0) this.takeFromStores(prov.id, grain);
+    if (country > 0) S.granary.set(prov.id, S.granary.get(prov.id) - country);
     // What they carry, they spend in part where they are.
     const loot = S.loot.getOrDefault(prov.id, 0);
     const spent = idiv(loot * LandData.lootSpentPercent, 100);
@@ -192,8 +198,11 @@ P.robbing = function () {
       S.loot.set(prov.id, loot - spent);
       this.spendAt(prov.id, spent);
     }
-    if (holder !== null && isAlive(S, holder) && gold + grainWorth(grain) >= 5)
-      lines.set(holder, [...lines.getOrDefault(holder, []), `${prov.name} (${gold} shekels from its people's purse${grain > 0 ? `, ${grain} measures from your stores` : ""})`]);
+    if (holder !== null && isAlive(S, holder) && gold + grainWorth(grain + country) >= 5)
+      lines.set(
+        holder,
+        [...lines.getOrDefault(holder, []), country > 0 ? `${prov.name} (${country} measures from the farmers' granaries outside the besieged walls)` : `${prov.name} (${gold} shekels from its people's purse${grain > 0 ? `, ${grain} measures from your stores` : ""})`],
+      );
   }
   for (const [p, l] of lines.entries()) logEvent(S, "robbed", `Loose men robbed ${p}'s land: ${l.join("; ")}.`, [p], "robbed");
   return lines;

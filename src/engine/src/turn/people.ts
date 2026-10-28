@@ -108,7 +108,10 @@ P.peopleSeason = function (food) {
     const x = this.peopleOf(prov.id);
     const r = reckonedOf(Map, prov.id);
     const need = countryNeed(prov, x.settled, r.settled);
-    if (need <= 0) continue;
+    if (need <= 0) {
+      S.granary.set(prov.id, food.getOrDefault(prov.id, 0));
+      continue;
+    }
     // Runaways (item 11a+, "Incentives, not quotas"): the farmers weigh what they keep at home against what they would keep
     // in the best land next door, as word of it reached them last season; where it beats home by `refugeMargin`, of the
     // share they would gain, `runPercent` run, hungry or not.
@@ -121,7 +124,12 @@ P.peopleSeason = function (food) {
         fleeing.push([prov.id, ran, this.taxRate(prov.id) > this.taxRate(best.to) ? "a heavy tax" : "a poor harvest"]);
       }
     }
-    let short = need - food.getOrDefault(prov.id, 0);
+    // They eat from their granary (item 11a+), and keep the rest until the next harvest: a whole harvest and a season's
+    // reserve at most, the rest eaten better, fed to animals or lost.
+    const has = food.getOrDefault(prov.id, 0);
+    const eaten = Math.min(need, has);
+    S.granary.set(prov.id, Math.min(has - eaten, S.reaped.getOrDefault(prov.id, 0) + need * LandData.reserveSeasons));
+    let short = need - eaten;
     if (short <= 0) continue;
     const m = this.market(prov.id);
     const bought = Math.min(m.stock, short);

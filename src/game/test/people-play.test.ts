@@ -26,6 +26,8 @@ describe("PeoplePlayTests", () => {
 
   test("A script king taxes each province as much as its farmers bear, levies where the men are and settles men where there is room", () => {
     const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    // As a king sees it when he gives his orders: after the season's harvest (Nesa reaps in Akhet, item 11a+).
+    new TurnEngine(s).beginTurn();
     const v = Views.for(s, "Hatti");
     const nesa = v.provinces.find((x) => x.province === "nesa")!;
     // At the start the farmers can bear a little more than the default.

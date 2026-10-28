@@ -22,6 +22,7 @@ import {
   sortBy,
 } from "@amarna/engine";
 import { Board } from "./board.ts";
+import { SeasonPlay } from "./land.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
 
@@ -180,7 +181,10 @@ export function revocations(b: Board, brain: Brain, orders: Order[]): void {
  * relieve our city, we grant by order (item 11a+), once each, unless leave already stands or the friend has turned.
  */
 export function leaveByOrder(b: Board, brain: Brain, orders: Order[]): void {
-  if (!authorityOn(b.me)) return;
+  if (!authorityOn(b.me) || !SeasonPlay.on(b.me)) {
+    brain.leaveAsked.clear();
+    return;
+  }
   for (const [k, asks] of [...brain.leaveAsked.entries()]) {
     brain.leaveAsked.delete(k);
     if (!b.alive.has(k) || !grantsOk(b, brain, k, asks.filter((c) => c.province !== null || brain.rel.get(k).allied))) continue;

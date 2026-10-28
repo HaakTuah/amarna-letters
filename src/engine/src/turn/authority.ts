@@ -206,7 +206,7 @@ P.grantByOrder = function (p, o) {
   const heard = S.turn + Math.max(1, this.travelTurns(p, o.grantee));
   S.grants.push(newGrant({ id: newId(S, "p"), kind: o.kind, grantor: p, grantee: o.grantee, province: o.province, lands, sinceTurn: since, untilTurn: o.seasons !== null ? since + Math.max(1, o.seasons) - 1 : null, tabletId: "", heardTurn: heard }));
   notify(S, p, "Resolution", GrantTitle, `From next season ${o.grantee}'s troops may ${o.kind === "passage" ? "pass through" : "stand within the walls of"} ${where} by your order${o.seasons !== null ? `, for ${o.seasons} seasons` : ", until you revoke it"}. Word of it reaches ${o.grantee}'s court as fast as a messenger rides.`);
-  logEvent(S, "passage", `${p} granted ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing within the walls of"} ${o.province !== null ? Map.get(o.province).name : `all the land of ${p}`}, by order.`, [p, o.grantee], o.kind === "passage" ? "passage-granted" : "basing-granted");
+  logEvent(S, "passage", `${p} granted ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing within the walls of"} ${o.province !== null ? Map.get(o.province).name : `all the land of ${p}`}, by order.`, [p, o.grantee], "granted-by-order");
 };
 
 /** Closing one's roads to a court ends what one granted it. */

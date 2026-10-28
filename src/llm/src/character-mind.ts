@@ -855,7 +855,8 @@ const nums = (o: JsonObject, k: string): Set<number> => new Set(Array.isArray(o[
  */
 export function recitedBy(clauses: readonly Clause[], json: JsonObject): Clause[] {
   const out = clauses.filter((_, i) => !nums(json, "leave_out").has(i + 1)).map((x) => ({ ...x }));
-  const stated = typeof json.gift_stated === "number" ? Math.max(0, Math.trunc(json.gift_stated)) : null;
+  // 0 (or nothing) states it as written; to name no gift at all, it leaves the clause out.
+  const stated = typeof json.gift_stated === "number" && json.gift_stated > 0 ? Math.trunc(json.gift_stated) : null;
   if (stated !== null) for (const x of out) if (x.kind === "gift" && x.amount !== null) x.amount = Math.min(x.amount, stated);
   if (json.add_courtesy === true && !out.some((x) => x.kind === "wellWishes")) out.unshift(clause("wellWishes"));
   return out;

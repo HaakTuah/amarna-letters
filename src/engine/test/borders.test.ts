@@ -84,8 +84,9 @@ describe("BordersTests", () => {
     const [, a, to, b] = border(s);
     const x = e.peopleOf(to);
     const room = reckonedOf(Map, to).room;
-    x.settled = room - 2000;
     e.beginTurn();
+    // Set after the season's own flows, which may fill the land.
+    x.settled = room - 2000;
     x.loose = 5000;
     s.runaways.set(to, new Dict([[a, 3000]]));
     s.loot.set(to, 100);

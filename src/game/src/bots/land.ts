@@ -32,6 +32,19 @@ export const LandPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me
   },
 };
 
+/**
+ * Script kings that leave item 11a+'s levers alone (`--no-season-play`, `--season-play-half`): the granaries in their tax
+ * and famine feeding, levies short of a full one, the share of mouths put out, deporting by a safe road, passage by order,
+ * watching spies and winter strokes by sea. None by default.
+ */
+export const SeasonPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
+
 /** A margin under the highest rate the farmers can bear, in points of the tax, against a worse season than this one. */
 const TaxMargin = 3;
 
@@ -42,11 +55,15 @@ const TaxStep = 3;
  * The highest tax a province's farmers can bear this season without going hungry, less a margin: what they keep of
  * its harvest must cover what its countryside eats.
  */
-export function bearableTax(x: ProvinceEconomyView): number {
+export function bearableTax(x: ProvinceEconomyView, me: string | null = null): number {
   const p = WorldMap.default.get(x.province);
   const need = countryNeed(p, x.settled, reckonedOf(WorldMap.default, x.province).settled);
   if (x.harvest <= 0) return 0;
-  const most = 100 - Math.ceil((need * 100) / x.harvest) - TaxMargin;
+  let most = 100 - Math.ceil((need * 100) / x.harvest) - TaxMargin;
+  // The harvest comes once a year (item 11a+): until the next is reaped, the granary must feed them and pay the tax. The
+  // seasons it must last: those before the reaping season, which the new harvest feeds.
+  const seasons = x.reapsIn === 0 ? 2 : x.reapsIn - 1;
+  if (seasons > 0 && (me === null || SeasonPlay.on(me))) most = Math.min(most, Math.floor(((x.granary / seasons - need) * 100) / x.harvest) - TaxMargin);
   return Math.max(0, Math.min(LandData.taxMost, most));
 }
 
@@ -58,7 +75,7 @@ export function taxOrders(v: SeatView, me: string): Order[] {
   if (!LandPlay.on(me)) return [];
   const orders: Order[] = [];
   for (const x of v.provinces) {
-    let rate = bearableTax(x);
+    let rate = bearableTax(x, me);
     if (x.fed < 1000) rate = Math.min(rate, Math.max(0, x.taxRate - 5));
     // A rate the farmers cannot bear comes down at once; otherwise it moves only by a few points, not every season.
     if (rate < x.taxRate || rate >= x.taxRate + TaxStep) orders.push(tax(rate, x.province));
@@ -76,8 +93,10 @@ export function famineFeeding(v: SeatView, me: string, besieged: ReadonlySet<str
   for (const x of v.provinces) {
     if (besieged.has(x.province)) continue;
     const need = countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled);
-    const rate = Math.min(x.taxRate, bearableTax(x));
-    const kept = Math.floor((x.harvest * (100 - rate)) / 100);
+    const rate = Math.min(x.taxRate, bearableTax(x, me));
+    // What the farmers will have next season (item 11a+): their granary, the harvest if it is reaped then, less the tax.
+    // A king that ignores the granaries reckons by a season's share of the harvest, as before.
+    const kept = SeasonPlay.on(me) ? x.granary + (x.reapsIn === 1 ? x.crop + x.harvest : 0) - Math.floor((x.harvest * rate) / 100) : Math.floor((x.harvest * (100 - rate)) / 100);
     const short = need - kept - Math.max(0, x.stock - x.need);
     const give = Math.min(short, stores(x.province));
     if (give > 0) orders.push(feed(x.province, give));
@@ -106,7 +125,7 @@ export function levyCost(v: SeatView, me: string, province: string, kind: UnitKi
  */
 export function canLevy(v: SeatView, province: string, kind: UnitKind): boolean {
   const x = v.provinces.find((p) => p.province === province);
-  return x !== undefined && x.men >= Math.max(LandData.levyLeast, menOf(kind) / 2);
+  return x !== undefined && x.men >= (SeasonPlay.on(v.power) ? Math.max(LandData.levyLeast, menOf(kind) / 2) : menOf(kind));
 }
 
 /** Whether a unit disbanding in a province of ours should settle its men there: the land has room for them. */
