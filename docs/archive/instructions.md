@@ -161,3 +161,14 @@ Given in the design chat with Claude, answering the design questions of the cons
     "Period first" from his earlier words, and into the builder rules ("Unattended work": every reading listed with
     the principle it rests on, checked by the design session at each milestone). Item 10+a opens with the five
     changes they imply.
+
+20. **09:03**, in the design chat, on Claude's proposal of a check for what slows the work down as the build grows
+    (Barkstreet Snakes' tests had run their 16-minute layout suite on every docs change, and files and branches keep
+    growing):
+
+    > Yes please, sound good! Do it expertly for both!
+
+    Written into the design document's builder rules ("The workshop check", after "Progress"), so it reaches
+    `.claude/rules/builder-rules.md` with this refresh; the same for Barkstreet Snakes, in its `CLAUDE.md`. Earlier the
+    same morning, at 08:12: "Yes, I think tests should only run where they impact something. To speed up development,
+    and so the session don't lose cache and we pay for all of the tokens again?" (the CI change of PR #103).
