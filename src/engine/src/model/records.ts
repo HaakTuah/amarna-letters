@@ -11,7 +11,7 @@ export type JourneyKind = (typeof JourneyKindValues)[number];
  * What a rumour about one of a court's own people tells it: news that ends a {@link Cover}. For word ("Word"), what it
  * tells a court of the world: a king closed or opened his roads to it, or a kingdom fell.
  */
-export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls"] as const;
+export const NewsKindValues = ["Overdue", "Ransom", "Death", "RoadsClosed", "RoadsOpened", "KingdomFalls", "Name"] as const;
 export type NewsKind = (typeof NewsKindValues)[number];
 
 export interface Journey {
@@ -123,10 +123,13 @@ export interface Dispatch {
   inventory: boolean;
   /** The envoy's authority (item 9): the seal and its limits, shown or hidden. Null: no seal. */
   authority: Authority | null;
+  /** Item 10: the person whose claim to serve the host the envoy is to check there. */
+  checkClaim: string | null;
 }
 
 export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
   return {
+    checkClaim: null,
     inventory: true,
     authority: null,
     clauses: [],
@@ -158,6 +161,7 @@ export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, 
   proposalTabletId: S,
   copyIds: list(S),
   trailId: S,
+  checkClaim: opt(S),
 });
 
 export interface TabletProposal {
@@ -222,6 +226,9 @@ export interface HomeCargo {
   goldStated: number;
   observations: string[];
   wasDetained: boolean;
+  /** Item 10: the person whose claim the envoy checked abroad, and whether the claim held there. */
+  claimChecked: string | null;
+  claimHeld: boolean;
 }
 
 export function newHomeCargo(init: Partial<HomeCargo> = {}): HomeCargo {
@@ -233,6 +240,8 @@ export function newHomeCargo(init: Partial<HomeCargo> = {}): HomeCargo {
     goldStated: 0,
     observations: [],
     wasDetained: false,
+    claimChecked: null,
+    claimHeld: false,
     ...init,
   };
 }
@@ -245,6 +254,8 @@ export const HomeCargoSchema: ObjSchema<HomeCargo> = obj("HomeCargo", newHomeCar
   goldStated: I,
   observations: list(S),
   wasDetained: B,
+  claimChecked: opt(S),
+  claimHeld: B,
 });
 
 export interface SpyReport {
@@ -258,6 +269,8 @@ export interface SpyReport {
    * Tablets the spy copied this season from the archive of the court it watches: the copies come home with the report.
    */
   tabletIds: string[];
+  /** Item 10: tablets the spy stole this season from that archive: its court has lost them, and they come home with the report. */
+  stolenIds: string[];
   /**
    * How many facts of its own life the spy had when it observed (facts are only ever added), so that the report, written
    * when it arrives but of the season observed, shows the spy only those; null in a report made before this was kept
@@ -286,6 +299,7 @@ export function newSpyReport(init: Partial<SpyReport> = {}): SpyReport {
     poison: null,
     observedTurn: 0,
     tabletIds: [],
+    stolenIds: [],
     factCount: null,
     secretMaster: null,
     lord: null,
@@ -304,6 +318,7 @@ export const SpyReportSchema: ObjSchema<SpyReport> = obj("SpyReport", newSpyRepo
   poison: S,
   observedTurn: I,
   tabletIds: list(S),
+  stolenIds: list(S),
   factCount: opt(I),
   secretMaster: opt(S),
   lord: opt(S),

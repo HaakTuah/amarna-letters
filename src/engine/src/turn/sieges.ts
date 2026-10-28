@@ -29,6 +29,7 @@ import type { ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { removeAll } from "./resolve.ts";
 import { TurnEngine } from "./core.ts";
+import { learn } from "../rules/skills.ts";
 
 /** The notice of the season's sieges: those a court presses, and those of its cities. */
 export const SiegesTitle = "Sieges";
@@ -248,8 +249,11 @@ P.tightness = function (x) {
  */
 P.caughtByBesiegers = function (c, tightness) {
   const S = this.s;
-  const percent = clamp(S.config.siegeCatchPerUnit * tightness - Math.trunc(c.traits.competence / 4), S.config.siegeCatchMin, S.config.siegeCatchMax);
-  return this.r("siege-envoy", c.id).chance(percent / 100.0);
+  const chanceAt = (skill: number): number => clamp(S.config.siegeCatchPerUnit * tightness - Math.trunc(skill / 4), S.config.siegeCatchMin, S.config.siegeCatchMax) / 100.0;
+  const caught = this.r("siege-envoy", c.id).chance(chanceAt(c.skills.stealth));
+  // Slipping past the besiegers, or not, is an outcome the envoy learns from (item 10, "Seeing oneself").
+  learn(c, "stealth", !caught, (b) => 1 - chanceAt(b));
+  return caught;
 };
 
 /**
@@ -264,6 +268,8 @@ P.intercept = function (c, lord, siege, leaving, dispatch, cargo, due) {
   const city = this.map.get(siege.province).name;
   // What its king believed of it a moment before: on its way out, or on the road home.
   this.coverFor(c, lord, leaving ? "EnvoyOutbound" : "EnvoyHomebound");
+  this.meet(c, besieger);
+  this.outcome(c, besieger, `Was caught by the besiegers of ${city} (season ${S.turn}).`, false);
   c.status = "Captured";
   c.heldBy = besieger;
   c.at = besieger;

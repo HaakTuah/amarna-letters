@@ -15,6 +15,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
 import { Views } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { learn } from "../rules/skills.ts";
 
 /** The title of the notice a court reads when it has taken another court's capital, and with it its archive. */
 export const ArchiveTakenTitle = "An archive taken";
@@ -53,7 +54,10 @@ P.archive = function (court) {
 P.copyFromArchive = function (spy, court, master) {
   const S = this.s;
   const rng = this.r("archive", spy.id);
-  if (!rng.chance(spy.traits.competence / 100.0)) return [];
+  const copied = rng.chance(spy.skills.gather / 100.0);
+  // Whether it got at the archive this season is an outcome it learns from (item 10, "Seeing oneself").
+  learn(spy, "gather", copied, (b) => b / 100.0);
+  if (!copied) return [];
   const held = new Set(S.copies.filter((k) => k.holder === master).map((k) => k.tabletId));
   // Copies already on the road home in an earlier report are not made twice.
   const sent = new Set(S.journeys.filter((j) => j.kind === "SpyReport" && j.to === master && j.report !== null).flatMap((j) => j.report!.tabletIds));
@@ -65,6 +69,7 @@ P.copyFromArchive = function (spy, court, master) {
   )[0];
   if (pick === undefined) return [];
   remember(spy, S.turn, `I copied a tablet from the archive of ${land(court)}, sealed by ${pick.seals.join(" and ")}: "${cap(pick.text, 200)}"`);
+  this.saw(spy, pick.id);
   return [pick.id];
 };
 
@@ -75,7 +80,7 @@ P.copyFromArchive = function (spy, court, master) {
 P.archiveCopiesArrive = function (j, spy) {
   const S = this.s;
   const report = j.report;
-  if (report === null || report.tabletIds.length === 0 || !isAlive(S, j.to)) return [];
+  if (report === null || (report.tabletIds.length === 0 && report.stolenIds.length === 0) || !isAlive(S, j.to)) return [];
   const court = report.court!;
   const held = new HSet(S.copies.filter((k) => k.holder === j.to).map((k) => k.tabletId));
   const made: string[] = [];
@@ -85,13 +90,21 @@ P.archiveCopiesArrive = function (j, spy) {
     S.copies.push(copy);
     made.push(copy.id);
   }
+  // Stolen tablets (item 10): the tablet itself, which its court no longer holds.
+  for (const tid of report.stolenIds) {
+    if (!(S.tablets.some((t) => t.id === tid) && held.add(tid))) continue;
+    const copy = newTabletCopy({ id: newId(S, "k"), tabletId: tid, holder: j.to, acquiredTurn: S.turn, source: `stolen from the archive of ${court} by your spy ${spy.name}` });
+    S.copies.push(copy);
+    made.push(copy.id);
+  }
   if (made.length > 0) logEvent(S, "archive-copied", `${spy.name}, a spy of ${j.to}, brought home copies of ${made.length} tablet(s) from the archive of ${court}.`, [j.to], "archive-copied");
   return made;
 };
 
 /**
- * The power that now holds a province that is a court's capital (taken by its troops, or ceded to it) gains a copy of
- * every tablet in that court's archive it does not hold already. The court keeps its own.
+ * The power that now holds a province that is a court's capital (taken by its troops, or ceded to it) carries off that
+ * court's archive: it gains every tablet in it it does not hold already, and the court loses them all (item 10, "Tablets are
+ * objects in a place"; until then the court kept its own).
  */
 P.takeArchive = function (taker, province) {
   const S = this.s;
@@ -106,6 +119,10 @@ P.takeArchive = function (taker, province) {
     S.copies.push(copy);
     taken.push(copy);
   }
+  const lost = S.copies.filter((k) => k.holder === court).length;
+  S.copies = S.copies.filter((k) => k.holder !== court);
+  if (lost > 0 && isAlive(S, court))
+    notify(S, court, "Notice", "Your archive taken", `With ${prov.name}, ${taker} carried off your archive: the ${lost} tablet${lost === 1 ? "" : "s"} it held are no longer yours.`);
   notify(
     S,
     taker,

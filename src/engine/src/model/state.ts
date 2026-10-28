@@ -15,7 +15,7 @@ import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./carava
 import { type Toll, TollSchema } from "./trade.ts";
 import { type MarketSeen, MarketSeenSchema } from "./views.ts";
 
-export const CURRENT_VERSION = 15;
+export const CURRENT_VERSION = 16;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -512,6 +512,14 @@ export function inboxOf(s: GameState, p: Power): InboxItem[] {
 }
 
 export function notify(s: GameState, p: Power, kind: InboxKind, title: string, body: string, subject: string | null = null): void {
+  // A person the court knows by a false name (item 10) is named to it by that name.
+  const c = subject === null ? null : (s.characters.find((x) => x.id === subject) ?? null);
+  const alias = c === null ? null : (c.declared.find((d) => d.court === p && d.exposed === null)?.name ?? null);
+  if (c !== null && alias !== null && alias !== c.name) {
+    const own = new RegExp(`\\b${c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g");
+    title = title.replace(own, alias);
+    body = body.replace(own, alias);
+  }
   inboxOf(s, p).push(newInboxItem({ turn: s.turn + s.deliveryOffset, kind, title, body, subject }));
 }
 

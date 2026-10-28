@@ -24,6 +24,7 @@ import {
   newMessageTrail,
   newMindRequest,
   newSpyReport,
+  newSkills,
   newTraits,
   newTurnSubmission,
   single,
@@ -45,6 +46,8 @@ describe("InventorySwapTests", () => {
       employer: "Egypt",
       contract: newContract({ wage: 10 }),
       traits: newTraits({ loyalty: loyalty, greed: greed, competence: competence, ambition: 30, courage: courage }),
+      // Item 10: it believes what it can do.
+      belief: newSkills({ gather: competence, stealth: competence, forge: competence }),
     });
   }
 
@@ -210,6 +213,7 @@ describe("InventorySwapTests", () => {
     let envoy = first(state.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
     [envoy.traits.greed, envoy.traits.loyalty, envoy.traits.competence, envoy.traits.courage] = [80, 40, 70, 60];
+    envoy.belief.forge = envoy.skills.forge = 70;
     let host = new Host();
     let seats = toDict(
       AllPowers,
@@ -230,6 +234,7 @@ describe("InventorySwapTests", () => {
     let same = single(again.characters, (c) => c.id === envoy.id);
     same.secretMaster = null;
     [same.traits.greed, same.traits.loyalty, same.traits.competence, same.traits.courage] = [80, 40, 70, 60];
+    same.belief.forge = same.skills.forge = 70;
     let replay = Object.assign(
       new GameRunner(
         again,
@@ -275,11 +280,11 @@ describe("InventorySwapTests", () => {
   test.each([
     [
       70,
-      "You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. Your hand is skilled enough to fake a seal.",
+      "You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. You believe your hand is skilled enough to fake a seal.",
     ],
     [
       54,
-      "You could quietly keep some before it is weighed, but your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.",
+      "You could quietly keep some before it is weighed, but you do not believe your hand is skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.",
     ],
   ] as const)("A model envoy carrying gold is told whether its hand can fake a seal %s", async (competence: number, hand: string) => {
     let [mind, prompts] = modelMind();

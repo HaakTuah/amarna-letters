@@ -59,13 +59,14 @@ describe("RulebookTextTests", () => {
     Assert.contains("Then everyone you see at your court whom you owe back pay is paid it", Rules);
   });
 
-  test("The rulebook says that tablets lie in archives that spies copy and conquerors take", () => {
+  test("The rulebook says that tablets lie in archives that spies copy or steal and conquerors carry off", () => {
     Assert.contains(
       "- Archives: every tablet you hold (those you sealed, and the copies you were shown or brought) lies in your archive at your capital, and so it is at every court. " +
-        "A spy watching a court copies from its archive: each season it is not caught, with a chance of (the spy's skill, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court, or watching a court that has fallen, copies nothing for you. " +
-        "Whoever takes a king's capital gains at once a copy of every tablet in his archive, and so does anyone that city is later ceded to (a king cannot cede his own capital).",
+        "A spy watching a court copies from its archive: each season it is not caught, with a chance of (its skill at seeing what a court hides, 0-100)/100, it copies one tablet you do not hold yet (tablets bearing two or more seals first, the newest first), and the copy comes home with its report; a spy turned by that court, or watching a court that has fallen, copies nothing for you. " +
+        "A spy watching a court may instead be told to steal a tablet (steal_tablet): that season, with the same chance, it takes the tablet you would most want out of the archive, which that court then no longer holds",
       Rules,
     );
+    Assert.contains("Whoever takes a king's capital carries off his archive: every tablet in it is his, and the king who lost it holds none of them any more", Rules);
 
     // The seat view names the archive the rule speaks of.
     let s = newGame(4);
@@ -208,7 +209,7 @@ describe("SeasonRulebookTests", () => {
     [
       "Every order that was refused or failed is reported with the reason, and gold reserved for an order that failed stays in your treasury (except the clay of a botched forgery, which is paid for).",
     ],
-    ["one without the skill ruins the clay, which you still pay for"],
+    ["one who says it cannot ruins the clay, which you still pay for"],
     [
       "Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other (and the ground's help, see TERRAIN).",
     ],
@@ -346,7 +347,7 @@ describe("ViewTextTests", () => {
       "Background checks (at least 10 shekels) report next season: every public fact about the person, each hidden fact with a chance of shekels paid/150 (at most 90%), and each deep secret with a chance of shekels paid/400 (at most 60%).",
     ],
     [
-      "Each season a spy is caught with a chance of 5% + (what the court it watches, or the one holding the province it watches, spends on watchmen that season)/300 - (the spy's skill, 0-100)/400, between 2% and 60%",
+      "Each season a spy is caught with a chance of 5% + (what the court it watches, or the one holding the province it watches, spends on watchmen that season)/300 - (its skill at slipping past guards, 0-100)/400, between 2% and 60%",
     ],
     [
       "a genuine tablet reads genuine 95% of the time (otherwise the scribes cannot agree); a forgery is found with a chance of 20% + shekels paid/200 - (the forger's skill, 0-100)/150, between 5% and 95%, and once found is traced to the forger's court with a chance of 30% + shekels paid/400, between 30% and 80%",

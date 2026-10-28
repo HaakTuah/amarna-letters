@@ -24,9 +24,12 @@ declare module "./core.ts" {
 
 const P = TurnEngine.prototype;
 
-/** Whether a character has the hand to fake a seal (the forger's skill, as for a forgery ordered by a king). */
+/**
+ * Whether a character believes its hand can fake a seal (item 10, "Seeing oneself"): it tries only then. How well the
+ * forgery passes is its true forging skill.
+ */
 P.canForge = function (c) {
-  return c.traits.competence >= this.s.config.forgeMinCompetence;
+  return c.belief.forge >= this.s.config.forgeMinCompetence;
 };
 
 /**
@@ -61,7 +64,7 @@ P.inventory = function (envoy, sealer, receiver, stated, sealedTurn, forged, sou
     forged,
     forgerId: forged ? envoy.id : null,
     forgerEmployer: forged ? envoy.employer : null,
-    forgerSkill: forged ? envoy.traits.competence : 0,
+    forgerSkill: forged ? envoy.skills.forge : 0,
   });
   S.tablets.push(tablet);
   const copy = newTabletCopy({ id: newId(S, "k"), tabletId: tablet.id, holder: receiver, acquiredTurn: S.turn, source });

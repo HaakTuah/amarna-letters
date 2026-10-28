@@ -11,6 +11,7 @@ import {
   type TurnSubmission,
   Views,
   basePrice,
+  newSkills,
   characterOf,
   coverOf,
   dismiss,
@@ -60,13 +61,17 @@ describe("ContractTests", () => {
   }
 
   // One of Egypt's envoys, at a wage of 12, whose term ends with turn 1. Greedy and able, it asks 33 to serve on
-  // (6 + 80/8 + 80/8 + reputation 10/5 = 28, and 5 more for its greed); a modest one asks only 6.
+  // (6 + 80/8 + 80/8 + reputation 10/5 = 28, and 5 more for its greed: since item 10 by the skill it believes it has, with
+  // no debts or ties pressing on it); a modest one asks only 6.
   function servant(wantsMore: boolean = true, config: GameConfig | null = null): [GameState, Character] {
     let s = newGame(5, config ?? newGameConfig({ catastropheChance: 0 }));
     let c = first(s.characters, (c) => c.employer === "Egypt");
     c.secretMaster = null;
     c.traits.sympathy = null;
     [c.traits.competence, c.traits.greed, c.traits.loyalty] = wantsMore ? [80, 80, 50] : [20, 10, 80];
+    const believed = wantsMore ? 80 : 20;
+    c.belief = newSkills({ gather: believed, stealth: believed, forge: believed });
+    c.ties = [];
     c.contract = newContract({ wage: 12, startTurn: 1, untilTurn: 1 });
     Assert.equal(wantsMore ? 33 : 6, renewalPrice(c, "Egypt"));
     return [s, c];

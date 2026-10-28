@@ -27,6 +27,12 @@ export interface MindRequest {
   report: SpyReport | null;
   /** Facts the engine has already chosen to release (background checks), or the memories to summarize. */
   facts: string[];
+  /**
+   * For a pitch (item 10): names it could give instead of its own (one invented in its region's style, and one a court has
+   * heard well of and never seen), and a king it could claim to serve as a false envoy at the court where it stands.
+   */
+  aliases: string[];
+  envoyOf: Power | null;
   /** For a memory summary: how many of the oldest memories it replaces. */
   fold: number;
   /**
@@ -46,6 +52,8 @@ export function newMindRequest(init: Partial<MindRequest> = {}): MindRequest {
     cargo: null,
     report: null,
     facts: [],
+    aliases: [],
+    envoyOf: null,
     fold: 0,
     copyIds: [],
     ...init,
@@ -62,6 +70,8 @@ export const MindRequestSchema: ObjSchema<MindRequest> = obj("MindRequest", newM
   cargo: () => HomeCargoSchema,
   report: () => SpyReportSchema,
   facts: list(S),
+  aliases: list(S),
+  envoyOf: opt(S),
   fold: I,
   copyIds: list(S),
 });
@@ -77,6 +87,13 @@ export interface MindReply {
   swapInventory: boolean;
   /** For an envoy's report: the host's answer as the envoy reports it, in clauses (item 8). */
   clauses: Clause[];
+  /**
+   * For a pitch (item 10, "Declaring a name"): the name it gives the court, its own by default; another's, or an invented
+   * one, is a lie the engine records. Null: its own.
+   */
+  name: string | null;
+  /** For a pitch: the king it claims to serve, as a false envoy at the court where it stands; null if it seeks service. */
+  claimsToServe: Power | null;
 }
 
 export function newMindReply(init: Partial<MindReply> = {}): MindReply {
@@ -85,6 +102,8 @@ export function newMindReply(init: Partial<MindReply> = {}): MindReply {
     text: "",
     number: 0,
     swapInventory: false,
+    name: null,
+    claimsToServe: null,
     ...init,
   };
 }
@@ -94,6 +113,8 @@ export const MindReplySchema: ObjSchema<MindReply> = obj("MindReply", newMindRep
   text: S,
   number: I,
   swapInventory: B,
+  name: opt(S),
+  claimsToServe: opt(S),
 });
 
 /** What the host replies at an audience. Every field but Speech is an action the engine checks. */

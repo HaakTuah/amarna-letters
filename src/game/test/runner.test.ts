@@ -39,7 +39,7 @@ describe("RunnerTests", () => {
       Assert.true(summary.turns >= 15);
       Assert.notEmpty(summary.winners);
     }
-  }, 300000); // five whole games, each played and replayed: about 100 s alone, more when the suite runs in parallel
+  }, 600000); // five whole games, each played and replayed: about 200 s alone since item 10, more when the suite runs in parallel
 
   test("A character that belongs to no court summarizes its memory as any other", async () => {
     let r = scripted(2);

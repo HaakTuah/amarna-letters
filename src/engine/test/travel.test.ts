@@ -22,7 +22,7 @@ import {
   roads,
   wordSeasons,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, skilled } from "./support.ts";
 
 // Travel and news (build order item 7b): routes and the one pace rule, winter passes, rivers, the road check, closed roads
 // and sneaking, and news of distant land travelling.
@@ -101,7 +101,7 @@ describe("TravelTests", () => {
   test("An envoy goes by a route of provinces and arrives when it has made the whole road", () => {
     const s = newGame(5);
     const envoy = first(s.characters, (c) => c.employer === "Babylonia");
-    envoy.traits.competence = 100;
+    skilled(envoy, 100);
     const start = s.turn;
     season(s, new Dict([["Babylonia", newTurnSubmission({ orders: [dispatch(envoy.id, "Assyria", "Greetings, brother.")] })]]));
     const j = first(s.journeys, (x) => x.characterId === envoy.id);
@@ -140,7 +140,7 @@ describe("TravelTests", () => {
     season(s, new Dict([["Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Hatti", "Greetings.")] })]]));
     const j = first(s.journeys, (x) => x.characterId === envoy.id);
     const e = new TurnEngine(s);
-    envoy.traits.competence = 0;
+    skilled(envoy, 0);
     // A free city's land: outlaws only.
     let odds = e.roadOdds(j, envoy, "gaza", false, null);
     Assert.equal(RoadOdds.free, odds.getOrDefault("outlaws", 0));
@@ -152,10 +152,10 @@ describe("TravelTests", () => {
     // Storms at sea, worse in winter (the season just travelled is s.turn - 1).
     s.turn = 3;
     Assert.equal(RoadOdds.winterStorm, e.roadOdds(j, envoy, "gazawaters", false, null).getOrDefault("nature", 0));
-    envoy.traits.competence = 100;
+    skilled(envoy, 100);
     Assert.equal(RoadOdds.winterStorm / 2, e.roadOdds(j, envoy, "gazawaters", false, null).getOrDefault("nature", 0));
     // Snow at either end of a pass on its road in winter.
-    envoy.traits.competence = 0;
+    skilled(envoy, 0);
     j.route = ["nesa", "kizzuwatna", "alalakh"];
     Assert.equal(RoadOdds.snow, e.roadOdds(j, envoy, "nesa", false, null).getOrDefault("nature", 0));
     Assert.equal(RoadOdds.snow, e.roadOdds(j, envoy, "alalakh", false, null).getOrDefault("nature", 0));

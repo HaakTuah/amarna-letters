@@ -25,6 +25,7 @@ import {
   newMindRequest,
   newTablet,
   newTabletCopy,
+  newSkills,
   newTraits,
   newTurnSubmission,
   single,
@@ -51,6 +52,8 @@ describe("RequestTextTests", () => {
       contract: newContract({ wage: 10 }),
       at: "Hatti",
       traits: newTraits({ loyalty: loyalty, greed: greed, competence: 60, ambition: 40, courage: 50 }),
+      // Item 10: it believes what it can do.
+      belief: newSkills({ gather: 60, stealth: 60, forge: 60 }),
     });
   }
 

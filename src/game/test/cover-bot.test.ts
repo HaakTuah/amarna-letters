@@ -63,7 +63,9 @@ describe("CoverBotTests", () => {
     for (let turn = 2; turn <= 6; turn++) {
       s.turn = turn;
       let sub = await king.decide(Views.for(s, me));
+      // Item 10: a spy it believes at its post may be told to steal there, as it may be recalled: that sends it nowhere.
       Assert.doesNotContain(sub.orders, (o) => {
+        if (o.type === "steal" && o.character === caught.id) return false;
         const id = characterOf(o);
         return id !== null && (id === caught.id || id === gone.id);
       });

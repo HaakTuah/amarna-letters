@@ -4,7 +4,7 @@ import { cmpBool, cmpNum, desc, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { DismissOrder, HireOrder, Order, RenewOrder } from "../model/orders.ts";
-import { coverOf, gain, newContract, remember, type Character } from "../model/people.ts";
+import { coverOf, falseNameAt, gain, newContract, remember, reputationAt, type Character } from "../model/people.ts";
 import { cmpPower, land, type Power } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
 import { char, findCharacter, logEvent, newId, notify } from "../model/state.ts";
@@ -38,6 +38,9 @@ P.resolveCourt = function (orders) {
         break;
       case "dismiss":
         this.dismiss(p, char(S, o.character), o);
+        break;
+      case "gift":
+        this.giftTo(p, o);
         break;
       case "seekCandidates":
         S.tasks.push(newPendingTask({ id: newId(S, "q"), kind: "Candidates", requester: p, dueTurn: S.turn + 1 }));
@@ -87,6 +90,7 @@ P.resolveCourt = function (orders) {
     c.heldBy = null;
     c.pitches.clear();
     c.reputation.set(winner, c.reputation.getOrDefault(winner, 0) + 5);
+    this.meet(c, winner);
     remember(c, S.turn, `I entered the service of ${land(winner)} for ${formatMoney(hire.wage)} a season.`);
     // In the rulebook's words: a person hired enters your service at the end of the season, and can be sent on an errand from the next.
     notify(S, winner, "Notice", "Hired", `${c.name} entered your service at the end of last season, at ${formatMoney(hire.wage)} a season, and can be sent on an errand now.`, c.id);
@@ -201,11 +205,18 @@ export function askingPrice(c: Character, court: Power): number {
   return basePrice(c, court);
 }
 
+/**
+ * What a person asks a court a season (item 10): by what it believes it can do, never its true skill ("Seeing oneself"), by
+ * its greed, by its name at that court ("A name has a price"), and by the debts that press on its purse; less at the court
+ * it favours, or where its lover or family is.
+ */
 export function basePrice(c: Character, court: Power): number {
-  const reps = [...c.reputation.values()];
-  const rep = reps.length === 0 ? 0 : reps.reduce((a, b) => a + b, 0) / reps.length;
-  let price = 6 + Math.trunc(c.traits.competence / 8) + Math.trunc(c.traits.greed / 8) + Math.trunc(rep / 5);
+  const rep = reputationAt(c, court);
+  const belief = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
+  const debt = c.ties.filter((t) => t.kind === "Debt").reduce((a, t) => a + t.amount, 0);
+  let price = 6 + Math.trunc(belief / 8) + Math.trunc(c.traits.greed / 8) + Math.trunc(rep / 5) + Math.min(9, Math.trunc(debt / 30));
   if (c.traits.sympathy === court) price -= 4;
+  if (c.ties.some((t) => t.kind !== "Debt" && t.court === court)) price -= 3;
   return Math.max(5, price);
 }
 
@@ -226,7 +237,18 @@ P.tasksDue = function () {
         const free = S.characters.filter((c) => c.status === "Free");
         const picks = this.r("candidates", task.requester).shuffle(free).slice(0, 3);
         if (picks.length === 0) notify(S, task.requester, "Candidates", "No candidates", "Nobody came forward this season.");
-        for (const c of picks) this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "Pitch", characterId: c.id, court: task.requester }));
+        // Each meets the court by its pitch, and may give it a name other than its own (item 10, "Declaring a name").
+        for (const c of picks)
+          this.mindRequests.push(
+            newMindRequest({
+              id: newId(S, "r"),
+              task: "Pitch",
+              characterId: c.id,
+              court: task.requester,
+              aliases: c.met.includes(task.requester) ? [] : this.aliasesFor(c, task.requester),
+              envoyOf: c.met.includes(task.requester) ? null : this.envoyOfFor(c, task.requester),
+            }),
+          );
         break;
       }
       case "BackgroundCheck": {
@@ -234,6 +256,9 @@ P.tasksDue = function () {
         const c = findCharacter(S, task.characterId);
         if (c === null) break;
         const rng = this.r("check", task.id);
+        // Inquiries may turn up the truth about a false name (item 10, "Kings never see skills"), as a hidden fact would be.
+        const alias = falseNameAt(c, task.requester);
+        if (alias !== null && this.r("check-name", task.id).chance(Math.min(0.9, task.spend / 150.0))) this.expose(c, alias, "your inquiries found out who they are");
         const found: string[] = [];
         const cover = coverOf(c, task.requester);
         for (const f of c.facts) {

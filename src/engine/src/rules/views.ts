@@ -3,7 +3,8 @@ import { Dict, HSet } from "../core/collections.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { split } from "../core/text.ts";
 import { StartWalls, WorldMap } from "../model/map.ts";
-import { coverOf, factsKnownTo, hiddenAt, type Character, type Contract, type Cover } from "../model/people.ts";
+import { coverOf, factsKnownTo, falseNameAt, hiddenAt, type Character, type Contract, type Cover } from "../model/people.ts";
+import { claimWords } from "./skills.ts";
 import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
@@ -404,10 +405,15 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
   // The contract of one who still serves you (not of one dead in your service).
   const k: Contract | null = ours && (c.status === "Employed" || c.status === "Captured") ? c.contract : null;
   const price = c.askingPrice.tryGet(viewer);
+  // The name it gave your court (item 10, "Declaring a name"): what you know of it is what you learned under that name, and
+  // of a borrowed name, what you know of the man whose name it is.
+  const alias = falseNameAt(c, viewer);
+  const borrowed = alias?.as != null ? (s.characters.find((x) => x.id === alias.as) ?? null) : null;
+  const facts = [...(borrowed !== null ? factsKnownTo(borrowed, viewer) : []), ...factsKnownTo(c, viewer)].map((f) => f.text);
   return newCharacterView({
     id: c.id,
-    name: c.name,
-    origin: c.origin,
+    name: alias?.name ?? c.name,
+    origin: alias === null || alias.name === c.name ? c.origin : (borrowed?.origin ?? ""),
     ours,
     status: c.status === "Captured" && c.heldBy === viewer ? "your captive" : c.status.toLowerCase(),
     // A spy you caught: whom it confessed to serving, if it did.
@@ -421,8 +427,11 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     noticePrice: k?.noticePrice ?? null,
     leavesTurn: k?.leavesTurn ?? null,
     term: k === null ? "" : termText(k.wage, k.untilTurn, k.noticePrice, k.leavesTurn, s.turn),
-    knownFacts: factsKnownTo(c, viewer).map((f) => f.text),
+    knownFacts: facts,
     pitch: c.pitches.tryGet(viewer) ?? null,
+    // What it said it can do when it pitched to you (item 10, "Kings never see skills"): words, never its skill.
+    claims: c.pitches.has(viewer) && c.claimed !== null ? claimWords(c.claimed) : [],
+    claimsToServe: alias?.employer ?? null,
     // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
     askingPrice: ours ? null : price !== undefined ? price : freeHere ? basePrice(c, viewer) : null,
     ready: ours && c.status === "Employed" && c.duty === "None" && c.at === viewer,
