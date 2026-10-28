@@ -586,12 +586,12 @@ function report(carriesGold = true, canForge = true, toLord = true, received = f
  * A pitch (item 10): the name it gives only when this court has never seen it, and the false envoy's claim only at the court
  * where it stands, so that no field implies a choice that does not exist.
  */
-const pitch = (names = false, envoyOf: string | null = null): ReplySchema => {
+const pitch = (alias: string | null = null, envoyOf: string | null = null): ReplySchema => {
   const fields: [string, z.ZodType][] = [
     ["pitch", str("How you present yourself, in a few sentences.")],
     ["asking_price", int("Your wage per season in shekels.")],
   ];
-  if (names) fields.push(["name", str("The name you give this court: your own, or another you choose to go by here. Empty: your own.")]);
+  if (alias !== null) fields.push(["name", str(`The name you give this court: empty for your own, or "${alias}" to go by that name here instead.`)]);
   if (envoyOf !== null) fields.push(["envoy_of", bool(`True: instead of seeking service, you say you are an envoy of the king of ${envoyOf}, whom you do not serve, hoping for a host's gifts.`)]);
   return object(...fields);
 };

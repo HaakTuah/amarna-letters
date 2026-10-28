@@ -690,7 +690,7 @@ export class LlmCharacterMind implements ICharacterMind {
           `${ctx.demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now"}.` +
           // Item 10: a court that has never seen it knows it only by the name it gives.
           (req.aliases.length > 0 ? " This court has never seen you, and knows you only by the name you give it." : "");
-        const json = await this.ask(key, ctx.turn, `candidate:${c.id}`, c, user, Replies.pitch(req.aliases.length > 0, req.envoyOf !== null ? land(req.envoyOf) : null), signal, null, null, {
+        const json = await this.ask(key, ctx.turn, `candidate:${c.id}`, c, user, Replies.pitch(req.aliases[0] ?? null, req.envoyOf !== null ? land(req.envoyOf) : null), signal, null, null, {
           stakes: { kind: "pitch", moved: 0.1 },
           keys: [`t${ctx.turn}/mind/${req.id}`],
           fields: ["asking_price"],

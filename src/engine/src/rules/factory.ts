@@ -145,7 +145,8 @@ export function populate(s: GameState): void {
       const drawn = c.ties.find((t) => t.kind !== "Debt");
       if (drawn !== undefined) c.at = drawn.court;
     }
-    c.met = c.at !== null ? [c.at] : [];
+    // A servant's court has seen it; a free person living in a city is a stranger to its king until it presents itself.
+    c.met = c.status === "Employed" && c.at !== null ? [c.at] : [];
     c.persona = personaTemplate(c);
     s.characters.push(c);
   }
@@ -179,7 +180,7 @@ function more(s: GameState, unused: Seed[]): void {
     c.status = "Free";
     // A Nubian in Egypt's service stands at Pharaoh's court; anyone else lives where a lover or family draws it, if anywhere.
     c.at = sd.nubian ? sd.court : (c.ties.find((t) => t.kind !== "Debt")?.court ?? sd.court);
-    c.met = [c.at];
+    c.met = [];
     c.persona = personaTemplate(c);
     s.characters.push(c);
   }

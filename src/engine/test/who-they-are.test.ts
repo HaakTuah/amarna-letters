@@ -27,7 +27,11 @@ import {
   newTabletCopy,
   newTurnSubmission,
   question,
+  single,
   steal,
+  OrderValidator,
+  dispatch,
+  newCover,
   FirstPool,
   InclinationKept,
 } from "@amarna/engine";
@@ -117,14 +121,18 @@ describe("WhoTheyAreTests", () => {
 
   test("A false name: the court knows the person by it, is told by it, and sees through it by inquiries", () => {
     const s = newGame(6, newGameConfig({ catastropheChance: 0 }));
-    const c = first(s.characters, (x) => x.status === "Free" && x.at !== "Hatti" && !x.met.includes("Hatti"));
+    const c = first(s.characters, (x) => x.status === "Free" && x.at !== "Hatti" && !x.met.includes("Hatti") && !x.reputation.has("Hatti"));
     const e = begin(s);
     e.declare(c, "Hatti", "Amenmose", null);
-    const seen = Views.for(s, "Hatti").known.find((v) => v.id === c.id);
-    if (seen !== undefined) {
-      Assert.equal("Amenmose", seen.name);
-      Assert.empty(seen.knownFacts);
-    }
+    // It pitched there under that name: Hatti lists it, by that name, knowing nothing of its life.
+    c.pitches.set("Hatti", "I am Amenmose.");
+    const seen = single(Views.for(s, "Hatti").known, (v) => v.id === c.id);
+    Assert.equal("Amenmose", seen.name);
+    Assert.empty(seen.knownFacts);
+    // A name nobody offered it, or one already borrowed from a living person, is not taken: it goes by its own.
+    const other = first(s.characters, (x) => x.status === "Free" && x.id !== c.id && !x.met.includes("Babylonia") && !x.reputation.has("Babylonia"));
+    e.declare(other, "Babylonia", s.characters[0].name, null);
+    Assert.empty(other.declared);
     s.treasuries.get("Hatti").gold = 10000;
     let found = false;
     for (let i = 0; i < 6 && !found; i++) {
@@ -218,5 +226,26 @@ describe("WhoTheyAreTests", () => {
       break;
     }
     Assert.true(stolen);
+  });
+
+  test("No order of item 10 tells a court what it cannot know (the review's leaks)", () => {
+    const s = newGame(10, newGameConfig({ catastropheChance: 0 }));
+    s.treasuries.get("Egypt").gold = 10000;
+    const v = new OrderValidator(s);
+    // A claim can be checked only for a person at court who says it is an envoy of the king written to.
+    const hatti = first(s.characters, (x) => x.employer === "Hatti");
+    const envoy = first(s.characters, (x) => x.employer === "Egypt");
+    const refused = v.validate("Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Hatti", "Greetings.", { checkClaim: hatti.id })] })).rejected;
+    Assert.single(refused);
+    // A hidden spy at the court is nobody there: a gift to it is refused as to a stranger.
+    const spy = first(s.characters, (x) => x.employer === "Babylonia");
+    [spy.duty, spy.at, spy.missionTarget, spy.status] = ["SpyPosted", "Egypt", "Egypt", "Employed"];
+    const nobody = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [giftTo(spy.id, 1), giftTo("c999", 1)] })).rejected;
+    Assert.equal(nobody[1].reason.replace("c999", spy.id), nobody[0].reason);
+    // A spy caught abroad whose master has not heard of it may still be told to steal: the refusal would tell.
+    const own = first(s.characters, (x) => x.employer === "Babylonia" && x.id !== spy.id);
+    [own.duty, own.at, own.missionTarget, own.status, own.heldBy] = ["None", "Hatti", "Hatti", "Captured", "Hatti"];
+    own.covers.push(newCover({ for: "Babylonia", since: 1, believed: "SpyPosted", dutyText: "watching Hatti", whereText: "at the court of Hatti" }));
+    Assert.empty(new OrderValidator(s).validate("Babylonia", newTurnSubmission({ orders: [steal(own.id)] })).rejected);
   });
 });

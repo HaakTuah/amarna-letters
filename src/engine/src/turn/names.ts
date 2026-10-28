@@ -6,7 +6,7 @@
  */
 import { cmpNum, sortBy } from "../core/seq.ts";
 import type { GiftOrder } from "../model/orders.ts";
-import { coverOf, falseNameAt, gain, newDeclared, newFact, remember, reputationAt, type Character, type Declared, type Fact } from "../model/people.ts";
+import { coverOf, falseNameAt, gain, hiddenAt, newDeclared, newFact, remember, reputationAt, type Character, type Declared, type Fact } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import type { Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
@@ -30,8 +30,8 @@ export const ImpostorTitle = "An impostor exposed";
 
 declare module "./core.ts" {
   interface TurnEngine {
-    outcome(c: Character, witness: Power, text: string, good: boolean): void;
-    spreadName(c: Character, witness: Power, f: Fact): void;
+    outcome(c: Character, witness: Power, text: string, good: boolean, hiddenFrom?: Power | null): void;
+    spreadName(c: Character, witness: Power, f: Fact, hiddenFrom?: Power | null): void;
     nameHeard(j: Journey): void;
     meet(c: Character, court: Power): void;
     declare(c: Character, court: Power, name: string | null, envoyOf: Power | null): void;
@@ -50,15 +50,18 @@ const P = TurnEngine.prototype;
  * its name there moves; the rumour of it reaches every other living court as word travels. Never its skill or its luck,
  * only what happened ("A name made of outcomes").
  */
-P.outcome = function (c, witness, text, good) {
+P.outcome = function (c, witness, text, good, hiddenFrom = null) {
   const S = this.s;
   const alias = falseNameAt(c, witness)?.name ?? null;
   const f = newFact({ id: newId(S, "f"), text, secrecy: "Hidden", tag: good ? "outcome" : "outcome-bad", knownBy: [witness], alias });
   c.facts.push(f);
-  c.reputation.set(witness, c.reputation.getOrDefault(witness, 0) + (good ? NameGain : -NameLoss));
+  // A name's standing: under a false name, that name's own (item 10: the court's records attach to the name it was given).
+  const d = falseNameAt(c, witness);
+  if (d !== null) d.rep += good ? NameGain : -NameLoss;
+  else c.reputation.set(witness, c.reputation.getOrDefault(witness, 0) + (good ? NameGain : -NameLoss));
   // Talk under a false name stays with the court that knew it: others never heard that name.
   if (alias !== null) return;
-  this.spreadName(c, witness, f);
+  this.spreadName(c, witness, f, hiddenFrom);
 };
 
 /**
@@ -67,10 +70,10 @@ P.outcome = function (c, witness, text, good) {
  * own ways, the rumour of a death, a ransom demand, word that it is overdue, or the servant's return ("News of your people
  * abroad comes only by rumour or when they return").
  */
-P.spreadName = function (c, witness, f) {
+P.spreadName = function (c, witness, f, hiddenFrom = null) {
   const S = this.s;
   for (const q of AllPowers)
-    if (q !== witness && isAlive(S, q) && q !== c.employer && q !== c.secretMaster && coverOf(c, q) === null) this.rumor(q, witness, f.text, c.id, "Name", f.id);
+    if (q !== witness && q !== hiddenFrom && isAlive(S, q) && q !== c.employer && q !== c.secretMaster && coverOf(c, q) === null) this.rumor(q, witness, f.text, c.id, "Name", f.id);
 };
 
 /** The rumour of an outcome reaches a court: it knows the fact now, and the tale has grown on the road if it was good. */
@@ -97,23 +100,24 @@ P.meet = function (c, court) {
  */
 P.declare = function (c, court, name, envoyOf) {
   const S = this.s;
-  const given = name === null || name.trim() === "" ? c.name : name.trim();
+  // Only an invented name the court was offered, at a court that knows nothing of the person (see aliasesFor).
+  const offered = name !== null && Aliases.includes(name.trim()) && strangerAt(c, court) && !S.characters.some((x) => x.name === name.trim());
+  const given = !offered ? c.name : name!.trim();
   const falseEnvoy = envoyOf !== null && envoyOf !== court && c.at === court && isAlive(S, envoyOf) && c.employer !== envoyOf;
-  if ((given === c.name || c.met.includes(court)) && !falseEnvoy) {
+  if (given === c.name && !falseEnvoy) {
     this.meet(c, court);
     return;
   }
   if (c.declared.some((d) => d.court === court && d.exposed === null)) return;
-  const asName = given === c.name || c.met.includes(court) ? c.name : given;
-  const borrowed = asName !== c.name ? (S.characters.find((x) => x.id !== c.id && x.name === asName && x.status !== "Dead") ?? null) : null;
+  const asName = given;
   c.declared.push(
     newDeclared({
       court,
       name: asName,
-      as: borrowed?.id ?? null,
+      as: null,
       employer: falseEnvoy ? envoyOf : null,
       turn: S.turn,
-      rep: borrowed !== null ? reputationAt(borrowed, court) : 0,
+      rep: 0,
     }),
   );
   remember(c, S.turn, `At the court of ${land(court)} I gave my name as ${asName}` + (falseEnvoy ? `, and said I came as an envoy of the king of ${land(envoyOf!)}.` : "."));
@@ -177,7 +181,7 @@ P.impostors = function () {
 P.giftTo = function (p, o) {
   const S = this.s;
   const c = findCharacter(S, o.character);
-  if (c === null || c.status === "Dead" || c.at !== p) {
+  if (c === null || c.status === "Dead" || c.at !== p || hiddenAt(c, p)) {
     this.failed(p, o, "Gift not given", `${c?.name ?? o.character} was not at your court to receive it.`, "not at your court", true, c?.id ?? null);
     return;
   }
@@ -189,22 +193,17 @@ P.giftTo = function (p, o) {
 };
 
 /**
- * The names a character could give a court instead of its own: one invented in its region's style, never used by anyone in
- * the game, and that of a living person the court has heard well of but never seen.
+ * The name a character could give a court instead of its own: one invented in its region's style, never used by anyone in
+ * the game; only at a court that knows nothing of it (it never stood there, pitched there, or was heard of there), since a
+ * court that lists the person already would see the same person under a new name. Borrowing another living person's name
+ * waits for a court's own handle for each name it is given (a design question of item 10).
  */
 P.aliasesFor = function (c, court) {
   const S = this.s;
   const used = new Set(S.characters.map((x) => x.name));
   const rng = this.r("alias", `${c.id}:${court}`);
   const free = Aliases.filter((n) => !used.has(n));
-  const out: string[] = free.length > 0 ? [rng.pick(free)] : [];
-  const famous = sortBy(
-    S.characters.filter((x) => x.id !== c.id && x.status !== "Dead" && !x.met.includes(court) && x.at !== court && x.reputation.getOrDefault(court, 0) > 10),
-    [(x: Character) => x.reputation.getOrDefault(court, 0), (a: number, b: number) => b - a],
-    [(x: Character) => idNumber(x.id), cmpNum],
-  )[0];
-  if (famous !== undefined) out.push(famous.name);
-  return out;
+  return free.length > 0 && strangerAt(c, court) ? [rng.pick(free)] : [];
 };
 
 /** A king a character standing at `court` could claim to serve as a false envoy: the farthest living one it never served. */
@@ -215,3 +214,8 @@ P.envoyOfFor = function (c, court) {
   if (options.length === 0) return null;
   return sortBy(options, [(q: Power) => -this.travelTurns(court, q), cmpNum], [(q: Power) => AllPowers.indexOf(q), cmpNum])[0];
 };
+
+/** A court knows nothing of this person: it never saw it (nor sees it standing there), heard of it, or had it pitch there. */
+export function strangerAt(c: Character, court: Power): boolean {
+  return c.at !== court && !c.met.includes(court) && !c.reputation.has(court) && !c.pitches.has(court) && !c.facts.some((f) => f.knownBy.includes(court)) && c.covers.every((k) => k.for !== court);
+}

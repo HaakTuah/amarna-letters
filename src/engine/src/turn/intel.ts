@@ -172,7 +172,8 @@ P.spyComesHome = function (j) {
   if (!free && j.gaveUp) this.outcome(c, j.to, `Turned back on the road to a post (season ${S.turn}).`, false);
   else if (!free && c.turnsAbroad >= 2) {
     const post = c.missionTarget !== null ? `the court of ${land(c.missionTarget)}` : c.watchProvince !== null ? this.map.get(c.watchProvince).name : "a post";
-    this.outcome(c, j.to, `Watched ${post} unseen for ${c.turnsAbroad} seasons and came home (season ${S.turn}).`, true);
+    // The court it watched never learns of it: a spy unseen is unseen (item 4's hidden spies).
+    this.outcome(c, j.to, `Watched ${post} unseen for ${c.turnsAbroad} seasons and came home (season ${S.turn}).`, true, c.missionTarget);
   }
   c.duty = "None";
   c.at = j.to;

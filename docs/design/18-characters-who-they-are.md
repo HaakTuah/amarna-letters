@@ -50,7 +50,8 @@ kings' part is in `07-script-kings/14-court-and-intelligence.md` ("Who they are"
   `outcome-bad`: a mission carried and the answer brought home; a turn back on the road; siege lines slipped through; a
   post watched unseen (two seasons or more); a spy caught; an envoy caught by besiegers. Each moves the name at that court
   (+6, -10, first guesses) and spreads as rumour (`NewsKind` "Name") to every other living court except the character's
-  master, a secret master, and any court still holding a cover for it (its news comes its own ways). On arrival the fact is
+  master, a secret master, any court still holding a cover for it (its news comes its own ways), and, for a post watched
+  unseen, the court it watched (a spy unseen stays unseen). On arrival the fact is
   known there and the name moves; a good tale grows by 15% for each season the word travelled (`TaleGrowth`).
 - **A past made in play** adds the long years abroad (12 seasons at a foreign court, `LongAbroad`), questioning, and an
   imposture exposed, beside the facts the engine already recorded (skimming, defection, forgery, turning).
@@ -64,19 +65,22 @@ that court a hold when it questions the character. A free person with a lover or
 
 ### Declaring a name and false envoys
 
-- **A pitch declares a name** (`MindReply.name`): its own by default. A court that has never seen the person is offered,
-  in the request, an invented name of its region's style (`Aliases`) and the name of a living person that court has heard
-  well of and never seen (`MindRequest.aliases`). The engine records the declaration (`Character.declared`, `Declared`);
-  the court knows the person by that name (`CharacterView.name`, and every notice about it: `notify` names it so), sees
-  only what it learned under it (`Fact.alias`; `factsKnownTo`), or, for a borrowed name, what it knows of the real man.
-- **Exposure** (`TurnEngine.impostors`, each season): 50% a season where someone at that court has seen the real man (the
-  borrowed one, or the impostor himself), 60% where a real envoy of the king a false envoy names stands at that court, 3%
+- **A pitch declares a name** (`MindReply.name`): its own by default. Only at a court that knows nothing of the person
+  (`strangerAt`: never seen, heard of or pitched to there) is it offered, in the request, an invented name never used in
+  the game (`Aliases`, `MindRequest.aliases`), and the engine takes no other: a court that already lists the person would
+  see the same person (the same id) under a new name. Borrowing a living person's name waits for a court's own handle for
+  each name it is given (design question). The engine records the declaration (`Character.declared`, `Declared`); the
+  court knows the person by that name (`CharacterView.name`, and every notice about it: `notify` names it so), sees only
+  what it learned under it (`Fact.alias`; `factsKnownTo`), and the name has its own standing there (`Declared.rep`).
+- **Exposure** (`TurnEngine.impostors`, each season): 50% a season where someone at that court has seen the person under
+  its own name, 60% where a real envoy of the king a false envoy names stands at that court, 3%
   otherwise; and a background check finds it with a hidden fact's chance. Exposed, the court is told who it is
   ("An impostor exposed"), and the fact "Posed as … at the court of …" travels as an outcome.
 - **A false envoy** (`MindReply.claimsToServe`, offered as `MindRequest.envoyOf`, the farthest living king it never
   served, only at the court where it stands): it claims to be that king's envoy, seeks no service, and its host is told
-  ("An envoy without a letter"). A host gives gifts with the new order `gift` (any person at its court). The check is the
-  period's: an envoy sent to that king with `checkClaim` asks there, and brings home whether the person serves him
+  ("An envoy without a letter"). A host gives gifts with the new order `gift` (any person it sees at its court; a hidden spy is nobody there). The check is the
+  period's: an envoy sent to that king with `checkClaim` (accepted only for a person at the court who claims to serve the
+  king written to, so that it is never a way to ask whom anyone serves) asks there, and brings home whether the person serves him
   ("A claim checked"); a false claim is then exposed.
 
 ### What servants know, captives, tablets taken

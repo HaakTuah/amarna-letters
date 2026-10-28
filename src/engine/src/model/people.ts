@@ -528,7 +528,7 @@ export function nameKnownAt(c: Character, court: Power): string {
 /** The standing of the name a court knows a character by ("A name made of outcomes"). */
 export function reputationAt(c: Character, court: Power): number {
   const d = falseNameAt(c, court);
-  return d !== null ? d.rep + c.reputation.getOrDefault(court, 0) : c.reputation.getOrDefault(court, 0);
+  return d !== null ? d.rep : c.reputation.getOrDefault(court, 0);
 }
 
 /**

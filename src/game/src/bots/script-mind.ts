@@ -300,14 +300,14 @@ function pitch(ctx: MindContext): MindReply {
   const c = ctx.self;
   const t = c.traits;
   const court = ctx.request.court;
-  const [invented, famous] = [ctx.request.aliases[0] ?? null, ctx.request.aliases[1] ?? null];
+  const invented = ctx.request.aliases[0] ?? null;
   // Declaring a name (item 10): a dishonest or scheming person, or one with a bad name it wants to escape, gives another;
-  // a bold one borrows a famous name, the rest invent one.
+  // it gives the invented name it was offered (only a court that knows nothing of it is offered one).
   const blemishes = c.facts.filter((f) => BadTags.has(f.tag)).length;
-  const escaping = blemishes >= 2 || (court !== null && c.reputation.getOrDefault(court, 0) < -10);
+  const escaping = blemishes >= 2 || [...c.reputation.values()].some((r) => r < -10);
   const scheming = (t.loyalty < 35 && t.greed > 60) || (t.ambition > 70 && t.loyalty < 45);
   const lie = invented !== null && (escaping || scheming);
-  const name = lie ? (t.courage >= 60 && famous !== null ? famous : invented) : null;
+  const name = lie ? invented : null;
   // A false envoy (item 10): only the boldest and greediest, out for a host's return gifts.
   const envoyOf = ctx.request.envoyOf;
   if (envoyOf !== null && t.loyalty < 35 && t.greed > 65 && t.courage > 45) {

@@ -46,5 +46,5 @@
 Script characters (`ScriptMind`): an envoy offered a gift by a court it owes a debt to, or where its lover or family is,
 is 15 points readier to take it; a forger tries a swapped inventory by its belief; a pitch gives a false name when the
 person is scheming (loyal mostly to itself and fond of gold, or ambitious and not loyal) or carries a bad name (two
-blemishes, or a name below -10 at that court), borrowing a famous name if brave (60+), else inventing one; and one loyal
+blemishes, or a name below -10 at any court), giving the invented name it is offered; and one loyal
 below 35, greedy above 65 and braver than 45 poses as an envoy where it stands. Its pitch boasts by what it believes.
