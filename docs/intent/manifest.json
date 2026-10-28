@@ -5,7 +5,7 @@
   "overview": {
    "name": "Overview",
    "node": "320f0886-6acf",
-   "rev": 559,
+   "rev": 560,
    "files": [
     "docs/intent/overview/front.md",
     "docs/intent/overview/vision-and-core-hypothesis.md",
@@ -16,7 +16,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 71,
+   "rev": 72,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -112,7 +112,7 @@
   "land-people-and-economy": {
    "name": "Land, people and economy",
    "node": "3dedb02f-88dd",
-   "rev": 27,
+   "rev": 29,
    "files": [
     "docs/intent/land-people-and-economy/front.md",
     "docs/intent/land-people-and-economy/gold.md",
@@ -126,7 +126,7 @@
   "war-travel-and-the-seas": {
    "name": "War, travel and the seas",
    "node": "98ebd607-ce90",
-   "rev": 57,
+   "rev": 59,
    "files": [
     "docs/intent/war-travel-and-the-seas/front.md",
     "docs/intent/war-travel-and-the-seas/territory-and-military.md",

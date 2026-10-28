@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Overview tab, revision 559 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Overview tab, revision 560 (2026-10-28). Do not edit: see docs/intent/INDEX.md. -->
 ## Design pillars
 
 Eight principles decide every feature; a mechanic that breaks one needs a strong reason.
@@ -25,6 +25,7 @@ Eight principles decide every feature; a mechanic that breaks one needs a strong
 - **Skills set the odds; the character decides.** A skill decides how likely something is to work; what to attempt, claim or say is the character's own, a model's from its goal and what it sees, a script's from its traits.
 - **Deceit is information.** A lie is found out by investigation and evidence, never by a roll against the liar. Judging whether a tablet is genuine is the exception that proves it, since that really is a skill.
 - **Numbers come from their causes.** A quantity follows what set it in the period, men, time, discipline, wealth and ground, never a flat share standing in for them.
+- **Gold buys only what is there.** Gold is a claim on things, never their source: it hires the men who are present and buys what a market or a place holds, so gold piled up where nothing can reach is worth little, and no loop turns gold into goods or work that are not there. Strong script players find such loops first, so an action they repeat beyond reason is checked for one (decided 28 October 2026).
 - **No menus.** One thing happens by rule, and everything after it goes through ordinary actions, orders, envoys, tablets and armies, never a choice from a list.
 - **Period first.** The period as it was, given up for playability only after trying to keep both.
 
