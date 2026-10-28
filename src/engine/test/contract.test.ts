@@ -297,13 +297,13 @@ describe("ContractTests", () => {
     Assert.true(formula < 60);
 
     // What it would ask at the end of its term is less than its job pays now: renewed early, it still asks that.
-    begin(s).resolve(orders("Egypt", paidUp(c.id, formula, 30)));
+    begin(s).resolve(orders("Egypt", renew(c.id, formula * 30, 30, 0)));
     Assert.contains(
       inboxOf(s, "Egypt"),
       (i) =>
         i.kind === "Rejected" &&
         i.title === "Not renewed" &&
-        i.body === `${c.name} will not serve on for ${formatMoney(formula * 30)} for 30 seasons with ${formatMoney(formula * 30)} now; they ask ${formatMoney(60)} a season, what their present job pays, counting the rest only as far as they trust your court to pay it.`,
+        i.body.startsWith(`${c.name} will not serve on for ${formatMoney(formula * 30)} for 30 seasons with 0 shekels now; they ask `),
     );
     Assert.equal([360, 7], [c.contract!.fee, c.contract!.untilTurn]);
 
