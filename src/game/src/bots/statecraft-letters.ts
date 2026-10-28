@@ -40,7 +40,7 @@ import {
 import { Board, LeadFloor } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import { Names } from "./names.ts";
-import { reliability } from "./statecraft-court.ts";
+import { PeoplePlay, reliability } from "./statecraft-court.ts";
 import { outweighs, rivals, touches } from "./statecraft-strategy.ts";
 import { joints, willing } from "./tactics.ts";
 import { TextKit } from "./textkit.ts";
@@ -182,7 +182,7 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
 
   const send = (d: DispatchOrder, copy: string | null = null): void => {
     // A person at court who says it is the envoy of the king written to (item 10): the envoy asks there whether it is.
-    const claimant = v.known.find((c) => c.claimsToServe === d.to);
+    const claimant = PeoplePlay.on(me) ? v.known.find((c) => c.claimsToServe === d.to) : undefined;
     if (claimant !== undefined) d = { ...d, checkClaim: claimant.id };
     orders.push(d);
     busy.add(d.envoy);

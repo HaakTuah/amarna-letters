@@ -11,6 +11,7 @@ import {
   AuthorityPlay,
   GrainPlay,
   TradePlay,
+  PeoplePlay,
   ClausePlay,
   InventoryPlay,
   ScriptLeader,
@@ -87,6 +88,9 @@ export interface BatchOptions {
   /** Script kings leave trade abroad, ships and tolls alone (item 9+b), only to measure it (`--no-trade-play`), or half of them (`--trade-play-half`). */
   noTradePlay: boolean;
   tradePlayHalf: boolean;
+  /** Script kings leave item 10's people alone, only to measure it (`--no-people-play`), or half of them (`--people-play-half`). */
+  noPeoplePlay: boolean;
+  peoplePlayHalf: boolean;
   /** Script kings act on the clauses they read (item 8); off only to measure it (`--no-clause-play`), or for half (`--clause-play-half`). */
   clausePlay: boolean;
   clausePlayHalf: boolean;
@@ -168,7 +172,7 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   let last: GameRunner | null = null;
   let fingerprints: string[] | null = null;
   // In a benchmark, these kings play the current bot and the rest the frozen baseline.
-  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf) || (i + (s % 2)) % 2 === 0));
+  const current = new Set<Power>(o.focus !== null ? [o.focus] : AllPowers.filter((_, i) => !(o.versus || o.planAheadHalf || o.roadPlayHalf || o.clausePlayHalf || o.winterPlayHalf || o.authorityPlayHalf || o.plainEconomyHalf || o.tradePlayHalf || o.peoplePlayHalf) || (i + (s % 2)) % 2 === 0));
   PlanAhead.only = o.planAheadHalf ? current : null;
   RoadPlay.only = o.roadPlayHalf ? current : null;
   WinterStrokes.only = o.winterPlayHalf ? current : null;
@@ -177,6 +181,8 @@ export async function playOne(job: PlayJob): Promise<PlayResult> {
   GrainPlay.only = o.plainEconomyHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   TradePlay.off = o.noTradePlay || o.tradePlayHalf;
   TradePlay.only = o.tradePlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
+  PeoplePlay.off = o.noPeoplePlay || o.peoplePlayHalf;
+  PeoplePlay.only = o.peoplePlayHalf ? new Set(AllPowers.filter((x) => !current.has(x))) : null;
   ClausePlay.only = o.clausePlayHalf ? current : null;
   const [summary] = await playGame(
     s,

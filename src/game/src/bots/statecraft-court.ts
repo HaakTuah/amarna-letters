@@ -49,6 +49,18 @@ const Successes = ["Carried a mission", "Watched ", "Slipped out"];
 /** What a court saw of a person's hand at slipping past guards. */
 const Stealthy = ["Watched ", "Slipped out", "slipping in"];
 
+/**
+ * The script kings that leave item 10's people alone (`--no-people-play`, `--people-play-half`): they hire by price alone,
+ * pick spies as before, never question, hand over or steal, and do nothing about false envoys. None by default.
+ */
+export const PeoplePlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
+
 /** The successes a court knows of a person: how a king who hires by name judges it. */
 export function successes(c: CharacterView): number {
   return count(c.knownFacts, (f) => Successes.some((x) => f.startsWith(x)));
@@ -140,7 +152,9 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   // Item 10: a name made of outcomes is worth paying for, a dearer one by a shekel a season for each success known; a
   // credulous king also takes a person at its word, a careful one only at what it was seen to do.
   const careful = (p.caution + p.cunning) / 2 > 0.5;
-  const worth = (c: CharacterView): number => c.askingPrice! - 3 * successes(c) - (careful ? 0 : count(c.claims, (x) => /see what|miss nothing|slip past/.test(x)));
+  const people = PeoplePlay.on(b.me);
+  const worth = (c: CharacterView): number =>
+    !people ? c.askingPrice! : c.askingPrice! - 3 * successes(c) - (careful ? 0 : count(c.claims, (x) => /see what|miss nothing|slip past/.test(x)));
   const candidates = sortBy(
     v.known.filter((c) => c.status === "free" && c.pitch !== null && c.askingPrice !== null && c.claimsToServe === null && reliability(c) === 0 && !brain.heldElsewhere.has(c.id)),
     [(c: CharacterView) => worth(c), cmpNum],
@@ -247,7 +261,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       // The one the court has seen slip past guards, else the least trusted (item 10: a name made of outcomes).
       const stealth = (c: CharacterView): number => count(c.knownFacts, (f) => Stealthy.some((x) => f.includes(x)));
       const best = sortBy([...ready], [(c: CharacterView) => stealth(c), desc(cmpNum)])[0];
-      const agent = stealth(best) > 0 ? best : ready[ready.length - 1];
+      const agent = people && stealth(best) > 0 ? best : ready[ready.length - 1];
       ready.splice(ready.indexOf(agent), 1);
       ready.push(agent);
       orders.push(placeSpy(agent.id, target));
@@ -290,7 +304,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
     const ally = mr !== undefined && mr.allied && mr.oathsBroken === 0;
     // First, what it knows (item 10, "What servants know"): a captive still worth something is questioned once, if the
     // treasury can spare it.
-    if (!worthless && !ally && !brain.questioned.has(c.id) && spare > 80) {
+    if (people && !worthless && !ally && !brain.questioned.has(c.id) && spare > 80) {
       const spend = Math.trunc(30 + 40 * p.cunning);
       orders.push(question(c.id, spend));
       brain.questioned.add(c.id);
@@ -302,7 +316,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       // any good), else it goes free, unless the king is vengeful.
       const foe = c.employer !== null && !lordFallen && !ally ? brain.rel.tryGet(c.employer) : undefined;
       const friend = foe !== undefined && foe.hostile ? sortBy([...b.alive].filter((x) => x !== b.me && x !== c.employer && brain.rel.tryGet(x)?.allied === true), [(x: Power) => x, cmpPower])[0] : undefined;
-      if (friend !== undefined && !brain.handedOver.has(c.id)) {
+      if (people && friend !== undefined && !brain.handedOver.has(c.id)) {
         orders.push(handOver(c.id, friend));
         brain.handedOver.add(c.id);
         continue;
@@ -334,7 +348,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
 
   // A person at court who says it is the envoy of a king, with no letter (item 10, false envoys): a careful king has it
   // looked into before giving anything; a trusting one gives a host's gift to the envoy of a friend.
-  for (const c of v.known.filter((c) => c.claimsToServe !== null && !brain.hosted.has(c.id))) {
+  for (const c of v.known.filter((c) => people && c.claimsToServe !== null && !brain.hosted.has(c.id))) {
     brain.hosted.add(c.id);
     const r = brain.rel.tryGet(c.claimsToServe!);
     if (careful) {
@@ -351,7 +365,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
 
   // A spy at the court of the war or the leader takes a tablet from its archive now and then (item 10: tablets are taken,
   // not only copied), for the cunning: it leaves that court without the tablet as proof of what it agreed.
-  if (p.cunning > 0.6)
+  if (people && p.cunning > 0.6)
     for (const [id, [post]] of sortBy([...brain.posted], [(x: [string, [string, number]]) => x[0], cmpStr])) {
       const watched = parsePower(post);
       if (busy.has(id) || brain.recalled.has(id) || watched === null || v.fallen.includes(watched)) continue;
