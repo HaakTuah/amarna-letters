@@ -101,7 +101,8 @@ describe("EngineTests", () => {
     let before = s.treasuries.get("Egypt").gold;
     // Since item 9+a gold comes in from the mines and from sales: at the start, the mines alone.
     const mines = WorldMap.default.homeOf("Egypt").reduce((a, x) => a + economyOf(x).mine, 0);
-    let expected = before + mines - e.upkeep("Egypt") - e.wages("Egypt");
+    // Since item 11a nobody is paid a wage each season: a job's fee is paid when it is agreed and when it is done.
+    let expected = before + mines - e.upkeep("Egypt");
     e.beginTurn();
     Assert.equal(expected, s.treasuries.get("Egypt").gold);
   });

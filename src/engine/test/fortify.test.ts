@@ -102,7 +102,7 @@ describe("FortifyTests", () => {
     new TurnEngine(s).beginTurn();
     Assert.equal([0, 1], [wallsOf(s, "sinai"), wallsOf(s, "thebes")]);
     let notice = single(inboxOf(s, "Egypt"), (i) => i.title === "The treasury").body;
-    Assert.contains(`Paid: your troops ${formatMoney(pay)}, walls 5 shekels, wages`, notice);
+    Assert.contains(`Paid: your troops ${formatMoney(pay)}, walls 5 shekels.`, notice);
     Assert.contains("Unkept, walls fell a level: Sinai, Thebes.", notice);
   });
 

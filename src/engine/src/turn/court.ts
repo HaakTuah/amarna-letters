@@ -1,5 +1,5 @@
 /** Court business: hiring, renewal and dismissal of servants, the tasks the engine owes courts, and terms that end. */
-import { clamp, roundEven, toInt } from "../core/num.ts";
+import { clamp, idiv, roundEven, toInt } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
@@ -10,6 +10,7 @@ import { newPendingTask } from "../model/records.ts";
 import { char, findCharacter, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { feeFor, jobValue, rateOf, trustIn } from "./jobs.ts";
 
 /** The title of the notice a servant gives when its term has ended and it wants more: it wakes a sleeping seat. */
 export const NoticeTitle = "A servant gives notice";
@@ -42,6 +43,15 @@ P.resolveCourt = function (orders) {
       case "gift":
         this.giftTo(p, o);
         break;
+      case "payFee":
+        this.payFeeOrder(p, o);
+        break;
+      case "borrow":
+        this.borrowOrder(p, o);
+        break;
+      case "repay":
+        this.repayOrder(p, o);
+        break;
       case "seekCandidates":
         S.tasks.push(newPendingTask({ id: newId(S, "q"), kind: "Candidates", requester: p, dueTurn: S.turn + 1 }));
         break;
@@ -52,49 +62,62 @@ P.resolveCourt = function (orders) {
     }
   }
 
-  // Hiring: when two courts bid for the same person, the higher wage wins.
+  // Hiring (item 11a, "Hiring as a negotiation"): a person is hired in person, at the court where it stands (or, held, by
+  // the king who holds it), for a job with a fee. It takes the offer worth most to it, the advance in hand and the rest as
+  // far as it trusts the court, if that reaches what it asks for the term; every real offer is one it may cite elsewhere.
   const hires = orders.filter(([, o]) => o.type === "hire").map(([p, o]) => ({ p, h: o as HireOrder }));
   for (const [key, group] of groupBy(hires, (x) => x.h.character)) {
     const c = char(S, key);
-    if (c.status !== "Free") {
+    if (c.status !== "Free" || c.errand !== null) {
       for (const { p, h } of group) this.failed(p, h, "Not hired", `${c.name} was no longer free to take service.`, "no longer free", true, c.id);
       continue;
     }
-    // Someone held at a court can only take service with the king who holds them.
+    const value = (b: { p: Power; h: HireOrder }): number => jobValue(b.h.fee, Math.min(b.h.advance, b.h.fee), trustIn(S, b.p));
+    const present = (b: { p: Power; h: HireOrder }): boolean => (c.heldBy === null ? c.at === b.p && c.duty === "None" : c.heldBy === b.p);
+    for (const b of group) if (present(b) && b.h.term > 0) c.offers.set(b.p, rateOf(b.h.fee, clamp(b.h.term, 1, 30)));
     const bids = sortBy(
-      group.filter((b) => b.h.wage >= askingPrice(c, b.p) && (c.heldBy === null || c.heldBy === b.p)),
-      [(b: { p: Power; h: HireOrder }) => b.h.wage, desc(cmpNum)],
+      group.filter((b) => present(b) && value(b) >= askingPrice(c, b.p, S.goingRate) * clamp(b.h.term, 1, 30) && S.treasuries.get(b.p).gold >= Math.min(b.h.advance, b.h.fee)),
+      [(b: { p: Power; h: HireOrder }) => rateOf(value(b), clamp(b.h.term, 1, 30)), desc(cmpNum)],
       [(b: { p: Power; h: HireOrder }) => c.traits.sympathy === b.p, desc(cmpBool)],
       [(b: { p: Power; h: HireOrder }) => b.p, cmpPower],
     );
     for (const lost of group.filter((b) => bids.length === 0 || b.p !== bids[0].p)) {
-      // Why, as the person would say it: the price it asks this court, or that another court's offer won.
-      const ask = askingPrice(c, lost.p);
-      const why =
-        lost.h.wage < ask
-          ? `they ask ${formatMoney(ask)}`
-          : c.heldBy !== null && c.heldBy !== lost.p
-            ? `they are held at the court of ${c.heldBy}`
-            : bids[0].h.wage > lost.h.wage
-              ? "another court offered more"
-              : "they chose another court that offered as much";
-      this.failed(lost.p, lost.h, "Not hired", `${c.name} declined your offer of ${formatMoney(lost.h.wage)} a season: ${why}.`, why, lost.h.wage >= ask, c.id);
+      // Why, as the person would say it: not here to be hired, the price it asks this court, or that another court's offer won.
+      const term = clamp(lost.h.term, 1, 30);
+      const ask = askingPrice(c, lost.p, S.goingRate);
+      const short = value(lost) < ask * term;
+      const why = !present(lost)
+        ? c.heldBy !== null
+          ? `they are held at the court of ${c.heldBy}`
+          : "they are not at your court: a person is hired in person, where it stands"
+        : short
+          ? `they ask ${formatMoney(ask)} a season of the term, ${formatMoney(feeFor(ask, term, idiv(Math.min(lost.h.advance, lost.h.fee) * 100, Math.max(1, lost.h.fee)), trustIn(S, lost.p)))} for this one with this advance, counting the rest only as far as they trust your court to pay it`
+          : S.treasuries.get(lost.p).gold < Math.min(lost.h.advance, lost.h.fee)
+            ? "the treasury could not hand over the advance"
+            : "another court offered more";
+      this.failed(lost.p, lost.h, "Not hired", `${c.name} declined your offer of ${formatMoney(lost.h.fee)} for ${term} seasons: ${why}.`, why, present(lost) && !short, c.id);
     }
     if (bids.length === 0) continue;
     const { p: winner, h: hire } = bids[0];
+    const term = clamp(hire.term, 1, 30);
+    const advance = clamp(hire.advance, 0, hire.fee);
+    S.treasuries.get(winner).gold -= advance;
+    gain(c, advance, "Fees");
     c.status = "Employed";
     c.employer = winner;
-    c.contract = newContract({ wage: hire.wage, startTurn: S.turn, untilTurn: S.turn + clamp(hire.term, 1, 30) });
+    c.contract = newContract({ fee: hire.fee, advance, startTurn: S.turn, untilTurn: S.turn + term });
     c.at = winner;
     c.duty = "None";
     c.heldBy = null;
+    c.waited = 0;
     c.pitches.clear();
+    c.offers.clear();
     c.reputation.set(winner, c.reputation.getOrDefault(winner, 0) + 5);
     this.meet(c, winner);
-    remember(c, S.turn, `I entered the service of ${land(winner)} for ${formatMoney(hire.wage)} a season.`);
+    remember(c, S.turn, `I took a job with ${land(winner)} for ${term} seasons, for ${formatMoney(hire.fee)}, ${formatMoney(advance)} of it handed over now.`);
     // In the rulebook's words: a person hired enters your service at the end of the season, and can be sent on an errand from the next.
-    notify(S, winner, "Notice", "Hired", `${c.name} entered your service at the end of last season, at ${formatMoney(hire.wage)} a season, and can be sent on an errand now.`, c.id);
-    logEvent(S, "hire", `${winner} hired ${c.name}.`, [winner]);
+    notify(S, winner, "Notice", "Hired", `${c.name} took your job at the end of last season, for ${term} seasons and ${formatMoney(hire.fee)}; you handed over ${formatMoney(advance)}, and the rest, ${formatMoney(hire.fee - advance)}, falls due when the job is done. They can be sent on an errand now.`, c.id);
+    logEvent(S, "hire", `${winner} hired ${c.name}.`, [winner], "hire");
   }
 
   // Renewals, settled with hiring.
@@ -119,25 +142,40 @@ P.renew = function (p, r) {
     notify(S, p, "Rejected", "Not renewed", `${c.name} is no longer in your service, so could not be renewed.`, c.id);
     return;
   }
-  // Renewed early, a servant takes no cut: it asks what it would ask at the end of its term, or its present wage if that is more.
-  const present = cover === null && c.contract!.noticePrice === null && c.contract!.wage >= renewalPrice(c, p);
-  const price = cover !== null ? (cover.noticePrice ?? cover.wage) : present ? c.contract!.wage : renewalPrice(c, p);
-  if (r.wage < price) {
-    notify(S, p, "Rejected", "Not renewed", `${c.name} will not serve on for ${formatMoney(r.wage)} a season; they ask ${formatMoney(price)}${present ? ", their present wage" : ""}.`, c.id);
+  const term = clamp(r.term, 1, 30);
+  const advance = clamp(r.advance, 0, r.fee);
+  // Renewed early, a servant takes no cut: it asks what it would ask at the end of its term, or what its present job pays
+  // a season if that is more; the rest of the present job, not yet due, is carried into the new one.
+  const k = cover === null ? c.contract! : null;
+  const presentRate = k === null ? 0 : rateOf(k.fee, Math.max(1, k.untilTurn - k.startTurn));
+  const early = k !== null && k.noticePrice === null;
+  const present = early && presentRate >= renewalPrice(c, p, S.goingRate);
+  const price = cover !== null ? (cover.noticePrice ?? renewalPrice(c, p, S.goingRate)) : present ? presentRate : renewalPrice(c, p, S.goingRate);
+  const carried = early ? Math.max(0, k!.fee - k!.advance) : 0;
+  if (jobValue(r.fee, advance, trustIn(S, p)) < price * term) {
+    notify(S, p, "Rejected", "Not renewed", `${c.name} will not serve on for ${formatMoney(r.fee)} for ${term} seasons with ${formatMoney(advance)} now; they ask ${formatMoney(price)} a season${present ? ", what their present job pays" : ""}, counting the rest only as far as they trust your court to pay it.`, c.id);
     return;
   }
-  const until = S.turn + clamp(r.term, 1, 30);
+  if (S.treasuries.get(p).gold < advance) {
+    notify(S, p, "Rejected", "Not renewed", `The treasury could not hand over the advance of ${formatMoney(advance)} to renew ${c.name}.`, c.id);
+    return;
+  }
+  const until = S.turn + term;
+  S.treasuries.get(p).gold -= advance;
   if (cover !== null) {
-    cover.wage = r.wage;
+    cover.fee = r.fee;
+    cover.advance = advance;
+    cover.startTurn = S.turn;
     cover.contractUntil = until;
     cover.noticePrice = null;
     cover.leavesTurn = null;
   }
   if (serves) {
-    c.contract = newContract({ wage: r.wage, startTurn: S.turn, untilTurn: until });
-    remember(c, S.turn, `The king of ${land(p)} renewed my service at ${formatMoney(r.wage)} a season.`);
+    gain(c, advance, "Fees");
+    c.contract = newContract({ fee: r.fee + carried, advance, startTurn: S.turn, untilTurn: until });
+    remember(c, S.turn, `The king of ${land(p)} gave me a new job of ${term} seasons for ${formatMoney(r.fee)}, ${formatMoney(advance)} of it now.`);
   }
-  notify(S, p, "Notice", "Contract renewed", `${c.name} stays in your service at ${formatMoney(r.wage)} a season through turn ${until}.`, c.id);
+  notify(S, p, "Notice", "Contract renewed", `${c.name} stays in your service through turn ${until}, for ${formatMoney(r.fee)}${carried > 0 ? ` (and the ${formatMoney(carried)} still to come from the job before)` : ""}, of which you handed over ${formatMoney(advance)} now.`, c.id);
 };
 
 /**
@@ -198,31 +236,32 @@ P.dismiss = function (p, c, order) {
   notify(S, p, "Notice", "A servant leaves", notice, c.id);
 };
 
-/** What a character asks a court. Set by the character's own pitch when it gave one. */
-export function askingPrice(c: Character, court: Power): number {
+/** What a character asks a court a season of a job's term. Set by the character's own pitch when it gave one. */
+export function askingPrice(c: Character, court: Power, rate = 100): number {
   const price = c.askingPrice.tryGet(court);
   if (price !== undefined) return price;
-  return basePrice(c, court);
+  return basePrice(c, court, rate);
 }
 
 /**
- * What a person asks a court a season (item 10): by what it believes it can do, never its true skill ("Seeing oneself"), by
- * its greed, by its name at that court ("A name has a price"), and by the debts that press on its purse; less at the court
- * it favours, or where its lover or family is.
+ * What a person asks a court a season of a job's term (item 10): by what it believes it can do, never its true skill
+ * ("Seeing oneself"), by its greed, by its name at that court ("A name has a price"), and by the debts that press on its
+ * purse; less at the court it favours, or where its lover or family is; all scaled by the going rate of service (item 11a,
+ * "Fees clear the market"), in percent.
  */
-export function basePrice(c: Character, court: Power): number {
+export function basePrice(c: Character, court: Power, rate = 100): number {
   const rep = reputationAt(c, court);
   const belief = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
   const debt = c.ties.filter((t) => t.kind === "Debt").reduce((a, t) => a + t.amount, 0);
   let price = 6 + Math.trunc(belief / 8) + Math.trunc(c.traits.greed / 8) + Math.trunc(rep / 5) + Math.min(9, Math.trunc(debt / 30));
   if (c.traits.sympathy === court) price -= 4;
   if (c.ties.some((t) => t.kind !== "Debt" && t.court === court)) price -= 3;
-  return Math.max(5, price);
+  return Math.max(3, toInt(roundEven((Math.max(5, price) * rate) / 100)));
 }
 
-/** What a servant asks its master to serve on: the price it named when it gave notice, else what it would ask at the end of its term. */
-export function renewalPrice(c: Character, court: Power): number {
-  return c.contract?.noticePrice ?? basePrice(c, court) + (c.traits.greed > 60 ? 5 : 0) - (c.traits.loyalty > 70 ? 5 : 0);
+/** What a servant asks its master a season to serve on: the price it named when it gave notice, else what it would ask at the end of its term. */
+export function renewalPrice(c: Character, court: Power, rate = 100): number {
+  return c.contract?.noticePrice ?? basePrice(c, court, rate) + (c.traits.greed > 60 ? 5 : 0) - (c.traits.loyalty > 70 ? 5 : 0);
 }
 
 P.tasksDue = function () {
@@ -241,9 +280,12 @@ P.tasksDue = function () {
       }
       case "Candidates": {
         S.tasks.splice(S.tasks.indexOf(task), 1);
-        const free = S.characters.filter((c) => c.status === "Free");
+        // Item 11a: candidates pitch in person, so only those seeking service at the court come forward; word that the court
+        // is hiring goes out, and others may come (see the characters' own seasons).
+        S.hiring.set(task.requester, S.turn);
+        const free = S.characters.filter((c) => c.status === "Free" && c.seeking && c.at === task.requester && c.heldBy === null && c.duty === "None");
         const picks = this.r("candidates", task.requester).shuffle(free).slice(0, 3);
-        if (picks.length === 0) notify(S, task.requester, "Candidates", "No candidates", "Nobody came forward this season.");
+        if (picks.length === 0) notify(S, task.requester, "Candidates", "No candidates", "Nobody seeking service stands at your court this season. Word that you are hiring goes out, and those who hear it may come.");
         // Each meets the court by its pitch, and may give it a name other than its own (item 10, "Declaring a name").
         for (const c of picks)
           this.mindRequests.push(
@@ -297,36 +339,6 @@ P.tasksDue = function () {
 
   // Servants on notice who came home this season leave now.
   this.noticesRunOut();
-
-  // Terms that have ended, for servants at court with no task: one still content with the wage serves on; one who wants
-  // more, or is still owed back pay the treasury could not pay, gives a season's notice and names its price.
-  for (const c of sortBy(
-    S.characters.filter((c) => c.status === "Employed" && c.contract !== null && c.contract.noticePrice === null && c.contract.untilTurn < S.turn && c.duty === "None"),
-    [(c: Character) => c.id, cmpStr],
-  )) {
-    const emp = c.employer!;
-    let ask = renewalPrice(c, emp);
-    const owed = c.backPay.getOrDefault(emp, 0);
-    const k = c.contract!;
-    if (ask <= k.wage * 1.2 && owed === 0) {
-      k.untilTurn = S.turn + 6;
-      notify(S, emp, "Notice", "Contract renewed", `${c.name} stays in your service at ${formatMoney(k.wage)} a season through turn ${k.untilTurn}.`, c.id);
-    } else {
-      // One still owed back pay is never content, but asks no less than it earns.
-      if (owed > 0) ask = Math.max(ask, k.wage);
-      k.noticePrice = ask;
-      k.leavesTurn = S.turn + 1;
-      remember(c, S.turn, `My term with ${land(emp)} has ended. I asked ${formatMoney(ask)} a season to serve on.`);
-      notify(
-        S,
-        emp,
-        "Notice",
-        NoticeTitle,
-        `${c.name}'s term has ended${owed > 0 ? `, and you still owe them ${formatMoney(owed)} of back pay` : ""}. They ask ${formatMoney(ask)} a season to serve on: renew them this season (order renew), or they leave at the start of turn ${S.turn + 1} (or, if you send them out first, when they are next at your court).`,
-        c.id,
-      );
-    }
-  }
 };
 
 /**
@@ -343,9 +355,9 @@ P.noticesRunOut = function () {
     const emp = c.employer!;
     const ask = c.contract!.noticePrice!;
     c.askingPrice.set(emp, ask);
-    c.pitches.set(emp, `My term has ended. I would serve again for ${formatMoney(ask)} a season.`);
+    c.pitches.set(emp, `My job is done. I would serve again for ${formatMoney(ask)} a season of a new term.`);
     remember(c, S.turn, `My term with ${land(emp)} ended; I asked for more and was not kept on, so I left.`);
-    this.quit(c, `${c.name}'s term has ended and they were not renewed. They ask ${formatMoney(ask)} a season to serve again.`);
+    this.quit(c, `${c.name}'s job is done and they were not renewed. They ask ${formatMoney(ask)} a season of a new term to serve again.`);
     c.at = emp;
   }
 };

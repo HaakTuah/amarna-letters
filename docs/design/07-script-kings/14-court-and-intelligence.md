@@ -1,5 +1,7 @@
 ### Court and intelligence
 
+> **Since item 11a** (`21-money-and-work.md`): wages and back pay are replaced by jobs with a fee (an advance now, the rest when the job is done), and strength no longer subtracts anything owed. Passages below about wages and back pay describe the build before item 11a and are kept for its history.
+
 - **Servants.** A king wants two. It wants one more if diplomacy is above 0.8, and one more if cunning is above 0.7 and flow exceeds 50 + 0.25 × income. While flow is below 25 + 0.25 × income, it wants only two.
 - **Hiring.**
   - When short of servants, it asks for candidates, at most every two seasons, with spare above 40.

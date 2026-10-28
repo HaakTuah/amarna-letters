@@ -121,6 +121,10 @@ export const OtherActions = [
   "seek_candidates",
   "hire",
   "renew",
+  "pay_fee",
+  "withhold_fee",
+  "borrow",
+  "repay",
   "dismiss",
   "background_check",
   "place_spy",
@@ -171,14 +175,14 @@ const otherOrder = (described = true): ReplySchema =>
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back)." : null)],
-    ["person", str(described ? "Person id, for hire, renew, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift." : null)],
-    ["amount", int(described ? "Wage (hire, renew), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), as the action needs; else 0." : null)],
-    ["gold", int(described ? "trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; else 0." : null)],
+    ["person", str(described ? "Person id, for hire, renew, pay_fee, withhold_fee, borrow, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift." : null)],
+    ["amount", int(described ? "The whole fee for the job (hire, renew), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), as the action needs; else 0." : null)],
+    ["gold", int(described ? "trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; hire, renew: the part of the fee handed over now (0 means half); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
     [
       "term",
       int(
         described
-          ? "hire, renew: the seasons of service, 1-30 (0 means 6). Hire is only for people not in your service; renew keeps one of your own on, at your court or once they have given notice; else 0."
+          ? "hire, renew: the seasons of the job, 1-30 (0 means 6). Hire is only for people not in your service, standing at your court; renew keeps one of your own on, at your court or once they have given notice; borrow: the seasons to repay in; else 0."
           : null,
       ),
     ],
@@ -187,7 +191,7 @@ const otherOrder = (described = true): ReplySchema =>
       "item",
       str(
         described
-          ? "For assay, your mark for the gold (like g7), as your treasury gives it; for authenticate or repudiate (a tablet your envoy sealed in your name), your mark for your copy of the tablet (like k8), as your archive gives it."
+          ? "For repay, the debt (like d3), as your treasury gives it; for assay, your mark for the gold (like g7), as your treasury gives it; for authenticate or repudiate (a tablet your envoy sealed in your name), your mark for your copy of the tablet (like k8), as your archive gives it."
           : null,
       ),
     ],
@@ -450,7 +454,7 @@ function hostReply(c: GameConfig | null = null, a: AudienceView | boolean = fals
     ]);
     fields.push(structured ? ["gift_news", clauses(GiftNews)] : ["gift_request", str("What you want from the envoy in return for the gift, or empty.")]);
   }
-  fields.push(["offer_service_wage", int("Offer the envoy service at this wage per season, or 0.")]);
+  fields.push(["offer_service_wage", int("Offer the envoy a six-season job in your service at this fee a season (half the whole handed over now), or 0.")]);
   if (asks.tabletToSeal) fields.push(["seal_tablet", bool("Seal the tablet the envoy brought.")]);
   if (asks.sealCarried) fields.push(...yourTablet(structured, "The envoy carries his king's seal"));
   fields.push(["detain_envoy", bool("Keep the envoy at your court against its will: it does not go home when the audience ends.")]);
@@ -503,7 +507,7 @@ function courtReply(c: GameConfig | null = null, ordersStand = false, reopenChos
       int("A personal gift (bribe) to the envoy in shekels, or 0. An envoy takes one gift per audience: once he has accepted one, a later gift is not given."),
     ],
     structured ? ["gift_news", clauses(GiftNews)] : ["gift_request", str("What you want from the envoy in return for the gift, or empty.")],
-    ["offer_service_wage", int("Offer the envoy service at this wage per season, or 0.")],
+    ["offer_service_wage", int("Offer the envoy a six-season job in your service at this fee a season (half the whole handed over now), or 0.")],
     ["seal_tablet", bool("Only if this envoy brought a tablet you have not yet chosen to seal: seal it. False otherwise.")],
     ...yourTablet(structured, "Only if this envoy carries his king's seal"),
     ["detain_envoy", bool("Keep the envoy at your court against its will: it does not go home when the audience ends.")],
@@ -594,7 +598,7 @@ function report(carriesGold = true, canForge = true, toLord = true, received = f
 const pitch = (alias: string | null = null, envoyOf: string | null = null): ReplySchema => {
   const fields: [string, z.ZodType][] = [
     ["pitch", str("How you present yourself, in a few sentences.")],
-    ["asking_price", int("Your wage per season in shekels.")],
+    ["asking_price", int("What you ask a season of a job's term, in shekels.")],
     // Item 10+b: what it says it can do is its own choice, from what it believes of itself (its request says so).
     ["say_gather", enumOf(SkillBands.gather, "What you tell this court you can do at gathering what a court knows (you may claim more or less than you believe).")],
     ["say_stealth", enumOf(SkillBands.stealth, "What you tell this court you can do at slipping past guards.")],

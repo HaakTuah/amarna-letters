@@ -187,7 +187,7 @@ describe("IntelligenceTests", () => {
     Assert.true(s.treasuries.get("Mitanni").gold > unpaid.treasuries.get("Mitanni").gold);
   });
 
-  test("Candidates pitch and the higher wage wins a contested hire", () => {
+  test("Candidates pitch and only the court where a person stands can hire it", () => {
     let s = newGame(6);
     let e = begin(s);
     e.resolve(
@@ -207,15 +207,18 @@ describe("IntelligenceTests", () => {
       target.pitches.set("Hatti", "Hire me.");
       target.askingPrice.set("Hatti", 20);
     }
+    // Item 11a: a person is hired in person, so only the court where it stands can hire it.
+    target.at = "Hatti";
     e.resolve(
       new Dict([
-        ["Egypt", newTurnSubmission({ orders: [hire(target.id, 25)] })],
-        ["Hatti", newTurnSubmission({ orders: [hire(target.id, 40)] })],
+        ["Egypt", newTurnSubmission({ orders: [hire(target.id, 240, 6, 240)] })],
+        ["Hatti", newTurnSubmission({ orders: [hire(target.id, 150, 6, 150)] })],
       ]),
     );
     Assert.equal("Hatti", target.employer);
-    Assert.equal(40, target.contract!.wage);
-    Assert.contains(inboxOf(s, "Egypt"), (i) => i.title === "Not hired");
+    Assert.equal(150, target.contract!.fee);
+    begin(s);
+    Assert.contains(inboxOf(s, "Egypt"), (i) => i.body.includes("hired in person"));
   });
 
   test("A wage below the asking price is refused", () => {

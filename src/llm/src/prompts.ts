@@ -135,7 +135,10 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
-        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages}. Back pay owed to your people: ${v.backPay}. Strength ${v.strength} by your ledger (the wealth of your realm, back pay owed counted against it), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
+        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}; your people's jobs come to about ${v.fees} a season, ${v.feesDue} of their fees still to fall due as their jobs are done${v.feesOwed > 0 ? `, and you let ${v.feesOwed} fall due unpaid` : ``}. People count on ${v.trust} in a hundred of what you promise (you kept ${v.kept} promises to pay and broke ${v.broken}); the going rate of service is ${v.goingRate} in a hundred of what people would ask on their own. Strength ${v.strength} by your ledger (the wealth of your realm: what you hold, never what you owe or are owed), against a starting ${v.startStrength} (growth ${fmt(growth, "0.00")}).`);
+        sb.appendLine(GoldLifeline);
+        for (const d of v.debts)
+            sb.appendLine(`  Your debt ${d.id}: ${d.left} shekels left of ${d.owed} to repay (${d.principal} lent by ${d.lender} in turn ${d.sealedTurn}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court (order repay)` : ``}.`);
         for (const l of economyLines(v)) sb.appendLine(l);
         // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
         for (const lot of v.unassayedGold)
@@ -365,7 +368,7 @@ export function realmBrief(v: SeatView): string
         const sb = new Sb();
         const kindOf = (k: UnitKind): string => (k === "Army" ? `army` : `fleet`);
         sb.appendLine(`YOUR REALM IN BRIEF (enough to judge whether the news changes your plan; you see the full map only if you reopen your orders):`);
-        sb.appendLine(`- Treasury: ${v.gold} shekels by your ledger; gold in since your last orders ${v.income}; a season your troops' pay ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, wages ${v.wages}; back pay owed to your people ${v.backPay}.`);
+        sb.appendLine(`- Treasury: ${v.gold} shekels by your ledger; gold in since your last orders ${v.income}; a season your troops' pay ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, your people's jobs about ${v.fees}; fees still to fall due ${v.feesDue}${v.debts.length > 0 ? `; debts ${v.debts.reduce((a, d) => a + d.left, 0)}` : ``}.`);
         const hungry = v.units.filter((u) => u.power === v.power && (u.hungry > 0 || u.unpaid > 0));
         if (hungry.length > 0) sb.appendLine(`- Troops hungry or unpaid: ${joinS(`, `, hungry.map((u) => `${u.province}${u.hungry > 0 ? ` hungry ${u.hungry}` : ``}${u.unpaid > 0 ? ` unpaid ${u.unpaid}` : ``}`))}.`);
         const land = sortBy([...v.owner].filter(x => x[1] === v.power).map(x => x[0]), [x => x, cmpStr]);
@@ -507,6 +510,12 @@ export function standings(v: SeatView): string
                + (fallen.length > 0 ? ` Fallen: ${joinS(`, `, fallen)}.` : ``);
     }
 
+/**
+ * "Gold is a lifeline" (item 11a): what gold is worth to a king, said wherever a request asks him to give, take or keep it.
+ */
+export const GoldLifeline =
+    "Gold is part of how you win (it counts in your strength) and your security: it pays the troops who would otherwise desert, the ransoms and the envoys. Give it only for what it buys on average over a time you can name: a gift buys favour, a bribe a softer report or a secret, a fee a servant's work, a loan interest, tribute peace. Gold you send abroad, or pay to people, leaves your realm. Gold you borrow counts as yours until you repay it; repaying costs you now and keeps lenders lending, defaulting keeps the gold and costs your name.";
+
 export function person(c: CharacterView): string
     {
         const parts: string[] = [`${c.id} ${c.name} of ${c.origin}`];
@@ -523,10 +532,11 @@ export function person(c: CharacterView): string
             if (c.where.length > 0) parts.push(c.where);
         }
         if (c.term.length > 0) parts.push(c.term);
-        if (c.backPay !== null) parts.push(`owed: ${c.backPay} shekels of back pay`);
+        if (c.owed !== null) parts.push(`you let ${c.owed} shekels of their fee fall due unpaid`);
+        if (c.lends !== null) parts.push(`offers to lend you up to ${c.lends.amount} shekels, asking ${c.lends.perHundred} in a hundred more back after ${c.lends.seasons} seasons`);
         if (c.knownFacts.length > 0) parts.push(`known: ` + joinS(` `, c.knownFacts));
         if (c.pitch !== null) parts.push(`pitch: "${c.pitch}"`);
-        if (c.askingPrice !== null) parts.push(`asks ${c.askingPrice} a season`);
+        if (c.askingPrice !== null) parts.push(`asks ${c.askingPrice} a season of a job's term`);
         return joinS(`; `, parts);
     }
 
@@ -565,6 +575,8 @@ export function audience(a: AudienceView, inCourt = false): string
             sb.appendLine(`You have already named ${a.goldBackNamed} shekels to send home with the envoy; a new amount replaces it, 0 keeps it.`);
         if (a.giftAccepted > 0)
             sb.appendLine(`${a.envoy.name} has already accepted your gift of ${a.giftAccepted} shekels. An envoy takes one gift per audience: another gift would not be given.`);
+        // Item 11a, "Gold is a lifeline": what gold given or sent home is worth to the king who gives it.
+        sb.appendLine(GoldLifeline);
         if (a.ordersStand && !inCourt) sb.append(ordersStandAtCourt(a));
         sb.appendLine(a.round < a.maxRounds
             ? `Answer the envoy. You may end the audience now, or leave it open for one more exchange.`

@@ -18,6 +18,8 @@ export { TradePlay } from "./bots/trade.ts";
 export { PeoplePlay } from "./bots/statecraft-court.ts";
 export { LandPlay } from "./bots/land.ts";
 export { BorderPlay } from "./bots/borders.ts";
+export { MoneyPlay } from "./bots/credit.ts";
+export { scriptLife, handsOver, rateAsked } from "./bots/life-mind.ts";
 export { CharacterChecks } from "./character-checks.ts";
 export * from "./human-seat.ts";
 export * from "./signals.ts";

@@ -30,7 +30,7 @@ describe("TerrainTextTests", () => {
       "- Desert (sinai, steppe) feeds nobody: an army there finds nothing to take from the land and lives on its baggage, its king's stores there if he holds it, and the caravans he sends (see ECONOMY).",
     ],
     [
-      "You pay your troops (20 an army, 25 a fleet, nearest your capital first) and the wages of your people at court;",
+      "You pay your troops (20 an army, 25 a fleet, nearest your capital first). Then every unit eats",
     ],
     ["- sinai: Sinai; land; homeland of Egypt; yield 20; desert. armies: jerusalem (across the Negev), gaza (across the north Sinai), delta, memphis."],
     ["- kaska: Kaska Lands; land; a land without a king; yield 10; rough ground. armies: hattusa, sapinuwa."],

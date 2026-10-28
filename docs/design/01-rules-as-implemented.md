@@ -282,8 +282,8 @@
   or bought (since the review of the siege package; until then every view carried every mark). The rulebook says so
   under ECONOMY ("LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is
   not shown") and in HOW YOU WIN's strength. The public land standings still use base yields.
-- **Strength** = 10 × (sum of base yields of provinces held, conquered land counted as far as it is absorbed) + true gold − back pay owed (see
-  "Back pay" under Characters). Growth is strength over starting strength. Units are not counted;
+- **Strength** = 10 × (sum of base yields of provinces held, conquered land counted as far as it is absorbed) + true gold
+  (until item 11a, less the back pay owed; since then nothing owed is subtracted: `21-money-and-work.md`). Growth is strength over starting strength. Units are not counted;
   they cost upkeep and are the means to land. One function computes it (`strength`): the
   engine's score with true gold and the back pay a power really owes; a seat's own strength line
   (`TurnEngine.ledgerStrength`) with its gold by its ledger and the back pay it believes it owes,

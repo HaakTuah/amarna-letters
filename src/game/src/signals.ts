@@ -28,6 +28,8 @@ export const SignalKinds: readonly string[] = [
   "tax-set", "famine", "colonists", "resisted", "drought", "flood",
   "besieged-fed", "captive-arrived", "captive-freed", "captive-taken", "captive-escaped",
   "refugees", "robbed", "welcomed", "deported", "runaways-returned", "mouths-expelled",
+  "hire", "fee-paid", "fee-unpaid", "fee-withheld", "quit", "loan", "repaid", "default", "newcomer", "hoard",
+  "character-loan", "character-deal", "character-repaid", "collector-hired", "collected", "collector-kept",
 ];
 
 const MessengerBlamed = rx(

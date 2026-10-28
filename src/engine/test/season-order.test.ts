@@ -77,7 +77,7 @@ describe("SeasonOrderTests", () => {
     ] as const) {
       let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [dispatch(who.id, "Hatti", "Greetings."), order] }));
       Assert.equal(
-        [`${who.name} is not in your service`, order.wage <= 0 ? "wage and term must be positive" : `${who.name} is not available for hire`],
+        [`${who.name} is not in your service`, order.fee <= 0 ? "fee and term must be positive" : `${who.name} is not available for hire`],
         v.rejected.map((r) => r.reason),
       );
     }

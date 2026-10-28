@@ -18,6 +18,7 @@ import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
   newCharacterView,
+  newDebtView,
   newLotView,
   newSeatView,
   newSiegeView,
@@ -28,6 +29,7 @@ import {
   newCaravanView,
   landGrowth,
   type CharacterView,
+  type DebtView,
   type LandStanding,
   type LetterView,
   type SeatView,
@@ -38,7 +40,8 @@ import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
 import { ageBand } from "./ending.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
-import { asShown, basePrice } from "../turn/turn-engine.ts";
+import { asShown, basePrice, trustIn } from "../turn/turn-engine.ts";
+import { debtLeft, isPowerParty } from "../model/money.ts";
 import { travelTurns } from "../turn/core.ts";
 
 /**
@@ -176,8 +179,14 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     income: engine.income(p),
     upkeep: engine.upkeep(p),
     wallUpkeep: engine.wallsUpkeep(p),
-    wages: engine.wages(p),
-    backPay: engine.believedBackPay(p),
+    feesDue: engine.feesDue(p),
+    feesOwed: engine.feesOwed(p),
+    fees: engine.feeRates(p),
+    trust: trustIn(s, p),
+    kept: s.payRecords.tryGet(p)?.kept ?? 0,
+    broken: s.payRecords.tryGet(p)?.broken ?? 0,
+    goingRate: s.goingRate,
+    debts: debtViews(s, p),
     strength: engine.ledgerStrength(p),
     startStrength: s.startStrength.getOrDefault(p, 0),
     provinceWeight: s.config.provinceWeight,
@@ -455,41 +464,55 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     duty: captive ? captiveText(s, c.id, c.heldBy!, viewer) : ours ? dutyText(c) : "",
     where: ours || here ? whereText(c, viewer) : "",
     timing: ours ? timingText(s, c) : "",
-    // A captive's wage builds up as back pay, as for anyone away.
-    wage: k?.wage ?? null,
+    fee: k?.fee ?? null,
+    advance: k?.advance ?? null,
+    contractFrom: k?.startTurn ?? null,
     contractUntil: k?.untilTurn ?? null,
     noticePrice: k?.noticePrice ?? null,
     leavesTurn: k?.leavesTurn ?? null,
-    term: k === null ? "" : termText(k.wage, k.untilTurn, k.noticePrice, k.leavesTurn, s.turn),
+    term: k === null ? "" : termText(k.fee, k.advance, k.untilTurn, k.noticePrice, k.leavesTurn, s.turn),
     knownFacts: facts,
     pitch: c.pitches.tryGet(viewer) ?? null,
     // What it said it can do when it pitched to you (item 10, "Kings never see skills"): words, never its skill.
     claims: c.pitches.has(viewer) && c.claimed !== null ? claimWords(c.claimed) : [],
     claimsToServe: alias?.employer ?? null,
     // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
-    askingPrice: ours ? null : price !== undefined ? price : freeHere ? basePrice(c, viewer) : null,
+    askingPrice: ours ? null : price !== undefined ? price : freeHere ? basePrice(c, viewer, s.goingRate) : null,
     ready: ours && c.status === "Employed" && c.duty === "None" && c.at === viewer,
     heldByYou: c.heldBy === viewer,
     intercepted: c.heldBy === viewer && c.intercepted,
     ransomDemand: captive ? (knownDemand(s, c.id, c.heldBy!, viewer)?.spend ?? null) : null,
-    backPay: backPayOwed(c, viewer),
+    owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,
+    // Item 11a: one standing at your court, free to deal, who offers to lend you gold.
+    lends: c.lendOffer !== null && c.at === viewer && c.heldBy === null && c.status !== "Dead" && !hiddenAt(c, viewer) && c.lendOffer.amount > 0 ? c.lendOffer : null,
   });
 }
 
 /**
- * The back pay `viewer` owes a character as it can know it, or null if none: as it believes it for one of its people
- * abroad whose fate it has not heard of (its cover); else what it really owes one of its people, or anyone it sees
- * standing at its court and not held there.
+ * Item 11a: a court's own debts that stand, as it knows them: who lent, who holds the tablet now (a holder that stands at
+ * its court, or the lender as far as it knows), and what is left. A tablet gone missing still shows until the debt ends.
  */
-function backPayOwed(c: Character, viewer: Power): number | null {
-  const cover = coverOf(c, viewer);
-  const owed =
-    cover !== null
-      ? cover.backPay
-      : (c.employer === viewer && (c.status === "Employed" || c.status === "Captured")) || (seenAtCourt(c, viewer) && c.heldBy !== viewer && c.status !== "Dead")
-        ? c.backPay.getOrDefault(viewer, 0)
-        : 0;
-  return owed > 0 ? owed : null;
+function debtViews(s: GameState, p: Power): DebtView[] {
+  return s.debts
+    .filter((d) => d.borrower === p && d.ended === null)
+    .map((d) => {
+      const h = d.holder !== null ? (s.characters.find((c) => c.id === d.holder) ?? null) : null;
+      const here = h !== null && h.at === p && h.status !== "Dead" && (h.heldBy === null || h.heldBy === p);
+      const lender = s.characters.find((c) => c.id === d.lender)?.name ?? d.lender;
+      return newDebtView({
+        id: d.id,
+        // Who holds it now, as far as the court can know: one standing at its court; else the lender it sealed it with.
+        holder: here ? h!.name : lender,
+        holderId: here ? h!.id : d.lender,
+        lender,
+        principal: d.principal,
+        owed: d.owed,
+        left: debtLeft(d),
+        sealedTurn: d.sealedTurn,
+        dueTurn: d.dueTurn,
+        here,
+      });
+    });
 }
 
 /** A servant as its master still believes it to be: the same fields the master saw before, never ready. */
@@ -505,37 +528,40 @@ function coveredView(s: GameState, c: Character, cover: Cover): CharacterView {
     duty: held !== null ? captiveText(s, c.id, held, cover.for) : cover.dutyText,
     where: held !== null ? `at the court of ${held}` : cover.whereText,
     timing: held === null ? cover.timingText : "",
-    wage: cover.wage,
+    fee: cover.fee,
+    advance: cover.advance,
+    contractFrom: cover.startTurn,
     contractUntil: cover.contractUntil,
     noticePrice: cover.noticePrice,
     leavesTurn: cover.leavesTurn,
-    term: termText(cover.wage, cover.contractUntil, cover.noticePrice, cover.leavesTurn, s.turn),
+    term: termText(cover.fee, cover.advance, cover.contractUntil, cover.noticePrice, cover.leavesTurn, s.turn),
     // What it knew then and what its inquiries have found since, as for a servant really away.
     knownFacts: c.facts.filter((f) => cover.factIds.includes(f.id) || (f.secrecy !== "Public" && f.knownBy.includes(cover.for))).map((f) => f.text),
     pitch: c.pitches.tryGet(cover.for) ?? null,
     ransomDemand: held !== null ? (knownDemand(s, c.id, held, cover.for)?.spend ?? null) : null,
-    backPay: cover.backPay > 0 ? cover.backPay : null,
+    owed: c.owed.getOrDefault(cover.for, 0) > 0 ? c.owed.get(cover.for) : null,
   });
 }
 
 /**
- * A servant's term in plain words, as its master reads it: the wage, the last season of the term and what happens then,
- * or, once it has given notice, its price to serve on and when it leaves. `wage` is null when no wage is to be said.
+ * A servant's job in plain words, as its master reads it (item 11a): the fee, what was handed over and what falls due when
+ * it is done, the last season of the term and what happens then, or, once it has given notice, its price to serve on and
+ * when it leaves. `fee` is null when no job is to be said.
  */
-function termText(wage: number | null, until: number | null, noticePrice: number | null, leavesTurn: number | null, turn: number): string {
-  const serves = wage !== null ? `serves at ${wage} a season` : null;
+function termText(fee: number | null, advance: number | null, until: number | null, noticePrice: number | null, leavesTurn: number | null, turn: number): string {
+  const serves = fee !== null ? `a job for ${fee} shekels, ${advance ?? 0} handed over and ${Math.max(0, fee - (advance ?? 0))} due when it is done` : null;
   if (noticePrice !== null)
     return (
       (serves === null ? "" : serves + "; ") +
-      `has given notice: asks ${noticePrice} a season to serve on; ` +
+      `has given notice: asks ${noticePrice} a season of a new term to serve on; ` +
       (leavesTurn !== null && leavesTurn > turn ? `leaves at the start of turn ${leavesTurn} unless renewed` : "leaves when next at your court unless renewed")
     );
   if (serves === null) return "";
   if (until === null) return serves;
   const notice = "otherwise they give a season's notice and name a price";
   return until >= turn
-    ? `${serves} through turn ${until}; if content they then renew themselves, ${notice}`
-    : `${serves}; the term ended with turn ${until}: when next at your court, if content they renew themselves, ${notice}`;
+    ? `${serves}, through turn ${until}; when it is done at your court, if content they serve on for 6 seasons on the same terms, ${notice}`
+    : `${serves}; the term ended with turn ${until}: the job is done when they are next at your court with no task, and then, if content, they serve on for 6 seasons on the same terms, ${notice}`;
 }
 
 /**
@@ -615,6 +641,8 @@ function dutyText(c: Character): string {
       return `travelling on a quiet errand to ${c.missionTarget ?? c.watchProvince ?? ""}`;
     case "SpyPosted":
       return `watching ${c.missionTarget ?? c.watchProvince ?? ""}`;
+    case "Travelling":
+      return "travelling on their own way";
   }
 }
 
@@ -695,7 +723,6 @@ export const Views = {
   knows,
   confessedMaster,
   character: characterView,
-  backPayOwed,
   termText,
   timingText,
   envoyHomeTiming,

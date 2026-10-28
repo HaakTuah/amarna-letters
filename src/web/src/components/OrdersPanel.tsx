@@ -24,8 +24,8 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
         <h3>Orders for {when(v.turn, me)}</h3>
         <p className="muted">
           Treasury {shekels(v.gold)} · gold in since your last orders {shekels(v.income)} · troops' pay {shekels(v.upkeep)}
-          {v.wallUpkeep > 0 ? ` · walls ${shekels(v.wallUpkeep)}` : ""} · wages {shekels(v.wages)} (for people away, owed as back pay) · back pay owed{" "}
-          {shekels(v.backPay)}. Growth so far: {v.startStrength > 0 ? (v.strength / v.startStrength).toFixed(2) : "-"}.
+          {v.wallUpkeep > 0 ? ` · walls ${shekels(v.wallUpkeep)}` : ""} · your people's jobs about {shekels(v.fees)} a season, {shekels(v.feesDue)} of fees still to fall due
+          {v.debts.length > 0 ? ` · debts ${shekels(v.debts.reduce((a, d) => a + d.left, 0))}` : ""}. Growth so far: {v.startStrength > 0 ? (v.strength / v.startStrength).toFixed(2) : "-"}.
         </p>
         <p className="muted">
           <small>

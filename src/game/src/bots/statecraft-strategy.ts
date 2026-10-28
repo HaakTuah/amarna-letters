@@ -1,4 +1,5 @@
 /** The non-military half of a script king, first part: strategy and treasury. */
+import { creditOrders } from "./credit.ts";
 import { peopleAcrossBorders } from "./borders.ts";
 import {
   HSet,
@@ -194,15 +195,17 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   const p = brain.p;
   const v = b.v;
   const me = b.me;
-  // Back pay owed is gold already spent: the people it is owed to will claim it when they are back at court.
-  let gold = v.gold - v.backPay;
-  const costs = v.upkeep + v.wallUpkeep + v.wages;
+  // The rest of its servants' fees is gold already promised: it falls due as their jobs are done (item 11a).
+  let gold = v.gold - v.feesDue;
+  const costs = v.upkeep + v.wallUpkeep + v.fees;
   // Grain first (item 9+a): what its sales this season should bring, with the mines, is the season's income.
   const grain = plainGrain(b.me) ? { sales: plainGrainOrders(v, orders), abroad: 0 } : grainOrders(b, brain, plan, orders, gold, costs);
   // Each province's tax, as high as its farmers can bear (item 10+a).
   orders.push(...taxOrders(v, b.me));
   // People across borders and in our hands (item 10+b).
   peopleAcrossBorders(b, orders);
+  // Credit (item 11a): borrow when hard up, repay what is due to keep its name; the gold counts as the treasury's.
+  gold += creditOrders(v, p, gold, costs, v.startStrength > 0 && v.strength / v.startStrength < 0.5, orders);
   const sales = grain.sales;
   // Gold sent abroad to buy grain (item 9+b) is gone from the treasury until its caravans come home; and the tolls.
   gold -= grain.abroad;

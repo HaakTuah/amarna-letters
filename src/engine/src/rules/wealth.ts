@@ -1,59 +1,69 @@
 /**
- * The richest characters: at the end of a game, beside the kings' standings, the living characters ranked by wealth, the
- * second game played under the kings'. During play a character knows its own wealth, never the ranking.
+ * The richest characters: at the end of a game, beside the kings' standings, every character ranked by wealth, the
+ * second game played under the kings'. During play a character knows its own wealth, never the ranking. Since item 11a
+ * wealth is what it holds, purse and hoard; fees owed it and debt tablets count for nothing ("Debts are facts; repayment
+ * is a choice"), and the dead rank below every living character, among themselves by what they held when they died.
  */
-import { cmpNum, desc, sortBy } from "../core/seq.ts";
+import { cmpBool, cmpNum, desc, sortBy } from "../core/seq.ts";
 import type { Character, Earnings } from "../model/people.ts";
 import type { GameState } from "../model/state.ts";
 import { idNumber } from "../turn/core.ts";
 
-/** One character's wealth at a moment: the gold in its purse and the back pay kings still owe it. */
+/** One character's wealth at a moment: the gold in its purse and in its hoard. */
 export interface CharacterWealth {
   character: Character;
   purse: number;
-  backPay: number;
+  hoard: number;
   total: number;
+  dead: boolean;
 }
 
 /** What counts, said wherever the ranking is shown. */
 export const WealthCounts =
-  "Wealth is the gold in a character's purse and the back pay kings still owe it; hoards and loans to kings on debt tablets do not exist yet. The dead are not ranked.";
+  "Wealth is what a character holds: the gold in its purse and in its hoard. Fees owed it and debt tablets count for nothing. The dead rank below every living character, by what they held when they died.";
 
-/** A character's wealth: its purse and the back pay owed it by every court (a fallen court's debt died with it). */
+/** A character's wealth: its purse and its hoard (a hoard seized or lost is gone); the dead's as it was when it died. */
 export function wealthOf(c: Character): CharacterWealth {
-  let backPay = 0;
-  for (const v of c.backPay.values()) backPay += v;
-  return { character: c, purse: c.purse, backPay, total: c.purse + backPay };
+  const hoard = c.hoard?.gold ?? 0;
+  const dead = c.status === "Dead";
+  // The dead by what they held when they died (their hoard passes to the city that kept it).
+  const total = dead ? (c.diedWith ?? c.purse + hoard) : c.purse + hoard;
+  return { character: c, purse: dead ? total - hoard : c.purse, hoard, total, dead };
 }
 
-/** The living characters, richest first (ties by id). */
+/** Every character, the living first, richest first (ties by id). */
 export function wealthRanking(s: GameState): CharacterWealth[] {
   return sortBy(
-    s.characters.filter((c) => c.status !== "Dead").map(wealthOf),
+    s.characters.map(wealthOf),
+    [(w: CharacterWealth) => w.dead, cmpBool],
     [(w: CharacterWealth) => w.total, desc(cmpNum)],
     [(w: CharacterWealth) => idNumber(w.character.id), cmpNum],
   );
 }
 
-/** Who a character is at the end, in a few words: whom it serves, or that it is free or held. */
+/** Who a character is at the end, in a few words: whom it serves, or that it is free, held or dead. */
 export function wealthStanding(c: Character): string {
+  if (c.status === "Dead") return "dead";
   if (c.status === "Captured" && c.heldBy !== null) return `captive in ${c.heldBy}` + (c.employer !== null ? `, serving ${c.employer}` : "");
   return c.employer !== null ? `serving ${c.employer}` : "free";
 }
 
-/** Where its gold came from, in one line ("wages 120, skimmed 10, gifts 40"). */
+/** Where its gold came from and went, in one line ("fees 120, skimmed 10, gifts 40; spent 60"). */
 export function wealthSources(e: Earnings): string {
   const parts: string[] = [];
-  if (e.wages > 0) parts.push(`wages ${e.wages}`);
+  if (e.fees > 0) parts.push(`fees ${e.fees}`);
+  if (e.dealt > 0) parts.push(`lending and dealing ${e.dealt}`);
   if (e.skimmed > 0) parts.push(`skimmed ${e.skimmed}`);
   if (e.gifts > 0) parts.push(`gifts ${e.gifts}`);
   if (e.carried > 0) parts.push(`gold kept on dismissal ${e.carried}`);
-  return parts.length === 0 ? "nothing gained" : parts.join(", ");
+  if (e.savings > 0) parts.push(`savings ${e.savings}`);
+  const gained = parts.length === 0 ? "nothing gained" : parts.join(", ");
+  return e.spent > 0 ? `${gained}; spent ${e.spent}` : gained;
 }
 
-/** One character's line in a ranking: "Mane of Ugarit (serving Egypt): 312 (purse 280, back pay owed 32; wages 250, skimmed 30)". */
+/** One character's line in a ranking: "Mane of Ugarit (serving Egypt): 312 (purse 280, hoard 32; fees 250, skimmed 30)". */
 export function wealthLine(w: CharacterWealth): string {
-  return `${w.character.name} of ${w.character.origin} (${wealthStanding(w.character)}): ${w.total} (purse ${w.purse}, back pay owed ${w.backPay}; ${wealthSources(w.character.earned)})`;
+  return `${w.character.name} of ${w.character.origin} (${wealthStanding(w.character)}): ${w.total} (purse ${w.purse}, hoard ${w.hoard}; ${wealthSources(w.character.earned)})`;
 }
 
 export const Wealth = { WhatCounts: WealthCounts, of: wealthOf, ranking: wealthRanking, standing: wealthStanding, sources: wealthSources, line: wealthLine };

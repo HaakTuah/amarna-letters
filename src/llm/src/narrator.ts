@@ -2,7 +2,7 @@
  * The narrator: writes each character's persona once, phrases background checks, and writes the chronicles. It only ever
  * receives facts the engine has already released.
  */
-import { king, land, personaTemplate, year, type Character } from "@amarna/engine";
+import { king, land, personaTemplate, StrategyWords, strategiesOf, year, type Character } from "@amarna/engine";
 import type { CheckContext, ChronicleContext, INarrator } from "@amarna/game";
 import type { ModelClient } from "./client.ts";
 import { ModelIds, OutputCaps } from "./models.ts";
@@ -28,10 +28,11 @@ export class LlmNarrator implements INarrator {
 
   async persona(c: Character, signal?: AbortSignal): Promise<string> {
     const t = c.traits;
-    const user = `Write the persona of a character, as a second-person system prompt for the small language model that will play them for a whole game. 120 to 200 words. Give them a name and voice, a temperament, motivations and habits that follow from these hidden traits (0-100) and facts. Do not mention numbers or game mechanics; turn them into personality. Include every fact, so the character knows its own life. End with one sentence on how they speak.
+    const user = `Write the persona of a character, as a second-person system prompt for the small language model that will play them for a whole game. 120 to 200 words. Give them a name and voice, a temperament, motivations and habits that follow from these hidden traits (0-100) and facts. Their goal is wealth, and the persona tells how this particular man means to get rich: the strategy below, reconciled with the traits (a greedy but timid man skims only what nobody will count; a loyal but ambitious one rises by making himself indispensable), on the road below. Describe experience (a seasoned envoy, a new scribe), never an age. Do not mention numbers or game mechanics; turn them into personality. Include every fact, so the character knows its own life, and invent no other facts. End with one sentence on how they speak.
 
 Name: ${c.name}. From: ${c.origin}. Former calling: ${c.calling}.
 Traits: loyalty ${t.loyalty}, greed ${t.greed}, competence ${t.competence}, ambition ${t.ambition}, courage ${t.courage}${t.sympathy !== null ? `, a sympathy for ${land(t.sympathy)} (${t.sympathyStrength})` : ""}.
+Strategy: ${strategiesOf(t).map((x) => StrategyWords[x]).join("; or else ")}. Road: ${c.bold ? "bold" : "careful"}.
 Facts: ${joinS(
       " ",
       c.facts.map((f) => `[${f.secrecy}] ${f.text}`),

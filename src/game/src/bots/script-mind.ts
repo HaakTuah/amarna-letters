@@ -4,6 +4,7 @@
  * things, the greedy skim.
  */
 import {
+  AllPowers,
   Rng,
   SealedOutcome,
   calling,
@@ -34,6 +35,7 @@ import {
 import { AuthorityPlay } from "./authority.ts";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
 import { TextKit } from "./textkit.ts";
+import { scriptLife } from "./life-mind.ts";
 
 const R = (seed: number, turn: number, what: string, id: string): Rng => Rng.for(seed, turn, "mind:" + what, id);
 
@@ -101,11 +103,12 @@ export class ScriptMind implements ICharacterMind {
       speech.push(reaction.acceptBribe ? "Your generosity honours me. I will tell my lord how warmly I was received." : "I cannot take this. I serve my lord alone.");
     }
 
-    const wage = c.contract?.wage ?? 15;
+    const k = c.contract;
+    const wage = k !== null ? Math.trunc(k.fee / Math.max(1, k.untilTurn - k.startTurn)) : 15;
     if (host.jobOffer > 0) {
-      // Going over forfeits the back pay its lord owes it: the offer must make it up over the new contract's six seasons,
-      // unless its lord looks doomed and may never pay.
-      const forfeit = ctx.employerDoomed ? 0 : ctx.backPay / 6.0;
+      // Going over breaks its job and forfeits the rest of its fee (item 11a): the offer must make it up over the new job's
+      // six seasons, unless its lord looks doomed and may never pay.
+      const forfeit = ctx.employerDoomed ? 0 : ctx.restDue / 6.0;
       const tempted = host.jobOffer >= wage * 1.5 + forfeit && t.loyalty < 55 && t.ambition > 40;
       const drawn = t.sympathy === ctx.host && t.sympathyStrength > 60 && host.jobOffer >= wage + forfeit;
       reaction.acceptJob = (tempted || drawn) && c.secretMaster === null;
@@ -149,6 +152,8 @@ export class ScriptMind implements ICharacterMind {
         return Promise.resolve(summary(ctx));
       case "Questioned":
         return Promise.resolve(questioned(ctx));
+      case "Life":
+        return Promise.resolve(newMindReply({ life: ctx.request.life === null ? null : scriptLife(ctx.self, ctx.request.life) }));
       default:
         return Promise.resolve(newMindReply({ text: "" }));
     }
@@ -337,10 +342,16 @@ function pitch(ctx: MindContext): MindReply {
   else lines.push("I know the courts of the Great Kings and their customs, and I can carry a message well.");
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
   if (defected !== null && t.loyalty < 50 && name === null) lines.push("Whatever you may have heard, I left my last master for good reason.");
+  // Item 11a, "Hiring as a negotiation": it plays courts against each other, citing a real offer, and a greedy, disloyal one
+  // invents one when it has none; either asks a little more for it.
+  const offer = [...c.offers.entries()].filter(([p]) => p !== court).sort((a, b) => b[1] - a[1])[0] ?? null;
+  const rival = offer ?? (t.greed > 65 && t.loyalty < 40 ? ([AllPowers.find((p) => p !== court) ?? "Egypt", ctx.basePrice + 6] as const) : null);
+  if (rival !== null) lines.push(`The king of ${land(rival[0])} offered me ${rival[1]} shekels a season.`);
 
   let price = ctx.basePrice + Math.trunc(t.greed / 10) + Math.min(10, ctx.demand * 2);
   if (defected !== null) price -= 5;
   if (t.ambition >= 65) price += 4;
+  if (rival !== null) price = Math.max(price, rival[1]);
   return newMindReply({ text: TextKit.join(lines), number: Math.max(5, price), name });
 }
 
