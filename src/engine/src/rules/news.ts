@@ -9,9 +9,10 @@ import type { GameState } from "../model/state.ts";
 
 /**
  * First guesses: news older than `maxAge` seasons is not offered; a seller asks `perLine` shekels a report line plus
- * `base`, more by its greed (up to `greedPercent` more), less by a `agePercent` in a hundred for each season of age.
+ * `base`, more by its greed (up to `greedPercent` more), less by a `agePercent` in a hundred for each season of age. A
+ * servant selling its master's secrets is found out `secretsCaught` times in a hundred.
  */
-export const NewsData = { maxAge: 6, perLine: 3, base: 4, greedPercent: 100, agePercent: 15, keep: 3 } as const;
+export const NewsData = { maxAge: 6, perLine: 3, base: 4, greedPercent: 100, agePercent: 15, keep: 3, secretsCaught: 30 } as const;
 
 /** What a seller asks for its news, as of now. */
 export function newsPrice(c: Character, n: NewsHeld, turn: number): number {

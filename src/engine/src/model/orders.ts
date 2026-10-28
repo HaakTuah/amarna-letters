@@ -292,6 +292,19 @@ export interface PayCarriersOrder {
   pay: boolean;
 }
 /**
+ * Haakon's answers to item 11b: your armies standing in `province` of your land fall on the bands there at the start of
+ * next season (a king's army falls on a band only on his order).
+ */
+export interface HuntOrder {
+  type: "hunt";
+  province: string;
+}
+/** Your standing order, until changed, that any army of yours standing where a band works in your land falls on it. */
+export interface HuntBandsOrder {
+  type: "huntBands";
+  on: boolean;
+}
+/**
  * Item 11a: the rest of a servant's fee. `pay` true pays what you let fall due unpaid, if the person stands at your court;
  * false withholds the rest of its present job when it falls due (a promise broken, which others hear of).
  */
@@ -492,6 +505,8 @@ export type Order =
   | SeizeHoardOrder
   | SellDebtOrder
   | PayCarriersOrder
+  | HuntOrder
+  | HuntBandsOrder
   | UnreadableOrder;
 
 export type OrderType = Order["type"];
@@ -559,6 +574,8 @@ export const renew = (character: string, fee: number, term = 6, advance: number 
 export const seize = (character: string): SeizeHoardOrder => ({ type: "seize", character });
 export const sellDebt = (debt: string, character: string, price: number): SellDebtOrder => ({ type: "sellDebt", debt, character, price });
 export const payCarriers = (pay: boolean): PayCarriersOrder => ({ type: "payCarriers", pay });
+export const hunt = (province: string): HuntOrder => ({ type: "hunt", province });
+export const huntBands = (on: boolean): HuntBandsOrder => ({ type: "huntBands", on });
 export const payFee = (character: string, pay = true): PayFeeOrder => ({ type: "payFee", character, pay });
 export const borrow = (character: string, amount: number, repay: number, seasons = 6): BorrowOrder => ({ type: "borrow", character, amount, repay, seasons });
 export const repay = (debt: string, amount: number): RepayOrder => ({ type: "repay", debt, amount });
@@ -671,6 +688,10 @@ export function describe(o: Order): string {
       return `sell debt tablet ${o.debt} to ${o.character} for ${o.price} shekels`;
     case "payCarriers":
       return o.pay ? "pay the carriers of your people's letters on delivery" : "stop paying the carriers of your people's letters on delivery";
+    case "hunt":
+      return `your armies in ${named(o.province)} fall on the bands there`;
+    case "huntBands":
+      return o.on ? "your armies fall on any band where they stand in your land, until you say otherwise" : "your armies leave the bands alone unless you order a hunt";
     case "payFee":
       return o.pay ? `pay ${o.character} the rest of the fee owed` : `withhold the rest of ${o.character}'s fee`;
     case "borrow":
@@ -835,6 +856,8 @@ export const OrderSchema = poly("Order", "type", {
   seize: v("SeizeHoardOrder", () => seize(""), { character: S }),
   sellDebt: v("SellDebtOrder", () => sellDebt("", "", 0), { debt: S, character: S, price: I }),
   payCarriers: v("PayCarriersOrder", () => payCarriers(true), { pay: B }),
+  hunt: v("HuntOrder", () => hunt(""), { province: S }),
+  huntBands: v("HuntBandsOrder", () => huntBands(true), { on: B }),
   payFee: v("PayFeeOrder", () => payFee(""), { character: S, pay: B }),
   borrow: v("BorrowOrder", () => borrow("", 0, 0), { character: S, amount: I, repay: I, seasons: I }),
   repay: v("RepayOrder", () => repay("", 0), { debt: S, amount: I }),

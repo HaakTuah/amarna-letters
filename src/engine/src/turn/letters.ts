@@ -25,7 +25,13 @@ import { isWalker } from "./travel.ts";
  * A carrier takes every letter waiting there for the same court. With nobody to carry them for `selfAfter` seasons, the
  * spy carries them home himself.
  */
-export const LetterData = { hiredPercent: 50, sidePercent: 20, hireAfter: 1, selfAfter: 2, trustOnDelivery: 60 } as const;
+export const LetterData = { hiredPercent: 50, sidePercent: 20, hireAfter: 1, selfAfter: 2, trustOnDelivery: 60, payLoyalty: 30 } as const;
+
+/**
+ * How many seasons a spy waits for a carrier before it carries its reports home itself (Haakon's answers to item 11b: the
+ * spy decides, a script spy by its traits): `selfAfter`, a season more for a brave one and for a loyal one.
+ */
+export const selfWait = (c: Character): number => LetterData.selfAfter + (c.traits.courage >= 60 ? 1 : 0) + (c.traits.loyalty >= 60 ? 1 : 0);
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -80,23 +86,29 @@ P.carryLetters = function () {
     const passer = own ?? going.find((j) => findCharacter(S, j.characterId)?.status !== "Captured") ?? null;
     let carrier: Character | null = null;
     let fee = 0;
-    const spy = findCharacter(S, letter.characterId);
+    // A ransom demand (Haakon's answers to item 11b: a message someone sends, which needs a carrier) has no spy behind it:
+    // it goes with whoever sets out that way, as the captor asks of them.
+    const spy = letter.kind === "SpyReport" ? findCharacter(S, letter.characterId) : null;
+    const demand = letter.kind !== "SpyReport";
+    // The spy decides (no rule moves it): one loyal enough pays from its own purse; how long it waits before carrying its
+    // reports home itself is its own, the brave and loyal waiting longest.
+    const willing = spy !== null && spy.traits.loyalty >= LetterData.payLoyalty;
     const waited = S.turn - letter.departTurn;
     const court = courtAt(this, at);
     const passing = passer === null ? null : findCharacter(S, passer.characterId)!;
     const side = passing === null ? 0 : idiv(basePrice(passing, letter.to) * seasons * LetterData.sidePercent, 100);
     // Haakon's answers to item 11a: a traveller carries it for a fee on delivery from a court whose standing order is to
     // pay carriers; for any other court only if the spy pays it now from its purse.
-    const paysNow = own === null && passing !== null && !S.payCarriers.includes(letter.to);
-    if (passing !== null && (!paysNow || (spy !== null && spy.purse >= side))) {
+    const paysNow = own === null && passing !== null && !demand && !S.payCarriers.includes(letter.to);
+    if (passing !== null && (demand || !paysNow || (willing && spy!.purse >= side))) {
       carrier = passing;
-      if (own !== null) fee = 0;
+      if (own !== null || demand) fee = 0;
       else if (paysNow) {
         spy!.purse -= side;
         spy!.earned.spent += side;
         gain(carrier, side, "News");
       } else fee = side;
-    } else if (spy !== null && waited >= LetterData.hireAfter && court !== null) {
+    } else if (spy !== null && willing && waited >= LetterData.hireAfter && court !== null) {
       // Hired at the court where it waits: a free person standing there, half now from the spy's purse, or all of it on
       // delivery from a court whose standing order is to pay carriers and whose record of paying, as it heard it, it trusts.
       const ask = (c: Character): number => idiv(basePrice(c, letter.to) * seasons * LetterData.hiredPercent, 100);
@@ -121,7 +133,7 @@ P.carryLetters = function () {
       }
     }
     // Nobody to carry it, long enough: the spy carries it home himself, leaving its post ("or the person himself").
-    if (carrier === null && spy !== null && waited >= LetterData.selfAfter && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
+    if (carrier === null && spy !== null && waited >= selfWait(spy) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
       // Its master goes on believing it at its post until it stands at court again.
       this.coverFor(spy, letter.to, "SpyPosted");
       this.recall(letter.to, spy);

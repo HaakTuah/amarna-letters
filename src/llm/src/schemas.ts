@@ -155,6 +155,9 @@ export const OtherActions = [
   "pay_carriers",
   "stop_paying_carriers",
   "captive_take_purse",
+  "hunt_bands",
+  "hunt_bands_always",
+  "stop_hunting_bands",
 ] as const;
 
 // The shapes of a unit order and of any other order. Repeated in the schedule and in standing orders; the copy in standing
@@ -179,7 +182,7 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours)." : null),
+      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours), hunt_bands (your province whose bands your armies there fall on next season)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
     ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back), or buy_news (the court whose news you buy)." : null)],

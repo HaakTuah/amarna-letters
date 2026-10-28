@@ -77,6 +77,12 @@ P.resolveCourt = function (orders) {
       case "payCarriers":
         S.payCarriers = o.pay ? [...new Set([...S.payCarriers, p])] : S.payCarriers.filter((x) => x !== p);
         break;
+      case "hunt":
+        S.huntNow.push(`${p}|${o.province}`);
+        break;
+      case "huntBands":
+        S.huntBands = o.on ? [...new Set([...S.huntBands, p])] : S.huntBands.filter((x) => x !== p);
+        break;
       case "seekCandidates":
         S.tasks.push(newPendingTask({ id: newId(S, "q"), kind: "Candidates", requester: p, dueTurn: S.turn + 1 }));
         break;

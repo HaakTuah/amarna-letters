@@ -60,6 +60,8 @@ import {
   parsePower,
   payRansom,
   payCarriers,
+  hunt,
+  huntBands,
   seize,
   sellDebt,
   placeSpy,
@@ -448,6 +450,12 @@ function other(x: Node): Order | null {
       return payCarriers(false);
     case "captive_take_purse":
       return captive(person, "TakePurse");
+    case "hunt_bands":
+      return hunt(province);
+    case "hunt_bands_always":
+      return huntBands(true);
+    case "stop_hunting_bands":
+      return huntBands(false);
     case "pay_fee":
       return payFee(person, true);
     case "withhold_fee":

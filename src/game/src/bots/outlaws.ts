@@ -3,7 +3,7 @@
  * an army standing where a band works falls on it and halves what it takes; and it buys news of the courts it fears or
  * fights or does not trust from the people at its court who sell it ("Characters as sellers of news"), fresh and cheap enough to be worth it.
  */
-import { buyNews, cmpStr, sortBy, move, type Order, type Power, type SeatView } from "@amarna/engine";
+import { buyNews, cmpStr, huntBands as huntBandsOrder, sortBy, move, type Order, type Power, type SeatView } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
@@ -47,11 +47,23 @@ export function huntBands(b: Board, plan: MilitaryPlan): void {
   }
 }
 
+/**
+ * Haakon's answers to item 11b: an army falls on a band only on its king's order. A script king that hunts gives the
+ * standing order once a band worth hunting works in its land, and takes it back when none is left.
+ */
+export function huntOrders(b: Board, orders: Order[]): void {
+  if (!OutlawPlay.on(b.me)) return;
+  const want = b.v.bands.some((x) => x.men >= HuntMen && b.isMine(x.province));
+  if (want !== b.v.huntBands) orders.push(huntBandsOrder(want));
+}
+
 /** At most one purchase a season: the freshest news of a foe or the court it means to fight, if the treasury can spare it. */
 export function buyNewsOrders(v: SeatView, brain: Brain, gold: number, orders: Order[]): number {
   if (!OutlawPlay.on(v.power)) return 0;
-  const wanted = (p: Power): boolean => p === brain.warTarget || (brain.rel.tryGet(p)?.trust ?? 0) < 0.1;
-  const offers = [...v.court].flatMap((c) => c.news.map((n) => ({ c, n }))).filter(({ n }) => v.turn - n.turn <= NewsAge && wanted(n.court as Power) && n.price <= Math.max(10, Math.floor(gold / 30)));
+  // Item 11b+ (the script players' news did not pay): only news of the court it fights or that is hostile to it, which
+  // its plans read, not of every court it does not trust.
+  const wanted = (p: Power): boolean => p === brain.warTarget || brain.rel.tryGet(p)?.hostile === true;
+  const offers = [...v.court].flatMap((c) => c.news.map((n) => ({ c, n }))).filter(({ n }) => v.turn - n.turn <= NewsAge && wanted(n.court as Power) && n.price <= Math.max(10, Math.floor(gold / 50)));
   const best = sortBy(offers, [({ n }) => n.turn, (a: number, b: number) => b - a], [({ n }) => n.price, (a: number, b: number) => a - b], [({ c }) => c.id, cmpStr])[0];
   if (best === undefined) return 0;
   orders.push(buyNews(best.c.id, best.n.court as Power));

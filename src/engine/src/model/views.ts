@@ -575,6 +575,8 @@ export interface SeatView {
   broken: number;
   /** Haakon's answers to item 11a: whether its standing order is to pay the carriers of its people's letters on delivery. */
   payCarriers: boolean;
+  /** Haakon's answers to item 11b: whether its standing order is that its armies fall on bands in its land. */
+  huntBands: boolean;
   /** Item 11a: the debt tablets of its debts that stand, as it knows them. */
   debts: DebtView[];
   /**
@@ -718,6 +720,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     kept: 0,
     broken: 0,
     payCarriers: false,
+    huntBands: false,
     debts: [],
     debtsHeld: [],
     strength: 0,
@@ -790,6 +793,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   kept: I,
   broken: I,
   payCarriers: B,
+  huntBands: B,
   debts: list(() => DebtViewSchema),
   debtsHeld: list(() => DebtViewSchema),
   strength: I,

@@ -193,6 +193,10 @@ export interface GameState {
   payKnown: Dict<string, PayRecord>;
   /** The courts whose standing order is to pay the carriers of their people's letters on delivery (order payCarriers). */
   payCarriers: Power[];
+  /** Haakon's answers to item 11b: the courts whose standing order is that their armies fall on bands in their land. */
+  huntBands: Power[];
+  /** The hunts ordered this season (`power|province`), carried out as the next season begins. */
+  huntNow: string[];
   /** Item 11a: every debt tablet sealed, standing or ended ("The debt tablet is the claim"). */
   debts: Debt[];
   /** Item 11a: approaches between characters waiting for an answer, and those answered this season. */
@@ -322,6 +326,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     payFacts: [],
     payKnown: new Dict(),
     payCarriers: [],
+    huntBands: [],
+    huntNow: [],
     debts: [],
     approaches: [],
     baseline: 0,
@@ -412,6 +418,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   payFacts: list(() => PayFactSchema),
   payKnown: dict(() => PayRecordSchema),
   payCarriers: list(S),
+  huntBands: list(S),
+  huntNow: list(S),
   debts: list(() => DebtSchema),
   approaches: list(() => ApproachSchema),
   baseline: I,

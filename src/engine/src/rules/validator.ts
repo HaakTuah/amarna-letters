@@ -704,7 +704,12 @@ export class OrderValidator {
         }
 
         case "payCarriers":
+        case "huntBands":
           return null;
+
+        case "hunt":
+          if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
+          return S.owner.getOrDefault(order.province, null) === power ? null : `you do not hold ${Map.get(order.province).name}`;
 
         case "payRansom": {
           const c = findCharacter(S, order.character);
