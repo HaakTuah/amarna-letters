@@ -18,6 +18,10 @@ import {
   purchase,
   sell,
   captive,
+  giftTo,
+  handOver,
+  question,
+  steal,
   cede,
   check,
   counterIntel,
@@ -115,6 +119,10 @@ interface Form {
   spyWho: string;
   spyAt: string;
   poisonText: string;
+  /** Item 10: what a questioning costs, a gift to a person at court, and the king a captive is handed over to. */
+  questionSpend: number;
+  giftGold: number;
+  handTo: Power;
   releaseWords: string;
   forgeWho: string;
   forgeText: string;
@@ -184,6 +192,9 @@ function newForm(me: Power): Form {
     spyWho: "",
     spyAt: other("Hatti"),
     poisonText: "",
+    questionSpend: 40,
+    giftGold: 20,
+    handTo: first,
     releaseWords: "",
     forgeWho: "",
     forgeText: "",
@@ -260,6 +271,8 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
       dispatch(f.envoy, f.sendTo as Power, structured ? "" : f.letter.trim(), {
         clauses: [...f.clauses],
         noInventory: f.gold > 0 && f.noInventory,
+        // Item 10: an envoy to a king asks there about anyone at your court who says they are his envoy.
+        checkClaim: v.known.find((c) => c.claimsToServe === f.sendTo)?.id ?? null,
         authority: f.seal || f.showCredentials ? newAuthority({ seal: f.seal, show: f.showCredentials, maxGold: Math.max(0, f.sealGold), cede: [...f.sealCede], open: [...f.sealOpen] }) : null,
         mandate: f.mandate.trim(),
         greeting: { ...f.g },
@@ -1144,6 +1157,11 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
               <button className="small" onClick={() => add(recall(c.id))}>
                 Recall
               </button>
+              {c.duty.startsWith("watching") && !c.duty.includes(" in ") ? (
+                <button className="small" onClick={() => add(steal(c.id))}>
+                  Steal a tablet
+                </button>
+              ) : null}
             </div>
           ))}
         {/* Anyone in your service, at court or away: whoever is away keeps going where they were going, and is free when they get there. */}
@@ -1191,7 +1209,37 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                   Execute
                 </button>
               </div>
+              <div className="row">
+                <button className="small" onClick={() => add(question(c.id, f.questionSpend))}>
+                  Question, spending
+                </button>
+                <input type="number" min="10" value={f.questionSpend} onChange={(e) => set({ questionSpend: num(e.target.value) })} />
+                <button className="small" onClick={() => add(handOver(c.id, f.handTo))}>
+                  Hand over to
+                </button>
+                <select value={f.handTo} onChange={(e) => set({ handTo: e.target.value as Power })}>
+                  {AllPowers.filter((p) => p !== me).map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <input style={{ width: "100%", marginTop: ".3rem" }} value={f.poisonText} onChange={(e) => set({ poisonText: e.target.value })} placeholder="If turned: what they should report home" />
+            </div>
+          ))}
+        {/* Item 10: a person at your court who says they are an envoy, with no letter: a host's gift, or check the claim. */}
+        {v.known
+          .filter((c) => c.claimsToServe !== null)
+          .map((c) => (
+            <div className="row" style={{ marginTop: ".3rem" }} key={`e${c.id}`}>
+              <small>
+                {c.name} says they are an envoy of {c.claimsToServe}, with no letter (an envoy you send to {c.claimsToServe} will ask there whether they serve him).
+              </small>{" "}
+              <button className="small" onClick={() => add(giftTo(c.id, f.giftGold))}>
+                Give a gift of
+              </button>
+              <input type="number" min="1" value={f.giftGold} onChange={(e) => set({ giftGold: num(e.target.value) })} />
             </div>
           ))}
         {/* An envoy you hold whose king has dismissed them, or fallen, is free but still held: you may let them go. */}

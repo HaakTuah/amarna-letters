@@ -39,7 +39,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { fresh, Assert, toDict } from "./support.ts";
+import { fresh, Assert, toDict, skilled } from "./support.ts";
 
 describe("EnvoyTests", () => {
   function start(): [GameState, Character] {
@@ -301,7 +301,7 @@ describe("EnvoyTests", () => {
   test("Forgery can be exposed by paid authentication", () => {
     let s = newGame(5);
     let forger = first(s.characters, (c) => c.employer === "Assyria");
-    forger.traits.competence = 60;
+    skilled(forger, 60);
     let e = begin(s);
     e.resolve(new Dict([["Assyria", newTurnSubmission({ orders: [forge(forger.id, "Hatti swears to attack Mitanni.", ["Hatti", "Egypt"])] })]]));
     let copy = single(s.copies, (c) => c.holder === "Assyria");

@@ -39,7 +39,7 @@ import {
   seekCandidates,
   single,
 } from "@amarna/engine";
-import { Assert, firstOrNull, toDict, join } from "./support.ts";
+import { Assert, firstOrNull, toDict, join, skilled } from "./support.ts";
 
 describe("IntelligenceTests", () => {
   function begin(s: GameState): TurnEngine {
@@ -112,7 +112,7 @@ describe("IntelligenceTests", () => {
     let s = newGame(8);
     let spy = first(s.characters, (c) => c.employer === "Babylonia");
     spy.secretMaster = null;
-    spy.traits.competence = 95;
+    skilled(spy, 95);
     let e = begin(s);
     e.resolve(orders("Babylonia", placeSpy(spy.id, "Assyria")));
     Assert.equal("SpyOutbound", spy.duty);
@@ -126,7 +126,7 @@ describe("IntelligenceTests", () => {
       let s = newGame(seed);
       let spy = first(s.characters, (c) => c.employer === "Babylonia");
       spy.secretMaster = null;
-      spy.traits.competence = 10;
+      skilled(spy, 10);
       s.treasuries.get("Assyria").gold = 5000;
       let e = begin(s);
       e.resolve(orders("Babylonia", placeSpy(spy.id, "Assyria")));

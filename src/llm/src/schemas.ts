@@ -132,6 +132,10 @@ export const OtherActions = [
   "captive_ransom",
   "captive_turn",
   "captive_release",
+  "captive_question",
+  "captive_hand_over",
+  "steal_tablet",
+  "give_gift",
   "release_detained",
   "pay_ransom",
 ] as const;
@@ -161,9 +165,9 @@ const otherOrder = (described = true): ReplySchema =>
       str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll (the province it applies in; empty for all your land), a province to spy on, or revoke_passage (one province; empty for all you granted that king)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. Otherwise empty." : null)],
-    ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), set_toll (the partner it applies to; empty for everyone), or a court to spy on." : null)],
-    ["person", str(described ? "Person id, for hire, renew, dismiss, checks, spies, captives, release, ransom, forge." : null)],
-    ["amount", int(described ? "Wage (hire, renew), spend or ransom in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), as the action needs; else 0." : null)],
+    ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), set_toll (the partner it applies to; empty for everyone), a court to spy on, or captive_hand_over (the king you hand the captive to)." : null)],
+    ["person", str(described ? "Person id, for hire, renew, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift." : null)],
+    ["amount", int(described ? "Wage (hire, renew), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), as the action needs; else 0." : null)],
     ["gold", int(described ? "trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; else 0." : null)],
     [
       "term",
@@ -349,6 +353,7 @@ const letter = (c: GameConfig | null): ReplySchema => {
     ],
     ["gold", int("Shekels sent with the envoy, or 0.")],
     ["no_inventory", bool("Only with gold: send it without an inventory tablet, saving the scribe's fee. Nobody can then check what arrived. False otherwise.")],
+    ["check_claim", str("The id of a person at your court who says they serve the king you write to (like c31): your envoy asks there whether they do. Empty otherwise.")],
     ["purity", int("Purity of the gold in percent, 10-100 (100 when you send none). Below 100 is debased.")],
     // The sealed greeting is written from these flags alone: say what each one claims or withholds.
     [
@@ -577,8 +582,19 @@ function report(carriesGold = true, canForge = true, toLord = true, received = f
   return object(...fields);
 }
 
-const pitch = (): ReplySchema =>
-  object(["pitch", str("How you present yourself, in a few sentences.")], ["asking_price", int("Your wage per season in shekels.")]);
+/**
+ * A pitch (item 10): the name it gives only when this court has never seen it, and the false envoy's claim only at the court
+ * where it stands, so that no field implies a choice that does not exist.
+ */
+const pitch = (alias: string | null = null, envoyOf: string | null = null): ReplySchema => {
+  const fields: [string, z.ZodType][] = [
+    ["pitch", str("How you present yourself, in a few sentences.")],
+    ["asking_price", int("Your wage per season in shekels.")],
+  ];
+  if (alias !== null) fields.push(["name", str(`The name you give this court: empty for your own, or "${alias}" to go by that name here instead.`)]);
+  if (envoyOf !== null) fields.push(["envoy_of", bool(`True: instead of seeking service, you say you are an envoy of the king of ${envoyOf}, whom you do not serve, hoping for a host's gifts.`)]);
+  return object(...fields);
+};
 
 const text = (field: string, description: string): ReplySchema => object([field, str(description)]);
 

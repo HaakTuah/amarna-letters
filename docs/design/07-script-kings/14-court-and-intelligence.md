@@ -24,3 +24,28 @@
 - **Detained envoys** go home after round(1 + 3 × vengeance) seasons, those whose king has fallen or dismissed them too (they are then free at the court; until the fix pass after item 4 only those still in a king's service were let go).
 - **Ransoms.** The king's own people held abroad are ransomed if honesty is at least 0.3 and spare is above 150.
 
+
+#### Who they are (item 10)
+
+- **Hiring by name.** Candidates are ranked by their price less 3 shekels for each success the court knows of them
+  (a mission carried home, a post watched unseen, siege lines slipped through); a credulous king (caution and cunning
+  averaging 0.5 or less) also takes a person at its word, a shekel off for each claim of a sharp eye or a light step. A
+  bad outcome known (caught, turned back, an imposture) counts as a blemish, as a dismissal does. A false envoy is never
+  hired.
+- **Choosing a spy**: the servant the court has seen slip past guards, if any; else, as before, the least trusted.
+- **Questioning**: a captive of a king the court is at odds with (hostile, or its war) is questioned once, for 30 + 40 ×
+  cunning shekels, when the treasury can spare 150 and someone would still pay for it; then ransomed, turned, executed or
+  released as before. (Questioning every captive cost more gold than it bought.)
+- **Handing over**: a captive nobody will pay for, whose lord is hostile to the king, goes to a sworn ally (once), before
+  the king lets it go.
+- **Stealing**: a cunning king (above 0.6) has a spy at the court of its war steal a tablet now and then (chance 0.4 ×
+  cunning a season, at most once in four seasons a spy); a spy caught stealing is lost where it matters most.
+- **False envoys**: a careful king pays 30 for inquiries into a person who says it is an envoy with no letter; a trusting
+  one gives a host's gift (10 + 20 × (1 − greed)) to the envoy of a king it is not hostile to; and every letter the king
+  sends to the court a person claims to serve carries `checkClaim` for that person.
+
+Script characters (`ScriptMind`): an envoy offered a gift by a court it owes a debt to, or where its lover or family is,
+is 15 points readier to take it; a forger tries a swapped inventory by its belief; a pitch gives a false name when the
+person is scheming (loyal mostly to itself and fond of gold, or ambitious and not loyal) or carries a bad name (two
+blemishes, or a name below -10 at any court), giving the invented name it is offered; and one loyal
+below 35, greedy above 65 and braver than 45 poses as an envoy where it stands. Its pitch boasts by what it believes.

@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { AllPowers, Dict, type GameState, HSet, newTurnSubmission, type Power, type TurnSubmission } from "@amarna/engine";
+import { AllPowers, Dict, type Character, type GameState, HSet, newSkills, newTurnSubmission, type Power, type TurnSubmission } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -266,4 +266,15 @@ export function walled(s: GameState, province: string, level: number): GameState
   s.walls.set(province, level);
   for (const p of AllPowers) s.wallsSeen.get(p).set(province, level);
   return s;
+}
+
+/**
+ * A character of the given skill in everything (item 10): its competence, its true skills and what it believes of them, with
+ * no inclination, as a test that once set `traits.competence` meant.
+ */
+export function skilled(c: Character, n: number): void {
+  c.traits.competence = n;
+  c.skills = newSkills({ gather: n, stealth: n, forge: n });
+  c.belief = newSkills({ gather: n, stealth: n, forge: n });
+  c.inclination = 0;
 }

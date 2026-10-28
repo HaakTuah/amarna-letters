@@ -159,7 +159,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     sleepingSeats: true,
     maxSleep: 12,
     startEnvoysPerPower: 2,
-    characterPoolSize: 18,
+    characterPoolSize: 60,
     memoryKeep: 12,
     ...init,
   };

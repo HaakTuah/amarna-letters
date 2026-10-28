@@ -142,7 +142,7 @@ describe("IdCounterTests", () => {
     Assert.equal(plain.state.winners, dummy.state.winners);
     Assert.equal(plain.state.turn, dummy.state.turn);
     Assert.equal(canonical(plain.state), canonical(dummy.state));
-  });
+  }, 300000); // two whole games each (item 10's pool of 60 makes them slower than the default allows)
 
   test("Every kind has a prefix of its own", () => {
     // Letters only, so an id reads back as one prefix and one number, and ids of different kinds never meet.

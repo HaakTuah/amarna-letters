@@ -7,6 +7,7 @@
  * no dice of the game's own, so the game is the same with or without it.
  */
 import {
+  beliefWords,
   AllPowers,
   CharacterSchema,
   MessageTrailSchema,
@@ -112,6 +113,8 @@ export function selfText(c: Character, turn: number, asOf: number | null = null,
   const backPay = kept ? (then!.backPay ?? null) : c.backPay;
   const owedTo = (p: Power): number => backPay?.getOrDefault(p, 0) ?? 0;
   sb.appendLine("Facts of your own life: " + joinS(" ", knownFacts.map((f) => f.text)));
+  // What it believes it can do (item 10, "Seeing oneself"): beliefs, never facts, in the part of the request that changes.
+  sb.appendLine("What you believe of yourself: " + beliefWords(c.belief) + ".");
   sb.appendLine(employer !== null ? `You serve the king of ${landName(employer)} for ${wage} shekels a season.` : "You serve nobody at present.");
   // Wages are paid at court: what he owes for seasons away is paid when the servant is back there.
   if (employer !== null && owedTo(employer) > 0) sb.appendLine(`Your lord owes you ${owedTo(employer)} shekels of back pay, paid when you return to his court.`);
@@ -145,13 +148,13 @@ export function traitLine(c: Character): string {
 }
 
 /** Whether a character's hand can fake a seal (the forger's skill), the only case in which it is asked about swapping an inventory. */
-export const canForge = (c: Character, forgeMinCompetence: number): boolean => c.traits.competence >= forgeMinCompetence;
+export const canForge = (c: Character, forgeMinCompetence: number): boolean => c.belief.forge >= forgeMinCompetence;
 
 /** What an envoy carrying gold may do with it, as its request says. */
 const keepLine = (forger: boolean): string =>
   forger
-    ? "You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. Your hand is skilled enough to fake a seal."
-    : "You could quietly keep some before it is weighed, but your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.";
+    ? "You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. You believe your hand is skilled enough to fake a seal."
+    : "You could quietly keep some before it is weighed, but you do not believe your hand is skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.";
 
 /** A king by name and land ("Tushratta of Mitanni"), or by his title alone where it names the land. */
 export const kingOf = (p: Power): string => (king(p).includes(land(p)) ? king(p) : `${king(p)} of ${land(p)}`);
@@ -387,7 +390,7 @@ export class LlmCharacterMind implements ICharacterMind {
         const kept = clamp(r.skim, 0, ctx.dispatch.gold);
         const mine = this.scriptAt(ctx.self.id, ctx.host, ctx.turn);
         mine.kept = kept;
-        mine.swapped = r.swapInventory && kept > 0 && kept < ctx.dispatch.gold && ctx.self.traits.competence >= ctx.forgeMinCompetence;
+        mine.swapped = r.swapInventory && kept > 0 && kept < ctx.dispatch.gold && ctx.self.belief.forge >= ctx.forgeMinCompetence;
         return r;
       },
       (r) =>
@@ -506,7 +509,7 @@ export class LlmCharacterMind implements ICharacterMind {
       if (refused >= 0) {
         outcomes[refused] = `accepted ${gift} from ${host}` + (isBlank(mine.ask) ? "" : ` (asked: ${mine.ask})`);
         self = clone(CharacterSchema, self);
-        self.facts.push({ id: "shadow", text: `Took ${gift} from the king of ${land(host)}.`, secrecy: "Hidden", tag: "bribe", knownBy: [host] });
+        self.facts.push({ id: "shadow", text: `Took ${gift} from the king of ${land(host)}.`, secrecy: "Hidden", tag: "bribe", knownBy: [host], alias: null });
       }
     }
     if (seqEqual(outcomes, trail.outcomes)) return ctx;
@@ -684,13 +687,15 @@ export class LlmCharacterMind implements ICharacterMind {
         const user =
           `${Views.capitalized(courtOf(court))} is looking for envoys and agents, and you have come before the king. ` +
           `Present yourself in a few sentences and name your wage per season. Someone like you usually earns about ${ctx.basePrice} shekels a season; ` +
-          `${ctx.demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now"}.`;
-        const json = await this.ask(key, ctx.turn, `candidate:${c.id}`, c, user, Replies.pitch(), signal, null, null, {
+          `${ctx.demand > 1 ? "several courts are looking for people right now" : "few courts are hiring right now"}.` +
+          // Item 10: a court that has never seen it knows it only by the name it gives.
+          (req.aliases.length > 0 ? " This court has never seen you, and knows you only by the name you give it." : "");
+        const json = await this.ask(key, ctx.turn, `candidate:${c.id}`, c, user, Replies.pitch(req.aliases[0] ?? null, req.envoyOf !== null ? land(req.envoyOf) : null), signal, null, null, {
           stakes: { kind: "pitch", moved: 0.1 },
           keys: [`t${ctx.turn}/mind/${req.id}`],
           fields: ["asking_price"],
         });
-        return Parse.pitch(json);
+        return Parse.pitch(json, req.envoyOf);
       }
       case "SpyReport": {
         const r = req.report ?? newSpyReport();

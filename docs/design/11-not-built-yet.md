@@ -31,9 +31,9 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   game has them (walls are drawn since the siege package, a ring for each level standing, as the viewer knows them, broken
   where the viewer knows of a siege; the province card gives the level and the siege) (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
-- **Tablets stolen, not only copied**: a spy taking a tablet out of an archive, and a conqueror seizing an archive so
-  that its court loses it ("Tablets are objects in a place"; "Tablets have a place"). Item 3 built
-  copying only (see "Tablets lie in archives"); build order item 10 builds the rest.
+- **Errands item 10 left for later** ("Errands, not roles"): carrying a candidate an offer (item 11's live pool), carrying a
+  ransom or a bribe by hand and chaining several stops in one errand (item 11b, "Messengers are errands"), and taking
+  command (item 13). Characters answering questioning, and choosing to lie, themselves rather than by formula.
 - **Tablets that need a reader**: an unreadable tablet showing its seal but not its words until the king finds a
   reader, and a tablet sent to a third court to be read ("Tablets are objects in a place" and "Languages";
   item 12); and an archive that moves with the court ("Command at a distance"; item 13).

@@ -26,6 +26,7 @@ import {
   newMessageTrail,
   newMindRequest,
   newSpyReport,
+  newSkills,
   newTraits,
 } from "@amarna/engine";
 import {
@@ -75,7 +76,9 @@ describe("FileCharacterTests", () => {
     if (stem.includes("_aud_present_")) return `{"as_written":false,"speech":"${words}","keep_gold":${keep},"swap_inventory":false}`;
     if (stem.includes("_aud_react_")) return `{"speech":"${words}","accept_gift":${gift ? "true" : "false"},"accept_service":false,"commitments":""}`;
     if (stem.includes("_report_")) return `{"as_given":false,"report":"${words}","keep_gold":0,"swap_inventory":false}`;
-    if (stem.includes("_pitch_")) return `{"pitch":"${words}","asking_price":14}`;
+    // Item 10: a pitch to a court that never saw the person also asks the name it gives (empty: its own), and, where it
+    // stands, whether it poses as an envoy; the reply gives both, as the request may ask them.
+    if (stem.includes("_pitch_")) return `{"pitch":"${words}","asking_price":14,"name":"","envoy_of":false}`;
     if (stem.includes("_spy_")) return `{"report":"${words}"}`;
     return `{"summary":"${words}"}`;
   }
@@ -263,6 +266,8 @@ describe("FileCharacterTests", () => {
       status: "Employed",
       employer: "Egypt",
       traits: newTraits({ loyalty: 30, greed: 80, competence: 70, ambition: 30, courage: 60 }),
+      // Item 10: it believes what it can do.
+      belief: newSkills({ gather: 70, stealth: 70, forge: 70 }),
     });
   }
 

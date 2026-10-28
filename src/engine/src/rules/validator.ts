@@ -7,7 +7,7 @@ import { roundEven, toInt } from "../core/num.ts";
 import { isBlank } from "../core/text.ts";
 import { WorldMap } from "../model/map.ts";
 import { characterOf, unitOf, type CaptiveFate, type HireOrder, type Order, type RejectedOrder, type TurnSubmission } from "../model/orders.ts";
-import { coverOf, type Character } from "../model/people.ts";
+import { coverOf, falseNameAt, hiddenAt, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { grantStands } from "../model/authority.ts";
@@ -354,6 +354,11 @@ export class OrderValidator {
           if (d.purityPercent < 10 || d.purityPercent > 100) return "purity must be between 10 and 100 percent";
           if (d.copies && d.copies.length > 0)
             for (const id of d.copies) if (!S.copies.some((x) => x.id === id && x.holder === power)) return `you hold no tablet copy '${id}'`;
+          // A claim to check (item 10): only that of a person at your court who says it is an envoy of the king written to.
+          if (d.checkClaim != null) {
+            const claimant = findCharacter(S, d.checkClaim);
+            if (claimant === null || falseNameAt(claimant, power)?.employer !== d.to) return `nobody at your court says they are an envoy of ${d.to} by the id '${d.checkClaim}'`;
+          }
           // The envoy's authority (item 9): provinces it names that the king no longer holds are left out by the engine.
           if (d.authority != null) {
             if (d.authority.maxGold < 0) return "the most gold an envoy may give cannot be negative";
@@ -478,6 +483,25 @@ export class OrderValidator {
           if (order.spend < 10) return "an examination costs at least 10 shekels";
           return spend(order.spend);
 
+        case "steal": {
+          // Item 10: a spy of yours posted at a court, which it watches, takes a tablet from its archive.
+          // As for a recall: by what the court believes of its spy, so that a refusal never tells it what it has not heard.
+          const c = findCharacter(S, order.character);
+          if (c === null || (c.employer !== power && !covered(c))) return `${order.character} is not in your service`;
+          if ((coverOf(c, power)?.believed ?? c.duty) !== "SpyPosted" || c.missionTarget === null) return `${c.name} is not watching a court for you`;
+          if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
+          return null;
+        }
+
+        case "gift": {
+          // Item 10: a gift to a person at your court (a host's return gift, or a bribe).
+          // Only someone the court sees standing there: a hidden spy is, to the court, nowhere.
+          const c = findCharacter(S, order.character);
+          if (c === null || c.status === "Dead" || c.at !== power || hiddenAt(c, power)) return `there is nobody at your court called '${order.character}'`;
+          if (order.gold <= 0) return "name the gold to give";
+          return spend(order.gold);
+        }
+
         case "forge": {
           const e = ownCharacter(order.character);
           if (e !== null) return e;
@@ -492,6 +516,16 @@ export class OrderValidator {
           if (c === null || c.status !== "Captured" || c.heldBy !== power) return `you hold no captive '${co.character}'`;
           if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
           if (co.fate === "Ransom" && co.ransom <= 0) return "name a ransom";
+          // Item 10: questioning costs what is spent on it; a captive is handed over to a living court other than one's own.
+          if (co.fate === "Question") {
+            if ((co.spend ?? 0) < 10) return "questioning costs at least 10 shekels";
+            return spend(co.spend!);
+          }
+          if (co.fate === "HandOver") {
+            const to = co.to ?? null;
+            if (to === null || !AllPowers.includes(to) || to === power || heardFallen(to)) return `you cannot hand a captive over to '${to ?? ""}'`;
+            return null;
+          }
           return OrderValidator.captiveRefusal(S, c, co.fate);
         }
 

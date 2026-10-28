@@ -39,7 +39,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert, join } from "./support.ts";
+import { Assert, join, skilled } from "./support.ts";
 import { describe as describeOrder } from "@amarna/engine";
 
 // Every order the validator accepts but the season cannot carry out is reported to its king next season, as a
@@ -100,7 +100,7 @@ describe("ResolutionFailureTests", () => {
       true,
     ],
     ["forgery that cannot be paid", "Not enough gold", "There was not enough gold to pay for a forger's materials; nothing was forged.", true],
-    ["forgery by a servant without the skill", "Forgery botched", "{envoy} lacks the skill; the clay is ruined and nothing usable came of it.", false],
+    ["forgery by a servant without the skill", "Forgery botched", "{envoy} said they could not fake a seal; the clay is ruined and nothing usable came of it.", false],
     ["ransom that cannot be paid", "Not enough gold", "There was not enough gold to pay for the ransom for {envoy}; none was sent.", true],
     ["ransom for a captive let go that season", "Ransom not sent", "The ransom for {envoy} could not be sent: {envoy} is no longer held by Hatti.", true],
     ["hire below the price", "Not hired", "{stranger} declined your offer of 1 shekels a season: they ask", false],
@@ -211,11 +211,11 @@ describe("ResolutionFailureTests", () => {
         break;
       case "forgery that cannot be paid":
         debased(s);
-        envoy.traits.competence = 90;
+        skilled(envoy, 90);
         egypt(forge(envoy.id, "Hatti and Assyria swear to march together.", ["Hatti", "Assyria"]));
         break;
       case "forgery by a servant without the skill":
-        envoy.traits.competence = 10;
+        skilled(envoy, 10);
         egypt(forge(envoy.id, "Hatti and Assyria swear to march together.", ["Hatti", "Assyria"]));
         break;
       case "ransom that cannot be paid":

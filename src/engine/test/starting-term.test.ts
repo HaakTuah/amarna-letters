@@ -53,12 +53,13 @@ describe("StartingTermTests", () => {
   //
   // The fingerprint of the starting characters when every term ended with turn 10, ids left out (taken just before fix (d);
   // the version of this test before then, with the ids in, matched the fingerprint from before terms were staggered).
-  // Taken again for save version 7, whose new generator draws every trait and fact anew (build order item 5+).
+  // Taken again for save version 7, whose new generator draws every trait and fact anew (build order item 5+), and for save
+  // version 16 (item 10: attested envoys' traits from the sources, lovers kept at courts, and 42 more characters).
   //
   test.each([
-    [1, "8bc56a55bc22b453"],
-    [7, "f6e59af377749771"],
-    [42, "eb401e1e13745795"],
+    [1, "94cd258953402969"],
+    [7, "1cd05cbdedce8870"],
+    [42, "f70257b0604262f5"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);

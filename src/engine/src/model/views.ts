@@ -226,6 +226,10 @@ export interface CharacterView {
   term: string;
   knownFacts: string[];
   pitch: string | null;
+  /** Item 10: what the person said it can do when it pitched to you, in words ("says they can slip past most guards"). */
+  claims: string[];
+  /** Item 10: the king a person at your court says it serves as his envoy, though it brought no letter; null if none. */
+  claimsToServe: Power | null;
   /**
    * What someone not in your service asks you a season: named in a pitch, or asked by a free person at your court.
    */
@@ -266,6 +270,8 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     term: "",
     knownFacts: [],
     pitch: null,
+    claims: [],
+    claimsToServe: null,
     askingPrice: null,
     ready: false,
     heldByYou: false,
@@ -293,6 +299,8 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   term: S,
   knownFacts: list(S),
   pitch: S,
+  claims: list(S),
+  claimsToServe: opt(S),
   askingPrice: opt(I),
   ready: B,
   heldByYou: B,

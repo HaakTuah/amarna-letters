@@ -2,7 +2,8 @@
 
 - A pool of 18: eight names attested in the Amarna letters (Mane, Keliya, Pirissi, Tulubri,
   Haamashshi, Artessupa, Mazipalali, Yanhamu; seven are drawn per game) and the rest in regional
-  name styles. Each power starts with two envoys; the rest are free agents.
+  name styles. Each power starts with two envoys; the rest are free agents. Since item 10 these are the first eighteen
+  of a pool of 60, and skills, beliefs, names and ties are in `18-characters-who-they-are.md`.
 - Traits 0–100 (loyalty, greed, competence, ambition, courage, an optional sympathy) and discrete
   facts at three secrecy levels. Persona text is written once (template, or Sonnet narrator) and
   kept, but its trait words follow the traits: every model request is built with the persona as it is

@@ -173,6 +173,11 @@ export interface DispatchOrder {
   noInventory?: boolean | null;
   /** The envoy's authority (item 9): the seal, the limits the engine checks, and whether it shows them. None: no seal. */
   authority?: Authority | null;
+  /**
+   * Item 10, "check a claim": a person at your court who says they serve the king the envoy goes to. The envoy asks there,
+   * and brings home whether they do.
+   */
+  checkClaim?: string | null;
 }
 /** Let a detained envoy (or captive) go home, optionally with a spoken reply. */
 export interface ReleaseOrder {
@@ -219,6 +224,17 @@ export interface RecallSpyOrder {
   type: "recall";
   character: string;
 }
+/** Item 10: have your spy posted at a court steal a tablet from its archive, so that its court loses it. */
+export interface StealOrder {
+  type: "steal";
+  character: string;
+}
+/** Item 10: a gift of gold from your treasury to a person at your court (a false envoy's motive: the host's return gifts). */
+export interface GiftOrder {
+  type: "gift";
+  character: string;
+  gold: number;
+}
 export interface CounterIntelOrder {
   type: "counterIntel";
   spend: number;
@@ -264,7 +280,7 @@ export interface ForgeOrder {
   clauses?: Clause[] | null;
 }
 
-export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release"] as const;
+export const CaptiveFateValues = ["Execute", "Ransom", "Turn", "Release", "Question", "HandOver"] as const;
 export type CaptiveFate = (typeof CaptiveFateValues)[number];
 
 /** Decide the fate of a caught spy held at this court. */
@@ -274,6 +290,9 @@ export interface CaptiveOrder {
   fate: CaptiveFate;
   ransom: number;
   poison: string;
+  /** Item 10: for "Question", the shekels spent on the questioning; for "HandOver", the court the captive is given to. */
+  spend?: number | null;
+  to?: Power | null;
 }
 export interface PayRansomOrder {
   type: "payRansom";
@@ -298,6 +317,8 @@ export type Order =
   | FortifyOrder
   | SallyOrder
   | SellOrder
+  | StealOrder
+  | GiftOrder
   | PurchaseOrder
   | FeedOrder
   | CaravanOrder
@@ -349,7 +370,7 @@ export function dispatch(
   envoy: string,
   to: Power,
   letter: string,
-  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null; clauses?: Clause[] | null; noInventory?: boolean | null; authority?: Authority | null } = {},
+  opts: { mandate?: string; greeting?: GreetingOptions | null; gold?: number; purityPercent?: number; proposal?: TabletProposal | null; copies?: string[] | null; clauses?: Clause[] | null; noInventory?: boolean | null; authority?: Authority | null; checkClaim?: string | null } = {},
 ): DispatchOrder {
   return {
     type: "dispatch",
@@ -365,6 +386,7 @@ export function dispatch(
     clauses: opts.clauses ?? null,
     noInventory: opts.noInventory ?? null,
     ...(opts.authority != null ? { authority: opts.authority } : {}),
+    ...(opts.checkClaim != null ? { checkClaim: opts.checkClaim } : {}),
   };
 }
 export const release = (character: string, reply = ""): ReleaseOrder => ({ type: "release", character, reply });
@@ -390,6 +412,10 @@ export const assay = (lot: string): AssayOrder => ({ type: "assay", lot });
 export const authenticate = (copy: string, spend: number): AuthenticateOrder => ({ type: "authenticate", copy, spend });
 export const forge = (character: string, text: string, seals: Power[]): ForgeOrder => ({ type: "forge", character, text, seals });
 export const captive = (character: string, fate: CaptiveFate, ransom = 0, poison = ""): CaptiveOrder => ({ type: "captive", character, fate, ransom, poison });
+export const question = (character: string, spend: number): CaptiveOrder => ({ type: "captive", character, fate: "Question", ransom: 0, poison: "", spend });
+export const handOver = (character: string, to: Power): CaptiveOrder => ({ type: "captive", character, fate: "HandOver", ransom: 0, poison: "", to });
+export const steal = (character: string): StealOrder => ({ type: "steal", character });
+export const giftTo = (character: string, gold: number): GiftOrder => ({ type: "gift", character, gold });
 export const payRansom = (character: string): PayRansomOrder => ({ type: "payRansom", character });
 export const unreadable = (text: string, reason: string): UnreadableOrder => ({ type: "unreadable", text, reason });
 
@@ -476,7 +502,15 @@ export function describe(o: Order): string {
     case "forge":
       return `have ${o.character} forge a tablet sealed by ${o.seals.join(", ")}`;
     case "captive":
-      return `${o.fate.toLowerCase()} the captive ${o.character}`;
+      return o.fate === "Question"
+        ? `question the captive ${o.character} (${o.spend ?? 0} shekels)`
+        : o.fate === "HandOver"
+          ? `hand the captive ${o.character} over to ${o.to ?? "?"}`
+          : `${o.fate.toLowerCase()} the captive ${o.character}`;
+    case "steal":
+      return `have ${o.character} steal a tablet from the archive they watch`;
+    case "gift":
+      return `give ${o.character} a gift of ${o.gold} shekels`;
     case "payRansom":
       return `pay the ransom for ${o.character}`;
   }
@@ -510,6 +544,7 @@ export function characterOf(o: Order): string | null {
     case "recall":
     case "forge":
     case "captive":
+    case "steal":
       return o.character;
     default:
       return null;
@@ -571,6 +606,7 @@ export const OrderSchema = poly("Order", "type", {
     clauses: opt(list(() => ClauseSchema)),
     noInventory: opt(B),
     authority: opt(() => AuthoritySchema),
+    checkClaim: opt(S),
   }),
   release: v("ReleaseOrder", () => release(""), { character: S, reply: S }),
   seekCandidates: v("SeekCandidatesOrder", () => seekCandidates(), {}),
@@ -587,7 +623,9 @@ export const OrderSchema = poly("Order", "type", {
   assay: v("AssayOrder", () => assay(""), { lot: S }),
   authenticate: v("AuthenticateOrder", () => authenticate("", 0), { copy: S, spend: I }),
   forge: v("ForgeOrder", () => forge("", "", []), { character: S, text: S, seals: list(S), clauses: opt(list(() => ClauseSchema)) }),
-  captive: v("CaptiveOrder", () => captive("", "Execute"), { character: S, fate: S, ransom: I, poison: S }),
+  captive: v("CaptiveOrder", () => captive("", "Execute"), { character: S, fate: S, ransom: I, poison: S, spend: opt(I), to: opt(S) }),
+  steal: v("StealOrder", () => steal(""), { character: S }),
+  gift: v("GiftOrder", () => giftTo("", 0), { character: S, gold: I }),
   payRansom: v("PayRansomOrder", () => payRansom(""), { character: S }),
   unreadable: v("UnreadableOrder", () => unreadable("", ""), { text: S, reason: S }),
 });
