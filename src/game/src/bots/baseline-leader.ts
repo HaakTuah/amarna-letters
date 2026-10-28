@@ -345,7 +345,7 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
   for (const [, o] of v.owner) if (o === me) provinces++;
   const units = count(v.units, (u) => u.power === me);
   const maritime = me === "Alashiya" || me === "Arzawa";
-  const weak = tier(me) === "Weak";
+  const weak = tier(me) === "Weak" || tier(me) === "City";
   let fleets = count(v.units, (u) => u.power === me && u.kind === "Fleet");
 
   const spots = sortBy(

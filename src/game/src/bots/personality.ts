@@ -25,14 +25,14 @@ export interface Personality {
   readonly cunning: number;
   /** How long it remembers a wrong, and how hard it punishes one. */
   readonly vengeance: number;
-  /** Prefers buying cities to conquering them. */
+  /** Prefers trade and bargains to conquest. */
   readonly commerce: number;
 }
 
 const greatArchetypes = {
   Egypt: {
     epithet: "Pharaoh of the gilded gifts",
-    description: "Proud and lavish, sends gold to keep the other kings in his debt (not always fine gold), and expands by buying the cities of Canaan.",
+    description: "Proud and lavish, sends gold to keep the other kings in his debt (not always fine gold), and keeps the cities of Canaan as his vassals.",
     aggression: 0.4,
     caution: 0.6,
     honesty: 0.45,
@@ -116,7 +116,7 @@ const greatArchetypes = {
   },
   Alashiya: {
     epithet: "the copper merchant",
-    description: "Trade partner to all and threat to none: buys coastal cities, pays tribute rather than fights, and keeps his word.",
+    description: "Trade partner to all and threat to none: pays tribute rather than fights, and keeps his word.",
     aggression: 0.1,
     caution: 0.9,
     honesty: 0.8,

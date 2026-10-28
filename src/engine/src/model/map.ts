@@ -460,8 +460,8 @@ export function buildMap(): WorldMap {
 /**
  * The walls each land province starts with, from 0 (none) to 3 (Build order item 5, the siege package): every capital 3,
  * the city-states' cities among them since item 11+ (until then they were fortresses at 2 or walled towns at 1); the
- * fortresses 2; the walled towns 1; every other land province none, and so it is left out. The lands without a town
- * (Kaska, Lukka, the Sutean steppe) have none. First guesses, tuned in item 18. The walls standing now are the game state's (GameState.walls).
+ * fortresses 2; the walled towns 1; the lands without a town (Kaska, Lukka, the Sutean steppe) 2, their chiefs'
+ * strongholds; every other land province none, and so it is left out. First guesses, tuned in item 18. The walls standing now are the game state's (GameState.walls).
  */
 export const StartWalls: ReadonlyMap<string, number> = new Map([
   // Capitals: the Great Kings' and, since item 11+, the city-states' (each city-state's city is its capital)
@@ -473,6 +473,10 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   ["gaza", 2], ["memphis", 2], ["nesa", 2], ["nineveh", 2],
   // Walled towns
   ["sumur", 1],
+  // The lands without a town (item 11+, from the review): no town's walls, but the chiefs' hill strongholds and the
+  // steppe's wells hold an army off like a fortress's (the Kaska burned Hattusa and were never subdued; the Lukka men held
+  // their mountains) [G]
+  ["kaska", 2], ["lukka", 2], ["steppe", 2],
 ]);
 
 export interface StartUnit {

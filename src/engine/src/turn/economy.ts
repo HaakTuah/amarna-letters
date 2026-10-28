@@ -155,27 +155,27 @@ P.harvestSeason = function () {
     let granary = S.granary.getOrDefault(prov.id, 0);
     if (season === reapSeasonOf(prov.id)) {
       // Plague, war and the like strike the harvest as it is brought in; it grows even under a siege.
-      const harvest = prov.kingless ? crop : toInt(roundEven(crop * (this.yieldFactor(prov.id, true) / absorbedIn(S, prov.id))));
+      const harvest = toInt(roundEven(crop * (this.yieldFactor(prov.id, true) / absorbedIn(S, prov.id))));
       S.reaped.set(prov.id, harvest);
       granary += harvest;
       S.crop.set(prov.id, 0);
       if (owner !== null) reaped.set(owner, [...reaped.getOrDefault(owner, []), `${prov.name} ${harvest}`]);
     } else S.crop.set(prov.id, crop);
-    // A land without a town that nobody holds collects no tax: its people keep their whole harvest. Under a leader (the
-    // Kaska lands, Lukka and the Sutean steppe from item 11+, "Land without a ruler") it is taxed like any other land.
-    if (!prov.kingless || owner !== null) {
+    // Land nobody holds collects no tax: its people keep their whole harvest ("Land without a ruler", item 11+; until then
+    // a free city's tax filled its own stores). Under a leader the Kaska lands, Lukka and the steppe are taxed like any land.
+    if (owner === null) {
+      const metal = toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id)));
+      if (metal > 0) this.spendAt(prov.id, metal);
+    } else {
       // The harvest already bore the catastrophes; the tax bears only absorption, and nothing reaches it under a siege.
       const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * absorbedIn(S, prov.id)));
       const tax = Math.min(granary, due);
       granary -= tax;
       const over = this.putInStores(prov.id, tax);
-      if (owner !== null) {
-        taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
-        lost.set(owner, lost.getOrDefault(owner, 0) + over);
-      }
+      taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
+      lost.set(owner, lost.getOrDefault(owner, 0) + over);
       const metal = toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id)));
-      if (owner === null) this.spendAt(prov.id, metal);
-      else if (metal > 0) {
+      if (metal > 0) {
         const t = S.treasuries.get(owner);
         t.gold += metal;
         t.income += metal;

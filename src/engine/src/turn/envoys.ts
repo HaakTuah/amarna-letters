@@ -184,6 +184,9 @@ P.dispatch = function (p, d) {
         })
       : null;
   const tabletClauses = d.proposal ? this.clausesOf(p, d.to, d.proposal.clauses, "tablet") : [];
+  // A vassal mark names one of the two kings (item 11+); one naming a third is left off, and the writer told why.
+  if (d.proposal && d.proposal.vassal !== null && d.proposal.vassal !== p && d.proposal.vassal !== d.to)
+    notify(S, p, "Notice", "Clauses left out", `Your tablet to ${d.to} is not marked as a vassal treaty: it can name only you or ${d.to} the vassal, not ${d.proposal.vassal}.`);
   const proposal = d.proposal
     ? newTabletProposal({
         text: structured || isBlank(d.proposal.text) ? renderClauses(tabletClauses, p, d.to) : this.scribe(p, cap(d.proposal.text, 1200)),

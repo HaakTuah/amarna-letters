@@ -36,11 +36,12 @@ const Overawes = 3;
 /** The tribute a year a script overlord asks: this share of the vassal's land's worth a season (its yield), at least 5. */
 const AskShare = 0.5;
 
-/** Every vassal bond this court knows: the opening ones (public), and those on the tablets it holds, newest last. */
+/** Every vassal bond this court knows: those on the tablets it holds (the newest between a pair), then the opening ones (public). */
 export function knownBonds(b: Board): VassalTerms[] {
   const out: VassalTerms[] = [];
   const seen = new HSet<string>();
-  for (const t of b.v.tablets) {
+  // Newest first, so a bond sealed again between the same pair (new tribute) replaces the older.
+  for (const t of [...b.v.tablets].sort((x, y) => (y.sealedTurn ?? -1) - (x.sealedTurn ?? -1))) {
     if (t.repudiatedTurn !== null) continue;
     const terms = vassalTerms({ id: t.tabletId, vassal: t.vassal, proposedBy: t.proposedBy, partner: t.partner, clauses: t.clauses, sealedTurn: t.sealedTurn });
     if (terms === null || seen.has(`${terms.vassal}>${terms.overlord}`)) continue;
@@ -102,7 +103,8 @@ export function vassalSeason(b: Board, brain: Brain): void {
       }
       if (!brain.serving.has(over)) continue;
       brain.bondFriends.add(over);
-      if (bond.tribute > 0 && b.v.turn - brain.tributePaid.getOrDefault(over, -Year) >= Year) brain.tributeDue = [over, bond.tribute];
+      // One tribute a season: a vassal of two pays the other the next.
+      if (brain.tributeDue === null && bond.tribute > 0 && b.v.turn - brain.tributePaid.getOrDefault(over, -Year) >= Year) brain.tributeDue = [over, bond.tribute];
     } else if (bond.overlord === me) {
       // A vassal that pays is a friend; one in arrears is not.
       if (!inArrears(b, brain, bond)) brain.bondFriends.add(bond.vassal);

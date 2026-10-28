@@ -199,7 +199,7 @@ export function populate(s: GameState): void {
     const home = free.filter((c) => c.at === p);
     const c = home.length > 0 ? home[0] : r.pick(free);
     employ(s, r, c, p, plantSlots.has(slot));
-    c.met = [p];
+    if (!c.met.includes(p)) c.met.push(p);
     slot++;
   }
   // Item 11a: a free person's savings from the life before the game, from a stream of their own; every character's way to

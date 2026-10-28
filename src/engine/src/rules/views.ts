@@ -330,7 +330,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
   v.prices.set("seaSupply", s.config.seaSupply);
   v.prices.set("winterArmyLoss", s.config.winterArmyLoss);
   v.prices.set("winterFleetLoss", s.config.winterFleetLoss);
-  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans, and the free cities' asking prices.
+  // The economy at home (item 9+a): its own provinces' stores and markets, its caravans.
   for (const id of ownedBy(s, p)) {
     const prov = m.get(id);
     const mk = engine.market(id);

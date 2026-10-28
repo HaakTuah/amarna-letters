@@ -72,6 +72,9 @@ const byReliability = (brain: Brain): [(c: CharacterView) => unknown, (a: never,
   [(c: CharacterView) => c.id, cmpStr],
 ];
 
+/** A small power's position, by its starting tier: a weak Great King or a city-state (data, item 11+). */
+const isSmall = (p: Power): boolean => tier(p) === "Weak" || tier(p) === "City";
+
 export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<string>, rng: Rng): void {
   const p = brain.p;
   const v = b.v;
@@ -126,14 +129,14 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
     }
     if (r.grudge >= 3 && fresh) missions.push(mission(x, "grievance", 0.3 + 0.5 * p.vengeance));
     if (!r.treaty && neighbours.has(x) && fresh && !r.hostile)
-      missions.push(mission(x, "peace", (0.3 + p.caution) * brain.hostility(x, b) + 0.2 * p.diplomacy + (tier(me) === "Weak" ? 0.3 : 0)));
+      missions.push(mission(x, "peace", (0.3 + p.caution) * brain.hostility(x, b) + 0.2 * p.diplomacy + (isSmall(me) ? 0.3 : 0)));
     // Alliance with a trusted partner; never with a rival for the crown, and with the leader only for a small kingdom.
     const small = b.strength(me) < 0.6 * b.strength(x);
     if (r.treaty && !r.allied && r.trust > 0.2 && fresh && (x !== leader || small) && !rivals(b, me, x))
       missions.push(mission(x, "alliance", 0.5 * p.diplomacy + 0.2 * r.trust + (small ? 0.15 : 0)));
     if (!besieged && brain.isFriend(x) && brain.spareGold > 150 && rng.chance(0.3)) missions.push(mission(x, "gift", 0.4 * p.generosity));
     // Tribute, to a great neighbour who looks ready to march.
-    if (!besieged && tier(me) === "Weak" && tier(x) !== "Weak" && neighbours.has(x) && brain.spareGold > 100 && fresh && !r.hostile && brain.hostility(x, b) > 0.35)
+    if (!besieged && isSmall(me) && !isSmall(x) && neighbours.has(x) && brain.spareGold > 100 && fresh && !r.hostile && brain.hostility(x, b) > 0.35)
       missions.push(mission(x, "tribute", 0.35 + 0.4 * p.caution));
   }
   // The year's tribute to the overlord we serve, a demand of a vassal in arrears, and vassalage offered either way (item 11+).
@@ -551,7 +554,14 @@ export function greet(brain: Brain, to: Power, humble = false): GreetingOptions 
   // A proud king writes no greeting at all to one who broke an oath to him.
   if (r.oathsBroken > 0 && r.hostile && p.pride > 0.8) o.omit = true;
   if (humble && p.pride < 0.5) o.claimGreatKing = false;
-  if (p.pride > 0.85 && tier(to) === "Weak" && !brain.isFriend(to)) o.grantGreatKing = false;
+  if (p.pride > 0.85 && isSmall(to) && !brain.isFriend(to)) o.grantGreatKing = false;
+  // A city's ruler writes as a ruler, not a Great King, and as a servant to the kings; the kings write so to him (item 11+).
+  if (tier(brain.me) === "City") {
+    o.claimGreatKing = false;
+    if (tier(to) !== "City") o.callBrother = false;
+  }
+  if (tier(to) === "City") o.grantGreatKing = false;
+  if (tier(to) === "City" && tier(brain.me) !== "City") o.callBrother = false;
   // A proud king withholds "brother" and "Great King" from a king whose claim to the rank is still new and whom he counts
   // his vassal, unless they are friends ("Recognition is earned"; at the start, Babylonia and Assyria).
   const claim = brain.claims.find((x) => x.power === to);
