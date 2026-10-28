@@ -17,8 +17,32 @@ none other.
 
 Asked at the start (Build order since 64; Land, people and economy since 24; War, travel and the seas since 53; Victory
 and the ending since 9; Work, money and lending since 11): nothing new. Haakon had not answered the questions of items 8,
-9, 9+a, 9+b or 10 in `docs/BUILD-PROGRESS.md`, so their readings stand. Asked again before the pull request: nothing newer
-than the copy, and nothing new on `develop`.
+9, 9+a, 9+b or 10 in `docs/BUILD-PROGRESS.md`, so their readings stand.
+
+Asked again before the pull request (28 October 2026): Haakon had answered the reviews of items 9+a, 9+b and 10 in the
+design document, and item 10+a now opens with the answers that differ from what was built (Build order, revision 67;
+Land, people and economy, 26; War, travel and the seas, 54). Built here, since it touches this item's discharged men:
+
+- **A mutinous unit's men keep what they carry and walk home with it like disbanded men, nothing reaching home before
+  they do** ("Soldiers carry savings home"): every disbanded unit's savings now travel with its walking men (`Walk.savings`)
+  and enter their home's purse when they arrive, or the purse where they settle; those who never set out keep their
+  share; the savings on the road count in the realm's holdings.
+
+Not built here, since together they are large and belong to other items' systems; carried to the start of item 10+b,
+the next item, as the builder rules say (and said in the pull request):
+
+1. Anyone's ships may bring grain to a besieged harbour while its waters are open, selling at what its market pays
+   ("Stores and mouths are the clock"), in place of its king's ships only.
+2. A court knows a foreign market's prices and the tolls set on it only as last reported to it, never posted ("Tolls
+   and smuggling", "The rate"), in place of 9+b's half-season reach and posted tolls.
+3. Model characters choose their own claims when they pitch and their own words when questioned ("Capture is
+   questioning"), the formula serving script characters only.
+4. Rumour travels by road at the pace of news, so far courts hear later.
+5. A false envoy is received in a full audience ("A false envoy").
+6. A captive handed over travels under guard like any company, so he can be intercepted or freed on the way.
+
+Also new: "Using a feature must pay" (28 October 2026): every item adds its use-against-ignore numbers to one running
+table in the progress file. Started there with this item's numbers and those of earlier items whose reports give them.
 
 ## The audit at the start
 
@@ -101,7 +125,7 @@ Each is a question Haakon can answer; the reading taken comes first, the alterna
 13. **The season on land slows everyone**, envoys included, by a tenth where the winter is cool and a quarter where it
     is hard (or companies only).
 14. **The levers matter little at these numbers**: kings that use the tax, famine feeding, levy costing and colonists
-    grow 1.05 against 1.03 for those that ignore them, with equal wins; left to item 18, which sets how much room a
+    grow 1.05 against 1.04 for those that ignore them, with equal wins; left to item 18, which sets how much room a
     greedy king has (or widen it now, for example by letting farmers eat less of the harvest).
 
 ## First guesses (item 18 tunes them)
@@ -130,14 +154,14 @@ How often each new feature was used in the 50 games after (seeds 1-50, every kin
 
 | Feature | Used | Outcome |
 |---|---|---|
-| Tax set by province (`tax-set`) | in all 50 games, 41,270 times (each province's rate follows its harvest) | taxes run about 35-38 in good years, fall to near nothing in a drought |
-| Famine (`famine`, a power's hungry provinces in a season) | all 50 games, 5,216 | mostly droughts and floods, which strike 468 times each |
-| Colonists (`colonists`) | 33 games, 71 units settled | every one settled (the order is checked before it is given) |
-| The people's resistance (`resisted`) | 39 games, 193 moves held off | script kings bring the support it asks for where they see the land; the moves held off are ones that met more than they reckoned (land out of sight, or a troop that moved away and left its people) |
+| Tax set by province (`tax-set`) | in all 50 games, 41,303 times (each province's rate follows its harvest) | taxes run about 35-38 in good years, fall to near nothing in a drought |
+| Famine (`famine`, a power's hungry provinces in a season) | all 50 games, 5,235 | mostly droughts and floods, which strike 468 times each |
+| Colonists (`colonists`) | 32 games, 70 units settled | every one settled (the order is checked before it is given) |
+| The people's resistance (`resisted`) | 39 games, 209 moves held off | script kings bring the support it asks for where they see the land; the moves held off are ones that met more than they reckoned (land out of sight, or a troop that moved away and left its people) |
 | Levies where the men are | every levy | script kings check the men before ordering one (`canLevy`); the small Levantine provinces never levy (reading 2) |
 
 **Using the levers against ignoring them** (`--land-play-half`, seeds 1-50, half the kings on each side by seed): 1.05
-growth and 25 wins of 50 using them, against 1.03 and 25 ignoring them. The levers matter little at these first guesses:
+growth and 25 wins of 50 using them, against 1.04 and 25 ignoring them. The levers matter little at these first guesses:
 a farmer can bear only about four points of tax above the default before going hungry, so the extra grain is small, and
 the famines come mostly from the weather, which both sides suffer alike (a run with a wider tax margin, 6 points, gave
 the same famines and no more growth). That is the feature's size at these numbers rather than poor play; item 18 decides
@@ -150,23 +174,23 @@ how much room a greedy king should have (reading 4).
 
 | | Before 10+a | After 10+a |
 |---|---|---|
-| Capitals fell (games; kingdoms) | 37; 57 | 26; 40 |
+| Capitals fell (games; kingdoms) | 37; 57 | 27; 42 |
 | First fall, median season | 19 | 19 |
 | Entry to fall, median seasons | 21 | 16 |
-| Wins: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa, Alashiya | 2, 9, 9, 21, 2, 7, 0 | 0, 15, 1, 27, 1, 6, 0 |
-| Mean growth (same order) | 1.17, 0.96, 1.33, 1.46, 0.42, 0.90, 0.87 | 1.12, 1.25, 1.24, 1.49, 0.49, 0.92, 0.79 |
-| Tablets sealed; detentions | 1471; 423 | 1540; 427 |
-| Sieges begun / won | 1197 / 770 | 1146 / 788 |
-| Troops hungry; mutinies | 761; 196 | 856; 218 |
+| Wins: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa, Alashiya | 2, 9, 9, 21, 2, 7, 0 | 0, 14, 2, 27, 0, 7, 0 |
+| Mean growth (same order) | 1.17, 0.96, 1.33, 1.46, 0.42, 0.90, 0.87 | 1.12, 1.21, 1.28, 1.45, 0.44, 0.96, 0.79 |
+| Tablets sealed; detentions | 1471; 423 | 1511; 408 |
+| Sieges begun / won | 1197 / 770 | 1150 / 789 |
+| Troops hungry; mutinies | 761; 196 | 823; 206 |
 
-`--versus solo`, 40 seeds (one current king against six baselines): 2.27 growth alone and 0.96 as baseline over all, 72%
-and 14% of wins (2.51, 1.00, 66% and 14% before). By power, alone / as baseline: Egypt 1.50 / 1.06, Hatti 2.83 / 0.89,
-Babylonia 2.00 / 0.96, Mitanni 2.65 / 1.24, Assyria 4.34 / 0.91, Arzawa 1.82 / 0.88, Alashiya 0.76 / 0.81.
+`--versus solo`, 40 seeds (one current king against six baselines): 2.24 growth alone and 0.96 as baseline over all, 72%
+and 14% of wins (2.51, 1.00, 66% and 14% before). By power, alone / as baseline: Egypt 1.50 / 1.07, Hatti 2.73 / 0.89,
+Babylonia 1.99 / 0.96, Mitanni 2.59 / 1.24, Assyria 4.33 / 0.90, Arzawa 1.82 / 0.86, Alashiya 0.77 / 0.81.
 
-What moved, and why: fewer kingdoms fall (40 from 57), since empty land is no longer free to walk into and a long war
+What moved, and why: fewer kingdoms fall (42 from 57), since empty land is no longer free to walk into and a long war
 costs harvests; Hatti grows more (its plateau is hard to enter, and its rivals' armies cost them men they lack), and
 Babylonia less (its flat river land resists little, and the Euphrates and Tigris flood at the harvest one year in six).
-Troops go hungry a little more (winter supplies abroad). Growth alone against the baseline fell (2.27 from 2.51) because
+Troops go hungry a little more (winter supplies abroad). Growth alone against the baseline fell (2.24 from 2.51) because
 the baseline now also brings the strength to beat a land's people, which the current bot's attacks used to exploit; the
 current bot still wins more of those games (72%). Nothing reads as a new imbalance that would make games unplayable; the
 balance pass (item 18) tunes it.

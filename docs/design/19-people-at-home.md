@@ -63,7 +63,8 @@ It runs after the troops eat: troops foraging in a province take their share fro
 - `tax {province | null, percent}` (0 to 100: "no rule caps the rate"): stands until changed or the province changes hands (`taxes`, by province,
   left out at the default 33). Validated in `rules/validator.ts`, set in `setTax`.
 - `disband {unit, settle}`: `settle` in a province of one's own settles the men there (`menHome`). Otherwise they walk
-  home, arriving after the fastest route's days at 45 a season; one in a hundred more for every 3 days beyond 15 (at most
+  home with their savings (into their home's purse when they arrive; Haakon's answer of 28 October 2026: nothing reaches
+  home before they do), arriving after the fastest route's days at 45 a season; one in a hundred more for every 3 days beyond 15 (at most
   half) turn loose where they stood. A mutinous unit and a fallen kingdom's troops walk home too.
 - `raise` needs the men: refused at validation and at resolution where the province's men of fighting age at home and
   not away carrying or building (`menAvailable`) are fewer. The corvée takes at most the men available.
