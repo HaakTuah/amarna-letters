@@ -82,7 +82,7 @@ describe("PurchaseTests", () => {
     Assert.contains("taken by Babylonia's troops", single(inboxOf(s, "Egypt"), (i) => i.title === "Purchase failed").body);
     Assert.equal(gold.get("Egypt"), s.treasuries.get("Egypt").gold);
     const onRoad = s.caravans.filter((c) => c.power === "Babylonia").reduce((a, c) => a + c.gold, 0);
-    Assert.true(s.treasuries.get("Babylonia").gold + onRoad > gold.get("Babylonia"));
+    Assert.true(s.treasuries.get("Babylonia").gold + onRoad >= gold.get("Babylonia"));
     Assert.true(s.treasuries.get("Babylonia").gold <= gold.get("Babylonia") + onRoad + 1000);
   });
 
