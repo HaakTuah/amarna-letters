@@ -1,8 +1,8 @@
 # The historical sources: dossiers for 1346 BCE
 
 Build order item 6+ ("Grounded in the sources", under World and history). What the sources say about the world of the
-Amarna letters in the game's first year, 1346 BCE, for the items that build from it (7, 9+, 10, 10+, 11, 11+, 12, 16 and
-17). No code reads these files: each item cites the line it builds from and turns it into data.
+Amarna letters in the game's first year, 1346 BCE, for the items that build from it (7, 9+, 10, 10+, 11, 11+, 12, 13, 15, 16,
+17 and 18). No code reads these files: each item cites the line it builds from and turns it into data.
 
 | Dossier | Holds | For items |
 | --- | --- | --- |
@@ -16,6 +16,8 @@ Amarna letters in the game's first year, 1346 BCE, for the items that build from
 | [08-beyond-the-edges.md](08-beyond-the-edges.md) | The peoples beyond the map's edges: names, languages, what each door brings | 11, 9+ |
 | [09-the-letters.md](09-the-letters.md) | The letters as a source: relationships, the voice of the age, the norms of the time (style, never strategy) | 10, 11+, 16, 17 |
 | [10-water.md](10-water.md) | Where each city drank: river, spring, wells, a spring outside the walls, cisterns, an island (added by item 11a+) | 10+, 11a+, 15 |
+| [11-armies-and-fleets.md](11-armies-and-fleets.md) | Armies, chariotry, infantry, garrisons, levies, hired men and fleets of each power and city-state; command; logistics and the campaigning season | 13, 18 |
+| [12-walls-roads-harbours.md](12-walls-roads-harbours.md) | Walls by city against the game's start, sieges on record, roads and their upkeep, relay stations, harbours and what they held | 15, 18 |
 
 ## How sure each claim is
 
