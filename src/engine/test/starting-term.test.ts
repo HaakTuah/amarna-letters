@@ -57,9 +57,9 @@ describe("StartingTermTests", () => {
   // version 16 (item 10: attested envoys' traits from the sources, lovers kept at courts, and 42 more characters).
   //
   test.each([
-    [1, "329680fa4c1cb95d"],
-    [7, "f0cfdebe9be5d39f"],
-    [42, "74469555dd443094"],
+    [1, "94cd258953402969"],
+    [7, "1cd05cbdedce8870"],
+    [42, "f70257b0604262f5"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);

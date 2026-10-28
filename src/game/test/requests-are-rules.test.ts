@@ -26,6 +26,7 @@ import {
   newMindRequest,
   newSpyReport,
   newTabletView,
+  newSkills,
   newTraits,
   newTurnSubmission,
   placeSpy,
@@ -83,6 +84,8 @@ describe("RequestsAreRulesTests", () => {
       contract: employer === null ? null : newContract({ wage: 10 }),
       at: "Hatti",
       traits: newTraits({ loyalty: 50, greed: 50, competence: competence, ambition: 40, courage: 50 }),
+      // Item 10: it believes what it can do.
+      belief: newSkills({ gather: competence, stealth: competence, forge: competence }),
     });
   }
 
@@ -126,7 +129,7 @@ describe("RequestsAreRulesTests", () => {
     Assert.all(asker.calls, (call) => {
       Assert.doesNotContain("hand over in place of the inventory", call.user);
       Assert.contains(
-        "your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.",
+        "you do not believe your hand is skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.",
         call.user,
       );
     });

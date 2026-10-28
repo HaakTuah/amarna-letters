@@ -208,7 +208,7 @@ describe("WhoTheyAreTests", () => {
       spy.missionTarget = "Hatti";
       spy.at = "Hatti";
       begin(s).resolve(orders("Egypt", steal(spy.id)));
-      if (spy.status === "Captured") continue;
+      if ((spy.status as string) === "Captured") continue;
       Assert.doesNotContain(s.copies, (k) => k.holder === "Hatti" && k.tabletId === "t900");
       Assert.contains(inboxOf(s, "Hatti"), (i) => i.title === "A tablet is missing");
       for (let i = 0; i < 6 && !s.copies.some((k) => k.holder === "Egypt" && k.tabletId === "t900"); i++) begin(s).resolve(new Dict());

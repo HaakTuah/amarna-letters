@@ -153,8 +153,8 @@ export const canForge = (c: Character, forgeMinCompetence: number): boolean => c
 /** What an envoy carrying gold may do with it, as its request says. */
 const keepLine = (forger: boolean): string =>
   forger
-    ? "You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. Your hand is skilled enough to fake a seal."
-    : "You could quietly keep some before it is weighed, but your hand is not skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.";
+    ? "You could quietly keep some before it is weighed and, if you leave some, hand over in place of the inventory one you forge yourself, stating only what is left. You believe your hand is skilled enough to fake a seal."
+    : "You could quietly keep some before it is weighed, but you do not believe your hand is skilled enough to fake a seal, so you could not pass off a forged inventory: what you keep would show as gold missing against the inventory.";
 
 /** A king by name and land ("Tushratta of Mitanni"), or by his title alone where it names the land. */
 export const kingOf = (p: Power): string => (king(p).includes(land(p)) ? king(p) : `${king(p)} of ${land(p)}`);

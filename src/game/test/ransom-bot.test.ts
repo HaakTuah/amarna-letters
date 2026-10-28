@@ -35,6 +35,8 @@ describe("RansomBotTests", () => {
       return sub.orders.filter((o): o is CaptiveOrder => o.type === "captive").some((o) => o.character === spy.id && o.fate === "Ransom");
     }
 
+    // Item 10: it is questioned first, the first season the captor holds it.
+    Assert.false(await asks(2));
     Assert.true(await asks(3));
     Assert.false(await asks(4));
     Assert.false(await asks(5));

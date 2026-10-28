@@ -282,20 +282,21 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   const captives = v.known.filter((c) => c.status === "your captive");
   for (const gone of [...brain.ransomAsked.keys()].filter((id) => captives.every((c) => c.id !== id))) brain.ransomAsked.delete(gone);
   for (const c of captives) {
-    // First, what it knows (item 10, "What servants know"): questioned once, if the treasury can spare it.
-    if (!brain.questioned.has(c.id) && spare > 80 && !(c.employer !== null && v.fallen.includes(c.employer))) {
-      const spend = Math.trunc(30 + 40 * p.cunning);
-      orders.push(question(c.id, spend));
-      brain.questioned.add(c.id);
-      spare -= spend;
-      continue;
-    }
     // Nobody left to pay or to deceive, or a ransom twice lapsed unpaid: the captive is worth nothing kept, so it goes free,
     // unless the king is vengeful. A spy of a sworn ally goes free too: the alliance is worth more than a ransom.
     const lordFallen = c.employer !== null && v.fallen.includes(c.employer);
     const worthless = brain.unclaimed.has(c.id) || brain.ransomLapsed.getOrDefault(c.id, 0) >= 2 || lordFallen;
     const mr = c.employer !== null ? brain.rel.tryGet(c.employer) : undefined;
     const ally = mr !== undefined && mr.allied && mr.oathsBroken === 0;
+    // First, what it knows (item 10, "What servants know"): a captive still worth something is questioned once, if the
+    // treasury can spare it.
+    if (!worthless && !ally && !brain.questioned.has(c.id) && spare > 80) {
+      const spend = Math.trunc(30 + 40 * p.cunning);
+      orders.push(question(c.id, spend));
+      brain.questioned.add(c.id);
+      spare -= spend;
+      continue;
+    }
     if (worthless || ally) {
       // A captive nobody will pay for is a gift to a sworn ally whose foe its lord is (item 10: captives change hands like
       // any good), else it goes free, unless the king is vengeful.
