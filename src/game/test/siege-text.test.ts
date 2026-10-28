@@ -9,7 +9,7 @@ import { removeAll, Assert, walled } from "../../engine/test/support.ts";
 // <summary>What a king reads of walls, sieges and land being absorbed (Build order item 5), in the rulebook and his view.</summary>
 describe("SiegeTextTests", () => {
   test("The view gives the walls standing the sieges known and the land being absorbed", () => {
-    let s = walled(newGame(1, newGameConfig({ catastropheChance: 0 })), "suhu", 2);
+    let s = walled(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "suhu", 2);
     first(s.units, (u) => u.province === "sippar").province = "suhu";
     let e = new TurnEngine(s);
     e.beginTurn();
@@ -42,7 +42,7 @@ describe("SiegeTextTests", () => {
   });
 
   test.each([
-    ["Strength is the wealth of your realm, reckoned in shekels: 10 x what your land produces in a season (its whole harvest at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it)"],
+    ["Strength is the wealth of your realm, reckoned in shekels: 10 x what your land produces in a season (its whole harvest as your people bring it in now (PEOPLE), at the reference price of grain, a shekel a measure, plus its mines' gold; land you conquered counted as far as you have absorbed it)"],
     [
       "Conquered land is absorbed slowly. A province you take by force (troops standing in it, a storm, a siege, or with a fallen king's capital) yields you its tax and its mines' gold, and counts in your strength, a third of its full worth in its first season under you (the season you take it and the next), two thirds in the second, and all of it from the third.",
     ],
@@ -85,7 +85,7 @@ describe("SiegeTextTests", () => {
   });
 
   test("A script king strengthens the walls of a threatened province worth it", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     s.turn = 4;
     s.treasuries.get("Babylonia").gold = 2000;
     let v = Views.for(s, "Babylonia");
@@ -99,7 +99,7 @@ describe("SiegeTextTests", () => {
   });
 
   test("A script king s attack on troops within its walls goes with a sally", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     removeAll(s.units, (u) => u.province === "babylon");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "babylon" }));
     let b = new Board(Views.for(s, "Babylonia"));

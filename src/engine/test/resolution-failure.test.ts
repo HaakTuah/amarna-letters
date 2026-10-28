@@ -155,6 +155,8 @@ describe("ResolutionFailureTests", () => {
         break;
       case "levy in land ceded that season":
         // Ceded before the levy: the notice says so, not that the land was lost in movement.
+        // Sinai's own men are too few for an army (item 10+a): give it enough, so only the cession stops the levy.
+        s.people.get("sinai").men = s.people.get("sinai").settled = 20000;
         egypt(cede("sinai", "Hatti"), move("sinai", "memphis"), raise("sinai", "Army"));
         single(s.units, (u) => u.province === "memphis").province = "thebes";
         break;

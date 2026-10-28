@@ -167,10 +167,24 @@ export class Board {
     return v;
   }
 
+  /**
+   * A province's yield as its people bring it in now, on the map's scale (item 10+a: the view's public yields); the
+   * map's yield where the view gives none.
+   */
+  yieldOf(id: string): number {
+    return this.v.yields.tryGet(id) ?? Board.Map.get(id).yield;
+  }
+
+  /** The resistance our troops would meet from a land's people where no troop stands (item 10+a). */
+  resistance(id: string): number {
+    return this.v.resistance.tryGet(id) ?? 0;
+  }
+
   private baseValue(id: string): number {
     const p = Board.Map.get(id);
     if (p.isSea) return 0;
-    let v = landWorthOf(p, this.v.provinceWeight) + p.yield * this.horizon;
+    const y = this.yieldOf(id);
+    let v = (p.yield > 0 ? (landWorthOf(p, this.v.provinceWeight) * y) / p.yield : landWorthOf(p, this.v.provinceWeight)) + y * this.horizon;
     if (p.capital) v += 80;
     if (p.home !== null && p.home === this.me) v += 30;
     return v - this.absorptionLoss(id);
@@ -191,7 +205,7 @@ export class Board {
     }
     let loss = 0.0;
     for (let k = this.v.turn + 1; k <= taken + 2; k++) loss += k - taken <= 1 ? 2 / 3.0 : 1 / 3.0;
-    return loss * p.yield;
+    return loss * this.yieldOf(id);
   }
 
   /** Units (of a given power, or any but mine) that could move into a province this season. */

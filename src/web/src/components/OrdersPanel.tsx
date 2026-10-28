@@ -17,6 +17,7 @@ import {
   TradeData,
   purchase,
   sell,
+  tax,
   captive,
   giftTo,
   handOver,
@@ -331,6 +332,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                   {unit.kind === "Fleet" && map.get(at).isSea && <option value="convoy">Convoy</option>}
                   {unit.kind === "Army" && v.walls.getOrDefault(at, 0) > 0 && v.owner.tryGet(at) !== me && <option value="besiege">Besiege the city</option>}
                   <option value="disband">Disband</option>
+                  {!map.get(at).isSea && v.owner.tryGet(at) === me && <option value="settle">Disband and settle its men here</option>}
                 </select>
                 <span className="row" style={{ gap: ".3rem" }}>
                   {d.kind === "move" && (
@@ -642,6 +644,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
             <option value="purchase">Buy grain</option>
             <option value="feed">Feed the town</option>
             <option value="caravan">Send a caravan</option>
+            <option value="tax">Set the tax</option>
           </select>
           <select value={f.grainAt} onChange={(e) => set({ grainAt: e.target.value })}>
             <option value="">{f.grainAction === "caravan" ? "from…" : "at…"}</option>
@@ -652,7 +655,9 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                 const x = v.provinces.find((y) => y.province === id)!;
                 return (
                   <option key={id} value={id}>
-                    {provinceName(id)} (stores {x.stores}/{x.capacity}, market {x.stock}, {shekels(priceForTen(x.price))} for ten, purse {shekels(x.purse)})
+                    {f.grainAction === "tax"
+                      ? `${provinceName(id)} (tax ${x.taxRate}%, harvest ${x.harvest}, ${x.fed < 1000 ? `ate ${Math.round(x.fed / 10)}% of its need` : "fed"})`
+                      : `${provinceName(id)} (stores ${x.stores}/${x.capacity}, market ${x.stock}, ${shekels(priceForTen(x.price))} for ten, purse ${shekels(x.purse)})`}
                   </option>
                 );
               })}
@@ -670,13 +675,23 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
                 ))}
             </select>
           )}
-          <input type="number" min={1} placeholder="measures" value={f.grainAmount} onChange={(e) => set({ grainAmount: e.target.value })} style={{ width: "6rem" }} />
+          <input type="number" min={f.grainAction === "tax" ? 0 : 1} placeholder={f.grainAction === "tax" ? "percent" : "measures"} value={f.grainAmount} onChange={(e) => set({ grainAmount: e.target.value })} style={{ width: "6rem" }} />
           <button
             className="small"
-            disabled={f.grainAt === "" || !(Number(f.grainAmount) > 0) || (f.grainAction === "caravan" && f.grainTo === "")}
+            disabled={f.grainAt === "" || f.grainAmount === "" || !(Number(f.grainAmount) > 0 || (f.grainAction === "tax" && Number(f.grainAmount) === 0)) || (f.grainAction === "caravan" && f.grainTo === "")}
             onClick={() => {
               const n = Math.floor(Number(f.grainAmount));
-              add(f.grainAction === "sell" ? sell(f.grainAt, n) : f.grainAction === "purchase" ? purchase(f.grainAt, n) : f.grainAction === "feed" ? feed(f.grainAt, n) : caravan(f.grainAt, f.grainTo, n));
+              add(
+                f.grainAction === "sell"
+                  ? sell(f.grainAt, n)
+                  : f.grainAction === "purchase"
+                    ? purchase(f.grainAt, n)
+                    : f.grainAction === "feed"
+                      ? feed(f.grainAt, n)
+                      : f.grainAction === "tax"
+                        ? tax(n, f.grainAt)
+                        : caravan(f.grainAt, f.grainTo, n),
+              );
             }}
           >
             Add

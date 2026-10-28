@@ -25,7 +25,7 @@ export const MoveResultSchema: ObjSchema<MoveResult> = obj("MoveResult", newMove
 });
 
 /** What stopped a move, in the order the adjudicator checks. */
-export const MoveStopValues = ["NoConvoy", "OwnUnit", "HeadToHead", "Held", "Stayed", "Bounced"] as const;
+export const MoveStopValues = ["NoConvoy", "OwnUnit", "HeadToHead", "Held", "Stayed", "Bounced", "Resisted"] as const;
 export type MoveStop =
   /** The army went by sea and no convoy carried it. */
   | "NoConvoy"
@@ -38,7 +38,9 @@ export type MoveStop =
   /** The unit in the target tried to leave, failed, and so kept its place. */
   | "Stayed"
   /** Another move into the same province was at least as strong. */
-  | "Bounced";
+  | "Bounced"
+  /** No unit stood there, but the land's people rose against it and held it off (item 10+a). */
+  | "Resisted";
 
 /**
  * Why a move failed, as the adjudicator resolved it: what stopped it, where the unit (or walls) that

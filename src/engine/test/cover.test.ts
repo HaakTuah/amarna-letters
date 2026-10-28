@@ -527,6 +527,8 @@ describe("CoverTests", () => {
 
   test("A detained envoy let go after its lord heard it was overdue reads so until it is home", () => {
     let [at, envoy] = atAudience();
+    // No plague or flood to move Egypt's strength while the envoy is away (item 10+a: they kill people).
+    at.config.catastropheChance = 0;
     let s = endAudience(at, newHostReply({ detain: true }));
     while (!inboxOf(s, "Egypt").some((x) => x.kind === "Rumor" && x.subject === envoy.id)) {
       new TurnEngine(s).resolve(none());

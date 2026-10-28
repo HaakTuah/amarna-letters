@@ -83,6 +83,8 @@ export class Adjudicator {
   private walls: Dict<string, number> = new Dict();
   /** Moves that go in as guests by passage or basing (item 9): they storm no walls. */
   private guests: ((province: string, power: Power) => boolean) | null = null;
+  /** The people's resistance to a move into a province not its mover's own (item 10+a): what a move into empty land must beat. */
+  private resist: ((province: string, mover: Power) => number) | null = null;
   private sallies: readonly SallyOrder[] = [];
   private sallyBy = new Map<string, Power | null>();
 
@@ -108,8 +110,10 @@ export class Adjudicator {
     walls: Dict<string, number> | null = null,
     sallies: readonly SallyOrder[] | null = null,
     guests: ((province: string, power: Power) => boolean) | null = null,
+    resist: ((province: string, mover: Power) => number) | null = null,
   ): AdjudicationResult {
     this.guests = guests;
+    this.resist = resist;
     this.orders.length = 0;
     this.at.clear();
     this.owners = owners ?? new Dict();
@@ -400,13 +404,23 @@ export class Adjudicator {
   private holdStrength(move: O): number {
     const province = move.target!;
     const i = this.at.get(province);
-    if (i === undefined) return 0;
+    if (i === undefined) return this.peopleAgainst(move);
     const occ = this.orders[i];
     let count = 1;
     if (occ.kind === "Move") {
-      if (this.resolve(occ.index)) return 0;
+      if (this.resolve(occ.index)) return this.peopleAgainst(move);
     } else for (const s of this.orders) if (s.kind === "Support" && s.target === province && s.to === null && this.resolve(s.index)) count++;
     return count + (this.groundAgainst(move) === null ? 0 : this.terrain);
+  }
+
+  /**
+   * The people of the move's target rising against it where no unit stands its ground there ("The people defend their
+   * land", item 10+a): none for a guest let in by the land's holder, nor in the mover's own land.
+   */
+  private peopleAgainst(move: O): number {
+    if (this.resist === null || move.power === null) return 0;
+    if (this.guests !== null && this.guests(move.target!, move.power)) return 0;
+    return this.resist(move.target!, move.power);
   }
 
   /** The ground that helps a unit standing its ground in the move's target against it, or null (also when terrain is off). */
@@ -526,7 +540,12 @@ export class Adjudicator {
     const winner = this.movesTo(move.target!).find((m) => m !== move && this.result[m.index]);
     if (winner !== undefined) return failure("Bounced", winner.at, winner.power, winner.unitKind, winner.target, attack, this.preventStrength(winner));
 
-    if (opp === null && occ !== null) {
+    const vacated = occ !== null && occ.kind === "Move" && this.resolve(occ.index);
+    if (opp === null && (occ === null || vacated)) {
+      const people = this.peopleAgainst(move);
+      if (people > 0 && attack <= people) return failure("Resisted", move.target!, null, move.unitKind, null, attack, people);
+    }
+    if (opp === null && occ !== null && !vacated) {
       const hold = this.holdStrength(move);
       if (attack <= hold) {
         const stop: MoveStop = occ.kind === "Move" ? "Stayed" : "Held";
@@ -560,7 +579,9 @@ export class Adjudicator {
     const opp = this.headToHeadOpponent(move);
     const beaten = opp !== null ? this.defendStrength(opp) : this.holdStrength(move);
     // The ground counted in the hold strength the move beat to get in: the storm must beat it too.
-    const ground = opp === null && beaten > 0 ? this.groundAgainst(move) : null;
+    // (Not when only the land's people resisted: the ground is already in their resistance.)
+    const stood = this.at.get(target) !== undefined && !(this.orders[this.at.get(target)!].kind === "Move" && this.resolve(this.orders[this.at.get(target)!].index));
+    const ground = opp === null && beaten > 0 && stood ? this.groundAgainst(move) : null;
     return {
       province: target,
       power: mover,

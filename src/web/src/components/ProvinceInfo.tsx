@@ -3,6 +3,9 @@ import {
   WorldMap,
   capacityOf,
   cityPriceOf,
+  EconomyData,
+  harvestIn,
+  reckonedOf,
   economyOf,
   harvestOf,
   needOf,
@@ -23,7 +26,7 @@ import { Emblem } from "./Emblem.tsx";
 /** What a free city asks to be bought: what it adds, its land's worth, purse, stores and market (item 9+a). */
 function cityPrice(state: GameState, p: Province): number {
   const m = state.markets.tryGet(p.id);
-  return cityPriceOf(p, state.config.provinceWeight, m?.purse ?? 0, state.stores.getOrDefault(p.id, 0) + (m?.stock ?? 0));
+  return cityPriceOf(p, state.config.provinceWeight, m?.purse ?? 0, state.stores.getOrDefault(p.id, 0) + (m?.stock ?? 0), harvestIn(WorldMap.default, state, p.id, false));
 }
 
 /**
@@ -98,7 +101,7 @@ export function ProvinceInfo({
         <>
           <p className="small">
             {owner !== null ? `Held by ${powerName(owner)}` : "A free city-state"}
-            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
+            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(scene.viewer === null || owner === scene.viewer ? harvestIn(WorldMap.default, state, p.id) : harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
             {p.home !== null && p.home !== owner ? `; part of the homeland of ${powerName(p.home)}` : ""}.
             {walls > 0 && (
               <span>
@@ -117,6 +120,15 @@ export function ProvinceInfo({
               Stores {state.stores.getOrDefault(p.id, 0)} of {capacityOf(p)} measures of grain. Its market holds {state.markets.tryGet(p.id)?.stock ?? 0} (its town
               needs {needOf(p)} a season) at {shekels(priceForTen(priceAt(state.markets.tryGet(p.id)?.stock ?? 0, needOf(p))))} for ten measures; its people&apos;s purse holds{" "}
               {shekels(state.markets.tryGet(p.id)?.purse ?? 0)}.
+            </p>
+          )}
+          {(scene.viewer === null || owner === scene.viewer) && state.people.has(p.id) && (
+            <p className="small">
+              {/* People at home (item 10+a). */}
+              Its people: {state.people.get(p.id).settled.toLocaleString("en")} settled ({state.people.get(p.id).men.toLocaleString("en")} men of fighting age), its land
+              carrying {reckonedOf(WorldMap.default, p.id).room.toLocaleString("en")}; {state.people.get(p.id).loose.toLocaleString("en")} loose. Tax{" "}
+              {state.taxes.getOrDefault(p.id, EconomyData.taxPercent)}% of a harvest of {harvestIn(WorldMap.default, state, p.id)} measures
+              {state.fed.has(p.id) ? `; last season its countryside ate ${Math.round(state.fed.get(p.id) / 10)}% of its need` : ""}.
             </p>
           )}
           {siege !== undefined && (

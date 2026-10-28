@@ -6,7 +6,8 @@ import { Dict } from "../core/collections.ts";
 import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { land, type Power } from "../model/power.ts";
-import { CatastropheKindValues, newCatastrophe } from "../model/records.ts";
+import { newCatastrophe } from "../model/records.ts";
+import { LandData } from "../model/land.ts";
 import { alive, logEvent, newId, notify, ownedBy, unitLabel, wallsOf, type Unit } from "../model/state.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine } from "./core.ts";
@@ -20,6 +21,8 @@ declare module "./core.ts" {
 TurnEngine.prototype.worldEvents = function () {
   const S = this.s;
   const Map = this.map;
+  // The year's droughts by region and each great river's flood (item 10+a).
+  this.climateSeason();
   // What each court could see before the season's catastrophes (a plague takes a unit, and with it some sight).
   const sight = new Dict(alive(S).map((p) => [p, Views.sight(S, Map, p)] as const));
   for (const p of alive(S)) {
@@ -27,18 +30,13 @@ TurnEngine.prototype.worldEvents = function () {
     if (!rng.chance(S.config.catastropheChance)) continue;
     const owned = ownedBy(S, p);
     if (owned.length === 0) continue;
-    const kind = rng.pick(CatastropheKindValues);
+    // Droughts and floods follow the land's water and its rivers (item 10+a: climateSeason); plague and the earthquake
+    // still strike a realm at random.
+    const kind = rng.pick(["Plague", "Earthquake"] as const);
     const cat = newCatastrophe({ id: newId(S, "x"), power: p, kind, startTurn: S.turn + 1 });
     let exact: string;
     let plain: string;
     switch (kind) {
-      case "Drought":
-        cat.endTurn = S.turn + 3;
-        cat.incomeFactor = 0.5;
-        cat.text = "the rains failed and the harvest withers across the land";
-        exact = "The rains have failed. For three seasons the whole realm will yield only half its income.";
-        plain = `Travellers say the harvest has failed in ${land(p)}.`;
-        break;
       case "Plague": {
         cat.endTurn = S.turn + 2;
         cat.incomeFactor = 0.75;
@@ -49,24 +47,19 @@ TurnEngine.prototype.worldEvents = function () {
         );
         const lost = victim.length > 0 ? rng.pick(victim) : null;
         if (lost !== null) S.units.splice(S.units.indexOf(lost), 1);
+        // It kills peasants across the realm (item 10+a).
+        for (const x of owned) this.killSettled(x, LandData.plagueDead * 10);
         exact = "The hand of Nergal is on the land. Plague will cut income by a quarter for two seasons" + (lost !== null ? `, and it has destroyed your ${unitLabel(lost)}.` : ".");
         plain = `Word comes of sickness in ${land(p)}.`;
         break;
       }
-      case "Flood":
-        cat.province = rng.pick(owned);
-        cat.endTurn = S.turn + 2;
-        cat.incomeFactor = 0;
-        cat.text = `a great flood has drowned the fields of ${Map.get(cat.province).name}`;
-        exact = `A flood has drowned the fields of ${Map.get(cat.province).name}; it will yield nothing for two seasons.`;
-        plain = `Travellers speak of floods in ${land(p)}.`;
-        break;
       default: {
         cat.province = rng.pick(owned);
         cat.endTurn = S.turn + 4;
         cat.incomeFactor = 0;
         cat.text = `an earthquake has thrown down the walls and storehouses of ${Map.get(cat.province).name}`;
         // It throws the walls down a level (Build order item 5).
+        this.killSettled(cat.province, LandData.quakeDead * 10);
         const shaken = wallsOf(S, cat.province) > 0;
         if (shaken) this.lowerWalls(cat.province);
         const left = wallsOf(S, cat.province);

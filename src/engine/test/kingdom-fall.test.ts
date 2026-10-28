@@ -40,7 +40,7 @@ describe("KingdomFallTests", () => {
   }
 
   test("A capital stormed brings down its kingdom and its land passes to the stormer", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     // Apasa's walls thrown down to level 1, its troops gone; Hatti's armies in Lukka and Mira.
     s.walls.set("apasa", 1);
     removeAll(s.units, (u) => u.power === "Arzawa");
@@ -84,7 +84,7 @@ describe("KingdomFallTests", () => {
   });
 
   test("A capital that surrenders to a siege brings down its kingdom", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     removeAll(s.units, (u) => u.province === "ashur");
     let besieger = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(besieger);
@@ -99,7 +99,7 @@ describe("KingdomFallTests", () => {
 
   // <summary>Seed 1, no catastrophes: each pair's army stands in the other's capital, one season from its surrender.</summary>
   function sieges(...sieges: [Power, Power][]): GameState {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     for (const [by, of] of sieges) {
       let capital = WorldMap.default.capital(of).id;
       removeAll(s.units, (u) => u.province === capital);
@@ -150,7 +150,7 @@ describe("KingdomFallTests", () => {
   });
 
   test("A king cannot cede his own capital", () => {
-    let s = newGame(1);
+    let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
     let v = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [cede("akhetaten", "Hatti"), cede("thebes", "Hatti")] }));
     Assert.equal("you cannot cede your capital: your kingdom falls with it", Assert.single(v.rejected).reason);
     Assert.single(v.accepted);

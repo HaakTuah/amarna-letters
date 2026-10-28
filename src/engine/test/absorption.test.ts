@@ -37,7 +37,7 @@ describe("AbsorptionTests", () => {
 
   // <summary>Seed 1, no catastrophes, a Mitanni army in Isuwa next to Hatti's empty Sapinuwa (yield 30).</summary>
   function board(): GameState {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "isuwa" }));
     return s;
   }
@@ -48,7 +48,8 @@ describe("AbsorptionTests", () => {
     Assert.equal("Mitanni", s.owner.get("sapinuwa"));
     Assert.equal(1, s.conquered.get("sapinuwa"));
     // Its strength counts a third of Sapinuwa's land worth beside its homeland's.
-    const worth = (id: string): number => grainWorth(harvestOf(WorldMap.default.get(id))) + economyOf(WorldMap.default.get(id)).mine;
+    // The harvest each province's people bring in now (item 10+a), at the land's worth.
+    const worth = (id: string): number => grainWorth(e.harvestNow(id, false)) + economyOf(WorldMap.default.get(id)).mine;
     const home = WorldMap.default.homeOf("Mitanni").reduce((a, x) => a + worth(x.id), 0);
     Assert.equal(home + Math.round(worth("sapinuwa") / 3), e.landYield("Mitanni"));
     // Its taker sees the mark; no other court does, not even the loser (how land changed hands is not public).
@@ -57,14 +58,15 @@ describe("AbsorptionTests", () => {
     Assert.empty(Views.for(s, "Egypt").conquered);
 
     // Turn 2: it yields a third of its yield; turn 3 two thirds; turn 4 all of it, and the mark is gone.
-    const tax = taxOf(harvestOf(WorldMap.default.get("sapinuwa")));
-    Assert.equal(Math.round(tax / 3), new TurnEngine(s).effectiveYield("sapinuwa"));
+    // The tax of the harvest its people bring in that season (item 10+a).
+    const tax = (): number => taxOf(new TurnEngine(s).harvestNow("sapinuwa"));
+    Assert.equal(Math.round(tax() / 3), new TurnEngine(s).effectiveYield("sapinuwa"));
     season(s);
-    Assert.equal(Math.round((tax * 2) / 3), new TurnEngine(s).effectiveYield("sapinuwa"));
+    Assert.equal(Math.round((tax() * 2) / 3), new TurnEngine(s).effectiveYield("sapinuwa"));
     season(s);
     Assert.equal(4, s.turn);
     new TurnEngine(s).beginTurn();
-    Assert.equal(tax, new TurnEngine(s).effectiveYield("sapinuwa"));
+    Assert.equal(tax(), new TurnEngine(s).effectiveYield("sapinuwa"));
     Assert.false(s.conquered.has("sapinuwa"));
   });
 
@@ -108,7 +110,7 @@ describe("AbsorptionTests", () => {
   });
 
   test("Land that passes with a fallen kingdom is absorbed slowly", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
     removeAll(s.units, (u) => u.province === "ashur");
     let besieger = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(besieger);

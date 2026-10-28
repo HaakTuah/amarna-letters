@@ -94,7 +94,8 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
 /**
  * The first guesses of the economy at home (item 18 tunes them). Grain is in measures, prices in hundredths of a shekel.
  * - `harvestPerYield`: a province's whole harvest a season is its yield times this, by its surplus in percent (`surplusPercent`).
- * - `taxPercent`: the default tax in goods (the king's own rate comes with item 10+a), so the king's share is about the yield.
+ * - `taxPercent`: the default tax in goods, so the king's share is about the yield; since item 10+a each king may set
+ *   his own rate on each province of his (`tax`), and hunger answers a heavy one.
  * - `needPerThousand`: a town's local need a season, by its people, to which `ruralNeedPercent` of the province's harvest
  *   adds the craftsmen, servants and temple staff of the countryside who grow none of their own; the whole is the market's
  *   normal stock.
@@ -238,8 +239,8 @@ export const priceForTen = (centi: number): number => idiv(centi * 10 + 50, 100)
  * What a free city asks to be bought ("a bought city's price is what it adds"): the worth of its land at the land's multiple,
  * its people's purse, and the grain in its stores and market at reference prices.
  */
-export function cityPriceOf(p: Province, weight: number, purse: number, grain: number): number {
-  return weight * (grainWorth(harvestOf(p)) + economyOf(p).mine) + purse + grainWorth(grain);
+export function cityPriceOf(p: Province, weight: number, purse: number, grain: number, harvest: number = harvestOf(p)): number {
+  return weight * (grainWorth(harvest) + economyOf(p).mine) + purse + grainWorth(grain);
 }
 
 /**

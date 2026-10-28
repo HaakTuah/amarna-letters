@@ -12,6 +12,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
 import { grantStands } from "../model/authority.ts";
 import { buyAlongCurve, cityPriceOf, needOf } from "../model/economy.ts";
+import { harvestIn, LandData, menAvailable, menOf } from "../model/land.ts";
 import { harbourOf, shipFleet, TradeData } from "../model/trade.ts";
 import { findCharacter, isAlive, ledger, siegeOf, unitAt, wallsOf, type GameState, type Unit } from "../model/state.ts";
 import { Views } from "./views.ts";
@@ -63,6 +64,7 @@ export class OrderValidator {
     const ransomed = new HSet<string>();
     const renewed = new HSet<string>();
     const tollsSet = new HSet<string>();
+    const taxesSet = new HSet<string>();
     let dispatches = 0;
     let seekCount = 0;
     let counterIntel = false;
@@ -296,6 +298,16 @@ export class OrderValidator {
           return null;
         }
 
+        case "tax": {
+          if (order.province !== null && (!Map.exists(order.province) || Map.get(order.province).isSea)) return `there is no province called '${order.province}'`;
+          if (order.province !== null && S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${Map.get(order.province).name}`;
+          if (!Number.isInteger(order.percent) || order.percent < 0 || order.percent > LandData.taxMost) return `a tax is a percent of the harvest from 0 to ${LandData.taxMost}`;
+          const key = order.province ?? "";
+          if (taxesSet.has(key)) return "you had already set that tax this season";
+          taxesSet.add(key);
+          return null;
+        }
+
         case "raise": {
           const r = order;
           if (!Map.exists(r.province)) return `there is no province called '${r.province}'`;
@@ -304,11 +316,17 @@ export class OrderValidator {
           if (S.owner.getOrDefault(p.id, null) !== power) return `you do not hold ${p.name}`;
           if (r.kind === "Fleet" && !p.isCoastal) return `${p.name} has no harbour for a fleet`;
           if (raisedIn.has(p.id)) return `you already raise a unit in ${p.name}`;
+          const men = menAvailable(S, p.id);
+          if (men < menOf(r.kind)) return `${p.name} has too few men of fighting age left for ${r.kind === "Army" ? "an army" : "a fleet"} (${menOf(r.kind)} needed, ${men} at home and not carrying or building)`;
           return spend(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost);
         }
 
-        case "disband":
-          return ownUnit(order.unit)[0];
+        case "disband": {
+          const [why, unit] = ownUnit(order.unit);
+          if (why !== null || order.settle !== true || unit === null) return why;
+          if (Map.get(unit.province).isSea || S.owner.getOrDefault(unit.province, null) !== power) return "its men can be settled as colonists only in a province of your own";
+          return null;
+        }
 
         case "buy": {
           const b = order;
@@ -324,7 +342,7 @@ export class OrderValidator {
           if (!near) return `${Map.get(b.province).name} lies beyond your reach (it must border your land or troops, or lie one voyage from one of your coasts: their waters the same or next to each other)`;
           if (bought.has(b.province)) return "you already bid for that city";
           const m = S.markets.tryGet(b.province);
-          return spend(cityPriceOf(Map.get(b.province), S.config.provinceWeight, m?.purse ?? 0, S.stores.getOrDefault(b.province, 0) + (m?.stock ?? 0)));
+          return spend(cityPriceOf(Map.get(b.province), S.config.provinceWeight, m?.purse ?? 0, S.stores.getOrDefault(b.province, 0) + (m?.stock ?? 0), harvestIn(Map, S, b.province, false)));
         }
 
         case "cede": {
