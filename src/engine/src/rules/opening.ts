@@ -22,10 +22,12 @@ export interface Opening {
 /** "armies in memphis and akhetaten, a fleet in delta". */
 export function openingTroops(o: Opening): string {
   const group = (kind: UnitKind): string => {
-    const at = o.units.filter((u) => u.kind === kind).map((u) => u.province);
+    const units = o.units.filter((u) => u.kind === kind);
+    const at = units.map((u) => u.province);
     const noun = kind === "Army" ? "army" : "fleet";
     if (at.length === 0) return "";
-    if (at.length === 1) return `a ${noun} in ${at[0]}`;
+    // A levy smaller than a full unit (a city-state's, item 11+) is told by its men.
+    if (at.length === 1) return `${noun === "army" ? "an" : "a"} ${noun}${units[0].men !== null ? ` of ${units[0].men} men` : ""} in ${at[0]}`;
     return `${kind === "Army" ? "armies" : "fleets"} in ${at.slice(0, at.length - 1).join(", ")} and ${at[at.length - 1]}`;
   };
   return [group("Army"), group("Fleet")].filter((x) => x.length > 0).join(", ");

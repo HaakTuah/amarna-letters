@@ -281,3 +281,59 @@ export function skilled(c: Character, n: number): void {
 
 /** A job any hiring court can offer in a test: watching its own capital's province, an errand of a season (Haakon's answers to item 11a). */
 export const homeJob = (p: Power): JobTerms => ({ what: "spy", where: WorldMap.default.capital(p).id });
+
+/** The walls the free cities had until item 11+ made them powers (fortresses 2, walled towns 1, the chiefs' lands none). */
+const OldWalls: Record<string, number> = {
+  carchemish: 2, qadesh: 2, tyre: 2, megiddo: 2, gaza: 2, susa: 2, aleppo: 2, qatna: 2, arwad: 2,
+  isuwa: 1, ugarit: 1, amurru: 1, byblos: 1, damascus: 1, alalakh: 1, sidon: 1, jerusalem: 1, shechem: 1, arrapha: 1, suhu: 1, nuhashshe: 1, sumur: 1,
+};
+
+/**
+ * Land held by no one, as the free cities stood before item 11+ ("Land without a ruler": a kingdom fallen whose land nobody
+ * took up): each province's holder gone (a city-state fallen with its city, its troops and tablets with it), with the walls
+ * it had as a free city. For tests written for the free cities.
+ */
+export function unruled(s: GameState, ...provinces: string[]): GameState {
+  for (const id of provinces) {
+    const holder = s.owner.getOrDefault(id, null);
+    if (holder !== null && WorldMap.default.get(id).capital) {
+      if (!s.eliminated.includes(holder)) s.eliminated.push(holder);
+      for (let i = s.units.length - 1; i >= 0; i--) if (s.units[i].power === holder) s.units.splice(i, 1);
+      for (let i = s.tablets.length - 1; i >= 0; i--) if (s.tablets[i].proposedBy === holder || s.tablets[i].partner === holder) s.tablets.splice(i, 1);
+      for (let i = s.copies.length - 1; i >= 0; i--) if (!s.tablets.some((t) => t.id === s.copies[i].tabletId)) s.copies.splice(i, 1);
+    } else for (let i = s.units.length - 1; i >= 0; i--) if (s.units[i].province === id) s.units.splice(i, 1);
+    s.owner.set(id, null);
+    // Long known to every court, as the free cities were.
+    s.ownerLog.push({ province: id, turn: 0, owner: null });
+    const w = OldWalls[id] ?? 0;
+    if (w > 0) s.walls.set(id, w);
+    else s.walls.delete(id);
+    for (const seen of s.wallsSeen.values()) {
+      if (w > 0) seen.set(id, w);
+      else seen.delete(id);
+    }
+  }
+  return s;
+}
+
+/** The provinces that were free cities and lands without a king until item 11+, Gaza and Sumur among them. */
+export const FormerFree = [
+  "isuwa", "carchemish", "alalakh", "aleppo", "ugarit", "nuhashshe", "qatna", "qadesh", "amurru", "sumur", "arwad", "byblos", "sidon",
+  "damascus", "tyre", "megiddo", "shechem", "jerusalem", "gaza", "suhu", "arrapha", "susa", "lukka", "kaska", "steppe",
+];
+
+/**
+ * The world as it stood before item 11+, for tests of the general rules written in it: every former free city held by no
+ * one (its city-state fallen, see {@link unruled}), the fallen powers' servants free where they stand, and only the Great
+ * Kings' starting notices.
+ */
+export function oldWorld(s: GameState): GameState {
+  unruled(s, ...FormerFree);
+  for (const c of s.characters)
+    if (c.employer !== null && s.eliminated.includes(c.employer)) {
+      c.employer = null;
+      c.status = "Free";
+      c.contract = null;
+    }
+  return s;
+}

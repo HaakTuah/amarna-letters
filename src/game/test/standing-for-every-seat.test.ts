@@ -43,7 +43,7 @@ import {
 } from "@amarna/engine";
 import { GameLog, GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { type CallSpec, type JsonAsker, type JsonObject, LlmLeaderSeat, leaderRules, situation } from "@amarna/llm";
-import { removeAll, Assert, firstOrNull, toDict } from "../../engine/test/support.ts";
+import { removeAll, Assert, firstOrNull, toDict, unruled } from "../../engine/test/support.ts";
 
 // Standing orders for every seat (the owner's additions to the fix pass after item 4, "Every feature is every seat's"):
 // a seat that gives orders every season (script, human, or a model or file seat with sleep off) keeps standing orders as
@@ -75,6 +75,8 @@ describe("StandingForEverySeatTests", () => {
 
   // <summary>Suhu is Assyria's, its walls gone, with an Assyrian army in it: two Assyrian armies stand next to Sippar.</summary>
   function assyriaInMari(s: GameState): void {
+    // Suhu's own city-state gone (item 11+), its land Assyria's.
+    unruled(s, "suhu");
     s.walls.delete("suhu");
     s.owner.set("suhu", "Assyria");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu" }));

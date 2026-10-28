@@ -4,12 +4,12 @@ import { fortification } from "../src/bots/statecraft-strategy.ts";
 import { MilitaryPlan, sallies } from "../src/bots/tactics.ts";
 import { Dict, TurnEngine, Views, besiege, first, fortify, move, newGame, newGameConfig, newId, newTurnSubmission, newUnit, sally } from "@amarna/engine";
 import { OtherActions, Parse, leaderRules, situation } from "@amarna/llm";
-import { removeAll, Assert, walled } from "../../engine/test/support.ts";
+import { removeAll, Assert, walled, oldWorld } from "../../engine/test/support.ts";
 
 // <summary>What a king reads of walls, sieges and land being absorbed (Build order item 5), in the rulebook and his view.</summary>
 describe("SiegeTextTests", () => {
   test("The view gives the walls standing the sieges known and the land being absorbed", () => {
-    let s = walled(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })), "suhu", 2);
+    let s = walled(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }))), "suhu", 2);
     first(s.units, (u) => u.province === "sippar").province = "suhu";
     let e = new TurnEngine(s);
     e.beginTurn();
@@ -28,7 +28,7 @@ describe("SiegeTextTests", () => {
     Assert.contains("babylon (walls 3) [Babylonia army]", babylon);
     Assert.contains("suhu (walls 2) [Babylonia army]", babylon);
     Assert.contains(
-      "SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges suhu (a free city, walls 2): worn down 1 of 2, since turn 1.",
+      "SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges suhu (held by no one, walls 2): worn down 1 of 2, since turn 1.",
       babylon,
     );
     // Assyria took Sippar from Babylon by force: a third of it counts this season, which Assyria reads, and nobody else
@@ -38,7 +38,7 @@ describe("SiegeTextTests", () => {
     Assert.doesNotContain("taken by force", babylon);
     Assert.doesNotContain("taken by force", situation(Views.for(s, "Egypt")));
     // Mitanni, next to Suhu, sees the siege too.
-    Assert.contains("Babylonia's army besieges suhu (a free city, walls 2): worn down 1 of 2", situation(Views.for(s, "Mitanni")));
+    Assert.contains("Babylonia's army besieges suhu (held by no one, walls 2): worn down 1 of 2", situation(Views.for(s, "Mitanni")));
   });
 
   test.each([
@@ -68,7 +68,7 @@ describe("SiegeTextTests", () => {
     ],
     ["LANDS in your view marks your own land still being absorbed; how other kings' land changed hands is not shown."],
     [
-      "A province of your own homeland that you take back or are ceded is yours in full at once, and so is land bought, or ceded to you, unless its giver was still absorbing it: then it goes on being absorbed under you as it would have been under him.",
+      "A province of your own homeland that you take back or are ceded is yours in full at once, and so is land ceded to you, unless its giver was still absorbing it: then it goes on being absorbed under you as it would have been under him.",
     ],
   ] as const)("The rulebook states walls by place and slow absorption %s", (rule: string) => {
     Assert.contains(rule, leaderRules(true, newGameConfig()));
@@ -85,7 +85,7 @@ describe("SiegeTextTests", () => {
   });
 
   test("A script king strengthens the walls of a threatened province worth it", () => {
-    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
     s.turn = 4;
     s.treasuries.get("Babylonia").gold = 2000;
     let v = Views.for(s, "Babylonia");
@@ -99,7 +99,7 @@ describe("SiegeTextTests", () => {
   });
 
   test("A script king s attack on troops within its walls goes with a sally", () => {
-    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
     removeAll(s.units, (u) => u.province === "babylon");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "babylon" }));
     let b = new Board(Views.for(s, "Babylonia"));

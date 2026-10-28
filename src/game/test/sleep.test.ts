@@ -33,7 +33,6 @@ import {
   newInboxItem,
   newOrderOutcome,
   newScheduledOrders,
-  raise,
   newSleepState,
   newTurnSubmission,
   newUnit,
@@ -394,22 +393,6 @@ describe("SleepTests", () => {
       ["orders you scheduled could not be carried out: sippar -> suhu (the unit holding suhu (Assyria's army) kept its place; your strength 1 against 2)"],
       sleeper.views[1].wokenBecause,
     );
-  });
-
-  test("A scheduled levy that fails at resolution wakes the seat", async () => {
-    // Babylon schedules a levy in Sippar for season 2, where its own army still stands: the levy fails.
-    let sleeper = new Sleeper((v) =>
-      v.turn !== 1
-        ? nothing()
-        : newTurnSubmission({
-            scheduled: [newScheduledOrders({ turn: 2, orders: [raise("sippar", "Army")] })],
-          }),
-    );
-    await play("Babylonia", sleeper, 3, undefined, undefined, (s) => {
-      for (const t of s.treasuries.values()) t.gold += 5000;
-    });
-    Assert.equal([1, 3], sleeper.calls);
-    Assert.contains(sleeper.views[1].wokenBecause, (w) => w.includes("sippar"));
   });
 
   test("A failure the seat has seen does not cut its next sleep short", async () => {

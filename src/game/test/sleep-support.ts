@@ -38,7 +38,7 @@ import {
 } from "@amarna/engine";
 import { GameRunner, type ISeat, ScriptMind, TemplateNarrator } from "@amarna/game";
 import { type CallSpec, type JsonAsker, type JsonObject } from "@amarna/llm";
-import { removeAll, Assert, toDict } from "../../engine/test/support.ts";
+import { removeAll, Assert, toDict, oldWorld } from "../../engine/test/support.ts";
 import { convoy as convoyOrder } from "@amarna/engine";
 import { first as firstOf } from "@amarna/engine";
 import { support as supportOrder } from "@amarna/engine";
@@ -149,7 +149,7 @@ export async function play(
   others: Dict<Power, ISeat> | null = null,
   setup: ((a0: GameState) => void) | null = null,
 ): Promise<GameRunner> {
-  let state = newGame(31, config ?? Quiet);
+  let state = oldWorld(newGame(31, config ?? Quiet));
   setup?.(state);
   let seats = toDict(
     AllPowers,
@@ -164,7 +164,7 @@ export async function play(
 
 // <summary>A sleeping seat in an engine-only game: it gave orders in turn 1 and sleeps in turn 3, with nothing scheduled.</summary>
 export function asleep(p: Power): [GameState, SleepState] {
-  let s = newGame(31, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+  let s = oldWorld(newGame(31, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
   let sleep = newSleepState({ asleep: true, lastCalled: 1, wakeAt: 50, history: [newSleepSpell({ from: 2 })] });
   s.sleep.set(p, sleep);
   s.turn = 3;

@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import {
+  isGreatKing,
   AllPowers,
   Dict,
   GameStateSchema,
@@ -29,7 +30,7 @@ import {
   unitAt,
   wallsOf,
 } from "@amarna/engine";
-import { removeAll, Assert } from "./support.ts";
+import { removeAll, Assert, oldWorld } from "./support.ts";
 import { playRandom } from "./games.ts";
 
 describe("EngineTests", () => {
@@ -52,31 +53,27 @@ describe("EngineTests", () => {
   test("New game matches the starting tiers", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
-    Assert.equal(19, s.units.length);
-    // Walls by place: the seven capitals 3, twelve fortresses 2, thirteen walled towns 1; every free city has some, and the
-    // lands without a king none.
+    // The Great Kings' 19 units and one for each of the 23 city-states (item 11+).
+    Assert.equal(42, s.units.length);
+    // Walls by place: every capital 3 (the seven kings' and the twenty city-states' with a town), four fortresses 2, Sumur
+    // 1; the lands without a town none.
     Assert.equal(32, s.walls.size);
-    Assert.equal(
-      7,
-      count(s.walls, (w) => w[1] === 3),
-    );
-    Assert.all(
-      WorldMap.default.landProvinces.filter((p) => p.home === null),
-      (p) => Assert.true(wallsOf(s, p.id) > 0 !== p.kingless, p.id),
-    );
+    Assert.equal(27, count(s.walls, (w) => w[1] === 3));
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.capital),
-      (p) => Assert.equal(3, wallsOf(s, p.id)),
+      (p) => Assert.equal(p.kingless ? 0 : 3, wallsOf(s, p.id)),
     );
-    Assert.equal(60, s.characters.length);
+    Assert.true(WorldMap.default.landProvinces.every((p) => p.home !== null));
+    Assert.equal(100, s.characters.length);
     Assert.all(AllPowers, (p) =>
       Assert.equal(
-        2,
+        isGreatKing(p) ? 2 : 1,
         count(s.characters, (c) => c.employer === p),
       ),
     );
     Assert.true(e.strength("Egypt") > e.strength("Mitanni"));
     Assert.true(e.strength("Mitanni") > e.strength("Arzawa"));
+    Assert.true(e.strength("Arzawa") > e.strength("Byblos"));
     Assert.equal(
       2,
       count(s.characters, (c) => c.secretMaster !== null),
@@ -84,7 +81,7 @@ describe("EngineTests", () => {
   });
 
   test("Travel takes one to three seasons, and nearly the same each way", () => {
-    let e = new TurnEngine(newGame(1));
+    let e = new TurnEngine(oldWorld(newGame(1)));
     for (const a of AllPowers)
       for (const b of AllPowers.filter((b) => b !== a)) {
         let t = e.travelTurns(a, b);
@@ -95,7 +92,7 @@ describe("EngineTests", () => {
   });
 
   test("Income and upkeep are paid each season", () => {
-    let s = newGame(1);
+    let s = oldWorld(newGame(1));
     let e = new TurnEngine(s);
     let before = s.treasuries.get("Egypt").gold;
     // Since item 9+a gold comes in from the mines and from sales: at the start, the mines alone.
@@ -107,7 +104,7 @@ describe("EngineTests", () => {
   });
 
   test("Unpaid troops mutiny after a few seasons", () => {
-    let s = newGame(1);
+    let s = oldWorld(newGame(1));
     s.owner.set("thebes", null);
     s.owner.set("akhetaten", null);
     s.owner.set("memphis", null);
@@ -124,7 +121,7 @@ describe("EngineTests", () => {
   });
 
   test("Validator rejects illegal and unaffordable orders", () => {
-    let s = newGame(1);
+    let s = oldWorld(newGame(1));
     // One levy and a little more: the second is more than is left.
     s.treasuries.get("Egypt").gold = s.config.armyCost + 50;
     let v = new OrderValidator(s);
@@ -149,7 +146,7 @@ describe("EngineTests", () => {
   });
 
   test("A raised army appears and costs gold", () => {
-    let s = newGame(1);
+    let s = oldWorld(newGame(1));
     let e = new TurnEngine(s);
     e.beginTurn();
     let gold = s.treasuries.get("Egypt").gold;
@@ -159,7 +156,7 @@ describe("EngineTests", () => {
   });
 
   test("Bought walls stand for their owner who may enter them", () => {
-    let s = newGame(1);
+    let s = oldWorld(newGame(1));
     s.owner.set("gaza", "Egypt"); // its own: the walls stand for it
     s.units.length = 0;
     s.units.push(newUnit({ id: "u1", power: "Egypt", kind: "Army", province: "sinai" }));
@@ -182,7 +179,7 @@ describe("EngineTests", () => {
 
   test("A support against a third king is logged against him", () => {
     // Assyria supports Mitanni's Washukanni, holding, against Hatti's attack from Isuwa.
-    let s = newGame(1);
+    let s = oldWorld(newGame(1));
     s.owner.set("isuwa", "Hatti");
     s.walls.delete("isuwa");
     removeAll(s.units, (u) => u.province === "taidu");

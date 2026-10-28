@@ -66,7 +66,7 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
   yours holds Gaza waters, so the city was supplied by sea."), one with a support a step; with the harbour blockaded the
   siege runs as before ("... wore the city down a step, with its harbour blockaded"). The record marks each siege season of
   a coastal city `sea-supplied` or `blockade`. 0 turns it off.
-- **Buying across the sea.** A free city can be bought from a coast one voyage away: their waters the same, or joined by a
+- **Buying across the sea** (until item 11+, which took the purchase away). A free city could be bought from a coast one voyage away: their waters the same, or joined by a
   coastal hop or an open crossing (`WorldMap.sharesSea`), where before it was any coast on the same one of five seas.
 - **What kings read.** THE MAP gives each coast its waters, each sea zone whose waters it is, and marks open crossings
   "(open sea)" and desert links "(across the Syrian desert)"; TERRAIN and the new THE SEA section (`src/llm/src/rules-ground.ts`)

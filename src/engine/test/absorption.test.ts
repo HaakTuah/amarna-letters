@@ -22,7 +22,7 @@ import {
   newUnit,
   support,
 } from "@amarna/engine";
-import { removeAll, Assert, subs } from "./support.ts";
+import { removeAll, Assert, subs, oldWorld } from "./support.ts";
 
 // Slow absorption (Build order item 5): land taken by force yields, and counts in its holder's strength, a third of its
 // yield in its first season under him, two thirds in the second, all of it from the third; his own homeland retaken, and
@@ -37,7 +37,7 @@ describe("AbsorptionTests", () => {
 
   // <summary>Seed 1, no catastrophes, a Mitanni army in Isuwa next to Hatti's empty Sapinuwa (yield 30).</summary>
   function board(): GameState {
-    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "isuwa" }));
     return s;
   }
@@ -110,7 +110,7 @@ describe("AbsorptionTests", () => {
   });
 
   test("Land that passes with a fallen kingdom is absorbed slowly", () => {
-    let s = newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
     removeAll(s.units, (u) => u.province === "ashur");
     let besieger = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(besieger);

@@ -24,7 +24,7 @@ import {
   raise,
   single,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, oldWorld } from "./support.ts";
 
 // <summary>Refusals and failures in the words of the rulebook's "HOW A SEASON RESOLVES".</summary>
 describe("SeasonOrderTests", () => {
@@ -33,7 +33,7 @@ describe("SeasonOrderTests", () => {
   }
 
   test("Gold is reserved in the order the orders are listed", () => {
-    let s = newGame(4);
+    let s = oldWorld(newGame(4));
     s.treasuries.get("Egypt").gold = 150;
     let someone = first(s.characters, (c) => c.employer === "Hatti").id;
 
@@ -46,7 +46,7 @@ describe("SeasonOrderTests", () => {
   });
 
   test("A person offered a job may be sent on its errand the same season, and on no other", () => {
-    let s = newGame(4);
+    let s = oldWorld(newGame(4));
     let c = first(s.characters, (c) => c.status === "Free");
     c.at = "Egypt";
     // Haakon's answers to item 11a: the job is the errand; offered first or sent first, both stand.
@@ -62,7 +62,7 @@ describe("SeasonOrderTests", () => {
   });
 
   test("An errand for someone whose hire is refused reads as for anyone not in your service", () => {
-    let s = newGame(4);
+    let s = oldWorld(newGame(4));
     let c = first(s.characters, (c) => c.status === "Free");
     c.at = "Egypt";
     let other = first(s.characters, (x) => x.employer === "Hatti");
@@ -81,14 +81,14 @@ describe("SeasonOrderTests", () => {
   });
 
   test("A lot is assayed and a province ceded once a season", () => {
-    let s = newGame(4);
+    let s = oldWorld(newGame(4));
     s.treasuries.get("Egypt").lots.push(newGoldLot({ id: "g900", from: "Hatti", stated: 40, face: 40, true: 40, arrivedTurn: 1 }));
     Assert.equal("gold lot g900 was already to be assayed by an earlier order", single(refusedOf(s, "Egypt", assay("g900"), assay("g900"))).reason);
     Assert.equal("Thebes was already ceded by an earlier order", single(refusedOf(s, "Egypt", cede("thebes", "Hatti"), cede("thebes", "Mitanni"))).reason);
   });
 
   test("A spy must be one of your own people at court sent to a court or a province", () => {
-    let s = newGame(4);
+    let s = oldWorld(newGame(4));
     let own = first(s.characters, (c) => c.employer === "Egypt");
     let stranger = first(s.characters, (c) => c.status === "Free");
 
@@ -109,7 +109,7 @@ describe("SeasonOrderTests", () => {
   });
 
   test("A levy needs a province you still hold that is empty after movement", () => {
-    let s = newGame(4, newGameConfig({ catastropheChance: 0, peopleDefence: 0 }));
+    let s = oldWorld(newGame(4, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
     s.owner.set("jerusalem", "Babylonia");
     s.walls.delete("jerusalem");
     s.units.push(newUnit({ id: "u90", power: "Babylonia", kind: "Army", province: "jerusalem" }));

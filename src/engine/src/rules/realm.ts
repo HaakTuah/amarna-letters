@@ -6,7 +6,7 @@
  */
 import { economyOf, grainWorth, harvestOf, needOf } from "../model/economy.ts";
 import type { WorldMap } from "../model/map.ts";
-import { land, type Power } from "../model/power.ts";
+import { cmpPower, land, type Power } from "../model/power.ts";
 import { alive, type GameState } from "../model/state.ts";
 import { vassalBonds } from "../model/vassals.ts";
 
@@ -45,7 +45,7 @@ export function stateOfRealm(s: GameState, map: WorldMap, p: Power): string {
     }
   lines.push(touch.size === 0 ? "No land road leads from it to another power's land: its neighbours are across the sea." : `Its roads lead into the land of ${[...touch.entries()].map(([o, ns]) => (ns.length === 1 && ns[0] === o ? o : `${o} (${ns.join(", ")})`)).join(", ")}.`);
   // Where it stands among the powers.
-  const ranked = [...alive(s)].sort((a, b) => s.startStrength.get(b) - s.startStrength.get(a) || a.localeCompare(b));
+  const ranked = [...alive(s)].sort((a, b) => s.startStrength.get(b) - s.startStrength.get(a) || cmpPower(a, b));
   const rank = ranked.indexOf(p) + 1;
   lines.push(`Of the ${ranked.length} powers, it is the ${ordinal(rank)} in wealth.`);
   const bonds = vassalBonds(s.tablets);

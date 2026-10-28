@@ -66,8 +66,9 @@ slowest part, the siege's clock, and strength as the wealth of the realm. Save v
 - The condition `StoresAtLeast` (stores of a province of the seat's at least an amount) lets scheduled orders keep a
   floor, as "Building it" asks.
 - The levy's cost goes into the purse of the province where it is raised, and the fortify cost into the walled
-  province's purse (the men, smiths and builders are its people). A bought city's price (`cityPrice`, public in the view
-  as `cityPrices`) is what it adds: `10 × (harvest at reference + mines) + purse + stores and market`; it leaves the world.
+  province's purse (the men, smiths and builders are its people). What a province adds to its holder (`provinceWorthOf`) is
+  `10 × (harvest at reference + mines) + purse + stores and market`; until item 11+ it was also a free city's price, public in
+  the view as `cityPrices` (no city is bought since: `25-city-states-as-powers.md`).
 
 ### The pace of a company (model/travel.ts)
 

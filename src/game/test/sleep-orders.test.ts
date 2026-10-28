@@ -30,7 +30,7 @@ import {
   unreadable,
 } from "@amarna/engine";
 import { Schemas, leaderRules, situation } from "@amarna/llm";
-import { Assert, singleOrNull, join } from "../../engine/test/support.ts";
+import { Assert, singleOrNull, join, oldWorld } from "../../engine/test/support.ts";
 import { Sleeper } from "./sleep-support.ts";
 import { Scripted } from "./sleep-support.ts";
 import { nothing } from "./sleep-support.ts";
@@ -72,7 +72,7 @@ describe("SleepTests", () => {
   });
 
   test("An order naming a province where the seat has no unit is refused when given and wakes nobody", () => {
-    let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(31, newGameConfig({ catastropheChance: 0 })));
     let sleep = newSleepState();
     s.sleep.set("Babylonia", sleep);
     let e = new TurnEngine(s);
@@ -146,7 +146,7 @@ describe("SleepTests", () => {
   test("After a levy its province names the levy s unit even where another unit stands now", () => {
     // Turn 2: the army in Dur-Kurigalzu marches to Nippur and a new army is raised behind it. Turn 3's order for
     // Dur-Kurigalzu is the new army's; turn 2's is the old one's.
-    let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(31, newGameConfig({ catastropheChance: 0 })));
     let sleep = newSleepState();
     s.sleep.set("Babylonia", sleep);
     let old = unitAt(s, "durkurigalzu")!;
@@ -202,7 +202,7 @@ describe("SleepTests", () => {
 
   test("A refusal says nothing of troops out of sight", () => {
     // Babylon sees Ekallate (an Assyrian army) and Nippur (empty), not Ashur (an Assyrian army) or Arbela (empty).
-    let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(31, newGameConfig({ catastropheChance: 0 })));
     let sleep = newSleepState();
     s.sleep.set("Babylonia", sleep);
     let sight = Views.sight(s, WorldMap.default, "Babylonia");
@@ -274,7 +274,7 @@ describe("SleepTests", () => {
 
   test("A kept order is given from where its units stand now", () => {
     // Egypt's fleet convoys its own army, and an army supports another: each order follows both its units.
-    let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(31, newGameConfig({ catastropheChance: 0 })));
     let fleet = unitAt(s, "delta")!;
     let army = unitAt(s, "memphis")!;
     let helper = unitAt(s, "akhetaten")!;
@@ -376,7 +376,7 @@ describe("SleepTests", () => {
   });
 
   test("A scheduled order that cannot be read is refused when given and wakes nobody", () => {
-    let s = newGame(31, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(31, newGameConfig({ catastropheChance: 0 })));
     let sleep = newSleepState();
     s.sleep.set("Babylonia", sleep);
     let e = new TurnEngine(s);

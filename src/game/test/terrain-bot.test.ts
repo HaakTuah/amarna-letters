@@ -19,7 +19,7 @@ import {
   support,
 } from "@amarna/engine";
 import { GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
-import { at, removeAll, Assert, toDict } from "../../engine/test/support.ts";
+import { at, removeAll, Assert, toDict, oldWorld } from "../../engine/test/support.ts";
 import { move as moveOrder } from "@amarna/engine";
 
 // Script kings and terrain (Build order item 5; "Every feature is every seat's"): they count the ground's help to a troop
@@ -27,7 +27,7 @@ import { move as moveOrder } from "@amarna/engine";
 // desert's cost, and in play both hold by the ground and beat it.
 describe("TerrainBotTests", () => {
   test("A board reckons the ground and the desert as the rules do", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     let hatti = new Board(Views.for(s, "Hatti"));
     Assert.equal(1, hatti.ground("tuwanuwa", "mira"));
     Assert.equal(1, hatti.ground("tuwanuwa", "kizzuwatna"));
@@ -42,7 +42,7 @@ describe("TerrainBotTests", () => {
     Assert.equal(20, hatti.desertCost("sinai"));
     Assert.equal(0, new Board(Views.for(s, "Egypt")).desertCost("sinai"));
 
-    let off = newGame(1, newGameConfig({ catastropheChance: 0, terrainDefence: 0 }));
+    let off = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, terrainDefence: 0 })));
     let flat = new Board(Views.for(off, "Hatti"));
     Assert.equal(0, flat.ground("tuwanuwa", "mira"));
   });
@@ -51,7 +51,7 @@ describe("TerrainBotTests", () => {
     // Egypt's army holds Mira, with no troop of Egypt's near; Hatti, at war with Egypt and at peace with Arzawa, has three
     // armies round it (Tuwanuwa, Lukka and the Seha River Land).
     function supports(terrain: number): number {
-      let s = newGame(4, newGameConfig({ catastropheChance: 0, terrainDefence: terrain }));
+      let s = oldWorld(newGame(4, newGameConfig({ catastropheChance: 0, terrainDefence: terrain })));
       removeAll(s.units, (u) => u.power === "Arzawa" && u.province !== "apasa");
       s.owner.set("mira", "Egypt");
       s.units.push(newUnit({ id: "u90", power: "Egypt", kind: "Army", province: "mira" }));
@@ -88,7 +88,7 @@ describe("TerrainBotTests", () => {
   });
 
   test("A troop that stood its ground against us last season is pictured standing again", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
     single(s.units, (u) => u.province === "hattusa").province = "tuwanuwa";
     single(s.units, (u) => u.province === "nesa").province = "lukka";
     s.walls.delete("lukka");

@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import {
+  alive,
   raise,
   unitAt,
   AllPowers,
@@ -40,7 +41,7 @@ import {
   seekCandidates,
   single,
 } from "@amarna/engine";
-import { Assert, firstOrNull, toDict, join, skilled, homeJob } from "./support.ts";
+import { Assert, firstOrNull, toDict, join, skilled, homeJob, oldWorld } from "./support.ts";
 
 describe("IntelligenceTests", () => {
   function begin(s: GameState): TurnEngine {
@@ -63,7 +64,7 @@ describe("IntelligenceTests", () => {
   }
 
   test("A forgery the scribes miss reads exactly as a genuine tablet", () => {
-    let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(5, newGameConfig({ catastropheChance: 0 })));
     s.tablets.push(newTablet({ id: "t900", text: "Peace.", proposedBy: "Hatti", partner: "Egypt", seals: ["Hatti", "Egypt"], createdTurn: 1, sealedTurn: 1 }));
     // A master forger, examined cheaply: found 5% of the time.
     s.tablets.push(
@@ -95,7 +96,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("A spy watching a free city or its own king s province is never caught", () => {
-    let s = newGame(8, newGameConfig({ catastropheChance: 0 }));
+    let s = oldWorld(newGame(8, newGameConfig({ catastropheChance: 0 })));
     let spies = s.characters.filter((c) => c.employer === "Babylonia").slice(0, 2);
     for (const [spy, at] of spies.map((x, i) => [x, ["tyre", "babylon"][i]] as const)) {
       [spy.secretMaster, spy.traits.competence] = [null, 0];
@@ -112,7 +113,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("A posted spy sends reports home that arrive late", () => {
-    let s = newGame(8);
+    let s = oldWorld(newGame(8));
     let spy = first(s.characters, (c) => c.employer === "Babylonia");
     spy.secretMaster = null;
     skilled(spy, 95);
@@ -126,7 +127,7 @@ describe("IntelligenceTests", () => {
   test("Heavy watch catches spies and captives can be turned", () => {
     let caught = false;
     for (let seed = 1; seed <= 15 && !caught; seed++) {
-      let s = newGame(seed);
+      let s = oldWorld(newGame(seed));
       let spy = first(s.characters, (c) => c.employer === "Babylonia");
       spy.secretMaster = null;
       skilled(spy, 10);
@@ -155,7 +156,7 @@ describe("IntelligenceTests", () => {
 
   test("A captive whose kingdom has fallen cannot be turned", () => {
     // As when the spy's own kingdom falls while they are held: no master, still a captive.
-    let s = newGame(4);
+    let s = oldWorld(newGame(4));
     let spy = first(s.characters, (c) => c.employer === "Hatti");
     spy.status = "Captured";
     spy.heldBy = "Mitanni";
@@ -170,7 +171,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Ransomed captives come home once paid", () => {
-    let s = newGame(4);
+    let s = oldWorld(newGame(4));
     let spy = first(s.characters, (c) => c.employer === "Hatti");
     spy.status = "Captured";
     spy.heldBy = "Mitanni";
@@ -193,7 +194,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Candidates pitch and only the court where a person stands can hire it", () => {
-    let s = newGame(6);
+    let s = oldWorld(newGame(6));
     let e = begin(s);
     e.resolve(
       new Dict([
@@ -227,7 +228,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("A wage below the asking price is refused", () => {
-    let s = newGame(6);
+    let s = oldWorld(newGame(6));
     let free = first(s.characters, (c) => c.status === "Free");
     free.pitches.set("Egypt", "I am worth it.");
     free.askingPrice.set("Egypt", 50);
@@ -237,7 +238,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Tablet copies shown as evidence reach the third court", () => {
-    let s = newGame(9);
+    let s = oldWorld(newGame(9));
     s.tablets.push(
       newTablet({
         id: "t900",
@@ -268,13 +269,13 @@ describe("IntelligenceTests", () => {
   });
 
   test("Spending debased gold exposes it", () => {
-    let s = newGame(9);
+    let s = oldWorld(newGame(9));
     let t = s.treasuries.get("Hatti");
     // The ledger shows a levy's price and a little more; the levy passes validation but the true treasury cannot pay.
     const price = s.config.armyCost;
-    t.gold = 60;
+    t.gold = 90;
     t.lots.push(newGoldLot({ id: "g900", from: "Egypt", stated: price, face: price, true: 60, arrivedTurn: 1 }));
-    Assert.equal(price + 60, ledger(t));
+    Assert.equal(price + 30, ledger(t));
     let e = new TurnEngine(s);
     e.resolve(orders("Hatti", raise("sapinuwa", "Army")));
     Assert.null(unitAt(s, "sapinuwa"));
@@ -283,7 +284,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Sworn allies can share the victory", () => {
-    let s = newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000, sharedVictory: true }));
+    let s = oldWorld(newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000, sharedVictory: true })));
     s.tablets.push(
       newTablet({
         id: "t901",
@@ -305,7 +306,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Sworn allies do not share the victory unless the house rule is on", () => {
-    let s = newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000 }));
+    let s = oldWorld(newGame(10, newGameConfig({ capMin: 1, capMax: 1, endMedian: 10000 })));
     Assert.false(s.config.sharedVictory);
     s.tablets.push(
       newTablet({
@@ -329,7 +330,7 @@ describe("IntelligenceTests", () => {
   });
 
   test("Catastrophes are exact at home and heard next season only by courts that can see them", () => {
-    let s = newGame(13, newGameConfig({ catastropheChance: 1.0 }));
+    let s = oldWorld(newGame(13, newGameConfig({ catastropheChance: 1.0 })));
     let e = begin(s);
     let map = WorldMap.default;
     let sight = toDict(
@@ -343,11 +344,11 @@ describe("IntelligenceTests", () => {
       (p) => ownedBy(s, p),
     );
     e.resolve(new Dict<Power, TurnSubmission>());
-    Assert.all(AllPowers, (p) => Assert.contains(inboxOf(s, p), (i) => i.kind === "Catastrophe"));
+    Assert.all(alive(s), (p) => Assert.contains(inboxOf(s, p), (i) => i.kind === "Catastrophe"));
 
     let [heard, unheard] = [0, 0];
     for (const cat of s.catastrophes)
-      for (const other of AllPowers.filter((o) => o !== cat.power)) {
+      for (const other of alive(s).filter((o) => o !== cat.power)) {
         // A drought or plague is seen from any province of the realm; a flood or earthquake only from its own.
         const one = cat.province;
         let seen = one !== null ? sight.get(other).has(one) : owned.get(cat.power).some((x) => sight.get(other).has(x));

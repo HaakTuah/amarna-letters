@@ -1,4 +1,4 @@
-import { WorldMap, type Power } from "@amarna/engine";
+import { WorldMap, powerOrdinal, type Power } from "@amarna/engine";
 import { memo } from "react";
 import { captureLine, unitKindName, type MapScene, type MoveStyle } from "../map/scene.ts";
 import type { FrameNews, FrameSleep } from "../session/frames.ts";
@@ -8,7 +8,7 @@ import { Emblem } from "./Emblem.tsx";
 const rank = (s: MoveStyle): number => (s === "Attack" ? 0 : s === "Bounce" ? 1 : s === "Move" ? 2 : s === "Convoy" ? 3 : 4);
 const tag = (s: MoveStyle): string =>
   s === "Attack" ? "attack" : s === "Bounce" ? "bounced" : s === "Move" ? "move" : s === "Support" ? "support" : s === "SupportCut" ? "support cut" : "convoy";
-const powerRank = (p: Power): number => ["Egypt", "Hatti", "Babylonia", "Mitanni", "Assyria", "Arzawa", "Alashiya"].indexOf(p);
+const powerRank = (p: Power): number => powerOrdinal(p);
 const personRank = (k: string): number => ["Envoy", "Spy", "Captive", "Missing"].indexOf(k);
 const ordinal = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 

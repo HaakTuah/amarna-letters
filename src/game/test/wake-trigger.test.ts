@@ -30,7 +30,7 @@ import {
   wallsOf,
 } from "@amarna/engine";
 import { leaderRules } from "@amarna/llm";
-import { removeAll, Assert, subs } from "../../engine/test/support.ts";
+import { removeAll, Assert, subs, oldWorld } from "../../engine/test/support.ts";
 
 // The engine's wake triggers fire on a change, not on a condition that merely holds: foreign troops arriving next to the
 // homeland, a siege begun or about to end. A king has no triggers of his own (removed in the fix pass after item 4).
@@ -39,7 +39,7 @@ describe("WakeTriggerTests", () => {
 
   // <summary>A game in which Babylonia sleeps (it gave orders in turn 1) and Durkurigalzu, next to Babylon, is Assyria's and empty.</summary>
   function sleeping(setup: ((a0: GameState) => void) | null = null): [GameState, SleepState] {
-    let s = newGame(31, Quiet);
+    let s = oldWorld(newGame(31, Quiet));
     removeAll(s.units, (u) => u.province === "durkurigalzu");
     s.owner.set("durkurigalzu", "Assyria");
     setup?.(s);
@@ -87,7 +87,7 @@ describe("WakeTriggerTests", () => {
   });
 
   test("A fleet arriving off a coastal capital wakes the seat", () => {
-    let s = newGame(31, Quiet);
+    let s = oldWorld(newGame(31, Quiet));
     let sleep = newSleepState({ asleep: true, lastCalled: 1, wakeAt: 50, history: [newSleepSpell({ from: 2 })] });
     s.sleep.set("Alashiya", sleep);
     first(s.units, (u) => u.province === "delta").province = "ugaritwaters";
@@ -171,7 +171,7 @@ describe("WakeTriggerTests", () => {
 
   // <summary>A game in which Alashiya sleeps (it gave orders in turn 1).</summary>
   function alashiyaAsleep(setup: ((a0: GameState) => void) | null = null): [GameState, SleepState] {
-    let s = newGame(31, Quiet);
+    let s = oldWorld(newGame(31, Quiet));
     setup?.(s);
     let sleep = newSleepState({ asleep: true, lastCalled: 1, wakeAt: 50, history: [newSleepSpell({ from: 2 })] });
     s.sleep.set("Alashiya", sleep);
