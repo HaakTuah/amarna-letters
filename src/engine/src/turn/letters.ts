@@ -65,6 +65,11 @@ P.carryLetters = function () {
       S.journeys.splice(S.journeys.indexOf(letter), 1);
       continue;
     }
+    // A ransom demand replaced by a newer one, or lapsed, is no longer the captor's to send.
+    if (letter.kind !== "SpyReport" && letter.taskId !== null && !S.tasks.some((t) => t.id === letter.taskId)) {
+      S.journeys.splice(S.journeys.indexOf(letter), 1);
+      continue;
+    }
     const at = letter.waitAt!;
     // A report left at a watch post whose spy is gone (recalled, caught or dead), with no court there to hire a carrier
     // at: nobody keeps it, and it is lost.
@@ -160,7 +165,7 @@ P.carryLetters = function () {
     }
     if (carrier === null) continue;
     letter.fee = fee;
-    for (const l of waiting.filter((x) => x.carrier === null && x.waitAt === at && x.to === letter.to)) {
+    for (const l of waiting.filter((x) => x.carrier === null && x.waitAt === at && x.to === letter.to && (x.kind === "SpyReport") === !demand)) {
       l.carrier = carrier.id;
       S.lettersCarried.set(l.from, S.lettersCarried.getOrDefault(l.from, 0) + 1);
       S.lettersWaited.set(l.from, S.lettersWaited.getOrDefault(l.from, 0) + (S.turn - l.departTurn));

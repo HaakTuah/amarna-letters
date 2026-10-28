@@ -6,7 +6,7 @@
  * travellers on its roads (and, with a ship, the sea beside its coast), feeds and pays its men from what it takes, and
  * keeps only as many as it can pay: men join it while it has a surplus to pay them and leave when it is short, so no
  * number sets how many bands a land holds or how large they grow. A chief's share is his own gold. Its holder's armies
- * hunt it where they stand. Everything is drawn from seeded streams ("Deterministic").
+ * hunt it where they stand on his order or standing order. Everything is drawn from seeded streams ("Deterministic").
  */
 import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
@@ -246,7 +246,7 @@ P.dies = function (c, where, how) {
 
 /**
  * The season of the bands, in the people's season after the loose men robbed: chiefs rise from the crowds, the holders'
- * armies hunt the bands where they stand, each band robs, pays and feeds its men, grows or shrinks, splits, turns on its
+ * armies hunt the bands where they stand by order, each band robs, pays and feeds its men, grows or shrinks, splits, turns on its
  * chief, moves to richer land, buys a ship, or its chief gives up the road. Returns each holder's lines.
  */
 P.bandsSeason = function () {
@@ -506,10 +506,13 @@ P.chiefKills = function (b, victim, province) {
   const chief = S.characters.find((x) => x.id === b.leaderId) ?? null;
   if (chief === null) return false;
   const ruthless = chief.traits.loyalty < 40 || chief.traits.greed > 70;
-  const witness = victim.employer !== null || victim.status === "Free";
+  // A witness worth silencing serves a king, who would hear his word and could send men; a free traveller's word reaches
+  // nobody who would. The chief weighs only what he can see: the land's armies in or next to the province, not its
+  // king's orders.
+  const witness = victim.employer !== null;
   const holder = S.owner.getOrDefault(province, null);
   const near = new Set([province, ...this.map.neighbors(province)]);
-  const hunted = holder !== null && (S.huntBands.includes(holder) || S.units.some((u) => u.power === holder && u.kind === "Army" && near.has(u.province)));
+  const hunted = holder !== null && S.units.some((u) => u.power === holder && u.kind === "Army" && near.has(u.province));
   return ruthless && witness && !hunted;
 };
 

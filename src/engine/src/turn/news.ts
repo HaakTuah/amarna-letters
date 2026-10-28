@@ -114,9 +114,11 @@ P.buyNewsOrder = function (p, o) {
   }
   // A servant selling its master's secrets does it at its real cost if caught: its master may hear of it.
   if (c.employer === o.court && c.status === "Employed" && this.r("secrets-caught", `${c.id}|${S.turn}`).chance(NewsData.secretsCaught / 100)) {
-    c.facts.push(newFact({ id: newId(S, "f"), text: `Sold the secrets of ${land(o.court)}, whom they served, to ${land(p)} (season ${S.turn}).`, secrecy: "Hidden", tag: "sold-secrets", knownBy: [o.court] }));
-    notify(S, o.court, "Notice", "Secrets sold", `Word has come that ${c.name}, in your service, sold what they know of your court to ${p}.`, c.id);
-    logEvent(S, "secrets-sold", `${c.name} was caught selling ${o.court}'s secrets to ${p}.`, [o.court], "secrets-caught");
+    // Word of it goes from the buyer's court by the roads (Everything travels): its master knows when it arrives.
+    const f = newFact({ id: newId(S, "f"), text: `Sold the secrets of ${land(o.court)}, whom they served, to ${land(p)} (season ${S.turn}).`, secrecy: "Hidden", tag: "sold-secrets", knownBy: [] });
+    c.facts.push(f);
+    this.rumor(o.court, p, f.text, c.id, "Name", f.id);
+    logEvent(S, "secrets-sold", `${c.name} was caught selling ${o.court}'s secrets to ${p}.`, [], "secrets-caught");
   }
   notify(S, p, "SpyReport", `News of ${o.court} from ${c.name}`, `${c.name} sold you what they saw at the court of ${o.court} in season ${n.turn} (${S.turn - n.turn} seasons ago), for ${formatMoney(n.price)}: ${n.lines.join(" ")} A seller's word: it may be stale, and a greedy seller may make more of it than he saw.`, c.id);
   logEvent(S, "news-sold", `${c.name} sold ${p} news of ${o.court}${n.honest ? "" : ", made out larger than he saw"}.`, [p], "news-sold");

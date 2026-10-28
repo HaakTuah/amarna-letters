@@ -1,6 +1,6 @@
 /**
- * A script king and the roads (build order item 11b): it hunts the bands that rob its land with armies it can spare, since
- * an army standing where a band works falls on it and halves what it takes; and it buys news of the courts it fears or
+ * A script king and the roads (build order item 11b): it hunts the bands that rob its land, by the standing order while a
+ * large band works there and with armies it can spare; and it buys news of the courts it fears or
  * fights or does not trust from the people at its court who sell it ("Characters as sellers of news"), fresh and cheap enough to be worth it.
  */
 import { buyNews, cmpStr, huntBands as huntBandsOrder, sortBy, move, type Order, type Power, type SeatView } from "@amarna/engine";

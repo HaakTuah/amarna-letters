@@ -13,6 +13,7 @@ import {
   newGame,
   newLossAbroad,
   newNewsHeld,
+  newPendingTask,
   newUnit,
   newId,
   newsOffered,
@@ -187,6 +188,84 @@ describe("BandTests", () => {
     // It is never offered at the court it is about.
     c.at = "Hatti";
     Assert.empty(newsOffered(s, c, "Hatti"));
+  });
+
+  test("A ruthless chief kills a king's servant only where no army of the land stands near; a careful one never", () => {
+    const s = newGame(8);
+    const prov = quiet(s, "Egypt");
+    const e = new TurnEngine(s);
+    const b = e.headRises(prov, 60, "crowd", e.r("test"));
+    const chief = first(s.characters, (c) => c.id === b.leaderId);
+    const servant = first(s.characters, (c) => c.employer !== null && c.id !== chief.id);
+    const free = first(s.characters, (c) => c.status === "Free" && c.id !== chief.id);
+    chief.traits.loyalty = 20;
+    const near = new Set([prov, ...Map.neighbors(prov)]);
+    s.units = s.units.filter((u) => !(u.power === "Egypt" && near.has(u.province)));
+    Assert.true(e.chiefKills(b, servant, prov));
+    // A free traveller's word reaches nobody who would hunt him.
+    Assert.false(e.chiefKills(b, free, prov));
+    // The land's army next door: he lets the witness go.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: Map.neighbors(prov)[0], home: prov, men: 2000, food: 20 }));
+    Assert.false(e.chiefKills(b, servant, prov));
+    s.units.pop();
+    chief.traits.loyalty = 80;
+    chief.traits.greed = 30;
+    Assert.false(e.chiefKills(b, servant, prov));
+  });
+
+  test("A ransom demand never carries a spy's reports, and one no longer standing is dropped unsent", () => {
+    const s = newGame(9);
+    const at = Map.capital("Hatti").id;
+    const e = new TurnEngine(s);
+    const demand = newPendingTask({ id: newId(s, "q"), kind: "RansomDemand", requester: "Babylonia", other: "Hatti", spend: 100, dueTurn: s.turn + 8 });
+    s.tasks.push(demand);
+    e.rumor("Babylonia", "Hatti", "Hatti demands a ransom.", null, "Ransom", demand.id);
+    const word = s.journeys[s.journeys.length - 1];
+    [word.arriveTurn, word.waitAt] = [Waiting, at];
+    const spy = first(s.characters, (c) => c.employer === "Babylonia" && c.at === "Babylonia");
+    [spy.duty, spy.at, spy.missionTarget, spy.purse] = ["SpyPosted", "Hatti", "Hatti", 0];
+    spy.traits.loyalty = 10;
+    e.watchAndReport();
+    const report = first(s.journeys, (j) => j.kind === "SpyReport" && j.characterId === spy.id);
+    s.turn++;
+    new TurnEngine(s).carryLetters();
+    // Whoever took the demand (a traveller, or a carrier the captor hired) did not take the spy's report with it.
+    if (word.carrier !== null) Assert.true(report.carrier === null || report.carrier !== word.carrier);
+    // A demand replaced or lapsed: its word is dropped, and nobody is paid to carry it.
+    const again = newPendingTask({ id: newId(s, "q"), kind: "RansomDemand", requester: "Babylonia", other: "Hatti", spend: 100, dueTurn: s.turn + 8 });
+    e.rumor("Babylonia", "Hatti", "Hatti demands a ransom.", null, "Ransom", again.id);
+    const gone = s.journeys[s.journeys.length - 1];
+    [gone.arriveTurn, gone.waitAt] = [Waiting, at];
+    const gold = s.treasuries.get("Hatti").gold;
+    new TurnEngine(s).carryLetters();
+    Assert.false(s.journeys.includes(gone));
+    Assert.equal(gold, s.treasuries.get("Hatti").gold, 0);
+  });
+
+  test("A servant caught selling its master's secrets: word of it reaches its master by the roads", () => {
+    let caught = false;
+    for (let seed = 1; seed <= 40 && !caught; seed++) {
+      const s = newGame(seed);
+      const c = first(s.characters, (x) => x.employer === "Hatti" && x.status === "Employed");
+      c.at = "Mitanni";
+      c.duty = "EnvoyAbroad";
+      [c.traits.greed, c.traits.loyalty] = [90, 10];
+      c.news = [newNewsHeld({ court: "Hatti", turn: s.turn, lines: ["Hatti had an army in Nesa."] })];
+      if (newsOffered(s, c, "Mitanni").length === 0) return;
+      new TurnEngine(s).resolve(subs({ Mitanni: { orders: [buyNews(c.id, "Hatti")] } }));
+      const f = c.facts.find((x) => x.tag === "sold-secrets") ?? null;
+      if (f === null) continue;
+      caught = true;
+      // Not known at once: the word is on the road from Mitanni.
+      Assert.empty(f.knownBy);
+      const word = first(s.journeys, (j) => j.kind === "Rumor" && j.news === "Name" && j.taskId === f.id);
+      Assert.equal("Hatti", word.to);
+      Assert.true(word.arriveTurn > word.departTurn);
+      new TurnEngine(s).nameHeard(word);
+      Assert.true(f.knownBy.includes("Hatti"));
+      Assert.contains(inboxOf(s, "Hatti"), (i) => i.title === "Secrets sold");
+    }
+    Assert.true(caught);
   });
 
   test("A person asks more of a court it heard loses its people abroad", () => {

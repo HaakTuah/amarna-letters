@@ -97,7 +97,9 @@ and the man hired, hear its rate. It asks more of a court it heard seized hoards
 
 - **A ransom demand needs a carrier** (`captive` "Ransom"): its word waits at the captor's capital (`Journey.waitAt`) until
   someone sets out for the payer's court, the payer's own people or any traveller, for nothing (`carryLetters`, a
-  journey that is not a `SpyReport`); the demand stands 8 seasons. Rumours and word of the world stay talk by the roads.
+  journey that is not a `SpyReport`), or, with nobody going, a free person at the captor's court hired from his treasury
+  as part of his order; the demand stands 8 seasons. A carrier takes the waiting letters of one kind only (a demand never
+  carries a spy's reports), and a demand replaced or lapsed is dropped unsent. Rumours and word of the world stay talk by the roads.
 - **The spy decides** (`carryLetters`): a passing traveller is paid on delivery by its court's standing order, else by
   the spy from its purse if it is loyal enough (`LetterData.payLoyalty`); so is a carrier it hires; it carries its
   reports home itself after `selfWait` seasons (two, a season more for a brave spy and for a loyal one).
@@ -105,11 +107,12 @@ and the man hired, hear its rate. It asks more of a court it heard seized hoards
   province of his, where the realm's couriers take them.
 - **Hunting only on order** (`hunt` for next season, `huntBands` standing; `GameState.huntNow`, `huntBands`): an army
   falls on a band where it stands only so; troops standing there still halve what bands take.
-- **Robbers choose** (`chiefKills`): a ruthless chief (disloyal or greedy) kills a robbed traveller where nobody hunts him
-  (the land's king has no standing hunt and no army there or next door); a careful one never does. No fixed odds.
+- **Robbers choose** (`chiefKills`): a ruthless chief (disloyal or greedy) kills a robbed king's servant, a witness whose
+  master would hear him, where no army of the land's king stands in the province or next to it (what a chief can see,
+  not the king's orders); a careful one never does, and a free traveller is let go. No fixed odds.
 - **Anyone may sell what he knows** (`newsSeason`, `buyNewsOrder`): servants abroad note news too; a greedy, disloyal
-  servant notes its master's court, and selling it is found out `NewsData.secretsCaught` times in a hundred (a hidden
-  fact its master knows, a notice, signal `secrets-caught`).
+  servant notes its master's court, and selling it is found out `NewsData.secretsCaught` times in a hundred: a hidden
+  fact whose word goes from the buyer's court to its master by the roads (a "Name" rumour), with a notice on arrival.
 - **Not built here**: a band hired as soldiers (item 13); a pardon has no order (words, or a sealed promise); **a model
   chief's own request** for raids, ships and the way back (chiefs, model and script, still decide by formula).
 - **Script kings** give the standing hunt while a band of 40 men or more works in their land (`huntOrders`), march spare

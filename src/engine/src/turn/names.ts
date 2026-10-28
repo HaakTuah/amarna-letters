@@ -82,6 +82,7 @@ P.nameHeard = function (j) {
   const f = c?.facts.find((x) => x.id === j.taskId) ?? null;
   if (c === null || f === null || f.knownBy.includes(j.to)) return;
   f.knownBy.push(j.to);
+  if (f.tag === "sold-secrets") notify(S, j.to, "Notice", "Secrets sold", `Word has come that ${c.name}, in your service, sold what they know of your court to another king.`, c.id);
   const seasons = Math.max(0, j.arriveTurn - j.departTurn);
   const delta = f.tag === "outcome" ? Math.round(NameGain * (1 + TaleGrowth * seasons)) : f.tag === "outcome-bad" || f.tag === "impostor" ? -NameLoss : 0;
   c.reputation.set(j.to, c.reputation.getOrDefault(j.to, 0) + delta);
