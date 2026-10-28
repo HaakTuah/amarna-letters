@@ -64,7 +64,7 @@ function accepts(c: Character, v: LifeView, a: ApproachSeen, record: { kept: num
     if (!v.free || v.errand !== null) return false;
     const here = v.courts.find((k) => k.court === v.at);
     const ask = here?.ask ?? 8;
-    return a.fee >= ask * 3 && (record.broken === 0 || c.bold);
+    return a.fee >= ask * 2 && (record.broken <= record.kept || c.bold);
   }
   if (a.repay > 0 && a.giveGold > 0) {
     // It is offered a loan: taken in need, or when the rate is below its impatience (it values gold now more).
@@ -129,8 +129,10 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
     const best = [...v.courts].sort((a, b) => courtScore(c, v, b, ch.seek) - courtScore(c, v, a, ch.seek) || a.court.localeCompare(b.court))[0];
     if (best !== undefined && here !== null && best.court !== v.at && courtScore(c, v, best, ch.seek) > courtScore(c, v, here, ch.seek) + 10) ch.go = best.court;
     // A debt falling due on a king it can reach: it goes to his court to be repaid, unless it stands there already.
+    // One seeking service at a court that is hiring stays and sends a collector instead (below), if there is one to send.
     const due = v.held.find((d) => d.dueTurn <= v.turn + 1 && d.kept !== "missing" && v.courts.some((k) => k.court === d.otherId));
-    if (due !== undefined) ch.go = due.otherId === v.at ? null : (due.otherId as Power);
+    const staying = ch.seek && here !== null && here.hiring !== null && v.turn - here.hiring <= 4 && v.here.some((p) => p.standing === "free");
+    if (due !== undefined && !staying) ch.go = due.otherId === v.at ? null : (due.otherId as Power);
   }
 
   // Its hoard: the careful keep one where they stand, if that court looks safe; anyone pulls it out of a court in danger.
@@ -157,10 +159,12 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
   // One approach a season: a collector for an overdue debt it cannot reach; a loan in need; or a loan to lend on to the king
   // at a higher rate, if its name is good (the gathering lender).
   if (ch.approach === null) {
-    const overdue = v.held.find((d) => d.dueTurn < v.turn && d.kept !== "missing" && v.courts.some((k) => k.court === d.otherId) && d.otherId !== v.at);
-    const freeHere = v.here.filter((p) => p.standing === "free" && p.broken === 0);
+    const overdue = v.held.find((d) => d.dueTurn <= v.turn + 1 && d.kept !== "missing" && v.courts.some((k) => k.court === d.otherId) && d.otherId !== v.at);
+    const freeHere = v.here.filter((p) => p.standing === "free" && p.broken <= p.kept).sort((a, b) => a.broken - b.broken || b.kept - a.kept || a.id.localeCompare(b.id));
     if (overdue !== undefined && freeHere.length > 0 && e === null) {
-      const fee = Math.max(15, Math.trunc((overdue.left * 15) / 100));
+      // A fee for the journey there and back, at the going rate, or a share of what it brings, whichever is more.
+      const travel = v.courts.find((k) => k.court === overdue.otherId)?.travel ?? 2;
+      const fee = Math.max(Math.trunc((overdue.left * 15) / 100), Math.trunc((8 * (2 * travel + 1) * v.goingRate) / 100));
       ch.approach = newApproachMade({ to: freeHere[0].id, words: `Carry this tablet to ${overdue.other} and bring me what is paid on it, and you will have ${fee} shekels.`, giveGold: Math.trunc(fee / 3), fee, collect: overdue.id });
     } else if (purse < v.living * 2 + 5 && v.here.length > 0 && v.free && ch.seek && v.owes.length === 0 && here !== null && here.hiring !== null && v.turn - here.hiring <= 2) {
       // In need, seeking service at a court that is hiring: it borrows to live until the first advance, once.
