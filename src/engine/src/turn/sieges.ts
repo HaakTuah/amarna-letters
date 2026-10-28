@@ -14,13 +14,13 @@ import { Dict, HSet } from "../core/collections.ts";
 import { clamp, roundEven, toInt } from "../core/num.ts";
 import { cmpNum, count, distinct, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
-import { groundText, IslandWater, waterSeasons } from "../model/geography.ts";
+import { groundText, isIslandWater, waterSeasons } from "../model/geography.ts";
 import { StartWalls } from "../model/map.ts";
 import { EconomyData } from "../model/economy.ts";
 import type { Dispatch, HomeCargo } from "../model/records.ts";
 import { newLossAbroad, newTabletCopy } from "../model/records.ts";
 import type { FortifyOrder } from "../model/orders.ts";
-import { stormed, type Assault } from "../model/outcomes.ts";
+import { stormed, strengthWords, type Assault } from "../model/outcomes.ts";
 import { LandData, menAvailable } from "../model/land.ts";
 import { remember, type Character } from "../model/people.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
@@ -185,9 +185,9 @@ P.sieges = function (valid) {
       this.surrender(x, owner, tell, "hunger");
       continue;
     }
-    // And water (item 10+b, "Water too"): a city that has drunk its cisterns dry holds no longer, whatever its food; an
+    // And water (item 10+b, "Water too"; by the water dossier since 11a+): a city that has drunk its cisterns dry holds no longer, whatever its food; an
     // island without water of its own runs dry once its besieger's fleet holds its waters.
-    const island = IslandWater.has(x.province);
+    const island = isIslandWater(x.province);
     if (island) x.blockaded = openToSea(this, x.province) ? 0 : x.blockaded + 1;
     const drinking = island ? (x.blockaded > 0 ? waterSeasons(x.province) : Infinity) : waterSeasons(x.province);
     if (!begun && (island ? x.blockaded > drinking : S.turn - x.since >= drinking)) {
@@ -224,7 +224,7 @@ P.sieges = function (valid) {
     // Its water, as anyone who knows the place knows it (item 10+b).
     const water =
       drinking === Infinity
-        ? IslandWater.has(x.province)
+        ? isIslandWater(x.province)
           ? " Its water comes by boat while its waters are open."
           : " Its water never fails."
         : ` Its water lasts ${Math.max(0, island ? drinking - x.blockaded + 1 : x.since + drinking - S.turn)} more season(s) of siege.`;
@@ -361,15 +361,15 @@ P.surrender = function (x, owner, tell, how) {
 
 /** What a king reads of his own move that got within walls he does not hold: whether it stormed them, with the strengths. */
 P.assaultText = function (a) {
-  const strengths = `strength ${a.strength} against walls ${a.walls} and defenders ${a.defenders}${groundShare(a)}`;
+  const strengths = `strength ${strengthWords(a.strength)} against walls ${strengthWords(a.walls)} and defenders ${strengthWords(a.defenders)}${groundShare(a)}`;
   if (stormed(a)) return `it stormed the walls of ${a.province} (${strengths}), and ${a.province} is yours`;
-  if (a.kind === "Fleet") return `your fleet stands within the walls of ${a.province} (walls ${a.walls}), but a fleet can neither storm walls nor besiege them, so it takes nothing`;
+  if (a.kind === "Fleet") return `your fleet stands within the walls of ${a.province} (walls ${strengthWords(a.walls)}), but a fleet can neither storm walls nor besiege them, so it takes nothing`;
   return `it got within the walls of ${a.province} but did not storm them (${strengths}): your army stands inside and takes nothing; besiege the city to wear it down`;
 };
 
 /** The ground's share of the defenders' strength in an assault on walls, if it had one (", 1 of it for the rough ground of lukka"). */
 function groundShare(a: Assault): string {
-  return a.ground !== null ? `, ${a.groundBonus} of it for ${groundText(a.ground)}` : "";
+  return a.ground !== null ? `, ${strengthWords(a.groundBonus)} of it for ${groundText(a.ground)}` : "";
 }
 
 /**
@@ -378,7 +378,7 @@ function groundShare(a: Assault): string {
  */
 P.ownWallsText = function (a) {
   const who = `${a.power}'s ${a.kind === "Army" ? "army" : "fleet"} from ${a.from}`;
-  const strengths = `its strength ${a.strength} against your walls ${a.walls} and defenders ${a.defenders}${groundShare(a)}`;
+  const strengths = `its strength ${strengthWords(a.strength)} against your walls ${strengthWords(a.walls)} and defenders ${strengthWords(a.defenders)}${groundShare(a)}`;
   const name = this.map.get(a.province).name;
   return stormed(a)
     ? `Your walled city of ${name}: ${who} stormed the walls (${strengths}): ${name} is taken.`

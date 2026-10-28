@@ -17,6 +17,7 @@ import {
   single,
   support,
   unitAt,
+  LandData,
 } from "@amarna/engine";
 import { Assert, subs } from "./support.ts";
 
@@ -62,7 +63,7 @@ describe("BattleReasonTests", () => {
     // holds; Lukka lies beyond Egypt's sight.
     function board(): GameState {
       let s = newGame(1, newGameConfig({ peopleDefence: 0 }));
-      single(s.units, (u) => u.province === "delta").kind = "Army";
+      Object.assign(single(s.units, (u) => u.province === "delta"), { kind: "Army", men: LandData.armyMen });
       single(s.units, (u) => u.province === "enkomi").province = "deltawaters";
       s.units.push(newUnit({ id: "u91", power: "Alashiya", kind: "Fleet", province: "westsea" }));
       s.units.push(newUnit({ id: "u92", power: "Alashiya", kind: "Fleet", province: "lukkawaters" }));

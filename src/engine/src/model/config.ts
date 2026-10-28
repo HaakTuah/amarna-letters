@@ -83,9 +83,10 @@ export interface GameConfig {
    */
   travelDays: number;
   /**
-   * Winter is dangerous, never closed (item 9): the chance in percent that an army crossing a mountain pass in winter, or
-   * carried over the open sea then, is lost to cold, hunger and desertion or to the storms, and that a fleet crossing the
-   * open sea in winter is lost to the storms. Size, supplies and the commander are neutral until their items (9+a, 10+a, 13).
+   * Winter is dangerous, never closed (item 9; by men since item 11a+): the share in percent of a full army's men lost
+   * crossing a mountain pass in winter, or carried over the open sea then, to cold, hunger and desertion or to the storms,
+   * and of a full fleet's crossing the open sea in winter, to the storms; in proportion to a troop's men, halved for one
+   * carrying a season's food (turn/winter.ts). The commander is neutral until item 13.
    */
   winterArmyLoss: number;
   winterFleetLoss: number;

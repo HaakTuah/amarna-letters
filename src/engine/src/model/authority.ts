@@ -41,6 +41,9 @@ export const AuthoritySchema: ObjSchema<Authority> = obj("Authority", newAuthori
 export const GrantKindValues = ["passage", "basing"] as const;
 export type GrantKind = (typeof GrantKindValues)[number];
 
+/** Does the grant stand now or from a coming season (a grant by order stands from the season after it is given)? */
+export const grantLive = (g: { endedTurn: number | null; untilTurn: number | null }, turn: number): boolean => g.endedTurn === null && (g.untilTurn === null || turn <= g.untilTurn);
+
 /**
  * A right one king granted another on a sealed tablet. Passage: the grantee's troops may move into the granted land and
  * stand there while passing through without taking it, and its travellers are not turned back there; a troop that ends
@@ -60,7 +63,10 @@ export interface Grant {
   sinceTurn: number;
   /** The last season it stands, or null for as long as it is not revoked. */
   untilTurn: number | null;
+  /** The tablet that granted it, or "" for a grant by order (item 11a+). */
   tabletId: string;
+  /** Item 11a+: for a grant by order, the season the news of it reaches the grantee's court (he knows of it from then). */
+  heardTurn: number;
   /** The season it was revoked or repudiated, or null while it stands (until untilTurn). */
   endedTurn: number | null;
 }
@@ -76,6 +82,7 @@ export function newGrant(init: Partial<Grant> = {}): Grant {
     sinceTurn: 0,
     untilTurn: null,
     tabletId: "",
+    heardTurn: 0,
     endedTurn: null,
     ...init,
   };
@@ -91,6 +98,7 @@ export const GrantSchema: ObjSchema<Grant> = obj("Grant", newGrant, {
   sinceTurn: I,
   untilTurn: opt(I),
   tabletId: S,
+  heardTurn: I,
   endedTurn: opt(I),
 });
 

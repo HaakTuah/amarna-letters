@@ -3,8 +3,9 @@ import { Dict } from "../core/collections.ts";
 import { Rng } from "../core/rng.ts";
 import { range } from "../core/seq.ts";
 import { newGameConfig, type GameConfig } from "../model/config.ts";
-import { StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
-import { menOf, reckonedOf, startPeople } from "../model/land.ts";
+import { seasonOfTurn, StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
+import { reapSeasonOf } from "../model/geography.ts";
+import { harvestIn, menOf, reckonedOf, startPeople } from "../model/land.ts";
 import { carriedOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
 import { newMarket } from "../model/caravans.ts";
 import { StartClaims } from "../model/recognition.ts";
@@ -38,6 +39,15 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
     // Its people, from the people dossier, less the men of the armies already levied there (item 10+a).
     const r = reckonedOf(m, p.id);
     s.people.set(p.id, { settled: r.settled, men: r.men, loose: startPeople(m).get(p.id)!.loose });
+  }
+  // The harvest in its season (item 11a+): the crop in the fields since the last reaping, that harvest, and the granaries
+  // holding what the farmers kept of it for the seasons until the next, at a season's harvest each.
+  for (const p of m.landProvinces) {
+    const h = harvestIn(m, s, p.id, false);
+    const d = ((reapSeasonOf(p.id) - seasonOfTurn(s.turn) + 3) % 3) + 1;
+    s.crop.set(p.id, h * (3 - d));
+    s.reaped.set(p.id, 3 * h);
+    s.granary.set(p.id, h * d);
   }
   for (const u of StartUnits)
     s.units.push(newUnit({ id: newId(s, "u"), power: u.power, kind: u.kind, province: u.province, home: u.province, food: carriedOf(u.kind), men: menOf(u.kind) }));

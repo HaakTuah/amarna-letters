@@ -17,19 +17,17 @@ import { caravanAt, newCaravan, newMarket, type Caravan, type Market } from "../
 import {
   buyAlongCurve,
   capacityOf,
-  carriedOf,
   cityPriceOf,
   economyOf,
   EconomyData,
-  foodOf,
   grainWorth,
   harvestOf,
   needOf,
   sellAlongCurve,
   taxOf,
 } from "../model/economy.ts";
-import { climateOf, terrainOf } from "../model/geography.ts";
-import { LandData } from "../model/land.ts";
+import { climateOf, reapSeasonOf, terrainOf } from "../model/geography.ts";
+import { forMen, LandData, unitCarried, unitFood } from "../model/land.ts";
 import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
@@ -132,46 +130,60 @@ P.yieldFactor = function (province, besiegedYields = false) {
 // ---------------------------------------------------------------- the season begins
 
 /**
- * The harvest: every land province with a ruler grows its harvest, and the tax in grain at the default rate goes into its
- * stores, what does not fit lost; the mines' gold goes into the holder's treasury (a free city's into its people's purse);
- * then stores and markets spoil. Returns the lines each king reads of it.
+ * The harvest in each land's own season (item 11a+, "Period first"): every land province's fields grow by the hands on
+ * them this season (`harvestNow`: its people and men, the droughts and floods); in its reaping season the crop is
+ * reaped, as catastrophes leave it, into the farmers' granary, and that harvest is what the tax is reckoned from until
+ * the next. Each season the holder's tax at its rate takes a third of it from the granary, as far as it holds, into the
+ * province's stores (what does not fit lost; nothing while besieged, and in land being absorbed only its share); the
+ * farmers eat from what is left (`_foodNow`, see peopleSeason). The mines' gold goes into the holder's treasury (a free
+ * city's into its people's purse); then stores and markets spoil. Returns the lines each king reads of it.
  */
 P.harvestSeason = function () {
   const S = this.s;
+  const season = seasonOfTurn(S.turn);
   const lines = new Dict<Power, string[]>();
   const taxed = new Dict<Power, number>();
   const lost = new Dict<Power, number>();
+  const reaped = new Dict<Power, string[]>();
   this._foodNow.clear();
   const mined = new Dict<Power, number>();
   for (const prov of this.map.landProvinces) {
-    // A land without a king collects no tax: its people keep their whole harvest.
-    if (prov.kingless) {
-      this._foodNow.set(prov.id, this.harvestNow(prov.id));
-      continue;
-    }
     const owner = S.owner.getOrDefault(prov.id, null);
     if (owner !== null && !isAlive(S, owner)) continue;
-    const factor = this.yieldFactor(prov.id);
-    const harvest = this.harvestNow(prov.id);
-    const tax = toInt(roundEven(idiv(harvest * this.taxRate(prov.id), 100) * factor));
-    // What the farmers keep (item 10+a): the harvest as catastrophes leave it, less the tax collected; their fields grow
-    // even under a siege, when the tax cannot reach them, and the tax not yet collected in land being absorbed is theirs.
-    const grown = toInt(roundEven(harvest * (this.yieldFactor(prov.id, true) / absorbedIn(S, prov.id))));
-    this._foodNow.set(prov.id, Math.max(0, grown - tax));
-    const over = this.putInStores(prov.id, tax);
-    const metal = toInt(roundEven(economyOf(prov).mine * factor));
-    if (owner === null) {
-      this.spendAt(prov.id, metal);
-      continue;
+    // The fields grow by this season's hands and weather; in its season the crop is reaped into the granaries.
+    const crop = S.crop.getOrDefault(prov.id, 0) + this.harvestNow(prov.id);
+    let granary = S.granary.getOrDefault(prov.id, 0);
+    if (season === reapSeasonOf(prov.id)) {
+      // Plague, war and the like strike the harvest as it is brought in; it grows even under a siege.
+      const harvest = prov.kingless ? crop : toInt(roundEven(crop * (this.yieldFactor(prov.id, true) / absorbedIn(S, prov.id))));
+      S.reaped.set(prov.id, harvest);
+      granary += harvest;
+      S.crop.set(prov.id, 0);
+      if (owner !== null) reaped.set(owner, [...reaped.getOrDefault(owner, []), `${prov.name} ${harvest}`]);
+    } else S.crop.set(prov.id, crop);
+    // A land without a king collects no tax: its people keep their whole harvest.
+    if (!prov.kingless) {
+      // The harvest already bore the catastrophes; the tax bears only absorption, and nothing reaches it under a siege.
+      const due = siegeOf(S, prov.id) !== null ? 0 : toInt(roundEven(idiv(idiv(S.reaped.getOrDefault(prov.id, 0), 3) * this.taxRate(prov.id), 100) * absorbedIn(S, prov.id)));
+      const tax = Math.min(granary, due);
+      granary -= tax;
+      const over = this.putInStores(prov.id, tax);
+      if (owner !== null) {
+        taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
+        lost.set(owner, lost.getOrDefault(owner, 0) + over);
+      }
+      const metal = toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id)));
+      if (owner === null) this.spendAt(prov.id, metal);
+      else if (metal > 0) {
+        const t = S.treasuries.get(owner);
+        t.gold += metal;
+        t.income += metal;
+        mined.set(owner, mined.getOrDefault(owner, 0) + metal);
+      }
     }
-    taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
-    lost.set(owner, lost.getOrDefault(owner, 0) + over);
-    if (metal > 0) {
-      const t = S.treasuries.get(owner);
-      t.gold += metal;
-      t.income += metal;
-      mined.set(owner, mined.getOrDefault(owner, 0) + metal);
-    }
+    S.granary.set(prov.id, granary);
+    // What the farmers have to eat this season (item 10+a's `_foodNow`): their granary, whatever troops forage of it first.
+    this._foodNow.set(prov.id, granary);
   }
   // Rot and vermin in stores and markets alike.
   for (const [k, v] of [...S.stores.entries()]) {
@@ -181,8 +193,12 @@ P.harvestSeason = function () {
   for (const m of S.markets.values()) m.stock -= idiv(m.stock * EconomyData.spoilPercent, 100);
   for (const p of alive(S)) {
     const l: string[] = [];
+    if (reaped.has(p)) {
+      l.push(`Harvest reaped this season, into the farmers' granaries: ${reaped.get(p).join(", ")} measures.`);
+      logEvent(S, "harvest", `${p}'s land reaped its harvest: ${reaped.get(p).join(", ")} measures.`, [p], "harvest-reaped");
+    }
     const t = taxed.getOrDefault(p, 0);
-    l.push(`The tax in grain brought ${t} measures into your provinces' stores` + (lost.getOrDefault(p, 0) > 0 ? `; ${lost.get(p)} more were lost for want of room` : "") + ".");
+    l.push(`The tax in grain, taken from the farmers' granaries, brought ${t} measures into your provinces' stores` + (lost.getOrDefault(p, 0) > 0 ? `; ${lost.get(p)} more were lost for want of room` : "") + ".");
     if (mined.getOrDefault(p, 0) > 0) l.push(`Your mines yielded ${formatMoney(mined.get(p))}, now in the treasury.`);
     lines.set(p, l);
   }
@@ -234,7 +250,7 @@ P.payTroops = function (p) {
     [(u: Unit) => Map.hops(cap, u.province), cmpNum],
     [(u: Unit) => u.id, cmpStr],
   )) {
-    const pay = (u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
+    const pay = forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men) + (S.sieges.some((x) => x.unitId === u.id) ? S.config.siegeUpkeep : 0);
     if (t.gold < pay) {
       u.unpaid++;
       unpaid.push(unitLabel(u));
@@ -303,7 +319,7 @@ P.feedTroops = function () {
   for (const u of sortBy(S.units, [(u: Unit) => u.id, cmpStr])) {
     // An army outside its own land in winter pays supplies, by how hard the winter is there (item 10+a, "Winter in the field").
     const abroad = u.kind === "Army" && winter && S.owner.getOrDefault(u.province, null) !== u.power;
-    const need = foodOf(u.kind) + (abroad ? idiv(foodOf(u.kind) * LandData.winterFood[climateOf(u.province).winter], 100) : 0);
+    const need = unitFood(u) + (abroad ? idiv(unitFood(u) * LandData.winterFood[climateOf(u.province).winter], 100) : 0);
     let eaten = 0;
     const depot = depotOf(this, u);
     if (depot !== null) eaten += this.takeFromStores(depot, need);
@@ -326,7 +342,7 @@ P.feedTroops = function () {
       u.food -= b;
       eaten += b;
     }
-    if (depot !== null) u.food += this.takeFromStores(depot, carriedOf(u.kind) - u.food);
+    if (depot !== null) u.food += this.takeFromStores(depot, unitCarried(u) - u.food);
     const prov = this.map.get(u.province);
     if (eaten < need && !prov.isSea) {
       if (S.owner.getOrDefault(prov.id, null) === u.power) {
@@ -509,7 +525,7 @@ P.caravansTravel = function () {
     const roll = this.r("caravan", c.id).nextDouble() * 100;
     if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
-      const kept = Math.min(c.grain, carriedOf(taker.kind) - taker.food);
+      const kept = Math.min(c.grain, unitCarried(taker) - taker.food);
       taker.food += Math.max(0, kept);
       S.treasuries.get(taker.power).gold += c.gold;
       const where = this.map.get(taker.province).name;
@@ -573,7 +589,7 @@ P.caravanArrives = function (c, traded = null) {
         [(u: Unit) => u.food, cmpNum],
         [(u: Unit) => u.id, cmpStr],
       )) {
-        const give = Math.min(c.grain, carriedOf(u.kind) - u.food);
+        const give = Math.min(c.grain, unitCarried(u) - u.food);
         if (give <= 0) continue;
         u.food += give;
         c.grain -= give;

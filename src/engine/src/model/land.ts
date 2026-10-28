@@ -9,7 +9,7 @@
  * dossier finds herders and Habiru outside the towns' control. Every number is a first guess, tuned in item 18.
  */
 import { idiv } from "../core/num.ts";
-import { harvestOf } from "./economy.ts";
+import { carriedOf, foodOf, harvestOf } from "./economy.ts";
 import { climateOf, terrainOf } from "./geography.ts";
 import { seasonOfTurn, StartUnits, type Province, type UnitKind, type WorldMap } from "./map.ts";
 import type { GameState } from "./state.ts";
@@ -24,7 +24,8 @@ export interface People {
 /**
  * The first guesses of people at home (item 18 tunes them).
  * - `menPercent`: the men of fighting age among the settled.
- * - `armyMen`, `fleetMen`: the men a levy takes for an army and a fleet's crews ("A Great King's army is of thousands").
+ * - `armyMen`, `fleetMen`: the men a full levy takes for an army and a fleet's crews ("A Great King's army is of thousands");
+ *   `levyLeast` (item 11a+): the fewest men a levy raises, where the province has fewer than a full levy's.
  * - `busyWeight`, `slackWeight`: how much more than another settled person a man of fighting age counts in the harvest,
  *   in halves, in a province's sowing and harvest seasons and in its slack season ("Settled": most at sowing and harvest).
  * - `aboveHalf`: beyond the land's reckoned labour, extra hands add this many halves less (one in four of their share).
@@ -55,7 +56,10 @@ export interface People {
  *   short of famine), the share of them that run away a season; `refugeMargin`: in percent, how much better a neighbour's
  *   land must be for those leaving to cross to it rather than stay loose at home; `deportDead`: of people deported or
  *   returned, the share who die on the road (more turn loose on long roads, as discharged men do); `expelPercent`: the
- *   share of a besieged city's mouths that cannot fight, put out; `policedPercent`: what the loose take where their
+ *   share of a besieged city's mouths put out when an order names none (item 11a+: the king chooses it, of the mouths
+ *   still inside, up to `expelMost` of the town in all, so the fighting men and the hands that feed them stay);
+ * - Item 11a+ ("Period first": the harvest in each land's own season): `reserveSeasons`, the seasons of their own need the
+ *   farmers keep in their granaries beyond a whole harvest; more they eat better with, feed to their animals or lose; `policedPercent`: what the loose take where their
  *   holder's troops stand, in percent of what they take elsewhere; `lootSpentPercent`: what the loose spend a season of
  *   the gold they carry, at their province's market.
  */
@@ -63,6 +67,7 @@ export const LandData = {
   menPercent: 20,
   armyMen: 5000,
   fleetMen: 2000,
+  levyLeast: 100,
   busyWeight: 6,
   slackWeight: 3,
   aboveHalf: 3,
@@ -93,6 +98,8 @@ export const LandData = {
   refugeMargin: 10,
   deportDead: 5,
   expelPercent: 50,
+  expelMost: 90,
+  reserveSeasons: 1,
   policedPercent: 50,
   lootSpentPercent: 50,
 } as const;
@@ -165,6 +172,36 @@ export function reckonedOf(map: WorldMap, province: string): { settled: number; 
 
 /** The men a unit of this kind takes from its home. */
 export const menOf = (kind: UnitKind): number => (kind === "Army" ? LandData.armyMen : LandData.fleetMen);
+
+/**
+ * Winter in the crossing (turn/winter.ts), item 11a+, first guesses (item 18 tunes them): `suppliedPercent`, what a troop carrying a season's food loses of what an
+ * unsupplied one would; `desertPercent`, of the men a pass takes, those who desert and stay loose where they set out.
+ */
+export const WinterData = { suppliedPercent: 50, desertPercent: 50 } as const;
+
+/**
+ * Item 11a+ (Haakon's answer to item 10+a's review): a levy is sized by the men a province has: a full levy of its kind
+ * where it has the men, else every man of fighting age at home and not away, so a small city raises its few hundred; none
+ * below `levyLeast`. 0: too few to raise anything.
+ */
+export function levySize(s: GameState, province: string, kind: UnitKind): number {
+  const n = Math.min(menOf(kind), menAvailable(s, province));
+  return n >= LandData.levyLeast ? n : 0;
+}
+
+/** A unit's share of a full levy of its kind, in thousandths: what its pay, food and price are of a full unit's (item 11a+). */
+export function shareOfFull(kind: UnitKind, men: number): number {
+  return men <= 0 ? 1000 : Math.max(1, Math.min(1000, Math.floor((men * 1000) / menOf(kind))));
+}
+
+/** A unit's food a season and the most it carries, in proportion to its men (item 11a+). */
+export const unitFood = (u: { kind: UnitKind; men: number }): number => forMen(foodOf(u.kind), u.kind, u.men);
+export const unitCarried = (u: { kind: UnitKind; men: number }): number => forMen(carriedOf(u.kind), u.kind, u.men);
+
+/** A cost or a quantity of a full unit, for a unit of `men` (rounded up, so a few men still cost something). */
+export function forMen(full: number, kind: UnitKind, men: number): number {
+  return Math.ceil((full * shareOfFull(kind, men)) / 1000);
+}
 
 /** How much more than another settled person a man of fighting age counts in this season's harvest, in halves. */
 export function menWeight(province: string, season: number): number {

@@ -255,7 +255,7 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
       plan.role.set(idle, "gift");
     } else {
       // In a province of ours with room, its men settle there as colonists rather than walk home (item 10+a).
-      plan.orders.set(idle, disband(idle, b.isMine(idle) && settleThere(v, b.me, idle, b.unitAt.get(idle).kind)));
+      plan.orders.set(idle, disband(idle, b.isMine(idle) && settleThere(v, b.me, idle, b.unitAt.get(idle).kind, b.unitAt.get(idle).men || undefined)));
       plan.role.set(idle, "disband");
     }
     flow += upkeep;

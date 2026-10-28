@@ -81,6 +81,18 @@ function accepts(c: Character, v: LifeView, a: ApproachSeen, record: { kept: num
   return a.giveGold >= a.askGold && a.askDebts.length === 0;
 }
 
+/** What marks a name as one to leave behind (item 10's "Declaring a name"). */
+const BadTags = new Set(["dismissed", "skim", "forger", "inventory-forgery", "impostor", "outcome-bad", "defected", "coward"]);
+
+/** A dishonest or scheming person, or one with a bad name it wants to escape, gives another where it can (item 10). */
+export function wantsFalseName(c: Character): boolean {
+  const t = c.traits;
+  const blemishes = c.facts.filter((f) => BadTags.has(f.tag)).length;
+  const escaping = blemishes >= 2 || [...c.reputation.values()].some((r) => r < -10);
+  const scheming = (t.loyalty < 35 && t.greed > 60) || (t.ambition > 70 && t.loyalty < 45);
+  return escaping || scheming;
+}
+
 /** The season's choices of a script character, from what it knows. */
 export function scriptLife(c: Character, v: LifeView): LifeChoice {
   const ch = newLifeChoice({ seek: v.seeking });
@@ -133,6 +145,8 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
     const due = v.held.find((d) => d.dueTurn <= v.turn + 1 && d.kept !== "missing" && v.courts.some((k) => k.court === d.otherId));
     const staying = ch.seek && here !== null && here.hiring !== null && v.turn - here.hiring <= 4 && v.here.some((p) => p.standing === "free");
     if (due !== undefined && !staying) ch.go = due.otherId === v.at ? null : (due.otherId as Power);
+    // At a court that knows nothing of it, one with a name to escape or a scheme gives the invented name (item 11a+).
+    if (ch.go !== null && v.alias !== null && v.courts.some((k) => k.court === ch.go && k.stranger) && wantsFalseName(c)) ch.goAs = v.alias;
   }
 
   // Its hoard: the careful keep one where they stand, if that court looks safe; anyone pulls it out of a court in danger.

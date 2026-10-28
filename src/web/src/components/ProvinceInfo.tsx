@@ -5,6 +5,7 @@ import {
   cityPriceOf,
   EconomyData,
   harvestIn,
+  reapSeasonOf,
   reckonedOf,
   economyOf,
   harvestOf,
@@ -101,7 +102,7 @@ export function ProvinceInfo({
         <>
           <p className="small">
             {owner !== null ? `Held by ${powerName(owner)}` : "A free city-state"}
-            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(scene.viewer === null || owner === scene.viewer ? harvestIn(WorldMap.default, state, p.id) : harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
+            {age > 0 ? ` as of ${age} season${age === 1 ? "" : "s"} ago, as far as you have heard` : ""}. Its tax brings in about {taxOf(scene.viewer === null || owner === scene.viewer ? Math.floor(state.reaped.getOrDefault(p.id, 0) / 3) : harvestOf(p))} measures of grain a season{economyOf(p).mine > 0 ? `, and its mines ${shekels(economyOf(p).mine)}` : ""}
             {p.home !== null && p.home !== owner ? `; part of the homeland of ${powerName(p.home)}` : ""}.
             {walls > 0 && (
               <span>
@@ -127,7 +128,9 @@ export function ProvinceInfo({
               {/* People at home (item 10+a). */}
               Its people: {state.people.get(p.id).settled.toLocaleString("en")} settled ({state.people.get(p.id).men.toLocaleString("en")} men of fighting age), its land
               carrying {reckonedOf(WorldMap.default, p.id).room.toLocaleString("en")}; {state.people.get(p.id).loose.toLocaleString("en")} loose. Tax{" "}
-              {state.taxes.getOrDefault(p.id, EconomyData.taxPercent)}% of a harvest of {harvestIn(WorldMap.default, state, p.id)} measures
+              {state.taxes.getOrDefault(p.id, EconomyData.taxPercent)}% of its last harvest, {state.reaped.getOrDefault(p.id, 0)} measures, a third of it a season; its
+              farmers&apos; granaries hold {state.granary.getOrDefault(p.id, 0)}, and the crop in its fields {state.crop.getOrDefault(p.id, 0)}, reaped in{" "}
+              {reapSeasonOf(p.id) === 0 ? "Akhet" : reapSeasonOf(p.id) === 1 ? "Peret" : "Shemu"}
               {state.fed.has(p.id) ? `; last season its countryside ate ${Math.round(state.fed.get(p.id) / 10)}% of its need` : ""}.
             </p>
           )}
@@ -147,7 +150,8 @@ export function ProvinceInfo({
       )}
       {units.map((u) => (
         <p className="small" key={u.key}>
-          <Emblem power={u.power} /> {u.count > 1 ? `${u.count} ${unitKindName(u.kind)}s` : u.kind === "Army" ? "An army" : "A fleet"} of {powerName(u.power)}
+          <Emblem power={u.power} /> {u.count > 1 ? `${u.count} ${unitKindName(u.kind)}s` : u.kind === "Army" ? "An army" : "A fleet"}
+          {u.men > 0 ? `, ${u.men.toLocaleString("en")} men,` : ""} of {powerName(u.power)}
           {u.ghost ? `: last seen here in ${when(u.seenAt + 1, scene.viewer)}; it may have gone` : " stands here"}.
         </p>
       ))}

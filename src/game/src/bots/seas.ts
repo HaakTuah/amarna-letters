@@ -3,6 +3,7 @@
  * each sea zone it sails through, from the waters of its own coast to the waters of the coast it lands on; a fleet in a
  * coastal city's waters blockades it. Every path is over the map as it can be sailed this season (Board.Sail).
  */
+import type { WorldMap } from "@amarna/engine";
 import { Board } from "./board.ts";
 
 /**
@@ -17,7 +18,7 @@ export const SeaPlay: { on: boolean } = { on: true };
  * The sea zones from the waters of `from` (a coast) to every zone reachable through zones that `through` allows, each with
  * the chain of zones that leads there (the first is `from`'s waters), breadth first and in id order, up to `depth` zones.
  */
-export function seaChains(from: string, through: (zone: string) => boolean, depth = 3): Map<string, string[]> {
+export function seaChains(from: string, through: (zone: string) => boolean, depth = 3, sail: WorldMap = Board.Sail): Map<string, string[]> {
   const out = new Map<string, string[]>();
   if (!SeaPlay.on) depth = 1;
   const start = Board.Map.get(from).waters;
@@ -29,7 +30,7 @@ export function seaChains(from: string, through: (zone: string) => boolean, dept
     for (const z of frontier) {
       const chain = out.get(z)!;
       if (chain.length >= depth) continue;
-      for (const n of [...Board.Sail.neighbors(z)].sort()) {
+      for (const n of [...sail.neighbors(z)].sort()) {
         if (!Board.Map.get(n).isSea || out.has(n) || !through(n)) continue;
         out.set(n, [...chain, n]);
         next.push(n);

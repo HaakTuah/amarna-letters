@@ -2,10 +2,10 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
-import { stormed as assaultStormed } from "../model/outcomes.ts";
+import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
@@ -13,7 +13,7 @@ import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notif
 import { newScoreRow } from "../model/records.ts";
 import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
-import { LandData, menAvailable, menOf } from "../model/land.ts";
+import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { strength as scoringStrength } from "../rules/scoring.ts";
@@ -148,6 +148,8 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is ExpelOrder => o.type === "expel")) this.expel(p, o);
   // Grants revoked and tablets repudiated (item 9) take effect from next season: guests still there then take the land.
   for (const [p, o] of all((o): o is RevokeOrder => o.type === "revoke")) this.revokeGrants(p, o);
+  // Passage and basing granted by order (item 11a+) stand from next season.
+  for (const [p, o] of all((o): o is GrantOrder => o.type === "grant")) this.grantByOrder(p, o);
   for (const [p, o] of all((o): o is RepudiateOrder => o.type === "repudiate")) this.repudiate(p, o);
   this.coversAtCourt();
 
@@ -238,8 +240,8 @@ P.resolveMovement = function (unitOrders) {
       S,
       "terrain",
       g.won
-        ? `${g.attacker}'s attack from ${Map.get(g.from).name} drove ${g.defender}'s ${kind} from ${Map.get(g.to).name} in spite of ${groundText(g.ground)} (strength ${g.strength} against ${g.against}).`
-        : `${g.defender}'s ${kind} in ${Map.get(g.to).name} held against ${g.attacker}'s attack from ${Map.get(g.from).name} by ${groundText(g.ground)} (strength ${g.strength} against ${g.against}).`,
+        ? `${g.attacker}'s attack from ${Map.get(g.from).name} drove ${g.defender}'s ${kind} from ${Map.get(g.to).name} in spite of ${groundText(g.ground)} (strength ${strengthWords(g.strength)} against ${strengthWords(g.against)}).`
+        : `${g.defender}'s ${kind} in ${Map.get(g.to).name} held against ${g.attacker}'s attack from ${Map.get(g.from).name} by ${groundText(g.ground)} (strength ${strengthWords(g.strength)} against ${strengthWords(g.against)}).`,
       distinct([...AllPowers.filter((p) => sightBefore.get(p).has(g.to)), g.attacker, g.defender]),
       g.won ? "terrain-beaten" : "terrain-held",
     );
@@ -325,9 +327,9 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
   const seen = f.power !== null && (sight.has(f.province) || (f.movingTo !== null && sight.has(f.movingTo)));
   const kind = f.kind === "Army" ? "army" : "fleet";
   const whose = f.power === viewer ? `your own ${kind}` : `${f.power}'s ${kind}`;
-  const strengths = `; your strength ${f.strength} against ${f.against}`;
+  const strengths = `; your strength ${strengthWords(f.strength)} against ${strengthWords(f.against)}`;
   // The ground that helped the unit that held it off, in the strength it had to beat.
-  const held = strengths + (f.ground !== null ? `, ${f.groundBonus} of it for ${groundText(f.ground)}` : "");
+  const held = strengths + (f.ground !== null ? `, ${strengthWords(f.groundBonus)} of it for ${groundText(f.ground)}` : "");
   switch (f.stop) {
     case "NoConvoy":
       return "no convoy carried it across the sea";
@@ -490,20 +492,23 @@ P.raise = function (p, r) {
     if (S.owner.getOrDefault(prov.id, null) !== p && !this._cededNow.has(prov.id)) this.scheduledFailed(p, r, why);
     return;
   }
-  if (menAvailable(S, prov.id) < menOf(r.kind)) {
-    notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: it has too few men of fighting age left (${menOf(r.kind)} are needed). No gold was paid.`);
+  // Sized by the men the province has (item 11a+): a full levy where it can, else every man at home; its price, pay and
+  // food are in proportion.
+  const men = levySize(S, prov.id, r.kind);
+  if (men <= 0) {
+    notify(S, p, "Rejected", "Levy failed", `No ${kind} was raised in ${prov.name}: it has too few men of fighting age left (${LandData.levyLeast} at least are needed). No gold was paid.`);
     this.scheduledFailed(p, r, "too few men of fighting age");
     return;
   }
-  const cost = r.kind === "Army" ? S.config.armyCost : S.config.fleetCost;
+  const cost = forMen(r.kind === "Army" ? S.config.armyCost : S.config.fleetCost, r.kind, men);
   if (!this.pay(p, cost, `a new ${kind} in ${prov.name}`, r, "none was raised")) return;
   // The levy's gold pays the province's own men and smiths: it goes into its people's purse (item 9+a).
   this.spendAt(prov.id, cost);
   // Its men come from the province's men of fighting age (item 10+a).
-  this.levyMen(prov.id, r.kind);
-  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men: menOf(r.kind) });
+  this.levyMen(prov.id, men);
+  const u = newUnit({ id: newId(S, "u"), power: p, kind: r.kind, province: prov.id, home: prov.id, men });
   S.units.push(u);
-  notify(S, p, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}.`);
+  notify(S, p, "Resolution", "Levy raised", `A new ${kind} stands in ${prov.name}${men < menOf(r.kind) ? `, ${men} men strong: all the men of fighting age the province had to give, so it counts for ${strengthWords(shareOfFull(r.kind, men))} of a full ${kind} in battle, and costs and eats in proportion` : ""}.`);
   this.levyRaised(p, u);
 };
 

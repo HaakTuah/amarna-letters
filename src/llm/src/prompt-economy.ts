@@ -4,7 +4,7 @@
  * cheapest of his markets, his troops' food, his caravans and ships, the foreign markets he knows of and the tolls that
  * bear on him (item 9+b), and what the free cities ask.
  */
-import { WorldMap, cmpNum, cmpStr, desc, groupBy, menOf, priceForTen, sortBy, sum, type SeatView } from "@amarna/engine";
+import { WorldMap, cmpNum, cmpStr, countryNeed, desc, groupBy, menOf, priceForTen, reckonedOf, sortBy, sum, type SeatView } from "@amarna/engine";
 import { joinS as join } from "./text.ts";
 
 export function economyLines(v: SeatView): string[] {
@@ -70,16 +70,24 @@ export function peopleLines(v: SeatView): string[] {
   const ps = v.provinces;
   if (ps.length > 0) {
     lines.push(
-      `YOUR PEOPLE: settled ${k(sum(ps, (x) => x.settled))} (men of fighting age ${k(sum(ps, (x) => x.men))}), loose ${k(sum(ps, (x) => x.loose))}${v.walking > 0 ? `; ${k(v.walking)} discharged men walking home` : ""}. Harvest this season ${sum(ps, (x) => x.harvest)} measures.`,
+      `YOUR PEOPLE: settled ${k(sum(ps, (x) => x.settled))} (men of fighting age ${k(sum(ps, (x) => x.men))}), loose ${k(sum(ps, (x) => x.loose))}${v.walking > 0 ? `; ${k(v.walking)} discharged men walking home` : ""}. The last harvests, a season's share: ${sum(ps, (x) => x.harvest)} measures; the farmers' granaries hold ${sum(ps, (x) => x.granary)}, the crops in the fields ${sum(ps, (x) => x.crop)}.`,
     );
+    // Item 11a+: each land reaps in its own season.
+    const reaping = groupBy(sortBy(ps, [(x) => x.reapsIn, cmpNum], [(x) => x.province, cmpStr]), (x) => x.reapsIn);
+    lines.push(`- Reaped ${join("; ", reaping.map(([n, g]) => `${n === 0 ? "this season" : n === 1 ? "next season" : `in ${n} seasons`}: ${join(", ", g.map((x) => x.province))}`))}.`);
+    // What the farmers eat and pay until the next harvest feeds them, against what their granaries hold.
+    const lasts = (x: (typeof ps)[number]): number =>
+      (countryNeed(WorldMap.default.get(x.province), x.settled, reckonedOf(WorldMap.default, x.province).settled) + Math.floor((x.harvest * x.taxRate) / 100)) * (x.reapsIn === 0 ? 2 : x.reapsIn - 1);
+    const thin = ps.filter((x) => x.granary < lasts(x));
+    if (thin.length > 0) lines.push(`- Granaries that will not feed the farmers and pay the tax until the next harvest (lower the tax, or feed them grain): ${join(", ", thin.map((x) => `${x.province} ${x.granary}`))}.`);
     const hungry = ps.filter((x) => x.fed < 1000);
     if (hungry.length > 0) lines.push(`- Went hungry last season (share of their food the farmers had): ${join(", ", hungry.map((x) => `${x.province} ${Math.round(x.fed / 10)}%`))}.`);
     lines.push(`- Tax: ${join("; ", groupBy(sortBy(ps, [(x) => x.taxRate, cmpNum], [(x) => x.province, cmpStr]), (x) => x.taxRate).map(([rate, g]) => `${rate}% in ${join(", ", g.map((x) => x.province))}`))}.`);
     // Item 10+b: runaways from other kings' land standing loose in ours, and the besieged cities that put out their mouths.
     const ran = ps.flatMap((x) => [...x.runaways.entries()].filter(([, n]) => n >= 500).map(([q, n]) => `${x.province} ${k(n)} from ${q}`));
     if (ran.length > 0) lines.push(`- Runaways among your loose men (welcome_loose to settle them, return_runaways to send them back): ${join(", ", ran)}.`);
-    const out = ps.filter((x) => x.expelled);
-    if (out.length > 0) lines.push(`- Mouths put out of: ${join(", ", out.map((x) => x.province))}.`);
+    const out = ps.filter((x) => x.expelled > 0);
+    if (out.length > 0) lines.push(`- Mouths put out of (in a hundred of the town): ${join(", ", out.map((x) => `${x.province} ${x.expelled}`))}.`);
     const empty = ps.filter((x) => x.room > 0 && x.settled * 10 < x.room * 9);
     if (empty.length > 0) lines.push(`- Land with room for more settled (settled of what it carries): ${join(", ", empty.map((x) => `${x.province} ${k(x.settled)} of ${k(x.room)}`))}.`);
     const home = new Set(WorldMap.default.homeOf(v.power).map((p) => p.id));

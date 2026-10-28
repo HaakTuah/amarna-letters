@@ -73,9 +73,9 @@ describe("FileCharacterTests", () => {
 
   // <summary>A plain reply for each kind of character request, with the given words.</summary>
   function plainOf(stem: string, words: string, keep: number = 0, gift: boolean = false): string {
-    if (stem.includes("_aud_present_")) return `{"as_written":false,"speech":"${words}","keep_gold":${keep},"swap_inventory":false}`;
+    if (stem.includes("_aud_present_")) return `{"as_written":false,"speech":"${words}","keep_gold":${keep},"swap_inventory":false,"leave_out":[],"add_courtesy":false,"gift_stated":0}`;
     if (stem.includes("_aud_react_")) return `{"speech":"${words}","accept_gift":${gift ? "true" : "false"},"accept_service":false,"commitments":""}`;
-    if (stem.includes("_report_")) return `{"as_given":false,"report":"${words}","keep_gold":0,"swap_inventory":false}`;
+    if (stem.includes("_report_")) return `{"as_given":false,"report":"${words}","keep_gold":0,"swap_inventory":false,"answers_left_out":[],"refusals_as_accepted":[]}`;
     // Item 10: a pitch to a court that never saw the person also asks the name it gives (empty: its own), and, where it
     // stands, whether it poses as an envoy; the reply gives both, as the request may ask them.
     // Item 10+b: and what it says it can do, in a band's words.
@@ -84,7 +84,7 @@ describe("FileCharacterTests", () => {
     if (stem.includes("_questioned_")) return `{"words":"${words}","lie":false}`;
     // Item 11a: a season of its own, every field it could be asked, left as things are.
     if (stem.includes("_life_"))
-      return `{"go":"","seek_service":true,"hoard":0,"lend_amount":0,"lend_per_hundred":0,"lend_seasons":0,"approach_to":"","approach_words":"${words}","approach_give_gold":0,"approach_ask_gold":0,"approach_repay":0,"approach_seasons":0,"approach_collect":"","approach_fee":0,"accept":[],"quit":false,"hand_over":true,"repay":[]}`;
+      return `{"go":"","go_as":"","seek_service":true,"hoard":0,"lend_amount":0,"lend_per_hundred":0,"lend_seasons":0,"approach_to":"","approach_words":"${words}","approach_give_gold":0,"approach_ask_gold":0,"approach_repay":0,"approach_seasons":0,"approach_collect":"","approach_fee":0,"accept":[],"quit":false,"hand_over":true,"repay":[]}`;
     if (stem.includes("_spy_")) return `{"report":"${words}"}`;
     return `{"summary":"${words}"}`;
   }

@@ -35,7 +35,9 @@ import {
   type Power,
   type SpyReport,
   authorityText,
+  clause,
   clauseTag,
+  type Clause,
   renderClauses,
   strategyText,
 } from "@amarna/engine";
@@ -596,12 +598,18 @@ export class LlmCharacterMind implements ICharacterMind {
         `You carry gold in sealed bags, with an inventory tablet sealed by your lord that says ${d.gold} shekels; the king's weighers will weigh the gold against it. ` + keepLine(forger),
       );
     if (d.proposal !== null) user.appendLine(`You carry a tablet for the king to seal: "${d.proposal.text}"`);
+    // Item 11a+: the clauses it recites, which it may change as any envoy may (leave_out, add_courtesy, gift_stated).
+    const gift = d.clauses.find((x) => x.kind === "gift" && x.amount !== null) ?? null;
+    if (d.clauses.length > 0)
+      user.appendLine(
+        `The letter's clauses, which the king's scribes hear as you recite them and his answer follows: ${d.clauses.map((x, i) => `${i + 1}. ${clauseTag(x)}`).join("; ")}. You may leave some out, add good wishes your lord did not write${gift !== null ? ", or state the gift as less than it is" : ""}; your lord learns only what you report.`,
+      );
     user.appendLine("Speak to the king now.");
     // The gold questions only when it carries gold, and the swap only when its hand could fake the seal.
     const weighed: Weighed = {
       stakes: { kind: "present", moved: 0.1 + share(ctx.self, d.gold) + (d.proposal !== null ? 0.3 : 0) },
       keys: ctx.audienceKey.length > 0 ? [`${ctx.audienceKey}/present`] : [],
-      fields: ["keep_gold", "swap_inventory", "as_written"],
+      fields: ["keep_gold", "swap_inventory", "as_written", "leave_out", "add_courtesy", "gift_stated"],
     };
     const json = await this.ask(
       `t${ctx.turn}/aud/present/${ctx.self.id}`,
@@ -609,7 +617,7 @@ export class LlmCharacterMind implements ICharacterMind {
       `envoy:${ctx.self.id}`,
       ctx.self,
       user.toString(),
-      Replies.present(d.gold > 0, forger),
+      Replies.present(d.gold > 0, forger, d.clauses.length, gift !== null),
       signal,
       null,
       null,
@@ -619,8 +627,9 @@ export class LlmCharacterMind implements ICharacterMind {
     // Passed on as written: the lord's own words, read out; the envoy wrote nothing but that choice.
     if (json.as_written === true) r.speech = `Thus says ${kingOf(ctx.sender)}: "${d.letter}"`;
     r.skim = clamp(r.skim, 0, d.gold);
-    // A model envoy recites the letter's clauses as written (item 8); its own words are where it bends the message.
-    r.clauses = d.clauses.map((x) => ({ ...x }));
+    // The clauses it recites (item 11a+): as written, unless it chose to change them as any envoy may.
+    // Passed on as written, the clauses go as written too.
+    r.clauses = json.as_written === true ? d.clauses.map((x) => ({ ...x })) : recitedBy(d.clauses, json);
     // Nothing kept, nothing to hide: the engine ignores a swap then anyway. A swap it was not asked about is not made.
     if (r.skim === 0 || !forger) r.swapInventory = false;
     return r;
@@ -727,18 +736,21 @@ export class LlmCharacterMind implements ICharacterMind {
         if (cargo.gold > 0) user.appendLine(`You carry back gold the king sent ${him}, with an inventory tablet sealed by that king that says ${cargo.goldStated} shekels. ` + keepLine(forger));
         user.appendLine(`Write your report to ${still ? "your lord" : "him"} now.`);
         const received = t !== null && t.exchanges.length > 0;
-        const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Replies.report(cargo.gold > 0, forger, still, received), signal, null, null, {
+        // Item 11a+: the king's answer in clauses, which it may report as any envoy may.
+        const answers = t !== null ? t.exchanges.flatMap((x) => x.clauses.map((y) => ({ ...y }))) : [];
+        if (answers.length > 0) user.appendLine(`The king's answer in clauses, which your lord reads as you report them: ${answers.map((x, i) => `${i + 1}. ${clauseTag(x)}`).join("; ")}. You may leave some out, or report a refusal as acceptance.`);
+        const json = await this.ask(key, ctx.turn, `envoy:${c.id}`, c, user.toString(), Replies.report(cargo.gold > 0, forger, still, received, answers.length), signal, null, null, {
           stakes: { kind: "report", moved: 0.15 + share(c, cargo.gold) },
           keys: [`t${ctx.turn}/mind/${req.id}`],
-          fields: ["keep_gold", "swap_inventory", "as_given"],
+          fields: ["keep_gold", "swap_inventory", "as_given", "answers_left_out", "refusals_as_accepted"],
         });
         const r = Parse.report(json);
         // Reported as given: the king's answer word for word, and what happened, as the engine has them.
         if (received && json.as_given === true) r.text = asGiven(t!);
         r.number = clamp(r.number, 0, cargo.gold);
         if (r.number === 0 || !forger) r.swapInventory = false;
-        // The king's answer in clauses goes home as he gave it (item 8): a model envoy bends its report in words.
-        r.clauses = t !== null ? t.exchanges.flatMap((x) => x.clauses.map((y) => ({ ...y }))) : [];
+        // The king's answer in clauses goes home as the envoy chose to report it (item 11a+).
+        r.clauses = received && json.as_given === true ? answers : reportedBy(answers, json);
         return r;
       }
       case "Pitch": {
@@ -834,4 +846,27 @@ export function asGiven(t: MessageTrail): string {
   // Only the king's words: what happened is told by the engine's own record (the envoy's own deeds, a kept share of the
   // gold or a gift taken, are his to tell or hide, and as given he tells nothing of his own).
   return `I was received at the court of ${land(t.to)}. The king answered: ${said}`;
+}
+
+const nums = (o: JsonObject, k: string): Set<number> => new Set(Array.isArray(o[k]) ? (o[k] as unknown[]).filter((x): x is number => typeof x === "number" && Number.isInteger(x)) : []);
+
+/**
+ * The clauses a model envoy recites (item 11a+, "Full press": a model envoy may alter a letter's clauses as a script envoy
+ * can): those it did not leave out, the gift stated as it chose (never more than written), good wishes added if it chose.
+ */
+export function recitedBy(clauses: readonly Clause[], json: JsonObject): Clause[] {
+  const out = clauses.filter((_, i) => !nums(json, "leave_out").has(i + 1)).map((x) => ({ ...x }));
+  // 0 (or nothing) states it as written; to name no gift at all, it leaves the clause out.
+  const stated = typeof json.gift_stated === "number" && json.gift_stated > 0 ? Math.trunc(json.gift_stated) : null;
+  if (stated !== null) for (const x of out) if (x.kind === "gift" && x.amount !== null) x.amount = Math.min(x.amount, stated);
+  if (json.add_courtesy === true && !out.some((x) => x.kind === "wellWishes")) out.unshift(clause("wellWishes"));
+  return out;
+}
+
+/** The host's answer as a model envoy reports it home (item 11a+): less what it left out, refusals it turned into acceptance. */
+export function reportedBy(answers: readonly Clause[], json: JsonObject): Clause[] {
+  const turned = nums(json, "refusals_as_accepted");
+  return answers
+    .map((x, i) => ({ ...x, kind: x.kind === "refuse" && turned.has(i + 1) ? ("accept" as const) : x.kind }))
+    .filter((_, i) => !nums(json, "answers_left_out").has(i + 1));
 }

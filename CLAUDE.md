@@ -151,4 +151,36 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
 
   A session that starts builder sessions passes each list on to Haakon word for word in its next update. It never sums
   the list up as "readings in the report".
-
+- **28 October 2026: pipeline, don't wait.** "Yes, please, organize it expertly so we maximize token caching, time spent, and all other concerns." (to Claude's proposal; the words are in
+  `docs/archive/instructions.md`). Waiting is lost time and, past an hour, a lost cache, so:
+  1. **Review in the background.** Open the PR, start its reviewer as a background agent (or `@codex review`, once Codex
+     is connected), and go on meanwhile with what comes next: the next item's text, its sections, the check for
+     changes. Fix what the review finds when it returns, then merge.
+  2. **The next item on top.** The next item depends on this one, so branch it from this item's PR branch, not
+     from `develop`, and merge this branch (or `develop`, once it is merged) into it before its own PR.
+  3. **Bigger review fixes in a session of their own.** If a review asks for more than about an hour's work, the
+     orchestrator starts a fresh session for it with the PR, the review and nothing else, at the item's effort; the
+     builder goes on.
+  4. **Keep the cache warm.** One session per item, continued for its review fixes and its milestone while its context
+     is under an hour old, rather than a fresh session reading everything again; a fresh session for a new item, or when a
+     session's context has grown large. Long runs and checks go in the background; no turn sits idle waiting. Files every
+     session reads stay small (the workshop check), since they are the start of every call.
+  5. **Hand over at once.** The last message says what merged and what is next. The orchestrator starts the next session
+     as soon as a item merges, woken by the PR's merge rather than a clock, with an hourly check as the fallback.
+  6. **The same helpers, used better.** Pipelining spends the same tokens sooner and adds no agents beyond "Models,
+     effort and helpers": a reviewer or search helper may run in the background while the builder works, and the Haiku
+     search helper, not the builder reading large files itself, is the cheap way to look across many files.
+- **28 October 2026: as many lanes as can run in parallel.** "Yes, allow for as many lanes as can be parallelized, expert." (the words are in `docs/archive/instructions.md`).
+  This replaces the limit of two agents in "How to work" for builders; each builder keeps its own limit of helpers.
+  1. **A lane is independent work:** it touches different files from every other open lane (or parts of one file
+     nobody else touches), shares no measurement with another, and does not wait on another's result. Here, the build order's numbered items stay one lane, one item at a time, since each builds on the last; beside it run independent work: file splits from the workshop check, history dossiers, script kings' play improved outside the current item's code, tests, and interface polish on screens the current item does not touch.
+  2. **Claim it on GitHub first.** Before starting, open a draft PR from a fresh branch off `develop`, its title naming
+     the entry, and push; that PR is the claim. Look at the open PRs before choosing, and take only what nobody has
+     claimed. The progress file is changed only when the work merges, so lanes never fight over it.
+  3. **Each lane on its own.** It merges `develop` into its branch before asking for review, is reviewed and merged by
+     the usual rules, and is not stacked on another lane's branch. A lane that finds it needs another's work waits,
+     says so in its PR, or folds into that lane.
+  4. **The orchestrator opens a lane for every independent entry it can see,** each a builder session with its own
+     brief and check-in, and passes on every lane's "Questions for Haakon" word for word.
+  5. **The brake closes lanes first.** From about 85% of the weekly usage, no new side lane opens and open ones finish;
+     from about 90%, as "Usage" says, only small things in the main lane.

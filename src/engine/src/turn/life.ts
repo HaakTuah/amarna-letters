@@ -22,6 +22,7 @@ import { chooseStrategy } from "../rules/strategy.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { askingPrice } from "./court.ts";
 import { trustIn } from "./jobs.ts";
+import { strangerAt } from "./names.ts";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -31,7 +32,7 @@ declare module "./core.ts" {
     applyLife(c: Character, ch: LifeChoice): void;
     deal(a: Approach): boolean;
     deliverErrand(c: Character, deliver: boolean): void;
-    startTravel(c: Character, to: Power): void;
+    startTravel(c: Character, to: Power, asName?: string | null): void;
     travellerArrives(j: Journey): void;
   }
 }
@@ -136,6 +137,7 @@ P.lifeView = function (c) {
       growth: landRatio(this, p),
       besieged: this.capitalSiege(p) !== null,
       ask: askingPrice(c, p, S.goingRate),
+      stranger: strangerAt(c, p),
     });
   });
   const debtSeen = (d: Debt, other: string): ReturnType<typeof newDebtSeen> =>
@@ -156,6 +158,8 @@ P.lifeView = function (c) {
     living: guest ? 0 : Math.ceil((MoneyData.living * grainAt(here)) / 100),
     goingRate: S.goingRate,
     courts,
+    // An invented name, for a court that knows nothing of it (item 10's "Declaring a name", given on arrival since item 11a+).
+    alias: courts.some((k) => k.stranger) ? (this.aliasesFor(c, courts.find((k) => k.stranger)!.court)[0] ?? null) : null,
     held: S.debts.filter((d) => d.ended === null && d.holder === c.id).map((d) => debtSeen(d, d.borrower)),
     // Who holds a tablet it owes on, as far as it can know: one standing here, else the lender it sealed it with.
     owes: S.debts
@@ -287,7 +291,7 @@ P.applyLife = function (c, ch) {
     }
   }
   // Setting out: a free person on its own way, or one on an errand to the borrower's court or home.
-  if (ch.go !== null && ch.go !== c.at && isAlive(S, ch.go) && (c.status === "Free" || c.errand !== null) && c.duty === "None") this.startTravel(c, ch.go);
+  if (ch.go !== null && ch.go !== c.at && isAlive(S, ch.go) && (c.status === "Free" || c.errand !== null) && c.duty === "None") this.startTravel(c, ch.go, ch.goAs);
 };
 
 /**
@@ -383,12 +387,12 @@ P.deliverErrand = function (c, deliver) {
 };
 
 /** A free person (or a collector) sets out on its own way to a court. */
-P.startTravel = function (c, to) {
+P.startTravel = function (c, to, asName = null) {
   const S = this.s;
   const from = c.at;
   if (from === null) return;
   const fromProv = this.map.capital(from).id;
-  const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from, to, characterId: c.id, seen: [fromProv], reached: [S.turn] });
+  const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from, to, characterId: c.id, seen: [fromProv], reached: [S.turn], asName });
   j.arriveTurn = S.turn + Math.max(1, this.travelTurnsBetween(fromProv, this.map.capital(to).id));
   S.journeys.push(j);
   c.at = null;
@@ -415,9 +419,12 @@ P.travellerArrives = function (j) {
   let to = j.to;
   if (!isAlive(S, to)) to = S.falls.find((f) => f.power === to)?.conqueror ?? alive(S)[0];
   if (to === undefined || !isAlive(S, to)) return;
-  c.at = to;
+  // It gives the court its name as it arrives: the invented one it chose, where the court knows nothing of it (item 11a+).
+  const stranger = strangerAt(c, to);
   c.duty = "None";
   c.lastLife = null;
+  if (stranger && j.asName !== null) this.declare(c, to, j.asName, null);
+  c.at = to;
   this.meet(c, to);
   remember(c, S.turn, `I arrived at the court of ${to}.`);
   const e = c.errand;

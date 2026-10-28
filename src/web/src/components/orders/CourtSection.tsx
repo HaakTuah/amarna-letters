@@ -14,6 +14,7 @@ import {
   renew,
   roads,
   revoke,
+  grant,
   repudiate,
   hire,
   payFee,
@@ -56,10 +57,45 @@ export function CourtSection({ c }: { c: OrdersContext }) {
           );
         })}
       </div>
+      {/* Item 11a+: passage or basing granted by order, standing from next season. */}
+      <div className="row" style={{ marginTop: ".4rem" }}>
+        <select value={f.grantKind} onChange={(e) => set({ grantKind: e.target.value, grantAt: "" })}>
+          <option value="passage">Grant passage</option>
+          <option value="basing">Grant basing</option>
+        </select>
+        <select value={f.grantTo} onChange={(e) => set({ grantTo: e.target.value })}>
+          <option value="">to…</option>
+          {others.map((p) => (
+            <option key={p} value={p}>
+              {powerName(p)}
+            </option>
+          ))}
+        </select>
+        <select value={f.grantAt} onChange={(e) => set({ grantAt: e.target.value })}>
+          <option value="">{f.grantKind === "passage" ? "all your land" : "in…"}</option>
+          {[...v.owner.entries()]
+            .filter(([id, o]) => o === me && !map.get(id).isSea)
+            .map(([id]) => id)
+            .sort()
+            .map((id) => (
+              <option key={id} value={id}>
+                {map.get(id).name}
+              </option>
+            ))}
+        </select>
+        <input type="number" min={1} placeholder="seasons" value={f.grantSeasons} onChange={(e) => set({ grantSeasons: e.target.value })} style={{ width: "5rem" }} />
+        <button
+          className="small"
+          disabled={f.grantTo === "" || (f.grantKind === "basing" && f.grantAt === "")}
+          onClick={() => add(grant(f.grantTo as Power, f.grantKind === "basing" ? "basing" : "passage", f.grantAt === "" ? null : f.grantAt, Number(f.grantSeasons) > 0 ? Math.floor(Number(f.grantSeasons)) : null))}
+        >
+          Add
+        </button>
+      </div>
       {v.roadsClosedToUs.length > 0 && <p className="muted">Closed to your people, as far as you have heard: {v.roadsClosedToUs.map(powerName).join(", ")}.</p>}
       {v.grants.length > 0 && (
         <div className="field" style={{ marginTop: ".4rem" }}>
-          <span>Passage and basing on sealed tablets</span>
+          <span>Passage and basing</span>
           {v.grants.map((g, i) => (
             <div key={i} className="row">
               <span style={{ flex: 1 }}>{grantLine(g, v.power)}</span>

@@ -7,8 +7,9 @@
  * and `--border-play-half` leave all of it alone, only to measure what playing it is worth. Every number below is a first
  * guess of the script's own.
  */
-import { WorldMap, clause, cmpStr, deport, expel, returnRunaways, sortBy, welcome, type Clause, type Order, type Power, type SeatView } from "@amarna/engine";
+import { LandData, WorldMap, cheapestRoute, clause, legPoints, seasonOfTurn, cmpStr, deport, expel, returnRunaways, sortBy, welcome, type Clause, type Order, type Power, type SeatView } from "@amarna/engine";
 import type { Board } from "./board.ts";
+import { SeasonPlay } from "./land.ts";
 
 /** Script kings that leave item 10+b's choices alone (`--no-border-play`, `--border-play-half`). None by default. */
 export const BorderPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
@@ -61,8 +62,10 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
         loose -= n;
       }
     if (!besieged.has(x.province) && x.fed >= 1000 && loose >= Worth && x.room - x.settled >= Worth) orders.push(welcome(x.province));
-    // A besieged city of ours whose stores will not last: the mouths that cannot fight go out.
-    if (besieged.has(x.province) && !x.expelled && x.stores < ExpelBelow * x.need) orders.push(expel(x.province));
+    // A besieged city of ours whose stores will not last: as many of the mouths that cannot fight go out as make them last
+    // `ExpelBelow` seasons (item 11a+: the king chooses how many), a tenth at least; none once the most are out.
+    if (besieged.has(x.province) && x.expelled < LandData.expelMost && x.need > 0 && x.stores < ExpelBelow * x.need)
+      if (SeasonPlay.on(b.me) || x.expelled === 0) orders.push(SeasonPlay.on(b.me) ? expel(x.province, Math.min(90, Math.max(10, 100 - Math.floor((x.stores * 100) / (ExpelBelow * x.need))))) : expel(x.province));
   }
   // Deportation: from land we took (not our homeland) that a foreign army stands next to, and so may be lost, to the
   // homeland province with the most room near it: the people moved are kept whatever becomes of the land.
@@ -77,8 +80,15 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
   );
   const filled = new Map<string, number>();
   for (const x of taken) {
+    // Not by a road where troops that would free them stand (item 11a+): the land's own king's, or a king's who closed his
+    // roads to us, as far as we see them.
+    const homeland = W.get(x.province).home;
+    const freer = (k: Power): boolean => k !== b.me && (k === homeland || v.roadsClosedToUs.includes(k));
+    const safe = (y: { province: string }): boolean =>
+      !SeasonPlay.on(b.me) ||
+      (cheapestRoute(W, x.province, y.province, (a, c) => legPoints(W, a, c, seasonOfTurn(v.turn)))?.route ?? []).every((p) => W.get(p).isSea || !v.units.some((u) => u.province === p && freer(u.power)));
     const to = sortBy(
-      home.filter((y) => W.hops(x.province, y.province) <= 4),
+      home.filter((y) => W.hops(x.province, y.province) <= 4 && safe(y)),
       [(y) => -(y.room - y.settled - (filled.get(y.province) ?? 0)), (a: number, c: number) => a - c],
       [(y) => y.province, cmpStr],
     )[0];
