@@ -17,6 +17,7 @@ export { GrainPlay } from "./bots/grain.ts";
 export { TradePlay } from "./bots/trade.ts";
 export { PeoplePlay } from "./bots/statecraft-court.ts";
 export { LandPlay } from "./bots/land.ts";
+export { BorderPlay } from "./bots/borders.ts";
 export { CharacterChecks } from "./character-checks.ts";
 export * from "./human-seat.ts";
 export * from "./signals.ts";

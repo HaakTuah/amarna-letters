@@ -142,6 +142,11 @@ export class GameRunner {
 
   /** Serialized states: [0] at the start, [k] after turn k. */
   readonly snapshots: string[] = [];
+  /**
+   * Whether to keep the state at the end of every turn (the web app's history): a whole state a turn, so a long game's
+   * snapshots run to gigabytes. The batch runner, which never reads them, turns this off.
+   */
+  keepSnapshots = true;
   readonly chronicles = new Dict<Power, string>();
   phase = "Ready";
   readonly errors: string[] = [];
@@ -330,7 +335,7 @@ export class GameRunner {
       }),
     );
     for (const [c, persona] of results) if (!isBlank(persona)) c.persona = persona;
-    this.snapshots.push(serialize(GameStateSchema, this.state));
+    if (this.keepSnapshots) this.snapshots.push(serialize(GameStateSchema, this.state));
     this.prepared = true;
     this.phaseDone?.("setup");
     this.setPhase("Ready");
@@ -377,7 +382,7 @@ export class GameRunner {
 
     this.setPhase(`Turn ${turn}: resolution`);
     engine.resolve(subs);
-    this.snapshots.push(serialize(GameStateSchema, S_));
+    if (this.keepSnapshots) this.snapshots.push(serialize(GameStateSchema, S_));
     this.phaseDone?.(`t${turn}/resolve`);
 
     // The chronicles are of the age: written when it ends, and not again if the table plays on into an open age.
