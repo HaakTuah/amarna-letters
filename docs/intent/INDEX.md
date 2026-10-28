@@ -14,7 +14,7 @@ the live document wins. If the docs connector is not available, go on with the c
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
-| Overview | `docs/intent/overview/` | `320f0886-6acf` | 560 |
+| Overview | `docs/intent/overview/` | `320f0886-6acf` | 561 |
 | Build order | `docs/intent/build-order/` | `f6588701-e47a` | 72 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 34 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 55 |
@@ -36,7 +36,7 @@ session loads.
 | --- | --- | --- |
 | `docs/intent/overview/front.md` | Title, status, how the document relates to the code | 2.1 |
 | `docs/intent/overview/vision-and-core-hypothesis.md` | Vision and core hypothesis | 1.4 |
-| `docs/intent/overview/design-pillars.md` | Design pillars | 6.4 |
+| `docs/intent/overview/design-pillars.md` | Design pillars | 7.4 |
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 2.8 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
 | `docs/intent/build-order/intro.md` | Build order: introduction | 0.4 |
