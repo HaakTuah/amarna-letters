@@ -36,6 +36,7 @@ import {
   type UnitKind,
   authorityText,
   type GrantView,
+  menOf,
 } from "@amarna/engine";
 import { economyLines } from "./prompt-economy.ts";
 import { Sb, joinS } from "./text.ts";
@@ -150,7 +151,8 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const units = new Map(v.units.map(u => [u.province, u] as const));
         const troop = (id: string): string => {
           const u = units.get(id);
-          return u !== undefined ? ` [${u.power} ${(u.kind === "Army" ? `army` : `fleet`)}]` : ``;
+          // A unit short of a full levy's men says how many it has (item 11a+): it counts for that share in battle.
+          return u !== undefined ? ` [${u.power} ${(u.kind === "Army" ? `army` : `fleet`)}${menNote(u)}]` : ``;
         };
         // The walls as this court knows them (standing now in its sight, elsewhere as last seen) and the ground (see TERRAIN), in one bracket: "lukka (walls 1, rough ground)".
         const marksOf = (id: string): string =>
@@ -185,7 +187,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const sieges = siegesLine(v);
         if (sieges.length > 0) sb.appendLine(sieges);
         const atSea = v.units.filter(u => map.get(u.province).isSea);
-        if (atSea.length > 0) sb.appendLine(`- At sea: ${joinS(`, `, atSea.map(u => `${u.province} [${u.power} fleet]`))}`);
+        if (atSea.length > 0) sb.appendLine(`- At sea: ${joinS(`, `, atSea.map(u => `${u.province} [${u.power} fleet${menNote(u)}]`))}`);
         sb.appendLine(`You can see troops in: ${joinS(`, `, v.visible)}.`);
 
         sb.appendLine();
@@ -609,4 +611,9 @@ export function grantLine(g: GrantView, me: Power): string {
   const what = g.kind === `passage` ? `pass through ${where}` : `stand within the walls of ${where}`;
   const who = g.grantor === me ? `${g.grantee}'s troops may ${what}` : `your troops may ${what}, by leave of ${g.grantor}`;
   return `${who}, since turn ${g.sinceTurn}${g.untilTurn !== null ? `, until turn ${g.untilTurn}` : `, until revoked`} (${g.tablet}).`;
+}
+
+/** A unit's men where it is short of a full levy (item 11a+): ", 600 men"; nothing for a full one. */
+function menNote(u: { kind: "Army" | "Fleet"; men: number }): string {
+  return u.men > 0 && u.men < menOf(u.kind) ? `, ${u.men} men` : ``;
 }

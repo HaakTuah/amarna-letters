@@ -7,16 +7,16 @@
 import { renderClauses } from "../rules/clauses.ts";
 import { isBlank } from "../core/text.ts";
 import { cap } from "../rules/greeting.ts";
-import { grantStands, grantsIn, newGrant, withinAuthority, type Grant } from "../model/authority.ts";
+import { grantLive, grantStands, grantsIn, newGrant, withinAuthority, type Grant } from "../model/authority.ts";
 import type { Dispatch, HomeCargo, MessageTrail, Tablet } from "../model/records.ts";
 import { newTablet, newTabletCopy } from "../model/records.ts";
 import type { EnvoyReaction, HostReply } from "../model/exchanges.ts";
-import type { RepudiateOrder, RevokeOrder } from "../model/orders.ts";
+import type { GrantOrder, RepudiateOrder, RevokeOrder } from "../model/orders.ts";
 import type { Character } from "../model/people.ts";
 import { remember } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
 import type { Clause } from "../model/clauses.ts";
-import { logEvent, newId, notify, ownedBy, type Unit } from "../model/state.ts";
+import { isAlive, logEvent, newId, notify, ownedBy, type Unit } from "../model/state.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -28,6 +28,7 @@ declare module "./core.ts" {
     passageFor(host: Power | null, master: Power, province: string): boolean;
     guestAt(province: string, power: Power): boolean;
     revokeGrants(p: Power, o: RevokeOrder): void;
+    grantByOrder(p: Power, o: GrantOrder): void;
     repudiate(p: Power, o: RepudiateOrder): void;
     endGrants(grantor: Power, grantee: Power, why: string): void;
   }
@@ -163,13 +164,13 @@ P.guestAt = function (province, power) {
 /** The king ends what he granted another (in one province, or all of it): from next season the guests must be gone. */
 P.revokeGrants = function (p, o) {
   const S = this.s;
-  const ended = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantStands(g, S.turn) && (o.province === null || g.province === o.province));
+  const ended = S.grants.filter((g) => g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && (o.province === null || g.province === o.province));
   for (const g of ended) g.endedTurn = S.turn;
   // One province of a passage through all his land: the grant stands for the rest.
   let narrowed = false;
   if (o.province !== null)
     for (const g of S.grants)
-      if (g.grantor === p && g.grantee === o.grantee && grantStands(g, S.turn) && g.province === null && g.lands.includes(o.province)) {
+      if (g.grantor === p && g.grantee === o.grantee && grantLive(g, S.turn) && g.province === null && g.lands.includes(o.province)) {
         g.lands = g.lands.filter((x) => x !== o.province);
         narrowed = true;
       }
@@ -179,10 +180,41 @@ P.revokeGrants = function (p, o) {
   logEvent(S, "passage", `${p} revoked the passage and basing it granted ${o.grantee} ${what}.`, [p, o.grantee], "grant-revoked");
 };
 
+/**
+ * A king grants another passage or basing by order (item 11a+, Haakon's answer to item 9's review), with no tablet: his
+ * border guards and garrisons obey him from next season, over land he holds now, and the news reaches the grantee's court
+ * as fast as a messenger rides between the capitals; until then that court does not know of it.
+ */
+P.grantByOrder = function (p, o) {
+  const S = this.s;
+  const Map = this.map;
+  const why =
+    o.province !== null && S.owner.getOrDefault(o.province, null) !== p
+      ? "you no longer hold it"
+      : o.kind === "basing" && o.province === null
+        ? "basing is granted in one city"
+        : !isAlive(S, o.grantee)
+          ? `${o.grantee} has fallen`
+          : (S.roadsClosed.tryGet(p) ?? []).includes(o.grantee)
+            ? `your roads are closed to ${o.grantee}'s people: open them first`
+            : null;
+  const where = o.province !== null ? Map.get(o.province).name : "all your land";
+  if (why !== null) {
+    notify(S, p, "Rejected", "Order failed", `No ${o.kind} was granted to ${o.grantee} in ${where}: ${why}.`);
+    return;
+  }
+  const lands = o.province === null ? ownedBy(S, p).filter((x) => !Map.get(x).isSea) : [];
+  const since = S.turn + 1;
+  const heard = S.turn + Math.max(1, this.travelTurns(p, o.grantee));
+  S.grants.push(newGrant({ id: newId(S, "p"), kind: o.kind, grantor: p, grantee: o.grantee, province: o.province, lands, sinceTurn: since, untilTurn: o.seasons !== null ? since + Math.max(1, o.seasons) - 1 : null, tabletId: "", heardTurn: heard }));
+  notify(S, p, "Resolution", GrantTitle, `From next season ${o.grantee}'s troops may ${o.kind === "passage" ? "pass through" : "stand within the walls of"} ${where} by your order${o.seasons !== null ? `, for ${o.seasons} seasons` : ", until you revoke it"}. Word of it reaches ${o.grantee}'s court as fast as a messenger rides.`);
+  logEvent(S, "passage", `${p} granted ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing within the walls of"} ${o.province !== null ? Map.get(o.province).name : `all the land of ${p}`}, by order.`, [p, o.grantee], "granted-by-order");
+};
+
 /** Closing one's roads to a court ends what one granted it. */
 P.endGrants = function (grantor, grantee, why) {
   const S = this.s;
-  const ended = S.grants.filter((g) => g.grantor === grantor && g.grantee === grantee && grantStands(g, S.turn));
+  const ended = S.grants.filter((g) => g.grantor === grantor && g.grantee === grantee && grantLive(g, S.turn));
   for (const g of ended) g.endedTurn = S.turn;
   if (ended.length === 0) return;
   logEvent(S, "passage", `${grantor} ended the passage and basing it granted ${grantee}: ${why}.`, [grantor, grantee], "grant-revoked");

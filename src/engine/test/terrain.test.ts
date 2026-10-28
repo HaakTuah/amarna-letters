@@ -22,6 +22,7 @@ import {
   single,
   stormed,
   support,
+  FullUnit,
 } from "@amarna/engine";
 import { Assert } from "./support.ts";
 
@@ -95,7 +96,7 @@ describe("TerrainTests", () => {
     let fight = Assert.single(r.groundFights);
     Assert.true(fight.decided);
     Assert.false(fight.won);
-    Assert.equal([2, 2], [fight.strength, fight.against]);
+    Assert.equal([2, 2], [fight.strength / FullUnit, fight.against / FullUnit]);
 
     // With two supports (3 against 2) it goes in.
     let c = new Board()
@@ -183,7 +184,7 @@ describe("TerrainTests", () => {
       .support("enkomi", "lukka", "kalavasos");
     let rd = d.run();
     Assert.equal("lukka", d.where(rd, "lukka"));
-    Assert.equal(["Rough", 2, 2], [rd.groundFights[0].ground.kind, rd.groundFights[0].strength, rd.groundFights[0].against]);
+    Assert.equal(["Rough", 2, 2], [rd.groundFights[0].ground.kind, rd.groundFights[0].strength / FullUnit, rd.groundFights[0].against / FullUnit]);
   });
 
   test("A unit whose move fails keeps the ground and one met head on has none", () => {
@@ -225,7 +226,7 @@ describe("TerrainTests", () => {
     }
     let r = lukka(2).run();
     let a = Assert.single(r.assaults);
-    Assert.equal([3, 1, 2], [a.strength, a.walls, a.defenders]);
+    Assert.equal([3, 1, 2], [a.strength / FullUnit, a.walls / FullUnit, a.defenders / FullUnit]);
     Assert.false(stormed(a));
     Assert.equal("Rough", a.ground!.kind);
     Assert.true(stormed(Assert.single(lukka(3).run().assaults)));

@@ -1,5 +1,7 @@
 ## Envoy authority and passage (item 9)
 
+**Since item 11a+** some of this is changed: see [`22-harvests-and-answers.md`](22-harvests-and-answers.md) (winter takes men by size and supplies; passage and basing by order).
+
 Build order item 9: first what item 8 began too early to build of item 7b's review (winter dangerous, never closed; a
 spy's report from a watched province by road), then the envoy's seal with engine-checkable limits, credentials shown or
 hidden, repudiation, and passage and basing granted on sealed tablets ("Envoy authority and resident envoys", "Passage

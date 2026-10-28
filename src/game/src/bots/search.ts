@@ -172,7 +172,7 @@ export function improve(b: Board, brain: Brain, plan: MilitaryPlan, rng: Rng): v
     coalitions: [...brain.coalitions(b)],
     // The game's own adjudicator, the ground included, so the pictured seasons count it.
     adj: new Adjudicator(Board.Sail, false, b.v.prices.getOrDefault("terrainDefence", 1)),
-    units: b.units.map((u) => newUnit({ id: u.province, power: u.power, kind: u.kind, province: u.province })),
+    units: b.units.map((u) => newUnit({ id: u.province, power: u.power, kind: u.kind, province: u.province, men: u.men })),
     willing: (x) => tacticsWilling(b, brain, x, leader),
     prey: (owner) =>
       owner === null || owner === brain.warTarget || owner === brain.betraying || owner === leader || (owner !== me && (brain.rel.get(owner).hostile || sworn.has(owner))),

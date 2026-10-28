@@ -1,5 +1,6 @@
 import { describe, test } from "vitest";
 import {
+  LandData,
   Dict,
   type GameState,
   OrderValidator,
@@ -53,30 +54,37 @@ describe("TravelTests", () => {
     Assert.equal(4 * PointsPerDay, flood - dry);
   });
 
-  test("Winter closes nothing: a pass is slow for travellers, and an army over it in winter may be lost", () => {
+  test("Winter closes nothing: a pass is slow for travellers, and an army over it in winter loses men by its size and supplies", () => {
     // Twice as long over a snowbound pass, never closed (item 9, "Winter is dangerous, never closed").
     Assert.equal(legPoints(Map, "nesa", "kizzuwatna", 0) * (TravelData.winterPassPercent / 100), legPoints(Map, "nesa", "kizzuwatna", 1));
     Assert.true(Map.canMove("Army", "nesa", "kizzuwatna"));
     Assert.false(Map.winter.canMove("Army", "nesa", "kizzuwatna"));
-    // An army ordered over a pass in winter is accepted, and each crossing rolls for the army.
-    let lost = 0;
-    for (let g = 1; g <= 40; g++) {
+    // An army ordered over a pass in winter is accepted, and loses men (item 11a+): a full one with no food more than one
+    // that carries a season's, a small levy fewer still.
+    const cross = (g: number, men: number, food: number): number => {
       const s = newGame(g);
       s.turn = 2;
       s.units = s.units.filter((u) => u.province !== "nesa" && u.province !== "kizzuwatna");
-      s.units.push(newUnit({ id: "u-test", power: "Hatti", kind: "Army", province: "nesa" }));
+      s.units.push(newUnit({ id: "u-test", power: "Hatti", kind: "Army", province: "nesa", men, food }));
       const v = new OrderValidator(s, Map).validate("Hatti", newTurnSubmission({ orders: [{ type: "move", unit: "nesa", to: "kizzuwatna" }] }));
       Assert.equal(1, v.accepted.filter((o) => o.type === "move").length);
       new TurnEngine(s).resolve(new Dict([["Hatti", newTurnSubmission({ orders: [{ type: "move", unit: "nesa", to: "kizzuwatna" }] })]]));
       const u = s.units.find((x) => x.id === "u-test");
-      // (A plague may take it too: only the winter's loss is counted.)
-      if (s.events.some((x) => x.signal === "winter-loss" && x.visibleTo.includes("Hatti"))) {
-        lost++;
-        Assert.true(u === undefined);
-      } else if (u !== undefined) Assert.equal("kizzuwatna", u.province);
+      Assert.true(s.events.some((x) => x.signal === "winter-loss" && x.visibleTo.includes("Hatti")) || u?.men === men);
+      return men - (u?.men ?? 0);
+    };
+    let hungry = 0;
+    let fed = 0;
+    let small = 0;
+    for (let g = 1; g <= 20; g++) {
+      hungry += cross(g, LandData.armyMen, 0);
+      fed += cross(g, LandData.armyMen, 10_000);
+      small += cross(g, 1000, 0);
     }
-    // About GameConfig.winterArmyLoss (30) in 100: lost in some games, through in most.
-    Assert.true(lost > 3 && lost < 25);
+    // About GameConfig.winterArmyLoss (30) in a hundred of a full army's men; half with food; a fifth-size levy far fewer.
+    Assert.true(hungry > 20 * LandData.armyMen * 0.2 && hungry < 20 * LandData.armyMen * 0.4);
+    Assert.true(fed < hungry * 0.6 && fed > hungry * 0.4);
+    Assert.true(small < 20 * 1000 * 0.1);
     // Outside winter the pass costs nothing.
     const s = newGame(3);
     s.turn = 1;

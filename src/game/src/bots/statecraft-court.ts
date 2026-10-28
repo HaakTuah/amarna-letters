@@ -40,7 +40,8 @@ import {
   type TabletView,
   feeFor,
 } from "@amarna/engine";
-import type { Board } from "./board.ts";
+import { Board } from "./board.ts";
+import { SeasonPlay } from "./land.ts";
 import { shekels, type Brain } from "./brain.ts";
 import type { Personality } from "./personality.ts";
 
@@ -278,6 +279,29 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       orders.push(placeSpy(agent.id, target));
       busy.add(agent.id);
       ready.pop();
+    }
+  }
+
+  // A spy to watch a province (item 11a+, Haakon's answer to item 9's review: script kings post watching spies when it pays):
+  // the land of the king we make war on, or who most threatens us, nearest our capital that we cannot see, where his troops
+  // would gather against us or ours would strike; one at a time each, by the careful as well as the cunning.
+  if (SeasonPlay.on(b.me) && ready.length >= 2 && spare > 80 && (p.cunning > 0.4 || p.caution > 0.6)) {
+    const foe = brain.warTarget ?? sortBy([...b.neighbours()].filter((x) => brain.hostility(x, b) > 0), [(x: Power) => brain.hostility(x, b), desc(cmpNum)])[0] ?? null;
+    if (foe !== null) {
+      const cap = Board.Map.capital(b.me).id;
+      const seen = new Set(v.visible);
+      const watched = (id: string): boolean => v.court.some((c) => c.where === `watching ${id}`);
+      const spot = sortBy(
+        [...v.owner.entries()].filter(([id, o]) => o === foe && !Board.Map.get(id).isSea && !seen.has(id) && Board.Map.hops(cap, id) <= 4).map(([id]) => id),
+        [(id: string) => Board.Map.hops(cap, id), cmpNum],
+        [(id: string) => id, cmpStr],
+      )[0];
+      if (spot !== undefined && !watched(spot) && !v.court.some((c) => c.where.startsWith("watching ") && v.owner.getOrDefault(c.where.slice(9), null) === foe)) {
+        const agent = ready[0];
+        ready.splice(0, 1);
+        orders.push(placeSpy(agent.id, null, spot));
+        busy.add(agent.id);
+      }
     }
   }
 

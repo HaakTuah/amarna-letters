@@ -1,5 +1,7 @@
 ## People at home (item 10+a)
 
+**Since item 11a+** some of this is changed: see [`22-harvests-and-answers.md`](22-harvests-and-answers.md) (the harvest is reaped once a year into the farmers' granaries and the tax taken from them; levies sized by men; winter by men).
+
 Build order item 10+a ("People of the land", "Land and climate", "Rivers", "Seasons", "How a king lives", "The people
 defend their land", and the pace terms of "What sets a company's pace"): each province's people in three groups and the
 flows between them, the harvest by the hands on the land, the king's tax rate with the hunger that answers it, levies

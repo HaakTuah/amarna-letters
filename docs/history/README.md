@@ -15,6 +15,7 @@ Amarna letters in the game's first year, 1346 BCE, for the items that build from
 | [07-languages.md](07-languages.md) | Which languages were spoken in each province, and how widely; who spoke what | 12, 11 |
 | [08-beyond-the-edges.md](08-beyond-the-edges.md) | The peoples beyond the map's edges: names, languages, what each door brings | 11, 9+ |
 | [09-the-letters.md](09-the-letters.md) | The letters as a source: relationships, the voice of the age, the norms of the time (style, never strategy) | 10, 11+, 16, 17 |
+| [10-water.md](10-water.md) | Where each city drank: river, spring, wells, a spring outside the walls, cisterns, an island (added by item 11a+) | 10+, 11a+, 15 |
 
 ## How sure each claim is
 

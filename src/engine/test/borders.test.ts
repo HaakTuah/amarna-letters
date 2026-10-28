@@ -84,8 +84,9 @@ describe("BordersTests", () => {
     const [, a, to, b] = border(s);
     const x = e.peopleOf(to);
     const room = reckonedOf(Map, to).room;
-    x.settled = room - 2000;
     e.beginTurn();
+    // Set after the season's own flows, which may fill the land.
+    x.settled = room - 2000;
     x.loose = 5000;
     s.runaways.set(to, new Dict([[a, 3000]]));
     s.loot.set(to, 100);
@@ -143,6 +144,63 @@ describe("BordersTests", () => {
     Assert.inRange(w.men, 700, 960);
     Assert.true(w.savings > 0);
     Assert.equal(purse - w.savings, s.markets.get(taken.id).purse, 5);
+  });
+
+  test("Deportees walk a road of their own, and the troops of a king who closed his roads to the deporter free them (item 11a+)", () => {
+    const s = quiet();
+    const e = new TurnEngine(s);
+    s.owner.set("carchemish", "Hatti");
+    e.beginTurn();
+    e.resolve(orders("Hatti", deport("carchemish", "hattusa", 1000, true)));
+    const w = single(s.walking, (y) => y.deported);
+    Assert.equal("carchemish", w.from);
+    Assert.true(w.route.length >= 2 && w.route[0] === "carchemish" && w.route.at(-1) === "hattusa");
+    // Mitanni has closed its roads to Hatti's people, and its army stands on the whole road: the deportees are freed.
+    s.roadsClosed.set("Mitanni", ["Hatti"]);
+    for (const p of w.route.slice(1, -1)) s.units.push(newUnit({ id: `u-free-${p}`, power: "Mitanni", kind: "Army", province: p, men: LandData.armyMen }));
+    const men = w.men;
+    let lines = new Dict<Power, string[]>();
+    // The season after they set out, they walk the stretch through Mitanni's army.
+    lines = e.deporteesOnRoad();
+    Assert.false(s.walking.includes(w));
+    Assert.true(s.events.some((x) => x.signal === "deportees-freed"));
+    Assert.true(w.route.slice(1, -1).some((p) => e.peopleOf(p).loose >= men));
+    Assert.contains("freed", lines.get("Hatti")?.join(" ") ?? "");
+  });
+
+  test("Deportees shipped by sea are freed only on land, never lost in the waters (item 11a+, from the review)", () => {
+    const s = quiet();
+    const e = new TurnEngine(s);
+    s.owner.set("gaza", "Egypt");
+    s.owner.set("sidon", "Egypt");
+    e.beginTurn();
+    e.resolve(orders("Egypt", deport("gaza", "sidon", 1000, true)));
+    const w = single(s.walking, (y) => y.deported);
+    s.roadsClosed.set("Hatti", ["Egypt"]);
+    for (const p of w.route.filter((x) => Map.get(x).isSea)) s.units.push(newUnit({ id: `u-sea-${p}`, power: "Hatti", kind: "Fleet", province: p, men: LandData.fleetMen }));
+    e.deporteesOnRoad();
+    Assert.true(s.walking.includes(w));
+    Assert.false(w.route.some((p) => Map.get(p).isSea && (s.people.tryGet(p)?.loose ?? 0) > 0));
+  });
+
+  test("The king chooses how many mouths to put out of a besieged city, up to most of the town (item 11a+)", () => {
+    const s = quiet();
+    const e = new TurnEngine(s);
+    const u = single(s.units, (x) => x.province === "hattusa");
+    u.province = "carchemish";
+    s.owner.set("carchemish", "Mitanni");
+    s.sieges.push(newSiege({ province: "carchemish", power: "Hatti", unitId: u.id, since: s.turn - 1 }));
+    e.beginTurn();
+    e.resolve(orders("Mitanni", expel("carchemish", 20)));
+    Assert.equal(20, s.expelled.get("carchemish"));
+    // Half of the rest: 20 + 40.
+    e.beginTurn();
+    e.resolve(orders("Mitanni", expel("carchemish", 50)));
+    Assert.equal(60, s.expelled.get("carchemish"));
+    e.beginTurn();
+    e.resolve(orders("Mitanni", expel("carchemish", 100)));
+    Assert.equal(LandData.expelMost, s.expelled.get("carchemish"));
+    Assert.contains("1 to 100", refusal(s, "Mitanni", expel("carchemish", 0)) ?? "");
   });
 
   test("A besieged city puts out the mouths that cannot fight, and eats less while the siege lasts", () => {
@@ -259,8 +317,9 @@ describe("BordersTests", () => {
     Assert.true(one[0] > 0);
   });
 
-  test("A besieged city holds no longer than its water: cisterns run dry in rain-fed land, a river never fails", () => {
-    for (const [city, dry] of [["carchemish", true], ["babylon", false]] as const) {
+  test("A besieged city holds no longer than its water: a spring outside the walls is cut off, a river or a walled way down to a spring never fails", () => {
+    // Megiddo's spring lay outside its Late Bronze walls (the water dossier, item 11a+); Carchemish drinks the Euphrates.
+    for (const [city, dry] of [["megiddo", true], ["shechem", true], ["babylon", false], ["carchemish", false], ["jerusalem", false]] as const) {
       const s = quiet();
       const e = new TurnEngine(s);
       const u = single(s.units, (x) => x.province === "hattusa");

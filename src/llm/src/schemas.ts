@@ -133,6 +133,8 @@ export const OtherActions = [
   "close_roads",
   "open_roads",
   "revoke_passage",
+  "grant_passage",
+  "grant_basing",
   "repudiate",
   "assay",
   "authenticate",
@@ -171,12 +173,12 @@ const otherOrder = (described = true): ReplySchema =>
     ["action", enumOf(OtherActions)],
     [
       "province",
-      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king)." : null),
+      str(described ? "For raise, buy_city, cede_province, give_unit, fortify (the province whose walls to strengthen), sell_grain, buy_grain, feed_town (the province of yours whose stores and market), caravan, trade, smuggle (where it sets out from), ship_trade, ship_deliver (your harbour where your fleet, in it or in its waters, loads), set_toll, set_tax (the province it applies in; empty for all your land), welcome_loose, return_runaways, expel_mouths (your province), deport (the land you took that they leave), a province to spy on, or revoke_passage (one province; empty for all you granted that king), grant_passage (one province of yours; empty for all your land), grant_basing (one province of yours)." : null),
     ],
     ["to", str(described ? "For caravan: the province it carries the grain to. For trade, smuggle, ship_trade: the foreign market. For ship_deliver: the harbour it unloads at. For deport: your province they go to. Otherwise empty." : null)],
-    ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back)." : null)],
+    ["power", str(described ? "For cede_province, give_unit, close_roads, open_roads, revoke_passage (the king you granted it), grant_passage, grant_basing (the king you grant it), set_toll (the partner it applies to; empty for everyone), a court to spy on, captive_hand_over (the king you hand the captive to), or return_runaways (the king whose runaways you send back)." : null)],
     ["person", str(described ? "Person id, for hire, renew, pay_fee, withhold_fee, borrow, dismiss, checks, spies, steal_tablet, captives, release, ransom, forge, give_gift." : null)],
-    ["amount", int(described ? "The whole fee for the job (hire, renew), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), as the action needs; else 0." : null)],
+    ["amount", int(described ? "The whole fee for the job (hire, renew), the gold to borrow (borrow) or repay (repay), spend, ransom or gift (captive_question: what the questioning costs; give_gift: the gold) in shekels, measures of grain (sell_grain, buy_grain, feed_town, caravan, trade, smuggle, ship_trade, ship_deliver), or the toll's percent (set_toll), or the tax's percent of the harvest (set_tax), or the people to deport (deport), or how many in a hundred of the mouths still inside a besieged city to put out (expel_mouths), or for how many seasons (grant_passage, grant_basing; 0 for until you revoke it), as the action needs; else 0." : null)],
     ["gold", int(described ? "trade, smuggle, ship_trade: the shekels it carries to buy grain with at that market; deport: 1 to let them carry their share of the purse; hire, renew: the part of the fee handed over now (0 means half); borrow: the sum to repay, sealed on the debt tablet; else 0." : null)],
     [
       "term",
@@ -550,12 +552,28 @@ const AsWritten: [string, z.ZodType] = [
 const SwapInventory =
   "Only if you keep some of the gold but not all of it: hand over, in place of the sealed inventory, one you forge yourself stating only what is left, so the shortfall goes unnoticed. A forged inventory can be found out if the king pays to have it examined, and you may then be named as its forger before every court.";
 
+/**
+ * Item 11a+ (Haakon's answer to item 8's review, "Full press"): a model envoy may alter the letter's clauses as a script
+ * envoy can, in the same call: leave some out, state the gift as less, add a courtesy. Asked only of a letter with clauses,
+ * the gift only where one names an amount.
+ */
+const ReciteFields = (clauses: number, gift: boolean): [string, z.ZodType][] => {
+  if (clauses <= 0) return [];
+  const f: [string, z.ZodType][] = [
+    ["leave_out", array(z.int(), "The numbers of the letter's clauses you leave out when you recite them, or none: the king's scribes hear the rest as you recite them.")],
+    ["add_courtesy", bool("True: you add a clause of good wishes from your lord that he did not write.")],
+  ];
+  if (gift) f.push(["gift_stated", int("The gift you state, in shekels: less than written if you keep some of the gold and say so to match; 0 states it as written.")]);
+  return f;
+};
+
 /** An envoy's presentation: the gold fields only of an envoy that carries gold, the swap only of one whose hand can fake a seal. */
-function present(carriesGold = true, canForge = true): ReplySchema {
-  if (!carriesGold) return object(AsWritten, ["speech", str(PresentSpeech)]);
+function present(carriesGold = true, canForge = true, clauses = 0, gift = false): ReplySchema {
+  const recite = ReciteFields(clauses, gift);
+  if (!carriesGold) return object(AsWritten, ["speech", str(PresentSpeech)], ...recite);
   return canForge
-    ? object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)], ["swap_inventory", bool(SwapInventory)])
-    : object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)]);
+    ? object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)], ["swap_inventory", bool(SwapInventory)], ...recite)
+    : object(AsWritten, ["speech", str(PresentSpeech)], ["keep_gold", int(KeepGold)], ...recite);
 }
 
 /** An envoy's answer at an audience: whether to take a gift or a post only when one is offered. */
@@ -578,7 +596,7 @@ export const ReportToSender = "Your report to the king who sent you on this miss
  * An envoy's report home, with the gold fields only when it carries gold home, and the swap only when its hand can fake a
  * seal; after an audience, also the choice to report the king's answer as given, which the engine then writes.
  */
-function report(carriesGold = true, canForge = true, toLord = true, received = false): ReplySchema {
+function report(carriesGold = true, canForge = true, toLord = true, received = false, answers = 0): ReplySchema {
   const fields: [string, z.ZodType][] = [];
   if (received)
     fields.push([
@@ -588,6 +606,11 @@ function report(carriesGold = true, canForge = true, toLord = true, received = f
   fields.push(["report", str((received ? "Only if as_given is false: " : "") + (toLord ? ReportText : ReportToSender))]);
   if (carriesGold) fields.push(["keep_gold", int(KeepGoldHome)]);
   if (carriesGold && canForge) fields.push(["swap_inventory", bool(SwapInventory)]);
+  // Item 11a+: the king's answer in clauses as the envoy reports it, changed as a script envoy may change it.
+  if (answers > 0) {
+    fields.push(["answers_left_out", array(z.int(), "The numbers of the king's answers (in clauses) you leave out of your report, or none.")]);
+    fields.push(["refusals_as_accepted", array(z.int(), "The numbers of the king's refusals you report as acceptance, or none.")]);
+  }
   return object(...fields);
 }
 
@@ -637,9 +660,9 @@ export const Schemas = {
   hostReply: (c: GameConfig | null = null, a: AudienceView | boolean = false): JsonObject => jsonSchema(hostReply(c, a)),
   courtReply: (c: GameConfig | null = null, ordersStand = false, reopenChosen = false): JsonObject => jsonSchema(courtReply(c, ordersStand, reopenChosen)),
   asksOf,
-  present: (carriesGold = true, canForge = true): JsonObject => jsonSchema(present(carriesGold, canForge)),
+  present: (carriesGold = true, canForge = true, clauses = 0, gift = false): JsonObject => jsonSchema(present(carriesGold, canForge, clauses, gift)),
   react: (giftOffered = true, serviceOffered = true): JsonObject => jsonSchema(react(giftOffered, serviceOffered)),
-  report: (carriesGold = true, canForge = true, toLord = true, received = false): JsonObject => jsonSchema(report(carriesGold, canForge, toLord, received)),
+  report: (carriesGold = true, canForge = true, toLord = true, received = false, answers = 0): JsonObject => jsonSchema(report(carriesGold, canForge, toLord, received, answers)),
   pitch: (): JsonObject => jsonSchema(pitch()),
   text: (field: string, description: string): JsonObject => jsonSchema(text(field, description)),
   ReportText,

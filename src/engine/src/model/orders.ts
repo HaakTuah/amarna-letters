@@ -12,7 +12,7 @@ import type { UnitKind } from "./map.ts";
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema, type GreetingOptions, type TabletProposal } from "./records.ts";
-import { AuthoritySchema, type Authority } from "./authority.ts";
+import { AuthoritySchema, type Authority, type GrantKind } from "./authority.ts";
 
 export interface HoldOrder {
   type: "hold";
@@ -162,6 +162,8 @@ export interface DeportOrder {
 export interface ExpelOrder {
   type: "expel";
   province: string;
+  /** Item 11a+: the share of the town's mouths put out, in percent (1 to `LandData.expelMost`), the king's choice. */
+  percent: number;
 }
 export interface ReturnRunawaysOrder {
   type: "returnRunaways";
@@ -325,6 +327,18 @@ export interface RevokeOrder {
   province: string | null;
 }
 /**
+ * Item 11a+: grant another king passage through land of one's own (one province, or all of it with none named) or basing
+ * in one province, by order rather than on a tablet: it stands from this season, for `seasons` seasons or until revoked
+ * (null), and the news reaches his court as fast as a messenger rides between the capitals.
+ */
+export interface GrantOrder {
+  type: "grant";
+  grantee: Power;
+  kind: GrantKind;
+  province: string | null;
+  seasons: number | null;
+}
+/**
  * Repudiate a tablet one's envoy sealed in one's name (item 9), as beyond his authority: the rights it granted end, both
  * ways, and its partner is told. Named by the copy in one's archive, as an examination names it.
  */
@@ -420,6 +434,7 @@ export type Order =
   | CounterIntelOrder
   | RoadsOrder
   | RevokeOrder
+  | GrantOrder
   | RepudiateOrder
   | AssayOrder
   | AuthenticateOrder
@@ -486,7 +501,7 @@ export const ship = (fleet: string, from: string, to: string, grain: number, gol
 export const tax = (percent: number, province: string | null = null): TaxOrder => ({ type: "tax", province, percent });
 export const welcome = (province: string): WelcomeOrder => ({ type: "welcome", province });
 export const deport = (province: string, to: string, number: number, purse = false): DeportOrder => ({ type: "deport", province, to, number, purse });
-export const expel = (province: string): ExpelOrder => ({ type: "expel", province });
+export const expel = (province: string, percent = 50): ExpelOrder => ({ type: "expel", province, percent });
 export const returnRunaways = (province: string, to: Power): ReturnRunawaysOrder => ({ type: "returnRunaways", province, to });
 export const toll = (percent: number, partner: Power | null = null, province: string | null = null): TollOrder => ({ type: "toll", province, partner, percent });
 export const placeSpy = (character: string, court: Power | null = null, province: string | null = null): PlaceSpyOrder => ({ type: "spy", character, court, province });
@@ -494,6 +509,7 @@ export const recall = (character: string): RecallSpyOrder => ({ type: "recall", 
 export const counterIntel = (spend: number): CounterIntelOrder => ({ type: "counterIntel", spend });
 export const roads = (court: Power, close: boolean): RoadsOrder => ({ type: "roads", court, close });
 export const revoke = (grantee: Power, province: string | null = null): RevokeOrder => ({ type: "revoke", grantee, province });
+export const grant = (grantee: Power, kind: GrantKind, province: string | null = null, seasons: number | null = null): GrantOrder => ({ type: "grant", grantee, kind, province, seasons });
 export const repudiate = (copy: string): RepudiateOrder => ({ type: "repudiate", copy });
 export const assay = (lot: string): AssayOrder => ({ type: "assay", lot });
 export const authenticate = (copy: string, spend: number): AuthenticateOrder => ({ type: "authenticate", copy, spend });
@@ -551,7 +567,7 @@ export function describe(o: Order): string {
     case "deport":
       return `deport ${o.number} people from ${named(o.province)} to ${named(o.to)}${o.purse ? " with their share of the purse" : ""}`;
     case "expel":
-      return `put out of ${named(o.province)} the mouths that cannot fight`;
+      return `put ${o.percent} in a hundred of the mouths of ${named(o.province)} out of the city`;
     case "returnRunaways":
       return `send ${o.to}'s runaways in ${named(o.province)} back to ${o.to}`;
     case "raise":
@@ -594,6 +610,8 @@ export function describe(o: Order): string {
       return `spend ${o.spend} on watching for spies`;
     case "roads":
       return `${o.close ? "close" : "open"} your roads to the people of ${o.court}`;
+    case "grant":
+      return `grant ${o.grantee} ${o.kind === "passage" ? "passage through" : "basing in"} ${o.province !== null ? named(o.province) : "all your land"}${o.seasons !== null ? ` for ${o.seasons} seasons` : " until revoked"}`;
     case "revoke":
       return `revoke the passage and basing you granted ${o.grantee}${o.province !== null ? ` in ${o.province}` : ""}`;
     case "repudiate":
@@ -696,7 +714,7 @@ export const OrderSchema = poly("Order", "type", {
   tax: v("TaxOrder", () => tax(0), { province: opt(S), percent: I }),
   welcome: v("WelcomeOrder", () => welcome(""), { province: S }),
   deport: v("DeportOrder", () => deport("", "", 0), { province: S, to: S, number: I, purse: B }),
-  expel: v("ExpelOrder", () => expel(""), { province: S }),
+  expel: v("ExpelOrder", () => expel(""), { province: S, percent: I }),
   returnRunaways: v("ReturnRunawaysOrder", () => returnRunaways("", "Egypt"), { province: S, to: S }),
   buy: v("BuyProvinceOrder", () => buy(""), { province: S }),
   cede: v("CedeProvinceOrder", () => cede("", "Egypt"), { province: S, to: S }),
@@ -730,6 +748,7 @@ export const OrderSchema = poly("Order", "type", {
   counterIntel: v("CounterIntelOrder", () => counterIntel(0), { spend: I }),
   roads: v("RoadsOrder", () => roads("Egypt", true), { court: S, close: B }),
   revoke: v("RevokeOrder", () => revoke("Egypt"), { grantee: S, province: opt(S) }),
+  grant: v("GrantOrder", () => grant("Egypt", "passage"), { grantee: S, kind: S, province: opt(S), seasons: opt(I) }),
   repudiate: v("RepudiateOrder", () => repudiate(""), { copy: S }),
   assay: v("AssayOrder", () => assay(""), { lot: S }),
   authenticate: v("AuthenticateOrder", () => authenticate("", 0), { copy: S, spend: I }),

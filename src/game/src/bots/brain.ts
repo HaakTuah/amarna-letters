@@ -22,6 +22,7 @@ import {
   parsePower,
   sortBy,
   type CharacterView,
+  type Clause,
   type Claim,
   type InboxItem,
   type Power,
@@ -128,6 +129,8 @@ export class Brain {
   readonly bribeOffered = new Dict<string, [number, string]>();
   /** When we last asked each king leave for our troops to stand in his land (item 9). */
   readonly basingAsked = new Dict<Power, number>();
+  /** Item 11a+: leave a friend asked of our land that we would grant but did not seal on a tablet, to grant by order. */
+  readonly leaveAsked = new Dict<Power, Clause[]>();
   /** Tablets sealed by an envoy's hand that we have weighed already: honoured, repudiated, or heard repudiated (item 9). */
   readonly judged = new HSet<string>();
   lastSeek = -10;

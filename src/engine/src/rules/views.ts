@@ -3,7 +3,8 @@ import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
 import { split } from "../core/text.ts";
-import { StartWalls, WorldMap } from "../model/map.ts";
+import { seasonOfTurn, StartWalls, WorldMap } from "../model/map.ts";
+import { reapSeasonOf } from "../model/geography.ts";
 import { coverOf, factsKnownTo, falseNameAt, hiddenAt, type Character, type Contract, type Cover } from "../model/people.ts";
 import { claimWords } from "./skills.ts";
 import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
@@ -12,8 +13,8 @@ import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
 import { alive, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
-import { capacityOf, carriedOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
-import { reckonedOf } from "../model/land.ts";
+import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
+import { reckonedOf, unitCarried } from "../model/land.ts";
 import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
@@ -198,10 +199,16 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
-      .filter((g) => (g.grantor === p || g.grantee === p) && grantStands(g, s.turn) && s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId))
+      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him.
+      .filter(
+        (g) =>
+          (g.grantor === p || g.grantee === p) &&
+          (grantStands(g, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
+          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+      )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "" });
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
     // Its own land's only: how another king's land changed hands is not public, though who holds it is.
@@ -223,8 +230,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       .filter((u) => u.power === p || seen.has(u.province))
       .map((u) =>
         u.power === p
-          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: carriedOf(u.kind), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings })
-          : newUnitView({ power: u.power, kind: u.kind, province: u.province }),
+          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men })
+          : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
       ),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
@@ -334,11 +341,15 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         loose: engine.peopleOf(id).loose,
         room: reckonedOf(m, id).room,
         taxRate: engine.taxRate(id),
-        harvest: engine.harvestNow(id),
+        // A season's share of the last harvest, what the tax is reckoned from (item 11a+).
+        harvest: idiv(s.reaped.getOrDefault(id, 0), 3),
         fed: s.fed.getOrDefault(id, 1000),
         // Item 10+b.
         runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
-        expelled: s.expelled.has(id),
+        expelled: s.expelled.getOrDefault(id, 0),
+        granary: s.granary.getOrDefault(id, 0),
+        crop: s.crop.getOrDefault(id, 0),
+        reapsIn: (reapSeasonOf(id) - seasonOfTurn(s.turn) + 3) % 3,
       }),
     );
   }

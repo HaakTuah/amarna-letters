@@ -24,6 +24,8 @@ export interface UnitView {
   hungry: number;
   unpaid: number;
   savings: number;
+  /** Item 11a+: its men, as anyone who sees it can count them (a full army 5,000, a fleet's crews 2,000). */
+  men: number;
 }
 
 export function newUnitView(init: Partial<UnitView> = {}): UnitView {
@@ -36,6 +38,7 @@ export function newUnitView(init: Partial<UnitView> = {}): UnitView {
     hungry: 0,
     unpaid: 0,
     savings: 0,
+    men: 0,
     ...init,
   };
 }
@@ -49,6 +52,7 @@ export const UnitViewSchema: ObjSchema<UnitView> = obj("UnitView", newUnitView, 
   hungry: I,
   unpaid: I,
   savings: I,
+  men: I,
 });
 
 /**
@@ -67,7 +71,7 @@ export interface ProvinceEconomyView {
   price: number;
   /**
    * Its people (item 10+a): the settled and the men of fighting age among them, the loose, and how many settled its
-   * land carries; its tax in percent of the harvest; its whole harvest this season; and how well its countryside ate
+   * land carries; its tax in percent of the harvest; a season's share of its last harvest (item 11a+); and how well its countryside ate
    * last season, in thousandths (1000 when it ate its fill).
    */
   settled: number;
@@ -82,11 +86,20 @@ export interface ProvinceEconomyView {
    * whether the besieged city put out its mouths that cannot fight.
    */
   runaways: Dict<string, number>;
-  expelled: boolean;
+  /** Item 11a+: how many in a hundred of the town's mouths it has put out while besieged (0: none). */
+  expelled: number;
+  /**
+   * Item 11a+ (the harvest in each land's own season): the farmers' granary, what they keep of the last harvest to eat until
+   * the next (the tax is taken from it a season at a time); the crop growing in its fields; and the seasons until it is
+   * reaped (0: this season). `harvest` is now a season's share of the last harvest, what the tax is reckoned from.
+   */
+  granary: number;
+  crop: number;
+  reapsIn: number;
 }
 
 export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, runaways: new Dict(), expelled: false, ...init };
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, granary: 0, crop: 0, reapsIn: 0, ...init };
 }
 
 export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
@@ -106,7 +119,10 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   harvest: I,
   fed: I,
   runaways: dict(I),
-  expelled: B,
+  expelled: I,
+  granary: I,
+  crop: I,
+  reapsIn: I,
 });
 
 /** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */

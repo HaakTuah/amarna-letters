@@ -29,6 +29,8 @@ export interface FrameUnit {
   power: Power;
   kind: UnitKind;
   province: string;
+  /** Item 11a+: its men, as anyone who sees it can count them (0 in frames saved before). */
+  men?: number;
 }
 
 /** A siege at the end of a season: the city, the besieger, and how far it has worn the city down against its walls. */
@@ -284,7 +286,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     owner: new Map(s.owner.entries()),
     walls: new Map(s.walls.entries()),
     sieges: s.sieges.map((x) => ({ province: x.province, besieger: x.power, progress: x.progress, walls: wallsOf(s, x.province), since: x.since })),
-    units: s.units.map((u) => ({ id: u.id, power: u.power, kind: u.kind, province: u.province })),
+    units: s.units.map((u) => ({ id: u.id, power: u.power, kind: u.kind, province: u.province, men: u.men })),
     moves,
     seenBy,
     sight,

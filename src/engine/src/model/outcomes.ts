@@ -301,3 +301,12 @@ export const OrderOutcomeSchema: ObjSchema<OrderOutcome> = obj("OrderOutcome", n
 export function stormed(o: Assault): boolean {
   return o.kind === "Army" && o.strength > o.walls + o.defenders;
 }
+
+/**
+ * A strength as a report gives it (item 11a+): results reckon strengths in thousandths of a full unit, and a report names
+ * them in units, to a tenth where a unit short of men counts for less ("2", "1.4").
+ */
+export function strengthWords(thousandths: number): string {
+  const tenths = Math.round(thousandths / 100);
+  return tenths % 10 === 0 ? String(tenths / 10) : (tenths / 10).toFixed(1);
+}

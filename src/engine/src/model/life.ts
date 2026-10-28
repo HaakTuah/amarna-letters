@@ -28,10 +28,12 @@ export interface CourtSeen {
   besieged: boolean;
   /** What the person would ask that court a season of a job's term. */
   ask: number;
+  /** Item 11a+: the court knows nothing of the person (never saw it, heard of it, or had it pitch there). */
+  stranger: boolean;
 }
 
 export function newCourtSeen(init: Partial<CourtSeen> = {}): CourtSeen {
-  return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, executions: 0, grain: 100, growth: 100, besieged: false, ask: 0, ...init };
+  return { court: "Egypt", travel: 0, hiring: null, trust: 0, kept: 0, broken: 0, executions: 0, grain: 100, growth: 100, besieged: false, ask: 0, stranger: false, ...init };
 }
 
 export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSeen, {
@@ -46,6 +48,7 @@ export const CourtSeenSchema: ObjSchema<CourtSeen> = obj("CourtSeen", newCourtSe
   growth: I,
   besieged: B,
   ask: I,
+  stranger: B,
 });
 
 /** A debt tablet as its holder or its borrower sees it. */
@@ -138,6 +141,8 @@ export interface LifeView {
   /** The going rate of service, in percent of what people would ask on their own. */
   goingRate: number;
   courts: CourtSeen[];
+  /** Item 11a+: an invented name it may give at a court it sets out for that knows nothing of it, or null. */
+  alias: string | null;
   held: DebtSeen[];
   owes: DebtSeen[];
   /** Fees courts let fall due unpaid to it, by court. */
@@ -168,6 +173,7 @@ export function newLifeView(init: Partial<LifeView> = {}): LifeView {
     living: 0,
     goingRate: 100,
     courts: [],
+    alias: null,
     held: [],
     owes: [],
     owedFees: [],
@@ -206,6 +212,7 @@ export const LifeViewSchema: ObjSchema<LifeView> = obj("LifeView", newLifeView, 
   living: I,
   goingRate: I,
   courts: list(() => CourtSeenSchema),
+  alias: opt(S),
   held: list(() => DebtSeenSchema),
   owes: list(() => DebtSeenSchema),
   owedFees: list(obj("OwedFee", () => ({ court: "Egypt" as Power, amount: 0 }), { court: S, amount: I })),
@@ -251,6 +258,8 @@ export const ApproachMadeSchema: ObjSchema<ApproachMade> = obj("ApproachMade", n
 export interface LifeChoice {
   /** Set out for this court (a free person, or one on an errand); null: stay. */
   go: Power | null;
+  /** Item 11a+: the name it gives at that court on arrival: the invented name it was offered (`LifeView.alias`), or null for its own. */
+  goAs: string | null;
   /** A free person: seek service (true) or work for itself (false). */
   seek: boolean;
   /** Gold into its hoard where it stands (above 0) or out of it (below 0). */
@@ -269,11 +278,12 @@ export interface LifeChoice {
 }
 
 export function newLifeChoice(init: Partial<LifeChoice> = {}): LifeChoice {
-  return { go: null, seek: true, hoard: 0, lend: null, approach: null, accept: [], quit: false, deliver: true, repay: [], ...init };
+  return { go: null, goAs: null, seek: true, hoard: 0, lend: null, approach: null, accept: [], quit: false, deliver: true, repay: [], ...init };
 }
 
 export const LifeChoiceSchema: ObjSchema<LifeChoice> = obj("LifeChoice", newLifeChoice, {
   go: opt(S),
+  goAs: opt(S),
   seek: B,
   hoard: I,
   lend: () => LendOfferSchema,

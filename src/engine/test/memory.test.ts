@@ -66,7 +66,8 @@ describe("MemoryTests", () => {
   });
 
   test("Memory stays bounded over a long game", () => {
-    let s = playRandom(34, 40);
+    // A seed whose random play gives someone a long enough memory to fold (summaries are rare in random play).
+    let s = playRandom(36, 40);
     Assert.all(s.characters, (c) => Assert.true(c.memory.length <= s.config.memoryKeep + 8, `${c.name} remembers ${c.memory.length} things`));
     Assert.contains(s.characters, (c) => c.memorySummary.length > 0);
   });

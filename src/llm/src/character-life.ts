@@ -71,6 +71,8 @@ export function lifeSchema(v: LifeView): ReplySchema {
   const courts = AllPowers.filter((p) => v.courts.some((k) => k.court === p));
   const f: [string, z.ZodType][] = [];
   if (v.free || v.errand !== null) f.push(["go", z.enum(["", ...courts] as [string, ...string[]]).describe("A court to set out for, or empty to stay.")]);
+  if ((v.free || v.errand !== null) && v.alias !== null && v.courts.some((k) => k.stranger))
+    f.push(["go_as", z.enum(["", v.alias]).describe(`The name you give at the court you set out for, if it knows nothing of you: "${v.alias}", a name of your own making, or empty for your own.`)]);
   if (v.free) f.push(["seek_service", z.boolean().describe("True to seek service at courts; false to work for yourself (lending, dealing).")]);
   f.push(["hoard", int("Gold to put into a hoard here (above 0) or take out of your hoard here (below 0); 0 for neither. One city only.")]);
   f.push(["lend_amount", int("What you offer to lend the king where you stand, from your purse; 0 for no offer.")]);
@@ -106,6 +108,7 @@ export function lifeOf(o: JsonObject, v: LifeView): LifeChoice {
   const amount = I_(o, "lend_amount");
   return newLifeChoice({
     go: go !== "" && (AllPowers as readonly string[]).includes(go) ? (go as Power) : null,
+    goAs: v.alias !== null && S_(o, "go_as") === v.alias ? v.alias : null,
     seek: typeof o.seek_service === "boolean" ? o.seek_service : v.seeking,
     hoard: I_(o, "hoard"),
     lend: amount > 0 ? { amount, perHundred: I_(o, "lend_per_hundred"), seasons: Math.max(1, I_(o, "lend_seasons")) } : null,

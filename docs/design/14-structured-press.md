@@ -61,8 +61,11 @@ local play, and a screen for a human seat's standing answers. The report is `doc
   for word; the bought and the timid leave out the host's threats; the bought report a refusal as acceptance and pass on
   the host's news as what they saw; the careless lose the last clause. One that kept gold leaves out the host's complaint
   that the gold weighed light. In structured press the envoy's speech and report are these clauses' words.
-- **Model envoys** recite the clauses as written and report the answer in clauses as given; they bend only their words
-  (a reading: see the report).
+- **Model envoys** alter clauses as script envoys can (item 11a+, Haakon's answer to item 8's review: "models must be
+  able to alter clauses also"): in the call that phrases their words, the clauses come numbered, and the reply may leave
+  some out (`leave_out`), add good wishes (`add_courtesy`) and state a gift as less (`gift_stated`, never more than
+  written); reporting home, leave answers out (`answers_left_out`) and report refusals as acceptance
+  (`refusals_as_accepted`). No extra call (`recitedBy`, `reportedBy` in `llm/src/character-mind.ts`).
 
 ### What script kings write
 

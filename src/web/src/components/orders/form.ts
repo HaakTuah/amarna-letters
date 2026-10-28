@@ -27,6 +27,10 @@ export interface Form {
   peopleAt: string;
   peopleTo: string;
   peopleAmount: string;
+  grantTo: string;
+  grantAt: string;
+  grantKind: string;
+  grantSeasons: string;
   tradeAction: string;
   tradeFrom: string;
   tradeTo: string;
@@ -106,6 +110,10 @@ export function newForm(me: Power): Form {
     peopleAt: "",
     peopleTo: "",
     peopleAmount: "",
+    grantTo: "",
+    grantAt: "",
+    grantKind: "passage",
+    grantSeasons: "",
     tradeAction: "trade",
     tradeFrom: "",
     tradeTo: "",

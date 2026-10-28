@@ -46,6 +46,8 @@ export interface Journey {
   /** The provinces it has reached on its way, and the turn it reached each: the news it brings of them is of then. */
   seen: string[];
   reached: number[];
+  /** Item 11a+: a traveller's name to give at the court it goes to, an invented one, or null for its own. */
+  asName: string | null;
   /** What befell it on the road (turned back, robbed), for its court when it comes home; null if nothing. */
   turnedBack: string | null;
   /** It gave up its errand on the road and comes home without having reached where it was sent. */
@@ -74,6 +76,7 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     sneak: [],
     seen: [],
     reached: [],
+    asName: null,
     turnedBack: null,
     gaveUp: false,
     ...init,
@@ -101,6 +104,7 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   sneak: list(S),
   seen: list(S),
   reached: list(I),
+  asName: opt(S),
   turnedBack: opt(S),
   gaveUp: B,
 });

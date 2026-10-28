@@ -43,8 +43,6 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   seasons is shortened, see "Call size" in `04-models.md`), sharing the schema's repeated shapes, and batch processing
   for unattended games ("Output is the other half"); standing answers for characters (item 6b's report; the screen for a
   human seat's standing answers is built since item 8, see [structured press](14-structured-press.md)).
-- **Model envoys changing clauses**: a model envoy recites the letter's clauses as written and reports the host's
-  answer in clauses as given, bending only its words (item 8's reading; see [structured press](14-structured-press.md)).
 - **Script kings selling or faking news**: they pass on news in clauses (troops seen, a king's strength) but sell none
   and invent none yet (items 11a, 11b).
 - **A cheaper summariser**, measured on the same games before it is used ("A cheaper model for condensing,

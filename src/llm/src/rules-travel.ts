@@ -3,7 +3,7 @@
  * seas (item 9), the road check, closing one's roads, and news of distant land travelling. The numbers come from the map data and
  * the engine's own constants, so the text stays true if they change. Only what applies in this game is said.
  */
-import { AllPowers, Crossings, Pace, RoadOdds, Rivers, TravelData, WorldMap, max, min, travelTurns, type GameConfig } from "@amarna/engine";
+import { AllPowers, Crossings, LandData, Pace, WinterData, RoadOdds, Rivers, TravelData, WorldMap, max, min, travelTurns, type GameConfig } from "@amarna/engine";
 import { joinS } from "./text.ts";
 
 /**
@@ -43,7 +43,7 @@ export function travelRules(c: GameConfig): string {
     `- Envoys and spies travel a road of provinces, link by link, and each link takes as long as its length and ground make it: about ${Pace.open} km a day on open ground, ${Pace.rough} over rough ground and ${Pace.pass} over mountain passes, ${Pace.desert} across the desert, ${Pace.coasting} a day by ship along the coast and ${Pace.openSea} on an open-sea crossing, quicker with the current. Boats carry them along the great rivers where that is quicker (${boats}). Crossing a great river at a ford or ferry costs ${TravelData.ferryDays} day, ${TravelData.ferryDays + TravelData.floodDays} in its flood season (${floods}). A traveller makes about ${c.travelDays} days of road a season, the rest going on halts, audiences and waiting at borders, and what it does not use carries over to the next season, so a journey's length counts to the day.`,
   );
   lines.push(
-    `- Winter closes nothing, but the mountain passes (${passes}) and the open sea are dangerous then, in the same season. A traveller takes ${TravelData.winterPassPercent / 100} times as long over a snowbound pass and meets the snow on the road (below). An army that crosses a pass in winter, or is carried over the open sea then, is lost with a chance of ${c.winterArmyLoss} in 100, to cold, hunger and desertion or to the storms; a fleet that crosses the open sea in winter, with a chance of ${c.winterFleetLoss} in 100. Nobody expects troops in winter, and news of them travels no faster than they do.`,
+    `- Winter closes nothing, but the mountain passes (${passes}) and the open sea are dangerous then, in the same season. A traveller takes ${TravelData.winterPassPercent / 100} times as long over a snowbound pass and meets the snow on the road (below). An army that crosses a pass in winter, or is carried over the open sea then, loses men to cold, hunger and desertion or to the storms: about ${c.winterArmyLoss} in 100 of a full army's men, in proportion to its men, so a small company loses far fewer; a fleet that crosses the open sea in winter about ${c.winterFleetLoss} in 100 of a full fleet's crews the same way. One that carries a season's food loses ${WinterData.suppliedPercent} in 100 of what it would lose without. The weather makes it between half and half again as bad. On a pass, ${WinterData.desertPercent} in 100 of those lost desert and stay loose where the army set out. A troop left with fewer than ${LandData.levyLeast} men is lost whole. Nobody expects troops in winter, and news of them travels no faster than they do.`,
   );
   lines.push(
     `- Your people choose their own road from what your court knows: who holds each province, the troops you can see, and the kings you have heard closed their roads to you. A bold traveller takes the short, dangerous road and a careful one the long, safe one. Old news makes bad roads.`,

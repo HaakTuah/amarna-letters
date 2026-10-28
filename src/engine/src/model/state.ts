@@ -32,16 +32,32 @@ export interface Walk {
    */
   deported: boolean;
   by: string;
+  /**
+   * Item 11a+ ("Deportation": deportees walk the route like any company, so they can be freed on the way): for deportees,
+   * the road they walk, the season they set out and the province they were taken from. A king whose troops stand on the
+   * stretch they walk this season and who is not the deporter's friend frees them: the king whose land they were taken
+   * from, or one who closed his roads to the deporter. Empty for everyone else.
+   */
+  route: string[];
+  departs: number;
+  from: string;
 }
 
-export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, deported: false, by: "", ...init }), {
-  home: S,
-  men: I,
-  arrives: I,
-  savings: I,
-  deported: B,
-  by: S,
-});
+export const WalkSchema: ObjSchema<Walk> = obj(
+  "Walk",
+  (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, deported: false, by: "", route: [], departs: 0, from: "", ...init }),
+  {
+    home: S,
+    men: I,
+    arrives: I,
+    savings: I,
+    deported: B,
+    by: S,
+    route: list(S),
+    departs: I,
+    from: S,
+  },
+);
 
 /**
  * A drought over a region's rain-fed land or a river's bad flood along its course (item 10+a): the provinces it strikes,
@@ -63,7 +79,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 19;
+export const CURRENT_VERSION = 20;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -181,6 +197,14 @@ export interface GameState {
   hiring: Dict<Power, number>;
   /** Item 10+b: the gold the loose men of each province carry, robbed from purses and stores ("Bandits rob the purse"). */
   loot: Dict<string, number>;
+  /**
+   * Item 11a+ ("Period first": the harvest in each land's own season), by land province: the crop growing in its fields
+   * since its last reaping, which each season's hands add to; the harvest it last reaped; and the farmers' granary, the
+   * food they keep from it to eat until the next, from which the tax is taken a season at a time.
+   */
+  crop: Dict<string, number>;
+  reaped: Dict<string, number>;
+  granary: Dict<string, number>;
   /** Item 10+b: the loose men standing in each province who fled another kingdom, by the king whose land they fled. */
   runaways: Dict<string, Dict<Power, number>>;
   /** Item 10+b: a besieged city that put out the mouths that cannot fight: the share of its town's need it no longer eats. */
@@ -288,6 +312,9 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     baseline: 0,
     hiring: new Dict(),
     loot: new Dict(),
+    crop: new Dict(),
+    reaped: new Dict(),
+    granary: new Dict(),
     runaways: new Dict(),
     expelled: new Dict(),
     tollsKnown: new Dict(),
@@ -371,6 +398,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   baseline: I,
   hiring: dict(I),
   loot: dict(I),
+  crop: dict(I),
+  reaped: dict(I),
+  granary: dict(I),
   runaways: dict(dict(I)),
   expelled: dict(I),
   tollsKnown: dict(list(() => TollSchema)),
