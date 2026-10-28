@@ -82,11 +82,12 @@ export interface ProvinceEconomyView {
    * whether the besieged city put out its mouths that cannot fight.
    */
   runaways: Dict<string, number>;
-  expelled: boolean;
+  /** Item 11a+: how many in a hundred of the town's mouths it has put out while besieged (0: none). */
+  expelled: number;
 }
 
 export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, runaways: new Dict(), expelled: false, ...init };
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, runaways: new Dict(), expelled: 0, ...init };
 }
 
 export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
@@ -106,7 +107,7 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   harvest: I,
   fed: I,
   runaways: dict(I),
-  expelled: B,
+  expelled: I,
 });
 
 /** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */

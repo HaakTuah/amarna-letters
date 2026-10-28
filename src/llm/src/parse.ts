@@ -19,6 +19,7 @@ import {
   counterIntel,
   roads,
   revoke,
+  grant,
   repudiate,
   newAuthority,
   disband,
@@ -400,7 +401,7 @@ function other(x: Node): Order | null {
     case "welcome_loose":
       return welcome(province);
     case "expel_mouths":
-      return expel(province);
+      return expel(province, amount > 0 ? amount : 50);
     case "deport": {
       const to = empty(S(x, "to"));
       return deport(province, to !== null ? prov(to) : "", amount, I(x, "gold") > 0);
@@ -448,6 +449,11 @@ function other(x: Node): Order | null {
       const close = S(x, "action") === "close_roads";
       return power !== null ? roads(power, close) : unreadable(`${close ? "close" : "open"} your roads to '${named}'`, nowhere(named, "the court"));
     }
+    case "grant_passage":
+    case "grant_basing":
+      return power !== null
+        ? grant(power, S(x, "action") === "grant_basing" ? "basing" : "passage", province.length > 0 ? province : null, amount > 0 ? amount : null)
+        : unreadable(`grant leave to '${named}'`, nowhere(named, "the king you grant it"));
     case "revoke_passage":
       return power !== null ? revoke(power, province.length > 0 ? province : null) : unreadable(`revoke the passage you granted '${named}'`, nowhere(named, "the king you granted it"));
     case "repudiate":

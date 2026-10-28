@@ -107,15 +107,20 @@ P.peopleSeason = function (food) {
     const r = reckonedOf(Map, prov.id);
     const need = countryNeed(prov, x.settled, r.settled);
     if (need <= 0) continue;
+    // Runaways (item 11a+, "Incentives, not quotas"): the farmers weigh what they keep at home against what they would keep
+    // in the best land next door, as word of it reached them last season; where it beats home by `refugeMargin`, of the
+    // share they would gain, `runPercent` run, hungry or not.
+    const best = this.bestRefuge(prov.id, fedBefore);
+    if (best !== null) {
+      const [ran, ranMen] = share(x, idiv(idiv(x.settled * (best.score - best.here), best.score) * LandData.runPercent, 100));
+      if (ran > 0) {
+        shift(x, -ran, -ranMen);
+        x.loose += ran;
+        fleeing.push([prov.id, ran, this.taxRate(prov.id) > this.taxRate(best.to) ? "a heavy tax" : "a poor harvest"]);
+      }
+    }
     let short = need - food.getOrDefault(prov.id, 0);
     if (short <= 0) continue;
-    // Runaways: of the share of their food the farmers could not keep, `runPercent` run, hungry or not.
-    const [ran, ranMen] = share(x, idiv(idiv(x.settled * short, need) * LandData.runPercent, 100));
-    if (ran > 0) {
-      shift(x, -ran, -ranMen);
-      x.loose += ran;
-      fleeing.push([prov.id, ran, this.taxRate(prov.id) > 0 ? "a heavy tax" : "a poor harvest"]);
-    }
     const m = this.market(prov.id);
     const bought = Math.min(m.stock, short);
     m.stock -= bought;

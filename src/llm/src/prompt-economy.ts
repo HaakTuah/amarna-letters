@@ -78,8 +78,8 @@ export function peopleLines(v: SeatView): string[] {
     // Item 10+b: runaways from other kings' land standing loose in ours, and the besieged cities that put out their mouths.
     const ran = ps.flatMap((x) => [...x.runaways.entries()].filter(([, n]) => n >= 500).map(([q, n]) => `${x.province} ${k(n)} from ${q}`));
     if (ran.length > 0) lines.push(`- Runaways among your loose men (welcome_loose to settle them, return_runaways to send them back): ${join(", ", ran)}.`);
-    const out = ps.filter((x) => x.expelled);
-    if (out.length > 0) lines.push(`- Mouths put out of: ${join(", ", out.map((x) => x.province))}.`);
+    const out = ps.filter((x) => x.expelled > 0);
+    if (out.length > 0) lines.push(`- Mouths put out of (in a hundred of the town): ${join(", ", out.map((x) => `${x.province} ${x.expelled}`))}.`);
     const empty = ps.filter((x) => x.room > 0 && x.settled * 10 < x.room * 9);
     if (empty.length > 0) lines.push(`- Land with room for more settled (settled of what it carries): ${join(", ", empty.map((x) => `${x.province} ${k(x.settled)} of ${k(x.room)}`))}.`);
     const home = new Set(WorldMap.default.homeOf(v.power).map((p) => p.id));

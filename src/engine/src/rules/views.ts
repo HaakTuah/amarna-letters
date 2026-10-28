@@ -198,10 +198,16 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     roadsClosedToUs: [...(s.roadsHeard.tryGet(p) ?? [])],
     grants: s.grants
       // Once it holds the tablet: an envoy's king learns of one sealed by his envoy's hand when its copy comes home.
-      .filter((g) => (g.grantor === p || g.grantee === p) && grantStands(g, s.turn) && s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId))
+      // A grant by order (item 11a+): its grantor knows it from the order; its grantee once the news reaches him.
+      .filter(
+        (g) =>
+          (g.grantor === p || g.grantee === p) &&
+          (grantStands(g, s.turn) || (g.tabletId === "" && g.endedTurn === null && g.sinceTurn === s.turn + 1)) &&
+          (g.tabletId === "" ? g.grantor === p || g.heardTurn <= s.turn : s.copies.some((k) => k.holder === p && k.tabletId === g.tabletId)),
+      )
       .map((g) => {
         const t = s.tablets.find((x) => x.id === g.tabletId);
-        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "" });
+        return newGrantView({ kind: g.kind, grantor: g.grantor, grantee: g.grantee, province: g.province, sinceTurn: g.sinceTurn, untilTurn: g.untilTurn, tablet: t !== undefined ? tabletName(t) : "by order" });
       }),
     walls: wallsKnown(s, m, p, seen),
     // Its own land's only: how another king's land changed hands is not public, though who holds it is.
@@ -338,7 +344,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         fed: s.fed.getOrDefault(id, 1000),
         // Item 10+b.
         runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
-        expelled: s.expelled.has(id),
+        expelled: s.expelled.getOrDefault(id, 0),
       }),
     );
   }

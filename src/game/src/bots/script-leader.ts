@@ -30,7 +30,7 @@ import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
 import { personalityFor, type Personality } from "./personality.ts";
 import { roadPolicy } from "./roads.ts";
-import { heardRepudiations, keepMoving, repudiations, revocations } from "./authority.ts";
+import { heardRepudiations, keepMoving, leaveByOrder, repudiations, revocations } from "./authority.ts";
 import { Search } from "./search.ts";
 import { Statecraft } from "./statecraft.ts";
 import { Tactics, type MilitaryPlan } from "./tactics.ts";
@@ -102,6 +102,7 @@ export class ScriptLeader implements ISeat {
     // Tablets our envoys sealed beyond what we allow, and leave granted to kings turned foe (item 9).
     repudiations(board, brain, orders);
     revocations(board, brain, orders);
+    leaveByOrder(board, brain, orders);
     // Standing orders last, against the season's whole plan: those kept may change it if the blow comes.
     const [cancel, give] = Contingencies.plan(board, brain, plan, orders);
 

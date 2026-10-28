@@ -7,7 +7,7 @@
  * and `--border-play-half` leave all of it alone, only to measure what playing it is worth. Every number below is a first
  * guess of the script's own.
  */
-import { WorldMap, clause, cmpStr, deport, expel, returnRunaways, sortBy, welcome, type Clause, type Order, type Power, type SeatView } from "@amarna/engine";
+import { LandData, WorldMap, clause, cmpStr, deport, expel, returnRunaways, sortBy, welcome, type Clause, type Order, type Power, type SeatView } from "@amarna/engine";
 import type { Board } from "./board.ts";
 
 /** Script kings that leave item 10+b's choices alone (`--no-border-play`, `--border-play-half`). None by default. */
@@ -61,8 +61,10 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
         loose -= n;
       }
     if (!besieged.has(x.province) && x.fed >= 1000 && loose >= Worth && x.room - x.settled >= Worth) orders.push(welcome(x.province));
-    // A besieged city of ours whose stores will not last: the mouths that cannot fight go out.
-    if (besieged.has(x.province) && !x.expelled && x.stores < ExpelBelow * x.need) orders.push(expel(x.province));
+    // A besieged city of ours whose stores will not last: as many of the mouths that cannot fight go out as make them last
+    // `ExpelBelow` seasons (item 11a+: the king chooses how many), a tenth at least; none once the most are out.
+    if (besieged.has(x.province) && x.expelled < LandData.expelMost && x.need > 0 && x.stores < ExpelBelow * x.need)
+      orders.push(expel(x.province, Math.min(90, Math.max(10, 100 - Math.floor((x.stores * 100) / (ExpelBelow * x.need))))));
   }
   // Deportation: from land we took (not our homeland) that a foreign army stands next to, and so may be lost, to the
   // homeland province with the most room near it: the people moved are kept whatever becomes of the land.

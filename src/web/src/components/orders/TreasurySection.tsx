@@ -216,16 +216,17 @@ export function TreasurySection({ c }: { c: OrdersContext }) {
             ))}
           </select>
         )}
+        {f.peopleAction === "expel" && <input type="number" min={1} max={100} placeholder="in 100" value={f.peopleAmount} onChange={(e) => set({ peopleAmount: e.target.value })} style={{ width: "5rem" }} />}
         {f.peopleAction === "deport" && <input type="number" min={1} placeholder="people" value={f.peopleAmount} onChange={(e) => set({ peopleAmount: e.target.value })} style={{ width: "6rem" }} />}
         <button
           className="small"
-          disabled={f.peopleAt === "" || ((f.peopleAction === "deport" || f.peopleAction === "returnRunaways") && f.peopleTo === "") || (f.peopleAction === "deport" && !(Number(f.peopleAmount) > 0))}
+          disabled={f.peopleAt === "" || ((f.peopleAction === "deport" || f.peopleAction === "returnRunaways") && f.peopleTo === "") || ((f.peopleAction === "deport" || f.peopleAction === "expel") && !(Number(f.peopleAmount) > 0))}
           onClick={() =>
             add(
               f.peopleAction === "welcome"
                 ? welcome(f.peopleAt)
                 : f.peopleAction === "expel"
-                  ? expel(f.peopleAt)
+                  ? expel(f.peopleAt, Math.min(100, Math.floor(Number(f.peopleAmount))))
                   : f.peopleAction === "deport"
                     ? deport(f.peopleAt, f.peopleTo, Math.floor(Number(f.peopleAmount)))
                     : returnRunaways(f.peopleAt, f.peopleTo as Power),

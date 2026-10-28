@@ -372,6 +372,8 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
       const sallyText = b.wallLevel(m.city!) >= min && min > 0 ? ", and my walls will sally to meet them" : "";
       // A king not yet sworn with us against the besieger is asked to swear it too, as in a defence pact.
       const sworn = brain.rel.get(to).against === foe;
+      // A sworn ally gets passage at once, by order, so his troops need not wait for a tablet (item 11a+).
+      if (authorityOn(me) && sworn && brain.rel.get(to).allied) brain.leaveAsked.set(to, [clause("askPassage", { turn: b.v.turn + 6 })]);
       return dispatch(
         envoy,
         to,
@@ -666,6 +668,8 @@ export function host(view: AudienceView, b: Board, brain: Brain, rng: Rng): Host
     const granted = grants.length > 0 && grantsOk(b, brain, sender, grants);
     const gives = seal && (granted ? givesAwayIn(proposal.clauses.filter((x) => !grants.includes(x))) : givesAway(proposal, b, sender));
     if (gives) seal = false;
+    // Leave we would grant but do not seal on this tablet we grant by order instead (item 11a+).
+    if (granted && !seal) brain.leaveAsked.set(sender, grants.map((x) => ({ ...x })));
     refusedForGiving = gives;
     reply.sealProposal = seal;
     const offered = proposal.clauses.find((x) => ProposalKinds.includes(x.kind))?.kind ?? (named !== null ? "against" : proposal.allianceOath ? "alliance" : "peace");

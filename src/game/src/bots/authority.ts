@@ -13,6 +13,7 @@ import {
   type TabletProposal,
   clause,
   cmpStr,
+  grant,
   move,
   newAuthority,
   newTabletProposal,
@@ -171,6 +172,25 @@ export function revocations(b: Board, brain: Brain, orders: Order[]): void {
     const r = brain.rel.get(g.grantee);
     if (r.hostile || brain.warTarget === g.grantee || brain.betraying === g.grantee || r.trust < -0.1 || g.grantee === b.leader())
       if (!orders.some((o) => o.type === "revoke" && o.grantee === g.grantee)) orders.push(revoke(g.grantee));
+  }
+}
+
+/**
+ * Leave a friend asked of our land that we would grant but did not seal, and passage for a sworn ally we plead with to
+ * relieve our city, we grant by order (item 11a+), once each, unless leave already stands or the friend has turned.
+ */
+export function leaveByOrder(b: Board, brain: Brain, orders: Order[]): void {
+  if (!authorityOn(b.me)) return;
+  for (const [k, asks] of [...brain.leaveAsked.entries()]) {
+    brain.leaveAsked.delete(k);
+    if (!b.alive.has(k) || !grantsOk(b, brain, k, asks.filter((c) => c.province !== null || brain.rel.get(k).allied))) continue;
+    for (const c of asks) {
+      if (c.province !== null && !b.isMine(c.province)) continue;
+      if (c.province === null && !brain.rel.get(k).allied) continue;
+      const kind = c.kind === "askBasing" ? "basing" : "passage";
+      if (b.v.grants.some((g) => g.grantor === b.me && g.grantee === k && g.kind === kind && g.province === c.province)) continue;
+      orders.push(grant(k, kind, c.province, c.turn !== null ? Math.max(1, c.turn - b.v.turn) : LeaveSeasons));
+    }
   }
 }
 

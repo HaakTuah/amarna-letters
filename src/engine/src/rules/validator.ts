@@ -10,7 +10,7 @@ import { characterOf, unitOf, type CaptiveFate, type HireOrder, type Order, type
 import { coverOf, falseNameAt, hiddenAt, type Character } from "../model/people.ts";
 import { AllPowers, type Power } from "../model/power.ts";
 import type { PendingTask } from "../model/records.ts";
-import { grantStands } from "../model/authority.ts";
+import { grantStands, grantLive } from "../model/authority.ts";
 import { buyAlongCurve, cityPriceOf, needOf } from "../model/economy.ts";
 import { harvestIn, LandData, menAvailable, menOf } from "../model/land.ts";
 import { harbourOf, shipFleet, TradeData } from "../model/trade.ts";
@@ -322,6 +322,7 @@ export class OrderValidator {
           const key = `${order.type}|${order.province}|${order.type === "returnRunaways" ? order.to : ""}`;
           if (peopleSet.has(key)) return `you had already given that order for ${name} this season`;
           if (order.type === "expel" && siegeOf(S, order.province) === null) return `${name} is not besieged`;
+          if (order.type === "expel" && (!Number.isInteger(order.percent) || order.percent < 1 || order.percent > 100)) return "say how many in a hundred of the mouths still inside to put out, 1 to 100";
           if (order.type === "returnRunaways" && (!AllPowers.includes(order.to) || order.to === power)) return `you cannot send runaways to '${order.to}'`;
           if (order.type === "deport") {
             if (Map.get(order.province).home === power) return `${name} is your own homeland: a king deports only from land he has taken`;
@@ -502,11 +503,21 @@ export class OrderValidator {
             (g) =>
               g.grantor === power &&
               g.grantee === order.grantee &&
-              grantStands(g, S.turn) &&
-              S.copies.some((k) => k.holder === power && k.tabletId === g.tabletId) &&
+              grantLive(g, S.turn) &&
+              (g.tabletId === "" || S.copies.some((k) => k.holder === power && k.tabletId === g.tabletId)) &&
               (order.province === null || g.province === order.province || (g.province === null && g.lands.includes(order.province))),
           );
           return stands ? null : `you have granted ${order.grantee} no passage or basing${order.province !== null ? ` in ${order.province}` : ""} that still stands`;
+        }
+
+        case "grant": {
+          // Item 11a+: passage or basing granted by order.
+          if (!AllPowers.includes(order.grantee) || order.grantee === power || heardFallen(order.grantee)) return `you cannot grant passage to '${order.grantee}'`;
+          if (order.kind !== "passage" && order.kind !== "basing") return "grant passage or basing";
+          if (order.province === null && order.kind === "basing") return "basing is granted in one city: name the province";
+          if (order.province !== null && (!Map.exists(order.province) || Map.get(order.province).isSea || S.owner.getOrDefault(order.province, null) !== power)) return `you do not hold '${order.province}'`;
+          if (order.seasons !== null && (!Number.isInteger(order.seasons) || order.seasons < 1)) return "say for how many seasons, or none for until revoked";
+          return null;
         }
 
         case "repudiate": {

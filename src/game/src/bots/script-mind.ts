@@ -35,7 +35,7 @@ import {
 import { AuthorityPlay } from "./authority.ts";
 import { newPresentResult, type EnvoyContext, type ICharacterMind, type MindContext, type PresentResult } from "../contracts.ts";
 import { TextKit } from "./textkit.ts";
-import { scriptLife } from "./life-mind.ts";
+import { scriptLife, wantsFalseName } from "./life-mind.ts";
 
 const R = (seed: number, turn: number, what: string, id: string): Rng => Rng.for(seed, turn, "mind:" + what, id);
 
@@ -323,10 +323,7 @@ function pitch(ctx: MindContext): MindReply {
   const invented = ctx.request.aliases[0] ?? null;
   // Declaring a name (item 10): a dishonest or scheming person, or one with a bad name it wants to escape, gives another;
   // it gives the invented name it was offered (only a court that knows nothing of it is offered one).
-  const blemishes = c.facts.filter((f) => BadTags.has(f.tag)).length;
-  const escaping = blemishes >= 2 || [...c.reputation.values()].some((r) => r < -10);
-  const scheming = (t.loyalty < 35 && t.greed > 60) || (t.ambition > 70 && t.loyalty < 45);
-  const lie = invented !== null && (escaping || scheming);
+  const lie = invented !== null && wantsFalseName(c);
   const name = lie ? invented : null;
   // A false envoy (item 10): only the boldest and greediest, out for a host's return gifts.
   const envoyOf = ctx.request.envoyOf;
@@ -354,9 +351,6 @@ function pitch(ctx: MindContext): MindReply {
   if (rival !== null) price = Math.max(price, rival[1]);
   return newMindReply({ text: TextKit.join(lines), number: Math.max(5, price), name });
 }
-
-/** The facts that make a bad name (item 10): what a person would want to leave behind it. */
-const BadTags = new Set(["dismissed", "skim", "forger", "inventory-forgery", "impostor", "outcome-bad", "defected", "coward"]);
 
 function summary(ctx: MindContext): MindReply {
   const parts: string[] = [];
