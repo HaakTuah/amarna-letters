@@ -11,11 +11,21 @@
 import type { GameConfig } from "../model/config.ts";
 import type { Power } from "../model/power.ts";
 
-export function strengthOf(weight: number, landWorth: number, gold: number, holdings: number): number {
+export function strengthOf(
+  weight: number,
+  landWorth: number,
+  gold: number,
+  holdings: number,
+): number {
   return weight * landWorth + gold + holdings;
 }
 
-export function strength(c: GameConfig, landWorth: number, gold: number, holdings: number): number {
+export function strength(
+  c: GameConfig,
+  landWorth: number,
+  gold: number,
+  holdings: number,
+): number {
   return strengthOf(c.provinceWeight, landWorth, gold, holdings);
 }
 
@@ -26,7 +36,38 @@ export function strength(c: GameConfig, landWorth: number, gold: number, holding
  * city-state that holds its own against the odds and an empire that grows as empires do stand level. Measured from the
  * script games recorded in the item's report (`docs/rounds/`); a power with no measure has par 1.
  */
-export const Par: ReadonlyMap<Power, number> = new Map<Power, number>([]);
+export const Par: ReadonlyMap<Power, number> = new Map<Power, number>([
+  // Item 11+: 50 script games (seeds 1-50), each power's mean growth in the games it survived, where it survived five or
+  // more; Lukka (fallen in all 50) and the Suteans (2 survivals) have no measure yet.
+  ["Egypt", 0.85],
+  ["Hatti", 0.87],
+  ["Babylonia", 0.96],
+  ["Mitanni", 0.86],
+  ["Assyria", 1.01],
+  ["Arzawa", 1.15],
+  ["Alashiya", 0.96],
+  ["Kaska", 1.14],
+  ["Isuwa", 1.14],
+  ["Carchemish", 0.88],
+  ["Alalakh", 1.14],
+  ["Aleppo", 0.83],
+  ["Ugarit", 0.8],
+  ["Nuhashshe", 1.04],
+  ["Qadesh", 1.15],
+  ["Qatna", 0.85],
+  ["Arwad", 0.94],
+  ["Amurru", 1.03],
+  ["Byblos", 0.98],
+  ["Sidon", 1.0],
+  ["Damascus", 1.04],
+  ["Tyre", 1.01],
+  ["Megiddo", 1.12],
+  ["Shechem", 1.07],
+  ["Jerusalem", 1.01],
+  ["Suhu", 1.18],
+  ["Arrapha", 0.93],
+  ["Elam", 0.96],
+]);
 
 /** A power's par: never below a tenth, so that no position's standing runs away with a small number. */
 export function parOf(p: Power): number {
