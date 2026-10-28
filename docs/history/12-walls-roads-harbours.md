@@ -35,8 +35,12 @@ or leave.
 | qatna | Qatna (Tell Mishrifeh) | Middle Bronze earth ramparts about 1 km square, up to 15-20 m high, enclosing about 100 ha, still standing | A | Qatna excavations (Pfälzner, Morandi Bonacossi) | 2 | 3 |
 | qadesh | Qadesh (Tell Nebi Mend) | A walled city between the Orontes and a tributary, with a moat cut between them | A (for 1274) | Ramesses II's Qadesh reliefs | 2 | 3 |
 | ugarit | Ugarit (Ras Shamra) | A fortified gate and glacis on the west by the palace, a postern; most of the town's circuit is not traced | A (the gate), C (the circuit) | Schaeffer; Yon, *The City of Ugarit* | 1 | 2 |
+| isuwa | Isuwa's towns | On the upper Euphrates; not excavated for this period | S | - | 1 | 1 |
+| nuhashshe | Nuhashshe's towns | Not located for certain | S | - | 1 | 1 |
+| amurru | Amurru's hill towns | Abdi-Ashirta's towns, not located; they held against Byblos and Egypt's men | A (the holding), S (the walls) | EA 73-104 | 1 | 1 |
+| suhu | Suhu's towns | On the middle Euphrates; not excavated for this period | S | - | 1 | 1 |
 | sumur | Ṣumur (Tell Kazel) | Egypt's base; held for months against Abdi-Ashirta's sons, so walled | A (the sieges), C (the walls) | EA 81-106; Tell Kazel reports | 1 | 1 |
-| arwad | Arwad | An island, about 800 m from the shore; its walls are later, the sea was its wall | B | Later Phoenician walls; EA 98-105 for its part | 2 | 2 |
+| arwad | Arwad | An island about 2.5-3 km off the shore; its walls are later, the sea was its wall | B | Later Phoenician walls; EA 98-105 for its part | 2 | 2 |
 | byblos | Byblos | Middle Bronze wall and glacis round the promontory, still in use; Rib-Hadda held it for years against Abdi-Ashirta and Aziru | A (the holding), B (the walls) | Dunand; EA 68-138 | 1 | 2 |
 | sidon | Sidon | Little excavated for this period | S | - | 1 | 1 |
 | tyre | Tyre | An island city with a mainland town, Ushu; the sea was its wall, but it lost Ushu and with it water and wood (EA 146-155) | A | EA 146-155 | 2 | 2 |
@@ -49,7 +53,7 @@ or leave.
 | memphis | Memphis | The temple of Ptah's great enclosure and the "White Walls" of its name; the town itself open | B | Jeffreys, the Survey of Memphis | 2 | 1 |
 | akhetaten | Akhetaten (Amarna) | No city wall at all: the boundary stelae, the desert and the Medjay's patrol roads round it | A | Kemp | 3 | 0 |
 | thebes | Thebes | Temple enclosures, no city wall | B | - | 0 | 0 |
-| delta, sinai | The Delta and the Ways of Horus | Forts: Tjaru (Tell Hebua), a large walled fortress at the Delta's edge, and a chain of small forts and wells to Gaza | A | Seti I's Karnak relief; Abd el-Maksoud, Tell Hebua | 0 | 1 (`delta`, Tjaru) |
+| delta, sinai | The Delta and the Ways of Horus | Forts: Tjaru (Tell Hebua), a large walled fortress at the Delta's edge, and a chain of small forts and wells to Gaza | A (the relief, about 1290), B (the chain in 1346) | Seti I's Karnak relief; Abd el-Maksoud, Tell Hebua | 0 | 1 (`delta`, Tjaru) |
 | nubia | Nubia | The Middle Kingdom forts of the Second Cataract (Buhen, Mirgissa), still garrisoned | A | Emery; Smith | 0 | 2 |
 | enkomi | Enkomi | A walled town by the 13th century; in the 14th a fort at its north end | C | Dikaios; Courtois | 3 | 2 |
 | kalavasos | Kalavasos-Ayios Dhimitrios | An open town round a great ashlar building | B | South | 0 | 0 |
@@ -89,7 +93,8 @@ with Hatti's whole army); otherwise sieges were blockades of months, won by hung
 Siege tools were ladders, rams, mining and earth ramps [A: Middle Kingdom tomb scenes at Beni Hasan; the Urshu text;
 New Kingdom reliefs], and a breach cost the attacker dear. Defenders repaired walls in a siege as they could [B]. So
 item 5's walls price the storm, not the clock ("Walls price the storm, not the clock"): this record supports that.
-**Start from:** a blockade of a fed and watered walled city lasts **two to four seasons** of the game; a storm of a city
+**Start from:** the stores a walled city starts with are enough for **two to four seasons** of blockade, so that its
+length comes from its stores and water, never a clock; a storm of a city
 with walls 3 costs the attacker about as many men as the defenders [G].
 
 ## Roads and their upkeep
@@ -99,13 +104,14 @@ with walls 3 costs the attacker about as many men as the defenders [G].
 - **Upkeep fell on the lord of the land.** The Hittite instructions for the border governors (*bel madgalti*) bid them
   keep the roads, the forts and their gates in repair, post watchmen and keep the land's tracks clear (Miller, *Royal
   Hittite Instructions*) [A]. In Egypt the Ways of Horus were a chain of forts with wells and reservoirs, each a day or
-  so apart (Seti I's relief at Karnak lists about twenty) [A]. **Reading [G]:** a road's level is its clearing, bridges,
+  so apart (Seti I's relief at Karnak, about 1290, lists about twenty) [A for about 1290; B for 1346]. **Reading [G]:** a road's level is its clearing, bridges,
   wells and posts; its upkeep is labour or gold from whoever holds the land, as item 15 says ("A road belongs to the
   land it crosses").
 - **Safety on the road was the land's king's duty.** Burna-Buriash demands that Pharaoh punish the men who killed his
   merchants at Hinnatuni in Canaan, "your land", and pay for the loss (EA 8) [A]. Abdi-Heba complains that a royal
   caravan was attacked in the land of Ayyaluna (EA 287) [A]. Kings gave their messengers letters of passage: EA 30, from a
-  king of Mitanni "to the kings of Canaan", asks them to let his messenger Akiya pass to Egypt without delay [A].
+  king, "to the kings of Canaan", asks them to let his messenger Akiya pass to Egypt without delay [A]; the sender is
+  unnamed, usually taken for Mitanni's king [B].
 - **Patrols.** At Akhetaten the Medjay under Mahu rode patrol roads round the city's desert edge, which are still
   visible (Kemp) [A]; the Hittite border governors kept watchmen and patrols [A: Miller]. This is item 15's policing.
 - **Relay stations: [S].** No source of the period shows Persian-style relays of fresh riders. A royal messenger rode
@@ -122,12 +128,12 @@ The harbours of the period are listed in the geography dossier ("Coasts and harb
 - **Mostly beaches and river mouths.** Ships were drawn up on beaches or anchored in the lee of an island or headland;
   built moles and quays come later, from the first millennium [B: Wachsmann; Marriner on Tyre and Sidon]. Stone
   anchors, found by the hundred at Ugarit, Byblos and Kition, show the ships that used each place [A].
-- **Mahadu (Minet el-Beida), Ugarit's port,** was the busiest of the coast, with warehouses by the water [A: Schaeffer];
+- **Mahadu (Minet el-Beida), Ugarit's port** (see the geography dossier), had warehouses by the water [A: Schaeffer];
   its king could gather dozens of ships, perhaps 150 (see the armies dossier) [C].
 - **Islands** (Arwad, Tyre) were harbours as well as cities: their ships were their supply and their defence, and a
   besieger without ships could not close them [A: EA 98-105, 146-155].
-- **Egypt's ports** were on the Nile: the dockyard of Peru-nefer and the river harbours of Memphis and Thebes, which
-  held the royal fleet and hundreds of river craft [A: Papyrus BM 10056]. Thutmose III used the Phoenician harbours
+- **Egypt's ports** were on the Nile: the dockyard of Peru-nefer (probably at Avaris in the Delta, [C]: see the
+  geography dossier) and the river harbours of Memphis and Thebes, which held the royal fleet and hundreds of river craft [A: Papyrus BM 10056]. Thutmose III used the Phoenician harbours
   (Ullaza, Byblos, Sumur) to land his armies and stocked them in advance [A: *Annals*].
 - **Hatti's port** was Ura in Cilicia (`kizzuwatna`), receiving grain by ship from Ugarit and Mukish (RS 20.212) [A,
   13th century].
