@@ -3,8 +3,9 @@ import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../c
 import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
+import { type Word, WordSchema, newWord } from "./word.ts";
 
-export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word"] as const;
+export const JourneyKindValues = ["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyReport", "SpyHomebound", "Rumor", "Ransom", "Word", "CaptiveConvoy"] as const;
 export type JourneyKind = (typeof JourneyKindValues)[number];
 
 /**
@@ -125,11 +126,17 @@ export interface Dispatch {
   authority: Authority | null;
   /** Item 10: the person whose claim to serve the host the envoy is to check there. */
   checkClaim: string | null;
+  /**
+   * Item 10+b: a false envoy's audience (Haakon's answer of 28 October 2026, "A false envoy"): nobody sent it; it claims
+   * to come from the sender and carries no letter, seal or tablet, and whatever it is given it keeps.
+   */
+  pretended: boolean;
 }
 
 export function newDispatch(init: Partial<Dispatch> = {}): Dispatch {
   return {
     checkClaim: null,
+    pretended: false,
     inventory: true,
     authority: null,
     clauses: [],
@@ -162,6 +169,7 @@ export const DispatchSchema: ObjSchema<Dispatch> = obj("Dispatch", newDispatch, 
   copyIds: list(S),
   trailId: S,
   checkClaim: opt(S),
+  pretended: B,
 });
 
 export interface TabletProposal {
@@ -229,6 +237,8 @@ export interface HomeCargo {
   /** Item 10: the person whose claim the envoy checked abroad, and whether the claim held there. */
   claimChecked: string | null;
   claimHeld: boolean;
+  /** Item 10+b: word of the host's market and its tolls on the envoy's king, as they stood when it set out home. */
+  word: Word;
 }
 
 export function newHomeCargo(init: Partial<HomeCargo> = {}): HomeCargo {
@@ -242,6 +252,7 @@ export function newHomeCargo(init: Partial<HomeCargo> = {}): HomeCargo {
     wasDetained: false,
     claimChecked: null,
     claimHeld: false,
+    word: newWord(),
     ...init,
   };
 }
@@ -256,6 +267,7 @@ export const HomeCargoSchema: ObjSchema<HomeCargo> = obj("HomeCargo", newHomeCar
   wasDetained: B,
   claimChecked: opt(S),
   claimHeld: B,
+  word: () => WordSchema,
 });
 
 export interface SpyReport {
@@ -559,7 +571,7 @@ export const LossAbroadSchema: ObjSchema<LossAbroad> = obj("LossAbroad", newLoss
   master: opt(S),
 });
 
-export const TaskKindValues = ["Candidates", "BackgroundCheck", "Authenticate", "RansomDemand"] as const;
+export const TaskKindValues = ["Candidates", "BackgroundCheck", "Authenticate", "RansomDemand", "Questioning"] as const;
 export type TaskKind = (typeof TaskKindValues)[number];
 
 /** Work the engine owes a court in a later season: check results, candidate pitches, and so on. */
@@ -574,6 +586,8 @@ export interface PendingTask {
   other: Power | null;
   /** A ransom demand whose rumour has reached the court asked to pay: only then can it be paid. */
   announced: boolean;
+  /** Questioning (item 10+b): the tablets the captive gave way on, which it now tells, truly or not, in its own words. */
+  tabletIds: string[];
 }
 
 export function newPendingTask(init: Partial<PendingTask> = {}): PendingTask {
@@ -587,6 +601,7 @@ export function newPendingTask(init: Partial<PendingTask> = {}): PendingTask {
     spend: 0,
     other: null,
     announced: false,
+    tabletIds: [],
     ...init,
   };
 }
@@ -601,6 +616,7 @@ export const PendingTaskSchema: ObjSchema<PendingTask> = obj("PendingTask", newP
   spend: I,
   other: opt(S),
   announced: B,
+  tabletIds: list(S),
 });
 
 export const InboxKindValues = ["Resolution", "Battle", "Audience", "EnvoyReport", "SpyReport", "Rumor", "CheckResult", "Candidates", "Catastrophe", "Notice", "Assay", "Authentication", "Tablet", "Rejected"] as const;
@@ -668,12 +684,15 @@ export interface MessageTrail {
   noInventory: boolean;
   /** The envoy's authority as the king gave it (item 9), or null: no seal. */
   authority: Authority | null;
+  /** Item 10+b: a false envoy's audience, which `from` never sent: no court's record of its own envoys shows it. */
+  pretended: boolean;
 }
 
 export function newMessageTrail(init: Partial<MessageTrail> = {}): MessageTrail {
   return {
     noInventory: false,
     authority: null,
+    pretended: false,
     reportClauses: [],
     deliveredClauses: [],
     clauses: [],
@@ -702,6 +721,7 @@ export function newMessageTrail(init: Partial<MessageTrail> = {}): MessageTrail 
 
 export const MessageTrailSchema: ObjSchema<MessageTrail> = obj("MessageTrail", newMessageTrail, {
   noInventory: B,
+  pretended: B,
   authority: opt(() => AuthoritySchema),
   reportClauses: list(() => ClauseSchema),
   deliveredClauses: list(() => ClauseSchema),

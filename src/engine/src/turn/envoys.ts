@@ -27,9 +27,10 @@ import {
 } from "../model/records.ts";
 import { char, findCharacter, inboxOf, isAlive, logEvent, newGoldLot, newId, notify, ownedBy } from "../model/state.ts";
 import { authorityText, newAuthority } from "../model/authority.ts";
+import { noteMarket, noteTolls } from "../model/word.ts";
 
 import { formatMoney } from "../rules/calendar.ts";
-import { claimOf } from "../rules/skills.ts";
+import { claimOf, clampSkills } from "../rules/skills.ts";
 import { cap, deviations, renderGreeting, stopped } from "../rules/greeting.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
 import type { Clause } from "../model/clauses.ts";
@@ -267,6 +268,11 @@ P.sendHome = function (c, from, cargo) {
     c.at = from;
     return;
   }
+  // Word of the host's market and of the tolls it sets on the envoy's king, as they stand now (item 10+b).
+  if (isAlive(S, from) && from !== home) {
+    noteMarket(cargo.word, this.map.capital(from).id, this.marketNow(this.map.capital(from).id));
+    noteTolls(cargo.word, S.tolls, from, home);
+  }
   c.duty = "EnvoyHomebound";
   c.at = null;
   const j = newJourney({ id: newId(S, "j"), kind: "EnvoyHomebound", departTurn: S.turn, from, to: home, characterId: c.id, cargo });
@@ -442,7 +448,7 @@ P.applyAudience = function (record) {
           remember(c, S.turn, `The king of ${land(host)} gave me ${formatMoney(h.bribe)}` + (isBlank(h.bribeAsk) ? "." : `, asking: ${h.bribeAsk}`));
           c.facts.push(newFact({ id: newId(S, "f"), text: `Took ${formatMoney(h.bribe)} from the king of ${land(host)}.`, secrecy: "Hidden", tag: "bribe", knownBy: [host] }));
           trail.outcomes.push(`accepted ${formatMoney(h.bribe)} from ${host}` + (isBlank(h.bribeAsk) ? "" : ` (asked: ${h.bribeAsk})`));
-          logEvent(S, "bribe", `${c.name}, envoy of ${sender}, took ${formatMoney(h.bribe)} from ${host}.`, [host], "bribe");
+          logEvent(S, "bribe", `${c.name}, envoy of ${sender}, took ${formatMoney(h.bribe)} from ${host}.`, [host], d.pretended ? "false-envoy-paid" : "bribe");
         } else {
           remember(c, S.turn, `The king of ${land(host)} promised me gold that never came.`);
           trail.outcomes.push(`agreed to take ${formatMoney(h.bribe)} from ${host}, but the treasury could not pay it`);
@@ -460,10 +466,11 @@ P.applyAudience = function (record) {
       c.secretMaster = c.secretMaster === host ? null : c.secretMaster;
       if (old !== null) c.reputation.set(old, c.reputation.getOrDefault(old, 0) - 40);
       c.reputation.set(host, c.reputation.getOrDefault(host, 0) + 10);
-      c.facts.push(newFact({ id: newId(S, "f"), text: `Abandoned the service of ${land(sender)} for ${land(host)}.`, secrecy: "Public", tag: "defected" }));
-      remember(c, S.turn, `I left the service of ${land(sender)} and now serve ${land(host)} for ${formatMoney(h.jobOffer)} a season.`);
+      // A false envoy served nobody: it simply enters the host's service.
+      if (!d.pretended) c.facts.push(newFact({ id: newId(S, "f"), text: `Abandoned the service of ${land(sender)} for ${land(host)}.`, secrecy: "Public", tag: "defected" }));
+      remember(c, S.turn, d.pretended ? `The king of ${land(host)} took me into his service for ${formatMoney(h.jobOffer)} a season.` : `I left the service of ${land(sender)} and now serve ${land(host)} for ${formatMoney(h.jobOffer)} a season.`);
       trail.outcomes.push(`entered the service of ${host}`);
-      logEvent(S, "defection", `${c.name}, envoy of ${sender}, entered the service of ${host}.`, [host], "defection");
+      if (!d.pretended) logEvent(S, "defection", `${c.name}, envoy of ${sender}, entered the service of ${host}.`, [host], "defection");
     } else if (h.jobOffer > 0) trail.outcomes.push(`declined an offer of service from ${host}`);
 
     const tid = d.proposalTabletId;
@@ -513,6 +520,21 @@ P.applyAudience = function (record) {
   notify(S, host, "Audience", `Audience with ${c.name}, envoy of ${sender}`, audienceText, c.id);
   remember(c, S.turn, `I was received by the king of ${land(host)}. ` + trail.exchanges.map((x) => `He said: "${cap(x.host, 300)}" I answered: "${cap(x.envoy, 200)}"`).join(" "));
 
+  // A false envoy (item 10+b) keeps what it was given for "its king", stays at the court and is nobody's to wait for.
+  if (d.pretended) {
+    if (!defected) {
+      if (cargo.gold > 0) {
+        const kept = toInt(roundEven((cargo.gold * cargo.purityPercent) / 100.0));
+        gain(c, kept, "Gifts");
+        remember(c, S.turn, `I kept the ${formatMoney(cargo.gold)} the king of ${land(host)} gave me for the king of ${land(sender)}.`);
+        logEvent(S, "false-envoy", `${c.name}, posing as an envoy of ${sender}, kept the ${formatMoney(cargo.gold)} ${host} sent with them.`, [], "false-envoy-paid");
+      }
+      c.at = host;
+      c.duty = "None";
+      if (detained) trail.outcomes.push(`kept at the court of ${host}`);
+    }
+    return;
+  }
   const expectedHome = S.turn + this.travelTurns(host, sender);
   // Its lord sees it on the road home, due back as an envoy sent home now would be.
   if (defected || detained)
@@ -633,6 +655,7 @@ P.envoyArrivesHome = function (j) {
   c.turnsAbroad = 0;
   c.missionTarget = null;
   const cargo = j.cargo ?? newHomeCargo();
+  this.hearWord(j.to, cargo.word);
   // Turned back on the road (item 7b): it tells why, and hands back any gold it still carries; there is no audience to report.
   if (j.gaveUp) {
     if (cargo.gold > 0) S.treasuries.get(j.to).gold += toInt(roundEven((cargo.gold * cargo.purityPercent) / 100.0));
@@ -753,11 +776,14 @@ P.fulfil = function (req, reply) {
       if (falseNameAt(c, court)?.employer != null) break;
       c.pitches.set(court, text);
       c.askingPrice.set(court, clamp(reply.number, 5, 400));
-      // What it says it can do, from what it believes (item 10, "Kings never see skills").
-      c.claimed = claimOf(c);
+      // What it says it can do: its own choice from what it believes (item 10+b), or the formula when it names none.
+      c.claimed = reply.claims !== null && reply.claims !== undefined ? clampSkills(reply.claims) : claimOf(c);
       notify(S, court, "Candidates", `${c.name} seeks service`, `${text}\n[${c.name} asks ${formatMoney(c.askingPrice.get(court))} a season.]`, c.id);
       break;
     }
+    case "Questioned":
+      if (c !== null) this.questionedSays(requestFor(req), c, req.copyIds, reply.lies, reply.league ?? null, text);
+      break;
     case "CheckReport":
       notify(S, requestFor(req), "CheckResult", `Inquiries into ${c?.name ?? "a stranger"}`, text, req.characterId);
       break;

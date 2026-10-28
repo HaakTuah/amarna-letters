@@ -44,6 +44,8 @@ function named(k: ClauseKind | null): string {
       return "your offer of a place within your walls";
     case "tollFree":
       return "your offer of free passage for my goods";
+    case "fugitives":
+      return "your offer to send back each other's runaways";
     case "askGold":
       return "your request for gold";
     case "askSupport":
@@ -99,6 +101,8 @@ export function renderClause(c: Clause, from: Power, to: Power): string {
       return `Let your troops stand within the walls of my city of ${place(c.province)}${until(c.turn)}, as my guests.`;
     case "tollFree":
       return "Let your merchants, your caravans and your ships come into my land: no one making a claim in my name shall take a toll from them.";
+    case "fugitives":
+      return "If people of your land flee into mine, I will seize them and send them back to you; and if people of my land flee into yours, send them back to me.";
     case "askGold":
       return `Send me ${shekels(c.amount)}.`;
     case "askSupport":
@@ -255,6 +259,7 @@ export const ClauseFields: Record<ClauseKind, readonly ("power" | "province" | "
   passage: ["province", "turn"],
   basing: ["province", "turn"],
   tollFree: [],
+  fugitives: [],
   askGold: ["amount"],
   askSupport: ["province", "to", "turn"],
   askWithdraw: ["province"],
@@ -329,7 +334,7 @@ export function clauseTag(c: Clause): string {
 /** Every clause the templates hold, with the fields it uses and its words, as the rulebook lists them. */
 export const ClauseGuide: readonly string[] = [
   "Courtesies and gifts: wellWishes (May it be well with you, your house, your wives, your sons...); gift (gold: As a greeting-gift I send you N shekels of gold).",
-  "Proposals: peace (Let there be peace between us...); noAttack (My troops will not enter your land); alliance (Let us be allies...); against (king: Let us stand together against him); support (province, into, season: In that season my troops will support the move of yours from one into the other); tribute (gold: I will send you N shekels each year as tribute); cede (province: I give you that land); passage (province or none for all my land, season or none: let your troops pass through it until then); tollFree (no toll on your goods in my land); basing (province, season or none: let your troops stand within the walls of that city until then).",
+  "Proposals: peace (Let there be peace between us...); noAttack (My troops will not enter your land); alliance (Let us be allies...); against (king: Let us stand together against him); support (province, into, season: In that season my troops will support the move of yours from one into the other); tribute (gold: I will send you N shekels each year as tribute); cede (province: I give you that land); passage (province or none for all my land, season or none: let your troops pass through it until then); tollFree (no toll on your goods in my land); fugitives (each of us sends back the other's runaways); basing (province, season or none: let your troops stand within the walls of that city until then).",
   "Requests: askGold (gold); askSupport (province, into, season: let your troops support the move of mine); askWithdraw (province); askCede (province); askTribute (gold); askHelp (province, king: the troops of that king besiege my city; send yours to drive them out); askOath (Swear that your troops will stand with mine); askPassage (province or none for all your land, season or none); askBasing (province, season or none); askTollFree (take no toll on my goods in your land).",
   "Threats: threat (province or none: If you do not do as I ask, my troops will march on it, or into your land).",
   "Grievances and accusations: grievance (province or none: your troops have entered my land there); brokenOath; lightGift (gold: the gold your messenger brought weighed less than the inventory states); envoyLied (Your messenger has lied to me); habiru (king: he is in league with the Habiru).",

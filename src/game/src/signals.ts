@@ -21,11 +21,13 @@ export const SignalKinds: readonly string[] = [
   "roads-closed", "roads-opened", "turned-at-border", "road-caught", "road-outlaws", "road-nature",
   "support-kept", "claim-established",
   "winter-crossed", "winter-loss", "envoy-sealed", "repudiated", "passage-granted", "basing-granted", "grant-revoked",
-  "sale", "grain-bought", "feed", "caravan-out", "caravan", "caravan-taken", "caravan-robbed", "caravan-lost", "forage", "hunger", "unpaid", "mutiny", "siege-starved",
+  "sale", "grain-bought", "feed", "caravan-out", "caravan", "caravan-taken", "caravan-robbed", "caravan-lost", "forage", "hunger", "unpaid", "mutiny", "siege-starved", "siege-thirst",
   "trade-out", "ship-out", "traded", "sale-abroad", "purchase-abroad", "toll-set", "toll-paid", "smuggled", "smuggler-found", "ship-lost", "food-bought", "sack",
   "false-name", "false-envoy", "impostor-exposed", "false-envoy-paid", "gift-to-person", "questioned", "questioned-truth", "questioned-lie",
   "captive-handed", "tablet-stolen",
   "tax-set", "famine", "colonists", "resisted", "drought", "flood",
+  "besieged-fed", "captive-arrived", "captive-freed", "captive-taken", "captive-escaped",
+  "refugees", "robbed", "welcomed", "deported", "runaways-returned", "mouths-expelled",
 ];
 
 const MessengerBlamed = rx(
@@ -48,7 +50,7 @@ export function detectSignals(s: GameState): Signal[] {
     if (kind !== null && kind !== "assay" && kind !== "debased-gift" && kind !== "catastrophe") list.push({ turn: e.turn, kind, text: e.text });
   }
 
-  for (const t of s.trails) {
+  for (const t of s.trails.filter((x) => !x.pretended)) {
     // What the kings themselves said (the leader's letter and the host's replies), once per kind per message.
     const texts = [t.leaderLetter, ...t.exchanges.map((x) => x.host)].filter((x) => !isBlank(x));
     const turn = t.audienceTurn ?? t.turn;

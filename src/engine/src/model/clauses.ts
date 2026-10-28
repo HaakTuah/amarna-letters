@@ -22,6 +22,7 @@ export const ClauseKindValues = [
   "passage",
   "basing",
   "tollFree",
+  "fugitives",
   // Requests
   "askGold",
   "askSupport",
@@ -54,7 +55,7 @@ export const ClauseKindValues = [
 export type ClauseKind = (typeof ClauseKindValues)[number];
 
 /** The kinds a king offers or asks for, which an answer (accept, refuse, counter) can name. */
-export const ProposalKinds: readonly ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "tollFree"];
+export const ProposalKinds: readonly ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "tollFree", "fugitives"];
 export const RequestKinds: readonly ClauseKind[] = ["askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing", "askTollFree"];
 export const NewsKinds: readonly ClauseKind[] = ["newsTroops", "newsStrength", "newsTaken", "newsSiege"];
 export const AnswerKinds: readonly ClauseKind[] = ["accept", "refuse", "counter"];
@@ -74,6 +75,8 @@ export const GrantingKinds: readonly ClauseKind[] = ["passage", "basing", "askPa
  * the land opened (none: all the granting king's land, for passage) and `turn` the last season the grant stands (none: until
  * revoked). For a trade right (item 9+b), `tollFree` promises that the writer takes no toll on the reader's goods entering
  * his land, and `askTollFree` asks it of the reader: words, like every other clause, since the rate is what is charged.
+ * `fugitives` (item 10+b, "Fugitive clauses"): each sends back the other's runaways who come into his land, as Hittite
+ * treaties wrote; words too, kept by the order that sends runaways back.
  */
 export interface Clause {
   kind: ClauseKind;

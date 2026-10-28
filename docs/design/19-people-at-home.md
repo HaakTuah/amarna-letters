@@ -55,7 +55,8 @@ It runs after the troops eat: troops foraging in a province take their share fro
    their share of the purse. Every flow is reckoned before any applies.
 5. Men move between the land and the roads: the land pays the farmers' food against their need, the roads 5‰ of the
    province's wealth (purse, stores and market) shared among its loose (counted from a floor of a thousand); 5% of the
-   gap a season, back to the land only where it has room ("Bandits rob the purse": the robbing itself is 10+b's).
+   gap a season, back to the land only where it has room ("Bandits rob the purse": the robbing itself, and flight across borders, are item 10+b's:
+   `20-people-across-borders.md`).
 6. The loose drift: a tenth of them at most, to the richest neighbour by wealth per loose man, if it beats home by a tenth.
 
 ### Orders

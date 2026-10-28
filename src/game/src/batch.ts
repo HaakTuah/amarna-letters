@@ -96,6 +96,10 @@ export function pressOf(s: GameState): Record<string, number> {
   };
   const kinds = (cs: readonly Clause[], k: string): number => cs.filter((x) => x.kind === k).length;
   for (const t of s.trails) {
+    if (t.pretended) {
+      add("false-envoy-audiences");
+      continue;
+    }
     add("letters");
     if (t.clauses.length > 0) add("letters-with-clauses");
     for (const c of t.clauses) add(`w:${c.kind}`);
@@ -156,6 +160,8 @@ export function courtsOf(s: GameState): [number, number, number] {
 /** Plays one game to its end (and, with verifyReplay, replays its log and compares the final states). */
 export async function playGame(seed: number, build: (state: GameState) => GameRunner, verifyReplay: boolean, config: GameConfig | null = null, log: ((line: string) => void) | null = null): Promise<[GameSummary, GameRunner]> {
   const runner = build(newGame(seed, config));
+  // A batch never reads the turn-by-turn snapshots, which a long game's memory cannot hold twice over (with its replay).
+  runner.keepSnapshots = false;
   await runner.prepare();
   while (await runner.playTurn()) {
     /* the whole game */
@@ -166,6 +172,7 @@ export async function playGame(seed: number, build: (state: GameState) => GameRu
   if (verifyReplay) {
     const replay = GameRunner.forReplay(GameLog.fromJsonl(runner.log.toJsonl()));
     replay.writeChronicles = runner.writeChronicles;
+    replay.keepSnapshots = false;
     await replay.prepare();
     while (await replay.playTurn()) {
       /* the whole game */

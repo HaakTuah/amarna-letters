@@ -26,6 +26,7 @@ declare module "./core.ts" {
     copyFromArchive(spy: Character, court: Power, master: Power): string[];
     archiveCopiesArrive(j: Journey, spy: Character): string[];
     takeArchive(taker: Power, province: string): void;
+    archiveArrives(holder: Power, tabletIds: readonly string[], court: string, place: string): void;
     copyLine(copy: TabletCopy): string;
     scribe(writer: Power, text: string | null): string;
     copiesLine(spy: Character, court: Power, copyIds: Iterable<string>): string;
@@ -102,9 +103,9 @@ P.archiveCopiesArrive = function (j, spy) {
 };
 
 /**
- * The power that now holds a province that is a court's capital (taken by its troops, or ceded to it) carries off that
- * court's archive: it gains every tablet in it it does not hold already, and the court loses them all (item 10, "Tablets are
- * objects in a place"; until then the court kept its own).
+ * Whoever takes a court's capital carries off its archive (item 10): the court holds none of its tablets any more, and the
+ * taker's scribes carry them home to his capital as a load that can be waylaid (item 10+b), becoming his copies when they
+ * arrive.
  */
 P.takeArchive = function (taker, province) {
   const S = this.s;
@@ -112,27 +113,43 @@ P.takeArchive = function (taker, province) {
   const court = prov.home;
   if (!prov.capital || court === null || court === taker) return;
   const held = new HSet(S.copies.filter((k) => k.holder === taker).map((k) => k.tabletId));
-  const taken: TabletCopy[] = [];
-  for (const t of this.archive(court)) {
-    if (!held.add(t.id)) continue;
-    const copy = newTabletCopy({ id: newId(S, "k"), tabletId: t.id, holder: taker, acquiredTurn: S.turn, source: `taken with the archive of ${court} at ${prov.name}` });
-    S.copies.push(copy);
-    taken.push(copy);
-  }
+  const tablets = this.archive(court)
+    .map((t) => t.id)
+    .filter((id) => !held.has(id));
   const lost = S.copies.filter((k) => k.holder === court).length;
   S.copies = S.copies.filter((k) => k.holder !== court);
   if (lost > 0 && isAlive(S, court))
     notify(S, court, "Notice", "Your archive taken", `With ${prov.name}, ${taker} carried off your archive: the ${lost} tablet${lost === 1 ? "" : "s"} it held are no longer yours.`);
+  logEvent(S, "archive-taken", `${taker} took the archive of ${court} with ${prov.name}.`, [taker], "archive-taken");
+  if (tablets.length === 0) {
+    notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${court}; it held no tablet you did not hold already.`);
+    return;
+  }
+  if (this.lootHome(taker, province, 0, tablets, court))
+    notify(S, taker, "Notice", ArchiveTakenTitle, `With ${prov.name} you took the archive of ${court}: your scribes are carrying its ${tablets.length} tablet${tablets.length === 1 ? "" : "s"} home to your capital.`);
+};
+
+/** A captured archive reaches a court (item 10+b): copies of every tablet in it it did not hold already. */
+P.archiveArrives = function (holder, tabletIds, court, place) {
+  const S = this.s;
+  if (tabletIds.length === 0 || !isAlive(S, holder)) return;
+  const held = new HSet(S.copies.filter((k) => k.holder === holder).map((k) => k.tabletId));
+  const taken: TabletCopy[] = [];
+  for (const id of tabletIds) {
+    if (!S.tablets.some((t) => t.id === id) || !held.add(id)) continue;
+    const copy = newTabletCopy({ id: newId(S, "k"), tabletId: id, holder, acquiredTurn: S.turn, source: `taken with the archive of ${court} (${place})` });
+    S.copies.push(copy);
+    taken.push(copy);
+  }
   notify(
     S,
-    taker,
+    holder,
     "Notice",
     ArchiveTakenTitle,
     taken.length === 0
-      ? `With ${prov.name} you took the archive of ${court}; it held no tablet you did not hold already.`
-      : `With ${prov.name} you took the archive of ${court}: copies of ${taken.length} tablet${taken.length === 1 ? "" : "s"} you did not hold are now in your archive: ${taken.map((k) => this.copyLine(k)).join(", ")}.`,
+      ? `The archive of ${court} reached you; it held no tablet you did not hold already.`
+      : `The archive of ${court} reached you: copies of ${taken.length} tablet${taken.length === 1 ? "" : "s"} you did not hold are now in your archive: ${taken.map((k) => this.copyLine(k)).join(", ")}.`,
   );
-  logEvent(S, "archive-taken", `${taker} took the archive of ${court} with ${prov.name} (${taken.length} tablet(s) new to it).`, [taker], "archive-taken");
 };
 
 /**

@@ -16,6 +16,7 @@ const Uses: Record<ClauseKind, readonly ("king" | "province" | "into" | "season"
   passage: ["province", "season"],
   basing: ["province", "season"],
   tollFree: [],
+  fugitives: [],
   askGold: ["gold"],
   askSupport: ["province", "into", "season"],
   askWithdraw: ["province"],
@@ -46,7 +47,7 @@ const Groups: [string, [ClauseKind, string][]][] = [
   ["Courtesies and gifts", [["wellWishes", "may it be well with you"], ["gift", "a greeting-gift of gold"]]],
   [
     "Proposals",
-    [["peace", "peace"], ["noAttack", "my troops will not enter your land"], ["alliance", "alliance"], ["against", "stand together against a king"], ["support", "I will support your move"], ["tribute", "I will pay tribute"], ["cede", "I give you a land"], ["passage", "your troops may pass through my land"], ["basing", "your troops may stand within my walls"], ["tollFree", "no toll on your goods in my land"]],
+    [["peace", "peace"], ["noAttack", "my troops will not enter your land"], ["alliance", "alliance"], ["against", "stand together against a king"], ["support", "I will support your move"], ["tribute", "I will pay tribute"], ["cede", "I give you a land"], ["passage", "your troops may pass through my land"], ["basing", "your troops may stand within my walls"], ["tollFree", "no toll on your goods in my land"], ["fugitives", "each of us sends back the other's runaways"]],
   ],
   [
     "Requests",
@@ -58,7 +59,7 @@ const Groups: [string, [ClauseKind, string][]][] = [
   ["Answers", [["accept", "I accept"], ["refuse", "I refuse"], ["counter", "not that, but this"]]],
 ];
 
-const Answerable: ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "tollFree", "askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing", "askTollFree", "gift"];
+const Answerable: ClauseKind[] = ["peace", "noAttack", "alliance", "against", "support", "tribute", "cede", "passage", "basing", "tollFree", "fugitives", "askGold", "askSupport", "askWithdraw", "askCede", "askTribute", "askHelp", "askOath", "askPassage", "askBasing", "askTollFree", "gift"];
 const num = (s: string): number => (s.trim() === "" || !Number.isFinite(Number(s)) ? 0 : Math.trunc(Number(s)));
 
 /**

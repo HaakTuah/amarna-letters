@@ -50,6 +50,14 @@ export interface People {
  *   plain, that give a land's people a resistance of one and of two ("The people defend their land").
  * - `hostileHome`: the people's hostility, in percent, to a king whose homeland the province is.
  * - `winterFood`: the extra food an army outside its own land eats in Peret, by the winter there ("Winter in the field").
+ * - Item 10+b ("Where people go", "Bandits rob the purse", "People are worth having, not free to keep"):
+ *   `runPercent`: of the share of their food the farmers could not keep from their harvest (crushing taxes or hunger
+ *   short of famine), the share of them that run away a season; `refugeMargin`: in percent, how much better a neighbour's
+ *   land must be for those leaving to cross to it rather than stay loose at home; `deportDead`: of people deported or
+ *   returned, the share who die on the road (more turn loose on long roads, as discharged men do); `expelPercent`: the
+ *   share of a besieged city's mouths that cannot fight, put out; `policedPercent`: what the loose take where their
+ *   holder's troops stand, in percent of what they take elsewhere; `lootSpentPercent`: what the loose spend a season of
+ *   the gold they carry, at their province's market.
  */
 export const LandData = {
   menPercent: 20,
@@ -81,6 +89,12 @@ export const LandData = {
   resistTwo: 30000,
   hostileHome: 50,
   winterFood: { Mild: 0, Cool: 50, Hard: 100 } as const,
+  runPercent: 2,
+  refugeMargin: 10,
+  deportDead: 5,
+  expelPercent: 50,
+  policedPercent: 50,
+  lootSpentPercent: 50,
 } as const;
 
 /**

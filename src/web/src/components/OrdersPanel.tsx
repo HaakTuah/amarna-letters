@@ -18,6 +18,10 @@ import {
   purchase,
   sell,
   tax,
+  welcome,
+  deport,
+  expel,
+  returnRunaways,
   captive,
   giftTo,
   handOver,
@@ -76,6 +80,10 @@ interface Form {
   grainAction: string;
   grainAmount: string;
   grainTo: string;
+  peopleAction: string;
+  peopleAt: string;
+  peopleTo: string;
+  peopleAmount: string;
   tradeAction: string;
   tradeFrom: string;
   tradeTo: string;
@@ -151,6 +159,10 @@ function newForm(me: Power): Form {
     grainAction: "sell",
     grainAmount: "",
     grainTo: "",
+    peopleAction: "welcome",
+    peopleAt: "",
+    peopleTo: "",
+    peopleAmount: "",
     tradeAction: "trade",
     tradeFrom: "",
     tradeTo: "",
@@ -697,6 +709,72 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
             Add
           </button>
         </div>
+        {/* People in a king's hands (item 10+b): settle the loose, deport, send runaways back, put the mouths out. */}
+        <div className="row" style={{ marginTop: ".4rem" }}>
+          <select value={f.peopleAction} onChange={(e) => set({ peopleAction: e.target.value, peopleTo: "" })}>
+            <option value="welcome">Settle the loose men</option>
+            <option value="returnRunaways">Send runaways back</option>
+            <option value="deport">Deport people</option>
+            <option value="expel">Put out the mouths that cannot fight</option>
+          </select>
+          <select value={f.peopleAt} onChange={(e) => set({ peopleAt: e.target.value, peopleTo: "" })}>
+            <option value="">{f.peopleAction === "deport" ? "from…" : "in…"}</option>
+            {v.provinces
+              .filter((x) => (f.peopleAction === "deport" ? map.get(x.province).home !== me : f.peopleAction === "expel" ? v.sieges.some((s) => s.province === x.province) : f.peopleAction === "returnRunaways" ? x.runaways.size > 0 : x.loose > 0))
+              .map((x) => x.province)
+              .sort(byName)
+              .map((id) => {
+                const x = v.provinces.find((y) => y.province === id)!;
+                return (
+                  <option key={id} value={id}>
+                    {`${provinceName(id)} (settled ${x.settled.toLocaleString("en")} of ${x.room.toLocaleString("en")}, loose ${x.loose.toLocaleString("en")})`}
+                  </option>
+                );
+              })}
+          </select>
+          {f.peopleAction === "deport" && (
+            <select value={f.peopleTo} onChange={(e) => set({ peopleTo: e.target.value })}>
+              <option value="">to…</option>
+              {v.provinces
+                .map((x) => x.province)
+                .filter((id) => id !== f.peopleAt)
+                .sort(byName)
+                .map((id) => (
+                  <option key={id} value={id}>
+                    {provinceName(id)}
+                  </option>
+                ))}
+            </select>
+          )}
+          {f.peopleAction === "returnRunaways" && (
+            <select value={f.peopleTo} onChange={(e) => set({ peopleTo: e.target.value })}>
+              <option value="">to…</option>
+              {[...(v.provinces.find((x) => x.province === f.peopleAt)?.runaways.entries() ?? [])].map(([k, n]) => (
+                <option key={k} value={k}>
+                  {powerName(k as Power)} ({n.toLocaleString("en")})
+                </option>
+              ))}
+            </select>
+          )}
+          {f.peopleAction === "deport" && <input type="number" min={1} placeholder="people" value={f.peopleAmount} onChange={(e) => set({ peopleAmount: e.target.value })} style={{ width: "6rem" }} />}
+          <button
+            className="small"
+            disabled={f.peopleAt === "" || ((f.peopleAction === "deport" || f.peopleAction === "returnRunaways") && f.peopleTo === "") || (f.peopleAction === "deport" && !(Number(f.peopleAmount) > 0))}
+            onClick={() =>
+              add(
+                f.peopleAction === "welcome"
+                  ? welcome(f.peopleAt)
+                  : f.peopleAction === "expel"
+                    ? expel(f.peopleAt)
+                    : f.peopleAction === "deport"
+                      ? deport(f.peopleAt, f.peopleTo, Math.floor(Number(f.peopleAmount)))
+                      : returnRunaways(f.peopleAt, f.peopleTo as Power),
+              )
+            }
+          >
+            Add
+          </button>
+        </div>
         {/* Trade abroad (item 9+b): a caravan or a smuggler to a foreign market, or a fleet in cargo service. */}
         <div className="row" style={{ marginTop: ".4rem" }}>
           <select value={f.tradeAction} onChange={(e) => set({ tradeAction: e.target.value, tradeFrom: "", tradeTo: "" })}>
@@ -785,7 +863,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
           {v.tolls.length > 0 && (
             <span className="muted">
               {" "}
-              Posted: {v.tolls.map((t) => `${t.holder} ${t.percent}%${t.partner !== null ? ` on ${t.partner}` : ""}${t.province !== null ? ` at ${provinceName(t.province)}` : ""}`).join("; ")}
+              Known: {v.tolls.map((t) => `${t.holder} ${t.percent}%${t.partner !== null ? ` on ${t.partner}` : ""}${t.province !== null ? ` at ${provinceName(t.province)}` : ""}`).join("; ")}
             </span>
           )}
         </div>

@@ -13,6 +13,7 @@ import {
   HostReplySchema,
   EnvoyReactionSchema,
   MindReplySchema,
+  newMindReply,
   TurnEngine,
   TurnSubmissionSchema,
   B,
@@ -141,6 +142,11 @@ export class GameRunner {
 
   /** Serialized states: [0] at the start, [k] after turn k. */
   readonly snapshots: string[] = [];
+  /**
+   * Whether to keep the state at the end of every turn (the web app's history): a whole state a turn, so a long game's
+   * snapshots run to gigabytes. The batch runner, which never reads them, turns this off.
+   */
+  keepSnapshots = true;
   readonly chronicles = new Dict<Power, string>();
   phase = "Ready";
   readonly errors: string[] = [];
@@ -329,7 +335,7 @@ export class GameRunner {
       }),
     );
     for (const [c, persona] of results) if (!isBlank(persona)) c.persona = persona;
-    this.snapshots.push(serialize(GameStateSchema, this.state));
+    if (this.keepSnapshots) this.snapshots.push(serialize(GameStateSchema, this.state));
     this.prepared = true;
     this.phaseDone?.("setup");
     this.setPhase("Ready");
@@ -376,7 +382,7 @@ export class GameRunner {
 
     this.setPhase(`Turn ${turn}: resolution`);
     engine.resolve(subs);
-    this.snapshots.push(serialize(GameStateSchema, S_));
+    if (this.keepSnapshots) this.snapshots.push(serialize(GameStateSchema, S_));
     this.phaseDone?.(`t${turn}/resolve`);
 
     // The chronicles are of the age: written when it ends, and not again if the table plays on into an open age.
@@ -411,20 +417,13 @@ export class GameRunner {
     const produce = async (req: MindRequest): Promise<MindReply> => {
       if (req.task === "CheckReport") {
         const subject = char(this.state, req.characterId);
-        return { text: await this.narrator.checkReport({ subject, court: requestFor(req), facts: req.facts, turn }, signal), number: 0, swapInventory: false, clauses: [], name: null, claimsToServe: null };
+        return newMindReply({ text: await this.narrator.checkReport({ subject, court: requestFor(req), facts: req.facts, turn }, signal) });
       }
       return await this.minds.write(this.context(req, engine, turn), signal);
     };
     const fallback = async (req: MindRequest): Promise<MindReply> => {
       if (req.task === "CheckReport")
-        return {
-          text: await new TemplateNarrator().checkReport({ subject: char(this.state, req.characterId), court: requestFor(req), facts: req.facts, turn }, signal),
-          number: 0,
-          swapInventory: false,
-          clauses: [],
-          name: null,
-          claimsToServe: null,
-        };
+        return newMindReply({ text: await new TemplateNarrator().checkReport({ subject: char(this.state, req.characterId), court: requestFor(req), facts: req.facts, turn }, signal) });
       return await this.fallbackMind.write(this.context(req, engine, turn), signal);
     };
     for (const req of requests) if (req.task !== "CheckReport") this.asked(req.characterId, turn);
@@ -485,6 +484,8 @@ export class GameRunner {
       demand: S_.tasks.filter((t) => t.kind === "Candidates").length + engine.mindRequests.filter((r) => r.task === "Pitch" && r.characterId === c.id).length,
       forgeMinCompetence: S_.config.forgeMinCompetence,
       structured: S_.config.pressMode === "structured",
+      tablets: new Map(req.task === "Questioned" ? S_.tablets.filter((t) => req.copyIds.includes(t.id)).map((t) => [t.id, t.text] as const) : []),
+      alive: alive(S_),
     });
   }
 

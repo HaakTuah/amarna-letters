@@ -472,6 +472,11 @@ P.captive = function (host, co) {
  * already free.
  */
 P.releaseCaptive = function (host, c) {
+  // A captive on the road under guard (item 10+b) is let go where it is: its convoy is over.
+  if (c.duty === "UnderGuard") {
+    this.s.journeys = this.s.journeys.filter((j) => !(j.kind === "CaptiveConvoy" && j.characterId === c.id));
+    c.duty = "None";
+  }
   c.status = c.employer === null ? "Free" : "Employed";
   c.heldBy = null;
   c.intercepted = false;

@@ -25,9 +25,22 @@ export interface Walk {
   arrives: number;
   /** The savings they carry, into their home's purse when they arrive ("Soldiers carry savings home"). */
   savings: number;
+  /**
+   * Item 10+b: people walking where a king sends them, deported or returned as runaways, `men` counting all of them: they
+   * become the settled of `home` when they arrive, a fifth of them men of fighting age. `by`: the king who sent them.
+   */
+  deported: boolean;
+  by: string;
 }
 
-export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, ...init }), { home: S, men: I, arrives: I, savings: I });
+export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, deported: false, by: "", ...init }), {
+  home: S,
+  men: I,
+  arrives: I,
+  savings: I,
+  deported: B,
+  by: S,
+});
 
 /**
  * A drought over a region's rain-fed land or a river's bad flood along its course (item 10+a): the provinces it strikes,
@@ -49,7 +62,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 17;
+export const CURRENT_VERSION = 18;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -151,6 +164,17 @@ export interface GameState {
   tolls: Toll[];
   /** Foreign markets as each court last knew them (item 9+b): seen where it sees the land, or found by its traders. */
   marketsSeen: Dict<Power, Dict<string, MarketSeen>>;
+  /** Item 10+b: the gold the loose men of each province carry, robbed from purses and stores ("Bandits rob the purse"). */
+  loot: Dict<string, number>;
+  /** Item 10+b: the loose men standing in each province who fled another kingdom, by the king whose land they fled. */
+  runaways: Dict<string, Dict<Power, number>>;
+  /** Item 10+b: a besieged city that put out the mouths that cannot fight: the share of its town's need it no longer eats. */
+  expelled: Dict<string, number>;
+  /**
+   * The tolls each court knows to stand on its goods (item 10+b): never posted, only as last reported to it, by its
+   * caravans, ships and envoys coming home ("Tolls and smuggling"). Its own tolls it always knows.
+   */
+  tollsKnown: Dict<Power, Toll[]>;
   /**
    * The besieged cities that could not feed their mouths in full when the season began (item 9+a, "How long a siege
    * lasts"): each surrenders to its besieger with the season's sieges, if the siege still stands.
@@ -241,6 +265,10 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     caravans: [],
     tolls: [],
     marketsSeen: new Dict(),
+    loot: new Dict(),
+    runaways: new Dict(),
+    expelled: new Dict(),
+    tollsKnown: new Dict(),
     starving: [],
     units: [],
     treasuries: new Dict(),
@@ -313,6 +341,10 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   caravans: list(() => CaravanSchema),
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
+  loot: dict(I),
+  runaways: dict(dict(I)),
+  expelled: dict(I),
+  tollsKnown: dict(list(() => TollSchema)),
   starving: list(S),
   units: list(() => UnitSchema),
   treasuries: dict(() => TreasurySchema),
@@ -441,6 +473,8 @@ export interface Siege {
   progress: number;
   /** The season the first besiege order ran. */
   since: number;
+  /** Item 10+b: the seasons an island city without water of its own has been blockaded at sea ("Water too"). */
+  blockaded: number;
 }
 
 export function newSiege(init: Partial<Siege> = {}): Siege {
@@ -450,6 +484,7 @@ export function newSiege(init: Partial<Siege> = {}): Siege {
     unitId: "",
     progress: 0,
     since: 0,
+    blockaded: 0,
     ...init,
   };
 }
@@ -460,6 +495,7 @@ export const SiegeSchema: ObjSchema<Siege> = obj("Siege", newSiege, {
   unitId: S,
   progress: I,
   since: I,
+  blockaded: I,
 });
 
 export interface Treasury {

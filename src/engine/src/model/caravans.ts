@@ -8,6 +8,7 @@
 import { B, I, type ObjSchema, S, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 import { UnitSchema, type Unit } from "./state.ts";
+import { type Word, WordSchema, newWord } from "./word.ts";
 
 export interface Market {
   /** Grain on sale, in measures. */
@@ -47,10 +48,18 @@ export interface Caravan {
   sneak: boolean;
   /** The fleet in cargo service that carries it by sea (item 9+b), out of the war until it comes home; null on land. */
   ship: Unit | null;
+  /** What it learned abroad of markets and tolls, which its court hears when it comes home (item 10+b). */
+  word: Word;
+  /**
+   * Item 10+b: a load of loot going home, which trades nothing: a captured archive's tablets (their ids), taken from the
+   * court `archiveOf`, which become its king's copies when it arrives.
+   */
+  archive: string[];
+  archiveOf: string;
 }
 
 export function newCaravan(init: Partial<Caravan> = {}): Caravan {
-  return { id: "", power: "Egypt", from: "", to: "", grain: 0, route: [], at: 0, points: 0, returning: false, since: 0, gold: 0, trade: false, sneak: false, ship: null, ...init };
+  return { id: "", power: "Egypt", from: "", to: "", grain: 0, route: [], at: 0, points: 0, returning: false, since: 0, gold: 0, trade: false, sneak: false, ship: null, word: newWord(), archive: [], archiveOf: "", ...init };
 }
 
 export const CaravanSchema: ObjSchema<Caravan> = obj("Caravan", newCaravan, {
@@ -68,6 +77,9 @@ export const CaravanSchema: ObjSchema<Caravan> = obj("Caravan", newCaravan, {
   trade: B,
   sneak: B,
   ship: opt(() => UnitSchema),
+  word: () => WordSchema,
+  archive: list(S),
+  archiveOf: S,
 });
 
 /** Where a caravan stands now. */

@@ -5,10 +5,11 @@ import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema, type TabletProposal, TabletProposalSchema } from "./records.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
+import { type Skills, SkillsSchema } from "./people.ts";
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
 
 /** Text the engine needs written by a character or the narrator before it can be delivered. */
-export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory"] as const;
+export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned"] as const;
 export type MindTask = (typeof MindTaskValues)[number];
 
 export interface MindRequest {
@@ -37,6 +38,7 @@ export interface MindRequest {
   fold: number;
   /**
    * For a spy's report: the copies of tablets from the watched court's archive that came home with it, now in the court's archive.
+   * For a captive questioned (item 10+b): the tablets it gave way on (tablet ids).
    */
   copyIds: string[];
 }
@@ -94,6 +96,17 @@ export interface MindReply {
   name: string | null;
   /** For a pitch: the king it claims to serve, as a false envoy at the court where it stands; null if it seeks service. */
   claimsToServe: Power | null;
+  /**
+   * For a pitch (item 10+b, Haakon's answer of 28 October 2026): what it says it can do, its own choice from what it
+   * believes of itself; null leaves it to the engine's formula (its belief, more for one who lies about himself).
+   */
+  claims: Skills | null;
+  /**
+   * For a captive questioned (item 10+b): it recites a tablet that never was instead of what it saw, a league of its master
+   * with `league` (null: the engine draws the king) against its captor. Its words are `text`.
+   */
+  lies: boolean;
+  league: Power | null;
 }
 
 export function newMindReply(init: Partial<MindReply> = {}): MindReply {
@@ -104,6 +117,9 @@ export function newMindReply(init: Partial<MindReply> = {}): MindReply {
     swapInventory: false,
     name: null,
     claimsToServe: null,
+    claims: null,
+    lies: false,
+    league: null,
     ...init,
   };
 }
@@ -115,6 +131,9 @@ export const MindReplySchema: ObjSchema<MindReply> = obj("MindReply", newMindRep
   swapInventory: B,
   name: opt(S),
   claimsToServe: opt(S),
+  claims: opt(() => SkillsSchema),
+  lies: B,
+  league: opt(S),
 });
 
 /** What the host replies at an audience. Every field but Speech is an action the engine checks. */

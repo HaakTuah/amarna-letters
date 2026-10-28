@@ -1,4 +1,5 @@
 /** The non-military half of a script king, third part: letters, the tablets it proposes, greetings and audiences. */
+import { fugitiveRights } from "./borders.ts";
 import {
   AllPowers,
   HSet,
@@ -312,7 +313,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
         {
           mandate: "You may swear a full alliance. Promise no land.",
           greeting,
-          proposal: newTabletProposal({ text: allianceTablet(me, to), allianceOath: true, clauses: [clause("alliance"), ...tradeRights(b.v, to)] }),
+          proposal: newTabletProposal({ text: allianceTablet(me, to), allianceOath: true, clauses: [clause("alliance"), ...tradeRights(b.v, to), ...fugitiveRights(b, to)] }),
           clauses: [clause("alliance")],
         },
       );
@@ -331,7 +332,7 @@ function compose(b: Board, brain: Brain, m: Mission, envoy: string, rng: Rng): D
           gold: g,
           purityPercent: g > 0 ? purity() : 100,
           noInventory: g > 0 && bare(brain, to, envoy, b),
-          proposal: newTabletProposal({ text: peaceTablet(me, to), clauses: [clause("peace"), ...tradeRights(b.v, to)] }),
+          proposal: newTabletProposal({ text: peaceTablet(me, to), clauses: [clause("peace"), ...tradeRights(b.v, to), ...fugitiveRights(b, to)] }),
           clauses: [clause("peace"), ...(g > 0 ? [clause("gift", { amount: g })] : [])],
         },
       );

@@ -232,6 +232,13 @@ P.tasksDue = function () {
     [(t) => idNumber(t.id), cmpNum],
   )) {
     switch (task.kind) {
+      case "Questioning": {
+        S.tasks.splice(S.tasks.indexOf(task), 1);
+        const c = findCharacter(S, task.characterId!);
+        if (c !== null && c.status === "Captured" && c.heldBy === task.requester)
+          this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "Questioned", characterId: c.id, court: task.requester, copyIds: [...task.tabletIds] }));
+        break;
+      }
       case "Candidates": {
         S.tasks.splice(S.tasks.indexOf(task), 1);
         const free = S.characters.filter((c) => c.status === "Free");
