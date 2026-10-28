@@ -210,3 +210,35 @@ Given in the design chat with Claude, answering the design questions of the cons
     Written into the design document as "The game in one page" (Overview), which every builder reads before an item and
     the reviewer reads with the diff (`CLAUDE.md`, "Starting a task" and "Models, effort and helpers"); the answers
     open item 11+.
+
+25. **16:37, 16:43 and 16:45**, in the design chat, after the answers to items 11a and 11a+:
+
+    > As for jobs, didn't we agree they were  just errands, to keep it simple? Do this this and this, by this time,
+    > this is the money up front and this is the money after completion? Since almost every task can be submitted like
+    > that. Meanwhile governorship i guess must be more of offering a privelege.
+    >
+    > And every piece of information has to travel. Imagine the sun disappearing. The earth doesn't know until the last
+    > light has made its way here.
+    >
+    > And every action is possible (within the confines of what's possible for us to enable) a king may exercise as
+    > horrendous action as he wants. The consequences are not hardcoded, but follow from what that does to population
+    > contentness and charcaters incentives.
+    >
+    > And prices aren't fixed, characters negotiate them. And for wares it is supply and demand.
+    >
+    > And food can rot, no special conditions from being in a farmer's granary, it doesn't magically become resistant
+    > by that.
+    >
+    > Is it in this vain we have answered every question?
+    >
+    > Freedom to do, consequences that emerge.
+
+    > I agree with your take about armies. Governorship and commander then both become privileges.
+
+    > Yes, write all above, expertly! Have we corrected and fixed all records then, so this will be fixed in time by
+    > claude code?
+
+    Written into "The game in one page" (Overview: "Freedom to do, consequences that emerge"; prices, privileges,
+    captives; renewing is a new offer; no rule punishes a hard act), "Jobs, not wages", "Fees clear the market",
+    "Governors" and the resident envoy; the answers moved to the start of item 11b, the next item, since it brings
+    carriers and reputations.
