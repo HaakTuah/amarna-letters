@@ -67,7 +67,39 @@ seek work.
   waiting for its court, a spy carries them home itself after two seasons, and a post next to its master's land uses the
   realm's couriers.
 
-AFTER_NUMBERS
+## Benchmarks and script games
+
+**Before** (the audit, `develop`) and **after** (the review's fixes in), seeds 1-50, `scripts/sim.sh --games 50 --seed 1
+--verify-replay`: 50 of 50 replays exact. `--versus solo` (40 seeds): 2.54 / 1.09 and 71% / 14% before; 2.69 / 1.07 and
+75% / 14% after. A capital fell in 21 games before, 22 after.
+
+| Power | Wins before | Wins after | Growth before | Growth after |
+|---|---|---|---|---|
+| Egypt | 1 | 1 | 1.24 | 1.20 |
+| Hatti | 16 | 16 | 1.34 | 1.39 |
+| Babylonia | 4 | 4 | 1.34 | 1.28 |
+| Mitanni | 27 | 24 | 1.64 | 1.67 |
+| Assyria | 0 | 2 | 0.62 | 0.70 |
+| Arzawa | 2 | 3 | 1.04 | 1.02 |
+| Alashiya | 0 | 0 | 0.96 | 0.94 |
+
+**How the new features were used** (50 games, after): 793 chiefs rose from crowds, 1,502 people turned outlaw, 602
+successors and a few mutineers' and refugees' heads; kings' armies fell on bands 4,081 times; 1,340 chiefs gave up the
+road; bands robbed 719 caravans and pirates 8 ships; 188 people died of the road, plague or famine. Letters found
+carriers 1,590 times: 203 by their master's own people, 313 by passing travellers, 216 hired, 858 by the spy itself;
+97 were read by whoever caught their carrier, 26 lost. Kings bought news 92 times. Characters' gold came 23 in a hundred
+from loot ("Working for oneself": before this item it came only from lending and dealing, 8 in a hundred, beside fees
+70); news and carrying 0.4. Wake-ups of characters a season: 40.3 (37.2 before), over a pool that grows to about 100
+with the chiefs who rose (60 before), so model calls cost about the same.
+
+**How long letters wait for a carrier** (10 games, by the court where they were written, before the review's fixes):
+Egypt 1.5 seasons (6 letters), Hatti 1.4 (235), Babylonia 1.5 (69), Mitanni 1.7 (66), Assyria 1.5 (52), Arzawa 1.2
+(66); none were written at Alashiya.
+
+**Use against ignore** (`--outlaw-play-half`, the same 50 seeds, half the kings hunting bands and buying news): 22 wins to
+28, growth 1.17 to 1.16 (a run before the review's fixes gave 26 to 24, 1.13 to 1.14). Not paying yet: hunting costs an
+army men and keeps it from the front, and bought news tells the script kings only of troops. The verdict is "not yet";
+policing (item 15) and command (item 13) give the hunt its point, and the balance pass measures it again.
 
 ## The review
 
