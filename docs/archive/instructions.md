@@ -196,3 +196,17 @@ Given in the design chat with Claude, answering the design questions of the cons
     A standing instruction in `CLAUDE.md` ("as many lanes as can run in parallel"), for this game and Barkstreet
     Snakes alike.
 
+24. **16:22**, in the design chat, answering items 11a's and 11a+'s review questions, which Claude had relayed with its
+    takes:
+
+    > Agree. It seems claude code isn't quiet getting the idea. Everything has to happen through giving a message and
+    > following up on promises. A jib doesnt have to given at court, but it has to be given through a character,
+    > somewhere, and the engine only records it if it is by signed tablet. And money paid out as promised is something
+    > the king must choose to do. He can automate it, but he doesn't have to pay anything. But if a signed tablet
+    > dictated it, then it is recorded that he broke a deal. That kind of thing, you know? Doesn't it come across from
+    > the principles and all the rest. And yes, do all your recomedation, and that. Just wish claude code would
+    > understand the vision better. These kinds of question suggests it is not really getting it?
+
+    Written into the design document as "The game in one page" (Overview), which every builder reads before an item and
+    the reviewer reads with the diff (`CLAUDE.md`, "Starting a task" and "Models, effort and helpers"); the answers
+    open item 11+.

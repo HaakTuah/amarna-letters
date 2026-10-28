@@ -14,13 +14,13 @@ the live document wins. If the docs connector is not available, go on with the c
 
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
-| Overview | `docs/intent/overview/` | `320f0886-6acf` | 561 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 75 |
+| Overview | `docs/intent/overview/` | `320f0886-6acf` | 562 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 76 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 34 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 56 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 24 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 20 |
-| Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 11 |
+| Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 12 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 29 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 59 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 9 |
@@ -36,6 +36,7 @@ session loads.
 | --- | --- | --- |
 | `docs/intent/overview/front.md` | Title, status, how the document relates to the code | 2.1 |
 | `docs/intent/overview/vision-and-core-hypothesis.md` | Vision and core hypothesis | 1.4 |
+| `docs/intent/overview/the-game-in-one-page.md` | The game in one page | 2.8 |
 | `docs/intent/overview/design-pillars.md` | Design pillars | 7.4 |
 | `docs/intent/overview/prototype-scope.md` | Prototype scope | 2.8 |
 | `docs/intent/build-order/front.md` | Title and what the tab holds | 0.2 |
@@ -52,7 +53,7 @@ session loads.
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 5.7 |
 | `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 7.7 |
-| `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.4 |
+| `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 3.4 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
 | `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 2.5 |
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
@@ -89,7 +90,7 @@ session loads.
 | `docs/intent/characters/skills-names-and-knowledge.md` | Skills, names and knowledge | 17.1 |
 | `docs/intent/characters/how-scripts-and-models-play-characters.md` | How scripts and models play characters | 1.4 |
 | `docs/intent/work-money-and-lending/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/work-money-and-lending/recruitment-background-checks-and-the-open-market.md` | Recruitment, background checks and the open market | 5.5 |
+| `docs/intent/work-money-and-lending/recruitment-background-checks-and-the-open-market.md` | Recruitment, background checks and the open market | 5.9 |
 | `docs/intent/work-money-and-lending/hiring-and-jobs.md` | Hiring and jobs | 6.9 |
 | `docs/intent/work-money-and-lending/purses-and-lending.md` | Purses and lending | 11.9 |
 | `docs/intent/land-people-and-economy/front.md` | Title and what the tab holds | 0.1 |

@@ -5,10 +5,11 @@
   "overview": {
    "name": "Overview",
    "node": "320f0886-6acf",
-   "rev": 561,
+   "rev": 562,
    "files": [
     "docs/intent/overview/front.md",
     "docs/intent/overview/vision-and-core-hypothesis.md",
+    "docs/intent/overview/the-game-in-one-page.md",
     "docs/intent/overview/design-pillars.md",
     "docs/intent/overview/prototype-scope.md"
    ]
@@ -16,7 +17,7 @@
   "build-order": {
    "name": "Build order",
    "node": "f6588701-e47a",
-   "rev": 75,
+   "rev": 76,
    "files": [
     "docs/intent/build-order/front.md",
     "docs/intent/build-order/intro.md",
@@ -101,7 +102,7 @@
   "work-money-and-lending": {
    "name": "Work, money and lending",
    "node": "016f3c32-0e2b",
-   "rev": 11,
+   "rev": 12,
    "files": [
     "docs/intent/work-money-and-lending/front.md",
     "docs/intent/work-money-and-lending/recruitment-background-checks-and-the-open-market.md",
