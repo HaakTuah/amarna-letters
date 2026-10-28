@@ -1,5 +1,6 @@
 /** The non-military half of a script king, first part: strategy and treasury. */
 import { creditOrders } from "./credit.ts";
+import { buyNewsOrders } from "./outlaws.ts";
 import { peopleAcrossBorders } from "./borders.ts";
 import {
   HSet,
@@ -206,6 +207,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   peopleAcrossBorders(b, orders);
   // Credit (item 11a): borrow when hard up, repay what is due to keep its name; the gold counts as the treasury's.
   gold += creditOrders(v, p, gold, costs, v.startStrength > 0 && v.strength / v.startStrength < 0.5, orders);
+  // News of a foe from a seller at court (item 11b).
+  gold -= buyNewsOrders(v, brain, gold, orders);
   const sales = grain.sales;
   // Gold sent abroad to buy grain (item 9+b) is gone from the treasury until its caravans come home; and the tolls.
   gold -= grain.abroad;

@@ -276,6 +276,12 @@ export interface RepayOrder {
   debt: string;
   amount: number;
 }
+/** Item 11b, "Characters as sellers of news": buy the news a person at your court offers of another court, at its price. */
+export interface BuyNewsOrder {
+  type: "buyNews";
+  character: string;
+  court: Power;
+}
 export interface DismissOrder {
   type: "dismiss";
   character: string;
@@ -427,6 +433,7 @@ export type Order =
   | PayFeeOrder
   | BorrowOrder
   | RepayOrder
+  | BuyNewsOrder
   | DismissOrder
   | BackgroundCheckOrder
   | PlaceSpyOrder
@@ -490,6 +497,7 @@ export const renew = (character: string, fee: number, term = 6, advance: number 
 export const payFee = (character: string, pay = true): PayFeeOrder => ({ type: "payFee", character, pay });
 export const borrow = (character: string, amount: number, repay: number, seasons = 6): BorrowOrder => ({ type: "borrow", character, amount, repay, seasons });
 export const repay = (debt: string, amount: number): RepayOrder => ({ type: "repay", debt, amount });
+export const buyNews = (character: string, court: Power): BuyNewsOrder => ({ type: "buyNews", character, court });
 export const dismiss = (character: string): DismissOrder => ({ type: "dismiss", character });
 export const check = (character: string, spend: number): BackgroundCheckOrder => ({ type: "check", character, spend });
 export const sell = (province: string, amount: number): SellOrder => ({ type: "sell", province, amount });
@@ -598,6 +606,8 @@ export function describe(o: Order): string {
       return `borrow ${o.amount} shekels from ${o.character}, to repay ${o.repay} in ${o.seasons} seasons`;
     case "repay":
       return `repay ${o.amount} shekels on debt ${o.debt}`;
+    case "buyNews":
+      return `buy ${o.character}'s news of ${o.court}`;
     case "dismiss":
       return `dismiss ${o.character}`;
     case "check":
@@ -741,6 +751,7 @@ export const OrderSchema = poly("Order", "type", {
   payFee: v("PayFeeOrder", () => payFee(""), { character: S, pay: B }),
   borrow: v("BorrowOrder", () => borrow("", 0, 0), { character: S, amount: I, repay: I, seasons: I }),
   repay: v("RepayOrder", () => repay("", 0), { debt: S, amount: I }),
+  buyNews: v("BuyNewsOrder", () => buyNews("", "Egypt"), { character: S, court: S }),
   dismiss: v("DismissOrder", () => dismiss(""), { character: S }),
   check: v("BackgroundCheckOrder", () => check("", 0), { character: S, spend: I }),
   spy: v("PlaceSpyOrder", () => placeSpy(""), { character: S, court: S, province: S }),

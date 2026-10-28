@@ -10,7 +10,8 @@
  * travellers bring home the news of the land they crossed.
  */
 import { Dict, HSet } from "../core/collections.ts";
-import { clamp } from "../core/num.ts";
+import { clamp, idiv } from "../core/num.ts";
+import { BandData } from "../model/bands.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
 import { terrainOf } from "../model/geography.ts";
 import { seasonOfTurn, WinterSeason } from "../model/map.ts";
@@ -44,7 +45,7 @@ export const CaughtOnRoadTitle = "A traveller is caught";
 export const RoadsTitle = "Roads";
 
 /** The traveller kinds: those who walk the road themselves (word travels by itself). */
-const Walkers = new Set(["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyHomebound", "CaptiveConvoy"]);
+const Walkers = new Set(["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyHomebound", "CaptiveConvoy", "Travel"]);
 
 export const isWalker = (j: Journey): boolean => Walkers.has(j.kind);
 
@@ -94,6 +95,9 @@ export interface RoadKnowledge {
  */
 export const RiskWeight = { careful: 25, bold: 5 } as const;
 
+/** The leader's share of a season's road in percent (item 11b, a first guess): +10 at competence 100, -10 at 0. */
+export const LeaderPace = (competence: number): number => idiv(clamp(competence, 0, 100) - 50, 5);
+
 const P = TurnEngine.prototype;
 
 /** A traveller sets out: its route chosen, and when it is due. */
@@ -123,7 +127,8 @@ P.planRoute = function (j, from, to, turn) {
   const master = masterOf(j);
   const c = char(S, j.characterId!);
   // The kings it believes closed to its court: those its court heard of, and those it met on the way.
-  const closed = new HSet<Power>([...(S.roadsHeard.tryGet(master) ?? []), ...(j.sneak as Power[])]);
+  // A person on its own way is nobody's people: it sneaks round no king's land (item 11b).
+  const closed = new HSet<Power>(j.kind === "Travel" ? [] : [...(S.roadsHeard.tryGet(master) ?? []), ...(j.sneak as Power[])]);
   closed.delete(master);
   closed.delete(counterpart(j));
   const know = this.roadKnowledge(master, closed);
@@ -162,7 +167,8 @@ P.planRoute = function (j, from, to, turn) {
 
 /** Does this king stop the traveller's people passing through his land (never its own king's, nor the one it goes to)? */
 P.closedTo = function (host, j, province = null) {
-  if (host === null) return false;
+  // A person on its own way is nobody's people (item 11b): no king's closed roads turn it back.
+  if (host === null || j.kind === "Travel") return false;
   const master = masterOf(j);
   if (host === master || host === counterpart(j)) return false;
   // Passage granted on a sealed tablet lets its travellers through (item 9).
@@ -198,7 +204,10 @@ P.roadOdds = function (j, c, province, sneaking, known) {
     if ((d?.proposalTabletId ?? null) !== null || (d?.copyIds.length ?? 0) > 0 || (j.cargo?.copyIds.length ?? 0) > 0) found += RoadOdds.foundTablets;
     out.set("found", found);
   }
-  if (!prov.isSea) out.set("outlaws", prov.kingless ? RoadOdds.kingless : holder === null ? RoadOdds.free : RoadOdds.royal);
+  // The loose men of the land, and since item 11b the bands working it (at sea, the pirates off its coasts).
+  // Choosing a route, only the bands its court sees count.
+  const bands = known === null || known.seen.has(province) ? this.bandOdds(province) : 0;
+  if (!prov.isSea || bands > 0) out.set("outlaws", (prov.isSea ? 0 : prov.kingless ? RoadOdds.kingless : holder === null ? RoadOdds.free : RoadOdds.royal) + bands);
   if (prov.isSea) out.set("nature", season === WinterSeason ? RoadOdds.winterStorm : RoadOdds.storm);
   else if (terrainOf(province) === "Desert") out.set("nature", RoadOdds.desert);
   // A snowbound pass on its way, at either end of it.
@@ -216,11 +225,14 @@ P.roadOdds = function (j, c, province, sneaking, known) {
 /** Each season, before arrivals: every traveller on the road advances, and meets the road check. */
 P.travel = function () {
   const S = this.s;
+  // Item 11b: letters waiting abroad find carriers setting out, then go with them.
+  this.carryLetters();
   for (const j of sortBy(
     S.journeys.filter((x) => isWalker(x) && x.route.length > 0 && x.departTurn < S.turn),
     [(x: Journey) => idNumber(x.id), cmpNum],
   ))
     if (S.journeys.includes(j)) this.travelOne(j);
+  this.lettersGo();
 };
 
 P.travelOne = function (j) {
@@ -236,7 +248,9 @@ P.travelOne = function (j) {
   const spend = (prov: string, pts: number): void => {
     if (pts > 0) spent.set(prov, spent.getOrDefault(prov, 0) + pts);
   };
-  let budget = S.config.travelDays * PointsPerDay;
+  // The leader's skill (item 11b, "What sets a company's pace"): a seasoned traveller makes up to a tenth more road a
+  // season, a poor one a tenth less; a captive's guards are ordinary men.
+  let budget = convoy(j) ? S.config.travelDays * PointsPerDay : idiv(S.config.travelDays * PointsPerDay * (100 + LeaderPace(c.traits.competence)), 100);
   let turnedAt: string | null = null;
   while (budget > 0 && j.leg < j.route.length - 1) {
     const a = j.route[j.leg];
@@ -280,7 +294,7 @@ P.travelOne = function (j) {
   }
 
   // The road check: one province of the stretch, by the share of the season spent in each.
-  if (c.status === "Employed" || (convoy(j) && c.status === "Captured" && c.duty === "UnderGuard")) {
+  if (c.status === "Employed" || (j.kind === "Travel" && c.status === "Free") || (convoy(j) && c.status === "Captured" && c.duty === "UnderGuard")) {
     const rng = this.r("road", j.id);
     const total = [...spent.values()].reduce((x, y) => x + y, 0);
     let pick = rng.next(total);
@@ -351,6 +365,26 @@ P.stopped = function (j, c, province, stop) {
   }
   const gold = j.dispatch?.gold ?? j.cargo?.gold ?? 0;
   if (stop === "outlaws") {
+    // Item 11b: what it carries and its own purse go to whoever robbed it, a band or the loose men; a band may kill it.
+    const purse = c.purse;
+    c.purse = 0;
+    c.earned.spent += purse;
+    const band = this.robbedBy(province, gold + purse);
+    if (band !== null && this.r("road-kill", j.id).chance(BandData.killPercent / 100)) {
+      if (j.dispatch !== null) j.dispatch.gold = 0;
+      if (j.cargo !== null) j.cargo.gold = 0;
+      S.journeys.splice(S.journeys.indexOf(j), 1);
+      this.trail(j.dispatch?.trailId ?? j.cargo?.trailId ?? null)?.outcomes.push(`killed by outlaws in ${name}`);
+      this.dies(c, province, "at the hands of outlaws on the road");
+      if (j.kind !== "Travel") this.overdue(masterOf(j), c, counterpart(j), outbound(j) ? j.arriveTurn + this.travelTurns(counterpart(j), masterOf(j)) : j.arriveTurn, null);
+      return;
+    }
+    if (j.kind === "Travel") {
+      remember(c, S.turn, `Outlaws robbed me in ${name}` + (purse > 0 ? ` of the ${formatMoney(purse)} I carried.` : "."));
+      logEvent(S, "travel", `Outlaws robbed ${c.name} in ${name}${purse > 0 ? ` of ${formatMoney(purse)}` : ""}.`, [], "road-outlaws");
+      j.arriveTurn = Math.max(j.arriveTurn, S.turn + 1);
+      return;
+    }
     remember(c, S.turn, `Outlaws robbed me in ${name}` + (gold > 0 ? ` of the ${formatMoney(gold)} of gold I carried.` : "."));
     logEvent(S, "travel", `Outlaws robbed ${c.name}, of ${masterOf(j)}, in ${name}${gold > 0 ? `, of ${formatMoney(gold)} of gold` : ""}.`, [], "road-outlaws");
     this.trail(j.dispatch?.trailId ?? j.cargo?.trailId ?? null)?.outcomes.push(`robbed by outlaws in ${name}` + (gold > 0 ? ` of ${formatMoney(gold)}` : ""));
@@ -367,6 +401,7 @@ P.stopped = function (j, c, province, stop) {
     this.turnBack(j, c, j.route[j.leg], `outlaws robbed ${c.name} in ${name}` + (gold > 0 ? ` of the ${formatMoney(gold)} of gold carried` : "") + ", and the errand was given up", 0);
     return;
   }
+  if (j.kind === "Travel") return;
   const what = Map.get(province).isSea ? "storms at sea" : terrainOf(province) === "Desert" ? "the desert, where supplies ran out" : "the weather";
   remember(c, S.turn, `I turned back in ${name}: ${what}.`);
   logEvent(S, "travel", `${c.name}, of ${masterOf(j)}, turned back in ${name}: ${what}.`, [], "road-nature");

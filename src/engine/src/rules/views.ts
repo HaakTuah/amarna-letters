@@ -1,4 +1,5 @@
 /** What each court sees: the seat view, sight, the walls it knows, and how it sees each person and tablet. */
+import { newsOffered } from "./news.ts";
 import { Dict, HSet } from "../core/collections.ts";
 import { idiv } from "../core/num.ts";
 import { cmpBool, cmpNum, desc, groupBy, sortBy, sum } from "../core/seq.ts";
@@ -19,6 +20,8 @@ import { caravanAt } from "../model/caravans.ts";
 import { grantStands, newGrantView } from "../model/authority.ts";
 import {
   newCharacterView,
+  newNewsOffer,
+  newBandSeen,
   newDebtView,
   newLotView,
   newSeatView,
@@ -236,6 +239,10 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
     fallen: isAlive(s, p) ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x)) : [...s.eliminated],
+    // Item 11b: the bands it sees, in its sight and in its own land (its people tell of them).
+    bands: s.bands
+      .filter((b) => seen.has(b.province) || s.owner.getOrDefault(b.province, null) === p)
+      .map((b) => newBandSeen({ province: b.province, men: b.men, chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "", ship: b.ship })),
     inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
     lastSeason: [...(s.lastSeen.tryGet(p) ?? [])],
   });
@@ -496,6 +503,8 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     owed: c.owed.getOrDefault(viewer, 0) > 0 ? c.owed.get(viewer) : null,
     // Item 11a: one standing at your court, free to deal, who offers to lend you gold.
     lends: c.lendOffer !== null && c.at === viewer && c.heldBy === null && c.status !== "Dead" && !hiddenAt(c, viewer) && c.lendOffer.amount > 0 ? c.lendOffer : null,
+    // Item 11b: the news of other courts they offer you, standing at your court.
+    news: hiddenAt(c, viewer) ? [] : newsOffered(s, c, viewer).map((n) => newNewsOffer({ court: n.court, turn: n.turn, lines: n.lines.length, price: n.price })),
   });
 }
 
@@ -654,6 +663,8 @@ function dutyText(c: Character): string {
       return `watching ${c.missionTarget ?? c.watchProvince ?? ""}`;
     case "Travelling":
       return "travelling on their own way";
+    case "Leading":
+      return `leading a band in ${c.watchProvince ?? ""}`;
   }
 }
 

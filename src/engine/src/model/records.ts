@@ -52,7 +52,18 @@ export interface Journey {
   turnedBack: string | null;
   /** It gave up its errand on the road and comes home without having reached where it was sent. */
   gaveUp: boolean;
+  /**
+   * Item 11b ("Messengers are errands"): a letter from abroad (a spy's report) waits where it was written, in the province
+   * {@link waitAt}, until someone carries it: then `carrier` is the carrier's journey, and it arrives when he does. The
+   * rest of a hired carrier's fee, `fee`, is paid by the court it goes to on delivery.
+   */
+  waitAt: string | null;
+  carrier: string | null;
+  fee: number;
 }
+
+/** The arrival of a letter still waiting for its carrier (item 11b): never, until one takes it. */
+export const Waiting = 1_000_000;
 
 export function newJourney(init: Partial<Journey> = {}): Journey {
   return {
@@ -79,6 +90,9 @@ export function newJourney(init: Partial<Journey> = {}): Journey {
     asName: null,
     turnedBack: null,
     gaveUp: false,
+    waitAt: null,
+    carrier: null,
+    fee: 0,
     ...init,
   };
 }
@@ -107,6 +121,9 @@ export const JourneySchema: ObjSchema<Journey> = obj("Journey", newJourney, {
   asName: opt(S),
   turnedBack: opt(S),
   gaveUp: B,
+  waitAt: opt(S),
+  carrier: opt(S),
+  fee: I,
 });
 
 /** What a leader hands an envoy: the spoken message, the mandate, and what it carries. */

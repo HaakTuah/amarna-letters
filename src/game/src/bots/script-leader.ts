@@ -5,6 +5,7 @@
  * sees exactly what any seat sees: the SeatView. The same bot stands in for a model seat whenever a model call fails,
  * playing in that king's character.
  */
+import { huntBands } from "./outlaws.ts";
 import {
   AllPowers,
   Dict,
@@ -82,6 +83,8 @@ export class ScriptLeader implements ISeat {
     Tactics.besiege(board, brain, plan);
     // Guests by passage move on, or they overstay and take a friend's land (item 9).
     keepMoving(board, plan);
+    // Armies to spare march on the bands that rob our land (item 11b).
+    huntBands(board, plan);
     const sallies = Tactics.sallies(board, plan.orders.values(), brain);
     for (const order of plan.orders.values()) {
       if (order.type !== "move") continue;

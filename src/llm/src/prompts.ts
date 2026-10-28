@@ -536,6 +536,7 @@ export function person(c: CharacterView): string
         if (c.term.length > 0) parts.push(c.term);
         if (c.owed !== null) parts.push(`you let ${c.owed} shekels of their fee fall due unpaid`);
         if (c.lends !== null) parts.push(`offers to lend you up to ${c.lends.amount} shekels, asking ${c.lends.perHundred} in a hundred more back after ${c.lends.seasons} seasons`);
+        for (const n of c.news) parts.push(`offers news of ${n.court} as they saw it in turn ${n.turn} (${n.lines} ${n.lines === 1 ? "report" : "reports"}) for ${n.price} shekels (order buy_news)`);
         if (c.knownFacts.length > 0) parts.push(`known: ` + joinS(` `, c.knownFacts));
         if (c.pitch !== null) parts.push(`pitch: "${c.pitch}"`);
         if (c.askingPrice !== null) parts.push(`asks ${c.askingPrice} a season of a job's term`);

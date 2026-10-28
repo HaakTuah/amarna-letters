@@ -4,7 +4,7 @@
  * come through doors"); above it, none. Each newcomer is data first ("Who they are"): his land and door, why he came, what
  * he carries, his tongue, a name from his land's attested names (or invented in its style, and marked so), and a backstory
  * that may say anything beyond the map and only what happened on it. Arrivals draw from their own stream, so every seed
- * keeps its characters. Heads rising from the crowd come with the bands of item 11b.
+ * keeps its characters. Heads rising from the crowd are in bands.ts (item 11b).
  */
 import { clamp } from "../core/num.ts";
 import type { Rng } from "../core/rng.ts";
@@ -24,6 +24,7 @@ import { TurnEngine } from "./core.ts";
 declare module "./core.ts" {
   interface TurnEngine {
     newcomers(): void;
+    /** A newcomer at a door, put on the map. */
     newcomer(rng: Rng, door: Door): Character;
   }
 }
@@ -54,7 +55,6 @@ P.newcomers = function () {
   if (!rng.chance(arrivalChance(S.baseline, living) / 100)) return;
   const door = weighted(rng, Doors, (d) => d.share);
   const c = this.newcomer(rng, door);
-  S.characters.push(c);
   logEvent(S, "newcomer", `${c.name} came onto the map through ${door.name}.`, [], "newcomer");
 };
 
@@ -112,6 +112,7 @@ P.newcomer = function (rng, door) {
   drawSkills(S.seed, c);
   chooseStrategy(c);
   c.persona = personaTemplate(c);
+  S.characters.push(c);
   const holder = S.owner.getOrDefault(doorAt, null);
   if (holder !== null && isAlive(S, holder)) {
     c.at = holder;
@@ -121,8 +122,8 @@ P.newcomer = function (rng, door) {
   // The nearest living court, by travel from the door.
   const courts = sortBy(alive(S), [(p: Power) => this.travelTurnsBetween(doorAt, this.map.capital(p).id), cmpNum], [(p: Power) => AllPowers.indexOf(p), cmpNum]);
   const to = courts[0];
-  const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: to, to, characterId: c.id, seen: [doorAt], reached: [S.turn] });
-  j.arriveTurn = S.turn + Math.max(1, this.travelTurnsBetween(doorAt, this.map.capital(to).id));
+  const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: to, to, characterId: c.id });
+  this.setOut(j, doorAt, this.map.capital(to).id);
   S.journeys.push(j);
   c.duty = "Travelling";
   return c;

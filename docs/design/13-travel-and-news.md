@@ -17,7 +17,7 @@ of the old round report). Save version 11. Why, what it cost and what was found:
   ferry, four more in the river's flood season: the Euphrates and the Tigris in Shemu; `Rivers[].flood`), winter (since item
   9 a mountain pass takes twice as long in Peret, `TravelData.winterPassPercent`; nothing closes), and sneaking (off the road on land, half as long again).
   The terms whose systems do not exist yet are in the function and neutral (100%): size and load (9+), water and fodder
-  (10+), the leader (11b), roads (15); an army's size and forced marches come with distance-based marching (13).
+  (10+), the leader (11b: `LeaderPace` on the season's road), roads (15); an army's size and forced marches come with distance-based marching (13).
 - **Progress carries over**: a traveller makes `GameConfig.travelDays` (45, a first guess) days of road a season, 450
   points, and keeps what it has made on the connection it is on (`Journey.leg`, `Journey.along`). 45 days was chosen so
   most journeys between capitals keep today's 1 or 2 seasons (the rest of a 120-day season goes on halts, audiences and
@@ -34,8 +34,8 @@ of the old round report). Save version 11. Why, what it cost and what was found:
   border (winter closes no connection since item 9). Model characters' own choice of route comes with item 11b (reading in the report).
 - **Word** (`wordSeasons`, `TurnEngine.travelTurns`): reports, rumours, overdue notices, ransoms and word of the world
   (`JourneyKind` "Word": roads closed or opened, a kingdom's fall) go by the fastest road, in whole seasons, at least
-  one (an island's in winter too, since item 9). They are never stopped: the engine carries them until
-  item 11b ("Messengers are errands").
+  one (an island's in winter too, since item 9). They are never stopped. Since item 11b a spy's report from abroad
+  needs a carrier, and free travellers walk the road ([roads and reputations](23-roads-and-reputations.md)).
 
 ### The road check
 

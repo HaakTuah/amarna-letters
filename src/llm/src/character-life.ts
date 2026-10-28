@@ -13,7 +13,7 @@ import { Sb } from "./text.ts";
 export function lifeText(v: LifeView): string {
   const sb = new Sb();
   sb.appendLine(`It is season ${v.turn}. This season you decide for yourself, as nobody's servant in this: where to be, what to do with your gold, and whom to deal with.`);
-  sb.appendLine(`The age: ${v.ending} Gold lent is repaid only if the borrower lives and chooses to; a debt dies with a fallen kingdom.`);
+  sb.appendLine(`The age: ${v.ending} Gold lent is repaid only if the borrower lives and chooses to; a debt dies with a fallen kingdom. Idrimi of Alalakh is a legend already: a king's son who fled, lived seven years among the Habiru, and came back to take a city.`);
   sb.appendLine(
     v.at === null
       ? "You are on the road."
@@ -37,7 +37,7 @@ export function lifeText(v: LifeView): string {
   sb.appendLine("The courts as you know them (seasons of travel from here; when each last asked for candidates; how far its promises to pay are kept; grain at its market, 100 the usual price; what you would ask it a season):");
   for (const k of v.courts)
     sb.appendLine(
-      `- ${k.court}: ${k.travel === 0 ? "here" : `${k.travel} seasons away`}; ${k.hiring === null ? "not hiring" : `asked for candidates in season ${k.hiring}`}; promises kept ${k.kept}, broken ${k.broken} (people count on ${k.trust} in a hundred); ${k.executions > 0 ? `${k.executions} executions said of it; ` : ""}grain ${k.grain}; growth ${k.growth} in a hundred${k.besieged ? "; its capital is besieged" : ""}; you would ask ${k.ask}.`,
+      `- ${k.court}: ${k.travel === 0 ? "here" : `${k.travel} seasons away`}; ${k.hiring === null ? "not hiring" : `asked for candidates in season ${k.hiring}`}; promises kept ${k.kept}, broken ${k.broken} (people count on ${k.trust} in a hundred); ${k.executions > 0 ? `you heard it put ${k.executions} to death; ` : ""}${k.lost > 0 ? `you heard ${k.lost} of its people were caught or put to death abroad; ` : ""}grain ${k.grain}; growth ${k.growth} in a hundred${k.besieged ? "; its capital is besieged" : ""}; you would ask ${k.ask}.`,
     );
   if (v.here.length > 0) {
     sb.appendLine("Others here (id: name, standing, their record of paying what they promised):");
@@ -57,6 +57,10 @@ export function lifeText(v: LifeView): string {
       sb.appendLine(`- ${a.id} from ${a.fromName}: ${parts.join("; ") || "words only"}${a.words !== "" ? `. Says: "${a.words}"` : ""}`);
     }
   }
+  if (v.free && v.crowds.length > 0)
+    sb.appendLine(
+      `Loose men you could gather into a band of your own, turning outlaw: ${v.crowds.map((x) => `${x.name} (${x.province}), some ${Math.round(x.loose / 100) * 100}${x.band > 0 ? `, where bands of ${x.band} men already work` : ""}`).join("; ")}. A band robs the land and the roads, and keeps only as many men as its takings pay and feed; the land's armies hunt it. Your share is yours, and the hidden fact that you rode with the Habiru goes with you.`,
+    );
   sb.appendLine(
     "Choose for yourself. Everything you leave as it is stays as it is, except an offer to lend, which you name anew each time you decide. Gold you give away or lend leaves your purse; weigh what it buys you, and when, against what you may lose. Words bind nobody; gold and tablets move only when both sides agree, at once.",
   );
@@ -94,6 +98,8 @@ export function lifeSchema(v: LifeView): ReplySchema {
   if (!v.free && v.employer !== null) f.push(["quit", z.boolean().describe("True to leave your master's service now, before the job is done (it is recorded, and others hear of it).")]);
   if (v.errand !== null && v.at === v.errand.home) f.push(["hand_over", z.boolean().describe("Back with your employer: true to hand over what you collected; false to keep it.")]);
   if (v.owes.length > 0) f.push(["repay", z.array(z.string()).describe("Debts you owe that you repay in full now, by tablet id, to holders standing here.")]);
+  if (v.free && v.crowds.length > 0)
+    f.push(["take_to_hills", z.enum(["", ...v.crowds.map((x) => x.province)] as [string, ...string[]]).describe("A province whose loose men you gather into a band of your own, turning outlaw (others hear of it), or empty.")]);
   return object(...f);
 }
 
@@ -129,6 +135,7 @@ export function lifeOf(o: JsonObject, v: LifeView): LifeChoice {
     quit: o.quit === true,
     deliver: o.hand_over !== false,
     repay: L_(o, "repay"),
+    outlaw: v.crowds.some((x) => x.province === S_(o, "take_to_hills")) ? S_(o, "take_to_hills") : null,
   });
 }
 

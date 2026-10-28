@@ -281,7 +281,37 @@ export interface CharacterView {
   owed: number | null;
   /** Item 11a: what they offer to lend you, if they stand at your court and would ("Lending to kings"). */
   lends: LendOffer | null;
+  /** Item 11b: the news of other courts they offer you, if they stand at your court (order buy_news). */
+  news: NewsOffer[];
 }
+
+/** Item 11b: a band a court sees: where it works, how many men, its chief's name, and whether it has a ship. */
+export interface BandSeen {
+  province: string;
+  men: number;
+  chief: string;
+  ship: boolean;
+}
+
+export function newBandSeen(init: Partial<BandSeen> = {}): BandSeen {
+  return { province: "", men: 0, chief: "", ship: false, ...init };
+}
+
+export const BandSeenSchema: ObjSchema<BandSeen> = obj("BandSeen", newBandSeen, { province: S, men: I, chief: S, ship: B });
+
+/** Item 11b: news a person at your court offers of another court: as of when, how many reports, and its price. */
+export interface NewsOffer {
+  court: string;
+  turn: number;
+  lines: number;
+  price: number;
+}
+
+export function newNewsOffer(init: Partial<NewsOffer> = {}): NewsOffer {
+  return { court: "", turn: 0, lines: 0, price: 0, ...init };
+}
+
+export const NewsOfferSchema: ObjSchema<NewsOffer> = obj("NewsOffer", newNewsOffer, { court: S, turn: I, lines: I, price: I });
 
 export function newCharacterView(init: Partial<CharacterView> = {}): CharacterView {
   return {
@@ -312,6 +342,7 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     ransomDemand: null,
     owed: null,
     lends: null,
+    news: [],
     ...init,
   };
 }
@@ -344,6 +375,7 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   ransomDemand: opt(I),
   owed: opt(I),
   lends: () => LendOfferSchema,
+  news: list(() => NewsOfferSchema),
 });
 
 /** Item 11a: a debt of the seat's own, as its tablet reads: whom it owes, what is left, and whether the holder stands at its court. */
@@ -565,6 +597,8 @@ export interface SeatView {
   units: UnitView[];
   visible: string[];
   fallen: Power[];
+  /** Item 11b: the bands it sees: in its sight, and in its own land. */
+  bands: BandSeen[];
   court: CharacterView[];
   known: CharacterView[];
   tablets: TabletView[];
@@ -675,6 +709,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     units: [],
     visible: [],
     fallen: [],
+    bands: [],
     court: [],
     known: [],
     tablets: [],
@@ -745,6 +780,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   units: list(() => UnitViewSchema),
   visible: list(S),
   fallen: list(S),
+  bands: list(() => BandSeenSchema),
   court: list(() => CharacterViewSchema),
   known: list(() => CharacterViewSchema),
   tablets: list(() => TabletViewSchema),
