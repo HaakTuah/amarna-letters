@@ -1,7 +1,6 @@
 import { describe, test } from "vitest";
 import {
   BandData,
-  LetterData,
   selfWait,
   TurnEngine,
   Waiting,
