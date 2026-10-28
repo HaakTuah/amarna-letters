@@ -63,7 +63,7 @@ declare module "./core.ts" {
     caravansTravel(): void;
     caravanCompany(c: Caravan): Company;
     caravanRoute(p: Power, from: string, to: string): string[] | null;
-    caravanArrives(c: Caravan): void;
+    caravanArrives(c: Caravan, traded?: string[] | null): void;
     settleMarkets(orders: [Power, Order][]): void;
     cityPrice(province: string): number;
     landWorth(p: Power): number;
@@ -424,6 +424,7 @@ P.caravansTravel = function () {
   const book: TollBook = new Dict();
   const what = (c: Caravan): string => [c.grain > 0 || c.gold <= 0 ? `${c.grain} measures of grain` : "", c.gold > 0 ? formatMoney(c.gold) : ""].filter((x) => x !== "").join(" and ");
   const noun = (c: Caravan): string => (c.ship !== null ? "ship" : "caravan");
+  const arrivals: Caravan[] = [];
   for (const c of sortBy([...S.caravans], [(c: Caravan) => c.id, cmpStr])) {
     if (!isAlive(S, c.power)) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
@@ -534,8 +535,13 @@ P.caravansTravel = function () {
         continue;
       }
     }
-    if (arrived) this.caravanArrives(c);
+    if (arrived) arrivals.push(c);
   }
+  // Those that reached a market to trade trade there together, whoever came first (item 10+b); then each goes on.
+  const traded = new Map<string, string[]>();
+  const traders = arrivals.filter((c) => !c.returning && c.trade);
+  for (const at of [...new Set(traders.map((c) => caravanAt(c)))].sort(cmpStr)) this.tradeTogether(traders.filter((c) => caravanAt(c) === at), traded);
+  for (const c of arrivals) this.caravanArrives(c, traded.get(c.id) ?? []);
   this.tellTolls(book);
 };
 
@@ -545,7 +551,7 @@ P.caravansTravel = function () {
  * king's and open to it (a besieged city takes in nothing by land, and by sea only while its waters are open). Whatever
  * it still carries, and a ship always, goes home again; one coming home unloads there.
  */
-P.caravanArrives = function (c) {
+P.caravanArrives = function (c, traded = null) {
   const S = this.s;
   if (c.returning) {
     this.caravanHome(c);
@@ -553,9 +559,10 @@ P.caravanArrives = function (c) {
   }
   const at = caravanAt(c);
   const name = this.map.get(at).name;
-  const parts: string[] = [];
-  if (c.trade) this.tradeAtMarket(c, parts);
-  else {
+  const parts: string[] = traded !== null ? [...traded] : [];
+  if (c.trade) {
+    if (traded === null) this.tradeAtMarket(c, parts);
+  } else {
     const besieged = siegeOf(S, at) !== null;
     const open = !besieged || (c.ship !== null && openToSea(this, at));
     if (open)

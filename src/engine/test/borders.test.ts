@@ -20,6 +20,7 @@ import {
   claimOf,
   newMindReply,
   newMindRequest,
+  newCaravan,
   newGame,
   newGameConfig,
   newSiege,
@@ -235,6 +236,25 @@ describe("BordersTests", () => {
     Assert.equal([90, 20, 47], [c.claimed!.gather, c.claimed!.stealth, c.claimed!.forge]);
     e.fulfil(req, newMindReply({ text: "I serve well.", number: 20 }));
     Assert.equal(claimOf(c), c.claimed);
+  });
+
+  test("Caravans at one market in the same season meet the same price, whichever the engine settles first", () => {
+    const run = (first: Power): [number, number, number, number] => {
+      const s = quiet();
+      const e = new TurnEngine(s);
+      s.markets.get("carchemish").stock = 600;
+      const a = newCaravan({ id: first === "Hatti" ? "v1" : "v2", power: "Hatti", from: "hattusa", to: "carchemish", route: ["carchemish"], gold: 200, trade: true });
+      const b = newCaravan({ id: first === "Hatti" ? "v2" : "v1", power: "Egypt", from: "memphis", to: "carchemish", route: ["carchemish"], gold: 200, trade: true });
+      e.tradeTogether(first === "Hatti" ? [a, b] : [b, a], new globalThis.Map());
+      return [a.grain, a.gold, b.grain, b.gold];
+    };
+    const one = run("Hatti");
+    const two = run("Egypt");
+    // Each bought the same for the same gold, within a measure or a shekel of rounding, in either order.
+    Assert.equal(one[0], one[2], 1);
+    Assert.equal(one[1], one[3], 1);
+    Assert.equal(one[0], two[0], 1);
+    Assert.true(one[0] > 0);
   });
 
   test("A court knows a far market and the tolls on its goods only as its traders bring word home", () => {

@@ -41,6 +41,7 @@ declare module "./core.ts" {
     shipRoute(from: string, to: string): string[] | null;
     atBorder(c: Caravan, a: string, b: string, book: TollBook): AtBorder;
     tradeAtMarket(c: Caravan, parts: string[]): void;
+    tradeTogether(cs: Caravan[], parts: Map<string, string[]>): void;
     caravanHome(c: Caravan): void;
     rejoinFleet(c: Caravan): string | null;
     sendTraders(orders: [Power, Order][], tell: (p: Power, line: string) => void): void;
@@ -172,44 +173,82 @@ P.atBorder = function (c, a, b, book) {
  * ("Stores and mouths are the clock", Haakon's answer of 28 October 2026).
  */
 P.tradeAtMarket = function (c, parts) {
+  this.tradeTogether([c], new Map([[c.id, parts]]));
+};
+
+/**
+ * The caravans and ships that reach one market in the same season trade there together (item 10+b, "The order of
+ * resolution never decides"): their grain is sold along the curve as one lot and their gold buys as one purse, so every
+ * seller and buyer meets the same falling or rising price, and each takes its share in proportion to what it brought.
+ */
+P.tradeTogether = function (cs, parts) {
   const S = this.s;
-  const at = caravanAt(c);
+  const at = caravanAt(cs[0]);
   const besieged = siegeOf(S, at) !== null;
-  if (besieged && (c.ship === null || !openToSea(this, at))) {
-    parts.push(c.ship === null ? "found the city besieged and its market shut" : "found the harbour blockaded by the besieger's ships");
-    return;
-  }
+  const say = (c: Caravan, line: string): void => {
+    let l = parts.get(c.id);
+    if (l === undefined) parts.set(c.id, (l = []));
+    l.push(line);
+  };
+  const open = cs.filter((c) => {
+    if (!besieged || (c.ship !== null && openToSea(this, at))) return true;
+    say(c, c.ship === null ? "found the city besieged and its market shut" : "found the harbour blockaded by the besieger's ships");
+    return false;
+  });
+  if (open.length === 0) return;
   const m = this.market(at);
   const normal = needOf(this.map.get(at));
-  noteMarket(c.word, at, this.marketNow(at));
-  // The proceeds of the sale go home; only the gold it brought buys grain.
-  let proceeds = 0;
-  if (c.grain > 0) {
-    const r = sellAlongCurve(m.stock, normal, m.purse, c.grain);
-    m.stock += r.taken;
-    m.purse -= r.paid;
-    c.grain -= r.taken;
-    c.gold += r.paid;
-    proceeds = r.paid;
-    if (r.taken > 0) parts.push(`sold ${r.taken} measures of grain for ${formatMoney(r.paid)}`);
-    if (c.grain > 0) parts.push(`its people's purse could pay for no more (${c.grain} unsold)`);
-    if (r.taken > 0) logEvent(S, "sale-abroad", `${c.power} sold grain at ${this.map.get(at).name}${besieged ? ", besieged" : ""}.`, [c.power], besieged ? "besieged-fed" : "sale-abroad");
-  }
-  const spend = besieged ? 0 : c.gold - proceeds;
-  if (spend > 0) {
-    const room = c.ship !== null ? Math.max(0, TradeData.shipCapacity - c.grain) : m.stock;
-    const r = buyAlongCurve(m.stock, normal, spend, room);
-    m.stock -= r.taken;
-    m.purse += r.paid;
-    c.gold -= r.paid;
-    c.grain += r.taken;
-    if (r.taken > 0) {
-      parts.push(`bought ${r.taken} measures of grain for ${formatMoney(r.paid)}`);
-      logEvent(S, "purchase-abroad", `${c.power} bought grain at ${this.map.get(at).name}.`, [c.power], "purchase-abroad");
-    }
-  }
-  // What it found after its trades, which it carries home.
-  noteMarket(c.word, at, this.marketNow(at));
+  const name = this.map.get(at).name;
+  for (const c of open) noteMarket(c.word, at, this.marketNow(at));
+  /** Shares of a whole in proportion to weights, the remainder one by one to the first in order. */
+  const shares = (whole: number, weights: number[]): number[] => {
+    const total = weights.reduce((a, b) => a + b, 0);
+    if (total <= 0) return weights.map(() => 0);
+    const out = weights.map((w) => idiv(whole * w, total));
+    let left = whole - out.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < out.length && left > 0; i++)
+      if (weights[i] > 0) {
+        out[i]++;
+        left--;
+      }
+    return out;
+  };
+  // The sellers' grain, as one lot: the proceeds go home; only the gold each brought buys grain.
+  const grain = open.map((c) => c.grain);
+  const sold = sellAlongCurve(m.stock, normal, m.purse, grain.reduce((a, b) => a + b, 0));
+  m.stock += sold.taken;
+  m.purse -= sold.paid;
+  const taken = shares(sold.taken, grain);
+  const paid = shares(sold.paid, grain);
+  open.forEach((c, i) => {
+    if (grain[i] <= 0) return;
+    c.grain -= taken[i];
+    c.gold += paid[i];
+    if (taken[i] > 0) say(c, `sold ${taken[i]} measures of grain for ${formatMoney(paid[i])}`);
+    if (c.grain > 0) say(c, `its people's purse could pay for no more (${c.grain} unsold)`);
+    if (taken[i] > 0) logEvent(S, "sale-abroad", `${c.power} sold grain at ${name}${besieged ? ", besieged" : ""}.`, [c.power], besieged ? "besieged-fed" : "sale-abroad");
+  });
+  // The buyers' gold, as one purse, each buying no more than it can carry.
+  const spend = open.map((c, i) => (besieged ? 0 : c.gold - paid[i]));
+  const room = open.map((c, i) => (spend[i] <= 0 ? 0 : c.ship !== null ? Math.max(0, TradeData.shipCapacity - c.grain) : m.stock));
+  const bought = buyAlongCurve(m.stock, normal, spend.reduce((a, b) => a + b, 0), Math.min(m.stock, room.reduce((a, b) => a + b, 0)));
+  m.stock -= bought.taken;
+  m.purse += bought.paid;
+  const got = shares(bought.taken, spend).map((x, i) => Math.min(x, room[i]));
+  // What a capped share could not hold stays in the market, unpaid for.
+  const left = bought.taken - got.reduce((a, b) => a + b, 0);
+  m.stock += left;
+  const cost = shares(bought.paid - (left > 0 && bought.taken > 0 ? idiv(bought.paid * left, bought.taken) : 0), spend);
+  m.purse -= bought.paid - cost.reduce((a, b) => a + b, 0);
+  open.forEach((c, i) => {
+    if (got[i] <= 0) return;
+    c.gold -= cost[i];
+    c.grain += got[i];
+    say(c, `bought ${got[i]} measures of grain for ${formatMoney(cost[i])}`);
+    logEvent(S, "purchase-abroad", `${c.power} bought grain at ${name}.`, [c.power], "purchase-abroad");
+  });
+  // What each found after the season's trades, which it carries home.
+  for (const c of open) noteMarket(c.word, at, this.marketNow(at));
 };
 
 /**
