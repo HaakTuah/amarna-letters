@@ -20,6 +20,8 @@ import "./winter.ts";
 import "./authority.ts";
 import "./economy.ts";
 import "./trade.ts";
+import "./names.ts";
+import "./knowledge.ts";
 
 export { TurnEngine, idNumber, travelTurns, absorbedIn, BackPayTitle, KingdomFallsTitle } from "./core.ts";
 export { removeAll } from "./resolve.ts";

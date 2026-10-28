@@ -166,7 +166,7 @@ describe("FeatureAuditTests", () => {
     s.turn = 4;
     let forger = firstOf(s.characters, (c) => c.employer === "Hatti");
     let held = firstOf(s.characters, (c) => c.status === "Free");
-    notify(s, "Hatti", "Rejected", "Forgery botched", `${forger.name} lacks the skill; the clay is ruined and nothing usable came of it.`, forger.id);
+    notify(s, "Hatti", "Rejected", "Forgery botched", `${forger.name} said they could not fake a seal; the clay is ruined and nothing usable came of it.`, forger.id);
     notify(
       s,
       "Hatti",

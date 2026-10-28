@@ -62,6 +62,8 @@ export class TurnEngine {
   /** The units that moved this season (item 9: a guest passing through, not staying). */
   readonly _movedNow = new HSet<string>();
   /** The scheduled and standing orders running this season, per seat, to tell their failures from the seat's fresh ones. */
+  /** Item 10: the spies told this season to steal a tablet from the archive they watch. */
+  readonly _stealing = new Set<string>();
   readonly _scheduledNow = new Dict<Power, Order[]>();
   /** Of those, the ones from standing orders that fired, with the standing order's id. */
   readonly _standingNow = new Dict<Power, [Order, string][]>();
@@ -433,6 +435,11 @@ export class TurnEngine {
           break;
         case "Rumor": {
           if (!isAlive(S, j.to)) break;
+          // Talk of what a character was seen to do (item 10): it goes into the court's records, not its inbox.
+          if (j.news === "Name") {
+            this.nameHeard(j);
+            break;
+          }
           if (j.taskId !== null && !this.demandArrives(j)) break;
           // Word that a servant has not returned, to a court that no longer believes anything of it
           // (it heard of a death, dismissed the servant, or saw it seeking service): nothing to tell.

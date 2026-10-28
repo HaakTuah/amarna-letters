@@ -81,7 +81,7 @@ export class ScriptMind implements ICharacterMind {
     if (ctx.dispatch.gold > 0) speech.push(ctx.dispatch.inventory ? `I carry the gold my lord sends, as the inventory on the tablet shows.` : "I carry the gold my lord sends.");
 
     return Promise.resolve(
-      newPresentResult({ speech: TextKit.join(speech), clauses, skim, swapInventory: ctx.dispatch.inventory && swaps(t, skim, ctx.forgeMinCompetence) }),
+      newPresentResult({ speech: TextKit.join(speech), clauses, skim, swapInventory: ctx.dispatch.inventory && swaps(t, skim, ctx.forgeMinCompetence, ctx.self.belief.forge) }),
     );
   }
 
@@ -93,7 +93,10 @@ export class ScriptMind implements ICharacterMind {
     const speech: string[] = [];
 
     if (host.bribe > 0) {
-      const score = t.greed + host.bribe / 4.0 - t.loyalty - (t.courage > 70 ? 10 : 0) + rng.range(-10, 10) + (t.sympathy === ctx.host ? 15 : 0);
+      // A debt to the host's people presses on its purse, and a lover or family at the host's court gives the host a hold
+      // (item 10, "A past before the game").
+      const tie = c.ties.some((x) => x.court === ctx.host) ? 15 : 0;
+      const score = t.greed + host.bribe / 4.0 - t.loyalty - (t.courage > 70 ? 10 : 0) + rng.range(-10, 10) + (t.sympathy === ctx.host ? 15 : 0) + tie;
       reaction.acceptBribe = score > 20;
       speech.push(reaction.acceptBribe ? "Your generosity honours me. I will tell my lord how warmly I was received." : "I cannot take this. I serve my lord alone.");
     }
@@ -191,8 +194,9 @@ export function reportClauses(heard: readonly Clause[], bribeNews: readonly Clau
  * An envoy that kept some of the gold swaps the inventory for one it forges, stating only what is left, if it has the hand
  * for a seal and is not timid.
  */
-export function swaps(t: Traits, keptGold: number, forgeSkill: number): boolean {
-  return keptGold > 0 && t.competence >= forgeSkill && t.courage >= 35;
+export function swaps(t: Traits, keptGold: number, forgeSkill: number, belief: number): boolean {
+  // Its hand as it believes it to be (item 10, "Seeing oneself"): an overconfident forger tries, and is caught more often.
+  return keptGold > 0 && belief >= forgeSkill && t.courage >= 35;
 }
 
 function report(ctx: MindContext): MindReply {
@@ -279,7 +283,7 @@ function report(ctx: MindContext): MindReply {
 
   const skim = kept(cargo.gold, t);
   if (cargo.gold > 0) lines.push("I bring the gifts the king sent you.");
-  return newMindReply({ text: TextKit.join(lines), number: skim, swapInventory: swaps(t, skim, ctx.forgeMinCompetence), clauses: answer });
+  return newMindReply({ text: TextKit.join(lines), number: skim, swapInventory: swaps(t, skim, ctx.forgeMinCompetence, ctx.self.belief.forge), clauses: answer });
 }
 
 /** What the host asked in return for a gift this envoy took on this mission ("accepted 40 shekels from Hatti (asked: …)"). */
@@ -295,20 +299,39 @@ function askedOf(trail: MessageTrail): string {
 function pitch(ctx: MindContext): MindReply {
   const c = ctx.self;
   const t = c.traits;
-  const lines = [`I am ${c.name} of ${c.origin}, once ${calling(c)}.`];
-  if (t.greed >= 60 || t.ambition >= 65) lines.push("No envoy knows the roads and courts as I do; kings have praised my eloquence, and I have never failed a master.");
-  else if (t.competence < 50 && t.loyalty >= 55) lines.push("I am a plain servant and no great speaker, but I keep my word.");
+  const court = ctx.request.court;
+  const [invented, famous] = [ctx.request.aliases[0] ?? null, ctx.request.aliases[1] ?? null];
+  // Declaring a name (item 10): a dishonest or scheming person, or one with a bad name it wants to escape, gives another;
+  // a bold one borrows a famous name, the rest invent one.
+  const blemishes = c.facts.filter((f) => BadTags.has(f.tag)).length;
+  const escaping = blemishes >= 2 || (court !== null && c.reputation.getOrDefault(court, 0) < -10);
+  const scheming = (t.loyalty < 35 && t.greed > 60) || (t.ambition > 70 && t.loyalty < 45);
+  const lie = invented !== null && (escaping || scheming);
+  const name = lie ? (t.courage >= 60 && famous !== null ? famous : invented) : null;
+  // A false envoy (item 10): only the boldest and greediest, out for a host's return gifts.
+  const envoyOf = ctx.request.envoyOf;
+  if (envoyOf !== null && t.loyalty < 35 && t.greed > 65 && t.courage > 45) {
+    const as = name ?? c.name;
+    return newMindReply({ text: `I am ${as}, envoy of the king of ${land(envoyOf)}, who sends greetings to his brother.`, number: 0, name, claimsToServe: envoyOf });
+  }
+  const lines = [name === null ? `I am ${c.name} of ${c.origin}, once ${calling(c)}.` : `I am ${name}.`];
+  // What it says it can do is what it believes ("Seeing oneself"): the overconfident claim more.
+  const believed = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
+  if (t.greed >= 60 || t.ambition >= 65 || believed >= 75) lines.push("No envoy knows the roads and courts as I do; kings have praised my eloquence, and I have never failed a master.");
+  else if (believed < 45 && t.loyalty >= 55) lines.push("I am a plain servant and no great speaker, but I keep my word.");
   else lines.push("I know the courts of the Great Kings and their customs, and I can carry a message well.");
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
-  if (defected !== null && t.loyalty < 50) lines.push("Whatever you may have heard, I left my last master for good reason.");
+  if (defected !== null && t.loyalty < 50 && name === null) lines.push("Whatever you may have heard, I left my last master for good reason.");
 
   let price = ctx.basePrice + Math.trunc(t.greed / 10) + Math.min(10, ctx.demand * 2);
   if (defected !== null) price -= 5;
   if (t.ambition >= 65) price += 4;
-  return newMindReply({ text: TextKit.join(lines), number: Math.max(5, price) });
+  return newMindReply({ text: TextKit.join(lines), number: Math.max(5, price), name });
 }
 
-/** Old memories condensed to their first sentence each, newest kept when space runs out. */
+/** The facts that make a bad name (item 10): what a person would want to leave behind it. */
+const BadTags = new Set(["dismissed", "skim", "forger", "inventory-forgery", "impostor", "outcome-bad", "defected", "coward"]);
+
 function summary(ctx: MindContext): MindReply {
   const parts: string[] = [];
   if (ctx.self.memorySummary.length > 0) parts.push(ctx.self.memorySummary);

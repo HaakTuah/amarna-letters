@@ -26,7 +26,7 @@ import {
   newUnit,
   single,
 } from "@amarna/engine";
-import { removeAll, Assert } from "./support.ts";
+import { removeAll, Assert, skilled } from "./support.ts";
 
 // <summary>Tablets are objects in a place: archives at the capital, copied by spies, taken with the capital.</summary>
 describe("ArchiveTests", () => {
@@ -59,7 +59,7 @@ describe("ArchiveTests", () => {
     let s = newGame(seed, newGameConfig({ catastropheChance: 0 }));
     let spy = first(s.characters, (c) => c.employer === "Babylonia");
     spy.secretMaster = null;
-    spy.traits.competence = 100;
+    skilled(spy, 100);
     [spy.duty, spy.at, spy.missionTarget] = ["SpyPosted", "Assyria", "Assyria"];
     return [s, spy];
   }
@@ -135,7 +135,7 @@ describe("ArchiveTests", () => {
     // Skill is the chance: a spy of no skill never copies.
     let [s2, clumsy] = spyAtAssyria();
     sealed(s2, "t900", "Assyria", "Hatti", 1, "A treaty.");
-    clumsy.traits.competence = 0;
+    skilled(clumsy, 0);
     advance(s2, 6);
     Assert.doesNotContain("Babylonia", holdersOf(s2, "t900"));
   });
@@ -153,7 +153,7 @@ describe("ArchiveTests", () => {
     return [s, capital, from];
   }
 
-  test("Whoever takes a capital gains copies of its archive and its king keeps his own", () => {
+  test("Whoever takes a capital carries off its archive, and its king no longer holds it (item 10)", () => {
     let [s, capital, from] = babyloniaNextToAshur();
     sealed(s, "t900", "Assyria", "Hatti", 1, "Assyria and Hatti swear peace.");
     sealed(s, "t901", "Assyria", "Babylonia", 1, "Assyria and Babylonia swear peace.");
@@ -169,8 +169,9 @@ describe("ArchiveTests", () => {
     // What it held already it does not gain twice; what Assyria never held is not in its archive.
     Assert.single(s.copies, (k) => k.holder === "Babylonia" && k.tabletId === "t901");
     Assert.doesNotContain("Babylonia", holdersOf(s, "t902"));
-    // Assyria keeps its own copies; no other court gains any.
-    Assert.equal(["Assyria", "Hatti", "Babylonia"], holdersOf(s, "t900"));
+    // Assyria's archive is carried off: it holds none of its tablets now (item 10); no other court gains any.
+    Assert.equal(["Hatti", "Babylonia"], holdersOf(s, "t900"));
+    Assert.doesNotContain(s.copies, (k) => k.holder === "Assyria");
 
     let notice = single(inboxOf(s, "Babylonia"), (i) => i.title === ArchiveTakenTitle);
     Assert.equal(
@@ -206,7 +207,7 @@ describe("ArchiveTests", () => {
     Assert.equal("Egypt", s.owner.get(capital));
     Assert.single(s.copies, (k) => k.holder === "Egypt" && k.tabletId === "t900");
     Assert.single(inboxOf(s, "Egypt"), (i) => i.title === ArchiveTakenTitle);
-    Assert.single(s.copies, (k) => k.holder === "Assyria" && k.tabletId === "t900");
+    Assert.doesNotContain(s.copies, (k) => k.holder === "Assyria" && k.tabletId === "t900");
   });
 
   test("An empty archive is said to be empty", () => {

@@ -17,6 +17,8 @@ import { OrderValidator } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { removeAll } from "./resolve.ts";
 import { idNumber, TurnEngine } from "./core.ts";
+import { learn } from "../rules/skills.ts";
+import { StealRisk } from "./knowledge.ts";
 
 /** How long a court talks of a servant it put to death: the season of the death and this many after. */
 export const LossNewsSeasons = 3;
@@ -78,6 +80,10 @@ P.resolveIntelligence = function (orders) {
         break;
       case "forge":
         this.forge(p, o);
+        break;
+      case "steal":
+        // Taken out of the archive during the season's watch (watchAndReport), at a greater risk of being caught.
+        this._stealing.add(o.character);
         break;
       case "payRansom":
         this.payRansom(p, o);
@@ -162,6 +168,12 @@ P.spyComesHome = function (j) {
   // Dismissed on the way: free at the court it came back to. Taken into another court's service: it is there already.
   const free = c.status === "Free";
   if (!free && (c.status !== "Employed" || c.employer !== j.to)) return;
+  // What its master saw: a spy home from a post it watched unseen, or one that gave up on the road (item 10).
+  if (!free && j.gaveUp) this.outcome(c, j.to, `Turned back on the road to a post (season ${S.turn}).`, false);
+  else if (!free && c.turnsAbroad >= 2) {
+    const post = c.missionTarget !== null ? `the court of ${land(c.missionTarget)}` : c.watchProvince !== null ? this.map.get(c.watchProvince).name : "a post";
+    this.outcome(c, j.to, `Watched ${post} unseen for ${c.turnsAbroad} seasons and came home (season ${S.turn}).`, true);
+  }
   c.duty = "None";
   c.at = j.to;
   c.missionTarget = null;
@@ -186,8 +198,11 @@ P.watchAndReport = function () {
     // A fallen court has nobody left to catch a spy, nor to decide its fate.
     if (host !== null && host !== employer && c.secretMaster !== host && isAlive(S, host)) {
       const watch = S.counterIntel.getOrDefault(host, 0);
-      const p = clamp(0.05 + watch / 300.0 - c.traits.competence / 400.0, 0.02, 0.6);
-      if (rng.chance(p)) {
+      const risk = this._stealing.has(c.id) ? StealRisk : 0;
+      const caughtAt = (skill: number): number => clamp(0.05 + watch / 300.0 - skill / 400.0 + risk, 0.02, 0.6 + risk);
+      const caught = rng.chance(caughtAt(c.skills.stealth));
+      learn(c, "stealth", !caught, (b) => 1 - caughtAt(b));
+      if (caught) {
         this.capture(c, host, rng);
         continue;
       }
@@ -212,7 +227,14 @@ P.watchAndReport = function () {
       report.observations = report.observations.slice(0, 1);
     }
     // A spy at a living court copies from its archive; one turned by that court sends home only what it is told.
-    else if (c.missionTarget !== null && isAlive(S, c.missionTarget)) report.tabletIds = this.copyFromArchive(c, c.missionTarget, employer);
+    else if (c.missionTarget !== null && isAlive(S, c.missionTarget)) {
+      // Item 10: a tablet stolen this season goes home with the report; its court has lost it, so it is not copied too.
+      if (this._stealing.has(c.id)) {
+        const stolen = this.stealFromArchive(c, c.missionTarget, employer);
+        if (stolen !== null) report.stolenIds = [stolen];
+      }
+      report.tabletIds = this.copyFromArchive(c, c.missionTarget, employer);
+    }
     const from = c.missionTarget !== null ? Map.capital(c.missionTarget).id : (c.watchProvince ?? Map.capital(employer).id);
     S.journeys.push(
       newJourney({
@@ -233,7 +255,7 @@ P.spyObserve = function (c, rng) {
   const S = this.s;
   const Map = this.map;
   const obs: string[] = [];
-  const skill = c.traits.competence / 100.0;
+  const skill = c.skills.gather / 100.0;
   if (c.missionTarget !== null) {
     const court = c.missionTarget;
     const landHeld = new HSet(ownedBy(S, court));
@@ -340,10 +362,13 @@ P.capture = function (c, host, rng) {
   const employer = c.employer!;
   // Its master goes on seeing it at its post until word comes.
   this.coverFor(c, employer, "SpyPosted");
+  const post = c.missionTarget !== null ? `the court of ${land(c.missionTarget)}` : c.watchProvince !== null ? this.map.get(c.watchProvince).name : "a post";
   c.status = "Captured";
   c.heldBy = host;
   c.duty = "None";
   c.at = host;
+  this.meet(c, host);
+  this.outcome(c, host, `Was caught spying at ${post} (season ${S.turn}).`, false);
   const confesses = c.traits.courage < 50 || rng.chance(0.4);
   remember(c, S.turn, `I was caught spying in ${land(host)}.` + (confesses ? ` I told them I serve ${land(employer)}.` : " I did not say whom I serve."));
   notify(
@@ -430,6 +455,12 @@ P.captive = function (host, co) {
     }
     case "Release":
       this.releaseCaptive(host, c);
+      break;
+    case "Question":
+      this.questionCaptive(host, c, co);
+      break;
+    case "HandOver":
+      this.handOver(host, c, co.to!);
       break;
   }
 };
@@ -604,9 +635,10 @@ P.finishAuthentication = function (task) {
 P.forge = function (p, f) {
   const S = this.s;
   const c = char(S, f.character);
-  if (c.traits.competence < S.config.forgeMinCompetence) {
+  // The servant tries only if it believes its hand can fake a seal; a king learns that only by asking (item 10).
+  if (c.belief.forge < S.config.forgeMinCompetence) {
     // A failed order like any other, though the clay is still paid for.
-    this.failed(p, f, "Forgery botched", `${c.name} lacks the skill; the clay is ruined and nothing usable came of it.`, "the forger lacked the skill", false, c.id);
+    this.failed(p, f, "Forgery botched", `${c.name} said they could not fake a seal; the clay is ruined and nothing usable came of it.`, "the forger lacked the skill", false, c.id);
     this.pay(p, S.config.forgeFee, "spoiled clay");
     return;
   }
@@ -635,7 +667,7 @@ P.forge = function (p, f) {
     forged: true,
     forgerId: c.id,
     forgerEmployer: p,
-    forgerSkill: c.traits.competence,
+    forgerSkill: c.skills.forge,
   });
   S.tablets.push(tablet);
   S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: tablet.id, holder: p, acquiredTurn: S.turn, source: `made by ${c.name}` }));

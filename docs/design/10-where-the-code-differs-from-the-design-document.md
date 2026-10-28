@@ -36,7 +36,8 @@ The design document records intent; these notes record what is built. Where they
 - **Who holds each province is public at once.** The document's "Hidden by default" has news of distant provinces,
   including who holds them, arrive late. In the code every seat sees every province's owner the season it changes,
   and the standings line is computed from it.
-- **Tablets have a place, but are only copied.** As the document says, a tablet lies in a court's archive at its
+- **Tablets have a place, but are only copied** (until item 10, which built stealing and a capital's archive carried
+  off: see `18-characters-who-they-are.md`). As the document says, a tablet lies in a court's archive at its
   capital, a spy copies it there, and whoever takes the capital takes its archive (see "Tablets lie in archives" under
   Communication). The design document also has a spy steal a tablet, and a conqueror seize the archive; in
   the code both only copy, so no court ever loses a tablet. Unreadable tablets, a tablet sent to a third court to be

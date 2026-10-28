@@ -40,7 +40,7 @@ import {
   single,
   sum,
 } from "@amarna/engine";
-import { fresh, removeAll, Assert, firstOrNull, singleOrNull } from "./support.ts";
+import { fresh, removeAll, Assert, firstOrNull, singleOrNull, skilled } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
 // News of a court's people abroad reaches it only by rumour or when they return: a servant who is held,
@@ -81,6 +81,8 @@ describe("CoverTests", () => {
   function atAudience(): [GameState, Character] {
     let s = newGame(5);
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
+    // Enough in Alashiya's treasury to pay a defector's wage every season (item 10's attested envoys are paid by their own competence).
+    s.treasuries.get("Alashiya").gold += 1000;
     envoy.secretMaster = null;
     let e = begin(s);
     e.resolve(orders("Egypt", dispatch(envoy.id, "Alashiya", "Hello.")));
@@ -235,7 +237,7 @@ describe("CoverTests", () => {
         let s = newGame(seed);
         let c = first(s.characters, (x) => x.employer === "Babylonia");
         c.secretMaster = null;
-        c.traits.competence = 10;
+        skilled(c, 10);
         s.treasuries.get(host).gold = 100000;
         s.treasuries.get("Babylonia").gold = 100000;
         return s;
@@ -475,7 +477,7 @@ describe("CoverTests", () => {
     Assert.doesNotContain(v.known, (c) => c.id === defector.id);
 
     // Caught by Egypt's watchmen, it is in Egypt's hands: the cover ends, and Egypt sees its captive.
-    defector.traits.competence = 0;
+    skilled(defector, 0);
     s.treasuries.get("Egypt").gold = 100000;
     for (let i = 0; i < 30 && defector.status !== "Captured"; i++) {
       new TurnEngine(s).resolve(orders("Egypt", counterIntel(200)));

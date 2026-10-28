@@ -7,12 +7,15 @@ import { StartGold, StartUnits, StartWalls, WorldMap } from "../model/map.ts";
 import { carriedOf, needOf, startPurseOf, startStoresOf } from "../model/economy.ts";
 import { newMarket } from "../model/caravans.ts";
 import { StartClaims } from "../model/recognition.ts";
-import { newCharacter, newContract, newFact, newTraits, type Character, type Secrecy } from "../model/people.ts";
+import { clamp } from "../core/num.ts";
+import { newCharacter, newContract, newFact, newTie, newTraits, type Character, type Secrecy } from "../model/people.ts";
 import { AllPowers, adjective, land, type Power } from "../model/power.ts";
 import { newTreasury, newGameState, newUnit, logEvent, newId, type GameState } from "../model/state.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
+import { AttestedCast, FirstCores, NubianCast, NubiansAttested, Styles, type CastSeed, type Core } from "./cast.ts";
+import { drawSkills } from "./skills.ts";
 
 export function newGame(seed: number, config: GameConfig | null = null, map: WorldMap | null = null): GameState {
   const m = map ?? WorldMap.default;
@@ -91,7 +94,11 @@ const Styled: Seed[] = [
 const Callings = ["merchant", "temple scribe", "charioteer", "interpreter", "physician", "caravan master", "palace steward", "priest of Shamash", "soldier", "copper trader"];
 
 const Lapses = ["theft", "drunkenness", "insolence to a prince", "losing a royal gift"];
-const Lovers = ["Ugarit", "Byblos", "Babylon", "Memphis", "Hattusa"];
+// Where a lover is kept: at a court, so that the tie has a court to draw the character and to hold it (item 10).
+const Lovers: Power[] = ["Mitanni", "Alashiya", "Babylonia", "Egypt", "Hatti"];
+
+/** The first pool, whose draws every seed keeps (item 10 adds the rest from a stream of its own). */
+export const FirstPool = 18;
 
 /**
  * Seeds the small pool of envoys and spies: data first (traits, discrete facts with secrecy levels), personality second (a
@@ -101,7 +108,8 @@ export function populate(s: GameState): void {
   const rng = Rng.for(s.seed, 0, "characters");
   const attested = rng.shuffle(Attested);
   const styled = rng.shuffle(Styled);
-  let pool = [...attested.slice(0, Math.min(7, Math.trunc(s.config.characterPoolSize / 2))), ...styled].slice(0, s.config.characterPoolSize);
+  const first = Math.min(FirstPool, s.config.characterPoolSize);
+  let pool = [...attested.slice(0, Math.min(7, Math.trunc(first / 2))), ...styled].slice(0, first);
   pool = rng.shuffle(pool);
 
   const employers: Power[] = AllPowers.flatMap((p) => range(0, s.config.startEnvoysPerPower).map(() => p));
@@ -111,6 +119,7 @@ export function populate(s: GameState): void {
 
   for (const sd of pool) {
     const c = create(s, rng, sd);
+    finish(s, c, FirstCores.get(sd.name) ?? null, sd.attested);
     if (employers.length > 0) {
       const p = employers.shift()!;
       c.status = "Employed";
@@ -132,22 +141,85 @@ export function populate(s: GameState): void {
     } else {
       c.status = "Free";
       c.at = rng.pick(AllPowers);
+      // A free person with a lover or family at a court lives there (item 10: the tie draws it).
+      const drawn = c.ties.find((t) => t.kind !== "Debt");
+      if (drawn !== undefined) c.at = drawn.court;
     }
+    c.met = c.at !== null ? [c.at] : [];
+    c.persona = personaTemplate(c);
+    s.characters.push(c);
+  }
+  more(s, attested.slice(Math.min(7, Math.trunc(first / 2))));
+}
+
+/**
+ * Item 10's larger pool ("How many characters": about 60): the attested people of the dossier, the Nubians in Egypt's
+ * service, and ordinary people in their regions' name styles, drawn from a stream of their own so that every seed keeps
+ * its first eighteen. Mostly ordinary people, few excellent ones ("Enough people, not enough good ones"): an ordinary
+ * person's competence is the lower of two draws. All are free, each at the court of its region.
+ */
+function more(s: GameState, unused: Seed[]): void {
+  const extra = s.config.characterPoolSize - FirstPool;
+  if (extra <= 0) return;
+  const rng = Rng.for(s.seed, 0, "characters-more");
+  const known: CastSeed[] = [
+    ...unused.map((u) => ({ name: u.name, origin: u.origin, court: courtOf(u.origin), calling: "royal envoy", core: FirstCores.get(u.name) ?? null, nubian: false })),
+    ...AttestedCast,
+    ...NubianCast,
+  ];
+  const styled: CastSeed[] = rng.shuffle(
+    Styles.flatMap((st) => st.names.map((name, i) => ({ name, origin: st.origins[i % st.origins.length], court: st.court, calling: st.callings[i % st.callings.length], core: null, nubian: false }))),
+  );
+  const cast = [...known, ...styled].slice(0, extra);
+  for (const sd of cast) {
+    const attested = (known.includes(sd) && !sd.nubian) || NubiansAttested.has(sd.name);
+    const c = create(s, rng, { name: sd.name, origin: sd.origin, attested }, sd.calling, attested ? null : Math.min(rng.range(15, 95), rng.range(15, 95)));
+    if (sd.nubian) c.facts.push(newFact({ id: newId(s, "f"), text: "A Nubian in Egypt's service, who speaks a Nubian tongue as well as Egyptian.", secrecy: "Public", tag: "nubian" }));
+    finish(s, c, sd.core, attested);
+    c.status = "Free";
+    // A Nubian in Egypt's service stands at Pharaoh's court; anyone else lives where a lover or family draws it, if anywhere.
+    c.at = sd.nubian ? sd.court : (c.ties.find((t) => t.kind !== "Debt")?.court ?? sd.court);
+    c.met = [c.at];
     c.persona = personaTemplate(c);
     s.characters.push(c);
   }
 }
 
-function create(s: GameState, rng: Rng, sd: Seed): Character {
+/** The court of a first-pool origin, for an attested envoy left over from the first draw. */
+function courtOf(origin: string): Power {
+  return origin === "Thebes" || origin === "Memphis" || origin === "Byblos" ? "Egypt" : origin === "Harran" || origin === "Washukanni" || origin === "Taidu" ? "Mitanni" : "Egypt";
+}
+
+/**
+ * What item 10 adds to every character, each from a stream of its own so that no other draw changes: an attested person's
+ * traits moved to what the sources say (within about 10 points either way), its skills and inclination, and the ties its
+ * seeded facts stand for.
+ */
+function finish(s: GameState, c: Character, core: Core | null, attested: boolean): void {
+  c.attested = attested;
+  if (core !== null) {
+    const rng = Rng.for(s.seed, 0, "attested", c.id);
+    const t = c.traits;
+    if (core.loyalty !== undefined) t.loyalty = clamp(core.loyalty + rng.range(-10, 10), 0, 100);
+    if (core.greed !== undefined) t.greed = clamp(core.greed + rng.range(-10, 10), 0, 100);
+    if (core.competence !== undefined) t.competence = clamp(core.competence + rng.range(-10, 10), 0, 100);
+    if (core.ambition !== undefined) t.ambition = clamp(core.ambition + rng.range(-10, 10), 0, 100);
+    if (core.courage !== undefined) t.courage = clamp(core.courage + rng.range(-10, 10), 0, 100);
+  }
+  drawSkills(s.seed, c);
+}
+
+function create(s: GameState, rng: Rng, sd: Seed, callingAs: string | null = null, competence: number | null = null): Character {
+  const picked = rng.pick(Callings);
   const c = newCharacter({
     id: newId(s, "c"),
     name: sd.name,
     origin: sd.origin,
-    calling: rng.pick(Callings),
+    calling: callingAs ?? picked,
     traits: newTraits({
       loyalty: rng.range(15, 95),
       greed: rng.range(5, 95),
-      competence: rng.range(20, 95),
+      competence: competence ?? rng.range(20, 95),
       ambition: rng.range(5, 95),
       courage: rng.range(10, 95),
     }),
@@ -165,13 +237,23 @@ function create(s: GameState, rng: Rng, sd: Seed): Character {
   add(`Served as ${calling(c)}.`, "Public", "calling");
   if (sd.attested) add("Known by name at more than one royal court.", "Public", "renown");
 
-  const hidden: [string, string][] = [];
-  if (c.traits.greed > 55) hidden.push([`Owes ${rng.range(2, 9) * 30} shekels to a ${adjective(rng.pick(AllPowers))} trader.`, "debt"]);
-  if (c.traits.loyalty < 45) hidden.push([`Was dismissed from a former post for ${rng.pick(Lapses)}.`, "dismissed"]);
-  if (c.traits.courage < 35) hidden.push(["Once fled from a battle and hid it.", "coward"]);
-  hidden.push([`Has a brother serving in the army of ${land(rng.pick(AllPowers))}.`, "brother"]);
-  hidden.push([`Keeps a lover in ${rng.pick(Lovers)}.`, "lover"]);
-  for (const [text, tag] of rng.shuffle(hidden).slice(0, 2)) add(text, "Hidden", tag);
+  // The life before the game (item 10): a debt, a brother or a lover each comes with a tie that has a mechanical hook.
+  const hidden: [string, string, () => void][] = [];
+  if (c.traits.greed > 55) {
+    const amount = rng.range(2, 9) * 30;
+    const to = rng.pick(AllPowers);
+    hidden.push([`Owes ${amount} shekels to a ${adjective(to)} trader.`, "debt", () => c.ties.push(newTie({ kind: "Debt", court: to, amount }))]);
+  }
+  if (c.traits.loyalty < 45) hidden.push([`Was dismissed from a former post for ${rng.pick(Lapses)}.`, "dismissed", () => {}]);
+  if (c.traits.courage < 35) hidden.push(["Once fled from a battle and hid it.", "coward", () => {}]);
+  const brother = rng.pick(AllPowers);
+  hidden.push([`Has a brother serving in the army of ${land(brother)}.`, "brother", () => c.ties.push(newTie({ kind: "Family", court: brother }))]);
+  const lover = rng.pick(Lovers);
+  hidden.push([`Keeps a lover at the court of ${land(lover)}.`, "lover", () => c.ties.push(newTie({ kind: "Lover", court: lover }))]);
+  for (const [text, tag, tie] of rng.shuffle(hidden).slice(0, 2)) {
+    add(text, "Hidden", tag);
+    tie();
+  }
 
   if (c.traits.sympathy !== null) add(`Secretly sympathizes with ${land(c.traits.sympathy)}.`, "Deep", "sympathy");
   else if (c.traits.ambition > 70) add("Dreams of ruling a city of their own one day.", "Deep", "ambition");

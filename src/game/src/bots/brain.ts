@@ -83,6 +83,11 @@ export class Brain {
   readonly thieves = new HSet<string>();
   /** Our own people whose forgery was botched: they lack the hand, so they are not asked to forge again. */
   readonly noHand = new HSet<string>();
+  /** Item 10: captives already questioned, handed over, persons at court who claimed to be envoys, and spies' last thefts. */
+  readonly questioned = new HSet<string>();
+  readonly handedOver = new HSet<string>();
+  readonly hosted = new HSet<string>();
+  readonly lastSteal = new Dict<string, number>();
   /** Captives a ransom or a turning was refused for: nobody is left to pay or to deceive. */
   readonly unclaimed = new HSet<string>();
   /** Our envoys who would not slip out of our besieged capital, and when (the siege package). */

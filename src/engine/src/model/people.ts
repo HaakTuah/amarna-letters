@@ -38,12 +38,84 @@ export const TraitsSchema: ObjSchema<Traits> = obj("Traits", newTraits, {
   sympathyStrength: I,
 });
 
+/**
+ * What the engine rolls on (item 10, "What skills cover"): gathering information, avoiding detection and capture, and making
+ * forgeries. Kings never see them ("Kings never see skills"), and the character sees them only through its belief.
+ */
+export interface Skills {
+  gather: number;
+  stealth: number;
+  forge: number;
+}
+
+export const SkillValues = ["gather", "stealth", "forge"] as const;
+export type Skill = (typeof SkillValues)[number];
+
+export function newSkills(init: Partial<Skills> = {}): Skills {
+  return { gather: 0, stealth: 0, forge: 0, ...init };
+}
+
+export const SkillsSchema: ObjSchema<Skills> = obj("Skills", newSkills, { gather: I, stealth: I, forge: I });
+
+/**
+ * A tie from the life before the game (item 10, "A past before the game"): a debt owed to a court's people, which presses
+ * on the purse and gives that court leverage; or a lover or family at a court, which draws the character there and gives
+ * that court a hold over it.
+ */
+export const TieKindValues = ["Debt", "Lover", "Family"] as const;
+export type TieKind = (typeof TieKindValues)[number];
+
+export interface Tie {
+  kind: TieKind;
+  court: Power;
+  /** For a debt: the shekels still owed. */
+  amount: number;
+}
+
+export function newTie(init: Partial<Tie> = {}): Tie {
+  return { kind: "Debt", court: "Egypt", amount: 0, ...init };
+}
+
+export const TieSchema: ObjSchema<Tie> = obj("Tie", newTie, { kind: S, court: S, amount: I });
+
+/**
+ * The name a character gave a court when it first met it (item 10, "Declaring a name"): its own, another character's
+ * (`as`), or an invented one; and for a false envoy (item 10, "Swapped tablets and false envoys"), the king it claims to
+ * serve. The court's records attach to the name given. `exposed`: the season the court saw through it.
+ */
+export interface Declared {
+  court: Power;
+  name: string;
+  as: string | null;
+  employer: Power | null;
+  turn: number;
+  exposed: number | null;
+  /** The name's standing at that court when it was given: the borrowed person's, or nothing for an invented one. */
+  rep: number;
+}
+
+export function newDeclared(init: Partial<Declared> = {}): Declared {
+  return { court: "Egypt", name: "", as: null, employer: null, turn: 0, exposed: null, rep: 0, ...init };
+}
+
+export const DeclaredSchema: ObjSchema<Declared> = obj("Declared", newDeclared, {
+  court: S,
+  name: S,
+  as: opt(S),
+  employer: opt(S),
+  turn: I,
+  exposed: opt(I),
+  rep: I,
+});
+
 export interface Fact {
   id: string;
   text: string;
   secrecy: Secrecy;
   tag: string;
   knownBy: Power[];
+  /** Item 10: the false name it went by at the court that saw this, which that court's record attaches it to; null: its own. */
+  alias: string | null;
 }
 
 export function newFact(init: Partial<Fact> = {}): Fact {
@@ -53,6 +125,7 @@ export function newFact(init: Partial<Fact> = {}): Fact {
     secrecy: "Public",
     tag: "",
     knownBy: [],
+    alias: null,
     ...init,
   };
 }
@@ -63,6 +136,7 @@ export const FactSchema: ObjSchema<Fact> = obj("Fact", newFact, {
   secrecy: S,
   tag: S,
   knownBy: list(S),
+  alias: opt(S),
 });
 
 export interface MemoryEntry {
@@ -177,6 +251,26 @@ export interface Character {
    * forfeited when it goes over to another court, cleared at its death, lost when the court's kingdom falls.
    */
   backPay: Dict<Power, number>;
+  /** Item 10: the true skills the engine rolls on. */
+  skills: Skills;
+  /**
+   * Item 10, "Seeing oneself": a hidden inclination to over- (above 0) or underestimate oneself, in skill points; and what
+   * the character believes its skills are, which moves with what happens to it.
+   */
+  inclination: number;
+  belief: Skills;
+  /** What it last said it can do, when it pitched (item 10, "Kings never see skills"); null if it never has. */
+  claimed: Skills | null;
+  /** Ties from the life before the game. */
+  ties: Tie[];
+  /** Item 10, "What servants know": the tablets that passed through its hands (sealed before it, carried, read, copied). */
+  seen: string[];
+  /** The courts that have seen it under its own name. */
+  met: Power[];
+  /** The names it declared at courts other than its own. */
+  declared: Declared[];
+  /** A real person of the period (item 10, "Attested characters"); else generated in its region's style. */
+  attested: boolean;
   // computed in C#: Status == CharacterStatus.Free
 }
 
@@ -213,6 +307,15 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     covers: [],
     formerEmployer: null,
     backPay: new Dict(),
+    skills: newSkills(),
+    inclination: 0,
+    belief: newSkills(),
+    claimed: null,
+    ties: [],
+    seen: [],
+    met: [],
+    declared: [],
+    attested: false,
     ...init,
   };
 }
@@ -249,6 +352,15 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   covers: list(() => CoverSchema),
   formerEmployer: opt(S),
   backPay: dict(I),
+  skills: () => SkillsSchema,
+  inclination: I,
+  belief: () => SkillsSchema,
+  claimed: () => SkillsSchema,
+  ties: list(() => TieSchema),
+  seen: list(S),
+  met: list(S),
+  declared: list(() => DeclaredSchema),
+  attested: B,
   isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
 });
 
@@ -403,8 +515,34 @@ export function gain(c: Character, amount: number, source: GoldSource): void {
   }
 }
 
+/** The false name a character still goes by at a court (item 10, "Declaring a name"), or null if it goes by its own there. */
+export function falseNameAt(c: Character, court: Power): Declared | null {
+  return c.declared.find((d) => d.court === court && d.exposed === null) ?? null;
+}
+
+/** The name a court knows a character by. */
+export function nameKnownAt(c: Character, court: Power): string {
+  return falseNameAt(c, court)?.name ?? c.name;
+}
+
+/** The standing of the name a court knows a character by ("A name made of outcomes"). */
+export function reputationAt(c: Character, court: Power): number {
+  const d = falseNameAt(c, court);
+  return d !== null ? d.rep + c.reputation.getOrDefault(court, 0) : c.reputation.getOrDefault(court, 0);
+}
+
+/**
+ * What a court knows of a character: its public facts and those it learned. Item 10: a court's records attach to the name it
+ * was given, so a court that knows it by a false name sees only what it learned under that name, and one that knows its
+ * true name does not see what was learned of it under a name it never heard (until that name is exposed there).
+ */
 export function factsKnownTo(c: Character, p: Power): Fact[] {
-  return c.facts.filter((f) => f.secrecy === "Public" || f.knownBy.includes(p));
+  const d = falseNameAt(c, p);
+  return c.facts.filter(
+    (f) =>
+      (f.secrecy === "Public" || f.knownBy.includes(p)) &&
+      (d !== null ? f.alias === d.name : f.alias === null || c.declared.some((x) => x.court === p && x.name === f.alias && x.exposed !== null)),
+  );
 }
 
 /** What `p` still believes of this character, if it has not heard what happened to it. */

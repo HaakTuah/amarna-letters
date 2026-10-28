@@ -5,6 +5,7 @@ import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../cor
 import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed } from "../model/outcomes.ts";
+import { newFact } from "../model/people.ts";
 import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
 import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf } from "../model/state.ts";
@@ -38,6 +39,9 @@ declare module "./core.ts" {
   }
 }
 
+/** The seasons abroad after which a servant's long years at a foreign court become part of its past (item 10). */
+export const LongAbroad = 12;
+
 const P = TurnEngine.prototype;
 
 /** Resolves the season from every seat's secret orders. Seats with no submission hold. */
@@ -54,6 +58,7 @@ P.resolveSeason = function (submissions) {
   const S = this.s;
   const validator = new OrderValidator(S, this.map);
   const valid = new Dict<Power, ValidationResult>();
+  this._stealing.clear();
   this._scheduledNow.clear();
   this._standingNow.clear();
   this._firedNow.clear();
@@ -124,6 +129,8 @@ P.resolveSeason = function (submissions) {
   // A new claim to the rank of Great King becomes established once most kings have long called its king brother (item 8).
   this.recognise();
   this.resolveIntelligence(all(any));
+  // False names seen through this season (item 10).
+  this.impostors();
   for (const [p, o] of all((o): o is RoadsOrder => o.type === "roads")) this.roads(p, o);
   // Tolls (item 9+b) stand from next season.
   for (const [p, o] of all((o): o is TollOrder => o.type === "toll")) this.setToll(p, o);
@@ -609,7 +616,12 @@ P.endOfTurn = function () {
       }),
     );
 
-  for (const c of S.characters.filter((c) => c.at !== null && c.employer !== null && c.at !== c.employer)) c.turnsAbroad++;
+  for (const c of S.characters.filter((c) => c.at !== null && c.employer !== null && c.at !== c.employer)) {
+    c.turnsAbroad++;
+    // Long years abroad become part of a character's past (item 10, "a past made in play"), known to both courts.
+    if (c.turnsAbroad === LongAbroad && c.status !== "Dead")
+      c.facts.push(newFact({ id: newId(S, "f"), text: `Spent three years and more at the court of ${land(c.at!)}.`, secrecy: "Hidden", tag: "abroad", knownBy: [c.employer!, c.at!] }));
+  }
 
   let reason: string | null = null;
   if (alive(S).length <= 1) reason = OneKingdomLeft;

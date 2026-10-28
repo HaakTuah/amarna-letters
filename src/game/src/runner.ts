@@ -411,7 +411,7 @@ export class GameRunner {
     const produce = async (req: MindRequest): Promise<MindReply> => {
       if (req.task === "CheckReport") {
         const subject = char(this.state, req.characterId);
-        return { text: await this.narrator.checkReport({ subject, court: requestFor(req), facts: req.facts, turn }, signal), number: 0, swapInventory: false, clauses: [] };
+        return { text: await this.narrator.checkReport({ subject, court: requestFor(req), facts: req.facts, turn }, signal), number: 0, swapInventory: false, clauses: [], name: null, claimsToServe: null };
       }
       return await this.minds.write(this.context(req, engine, turn), signal);
     };
@@ -422,6 +422,8 @@ export class GameRunner {
           number: 0,
           swapInventory: false,
           clauses: [],
+          name: null,
+          claimsToServe: null,
         };
       return await this.fallbackMind.write(this.context(req, engine, turn), signal);
     };

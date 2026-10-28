@@ -181,6 +181,9 @@ export function letters(b: Board, brain: Brain, orders: Order[], busy: HSet<stri
   const queue = sortBy(missions, [(m: Mission) => m.score, desc(cmpNum)], [(m: Mission) => m.to, cmpPower]);
 
   const send = (d: DispatchOrder, copy: string | null = null): void => {
+    // A person at court who says it is the envoy of the king written to (item 10): the envoy asks there whether it is.
+    const claimant = v.known.find((c) => c.claimsToServe === d.to);
+    if (claimant !== undefined) d = { ...d, checkClaim: claimant.id };
     orders.push(d);
     busy.add(d.envoy);
     sentTo.add(d.to);

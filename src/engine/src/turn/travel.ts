@@ -201,7 +201,7 @@ P.roadOdds = function (j, c, province, sneaking, known) {
     out.set("nature", out.getOrDefault("nature", 0) + RoadOdds.snow);
   // Its skill takes off up to half; at most RoadOdds.most in all.
   const total = [...out.values()].reduce((a, b) => a + b, 0);
-  const scale = (total > RoadOdds.most ? RoadOdds.most / total : 1) * (1 - (clamp(c.traits.competence, 0, 100) * RoadOdds.skillShare) / 10000);
+  const scale = (total > RoadOdds.most ? RoadOdds.most / total : 1) * (1 - (clamp(c.skills.stealth, 0, 100) * RoadOdds.skillShare) / 10000);
   for (const [k, v] of [...out.entries()]) out.set(k, v * scale);
   return out;
 };

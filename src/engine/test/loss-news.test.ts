@@ -24,7 +24,7 @@ import {
   placeSpy,
   single,
 } from "@amarna/engine";
-import { Assert, last } from "./support.ts";
+import { Assert, last, skilled } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
 // Losses abroad travel with people: a spy caught at a court, or put to death there, is the talk of that court, and other
@@ -49,7 +49,7 @@ describe("LossNewsTests", () => {
   function atHome(s: GameState, p: Power, competence: number): Character {
     let c = first(s.characters, (c) => c.employer === p && c.status === "Employed" && c.at === p && c.duty === "None");
     c.secretMaster = null;
-    c.traits.competence = competence;
+    skilled(c, competence);
     return c;
   }
 

@@ -69,7 +69,7 @@ describe("EngineTests", () => {
       WorldMap.default.landProvinces.filter((p) => p.capital),
       (p) => Assert.equal(3, wallsOf(s, p.id)),
     );
-    Assert.equal(18, s.characters.length);
+    Assert.equal(60, s.characters.length);
     Assert.all(AllPowers, (p) =>
       Assert.equal(
         2,

@@ -5,7 +5,7 @@ import { isBlank, trim } from "../core/text.ts";
 import type { AudienceRecord, AudienceRound, AudienceView, MindReply, MindRequest } from "../model/exchanges.ts";
 import { newAudienceView, newEnvoyReaction, newHostReply, newMindRequest, requestFor } from "../model/exchanges.ts";
 import type { DispatchOrder, ReleaseOrder } from "../model/orders.ts";
-import { factsKnownTo, gain, newContract, newFact, remember, type Character } from "../model/people.ts";
+import { factsKnownTo, falseNameAt, gain, nameKnownAt, newContract, newFact, remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
 import {
   SealedOutcome,
@@ -29,6 +29,7 @@ import { char, findCharacter, inboxOf, isAlive, logEvent, newGoldLot, newId, not
 import { authorityText, newAuthority } from "../model/authority.ts";
 
 import { formatMoney } from "../rules/calendar.ts";
+import { claimOf } from "../rules/skills.ts";
 import { cap, deviations, renderGreeting, stopped } from "../rules/greeting.ts";
 import { checkClauses, renderClauses } from "../rules/clauses.ts";
 import type { Clause } from "../model/clauses.ts";
@@ -57,6 +58,7 @@ export function weighedGold(a: PendingAudience, skim: number): number {
 
 declare module "./core.ts" {
   interface TurnEngine {
+    claimAnswered(court: Power, asked: Power, cargo: HomeCargo): void;
     trail(id: string | null | undefined): MessageTrail | null;
     dispatch(p: Power, d: DispatchOrder): void;
     envoyArrivesAbroad(j: Journey): void;
@@ -182,11 +184,18 @@ P.dispatch = function (p, d) {
     clauses,
     inventory,
     authority,
+    checkClaim: d.checkClaim ?? null,
   });
   if (proposal !== null) {
     const tablet = newTablet({ id: newId(S, "t"), text: proposal.text, proposedBy: p, partner: d.to, seals: [p], createdTurn: S.turn, allianceOath: proposal.allianceOath, clauses: tabletClauses });
     S.tablets.push(tablet);
     dispatch.proposalTabletId = tablet.id;
+    this.saw(c, tablet.id);
+  }
+  // What it carries passes through its hands (item 10, "What servants know").
+  for (const id of dispatch.copyIds) {
+    const k = S.copies.find((x) => x.id === id);
+    if (k !== undefined) this.saw(c, k.tabletId);
   }
 
   const outJourney = newJourney({ id: newId(S, "j"), kind: "EnvoyOutbound", departTurn: S.turn, from: p, to: d.to, characterId: c.id, dispatch });
@@ -216,7 +225,10 @@ P.dispatch = function (p, d) {
       for (const j of S.journeys) if (j.characterId === c.id && j.kind === "EnvoyOutbound") journey = j;
       this.intercept(c, p, besieged[0], true, journey!.dispatch, null, S.turn + 2 * travel);
       S.journeys.splice(S.journeys.indexOf(journey!), 1);
-    } else logEvent(S, "siege", `${c.name}, envoy of ${p}, slipped out of besieged ${Map.capital(p).name}.`, [p], "envoy-out");
+    } else {
+      logEvent(S, "siege", `${c.name}, envoy of ${p}, slipped out of besieged ${Map.capital(p).name}.`, [p], "envoy-out");
+      this.outcome(c, p, `Slipped out through the siege lines at ${Map.capital(p).name} (season ${S.turn}).`, true);
+    }
   }
 };
 
@@ -240,6 +252,7 @@ P.envoyArrivesAbroad = function (j) {
   }
   c.at = j.to;
   c.duty = "EnvoyAtCourt";
+  this.meet(c, j.to);
   const aud = newPendingAudience({ id: newId(S, "a"), envoyId: c.id, from: j.from, host: j.to, dispatch: j.dispatch! });
   S.audiences.push(aud);
   const trail = this.trail(j.dispatch!.trailId);
@@ -406,6 +419,12 @@ P.applyAudience = function (record) {
   let goldBack = 0;
   let goldBackPurity = 100;
   const cargo = newHomeCargo({ trailId: trail.id, observations: this.observe(c, host) });
+  // A claim to check (item 10): the host's court knows whom it employs, and the envoy brings home what it heard there.
+  const claimant = d.checkClaim !== null ? findCharacter(S, d.checkClaim) : null;
+  if (claimant !== null) {
+    cargo.claimChecked = claimant.id;
+    cargo.claimHeld = claimant.employer === host && claimant.status !== "Dead";
+  }
   // An envoy with its king's seal may seal one tablet of the host's own an audience (item 9).
   let sealedByHand = false;
   for (const round of record.rounds.slice(0, S.config.audienceRounds)) {
@@ -475,6 +494,8 @@ P.applyAudience = function (record) {
     const sealed = S.tablets.find((t) => t.id === pid);
     if (sealed !== undefined && sealed.sealedTurn !== null) cargo.copyIds.push(pid);
   }
+  // Every tablet sealed before it at this audience, its king's or the host's own (item 9), it saw sealed.
+  for (const t of S.tablets.filter((t) => t.sealedTurn === S.turn && (t.byHand === c.name || t.id === pid) && t.seals.includes(host))) this.saw(c, t.id);
 
   if (!detained && !defected && goldBack > 0) {
     const purity = clamp(goldBackPurity, 10, 100);
@@ -568,7 +589,7 @@ P.observe = function (c, court) {
   const Map = this.map;
   const rng = this.r("observe", c.id);
   const obs: string[] = [];
-  const skill = c.traits.competence / 100.0;
+  const skill = c.skills.gather / 100.0;
   const capital = Map.capital(court).id;
   const nearby = S.units.filter((u) => u.power === court && Map.hops(capital, u.province) <= 2);
   if (rng.chance(skill))
@@ -601,6 +622,11 @@ P.envoyArrivesHome = function (j) {
     }
   }
   this.bringNews(j, j.to, c);
+  if (j.gaveUp) this.outcome(c, j.to, `Turned back on the road to ${land(j.from)} (season ${S.turn}).`, false);
+  else if (c.status === "Employed" && c.employer === j.to) {
+    const slipped = this.capitalSiege(j.to) !== null;
+    this.outcome(c, j.to, `Carried a mission to ${land(j.from)} and came home with the answer (season ${S.turn})` + (slipped ? ", slipping in through the siege lines." : "."), true);
+  }
   c.at = j.to;
   c.duty = "None";
   c.heldBy = null;
@@ -615,6 +641,7 @@ P.envoyArrivesHome = function (j) {
     return;
   }
   if (j.turnedBack !== null) notify(S, j.to, "Notice", "On the road home", `${c.name}, coming home, was ${j.turnedBack}.`, c.id);
+  this.claimAnswered(j.to, j.from, cargo);
   for (const tid of cargo.copyIds) S.copies.push(newTabletCopy({ id: newId(S, "k"), tabletId: tid, holder: j.to, acquiredTurn: S.turn, source: "brought home by your envoy" }));
   this.mindRequests.push(newMindRequest({ id: newId(S, "r"), task: "EnvoyReport", characterId: c.id, court: j.to, trailId: cargo.trailId, cargo }));
   c.currentTrail = null;
@@ -651,6 +678,20 @@ P.letEnvoyGo = function (host, c, reply) {
   if (isAlive(S, host)) notify(S, host, "Notice", "Envoy released", `${c.name} has been allowed to leave.`, c.id);
   logEvent(S, "release", `${host} released ${c.name}.`, [host]);
   this.sendHome(c, host, newHomeCargo({ trailId: c.currentTrail ?? "", observations: this.observe(c, host), wasDetained: true }));
+};
+
+/**
+ * The answer to a claim an envoy was sent to check (item 10, "check a claim"): whether the person serves the king it went
+ * to. A false envoy who claimed to serve that king is exposed at the court that asked.
+ */
+P.claimAnswered = function (court, asked, cargo) {
+  const S = this.s;
+  const who = cargo.claimChecked !== null ? findCharacter(S, cargo.claimChecked) : null;
+  if (who === null) return;
+  const known = nameKnownAt(who, court);
+  notify(S, court, "Notice", "A claim checked", `At the court of ${land(asked)} they say that ${known} ${cargo.claimHeld ? "serves their king" : "does not serve their king"}.`, who.id);
+  const d = falseNameAt(who, court);
+  if (!cargo.claimHeld && d !== null && d.employer === asked) this.expose(who, d, `the king of ${land(asked)} says they do not serve him`);
 };
 
 /** Applies text a character or the narrator wrote for a MindRequest. */
@@ -707,8 +748,13 @@ P.fulfil = function (req, reply) {
       const court = requestFor(req);
       // A court that still believed this person away in its service now sees it seeking service: that is the news.
       removeAll(c.covers, (k) => k.for === court);
+      // The name it gives, and for a false envoy the king it claims to serve (item 10); a false envoy seeks no service.
+      this.declare(c, court, reply.name ?? null, reply.claimsToServe ?? null);
+      if (falseNameAt(c, court)?.employer != null) break;
       c.pitches.set(court, text);
       c.askingPrice.set(court, clamp(reply.number, 5, 400));
+      // What it says it can do, from what it believes (item 10, "Kings never see skills").
+      c.claimed = claimOf(c);
       notify(S, court, "Candidates", `${c.name} seeks service`, `${text}\n[${c.name} asks ${formatMoney(c.askingPrice.get(court))} a season.]`, c.id);
       break;
     }

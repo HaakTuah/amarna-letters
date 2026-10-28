@@ -8,6 +8,10 @@ import {
   besiege,
   buy,
   captive,
+  question,
+  handOver,
+  steal,
+  giftTo,
   cede,
   check,
   clamp,
@@ -286,6 +290,7 @@ export function letters(o: JsonObject): Order[] {
         copies: copies.length > 0 ? copies : null,
         clauses: clausesOf(l, "clauses"),
         noInventory: B(l, "no_inventory"),
+        checkClaim: S(l, "check_claim") || null,
         authority:
           B(l, "carry_seal") || B(l, "show_credentials")
             ? newAuthority({
@@ -428,6 +433,16 @@ function other(x: Node): Order | null {
       return captive(person, "Turn", 0, S(x, "text"));
     case "captive_release":
       return captive(person, "Release");
+    case "captive_question":
+      return question(person, amount);
+    case "captive_hand_over": {
+      const to = P(S(x, "power"));
+      return to === null ? unreadable(`hand the captive ${person} over`, "name the king to hand them over to") : handOver(person, to);
+    }
+    case "steal_tablet":
+      return steal(person);
+    case "give_gift":
+      return giftTo(person, amount);
     case "release_detained":
       return release(person, S(x, "text"));
     case "pay_ransom":
@@ -492,7 +507,8 @@ export const react = (o: JsonObject): EnvoyReaction =>
 
 export const reportOf = (o: JsonObject): MindReply => newMindReply({ text: S(o, "report"), number: Math.max(0, I(o, "keep_gold")), swapInventory: B(o, "swap_inventory") });
 
-export const pitchOf = (o: JsonObject): MindReply => newMindReply({ text: S(o, "pitch"), number: Math.max(1, I(o, "asking_price")) });
+export const pitchOf = (o: JsonObject, envoyOf: Power | null = null): MindReply =>
+  newMindReply({ text: S(o, "pitch"), number: Math.max(1, I(o, "asking_price")), name: S(o, "name") || null, claimsToServe: envoyOf !== null && B(o, "envoy_of") ? envoyOf : null });
 
 export const fieldOf = (o: JsonObject, key: string): string => S(o, key);
 

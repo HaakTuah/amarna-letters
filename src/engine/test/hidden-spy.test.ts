@@ -31,7 +31,7 @@ import {
   serialize,
   single,
 } from "@amarna/engine";
-import { fresh, Assert, last } from "./support.ts";
+import { fresh, Assert, last, skilled } from "./support.ts";
 import { captive as captiveOrder } from "@amarna/engine";
 
 // A spy watches a court in secret: the court does not see it there, nor whom it serves, until its watchmen catch it
@@ -81,7 +81,7 @@ describe("HiddenSpyTests", () => {
 
   // <summary>Assyria pays its watchmen well until they catch the spy, as the engine catches one (TurnEngine.Capture).</summary>
   function doCatch(s: GameState, spy: Character): void {
-    spy.traits.competence = 0;
+    skilled(spy, 0);
     s.treasuries.get("Assyria").gold = 100000;
     for (let i = 0; i < 30 && spy.status !== "Captured"; i++) {
       new TurnEngine(s).resolve(orders("Assyria", counterIntel(200)));
@@ -205,7 +205,7 @@ describe("HiddenSpyTests", () => {
 
   test("A hidden spy is not paid back pay the court owes it and its books show none", () => {
     let [s, spy] = posted();
-    spy.traits.competence = 100;
+    skilled(spy, 100);
     // Back pay from an earlier service at this court, which it would be paid if it stood there in the open.
     spy.backPay.set("Assyria", 30);
     let v = Views.for(s, "Assyria");

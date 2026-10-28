@@ -26,7 +26,7 @@ import {
   newTurnSubmission,
   single,
 } from "@amarna/engine";
-import { Assert, last, toDict } from "./support.ts";
+import { Assert, last, toDict, skilled } from "./support.ts";
 
 // <summary>Inventory tablets, and an envoy who skimmed swapping the inventory for a forgery stating less.</summary>
 describe("InventoryTests", () => {
@@ -35,7 +35,7 @@ describe("InventoryTests", () => {
     let s = newGame(5, newGameConfig({ catastropheChance: 0 }));
     let envoy = first(s.characters, (c) => c.employer === "Egypt");
     envoy.secretMaster = null;
-    envoy.traits.competence = competence;
+    skilled(envoy, competence);
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(new Dict([["Egypt", newTurnSubmission({ orders: [dispatch(envoy.id, "Alashiya", "Greetings, brother.", { gold: 100 })] })]]));
@@ -219,7 +219,8 @@ describe("InventoryTests", () => {
       envoy.facts,
       (f) => f.tag === "forger" && f.secrecy === "Public" && f.text === "Exposed as the forger of an inventory of gold bearing the seal of Egypt.",
     );
-    Assert.all(AllPowers, (p) => Assert.equal(standing.get(p) - 30, envoy.reputation.getOrDefault(p, 0)));
+    // Every court thinks 30 less of it; since item 10 its mission done, which some courts heard of meanwhile, adds back a little.
+    Assert.all(AllPowers, (p) => Assert.inRange(envoy.reputation.getOrDefault(p, 0) - standing.get(p), -30, -30 + 10));
     let rumour = `The scribes of Alashiya declare that the inventory of gold bearing the seal of Egypt, brought by ${envoy.name}, envoy of Egypt, was forged by ${envoy.name}.`;
     Assert.contains(s.journeys, (j) => j.kind === "Rumor" && j.to === "Egypt" && j.text === rumour);
     Assert.doesNotContain(s.journeys, (j) => j.kind === "Rumor" && j.to === "Alashiya" && j.text === rumour);
