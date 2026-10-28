@@ -144,15 +144,43 @@ In the scripts: the strategy fits, the bold threshold, the impatience formula, t
 What the scripts do is in `docs/design/21-money-and-work.md`, "Script players". How often each part was used in the 50
 games after (seeds 1-50, every king a script king), and how it went:
 
-FINAL_USAGE
+| Part | Used (games with it / times, 50 games) | How it went |
+|---|---|---|
+| Hiring for a fee, in person | 50 / 346 hires | Every game; the going rate falls to its floor (50) within about ten seasons (reading 5) |
+| Fees paid when the job is done | 48 / 3,080 | 19 fees fell due unpaid (a treasury that could not pay), none withheld by choice; script kings pay what they owe later |
+| Quitting | 22 / 58 | Servants paid less than they ask, or long unpaid |
+| Kings borrowing from a lender at court | 49 / 345 loans | 261 repaid in full; kings rarely run short of gold, so they borrow little |
+| Defaults (kings' and characters' loans) | 45 / 718 | Mostly characters' loans to each other and to kings in their last straits; counted only once presented |
+| Characters lending to characters | 48 / 967 loans, 70 repaid | Lending pays the lenders (11.7% of all characters' gain) though most such debts are never repaid: borrowers seldom have the gold |
+| Hoards | 45 / 780 opened | Kept at the capitals, a few lost with a fallen capital |
+| Newcomers through the doors | 2 / 2 | Rare: the pool stays near its baseline, few die |
+| Deals of tablets between characters | 0 | Not used: script characters only sell a tablet to a collector, and no collector was hired |
+| A character hiring a collector | 0 | Not used, even after making lenders who stay to seek service send one: lenders are mostly the borrower's own servants, standing where they can present the tablet themselves. The feature stays (models may use it); 11b's roads, where tablets travel far, give it its reason |
 
-**Using against ignoring** (`--money-play-half`, seeds 1-50): FINAL_HALF
+Characters decide their own season 0.61 times a season each, 0.76 calls (0.15 and 0.21 before, when they had little to
+decide). The richest held 701 shekels at the end on average (78-1,610): fees 71.8% of all they gained, lending and
+dealing 11.7%, savings brought in 15.6%.
+
+**Using against ignoring** (`--money-play-half`, seeds 1-50): current kings (borrowing and repaying) 1.16 growth and 28 wins, those that never do 1.14 and 22 wins. Borrowing pays, a little: it keeps troops paid in the seasons a treasury runs short, which at these first guesses are few.
 
 ## Benchmarks and script games
 
-**Before** (the audit) and **after**, seeds 1-50, `scripts/sim.sh --games 50 --seed 1 --verify-replay`: FINAL_REPLAY
+**Before** (the audit) and **after**, seeds 1-50, `scripts/sim.sh --games 50 --seed 1 --verify-replay`: 50 of 50 replays exact. `--versus solo` (40 seeds): 2.29 / 0.96 and 73% / 14% before; 2.38 / 1.07 and 73% / 14% after.
 
-FINAL_TABLE
+| Power | Wins before | Wins after | Growth before | Growth after |
+|---|---|---|---|---|
+| Egypt | 2 | 0 | 1.15 | 1.21 |
+| Hatti | 7 | 4 | 0.91 | 0.77 |
+| Babylonia | 6 | 2 | 1.27 | 1.28 |
+| Mitanni | 24 | 28 | 1.45 | 1.77 |
+| Assyria | 0 | 0 | 0.45 | 0.57 |
+| Arzawa | 11 | 16 | 1.30 | 1.55 |
+| Alashiya | 0 | 0 | 0.81 | 0.95 |
+
+A capital fell in 27 games before (34 kingdoms) and 25 after (32), the first on the median in season 15. Growth rises
+for most powers, most likely because the going rate falls to its floor, making service cheap, and the score no longer
+subtracts debts (not measured apart); Mitanni's lead grows (28 wins in 50). Balance stays frozen:
+item 18 tunes it.
 
 ## The review
 
