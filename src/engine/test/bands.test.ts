@@ -158,7 +158,8 @@ describe("BandTests", () => {
     new TurnEngine(s).carryLetters();
     Assert.true(letters.every((l) => l.carrier !== null && l.carrier === letters[0].carrier));
     Assert.equal(travelling + 1, s.journeys.filter((j) => j.kind === "Travel").length);
-    Assert.equal(1, letters.filter((l) => l.fee > 0).length);
+    // Without its court's standing order to pay carriers, the spy paid it all now: nothing is owed on delivery.
+    Assert.equal(0, letters.filter((l) => l.fee > 0).length);
   });
 
   test("A free person sells the news it saw at one court at another", () => {
