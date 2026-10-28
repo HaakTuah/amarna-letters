@@ -65,6 +65,7 @@ export class OrderValidator {
     const renewed = new HSet<string>();
     const tollsSet = new HSet<string>();
     const taxesSet = new HSet<string>();
+    const peopleSet = new HSet<string>();
     let dispatches = 0;
     let seekCount = 0;
     let counterIntel = false;
@@ -305,6 +306,28 @@ export class OrderValidator {
           const key = order.province ?? "";
           if (taxesSet.has(key)) return "you had already set that tax this season";
           taxesSet.add(key);
+          return null;
+        }
+
+        // Item 10+b: people in a king's hands.
+        case "welcome":
+        case "expel":
+        case "returnRunaways":
+        case "deport": {
+          if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
+          const name = Map.get(order.province).name;
+          if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${name}`;
+          const key = `${order.type}|${order.province}`;
+          if (peopleSet.has(key)) return `you had already given that order for ${name} this season`;
+          if (order.type === "expel" && siegeOf(S, order.province) === null) return `${name} is not besieged`;
+          if (order.type === "returnRunaways" && (!AllPowers.includes(order.to) || order.to === power)) return `you cannot send runaways to '${order.to}'`;
+          if (order.type === "deport") {
+            if (Map.get(order.province).home === power) return `${name} is your own homeland: a king deports only from land he has taken`;
+            if (!Map.exists(order.to) || Map.get(order.to).isSea || S.owner.getOrDefault(order.to, null) !== power) return `you do not hold '${order.to}' to send them to`;
+            if (order.to === order.province) return "deportees go to another province of yours";
+            if (!Number.isInteger(order.number) || order.number <= 0) return "say how many people to deport";
+          }
+          peopleSet.add(key);
           return null;
         }
 

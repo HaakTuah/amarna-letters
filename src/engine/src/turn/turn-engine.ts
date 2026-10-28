@@ -20,6 +20,7 @@ import "./winter.ts";
 import "./authority.ts";
 import "./economy.ts";
 import "./people.ts";
+import "./borders.ts";
 import "./trade.ts";
 import "./names.ts";
 import "./knowledge.ts";

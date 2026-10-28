@@ -58,13 +58,13 @@ P.climatePercent = function (province) {
 };
 
 /** Moves men between a province's settled (and its men of fighting age) and elsewhere: positive adds, negative takes. */
-function shift(x: People, settled: number, men: number): void {
+export function shift(x: People, settled: number, men: number): void {
   x.settled = Math.max(0, x.settled + settled);
   x.men = clamp(x.men + men, 0, x.settled);
 }
 
 /** A share of a province's settled, with the men of fighting age among them in proportion. */
-function share(x: People, n: number): [number, number] {
+export function share(x: People, n: number): [number, number] {
   const take = clamp(n, 0, x.settled);
   return [take, x.settled <= 0 ? 0 : idiv(x.men * take, x.settled)];
 }
@@ -85,17 +85,23 @@ P.peopleSeason = function (food) {
   };
   const owner = (id: string): Power | null => S.owner.getOrDefault(id, null);
 
-  // Discharged men arrive home.
+  // Discharged men arrive home; people a king sent on the road (item 10+b) become the settled where they arrive.
   for (const w of S.walking.filter((w) => w.arrives <= S.turn)) {
-    shift(this.peopleOf(w.home), w.men, w.men);
+    shift(this.peopleOf(w.home), w.men, w.deported ? idiv(w.men * LandData.menPercent, 100) : w.men);
     this.spendAt(w.home, w.savings);
+    const holder = owner(w.home);
+    if (w.deported && holder !== null && holder !== w.by)
+      say(holder, `${people(w.men)} of your people, sent back by ${w.by}, reached ${Map.get(w.home).name} and settled there.`);
   }
   S.walking = S.walking.filter((w) => w.arrives > S.turn);
   S.corvee.clear();
 
-  // The countryside eats: what it kept of the harvest, then its market's grain; what it lacks is hunger.
+  // The countryside eats: what it kept of the harvest, then its market's grain; what it lacks is hunger. Those it drives
+  // off the land, and the runaways from a tax that left the farmers short (item 10+b), cross to better land if there is any.
+  const fedBefore = S.fed.clone();
   S.fed.clear();
   const hungry = new Dict<Power, string[]>();
+  const fleeing: [string, number, string][] = [];
   for (const prov of Map.landProvinces) {
     const x = this.peopleOf(prov.id);
     const r = reckonedOf(Map, prov.id);
@@ -103,6 +109,13 @@ P.peopleSeason = function (food) {
     if (need <= 0) continue;
     let short = need - food.getOrDefault(prov.id, 0);
     if (short <= 0) continue;
+    // Runaways: of the share of their food the farmers could not keep, `runPercent` run, hungry or not.
+    const [ran, ranMen] = share(x, idiv(idiv(x.settled * short, need) * LandData.runPercent, 100));
+    if (ran > 0) {
+      shift(x, -ran, -ranMen);
+      x.loose += ran;
+      fleeing.push([prov.id, ran, "a heavy tax"]);
+    }
     const m = this.market(prov.id);
     const bought = Math.min(m.stock, short);
     m.stock -= bought;
@@ -115,6 +128,7 @@ P.peopleSeason = function (food) {
     const [, men] = share(x, leave);
     shift(x, -leave, -men);
     x.loose += leave - dead;
+    fleeing.push([prov.id, leave - dead, "hunger"]);
     const o = owner(prov.id);
     if (o !== null && leave > 0) hungry.set(o, [...hungry.getOrDefault(o, []), `${prov.name} (${people(leave)} left the land, ${people(dead)} of them dead)`]);
   }
@@ -122,6 +136,11 @@ P.peopleSeason = function (food) {
     say(p, `Hunger: ${l.join("; ")}. Grain on sale at a province's market feeds its countryside; a lighter tax leaves the farmers more.`);
     logEvent(S, "famine", `Hunger in ${p}'s land: ${l.join("; ")}.`, [p], "famine");
   }
+  // They weigh the land they would cross to by how it fed its people last season, as word of it reached them.
+  const fedNow = S.fed.clone();
+  S.fed = fedBefore;
+  for (const [from, n, why] of fleeing) this.refuge(from, n, why);
+  S.fed = fedNow;
 
   // Births let the settled grow back towards what the land carries; boys coming of age restore the men more slowly.
   for (const prov of Map.landProvinces) {
@@ -190,8 +209,12 @@ P.peopleSeason = function (food) {
       const n = Math.min(r.room - x.settled, idiv(idiv(x.loose * LandData.switchPercent, 100) * (land - roads), Math.max(1, land)));
       x.loose -= n;
       shift(x, n, idiv(n * LandData.menPercent, 100));
+      this.looseLeave(prov.id, n);
     }
   }
+
+  // The loose men rob the purse and the stores (item 10+b).
+  for (const [p, l] of this.robbing().entries()) say(p, `Loose men robbed ${l.join("; ")}. Your troops standing in a province halve what they take.`);
 
   // The loose drift freely towards richer land, across borders too.
   const drift: [string, string, number][] = [];
@@ -210,11 +233,7 @@ P.peopleSeason = function (food) {
     if (there * 10 <= here * 11) continue;
     drift.push([prov.id, best, idiv(idiv(x.loose * LandData.driftPercent, 100) * (there - here), there)]);
   }
-  for (const [from, to, n] of drift) {
-    const take = Math.min(n, this.peopleOf(from).loose);
-    this.peopleOf(from).loose -= take;
-    this.peopleOf(to).loose += take;
-  }
+  for (const [from, to, n] of drift) this.moveLoose(from, to, n);
   return lines;
 };
 
@@ -236,7 +255,7 @@ P.setTax = function (p, o) {
 };
 
 /** A count of people as a king reads it. */
-function people(n: number): string {
+export function people(n: number): string {
   return n >= 10_000 ? `${Math.round(n / 1000)} thousand` : n >= 1000 ? `${(n / 1000).toFixed(1)} thousand` : `${n}`;
 }
 
@@ -263,7 +282,7 @@ P.menHome = function (u, settle) {
   if (u.home === "") return "";
   const where = this.map.get(u.province);
   if (where.isSea) {
-    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings });
+    S.walking.push({ home: u.home, men, arrives: S.turn + 1, savings, deported: false, by: "" });
     return "its crews sail home with their savings";
   }
   if (settle) {
@@ -284,7 +303,7 @@ P.menHome = function (u, settle) {
   const kept = men <= 0 ? savings : savings - idiv(savings * lost, men);
   this.peopleOf(u.province).loose += lost;
   const seasons = Math.max(1, Math.ceil((Number.isFinite(days) ? days : S.config.travelDays) / Math.max(1, S.config.travelDays)));
-  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept });
+  S.walking.push({ home: u.home, men: men - lost, arrives: S.turn + seasons, savings: kept, deported: false, by: "" });
   return `its men walk home to ${this.map.get(u.home).name} with their savings, ${seasons === 1 ? "next season" : `in ${seasons} seasons`}` + (lost > 0 ? `; ${people(lost)} of them never set out and stay as loose men in ${where.name}` : "");
 };
 
@@ -305,6 +324,8 @@ P.killSettled = function (province, permille, loosePermille = 0) {
   const [run, rmen] = share(x, idiv(x.settled * loosePermille, 1000));
   shift(x, -run, -rmen);
   x.loose += run;
+  // Those who ran from the fighting cross to better land if there is any (item 10+b).
+  this.refuge(province, run, "the war");
   return dead;
 };
 

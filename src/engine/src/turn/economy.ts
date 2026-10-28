@@ -68,6 +68,7 @@ declare module "./core.ts" {
     cityPrice(province: string): number;
     landWorth(p: Power): number;
     holdings(p: Power): number;
+    townNeed(province: string): number;
   }
 }
 
@@ -188,6 +189,12 @@ P.harvestSeason = function () {
   return lines;
 };
 
+/** What a town eats a season: its need, less the mouths put out of it while it is besieged (item 10+b). */
+P.townNeed = function (province) {
+  const need = needOf(this.map.get(province));
+  return need - idiv(need * this.s.expelled.getOrDefault(province, 0), 100);
+};
+
 /**
  * Each town eats its local need from its market, and an empty market means a hungry town (before item 10+ that only
  * drives its price up). A besieged city eats from its market and then its stores, its garrison's food apart ("Stores and
@@ -198,8 +205,10 @@ P.townsEat = function () {
   const S = this.s;
   S.starving.length = 0;
   for (const prov of this.map.landProvinces) {
+    // The mouths put out of a besieged city (item 10+b) come back once the siege is over.
+    if (S.expelled.has(prov.id) && siegeOf(S, prov.id) === null) S.expelled.delete(prov.id);
     const m = this.market(prov.id);
-    const need = needOf(prov);
+    const need = this.townNeed(prov.id);
     const fromMarket = Math.min(m.stock, need);
     m.stock -= fromMarket;
     if (siegeOf(S, prov.id) === null) continue;

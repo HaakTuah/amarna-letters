@@ -167,7 +167,7 @@ describe("WhoTheyAreTests", () => {
     Assert.true(envoy.employer === "Egypt");
   });
 
-  test("A captive questioned tells the tablets it saw, or lies with one that never was", () => {
+  test("A captive questioned gives way by the odds, then tells the tablets it saw, or lies with one that never was, as it decides", () => {
     for (const loyal of [false, true]) {
       const s = newGame(9, newGameConfig({ catastropheChance: 0 }));
       const c = first(s.characters, (x) => x.employer === "Mitanni");
@@ -179,7 +179,13 @@ describe("WhoTheyAreTests", () => {
       c.ties = [];
       [c.traits.courage, c.traits.loyalty] = loyal ? [90, 90] : [5, 5];
       s.treasuries.get("Hatti").gold = 10000;
-      begin(s).resolve(orders("Hatti", question(c.id, 400)));
+      const e = begin(s);
+      e.resolve(orders("Hatti", question(c.id, 400)));
+      // Item 10+b: it gave way; what it says is its own decision, as the next season begins (the script formula here).
+      const task = single(s.tasks.filter((t) => t.kind === "Questioning"));
+      Assert.equal(["t900"], task.tabletIds);
+      Assert.empty(s.copies.filter((k) => k.holder === "Hatti" && k.tabletId === "t900"));
+      e.questionedSays("Hatti", c, task.tabletIds, loyal, null, "");
       const told = s.copies.filter((k) => k.holder === "Hatti" && k.source === `told by ${c.name} under questioning`);
       Assert.single(told);
       const t = s.tablets.find((x) => x.id === told[0].tabletId)!;
@@ -189,13 +195,19 @@ describe("WhoTheyAreTests", () => {
     }
   });
 
-  test("A captive handed over is the other court's captive", () => {
+  test("A captive handed over travels under guard, and is the other court's captive once it arrives", () => {
     const s = newGame(9, newGameConfig({ catastropheChance: 0 }));
     const c = first(s.characters, (x) => x.employer === "Mitanni");
     c.status = "Captured";
     c.heldBy = "Hatti";
     c.at = "Hatti";
     begin(s).resolve(orders("Hatti", handOver(c.id, "Egypt")));
+    // On the road (item 10+b): nobody's to dispose of until it arrives.
+    Assert.equal("UnderGuard", c.duty);
+    Assert.contains(s.journeys, (j) => j.kind === "CaptiveConvoy" && j.characterId === c.id && j.to === "Egypt");
+    begin(s).resolve(orders("Hatti", captive(c.id, "Release")));
+    Assert.equal("Captured", c.status);
+    for (let i = 0; i < 8 && c.duty === "UnderGuard"; i++) begin(s).resolve(new Dict());
     Assert.equal(["Egypt", "Egypt"], [c.heldBy, c.at]);
     Assert.contains(Views.for(s, "Egypt").known.concat(Views.for(s, "Egypt").court), (v) => v.id === c.id && v.status === "your captive");
     // And it is Egypt's to decide now: Hatti's orders for it are refused.

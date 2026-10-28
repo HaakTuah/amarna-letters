@@ -78,7 +78,10 @@ describe("FileCharacterTests", () => {
     if (stem.includes("_report_")) return `{"as_given":false,"report":"${words}","keep_gold":0,"swap_inventory":false}`;
     // Item 10: a pitch to a court that never saw the person also asks the name it gives (empty: its own), and, where it
     // stands, whether it poses as an envoy; the reply gives both, as the request may ask them.
-    if (stem.includes("_pitch_")) return `{"pitch":"${words}","asking_price":14,"name":"","envoy_of":false}`;
+    // Item 10+b: and what it says it can do, in a band's words.
+    if (stem.includes("_pitch_"))
+      return `{"pitch":"${words}","asking_price":14,"name":"","envoy_of":false,"say_gather":"notice what is in plain view","say_stealth":"pass unnoticed with luck","say_forge":"copy a hand badly"}`;
+    if (stem.includes("_questioned_")) return `{"words":"${words}","lie":false}`;
     if (stem.includes("_spy_")) return `{"report":"${words}"}`;
     return `{"summary":"${words}"}`;
   }

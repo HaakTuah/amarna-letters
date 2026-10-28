@@ -315,7 +315,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         stores: engine.stores(id),
         capacity: capacityOf(prov),
         tax: engine.effectiveYield(id),
-        need: needOf(prov),
+        need: engine.townNeed(id),
         stock: mk.stock,
         purse: mk.purse,
         price: priceAt(mk.stock, needOf(prov)),
@@ -327,6 +327,9 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         taxRate: engine.taxRate(id),
         harvest: engine.harvestNow(id),
         fed: s.fed.getOrDefault(id, 1000),
+        // Item 10+b.
+        runaways: new Dict([...(s.runaways.tryGet(id)?.entries() ?? [])].filter(([, n]) => n > 0)),
+        expelled: s.expelled.has(id),
       }),
     );
   }

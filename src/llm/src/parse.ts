@@ -23,6 +23,10 @@ import {
   newAuthority,
   disband,
   tax,
+  welcome,
+  expel,
+  deport,
+  returnRunaways,
   dismiss,
   dispatch,
   forge,
@@ -390,6 +394,16 @@ function other(x: Node): Order | null {
     }
     case "set_tax":
       return tax(amount, pr !== null ? province : null);
+    case "welcome_loose":
+      return welcome(province);
+    case "expel_mouths":
+      return expel(province);
+    case "deport": {
+      const to = empty(S(x, "to"));
+      return deport(province, to !== null ? prov(to) : "", amount, I(x, "gold") > 0);
+    }
+    case "return_runaways":
+      return power !== null ? returnRunaways(province, power) : unreadable(`send runaways in ${province} back to '${named}'`, nowhere(named, "the king whose runaways they are"));
     case "set_toll":
       return named.trim() !== "" && power === null ? unreadable(`set a toll on '${named}'`, nowhere(named, "the partner")) : toll(amount, power, pr !== null ? province : null);
     case "cede_province":

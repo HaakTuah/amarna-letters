@@ -25,9 +25,22 @@ export interface Walk {
   arrives: number;
   /** The savings they carry, into their home's purse when they arrive ("Soldiers carry savings home"). */
   savings: number;
+  /**
+   * Item 10+b: people walking where a king sends them, deported or returned as runaways, `men` counting all of them: they
+   * become the settled of `home` when they arrive, a fifth of them men of fighting age. `by`: the king who sent them.
+   */
+  deported: boolean;
+  by: string;
 }
 
-export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, ...init }), { home: S, men: I, arrives: I, savings: I });
+export const WalkSchema: ObjSchema<Walk> = obj("Walk", (init: Partial<Walk> = {}) => ({ home: "", men: 0, arrives: 0, savings: 0, deported: false, by: "", ...init }), {
+  home: S,
+  men: I,
+  arrives: I,
+  savings: I,
+  deported: B,
+  by: S,
+});
 
 /**
  * A drought over a region's rain-fed land or a river's bad flood along its course (item 10+a): the provinces it strikes,
@@ -151,6 +164,12 @@ export interface GameState {
   tolls: Toll[];
   /** Foreign markets as each court last knew them (item 9+b): seen where it sees the land, or found by its traders. */
   marketsSeen: Dict<Power, Dict<string, MarketSeen>>;
+  /** Item 10+b: the gold the loose men of each province carry, robbed from purses and stores ("Bandits rob the purse"). */
+  loot: Dict<string, number>;
+  /** Item 10+b: the loose men standing in each province who fled another kingdom, by the king whose land they fled. */
+  runaways: Dict<string, Dict<Power, number>>;
+  /** Item 10+b: a besieged city that put out the mouths that cannot fight: the share of its town's need it no longer eats. */
+  expelled: Dict<string, number>;
   /**
    * The tolls each court knows to stand on its goods (item 10+b): never posted, only as last reported to it, by its
    * caravans, ships and envoys coming home ("Tolls and smuggling"). Its own tolls it always knows.
@@ -246,6 +265,9 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     caravans: [],
     tolls: [],
     marketsSeen: new Dict(),
+    loot: new Dict(),
+    runaways: new Dict(),
+    expelled: new Dict(),
     tollsKnown: new Dict(),
     starving: [],
     units: [],
@@ -319,6 +341,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   caravans: list(() => CaravanSchema),
   tolls: list(() => TollSchema),
   marketsSeen: dict(dict(() => MarketSeenSchema)),
+  loot: dict(I),
+  runaways: dict(dict(I)),
+  expelled: dict(I),
   tollsKnown: dict(list(() => TollSchema)),
   starving: list(S),
   units: list(() => UnitSchema),

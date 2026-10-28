@@ -27,6 +27,7 @@ export const SignalKinds: readonly string[] = [
   "captive-handed", "tablet-stolen",
   "tax-set", "famine", "colonists", "resisted", "drought", "flood",
   "besieged-fed", "captive-arrived", "captive-freed", "captive-taken", "captive-escaped",
+  "refugees", "robbed", "welcomed", "deported", "runaways-returned", "mouths-expelled",
 ];
 
 const MessengerBlamed = rx(
