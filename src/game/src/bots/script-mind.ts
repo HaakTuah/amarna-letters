@@ -154,6 +154,10 @@ export class ScriptMind implements ICharacterMind {
         return Promise.resolve(questioned(ctx));
       case "Life":
         return Promise.resolve(newMindReply({ life: ctx.request.life === null ? null : scriptLife(ctx.self, ctx.request.life) }));
+      case "Chief":
+      case "Reports":
+        // A script chief or spy decides by its traits, as the engine weighs them when the season comes ("Bold or careful, one goal").
+        return Promise.resolve(newMindReply());
       default:
         return Promise.resolve(newMindReply({ text: "" }));
     }

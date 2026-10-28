@@ -776,6 +776,12 @@ P.fulfil = function (req, reply) {
     case "Life":
       if (c !== null && reply.life !== null) this.applyLife(c, reply.life);
       return;
+    case "Chief":
+      if (c !== null && reply.chief !== null && req.chief !== null) this.applyChief(c, { ...reply.chief, turn: req.chief.turn });
+      return;
+    case "Reports":
+      if (c !== null && reply.reports !== null && req.reports !== null) c.reportsPlan = { ...reply.reports, turn: req.reports.turn, payUpTo: Math.max(0, reply.reports.payUpTo) };
+      return;
     case "EnvoyReport": {
       if (c === null) return;
       const lord = requestFor(req);
