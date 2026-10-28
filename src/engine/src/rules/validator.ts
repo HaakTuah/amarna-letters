@@ -428,7 +428,8 @@ export class OrderValidator {
           const [e, c] = hireRefusal(order);
           if (e !== null) return e;
           if (busyCharacters.has(c!.id)) return `${c!.name} was already given a task by an earlier order`;
-          return null;
+          // Item 11a: the advance is handed over when the job is agreed, so it is reserved now.
+          return spend(Math.min(order.advance, order.fee));
         }
 
         case "dismiss":
@@ -449,7 +450,7 @@ export class OrderValidator {
           if (rn.fee <= 0 || rn.term <= 0) return "fee and term must be positive";
           if (rn.advance < 0 || rn.advance > rn.fee) return "the advance must be between nothing and the whole fee";
           if (renewed.has(c.id)) return `${c.name} was already renewed by an earlier order`;
-          return null;
+          return spend(rn.advance);
         }
 
         case "check": {

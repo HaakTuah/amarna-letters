@@ -285,11 +285,11 @@ describe("RequestsAreRulesTests", () => {
     Assert.all(asker.calls, (c) => Assert.doesNotContain("Alashiya, king of Alashiya", c.user));
 
     // Its lord's land is named once, with the power's name only where the land has another ("Mitanni (Mitanni)" before).
-    Assert.contains("You serve the king of Egypt for 10 shekels a season.", asker.calls[0].seatSystem);
+    Assert.contains("You are on a job for the king of Egypt: 60 shekels for the term", asker.calls[0].seatSystem);
     let babylonian = envoy(undefined, "Babylonia");
     babylonian.secretMaster = "Hatti";
     let self = selfText(babylonian, 2);
-    Assert.contains("You serve the king of Karduniash (Babylonia) for 10 shekels a season.", self);
+    Assert.contains("You are on a job for the king of Karduniash (Babylonia): 60 shekels for the term", self);
     Assert.contains("In secret you serve Hatti, and you protect its interests.", self);
   });
 
@@ -444,7 +444,7 @@ describe("RequestsAreRulesTests", () => {
   test("The rulebook says a bracketed note after a report is the court s own not the writer s words", () => {
     let rules = leaderRules(true, newGameConfig());
     Assert.contains(
-      "- In your news, a note in square brackets after a report or a pitch (what your weighers found against an inventory, the copies that came home with a spy's report, the wage a candidate asks) is your court's own record, not the words of the envoy, spy or candidate.",
+      "- In your news, a note in square brackets after a report or a pitch (what your weighers found against an inventory, the copies that came home with a spy's report, what a candidate asks) is your court's own record, not the words of the envoy, spy or candidate.",
       rules,
     );
   });

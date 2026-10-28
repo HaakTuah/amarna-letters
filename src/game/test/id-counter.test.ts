@@ -158,6 +158,8 @@ describe("IdCounterTests", () => {
     let kinds: { prefix: string; ids: string[] }[] = [
       { prefix: "a", ids: s.audiences.map((x) => x.id) },
       { prefix: "c", ids: s.characters.map((x) => x.id) },
+      { prefix: "d", ids: s.debts.map((x) => x.id) },
+      { prefix: "h", ids: s.approaches.map((x) => x.id) },
       { prefix: "f", ids: s.characters.flatMap((c) => c.facts).map((x) => x.id) },
       { prefix: "g", ids: AllPowers.flatMap((p) => s.treasuries.get(p).lots).map((x) => x.id) },
       { prefix: "j", ids: s.journeys.map((x) => x.id) },

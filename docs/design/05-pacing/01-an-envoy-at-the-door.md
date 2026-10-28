@@ -1,5 +1,7 @@
 ### An envoy at the door
 
+> **Since item 11a** (`21-money-and-work.md`): wages and back pay are replaced by jobs with a fee (an advance now, the rest when the job is done), and strength no longer subtracts anything owed. Passages below about wages and back pay describe the build before item 11a and are kept for its history.
+
 - **An envoy at the door: an audience, and the king judges whether to reopen its orders** (Part H
   of the simulation-fixes round, the owner's later instruction in `docs/archive/rounds/ROUND-PROMPT-ADDITIONS.md`,
   section 4; it replaced an earlier plan in which an envoy could never reopen orders). The principle:

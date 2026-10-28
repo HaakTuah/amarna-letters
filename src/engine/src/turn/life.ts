@@ -289,14 +289,14 @@ P.deal = function (a) {
     return true;
   }
   // Gold both ways, and tablets both ways.
-  const move = (from: Character, to: Character, gold: number, lent: boolean): void => {
+  const move = (from: Character, to: Character, gold: number): void => {
     if (gold <= 0) return;
     from.purse -= gold;
-    if (!lent) from.earned.spent += gold;
+    from.earned.spent += gold;
     gain(to, gold, "Loans");
   };
-  move(A, B, a.giveGold, a.repay > 0 && a.giveGold > 0);
-  move(B, A, a.askGold, a.repay > 0 && a.askGold > 0);
+  move(A, B, a.giveGold);
+  move(B, A, a.askGold);
   for (const id of a.giveDebts) this.passTablet(S.debts.find((d) => d.id === id)!, B.id, "Person");
   for (const id of a.askDebts) this.passTablet(S.debts.find((d) => d.id === id)!, A.id, "Person");
   if (a.repay > 0) {
@@ -336,6 +336,7 @@ P.deliverErrand = function (c, deliver) {
   }
   const handed = Math.min(c.purse, e.collected);
   c.purse -= handed;
+  c.earned.spent += handed;
   gain(emp, handed, "Loans");
   if (d !== null && d.ended === null && d.holder === c.id) this.passTablet(d, emp.id, "Person");
   const rest = Math.max(0, e.fee - e.advance);

@@ -28,8 +28,8 @@ describe("RichestTests", () => {
     let state = runner!.state;
     Assert.true(state.ended);
 
-    // Nothing is spent yet: every purse is exactly what its owner gained, by source.
-    Assert.all(state.characters, (c) => Assert.equal(earningsTotal(c.earned), c.purse));
+    // What it holds is what it gained, by source, less what it spent (item 11a: living, keep, loans made, what was taken).
+    Assert.all(state.characters.filter((c) => c.status !== "Dead"), (c) => Assert.equal(earningsTotal(c.earned) - c.earned.spent, c.purse + (c.hoard?.gold ?? 0)));
     Assert.contains(state.characters, (c) => c.purse > 0);
 
     let ranking = Wealth.ranking(state);

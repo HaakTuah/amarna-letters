@@ -128,3 +128,19 @@ export function lifeOf(o: JsonObject, v: LifeView): LifeChoice {
     repay: L_(o, "repay"),
   });
 }
+
+/** A season's choices in one line, for the shadow log that compares a model's choice with the script's. */
+export function lifeSummary(ch: LifeChoice | null): string {
+  if (ch === null) return "nothing";
+  const parts: string[] = [];
+  if (ch.go !== null) parts.push(`go to ${ch.go}`);
+  parts.push(ch.seek ? "seek service" : "work for itself");
+  if (ch.hoard !== 0) parts.push(`hoard ${ch.hoard}`);
+  if (ch.lend !== null) parts.push(`lend ${ch.lend.amount} at ${ch.lend.perHundred} in 100 over ${ch.lend.seasons}`);
+  if (ch.approach !== null) parts.push(`approach ${ch.approach.to}${ch.approach.collect !== null ? " to collect" : ch.approach.repay > 0 ? " for a loan" : ""}`);
+  if (ch.accept.length > 0) parts.push(`accept ${ch.accept.join(", ")}`);
+  if (ch.repay.length > 0) parts.push(`repay ${ch.repay.join(", ")}`);
+  if (ch.quit) parts.push("quit");
+  if (!ch.deliver) parts.push("keep what it collected");
+  return parts.join("; ");
+}

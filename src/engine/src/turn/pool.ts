@@ -87,7 +87,7 @@ P.newcomer = function (rng, door) {
     }),
   });
   // What he carries, by why he came (first guesses).
-  c.purse = reason === "trade" ? rng.range(30, 120) : reason === "home" ? rng.range(20, 80) : reason === "soldiering" ? rng.range(5, 30) : rng.range(0, 20);
+  c.purse = c.earned.savings = reason === "trade" ? rng.range(30, 120) : reason === "home" ? rng.range(20, 80) : reason === "soldiering" ? rng.range(5, 30) : rng.range(0, 20);
   const doorAt = rng.pick(door.provinces);
   const add = (text: string, secrecy: "Public" | "Hidden", tag: string): void => {
     c.facts.push(newFact({ id: newId(S, "f"), text, secrecy, tag }));

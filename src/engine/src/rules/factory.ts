@@ -164,7 +164,7 @@ export function populate(s: GameState): void {
   // Item 11a: a free person's savings from the life before the game, from a stream of their own; every character's way to
   // a fortune and road ("How the strategy is made"); and the pool's baseline ("A baseline, not a limit").
   for (const c of s.characters) {
-    if (c.status === "Free") c.purse = Rng.for(s.seed, 0, "savings", c.id).range(10, 60);
+    if (c.status === "Free") c.purse = c.earned.savings = Rng.for(s.seed, 0, "savings", c.id).range(10, 60);
     chooseStrategy(c);
   }
   s.baseline = s.characters.length;

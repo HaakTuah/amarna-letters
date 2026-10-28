@@ -29,6 +29,7 @@ import {
   newTraits,
   newTurnSubmission,
   single,
+  want,
 } from "@amarna/engine";
 import { type EnvoyContext, GameRunner, type ISeat, type MindContext, ScriptMind, TemplateNarrator, newEnvoyContext, newMindContext } from "@amarna/game";
 import { CharacterSystem, LlmCharacterMind, Parse } from "@amarna/llm";
@@ -165,7 +166,9 @@ describe("RequestTextTests", () => {
     [envoy.traits.loyalty, envoy.traits.greed] = [30, 70];
     let now = Personas.current(envoy);
     Assert.contains("You are Keliya, born in Washukanni, once a scribe. You are loyal mostly to yourself; fond of gold and quick to see a profit;", now);
-    Assert.contains("What you want most: gold, enough to never serve again.", now);
+    // Item 11a: what it wants most is wealth, by the way to a fortune its traits give it now.
+    Assert.contains(`What you want most: ${want(envoy.traits)}.`, now);
+    Assert.contains("What you want most: wealth", now);
     Assert.doesNotContain("steadfast", now);
     Assert.doesNotContain("to serve well and be trusted", now);
     // The rest stays as written, its secrets among them; the persona it was given is not changed.
@@ -182,7 +185,9 @@ describe("RequestTextTests", () => {
     envoy.persona = "You are Keliya, a scribe who has served one master faithfully all his life. You speak softly.";
     Assert.equal(
       envoy.persona +
-        "\nAs you are now (where anything above differs, this is how you are now): you are loyal mostly to yourself; fond of gold and quick to see a profit; capable enough; hopeful of advancement; careful with powerful men. What you want most: gold, enough to never serve again.",
+        "\nAs you are now (where anything above differs, this is how you are now): you are loyal mostly to yourself; fond of gold and quick to see a profit; capable enough; hopeful of advancement; careful with powerful men. What you want most: " +
+        want(envoy.traits) +
+        ".",
       Personas.current(envoy),
     );
   });

@@ -123,8 +123,8 @@ P.borrowOrder = function (p, o) {
     this.failed(p, o, "No loan", `${c.name} will not lend ${formatMoney(amount)} for ${formatMoney(repay)} back in ${seasons} seasons: they ask ${formatMoney(asked)} back.`, `they ask ${formatMoney(asked)} back`, true, c.id);
     return;
   }
+  // Gold lent leaves the purse (counted as spent), and what is repaid comes back as dealt.
   spend(c, amount);
-  c.earned.spent -= amount; // a loan is not spending: it is counted when repaid
   S.treasuries.get(p).gold += amount;
   offer.amount = Math.max(0, offer.amount - amount);
   const d = this.sealDebt(c.id, p, amount, repay, seasons);
@@ -179,6 +179,7 @@ P.debtsDie = function (p) {
   for (const c of S.characters.filter((c) => c.hoard !== null && c.hoard.at === p)) {
     if (taker !== null && isAlive(S, taker)) S.treasuries.get(taker).gold += c.hoard!.gold;
     remember(c, S.turn, `${land(p)} fell, and my hoard there, ${formatMoney(c.hoard!.gold)}, was lost with it.`);
+    c.earned.spent += c.hoard!.gold;
     c.hoard = null;
   }
 };

@@ -4,6 +4,7 @@
  * things, the greedy skim.
  */
 import {
+  AllPowers,
   Rng,
   SealedOutcome,
   calling,
@@ -341,10 +342,16 @@ function pitch(ctx: MindContext): MindReply {
   else lines.push("I know the courts of the Great Kings and their customs, and I can carry a message well.");
   const defected = c.facts.find((f) => f.tag === "defected" && f.secrecy === "Public") ?? null;
   if (defected !== null && t.loyalty < 50 && name === null) lines.push("Whatever you may have heard, I left my last master for good reason.");
+  // Item 11a, "Hiring as a negotiation": it plays courts against each other, citing a real offer, and a greedy, disloyal one
+  // invents one when it has none; either asks a little more for it.
+  const offer = [...c.offers.entries()].filter(([p]) => p !== court).sort((a, b) => b[1] - a[1])[0] ?? null;
+  const rival = offer ?? (t.greed > 65 && t.loyalty < 40 ? ([AllPowers.find((p) => p !== court) ?? "Egypt", ctx.basePrice + 6] as const) : null);
+  if (rival !== null) lines.push(`The king of ${land(rival[0])} offered me ${rival[1]} shekels a season.`);
 
   let price = ctx.basePrice + Math.trunc(t.greed / 10) + Math.min(10, ctx.demand * 2);
   if (defected !== null) price -= 5;
   if (t.ambition >= 65) price += 4;
+  if (rival !== null) price = Math.max(price, rival[1]);
   return newMindReply({ text: TextKit.join(lines), number: Math.max(5, price), name });
 }
 

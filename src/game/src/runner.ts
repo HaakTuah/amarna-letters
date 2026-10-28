@@ -358,6 +358,12 @@ export class GameRunner {
     engine.beginTurn();
     this.phaseDone?.(`t${turn}/begin`);
 
+    // Item 11a: a newcomer through the doors has its persona written by the narrator, as the starting cast had at setup.
+    for (const c of S_.characters.filter((c) => c.arrived === turn)) {
+      const persona = await this.recorded<string>(`t${turn}/persona/${c.id}`, S, () => this.narrator.persona(c, signal), () => Promise.resolve(c.persona), this.narrator.label);
+      if (!isBlank(persona)) c.persona = persona;
+    }
+
     this.setPhase(`Turn ${turn}: reports and pitches`);
     await this.fulfil(engine, turn, signal);
     // A sleeping seat may wake itself (a human who wants to act): a decision in the log, kept only when it happens.

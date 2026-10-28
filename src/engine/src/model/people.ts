@@ -442,8 +442,10 @@ export interface Earnings {
   fees: number;
   /** Item 11a: what came in by lending and dealing (repayments, loans taken, sales); what went out is in {@link Spent}. */
   dealt: number;
-  /** Item 11a: what it spent: its living, its hoard's keep, loans it made, what it bought. */
+  /** Item 11a: what it spent: its living, its hoard's keep, loans it made, what it bought, what was taken from it. */
   spent: number;
+  /** Item 11a: what it brought into the game, or onto the map: savings from the life before. */
+  savings: number;
   skimmed: number;
   gifts: number;
   carried: number;
@@ -454,6 +456,7 @@ export function newEarnings(init: Partial<Earnings> = {}): Earnings {
     fees: 0,
     dealt: 0,
     spent: 0,
+    savings: 0,
     skimmed: 0,
     gifts: 0,
     carried: 0,
@@ -465,6 +468,7 @@ export const EarningsSchema: ObjSchema<Earnings> = obj("Earnings", newEarnings, 
   fees: I,
   dealt: I,
   spent: I,
+  savings: I,
   skimmed: I,
   gifts: I,
   carried: I,
@@ -637,13 +641,14 @@ export function hiddenAt(c: Character, court: Power): boolean {
 
 /** All it has gained (not net of what it spent). */
 export function earningsTotal(e: Earnings): number {
-  return e.fees + e.dealt + e.skimmed + e.gifts + e.carried;
+  return e.fees + e.dealt + e.skimmed + e.gifts + e.carried + e.savings;
 }
 
 export function addEarnings(e: Earnings, other: Earnings): void {
   e.fees += other.fees;
   e.dealt += other.dealt;
   e.spent += other.spent;
+  e.savings += other.savings;
   e.skimmed += other.skimmed;
   e.gifts += other.gifts;
   e.carried += other.carried;

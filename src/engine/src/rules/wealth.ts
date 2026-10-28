@@ -56,6 +56,7 @@ export function wealthSources(e: Earnings): string {
   if (e.skimmed > 0) parts.push(`skimmed ${e.skimmed}`);
   if (e.gifts > 0) parts.push(`gifts ${e.gifts}`);
   if (e.carried > 0) parts.push(`gold kept on dismissal ${e.carried}`);
+  if (e.savings > 0) parts.push(`savings ${e.savings}`);
   const gained = parts.length === 0 ? "nothing gained" : parts.join(", ");
   return e.spent > 0 ? `${gained}; spent ${e.spent}` : gained;
 }

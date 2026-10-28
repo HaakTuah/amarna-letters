@@ -21,6 +21,7 @@ import {
   newGame,
   newGameConfig,
   renew,
+  feeFor,
 } from "@amarna/engine";
 import { GameLog, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, temperament } from "@amarna/game";
 import { Assert, holds, toDict } from "../../engine/test/support.ts";
@@ -60,7 +61,7 @@ describe("ScriptCourtTests", () => {
     async (me: Power) => {
       let price = Math.floor(limit(me));
       let [s, c] = court(me, price);
-      Assert.equal([renew(c.id, price, 6)], await renewalsOf(s, me));
+      Assert.equal([renew(c.id, feeFor(price, 6, 50, Views.for(s, me).trust), 6)], await renewalsOf(s, me));
 
       // A price above what its greed allows: it lets the servant go.
       [s] = court(me, price + 1);
