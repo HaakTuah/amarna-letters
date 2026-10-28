@@ -193,3 +193,8 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
   use against ignore) run in `scripts/sim.sh`, never in the suite. When an item grows the starting world (more powers,
   provinces or characters), the tests' default does not grow with it. Code-PR checks took about 10 minutes on 29
   October, with 30 powers in test games; the workshop check measures against that.
+- **29 October 2026: settled questions are readings** (`docs/archive/instructions.md`, item 29). Before a question goes
+  to "Questions for Haakon", check it against "The game in one page" and the item's sections. A question they settle is
+  a reading: list it under "Readings taken" with the principle it rests on, and build it that way. Only what they leave
+  open, or a matter of taste, goes to Haakon. On 28 October about half the questions sent to him were settled by the
+  page already.

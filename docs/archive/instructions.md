@@ -275,3 +275,12 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     A standing instruction in `CLAUDE.md` ("the smallest game that tests the rule"), for this game and Barkstreet
     Snakes alike.
+
+29. **00:47**, in the design chat, to Claude's five optimizations to the development of both games (a fresh design chat
+    each day from a handover note; Codex for reviews; builders settling settled questions themselves; Barkstreet
+    Snakes' `CLAUDE.md` trimmed; faster checks for this game):
+
+    > Yes, do all expertly 1-5 except codex since we don't have it yet.
+
+    Here: a standing instruction in `CLAUDE.md` ("settled questions are readings"), and the checks split into parallel
+    jobs (lint and types beside the tests, the tests in four shards).
