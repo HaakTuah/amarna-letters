@@ -73,7 +73,8 @@ level the game already has. Three changes matter more than the rest: **Akhetaten
 Egypt's distance and forts (0, with Egypt's forts at `delta` and `nubia` raised); **Megiddo** had no city wall (1, for
 its gate and palace); **Qatna** and **Qadesh** were among the strongest places of Syria (3). The game's rule "every
 capital 3" is the one the sources most often contradict; walls should come from the city, not from its being a capital
-("Different data, same rules").
+("Different data, same rules"). An unwalled capital still weighs against "A kingdom falls with its capital": item 15
+should weigh Akhetaten at 0 against that, and the question is in the "For Haakon" table of `docs/BUILD-PROGRESS.md`.
 
 ## Sieges on record
 
