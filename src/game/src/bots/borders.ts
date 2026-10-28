@@ -2,8 +2,8 @@
  * The script kings' people across borders and in their hands (build order item 10+b): they settle the loose men of a
  * province of theirs where the land has room and feeds its people, send back the runaways of a king they promised it on a
  * sealed tablet (the clause fugitives, which they write into their peace and alliance tablets with neighbours), deport
- * people from land they took to their homeland where it has room (what they took may be lost, the people they moved are
- * kept), and put the mouths that cannot fight out of a besieged city of theirs once its stores run low. `--no-border-play`
+ * people from land they took that is at risk (a foreign army next to it, none of theirs to hold it) to their homeland
+ * where it has room (the land may be lost, the people moved are kept), and put the mouths that cannot fight out of a besieged city of theirs once its stores run low. `--no-border-play`
  * and `--border-play-half` leave all of it alone, only to measure what playing it is worth. Every number below is a first
  * guess of the script's own.
  */
@@ -64,10 +64,14 @@ export function peopleAcrossBorders(b: Board, orders: Order[]): void {
     // A besieged city of ours whose stores will not last: the mouths that cannot fight go out.
     if (besieged.has(x.province) && !x.expelled && x.stores < ExpelBelow * x.need) orders.push(expel(x.province));
   }
-  // Deportation: from land we took (not our homeland) to the homeland province with the most room near it.
+  // Deportation: from land we took (not our homeland) that a foreign army stands next to, and so may be lost, to the
+  // homeland province with the most room near it: the people moved are kept whatever becomes of the land.
   const home = v.provinces.filter((x) => W.get(x.province).home === b.me && !besieged.has(x.province) && x.room - x.settled >= 2 * Worth);
+  // At risk: a foreign army next to it, and none of ours in it or next to it to hold it.
+  const near = (id: string, mine: boolean): boolean => [id, ...W.movesFrom("Army", id)].some((n) => v.units.some((u) => u.province === n && (u.power === b.me) === mine && u.kind === "Army"));
+  const threatened = (id: string): boolean => near(id, false) && !near(id, true);
   const taken = sortBy(
-    v.provinces.filter((x) => W.get(x.province).home !== b.me && !besieged.has(x.province) && x.settled >= 4 * Worth),
+    v.provinces.filter((x) => W.get(x.province).home !== b.me && !besieged.has(x.province) && x.settled >= 4 * Worth && threatened(x.province)),
     [(y) => -y.settled, (a: number, c: number) => a - c],
     [(y) => y.province, cmpStr],
   );
