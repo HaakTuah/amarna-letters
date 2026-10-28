@@ -16,6 +16,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import { idNumber, TurnEngine } from "./core.ts";
 import { basePrice } from "./court.ts";
 import { trustIn } from "./jobs.ts";
+import { reportsChoice } from "./own-choices.ts";
 import { isWalker } from "./travel.ts";
 
 /**
@@ -95,9 +96,12 @@ P.carryLetters = function () {
     // it goes with whoever sets out that way, as the captor asks of them.
     const spy = letter.kind === "SpyReport" ? findCharacter(S, letter.characterId) : null;
     const demand = letter.kind !== "SpyReport";
-    // The spy decides (no rule moves it): one loyal enough pays from its own purse; how long it waits before carrying its
-    // reports home itself is its own, the brave and loyal waiting longest.
-    const willing = spy !== null && spy.traits.loyalty >= LetterData.payLoyalty;
+    // The spy decides (no rule moves it): a model spy in its own request (`own-choices.ts`), the most it pays now and
+    // whether it carries them itself; a script spy by its traits: one loyal enough pays from its own purse, and how long
+    // it waits before carrying its reports home itself is its own, the brave and loyal waiting longest.
+    const plan = spy === null ? null : reportsChoice(spy, S.turn);
+    const willing = spy !== null && (plan !== null || spy.traits.loyalty >= LetterData.payLoyalty);
+    const most = plan?.payUpTo ?? Number.MAX_SAFE_INTEGER;
     const waited = S.turn - letter.departTurn;
     const court = courtAt(this, at);
     const passing = passer === null ? null : findCharacter(S, passer.characterId)!;
@@ -105,7 +109,7 @@ P.carryLetters = function () {
     // Haakon's answers to item 11a: a traveller carries it for a fee on delivery from a court whose standing order is to
     // pay carriers; for any other court only if the spy pays it now from its purse.
     const paysNow = own === null && passing !== null && !demand && !S.payCarriers.includes(letter.to);
-    if (passing !== null && (demand || !paysNow || (willing && spy!.purse >= side))) {
+    if (passing !== null && (demand || !paysNow || (willing && spy!.purse >= side && side <= most))) {
       carrier = passing;
       if (own !== null || demand) fee = 0;
       else if (paysNow) {
@@ -131,14 +135,15 @@ P.carryLetters = function () {
         remember(hire, S.turn, `The king of ${land(court)} paid me ${formatMoney(ask(hire))} to carry his word to the court of ${letter.to}.`);
         carrier = hire;
       }
-    } else if (spy !== null && willing && waited >= LetterData.hireAfter && court !== null) {
+    } else if (spy !== null && willing && (plan !== null || waited >= LetterData.hireAfter) && court !== null) {
       // Hired at the court where it waits: a free person standing there, half now from the spy's purse, or all of it on
       // delivery from a court whose standing order is to pay carriers and whose record of paying, as it heard it, it trusts.
       const ask = (c: Character): number => idiv(basePrice(c, letter.to) * seasons * LetterData.hiredPercent, 100);
       const trusted = (c: Character): boolean => S.payCarriers.includes(letter.to) && trustIn(S, letter.to, c) >= LetterData.trustOnDelivery;
+      const nowOf = (c: Character): number => (S.payCarriers.includes(letter.to) ? Math.ceil(ask(c) / 2) : ask(c));
       const hire =
         sortBy(
-          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || spy.purse >= ask(c))),
+          S.characters.filter((c) => c.status === "Free" && c.at === court && c.duty === "None" && c.heldBy === null && c.errand === null && (trusted(c) || spy.purse >= ask(c)) && nowOf(c) <= most),
           [(c: Character) => ask(c), cmpNum],
           [(c: Character) => idNumber(c.id), cmpNum],
         )[0] ?? null;
@@ -156,7 +161,7 @@ P.carryLetters = function () {
       }
     }
     // Nobody to carry it, long enough: the spy carries it home himself, leaving its post ("or the person himself").
-    if (carrier === null && spy !== null && waited >= selfWait(spy) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
+    if (carrier === null && spy !== null && (plan !== null ? plan.carry : waited >= selfWait(spy)) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
       // Its master goes on believing it at its post until it stands at court again.
       this.coverFor(spy, letter.to, "SpyPosted");
       this.recall(letter.to, spy);

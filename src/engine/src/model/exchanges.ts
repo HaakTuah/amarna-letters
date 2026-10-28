@@ -6,11 +6,24 @@ import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema, type TabletProposal, TabletProposalSchema } from "./records.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
 import { type Skills, SkillsSchema } from "./people.ts";
-import { type LifeChoice, LifeChoiceSchema, type LifeView, LifeViewSchema } from "./life.ts";
+import {
+  type ChiefChoice,
+  ChiefChoiceSchema,
+  type ChiefView,
+  ChiefViewSchema,
+  type LifeChoice,
+  LifeChoiceSchema,
+  type LifeView,
+  LifeViewSchema,
+  type ReportsChoice,
+  ReportsChoiceSchema,
+  type ReportsView,
+  ReportsViewSchema,
+} from "./life.ts";
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
 
 /** Text the engine needs written by a character or the narrator before it can be delivered. */
-export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned", "Life"] as const;
+export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned", "Life", "Chief", "Reports"] as const;
 export type MindTask = (typeof MindTaskValues)[number];
 
 export interface MindRequest {
@@ -39,6 +52,9 @@ export interface MindRequest {
   fold: number;
   /** Item 11a: for its own season ("Life"), what it knows of where it stands. */
   life: LifeView | null;
+  /** A chief's own season for his band ("Chief"), and a posted spy's reports waiting for a carrier ("Reports"). */
+  chief: ChiefView | null;
+  reports: ReportsView | null;
   /**
    * For a spy's report: the copies of tablets from the watched court's archive that came home with it, now in the court's archive.
    * For a captive questioned (item 10+b): the tablets it gave way on (tablet ids).
@@ -61,6 +77,8 @@ export function newMindRequest(init: Partial<MindRequest> = {}): MindRequest {
     envoyOf: null,
     fold: 0,
     life: null,
+    chief: null,
+    reports: null,
     copyIds: [],
     ...init,
   };
@@ -80,6 +98,8 @@ export const MindRequestSchema: ObjSchema<MindRequest> = obj("MindRequest", newM
   envoyOf: opt(S),
   fold: I,
   life: () => LifeViewSchema,
+  chief: () => ChiefViewSchema,
+  reports: () => ReportsViewSchema,
   copyIds: list(S),
 });
 
@@ -114,6 +134,9 @@ export interface MindReply {
   league: Power | null;
   /** Item 11a: its own season's choices ("Life"); null leaves everything as it is. */
   life: LifeChoice | null;
+  /** A chief's choices for his band's next season, and a spy's for its waiting reports; null: the script's traits decide. */
+  chief: ChiefChoice | null;
+  reports: ReportsChoice | null;
 }
 
 export function newMindReply(init: Partial<MindReply> = {}): MindReply {
@@ -128,6 +151,8 @@ export function newMindReply(init: Partial<MindReply> = {}): MindReply {
     lies: false,
     league: null,
     life: null,
+    chief: null,
+    reports: null,
     ...init,
   };
 }
@@ -143,6 +168,8 @@ export const MindReplySchema: ObjSchema<MindReply> = obj("MindReply", newMindRep
   lies: B,
   league: opt(S),
   life: () => LifeChoiceSchema,
+  chief: () => ChiefChoiceSchema,
+  reports: () => ReportsChoiceSchema,
 });
 
 /** What the host replies at an audience. Every field but Speech is an action the engine checks. */

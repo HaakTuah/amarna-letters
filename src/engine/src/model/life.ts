@@ -323,3 +323,140 @@ export const LifeChoiceSchema: ObjSchema<LifeChoice> = obj("LifeChoice", newLife
   repay: list(S),
   outlaw: opt(S),
 });
+
+/**
+ * A province as a chief sees it from where his band works (Haakon's answer to item 11b: a model chief decides raids, ships
+ * and the way back in a request of his own): what its people and stores hold, the armies standing there, the other bands'
+ * men, and whether it has a coast.
+ */
+export interface LandSeen {
+  province: string;
+  name: string;
+  holder: Power | null;
+  purse: number;
+  stores: number;
+  army: boolean;
+  bands: number;
+  coast: boolean;
+}
+
+const LandSeenSchema = obj("LandSeen", (): LandSeen => ({ province: "", name: "", holder: null, purse: 0, stores: 0, army: false, bands: 0, coast: false }), {
+  province: S,
+  name: S,
+  holder: opt(S),
+  purse: I,
+  stores: I,
+  army: B,
+  bands: I,
+  coast: B,
+});
+
+/** Whom a chief's band kills of the travellers it robs: nobody, a king's servant who could name him, or everyone. */
+export const KillValues = ["none", "servants", "all"] as const;
+export type Kill = (typeof KillValues)[number];
+
+/** What a chief knows of his band when he decides its next season. */
+export interface ChiefView {
+  turn: number;
+  men: number;
+  ship: boolean;
+  purse: number;
+  /** What its men cost a season, in shekels' worth, and seasons in a row it could not pay them. */
+  cost: number;
+  short: number;
+  here: LandSeen;
+  /** Land next door the band could move to. */
+  next: LandSeen[];
+  /** What a ship costs in this port, or null where he cannot buy one (no coast, a ship already, too few men to man one). */
+  shipCost: number | null;
+  /** The men a ship needs. */
+  shipMen: number;
+  /** Whom his band kills now, as he last chose; null if he has not chosen. */
+  kill: Kill | null;
+  ending: string;
+}
+
+export function newChiefView(init: Partial<ChiefView> = {}): ChiefView {
+  return { turn: 0, men: 0, ship: false, purse: 0, cost: 0, short: 0, here: LandSeenSchema.make(), next: [], shipCost: null, shipMen: 0, kill: null, ending: "", ...init };
+}
+
+export const ChiefViewSchema: ObjSchema<ChiefView> = obj("ChiefView", newChiefView, {
+  turn: I,
+  men: I,
+  ship: B,
+  purse: I,
+  cost: I,
+  short: I,
+  here: () => LandSeenSchema,
+  next: list(() => LandSeenSchema),
+  shipCost: opt(I),
+  shipMen: I,
+  kill: opt(S),
+  ending: S,
+});
+
+/** What a chief decides for his band's next season, taken at its start; `turn` is the season he decided it. */
+export interface ChiefChoice {
+  turn: number;
+  /** Move the band to this province next door; null: stay. */
+  go: string | null;
+  ship: boolean;
+  /** Give up the road (the way back): the band goes back to the loose men and he to seeking service. */
+  giveUp: boolean;
+  kill: Kill;
+}
+
+export function newChiefChoice(init: Partial<ChiefChoice> = {}): ChiefChoice {
+  return { turn: 0, go: null, ship: false, giveUp: false, kill: "none", ...init };
+}
+
+export const ChiefChoiceSchema: ObjSchema<ChiefChoice> = obj("ChiefChoice", newChiefChoice, { turn: I, go: opt(S), ship: B, giveUp: B, kill: S });
+
+/** What a posted spy knows when its reports wait for a carrier (Haakon's answers to item 11b: the spy decides). */
+export interface ReportsView {
+  turn: number;
+  /** The province of its post, by name, and its master. */
+  post: string;
+  master: Power;
+  /** How many reports wait, and how many seasons the oldest has waited. */
+  reports: number;
+  waited: number;
+  purse: number;
+  /** Seasons of road to its master's capital. */
+  home: number;
+  /** About what a traveller already going that way asks, and what a man hired at the court here asks (null: no court here). */
+  passing: number;
+  hired: number | null;
+  /** Its master's standing order pays carriers on delivery. */
+  paysOnDelivery: boolean;
+}
+
+export function newReportsView(init: Partial<ReportsView> = {}): ReportsView {
+  return { turn: 0, post: "", master: "Egypt", reports: 0, waited: 0, purse: 0, home: 0, passing: 0, hired: null, paysOnDelivery: false, ...init };
+}
+
+export const ReportsViewSchema: ObjSchema<ReportsView> = obj("ReportsView", newReportsView, {
+  turn: I,
+  post: S,
+  master: S,
+  reports: I,
+  waited: I,
+  purse: I,
+  home: I,
+  passing: I,
+  hired: opt(I),
+  paysOnDelivery: B,
+});
+
+/** What the spy decides for the next season: the most it pays now from its purse for a carrier, and whether it carries them home itself if nobody takes them. */
+export interface ReportsChoice {
+  turn: number;
+  payUpTo: number;
+  carry: boolean;
+}
+
+export function newReportsChoice(init: Partial<ReportsChoice> = {}): ReportsChoice {
+  return { turn: 0, payUpTo: 0, carry: false, ...init };
+}
+
+export const ReportsChoiceSchema: ObjSchema<ReportsChoice> = obj("ReportsChoice", newReportsChoice, { turn: I, payUpTo: I, carry: B });

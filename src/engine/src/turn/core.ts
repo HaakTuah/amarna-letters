@@ -108,6 +108,7 @@ export class TurnEngine {
     this.naturalLosses();
     this.newcomers();
     this.lifeRequests();
+    this.ownRequests();
     this.memoriesDue();
   }
 
