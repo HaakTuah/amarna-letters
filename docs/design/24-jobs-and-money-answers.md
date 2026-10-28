@@ -114,7 +114,7 @@ and the man hired, hear its rate. It asks more of a court it heard seized hoards
   servant notes its master's court, and selling it is found out `NewsData.secretsCaught` times in a hundred: a hidden
   fact whose word goes from the buyer's court to its master by the roads (a "Name" rumour), with a notice on arrival.
 - **Not built here**: a band hired as soldiers (item 13); a pardon has no order (words, or a sealed promise); **a model
-  chief's own request** for raids, ships and the way back (chiefs, model and script, still decide by formula).
+  chief's own request** for raids, ships and the way back, built after it (`25-chiefs-and-spies-choose.md`).
 - **Script kings** (`game/src/bots/outlaws.ts`) order a hunt (`hunt`) only where an army of theirs stands with a band and
   the hunt breaks it or leaves it no province of theirs without troops to flee to (`worthHunting`), never the standing
   order (a band driven off robs a neighbouring province at the full rate); spare armies march on a band only where such a

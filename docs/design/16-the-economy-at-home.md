@@ -68,7 +68,7 @@ slowest part, the siege's clock, and strength as the wealth of the realm. Save v
 - The levy's cost goes into the purse of the province where it is raised, and the fortify cost into the walled
   province's purse (the men, smiths and builders are its people). What a province adds to its holder (`provinceWorthOf`) is
   `10 × (harvest at reference + mines) + purse + stores and market`; until item 11+ it was also a free city's price, public in
-  the view as `cityPrices` (no city is bought since: `25-city-states-as-powers.md`).
+  the view as `cityPrices` (no city is bought since: `26-city-states-as-powers.md`).
 
 ### The pace of a company (model/travel.ts)
 

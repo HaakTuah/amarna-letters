@@ -2,7 +2,7 @@
 
 Build order item 11+, "City-states as powers" (`docs/intent/build-order/item-11plus.md`), built from the politics dossier
 (`docs/history/01-politics.md`). Branch `item/city-states`, begun on `item/answers-to-11b` (#125) as the pipelined start
-asked. Save version 23. What was built, by file: `docs/design/25-city-states-as-powers.md`. Weekly usage: unknown
+asked. Save version 24. What was built, by file: `docs/design/26-city-states-as-powers.md`. Weekly usage: unknown
 (`scripts/usage.sh` cannot read it in this session). Effort: medium, as set.
 
 ## The check for changes

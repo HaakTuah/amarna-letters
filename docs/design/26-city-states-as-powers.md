@@ -1,7 +1,7 @@
 ## City-states as powers
 
 Build order item 11+ (`docs/intent/build-order/item-11plus.md`; "The game in one page"), built from the politics dossier
-(`docs/history/01-politics.md`). Save version 23. The report is `docs/rounds/2026-10-28-city-states.md`. First guesses
+(`docs/history/01-politics.md`). Save version 24. The report is `docs/rounds/2026-10-28-city-states.md`. First guesses
 for item 18: the city-states' troops and gold (`cityUnits`, `StartGold` in `model/map.ts`), the opening tribute
 (`StartVassals`, `model/vassals.ts`), par (`Par`, `rules/scoring.ts`), the pool of 100 (`GameConfig.characterPoolSize`),
 and the script players' vassal judgements (`bots/vassals.ts`).

@@ -206,7 +206,7 @@
     (closing the roads to all, and envoys visiting several courts in turn, come later, as question 5 planned). The record
     marks envoys that slipped out (`envoy-out`), were caught (`envoy-caught`) or would not go (`envoy-stayed`).
   - **Free cities** could also be bought until item 11+, which made them powers and took the purchase away
-    (`25-city-states-as-powers.md`); as it stood: for 10 × yield by a power whose land or troops touch
+    (`26-city-states-as-powers.md`); as it stood: for 10 × yield by a power whose land or troops touch
     them, or that holds a coast on the same sea zone (islands trade by ship). Rival bids in the same
   season bounce: the elders sell to none, and each bidder is told how many buyers bid ("The elders of
   Gaza would not choose between 2 buyers last season. No gold was paid."). A city that troops take in the season of a bid is not sold: every bidder is told

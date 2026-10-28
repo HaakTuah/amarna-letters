@@ -24,6 +24,7 @@ import { personaTemplate } from "../rules/personas.ts";
 import { drawSkills } from "../rules/skills.ts";
 import { chooseStrategy } from "../rules/strategy.ts";
 import { TurnEngine, idNumber } from "./core.ts";
+import { killsByChoice } from "./own-choices.ts";
 
 /** How a head rose ("How he rose shapes who he is"): the circumstance leans his traits, since it picks the man. */
 export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "outlaw";
@@ -154,6 +155,8 @@ declare module "./core.ts" {
 
 P.lead = function (c, b) {
   c.duty = "Leading";
+  // A new band: nothing he chose for another one holds.
+  c.chiefPlan = null;
   c.at = null;
   c.watchProvince = b.province;
   c.lendOffer = null;
@@ -283,6 +286,9 @@ P.bandsSeason = function () {
       this.leaderLost(b, chief === null || chief.status === "Dead" ? "he is dead" : "he is gone");
       continue;
     }
+    // A chief who decided last season (a model, in his own request) does as he chose; the script's traits decide the rest.
+    const own = this.chiefDecides(b, chief);
+    if (own === "gone") continue;
     const prov = Map.get(b.province);
     const holder = S.owner.getOrDefault(b.province, null);
     const rng = this.r("band", b.id);
@@ -412,19 +418,13 @@ P.bandsSeason = function () {
       continue;
     }
 
-    // The chief's choices (by formula for every chief: "Bold or careful, one goal"): the way back, a ship, or richer land.
+    // The chief's choices, a script chief's by formula ("Bold or careful, one goal"): the way back, a ship, or richer land.
+    if (own) continue;
     if (b.men <= BandData.wayBack && !chief.bold && rng.chance(0.5)) {
       this.wayBack(b, "his band had dwindled");
       continue;
     }
-    if (!b.ship && here.isCoastal && b.men >= BandData.shipMen && chief.purse >= BandData.shipCost * 2 && chief.traits.courage >= 50) {
-      chief.purse -= BandData.shipCost;
-      chief.earned.spent += BandData.shipCost;
-      this.spendAt(b.province, BandData.shipCost);
-      b.ship = true;
-      remember(chief, S.turn, `I bought a ship at ${here.name}: my band works the sea now too.`);
-      logEvent(S, "band", `${chief.name}'s band bought a ship at ${here.name} and took to the sea.`, [], "band-ship");
-    }
+    if (chief.purse >= BandData.shipCost * 2 && chief.traits.courage >= 50) this.buyShip(b, chief);
     const pickings = (id: string): number => {
       const mk = this.market(id);
       const worth = mk.purse + grainWorth(this.stores(id)) + 1;
@@ -498,13 +498,14 @@ P.naturalLosses = function () {
  * Haakon's answers to item 11b: robbers choose whether to kill a traveller, with no fixed odds. A chief weighs the witness
  * (a king's servant would name him to his king, a free man to whoever pays for news) against being hunted for murder (the
  * land's king hunts bands, or has an army there or next door): a ruthless chief (disloyal or greedy) kills a witness when
- * nobody is hunting him there; a careful one never does. Model chiefs decide by the same weighing until a chief's own
- * request is built.
+ * nobody is hunting him there; a careful one never does. A model chief chooses in his own request (`own-choices.ts`).
  */
 P.chiefKills = function (b, victim, province) {
   const S = this.s;
   const chief = S.characters.find((x) => x.id === b.leaderId) ?? null;
   if (chief === null) return false;
+  // A chief who chose whom his band kills (a model, in his own request) is held to his choice.
+  if (chief.chiefPlan !== null) return killsByChoice(chief.chiefPlan.kill, victim);
   const ruthless = chief.traits.loyalty < 40 || chief.traits.greed > 70;
   // A witness worth silencing serves a king, who would hear his word and could send men; a free traveller's word reaches
   // nobody who would. The chief weighs only what he can see: the land's armies in or next to the province, not its

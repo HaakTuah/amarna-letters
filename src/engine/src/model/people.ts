@@ -2,6 +2,7 @@ import { Dict } from "../core/collections.ts";
 import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
 import { type Errand, ErrandSchema, type Hoard, HoardSchema, type LendOffer, LendOfferSchema, type Strategy } from "./money.ts";
+import { type ChiefChoice, ChiefChoiceSchema, type ReportsChoice, ReportsChoiceSchema } from "./life.ts";
 
 export const SecrecyValues = ["Public", "Hidden", "Deep"] as const;
 export type Secrecy = (typeof SecrecyValues)[number];
@@ -376,6 +377,12 @@ export interface Character {
   diedWith: number | null;
   /** Item 11a: the last season it decided a season of its own; null since it arrived somewhere new (or never). */
   lastLife: number | null;
+  /**
+   * Haakon's answers to item 11b: a model chief's last choices for his band, and a model spy's for its waiting reports,
+   * each taken the season after it was made; null while the script's traits decide (a script mind never sets them).
+   */
+  chiefPlan: ChiefChoice | null;
+  reportsPlan: ReportsChoice | null;
   /** Item 11a: a newcomer's mark in the data ("invented name", "first recorded later"), never told in the game; null if none. */
   marked: string | null;
   /** Item 11b: the news it carries of the courts it stood at, newest last, at most one a court ("Characters as sellers of news"). */
@@ -443,6 +450,8 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     seeking: true,
     diedWith: null,
     lastLife: null,
+    chiefPlan: null,
+    reportsPlan: null,
     marked: null,
     news: [],
     heard: [],
@@ -507,6 +516,8 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   seeking: B,
   diedWith: opt(I),
   lastLife: opt(I),
+  chiefPlan: () => ChiefChoiceSchema,
+  reportsPlan: () => ReportsChoiceSchema,
   marked: opt(S),
   news: list(() => NewsHeldSchema),
   heard: list(S),
