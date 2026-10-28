@@ -135,5 +135,6 @@ describe("TerrainBotTests", () => {
     }
     Assert.true(held > 0, "no troop of a script king held by the ground");
     Assert.true(beaten > 0, "no script king beat a troop the ground helped");
-  });
+    // Since item 10+a the first blow that beats the ground comes at seed 23: about two dozen short games.
+  }, 600_000);
 });

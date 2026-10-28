@@ -55,6 +55,7 @@ import {
   type UnitView,
 } from "@amarna/engine";
 import { plainGrainOrders } from "./grain.ts";
+import { canLevy } from "./land.ts";
 import type { ISeat } from "../contracts.ts";
 
 class Memory {
@@ -257,10 +258,12 @@ function military(v: SeatView, m: Memory, rng: Rng, orders: Order[]): HSet<strin
     const occ = unitAt.tryGet(t) ?? null;
     if (occ?.power === me) continue;
     let need: number;
-    if (owner === null) need = occ === null ? (v.walls.getOrDefault(t, 0) > 0 ? 2 : 1) : willing(occ.power) ? 2 : 0;
+    // Empty land not ours: its people resist (item 10+a, adapted as the rule requires).
+    const people = v.resistance.tryGet(t) ?? 0;
+    if (owner === null) need = occ === null ? Math.max(v.walls.getOrDefault(t, 0) > 0 ? 2 : 1, people + 1) : willing(occ.power) ? 2 : 0;
     else if (owner === me) need = occ === null ? 0 : 2;
     else if (!willing(owner)) need = 0;
-    else need = occ === null ? (v.walls.getOrDefault(t, 0) > 0 ? 2 : 1) : 2 + (m.aggression < 0.5 ? 1 : 0);
+    else need = occ === null ? Math.max(v.walls.getOrDefault(t, 0) > 0 ? 2 : 1, people + 1) : 2 + (m.aggression < 0.5 ? 1 : 0);
     if (need === 0) continue;
     const prov = Map_.get(t);
     const value = prov.yield + (prov.capital ? 25 : 0) + (owner === null ? 5 : 0) + (prov.home === me ? 30 : 0) + (owner !== null ? G(m, owner) * 3 + (owner === leader ? 15 : 0) : 0);
@@ -317,6 +320,7 @@ function stepToward(u: UnitView, v: SeatView, me: Power, peace: HSet<Power>, m: 
       while (prev.get(step) !== u.province) step = prev.get(step)!;
       if (taken.has(step) || unitAt.has(step)) return null;
       if (v.walls.getOrDefault(step, 0) > 0) return null; // walls: wait for help rather than bounce
+      if ((v.resistance.tryGet(step) ?? 0) > 0) return null; // its people would hold off a lone army (item 10+a)
       return step;
     }
     for (const n of sortBy(Map_.movesFrom(u.kind, cur), [(x: string) => x, cmpStr]))
@@ -354,6 +358,8 @@ function economy(v: SeatView, m: Memory, rng: Rng, orders: Order[], destinations
     const cost = fleet ? v.prices.get("fleet") : v.prices.get("army");
     const upkeep = fleet ? v.prices.get("fleetUpkeep") : v.prices.get("armyUpkeep");
     if (gold - cost < reserve || surplus - upkeep < (weak ? 15 : -5)) break;
+    // Only where the men of fighting age are (item 10+a, as the rule requires).
+    if (!canLevy(v, spot.id, fleet ? "Fleet" : "Army")) continue;
     surplus -= upkeep;
     orders.push(raise(spot.id, fleet ? "Fleet" : "Army"));
     gold -= cost;
