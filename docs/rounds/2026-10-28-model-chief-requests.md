@@ -41,7 +41,10 @@ taken at the start of his band's season, the ship bought by a shared helper, who
 
 ## Benchmarks and script games
 
-BENCH
+`scripts/sim.sh --games 50 --seed 1` on `develop` and on this branch (with `--verify-replay`, every replay ok): every
+line of the summary is the same, winners, falls, growth, press, characters' wealth, except the count of characters
+asked, 50.6 calls and 39.1 wake-ups a season before, 73.0 and 61.4 now: the chiefs and spies asked, whom a script mind
+answers without a call. The script benchmarks are therefore unchanged.
 
 No use-against-ignore row: nothing changes for script players, and model games are not run until the build order is
 done.
