@@ -22,3 +22,6 @@ export * from "./caravans.ts";
 export * from "./trade.ts";
 export { type Word, newWord, WordSchema, noteMarket, noteTolls } from "./word.ts";
 export * from "./land.ts";
+export * from "./money.ts";
+export * from "./life.ts";
+export * from "./doors.ts";

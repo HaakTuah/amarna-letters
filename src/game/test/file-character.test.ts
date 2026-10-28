@@ -82,6 +82,9 @@ describe("FileCharacterTests", () => {
     if (stem.includes("_pitch_"))
       return `{"pitch":"${words}","asking_price":14,"name":"","envoy_of":false,"say_gather":"notice what is in plain view","say_stealth":"pass unnoticed with luck","say_forge":"copy a hand badly"}`;
     if (stem.includes("_questioned_")) return `{"words":"${words}","lie":false}`;
+    // Item 11a: a season of its own, every field it could be asked, left as things are.
+    if (stem.includes("_life_"))
+      return `{"go":"","seek_service":true,"hoard":0,"lend_amount":0,"lend_per_hundred":0,"lend_seasons":0,"approach_to":"","approach_words":"${words}","approach_give_gold":0,"approach_ask_gold":0,"approach_repay":0,"approach_seasons":0,"approach_collect":"","approach_fee":0,"accept":[],"quit":false,"hand_over":true,"repay":[]}`;
     if (stem.includes("_spy_")) return `{"report":"${words}"}`;
     return `{"summary":"${words}"}`;
   }
@@ -154,7 +157,7 @@ describe("FileCharacterTests", () => {
     Assert.contains("You are one of the people of the Amarna age", request);
     Assert.contains(c.name, request);
     Assert.contains("Speak to the king now.", request);
-    Assert.contains('"keep_gold"', request);
+    Assert.contains('"speech"', request);
     Assert.contains(`${stem}.reply.json`, request);
     Assert.endsWith(Footer, request.trimEnd());
     Assert.doesNotContain("Decide as the king", request);

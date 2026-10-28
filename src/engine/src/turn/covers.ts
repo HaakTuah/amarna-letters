@@ -1,8 +1,8 @@
 /**
  * Covers: news of a court's people abroad reaches it only by rumour or when they return. A servant who is caught,
- * detained, goes over to the host, is put to death or is let go keeps appearing to its master as it was, its back pay
- * growing in the master's books by the wage it believes it owes, until word comes. Nobody away is paid until it is back,
- * so the treasury betrays nothing either way. Each court that served the character keeps its own cover: an envoy that went
+ * detained, goes over to the host, is put to death or is let go keeps appearing to its master as it was, its job as the
+ * master agreed it, until word comes. The rest of a fee falls due only when the servant is back with its job done (item
+ * 11a), so the treasury betrays nothing either way. Each court that served the character keeps its own cover: an envoy that went
  * over to a host is covered for its old master, and again for its new one if something happens to it on the new master's
  * errand.
  */
@@ -20,7 +20,7 @@ declare module "./core.ts" {
     coverFor(c: Character, master: Power, believed: Duty, duty?: string | null, where?: string | null, seen?: CharacterView | null, factIds?: string[] | null, timing?: string | null): void;
     newsArrives(j: Journey): void;
     coversAtCourt(): void;
-    wageOf(c: Character, p: Power): number;
+    restOf(c: Character, p: Power): number;
   }
 }
 
@@ -47,9 +47,9 @@ P.coverFor = function (c, master, believed, duty = null, where = null, seen = nu
       dutyText: duty ?? view.duty,
       whereText: where ?? view.where,
       timingText: timing ?? (duty === null ? view.timing : ""),
-      wage: view.wage ?? c.contract?.wage ?? 0,
-      // From here its back pay grows in the master's books by the wage it believes it owes, whatever really befell it.
-      backPay: c.backPay.getOrDefault(master, 0),
+      fee: view.fee ?? c.contract?.fee ?? 0,
+      advance: view.advance ?? c.contract?.advance ?? 0,
+      startTurn: view.contractFrom ?? c.contract?.startTurn ?? S.turn,
       contractUntil: view.contractUntil,
       noticePrice: view.noticePrice,
       leavesTurn: view.leavesTurn,
@@ -95,11 +95,12 @@ P.coversAtCourt = function () {
 };
 
 /**
- * The wage a court owes a character each season, as it reckons it: what it believes it owes a covered servant, else its
- * contract, a captive's included. Paid at court; built up as back pay while the character is away.
+ * The rest of a character's fee a court will owe when its job is done, as it reckons it (item 11a): what it believes of a
+ * covered servant, else its job, a captive's included.
  */
-P.wageOf = function (c, p) {
+P.restOf = function (c, p) {
   const k = coverOf(c, p);
-  if (k !== null) return k.wage;
-  return c.employer === p && (c.status === "Employed" || c.status === "Captured") ? (c.contract?.wage ?? 0) : 0;
+  if (k !== null) return Math.max(0, k.fee - k.advance);
+  const j = c.contract;
+  return c.employer === p && (c.status === "Employed" || c.status === "Captured") && j !== null ? Math.max(0, j.fee - j.advance) : 0;
 };

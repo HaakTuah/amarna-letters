@@ -202,10 +202,10 @@ describe("FeatureAuditTests", () => {
     Assert.equal(giftUnit("enkomiwaters", "Alashiya"), plan.orders.get("enkomiwaters"));
     Assert.doesNotContain([...plan.orders.values()], (o) => o.type === "giftUnit" && o.unit !== "enkomiwaters");
 
-    // Without the fleet at sea, and with wages the treasury cannot carry, the unit that goes stands in Egypt's own land,
+    // Without the fleet at sea, and with jobs the treasury cannot carry, the unit that goes stands in Egypt's own land,
     // next to Alashiya's Gaza: it is disbanded, since a friend's army standing in Sinai would take Sinai with it.
     removeAll(s.units, (u) => u.province === "enkomiwaters");
-    for (const c of s.characters.filter((c) => c.employer === "Egypt")) c.contract!.wage = 40;
+    for (const c of s.characters.filter((c) => c.employer === "Egypt")) [c.contract!.fee, c.contract!.startTurn, c.contract!.untilTurn] = [240, 1, 7];
     [plan] = economy(s, "Egypt");
     Assert.equal(disband("sinai"), plan.orders.get("sinai"));
     Assert.doesNotContain([...plan.orders.values()], (o) => o.type === "giftUnit");

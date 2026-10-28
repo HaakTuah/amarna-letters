@@ -172,3 +172,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     `.claude/rules/builder-rules.md` with this refresh; the same for Barkstreet Snakes, in its `CLAUDE.md`. Earlier the
     same morning, at 08:12: "Yes, I think tests should only run where they impact something. To speed up development,
     and so the session don't lose cache and we pay for all of the tokens again?" (the CI change of PR #103).
+
+21. **13:02**, in the design chat, answering items 8's, 9's, 10+a's and 10+b's review questions, which Claude had relayed word for word with its takes:
+
+    > You figure all this out, expert. You know me by now. But models must be able to alter clauses also. Remember, everyone plays the same game!
+
+    The takes are written into item 11a+ ("Harvests in their season, and the answers to items 8 to 10+b"); the "For
+    Haakon" rows are marked answered.

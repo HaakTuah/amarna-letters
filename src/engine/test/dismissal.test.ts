@@ -78,7 +78,7 @@ describe("DismissalTests", () => {
     Assert.doesNotContain(Views.for(s, "Egypt").court, (c) => c.id === envoy.id);
   });
 
-  test("A dismissed traveller hired by another court on the way stays with its new master", () => {
+  test("A dismissed traveller cannot be hired by another court on the way: a person is hired in person", () => {
     let [s, envoy] = start();
     begin(s).resolve(orders("Egypt", dispatch(envoy.id, "Babylonia", "Greetings.")));
     let e = begin(s);
@@ -103,11 +103,12 @@ describe("DismissalTests", () => {
         dispatch: newDispatch(),
       }),
     );
-    e.resolve(orders("Hatti", hire(envoy.id, 12)));
-    Assert.equal("Hatti", envoy.employer);
+    e.resolve(orders("Hatti", hire(envoy.id, 72, 6, 72)));
+    Assert.null(envoy.employer);
     begin(s);
-    Assert.equal(["Hatti", "None"], [envoy.at!, envoy.duty]);
-    Assert.contains(Views.for(s, "Hatti").court, (c) => c.id === envoy.id && c.ready);
+    // It arrives where it was going, free, and Hatti was told why it could not hire it.
+    Assert.equal(["Babylonia", "None", "Free"], [envoy.at!, envoy.duty, envoy.status]);
+    Assert.contains(inboxOf(s, "Hatti"), (i) => i.body.includes("hired in person"));
   });
 
   test("An envoy dismissed on the way home still comes home reports and hands over the gold", () => {
@@ -138,7 +139,7 @@ describe("DismissalTests", () => {
     Assert.equal(["Free", "Egypt", "None"], [envoy.status, envoy.at, envoy.duty]);
   });
 
-  test("A dismissed envoy hired by another court on the way home stays with its new master", () => {
+  test("A dismissed envoy on the way home cannot be hired by another court until it stands there", () => {
     let [s, envoy] = start();
     begin(s).resolve(orders("Egypt", dispatch(envoy.id, "Babylonia", "Greetings.")));
     begin(s).resolve(none());
@@ -151,14 +152,13 @@ describe("DismissalTests", () => {
     let journey = single(s.journeys, (j) => j.characterId === envoy.id && j.kind === "EnvoyHomebound");
     Assert.true(journey.arriveTurn > s.turn);
 
-    // Hatti hires it while it is still on the road; when the old journey ends it stays where it is.
+    // Hatti cannot hire it while it is still on the road; it comes home free, and reports.
     envoy.pitches.set("Hatti", "I would serve you.");
     envoy.askingPrice.set("Hatti", 10);
-    begin(s).resolve(orders("Hatti", hire(envoy.id, 12)));
-    Assert.equal(["Hatti", "Hatti"], [envoy.employer!, envoy.at!]);
+    begin(s).resolve(orders("Hatti", hire(envoy.id, 72, 6, 72)));
+    Assert.null(envoy.employer);
     while (s.journeys.includes(journey)) begin(s).resolve(none());
-    Assert.equal(["Hatti", "None"], [envoy.at!, envoy.duty]);
-    Assert.doesNotContain(inboxOf(s, "Egypt"), (i) => i.kind === "EnvoyReport" && i.subject === envoy.id);
+    Assert.equal(["Egypt", "None", "Free"], [envoy.at!, envoy.duty, envoy.status]);
   });
 
   test("A detained envoy dismissed stays held and the jailers release frees it at the jailers court", () => {

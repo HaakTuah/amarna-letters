@@ -226,21 +226,53 @@ export interface ReleaseOrder {
 export interface SeekCandidatesOrder {
   type: "seekCandidates";
 }
+/**
+ * Item 11a, "Jobs, not wages": hire a person standing at your court for a job of `term` seasons, for a whole `fee`, of which
+ * `advance` is handed over now and the rest falls due when the job is done.
+ */
 export interface HireOrder {
   type: "hire";
   character: string;
-  wage: number;
+  fee: number;
+  advance: number;
   term: number;
 }
 /**
- * Keep one of your own people on at a new wage, for a new term. Not a task: the servant may be renewed and sent on an
- * errand in the same season.
+ * Keep one of your own people on for a new job: a new fee for a new term, the advance handed over now. Not a task: the
+ * servant may be renewed and sent on an errand in the same season.
  */
 export interface RenewOrder {
   type: "renew";
   character: string;
-  wage: number;
+  fee: number;
+  advance: number;
   term: number;
+}
+/**
+ * Item 11a: the rest of a servant's fee. `pay` true pays what you let fall due unpaid, if the person stands at your court;
+ * false withholds the rest of its present job when it falls due (a promise broken, which others hear of).
+ */
+export interface PayFeeOrder {
+  type: "payFee";
+  character: string;
+  pay: boolean;
+}
+/**
+ * Item 11a, "Lending to kings": borrow `amount` from a person at your court who offers to lend, sealing a debt tablet for
+ * `repay`, to be repaid in `seasons`.
+ */
+export interface BorrowOrder {
+  type: "borrow";
+  character: string;
+  amount: number;
+  repay: number;
+  seasons: number;
+}
+/** Item 11a: repay a debt to whoever holds its tablet, if they stand at your court; repaid in full, the tablet is yours. */
+export interface RepayOrder {
+  type: "repay";
+  debt: string;
+  amount: number;
 }
 export interface DismissOrder {
   type: "dismiss";
@@ -378,6 +410,9 @@ export type Order =
   | SeekCandidatesOrder
   | HireOrder
   | RenewOrder
+  | PayFeeOrder
+  | BorrowOrder
+  | RepayOrder
   | DismissOrder
   | BackgroundCheckOrder
   | PlaceSpyOrder
@@ -434,8 +469,12 @@ export function dispatch(
 }
 export const release = (character: string, reply = ""): ReleaseOrder => ({ type: "release", character, reply });
 export const seekCandidates = (): SeekCandidatesOrder => ({ type: "seekCandidates" });
-export const hire = (character: string, wage: number, term = 6): HireOrder => ({ type: "hire", character, wage, term });
-export const renew = (character: string, wage: number, term = 6): RenewOrder => ({ type: "renew", character, wage, term });
+/** A job: by default the whole fee for `term` seasons at `rate` a season, half of it handed over now. */
+export const hire = (character: string, fee: number, term = 6, advance: number | null = null): HireOrder => ({ type: "hire", character, fee, advance: advance ?? Math.trunc(fee / 2), term });
+export const renew = (character: string, fee: number, term = 6, advance: number | null = null): RenewOrder => ({ type: "renew", character, fee, advance: advance ?? Math.trunc(fee / 2), term });
+export const payFee = (character: string, pay = true): PayFeeOrder => ({ type: "payFee", character, pay });
+export const borrow = (character: string, amount: number, repay: number, seasons = 6): BorrowOrder => ({ type: "borrow", character, amount, repay, seasons });
+export const repay = (debt: string, amount: number): RepayOrder => ({ type: "repay", debt, amount });
 export const dismiss = (character: string): DismissOrder => ({ type: "dismiss", character });
 export const check = (character: string, spend: number): BackgroundCheckOrder => ({ type: "check", character, spend });
 export const sell = (province: string, amount: number): SellOrder => ({ type: "sell", province, amount });
@@ -534,9 +573,15 @@ export function describe(o: Order): string {
     case "seekCandidates":
       return "ask for candidates";
     case "hire":
-      return `hire ${o.character} at ${o.wage} a season`;
+      return `hire ${o.character} for ${o.term} seasons for ${o.fee} shekels, ${o.advance} of them now`;
     case "renew":
-      return `renew ${o.character} at ${o.wage} a season for ${o.term} seasons`;
+      return `renew ${o.character} for ${o.term} seasons for ${o.fee} shekels, ${o.advance} of them now`;
+    case "payFee":
+      return o.pay ? `pay ${o.character} the rest of the fee owed` : `withhold the rest of ${o.character}'s fee`;
+    case "borrow":
+      return `borrow ${o.amount} shekels from ${o.character}, to repay ${o.repay} in ${o.seasons} seasons`;
+    case "repay":
+      return `repay ${o.amount} shekels on debt ${o.debt}`;
     case "dismiss":
       return `dismiss ${o.character}`;
     case "check":
@@ -673,8 +718,11 @@ export const OrderSchema = poly("Order", "type", {
   }),
   release: v("ReleaseOrder", () => release(""), { character: S, reply: S }),
   seekCandidates: v("SeekCandidatesOrder", () => seekCandidates(), {}),
-  hire: v("HireOrder", () => hire("", 0), { character: S, wage: I, term: I }),
-  renew: v("RenewOrder", () => renew("", 0), { character: S, wage: I, term: I }),
+  hire: v("HireOrder", () => hire("", 0), { character: S, fee: I, advance: I, term: I }),
+  renew: v("RenewOrder", () => renew("", 0), { character: S, fee: I, advance: I, term: I }),
+  payFee: v("PayFeeOrder", () => payFee(""), { character: S, pay: B }),
+  borrow: v("BorrowOrder", () => borrow("", 0, 0), { character: S, amount: I, repay: I, seasons: I }),
+  repay: v("RepayOrder", () => repay("", 0), { debt: S, amount: I }),
   dismiss: v("DismissOrder", () => dismiss(""), { character: S }),
   check: v("BackgroundCheckOrder", () => check("", 0), { character: S, spend: I }),
   spy: v("PlaceSpyOrder", () => placeSpy(""), { character: S, court: S, province: S }),

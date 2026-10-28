@@ -38,6 +38,7 @@ import {
   type Power,
   type Rng,
   type TabletView,
+  feeFor,
 } from "@amarna/engine";
 import type { Board } from "./board.ts";
 import { shekels, type Brain } from "./brain.ts";
@@ -89,10 +90,19 @@ function thief(brain: Brain, c: CharacterView): boolean {
   return brain.thieves.has(c.id) || c.knownFacts.some((f) => Thefts.some((x) => f.startsWith(x)));
 }
 
-/** The hiring test, for a new servant or one kept on: a wage the king's greed allows, with three seasons of it to spare. */
-function wouldPay(p: Personality, wage: number, spare: number): boolean {
-  return wage <= 15 + 25 * (1 - p.greed) && spare > wage * 3;
+/**
+ * The hiring test, for a new servant or one kept on: a fee a season the king's greed allows, scaled by the going rate of
+ * service (item 11a: a king pays what the market asks or goes without), with three seasons of it to spare.
+ */
+function wouldPay(p: Personality, rate: number, spare: number, goingRate = 100): boolean {
+  return rate <= ((15 + 25 * (1 - p.greed)) * Math.max(100, goingRate)) / 100 && spare > rate * 3;
 }
+
+/**
+ * Item 11a: the fee for a job of `term` seasons for one who asks `ask` a season: half handed over now, the rest when it is
+ * done, made up for what the person does not count on from this court (its record of paying: v.trust).
+ */
+export const offerFee = (ask: number, term: number, trust: number): number => feeFor(ask, term, 50, trust);
 
 const byReliability = (brain: Brain): [(c: CharacterView) => unknown, Cmp<never>][] => [
   [(c: CharacterView) => reliability(c), desc(cmpNum)],
@@ -105,7 +115,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   const v = b.v;
   let spare = brain.spareGold;
   let staff = v.court.filter((c) => c.status === "employed");
-  const flow = v.income - v.upkeep - v.wages;
+  const flow = v.income - v.upkeep - v.fees;
   // More people only while the treasury can carry their wages: a third or fourth servant only for a king with letters (or
   // plots) to fill it, and a surplus to match the size of his kingdom.
   const wanted = flow < 25 + 0.25 * v.income ? 2 : 2 + (p.diplomacy > 0.8 ? 1 : 0) + (p.cunning > 0.7 && flow > 50 + 0.25 * v.income ? 1 : 0);
@@ -139,8 +149,8 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   );
   let keeping = staff.length - leaving.length;
   for (const c of leaving) {
-    if (keeping >= wanted || !wouldPay(p, c.noticePrice!, spare)) continue;
-    orders.push(renew(c.id, c.noticePrice!, 6));
+    if (keeping >= wanted || !wouldPay(p, c.noticePrice!, spare, v.goingRate)) continue;
+    orders.push(renew(c.id, offerFee(c.noticePrice!, 6, v.trust), 6));
     keeping++;
   }
 
@@ -156,7 +166,8 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
   const worth = (c: CharacterView): number =>
     !people ? c.askingPrice! : c.askingPrice! - 3 * successes(c) - (careful ? 0 : count(c.claims, (x) => /see what|miss nothing|slip past/.test(x)));
   const candidates = sortBy(
-    v.known.filter((c) => c.status === "free" && c.pitch !== null && c.askingPrice !== null && c.claimsToServe === null && reliability(c) === 0 && !brain.heldElsewhere.has(c.id)),
+    // Item 11a: hired in person, so only those standing at court.
+    v.known.filter((c) => c.status === "free" && c.where === "at your court" && c.pitch !== null && c.askingPrice !== null && c.claimsToServe === null && reliability(c) === 0 && !brain.heldElsewhere.has(c.id)),
     [(c: CharacterView) => worth(c), cmpNum],
     [(c: CharacterView) => c.id, cmpStr],
   );
@@ -166,7 +177,7 @@ export function court(b: Board, brain: Brain, orders: Order[], busy: HSet<string
       orders.push(check(best.id, 25));
       brain.checked.add(best.id);
       spare -= 25;
-    } else if (wouldPay(p, best.askingPrice!, spare)) orders.push(hire(best.id, best.askingPrice!, 6));
+    } else if (wouldPay(p, best.askingPrice!, spare, v.goingRate)) orders.push(hire(best.id, offerFee(best.askingPrice!, 6, v.trust), 6));
   }
 
   // Assay gold from those we do not trust, or that weighed light.

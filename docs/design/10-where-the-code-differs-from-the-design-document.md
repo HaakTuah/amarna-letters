@@ -1,5 +1,7 @@
 ## Where the code differs from the design document (begun 19 October 2026, kept up as items are built)
 
+> **Since item 11a** (`21-money-and-work.md`): wages and back pay are replaced by jobs with a fee (an advance now, the rest when the job is done), and strength no longer subtracts anything owed. Passages below about wages and back pay describe the build before item 11a and are kept for its history.
+
 The design document records intent; these notes record what is built. Where they differ today:
 
 - **Pillar 8, war slower than diplomacy, is built** (Build order item 5, the siege package). Walls that differ

@@ -84,7 +84,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                   <th>At the end</th>
                   <th>Wealth</th>
                   <th>Purse</th>
-                  <th>Back pay owed</th>
+                  <th>Hoard</th>
                   <th>Where the gold came from</th>
                 </tr>
               </thead>
@@ -98,7 +98,7 @@ export function StandingsPanel({ state, viewer, seats }: { state: GameState; vie
                     <td>{Wealth.standing(w.character)}</td>
                     <td>{shekels(w.total)}</td>
                     <td>{shekels(w.purse)}</td>
-                    <td>{shekels(w.backPay)}</td>
+                    <td>{shekels(w.hoard)}</td>
                     <td>{Wealth.sources(w.character.earned)}</td>
                   </tr>
                 ))}

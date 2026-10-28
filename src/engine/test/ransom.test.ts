@@ -302,9 +302,9 @@ describe("RansomTests", () => {
     Assert.equal("Employed", spy.status);
   });
 
-  test("A captive s wage builds up as back pay and its death unknown to its master changes nothing in the masters books", () => {
+  test("A captive s job stands and its death unknown to its master changes nothing in the masters books", () => {
     let [s, spy] = held("Egypt", "Babylonia");
-    let wage = spy.contract!.wage;
+    let fee = spy.contract!.fee;
     begin(s).resolve(orders("Babylonia", captive(spy.id, "Ransom", 90)));
     begin(s).resolve(none());
     begin(s);
@@ -312,36 +312,28 @@ describe("RansomTests", () => {
       return single(Views.for(s, "Egypt").court, (c) => c.id === spy.id);
     }
     Assert.equal(
-      sum(Views.for(s, "Egypt").court, (c) => c.wage ?? 0),
-      new TurnEngine(s).wages("Egypt"),
+      sum(Views.for(s, "Egypt").court, (c) => (c.fee ?? 0) - (c.advance ?? 0)),
+      new TurnEngine(s).feesDue("Egypt"),
     );
-    Assert.equal(wage, line().wage);
-    // Held, it is paid nothing: its wage is owed to it, season by season.
-    Assert.equal(3 * wage, spy.backPay.get("Egypt"));
-    Assert.equal(3 * wage, line().backPay);
+    // Held, it is paid nothing, and nothing accrues (item 11a): its job is as agreed.
+    Assert.equal(fee, line().fee);
+    Assert.empty(spy.owed);
 
-    // Put to death: it is owed nothing any more, but its master, not knowing, sees its back pay grow as before.
+    // Put to death: its master, not knowing, still sees its job as before.
     new TurnEngine(s).resolve(orders("Babylonia", captive(spy.id, "Execute")));
     Assert.notNull(coverOf(spy, "Egypt"));
-    Assert.empty(spy.backPay);
-    Assert.equal(3 * wage, line().backPay);
     let [purse, gold] = [spy.purse, s.treasuries.get("Egypt").gold];
     let e = new TurnEngine(s);
-    let [income, upkeep, others] = [
+    let [income, upkeep] = [
       // Gold comes in from the mines as the season begins (item 9+a), and from sales, none here.
       sum(ownedBy(s, "Egypt"), (id) => economyOf(WorldMap.default.get(id)).mine),
       e.upkeep("Egypt"),
-      sum(
-        Views.for(s, "Egypt").court.filter((c) => c.id !== spy.id && c.ready),
-        (c) => c.wage ?? 0,
-      ),
     ];
     begin(s);
     Assert.equal(purse, spy.purse);
-    Assert.equal(4 * wage, line().backPay);
-    Assert.equal(wage, line().wage);
-    // Nothing left the treasury for it, before or after its death.
-    Assert.equal(gold + income - upkeep - others, s.treasuries.get("Egypt").gold);
+    Assert.equal(fee, line().fee);
+    // Nothing left the treasury for it, before or after its death (no other job of Egypt's fell due this season).
+    Assert.equal(gold + income - upkeep, s.treasuries.get("Egypt").gold);
   });
 
   test("A demand that lapses while a newer one is on the road tells the captor nothing yet", () => {
@@ -360,7 +352,7 @@ describe("RansomTests", () => {
   test("A captive put to death is rumoured to its king and to every court that still believes it serves it", () => {
     let [s, spy] = held("Hatti", "Mitanni");
     // Once Egypt's envoy, gone over to Hatti unknown to Egypt.
-    spy.covers.push(newCover({ for: "Egypt", since: 1, believed: "Detained", dutyText: "has not returned from Hatti", whereText: "unknown", wage: 20 }));
+    spy.covers.push(newCover({ for: "Egypt", since: 1, believed: "Detained", dutyText: "has not returned from Hatti", whereText: "unknown", fee: 120 }));
     begin(s).resolve(orders("Mitanni", captive(spy.id, "Execute")));
     Assert.equal(
       ["Egypt", "Hatti"],

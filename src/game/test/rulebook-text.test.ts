@@ -52,11 +52,11 @@ describe("RulebookTextTests", () => {
   test("The rulebook says that a spy at a court is hidden from it until caught", () => {
     Assert.contains(
       "A spy posted at a court watches in secret: that court does not see it there, nor whom it serves, until its watchmen catch it, " +
-        "unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing, " +
-        "and is not paid any back pay you owe it while it hides there. A caught spy may confess whom it serves.",
+        "unless the spy secretly serves that court (as a double agent it turned does). So a foreign spy may stand at your court without your knowing. " +
+        "A caught spy may confess whom it serves.",
       Rules,
     );
-    Assert.contains("Then everyone you see at your court whom you owe back pay is paid it", Rules);
+    Assert.contains("people travelling on their own way reach the courts they set out for", Rules);
   });
 
   test("The rulebook says that tablets lie in archives that spies copy or steal and conquerors carry off", () => {
@@ -300,7 +300,7 @@ describe("StandingsAndTravelTests", () => {
       line,
     );
     Assert.contains(
-      "- LAND STANDINGS in your view give each power's land-yield ratio: the yield of the land it holds now over its homeland's yield at the start, which anyone can reckon from who holds what. It is not growth: growth, which decides who wins, measures strength (land, treasury and back pay) against a starting strength that includes the starting treasury, and rivals' treasuries are private. Your own growth, by your ledger, is on your treasury line.",
+      "- LAND STANDINGS in your view give each power's land-yield ratio: the yield of the land it holds now over its homeland's yield at the start, which anyone can reckon from who holds what. It is not growth: growth, which decides who wins, measures strength (land, treasury and holdings) against a starting strength that includes the starting treasury, and rivals' treasuries are private. Your own growth, by your ledger, is on your treasury line.",
       leaderRules(true, newGameConfig()),
     );
     Assert.contains(
@@ -392,7 +392,7 @@ describe("ViewTextTests", () => {
       text,
     );
     Assert.contains(
-      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; serves at`,
+      `${envoy.id} ${envoy.name} of ${envoy.origin}; travelling as envoy to Hatti; set out in turn 1 for Hatti; due there about turn ${due}; due back about turn ${due + back}; a job for`,
       text,
     );
   });

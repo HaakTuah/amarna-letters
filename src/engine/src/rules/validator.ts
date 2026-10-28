@@ -87,10 +87,12 @@ export class OrderValidator {
       // One of yours away, as far as you know (it went over to another court, or was let go there), reads as any servant of yours.
       if (covered(c) || (c.employer === power && (c.status === "Employed" || c.status === "Captured")))
         return [`${c.name} is already in your service; to keep them on, order renew`, c];
-      if (c.status !== "Free") return [`${c.name} is not available for hire`, c];
+      if (c.status !== "Free" || c.errand !== null) return [`${c.name} is not available for hire`, c];
       if (c.heldBy !== null && c.heldBy !== power) return [`${c.name} is held at the court of ${c.heldBy} and cannot come to yours`, c];
-      if (!c.pitches.has(power) && c.at !== power) return [`${c.name} has not presented themselves to your court`, c];
-      if (h.wage <= 0 || h.term <= 0) return ["wage and term must be positive", c];
+      // Item 11a, "Hiring as a negotiation": a person is hired in person, where it stands.
+      if (c.at !== power && c.heldBy !== power) return [`${c.name} is not at your court: a person is hired in person, where it stands`, c];
+      if (h.fee <= 0 || h.term <= 0) return ["fee and term must be positive", c];
+      if (h.advance < 0 || h.advance > h.fee) return ["the advance must be between nothing and the whole fee", c];
       return [null, c];
     };
 
@@ -426,7 +428,8 @@ export class OrderValidator {
           const [e, c] = hireRefusal(order);
           if (e !== null) return e;
           if (busyCharacters.has(c!.id)) return `${c!.name} was already given a task by an earlier order`;
-          return null;
+          // Item 11a: the advance is handed over when the job is agreed, so it is reserved now.
+          return spend(Math.min(order.advance, order.fee));
         }
 
         case "dismiss":
@@ -444,9 +447,10 @@ export class OrderValidator {
           const notice = cover !== null ? cover.noticePrice !== null : (c.contract?.noticePrice ?? null) !== null;
           const home = cover === null && c.status === "Employed" && c.duty === "None" && c.at === power;
           if (!notice && !home) return `${c.name} is not at your court and has not given notice`;
-          if (rn.wage <= 0 || rn.term <= 0) return "wage and term must be positive";
+          if (rn.fee <= 0 || rn.term <= 0) return "fee and term must be positive";
+          if (rn.advance < 0 || rn.advance > rn.fee) return "the advance must be between nothing and the whole fee";
           if (renewed.has(c.id)) return `${c.name} was already renewed by an earlier order`;
-          return null;
+          return spend(rn.advance);
         }
 
         case "check": {
@@ -570,6 +574,33 @@ export class OrderValidator {
             return null;
           }
           return OrderValidator.captiveRefusal(S, c, co.fate);
+        }
+
+        case "payFee": {
+          // Item 11a: pay what fell due unpaid to a person at your court, or withhold the rest of a servant's job.
+          const c = findCharacter(S, order.character);
+          if (c === null) return nobody(order.character);
+          if (!order.pay) return c.employer === power && c.contract !== null ? null : `${c.name} has no job of yours whose fee you could withhold`;
+          const owed = c.owed.getOrDefault(power, 0);
+          if (owed <= 0) return c.employer === power && c.contract !== null && c.contract.withheld ? null : `you owe ${c.name} nothing that fell due`;
+          if (c.at !== power || hiddenAt(c, power)) return `${c.name} is not at your court to be paid`;
+          return spend(owed);
+        }
+
+        case "borrow": {
+          // Item 11a: from a person at your court who offers to lend.
+          const c = findCharacter(S, order.character);
+          if (c === null || c.status === "Dead" || c.at !== power || hiddenAt(c, power)) return `there is nobody at your court called '${order.character}'`;
+          if (c.lendOffer === null || c.lendOffer.amount <= 0) return `${c.name} offers no loan`;
+          if (order.amount <= 0 || order.repay < order.amount) return "name the gold to borrow, and a sum to repay no smaller";
+          return null;
+        }
+
+        case "repay": {
+          const d = S.debts.find((x) => x.id === order.debt) ?? null;
+          if (d === null || d.borrower !== power || d.ended !== null) return `you have no debt '${order.debt}' standing`;
+          if (order.amount <= 0) return "name the gold to repay";
+          return spend(order.amount);
         }
 
         case "payRansom": {

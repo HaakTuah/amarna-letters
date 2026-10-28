@@ -65,6 +65,8 @@ const o: BatchOptions = {
   landPlayHalf: false,
   noBorderPlay: false,
   borderPlayHalf: false,
+  noMoneyPlay: false,
+  moneyPlayHalf: false,
   clausePlay: true,
   clausePlayHalf: false,
   inventoryPlay: true,
@@ -174,6 +176,13 @@ for (let i = 0; i < args.length; i++) {
       break;
     case "--no-border-play":
       o.noBorderPlay = true;
+      break;
+    case "--no-money-play":
+      o.noMoneyPlay = true;
+      break;
+    case "--money-play-half":
+      // Half the script kings never borrow or repay (item 11a), alternating by seed.
+      o.moneyPlayHalf = true;
       break;
     case "--border-play-half":
       // Half the script kings leave item 10+b's choices alone (settling, returning, deporting, expelling), alternating by seed.
@@ -340,7 +349,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -526,6 +535,8 @@ if (o.landPlayHalf && results.length > 0)
   console.log("\nScript kings that set each province's tax to what its farmers bear, feed a hungry countryside, levy where it costs the harvest least and settle colonists (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.borderPlayHalf && results.length > 0)
   console.log("\nScript kings that settle the loose, send back runaways they promised, deport from land they took and put out a besieged city's mouths (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
+if (o.moneyPlayHalf && results.length > 0)
+  console.log("\nScript kings that borrow from lenders at court when hard up and repay what is due (\"current\") against those that never do (\"baseline\"):" + versusReport(results, sides));
 if (o.authorityPlayHalf && results.length > 0)
   console.log("\nScript kings that give their envoys the seal and ask and grant passage (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.winterPlayHalf && results.length > 0)

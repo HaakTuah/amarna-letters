@@ -1,6 +1,5 @@
 import { describe, test } from "vitest";
 import {
-  BackPayTitle,
   type Character,
   type CharacterView,
   CharacterViewSchema,
@@ -203,30 +202,4 @@ describe("HiddenSpyTests", () => {
     Assert.equal(["Babylonia", "at your court"], [seen.employer!, seen.where]);
   });
 
-  test("A hidden spy is not paid back pay the court owes it and its books show none", () => {
-    let [s, spy] = posted();
-    skilled(spy, 100);
-    // Back pay from an earlier service at this court, which it would be paid if it stood there in the open.
-    spy.backPay.set("Assyria", 30);
-    let v = Views.for(s, "Assyria");
-    let home = Views.for(atHome(s, spy.id), "Assyria");
-    Assert.equal([home.backPay, home.strength], [v.backPay, v.strength]);
-    Assert.equal(new TurnEngine(atHome(s, spy.id)).believedBackPay("Assyria"), new TurnEngine(s).believedBackPay("Assyria"));
-
-    new TurnEngine(s).resolve(none());
-    begin(s);
-    Assert.true(hiddenAt(spy, "Assyria"));
-    Assert.equal(30, spy.backPay.get("Assyria"));
-    Assert.doesNotContain(inboxOf(s, "Assyria"), (x) => x.subject === spy.id);
-
-    // Seen at the court (its master dismissed it, and it is free there), it is paid.
-    s.treasuries.get("Assyria").gold += 1000;
-    spy.employer = null;
-    spy.status = "Free";
-    spy.duty = "None";
-    new TurnEngine(s).resolve(none());
-    begin(s);
-    Assert.false(spy.backPay.has("Assyria"));
-    Assert.contains(inboxOf(s, "Assyria"), (x) => x.subject === spy.id && x.title === BackPayTitle);
-  });
 });

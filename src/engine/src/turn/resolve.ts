@@ -130,6 +130,8 @@ P.resolveSeason = function (submissions) {
   this.unraisedLevies();
 
   this.resolveCourt(all(any));
+  // The going rate of service moves with the hires sought this season (item 11a, "Fees clear the market").
+  this.goingRateMoves(all((o): o is Order => o.type === "hire" || o.type === "renew" || o.type === "seekCandidates").length);
   // A new claim to the rank of Great King becomes established once most kings have long called its king brother (item 8).
   this.recognise();
   this.resolveIntelligence(all(any));
@@ -549,11 +551,12 @@ P.fall = function (p, conqueror, taker) {
   this.endSleep(p);
   // Its troops disband, their men going home with their savings, and their sieges are lifted.
   for (const u of S.units.filter((u) => u.power === p)) this.disbandUnit(u);
-  // What a fallen kingdom believed, and what it owed, go with it: back pay owed by it is lost.
+  // What a fallen kingdom believed, and what it owed, go with it: fees it owed are lost, and its debts die with it (item 11a).
   for (const c of S.characters) {
     c.covers = removeAll(c.covers, (k) => k.for === p);
-    c.backPay.delete(p);
+    c.owed.delete(p);
   }
+  this.debtsDie(p);
   // Nobody is left to hold its prisoners: they are let go, and walk home as if released.
   for (const c of S.characters.filter((c) => c.heldBy === p)) {
     if (c.status === "Captured") this.releaseCaptive(p, c);
@@ -603,18 +606,17 @@ export function removeAll<T>(list: T[], match: (x: T) => boolean): T[] {
 
 // ---------------------------------------------------------------- scoring and the end
 
-/** The score: the wealth of the realm, its true gold counted (item 9+a), less the back pay it really owes (until 11a). */
+/** The score: the wealth of the realm, its true gold counted (item 9+a); since item 11a nothing owed is subtracted. */
 P.strength = function (p) {
-  return scoringStrength(this.s.config, this.landYield(p), this.s.treasuries.get(p).gold, this.holdings(p), this.backPayOwed(p));
+  return scoringStrength(this.s.config, this.landYield(p), this.s.treasuries.get(p).gold, this.holdings(p));
 };
 
 /**
- * Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight, less the
- * back pay it believes it owes. A seat must never see true strength, or it could read debased gold off the difference,
- * or the fate of a servant abroad off its back pay.
+ * Strength as the power itself reckons it: its gold by its ledger, which counts unassayed lots at their weight. A seat
+ * must never see true strength, or it could read debased gold off the difference.
  */
 P.ledgerStrength = function (p) {
-  return scoringStrength(this.s.config, this.landYield(p), ledger(this.s.treasuries.get(p)), this.holdings(p), this.believedBackPay(p));
+  return scoringStrength(this.s.config, this.landYield(p), ledger(this.s.treasuries.get(p)), this.holdings(p));
 };
 
 /** The worth a season of the land a power holds at reference prices, conquered land counted as far as it is absorbed. */

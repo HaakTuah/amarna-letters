@@ -91,7 +91,7 @@ The event `siege-starved` marks a fall by hunger.
 `Strength = provinceWeight (10) × land worth + treasury + holdings` (`rules/scoring.ts`): land worth is the whole
 harvest at reference prices plus the mines, as far as it is absorbed (`landWorth`); holdings are the purses, stores and
 markets of the realm's provinces at reference prices, and its units' grain and savings and its caravans' grain
-(`holdings`), less the back pay it owes, which the built score subtracts until item 11a ("Scoring" under Victory). The opening lines in the
+(`holdings`), less (until item 11a) the back pay it owed; since item 11a nothing owed is subtracted (`21-money-and-work.md`). The opening lines in the
 rulebook (`rules/opening.ts`) compute the same figure from the data.
 
 ### The desert

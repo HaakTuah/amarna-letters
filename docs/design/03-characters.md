@@ -1,5 +1,7 @@
 ## Characters
 
+> **Since item 11a** (`21-money-and-work.md`): wages and back pay are replaced by jobs with a fee (an advance now, the rest when the job is done), and strength no longer subtracts anything owed. Passages below about wages and back pay describe the build before item 11a and are kept for its history.
+
 - A pool of 18: eight names attested in the Amarna letters (Mane, Keliya, Pirissi, Tulubri,
   Haamashshi, Artessupa, Mazipalali, Yanhamu; seven are drawn per game) and the rest in regional
   name styles. Each power starts with two envoys; the rest are free agents. Since item 10 these are the first eighteen

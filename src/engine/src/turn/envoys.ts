@@ -460,7 +460,11 @@ P.applyAudience = function (record) {
       defected = true;
       const old = c.employer;
       c.employer = host;
-      c.contract = newContract({ wage: h.jobOffer, startTurn: S.turn, untilTurn: S.turn + 6 });
+      // Item 11a: the offer is what the job pays a season; the host hands over half of six seasons' fee now, as a hire does.
+      const advance = Math.min(S.treasuries.get(host).gold, h.jobOffer * 3);
+      S.treasuries.get(host).gold -= advance;
+      gain(c, advance, "Fees");
+      c.contract = newContract({ fee: h.jobOffer * 6, advance, startTurn: S.turn, untilTurn: S.turn + 6 });
       c.duty = "None";
       c.at = host;
       c.secretMaster = c.secretMaster === host ? null : c.secretMaster;
@@ -540,8 +544,7 @@ P.applyAudience = function (record) {
   if (defected || detained)
     this.coverFor(c, sender, "EnvoyHomebound", "on the road home", "travelling", seenBySender, knownBySender, Views.envoyHomeTiming(trail.turn, host, expectedHome));
   if (defected) {
-    // It never goes back to collect it: the back pay its old court owed it is forfeit (its cover keeps what that court believes).
-    c.backPay.delete(sender);
+    // It broke its job (item 11a): the rest of the old fee is forfeit, and the record is the fact above.
     this.overdue(sender, c, host, expectedHome);
   } else if (detained) {
     c.duty = "Detained";
@@ -723,6 +726,9 @@ P.fulfil = function (req, reply) {
   const c = findCharacter(S, req.characterId);
   let text = cap(reply.text ?? "", 2500);
   switch (req.task) {
+    case "Life":
+      if (c !== null && reply.life !== null) this.applyLife(c, reply.life);
+      return;
     case "EnvoyReport": {
       if (c === null) return;
       const lord = requestFor(req);

@@ -129,9 +129,9 @@ export interface EnvoyContext {
   giftTaken: boolean;
   delivered: string;
   skim: number;
-  /** The back pay its employer owes it, paid when it is back at his court; lost if it goes over to another. */
-  backPay: number;
-  /** Whether its employer looks doomed, from public facts (Views.looksDoomed): back pay owed by a doomed court may never be paid. */
+  /** Item 11a: the rest of its fee, due when its job is done; forfeit if it goes over to another. */
+  restDue: number;
+  /** Whether its employer looks doomed, from public facts (Views.looksDoomed): a fee owed by a doomed court may never be paid. */
   employerDoomed: boolean;
   /** The skill it takes to fake a seal (GameConfig.forgeMinCompetence): a script envoy weighs its own against it. */
   forgeMinCompetence: number;
@@ -151,7 +151,7 @@ export function newEnvoyContext(init: Pick<EnvoyContext, "self" | "sender" | "ho
     giftTaken: false,
     delivered: "",
     skim: 0,
-    backPay: 0,
+    restDue: 0,
     employerDoomed: false,
     forgeMinCompetence: newGameConfig().forgeMinCompetence,
     audienceKey: "",

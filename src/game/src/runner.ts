@@ -358,6 +358,12 @@ export class GameRunner {
     engine.beginTurn();
     this.phaseDone?.(`t${turn}/begin`);
 
+    // Item 11a: a newcomer through the doors has its persona written by the narrator, as the starting cast had at setup.
+    for (const c of S_.characters.filter((c) => c.arrived === turn)) {
+      const persona = await this.recorded<string>(`t${turn}/persona/${c.id}`, S, () => this.narrator.persona(c, signal), () => Promise.resolve(c.persona), this.narrator.label);
+      if (!isBlank(persona)) c.persona = persona;
+    }
+
     this.setPhase(`Turn ${turn}: reports and pitches`);
     await this.fulfil(engine, turn, signal);
     // A sleeping seat may wake itself (a human who wants to act): a decision in the log, kept only when it happens.
@@ -551,7 +557,8 @@ export class GameRunner {
     // What its own lord owes it, and whether he looks doomed, by what is known at the court it stands at (item 7b: news of
     // distant land travels): a motive it may weigh against an offer.
     const lord = envoy.employer;
-    const backPay = lord !== null ? envoy.backPay.getOrDefault(lord, 0) : 0;
+    // Item 11a: the rest of its fee, which it forfeits if it breaks its job.
+    const restDue = lord !== null && envoy.contract !== null ? Math.max(0, envoy.contract.fee - envoy.contract.advance) : 0;
     const knownHere = new Dict([...Views.knownHolders(S_, WorldMap.default, a.host).entries()].map(([k, x]) => [k, x.owner] as const));
     const doomed = lord !== null && Views.looksDoomed(knownHere, S_.eliminated.filter((x) => x === a.host || (S_.fallsHeard.tryGet(a.host) ?? []).includes(x)), lord);
     const ctx = (soFar: Exchange[], round: number, delivered: string, skim: number, giftTaken = false): EnvoyContext =>
@@ -568,7 +575,7 @@ export class GameRunner {
         giftTaken,
         delivered,
         skim,
-        backPay,
+        restDue,
         employerDoomed: doomed,
         forgeMinCompetence: S_.config.forgeMinCompetence,
         audienceKey: key,

@@ -21,7 +21,9 @@ describe("CoverBotTests", () => {
         believed: "SpyPosted",
         dutyText: "watching Hatti",
         whereText: "at the court of Hatti",
-        wage: caught.contract!.wage,
+        fee: caught.contract!.fee,
+        advance: caught.contract!.advance,
+        startTurn: caught.contract!.startTurn,
         contractUntil: caught.contract!.untilTurn,
       }),
     );
@@ -33,7 +35,9 @@ describe("CoverBotTests", () => {
         believed: "EnvoyHomebound",
         dutyText: "on the road home",
         whereText: "travelling",
-        wage: gone.contract!.wage,
+        fee: gone.contract!.fee,
+        advance: gone.contract!.advance,
+        startTurn: gone.contract!.startTurn,
         contractUntil: gone.contract!.untilTurn,
       }),
     );
@@ -49,12 +53,13 @@ describe("CoverBotTests", () => {
         Assert.false(c.ready);
       },
     );
-    Assert.equal(caught.contract!.wage + gone.contract!.wage, view.wages);
+    const rest = (k: { fee: number; advance: number }): number => k.fee - k.advance;
+    Assert.equal(rest(caught.contract!) + rest(gone.contract!), view.feesDue);
 
     // A model king reads the same: the caught spy at its post, never "at court, ready".
     let text = situation(view);
     Assert.contains(
-      `${caught.id} ${caught.name} of ${caught.origin}; watching Hatti; serves at ${caught.contract!.wage} a season through turn ${caught.contract!.untilTurn};`,
+      `${caught.id} ${caught.name} of ${caught.origin}; watching Hatti; a job for ${caught.contract!.fee} shekels, ${caught.contract!.advance} handed over and ${rest(caught.contract!)} due when it is done, through turn ${caught.contract!.untilTurn};`,
       text,
     );
     Assert.contains(`${gone.id} ${gone.name} of ${gone.origin}; on the road home;`, text);
@@ -81,8 +86,8 @@ describe("CoverBotTests", () => {
     let line = person(single(Views.for(s, "Hatti").court, (c) => c.id === spy.id));
     Assert.contains("held captive at the court of Mitanni;", line);
     Assert.doesNotContain("ready", line);
-    // Its wage builds up as back pay while it is held: its line names the wage, not a wage paid.
-    Assert.contains(`serves at ${spy.contract!.wage} a season`, line);
+    // Its job stands while it is held: its line names the job.
+    Assert.contains(`a job for ${spy.contract!.fee} shekels`, line);
 
     // A demand shows only once its word has arrived.
     let demand = newPendingTask({ id: "q900", kind: "RansomDemand", requester: "Hatti", other: "Mitanni", characterId: spy.id, spend: 90, dueTurn: 6 });
