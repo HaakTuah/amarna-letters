@@ -3,7 +3,7 @@
  * large band works there and with armies it can spare; and it buys news of the courts it fears or
  * fights or does not trust from the people at its court who sell it ("Characters as sellers of news"), fresh and cheap enough to be worth it.
  */
-import { buyNews, cmpStr, huntBands as huntBandsOrder, sortBy, move, type Order, type Power, type SeatView } from "@amarna/engine";
+import { BandData, buyNews, cmpStr, hunt, huntBands as huntBandsOrder, sortBy, move, type Order, type Power, type SeatView } from "@amarna/engine";
 import { Board } from "./board.ts";
 import type { Brain } from "./brain.ts";
 import type { MilitaryPlan } from "./tactics.ts";
@@ -20,6 +20,8 @@ export const OutlawPlay: { off: boolean; only: ReadonlySet<string> | null; on: (
 /** The smallest band worth sending an army after, and the freshest news worth buying, in seasons (first guesses of the bots). */
 const HuntMen = 40;
 const NewsAge = 4;
+/** What the bots know of a hunt: the rulebook's share of a band's men an army kills, and the least men a band keeps. */
+const BandHunt = { loss: BandData.huntLoss, least: BandData.least };
 
 /**
  * An army holding in its own land with no foreign troops beside it marches on a band working in a province of its own
@@ -48,13 +50,25 @@ export function huntBands(b: Board, plan: MilitaryPlan): void {
 }
 
 /**
- * Haakon's answers to item 11b: an army falls on a band only on its king's order. A script king that hunts gives the
- * standing order once a band worth hunting works in its land, and takes it back when none is left.
+ * Haakon's answers to item 11b: an army falls on a band only on its king's order. Item 11b+ (hunting did not pay): a
+ * hunted band that survives flees to a province next door with no army in it, often another of ours, where it robs at
+ * the full rate instead of the half it took beside our troops. So a script king orders a hunt (`hunt`, for the next
+ * season) only where it ends the band or drives it out of our land: an army of ours stands with it, and either the band
+ * is small enough to break (fewer than its least men left after the losses an army that size deals) or no province of
+ * ours without troops lies next door for it to flee to. It never gives the standing order, which hunts everywhere.
  */
 export function huntOrders(b: Board, orders: Order[]): void {
   if (!OutlawPlay.on(b.me)) return;
-  const want = b.v.bands.some((x) => x.men >= HuntMen && b.isMine(x.province));
-  if (want !== b.v.huntBands) orders.push(huntBandsOrder(want));
+  if (b.v.huntBands) orders.push(huntBandsOrder(false));
+  for (const x of sortBy([...b.v.bands], [(x) => x.province, cmpStr])) {
+    if (!b.isMine(x.province)) continue;
+    const army = b.mine.filter((u) => u.kind === "Army" && u.province === x.province).reduce((a, u) => a + u.men, 0);
+    if (army === 0) continue;
+    const lost = Math.min(x.men, Math.floor((Math.floor((x.men * BandHunt.loss) / 100) * army) / (army + x.men)) + 1);
+    const breaks = x.men - lost < BandHunt.least;
+    const refuge = Board.Map.movesFrom("Army", x.province).some((n) => !Board.Map.get(n).isSea && b.isMine(n) && !b.unitAt.has(n));
+    if (breaks || !refuge) orders.push(hunt(x.province));
+  }
 }
 
 /** At most one purchase a season: the freshest news of a foe or the court it means to fight, if the treasury can spare it. */
