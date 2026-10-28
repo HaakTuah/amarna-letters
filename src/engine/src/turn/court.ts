@@ -4,7 +4,7 @@ import { cmpBool, cmpNum, desc, groupBy, sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { newMindRequest } from "../model/exchanges.ts";
 import type { DismissOrder, HireOrder, Order, RenewOrder } from "../model/orders.ts";
-import { coverOf, falseNameAt, gain, newContract, remember, reputationAt, type Character } from "../model/people.ts";
+import { coverOf, falseNameAt, gain, newContract, remember, reputationAt, lossesHeardOf, type Character } from "../model/people.ts";
 import { cmpPower, land, type Power } from "../model/power.ts";
 import { newPendingTask } from "../model/records.ts";
 import { char, findCharacter, logEvent, newId, notify } from "../model/state.ts";
@@ -51,6 +51,9 @@ P.resolveCourt = function (orders) {
         break;
       case "repay":
         this.repayOrder(p, o);
+        break;
+      case "buyNews":
+        this.buyNewsOrder(p, o);
         break;
       case "seekCandidates":
         S.tasks.push(newPendingTask({ id: newId(S, "q"), kind: "Candidates", requester: p, dueTurn: S.turn + 1 }));
@@ -197,6 +200,8 @@ P.dismiss = function (p, c, order) {
     return;
   }
   remember(c, S.turn, `The king of ${land(p)} dismissed me.`);
+  // Haakon's answer to item 11a (opening item 11b): a dismissal before the job's term ends is a broken promise on record.
+  if (c.contract !== null && c.contract.untilTurn > S.turn) this.recordPay(p, false);
   c.formerEmployer = p;
   c.employer = null;
   c.contract = null;
@@ -249,6 +254,11 @@ export function askingPrice(c: Character, court: Power, rate = 100): number {
  * purse; less at the court it favours, or where its lover or family is; all scaled by the going rate of service (item 11a,
  * "Fees clear the market"), in percent.
  */
+/** Item 11b (first guesses): what a person asks more of a court for each of its people it heard were lost abroad, and each it put to death, in percent, at most `WaryMost`. */
+export const WaryLost = 10;
+export const WaryKilled = 15;
+export const WaryMost = 60;
+
 export function basePrice(c: Character, court: Power, rate = 100): number {
   const rep = reputationAt(c, court);
   const belief = (c.belief.gather + c.belief.stealth + c.belief.forge) / 3;
@@ -256,7 +266,13 @@ export function basePrice(c: Character, court: Power, rate = 100): number {
   let price = 6 + Math.trunc(belief / 8) + Math.trunc(c.traits.greed / 8) + Math.trunc(rep / 5) + Math.min(9, Math.trunc(debt / 30));
   if (c.traits.sympathy === court) price -= 4;
   if (c.ties.some((t) => t.kind !== "Debt" && t.court === court)) price -= 3;
-  return Math.max(3, toInt(roundEven((Math.max(5, price) * rate) / 100)));
+  // Item 11b, reputation from losses abroad: a court it heard loses its people abroad, or puts others to death, it serves
+  // only for more, the timid most ("Jobs, not wages").
+  const heard = lossesHeardOf(c, court);
+  const wary = Math.trunc((Math.min(WaryMost, WaryLost * heard.lost + WaryKilled * heard.killed) * (100 - Math.trunc(c.traits.courage / 2))) / 100);
+  price = Math.max(5, price);
+  price += Math.trunc((price * wary) / 100);
+  return Math.max(3, toInt(roundEven((price * rate) / 100)));
 }
 
 /** What a servant asks its master a season to serve on: the price it named when it gave notice, else what it would ask at the end of its term. */

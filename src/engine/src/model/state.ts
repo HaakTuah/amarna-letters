@@ -15,6 +15,7 @@ import { type Caravan, CaravanSchema, type Market, MarketSchema } from "./carava
 import { type Toll, TollSchema } from "./trade.ts";
 import { type MarketSeen, MarketSeenSchema } from "./views.ts";
 import type { People } from "./land.ts";
+import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, MoneyData, type PayRecord, PayRecordSchema } from "./money.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
@@ -79,7 +80,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 20;
+export const CURRENT_VERSION = 21;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
@@ -197,6 +198,14 @@ export interface GameState {
   hiring: Dict<Power, number>;
   /** Item 10+b: the gold the loose men of each province carry, robbed from purses and stores ("Bandits rob the purse"). */
   loot: Dict<string, number>;
+  /** Item 11b: the bands on the land and the coasts, each led by a character ("Bands are a character's soldiers"). */
+  bands: Band[];
+  /**
+   * Item 11b ("Where characters are, and what they speak"): for each court, the letters written there that found a carrier,
+   * and the seasons they waited in all, to measure how long a court's letters wait.
+   */
+  lettersCarried: Dict<Power, number>;
+  lettersWaited: Dict<Power, number>;
   /**
    * Item 11a+ ("Period first": the harvest in each land's own season), by land province: the crop growing in its fields
    * since its last reaping, which each season's hands add to; the harvest it last reaped; and the farmers' granary, the
@@ -312,6 +321,9 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     baseline: 0,
     hiring: new Dict(),
     loot: new Dict(),
+    bands: [],
+    lettersCarried: new Dict(),
+    lettersWaited: new Dict(),
     crop: new Dict(),
     reaped: new Dict(),
     granary: new Dict(),
@@ -398,6 +410,9 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   baseline: I,
   hiring: dict(I),
   loot: dict(I),
+  bands: list(() => BandSchema),
+  lettersCarried: dict(I),
+  lettersWaited: dict(I),
   crop: dict(I),
   reaped: dict(I),
   granary: dict(I),
@@ -702,6 +717,7 @@ export function logEvent(s: GameState, kind: string, text: string, visibleTo: It
  */
 export const IdKinds: ReadonlyMap<string, string> = new Map([
   ["a", "audience"],
+  ["b", "band"],
   ["c", "character"],
   ["d", "debt tablet"],
   ["f", "fact about a character"],

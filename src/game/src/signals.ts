@@ -31,6 +31,8 @@ export const SignalKinds: readonly string[] = [
   "hire", "fee-paid", "fee-unpaid", "fee-withheld", "quit", "loan", "repaid", "default", "newcomer", "hoard",
   "character-loan", "character-deal", "character-repaid", "collector-hired", "collected", "collector-kept",
   "deportees-freed", "harvest-reaped", "granted-by-order", "spy-watching",
+  "band-crowd", "band-mutiny", "band-refugees", "band-successor", "band-split", "band-outlaw", "band-hunted", "band-melted", "band-ship", "way-back",
+  "caravan-banded", "ship-pirated", "death", "carrier-own", "carrier-passing", "carrier-hired", "carrier-self", "letter-read", "letter-lost", "news-sold",
 ];
 
 const MessengerBlamed = rx(

@@ -32,7 +32,8 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   where the viewer knows of a siege; the province card gives the level and the siege) (the map leaves room for them; `docs/prompts/VISUAL-OVERHAUL.md`); and the fog of war for ownership
   once news travels (item 7; what it needs is in `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
 - **Errands item 10 left for later** ("Errands, not roles"): carrying a candidate an offer (item 11's live pool), carrying a
-  ransom or a bribe by hand and chaining several stops in one errand (item 11b, "Messengers are errands"), and taking
+  ransom or a bribe by hand, a king's messenger who only delivers (envoys carry letters; since item 11b spies' reports need
+  carriers, see [roads and reputations](23-roads-and-reputations.md)), chaining several stops in one errand, and taking
   command (item 13). Characters answering questioning, and choosing to lie, themselves rather than by formula.
 - **Tablets that need a reader**: an unreadable tablet showing its seal but not its words until the king finds a
   reader, and a tablet sent to a third court to be read ("Tablets are objects in a place" and "Languages";
@@ -44,7 +45,8 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   for unattended games ("Output is the other half"); standing answers for characters (item 6b's report; the screen for a
   human seat's standing answers is built since item 8, see [structured press](14-structured-press.md)).
 - **Script kings selling or faking news**: they pass on news in clauses (troops seen, a king's strength) but sell none
-  and invent none yet (items 11a, 11b).
+  and invent none; since item 11b free characters sell news and script kings buy it. Carriers reading, selling or
+  swapping what they carry, and hiring bands as mercenaries (command at a distance, item 13).
 - **A cheaper summariser**, measured on the same games before it is used ("A cheaper model for condensing,
   to be measured"; the round report, Part E).
 - **Languages** ("Languages"; item 12).
@@ -58,10 +60,6 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   sorted by a small model that errs toward offering, for model seats only ("If kings reopen almost every
   time, the kind of message decides"; `docs/archive/rounds/ROUND-PROMPT-ADDITIONS.md`, sections 4 and 6.2; Build order "Not yet in
   the order", after item 4; the round report, Part H).
-- **Reputation from losses abroad**: characters who hear that a court loses its people abroad, or puts others' to
-  death, growing wary of serving or visiting it; the news already travels (see "Losses abroad travel with people")
-  ("Wages are paid on return"; `docs/archive/rounds/ROUND-PROMPT-ADDITIONS.md`, section 6; what script characters would need
-  is in the round report, Part G).
 - **Who receives envoys, later candidates**: a minister who receives routine envoys by the king's standing
   instructions, an attention limit the same for every seat, and tablets counting as pressing only where the
   instructions do not cover them; they need a decision first ("Under consideration: standing instructions for

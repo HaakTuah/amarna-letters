@@ -214,8 +214,26 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
 export type CharacterStatus = (typeof CharacterStatusValues)[number];
 
-export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling"] as const;
+export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading"] as const;
 export type Duty = (typeof DutyValues)[number];
+
+/**
+ * Item 11b, "Characters as sellers of news": what a character saw of a court while it stood there, as of a season, and the
+ * price it asks for it at another court. `honest` false: a greedy seller made the treasury out to be larger than he saw.
+ */
+export interface NewsHeld {
+  court: Power;
+  turn: number;
+  lines: string[];
+  price: number;
+  honest: boolean;
+}
+
+export function newNewsHeld(init: Partial<NewsHeld> = {}): NewsHeld {
+  return { court: "Egypt", turn: 0, lines: [], price: 0, honest: true, ...init };
+}
+
+export const NewsHeldSchema: ObjSchema<NewsHeld> = obj("NewsHeld", newNewsHeld, { court: S, turn: I, lines: list(S), price: I, honest: B });
 
 export interface Character {
   id: string;
@@ -313,6 +331,12 @@ export interface Character {
   lastLife: number | null;
   /** Item 11a: a newcomer's mark in the data ("invented name", "first recorded later"), never told in the game; null if none. */
   marked: string | null;
+  /** Item 11b: the news it carries of the courts it stood at, newest last, at most one a court ("Characters as sellers of news"). */
+  news: NewsHeld[];
+  /** Item 11b: the losses abroad it has heard of (`kind|court|master|character`), news that travels with people. */
+  heard: string[];
+  /** Item 11b: the last season it gave up the road ("The way back"), or null if it never led a band. */
+  leftRoad: number | null;
 }
 
 export function newCharacter(init: Partial<Character> = {}): Character {
@@ -369,6 +393,9 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     diedWith: null,
     lastLife: null,
     marked: null,
+    news: [],
+    heard: [],
+    leftRoad: null,
     ...init,
   };
 }
@@ -426,11 +453,14 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   diedWith: opt(I),
   lastLife: opt(I),
   marked: opt(S),
+  news: list(() => NewsHeldSchema),
+  heard: list(S),
+  leftRoad: opt(I),
   isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
 });
 
 /** Where gold in a character's purse came from. */
-export const GoldSourceValues = ["Fees", "Skimmed", "Gifts", "Carried", "Loans"] as const;
+export const GoldSourceValues = ["Fees", "Skimmed", "Gifts", "Carried", "Loans", "Loot", "News"] as const;
 export type GoldSource =
   /** Fees for its jobs: the advance when a job was agreed, the rest when it was done (item 11a). */
   | "Fees"
@@ -441,7 +471,11 @@ export type GoldSource =
   /** A king's personal gift at an audience. */
   | "Gifts"
   /** Gold it was carrying when it was dismissed on the way out, which became its own. */
-  | "Carried";
+  | "Carried"
+  /** Item 11b: a chief's share of what his band took, on the land, the roads and the sea. */
+  | "Loot"
+  /** Item 11b: news it sold at a court ("Characters as sellers of news"), and letters it was paid to carry. */
+  | "News";
 
 /**
  * What a character has gained, by source, and (item 11a) what it has spent.
@@ -457,6 +491,9 @@ export interface Earnings {
   skimmed: number;
   gifts: number;
   carried: number;
+  /** Item 11b: its share of its band's take, and what it was paid for news and for carrying letters. */
+  loot: number;
+  news: number;
 }
 
 export function newEarnings(init: Partial<Earnings> = {}): Earnings {
@@ -468,6 +505,8 @@ export function newEarnings(init: Partial<Earnings> = {}): Earnings {
     skimmed: 0,
     gifts: 0,
     carried: 0,
+    loot: 0,
+    news: 0,
     ...init,
   };
 }
@@ -480,6 +519,8 @@ export const EarningsSchema: ObjSchema<Earnings> = obj("Earnings", newEarnings, 
   skimmed: I,
   gifts: I,
   carried: I,
+  loot: I,
+  news: I,
 });
 
 /**
@@ -600,7 +641,28 @@ export function gain(c: Character, amount: number, source: GoldSource): void {
     case "Carried":
       c.earned.carried += amount;
       break;
+    case "Loot":
+      c.earned.loot += amount;
+      break;
+    case "News":
+      c.earned.news += amount;
+      break;
   }
+}
+
+/**
+ * Item 11b, reputation from losses abroad: of the losses it heard of, how many of `court`'s own people were caught or put
+ * to death abroad, and how many people `court` put to death.
+ */
+export function lossesHeardOf(c: Character, court: Power): { lost: number; killed: number } {
+  let lost = 0;
+  let killed = 0;
+  for (const k of c.heard) {
+    const [kind, at, master] = k.split("|");
+    if (master === court) lost++;
+    if (kind === "PutToDeath" && at === court) killed++;
+  }
+  return { lost, killed };
 }
 
 /** The false name a character still goes by at a court (item 10, "Declaring a name"), or null if it goes by its own there. */
@@ -649,7 +711,7 @@ export function hiddenAt(c: Character, court: Power): boolean {
 
 /** All it has gained (not net of what it spent). */
 export function earningsTotal(e: Earnings): number {
-  return e.fees + e.dealt + e.skimmed + e.gifts + e.carried + e.savings;
+  return e.fees + e.dealt + e.skimmed + e.gifts + e.carried + e.savings + e.loot + e.news;
 }
 
 export function addEarnings(e: Earnings, other: Earnings): void {
@@ -660,4 +722,6 @@ export function addEarnings(e: Earnings, other: Earnings): void {
   e.skimmed += other.skimmed;
   e.gifts += other.gifts;
   e.carried += other.carried;
+  e.loot += other.loot;
+  e.news += other.news;
 }

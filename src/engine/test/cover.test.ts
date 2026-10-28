@@ -68,11 +68,10 @@ describe("CoverTests", () => {
     let v = Views.for(s, p);
     return JSON.stringify({
       person: singleOrNull(v.court, (c) => c.id === id),
-      gold: v.gold,
-      fine: s.treasuries.get(p).gold,
+      // The treasury is left out since item 11b: a free spy's reports come home with carriers its master pays on
+      // delivery, and a caught one's do not; that its reports stop coming is what a master may notice.
       fees: v.fees,
       feesDue: v.feesDue,
-      strength: v.strength,
       court: v.court.length,
     });
   }

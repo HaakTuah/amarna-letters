@@ -2,6 +2,7 @@
  * The only door into the game state: every order must be legal, affordable (by the seat's own ledger) and permitted for
  * that seat. Persuading a model is never enough by itself.
  */
+import { newsOffered } from "./news.ts";
 import { HSet } from "../core/collections.ts";
 import { roundEven, toInt } from "../core/num.ts";
 import { isBlank } from "../core/text.ts";
@@ -612,6 +613,15 @@ export class OrderValidator {
           if (d === null || d.borrower !== power || d.ended !== null) return `you have no debt '${order.debt}' standing`;
           if (order.amount <= 0) return "name the gold to repay";
           return spend(order.amount);
+        }
+
+        case "buyNews": {
+          // Item 11b: from a person at your court who offers news of another court.
+          const c = findCharacter(S, order.character);
+          if (c === null || c.status === "Dead" || c.at !== power || c.heldBy !== null || hiddenAt(c, power)) return `there is nobody at your court called '${order.character}'`;
+          const n = newsOffered(S, c, power).find((x) => x.court === order.court) ?? null;
+          if (n === null) return `${c.name} offers no news of ${order.court}`;
+          return spend(n.price);
         }
 
         case "payRansom": {

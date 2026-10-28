@@ -25,3 +25,4 @@ export * from "./land.ts";
 export * from "./money.ts";
 export * from "./life.ts";
 export * from "./doors.ts";
+export * from "./bands.ts";

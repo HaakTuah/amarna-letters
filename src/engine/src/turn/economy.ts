@@ -28,6 +28,8 @@ import {
 } from "../model/economy.ts";
 import { climateOf, reapSeasonOf, terrainOf } from "../model/geography.ts";
 import { forMen, LandData, unitCarried, unitFood } from "../model/land.ts";
+import { BandData } from "../model/bands.ts";
+import { gain } from "../model/people.ts";
 import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
@@ -191,6 +193,11 @@ P.harvestSeason = function () {
     if (rot > 0) S.stores.set(k, v - rot);
   }
   for (const m of S.markets.values()) m.stock -= idiv(m.stock * EconomyData.spoilPercent, 100);
+  // Haakon's answer to item 11a+ (opening item 11b): the farmers' granaries rot like the king's stores.
+  for (const [k, v] of [...S.granary.entries()]) {
+    const rot = idiv(v * EconomyData.spoilPercent, 100);
+    if (rot > 0) S.granary.set(k, v - rot);
+  }
   for (const p of alive(S)) {
     const l: string[] = [];
     if (reaped.has(p)) {
@@ -384,6 +391,19 @@ P.feedTroops = function () {
     [(u: Unit) => u.id, cmpStr],
   )) {
     const why = u.hungry >= EconomyData.hungryMutiny ? `hungry ${u.hungry} seasons running` : `unpaid ${u.unpaid} seasons running`;
+    // Item 11b: on land, the mutineers may follow one of their own as a band, the larger the likelier ("Mutineers").
+    const rng = this.r("mutiny-head", u.id);
+    if (u.kind === "Army" && !this.map.get(u.province).isSea && rng.chance(Math.min(90, BandData.mutinyHead + idiv(u.men, 500)) / 100)) {
+      const men = u.men;
+      const i = S.units.indexOf(u);
+      if (i >= 0) S.units.splice(i, 1);
+      this.liftSiegesOf(u.id);
+      const b = this.headRises(u.province, men, "mutiny", rng);
+      gain(S.characters.find((c) => c.id === b.leaderId)!, u.savings, "Loot");
+      logEvent(S, "mutiny", `${u.power}'s ${unitLabel(u)} mutinied (${why}) and follows one of its own as a band.`, [...AllPowers.filter((x) => Views.sight(S, this.map, x).has(u.province)), u.power], "mutiny");
+      tell(u.power, `${unitLabel(u)} mutinied, ${why}: its ${men} men follow one of their own, ${S.characters.find((c) => c.id === b.leaderId)!.name}, as a band in ${this.map.get(u.province).name}, with their savings.`);
+      continue;
+    }
     const savings = u.savings;
     logEvent(S, "mutiny", `${u.power}'s ${unitLabel(u)} mutinied (${why}) and disbanded.`, [...AllPowers.filter((x) => Views.sight(S, this.map, x).has(u.province)), u.power], "mutiny");
     const home = this.disbandUnit(u);
@@ -536,6 +556,25 @@ P.caravansTravel = function () {
       logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [c.power, taker.power], "caravan-taken");
       continue;
     }
+    // Item 11b: a band working where it passed (at sea, pirates off those coasts) falls on it, and keeps what it takes.
+    const raider = sortBy(seen, [(x: string) => -this.bandOdds(x), cmpNum], [(x: string) => x, cmpStr])[0];
+    if (c.grain + c.gold > 0 && c.archive.length === 0 && this.bandOdds(raider) > 0 && this.r("caravan-band", c.id).nextDouble() * 100 < this.bandOdds(raider)) {
+      S.caravans.splice(S.caravans.indexOf(c), 1);
+      const coast = this.map.get(raider).isSea ? (this.map.coastsOf(raider).find((p) => S.bands.some((b) => b.ship && b.province === p.id))?.id ?? raider) : raider;
+      // The grain is sold where they stand; the gold and what the grain fetched are the chief's.
+      const m = this.map.get(coast).isSea ? null : this.market(coast);
+      const fetched = m === null ? 0 : Math.min(m.purse, grainWorth(c.grain));
+      if (m !== null) {
+        m.stock += c.grain;
+        m.purse -= fetched;
+      }
+      const band = this.robbedBy(raider, c.gold + fetched);
+      // A ship taken is lost with its fleet; its crew put ashore among the loose men of the pirates' coast.
+      if (c.ship !== null && !this.map.get(coast).isSea) this.peopleOf(coast).loose += c.ship.men;
+      notify(S, c.power, "Notice", MarketsTitle, `${band !== null && c.ship !== null ? "Pirates" : "A band of outlaws"} fell on your ${noun(c)} to ${this.map.get(c.to).name} near ${this.map.get(raider).name} and carried off its ${what(c)}${c.ship !== null ? "; the ship is theirs, and the fleet is lost" : ""}.`);
+      logEvent(S, "caravan-robbed", `A band robbed ${c.power}'s ${noun(c)} near ${this.map.get(raider).name}.`, [c.power], c.ship !== null ? "ship-pirated" : "caravan-banded");
+      continue;
+    }
     if (c.ship !== null) {
       const storm = seen.some((x) => this.map.get(x).isSea) ? (season === WinterSeason ? RoadOdds.winterStorm : RoadOdds.storm) : 0;
       if (storm > 0 && this.r("ship-storm", c.id).nextDouble() * 100 < storm) {
@@ -548,6 +587,13 @@ P.caravansTravel = function () {
       const odds = (EconomyData.caravanOutlawPercent * (100 + c.grain + idiv(c.gold, 10))) / 100;
       if (c.grain + c.gold + c.archive.length > 0 && this.r("caravan-outlaws", c.id).nextDouble() * 100 < odds) {
         S.caravans.splice(S.caravans.indexOf(c), 1);
+        // Item 11b: nothing vanishes ("Nothing appears or vanishes without a cause"): the loose men there carry the gold
+        // and sell the grain at its market.
+        const at = caravanAt(c);
+        if (!this.map.get(at).isSea) {
+          this.market(at).stock += c.grain;
+          S.loot.set(at, S.loot.getOrDefault(at, 0) + c.gold);
+        }
         notify(S, c.power, "Notice", MarketsTitle, `Outlaws fell on your caravan to ${this.map.get(c.to).name} near ${this.map.get(caravanAt(c)).name} and carried off its ${what(c)}.`);
         logEvent(S, "caravan-robbed", `Outlaws robbed ${c.power}'s caravan.`, [c.power], "caravan-robbed");
         continue;

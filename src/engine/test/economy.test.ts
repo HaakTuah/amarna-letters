@@ -121,6 +121,11 @@ describe("EconomyTests", () => {
     Assert.false(s.units.includes(u));
     Assert.true(s.events.some((x) => x.signal === "mutiny"));
     Assert.contains("mutinied, hungry 2 seasons running", notice(s, "The treasury"));
+    // Item 11b: the mutineers may follow one of their own as a band instead (bands.test.ts); then nobody walks home.
+    if (s.bands.some((b) => b.rose === "mutiny")) {
+      Assert.equal(0, s.walking.filter((w) => w.home === "hattusa").length);
+      return;
+    }
     // The men carry their savings home, and nothing reaches home before they do (Haakon, 28 October 2026).
     const walk = single(s.walking, (w) => w.home === "hattusa");
     Assert.true(walk.savings >= 30);

@@ -86,6 +86,8 @@ export function peopleLines(v: SeatView): string[] {
     // Item 10+b: runaways from other kings' land standing loose in ours, and the besieged cities that put out their mouths.
     const ran = ps.flatMap((x) => [...x.runaways.entries()].filter(([, n]) => n >= 500).map(([q, n]) => `${x.province} ${k(n)} from ${q}`));
     if (ran.length > 0) lines.push(`- Runaways among your loose men (welcome_loose to settle them, return_runaways to send them back): ${join(", ", ran)}.`);
+    // Item 11b: the bands it sees, in its land and its sight; an army of its own standing where one works falls on it.
+    if (v.bands.length > 0) lines.push(`- Bands you see (an army of yours standing where one works in your land falls on it): ${join(", ", v.bands.map((b) => `${b.chief}'s ${b.men} men in ${b.province}${b.ship ? ", with a ship" : ""}`))}.`);
     const out = ps.filter((x) => x.expelled > 0);
     if (out.length > 0) lines.push(`- Mouths put out of (in a hundred of the town): ${join(", ", out.map((x) => `${x.province} ${x.expelled}`))}.`);
     const empty = ps.filter((x) => x.room > 0 && x.settled * 10 < x.room * 9);

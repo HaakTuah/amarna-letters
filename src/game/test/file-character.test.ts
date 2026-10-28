@@ -84,7 +84,7 @@ describe("FileCharacterTests", () => {
     if (stem.includes("_questioned_")) return `{"words":"${words}","lie":false}`;
     // Item 11a: a season of its own, every field it could be asked, left as things are.
     if (stem.includes("_life_"))
-      return `{"go":"","go_as":"","seek_service":true,"hoard":0,"lend_amount":0,"lend_per_hundred":0,"lend_seasons":0,"approach_to":"","approach_words":"${words}","approach_give_gold":0,"approach_ask_gold":0,"approach_repay":0,"approach_seasons":0,"approach_collect":"","approach_fee":0,"accept":[],"quit":false,"hand_over":true,"repay":[]}`;
+      return `{"go":"","go_as":"","seek_service":true,"hoard":0,"lend_amount":0,"lend_per_hundred":0,"lend_seasons":0,"approach_to":"","approach_words":"${words}","approach_give_gold":0,"approach_ask_gold":0,"approach_repay":0,"approach_seasons":0,"approach_collect":"","approach_fee":0,"accept":[],"quit":false,"hand_over":true,"repay":[],"take_to_hills":""}`;
     if (stem.includes("_spy_")) return `{"report":"${words}"}`;
     return `{"summary":"${words}"}`;
   }

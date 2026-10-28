@@ -19,6 +19,7 @@ import {
   hire,
   payFee,
   borrow,
+  buyNews,
   repay,
   seekCandidates,
   type Power,
@@ -144,6 +145,11 @@ export function CourtSection({ c }: { c: OrdersContext }) {
                   Borrow {shekels(c.lends.amount)}, {c.lends.perHundred} in 100 more back in {c.lends.seasons} seasons
                 </button>
               )}
+              {c.news.map((n) => (
+                <button className="small" key={n.court} onClick={() => add(buyNews(c.id, n.court as Power))}>
+                  Buy news of {n.court} (turn {n.turn}, {n.lines} {n.lines === 1 ? "report" : "reports"}) for {shekels(n.price)}
+                </button>
+              ))}
             </div>
           </div>
         ))}
