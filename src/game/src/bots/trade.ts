@@ -2,7 +2,7 @@
  * A script king's economy abroad (build order item 9+b): where the gap between markets pays, it sends its spare grain to
  * sell at a dearer foreign market and gold to buy where grain is cheap, by caravan or, from a harbour with an idle fleet,
  * by ship; it smuggles a small load where tolls are heavy or the roads closed; it ships grain to a besieged harbour of its
- * own while its waters are open; and it sets its tolls, none on the partners it promised free passage to on a sealed tablet
+ * own while its waters are open, and sells grain at a starving foreign harbour like any dear market; and it sets its tolls, none on the partners it promised free passage to on a sealed tablet
  * nor on its allies. Every number below is a first guess of the script's own.
  */
 import {
@@ -207,9 +207,13 @@ export function tradeOrders(
     const budget = Math.max(0, Math.min(150, gold - spent - costs * (2 + p.caution)));
     for (const [k, m] of markets) {
       const normal = normalOf(m);
+      // A besieged harbour buys by sea only, while no fleet of its besieger holds its waters, and sells nothing.
+      const siege = v.sieges.find((x) => x.province === k);
+      const waters = Board.Map.get(k).waters;
+      if (siege !== undefined && (waters === null || v.units.some((u) => u.province === waters && u.power === siege.besieger && u.kind === "Fleet"))) continue;
       const fleet = winter ? null : idleFleet(b, plan, home.province, usedFleets);
       const byShip = fleet !== null && harbourOf(Board.Map.get(k)) > 0 && !seasDangerous(b, brain, home.province);
-      const ways: [string, Way | null][] = caravansFull ? [] : [["land", landWay(b, home.province, k, false)], ["smuggle", landWay(b, home.province, k, true)]];
+      const ways: [string, Way | null][] = caravansFull || siege !== undefined ? [] : [["land", landWay(b, home.province, k, false)], ["smuggle", landWay(b, home.province, k, true)]];
       if (byShip) ways.push(["ship", seaWay(b, home.province, k)]);
       for (const [how, way] of ways) {
         if (way === null || way.seasons > FarSeasons) continue;
@@ -225,7 +229,7 @@ export function tradeOrders(
         const atHome = Math.floor((n * EconomyData.basePrice) / 100);
         // Buying: where grain is cheap and our towns are short or dear.
         const short = home.stock < home.need || home.price >= 2 * EconomyData.basePrice;
-        const buyGold = short && how !== "smuggle" ? budget : 0;
+        const buyGold = short && how !== "smuggle" && siege === undefined ? budget : 0;
         const bought = buyAlongCurve(Math.max(0, m.stock - sale.taken), normal, Math.floor((buyGold * keep) / 100), how === "ship" ? lotCap : CaravanLot);
         const back = Math.floor((bought.taken * keep * Math.max(0, 100 - eat * way.seasons)) / 10000);
         const worthBack = Math.floor((back * Math.max(home.price, EconomyData.basePrice)) / 100);

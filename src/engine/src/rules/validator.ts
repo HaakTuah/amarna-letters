@@ -65,6 +65,7 @@ export class OrderValidator {
     const renewed = new HSet<string>();
     const tollsSet = new HSet<string>();
     const taxesSet = new HSet<string>();
+    const peopleSet = new HSet<string>();
     let dispatches = 0;
     let seekCount = 0;
     let counterIntel = false;
@@ -308,6 +309,28 @@ export class OrderValidator {
           return null;
         }
 
+        // Item 10+b: people in a king's hands.
+        case "welcome":
+        case "expel":
+        case "returnRunaways":
+        case "deport": {
+          if (!Map.exists(order.province) || Map.get(order.province).isSea) return `there is no province called '${order.province}'`;
+          const name = Map.get(order.province).name;
+          if (S.owner.getOrDefault(order.province, null) !== power) return `you do not hold ${name}`;
+          const key = `${order.type}|${order.province}|${order.type === "returnRunaways" ? order.to : ""}`;
+          if (peopleSet.has(key)) return `you had already given that order for ${name} this season`;
+          if (order.type === "expel" && siegeOf(S, order.province) === null) return `${name} is not besieged`;
+          if (order.type === "returnRunaways" && (!AllPowers.includes(order.to) || order.to === power)) return `you cannot send runaways to '${order.to}'`;
+          if (order.type === "deport") {
+            if (Map.get(order.province).home === power) return `${name} is your own homeland: a king deports only from land he has taken`;
+            if (!Map.exists(order.to) || Map.get(order.to).isSea || S.owner.getOrDefault(order.to, null) !== power) return `you do not hold '${order.to}' to send them to`;
+            if (order.to === order.province) return "deportees go to another province of yours";
+            if (!Number.isInteger(order.number) || order.number <= 0) return "say how many people to deport";
+          }
+          peopleSet.add(key);
+          return null;
+        }
+
         case "raise": {
           const r = order;
           if (!Map.exists(r.province)) return `there is no province called '${r.province}'`;
@@ -532,6 +555,8 @@ export class OrderValidator {
           const co = order;
           const c = findCharacter(S, co.character);
           if (c === null || c.status !== "Captured" || c.heldBy !== power) return `you hold no captive '${co.character}'`;
+          // Item 10+b: a captive handed over travels under guard; it is nobody's to dispose of until it arrives.
+          if (c.duty === "UnderGuard") return `${c.name} is on the road under guard and has not reached your court yet`;
           if (busyCharacters.has(c.id)) return `${c.name} was already given a task by an earlier order`;
           if (co.fate === "Ransom" && co.ransom <= 0) return "name a ransom";
           // Item 10: questioning costs what is spent on it; a captive is handed over to a living court other than one's own.

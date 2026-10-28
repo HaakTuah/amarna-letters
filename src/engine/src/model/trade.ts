@@ -17,8 +17,10 @@ import type { Unit } from "./state.ts";
  * - `smuggleFound`: the base odds, in percent, that a smuggler is found entering a realm (the road check's odds for one
  *   found sneaking, item 7b), plus `smugglePerMeasures` a point for every so many measures it carries and `smuggleGold`
  *   with gold; policing, until item 15 builds it, is that base level and a third of what the holder spends on watchmen.
- * - `sackPercent`: the share of a province's purse its taker carries off when he takes it by force ("a sacked city's
- *   purse is the natural loot").
+ * - The sack (item 10+b: "What a sack takes follows its causes"): of a province taken by force its taker's men carry off
+ *   at most `sackStormedPercent` of its people's purse when they storm it or take it unwalled, `sackSurrenderPercent`
+ *   when it surrenders, and no more than `lootPerHundred` shekels for every hundred of them; the king's share,
+ *   `kingSharePercent`, travels home to his capital as a load that can be waylaid, the rest in the soldiers' packs.
  * - `harbourStart`: the harbour level every coastal province starts with, until item 15 makes harbours a built level.
  * - `wordSeasonsShare`: word of a foreign market's price reaches a court from within a season's travel divided by this
  *   (2: half a season, some three weeks of road or sail), as it stood when the season began.
@@ -29,7 +31,10 @@ export const TradeData = {
   smuggleFound: 20,
   smugglePerMeasures: 10,
   smuggleGold: 10,
-  sackPercent: 33,
+  sackStormedPercent: 50,
+  sackSurrenderPercent: 25,
+  lootPerHundred: 10,
+  kingSharePercent: 33,
   harbourStart: 1,
   wordSeasonsShare: 2,
 } as const;

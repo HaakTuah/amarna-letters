@@ -31,7 +31,7 @@ kings' part is in `07-script-kings/14-court-and-intelligence.md` ("Who they are"
   stream of its own (`skills`). Competence stays a trait: the script mind's judgement and the persona's words.
 - **Kings never see skills.** No view shows a skill or a trait. What a court knows is what a person says it can do
   (`CharacterView.claims`, words such as "says they can slip past most guards", set when it pitches: `claimOf`, its belief,
-  raised by 15 for one loyal mostly to itself and fond of gold) and what it saw happen (below). The asking price no longer
+  raised by 15 for one loyal mostly to itself and fond of gold; since item 10+b a model character chooses its own claim) and what it saw happen (below). The asking price no longer
   reads the true skill: 6 + belief/8 + greed/8 + its name at that court/5 + debts/30 (at most 9), less 4 at the court it
   favours and 3 where its lover or family lives (`basePrice`).
 - **Seeing oneself** (`Character.inclination`, `Character.belief`): a hidden inclination (the sum of three draws of -10 to
@@ -73,8 +73,8 @@ that court a hold when it questions the character. A free person with a lover or
   court knows the person by that name (`CharacterView.name`, and every notice about it: `notify` names it so), sees only
   what it learned under it (`Fact.alias`; `factsKnownTo`), and the name has its own standing there (`Declared.rep`).
 - **Exposure** (`TurnEngine.impostors`, each season): 50% a season where someone at that court has seen the person under
-  its own name, 60% where a real envoy of the king a false envoy names stands at that court, 3%
-  otherwise; and a background check finds it with a hidden fact's chance. Exposed, the court is told who it is
+  its own name, 60% where a real envoy of the king a false envoy names stands at that court, never by
+  chance with nobody looking (item 10+b); and a background check finds it with a hidden fact's chance. Exposed, the court is told who it is
   ("An impostor exposed"), and the fact "Posed as … at the court of …" travels as an outcome.
 - **A false envoy** (`MindReply.claimsToServe`, offered as `MindRequest.envoyOf`, the farthest living king it never
   served, only at the court where it stands): it claims to be that king's envoy, seeks no service, and its host is told
@@ -92,14 +92,16 @@ that court a hold when it questions the character. A free person with a lover or
   where the captor's court holds its lover, family or a debt; at most three. A captive loyal (60+) and brave (50+) lies:
   it recites a tablet that never was, a forgery in its own hand (its master and another king in league against the
   captor), which only an examination can show; others tell the truth, and the copies go into the captor's archive ("told
-  by … under questioning"). Captives decide by this formula, model-played ones included, until characters answer it.
-- **Captives handed over** (fate `HandOver`, `to`): the other court holds it at once; any ransom asked lapses. Captives
+  by … under questioning"). Since item 10+b a captive decides what it says the next season (the script mind by this
+  formula, a model by its own choice): `20-people-across-borders.md`.
+- **Captives handed over** (fate `HandOver`, `to`): since item 10+b it travels under guard and the other court holds it
+  when it arrives (`20-people-across-borders.md`); any ransom asked lapses. Captives
   are exchanged like any good: the price is the kings' to agree in letters, as for gold and land.
 - **Stealing** (order `steal`, for a spy posted at a court): that season, with a chance of its `gather` skill, it takes
   the tablet its master would most want; the court loses its copy and is told a tablet is missing; the tablet comes home
   with the report. Stealing adds 15 in 100 to the chance of being caught that season (`StealRisk`).
-- **A capital's archive is carried off** (`takeArchive`): the taker gains every tablet in it, and the court holds none of
-  them any more (it is told, if it still stands).
+- **A capital's archive is carried off** (`takeArchive`): the court holds none of its tablets any more (it is told, if it
+  still stands); since item 10+b the taker gains them when the load reaches his capital (`20-people-across-borders.md`).
 
 ### Errands built here, and those that come later
 

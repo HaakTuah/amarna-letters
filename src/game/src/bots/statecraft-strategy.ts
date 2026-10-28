@@ -1,4 +1,5 @@
 /** The non-military half of a script king, first part: strategy and treasury. */
+import { peopleAcrossBorders } from "./borders.ts";
 import {
   HSet,
   StartWalls,
@@ -200,6 +201,8 @@ export function economy(b: Board, brain: Brain, plan: MilitaryPlan, orders: Orde
   const grain = plainGrain(b.me) ? { sales: plainGrainOrders(v, orders), abroad: 0 } : grainOrders(b, brain, plan, orders, gold, costs);
   // Each province's tax, as high as its farmers can bear (item 10+a).
   orders.push(...taxOrders(v, b.me));
+  // People across borders and in our hands (item 10+b).
+  peopleAcrossBorders(b, orders);
   const sales = grain.sales;
   // Gold sent abroad to buy grain (item 9+b) is gone from the treasury until its caravans come home; and the tolls.
   gold -= grain.abroad;

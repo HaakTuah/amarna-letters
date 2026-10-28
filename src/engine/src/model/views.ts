@@ -76,10 +76,16 @@ export interface ProvinceEconomyView {
   taxRate: number;
   harvest: number;
   fed: number;
+  /**
+   * Item 10+b: the loose men standing here who fled another king's land, by that king (to settle, or send back), and
+   * whether the besieged city put out its mouths that cannot fight.
+   */
+  runaways: Dict<string, number>;
+  expelled: boolean;
 }
 
 export function newProvinceEconomyView(init: Partial<ProvinceEconomyView> = {}): ProvinceEconomyView {
-  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, ...init };
+  return { province: "", stores: 0, capacity: 0, tax: 0, need: 0, stock: 0, purse: 0, price: 0, settled: 0, men: 0, loose: 0, room: 0, taxRate: 0, harvest: 0, fed: 1000, runaways: new Dict(), expelled: false, ...init };
 }
 
 export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("ProvinceEconomyView", newProvinceEconomyView, {
@@ -98,6 +104,8 @@ export const ProvinceEconomyViewSchema: ObjSchema<ProvinceEconomyView> = obj("Pr
   taxRate: I,
   harvest: I,
   fed: I,
+  runaways: dict(I),
+  expelled: B,
 });
 
 /** One of the court's caravans on the road (item 9+a), or ships in cargo service (item 9+b). */
@@ -131,24 +139,8 @@ export const CaravanViewSchema: ObjSchema<CaravanView> = obj("CaravanView", newC
   ship: B,
 });
 
-/**
- * A foreign market as the court last knew it (item 9+b, "Prices are known where they are and through news"): its price
- * (hundredths of a shekel a measure), its stock, its normal stock (a season of its town's need) and its people's purse,
- * and the season it was known, by word from nearby, its own eyes, or its caravans and ships that traded there.
- */
-export interface MarketSeen {
-  price: number;
-  stock: number;
-  need: number;
-  purse: number;
-  turn: number;
-}
-
-export function newMarketSeen(init: Partial<MarketSeen> = {}): MarketSeen {
-  return { price: 0, stock: 0, need: 0, purse: 0, turn: 0, ...init };
-}
-
-export const MarketSeenSchema: ObjSchema<MarketSeen> = obj("MarketSeen", newMarketSeen, { price: I, stock: I, need: I, purse: I, turn: I });
+export { type MarketSeen, newMarketSeen, MarketSeenSchema } from "./word.ts";
+import { type MarketSeen, MarketSeenSchema } from "./word.ts";
 
 /**
  * A siege as a court sees it: the city, the besieger, who holds the city, and how far it has been worn down against its walls.
@@ -557,7 +549,7 @@ export interface SeatView {
   caravans: CaravanView[];
   /** Foreign markets as it last knew them (item 9+b), by province. */
   markets: Dict<string, MarketSeen>;
-  /** The tolls that bear on it and the ones it sets (item 9+b): posted at the borders, so known to all who trade. */
+  /** The tolls it sets, and those on its goods as last reported to it (item 10+b: never posted). */
   tolls: Toll[];
   /** What each free city's elders ask to be bought: what it adds, its land's worth, purse, stores and market (public). */
   cityPrices: Dict<string, number>;

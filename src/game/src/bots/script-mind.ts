@@ -147,6 +147,8 @@ export class ScriptMind implements ICharacterMind {
         return Promise.resolve(spyReport(ctx));
       case "SummarizeMemory":
         return Promise.resolve(summary(ctx));
+      case "Questioned":
+        return Promise.resolve(questioned(ctx));
       default:
         return Promise.resolve(newMindReply({ text: "" }));
     }
@@ -294,6 +296,19 @@ function askedOf(trail: MessageTrail): string {
   const outcome = matching[matching.length - 1];
   const ask = outcome.slice(outcome.indexOf(marker) + marker.length);
   return ask.endsWith(")") ? ask.slice(0, -1) : ask;
+}
+
+/**
+ * What a script captive says once it has given way under questioning (item 10+b; the formula of item 10): one loyal (60+)
+ * and brave (50+) lies, reciting a league of its master's against its captor, the king left to the engine's draw; any
+ * other tells what it saw.
+ */
+function questioned(ctx: MindContext): MindReply {
+  const c = ctx.self;
+  const t = c.traits;
+  const master = c.employer ?? c.formerEmployer;
+  const lies = t.loyalty >= 60 && t.courage >= 50 && master !== null;
+  return newMindReply({ text: lies ? "My lord does not stand alone. I will say no more." : "I will tell you what I saw, if you will spare me.", lies });
 }
 
 function pitch(ctx: MindContext): MindReply {

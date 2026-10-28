@@ -8,7 +8,7 @@ import { cmpNum, sortBy } from "../core/seq.ts";
 import type { GiftOrder } from "../model/orders.ts";
 import { coverOf, falseNameAt, gain, hiddenAt, newDeclared, newFact, remember, reputationAt, type Character, type Declared, type Fact } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
-import type { Journey } from "../model/records.ts";
+import { newDispatch, newMessageTrail, newPendingAudience, type Journey } from "../model/records.ts";
 import { findCharacter, isAlive, logEvent, newId, notify } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { Aliases } from "../rules/cast.ts";
@@ -23,8 +23,6 @@ export const TaleGrowth = 0.15;
 export const SeenThrough = 0.5;
 /** The chance a season that a false envoy is seen through by a real envoy of the king it claims to serve, at that court. */
 export const EnvoySeenThrough = 0.6;
-/** The chance a season that a false name is seen through anyway (talk, a slip). */
-export const SlipThrough = 0.03;
 /** The title of the notice a court reads when it sees through a false name. */
 export const ImpostorTitle = "An impostor exposed";
 
@@ -38,6 +36,7 @@ declare module "./core.ts" {
     expose(c: Character, d: Declared, how: string): void;
     impostors(): void;
     giftTo(p: Power, o: GiftOrder): void;
+    pretendedAudience(c: Character, court: Power, envoyOf: Power): void;
     aliasesFor(c: Character, court: Power): string[];
     envoyOfFor(c: Character, court: Power): Power | null;
   }
@@ -122,15 +121,30 @@ P.declare = function (c, court, name, envoyOf) {
   );
   remember(c, S.turn, `At the court of ${land(court)} I gave my name as ${asName}` + (falseEnvoy ? `, and said I came as an envoy of the king of ${land(envoyOf!)}.` : "."));
   logEvent(S, "false-name", `${c.name} gave the name ${asName} at ${court}` + (falseEnvoy ? `, posing as an envoy of ${envoyOf}` : "") + ".", [], falseEnvoy ? "false-envoy" : "false-name");
-  if (falseEnvoy)
+  if (falseEnvoy) {
     notify(
       S,
       court,
       "Notice",
       "An envoy without a letter",
-      `${asName} has come to your court, saying they are an envoy of the king of ${land(envoyOf!)}, though they bring no letter and no tablet. You may give them a gift as a host does, or send to the king of ${land(envoyOf!)} to ask whether they serve him.`,
+      `${asName} has come to your court, saying they are an envoy of the king of ${land(envoyOf!)}, though they bring no letter and no tablet. You receive them in audience as any envoy; you may send to the king of ${land(envoyOf!)} to ask whether they serve him.`,
       c.id,
     );
+    this.pretendedAudience(c, court, envoyOf!);
+  }
+};
+
+/**
+ * A false envoy is received in a full audience (item 10+b, Haakon's answer of 28 October 2026, "A false envoy"): the host
+ * sees an envoy of the king it names, with no letter, no sealed greeting and no seal; what it gives, gifts or gold for
+ * that king, the impostor keeps (applyAudience).
+ */
+P.pretendedAudience = function (c, court, envoyOf) {
+  const S = this.s;
+  const trail = newMessageTrail({ id: newId(S, "m"), turn: S.turn, from: envoyOf, to: court, envoyId: c.id, envoyName: c.name, pretended: true, audienceTurn: S.turn });
+  S.trails.push(trail);
+  const dispatch = newDispatch({ trailId: trail.id, inventory: false, pretended: true });
+  S.audiences.push(newPendingAudience({ id: newId(S, "a"), envoyId: c.id, from: envoyOf, host: court, dispatch }));
 };
 
 /** A court sees through a false name: it learns who the person is, and the lie becomes a fact that travels. */
@@ -158,7 +172,7 @@ P.expose = function (c, d, how) {
 /**
  * Each season, every false name still standing may be seen through: by someone at the court who has seen the real man (the
  * man whose name was borrowed, or the impostor himself under his own name), by a real envoy of the king a false envoy
- * claims to serve standing at that court, or by a slip.
+ * claims to serve standing at that court; never by chance alone (a letter or an inquiry finds it too).
  */
 P.impostors = function () {
   const S = this.s;
@@ -173,7 +187,7 @@ P.impostors = function () {
       const envoys = d.employer !== null && S.characters.some((x) => x.employer === d.employer && x.at === d.court && (x.duty === "EnvoyAtCourt" || x.duty === "Detained"));
       if (envoys && rng.chance(EnvoySeenThrough)) this.expose(c, d, `the envoys of ${d.employer} at your court do not know them`);
       else if (seen && rng.chance(SeenThrough)) this.expose(c, d, real !== null ? `someone at your court has seen the real ${d.name}` : "someone at your court knew their face");
-      else if (rng.chance(SlipThrough)) this.expose(c, d, "they let slip who they are");
+      // Nothing exposes it by chance with nobody looking (decided 28 October 2026, "Deceit is information").
     }
 };
 

@@ -63,11 +63,12 @@ declare module "./core.ts" {
     caravansTravel(): void;
     caravanCompany(c: Caravan): Company;
     caravanRoute(p: Power, from: string, to: string): string[] | null;
-    caravanArrives(c: Caravan): void;
+    caravanArrives(c: Caravan, traded?: string[] | null): void;
     settleMarkets(orders: [Power, Order][]): void;
     cityPrice(province: string): number;
     landWorth(p: Power): number;
     holdings(p: Power): number;
+    townNeed(province: string): number;
   }
 }
 
@@ -188,6 +189,12 @@ P.harvestSeason = function () {
   return lines;
 };
 
+/** What a town eats a season: its need, less the mouths put out of it while it is besieged (item 10+b). */
+P.townNeed = function (province) {
+  const need = needOf(this.map.get(province));
+  return need - idiv(need * this.s.expelled.getOrDefault(province, 0), 100);
+};
+
 /**
  * Each town eats its local need from its market, and an empty market means a hungry town (before item 10+ that only
  * drives its price up). A besieged city eats from its market and then its stores, its garrison's food apart ("Stores and
@@ -198,8 +205,10 @@ P.townsEat = function () {
   const S = this.s;
   S.starving.length = 0;
   for (const prov of this.map.landProvinces) {
+    // The mouths put out of a besieged city (item 10+b) come back once the siege is over.
+    if (S.expelled.has(prov.id) && siegeOf(S, prov.id) === null) S.expelled.delete(prov.id);
     const m = this.market(prov.id);
-    const need = needOf(prov);
+    const need = this.townNeed(prov.id);
     const fromMarket = Math.min(m.stock, need);
     m.stock -= fromMarket;
     if (siegeOf(S, prov.id) === null) continue;
@@ -415,6 +424,7 @@ P.caravansTravel = function () {
   const book: TollBook = new Dict();
   const what = (c: Caravan): string => [c.grain > 0 || c.gold <= 0 ? `${c.grain} measures of grain` : "", c.gold > 0 ? formatMoney(c.gold) : ""].filter((x) => x !== "").join(" and ");
   const noun = (c: Caravan): string => (c.ship !== null ? "ship" : "caravan");
+  const arrivals: Caravan[] = [];
   for (const c of sortBy([...S.caravans], [(c: Caravan) => c.id, cmpStr])) {
     if (!isAlive(S, c.power)) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
@@ -497,12 +507,14 @@ P.caravansTravel = function () {
     const hostile = (k: Power, at: string): boolean => (S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, at);
     const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power && hostile(u.power, x)) ?? null).find((u) => u !== null) ?? null;
     const roll = this.r("caravan", c.id).nextDouble() * 100;
-    if (taker !== null && c.grain + c.gold > 0 && roll < RoadOdds.troops) {
+    if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
       const kept = Math.min(c.grain, carriedOf(taker.kind) - taker.food);
       taker.food += Math.max(0, kept);
       S.treasuries.get(taker.power).gold += c.gold;
       const where = this.map.get(taker.province).name;
+      // A captured archive on the road (item 10+b) is the taker's now.
+      if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);
       notify(S, c.power, "Notice", MarketsTitle, `Your ${noun(c)} to ${this.map.get(c.to).name} was taken at ${where} by ${taker.power}'s ${c.ship !== null ? "fleet" : "troops"}, with its ${what(c)}${c.ship !== null ? "; a loaded ship fights badly, and the fleet is lost" : ""}.`);
       notify(S, taker.power, "Notice", MarketsTitle, `Your ${taker.kind === "Fleet" ? "fleet" : "troops"} at ${where} took ${c.power}'s ${noun(c)} and its ${what(c)}${kept > 0 ? `; they kept ${kept} measures for their own baggage` : ""}${c.gold > 0 ? ", the gold for your treasury" : ""}.`);
       logEvent(S, "caravan-taken", `${taker.power}'s ${taker.kind === "Fleet" ? "fleet" : "troops"} took ${c.power}'s ${noun(c)} at ${where}.`, [c.power, taker.power], "caravan-taken");
@@ -518,15 +530,20 @@ P.caravansTravel = function () {
       }
     } else {
       const odds = (EconomyData.caravanOutlawPercent * (100 + c.grain + idiv(c.gold, 10))) / 100;
-      if (c.grain + c.gold > 0 && this.r("caravan-outlaws", c.id).nextDouble() * 100 < odds) {
+      if (c.grain + c.gold + c.archive.length > 0 && this.r("caravan-outlaws", c.id).nextDouble() * 100 < odds) {
         S.caravans.splice(S.caravans.indexOf(c), 1);
         notify(S, c.power, "Notice", MarketsTitle, `Outlaws fell on your caravan to ${this.map.get(c.to).name} near ${this.map.get(caravanAt(c)).name} and carried off its ${what(c)}.`);
         logEvent(S, "caravan-robbed", `Outlaws robbed ${c.power}'s caravan.`, [c.power], "caravan-robbed");
         continue;
       }
     }
-    if (arrived) this.caravanArrives(c);
+    if (arrived) arrivals.push(c);
   }
+  // Those that reached a market to trade trade there together, whoever came first (item 10+b); then each goes on.
+  const traded = new Map<string, string[]>();
+  const traders = arrivals.filter((c) => !c.returning && c.trade);
+  for (const at of [...new Set(traders.map((c) => caravanAt(c)))].sort(cmpStr)) this.tradeTogether(traders.filter((c) => caravanAt(c) === at), traded);
+  for (const c of arrivals) this.caravanArrives(c, traded.get(c.id) ?? []);
   this.tellTolls(book);
 };
 
@@ -536,7 +553,7 @@ P.caravansTravel = function () {
  * king's and open to it (a besieged city takes in nothing by land, and by sea only while its waters are open). Whatever
  * it still carries, and a ship always, goes home again; one coming home unloads there.
  */
-P.caravanArrives = function (c) {
+P.caravanArrives = function (c, traded = null) {
   const S = this.s;
   if (c.returning) {
     this.caravanHome(c);
@@ -544,9 +561,10 @@ P.caravanArrives = function (c) {
   }
   const at = caravanAt(c);
   const name = this.map.get(at).name;
-  const parts: string[] = [];
-  if (c.trade) this.tradeAtMarket(c, parts);
-  else {
+  const parts: string[] = traded !== null ? [...traded] : [];
+  if (c.trade) {
+    if (traded === null) this.tradeAtMarket(c, parts);
+  } else {
     const besieged = siegeOf(S, at) !== null;
     const open = !besieged || (c.ship !== null && openToSea(this, at));
     if (open)

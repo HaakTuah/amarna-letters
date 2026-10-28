@@ -109,6 +109,7 @@ export function answer(props: JsonObject | null, user = ""): string {
     o = { report: "The king received me kindly." };
     gold(o);
   } else if (has("pitch")) o = { pitch: "I know every road from Ugarit to Babylon.", asking_price: 20 };
+  else if (has("lie")) o = { words: "I will tell you what I saw.", lie: false };
   else if (has("persona")) o = { persona: "You are a careful messenger who has seen many courts and trusts none of them entirely. You speak softly." };
   else if (has("summary")) o = { summary: "I have carried many messages and kept my own counsel." };
   else if (has("chronicle")) o = { chronicle: "Year 1. His Majesty triumphed in all things." };
@@ -124,7 +125,8 @@ export function answer(props: JsonObject | null, user = ""): string {
   for (const [name, p] of Object.entries(props ?? {}))
     if (!(name in o)) {
       const type = (p as JsonObject).type;
-      o[name] = type === "array" ? [] : type === "boolean" ? false : type === "integer" ? 0 : "";
+      const values = (p as JsonObject).enum as string[] | undefined;
+      o[name] = values !== undefined && values.length > 0 ? values[0] : type === "array" ? [] : type === "boolean" ? false : type === "integer" ? 0 : "";
     }
   return JSON.stringify(o);
 }

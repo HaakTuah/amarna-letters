@@ -20,4 +20,5 @@ export * from "./authority.ts";
 export * from "./economy.ts";
 export * from "./caravans.ts";
 export * from "./trade.ts";
+export { type Word, newWord, WordSchema, noteMarket, noteTolls } from "./word.ts";
 export * from "./land.ts";

@@ -18,7 +18,7 @@ import type { RoadsOrder } from "../model/orders.ts";
 import { remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
 import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind } from "../model/records.ts";
-import { char, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
+import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { Views } from "../rules/views.ts";
@@ -44,11 +44,14 @@ export const CaughtOnRoadTitle = "A traveller is caught";
 export const RoadsTitle = "Roads";
 
 /** The traveller kinds: those who walk the road themselves (word travels by itself). */
-const Walkers = new Set(["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyHomebound"]);
+const Walkers = new Set(["EnvoyOutbound", "EnvoyHomebound", "SpyOutbound", "SpyHomebound", "CaptiveConvoy"]);
 
 export const isWalker = (j: Journey): boolean => Walkers.has(j.kind);
 
-const outbound = (j: Journey): boolean => j.kind === "EnvoyOutbound" || j.kind === "SpyOutbound";
+const outbound = (j: Journey): boolean => j.kind === "EnvoyOutbound" || j.kind === "SpyOutbound" || j.kind === "CaptiveConvoy";
+
+/** A captive handed over, on the road under its giver's guard (item 10+b): a company like any, its master the giver. */
+const convoy = (j: Journey): boolean => j.kind === "CaptiveConvoy";
 
 /** The court a traveller serves: the sender on the way out, home on the way back. */
 const masterOf = (j: Journey): Power => (outbound(j) ? j.from : j.to);
@@ -68,6 +71,8 @@ declare module "./core.ts" {
     stopped(j: Journey, c: Character, province: string, stop: Stop): void;
     turnBack(j: Journey, c: Character, at: string, why: string, gold: number): void;
     caughtOnRoad(j: Journey, c: Character, captor: Power, province: string): void;
+    convoyStopped(j: Journey, c: Character, province: string, stop: Stop): void;
+    captiveArrives(j: Journey): void;
     bringNews(j: Journey, court: Power, c: Character): void;
     word(from: Power, to: Power, news: NewsKind, text: string): void;
     wordArrives(j: Journey): void;
@@ -201,7 +206,9 @@ P.roadOdds = function (j, c, province, sneaking, known) {
     out.set("nature", out.getOrDefault("nature", 0) + RoadOdds.snow);
   // Its skill takes off up to half; at most RoadOdds.most in all.
   const total = [...out.values()].reduce((a, b) => a + b, 0);
-  const scale = (total > RoadOdds.most ? RoadOdds.most / total : 1) * (1 - (clamp(c.skills.stealth, 0, 100) * RoadOdds.skillShare) / 10000);
+  // A captive's guards are ordinary men: its own skill does not keep them out of trouble.
+  const skill = convoy(j) ? 0 : clamp(c.skills.stealth, 0, 100);
+  const scale = (total > RoadOdds.most ? RoadOdds.most / total : 1) * (1 - (skill * RoadOdds.skillShare) / 10000);
   for (const [k, v] of [...out.entries()]) out.set(k, v * scale);
   return out;
 };
@@ -273,7 +280,7 @@ P.travelOne = function (j) {
   }
 
   // The road check: one province of the stretch, by the share of the season spent in each.
-  if (c.status === "Employed") {
+  if (c.status === "Employed" || (convoy(j) && c.status === "Captured" && c.duty === "UnderGuard")) {
     const rng = this.r("road", j.id);
     const total = [...spent.values()].reduce((x, y) => x + y, 0);
     let pick = rng.next(total);
@@ -298,7 +305,7 @@ P.travelOne = function (j) {
         roll -= v;
       }
       // Held up by nature on the way home: the season's road is lost, not the journey.
-      if (stop === "nature" && !outbound(j)) {
+      if (stop === "nature" && (!outbound(j) || convoy(j))) {
         j.route = was.route;
         j.leg = Math.min(was.leg, j.route.length - 1);
         j.along = was.along;
@@ -327,6 +334,10 @@ P.stopped = function (j, c, province, stop) {
   const S = this.s;
   const Map = this.map;
   const name = Map.get(province).name;
+  if (convoy(j)) {
+    this.convoyStopped(j, c, province, stop);
+    return;
+  }
   if (stop === "troops" || stop === "found") {
     const captor =
       stop === "troops"
@@ -361,6 +372,80 @@ P.stopped = function (j, c, province, stop) {
   logEvent(S, "travel", `${c.name}, of ${masterOf(j)}, turned back in ${name}: ${what}.`, [], "road-nature");
   this.trail(j.dispatch?.trailId ?? null)?.outcomes.push(`turned back in ${name} by ${what}`);
   this.turnBack(j, c, j.route[j.leg], `${c.name} turned back in ${name}, stopped by ${what}`, gold);
+};
+
+/**
+ * A captive's convoy stopped on the road (item 10+b, Haakon's answer of 28 October 2026: a captive handed over travels under
+ * guard like any company). A hostile king's troops or people take it: the captive is his, or free if he is its own king;
+ * outlaws scatter the guards and it slips away. (Nature only holds it up: see travelOne.)
+ */
+P.convoyStopped = function (j, c, province, stop) {
+  const S = this.s;
+  const name = this.map.get(province).name;
+  S.journeys.splice(S.journeys.indexOf(j), 1);
+  // Let go on the road already (its giver fell): nobody guards it any more.
+  if (c.status !== "Captured" || c.duty !== "UnderGuard") return;
+  const giver = j.from;
+  const meant = j.to;
+  const lord = c.employer;
+  if (stop === "troops" || stop === "found") {
+    const taker =
+      stop === "troops"
+        ? sortBy(
+            S.units.filter((u) => u.province === province && this.closedTo(u.power, j, province)),
+            [(u) => idNumber(u.id), cmpNum],
+          )[0].power
+        : S.owner.getOrDefault(province, null)!;
+    notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${land(giver)} was sending you under guard, was taken from the guards in ${name} by ${taker}'s men.`, c.id);
+    if (taker === lord) {
+      c.duty = "None";
+      this.releaseCaptive(taker, c);
+      remember(c, S.turn, `My own king's men freed me from ${land(giver)}'s guards in ${name}.`);
+      logEvent(S, "captive", `${taker}'s men freed ${c.name} from ${giver}'s guards in ${name}.`, [taker, giver], "captive-freed");
+      return;
+    }
+    c.heldBy = taker;
+    c.at = taker;
+    c.duty = "None";
+    this.meet(c, taker);
+    remember(c, S.turn, `${land(taker)}'s men took me from ${land(giver)}'s guards in ${name}; I am their captive now.`);
+    notify(S, taker, "Notice", "A captive taken on the road", `Your men in ${name} stopped ${land(giver)}'s guards taking ${c.name} to ${land(meant)} and took the captive from them. You may question, ransom, execute or release them.`, c.id);
+    logEvent(S, "captive", `${taker}'s men took ${c.name} from ${giver}'s guards in ${name}.`, [taker, giver], "captive-taken");
+    return;
+  }
+  // Outlaws, or anything else on the road: the guards scattered, the captive slips away.
+  c.duty = "None";
+  c.at = null;
+  this.releaseCaptive(meant, c);
+  remember(c, S.turn, `Outlaws fell on ${land(giver)}'s guards in ${name}, and I slipped away in the confusion.`);
+  notify(S, meant, "Notice", "A captive lost on the road", `${c.name}, the captive ${land(giver)} was sending you under guard, escaped in ${name} when outlaws fell on the guards.`, c.id);
+  logEvent(S, "captive", `${c.name} escaped ${giver}'s guards in ${name} when outlaws fell on them.`, [giver], "captive-escaped");
+};
+
+/** A captive's convoy arrives: the court it was sent to holds it now (item 10+b). */
+P.captiveArrives = function (j) {
+  const S = this.s;
+  const c = findCharacter(S, j.characterId);
+  if (c === null || c.status !== "Captured" || c.duty !== "UnderGuard") return;
+  c.duty = "None";
+  if (!isAlive(S, j.to)) {
+    // Its kingdom fell while it was on the road: the guards let it go.
+    this.releaseCaptive(j.from, c);
+    return;
+  }
+  c.heldBy = j.to;
+  c.at = j.to;
+  this.meet(c, j.to);
+  remember(c, S.turn, `${land(j.from)}'s guards brought me to ${land(j.to)}, whose captive I now am.`);
+  notify(
+    S,
+    j.to,
+    "Notice",
+    "A captive given to you",
+    `${land(j.from)}'s guards have brought you ${c.name} as a captive. You may question, ransom, execute or release them${c.intercepted ? "" : ", or turn them"}.`,
+    c.id,
+  );
+  logEvent(S, "captive-handed", `${c.name}, handed over by ${j.from}, reached ${j.to} under guard.`, [j.from, j.to], "captive-arrived");
 };
 
 /** An outbound traveller gives up its errand and comes home from where it is, with any gold it still carries. */

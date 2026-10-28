@@ -2,7 +2,7 @@
 import { Dict, HSet } from "../core/collections.ts";
 import { roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder,
+import { describe, newTurnSubmission, type BuyProvinceOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed } from "../model/outcomes.ts";
@@ -139,6 +139,11 @@ P.resolveSeason = function (submissions) {
   // Tolls (item 9+b) stand from next season.
   for (const [p, o] of all((o): o is TollOrder => o.type === "toll")) this.setToll(p, o);
   for (const [p, o] of all((o): o is TaxOrder => o.type === "tax")) this.setTax(p, o);
+  // People in a king's hands (item 10+b): runaways sent back first, then the loose settled, deportation, mouths put out.
+  for (const [p, o] of all((o): o is ReturnRunawaysOrder => o.type === "returnRunaways")) this.returnRunaways(p, o);
+  for (const [p, o] of all((o): o is WelcomeOrder => o.type === "welcome")) this.welcome(p, o);
+  for (const [p, o] of all((o): o is DeportOrder => o.type === "deport")) this.deport(p, o);
+  for (const [p, o] of all((o): o is ExpelOrder => o.type === "expel")) this.expel(p, o);
   // Grants revoked and tablets repudiated (item 9) take effect from next season: guests still there then take the land.
   for (const [p, o] of all((o): o is RevokeOrder => o.type === "revoke")) this.revokeGrants(p, o);
   for (const [p, o] of all((o): o is RepudiateOrder => o.type === "repudiate")) this.repudiate(p, o);

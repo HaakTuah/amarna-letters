@@ -141,6 +141,33 @@ export interface TaxOrder {
   province: string | null;
   percent: number;
 }
+/**
+ * People across borders and in kings' hands (item 10+b, "Where people go"). `welcome`: settle the loose men standing in a
+ * province of one's own, as far as it has room. `deport`: move settled people from a province one has taken (not one's
+ * homeland) to one of one's own; they walk there, and carry their share of the purse only if `purse`. `expel`: put out of
+ * a besieged city of one's own the mouths that cannot fight. `returnRunaways`: send back to `to` the runaways from its land
+ * standing loose in a province of one's own ("Fugitive clauses": deportation in reverse).
+ */
+export interface WelcomeOrder {
+  type: "welcome";
+  province: string;
+}
+export interface DeportOrder {
+  type: "deport";
+  province: string;
+  to: string;
+  number: number;
+  purse: boolean;
+}
+export interface ExpelOrder {
+  type: "expel";
+  province: string;
+}
+export interface ReturnRunawaysOrder {
+  type: "returnRunaways";
+  province: string;
+  to: Power;
+}
 export interface RaiseOrder {
   type: "raise";
   province: string;
@@ -337,6 +364,10 @@ export type Order =
   | ShipOrder
   | TollOrder
   | TaxOrder
+  | WelcomeOrder
+  | DeportOrder
+  | ExpelOrder
+  | ReturnRunawaysOrder
   | RaiseOrder
   | DisbandOrder
   | BuyProvinceOrder
@@ -414,6 +445,10 @@ export const caravan = (from: string, to: string, amount: number): CaravanOrder 
 export const trade = (from: string, to: string, grain: number, gold: number, sneak = false): TradeOrder => ({ type: "trade", from, to, grain, gold, sneak });
 export const ship = (fleet: string, from: string, to: string, grain: number, gold: number, trade = true): ShipOrder => ({ type: "ship", fleet, from, to, grain, gold, trade });
 export const tax = (percent: number, province: string | null = null): TaxOrder => ({ type: "tax", province, percent });
+export const welcome = (province: string): WelcomeOrder => ({ type: "welcome", province });
+export const deport = (province: string, to: string, number: number, purse = false): DeportOrder => ({ type: "deport", province, to, number, purse });
+export const expel = (province: string): ExpelOrder => ({ type: "expel", province });
+export const returnRunaways = (province: string, to: Power): ReturnRunawaysOrder => ({ type: "returnRunaways", province, to });
 export const toll = (percent: number, partner: Power | null = null, province: string | null = null): TollOrder => ({ type: "toll", province, partner, percent });
 export const placeSpy = (character: string, court: Power | null = null, province: string | null = null): PlaceSpyOrder => ({ type: "spy", character, court, province });
 export const recall = (character: string): RecallSpyOrder => ({ type: "recall", character });
@@ -472,6 +507,14 @@ export function describe(o: Order): string {
       return `load the fleet in ${o.fleet} with ${o.grain} measures of grain and ${o.gold} shekels at ${named(o.from)} and sail to ${o.trade ? "trade at" : "deliver to"} ${named(o.to)}`;
     case "toll":
       return `set a toll of ${o.percent}% on ${o.partner === null ? "everyone's" : `${o.partner}'s`} goods entering ${o.province === null ? "your land" : named(o.province)}`;
+    case "welcome":
+      return `settle the loose men in ${named(o.province)}`;
+    case "deport":
+      return `deport ${o.number} people from ${named(o.province)} to ${named(o.to)}${o.purse ? " with their share of the purse" : ""}`;
+    case "expel":
+      return `put out of ${named(o.province)} the mouths that cannot fight`;
+    case "returnRunaways":
+      return `send ${o.to}'s runaways in ${named(o.province)} back to ${o.to}`;
     case "raise":
       return `raise ${o.kind === "Army" ? "army" : "fleet"} in ${o.province}`;
     case "disband":
@@ -606,6 +649,10 @@ export const OrderSchema = poly("Order", "type", {
   raise: v("RaiseOrder", () => raise("", "Army"), { province: S, kind: S }),
   disband: v("DisbandOrder", () => disband(""), { unit: S, settle: opt(B) }),
   tax: v("TaxOrder", () => tax(0), { province: opt(S), percent: I }),
+  welcome: v("WelcomeOrder", () => welcome(""), { province: S }),
+  deport: v("DeportOrder", () => deport("", "", 0), { province: S, to: S, number: I, purse: B }),
+  expel: v("ExpelOrder", () => expel(""), { province: S }),
+  returnRunaways: v("ReturnRunawaysOrder", () => returnRunaways("", "Egypt"), { province: S, to: S }),
   buy: v("BuyProvinceOrder", () => buy(""), { province: S }),
   cede: v("CedeProvinceOrder", () => cede("", "Egypt"), { province: S, to: S }),
   giftUnit: v("GiftUnitOrder", () => giftUnit("", "Egypt"), { unit: S, to: S }),
