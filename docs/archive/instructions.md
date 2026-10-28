@@ -179,3 +179,12 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     The takes are written into item 11a+ ("Harvests in their season, and the answers to items 8 to 10+b"); the "For
     Haakon" rows are marked answered.
+
+22. **15:23 and 15:26**, in the design chat, on how builders spend their time:
+
+    > Could we then have it so claude does something, pushes it uo to review. Starts on something new. And if the review comes back, a different session addresses it? Be more agile and efficient. Not just sit and wait for stuff?
+
+    > Yes, please, organize it expertly so we maximize token caching, time spent, and all other concerns.
+
+    A standing instruction in `CLAUDE.md` ("pipeline, don't wait"), for this game and Barkstreet Snakes alike.
+
