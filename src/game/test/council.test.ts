@@ -71,6 +71,8 @@ describe("The royal council (item 16)", () => {
     // Moves carry the pictured seasons behind them.
     const lines = seat.views.flatMap((v) => [...v.council!.agreed, ...v.council!.advisors.flatMap((a) => a.lines)]);
     Assert.true(lines.some((l) => l.order.type === "move" && /\d of 8 pictured seasons/.test(l.text)));
+    // A strike never claims a city its troops only reach: walls fall to a storm or a siege.
+    for (const l of lines) if (/strikes at .*'s /.test(l.text)) Assert.contains("ours at the end of", l.text);
     // No internal ids in what the king reads.
     for (const l of lines) Assert.false(/\bp\d|\bc\d+\b/.test(l.text));
     // Titles only where the sources grade them A or B; the plain archetype elsewhere.
@@ -135,9 +137,10 @@ describe("Omens of the end (item 16)", () => {
       Assert.true(i >= last);
       last = i;
     }
-    // Borrowed time begins at a point drawn near the median, which differs between games.
-    const starts = new Set([1, 2, 3, 4, 5, 6, 7, 8].map((seed) => [...Array(c.capMin).keys()].find((t) => omenTier(seed, c, t) === "Borrowed")));
-    Assert.true(starts.size > 1);
+    // Borrowed time begins at a point drawn past the median, which differs between games.
+    const starts = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => [...Array(c.capMin).keys()].find((t) => omenTier(seed, c, t) === "Borrowed")!);
+    Assert.true(new Set(starts).size > 1);
+    for (const t of starts) Assert.true(t >= c.endMedian);
   });
 
   test("Omens never read the drawn last season: games with different last seasons read the same tiers", () => {

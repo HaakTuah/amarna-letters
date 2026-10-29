@@ -27,9 +27,11 @@ The council is `src/game/src/bots/council.ts`, run by the runner (`src/game/src/
   | Tjaty | cunning and commerce +0.4, aggression +0.1, vengeance -0.3; makes war on the rival whose land beside our troops lies unguarded | the open provinces beside our troops |
   | Diviner | vengeance -0.3; makes war on the runaway leader (`Board.leader`, the shared score function) when he is in reach | in signs: whose star rises, from the same estimates |
 
-- **Numbers behind each proposal** (`Search.pictured`): each move "gets there in n of 8 pictured seasons", the same
-  eight seasons a script king plays its plan against; a hold or guard names how many foreign troops could strike there;
-  the readings say in how many pictured seasons the capital falls.
+- **Numbers behind each proposal** (`Search.pictured`): each strike says in how many of the 8 pictured seasons the place
+  is ours at the end, by the same rule of who holds land after a season that the search scores with (walls taken only
+  by storm or a siege that wears them down), and in how many the troop only reaches the walls; the same eight seasons a
+  script king plays its plan against. A hold or guard names how many foreign troops could strike there; the readings
+  say in how many pictured seasons the capital, and the kingdom with it, is lost.
 - **Compact:** what all four propose alike is listed once ("All four advise"; idle holds left out), then each advisor
   with its title, tilt, reading and only its proposals that differ (`CouncilView` in the seat view).
 - **They see only what the king sees,** and the request and the page say so. Advisors are not characters: no loyalties,
@@ -47,7 +49,7 @@ The council is `src/game/src/bots/council.ts`, run by the runner (`src/game/src/
   the orders panel; characters read them in their request's "The age" (`endingWords`), in the voice of the court that
   holds the province where they are.
 - **Tiers by the public chance only** (`omenTier`): quiet, then troubled from 40% of the chance at the table's median
-  season, grave from 75%; **borrowed time** from a season drawn in secret at 85% to 115% of the median (from the seed and
+  season, grave from 75%; **borrowed time** from a season drawn in secret past the median, at 100% to 125% of it (from the seed and
   "omens" alone, so it says nothing of the drawn last season); **the darkest** from the bottom of the cap's range
   (season 80 by default; with no cap, where the chance reaches its level at 80 of a 44-season median), then held. An
   open age is silent. No number or season is ever shown.

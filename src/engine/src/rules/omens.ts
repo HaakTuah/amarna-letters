@@ -5,7 +5,7 @@
  *
  * - The tiers follow the public chance alone, quiet, troubled, then grave, as it passes 40% and 75% of its level at the
  *   table's median season (first guesses).
- * - Borrowed time: from a season drawn in secret near the median (85% to 115% of it, from the game's seed and "omens" alone,
+ * - Borrowed time: from a season drawn in secret past the median (100% to 125% of it, from the game's seed and "omens" alone,
  *   so no other roll can shift it and it says nothing of the last season), the diviners say the age has outlived its
  *   measure: the tone changes, not only the strength.
  * - The darkest tier comes at the bottom of the cap's range (season 80 by default) and then holds, so it tells nothing
@@ -32,10 +32,10 @@ const GraveAt = 0.75;
 /** With no cap: the darkest tier where the default table reaches it (season 80 of a 44-season median). */
 const DarkestNoCap = 80 / 44;
 
-/** The season, drawn in secret near the median, from which the diviners speak of borrowed time. */
+/** The season, drawn in secret past the median, from which the diviners speak of borrowed time. */
 export function borrowedFrom(seed: number, c: GameConfig): number {
   const r = Rng.for(seed, 0, "omens");
-  return Math.max(2, Math.round(c.endMedian * (0.85 + 0.3 * r.nextDouble())));
+  return Math.max(2, Math.round(c.endMedian * (1 + 0.25 * r.nextDouble())));
 }
 
 /** The tier of the signs in a season, or null in an open age. */

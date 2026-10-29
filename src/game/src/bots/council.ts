@@ -281,10 +281,14 @@ function reason(b: Board, o: Order, role: string, danger: Dict<string, [number, 
   switch (o.type) {
     case "move": {
       const n = pic.arrives.getOrDefault(o.unit, 0);
+      const held = pic.takes.getOrDefault(o.unit, 0);
       const owner = b.ownerOf(o.to);
       const hostile = (owner !== null && owner !== b.me) || (b.unitAt.has(o.to) && b.unitAt.get(o.to).power !== b.me);
-      if (hostile) return `${owner !== null && owner !== b.me ? `takes ${named(o.to)} from ${owner}` : `strikes at ${named(o.to)}`}: gets there in ${of8(n)}`;
-      if (owner === null) return `takes ${named(o.to)}, held by no king: gets there in ${of8(n)}`;
+      // Within walls it does not hold, a troop that gets there takes nothing until it storms them or a siege wears them down.
+      const walls = held < n ? `; it reaches the walls in ${of8(n - held)}, where a siege must wear the city down` : "";
+      if (hostile && owner !== null && owner !== b.me) return `strikes at ${owner}'s ${named(o.to)}: ours at the end of ${of8(held)}${walls}`;
+      if (hostile) return `strikes at the troops in ${named(o.to)}: gets there in ${of8(n)}`;
+      if (owner === null) return `takes ${named(o.to)}, held by no king: ours at the end of ${of8(held)}${walls}`;
       return danger.has(o.to) ? `guards ${named(o.to)}, where ${threat(o.to)}` : `marches on: gets there in ${of8(n)}`;
     }
     case "support": {
@@ -312,14 +316,17 @@ function reading(b: Board, brain: Brain, a: Advisor, war: Power | null, danger: 
   const strikes = orders.filter((o) => o.type === "move" && b.ownerOf(o.to) !== b.me && (b.ownerOf(o.to) !== null || b.unitAt.has(o.to)));
   const best = sortBy(
     strikes.filter((o): o is Extract<Order, { type: "move" }> => o.type === "move"),
+    [(o) => pic.takes.getOrDefault(o.unit, 0), desc(cmpNum)],
     [(o) => pic.arrives.getOrDefault(o.unit, 0), desc(cmpNum)],
     [(o) => o.to, cmpStr],
   )[0];
-  const exposed = pic.capitalLost > 0 ? `; the capital falls to a foreign troop in ${pic.capitalLost} of ${pic.seasons} pictured seasons` : "";
+  const exposed = pic.capitalLost > 0 ? `; the capital is lost, and the kingdom with it, in ${pic.capitalLost} of ${pic.seasons} pictured seasons` : "";
   switch (a) {
     case "General":
       return best !== undefined
-        ? `Strike now: ${named(best.to)} falls to us in ${pic.arrives.getOrDefault(best.unit, 0)} of ${pic.seasons} pictured seasons${war !== null && b.ownerOf(best.to) === war ? `, in the war on ${war}` : ""}${exposed}.`
+        ? pic.takes.getOrDefault(best.unit, 0) > 0
+          ? `Strike now: ${named(best.to)} is ours at the end of ${pic.takes.getOrDefault(best.unit, 0)} of ${pic.seasons} pictured seasons${war !== null && b.ownerOf(best.to) === war ? `, in the war on ${war}` : ""}${exposed}.`
+          : `Strike now: our troops reach ${named(best.to)} in ${pic.arrives.getOrDefault(best.unit, 0)} of ${pic.seasons} pictured seasons, though its walls hold this season${exposed}.`
         : `No strike pays this season${war !== null ? `; the war on ${war} waits for more troops` : ""}${exposed}.`;
     case "Steward": {
       const d = danger.tryGet(capital);

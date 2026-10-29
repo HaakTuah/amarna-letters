@@ -467,12 +467,14 @@ export interface Pictured {
   seasons: number;
   /** For each of our troops ordered to move: in how many pictured seasons it gets there. */
   arrives: Dict<string, number>;
-  /** In how many pictured seasons a foreign troop stands in our capital at the end. */
+  /** For each of our troops ordered to move: in how many pictured seasons we hold the place it moves to at the end (walls stormed or worn down, else not). */
+  takes: Dict<string, number>;
+  /** In how many pictured seasons our capital is no longer ours at the end (taken, so the kingdom falls). */
   capitalLost: number;
 }
 
 export function pictured(b: Board, brain: Brain, orders: Iterable<Order>, rng: Rng): Pictured {
-  const out: Pictured = { seasons: 0, arrives: new Dict(), capitalLost: 0 };
+  const out: Pictured = { seasons: 0, arrives: new Dict(), takes: new Dict(), capitalLost: 0 };
   if (b.mine.length === 0) return out;
   const c = picture(b, brain, rng);
   const mine = new HSet(b.mine.map((u) => u.province));
@@ -486,9 +488,13 @@ export function pictured(b: Board, brain: Brain, orders: Iterable<Order>, rng: R
     for (const [k, o] of plan) all.set(k, o);
     const r = c.adj.run(c.units, all, b.v.owner, b.v.walls, sallies(c, all), null, (p, mover) => (mover === b.me ? b.v.resistance.tryGet(p) ?? 0 : 0));
     out.seasons++;
-    const lost = new HSet(r.dislodgedUnitIds);
-    for (const [u, o] of plan) if (o.type === "move" && !lost.has(u) && r.newPositions.getOrDefault(u, u) === o.to) out.arrives.set(u, out.arrives.getOrDefault(u, 0) + 1);
-    if (c.units.some((u) => u.power !== b.me && !lost.has(u.id) && r.newPositions.getOrDefault(u.id, u.province) === capital)) out.capitalLost++;
+    const { lost, owner } = after(c, r, all);
+    for (const [u, o] of plan) {
+      if (o.type !== "move" || lost.has(u) || r.newPositions.getOrDefault(u, u) !== o.to) continue;
+      out.arrives.set(u, out.arrives.getOrDefault(u, 0) + 1);
+      if (owner(o.to) === b.me) out.takes.set(u, out.takes.getOrDefault(u, 0) + 1);
+    }
+    if (owner(capital) !== b.me) out.capitalLost++;
   }
   return out;
 }
@@ -525,9 +531,12 @@ function sallies(c: Ctx, orders: Plan): SallyOrder[] {
 const holdsThere = (o: Order | undefined): boolean => o === undefined || o.type === "hold" || o.type === "besiege";
 
 /** What a resolved season leaves us: land and troops, minus what lies open next season, plus harm to our enemies. */
-function score(c: Ctx, r: AdjudicationResult, orders: Plan): number {
+/**
+ * Where every troop stands after a pictured season, and who then holds each province: a unit within walls it does not
+ * hold takes the province only by storming them, or when its siege wears the city down this season.
+ */
+function after(c: Ctx, r: AdjudicationResult, orders: Plan): { lost: HSet<string>; at: Dict<string, Unit>; owner: (p: string) => Power | null } {
   const b = c.b;
-  const me = b.me;
   const lost = new HSet(r.dislodgedUnitIds);
   const at = new Dict<string, Unit>();
   for (const u of c.units) {
@@ -548,6 +557,13 @@ function score(c: Ctx, r: AdjudicationResult, orders: Plan): number {
     if (Board.Map.get(p).isSea || u === undefined) return b.ownerOf(p);
     return !b.walls(p) || u.power === b.ownerOf(p) || stormed.has(p) || falls(p, u) ? u.power : b.ownerOf(p);
   };
+  return { lost, at, owner };
+}
+
+function score(c: Ctx, r: AdjudicationResult, orders: Plan): number {
+  const b = c.b;
+  const me = b.me;
+  const { lost, at, owner } = after(c, r, orders);
 
   let score = 0.0;
   const ownedNow: string[] = [];
