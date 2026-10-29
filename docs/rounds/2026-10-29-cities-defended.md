@@ -61,11 +61,39 @@ none is this item's.
 
 ## Benchmarks and script games
 
-QQBENCH
+**Before** (`develop` with item 11c, at #143's merge) and **after** (this branch), seeds 1-50,
+`scripts/sim.sh --games 50 --seed 1 --verify-replay`: 50 of 50 replays exact in both, 47.3 seasons on average in both.
+Par from seeds 101-150 on this branch (545 falls there, 1 game of 50 with a fall in the first two seasons).
+
+| | Before | After |
+|---|---|---|
+| Kingdoms fallen | 603 | 560 |
+| First fall of a game | season 1 in every game | season 5 on the median (range 2-5) |
+| Games with a kingdom fallen in the first two seasons | 50 of 50 | 1 of 50 |
+| From the conqueror's first entry to the fall | median 1 season | median 4 |
+| Storms / sieges won / starved | 112 / 363 / 117 | 7 / 485 / 136 |
+| Falls, most often | Arrapha 49, Suteans 46, Lukka 44, Terqa 44, Kaska 41 | Arrapha 50, Lukka 39, Suteans 37, Nuhashshe 35, Damascus 33 |
+| Wins, Great Kings / city-states, by the final score (size weight 50) | 0 / 50 (old par) | 49 / 1 (Babylonia 25, Egypt 15, Assyria 7) |
+| The same games by performance alone (`--size-weight 0`) | | 12 / 38, no power above 6 (Egypt and the Suteans) |
+| With size weight 15 | | 29 / 21 |
+
+The Great Kings are 7 of the 39 powers, so an even spread gives them about 9 of 50 wins. Ranking each power against its
+own position spreads the wins as the item asks (12 / 38, within noise); blending in size at the first guess of equal
+weights gives them to the largest realms, since size is a share of the largest realm's (a city-state's is a few
+hundredths) while performance spreads from 0 to 1 for everyone. The weight is item 18's to set "so that every power has
+about the same chance of first place"; these runs suggest it lies well under 15 percent (question 1).
+
+The falls: a city of many men is no longer stormed in the first season, so no kingdom falls in the first two seasons on
+49 seeds of 50; most cities now fall to sieges, a median 4 seasons after the conqueror first enters, and the lands
+without walls (Arrapha's plain, the Kaska, Lukka and the Suteans) still fall most. The breach clock (3 steps of wear for
+each level of walls, 2 a season with a support) is unchanged: item 18's.
 
 ## Use against ignore
 
-QQUSE
+Half the script kings reckon the city's men on the walls and beside a troop in the open (`--wall-play-half`), half
+reckon a storm as before (walls and garrison), same seeds 1-50: growth 0.77 against 0.75, wins 24 against 26 (by the
+blended score). Before the two script fixes above: 0.71 against 0.76. Verdict: even; the rule's weight falls on everyone
+alike (it is the engine's), and reckoning it well no longer costs a king. Row in the progress file.
 
 ## Readings taken
 
@@ -123,4 +151,7 @@ falls per game and the spread of wins are below.
 
 ## Questions for Haakon
 
-QQQUESTIONS
+1. **The weight of size in the final score.** At equal weights (the first guess the text names) the Great Kings win 49
+   of 50 games; by performance alone 12 of 50 (an even share is about 9), and at 15 percent for size 29 of 50. Reading
+   taken: 50 percent until item 18 sets it, as the text says. Alternative: set it now near 5 percent, so that games
+   played before item 18 already give every power about the same chance. Keep 50 until item 18?
