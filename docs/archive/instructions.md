@@ -360,3 +360,31 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into the design document as item 11e, "The people defend their land" (War) and "One scoreboard for every
     power" (Victory). (The first line is for Barkstreet Snakes' Wildcard's hair.)
+
+36. **07:36 to 07:40**, in the design chat, on how the winner is scored:
+
+    > I have an idea! Tell me what the expert (you) thinks. You know, I've been pondering. Both ways we have explored
+    > scoring a winner has incentive problems in my head. The way we did it first, like paradox, with just the biggest
+    > fish. Well, in a game where all players actually optimize towards the goal, like a player should, that
+    > automatically biases both for and against the biggest at the start. They are ahead at the beginning, but it also
+    > means eveyone has an incentive to form a coalition against the one at the top. This to me, doesn't seem to
+    > describe the political situation of the period all that well.
+    >
+    > Then we have what we do now, where we base it somehow on how well someone usually does, and how much better or
+    > worse they did now. Sounds good, but has the same coalition problem, someone very small could take the lead, and
+    > if everyone goes against them, they don't have the coffers and manpower to stand up to it, unlike Egypt like when
+    > we scored by just being biggest.
+    >
+    > So I got this crazy idea, what if we combine the 2 conditions, and just weight them differently? Do testing
+    > towards the end, and find a medium where every power have circa the same chance of getting 1st place, and that's
+    > how we weight between the 2 factor when scoring? What do you think, sir?
+
+    Then, after Claude weighed a goal of one's own result against one true winner:
+
+    > I want to have a true winner, but I want each player to optimize to get the best positioning they can. Screwing
+    > over the one at the top isn't neseecarily the best start always then, if you want to jump from 8th place, to say
+    > 5th. I think the degree of the coalition problem is acceptable then. But I think this scoring system is the best.
+    > Then you can see the other 2 at the end also, but this is what they are actually scored on and optimizing
+    > against.
+
+    Written into "One scoreboard for every power" (Victory) and build order items 11e and 18.
