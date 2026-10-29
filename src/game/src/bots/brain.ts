@@ -295,6 +295,12 @@ export class Brain {
             else if (item.body.includes("forged by") && item.body.includes("of " + name)) r.trust -= 0.4;
             break;
           case "Notice":
+            // Item 17: his troops took food from our land, a grievance remembered as any wrong is.
+            if (item.title === "Troops took food" && item.body.startsWith(`The troops of ${name} took `)) {
+              const n = /took (\d+) measures/.exec(item.body);
+              this.wronged(other, 0.5 + Math.min(1.5, Number(n?.[1] ?? 0) / 100), -0.1, -99);
+              break;
+            }
             if (!item.body.includes("confesses to serving " + name)) break;
             this.wronged(other, 1, -0.3, -99);
             this.lastSpyCaught = v.turn;

@@ -160,7 +160,7 @@ describe("LegendsTests", () => {
   test("A governor who rises to rule his province is a new Idrimi, in his life and in both courts' legends", () => {
     let s = game();
     let c = first(s.characters, (x) => x.employer === "Hatti");
-    const r: RisenPower = { power: "Tuwanuwa", land: "Tuwanuwa", king: c.name, ruler: c.id, capital: "tuwanuwa", turn: 6, from: "Hatti", temper: [] };
+    const r: RisenPower = { power: "Tuwanuwa", land: "Tuwanuwa", king: c.name, ruler: c.id, capital: "tuwanuwa", turn: 6, from: "Hatti", temper: [], how: "governor" };
     s.risen.push(r);
     const idrimi = (l: { text: string }): boolean => l.text.startsWith(`A new Idrimi: ${c.name}, who governed Tuwanuwa for Hatti`);
     Assert.contains(characterLegend(s, c.id, null), idrimi);

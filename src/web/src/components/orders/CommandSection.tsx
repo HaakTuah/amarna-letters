@@ -14,6 +14,7 @@ import {
   moveCourt,
   newMandate,
   relieve,
+  supply,
   unseat,
   type Engage,
   type MandateTask,
@@ -43,6 +44,7 @@ export function CommandSection({ c }: { c: OrdersContext }) {
     until: 0,
   });
   const [gov, setGov] = useState<{ province: string; person: string; levies: number }>({ province: "", person: "", levies: 1 });
+  const [food, setFood] = useState<Record<string, number>>({});
   const ready = v.court.filter((x) => x.ready);
   const own = v.units.filter((u) => u.power === me).sort((a, b) => byName(a.province, b.province));
   const name = (id: string | null): string => v.court.find((x) => x.id === id)?.name ?? id ?? "";
@@ -104,6 +106,22 @@ export function CommandSection({ c }: { c: OrdersContext }) {
               </button>
             )}
           </span>
+          {u.kind === "Army" && (
+            <span className="row" style={{ gap: ".3rem" }}>
+              <span className="muted">
+                <small>
+                  food: {u.buy ? "buys" : "takes"} where it stands by leave, carries {u.chest} shekels for it
+                </small>
+              </span>
+              <input type="number" min={0} style={{ width: "5rem" }} value={food[u.province] ?? 0} onChange={(e) => setFood({ ...food, [u.province]: Math.max(0, Number(e.target.value) || 0) })} />
+              <button className="small" onClick={() => add(supply(u.province, true, food[u.province] ?? 0))}>
+                Buy food, send gold
+              </button>
+              <button className="small" onClick={() => add(supply(u.province, false))}>
+                Take food
+              </button>
+            </span>
+          )}
         </div>
       ))}
       {own.length > 0 && (

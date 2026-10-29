@@ -14,7 +14,7 @@ describe("LegendAnnalsTests", () => {
   };
 
   test("A risen ruler's annals name him a new Idrimi", async () => {
-    addRisen({ power: "Tuwanuwa", land: "Tuwanuwa", king: "Pihhuniya", ruler: "c1", capital: "tuwanuwa", turn: 6, from: "Hatti", temper: [] });
+    addRisen({ power: "Tuwanuwa", land: "Tuwanuwa", king: "Pihhuniya", ruler: "c1", capital: "tuwanuwa", turn: 6, from: "Hatti", temper: [], how: "governor" });
     Assert.true((await annals("Tuwanuwa", "Pihhuniya, governor of Tuwanuwa for Hatti, rules it in his own name now that Hatti has fallen.", "rise", "risen")).includes("a new Idrimi"));
   });
 

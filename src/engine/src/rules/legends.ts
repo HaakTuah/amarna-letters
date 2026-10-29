@@ -217,11 +217,22 @@ export function courtLegend(s: GameState, p: Power): LegendLine[] {
 
 /**
  * "A new Idrimi" (Voice of the age): when a character rises to rule a city of his own, the chronicle names it after the
- * legend. Since item 13+ a fallen kingdom's governor rises so, ruling his province with a seat of his own; an outlaw's band
- * taking a city rises by item 17's risen seats, and will read here the same way, from the record of the powers risen.
+ * legend, by how he rose (item 13+'s fallen kingdom's governor; item 17's governor who turned, the leader of a revolt, the
+ * chief who held land without a ruler, the elder its people raised), from the record of the powers risen.
  */
 export function newIdrimi(r: RisenPower): LegendLine {
-  return line(r.turn, `A new Idrimi: ${r.king}, who governed ${provinceName(r.capital)} for ${r.from}, rose to rule it in his own name when ${r.from} fell.`, r.capital);
+  const city = provinceName(r.capital);
+  const how =
+    r.how === "turned"
+      ? `who governed ${city} for ${r.from}, refused his recall and rose to rule it in his own name with the levies he raised.`
+      : r.how === "revolt"
+        ? `led ${city} in revolt against ${r.from} and rose to rule it in his own name.`
+        : r.how === "chief"
+          ? `whose band held ${city}, a land without a ruler, rose to rule it in his own name.`
+          : r.how === "elder"
+            ? `was raised by the people of ${city}, a land without a ruler, to rule them in his own name.`
+            : `who governed ${city} for ${r.from}, rose to rule it in his own name when ${r.from} fell.`;
+  return line(r.turn, `A new Idrimi: ${r.king}, ${how}`, r.capital);
 }
 
 /** The events the chronicle keeps as legends of their own ("Finkel's version"; "A new Idrimi" reads the powers risen). */

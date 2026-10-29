@@ -23,13 +23,16 @@ export interface Band {
   since: number;
   /** How its chief rose (`crowd`, `mutiny`, `refugees`, `successor`, `split`, `outlaw`), for the report and its facts. */
   rose: string;
+  /** Item 17: the seasons it has stood in `heldAt`, land without a ruler, with its chief wanting it (the new Idrimi). */
+  held: number;
+  heldAt: string;
 }
 
 export function newBand(init: Partial<Band> = {}): Band {
-  return { id: "", leaderId: "", province: "", men: 0, ship: false, take: 0, cost: 0, short: 0, since: 0, rose: "crowd", ...init };
+  return { id: "", leaderId: "", province: "", men: 0, ship: false, take: 0, cost: 0, short: 0, since: 0, rose: "crowd", held: 0, heldAt: "", ...init };
 }
 
-export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderId: S, province: S, men: I, ship: B, take: I, cost: I, short: I, since: I, rose: S });
+export const BandSchema: ObjSchema<Band> = obj("Band", newBand, { id: S, leaderId: S, province: S, men: I, ship: B, take: I, cost: I, short: I, since: I, rose: S, held: I, heldAt: S });
 
 /**
  * First guesses (item 18 tunes them).

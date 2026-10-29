@@ -9,14 +9,11 @@
  * then their commanders' to decide, as item 13 built.
  */
 import { idiv } from "../core/num.ts";
-import { cmpStr, sortBy, sum } from "../core/seq.ts";
+import { cmpStr, sortBy } from "../core/seq.ts";
 import { BandData } from "../model/bands.ts";
-import { forMen } from "../model/land.ts";
-import { remember, spend, type Character } from "../model/people.ts";
-import { addRisen, AllPowers, land, type Power, type RisenPower } from "../model/power.ts";
-import { isAlive, logEvent, newTreasury, notify, type KingdomFall, type Unit } from "../model/state.ts";
-import { stateOfRealm } from "../rules/realm.ts";
-import { kingTongues } from "../rules/tongues.ts";
+import type { Character } from "../model/people.ts";
+import { AllPowers, land, type Power } from "../model/power.ts";
+import { isAlive, logEvent, type KingdomFall, type Unit } from "../model/state.ts";
 import { Views } from "../rules/views.ts";
 import { TurnEngine, travelTurns } from "./core.ts";
 import type { Governor } from "../model/command.ts";
@@ -137,89 +134,21 @@ P.fallenUnit = function (u, p) {
   this.disbandUnit(u);
 };
 
-/** A risen power's name: its province's, or, if a power already goes by it, with its ruler's. */
-function risenName(name: string, ruler: string): string {
-  const taken = (x: string): boolean => AllPowers.some((p) => p.toLowerCase() === x.toLowerCase() || land(p).toLowerCase() === x.toLowerCase());
-  if (!taken(name)) return name;
-  const withRuler = `${name} of ${ruler}`;
-  if (!taken(withRuler)) return withRuler;
-  let n = 2;
-  while (taken(`${withRuler} ${n}`)) n++;
-  return `${withRuler} ${n}`;
-}
-
 P.governorRises = function (g, c, f) {
   const S = this.s;
   const id = g.province;
   const prov = this.map.get(id);
   const was = f.power;
-  const t = c.traits;
-  const r: RisenPower = {
-    power: risenName(prov.name, c.name),
-    land: prov.name,
-    king: c.name,
-    ruler: c.id,
-    capital: id,
-    turn: S.turn,
+  // A commanded army is its commander's to decide, as the word reaches him (fallenUnit).
+  const followers = S.units.filter((u) => u.power === was && this.commanderOf(u) === null && (u.province === id || (prov.waters !== null && u.province === prov.waters)));
+  return this.ruleOwn(id, c, {
+    how: "governor",
     from: was,
-    // His traits as a seat's temper: ambition its appetite for war, fear its caution, loyalty its honesty, greed its greed.
-    temper: [t.ambition, 100 - t.courage, t.loyalty, t.greed],
-  };
-  S.risen.push(r);
-  addRisen(r);
-  const p = r.power;
-  // His purse becomes his realm's treasury: nothing appears or vanishes.
-  S.treasuries.set(p, newTreasury({ gold: spend(c, c.purse) }));
-  S.inbox.set(p, []);
-  S.wallsSeen.set(p, (S.wallsSeen.tryGet(was) ?? S.walls).clone());
-  S.kingTongues.set(p, kingTongues(p, id));
-  S.court.set(p, id);
-  S.fallsHeard.set(p, [was]);
-  S.governors = S.governors.filter((x) => x !== g);
-  this.setOwner(id, p);
-  // The land he governed is his own people's: he rules it in full, nothing to absorb.
-  S.conquered.delete(id);
-  c.employer = p;
-  c.status = "Employed";
-  c.contract = null;
-  c.duty = "Ruling";
-  c.at = p;
-  c.grantedBy = null;
-  c.watchProvince = null;
-  remember(c, S.turn, `Word came that the kingdom of ${land(was)} has fallen. I rule ${prov.name} now, in my own name.`);
-  // The troops there follow him if he can pay them a season (first guess); those he cannot hear the news as others do.
-  const here = sortBy(
-    // A commanded army is its commander's to decide, as the word reaches him (fallenUnit).
-    S.units.filter((u) => u.power === was && this.commanderOf(u) === null && (u.province === id || (prov.waters !== null && u.province === prov.waters))),
-    [(u: Unit) => u.id, cmpStr],
-  );
-  const pay = (u: Unit): number => forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men);
-  const followed: Unit[] = [];
-  let left = S.treasuries.get(p).gold;
-  for (const u of here) {
-    if (left < pay(u)) continue;
-    left -= pay(u);
-    followed.push(u);
-  }
-  for (const u of followed) {
-    u.power = p;
-    S.sieges = S.sieges.filter((x) => x.unitId !== u.id);
-  }
-  S.startStrength.set(p, this.strength(p));
-  const men = sum(followed, (u) => u.men);
-  const troops = followed.length === 0 ? (here.length === 0 ? "no troops stand there" : "the troops there would not follow you, for you cannot pay them") : `${men} men there follow you${followed.length < here.length ? ", though not all: the rest you could not pay" : ""}`;
-  notify(
-    S,
-    p,
-    "Notice",
-    "You rule in your own name",
-    `Word has come that the kingdom of ${land(was)} has fallen with its capital, ${this.map.get(f.capital).name}. You governed ${prov.name} for its king; now you rule it in your own name, with a seat of your own like any city's ruler. ${troops.charAt(0).toUpperCase() + troops.slice(1)}. Your treasury is what you carried, ${S.treasuries.get(p).gold} shekels. Nobody owes you anything, and you owe nobody: you may keep silent, or send envoys with whatever terms you like, to hand the city to ${f.conqueror ?? "another"} and stay its governor, to become a vassal, to pay to be left alone, or to serve another court.`,
-    c.id,
-  );
-  notify(S, p, "Notice", "The state of the realm", stateOfRealm(S, this.map, p));
-  logEvent(S, "rise", `${c.name}, governor of ${prov.name} for ${was}, rules it in his own name now that ${land(was)} has fallen${men > 0 ? `, with ${men} men` : ""}.`, [p, ...AllPowers.filter((x) => x !== p && isAlive(S, x) && Views.sight(S, this.map, x).has(id))], "risen");
-  // Others hear of it as word travels from his city.
-  for (const other of AllPowers.filter((x) => x !== p && isAlive(S, x) && !Views.sight(S, this.map, x).has(id)))
-    this.word(p, other, "Realm", `Rumor|A new ruler|Word comes that ${c.name}, who governed ${prov.name} for ${was}, rules it in his own name now that ${land(was)} has fallen.`);
-  return p;
+    followers,
+    gold: 0,
+    rising: false,
+    story: `Word has come that the kingdom of ${land(was)} has fallen with its capital, ${this.map.get(f.capital).name}. You governed ${prov.name} for its king.`,
+    memory: `Word came that the kingdom of ${land(was)} has fallen.`,
+    line: `${c.name}, governor of ${prov.name} for ${was}, rules it in his own name now that ${land(was)} has fallen`,
+  });
 };

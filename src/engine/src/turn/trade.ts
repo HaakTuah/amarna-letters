@@ -11,6 +11,7 @@ import { Dict } from "../core/collections.ts";
 import { sortBy } from "../core/seq.ts";
 import { cmpStr } from "../core/text.ts";
 import { idiv } from "../core/num.ts";
+import { UnrestData } from "../model/unrest.ts";
 import { caravanAt, newCaravan, type Caravan } from "../model/caravans.ts";
 import { buyAlongCurve, needOf, priceAt, sellAlongCurve } from "../model/economy.ts";
 import { newMarketSeen, type MarketSeen } from "../model/views.ts";
@@ -427,6 +428,8 @@ P.sack = function (province, taker, stormed = true) {
   const share = stormed ? TradeData.sackStormedPercent : TradeData.sackSurrenderPercent;
   const loot = Math.min(idiv(m.purse * share, 100), idiv(men * TradeData.lootPerHundred, 100));
   if (loot <= 0) return;
+  // Item 17: a city sacked remembers it against its new holder, by the share of its people's gold taken.
+  this.hardship(province, idiv(loot * UnrestData.sacked, Math.max(1, m.purse)));
   m.purse -= loot;
   let king = idiv(loot * TradeData.kingSharePercent, 100);
   const soldiers = loot - king;

@@ -10,6 +10,7 @@ import type { CaptiveOrder, Order, PayRansomOrder, PlaceSpyOrder, AssayOrder, Fo
 import { coverOf, newFact, newJobErrand, remember, type Character, type Cover } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
 import { Waiting, newJourney, newLossAbroad, newPendingTask, newSpyReport, newTablet, newTabletCopy, type Journey, type LossAbroad, type NewsKind, type PendingTask } from "../model/records.ts";
+import { moodWords } from "../model/unrest.ts";
 import { alive, char, findCharacter, isAlive, logEvent, newId, newKnown, notify, ownedBy } from "../model/state.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { cap } from "../rules/greeting.ts";
@@ -114,7 +115,11 @@ P.placeSpy = function (p, ps) {
     this.failed(p, ps, "Spy not sent", c.employer !== p ? `${c.name} is not in your service: they did not take the job offered.` : `${c.name}'s job is not to watch ${court ?? Map.get(province!).name}: another errand is a new job (order renew).`, "not the errand of their job", true, c.id);
     return;
   }
+  // Item 17: gold for stirring the province's people, carried with him.
+  const stir = province !== null ? Math.max(0, ps.stir ?? 0) : 0;
+  if (stir > 0 && !this.pay(p, stir, `gold for ${c.name} to spend among the people of ${Map.get(province!).name}`, ps, "he went without it")) return;
   if (c.contract !== null && job === null) c.contract.errand = newJobErrand({ what: "spy", where: court ?? province! });
+  c.stirGold += stir;
   c.duty = "SpyOutbound";
   c.at = null;
   c.missionTarget = court;
@@ -197,6 +202,12 @@ P.spyComesHome = function (j) {
   c.missionTarget = null;
   c.watchProvince = null;
   c.turnsAbroad = 0;
+  // What he did not spend of the gold to stir a province he hands back (item 17).
+  if (c.stirGold > 0) {
+    if (!free && isAlive(S, j.to)) this.credit(j.to, c.stirGold, this.courtAt(j.to), false);
+    else c.purse += c.stirGold;
+    c.stirGold = 0;
+  }
   this.bringNews(j, j.to, c);
   if (!free) notify(S, j.to, "Notice", "Agent returns", `${c.name} is back at court` + (j.turnedBack !== null ? `: ${j.turnedBack}.` : "."), c.id);
 };
@@ -367,6 +378,9 @@ P.spyObserve = function (c, rng) {
       [(u) => u.province, cmpStr],
     ))
       if (rng.chance(0.5 + skill * 0.5)) obs.push(`${u.power} has ${u.kind === "Army" ? "an army" : "a fleet"} in ${Map.get(u.province).name}.`);
+    // Item 17: the people's mood there, in words, as anyone living among them hears it (its holder never sees the number).
+    const holder = S.owner.getOrDefault(wp, null);
+    if (holder !== null) obs.push(`The people of ${Map.get(wp).name} are ${moodWords(S.restless.getOrDefault(wp, 0), this.revoltAt(wp))} under ${holder}.`);
   }
   if (obs.length === 0) obs.push("Nothing of note this season.");
   return obs;
@@ -437,6 +451,9 @@ P.capture = function (c, host, rng) {
   c.status = "Captured";
   c.heldBy = host;
   c.duty = "None";
+  // Gold he carried to stir the people is in his purse now, on him where he is held (item 17).
+  c.purse += c.stirGold;
+  c.stirGold = 0;
   c.at = host;
   this.meet(c, host);
   this.outcome(c, host, `Was caught spying at ${post} (season ${S.turn}).`, false);

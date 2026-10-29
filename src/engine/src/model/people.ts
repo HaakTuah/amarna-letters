@@ -316,6 +316,8 @@ export interface Character {
   at: Power | null;
   /** A province the character watches as a spy, when not at a court. */
   watchProvince: string | null;
+  /** Item 17 ("outside help"): gold a spy carries for its master to spend among the people of the province it watches. */
+  stirGold: number;
   missionTarget: Power | null;
   currentTrail: string | null;
   heldBy: Power | null;
@@ -551,6 +553,7 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     duty: "None",
     at: null,
     watchProvince: null,
+    stirGold: 0,
     missionTarget: null,
     currentTrail: null,
     heldBy: null,
@@ -627,6 +630,7 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   duty: S,
   at: opt(S),
   watchProvince: S,
+  stirGold: I,
   missionTarget: opt(S),
   currentTrail: S,
   heldBy: opt(S),

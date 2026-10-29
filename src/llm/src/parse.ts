@@ -78,6 +78,7 @@ import {
   seize,
   sellDebt,
   placeSpy,
+  supply,
   raise,
   recall,
   release,
@@ -244,6 +245,10 @@ function commandOf(x: Node): Order | null {
       return relieve(at);
     case "clear_mandate":
       return mandateOrder(at, null);
+    case "buy_food":
+      return supply(at, true, Math.max(0, I(x, "gold")));
+    case "take_food":
+      return supply(at, false);
     case "mandate": {
       const target = opt("target");
       const until = I(x, "until");
@@ -549,7 +554,7 @@ function other(x: Node): Order | null {
       return check(person, amount);
     case "place_spy":
       if (power !== null) return placeSpy(person, power);
-      if (province.length > 0) return placeSpy(person, null, province);
+      if (province.length > 0) return placeSpy(person, null, province, Math.max(0, I(x, "gold")));
       if (named.length > 0) return unreadable(`send ${person} to spy on '${named}'`, nowhere(named, "the court to watch"));
       // Neither a court nor a province: the validator refuses it with the reason, rather than the order vanishing.
       return placeSpy(person);
