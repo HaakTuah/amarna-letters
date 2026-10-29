@@ -118,6 +118,14 @@ export interface FrameSleep {
   spells: number;
 }
 
+/** A band on the land, or a pirate crew on its coast (item 19: drawn where a court could see it). */
+export interface FrameBand {
+  province: string;
+  men: number;
+  ship: boolean;
+  chief: string;
+}
+
 /**
  * A drought or a river's bad year under way in the season about to be played (item 19: the land drawn as it is): which
  * river, if a river's, whether its flood was ruinous, and how many seasons since it struck.
@@ -183,6 +191,8 @@ export interface SeasonFrame {
   ageEnded: { turn: number; winners: string[] } | null;
   /** Item 19: the droughts and floods on the land in the season about to be played. */
   climate: FrameClimate[];
+  /** Item 19: the bands and pirate crews, as they are (each court sees those its view shows it). */
+  bands: FrameBand[];
 }
 
 export const ownerOf = (f: SeasonFrame, province: string): Power | null => f.owner.get(province) ?? null;
@@ -341,6 +351,7 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
         const ruinous = river !== null && c.percent <= (RiverFloods.get(river)?.ruinPercent ?? 0);
         return { kind: c.kind, name: c.name, provinces: [...c.provinces], river, ruinous, since: s.turn - c.startTurn };
       }),
+    bands: s.bands.map((b) => ({ province: b.province, men: b.men, ship: b.ship, chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "" })),
   };
 }
 

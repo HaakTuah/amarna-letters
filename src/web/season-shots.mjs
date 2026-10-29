@@ -1,6 +1,7 @@
 // Pictures of the map through one year (item 19): the whole board in each of the three seasons, a phone (390 pixels, CPU
 // slowed 4x) and a desktop, light and dark; and how long the season's redraw takes on the phone. Serves dist/ (after a build).
-//   node src/web/season-shots.mjs <dir> [--view Hatti] [--zoom 2]
+//   node src/web/season-shots.mjs <dir> [--view Hatti] [--zoom 2] [--play 8] [--only phone-light]
+// --play: seasons played first, so the pictures show a game under way (bands, sieges, battles).
 import { createRequire } from "node:module";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
@@ -17,6 +18,7 @@ const arg = (name, fallback) => {
 const view = arg("--view", null);
 const zoom = Number(arg("--zoom", "0"));
 const only = arg("--only", null);
+const play = Number(arg("--play", "0"));
 const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".json": "application/json", ".webmanifest": "application/manifest+json" };
 const server = createServer(async (req, res) => {
   const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
@@ -41,6 +43,11 @@ for (const [name, viewport] of [["phone", { width: 390, height: 844 }], ["deskto
     await p.goto(root);
     await p.getByRole("button", { name: "Begin the age" }).click();
     await p.waitForSelector(".game .timebar", { timeout: 120000 });
+    for (let k = 0; k < play; k++) {
+      const before = await p.$eval(".slider", (s) => Number(s.max));
+      await p.click('button[aria-label="Play one season"]');
+      await p.waitForFunction((b) => Number(document.querySelector(".slider").max) > b, before, { timeout: 120000 });
+    }
     if (view !== null) await p.selectOption(".viewsel", view);
     await p.evaluate(() => document.querySelector('[aria-label="Show the whole map"]')?.click());
     for (let z = 0; z < zoom; z++) await p.evaluate(() => document.querySelector('[aria-label="Zoom in"]').click());

@@ -15,10 +15,20 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
   return (
     <MapCard className="legend" label="Map legend" onClose={onClose} head={<strong>Legend</strong>}>
       <div className="legend-grid">
-        <span><svg viewBox="-12 -12 24 24"><rect className="tok-bg lg" x="-11" y="-11" width="22" height="22" rx="4" /><use href="#g-army" className="tok-icon" x="-9.5" y="-9.5" width="19" height="19" /></svg> army (chariots)</span>
-        <span><svg viewBox="-12 -12 24 24"><circle className="tok-bg lg" r="11.5" /><use href="#g-fleet" className="tok-icon" x="-9.5" y="-9.5" width="19" height="19" /></svg> fleet</span>
-        <span><svg viewBox="-12 -12 24 24"><rect className="tok-bg ghost-lg" x="-11" y="-11" width="22" height="22" rx="4" /><use href="#g-army" className="tok-icon dim" x="-9.5" y="-9.5" width="19" height="19" /></svg> seen before, not now</span>
-        <span><svg viewBox="-10 -10 20 20"><rect className="chip-bg lg" x="-8" y="-8" width="16" height="16" rx="3.5" /><use href="#g-tablet" className="chip-icon" x="-6" y="-6" width="12" height="12" /></svg> envoy</span>
+        <span className="lg-wide">
+          {(["egypt", "anatolia", "hurrian", "kassite", "canaan", "nomad", "aegean"] as const).map((k) => (
+            <svg key={k} viewBox="-12 -12 24 24"><rect className="tok-bg lg" x="-11" y="-11" width="22" height="22" rx="4" /><use href={`#fig-army-${k}`} className="tok-icon" x="-10" y="-10" width="20" height="20" /></svg>
+          ))}{" "}
+          army, in its land's own style: Egypt's spearmen, the Anatolian chariot, the Hurrian chariot of the seals, Babylonia's standard, Canaanite foot, the steppe's archers, the Aegean's shields
+        </span>
+        <span className="lg-wide">
+          {(["egypt", "aegean", "levant"] as const).map((k) => (
+            <svg key={k} viewBox="-12 -12 24 24"><circle className="tok-bg lg" r="11.5" /><use href={`#fig-fleet-${k}`} className="tok-icon" x="-10" y="-10" width="20" height="20" /></svg>
+          ))}{" "}
+          fleet: Egypt's river ship, the Aegean galley, the Syrian merchantman
+        </span>
+        <span><svg viewBox="-12 -12 24 24"><rect className="tok-bg ghost-lg" x="-11" y="-11" width="22" height="22" rx="4" /><use href="#fig-army-canaan" className="tok-icon dim" x="-10" y="-10" width="20" height="20" /></svg> seen before, not now</span>
+        <span><svg viewBox="-10 -10 20 20"><rect className="chip-bg lg" x="-8" y="-8" width="16" height="16" rx="3.5" /><use href="#g-tablet" className="chip-icon" x="-6" y="-6" width="12" height="12" /></svg> envoy at a court; on the road, a figure with his tablet</span>
         <span><svg viewBox="-10 -10 20 20"><rect className="chip-bg lg" x="-8" y="-8" width="16" height="16" rx="3.5" /><use href="#g-eye" className="chip-icon" x="-6.5" y="-6.5" width="13" height="13" /></svg> spy at a post</span>
         <span><svg viewBox="-10 -10 20 20"><rect className="chip-bg lg" x="-8" y="-8" width="16" height="16" rx="3.5" /><use href="#g-fetter" className="chip-icon" x="-6.5" y="-6.5" width="13" height="13" /></svg> captive or detained</span>
         <span><svg viewBox="-10 -10 20 20"><use href="#g-ingot" className="ingot lg" x="-9" y="-9" width="18" height="18" /></svg> gold on the road</span>
@@ -31,6 +41,9 @@ export function MapLegend({ config, onClose }: { config: GameConfig; onClose: ()
         <span><svg viewBox="0 0 40 14"><path className="lg-arrow" d="M2,7H22" /><path className="lg-bar" d="M23,1V13" /></svg> bounced</span>
         <span><svg viewBox="0 0 40 14"><path className="lg-sup" d="M2,7H32" /><circle className="lg-dot" cx="34" cy="7" r="3" /></svg> support</span>
         <span><svg viewBox="-12 -12 24 24"><circle className="lg-cap" r="9" /></svg> changed hands</span>
+        <span><svg viewBox="-12 -12 24 24"><circle className="clash-bg f-hatti" r="9" /><use href="#fig-clash" className="clash-icon" x="-7" y="-7" width="14" height="14" /></svg> a battle, in the winner's colour</span>
+        <span><svg viewBox="-12 -12 24 24"><use href="#fig-tent" className="tent t-hatti" x="-8" y="-8" width="16" height="16" /></svg> a siege camp: the besieger's tents round the walls</span>
+        <span><svg viewBox="-12 -12 24 24"><circle className="band-bg" r="9" /><use href="#fig-fire" className="band-icon" x="-7" y="-7" width="14" height="14" /></svg> a band's campfire (with a ship, a pirate crew)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fog" fill="url(#fog)" /></svg> out of sight: the denser, the older the news (land: of who holds it)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-fert" fill="url(#fert4)" /></svg> rich land (close furrows)</span>
         <span><svg viewBox="0 0 30 14"><rect width="30" height="14" className="lg-desert" fill="url(#stipple)" /></svg> desert (it feeds no army: an army there lives on its baggage, its king's stores and his caravans)</span>
