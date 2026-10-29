@@ -689,6 +689,8 @@ describe("CourtAsleepTests", () => {
       .filter((c) => c.employer === "Egypt")
       .slice(0, 2)
       .map((c) => c.id);
+    // Each speaks its host's tongue, so both are heard at once (item 12).
+    for (const id of envoys) for (const t of ["Alashiyan", "Luwian", "Akkadian"]) state.characters.find((c) => c.id === id)!.tongues.set(t, 100);
     // Egypt times its two envoys so that both stand before their hosts in season t.
     let egypt = new Scripted((v) => {
       let orders: Order[] = [];
