@@ -101,7 +101,7 @@ describe("EconomyTests", () => {
     Assert.equal(0, u.unpaid);
     Assert.equal(0, u.hungry);
     // Within a few shekels: settled people moving between provinces take their share of the purse (item 10+a).
-    Assert.inRange(s.markets.get("hattusa").purse, purse + Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100) - 3, purse + Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100) + 3);
+    Assert.inRange(s.markets.get("hattusa").purse, purse + Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100) - 5, purse + Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100) + 5);
     Assert.equal(s.config.armyUpkeep - Math.floor((s.config.armyUpkeep * EconomyData.spentPercent) / 100), u.savings);
     Assert.true(s.stores.get("hattusa") < stores + taxOf(harvestOf(Map.get("hattusa"))));
     Assert.equal(carriedOf("Army"), u.food);

@@ -54,12 +54,12 @@ describe("EngineTests", () => {
   test("New game matches the starting tiers", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
-    // The Great Kings' 16 units (item 11d gave Terqa, Mira and Seha to their own rulers) and one for each of the 32
-    // city-states (item 11+, and item 11c's six of Canaan).
-    Assert.equal(48, s.units.length);
+    // The Great Kings' 16 units (item 11d gave Terqa, Mira and Seha to their own rulers) and one for each of the 40
+    // city-states (item 11+, item 11c's six of Canaan and item 11f's eight).
+    Assert.equal(56, s.units.length);
     // Walls by place: the seven Great Kings' capitals and Qatna, Qadesh and Hazor 3; the walls dossier's for the other
-    // city-states (items 11d and 11c), four fortresses 2, Sumur 1; the chiefs' lands none.
-    Assert.equal(41, s.walls.size);
+    // city-states (items 11d, 11c and 11f), four fortresses 2, Sumur and Samuha 1; the chiefs' lands none.
+    Assert.equal(48, s.walls.size);
     Assert.equal(10, count(s.walls, (w) => w[1] === 3));
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.capital),

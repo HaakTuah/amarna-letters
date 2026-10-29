@@ -317,13 +317,15 @@ export function unruled(s: GameState, ...provinces: string[]): GameState {
 }
 
 /**
- * The provinces that were free cities and lands without a king until item 11+, Gaza and Sumur among them, and the six
- * cities of Canaan item 11c carved from them.
+ * The provinces that were free cities and lands without a king until item 11+, Gaza and Sumur among them, the six
+ * cities of Canaan item 11c carved from them, and item 11f's places.
  */
 export const FormerFree = [
   "isuwa", "carchemish", "alalakh", "aleppo", "ugarit", "nuhashshe", "qatna", "qadesh", "amurru", "sumur", "arwad", "byblos", "sidon",
   "damascus", "tyre", "megiddo", "shechem", "jerusalem", "gaza", "suhu", "arrapha", "susa", "lukka", "kaska", "steppe",
   "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron",
+  // Item 11f's places
+  "azzi", "niya", "tunip", "beirut", "pella", "ashtaroth", "libya", "shasu",
 ];
 
 /**
