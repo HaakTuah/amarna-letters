@@ -11,7 +11,7 @@ structure we have now should never say yes to point 6, as it is essentially game
 ## The check for changes
 
 The copy was cut from Build order revision 88, World and history 35, Victory 9, Overview 567. Asked at the start: nothing
-had changed in any of them. Asked again before the pull request: see the PR.
+had changed in any of them. Asked again before the pull request: still nothing.
 
 ## The audit at the start
 
@@ -48,7 +48,27 @@ weakness found that this item's changes expose; the scripts' land reckoning was 
 
 ## Benchmarks and script games
 
-FINAL-NUMBERS
+**Before** (`develop` at #144) and **after** (this branch, with the refreshed par), seeds 1-50,
+`scripts/sim.sh --games 50 --seed 1 --verify-replay`: 50 of 50 replays exact in both, 47.3 seasons on average in both.
+
+| | Before | After |
+|---|---|---|
+| Kingdoms fallen | 158 (a capital fell in 48 games) | 525 (in all 50) |
+| First fall of a game | season 8 on the median (range 2-13) | season 1 in every game |
+| Falls, most often | Elam 41, Arrapha 29, Lukka 13, Suhu 13, Jerusalem 11 | Arrapha 50, Lukka 47, Kaska 45, Suteans 42, Terqa 40, Nuhashshe 34, Elam 34, Suhu 31, Damascus 27 |
+| Wins, Great Kings / city-states | 19 / 31 | 2 / 48 |
+| Growth: Egypt, Hatti, Babylonia, Mitanni, Assyria, Arzawa, Alashiya | 0.84, 0.83, 1.02, 0.89, 0.84, 1.06, 0.97 | 0.87, 1.17, 0.95, 0.82, 1.28, 0.80, 0.97 |
+
+What the walls do: with the chiefs' lands open and a dozen cities at walls 1, the Great Kings' armies take a
+neighbouring city in the first season, and Hatti (Kaska, Isuwa) and Assyria (Arrapha, Terqa, Suhu) grow most. Arzawa,
+with Apasa alone and two vassals that fall more often than they stand (Seha 20 falls, Mira 7), grows least. What par
+over all games does: a city-state that falls in most games has a par near its survival rate (Lukka 0.10, Kaska 0.17,
+Terqa 0.21), so in the few games it survives its standing is five to ten times anyone's, and the fragile city-states win
+(Terqa, Damascus and the Suteans 6 each, Nuhashshe 5). Survival itself scores, as asked; the result is that the Great
+Kings, whose par is their usual growth, almost never win. That is item 18's to balance (question 1).
+
+The run with the item's walls and the old par (before the refresh) had the same falls (526) and gave the Great Kings 20
+wins of 50; the par refresh moved the wins, not the play.
 
 ## The review
 
@@ -99,4 +119,8 @@ The one lever this item adds, ceding a capital, is never used by a script, by de
 
 ## Questions for Haakon
 
-QUESTIONS
+1. **The early falls and who wins.** With the walls from the dossier, a city falls in the first season of every game
+   (525 kingdoms fall in 50 games, against 158), and with par over all games the fragile city-states that survive win
+   48 of 50 games; the Great Kings win 2. Reading taken: both as you answered, left to item 18's balance pass.
+   Alternative: before item 18, keep a floor of walls 2 for every city-state, or count par only over the games a power
+   survives again, so the Great Kings can win. Leave it to item 18?
