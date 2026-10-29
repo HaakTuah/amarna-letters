@@ -166,15 +166,17 @@ function keepAsOld(s: GameState, c: Character, ids: string[]): void {
     else o.broken++;
     told.add(f.party);
   }
-  // One note in its memory, renewed as old talk grows: a model person keeps it or drops it when it condenses its notes.
-  if (told.size > 0) {
+  // One note, renewed as old talk grows: a model person keeps it or drops it when it condenses its notes.
+  if (told.size > 0 && c.status !== "Dead") {
     const head = "Old talk I keep, of promises to pay I heard of long ago:";
     const lines = c.payOld.map((o) => {
       const who = isPowerParty(o.party) ? `the king of ${land(o.party as Power)}` : (s.characters.find((x) => x.id === o.party)?.name ?? o.party);
       return `${who} ${[o.kept > 0 ? `kept ${o.kept}` : "", o.broken > 0 ? `broke ${o.broken}` : ""].filter((x) => x !== "").join(" and ")}`;
     });
-    c.memory = c.memory.filter((m) => !m.text.startsWith(head));
-    remember(c, s.turn, `${head} ${lines.join("; ")}.`);
+    // Old talk is long ago: it goes with the summary of older memories, which a model person rewrites in its own words.
+    const at = c.memorySummary.indexOf(head);
+    const before = (at < 0 ? c.memorySummary : c.memorySummary.slice(0, at)).trim();
+    c.memorySummary = `${before}${before.length > 0 ? " " : ""}${head} ${lines.join("; ")}.`.slice(-1500);
   }
   c.heardPay = c.heardPay.filter((id) => !ids.includes(id));
 }

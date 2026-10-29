@@ -30,7 +30,7 @@ describe("AnswersTo11bPlusTests", () => {
     foldOldPay(s, 12);
     Assert.empty(s.payFacts);
     Assert.contains(c.payOld, (o) => o.party === "Hatti" && o.broken === 1);
-    Assert.contains(c.memory, (m) => m.text.startsWith("Old talk I keep"));
+    Assert.true(c.memorySummary.includes("Old talk I keep"));
     const old = trustIn(s, "Hatti", c);
     Assert.true(old > fresh && old < MoneyData.trustStart);
   });
