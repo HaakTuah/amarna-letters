@@ -27,6 +27,14 @@ declare module "./core.ts" {
     fallsSpread(): void;
     /** A fallen kingdom's unit, once word of the fall reaches it: its commander's, a captain's, or disbanded (item 13). */
     fallenUnit(u: Unit, p: Power): void;
+    /** A power's fall, or null while it stands. */
+    fallOf(p: Power): KingdomFall | null;
+    /**
+     * Gold that comes into a power's hands where it holds land: its treasury's, or, for a fallen kingdom whose land the
+     * word has not reached, whoever holds its fallen capital's; with nobody there, the province's people's. `income`:
+     * counted in the season's income.
+     */
+    credit(p: Power, gold: number, province: string, income?: boolean): void;
     /** A fallen kingdom's governor rises as his province's ruler, with a seat of his own (item 13+). */
     governorRises(g: Governor, c: Character, f: KingdomFall): Power;
   }
@@ -50,7 +58,7 @@ P.fallsSpread = function () {
     const p = f.power;
     const held = this.map.landProvinces.filter((x) => S.owner.getOrDefault(x.id, null) === p).map((x) => x.id);
     const units = S.units.filter((u) => u.power === p);
-    if (held.length === 0 && units.length === 0) continue;
+    if (held.length === 0 && units.length === 0 && !S.characters.some((c) => c.employer === p)) continue;
     const conqueror = f.conqueror !== null && isAlive(S, f.conqueror) ? f.conqueror : null;
     const lawless: string[] = [];
     for (const id of held) {
@@ -81,7 +89,34 @@ P.fallsSpread = function () {
       if (S.turn < wordArrives(this, f, u.province)) continue;
       this.fallenUnit(u, p);
     }
+    // His governors and commanders are their own men once their province or army has heard it.
+    for (const c of S.characters.filter((c) => c.employer === p)) {
+      const post = c.duty === "Governing" ? S.governors.find((g) => g.character === c.id && S.owner.getOrDefault(g.province, null) === p) : c.duty === "Commanding" ? S.units.find((u) => u.commander === c.id && u.power === p) : undefined;
+      if (post !== undefined) continue;
+      c.formerEmployer = p;
+      c.employer = null;
+      c.contract = null;
+      if (c.status === "Employed") c.status = "Free";
+    }
   }
+};
+
+P.fallOf = function (p) {
+  return [...this.s.falls].reverse().find((f) => f.power === p) ?? null;
+};
+
+P.credit = function (p, gold, province, income = true) {
+  const S = this.s;
+  if (gold <= 0) return;
+  const fall = isAlive(S, p) ? null : this.fallOf(p);
+  const to = fall === null ? p : S.owner.getOrDefault(fall.capital, null);
+  if (to === null || !isAlive(S, to)) {
+    this.spendAt(province, gold);
+    return;
+  }
+  const t = S.treasuries.get(to);
+  t.gold += gold;
+  if (income) t.income += gold;
 };
 
 P.fallenUnit = function (u, p) {
@@ -154,7 +189,8 @@ P.governorRises = function (g, c, f) {
   remember(c, S.turn, `Word came that the kingdom of ${land(was)} has fallen. I rule ${prov.name} now, in my own name.`);
   // The troops there follow him if he can pay them a season (first guess); those he cannot hear the news as others do.
   const here = sortBy(
-    S.units.filter((u) => u.power === was && (u.province === id || (prov.waters !== null && u.province === prov.waters))),
+    // A commanded army is its commander's to decide, as the word reaches him (fallenUnit).
+    S.units.filter((u) => u.power === was && this.commanderOf(u) === null && (u.province === id || (prov.waters !== null && u.province === prov.waters))),
     [(u: Unit) => u.id, cmpStr],
   );
   const pay = (u: Unit): number => forMen(u.kind === "Army" ? S.config.armyUpkeep : S.config.fleetUpkeep, u.kind, u.men);
