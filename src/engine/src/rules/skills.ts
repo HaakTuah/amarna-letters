@@ -6,6 +6,7 @@
 import { clamp } from "../core/num.ts";
 import { Rng } from "../core/rng.ts";
 import { newSkills, SkillValues, type Character, type Skill, type Skills } from "../model/people.ts";
+import { drawTongues } from "./tongues.ts";
 
 /** How far a belief moves for an outcome that surprised it: skill points per unit of probability. */
 export const BeliefStep = 20;
@@ -25,6 +26,8 @@ export function drawSkills(seed: number, c: Character): void {
   c.inclination = rng.range(-10, 10) + rng.range(-10, 10) + rng.range(-10, 10);
   c.belief = newSkills();
   for (const k of SkillValues) c.belief[k] = clamp(c.skills[k] + c.inclination, 0, 100);
+  // Item 12: its languages and its aptitude for them, from a stream of their own.
+  drawTongues(seed, c);
 }
 
 /**

@@ -55,11 +55,12 @@ local play, and a screen for a human seat's standing answers. The report is `doc
 ### Envoys
 
 - **Script envoys** (`ScriptMind`): reciting the letter (`recite`), the timid and the fond leave out a threat (its
-  demand stays, as a request) and add a courtesy if there is none; the careless (competence below 35) lose the last of
-  three or more clauses; one that kept gold states the gift as what is left; the ambitious (65 or more) and the fond add a
-  courtesy. Reporting the answer (`reportClauses`): the faithful (loyalty 60, competence 50, not bought by the host) word
-  for word; the bought and the timid leave out the host's threats; the bought report a refusal as acceptance and pass on
-  the host's news as what they saw; the careless lose the last clause. One that kept gold leaves out the host's complaint
+  demand stays, as a request) and add a courtesy if there is none; one that kept gold states the gift as what is left; the
+  ambitious (65 or more) and the fond add a courtesy. Reporting the answer (`reportClauses`): the faithful (loyalty 60, not
+  bought by the host) word for word; the bought and the timid leave out the host's threats; the bought report a refusal as
+  acceptance and pass on the host's news as what they saw. (The careless losing the last clause, competence below 35 in
+  reciting and 40 in reporting, was retired in item 12, "Retired with the chain": whether a message is altered is the
+  envoy's choice, never his skill's; see [languages](30-languages.md).) One that kept gold leaves out the host's complaint
   that the gold weighed light. In structured press the envoy's speech and report are these clauses' words.
 - **Model envoys** alter clauses as script envoys can (item 11a+, Haakon's answer to item 8's review: "models must be
   able to alter clauses also"): in the call that phrases their words, the clauses come numbered, and the reply may leave

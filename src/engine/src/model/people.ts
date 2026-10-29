@@ -1,6 +1,7 @@
 import { Dict } from "../core/collections.ts";
 import { B, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
 import type { Power } from "./power.ts";
+import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Errand, ErrandSchema, type Hoard, HoardSchema, type LendOffer, LendOfferSchema, type PayOld, PayOldSchema, type Strategy } from "./money.ts";
 import { type ChiefChoice, ChiefChoiceSchema, type ReportsChoice, ReportsChoiceSchema } from "./life.ts";
 
@@ -417,7 +418,116 @@ export interface Character {
   heard: string[];
   /** Item 11b: the last season it gave up the road ("The way back"), or null if it never led a band. */
   leftRoad: number | null;
+  /** Item 12, "Languages": its true skill in each language it has any of, 0 to 100, hidden like every skill. */
+  tongues: Dict<string, number>;
+  /** Item 12, "Learning by living there": its hidden aptitude for languages, 0 to 100. */
+  aptitude: number;
+  /**
+   * Item 12, "Speaking": the people in the same place it has come to understand (their ids), and `@` and a court's name
+   * for the court where it stands (its king, or a servant there who bridges); kept while they stay together.
+   */
+  understood: string[];
+  /** Item 12, "A go-between for hire": what it asks to bridge one message where it stands, or null if it posts no price. */
+  bridgePrice: number | null;
+  /** Item 12: gold handed to it, by whom (a court or a person) and when: a motive with a name on it ("A go-between for hire"). */
+  handed: Handed[];
+  /** Item 12: an envoy nobody understands at the court where it stands: a model's last choice, taken the next season. */
+  unheardPlan: UnheardChoice | null;
 }
+
+/** Gold handed to a character (item 12): by a court or a person, in a season. */
+export interface Handed {
+  by: string;
+  turn: number;
+}
+
+export function newHanded(init: Partial<Handed> = {}): Handed {
+  return { by: "", turn: 0, ...init };
+}
+
+export const HandedSchema: ObjSchema<Handed> = obj("Handed", newHanded, { by: S, turn: I });
+
+/** What an envoy nobody understands chooses (item 12): stay until he is understood, go home, or say his message was delivered. */
+export const UnheardValues = ["stay", "home", "lie"] as const;
+export type Unheard = (typeof UnheardValues)[number];
+
+export interface UnheardChoice {
+  turn: number;
+  choice: Unheard;
+  /** Of the gifts he has not yet presented, what he keeps for himself when he presents them (null: his traits decide). */
+  keep: number | null;
+}
+
+export function newUnheardChoice(init: Partial<UnheardChoice> = {}): UnheardChoice {
+  return { turn: 0, choice: "stay", keep: null, ...init };
+}
+
+export const UnheardChoiceSchema: ObjSchema<UnheardChoice> = obj("UnheardChoice", newUnheardChoice, { turn: I, choice: S, keep: opt(I) });
+
+/**
+ * What a go-between or a bridging servant in someone else's pay is asked (item 12, task "Bridge"): the envoy's words and
+ * clauses as spoken, which he passes on to the host as he chooses, and who pays him otherwise (his motive, by name).
+ */
+export interface BridgeView {
+  turn: number;
+  envoy: string;
+  from: Power;
+  host: Power;
+  /** Who pays him otherwise: courts, or people by name. */
+  paidBy: string[];
+  speech: string;
+  clauses: Clause[];
+}
+
+export function newBridgeView(init: Partial<BridgeView> = {}): BridgeView {
+  return { turn: 0, envoy: "", from: "Egypt", host: "Egypt", paidBy: [], speech: "", clauses: [], ...init };
+}
+
+export const BridgeViewSchema: ObjSchema<BridgeView> = obj("BridgeView", newBridgeView, {
+  turn: I,
+  envoy: S,
+  from: S,
+  host: S,
+  paidBy: list(S),
+  speech: S,
+  clauses: list(() => ClauseSchema),
+});
+
+/** What an envoy nobody understands is asked (item 12, task "Unheard"): where he stands, how long, and who might carry his words. */
+export interface UnheardView {
+  turn: number;
+  /** The court where nobody understands him, and his own king. */
+  host: Power;
+  lord: Power;
+  /** Seasons he has waited there unheard. */
+  waited: number;
+  /** The gifts he presented, in shekels (0 if none), and the gold he carries and has not presented yet. */
+  presented: number;
+  carried: number;
+  /** His purse, and the go-betweens standing there with their price for a message (none of whom could carry his words yet). */
+  purse: number;
+  goBetweens: { name: string; price: number }[];
+  /** His own languages, in words, and the language of the court. */
+  tongues: string[];
+  courtTongue: string;
+}
+
+export function newUnheardView(init: Partial<UnheardView> = {}): UnheardView {
+  return { turn: 0, host: "Egypt", lord: "Egypt", waited: 0, presented: 0, carried: 0, purse: 0, goBetweens: [], tongues: [], courtTongue: "", ...init };
+}
+
+export const UnheardViewSchema: ObjSchema<UnheardView> = obj("UnheardView", newUnheardView, {
+  turn: I,
+  host: S,
+  lord: S,
+  waited: I,
+  presented: I,
+  carried: I,
+  purse: I,
+  goBetweens: list(() => obj("GoBetweenSeen", () => ({ name: "", price: 0 }), { name: S, price: I })),
+  tongues: list(S),
+  courtTongue: S,
+});
 
 export function newCharacter(init: Partial<Character> = {}): Character {
   return {
@@ -483,6 +593,12 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     news: [],
     heard: [],
     leftRoad: null,
+    tongues: new Dict(),
+    aptitude: 0,
+    understood: [],
+    bridgePrice: null,
+    handed: [],
+    unheardPlan: null,
     ...init,
   };
 }
@@ -550,6 +666,12 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   news: list(() => NewsHeldSchema),
   heard: list(S),
   leftRoad: opt(I),
+  tongues: dict(I),
+  aptitude: I,
+  understood: list(S),
+  bridgePrice: opt(I),
+  handed: list(() => HandedSchema),
+  unheardPlan: () => UnheardChoiceSchema,
   isAvailableForHire: computed(B, (o: Character) => o.status === "Free"),
 });
 
@@ -568,7 +690,7 @@ export type GoldSource =
   | "Carried"
   /** Item 11b: a chief's share of what his band took, on the land, the roads and the sea. */
   | "Loot"
-  /** Item 11b: news it sold at a court ("Characters as sellers of news"), and letters it was paid to carry. */
+  /** Item 11b: news it sold at a court ("Characters as sellers of news"), and letters it was paid to carry; item 12: messages it bridged. */
   | "News";
 
 /**

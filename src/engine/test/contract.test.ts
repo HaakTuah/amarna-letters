@@ -36,7 +36,7 @@ import {
   sellDebt,
   single,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, speaksAll } from "./support.ts";
 
 // <summary>Jobs as errands (item 11a, "Jobs, not wages", reworked by Haakon's answers to items 11a and 11a+): a job is one
 // errand with a fee; it ends when it is done; every payment is the payer's order; renewing is a new offer; offers go abroad
@@ -87,6 +87,7 @@ describe("ContractTests", () => {
   function freeAt(s: GameState, court: Power = "Egypt"): Character {
     const c = first(s.characters, (x) => x.status === "Free" && x.errand === null);
     [c.at, c.duty, c.heldBy] = [court, "None", null];
+    speaksAll(c);
     c.pitches.clear();
     c.askingPrice.clear();
     return c;
