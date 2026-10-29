@@ -16,6 +16,7 @@ import "./archives.ts";
 import "./sieges.ts";
 import "./intel.ts";
 import "./envoys.ts";
+import "./envoys-home.ts";
 import "./court.ts";
 import "./jobs.ts";
 import "./money.ts";
