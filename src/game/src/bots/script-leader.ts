@@ -38,6 +38,7 @@ import { Search } from "./search.ts";
 import { Statecraft } from "./statecraft.ts";
 import { collecting, errandJobs } from "./errands.ts";
 import { Tactics, type MilitaryPlan } from "./tactics.ts";
+import { Council, CouncilPlay, follow } from "./council.ts";
 
 export class ScriptLeader implements ISeat {
   readonly label: string = "Script bot";
@@ -47,8 +48,16 @@ export class ScriptLeader implements ISeat {
   /** Seat seeds for powers risen in play (item 13+), derived as they first play. */
   private readonly seedFor: (p: Power) => number;
 
+  private readonly gameSeed: number;
+  private council: Council | null = null;
+
+  private councilOf(): Council {
+    return (this.council ??= new Council(this.gameSeed));
+  }
+
   /** `gameSeed`: the game's seed, from which each power's seat seed is derived. */
   constructor(gameSeed: number) {
+    this.gameSeed = gameSeed;
     for (const p of AllPowers) this.seeds.set(p, seatSeed(gameSeed, p));
     this.seedFor = (p) => seatSeed(gameSeed, p);
   }
@@ -126,6 +135,8 @@ export class ScriptLeader implements ISeat {
     repudiations(board, brain, orders);
     revocations(board, brain, orders);
     leaveByOrder(board, brain, orders);
+    // Measuring the royal council (item 16, `--council-play-half`): a king who plays his troops by its counsel.
+    if (CouncilPlay.only?.has(view.power) === true) orders.splice(0, orders.length, ...follow(orders, this.councilOf().proposals(view)));
     // Standing orders last, against the season's whole plan: those kept may change it if the blow comes.
     const [cancel, give] = Contingencies.plan(board, brain, plan, orders);
 

@@ -84,6 +84,7 @@ import {
   type PresentResult,
 } from "./contracts.ts";
 import { GameLog, authorKind, newAuthorship, newLogHeader, seasonFallbacks, type Authorship, type LogHeader, type SeasonFallbacks, type TrailAuthors } from "./log.ts";
+import { Council } from "./bots/council.ts";
 import { ScriptLeader } from "./bots/script-leader.ts";
 import { ScriptMind } from "./bots/script-mind.ts";
 import { TemplateNarrator } from "./bots/template-narrator.ts";
@@ -132,6 +133,8 @@ export class GameRunner {
   private readonly strict: boolean;
   /** The script king that stands in when a seat's call fails. It keeps up with every model and file seat (see orders). */
   private readonly fallbackSeat: ScriptLeader;
+  /** Item 16: the royal council of the seats played by a model or a human. */
+  private readonly council: Council;
   private readonly fallbackMind: ICharacterMind = new ScriptMind();
 
   state: GameState;
@@ -192,6 +195,7 @@ export class GameRunner {
     this.narrator = narrator;
     this.replay = replay;
     this.fallbackSeat = new ScriptLeader(state.seed);
+    this.council = new Council(state.seed);
     // Who may sleep: on replay, whoever could in the recorded game; live, the seats that can.
     const sleepers = !state.config.sleepingSeats
       ? []
@@ -745,6 +749,15 @@ export class GameRunner {
     // fails it plays a king who remembers. Its reading changes nothing in the game, so replays stay exact; a strict replay
     // asks no seat and skips it.
     if (!this.isReplay) for (const p of alive(S_).filter((p) => this.seatOf(p).canSleep === true)) this.fallbackSeat.observe(views.tryGet(p) ?? Views.for(S_, p));
+    // Item 16, "The royal council": every model, file or human seat whose council is on hears it in its view; asleep, its
+    // advisors still read what it sees. Analysis on the seat's own view, with seeds of its own: it changes nothing in the
+    // game, so a strict replay skips it.
+    if (!this.isReplay)
+      for (const p of alive(S_).filter((p) => this.seatOf(p).canSleep === true && !S_.councilOff.includes(p))) {
+        const view = views.tryGet(p);
+        if (view === undefined) this.council.observe(Views.for(S_, p));
+        else view.council = this.council.advise(view);
+      }
     const results = await Promise.all(
       living.map((p) =>
         this.recorded<TurnSubmission>(

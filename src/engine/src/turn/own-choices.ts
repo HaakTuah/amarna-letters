@@ -105,7 +105,7 @@ P.chiefView = function (c, b) {
     shipCost: !b.ship && here.isCoastal && b.men >= BandData.shipMen ? BandData.shipCost : null,
     shipMen: BandData.shipMen,
     kill: c.chiefPlan?.kill ?? null,
-    ending: endingWords(S.config.openAge, S.config.endMedian),
+    ending: endingWords(S, b.province),
   });
 };
 

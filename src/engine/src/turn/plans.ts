@@ -231,6 +231,7 @@ P.compose = function (p, plan, fired) {
     cancelAnswers: sub.cancelAnswers,
     fromFallback: sub.fromFallback,
     stayAwake: sub.stayAwake,
+    council: sub.council,
   });
 };
 
@@ -483,6 +484,11 @@ P.scheduledFailed = function (p, order, why) {
 P.afterValidation = function (p, sub, v) {
   const S = this.s;
   for (const f of this._firedNow.tryGet(p) ?? []) this.tellFired(p, f, v);
+  // Item 16: the seat's own choice of its royal council (never the stand-in's), recorded for experiments.
+  if (!sub.fromFallback && (sub.council === "on" || sub.council === "off") && S.councilOff.includes(p) !== (sub.council === "off")) {
+    S.councilOff = sub.council === "off" ? [...S.councilOff, p] : S.councilOff.filter((x) => x !== p);
+    logEvent(S, "council", `${p} turned its royal council ${sub.council}.`, [p]);
+  }
   for (const o of (this._mandatedNow.tryGet(p) ?? []).filter((x) => x.type !== "hold"))
     logEvent(S, "mandate", `A commander of ${p}'s led its unit by his mandate: ${describe(o)}.`, [p], "mandate-led");
   const sl = this.sleepOf(p);
