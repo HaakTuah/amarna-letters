@@ -328,3 +328,13 @@ Given in the design chat with Claude, answering the design questions of the cons
     > agreed on!
 
     Written into "The look, in time" (Interface) and build order item 19.
+
+33. **02:38 to 02:41**, in the design chat: "Will this be a truly living and evocative map? Is there anything more we
+    should add to it, expert?" Then, to Claude's six additions (a map that remembers, life from the simulation, a
+    seasonal year, each realm's own map by its scribes, omens in the margin, small scenes at big moments):
+
+    > Agree to everything, expert! And on your point about cities growing and shrinking! Yes! And i think every
+    > investment level infrastructure reaches should reflect on the map. Docks appear. Roads of the wuality appears.
+    > Walls. Etc!
+
+    Written into "The look, in time" (Interface) and build order item 19.
