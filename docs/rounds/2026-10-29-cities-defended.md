@@ -18,7 +18,7 @@ still have no way to accurately measure how much each state fulfill each aggrega
 The copy was cut from Build order revision 89, War 61, Victory 10. Asked at the start: nothing had changed. While the item
 was built, Haakon's PRs #152 and #153 refreshed the copy (Build order 91, Victory 12): the final score blends size and
 performance, every placement counts, and kings are told the goal in words and the weight once item 18 sets it. Built in
-this item (below). Asked again before the pull request: QQCHECK.
+this item (below). Asked again before the pull request (Build order 98, War 63, Victory 12): new items 11c+ and 11f (the map's drawing and its crossings and places, after this item) and the capitals' walls by the sources (item 15); nothing this item touches.
 
 ## The audit at the start
 
@@ -50,7 +50,12 @@ none is this item's.
 
 - **Reckoning**: the script kings and the baseline reckon the men in the open (added to a troop's defence) and on the
   walls (`Board.stormNeeds`, `Board.wallMen`); their own search runs the adjudicator with the view's figures.
-- **Weakness found and patched**: QQWALL
+- **Weaknesses found and patched**: (1) the storm's need is fractional since the men count by number, and the helpers
+  for a storm were cut to whole units below it, so kings that reckon the men never planned a storm (found by the review);
+  (2) the scripts valued a siege at 0.6 / (1 + 0.25 x walls) of a storm, from when storms were the way in, though now
+  nearly every city falls to a siege: 0.85 / (1 + 0.2 x walls). Before both, kings that reckon the men grew 0.71 against
+  0.76 for those that ignore them; after, 0.77 against 0.75.
+- **Used**: storms 7 in 50 games (112 before), sieges won 485 (363), the people holding off a move 60 times (78).
 - **Placement**: the scripts still weigh rivals by performance and size by strength (`Board.leader`); playing for a
   better place rather than against the leader is item 18's, with the weight (reading 12).
 
