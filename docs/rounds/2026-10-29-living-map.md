@@ -142,6 +142,17 @@ PR (pass 3), branch `item/living-map-works`, stacked on pass 2.
   as later phases); no level is invented for the map (no stopgaps).
 - **Works give way to names** ("names that give way" put names above lesser markers; the works are the least of all).
 
+### Measured
+
+- **A throttled phone** (390 by 844, CPU slowed four times, six seasons played first), long tasks summed, mean of three
+  runs, pass 1 against pass 3 (passes 2 and 3 together): playing season 2, 377 and 377 ms; season 3, 340 and 381 ms; one
+  season back, 239 and 346 ms. The runs' own spread is wide (one season back measured from 182 to 463 ms across the
+  session's runs on the same build), and switching parts off finds no cause: with the roads hidden 377 ms, with the
+  relay stations hidden 385 ms, as built 377 ms (three runs each). The works at the cities are built only close up,
+  where they show; at the other zooms their layer is empty.
+- **The script games** are untouched by construction (only `src/web` changed).
+- **The smoke test** passes, counting the works as markers that must touch nothing.
+
 ### The review
 
 One reviewer (Opus, high). Blocking, fixed: half the roads were never drawn (the map lists each edge once, either way
