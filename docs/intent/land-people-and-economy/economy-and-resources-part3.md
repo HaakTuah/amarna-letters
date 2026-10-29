@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 31 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 32 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 **One treasury, many stores (decided 21 October 2026).** Goods sit in each province's stores and travel physically, by caravan. All gold a province brings in, mined there or earned at its market, reaches the king's treasury by one rule: at once, as income does today, and from item 13, when distance inside the realm is built, it arrives after its travel time ("Distance inside your own realm"). A king spends what has reached his treasury: every gift, fee and soldier's pay is paid from it, and gold sent abroad travels as it always has.
 
 **Tolls and smuggling (decided 21 October 2026).** A power may set a toll on goods entering its land, as kings did: the king of Alashiya asked Pharaoh that "no one making a claim in your name" approach his merchants or his ship (EA 39), a plea for exemption from customs.
