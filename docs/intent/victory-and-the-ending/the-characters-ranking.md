@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Victory and the ending tab, revision 10 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Victory and the ending tab, revision 12 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## The characters' ranking
 
 **The richest characters** (decided 19 October 2026). At the end of a game, beside the kings' standings, the characters are ranked by wealth: purse and hoard, what they hold. Back pay and debt tablets count for nothing at the end, as for the kings ("Debts are facts; repayment is a choice"), so a loan or a fee pays only once it is paid. It shows the second game played under the kings', in which every character has a victory of his own ("Stakes, not dispositions"). During play a character knows its own wealth, not the ranking. The dead are ranked below every living character, and among themselves by what they held when they died. Dying never beats surviving, however much was held, which is the price of risk ("No age in this game"). The built ranking counts back pay owed and leaves the dead out until item 11a changes both.
