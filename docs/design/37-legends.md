@@ -43,7 +43,13 @@ the game.
   time: 'I love you my gold owning brother.'" Only the third, not the fourth. A greedy script king (greed above 0.7)
   short of gold (spare under 100) may once in a game beg a stronger friend in Finkel's own words (`FinkelLetter`, with
   well-wishes and a request for 100 shekels), at one chance in ten each season the conditions hold for that friend.
-- **A new Idrimi.** See below (built with item 13+'s governors' seats).
+- **A new Idrimi.** When a character rises to rule a city of his own, read from the record of the powers risen in play
+  (`GameState.risen`, item 13+): since 13+ a fallen kingdom's governor rises so, ruling his province with a seat of his
+  own. The line, "A new Idrimi: X, who governed P for K, rose to rule it in his own name when K fell", stands in his
+  biography and in the legends of both courts (`newIdrimi`), and the risen ruler's own annals call him "a new Idrimi"
+  (the template narrator, on the `rise` event). A band taking a city rises with item 17 and reads the same way.
+- **In the annals** (the template narrator): the court begged a third time writes Finkel's line ("So the kings love His
+  Majesty"); the beggar's own annals keep none, as a court's chronicle flatters its own king.
 
 ## Not built here
 
