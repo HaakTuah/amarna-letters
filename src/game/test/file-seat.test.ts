@@ -47,10 +47,10 @@ describe("FileSeatTests", () => {
 
   const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
 
-  function game(config: GameConfig | null = null, timeoutSeconds: number = 30, powers: readonly Power[] = [...Near, "Alashiya"]): [GameRunner, string] {
+  function game(config: GameConfig | null = null, timeoutSeconds: number = 30, powers: readonly Power[] = [...Near, "Alashiya"], seed: number = 8): [GameRunner, string] {
     let folder = newFolder();
-    let state = newGame(8, config ?? newGameConfig({ catastropheChance: 0 }));
-    let bot = new ScriptLeader(8);
+    let state = newGame(seed, config ?? newGameConfig({ catastropheChance: 0 }));
+    let bot = new ScriptLeader(seed);
     let runner: GameRunner | null = null;
     let exchange = new FileExchange(folder, timeoutSeconds * 1000, (call) => runner!.log.addCall(call));
     // The small world (small-world.ts) by default: the file seat among the default few script kings, every other power idle.
@@ -276,7 +276,8 @@ describe("FileSeatTests", () => {
   test("A file seat sleeps by default and replays exactly", async () => {
     // Sleeping seats are on by default: nothing here switches them on. The whole world, as script kings: in the small one no
     // envoy reaches the island in these seven seasons, and an envoy waiting is what makes a sleeping court hold audience.
-    let [runner, folder] = game(newGameConfig({ catastropheChance: 0 }), 30, AllPowers);
+    // Seed 1: since item 11d no envoy reaches the island in these seasons of seed 8's game.
+    let [runner, folder] = game(newGameConfig({ catastropheChance: 0 }), 30, AllPowers, 1);
     const stop = new AbortController();
     let requests = new Dict<string, string>();
     let answering = answer(

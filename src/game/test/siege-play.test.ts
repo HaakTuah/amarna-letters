@@ -248,8 +248,10 @@ describe("SiegePlayTests", () => {
     Assert.equal(WorldMap.default.get("terqa").yield / 3.0, assyria.absorptionLoss("terqa"), 6);
     // Its own homeland counts in full, held or retaken; so does land held from the start.
     Assert.equal(0, assyria.absorptionLoss("nineveh"));
-    // To Mitanni, Terqa is its own homeland: retaken, it counts in full.
-    Assert.equal(0, new Board(Views.for(s, "Mitanni")).absorptionLoss("terqa"));
+    // To Mitanni, Harran is its own homeland: retaken, it counts in full (Terqa is Hana's own since item 11d).
+    s.owner.set("harran", "Assyria");
+    s.conquered.set("harran", 5);
+    Assert.equal(0, new Board(Views.for(s, "Mitanni")).absorptionLoss("harran"));
   });
 
   test("A script king s besieging army with nothing to help it slips away as the relief falls", () => {

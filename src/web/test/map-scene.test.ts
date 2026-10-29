@@ -144,7 +144,7 @@ describe("MapSceneTests", () => {
     Assert.true(shown > 0, "the games put nobody on a court's map");
   });
 
-  test.each([3, 7])("The fog is clear exactly where the court sees and ghosts stand only out of sight %s", async (seed) => {
+  test.each([4, 7])("The fog is clear exactly where the court sees and ghosts stand only out of sight %s", async (seed) => {
     let { runner, frames } = await play(seed, 16);
     let ghosts = 0;
     for (let k = 0; k < frames.length; k++) {

@@ -29,6 +29,7 @@ import {
   support,
   unitAt,
   wallsOf,
+  StartWalls,
 } from "@amarna/engine";
 import { removeAll, Assert, oldWorld } from "./support.ts";
 import { playRandom } from "./games.ts";
@@ -53,15 +54,16 @@ describe("EngineTests", () => {
   test("New game matches the starting tiers", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
-    // The Great Kings' 19 units and one for each of the 23 city-states (item 11+).
+    // The Great Kings' 16 units (item 11d gave Terqa, Mira and Seha to their own rulers) and one for each of the 26
+    // city-states (item 11+).
     Assert.equal(42, s.units.length);
-    // Walls by place: every capital 3 (the seven kings' and the twenty city-states' with a town), four fortresses and the
-    // three chiefs' strongholds 2, Sumur 1.
+    // Walls by place: the seven Great Kings' capitals and Qatna and Qadesh 3; the walls dossier's for the other city-states
+    // (item 11d), four fortresses 2, Sumur 1; the chiefs' lands none.
     Assert.equal(35, s.walls.size);
-    Assert.equal(27, count(s.walls, (w) => w[1] === 3));
+    Assert.equal(9, count(s.walls, (w) => w[1] === 3));
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.capital),
-      (p) => Assert.equal(p.kingless ? 2 : 3, wallsOf(s, p.id)),
+      (p) => Assert.equal(StartWalls.get(p.id) ?? 0, wallsOf(s, p.id)),
     );
     Assert.true(WorldMap.default.landProvinces.every((p) => p.home !== null));
     Assert.equal(100, s.characters.length);

@@ -45,7 +45,7 @@ import {
   roundEven,
 } from "@amarna/engine";
 import { type Personality, ScriptLeader, ScriptMind, newEnvoyContext, temperament } from "@amarna/game";
-import { removeAll, Assert, oldWorld } from "../../engine/test/support.ts";
+import { removeAll, Assert, oldWorld, unruled } from "../../engine/test/support.ts";
 import { first as firstOf } from "@amarna/engine";
 
 // The feature audit of the fix pass after item 4 ("Every feature is every seat's"): the features script kings never
@@ -228,7 +228,8 @@ describe("FeatureAuditTests", () => {
   }
 
   test("Land a king cannot keep is ceded to a friend before a rival ahead of it takes it", () => {
-    let s = oldWorld(newGame(Seed));
+    // Hana is nobody's: held by Mitanni beyond its homeland (item 11d), it would make a friend look ahead of Hatti.
+    let s = unruled(oldWorld(newGame(Seed)), "terqa");
     s.turn = 6;
     // Egypt holds Qadesh, far from its troops. Hatti, hostile and well ahead, stands next to it; so does Mitanni, a friend.
     s.owner.set("qadesh", "Egypt");

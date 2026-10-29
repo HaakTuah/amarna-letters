@@ -9,7 +9,7 @@ import { describe, newTurnSubmission, type CedeProvinceOrder, type GiftUnitOrder
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
 import { newFact } from "../model/people.ts";
-import { AllPowers, cmpPower, land, type Power } from "../model/power.ts";
+import { AllPowers, cmpPower, king, land, type Power } from "../model/power.ts";
 import { isSealedAgreement } from "../model/records.ts";
 import { alive, isAlive, ledger, logEvent, newId, newKingdomFall, newUnit, notify, ownedBy, unitAt, unitLabel, wallsOf } from "../model/state.ts";
 import { newScoreRow } from "../model/records.ts";
@@ -32,7 +32,8 @@ declare module "./core.ts" {
     resolveTransfers(cessions: [Power, CedeProvinceOrder][], gifts: [Power, GiftUnitOrder][]): void;
     raise(p: Power, r: RaiseOrder): void;
     capitalsTaken(): void;
-    fall(p: Power, conqueror: Power | null, taker: Power | null): void;
+    /** `ceded`: the king ceded his capital by agreement (item 11d) rather than losing it. */
+    fall(p: Power, conqueror: Power | null, taker: Power | null, ceded?: boolean): void;
     strength(p: Power): number;
     ledgerStrength(p: Power): number;
     landYield(p: Power): number;
@@ -387,7 +388,13 @@ P.updateOwnership = function () {
 P.resolveTransfers = function (cessions, gifts) {
   const S = this.s;
   const Map = this.map;
+  // A capital is ceded last, after the gifts of troops, so that a king ceding his realm may give his troops first.
+  const capitals: [Power, CedeProvinceOrder][] = [];
   for (const [p, c] of cessions) {
+    if (c.province === Map.capital(p).id) {
+      capitals.push([p, c]);
+      continue;
+    }
     const name = Map.get(c.province).name;
     // The validator refuses a second cession of one province, so land no longer held was lost in movement.
     if (S.owner.getOrDefault(c.province, null) !== p) {
@@ -422,6 +429,7 @@ P.resolveTransfers = function (cessions, gifts) {
     notify(S, g.to, "Resolution", "Troops received", `${p} has placed ${unitLabel(u)} under your command.`);
     logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [p, g.to]);
   }
+  for (const [p, c] of capitals) this.realmCeded(p, c);
 };
 
 P.raise = function (p, r) {
@@ -495,13 +503,15 @@ P.capitalsTaken = function () {
  * A kingdom's fall: what passes with it, and what goes with it. `conqueror` is the power its land passes to; `taker` the
  * one holding its capital after the moves, the same unless the taker fell too.
  */
-P.fall = function (p, conqueror, taker) {
+P.fall = function (p, conqueror, taker, ceded = false) {
   const S = this.s;
   const capital = this.map.capital(p);
   const landHeld = ownedBy(S, p);
   for (const id of landHeld) {
     this.setOwner(id, conqueror);
-    this.takenByForce(id, conqueror);
+    // Land ceded by agreement passes as any land ceded does (resolveTransfers): what was being absorbed goes on being so.
+    if (!ceded) this.takenByForce(id, conqueror);
+    else if (this.map.get(id).home === conqueror) S.conquered.delete(id);
     // A siege the conqueror pressed against land that is now his is over.
     if (conqueror !== null) S.sieges = removeAll(S.sieges, (x) => x.province === id && x.power === conqueror);
   }
@@ -539,7 +549,7 @@ P.fall = function (p, conqueror, taker) {
     c.contract = null;
     if (c.status === "Employed") c.status = "Free";
   }
-  const who = taker !== null ? `${taker} took its capital, ${capital.name}` : `its capital, ${capital.name}, was taken`;
+  const who = ceded ? `its king ceded its capital, ${capital.name}, to ${taker}` : taker !== null ? `${taker} took its capital, ${capital.name}` : `its capital, ${capital.name}, was taken`;
   // Word of the fall travels (item 7b): a court that sees the capital hears at once, the rest when word reaches them.
   const seeing = alive(S).filter((x) => x === conqueror || Views.sight(S, this.map, x).has(capital.id));
   logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${conqueror !== null ? `, and its land passes to ${conqueror}` : ""}.`, [p, ...seeing], null);
@@ -560,7 +570,9 @@ P.fall = function (p, conqueror, taker) {
       winner,
       "Battle",
       KingdomFallsTitle,
-      taker === winner
+      ceded
+        ? `${king(p)} has ceded ${capital.name} to you, and with it the kingdom of ${land(p)}: his troops have disbanded, and ${yours}`
+        : taker === winner
         ? `With ${capital.name} you took the kingdom of ${land(p)}: its king has fallen, his troops have disbanded, and ${yours}`
         : `${taker} took ${capital.name}, the capital of ${land(p)}, but fell himself in the same season, and the kingdom of ${land(p)} passes to you with his: its king has fallen, his troops have disbanded, and ${yours}`,
     );

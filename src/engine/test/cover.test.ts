@@ -220,8 +220,8 @@ describe("CoverTests", () => {
   // Babylonia's spy at Assyria's court (or watching , held by ), in
   // two games from one seed: in the first the host pays heavy watchmen and catches it, in the second nobody does.
   // Returns both at the season after the catch.
-  function caughtSpy(host: Power = "Assyria", province: string | null = null): [GameState, GameState, string] {
-    for (let seed = 1; seed <= 40; seed++) {
+  function caughtSpy(host: Power = "Assyria", province: string | null = null, firstSeed: number = 1): [GameState, GameState, string] {
+    for (let seed = firstSeed; seed <= 40; seed++) {
       function game(): GameState {
         let s = newGame(seed);
         let c = first(s.characters, (x) => x.employer === "Babylonia");
@@ -249,7 +249,8 @@ describe("CoverTests", () => {
   }
 
   test("A caught spy appears at its post until the ransom demand arrives", () => {
-    let [caught, free, id] = caughtSpy();
+    // From seed 2: in seed 1's game since item 11d the captive dies before the word of the ransom reaches Babylonia.
+    let [caught, free, id] = caughtSpy("Assyria", null, 2);
     Assert.notNull(coverOf(char(caught, id), "Babylonia"));
     for (let i = 0; i < 3; i++) {
       Assert.equal(seenOf(free, "Babylonia", id), seenOf(caught, "Babylonia", id));

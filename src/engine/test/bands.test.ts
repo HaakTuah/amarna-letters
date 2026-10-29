@@ -147,7 +147,7 @@ describe("BandTests", () => {
   });
 
   test("One carrier takes every report waiting for the same court, for one fee", () => {
-    const s = newGame(5);
+    const s = newGame(4);
     const spy = first(s.characters, (c) => c.employer === "Babylonia" && c.at === "Babylonia");
     spy.duty = "SpyPosted";
     spy.at = "Hatti";

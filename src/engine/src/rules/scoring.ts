@@ -31,8 +31,9 @@ export function strength(
 
 /**
  * Par for each starting position ("One scoreboard for every power", designed in build order item 11+, tuned in item 18):
- * the growth a power that started where it did usually reaches by the end of a script game, among the games it is still
- * standing in, tribute paid and received included. A power is judged by its growth against its par, its standing, so a
+ * the growth a power that started where it did reaches by the end of a script game on the mean over all games, a fall
+ * counted as 0, so that survival itself scores (item 11d, Haakon's answer to item 11+'s review), tribute paid and
+ * received included. A power is judged by its growth against its par, its standing, so a
  * city-state that holds its own against the odds and an empire that grows as empires do stand level. Measured from the
  * script games recorded in the item's report (`docs/rounds/`); a power with no measure has par 1.
  */
