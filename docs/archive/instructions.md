@@ -523,3 +523,7 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into build order items 11c++ and 11f. He also asked whether the map should be bigger, at a higher
     resolution of the same region; answered in the chat.
+
+51. **13:41**, in the design chat, to finer geography loading as the map is zoomed in: "Yes, please! Expertly! When are
+    we going to draw real mountains and rivers, and such?" (the first written into build order item 11c++; the second
+    answered in the chat, with a question back)
