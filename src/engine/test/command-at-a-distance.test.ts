@@ -202,7 +202,9 @@ describe("CommandAtADistanceTests", () => {
     season(s, subs({ Assyria: { orders: [move("ekallate", "durkurigalzu")] } }));
     Assert.contains("Babylonia", s.eliminated);
     Assert.equal("Assyria", s.owner.get("durkurigalzu"));
-    // The rest falls lawless, and the commanded armies are their commanders' bands now.
+    // The rest falls lawless, and the commanded armies are their commanders' bands, once word of the fall reaches them.
+    Assert.equal("Babylonia", s.owner.get("babylon"));
+    season(s);
     Assert.null(s.owner.get("babylon"));
     Assert.doesNotContain(s.units, (u) => u.power === "Babylonia");
     Assert.true(s.bands.some((b) => b.province === "babylon"));

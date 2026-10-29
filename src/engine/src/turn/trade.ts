@@ -60,7 +60,8 @@ declare module "./core.ts" {
     sendTraders(orders: [Power, Order][], tell: (p: Power, line: string) => void): void;
     setToll(p: Power, o: TollOrder): void;
     sack(province: string, taker: Power, stormed?: boolean): void;
-    lootHome(taker: Power, from: string, gold: number, archive: readonly string[], archiveOf: string): boolean;
+    /** `to`: where the load goes, if not the taker's court (gold sent to a fallen capital he holds, item 13+). */
+    lootHome(taker: Power, from: string, gold: number, archive: readonly string[], archiveOf: string, to?: string): boolean;
     byLeave(u: Unit): boolean;
     tellTolls(book: TollBook): void;
     marketNow(province: string): MarketSeen;
@@ -465,9 +466,9 @@ P.sack = function (province, taker, stormed = true) {
  * his capital and a road leads there, it travels like a caravan and can be waylaid; otherwise it reaches him at once
  * (true: it is on the road).
  */
-P.lootHome = function (taker, from, gold, archive, archiveOf) {
+P.lootHome = function (taker, from, gold, archive, archiveOf, to) {
   const S = this.s;
-  const cap = this.courtAt(taker);
+  const cap = to ?? this.courtAt(taker);
   const route = from === cap || S.owner.getOrDefault(cap, null) !== taker ? null : this.tradeRoute(taker, from, cap, false);
   if (route === null) {
     S.treasuries.get(taker).gold += gold;
