@@ -513,3 +513,13 @@ Given in the design chat with Claude, answering the design questions of the cons
     Written into "One scoreboard for every power" (Victory: size's first guess 5 percent), "Where characters are, and
     what they speak" (Characters: anyone in a court's service bridges; an Akkadian scribe at every court that reads
     Akkadian) and build order item 11f.
+
+50. **13:21 to 13:28**, in the design chat, looking at the live map with the design session: "What do you think of the
+    new amarna map now?" To its takes (markers never overlapping, minor badges shrinking to a seal, the phone opening
+    a step closer; borders smoothed along the features they follow; the 47 places where the drawn map and the
+    connections disagree settled in item 11f by "neighbours on the map are neighbours in the rules"):
+
+    > Yes, to all, expertly!
+
+    Written into build order items 11c++ and 11f. He also asked whether the map should be bigger, at a higher
+    resolution of the same region; answered in the chat.
