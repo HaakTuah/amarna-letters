@@ -152,6 +152,10 @@ export const GeoLabels: readonly { text: string; x: number; y: number; angle: nu
   geo("ARABIAN DESERT", 27.8, 41.6, 0), geo("LEBANON", 33.9, 35.65, -62), geo("KHABUR", 36.0, 40.85, 80), geo("ORONTES", 35.35, 36.95, -70),
   geo("EASTERN DESERT", 24.9, 33.7, -62), geo("WESTERN DESERT", 25.5, 28.6, 0), geo("BLACK SEA", 42.05, 31.6, 0),
   geo("NAIRI", 38.9, 42.3, 0), geo("PONTUS", 40.95, 38.9, -4),
+  // The lands beyond the game, no one's, by the period's own names where the sources give one (item 11c+; the dossier of
+  // the edges, docs/history/08-beyond-the-edges.md): drawn and named, with no province or rule.
+  geo("WILUSA", 39.85, 26.75, 0), geo("MASA", 39.75, 29.6, 0), geo("AHHIYAWA", 37.3, 25.95, -70), geo("KEFTIU", 35.15, 25.95, 0),
+  geo("TJEHENU", 30.3, 27.2, 0), geo("PALA", 41.4, 33.4, 0), geo("LULLUBI", 35.4, 46.2, 50), geo("ANSHAN", 30.9, 50.4, 0),
 ];
 
 /** Punt, beyond the Red Sea: a door for newcomers, not a market. */
