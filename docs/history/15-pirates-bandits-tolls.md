@@ -33,7 +33,7 @@ earlier source carries the point, the grade says so: **[A, later]** means a prim
 | --- | --- | --- | --- | --- | --- |
 | Salmu's caravan | Pharaoh's lands in Canaan, on the road from Babylon | The caravan of Burna-Buriash's envoy Salmu was robbed twice, once by Biryawaza and once by Pamahu, whom Burna-Buriash calls a man of Pharaoh's | Pharaoh: Burna-Buriash asks when his brother will judge the case | A | EA 7 |
 | Merchants killed at Hinnatuna | Canaan, near Akko: Hinnatuna (Hannathon, in the Lower Galilee) | Babylonian merchants travelling with the envoy Ahu-tabu were set on; Shum-Adda son of Balumme and Shutatna son of Sharatum of Akko sent men who killed them and took their silver; one man's feet were cut off, another was kept in service | Pharaoh: "Canaan is your land and its kings are your servants. In your land I have been robbed. Bring them to account and make good the silver they took; put to death the men who killed my servants." If not, they "will kill again, whether a caravan of mine or your own messengers, and so the messengers between us will be cut off" | A | EA 8 (after Moran, abridged and paraphrased) |
-| A royal caravan | The land of Ayyaluna (Aijalon), on the road west of Jerusalem | Abdi-Heba's caravan for the king was taken in the countryside of Ayyaluna | Abdi-Heba blames the sons of Labaya and Milkilu, his rivals, and asks the king to know of it | A | EA 287 |
+| A royal caravan | The land of Ayyaluna (Aijalon), on the road west of Jerusalem | Abdi-Heba's caravan for the king was taken in the countryside of Ayyaluna | Abdi-Heba names no robber for it; elsewhere in the letter he blames Milkilu and Labaya's sons for giving the land to the Habiru, so the king may read them as the culprits [B] | A | EA 287 |
 | A messenger's passage | From the north to Egypt, through Canaan | A king writes "to the kings of Canaan" bidding them let his messenger Akiya pass and see that no one detains him | The kings of the land the messenger crosses | A (the letter), B (the sender: Mitanni's king) | EA 30; see 12 |
 | Merchants of Babylon killed in Amurru and Ugarit | Hittite vassal lands | Kadashman-Enlil II complains of his merchants killed; Hattusili III answers that in Hatti a killer is not put to death but pays, and asks for the dead men's kin to be sent to take the case | The Hittite king, through his vassals | A, later (about 1260) | KBo I 10, in Bryce, *Letters* |
 | Wenamun robbed at Dor | Dor, on the coast south of Carmel | A man of Wenamun's own ship ran off with his silver; the prince of Dor said that had the thief been a man of his land he would repay it from his treasury, but the thief was of Wenamun's ship | Only a thief of the land itself made its lord liable | A, later (about 1070, a literary report) | *The Report of Wenamun* (Lichtheim II) |
@@ -43,8 +43,10 @@ had done it, and wrote to him, not to the robber. That is the game's rule alread
 crosses"): the holder of a province rules its roads, its policing and its tolls. Two further things the record shows:
 
 - **The robbers were often the lord's own men** [A]. Biryawaza was Pharaoh's man at Damascus and Kumidi, Pamahu is
-  called his servant (EA 7), and the killers at Hinnatuna were the sons of Akko's notables (EA 8). Abdi-Heba writes that
-  the Kashi, Nubian soldiers of Pharaoh's garrison, nearly killed him in his own house (EA 287). Robbery by the
+  called his servant (EA 7), and of the killers at Hinnatuna Shutatna was the son of Surata, king of Akko, and later
+  ruled it himself (EA 8, 232-235), while Shum-Adda is often taken for Shamu-Adda of Shamhuna, another vassal (EA 225)
+  [B]. Abdi-Heba writes that soldiers of Pharaoh's garrison, the Kashi, nearly killed him in his own house (EA 287) [A;
+  C that they were Nubians: Moran gives Kassites as possible, Rainey reads Cushites]. Robbery by the
   powerful, then denial, is the normal case, which the game already allows ("Deniable attacks").
 - **The demand was compensation and punishment, rarely war** [A]. Burna-Buriash asks for the silver back and the
   killers dead, and warns that unpunished robbery will cut the messengers off (EA 8); no letter shows a war fought over
@@ -57,7 +59,7 @@ crosses"): the holder of a province rules its roads, its policing and its tolls.
 | --- | --- | --- | --- |
 | The Hittite laws, §5 (old version) | "If anyone kills a merchant", he pays 100 minas of silver (if in Luwiya or Pala, and replaces the goods besides); in Hatti itself he must also bring the merchant (to burial) | A (the text); C (how the clauses read) | The Hittite laws (Hoffner, in Roth) |
 | The Hittite laws, the late version of §5 | Who kills a merchant for his goods pays a fine in silver and replaces the goods threefold; a killing in a quarrel, or by accident, costs less (240 and 80 shekels) | A (the text); C (the figures, as the late version is damaged) | The same |
-| Ugarit and Carchemish (Ini-Teshub's edict) | If a merchant of Carchemish is killed in Ugarit, or one of Ugarit in Carchemish's land, and the killers are caught, they pay 3 minas of silver for each man and make the goods good; if they are not caught, the town where he died pays | A, later (about 1250) | RS 17.146 and its fellows (Nougayrol, *PRU* IV) |
+| Ugarit and Carchemish (Ini-Teshub's edict) | If a merchant of Carchemish is killed in Ugarit, or one of Ugarit in Carchemish's land, and the killers are caught, they pay 3 minas of silver for each man and restore the goods (threefold, by one reading [C]); if they are not caught, the town where he died pays | A, later (Ini-Teshub, about 1240-1210) | RS 17.146 and its fellows (Nougayrol, *PRU* IV) |
 | Hattusili III on the merchants of Ura | They may trade in Ugarit in the summer but go home for the winter, and may not buy houses or land there | A, later (about 1250) | RS 17.130 (*PRU* IV) |
 | Hattusili III to Kadashman-Enlil | A killer of merchants is not put to death in Hatti; he pays, and if the kin refuse, he becomes theirs | A, later | KBo I 10 |
 
@@ -78,14 +80,15 @@ is what neighbours of one overlord actually agreed; the Hittite laws' 100 minas 
   his men were with them, Pharaoh should send them to him and he would deal with them (EA 38) [A]. So a coastal king
   answered for his own men at sea as a lord answered for his roads [B].
 - **Alashiya had been raided before** [A]: the Hittite text against Madduwatta (about 1400) charges him and Attarissiya
-  "of Ahhiya" with raiding Alashiya, which the Hittite king claimed as his tributary (CTH 147; Beckman) [A]; whether
+  "of Ahhiya" with raiding Alashiya, which the Hittite king claimed as his tributary (CTH 147; *Ahhiyawa Texts*, AhT 3) [A]; whether
   Attarissiya was a Mycenaean lord is argued [C].
-- **Who the Lukka were** [B]: people of the coast and hills of Lycia and Caria (later Lycia), never one kingdom, half
+- **Who the Lukka were** [B]: people of the coast and hills of south-western Anatolia, placed in later Lycia, Pisidia, Lycaonia and Pamphylia
+  (Caria is doubtful) [C on the bounds], never one kingdom, half
   in and half out of Hatti's order; Hittite texts name the "Lukka lands" as rebels and as a refuge [A]. On the map
   `lukka` is a lawless coast with no city (see [08-beyond-the-edges.md](08-beyond-the-edges.md) and 12, "Walls by
   city").
 - **Later, the same waters got worse** [A, later]: Piyamaradu raided the Hittite coast and Lukka with Ahhiyawa's
-  backing and carried off thousands of people (the Tawagalawa letter, about 1250, gives 7,000 [C on the reading]); in
+  backing and carried off thousands of people (the Tawagalawa letter, AhT 4, about 1250, gives 7,000 [C on the reading]); in
   Ugarit's last years its king wrote to Alashiya of enemy ships burning his towns while his own ships were "in Lukka"
   (RS 20.238, about 1190) [A, later]. This is the collapse a century and a half after 1346, not the game's start.
 
@@ -93,15 +96,16 @@ is what neighbours of one overlord actually agreed; the Hittite laws' 100 minas 
 
 - **Coastal towns seized each other's ships** [A]. Rib-Hadda of Byblos complains that the ships of Arwad sail with
   Abdi-Ashirta's sons against him, that his ships and men were taken at sea and that he cannot send to Egypt by ship
-  for fear of them (EA 98, 101, 105, 114) [A for the complaints; C for which seizure is in which letter]. Abi-Milku of
+  for fear of them (EA 101, 105, 114) [A for the complaints; C for which seizure is in which letter]. Abi-Milku of
   Tyre writes that Zimrida of Sidon and Aziru cut his island town off from water and wood on the mainland (EA 148-149)
   [A]. Piracy here is the vassals' war by other means, by ships a lord owned, not by free raiders [B].
-- **Hired men from the sea** [A]: Sherden served at Byblos as Rib-Hadda's men (EA 81, 122-123; see 11, "Hired men");
+- **Hired men from the sea** [B]: men called *šerdanu*, probably Sherden, were at Byblos and were killed there by
+  Pihuri's Suteans (EA 122-123; see 11, "Hired men"), which suggests they served Rib-Hadda [B];
   a century later Ramesses II names "the rebellious-hearted Sherden ... in their warships from the midst of the sea"
   whom he defeated (Tanis stele, about 1278) [A, later]. In 1346 they appear as soldiers for pay, not as raiders [B].
 - **Egypt's coast** [B]: Amenhotep son of Hapu, Amenhotep III's scribe of recruits, says on his Karnak statue that he
   set troops at the heads of the roads to turn back the foreigners and watched the Nile's mouths with them (Urk. IV;
-  Murnane) [A for the text; B for reading it as a coastal guard]. No source of the period shows Egyptian warships
+  Cumming; Breasted, *ARE* II) [A for the text; B for reading it as a coastal guard]. No source of the period shows Egyptian warships
   hunting pirates [S].
 
 ### Where piracy was, by region
@@ -109,10 +113,10 @@ is what neighbours of one overlord actually agreed; the Hittite laws' 100 minas 
 | Region | Piracy in or near 1346 | Grade | **Start from** |
 | --- | --- | --- | --- |
 | Alashiya's coasts and the sea west of it (`lukka`, `alashiya`, `enkomi`, `tamassos`) | Yearly raids by the Lukka (EA 38) | A | The highest at sea: the one coast where raids are said to come every year |
-| The Phoenician coast (`byblos`, `beirut`, `tyre`, `amurru`, and Arwad in `amurru`'s waters) | Ships seized in the vassals' wars (EA 98-114, 148-149) | A | High while the coast is at war, low in peace: piracy follows war, as the intent says |
+| The Phoenician coast (`byblos`, `beirut`, `tyre`, `amurru`, and Arwad in `amurru`'s waters) | Ships seized in the vassals' wars (EA 101-114, 148-149) | A | High while the coast is at war, low in peace: piracy follows war, as the intent says |
 | Ugarit's coast (`ugarit`) | Nothing on record for 1346 [S]; raids only in the last years (RS 20.238) | S | Low |
 | The Canaanite coast south of Carmel (`akko`, `ashkelon`, `gaza`) | Nothing on record [S] | S | Low; Egypt's garrisons at Gaza and Joppa (EA 296) |
-| The Delta's mouths (`delta`) | Guarded (Amenhotep son of Hapu) [B]; no raids on record before the Sherden of Ramesses II [S] | B | The lowest |
+| The Delta's mouths (`delta`) | Guarded (Amenhotep son of Hapu) [B]; Lukka raids on Egypt's coast are implied by Pharaoh's charge in EA 38 [B]; the Sherden of Ramesses II later [A, later] | B | Low |
 | Arzawa's Aegean shore (`apasa`, `seha`, `mira`) | Ahhiyawa's men and raiders beside the Lukka [C]; Madduwatta's day (about 1400) | C | Middling |
 
 ## Bandits on the roads: the Habiru and the Suteans
@@ -129,8 +133,8 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
   steppe road from Mari to Qatna and Damascus crossed their land (see 02, "The Syrian desert") [B].
 - **The steppe kept its name for danger** [A, later]: a century on, the Babylonian court excused its silence to Hatti
   by saying the Ahlamu, the steppe's next nomads, made the road impassable, and Hattusili III answered that the excuse
-  was false (KBo I 10) [A, later]; Assyria's kings fought the Suteans and Ahlamu on its western road (Adad-nirari I,
-  about 1300) [A, later].
+  was false (KBo I 10) [A, later]; Assyria's kings fought the Suteans and Ahlamu on its western road from Arik-den-ili (about
+  1310) on [A, later; C on which king's text first names them] (Grayson, *RIMA* 1).
 - **The Shasu** [A]: Egypt's name for the herdsmen of the land south and east of Canaan (`shasu`, the Negev and Edom);
   Egyptian kings campaigned against them as raiders of the Sinai road, and a later frontier journal records Shasu
   of Edom let past the fortress of Tjeku to water their flocks at the pools of Per-Atum (Papyrus Anastasi VI, about 1200)
@@ -144,7 +148,7 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
 
 | Region | Banditry in or near 1346 | Grade | **Start from** |
 | --- | --- | --- | --- |
-| The hill country of Canaan (`shechem`, `hebron`, `megiddo`'s hills) | Habiru on every side; caravans taken (EA 287, 288, 289) | A | The highest on land |
+| The hill country of Canaan (`shechem`, `hebron`, `megiddo`'s hills) | Habiru on every side, towns lost (EA 287-289); a caravan taken (EA 287) | A | The highest on land |
 | Amurru and the land round Byblos (`amurru`, `byblos`) | The Habiru are Abdi-Ashirta's and Aziru's men (EA 74-76, 85) | A | High, as long as the war goes on |
 | The roads of Galilee and the valley (`akko`, `megiddo`, `hazor`) | The Hinnatuna killings (EA 8), Labaya's sons (EA 250) | A | High |
 | Damascus and the Bekaa (`damascus`, `ashtaroth`, `qadesh`) | Biryawaza's robbery of Salmu (EA 7); Habiru and Suteans in his service (EA 195) | A | Middling |
@@ -158,8 +162,9 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
 
 - **A king could waive his dues for a friend** [A]: the king of Alashiya asks Pharaoh that "no one making a claim in
   your name" approach his merchants or his ship (EA 39), and the governor of Alashiya writes the same to his Egyptian
-  counterpart for his own men (EA 40). The design document reads this as a plea for exemption from customs [B]; it is
-  the only toll the letters attest, and it shows that customs were levied on ships arriving in Egypt [B].
+  counterpart for his own men (EA 40). The design document reads this as a plea for exemption from customs; that is one reading [C], since the "claim"
+  could be any official's or private claim on the goods. If it is customs, it is the only toll the letters attest, and
+  shows dues taken on ships arriving in Egypt [C].
 - **Where dues were taken** [B]: at a harbour's quay, at a city gate and at the border fort. Mesopotamian quays (*kāru*)
   took a toll (*miksu*) on boats and goods, and later Kassite land grants (*kudurrus*) exempt their holders from it, and
   from feeding the king's messengers, as a royal favour [A, later: the kudurrus of the 13th-12th centuries]. Ugarit's
@@ -207,12 +212,13 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
   fortresses' patrols tracking Medjay in the desert and turning them back [A, earlier] (Smither; Kemp). In 1346 Egypt's
   frontier fortresses on the Ways of Horus (see 12) and in Nubia did the same [B].
 - **Garrisons on the roads of Canaan** [A]: Egyptian and Nubian soldiers held Gaza, Joppa (Yapu), Kumidi, Sumur and
-  Beth-Shean [A: EA 287, 289, 294-296; Beth-Shean's finds]; Yahtiru writes that he guards the gates of Gaza and Joppa
+  Beth-Shean [A: Gaza and Joppa EA 294, 296; Beth-Shean EA 289 and its finds; Sumur EA 62, 67, 76; Kumidi EA 116, 129,
+  197]; Yahtiru writes that he guards the gates of Gaza and Joppa
   (EA 296) [A]. Vassals ask for garrisons in tens: Abdi-Heba asks for fifty men to guard the land (EA 289), Biridiya of
   Megiddo for a hundred (EA 244) [A] (see 11, "The city-states"). Vassals fed the king's troops when they passed and
-  stocked their grain (EA 324-325, 55) [A].
+  stocked their grain (EA 324-325) [A].
 - **The police robbed too** [A]. Abdi-Heba's Kashi soldiers broke into his house (EA 287) [A]; a generation later
-  Horemheb's edict punishes soldiers and officials who seized boats, hides and produce from the people, with the loss of
+  Horemheb's edict (Kruchten) punishes soldiers and officials who seized boats, hides and produce from the people, with the loss of
   the nose and exile to Tjaru (about 1320) [A, slightly later]. **Reading [G]:** policing has a price in the people's
   goodwill as well as in men; item 15 may leave that to the existing rules on troops quartered in a province, and add
   nothing.
@@ -221,10 +227,11 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
 
 - The border governor (*bel madgalti*) kept the forts, roads and gates, posted watchmen and patrols, and judged cases
   in the towns he toured (Miller; see 12, "Roads and their upkeep") [A]. His instructions bid him keep the watch posts
-  manned and the scouts out, close the gates at night and question strangers [A] (Miller). This is the Hittite form of
+  manned and the scouts out and close the gates at night [A] (Miller). This is the Hittite form of
   item 15's policing.
-- **Fugitives** [A]: every Hittite treaty of the period has a clause for returning fugitives who cross the border
-  (Beckman: Sunashshura of Kizzuwatna, Huqqana of Hayasa, Niqmaddu of Ugarit) [A]. Runaways are the Habiru's source
+- **Fugitives** [A]: nearly every Hittite treaty has a clause for returning fugitives who cross the border
+  (Beckman: Sunashshura of Kizzuwatna, a generation or more before 1346, and Huqqana of Hayasa, under Suppiluliuma)
+  [A]. Runaways are the Habiru's source
   (see 14), so a king who returns them takes men from the road's bands [B]. **Reading [G]:** no rule; a sealed tablet
   may say it, and it binds by words.
 
@@ -269,9 +276,14 @@ The Habiru as a social fact, men who had left their lord, and how a town "became
   Larsen, *Ancient Kanesh* (Cambridge, 2015).
 - **Davies**: N. de G. Davies, *The Rock Tombs of El Amarna* IV (1906): Mahu's tomb.
 - **Smither**: P. Smither, "The Semnah Despatches", *JEA* 31 (1945).
-- **Murnane**: W. Murnane, *Texts from the Amarna Period in Egypt* (1995), and his translation of Horemheb's edict;
-  **Urk. IV**: K. Sethe and W. Helck, *Urkunden der 18. Dynastie*: Amenhotep son of Hapu.
+- **Urk. IV**: K. Sethe and W. Helck, *Urkunden der 18. Dynastie*, 1820-1823: Amenhotep son of Hapu's Karnak statue;
+  in English B. Cumming, *Egyptian Historical Records of the Later 18th Dynasty* (1982-1984), and J. Breasted, *Ancient
+  Records of Egypt* II (1906), §§911ff. **Kruchten**: J.-M. Kruchten, *Le Décret d'Horemheb* (1981); in English
+  Breasted, *ARE* III, §§45ff.
+- **AhT**: G. Beckman, T. Bryce and E. Cline, *The Ahhiyawa Texts* (SBL, 2011): the Indictment of Madduwatta (AhT 3)
+  and the Tawagalawa letter (AhT 4).
+- **RIMA 1**: A. K. Grayson, *Assyrian Rulers of the Third and Second Millennia BC* (Toronto, 1987).
 - **Lichtheim**: M. Lichtheim, *Ancient Egyptian Literature* II (1976): Wenamun. Papyri Anastasi III and VI in
   R. Caminos, *Late-Egyptian Miscellanies* (1954).
-- Bryce, *Letters* (KBo I 10, KBo I 14), Beckman (the treaties, CTH 147), Miller and Kemp as in the README and
+- Bryce, *Letters* (KBo I 10, KBo I 14), Beckman (the treaties), Miller and Kemp as in the README and
   [11-armies-and-fleets.md](11-armies-and-fleets.md).
