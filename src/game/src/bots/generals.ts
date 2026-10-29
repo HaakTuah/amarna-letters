@@ -89,8 +89,8 @@ export function commandOrders(b: Board, _brain: Brain, orders: Order[], busy: HS
 }
 
 /**
- * A script king's court (item 13, "The capital is wherever the king is"): when the city he sits in has been besieged two
- * seasons or more, he moves his court to a walled city of his own that no foreign troops stand in or next to, the
+ * A script king's court (item 13, "The capital is wherever the king is"): when the city he sits in is besieged, he
+ * moves his court to a walled city of his own that no foreign troops stand in or next to, the
  * farthest from the besiegers, so that the city's fall is not his own. Otherwise he stays where he is.
  */
 export function courtMove(b: Board, _brain: Brain, orders: Order[]): void {
@@ -99,7 +99,8 @@ export function courtMove(b: Board, _brain: Brain, orders: Order[]): void {
   if (v.courtTo !== null) return;
   const at = v.courtAt;
   const siege = v.sieges.find((x) => x.province === at && x.holder === b.me);
-  if (siege === undefined || v.turn - siege.since < 2) return;
+  // As soon as the siege begins: two seasons on, most courts had fallen (item 13's measures).
+  if (siege === undefined) return;
   const foes = b.others.map((u) => u.province);
   const safe = sortBy(
     [...v.owner]

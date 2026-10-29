@@ -118,9 +118,9 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 - `bots/generals.ts` (`CommandPlay`, `--no-command-play`, `--command-play-half`): grants command of the largest army away
   from the court to a person at court with no errand, keeping one for letters; gives commanded armies a mandate (besiege the
   city they besiege, else guard where they stand, with the advantage, falling back if outnumbered); recalls a commander
-  who has lost two battles more than he won; grants the governorship of the most threatened province with two levies, and
-  a former ruler at court his old city; enlists a band of a hundred or more at war; moves the court out of a city besieged
-  two seasons to the farthest safe walled city of its own.
+  who has lost two battles more than he won; grants the governorship of the most threatened province with two levies (before
+  the season's grants of command), and a former ruler at court his old city; enlists a band of a hundred or more at war;
+  moves the court out of a besieged city at once to the farthest safe walled city of its own.
 - `bots/commander.ts`: the script commanders' minds (above).
 
 ## Not built here
