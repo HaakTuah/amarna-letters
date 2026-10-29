@@ -557,41 +557,109 @@ export interface StartUnit {
   readonly power: Power;
   readonly kind: UnitKind;
   readonly province: string;
-  /** Its men, when fewer than a full levy's (a city-state's, item 11+); null for a full unit. */
+  /** Its men (since item 13, from the armies dossier); null for a full unit of its kind. */
   readonly men: number | null;
+  /** Where its men were levied: the province it stands in, or for a fleet in the waters, its port (item 13). */
+  readonly home: string;
 }
 
-const su = (power: Power, kind: UnitKind, province: string, men: number | null = null): StartUnit => ({ power, kind, province, men });
+const su = (power: Power, kind: UnitKind, province: string, men: number | null = null, home: string = province): StartUnit => ({ power, kind, province, men, home });
 
 /**
- * The city-states' own troops (item 11+, first guesses for item 18): an army at its city of 50 men for each shekel its land
- * yields a season (Byblos, 30, keeps 1,500), a tenth to a third of a Great King's full levy; Arwad, the island whose ships
- * blockade Byblos (EA 98 and 105), a fleet of 20 men for each shekel instead. The lands without a town, whose villages and
- * herders all fight (the Kaska who burned Hattusa, the Lukka men raiding Alashiya, EA 38, the Suteans robbing travellers),
- * start with 250 men for each shekel.
+ * Item 13 ("Starting positions come from the sources"): the men a ship carries into a fight, its crew and the soldiers
+ * aboard, a first guess [G] from the armies dossier (`docs/history/11-armies-and-fleets.md`, "Fleets": the Uluburun ship's
+ * crew of five to ten, with archers and spearmen aboard when ships fought). A fleet's men are its ships times this.
  */
+export const MenPerShip = 25;
+
+/**
+ * The city-states' own troops at the start. Until item 13 every city kept 50 men for each shekel its land yields a season
+ * (item 11+, a first guess), and the lands without a town 250. Since item 13 the armies dossier sets them where it gives a
+ * range ("The city-states"): the middle of the range for the cities that fight in the letters (Amurru, Damascus, Shechem,
+ * Qatna), the low end for those that only plead (Byblos, Jerusalem, Megiddo, Tyre), and for the rest the old guess kept
+ * within the dossier's range; where the dossier gives none, the old guess stands. Arwad, Sidon, Tyre, Byblos and Ugarit
+ * also keep the ships the dossier gives them ("Fleets"), in the waters off their city.
+ */
+const CityRange: Readonly<Record<string, readonly [number, number, "low" | "middle" | null]>> = {
+  megiddo: [100, 500, "low"],
+  shechem: [100, 500, "middle"],
+  jerusalem: [100, 500, "low"],
+  akko: [100, 500, null],
+  hazor: [100, 500, null],
+  gezer: [100, 500, null],
+  ashkelon: [100, 500, null],
+  lachish: [100, 500, null],
+  hebron: [100, 500, null],
+  pella: [100, 500, null],
+  ashtaroth: [100, 500, null],
+  beirut: [100, 500, null],
+  byblos: [200, 500, "low"],
+  amurru: [500, 2000, "middle"],
+  damascus: [500, 1000, "middle"],
+  ugarit: [1000, 3000, null],
+  qatna: [500, 2000, "middle"],
+  qadesh: [500, 2000, null],
+  aleppo: [500, 2000, null],
+  alalakh: [500, 2000, null],
+  nuhashshe: [500, 2000, null],
+  tyre: [100, 500, "low"],
+  sidon: [100, 500, null],
+  kaska: [1000, 5000, null],
+  lukka: [1000, 5000, null],
+  steppe: [1000, 5000, null],
+};
+
+function cityMen(x: Province): number {
+  const old = (x.kingless ? 250 : 50) * x.yield;
+  const r = CityRange[x.id];
+  if (r === undefined) return old;
+  const [low, high, end] = r;
+  return end === "low" ? low : end === "middle" ? Math.floor((low + high) / 2) : Math.min(high, Math.max(low, old));
+}
+
+/** The ships of the coastal cities (the armies dossier, "Fleets", its "Start from" column), by the city's capital province. */
+const CityShips: Readonly<Record<string, number>> = { ugarit: 80, arwad: 20, sidon: 20, tyre: 20, byblos: 10 };
+
 const cityUnits = (): StartUnit[] =>
   WorldMap.default.provinces
     .filter((x) => x.capital && x.home !== null && !isGreatKing(x.home))
-    .map((x) => (x.home === "Arwad" ? su(x.home, "Fleet", x.id, 20 * x.yield) : su(x.home!, "Army", x.id, (x.kingless ? 250 : 50) * x.yield)));
+    .flatMap((x) => {
+      const home = x.home!;
+      // Arwad, the island whose ships blockade Byblos (EA 98 and 105), keeps a fleet in its city instead of an army.
+      if (home === "Arwad") return [su(home, "Fleet", x.id, CityShips[x.id] * MenPerShip)];
+      const army = su(home, "Army", x.id, cityMen(x));
+      const ships = CityShips[x.id];
+      return ships === undefined ? [army] : [army, su(home, "Fleet", x.waters ?? x.id, ships * MenPerShip, x.id)];
+    });
 
+/**
+ * The Great Kings' armies and fleets at the start (item 13, "Starting positions come from the sources"), from the armies
+ * dossier's "Start from" columns: Egypt and Hatti 15,000 men, Mitanni, Babylonia and Arzawa 10,000, Assyria 4,000 and
+ * Alashiya 1,500, split between the cities where each kept its troops before item 13; Egypt's garrisons in its centres in
+ * Canaan, Gaza and Sumur, a hundred men each (the low end of a town's range: EA 287, EA 289). Ships: Egypt 40, Alashiya 30,
+ * Arzawa 10, Hatti 5, each {@link MenPerShip} men. Until item 13 every unit was a full levy, 5,000 men or a fleet's 2,000.
+ */
 export const StartUnits: readonly StartUnit[] = [
-  su("Egypt", "Army", "memphis"),
-  su("Egypt", "Army", "akhetaten"),
-  su("Egypt", "Fleet", "delta"),
-  su("Hatti", "Army", "hattusa"),
-  su("Hatti", "Army", "nesa"),
-  su("Hatti", "Fleet", "kizzuwatna"),
-  su("Babylonia", "Army", "babylon"),
-  su("Babylonia", "Army", "sippar"),
-  su("Babylonia", "Army", "durkurigalzu"),
-  su("Mitanni", "Army", "washukanni"),
-  su("Mitanni", "Army", "taidu"),
-  su("Assyria", "Army", "ashur"),
-  su("Assyria", "Army", "nineveh"),
-  su("Assyria", "Army", "ekallate"),
-  su("Arzawa", "Army", "apasa"),
-  su("Alashiya", "Fleet", "enkomi"),
+  su("Egypt", "Army", "memphis", 7500),
+  su("Egypt", "Army", "akhetaten", 7500),
+  su("Egypt", "Army", "gaza", 100),
+  su("Egypt", "Army", "sumur", 100),
+  su("Egypt", "Fleet", "delta", 40 * MenPerShip),
+  su("Hatti", "Army", "hattusa", 7500),
+  su("Hatti", "Army", "nesa", 7500),
+  su("Hatti", "Fleet", "kizzuwatna", 5 * MenPerShip),
+  su("Babylonia", "Army", "babylon", 4000),
+  su("Babylonia", "Army", "sippar", 3000),
+  su("Babylonia", "Army", "durkurigalzu", 3000),
+  su("Mitanni", "Army", "washukanni", 5000),
+  su("Mitanni", "Army", "taidu", 5000),
+  su("Assyria", "Army", "ashur", 2000),
+  su("Assyria", "Army", "nineveh", 1000),
+  su("Assyria", "Army", "ekallate", 1000),
+  su("Arzawa", "Army", "apasa", 10000),
+  su("Arzawa", "Fleet", "apasawaters", 10 * MenPerShip, "apasa"),
+  su("Alashiya", "Army", "enkomi", 1500),
+  su("Alashiya", "Fleet", "enkomiwaters", 30 * MenPerShip, "enkomi"),
   ...cityUnits(),
 ];
 

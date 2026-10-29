@@ -6,6 +6,17 @@ import {
   type ClauseKind,
   WorldMap,
   besiege,
+  command,
+  relieve,
+  mandateOrder,
+  newMandate,
+  govern,
+  unseat,
+  moveCourt,
+  enlist,
+  type MandateTask,
+  type Engage,
+  type Withdraw,
   captive,
   question,
   handOver,
@@ -219,11 +230,47 @@ export function conditionsOf(n: Node): Condition[] {
   return out;
 }
 
+/** One order of command (item 13): a grant, a recall, or a mandate in the fixed vocabulary. */
+function commandOf(x: Node): Order | null {
+  const at = prov(S(x, "unit"));
+  const opt = (k: string): string | null => empty(S(x, k));
+  switch (S(x, "action")) {
+    case "grant":
+      return command(at, S(x, "person"));
+    case "take_back":
+      return relieve(at);
+    case "clear_mandate":
+      return mandateOrder(at, null);
+    case "mandate": {
+      const target = opt("target");
+      const until = I(x, "until");
+      return mandateOrder(
+        at,
+        newMandate({
+          task: (opt("task") ?? "hold") as MandateTask,
+          target: target !== null ? prov(target) : null,
+          power: (opt("power") as Power | null) ?? null,
+          engage: (opt("engage") ?? "advantage") as Engage,
+          avoidPower: (opt("avoid") as Power | null) ?? null,
+          withdraw: (opt("withdraw") ?? "outnumbered") as Withdraw,
+          until: until > 0 ? until : null,
+        }),
+      );
+    }
+    default:
+      return null;
+  }
+}
+
 export function orders(o: JsonObject): TurnSubmission {
   // The king's notes and its summary of older seasons are for its own record; the engine ignores them. Its ledger too.
   const sub = newTurnSubmission({ notes: S(o, "notes"), summary: S(o, "summary"), ledger: ledger(o) });
   for (const u of items(o, "units")) {
     const order = unit(u);
+    if (order !== null) sub.orders.push(order);
+  }
+  for (const x of items(o, "command")) {
+    const order = commandOf(x);
     if (order !== null) sub.orders.push(order);
   }
   sub.orders.push(...letters(o));
@@ -343,6 +390,8 @@ function unit(u: Node): Order | null {
   switch (S(u, "order")) {
     case "move":
       return move(at, target);
+    case "force_march":
+      return move(at, target, true);
     case "support":
       return support(at, target, to);
     case "convoy":
@@ -447,6 +496,14 @@ function other(x: Node): Order | null {
       return payCarriers(false);
     case "captive_take_purse":
       return captive(person, "TakePurse");
+    case "grant_governorship":
+      return govern(province, person, Math.max(0, I(x, "term")));
+    case "take_back_governorship":
+      return unseat(province);
+    case "move_court":
+      return moveCourt(province);
+    case "enlist_band":
+      return enlist(province, Math.max(0, I(x, "gold")), I(x, "term"));
     case "hunt_bands":
       return hunt(province);
     case "hunt_bands_always":

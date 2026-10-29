@@ -153,7 +153,9 @@ P.sieges = function (valid) {
       unit === null || unit.power !== x.power
         ? "the besieging army is gone"
         : unit.province !== x.province
-          ? "the besieging army marched out"
+          ? (this._battle?.dislodgedUnitIds.includes(unit.id) ?? false)
+            ? "the besieging army was driven out"
+            : "the besieging army marched out"
           : owner === x.power
             ? `${name} is now ${x.power}'s`
             : `the walls of ${name} are down`;
@@ -248,7 +250,7 @@ P.sieges = function (valid) {
  */
 P.capitalSiege = function (p) {
   const S = this.s;
-  const capital = this.map.capital(p).id;
+  const capital = this.courtAt(p);
   const siege = siegeOf(S, capital);
   if (S.owner.getOrDefault(capital, null) !== p || siege === null) return null;
   return [siege, this.tightness(siege)];
@@ -345,7 +347,7 @@ P.surrender = function (x, owner, tell, how) {
   if (how === "thirst") logEvent(S, "siege", `${name} ran out of water and surrendered to ${x.power}.`, parties(x.power, owner), "siege-thirst");
   tell(x.power, `${name} surrendered to you after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}: it is yours, with its walls a level lower (${left}).`);
   if (owner !== null) {
-    notify(S, owner, "Battle", "Land lost", `${name} has surrendered to ${x.power} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}.`);
+    this.tell(owner, prov, "Battle", "Land lost", `${name} has surrendered to ${x.power} after a siege of ${seasons} season${seasons === 1 ? "" : "s"}, ${why}.`);
     logEvent(S, "conquest", `${x.power} took ${name} from ${owner}.`, [x.power, owner]);
   }
   notify(S, x.power, "Battle", "Land taken", `${name} is now yours.`);

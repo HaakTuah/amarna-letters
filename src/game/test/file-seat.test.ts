@@ -45,7 +45,7 @@ describe("FileSeatTests", () => {
     }
   }
 
-  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
+  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
 
   function game(config: GameConfig | null = null, timeoutSeconds: number = 30, powers: readonly Power[] = [...Near, "Alashiya"], seed: number = 8): [GameRunner, string] {
     let folder = newFolder();
@@ -68,7 +68,7 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         seen.push(text);
         return stem.includes("orders")
-          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"enkomiwaters","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"enkomiwaters","to":""}],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text);
       },
       stop.signal,
@@ -100,7 +100,7 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         seen.push(text);
         return stem.includes("orders")
-          ? `{"notes":"zq-notes","summary":"zq-summary of what I learned","ledger":[{"court":"Egypt","entry":"zq-ledger: Egypt owes me 40."}],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          ? `{"notes":"zq-notes","summary":"zq-summary of what I learned","ledger":[{"court":"Egypt","entry":"zq-ledger: Egypt owes me 40."}],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text);
       },
       stop.signal,
@@ -212,7 +212,7 @@ describe("FileSeatTests", () => {
       folder,
       (stem, _) =>
         stem === "t1_orders_Alashiya"
-          ? `{"notes":"x","summary":"","ledger":[],"units":["enkomi -> enkomiwaters"],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[]}]}`
+          ? `{"notes":"x","summary":"","ledger":[],"units":["enkomi -> enkomiwaters"],"command":[],"letters":[],"other_orders":[{"action":"fly","province":"","power":"","person":"","amount":0,"text":"","item":"","seals":[]}]}`
           : HoldEverything,
       stop.signal,
     );
@@ -247,8 +247,8 @@ describe("FileSeatTests", () => {
       (stem, text) => {
         if (stem === "t1_orders_Alashiya") request = text;
         return stem.includes("orders")
-          ? `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],
- "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"enkomiwaters","to":""}],"other_orders":[],"conditions":[]}],
+          ? `{"notes":"Plan ahead.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],
+ "schedule":[{"turn":3,"units":[{"unit":"enkomi","order":"move","target":"kalavasos","to":""}],"other_orders":[],"conditions":[]}],
  "standing_orders":[{"when":"unit_attacked","province":"enkomi","power":"","units":[{"unit":"enkomi","order":"hold","target":"","to":""}],"other_orders":[],"conditions":[]}],
  "cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text);
@@ -261,16 +261,17 @@ describe("FileSeatTests", () => {
 
     Assert.contains('"standing_orders"', request);
     Assert.contains('"cancel_standing"', request);
-    // Read the first time (no retry), and bound to the fleet that stood in Enkomi when the orders were given.
+    // Read the first time (no retry), and bound to the army that stood in Enkomi when the orders were given (since item 13
+    // Alashiya keeps an army in its city and its fleet in the waters off it).
     Assert.false(File.exists(Path.combine(folder, "t1_orders_Alashiya.retry.request.md")));
     Assert.empty(runner.errors);
-    let fleet = single(runner.state.units, (u) => u.power === "Alashiya");
+    let fleet = single(runner.state.units, (u) => u.power === "Alashiya" && u.kind === "Army");
     let sleep = runner.state.sleep.get("Alashiya");
     let scheduled = Assert.single(sleep.scheduled);
     Assert.equal([3, fleet.id], [scheduled.turn, scheduled.unitId]);
     let standing = Assert.single(runner.state.standing.get("Alashiya").orders);
     Assert.equal(["s1", "UnitAttacked", fleet.id], [standing.id, standing.when, standing.unitId]);
-    Assert.contains("- s1: when your fleet now in enkomi is attacked, then: the fleet now in enkomi holds", situation(Views.for(runner.state, "Alashiya")));
+    Assert.contains("- s1: when your army now in enkomi is attacked, then: the army now in enkomi holds", situation(Views.for(runner.state, "Alashiya")));
   });
 
   test("A file seat sleeps by default and replays exactly", async () => {
@@ -288,8 +289,8 @@ describe("FileSeatTests", () => {
         // The second reply still names a season and a trigger of its own, as a king of version 4 could: it is not read.
         return stem.includes("orders")
           ? stem.startsWith("t2_")
-            ? `{"notes":"Wake me next season.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"kalavasos","person":"","amount":0,"power":""}]},"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
-            : `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+            ? `{"notes":"Wake me next season.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":3,"wake_on":[{"trigger":"troops_enter","province":"kalavasos","person":"","amount":0,"power":""}]},"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+            : `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text);
       },
       stop.signal,

@@ -169,7 +169,7 @@ export function startPeople(map: WorldMap): ReadonlyMap<string, People> {
  */
 export function reckonedOf(map: WorldMap, province: string): { settled: number; men: number; room: number } {
   const start = startPeople(map).get(province) ?? { settled: 0, men: 0, loose: 0 };
-  const levied = StartUnits.filter((u) => u.province === province).reduce((a, u) => a + (u.men ?? menOf(u.kind)), 0);
+  const levied = StartUnits.filter((u) => u.home === province).reduce((a, u) => a + (u.men ?? menOf(u.kind)), 0);
   const away = Math.min(levied, start.men);
   return { settled: start.settled - away, men: start.men - away, room: start.settled };
 }

@@ -38,6 +38,23 @@ export class AdjudicationResult {
   /** Order description per unit province, with its outcome, for reports. */
   readonly lines: ReportLine[] = [];
   readonly outcomes: OrderOutcome[] = [];
+  /** The battles fought: each move on another power's unit that stood or met it head on (item 13, "Battles: one season, losses, no dice"). */
+  readonly fights: Fight[] = [];
+}
+
+/**
+ * A battle (item 13): a move on another power's unit that stood its ground there, or that it met head on. `attack` and
+ * `defence` are the strengths compared, in thousandths of a full unit (the defence with its supports, its ground and the
+ * land's men beside it); `won` whether the attack got in. Each side's losses follow from the margin ({@link TurnEngine}).
+ */
+export interface Fight {
+  attacker: string;
+  defender: string;
+  from: string;
+  at: string;
+  attack: number;
+  defence: number;
+  won: boolean;
 }
 
 type Kind = "Hold" | "Move" | "Support" | "Convoy";
@@ -121,6 +138,7 @@ export class Adjudicator {
   }
 
   /**
+   * `command`: each unit's strength in percent by who commands it (item 13); null counts every unit by its men alone.
    * `owners`: who holds each province before the moves: a move into one's own walled province storms nothing. `walls`:
    * the level of each province's walls (none if left out). `sallies`: walls that sally: each supports the move from its
    * `from` into its city, for its city's holder in `owners`, as a support that cannot be cut.
@@ -133,6 +151,7 @@ export class Adjudicator {
     sallies: readonly SallyOrder[] | null = null,
     guests: ((province: string, power: Power) => boolean) | null = null,
     resist: ((province: string, mover: Power) => number) | null = null,
+    command: ((u: Unit) => number) | null = null,
   ): AdjudicationResult {
     this.guests = guests;
     this.resist = resist;
@@ -159,7 +178,8 @@ export class Adjudicator {
         voided: null,
         voidWhy: null,
         besieging: false,
-        weight: unitWeight(u, menOf(u.kind)),
+        // Item 13: its men, shaped by its commander's skill (`command`, in percent; men alone fight at the average).
+        weight: command === null ? unitWeight(u, menOf(u.kind)) : Math.max(1, Math.floor((unitWeight(u, menOf(u.kind)) * command(u)) / 100)),
       };
       const order = ordersByProvince.tryGet(u.province);
       switch (order?.type) {
@@ -522,7 +542,7 @@ export class Adjudicator {
           }
           // A unit that is destroyed gives no support: that is not a cut.
           const cutFrom = !given && !dislodged && this.explain ? (this.cutBy(o)?.at ?? null) : null;
-          const failed = dislodged ? "void: the supporting unit was destroyed" : cutFrom !== null ? `cut (attacked from ${cutFrom})` : "cut";
+          const failed = dislodged ? "void: the supporting unit was beaten from its place" : cutFrom !== null ? `cut (attacked from ${cutFrom})` : "cut";
           r.lines.push(
             line(o.at, o.power, `${label} supports ${o.target}${o.to === null ? " holding" : " -> " + o.to}: ${given ? "given" : failed}`, given, {
               cut: given || dislodged || !this.explain ? null : cutFrom !== null ? `the support was cut by an attack from ${cutFrom}` : "the support was cut",
@@ -541,9 +561,39 @@ export class Adjudicator {
           );
           break;
       }
-      if (dislodged) r.lines.push(line(o.at, o.power, `${label} is destroyed`, false));
+      if (dislodged) r.lines.push(line(o.at, o.power, `${label} is dislodged`, false));
+    }
+    for (const o of this.orders) {
+      const f = o.kind === "Move" ? this.fightOf(o) : null;
+      if (f !== null) r.fights.push(f);
     }
     return r;
+  }
+
+  /**
+   * The battle a move fought, or null: against the unit it met head on (one battle, reckoned once: from the move that
+   * won it, or, where neither got through, from the first in the order), or against the unit that stood its ground where
+   * it went, whether or not it got in. A move that found the province empty, or its unit gone, fought nobody; nor one
+   * stopped by its own side's unit, a missing convoy or another move into the same land.
+   */
+  private fightOf(move: O): Fight | null {
+    if (move.unitId === null || !this.pathOk(move)) return null;
+    const won = this.result[move.index];
+    const opp = this.headToHeadOpponent(move);
+    if (opp !== null) {
+      if (opp.power === move.power || opp.unitId === null) return null;
+      if (!won && (this.result[opp.index] || opp.index < move.index)) return null;
+      return { attacker: move.unitId, defender: opp.unitId, from: move.at, at: move.target!, attack: this.attackStrength(move), defence: this.defendStrength(opp), won };
+    }
+    const i = this.at.get(move.target!);
+    if (i === undefined) return null;
+    const occ = this.orders[i];
+    if (occ.power === move.power || occ.unitId === null || (occ.kind === "Move" && this.result[occ.index])) return null;
+    const attack = this.attackStrength(move);
+    if (attack <= 0) return null;
+    // Stopped by another move into the same land before it reached the unit there: no battle with it.
+    if (!won && this.movesTo(move.target!).some((m) => m !== move && attack <= this.preventStrength(m)) && attack > this.holdStrength(move)) return null;
+    return { attacker: move.unitId, defender: occ.unitId, from: move.at, at: move.target!, attack, defence: this.holdStrength(move), won };
   }
 
   /**

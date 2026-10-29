@@ -9,6 +9,7 @@ import { OrderDraft } from "../ui/order-draft.ts";
 import { num } from "./orders/form.ts";
 import { useOrders } from "./orders/use-orders.ts";
 import { TroopsSection } from "./orders/TroopsSection.tsx";
+import { CommandSection } from "./orders/CommandSection.tsx";
 import { TreasurySection } from "./orders/TreasurySection.tsx";
 import { EnvoysSection } from "./orders/EnvoysSection.tsx";
 import { CourtSection } from "./orders/CourtSection.tsx";
@@ -35,6 +36,7 @@ export function OrdersPanel({ draft, state, onChanged, onSubmit }: { draft: Orde
       </div>
 
       <TroopsSection c={c} />
+      <CommandSection c={c} />
 
       <TreasurySection c={c} />
 

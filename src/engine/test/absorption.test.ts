@@ -112,12 +112,15 @@ describe("AbsorptionTests", () => {
 
   test("Land that passes with a fallen kingdom is absorbed slowly", () => {
     let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
-    removeAll(s.units, (u) => u.province === "ashur");
+    removeAll(s.units, (u) => u.province === "ashur" || u.province === "nineveh");
     let besieger = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
     s.units.push(besieger);
+    // Since item 13 a fallen kingdom's land passes only where the conqueror's troops stand: Babylonia's army in Nineveh.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "nineveh" }));
+    s.owner.set("nineveh", "Assyria");
     s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: besieger.id, progress: 3 * EconomyData.breachPerLevel - 1, since: 1 }));
     season(s);
-    Assert.all(WorldMap.default.homeOf("Assyria"), (p) => Assert.equal(1, s.conquered.get(p.id)));
+    for (const p of ["ashur", "nineveh"]) Assert.equal(1, s.conquered.get(p));
     Assert.equal(1 / 3.0, new TurnEngine(s).absorbed("nineveh"));
   });
 });

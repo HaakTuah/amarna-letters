@@ -18,7 +18,7 @@ import { seasonOfTurn, WinterSeason } from "../model/map.ts";
 import type { RoadsOrder } from "../model/orders.ts";
 import { remember, type Character } from "../model/people.ts";
 import { land, type Power } from "../model/power.ts";
-import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind } from "../model/records.ts";
+import { newHomeCargo, newLossAbroad, newJourney, type Journey, type NewsKind, type InboxKind } from "../model/records.ts";
 import { GrantTitle } from "./authority.ts";
 import { char, findCharacter, isAlive, logEvent, newId, newKnown, notify, type Known } from "../model/state.ts";
 import { cheapestRoute, legPoints, PointsPerDay, snowbound } from "../model/travel.ts";
@@ -505,7 +505,7 @@ P.turnBack = function (j, c, at, why, gold) {
     sneak: [...j.sneak],
   });
   S.journeys.push(back);
-  this.setOut(back, at, this.map.capital(home).id);
+  this.setOut(back, at, this.courtAt(home));
   back.departTurn = S.turn - 1;
   back.seen = [...j.seen];
   back.reached = [...j.reached];
@@ -618,6 +618,12 @@ P.wordArrives = function (j) {
     case "Grant":
       notify(S, j.to, "Notice", GrantTitle, j.text ?? "");
       break;
+    case "Realm": {
+      // Item 13: a report from afar in the realm, as its courier brings it.
+      const [kind, title, ...text] = (j.text ?? "").split("|");
+      notify(S, j.to, kind as InboxKind, title, text.join("|"));
+      break;
+    }
     case "Job":
       notify(S, j.to, "Notice", "An offer abroad", j.text ?? "");
       break;

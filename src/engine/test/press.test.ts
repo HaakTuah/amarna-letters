@@ -29,7 +29,7 @@ import {
   single,
   support,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, armiesBefore13 } from "./support.ts";
 
 // Structured press (build order item 8): clauses and their templates, the press modes, gold without an inventory, the
 // record of recognition, and promises of support kept.
@@ -154,7 +154,7 @@ describe("PressTests", () => {
   });
 
   test("A support that keeps a promise made in a letter is an event", () => {
-    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    let s = armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 })));
     let e = new TurnEngine(s);
     let envoy = first(s.characters, (c) => c.employer === "Hatti");
     e.beginTurn();

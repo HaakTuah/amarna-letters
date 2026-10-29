@@ -11,6 +11,7 @@
  * with characters who travel (11b), roads (15) and horses for messengers (the economy's second phase).
  */
 import { connectionDays, connectionKm } from "./distance.ts";
+import { MarchData } from "./command.ts";
 import { Rivers, climateOf, crossingBetween, floodSeasonOf } from "./geography.ts";
 import { type Edge, WinterSeason, type WorldMap, dangerousInWinter } from "./map.ts";
 
@@ -59,6 +60,11 @@ export interface Company {
   readonly animals?: Animals;
   /** The parts moving together, each with its own terms: the slowest sets the pace. */
   readonly parts?: readonly Company[];
+  /**
+   * Troops on the march (item 13, distance-based marching): an army's or a fleet's men, which set its pace as a column's
+   * length does ({@link MarchData}), and whether it is forcing the pace. Left out for everyone else.
+   */
+  readonly troops?: { readonly men: number; readonly fleet: boolean; readonly forced: boolean };
 }
 
 export const OnTheRoad: Company = { sneaking: false };
@@ -138,6 +144,8 @@ export function legPoints(map: WorldMap, from: string, to: string, season: numbe
   const dry = (land && (climateOf(to).water === "Arid" || climateOf(from).water === "Arid")) || crossingBetween(from, to)?.kind === "Desert";
   const fed = withFodder(company, dry || (land && season === WinterSeason && climateOf(to).winter !== "Mild"));
   percent = (percent * sizeAndLoad(fed) * water(company, dry) * leader(company) * roads(company)) / 100_000_000;
+  // An army's or a fleet's size, and a forced march (item 13).
+  percent = (percent * troopsPace(company)) / 100;
   return Math.max(1, Math.round(days * PointsPerDay * (percent / 100)));
 }
 
@@ -163,6 +171,14 @@ function withFodder(c: Company, needed: boolean): Company {
   const cap = c.capacity ?? 0;
   if (!needed || cap <= 0 || c.animals === "Porters") return c;
   return { ...c, load: Math.min(cap, (c.load ?? 0) + Math.floor((cap * ClimatePace.fodderPercent) / 100)) };
+}
+/** An army's or a fleet's pace by its men, and a forced march's (item 13, "What sets a company's pace"). */
+function troopsPace(c: Company): number {
+  const t = c.troops;
+  if (t === undefined) return 100;
+  const [per, most] = t.fleet ? [MarchData.fleetPer, MarchData.fleetMost] : [MarchData.armyPer, MarchData.armyMost];
+  const long = 100 + Math.min(most, Math.floor(Math.max(0, t.men) / per));
+  return t.forced ? Math.floor((long * MarchData.forcedPercent) / 100) : long;
 }
 const leader = (_c: Company): number => 100;
 const roads = (_c: Company): number => 100;

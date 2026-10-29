@@ -36,7 +36,8 @@ describe("RulebookTextTests", () => {
   const Rules: string = leaderRules(true, newGameConfig());
 
   test("The rulebook states dislodgement, hunger and mutiny", () => {
-    Assert.contains("A unit dislodged is destroyed; a unit that is destroyed gives no support", Rules);
+    Assert.contains("A unit dislodged (beaten from where it stood) falls back to a neighbouring province of yours", Rules);
+    Assert.contains("A unit with nowhere to fall back, or beaten by 67 in a hundred or more (three to one), is destroyed, and a unit destroyed gives no support", Rules);
     Assert.contains("A unit that cannot eat in full goes hungry; one hungry 2 seasons running mutinies. One not paid in full counts a season of missing pay; one unpaid 3 seasons running mutinies.", Rules);
     Assert.contains("Your battle report says why each of your moves that failed was stopped", Rules);
   });
@@ -108,9 +109,10 @@ describe("RulebookTextTests", () => {
 
   test("Every court reads every power s opening troops treasury and starting strength", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
-    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 18727.", Rules);
-    Assert.contains("- Babylonia: armies in babylon, sippar and durkurigalzu; treasury 600 shekels;", Rules);
-    Assert.contains("- Alashiya: a fleet in enkomi; treasury 400 shekels;", Rules);
+    // Item 13: each unit at the size the armies dossier gives it.
+    Assert.contains("- Egypt: armies in memphis (7500 men), akhetaten (7500 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 18739.", Rules);
+    Assert.contains("- Babylonia: armies in babylon (4000 men), sippar (3000 men) and durkurigalzu (3000 men); treasury 600 shekels;", Rules);
+    Assert.contains("- Alashiya: an army of 1500 men in enkomi, a fleet of 750 men in enkomiwaters; treasury 400 shekels;", Rules);
 
     // The figures are the game's own: every unit, treasury and starting strength as a new game sets them.
     let s = newGame(9);
@@ -222,7 +224,7 @@ describe("SeasonRulebookTests", () => {
     ],
     ["Each siege costs the besieger 15 a season on top of the army's pay."],
     [
-      "A kingdom falls with its capital. If another king takes your capital, by storming its walls or by a siege, you have fallen and your game is over: all your remaining land passes to him (if he falls too in the same season, it passes on with his own land), your troops disband, and what you owe dies with you. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it",
+      "A kingdom falls with its capital, which is wherever you are. If another king takes you, by taking the city where you are (storming its walls or by a siege) or on the road, you have fallen and your game is over: your realm comes apart (step 10 of how a season resolves, below), and what you owe dies with you. You may cede your capital only by agreement: a sealed tablet between you and the receiver that gives it",
     ],
   ] as const)("The rulebook states each rule %s", (rule: string) => {
     Assert.contains(rule, Rules);
@@ -232,7 +234,7 @@ describe("SeasonRulebookTests", () => {
     // A reply that leaves out where a unit goes, or names a power nobody knows: the king is told, the order never vanishes.
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","letters":[],
+        `{"notes":"","command":[],"letters":[],
  "units":[{"unit":"memphis","order":"move","target":"","to":""},
           {"unit":"akhetaten","order":"support","target":"","to":"sinai"},
           {"unit":"deltawaters","order":"convoy","target":"memphis","to":""}],
@@ -267,7 +269,7 @@ describe("SeasonRulebookTests", () => {
   test("A spy order with nowhere to watch is refused with the reason rather than dropped", () => {
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","units":[],"letters":[],"other_orders":[{"action":"place_spy","province":"","power":"","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","units":[],"command":[],"letters":[],"other_orders":[{"action":"place_spy","province":"","power":"","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
       )!,
     );
     Assert.equal(placeSpy("c3"), Assert.single(sub.orders));
@@ -361,7 +363,7 @@ describe("ViewTextTests", () => {
   test("The schema says how to besiege a city and what each greeting flag means", () => {
     // As the king reads it: the JSON text escapes an apostrophe, which the model reads as the apostrophe.
     let schema = JSON.stringify(Schemas.leaderOrders(newGameConfig()));
-    Assert.contains('"enum":["hold","move","support","convoy","disband","settle","besiege","sally"]', schema);
+    Assert.contains('"enum":["hold","move","force_march","support","convoy","disband","settle","besiege","sally"]', schema);
     Assert.contains("sally: the province the attack on the troops within your walls comes from", schema);
     Assert.contains("besiege: an army standing within walls you do not hold besieges that city", schema);
     Assert.doesNotContain("support its walls holding", schema);
@@ -430,7 +432,7 @@ describe("ViewTextTests", () => {
     await seat.hostAudience(view, Views.for(s, "Egypt"), undefined);
 
     let user = Assert.single(recorder.specs).user;
-    Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, fleet in delta.", user);
+    Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, army in gaza, army in sumur, fleet in delta.", user);
     Assert.contains("NEWS THIS SEASON:", user);
     Assert.contains("[Rejected] Levy failed: No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", user);
     Assert.contains("[Notice] The treasury: ", user);

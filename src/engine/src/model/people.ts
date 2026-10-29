@@ -276,7 +276,7 @@ export const ContractSchema: ObjSchema<Contract> = obj("Contract", newContract, 
 export const CharacterStatusValues = ["Free", "Employed", "Captured", "Dead"] as const;
 export type CharacterStatus = (typeof CharacterStatusValues)[number];
 
-export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading"] as const;
+export const DutyValues = ["None", "EnvoyOutbound", "EnvoyAtCourt", "EnvoyHomebound", "Detained", "SpyOutbound", "SpyPosted", "UnderGuard", "Travelling", "Leading", "Commanding", "Governing"] as const;
 export type Duty = (typeof DutyValues)[number];
 
 /**
@@ -418,6 +418,11 @@ export interface Character {
   heard: string[];
   /** Item 11b: the last season it gave up the road ("The way back"), or null if it never led a band. */
   leftRoad: number | null;
+  /** Item 13: the battles it won and lost commanding an army, a record its master and anyone who hears of them can weigh. */
+  won: number;
+  lost: number;
+  /** Item 13: the king whose command of an army or governorship of a province it holds (duty Commanding or Governing). */
+  grantedBy: Power | null;
   /** Item 12, "Languages": its true skill in each language it has any of, 0 to 100, hidden like every skill. */
   tongues: Dict<string, number>;
   /** Item 12, "Learning by living there": its hidden aptitude for languages, 0 to 100. */
@@ -593,6 +598,9 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     news: [],
     heard: [],
     leftRoad: null,
+    won: 0,
+    lost: 0,
+    grantedBy: null,
     tongues: new Dict(),
     aptitude: 0,
     understood: [],
@@ -666,6 +674,9 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   news: list(() => NewsHeldSchema),
   heard: list(S),
   leftRoad: opt(I),
+  won: I,
+  lost: I,
+  grantedBy: opt(S),
   tongues: dict(I),
   aptitude: I,
   understood: list(S),

@@ -30,13 +30,14 @@ import {
   unitAt,
   priceAt,
 } from "@amarna/engine";
-import { Assert, last } from "./support.ts";
+import { Assert, armiesBefore13, last } from "./support.ts";
 
 // The economy at home (build order item 9+a): the harvest's tax into the stores, the mines' gold into the treasury, the
 // markets and their purses, troops' pay and food, hunger and mutiny, caravans, the siege's clock and the wealth of a realm.
 describe("EconomyTests", () => {
   const Map = WorldMap.default;
-  const game = (): GameState => newGame(1, newGameConfig({ catastropheChance: 0 }));
+  // The armies as before item 13: these rules were measured on full levies.
+  const game = (): GameState => armiesBefore13(newGame(1, newGameConfig({ catastropheChance: 0 })));
   const notice = (s: GameState, title: string): string => last(inboxOf(s, "Hatti"), (i) => i.title === title).body;
 
   test("The harvest's tax goes into each province's stores and the mines' gold into the treasury", () => {
@@ -183,7 +184,8 @@ describe("EconomyTests", () => {
   });
 
   test("Strength is the wealth of the realm: land, treasury, purses, stores and markets, and what its men carry", () => {
-    const s = game();
+    // The opening positions as a new game sets them, armies and all.
+    const s = newGame(1, newGameConfig({ catastropheChance: 0 }));
     const e = new TurnEngine(s);
     const o = openings(s.config).find((x) => x.power === "Hatti")!;
     Assert.equal(o.strength, e.strength("Hatti"));

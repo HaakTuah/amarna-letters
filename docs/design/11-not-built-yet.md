@@ -33,11 +33,11 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   once news travels (item 7; what it needs is in `docs/archive/rounds/2026-10-19-visual-overhaul.md`).
 - **Errands item 10 left for later** ("Errands, not roles"): carrying a candidate an offer (item 11's live pool), carrying a
   ransom or a bribe by hand, a king's messenger who only delivers (envoys carry letters; since item 11b spies' reports need
-  carriers, see [roads and reputations](23-roads-and-reputations.md)), chaining several stops in one errand, and taking
-  command (item 13). Characters answering questioning, and choosing to lie, themselves rather than by formula.
+  carriers, see [roads and reputations](23-roads-and-reputations.md)), and chaining several stops in one errand (taking
+  command is built since item 13, [command at a distance](35-command-at-a-distance.md)). Characters answering questioning, and choosing to lie, themselves rather than by formula.
 - **Tablets that need a reader**: built in item 12 ([languages](30-languages.md)), except a tablet sent to a third court
   to be read and its reading sent back ("Tablets are objects in a place"; a copy can be shown abroad by envoy, but no
-  translation comes home), and an archive that moves with the court ("Command at a distance"; item 13).
+  translation comes home). The archive goes with the court since item 13.
 - **Model characters in the simulation kit**: envoys and spies as isolated agents, for the second agent simulation
   (item 4).
 - **Call size, what 6b left**: a "since you last acted" view of the map (the view stays whole; only the digest of slept
@@ -46,12 +46,12 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   human seat's standing answers is built since item 8, see [structured press](14-structured-press.md)).
 - **Script kings selling or faking news**: they pass on news in clauses (troops seen, a king's strength) but sell none
   and invent none; since item 11b free characters sell news and script kings buy it. Carriers reading, selling or
-  swapping what they carry, and hiring bands as mercenaries (command at a distance, item 13).
+  swapping what they carry (hiring bands as soldiers is built since item 13).
 - **A cheaper summariser**, measured on the same games before it is used ("A cheaper model for condensing,
   to be measured"; the round report, Part E).
-- **Command at a distance**: the capital where the king is, commanders whose competence sets their tactical search,
-  army mandates, no commander, no mandate ("Command at a distance" and "Ruling by mandate"; question 7;
-  item 13).
+- **What item 13 left** ([command at a distance](35-command-at-a-distance.md)): a governor of a fallen kingdom becoming
+  his province's leader with a seat of his own (risen seats, item 17; until then his province falls lawless with the
+  rest); commanders and governors deciding by model rather than by script.
 - **Legends**: biographies of characters, histories of tablets and the rise and fall of courts, grown from the
   "follow this character" view ("The narrator illuminates; it never steers"; item 14).
 - **The message-kind fallback for reopening orders**, if kings reopen too often after audiences: reopening offered

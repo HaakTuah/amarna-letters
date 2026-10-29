@@ -93,7 +93,7 @@ export class OrderDraft {
     const list: { from: string; to: string; support: boolean; kind: UnitKind }[] = [];
     const kindAt = (p: string): UnitKind => this.unitAt(p)?.kind ?? "Army";
     for (const [at, d] of this.units) {
-      if (d.kind === "move" && d.target !== null) list.push({ from: at, to: d.target, support: false, kind: kindAt(at) });
+      if ((d.kind === "move" || d.kind === "force") && d.target !== null) list.push({ from: at, to: d.target, support: false, kind: kindAt(at) });
       if (d.kind === "support" && d.target !== null) list.push({ from: at, to: d.to ?? d.target, support: true, kind: kindAt(at) });
       if (d.kind === "convoy" && d.target !== null && d.to !== null) list.push({ from: d.target, to: d.to, support: true, kind: "Army" });
     }
@@ -104,6 +104,7 @@ export class OrderDraft {
     const orders: Order[] = [];
     for (const [at, d] of this.units) {
       if (d.kind === "move" && d.target !== null) orders.push(move(at, d.target));
+      else if (d.kind === "force" && d.target !== null) orders.push(move(at, d.target, true));
       else if (d.kind === "support" && d.target !== null) orders.push(support(at, d.target, d.to === null || d.to === "" ? null : d.to));
       else if (d.kind === "convoy" && d.target !== null && d.to !== null) orders.push(convoy(at, d.target, d.to));
       else if (d.kind === "disband") orders.push(disband(at));

@@ -27,7 +27,7 @@ describe("ContractTextTests", () => {
     Assert.contains('"term"', schema);
     let json = JSON.parse(
       `{
-  "notes": "", "units": [], "letters": [],
+  "notes": "", "units": [], "command":[],"letters": [],
   "other_orders": [ { "action": "renew", "province": "", "to": "", "power": "", "person": "c3", "amount": 20, "term": 0, "gold": 0, "text": "", "item": "", "seals": [], "errand": "", "standing": "" },
                     { "action": "renew", "province": "", "to": "", "power": "", "person": "c4", "amount": 25, "term": 9, "gold": 0, "text": "", "item": "", "seals": [], "errand": "", "standing": "" },
                     { "action": "hire", "province": "", "to": "", "power": "", "person": "c9", "amount": 30, "term": 12, "gold": 10, "text": "", "item": "", "seals": [], "errand": "", "standing": "" },

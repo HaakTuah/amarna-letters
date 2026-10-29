@@ -21,6 +21,8 @@ export { BorderPlay } from "./bots/borders.ts";
 export { MoneyPlay } from "./bots/credit.ts";
 export { OutlawPlay } from "./bots/outlaws.ts";
 export { VassalPlay } from "./bots/vassals.ts";
+export { CommandPlay } from "./bots/generals.ts";
+export { commanderOrder } from "./bots/commander.ts";
 export { LanguagePlay } from "./bots/tongues.ts";
 export { SeasonPlay } from "./bots/land.ts";
 export { WallPlay } from "./bots/board.ts";

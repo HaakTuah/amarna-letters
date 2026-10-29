@@ -106,7 +106,7 @@ P.placeSpy = function (p, ps) {
   const c = char(S, ps.character);
   const court = ps.court ?? null;
   const province = ps.province ?? null;
-  const target = court !== null ? Map.capital(court).id : province!;
+  const target = court !== null ? this.courtAt(court) : province!;
   // Haakon's answers to item 11a: a job is one errand; one who did not take the job offered, or whose job is another, stays.
   const job = c.contract?.errand ?? null;
   if (c.employer !== p || c.status !== "Employed" || (job !== null && (job.what !== "spy" || job.where !== (court ?? province) || job.done))) {
@@ -120,7 +120,7 @@ P.placeSpy = function (p, ps) {
   c.watchProvince = province;
   const j = newJourney({ id: newId(S, "j"), kind: "SpyOutbound", departTurn: S.turn, from: p, to: court ?? p, characterId: c.id });
   S.journeys.push(j);
-  this.setOut(j, Map.capital(p).id, target);
+  this.setOut(j, this.courtAt(p), target);
   const travel = j.arriveTurn - S.turn;
   remember(c, S.turn, `My lord of ${land(p)} sent me quietly to watch ${court !== null ? land(court) : Map.get(province!).name}.`);
   if (province !== null) logEvent(S, "spy", `${p} sent a spy to watch ${Map.get(province).name}.`, [p], "spy-watching");
@@ -151,12 +151,12 @@ P.recall = function (p, c) {
   const Map = this.map;
   // Its stay is over, recalled or its term served: its job is done when it is home.
   if (c.contract?.errand?.what === "spy") c.contract.errand.done = true;
-  const from = c.missionTarget !== null ? Map.capital(c.missionTarget).id : (c.watchProvince ?? Map.capital(p).id);
+  const from = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(p));
   c.duty = "EnvoyHomebound";
   c.at = null;
   const j = newJourney({ id: newId(S, "j"), kind: "SpyHomebound", departTurn: S.turn, from: c.missionTarget ?? p, to: p, characterId: c.id });
   S.journeys.push(j);
-  this.setOut(j, from, Map.capital(p).id);
+  this.setOut(j, from, this.courtAt(p));
 };
 
 /**
@@ -170,9 +170,9 @@ P.recallCovered = function (p, c, cover) {
   cover.recalled = true;
   cover.dutyText = "on the road home";
   cover.whereText = c.watchProvince !== null ? `in ${c.watchProvince}` : "travelling";
-  const post = c.missionTarget !== null ? Map.capital(c.missionTarget).id : (c.watchProvince ?? Map.capital(p).id);
+  const post = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(p));
   const place = c.missionTarget !== null ? `the court of ${c.missionTarget}` : c.watchProvince !== null ? Map.get(c.watchProvince).name : p;
-  const due = S.turn + this.travelTurnsBetween(post, Map.capital(p).id);
+  const due = S.turn + this.travelTurnsBetween(post, this.courtAt(p));
   // Due back as a spy really recalled now would be.
   cover.timingText = Views.homeTiming(due);
   this.overdue(p, c, c.heldBy ?? c.missionTarget ?? p, due, place);
@@ -252,7 +252,7 @@ P.watchAndReport = function () {
       }
       report.tabletIds = this.copyFromArchive(c, c.missionTarget, employer);
     }
-    const from = c.missionTarget !== null ? Map.capital(c.missionTarget).id : (c.watchProvince ?? Map.capital(employer).id);
+    const from = c.missionTarget !== null ? this.courtAt(c.missionTarget) : (c.watchProvince ?? this.courtAt(employer));
     // Item 11b ("Messengers are errands"): from abroad it waits for a carrier; inside its master's own land the realm's
     // couriers carry it ("Distance inside your own realm"). From a watch post just across its master's border too it waits:
     // the spy may walk it to the border himself, leaving his post (Haakon's answers to item 11b+).
@@ -275,7 +275,7 @@ P.watchAndReport = function () {
 
 /** How long a report from a post inside its master's land takes to reach him: the realm's couriers carry it. */
 P.reportRoad = function (from, employer) {
-  return this.travelTurnsBetween(from, this.map.capital(employer).id);
+  return this.travelTurnsBetween(from, this.courtAt(employer));
 };
 
 /**
@@ -285,7 +285,7 @@ P.reportRoad = function (from, employer) {
 P.borderOf = function (c, employer) {
   const S = this.s;
   if (c.missionTarget !== null || c.watchProvince === null) return null;
-  const home = this.map.capital(employer).id;
+  const home = this.courtAt(employer);
   return (
     sortBy(
       this.map.neighbors(c.watchProvince).filter((n) => S.owner.getOrDefault(n, null) === employer),
@@ -503,7 +503,7 @@ P.captive = function (host, co) {
       // Haakon's answers to item 11b: a demand is a message, which waits at the captor's court for someone going that way.
       const before = S.journeys.length;
       this.rumor(payer, host, `${host} holds ${c.name} and demands ${formatMoney(co.ransom)} for their return (order pay_ransom for ${c.id}).`, c.id, "Ransom", demand.id);
-      if (S.journeys.length > before) [S.journeys[before].arriveTurn, S.journeys[before].waitAt] = [Waiting, this.map.capital(host).id];
+      if (S.journeys.length > before) [S.journeys[before].arriveTurn, S.journeys[before].waitAt] = [Waiting, this.courtAt(host)];
       demand.dueTurn = S.turn + 8;
       break;
     }

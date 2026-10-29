@@ -3,6 +3,12 @@
  * methods before the engine is used.
  */
 import "./resolve.ts";
+import "./battles.ts";
+import "./marching.ts";
+import "./command.ts";
+import "./couriers.ts";
+import "./kings.ts";
+import "./governors.ts";
 import "./events.ts";
 import "./covers.ts";
 import "./inventories.ts";
@@ -10,6 +16,7 @@ import "./archives.ts";
 import "./sieges.ts";
 import "./intel.ts";
 import "./envoys.ts";
+import "./envoys-home.ts";
 import "./court.ts";
 import "./jobs.ts";
 import "./money.ts";
@@ -56,3 +63,4 @@ export { LanguageData, UnheardTitle, UnheardOutcome, UnheardOnArrival, tongueCla
 export { WinterLossTitle, type WinterCrossing } from "./winter.ts";
 export { GrantTitle, RepudiatedTitle } from "./authority.ts";
 export { TollsTitle } from "./trade.ts";
+export { CommanderMinds } from "./command.ts";

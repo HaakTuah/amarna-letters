@@ -80,7 +80,7 @@ describe("BattleReportTests", () => {
     Assert.contains("- A suhu -> terqa: fails: it met a move into terqa from ashur by Assyria's army; your strength 1 against 2", reportOf(s, "Babylonia"));
   });
 
-  test("A support whose unit is destroyed is void and a cut support says from where", () => {
+  test("A support whose unit is beaten from its place is void and a cut support says from where", () => {
     let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0 })));
     resolve(
       s,
@@ -90,8 +90,9 @@ describe("BattleReportTests", () => {
       }),
     );
     let destroyed = reportOf(s, "Assyria");
-    Assert.contains("- A ekallate supports ashur -> terqa: void: the supporting unit was destroyed", destroyed);
-    Assert.contains("- A ekallate is destroyed", destroyed);
+    Assert.contains("- A ekallate supports ashur -> terqa: void: the supporting unit was beaten from its place", destroyed);
+    // Item 13: beaten from its place, it falls back rather than being destroyed.
+    Assert.contains("- A ekallate falls back to arrapha", destroyed);
     Assert.contains("- A ashur -> terqa: fails: the unit holding terqa (Mitanni's army) kept its place; your strength 1 against 1", destroyed);
 
     let t = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0 })));

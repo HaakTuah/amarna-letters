@@ -239,7 +239,8 @@ describe("RecordTextTests", () => {
       ]),
     );
     let assyria = battle(t, "Assyria");
-    Assert.contains("- A ekallate is destroyed", assyria);
+    // Item 13: beaten from its place, it falls back rather than being destroyed.
+    Assert.contains("- A ekallate falls back to arrapha", assyria);
     Assert.doesNotContain("stays in ekallate", assyria);
   });
 

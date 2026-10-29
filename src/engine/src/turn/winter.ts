@@ -3,7 +3,7 @@
  * under War, travel and the seas). No pass and no sea closes with the season: an army that crosses a mountain pass in
  * winter, or is carried over the open sea then, and a fleet that crosses the open sea then, may be lost, each with its
  * share of its men (GameConfig.winterArmyLoss, winterFleetLoss; first guesses, tuned in item 18), by its size and the food it
- * carries since item 11a+; the commander, who cuts the losses in the design, is neutral until item 13. Travellers are slowed and
+ * carries since item 11a+; a skilled commander cuts them since item 13 ({@link CommandData}). Travellers are slowed and
  * meet the road's check instead (model/travel.ts, turn/travel.ts).
  */
 import type { Dict, HSet } from "../core/collections.ts";
@@ -14,6 +14,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import { logEvent, notify, unitLabel, type Unit } from "../model/state.ts";
 import { idiv } from "../core/num.ts";
 import { LandData, shareOfFull, unitCarried, unitFood, WinterData } from "../model/land.ts";
+import { CommandData } from "../model/command.ts";
 import { TurnEngine } from "./core.ts";
 
 declare module "./core.ts" {
@@ -97,6 +98,8 @@ P.loseToWinter = function (crossings, sightBefore) {
     const weather = this.r("winter", u.id).range(50, 150);
     let percent = idiv(idiv(base * shareOfFull(u.kind, u.men), 1000) * weather, 100);
     if (supplied) percent = idiv(percent * WinterData.suppliedPercent, 100);
+    // A skilled commander cuts the losses, a poor one adds to them (item 13).
+    percent = Math.max(0, idiv(percent * (100 - idiv(this.commandOf(u).competence - 50, CommandData.winterPer)), 100));
     const lost = Math.min(u.men, idiv(u.men * percent, 100));
     const what = u.kind === "Army" ? "army" : "fleet";
     const crossing = x.how === "pass" ? (crossingBetween(x.from, x.to)?.name ?? "the pass") : "the open sea";
