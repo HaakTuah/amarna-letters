@@ -73,6 +73,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 11c | The map in true geography, and the Red Sea | done (29 Oct): the board in a true projection from Natural Earth, names by zoom step, the map opening on the seat's realm; the Red Sea (Thebes and the Sinai its coasts by desert roads, Punt a door); Akko, Hazor, Gezer, Ashkelon, Lachish and the Hebron Hills as city-states, Egypt's vassals; save version 27 | `item/true-map` (#143) | [report](rounds/2026-10-29-true-map.md) |
 | 11d | The answers to item 11+ | done (stop for review: question in "For Haakon") | `item/answers-to-11plus` (#145) | [report](rounds/2026-10-29-answers-to-11plus.md) |
 | 11e | Cities defended by their men, and a fair scoreboard | not started: next, before item 12's measurements (`docs/intent/build-order/item-11.md`) | | |
+| 11c+ | The map read at a glance, and the newest version at once | not started: a lane beside 11e and 12, web app only (`docs/intent/build-order/item-11.md`) | | |
 | 12 | Languages | not started | | |
 | 13 | Command at a distance | not started | | |
 | 14 | Legends | not started | | |
