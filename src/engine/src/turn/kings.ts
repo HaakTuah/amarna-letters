@@ -6,6 +6,7 @@
  * stands taken by another power takes him with it, and on the road he can be stopped where a king who closed his roads to
  * him has troops. A king who has moved is not taken with his old seat.
  */
+import { waysOf } from "../model/works.ts";
 import { idiv } from "../core/num.ts";
 import { cmpStr, sortBy } from "../core/seq.ts";
 import { CourtData, newKingRoad } from "../model/command.ts";
@@ -63,7 +64,7 @@ P.kingsTravel = function () {
     while (road.leg < road.route.length - 1 && left > 0) {
       const a = road.route[road.leg];
       const b = road.route[road.leg + 1];
-      const need = legPoints(this.map, a, b, season, { sneaking: false, size: CourtData.companyMen }) - road.along;
+      const need = legPoints(this.map, a, b, season, { sneaking: false, size: CourtData.companyMen, ways: waysOf(this.s) }) - road.along;
       if (need > left) {
         road.along += left;
         left = 0;

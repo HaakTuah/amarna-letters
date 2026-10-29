@@ -10,10 +10,12 @@
  * with land and climate (10+), an army's size and forced marches with distance-based marching (13), the leader's skill
  * with characters who travel (11b), roads (15) and horses for messengers (the economy's second phase).
  */
+import { idiv } from "../core/num.ts";
 import { connectionDays, connectionKm } from "./distance.ts";
 import { MarchData } from "./command.ts";
 import { Rivers, climateOf, crossingBetween, floodSeasonOf } from "./geography.ts";
 import { type Edge, WinterSeason, type WorldMap, dangerousInWinter } from "./map.ts";
+import { roadTerm, stationTerm, type Ways } from "./works.ts";
 
 /** Points to a day on the road: progress counts in tenths of a day, so a factor worth a day or less still counts. */
 export const PointsPerDay = 10;
@@ -65,6 +67,11 @@ export interface Company {
    * length does ({@link MarchData}), and whether it is forcing the pace. Left out for everyone else.
    */
   readonly troops?: { readonly men: number; readonly fleet: boolean; readonly forced: boolean };
+  /**
+   * The roads and relay stations it goes by (item 15, the roads term): a kept road speeds everyone on it, armies included,
+   * and relay stations a lone traveller; left out, every road is a kept track (level 1) and there are no stations.
+   */
+  readonly ways?: Ways;
 }
 
 export const OnTheRoad: Company = { sneaking: false };
@@ -116,12 +123,13 @@ export function boatDays(map: WorldMap, from: string, to: string): number | null
 export function legPoints(map: WorldMap, from: string, to: string, season: number, company: Company = OnTheRoad): number {
   if (edgeBetween(map, from, to) === null) return Infinity;
   // The slowest part sets the pace of a company moving together.
-  if (company.parts !== undefined && company.parts.length > 0) return Math.max(...company.parts.map((c) => legPoints(map, from, to, season, c)));
+  if (company.parts !== undefined && company.parts.length > 0) return Math.max(...company.parts.map((c) => legPoints(map, from, to, season, c.ways === undefined && company.ways !== undefined ? { ...c, ways: company.ways } : c)));
   // The land it crosses: terrain, passes and the desert, and at sea the passage and the current (item 7a's data);
   // a boat on a river where one goes faster than walking.
   let days = connectionDays(map, from, to);
   const boat = boatDays(map, from, to);
-  if (boat !== null && boat < days) days = boat;
+  const byBoat = boat !== null && boat < days;
+  if (byBoat) days = boat;
   // River crossings: the ferry, and the flood season.
   const c = crossingBetween(from, to);
   if (c !== null && c.kind === "River") {
@@ -143,7 +151,7 @@ export function legPoints(map: WorldMap, from: string, to: string, season: numbe
   // (13), the leader (11b), roads (15), horses (the economy's second phase).
   const dry = (land && (climateOf(to).water === "Arid" || climateOf(from).water === "Arid")) || crossingBetween(from, to)?.kind === "Desert";
   const fed = withFodder(company, dry || (land && season === WinterSeason && climateOf(to).winter !== "Mild"));
-  percent = (percent * sizeAndLoad(fed) * water(company, dry) * leader(company) * roads(company)) / 100_000_000;
+  percent = (percent * sizeAndLoad(fed) * water(company, dry) * leader(company) * roads(company, from, to, land && !byBoat)) / 100_000_000;
   // An army's or a fleet's size, and a forced march (item 13).
   percent = (percent * troopsPace(company)) / 100;
   return Math.max(1, Math.round(days * PointsPerDay * (percent / 100)));
@@ -181,7 +189,16 @@ function troopsPace(c: Company): number {
   return t.forced ? Math.floor((long * MarchData.forcedPercent) / 100) : long;
 }
 const leader = (_c: Company): number => 100;
-const roads = (_c: Company): number => 100;
+/**
+ * The roads term (item 15): on land, off the boat and on the road, the road's level in each half of the connection, and
+ * for a lone traveller the relay stations' fresh animals and stores too.
+ */
+function roads(c: Company, from: string, to: string, onLand: boolean): number {
+  if (!onLand || c.sneaking || c.ways === undefined) return 100;
+  const road = roadTerm(c.ways, from, to);
+  const lone = c.size === undefined && c.troops === undefined && (c.parts === undefined || c.parts.length === 0) && (c.capacity ?? 0) === 0;
+  return lone ? idiv(road * stationTerm(c.ways, from, to), 100) : road;
+}
 
 /**
  * The cheapest route between two provinces by a cost for each connection and for entering each province (Infinity bars

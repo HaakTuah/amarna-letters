@@ -41,7 +41,10 @@ import {
   dismiss,
   dispatch,
   forge,
-  fortify,
+  build,
+  raze,
+  type WorkKind,
+  PoliceMenPerLevel,
   sell,
   purchase,
   feed,
@@ -406,9 +409,25 @@ function unit(u: Node): Order | null {
       return besiege(at);
     case "sally":
       return sally(at, target);
+    case "raze": {
+      const kind = workKindNamed(target);
+      return kind !== null ? raze(at, kind) : unreadable(`${at} razes '${target}'`, "name in target what to raze: roads, stations, harbour or water");
+    }
     default:
       return null;
   }
+}
+
+/** What a reply names to build or raze, in the rulebook's words. */
+function workKindNamed(word: string): WorkKind | null {
+  const w = word.trim().toLowerCase();
+  if (w.startsWith("wall")) return "Walls";
+  if (w.startsWith("road")) return "Roads";
+  if (w.includes("station") || w.startsWith("relay")) return "Stations";
+  if (w.startsWith("harbo")) return "Harbour";
+  if (w.startsWith("polic") || w.startsWith("patrol")) return "Policing";
+  if (w.startsWith("water") || w.startsWith("well") || w.startsWith("cistern")) return "Water";
+  return null;
 }
 
 function other(x: Node): Order | null {
@@ -427,8 +446,12 @@ function other(x: Node): Order | null {
       return raise(province, "Army", amount > 0 ? amount : null);
     case "raise_fleet":
       return raise(province, "Fleet", amount > 0 ? amount : null);
-    case "fortify":
-      return fortify(province);
+    case "build":
+    case "build_corvee": {
+      const kind = workKindNamed(S(x, "item"));
+      if (kind === null) return unreadable(`build in ${province}`, "name what to build in item: walls, roads, stations, harbour, police or water");
+      return build(province, kind, kind === "Policing" ? Math.round(Math.max(0, amount) / PoliceMenPerLevel) : amount, S(x, "action") === "build_corvee");
+    }
     case "sell_grain":
       return sell(province, amount);
     case "buy_grain":

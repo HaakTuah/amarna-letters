@@ -153,8 +153,8 @@ export class TurnEngine {
 
   /**
    * The season's economy as it begins (build order item 9+a): the harvest's tax into the stores and the mines' gold into
-   * the treasury, spoiling, the towns' meals and the sieges' clocks; then each king pays his troops, the walls he raised
-   * (their builders' pay goes into the province's purse) and his people at court; then every unit eats, the hungry and
+   * the treasury, spoiling, the towns' meals and the sieges' clocks; then each king pays his troops and his people at court
+   * (what he keeps and builds he pays at the end of the season, item 15); then every unit eats, the hungry and
    * the unpaid mutiny in time, and the caravans go on. Each king reads it in one notice.
    */
   incomeAndUpkeep(): void {
@@ -165,33 +165,14 @@ export class TurnEngine {
     for (const p of alive(S)) {
       const t = S.treasuries.get(p);
       const troops = this.payTroops(p);
-      // Walls above the map's own are kept up after the troops: what the treasury cannot keep falls a level.
-      const crumbled: string[] = [];
-      while (this.wallsUpkeep(p) > Math.max(0, t.gold)) {
-        const cap = this.courtAt(p);
-        const weakest = sortBy(
-          ownedBy(S, p).filter((x) => wallsOf(S, x) > (StartWalls.get(x) ?? 0)),
-          [(x: string) => Map.hops(cap, x), desc(cmpNum)],
-          [(x: string) => x, cmpStr],
-        )[0];
-        if (weakest === undefined) throw new Error("Sequence contains no elements");
-        this.lowerWalls(weakest);
-        crumbled.push(Map.get(weakest).name);
-      }
-      const walls = this.wallsUpkeep(p);
-      t.gold -= walls;
-      for (const x of ownedBy(S, p)) this.spendAt(x, Math.max(0, wallsOf(S, x) - (StartWalls.get(x) ?? 0)) * S.config.wallUpkeep);
-
       // Written before the season's audiences and envoys' returns: their gold comes after this figure.
       const lines = notes.getOrDefault(p, []);
       lines.push(
-        `Gold in since your last orders: ${formatMoney(t.income)}, from your mines and your sales at your markets. Paid: your troops ${formatMoney(troops.paid)}${walls > 0 ? `, walls ${formatMoney(walls)}` : ""}.` +
+        `Gold in since your last orders: ${formatMoney(t.income)}, from your mines and your sales at your markets. Paid: your troops ${formatMoney(troops.paid)}.` +
           ` The treasury now holds ${formatMoney(ledger(t))}; gold received at audiences or brought home by your envoys this season is added later.`,
       );
       if (troops.unpaid.length > 0)
         lines.push(`Not paid this season: ${troops.unpaid.join(", ")}. Missing pay acts slowly: a unit unpaid ${EconomyData.unpaidMutiny} seasons running mutinies.`);
-      if (crumbled.length > 0)
-        lines.push(`Unkept, walls fell a level: ${groupBy(crumbled, (x) => x).map(([k, g]) => (g.length === 1 ? k : `${k} (${g.length} levels)`)).join(", ")}.`);
       notes.set(p, lines);
       if (troops.unpaid.length > 0) logEvent(S, "unpaid", `${p} could not pay its troops: ${troops.unpaid.join(", ")}.`, [p], "unpaid");
     }
@@ -214,15 +195,6 @@ export class TurnEngine {
     c.unpaidTurns++;
     c.traits.loyalty = Math.max(0, c.traits.loyalty - 15);
     remember(c, this.s.turn, memory);
-  }
-
-  /**
-   * The upkeep of the walls a power holds above the map's own for each province (GameConfig.wallUpkeep a level a season),
-   * paid after its troops' upkeep.
-   */
-  wallsUpkeep(p: Power): number {
-    const S = this.s;
-    return sum(ownedBy(S, p), (x) => Math.max(0, wallsOf(S, x) - (StartWalls.get(x) ?? 0))) * S.config.wallUpkeep;
   }
 
   /** The pay of a power's troops a season in gold, and the cost of each siege it presses (GameConfig.siegeUpkeep). */
@@ -298,6 +270,8 @@ export class TurnEngine {
     const old = S.owner.getOrDefault(province, null);
     if (old === owner) return;
     S.owner.set(province, owner);
+    // What stands there passes with the land, and its upkeep with it; the old holder's orders for it lapse (item 15).
+    this.worksChangeHands(province);
     // The old holder's tax goes with him: the new one collects the default until he sets his own (item 10+a).
     S.taxes.delete(province);
     // The king who lost it knows at once, as his notice tells him, though it leaves his sight; since item 13 only where

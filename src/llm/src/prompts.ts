@@ -40,7 +40,7 @@ import {
   type GrantView,
   menOf,
 } from "@amarna/engine";
-import { economyLines } from "./prompt-economy.ts";
+import { economyLines, worksLines } from "./prompt-economy.ts";
 import { Sb, joinS } from "./text.ts";
 export function identity(p: Power): string {
   return `You are ${king(p)}, Great King of ${land(p)} (${p}). Your homeland: ${joinS(`, `, WorldMap.default.homeOf(p).map(x => x.id))}; your capital is ${WorldMap.default.capital(p).id}.`;
@@ -140,7 +140,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         const rank = rankLine(v);
         if (rank.length > 0) sb.appendLine(rank);
         const growth = v.startStrength > 0 ? v.strength / v.startStrength : 0;
-        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}; your people's jobs come to about ${v.fees} a season, ${v.feesDue} of their fees still to fall due as their jobs are done${v.feesOwed > 0 ? `, and you let ${v.feesOwed} fall due unpaid` : ``}. People count on ${v.trust} in a hundred of what you promise (you kept ${v.kept} promises to pay and broke ${v.broken}); ${v.payCarriers ? "you pay the carriers of your letters on delivery, by your standing order" : "you do not pay the carriers of your letters on delivery (pay_carriers would)"}; what people ask follows only what they have heard jobs pay`);
+        sb.appendLine(`TREASURY: ${v.gold} shekels by your ledger. Gold in since your last orders ${v.income} (mines and sales); a season you pay your troops ${v.upkeep}${(v.worksUpkeep > 0 ? `, what you keep and build in gold ${v.worksUpkeep}` : ``)}; your people's jobs come to about ${v.fees} a season, ${v.feesDue} of their fees still to fall due as their jobs are done${v.feesOwed > 0 ? `, and you let ${v.feesOwed} fall due unpaid` : ``}. People count on ${v.trust} in a hundred of what you promise (you kept ${v.kept} promises to pay and broke ${v.broken}); ${v.payCarriers ? "you pay the carriers of your letters on delivery, by your standing order" : "you do not pay the carriers of your letters on delivery (pay_carriers would)"}; what people ask follows only what they have heard jobs pay`);
         sb.appendLine(GoldLifeline);
         for (const d of v.debts)
             sb.appendLine(`  Your debt ${d.id}: ${d.left} shekels left of ${d.owed} to repay (${d.principal} lent by ${d.lender} in turn ${d.sealedTurn}, to be repaid by turn ${d.dueTurn}); the tablet is held by ${d.holder}${d.here ? `, who stands at your court (order repay)` : ``}.`);
@@ -148,6 +148,7 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
         for (const d of v.debtsHeld)
             sb.appendLine(`  Tablet ${d.id}: ${d.holder} owes ${d.left} (lent by ${d.lender} in turn ${d.sealedTurn}, to be repaid by turn ${d.dueTurn})${d.here ? `; they stand at your court` : ``}.`);
         for (const l of economyLines(v)) sb.appendLine(l);
+        for (const l of worksLines(v)) sb.appendLine(l);
         // Each lot by what it is, then the court's own mark for it, which only its assay orders use (as for copies of tablets).
         for (const lot of v.unassayedGold)
             sb.appendLine(`  Unassayed gold from ${lot.from}, weighed in turn ${lot.arrivedTurn} [your mark ${lot.id}]: ${lot.weighed} shekels weighed (the inventory said ${lot.stated}).`);
@@ -380,7 +381,7 @@ export function realmBrief(v: SeatView): string
         const sb = new Sb();
         const kindOf = (k: UnitKind): string => (k === "Army" ? `army` : `fleet`);
         sb.appendLine(`YOUR REALM IN BRIEF (enough to judge whether the news changes your plan; you see the full map only if you reopen your orders):`);
-        sb.appendLine(`- Treasury: ${v.gold} shekels by your ledger; gold in since your last orders ${v.income}; a season your troops' pay ${v.upkeep}${(v.wallUpkeep > 0 ? `, walls ${v.wallUpkeep}` : ``)}, your people's jobs about ${v.fees}; fees still to fall due ${v.feesDue}${v.debts.length > 0 ? `; debts ${v.debts.reduce((a, d) => a + d.left, 0)}` : ``}.`);
+        sb.appendLine(`- Treasury: ${v.gold} shekels by your ledger; gold in since your last orders ${v.income}; a season your troops' pay ${v.upkeep}${(v.worksUpkeep > 0 ? `, what you keep and build in gold ${v.worksUpkeep}` : ``)}, your people's jobs about ${v.fees}; fees still to fall due ${v.feesDue}${v.debts.length > 0 ? `; debts ${v.debts.reduce((a, d) => a + d.left, 0)}` : ``}.`);
         const hungry = v.units.filter((u) => u.power === v.power && (u.hungry > 0 || u.unpaid > 0));
         if (hungry.length > 0) sb.appendLine(`- Troops hungry or unpaid: ${joinS(`, `, hungry.map((u) => `${u.province}${u.hungry > 0 ? ` hungry ${u.hungry}` : ``}${u.unpaid > 0 ? ` unpaid ${u.unpaid}` : ``}`))}.`);
         const land = sortBy([...v.owner].filter(x => x[1] === v.power).map(x => x[0]), [x => x, cmpStr]);

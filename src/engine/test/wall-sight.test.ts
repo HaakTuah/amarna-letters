@@ -8,7 +8,8 @@ import {
   type TurnSubmission,
   Views,
   WorldMap,
-  fortify,
+  build,
+  newWorkPlan,
   newGame,
   newGameConfig,
   newId,
@@ -37,7 +38,11 @@ describe("WallSightTests", () => {
     Assert.doesNotContain("thebes", Views.sight(s, WorldMap.default, "Babylonia"));
     let e = new TurnEngine(s);
     e.beginTurn();
-    e.resolve(orders("Egypt", fortify("thebes")));
+    // Walls take two seasons of work a level since item 15.
+    e.resolve(orders("Egypt", build("thebes", "Walls", 1)));
+    e = new TurnEngine(s);
+    e.beginTurn();
+    e.resolve(new Dict<Power, TurnSubmission>());
     Assert.equal(1, wallsOf(s, "thebes"));
     Assert.equal(1, Views.for(s, "Egypt").walls.get("thebes"));
     Assert.false(Views.for(s, "Babylonia").walls.has("thebes"));
@@ -78,13 +83,14 @@ describe("WallSightTests", () => {
   });
 
   test("Walls that fall for want of upkeep are seen only where troops are seen", () => {
-    // Upkeep far above what the treasury holds, so the walls cannot be kept (a test number, not the game's).
-    let s = newGame(1, newGameConfig({ catastropheChance: 0, wallUpkeep: 500 }));
-    // Thebes walled two levels above the map's none, and an empty treasury: they fall as the season opens.
+    let s = newGame(1, newGameConfig({ catastropheChance: 0 }));
+    // Thebes walled two levels above the map's none, kept in gold with an empty treasury, and unpaid for so long that a
+    // level falls this season (item 15: walls decay over a decade).
     s.walls.set("thebes", 2);
     s.wallsSeen.get("Babylonia").set("thebes", 2);
+    s.works.push(newWorkPlan({ province: "thebes", kind: "Walls", keep: 2, labour: false, neglect: 29 }));
     s.treasuries.get("Egypt").gold = 0;
-    new TurnEngine(s).beginTurn();
+    new TurnEngine(s).worksSeason();
     Assert.true(wallsOf(s, "thebes") < 2);
     Assert.equal(wallsOf(s, "thebes"), Views.for(s, "Egypt").walls.getOrDefault("thebes", 0));
     Assert.equal(2, Views.for(s, "Babylonia").walls.get("thebes"));

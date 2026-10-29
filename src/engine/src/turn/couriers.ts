@@ -7,6 +7,7 @@
  * it. Reports come back the same way: what the king sees as current is what a courier could bring him within the season,
  * and of his land and troops farther off he knows only their last report, as old as the road is long.
  */
+import { hostileAt, levelOf, waysOf } from "../model/works.ts";
 import { cmpNum, cmpStr, sortBy } from "../core/seq.ts";
 import { newCourier } from "../model/command.ts";
 import { describe, newTurnSubmission, unitOf, type Order, type TurnSubmission } from "../model/orders.ts";
@@ -85,7 +86,7 @@ function placeOf(e: TurnEngine, p: Power, o: Order): { province: string; unit: U
   switch (o.type) {
     case "sally":
       return { province: o.city, unit: null };
-    case "fortify":
+    case "build":
     case "sell":
     case "purchase":
     case "feed":
@@ -158,6 +159,7 @@ P.sendOrders = function (p, sub) {
       continue;
     }
     S.couriers.push(newCourier({ power: p, plan, given: S.turn, arrives: S.turn + d }));
+    this.courierRead(p, at.province, o);
     logEvent(S, "courier", `${p} sent an order by courier: ${describe(o)}.`, [p], "courier-sent");
     sent.push(`${describe(o)} (arrives in turn ${S.turn + d})`);
   }
@@ -187,13 +189,15 @@ declare module "./core.ts" {
   interface TurnEngine {
     /** The king who stops a courier of `p` on his way to `to`, or null: land closed to `p` where its holder's troops stand. */
     courierStopped(p: Power, to: string, rng: ReturnType<TurnEngine["r"]>): Power | null;
+    /** Item 15: the kings whose relay stations a courier of `p` rests at on his way to `to` read the order he carries. */
+    courierRead(p: Power, to: string, o: Order): void;
   }
 }
 
 P.courierStopped = function (p, to, rng) {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
-  const route = cheapestRoute(this.map, courtOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season))?.route ?? [];
+  const route = cheapestRoute(this.map, courtOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
   for (const x of route) {
     const holder = S.owner.getOrDefault(x, null);
     if (holder === null || holder === p) continue;
@@ -202,6 +206,21 @@ P.courierStopped = function (p, to, rng) {
     if (rng.chance(RoadOdds.troops / 100)) return holder;
   }
   return null;
+};
+
+P.courierRead = function (p, to, o) {
+  const S = this.s;
+  const season = seasonOfTurn(S.turn);
+  const route = cheapestRoute(this.map, courtOf(S, this.map, p), to, (a, b) => legPoints(this.map, a, b, season, { sneaking: false, ways: waysOf(S) }))?.route ?? [];
+  const read = new Set<Power>();
+  for (const x of route) {
+    const holder = S.owner.getOrDefault(x, null);
+    if (holder === null || holder === p || read.has(holder) || levelOf(S, "Stations", x) <= 0) continue;
+    if (hostileAt(S, x, holder)) continue;
+    read.add(holder);
+    this.tell(holder, x, "SpyReport", "Read at a relay station", `At your relay station in ${this.map.get(x).name}, your men read the order a courier of ${p}'s carried to ${this.map.get(to).name}: "${describe(o)}".`);
+    logEvent(S, "station", `${holder}'s station men read an order of ${p}'s on its way to ${this.map.get(to).name}.`, [holder], "station-read");
+  }
 };
 
 P.tell = function (p, province, kind, title, text) {

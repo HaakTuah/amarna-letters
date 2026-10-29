@@ -9,6 +9,7 @@
  * orders, kings sell grain at their markets and buy there, hand grain to their towns ("Kings can feed their towns"), and
  * send caravans out; each market's trades are settled together.
  */
+import { waysOf } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { idiv, roundEven, toInt } from "../core/num.ts";
 import { cmpNum, sortBy, sum } from "../core/seq.ts";
@@ -515,7 +516,7 @@ P.caravansTravel = function () {
       const a = c.route[c.at];
       const b = c.route[c.at + 1];
       const offRoad = (x: string): boolean => c.ship === null && this.caravanOffRoad(c.power, x, sneakOf(c));
-      const cost = legPoints(this.map, a, b, season, { ...company, sneaking: offRoad(a) || offRoad(b) });
+      const cost = legPoints(this.map, a, b, season, { ...company, sneaking: offRoad(a) || offRoad(b), ways: waysOf(this.s) });
       if (cost > budget) break;
       const border = this.atBorder(c, a, b, book);
       if (border !== "pass") {

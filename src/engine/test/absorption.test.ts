@@ -39,6 +39,8 @@ describe("AbsorptionTests", () => {
   function board(): GameState {
     let s = oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 })));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "kaska" }));
+    // Sapinuwa unwalled, as before item 15 gave its royal city a wall: the rules here are absorption's, not a storm's.
+    s.walls.delete("sapinuwa");
     return s;
   }
 

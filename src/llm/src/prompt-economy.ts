@@ -4,8 +4,27 @@
  * cheapest of his markets, his troops' food, his caravans and ships, the foreign markets he knows of and the tolls that
  * bear on him (item 9+b).
  */
-import { WorldMap, cmpNum, cmpStr, countryNeed, desc, groupBy, menOf, priceForTen, reckonedOf, sortBy, strengthWords, sum, type SeatView } from "@amarna/engine";
+import { PoliceMenPerLevel, WorldMap, cmpNum, cmpStr, countryNeed, desc, groupBy, menOf, priceForTen, reckonedOf, sortBy, strengthWords, sum, type SeatView } from "@amarna/engine";
 import { joinS as join } from "./text.ts";
+
+/**
+ * WORKS (item 15): what stands in each province of the king's, what he ordered kept and how, projects under way and what a
+ * season of it all costs, one line a province.
+ */
+export function worksLines(v: SeatView): string[] {
+  if (v.works.length === 0) return [];
+  const level = (w: SeatView["works"][number]): string => (w.kind === "Policing" ? `${w.level * PoliceMenPerLevel} men` : `${w.level}`);
+  const word = (k: string): string => (k === "Stations" ? "stations" : k === "Policing" ? "police" : k === "Water" ? "water works" : k.toLowerCase());
+  const lines = [`WORKS (what stands in your provinces; order build or build_corvee to change what you keep: BUILDING AND POLICING): in gold ${sum(v.works, (w) => w.upkeepGold + w.buildGold)} a season, by corvée ${sum(v.works, (w) => w.upkeepMen + w.buildMen)} men.`];
+  for (const [prov, ws] of groupBy(v.works, (w) => w.province)) {
+    const parts = ws.map((w) => {
+      const keep = w.keep !== w.level ? (w.keep > w.level ? `, building to ${w.kind === "Policing" ? `${w.keep * PoliceMenPerLevel} men` : w.keep} (${w.progress} of ${w.seasons} seasons)` : `, kept at ${w.kind === "Policing" ? `${w.keep * PoliceMenPerLevel} men` : w.keep}, the rest decaying`) : "";
+      return `${word(w.kind)} ${level(w)}${keep}${w.labour ? "" : " (gold)"}${w.neglect > 0 ? `, unpaid ${w.neglect} season(s)` : ""}`;
+    });
+    lines.push(`- ${prov}: ${parts.join("; ")}.`);
+  }
+  return lines;
+}
 
 export function economyLines(v: SeatView): string[] {
   const lines: string[] = [];

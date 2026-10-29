@@ -18,6 +18,7 @@ import type { People } from "./land.ts";
 import { type Band, BandSchema } from "./bands.ts";
 import { type Approach, ApproachSchema, type Debt, DebtSchema, type PayFact, PayFactSchema, type PayRecord, PayRecordSchema } from "./money.ts";
 import { type Courier, CourierSchema, type Governor, GovernorSchema, type KingRoad, KingRoadSchema, type Mandate, MandateSchema } from "./command.ts";
+import { type WorkPlan, WorkPlanSchema } from "./works.ts";
 
 export const PeopleSchema: ObjSchema<People> = obj("People", (init: Partial<People> = {}) => ({ settled: 0, men: 0, loose: 0, ...init }), { settled: I, men: I, loose: I });
 
@@ -81,7 +82,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 34;
+export const CURRENT_VERSION = 35;
 
 export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   "RisenPower",
@@ -162,6 +163,13 @@ export interface GameState {
    * courts' sight. Since the review of the siege package; until then every court saw every wall as it stood.
    */
   wallsSeen: Dict<Power, Dict<string, number>>;
+  /**
+   * The levels of everything built other than walls, by `kind:province` ({@link works.workKey}): roads, relay stations,
+   * harbours, policing and water works (item 15, "One rule for everything built"); a level of 0 is left out.
+   */
+  built: Dict<string, number>;
+  /** The kings' standing orders for what they keep and build, one for each kind in a province where any was given (item 15). */
+  works: WorkPlan[];
   /** Every change of a province's holder, oldest first (item 7b): word of it travels, so courts far away learn it late. */
   ownerLog: OwnerChange[];
   /**
@@ -205,7 +213,7 @@ export interface GameState {
   climate: ClimateEvent[];
   /** The tax each king set on a province of his, in percent, where it is not the default (item 10+a, "How a king lives"). */
   taxes: Dict<string, number>;
-  /** The men levied this season to build walls (the corvée), by province: away from the next harvest. */
+  /** The men levied this season to build and keep what stands (the corvée, item 15), by province: away from the next harvest. */
   corvee: Dict<string, number>;
   /** How well each province's countryside ate last season, in thousandths, where it went short (item 10+a). */
   fed: Dict<string, number>;
@@ -362,6 +370,8 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     owner: new Dict(),
     walls: new Dict(),
     wallsSeen: new Dict(),
+    built: new Dict(),
+    works: [],
     ownerLog: [],
     known: new Dict(),
     roadsClosed: new Dict(),
@@ -457,6 +467,8 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   owner: dict(opt(S)),
   walls: dict(I),
   wallsSeen: dict(dict(I)),
+  built: dict(I),
+  works: list(() => WorkPlanSchema),
   ownerLog: list(() => OwnerChangeSchema),
   known: dict(dict(() => KnownSchema)),
   roadsClosed: dict(list(S)),
