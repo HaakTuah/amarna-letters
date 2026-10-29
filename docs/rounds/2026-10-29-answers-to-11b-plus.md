@@ -47,7 +47,28 @@ Fifteen answers; five of them were built already in item 11b+ and are only check
 
 ## Script players
 
-SCRIPT_PLAYERS
+How often script players used each new rule, and with what result (50 games, seeds 1-50, `after` run):
+
+- **Stays at court**: STAY times in games. A king with nobody else at hand and ample gold keeps a proven person four
+  seasons; each errand then given is its own job.
+- **The border walk**: BORDER walks in games; a script spy at a post just across the border walks at once (waiting
+  seasons for a carrier slowed the script kings' news of their neighbours).
+- **Robbers named**: NAMED travellers named their robbers; people died of the world's dangers DEATHS times.
+- **Reports sold**: never, in these games. A script servant notes news of the court its job sent it to, but sells it
+  only standing at another court, and a spy rarely leaves its post with its job still running; the rule is checked by
+  its test. Listed for item 18's audit with the other characters' gaps.
+- **Hunting**: as before 11b++, by order only where it breaks a band or drives it out (BANDS hunts); the standing hunt
+  over the whole land was measured and lost (below). Script kings withhold the fee of, and dismiss, a servant known to
+  have sold what belonged in its report or its master's secrets.
+- **Letters**: carried by the writer's own people OWN times, by passing travellers PASS, by carriers hired HIRED, by the
+  spy itself SELF.
+
+The review found two blocking problems, both fixed: a spy walking to the border told his master at once that he had
+left his post (he now keeps his master's belief), and a witness's word left from a capital instead of from where he was
+robbed. Also fixed from it: talk of promises is kept without a cap, so nobody silently stops hearing older promises; a
+stay's rest follows withholding, renewing and dismissal; a lifted hunt is feared until talk of the lifting arrives; old
+talk is one note in memory. Left: a stay that resumes after an errand loses its standing offer of the same job again,
+and a border walk turned back before the border loses its reports (rare).
 
 ## Benchmarks and script games
 
@@ -98,4 +119,10 @@ None: every answer was settled by "The game in one page" and the item's own text
 
 ## Use against ignore
 
-USE_AGAINST_IGNORE
+`--outlaw-play-half` (hunting bands and buying news of foes), seeds 1-50, on the final code: users 0.87 growth and 20
+wins, ignorers 0.92 and 30. This is the first measure of the flag in the thirty-power world (item 11+ did not run it;
+11b+'s 23 to 27 was in the seven-power world). Measured too: the standing hunt over the whole land, which chiefs hear of
+and avoid (0.88 to 0.92, 19 to 31), so the script kings give none. Nearly every hunt they order already breaks the band
+(1,195 hunts in 42 games), so the loss is the hunt's own cost (the army's men, the band's men killed out of the land's
+people) against troops standing with a band already halving what it takes. Verdict: not paying; as 11b's row says,
+re-measure with policing (item 15) and command (item 13), which give hunting its use.
