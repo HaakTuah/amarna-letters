@@ -43,7 +43,7 @@ import {
   support,
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
-import { removeAll, Assert, holds, orderBy, walled, oldWorld } from "../../engine/test/support.ts";
+import { removeAll, Assert, holds, orderBy, walled, oldWorld, unruled } from "../../engine/test/support.ts";
 import { move as moveOrder } from "@amarna/engine";
 
 // The script players' audit of the siege package (Build order item 5, "Every feature is every seat's"): weaknesses found in
@@ -90,7 +90,8 @@ describe("SiegePlayTests", () => {
   // Seed 1, turn 5: Babylonia's army besieges Ashur (walls 3), alone; Mitanni, Assyria's ally, has armies in Terqa and in
   // Nineveh (taken from Assyria for the test), both next to Ashur.
   function allyBesieged(): GameState {
-    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
+    // Mira and Seha nobody's: held by Arzawa beyond its homeland (item 11d), they make it look a runaway leader.
+    let s = unruled(oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 }))), "mira", "seha");
     s.turn = 5;
     removeAll(s.units, (u) => ["ashur", "nineveh"].includes(u.province));
     let army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "ashur" });
