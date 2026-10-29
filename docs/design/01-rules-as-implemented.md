@@ -231,7 +231,7 @@
   at Emar and the upper Euphrates (Carchemish–Harran, Aleppo–Harran, Isuwa–Harran, Nesa–Isuwa, Samuha–Isuwa), the Tigris
   (Taidu–Nineveh), and since item 11f the rivers crossed but not sailed (`CrossedRivers`): the Marassantiya
   (Hattusa–Nesa, Hattusa–Tuwanuwa, Sapinuwa–Nesa), the Orontes (Damascus–Qadesh at Shabtuna, Ugarit–Niya) and the
-  Jordan (Hazor–Damascus, Hazor–Ashtaroth, Megiddo–Pella, Shechem–Pella), each with a ferry day and four more in its
+  Jordan (Hazor–Damascus, Hazor–Ashtaroth, Hazor–Pella, Megiddo–Pella, Shechem–Pella), each with a ferry day and four more in its
   flood (Shemu). Every crossing names its dossier (`Crossing.source`); what item 11f checked and left out is in
   [the rest of the map](33-the-rest-of-the-map.md). Desert connections give no help.
   - **The ground helps a unit that stands its ground** (`defenceGround`, `Adjudicator.holdStrength`): one that

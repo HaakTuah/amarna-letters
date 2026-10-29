@@ -10,9 +10,9 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
   and grades, are in the geography dossier's "The crossings of 1346": the upper Euphrates from the plateau and the Upper
   Land into Isuwa (Nesa–Isuwa, Samuha–Isuwa); the Marassantiya ringing the Hittite heartland (Hattusa–Nesa,
   Hattusa–Tuwanuwa, Sapinuwa–Nesa); the Orontes where armies are recorded fording it (Damascus–Qadesh at Shabtuna,
-  Ugarit–Niya); the Jordan (Hazor–Damascus, Hazor–Ashtaroth, Megiddo–Pella, Shechem–Pella); the Lebanon on Beirut's road
-  (Beirut–Damascus); and the edge lands' deserts (Libya–Delta and Libya–Memphis, the Western Desert; Shasu–Hebron and
-  Shasu–Sinai, the Negev).
+  Ugarit–Niya); the Jordan (Hazor–Damascus, Hazor–Ashtaroth, Hazor–Pella, Megiddo–Pella, Shechem–Pella); the Lebanon on Beirut's road
+  (Beirut–Damascus); and the edge lands' deserts (Libya–Delta and Libya–Memphis, the Western Desert; Shasu–Hebron,
+  Shasu–Sinai and Shasu–Gaza, the Negev).
 - **Rivers crossed but not sailed** (`CrossedRivers`: the Marassantiya, the Orontes, the Jordan): no boats, so none of
   the great rivers' reaches, floods of the harvest or boat speeds; only their fords, a ferry day and `floodDays` more in
   their flood season, Shemu for all three (`floodSeasonOf`, read by `legPoints`). The rulebook's NEWS AND TRAVEL lists
@@ -40,11 +40,12 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
 
 - **Shechem's ruler is Labaya** ("What earns a place": he starts the game though probably dead by 1346), since Mut-Bahlu
   (Mut-Baal) now rules Pella, where the letters put him.
-- **Connections**: Samuha between Sapinuwa, Nesa, Isuwa, the Kaska and Azzi (the Sapinuwa–Isuwa road now runs by Samuha);
-  Azzi to Isuwa; Niya to Alalakh, Aleppo, Ugarit, Nuhashshe and Tunip; Tunip to Nuhashshe, Qatna, Qadesh and Amurru (the
+- **Connections**: Samuha between Hattusa, Sapinuwa, Nesa, Isuwa, the Kaska and Azzi (the Sapinuwa–Isuwa road now runs by
+  Samuha); Azzi to Isuwa; Niya to Alalakh, Ugarit, Nuhashshe and Tunip; Tunip to Nuhashshe, Qatna, Qadesh, Amurru and Sumur (the
   roads from Ugarit and Amurru into Nuhashshe now run by Niya and Tunip); Beirut on the coast between Byblos and Sidon
-  (with its own waters and hops) and to Damascus; Pella to Megiddo, Shechem and Ashtaroth; Ashtaroth to Damascus and
-  Hazor; the Shasu to the Hebron hills, the Sinai and, by the King's Highway, Ashtaroth; Libya to the Delta and Memphis.
+  (with its own waters and hops) and to Damascus; Pella to Megiddo, Shechem, Hazor and Ashtaroth; Ashtaroth to
+  Damascus and Hazor; the Shasu to the Hebron hills, Gaza, the Sinai and, by the King's Highway, Ashtaroth; Libya to the
+  Delta and Memphis. Matched to 11c+'s traced borders where the sources allow; the cases left are in the report.
 - **The tables**: people (Pella and Ashtaroth 15,000 together, Azzi 30,000, Libya and the Shasu 20,000 each, the rest
   sharing their regions), waters (Tunip, Niya, Samuha by the river, Pella a spring, Beirut and Ashtaroth wells, Azzi
   cisterns, Libya and the Shasu arid), climates, markets (Libya and the Shasu a town of 0: no market to speak of),
