@@ -372,7 +372,10 @@ th { font-size: .82rem; color: var(--muted); font-weight: 600; }
 svg.map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; will-change: opacity; }
 svg.map-upper { pointer-events: none; }
 .map-upper .unit, .map-upper .person, .map-upper .traveller, .map-upper .news { pointer-events: auto; }
-svg.map text { font-family: var(--serif); }
+/* Map text is laid out at its own size and scaled with the map (geometricPrecision). Otherwise Chromium fits its glyphs
+   to the zoom at whatever moment it last laid the text out, mid-glide or not, and lays it out again when it likes: a
+   name's box then grows or shrinks by a few pixels with nothing moved, after the renderer measured it to give way. */
+svg.map text { font-family: var(--serif); text-rendering: geometricPrecision; }
 
 .map .sea-bg { fill: var(--sea); }
 .map .sea-waves { opacity: .55; }
