@@ -8,6 +8,7 @@ import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
+import { cityWorks, roadsLayer } from "./built.ts";
 import { figureOf } from "./figures.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
@@ -77,6 +78,8 @@ function cities(s: MapScene): string {
     for (let level = walls; level >= 1; level--) sb += `<circle class="walls w${level}" r="${(p.capital ? 12 : 8.5) + 2 * level}"/>`;
     if (p.capital) sb += `<circle class="cap-ring" r="12.6"/>`;
     sb += `<circle class="seal ${owner !== null ? `s-${glyphId(owner)}` : "s-free"}" r="${p.capital ? 9.5 : 7.5}"/>`;
+    // What is built at the city, close up (item 19).
+    sb += cityWorks(s, p.id, p.capital, walls);
     // A siege camp (item 19): the besieger's tents ringing the walls.
     const siege = s.sieges.find((x) => x.province === p.id);
     if (siege !== undefined) {
@@ -551,7 +554,7 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="works"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
       `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
@@ -596,6 +599,7 @@ export class SvgMapRenderer implements MapRenderer {
       if (this.fine && this.fineRivers !== null) this.swapGeography({}, this.fineRivers);
     }
     this.layer("tints", s.frame, () => tints(s));
+    this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s));
     this.layer("fog", s, () => fog(s));
     this.layer("bands", s.frame, () => bands(s));
     if (this.drawn.get("cities") !== s) {

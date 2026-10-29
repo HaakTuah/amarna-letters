@@ -193,6 +193,9 @@ export interface SeasonFrame {
   climate: FrameClimate[];
   /** Item 19: the bands and pirate crews, as they are (each court sees those its view shows it). */
   bands: FrameBand[];
+  /** Item 19: the levels of everything built but walls (`kind:province`, as `GameState.built`), and the grain in each store. */
+  built: Map<string, number>;
+  stores: Map<string, number>;
 }
 
 export const ownerOf = (f: SeasonFrame, province: string): Power | null => f.owner.get(province) ?? null;
@@ -351,6 +354,8 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
         const ruinous = river !== null && c.percent <= (RiverFloods.get(river)?.ruinPercent ?? 0);
         return { kind: c.kind, name: c.name, provinces: [...c.provinces], river, ruinous, since: s.turn - c.startTurn };
       }),
+    built: new Map(s.built.entries()),
+    stores: new Map(s.stores.entries()),
     bands: s.bands.map((b) => ({ province: b.province, men: b.men, ship: b.ship, chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "" })),
   };
 }

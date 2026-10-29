@@ -46,3 +46,28 @@
 .legend .band-icon { fill: #f0b34a; }
 .legend .tent { stroke: var(--bitumen); stroke-width: 1.4; paint-order: stroke; }
 .legend .tent.t-hatti { fill: var(--hatti); }
+
+/* Pass 3: every level of what is built (built.ts). Roads in their province's quality, under the fog. */
+.map .works-roads { pointer-events: none; }
+.map .road-net { fill: none; stroke: #6b4a2a; stroke-linecap: round; stroke-linejoin: round; }
+.map .road-net.unknown { stroke-width: .7; stroke-dasharray: .8 3.2; opacity: .35; }
+.map .road-net.q0 { stroke-width: .7; stroke-dasharray: .8 2.4; opacity: .5; }
+.map .road-net.q1 { stroke-width: .9; stroke-dasharray: 3.2 2.2; opacity: .6; }
+.map .road-net.q2 { stroke-width: 1.3; opacity: .65; }
+.map .road-net.q3 { stroke-width: 2.1; opacity: .8; stroke: #5a3b1e; }
+.map .station { fill: var(--paper); stroke: #5a3b1e; stroke-width: .7; }
+.lod0 .map .station { display: none; }
+/* The works at a city: only close up. */
+.lod0 .map .works, .lod1 .map .works { display: none; }
+.map .wk-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .7; opacity: .92; }
+.map .hb-sand { fill: none; stroke: var(--sand); stroke-width: 1.4; stroke-linecap: round; }
+.map .hb-mole { fill: none; stroke: #6b6355; stroke-width: 1.8; stroke-linecap: round; }
+.map .hb-quay { fill: #8b7b60; }
+.map .hb-boat { fill: #5a3b1e; }
+.map .wt-well { fill: var(--river); stroke: #5a3b1e; stroke-width: .8; }
+.map .wt-sweep { stroke: #5a3b1e; stroke-width: .9; stroke-linecap: round; }
+.map .wt-cistern { fill: var(--river); stroke: #5a3b1e; stroke-width: .8; }
+.map .gr-dome { fill: var(--paper); stroke: #7a5a2a; stroke-width: .8; }
+.map .gr-dome.full { fill: var(--gold-metal); }
+.map .mn-pick { fill: none; stroke: #4a3a2a; stroke-width: 1.2; stroke-linecap: round; }
+.map .mn-ore { fill: #b8862b; }

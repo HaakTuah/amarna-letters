@@ -125,6 +125,15 @@ export interface MapScene {
   land: Map<string, LandState>;
   /** Item 19: the bands and pirate crews the viewer sees: in its sight or in its own land (its people tell of them). */
   bands: FrameBand[];
+  /**
+   * Item 19: what is built, as the viewer knows it (`kind:province`, walls apart): in god view as it stands; in a seat view
+   * its own land as it stands, and elsewhere as its eyes last saw it, as the walls are known.
+   */
+  built: Map<string, number>;
+  /** The provinces whose works the viewer knows (null in god view: all of them). */
+  builtKnown: Set<string> | null;
+  /** Item 19: the grain in the stores the viewer can count: its own (every store in god view). */
+  stores: Map<string, number>;
 }
 
 /**
@@ -160,6 +169,8 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
   const units: SceneUnit[] = [];
   const fog = new Map<string, number>();
   let land = landOf(f);
+  let built = f.built;
+  let builtKnown: Set<string> | null = null;
 
   if (viewer === null) units.push(...stack(f.units, false, 0, index));
   else {
@@ -186,6 +197,20 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
       if (!lands.has(j)) lands.set(j, landOf(frameAt(frames, j)));
       const state = lands.get(j)!.get(prov);
       if (state !== undefined) land.set(prov, state);
+    }
+    // What is built: its own land as it stands, elsewhere as last seen (a province never seen: nothing known of it).
+    built = new Map();
+    builtKnown = new Set();
+    const builtKinds = ["Roads", "Stations", "Harbour", "Water"];
+    for (const x of Map_.landProvinces) {
+      const j = ownerOf(f, x.id) === p ? index : lastSeen.get(x.id);
+      if (j === undefined) continue;
+      const fj = frameAt(frames, j);
+      for (const k of builtKinds) {
+        const level = fj.built.get(`${k}:${x.id}`) ?? 0;
+        if (level > 0) built.set(`${k}:${x.id}`, level);
+      }
+      builtKnown.add(x.id);
     }
     // News of the holder travels (item 7b): a province never seen, or seen long ago, is as old as the news of it.
     for (const [prov, k] of f.knownOwner.get(p) ?? []) {
@@ -243,8 +268,9 @@ export function buildScene(frames: readonly SeasonFrame[], index: number, viewer
 
   const owner = new Map(Map_.landProvinces.map((x) => [x.id, ownerFor(f, x.id, viewer)] as const));
   // As the engine's own view of a court shows them: in its sight, or in land it holds.
+  const stores = viewer === null ? f.stores : new Map([...f.stores].filter(([k]) => ownerOf(f, k) === viewer));
   const bands = viewer === null ? f.bands : f.bands.filter((b) => (f.sight.get(viewer)?.has(b.province) ?? false) || ownerOf(f, b.province) === viewer);
-  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands };
+  return { index, viewer, frame: f, fogAge: fog, owner, units, moves, destroyed, captures, travellers, people, news, sieges, walls: wallsIn(f, viewer), land, bands, built, builtKnown, stores };
 }
 
 function stack(units: readonly FrameUnit[], ghost: boolean, age: number, seenAt: number): SceneUnit[] {
