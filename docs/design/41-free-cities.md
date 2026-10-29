@@ -61,10 +61,11 @@ threshold), one fewer where they were restless. `siege-starved` now marks a gate
   `SeatView.foodSent`), holding from the season it arrives (`Unit.buy`, `Unit.chest`, carried in the men's packs within
   `savings`); if the army is gone or not his, the gold comes back.
 - Where an army stands by leave (own land, or passage or basing), after its depot's stores: it buys at the market with its
-  chest if its word is to buy, unless its commander keeps the gold (greed × (100 − loyalty) at least `keepFood` 3500,
+  chest if its word is to buy, unless its commander keeps the gold (greed × (100 − loyalty) at least `keepFood` 5000,
   `supply-kept`), then eats its baggage, then takes (at home the market, then the farmers' share; elsewhere the farmers').
   Abroad by leave its king no longer buys from his treasury at a distance: the chest replaced it. Each army-season by
-  leave counts `supply-buy` or `supply-take`.
+  leave counts `supply-buy` if it bought and `supply-take` if it took (a season can count both); each word sent counts
+  `supply-word-buy` or `supply-word-take`.
 - What troops take raises unrest by how much (above) and is told to the land's ruler: his people's complaint, or "Troops
   took food" naming whose, which a script king counts as a wrong (grudge 0.5 plus a hundredth a measure, trust −0.1).
 

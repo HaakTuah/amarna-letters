@@ -38,7 +38,7 @@ export const SignalKinds: readonly string[] = [
   "fallback", "command", "mandate-led", "commander-won", "defect", "courier-sent", "courier-stopped", "court-moves", "governor", "band-enlisted",
   "risen", "fall-held", "fall-lawless",
   "revolt-crushed", "revolt-led", "revolt-lawless", "revolt-home", "risen-revolt", "risen-turned", "risen-chief", "risen-elder",
-  "supply-buy", "supply-take", "supply-kept", "stir",
+  "supply-buy", "supply-take", "supply-kept", "supply-word-buy", "supply-word-take", "stir",
   "raze", "wall-repair", "harbour-short", "station-read",
 ];
 

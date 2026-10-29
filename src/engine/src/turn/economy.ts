@@ -405,8 +405,8 @@ P.feedTroops = function () {
     }
     // How each army by leave got its food this season, for the record (item 17): bought, or taken.
     if (byLeave && u.kind === "Army") {
+      if (buying) logEvent(S, "supply", `${u.power}'s army in ${prov.name} bought its food.`, [], "supply-buy");
       if (eaten > before) logEvent(S, "supply", `${u.power}'s army in ${prov.name} took its food from the land.`, [], "supply-take");
-      else if (buying) logEvent(S, "supply", `${u.power}'s army in ${prov.name} bought its food.`, [], "supply-buy");
     }
     if (eaten < need) {
       u.hungry++;

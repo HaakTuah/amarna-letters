@@ -77,7 +77,7 @@ export const UnrestData = {
    * A commander given gold for his army's food keeps it and lets his men take instead when his greed times his
    * disloyalty (100 − loyalty) reaches this (a script commander's formula; first guess).
    */
-  keepFood: 3500,
+  keepFood: 5000,
 } as const;
 
 /** How restless a province is, as a governor or a spy puts it in words: never the number. */

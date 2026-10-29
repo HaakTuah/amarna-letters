@@ -139,7 +139,7 @@ export function risenReport(games: readonly GameSummary[]): string[] {
   const sig = (k: string): number => sum(games, (g) => g.signals[k] ?? 0);
   const free = [
     `How cities became free (item 17): revolts ${sig("revolt-led") + sig("revolt-lawless")} (led ${sig("revolt-led")}, lawless ${sig("revolt-lawless")}; of the homeland ${sig("revolt-home")}), ${sig("revolt-crushed")} put down by troops; gates opened from within ${sig("siege-starved")}; spies stirring ${sig("stir")} seasons.`,
-    `  Armies by leave, unit-seasons: bought their food ${sig("supply-buy")}, took it ${sig("supply-take")}; commanders who kept the gold ${sig("supply-kept")}.`,
+    `  Words to armies on their food: buy ${sig("supply-word-buy")}, take ${sig("supply-word-take")}. Armies by leave, unit-seasons: bought food ${sig("supply-buy")}, took it ${sig("supply-take")} (both in a season count once each); commanders who kept the gold ${sig("supply-kept")}.`,
   ];
   if (all.length === 0) return ["Seats risen in play (items 13+ and 17): none rose.", ...free];
   const used = all.filter((r) => r.envoys > 0).length;

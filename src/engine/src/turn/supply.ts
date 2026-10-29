@@ -40,6 +40,7 @@ P.setSupply = function (p, o) {
   const seasons = wordFromKing(S, this.map, p, u.province);
   const at = S.turn + (Number.isFinite(seasons) ? seasons : 1);
   S.foodWord.push({ power: p, unit: u.id, province: o.unit, buy: o.buy, gold, at });
+  logEvent(S, "supply", `${p} sent word to its army in ${this.map.get(u.province).name} to ${o.buy ? "buy" : "take"} its food${gold > 0 ? `, with ${gold} shekels` : ""}.`, [p], o.buy ? "supply-word-buy" : "supply-word-take");
   notify(
     S,
     p,
