@@ -202,7 +202,7 @@ export interface SeasonFrame {
   settled: Map<string, number>;
   fed: Map<string, number>;
   unrest: Map<string, number>;
-  /** Item 19: the caravans and the men walking home or carried off, on the road, each between the provinces it is between. */
+  /** Item 19: the caravans, and the people carried off (deportees), on the road, each between the provinces it is between. */
   caravans: FrameRoad[];
   walking: FrameRoad[];
   /** Item 19: the diviners' tier of the omens of the end this season, the same for every court; null in an open age. */
@@ -378,18 +378,17 @@ export function frameFrom(s: GameState, index: number, previous: SeasonFrame | n
     settled: new Map([...s.people.entries()].map(([k, x]) => [k, x.settled] as const)),
     fed: new Map(s.fed.entries()),
     unrest: new Map(s.unrest.entries()),
-    caravans: s.caravans.map((c) => {
+    caravans: s.caravans.filter((c) => c.route.length > 0).map((c) => {
       const i = Math.min(c.at, c.route.length - 1);
       const next = Math.min(i + 1, c.route.length - 1);
       return { power: c.power, from: c.route[i], to: c.route[next], progress: Math.min(0.9, c.points / 100), what: `${c.grain} measures of grain${c.returning ? ", coming home" : ""}` };
     }),
-    walking: s.walking.map((w) => {
+    // Only deportees walk a known road (the engine's `Walk.route`); men discharged home are not placed on one.
+    walking: s.walking.filter((w) => w.deported && w.route.length > 1).map((w) => {
       const span = Math.max(1, w.arrives - w.departs);
       const t = Math.min(0.95, Math.max(0, (s.turn - w.departs) / span));
       const k = Math.min(w.route.length - 2, Math.floor(t * (w.route.length - 1)));
-      const from = w.route.length > 1 ? w.route[Math.max(0, k)] : w.from;
-      const to = w.route.length > 1 ? w.route[Math.max(0, k) + 1] : w.home;
-      return { power: null, from, to, progress: (t * (w.route.length - 1)) % 1, what: `${w.men} men ${w.deported ? `carried off by ${w.by}` : "walking home"}` };
+      return { power: null, from: w.route[Math.max(0, k)], to: w.route[Math.max(0, k) + 1], progress: (t * (w.route.length - 1)) % 1, what: `${w.men} people carried off by ${w.by}` };
     }),
     omen: omenTier(s.seed, s.config, s.turn),
     stores: new Map(s.stores.entries()),

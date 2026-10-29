@@ -133,8 +133,8 @@ mines and storage come with the economy's later phases"), so a mine shows where 
   A sacked city (the engine's `sack` event) lies in ruins, its seal cracked and smoke over it, until the hardship its
   people remember (`GameState.unrest`, which a sack adds to) has faded, or it changes hands; out of the viewer's sight,
   as last seen. Land with no ruler, or where a band works, looks wild: thorn and scrub over it.
-- **Life from the simulation.** Caravans of grain (`GameState.caravans`) and men walking home or carried off
-  (`GameState.walking`) are drawn on their roads, where their stretch puts them (a guess, as a traveller's place is).
+- **Life from the simulation.** Caravans of grain (`GameState.caravans`) and people carried off (the deportees of
+  `GameState.walking`, the only walkers with a known road) are drawn on their roads, where their stretch puts them (a guess, as a traveller's place is).
   Close up, in the works row: a famine's empty granary where the countryside ate less than eight tenths of its need last
   season (`GameState.fed`), and each town's houses with its people and whether they grew or shrank over the year
   (`GameState.people`).

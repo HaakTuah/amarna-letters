@@ -1,8 +1,8 @@
 /**
  * A map that remembers, and life from the simulation (build order item 19, "The look, in time"): battlefields keep a small
  * memorial mark; a sacked city stays in ruins until its people's hardship has faded; land with no ruler, or where a band
- * works, looks wild; a countryside that went short shows its empty granaries; caravans and the men walking home or carried
- * off are on the roads; and the moments that matter play as small scenes. All of it read from the frames, as the viewer
+ * works, looks wild; a countryside that went short shows its empty granaries; caravans and the people carried off are on
+ * the roads; and the moments that matter play as small scenes. All of it read from the frames, as the viewer
  * could know it: in god view as it was; in a seat view only what its own eyes saw (its sight as each season began) or what
  * happened in its own land, as the fog of war is read.
  */
