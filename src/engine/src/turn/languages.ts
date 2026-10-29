@@ -198,7 +198,9 @@ P.goBetweens = function (c, p) {
 P.courtHears = function (c, p, payGoBetween) {
   const mark = `@${p}`;
   const r = this.reach(c.tongues, p, c.id);
-  if (c.understood.includes(mark)) return { heard: true, through: r.through };
+  if (c.understood.includes(mark) && r.skill > 0) return { heard: true, through: r.through };
+  // Whoever bridged has gone and nobody else at court reaches him: he is not heard by them now.
+  if (c.understood.includes(mark)) c.understood = c.understood.filter((x) => x !== mark);
   const key = `${c.id}|${mark}`;
   let ok = this._heardNow.tryGet(key);
   if (ok === undefined) {
@@ -337,6 +339,7 @@ P.settleSpeech = function () {
     const plan = planOf(c, S.turn);
     const choice = plan?.choice ?? scriptChoice(c, waited);
     if (choice !== "stay") {
+      this.presentGifts(a, c, plan);
       S.unheard.splice(S.unheard.indexOf(a), 1);
       trail?.outcomes.push(choice === "lie" ? `${UnheardOutcome}, and he said at home that his message was delivered` : UnheardOutcome);
       remember(
@@ -369,7 +372,7 @@ P.settleSpeech = function () {
       S.unheard.splice(S.unheard.indexOf(a), 1);
       a.through = h.through;
       heardNow.push(a);
-    }
+    } else this.presentGifts(a, c, plan);
   }
   // The envoys arrived this season: heard, or waiting.
   for (const a of sortBy([...S.audiences], [(x: PendingAudience) => idNumber(x.id), cmpNum])) {
@@ -404,6 +407,7 @@ P.settleSpeech = function () {
           lord: a.from,
           waited,
           presented: a.presented,
+          carried: a.dispatch.gold,
           purse: c.purse,
           goBetweens: this.goBetweens(c, a.host).map((g) => ({
             name: g.name,
@@ -434,8 +438,10 @@ function scriptChoice(c: Character, waited: number): "stay" | "home" | "lie" {
 
 declare module "./core.ts" {
   interface TurnEngine {
-    /** An envoy nobody understands presents his gifts, the only language left, and the host's king is told so plainly. */
+    /** An envoy nobody understands: the host's king is told so plainly. */
     presentUnheard(a: PendingAudience, c: Character): void;
+    /** An envoy nobody understands presents his gifts, the only language left, keeping what he chooses. */
+    presentGifts(a: PendingAudience, c: Character, plan: UnheardChoice | null): void;
     /** Whether a court can read a tablet in a language this season: its own scribes, or a reader among its people. */
     readable(p: Power, tongue: string, key: string): boolean;
     /** Each season: tablets waiting at a court for a reader find one, or wait on. */
@@ -460,47 +466,59 @@ declare module "./core.ts" {
 
 P.presentUnheard = function (a, c) {
   const S = this.s;
-  const d = a.dispatch;
-  const trail = this.trail(d.trailId);
+  const trail = this.trail(a.dispatch.trailId);
   a.unheardSince = S.turn;
   trail?.outcomes.push(UnheardOnArrival);
-  let gifts = "he brought no gifts";
-  if (d.gold > 0) {
-    const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
-    const t = S.treasuries.get(a.host);
-    t.gold += fine;
-    t.lots.push(
-      newGoldLot({
-        id: newId(S, "g"),
-        from: a.from,
-        stated: d.gold,
-        face: d.gold,
-        true: fine,
-        arrivedTurn: S.turn,
-      }),
-    );
-    if (d.inventory) this.inventory(c, a.from, a.host, d.gold, trail?.turn ?? S.turn, false, `the inventory brought by ${c.name}, envoy of ${a.from}`);
-    if (trail !== null) {
-      trail.goldDelivered = d.gold;
-      trail.goldFine = fine;
-      trail.outcomes.push(`presented ${d.gold} shekels of gifts, unheard`);
-    }
-    a.presented = d.gold;
-    gifts = `he presented gifts weighing ${d.gold} shekels`;
-    d.gold = 0;
-    d.inventory = false;
-  }
-  remember(c, S.turn, `Nobody at the court of ${land(a.host)} understands me. I presented ${a.presented > 0 ? "the gifts" : "myself"}, and wait.`);
+  remember(c, S.turn, `Nobody at the court of ${land(a.host)} understands me.${a.dispatch.gold > 0 ? " My lord's gifts are all I can give them." : ""} I wait.`);
   notify(
     S,
     a.host,
     "Notice",
     UnheardTitle,
-    `${c.name}, an envoy of ${land(a.from)}, stands at your court, but nobody at your court understands him; ${gifts}. Someone who speaks his tongue, a servant you hire or a go-between he pays, may yet carry his words.`,
+    `${c.name}, an envoy of ${land(a.from)}, stands at your court, but nobody at your court understands him${a.dispatch.gold > 0 ? "; he has brought gifts, which he will present if he is not understood" : "; he brought no gifts"}. Someone who speaks his tongue, a servant you hire or a go-between he pays, may yet carry his words.`,
     c.id,
   );
   logEvent(S, "unheard", `Nobody at ${a.host}'s court understood ${c.name}, envoy of ${a.from}.`, [a.host], "unheard");
 };
+
+/**
+ * The season after he arrived unheard (or as he leaves), an envoy presents the gifts he carries, the only language left:
+ * what he keeps of them is his own choice (a model's in its request, a script's by its traits, as at any audience), and
+ * the host's weighers find what is handed over.
+ */
+P.presentGifts = function (a, c, plan) {
+  const S = this.s;
+  const d = a.dispatch;
+  if (d.gold <= 0 || a.presented > 0) return;
+  const trail = this.trail(d.trailId);
+  const keep = clamp(plan?.keep ?? scriptKeep(c, d.gold, d.inventory), 0, d.gold);
+  const weighed = d.gold - keep;
+  const fine = toInt(roundEven((weighed * d.purityPercent) / 100.0));
+  if (keep > 0) {
+    gain(c, toInt(roundEven((keep * d.purityPercent) / 100.0)), "Skimmed");
+    remember(c, S.turn, `I kept ${keep} shekels of the gifts I carried to ${land(a.host)}, where nobody understood me.`);
+    logEvent(S, "skim", `${c.name} kept ${keep} of the ${d.gold} shekels ${a.from} sent to ${a.host}.`, [], "skim");
+  }
+  const t = S.treasuries.get(a.host);
+  t.gold += fine;
+  t.lots.push(newGoldLot({ id: newId(S, "g"), from: a.from, stated: d.gold, face: weighed, true: fine, arrivedTurn: S.turn }));
+  if (d.inventory) this.inventory(c, a.from, a.host, d.gold, trail?.turn ?? S.turn, false, `the inventory brought by ${c.name}, envoy of ${a.from}`);
+  if (trail !== null) {
+    trail.goldDelivered = weighed;
+    trail.goldFine = fine;
+    trail.outcomes.push(`presented ${weighed} shekels of gifts, unheard`);
+  }
+  a.presented = weighed;
+  d.gold = 0;
+  d.inventory = false;
+  notify(S, a.host, "Notice", "Gifts presented", `${c.name}, the envoy of ${land(a.from)} whom nobody at your court understands, presented gifts weighing ${weighed} shekels.`, c.id);
+};
+
+/** What a script envoy keeps of gifts he presents unheard, by the same motive as at an audience (ScriptMind's `kept`). */
+function scriptKeep(c: Character, gold: number, inventory: boolean): number {
+  const t = c.traits;
+  return gold > 0 && t.greed > 60 && t.loyalty < (inventory ? 60 : 70) ? Math.min(gold, Math.round((gold * (t.greed - 50)) / 250)) : 0;
+}
 
 P.readable = function (p, tongue, key) {
   if (this.reads(p, tongue)) return true;
@@ -600,7 +618,6 @@ P.bridged = function (a, changed) {
     `I carried the words of ${c.name}, envoy of ${land(a.from)}, to the court of ${land(a.host)}${changed ? ", and changed them as I chose" : ""}.`,
   );
   if (!changed) return;
-  this.trail(a.dispatch.trailId)?.outcomes.push(`${x.name}, who carried his words, changed them`);
   logEvent(S, "bridge", `${x.name} bent the words of ${c.name}, envoy of ${a.from}, at ${a.host}'s court.`, [], "bent-words");
   // Anyone present who understands both may notice the difference, by the same chance as speaking.
   const king = this.tonguesOf(a.host);

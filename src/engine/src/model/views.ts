@@ -659,6 +659,8 @@ export interface SeatView {
    */
   letters: LetterView[];
   inbox: InboxItem[];
+  /** Item 12: envoys standing at your court whom nobody there understands yet (their ids, as in your list of people). */
+  unheardHere: string[];
   travelTimes: string[];
   /** Last season's orders as they resolved, for every unit this court could see. */
   lastSeason: OrderOutcome[];
@@ -766,6 +768,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     known: [],
     tablets: [],
     letters: [],
+    unheardHere: [],
     inbox: [],
     travelTimes: [],
     lastSeason: [],
@@ -839,6 +842,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   known: list(() => CharacterViewSchema),
   tablets: list(() => TabletViewSchema),
   letters: list(() => LetterViewSchema),
+  unheardHere: list(S),
   inbox: list(() => InboxItemSchema),
   travelTimes: list(S),
   lastSeason: list(() => OrderOutcomeSchema),

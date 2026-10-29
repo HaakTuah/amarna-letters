@@ -202,6 +202,9 @@ export function situation(v: SeatView, read: ReadonlySet<string> = NoneRead): st
             sb.appendLine(`OTHER PEOPLE YOU KNOW OF:`);
             for (const c of v.known) sb.appendLine(`- ` + person(c));
         }
+        // Item 12: envoys waiting at court whom nobody understands.
+        if (v.unheardHere.length > 0)
+            sb.appendLine(`Envoys at your court whom nobody here understands yet: ${joinS(`, `, v.unheardHere.map((id) => v.known.find((c) => c.id === id)?.name ?? id))}. A free person at court who says he speaks his tongue and yours, taken into your service (hire, the errand stay), would carry his words.`);
 
         if (v.letters.length > 0)
         {

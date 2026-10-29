@@ -115,16 +115,38 @@ describe("LanguagesTests", () => {
     Assert.true(t.tongues.getOrDefault("Hittite", 0) <= 2);
   });
 
-  test("An envoy nobody understands is no audience: his host is told plainly and his gifts are presented", () => {
+  test("An envoy nobody understands is no audience: his host is told plainly, and the next season he presents his gifts", () => {
     const s = newGame(1);
     hittiteOnly(s);
     const c = envoyAtHatti(s, [["Egyptian", 100]], 40);
+    c.traits.greed = 90;
+    c.traits.loyalty = 90;
     const gold = s.treasuries.get("Hatti").gold;
-    new TurnEngine(s).settleSpeech();
+    const e = new TurnEngine(s);
+    e.settleSpeech();
     Assert.empty(s.audiences);
     Assert.single(s.unheard);
-    Assert.equal(gold + 40, s.treasuries.get("Hatti").gold);
-    Assert.contains(inboxOf(s, "Hatti"), (n) => n.title === UnheardTitle && n.body.includes("gifts weighing 40 shekels") && n.subject === c.id);
+    Assert.equal(gold, s.treasuries.get("Hatti").gold);
+    Assert.contains(inboxOf(s, "Hatti"), (n) => n.title === UnheardTitle && n.subject === c.id);
+    // A greedy, disloyal envoy keeps some of them, by his own choice (here his traits), as at any audience.
+    c.traits.loyalty = 50;
+    s.turn += 1;
+    e.settleSpeech();
+    const kept = Math.round((40 * (90 - 50)) / 250);
+    Assert.equal(gold + 40 - kept, s.treasuries.get("Hatti").gold);
+    Assert.equal(40 - kept, s.unheard[0].presented);
+  });
+
+  test("A bridger who bends the words leaves no trace the host sees unless someone there noticed", () => {
+    const s = newGame(1);
+    hittiteOnly(s);
+    const bridge = person(s, "Hatti", [["Hittite", 100], ["Akkadian", 100]], "Hatti");
+    envoyAtHatti(s, [["Egyptian", 100], ["Akkadian", 100]]);
+    const e = new TurnEngine(s);
+    e.settleSpeech();
+    bridge.handed.push({ by: "Mitanni", turn: s.turn });
+    e.bridged(s.audiences[0], true);
+    Assert.false(inboxOf(s, "Hatti").some((n) => n.title === "Words bent"));
   });
 
   test("A servant who speaks with both carries the envoy's words to his king", () => {

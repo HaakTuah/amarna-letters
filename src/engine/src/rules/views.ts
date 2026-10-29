@@ -248,6 +248,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       .filter((b) => seen.has(b.province) || s.owner.getOrDefault(b.province, null) === p)
       .map((b) => newBandSeen({ province: b.province, men: b.men, chief: s.characters.find((c) => c.id === b.leaderId)?.name ?? "", ship: b.ship })),
     inbox: inboxOf(s, p).filter((i) => i.turn === s.turn),
+    unheardHere: s.unheard.filter((a) => a.host === p).map((a) => a.envoyId),
     lastSeason: [...(s.lastSeen.tryGet(p) ?? [])],
   });
 

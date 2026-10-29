@@ -6,7 +6,7 @@
  * speaks both the envoy's language and his own, to stay a few seasons and bridge. `--no-language-play` turns it off, and
  * `--language-play-half` leaves it to half the kings.
  */
-import { courtReads, courtSpeaks, spokenIn, type CharacterView, type Power, type SeatView, UnheardTitle, WorldMap } from "@amarna/engine";
+import { courtReads, courtSpeaks, spokenIn, type CharacterView, type Power, type SeatView, WorldMap } from "@amarna/engine";
 
 export const LanguagePlay: {
   off: boolean;
@@ -70,9 +70,8 @@ export function bridgesWanted(v: SeatView, free: readonly CharacterView[]): Char
   if (!LanguagePlay.on(v.power)) return [];
   const mine = courtSpeaks(v.power, WorldMap.default.capital(v.power).id);
   const out: CharacterView[] = [];
-  for (const n of v.inbox) {
-    if (n.title !== UnheardTitle || n.subject === null) continue;
-    const envoy = v.known.find((c) => c.id === n.subject);
+  for (const id of v.unheardHere) {
+    const envoy = v.known.find((c) => c.id === id);
     if (envoy === undefined) continue;
     const his = claimedTongues(envoy);
     const fits = free.filter((c) => {

@@ -310,10 +310,11 @@ P.applyLife = function (c, ch) {
   const m = ch.approach;
   if (m !== null) {
     const to = findCharacter(S, m.to);
+    const there = to !== null && to !== c && this.provinceOf(to) === this.provinceOf(c) && to.status !== "Dead" && to.heldBy === null && (to.at === null || !hiddenAt(to, to.at));
     // Item 12: words pass only between people who understand each other, or through a go-between paid for each message.
-    const through = to !== null && !this.understands(c, to) ? this.bridgeTo(c, to) : null;
-    if (to !== null && through === false) remember(c, S.turn, `I could not make ${to.name} understand me, and found nobody here to carry my words.`);
-    else if (to !== null && to !== c && this.provinceOf(to) === this.provinceOf(c) && to.status !== "Dead" && to.heldBy === null && (to.at === null || !hiddenAt(to, to.at))) {
+    const heard = there && (this.understands(c, to!) || this.bridgeTo(c, to!));
+    if (there && !heard) remember(c, S.turn, `I could not make ${to!.name} understand me, and found nobody here to carry my words.`);
+    else if (to !== null && there) {
       const a = newApproach({
         id: newId(S, "h"),
         from: c.id,

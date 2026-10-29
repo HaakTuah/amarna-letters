@@ -24,7 +24,9 @@ export function unheardText(v: UnheardView): string {
   sb.appendLine(
     v.presented > 0
       ? `You presented the gifts you carried, ${v.presented} shekels: they were all the court could understand.`
-      : "You brought no gifts to present.",
+      : v.carried > 0
+        ? `You carry ${v.carried} shekels of gifts. If you are not understood next season, or as you leave, you present them: whatever you keep of them is yours, and nobody here can argue with you over it, though an inventory, if one goes with them, shows what was sent.`
+        : "You brought no gifts to present.",
   );
   if (v.goBetweens.length > 0)
     sb.appendLine(
@@ -39,13 +41,17 @@ export function unheardText(v: UnheardView): string {
   return sb.toString();
 }
 
-export function unheardSchema(): ReplySchema {
-  return object(["choice", z.enum([Choices.stay, Choices.home, Choices.lie]).describe("What you do next season.")]);
+export function unheardSchema(v: UnheardView): ReplySchema {
+  const choice = z.enum([Choices.stay, Choices.home, Choices.lie]).describe("What you do next season.");
+  return v.carried > 0
+    ? object(["choice", choice], ["keep_gold", z.int().describe(`Shekels of the ${v.carried} you keep for yourself when you present the gifts; 0 to keep nothing.`)])
+    : object(["choice", choice]);
 }
 
 export function unheardOf(o: JsonObject, v: UnheardView): UnheardChoice {
   const choice = o.choice === Choices.home ? "home" : o.choice === Choices.lie ? "lie" : "stay";
-  return newUnheardChoice({ turn: v.turn, choice });
+  const keep = v.carried > 0 && typeof o.keep_gold === "number" && Number.isFinite(o.keep_gold) ? Math.min(v.carried, Math.max(0, Math.trunc(o.keep_gold))) : null;
+  return newUnheardChoice({ turn: v.turn, choice, keep });
 }
 
 export function unheardSummary(ch: UnheardChoice | null): string {

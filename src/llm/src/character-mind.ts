@@ -566,7 +566,7 @@ export class LlmCharacterMind implements ICharacterMind {
     const key = `t${ctx.turn}/${kind}/${c.id}`;
     const model = async (): Promise<MindReply> => {
       const user = chief !== null ? chiefText(chief) : reports !== null ? reportsText(reports) : unheardText(unheard!);
-      const schema = chief !== null ? chiefSchema(chief) : reports !== null ? reportsSchema(reports) : unheardSchema();
+      const schema = chief !== null ? chiefSchema(chief) : reports !== null ? reportsSchema(reports) : unheardSchema(unheard!);
       // A chief stakes his men, his purse and his neck; a spy its post and a little of its purse; an unheard envoy his errand.
       const json = await this.ask(key, ctx.turn, `${kind}:${c.id}`, c, user, schema, signal, null, null, {
         stakes: { kind, moved: chief !== null ? 0.5 : 0.2 },

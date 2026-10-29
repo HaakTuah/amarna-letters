@@ -58,11 +58,14 @@ on a stream keyed by the pair and the season, so the order of settling never dec
   (`bridgeTo`), else it is not made.
 - **A court hears a person** (`courtHears`) through its king directly or one servant of his standing at court who speaks
   with both (`reach`: the weakest skill along the way, the best such chain); for an envoy, failing that, through a
-  go-between at the court, the cheapest whose price his purse covers, paid from his purse when the words cross.
+  go-between at the court, the cheapest whose price his purse covers, paid from his purse when the words cross (his
+  standing practice: the go-between's price is posted and used "without bargaining"; a reading of the item). A court
+  heard him while someone still reaches him: if every bridge has left, he is tried again.
 - **An envoy arrived at a court** is heard, and his audience goes on (`PendingAudience.through` names who bridged), or
-  his audience waits (`GameState.unheard`): he presents his gifts, weighed in full into the host's treasury with their
-  inventory, and the host is told plainly ("An envoy nobody understands": who he is, the gifts' weight). Each season he
-  is tried again, and chooses: a model envoy in its own request (task "Unheard", taken the next season), a script one by
+  his audience waits (`GameState.unheard`) and the host is told plainly ("An envoy nobody understands"). If he is still
+  not understood the next season, or as he leaves, he presents his gifts (`presentGifts`), keeping what he chooses (a
+  model in its request's `keep`, a script by the same motive as at an audience, `scriptKeep`), with their inventory;
+  the host is told what was weighed ("Gifts presented"). Each season he is tried again, and chooses: a model envoy in its own request (task "Unheard", taken the next season), a script one by
   its traits (`scriptChoice`): it waits a season and one more for every 25 of loyalty, then a disloyal (below 40) greedy
   (55 or more) one goes home to say it was heard, any other goes home and says it was not. Its report home says so; a
   waiting envoy learns the court's tongue meanwhile.
@@ -81,7 +84,10 @@ pay** (`inOthersPay`): a planted servant's real master, a job with someone else,
 (`Character.handed`: a king's gift, a host's bribe, an approach's gold) by anyone but whoever pays him for this exchange,
 in the last `paySeasons` (4) seasons. Only then is his mind asked, once for the envoy's message (task "Bridge", in the
 runner after the envoy presents): a script one softens a threat to the host or, with none, drops the envoy's last demand;
-a model one passes the words and terms on as it chooses. Either way he hears every word (the tablet passes through his
+a model one passes the words and terms on as it chooses. Only the envoy's message is bridged this way; the host's reply
+reaches the envoy as given (a first build: one call a message, the message that matters most). Nothing of a change goes
+into the envoy's record, which the host's transcript and the envoy's own report read: the envoy cannot tell, and the host
+learns only if someone noticed. Either way he hears every word (the tablet passes through his
 hands, `saw`). A servant of the host's standing there who understands both may notice a change, by the same chance:
 the bridger then carries a hidden fact the host knows, and the host is told ("Words bent").
 
@@ -100,6 +106,9 @@ A tablet in a language its holder's court reads is read at once. Any other waits
 reader is tried, the king himself or a servant at court, by the weaker of the tablet's language and the king's. An unread
 copy shows its seals and the language only (`Views.tablet`); a tablet brought to an audience that nobody could read that
 season is shown so, and is sealed, if at all, on the envoy's word. A tablet read late is announced ("A tablet read").
+
+Envoys standing unheard at a court are in its view (`SeatView.unheardHere`), so a king can still take on a bridge in a
+later season.
 
 ## What one hears (`observe`)
 

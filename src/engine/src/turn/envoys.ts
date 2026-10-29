@@ -392,7 +392,6 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
   const tablet = tid !== null ? S.tablets.find((t) => t.id === tid) : undefined;
   if (tid !== null && tablet !== undefined) {
     // Item 12: a tablet in a language nobody at the court could read this season is sealed, if at all, on trust.
-    if (!a.proposalRead) tablet.tongue = this.tabletTongue(tablet);
     view.proposal = Views.tablet(tablet, newTabletCopy({ id: "", tabletId: tid, holder: a.host, source: `proposed by ${a.from}`, unread: !a.proposalRead }));
     // Sealed at an earlier exchange (the first that chose to seal it seals it when the audience is applied).
     view.proposalSealed = past.some((x) => x.host !== null && x.host.sealProposal);
@@ -402,7 +401,6 @@ P.buildAudienceView = function (a, spoken, skim, soFar, round, earlier = null, s
     const tab = copy === undefined ? undefined : S.tablets.find((t) => t.id === copy.tabletId);
     if (tab === undefined) continue;
     const read = this.readable(a.host, this.tabletTongue(tab), `${a.id}|${copyId}`);
-    if (!read) tab.tongue = this.tabletTongue(tab);
     view.copiesShown.push(Views.tablet(tab, newTabletCopy({ id: "", tabletId: tab.id, holder: a.host, source: `shown by ${a.from}`, unread: !read })));
   }
   // Item 9: whether it carries its king's seal is plain to see; its limits and mandate only if it shows its credentials.
@@ -483,8 +481,9 @@ P.applyAudience = function (record) {
   }
   // The inventory, sealed when the envoy set out, or its forgery, goes into the host's archive.
   if (d.gold > 0 && d.inventory) this.inventory(c, sender, host, stated, trail.turn, swapped, `the inventory brought by ${c.name}, envoy of ${sender}`);
-  trail.goldDelivered = weighed;
-  trail.goldFine = fine;
+  // Item 12: with gifts he presented while nobody understood him, if any.
+  trail.goldDelivered = a.presented + weighed;
+  trail.goldFine = (a.presented > 0 ? trail.goldFine : 0) + fine;
   if (d.purityPercent < 100 && d.gold > 0) logEvent(S, "debasement", `${sender} sent ${host} gold of only ${d.purityPercent}% purity.`, [sender], "debased-gift");
 
   for (const copyId of d.copyIds) {
@@ -825,7 +824,7 @@ P.fulfil = function (req, reply) {
       return;
     case "Unheard":
       // Item 12: an envoy nobody understands chose, taken as the next season begins.
-      if (c !== null && reply.unheard !== null) this.applyUnheard(c, { turn: this.s.turn, choice: reply.unheard.choice });
+      if (c !== null && reply.unheard !== null) this.applyUnheard(c, { turn: this.s.turn, choice: reply.unheard.choice, keep: reply.unheard.keep === null ? null : Math.max(0, reply.unheard.keep) });
       return;
     case "EnvoyReport": {
       if (c === null) return;

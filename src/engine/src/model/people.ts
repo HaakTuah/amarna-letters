@@ -454,13 +454,15 @@ export type Unheard = (typeof UnheardValues)[number];
 export interface UnheardChoice {
   turn: number;
   choice: Unheard;
+  /** Of the gifts he has not yet presented, what he keeps for himself when he presents them (null: his traits decide). */
+  keep: number | null;
 }
 
 export function newUnheardChoice(init: Partial<UnheardChoice> = {}): UnheardChoice {
-  return { turn: 0, choice: "stay", ...init };
+  return { turn: 0, choice: "stay", keep: null, ...init };
 }
 
-export const UnheardChoiceSchema: ObjSchema<UnheardChoice> = obj("UnheardChoice", newUnheardChoice, { turn: I, choice: S });
+export const UnheardChoiceSchema: ObjSchema<UnheardChoice> = obj("UnheardChoice", newUnheardChoice, { turn: I, choice: S, keep: opt(I) });
 
 /**
  * What a go-between or a bridging servant in someone else's pay is asked (item 12, task "Bridge"): the envoy's words and
@@ -499,8 +501,9 @@ export interface UnheardView {
   lord: Power;
   /** Seasons he has waited there unheard. */
   waited: number;
-  /** The gifts he presented, in shekels (0 if none). */
+  /** The gifts he presented, in shekels (0 if none), and the gold he carries and has not presented yet. */
   presented: number;
+  carried: number;
   /** His purse, and the go-betweens standing there with their price for a message (none of whom could carry his words yet). */
   purse: number;
   goBetweens: { name: string; price: number }[];
@@ -510,7 +513,7 @@ export interface UnheardView {
 }
 
 export function newUnheardView(init: Partial<UnheardView> = {}): UnheardView {
-  return { turn: 0, host: "Egypt", lord: "Egypt", waited: 0, presented: 0, purse: 0, goBetweens: [], tongues: [], courtTongue: "", ...init };
+  return { turn: 0, host: "Egypt", lord: "Egypt", waited: 0, presented: 0, carried: 0, purse: 0, goBetweens: [], tongues: [], courtTongue: "", ...init };
 }
 
 export const UnheardViewSchema: ObjSchema<UnheardView> = obj("UnheardView", newUnheardView, {
@@ -519,6 +522,7 @@ export const UnheardViewSchema: ObjSchema<UnheardView> = obj("UnheardView", newU
   lord: S,
   waited: I,
   presented: I,
+  carried: I,
   purse: I,
   goBetweens: list(() => obj("GoBetweenSeen", () => ({ name: "", price: 0 }), { name: S, price: I })),
   tongues: list(S),
