@@ -502,3 +502,14 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into "The land" under "Armies need food as well as pay" (Land, people and economy) and build order item 17:
     buying or taking is an order that travels; hunger decides before orders do; a commander may keep the gold and take.
+
+49. **11:33**, in the design chat, to the review questions of items 11e (the weight of size in the score) and 12
+    (Akkadian at court), with Barkstreet Snakes' answers in the same message:
+
+    > Dont they only need someone present at court who speaks akkadian? So anyone they pay to stay there can do the job?
+    >
+    > Other than that, implement all you said, expertly!
+
+    Written into "One scoreboard for every power" (Victory: size's first guess 5 percent), "Where characters are, and
+    what they speak" (Characters: anyone in a court's service bridges; an Akkadian scribe at every court that reads
+    Akkadian) and build order item 11f.
