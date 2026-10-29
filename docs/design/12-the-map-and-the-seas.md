@@ -33,8 +33,9 @@ Build order item 7a (report `docs/rounds/2026-10-27-map-and-seas.md`; save versi
   the Sinai (Shechem and Jerusalem lie between); Arbela reaches Susa through Arrapha. Crossings: the passes of item 5 plus
   the Anti-Taurus (Nesa–Carchemish), the Syrian Gates (Kizzuwatna–Alalakh) and the Lebanon (Byblos–Damascus,
   Sidon–Damascus); the Euphrates at its fords and ferry towns, at Carchemish, at Emar (Aleppo–Harran) and upstream
-  (Isuwa–Harran); and desert connections (`CrossingKind` "Desert": the Syrian desert from Suhu to the steppe and from the
-  steppe to Qatna and Damascus, the Ways of Horus Delta–Gaza, the north Sinai, the Negev), which give no help in battle and
+  (Isuwa–Harran); and desert connections (`CrossingKind` "Desert": the Syrian desert from the steppe to Qatna and Damascus and,
+  since item 11f+, to Terqa, Aleppo, Nuhashshe and Qadesh; the Ways of Horus, Delta–Sinai since item 11f+; the north
+  Sinai; the Negev; item 11f+'s changes are in [neighbours on the map](36-map-neighbours.md)), which give no help in battle and
   make the connection long. The great rivers stay as item 5 drew them, borders at the crossings and spines along their
   courses (the Nile now from Nubia), and each `River` lists its reaches, the runs a boat can sail without unloading (the
   Nile's first cataract between Nubia and Thebes). Boats on the rivers sail with travel since item 7b ([travel and news](13-travel-and-news.md)).

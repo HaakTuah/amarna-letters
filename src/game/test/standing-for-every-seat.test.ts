@@ -75,7 +75,7 @@ describe("StandingForEverySeatTests", () => {
   // The people do not resist (item 11e: the land's men stand beside its troop), so the blows these tests set up land as meant.
   const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0, peopleDefence: 0 });
 
-  // <summary>Suhu is Assyria's, its walls gone, with an Assyrian army in it: two Assyrian armies stand next to Sippar.</summary>
+  // <summary>Suhu is Assyria's, its walls gone, with an Assyrian army in it: two Assyrian armies stand next to Dur-Kurigalzu.</summary>
   function assyriaInMari(s: GameState): void {
     // Suhu's own city-state gone (item 11+), its land Assyria's.
     unruled(s, "suhu");
@@ -107,10 +107,10 @@ describe("StandingForEverySeatTests", () => {
     return runner;
   }
 
-  // <summary>Assyria attacks the army in Sippar in turn 2, from Ekallate with Suhu's support: two against one.</summary>
-  function assyriaStrikesSippar(): Awake {
+  // <summary>Assyria attacks the army in Dur-Kurigalzu in turn 2, from Ekallate with Suhu's support: two against one.</summary>
+  function assyriaStrikesDurKurigalzu(): Awake {
     return new Awake((v) =>
-      v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar"), support("suhu", "ekallate", "sippar")] }) : newTurnSubmission(),
+      v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "durkurigalzu"), support("suhu", "ekallate", "durkurigalzu")] }) : newTurnSubmission(),
     );
   }
 
@@ -130,26 +130,26 @@ describe("StandingForEverySeatTests", () => {
     "A seat that plays every season keeps standing orders and one fires in place of its orders %s",
     async (sleepingSeats: boolean) => {
       // Babylonia plays every season (with sleeping seats on or off: it cannot sleep). In turn 1 it leaves a standing order:
-      // when the army in Sippar is attacked, the army in Dur-Kurigalzu supports it holding. In turn 2 it orders that army to
-      // Nippur, and Assyria strikes Sippar two against one: the standing order replaces the march, and Sippar holds.
+      // when the army in Dur-Kurigalzu is attacked, the army in Sippar supports it holding. In turn 2 it orders that army to
+      // Nippur, and Assyria strikes Dur-Kurigalzu two against one: the standing order replaces the march, and Dur-Kurigalzu holds.
       let babylon = new Awake((v) =>
         v.turn === 1
-          ? newTurnSubmission({ standing: [attacked("sippar", support("durkurigalzu", "sippar"))] })
+          ? newTurnSubmission({ standing: [attacked("durkurigalzu", support("sippar", "durkurigalzu"))] })
           : v.turn === 2
-            ? newTurnSubmission({ orders: [move("durkurigalzu", "nippur")] })
+            ? newTurnSubmission({ orders: [move("sippar", "nippur")] })
             : newTurnSubmission(),
       );
-      let r = await play(babylon, assyriaStrikesSippar(), 2, { ...Quiet, sleepingSeats: sleepingSeats }, assyriaInMari);
+      let r = await play(babylon, assyriaStrikesDurKurigalzu(), 2, { ...Quiet, sleepingSeats: sleepingSeats }, assyriaInMari);
 
       Assert.empty(r.state.sleep);
-      Assert.equal("Babylonia", unitAt(r.state, "sippar")?.power);
       Assert.equal("Babylonia", unitAt(r.state, "durkurigalzu")?.power);
+      Assert.equal("Babylonia", unitAt(r.state, "sippar")?.power);
       Assert.null(unitAt(r.state, "nippur"));
       Assert.empty(standingOf(r.state, "Babylonia"));
       // Its view in turn 2 listed it, as a sleeping seat's does.
       Assert.equal("s1", Assert.single(babylon.views[1].standing).id);
       Assert.contains(
-        "- s1: when your army now in sippar is attacked, then: the army now in durkurigalzu supports the army now in sippar holding",
+        "- s1: when your army now in durkurigalzu is attacked, then: the army now in sippar supports the army now in durkurigalzu holding",
         situation(babylon.views[1]),
       );
       // Its header points to the rulebook, which says that its orders replace those the king gives in the season it fires
@@ -160,7 +160,7 @@ describe("StandingForEverySeatTests", () => {
         leaderRules(true, newGameConfig()),
       );
       Assert.equal(
-        "Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallate for sippar. It gave these orders: durkurigalzu supports sippar holding. They replaced these orders you gave for turn 2: durkurigalzu -> nippur.",
+        "Your standing order s1 (when your army in durkurigalzu is attacked) fired in turn 2: Assyria's army set out from ekallate for durkurigalzu. It gave these orders: sippar supports durkurigalzu holding. They replaced these orders you gave for turn 2: sippar -> nippur.",
         notice(r.state, "Babylonia", standingFiredTitle("s1")).body,
       );
       Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
@@ -180,13 +180,13 @@ describe("StandingForEverySeatTests", () => {
   test("Cancelled in its season a standing order lets the seat s own orders run", async () => {
     let babylon = new Awake((v) =>
       v.turn === 1
-        ? newTurnSubmission({ standing: [attacked("sippar", support("durkurigalzu", "sippar"))] })
+        ? newTurnSubmission({ standing: [attacked("durkurigalzu", support("sippar", "durkurigalzu"))] })
         : v.turn === 2
-          ? newTurnSubmission({ orders: [move("durkurigalzu", "nippur")], cancelStanding: ["s1"] })
+          ? newTurnSubmission({ orders: [move("sippar", "nippur")], cancelStanding: ["s1"] })
           : newTurnSubmission(),
     );
-    let r = await play(babylon, assyriaStrikesSippar(), 2, undefined, assyriaInMari);
-    Assert.equal("Assyria", unitAt(r.state, "sippar")?.power);
+    let r = await play(babylon, assyriaStrikesDurKurigalzu(), 2, undefined, assyriaInMari);
+    Assert.equal("Assyria", unitAt(r.state, "durkurigalzu")?.power);
     Assert.equal("Babylonia", unitAt(r.state, "nippur")?.power);
     Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.title === standingFiredTitle("s1"));
     Assert.empty(standingOf(r.state, "Babylonia"));
@@ -195,20 +195,20 @@ describe("StandingForEverySeatTests", () => {
   test("A standing order answers a move as ordered even one the mover s own standing order turns aside", async () => {
     // The follow-up's review: standing orders answer the moves as ordered, before any standing order fires, so one may
     // answer a move that its mover's own standing order then replaces. The rulebook says so. In turn 2 Assyria orders
-    // Ekallate's army into Sippar, but Babylonia's army in Sippar attacks Suhu, and Assyria's standing order turns
-    // Ekallate's army to support Suhu holding. Babylonia's standing order still fires on the march into Sippar.
+    // Ekallate's army into Dur-Kurigalzu, but Babylonia's army in Dur-Kurigalzu attacks Suhu, and Assyria's standing order turns
+    // Ekallate's army to support Suhu holding. Babylonia's standing order still fires on the march into Dur-Kurigalzu.
     let babylon = new Awake((v) =>
       v.turn === 1
-        ? newTurnSubmission({ standing: [attacked("sippar", support("durkurigalzu", "sippar"))] })
+        ? newTurnSubmission({ standing: [attacked("durkurigalzu", support("sippar", "durkurigalzu"))] })
         : v.turn === 2
-          ? newTurnSubmission({ orders: [move("sippar", "suhu")] })
+          ? newTurnSubmission({ orders: [move("durkurigalzu", "suhu")] })
           : newTurnSubmission(),
     );
     let assyria = new Awake((v) =>
       v.turn === 1
         ? newTurnSubmission({ standing: [attacked("suhu", support("ekallate", "suhu"))] })
         : v.turn === 2
-          ? newTurnSubmission({ orders: [move("ekallate", "sippar"), support("suhu", "ekallate", "sippar")] })
+          ? newTurnSubmission({ orders: [move("ekallate", "durkurigalzu"), support("suhu", "ekallate", "durkurigalzu")] })
           : newTurnSubmission(),
     );
     let r = await play(babylon, assyria, 2, undefined, assyriaInMari);
@@ -216,14 +216,14 @@ describe("StandingForEverySeatTests", () => {
     // Ekallate's army never set out; Babylonia's attack on Suhu met two and bounced.
     Assert.equal("Assyria", unitAt(r.state, "ekallate")?.power);
     Assert.equal("Assyria", unitAt(r.state, "suhu")?.power);
-    Assert.equal("Babylonia", unitAt(r.state, "sippar")?.power);
+    Assert.equal("Babylonia", unitAt(r.state, "durkurigalzu")?.power);
     Assert.startsWith(
-      "Your standing order s1 (when your army in suhu is attacked) fired in turn 2: Babylonia's army set out from sippar for suhu. It gave these orders: ekallate supports suhu holding. They replaced these orders you gave for turn 2: ekallate -> sippar.",
+      "Your standing order s1 (when your army in suhu is attacked) fired in turn 2: Babylonia's army set out from durkurigalzu for suhu. It gave these orders: ekallate supports suhu holding. They replaced these orders you gave for turn 2: ekallate -> durkurigalzu.",
       notice(r.state, "Assyria", standingFiredTitle("s1")).body,
     );
     // Babylonia's fired all the same, on the move as Assyria ordered it.
     Assert.startsWith(
-      "Your standing order s1 (when your army in sippar is attacked) fired in turn 2: Assyria's army set out from ekallate for sippar. It gave these orders: durkurigalzu supports sippar holding.",
+      "Your standing order s1 (when your army in durkurigalzu is attacked) fired in turn 2: Assyria's army set out from ekallate for durkurigalzu. It gave these orders: sippar supports durkurigalzu holding.",
       notice(r.state, "Babylonia", standingFiredTitle("s1")).body,
     );
     Assert.empty(standingOf(r.state, "Babylonia"));
@@ -235,7 +235,7 @@ describe("StandingForEverySeatTests", () => {
     let s = newGame(31, { ...Quiet, sleepingSeats: false });
     let e = new TurnEngine(s);
     e.beginTurn();
-    e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: [attacked("sippar", hold("sippar"))] })]]));
+    e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: [attacked("durkurigalzu", hold("durkurigalzu"))] })]]));
     Assert.equal("s1", Assert.single(standingOf(s, "Babylonia")).id);
 
     e = new TurnEngine(s);
@@ -296,7 +296,7 @@ describe("StandingForEverySeatTests", () => {
       this.specs.push(spec);
       let json =
         spec.key === "t1/orders/Babylonia"
-          ? `{"notes":"Guard Sippar.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"standing_orders":[{"when":"unit_attacked","province":"sippar","power":"","units":[{"unit":"durkurigalzu","order":"support","target":"sippar","to":""}],"other_orders":[]}],"cancel_standing":[]}`
+          ? `{"notes":"Guard Dur-Kurigalzu.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"standing_orders":[{"when":"unit_attacked","province":"durkurigalzu","power":"","units":[{"unit":"sippar","order":"support","target":"durkurigalzu","to":""}],"other_orders":[]}],"cancel_standing":[]}`
           : spec.key.includes("/orders/")
             ? `{"notes":"Hold.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"standing_orders":[],"cancel_standing":[]}`
             : `{"speech":"Welcome.","gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true}`;
@@ -308,10 +308,10 @@ describe("StandingForEverySeatTests", () => {
     let off = { ...Quiet, sleepingSeats: false };
     let model = new Modelled();
     let seat = new LlmLeaderSeat("Babylonia", model, "claude-sonnet-5-5", "medium", true, off);
-    let r = await play(seat, assyriaStrikesSippar(), 2, off, assyriaInMari);
-    Assert.equal("Babylonia", unitAt(r.state, "sippar")?.power);
+    let r = await play(seat, assyriaStrikesDurKurigalzu(), 2, off, assyriaInMari);
+    Assert.equal("Babylonia", unitAt(r.state, "durkurigalzu")?.power);
     Assert.startsWith(
-      "Your standing order s1 (when your army in sippar is attacked) fired in turn 2:",
+      "Your standing order s1 (when your army in durkurigalzu is attacked) fired in turn 2:",
       notice(r.state, "Babylonia", standingFiredTitle("s1")).body,
     );
     // Its schema offers standing orders but no schedule, and its request names them.
@@ -339,30 +339,34 @@ describe("StandingForEverySeatTests", () => {
   }
 
   test("A script king guards a troop that could be struck by more than it holds alone", () => {
-    // Two Assyrian armies stand next to Sippar, in Ekallate and Suhu: one support holds it against both. The army in
-    // Dur-Kurigalzu, which holds this season and guards less than the army in the capital, is to give it if Sippar is
+    // Two Assyrian armies stand next to Dur-Kurigalzu, in Ekallate and Suhu: one support holds it against both. The army in
+    // Sippar, which holds this season and guards less than the army in the capital, is to give it if Dur-Kurigalzu is
     // attacked.
     let s = newGame(31, Quiet);
     assyriaInMari(s);
     let [b, brain] = read(s, "Babylonia");
     let [cancel, give] = Contingencies.plan(b, brain, holding(b), []);
     Assert.empty(cancel);
-    let sippar = Assert.single(give, (g) => g.place === "sippar");
-    Assert.equal(["Troop", "UnitAttacked"], [sippar.kind, sippar.request.when]);
-    Assert.equal([support("durkurigalzu", "sippar")], sippar.request.orders);
-    // A troop that marches this season is no helper, since its place next season is not known: the army in Babylon then.
-    [, give] = Contingencies.plan(b, brain, holding(b, move("durkurigalzu", "nippur")), []);
-    Assert.equal([support("babylon", "sippar")], Assert.single(give, (g) => g.place === "sippar").request.orders);
-    // With one army next to it, Sippar holds alone: no standing order for it.
+    let durkurigalzu = Assert.single(give, (g) => g.place === "durkurigalzu");
+    Assert.equal(["Troop", "UnitAttacked"], [durkurigalzu.kind, durkurigalzu.request.when]);
+    Assert.equal([support("sippar", "durkurigalzu")], durkurigalzu.request.orders);
+    // A troop that marches this season is no helper, since its place next season is not known: with Sippar's army on the
+    // march, the army in Nippur then.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "nippur" }));
+    [b, brain] = read(s, "Babylonia");
+    [, give] = Contingencies.plan(b, brain, holding(b, move("sippar", "babylon")), []);
+    Assert.equal([support("nippur", "durkurigalzu")], Assert.single(give, (g) => g.place === "durkurigalzu").request.orders);
+    removeAll(s.units, (u) => u.province === "nippur");
+    // With one army next to it, Dur-Kurigalzu holds alone: no standing order for it.
     removeAll(s.units, (u) => u.province === "suhu");
     [b, brain] = read(s, "Babylonia");
     [, give] = Contingencies.plan(b, brain, holding(b), []);
-    Assert.doesNotContain(give, (g) => g.place === "sippar");
+    Assert.doesNotContain(give, (g) => g.place === "durkurigalzu");
   });
 
   test("A script king sends a troop into an empty home province as a lone attacker does", () => {
     // The opening: the Assyrian army in Ekallate, which Babylon sees, is two moves from its empty Nippur (by Dur-Kurigalzu)
-    // and next to Sippar and Dur-Kurigalzu, which one army alone cannot take. The army in Dur-Kurigalzu, the least
+    // and next to Dur-Kurigalzu, which one army alone cannot take. The army in Dur-Kurigalzu, the least
     // threatened troop next to Nippur by what it guards, is to march in if foreign troops do.
     let s = newGame(31, Quiet);
     let [b, brain] = read(s, "Babylonia");
@@ -398,13 +402,15 @@ describe("StandingForEverySeatTests", () => {
     Assert.equal([move("kalavasoswaters", "enkomiwaters")], g.request.orders);
   });
 
-  // <summary>Babylonia keeps standing order s1: when the army in Sippar is attacked, the army in Dur-Kurigalzu supports it.</summary>
+  // <summary>Babylonia keeps standing order s1: when the army in Dur-Kurigalzu is attacked, the army in Sippar supports it.</summary>
   function guarded(): GameState {
     let s = newGame(31, Quiet);
     assyriaInMari(s);
+    // An army of Babylon's in Nippur too, which a plan may have support Dur-Kurigalzu.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "nippur" }));
     let e = new TurnEngine(s);
     e.beginTurn();
-    e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: [attacked("sippar", support("durkurigalzu", "sippar"))] })]]));
+    e.resolve(new Dict([["Babylonia", newTurnSubmission({ standing: [attacked("durkurigalzu", support("sippar", "durkurigalzu"))] })]]));
     return s;
   }
 
@@ -419,21 +425,21 @@ describe("StandingForEverySeatTests", () => {
     let s = guarded();
     let [b, brain] = read(s, "Babylonia");
     let plan =
-      // Two armies could strike Sippar, which holds alone: it should stand.
+      // Two armies could strike Dur-Kurigalzu, which holds alone: it should stand.
       season === "hold"
         ? holding(b)
         : season === "march"
-          ? holding(b, move("sippar", "suhu"))
+          ? holding(b, move("durkurigalzu", "suhu"))
           : season === "same"
-            ? holding(b, support("durkurigalzu", "sippar"))
-            : // The plan has Babylon support it: two against two, held without the standing order.
+            ? holding(b, support("sippar", "durkurigalzu"))
+            : // The plan has Nippur's army support it: two against two, held without the standing order.
               season === "supported"
-              ? holding(b, support("babylon", "sippar"))
-              : // Dur-Kurigalzu's own order this season is worth more than Sippar: a march on Susa's free land.
+              ? holding(b, support("nippur", "durkurigalzu"))
+              : // Sippar's own order this season is worth more than Dur-Kurigalzu: a march on Assyria's Suhu.
                 season === "attack"
-                ? holding(b, move("durkurigalzu", "susa"))
+                ? holding(b, move("sippar", "suhu"))
                 : holding(b);
-    let orders = season === "disband" ? [disband("sippar")] : [];
+    let orders = season === "disband" ? [disband("durkurigalzu")] : [];
     let [cancel] = Contingencies.plan(b, brain, plan, orders);
     if (why === null) Assert.empty(cancel);
     else Assert.equal(["s1", why], Assert.single(cancel));

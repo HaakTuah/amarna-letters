@@ -76,8 +76,9 @@ describe("MapAndSeasTests", () => {
       Assert.true(connectionDays(Map, e.a, e.b) > 0, `${e.a}-${e.b}`);
     }
     for (const a of AttestedKm) Assert.equal(a.km, connectionKm(Map, a.a, a.b));
-    // Thutmose III's ten days from Tjaru to Gaza, across the desert at 20 km a day, is about 12 for a party.
-    Assert.equal(12.5, connectionDays(Map, "delta", "gaza"));
+    // Thutmose III's ten days from Tjaru to Gaza, across the desert at 20 km a day, is about 12 for a party, and the
+    // Delta's own road to Tjaru two more; the Ways of Horus run through the Sinai (item 11f+).
+    Assert.equal(14, connectionDays(Map, "delta", "sinai") + connectionDays(Map, "sinai", "gaza"));
     Assert.true(connectionDays(Map, "sidon", "tyre") < 3);
     Assert.true(connectionDays(Map, "hattusa", "nesa") > 7);
     // A pass is slow: the Cilician Gates at 15 km a day.

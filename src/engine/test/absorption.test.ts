@@ -76,10 +76,11 @@ describe("AbsorptionTests", () => {
     season(s, subs({ Mitanni: { orders: [move("kaska", "sapinuwa")] } }));
     Assert.true(s.conquered.has("sapinuwa"));
     // Hatti drives the army out and takes Sapinuwa back: its own homeland, in full at once.
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "samuha" }));
     season(
       s,
       subs({
-        Hatti: { orders: [move("hattusa", "sapinuwa"), support("nesa", "hattusa", "sapinuwa")] },
+        Hatti: { orders: [move("hattusa", "sapinuwa"), support("samuha", "hattusa", "sapinuwa")] },
       }),
     );
     Assert.equal("Hatti", s.owner.get("sapinuwa"));

@@ -235,10 +235,10 @@ describe("SleepTests", () => {
     let supports = new OrderValidator(s).validate(
       "Babylonia",
       newTurnSubmission({
-        orders: [supportOrder("sippar", "arbela", "ekallate"), supportOrder("durkurigalzu", "ashur", "ekallate"), supportOrder("babylon", "nippur")],
+        orders: [supportOrder("durkurigalzu", "arbela", "ekallate"), supportOrder("sippar", "ashur", "suhu"), supportOrder("babylon", "nippur")],
       }),
     );
-    Assert.equal([supportOrder("sippar", "arbela", "ekallate"), supportOrder("durkurigalzu", "ashur", "ekallate")], supports.accepted);
+    Assert.equal([supportOrder("durkurigalzu", "arbela", "ekallate"), supportOrder("sippar", "ashur", "suhu")], supports.accepted);
     Assert.equal("there is no unit in nippur to support", Assert.single(supports.rejected).reason);
 
     // So is a convoy: Egypt's fleet, off Byblos, sees Byblos (empty) but not Ṣumur (empty too).
@@ -255,17 +255,17 @@ describe("SleepTests", () => {
   });
 
   test("A scheduled support of one s own unit follows the unit supported", async () => {
-    // The army in Babylon marches to Durkurigalzu in turn 2; in turn 3 the army in Sippar is to support it holding, named
-    // by where it stood when the orders were given. The support follows it to Durkurigalzu.
-    let sleeper = new Sleeper((v) => (v.turn === 1 ? plan([2, [move("babylon", "durkurigalzu")]], [3, [supportOrder("sippar", "babylon")]]) : nothing()));
+    // The army in Sippar marches to Nippur in turn 2; in turn 3 the army in Babylon is to support it holding, named
+    // by where it stood when the orders were given. The support follows it to Nippur.
+    let sleeper = new Sleeper((v) => (v.turn === 1 ? plan([2, [move("sippar", "nippur")]], [3, [supportOrder("babylon", "sippar")]]) : nothing()));
     let r = await play("Babylonia", sleeper, 2, undefined, undefined, emptyDurkurigalzu);
-    Assert.contains("- turn 3: the army now in sippar supports the army now in durkurigalzu holding", situation(Views.for(r.state, "Babylonia")));
-    Assert.equal(supportOrder("sippar", "durkurigalzu"), single(single(Views.for(r.state, "Babylonia").scheduled).orders));
+    Assert.contains("- turn 3: the army now in babylon supports the army now in nippur holding", situation(Views.for(r.state, "Babylonia")));
+    Assert.equal(supportOrder("babylon", "nippur"), single(single(Views.for(r.state, "Babylonia").scheduled).orders));
 
     await r.playTurn();
     Assert.equal([1], sleeper.calls);
     Assert.contains(
-      "supports durkurigalzu holding: given",
+      "supports nippur holding: given",
       single(inboxOf(r.state, "Babylonia"), (i) => i.title === "Movements last season" && i.turn === 4).body,
     );
     Assert.doesNotContain(inboxOf(r.state, "Babylonia"), (i) => i.kind === "Rejected");
@@ -289,9 +289,9 @@ describe("SleepTests", () => {
   });
 
   test("A march that is stopped tries the step again and its later orders wait a season", async () => {
-    // Babylon's army is to march to Durkurigalzu in turn 2 and on to Nippur in turn 3. Assyria moves into Durkurigalzu in
+    // Sippar's army is to march to Durkurigalzu in turn 2 and on to Nippur in turn 3. Assyria moves into Durkurigalzu in
     // turn 2 too, and both bounce. The army tries again in turn 3 and gets there; its next step runs in turn 4.
-    let sleeper = new Sleeper((v) => (v.turn === 1 ? plan([2, [move("babylon", "durkurigalzu")]], [3, [move("babylon", "nippur")]]) : nothing()));
+    let sleeper = new Sleeper((v) => (v.turn === 1 ? plan([2, [move("sippar", "durkurigalzu")]], [3, [move("sippar", "nippur")]]) : nothing()));
     let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "durkurigalzu")] }) : newTurnSubmission()));
     let r = await play("Babylonia", sleeper, 4, undefined, new Dict([["Assyria", assyria]]), emptyDurkurigalzu);
 
@@ -299,48 +299,48 @@ describe("SleepTests", () => {
     Assert.equal([1, 3], sleeper.calls);
     Assert.equal(2, sleeper.views[1].wokenBecause.length);
     Assert.startsWith(
-      "orders you scheduled could not be carried out: babylon -> durkurigalzu (it met a move into durkurigalzu from ekallate",
+      "orders you scheduled could not be carried out: sippar -> durkurigalzu (it met a move into durkurigalzu from ekallate",
       sleeper.views[1].wokenBecause[0],
     );
     Assert.equal(`${AttackedReason}: Assyria's army tried to move ekallate -> durkurigalzu`, sleeper.views[1].wokenBecause[1]);
     let notice = noticeOf(r.state, "Babylonia", MarchHeldUpTitle);
     Assert.equal(["Rejected", 3], [notice.kind, notice.turn]);
     Assert.equal(
-      "Your army in babylon did not reach durkurigalzu in turn 2. It will try again in turn 3, and each of its later scheduled orders waits a season (they now run in turn 4).",
+      "Your army in sippar did not reach durkurigalzu in turn 2. It will try again in turn 3, and each of its later scheduled orders waits a season (they now run in turn 4).",
       notice.body,
     );
     let text = situation(sleeper.views[1]);
-    Assert.contains("- turn 3: the army now in babylon -> durkurigalzu\n- turn 4: the army now in babylon -> nippur", text.replaceAll("\r\n", "\n"));
+    Assert.contains("- turn 3: the army now in sippar -> durkurigalzu\n- turn 4: the army now in sippar -> nippur", text.replaceAll("\r\n", "\n"));
 
     Assert.equal("Babylonia", unitAt(r.state, "nippur")?.power);
-    Assert.null(unitAt(r.state, "babylon"));
+    Assert.null(unitAt(r.state, "sippar"));
     Assert.null(unitAt(r.state, "durkurigalzu"));
     Assert.empty(r.state.sleep.get("Babylonia").scheduled);
   });
 
   test("A march stopped twice in a row ends and the unit s remaining orders are dropped", async () => {
     let sleeper = new Sleeper((v) =>
-      v.turn === 1 ? plan([2, [move("babylon", "durkurigalzu")]], [3, [move("babylon", "nippur")]], [5, [hold("babylon")]]) : nothing(),
+      v.turn === 1 ? plan([2, [move("sippar", "durkurigalzu")]], [3, [move("sippar", "nippur")]], [5, [hold("sippar")]]) : nothing(),
     );
     let assyria = new Scripted((v) => ([2, 3].includes(v.turn) ? newTurnSubmission({ orders: [move("ekallate", "durkurigalzu")] }) : newTurnSubmission()));
     let r = await play("Babylonia", sleeper, 4, undefined, new Dict([["Assyria", assyria]]), emptyDurkurigalzu);
 
     Assert.equal([1, 3, 4], sleeper.calls);
-    Assert.startsWith("orders you scheduled could not be carried out: babylon -> durkurigalzu", sleeper.views[2].wokenBecause[0]);
+    Assert.startsWith("orders you scheduled could not be carried out: sippar -> durkurigalzu", sleeper.views[2].wokenBecause[0]);
     let notice = noticeOf(r.state, "Babylonia", MarchEndsTitle);
     Assert.equal(4, notice.turn);
     Assert.equal(
-      "Your army in babylon failed to reach durkurigalzu a second time in turn 3: its march ends, and its remaining scheduled orders were dropped: turn 4: babylon -> nippur; turn 6: babylon holds.",
+      "Your army in sippar failed to reach durkurigalzu a second time in turn 3: its march ends, and its remaining scheduled orders were dropped: turn 4: sippar -> nippur; turn 6: sippar holds.",
       notice.body,
     );
-    Assert.equal("Babylonia", unitAt(r.state, "babylon")?.power);
+    Assert.equal("Babylonia", unitAt(r.state, "sippar")?.power);
     Assert.null(unitAt(r.state, "nippur"));
     Assert.empty(r.state.sleep.get("Babylonia").scheduled);
   });
 
   test("A scheduled move that is refused is not tried again and ends the march", async () => {
     let sleeper = new Sleeper((v) =>
-      v.turn === 1 ? plan([2, [move("babylon", "ur"), move("durkurigalzu", "babylon")]], [3, [move("babylon", "nippur")]]) : nothing(),
+      v.turn === 1 ? plan([2, [move("babylon", "ur"), move("sippar", "babylon")]], [3, [move("babylon", "nippur")]]) : nothing(),
     );
     let r = await play("Babylonia", sleeper, 3);
     // Neither failure wakes the seat: the refusal is its own, and so is the move its own army in Babylon stopped.
@@ -353,11 +353,11 @@ describe("SleepTests", () => {
     );
     // The move into Babylon, stopped by its own army there, is another unit's march: it is tried again in turn 3, and stopped again.
     Assert.equal(
-      "Your army in durkurigalzu did not reach babylon in turn 2. It will try again in turn 3.",
+      "Your army in sippar did not reach babylon in turn 2. It will try again in turn 3.",
       noticeOf(r.state, "Babylonia", MarchHeldUpTitle).body,
     );
     Assert.equal(
-      "Your army in durkurigalzu failed to reach babylon a second time in turn 3: its march ends.",
+      "Your army in sippar failed to reach babylon a second time in turn 3: its march ends.",
       single(inboxOf(r.state, "Babylonia"), (i) => i.title === MarchEndsTitle && i.turn === 4).body,
     );
     Assert.equal("Babylonia", unitAt(r.state, "babylon")?.power);

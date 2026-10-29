@@ -165,10 +165,10 @@ describe("EngineTests", () => {
     s.owner.set("gaza", "Egypt"); // its own: the walls stand for it
     s.units.length = 0;
     s.units.push(newUnit({ id: "u1", power: "Egypt", kind: "Army", province: "sinai" }));
-    s.units.push(newUnit({ id: "u2", power: "Babylonia", kind: "Army", province: "megiddo" }));
-    s.units.push(newUnit({ id: "u3", power: "Babylonia", kind: "Army", province: "tyre" }));
-    s.walls.delete("megiddo");
-    s.walls.delete("tyre");
+    s.units.push(newUnit({ id: "u2", power: "Babylonia", kind: "Army", province: "ashkelon" }));
+    s.units.push(newUnit({ id: "u3", power: "Babylonia", kind: "Army", province: "lachish" }));
+    s.walls.delete("ashkelon");
+    s.walls.delete("lachish");
 
     // The owner may march into its own walled city (until the siege package it could not).
     let own = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [move("sinai", "gaza")] }));
@@ -176,7 +176,7 @@ describe("EngineTests", () => {
 
     // A supported attack gets within the walls (2 against walls 2 and no defenders), but does not storm them.
     let e = new TurnEngine(s);
-    e.resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [move("megiddo", "gaza"), support("tyre", "megiddo", "gaza")] })]]));
+    e.resolve(new Dict([["Babylonia", newTurnSubmission({ orders: [move("ashkelon", "gaza"), support("lachish", "ashkelon", "gaza")] })]]));
     Assert.equal("Babylonia", unitAt(s, "gaza")?.power);
     Assert.equal("Egypt", s.owner.get("gaza"));
     Assert.equal(2, wallsOf(s, "gaza"));

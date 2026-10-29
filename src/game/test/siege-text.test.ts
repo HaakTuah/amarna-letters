@@ -10,14 +10,13 @@ import { removeAll, Assert, walled, oldWorld } from "../../engine/test/support.t
 describe("SiegeTextTests", () => {
   test("The view gives the walls standing the sieges known and the land being absorbed", () => {
     let s = walled(oldWorld(newGame(1, newGameConfig({ peopleDefence: 0, catastropheChance: 0 }))), "suhu", 2);
-    first(s.units, (u) => u.province === "sippar").province = "suhu";
+    first(s.units, (u) => u.province === "durkurigalzu").province = "suhu";
     let e = new TurnEngine(s);
     e.beginTurn();
     e.resolve(
       new Dict([
         ["Babylonia", newTurnSubmission({ orders: [besiege("suhu")] })],
-        ["Mitanni", newTurnSubmission({ orders: [move("terqa", "ekallate")] })],
-        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "sippar")] })],
+        ["Assyria", newTurnSubmission({ orders: [move("ekallate", "durkurigalzu")] })],
       ]),
     );
     let babylon = situation(Views.for(s, "Babylonia"));
@@ -31,10 +30,10 @@ describe("SiegeTextTests", () => {
       "SIEGES (a city surrenders when it is worn down as far as its walls are high): your army besieges suhu (held by no one, walls 2): worn down 1 of 2, since turn 1.",
       babylon,
     );
-    // Assyria took Sippar from Babylon by force: a third of it counts this season, which Assyria reads, and nobody else
+    // Assyria took Dur-Kurigalzu from Babylon by force: a third of it counts this season, which Assyria reads, and nobody else
     // (how it changed hands is not public).
-    Assert.contains("sippar (taken by force in turn 1: yields and counts a third of its yield this season) [Assyria army]", situation(Views.for(s, "Assyria")));
-    Assert.contains("sippar [Assyria army]", babylon);
+    Assert.contains("durkurigalzu (taken by force in turn 1: yields and counts a third of its yield this season) [Assyria army]", situation(Views.for(s, "Assyria")));
+    Assert.contains("durkurigalzu [Assyria army]", babylon);
     Assert.doesNotContain("taken by force", babylon);
     Assert.doesNotContain("taken by force", situation(Views.for(s, "Egypt")));
     // Mitanni, next to Suhu, sees the siege too.

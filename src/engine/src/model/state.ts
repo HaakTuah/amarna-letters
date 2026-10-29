@@ -81,7 +81,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 31;
+export const CURRENT_VERSION = 32;
 
 /**
  * A standing order to hunt bands (Haakon's answers to items 11b and 11b+): whose, in which provinces (none named: the

@@ -237,13 +237,13 @@ describe("FeatureAuditTests", () => {
     s.walls.delete("qadesh");
     // Long known to Egypt, so that Hatti stands ahead of it against par (eight cities, and Egypt's treasury emptied, since
     // item 11e's ranks, which a growth above most of a position's results crowds near the top).
-    for (const x of ["isuwa", "ugarit", "carchemish", "nuhashshe", "alalakh", "aleppo", "damascus", "tyre"]) {
+    for (const x of ["isuwa", "ugarit", "carchemish", "amurru", "alalakh", "aleppo", "damascus", "tyre"]) {
       s.owner.set(x, "Hatti");
       s.ownerLog.push({ province: x, turn: 0, owner: "Hatti" });
       s.walls.delete(x);
     }
     s.treasuries.get("Egypt").gold = 0;
-    add(s, "Hatti", "Army", "nuhashshe");
+    add(s, "Hatti", "Army", "amurru");
     add(s, "Mitanni", "Army", "qatna");
     treaty(s, "Egypt", "Mitanni");
 
