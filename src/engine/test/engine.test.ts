@@ -53,12 +53,12 @@ describe("EngineTests", () => {
   test("New game matches the starting tiers", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
-    // The Great Kings' 19 units and one for each of the 23 city-states (item 11+).
-    Assert.equal(42, s.units.length);
-    // Walls by place: every capital 3 (the seven kings' and the twenty city-states' with a town), four fortresses and the
-    // three chiefs' strongholds 2, Sumur 1.
-    Assert.equal(35, s.walls.size);
-    Assert.equal(27, count(s.walls, (w) => w[1] === 3));
+    // The Great Kings' 19 units and one for each of the 29 city-states (item 11+, and item 11c's six of Canaan).
+    Assert.equal(48, s.units.length);
+    // Walls by place: every capital 3 (the seven kings' and the twenty-six city-states' with a town), four fortresses and
+    // the three chiefs' strongholds 2, Sumur 1.
+    Assert.equal(41, s.walls.size);
+    Assert.equal(33, count(s.walls, (w) => w[1] === 3));
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.capital),
       (p) => Assert.equal(p.kingless ? 2 : 3, wallsOf(s, p.id)),
