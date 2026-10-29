@@ -33,7 +33,7 @@ import {
   trustIn,
   Wealth,
 } from "@amarna/engine";
-import { Assert } from "./support.ts";
+import { Assert, speaksAll } from "./support.ts";
 
 // <summary>Item 11a, "Money and work": jobs with a fee and a court's record, lending and debt tablets, the characters' own
 // seasons and their money, newcomers through the doors, and the strategy each plays for wealth.</summary>
@@ -166,6 +166,7 @@ describe("MoneyAndWorkTests", () => {
     const s = newGame(5, newGameConfig({ catastropheChance: 0 }));
     const [a, b] = s.characters.filter((c) => c.status === "Free" && c.duty === "None").slice(0, 2);
     for (const x of [a, b]) [x.at, x.purse, x.heldBy] = ["Hatti", 100, null];
+    for (const x of [a, b]) speaksAll(x);
     const e = new TurnEngine(s);
     // a asks b to lend it 40, to repay 46 within 4 seasons.
     e.applyLife(a, newLifeChoice({ approach: newApproachMade({ to: b.id, words: "Lend me forty.", askGold: 40, repay: 46, seasons: 4 }) }));

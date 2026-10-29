@@ -43,7 +43,7 @@ import {
   support,
 } from "@amarna/engine";
 import { ScriptLeader, temperament } from "@amarna/game";
-import { removeAll, Assert, holds, orderBy, walled, oldWorld, unruled } from "../../engine/test/support.ts";
+import { removeAll, Assert, holds, orderBy, walled, oldWorld, unruled, speaksAll } from "../../engine/test/support.ts";
 import { move as moveOrder } from "@amarna/engine";
 
 // The script players' audit of the siege package (Build order item 5, "Every feature is every seat's"): weaknesses found in
@@ -197,6 +197,8 @@ describe("SiegePlayTests", () => {
       (c) => c.id,
     );
     let loyal = envoys.at(-1)!;
+    // Item 12: every envoy here speaks every court's language, so the choice is by reliability alone.
+    for (const c of envoys) speaksAll(c);
     function report(body: string): void {
       inboxOf(s, "Egypt").push(newInboxItem({ turn: 4, kind: "EnvoyReport", title: `${loyal.name} returns`, body: body, subject: loyal.id }));
     }

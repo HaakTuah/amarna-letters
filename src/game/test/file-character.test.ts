@@ -90,6 +90,9 @@ describe("FileCharacterTests", () => {
     // A chief's season and a spy's waiting reports: things left as they are.
     if (stem.includes("_chief_")) return `{"go":"","buy_ship":false,"kill":"nobody","give_up_the_road":false}`;
     if (stem.includes("_carry_")) return `{"pay_up_to":0,"carry_home":false}`;
+    // Item 12: an envoy nobody understands stays; a go-between in someone else's pay passes the words on as spoken.
+    if (stem.includes("_unheard_")) return `{"choice":"stay"}`;
+    if (stem.includes("_bridge_")) return `{"words":"${words}","leave_out":[]}`;
     return `{"summary":"${words}"}`;
   }
 

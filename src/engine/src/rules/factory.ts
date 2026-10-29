@@ -23,6 +23,7 @@ import { drawFinalSeason } from "./ending.ts";
 import { calling, personaTemplate } from "./personas.ts";
 import { AttestedCast, FirstCores, NubianCast, NubiansAttested, Styles, type CastSeed, type Core } from "./cast.ts";
 import { drawSkills } from "./skills.ts";
+import { kingTongues, servedThere } from "./tongues.ts";
 import { chooseStrategy } from "./strategy.ts";
 
 export function newGame(seed: number, config: GameConfig | null = null, map: WorldMap | null = null): GameState {
@@ -64,6 +65,8 @@ export function newGame(seed: number, config: GameConfig | null = null, map: Wor
   }
 
   populate(s);
+  // Item 12: each king speaks his court's language and what is commonly spoken at his capital.
+  for (const p of AllPowers) s.kingTongues.set(p, kingTongues(p, m.capital(p).id));
   s.claims = StartClaims.map((c) => ({ ...c }));
   openingBonds(s);
 
@@ -230,6 +233,8 @@ function employ(s: GameState, rng: Rng, c: Character, p: Power, plant: boolean):
   c.purse = Math.trunc(fee / 2);
   c.earned.fees = c.purse;
   c.reputation.set(p, 10);
+  // Item 12: years at the court it serves have taught it the court's language.
+  servedThere(s.seed, c, p, WorldMap.default.capital(p).id);
   if (plant) {
     const master = rng.pick(AllPowers.filter((x) => x !== p));
     c.secretMaster = master;

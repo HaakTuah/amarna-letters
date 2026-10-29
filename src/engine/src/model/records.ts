@@ -312,6 +312,8 @@ export interface HomeCargo {
   claimHeld: boolean;
   /** Item 10+b: word of the host's market and its tolls on the envoy's king, as they stood when it set out home. */
   word: Word;
+  /** Item 12: "home" if it left a court where nobody understood it, "lie" if it means to say it was heard; "" if heard. */
+  unheard: string;
 }
 
 export function newHomeCargo(init: Partial<HomeCargo> = {}): HomeCargo {
@@ -326,6 +328,7 @@ export function newHomeCargo(init: Partial<HomeCargo> = {}): HomeCargo {
     claimChecked: null,
     claimHeld: false,
     word: newWord(),
+    unheard: "",
     ...init,
   };
 }
@@ -341,6 +344,7 @@ export const HomeCargoSchema: ObjSchema<HomeCargo> = obj("HomeCargo", newHomeCar
   claimChecked: opt(S),
   claimHeld: B,
   word: () => WordSchema,
+  unheard: S,
 });
 
 export interface SpyReport {
@@ -423,6 +427,14 @@ export interface PendingAudience {
   answer: string | null;
   /** The most gold that answer may send back with the envoy, within the hidden backstop. */
   answerGold: number;
+  /** Item 12, "Speaking": who bridged for the envoy (a servant of the host's or a go-between), or null if the king heard him himself. */
+  through: string | null;
+  /** Item 12: whether the host's court could read the tablet the envoy brought to be sealed, this season. */
+  proposalRead: boolean;
+  /** Item 12: the gifts the envoy presented while nobody understood him, weighed then (shekels). */
+  presented: number;
+  /** Item 12: the season nobody at the court first understood him, or null if he was heard. */
+  unheardSince: number | null;
 }
 
 export function newPendingAudience(init: Partial<PendingAudience> = {}): PendingAudience {
@@ -435,6 +447,10 @@ export function newPendingAudience(init: Partial<PendingAudience> = {}): Pending
     goldWeighed: 0,
     answer: null,
     answerGold: 0,
+    through: null,
+    proposalRead: true,
+    presented: 0,
+    unheardSince: null,
     ...init,
   };
 }
@@ -448,6 +464,10 @@ export const PendingAudienceSchema: ObjSchema<PendingAudience> = obj("PendingAud
   goldWeighed: I,
   answer: opt(S),
   answerGold: I,
+  through: opt(S),
+  proposalRead: B,
+  presented: I,
+  unheardSince: opt(I),
 });
 
 export interface Tablet {
@@ -488,6 +508,8 @@ export interface Tablet {
   credentialsShown: boolean;
   /** The season the king whose envoy sealed it repudiated it, as beyond his authority; null if he has not. */
   repudiatedTurn: number | null;
+  /** Item 12, "Composing": the language it is written in; "" for its proposer's court's own written language. */
+  tongue: string;
 }
 
 export function newTablet(init: Partial<Tablet> = {}): Tablet {
@@ -512,6 +534,7 @@ export function newTablet(init: Partial<Tablet> = {}): Tablet {
     within: null,
     credentialsShown: false,
     repudiatedTurn: null,
+    tongue: "",
     ...init,
   };
 }
@@ -537,6 +560,7 @@ export const TabletSchema: ObjSchema<Tablet> = obj("Tablet", newTablet, {
   within: opt(B),
   credentialsShown: B,
   repudiatedTurn: opt(I),
+  tongue: S,
   isSealedAgreement: computed(B, (o: Tablet) => isSealedAgreement(o)),
 });
 
@@ -551,6 +575,11 @@ export interface TabletCopy {
   acquiredTurn: number;
   source: string;
   authResult: string | null;
+  /**
+   * Item 12, "Reading a tablet": true while nobody at its holder's court has read it (it waits for a reader); false once
+   * read or readable; null until the holder's court first looks at it, as the next season begins.
+   */
+  unread: boolean | null;
 }
 
 export function newTabletCopy(init: Partial<TabletCopy> = {}): TabletCopy {
@@ -561,6 +590,7 @@ export function newTabletCopy(init: Partial<TabletCopy> = {}): TabletCopy {
     acquiredTurn: 0,
     source: "",
     authResult: null,
+    unread: null,
     ...init,
   };
 }
@@ -572,6 +602,7 @@ export const TabletCopySchema: ObjSchema<TabletCopy> = obj("TabletCopy", newTabl
   acquiredTurn: I,
   source: S,
   authResult: S,
+  unread: opt(B),
 });
 
 export const CatastropheKindValues = ["Drought", "Plague", "Flood", "Earthquake"] as const;
