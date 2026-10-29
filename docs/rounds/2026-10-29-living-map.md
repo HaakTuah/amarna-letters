@@ -15,6 +15,18 @@ below). Weekly usage could not be read in this session ("unknown"). No model gam
 **The check for changes.** The live design document was asked for changes to the Build order tab (since revision 109) and
 the Interface tab (since revision 17) at the start of the item: none.
 
+## Review questions (Stop for review)
+
+1. **Each realm's own map.** Every court but Egypt's sees its map pressed in clay, since every Amarna letter is a clay
+   tablet; the alternative is clay for Babylonia and Hatti only, as the section names them, the rest on papyrus.
+2. **Ruins.** A sacked city lies in ruins until its people's hardship fades, since the engine has no rebuilding; the
+   alternative is rebuilding as a work a king orders, a rule and so a later item.
+3. **Egypt's hieratic notes** were left out, so the map's text stays in the reader's language; the alternative is
+   hieratic marks as decoration in Egypt's view.
+
+**Use against ignore, and the script players.** Not applicable: the item is presentation only, and no script player
+reads the map.
+
 **Passes, most valuable first, each merged on its own** (chosen over one large PR: each pass is reviewable alone, reaches
 the live game sooner, and a pass's review cannot hold up the next):
 
@@ -186,3 +198,14 @@ Branch `item/living-map-memory`, stacked on pass 3.
   never reaches a frame.
 - **Small scenes only when stepping on one season**, so scrubbing the timeline never replays them, and never with
   reduced motion (item 2: "respect for reduced motion").
+
+### The review
+
+One reviewer (Opus, high). Blocking, fixed: a king's map showed other kings' famines and towns with their numbers, and
+their caravans with their loads (smugglers' too); now a court counts only its own people and sees only its own caravans,
+as the engine's view tells it, and the scene test requires it. Fixed besides: a gift scene only for an envoy who really
+arrived; the place of a sack or an ambush read from the end of the engine's words (a name that begins another, Gaza or
+Ugarit, no longer misleads); the scenes' timing, and none left over when stepping back; the life marks counted by the
+smoke test; the memorials' layer redrawn when walls change their place; the omen and the medium removed with the map.
+A test draws every new layer for every season and view of a 16-season game (a page error from discharged men, who have
+no road in the engine, was found and fixed before the review: only deportees are drawn on a road).

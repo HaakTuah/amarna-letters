@@ -32,6 +32,7 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 | 11f+ (#185) | 1. The lands east of the Jordan: the King's Highway and the land east of the Jordan and the Dead Sea, from Edom to the Bashan, are the Shasu's (G north of Edom), so the Shasu border Ashtaroth, Pella and Jerusalem; or leave Moab, Ammon and Gilead no one's, with no Shasu-Ashtaroth, Shasu-Pella or Shasu-Jerusalem connection? | Readings 1-8 in `docs/rounds/2026-10-29-map-neighbours.md`; question 1 taken as the Shasu's | Open |
 | 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
 | 13+ (#190) | None: the item's text, "A kingdom falls with its capital" and the page settled every reading | Readings 1-10 in `docs/rounds/2026-10-29-answers-to-13.md` | For review, no questions |
+| 19 (#201-#204) | 1. Each realm's own map: every court but Egypt's sees its map pressed in clay (all the Amarna letters are clay), or only Babylonia's and Hatti's as the section names them, the rest on papyrus? 2. Ruins: a sacked city lies in ruins until its people's hardship fades (the engine has no rebuilding), or should rebuilding a sacked city be a work kings order (a rule, so a later item)? 3. Egypt's hieratic notes on its map were left out (the map's text stays in the reader's language): add them as decoration in Egypt's view, or keep it so? | Readings in `docs/rounds/2026-10-29-living-map.md`, by pass | For review |
 
 
 ## Use against ignore

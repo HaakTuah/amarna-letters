@@ -615,7 +615,7 @@ export class SvgMapRenderer implements MapRenderer {
     this.layer("tints", s.frame, () => tints(s));
     this.layer("works", `${s.viewer}|${[...s.built].join(";")}|${[...(s.builtKnown ?? [])].join(";")}`, () => roadsLayer(s));
     const m = s.memory;
-    this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}`).join()}`, () => memoryLayer(s));
+    this.layer("memory", `${s.viewer}|${[...m.wild].join()}|${[...m.memorials].map(([k, v]) => `${k}:${v.count}:${v.last}:${s.walls.get(k) ?? 0}`).join()}`, () => memoryLayer(s));
     this.layer("fog", s, () => fog(s));
     this.layer("bands", s.frame, () => bands(s));
     if (this.drawn.get("cities") !== s) {
@@ -661,14 +661,17 @@ export class SvgMapRenderer implements MapRenderer {
   private showScenes(s: MapScene): void {
     const last = this.sceneFrom;
     this.sceneFrom = { index: s.index, viewer: s.viewer };
+    if (last !== null && last.index === s.index && last.viewer === s.viewer) return;
+    const g = this.layers.get("scenes")!;
+    clearTimeout(this.sceneTimer);
+    g.innerHTML = "";
     if (last === null || last.index !== s.index - 1 || last.viewer !== s.viewer || s.prev === null) return;
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const scenes = scenesOf(s.prev, s.frame, s.viewer);
     if (scenes.length === 0) return;
-    const g = this.layers.get("scenes")!;
     g.innerHTML = scenes.map(sceneMarkup).join("");
-    clearTimeout(this.sceneTimer);
-    this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), 4500);
+    // Each plays 3.6 s, the next starting 0.35 s after the one before (map-living.css).
+    this.sceneTimer = window.setTimeout(() => (g.innerHTML = ""), 3700 + 350 * (scenes.length - 1));
   }
 
   /** The realm's own medium (clay for every court but Egypt's, papyrus for Egypt and god view) and the omens in the margin. */
@@ -865,7 +868,11 @@ export class SvgMapRenderer implements MapRenderer {
     if (this.view === null) return;
     cancelAnimationFrame(this.placing);
     detach(this.view);
+    clearTimeout(this.sceneTimer);
     this.view.querySelector(".mapzoom")?.remove();
+    this.view.querySelector(":scope > .omen")?.remove();
+    delete this.view.dataset.medium;
+    delete this.view.dataset.omen;
     this.view = null;
   }
 }

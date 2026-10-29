@@ -21,9 +21,9 @@ export interface Remembered {
   ruins: Set<string>;
   /** Land gone wild: no ruler holds it, or a band works it. */
   wild: Set<string>;
-  /** Countrysides that went short last season, with how well they ate (thousandths). */
+  /** Countrysides that went short last season, with how well they ate (thousandths): the viewer's own (all in god view). */
   famine: Map<string, number>;
-  /** Towns, by their people: settled now, and a year ago (as the viewer knows them). */
+  /** Towns, by their people: settled now, and a year ago: the viewer's own (all in god view). */
   towns: Map<string, { now: number; before: number }>;
   caravans: FrameRoad[];
   walking: FrameRoad[];
@@ -79,14 +79,19 @@ export function remember(frames: readonly SeasonFrame[], index: number, viewer: 
   const famine = new Map<string, number>();
   const towns = new Map<string, { now: number; before: number }>();
   const yearAgo = frameAt(frames, Math.max(0, index - 3));
+  // A court counts only its own people and how they ate, as the engine's view tells it (every province in god view).
+  const counts = (id: string): boolean => viewer === null || ownerOf(f, id) === viewer;
   for (const p of Map_.landProvinces) {
     if (!sees(p.id)) continue;
     if (ownerOf(f, p.id) === null || bandsAt.has(p.id)) wild.add(p.id);
+    if (!counts(p.id)) continue;
     const fed = f.fed.get(p.id);
     if (fed !== undefined && fed < FamineBelow) famine.set(p.id, fed);
     const now = f.settled.get(p.id) ?? 0;
     if (now > 0) towns.set(p.id, { now, before: yearAgo.settled.get(p.id) ?? now });
   }
-  const onRoad = (r: FrameRoad): boolean => viewer === null || r.power === viewer || sees(r.from) || sees(r.to);
-  return { memorials, ruins, wild, famine, towns, caravans: f.caravans.filter(onRoad), walking: f.walking.filter(onRoad) };
+  // A court knows its own caravans, as the engine's view tells it; deportees on a road it sees.
+  const caravans = viewer === null ? f.caravans : f.caravans.filter((r) => r.power === viewer);
+  const walking = f.walking.filter((r) => viewer === null || sees(r.from) || sees(r.to));
+  return { memorials, ruins, wild, famine, towns, caravans, walking };
 }

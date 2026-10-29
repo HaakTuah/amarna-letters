@@ -134,10 +134,12 @@ mines and storage come with the economy's later phases"), so a mine shows where 
   people remember (`GameState.unrest`, which a sack adds to) has faded, or it changes hands; out of the viewer's sight,
   as last seen. Land with no ruler, or where a band works, looks wild: thorn and scrub over it.
 - **Life from the simulation.** Caravans of grain (`GameState.caravans`) and people carried off (the deportees of
-  `GameState.walking`, the only walkers with a known road) are drawn on their roads, where their stretch puts them (a guess, as a traveller's place is).
+  `GameState.walking`, the only walkers with a known road) are drawn on their roads, where their stretch puts them (a
+  guess, as a traveller's place is). A court sees its own caravans only, as the engine's view tells it (a smuggler's
+  caravan going round the toll posts is no one else's to see), and deportees on roads it sees.
   Close up, in the works row: a famine's empty granary where the countryside ate less than eight tenths of its need last
   season (`GameState.fed`), and each town's houses with its people and whether they grew or shrank over the year
-  (`GameState.people`).
+  (`GameState.people`): a court counts its own people only, as the engine's view tells it.
 - **Each realm's own map.** In a seat's view the map is drawn by its own scribes: Egypt's on papyrus, every other
   court's pressed in clay (the Amarna correspondents all wrote on clay), an overlay of clay's colour and grain over the
   whole board, never a filter, so the drawing beneath repaints no more often. God view keeps the papyrus museum map.
@@ -147,8 +149,9 @@ mines and storage come with the economy's later phases"), so a mine shows where 
   outlived its measure, the sun swallowed at the darkest; the map's border darkens with it. Its words are the tier's,
   never the season drawn (which no frame carries).
 - **Small scenes at big moments.** When the map steps on by one season, its gift processions (an envoy bearing gold who
-  reached his court), sacks and ambushes on the road play once as a medallion over the place, for under four seconds;
-  none when stepping back or jumping, and none for a reader who asks for reduced motion. A seat sees only its own
+  reached his court), sacks and ambushes on the road play once as a medallion over the place, each for 3.6 seconds,
+  the next a third of a second after the one before; none when stepping back or jumping (and any still playing are
+  taken away), and none for a reader who asks for reduced motion. A seat sees only its own
   envoys' and the events it is told of.
 
 **Readings taken.** Ruins last while the people remember the sack, since the engine has no rebuilding of its own ("no

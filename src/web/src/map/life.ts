@@ -87,9 +87,10 @@ export interface SmallScene {
 }
 
 const ByName = new Map(Map_.provinces.map((p) => [p.name, p.id] as const));
+/** The place an event names at its end, as the engine writes it ("... sacked Name.", "... near Name.", "... in Name ..."). */
 const placeIn = (text: string): string | null => {
-  for (const [name, id] of ByName) if (text.includes(` ${name}`)) return id;
-  return null;
+  const m = /\b(?:sacked|near|in) ([A-Z][^,.()]*?)(?:,| of | \(|\.)/u.exec(text) ?? /\b(?:sacked|near|in) ([A-Z][^,.()]*)\.?$/u.exec(text);
+  return m === null ? null : (ByName.get(m[1].trim()) ?? null);
 };
 
 /** The scenes of the season just shown (frame `f`, after `prev`), as the viewer would know of them. */
@@ -98,7 +99,7 @@ export function scenesOf(prev: SeasonFrame, f: SeasonFrame, viewer: Power | null
   const knows = (visible: readonly Power[]): boolean => viewer === null || visible.includes(viewer);
   // Envoys bearing gifts who reached their court this season.
   for (const j of prev.journeys) {
-    if (j.kind !== "EnvoyOutbound" || j.gold <= 0 || f.journeys.some((x) => x.id === j.id)) continue;
+    if (j.kind !== "EnvoyOutbound" || j.gold <= 0 || j.arrive > f.turn || f.journeys.some((x) => x.id === j.id)) continue;
     if (viewer !== null && viewer !== j.from && viewer !== j.to) continue;
     out.push({ at: city(Map_.capital(j.to).id), kind: "gift", text: `${powerName(j.from)}'s envoy arrived at the court of ${powerName(j.to)} with gifts` });
   }

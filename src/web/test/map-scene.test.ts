@@ -302,8 +302,11 @@ describe("MapSceneTests", () => {
         Assert.true((god.memorials.get(id)?.count ?? 0) >= b.count);
       }
       let sees = (id: string): boolean => frames[k].owner.get(id) === p || frames[k].sight.get(p)!.has(id);
-      for (const r of [...seat.memory.caravans, ...seat.memory.walking]) Assert.true(r.power === p || sees(r.from) || sees(r.to));
-      for (const id of [...seat.memory.wild, ...seat.memory.famine.keys(), ...seat.memory.towns.keys()]) Assert.true(sees(id));
+      // Its own caravans only, as the engine's view; deportees on roads it sees; its own people's numbers only.
+      for (const r of seat.memory.caravans) Assert.equal(p, r.power);
+      for (const r of seat.memory.walking) Assert.true(sees(r.from) || sees(r.to));
+      for (const id of seat.memory.wild) Assert.true(sees(id));
+      for (const id of [...seat.memory.famine.keys(), ...seat.memory.towns.keys()]) Assert.equal(p, frames[k].owner.get(id));
     }
     Assert.true(god.memorials.size > 0 && memorials > 0, "no battle was fought, or none seen, so nothing was checked");
   });
