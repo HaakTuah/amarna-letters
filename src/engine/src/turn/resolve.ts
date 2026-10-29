@@ -18,7 +18,7 @@ import { groundText } from "../model/geography.ts";
 import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { parOf, strength as scoringStrength, standingOf } from "../rules/scoring.ts";
+import { strength as scoringStrength, standingOf } from "../rules/scoring.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { KingdomFallsTitle, TurnEngine } from "./core.ts";
@@ -345,7 +345,7 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
     case "Bounced":
       return `it met a move into ${to} from ${f.province}${seen ? ` by ${whose}` : ""}${strengths}`;
     case "Resisted":
-      return `the people of ${to} rose against it and held it off${strengths}: a land's men of fighting age resist an invader where no troop stands, more on rough ground`;
+      return `the people of ${to} rose against it and held it off${strengths}: a land's men of fighting age resist an invader where no troop stands, by their number, more on rough ground`;
     default:
       return "it was stopped";
   }
@@ -657,7 +657,7 @@ P.endOfTurn = function () {
 P.decideWinners = function () {
   const S = this.s;
   const living = alive(S);
-  // Each power by its growth against par for its starting position ("One scoreboard for every power", item 11+).
+  // Each power by where its growth ranks among its starting position's results ("One scoreboard for every power", item 11e).
   const growth = new Dict(living.map((p) => [p, standingOf(p, this.growth(p))] as const));
   const best = sortBy(living, [(p: Power) => growth.get(p), desc(cmpNum)], [(p: Power) => p, cmpPower])[0];
 
@@ -667,17 +667,16 @@ P.decideWinners = function () {
       const a = t.proposedBy;
       const b = t.partner!;
       if (!isAlive(S, a) || !isAlive(S, b)) continue;
-      // The pair's growth against the par of their two positions, each weighed by its starting strength.
+      // The pair's standing together: each partner's, weighed by its starting strength.
       const start = S.startStrength.get(a) + S.startStrength.get(b);
-      const par = (parOf(a) * S.startStrength.get(a) + parOf(b) * S.startStrength.get(b)) / start;
-      const combined = (this.strength(a) + this.strength(b)) / start / par;
+      const combined = (growth.get(a) * S.startStrength.get(a) + growth.get(b) * S.startStrength.get(b)) / start;
       const others = living.filter((p) => p !== a && p !== b).map((p) => growth.get(p));
       const rivals = others.length === 0 ? 0 : max(others, (x) => x);
       if (combined > rivals && (bestPair === null || combined > bestPair[2])) bestPair = [a, b, combined];
     }
     if (bestPair !== null) {
       S.winners = [bestPair[0], bestPair[1]];
-      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (combined growth against par ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
+      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (standing together ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
       return;
     }
   }

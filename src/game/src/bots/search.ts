@@ -436,7 +436,7 @@ function evaluate(c: Ctx, mine: Plan): number {
     // A king's move on troops within his own walls goes with the walls' sally, ours as the plan will give it, a rival's as
     // he may: a besieger who forgets the sally loses his army to a lone relief.
     // The people of empty land resist our moves as our view reckons them (item 10+a); a rival's we cannot reckon.
-    const r = c.adj.run(c.units, orders, c.b.v.owner, c.b.v.walls, sallies(c, orders), null, (p, mover) => (mover === c.b.me ? c.b.resistance(p) : 0));
+    const r = c.adj.run(c.units, orders, c.b.v.owner, c.b.v.walls, sallies(c, orders), null, (p, mover) => (mover === c.b.me ? c.b.v.resistance.tryGet(p) ?? 0 : 0));
     c.runs++;
     const sc = score(c, r, orders);
     total += sc;

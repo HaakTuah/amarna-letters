@@ -47,8 +47,8 @@ export interface People {
  *   `strayPerDays` days of road beyond `strayAfter`, at most `strayMost`, never arrive and turn loose where they stood.
  * - `porterPer`: a caravan's porters and drivers, men for each measure it sets out with; `builders`: the men levied
  *   for a season to strengthen walls (the corvée).
- * - `resistOne`, `resistTwo`: the men of fighting age, as hostile as they are and doubled on rough ground, halved on open
- *   plain, that give a land's people a resistance of one and of two ("The people defend their land").
+ * - The people's resistance has no numbers of its own (item 11e): their men of fighting age count by their number as
+ *   every unit's men do, `armyMen` of them as hostile as they can be for one full unit ("The people defend their land").
  * - `hostileHome`: the people's hostility, in percent, to a king whose homeland the province is.
  * - `winterFood`: the extra food an army outside its own land eats in Peret, by the winter there ("Winter in the field").
  * - Item 10+b ("Where people go", "Bandits rob the purse", "People are worth having, not free to keep"):
@@ -90,8 +90,6 @@ export const LandData = {
   strayMost: 50,
   porterPer: 5,
   builders: 3000,
-  resistOne: 5000,
-  resistTwo: 30000,
   hostileHome: 50,
   winterFood: { Mild: 0, Cool: 50, Hard: 100 } as const,
   runPercent: 2,
@@ -235,15 +233,22 @@ export function countryNeed(p: Province, settled: number, full: number): number 
 }
 
 /**
- * How hard a land's people resist an army that enters it, 0, 1 or 2 ("The people defend their land"): its men of
- * fighting age, as hostile as they are to the invader, counted twice on rough ground and half on open plain.
+ * How hard a land's people resist an army that enters it, in thousandths of a full unit ("The people defend their land"):
+ * its men of fighting age, as hostile as they are to the invader, counted by their number as a unit's men are (since
+ * item 11e; before, in steps of 0, 1 or 2), twice on rough ground and half on open plain.
  */
 export function resistanceOf(province: string, men: number, hostility: number): number {
   const t = terrainOf(province);
-  let eff = idiv(Math.max(0, men) * hostility, 100);
-  if (t === "Rough") eff *= 2;
-  else if (t === "Open") eff = idiv(eff, 2);
-  return eff >= LandData.resistTwo ? 2 : eff >= LandData.resistOne ? 1 : 0;
+  const eff = wallMenOf(men, hostility);
+  return t === "Rough" ? eff * 2 : t === "Open" ? idiv(eff, 2) : eff;
+}
+
+/**
+ * What a city's men of fighting age count for on its walls, in thousandths of a full unit (item 11e): their number, as
+ * hostile as they are to the attacker, as a unit's men count; the walls, not the ground, are their help there.
+ */
+export function wallMenOf(men: number, hostility: number): number {
+  return idiv(idiv(Math.max(0, men) * hostility, 100) * 1000, LandData.armyMen);
 }
 
 /** The share of its harvest a province keeps this season through the droughts and floods striking it, in percent. */

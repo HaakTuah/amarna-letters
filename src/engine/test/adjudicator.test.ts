@@ -256,6 +256,27 @@ describe("AdjudicatorTests", () => {
     Assert.empty(r4.assaults);
   });
 
+  test("A city's own men stand on its walls beside the garrison, and the walls multiply them", () => {
+    // Item 11e: a walled city's men of fighting age (here 0.6 of a full unit) meet no move in the open: a lone army gets
+    // within the walls. A storm must beat the walls' level and the men, the walls doubling them: 1 + 2 x 0.6 = 2.2.
+    const people = (p: string): number => (p === "carchemish" ? 600 : 0);
+    const run = (b: Board): AdjudicationResult => new Adjudicator(WorldMap.default).run(b.units, b.orders, b.owners, b.walls, [], null, people);
+    const lone = new Board().a("Hatti", "isuwa").move("isuwa", "carchemish");
+    lone.walls.set("carchemish", 1);
+    const r1 = run(lone);
+    Assert.equal("carchemish", lone.where(r1, "isuwa"));
+    Assert.equal([600, false], [Assert.single(r1.assaults).people, stormed(r1.assaults[0])]);
+    const two = new Board().a("Hatti", "isuwa").a("Hatti", "aleppo").move("isuwa", "carchemish").support("aleppo", "isuwa", "carchemish");
+    two.walls.set("carchemish", 1);
+    Assert.empty(stormedIn(run(two)));
+    const three = new Board().a("Hatti", "isuwa").a("Hatti", "aleppo").a("Hatti", "harran").move("isuwa", "carchemish").support("aleppo", "isuwa", "carchemish").support("harran", "isuwa", "carchemish");
+    three.walls.set("carchemish", 1);
+    Assert.equal(["carchemish"], stormedIn(run(three)));
+    // Without walls the same men resist in the open, by their number: a lone army (1) beats 0.6.
+    const open = new Board().a("Hatti", "isuwa").move("isuwa", "carchemish");
+    Assert.equal("carchemish", open.where(run(open), "isuwa"));
+  });
+
   test("A fleet never storms walls", () => {
     let b = new Board().f("Hatti", "ugaritwaters").f("Hatti", "amurru").move("ugaritwaters", "ugarit").support("amurru", "ugaritwaters", "ugarit");
     b.walls.set("ugarit", 1);

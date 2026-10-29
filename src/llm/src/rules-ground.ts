@@ -33,7 +33,7 @@ export function terrainRules(c: GameConfig): string {
       `- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with ${t} more when it stands on rough ground (${rough}), or when the attack comes over a mountain pass or a great river, crossed at its fords and ferry towns (${crossings}): ${t} in all, however many of these apply. THE MAP marks the rough ground and the crossings on the links.`,
     );
     lines.push(
-      `- The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that. A support is cut as always. Your battle report gives the ground's share wherever it counted in the strength you had to beat.`,
+      `- The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the defenders on them (see WALLS AND SIEGES), and the ground's help to the units it beat is part of that. A support is cut as always. Your battle report gives the ground's share wherever it counted in the strength you had to beat.`,
     );
   }
   lines.push(`- Some links cross the desert (${deserts}); they give no help in battle. THE MAP marks them.`);

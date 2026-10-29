@@ -5,7 +5,8 @@
  * guess-and-check algorithm (from "The Math of Adjudication"), with circular movement resolved as success and convoy
  * paradoxes by the Szykman rule. Walls add nothing to the battle (Build order item 5): a move that wins its way into a
  * walled province its mover does not hold storms the walls only if its strength also beats their level plus the hold
- * strength it beat (Assault); the engine decides what that means for the province. The ground does count (item 5,
+ * strength it beat and the city's own men, the walls multiplying both (Assault, item 11e); the engine decides what that
+ * means for the province. The ground does count (item 5,
  * terrain): a unit that stands its ground on rough ground, or across a pass or a great river from the attack, holds with
  * GameConfig.terrainDefence more against that attack, at most that in all (defenceGround); never a unit that moves, nor one
  * met head on, nor empty land. At sea the blockade decides (item 7a): an army lands only from the waters of the coast it
@@ -101,7 +102,10 @@ export class Adjudicator {
   private walls: Dict<string, number> = new Dict();
   /** Moves that go in as guests by passage or basing (item 9): they storm no walls. */
   private guests: ((province: string, power: Power) => boolean) | null = null;
-  /** The people's resistance to a move into a province not its mover's own (item 10+a): what a move into empty land must beat. */
+  /**
+   * The people's resistance to a move into a province not its mover's own (item 10+a), in thousandths of a full unit: what
+   * a move into empty land must beat, and in a walled province what the city's men add to its defenders in a storm.
+   */
   private resist: ((province: string, mover: Power) => number) | null = null;
   private sallies: readonly SallyOrder[] = [];
   private sallyBy = new Map<string, Power | null>();
@@ -434,12 +438,18 @@ export class Adjudicator {
 
   /**
    * The people of the move's target rising against it where no unit stands its ground there ("The people defend their
-   * land", item 10+a): none for a guest let in by the land's holder, nor in the mover's own land.
+   * land", item 10+a): none for a guest let in by the land's holder, nor in the mover's own land. Behind walls they meet
+   * it on the walls instead, in the storm (item 11e, {@link assaultBy}).
    */
   private peopleAgainst(move: O): number {
+    if (this.walls.getOrDefault(move.target!, 0) > 0 && this.owners.getOrDefault(move.target!, null) !== move.power) return 0;
+    return this.people(move);
+  }
+
+  private people(move: O): number {
     if (this.resist === null || move.power === null) return 0;
     if (this.guests !== null && this.guests(move.target!, move.power)) return 0;
-    return this.resist(move.target!, move.power) * FullUnit;
+    return this.resist(move.target!, move.power);
   }
 
   /** The ground that helps a unit standing its ground in the move's target against it, or null (also when terrain is off). */
@@ -610,6 +620,8 @@ export class Adjudicator {
       strength: this.attackStrength(move),
       walls: walls * FullUnit,
       defenders: beaten,
+      // The city's own men of fighting age stand on the walls beside any garrison (item 11e).
+      people: this.people(move),
       ground,
       groundBonus: ground === null ? 0 : this.terrain,
     };

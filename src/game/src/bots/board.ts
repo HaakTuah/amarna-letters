@@ -104,9 +104,14 @@ export class Board {
     return this.v.sieges.find((x) => x.province === p) ?? null;
   }
 
-  /** The strength a move into a walled province needs to storm it: more than its walls and the defenders' hold together. */
+  /**
+   * The strength a move into a walled province needs to storm it: more than its walls and the defenders on them, the
+   * garrison's hold and the city's own men, multiplied by the walls (item 11e), in units.
+   */
   stormNeeds(p: string, defenders: number): number {
-    return this.walls(p) ? this.wallLevel(p) + defenders + 1 : 0;
+    if (!this.walls(p)) return 0;
+    const level = this.wallLevel(p);
+    return level + (defenders + this.wallMen(p)) * (1 + level) + 0.001;
   }
 
   P(id: string): Province {
@@ -178,9 +183,20 @@ export class Board {
     return this.v.yields.tryGet(id) ?? Board.Map.get(id).yield;
   }
 
-  /** The resistance our troops would meet from a land's people where no troop stands (item 10+a). */
+  /**
+   * The resistance our troops would meet in the open from a land's people where no troop stands (item 10+a), in whole
+   * units: a move of n full units gets in where n is more than this. None in a walled city not ours: its men stand on the
+   * walls instead ({@link wallMen}, item 11e).
+   */
   resistance(id: string): number {
-    return this.v.resistance.tryGet(id) ?? 0;
+    if (this.walls(id) && !this.isMine(id)) return 0;
+    return Math.floor((this.v.resistance.tryGet(id) ?? 0) / 1000);
+  }
+
+  /** What a walled city's own men count for on its walls, in units, before the walls multiply them (item 11e). */
+  wallMen(id: string): number {
+    if (!this.walls(id) || this.isMine(id)) return 0;
+    return (this.v.resistance.tryGet(id) ?? 0) / 1000;
   }
 
   private baseValue(id: string): number {

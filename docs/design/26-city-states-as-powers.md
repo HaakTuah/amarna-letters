@@ -52,12 +52,10 @@ and the script players' vassal judgements (`bots/vassals.ts`).
 
 ### The scoreboard (`rules/scoring.ts`, `turn/resolve.ts`)
 
-- **Par** for each starting position: the growth a power that started there usually reaches by the end of a script game,
-  over all games, a fall counted as 0 since item 11d ([29](29-answers-to-11plus.md)), tribute paid and received included: `Par`, from 50 script games
-  (seeds 1-50), the lands without a town from a second run after their strongholds. `parOf` (never below 0.1;
-  1 where unmeasured) and `standingOf` = growth / par. The winner is the living power with the highest standing; the
-  shared victory compares a pair's growth against their par, weighted by starting strength. The scripts' reckoning of
-  rivals (`Board.growth`) is the same standing, so they pursue what the game rewards.
+- **Par** for each starting position: since item 11e the results a power that started there reaches in the script
+  games, each ranked ([30](30-cities-defended.md)); before, the mean growth over all games, a fall counted as 0 (item
+  11d, [29](29-answers-to-11plus.md)). The winner is the living power with the highest standing. The scripts' reckoning
+  of rivals (`Board.growth`) is the same standing, so they pursue what the game rewards.
 - **The land against gold and goods** stays the fixed multiple (`provinceWeight` 10 × a season's worth); the alternative
   (the gold a land can still produce in the seasons likely left) is the report's reading, for item 18.
 - **When one power is left** the game ends, as before; a vassal is still a power, so holding vassals is not having them.

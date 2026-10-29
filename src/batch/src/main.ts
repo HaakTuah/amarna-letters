@@ -5,10 +5,10 @@
  * answers them with canned replies instead. Script games run side by side on worker threads; model and file games one at a
  * time, in this thread.
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { AllPowers, cmpNum, fmt, newGameConfig, sortBy, idNumber, PowerValues, type Power } from "@amarna/engine";
-import { batchReport, soloReport, versusReport, type GameSummary } from "@amarna/game";
+import { batchReport, parResultsSource, soloReport, versusReport, type GameSummary } from "@amarna/game";
 import { CostEstimate, Presets, SimulatedApi, SpendModes, newSpendingSettings, startProblem, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
 import { FileCharacters } from "@amarna/llm/node";
 import { choicesOf, playOne, setupCheck, type BatchOptions, type PlayJob, type PlayResult, type SoloJob } from "./play.ts";
@@ -89,6 +89,8 @@ let solo = false;
 let fileSeats: string | null = null;
 let fileCharacters: string | null = null;
 let listCharacters = false;
+/** Where to write par's results from these games (item 11e): `src/engine/src/rules/par-results.ts`'s source. */
+let parOut: string | null = null;
 
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
@@ -102,6 +104,9 @@ for (let i = 0; i < args.length; i++) {
       break;
     case "--out":
       o.outDir = next();
+      break;
+    case "--par-out":
+      parOut = next();
       break;
     case "--fingerprints":
       o.parityDir = next();
@@ -549,6 +554,7 @@ for (const outcome of played) {
 }
 console.log();
 if (results.length > 0) console.log(batchReport(results));
+if (parOut !== null && results.length > 0) writeFileSync(parOut, parResultsSource(results, `seeds ${o.seed}-${o.seed + results.length - 1}`));
 if (o.versus && results.length > 0) console.log(versusReport(results, sides));
 if (o.roadPlayHalf && results.length > 0)
   console.log("\nScript kings that close their roads to their foes (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));

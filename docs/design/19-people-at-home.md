@@ -89,10 +89,11 @@ It runs after the troops eat: troops foraging in a province take their share fro
 ### The people defend their land (rules/adjudicator.ts)
 
 `run(..., resist)`: a move into a province not its mover's, where no unit stands or its unit moved away, must beat the
-people's resistance (`resistanceOf`: 0, 1 or 2, by the men of fighting age times hostility, doubled on rough ground and
-halved on open plain; 1 from 5,000, 2 from 30,000; hostility 100, 50 in the mover's own homeland). A guest by passage or
-basing meets none. A move it stops fails with the stop `Resisted`; a storm must beat the walls plus it. Free cities keep
-their walls: the people resist in every province alike (reading in the report).
+people's resistance (`resistanceOf`, in thousandths of a full unit: the men of fighting age at home times hostility, by
+their number as a unit's men count, `armyMen` for one, doubled on rough ground and halved on open plain, since item 11e;
+before, steps of 0, 1 or 2; hostility 100, 50 in the mover's own homeland). A guest by passage or basing meets none. A
+move it stops fails with the stop `Resisted`. In a walled province not the mover's the people stand on the walls instead
+and meet the storm (`wallMenOf`, [30](30-cities-defended.md)).
 
 ### Seasons and the road
 

@@ -263,12 +263,15 @@ function military(v: SeatView, m: Memory, rng: Rng, orders: Order[]): HSet<strin
     const occ = unitAt.tryGet(t) ?? null;
     if (occ?.power === me) continue;
     let need: number;
-    // Empty land not ours: its people resist (item 10+a, adapted as the rule requires).
+    // Empty land not ours: its people resist (item 10+a, adapted as the rule requires), and behind walls they stand on
+    // them, the walls multiplying them (item 11e): enough to storm an empty city.
     const people = v.resistance.tryGet(t) ?? 0;
-    if (owner === null) need = occ === null ? Math.max(v.walls.getOrDefault(t, 0) > 0 ? 2 : 1, people + 1) : willing(occ.power) ? 2 : 0;
+    const walls = v.walls.getOrDefault(t, 0);
+    const empty = walls > 0 ? Math.floor(walls + (people * (1 + walls)) / 1000) + 1 : Math.floor(people / 1000) + 1;
+    if (owner === null) need = occ === null ? empty : willing(occ.power) ? 2 : 0;
     else if (owner === me) need = occ === null ? 0 : 2;
     else if (!willing(owner)) need = 0;
-    else need = occ === null ? Math.max(v.walls.getOrDefault(t, 0) > 0 ? 2 : 1, people + 1) : 2 + (m.aggression < 0.5 ? 1 : 0);
+    else need = occ === null ? empty : 2 + (m.aggression < 0.5 ? 1 : 0);
     if (need === 0) continue;
     const prov = Map_.get(t);
     const value = prov.yield + (prov.capital ? 25 : 0) + (owner === null ? 5 : 0) + (prov.home === me ? 30 : 0) + (owner !== null ? G(m, owner) * 3 + (owner === leader ? 15 : 0) : 0);
@@ -325,7 +328,7 @@ function stepToward(u: UnitView, v: SeatView, me: Power, peace: HSet<Power>, m: 
       while (prev.get(step) !== u.province) step = prev.get(step)!;
       if (taken.has(step) || unitAt.has(step)) return null;
       if (v.walls.getOrDefault(step, 0) > 0) return null; // walls: wait for help rather than bounce
-      if ((v.resistance.tryGet(step) ?? 0) > 0) return null; // its people would hold off a lone army (item 10+a)
+      if ((v.resistance.tryGet(step) ?? 0) >= 1000) return null; // its people would hold off a lone army (item 10+a)
       return step;
     }
     for (const n of sortBy(Map_.movesFrom(u.kind, cur), [(x: string) => x, cmpStr]))

@@ -16,7 +16,6 @@ import {
   Views,
   WorldMap,
   publicWorthOf,
-  parOf,
   TurnEngine,
   distinct,
   fmt,
@@ -119,8 +118,8 @@ describe("BotTests", () => {
     let [brain, board] = egyptBuysTheLevant(true);
     // Egypt's homeland is larger since item 11+ (Gaza and Sumur), so two cities add less to it.
     Assert.true(board.landGrowth("Egypt") >= 1.15, "by land alone Egypt would seem to run away with the game");
-    // Growth as the game reckons it, against par (item 11+): its own growth is that times par.
-    Assert.inRange(board.growth("Egypt") * parOf("Egypt"), 0.95, 1.15);
+    // Its growth, before it is ranked against par's results (item 11e).
+    Assert.inRange(board.strength("Egypt") / board.startStrength("Egypt"), 0.95, 1.15);
     Assert.notEqual("Egypt", board.leader());
     Assert.equal(0, brain.belligerence.getOrDefault("Egypt", 0));
   });
