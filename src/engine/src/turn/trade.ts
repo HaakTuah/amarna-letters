@@ -142,6 +142,8 @@ P.atBorder = function (c, a, b, book) {
   const S = this.s;
   const k = S.owner.getOrDefault(b, null);
   if (k === null || k === c.power || this.map.get(b).isSea || S.owner.getOrDefault(a, null) === k) return "pass";
+  // A holder shut inside his walls by another's siege keeps no border beyond them: the countryside is the besieger's (item 11f).
+  if (S.sieges.some((x) => x.province === b && x.power !== k)) return "pass";
   const name = this.map.get(b).name;
   // Whatever happens at the border, the traders learn the tolls that stand there on their king's goods.
   noteTolls(c.word, S.tolls, k, c.power);

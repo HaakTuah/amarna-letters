@@ -83,13 +83,14 @@ describe("MapCrossingsTests", () => {
     Assert.equal(undefined, bond("Libya"));
   });
 
-  /** Hatti's army in Aleppo, Carchemish and Alalakh between it and home, both closed to Hatti, as Hatti has heard. */
+  /** Hatti's army in Aleppo, every land between it and home closed to Hatti, as Hatti has heard: no open road reaches it. */
   const closedRoad = (seed: number): { s: GameState; e: TurnEngine } => {
     const s = game(seed);
     const e = new TurnEngine(s);
     single(s.units, (x) => x.province === "nesa").province = "aleppo";
-    for (const k of ["Carchemish", "Alalakh"] as const) s.roadsClosed.set(k, ["Hatti"]);
-    s.roadsHeard.set("Hatti", ["Carchemish", "Alalakh"]);
+    const shut = ["Carchemish", "Alalakh", "Isuwa", "Mitanni"] as const;
+    for (const k of shut) s.roadsClosed.set(k, ["Hatti"]);
+    s.roadsHeard.set("Hatti", [...shut]);
     s.stores.set("kizzuwatna", 200);
     s.treasuries.get("Hatti").gold = 1000;
     return { s, e };
@@ -117,6 +118,15 @@ describe("MapCrossingsTests", () => {
     Assert.true(found > 0);
   });
 
+  test("A kingdom's caravan keeps to open roads while one reaches, however long", () => {
+    const s = game();
+    const e = new TurnEngine(s);
+    single(s.units, (x) => x.province === "nesa").province = "aleppo";
+    for (const k of ["Carchemish", "Alalakh"] as const) s.roadsClosed.set(k, ["Hatti"]);
+    s.roadsHeard.set("Hatti", ["Carchemish", "Alalakh"]);
+    Assert.false(e.caravanRoute("Hatti", "kizzuwatna", "aleppo")!.some((x) => x === "carchemish" || x === "alalakh"));
+  });
+
   test("Troops shut inside walls by a siege seize no caravan passing beyond them", () => {
     const taken = (besieged: boolean): number => {
       let n = 0;
@@ -129,13 +139,15 @@ describe("MapCrossingsTests", () => {
         const theirs = single(s.units, (x) => x.province === "taidu");
         theirs.province = "nesa";
         s.roadsClosed.set("Mitanni", ["Hatti"]);
+        s.roadsHeard.set("Hatti", ["Mitanni"]);
         if (besieged) {
           s.owner.set("nesa", "Mitanni");
           s.sieges.push(newSiege({ province: "nesa", power: "Hatti", unitId: mine.id, since: s.turn }));
         }
         e.resolve(new Dict([["Hatti", newTurnSubmission({ orders: [caravan("hattusa", "nesa", 60)] })]]));
         travel(s, e, 2);
-        if (s.events.some((x) => x.signal === "caravan-taken")) n++;
+        // Nor do the holder's people at the border, shut in with them.
+        if (s.events.some((x) => x.signal === "caravan-taken" || x.signal === "caravan-found")) n++;
       }
       return n;
     };

@@ -55,15 +55,16 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
 
 ## Caravans go anywhere, at risk (`turn/trade.ts`, `turn/economy.ts`)
 
-- **A kingdom's caravan** (order `caravan`) is routed through any land (`caravanRoute`, sneak mode `"closed"`): openly
-  where it may, sneaking off the road, half as slow again, through land its king has heard is closed to him with no
-  passage there (`roadsShutTo`). Entering such a king's land it meets the smuggler's check (`smuggleOdds`): found, its
+- **A kingdom's caravan** (order `caravan`) keeps to land open to it while any such road reaches its destination, however
+  long; where none does, it is routed through land its king has heard is closed to him with no passage there
+  (`caravanRoute`, sneak mode `"closed"`, `roadsShutTo`), sneaking off the road there, half as slow again, paying no toll. Entering such a king's land it meets the smuggler's check (`smuggleOdds`): found, its
   goods are seized into that province's stores and his treasury (`caravan-found`), else it slips in (`caravan-slipped`).
   Meeting closed roads it had not heard of, it is turned back at the border, learns of them, and goes on to its
   destination sneaking (it goes home only if no way on exists). A trader (order `trade`) keeps its own choice, openly or
   smuggling.
 - **Troops shut in by a siege seize nothing**: the road check's taker skips a unit standing in a province besieged by
-  another power. The besieger's own caravans reach his army there; the defender cuts them only by sallying out, a relief
+  another power, and a holder whose city another besieges keeps no border there (`atBorder`: no turning back, no toll, no
+  search), so nothing seized there feeds the besieged city by land. The besieger's own caravans reach his army there; the defender cuts them only by sallying out, a relief
   army or holding a province on their road.
 
 ## Script kings (`game/src/bots/grain.ts`)

@@ -81,20 +81,25 @@ TO FILL: benchmarks before and after, falls in the first two seasons, wins by po
    a river crossing costs the same everywhere; only what the sources give is added.)
 8. **Only a kingdom's caravans sneak where closed**: a trader keeps its own choice to go openly or smuggle, which it
    already had (item 9+b); the item's text is about supplying a kingdom and its armies. Alternative: traders too.
-9. **Turned back, then on**: a caravan that meets closed roads it had not heard of is turned back at the border, as
+9. **Open roads first**: a kingdom's caravan sneaks through closed land only where no open road reaches, so a king's
+   caravan never takes the risk while a safe road exists (the order names only its ends; "may still go" is a means, not a
+   preference). From the review; before it the engine took the shorter way.
+10. **Turned back, then on**: a caravan that meets closed roads it had not heard of is turned back at the border, as
    before, then goes on to its destination sneaking, since it "may still go". (Nothing happens unless ordered: it does
    what it was sent to do; Everything travels.)
-10. **Hostile troops are as before**: a king who closed his roads to the caravan's king with no passage there. (A road is
+11. **Hostile troops are as before**: a king who closed his roads to the caravan's king with no passage there. (A road is
     denied by holding it.)
-11. **Shut in means any power but the besieger** in a besieged province, for caravans only; travellers' road check is
-    unchanged, as the decision is about supply. Alternative: travellers too.
-12. **Libya and the Shasu have no market**: a town of 0, so their market buys and sells nothing; no rule names them.
+12. **Shut in means any power but the besieger** in a besieged province, for caravans only; travellers' road check is
+    unchanged, as the decision is about supply. Alternative: travellers too. The besieged holder keeps no border there
+   either (no turning back, toll or search), so nothing seized at it feeds the besieged city (the review's one blocking
+   finding: before the fix, grain found at the border went into the besieged city's stores).
+13. **Libya and the Shasu have no market**: a town of 0, so their market buys and sells nothing; no rule names them.
     (Different data, same rules.)
-13. **The edge lands' centres** are their herders' land, not a site: Libya west of the Delta (30.95 N, 28.6 E), the
+14. **The edge lands' centres** are their herders' land, not a site: Libya west of the Delta (30.95 N, 28.6 E), the
     Shasu in the Arabah by Edom (30.6 N, 35.3 E) [G].
-14. **Connections for the new places** follow the roads the dossiers give, then the drawing where the sources allow (the
+15. **Connections for the new places** follow the roads the dossiers give, then the drawing where the sources allow (the
     list above).
 
 ## Questions for Haakon
 
-None: "The game in one page" and the item's sections settled every reading (readings 1-14 above).
+None: "The game in one page" and the item's sections settled every reading (readings 1-15 above).

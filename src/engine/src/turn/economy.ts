@@ -440,12 +440,12 @@ P.caravanCompany = function (c) {
 
 /**
  * A caravan's route: through land open to it (its king's own, and from item 9+b land whose holder has not closed his
- * roads to it), and since item 11f through land closed to it too, sneaking there at risk ("Caravans carry a kingdom's
- * goods": where they have no passage they may still go), ending at the destination (which may be land where his troops
+ * roads to it), and since item 11f, where no such road reaches, through land closed to it too, sneaking there at risk
+ * ("Caravans carry a kingdom's goods": where they have no passage they may still go), ending at the destination (which may be land where his troops
  * stand), by road or by boat on a river; by sea only as a ship ("Ships carry goods"). Null if there is none.
  */
 P.caravanRoute = function (p, from, to) {
-  return this.tradeRoute(p, from, to, "closed");
+  return this.tradeRoute(p, from, to, false) ?? this.tradeRoute(p, from, to, "closed");
 };
 
 /**
@@ -758,8 +758,8 @@ P.settleMarkets = function (orders) {
     if (!held(p, o.from, "A caravan", o)) continue;
     const route = this.caravanRoute(p, o.from, o.to);
     if (route === null) {
-      tell(p, `No caravan left ${Map.get(o.from).name} for ${Map.get(o.to).name}: there is no road there through land open to your caravans.`);
-      this.scheduledFailed(p, o, "no road open to its caravans");
+      tell(p, `No caravan left ${Map.get(o.from).name} for ${Map.get(o.to).name}: there is no road there by land or river.`);
+      this.scheduledFailed(p, o, "no road there by land or river");
       continue;
     }
     const grain = this.takeFromStores(o.from, o.amount);
