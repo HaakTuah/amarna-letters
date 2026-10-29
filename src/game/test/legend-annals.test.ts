@@ -19,7 +19,7 @@ describe("LegendAnnalsTests", () => {
   });
 
   test("The court begged a third time writes Finkel's line; the beggar does not", async () => {
-    const t = 'Babylonia begged Egypt for gold a third time: "I love you my gold owning brother."';
+    const t = 'Babylonia begged Egypt for gold a third time ("I love you my gold owning brother", as the chronicle has it).';
     Assert.true((await annals("Egypt", t, "begging", "third-plea")).includes("I love you my gold owning brother"));
     Assert.false((await annals("Babylonia", t, "begging", "third-plea")).includes("gold owning"));
   });

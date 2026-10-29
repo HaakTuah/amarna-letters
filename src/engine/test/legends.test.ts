@@ -59,16 +59,30 @@ describe("LegendsTests", () => {
       newAudienceRecord({ audienceId: a.id, delivered: "Send gold.", clauses: asks ? [clause("askGold", { amount: 50 })] : [], rounds: [newAudienceRound({ host: newHostReply({ end: true }) })] }),
     );
 
-  test("The third plea for gold a court hears from one king is a line in the chronicle, seen by the two of them", () => {
+  test("The third plea for gold a court hears from one king is a line in the chronicle, heard by the court begged", () => {
     let s = game();
     heardBefore(s, 2);
     let [e, a] = plea(s);
     hear(e, a, true);
     let line = single(s.events, (x) => x.kind === "begging");
-    Assert.equal(["Egypt", "Alashiya"], line.visibleTo);
+    Assert.equal(["Alashiya"], line.visibleTo);
     Assert.true(line.text.includes("I love you my gold owning brother"));
     Assert.contains(courtLegend(s, "Egypt"), (l) => l.text === line.text);
     Assert.contains(courtLegend(s, "Alashiya"), (l) => l.text === line.text);
+  });
+
+  test("Not the fourth, nor a plea an impostor made in the king's name", () => {
+    let s = game();
+    heardBefore(s, 3);
+    let [e, a] = plea(s);
+    hear(e, a, true);
+    Assert.false(s.events.some((x) => x.kind === "begging"));
+    let t = game();
+    heardBefore(t, 1);
+    t.trails.push(newMessageTrail({ id: "fake", turn: 0, from: "Egypt", to: "Alashiya", audienceTurn: 0, pretended: true, deliveredClauses: [clause("askGold", { amount: 20 })] }));
+    let [e2, a2] = plea(t);
+    hear(e2, a2, true);
+    Assert.false(t.events.some((x) => x.kind === "begging"));
   });
 
   test("Only the third: a second plea, or one the envoy left out, keeps no line", () => {
@@ -93,6 +107,20 @@ describe("LegendsTests", () => {
     Assert.contains(t.lines, (l) => l.turn === 2 && l.text.startsWith("Sealed by Egypt and Hatti"));
     Assert.contains(t.lines, (l) => l.turn === 4 && l.text === "Broken: Egypt took Tuwanuwa from Hatti.");
     Assert.contains(t.lines, (l) => l.turn === 5 && l.text === "A copy came to Mitanni, shown by Egypt.");
+  });
+
+  test("Land ceded between the two, or taken after a repudiated tablet, is no broken oath", () => {
+    let s = game();
+    s.tablets.push(newTablet({ id: "legend1", proposedBy: "Egypt", partner: "Hatti", seals: ["Egypt", "Hatti"], createdTurn: 1, sealedTurn: 2, clauses: [clause("peace"), clause("cede", { province: "tuwanuwa" })] }));
+    s.ownerLog.push(newOwnerChange({ province: "tuwanuwa", turn: 4, owner: "Egypt" }));
+    s.turn = 4;
+    logEvent(s, "cession", "Hatti ceded Tuwanuwa to Egypt.", ["Hatti", "Egypt"]);
+    Assert.false(single(tabletLegends(s), (x) => x.id === "legend1").lines.some((l) => l.text.startsWith("Broken")));
+    Assert.contains(courtLegend(s, "Hatti"), (l) => l.text === "Ceded Tuwanuwa to Egypt.");
+    let t = game();
+    t.tablets.push(newTablet({ id: "legend1", proposedBy: "Egypt", partner: "Hatti", seals: ["Egypt", "Hatti"], createdTurn: 1, sealedTurn: 2, repudiatedTurn: 3, byHandOf: "Hatti", clauses: [clause("peace")] }));
+    t.ownerLog.push(newOwnerChange({ province: "tuwanuwa", turn: 4, owner: "Egypt" }));
+    Assert.false(single(tabletLegends(t), (x) => x.id === "legend1").lines.some((l) => l.text.startsWith("Broken")));
   });
 
   test("A forged tablet names its forger and the seals it bears falsely; inventories and unsealed tablets are left out", () => {

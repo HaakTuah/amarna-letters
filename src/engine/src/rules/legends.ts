@@ -39,14 +39,30 @@ const provinceName = (id: string): string => WorldMap.default.get(id).name;
 const listed = (xs: readonly string[]): string => (xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 const byTurn = (ls: LegendLine[]): LegendLine[] => sortBy(ls, [(l: LegendLine) => l.turn, cmpNum]);
 
-/** Each change of a province's holder, oldest first, with the holder it was taken from. */
-function changes(s: GameState): { province: string; turn: number; from: Power | null; to: Power | null }[] {
+interface Change {
+  province: string;
+  turn: number;
+  from: Power | null;
+  to: Power | null;
+  /** Ceded by its holder (a cession, or a whole realm ceded with its capital), not taken. */
+  ceded: boolean;
+}
+
+/** Each change of a province's holder, oldest first, with the holder it passed from and whether it was ceded. */
+function changes(s: GameState): Change[] {
+  const cessions = s.events.filter((e) => e.kind === "cession");
+  const ceded = (province: string, turn: number, from: Power | null, to: Power | null): boolean =>
+    from !== null &&
+    to !== null &&
+    cessions.some(
+      (e) => e.turn === turn && e.text.startsWith(`${from} ceded `) && (e.text.endsWith(` to ${to}.`) || e.text.endsWith(`, to ${to}.`)) && (e.text.includes("the whole realm") || wordIn(e.text, provinceName(province))),
+    );
   const held = new Map<string, Power | null>();
-  const out: { province: string; turn: number; from: Power | null; to: Power | null }[] = [];
+  const out: Change[] = [];
   for (const c of s.ownerLog) {
     const from = held.has(c.province) ? held.get(c.province)! : WorldMap.default.get(c.province).home;
     held.set(c.province, c.owner);
-    if (from !== c.owner) out.push({ province: c.province, turn: c.turn, from, to: c.owner });
+    if (from !== c.owner) out.push({ province: c.province, turn: c.turn, from, to: c.owner, ceded: ceded(c.province, c.turn, from, c.owner) });
   }
   return out;
 }
@@ -126,9 +142,10 @@ export function tabletLegends(s: GameState): TabletLegend[] {
     if (says.length > 0) lines.push(line(0, `It says: ${says.length > 300 ? says.slice(0, 297) + "..." : says}`));
     if (t.repudiatedTurn !== null && t.byHandOf !== null) lines.push(line(t.repudiatedTurn, `${t.byHandOf} repudiated it, as beyond its envoy's authority.`));
     // Broken: a king of a sealed peace taking land from the other afterwards.
-    if (!t.forged && t.sealedTurn !== null && t.seals.length === 2 && t.clauses.some((c) => PeaceKinds.has(c.kind))) {
+    // Land ceded between them is agreed, not taken; a tablet its king repudiated never stood.
+    if (!t.forged && t.sealedTurn !== null && t.repudiatedTurn === null && t.seals.length === 2 && t.clauses.some((c) => PeaceKinds.has(c.kind))) {
       const [a, b] = t.seals;
-      const breach = moved.find((m) => m.turn >= t.sealedTurn! && ((m.from === a && m.to === b) || (m.from === b && m.to === a)));
+      const breach = moved.find((m) => !m.ceded && m.turn >= t.sealedTurn! && ((m.from === a && m.to === b) || (m.from === b && m.to === a)));
       if (breach !== undefined) lines.push(line(breach.turn, `Broken: ${breach.to} took ${provinceName(breach.province)} from ${breach.from}.`, breach.province));
     }
     // Its copies: who came to hold one, how, and whether its seals were found false.
@@ -170,7 +187,9 @@ export function courtLegend(s: GameState, p: Power): LegendLine[] {
     if (peak.provinces > start) out.push(line(peak.turn, `At its height, held ${peak.provinces} provinces.`));
   }
   for (const m of changes(s)) {
-    if (m.to === p) out.push(line(m.turn, `Took ${provinceName(m.province)}${m.from !== null ? ` from ${m.from}` : ", which no one held"}.`, m.province));
+    if (m.ceded && m.to === p) out.push(line(m.turn, `Was ceded ${provinceName(m.province)} by ${m.from}.`, m.province));
+    else if (m.ceded && m.from === p) out.push(line(m.turn, `Ceded ${provinceName(m.province)} to ${m.to}.`, m.province));
+    else if (m.to === p) out.push(line(m.turn, `Took ${provinceName(m.province)}${m.from !== null ? ` from ${m.from}` : ", which no one held"}.`, m.province));
     else if (m.from === p) out.push(line(m.turn, `Lost ${provinceName(m.province)}${m.to !== null ? ` to ${m.to}` : ", which fell lawless"}.`, m.province));
   }
   for (const q of AllPowers) {
@@ -205,8 +224,8 @@ export function newIdrimi(r: RisenPower): LegendLine {
   return line(r.turn, `A new Idrimi: ${r.king}, who governed ${provinceName(r.capital)} for ${r.from}, rose to rule it in his own name when ${r.from} fell.`, r.capital);
 }
 
-/** The events the chronicle keeps as legends of their own ("A new Idrimi", "Finkel's version"). */
-export const ChronicleKinds: ReadonlySet<string> = new Set(["idrimi", "begging"]);
+/** The events the chronicle keeps as legends of their own ("Finkel's version"; "A new Idrimi" reads the powers risen). */
+export const ChronicleKinds: ReadonlySet<string> = new Set(["begging"]);
 
 // ---------------------------------------------------------------- the record opens
 
@@ -219,6 +238,8 @@ const Deceptions: readonly { title: string; signals: readonly string[] }[] = [
   { title: "Who sent false gold", signals: ["debased-gift"] },
   { title: "Who sold what they knew", signals: ["report-sold", "secrets-caught"] },
   { title: "Which envoys took a host's gold", signals: ["bribe"] },
+  { title: "Which tablets were stolen", signals: ["tablet-stolen"] },
+  { title: "Who carried words between courts", signals: ["go-between", "court-go-between"] },
 ];
 
 /**
