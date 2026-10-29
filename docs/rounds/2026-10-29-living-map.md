@@ -100,3 +100,20 @@ PR #202, branch `item/living-map-figures`, stacked on pass 1.
 - **Styles for the powers the item does not name** ("Period first"): the north Syrian cities take the Hurrian chariot of
   their seals, the Levant's cities the Canaanite foot of the Egyptian reliefs, the Shasu, Suteans and Libyans the archer;
   a risen power the style of the nearest fixed power's land.
+
+### Measured
+
+- **A throttled phone** (390 by 844, CPU slowed four times, nine seasons played first, `season-shots.mjs --play 6`), long
+  tasks summed, mean of three runs, pass 1 against pass 2: playing season 2, 357 and 321 ms; season 3, 315 and 300 ms;
+  one season back, 309 and 230 ms. The first build cost more (one season back 258 against 416 ms), since each figure was
+  some twenty paths that every unit's `<use>` cloned; each figure is now one path of pieces all turned clockwise
+  (`clockwise` in `figures.ts`, tested), with a chariot's wheel its own.
+- **The script games** are untouched by construction (only `src/web` changed; pass 1 showed the batch identical).
+- **The smoke test** passes, now also requiring that band marks and siege tents never touch another marker.
+
+### The review
+
+One reviewer (Opus, high). Blocking, fixed: band marks did not hide when they gave way (`.band-mark.off`); the smoke test
+now counts them. Fixed besides: siege tents count in their city's badge, hide with a small seal and stand close enough
+not to touch the counters above (the smoke test caught the first try at Ur); the figures' cost on a phone (above); the
+old chariot and ship symbols removed; the note says a pirate crew is drawn at its coastal city.

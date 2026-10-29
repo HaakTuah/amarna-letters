@@ -83,10 +83,11 @@ function cities(s: MapScene): string {
     // A siege camp (item 19): the besieger's tents ringing the walls.
     const siege = s.sieges.find((x) => x.province === p.id);
     if (siege !== undefined) {
-      const r = ringOf(p.capital, walls) + 4.5;
+      // Close in, so they stay within the gap a city's own counters keep from its outermost ring.
+      const r = ringOf(p.capital, walls) + 2.6;
       for (let k = 0; k < 6; k++) {
         const a = (k * Math.PI) / 3 + Math.PI / 6;
-        sb += `<use href="#fig-tent" class="tent t-${glyphId(siege.besieger)}" x="${F(Math.cos(a) * r - 3.2)}" y="${F(Math.sin(a) * r - 3.2)}" width="6.4" height="6.4"/>`;
+        sb += `<use href="#fig-tent" class="tent t-${glyphId(siege.besieger)}" x="${F(Math.cos(a) * r - 2.6)}" y="${F(Math.sin(a) * r - 2.6)}" width="5.2" height="5.2"/>`;
       }
     }
     if (owner !== null)
@@ -703,7 +704,7 @@ export class SvgMapRenderer implements MapRenderer {
         return {
           id,
           c,
-          badge: rects(c, ".seal, .walls, .cap-ring"),
+          badge: rects(c, ".seal, .walls, .cap-ring, .tent"),
           seal: c.querySelector(".seal")?.getBoundingClientRect(),
           rest: [
             ...(units.get(id) ?? []).flatMap((u) => rects(u, ":scope > .sym")),

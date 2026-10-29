@@ -70,7 +70,8 @@ export const fleetStyle = (p: Power): FleetStyle => Fleets[base(p)] ?? "levant";
 // ---------------------------------------------------------------- the pieces, as path data
 
 const n = (v: number): string => (Math.round(v * 100) / 100).toString();
-const circle = (x: number, y: number, r: number): string => `M${n(x - r)},${n(y)}a${n(r)},${n(r)} 0 1,0 ${n(2 * r)},0a${n(r)},${n(r)} 0 1,0 ${n(-2 * r)},0Z`;
+/** A circle, drawn clockwise as every piece is (`clockwise`), so pieces may share one path. */
+const circle = (x: number, y: number, r: number): string => `M${n(x - r)},${n(y)}a${n(r)},${n(r)} 0 1,1 ${n(2 * r)},0a${n(r)},${n(r)} 0 1,1 ${n(-2 * r)},0Z`;
 const ring = (x: number, y: number, r: number, w: number): string =>
   circle(x, y, r) + `M${n(x - r + w)},${n(y)}a${n(r - w)},${n(r - w)} 0 1,1 ${n(2 * (r - w))},0a${n(r - w)},${n(r - w)} 0 1,1 ${n(-2 * (r - w))},0Z`;
 /** A wheel of six spokes, as the period's chariots ran on: drawn even-odd, so its rim is a ring (marked by a leading space). */
@@ -106,7 +107,7 @@ const mesehti = (x: number): string => man(x, -1, 0.92) + spear(x + 2.6, -12, 4.
 /** A horse at the gallop, facing right, its body centred at x, y. */
 function horse(x: number, y: number, gallop: boolean): string {
   const p = (dx: number, dy: number): string => `${n(x + dx)},${n(y + dy)}`;
-  let d = `M${p(-4.6, 0)}a4.6,2.3 0 1,0 9.2,0a4.6,2.3 0 1,0 -9.2,0Z`;
+  let d = `M${p(-4.6, 0)}a4.6,2.3 0 1,1 9.2,0a4.6,2.3 0 1,1 -9.2,0Z`;
   d += `M${p(2.8, -1.4)}L${p(5.4, -5.8)}L${p(8.1, -5.2)}L${p(7.8, -3.9)}L${p(6.3, -4.1)}L${p(4.9, -0.2)}Z`;
   d += `M${p(5.2, -6.2)}L${p(4.4, -7.6)}L${p(5.9, -6.6)}Z`; // the ear
   d += `M${p(-4.2, -0.8)}L${p(-6.6, 0.7)}L${p(-6.2, 1.5)}L${p(-3.8, 0.2)}Z`; // the tail
@@ -204,14 +205,93 @@ const Others: Record<string, string> = {
 };
 
 /**
- * A figure's pieces as elements: each piece its own path, so overlapping pieces (a shield over a body) never cancel each
- * other out whichever way they were drawn; a wheel (between bars) as one even-odd path, so its rim is a ring.
+ * One piece turned clockwise on screen. Pieces drawn the same way round fill as their union in one path (nonzero), however
+ * they overlap, so a figure costs one element, which every `<use>` of it clones. A piece of straight lines drawn the other
+ * way is reversed; a piece with curves or arcs must be drawn clockwise already (circles and the shield are), and one that
+ * is not is an error, caught by the figures' test.
  */
+export function clockwise(piece: string): string {
+  const tokens = piece.match(/[a-zA-Z]|-?\d*\.?\d+/gu) ?? [];
+  type P = [number, number];
+  // The piece as absolute segments, each to a point, with a curve's controls.
+  const start: P[] = [];
+  const segs: { to: P; c: P[] }[] = [];
+  let arc = false;
+  let x = 0;
+  let y = 0;
+  let cmd = "";
+  for (let i = 0; i < tokens.length; ) {
+    if (/[a-zA-Z]/u.test(tokens[i])) cmd = tokens[i++];
+    const num = (): number => Number(tokens[i++]);
+    const rel = cmd === cmd.toLowerCase();
+    const at = (a: number, b: number): P => (rel ? [x + a, y + b] : [a, b]);
+    switch (cmd.toUpperCase()) {
+      case "M": {
+        [x, y] = at(num(), num());
+        start.push([x, y]);
+        cmd = rel ? "l" : "L";
+        break;
+      }
+      case "L":
+        [x, y] = at(num(), num());
+        segs.push({ to: [x, y], c: [] });
+        break;
+      case "H":
+        x = rel ? x + num() : num();
+        segs.push({ to: [x, y], c: [] });
+        break;
+      case "V":
+        y = rel ? y + num() : num();
+        segs.push({ to: [x, y], c: [] });
+        break;
+      case "Q":
+      case "C": {
+        const c: P[] = [];
+        for (let k = cmd.toUpperCase() === "Q" ? 1 : 2; k > 0; k--) c.push(at(num(), num()));
+        [x, y] = at(num(), num());
+        segs.push({ to: [x, y], c });
+        break;
+      }
+      case "A": {
+        // A piece with arcs takes its turn from them, and they must sweep clockwise (circles, the shield's top).
+        const v = Array.from({ length: 7 }, num);
+        if (v[4] !== 1) throw new Error(`a figure's arc must sweep clockwise: ${piece}`);
+        [x, y] = at(v[5], v[6]);
+        arc = true;
+        break;
+      }
+      case "Z":
+        break;
+      default:
+        throw new Error(`unknown command ${cmd} in a figure: ${piece}`);
+    }
+  }
+  if (arc || start.length !== 1) return piece;
+  // The sign of the area, the curves' controls standing in for their sweep (y runs down: positive is clockwise on screen).
+  const pts: P[] = [start[0], ...segs.flatMap((g) => [...g.c, g.to])];
+  let area = 0;
+  for (let k = 0; k < pts.length; k++) area += pts[k][0] * pts[(k + 1) % pts.length][1] - pts[(k + 1) % pts.length][0] * pts[k][1];
+  if (area >= 0) return piece;
+  // Reversed: from the last point back to the first, each curve with its controls in the other order.
+  const ends: P[] = [start[0], ...segs.map((g) => g.to)];
+  const f = ([a, b]: P): string => `${n(a)},${n(b)}`;
+  let out = `M${f(ends[ends.length - 1])}`;
+  for (let k = segs.length - 1; k >= 0; k--) {
+    const g = segs[k];
+    out += g.c.length === 0 ? `L${f(ends[k])}` : g.c.length === 1 ? `Q${f(g.c[0])} ${f(ends[k])}` : `C${f(g.c[1])} ${f(g.c[0])} ${f(ends[k])}`;
+  }
+  return out + "Z";
+}
+
+/** A figure's pieces as markup: one path of all its pieces turned clockwise; a wheel (between bars) its own even-odd path. */
 export function figureMarkup(d: string): string {
-  return d
-    .split("|")
-    .map((part, i) => (i % 2 === 1 ? `<path fill-rule="evenodd" d="${part}"/>` : part.split(/(?=M)/u).filter((x) => x !== "").map((x) => `<path d="${x}"/>`).join("")))
+  const parts = d.split("|");
+  const plain = parts
+    .filter((_, i) => i % 2 === 0)
+    .flatMap((part) => part.split(/(?=M)/u).filter((x) => x !== ""))
+    .map(clockwise)
     .join("");
+  return `<path d="${plain}"/>` + parts.filter((_, i) => i % 2 === 1).map((w) => `<path fill-rule="evenodd" d="${w}"/>`).join("");
 }
 
 /** The symbols, for the map's <defs>: `fig-army-<style>` and `fig-fleet-<style>`. */
