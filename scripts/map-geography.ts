@@ -2,7 +2,7 @@
 // item 11c, "The map in true geography"): the land, the lakes, the great rivers and the deserts, clipped to the board's
 // frame and simplified for the screen, finer on the crowded Levant coast. Coordinates stay in degrees (hundredths), so
 // the drawing projects them with the board's own projection (src/web/src/map/projection.ts).
-//   mkdir -p <dir> && for f in ne_50m_land ne_50m_lakes ne_10m_rivers_lake_centerlines ne_10m_geography_regions_polys; do
+//   mkdir -p <dir> && for f in ne_50m_land ne_50m_lakes ne_10m_land ne_10m_minor_islands ne_10m_lakes ne_10m_rivers_lake_centerlines ne_10m_rivers_europe ne_10m_geography_regions_polys; do
 //     curl -sSo <dir>/$f.geojson https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@v5.1.2/geojson/$f.geojson; done
 //   node --experimental-strip-types scripts/map-geography.ts <dir>
 import { readFileSync, writeFileSync } from "node:fs";
@@ -45,8 +45,15 @@ function cut(a: LL, b: LL, k: 0 | 1, v: number): LL {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 }
 
+/**
+ * Close up (item 11c++), finer still: the Levant and Cyprus, the Nile and its Delta, and the Aegean coast, drawn from
+ * Natural Earth's finest data and loaded only when the map is zoomed in (src/web/src/map/fine-geo.ts).
+ */
+const closeUp = ([lon, lat]: LL) =>
+  (lon > 32.5 && lon < 37.5 && lat > 29.5 && lat < 37.3) || (lon > 29.3 && lon < 32.7 && lat > 24 && lat < 31.7) || (lon > 25 && lon < 29.8 && lat > 35.5 && lat < 40.6);
+
 /** Douglas-Peucker in board units, with a finer tolerance on the crowded coasts. */
-function simplify(pts: LL[], tol: number, fineTol: number): LL[] {
+function simplify(pts: LL[], tol: number, fineTol: number, isFine: (p: LL) => boolean = fine): LL[] {
   if (pts.length < 3) return pts;
   const xy = pts.map((p) => boardPoint(p[1], p[0]));
   const keep = new Uint8Array(pts.length);
@@ -63,7 +70,7 @@ function simplify(pts: LL[], tol: number, fineTol: number): LL[] {
     const l = Math.hypot(dx, dy) || 1e-9;
     for (let k = i + 1; k < j; k++) {
       const d = Math.abs((xy[k].x - a.x) * dy - (xy[k].y - a.y) * dx) / l;
-      const t = fine(pts[k]) ? d * (tol / fineTol) : d;
+      const t = isFine(pts[k]) ? d * (tol / fineTol) : d;
       if (t > best) {
         best = t;
         at = k;
@@ -78,15 +85,15 @@ function simplify(pts: LL[], tol: number, fineTol: number): LL[] {
 }
 
 /** A closed ring, simplified in two halves (its two ends are the same point). */
-const simplifyRing = (r: LL[], tol: number, fineTol: number): LL[] => {
+const simplifyRing = (r: LL[], tol: number, fineTol: number, isFine: (p: LL) => boolean = fine): LL[] => {
   const h = Math.floor(r.length / 2);
-  return [...simplify(r.slice(0, h + 1), tol, fineTol), ...simplify([...r.slice(h), r[0]], tol, fineTol).slice(1, -1)];
+  return [...simplify(r.slice(0, h + 1), tol, fineTol, isFine), ...simplify([...r.slice(h), r[0]], tol, fineTol, isFine).slice(1, -1)];
 };
 
-const enc = (pts: LL[]): string => {
+const enc = (pts: LL[], per = 100): string => {
   const out: string[] = [];
   for (const [lon, lat] of pts) {
-    const s = `${Math.round(lon * 100)},${Math.round(lat * 100)}`;
+    const s = `${Math.round(lon * per)},${Math.round(lat * per)}`;
     if (out[out.length - 1] !== s) out.push(s);
   }
   return out.join(" ");
@@ -118,10 +125,20 @@ const RiverOf: Record<string, string> = {
   Euphrates: "euphrates", Firat: "euphrates", "Al Furat": "euphrates",
   Tigris: "tigris", Dicle: "tigris", "Shatt al Arab": "tigris",
   "Kiz?lirmak": "halys", Jordan: "jordan", Ceyhan: "ceyhan", Karkheh: "karkheh", "Byk Menderes": "maeander",
+  Murat: "arsanias", Sakarya: "sangarios",
+};
+// Anatolia's rivers from Natural Earth's European supplement (item 11c++): the Hermos, the Kaystros, the Saros, the
+// Kalykadnos and the Iris.
+const EuropeRiverOf: Record<string, string> = {
+  Gediz: "hermos", "Küçük Menderes": "kaystros", Seyhan: "seyhan", "S. Göksu": "kalykadnos", "Goksu (northern branch)": "kalykadnos",
+  Yeşilırmak: "iris",
 };
 const rivers: Record<string, string[]> = {};
-for (const f of read("ne_10m_rivers_lake_centerlines").features) {
-  const id = RiverOf[f.properties.name];
+const riverFeatures = [
+  ...read("ne_10m_rivers_lake_centerlines").features.map((f: { properties: { name: string } }) => [RiverOf[f.properties.name], f] as const),
+  ...read("ne_10m_rivers_europe").features.map((f: { properties: { name: string } }) => [EuropeRiverOf[f.properties.name], f] as const),
+];
+for (const [id, f] of riverFeatures) {
   if (id === undefined) continue;
   for (const l of lines(f.geometry)) {
     const kept = l.filter((p) => p[0] > box.w && p[0] < box.e && p[1] > box.s && p[1] < box.n);
@@ -164,4 +181,47 @@ export const RiverLines: Readonly<Record<string, readonly string[]>> = {\n${Obje
 export const DesertRings: readonly (readonly [string, string])[] = [\n${deserts.map(([k, r]) => `  [${q(k)}, ${q(r)}],`).join("\n")}\n];
 `;
 writeFileSync(new URL("../src/web/src/map/geo-data.ts", import.meta.url), ts);
+
+// The finer set, for close up (item 11c++): the land and the small islands, the lakes and the rivers, in thousandths of a
+// degree, fine (a twentieth of a board unit, about 150 m) within the close-up regions and as coarse as the board's elsewhere.
+const FineTol = 0.05;
+const fineLand: string[] = [];
+for (const file of ["ne_10m_land", "ne_10m_minor_islands"])
+  for (const f of read(file).features)
+    for (const poly of polys(f.geometry)) {
+      const ring = poly[0];
+      const c = clipRing(ring.slice(0, -1));
+      if (c.length < 3 || !c.some(inFrame) || (!c.some(closeUp) && area(c) < 0.004) || area(c) < 0.00005) continue;
+      if (file === "ne_10m_minor_islands" && !c.some(closeUp)) continue;
+      const s = simplifyRing(c, 0.7, FineTol, closeUp);
+      if (s.length >= 3) fineLand.push(enc(s, 1000));
+    }
+const fineLakes: string[] = [];
+for (const f of read("ne_10m_lakes").features)
+  if (LakeNames.has(f.properties.name)) for (const poly of polys(f.geometry)) fineLakes.push(enc(simplifyRing(poly[0].slice(0, -1), 0.5, FineTol, closeUp), 1000));
+const fineRivers: Record<string, string[]> = {};
+for (const [id, f] of riverFeatures) {
+  if (id === undefined || id === "euphrates") continue;
+  for (const l of lines(f.geometry)) {
+    const kept = l.filter((p) => p[0] > box.w && p[0] < box.e && p[1] > box.s && p[1] < box.n);
+    if (kept.length >= 2 && kept.some(inFrame)) (fineRivers[id] ??= []).push(enc(simplify(kept, 0.6, FineTol, closeUp), 1000));
+  }
+}
+const fineTs = `// Generated by scripts/map-geography.ts from Natural Earth (public domain, naturalearthdata.com) for build order item 11c++.
+// Do not edit by hand: rerun the script. Points are "lon,lat" in thousandths of a degree. Loaded only close up (fine-geo.ts).
+/* eslint-disable */
+
+/** The land, as rings, fine in the close-up regions (the Levant and Cyprus, the Nile and its Delta, the Aegean coast). */
+export const FineLandRings: readonly string[] = [\n${fineLand.map((r) => `  ${q(r)},`).join("\n")}\n];
+
+/** The lakes of 1346 that Natural Earth draws, as finely. */
+export const FineLakeRings: readonly string[] = [\n${fineLakes.map((r) => `  ${q(r)},`).join("\n")}\n];
+
+/** The rivers drawn from Natural Earth, by id, as finely (the Euphrates' old bed stays as drawn). */
+export const FineRiverLines: Readonly<Record<string, readonly string[]>> = {\n${Object.entries(fineRivers)
+  .map(([k, v]) => `  ${q(k)}: [\n${v.map((r) => `    ${q(r)},`).join("\n")}\n  ],`)
+  .join("\n")}\n};
+`;
+writeFileSync(new URL("../src/web/src/map/geo-fine-data.ts", import.meta.url), fineTs);
+console.log(`fine: land ${fineLand.length} rings, lakes ${fineLakes.length}; ${(fineTs.length / 1024).toFixed(1)} KB`);
 console.log(`land ${land.length} rings, lakes ${lakes.length}, rivers ${Object.keys(rivers).join(" ")}, deserts ${deserts.length}; ${(ts.length / 1024).toFixed(1)} KB`);

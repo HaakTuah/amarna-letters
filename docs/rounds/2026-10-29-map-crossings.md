@@ -45,15 +45,11 @@ his answers to items 11e and 12 to this item while it was built, and they are bu
 
 ## Where the drawing and the connections disagree
 
-`scripts/map-borders.ts` lists 53 pairs (item 11c+ listed 47 before this item). By 11c+'s text, connections come from
-the attested roads and a disagreement is listed for the design session rather than either changed. For the nine new
-places, whose roads this item chose, they were matched to the drawing where the sources allow: Samuha to Hattusa, Tunip
-to Sumur (the Eleutheros road Aziru held), Pella to Hazor across the Jordan and the Shasu to Gaza across the Negev were
-added, and Aleppo–Niya, which the drawing does not join, was left out. The rest for the new places stay, each for a
-reason: Ashtaroth–Shasu is the King's Highway across Moab, which is no one's; Azzi–Samuha, the road by which Azzi's men
-"made Samuha their frontier" (KBo VI 28); Beirut–Damascus over the Lebanon, as Byblos's and Sidon's roads; and
-Carchemish–Samuha, Jerusalem–Pella, Jerusalem–Shasu, Lachish–Shasu and Tunip–Ugarit touch on the drawing with no road
-the sources give. The older cases are 11c+'s list, unchanged.
+`scripts/map-borders.ts` lists 56 pairs after item 11c++'s smoothing (item 11c+ listed 47 before this item). For the
+nine new places, whose roads this item chose, they were first matched to the drawing where the sources allow (Samuha to
+Hattusa, Tunip to Sumur by the Eleutheros road, Pella to Hazor across the Jordan, the Shasu to Gaza across the Negev;
+Aleppo to Niya left out). The cases left, for the new places and the old, belong to the live text's rule of revision
+106 ("Not built here").
 
 ## The audit at the start
 
@@ -116,7 +112,7 @@ foreign land something to do. Row in the progress file.
 
 The live text gained, at revision 106 while this was measured, a third part: the disagreements between the drawing and
 the connections are settled "by one rule, neighbours on the map are neighbours in the rules", each case with its
-dossier. `scripts/map-borders.ts` lists 53 such pairs; each needs a road or a redrawn border from the sources, and the
+dossier. `scripts/map-borders.ts` lists 56 such pairs; each needs a road or a redrawn border from the sources, and the
 rules' change a measure of its own. That is large, so, as the builder rules say, it goes to the start of the next item
 that touches the map's connections, and the progress file says so.
 
@@ -159,8 +155,7 @@ that touches the map's connections, and the progress file says so.
     (Different data, same rules.)
 14. **The edge lands' centres** are their herders' land, not a site: Libya west of the Delta (30.95 N, 28.6 E), the
     Shasu in the Arabah by Edom (30.6 N, 35.3 E) [G].
-15. **Connections for the new places** follow the roads the dossiers give, then the drawing where the sources allow (the
-    list above).
+15. **Connections for the new places** follow the roads the dossiers give, then the drawing where the sources allow.
 
 ## Questions for Haakon
 
