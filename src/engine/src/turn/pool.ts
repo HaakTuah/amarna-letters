@@ -120,10 +120,10 @@ P.newcomer = function (rng, door) {
     return c;
   }
   // The nearest living court, by travel from the door.
-  const courts = sortBy(alive(S), [(p: Power) => this.travelTurnsBetween(doorAt, this.map.capital(p).id), cmpNum], [(p: Power) => AllPowers.indexOf(p), cmpNum]);
+  const courts = sortBy(alive(S), [(p: Power) => this.travelTurnsBetween(doorAt, this.courtAt(p)), cmpNum], [(p: Power) => AllPowers.indexOf(p), cmpNum]);
   const to = courts[0];
   const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: to, to, characterId: c.id });
-  this.setOut(j, doorAt, this.map.capital(to).id);
+  this.setOut(j, doorAt, this.courtAt(to));
   S.journeys.push(j);
   c.duty = "Travelling";
   return c;

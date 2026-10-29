@@ -116,10 +116,10 @@ P.reportsView = function (c) {
   const waiting = S.journeys.filter((j) => j.kind === "SpyReport" && j.waitAt !== null && j.carrier === null && j.characterId === c.id && j.to === master);
   if (waiting.length === 0) return null;
   const at = waiting[0].waitAt!;
-  const seasons = Math.max(1, this.travelTurnsBetween(at, this.map.capital(master).id));
+  const seasons = Math.max(1, this.travelTurnsBetween(at, this.courtAt(master)));
   // What a carrier would ask, as the spy reckons it from what it would ask itself.
   const price = basePrice(c, master) * seasons;
-  const court = [...S.owner.values()].some((p) => p !== null && this.map.capital(p).id === at);
+  const court = [...S.owner.values()].some((p) => p !== null && this.courtAt(p) === at);
   return newReportsView({
     turn: S.turn,
     post: this.map.get(at).name,

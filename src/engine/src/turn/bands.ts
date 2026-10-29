@@ -106,7 +106,7 @@ P.robbedBy = function (province, gold) {
 function localStyle(engine: TurnEngine, province: string, court: Power | null): (typeof Styles)[number] {
   const S = engine.s;
   const holder = court ?? S.owner.getOrDefault(province, null);
-  const by = holder ?? sortBy([...AllPowers], [(p: Power) => engine.map.hops(engine.map.capital(p).id, province), cmpNum])[0];
+  const by = holder ?? sortBy([...AllPowers], [(p: Power) => engine.map.hops(engine.courtAt(p), province), cmpNum])[0];
   return Styles.find((st) => st.court === by) ?? Styles[0];
 }
 
@@ -221,10 +221,10 @@ P.chiefLeaves = function (c, province, why) {
   c.seeking = true;
   c.waited = 0;
   remember(c, S.turn, `I left the road in ${this.map.get(province).name}: ${why}.`);
-  const courts = sortBy(alive(S), [(p: Power) => this.travelTurnsBetween(province, this.map.capital(p).id), cmpNum], [(p: Power) => AllPowers.indexOf(p), cmpNum]);
+  const courts = sortBy(alive(S), [(p: Power) => this.travelTurnsBetween(province, this.courtAt(p)), cmpNum], [(p: Power) => AllPowers.indexOf(p), cmpNum]);
   if (courts.length === 0) return;
   const to = courts[0];
-  if (this.map.capital(to).id === province) {
+  if (this.courtAt(to) === province) {
     c.at = to;
     c.lastLife = null;
     this.meet(c, to);
@@ -503,7 +503,7 @@ P.naturalLosses = function () {
   )) {
     // Envoys at an audience, travellers and captives under guard are left to their own perils.
     if (c.duty !== "None" && c.duty !== "Leading" && c.duty !== "SpyPosted") continue;
-    const where = c.at !== null ? this.map.capital(c.at).id : c.watchProvince;
+    const where = c.at !== null ? this.courtAt(c.at) : c.watchProvince;
     if (where === null) continue;
     const plague = S.catastrophes.some((x) => x.kind === "Plague" && x.startTurn <= S.turn && x.endTurn >= S.turn && (x.province === where || (x.province === null && S.owner.getOrDefault(where, null) === x.power)));
     const starving = S.fed.getOrDefault(where, 1000) < LossData.starving;
@@ -550,7 +550,7 @@ P.robbersNamed = function (victim, b, province) {
     if (to !== null && isAlive(S, to) && !f.knownBy.includes(to)) {
       this.rumor(to, from, text, chief.id, "Name", f.id);
       // The word sets out from where he was robbed, not from a capital.
-      S.journeys[S.journeys.length - 1].arriveTurn = S.turn + this.travelTurnsBetween(province, this.map.capital(to).id);
+      S.journeys[S.journeys.length - 1].arriveTurn = S.turn + this.travelTurnsBetween(province, this.courtAt(to));
     }
 };
 
@@ -558,7 +558,7 @@ P.huntHeard = function (at, target) {
   const S = this.s;
   return S.hunts.some((h) => {
     if (!huntCovers(S, h, target) || !isAlive(S, h.power)) return false;
-    const road = this.travelTurnsBetween(this.map.capital(h.power).id, at);
+    const road = this.travelTurnsBetween(this.courtAt(h.power), at);
     // Heard of once its talk has come, until talk of its lifting comes.
     return S.turn >= h.since + road && (h.until === null || S.turn < h.until + road);
   });

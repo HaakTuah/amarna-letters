@@ -34,6 +34,7 @@ import { peopleRules } from "./rules-people.ts";
 import { moneyRules } from "./rules-money.ts";
 import { roadRules } from "./rules-roads.ts";
 import { warRules } from "./rules-war.ts";
+import { commandRules } from "./rules-command.ts";
 import { intelligenceRules } from "./rules-intelligence.ts";
 const rulesCache = new Map<string, string>();
 
@@ -110,6 +111,8 @@ Everything that happened is reported to you next season. Every order that was re
 
 ${warRules(c)}
 
+${commandRules(c)}
+
 ${terrainRules(c)}
 
 ${seaRules(c)}
@@ -120,7 +123,7 @@ CONDITIONS
 - ${c.sleepingSeats ? "A scheduled entry or a standing order" : "A standing order"} may carry conditions (at most ${MaxConditions}): it runs only if every "if" holds and no "unless" does when it would run. They are read from what you know when they would run, never from what you cannot see: for orders, once the season's audiences are over (what was given and sealed at them counts); for standing answers, as your court begins; troops_in, troops of a power (or any foreign power's) in a province, where you can see them (troops you cannot see count as not there); treasury_less_than and treasury_at_least, your treasury by your ledger; envoy_back, one of your people back at your court and ready; tablet_sealed, a tablet in your archive sealed by you and a court (or any court); stores_at_least, the stores of a province of yours hold at least that many measures of grain.${c.sleepingSeats ? " Scheduled orders whose conditions do not hold are dropped for that season, which your news tells you and which wakes nobody." : ""} A standing order whose conditions do not hold when its move comes does not fire, and still stands.
 
 STANDING ORDERS (standing_orders; every king may give them)
-- A standing order waits for a move you can see and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds: a unit of the power you name, or any foreign unit, setting out to move into a province (unit_enters); or a foreign unit setting out to move into the province where one of your units stands (unit_attacked; name your unit by where it stands now). A move you can see is one from or into a province in your sight.
+- A standing order waits for a move you can see and answers it in the same season, through your commanders on the spot (see COMMAND AT A DISTANCE: each unit's part runs only where its commander, or you, stand with it, once word of it has reached it, on a move its army sees), whether or not the move then succeeds: a unit of the power you name, or any foreign unit, setting out to move into a province (unit_enters); or a foreign unit setting out to move into the province where one of your units stands (unit_attacked; name your unit by where it stands now). A move you can see is one from or into a province in your sight.
 - So its orders meet the blow as it falls: a unit of yours next to the province attacked can support your unit there holding (unit_attacked), and a unit next to an empty province of yours, walled or not, can move into it, so that an attacker without support bounces.
 - Name each of your units in its orders by the province it stands in now, as you give it: the order follows that unit wherever it goes, and is given from where the unit then stands. A standing order naming a province where you have no unit is refused whole.
 - When it fires, its orders replace your other orders that season for the same units or people, those you give that season among them: give your units their orders as usual, and a standing order changes them only if the move it waits for comes. To stop one from firing, cancel it (cancel_standing, by id or "all"); cancelled in a season, it does not fire in that season. It answers the moves as they were ordered, never the orders another standing order gives, so it may answer a move that the mover's own standing order then turns aside: it fires even though that move is never made. It first fires in the season after you give it. If two fire in the same season, the one with the lower id goes first: its orders replace the other's for the same units or people.

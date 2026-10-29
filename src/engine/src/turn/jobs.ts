@@ -199,12 +199,12 @@ P.jobFits = function (c, p, k, term) {
     const least = (from === p ? 0 : this.travelTurns(from, p)) + 1;
     return term < least ? `the stay must reach your court and last a season, ${least} seasons from here, more than the ${term} offered` : null;
   }
-  const there = e.what === "envoy" || isPowerParty(e.where) ? this.map.capital(e.where as Power).id : e.where;
+  const there = e.what === "envoy" || isPowerParty(e.where) ? this.courtAt(e.where as Power) : e.where;
   if (!this.map.exists(there)) return `there is no ${e.what === "envoy" ? "court" : "court or province"} '${e.where}'`;
   // One hired away from its master's court first walks to it to be sent, unless it is a spy whose post is where it stands.
-  const here = e.what === "spy" && (e.where === from || there === this.map.capital(from).id);
+  const here = e.what === "spy" && (e.where === from || there === this.courtAt(from));
   const toMaster = from === p || here ? 0 : this.travelTurns(from, p);
-  const road = toMaster + this.travelTurnsBetween(here ? there : this.map.capital(toMaster > 0 ? p : from).id, there) + this.travelTurnsBetween(there, this.map.capital(p).id);
+  const road = toMaster + this.travelTurnsBetween(here ? there : this.courtAt(toMaster > 0 ? p : from), there) + this.travelTurnsBetween(there, this.courtAt(p));
   const least = road + MoneyData.errandStay;
   return term < least ? `the errand takes ${least} seasons from here, there and back, more than the ${term} offered` : null;
 };

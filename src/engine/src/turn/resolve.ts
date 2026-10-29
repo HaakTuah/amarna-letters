@@ -4,7 +4,7 @@ import { idiv, roundEven, roundTo, toInt, fmt } from "../core/num.ts";
 import { BandData } from "../model/bands.ts";
 import { shift } from "./people.ts";
 import { cmpNum, count, desc, distinct, groupBy, max, sortBy, sum } from "../core/seq.ts";
-import { describe, newTurnSubmission, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
+import { describe, newTurnSubmission, type CourtOrder, type CommandOrder, type MandateOrder, type RelieveOrder, type CedeProvinceOrder, type GiftUnitOrder, type Order, type RaiseOrder, type RepudiateOrder, type RevokeOrder, type GrantOrder, type RoadsOrder, type SallyOrder, type SupportOrder, type TollOrder, type TaxOrder, type WelcomeOrder, type DeportOrder, type ReturnRunawaysOrder, type ExpelOrder,
   type TurnSubmission } from "../model/orders.ts";
 import type { MoveFailure, OrderOutcome } from "../model/outcomes.ts";
 import { stormed as assaultStormed, strengthWords } from "../model/outcomes.ts";
@@ -17,6 +17,7 @@ import { OneKingdomLeft } from "../rules/ending.ts";
 import { groundText } from "../model/geography.ts";
 import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
+import { commandStrength } from "../model/command.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { finalScore, strength as scoringStrength, standingOf, type FinalScore } from "../rules/scoring.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
@@ -75,7 +76,8 @@ P.resolveSeason = function (submissions) {
   // And who held the land it saw (item 7b): elsewhere it knows only what word and its travellers bring.
   this.seeLand();
   // Each seat's season before its standing orders fire; then the standing orders, any seat's, that answer this season's moves.
-  const seasons = new Dict(alive(S).map((p) => [p, this.planSeason(p, submissions.tryGet(p) ?? newTurnSubmission())] as const));
+  // Item 13: orders for places beyond the season's reach set out with couriers; those arriving now join the season's.
+  const seasons = new Dict(alive(S).map((p) => [p, this.planSeason(p, this.sendOrders(p, submissions.tryGet(p) ?? newTurnSubmission()))] as const));
   const fires = this.standingFires(seasons, validator);
   for (const p of alive(S)) {
     const sub = this.compose(p, seasons.get(p), fires.tryGet(p) ?? []);
@@ -98,6 +100,10 @@ P.resolveSeason = function (submissions) {
   };
   const any = (o: Order): o is Order => true;
 
+  // Item 13: command granted and taken back, and mandates sent, before the moves, to the units where they stand as the king names them.
+  for (const [p, o] of all((o): o is RelieveOrder => o.type === "relieve")) this.relieveCommand(p, o);
+  for (const [p, o] of all((o): o is CommandOrder => o.type === "command")) this.grantCommand(p, o);
+  for (const [p, o] of all((o): o is MandateOrder => o.type === "mandate")) this.setMandate(p, o);
   this.resolveMovement(all(any).filter(([, o]) => o.type === "hold" || o.type === "move" || o.type === "support" || o.type === "convoy" || o.type === "besiege" || o.type === "sally"));
   // Supports that keep a promise made in a letter's clauses (item 8).
   this.promisesKept(all((o): o is SupportOrder => o.type === "support"));
@@ -106,6 +112,9 @@ P.resolveSeason = function (submissions) {
   // Sieges are lifted, begun and pressed, and cities worn down surrender; then land changes hands where troops stand.
   this.sieges(valid);
   this.updateOwnership();
+  // Item 13: kings on the road with their courts go on (setting out from next season).
+  this.kingsTravel();
+  for (const [p, o] of all((o): o is CourtOrder => o.type === "court")) this.setOutCourt(p, o);
   // A kingdom falls with its capital: its land passes to whoever took it, and its orders for the rest of the season lapse.
   this.capitalsTaken();
   this.resolveTransfers(
@@ -170,8 +179,10 @@ P.resolveMovement = function (unitOrders) {
 
   const sallies = unitOrders.map(([, o]) => o).filter((o): o is SallyOrder => o.type === "sally");
   // Winter closes nothing (item 9): a crossing it makes dangerous costs troops after the moves (winterCrossings).
+  // Each army and fleet crosses its connection at its own pace (item 13): one that cannot make it this season marches on.
+  const marching = this.paceMoves(byProvince);
   const adjudicator = new Adjudicator(Map, true, S.config.terrainDefence);
-  const result = adjudicator.run(S.units, byProvince, S.owner, S.walls, sallies, (p, mover) => this.guestAt(p, mover), (p, mover) => this.resistance(p, mover));
+  const result = adjudicator.run(S.units, byProvince, S.owner, S.walls, sallies, (p, mover) => this.guestAt(p, mover), (p, mover) => this.resistance(p, mover), (u) => commandStrength(this.commandOf(u)));
   this._battle = result;
   this._unitOrdersNow = byProvince;
   // Whose land each move went into, before it changes hands: troops entering a sleeping king's land wake him.
@@ -210,9 +221,22 @@ P.resolveMovement = function (unitOrders) {
     );
   }
 
+  // What the battles cost (item 13): men on both sides; a unit beaten from its place falls back, or is destroyed.
+  const gone = this.battles(result, sightBefore);
+  this.marchesDone(result, byProvince, marching);
   for (const id of result.dislodgedUnitIds) {
     const u = S.units.find((x) => x.id === id)!;
+    const to = gone.includes(u) ? null : result.newPositions.tryGet(id);
+    for (const o of result.outcomes)
+      if (o.province === u.province && o.power === u.power && o.destroyed) {
+        o.destroyed = to === undefined || to === null;
+        o.fellBack = to ?? null;
+      }
+    for (const l of result.lines) if (l.province === u.province && l.power === u.power && l.text.endsWith(" is dislodged")) l.text = l.text.replace(/ is dislodged$/, to === undefined || to === null ? " is destroyed" : ` falls back to ${to}`);
+  }
+  for (const u of gone) {
     S.units.splice(S.units.indexOf(u), 1);
+    result.newPositions.delete(u.id);
     // Some of its men die, and the rest run and turn loose where it fell (item 10+a).
     this.unitDestroyed(u);
     logEvent(S, "battle", `${u.power}'s ${unitLabel(u)} was destroyed.`, [...AllPowers.filter((p) => sightBefore.get(p).has(u.province)), u.power]);
@@ -379,7 +403,7 @@ P.updateOwnership = function () {
     this.takenByForce(u.province, u.power);
     this.sack(u.province, u.power);
     if (before !== null) {
-      notify(S, before, "Battle", "Land lost", `${prov.name} has been taken by ${u.power}.`);
+      this.tell(before, prov.id, "Battle", "Land lost", `${prov.name} has been taken by ${u.power}.`);
       logEvent(S, "conquest", `${u.power} took ${prov.name} from ${before}.`, [u.power, before]);
     }
     notify(S, u.power, "Battle", "Land taken", `${prov.name} is now yours.`);
@@ -394,7 +418,7 @@ P.resolveTransfers = function (cessions, gifts) {
   // A capital is ceded last, after the gifts of troops, so that a king ceding his realm may give his troops first.
   const capitals: [Power, CedeProvinceOrder][] = [];
   for (const [p, c] of cessions) {
-    if (c.province === Map.capital(p).id) {
+    if (c.province === this.courtAt(p)) {
       capitals.push([p, c]);
       continue;
     }
@@ -492,8 +516,10 @@ P.raise = function (p, r) {
  */
 P.capitalsTaken = function () {
   const S = this.s;
-  const fallen = alive(S).filter((p) => S.owner.getOrDefault(this.map.capital(p).id, null) !== p);
-  const takers = new Dict(fallen.map((p) => [p, S.owner.getOrDefault(this.map.capital(p).id, null)] as const));
+  // Item 13: the capital is wherever the king is; he is taken where he stands, or on the road.
+  const taken = this.kingsTaken();
+  const fallen = alive(S).filter((p) => taken.has(p));
+  const takers = new Dict(fallen.map((p) => [p, taken.get(p) ?? null] as const));
   const heir = (p: Power): Power | null => {
     const passed = new HSet<Power>([p]);
     let next = takers.get(p);
@@ -513,7 +539,8 @@ P.capitalsTaken = function () {
  */
 P.fall = function (p, conqueror, taker, ceded = false) {
   const S = this.s;
-  const capital = this.map.capital(p);
+  // Item 13: the capital is wherever the king was.
+  const capital = this.map.get(this.courtAt(p));
   const landHeld = ownedBy(S, p);
   for (const id of landHeld) {
     this.setOwner(id, conqueror);
@@ -622,6 +649,8 @@ P.growth = function (p) {
 
 P.endOfTurn = function () {
   const S = this.s;
+  // Item 13: where each unit stood this season, for the reports its king's couriers bring.
+  this.keepTrails();
   for (const p of AllPowers)
     S.scores.push(
       newScoreRow({

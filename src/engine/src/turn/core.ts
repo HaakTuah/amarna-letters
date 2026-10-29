@@ -24,6 +24,7 @@ import { StartWalls, WorldMap } from "../model/map.ts";
 import { EconomyData, harvestOf, taxOf } from "../model/economy.ts";
 import { forMen } from "../model/land.ts";
 import type { HireOrder, Order } from "../model/orders.ts";
+import { courtOf } from "../rules/court.ts";
 import { coverOf, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import { newKnown, newOwnerChange, alive, findCharacter, isAlive, ledger, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, wallsOf, type GameState, type Unit } from "../model/state.ts";
@@ -51,6 +52,8 @@ export class TurnEngine {
 
   // ---------------------------------------------------------------- state kept while a season resolves (set by the parts)
 
+  /** Item 13: the orders each seat's commanders gave this season by their mandates, for units no order of the king's reached. */
+  readonly _mandatedNow = new Dict<Power, Order[]>();
   /** Characters who missed pay this season: each counts it once, whether its wage or its back pay fell short. */
   readonly _missedPayNow = new HSet<string>();
   /** Jobs offered this season through an envoy (the hire order's `via`), by the envoy, until it is sent. */
@@ -96,6 +99,8 @@ export class TurnEngine {
     const stood = new Dict<string, Power | null>(S.characters.map((c) => [c.id, c.at] as const));
     this.travel();
     this.arrivals();
+    // Item 13: word reaches commanders, and those whose army is gone go home.
+    this.commandSeason();
     this.tasksDue();
     this.jobsDone(stood);
     // Item 11a: the characters' money and their own seasons.
@@ -152,7 +157,7 @@ export class TurnEngine {
       // Walls above the map's own are kept up after the troops: what the treasury cannot keep falls a level.
       const crumbled: string[] = [];
       while (this.wallsUpkeep(p) > Math.max(0, t.gold)) {
-        const cap = Map.capital(p).id;
+        const cap = this.courtAt(p);
         const weakest = sortBy(
           ownedBy(S, p).filter((x) => wallsOf(S, x) > (StartWalls.get(x) ?? 0)),
           [(x: string) => Map.hops(cap, x), desc(cmpNum)],
@@ -284,8 +289,9 @@ export class TurnEngine {
     S.owner.set(province, owner);
     // The old holder's tax goes with him: the new one collects the default until he sets his own (item 10+a).
     S.taxes.delete(province);
-    // The king who lost it knows at once, as his notice tells him, though it leaves his sight.
-    if (old !== null) {
+    // The king who lost it knows at once, as his notice tells him, though it leaves his sight; since item 13 only where
+    // his couriers bring word within the season (farther off, word of it comes as word does).
+    if (old !== null && this.wordTo(old, province) === 0) {
       let book = S.known.tryGet(old);
       if (book === undefined) S.known.set(old, (book = new Dict()));
       book.set(province, newKnown({ owner, turn: S.turn, source: "seen" }));
@@ -356,6 +362,15 @@ export class TurnEngine {
       [(j) => idNumber(j.id), cmpNum],
     );
     for (const j of due) {
+      // Item 13: one reaching a court whose king has moved on is sent on after him, from his old seat.
+      if (j.route.length > 1 && ForwardedKinds.has(j.kind) && isAlive(S, j.to) && j.leg >= j.route.length - 1) {
+        const end = j.route[j.route.length - 1];
+        const court = this.courtAt(j.to);
+        if (end !== court) {
+          this.setOut(j, end, court);
+          continue;
+        }
+      }
       const i = S.journeys.indexOf(j);
       if (i >= 0) S.journeys.splice(i, 1);
       switch (j.kind) {
@@ -407,14 +422,22 @@ export class TurnEngine {
     this.coversAtCourt();
   }
 
+  /** The province where a king is, his court and capital (item 13, "The capital is wherever the king is"). */
+  courtAt(p: Power): string {
+    return courtOf(this.s, this.map, p);
+  }
+
   travelTurns(from: Power, to: Power): number {
-    return travelTurns(this.s.config, this.map, this.map.capital(from).id, this.map.capital(to).id, this.s.turn);
+    return travelTurns(this.s.config, this.map, this.courtAt(from), this.courtAt(to), this.s.turn);
   }
 
   travelTurnsBetween(fromProvince: string, toProvince: string): number {
     return travelTurns(this.s.config, this.map, fromProvince, toProvince, this.s.turn);
   }
 }
+
+/** Item 13: travellers that go to a court, and are sent on after its king when he has moved. */
+const ForwardedKinds = new Set<string>(["EnvoyOutbound", "EnvoyHomebound", "SpyHomebound", "SpyReport", "Travel", "CaptiveConvoy"]);
 
 /** The number in an id ("c12" is 12; 0 if it has none), the order of making within a kind. */
 export function idNumber(id: string): number {

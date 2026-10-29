@@ -141,7 +141,7 @@ P.handOver = function (host, c, to) {
   c.at = null;
   const j = newJourney({ id: newId(S, "j"), kind: "CaptiveConvoy", departTurn: S.turn, from: host, to, characterId: c.id });
   S.journeys.push(j);
-  this.setOut(j, this.map.capital(host).id, this.map.capital(to).id);
+  this.setOut(j, this.courtAt(host), this.courtAt(to));
   remember(c, S.turn, `${land(host)} handed me over to ${land(to)}, and its guards are taking me there.`);
   notify(S, host, "Notice", "A captive handed over", `You handed ${c.name} over to the king of ${land(to)}; your guards are taking them there, due in season ${j.arriveTurn}.`, c.id);
   notify(S, to, "Notice", "A captive on the way", `The king of ${land(host)} is sending you ${c.name} as a captive, under his guard.`, c.id);

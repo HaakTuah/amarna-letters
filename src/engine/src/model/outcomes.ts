@@ -266,6 +266,8 @@ export interface OrderOutcome {
   helped: Power | null;
   succeeded: boolean;
   destroyed: boolean;
+  /** Item 13: beaten from where it stood and fallen back to this province (not destroyed); null otherwise. */
+  fellBack: string | null;
   /** Move: who held the destination before the moves (set by the engine; ownership is public). */
   targetOwner: Power | null;
   /** Move: into land its holder opened to the mover by passage or basing on a sealed tablet (item 9): a guest, no attack. */
@@ -283,6 +285,7 @@ export function newOrderOutcome(init: Partial<OrderOutcome> = {}): OrderOutcome 
     helped: null,
     succeeded: false,
     destroyed: false,
+    fellBack: null,
     targetOwner: null,
     guest: false,
     ...init,
@@ -299,6 +302,7 @@ export const OrderOutcomeSchema: ObjSchema<OrderOutcome> = obj("OrderOutcome", n
   helped: opt(S),
   succeeded: B,
   destroyed: B,
+  fellBack: opt(S),
   targetOwner: opt(S),
   guest: B,
 });

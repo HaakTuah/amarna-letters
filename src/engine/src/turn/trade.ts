@@ -24,6 +24,8 @@ import { cheapestRoute, legPoints, PointsPerDay } from "../model/travel.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { formatMoney } from "../rules/calendar.ts";
 import { TurnEngine } from "./core.ts";
+import { CommandData } from "../model/command.ts";
+import { gain } from "../model/people.ts";
 import { MarketsTitle } from "./economy.ts";
 import { RoadOdds } from "./travel.ts";
 
@@ -426,8 +428,17 @@ P.sack = function (province, taker, stormed = true) {
   const loot = Math.min(idiv(m.purse * share, 100), idiv(men * TradeData.lootPerHundred, 100));
   if (loot <= 0) return;
   m.purse -= loot;
-  const king = idiv(loot * TradeData.kingSharePercent, 100);
-  let packs = loot - king;
+  let king = idiv(loot * TradeData.kingSharePercent, 100);
+  // Item 13: the spoils pass through the commander's hands, and he keeps of the king's share by his greed.
+  for (const u of units) {
+    const c = this.commanderOf(u);
+    if (c === null) continue;
+    const kept = idiv(idiv(king * u.men, Math.max(1, men)) * idiv(c.traits.greed, CommandData.spoilsPer), 100);
+    if (kept <= 0) continue;
+    king -= kept;
+    gain(c, kept, "Loot");
+  }
+  let packs = loot - idiv(loot * TradeData.kingSharePercent, 100);
   units.forEach((u, i) => {
     const part = i === units.length - 1 ? packs : idiv((loot - king) * u.men, men);
     u.savings += part;
@@ -453,7 +464,7 @@ P.sack = function (province, taker, stormed = true) {
  */
 P.lootHome = function (taker, from, gold, archive, archiveOf) {
   const S = this.s;
-  const cap = this.map.capital(taker).id;
+  const cap = this.courtAt(taker);
   const route = from === cap || S.owner.getOrDefault(cap, null) !== taker ? null : this.tradeRoute(taker, from, cap, false);
   if (route === null) {
     S.treasuries.get(taker).gold += gold;

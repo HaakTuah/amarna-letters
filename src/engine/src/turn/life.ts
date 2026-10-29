@@ -128,7 +128,7 @@ P.lifeView = function (c) {
   const here = c.at ?? S.journeys.find((j) => j.kind === "Travel" && j.characterId === c.id)?.to ?? c.formerEmployer ?? alive(S)[0];
   const province = this.provinceOf(c);
   const grainAt = (p: Power): number => {
-    const cap = Map.capital(p);
+    const cap = Map.get(this.courtAt(p));
     return priceAt(this.market(cap.id).stock, needOf(cap));
   };
   const guest = c.status === "Employed" && c.at === c.employer;
@@ -138,7 +138,7 @@ P.lifeView = function (c) {
     const heard = lossesHeardOf(c, p);
     return newCourtSeen({
       court: p,
-      travel: p === here ? 0 : this.travelTurnsBetween(Map.capital(here).id, Map.capital(p).id),
+      travel: p === here ? 0 : this.travelTurnsBetween(this.courtAt(here), this.courtAt(p)),
       hiring: S.hiring.tryGet(p) ?? null,
       trust: trustIn(S, p, c),
       kept: r.kept,
@@ -210,7 +210,7 @@ P.lifeView = function (c) {
     // Item 11b: crowds it could gather into a band, where it stands and next door.
     crowds: c.status !== "Free"
       ? []
-      : [Map.capital(here).id, ...Map.neighbors(Map.capital(here).id)]
+      : [this.courtAt(here), ...Map.neighbors(this.courtAt(here))]
           .filter((x) => !Map.get(x).isSea && this.peopleOf(x).loose >= BandData.gatherLoose)
           .map((x) => ({ province: x, name: Map.get(x).name, loose: this.peopleOf(x).loose, band: sum(this.bandsAt(x), (b) => b.men) })),
   });
@@ -335,7 +335,7 @@ P.applyLife = function (c, ch) {
   // Setting out: a free person on its own way, or one on an errand to the borrower's court or home.
   // Item 11b: a free person takes to the hills with a crowd where it stands or next door ("Turning outlaw").
   if (ch.outlaw !== null && c.status === "Free" && c.errand === null && c.duty === "None") {
-    const cap = this.map.capital(c.at).id;
+    const cap = this.courtAt(c.at);
     if ((ch.outlaw === cap || this.map.neighbors(cap).includes(ch.outlaw)) && !this.map.get(ch.outlaw).isSea && this.peopleOf(ch.outlaw).loose >= BandData.gatherLoose) {
       this.turnOutlaw(c, ch.outlaw);
       return;
@@ -447,10 +447,10 @@ P.startTravel = function (c, to, asName = null, fromProvince = null) {
   const S = this.s;
   const from = c.at;
   if (from === null && fromProvince === null) return;
-  const fromProv = fromProvince ?? this.map.capital(from!).id;
+  const fromProv = fromProvince ?? this.courtAt(from!);
   // Item 11b: it walks the road like any traveller, and meets its outlaws ("Robbing purses on the road").
   const j = newJourney({ id: newId(S, "j"), kind: "Travel", departTurn: S.turn, from: from ?? to, to, characterId: c.id, asName });
-  this.setOut(j, fromProv, this.map.capital(to).id);
+  this.setOut(j, fromProv, this.courtAt(to));
   S.journeys.push(j);
   c.at = null;
   c.duty = "Travelling";

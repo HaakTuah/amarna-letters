@@ -49,7 +49,7 @@ const P = TurnEngine.prototype;
 
 /** The court whose capital is a province, if any. */
 function courtAt(engine: TurnEngine, province: string): Power | null {
-  for (const p of engine.s.owner.values()) if (p !== null && isAlive(engine.s, p) && engine.map.capital(p).id === province) return p;
+  for (const p of engine.s.owner.values()) if (p !== null && isAlive(engine.s, p) && engine.courtAt(p) === province) return p;
   return null;
 }
 
@@ -81,7 +81,7 @@ P.carryLetters = function () {
       logEvent(S, "letter", `A report to ${letter.to} left at ${this.map.get(at).name} was lost: nobody was there to carry it.`, [], "letter-lost");
       continue;
     }
-    const home = this.map.capital(letter.to).id;
+    const home = this.courtAt(letter.to);
     const seasons = Math.max(1, this.travelTurnsBetween(at, home));
     // Travellers setting out from here for its master's capital.
     const going = sortBy(
@@ -206,7 +206,7 @@ P.lettersGo = function () {
   for (const letter of S.journeys.filter((j) => j.waitAt !== null && j.carrier !== null)) {
     const c = findCharacter(S, letter.carrier);
     const walk = c === null ? null : (S.journeys.find((j) => isWalker(j) && j.characterId === c.id) ?? null);
-    const home = this.map.capital(letter.to).id;
+    const home = this.courtAt(letter.to);
     // Walked to the border: once the spy has passed it, the realm's couriers take it home from there.
     if (letter.border !== null && walk !== null) {
       const i = walk.seen.indexOf(letter.border);

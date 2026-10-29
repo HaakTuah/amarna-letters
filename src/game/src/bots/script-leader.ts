@@ -28,6 +28,7 @@ import {
 import type { ISeat } from "../contracts.ts";
 import { ahead } from "./ahead.ts";
 import { Board } from "./board.ts";
+import { commandOrders, courtMove } from "./generals.ts";
 import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
 import { personalityFor, type Personality } from "./personality.ts";
@@ -107,6 +108,9 @@ export class ScriptLeader implements ISeat {
     Statecraft.letters(board, brain, orders, busy, rng);
     // Haakon's answers to item 11a: each errand is a job offered to the man sent, and tablets owed ride with envoys.
     errandJobs(board, brain, orders);
+    // Item 13: commanders for the armies away from the court, their mandates, and recalls.
+    commandOrders(board, brain, orders, busy);
+    courtMove(board, brain, orders);
     // Haakon's answers to item 11b: armies fall on bands only by the king's order.
     huntOrders(board, orders);
     orders.splice(0, orders.length, ...collecting(board, orders));

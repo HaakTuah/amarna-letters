@@ -3,6 +3,11 @@
  * methods before the engine is used.
  */
 import "./resolve.ts";
+import "./battles.ts";
+import "./marching.ts";
+import "./command.ts";
+import "./couriers.ts";
+import "./kings.ts";
 import "./events.ts";
 import "./covers.ts";
 import "./inventories.ts";
@@ -54,3 +59,4 @@ export { HeardData, lossKey } from "./news.ts";
 export { WinterLossTitle, type WinterCrossing } from "./winter.ts";
 export { GrantTitle, RepudiatedTitle } from "./authority.ts";
 export { TollsTitle } from "./trade.ts";
+export { CommanderMinds } from "./command.ts";

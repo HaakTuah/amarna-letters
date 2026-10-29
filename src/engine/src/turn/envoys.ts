@@ -126,13 +126,13 @@ P.dispatch = function (p, d) {
       p,
       d,
       "An envoy would not leave",
-      `${c.name} would not leave ${Map.capital(p).name} while ${siege[0].power}'s army besieges it: the siege is too tight for ${c.name}'s courage this season. No gold was paid.`,
+      `${c.name} would not leave ${Map.get(this.courtAt(p)).name} while ${siege[0].power}'s army besieges it: the siege is too tight for ${c.name}'s courage this season. No gold was paid.`,
       "the siege was too tight for the envoy's courage",
       true,
       c.id,
     );
-    remember(c, S.turn, `I would not try to slip out of ${Map.capital(p).name} through ${siege[0].power}'s besiegers.`);
-    logEvent(S, "siege", `${c.name}, envoy of ${p}, would not leave besieged ${Map.capital(p).name}.`, [p], "envoy-stayed");
+    remember(c, S.turn, `I would not try to slip out of ${Map.get(this.courtAt(p)).name} through ${siege[0].power}'s besiegers.`);
+    logEvent(S, "siege", `${c.name}, envoy of ${p}, would not leave besieged ${Map.get(this.courtAt(p)).name}.`, [p], "envoy-stayed");
     return;
   }
   const fine = toInt(roundEven((d.gold * d.purityPercent) / 100.0));
@@ -247,7 +247,7 @@ P.dispatch = function (p, d) {
 
   const outJourney = newJourney({ id: newId(S, "j"), kind: "EnvoyOutbound", departTurn: S.turn, from: p, to: d.to, characterId: c.id, dispatch });
   S.journeys.push(outJourney);
-  this.setOut(outJourney, Map.capital(p).id, Map.capital(d.to).id);
+  this.setOut(outJourney, this.courtAt(p), this.courtAt(d.to));
   const travel = outJourney.arriveTurn - S.turn;
   c.duty = "EnvoyOutbound";
   c.at = null;
@@ -275,8 +275,8 @@ P.dispatch = function (p, d) {
       this.intercept(c, p, besieged[0], true, journey!.dispatch, null, S.turn + 2 * travel);
       S.journeys.splice(S.journeys.indexOf(journey!), 1);
     } else {
-      logEvent(S, "siege", `${c.name}, envoy of ${p}, slipped out of besieged ${Map.capital(p).name}.`, [p], "envoy-out");
-      this.outcome(c, p, `Slipped out through the siege lines at ${Map.capital(p).name} (season ${S.turn}).`, true);
+      logEvent(S, "siege", `${c.name}, envoy of ${p}, slipped out of besieged ${Map.get(this.courtAt(p)).name}.`, [p], "envoy-out");
+      this.outcome(c, p, `Slipped out through the siege lines at ${Map.get(this.courtAt(p)).name} (season ${S.turn}).`, true);
     }
   }
 };
@@ -321,14 +321,14 @@ P.sendHome = function (c, from, cargo) {
   }
   // Word of the host's market and of the tolls it sets on the envoy's king, as they stand now (item 10+b).
   if (isAlive(S, from) && from !== home) {
-    noteMarket(cargo.word, this.map.capital(from).id, this.marketNow(this.map.capital(from).id));
+    noteMarket(cargo.word, this.courtAt(from), this.marketNow(this.courtAt(from)));
     noteTolls(cargo.word, S.tolls, from, home);
   }
   c.duty = "EnvoyHomebound";
   c.at = null;
   const j = newJourney({ id: newId(S, "j"), kind: "EnvoyHomebound", departTurn: S.turn, from, to: home, characterId: c.id, cargo });
   S.journeys.push(j);
-  this.setOut(j, this.map.capital(from).id, this.map.capital(home).id);
+  this.setOut(j, this.courtAt(from), this.courtAt(home));
 };
 
 // ---------------------------------------------------------------- audience
@@ -666,7 +666,7 @@ P.observe = function (c, court) {
   const rng = this.r("observe", c.id);
   const obs: string[] = [];
   const skill = c.skills.gather / 100.0;
-  const capital = Map.capital(court).id;
+  const capital = this.courtAt(court);
   const nearby = S.units.filter((u) => u.power === court && Map.hops(capital, u.province) <= 2);
   if (rng.chance(skill))
     obs.push(`${court} keeps ${nearby.filter((u) => u.kind === "Army").length} army and ${nearby.filter((u) => u.kind === "Fleet").length} fleet near its capital.`);

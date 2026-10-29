@@ -36,7 +36,7 @@ describe("SaveVersionTests", () => {
   }
 
   test("New games are saved under the current version", async () => {
-    Assert.equal(30, CURRENT_VERSION);
+    Assert.equal(31, CURRENT_VERSION);
     Assert.equal(CURRENT_VERSION, newGame(1).version);
     let log = await playedLog(4, 1);
     Assert.equal(CURRENT_VERSION, log.header.version);

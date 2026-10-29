@@ -14,6 +14,7 @@ import { type Clause, ClauseSchema } from "./clauses.ts";
 import { GreetingOptionsSchema, TabletProposalSchema, type GreetingOptions, type TabletProposal } from "./records.ts";
 import { AuthoritySchema, type Authority, type GrantKind } from "./authority.ts";
 import type { JobWhat } from "./people.ts";
+import { type Mandate, MandateSchema, mandateText } from "./command.ts";
 
 export interface HoldOrder {
   type: "hold";
@@ -23,6 +24,8 @@ export interface MoveOrder {
   type: "move";
   unit: string;
   to: string;
+  /** A forced march (item 13): a third quicker, and some of the men drop along the way. */
+  forced?: boolean;
 }
 /** Support a unit standing in `supported`: to hold if `to` is null, else its move to `to`. */
 export interface SupportOrder {
@@ -291,6 +294,55 @@ export interface PayCarriersOrder {
  * Haakon's answers to item 11b: your armies standing in `province` of your land fall on the bands there at the start of
  * next season (a king's army falls on a band only on his order).
  */
+/**
+ * Item 13 ("Generals lead armies", "Privileges"): grant command of the unit standing in `unit` to `character`, a person at
+ * the king's court, his own servant or free. A grant of authority, not a job: no fee; what the commander gains is the
+ * spoils, the men and his name. He travels to the army and commands it from the season he reaches it.
+ */
+export interface CommandOrder {
+  type: "command";
+  unit: string;
+  character: string;
+}
+/** Item 13: take back the command of the unit in `unit` by sending word; he steps down when it reaches him, or refuses. */
+export interface RelieveOrder {
+  type: "relieve";
+  unit: string;
+}
+/**
+ * Item 13 ("Army mandates"): give the unit in `unit` a mandate, which reaches it with the realm's couriers and holds until
+ * changed; a null mandate clears it. Its commander carries it out when no order of the king's reaches the army.
+ */
+export interface MandateOrder {
+  type: "mandate";
+  unit: string;
+  mandate: Mandate | null;
+}
+/**
+ * Item 13 ("Governors"): grant `character`, a person at the king's court, the governorship of `province`, a province of the
+ * king's, under a mandate: he may raise up to `levies` levies there on his own when foreign troops stand in or next to it
+ * (0: none), collects its yield, and reports what he sees. A privilege, not a job: no fee. He travels there and governs
+ * from the season he arrives.
+ */
+export interface GovernOrder {
+  type: "govern";
+  province: string;
+  character: string;
+  levies: number;
+}
+/** Item 13: take back the governorship of `province` by sending word; he steps down when it reaches him, or refuses. */
+export interface UnseatOrder {
+  type: "unseat";
+  province: string;
+}
+/**
+ * Item 13 ("The capital is wherever the king is"): the king himself sets out for `to`, a province of his own or any he may
+ * reach, with his court; it costs gold and takes the road's time, and his orders travel from wherever he is.
+ */
+export interface CourtOrder {
+  type: "court";
+  to: string;
+}
 export interface HuntOrder {
   type: "hunt";
   province: string;
@@ -453,6 +505,12 @@ export interface UnreadableOrder {
 }
 
 export type Order =
+  | CommandOrder
+  | RelieveOrder
+  | MandateOrder
+  | GovernOrder
+  | UnseatOrder
+  | CourtOrder
   | HoldOrder
   | MoveOrder
   | SupportOrder
@@ -513,7 +571,13 @@ export type OrderType = Order["type"];
 // ---------------------------------------------------------------- makers, with the C# records' defaults
 
 export const hold = (unit: string): HoldOrder => ({ type: "hold", unit });
-export const move = (unit: string, to: string): MoveOrder => ({ type: "move", unit, to });
+export const command = (unit: string, character: string): CommandOrder => ({ type: "command", unit, character });
+export const relieve = (unit: string): RelieveOrder => ({ type: "relieve", unit });
+export const mandateOrder = (unit: string, mandate: Mandate | null): MandateOrder => ({ type: "mandate", unit, mandate });
+export const govern = (province: string, character: string, levies = 0): GovernOrder => ({ type: "govern", province, character, levies });
+export const unseat = (province: string): UnseatOrder => ({ type: "unseat", province });
+export const moveCourt = (to: string): CourtOrder => ({ type: "court", to });
+export const move = (unit: string, to: string, forced = false): MoveOrder => (forced ? { type: "move", unit, to, forced } : { type: "move", unit, to });
 export const support = (unit: string, supported: string, to: string | null = null): SupportOrder => ({ type: "support", unit, supported, to });
 export const convoy = (unit: string, army: string, to: string): ConvoyOrder => ({ type: "convoy", unit, army, to });
 export const besiege = (unit: string): BesiegeOrder => ({ type: "besiege", unit });
@@ -620,10 +684,22 @@ function named(s: string | null | undefined): string {
 /** The order in a line, as reports and refusals show it (Order.Describe). */
 export function describe(o: Order): string {
   switch (o.type) {
+    case "command":
+      return `grant ${o.character} the command of ${o.unit}`;
+    case "relieve":
+      return `take back the command of ${o.unit}`;
+    case "mandate":
+      return o.mandate === null ? `clear the mandate of ${o.unit}` : `give ${o.unit} the mandate: ${mandateText(o.mandate)}`;
+    case "govern":
+      return `grant ${o.character} the governorship of ${named(o.province)}${o.levies > 0 ? `, to raise up to ${o.levies} levies there if foreign troops threaten it` : ""}`;
+    case "unseat":
+      return `take back the governorship of ${named(o.province)}`;
+    case "court":
+      return `set out with the court for ${named(o.to)}`;
     case "hold":
       return `${o.unit} holds`;
     case "move":
-      return `${o.unit} -> ${named(o.to)}`;
+      return `${o.unit} -> ${named(o.to)}${o.forced === true ? " (forced march)" : ""}`;
     case "support":
       return o.to === null || o.to === undefined ? `${o.unit} supports ${named(o.supported)} holding` : `${o.unit} supports ${named(o.supported)} -> ${o.to}`;
     case "convoy":
@@ -769,6 +845,9 @@ export function characterOf(o: Order): string | null {
   switch (o.type) {
     case "dispatch":
       return o.envoy;
+    case "command":
+    case "govern":
+      return o.character;
     case "release":
     case "dismiss":
     case "spy":
@@ -807,8 +886,14 @@ export function orderEquals(a: Order, b: Order): boolean {
 const v = <T>(name: string, make: () => T, fields: Parameters<typeof obj>[2]): ObjSchema<unknown> => obj(name, make, fields) as ObjSchema<unknown>;
 
 export const OrderSchema = poly("Order", "type", {
+  command: v("CommandOrder", () => command("", ""), { unit: S, character: S }),
+  relieve: v("RelieveOrder", () => relieve(""), { unit: S }),
+  mandate: v("MandateOrder", () => mandateOrder("", null), { unit: S, mandate: opt(() => MandateSchema) }),
+  govern: v("GovernOrder", () => govern("", ""), { province: S, character: S, levies: I }),
+  unseat: v("UnseatOrder", () => unseat(""), { province: S }),
+  court: v("CourtOrder", () => moveCourt(""), { to: S }),
   hold: v("HoldOrder", () => hold(""), { unit: S }),
-  move: v("MoveOrder", () => move("", ""), { unit: S, to: S }),
+  move: v("MoveOrder", () => move("", ""), { unit: S, to: S, forced: opt(B) }),
   support: v("SupportOrder", () => support("", ""), { unit: S, supported: S, to: S }),
   convoy: v("ConvoyOrder", () => convoy("", "", ""), { unit: S, army: S, to: S }),
   besiege: v("BesiegeOrder", () => besiege(""), { unit: S }),

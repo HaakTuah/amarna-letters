@@ -30,10 +30,13 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
             <div className="unitrow" key={at}>
               <span>
                 <Emblem power={me} /> {unit.kind === "Army" ? "Army" : "Fleet"} {provinceName(at)}
+                {unit.men > 0 && <span className="muted"> · {unit.men} men</span>}
+                {unit.march !== null && <span className="muted"> · on the road to {provinceName(unit.march)}, about {unit.marchDays} days left</span>}
               </span>
               <select value={d.kind} onChange={(e) => change({ kind: e.target.value, target: null, to: null })}>
                 <option value="hold">Hold</option>
                 <option value="move">Move</option>
+                <option value="force">Move by forced march</option>
                 <option value="support">Support</option>
                 {unit.kind === "Fleet" && map.get(at).isSea && <option value="convoy">Convoy</option>}
                 {unit.kind === "Army" && v.walls.getOrDefault(at, 0) > 0 && v.owner.tryGet(at) !== me && <option value="besiege">Besiege the city</option>}
@@ -41,7 +44,7 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
                 {!map.get(at).isSea && v.owner.tryGet(at) === me && <option value="settle">Disband and settle its men here</option>}
               </select>
               <span className="row" style={{ gap: ".3rem" }}>
-                {d.kind === "move" && (
+                {(d.kind === "move" || d.kind === "force") && (
                   <select value={d.target ?? ""} onChange={(e) => change({ target: e.target.value })}>
                     <option value="">— where? —</option>
                     {draft.movesFor(at).map((to) => (

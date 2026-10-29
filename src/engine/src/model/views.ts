@@ -1,5 +1,6 @@
 import { Dict } from "../core/collections.ts";
 import { B, D, I, type ObjSchema, S, computed, dict, list, obj, opt } from "../core/json.ts";
+import { type Mandate, MandateSchema } from "./command.ts";
 import { newGameConfig } from "./config.ts";
 import type { UnitKind } from "./map.ts";
 import { type Order, OrderSchema } from "./orders.ts";
@@ -26,6 +27,23 @@ export interface UnitView {
   savings: number;
   /** Item 11a+: its men, as anyone who sees it can count them (a full army 5,000, a fleet's crews 2,000). */
   men: number;
+  /** Item 13, of the court's own units only: the province it is marching to over a long link, and the days of road left. */
+  march: string | null;
+  marchDays: number;
+  /**
+   * Item 13, of the court's own units only: its commander's id (on his way to it until `commandFrom`), word taking the
+   * command back on its way, and its mandate with the season it reaches the army.
+   */
+  commander: string | null;
+  commandFrom: number;
+  relieving: boolean;
+  mandate: Mandate | null;
+  mandateFrom: number;
+  /**
+   * Item 13, of the court's own units: the season of the report it is shown by, where it stood beyond what a courier could
+   * bring within the season; 0 where it is seen as it is now.
+   */
+  reported: number;
 }
 
 export function newUnitView(init: Partial<UnitView> = {}): UnitView {
@@ -39,6 +57,14 @@ export function newUnitView(init: Partial<UnitView> = {}): UnitView {
     unpaid: 0,
     savings: 0,
     men: 0,
+    march: null,
+    marchDays: 0,
+    commander: null,
+    commandFrom: 0,
+    relieving: false,
+    mandate: null,
+    mandateFrom: 0,
+    reported: 0,
     ...init,
   };
 }
@@ -53,6 +79,14 @@ export const UnitViewSchema: ObjSchema<UnitView> = obj("UnitView", newUnitView, 
   unpaid: I,
   savings: I,
   men: I,
+  march: opt(S),
+  marchDays: I,
+  commander: opt(S),
+  commandFrom: I,
+  relieving: B,
+  mandate: opt(() => MandateSchema),
+  mandateFrom: I,
+  reported: I,
 });
 
 /**
@@ -297,6 +331,9 @@ export interface CharacterView {
   lends: LendOffer | null;
   /** Item 11b: the news of other courts they offer you, if they stand at your court (order buy_news). */
   news: NewsOffer[];
+  /** Item 13: the battles they won and lost commanding an army, as anyone who saw them fought can count them. */
+  won: number;
+  lost: number;
 }
 
 /** Item 11b: a band a court sees: where it works, how many men, its chief's name, and whether it has a ship. */
@@ -363,6 +400,8 @@ export function newCharacterView(init: Partial<CharacterView> = {}): CharacterVi
     carries: null,
     lends: null,
     news: [],
+    won: 0,
+    lost: 0,
     ...init,
   };
 }
@@ -402,6 +441,8 @@ export const CharacterViewSchema: ObjSchema<CharacterView> = obj("CharacterView"
   carries: opt(I),
   lends: () => LendOfferSchema,
   news: list(() => NewsOfferSchema),
+  won: I,
+  lost: I,
 });
 
 /** Item 11a: a debt of the seat's own, as its tablet reads: whom it owes, what is left, and whether the holder stands at its court. */
@@ -562,6 +603,12 @@ export interface SeatView {
   season: string;
   power: Power;
   king: string;
+  /**
+   * Item 13 ("The capital is wherever the king is"): the province where the king is, his court and capital, from where his
+   * orders travel; and, while he is on the road with his court, where he goes (else null).
+   */
+  courtAt: string;
+  courtTo: string | null;
   ended: boolean;
   /** Whether the age has no end ("An open age"). The ending itself is told in words; no number or season of it is shown. */
   openAge: boolean;
@@ -719,6 +766,8 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     turn: 0,
     season: "",
     power: "Egypt",
+    courtAt: "",
+    courtTo: null,
     king: "",
     ended: false,
     openAge: false,
@@ -792,6 +841,8 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   turn: I,
   season: S,
   power: S,
+  courtAt: S,
+  courtTo: opt(S),
   king: S,
   ended: B,
   openAge: B,

@@ -12,8 +12,8 @@ import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
-import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
-import { wordSeasons } from "../model/travel.ts";
+import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known, type Unit } from "../model/state.ts";
+import { PointsPerDay, wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
 import { caravanAt } from "../model/caravans.ts";
@@ -42,6 +42,7 @@ import {
 import { newStandingOrderView } from "../model/sleep.ts";
 import type { InboxItem } from "../model/records.ts";
 import { formatMoney, season } from "./calendar.ts";
+import { courierSeasons, courtOf } from "./court.ts";
 import { ageBand } from "./ending.ts";
 import { TurnEngine } from "../turn/turn-engine.ts";
 import { asShown, basePrice, LetterData, trustIn } from "../turn/turn-engine.ts";
@@ -86,8 +87,12 @@ function looksDoomed(owner: Dict<string, Power | null>, fallen: Iterable<Power>,
  * bring the troops it saw and who held the land when it wrote.
  */
 function sight(s: GameState, map: WorldMap, p: Power): HSet<string> {
-  const core = new HSet<string>(ownedBy(s, p));
-  for (const u of s.units) if (u.power === p) core.add(u.province);
+  // Item 13 ("Distance inside your own realm"): what a king sees as current is what a courier could bring him within the
+  // season; his land and troops farther off he knows by their last report ({@link knownHolders}, the units' own reports).
+  const court = courtOf(s, map, p);
+  const near = (x: string): boolean => courierSeasons(s, map, court, x) === 0;
+  const core = new HSet<string>(ownedBy(s, p).filter(near));
+  for (const u of s.units) if (u.power === p && near(u.province)) core.add(u.province);
   const all = new HSet<string>(core);
   for (const id of core) for (const n of map.neighbors(id)) all.add(n);
   return all;
@@ -129,7 +134,7 @@ export const SeenSource = "seen";
 function knownHolders(s: GameState, map: WorldMap, p: Power, seen: HSet<string> | null = null): Dict<string, Known> {
   const sightNow = seen ?? sight(s, map, p);
   const stored = s.known.tryGet(p);
-  const court = map.capital(p).id;
+  const court = courtOf(s, map, p);
   const out = new Dict<string, Known>();
   for (const x of map.landProvinces) {
     if (sightNow.has(x.id)) {
@@ -175,6 +180,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     season: season(s.turn, p),
     power: p,
     king: king(p),
+    courtAt: courtOf(s, m, p),
+    courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
     ended: s.ended,
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),
@@ -236,7 +243,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       .filter((u) => u.power === p || seen.has(u.province))
       .map((u) =>
         u.power === p
-          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men })
+          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, ...reportOf(engine, u) })
           : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
       ),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
@@ -438,7 +445,8 @@ function knows(c: Character, viewer: Power): boolean {
 
 /** A servant of the court's, at home, abroad or held captive. */
 function isOurs(c: Character, viewer: Power): boolean {
-  return c.employer === viewer && (c.status === "Employed" || c.status === "Captured");
+  // Item 13: one who holds the king's command or governorship is his, in his service or free.
+  return (c.employer === viewer && (c.status === "Employed" || c.status === "Captured")) || (c.grantedBy === viewer && c.status !== "Dead");
 }
 
 /** One its court does not know took its job yet (an offer taken abroad, whose word is on the road): it sees nothing of it. */
@@ -464,7 +472,7 @@ function confessedMaster(s: GameState, id: string, court: Power): Power | null {
 function characterView(s: GameState, c: Character, viewer: Power): CharacterView {
   const cover = coverOf(c, viewer);
   if (cover !== null) return coveredView(s, c, cover);
-  const ours = c.employer === viewer;
+  const ours = c.employer === viewer || c.grantedBy === viewer;
   const captive = ours && c.status === "Captured" && c.heldBy !== null;
   // A foreign spy hidden at your court is, to you, someone elsewhere: no place, no master.
   const here = seenAtCourt(c, viewer);
@@ -498,6 +506,8 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     // Whether its errand is done its master knows once it is home with nothing to do.
     errandDone: (k?.errand?.done ?? false) && c.duty === "None" && c.at === viewer,
     payOnDone: k?.payOnDone ?? false,
+    won: c.won,
+    lost: c.lost,
     offerAgain: k?.offerAgain ?? false,
     term: k === null ? "" : termText(k.fee + k.carried, k.advance, k.untilTurn, s.turn, k),
     knownFacts: facts,
@@ -632,7 +642,7 @@ function timingText(s: GameState, c: Character, map: WorldMap | null = null): st
     (j) => j.characterId === c.id && (j.kind === "EnvoyOutbound" || j.kind === "EnvoyHomebound" || j.kind === "SpyOutbound" || j.kind === "SpyHomebound"),
   );
   const trail = c.currentTrail !== null ? (s.trails.find((x) => x.id === c.currentTrail && x.from === home) ?? null) : null;
-  const back = (from: Power): number => travelTurns(s.config, m, m.capital(from).id, m.capital(home).id, s.turn);
+  const back = (from: Power): number => travelTurns(s.config, m, courtOf(s, m, from), courtOf(s, m, home), s.turn);
   switch (c.duty) {
     // On its way the reckoning is a reckoning ("due there"); only once it stands at that court is it "received there".
     case "EnvoyOutbound":
@@ -676,7 +686,7 @@ function ransomCarrier(s: GameState, c: Character, captor: Power): number | null
   const payer = c.employer !== null ? c.employer : c.formerEmployer;
   if (payer === null || !isAlive(s, payer) || !isAlive(s, captor)) return null;
   const m = WorldMap.default;
-  const seasons = Math.max(1, travelTurns(s.config, m, m.capital(captor).id, m.capital(payer).id, s.turn));
+  const seasons = Math.max(1, travelTurns(s.config, m, courtOf(s, m, captor), courtOf(s, m, payer), s.turn));
   const asks = s.characters
     .filter((x) => x.status === "Free" && x.at === captor && x.duty === "None" && x.heldBy === null && x.errand === null)
     .map((x) => idiv(basePrice(x, payer) * seasons * LetterData.hiredPercent, 100));
@@ -712,6 +722,10 @@ function dutyText(c: Character): string {
       return "travelling on their own way";
     case "Leading":
       return `leading a band in ${c.watchProvince ?? ""}`;
+    case "Commanding":
+      return `commanding an army in ${c.watchProvince ?? ""}`;
+    case "Governing":
+      return `governing ${c.watchProvince ?? ""}`;
   }
 }
 
@@ -804,3 +818,21 @@ export const Views = {
   tablet: tabletView,
   MaxWhileAsleep,
 };
+
+/** An own unit's march over a long link (item 13): where to, and the days of road left at its usual pace. */
+function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays: number } {
+  if (u.march === null) return { march: null, marchDays: 0 };
+  const left = Math.max(0, engine.marchPoints(u, u.march, false) - u.along);
+  return { march: u.march, marchDays: Math.ceil(left / PointsPerDay) };
+}
+
+/**
+ * Item 13: an own unit beyond what a courier brings within the season is shown as its last report has it: where it stood
+ * and with how many men, as many seasons ago as the road from it is long.
+ */
+function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {
+  const d = engine.wordTo(u.power, u.province);
+  if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return {};
+  const [province, men] = u.trail[Math.max(0, u.trail.length - 1 - d)].split("|");
+  return { province, men: Number(men), reported: engine.s.turn - d, march: null, marchDays: 0 };
+}

@@ -203,7 +203,7 @@ P.hireAll = function (hires, carriedTo = null) {
     // Hired abroad: a spy whose post is where it stands takes it up at once; anyone else sets out for its master's court.
     const e = c.contract.errand;
     const at = c.at!;
-    const here = e !== null && e.what === "spy" && (e.where === at || e.where === this.map.capital(at).id);
+    const here = e !== null && e.what === "spy" && (e.where === at || e.where === this.courtAt(at));
     if (here) {
       c.duty = "SpyPosted";
       c.missionTarget = e!.where === at ? at : null;
