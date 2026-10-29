@@ -83,7 +83,46 @@ a level, twice the cost in arid ground), `RepairData` (500 men and 20 measures a
 
 ## Measured
 
-(Filled in below once the runs are done.)
+All on seed 1, 50 script games each, after item 14 (#189) merged: "before" is `develop` at 0390684, "after" this
+branch at fe59ed2. Every game replayed exactly in both (`--verify-replay`, 50 of 50). Games stay playable: a capital fell
+in 50 of 50 both ways, the first fall on the median in season 4 both ways, 19 games with a kingdom fallen in the first
+two seasons both ways (the same chiefs' lands); kingdoms fallen 706 before, 621 after.
+
+| Power | Growth before | Growth after | Wins before | Wins after |
+| --- | --- | --- | --- | --- |
+| Egypt | 0.90 | 0.89 | 6 | 6 |
+| Hatti | 1.13 | 1.06 | 2 | 1 |
+| Babylonia | 0.91 | 0.98 | 3 | 5 |
+| Mitanni | 0.83 | 0.90 | 4 | 3 |
+| Assyria | 0.84 | 0.64 | 2 | 1 |
+| Arzawa | 0.91 | 0.88 | 2 | 1 |
+| Alashiya | 0.99 | 0.95 | 0 | 0 |
+
+Akhetaten's open city did not bring Egypt down (fallen 0 of 50 both ways). Assyria lost most: Nineveh's walls fell to 1
+from the dossier and its steppe frontier is bandit country; item 18 looks at it.
+
+**What the item changed in the record** (games with it / times): policing held the loose down, robbed 2,116 times
+before and 1,013 after, a chief rising from a crowd 519 and 366 times, outlaws on the road 1,182 and 1,082; levels built
+or hired 10,477 times in 50 games (police hires most of them); a besieged foe's relay stations razed 10 times in 5
+games; letters and orders read at relay stations 106 times in 27 games; fleets wintering beyond their harbours' room 144
+times in 42 games; smugglers found once; walls repaired under siege once (after the script patch below, which keeps
+repairs for a breach that is near).
+
+**Use against ignore** (`--works-play-half`, 50 games; the baseline builds only walls): growth 0.79 against 0.76, wins
+23 against 27. Per power, using it against ignoring it: Egypt 0.93/0.88, Hatti 1.13/1.07, Babylonia 1.01/0.98, Mitanni
+0.88/0.73, Assyria 0.57/0.86, Arzawa 0.91/1.02, Alashiya 0.96/0.96. Using it pays in growth; the wins are within noise.
+
+**Weaknesses found and patched** (each re-measured): the first script kings paid projects by corvée when gold was short,
+taking a thousand men from a small realm's harvest for a road (using it: 0.78 against 0.79); they now build roads,
+stations, harbours and water works only when the gold covers the whole project (0.77 against 0.79, 30 wins to 20). Then
+they repaired every besieged wall, eating the stores a starving city needs; they now repair only within two steps of a
+breach and with six seasons of the repair's food in store (0.79 against 0.76). **Left open**: Assyria still grows less
+using the item (0.57 against 0.86), and fleets still winter short of harbour room; both for item 18's measurements.
+
+**Workshop check**: checks for this code PR took 3 to 7 minutes on GitHub (down from about 10 on 29 October); CLAUDE.md
+17.0 KB, the builder rules 11.1 KB, the progress file 17.2 KB, all under 20 KB; no source file over 50 KB but the map's
+generated data (`geo-fine-data.ts`) and its relief image; this session cannot delete merged branches on GitHub (403, as
+item 14 found); no leftovers added (the scratch logs stay outside the repository).
 
 ## Design questions
 
