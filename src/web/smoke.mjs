@@ -62,14 +62,18 @@ const seasons = (p) => p.$eval(".slider", (s) => Number(s.max));
  * wait measured a pass still due on a busy machine.
  */
 async function still(p) {
-  await p.waitForFunction(() => !document.getAnimations().some((a) => a instanceof CSSTransition && a.playState === "running" && a.effect?.target?.closest(".mapview")), null, { timeout: 15000 });
-  await p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  // Twice, a little longer apart than a zoom takes to settle (140 ms, zoom.ts), so slides it starts are waited for too.
+  for (let i = 0; i < 2; i++) {
+    await p.waitForFunction(() => !document.getAnimations().some((a) => a instanceof CSSTransition && a.playState === "running" && a.effect?.target?.closest(".mapview")), null, { timeout: 15000 });
+    await p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    if (i === 0) await p.waitForTimeout(200);
+  }
 }
 
 /**
  * Slow motion: the zoom's glide and the pieces' slides run longer than the renderer would guess from the stylesheet, as
  * they do on a busy phone, where a transition starts only at the next frame drawn. Placement must follow the motion's
- * real end, not a timer.
+ * real end, not a timer. It stays on for the rest of that page (the game in progress and the seat's view after it).
  */
 const slowMotion = (p) =>
   p.addStyleTag({ content: ".mapzoom.glide { transition-duration: 1s !important; } .map .unit, .map .traveller { transition-duration: 2s !important; }" });
