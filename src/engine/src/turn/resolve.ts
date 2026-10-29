@@ -406,6 +406,8 @@ P.updateOwnership = function () {
     if (prov.isSea) continue;
     const before = S.owner.getOrDefault(u.province, null);
     if (before === u.power) continue;
+    // Item 13+: a fallen kingdom's troops waiting for the word take nothing for a king who is no more.
+    if (!isAlive(S, u.power)) continue;
     // A guest by passage or basing on a sealed tablet takes none of the land it stands in by leave (item 9).
     if (this.guestOf(u) !== null) continue;
     if (wallsOf(S, u.province) > 0) {
@@ -452,7 +454,7 @@ P.resolveTransfers = function (cessions, gifts) {
     // Land still being absorbed goes on being absorbed under the receiver as it would have been under the giver, so
     // that a friend cannot launder a conquest by passing it back and forth; land of the receiver's own homeland is
     // his in full at once, as if he had retaken it.
-    if (Map.get(c.province).home === c.to) S.conquered.delete(c.province);
+    if (Map.isHome(c.to, c.province)) S.conquered.delete(c.province);
     this._cededNow.set(c.province, c.to);
     notify(S, p, "Resolution", "Land ceded", `${Map.get(c.province).name} now belongs to ${c.to}.`);
     notify(S, c.to, "Resolution", "Land received", `${p} has ceded ${Map.get(c.province).name} to you.`);
@@ -572,7 +574,7 @@ P.fall = function (p, conqueror, taker, ceded = false) {
     if (conqueror !== null) passed.push(id);
     // Land ceded by agreement passes as any land ceded does (resolveTransfers): what was being absorbed goes on being so.
     if (!ceded) this.takenByForce(id, conqueror);
-    else if (this.map.get(id).home === conqueror) S.conquered.delete(id);
+    else if (this.map.isHome(conqueror, id)) S.conquered.delete(id);
     // A siege the conqueror pressed against land that is now his is over.
     if (conqueror !== null) S.sieges = removeAll(S.sieges, (x) => x.province === id && x.power === conqueror);
   }
@@ -609,7 +611,8 @@ P.fall = function (p, conqueror, taker, ceded = false) {
     if (c.status === "Captured") this.releaseCaptive(p, c);
     else if (c.duty === "Detained") this.letEnvoyGo(p, c, null);
   }
-  for (const c of S.characters.filter((c) => c.employer === p)) {
+  // Item 13+: a governor or commander far off serves on until word of the fall reaches him (fallsSpread).
+  for (const c of S.characters.filter((c) => c.employer === p && (ceded || (c.duty !== "Governing" && c.duty !== "Commanding")))) {
     c.formerEmployer = p;
     c.employer = null;
     c.contract = null;

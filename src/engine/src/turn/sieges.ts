@@ -134,6 +134,9 @@ P.sieges = function (valid) {
     }
 
   for (const x of sortBy(S.sieges, [(x: Siege) => x.since, cmpNum], [(x: Siege) => x.province, cmpStr])) {
+    // Item 13+: a fallen kingdom's army waiting for word of the fall holds where it stands, and presses nothing for a
+    // king who is no more.
+    if (!isAlive(S, x.power)) continue;
     const name = Map.get(x.province).name;
     const owner = S.owner.getOrDefault(x.province, null);
     const walls = wallsOf(S, x.province);

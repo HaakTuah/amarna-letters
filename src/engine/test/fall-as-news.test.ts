@@ -18,7 +18,10 @@ import {
   newId,
   newSiege,
   newTraits,
+  newTurnSubmission,
   newUnit,
+  OrderValidator,
+  raise,
   risenOf,
   setRisen,
   travelTurns,
@@ -121,6 +124,35 @@ describe("FallAsNewsTests", () => {
     // The risen power plays on: a season passes with it in the game.
     season(loaded);
     Assert.true(isAlive(loaded, "Nippur"));
+  });
+
+  test("A risen ruler may raise a levy among his own people", () => {
+    const { s } = babylonFalls(5000);
+    const fell = s.turn;
+    season(s);
+    while (s.turn <= fell + travelTurns(s.config, WorldMap.default, "babylon", "nippur", fell)) season(s);
+    Assert.equal("Nippur", s.owner.get("nippur"));
+    Assert.equal(["nippur"], WorldMap.default.homeOf("Nippur").map((x) => x.id));
+    const v = new OrderValidator(s).validate("Nippur", newTurnSubmission({ orders: [raise("nippur", "Army")] }));
+    Assert.empty(v.rejected);
+  });
+
+  test("A fallen kingdom's army waiting for the word presses no siege for its dead king", () => {
+    const { s } = babylonFalls(0);
+    // Babylonia's army besieging Assyria's Arbela, two seasons from its surrender when Babylon falls.
+    s.walls.set("arbela", 2);
+    removeAll(s.units, (u) => u.province === "arbela");
+    const army = newUnit({ id: newId(s, "u"), power: "Babylonia", kind: "Army", province: "arbela", men: 3000 });
+    s.units.push(army);
+    const siege = newSiege({ province: "arbela", power: "Babylonia", unitId: army.id, progress: 2 * EconomyData.breachPerLevel - 2, since: 1 });
+    s.sieges.push(siege);
+    season(s);
+    Assert.contains("Babylonia", s.eliminated);
+    const progress = siege.progress;
+    // Its army holds before the city, but the siege goes no further, and the city is not given to a king who is no more.
+    season(s);
+    Assert.equal(progress, siege.progress);
+    Assert.equal("Assyria", s.owner.get("arbela"));
   });
 
   test("A governor who cannot pay the troops there rules alone, and they hear the news as the rest of the army does", () => {
