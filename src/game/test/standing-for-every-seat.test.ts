@@ -72,7 +72,8 @@ describe("StandingForEverySeatTests", () => {
     }
   }
 
-  const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0 });
+  // The people do not resist (item 11e: the land's men stand beside its troop), so the blows these tests set up land as meant.
+  const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0, peopleDefence: 0 });
 
   // <summary>Suhu is Assyria's, its walls gone, with an Assyrian army in it: two Assyrian armies stand next to Sippar.</summary>
   function assyriaInMari(s: GameState): void {
@@ -439,15 +440,15 @@ describe("StandingForEverySeatTests", () => {
     // Script kings give standing orders, and in the first seeds one fires within a few seasons: its notice says what set it
     // off and the orders it gave. The game replays exactly. (Until the siege package this was seed 1's turn 3, where Arzawa
     // marched on an empty Hattusa; the walls on homelands changed that game.) In the small world (small-world.ts) the first
-    // to fire is seed 4's, in its fifteenth season since item 11e (cities defended by their men are stormed less, so fewer
-    // blows come), so the search starts there.
+    // to fire is seed 4's, in its eighth season, so the search starts there. The people do not resist here (item 11e's land
+    // defended by its men makes such blows rarer: seed 4's first came in its fifteenth season).
     for (let seed = 4; seed <= 15; seed++) {
-      let state = newGame(seed);
+      let state = newGame(seed, newGameConfig({ peopleDefence: 0 }));
       let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
       await runner.prepare();
       let fired = null;
       let turns = 0;
-      while (fired === null && turns < 16 && (await runner.playTurn())) {
+      while (fired === null && turns < 12 && (await runner.playTurn())) {
         turns++;
         fired = firstOrNull(
           AllPowers.flatMap((p) => inboxOf(state, p)),
@@ -467,6 +468,6 @@ describe("StandingForEverySeatTests", () => {
       Assert.equal(hash(GameStateSchema, state), hash(GameStateSchema, replay.state));
       return;
     }
-    Assert.fail("no standing order fired in the first sixteen seasons of seeds 4-15");
+    Assert.fail("no standing order fired in the first twelve seasons of seeds 4-15");
   });
 });

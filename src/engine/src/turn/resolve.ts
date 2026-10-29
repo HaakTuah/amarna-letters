@@ -328,7 +328,8 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
   const whose = f.power === viewer ? `your own ${kind}` : `${f.power}'s ${kind}`;
   const strengths = `; your strength ${strengthWords(f.strength)} against ${strengthWords(f.against)}`;
   // The ground that helped the unit that held it off, in the strength it had to beat.
-  const held = strengths + (f.ground !== null ? `, ${strengthWords(f.groundBonus)} of it for ${groundText(f.ground)}` : "");
+  // And the land's own men who stood beside it (item 11e).
+  const held = strengths + (f.ground !== null ? `, ${strengthWords(f.groundBonus)} of it for ${groundText(f.ground)}` : "") + (f.people > 0 ? `, ${strengthWords(f.people)} of it for the men of the land beside it` : "");
   switch (f.stop) {
     case "NoConvoy":
       return "no convoy carried it across the sea";
@@ -345,7 +346,7 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
     case "Bounced":
       return `it met a move into ${to} from ${f.province}${seen ? ` by ${whose}` : ""}${strengths}`;
     case "Resisted":
-      return `the people of ${to} rose against it and held it off${strengths}: a land's men of fighting age resist an invader where no troop stands, by their number, more on rough ground`;
+      return `the people of ${to} rose against it and held it off${strengths}: a land's men of fighting age resist an invader by their number, more on rough ground`;
     default:
       return "it was stopped";
   }

@@ -85,8 +85,8 @@ function line(province: string, power: Power | null, text: string, ok: boolean, 
   return { province, power, text, ok, target: null, failure: null, void: null, cut: null, assault: null, ...more };
 }
 
-function failure(stop: MoveStop, province: string, power: Power | null, kind: UnitKind, movingTo: string | null, strength: number, against: number, ground: Ground | null = null, groundBonus = 0): MoveFailure {
-  return { stop, province, power, kind, movingTo, strength, against, ground, groundBonus };
+function failure(stop: MoveStop, province: string, power: Power | null, kind: UnitKind, movingTo: string | null, strength: number, against: number, ground: Ground | null = null, groundBonus = 0, people = 0): MoveFailure {
+  return { stop, province, power, kind, movingTo, strength, against, ground, groundBonus, people };
 }
 
 export class Adjudicator {
@@ -422,7 +422,8 @@ export class Adjudicator {
   /**
    * The hold strength a move into a province must beat: none if the province is empty or its unit got away; else 1 for
    * the unit that stays (holding, besieging, supporting, convoying, or whose own move failed), its supports to hold if it
-   * did not try to move, and what the ground gives it against this move ({@link groundAgainst}).
+   * did not try to move, what the ground gives it against this move ({@link groundAgainst}), and the land's own men
+   * beside it outside walls (item 11e, {@link peopleAgainst}).
    */
   private holdStrength(move: O): number {
     const province = move.target!;
@@ -433,17 +434,17 @@ export class Adjudicator {
     if (occ.kind === "Move") {
       if (this.resolve(occ.index)) return this.peopleAgainst(move);
     } else for (const s of this.orders) if (s.kind === "Support" && s.target === province && s.to === null && this.resolve(s.index)) count += s.weight;
-    return count + (this.groundAgainst(move) === null ? 0 : this.terrain);
+    return count + (this.groundAgainst(move) === null ? 0 : this.terrain) + this.peopleAgainst(move);
   }
 
   /**
-   * The people of the move's target rising against it where no unit stands its ground there ("The people defend their
-   * land", item 10+a): none for a guest let in by the land's holder, nor in the mover's own land. Behind walls they meet
-   * it on the walls instead, in the storm (item 11e, {@link assaultBy}).
+   * The people of the move's target rising against it ("The people defend their land", item 10+a): its men of fighting
+   * age, alone where no unit stands its ground there and beside the unit that does (item 11e: an army that enters meets
+   * them, whoever stands there); none for a guest let in by the land's holder, nor in the mover's own land. Behind walls
+   * they meet it on the walls instead, in the storm ({@link assaultBy}).
    */
   private peopleAgainst(move: O): number {
-    if (this.walls.getOrDefault(move.target!, 0) > 0 && this.owners.getOrDefault(move.target!, null) !== move.power) return 0;
-    return this.people(move);
+    return this.walls.getOrDefault(move.target!, 0) > 0 ? 0 : this.people(move);
   }
 
   private people(move: O): number {
@@ -579,7 +580,7 @@ export class Adjudicator {
       if (attack <= hold) {
         const stop: MoveStop = occ.kind === "Move" ? "Stayed" : "Held";
         const ground = this.groundAgainst(move);
-        return failure(stop, occ.at, occ.power, occ.unitKind, occ.kind === "Move" ? occ.target : null, attack, hold, ground, ground === null ? 0 : this.terrain);
+        return failure(stop, occ.at, occ.power, occ.unitKind, occ.kind === "Move" ? occ.target : null, attack, hold, ground, ground === null ? 0 : this.terrain, this.peopleAgainst(move));
       }
     }
 

@@ -356,7 +356,8 @@ export function makePlan(b: Board, brain: Brain, temper: Personality | null = nu
       [(u: string) => (b.unitAt.get(u).kind === "Army" ? 0 : 1), cmpNum],
       [(u: string) => u, cmpStr],
     )[0];
-    if (occupant !== null) defence += b.ground(lead, target);
+    // The troop there has the ground's help, and the land's own men beside it outside walls (item 11e).
+    if (occupant !== null) defence += b.ground(lead, target) + b.resistance(target);
     const required = Math.max(defence, contest) + 1;
     // Strong enough to storm the walls, the attack takes the city at once; only strong enough to get in, the army stands
     // inside and besieges it, which takes seasons and may be broken: worth less, the higher the walls.

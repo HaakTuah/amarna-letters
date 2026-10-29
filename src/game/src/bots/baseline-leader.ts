@@ -268,10 +268,10 @@ function military(v: SeatView, m: Memory, rng: Rng, orders: Order[]): HSet<strin
     const people = v.resistance.tryGet(t) ?? 0;
     const walls = v.walls.getOrDefault(t, 0);
     const empty = walls > 0 ? Math.floor(walls + (people * (1 + walls)) / 1000) + 1 : Math.floor(people / 1000) + 1;
-    if (owner === null) need = occ === null ? empty : willing(occ.power) ? 2 : 0;
+    if (owner === null) need = occ === null ? empty : willing(occ.power) ? 2 + (walls > 0 ? 0 : Math.floor(people / 1000)) : 0;
     else if (owner === me) need = occ === null ? 0 : 2;
     else if (!willing(owner)) need = 0;
-    else need = occ === null ? empty : 2 + (m.aggression < 0.5 ? 1 : 0);
+    else need = occ === null ? empty : 2 + (m.aggression < 0.5 ? 1 : 0) + (walls > 0 ? 0 : Math.floor(people / 1000));
     if (need === 0) continue;
     const prov = Map_.get(t);
     const value = prov.yield + (prov.capital ? 25 : 0) + (owner === null ? 5 : 0) + (prov.home === me ? 30 : 0) + (owner !== null ? G(m, owner) * 3 + (owner === leader ? 15 : 0) : 0);

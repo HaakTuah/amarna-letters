@@ -99,7 +99,7 @@ export function peopleLines(v: SeatView): string[] {
   if (changed.length > 0) lines.push(`YIELDS as their people bring them in now, where they differ from the map's (yours and those in sight): ${join(", ", changed.map(([id, y]) => `${id} ${y} (map ${WorldMap.default.get(id).yield})`))}.`);
   if (v.resistance.size > 0)
     lines.push(
-      `RESISTANCE your troops would meet from the people of land in sight, in units (in open land a move must be stronger; on walls, the city's men before the walls multiply them): ${join("; ", groupBy(sortBy([...v.resistance.entries()], [([id]: [string, number]) => id, cmpStr]), ([, r]) => strengthWords(r)).map(([r, g]) => `${r}: ${join(", ", g.map(([id]) => `${id}${v.walls.getOrDefault(id, 0) > 0 ? " (walls)" : ""}`))}`))}.`,
+      `RESISTANCE your troops would meet from the people of land in sight, in units (in open land they add to any troop's hold, and a move must be stronger; on walls, the city's men before the walls multiply them): ${join("; ", groupBy(sortBy([...v.resistance.entries()], [([id]: [string, number]) => id, cmpStr]), ([, r]) => strengthWords(r)).map(([r, g]) => `${r}: ${join(", ", g.map(([id]) => `${id}${v.walls.getOrDefault(id, 0) > 0 ? " (walls)" : ""}`))}`))}.`,
     );
   return lines;
 }

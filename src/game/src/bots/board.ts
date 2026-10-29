@@ -186,9 +186,9 @@ export class Board {
   }
 
   /**
-   * The resistance our troops would meet in the open from a land's people where no troop stands (item 10+a), in whole
-   * units: a move of n full units gets in where n is more than this. None in a walled city not ours: its men stand on the
-   * walls instead ({@link wallMen}, item 11e).
+   * The resistance our troops would meet in the open from a land's people (item 10+a), alone where no troop stands and
+   * beside the troop that does (item 11e), in whole units: what they add to the strength a move of full units must beat.
+   * None in a walled city not ours: its men stand on the walls instead ({@link wallMen}).
    */
   resistance(id: string): number {
     if (this.walls(id) && !this.isMine(id)) return 0;

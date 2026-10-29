@@ -61,6 +61,8 @@ export interface MoveFailure {
   ground: Ground | null;
   /** What that ground counted for ({@link GameConfig.TerrainDefence}). */
   groundBonus: number;
+  /** For a move the unit in the target held off: what the land's own men counted for beside it (item 11e). */
+  people: number;
 }
 
 export function newMoveFailure(init: Partial<MoveFailure> = {}): MoveFailure {
@@ -74,6 +76,7 @@ export function newMoveFailure(init: Partial<MoveFailure> = {}): MoveFailure {
     against: 0,
     ground: null,
     groundBonus: 0,
+    people: 0,
     ...init,
   };
 }
@@ -88,6 +91,7 @@ export const MoveFailureSchema: ObjSchema<MoveFailure> = obj("MoveFailure", newM
   against: I,
   ground: raw,
   groundBonus: I,
+  people: I,
 });
 
 /**

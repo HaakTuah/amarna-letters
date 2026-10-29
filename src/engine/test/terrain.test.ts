@@ -260,7 +260,8 @@ describe("TerrainTests", () => {
   });
 
   test("The battle report gives the grounds share and the record marks what it decided", () => {
-    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
+    // The people do not resist here, so the ground alone decides (item 11e: the land's men stand beside its troop).
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
     // Hatti attacks Arzawa's Mira from Tuwanuwa with Lukka's support; Arzawa's army there holds.
     single(s.units, (u) => u.province === "hattusa").province = "tuwanuwa";
     single(s.units, (u) => u.province === "nesa").province = "lukka";
