@@ -4,6 +4,7 @@ import { registerUpdates } from "./ui/update.ts";
 import "./styles/app.css";
 import "./styles/city-states.css";
 import "./styles/map-glance.css";
+import "./styles/map-uncluttered.css";
 
 createRoot(document.getElementById("app")!).render(<App />);
 

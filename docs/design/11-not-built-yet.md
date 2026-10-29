@@ -34,7 +34,7 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
 - **Errands item 10 left for later** ("Errands, not roles"): carrying a candidate an offer (item 11's live pool), carrying a
   ransom or a bribe by hand, a king's messenger who only delivers (envoys carry letters; since item 11b spies' reports need
   carriers, see [roads and reputations](23-roads-and-reputations.md)), and chaining several stops in one errand (taking
-  command is built since item 13, [command at a distance](34-command-at-a-distance.md)). Characters answering questioning, and choosing to lie, themselves rather than by formula.
+  command is built since item 13, [command at a distance](35-command-at-a-distance.md)). Characters answering questioning, and choosing to lie, themselves rather than by formula.
 - **Tablets that need a reader**: built in item 12 ([languages](30-languages.md)), except a tablet sent to a third court
   to be read and its reading sent back ("Tablets are objects in a place"; a copy can be shown abroad by envoy, but no
   translation comes home). The archive goes with the court since item 13.
@@ -49,7 +49,7 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   swapping what they carry (hiring bands as soldiers is built since item 13).
 - **A cheaper summariser**, measured on the same games before it is used ("A cheaper model for condensing,
   to be measured"; the round report, Part E).
-- **What item 13 left** ([command at a distance](34-command-at-a-distance.md)): a governor of a fallen kingdom becoming
+- **What item 13 left** ([command at a distance](35-command-at-a-distance.md)): a governor of a fallen kingdom becoming
   his province's leader with a seat of his own (risen seats, item 17; until then his province falls lawless with the
   rest); commanders and governors deciding by model rather than by script.
 - **Legends**: biographies of characters, histories of tablets and the rise and fall of courts, grown from the

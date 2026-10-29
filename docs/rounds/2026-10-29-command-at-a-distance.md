@@ -3,7 +3,7 @@
 Build order item 13, "Command at a distance" (`docs/intent/build-order/item-13.md`), from the armies and fleets dossier
 (`docs/history/11-armies-and-fleets.md`) and the attested people (`docs/history/06-attested-people.md`). Branch
 `item/command-at-a-distance`, PR #175, pipelined from item 11f (`item/map-crossings`, #169), merged in as it moved. Save
-version 31. What was built, by file: `docs/design/34-command-at-a-distance.md`. Weekly usage: unknown (`scripts/usage.sh`
+version 31. What was built, by file: `docs/design/35-command-at-a-distance.md`. Weekly usage: unknown (`scripts/usage.sh`
 cannot read it in this session). Effort: medium, as set. Carried over to item 13 on its row of the progress file, and
 built here: governorship and command as grants of authority, hiring bands as soldiers, gold reaching the treasury by
 carriers, the grant back of a ceded capital, a skilled commander cutting winter losses, and hunting re-measured with
@@ -23,7 +23,7 @@ later items (no hire abroad, no secrets caught or reports sold). None is this it
 
 ## What was built
 
-See `docs/design/34-command-at-a-distance.md`. In short:
+See `docs/design/35-command-at-a-distance.md`. In short:
 
 - **Armies and fleets from the sources**: 64 units at the dossier's sizes (Egypt's two field armies of 7,500, Hatti's
   two, Arzawa's 10,000, the cities' ships by their fleets); a unit's strength is its men against a full levy.

@@ -2,6 +2,8 @@
  * The parts of the map that never change during a game, written once as plain SVG markup. Colours come from CSS variables,
  * so light and dark modes need no re-render.
  */
+import ReliefImage from "./relief.jpg";
+import { ReliefFrame } from "./relief-frame.ts";
 import { AllPowers, StartWalls, WorldMap, isGreatKing } from "@amarna/engine";
 import {
   CoastPath,
@@ -11,10 +13,10 @@ import {
   GeoLabels,
   IslandPath,
   LakePath,
+  MarshPath,
   LandPath,
   MainlandPath,
   PuntDoor,
-  Ranges,
   Rivers,
   SeaPath,
   Shapes,
@@ -23,7 +25,6 @@ import {
   labelAt,
   landClipOf,
   ll,
-  peaks,
 } from "./art.ts";
 import { Marks, markGlyph, markText } from "./crossings.ts";
 import { Burst, Capital, Chariot, Eye, Fetter, Ingot, Moon, Pupil, Ship, Tablet, TabletMarks, emblem, glyphId } from "./glyphs.ts";
@@ -48,14 +49,16 @@ function buildDefs(): string {
       `<pattern id="fert${t}" patternUnits="userSpaceOnUse" width="${F(gap)}" height="${F(gap)}" patternTransform="rotate(-28)">` +
       `<line x1="0" y1="0" x2="${F(gap)}" y2="0" class="furrow"/></pattern>`;
   sb += `<pattern id="stipple" patternUnits="userSpaceOnUse" width="9" height="9"><circle cx="2" cy="2" r=".8" class="sand"/><circle cx="6.5" cy="6" r=".65" class="sand"/></pattern>`;
+  sb += `<pattern id="reeds" patternUnits="userSpaceOnUse" width="7" height="6"><path d="M1,4.5h3M2.5,4.5v-2.2M5,1.5h1.6" class="reed"/></pattern>`;
   sb += `<pattern id="waves" patternUnits="userSpaceOnUse" width="26" height="12"><path d="M0,6q6.5,-4 13,0t13,0" class="wave"/></pattern>`;
   // Fog: a veil of fine hatching, so the colours of ownership still show through it.
   sb += `<pattern id="fog" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil"/></pattern>`;
   sb += `<pattern id="fogsea" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)"><rect width="5" height="2.6" class="veil-sea"/></pattern>`;
-  sb += `<clipPath id="landclip"><path d="${LandPath}" clip-rule="evenodd"/></clipPath>`;
-  sb += `<clipPath id="mainclip"><path d="${MainlandPath}" clip-rule="evenodd"/></clipPath>`;
-  sb += `<clipPath id="isleclip"><path d="${IslandPath}" clip-rule="evenodd"/></clipPath>`;
-  sb += `<clipPath id="seaclip"><path d="${SeaPath}" clip-rule="evenodd"/></clipPath>`;
+  // Each path of the land carries data-geo, so the finer set close up (fine-geo.ts) can take its place.
+  sb += `<clipPath id="landclip"><path data-geo="land" d="${LandPath}" clip-rule="evenodd"/></clipPath>`;
+  sb += `<clipPath id="mainclip"><path data-geo="mainland" d="${MainlandPath}" clip-rule="evenodd"/></clipPath>`;
+  sb += `<clipPath id="isleclip"><path data-geo="island" d="${IslandPath}" clip-rule="evenodd"/></clipPath>`;
+  sb += `<clipPath id="seaclip"><path data-geo="sea" d="${SeaPath}" clip-rule="evenodd"/></clipPath>`;
   for (const [id, d] of Shapes) sb += `<clipPath id="cl-${id}"><path d="${d}"/></clipPath>`;
   for (const p of AllPowers) sb += `<symbol id="em-${glyphId(p)}" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem(p)}"/></symbol>`;
   sb += `<symbol id="g-army" viewBox="-12 -12 24 24" overflow="visible"><path d="${Chariot}"/></symbol>`;
@@ -84,8 +87,8 @@ function buildBase(): string {
   sb += `<rect class="sea-bg" x="-300" y="-300" width="1600" height="1700"/>`;
   sb += `<rect class="sea-waves" x="-300" y="-300" width="1600" height="1700" fill="url(#waves)"/>`;
   // A second, paler coast line out at sea, as engraved maps draw shallows.
-  sb += `<path class="shallows" d="${CoastPath}"/>`;
-  sb += `<path class="land" d="${LandPath}" fill-rule="evenodd"/>`;
+  sb += `<path class="shallows" data-geo="coast" d="${CoastPath}"/>`;
+  sb += `<path class="land" data-geo="land" d="${LandPath}" fill-rule="evenodd"/>`;
   sb += `<g clip-path="url(#landclip)">`;
   for (const d of Fields) sb += `<path class="fields" d="${d}"/>`;
   for (const p of Map_.provinces.filter((x) => !x.isSea)) {
@@ -95,13 +98,13 @@ function buildBase(): string {
   for (const d of Deserts) sb += `<path class="desert" d="${d}" fill="url(#stipple)"/>`;
   for (const d of WasteShapes) sb += `<path class="waste" d="${d}"/>`;
   sb += "</g>";
-  sb += `<path class="lake" d="${LakePath}"/>`;
+  sb += `<path class="marsh" d="${MarshPath}" fill="url(#reeds)"/>`;
+  sb += `<path class="lake" data-geo="lakes" d="${LakePath}"/>`;
   for (const r of Rivers) {
-    sb += `<path class="river-casing" d="${r.path}" style="stroke-width:${F(r.width + 2.6)}"/>`;
-    sb += `<path class="river" d="${r.path}" style="stroke-width:${F(r.width)}"/>`;
+    sb += `<path class="river-casing" data-river="${r.id}" d="${r.path}" style="stroke-width:${F(r.width + 2.6)}"/>`;
+    sb += `<path class="river" data-river="${r.id}" d="${r.path}" style="stroke-width:${F(r.width)}"/>`;
   }
-  for (const range of Ranges) sb += `<path class="peaks" d="${peaks(range)}"/>`;
-  sb += `<path class="coast" d="${CoastPath}"/>`;
+  sb += `<path class="coast" data-geo="coast" d="${CoastPath}"/>`;
   // Province borders, thin, under everything that changes.
   for (const clip of ["url(#seaclip)", "url(#mainclip)", "url(#isleclip)"]) {
     sb += `<g clip-path="${clip}">`;
@@ -170,6 +173,12 @@ function buildMarks(): string {
     sb += `<g class="xmark k-${m.kind}" data-mark="${m.key}" transform="translate(${F(m.at.x)},${F(m.at.y)})"><title>${escape(markText(m).title)}</title><g class="csym"><circle class="xm-bg" r="7.5"/><circle class="tap-hit" r="13"/><g transform="rotate(${F(m.angle)})">${markGlyph(m.kind)}</g></g></g>`;
   return sb + "</g>";
 }
+
+/**
+ * The relief (item 11c++): real elevation, shaded from the north-west (scripts/map-relief.mjs), over the land and the
+ * colours of who holds it, in soft light, so the ranges stand where they are, in place of the hand-placed chevrons.
+ */
+export const Relief = `<g class="relief" clip-path="url(#landclip)"><image href="${ReliefImage}" x="${ReliefFrame.x}" y="${ReliefFrame.y}" width="${ReliefFrame.width}" height="${ReliefFrame.height}" preserveAspectRatio="none"/></g>`;
 
 /** Shared definitions: patterns, clip paths, the icons and emblems, and the arrowheads. */
 export const Defs = buildDefs();

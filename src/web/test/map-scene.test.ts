@@ -146,8 +146,8 @@ describe("MapSceneTests", () => {
 
   // Seeds 4 and 7: since item 11d seed 3's game leaves no unit seen and then lost to sight in its sixteen seasons.
   // Seeds whose games leave ghosts to check (seed 3 for seed 4 since item 11e, whose land defended by its men moves fewer
-  // troops; seed 4 again for seed 3 since item 12, whose envoys wait to be understood).
-  test.each([4, 7])("The fog is clear exactly where the court sees and ghosts stand only out of sight %s", async (seed) => {
+  // troops; seed 4 again for seed 3 since item 12, whose envoys wait to be understood; seed 1 for seed 7 since item 11f).
+  test.each([4, 1])("The fog is clear exactly where the court sees and ghosts stand only out of sight %s", async (seed) => {
     let { runner, frames } = await play(seed, 16);
     let ghosts = 0;
     for (let k = 0; k < frames.length; k++) {

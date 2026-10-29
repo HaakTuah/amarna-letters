@@ -5,6 +5,7 @@
  */
 import { WorldMap } from "@amarna/engine";
 import { RiverLines } from "./geo-data.ts";
+import { TracedRivers } from "./river-data.ts";
 import { boardPoint } from "./projection.ts";
 
 export interface Pt {
@@ -94,6 +95,7 @@ export interface RiverCourse {
 }
 
 const fromData = (id: string): Pt[][] => (RiverLines[id] ?? []).map(decode);
+const traced = (id: string): Pt[][] => (TracedRivers[id] !== undefined ? [decode(TracedRivers[id])] : []);
 const always = (): boolean => true;
 const never = (): boolean => false;
 
@@ -119,7 +121,11 @@ const DeltaBranches: Pt[][] = [
   LL(30.15, 31.1, 30.5, 30.85, 30.9, 30.59, 31.15, 30.3, 31.32, 30.06),
 ];
 
-/** The rivers: the three great ones of the engine's geography first, then smaller ones. Courses from Natural Earth, the small ones by hand. */
+/**
+ * The rivers: the three great ones of the engine's geography first, then smaller ones. Courses from Natural Earth (its
+ * European supplement for Anatolia's), and those it lacks traced down their valleys on real elevation (item 11c++,
+ * `scripts/map-rivers.mjs`); only the Delta's old branches and the Euphrates' old bed are drawn by hand, from the dossiers.
+ */
 export const RiverCourses: readonly RiverCourse[] = [
   { id: "nile", name: "Nile", width: 3.2, pieces: fromData("nile"), frontier: never },
   { id: "nile-branches", name: "", width: 1.4, pieces: DeltaBranches, frontier: never },
@@ -127,19 +133,26 @@ export const RiverCourses: readonly RiverCourse[] = [
   { id: "euphrates", name: "Euphrates", width: 2.8, pieces: oldEuphrates(), frontier: (lat, lon) => lat > 35.85 && lon < 39.3 },
   // A frontier between Taidu and Nineveh; the spine of Assyria's and Babylon's provinces below.
   { id: "tigris", name: "Tigris", width: 2.6, pieces: fromData("tigris"), frontier: (lat) => lat > 36.3 },
-  { id: "khabur", name: "Khabur", width: 1.5, pieces: [LL(36.95, 39.95, 36.85, 40.1, 36.62, 40.55, 36.48, 40.75, 36.2, 40.72, 35.8, 40.6, 35.45, 40.48, 35.15, 40.43)], frontier: always },
-  { id: "balikh", name: "", width: 1.2, pieces: [LL(36.75, 39.05, 36.5, 39.08, 36.2, 39.05, 35.95, 39.02)], frontier: always },
+  { id: "khabur", name: "Khabur", width: 1.5, pieces: traced("khabur"), frontier: always },
+  { id: "balikh", name: "", width: 1.2, pieces: traced("balikh"), frontier: always },
   { id: "halys", name: "Marassantiya", width: 1.8, pieces: fromData("halys"), frontier: always },
-  { id: "orontes", name: "Orontes", width: 1.5, pieces: [LL(34.15, 36.35, 34.4, 36.42, 34.56, 36.52, 34.75, 36.65, 35.13, 36.75, 35.4, 36.5, 35.8, 36.32, 36.1, 36.3, 36.2, 36.15, 36.1, 35.98, 36.05, 35.95)], frontier: always },
+  { id: "orontes", name: "Orontes", width: 1.5, pieces: traced("orontes"), frontier: always },
+  { id: "litani", name: "", width: 1.1, pieces: traced("litani"), frontier: always },
   { id: "jordan", name: "", width: 1.2, pieces: fromData("jordan"), frontier: always },
-  { id: "hermos", name: "", width: 1.2, pieces: [LL(38.95, 29.3, 38.75, 28.7, 38.6, 28.2, 38.55, 27.5, 38.6, 26.9)], frontier: always },
+  { id: "hermos", name: "", width: 1.2, pieces: fromData("hermos"), frontier: always },
+  { id: "kaystros", name: "", width: 1.0, pieces: fromData("kaystros"), frontier: always },
   { id: "maeander", name: "", width: 1.2, pieces: fromData("maeander"), frontier: always },
-  { id: "seyhan", name: "", width: 1.2, pieces: [LL(38.0, 35.8, 37.4, 35.5, 37.0, 35.32, 36.75, 34.95)], frontier: always },
+  { id: "sangarios", name: "", width: 1.2, pieces: fromData("sangarios"), frontier: always },
+  { id: "iris", name: "", width: 1.1, pieces: fromData("iris"), frontier: always },
+  { id: "kalykadnos", name: "", width: 1.0, pieces: fromData("kalykadnos"), frontier: always },
+  { id: "seyhan", name: "", width: 1.2, pieces: fromData("seyhan"), frontier: always },
   { id: "ceyhan", name: "", width: 1.2, pieces: fromData("ceyhan"), frontier: always },
-  { id: "zab", name: "", width: 1.3, pieces: [LL(37.3, 44.0, 36.75, 43.85, 36.4, 43.65, 36.0, 43.35)], frontier: always },
-  { id: "lesser-zab", name: "", width: 1.1, pieces: [LL(36.3, 45.0, 35.75, 44.6, 35.25, 43.45)], frontier: always },
-  { id: "diyala", name: "", width: 1.2, pieces: [LL(35.0, 45.6, 34.2, 45.2, 33.75, 44.9, 33.2, 44.5)], frontier: always },
+  { id: "arsanias", name: "", width: 1.2, pieces: fromData("arsanias"), frontier: always },
+  { id: "zab", name: "", width: 1.3, pieces: traced("zab"), frontier: always },
+  { id: "lesser-zab", name: "", width: 1.1, pieces: traced("lesser-zab"), frontier: always },
+  { id: "diyala", name: "", width: 1.2, pieces: traced("diyala"), frontier: always },
   { id: "karkheh", name: "", width: 1.2, pieces: fromData("karkheh"), frontier: always },
+  { id: "karun", name: "", width: 1.2, pieces: traced("karun"), frontier: always },
 ];
 
 /** Mountain ranges, drawn as rows of peaks along these lines, and ridges a border follows. */

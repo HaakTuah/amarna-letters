@@ -5,10 +5,10 @@
  */
 import { WorldMap, crossingBetween, dateLabel, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province, type UnitKind } from "@amarna/engine";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
-import { F, Height, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
+import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
-import { Base, Defs, Labels, MarksMarkup, NameOrder, ringOf } from "./markup.ts";
+import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
 import { captureLine, unitKindName, type MapScene, type SceneTraveller, type SceneUnit } from "./scene.ts";
 import { attach, detach, focus, getView, reset, setView, zoomBy } from "./zoom.ts";
@@ -238,7 +238,8 @@ function moves(s: MapScene): string {
   }
   for (const d of s.destroyed) {
     const at = unitSpot(d.province);
-    sb += `<g class="destroyed" transform="translate(${F(at.x)},${F(at.y)})">${title(`${powerName(d.power)}'s ${unitKindName(d.kind)} in ${provinceName(d.province)} was destroyed`)}<g class="sym lift"><rect class="tok-bg ghosted f-${glyphId(d.power)}" x="-11" y="-11" width="22" height="22" rx="${d.kind === "Army" ? 4 : 11}"/><path class="strike" d="M-9,-9L9,9M9,-9L-9,9"/></g></g>`;
+    const ring = Map_.get(d.province).isSea ? 0 : ringOf(Map_.get(d.province).capital, s.walls.get(d.province) ?? 0);
+    sb += `<g class="destroyed" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ring)}">${title(`${powerName(d.power)}'s ${unitKindName(d.kind)} in ${provinceName(d.province)} was destroyed`)}<g class="sym lift over"><rect class="tok-bg ghosted f-${glyphId(d.power)}" x="-11" y="-11" width="22" height="22" rx="${d.kind === "Army" ? 4 : 11}"/><path class="strike" d="M-9,-9L9,9M9,-9L-9,9"/></g></g>`;
   }
   return sb + "</g>";
 }
@@ -252,7 +253,7 @@ function unitTitle(u: SceneUnit, viewer: Power | null): string {
 }
 
 /** A unit's token: [class, transform style, inner markup]; `dx` sets it beside the others in its province (in its own units). */
-function unitItem(u: SceneUnit, viewer: Power | null, dx: number, text: string): Item {
+function unitItem(u: SceneUnit, viewer: Power | null, dx: number, text: string, ring: number): Item {
   const at = unitSpot(u.province);
   const id = glyphId(u.power);
   let inner = title(text) + `<g class="sym lift"><g transform="translate(${F(dx)},0)">`;
@@ -265,7 +266,7 @@ function unitItem(u: SceneUnit, viewer: Power | null, dx: number, text: string):
   return {
     key: u.key,
     cls: `unit${u.ghost ? ` ghost age${Math.min(u.age, 4)}` : ""}`,
-    style: `transform:translate(${F(at.x)}px,${F(at.y)}px)`,
+    style: `transform:translate(${F(at.x)}px,${F(at.y)}px);--ring:${F(ring)}`,
     data: ["province", u.province],
     inner,
   };
@@ -284,7 +285,7 @@ const TokenStep = 26;
  * in a row, each power's armies and its fleets apart; below that zoom they gather into one token per power with its
  * count, opening again as the map is zoomed in.
  */
-function unitItems(units: readonly SceneUnit[], viewer: Power | null, scale: number): Item[] {
+function unitItems(units: readonly SceneUnit[], viewer: Power | null, scale: number, walls: ReadonlyMap<string, number>): Item[] {
   const byProvince = new Map<string, SceneUnit[]>();
   for (const u of units) {
     const g = byProvince.get(u.province) ?? [];
@@ -307,7 +308,9 @@ function unitItems(units: readonly SceneUnit[], viewer: Power | null, scale: num
           return [u, `${what} of ${powerName(p)} in ${provinceName(province)}${ghost ? ", as last seen" : ""} (zoom in to see each)`] as [SceneUnit, string];
         })
       : list.map((u) => [u, unitTitle(u, viewer)] as [SceneUnit, string]);
-    row.forEach(([u, text], i) => items.push(unitItem(u, viewer, (i - (row.length - 1) / 2) * TokenStep, text)));
+    const p = Map_.get(province);
+    const ring = p.isSea ? 0 : ringOf(p.capital, walls.get(province) ?? 0);
+    row.forEach(([u, text], i) => items.push(unitItem(u, viewer, (i - (row.length - 1) / 2) * TokenStep, text, ring)));
   }
   return items;
 }
@@ -321,14 +324,16 @@ function peopleAtCourts(input: MapInput): string {
     g.push(p);
   }
   let sb = "";
+  // Each court's people stand in rows of three to the left of its city, clear of its outermost ring (--ring, app.css), and
+  // its news to the right, so neither touches the badge or the counters above it (item 11c++).
+  const ringAt = (province: string): string => F(ringOf(Map_.get(province).capital, s.walls.get(province) ?? 0));
   for (const [province, list] of byProvince) {
     const c = city(province);
-    sb += `<g transform="translate(${F(c.x)},${F(c.y)})"><g class="sym">`;
+    sb += `<g class="court-at" data-court="${province}" transform="translate(${F(c.x)},${F(c.y)})"><g class="cring" style="--ring:${ringAt(province)}"><g class="sym">`;
     for (let i = 0; i < Math.min(list.length, 6); i++) {
       const p = list[i];
-      const angle = ((196 - 34 * i) * Math.PI) / 180;
-      const x = Math.cos(angle) * 27;
-      const y = -Math.sin(angle) * 27 + 4;
+      const x = -8 - (i % 3) * 19;
+      const y = Math.floor(i / 3) * 19;
       sb += `<g class="person k-${p.kind.toLowerCase()}${p.believed ? " believed" : ""}${p.id === input.followId ? " followed" : ""}" transform="translate(${F(x)},${F(y)})" data-person="${p.id}">${title(p.title)}`;
       sb += `<rect class="chip-bg ${p.owner !== null ? `f-${glyphId(p.owner)}` : "f-none"}" x="-8" y="-8" width="16" height="16" rx="3.5"/>`;
       sb +=
@@ -342,17 +347,21 @@ function peopleAtCourts(input: MapInput): string {
       if (p.double) sb += `<circle class="double" cx="7" cy="-7" r="3"/>`;
       sb += "</g>";
     }
-    if (list.length > 6) sb += `<g><text class="chip-more" x="-34" y="18">+${list.length - 6}</text></g>`;
-    sb += "</g></g>";
+    if (list.length > 6) sb += `<g class="person-more"><text class="chip-more" x="-8" y="48" text-anchor="middle">+${list.length - 6}</text></g>`;
+    sb += "</g></g></g>";
   }
+  // Each piece of news in a province beside the one before it.
+  const newsIndex = new Map<string, number>();
   for (const n of s.news) {
     const at = city(n.province);
+    const nth = newsIndex.get(n.province) ?? 0;
+    newsIndex.set(n.province, nth + 1);
     const report = n.kind === "SpyReport";
-    sb += `<g class="news age${Math.min(n.age, 4)} ${report ? "report" : "rumor"}" transform="translate(${F(at.x + 20)},${F(at.y + 10)})">`;
+    sb += `<g class="news age${Math.min(n.age, 4)} ${report ? "report" : "rumor"}" data-court="${n.province}" transform="translate(${F(at.x)},${F(at.y)})">`;
     sb += title(`${n.title} (${report ? `observed in ${dateLabel(n.observed, s.viewer)}` : `heard in ${dateLabel(Math.max(1, s.index + 1 - n.age), s.viewer)}`}): ${n.body}`);
-    sb += `<g class="sym"><path class="news-bg" d="M-9,-7H9V5H2L-2,9V5H-9Z"/>`;
-    sb += report ? `<use href="#g-eye" class="news-icon" x="-6" y="-7" width="12" height="12"/>` : `<g><text class="news-q" y="3">?</text></g>`;
-    sb += "</g></g>";
+    sb += `<g class="nring" style="--ring:${ringAt(n.province)}"><g class="sym"><g transform="translate(${nth * 21},0)"><path class="news-bg" d="M-1,-7H17V5H10L6,9V5H-1Z"/>`;
+    sb += report ? `<use href="#g-eye" class="news-icon" x="2" y="-7" width="12" height="12"/>` : `<g><text class="news-q" x="8" y="3">?</text></g>`;
+    sb += "</g></g></g></g>";
   }
   return sb;
 }
@@ -405,6 +414,12 @@ function selection(input: MapInput): string {
   return sb + "</g>";
 }
 
+/** Each river's path as the whole board draws it. */
+const RiverPaths: ReadonlyMap<string, string> = new Map(Rivers.map((r) => [r.id, r.path]));
+
+/** The small seal's size against the full seal's (map-uncluttered.css, .city.small .seal). */
+const SmallSeal = 0.45;
+
 // ---------------------------------------------------------------- keyed elements
 
 interface Item {
@@ -455,6 +470,8 @@ export class SvgMapRenderer implements MapRenderer {
   private scene: MapScene | null = null;
   private placing = 0;
   private later = 0;
+  private laterAt = 0;
+  private fine = false;
   private readonly onClick = (e: Event): void => {
     const t = e.target as Element | null;
     const person = t?.closest("[data-person]");
@@ -483,7 +500,7 @@ export class SvgMapRenderer implements MapRenderer {
     // Two stacked drawings, each its own compositing layer: the land and who holds it below (heavy to paint, and painted
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
-      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
+      `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g>${Relief}<g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
       `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
@@ -491,11 +508,11 @@ export class SvgMapRenderer implements MapRenderer {
     zoom.addEventListener("click", this.onClick);
     attach(view, (scale: number) => {
       this.scale = scale;
+      this.closeUp();
       if (this.scene !== null) this.drawUnits(this.scene);
       // Now, and again once a zoom's glide has ended (.25s, app.css).
       this.placeNames();
-      clearTimeout(this.later);
-      this.later = window.setTimeout(() => this.placeNames(), 320);
+      this.placeAgain(320);
     });
   }
 
@@ -507,7 +524,7 @@ export class SvgMapRenderer implements MapRenderer {
 
   /** The units, laid out for the current zoom: drawn again only when the scene or a province's gathering changes. */
   private drawUnits(s: MapScene): void {
-    const items = unitItems(s.units, s.viewer, this.scale);
+    const items = unitItems(s.units, s.viewer, this.scale, s.walls);
     const key = items.map((i) => i.key + i.inner.length).join("|");
     if (this.drawn.get("units") === s && this.drawn.get("unitsKey") === key) return;
     this.drawn.set("units", s);
@@ -549,14 +566,62 @@ export class SvgMapRenderer implements MapRenderer {
     this.layers.get("selection")!.innerHTML = selection(input);
     // Names are placed at once, and again once the pieces have slid to their places (.6s, app.css).
     this.placeNames();
-    clearTimeout(this.later);
-    this.later = window.setTimeout(() => this.placeNames(), 700);
+    this.placeAgain(700);
   }
 
   /**
-   * Names give way to everything drawn over the land (item 11c+): in order of importance (NameOrder), a name is shown only
-   * where its box, measured as drawn, touches no name shown before it and no badge, army or fleet counter, envoy or other
-   * person, news, or mark; its own city's badge it may sit beside. The names of the land come last. Batched to the next frame.
+   * Finer geography close up (item 11c++): past about 6x the land's paths take the finer set (fine-geo.ts, loaded the
+   * first time), and below about 4.5x the board's own come back, so the whole board stays light on a phone.
+   */
+  private closeUp(): void {
+    const view = this.view;
+    const zoom = view === null ? null : getView(view)?.zoom ?? null;
+    if (view === null || zoom === null) return;
+    const want = zoom > 6 ? true : zoom < 4.5 ? false : this.fine;
+    if (want === this.fine) return;
+    this.fine = want;
+    if (want) {
+      import("./fine-geo.ts")
+        .then(({ Fine }) => {
+          if (this.fine && this.view === view) this.swapGeography({ ...Fine.coasts, lakes: Fine.lakes }, Fine.rivers);
+        })
+        // Not loaded (offline before the cache had it): the board's own stay, and the next zoom tries again.
+        .catch(() => (this.fine = false));
+    } else this.swapGeography({ land: LandPath, mainland: MainlandPath, island: IslandPath, coast: CoastPath, sea: SeaPath, lakes: LakePath }, null);
+  }
+
+  private swapGeography(paths: Record<string, string>, rivers: ReadonlyMap<string, string> | null): void {
+    this.view?.querySelectorAll<SVGPathElement>("[data-geo]").forEach((e) => {
+      const d = paths[e.dataset.geo ?? ""];
+      if (d !== undefined && e.getAttribute("d") !== d) e.setAttribute("d", d);
+    });
+    this.view?.querySelectorAll<SVGPathElement>("[data-river]").forEach((e) => {
+      const id = e.dataset.river ?? "";
+      const d = rivers?.get(id) ?? RiverPaths.get(id);
+      if (d !== undefined && e.getAttribute("d") !== d) e.setAttribute("d", d);
+    });
+  }
+
+  /** Places the markers and names again once whatever is moving has stopped: never sooner than a pass already due. */
+  private placeAgain(ms: number): void {
+    const at = performance.now() + ms;
+    if (at <= this.laterAt) return;
+    clearTimeout(this.later);
+    this.laterAt = at;
+    this.later = window.setTimeout(() => {
+      this.laterAt = 0;
+      this.placeNames();
+    }, ms);
+  }
+
+  /**
+   * Markers never overlap (item 11c++), and names give way to everything drawn over the land (item 11c+). In order of
+   * importance (NameOrder), each city is shown with its full badge, its counters, its people and its news where none of
+   * them touches a marker already placed; where one would, its badge shrinks to its small seal and the rest gives way,
+   * returning as the map is zoomed in; where even the small seal would touch, the city's mark gives way too (its province's
+   * colour still says who holds it). Then the fleets at sea, the units destroyed, the travellers on the roads and the marks
+   * of the crossings, each where it touches nothing placed. Then the names: each where its box, measured as drawn, touches
+   * no name shown before it and no marker shown (its own city's badge it may sit beside). Batched to the next frame.
    */
   private placeNames(): void {
     if (this.placing !== 0 || this.view === null) return;
@@ -564,30 +629,90 @@ export class SvgMapRenderer implements MapRenderer {
       this.placing = 0;
       const view = this.view;
       if (view === null) return;
-      const obstacles: { r: DOMRect; own: string | null }[] = [];
-      const add = (e: Element, own: string | null): void => {
-        const r = e.getBoundingClientRect();
-        if (r.width > 0 && r.height > 0) obstacles.push({ r, own });
+      // Everything shown again, then all measured in one go, then given way in one batch of class changes: one layout,
+      // however many markers (writing a class between two measures would force a layout each time).
+      view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
+      const rects = (e: Element, sel: string): DOMRect[] =>
+        [...e.querySelectorAll(sel)].map((x) => x.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+      const byProvince = (sel: string): Map<string, Element[]> => {
+        const m = new Map<string, Element[]>();
+        view.querySelectorAll(sel).forEach((e) => {
+          const id = e.getAttribute("data-province") ?? e.getAttribute("data-court") ?? "";
+          m.set(id, [...(m.get(id) ?? []), e]);
+        });
+        return m;
       };
-      view.querySelectorAll(".map-upper .unit > .sym, .map-upper .traveller > .sym, .map-upper .person, .map-upper .news > .sym, .map-upper .destroyed > .sym, .map-upper .xmark .xm-bg, .xmarks .xm-bg").forEach((e) => add(e, null));
-      view.querySelectorAll<SVGGElement>(".cities .city").forEach((c) => c.querySelectorAll(".seal, .walls, .cap-ring").forEach((e) => add(e, c.dataset.province ?? null)));
-      const placed: DOMRect[] = [];
-      const touch = (a: DOMRect, b: DOMRect): boolean => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
-      for (const id of NameOrder) {
-        const text = this.labels.get(id)?.querySelector("text");
-        if (text === null || text === undefined) continue;
-        const r = text.getBoundingClientRect();
-        const free = !placed.some((o) => touch(r, o)) && !obstacles.some((o) => o.own !== id && touch(r, o.r));
-        text.classList.toggle("off", !free);
-        if (free) placed.push(r);
-      }
-      // The names of the land (rivers, ranges, deserts, the lands beyond) give way last, to all of the above.
-      view.querySelectorAll<SVGTextElement>(".base text.geo").forEach((text) => {
-        const r = text.getBoundingClientRect();
-        const free = !placed.some((o) => touch(r, o)) && !obstacles.some((o) => touch(r, o.r));
-        text.classList.toggle("off", !free);
-        if (free) placed.push(r);
+      const units = byProvince(".map-upper .unit[data-province]");
+      const courts = byProvince(".map-upper .court-at[data-court], .map-upper .news[data-court]");
+      const cities = new Map<string, SVGGElement>();
+      view.querySelectorAll<SVGGElement>(".cities .city").forEach((c) => cities.set(c.dataset.province ?? "", c));
+      // Measured: each city's badge, seal and own markers; then the lesser markers; then the names.
+      const cityRects = NameOrder.filter((id) => cities.has(id)).map((id) => {
+        const c = cities.get(id)!;
+        return {
+          id,
+          c,
+          badge: rects(c, ".seal, .walls, .cap-ring"),
+          seal: c.querySelector(".seal")?.getBoundingClientRect(),
+          rest: [
+            ...(units.get(id) ?? []).flatMap((u) => rects(u, ":scope > .sym")),
+            ...(courts.get(id) ?? []).flatMap((e) => rects(e, ".person, .person-more, .news-bg")),
+          ],
+        };
       });
+      // The traveller or person being followed comes first; then, after the cities, the fleets at sea and the counters of
+      // provinces with no city drawn, the units destroyed, the travellers, and the marks of the crossings.
+      const followed = [...view.querySelectorAll(".map-upper .traveller.followed")].map((e) => ({ e, rs: rects(e, ":scope > .sym") }));
+      const lesser = [
+        ...[...units].filter(([id]) => !cities.has(id)).flatMap(([, es]) => es.map((e) => [e, ":scope > .sym"] as const)),
+        ...[...view.querySelectorAll(".map-upper .destroyed")].map((e) => [e, ":scope > .sym"] as const),
+        ...[...view.querySelectorAll(".map-upper .traveller:not(.followed)")].map((e) => [e, ":scope > .sym"] as const),
+        ...[...view.querySelectorAll(".xmarks .xmark")].map((e) => [e, ".xm-bg"] as const),
+      ].map(([e, sel]) => ({ e, rs: rects(e, sel) }));
+      const names = NameOrder.map((id) => this.labels.get(id)?.querySelector("text"))
+        .filter((t): t is SVGTextElement => t !== null && t !== undefined)
+        .map((t) => ({ t, own: t.closest("[data-label]")?.getAttribute("data-label") ?? null, r: t.getBoundingClientRect() }));
+      const geo = [...view.querySelectorAll<SVGTextElement>(".base text.geo")].map((t) => ({ t, own: null, r: t.getBoundingClientRect() }));
+
+      const placed: { r: DOMRect; own: string | null }[] = [];
+      const touch = (a: DOMRect, b: DOMRect): boolean => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+      const free = (rs: readonly DOMRect[]): boolean => rs.every((r) => !placed.some((o) => touch(r, o.r)));
+      const place = (rs: readonly DOMRect[], own: string | null): void => rs.forEach((r) => placed.push({ r, own }));
+      const writes: (() => void)[] = [];
+      for (const f of followed) place(f.rs, null);
+      for (const { id, c, badge, seal, rest } of cityRects) {
+        // A city's own markers must not touch each other either (two pieces of news, say).
+        const own = rest.every((r, i) => !rest.slice(i + 1).some((o) => touch(r, o)));
+        if (own && free(badge) && free(rest)) {
+          place(badge, id);
+          place(rest, null);
+          continue;
+        }
+        for (const e of [...(units.get(id) ?? []), ...(courts.get(id) ?? [])]) writes.push(() => e.classList.add("off"));
+        if (seal === undefined) continue;
+        // The small seal: the seal's own centre, at the size the stylesheet shrinks it to (.city.small, map-uncluttered.css).
+        const k = SmallSeal / 2;
+        const small = new DOMRect(seal.x + seal.width * (0.5 - k), seal.y + seal.height * (0.5 - k), seal.width * 2 * k, seal.height * 2 * k);
+        if (free([small])) {
+          // A small seal whose counters gave way says so by its darker rim.
+          const crowd = (units.get(id) ?? []).length > 0;
+          writes.push(() => c.classList.add("small", ...(crowd ? ["crowd"] : [])));
+          place([small], id);
+        } else writes.push(() => c.classList.add("off"));
+      }
+      for (const { e, rs } of lesser) {
+        if (free(rs)) place(rs, null);
+        else writes.push(() => e.classList.add("off"));
+      }
+      // The names: each where it touches no name shown and no marker (its own city's badge it may sit beside); the names
+      // of the land (rivers, ranges, deserts, the lands beyond) last.
+      const shown: DOMRect[] = [];
+      for (const { t, own, r } of [...names, ...geo]) {
+        const ok = !shown.some((o) => touch(r, o)) && !placed.some((o) => (own === null || o.own !== own) && touch(r, o.r));
+        if (ok) shown.push(r);
+        else writes.push(() => t.classList.add("off"));
+      }
+      for (const w of writes) w();
     });
   }
 
