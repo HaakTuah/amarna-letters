@@ -1,0 +1,20 @@
+/* The map uncluttered (build order item 11c++). Markers never overlap: where a city's badge would touch a more important
+   one's, or a counter, it shrinks to its small seal (its scale is SmallSeal in svg-renderer.ts), and its counters, people
+   and news give way, returning as the map is zoomed in; what still touches gives way altogether. */
+.map .city.small .walls, .map .city.small .cap-ring, .map .city.small .seal-em { visibility: hidden; }
+.map .city.small .seal { transform: scale(.45); transform-box: fill-box; transform-origin: center; stroke-width: 2; }
+.map .city.off .csym > :not(.tap-hit) { visibility: hidden; }
+.map .unit.off, .map .court-at.off, .map .news.off, .map .destroyed.off, .map .traveller.off, .map .xmark.off { visibility: hidden; }
+/* A unit destroyed this season stands above the counters of its province, not over them. */
+.map .sym.lift.over { transform: translate(0, calc(-1px * (var(--ring, 0) * var(--cs) + 43 * var(--sym)))) scale(var(--sym)); }
+/* A small seal whose counters gave way: a dark rim says troops stand there, to be seen closer. */
+.map .city.small.crowd .seal { stroke: var(--ink); stroke-width: 4.5; stroke-dasharray: none; }
+/* The relief: real elevation in soft light over the land and its holders' colours (item 11c++). */
+.map .relief { pointer-events: none; mix-blend-mode: soft-light; }
+/* The marshes of 1346: reed beds over the land (item 11c++), and the legend's swatches. */
+.map .marsh, .legend .marsh { fill-opacity: 1; stroke: none; }
+.map .reed { stroke: var(--river); stroke-width: .7; stroke-linecap: round; fill: none; }
+.legend .lg-lit { fill: #f3ead6; } .legend .lg-shade { fill: #8a7457; }
+.legend .crowd-lg { stroke: var(--ink); stroke-width: 2; stroke-dasharray: none; }
+/* A besieged city keeps its siege's colour as a small seal. */
+.map .city.small.besieged .seal { stroke: var(--blood, #9b2c1f); stroke-width: 4.5; stroke-dasharray: none; }

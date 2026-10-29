@@ -5,6 +5,7 @@
  * the coasts, lakes, great rivers and deserts are Natural Earth's (`geo-data.ts`, written by `scripts/map-geography.ts`).
  */
 import { WorldMap, cmpStr, fmt, sortBy } from "@amarna/engine";
+import { PeriodLakes, PeriodMarshes } from "./period-water.ts";
 import { BorderArcs, ProvinceRings, Roads, RoughSpots } from "./border-data.ts";
 import { city, decode, Isles, IslandProvinces, LL, ll, MiletusBayShore, OldGulfShore, RangeLines, RiverCourses, type Pt } from "./features.ts";
 import { DesertRings, LakeRings, LandRings } from "./geo-data.ts";
@@ -90,25 +91,49 @@ function inside(p: Pt, ring: readonly Pt[]): boolean {
 /** The frame of the sea, well beyond the board's edges. */
 const Frame = `M-300,-300H${Width + 300}V${Height + 300}H-300Z`;
 
-const Rings: readonly Pt[][] = LandRings.map(decode);
-const islandRing = (id: string): number => Rings.findIndex((r) => inside(city(id), r));
-const IslandRings = new Set(IslandProvinces.map(islandRing).filter((i) => i >= 0));
-
 /** The old Gulf's head and the bay of Miletus, cut from today's land (features.ts). */
 const OldGulf = `${polyline(OldGulfShore)}Z ${polyline(MiletusBayShore)}Z`;
 
 const ringPath = (r: readonly Pt[]): string => polyline(r) + "Z";
-/** All the land, the islands included, as one path (even-odd, so the old Gulf's head is cut from it). */
-export const LandPath = `${Rings.map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")} ${OldGulf}`;
-/** The land of the mainland and the islands no province is drawn on alone; and of the islands that are. */
-export const MainlandPath = `${Rings.filter((_, i) => !IslandRings.has(i)).map(ringPath).join("")} ${OldGulf}`;
-export const IslandPath = `${Rings.filter((_, i) => IslandRings.has(i)).map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")}`;
-/** The coasts, for the shore lines (the old Gulf's head by its shore alone). */
-export const CoastPath = `${Rings.map(ringPath).join("")} ${[...Isles.values()].map(smoothClosed).join(" ")} ${polyline(OldGulfShore)} ${polyline(MiletusBayShore)}`;
-/** The sea: the frame with the land cut out (even-odd). */
-export const SeaPath = `${Frame} ${LandPath}`;
+
+/** The paths drawn from the land's rings: the whole board's, and the finer set loaded close up (fine-geo.ts, item 11c++). */
+export interface CoastPaths {
+  /** All the land, the islands included, as one path (even-odd, so the old Gulf's head is cut from it). */
+  land: string;
+  /** The land of the mainland and the islands no province is drawn on alone; and of the islands that are. */
+  mainland: string;
+  island: string;
+  /** The coasts, for the shore lines (the old Gulf's head by its shore alone). */
+  coast: string;
+  /** The sea: the frame with the land cut out (even-odd). */
+  sea: string;
+}
+
+export function coastPaths(rings: readonly Pt[][]): CoastPaths {
+  const islands = new Set(IslandProvinces.map((id) => rings.findIndex((r) => inside(city(id), r))).filter((i) => i >= 0));
+  const isles = [...Isles.values()].map(smoothClosed).join(" ");
+  const land = `${rings.map(ringPath).join("")} ${isles} ${OldGulf}`;
+  return {
+    land,
+    mainland: `${rings.filter((_, i) => !islands.has(i)).map(ringPath).join("")} ${OldGulf}`,
+    island: `${rings.filter((_, i) => islands.has(i)).map(ringPath).join("")} ${isles}`,
+    coast: `${rings.map(ringPath).join("")} ${isles} ${polyline(OldGulfShore)} ${polyline(MiletusBayShore)}`,
+    sea: `${Frame} ${land}`,
+  };
+}
+
+const Coasts = coastPaths(LandRings.map(decode));
+export const LandPath = Coasts.land;
+export const MainlandPath = Coasts.mainland;
+export const IslandPath = Coasts.island;
+export const CoastPath = Coasts.coast;
+export const SeaPath = Coasts.sea;
 /** The lakes of 1346, drawn over the land. */
-export const LakePath = LakeRings.map((r) => ringPath(decode(r))).join("");
+/** The lakes: today's that were there in 1346, and those of 1346 that are gone (period-water.ts). */
+export const lakePath = (rings: readonly Pt[][]): string => rings.map(ringPath).join("") + PeriodLakes.map(smoothClosed).join("");
+export const LakePath = lakePath(LakeRings.map(decode));
+/** The marshes of 1346 (item 11c++). */
+export const MarshPath = PeriodMarshes.map(smoothClosed).join("");
 
 // ---------------------------------------------------------------- rivers, mountains, deserts, fields
 
@@ -227,7 +252,64 @@ function decodeFine(s: string): Pt[] {
   });
 }
 
-const Arcs: readonly Pt[][] = BorderArcs.map(decodeFine);
+/**
+ * A traced border made a natural line (item 11c++): the steps of the grid it was traced on (half a board unit) are
+ * simplified away, then the corners are rounded (Chaikin's cutting, three times), as a hand-drawn map's borders run.
+ * Its two ends stay where they are, so the borders that meet there still meet, and each border is smoothed once for
+ * both its sides, so neighbours never part. Drawing only: the script's traced data is unchanged.
+ */
+export function naturalLine(pts: readonly Pt[], tolerance = 0.45, rounds = 3): Pt[] {
+  if (pts.length < 3) return [...pts];
+  const keep = new Uint8Array(pts.length);
+  keep[0] = keep[pts.length - 1] = 1;
+  const stack: [number, number][] = [[0, pts.length - 1]];
+  while (stack.length > 0) {
+    const [i, j] = stack.pop()!;
+    const d = sub(pts[j], pts[i]);
+    const l = len(d) || 1;
+    let worst = -1;
+    let far = tolerance;
+    for (let k = i + 1; k < j; k++) {
+      const e = Math.abs(d.x * (pts[k].y - pts[i].y) - d.y * (pts[k].x - pts[i].x)) / l;
+      if (e > far) {
+        far = e;
+        worst = k;
+      }
+    }
+    if (worst >= 0) {
+      keep[worst] = 1;
+      stack.push([i, worst], [worst, j]);
+    }
+  }
+  // Long straight runs cut into pieces of at most two units first, so rounding a corner never pulls the line more than
+  // about half a unit off the land it was traced along.
+  let line: Pt[] = [];
+  const kept = pts.filter((_, k) => keep[k] === 1);
+  kept.forEach((p, k) => {
+    if (k > 0) {
+      const d = sub(p, kept[k - 1]);
+      const n = Math.ceil(len(d) / 2);
+      for (let i = 1; i < n; i++) line.push(add(kept[k - 1], mul(d, i / n)));
+    }
+    line.push(p);
+  });
+  for (let r = 0; r < rounds && line.length >= 3; r++) {
+    const next: Pt[] = [line[0]];
+    for (let k = 0; k < line.length - 1; k++) {
+      const a = line[k];
+      const b = line[k + 1];
+      if (k > 0) next.push(add(mul(a, 0.75), mul(b, 0.25)));
+      if (k < line.length - 2) next.push(add(mul(a, 0.25), mul(b, 0.75)));
+    }
+    next.push(line[line.length - 1]);
+    line = next;
+  }
+  return line;
+}
+
+/** Whether a line lies wholly off the board (the frame's corners, which no one sees and smoothing would only pull in). */
+const offBoard = (pts: readonly Pt[]): boolean => pts.every((p) => p.x <= 0 || p.y <= 0 || p.x >= Width || p.y >= Height);
+const Arcs: readonly Pt[][] = BorderArcs.map(decodeFine).map((a) => (offBoard(a) ? a : naturalLine(a)));
 /** A ring of the traced borders, its arcs joined in order. */
 function ringOf(refs: readonly number[]): Pt[] {
   const pts: Pt[] = [];
