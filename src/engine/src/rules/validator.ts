@@ -13,6 +13,7 @@ import { AllPowers, type Power } from "../model/power.ts";
 import { standsForBorrower } from "../model/money.ts";
 import type { PendingTask } from "../model/records.ts";
 import { grantStands, grantLive } from "../model/authority.ts";
+import { cessionAgreed } from "../model/cession.ts";
 import { buyAlongCurve, needOf } from "../model/economy.ts";
 import { forMen, harvestIn, LandData, menAvailable, menOf } from "../model/land.ts";
 import { harbourOf, shipFleet, TradeData } from "../model/trade.ts";
@@ -408,8 +409,10 @@ export class OrderValidator {
           const cp = order;
           if (!Map.exists(cp.province)) return `there is no province called '${cp.province}'`;
           if (S.owner.getOrDefault(cp.province, null) !== power) return "you can only cede what you hold";
-          if (cp.province === Map.capital(power).id) return "you cannot cede your capital: your kingdom falls with it";
           if (cp.to === power || !isAlive(S, cp.to)) return `you cannot cede land to ${cp.to}`;
+          // Item 11d: a capital only by agreement on a sealed tablet, and the realm goes with it.
+          if (cp.province === Map.capital(power).id && !cessionAgreed(S.tablets, power, cp.to, cp.province))
+            return `you can cede your capital only as a sealed tablet between you and ${cp.to} says ("I give you the land of ${Map.get(cp.province).name}"): your whole realm passes with it, and you live on as a man without a throne`;
           if (ceded.has(cp.province)) return `${Map.get(cp.province).name} was already ceded by an earlier order`;
           return null;
         }

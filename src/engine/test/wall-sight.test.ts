@@ -16,7 +16,7 @@ import {
   newUnit,
   wallsOf,
 } from "@amarna/engine";
-import { Assert, walled } from "./support.ts";
+import { Assert, formerHomes, walled } from "./support.ts";
 
 // A court sees the walls standing now only where it can see troops, and knows them elsewhere as it last saw them (at the
 // start, as the map gives them). Walls rise for gold and fall to an earthquake or unpaid upkeep out of other courts'
@@ -44,7 +44,7 @@ describe("WallSightTests", () => {
   });
 
   test("A court sees walls where it sees troops and remembers them as last seen", () => {
-    let s = walled(newGame(1, newGameConfig({ catastropheChance: 0 })), "suhu", 2);
+    let s = walled(formerHomes(newGame(1, newGameConfig({ catastropheChance: 0 }))), "suhu", 2);
     Assert.contains("suhu", Views.sight(s, WorldMap.default, "Mitanni"));
     Assert.doesNotContain("suhu", Views.sight(s, WorldMap.default, "Egypt"));
 

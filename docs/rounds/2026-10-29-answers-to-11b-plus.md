@@ -2,7 +2,7 @@
 
 Build order item 11b++, "The answers to item 11b+" (`docs/intent/build-order/item-11.md`), added by Haakon's PR #130:
 his answers to item 11b+'s review (29 October 2026: "Agree to all"), each by "The game in one page", which gained
-"Memory" and "Reports" for them. Branch `item/answers-to-11b-plus`, PR #137. Save version 25. What was built, rule by
+"Memory" and "Reports" for them. Branch `item/answers-to-11b-plus`, PR #137. Save version 26. What was built, rule by
 rule, is in `docs/design/27-answers-to-11b-plus.md`. Effort: medium; no helpers but the one reviewer.
 
 ## The check for changes

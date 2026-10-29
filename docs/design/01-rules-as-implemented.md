@@ -356,8 +356,8 @@
   have disbanded, and his land is yours: Seha River Land."), every other living court the rumour "Word spreads that the
   kingdom of Arzawa is no more: Hatti took its capital, Apasa.", at once if it sees the capital, else when word of it
   arrives (item 7b, [travel and news](13-travel-and-news.md)). The game records each
-  fall (`GameState.falls`: the season, the conqueror, the capital and the land that passed). A king cannot cede his own
-  capital ("you cannot cede your capital: your kingdom falls with it"); a capital that is no longer its king's (his
+  fall (`GameState.falls`: the season, the conqueror, the capital and the land that passed). A king cedes his own capital
+  only by agreement on a sealed tablet, and his kingdom with it (item 11d, [29](29-answers-to-11plus.md)); a capital that is no longer its king's (his
   kingdom has fallen) can be ceded like any city, and its archive goes with it. The rulebook says so under HOW YOU WIN
   ("A kingdom falls with its capital. If another king takes your capital, ... your game is over").
 - **Dice.** Every roll comes from a stream keyed by seed, turn, purpose and subject. (An early

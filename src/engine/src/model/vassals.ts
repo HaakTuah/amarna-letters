@@ -44,6 +44,10 @@ export const StartVassals: readonly StartVassal[] = [
   bond("Nuhashshe", "Mitanni"),
   bond("Suhu", "Mitanni"),
   bond("Arrapha", "Mitanni"),
+  // Item 11d: Hana (Terqa) "within Mitanni's reach", and Arzawa's lands with rulers of their own
+  bond("Terqa", "Mitanni"),
+  bond("Mira", "Arzawa"),
+  bond("Seha", "Arzawa"),
 ];
 
 /** What a vassal tablet says, read from its mark and its template clauses: who serves whom, for what tribute a year. */

@@ -29,6 +29,7 @@ import "./trade.ts";
 import "./names.ts";
 import "./knowledge.ts";
 import "./bands.ts";
+import "./cession.ts";
 import "./letters.ts";
 import "./news.ts";
 

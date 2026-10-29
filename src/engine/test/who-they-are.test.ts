@@ -256,6 +256,8 @@ describe("WhoTheyAreTests", () => {
     // A hidden spy at the court is nobody there: a gift to it is refused as to a stranger.
     const spy = first(s.characters, (x) => x.employer === "Babylonia");
     [spy.duty, spy.at, spy.missionTarget, spy.status] = ["SpyPosted", "Egypt", "Egypt", "Employed"];
+    // Nobody's plant: a man secretly Egypt's would be Egypt's to see.
+    spy.secretMaster = null;
     const nobody = new OrderValidator(s).validate("Egypt", newTurnSubmission({ orders: [giftTo(spy.id, 1), giftTo("c999", 1)] })).rejected;
     Assert.equal(nobody[1].reason.replace("c999", spy.id), nobody[0].reason);
     // A spy caught abroad whose master has not heard of it may still be told to steal: the refusal would tell.
