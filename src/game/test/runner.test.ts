@@ -3,18 +3,15 @@ import { AllPowers, GameStateSchema, first, hash, move, newGame, newGameConfig, 
 import { GameLog, GameRunner, HumanSeat, ScriptLeader, ScriptMind, SignalDetector, TemplateNarrator, playGame } from "@amarna/game";
 import { Assert, toDict } from "../../engine/test/support.ts";
 import { delay } from "./io.ts";
+import { scriptSeats } from "./small-world.ts";
 
 describe("RunnerTests", () => {
   function scripted(seed: number): GameRunner {
-    let state = newGame(seed);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (_) => new ScriptLeader(seed),
-    );
-    return new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator());
+    return new GameRunner(newGame(seed), scriptSeats(seed), new ScriptMind(), new TemplateNarrator());
   }
 
+  // The named guard of the whole: seed 1 is the full world, every power a script king to the natural end; the other seeds
+  // play the small world (small-world.ts) to theirs.
   test("Script games finish and replay exactly", async () => {
     for (let seed = 1; seed <= 5; seed++) {
       let summary = (
@@ -23,11 +20,13 @@ describe("RunnerTests", () => {
           (s) =>
             new GameRunner(
               s,
-              toDict(
-                AllPowers,
-                (p) => p,
-                (_) => new ScriptLeader(seed),
-              ),
+              seed === 1
+                ? toDict(
+                    AllPowers,
+                    (p) => p,
+                    (_) => new ScriptLeader(seed),
+                  )
+                : scriptSeats(seed),
               new ScriptMind(),
               new TemplateNarrator(),
             ),
@@ -39,7 +38,7 @@ describe("RunnerTests", () => {
       Assert.true(summary.turns >= 15);
       Assert.notEmpty(summary.winners);
     }
-  }, 600000); // five whole games, each played and replayed: about 200 s alone since item 10, more when the suite runs in parallel
+  }, 600000); // one whole game of the full world and four of the small one, each played and replayed
 
   test("A character that belongs to no court summarizes its memory as any other", async () => {
     let r = scripted(2);
@@ -60,11 +59,7 @@ describe("RunnerTests", () => {
         (s) =>
           new GameRunner(
             s,
-            toDict(
-              AllPowers,
-              (p) => p,
-              (_) => new ScriptLeader(14),
-            ),
+            scriptSeats(14),
             new ScriptMind(),
             new TemplateNarrator(),
           ),
@@ -95,12 +90,7 @@ describe("RunnerTests", () => {
     for (let i = 0; i < 4; i++) await r.playTurn();
     let log = GameLog.fromJsonl(r.log.toJsonl());
 
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (_) => new ScriptLeader(12),
-    );
-    let resumed = GameRunner.resume(log, seats, new ScriptMind(), new TemplateNarrator());
+    let resumed = GameRunner.resume(log, scriptSeats(12), new ScriptMind(), new TemplateNarrator());
     await resumed.prepare();
     for (let i = 0; i < 4; i++) await resumed.playTurn();
     Assert.equal(hash(GameStateSchema, r.state), hash(GameStateSchema, resumed.state));
