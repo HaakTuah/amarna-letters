@@ -58,12 +58,12 @@ describe("StartingTermTests", () => {
   // version 16 (item 10: attested envoys' traits from the sources, lovers kept at courts, and 42 more characters), and for
   // save version 19 (item 11a: a template persona's "what you want most" follows the character's strategy; no draw moved),
   // and for save version 23 (item 11+: a pool of 100, the city-states' staff and the Levant's name styles), and for save
-  // version 26 (item 11c: six more city-states, each with its envoy).
+  // version 26 (item 11c: six more city-states, each with its envoy, and Egypt's name style without Gezer's king).
   //
   test.each([
-    [1, "35ebaaa195c773c1"],
-    [7, "e8e142e05733a54d"],
-    [42, "95f8a202ee79ffcc"],
+    [1, "6931f8a1081a28f1"],
+    [7, "fb19a94a0fbee251"],
+    [42, "dc0687722ce0b55e"],
   ] as const)("Starting terms end between turns 7 and 13 and every other draw is unchanged %s", (seed: number, before: string) => {
     let s = newGame(seed);
     let envoys = s.characters.filter((c) => c.contract !== null);
