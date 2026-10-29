@@ -27,26 +27,26 @@ characters"), not to the council.
 | The king | Akhenaten | Ruler in law of everything; his word was *maat*. Moved the court to Akhetaten and closed the temples of Amun, an act no council stopped | A | Boundary stelae; Kemp; the Restoration Stela of Tutankhamun (the reversal) |
 | Vizier (*tjaty*), two: of the South (Thebes) and of the North (Memphis) | Ramose (South, early in the reign); Aper-el (North); Nakht at Akhetaten | Head of the administration: reported to the king each morning, heard petitions and cases, kept the land registers, the gates and the guard of the capital | A (the office), A (Ramose, Aper-el), B (Nakht) | "The Duties of the Vizier" in the tomb of Rekhmire (under Thutmose III); Ramose's tomb TT55; Aper-el's tomb at Saqqara (Zivie); Nakht's house at Amarna |
 | Great Royal Wife | Nefertiti | Shown beside the king in every act of rule and worship, even smiting foreign captives, a king's scene | A | Amarna reliefs; Karnak and Hermopolis blocks (*talatat*) |
-| Queen mother | Tiye, widow of Amenhotep III | The memory of the old agreements: Tushratta writes to her directly and asks Akhenaten to ask her what was promised; she steers her son's foreign policy as far as the letters show | A | EA 26 (to Tiye), EA 28-29 |
+| Queen mother | Tiye, widow of Amenhotep III | The memory of the old agreements: Tushratta writes to her directly and asks Akhenaten to ask her what was promised (A); that she steered her son's foreign policy is an inference, often thought overstated (C) | A, C | EA 26 (to Tiye), EA 28-29 |
 | God's Father, Master of the Horse | Ay | Chariotry and the king's household; perhaps Tiye's brother [C]; later king himself (about 1323) | A | His tomb at Amarna; his royal tomb (WV23) |
 | Generals (overseers of the army) | Paatenemheb; Ramose (a general's Amarna tomb) | Led the army and the archers; under Tutankhamun Horemheb was "deputy of the king in the whole land", then king | B (Amarna generals), A (Horemheb) | Amarna tombs; Horemheb's Memphis tomb and Coronation Inscription |
 | Chamberlain, "chief spokesman" | Tutu | Took the vassals' letters and envoys to the king and spoke for them: Aziru calls him "my father" and asks him to plead his cause | A | EA 158, 164; his Amarna tomb |
 | High priest of the Aten | Meryra I, "Greatest of Seers" | The new cult's head; no check on the king, whose cult it was | A | His Amarna tomb |
 | The foreign office | Scribes of "the Place of the Letters of Pharaoh" | Kept and answered the cuneiform letters; Egyptian scribes added hieratic dockets (EA 23, EA 27) | A | Stamped bricks at Amarna (the archive building); the dockets |
 | Commissioners (*rabisu*) | Yanhamu, Maya, Pahamnata (Pahanate), Hani as envoy | Pharaoh's men in Canaan: led the archers, handed out grain, carried summonses; vassals bribed and accused them | A | EA 83-86, 216-218, 300, 337 (Maya), 161 (Hani), 60-62 (Pahamnata) |
-| Viceroy of Kush | Thutmose | Ruled Nubia directly for the king | B | Inscriptions at Buhen and Amada |
+| Viceroy of Kush | Thutmose | Ruled Nubia directly for the king | A | Akhenaten's stelae at Buhen and Amada, which name him |
 
 **How far the court could check him** [B]: in law not at all. In practice the king's word was carried and shaped by
-the vizier, the chamberlain and the commissioners, and the vassals worked through them (Tutu for Aziru, EA 158, 164;
-Rib-Hadda's complaints that the king's men kept his letters from the king, e.g. EA 117) [A]. What the court could not
-stop in a king's life it undid after it: the Restoration Stela reopens Amun's temples under the boy Tutankhamun, steered
-by Ay and Horemheb [A].
+the vizier, the chamberlain and the commissioners, and the vassals worked through them (Tutu for Aziru, EA 158, 164) [A]. What the court could not
+stop in a king's life it undid after it: the Restoration Stela reopens Amun's temples under the boy Tutankhamun [A], steered,
+most think, by Ay and Horemheb [B].
 
 **Succession** [C]: after Akhenaten (about 1336) came a short, disputed time of Smenkhkare and of a female king
 Neferneferuaten (Nefertiti or Meritaten, scholars divide), then Tutankhamun (about 1332), then Ay, then Horemheb, the
-general: two of the four rulers after Akhenaten rose from his court's offices, not his blood. A widowed queen of Egypt
+general: the last two of these rulers (Smenkhkare and Neferneferuaten may be one) rose from his court's offices, not his blood [A]. A widowed queen of Egypt
 asked Suppiluliuma for a son to marry, since "I will never take a servant of mine as husband"; the prince Zannanza was
-killed on the way [A: *Deeds*, fragment 28; who the queen was, Ankhesenamun most often, is C].
+killed on the way [A: the request in *Deeds*, fragment 28; the death in a later fragment of the *Deeds*, Mursili II's
+second Plague Prayer and Suppiluliuma's letter KUB 19.20; who the queen was, Ankhesenamun most often, is C].
 
 ### Hatti
 
@@ -110,11 +110,11 @@ first-rank daughter [A].
 | Diviner (*bārû*) | Unnamed | Read omens from livers; Babylon's learning, sent abroad | A (the office) | Omen series; Van De Mieroop |
 
 **Intrigue and succession on record:**
-- **A king who refused his vassals** [A]: Burna-Buriash tells Pharaoh that in his father Kurigalzu's day the
-  Canaanites asked Babylon to join them against Egypt, and Kurigalzu refused (EA 9). A king could turn away a revolt
-  offered to him.
-- **The army raises a "son of nobody"** [A, C the names]: Burna-Buriash's grandson by Ashur-uballit's daughter,
-  Kara-hardash, was killed when the Kassite troops rose; they raised Nazi-Bugash, "a son of nobody"; Ashur-uballit
+- **A king who refused another king's vassals** [A]: Burna-Buriash tells Pharaoh that in his father Kurigalzu's day
+  Pharaoh's Canaanite vassals asked Babylon to join them against Egypt, and Kurigalzu refused (EA 9). A king could turn
+  away a revolt offered to him.
+- **The army raises a "son of nobody"** [A, C the names]: Kara-hardash, Ashur-uballit's daughter's son and Burna-Buriash's
+  son or grandson (whether she married Burna-Buriash or one of his sons is C), was killed when the Kassite troops rose; they raised Nazi-Bugash, "a son of nobody"; Ashur-uballit
   marched, killed him and put Kurigalzu II on the throne (Synchronistic History; Chronicle P gives other names and
   details). After 1346, about 1333.
 
@@ -125,7 +125,7 @@ first-rank daughter [A].
 | The king | Ashur-uballit I | The first to call himself "king of the land of Assyria" rather than only the god Ashur's steward; writes to Pharaoh as a Great King (EA 15-16) | A | His inscriptions; EA 16 |
 | The palace women | Unnamed | Ruled by palace decrees on who may enter the women's quarters and how: the first of these decrees are Ashur-uballit's | A | The Middle Assyrian Palace Decrees (Weidner; Roth) |
 | Eponym (*limmu*) | One great man a year | Named each year; an honour of the great families and officials | A | The eponym lists |
-| Envoys | Unnamed | "Kept in the sun" in Egypt till they died, he complains | A | EA 16 |
+| Envoys | Unnamed | Kept standing in the sun in Egypt, "to die in the sun", he complains | A | EA 16 |
 
 **How far the court could check him** [S]: nothing is recorded for 1346. The Assyrian King List records usurpers in
 earlier centuries [A], so a throne could be seized; the great vizier (*sukkallu rabiu*) appears only in the 13th
@@ -133,10 +133,10 @@ century [A, later].
 
 ### Arzawa
 
-The court is almost silent [S]: a king (Tarhundaradu) writes in Hittite through a scribe who adds a personal note to
+The court is almost silent [S]: in Amenhotep III's day a king (Tarhundaradu) writes in Hittite through a scribe who adds a personal note to
 Pharaoh's scribe (EA 32) [A]. The Arzawa lands were ruled by their own lords, often kin to each other and often at war
-over the throne [B: Bryce, Kingdom], so Arzawa supplies the clearest cases of exiles brought back by a Great King
-(below: Madduwatta, Mashhuiluwa).
+over the throne [B: Bryce, Kingdom], so Arzawa supplies the clearest cases of exiles a Great King sheltered and used:
+Mashhuiluwa, brought back to Mira, and Madduwatta, given new land instead (below).
 
 ### Alashiya
 
@@ -155,7 +155,7 @@ over the throne [B: Bryce, Kingdom], so Arzawa supplies the clearest cases of ex
   held there (EA 169-170) [A].
 - **Elders and citizens** [A]: some towns write with no king at all, as "Tunip and its citizens" (EA 59) and "Irqata and
   its elders" (EA 100). These are the people who decide whether a gate opens.
-- **Brothers** [A]: the ruler's brothers are his likeliest rivals: Ilirabih at Byblos (EA 136-140), Akit-Teshup at Niya
+- **Brothers** [A]: the ruler's brothers are his likeliest rivals: Rib-Hadda's unnamed brother at Byblos (EA 137-138, 162), Akit-Teshup at Niya
   (Beckman no. 6A), the sons of Abdi-Ashirta sharing Amurru (EA 104, 132).
 - **Ugarit** [A, later]: its 13th-century texts show a prefect (*sakinu*), a queen mother with her own seal and
   correspondence, and scribes; a young king Arhalba was soon replaced by his brother Niqmepa under Hittite eyes [B]
@@ -170,10 +170,10 @@ The intent asks for the four archetypes' titles "to be verified before use". Wha
 | Egypt | Overseer of the army (*imy-r mšꜥ*) | Overseer of the treasury (*imy-r pr-ḥḏ*) | Vizier (*tjaty*) | Chief lector priest (*ẖry-ḥb ḥry-tp*), keeper of the sacred books and dreams | A (the titles); B (the lector as a diviner: Egypt read signs less than Mesopotamia did) |
 | Hatti | Chief of the bodyguard (GAL MEŠEDI) | Chief of the scribes or the palace stores (no single treasury title is sure) | Chamberlain (the king's man in *Deeds* fragment 28) | Augur, entrail reader, the "Old Woman" | A (General, Diviner), C (Steward, Tjaty) |
 | Mitanni | A *maryannu* lord, chief of the chariots | No title survives | No title survives | *bārû*, by Babylonian learning, or Hurrian omen readers | S (Steward, Tjaty), C (Diviner) |
-| Babylonia | No Kassite general's title is sure | Governor of Nippur (*šandabakku*) | *sukkallu* | *bārû* | B |
+| Babylonia | No Kassite general's title is sure | Governor of Nippur (*šandabakku*), a city governor, not a treasurer: a reading | *sukkallu* | *bārû* | S (General), B (the rest; the Steward a reading) |
 | Assyria | No title for 1346; later the *turtānu* | No title for 1346 | *sukkallu* (the great *sukkallu* is later) | *bārû* | C |
 | Arzawa | No titles survive | | | Luwian augurs, as in Hatti | S, C (Diviner) |
-| Alashiya | No titles survive | "The governor of Alashiya" (EA 40) | | Eagle diviner (EA 35) | A (Governor, Diviner) |
+| Alashiya | No titles survive | "The governor of Alashiya" (EA 40), a governor, not a treasurer: a reading | | Eagle diviner (EA 35) | A (the titles), G (the governor as Steward) |
 
 **Start from:** use a title only where the row says A or B; elsewhere use the plain archetype name ("the General",
 "the Steward") rather than invent one [G]. For city-states, the plain names throughout [G].
@@ -202,11 +202,11 @@ conditions, not dice" it shows.
 | Ardata, Ammiya, Irqata | Aziru's years | Byblos accuses Aziru of killing their rulers | Outside help; the master's weakness | A (the accusation, a partisan one) | EA 139-140 |
 | Lachish | the letters' years | Zimreddi "smitten by servants who had become Habiru"; at Silu's gate Turbazu and Yaptih-Hadda killed | Hardship; a master far away ("the lands of the king are lost") | A | EA 288 |
 | Hazor | the same | Its king "has left his house and sided with the Habiru" | Outside help | A (Abi-Milku's report) | EA 148 |
-| Byblos | about 1340 | Rib-Hadda went to Beirut for help; his brother Ilirabih and "the men of Byblos" shut the city against him and urged him to join Aziru; he never got it back, was handed over to Aziru and the kings of Sidon, and is heard of no more | Hunger (years of it); the ruler absent; a brother as the head; the master's archers never came | A | EA 136-138, 139-140, 162 |
+| Byblos | about 1340 | Rib-Hadda went to Beirut for help; his younger brother (unnamed in the letters; most identify him with Ili-rapih, who writes EA 139-140 [B], a son of Rib-Hadda in one study [C]) and "the men of Byblos" shut the city against him and urged him to join Aziru; he never got it back, was handed over to Aziru and the kings of Sidon, and is heard of no more | Hunger (years of it); the ruler absent; a brother as the head; the master's archers never came | A | EA 136-138, 139-140, 162 |
 | Byblos's people before | earlier | An attempt on Rib-Hadda's life; peasants (*hupšu*) ready to desert to the Habiru; children sold for grain | Hardship as the slow cause | A | EA 74-75, 81, 85, 118 |
 
-**What the record says** [B]: no town of the letters is stormed by Amurru's men; they are won by a killing or a gate
-opened from within, after months or years of blockade and hunger, while the master's archers do not come
+**What the record says** [B]: the letters describe no assault by Amurru's men: many towns are simply "taken"
+(Shigata, Ampi, Batruna, Sumur: EA 76-91, 104-106), and where they say how, it is a killing or a gate opened from within, after months or years of blockade and hunger, while the master's archers do not come
 (Abdi-Heba: "if there are no archers this year, all the lands of the king are lost", EA 286-288) [A]. That is "the gate
 opened from within" ("How long a siege lasts") and "Revolt follows conditions, not dice" at once.
 
@@ -224,7 +224,7 @@ present and loved [G]. **A ruler absent** from his city weighs heavily: Rib-Hadd
 | **Abdi-Ashirta** of Amurru | before 1350 | A man of no known royal line who made a kingdom from the hill country with Habiru, took Sumur when its Egyptian garrison left, and called himself Pharaoh's servant all the while; his end is unclear: killed, or taken by Egypt | A (the rise), C (the end) | EA 60-62 (his own letters), 71-101 (Rib-Hadda's) |
 | **Aziru** of Amurru | 1346 and after | His father's heir, who took Sumur and the coast towns, was summoned to Egypt and held about a year, came home, and went over to Hatti by treaty | A (the treaty, the summons), B (the year) | EA 156-171; Beckman no. 5 |
 | **Labaya** of Shechem | late in Amenhotep III's reign or early in Akhenaten's | A highland lord who gave "the land of Shechem to the Habiru", attacked Megiddo and Gezer's lands and swore to Pharaoh that his only fault was to enter Gezer; captured, released by Surata of Akko for a ransom, then killed; his sons carried his war on | A | EA 244-256, 289 |
-| **Madduwatta** | about 1400 | An exile driven out by Attarissiya, given land by the Hittite king as a vassal, who used it to take Arzawa and raid Alashiya for himself | A | The Indictment of Madduwatta (CTH 147); Beckman |
+| **Madduwatta** | about 1400 | An exile driven out by Attarissiya, given land at Zippasla by the Hittite king as a vassal, who used it to take Arzawa and raid Alashiya for himself | A | The Indictment of Madduwatta (CTH 147); Beckman |
 | **Ay and Horemheb** | after 1336 | A court officer and a general who became kings | A | See Egypt above |
 | **Nazi-Bugash** | about 1333 | "A son of nobody" raised by the army | A, C the name | See Babylonia above |
 
@@ -245,7 +245,7 @@ city's ruler, and the short end (a season or two) for a governor or commander wh
 | Idrimi | Came back to his father's lands after years in exile (above) | A, C | The statue |
 | Shattiwaza of Mitanni | Fled his father's murderer, came back with a Hittite army | A | Beckman no. 6A-B |
 | Mashhuiluwa of Mira | Fled his brothers to Suppiluliuma, married his daughter Muwatti, was promised his land and put back by Mursili II; later rebelled and was deposed for his nephew Kupanta-Kurunta | A | Mursili II's *Annals*; Beckman no. 11 |
-| Aitakama of Qadesh | Taken to Hatti with his father Shutatarra after they fought Suppiluliuma, sent back as Hatti's vassal | A | Beckman no. 6A; EA 189 |
+| Aitakama of Qadesh | Taken to Hatti with his father Shutatarra after they fought Suppiluliuma (A); came back to rule Qadesh as Hatti's man (B, from his later rule); to Pharaoh he still protests his loyalty (EA 189) | A, B | Beckman no. 6A; EA 189 |
 | Rib-Hadda | Never came back (above): a claim that died with him | A | EA 136-138, 162 |
 
 **What the record says** [B]: a living exile was a standing cause for as long as he lived, and kings kept exiles as a
@@ -260,7 +260,7 @@ above]; it is strongest with a Great King's army behind him [A: Shattiwaza, Mash
 | Case | What happened | Grade | Source |
 | --- | --- | --- | --- |
 | Kizzuwatna | Turned from Mitanni to Hatti by treaty: "the people of Kizzuwatna are Hittite cattle ... they chose their stable" | A | Beckman no. 2 (Sunashshura, about 1400) |
-| Ugarit | Refused to join Mukish, Nuhashshe and Niya against Hatti; attacked by them, called on Suppiluliuma, who drove them off and fixed Ugarit's borders with some of their land | A (the war), B (the land given) | Beckman no. 4 |
+| Ugarit | Refused to join Mukish, Nuhashshe and Niya against Hatti; attacked by them, called on Suppiluliuma, who drove them off and fixed Ugarit's borders with some of their land | A | Beckman no. 4 and the border edict |
 | Niya | Its king Takuwa made peace with Hatti; his brother Akit-Teshup turned the town and its lords against him and Hatti | A | Beckman no. 6A |
 | Qiltu (Keilah) | Taken by Abdi-Heba from Shuwardata, by Shuwardata's account; each accuses the other | A | EA 279-280, 289-290 |
 | Ayyab's cities | Taken by the ruler of Hazor, Ayyab says | A | EA 364 |
@@ -296,9 +296,8 @@ which the game does not model and this dossier does not ask for.
 - **Troops taking food anger the land** [A]: Abdi-Heba complains of the plunder by Pharaoh's own Nubian (Kashi) troops
   in Jerusalem (EA 287); vassals stocked grain, oxen and sheep "for the archers of the king" so they need not take it
   (EA 55, 141-142, 320-326). The detail is in [11-armies-and-fleets.md](11-armies-and-fleets.md) ("Logistics").
-- **Commanders kept what was sent** [A, as an accusation]: Rib-Hadda accuses Pharaoh's men of keeping the grain and
-  silver meant for Byblos and selling it (EA 85, 117 and others), and Yanhamu is accused by several vassals of taking for
-  himself [A]. This is the commander "who may keep any money meant for food, and just take instead".
+- **Commanders kept what was sent** [A, as an accusation]: Rib-Hadda accuses Pharaoh's men, Yanhamu above all, of
+  withholding the grain meant for Byblos (EA 83, 85) [A]; that they kept it for themselves is his suspicion [C]. This is the commander "who may keep any money meant for food, and just take instead".
 
 ### Grievances held by the dispossessed
 
