@@ -97,7 +97,7 @@ glide or a piece's slide really ends, not on timers guessed from their length; t
 plays a game in slow motion (`docs/rounds/2026-10-29-map-label-overlap.md`).
 
 Side lane, the smoke test in CI (29 Oct, #199): a `smoke` job beside the test shards, only when a PR changes what the
-app bundles; it caught #196's fix still losing a slide's end on CI, now placed again when the motion itself finishes
+app bundles; it caught names still overlapping after #196: Chromium re-sized map text after placement, now laid out at its own size
 (`docs/rounds/2026-10-29-ci-smoke.md`).
 
 Done items 1 to 10 and the port's findings (all handled): `docs/archive/progress-done.md`.
