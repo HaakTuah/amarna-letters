@@ -111,8 +111,59 @@ hundred lost. Commander: strength 85 to 115 in a hundred by competence (×(compe
 
 ## Script players
 
+How often each feature was used, and succeeded, in the 50 script games after (seeds 1-50, every king a script king):
+commands granted 1,595 (in every game); battles won under a commander 910; orders carried out by a commander by his
+mandate (other than holding) 358; orders sent by courier beyond the season's reach 3,090, stopped on the road 9; units
+falling back from a lost battle 296; courts moved 6 (in 4 games); governorships granted 25 (in 21 games); bands enlisted
+as soldiers 538; commanders and governors refusing their recall 15. Weaknesses found and patched: the command grants took
+every free person at court before a governor could be named (6 governorships in 50 half-games; patched: a threatened
+province's governor is named first, 17 after), and a king left his besieged court only after two seasons, when it had
+mostly fallen (no court ever moved; patched: at once). A probe of the courts still besieged showed them all single-city
+states with no other city to go to; the Great Kings' capitals are rarely besieged in script games, which fall to storms.
+Left: script commanders and chiefs are script minds only ("Models only where they matter"); a script king never
+recalls a governor, since it cannot see skimming.
+
 ## Benchmarks and script games
+
+**Before** (11f's game, `item/map-crossings` at a085a94) and **after** (this branch), `scripts/sim.sh --games 50 --seed 1`;
+after with `--verify-replay`: 50 of 50 replays exact. A capital fell in every game both times (699 kingdoms before, 709
+after); the first fall came in season 4 on the median, and a kingdom fell in the first two seasons in 19 games of 50 both
+times (all city-states; this item changes nothing there, and item 11e's line for a playable game is unchanged by it).
+Standing orders kept 3,364 and 3,342, fired 47 and 42. The Great Kings (the city-states and chiefs are in the logs):
+
+| Power | Wins before | Wins after | Growth before | Growth after | Score before | Score after |
+|---|---|---|---|---|---|---|
+| Egypt | 21 | 21 | 0.93 | 0.93 | 0.80 | 0.82 |
+| Hatti | 1 | 0 | 1.17 | 1.21 | 0.52 | 0.57 |
+| Babylonia | 1 | 0 | 0.94 | 0.94 | 0.55 | 0.52 |
+| Mitanni | 0 | 0 | 0.83 | 0.80 | 0.52 | 0.56 |
+| Assyria | 1 | 0 | 0.90 | 0.90 | 0.49 | 0.47 |
+| Arzawa | 4 | 3 | 0.95 | 0.77 | 0.76 | 0.78 |
+| Alashiya | 1 | 0 | 0.99 | 0.98 | 0.54 | 0.53 |
+
+Arzawa's growth falls most (0.95 to 0.77), most likely its one army of 10,000 at Apasa (the dossier's) marching at
+a great army's pace; not measured further, a matter for item 18. The runs took 3,225 s before and 3,445 s after (a fifth of the time is the
+replays).
+
+**Hunting re-measured with command** (`--outlaw-play-half`, carried over from 11b++): 0.76 growth to 0.77, 28 wins to 22;
+before item 13, 0.87 to 0.92 and 20 to 30. Hunting now comes out ahead in wins and even in growth, within noise; not
+measured further, and re-measured with policing (15).
 
 ## Use against ignore
 
+`--command-play-half` (half the script kings grant no command, give no mandates, name no governors, enlist no bands and
+never move their court), seeds 1-50: 0.77 growth to 0.76, 27 wins to 23 (before the two patches above: 0.78 to 0.77, 27
+to 23). Using command pays a little, within noise: an uncommanded army fights at its men's average and holds where no
+order reaches it, so the gain is in the far provinces, which the scripts' growth reaches only late in a game.
+
 ## Questions for Haakon
+
+1. **A governor's seat when his kingdom falls.** The section makes each governor "his province's leader with a seat of
+   his own", but seats rising in play are item 17's. Reading taken: until item 17, a fallen kingdom's governed provinces
+   fall lawless with the rest and the governor walks home. Alternative: bring item 17's risen seats forward into item 13
+   for governors only, so a governor rules his province as a city-state from the fall. Which do you want?
+2. **When a fallen kingdom comes apart.** The item says each part goes its own way "once the news reaches it". Reading
+   taken: it comes apart at once, since the fallen power leaves play that season and its parts are then the conqueror's
+   or nobody's, so a delay would change only who may march in unopposed for a season or two. Alternative: each province
+   stays as it was (its levies holding, untaxed) until word of the fall reaches it at a courier's pace. Which do you
+   want?
