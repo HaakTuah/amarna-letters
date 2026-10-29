@@ -26,7 +26,7 @@ independent Assyria quarrel over Assyria's standing; Arzawa has passed its peak;
   coast through vassal "mayors" (*hazannu*) who swear loyalty and report, and through three administrative centres
   with Egyptian commissioners (*rabisu*): **Gaza**, **Sumur** on Amurru's coast, and **Kumidi** in the Beqaa [B: Na'aman;
   Moran]. Egyptian garrisons are small: tens of men, often Nubian (Meluhha, Kashi) troops (EA 287, EA 70, EA 108, EA 117)
-  [A]. Nubia is ruled directly by the viceroy, the King's Son of Kush (Thutmose under Akhenaten) [B]. Year 12 (about
+  [A]. Nubia is ruled directly by the viceroy, the King's Son of Kush (Thutmose under Akhenaten, named on his stelae at Buhen and Amada) [A]. Year 12 (about
   1342) brings a great reception of foreign tribute at Akhetaten, shown in the tombs of Meryra II and Huya [A].
 - **Hatti.** Under Suppiluliuma's father (Tudhaliya III) Hatti nearly fell: the Kaska burned Hattusa and Arzawa reached
   the Salt Lake region ("the concealed land" text, KBo VI 28) [A]; EA 31 has Amenhotep III saying "the land of Hattusa
@@ -42,7 +42,7 @@ independent Assyria quarrel over Assyria's standing; Arzawa has passed its peak;
 - **Babylonia.** The Kassite kingdom from the Gulf to about Hit on the Euphrates, with Dilmun under a Babylonian
   governor (the Dilmun letters from Nippur, Ili-ippashra to Enlil-kidinni) [B]. Burna-Buriash has a daughter married to
   Akhenaten's house (EA 11, the escort of only five carriages) [A]. He calls Assyria his vassal (EA 9) [A] and will
-  marry Ashur-uballit's daughter Muballitat-Sherua, whose son Kara-hardash is murdered in a revolt that Assyria
+  marry (he or one of his sons: C) Ashur-uballit's daughter Muballitat-Sherua, whose son Kara-hardash is murdered in a revolt that Assyria
   avenges [A: Chronicle P, Synchronistic History; after 1346].
 - **Assyria.** Ashur-uballit I has thrown off Mitanni's overlordship [B] and writes his first letter to Egypt (EA 15)
   "to see what you are like and what your land is like", then a second (EA 16) calling himself Great King and
@@ -68,7 +68,7 @@ is whose sphere the ruler is in during 1346.
 | Amurru (`amurru`) | Aziru, son of Abdi-Ashirta | Egypt, nominally | B | Abdi-Ashirta died at about the start of Akhenaten's reign; Aziru takes Sumur and the coast towns, is summoned to Egypt and held about a year (EA 164-170), then goes over to Hatti (treaty, Beckman no. 5) |
 | Sumur (item 7) | Egyptian commissioner (Pahanate earlier) | Egypt | B | Egypt's base on the north coast; besieged and taken by Aziru around 1346 (EA 103-106, Rib-Hadda's reports) [C on the exact year] |
 | Arwad (item 7) | Unnamed ruler(s) | hostile to Byblos | A | The ships of Arwad blockade Byblos with Amurru (EA 98, EA 105) |
-| Byblos (`byblos`) | Rib-Hadda | Egypt (loyal) | A | Over sixty letters (EA 68-96, 101-138, 362); later driven out by his brother Ilirabih, he goes to Beirut and is handed to Aziru (EA 136-138, EA 162) |
+| Byblos (`byblos`) | Rib-Hadda | Egypt (loyal) | A | Over sixty letters (EA 68-96, 101-138, 362); later driven out by his younger brother (unnamed; most identify him with Ili-rapih of EA 139-140 [B], a son in one study [C]), he goes to Beirut and is handed to Aziru (EA 136-138, EA 162) |
 | Beirut (`beirut`, item 11f; before, in Byblos's and Sidon's land) | Ammunira | Egypt | A | EA 141-143; Rib-Hadda flees to him when his brother shuts him out of Byblos (EA 136-138) |
 | Sidon (item 7) | Zimrida | Egypt, friendly to Aziru | A | EA 144-145; accused by Abi-Milku of Tyre of siding with Amurru (EA 147-149) |
 | Tyre (`tyre`) | Abi-Milku | Egypt (loyal) | A | EA 146-155; the island city short of water and wood, blockaded from the mainland by Sidon (EA 148-149, 154). EA 155 names Akhenaten's daughter Meritaten, so these are Akhenaten's years |
