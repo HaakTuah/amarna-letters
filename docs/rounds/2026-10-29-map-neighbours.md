@@ -14,8 +14,9 @@ item 13's text, not this item's).
 ## The check for changes
 
 The copy was cut from Build order revision 108, War 66, The world 36. Asked at the start: nothing had changed in any of
-them. Asked again before the pull request: see the PR (develop's refresh to Build order 109 merged in; item 11's text
-unchanged).
+them. Develop's refresh of the copy to Build order revision 109 was merged in while this was built (it changed item
+13's text, not this item's). Asked again before the pull request (Build order since 109, War, The world, Victory):
+nothing had changed.
 
 ## What was built
 
