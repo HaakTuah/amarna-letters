@@ -19,7 +19,7 @@ import {
   unitAt,
   LandData,
 } from "@amarna/engine";
-import { Assert, armiesBefore13, formerHomes, subs } from "./support.ts";
+import { Assert, armiesBefore13, formerHome, formerHomes, subs } from "./support.ts";
 
 // The reasons a battle report gives that the first battle report tests leave out: a head-to-head lost before a
 // third move walked in, a unit out of sight left unnamed, a unit that could not leave, a missing convoy, and
@@ -34,28 +34,29 @@ describe("BattleReasonTests", () => {
   }
 
   test("A head to head lost is the reason even when a third move takes the province", () => {
-    // Assyria (2) and Mitanni (3) meet head to head between Ekallate and Terqa; Hatti walks into the Terqa Mitanni left.
-    let s = formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 })));
-    s.units.push(newUnit({ id: "u90", power: "Hatti", kind: "Army", province: "harran" }));
+    // Assyria (2) and Mitanni (2.3, with Arrapha's small army) meet head to head between Ekallate and Suhu; Hatti walks into the Suhu Mitanni left.
+    let s = formerHome(formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 }))), "suhu", "Mitanni");
+    unitAt(s, "terqa")!.power = "Hatti";
     resolve(
       s,
       subs({
-        Assyria: { orders: [move("ekallate", "terqa"), support("ashur", "ekallate", "terqa")] },
-        Mitanni: { orders: [move("terqa", "ekallate")] },
-        Babylonia: { orders: [support("sippar", "terqa", "ekallate"), support("durkurigalzu", "terqa", "ekallate")] },
-        Hatti: { orders: [move("harran", "terqa")] },
+        Assyria: { orders: [move("ekallate", "suhu"), support("ashur", "ekallate", "suhu")] },
+        Mitanni: { orders: [move("suhu", "ekallate")] },
+        Babylonia: { orders: [support("durkurigalzu", "suhu", "ekallate")] },
+        Arrapha: { orders: [support("arrapha", "suhu", "ekallate")] },
+        Hatti: { orders: [move("terqa", "suhu")] },
       }),
     );
 
-    Assert.equal("Hatti", unitAt(s, "terqa")?.power);
+    Assert.equal("Hatti", unitAt(s, "suhu")?.power);
     Assert.equal("Mitanni", unitAt(s, "ekallate")?.power);
     let assyria = report(s, "Assyria");
-    Assert.contains("- A ekallate -> terqa: fails: it met the unit from terqa (Mitanni's army) coming the other way; your strength 2 against 3", assyria);
+    Assert.contains("- A ekallate -> suhu: fails: it met the unit from suhu (Mitanni's army) coming the other way; your strength 2 against 2.3", assyria);
     // With nowhere to fall back (item 13), it is destroyed.
     Assert.contains("- A ekallate is destroyed", assyria);
     Assert.doesNotContain(
-      "from harran",
-      single(assyria.split("\n"), (l) => l.startsWith("- A ekallate -> terqa")),
+      "from terqa",
+      single(assyria.split("\n"), (l) => l.startsWith("- A ekallate -> suhu")),
     );
   });
 
@@ -106,19 +107,20 @@ describe("BattleReasonTests", () => {
   });
 
   test("A unit that could not leave kept its place", () => {
-    // Mitanni's army in Terqa and Babylon's in Sippar strike Suhu and bounce, so Assyria's move into Terqa meets it still there.
+    // Mitanni's army in Terqa and Babylon's in Sippar strike Suhu and bounce, so Hatti's move into Terqa meets it still there.
     let s = formerHomes(newGame(1, newGameConfig({ peopleDefence: 0 })));
+    s.units.push(newUnit({ id: "u90", power: "Hatti", kind: "Army", province: "harran" }));
     resolve(
       s,
       subs({
-        Assyria: { orders: [move("ashur", "terqa")] },
+        Hatti: { orders: [move("harran", "terqa")] },
         Mitanni: { orders: [move("terqa", "suhu")] },
         Babylonia: { orders: [move("sippar", "suhu")] },
       }),
     );
     Assert.contains(
-      "- A ashur -> terqa: fails: the unit in terqa (Mitanni's army) could not leave, so it kept its place; your strength 1 against 1",
-      report(s, "Assyria"),
+      "- A harran -> terqa: fails: the unit in terqa (Mitanni's army) could not leave, so it kept its place; your strength 1 against 1",
+      report(s, "Hatti"),
     );
     Assert.contains("- A terqa -> suhu: fails: it met a move into suhu from sippar by Babylonia's army; your strength 1 against 1", report(s, "Mitanni"));
   });
@@ -128,19 +130,19 @@ describe("BattleReasonTests", () => {
     resolve(
       s,
       subs({
-        // Babylon supports a move Dur-Kurigalzu does not make; Sippar supports Dur-Kurigalzu holding, but it moves.
-        Babylonia: { orders: [support("babylon", "durkurigalzu", "nippur"), support("sippar", "durkurigalzu"), move("durkurigalzu", "susa")] },
+        // Babylon supports a move Sippar does not make; Dur-Kurigalzu supports Sippar holding, but it moves.
+        Babylonia: { orders: [support("babylon", "sippar", "nippur"), support("durkurigalzu", "sippar"), move("sippar", "suhu")] },
       }),
     );
     let babylonia = report(s, "Babylonia");
-    Assert.contains("- A babylon supports durkurigalzu -> nippur: void: no unit moved from durkurigalzu to nippur", babylonia);
-    Assert.contains("- A sippar supports durkurigalzu holding: void: the unit in durkurigalzu was ordered to move, not to hold", babylonia);
+    Assert.contains("- A babylon supports sippar -> nippur: void: no unit moved from sippar to nippur", babylonia);
+    Assert.contains("- A durkurigalzu supports sippar holding: void: the unit in sippar was ordered to move, not to hold", babylonia);
     let own = babylonia.split("\nSeen nearby:")[0];
     Assert.doesNotContain("holds", own);
 
     // Assyria, next door, sees the void support but not the reason.
     let assyria = report(s, "Assyria");
-    Assert.contains("- Babylonia: A sippar supports durkurigalzu holding: void", assyria);
+    Assert.contains("- Babylonia: A durkurigalzu supports sippar holding: void", assyria);
     Assert.doesNotContain("ordered to move", assyria);
   });
 });
