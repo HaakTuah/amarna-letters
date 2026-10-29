@@ -1,4 +1,4 @@
-import { AllPowers, ending, shortDate, shortEnding, type Power } from "@amarna/engine";
+import { AllPowers, WorldMap, ending, shortDate, shortEnding, type Power } from "@amarna/engine";
 import { Presets, leaderRules } from "@amarna/llm";
 import { useEffect, useRef, useState } from "react";
 import { AudiencePanel } from "../components/AudiencePanel.tsx";
@@ -66,6 +66,16 @@ export function Play() {
   function viewerOf(): Power | null {
     return s.godView ? null : (s.viewAs ?? live.humans[0] ?? null);
   }
+
+  // The map opens on the seat's own realm, its capital zoomed to, and again whenever another seat's eyes are taken: the
+  // Levant is read by zooming, never by bending the land ("Map on small screens", item 11c).
+  const ready = live.hasRunner && s.frames.length > 0 && s.state !== null;
+  const seat = ready ? viewerOf() : null;
+  useEffect(() => {
+    if (seat === null) return;
+    const capital = WorldMap.default.provinces.find((p) => p.home === seat && p.capital);
+    if (capital !== undefined) map.current?.focus(city(capital.id), 2.5);
+  }, [seat]);
 
   if (!live.hasRunner || s.frames.length === 0 || s.state === null) {
     return (

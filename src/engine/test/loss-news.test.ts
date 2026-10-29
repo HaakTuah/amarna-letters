@@ -78,6 +78,13 @@ describe("LossNewsTests", () => {
       let [s, captive] = caughtOf(from);
       from = s.seed + 1;
       let watcher = atHome(s, "Mitanni", 100);
+      // At its post for the whole test: loyal and brave enough to pay carriers rather than carry its reports home itself
+      // (the spy decides), with a purse to pay them and a term that outlasts the test (since item 11c's draws the first of
+      // Mitanni's people at home had neither).
+      watcher.traits.loyalty = 80;
+      watcher.traits.courage = 80;
+      watcher.purse = 1000;
+      if (watcher.contract !== null) watcher.contract.untilTurn = 40;
       begin(s).resolve(orders("Mitanni", placeSpy(watcher.id, "Assyria")));
       for (let i = 0; i < 4 && watcher.duty !== "SpyPosted"; i++) begin(s).resolve(none());
       if (watcher.duty !== "SpyPosted") continue;

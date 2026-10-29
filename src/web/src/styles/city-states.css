@@ -26,6 +26,15 @@
     --suteans: #896c4d;
     --arrapha: #4d8961;
     --elam: #574d89;
+    --akko: #7a5a3a;
+    --hazor: #3a5a7a;
+    --gezer: #5a7a3a;
+    --ashkelon: #3a7a7a;
+    --lachish: #7a3a5a;
+    --hebron: #6a6a3a;
+    --seha: #4d7a5a;
+    --mira: #7a4d3a;
+    --terqa: #5a4d7a;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -52,6 +61,15 @@
       --suteans: #c9a987;
       --arrapha: #87c99e;
       --elam: #9287c9;
+      --akko: #d0a77f;
+      --hazor: #7fa7d0;
+      --gezer: #a7d07f;
+      --ashkelon: #7fd0d0;
+      --lachish: #d07fa7;
+      --hebron: #c6c67f;
+      --seha: #87c9a0;
+      --mira: #d09a7f;
+      --terqa: #a597d0;
   }
 }
 :root[data-theme="dark"] {
@@ -78,6 +96,15 @@
     --suteans: #c9a987;
     --arrapha: #87c99e;
     --elam: #9287c9;
+    --akko: #d0a77f;
+    --hazor: #7fa7d0;
+    --gezer: #a7d07f;
+    --ashkelon: #7fd0d0;
+    --lachish: #d07fa7;
+    --hebron: #c6c67f;
+    --seha: #87c9a0;
+    --mira: #d09a7f;
+    --terqa: #a597d0;
 }
 
 .e-kaska .ei-bg, .f-kaska, .e-kaska, .ah-kaska { fill: var(--kaska); } .map .t-kaska, .map .s-kaska { fill: var(--kaska); } .b-kaska, .r-kaska { stroke: var(--kaska); }
@@ -126,3 +153,21 @@
 .map .m-arrapha .shaft, .map .m-arrapha .sup, .map .m-arrapha .conv, .map .c-arrapha circle { stroke: var(--arrapha); }
 .e-elam .ei-bg, .f-elam, .e-elam, .ah-elam { fill: var(--elam); } .map .t-elam, .map .s-elam { fill: var(--elam); } .b-elam, .r-elam { stroke: var(--elam); }
 .map .m-elam .shaft, .map .m-elam .sup, .map .m-elam .conv, .map .c-elam circle { stroke: var(--elam); }
+.e-akko .ei-bg, .f-akko, .e-akko, .ah-akko { fill: var(--akko); } .map .t-akko, .map .s-akko { fill: var(--akko); } .b-akko, .r-akko { stroke: var(--akko); }
+.map .m-akko .shaft, .map .m-akko .sup, .map .m-akko .conv, .map .c-akko circle { stroke: var(--akko); }
+.e-hazor .ei-bg, .f-hazor, .e-hazor, .ah-hazor { fill: var(--hazor); } .map .t-hazor, .map .s-hazor { fill: var(--hazor); } .b-hazor, .r-hazor { stroke: var(--hazor); }
+.map .m-hazor .shaft, .map .m-hazor .sup, .map .m-hazor .conv, .map .c-hazor circle { stroke: var(--hazor); }
+.e-gezer .ei-bg, .f-gezer, .e-gezer, .ah-gezer { fill: var(--gezer); } .map .t-gezer, .map .s-gezer { fill: var(--gezer); } .b-gezer, .r-gezer { stroke: var(--gezer); }
+.map .m-gezer .shaft, .map .m-gezer .sup, .map .m-gezer .conv, .map .c-gezer circle { stroke: var(--gezer); }
+.e-ashkelon .ei-bg, .f-ashkelon, .e-ashkelon, .ah-ashkelon { fill: var(--ashkelon); } .map .t-ashkelon, .map .s-ashkelon { fill: var(--ashkelon); } .b-ashkelon, .r-ashkelon { stroke: var(--ashkelon); }
+.map .m-ashkelon .shaft, .map .m-ashkelon .sup, .map .m-ashkelon .conv, .map .c-ashkelon circle { stroke: var(--ashkelon); }
+.e-lachish .ei-bg, .f-lachish, .e-lachish, .ah-lachish { fill: var(--lachish); } .map .t-lachish, .map .s-lachish { fill: var(--lachish); } .b-lachish, .r-lachish { stroke: var(--lachish); }
+.map .m-lachish .shaft, .map .m-lachish .sup, .map .m-lachish .conv, .map .c-lachish circle { stroke: var(--lachish); }
+.e-hebron .ei-bg, .f-hebron, .e-hebron, .ah-hebron { fill: var(--hebron); } .map .t-hebron, .map .s-hebron { fill: var(--hebron); } .b-hebron, .r-hebron { stroke: var(--hebron); }
+.map .m-hebron .shaft, .map .m-hebron .sup, .map .m-hebron .conv, .map .c-hebron circle { stroke: var(--hebron); }
+.e-seha .ei-bg, .f-seha, .e-seha, .ah-seha { fill: var(--seha); } .map .t-seha, .map .s-seha { fill: var(--seha); } .b-seha, .r-seha { stroke: var(--seha); }
+.map .m-seha .shaft, .map .m-seha .sup, .map .m-seha .conv, .map .c-seha circle { stroke: var(--seha); }
+.e-mira .ei-bg, .f-mira, .e-mira, .ah-mira { fill: var(--mira); } .map .t-mira, .map .s-mira { fill: var(--mira); } .b-mira, .r-mira { stroke: var(--mira); }
+.map .m-mira .shaft, .map .m-mira .sup, .map .m-mira .conv, .map .c-mira circle { stroke: var(--mira); }
+.e-terqa .ei-bg, .f-terqa, .e-terqa, .ah-terqa { fill: var(--terqa); } .map .t-terqa, .map .s-terqa { fill: var(--terqa); } .b-terqa, .r-terqa { stroke: var(--terqa); }
+.map .m-terqa .shaft, .map .m-terqa .sup, .map .m-terqa .conv, .map .c-terqa circle { stroke: var(--terqa); }

@@ -184,7 +184,8 @@ describe("EnvoyTests", () => {
     let rejected = new OrderValidator(s).validate("Assyria", newTurnSubmission({ orders: [hire(envoy.id, 100, 6, null, homeJob("Assyria"))] })).rejected;
     Assert.contains(rejected, (r) => r.reason.includes("held at the court of Alashiya"));
 
-    e.resolve(new Dict([["Alashiya", newTurnSubmission({ orders: [hire(envoy.id, 100, 6, 100, homeJob("Alashiya"))] })]]));
+    // Enough for what this envoy asks (about 1 mina 42 shekels since item 11c's draws).
+    e.resolve(new Dict([["Alashiya", newTurnSubmission({ orders: [hire(envoy.id, 150, 6, 150, homeJob("Alashiya"))] })]]));
     Assert.equal("Alashiya", envoy.employer);
     Assert.null(envoy.heldBy);
     Assert.equal("None", envoy.duty);

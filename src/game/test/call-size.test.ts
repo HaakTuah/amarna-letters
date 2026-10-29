@@ -197,7 +197,8 @@ describe("CallSizeTests", () => {
     Assert.doesNotContain(asker.specs, (s) => s.key.startsWith(`t${t}/court/`));
     const phrase = Assert.single(asker.specs, (s) => s.key.endsWith("/phrase"));
     Assert.equal("small", phrase.model);
-    Assert.contains("he sends 20 shekels back with the envoy for his lord", phrase.user);
+    // Half of what reached the court (the envoy may spend some of the 40 on the road).
+    Assert.matches("he sends (20|1\\d) shekels back with the envoy for his lord", phrase.user);
     Assert.doesNotContain("YOUR LEDGER", phrase.user);
     const host = Assert.single(r.log.decisions, (d) => d.key.startsWith(`t${t}/aud/`) && d.key.endsWith("/host/1"));
     Assert.contains("standing answer", r.log.authorOf(host.key)!.name);
