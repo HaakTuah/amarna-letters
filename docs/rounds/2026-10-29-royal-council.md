@@ -75,8 +75,8 @@ The design note is [`docs/design/40-the-royal-council.md`](../design/40-the-roya
     voice of the court that holds the province where they stand; envoys at audience, governors and commanders do not
     yet read the ending at all (item 11a's reach), and nothing here adds it. Principle: "Everything is somewhere";
     the review's point 6.
-13. **The measure plays script kings by their council** (`--council-play-half`): the agreed orders, else each troop's
-    majority, a tie to the king's own; a levy two advisors propose. Script rulers never hear a council in a real game;
+13. **The measure plays script kings by their council** (`--council-play-half`): each season the whole plan of the
+    advisor the other three agree with most, as a king weighing four disagreeing advisors would. Script rulers never hear a council in a real game;
     this measures whether following the counsel plays well.
 
 ## Design questions
@@ -97,6 +97,13 @@ None: the page and the item's sections settled every reading.
 - **How the council is used in a real game** can only be measured with human or model seats; model games wait until
   the build order is done. The tests check that a seat hearing it gets four advisors, numbers behind its strikes,
   titles from the dossier, the toggle in the log and the same game with the council on or off.
+
+## Found along the way
+
+- **The batch runner kept risen powers between games** (item 13+): a worker thread that played a game where a governor
+  rose kept the risen power in the registry, and the next game's seats, chosen from the powers in play, had no setting
+  for it, so the run crashed. Each batch game now starts with none risen (`setRisen([])` in `playOne`). Found by the
+  council measure, whose games raise governors; script runs of earlier items rarely did (13+'s report: none in 50).
 
 ## Review
 
