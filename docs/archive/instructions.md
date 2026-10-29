@@ -538,3 +538,7 @@ Given in the design chat with Claude, answering the design questions of the cons
 53. **15:19**, in the design chat, back home, to item 11c++'s question (lesser coast cities as seals on a phone's
     opening view, their armies one zoom step in) and Barkstreet Snakes' woodpecker: "Keep the bird 1.7x. And agreed
     with everything else." (11c++'s reading kept)
+
+54. **16:39**, in the design chat, on learning that a builder (Barkstreet Snakes') had stopped at the app's weekly usage
+    warning: "They weren't supposed to stop before 90%. We're still at only 76%" (written into the brake under
+    "Standing instructions" in `CLAUDE.md`: only the measured share counts)
