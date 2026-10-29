@@ -83,6 +83,32 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
 export const CURRENT_VERSION = 27;
 
 /**
+ * A standing order to hunt bands (Haakon's answers to items 11b and 11b+): whose, in which provinces (none named: the
+ * whole of its land), and the season it was given, from which talk of it travels out from its capital at the pace of the
+ * roads, as any news, to the chiefs who might fear it.
+ */
+export interface StandingHunt {
+  power: Power;
+  provinces: string[];
+  since: number;
+  /** The season it was lifted or replaced, from which talk of that travels as of the order; null while it stands. */
+  until: number | null;
+}
+
+export const StandingHuntSchema: ObjSchema<StandingHunt> = obj(
+  "StandingHunt",
+  (init: Partial<StandingHunt> = {}) => ({ power: "Egypt" as Power, provinces: [], since: 0, until: null, ...init }),
+  { power: S, provinces: list(S), since: I, until: opt(I) },
+);
+
+/** Whether a standing hunt covers a province its power holds: the provinces it names, or, naming none, all its land. */
+export const huntCovers = (s: GameState, h: StandingHunt, province: string): boolean =>
+  s.owner.getOrDefault(province, null) === h.power && (h.provinces.length === 0 || h.provinces.includes(province));
+
+/** The standing hunt a power's armies follow now, if any (one lifted or replaced is only still talked of). */
+export const huntNow = (s: GameState, p: Power): StandingHunt | null => s.hunts.find((h) => h.power === p && h.until === null) ?? null;
+
+/**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration
  * that decides anything goes through {@link Powers.All} or the map's province list, never
  * dictionary order, so results stay deterministic.
@@ -188,13 +214,13 @@ export interface GameState {
   payFacts: PayFact[];
   /**
    * Promises kept and broken folded out of {@link payFacts} once old news (`knower|party`): what each court had heard of
-   * them. People forget talk older than a dozen seasons; courts keep their records.
+   * them. Courts keep their records, and each person keeps the old talk it heard as its own (`Character.payOld`).
    */
   payKnown: Dict<string, PayRecord>;
   /** The courts whose standing order is to pay the carriers of their people's letters on delivery (order payCarriers). */
   payCarriers: Power[];
-  /** Haakon's answers to item 11b: the courts whose standing order is that their armies fall on bands in their land. */
-  huntBands: Power[];
+  /** Haakon's answers to items 11b and 11b+: the standing orders that armies fall on bands, by province or the whole land. */
+  hunts: StandingHunt[];
   /** The hunts ordered this season (`power|province`), carried out as the next season begins. */
   huntNow: string[];
   /** Item 11a: every debt tablet sealed, standing or ended ("The debt tablet is the claim"). */
@@ -326,7 +352,7 @@ export function newGameState(init: Partial<GameState> = {}): GameState {
     payFacts: [],
     payKnown: new Dict(),
     payCarriers: [],
-    huntBands: [],
+    hunts: [],
     huntNow: [],
     debts: [],
     approaches: [],
@@ -418,7 +444,7 @@ export const GameStateSchema: ObjSchema<GameState> = obj("GameState", newGameSta
   payFacts: list(() => PayFactSchema),
   payKnown: dict(() => PayRecordSchema),
   payCarriers: list(S),
-  huntBands: list(S),
+  hunts: list(() => StandingHuntSchema),
   huntNow: list(S),
   debts: list(() => DebtSchema),
   approaches: list(() => ApproachSchema),

@@ -18,7 +18,7 @@ import { grainWorth, needOf, priceAt } from "../model/economy.ts";
 import { LandData } from "../model/land.ts";
 import { coverOf, gain, newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
-import { alive, isAlive, logEvent, newId, notify, siegeOf } from "../model/state.ts";
+import { alive, huntCovers, huntNow, isAlive, logEvent, newId, notify, siegeOf } from "../model/state.ts";
 import { Styles } from "../rules/cast.ts";
 import { personaTemplate } from "../rules/personas.ts";
 import { drawSkills } from "../rules/skills.ts";
@@ -33,6 +33,16 @@ declare module "./core.ts" {
   interface TurnEngine {
     bandsSeason(): Dict<Power, string[]>;
     chiefKills(b: Band, victim: Character, province: string): boolean;
+    /**
+     * Whether talk of a standing hunt over `target` has reached a chief at `at` (Haakon's answers to item 11b+: chiefs hear
+     * of a standing hunt by talk like any news, from its king's capital at the pace of the roads).
+     */
+    huntHeard(at: string, target: string): boolean;
+    /**
+     * A traveller robbed and left alive names his robbers (Haakon's answers to item 11b+: every traveller is a witness):
+     * word that the chief rode with the Habiru goes by the roads to the land's king and to the traveller's master.
+     */
+    robbersNamed(victim: Character, b: Band, province: string): void;
     bandOf(c: Character): Band | null;
     bandsAt(province: string): Band[];
     /** A head rises from `men` men in `province`: a new character leading them as a band. */
@@ -295,7 +305,8 @@ P.bandsSeason = function () {
 
     // Hunted (Haakon's answers to item 11b: only on its king's order, for this season or standing): the holder's army
     // standing in its province falls on it; it loses men, may lose its chief, and flees.
-    const ordered = holder !== null && (S.huntBands.includes(holder) || S.huntNow.includes(`${holder}|${b.province}`));
+    const standing = holder === null ? null : huntNow(S, holder);
+    const ordered = holder !== null && ((standing !== null && huntCovers(S, standing, b.province)) || S.huntNow.includes(`${holder}|${b.province}`));
     const hunters = ordered ? S.units.filter((u) => u.province === b.province && u.kind === "Army" && u.power === holder) : [];
     if (hunters.length > 0 && holder !== null) {
       const army = sum(hunters, (u) => u.men);
@@ -323,7 +334,14 @@ P.bandsSeason = function () {
         Map.movesFrom("Army", b.province).filter((n) => !Map.get(n).isSea && !S.units.some((u) => u.province === n && u.kind === "Army")),
         [(n: string) => n, cmpStr],
       );
-      if (away.length > 0) b.province = rng.pick(away);
+      // Haakon's answers to item 11b+: the hunted chief chooses where to flee, weighing where he would be hunted again: a
+      // model chief where his own request said to go, if it is open to him; a script chief away from land he heard is
+      // under a standing hunt, if he can.
+      const plan = chief.chiefPlan;
+      const safer = away.filter((n) => !this.huntHeard(b.province, n));
+      if (plan !== null && plan.go !== null && away.includes(plan.go)) b.province = plan.go;
+      else if (safer.length > 0) b.province = rng.pick(safer);
+      else if (away.length > 0) b.province = rng.pick(away);
       chief.watchProvince = b.province;
       if (b.men < BandData.least) {
         this.wayBack(b, "his band was broken");
@@ -435,8 +453,9 @@ P.bandsSeason = function () {
       const guarded = S.units.some((u) => u.province === id && u.kind === "Army") ? (chief.bold ? 3 : 6) : 1;
       return idiv(worth * 1000, (rivals + b.men + BandData.robHalf) * guarded);
     };
+    // A script chief keeps out of land he heard is under a standing hunt (Haakon's answers to item 11b+).
     const best = sortBy(
-      Map.movesFrom("Army", b.province).filter((n) => !Map.get(n).isSea),
+      Map.movesFrom("Army", b.province).filter((n) => !Map.get(n).isSea && !this.huntHeard(b.province, n)),
       [(n: string) => -pickings(n), cmpNum],
       [(n: string) => n, cmpStr],
     )[0];
@@ -507,13 +526,41 @@ P.chiefKills = function (b, victim, province) {
   // A chief who chose whom his band kills (a model, in his own request) is held to his choice.
   if (chief.chiefPlan !== null) return killsByChoice(chief.chiefPlan.kill, victim);
   const ruthless = chief.traits.loyalty < 40 || chief.traits.greed > 70;
-  // A witness worth silencing serves a king, who would hear his word and could send men; a free traveller's word reaches
-  // nobody who would. The chief weighs only what he can see: the land's armies in or next to the province, not its
-  // king's orders.
-  const witness = victim.employer !== null;
+  // Haakon's answers to item 11b+: every traveller is a witness who can name his robbers. The ruthless chief silences him
+  // where he would not be hunted for the murder: no army of the land's king in or next to the province, and no standing
+  // hunt over it that talk has brought him word of.
   const holder = S.owner.getOrDefault(province, null);
   const near = new Set([province, ...this.map.neighbors(province)]);
-  const hunted = holder !== null && S.units.some((u) => u.power === holder && u.kind === "Army" && near.has(u.province));
-  return ruthless && witness && !hunted;
+  const hunted = holder !== null && (S.units.some((u) => u.power === holder && u.kind === "Army" && near.has(u.province)) || this.huntHeard(b.province, province));
+  return ruthless && !hunted;
+};
+
+P.robbersNamed = function (victim, b, province) {
+  const S = this.s;
+  const chief = S.characters.find((x) => x.id === b.leaderId) ?? null;
+  if (chief === null) return;
+  let f = chief.facts.find((x) => x.tag === "outlaw");
+  if (f === undefined) chief.facts.push((f = newFact({ id: newId(S, "f"), text: "Rode with the Habiru.", secrecy: "Hidden", tag: "outlaw" })));
+  const holder = this.map.get(province).isSea ? null : S.owner.getOrDefault(province, null);
+  const from = holder ?? victim.employer;
+  if (from === null || !isAlive(S, from)) return;
+  const text = `${victim.name} was robbed in ${this.map.get(province).name} in season ${S.turn} by the band of ${chief.name}, and names him.`;
+  logEvent(S, "band", `${victim.name} named ${chief.name} as his robber.`, [], "robbers-named");
+  for (const to of [...new Set([holder, victim.employer])])
+    if (to !== null && isAlive(S, to) && !f.knownBy.includes(to)) {
+      this.rumor(to, from, text, chief.id, "Name", f.id);
+      // The word sets out from where he was robbed, not from a capital.
+      S.journeys[S.journeys.length - 1].arriveTurn = S.turn + this.travelTurnsBetween(province, this.map.capital(to).id);
+    }
+};
+
+P.huntHeard = function (at, target) {
+  const S = this.s;
+  return S.hunts.some((h) => {
+    if (!huntCovers(S, h, target) || !isAlive(S, h.power)) return false;
+    const road = this.travelTurnsBetween(this.map.capital(h.power).id, at);
+    // Heard of once its talk has come, until talk of its lifting comes.
+    return S.turn >= h.since + road && (h.until === null || S.turn < h.until + road);
+  });
 };
 
