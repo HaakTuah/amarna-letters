@@ -13,7 +13,8 @@ countryside round a siege: "Yes to all, expertly!".
 ## The check for changes
 
 The copy was cut from Build order revision 103, War 66, The world 36, Land 33. Asked at the start: nothing had changed
-in any of them. Asked again before the pull request: see the end of this report.
+in any of them. Asked again before the pull request (Build order, War, The world, Land, Characters, Victory): Haakon's PR #174 added
+his answers to items 11e and 12 to this item while it was built, and they are built here; nothing else changed.
 
 ## What was built
 
@@ -54,9 +55,70 @@ reason: Ashtaroth–Shasu is the King's Highway across Moab, which is no one's; 
 Carchemish–Samuha, Jerusalem–Pella, Jerusalem–Shasu, Lachish–Shasu and Tunip–Ugarit touch on the drawing with no road
 the sources give. The older cases are 11c+'s list, unchanged.
 
+## The audit at the start
+
+The 50 script games on `develop` before this item (seeds 1-50, with item 12) used every feature built so far but those
+earlier audits leave to later items (captives, smuggling, winter crossings, gifts to persons, false envoys paid, fees
+withheld, characters' own dealings, secrets caught, hiring abroad, reputation, pacts with consequences, coalitions,
+forgeries, basing) and, rare or absent there and none of this item's: a shared victory, food bought, passage granted by
+order, reports sold, a mute envoy and newcomers through the doors (0 on these seeds). After it, the new caravans
+were used in 48 games of 50 (below).
+
 ## Measures
 
-TO FILL: benchmarks before and after, falls in the first two seasons, wins by power, use against ignore, feature use.
+**Before** (`develop` at e07985d, with item 12) and **after** (this branch at c2bb98b, with Haakon's answers to 11e and
+12), seeds 1-50, `scripts/sim.sh --games 25 --seed 1 --verify-replay` and `--seed 26` (two halves, one machine). 50 of
+50 replays exact in both; 47.3 seasons on average in both.
+
+| | Before | After |
+|---|---|---|
+| Kingdoms fallen | 579 | 690 (47 powers, 39 before) |
+| Games with a kingdom fallen in the first two seasons | 1 of 50 | 6 of 50 (the Suteans 5, taken by Damascus; Suhu 1) |
+| Wins, Great Kings / city-states and chiefs | 49 / 1 | 27 / 23 (size weighs 5 in a hundred, 50 before) |
+| Wins by power | Egypt 20, Babylonia 17, Hatti 8, Assyria 4, Qadesh 1 | Egypt 21, Babylonia 3, Arwad 3, Suhu 3, 14 others 1 or 2 each |
+| Growth, Great Kings | Egypt 0.86, Hatti 1.39, Babylonia 0.99, Mitanni 0.70, Assyria 1.00, Arzawa 0.67, Alashiya 0.96 | 0.93, 1.18, 0.94, 0.81, 1.04, 0.82, 1.01 |
+| Falls, most often | Arrapha 50, Lukka 41, Nuhashshe 39, Terqa 38, Isuwa 36 | Arrapha 49, Lukka 39, Seha 39, the Shasu 38, the Suteans 34 |
+| Envoys not understood on arrival, in a hundred, by sending court | Egypt 31, Alashiya 28, Hatti 22, Babylonia 22, Assyria 14, Mitanni 10, Arzawa 6; the cities 3 to 15, the Kaska 42 | Egypt 28, Alashiya 27, Hatti 24, Babylonia 19, Assyria 11, Mitanni 11, Arzawa 7; the cities 1 to 20, Azzi 19 |
+| An envoy heard through a servant of the court | 189 | 644 (anyone in the court's service bridges; the Akkadian scribes) |
+| Defenders held by the ground / beaten despite it | 265 / 68 | 281 / 77 (the new crossings) |
+| Caravans out | 7,287 | 8,442; 348 slipped through closed land, 90 found and seized there; 183 taken by troops (144 before) |
+
+The early falls: as first built, Libya and the Shasu, unwalled desert next to Egypt's armies with 20,000 people each,
+fell to Egypt in their first season in 6 of 25 games; at 60,000 and 40,000 (first guesses: Libya's herders came on in
+tens of thousands a century later) they hold. What is left is the Sutean steppe, taken by Damascus in its second season
+in 5 games of 50 (none on `develop`): Damascus now has Ashtaroth and Beirut beside it, and Biryawaza did call them "my
+Suteans" (EA 195). 44 games of 50 see no kingdom fall in their first two seasons ("on most seeds"); item 18 weighs it.
+
+The wins: with size at 5 in a hundred, Great Kings win 27 of 50 and the city-states and chiefs 23, spread over 17 of
+them; Egypt alone wins 21, as rich in growth as in size. Item 11e measured 12 / 38 by performance alone and 29 / 21 at
+15 in a hundred.
+
+## Use against ignore
+
+Half the script kings send their caravans through foreign land, sneaking where the roads are closed to them; half keep
+them to their own land (`--caravan-play-half`, seeds 1-50): growth 0.79 against 0.77, wins 20 against 30. Not paying
+yet in wins: supplying an army deep in foreign land costs the porters and the grain found and seized (90 caravans in 50
+games), and wins move by about five either way in 50 games (an earlier measure on this branch, before the review's
+open-roads-first fix, gave 24 against 26). Re-measure with command at a distance (item 13), which gives an army deep in
+foreign land something to do. Row in the progress file.
+
+## Use of the item's features
+
+- **Crossings**: a defender held by the ground 281 times (265 before), beaten despite it 77; every new crossing's effect
+  on travel is in every journey's pace (tests: `map-crossings.test.ts`, one scene for each kind).
+- **Caravans through closed land**: 438 entered closed land in 48 games of 50, 90 of them found; troops shut in by a
+  siege took none (the engine skips them; tested).
+- **The new places**: every one plays as any city-state or chief; the Shasu fell 38 times, Tunip 31, Ashtaroth 29, and
+  Libya rarely (after the fix). Their envoys are understood as often as their neighbours' (Beirut 0 in a hundred, Azzi 19).
+- **The Akkadian scribes and anyone bridging**: 644 envoys heard through a servant of the court (189 before).
+
+## Not built here
+
+The live text gained, at revision 106 while this was measured, a third part: the disagreements between the drawing and
+the connections are settled "by one rule, neighbours on the map are neighbours in the rules", each case with its
+dossier. `scripts/map-borders.ts` lists 53 such pairs; each needs a road or a redrawn border from the sources, and the
+rules' change a measure of its own. That is large, so, as the builder rules say, it goes to the start of the next item
+that touches the map's connections, and the progress file says so.
 
 ## Readings taken
 
