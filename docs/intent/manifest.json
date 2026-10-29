@@ -142,7 +142,7 @@
   "victory-and-the-ending": {
    "name": "Victory and the ending",
    "node": "58b70949-2c17",
-   "rev": 11,
+   "rev": 12,
    "files": [
     "docs/intent/victory-and-the-ending/front.md",
     "docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md",

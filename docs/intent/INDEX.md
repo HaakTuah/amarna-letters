@@ -23,7 +23,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 29 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 61 |
-| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 11 |
+| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 12 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 15 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 17 |
@@ -109,7 +109,7 @@ session loads.
 | `docs/intent/war-travel-and-the-seas/travel-passage-and-distance.md` | Travel, passage and distance | 3.3 |
 | `docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md` | Bands, pirates and outlaws | 10.8 |
 | `docs/intent/victory-and-the-ending/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 20.1 |
+| `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 20.6 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 1.9 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 11.0 |
