@@ -278,7 +278,7 @@ describe("AdjudicatorTests", () => {
   });
 
   test("A fleet never storms walls", () => {
-    let b = new Board().f("Hatti", "ugaritwaters").f("Hatti", "amurru").move("ugaritwaters", "ugarit").support("amurru", "ugaritwaters", "ugarit");
+    let b = new Board().f("Hatti", "ugaritwaters").f("Hatti", "sumur").move("ugaritwaters", "ugarit").support("sumur", "ugaritwaters", "ugarit");
     b.walls.set("ugarit", 1);
     let r = b.run();
     Assert.equal("ugarit", b.where(r, "ugaritwaters"));

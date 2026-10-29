@@ -131,7 +131,7 @@ describe("SiegePlayTests", () => {
     e.beginTurn();
     e.resolve(
       new Dict([
-        ["Mitanni", newTurnSubmission({ orders: [moveOrder("nineveh", "ashur"), support("terqa", "nineveh", "ashur")] })],
+        ["Mitanni", newTurnSubmission({ orders: [moveOrder("nineveh", "ashur"), support("taidu", "nineveh", "ashur")] })],
         ["Babylonia", newTurnSubmission({ orders: [besiege("ashur")] })],
         ["Assyria", newTurnSubmission({ orders: [sally("ashur", "nineveh")] })],
       ]),

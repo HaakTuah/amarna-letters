@@ -373,9 +373,9 @@ describe("SleepTests", () => {
     );
     Assert.null(r.state.owner.get("suhu"));
 
-    // Babylon's own army holds Babylon: the move from Dur-Kurigalzu into it fails against its own unit.
+    // Babylon's own army holds Babylon: the move from Sippar into it fails against its own unit.
     let own = new Sleeper((v) =>
-      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [move("durkurigalzu", "babylon")] })] }) : nothing(),
+      v.turn === 1 ? newTurnSubmission({ scheduled: [newScheduledOrders({ turn: 2, orders: [move("sippar", "babylon")] })] }) : nothing(),
     );
     r = await play("Babylonia", own, 3);
     Assert.equal([1], own.calls);

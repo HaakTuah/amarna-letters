@@ -247,24 +247,24 @@ describe("SleepTests", () => {
   });
 
   test("A seat whose call failed is told next season what woke it and what concerns it now", async () => {
-    // Babylon disbands the army in Sippar and sleeps; Assyria walks in in turn 2 and the seat is woken in turn 3, but its
+    // Babylon disbands the army in Dur-Kurigalzu and sleeps; Assyria walks in in turn 2 and the seat is woken in turn 3, but its
     // call fails. Asked again in turn 4, it reads what woke it in turn 3, which it never read.
     let calls = 0;
     let sleeper = new Sleeper((v) => {
       calls++;
       if (calls === 2) throw new Error("the model did not answer");
-      return v.turn === 1 ? newTurnSubmission({ orders: [disband("sippar")] }) : nothing();
+      return v.turn === 1 ? newTurnSubmission({ orders: [disband("durkurigalzu")] }) : nothing();
     });
-    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "sippar")] }) : newTurnSubmission()));
+    let assyria = new Scripted((v) => (v.turn === 2 ? newTurnSubmission({ orders: [move("ekallate", "durkurigalzu")] }) : newTurnSubmission()));
     let r = await play("Babylonia", sleeper, 5, undefined, new Dict([["Assyria", assyria]]));
     Assert.contains(r.errors, (e) => e.startsWith("t3/orders/Babylonia:"));
     Assert.equal([1, 3, 4], sleeper.calls);
-    let woke = ["foreign troops entered your land: Assyria's army moved ekallate -> sippar", "land lost: Sippar has been taken by Assyria."];
+    let woke = ["foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu", "land lost: Dur-Kurigalzu has been taken by Assyria."];
     Assert.equal(woke, sleeper.views[1].wokenBecause);
     // In the season it missed, the stand-in's trading caravan was lost too (item 9+b), which wakes a king as well.
     Assert.equal([...woke, "a caravan of yours was lost"], sleeper.views[2].wokenBecause);
     Assert.equal(
-      "You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallate -> sippar; land lost: Sippar has been taken by Assyria; a caravan of yours was lost.",
+      "You slept 2 seasons (you last gave orders in turn 1). You were woken because: foreign troops entered your land: Assyria's army moved ekallate -> durkurigalzu; land lost: Dur-Kurigalzu has been taken by Assyria; a caravan of yours was lost.",
       sleepLine(sleeper.views[2]),
     );
     // Having answered itself in turn 4, it sleeps on: the reasons it has now read wake it no more.
@@ -331,7 +331,14 @@ describe("SleepTests", () => {
                     newScheduledOrders({ turn: v.turn + 2, orders: [move("sippar", "suhu"), supportOrder("durkurigalzu", "sippar", "suhu")] }),
                     newScheduledOrders({ turn: v.turn + 3, orders: [move("sippar", "damascus"), move("babylon", "sippar")] }),
                   ],
-                  standing: [attackedOf("babylon", move("babylon", "nippur")), enters("Assyria", "ekallate", supportOrder("sippar", "durkurigalzu"))],
+                  // Sippar's guard is the king's own army in Babylon, which sees it: a standing order fires on what its army
+                  // sees, where its commander or king stands with it (item 13).
+                  standing: [
+                    attackedOf("babylon", move("babylon", "nippur")),
+                    enters("Assyria", "ekallate", supportOrder("durkurigalzu", "sippar")),
+                    enters(null, "sippar", hold("babylon")),
+                    attackedOf("sippar", supportOrder("babylon", "sippar")),
+                  ],
                   cancelStanding: v.turn % 2 === 0 ? ["all"] : [],
                 }),
               );
