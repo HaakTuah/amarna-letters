@@ -75,3 +75,17 @@ report, with the readings taken and the measures, is `docs/rounds/2026-10-29-map
   fewer. `--caravan-play-half` measures it against keeping caravans to its own land, as before.
 - **The crossings** need nothing new: their help in battle reaches the scripts' reckoning through `defenceGround`
   (`Board.groundBonus`) and their delays through `legPoints`.
+
+## Haakon's answers to items 11e and 12 (PR #174, built here)
+
+- **Size weighs 5 in a hundred** in the final score (`GameConfig.sizeWeight`, 50 before), near the fair point item 11e
+  measured; item 18 sets it.
+- **Anyone in a court's service standing at it bridges an audience** (`servantsAt` in `turn/languages.ts`): a scribe, a
+  resident envoy, anyone it pays to stay, whatever his errand there (before, only a servant with no errand).
+- **An Akkadian scribe at every court that reads Akkadian** (`scribes` in `rules/factory.ts`; 23 courts): a starting
+  servant like the others (a job, half its fee before the game, its term ending between turns 7 and 13), fluent in
+  Akkadian, in its court's name style or the nearest court's, with the court's own tongue from its years there; drawn
+  from a stream of its own, so no other draw moves. It may die, leave or be hired away like anyone.
+- **Script kings** hire a bridge whenever an envoy nobody at their court understands waits there (item 12's
+  `bridgesWanted`), which is the court that "finds envoys going unheard"; unchanged.
+- The rulebook's "Being understood" says who bridges and that the courts that read Akkadian start with such a scribe.
