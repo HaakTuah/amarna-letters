@@ -255,6 +255,36 @@ describe("MapSceneTests", () => {
     Assert.true(bands > 0 && battles > 0, "the game had no band or no battle to check");
   });
 
+  // Item 19: a court knows its own works as they stand, others' as its eyes last saw them, and nothing of land never seen.
+  test("A court draws what is built in its own land as it stands and elsewhere as it last saw it", async () => {
+    let { runner, frames } = await play(7, 16);
+    let k = frames.length - 1;
+    let p = living(runner.stateAt(k)!)[0];
+    let land = WorldMap.default.landProvinces.map((x) => x.id);
+    let own = land.find((id) => frames[k].owner.get(id) === p)!;
+    let out = land.filter((id) => frames[k].owner.get(id) !== p && frames.every((f) => !f.sight.get(p)!.has(id)));
+    Assert.true(own !== undefined && out.length >= 2, "the court saw all the land or held none");
+    let [neverSeen, seenBefore] = out;
+    let roads = (f: SeasonFrame, levels: [string, number][]): SeasonFrame => ({ ...f, built: new Map([...f.built, ...levels.map(([id, l]) => [`Roads:${id}`, l] as [string, number])]) });
+    let edited = frames.map((f, i) =>
+      i === k
+        ? roads(f, [[own, 3], [neverSeen, 2], [seenBefore, 1]])
+        : i === k - 1
+          ? { ...roads(f, [[own, 1], [seenBefore, 3]]), sight: new Map([...f.sight].map(([q, v]) => [q, q === p ? new Set([...v, seenBefore]) : v] as const)) }
+          : f,
+    );
+    let seat = buildScene(edited, k, p);
+    Assert.equal(3, seat.built.get(`Roads:${own}`));
+    Assert.equal(3, seat.built.get(`Roads:${seenBefore}`));
+    Assert.false(seat.built.has(`Roads:${neverSeen}`));
+    Assert.false(seat.builtKnown!.has(neverSeen));
+    let god = buildScene(edited, k, null);
+    Assert.equal(1, god.built.get(`Roads:${seenBefore}`));
+    Assert.equal(2, god.built.get(`Roads:${neverSeen}`));
+    // Its own stores it counts; another's it does not.
+    Assert.true([...seat.stores.keys()].every((id) => frames[k].owner.get(id) === p));
+  });
+
   test("A frame from the live state matches one read back from its snapshot", async () => {
     let { runner, frames } = await play(7, 16);
     for (let k = 0; k < frames.length; k++) {

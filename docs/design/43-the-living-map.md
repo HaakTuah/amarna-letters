@@ -97,3 +97,27 @@ power risen in play takes the style of the fixed power whose capital is nearest 
 **Readings taken.** A battle is drawn only where the viewer saw the troops met (pillar 4): the same test that already
 tells it an attack from a march. The styles follow the item's list of relics; the Levantine cities, the nomads and the
 north Syrian cities, which it does not name, take the idiom of their neighbours and their own reliefs.
+
+## Pass 3: every level of what is built
+
+`src/web/src/map/built.ts`. The levels are the engine's (item 15, `GameState.built`, copied into each season frame with
+the stores); the look of each follows the walls dossier (`docs/history/12-walls-roads-harbours.md`).
+
+- **Roads by quality.** Every road between two land provinces is drawn as two halves, each in its own province's road
+  level: a faint dotted track nobody keeps (level 0), a dashed kept track (1), a solid road with bridges, wells and posts
+  (2), a broad royal road (3). Their widths and dashes follow the zoom (`--k`), as the moves' arrows do. **Relay
+  stations**: a small square for each level along the province's half.
+- **At each city, close up** (the nearest zoom level only), a row of small marks to the right of the city, below its
+  news, giving way to every marker and name (they are placed last): a **harbour** from a beach with a boat drawn up (1)
+  to a lesser port with its mole (2) and a great harbour with quays and moorings (3); **water works**, a well with its
+  sweep (1), then cisterns (2); **granaries**, three beehive silos filled as far as the stores go (empty; under a
+  season's tax; under four; more), and **mines** where the province's economy has them.
+- **Walls** keep their rings, one a level, broken while besieged (item 2), with pass 2's siege camp round them.
+
+**What a court knows.** Its own land's works as they stand; elsewhere as its eyes last saw them (as walls are known, and
+as the engine's view shows a court the works it sees: `worksSeen`); a province it never saw is drawn as an unknown track.
+Stores it counts only in its own land (every store in god view). Mines are the map's own data, known to all.
+
+**Readings taken.** Policing is men, not something built, so it has no mark ("every level of what is built": roads,
+harbours, walls, water works, granaries, mines). Fields are not yet a built level in the engine (its works say "fields,
+mines and storage come with the economy's later phases"), so a mine shows where the economy has one, not by a level.

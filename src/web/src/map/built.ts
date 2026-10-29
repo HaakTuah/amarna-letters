@@ -77,9 +77,9 @@ function granary(fill: number): string {
 const Mine = `<path class="mn-pick" d="M-5,5L3,-3M0.5,-5.5Q3.5,-5 5.5,-1.5"/><path class="mn-ore" d="M-1,4.5L1.5,1.5L4.5,2.5L5,5Z"/>`;
 
 /**
- * The works at a city, close up: each a small mark on the city's upper arc, clear of its outermost ring. Inside the city's
- * own scaled group (`csym`), so they keep their size on screen. Drawn only when the map is zoomed in (lod2, the
- * stylesheet), where there is room.
+ * The works at a city, close up: a row of small marks to the right of the city, below its news, clear of its outermost
+ * ring (the stylesheet's `wring`); markers in the upper drawing, which give way where they would touch another (the
+ * renderer's placement), and are drawn only when the map is zoomed in (lod2), where there is room.
  */
 export function cityWorks(s: MapScene, province: string, capital: boolean, walls: number): string {
   const marks: { cls: string; inner: string; text: string }[] = [];
@@ -97,11 +97,15 @@ export function cityWorks(s: MapScene, province: string, capital: boolean, walls
   }
   if (economyOf(Map_.get(province)).mine > 0) marks.push({ cls: "mine", inner: Mine, text: "mines worked here" });
   if (marks.length === 0) return "";
-  const r = ringOf(capital, walls) + 8;
-  let sb = `<g class="works">`;
+  const at = city(province);
+  let sb = `<g class="works-at" data-province="${province}" transform="translate(${F(at.x)},${F(at.y)})" style="--ring:${F(ringOf(capital, walls))}"><g class="wring"><g class="sym">`;
   marks.forEach((m, i) => {
-    const a = ((-140 + i * 33) * Math.PI) / 180;
-    sb += `<g class="wk ${m.cls}" transform="translate(${F(Math.cos(a) * r)},${F(Math.sin(a) * r)})"><title>${m.text}</title><circle class="wk-bg" r="6.4"/>${m.inner}</g>`;
+    sb += `<g class="wk ${m.cls}" transform="translate(${F(7 + i * 15)},0)"><title>${m.text}</title><circle class="wk-bg" r="7"/>${m.inner}</g>`;
   });
-  return sb + "</g>";
+  return sb + "</g></g></g>";
+}
+
+/** The works of every city the viewer has any to show at, as the upper drawing's layer. */
+export function worksAtCities(s: MapScene): string {
+  return Map_.landProvinces.map((p) => cityWorks(s, p.id, p.capital, s.walls.get(p.id) ?? 0)).join("");
 }

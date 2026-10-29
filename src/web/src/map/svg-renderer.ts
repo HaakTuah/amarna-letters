@@ -8,7 +8,7 @@ import { powerName, provinceName, shekels } from "../ui/format.ts";
 import { CoastPath, F, Height, IslandPath, LakePath, LandPath, MainlandPath, Rivers, SeaPath, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
-import { cityWorks, roadsLayer } from "./built.ts";
+import { roadsLayer, worksAtCities } from "./built.ts";
 import { figureOf } from "./figures.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, Relief, ringOf } from "./markup.ts";
 import type { MapHandlers, MapInput, MapRenderer } from "./renderer.ts";
@@ -78,8 +78,6 @@ function cities(s: MapScene): string {
     for (let level = walls; level >= 1; level--) sb += `<circle class="walls w${level}" r="${(p.capital ? 12 : 8.5) + 2 * level}"/>`;
     if (p.capital) sb += `<circle class="cap-ring" r="12.6"/>`;
     sb += `<circle class="seal ${owner !== null ? `s-${glyphId(owner)}` : "s-free"}" r="${p.capital ? 9.5 : 7.5}"/>`;
-    // What is built at the city, close up (item 19).
-    sb += cityWorks(s, p.id, p.capital, walls);
     // A siege camp (item 19): the besieger's tents ringing the walls.
     const siege = s.sieges.find((x) => x.province === p.id);
     if (siege !== undefined) {
@@ -556,7 +554,7 @@ export class SvgMapRenderer implements MapRenderer {
     // only when another season is shown), the pieces above (light). The upper one lets taps through where it has nothing.
     zoom.innerHTML =
       `<svg class="map map-lower" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" role="img">${Defs}${Base}<g data-layer="tints"></g><g data-layer="season"></g>${Relief}<g data-layer="works"></g><g data-layer="fog"></g><g data-layer="bands"></g>${MarksMarkup}${Labels}<g data-layer="cities"></g></svg>` +
-      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
+      `<svg class="map map-upper" viewBox="0 0 ${Width} ${Height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g data-layer="roads"></g><g data-layer="moves"></g><g data-layer="outlaws"></g><g data-layer="worksat"></g><g class="units" data-layer="units"></g><g class="people"><g data-layer="courts"></g><g data-layer="travellers"></g></g><g data-layer="selection"></g></svg>`;
     view.prepend(zoom);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-layer]")) this.layers.set(g.dataset.layer!, g);
     for (const g of zoom.querySelectorAll<SVGGElement>("g[data-label]")) this.labels.set(g.dataset.label!, g);
@@ -615,6 +613,7 @@ export class SvgMapRenderer implements MapRenderer {
     this.layer("roads", `${s.index}|${s.viewer}|${input.followId}|${input.followPath?.length ?? -1}|${input.followPath?.[input.followPath.length - 1]?.index ?? -1}`, () => roads(input));
     this.layer("moves", s, () => moves(s));
     this.layer("outlaws", s, () => outlaws(s));
+    this.layer("worksat", s, () => worksAtCities(s));
     this.drawUnits(s);
     const peopleKey = `${s.index}|${s.viewer}|${input.followId}`;
     if (this.drawn.get("people") !== s || this.drawn.get("peopleKey") !== peopleKey) {
@@ -722,6 +721,8 @@ export class SvgMapRenderer implements MapRenderer {
         ...[...view.querySelectorAll(".map-upper .traveller:not(.followed)")].map((e) => [e, ":scope > .sym"] as const),
         ...[...view.querySelectorAll(".xmarks .xmark")].map((e) => [e, ".xm-bg"] as const),
       ].map(([e, sel]) => ({ e, rs: rects(e, sel) }));
+      // What is built at the cities (item 19) comes last of all: it gives way to every marker and every name.
+      const works = [...view.querySelectorAll(".map-upper .works-at")].map((e) => ({ e, rs: rects(e, ".wk-bg") }));
       const names = NameOrder.map((id) => this.labels.get(id)?.querySelector("text"))
         .filter((t): t is SVGTextElement => t !== null && t !== undefined)
         .map((t) => ({ t, own: t.closest("[data-label]")?.getAttribute("data-label") ?? null, r: t.getBoundingClientRect() }));
@@ -764,6 +765,10 @@ export class SvgMapRenderer implements MapRenderer {
         const ok = !shown.some((o) => touch(r, o)) && !placed.some((o) => (own === null || o.own !== own) && touch(r, o.r));
         if (ok) shown.push(r);
         else writes.push(() => t.classList.add("off"));
+      }
+      for (const { e, rs } of works) {
+        if (free(rs) && rs.every((r) => !shown.some((o) => touch(r, o)))) place(rs, null);
+        else writes.push(() => e.classList.add("off"));
       }
       for (const w of writes) w();
     });

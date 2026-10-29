@@ -50,24 +50,31 @@
 /* Pass 3: every level of what is built (built.ts). Roads in their province's quality, under the fog. */
 .map .works-roads { pointer-events: none; }
 .map .road-net { fill: none; stroke: #6b4a2a; stroke-linecap: round; stroke-linejoin: round; }
-.map .road-net.unknown { stroke-width: .7; stroke-dasharray: .8 3.2; opacity: .35; }
-.map .road-net.q0 { stroke-width: .7; stroke-dasharray: .8 2.4; opacity: .5; }
-.map .road-net.q1 { stroke-width: .9; stroke-dasharray: 3.2 2.2; opacity: .6; }
-.map .road-net.q2 { stroke-width: 1.3; opacity: .65; }
-.map .road-net.q3 { stroke-width: 2.1; opacity: .8; stroke: #5a3b1e; }
-.map .station { fill: var(--paper); stroke: #5a3b1e; stroke-width: .7; }
+/* Their widths and dashes follow the zoom (--k), as the moves' arrows do, so a road stays a road close up. */
+:is(.map, .legend) .road-net.unknown { stroke-width: calc(.9px * var(--k)); stroke-dasharray: calc(1px * var(--k)) calc(4px * var(--k)); opacity: .35; }
+:is(.map, .legend) .road-net.q0 { stroke-width: calc(.9px * var(--k)); stroke-dasharray: calc(1px * var(--k)) calc(3px * var(--k)); opacity: .55; }
+:is(.map, .legend) .road-net.q1 { stroke-width: calc(1.2px * var(--k)); stroke-dasharray: calc(4px * var(--k)) calc(3px * var(--k)); opacity: .6; }
+:is(.map, .legend) .road-net.q2 { stroke-width: calc(1.6px * var(--k)); opacity: .65; }
+:is(.map, .legend) .road-net.q3 { stroke-width: calc(2.6px * var(--k)); opacity: .8; stroke: #5a3b1e; }
+.map .station { fill: var(--paper); stroke: #5a3b1e; stroke-width: .7; transform: scale(var(--sym)); transform-box: fill-box; transform-origin: center; }
 .lod0 .map .station { display: none; }
-/* The works at a city: only close up. */
-.lod0 .map .works, .lod1 .map .works { display: none; }
+/* The works at a city: only close up, in a row to its right below its news, clear of its outermost ring. */
+.lod0 .map .works-at, .lod1 .map .works-at { display: none; }
+.map .wring { transform: translate(calc(1px * (var(--ring) * var(--cs) + 4 * var(--sym))), calc(13px * var(--sym))); transform-box: view-box; transform-origin: 0 0; }
 .map .wk-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .7; opacity: .92; }
-.map .hb-sand { fill: none; stroke: var(--sand); stroke-width: 1.4; stroke-linecap: round; }
-.map .hb-mole { fill: none; stroke: #6b6355; stroke-width: 1.8; stroke-linecap: round; }
-.map .hb-quay { fill: #8b7b60; }
-.map .hb-boat { fill: #5a3b1e; }
-.map .wt-well { fill: var(--river); stroke: #5a3b1e; stroke-width: .8; }
-.map .wt-sweep { stroke: #5a3b1e; stroke-width: .9; stroke-linecap: round; }
-.map .wt-cistern { fill: var(--river); stroke: #5a3b1e; stroke-width: .8; }
-.map .gr-dome { fill: var(--paper); stroke: #7a5a2a; stroke-width: .8; }
-.map .gr-dome.full { fill: var(--gold-metal); }
-.map .mn-pick { fill: none; stroke: #4a3a2a; stroke-width: 1.2; stroke-linecap: round; }
-.map .mn-ore { fill: #b8862b; }
+:is(.map, .legend) .hb-sand { fill: none; stroke: var(--sand); stroke-width: 1.4; stroke-linecap: round; }
+:is(.map, .legend) .hb-mole { fill: none; stroke: #6b6355; stroke-width: 1.8; stroke-linecap: round; }
+:is(.map, .legend) .hb-quay { fill: #8b7b60; }
+:is(.map, .legend) .hb-boat { fill: #5a3b1e; }
+:is(.map, .legend) .wt-well { fill: var(--river); stroke: #5a3b1e; stroke-width: .8; }
+:is(.map, .legend) .wt-sweep { stroke: #5a3b1e; stroke-width: .9; stroke-linecap: round; }
+:is(.map, .legend) .wt-cistern { fill: var(--river); stroke: #5a3b1e; stroke-width: .8; }
+:is(.map, .legend) .gr-dome { fill: var(--paper); stroke: #7a5a2a; stroke-width: .8; }
+:is(.map, .legend) .gr-dome.full { fill: var(--gold-metal); }
+:is(.map, .legend) .mn-pick { fill: none; stroke: #4a3a2a; stroke-width: 1.2; stroke-linecap: round; }
+:is(.map, .legend) .mn-ore { fill: #b8862b; }
+.map-upper .works-at { pointer-events: auto; }
+.map .works-at.off { visibility: hidden; }
+/* In the legend, roads at a fixed width (the map's zoom factor is not there). */
+.legend .road-net { --k: 1.2; fill: none; stroke: #6b4a2a; stroke-linecap: round; }
+.legend .wk-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .7; }

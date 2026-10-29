@@ -117,3 +117,27 @@ One reviewer (Opus, high). Blocking, fixed: band marks did not hide when they ga
 now counts them. Fixed besides: siege tents count in their city's badge, hide with a small seal and stand close enough
 not to touch the counters above (the smoke test caught the first try at Ur); the figures' cost on a phone (above); the
 old chariot and ship symbols removed; the note says a pirate crew is drawn at its coastal city.
+
+## Pass 3: every level of what is built
+
+PR (pass 3), branch `item/living-map-works`, stacked on pass 2.
+
+### What was built
+
+1. **Roads by quality**, each half in its own province's level (track nobody keeps, kept track, road with posts, royal
+   road), widths following the zoom; **relay stations** along them.
+2. **At each city, close up**: harbours from a beach to quays, wells and cisterns, granaries filled as the stores go,
+   mines; placed last, giving way to every marker and name.
+3. **What a court knows**: its own works as they stand, others' as last seen, land never seen as an unknown track, only
+   its own stores. A scene test checks it.
+4. The legend shows the roads' levels and each work.
+5. `season-shots.mjs` can zoom at a point (`--at`) and play seasons first (`--play`).
+
+### Readings taken
+
+- **Works known as walls are** (pillar 4; the engine's `worksSeen`): own land now, others as last seen.
+- **Stores only one's own** ("Truth is expensive"): another king's granaries are counted by spies, not by the map.
+- **Policing has no mark**: it is men on the road, not something built.
+- **Mines by the economy's data**, since the engine has no level for them yet (its works name fields, mines and storage
+  as later phases); no level is invented for the map (no stopgaps).
+- **Works give way to names** ("names that give way" put names above lesser markers; the works are the least of all).
