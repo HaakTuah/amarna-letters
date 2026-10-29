@@ -284,3 +284,57 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Here: a standing instruction in `CLAUDE.md` ("settled questions are readings"), and the checks split into parallel
     jobs (lint and types beside the tests, the tests in four shards).
+
+30. **02:05 to 02:19**, in the design chat, on the web map:
+
+    > Didn't you say the different seas and provinces were all added to amarna letters? Why can I only see as far south
+    > as northern Egypt then? And i see almost no sea in the south, and east, of the game map. No red sea or anything.
+
+    Then, after Claude showed that every map and sea decision is built and the Red Sea was decided as a later addition,
+    to building the Red Sea now and redrawing the map in true geography:
+
+    > Yes, and yes, expertly. In my view, the map should in time become a fusion or blend of imperator rome and an
+    > ancient museum map of the bronze age world. It should fir the geography the same way imperator has, as it had the
+    > best geographic perspective.
+    >
+    > If we do this full visual makeover right now is another question, but the perspective must be corrected at the
+    > very least. In time I want environmental effects, seasons reflected on the map. Characters, armies, fighting shown,
+    > etc. Everything you can think of, which makes it a better game for a player or viewer. But I don't believe the time
+    > for these effects are quiet yet. What is your expert take on all of this?
+
+    Written into the design document as "The map in true geography, and its look in time" (Interface) and build order
+    items 11c (true geography and the Red Sea, a lane beside 11+) and 19 (the living map, at the end).
+
+31. **02:25 and 02:30**, in the design chat, on the map's look and on the cities left inside larger provinces:
+
+    > Perfect, I really like those visual descriptions! Are they all added? Maybe it can be papyrus?
+    >
+    > Also, were any city states still excluded in mobile visibility grounds? This then changes the premises.
+
+    Then, to adding Akko, Hazor, Gezer, Lachish, Ashkelon and Shuwardata's land as city-states:
+
+    > Yes, do so expertly!
+
+    Written into "The map in true geography, and its look in time" (Interface: papyrus, and the look in full), "What
+    earns a place" (The world: the six cities) and build order item 11c.
+
+32. **02:35**, in the design chat, on drawing the units after the period's relics (Mesehti's soldiers at Asyut,
+    Tutankhamun's chest and model boats, the cylinder seals, Yazılıkaya, the Kassite boundary stones, the Thera fleet,
+    Meryre II's foreign delegations):
+
+    > Don't worry about copyright, we are not being taken for making a free game, where we model ancient reliqs based on
+    > photographs. Definetly be fully inspired by these relics, and be in no way afraid of making it too simular. I want
+    > what looks best and feels most authentic! And yes, ensure everything is in, expertly, and what we've previously
+    > agreed on!
+
+    Written into "The look, in time" (Interface) and build order item 19.
+
+33. **02:38 to 02:41**, in the design chat: "Will this be a truly living and evocative map? Is there anything more we
+    should add to it, expert?" Then, to Claude's six additions (a map that remembers, life from the simulation, a
+    seasonal year, each realm's own map by its scribes, omens in the margin, small scenes at big moments):
+
+    > Agree to everything, expert! And on your point about cities growing and shrinking! Yes! And i think every
+    > investment level infrastructure reaches should reflect on the map. Docks appear. Roads of the wuality appears.
+    > Walls. Etc!
+
+    Written into "The look, in time" (Interface) and build order item 19.

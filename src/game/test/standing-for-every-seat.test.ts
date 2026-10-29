@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { scriptSeats } from "./small-world.ts";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { Contingencies } from "../src/bots/contingencies.ts";
@@ -437,15 +438,11 @@ describe("StandingForEverySeatTests", () => {
   test("Script kings give standing orders and one meets its blow", async () => {
     // Script kings give standing orders, and in the first seeds one fires within a few seasons: its notice says what set it
     // off and the orders it gave. The game replays exactly. (Until the siege package this was seed 1's turn 3, where Arzawa
-    // marched on an empty Hattusa; the walls on homelands changed that game.)
-    for (let seed = 1; seed <= 12; seed++) {
+    // marched on an empty Hattusa; the walls on homelands changed that game.) In the small world (small-world.ts) the first
+    // to fire is seed 4's, in its eighth season, so the search starts there.
+    for (let seed = 4; seed <= 15; seed++) {
       let state = newGame(seed);
-      let seats = toDict(
-        AllPowers,
-        (p) => p,
-        (_) => new ScriptLeader(seed),
-      );
-      let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
+      let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
       await runner.prepare();
       let fired = null;
       let turns = 0;
@@ -469,6 +466,6 @@ describe("StandingForEverySeatTests", () => {
       Assert.equal(hash(GameStateSchema, state), hash(GameStateSchema, replay.state));
       return;
     }
-    Assert.fail("no standing order fired in the first twelve seasons of seeds 1-12");
+    Assert.fail("no standing order fired in the first twelve seasons of seeds 4-15");
   });
 });

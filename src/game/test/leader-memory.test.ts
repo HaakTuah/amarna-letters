@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { Near, smallSeats } from "./small-world.ts";
 import { court } from "../src/bots/statecraft-court.ts";
 import {
   AllPowers,
@@ -195,11 +196,7 @@ describe("LeaderMemoryTests", () => {
       spec.key.includes("/aud/") ? Host : ordersOf(`notes ${spec.turn}`, `summary written in turn ${spec.turn}`, ["Egypt", `ledger line of turn ${spec.turn}`]),
     );
     let bot = new ScriptLeader(4);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (p) => (p === "Hatti" ? new LlmLeaderSeat(p, asker, "m", "medium", true, state.config) : bot),
-    );
+    let seats = smallSeats((p) => (p === "Hatti" ? new LlmLeaderSeat(p, asker, "m", "medium", true, state.config) : bot), [...Near, "Hatti"]);
     let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     await runner.prepare();
     while (await runner.playTurn()) {}

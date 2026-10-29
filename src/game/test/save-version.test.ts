@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { Near, scriptSeats, smallSeats } from "./small-world.ts";
 import { court } from "../src/bots/statecraft-court.ts";
 import { AllPowers, type AudienceView, CURRENT_VERSION, type HostReply, type SeatView, type TurnSubmission, newGame, newGameConfig } from "@amarna/engine";
 import { GameLog, GameRunner, type ISeat, ScriptLeader, ScriptMind, TemplateNarrator, playGame } from "@amarna/game";
@@ -27,11 +28,7 @@ describe("SaveVersionTests", () => {
 
   async function playedLog(seed: number, turns: number): Promise<GameLog> {
     let state = newGame(seed);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (_) => new ScriptLeader(seed),
-    );
+    let seats = scriptSeats(seed);
     let r = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     await r.prepare();
     for (let i = 0; i < turns; i++) await r.playTurn();
@@ -58,11 +55,7 @@ describe("SaveVersionTests", () => {
 
     Assert.equal(message, GameRunner.versionProblem(old.header));
     Assert.equal(message, Assert.throws(() => GameRunner.forReplay(old)).message);
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (_) => new ScriptLeader(4),
-    );
+    let seats = scriptSeats(4);
     Assert.equal(message, Assert.throws(() => GameRunner.resume(old, seats, new ScriptMind(), new TemplateNarrator())).message);
     Assert.throws(() => new GameRunner(newGame(4), seats, new ScriptMind(), new TemplateNarrator(), { replay: old }));
 
@@ -78,12 +71,9 @@ describe("SaveVersionTests", () => {
             seed,
             (st) => {
               let bot = new ScriptLeader(st.seed);
-              // With sleep on, two kings sit in seats that may sleep; the rest are script kings, who never do.
-              let seats = toDict(
-                AllPowers,
-                (p) => p,
-                (p) => (sleeping && ["Babylonia", "Alashiya"].includes(p) ? new SleepyScript(bot) : bot),
-              );
+              // With sleep on, two kings sit in seats that may sleep; the default few others are script kings, who never do,
+              // and every other power is idle (small-world.ts).
+              let seats = smallSeats((p) => (sleeping && ["Babylonia", "Alashiya"].includes(p) ? new SleepyScript(bot) : bot), [...Near, "Alashiya"]);
               return Object.assign(new GameRunner(st, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
             },
             true,

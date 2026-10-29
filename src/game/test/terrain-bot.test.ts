@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { scriptSeats } from "./small-world.ts";
 import { Board } from "../src/bots/board.ts";
 import { Brain } from "../src/bots/brain.ts";
 import { Search } from "../src/bots/search.ts";
@@ -101,6 +102,9 @@ describe("TerrainBotTests", () => {
     Assert.empty(Search.stoodAgainstUs(new Board(Views.for(s, "Arzawa"))));
   });
 
+  // The small world (small-world.ts) of Anatolia's mountains and passes, where the ground most often decides a blow.
+  const Anatolia = ["Hatti", "Arzawa", "Kaska", "Isuwa", "Lukka", "Mitanni"] as const;
+
   test("Script kings hold by the ground and beat it in play and the games replay exactly", async () => {
     let held = 0;
     let beaten = 0;
@@ -115,11 +119,7 @@ describe("TerrainBotTests", () => {
             Object.assign(
               new GameRunner(
                 st,
-                toDict(
-                  AllPowers,
-                  (p) => p,
-                  (_) => new ScriptLeader(st.seed),
-                ),
+                scriptSeats(st.seed, Anatolia),
                 new ScriptMind(),
                 new TemplateNarrator(),
               ),
@@ -135,6 +135,7 @@ describe("TerrainBotTests", () => {
     }
     Assert.true(held > 0, "no troop of a script king held by the ground");
     Assert.true(beaten > 0, "no script king beat a troop the ground helped");
-    // Since item 10+a the first blow that beats the ground comes at seed 23: about two dozen short games.
+    // In the small world of Anatolia both come in seed 1 (in the whole world, since item 10+a, the first blow that beat the
+    // ground came at seed 23).
   }, 600_000);
 });

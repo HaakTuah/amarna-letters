@@ -1,4 +1,5 @@
 import { describe, test } from "vitest";
+import { Near, smallSeats } from "./small-world.ts";
 import { court } from "../src/bots/statecraft-court.ts";
 import {
   AllPowers,
@@ -62,17 +63,14 @@ describe("BlindnessTests", () => {
     turns: number,
     seat: ((a0: Power, a1: ScriptLeader) => ISeat) | null = null,
   ): Promise<[GameRunner, Dict<Power, ScriptLeader>]> {
+    // The small world (small-world.ts): the default few are script kings, every other power idle.
     let state = newGame(seed);
     let bots = toDict(
-      AllPowers,
+      Near,
       (p) => p,
       (_) => new ScriptLeader(seed),
     );
-    let seats = toDict(
-      AllPowers,
-      (p) => p,
-      (p) => seat?.(p, bots.get(p)) ?? bots.get(p),
-    );
+    let seats = smallSeats((p) => seat?.(p, bots.get(p)) ?? bots.get(p));
     let runner = Object.assign(new GameRunner(state, seats, new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
     for (let i = 0; i < turns && !state.ended; i++) await runner.playTurn();
     return [runner, bots];
@@ -137,7 +135,7 @@ describe("BlindnessTests", () => {
     let [b, blind] = await played(seed, 5);
     Assert.equal(hash(GameStateSchema, a.state), hash(GameStateSchema, b.state));
 
-    for (const p of alive(a.state)) {
+    for (const p of Near.filter((p) => isAlive(a.state, p))) {
       let hidden = deserialize<GameState>(GameStateSchema, serialize(GameStateSchema, a.state))!;
       hide(hidden, p);
       Assert.notEqual(hash(GameStateSchema, a.state), hash(GameStateSchema, hidden));
@@ -186,8 +184,8 @@ describe("BlindnessTests", () => {
 
   test("Seat labels change nothing a script king does", async () => {
     let [a] = await played(4, 5);
-    let [b] = await played(4, 5, (p, bot) => (["Egypt", "Hatti"].includes(p) ? new Labelled(bot, "Claude Opus 5.5 leader") : bot));
-    Assert.notEqual(a.log.header.seats.get("Egypt"), b.log.header.seats.get("Egypt"));
+    let [b] = await played(4, 5, (p, bot) => (["Mitanni", "Assyria"].includes(p) ? new Labelled(bot, "Claude Opus 5.5 leader") : bot));
+    Assert.notEqual(a.log.header.seats.get("Mitanni"), b.log.header.seats.get("Mitanni"));
     Assert.equal(hash(GameStateSchema, a.state), hash(GameStateSchema, b.state));
   });
 
