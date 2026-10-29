@@ -495,3 +495,10 @@ Given in the design chat with Claude, answering the design questions of the cons
     > Yes to all, expertly!
 
     Written into "Caravans carry a kingdom's goods" (Land, people and economy) and build order items 11f and 15.
+
+48. **09:24**, in the design chat, on armies buying or taking their food:
+
+    > But remember, when you say a king decides how his army supplies himself. Information time travel stoll applies. He can tell them to buy, but if he hasn't sent them enough money to buy with, they will do what they must to eat. And an army with an assigned commander (a character) the commander has the final say on following orders or not. He may keep any money meant for food, and just take instead.
+
+    Written into "The land" under "Armies need food as well as pay" (Land, people and economy) and build order item 17:
+    buying or taking is an order that travels; hunger decides before orders do; a commander may keep the gold and take.
