@@ -96,7 +96,7 @@ describe("AuthorityTests", () => {
     const t = s.tablets.find((x) => x.byHandOf === "Egypt")!;
     Assert.false(t.within!);
     // Egypt holds no copy until its envoy comes home: give it one, as the envoy would.
-    s.copies.push({ id: "k-test", tabletId: t.id, holder: "Egypt", acquiredTurn: s.turn, source: "brought home", authResult: null });
+    s.copies.push({ id: "k-test", tabletId: t.id, holder: "Egypt", acquiredTurn: s.turn, source: "brought home", authResult: null, unread: null });
     const v = new OrderValidator(s, Map).validate("Egypt", newTurnSubmission({ orders: [repudiate("k-test")] }));
     Assert.equal(1, v.accepted.length);
     new TurnEngine(s).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [repudiate("k-test")] })]]));
@@ -129,7 +129,7 @@ describe("AuthorityTests", () => {
     b.grants.push(newGrant({ id: "p1", kind: "basing", grantor: "Hatti", grantee: "Egypt", province: "tuwanuwa", sinceTurn: 0, tabletId: "t-x" }));
     b.turn = 3;
     // Hatti holds the tablet's copy: it knows what it granted.
-    b.copies.push({ id: "k-x", tabletId: "t-x", holder: "Hatti", acquiredTurn: 0, source: "sealed", authResult: null });
+    b.copies.push({ id: "k-x", tabletId: "t-x", holder: "Hatti", acquiredTurn: 0, source: "sealed", authResult: null, unread: null });
     for (let i = 0; i < 2; i++) new TurnEngine(b).resolve(new Dict([["Egypt", newTurnSubmission({ orders: [hold("tuwanuwa")] })]]));
     Assert.equal("Hatti", b.owner.get("tuwanuwa"));
     // Revoked: from next season the guest takes the land if it stays.

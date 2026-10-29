@@ -57,6 +57,11 @@ known kingdoms [G], except where a grade is given. "Court reads" is what the pro
 | `qadesh`, `damascus`, Kumidi | Canaanite and Amorite wide; Hurrian few | Akkadian | B |
 | `ugarit` | Ugaritic wide; Hurrian common; Akkadian common (scribes, merchants); also Luwian, Cypriot and Egyptian traders | Ugaritic, Akkadian, Hurrian | A: Ugarit's eight languages and five scripts |
 | `amurru`, Sumur, Arwad, `byblos`, Sidon, `tyre` | Canaanite wide; Akkadian few (scribes); Egyptian few (garrison and commissioners) | Akkadian | A |
+| `beirut` (item 11f) | As Byblos and Sidon: Canaanite wide; Akkadian few; Egyptian few (Ammunira writes in Akkadian, EA 141-143) | Akkadian | A |
+| `niya`, `tunip` (item 11f) | As Qatna and Nuhashshe: Amorite wide; Hurrian common (Tunip's citizens write in Akkadian, EA 59) | Akkadian | B |
+| `pella`, `ashtaroth` (item 11f) | As Canaan: Canaanite wide; Hurrian few (Mut-Bahlu and Ayyab write in Akkadian, EA 255-256, 364) | Akkadian | B |
+| `samuha` (item 11f) | As the plateau: Hittite and Luwian common; Hurrian some (Ishtar of Samuha a Hurrian goddess, her cult brought by the court) | (Hatti's) | B |
+| `azzi`, `libya`, `shasu` (item 11f) | Their own tongues: Hayasan (unknown), Libyan (unknown; Egyptian few on the Delta's edge), the Shasu's West Semitic (as Canaanite) | none | C |
 | `megiddo`, `gaza`, Jerusalem, Shechem | Canaanite wide; Egyptian some at Gaza; Hurrian few (rulers with Hurrian or Indo-Aryan names) | Akkadian | A |
 | Hatti (`hattusa`, `sapinuwa`) | Hittite common; Luwian common; Hattic few | Hittite, Akkadian, Luwian, Hurrian (all in Hattusa's archives) | A for the archives; B for the spoken mix |
 | `kanesh`, `tuwanuwa` | Luwian wide; Hittite common | Hittite | B |

@@ -5,7 +5,7 @@ import type { Power } from "./power.ts";
 import { type Clause, ClauseSchema } from "./clauses.ts";
 import { type Exchange, ExchangeSchema, type HomeCargo, HomeCargoSchema, type SpyReport, SpyReportSchema, type TabletProposal, TabletProposalSchema } from "./records.ts";
 import { type Authority, AuthoritySchema } from "./authority.ts";
-import { type Skills, SkillsSchema } from "./people.ts";
+import { type Skills, SkillsSchema, type UnheardChoice, UnheardChoiceSchema, type UnheardView, UnheardViewSchema, type BridgeView, BridgeViewSchema } from "./people.ts";
 import {
   type ChiefChoice,
   ChiefChoiceSchema,
@@ -23,7 +23,7 @@ import {
 import { type CharacterView, CharacterViewSchema, type TabletView, TabletViewSchema, newCharacterView } from "./views.ts";
 
 /** Text the engine needs written by a character or the narrator before it can be delivered. */
-export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned", "Life", "Chief", "Reports"] as const;
+export const MindTaskValues = ["EnvoyReport", "Pitch", "CheckReport", "SpyReport", "SummarizeMemory", "Questioned", "Life", "Chief", "Reports", "Unheard", "Bridge"] as const;
 export type MindTask = (typeof MindTaskValues)[number];
 
 export interface MindRequest {
@@ -55,6 +55,10 @@ export interface MindRequest {
   /** A chief's own season for his band ("Chief"), and a posted spy's reports waiting for a carrier ("Reports"). */
   chief: ChiefView | null;
   reports: ReportsView | null;
+  /** Item 12: an envoy nobody understands at the court where he stands ("Unheard"). */
+  unheard: UnheardView | null;
+  /** Item 12: a go-between in someone else's pay, with the envoy's words he passes on ("Bridge"). */
+  bridge: BridgeView | null;
   /**
    * For a spy's report: the copies of tablets from the watched court's archive that came home with it, now in the court's archive.
    * For a captive questioned (item 10+b): the tablets it gave way on (tablet ids).
@@ -79,6 +83,8 @@ export function newMindRequest(init: Partial<MindRequest> = {}): MindRequest {
     life: null,
     chief: null,
     reports: null,
+    unheard: null,
+    bridge: null,
     copyIds: [],
     ...init,
   };
@@ -100,6 +106,8 @@ export const MindRequestSchema: ObjSchema<MindRequest> = obj("MindRequest", newM
   life: () => LifeViewSchema,
   chief: () => ChiefViewSchema,
   reports: () => ReportsViewSchema,
+  unheard: () => UnheardViewSchema,
+  bridge: () => BridgeViewSchema,
   copyIds: list(S),
 });
 
@@ -137,6 +145,8 @@ export interface MindReply {
   /** A chief's choices for his band's next season, and a spy's for its waiting reports; null: the script's traits decide. */
   chief: ChiefChoice | null;
   reports: ReportsChoice | null;
+  /** Item 12: an envoy nobody understands, choosing to stay, go home or say he was heard; null: the script's traits decide. */
+  unheard: UnheardChoice | null;
 }
 
 export function newMindReply(init: Partial<MindReply> = {}): MindReply {
@@ -153,6 +163,7 @@ export function newMindReply(init: Partial<MindReply> = {}): MindReply {
     life: null,
     chief: null,
     reports: null,
+    unheard: null,
     ...init,
   };
 }
@@ -170,6 +181,7 @@ export const MindReplySchema: ObjSchema<MindReply> = obj("MindReply", newMindRep
   life: () => LifeChoiceSchema,
   chief: () => ChiefChoiceSchema,
   reports: () => ReportsChoiceSchema,
+  unheard: () => UnheardChoiceSchema,
 });
 
 /** What the host replies at an audience. Every field but Speech is an action the engine checks. */
@@ -378,6 +390,10 @@ export interface AudienceView {
   goldBackNamed: number;
   /** A gift the envoy accepted in an earlier exchange, or 0. An envoy takes one gift per audience. */
   giftAccepted: number;
+  /** Item 12: who carried the envoy's words to you (a servant of yours, or a go-between he paid); null if you heard him yourself. */
+  heardThrough: string | null;
+  /** Item 12: the gifts he presented while nobody at your court understood him, in shekels (already in your treasury). */
+  presented: number;
   /** Only when the envoy secretly serves the host: what the envoy was really told. */
   secretMandate: string | null;
   secretLetter: string | null;
@@ -431,6 +447,8 @@ export function newAudienceView(init: Partial<AudienceView> = {}): AudienceView 
     soFar: [],
     goldBackNamed: 0,
     giftAccepted: 0,
+    heardThrough: null,
+    presented: 0,
     secretMandate: null,
     secretLetter: null,
     ordersStand: false,
@@ -464,6 +482,8 @@ export const AudienceViewSchema: ObjSchema<AudienceView> = obj("AudienceView", n
   soFar: list(() => ExchangeSchema),
   goldBackNamed: I,
   giftAccepted: I,
+  heardThrough: opt(S),
+  presented: I,
   secretMandate: S,
   secretLetter: S,
   ordersStand: B,

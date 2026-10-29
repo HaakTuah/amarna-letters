@@ -368,3 +368,12 @@ export function formerHomes(s: GameState): GameState {
   for (const king of new HSet(FormerHomes.map((x) => x[1]))) s.startStrength.set(king, e.strength(king));
   return s;
 }
+
+/**
+ * Item 12: a person who speaks every court's language fluently, for a test whose rule is not about languages (so that
+ * nobody has to wait to be understood).
+ */
+export function speaksAll<T extends { tongues: Dict<string, number> }>(c: T): T {
+  for (const l of ["Egyptian", "Akkadian", "Hittite", "Hurrian", "Luwian", "Canaanite", "Amorite", "Ugaritic", "Alashiyan", "Elamite", "Kaskean"]) c.tongues.set(l, 100);
+  return c;
+}
