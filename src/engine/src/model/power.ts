@@ -119,7 +119,7 @@ const Data: Record<Power, PowerData> = {
   Gezer: d("Gezer", "Milkilu", "Gezerite"),
   Ashkelon: d("Ashkelon", "Yidya", "Ashkelonite"),
   Lachish: d("Lachish", "Zimreddi", "Lachishite"),
-  Hebron: d("the Hebron hills", "Shuwardata", "Hebronite"),
+  Hebron: d("the Hebron Hills", "Shuwardata", "Hebronite"),
   Suhu: d("Suhu", "the king of Suhu", "Suhean"),
   Suteans: d("the Sutean steppe", "the chief of the Suteans", "Sutean"),
   Arrapha: d("Arrapha", "the king of Arrapha", "Arraphan"),

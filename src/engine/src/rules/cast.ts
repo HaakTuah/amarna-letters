@@ -85,7 +85,7 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   {
     court: "Egypt",
     origins: ["Thebes", "Memphis", "Akhetaten", "Byblos", "Gaza"],
-    names: ["Ramose", "Ptahmose", "Paatenemheb", "Penre", "Amenemope", "Thutmose", "Abdi-Ashtarti", "Milkilu"],
+    names: ["Ramose", "Ptahmose", "Paatenemheb", "Penre", "Amenemope", "Thutmose", "Abdi-Ashtarti", "Yapahu"],
     callings: ["scribe of the treasury", "caravan master", "interpreter", "temple scribe", "soldier", "merchant of the coast"],
   },
   {

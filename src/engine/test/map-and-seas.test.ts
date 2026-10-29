@@ -2,6 +2,7 @@ import { describe, test } from "vitest";
 import {
   Adjudicator,
   AttestedKm,
+  cheapestRoute,
   Doors,
   StartVassals,
   king,
@@ -172,6 +173,12 @@ describe("MapAndSeasTests", () => {
     // The Wadi Hammamat goes at the desert's pace, not a ship's: about ten days, not three.
     Assert.equal(210, connectionKm(Map, "thebes", "redsea"));
     Assert.equal(10.5, connectionDays(Map, "thebes", "redsea"));
+    // From the Sinai's shore a ship sails down to Mersa Gawasis, so the empty sea joins its shores at a voyage's cost: Thebes
+    // to the Delta still goes by the Nile, and only the Sinai is nearer by the Red Sea (as the mining expeditions went).
+    Assert.equal(20, connectionDays(Map, "sinai", "redsea"));
+    const days = (x: string, y: string) => connectionDays(Map, x, y);
+    Assert.equal(["thebes", "akhetaten", "memphis", "delta"], cheapestRoute(Map, "thebes", "delta", days)!.route);
+    Assert.equal(["thebes", "redsea", "sinai"], cheapestRoute(Map, "thebes", "sinai", days)!.route);
     // Punt is a door for newcomers through Egypt's Red Sea coast; the doors' shares are the dossier's and make a hundred.
     Assert.equal(["thebes", "sinai"], Doors.find((d) => d.id === "redsea")!.provinces);
     Assert.equal(100, Doors.reduce((a, d) => a + d.share, 0));

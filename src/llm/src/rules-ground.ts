@@ -3,9 +3,9 @@
  * (`Geography`, `WorldMap`), so the text stays true if the map changes. Only what applies in this game is said.
  */
 import { Crossings, Desert, Rough, WorldMap, crossingBetween, groupBy, type GameConfig } from "@amarna/engine";
+import { joinS } from "./text.ts";
 
 const crossingKind = (a: string, b: string) => crossingBetween(a, b)?.kind ?? null;
-import { joinS } from "./text.ts";
 
 /**
  * TERRAIN: what rough ground and the crossings give a unit that stands its ground, and what they never do, and what the

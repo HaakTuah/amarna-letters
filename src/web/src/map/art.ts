@@ -366,7 +366,12 @@ function buildShapes(): Map<string, string> {
     const sites: [string, Pt][] = [...g.map((p) => [p.id, city(p.id)] as [string, Pt]), ...extra.map((e, i) => [`~${i}`, e] as [string, Pt])];
     for (const [id, cell] of voronoiCells(sites, wobble, frame)) if (!id.startsWith("~")) shapes.set(id, cell);
   };
+  // The mainland is shaped among the mainland's towns alone, so no island takes a stretch of its coast; each island
+  // province's shape comes from the pass with every town, and is drawn only on its island (landClipOf).
+  const islander = (id: string): boolean => IslandProvinces.includes(id) || Isles.has(id);
   group(land, Wastes, 3);
+  for (const id of [...shapes.keys()]) if (!islander(id)) shapes.delete(id);
+  group(land.filter((p) => !islander(p.id)), Wastes, 3);
   const seas = Map_.provinces.filter((p) => p.isSea);
   for (const [ids, frame] of SeaBodies) group(seas.filter((p) => ids.includes(p.id)), [], 0, frame);
   group(seas.filter((p) => !SeaBodies.some(([ids]) => ids.includes(p.id))), [], 0, MediterraneanBody);
@@ -383,7 +388,7 @@ export function landClipOf(id: string): string {
 }
 
 export const WasteShapes: readonly string[] = voronoiCells(
-  [...Map_.provinces.filter((p) => !p.isSea).map((p) => [p.id, city(p.id)] as [string, Pt]), ...Wastes.map((e, i) => [`~${i}`, e] as [string, Pt])],
+  [...Map_.provinces.filter((p) => !p.isSea && landClipOf(p.id) === "url(#mainclip)").map((p) => [p.id, city(p.id)] as [string, Pt]), ...Wastes.map((e, i) => [`~${i}`, e] as [string, Pt])],
   3,
 )
   .filter(([id]) => id.startsWith("~"))
