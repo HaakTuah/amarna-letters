@@ -284,3 +284,23 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Here: a standing instruction in `CLAUDE.md` ("settled questions are readings"), and the checks split into parallel
     jobs (lint and types beside the tests, the tests in four shards).
+
+30. **02:05 to 02:19**, in the design chat, on the web map:
+
+    > Didn't you say the different seas and provinces were all added to amarna letters? Why can I only see as far south
+    > as northern Egypt then? And i see almost no sea in the south, and east, of the game map. No red sea or anything.
+
+    Then, after Claude showed that every map and sea decision is built and the Red Sea was decided as a later addition,
+    to building the Red Sea now and redrawing the map in true geography:
+
+    > Yes, and yes, expertly. In my view, the map should in time become a fusion or blend of imperator rome and an
+    > ancient museum map of the bronze age world. It should fir the geography the same way imperator has, as it had the
+    > best geographic perspective.
+    >
+    > If we do this full visual makeover right now is another question, but the perspective must be corrected at the
+    > very least. In time I want environmental effects, seasons reflected on the map. Characters, armies, fighting shown,
+    > etc. Everything you can think of, which makes it a better game for a player or viewer. But I don't believe the time
+    > for these effects are quiet yet. What is your expert take on all of this?
+
+    Written into the design document as "The map in true geography, and its look in time" (Interface) and build order
+    items 11c (true geography and the Red Sea, a lane beside 11+) and 19 (the living map, at the end).

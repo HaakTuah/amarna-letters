@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Interface and the council tab, revision 10 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Interface and the council tab, revision 11 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## Spectator mode and analysis
 
 AI-only games are part of the prototype, because watching them is the only way to see whether trust emerges and to tune the models. The spectator sees everything the engine knows, which no player ever does.
@@ -17,6 +17,9 @@ AI-only games are part of the prototype, because watching them is the only way t
   - **Fog of war as a gradient:** in a seat view, knowledge fades with age, and uncertain information (old sightings, spy reports, rumours) looks uncertain. Each seat sees only the characters it knows about; god view shows everything.
   - **Dates and status:** one date label everywhere (court season and year, with the turn), an ending indicator, and who is asleep in god view.
   - **Measured performance** on a throttled phone, and respect for reduced motion.
+- **The map in true geography, and its look in time** (decided 29 October 2026). Haakon: "In my view, the map should in time become a fusion or blend of imperator rome and an ancient museum map of the bronze age world. It should fir the geography the same way imperator has, as it had the best geographic perspective." Two steps:
+  - **True geography, now** (build order item 11c). The board takes a true projection of the region, as Imperator: Rome's map does, in place of today's folded board: coasts, rivers, mountains and deserts where they are, each province drawn at its own latitude and longitude, Egypt and Nubia running south along the Nile, the Red Sea drawn, and the deserts at their true size. The Levant is read on a phone by zooming, never by bending the land ("Map on small screens"). Only the drawing changes: distances already come from latitude, longitude and the attested roads.
+  - **The look, in time** (build order item 19). A blend of Imperator: Rome's map and a museum map of the Bronze Age world, in the palette above; the environment and the seasons on the map (the Nile's flood, winter on the Taurus and the Zagros, harvests and drought); characters, armies and battles shown as they travel and fight; whatever makes the game better to play or to watch. It waits until the features exist, since every item changes what the map must show.
 
 The chronicles complete this: after a game, read two nations' biased accounts beside the true record.
 
