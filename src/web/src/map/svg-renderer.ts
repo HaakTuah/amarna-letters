@@ -625,10 +625,16 @@ export class SvgMapRenderer implements MapRenderer {
       this.placing = 0;
       const view = this.view;
       if (view === null) return;
-      // Whatever is still gliding or sliding is placed again once it stops: its own end, besides the events (onMoved),
-      // which a busy machine can lose, leaving the last placement measured mid-motion.
+      // Whatever is still gliding or sliding is placed again once it stops: its own end, besides the events (onMoved). A
+      // busy machine can lose a running transition's end event, and the last placement stayed measured mid-motion.
       for (const a of view.getAnimations?.({ subtree: true }) ?? [])
-        if (a instanceof CSSTransition && a.transitionProperty === "transform" && !this.awaited.has(a) && (a.effect as KeyframeEffect | null)?.target?.matches(".mapzoom, .unit, .traveller")) {
+        if (
+          a instanceof CSSTransition &&
+          a.transitionProperty === "transform" &&
+          !this.awaited.has(a) &&
+          a.effect instanceof KeyframeEffect &&
+          a.effect.target?.matches(".mapzoom, .unit, .traveller") === true
+        ) {
           this.awaited.add(a);
           a.finished.then(() => this.placeNames(), () => this.placeNames());
         }
