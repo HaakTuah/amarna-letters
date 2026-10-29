@@ -211,12 +211,13 @@ describe("PeopleTests", () => {
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "isuwa", men: LandData.armyMen }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "samuha", men: LandData.armyMen }));
     s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "harran", men: LandData.armyMen }));
+    s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "carchemish", men: LandData.armyMen }));
     const loose = s.people.get("isuwa").loose;
     // Two supports: Isuwa's rough ground helps the army standing there.
     season(
       s,
       subs({
-        Hatti: { orders: [move("nesa", "isuwa"), support("samuha", "nesa", "isuwa"), support("harran", "nesa", "isuwa")] },
+        Hatti: { orders: [move("samuha", "isuwa"), support("carchemish", "samuha", "isuwa"), support("harran", "samuha", "isuwa")] },
       }),
     );
     Assert.false(s.units.some((u) => u.power === "Mitanni" && u.province === "isuwa"));
