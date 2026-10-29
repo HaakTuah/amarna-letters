@@ -259,8 +259,8 @@ describe("SiegePlayTests", () => {
 
   test("A script king s besieging army with nothing to help it slips away as the relief falls", () => {
     // Babylonia's army besieges Assyria's Suhu (walls 2 here, so the walls may sally); Assyria's army in Ekallate stands
-    // next to it, and no troop of Babylonia's can reach Suhu. The Sutean steppe, beyond it, is free, open and out of
-    // Assyria's reach.
+    // next to it, and no troop of Babylonia's can reach Suhu. Sippar, Babylonia's own and emptied, is open and out of
+    // the reach of Assyria's army.
     let s = walled(oldWorld(newGame(1, newGameConfig({ endMedian: 10000, catastropheChance: 0 }))), "suhu", 2);
     s.turn = 6;
     removeAll(s.units, (u) => u.province === "sippar");
@@ -279,7 +279,7 @@ describe("SiegePlayTests", () => {
     // siege is lost either way).
     let g = Assert.single(give, (x) => x.place === "suhu");
     Assert.equal(["Retreat", "UnitAttacked"], [g.kind, g.request.when]);
-    Assert.equal([moveOrder("suhu", "steppe")], g.request.orders);
+    Assert.equal([moveOrder("suhu", "sippar")], g.request.orders);
     // A besieging army is never called away to help elsewhere: it would not press its siege.
     Assert.doesNotContain(give, (x) =>
       x.request.orders.some((o) => (o.type === "support" && o.unit === "suhu") || (o.type === "move" && o.unit === "suhu" && x.place !== "suhu")),

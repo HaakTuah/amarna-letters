@@ -33,7 +33,7 @@ import {
   support,
 } from "@amarna/engine";
 import { BaselineLeader, GameRunner, ScriptLeader, ScriptMind, TemplateNarrator, playGame, temperament } from "@amarna/game";
-import { average, removeAll, Assert, toDict, oldWorld, unruled } from "../../engine/test/support.ts";
+import { average, removeAll, Assert, formerHome, toDict, oldWorld, unruled } from "../../engine/test/support.ts";
 
 /** A province's holder set by hand, as if long ago, so word of it has reached every court (item 7b). */
 function known(s: GameState, province: string, owner: Power | null): void {
@@ -75,8 +75,8 @@ describe("BotTests", () => {
   });
 
   test("Faced with a supported attack a king supports the province under threat", () => {
-    // Mitanni's Terqa borders Assyria's Ashur and Ekallate: together they can take it unless Washukanni supports it.
-    let state = oldWorld(newGame(4));
+    // Mitanni's Suhu borders Assyria's Ashur and Ekallate: together they can take it unless Terqa supports it.
+    let state = formerHome(oldWorld(newGame(4)), "suhu", "Mitanni");
     let view = Views.for(state, "Mitanni");
     let brain = new Brain("Mitanni", 4);
     brain.learn(view, new Board(view));
@@ -89,8 +89,8 @@ describe("BotTests", () => {
     let plan = Tactics.make(board, brain);
     Search.improve(board, brain, plan, brain.r(view.turn, "search"));
 
-    Assert.equal(support("washukanni", "terqa"), plan.orders.get("washukanni"));
-    Assert.notOrder("move", plan.orders.get("terqa"));
+    Assert.equal(support("terqa", "suhu"), plan.orders.get("terqa"));
+    Assert.notOrder("move", plan.orders.get("suhu"));
   });
 
   test("A king never marches on a sworn friend unless he has decided to betray him", () => {
