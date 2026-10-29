@@ -30,7 +30,6 @@ export const AttestedKm: readonly Attested[] = [
   att("thebes", "redsea", 210, "Thebes by Coptos and the Wadi Hammamat to the shore at Mersa Gawasis, the road of the Punt expeditions"),
   att("sinai", "redsea", 200, "across the Sinai to the Gulf of Suez, where the mining expeditions landed at el-Markha [G]"),
   att("gaza", "megiddo", 160, "the coast road; Thutmose III's march, Gaza to Yehem in 11 days in hostile land (his Annals)"),
-  att("megiddo", "damascus", 160, "by Hazor and the Jordan crossing"),
   att("byblos", "damascus", 120, "over the Lebanon and the Beqaa"),
   att("damascus", "qadesh", 140, "by the Beqaa"),
   att("carchemish", "harran", 110, "the Euphrates road to Harran"),
