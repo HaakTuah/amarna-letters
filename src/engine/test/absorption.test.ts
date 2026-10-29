@@ -121,7 +121,11 @@ describe("AbsorptionTests", () => {
     s.owner.set("nineveh", "Assyria");
     s.sieges.push(newSiege({ province: "ashur", power: "Babylonia", unitId: besieger.id, progress: 3 * EconomyData.breachPerLevel - 1, since: 1 }));
     season(s);
-    for (const p of ["ashur", "nineveh"]) Assert.equal(1, s.conquered.get(p));
+    Assert.equal(1, s.conquered.get("ashur"));
+    // Item 13+: Nineveh passes when word of the fall reaches it, the next season, and is absorbed from then.
+    Assert.equal("Assyria", s.owner.get("nineveh"));
+    season(s);
+    Assert.equal(["Babylonia", 2], [s.owner.get("nineveh"), s.conquered.get("nineveh")]);
     Assert.equal(1 / 3.0, new TurnEngine(s).absorbed("nineveh"));
   });
 });
