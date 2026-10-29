@@ -1,4 +1,4 @@
-// The web app's smoke test: builds nothing itself; serves dist/ (after `npm run build`), opens it in Chromium at a desktop
+// The web app's smoke test: builds nothing itself; serves dist/ (after `npm run build`), opens it in Chromium at a desktop (CI smoke proof: this line is touched and reverted.)
 // and a phone size, plays script kings for a few seasons and a human seat for one, and fails on any page error.
 //   node src/web/smoke.mjs [--shots <dir>]
 import { createRequire } from "node:module";
