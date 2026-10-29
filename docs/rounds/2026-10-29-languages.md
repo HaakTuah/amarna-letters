@@ -113,7 +113,10 @@ gold handed in the last 4 seasons. Hearing at court: × (0.25 + 0.75 × skill in
 
 ## Use against ignore
 
-(numbers below)
+Interim, before item 11e (to be measured again on 11e's game): `--language-play-half`, seeds 1-50: 0.69 growth to
+0.72, 21 wins to 29 at first; after keeping gold and tablets with the more reliable half of the envoys and one bridge a
+season, 0.69 to 0.70, 22 wins to 28. Not paying yet by wins: being understood saves seasons, which the scripts' growth
+does not yet turn into gain; re-measure after 11e and in item 18.
 
 ## Questions for Haakon
 
