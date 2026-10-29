@@ -36,6 +36,7 @@ export const SignalKinds: readonly string[] = [
   "job-done", "hire-abroad", "hoard-seized", "tablet-sold", "purse-taken",
   "unheard", "unheard-home", "unheard-lie", "go-between", "court-go-between", "bridged-servant", "mandate-slow", "envoy-mute", "tablet-unread", "tablet-read-late", "bent-words", "bent-noticed",
   "fallback", "command", "mandate-led", "commander-won", "defect", "courier-sent", "courier-stopped", "court-moves", "governor", "band-enlisted",
+  "risen", "fall-held", "fall-lawless",
 ];
 
 const MessengerBlamed = rx(

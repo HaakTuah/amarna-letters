@@ -1,5 +1,5 @@
 /** The table's settings, chosen on the start page and carried into the engine's worker (plain data, so it crosses over). */
-import { AllPowers, newGameConfig, type GameConfig, type GameState, type Power } from "@amarna/engine";
+import { FixedPowers, newGameConfig, type GameConfig, type GameState, type Power } from "@amarna/engine";
 import type { LogHeader } from "@amarna/game";
 import {
   CostEstimate,
@@ -78,7 +78,7 @@ export const randomSeed = (): number => 1 + Math.floor(Math.random() * 999_999);
 export function newSettings(): GameSettings {
   return {
     seed: randomSeed(),
-    leaders: Object.fromEntries(AllPowers.map((p) => [p, "Script" as LeaderKind])),
+    leaders: Object.fromEntries(FixedPowers.map((p) => [p, "Script" as LeaderKind])),
     characters: "Script",
     narrator: "Template",
     leaderEffort: "medium",
@@ -115,7 +115,7 @@ export function newSettings(): GameSettings {
 
 export function choicesOf(s: GameSettings): SeatChoices {
   const c = new SeatChoices();
-  for (const p of AllPowers) c.leaders.set(p, s.leaders[p]);
+  for (const p of FixedPowers) c.leaders.set(p, s.leaders[p]);
   c.characters = s.characters;
   c.narrator = s.narrator;
   c.leaderEffort = s.leaderEffort;
@@ -137,7 +137,7 @@ export function choicesOf(s: GameSettings): SeatChoices {
 export function withChoices(s: GameSettings, c: SeatChoices): GameSettings {
   return {
     ...s,
-    leaders: Object.fromEntries(AllPowers.map((p) => [p, c.leaders.get(p)])),
+    leaders: Object.fromEntries(FixedPowers.map((p) => [p, c.leaders.get(p)])),
     characters: c.characters,
     narrator: c.narrator,
     leaderEffort: c.leaderEffort,
@@ -211,7 +211,7 @@ export function settingsFromHeader(header: LogHeader, table: TableSettings | nul
 }
 
 /** The human seats chosen. */
-export const humansOf = (s: GameSettings): Power[] => AllPowers.filter((p) => s.leaders[p] === "Human");
+export const humansOf = (s: GameSettings): Power[] => FixedPowers.filter((p) => s.leaders[p] === "Human");
 
 /**
  * A fallen player's game is over: once every human seat at the table has fallen, and the table's setting allows it (on by

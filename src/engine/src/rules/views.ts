@@ -762,6 +762,8 @@ function dutyText(c: Character): string {
       return `commanding an army in ${c.watchProvince ?? ""}`;
     case "Governing":
       return `governing ${c.watchProvince ?? ""}`;
+    case "Ruling":
+      return `ruling ${c.at ?? ""} in his own name`;
   }
 }
 

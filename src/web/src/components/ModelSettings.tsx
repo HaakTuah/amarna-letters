@@ -2,7 +2,7 @@
  * Models are settings ("Built to outlive its models"): each job names any model, and a table may set up other providers
  * (any OpenAI-compatible endpoint, a local model's included) and set the price of a model the game does not know.
  */
-import { AllPowers } from "@amarna/engine";
+import { FixedPowers } from "@amarna/engine";
 import { CostEstimate, ModelIds, leaderModel, type PriceSetting, type ProviderSetting, type SeatChoices, type SpendMode } from "@amarna/llm";
 import { useState } from "react";
 
@@ -145,7 +145,7 @@ const RungOptions: [string, string][] = [
 export function RungsPanel(props: { choices: SeatChoices; change: (f: (c: SeatChoices) => void) => void }) {
   const { choices, change } = props;
   const sp = choices.spending;
-  const kings = AllPowers.filter((p) => leaderModel(choices.leaders.get(p)) !== null);
+  const kings = FixedPowers.filter((p) => leaderModel(choices.leaders.get(p)) !== null);
   if (!choices.usesModels) return null;
   return (
     <div className="section">

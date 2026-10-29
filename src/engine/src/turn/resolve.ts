@@ -123,6 +123,8 @@ P.resolveSeason = function (submissions) {
   for (const [p, o] of all((o): o is CourtOrder => o.type === "court")) this.setOutCourt(p, o);
   // A kingdom falls with its capital: its land passes to whoever took it, and its orders for the rest of the season lapse.
   this.capitalsTaken();
+  // Item 13+: the parts of fallen kingdoms that word of the fall has reached come apart.
+  this.fallsSpread();
   this.resolveTransfers(
     all((o): o is CedeProvinceOrder => o.type === "cede"),
     all((o): o is GiftUnitOrder => o.type === "giftUnit"),
@@ -401,6 +403,8 @@ P.updateOwnership = function () {
     if (prov.isSea) continue;
     const before = S.owner.getOrDefault(u.province, null);
     if (before === u.power) continue;
+    // Item 13+: a fallen kingdom's troops waiting for the word take nothing for a king who is no more.
+    if (!isAlive(S, u.power)) continue;
     // A guest by passage or basing on a sealed tablet takes none of the land it stands in by leave (item 9).
     if (this.guestOf(u) !== null) continue;
     if (wallsOf(S, u.province) > 0) {
@@ -447,7 +451,7 @@ P.resolveTransfers = function (cessions, gifts) {
     // Land still being absorbed goes on being absorbed under the receiver as it would have been under the giver, so
     // that a friend cannot launder a conquest by passing it back and forth; land of the receiver's own homeland is
     // his in full at once, as if he had retaken it.
-    if (Map.get(c.province).home === c.to) S.conquered.delete(c.province);
+    if (Map.isHome(c.to, c.province)) S.conquered.delete(c.province);
     this._cededNow.set(c.province, c.to);
     notify(S, p, "Resolution", "Land ceded", `${Map.get(c.province).name} now belongs to ${c.to}.`);
     notify(S, c.to, "Resolution", "Land received", `${p} has ceded ${Map.get(c.province).name} to you.`);
@@ -556,53 +560,31 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   const capital = this.map.get(this.courtAt(p));
   const landHeld = ownedBy(S, p);
   // Item 13 ("A kingdom falls with its capital", revised 27 October 2026): the realm comes apart province by province. The
-  // capital passes to whoever holds it, and so does land where the conqueror's troops stand, held by force; the rest falls
-  // lawless ("Land without a ruler"), governed provinces too: a governor becoming his province's leader with a seat of his
-  // own waits for item 17's risen seats. A capital ceded by sealed tablet (item 11d) passes whole with its land, as agreed.
-  const passes = (id: string): boolean =>
-    ceded ||
-    id === capital.id ||
-    (fallingCourts.get(this)?.has(id) ?? false) ||
-    (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror));
+  // capital passes at once to whoever holds it; since item 13+ the rest comes apart only as word of the fall reaches each
+  // part (fallsSpread, turn/falls.ts), life there going on as before until then. A capital ceded by sealed tablet (item
+  // 11d) passes whole with its land, as agreed.
+  const passes = (id: string): boolean => ceded || id === capital.id || (fallingCourts.get(this)?.has(id) ?? false);
   const passed: string[] = [];
-  const lawless: string[] = [];
   for (const id of landHeld) {
-    const to = passes(id) ? conqueror : null;
-    this.setOwner(id, to);
-    if (to !== null) passed.push(id);
-    else lawless.push(id);
+    if (!passes(id)) continue;
+    this.setOwner(id, conqueror);
+    if (conqueror !== null) passed.push(id);
     // Land ceded by agreement passes as any land ceded does (resolveTransfers): what was being absorbed goes on being so.
-    if (!ceded) this.takenByForce(id, to);
-    else if (this.map.get(id).home === conqueror) S.conquered.delete(id);
+    if (!ceded) this.takenByForce(id, conqueror);
+    else if (this.map.isHome(conqueror, id)) S.conquered.delete(id);
     // A siege the conqueror pressed against land that is now his is over.
-    if (to !== null) S.sieges = removeAll(S.sieges, (x) => x.province === id && x.power === to);
+    if (conqueror !== null) S.sieges = removeAll(S.sieges, (x) => x.province === id && x.power === conqueror);
   }
+  const apart = landHeld.filter((x) => !passes(x));
   S.falls.push(newKingdomFall({ power: p, turn: S.turn, conqueror, capital: capital.id, land: passed }));
   S.eliminated.push(p);
   this.endSleep(p);
   // Its court's journey and its couriers on the road end with it.
   S.kingRoads = S.kingRoads.filter((r) => r.power !== p);
   S.couriers = S.couriers.filter((x) => x.power !== p);
-  // Item 13: its armies in the field are their commanders' to decide, each now on his own with his men as his band; an
-  // army with nobody to command it may raise a captain from its own ranks if it is owed pay or hungry (one paid and fed
-  // never does), or else disbands, its men going home with their savings (until item 13 all of them disbanded). Their sieges are lifted.
-  const ranks = this.r("captain", p);
-  for (const u of sortBy(S.units.filter((u) => u.power === p), [(u: Unit) => u.id, cmpStr])) {
-    const c = this.commanderOf(u);
-    if (c !== null && !ceded) {
-      this.armyToBand(u, c, "commander");
-      continue;
-    }
-    const land = this.map.get(u.province).isSea ? (this.map.landProvinces.find((x) => x.waters === u.province)?.id ?? null) : u.province;
-    if (!ceded && u.kind === "Army" && land !== null && u.men >= BandData.least && (u.unpaid > 0 || u.hungry > 0) && ranks.chance(Math.min(100, BandData.mutinyHead + idiv(u.men, 500)) / 100)) {
-      S.units.splice(S.units.indexOf(u), 1);
-      const b = this.headRises(land, u.men, "captain", ranks, p);
-      S.loot.set(land, S.loot.getOrDefault(land, 0) + u.savings);
-      void b;
-      continue;
-    }
-    this.disbandUnit(u);
-  }
+  // Item 13: its armies in the field are their commanders' to decide once word of the fall reaches them (item 13+,
+  // fallsSpread); a kingdom ceded whole disbands its troops at once.
+  if (ceded) for (const u of sortBy(S.units.filter((u) => u.power === p), [(u: Unit) => u.id, cmpStr])) this.disbandUnit(u);
   // Item 11b: its court's refugees at the fallen capital may raise a head of their own, carrying its tongue ("A fallen
   // court's people"): the loose there, or, with too few, the townsfolk who fled their homes.
   const heads = this.r("refugees", p);
@@ -626,17 +608,20 @@ P.fall = function (p, conqueror, taker, ceded = false) {
     if (c.status === "Captured") this.releaseCaptive(p, c);
     else if (c.duty === "Detained") this.letEnvoyGo(p, c, null);
   }
-  for (const c of S.characters.filter((c) => c.employer === p)) {
+  // Item 13+: a governor or commander far off serves on until word of the fall reaches him (fallsSpread).
+  for (const c of S.characters.filter((c) => c.employer === p && (ceded || (c.duty !== "Governing" && c.duty !== "Commanding")))) {
     c.formerEmployer = p;
     c.employer = null;
     c.contract = null;
     if (c.status === "Employed") c.status = "Free";
+    // A risen power's ruler (item 13+) has fallen with it, and lives on as a free man where he is.
+    if (c.duty === "Ruling") c.duty = "None";
   }
   const who = ceded ? `its king ceded its capital, ${capital.name}, to ${taker}` : taker !== null ? `${taker} took its capital, ${capital.name}` : `its capital, ${capital.name}, was taken`;
   // Word of the fall travels (item 7b): a court that sees the capital hears at once, the rest when word reaches them.
   const seeing = alive(S).filter((x) => x === conqueror || Views.sight(S, this.map, x).has(capital.id));
   const parts = conqueror === null ? "" : ceded ? `, and its land passes to ${conqueror}` : `, and ${conqueror} holds it${passed.length > 0 ? ` with ${passed.map((x) => this.map.get(x).name).join(", ")}` : ""}`;
-  logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${parts}${!ceded && lawless.length > 0 ? `; the rest has fallen lawless` : ""}.`, [p, ...seeing], null);
+  logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${parts}${!ceded && apart.length > 0 ? `; the rest of it comes apart as word of the fall reaches it` : ""}.`, [p, ...seeing], null);
   for (const other of alive(S).filter((x) => x !== conqueror)) {
     const text = `Word spreads that the kingdom of ${land(p)} is no more: ${who}.`;
     if (seeing.includes(other)) {
@@ -648,10 +633,12 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   if (conqueror !== null) {
     const winner = conqueror;
     const rest = passed.filter((x) => x !== capital.id).map((x) => this.map.get(x).name);
-    const gone = lawless.map((x) => this.map.get(x).name);
+    const gone = apart.map((x) => this.map.get(x).name);
     const yours =
       (rest.length === 0 ? "none of his other land is yours" : ceded ? `his land is yours: ${rest.join(", ")}` : `of his land you hold ${rest.join(", ")}, where your troops stand`) +
-      (gone.length === 0 ? "." : `; the rest, ${gone.join(", ")}, has fallen lawless, held by nobody.`);
+      (gone.length === 0
+        ? "."
+        : `; the rest, ${gone.join(", ")}, comes apart as word of the fall reaches it by road: where your troops stand then it is yours, held by force; a governor there rules his province in his own name, and the rest falls lawless.`);
     notify(
       S,
       winner,
@@ -660,8 +647,8 @@ P.fall = function (p, conqueror, taker, ceded = false) {
       ceded
         ? `${king(p).charAt(0).toUpperCase() + king(p).slice(1)} has ceded ${capital.name} to you, and with it the kingdom of ${land(p)}: his troops have disbanded, and ${yours}`
         : taker === winner
-        ? `With ${capital.name} you took the kingdom of ${land(p)}: its king has fallen, his armies are their own commanders' or have disbanded, and ${yours}`
-        : `${taker} took ${capital.name}, the capital of ${land(p)}, but fell himself in the same season, and the kingdom of ${land(p)} passes to you with his: its king has fallen, his armies are their own commanders' or have disbanded, and ${yours}`,
+        ? `With ${capital.name} you took the kingdom of ${land(p)}: its king has fallen, his armies are their own commanders' or disband as word reaches them, and ${yours}`
+        : `${taker} took ${capital.name}, the capital of ${land(p)}, but fell himself in the same season, and the kingdom of ${land(p)} passes to you with his: its king has fallen, his armies are their own commanders' or disband as word reaches them, and ${yours}`,
     );
   }
 };

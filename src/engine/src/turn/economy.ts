@@ -32,6 +32,7 @@ import { gain } from "../model/people.ts";
 import { seasonOfTurn, WinterSeason, type Province } from "../model/map.ts";
 import type { CaravanOrder, FeedOrder, Order, PurchaseOrder, SellOrder } from "../model/orders.ts";
 import { AllPowers, type Power } from "../model/power.ts";
+import { courierSeasons } from "../rules/court.ts";
 import { alive, isAlive, logEvent, newId, notify, ownedBy, siegeOf, unitLabel, type Unit } from "../model/state.ts";
 import { legPoints, PointsPerDay, boatDays, type Company } from "../model/travel.ts";
 import { formatMoney } from "../rules/calendar.ts";
@@ -150,7 +151,6 @@ P.harvestSeason = function () {
   const mined = new Dict<Power, number>();
   for (const prov of this.map.landProvinces) {
     const owner = S.owner.getOrDefault(prov.id, null);
-    if (owner !== null && !isAlive(S, owner)) continue;
     // The fields grow by this season's hands and weather; in its season the crop is reaped into the granaries.
     const crop = S.crop.getOrDefault(prov.id, 0) + this.harvestNow(prov.id);
     let granary = S.granary.getOrDefault(prov.id, 0);
@@ -180,13 +180,21 @@ P.harvestSeason = function () {
       if (metal > 0) {
         // Item 13 ("Distance inside your own realm"): gold reaches the treasury after its travel time; from beyond the
         // season's reach it goes as a load that can be waylaid.
-        if (this.wordTo(owner, prov.id) >= 1) this.lootHome(owner, prov.id, metal, [], "");
+        // Item 13+: a fallen kingdom's land the word of its fall has not reached yet sends its gold to the fallen capital
+        // as before, and it goes to whoever holds it (none: it stays with the province's people).
+        const fall = isAlive(S, owner) ? null : this.fallOf(owner);
+        const to = fall === null ? owner : S.owner.getOrDefault(fall.capital, null);
+        if (to === null || !isAlive(S, to)) this.spendAt(prov.id, metal);
         else {
-          const t = S.treasuries.get(owner);
-          t.gold += metal;
-          t.income += metal;
+          const at = fall === null ? this.courtAt(to) : fall.capital;
+          if (courierSeasons(S, this.map, at, prov.id) >= 1) this.lootHome(to, prov.id, metal, [], "", at);
+          else {
+            const t = S.treasuries.get(to);
+            t.gold += metal;
+            t.income += metal;
+          }
+          mined.set(to, mined.getOrDefault(to, 0) + metal);
         }
-        mined.set(owner, mined.getOrDefault(owner, 0) + metal);
       }
     }
     S.granary.set(prov.id, granary);
@@ -570,7 +578,7 @@ P.caravansTravel = function () {
       S.caravans.splice(S.caravans.indexOf(c), 1);
       const kept = Math.min(c.grain, unitCarried(taker) - taker.food);
       taker.food += Math.max(0, kept);
-      S.treasuries.get(taker.power).gold += c.gold;
+      this.credit(taker.power, c.gold, taker.province, false);
       const where = this.map.get(taker.province).name;
       // A captured archive on the road (item 10+b) is the taker's now.
       if (c.archive.length > 0) this.archiveArrives(taker.power, c.archive, c.archiveOf, where);

@@ -4,6 +4,7 @@
  */
 :root {
     --kaska: #894d4d;
+    --risen: #7a7a5c;
     --lukka: #57894d;
     --isuwa: #4d6189;
     --carchemish: #894d6c;
@@ -47,6 +48,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
       --kaska: #c98787;
+      --risen: #b8b894;
       --lukka: #92c987;
       --isuwa: #879ec9;
       --carchemish: #c987a9;
@@ -90,6 +92,7 @@
 }
 :root[data-theme="dark"] {
     --kaska: #c98787;
+    --risen: #b8b894;
     --lukka: #92c987;
     --isuwa: #879ec9;
     --carchemish: #c987a9;
@@ -211,3 +214,6 @@
 .map .m-mira .shaft, .map .m-mira .sup, .map .m-mira .conv, .map .c-mira circle { stroke: var(--mira); }
 .e-terqa .ei-bg, .f-terqa, .e-terqa, .ah-terqa { fill: var(--terqa); } .map .t-terqa, .map .s-terqa { fill: var(--terqa); } .b-terqa, .r-terqa { stroke: var(--terqa); }
 .map .m-terqa .shaft, .map .m-terqa .sup, .map .m-terqa .conv, .map .c-terqa circle { stroke: var(--terqa); }
+/* Powers risen in play (item 13+), a fallen kingdom's governors ruling their provinces: one shared tone, named on the board. */
+.e-risen .ei-bg, .f-risen, .e-risen, .ah-risen { fill: var(--risen); } .map .t-risen, .map .s-risen { fill: var(--risen); } .b-risen, .r-risen { stroke: var(--risen); }
+.map .m-risen .shaft, .map .m-risen .sup, .map .m-risen .conv, .map .c-risen circle { stroke: var(--risen); }
