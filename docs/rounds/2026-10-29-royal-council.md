@@ -98,6 +98,13 @@ None: the page and the item's sections settled every reading.
   the build order is done. The tests check that a seat hearing it gets four advisors, numbers behind its strikes,
   titles from the dossier, the toggle in the log and the same game with the council on or off.
 
+## Found along the way
+
+- **The batch runner kept risen powers between games** (item 13+): a worker thread that played a game where a governor
+  rose kept the risen power in the registry, and the next game's seats, chosen from the powers in play, had no setting
+  for it, so the run crashed. Each batch game now starts with none risen (`setRisen([])` in `playOne`). Found by the
+  council measure, whose games raise governors; script runs of earlier items rarely did (13+'s report: none in 50).
+
 ## Review
 
 One reviewer (Opus, high). Blocking 1, the council's numbers saying a city falls when its troops only reach the walls
