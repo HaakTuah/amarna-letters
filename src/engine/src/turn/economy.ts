@@ -175,7 +175,8 @@ P.harvestSeason = function () {
       const over = this.putInStores(prov.id, tax);
       taxed.set(owner, taxed.getOrDefault(owner, 0) + tax - over);
       lost.set(owner, lost.getOrDefault(owner, 0) + over);
-      const metal = toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id)));
+      // Item 13: the yield passes through a governor's hands, and he may keep some of it.
+      const metal = this.throughGovernor(prov.id, toInt(roundEven(economyOf(prov).mine * this.yieldFactor(prov.id))));
       if (metal > 0) {
         // Item 13 ("Distance inside your own realm"): gold reaches the treasury after its travel time; from beyond the
         // season's reach it goes as a load that can be waylaid.

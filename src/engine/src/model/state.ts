@@ -547,6 +547,13 @@ export interface Unit {
    * `province|men`: what its king knows of it is the report his couriers bring, as old as the road from it is long.
    */
   trail: string[];
+  /**
+   * Item 13: men of a band enlisted into it (hiring bands as soldiers): how many, the last season of their term, after which
+   * they leave as their chief's band again, and their chief; 0 and null otherwise.
+   */
+  hiredMen: number;
+  hiredUntil: number | null;
+  hiredChief: string | null;
   // computed in C#: $"{(Kind == UnitKind.Army ? "A" : "F")} {Province}"
 }
 
@@ -570,6 +577,9 @@ export function newUnit(init: Partial<Unit> = {}): Unit {
     mandateFrom: 0,
     relieveAt: null,
     trail: [],
+    hiredMen: 0,
+    hiredUntil: null,
+    hiredChief: null,
     ...init,
   };
 }
@@ -593,6 +603,9 @@ export const UnitSchema: ObjSchema<Unit> = obj("Unit", newUnit, {
   mandateFrom: I,
   relieveAt: opt(I),
   trail: list(S),
+  hiredMen: I,
+  hiredUntil: opt(I),
+  hiredChief: opt(S),
   label: computed(S, (o: Unit) => unitLabel(o)),
 });
 

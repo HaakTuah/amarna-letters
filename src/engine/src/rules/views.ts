@@ -25,6 +25,7 @@ import {
   newDebtView,
   newLotView,
   newSeatView,
+  newGovernorView,
   newSiegeView,
   newTabletView,
   newUnitView,
@@ -182,6 +183,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     king: king(p),
     courtAt: courtOf(s, m, p),
     courtTo: s.kingRoads.find((r) => r.power === p)?.to ?? null,
+    governors: s.governors.filter((g) => g.power === p).map((g) => newGovernorView({ province: g.province, character: g.character, from: g.from, levies: g.levies, raised: g.raised, relieving: g.relieved !== null })),
     ended: s.ended,
     openAge: s.config.openAge,
     ageBand: ageBand(s.config.endMedian),
@@ -243,7 +245,7 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
       .filter((u) => u.power === p || seen.has(u.province))
       .map((u) =>
         u.power === p
-          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, ...reportOf(engine, u) })
+          ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
           : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
       ),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),

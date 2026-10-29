@@ -27,7 +27,7 @@ import { TurnEngine, idNumber } from "./core.ts";
 import { killsByChoice } from "./own-choices.ts";
 
 /** How a head rose ("How he rose shapes who he is"): the circumstance leans his traits, since it picks the man. */
-export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "outlaw";
+export type Rose = "crowd" | "mutiny" | "refugees" | "successor" | "split" | "outlaw" | "captain";
 
 declare module "./core.ts" {
   interface TurnEngine {
@@ -121,7 +121,7 @@ P.headRises = function (province, men, rose, rng, court = null) {
     id: newId(S, "c"),
     name,
     origin: this.map.get(province).name,
-    calling: rose === "refugees" ? "scribe of a fallen court" : rose === "mutiny" ? "soldier" : "chief of the loose men",
+    calling: rose === "refugees" ? "scribe of a fallen court" : rose === "mutiny" || rose === "captain" ? "soldier" : "chief of the loose men",
     traits: newTraits({
       loyalty: clamp(rng.range(10, 80) + lean.loyalty, 0, 100),
       greed: rng.range(20, 95),
@@ -137,6 +137,7 @@ P.headRises = function (province, men, rose, rng, court = null) {
     successor: `Took over a band in ${this.map.get(province).name} when its chief was lost.`,
     split: `Walked off from a band in ${this.map.get(province).name} with the men who followed him.`,
     outlaw: `Took to the hills with the loose men of ${this.map.get(province).name}.`,
+    captain: `Rose from the ranks of the army of the fallen kingdom of ${land(court ?? "Egypt")} in ${this.map.get(province).name} to lead it.`,
   };
   c.facts.push(newFact({ id: newId(S, "f"), text: how[rose], secrecy: "Public", tag: "rose" }));
   c.facts.push(newFact({ id: newId(S, "f"), text: rose === "refugees" ? `Speaks the tongue of ${land(court ?? "Egypt")}, and knows something of its court.` : "Speaks the tongue of the land he rose in.", secrecy: "Public", tag: "tongue" }));

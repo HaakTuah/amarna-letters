@@ -9,10 +9,10 @@
  * `bots/commander.ts`).
  */
 import { cmpStr, sortBy } from "../core/seq.ts";
-import { newBand } from "../model/bands.ts";
+import { BandData, bandCost, newBand, type Band } from "../model/bands.ts";
 import { Uncommanded, mandateText, type CommandTraits, type Mandate } from "../model/command.ts";
-import type { CommandOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
-import { remember, type Character } from "../model/people.ts";
+import type { CommandOrder, EnlistOrder, MandateOrder, Order, RelieveOrder } from "../model/orders.ts";
+import { gain, remember, type Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 import { findCharacter, logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
 import { newJourney } from "../model/records.ts";
@@ -39,6 +39,8 @@ declare module "./core.ts" {
     leaveCommand(c: Character, at: string): void;
     /** A commander keeps the army as his own (refusing his recall, or his kingdom fallen): it becomes his band. */
     armyToBand(u: Unit, c: Character, rose: string): void;
+    /** A king's offer to the chief of a band where his army stands with it: if he takes it, his men join that army. */
+    enlistBand(p: Power, o: EnlistOrder): void;
   }
 }
 
@@ -142,9 +144,28 @@ P.commandSeason = function () {
     notify(S, u.power, "Resolution", "Command given up", `${c.name} gave up the command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} and is on the road to your court.`, c.id);
     this.leaveCommand(c, u.province);
   }
+  // Bands enlisted whose term is over leave as their chief's band again (hiring bands as soldiers).
+  for (const u of sortBy([...S.units], [(u: Unit) => u.id, cmpStr])) {
+    if (u.hiredUntil === null || S.turn <= u.hiredUntil) continue;
+    const chief = u.hiredChief !== null ? findCharacter(S, u.hiredChief) : null;
+    const men = Math.min(u.hiredMen, u.men);
+    u.hiredMen = 0;
+    u.hiredUntil = null;
+    u.hiredChief = null;
+    if (u.commander !== null && chief !== null && u.commander === chief.id) u.commander = null;
+    const land = this.map.get(u.province).isSea ? null : u.province;
+    if (chief === null || chief.status === "Dead" || land === null || men < BandData.least) continue;
+    u.men -= men;
+    chief.duty = "Leading";
+    chief.grantedBy = null;
+    chief.watchProvince = land;
+    S.bands.push(newBand({ id: newId(S, "b"), leaderId: chief.id, province: land, men, since: S.turn, rose: "outlaw" }));
+    notify(S, u.power, "Resolution", "A band's service ends", `The term of ${chief.name}'s band is over: his ${men} men left your army in ${this.map.get(land).name} as his band again.`, chief.id);
+    if (u.men <= 0) S.units.splice(S.units.indexOf(u), 1);
+  }
   // Commanders whose army is gone (destroyed, disbanded, given away, mutinied) go home.
   for (const c of sortBy(
-    S.characters.filter((c) => c.duty === "Commanding" && c.status !== "Dead" && !S.units.some((u) => u.commander === c.id)),
+    S.characters.filter((c) => c.duty === "Commanding" && c.status !== "Dead" && !S.units.some((u) => u.commander === c.id || u.hiredChief === c.id)),
     [(c: Character) => c.id, cmpStr],
   ))
     this.leaveCommand(c, c.watchProvince ?? courtOf(S, this.map, c.grantedBy ?? "Egypt"));
@@ -187,4 +208,42 @@ P.armyToBand = function (u, c, rose) {
   // Their savings go with them, as loose men's gold where they stand.
   if (!this.map.get(u.province).isSea) S.loot.set(u.province, S.loot.getOrDefault(u.province, 0) + u.savings);
   remember(c, S.turn, `I kept the ${u.kind === "Army" ? "army" : "fleet"} of ${was} in ${this.map.get(u.province).name} as my own band.`);
+};
+
+P.enlistBand = function (p, o) {
+  const S = this.s;
+  const u = S.units.find((x) => x.province === o.province && x.power === p && x.kind === "Army") ?? null;
+  const b: Band | undefined = sortBy(
+    S.bands.filter((x) => x.province === o.province),
+    [(x: Band) => -x.men, (a: number, c: number) => a - c],
+  )[0];
+  if (u === null || b === undefined) return;
+  const chief = findCharacter(S, b.leaderId);
+  if (chief === null || chief.status !== "Free" || chief.duty !== "Leading") return;
+  // The chief takes it if it pays at least what his men cost him and what they take on the roads, for the term, and his
+  // own cut by his greed (a script chief's formula; a model chief's own choice of it is not built).
+  const want = Math.max(bandCost(b.men), b.take) * o.term + Math.floor((bandCost(b.men) * o.term * chief.traits.greed) / 100);
+  const name = this.map.get(o.province).name;
+  if (o.fee < want) {
+    notify(S, p, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not serve you for ${o.fee} shekels over ${o.term} seasons. No gold was paid.`, chief.id);
+    return;
+  }
+  if (!this.pay(p, o.fee, `the band of ${chief.name} in ${name}`, o, "it did not join you")) return;
+  gain(chief, o.fee, "Fees");
+  S.bands = S.bands.filter((x) => x !== b);
+  u.men += b.men;
+  u.hiredMen += b.men;
+  u.hiredUntil = S.turn + o.term;
+  u.hiredChief = chief.id;
+  chief.duty = "Commanding";
+  chief.grantedBy = p;
+  chief.watchProvince = u.province;
+  // With no commander of its own, the army is his to command for the term.
+  if (u.commander === null) {
+    u.commander = chief.id;
+    u.commandFrom = S.turn + 1;
+  }
+  remember(chief, S.turn, `I took ${o.fee} shekels from the king of ${p} for my band to serve in his army in ${name} for ${o.term} seasons.`);
+  notify(S, p, "Resolution", "A band enlisted", `${chief.name} took your ${o.fee} shekels: his ${b.men} men serve in your army in ${name} until turn ${u.hiredUntil}${u.commander === chief.id ? ", and he commands it" : ""}.`, chief.id);
+  logEvent(S, "enlisted", `${chief.name}'s band took service with ${p} in ${name}.`, [p], "band-enlisted");
 };

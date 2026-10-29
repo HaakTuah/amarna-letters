@@ -36,7 +36,8 @@ describe("RulebookTextTests", () => {
   const Rules: string = leaderRules(true, newGameConfig());
 
   test("The rulebook states dislodgement, hunger and mutiny", () => {
-    Assert.contains("A unit dislodged is destroyed; a unit that is destroyed gives no support", Rules);
+    Assert.contains("A unit dislodged (beaten from where it stood) falls back to a neighbouring province of yours", Rules);
+    Assert.contains("A unit with nowhere to fall back, or beaten by 67 in a hundred or more (three to one), is destroyed, and a unit destroyed gives no support", Rules);
     Assert.contains("A unit that cannot eat in full goes hungry; one hungry 2 seasons running mutinies. One not paid in full counts a season of missing pay; one unpaid 3 seasons running mutinies.", Rules);
     Assert.contains("Your battle report says why each of your moves that failed was stopped", Rules);
   });
@@ -108,9 +109,10 @@ describe("RulebookTextTests", () => {
 
   test("Every court reads every power s opening troops treasury and starting strength", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
-    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 18727.", Rules);
-    Assert.contains("- Babylonia: armies in babylon, sippar and durkurigalzu; treasury 600 shekels;", Rules);
-    Assert.contains("- Alashiya: a fleet in enkomi; treasury 400 shekels;", Rules);
+    // Item 13: each unit at the size the armies dossier gives it.
+    Assert.contains("- Egypt: armies in memphis (7500 men), akhetaten (7500 men), gaza (100 men) and sumur (100 men), a fleet of 1000 men in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 18739.", Rules);
+    Assert.contains("- Babylonia: armies in babylon (4000 men), sippar (3000 men) and durkurigalzu (3000 men); treasury 600 shekels;", Rules);
+    Assert.contains("- Alashiya: an army of 1500 men in enkomi, a fleet of 750 men in enkomiwaters; treasury 400 shekels;", Rules);
 
     // The figures are the game's own: every unit, treasury and starting strength as a new game sets them.
     let s = newGame(9);

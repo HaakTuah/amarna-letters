@@ -33,7 +33,7 @@ declare module "./core.ts" {
 const P = TurnEngine.prototype;
 
 P.marchPoints = function (u, to, forced) {
-  return legPoints(this.map, u.province, to, seasonOfTurn(this.s.turn), { sneaking: false, troops: { men: u.men, fleet: u.kind === "Fleet", forced } });
+  return legPoints(this.map, u.province, to, seasonOfTurn(this.s.turn), { sneaking: false, troops: { men: idiv(u.men * this.s.config.armyPace, 100), fleet: u.kind === "Fleet", forced } });
 };
 
 P.paceMoves = function (byProvince) {

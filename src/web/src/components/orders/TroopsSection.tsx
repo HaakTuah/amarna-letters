@@ -120,8 +120,9 @@ export function TroopsSection({ c }: { c: OrdersContext }) {
       <h3>Standing orders</h3>
       <p className="muted">
         <small>
-          A standing order waits for a move you can see and answers it in the same season, as your commanders on the spot would: its orders then replace
-          yours for the same troops. It first fires next season, fires once, and costs nothing to give. At most {MaxStanding}.
+          A standing order waits for a move you can see and answers it in the same season through your commanders on the spot: its orders then replace
+          yours for the same troops, each unit's only where its commander, or you, stand with it, once word of it has reached it, on a move its army
+          sees. It first fires next season, fires once, and costs nothing to give. At most {MaxStanding}.
         </small>
       </p>
       {v.standing.map((st) => {

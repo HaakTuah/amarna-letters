@@ -28,7 +28,7 @@ import {
 import type { ISeat } from "../contracts.ts";
 import { ahead } from "./ahead.ts";
 import { Board } from "./board.ts";
-import { commandOrders, courtMove } from "./generals.ts";
+import { commandOrders, courtMove, enlistOrders, governorOrders } from "./generals.ts";
 import { Brain } from "./brain.ts";
 import { Contingencies } from "./contingencies.ts";
 import { personalityFor, type Personality } from "./personality.ts";
@@ -110,6 +110,8 @@ export class ScriptLeader implements ISeat {
     errandJobs(board, brain, orders);
     // Item 13: commanders for the armies away from the court, their mandates, and recalls.
     commandOrders(board, brain, orders, busy);
+    governorOrders(board, brain, orders, busy);
+    enlistOrders(board, brain, orders);
     courtMove(board, brain, orders);
     // Haakon's answers to item 11b: armies fall on bands only by the king's order.
     huntOrders(board, orders);

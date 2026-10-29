@@ -13,6 +13,7 @@ import {
   govern,
   unseat,
   moveCourt,
+  enlist,
   type MandateTask,
   type Engage,
   type Withdraw,
@@ -501,6 +502,8 @@ function other(x: Node): Order | null {
       return unseat(province);
     case "move_court":
       return moveCourt(province);
+    case "enlist_band":
+      return enlist(province, Math.max(0, amount), I(x, "term"));
     case "hunt_bands":
       return hunt(province);
     case "hunt_bands_always":

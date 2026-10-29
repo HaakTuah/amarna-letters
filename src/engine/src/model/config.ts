@@ -75,6 +75,11 @@ export interface GameConfig {
    */
   terrainDefence: number;
   /**
+   * Item 13 ("What sets a company's pace": its size): how much an army's or a fleet's men slow it on the march, in percent
+   * of {@link MarchData}'s term (100 as built; 0 marches every unit at a lone traveller's pace, for tests of other rules).
+   */
+  armyPace: number;
+  /**
    * Whether a land's people resist an army that enters it where no troop stands (item 10+a, "The people defend their
    * land"): 1 on, 0 off.
    */
@@ -160,6 +165,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     siegeCatchMin: 5,
     siegeCatchMax: 75,
     terrainDefence: 1,
+    armyPace: 100,
     peopleDefence: 1,
     seaSupply: 1,
     travelDays: 45,
@@ -209,6 +215,7 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   siegeCatchMin: I,
   siegeCatchMax: I,
   terrainDefence: I,
+  armyPace: I,
   peopleDefence: I,
   seaSupply: I,
   travelDays: I,

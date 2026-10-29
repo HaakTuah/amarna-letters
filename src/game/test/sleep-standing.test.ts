@@ -362,7 +362,7 @@ describe("SleepTests", () => {
     // their event ("it cannot help against a lethal attack, and it comes a season late", Hatti, seed 7).
     let rules = leaderRules(true, newGameConfig());
     Assert.contains(
-      "A standing order waits for a move you can see and answers it in the same season, as your commanders on the spot would, whether or not the move then succeeds",
+      "A standing order waits for a move you can see and answers it in the same season, through your commanders on the spot (see COMMAND AT A DISTANCE: each unit's part runs only where its commander, or you, stand with it, once word of it has reached it, on a move its army sees), whether or not the move then succeeds",
       rules,
     );
     Assert.contains("A move you can see is one from or into a province in your sight.", rules);

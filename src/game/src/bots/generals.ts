@@ -9,7 +9,10 @@ import {
   HSet,
   cmpNum,
   cmpStr,
+  bandCost,
   command,
+  enlist,
+  govern,
   moveCourt,
   mandateOrder,
   newMandate,
@@ -100,4 +103,61 @@ export function courtMove(b: Board, _brain: Brain, orders: Order[]): void {
     [(x: string) => x, cmpStr],
   );
   if (safe.length > 0) orders.push(moveCourt(safe[0]));
+}
+
+/**
+ * A script king's governors (item 13, "Governors"): a former ruler standing at his court is granted his old city back as
+ * its governor (item 11d's "a governorship, a privilege"); and, while he keeps one person at court for his letters, he
+ * grants the governorship of the province of his own most threatened by foreign armies beside it, away from his court and
+ * with nobody governing it, allowing two levies there. He recalls a governor whose province yields less than it should
+ * only by what he hears: the bots see no skimming, so they keep their governors.
+ */
+export function governorOrders(b: Board, _brain: Brain, orders: Order[], busy: HSet<string>): void {
+  if (!CommandPlay.on(b.me)) return;
+  const v = b.v;
+  const governed = new Set(v.governors.map((g) => g.province));
+  const mine = [...v.owner].filter(([, o]) => o === b.me).map(([x]) => x);
+  // A former ruler at our court gets his city back.
+  for (const c of v.known.filter((c) => c.status === "free" && c.where === "at your court" && !busy.has(c.id))) {
+    const city = mine.find((x) => !governed.has(x) && c.knownFacts.some((f) => f.startsWith(`Ruled `) && f.includes(Board.Map.get(x).name)));
+    if (city === undefined) continue;
+    orders.push(govern(city, c.id, 1));
+    busy.add(c.id);
+    governed.add(city);
+  }
+  const ready = sortBy(
+    v.court.filter((c) => c.ours && c.ready && !busy.has(c.id) && (c.errandWhat === null || c.errandDone || c.errandWhat === "stay")),
+    [(c: CharacterView) => c.id, cmpStr],
+  );
+  if (ready.length < 2) return;
+  const foes = b.others.filter((u) => u.kind === "Army").map((u) => u.province);
+  const threatened = sortBy(
+    mine.filter((x) => x !== v.courtAt && !governed.has(x) && !Board.Map.get(x).isSea && Board.Map.neighbors(x).some((n) => foes.includes(n))),
+    [(x: string) => -Board.Map.neighbors(x).filter((n) => foes.includes(n)).length, cmpNum],
+    [(x: string) => x, cmpStr],
+  );
+  if (threatened.length === 0) return;
+  orders.push(govern(threatened[0], ready[0].id, 2));
+  busy.add(ready[0].id);
+}
+
+/**
+ * A script king hires bands as soldiers (item 13): at war, with gold to spare, he offers the chief of a band of a hundred
+ * men or more, where an army of his stands with it under its commander or with him, twice what the men cost a season for
+ * four seasons, and the chief's cut on top.
+ */
+export function enlistOrders(b: Board, brain: Brain, orders: Order[]): void {
+  if (!CommandPlay.on(b.me) || brain.warTarget === null) return;
+  const v = b.v;
+  for (const x of sortBy(v.bands.filter((x) => x.men >= 100), [(x) => -x.men, cmpNum], [(x) => x.province, cmpStr])) {
+    const u = b.mine.find((u) => u.province === x.province && u.kind === "Army");
+    if (u === undefined) continue;
+    const carried = v.courtAt === x.province || (u.commander !== null && u.commandFrom <= v.turn);
+    if (!carried) continue;
+    const term = 4;
+    const fee = bandCost(x.men) * term * 3;
+    if (v.gold < fee * 3) continue;
+    orders.push(enlist(x.province, fee, term));
+    return;
+  }
 }

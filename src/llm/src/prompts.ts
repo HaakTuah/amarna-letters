@@ -629,6 +629,7 @@ export function grantLine(g: GrantView, me: Power): string {
 function commandNote(u: UnitView, v: SeatView): string {
   const parts: string[] = [];
   if (u.reported > 0) parts.push(`as reported in turn ${u.reported}`);
+  if (u.hiredMen > 0 && u.hiredUntil !== null) parts.push(`${u.hiredMen} of its men an enlisted band serving until turn ${u.hiredUntil}`);
   if (u.commander !== null) {
     const name = v.court.find((c) => c.id === u.commander)?.name ?? u.commander;
     parts.push(u.commandFrom > v.turn ? `${name} on his way to command it, from turn ${u.commandFrom}` : `commanded by ${name} (${u.commander})`);

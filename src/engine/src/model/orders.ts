@@ -336,6 +336,18 @@ export interface UnseatOrder {
   province: string;
 }
 /**
+ * Item 13 (hiring bands as soldiers, "Bands are a character's soldiers", "Anyone can hire anyone"): offer the chief of the
+ * band in `province`, where an army of the king's stands with it under its commander or the king himself (who carries the
+ * offer), `fee` shekels, paid now, for his band to serve as the king's army for `term` seasons, the chief commanding it.
+ * The chief takes it or not; when the term ends his men are his band again.
+ */
+export interface EnlistOrder {
+  type: "enlist";
+  province: string;
+  fee: number;
+  term: number;
+}
+/**
  * Item 13 ("The capital is wherever the king is"): the king himself sets out for `to`, a province of his own or any he may
  * reach, with his court; it costs gold and takes the road's time, and his orders travel from wherever he is.
  */
@@ -511,6 +523,7 @@ export type Order =
   | GovernOrder
   | UnseatOrder
   | CourtOrder
+  | EnlistOrder
   | HoldOrder
   | MoveOrder
   | SupportOrder
@@ -577,6 +590,7 @@ export const mandateOrder = (unit: string, mandate: Mandate | null): MandateOrde
 export const govern = (province: string, character: string, levies = 0): GovernOrder => ({ type: "govern", province, character, levies });
 export const unseat = (province: string): UnseatOrder => ({ type: "unseat", province });
 export const moveCourt = (to: string): CourtOrder => ({ type: "court", to });
+export const enlist = (province: string, fee: number, term: number): EnlistOrder => ({ type: "enlist", province, fee, term });
 export const move = (unit: string, to: string, forced = false): MoveOrder => (forced ? { type: "move", unit, to, forced } : { type: "move", unit, to });
 export const support = (unit: string, supported: string, to: string | null = null): SupportOrder => ({ type: "support", unit, supported, to });
 export const convoy = (unit: string, army: string, to: string): ConvoyOrder => ({ type: "convoy", unit, army, to });
@@ -696,6 +710,8 @@ export function describe(o: Order): string {
       return `take back the governorship of ${named(o.province)}`;
     case "court":
       return `set out with the court for ${named(o.to)}`;
+    case "enlist":
+      return `offer the chief of the band in ${named(o.province)} ${o.fee} shekels for his band to serve as your army for ${o.term} seasons`;
     case "hold":
       return `${o.unit} holds`;
     case "move":
@@ -892,6 +908,7 @@ export const OrderSchema = poly("Order", "type", {
   govern: v("GovernOrder", () => govern("", ""), { province: S, character: S, levies: I }),
   unseat: v("UnseatOrder", () => unseat(""), { province: S }),
   court: v("CourtOrder", () => moveCourt(""), { to: S }),
+  enlist: v("EnlistOrder", () => enlist("", 0, 0), { province: S, fee: I, term: I }),
   hold: v("HoldOrder", () => hold(""), { unit: S }),
   move: v("MoveOrder", () => move("", ""), { unit: S, to: S, forced: opt(B) }),
   support: v("SupportOrder", () => support("", ""), { unit: S, supported: S, to: S }),

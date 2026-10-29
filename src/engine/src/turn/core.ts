@@ -99,8 +99,9 @@ export class TurnEngine {
     const stood = new Dict<string, Power | null>(S.characters.map((c) => [c.id, c.at] as const));
     this.travel();
     this.arrivals();
-    // Item 13: word reaches commanders, and those whose army is gone go home.
+    // Item 13: word reaches commanders and governors, and those whose army or province is gone go home.
     this.commandSeason();
+    this.governorsSeason();
     this.tasksDue();
     this.jobsDone(stood);
     // Item 11a: the characters' money and their own seasons.

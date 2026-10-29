@@ -44,6 +44,9 @@ export interface UnitView {
    * bring within the season; 0 where it is seen as it is now.
    */
   reported: number;
+  /** Item 13, of the court's own units: men of an enlisted band among its men, and the last season of their term. */
+  hiredMen: number;
+  hiredUntil: number | null;
 }
 
 export function newUnitView(init: Partial<UnitView> = {}): UnitView {
@@ -65,6 +68,8 @@ export function newUnitView(init: Partial<UnitView> = {}): UnitView {
     mandate: null,
     mandateFrom: 0,
     reported: 0,
+    hiredMen: 0,
+    hiredUntil: null,
     ...init,
   };
 }
@@ -87,6 +92,8 @@ export const UnitViewSchema: ObjSchema<UnitView> = obj("UnitView", newUnitView, 
   mandate: opt(() => MandateSchema),
   mandateFrom: I,
   reported: I,
+  hiredMen: I,
+  hiredUntil: opt(I),
 });
 
 /**
@@ -598,6 +605,22 @@ export const LetterViewSchema: ObjSchema<LetterView> = obj("LetterView", newLett
  * One seat's view of the world: the public map, its own treasury and people, what its
  * characters chose to tell it. Every seat - human, model or script - receives exactly this.
  */
+/** Item 13: one of the court's governorships, as the court knows it. */
+export interface GovernorView {
+  province: string;
+  character: string;
+  from: number;
+  levies: number;
+  raised: number;
+  relieving: boolean;
+}
+
+export function newGovernorView(init: Partial<GovernorView> = {}): GovernorView {
+  return { province: "", character: "", from: 0, levies: 0, raised: 0, relieving: false, ...init };
+}
+
+export const GovernorViewSchema: ObjSchema<GovernorView> = obj("GovernorView", newGovernorView, { province: S, character: S, from: I, levies: I, raised: I, relieving: B });
+
 export interface SeatView {
   turn: number;
   season: string;
@@ -609,6 +632,8 @@ export interface SeatView {
    */
   courtAt: string;
   courtTo: string | null;
+  /** Item 13: the court's own governorships: the province, its governor's id, when he governs from, and his levies. */
+  governors: GovernorView[];
   ended: boolean;
   /** Whether the age has no end ("An open age"). The ending itself is told in words; no number or season of it is shown. */
   openAge: boolean;
@@ -768,6 +793,7 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     power: "Egypt",
     courtAt: "",
     courtTo: null,
+    governors: [],
     king: "",
     ended: false,
     openAge: false,
@@ -843,6 +869,7 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   power: S,
   courtAt: S,
   courtTo: opt(S),
+  governors: list(() => GovernorViewSchema),
   king: S,
   ended: B,
   openAge: B,

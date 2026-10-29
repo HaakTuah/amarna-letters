@@ -54,9 +54,10 @@ describe("EngineTests", () => {
   test("New game matches the starting tiers", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
-    // The Great Kings' 16 units (item 11d gave Terqa, Mira and Seha to their own rulers) and one for each of the 40
-    // city-states (item 11+, item 11c's six of Canaan and item 11f's eight).
-    Assert.equal(56, s.units.length);
+    // The Great Kings' 20 units (item 13: Egypt's garrisons at Gaza and Sumur, Alashiya's army, Arzawa's and Alashiya's
+    // fleets in their waters) and one for each of the 40 city-states (item 11+, item 11c's six of Canaan and item 11f's
+    // eight), with the fleets of Ugarit, Sidon, Tyre and Byblos in their waters (item 13).
+    Assert.equal(64, s.units.length);
     // Walls by place: the seven Great Kings' capitals and Qatna, Qadesh and Hazor 3; the walls dossier's for the other
     // city-states (items 11d, 11c and 11f), four fortresses 2, Sumur and Samuha 1; the chiefs' lands none.
     Assert.equal(48, s.walls.size);
