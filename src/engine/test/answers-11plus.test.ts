@@ -62,6 +62,19 @@ describe("The answers to item 11+", () => {
     Assert.single(new OrderValidator(s).validate("Byblos", newTurnSubmission({ orders: [cede("byblos", "Egypt")] })).accepted);
     // A tablet giving another city, or sealed with someone else, is no agreement for this one.
     Assert.single(new OrderValidator(s).validate("Byblos", newTurnSubmission({ orders: [cede("byblos", "Hatti")] })).rejected);
+    const other = game();
+    sealedCession(other, "Byblos", "Egypt", "sidon");
+    Assert.single(new OrderValidator(other).validate("Byblos", newTurnSubmission({ orders: [cede("byblos", "Egypt")] })).rejected);
+  });
+
+  test("A king who cedes his own capital in a season receives none that season, whatever the order of reckoning", () => {
+    const s = game();
+    sealedCession(s, "Byblos", "Sidon", "byblos");
+    s.tablets.push(newTablet({ id: "t991", text: "I give you my city.", proposedBy: "Sidon", partner: "Egypt", seals: ["Sidon", "Egypt"], createdTurn: 1, sealedTurn: 1, clauses: [clause("cede", { province: "sidon" })] }));
+    season(s, new Dict([["Byblos", newTurnSubmission({ orders: [cede("byblos", "Sidon")] })], ["Sidon", newTurnSubmission({ orders: [cede("sidon", "Egypt")] })]]));
+    Assert.equal("Egypt", s.owner.get("sidon"));
+    Assert.equal("Byblos", s.owner.get("byblos"));
+    Assert.doesNotContain("Byblos", s.eliminated);
   });
 
   test("A ruler who cedes his capital loses his realm whole and lives on as a free character at his old city", () => {

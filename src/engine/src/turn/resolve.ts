@@ -429,7 +429,12 @@ P.resolveTransfers = function (cessions, gifts) {
     notify(S, g.to, "Resolution", "Troops received", `${p} has placed ${unitLabel(u)} under your command.`);
     logEvent(S, "gift-unit", `${p} gave ${unitLabel(u)} to ${g.to}.`, [p, g.to]);
   }
-  for (const [p, c] of capitals) this.realmCeded(p, c);
+  // A king who cedes his own capital this season can receive none: whichever were reckoned first would decide it.
+  const ceding = new Set(capitals.map(([p]) => p));
+  for (const [p, c] of capitals) {
+    if (ceding.has(c.to)) this.failed(p, c, "Cession failed", `${Map.get(c.province).name} was not ceded to ${c.to}: ${c.to} ceded its own capital the same season.`, "the receiver ceded its own realm", true);
+    else this.realmCeded(p, c);
+  }
 };
 
 P.raise = function (p, r) {
@@ -571,7 +576,7 @@ P.fall = function (p, conqueror, taker, ceded = false) {
       "Battle",
       KingdomFallsTitle,
       ceded
-        ? `${king(p)} has ceded ${capital.name} to you, and with it the kingdom of ${land(p)}: his troops have disbanded, and ${yours}`
+        ? `${king(p).charAt(0).toUpperCase() + king(p).slice(1)} has ceded ${capital.name} to you, and with it the kingdom of ${land(p)}: his troops have disbanded, and ${yours}`
         : taker === winner
         ? `With ${capital.name} you took the kingdom of ${land(p)}: its king has fallen, his troops have disbanded, and ${yours}`
         : `${taker} took ${capital.name}, the capital of ${land(p)}, but fell himself in the same season, and the kingdom of ${land(p)} passes to you with his: its king has fallen, his troops have disbanded, and ${yours}`,

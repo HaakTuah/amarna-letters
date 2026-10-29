@@ -144,6 +144,7 @@ describe("MapSceneTests", () => {
     Assert.true(shown > 0, "the games put nobody on a court's map");
   });
 
+  // Seeds 4 and 7: since item 11d seed 3's game leaves no unit seen and then lost to sight in its sixteen seasons.
   test.each([4, 7])("The fog is clear exactly where the court sees and ghosts stand only out of sight %s", async (seed) => {
     let { runner, frames } = await play(seed, 16);
     let ghosts = 0;

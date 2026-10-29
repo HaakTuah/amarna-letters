@@ -9,6 +9,7 @@
  */
 import { clamp } from "../core/num.ts";
 import { cmpNum, sortBy } from "../core/seq.ts";
+import { cessionAgreed } from "../model/cession.ts";
 import type { CedeProvinceOrder } from "../model/orders.ts";
 import { newCharacter, newFact, newTraits, type Character } from "../model/people.ts";
 import { AllPowers, king, land, rulerNamed, type Power } from "../model/power.ts";
@@ -36,6 +37,11 @@ P.realmCeded = function (p, c) {
   const name = this.map.get(c.province).name;
   if (S.owner.getOrDefault(c.province, null) !== p) {
     this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: you no longer held it after movement.`, "you no longer held it", true);
+    return;
+  }
+  // The agreement must still stand as the season resolves: a tablet repudiated or carried off since gives nothing.
+  if (!cessionAgreed(S.tablets, p, c.to, c.province)) {
+    this.failed(p, c, "Cession failed", `${name} was not ceded to ${c.to}: no sealed tablet between you gives it any more.`, "the tablet no longer stands", false);
     return;
   }
   if (!isAlive(S, c.to)) {
