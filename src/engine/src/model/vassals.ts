@@ -54,6 +54,14 @@ export const StartVassals: readonly StartVassal[] = [
   bond("Terqa", "Mitanni"),
   bond("Mira", "Arzawa"),
   bond("Seha", "Arzawa"),
+  // Item 11f: Tunip ("Tunip, your city", EA 59), Beirut, Pella and Ashtaroth Egypt's; Niya under Takuwa Mitanni's until
+  // Suppiluliuma's first Syrian war; Hukkana of Azzi-Hayasa Hatti's by his treaty. Libya and the Shasu start free.
+  bond("Tunip", "Egypt"),
+  bond("Beirut", "Egypt"),
+  bond("Pella", "Egypt"),
+  bond("Ashtaroth", "Egypt"),
+  bond("Niya", "Mitanni"),
+  bond("Azzi", "Hatti"),
 ];
 
 /** What a vassal tablet says, read from its mark and its template clauses: who serves whom, for what tribute a year. */

@@ -96,6 +96,17 @@ export const ProvinceEconomies: ReadonlyMap<string, ProvinceEconomy> = new Map([
   ["lukka", e(1, "Thin")],
   ["kaska", e(1, "Thin")],
   ["steppe", e(1, "Thin")],
+  // Item 11f: Tunip a large town (Tell Acharneh, about 77 ha), Niya, Beirut, Pella and Ashtaroth small, Azzi's highland
+  // strongholds, and Samuha a royal residence [G]; Libya and the Shasu herders with no town, so no market to speak of
+  ["tunip", e(10, "Fair")],
+  ["niya", e(3, "Fair")],
+  ["beirut", e(2, "Fair", 0, true)],
+  ["pella", e(2, "Fair")],
+  ["ashtaroth", e(2, "Fair")],
+  ["azzi", e(2, "Thin", 1)],
+  ["samuha", e(5, "Low")],
+  ["libya", e(0, "Thin")],
+  ["shasu", e(0, "Thin", 1)],
 ]);
 
 /**

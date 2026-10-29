@@ -33,13 +33,22 @@ export const TollsTitle = "Tolls";
 /** What each holder's tolls and seizures brought in this season, told once at its end. */
 export type TollBook = Dict<Power, { grain: number; gold: number; found: number }>;
 
+/**
+ * How a caravan goes through foreign land: openly (false), off the road through all of it as smugglers (true), or, a
+ * kingdom's caravan bound for a depot or an army (item 11f, "Caravans carry a kingdom's goods"), openly where it may and
+ * sneaking through land its king has heard is closed to him, where he has no passage ("closed").
+ */
+export type Sneak = boolean | "closed";
+
 /** What happens to a caravan at a border: it passes (perhaps paying), is turned back, or is found smuggling and seized. */
 export type AtBorder = "pass" | "turned" | "seized";
 
 declare module "./core.ts" {
   interface TurnEngine {
-    openTo(p: Power, province: string, sneak: boolean): boolean;
-    tradeRoute(p: Power, from: string, to: string, sneak: boolean): string[] | null;
+    openTo(p: Power, province: string, sneak: Sneak): boolean;
+    tradeRoute(p: Power, from: string, to: string, sneak: Sneak): string[] | null;
+    roadsShutTo(p: Power, province: string): boolean;
+    caravanOffRoad(p: Power, province: string, sneak: Sneak): boolean;
     shipRoute(from: string, to: string): string[] | null;
     atBorder(c: Caravan, a: string, b: string, book: TollBook): AtBorder;
     tradeAtMarket(c: Caravan, parts: string[]): void;
@@ -71,15 +80,29 @@ P.openTo = function (p, province, sneak) {
   const prov = this.map.get(province);
   if (prov.isSea) return false;
   const holder = S.owner.getOrDefault(province, null);
-  if (holder === null || holder === p || sneak) return true;
-  return !(S.roadsHeard.tryGet(p) ?? []).includes(holder) || this.passageFor(holder, p, province);
+  if (holder === null || holder === p || sneak !== false) return true;
+  return !this.roadsShutTo(p, province);
+};
+
+/** Whether `p` has heard this province's holder closed his roads to him, and has no passage there. */
+P.roadsShutTo = function (p, province) {
+  const holder = this.s.owner.getOrDefault(province, null);
+  if (holder === null || holder === p) return false;
+  return (this.s.roadsHeard.tryGet(p) ?? []).includes(holder) && !this.passageFor(holder, p, province);
+};
+
+/** Whether a caravan of `p`'s goes off the road in this province: a smuggler in any foreign land, a kingdom's caravan in land closed to it. */
+P.caravanOffRoad = function (p, province, sneak) {
+  if (sneak === "closed") return this.roadsShutTo(p, province);
+  const holder = this.s.owner.getOrDefault(province, null);
+  return sneak && holder !== p && holder !== null;
 };
 
 /** A caravan's route by road or river through land open to it (off the road through foreign land, for a smuggler). */
 P.tradeRoute = function (p, from, to, sneak) {
   const S = this.s;
   const season = seasonOfTurn(S.turn);
-  const offRoad = (x: string): boolean => sneak && S.owner.getOrDefault(x, null) !== p && S.owner.getOrDefault(x, null) !== null;
+  const offRoad = (x: string): boolean => this.caravanOffRoad(p, x, sneak);
   const r = cheapestRoute(
     this.map,
     from,
@@ -127,10 +150,11 @@ P.atBorder = function (c, a, b, book) {
     if (e === undefined) book.set(k, (e = { grain: 0, gold: 0, found: 0 }));
     return e;
   };
-  if (c.sneak && c.ship === null) {
+  const sneaking = c.ship === null && (c.sneak || (!c.trade && this.roadsShutTo(c.power, b)));
+  if (sneaking) {
     const odds = smuggleOdds(c.grain, c.gold, S.counterIntel.getOrDefault(k, 0), RoadOdds.most);
     if (this.r("smuggle", `${c.id}-${b}`).nextDouble() * 100 >= odds) {
-      logEvent(S, "smuggled", `${c.power}'s smugglers slipped into ${k}'s land at ${name}.`, [c.power], "smuggled");
+      logEvent(S, "smuggled", `${c.power}'s ${c.sneak ? "smugglers" : "caravan"} slipped into ${k}'s land at ${name}.`, [c.power], c.sneak ? "smuggled" : "caravan-slipped");
       return "pass";
     }
     const lost = this.putInStores(b, c.grain);
@@ -140,8 +164,9 @@ P.atBorder = function (c, a, b, book) {
     e.grain += c.grain - lost;
     e.gold += c.gold;
     e.found++;
-    notify(S, c.power, "Notice", MarketsTitle, `Your smugglers were found at ${name} by ${k}'s people, and their goods were seized: ${c.grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}.`);
-    logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s smugglers at ${name} and seized their goods.`, [c.power, k], "smuggler-found");
+    const who = c.sneak ? "smugglers" : "caravan, sneaking through land closed to you,";
+    notify(S, c.power, "Notice", MarketsTitle, `Your ${who} ${c.sneak ? "were" : "was"} found at ${name} by ${k}'s people, and ${c.sneak ? "their" : "its"} goods were seized: ${c.grain} measures of grain${c.gold > 0 ? ` and ${formatMoney(c.gold)}` : ""}.`);
+    logEvent(S, "smuggler-found", `${k}'s people found ${c.power}'s ${c.sneak ? "smugglers" : "caravan"} at ${name} and seized ${c.sneak ? "their" : "its"} goods.`, [c.power, k], c.sneak ? "smuggler-found" : "caravan-found");
     return "seized";
   }
   if ((S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, b)) {

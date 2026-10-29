@@ -48,19 +48,47 @@ export function depotFor(b: Board, u: UnitView): string | null {
   return Board.Map.landProvinces.find((x) => x.waters === prov.id && b.isMine(x.id))?.id ?? null;
 }
 
-/** A caravan's route through our own land to `to`, and the seasons it takes, or null if there is none. */
+/**
+ * A caravan's route to `to`, and the seasons it takes, or null if there is none. Through our own land first; since item
+ * 11f a caravan may go anywhere, so the road may cross foreign land, openly where its king has not closed his roads to us
+ * and sneaking (half as slow again, and found with a smuggler's odds) where he has: each foreign province costs a little
+ * more than our own, a closed one more again for the risk, and a province where troops of a king who closed his roads to
+ * us stand (as we see them) is avoided, since they may take the caravan there.
+ */
 function route(b: Board, from: string, to: string): { route: string[]; seasons: number } | null {
   const season = seasonOfTurn(b.v.turn);
+  const anywhere = CaravanPlay.on(b.me);
+  const closed = new Set<string>(b.v.roadsClosedToUs);
+  const shut = (x: string): boolean => {
+    const k = b.ownerOf(x);
+    return k !== null && k !== b.me && closed.has(k);
+  };
+  const guarded = new Set(b.v.units.filter((u) => u.power !== b.me && closed.has(u.power)).map((u) => u.province));
   const r = cheapestRoute(
     Board.Map,
     from,
     to,
-    (x, y) => (Board.Map.get(x).isSea || Board.Map.get(y).isSea ? Infinity : legPoints(Board.Map, x, y, season)),
-    (x) => (b.isMine(x) ? 0 : Infinity),
+    (x, y) => (Board.Map.get(x).isSea || Board.Map.get(y).isSea ? Infinity : legPoints(Board.Map, x, y, season, { sneaking: shut(x) || shut(y) })),
+    (x) => (b.isMine(x) ? 0 : !anywhere || guarded.has(x) ? Infinity : shut(x) ? 3 * PointsPerDay * ForeignDays : PointsPerDay * ForeignDays),
   );
   if (r === null) return null;
   return { route: r.route, seasons: Math.max(1, Math.ceil(r.cost / (45 * PointsPerDay))) };
 }
+
+/**
+ * Whether a script king sends its caravans through foreign land (item 11f); off for the measure of using it against
+ * ignoring it (`--caravan-play-half`), when they keep to its own land as before.
+ */
+export const CaravanPlay: { off: boolean; only: ReadonlySet<string> | null; on: (me: string) => boolean } = {
+  off: false,
+  only: null,
+  on(me: string): boolean {
+    return !(this.off && (this.only === null || this.only.has(me)));
+  },
+};
+
+/** What crossing a foreign province weighs, in days, beyond its road (a first guess of the script's own): the tolls and the risk. */
+const ForeignDays = 2;
 
 export function grainOrders(b: Board, brain: Brain, plan: MilitaryPlan, orders: Order[], gold: number, costs: number): { sales: number; abroad: number } {
   const v = b.v;

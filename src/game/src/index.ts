@@ -13,7 +13,7 @@ export { ClausePlay } from "./bots/statecraft-clauses.ts";
 export { RoadPlay } from "./bots/roads.ts";
 export { WinterStrokes } from "./bots/tactics.ts";
 export { AuthorityPlay } from "./bots/authority.ts";
-export { GrainPlay } from "./bots/grain.ts";
+export { CaravanPlay, GrainPlay } from "./bots/grain.ts";
 export { TradePlay } from "./bots/trade.ts";
 export { PeoplePlay } from "./bots/statecraft-court.ts";
 export { LandPlay } from "./bots/land.ts";

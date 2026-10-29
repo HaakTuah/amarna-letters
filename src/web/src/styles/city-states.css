@@ -32,6 +32,14 @@
     --ashkelon: #3a7a7a;
     --lachish: #7a3a5a;
     --hebron: #6a6a3a;
+    --azzi: #5a4a6a;
+    --niya: #3a6a5a;
+    --tunip: #6a5a2a;
+    --beirut: #2a5a6a;
+    --pella: #6a3a4a;
+    --ashtaroth: #4a6a2a;
+    --shasu: #7a5a3a;
+    --libya: #7a6a4a;
     --seha: #4d7a5a;
     --mira: #7a4d3a;
     --terqa: #5a4d7a;
@@ -67,6 +75,14 @@
       --ashkelon: #7fd0d0;
       --lachish: #d07fa7;
       --hebron: #c6c67f;
+      --azzi: #bba8cf;
+      --niya: #8fcfb8;
+      --tunip: #d0bc7c;
+      --beirut: #80c0d4;
+      --pella: #d496a8;
+      --ashtaroth: #a8d07c;
+      --shasu: #d8b08a;
+      --libya: #d8c8a0;
       --seha: #87c9a0;
       --mira: #d09a7f;
       --terqa: #a597d0;
@@ -102,6 +118,14 @@
     --ashkelon: #7fd0d0;
     --lachish: #d07fa7;
     --hebron: #c6c67f;
+    --azzi: #bba8cf;
+    --niya: #8fcfb8;
+    --tunip: #d0bc7c;
+    --beirut: #80c0d4;
+    --pella: #d496a8;
+    --ashtaroth: #a8d07c;
+    --shasu: #d8b08a;
+    --libya: #d8c8a0;
     --seha: #87c9a0;
     --mira: #d09a7f;
     --terqa: #a597d0;
@@ -165,6 +189,22 @@
 .map .m-lachish .shaft, .map .m-lachish .sup, .map .m-lachish .conv, .map .c-lachish circle { stroke: var(--lachish); }
 .e-hebron .ei-bg, .f-hebron, .e-hebron, .ah-hebron { fill: var(--hebron); } .map .t-hebron, .map .s-hebron { fill: var(--hebron); } .b-hebron, .r-hebron { stroke: var(--hebron); }
 .map .m-hebron .shaft, .map .m-hebron .sup, .map .m-hebron .conv, .map .c-hebron circle { stroke: var(--hebron); }
+.e-azzi .ei-bg, .f-azzi, .e-azzi, .ah-azzi { fill: var(--azzi); } .map .t-azzi, .map .s-azzi { fill: var(--azzi); } .b-azzi, .r-azzi { stroke: var(--azzi); }
+.map .m-azzi .shaft, .map .m-azzi .sup, .map .m-azzi .conv, .map .c-azzi circle { stroke: var(--azzi); }
+.e-niya .ei-bg, .f-niya, .e-niya, .ah-niya { fill: var(--niya); } .map .t-niya, .map .s-niya { fill: var(--niya); } .b-niya, .r-niya { stroke: var(--niya); }
+.map .m-niya .shaft, .map .m-niya .sup, .map .m-niya .conv, .map .c-niya circle { stroke: var(--niya); }
+.e-tunip .ei-bg, .f-tunip, .e-tunip, .ah-tunip { fill: var(--tunip); } .map .t-tunip, .map .s-tunip { fill: var(--tunip); } .b-tunip, .r-tunip { stroke: var(--tunip); }
+.map .m-tunip .shaft, .map .m-tunip .sup, .map .m-tunip .conv, .map .c-tunip circle { stroke: var(--tunip); }
+.e-beirut .ei-bg, .f-beirut, .e-beirut, .ah-beirut { fill: var(--beirut); } .map .t-beirut, .map .s-beirut { fill: var(--beirut); } .b-beirut, .r-beirut { stroke: var(--beirut); }
+.map .m-beirut .shaft, .map .m-beirut .sup, .map .m-beirut .conv, .map .c-beirut circle { stroke: var(--beirut); }
+.e-pella .ei-bg, .f-pella, .e-pella, .ah-pella { fill: var(--pella); } .map .t-pella, .map .s-pella { fill: var(--pella); } .b-pella, .r-pella { stroke: var(--pella); }
+.map .m-pella .shaft, .map .m-pella .sup, .map .m-pella .conv, .map .c-pella circle { stroke: var(--pella); }
+.e-ashtaroth .ei-bg, .f-ashtaroth, .e-ashtaroth, .ah-ashtaroth { fill: var(--ashtaroth); } .map .t-ashtaroth, .map .s-ashtaroth { fill: var(--ashtaroth); } .b-ashtaroth, .r-ashtaroth { stroke: var(--ashtaroth); }
+.map .m-ashtaroth .shaft, .map .m-ashtaroth .sup, .map .m-ashtaroth .conv, .map .c-ashtaroth circle { stroke: var(--ashtaroth); }
+.e-shasu .ei-bg, .f-shasu, .e-shasu, .ah-shasu { fill: var(--shasu); } .map .t-shasu, .map .s-shasu { fill: var(--shasu); } .b-shasu, .r-shasu { stroke: var(--shasu); }
+.map .m-shasu .shaft, .map .m-shasu .sup, .map .m-shasu .conv, .map .c-shasu circle { stroke: var(--shasu); }
+.e-libya .ei-bg, .f-libya, .e-libya, .ah-libya { fill: var(--libya); } .map .t-libya, .map .s-libya { fill: var(--libya); } .b-libya, .r-libya { stroke: var(--libya); }
+.map .m-libya .shaft, .map .m-libya .sup, .map .m-libya .conv, .map .c-libya circle { stroke: var(--libya); }
 .e-seha .ei-bg, .f-seha, .e-seha, .ah-seha { fill: var(--seha); } .map .t-seha, .map .s-seha { fill: var(--seha); } .b-seha, .r-seha { stroke: var(--seha); }
 .map .m-seha .shaft, .map .m-seha .sup, .map .m-seha .conv, .map .c-seha circle { stroke: var(--seha); }
 .e-mira .ei-bg, .f-mira, .e-mira, .ah-mira { fill: var(--mira); } .map .t-mira, .map .s-mira { fill: var(--mira); } .b-mira, .r-mira { stroke: var(--mira); }

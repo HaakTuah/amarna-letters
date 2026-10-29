@@ -38,7 +38,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import { RoadOdds } from "./travel.ts";
 import { Views } from "../rules/views.ts";
 import { absorbedIn, TurnEngine } from "./core.ts";
-import { openToSea, type TollBook } from "./trade.ts";
+import { openToSea, type Sneak, type TollBook } from "./trade.ts";
 
 /** The notice of a king's economy each season: harvest, mines, pay and food. */
 export const EconomyTitle = "The treasury";
@@ -427,6 +427,9 @@ P.disbandUnit = function (u, settle = false) {
 
 // ---------------------------------------------------------------- caravans
 
+/** How a caravan goes through foreign land: a trader as ordered (openly or smuggling), a kingdom's caravan sneaking where closed (item 11f). */
+const sneakOf = (c: Caravan): Sneak => (c.trade ? c.sneak : "closed");
+
 /**
  * A caravan's company for its pace ("What sets a company's pace"): its size is its load in measures, a donkey string for
  * every twenty, so a big caravan is slow and a small one quick; it carries no more than its donkeys can.
@@ -437,11 +440,12 @@ P.caravanCompany = function (c) {
 
 /**
  * A caravan's route: through land open to it (its king's own, and from item 9+b land whose holder has not closed his
- * roads to it), ending at the destination (which may be land where his troops stand), by road or by boat on a river; by
- * sea only as a ship ("Ships carry goods"). Null if there is none.
+ * roads to it), and since item 11f through land closed to it too, sneaking there at risk ("Caravans carry a kingdom's
+ * goods": where they have no passage they may still go), ending at the destination (which may be land where his troops
+ * stand), by road or by boat on a river; by sea only as a ship ("Ships carry goods"). Null if there is none.
  */
 P.caravanRoute = function (p, from, to) {
-  return this.tradeRoute(p, from, to, false);
+  return this.tradeRoute(p, from, to, "closed");
 };
 
 /**
@@ -480,7 +484,7 @@ P.caravansTravel = function () {
     // a crew at sea keep it, the smugglers' going to their homes at once and the crew's into its savings.
     if (this.map.get(here).isSea) {
       if (c.ship !== null) c.ship.savings += pay;
-    } else if (c.sneak && S.owner.getOrDefault(here, null) !== c.power && S.owner.getOrDefault(here, null) !== null) this.spendAt(c.from, pay);
+    } else if (this.caravanOffRoad(c.power, here, sneakOf(c))) this.spendAt(c.from, pay);
     else this.spendAt(here, pay);
     // Advance along the route at its pace, counting how much of the season went by boat, meeting each border it crosses.
     const start = perSeason + c.points;
@@ -492,7 +496,7 @@ P.caravansTravel = function () {
     while (c.at < c.route.length - 1) {
       const a = c.route[c.at];
       const b = c.route[c.at + 1];
-      const offRoad = (x: string): boolean => c.sneak && S.owner.getOrDefault(x, null) !== c.power && S.owner.getOrDefault(x, null) !== null;
+      const offRoad = (x: string): boolean => c.ship === null && this.caravanOffRoad(c.power, x, sneakOf(c));
       const cost = legPoints(this.map, a, b, season, { ...company, sneaking: offRoad(a) || offRoad(b) });
       if (cost > budget) break;
       const border = this.atBorder(c, a, b, book);
@@ -512,8 +516,16 @@ P.caravansTravel = function () {
     }
     if (stopped === "turned") {
       const at = caravanAt(c);
+      // A kingdom's caravan goes on to where it was sent, sneaking through the land it now knows is closed to it (item 11f).
+      const onward = c.ship === null && !c.trade && !c.returning ? this.caravanRoute(c.power, at, c.to) : null;
+      if (onward !== null) {
+        c.route = onward;
+        c.at = 0;
+        c.points = 0;
+        continue;
+      }
       // A new way home, round the land it now knows is closed to it.
-      const back = c.ship !== null ? this.shipRoute(at, c.from) : this.tradeRoute(c.power, at, c.from, c.sneak);
+      const back = c.ship !== null ? this.shipRoute(at, c.from) : this.tradeRoute(c.power, at, c.from, sneakOf(c));
       if (back === null && at !== c.from) {
         S.caravans.splice(S.caravans.indexOf(c), 1);
         if (c.ship !== null) this.rejoinFleet(c);
@@ -540,7 +552,9 @@ P.caravansTravel = function () {
     // closed his roads to its king, where he has no passage, in a province it reached; or outlaws; or a storm at sea.
     const seen = crossed.length > 0 ? crossed : [caravanAt(c)];
     const hostile = (k: Power, at: string): boolean => (S.roadsClosed.tryGet(k) ?? []).includes(c.power) && !this.passageFor(k, c.power, at);
-    const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power && hostile(u.power, x)) ?? null).find((u) => u !== null) ?? null;
+    // Troops shut inside walls by a siege seize nothing beyond them: the countryside is the besieger's (item 11f).
+    const shut = (u: Unit): boolean => S.sieges.some((x) => x.province === u.province && x.power !== u.power);
+    const taker = seen.map((x) => S.units.find((u) => u.province === x && u.power !== c.power && hostile(u.power, x) && !shut(u)) ?? null).find((u) => u !== null) ?? null;
     const roll = this.r("caravan", c.id).nextDouble() * 100;
     if (taker !== null && c.grain + c.gold + c.archive.length > 0 && roll < RoadOdds.troops) {
       S.caravans.splice(S.caravans.indexOf(c), 1);
@@ -648,7 +662,7 @@ P.caravanArrives = function (c, traded = null) {
     if (!open) parts.push(c.ship !== null ? "found the harbour blockaded" : "found the city besieged and could not get in");
   }
   if (c.grain > 0 || c.gold > 0 || c.ship !== null) {
-    const back = c.ship !== null ? this.shipRoute(at, c.from) : this.tradeRoute(c.power, at, c.from, c.sneak);
+    const back = c.ship !== null ? this.shipRoute(at, c.from) : this.tradeRoute(c.power, at, c.from, sneakOf(c));
     if (back !== null) {
       c.route = back;
       c.at = 0;

@@ -69,7 +69,7 @@ is whose sphere the ruler is in during 1346.
 | Sumur (item 7) | Egyptian commissioner (Pahanate earlier) | Egypt | B | Egypt's base on the north coast; besieged and taken by Aziru around 1346 (EA 103-106, Rib-Hadda's reports) [C on the exact year] |
 | Arwad (item 7) | Unnamed ruler(s) | hostile to Byblos | A | The ships of Arwad blockade Byblos with Amurru (EA 98, EA 105) |
 | Byblos (`byblos`) | Rib-Hadda | Egypt (loyal) | A | Over sixty letters (EA 68-96, 101-138, 362); later driven out by his brother Ilirabih, he goes to Beirut and is handed to Aziru (EA 136-138, EA 162) |
-| Beirut (in Byblos or Sidon) | Ammunira | Egypt | A | EA 141-143 |
+| Beirut (`beirut`, item 11f; before, in Byblos's and Sidon's land) | Ammunira | Egypt | A | EA 141-143; Rib-Hadda flees to him when his brother shuts him out of Byblos (EA 136-138) |
 | Sidon (item 7) | Zimrida | Egypt, friendly to Aziru | A | EA 144-145; accused by Abi-Milku of Tyre of siding with Amurru (EA 147-149) |
 | Tyre (`tyre`) | Abi-Milku | Egypt (loyal) | A | EA 146-155; the island city short of water and wood, blockaded from the mainland by Sidon (EA 148-149, 154). EA 155 names Akhenaten's daughter Meritaten, so these are Akhenaten's years |
 | Qadesh (`qadesh`) | Aitakama, son of Shutatarra | Egypt, then Hatti | A | Taken over in the Great Syrian War; raids Egyptian lands with Hittite backing (EA 189, EA 53, EA 197) |
@@ -77,10 +77,14 @@ is whose sphere the ruler is in during 1346.
 | Nuhashshe (item 7) | Addu-nirari; Sharrupshi | Mitanni, then Hatti | B | Addu-nirari asks Egypt for help (EA 51); Sharrupshi appears in the historical prologue of the Tette treaty (Beckman no. 7) |
 | Aleppo / Halab (item 7) | Unnamed | Mitanni | B | Taken in the Great Syrian War; later Telipinu, a son of Suppiluliuma, is made its king [A] |
 | Alalakh / Mukish (item 7) | Itur-Addu | Mitanni | B | Joins Nuhashshe against Ugarit when Ugarit sides with Hatti (Beckman no. 4) |
+| Niya (`niya`, item 11f) | Takuwa | Mitanni, then Hatti | A (the ruler), C (the site: Qal'at al-Mudiq above the Ghab) | In the Shattiwaza treaty's account of the first Syrian war Takuwa comes to Suppiluliuma to make peace, and his brother Akit-Teshup turns Niya against him; Amenhotep II "crossed the Orontes" and was welcomed at Niya (his Memphis and Karnak stelae, about 1420s) [A] |
+| Tunip (`tunip`, item 11f) | No king named: its elders write as one | Egypt | A (the letter), C (the site: Tell Acharneh on the Orontes, about 77 ha) | EA 59, "the citizens of Tunip", begging Pharaoh for help against Aziru and recalling Thutmose III; their king's son is held in Egypt. The game's ruler is "the king of Tunip", as for any unnamed ruler |
 | Carchemish (`carchemish`) | Unnamed Mitanni vassal | Mitanni | B | Mitanni's Euphrates crossing until Suppiluliuma's siege (about 1327 [C]), after which his son Piyassili (Sharri-Kushuh) rules it [A] |
 | Damascus (`damascus`) / Kumidi (item 7) | Biryawaza | Egypt | A | EA 194-197; an Egyptian vassal in Upe (the Damascus land) with authority around Kumidi |
 | Megiddo (`megiddo`) | Biridiya | Egypt (loyal) | A | EA 242-248; besieged by Labaya and calling for 100 men to guard the city (EA 244) |
 | Shechem (item 7) | Labaya, or his sons | Egypt, nominally | C | EA 252-254. He was killed by the men of Gina (EA 245, Biridiya's report), and his sons carried on (EA 250, EA 255-256: Mut-Baal of Pihil). Most place his death late in Amenhotep III's reign or early in Akhenaten's, so by 1346 he is **probably dead** and his sons hold his lands. See "Design questions" |
+| Pella / Pihil (`pella`, item 11f) | Mut-Bahlu (Mut-Baal), a son of Labaya | Egypt | A | EA 255-256: swears he does not know where Ayyab is; Seti I's first Beth-Shan stela names Pihil attacking Beth-Shan across the Jordan [A, a generation later]. Until item 11f the game gave Mut-Baal Shechem; Shechem is now Labaya's, who starts the game though probably dead ("What earns a place") |
+| Ashtaroth (`ashtaroth`, item 11f) | Ayyab | Egypt | A (the ruler), B (the town: Tell Ashtara in the Bashan) | EA 256 (Mut-Bahlu denies hiding him), EA 364 (his own letter, accusing the ruler of Hazor of taking his cities) |
 | Jerusalem (item 7) | Abdi-Heba | Egypt (loyal) | A | EA 285-290; accuses Milkilu of Gezer and the sons of Labaya of giving the land to the Habiru (EA 287, 289) |
 | Gaza (`gaza`) | Egyptian commissioner | Egypt | A | An Egyptian centre (EA 289, EA 296); Yanhamu, an Egyptian official, is in charge of the grain at Yarimuta (EA 83, 85, 86) [A] |
 | Others in Canaan | Milkilu (Gezer), Shuwardata (Hebron hills), Yidya (Ashkelon), Surata (Akko), Abdi-Tirshi (Hazor), Zimreddi (Lachish) | Egypt | A | City-states of their own since item 11c, each Egypt's vassal at the start (`akko`, `hazor`, `gezer`, `ashkelon`, `lachish`, `hebron`); Shuwardata's seat is uncertain (Hebron's hills, or Gath), taken as Hebron [C] |
@@ -88,6 +92,19 @@ is whose sphere the ruler is in during 1346.
 **Lands with no king** (start lawless or unruled, as "The edges of the map" and "People of the land" say):
 
 - **Lukka** (`lukka`): the Lukka men raid Alashiya year by year (EA 38) [A]; no kingdom, later Hittite subjects in name.
+- **Azzi-Hayasa** (`azzi`, item 11f): the highlands beyond Isuwa (around Erzincan [C]) under Hukkana, who swore a treaty
+  with Suppiluliuma and married his sister (Beckman no. 3) [A]; when the treaty was sworn is not certain, early in the
+  reign [C], so the game opens with it sealed: Hatti's vassal. A generation before, its men sacked the Upper Land and
+  made Samuha their frontier (KBo VI 28) [A]; its strongholds Aripsa and Dukkamma are a generation later (Mursili II's
+  annals) [A]. Its men's names: Mariya (in the treaty), Anniya (a later king) [A].
+- **Samuha** (`samuha`, item 11f): Hatti's own, in the Upper Land on the Marassantiya (Kayalıpınar near Sivas, the
+  prevailing view since 2021 [B]), the royal residence and army base where Tudhaliya III lived while Hattusa lay burned
+  (KBo VI 28) [A].
+- **Libya** (`libya`, item 11f): the Tjehenu and Tjemehu west of the Delta, herders and raiders in Egypt's 18th-Dynasty
+  reliefs [A]; no king, no town; the names Didi and Kaper are chiefs Egypt named a century and more later [A, later].
+- **The Shasu** (`shasu`, item 11f): herders of the Negev and Edom, in Amenhotep III's lists at Soleb ("the land of the
+  Shasu") [A]; Seti I fought them on the Ways of Horus a generation later [A]. No king, no town; their names do not
+  survive [G for the style].
 - **Isuwa** (`isuwa`): a buffer that changed sides between Hatti and Mitanni; Suppiluliuma takes it in the Great Syrian
   War [A: Shattiwaza treaty]. Ruled by its own kings [B]; start it neutral.
 - **The middle Euphrates** (`mari`): by 1346 the land of Hana (Terqa its centre) under local kings, within Mitanni's
