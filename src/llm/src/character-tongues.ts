@@ -4,14 +4,7 @@
  * what each choice means ("Requests are rules too").
  */
 import { z } from "zod";
-import {
-  land,
-  newUnheardChoice,
-  type BridgeView,
-  type Clause,
-  type UnheardChoice,
-  type UnheardView,
-} from "@amarna/engine";
+import { land, newUnheardChoice, type BridgeView, type Clause, type UnheardChoice, type UnheardView } from "@amarna/engine";
 import { object, type JsonObject, type ReplySchema } from "./schemas.ts";
 import { Sb } from "./text.ts";
 
@@ -27,9 +20,7 @@ export function unheardText(v: UnheardView): string {
   sb.appendLine(
     `It is season ${v.turn}. You are an envoy of ${land(v.lord)} at the court of ${land(v.host)}, and nobody there understands you: neither its king nor any servant of his shares a language with you well enough yet. You have waited ${v.waited} season${v.waited === 1 ? "" : "s"}.`,
   );
-  sb.appendLine(
-    `You speak: ${v.tongues.length > 0 ? v.tongues.join(", ") : "nothing anyone here speaks"}. The court speaks ${v.courtTongue}.`,
-  );
+  sb.appendLine(`You speak: ${v.tongues.length > 0 ? v.tongues.join(", ") : "nothing anyone here speaks"}. The court speaks ${v.courtTongue}.`);
   sb.appendLine(
     v.presented > 0
       ? `You presented the gifts you carried, ${v.presented} shekels: they were all the court could understand.`
@@ -49,21 +40,11 @@ export function unheardText(v: UnheardView): string {
 }
 
 export function unheardSchema(): ReplySchema {
-  return object([
-    "choice",
-    z
-      .enum([Choices.stay, Choices.home, Choices.lie])
-      .describe("What you do next season."),
-  ]);
+  return object(["choice", z.enum([Choices.stay, Choices.home, Choices.lie]).describe("What you do next season.")]);
 }
 
 export function unheardOf(o: JsonObject, v: UnheardView): UnheardChoice {
-  const choice =
-    o.choice === Choices.home
-      ? "home"
-      : o.choice === Choices.lie
-        ? "lie"
-        : "stay";
+  const choice = o.choice === Choices.home ? "home" : o.choice === Choices.lie ? "lie" : "stay";
   return newUnheardChoice({ turn: v.turn, choice });
 }
 
@@ -81,11 +62,7 @@ export function bridgeText(v: BridgeView, clauseLines: string[]): string {
   sb.appendLine(
     `It is season ${v.turn}. You are carrying the words of ${v.envoy}, envoy of ${land(v.from)}, to the king of ${land(v.host)}: nobody else here understands them, and only you hear both sides. You are also paid by ${v.paidBy.join(" and ")}.`,
   );
-  sb.appendLine(
-    v.speech.trim() !== ""
-      ? `The envoy said: "${v.speech}"`
-      : "The envoy spoke only in the terms below.",
-  );
+  sb.appendLine(v.speech.trim() !== "" ? `The envoy said: "${v.speech}"` : "The envoy spoke only in the terms below.");
   if (clauseLines.length > 0) {
     sb.appendLine("His terms, numbered:");
     clauseLines.forEach((l, i) => sb.appendLine(`${i + 1}. ${l}`));
@@ -98,35 +75,14 @@ export function bridgeText(v: BridgeView, clauseLines: string[]): string {
 
 export function bridgeSchema(): ReplySchema {
   return object(
-    [
-      "words",
-      z
-        .string()
-        .describe(
-          "The envoy's words as you pass them on to the king (repeat them to pass them on as spoken).",
-        ),
-    ],
-    [
-      "leave_out",
-      z
-        .array(z.int())
-        .describe(
-          "The numbers of the terms you leave out; empty to pass them all on.",
-        ),
-    ],
+    ["words", z.string().describe("The envoy's words as you pass them on to the king (repeat them to pass them on as spoken).")],
+    ["leave_out", z.array(z.int()).describe("The numbers of the terms you leave out; empty to pass them all on.")],
   );
 }
 
-export function bridgeOf(
-  o: JsonObject,
-  v: BridgeView,
-): { text: string; clauses: Clause[] } {
+export function bridgeOf(o: JsonObject, v: BridgeView): { text: string; clauses: Clause[] } {
   const out = Array.isArray(o.leave_out)
-    ? new Set(
-        o.leave_out
-          .filter((x): x is number => typeof x === "number")
-          .map((x) => Math.trunc(x) - 1),
-      )
+    ? new Set(o.leave_out.filter((x): x is number => typeof x === "number").map((x) => Math.trunc(x) - 1))
     : new Set<number>();
   return {
     text: typeof o.words === "string" ? o.words : v.speech,

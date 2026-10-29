@@ -505,8 +505,9 @@ function characterView(s: GameState, c: Character, viewer: Power): CharacterView
     pitch: c.pitches.tryGet(viewer) ?? null,
     // What it said it can do when it pitched to you (item 10, "Kings never see skills"): words, never its skill.
     claims: c.pitches.has(viewer) && c.claimed !== null ? claimWords(c.claimed) : [],
-    // Item 12: the languages it says it speaks, to its master, where it stands, or where it pitched.
-    speaks: ours || here || c.pitches.has(viewer) ? tongueClaimsAs(c) : [],
+    // Item 12: the languages it says it speaks, to a court where it stands (its master's too) or where it pitched; of a
+    // servant away its master knows only what it said before it went, and is not told it again here.
+    speaks: here || c.pitches.has(viewer) ? tongueClaimsAs(c) : [],
     claimsToServe: alias?.employer ?? null,
     // Your own servant's price to serve on is in its term; an old asking price from before it was hired means nothing now.
     askingPrice: ours ? null : price !== undefined ? price : freeHere ? basePrice(c, viewer) : null,

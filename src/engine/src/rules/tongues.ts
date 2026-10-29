@@ -8,44 +8,23 @@
 import { Dict } from "../core/collections.ts";
 import { clamp } from "../core/num.ts";
 import { Rng } from "../core/rng.ts";
-import {
-  beyondTongue,
-  courtSpeaks,
-  doorTongue,
-  originProvince,
-  peopleSpeak,
-  Spread,
-} from "../model/languages.ts";
+import { beyondTongue, courtSpeaks, doorTongue, originProvince, peopleSpeak, Spread } from "../model/languages.ts";
 import { WorldMap } from "../model/map.ts";
 import type { Character } from "../model/people.ts";
 import type { Power } from "../model/power.ts";
 
 /** Callings that live by words: Akkadian at a scribe's or an envoy's level, and a quicker ear. */
 const Lettered = ["scribe", "interpreter", "envoy"];
-const Trading = [
-  "merchant",
-  "trader",
-  "caravan",
-  "steward",
-  "physician",
-  "priest",
-  "sailor",
-];
+const Trading = ["merchant", "trader", "caravan", "steward", "physician", "priest", "sailor"];
 
-const callingIs = (c: Character, words: readonly string[]): boolean =>
-  words.some((w) => c.calling.toLowerCase().includes(w));
+const callingIs = (c: Character, words: readonly string[]): boolean => words.some((w) => c.calling.toLowerCase().includes(w));
 
 /** The province whose tongues a character grew up with, from its origin: a province's own name, or a town the table knows. */
-export function homeProvince(
-  origin: string,
-  map: WorldMap = WorldMap.default,
-): string | null {
+export function homeProvince(origin: string, map: WorldMap = WorldMap.default): string | null {
   const named = originProvince(origin);
   if (named !== null) return named;
   const lower = origin.toLowerCase();
-  const p = map.provinces.find(
-    (x) => !x.isSea && (x.name.toLowerCase() === lower || x.id === lower),
-  );
+  const p = map.provinces.find((x) => !x.isSea && (x.name.toLowerCase() === lower || x.id === lower));
   return p?.id ?? null;
 }
 
@@ -66,29 +45,16 @@ export function drawTongues(seed: number, c: Character): void {
     const top = Math.max(0, ...spoken.map(([, w]) => w));
     for (const [l, w] of spoken) {
       if (w === top) t.set(l, 100);
-      else if (w >= Spread.common && rng.chance(0.6))
-        t.set(l, rng.range(40, 90));
+      else if (w >= Spread.common && rng.chance(0.6)) t.set(l, rng.range(40, 90));
       else if (w >= Spread.some && rng.chance(0.3)) t.set(l, rng.range(15, 60));
     }
   } else t.set(beyond ?? "Akkadian", 100);
   // Akkadian by background ("highest for scribes, merchants and former envoys").
-  const akk = lettered
-    ? rng.range(60, 95)
-    : trading
-      ? rng.range(30, 75)
-      : rng.chance(0.3)
-        ? rng.range(10, 45)
-        : 0;
+  const akk = lettered ? rng.range(60, 95) : trading ? rng.range(30, 75) : rng.chance(0.3) ? rng.range(10, 45) : 0;
   if (akk > t.getOrDefault("Akkadian", 0)) t.set("Akkadian", akk);
   // An interpreter has a court's language more, as Pharaoh's Hane did.
   if (c.calling.toLowerCase().includes("interpreter")) {
-    const pool = [
-      "Egyptian",
-      "Hittite",
-      "Hurrian",
-      "Luwian",
-      "Akkadian",
-    ].filter((l) => t.getOrDefault(l, 0) < 50);
+    const pool = ["Egyptian", "Hittite", "Hurrian", "Luwian", "Akkadian"].filter((l) => t.getOrDefault(l, 0) < 50);
     if (pool.length > 0) {
       const other = rng.pick(pool);
       t.set(other, Math.max(t.getOrDefault(other, 0), rng.range(50, 90)));
@@ -107,19 +73,12 @@ export function drawTongues(seed: number, c: Character): void {
  * soldier for hire who has come this way before some of the map language spoken where his door opens; a wanderer, a
  * refugee or a man from the tin lands none. A local coming home keeps the tongues of his origin.
  */
-export function doorTongues(
-  seed: number,
-  c: Character,
-  beyondLand: string,
-  trader: boolean,
-  doorProvince: string,
-): void {
+export function doorTongues(seed: number, c: Character, beyondLand: string, trader: boolean, doorProvince: string): void {
   const rng = Rng.for(seed, 0, "door-tongues", c.id);
   const own = beyondTongue(beyondLand) ?? "the tongue of " + beyondLand;
   const t = new Dict<string, number>([[own, 100]]);
   const map = doorTongue(doorProvince);
-  if (trader && map !== null && beyondLand !== "the tin lands")
-    t.set(map, Math.max(t.getOrDefault(map, 0), rng.range(15, 45)));
+  if (trader && map !== null && beyondLand !== "the tin lands") t.set(map, Math.max(t.getOrDefault(map, 0), rng.range(15, 45)));
   c.tongues = t;
 }
 
@@ -127,25 +86,16 @@ export function doorTongues(
  * A servant at the start has lived at the court he serves for years: he speaks its language well at least ("Learning by
  * living there").
  */
-export function servedThere(
-  seed: number,
-  c: Character,
-  court: Power,
-  capital: string,
-): void {
+export function servedThere(seed: number, c: Character, court: Power, capital: string): void {
   const l = courtSpeaks(court, capital);
   if (c.tongues.getOrDefault(l, 0) >= 60) return;
   c.tongues.set(l, Rng.for(seed, 0, "served-tongue", c.id).range(60, 95));
 }
 
 /** A king's languages at the start: his court's, fluently, and what is spoken widely or commonly at his capital. */
-export function kingTongues(
-  court: Power,
-  capital: string,
-): Dict<string, number> {
+export function kingTongues(court: Power, capital: string): Dict<string, number> {
   const t = new Dict<string, number>();
-  for (const [l, w] of peopleSpeak(capital))
-    if (w >= Spread.common) t.set(l, w >= Spread.wide ? 100 : 50);
+  for (const [l, w] of peopleSpeak(capital)) if (w >= Spread.common) t.set(l, w >= Spread.wide ? 100 : 50);
   t.set(courtSpeaks(court, capital), 100);
   return t;
 }

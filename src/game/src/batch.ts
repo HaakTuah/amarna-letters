@@ -34,6 +34,7 @@ import {
   type InboxItem,
   type Power,
   UnheardOutcome,
+  UnheardOnArrival,
 } from "@amarna/engine";
 import type { ModelCall, ShadowDecision, CharacterChoice } from "./log.ts";
 import { GameLog } from "./log.ts";
@@ -115,6 +116,9 @@ export function pressOf(s: GameState): Record<string, number> {
       add("tribute-delivered");
       add("tribute-gold", t.goldDelivered);
     }
+    // Item 12: envoys arrived, and those nobody at the court understood as they arrived, by the court that sent them.
+    add(`arrived:${t.from}`);
+    if (t.outcomes.includes(UnheardOnArrival)) add(`unheard:${t.from}`);
     // Item 12: an envoy nobody understood recited nothing; his letter is no change of words.
     if (t.outcomes.some((o) => o.startsWith(UnheardOutcome))) {
       add("unheard");
@@ -148,6 +152,12 @@ export function pressReport(games: readonly GameSummary[]): string[] {
   const n = (k: string): number => total[k] ?? 0;
   const lines = [`Press: ${n("letters")} letters, ${n("letters-with-clauses")} with clauses; gold sent without an inventory ${n("gold-without-inventory")} times.`];
   lines.push(`  Written: ${ClauseKindValues.filter((k) => n(`w:${k}`) > 0).map((k) => `${k} ${n(`w:${k}`)}`).join(", ")}.`);
+  // Item 12 ("Calibration"): how often each court's envoys were not understood where they arrived.
+  lines.push(
+    `  Envoys not understood on arrival, by the court that sent them (in a hundred of those that arrived): ${AllPowers.filter((p) => n(`arrived:${p}`) > 0)
+      .map((p) => `${p} ${Math.round((100 * n(`unheard:${p}`)) / n(`arrived:${p}`))} (${n(`arrived:${p}`)})`)
+      .join(", ")}.`,
+  );
   lines.push(`  Recited changed ${n("recited-changed")}: threat dropped ${n("threat-dropped")}, gift lowered ${n("gift-lowered")}, courtesy added ${n("courtesy-added")}, a clause lost ${n("clause-dropped")}; answers misreported ${n("misreported")}.`);
   lines.push(
     `  Vassalage: tribute sent ${n("tribute-sent")} times, ${n("tribute-delivered")} delivered (${n("tribute-gold")} shekels); vassal tablets offered ${n("bond-offered")}, sealed ${n("bond-sealed-by-vassal") + n("bond-sealed-by-overlord")} (${n("bond-sealed-by-vassal")} offered by the vassal, ${n("bond-sealed-by-overlord")} by the overlord).`,

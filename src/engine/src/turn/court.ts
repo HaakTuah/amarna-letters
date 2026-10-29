@@ -163,14 +163,14 @@ P.hireAll = function (hires, carriedTo = null) {
           : carried
             ? "they were no longer there when your envoy came"
             : "they are not at your court: send the offer with an envoy going where they are (via)"
-        : !heard(lost)
-          ? carried
-            ? "your envoy and they could not make themselves understood this season"
-            : "nobody at your court could make themselves understood to them this season"
-          : short
+        : short
           ? `they ask ${formatMoney(ask)} a season of the term, ${formatMoney(feeFor(ask, term(lost), idiv(Math.min(lost.h.advance, lost.h.fee) * 100, Math.max(1, lost.h.fee)), trustIn(S, lost.p, c)))} for this one with this advance, counting the rest only as far as they trust your court to pay it, from what they have heard`
-          : fits(lost) !== null
-            ? fits(lost)!
+          : !heard(lost)
+            ? carried
+              ? "your envoy and they could not make themselves understood this season"
+              : "nobody at your court could make themselves understood to them this season"
+            : fits(lost) !== null
+              ? fits(lost)!
             : !afford(lost)
               ? "the treasury could not hand over the advance"
               : "another court offered more";

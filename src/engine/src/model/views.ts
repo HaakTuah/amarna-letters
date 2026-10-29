@@ -265,8 +265,8 @@ export interface CharacterView {
   /** Item 10: what the person said it can do when it pitched to you, in words ("says they can slip past most guards"). */
   claims: string[];
   /**
-   * Item 12, "Kings never see skills": the languages it says it speaks, in words ("Akkadian (good)"), to its master, to a
-   * court where it stands or one it pitched to; never its skill. Only results show whether "I speak Hittite well" was true.
+   * Item 12, "Kings never see skills": the languages it says it speaks, in words ("Akkadian (good)"), to a court where
+   * it stands or one it pitched to; never its skill. Only results show whether "I speak Hittite well" was true.
    */
   speaks: string[];
   /** Item 10: the king a person at your court says it serves as his envoy, though it brought no letter; null if none. */

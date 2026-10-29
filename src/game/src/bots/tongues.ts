@@ -6,16 +6,7 @@
  * speaks both the envoy's language and his own, to stay a few seasons and bridge. `--no-language-play` turns it off, and
  * `--language-play-half` leaves it to half the kings.
  */
-import {
-  courtReads,
-  courtSpeaks,
-  spokenIn,
-  type CharacterView,
-  type Power,
-  type SeatView,
-  UnheardTitle,
-  WorldMap,
-} from "@amarna/engine";
+import { courtReads, courtSpeaks, spokenIn, type CharacterView, type Power, type SeatView, UnheardTitle, WorldMap } from "@amarna/engine";
 
 export const LanguagePlay: {
   off: boolean;
@@ -51,10 +42,8 @@ export function tongueScore(c: CharacterView, to: Power, me: Power): number {
   const capital = WorldMap.default.capital(to).id;
   const own = courtSpeaks(to, capital);
   let there = said.get(own) ?? 0;
-  if (courtReads(to, capital).includes("Akkadian"))
-    there = Math.max(there, 0.9 * (said.get("Akkadian") ?? 0));
-  for (const [l] of spokenIn(capital, to).entries())
-    if (l !== own) there = Math.max(there, 0.6 * (said.get(l) ?? 0));
+  if (courtReads(to, capital).includes("Akkadian")) there = Math.max(there, 0.9 * (said.get("Akkadian") ?? 0));
+  for (const [l] of spokenIn(capital, to).entries()) if (l !== own) there = Math.max(there, 0.6 * (said.get(l) ?? 0));
   const mine = said.get(courtSpeaks(me, WorldMap.default.capital(me).id)) ?? 0;
   return there + 0.5 * mine;
 }
@@ -63,19 +52,13 @@ export function tongueScore(c: CharacterView, to: Power, me: Power): number {
  * The envoy for a court, from those at hand in the order the king would otherwise take them: the first who says he speaks
  * well enough to be understood there (a score of 2 or more), else the best by what he says.
  */
-export function envoyFor(
-  ready: readonly CharacterView[],
-  to: Power,
-  me: Power,
-  fromEnd: boolean,
-): CharacterView {
+export function envoyFor(ready: readonly CharacterView[], to: Power, me: Power, fromEnd: boolean): CharacterView {
   const order = fromEnd ? [...ready].reverse() : [...ready];
   if (!LanguagePlay.on(me)) return order[0];
   const good = order.find((c) => tongueScore(c, to, me) >= 2);
   if (good !== undefined) return good;
   let best = order[0];
-  for (const c of order)
-    if (tongueScore(c, to, me) > tongueScore(best, to, me)) best = c;
+  for (const c of order) if (tongueScore(c, to, me) > tongueScore(best, to, me)) best = c;
   return best;
 }
 
@@ -83,10 +66,7 @@ export function envoyFor(
  * The envoys standing at this court whom nobody understands (the season's notice names each), and the free people at court
  * who say they speak one of the envoy's languages and the king's own: the cheapest such bridge for each, if any.
  */
-export function bridgesWanted(
-  v: SeatView,
-  free: readonly CharacterView[],
-): CharacterView[] {
+export function bridgesWanted(v: SeatView, free: readonly CharacterView[]): CharacterView[] {
   if (!LanguagePlay.on(v.power)) return [];
   const mine = courtSpeaks(v.power, WorldMap.default.capital(v.power).id);
   const out: CharacterView[] = [];
@@ -97,16 +77,9 @@ export function bridgesWanted(
     const his = claimedTongues(envoy);
     const fits = free.filter((c) => {
       const said = claimedTongues(c);
-      return (
-        (said.get(mine) ?? 0) >= 2 &&
-        [...his.keys()].some((l) => (said.get(l) ?? 0) >= 2) &&
-        !out.includes(c) &&
-        c.askingPrice !== null
-      );
+      return (said.get(mine) ?? 0) >= 2 && [...his.keys()].some((l) => (said.get(l) ?? 0) >= 2) && !out.includes(c) && c.askingPrice !== null;
     });
-    fits.sort(
-      (a, b) => a.askingPrice! - b.askingPrice! || (a.id < b.id ? -1 : 1),
-    );
+    fits.sort((a, b) => a.askingPrice! - b.askingPrice! || (a.id < b.id ? -1 : 1));
     if (fits.length > 0) out.push(fits[0]);
   }
   return out;

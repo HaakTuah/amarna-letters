@@ -353,17 +353,12 @@ const DoorTongue: Record<string, string> = {
   dilmun: "Akkadian",
 };
 
-export const doorTongue = (province: string): string | null =>
-  DoorTongue[province] ?? null;
-export const beyondTongue = (landName: string): string | null =>
-  BeyondTongue[landName] ?? null;
-export const originProvince = (origin: string): string | null =>
-  OriginProvince[origin] ?? null;
+export const doorTongue = (province: string): string | null => DoorTongue[province] ?? null;
+export const beyondTongue = (landName: string): string | null => BeyondTongue[landName] ?? null;
+export const originProvince = (origin: string): string | null => OriginProvince[origin] ?? null;
 
 /** The languages spoken in a province by its people, as the dossier gives them (the court's own are added by {@link spokenIn}). */
-export function peopleSpeak(
-  province: string,
-): readonly (readonly [string, number])[] {
+export function peopleSpeak(province: string): readonly (readonly [string, number])[] {
   return ByProvince[province] ?? [];
 }
 
@@ -386,11 +381,7 @@ export function courtSpeaks(p: Power, capital: string): string {
 export function courtReads(p: Power, capital: string): readonly string[] {
   const named = CourtReads[p];
   if (named !== undefined) return named;
-  return peopleSpeak(capital).some(([l]) => l === "Akkadian") ||
-    CourtSpeaks[p] === "Canaanite" ||
-    CourtSpeaks[p] === "Amorite"
-    ? ["Akkadian"]
-    : [];
+  return peopleSpeak(capital).some(([l]) => l === "Akkadian") || CourtSpeaks[p] === "Canaanite" || CourtSpeaks[p] === "Amorite" ? ["Akkadian"] : [];
 }
 
 /**
@@ -398,33 +389,19 @@ export function courtReads(p: Power, capital: string): readonly string[] {
  * where it reads Akkadian, Akkadian among its scribes ("Where each language is spoken": "A court adds its own language, and
  * Akkadian where it keeps Akkadian scribes"). `court`: the court whose capital this is, if any.
  */
-export function spokenIn(
-  province: string,
-  court: Power | null,
-): Dict<string, number> {
-  const out = new Dict<string, number>(
-    peopleSpeak(province).map(([l, w]) => [l, w] as const),
-  );
+export function spokenIn(province: string, court: Power | null): Dict<string, number> {
+  const out = new Dict<string, number>(peopleSpeak(province).map(([l, w]) => [l, w] as const));
   if (court !== null) {
     const own = courtSpeaks(court, province);
     out.set(own, Math.max(out.getOrDefault(own, 0), few));
-    if (courtReads(court, province).includes("Akkadian"))
-      out.set("Akkadian", Math.max(out.getOrDefault("Akkadian", 0), few));
+    if (courtReads(court, province).includes("Akkadian")) out.set("Akkadian", Math.max(out.getOrDefault("Akkadian", 0), few));
   }
   return out;
 }
 
 /** A language skill in words, for a persona, its claims and the narrator ("none, halting, good or fluent"). */
-export function tongueWords(
-  skill: number,
-): "none" | "halting" | "good" | "fluent" {
-  return skill <= 0
-    ? "none"
-    : skill < 40
-      ? "halting"
-      : skill < 80
-        ? "good"
-        : "fluent";
+export function tongueWords(skill: number): "none" | "halting" | "good" | "fluent" {
+  return skill <= 0 ? "none" : skill < 40 ? "halting" : skill < 80 ? "good" : "fluent";
 }
 
 /** Fluent enough that crossing the language succeeds at once ("from about 80 it succeeds at once"). */
@@ -439,10 +416,7 @@ export function crossChance(weakest: number): number {
 }
 
 /** Any two speakers' best shared language and the poorer of their two skills in it (the language, or null if none). */
-export function bestShared(
-  a: Dict<string, number>,
-  b: Dict<string, number>,
-): [string | null, number] {
+export function bestShared(a: Dict<string, number>, b: Dict<string, number>): [string | null, number] {
   let best: string | null = null;
   let skill = 0;
   for (const [l, x] of a.entries()) {

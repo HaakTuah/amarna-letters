@@ -35,9 +35,9 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   ransom or a bribe by hand, a king's messenger who only delivers (envoys carry letters; since item 11b spies' reports need
   carriers, see [roads and reputations](23-roads-and-reputations.md)), chaining several stops in one errand, and taking
   command (item 13). Characters answering questioning, and choosing to lie, themselves rather than by formula.
-- **Tablets that need a reader**: an unreadable tablet showing its seal but not its words until the king finds a
-  reader, and a tablet sent to a third court to be read ("Tablets are objects in a place" and "Languages";
-  item 12); and an archive that moves with the court ("Command at a distance"; item 13).
+- **Tablets that need a reader**: built in item 12 ([languages](30-languages.md)), except a tablet sent to a third court
+  to be read and its reading sent back ("Tablets are objects in a place"; a copy can be shown abroad by envoy, but no
+  translation comes home), and an archive that moves with the court ("Command at a distance"; item 13).
 - **Model characters in the simulation kit**: envoys and spies as isolated agents, for the second agent simulation
   (item 4).
 - **Call size, what 6b left**: a "since you last acted" view of the map (the view stays whole; only the digest of slept
@@ -49,7 +49,6 @@ simulation-fixes round's report, `docs/archive/rounds/2026-10-19-simulation-fixe
   swapping what they carry, and hiring bands as mercenaries (command at a distance, item 13).
 - **A cheaper summariser**, measured on the same games before it is used ("A cheaper model for condensing,
   to be measured"; the round report, Part E).
-- **Languages** ("Languages"; item 12).
 - **Command at a distance**: the capital where the king is, commanders whose competence sets their tactical search,
   army mandates, no commander, no mandate ("Command at a distance" and "Ruling by mandate"; question 7;
   item 13).

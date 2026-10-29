@@ -85,7 +85,11 @@ describe("LanguagesTests", () => {
 
   test("Everyone starts with the tongues of home, kings with their court's, servants with the court they serve", () => {
     const s = newGame(1);
-    for (const c of s.characters) Assert.true([...c.tongues.values()].some((x) => x === 100), c.name);
+    for (const c of s.characters)
+      Assert.true(
+        [...c.tongues.values()].some((x) => x === 100),
+        c.name,
+      );
     for (const p of AllPowers) Assert.equal(100, s.kingTongues.get(p).getOrDefault(courtSpeaks(p, Map.capital(p).id), 0));
     for (const c of s.characters.filter((x) => x.status === "Employed" && x.employer !== null))
       Assert.true(c.tongues.getOrDefault(courtSpeaks(c.employer!, Map.capital(c.employer!).id), 0) >= 60, c.name);
@@ -126,8 +130,19 @@ describe("LanguagesTests", () => {
   test("A servant who speaks with both carries the envoy's words to his king", () => {
     const s = newGame(1);
     hittiteOnly(s);
-    const bridge = person(s, "Hatti", [["Hittite", 100], ["Akkadian", 100]], "Hatti");
-    envoyAtHatti(s, [["Egyptian", 100], ["Akkadian", 100]]);
+    const bridge = person(
+      s,
+      "Hatti",
+      [
+        ["Hittite", 100],
+        ["Akkadian", 100],
+      ],
+      "Hatti",
+    );
+    envoyAtHatti(s, [
+      ["Egyptian", 100],
+      ["Akkadian", 100],
+    ]);
     new TurnEngine(s).settleSpeech();
     Assert.single(s.audiences);
     Assert.equal(bridge.id, s.audiences[0].through);
@@ -136,7 +151,10 @@ describe("LanguagesTests", () => {
   test("A go-between at court carries the words of an envoy nobody understands, for his price, from the envoy's purse", () => {
     const s = newGame(1);
     hittiteOnly(s);
-    const g = person(s, "Hatti", [["Hittite", 100], ["Egyptian", 100]]);
+    const g = person(s, "Hatti", [
+      ["Hittite", 100],
+      ["Egyptian", 100],
+    ]);
     const c = envoyAtHatti(s, [["Egyptian", 100]]);
     c.purse = 100;
     const before = g.purse;
@@ -171,7 +189,15 @@ describe("LanguagesTests", () => {
     Assert.null(e.composing(mute, "Hatti", "Egypt"));
     e.dispatch("Hatti", dispatch(mute.id, "Egypt", "Greetings."));
     Assert.contains(inboxOf(s, "Hatti"), (n) => n.body.includes("could make") && n.body.includes(mute.name));
-    const halting = person(s, "Hatti", [["Egyptian", 100], ["Hittite", 5]], "Hatti");
+    const halting = person(
+      s,
+      "Hatti",
+      [
+        ["Egyptian", 100],
+        ["Hittite", 5],
+      ],
+      "Hatti",
+    );
     Assert.true(e.composing(halting, "Hatti", "Egypt")!.seasons > 0);
   });
 
@@ -179,14 +205,29 @@ describe("LanguagesTests", () => {
     const s = newGame(1);
     // Arzawa reads Hittite and Luwian; an Akkadian tablet waits until someone at its court reads Akkadian and Luwian.
     for (const x of s.characters) if (x.employer === "Arzawa") x.tongues = new Dict([["Luwian", 100]]);
-    s.tablets.push(newTablet({ id: "t-test", text: "Peace between us.", proposedBy: "Babylonia", partner: "Arzawa", seals: ["Babylonia"], tongue: "Akkadian" }));
+    s.tablets.push(
+      newTablet({ id: "t-test", text: "Peace between us.", proposedBy: "Babylonia", partner: "Arzawa", seals: ["Babylonia"], tongue: "Akkadian" }),
+    );
     s.copies.push(newTabletCopy({ id: "k-test", tabletId: "t-test", holder: "Arzawa", acquiredTurn: s.turn, source: "brought" }));
     const e = new TurnEngine(s);
     e.readersSeason();
     const k = first(s.copies, (x) => x.id === "k-test");
     Assert.true(k.unread === true);
-    Assert.false(Views.tablet(first(s.tablets, (t) => t.id === "t-test"), k).text.includes("Peace"));
-    person(s, "Arzawa", [["Luwian", 100], ["Akkadian", 100]], "Arzawa");
+    Assert.false(
+      Views.tablet(
+        first(s.tablets, (t) => t.id === "t-test"),
+        k,
+      ).text.includes("Peace"),
+    );
+    person(
+      s,
+      "Arzawa",
+      [
+        ["Luwian", 100],
+        ["Akkadian", 100],
+      ],
+      "Arzawa",
+    );
     e.readersSeason();
     Assert.true(k.unread === false);
   });
@@ -194,8 +235,19 @@ describe("LanguagesTests", () => {
   test("Only a bridger in someone else's pay may bend the words he carries", () => {
     const s = newGame(1);
     hittiteOnly(s);
-    const bridge = person(s, "Hatti", [["Hittite", 100], ["Akkadian", 100]], "Hatti");
-    envoyAtHatti(s, [["Egyptian", 100], ["Akkadian", 100]]);
+    const bridge = person(
+      s,
+      "Hatti",
+      [
+        ["Hittite", 100],
+        ["Akkadian", 100],
+      ],
+      "Hatti",
+    );
+    envoyAtHatti(s, [
+      ["Egyptian", 100],
+      ["Akkadian", 100],
+    ]);
     const e = new TurnEngine(s);
     e.settleSpeech();
     const a = s.audiences[0];
