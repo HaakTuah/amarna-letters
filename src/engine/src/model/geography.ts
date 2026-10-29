@@ -109,14 +109,12 @@ export const Crossings: readonly Crossing[] = [
   crossing("aleppo", "harran", "River", "the Euphrates at Emar", G, "euphrates"),
   crossing("isuwa", "harran", "River", "the upper Euphrates", G, "euphrates"),
   // Item 11f: Suppiluliuma "crossed the Euphrates" into Isuwa (the Shattiwaza treaty), from the plateau and the Upper Land
-  crossing("nesa", "isuwa", "River", "the upper Euphrates", G, "euphrates"),
   crossing("samuha", "isuwa", "River", "the upper Euphrates", G, "euphrates"),
   crossing("taidu", "nineveh", "River", "the Tigris", G, "tigris"),
   // Item 11f: the Marassantiya (Halys) ringing the Hittite heartland, between Hattusa and Sapinuwa within its bend and the
   // plateau south of it; Samuha stands on it
   crossing("hattusa", "nesa", "River", "the Marassantiya", G, "halys"),
   crossing("hattusa", "tuwanuwa", "River", "the Marassantiya", G, "halys"),
-  crossing("sapinuwa", "nesa", "River", "the Marassantiya", G, "halys"),
   // Item 11f: the Orontes where armies are recorded fording it: at Shabtuna south of Qadesh (Ramesses II's Qadesh
   // inscriptions) and on the way to Niya (Amenhotep II's stelae)
   crossing("damascus", "qadesh", "River", "the Orontes at the ford of Shabtuna", G, "orontes"),
@@ -128,13 +126,22 @@ export const Crossings: readonly Crossing[] = [
   crossing("megiddo", "pella", "River", "the Jordan by Beth-Shan", G, "jordan"),
   crossing("shechem", "pella", "River", "the Jordan", G, "jordan"),
   crossing("hazor", "pella", "River", "the Jordan", G, "jordan"),
-  crossing("suhu", "steppe", "Desert", "the Syrian desert", G),
   crossing("steppe", "qatna", "Desert", "the Syrian desert", G),
   crossing("steppe", "damascus", "Desert", "the Syrian desert", G),
-  crossing("delta", "gaza", "Desert", "the Ways of Horus", G),
+  // Item 11f+: the steppe's desert roads to every land on its edge, Mari's and Hana's shortcut by Tadmor among them
+  crossing("steppe", "terqa", "Desert", "the Syrian desert", G),
+  crossing("steppe", "aleppo", "Desert", "the Syrian desert", G),
+  crossing("steppe", "harran", "Desert", "the Syrian desert", G),
+  crossing("steppe", "nuhashshe", "Desert", "the Syrian desert", G),
+  crossing("steppe", "qadesh", "Desert", "the Syrian desert", G),
+  // The Ways of Horus run through the Sinai, Egypt's own (item 11f+): from Tjaru at the Delta's edge, and on to Gaza
+  crossing("delta", "sinai", "Desert", "the Ways of Horus", G),
   crossing("gaza", "sinai", "Desert", "the north Sinai", G),
-  crossing("jerusalem", "sinai", "Desert", "the Negev", G),
-  crossing("hebron", "sinai", "Desert", "the Negev", G),
+  // Item 11f+: the Anti-Taurus between Samuha's Upper Land and Carchemish, the range Nesa's road to Carchemish crosses
+  crossing("samuha", "carchemish", "Mountain", "the Anti-Taurus", G),
+  // Item 11f+: the Jordan between Jerusalem's hills and the lands east of it, at the fords by Jericho
+  crossing("jerusalem", "pella", "River", "the Jordan by Jericho", G, "jordan"),
+  crossing("jerusalem", "shasu", "River", "the Jordan by Jericho", G, "jordan"),
   // To the Red Sea's shore (item 11c): over the Eastern Desert from Thebes, and across the Sinai to the Gulf of Suez.
   crossing("thebes", "redsea", "Desert", "the Wadi Hammamat", G),
   crossing("sinai", "redsea", "Desert", "the road to the Gulf of Suez", G),
@@ -144,6 +151,7 @@ export const Crossings: readonly Crossing[] = [
   crossing("shasu", "hebron", "Desert", "the Negev", G),
   crossing("shasu", "sinai", "Desert", "the Negev", G),
   crossing("shasu", "gaza", "Desert", "the Negev", G),
+  crossing("shasu", "lachish", "Desert", "the Negev", G),
 ];
 
 /** The ordered courses of the great rivers, source to mouth (question 10, plan step 2; Nubia since item 7a), and their reaches. */

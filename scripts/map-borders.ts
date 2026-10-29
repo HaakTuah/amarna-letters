@@ -12,7 +12,7 @@ import { writeFileSync } from "node:fs";
 import { Crossings, WorldMap, Rough } from "../src/engine/src/index.ts";
 import { DesertRings, LakeRings, LandRings } from "../src/web/src/map/geo-data.ts";
 import { boardPoint, BoardHeight, BoardWidth, BoardFrame } from "../src/web/src/map/projection.ts";
-import { city, decode, Isles, MiletusBayShore, OldGulfShore, RangeLines, RiverCourses, Wastes, type Pt } from "../src/web/src/map/features.ts";
+import { city, decode, Isles, MiletusBayShore, OldGulfShore, RangeLines, RiverCourses, RoadLands, Wastes, type Pt } from "../src/web/src/map/features.ts";
 
 const Map_ = WorldMap.default;
 const R = 0.5; // grid cell, in board units (about 1.3 km)
@@ -259,6 +259,58 @@ const Steps: readonly [number, number, number][] = [
   }
   // Land no one reached is no one's.
   for (let k = 0; k < N; k++) if (land[k] && label[k] === Sea) label[k] = NoOne;
+}
+
+// A road's land given to one of the provinces it joins (item 11f+): a band along it is that province's.
+const RoadBand = 2; // board units either side, about 5 km
+const band = new Uint8Array(N);
+const nearOtherCity = (x: number, y: number, l: number): boolean => landIds.some((id, m) => m !== l && Math.hypot(city(id).x - x, city(id).y - y) < 4);
+for (const { province, road } of RoadLands) {
+  const l = landIds.indexOf(province);
+  for (let s = 1; s < road.length; s++) {
+    const a = road[s - 1];
+    const b = road[s];
+    const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / (R / 2)));
+    for (let t = 0; t <= steps; t++) {
+      const p = { x: a.x + ((b.x - a.x) * t) / steps, y: a.y + ((b.y - a.y) * t) / steps };
+      for (let j = gy(p.y - RoadBand); j <= gy(p.y + RoadBand); j++)
+        for (let i = gx(p.x - RoadBand); i <= gx(p.x + RoadBand); i++)
+          if (i >= 0 && j >= 0 && i < W && j < H && land[j * W + i] && Math.hypot(cx(i) - p.x, cy(j) - p.y) <= RoadBand && !nearOtherCity(cx(i), cy(j), l)) (label[j * W + i] = l), (band[j * W + i] = 1);
+    }
+  }
+}
+
+// Land a band cuts off from its own city goes with the band: the road's province holds what lies beyond it.
+{
+  const home = new Int32Array(N).fill(-1);
+  let comp = 0;
+  const cities = new Set(landIds.map((id) => seedCell(city(id))));
+  for (let k0 = 0; k0 < N; k0++) {
+    if (home[k0] >= 0 || !land[k0] || label[k0] >= NoOne) continue;
+    const l = label[k0];
+    const cells = [k0];
+    home[k0] = comp;
+    let own = false;
+    let to = -1;
+    for (let h = 0; h < cells.length; h++) {
+      const k = cells[h];
+      if (cities.has(k)) own = true;
+      const i = k % W;
+      const j = (k - i) / W;
+      for (const [di, dj] of Steps) {
+        const ni = i + di;
+        const nj = j + dj;
+        if (ni < 0 || nj < 0 || ni >= W || nj >= H) continue;
+        const n = nj * W + ni;
+        if (!land[n]) continue;
+        if (label[n] === l) {
+          if (home[n] < 0) (home[n] = comp), cells.push(n);
+        } else if (band[n]) to = label[n];
+      }
+    }
+    if (!own && to >= 0) for (const k of cells) label[k] = to;
+    comp++;
+  }
 }
 
 // No label may touch itself only at a corner (a checkerboard), so every border corner has one way on.

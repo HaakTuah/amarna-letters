@@ -33,14 +33,15 @@ export const ShoreVoyages: readonly { a: string; b: string; days: number; basis:
 
 /** The connections whose length the sources attest, or that the dossier reckons by a known road. */
 export const AttestedKm: readonly Attested[] = [
-  att("delta", "gaza", 250, "Thutmose III's army, Tjaru to Gaza in 10 days (his Annals, first campaign): the Ways of Horus"),
+  // The Ways of Horus run through the Sinai (item 11f+): Tjaru to Gaza 250 km, the Delta's road to Tjaru added
+  att("delta", "sinai", 150, "the Delta to Tjaru and on along the Ways of Horus, its first part [G for the split]"),
+  att("sinai", "gaza", 130, "Thutmose III's army, Tjaru to Gaza in 10 days (his Annals, first campaign): the Ways of Horus, its second part [G for the split]"),
   att("memphis", "akhetaten", 300, "the Nile road"),
   att("akhetaten", "thebes", 400, "the Nile road"),
   att("thebes", "redsea", 210, "Thebes by Coptos and the Wadi Hammamat to the shore at Mersa Gawasis, the road of the Punt expeditions"),
   att("sinai", "redsea", 200, "across the Sinai to the Gulf of Suez, where the mining expeditions landed at el-Markha [G]"),
   att("megiddo", "hazor", 60, "the road from Megiddo to Damascus by Hazor (160 km in all), its first part [G for the split]"),
   att("hazor", "damascus", 100, "the road from Megiddo to Damascus by Hazor and the Jordan crossing, its second part [G for the split]"),
-  att("gaza", "megiddo", 160, "the coast road; Thutmose III's march, Gaza to Yehem in 11 days in hostile land (his Annals)"),
   att("byblos", "damascus", 120, "over the Lebanon and the Beqaa"),
   att("damascus", "qadesh", 140, "by the Beqaa"),
   att("carchemish", "harran", 110, "the Euphrates road to Harran"),
