@@ -1,0 +1,119 @@
+/* Item 11c+: the map read at a glance. Cards with a pinned head, the crossings' marks, the ways units take, the note of a
+   new version, and the map's own light colours in dark mode. */
+
+/* A card over the map keeps its title and close button at its top however far it is scrolled. */
+.mapcard { padding-top: 0; }
+.mapcard-head {
+    position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: .45rem;
+    margin: 0 -.75rem .3rem; padding: .5rem .75rem .35rem; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.mapcard-head h3 { flex: 1; margin: 0; font-size: 1.05rem; }
+.mapcard-head strong { flex: 1; }
+
+/* Crossings and rough ground: a mark of each kind, on a pale disc, tappable. */
+.map .xmark { cursor: pointer; }
+.map .xmark .tap-hit { fill: transparent; stroke: none; }
+.map .xm-bg { fill: var(--paper); stroke: var(--bitumen); stroke-width: .8; opacity: .92; }
+.map .xm-line { fill: none; stroke: var(--bitumen); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.map .xm-line.ford { stroke: var(--river); stroke-width: 2; }
+.map .xm-dot { fill: var(--sand); }
+.map .k-rough .xm-line { stroke: var(--peak); stroke-width: 1.5; }
+.map .k-desert .xm-line { stroke: var(--sand); stroke-width: 1.6; }
+.map .xmark.on-way { pointer-events: none; }
+.map .xmark.on-way .xm-bg { stroke-width: 1.3; }
+svg.xmark { width: 1.25rem; height: 1.25rem; vertical-align: middle; overflow: visible; }
+svg.xmark .xm-bg { fill: var(--paper); stroke: var(--ink); stroke-width: .8; }
+svg.xmark .xm-line { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+svg.xmark .xm-line.ford { stroke: var(--river); }
+svg.xmark .xm-dot { fill: var(--sand); }
+svg.xmark.head { width: 1.6rem; height: 1.6rem; flex: none; }
+
+/* A unit's way: a small mark at each province it passes. */
+.map .way-stop { fill: var(--paper); stroke: var(--bitumen); stroke-width: 1.4; }
+.map .draft-way { pointer-events: none; }
+
+/* A new version is ready: a small note, tapped to reload into the same game. */
+.update-note {
+    position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + .8rem); transform: translateX(-50%); z-index: 60;
+    display: flex; gap: .6rem; align-items: center; max-width: calc(100% - 2rem); padding: .5rem .8rem; border-radius: 10px;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); font-size: .9rem;
+}
+.update-note button { white-space: nowrap; }
+
+/* The map keeps its light colours in dark mode, as a museum map does, only slightly dimmed so it does not glare at
+   night; the panels around it darken. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .mapzoom, :root:not([data-theme="light"]) .mapview { 
+    --sea: #92a8ab;
+    --sea-shallow: #acbbb9;
+    --sea-ink: #2e545e;
+    --land: #cfc2a3;
+    --land-halo: #d7ceb9;
+    --fields: #aeb483;
+    --sand: #9d804f;
+    --peak: #765831;
+    --river: #46768d;
+    --river-casing: #d4cab3;
+    --coast: #544f3f;
+    --veil: #cac1aa;
+    --halo: #e0dcd3;
+    --token-ink: #e0dcd3;
+    --paper: #dad4c6;
+    --surface: #ddd8ce;
+    --ink: #262019;
+    --muted: #5f5444;
+    --bitumen: #262019;
+    --gold-metal: #bd9330;
+    --neutral: #aca390;
+    --clay: #bea881;
+    --lapis: #203a6b;
+    --egypt: #a27626;
+    --hatti: #942f25;
+    --babylonia: #274b84;
+    --mitanni: #693d7e;
+    --assyria: #35663a;
+    --arzawa: #1a7571;
+    --alashiya: #ad5d1e;
+    --wave: rgba(255, 255, 255, .36); --furrow: rgba(96, 82, 38, .2); --cell-line: rgba(70, 52, 30, .34); --geo-ink: rgba(84, 62, 35, .62); --tint: .3;
+    color-scheme: light;
+    }
+}
+:root[data-theme="dark"] .mapzoom, :root[data-theme="dark"] .mapview {
+    --sea: #92a8ab;
+    --sea-shallow: #acbbb9;
+    --sea-ink: #2e545e;
+    --land: #cfc2a3;
+    --land-halo: #d7ceb9;
+    --fields: #aeb483;
+    --sand: #9d804f;
+    --peak: #765831;
+    --river: #46768d;
+    --river-casing: #d4cab3;
+    --coast: #544f3f;
+    --veil: #cac1aa;
+    --halo: #e0dcd3;
+    --token-ink: #e0dcd3;
+    --paper: #dad4c6;
+    --surface: #ddd8ce;
+    --ink: #262019;
+    --muted: #5f5444;
+    --bitumen: #262019;
+    --gold-metal: #bd9330;
+    --neutral: #aca390;
+    --clay: #bea881;
+    --lapis: #203a6b;
+    --egypt: #a27626;
+    --hatti: #942f25;
+    --babylonia: #274b84;
+    --mitanni: #693d7e;
+    --assyria: #35663a;
+    --arzawa: #1a7571;
+    --alashiya: #ad5d1e;
+    --wave: rgba(255, 255, 255, .36); --furrow: rgba(96, 82, 38, .2); --cell-line: rgba(70, 52, 30, .34); --geo-ink: rgba(84, 62, 35, .62); --tint: .3;
+    color-scheme: light;
+}
+/* ...but the cards and buttons over it are the panels' own. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .mapview .map-ui {  --bg: #1c1915; --paper: #29241d; --surface: #221e19; --surface-2: #2a251f; --ink: #efe6d6; --muted: #aa9e8b; --line: #3d362d; --accent: #e09a5f; --accent-ink: #1c1915; --danger: #ef7a66; --good: #86c27c; --clay: #b89c70; --bitumen: #15120e; --gold-metal: #e3b54a;; color: var(--ink); }
+}
+:root[data-theme="dark"] .mapview .map-ui {  --bg: #1c1915; --paper: #29241d; --surface: #221e19; --surface-2: #2a251f; --ink: #efe6d6; --muted: #aa9e8b; --line: #3d362d; --accent: #e09a5f; --accent-ink: #1c1915; --danger: #ef7a66; --good: #86c27c; --clay: #b89c70; --bitumen: #15120e; --gold-metal: #e3b54a;; color: var(--ink); }

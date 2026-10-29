@@ -57,12 +57,47 @@ async function shot(p, name) {
 /** Seasons shown on the timeline (the slider's maximum). */
 const seasons = (p) => p.$eval(".slider", (s) => Number(s.max));
 
+/**
+ * Names give way (item 11c+): at every zoom step from the whole board to the closest, no name shown may overlap another
+ * name or any marker (a city's badge other than its own, a counter, a ship, an envoy or other person, news, a mark).
+ */
+async function namesClear(p, name) {
+  await p.evaluate(() => document.querySelector('[aria-label="Show the whole map"], [aria-label="Back to where you were"]')?.click());
+  if (await p.$('[aria-label="Back to where you were"]')) await p.evaluate(() => document.querySelector('[aria-label="Back to where you were"]').click());
+  await p.evaluate(() => document.querySelector('[aria-label="Show the whole map"]')?.click());
+  for (let step = 0; step < 8; step++) {
+    if (step > 0) await p.evaluate(() => document.querySelector('[aria-label="Zoom in"]').click());
+    await p.waitForTimeout(1100);
+    const bad = await p.evaluate(() => {
+      const touch = (a, b) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+      const names = [...document.querySelectorAll(".labels g[data-label]")]
+        .map((g) => ({ id: g.dataset.label, t: g.querySelector("text") }))
+        .filter((x) => !x.t.classList.contains("off"))
+        .map((x) => ({ id: x.id, r: x.t.getBoundingClientRect() }));
+      const markers = [];
+      for (const e of document.querySelectorAll(".map-upper .unit > .sym, .map-upper .traveller > .sym, .map-upper .person, .map-upper .news > .sym, .map-upper .destroyed > .sym, .xmarks .xm-bg"))
+        markers.push({ own: null, what: e.closest("[class]").getAttribute("class"), r: e.getBoundingClientRect() });
+      for (const c of document.querySelectorAll(".cities .city"))
+        for (const e of c.querySelectorAll(".seal, .walls, .cap-ring")) markers.push({ own: c.dataset.province, what: `badge of ${c.dataset.province}`, r: e.getBoundingClientRect() });
+      const out = [];
+      names.forEach((a, i) => {
+        for (const b of names.slice(i + 1)) if (touch(a.r, b.r)) out.push(`${a.id} over ${b.id}`);
+        for (const m of markers) if (m.own !== a.id && m.r.width > 0 && touch(a.r, m.r)) out.push(`${a.id} over ${m.what}`);
+      });
+      return { zoom: document.querySelector(".mapview").dataset.zoom, shown: names.length, out: out.slice(0, 5) };
+    });
+    if (bad.out.length > 0) failures.push(`${name}: at zoom ${bad.zoom}, names overlap: ${bad.out.join("; ")}`);
+    if (step === 0 || step === 7) report.push(`${name}: ${bad.shown} names shown at zoom ${bad.zoom}`);
+  }
+}
+
 async function watch(viewport, name) {
   const p = await page(viewport, name);
   await p.goto(root);
   await p.getByRole("button", { name: "Begin the age" }).click();
   await p.waitForSelector(".game .timebar", { timeout: 60000 });
   await shot(p, `${name}-start`);
+  await namesClear(p, `${name}, the opening`);
   const t0 = Date.now();
   for (let i = 0; i < 4; i++) {
     const before = await seasons(p);
@@ -70,6 +105,7 @@ async function watch(viewport, name) {
     await p.waitForFunction((b) => Number(document.querySelector(".slider").max) > b, before, { timeout: 60000 });
   }
   report.push(`${name}: 4 script seasons in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  await namesClear(p, `${name}, a game in progress`);
   // Every tab opens without an error.
   for (const tab of ["Trail", "People", "Provinces", "Standings", "Events", "Rules", "Season"]) {
     await p.getByRole("button", { name: tab, exact: true }).click();

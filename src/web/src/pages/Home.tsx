@@ -15,6 +15,7 @@ import {
   type SeatChoices,
 } from "@amarna/llm";
 import { useEffect, useState } from "react";
+import { takeResume } from "../ui/update.ts";
 import { Emblem } from "../components/Emblem.tsx";
 import { ModelPicker, ProvidersPanel, RungsPanel } from "../components/ModelSettings.tsx";
 import { session } from "../session/client.ts";
@@ -119,6 +120,9 @@ export function Home() {
       }
     }
     void listLogs().then(setSaved);
+    // Reloaded into a new version from a game (ui/update.ts): back into it, from its last saved season.
+    const resume = takeResume();
+    if (resume !== null) void loadSaved(resume, true);
   }, []);
 
   const choices = choicesOf(settings);
