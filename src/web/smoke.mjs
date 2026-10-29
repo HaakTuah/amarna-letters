@@ -12,7 +12,7 @@ const { chromium } = createRequire(import.meta.url)("playwright");
 const dist = fileURLToPath(new URL("./dist/", import.meta.url));
 const shotsAt = process.argv.indexOf("--shots");
 const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
-const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webmanifest": "application/manifest+json" };
+const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".webmanifest": "application/manifest+json" };
 
 // A static server under a sub-path, as GitHub Pages serves a preview: deep links get the app's page.
 const base = "/amarna-letters/pr-0/";
@@ -66,6 +66,7 @@ async function namesClear(p, name) {
   await p.evaluate(() => document.querySelector('[aria-label="Show the whole map"], [aria-label="Back to where you were"]')?.click());
   if (await p.$('[aria-label="Back to where you were"]')) await p.evaluate(() => document.querySelector('[aria-label="Back to where you were"]').click());
   await p.evaluate(() => document.querySelector('[aria-label="Show the whole map"]')?.click());
+  let first = null;
   for (let step = 0; step < 8; step++) {
     if (step > 0) await p.evaluate(() => document.querySelector('[aria-label="Zoom in"]').click());
     await p.waitForTimeout(1100);
@@ -103,6 +104,10 @@ async function namesClear(p, name) {
     });
     if (bad.out.length > 0) failures.push(`${name}: at zoom ${bad.zoom}, names overlap: ${bad.out.join("; ")}`);
     if (bad.crowded.length > 0) failures.push(`${name}: at zoom ${bad.zoom}, ${bad.many} markers touch: ${bad.crowded.join("; ")}`);
+    // Zoomed in, the badges and counters come back: fewer small seals and more markers than on the whole board.
+    if (step === 0) first = bad;
+    if (step === 7 && !(bad.small < first.small && bad.markers > first.markers))
+      failures.push(`${name}: zoomed in, the badges did not come back (${bad.small} small seals and ${bad.markers} markers, against ${first.small} and ${first.markers} on the whole board)`);
     if (step === 0 || step === 7) report.push(`${name}: ${bad.shown} names and ${bad.markers} markers shown at zoom ${bad.zoom}, ${bad.small} cities as small seals`);
   }
 }
@@ -138,6 +143,8 @@ async function watch(viewport, name) {
   await p.click(".tb.now");
   // Whose eyes: one king's view.
   await p.selectOption(".viewsel", "Hatti");
+  // A seat's view too: its news, its ghosts and its believed people drawn (item 11c++).
+  await namesClear(p, `${name}, Hatti's view`);
   await p.getByRole("button", { name: "Inbox", exact: true }).click();
   await p.waitForTimeout(200);
   await shot(p, `${name}-hatti`);

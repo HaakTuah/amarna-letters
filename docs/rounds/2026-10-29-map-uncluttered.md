@@ -25,8 +25,8 @@ revision 108, at the start and again before the PR was readied: none.
    markers never touch each other.
 2. **The phone opens a step closer on the Levant** (6.7x, from 4.2x).
 3. **The test grows**: the smoke test fails if any marker shown touches another, besides the names, at 390 and 1280
-   pixels, at all eight zoom steps, at the opening and four seasons in. It passed (twice, the second time with all parts
-   of the item in).
+   pixels, at all eight zoom steps, at the opening, four seasons in and in a seat's view (its news, ghosts and believed
+   people drawn), and fails if zooming in does not bring the badges and counters back.
 4. **Borders as natural lines**: each traced border simplified past its grid's steps and its corners rounded, ends fixed.
 5. **Relief from real elevation**, soft shading in place of the hand-placed chevrons (115 KB).
 6. **Every river that mattered from real data**: Natural Earth's where it has them (now with Anatolia's Hermos, Kaystros,
@@ -69,6 +69,19 @@ Each with the principle it rests on ("Reason from the pillars").
    glance.)
 10. **The ridges the border tracer follows (`RangeLines`) stay**: they lie along the relief now drawn, and changing them
     would move borders without a source. (Borders and crossings follow the same land; item 11f's lane owns crossings.)
+
+11. **A season's capture ring is an overlay, not a marker**: it flashes once round the city that changed hands and may
+    cross that city's counters for that season, as a highlight does. (The map read at a glance: the event is the point.)
+12. **The traveller or person being followed is placed first**, so following someone never hides them. (The player asked
+    to see them.)
+13. **Each piece of news in a province stands beside the one before** (a rumour and a spy's report can share one).
+
+## First guesses (drawing only, none tunes the game)
+
+The small seal at 45 percent of the full seal; the fine geography past 6x and back below 4.5x; borders simplified at
+0.45 board units, cut into runs of at most 2 units and rounded three times; the relief at a pixel a board unit, three box
+blurs of two pixels, lit from the north-west at 40 degrees, heights exaggerated nine times; the fine set's tolerance a
+twentieth of a board unit; the river traces simplified at 0.006 degrees.
 
 ## Measured
 

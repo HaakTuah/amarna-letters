@@ -281,7 +281,18 @@ export function naturalLine(pts: readonly Pt[], tolerance = 0.45, rounds = 3): P
       stack.push([i, worst], [worst, j]);
     }
   }
-  let line = pts.filter((_, k) => keep[k] === 1);
+  // Long straight runs cut into pieces of at most two units first, so rounding a corner never pulls the line more than
+  // about half a unit off the land it was traced along.
+  let line: Pt[] = [];
+  const kept = pts.filter((_, k) => keep[k] === 1);
+  kept.forEach((p, k) => {
+    if (k > 0) {
+      const d = sub(p, kept[k - 1]);
+      const n = Math.ceil(len(d) / 2);
+      for (let i = 1; i < n; i++) line.push(add(kept[k - 1], mul(d, i / n)));
+    }
+    line.push(p);
+  });
   for (let r = 0; r < rounds && line.length >= 3; r++) {
     const next: Pt[] = [line[0]];
     for (let k = 0; k < line.length - 1; k++) {
@@ -296,7 +307,9 @@ export function naturalLine(pts: readonly Pt[], tolerance = 0.45, rounds = 3): P
   return line;
 }
 
-const Arcs: readonly Pt[][] = BorderArcs.map((s) => naturalLine(decodeFine(s)));
+/** Whether a line lies wholly off the board (the frame's corners, which no one sees and smoothing would only pull in). */
+const offBoard = (pts: readonly Pt[]): boolean => pts.every((p) => p.x <= 0 || p.y <= 0 || p.x >= Width || p.y >= Height);
+const Arcs: readonly Pt[][] = BorderArcs.map(decodeFine).map((a) => (offBoard(a) ? a : naturalLine(a)));
 /** A ring of the traced borders, its arcs joined in order. */
 function ringOf(refs: readonly number[]): Pt[] {
   const pts: Pt[] = [];

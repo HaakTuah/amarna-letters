@@ -350,14 +350,18 @@ function peopleAtCourts(input: MapInput): string {
     if (list.length > 6) sb += `<g class="person-more"><text class="chip-more" x="-8" y="48" text-anchor="middle">+${list.length - 6}</text></g>`;
     sb += "</g></g></g>";
   }
+  // Each piece of news in a province beside the one before it.
+  const newsIndex = new Map<string, number>();
   for (const n of s.news) {
     const at = city(n.province);
+    const nth = newsIndex.get(n.province) ?? 0;
+    newsIndex.set(n.province, nth + 1);
     const report = n.kind === "SpyReport";
     sb += `<g class="news age${Math.min(n.age, 4)} ${report ? "report" : "rumor"}" data-court="${n.province}" transform="translate(${F(at.x)},${F(at.y)})">`;
     sb += title(`${n.title} (${report ? `observed in ${dateLabel(n.observed, s.viewer)}` : `heard in ${dateLabel(Math.max(1, s.index + 1 - n.age), s.viewer)}`}): ${n.body}`);
-    sb += `<g class="nring" style="--ring:${ringAt(n.province)}"><g class="sym"><path class="news-bg" d="M-1,-7H17V5H10L6,9V5H-1Z"/>`;
+    sb += `<g class="nring" style="--ring:${ringAt(n.province)}"><g class="sym"><g transform="translate(${nth * 21},0)"><path class="news-bg" d="M-1,-7H17V5H10L6,9V5H-1Z"/>`;
     sb += report ? `<use href="#g-eye" class="news-icon" x="2" y="-7" width="12" height="12"/>` : `<g><text class="news-q" x="8" y="3">?</text></g>`;
-    sb += "</g></g></g>";
+    sb += "</g></g></g></g>";
   }
   return sb;
 }
@@ -577,9 +581,12 @@ export class SvgMapRenderer implements MapRenderer {
     if (want === this.fine) return;
     this.fine = want;
     if (want) {
-      void import("./fine-geo.ts").then(({ Fine }) => {
-        if (this.fine && this.view === view) this.swapGeography({ ...Fine.coasts, lakes: Fine.lakes }, Fine.rivers);
-      });
+      import("./fine-geo.ts")
+        .then(({ Fine }) => {
+          if (this.fine && this.view === view) this.swapGeography({ ...Fine.coasts, lakes: Fine.lakes }, Fine.rivers);
+        })
+        // Not loaded (offline before the cache had it): the board's own stay, and the next zoom tries again.
+        .catch(() => (this.fine = false));
     } else this.swapGeography({ land: LandPath, mainland: MainlandPath, island: IslandPath, coast: CoastPath, sea: SeaPath, lakes: LakePath }, null);
   }
 
@@ -622,7 +629,8 @@ export class SvgMapRenderer implements MapRenderer {
       this.placing = 0;
       const view = this.view;
       if (view === null) return;
-      // Everything shown again, then measured in one go, then given way: one layout, however many markers.
+      // Everything shown again, then all measured in one go, then given way in one batch of class changes: one layout,
+      // however many markers (writing a class between two measures would force a layout each time).
       view.querySelectorAll(".map .small, .map .off").forEach((e) => e.classList.remove("small", "crowd", "off"));
       const rects = (e: Element, sel: string): DOMRect[] =>
         [...e.querySelectorAll(sel)].map((x) => x.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
@@ -636,69 +644,75 @@ export class SvgMapRenderer implements MapRenderer {
       };
       const units = byProvince(".map-upper .unit[data-province]");
       const courts = byProvince(".map-upper .court-at[data-court], .map-upper .news[data-court]");
+      const cities = new Map<string, SVGGElement>();
+      view.querySelectorAll<SVGGElement>(".cities .city").forEach((c) => cities.set(c.dataset.province ?? "", c));
+      // Measured: each city's badge, seal and own markers; then the lesser markers; then the names.
+      const cityRects = NameOrder.filter((id) => cities.has(id)).map((id) => {
+        const c = cities.get(id)!;
+        return {
+          id,
+          c,
+          badge: rects(c, ".seal, .walls, .cap-ring"),
+          seal: c.querySelector(".seal")?.getBoundingClientRect(),
+          rest: [
+            ...(units.get(id) ?? []).flatMap((u) => rects(u, ":scope > .sym")),
+            ...(courts.get(id) ?? []).flatMap((e) => rects(e, ".person, .person-more, .news-bg")),
+          ],
+        };
+      });
+      // The traveller or person being followed comes first; then, after the cities, the fleets at sea and the counters of
+      // provinces with no city drawn, the units destroyed, the travellers, and the marks of the crossings.
+      const followed = [...view.querySelectorAll(".map-upper .traveller.followed")].map((e) => ({ e, rs: rects(e, ":scope > .sym") }));
+      const lesser = [
+        ...[...units].filter(([id]) => !cities.has(id)).flatMap(([, es]) => es.map((e) => [e, ":scope > .sym"] as const)),
+        ...[...view.querySelectorAll(".map-upper .destroyed")].map((e) => [e, ":scope > .sym"] as const),
+        ...[...view.querySelectorAll(".map-upper .traveller:not(.followed)")].map((e) => [e, ":scope > .sym"] as const),
+        ...[...view.querySelectorAll(".xmarks .xmark")].map((e) => [e, ".xm-bg"] as const),
+      ].map(([e, sel]) => ({ e, rs: rects(e, sel) }));
+      const names = NameOrder.map((id) => this.labels.get(id)?.querySelector("text"))
+        .filter((t): t is SVGTextElement => t !== null && t !== undefined)
+        .map((t) => ({ t, own: t.closest("[data-label]")?.getAttribute("data-label") ?? null, r: t.getBoundingClientRect() }));
+      const geo = [...view.querySelectorAll<SVGTextElement>(".base text.geo")].map((t) => ({ t, own: null, r: t.getBoundingClientRect() }));
+
       const placed: { r: DOMRect; own: string | null }[] = [];
       const touch = (a: DOMRect, b: DOMRect): boolean => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
       const free = (rs: readonly DOMRect[]): boolean => rs.every((r) => !placed.some((o) => touch(r, o.r)));
       const place = (rs: readonly DOMRect[], own: string | null): void => rs.forEach((r) => placed.push({ r, own }));
-      const cities = new Map<string, SVGGElement>();
-      view.querySelectorAll<SVGGElement>(".cities .city").forEach((c) => cities.set(c.dataset.province ?? "", c));
-      const ownRects = (id: string): DOMRect[] => [
-        ...(units.get(id) ?? []).flatMap((u) => rects(u, ":scope > .sym")),
-        ...(courts.get(id) ?? []).flatMap((c) => rects(c, ".person, .person-more, .news-bg")),
-      ];
-      for (const id of NameOrder) {
-        const c = cities.get(id);
-        if (c === undefined) continue;
-        const badge = rects(c, ".seal, .walls, .cap-ring");
-        const rest = ownRects(id);
-        if (free(badge) && free(rest)) {
+      const writes: (() => void)[] = [];
+      for (const f of followed) place(f.rs, null);
+      for (const { id, c, badge, seal, rest } of cityRects) {
+        // A city's own markers must not touch each other either (two pieces of news, say).
+        const own = rest.every((r, i) => !rest.slice(i + 1).some((o) => touch(r, o)));
+        if (own && free(badge) && free(rest)) {
           place(badge, id);
           place(rest, null);
           continue;
         }
-        // The small seal: the seal's own centre, at the size the stylesheet shrinks it to (.city.small, map-uncluttered.css).
-        const seal = c.querySelector(".seal")?.getBoundingClientRect();
-        for (const e of [...(units.get(id) ?? []), ...(courts.get(id) ?? [])]) e.classList.add("off");
+        for (const e of [...(units.get(id) ?? []), ...(courts.get(id) ?? [])]) writes.push(() => e.classList.add("off"));
         if (seal === undefined) continue;
+        // The small seal: the seal's own centre, at the size the stylesheet shrinks it to (.city.small, map-uncluttered.css).
         const k = SmallSeal / 2;
         const small = new DOMRect(seal.x + seal.width * (0.5 - k), seal.y + seal.height * (0.5 - k), seal.width * 2 * k, seal.height * 2 * k);
         if (free([small])) {
           // A small seal whose counters gave way says so by its darker rim.
-          c.classList.add("small");
-          c.classList.toggle("crowd", (units.get(id) ?? []).length > 0);
+          const crowd = (units.get(id) ?? []).length > 0;
+          writes.push(() => c.classList.add("small", ...(crowd ? ["crowd"] : [])));
           place([small], id);
-        } else c.classList.add("off");
+        } else writes.push(() => c.classList.add("off"));
       }
-      // The fleets at sea and the counters of provinces with no city drawn, then the rest, least important last.
-      const lesser = [
-        ...[...units].filter(([id]) => !cities.has(id)).flatMap(([, es]) => es.map((e) => [e, ":scope > .sym"] as const)),
-        ...[...view.querySelectorAll(".map-upper .destroyed")].map((e) => [e, ":scope > .sym"] as const),
-        ...[...view.querySelectorAll(".map-upper .traveller")].map((e) => [e, ":scope > .sym"] as const),
-        ...[...view.querySelectorAll(".xmarks .xmark")].map((e) => [e, ".xm-bg"] as const),
-      ];
-      for (const [e, sel] of lesser) {
-        const rs = rects(e, sel);
+      for (const { e, rs } of lesser) {
         if (free(rs)) place(rs, null);
-        else e.classList.add("off");
+        else writes.push(() => e.classList.add("off"));
       }
+      // The names: each where it touches no name shown and no marker (its own city's badge it may sit beside); the names
+      // of the land (rivers, ranges, deserts, the lands beyond) last.
       const shown: DOMRect[] = [];
-      const clear = (r: DOMRect, id: string | null): boolean => !shown.some((o) => touch(r, o)) && !placed.some((o) => (id === null || o.own !== id) && touch(r, o.r));
-      for (const id of NameOrder) {
-        const text = this.labels.get(id)?.querySelector("text");
-        if (text === null || text === undefined) continue;
-        const r = text.getBoundingClientRect();
-        // Its own city's badge a name may sit beside, but not its own counters, people or news.
-        const ok = clear(r, id);
-        text.classList.toggle("off", !ok);
+      for (const { t, own, r } of [...names, ...geo]) {
+        const ok = !shown.some((o) => touch(r, o)) && !placed.some((o) => (own === null || o.own !== own) && touch(r, o.r));
         if (ok) shown.push(r);
+        else writes.push(() => t.classList.add("off"));
       }
-      // The names of the land (rivers, ranges, deserts, the lands beyond) give way last, to all of the above.
-      view.querySelectorAll<SVGTextElement>(".base text.geo").forEach((text) => {
-        const r = text.getBoundingClientRect();
-        const ok = clear(r, null);
-        text.classList.toggle("off", !ok);
-        if (ok) shown.push(r);
-      });
+      for (const w of writes) w();
     });
   }
 

@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const { chromium } = createRequire(import.meta.url)("playwright");
 const dist = fileURLToPath(new URL("./dist/", import.meta.url));
 const out = process.argv[2] ?? "shots";
-const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".json": "application/json", ".webmanifest": "application/manifest+json" };
+const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".json": "application/json", ".webmanifest": "application/manifest+json" };
 const server = createServer(async (req, res) => {
   const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
   let file = normalize(join(dist, path.slice(1) || "index.html"));
@@ -49,7 +49,7 @@ for (const [name, viewport] of [["phone", { width: 390, height: 844 }], ["deskto
     await p.waitForTimeout(2000);
     await p.screenshot({ path: join(out, `${name}-${scheme}-opening-close.png`) });
     for (let i = 0; i < 3; i++) await p.evaluate(() => document.querySelector('[aria-label="Zoom out"]').click());
-    if (scheme === "light") {
+    {
       for (let i = 0; i < 4; i++) {
         const before = await p.$eval(".slider", (s) => Number(s.max));
         await p.click('button[aria-label="Play one season"]');

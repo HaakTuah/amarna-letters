@@ -16,3 +16,5 @@
 .map .reed { stroke: var(--river); stroke-width: .7; stroke-linecap: round; fill: none; }
 .legend .lg-lit { fill: #f3ead6; } .legend .lg-shade { fill: #8a7457; }
 .legend .crowd-lg { stroke: var(--ink); stroke-width: 2; stroke-dasharray: none; }
+/* A besieged city keeps its siege's colour as a small seal. */
+.map .city.small.besieged .seal { stroke: var(--blood, #9b2c1f); stroke-width: 4.5; stroke-dasharray: none; }
