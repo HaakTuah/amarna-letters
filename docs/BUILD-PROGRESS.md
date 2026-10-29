@@ -91,4 +91,8 @@ Side lane, a smaller default world for tests (29 Oct, #136): test games play a f
 (`src/game/test/small-world.ts`); suite 2264 s to 955 s, a code PR's CI about 4 min 50 s to 1 min 52 s
 (`docs/rounds/2026-10-29-small-test-world.md`).
 
+Side lane, map labels overlapping on a busy machine (29 Oct, #196): names and markers are placed again when a zoom's
+glide or a piece's slide really ends, not on timers guessed from their length; the smoke test waits for a still map and
+plays a game in slow motion (`docs/rounds/2026-10-29-map-label-overlap.md`).
+
 Done items 1 to 10 and the port's findings (all handled): `docs/archive/progress-done.md`.
