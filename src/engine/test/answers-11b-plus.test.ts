@@ -82,5 +82,10 @@ describe("AnswersTo11bPlusTests", () => {
     s.turn += 12;
     Assert.true(e.huntHeard(far, mine[0]));
     Assert.false(e.huntHeard(far, mine[1] ?? far));
+    // Lifted: the far chief goes on fearing it until talk of the lifting reaches him too.
+    e.resolveCourt([["Egypt", huntBands(false)]]);
+    Assert.true(e.huntHeard(far, mine[0]));
+    s.turn += 12;
+    Assert.false(e.huntHeard(far, mine[0]));
   });
 });

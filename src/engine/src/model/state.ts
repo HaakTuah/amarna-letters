@@ -91,17 +91,22 @@ export interface StandingHunt {
   power: Power;
   provinces: string[];
   since: number;
+  /** The season it was lifted or replaced, from which talk of that travels as of the order; null while it stands. */
+  until: number | null;
 }
 
 export const StandingHuntSchema: ObjSchema<StandingHunt> = obj(
   "StandingHunt",
-  (init: Partial<StandingHunt> = {}) => ({ power: "Egypt" as Power, provinces: [], since: 0, ...init }),
-  { power: S, provinces: list(S), since: I },
+  (init: Partial<StandingHunt> = {}) => ({ power: "Egypt" as Power, provinces: [], since: 0, until: null, ...init }),
+  { power: S, provinces: list(S), since: I, until: opt(I) },
 );
 
 /** Whether a standing hunt covers a province its power holds: the provinces it names, or, naming none, all its land. */
 export const huntCovers = (s: GameState, h: StandingHunt, province: string): boolean =>
   s.owner.getOrDefault(province, null) === h.power && (h.provinces.length === 0 || h.provinces.includes(province));
+
+/** The standing hunt a power's armies follow now, if any (one lifted or replaced is only still talked of). */
+export const huntNow = (s: GameState, p: Power): StandingHunt | null => s.hunts.find((h) => h.power === p && h.until === null) ?? null;
 
 /**
  * The authoritative world. Only the engine writes it; seats see filtered views of it. Iteration

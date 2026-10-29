@@ -18,7 +18,7 @@ import { grainWorth, needOf, priceAt } from "../model/economy.ts";
 import { LandData } from "../model/land.ts";
 import { coverOf, gain, newCharacter, newFact, newTraits, remember, type Character } from "../model/people.ts";
 import { AllPowers, land, type Power } from "../model/power.ts";
-import { alive, huntCovers, isAlive, logEvent, newId, notify, siegeOf } from "../model/state.ts";
+import { alive, huntCovers, huntNow, isAlive, logEvent, newId, notify, siegeOf } from "../model/state.ts";
 import { Styles } from "../rules/cast.ts";
 import { personaTemplate } from "../rules/personas.ts";
 import { drawSkills } from "../rules/skills.ts";
@@ -305,7 +305,8 @@ P.bandsSeason = function () {
 
     // Hunted (Haakon's answers to item 11b: only on its king's order, for this season or standing): the holder's army
     // standing in its province falls on it; it loses men, may lose its chief, and flees.
-    const ordered = holder !== null && (S.hunts.some((h) => h.power === holder && huntCovers(S, h, b.province)) || S.huntNow.includes(`${holder}|${b.province}`));
+    const standing = holder === null ? null : huntNow(S, holder);
+    const ordered = holder !== null && ((standing !== null && huntCovers(S, standing, b.province)) || S.huntNow.includes(`${holder}|${b.province}`));
     const hunters = ordered ? S.units.filter((u) => u.province === b.province && u.kind === "Army" && u.power === holder) : [];
     if (hunters.length > 0 && holder !== null) {
       const army = sum(hunters, (u) => u.men);
@@ -545,11 +546,21 @@ P.robbersNamed = function (victim, b, province) {
   if (from === null || !isAlive(S, from)) return;
   const text = `${victim.name} was robbed in ${this.map.get(province).name} in season ${S.turn} by the band of ${chief.name}, and names him.`;
   logEvent(S, "band", `${victim.name} named ${chief.name} as his robber.`, [], "robbers-named");
-  for (const to of [...new Set([holder, victim.employer])]) if (to !== null && isAlive(S, to) && !f.knownBy.includes(to)) this.rumor(to, from, text, chief.id, "Name", f.id);
+  for (const to of [...new Set([holder, victim.employer])])
+    if (to !== null && isAlive(S, to) && !f.knownBy.includes(to)) {
+      this.rumor(to, from, text, chief.id, "Name", f.id);
+      // The word sets out from where he was robbed, not from a capital.
+      S.journeys[S.journeys.length - 1].arriveTurn = S.turn + this.travelTurnsBetween(province, this.map.capital(to).id);
+    }
 };
 
 P.huntHeard = function (at, target) {
   const S = this.s;
-  return S.hunts.some((h) => huntCovers(S, h, target) && isAlive(S, h.power) && S.turn >= h.since + this.travelTurnsBetween(this.map.capital(h.power).id, at));
+  return S.hunts.some((h) => {
+    if (!huntCovers(S, h, target) || !isAlive(S, h.power)) return false;
+    const road = this.travelTurnsBetween(this.map.capital(h.power).id, at);
+    // Heard of once its talk has come, until talk of its lifting comes.
+    return S.turn >= h.since + road && (h.until === null || S.turn < h.until + road);
+  });
 };
 

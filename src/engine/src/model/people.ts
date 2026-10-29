@@ -360,8 +360,6 @@ export interface Character {
   heardPay: string[];
   /** Older talk of promises kept or broken, by party, that it keeps all its life (Haakon's answers to item 11b+). */
   payOld: PayOld[];
-  /** The last season whose talk of promises is in its old talk: it hears no more of promises made by then. */
-  heardFrom: number;
   /** What it has heard a job pays a season, from the jobs agreed where it stood and from those it met; null if nothing. */
   heardRate: number | null;
   /** Item 10: the true skills the engine rolls on. */
@@ -458,7 +456,6 @@ export function newCharacter(init: Partial<Character> = {}): Character {
     carriedFor: 0,
     heardPay: [],
     payOld: [],
-    heardFrom: 0,
     heardRate: null,
     skills: newSkills(),
     inclination: 0,
@@ -526,7 +523,6 @@ export const CharacterSchema: ObjSchema<Character> = obj("Character", newCharact
   carriedFor: I,
   heardPay: list(S),
   payOld: list(() => PayOldSchema),
-  heardFrom: I,
   heardRate: opt(I),
   skills: () => SkillsSchema,
   inclination: I,

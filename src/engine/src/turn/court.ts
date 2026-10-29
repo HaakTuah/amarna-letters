@@ -84,9 +84,13 @@ P.resolveCourt = function (orders) {
       case "huntBands":
         {
           // A new standing hunt replaces the old; several given in the same season, each naming provinces, add up.
-          const before = S.hunts.find((h) => h.power === p && h.since === S.turn && h.provinces.length > 0 && (o.provinces ?? []).length > 0);
-          S.hunts = S.hunts.filter((h) => h.power !== p);
-          if (o.on) S.hunts.push({ power: p, provinces: [...new Set([...(before?.provinces ?? []), ...(o.provinces ?? [])])].sort(cmpStr), since: S.turn });
+          // The old one is lifted: talk of that travels as talk of it did, so far chiefs go on fearing it a while.
+          const before = S.hunts.find((h) => h.power === p && h.since === S.turn && h.until === null && h.provinces.length > 0 && (o.provinces ?? []).length > 0);
+          if (before !== undefined) S.hunts.splice(S.hunts.indexOf(before), 1);
+          for (const h of S.hunts) if (h.power === p && h.until === null) h.until = S.turn;
+          // Talk of a lifted hunt has reached everyone within twenty seasons.
+          S.hunts = S.hunts.filter((h) => h.until === null || S.turn - h.until <= 20);
+          if (o.on) S.hunts.push({ power: p, provinces: [...new Set([...(before?.provinces ?? []), ...(o.provinces ?? [])])].sort(cmpStr), since: S.turn, until: null });
         }
         break;
       case "seekCandidates":
@@ -268,9 +272,11 @@ P.renew = function (p, r) {
   if (serves) {
     gain(c, advance, "Fees");
     // Haakon's answers to item 11b+: an errand given during a stay is its own job with its own fee; the stay waits beside it.
+    // A new stay takes the place of one waiting beside the errand, whose rest it carries.
     const staying = k!.errand?.what === "stay" && errand?.what !== "stay" && k!.untilTurn >= S.turn && !k!.captured;
-    const stay = staying ? newStayLeft({ until: k!.untilTurn, rest: restOf(k!), payOnDone: k!.payOnDone && !k!.withheld }) : k!.stay;
-    c.contract = newContract({ fee: r.fee, advance, carried: staying ? 0 : restOf(k!), startTurn: S.turn, untilTurn: until, errand, payOnDone: r.payOnDone === true, offerAgain: r.offerAgain === true, stay });
+    const old = errand?.what === "stay" && k!.stay !== null ? k!.stay.rest : 0;
+    const stay = staying ? newStayLeft({ until: k!.untilTurn, rest: restOf(k!), payOnDone: k!.payOnDone && !k!.withheld }) : errand?.what === "stay" ? null : k!.stay;
+    c.contract = newContract({ fee: r.fee, advance, carried: staying ? 0 : restOf(k!) + old, startTurn: S.turn, untilTurn: until, errand, payOnDone: r.payOnDone === true, offerAgain: r.offerAgain === true, stay });
     this.heardFee(c, rateOf(r.fee, term));
     remember(c, S.turn, `The king of ${land(p)} gave me a new job${errandWords(errand, (x) => (this.map.exists(x) ? this.map.get(x).name : x))}, within ${term} seasons, for ${formatMoney(r.fee)}, ${formatMoney(advance)} of it now.`);
   }
@@ -299,7 +305,7 @@ P.dismiss = function (p, c, order) {
   }
   remember(c, S.turn, `The king of ${land(p)} dismissed me.`);
   // Haakon's answer to item 11a (opening item 11b): a dismissal before the job's term ends is a broken promise on record.
-  if (c.contract !== null && c.contract.untilTurn > S.turn) this.recordPay(p, false, p, c);
+  if (c.contract !== null && Math.max(c.contract.untilTurn, c.contract.stay?.until ?? 0) > S.turn) this.recordPay(p, false, p, c);
   c.formerEmployer = p;
   c.employer = null;
   c.contract = null;

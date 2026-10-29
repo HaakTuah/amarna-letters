@@ -12,7 +12,7 @@ import { AllPowers, cmpPower, king, type Power } from "../model/power.ts";
 import type { PendingTask, Tablet, TabletCopy } from "../model/records.ts";
 import { newScheduledOrders, type ScheduledOrders } from "../model/sleep.ts";
 import { sameConditions } from "./conditions.ts";
-import { alive, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
+import { alive, huntNow, inboxOf, isAlive, ledger, newKnown, ownedBy, wallsOf, type GameState, type Known } from "../model/state.ts";
 import { wordSeasons } from "../model/travel.ts";
 import { capacityOf, EconomyData, harvestOf, needOf, priceAt } from "../model/economy.ts";
 import { reckonedOf, unitCarried } from "../model/land.ts";
@@ -190,8 +190,8 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
     kept: s.payRecords.tryGet(p)?.kept ?? 0,
     broken: s.payRecords.tryGet(p)?.broken ?? 0,
     payCarriers: s.payCarriers.includes(p),
-    huntBands: s.hunts.some((h) => h.power === p),
-    huntWhere: s.hunts.find((h) => h.power === p)?.provinces ?? [],
+    huntBands: huntNow(s, p) !== null,
+    huntWhere: huntNow(s, p)?.provinces ?? [],
     debts: debtViews(s, p),
     debtsHeld: claimViews(s, p),
     strength: engine.ledgerStrength(p),

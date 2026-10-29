@@ -262,7 +262,7 @@ export function CourtSection({ c }: { c: OrdersContext }) {
         </button>
         {/* Haakon's answers to item 11b+: a standing hunt names provinces, or the whole land. */}
         <select value="" disabled={draft.other.some((o) => o.type === "huntBands")} onChange={(e) => e.target.value !== "" && add(huntBands(true, [...new Set([...v.huntWhere, e.target.value])]))}>
-          <option value="">Armies hunt bands in a province of yours…</option>
+          <option value="">{v.huntBands && v.huntWhere.length === 0 ? "Hunt only in a province of yours (narrows the whole-land hunt)…" : "Armies hunt bands in a province of yours…"}</option>
           {[...v.owner.entries()]
             .filter(([at, who]) => who === me && !v.huntWhere.includes(at))
             .map(([at]) => at)

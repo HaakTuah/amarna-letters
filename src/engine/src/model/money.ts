@@ -9,8 +9,8 @@ import { AllPowers, type Power } from "./power.ts";
 /**
  * First guesses (item 18 tunes them):
  * - `heardWeight`: how far what a person has heard a job pays a season moves what it asks, in percent (Haakon's answers to
- *   item 11a: "what others were paid is only what a character has heard, and he bargains from it"); `heardKeep`: how
- *   many promises kept or broken a person keeps in mind one by one; older ones it keeps as old talk ({@link PayOld}).
+ *   item 11a: "what others were paid is only what a character has heard, and he bargains from it"). A person keeps every
+ *   promise kept or broken it heard: one by one while it is news, then as old talk ({@link PayOld}).
  * - `talkHalf`: a script person weighs talk of a promise less as it ages ("Memory" in "The game in one page"): one heard
  *   `talkHalf` seasons ago, plus a season for every ten points of its loyalty, counts half, and none ever counts nothing.
  * - `errandStay`: the seasons an envoy's errand counts for its stay at the court it goes to, beside the road there and back.
@@ -27,7 +27,6 @@ import { AllPowers, type Power } from "./power.ts";
  */
 export const MoneyData = {
   heardWeight: 50,
-  heardKeep: 60,
   talkHalf: 8,
   errandStay: 1,
   trustStart: 80,

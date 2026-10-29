@@ -123,25 +123,29 @@ P.recordPay = function (party, kept, where, payee = null) {
     else if (where !== null && isAlive(S, where)) f.heardAt.set(k, S.turn + (k === where ? 0 : this.travelTurns(where, k)));
   }
   S.payFacts.push(f);
-  if (payee !== null) hearPay(S, payee, f.id, f.turn);
+  if (payee !== null) hearPay(payee, f.id);
   if (!isPowerParty(party)) {
     const c = S.characters.find((x) => x.id === party);
-    if (c !== undefined) hearPay(S, c, f.id, f.turn);
+    if (c !== undefined) hearPay(c, f.id);
   }
 };
 
-/** A person hears of a promise kept or broken; it keeps the newest one by one, and the older as old talk, never lost. */
-export function hearPay(s: GameState, c: Character, id: string, turn: number): void {
-  // Talk of promises made no later than what it already keeps as old talk is in its old talk, or it was never told it.
-  if (turn <= c.heardFrom || c.heardPay.includes(id)) return;
-  c.heardPay.push(id);
-  // Folded a score at a time, so the sorting is rare.
-  if (c.heardPay.length <= MoneyData.heardKeep + 20) return;
-  const turnOf = new Map(s.payFacts.map((f) => [f.id, f.turn]));
-  const oldest = sortBy([...c.heardPay], [(x: string) => turnOf.get(x) ?? 0, cmpNum]).slice(0, c.heardPay.length - MoneyData.heardKeep);
-  c.heardFrom = Math.max(c.heardFrom, ...oldest.map((x) => turnOf.get(x) ?? 0));
-  // What it heard of promises made in the same season as those folded goes with them, so nothing is counted twice.
-  keepAsOld(s, c, c.heardPay.filter((x) => (turnOf.get(x) ?? 0) <= c.heardFrom));
+/**
+ * A person hears of a promise kept or broken. It keeps each one by one while the promise is news, and then as old talk
+ * ({@link foldOldPay}), never lost.
+ */
+export function hearPay(c: Character, id: string): void {
+  if (!c.heardPay.includes(id)) c.heardPay.push(id);
+}
+
+/** A person hears of several promises at once (what a court's talk or its company tells it). */
+export function hearPays(c: Character, ids: Iterable<string>): void {
+  const known = new Set(c.heardPay);
+  for (const id of ids)
+    if (!known.has(id)) {
+      known.add(id);
+      c.heardPay.push(id);
+    }
 }
 
 /**
@@ -150,7 +154,7 @@ export function hearPay(s: GameState, c: Character, id: string, turn: number): v
  */
 function keepAsOld(s: GameState, c: Character, ids: string[]): void {
   const facts = new Map(s.payFacts.map((f) => [f.id, f]));
-  const told = new Map<string, { kept: number; broken: number }>();
+  const told = new Set<string>();
   for (const id of ids) {
     const f = facts.get(id);
     if (f === undefined) continue;
@@ -160,15 +164,16 @@ function keepAsOld(s: GameState, c: Character, ids: string[]): void {
     o.turn = Math.round((o.turn * n + f.turn) / (n + 1));
     if (f.kept) o.kept++;
     else o.broken++;
-    const t = told.get(f.party) ?? { kept: 0, broken: 0 };
-    if (f.kept) t.kept++;
-    else t.broken++;
-    told.set(f.party, t);
+    told.add(f.party);
   }
-  for (const [party, t] of told) {
+  // One note a party in its memory, renewed as old talk grows: a model person keeps it or drops it when it condenses its notes.
+  for (const party of told) {
+    const o = c.payOld.find((x) => x.party === party)!;
     const who = isPowerParty(party) ? `the king of ${land(party as Power)}` : (s.characters.find((x) => x.id === party)?.name ?? party);
-    const parts = [t.kept > 0 ? `kept ${t.kept}` : "", t.broken > 0 ? `broke ${t.broken}` : ""].filter((x) => x !== "");
-    remember(c, s.turn, `Old talk I keep: ${who} ${parts.join(" and ")} of the promises to pay I heard of.`);
+    const parts = [o.kept > 0 ? `kept ${o.kept}` : "", o.broken > 0 ? `broke ${o.broken}` : ""].filter((x) => x !== "");
+    const head = `Old talk I keep: ${who} `;
+    c.memory = c.memory.filter((m) => !m.text.startsWith(head));
+    remember(c, s.turn, `${head}${parts.join(" and ")} of the promises to pay I heard of, long ago.`);
   }
   c.heardPay = c.heardPay.filter((id) => !ids.includes(id));
 }
@@ -253,6 +258,8 @@ P.payFeeOrder = function (p, o) {
     }
     c.contract.withheld = true;
     c.contract.payOnDone = false;
+    // The stay waiting beside the errand too: its rest is not paid either.
+    if (c.contract.stay !== null) c.contract.stay.payOnDone = false;
     notify(S, p, "Notice", "A fee to be withheld", `The rest of ${c.name}'s fee will not be paid when the job is done.`, c.id);
     return;
   }

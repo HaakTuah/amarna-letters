@@ -14,7 +14,7 @@ import { formatMoney } from "../rules/calendar.ts";
 import { NewsData, newsOffered } from "../rules/news.ts";
 import { Views } from "../rules/views.ts";
 import { idNumber, TurnEngine } from "./core.ts";
-import { foldOldPay, hearPay } from "./jobs.ts";
+import { foldOldPay, hearPays } from "./jobs.ts";
 
 /** How many losses abroad a person keeps in mind, newest last; and how long one is talked of, in seasons. */
 export const HeardData = { keep: 40, seasons: 12 } as const;
@@ -45,7 +45,7 @@ P.newsSeason = function () {
     // The talk of the court where it stands: whose people it holds or put to death, and (Haakon's answers to item 11a) the
     // promises to pay kept and broken whose word has reached it.
     for (const l of S.losses) if (l.court === court && S.turn - l.turn <= HeardData.seasons) hear(c, lossKey(l));
-    for (const f of S.payFacts) if (S.turn - f.turn <= HeardData.seasons && f.heardAt.getOrDefault(court, Number.MAX_SAFE_INTEGER) <= S.turn) hearPay(S, c, f.id, f.turn);
+    hearPays(c, S.payFacts.filter((f) => S.turn - f.turn <= HeardData.seasons && f.heardAt.getOrDefault(court, Number.MAX_SAFE_INTEGER) <= S.turn).map((f) => f.id));
     // A person notes what it sees of the court, to sell elsewhere, once every few seasons (Haakon's answers to item 11b:
     // anyone may sell what he knows): a free person, a servant abroad, and a servant at its master's court only if it is
     // one who would sell its master's secrets (greedy and disloyal).
@@ -74,13 +74,12 @@ P.newsSeason = function () {
     c.news = [...c.news.filter((n) => n.court !== court), newNewsHeld({ court, turn: S.turn, lines, honest })].slice(-NewsData.keep);
   }
   // People standing at the same court pass on what they heard of losses abroad, and of promises kept or broken.
-  const turnOf = new globalThis.Map(S.payFacts.map((f) => [f.id, f.turn]));
   for (const [, here] of present.entries()) {
     if (here.length < 2) continue;
     const all = [...new Set(here.flatMap((c) => c.heard))];
     for (const c of here) for (const k of all) hear(c, k);
     const paid = [...new Set(here.flatMap((c) => c.heardPay))];
-    for (const c of here) for (const k of paid) hearPay(S, c, k, turnOf.get(k) ?? 0);
+    for (const c of here) hearPays(c, paid);
   }
   foldOldPay(S, HeardData.seasons);
 };

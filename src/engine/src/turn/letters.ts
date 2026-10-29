@@ -177,6 +177,8 @@ P.carryLetters = function () {
     if (carrier === null && spy !== null && (plan !== null ? plan.carry : waited >= selfWait(spy)) && spy.status === "Employed" && spy.employer === letter.to && spy.duty === "SpyPosted") {
       border = this.borderOf(spy, letter.to);
       if (border !== null) {
+        // Its master goes on believing it at its post: nothing tells him it walked off until word comes from it.
+        this.coverFor(spy, letter.to, "SpyPosted");
         this.walkToBorder(spy, letter.to, border);
         remember(spy, S.turn, `Nobody would carry my reports from ${this.map.get(at).name}, so I set out to take them to the border of ${land(letter.to)} myself.`);
       } else {
