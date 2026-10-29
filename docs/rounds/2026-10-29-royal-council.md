@@ -93,7 +93,14 @@ None: the page and the item's sections settled every reading.
 - **The search's refactor** (the pictured seasons in a function of their own, and who holds the land after a season
   in another, for the council's numbers): seeds 9 to 11 replayed on the final head give the same games as the "after"
   run, line for line.
-- **Use against ignore** (`--council-play-half`): COUNCIL_NUMBERS
+- **Use against ignore** (`--council-play-half`, 50 games, every one replaying exactly): script kings that play their
+  troops and levies by their council, taking each season the whole plan of the advisor the other three agree with
+  most, against kings that play their own plan: **0.82 growth to 0.76, 29 wins to 21**. The council's advice pays when
+  it is followed as a plan. The first try, taking each troop's majority order across the four plans, grew as well
+  (0.81 to 0.79) but won 17 to 33: its supports backed moves no advisor made. The follower was patched to keep a plan
+  whole (reading 13), which is also how the page tells a human to use it (a button per advisor). By power the gain is
+  widest for the middle and weak powers (Mitanni 0.92 to 0.78, Arzawa 1.01 to 0.86, Babylonia 1.09 to 0.98); Assyria and
+  Egypt even.
 - **How the council is used in a real game** can only be measured with human or model seats; model games wait until
   the build order is done. The tests check that a seat hearing it gets four advisors, numbers behind its strikes,
   titles from the dossier, the toggle in the log and the same game with the council on or off.
@@ -116,3 +123,12 @@ rulebook names the darker tiers; the toggle's starting state (reading 2); charac
 test seats that can sleep paying for a council they never read (now only seats that `hearsCouncil`).
 
 Questions for Haakon: none.
+
+## Workshop check
+
+(1) A code PR's checks took 8 to 10 minutes on this branch (8 min 25 s and 10 min 6 s for the last two pushes), as on
+29 October; the item's tests add about 50 s of suite time, the council's games kept to three powers. (2) `CLAUDE.md`
+17.4 KB, the builder rules 11.2 KB, the progress file 19.3 KB: all under 20 KB. (3) Over 50 KB: only the old round
+report kept as a specification and the fine map's data (`src/web/src/map/geo-fine-data.ts`, 105 KB, data), as before.
+(4) `item/royal-council` is deleted from GitHub once merged, if this session may (item 14's report found it could not).
+(5) No leftovers: the item's before and after ran from worktrees in the session's scratchpad, never in the repository.
