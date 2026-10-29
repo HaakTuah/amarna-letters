@@ -33,7 +33,7 @@ describe("MapCrossingsTests", () => {
     for (const c of Crossings) {
       Assert.true(Map.areAdjacent(c.a, c.b), `${c.a}-${c.b}`);
       Assert.true(c.source.endsWith(".md"), c.name);
-      Assert.equal(1, Crossings.filter((x) => (x.a === c.a && x.b === c.b) || (x.a === c.b && x.b === c.a)).length, c.name);
+      Assert.equal(1, Crossings.filter((x) => (x.a === c.a && x.b === c.b) || (x.a === c.b && x.b === c.a)).length);
     }
   });
 
@@ -73,7 +73,7 @@ describe("MapCrossingsTests", () => {
     for (const [id, power, ruler, walls] of places) {
       Assert.equal(id, Map.capital(power as never).id);
       Assert.equal(ruler, king(power as never));
-      Assert.equal(walls, StartWalls.get(id) ?? 0, id);
+      Assert.equal(walls, StartWalls.get(id) ?? 0);
     }
     Assert.equal("Hatti", Map.get("samuha").home);
     Assert.equal("Labaya", king("Shechem"));
