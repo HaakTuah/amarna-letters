@@ -9,7 +9,9 @@ import { Assert } from "../../engine/test/support.ts";
 describe("CoverBotTests", () => {
   test.each([["Egypt"], ["Mitanni"], ["Arzawa"]] as const)("A script king never sends a servant it believes away %s", async (me: Power) => {
     let s = newGame(11);
-    let servants = s.characters.filter((c) => c.employer === me);
+    // Its two envoys; its Akkadian scribe (item 11f) stays at court, its fee due like theirs.
+    let servants = s.characters.filter((c) => c.employer === me && c.calling !== "scribe");
+    const scribeDue = s.characters.filter((c) => c.employer === me && c.calling === "scribe").reduce((a, c) => a + c.contract!.fee - c.contract!.advance, 0);
     // One caught as a spy at Hatti's court, as its master does not know; the other gone over to Hatti.
     let caught = servants[0];
     caught.status = "Captured";
@@ -56,7 +58,7 @@ describe("CoverBotTests", () => {
       },
     );
     const rest = (k: { fee: number; advance: number }): number => k.fee - k.advance;
-    Assert.equal(rest(caught.contract!) + rest(gone.contract!), view.feesDue);
+    Assert.equal(rest(caught.contract!) + rest(gone.contract!) + scribeDue, view.feesDue);
 
     // A model king reads the same: the caught spy at its post, never "at court, ready".
     let text = situation(view);
