@@ -15,13 +15,13 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 567 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 102 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 103 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 36 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 57 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 25 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 20 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
-| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 32 |
+| Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 33 |
 | War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 66 |
 | Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 12 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 17 |
@@ -59,7 +59,7 @@ session loads.
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 2.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |
-| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 1.8 |
+| `docs/intent/build-order/item-17.md` | 17. How cities become free. The ways a city breaks free of its master | 2.3 |
 | `docs/intent/build-order/item-18.md` | 18. The balance pass. With the main systems built, tune them together, starting  | 5.3 |
 | `docs/intent/build-order/item-19.md` | 19. The living map | 1.2 |
 | `docs/intent/build-order/not-yet-in-the-order.md` | Not yet in the order | 0.5 |
@@ -97,7 +97,7 @@ session loads.
 | `docs/intent/land-people-and-economy/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/land-people-and-economy/gold.md` | Gold | 3.4 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part1.md` | Economy and resources (part 1) | 22.4 |
-| `docs/intent/land-people-and-economy/economy-and-resources-part2.md` | Economy and resources (part 2) | 22.7 |
+| `docs/intent/land-people-and-economy/economy-and-resources-part2.md` | Economy and resources (part 2) | 23.3 |
 | `docs/intent/land-people-and-economy/economy-and-resources-part3.md` | Economy and resources (part 3) | 5.5 |
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.7 |
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.9 |
