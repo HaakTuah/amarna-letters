@@ -148,3 +148,30 @@ One reviewer (Opus, high). Blocking, fixed: half the roads were never drawn (the
 round, and the first build kept only those listed one way); a test now requires every land connection's road, once.
 Fixed besides: the note on what a court knows of others' works (the engine's view is today's sight; the memory is the
 map's, from earlier sights); relay stations hidden on the whole board, said in the note.
+
+## Pass 4: the map that remembers, life on it, each realm's map, omens, small scenes
+
+Branch `item/living-map-memory`, stacked on pass 3.
+
+### What was built
+
+1. **Memorials** at battlefields the viewer saw; **ruins** at sacked cities until their people's hardship fades;
+   **wild land** where no one rules or a band works.
+2. **Caravans and men on the road**; close up, a **famine's empty granary** and each **town's houses**, growing or
+   shrinking.
+3. **Each realm's own map**: a king's view pressed in clay, Egypt's on papyrus, god view the papyrus museum map.
+4. **Omens in the margin**: the diviners' sign in the sky in the map's corner, the border darkening with it.
+5. **Small scenes**: gift processions, sacks and ambushes, once, when the map steps on a season; never with reduced
+   motion.
+6. The legend explains each; a scene test checks that a court remembers only the battles it saw, and sees caravans,
+   walkers, wild land, famine and towns only where it can see.
+
+### Readings taken
+
+- **Ruins last while the people remember the sack** (no stopgaps: the engine has no rebuilding of its own).
+- **Clay for every court but Egypt's** ("Period first": every Amarna letter is a clay tablet).
+- **Hieratic notes left out**: the map's text stays in the reader's language.
+- **Omens by tier only** (pillar 4, "Random ending"): the sign is what every court's diviners read; the drawn season
+  never reaches a frame.
+- **Small scenes only when stepping on one season**, so scrubbing the timeline never replays them, and never with
+  reduced motion (item 2: "respect for reduced motion").

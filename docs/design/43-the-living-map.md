@@ -123,3 +123,35 @@ Stores it counts only in its own land (every store in god view). Mines are the m
 **Readings taken.** Policing is men, not something built, so it has no mark ("every level of what is built": roads,
 harbours, walls, water works, granaries, mines). Fields are not yet a built level in the engine (its works say "fields,
 mines and storage come with the economy's later phases"), so a mine shows where the economy has one, not by a level.
+
+## Pass 4: the map that remembers, life on it, each realm's map, omens, small scenes
+
+`src/web/src/map/memory.ts` reads it from the frames; `life.ts` draws it.
+
+- **A map that remembers.** Each battlefield the viewer saw (a march into troops standing where it could see them, the
+  test pass 2's clashes use) keeps a small memorial stele by its city, with how many battles and the season of the last.
+  A sacked city (the engine's `sack` event) lies in ruins, its seal cracked and smoke over it, until the hardship its
+  people remember (`GameState.unrest`, which a sack adds to) has faded, or it changes hands; out of the viewer's sight,
+  as last seen. Land with no ruler, or where a band works, looks wild: thorn and scrub over it.
+- **Life from the simulation.** Caravans of grain (`GameState.caravans`) and men walking home or carried off
+  (`GameState.walking`) are drawn on their roads, where their stretch puts them (a guess, as a traveller's place is).
+  Close up, in the works row: a famine's empty granary where the countryside ate less than eight tenths of its need last
+  season (`GameState.fed`), and each town's houses with its people and whether they grew or shrank over the year
+  (`GameState.people`).
+- **Each realm's own map.** In a seat's view the map is drawn by its own scribes: Egypt's on papyrus, every other
+  court's pressed in clay (the Amarna correspondents all wrote on clay), an overlay of clay's colour and grain over the
+  whole board, never a filter, so the drawing beneath repaints no more often. God view keeps the papyrus museum map.
+  Knowledge already reads as ink by its age (the fog's gradient, ghosts that fade, news by its age: items 2 and 7b).
+- **Omens in the margin.** The diviners' tier of the omens of the end (`omenTier`, item 16, the same for every court) as
+  a sign in the sky in the map's corner: a quiet moon, a red moon, the sun darkened, a strange star when the age has
+  outlived its measure, the sun swallowed at the darkest; the map's border darkens with it. Its words are the tier's,
+  never the season drawn (which no frame carries).
+- **Small scenes at big moments.** When the map steps on by one season, its gift processions (an envoy bearing gold who
+  reached his court), sacks and ambushes on the road play once as a medallion over the place, for under four seconds;
+  none when stepping back or jumping, and none for a reader who asks for reduced motion. A seat sees only its own
+  envoys' and the events it is told of.
+
+**Readings taken.** Ruins last while the people remember the sack, since the engine has no rebuilding of its own ("no
+stopgaps": the map invents no rule); clay for every court but Egypt's, since every Amarna letter is a clay tablet;
+Egypt's hieratic notes are left for a later pass (the map's own text stays in the reader's language); the famine's
+threshold (eight tenths of the need) is the map's, not a rule's.
