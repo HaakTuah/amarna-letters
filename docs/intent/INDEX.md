@@ -15,7 +15,7 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 567 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 108 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 109 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 36 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 57 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 25 |
@@ -55,7 +55,7 @@ session loads.
 | `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 33.2 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.4 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
-| `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 2.5 |
+| `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 3.3 |
 | `docs/intent/build-order/item-14.md` | 14. Legends. The narrator's legends grow from the "follow this character" view i | 0.7 |
 | `docs/intent/build-order/item-15.md` | 15. Infrastructure and policing. Roads and relay stations with upkeep, which spe | 2.2 |
 | `docs/intent/build-order/item-16.md` | 16. The royal council. Four advisors built from the script kings' tactics, who o | 0.4 |

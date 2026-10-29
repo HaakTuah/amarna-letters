@@ -186,6 +186,8 @@ Their words are in `docs/archive/instructions.md`, items 13 and 14.)
      brief and check-in, and passes on every lane's "Questions for Haakon" word for word.
   5. **The brake closes lanes first.** From about 85% of the weekly usage, no new side lane opens and open ones finish;
      from about 90%, as "Usage" says, only small things in the main lane.
+     Only the measured share counts (Haakon, 29 October 2026: "They weren't supposed to stop before 90%. We're still at
+     only 76%"): the app's weekly usage warning is not the brake, and a session that cannot read the share carries on.
 - **29 October 2026: the smallest game that tests the rule** (`docs/archive/instructions.md`, item 28). Every test sets
   up the smallest game that still tests its rule: a few powers on part of the map, a handful of seasons and only the
   characters it needs, never the full world by default. Full-size games, every power on the whole map, run only in a
