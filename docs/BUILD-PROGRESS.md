@@ -65,7 +65,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 11f+ | Neighbours on the map are neighbours in the rules | No lever to use or ignore (the map's neighbours); the script kings ordered 18 in a hundred of their moves over the 23 new connections, every one used, in all 50 games | Used; nothing to compare |
 | 13 | Granting command, mandates, governors, bands enlisted as soldiers and moving the court (`--command-play-half`) | 0.77 growth to 0.76, 27 wins to 23, in 50 games (0.78 to 0.77, 27 to 23 before two script patches); hunting re-measured with command (`--outlaw-play-half`): 0.76 to 0.77, 28 wins to 22 | Paying a little, within noise: the gain is in far provinces, which the scripts' growth reaches late; re-measure in item 18 |
 | 13+ | A risen governor's seat (no script choice to ignore: the same script king plays it) | No governor rose in 50 games; in a small game the risen seat kept its men, took lawless land beside it and replayed exactly | Not measurable yet: governors are rarely in place when a Great King falls; re-measure once item 17 raises more powers in play |
-| 14 | Legends, and a greedy king's begging letter | n/a: the legends are read by people, never by a seat; the begging letter is an Easter egg (once in 50 games) | Nothing to measure |
+| 14 | Legends, and a greedy king's begging letter | n/a: the legends are read by people, never by a seat; the begging letter is an Easter egg (3 letters in 50 games, 1 granted) | Nothing to measure |
 
 ## Items
 
