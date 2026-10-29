@@ -6,6 +6,7 @@
  * the distance, carrying what it made from season to season while its orders keep it on that road. A forced march is a
  * third quicker, and some of its men drop along the way. An army carried by sea goes as its fleets carry it.
  */
+import { waysOf } from "../model/works.ts";
 import { idiv } from "../core/num.ts";
 import { MarchData } from "../model/command.ts";
 import { seasonOfTurn } from "../model/map.ts";
@@ -33,7 +34,7 @@ declare module "./core.ts" {
 const P = TurnEngine.prototype;
 
 P.marchPoints = function (u, to, forced) {
-  return legPoints(this.map, u.province, to, seasonOfTurn(this.s.turn), { sneaking: false, troops: { men: idiv(u.men * this.s.config.armyPace, 100), fleet: u.kind === "Fleet", forced } });
+  return legPoints(this.map, u.province, to, seasonOfTurn(this.s.turn), { sneaking: false, troops: { men: idiv(u.men * this.s.config.armyPace, 100), fleet: u.kind === "Fleet", forced }, ways: waysOf(this.s) });
 };
 
 P.paceMoves = function (byProvince) {

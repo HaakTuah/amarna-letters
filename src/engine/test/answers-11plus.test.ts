@@ -40,8 +40,8 @@ describe("The answers to item 11+", () => {
     Assert.equal(3, StartWalls.get("qadesh"));
     Assert.equal(2, StartWalls.get("byblos"));
     Assert.equal(1, StartWalls.get("megiddo"));
-    // The Great Kings' capitals keep theirs until item 15.
-    Assert.equal(3, StartWalls.get("akhetaten"));
+    // Since item 15 the Great Kings' capitals too: Akhetaten had no wall.
+    Assert.equal(0, StartWalls.get("akhetaten") ?? 0);
   });
 
   test("Terqa, Mira and Seha start as vassal city-states of Mitanni and Arzawa, under rulers of their own", () => {

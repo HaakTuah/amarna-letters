@@ -24,7 +24,7 @@ import {
   count,
   dispatch,
   first,
-  fortify,
+  build,
   hold,
   inboxOf,
   king,
@@ -184,7 +184,7 @@ describe("SiegePlayTests", () => {
     single(s.units, (u) => u.province === "delta").province = "kalavasoswaters";
     if (walls > 0) s.walls.set("kalavasos", walls);
     let sub = await new ScriptLeader(1).decide(Views.for(s, "Alashiya"));
-    Assert.equal(fortifies, holds(sub.orders, fortify("kalavasos")));
+    Assert.equal(fortifies, holds(sub.orders, build("kalavasos", "Walls", walls + 1)));
   });
 
   test("A script king takes a host s offer to its envoy as a slight and trusts the envoy that refused", async () => {

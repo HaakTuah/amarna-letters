@@ -14,6 +14,7 @@ import { type ScheduledOrders, ScheduledOrdersSchema, type StandingOrderView, St
 import { type StandingAnswer, StandingAnswerSchema } from "./answers.ts";
 import { type GrantView, GrantViewSchema } from "./authority.ts";
 import { type Toll, TollSchema } from "./trade.ts";
+import type { WorkKind } from "./works.ts";
 
 export interface UnitView {
   power: Power;
@@ -616,6 +617,49 @@ export const LetterViewSchema: ObjSchema<LetterView> = obj("LetterView", newLett
  * One seat's view of the world: the public map, its own treasury and people, what its
  * characters chose to tell it. Every seat - human, model or script - receives exactly this.
  */
+/**
+ * One kind built in a province of the court's (item 15, "One rule for everything built"): the level standing, the level
+ * it ordered kept and how (gold or corvée), a project's seasons done and needed, and what a season of it costs.
+ */
+export interface WorkView {
+  province: string;
+  kind: WorkKind;
+  level: number;
+  keep: number;
+  labour: boolean;
+  /** Seasons of work done towards the next level, and the seasons a level takes. */
+  progress: number;
+  seasons: number;
+  /** A season's upkeep of the levels kept, in gold or in men by corvée, and a season of building the next level. */
+  upkeepGold: number;
+  upkeepMen: number;
+  buildGold: number;
+  buildMen: number;
+  /** Seasons its upkeep has gone unpaid, and the seasons unpaid after which a level falls (0: at once). */
+  neglect: number;
+  decay: number;
+}
+
+export function newWorkView(init: Partial<WorkView> = {}): WorkView {
+  return { province: "", kind: "Roads", level: 0, keep: 0, labour: true, progress: 0, seasons: 0, upkeepGold: 0, upkeepMen: 0, buildGold: 0, buildMen: 0, neglect: 0, decay: 0, ...init };
+}
+
+export const WorkViewSchema: ObjSchema<WorkView> = obj("WorkView", newWorkView, {
+  province: S,
+  kind: S,
+  level: I,
+  keep: I,
+  labour: B,
+  progress: I,
+  seasons: I,
+  upkeepGold: I,
+  upkeepMen: I,
+  buildGold: I,
+  buildMen: I,
+  neglect: I,
+  decay: I,
+});
+
 /** Item 13: one of the court's governorships, as the court knows it. */
 export interface GovernorView {
   province: string;
@@ -654,8 +698,12 @@ export interface SeatView {
   unassayedGold: LotView[];
   income: number;
   upkeep: number;
-  /** The upkeep of walls it raised above the map's own, a season (paid after its troops'). */
-  wallUpkeep: number;
+  /** What it keeps and builds in gold, a season: upkeep and projects under way (item 15; paid at the end of the season). */
+  worksUpkeep: number;
+  /** What stands in each of its provinces and what it ordered kept and built there (item 15), province by province. */
+  works: WorkView[];
+  /** The roads, relay stations, harbours and water works it sees standing in others' land, in its sight (item 15): levels only. */
+  worksSeen: WorkView[];
   /** Item 11a: the rest of its servants' fees, due as their jobs are done (as it believes it for those abroad). */
   feesDue: number;
   /** Item 11a: the fees it let fall due and did not pay, to anyone: broken promises, counted in no score. */
@@ -815,7 +863,9 @@ export function newSeatView(init: Partial<SeatView> = {}): SeatView {
     unassayedGold: [],
     income: 0,
     upkeep: 0,
-    wallUpkeep: 0,
+    worksUpkeep: 0,
+    works: [],
+    worksSeen: [],
     feesDue: 0,
     feesOwed: 0,
     fees: 0,
@@ -892,7 +942,9 @@ export const SeatViewSchema: ObjSchema<SeatView> = obj("SeatView", newSeatView, 
   unassayedGold: list(() => LotViewSchema),
   income: I,
   upkeep: I,
-  wallUpkeep: I,
+  worksUpkeep: I,
+  works: list(() => WorkViewSchema),
+  worksSeen: list(() => WorkViewSchema),
   feesDue: I,
   feesOwed: I,
   fees: I,

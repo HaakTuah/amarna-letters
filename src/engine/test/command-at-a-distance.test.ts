@@ -28,7 +28,7 @@ import {
   unitAt,
   Views,
 } from "@amarna/engine";
-import { Assert, armiesBefore13, commanded, removeAll, subs } from "./support.ts";
+import { Assert, armiesBefore13, commanded, removeAll, subs, keepWalls } from "./support.ts";
 
 // Build order item 13, "Command at a distance": armies at the sources' sizes, battles with losses and falling back,
 // marching by distance, commanders and their mandates, standing orders through commanders, the court wherever the king is
@@ -190,6 +190,7 @@ describe("CommandAtADistanceTests", () => {
     const s = board();
     commanded(s, "Babylonia");
     s.walls.delete("durkurigalzu");
+    keepWalls(s);
     removeAll(s.units, (u) => u.province === "durkurigalzu");
     season(s, subs({ Babylonia: { orders: [moveCourt("durkurigalzu")] } }));
     // He sets out this season and is there the next.

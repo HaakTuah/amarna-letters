@@ -311,7 +311,7 @@ P.notYetReached = function (p, sl, o, x) {
 /** The province an order without a unit is carried out in, if it names one. */
 function scheduledPlace(o: Order): string | null {
   switch (o.type) {
-    case "fortify":
+    case "build":
     case "sell":
     case "purchase":
     case "feed":

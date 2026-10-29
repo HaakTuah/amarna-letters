@@ -16,7 +16,7 @@ export const SignalKinds: readonly string[] = [
   "tablet-sealed", "accusation", "messenger-blamed", "reputation", "broken-promise", "coalition",
   "forgery", "authentication", "forgery-exposed", "pact-with-consequences", "bribe", "defection",
   "detention", "skim", "debasement-found", "spy-caught", "double-agent", "evidence-shown", "shared-victory",
-  "archive-copied", "archive-taken", "inventory-swapped", "storm", "siege-begun", "siege-won", "fortify", "sally", "sally-won", "envoy-out", "envoy-caught", "envoy-stayed",
+  "archive-copied", "archive-taken", "inventory-swapped", "storm", "siege-begun", "siege-won", "built", "sally", "sally-won", "envoy-out", "envoy-caught", "envoy-stayed",
   "terrain-held", "terrain-beaten", "landing", "blockade", "sea-supplied",
   "roads-closed", "roads-opened", "turned-at-border", "road-caught", "road-outlaws", "road-nature",
   "support-kept", "claim-established",
@@ -37,6 +37,7 @@ export const SignalKinds: readonly string[] = [
   "unheard", "unheard-home", "unheard-lie", "go-between", "court-go-between", "bridged-servant", "mandate-slow", "envoy-mute", "tablet-unread", "tablet-read-late", "bent-words", "bent-noticed",
   "fallback", "command", "mandate-led", "commander-won", "defect", "courier-sent", "courier-stopped", "court-moves", "governor", "band-enlisted",
   "risen", "fall-held", "fall-lawless",
+  "raze", "wall-repair", "harbour-short", "station-read",
 ];
 
 const MessengerBlamed = rx(

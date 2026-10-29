@@ -3,7 +3,7 @@
  * C# original did: expected first, then actual), and the few LINQ helpers the engine's own seq.ts lacks.
  */
 import { expect } from "vitest";
-import { AllPowers, Dict, newCharacter, newTraits, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
+import { AllPowers, Dict, newCharacter, newTraits, newWorkPlan, carriedOf, forMen, menOf, type Character, type GameState, HSet, type JobTerms, newId, newSkills, newTurnSubmission, newUnit, type Power, type TurnSubmission, TurnEngine, type UnitKind, WorldMap } from "@amarna/engine";
 
 type Coll<T> = Iterable<T> | ArrayLike<T>;
 
@@ -265,7 +265,7 @@ export const holds = <T>(xs: readonly T[], x: T): boolean => xs.some((y) => JSON
 export function walled(s: GameState, province: string, level: number): GameState {
   s.walls.set(province, level);
   for (const p of AllPowers) s.wallsSeen.get(p).set(province, level);
-  return s;
+  return keepWalls(s);
 }
 
 /**
@@ -335,14 +335,44 @@ export const FormerFree = [
  */
 export function oldWorld(s: GameState): GameState {
   armiesBefore13(s);
+  wallsBefore15(s);
   unruled(s, ...FormerFree);
   formerHomes(s);
+  keepWalls(s);
   for (const c of s.characters)
     if (c.employer !== null && s.eliminated.includes(c.employer)) {
       c.employer = null;
       c.status = "Free";
       c.contract = null;
     }
+  return s;
+}
+
+/** Each holder's standing order keeps the walls of his land as a test left them (item 15), and none elsewhere. */
+export function keepWalls(s: GameState): GameState {
+  s.works = s.works.filter((w) => w.kind !== "Walls");
+  for (const [id, level] of s.walls.entries()) if (s.owner.getOrDefault(id, null) !== null) s.works.push(newWorkPlan({ province: id, kind: "Walls", keep: level }));
+  return s;
+}
+
+/**
+ * The Great Kings' walls as they stood before item 15 set them city by city from the walls dossier: every capital 3, the
+ * fortresses Memphis, Nesa and Nineveh 2, and their other cities none.
+ */
+export function wallsBefore15(s: GameState): GameState {
+  for (const [id, level] of [["akhetaten", 3], ["apasa", 3], ["enkomi", 3], ["memphis", 2], ["nesa", 2], ["nineveh", 2]] as const) {
+    s.walls.set(id, level);
+    for (const seen of s.wallsSeen.values()) seen.set(id, level);
+    // Each holder's standing order keeps them as they stand (item 15).
+    const plan = s.works.find((w) => w.kind === "Walls" && w.province === id);
+    if (plan !== undefined) plan.keep = level;
+    else s.works.push(newWorkPlan({ province: id, kind: "Walls", keep: level }));
+  }
+  for (const id of ["nubia", "delta", "sapinuwa", "arbela", "durkurigalzu", "sippar", "nippur", "ur"]) {
+    s.walls.delete(id);
+    for (const seen of s.wallsSeen.values()) seen.delete(id);
+    s.works = s.works.filter((w) => !(w.kind === "Walls" && w.province === id));
+  }
   return s;
 }
 

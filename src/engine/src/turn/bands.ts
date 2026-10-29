@@ -8,6 +8,7 @@
  * number sets how many bands a land holds or how large they grow. A chief's share is his own gold. Its holder's armies
  * hunt it where they stand on his order or standing order. Everything is drawn from seeded streams ("Deterministic").
  */
+import { policeAt, policedShare, policePercent } from "../model/works.ts";
 import { Dict } from "../core/collections.ts";
 import { clamp, idiv } from "../core/num.ts";
 import type { Rng } from "../core/rng.ts";
@@ -77,9 +78,10 @@ P.bandOdds = function (province) {
   const men = sum(working, (b) => b.men);
   if (men <= 0) return 0;
   const odds = (BandData.roadOdds * men) / (men + BandData.roadHalf);
-  const holder = prov.isSea ? null : this.s.owner.getOrDefault(province, null);
-  const policed = holder !== null && this.s.units.some((u) => u.province === province && u.power === holder);
-  return policed ? (odds * LandData.policedPercent) / 100 : odds;
+  // Held down where the holder's troops or police are (item 15): on land the province's, at sea each pirate band's by
+  // the police of the coast it puts out from.
+  const share = prov.isSea ? sum(working, (b) => b.men * policedShare(this.s, b.province)) / men : policedShare(this.s, province);
+  return (odds * share) / 100;
 };
 
 P.robbedBy = function (province, gold) {
@@ -275,13 +277,15 @@ P.bandsSeason = function () {
     const holder = S.owner.getOrDefault(prov, null);
     return holder !== null && S.units.some((u) => u.province === prov && u.power === holder);
   };
+  // Police make a chief's rise rarer, as they make the road poorer (item 15).
+  const police = (prov: string): number => policePercent(policeAt(S, prov));
 
   // A crowd of loose men in land policed too little raises a chief, more readily the larger it is, less where a band works.
   for (const prov of Map.landProvinces) {
     const x = this.peopleOf(prov.id);
     if (x.loose < BandData.crowd || policed(prov.id)) continue;
     const rng = this.r("heads", prov.id);
-    const chance = Math.min(BandData.riseMost, 1 + idiv(x.loose - BandData.crowd, BandData.riseScale)) / (1 << Math.min(10, near(prov.id)));
+    const chance = (Math.min(BandData.riseMost, 1 + idiv(x.loose - BandData.crowd, BandData.riseScale)) * police(prov.id)) / 100 / (1 << Math.min(10, near(prov.id)));
     if (!rng.chance(chance / 100)) continue;
     const men = Math.min(BandData.startMost, idiv(x.loose * BandData.startShare, 100));
     x.loose -= men;
@@ -356,7 +360,7 @@ P.bandsSeason = function () {
     const m = this.market(b.province);
     const rate = (of: number): number => {
       const t = idiv(of * BandData.robPermille * b.men, 1000 * (b.men + BandData.robHalf));
-      return policed(b.province) ? idiv(t * LandData.policedPercent, 100) : t;
+      return idiv(t * policedShare(S, b.province), 100);
     };
     const besieged = siegeOf(S, b.province) !== null;
     const gold = besieged ? 0 : rate(m.purse);

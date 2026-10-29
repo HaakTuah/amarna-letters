@@ -17,7 +17,10 @@ export const unitLetter = (k: UnitKind): string => (k === "Army" ? "A" : "F");
 export interface Form {
   raiseAt: string;
   raiseKind: string;
-  fortifyAt: string;
+  buildAt: string;
+  buildKind: string;
+  buildLevel: number;
+  buildLabour: boolean;
   grainAt: string;
   grainAction: string;
   grainAmount: string;
@@ -105,7 +108,10 @@ export function newForm(me: Power): Form {
   return {
     raiseAt: "",
     raiseKind: "Army",
-    fortifyAt: "",
+    buildAt: "",
+    buildKind: "Roads",
+    buildLevel: 2,
+    buildLabour: false,
     grainAt: "",
     grainAction: "sell",
     grainAmount: "",
