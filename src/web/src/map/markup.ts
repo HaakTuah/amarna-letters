@@ -28,7 +28,7 @@ import {
 } from "./art.ts";
 import { Marks, markGlyph, markText } from "./crossings.ts";
 import { figureSymbols } from "./figures.ts";
-import { Burst, Capital, Chariot, Eye, Fetter, Ingot, Moon, Pupil, Ship, Tablet, TabletMarks, emblem, glyphId } from "./glyphs.ts";
+import { Burst, Capital, Eye, Fetter, Ingot, Moon, Pupil, Tablet, TabletMarks, emblem, glyphId } from "./glyphs.ts";
 
 const Map_ = WorldMap.default;
 
@@ -75,8 +75,6 @@ function buildDefs(): string {
   sb += `<symbol id="em-risen" viewBox="-10 -10 20 20" overflow="visible"><path d="${emblem("risen")}"/></symbol>`;
   // Item 19: the armies, fleets and people after the period's own relics (figures.ts).
   sb += figureSymbols();
-  sb += `<symbol id="g-army" viewBox="-12 -12 24 24" overflow="visible"><path d="${Chariot}"/></symbol>`;
-  sb += `<symbol id="g-fleet" viewBox="-12 -12 24 24" overflow="visible"><path d="${Ship}"/></symbol>`;
   sb += `<symbol id="g-tablet" viewBox="-10 -10 20 20" overflow="visible"><path d="${Tablet}" class="tab-body"/><path d="${TabletMarks}" class="tab-marks"/></symbol>`;
   sb += `<symbol id="g-eye" viewBox="-10 -10 20 20" overflow="visible"><path d="${Eye}" class="eye-white"/><path d="${Pupil}" class="eye-pupil"/></symbol>`;
   sb += `<symbol id="g-ingot" viewBox="-10 -10 20 20" overflow="visible"><path d="${Ingot}"/></symbol>`;
