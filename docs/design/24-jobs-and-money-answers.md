@@ -102,14 +102,14 @@ and the man hired, hear its rate. It asks more of a court it heard seized hoards
   carries a spy's reports), and a demand replaced or lapsed is dropped unsent. Rumours and word of the world stay talk by the roads.
 - **The spy decides** (`carryLetters`): a passing traveller is paid on delivery by its court's standing order, else by
   the spy from its purse if it is loyal enough (`LetterData.payLoyalty`); so is a carrier it hires; it carries its
-  reports home itself after `selfWait` seasons (two, a season more for a brave spy and for a loyal one).
-- **The border walk** (`reportRoad`): a watcher just across its master's border walks its reports to the nearest
-  province of his, where the realm's couriers take them.
+  reports home itself after `selfWait` seasons (two, a season more for a brave spy and for a loyal one). Since item
+  11b++ the traveller decides too (`27-answers-to-11b-plus.md`).
+- **The border walk**: since item 11b++ the spy walks it himself, leaving his post (`27-answers-to-11b-plus.md`).
 - **Hunting only on order** (`hunt` for next season, `huntBands` standing; `GameState.huntNow`, `huntBands`): an army
   falls on a band where it stands only so; troops standing there still halve what bands take.
-- **Robbers choose** (`chiefKills`): a ruthless chief (disloyal or greedy) kills a robbed king's servant, a witness whose
-  master would hear him, where no army of the land's king stands in the province or next to it (what a chief can see,
-  not the king's orders); a careful one never does, and a free traveller is let go. No fixed odds.
+- **Robbers choose** (`chiefKills`): a ruthless chief (disloyal or greedy) kills, a careful one never does. No fixed
+  odds. Since item 11b++ every traveller is a witness, and chiefs weigh standing hunts they heard of
+  (`27-answers-to-11b-plus.md`).
 - **Anyone may sell what he knows** (`newsSeason`, `buyNewsOrder`): servants abroad note news too; a greedy, disloyal
   servant notes its master's court, and selling it is found out `NewsData.secretsCaught` times in a hundred: a hidden
   fact whose word goes from the buyer's court to its master by the roads (a "Name" rumour), with a notice on arrival.

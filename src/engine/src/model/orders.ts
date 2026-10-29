@@ -295,10 +295,14 @@ export interface HuntOrder {
   type: "hunt";
   province: string;
 }
-/** Your standing order, until changed, that any army of yours standing where a band works in your land falls on it. */
+/**
+ * Your standing order, until changed, that any army of yours standing where a band works falls on it: in the provinces
+ * named, or, naming none, anywhere in your land (Haakon's answers to item 11b+). A new one replaces the old.
+ */
 export interface HuntBandsOrder {
   type: "huntBands";
   on: boolean;
+  provinces?: string[] | null;
 }
 /**
  * Item 11a: the rest of a servant's fee. `pay` true pays what you let fall due unpaid, if the person stands at your court;
@@ -569,7 +573,7 @@ export const seize = (character: string): SeizeHoardOrder => ({ type: "seize", c
 export const sellDebt = (debt: string, character: string, price: number): SellDebtOrder => ({ type: "sellDebt", debt, character, price });
 export const payCarriers = (pay: boolean): PayCarriersOrder => ({ type: "payCarriers", pay });
 export const hunt = (province: string): HuntOrder => ({ type: "hunt", province });
-export const huntBands = (on: boolean): HuntBandsOrder => ({ type: "huntBands", on });
+export const huntBands = (on: boolean, provinces: string[] | null = null): HuntBandsOrder => ({ type: "huntBands", on, ...(provinces !== null && provinces.length > 0 ? { provinces } : {}) });
 export const payFee = (character: string, pay = true): PayFeeOrder => ({ type: "payFee", character, pay });
 export const borrow = (character: string, amount: number, repay: number, seasons = 6): BorrowOrder => ({ type: "borrow", character, amount, repay, seasons });
 export const repay = (debt: string, amount: number): RepayOrder => ({ type: "repay", debt, amount });
@@ -683,7 +687,9 @@ export function describe(o: Order): string {
     case "hunt":
       return `your armies in ${named(o.province)} fall on the bands there`;
     case "huntBands":
-      return o.on ? "your armies fall on any band where they stand in your land, until you say otherwise" : "your armies leave the bands alone unless you order a hunt";
+      return o.on
+        ? `your armies fall on any band where they stand ${(o.provinces ?? []).length > 0 ? `in ${(o.provinces ?? []).map(named).join(", ")}` : "in your land"}, until you say otherwise`
+        : "your armies leave the bands alone unless you order a hunt";
     case "payFee":
       return o.pay ? `pay ${o.character} the rest of the fee owed` : `withhold the rest of ${o.character}'s fee`;
     case "borrow":
@@ -735,7 +741,7 @@ export function describe(o: Order): string {
 
 /** A job's errand and standing orders in words, for an order's line. */
 function jobText(o: HireOrder | RenewOrder): string {
-  const errand = o.what === "envoy" ? ` as envoy to ${o.where ?? "?"}` : o.what === "spy" ? ` to watch ${o.where ?? "?"}` : "";
+  const errand = o.what === "envoy" ? ` as envoy to ${o.where ?? "?"}` : o.what === "spy" ? ` to watch ${o.where ?? "?"}` : o.what === "stay" ? " to stay at court" : "";
   return errand + (o.payOnDone === true ? ", the rest paid when it is done" : "") + (o.offerAgain === true ? ", offered again when done" : "");
 }
 
@@ -848,7 +854,7 @@ export const OrderSchema = poly("Order", "type", {
   sellDebt: v("SellDebtOrder", () => sellDebt("", "", 0), { debt: S, character: S, price: I }),
   payCarriers: v("PayCarriersOrder", () => payCarriers(true), { pay: B }),
   hunt: v("HuntOrder", () => hunt(""), { province: S }),
-  huntBands: v("HuntBandsOrder", () => huntBands(true), { on: B }),
+  huntBands: v("HuntBandsOrder", () => huntBands(true), { on: B, provinces: opt(list(S)) }),
   payFee: v("PayFeeOrder", () => payFee(""), { character: S, pay: B }),
   borrow: v("BorrowOrder", () => borrow("", 0, 0), { character: S, amount: I, repay: I, seasons: I }),
   repay: v("RepayOrder", () => repay("", 0), { debt: S, amount: I }),

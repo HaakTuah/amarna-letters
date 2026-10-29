@@ -191,7 +191,7 @@ describe("BandTests", () => {
     Assert.empty(newsOffered(s, c, "Hatti"));
   });
 
-  test("A ruthless chief kills a king's servant only where no army of the land stands near; a careful one never", () => {
+  test("A ruthless chief kills a witness only where no army of the land stands near and he heard of no hunt; a careful one never", () => {
     const s = newGame(8);
     const prov = quiet(s, "Egypt");
     const e = new TurnEngine(s);
@@ -203,8 +203,12 @@ describe("BandTests", () => {
     const near = new Set([prov, ...Map.neighbors(prov)]);
     s.units = s.units.filter((u) => !(u.power === "Egypt" && near.has(u.province)));
     Assert.true(e.chiefKills(b, servant, prov));
-    // A free traveller's word reaches nobody who would hunt him.
+    // Haakon's answers to item 11b+: every traveller is a witness who can name his robbers.
+    Assert.true(e.chiefKills(b, free, prov));
+    // A standing hunt over the land, once talk of it has reached him: he lets the witness go.
+    s.hunts.push({ power: "Egypt", provinces: [], since: s.turn - 20, until: null });
     Assert.false(e.chiefKills(b, free, prov));
+    s.hunts.pop();
     // The land's army next door: he lets the witness go.
     s.units.push(newUnit({ id: newId(s, "u"), power: "Egypt", kind: "Army", province: Map.neighbors(prov)[0], home: prov, men: 2000, food: 20 }));
     Assert.false(e.chiefKills(b, servant, prov));

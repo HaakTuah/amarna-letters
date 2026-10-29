@@ -110,7 +110,11 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
   const ch = newLifeChoice({ seek: v.seeking });
   const t = c.traits;
   const here = v.courts.find((k) => k.court === v.at) ?? null;
-  const record = (id: string): { kept: number; broken: number } => v.here.find((p) => p.id === id) ?? { kept: 0, broken: 0 };
+  // A script person weighs old talk of promises less as it ages (the view's aged record, in tenths).
+  const record = (id: string): { kept: number; broken: number } => {
+    const p = v.here.find((x) => x.id === id);
+    return p === undefined ? { kept: 0, broken: 0 } : { kept: p.keptAged / 10, broken: p.brokenAged / 10 };
+  };
   for (const a of v.approaches) if (accepts(c, v, a, record(a.from))) ch.accept.push(a.id);
 
   // Debts it owes to holders here: repaid when it can, unless it keeps what it can and the holder cannot make it pay.
@@ -125,7 +129,7 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
   if (!v.free && v.employer !== null) {
     const owed = v.owedFees.some((f) => f.court === v.employer);
     const master = v.courts.find((k) => k.court === v.employer);
-    if (owed || (master !== undefined && master.broken >= 2 && t.loyalty < 50)) ch.quit = true;
+    if (owed || (master !== undefined && master.brokenAged >= 20 && t.loyalty < 50)) ch.quit = true;
   }
 
   // An errand: to the borrower's court, wait there for the gold, then home to hand it over (or keep it).
@@ -192,9 +196,9 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
   // the bold to anyone, at a rate for the risk.
   if (here !== null && ch.go === null && e === null) {
     const spare = purse - reserveOf(v);
-    const risk = riskOf(here.broken, here);
+    const risk = riskOf(here.brokenAged / 10, here);
     if (spare >= 30 && (c.bold || risk <= MoneyData.interestShrunk) && (here.court !== v.employer || t.loyalty >= 50)) {
-      const perSeason = rateAsked(c, here.broken, here);
+      const perSeason = rateAsked(c, here.brokenAged / 10, here);
       ch.lend = { amount: spare, perHundred: Math.ceil((perSeason * MoneyData.loanSeasons) / 10), seasons: MoneyData.loanSeasons };
     }
   }
@@ -203,7 +207,7 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
   // at a higher rate, if its name is good (the gathering lender).
   if (ch.approach === null) {
     const overdue = v.held.find((d) => d.dueTurn <= v.turn + 1 && d.kept !== "missing" && v.courts.some((k) => k.court === d.otherId) && d.otherId !== v.at);
-    const freeHere = v.here.filter((p) => p.standing === "free" && p.broken <= p.kept).sort((a, b) => a.broken - b.broken || b.kept - a.kept || a.id.localeCompare(b.id));
+    const freeHere = v.here.filter((p) => p.standing === "free" && p.brokenAged <= p.keptAged).sort((a, b) => a.brokenAged - b.brokenAged || b.keptAged - a.keptAged || a.id.localeCompare(b.id));
     if (overdue !== undefined && freeHere.length > 0 && e === null) {
       // A fee for the journey there and back, at what it has heard a job pays, or a share of what it brings, whichever is more.
       const travel = v.courts.find((k) => k.court === overdue.otherId)?.travel ?? 2;
@@ -218,7 +222,7 @@ export function scriptLife(c: Character, v: LifeView): LifeChoice {
       ch.approach = newApproachMade({ to: lender.id, words: "Lend me enough to live on, and I will repay you with interest.", askGold: amount, repay: amount + Math.ceil((amount * rate * 4) / 1000), seasons: 4 });
     } else if (here !== null && ch.lend !== null && purse < 120 && c.bold && v.here.length > 0) {
       const perSeason = Math.max(1, Math.trunc((ch.lend.perHundred * 10) / ch.lend.seasons) - 20);
-      const lender = v.here.find((p) => p.standing !== "free" && p.broken === 0);
+      const lender = v.here.find((p) => p.standing !== "free" && p.brokenAged === 0);
       if (lender !== undefined)
         ch.approach = newApproachMade({ to: lender.id, words: "Lend me a hundred shekels; I have a borrower who pays well.", askGold: 100, repay: 100 + Math.ceil((100 * perSeason * MoneyData.loanSeasons) / 1000), seasons: MoneyData.loanSeasons });
     }

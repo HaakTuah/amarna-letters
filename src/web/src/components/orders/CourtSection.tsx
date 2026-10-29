@@ -28,7 +28,8 @@ import {
   huntBands,
   type Power,
 } from "@amarna/engine";
-import { dated, grantLine, powerName, shekels } from "../../ui/format.ts";
+import { dated, grantLine, powerName, provinceName, shekels } from "../../ui/format.ts";
+import { byName } from "../../ui/order-draft.ts";
 import { Person } from "../Person.tsx";
 import { map, num } from "./form.ts";
 import type { OrdersContext } from "./use-orders.ts";
@@ -129,17 +130,20 @@ export function CourtSection({ c }: { c: OrdersContext }) {
       <div className="row" style={{ marginTop: ".4rem", flexWrap: "wrap" }}>
         <label>
           A job offered:{" "}
-          <select value={f.errandWhat} onChange={(e) => set({ errandWhat: e.target.value as "envoy" | "spy" })}>
+          <select value={f.errandWhat} onChange={(e) => set({ errandWhat: e.target.value as "envoy" | "spy" | "stay" })}>
             <option value="envoy">envoy to</option>
             <option value="spy">spy on</option>
+            <option value="stay">stay at my court until the term ends</option>
           </select>{" "}
-          <select value={f.errandWhere} onChange={(e) => set({ errandWhere: e.target.value })}>
-            {AllPowers.filter((p) => p !== me).map((p) => (
-              <option key={p} value={p}>
-                {powerName(p)}
-              </option>
-            ))}
-          </select>
+          {f.errandWhat !== "stay" && (
+            <select value={f.errandWhere} onChange={(e) => set({ errandWhere: e.target.value })}>
+              {AllPowers.filter((p) => p !== me).map((p) => (
+                <option key={p} value={p}>
+                  {powerName(p)}
+                </option>
+              ))}
+            </select>
+          )}
         </label>
         <label>
           within <input type="number" min="1" max="30" value={f.term} onChange={(e) => set({ term: num(e.target.value) })} /> seasons
@@ -161,9 +165,9 @@ export function CourtSection({ c }: { c: OrdersContext }) {
               <button
                 className="small"
                 disabled={c.where !== "at your court"}
-                onClick={() => add(hire(c.id, wage(c.id, c.askingPrice ?? 15), term, null, { what: f.errandWhat, where: f.errandWhere, payOnDone: f.payOnDone }))}
+                onClick={() => add(hire(c.id, wage(c.id, c.askingPrice ?? 15), term, null, { what: f.errandWhat, where: f.errandWhat === "stay" ? me : f.errandWhere, payOnDone: f.payOnDone }))}
               >
-                Offer the job ({f.errandWhat} {f.errandWhat === "envoy" ? "to" : "on"} {powerName(f.errandWhere as Power)}), half now
+                Offer the job ({f.errandWhat === "stay" ? "to stay at court" : `${f.errandWhat} ${f.errandWhat === "envoy" ? "to" : "on"} ${powerName(f.errandWhere as Power)}`}), half now
               </button>
               {c.hoardHere !== null && (
                 <button className="small danger" disabled={draft.other.some((o) => o.type === "seize" && o.character === c.id)} onClick={() => add(seize(c.id))}>
@@ -198,9 +202,9 @@ export function CourtSection({ c }: { c: OrdersContext }) {
             <button
               className="small"
               disabled={draft.other.some((o) => o.type === "renew" && o.character === c.id)}
-              onClick={() => add(renew(c.id, wage(c.id, Math.trunc((c.fee ?? 90) / 6)), term, null, { what: f.errandWhat, where: f.errandWhere, payOnDone: f.payOnDone }))}
+              onClick={() => add(renew(c.id, wage(c.id, Math.trunc((c.fee ?? 90) / 6)), term, null, { what: f.errandWhat, where: f.errandWhat === "stay" ? me : f.errandWhere, payOnDone: f.payOnDone }))}
             >
-              Offer a new job ({f.errandWhat} {f.errandWhat === "envoy" ? "to" : "on"} {powerName(f.errandWhere as Power)}), half now
+              Offer a new job ({f.errandWhat === "stay" ? "to stay at court" : `${f.errandWhat} ${f.errandWhat === "envoy" ? "to" : "on"} ${powerName(f.errandWhere as Power)}`}), half now
             </button>
             <button className="small" disabled={draft.other.some((o) => o.type === "payFee" && o.character === c.id)} onClick={() => add(payFee(c.id, false))}>
               Withhold the rest of the fee
@@ -254,8 +258,21 @@ export function CourtSection({ c }: { c: OrdersContext }) {
           {v.payCarriers ? "Stop paying letter carriers on delivery" : "Pay letter carriers on delivery"}
         </button>
         <button className="small" disabled={draft.other.some((o) => o.type === "huntBands")} onClick={() => add(huntBands(!v.huntBands))}>
-          {v.huntBands ? "Stop hunting bands in your land" : "Armies hunt any band in your land"}
+          {v.huntBands ? `Stop hunting bands ${v.huntWhere.length > 0 ? `in ${v.huntWhere.map(provinceName).join(", ")}` : "in your land"}` : "Armies hunt any band in your land"}
         </button>
+        {/* Haakon's answers to item 11b+: a standing hunt names provinces, or the whole land. */}
+        <select value="" disabled={draft.other.some((o) => o.type === "huntBands")} onChange={(e) => e.target.value !== "" && add(huntBands(true, [...new Set([...v.huntWhere, e.target.value])]))}>
+          <option value="">{v.huntBands && v.huntWhere.length === 0 ? "Hunt only in a province of yours (narrows the whole-land hunt)…" : "Armies hunt bands in a province of yours…"}</option>
+          {[...v.owner.entries()]
+            .filter(([at, who]) => who === me && !v.huntWhere.includes(at))
+            .map(([at]) => at)
+            .sort(byName)
+            .map((at) => (
+              <option key={at} value={at}>
+                {provinceName(at)}
+              </option>
+            ))}
+        </select>
       </div>
       <p className="muted">
         <small>
@@ -360,6 +377,11 @@ export function CourtSection({ c }: { c: OrdersContext }) {
                 Ransom for
               </button>
               <input type="number" min="1" value={f.ransom} onChange={(e) => set({ ransom: num(e.target.value) })} />
+              <small>
+                {c.ransomCarrier !== null
+                  ? ` (if nobody sets out that way, a carrier is hired at your court for ${shekels(c.ransomCarrier)}, paid now from your treasury)`
+                  : " (it waits for someone setting out that way)"}
+              </small>
               <button className="small" onClick={() => add(captive(c.id, "Turn", 0, f.poisonText))}>
                 Turn them
               </button>
