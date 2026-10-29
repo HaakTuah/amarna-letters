@@ -1,5 +1,5 @@
 /** The offline narrator: template personas, plain check reports, and boastful annals. */
-import { groupBy, king, land, personaTemplate, trim, trimEnd, year, type Character, type GameEvent, type Power } from "@amarna/engine";
+import { groupBy, king, land, personaTemplate, risenOf, trim, trimEnd, year, type Character, type GameEvent, type Power } from "@amarna/engine";
 import type { CheckContext, ChronicleContext, INarrator } from "../contracts.ts";
 
 export class TemplateNarrator implements INarrator {
@@ -74,6 +74,18 @@ function spin(p: Power, e: GameEvent): string | null {
       return "A foreign king was found to send false gold; His Majesty will remember it.";
     case "fall":
       return `${t} So perish those the gods abandon.`;
+    // Item 14, the echoes kept for the chronicle: "A new Idrimi" in the annals of the man who rose, and Finkel's line in
+    // those of the court begged for gold a third time.
+    case "rise": {
+      const r = risenOf(p);
+      return r !== null && e.signal === "risen" && t.startsWith(r.king)
+        ? `His Majesty, a new Idrimi, who governed ${r.land} for ${land(r.from)}, rose to rule it in his own name, as Idrimi of Alalakh rose before him.`
+        : null;
+    }
+    case "begging": {
+      const i = t.indexOf(` begged ${me} for gold`);
+      return i > 0 ? `The king of ${land(t.slice(0, i))} begged His Majesty for gold a third time, writing: "I love you my gold owning brother." So the kings love His Majesty.` : null;
+    }
     default:
       return null;
   }
