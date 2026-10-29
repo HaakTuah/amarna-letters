@@ -278,6 +278,11 @@ describe("RansomTests", () => {
 
   test("A captive turned after its master heard of the capture still appears held until word comes from it", () => {
     let [s, spy] = held("Hatti", "Mitanni");
+    // Loyal and brave enough to stay at its post once turned, sending its reports by carrier rather than carrying them home
+    // itself (the spy decides; since item 11c's draws this one is not so by nature).
+    spy.traits.loyalty = 80;
+    spy.traits.courage = 80;
+    spy.purse = 1000;
     begin(s).resolve(orders("Mitanni", captive(spy.id, "Ransom", 90)));
     begin(s);
     let before = serialize(
