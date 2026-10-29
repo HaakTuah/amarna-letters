@@ -46,6 +46,9 @@ declare module "./core.ts" {
   }
 }
 
+/** The courts of the kings falling this season, while their falls are reckoned. */
+const fallingCourts = new WeakMap<TurnEngine, Set<string>>();
+
 /** The seasons abroad after which a servant's long years at a foreign court become part of its past (item 10). */
 export const LongAbroad = 12;
 
@@ -536,7 +539,10 @@ P.capitalsTaken = function () {
     return next !== null && isAlive(S, next) ? next : null;
   };
   const heirs = new Dict(fallen.map((p) => [p, heir(p)] as const));
+  // A capital taken by a king who falls too passes on down the chain with his own.
+  fallingCourts.set(this, new Set(fallen.map((p) => this.courtAt(p))));
   for (const p of fallen) this.fall(p, heirs.get(p), takers.get(p));
+  fallingCourts.delete(this);
 };
 
 /**
@@ -556,6 +562,7 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   const passes = (id: string): boolean =>
     ceded ||
     id === capital.id ||
+    (fallingCourts.get(this)?.has(id) ?? false) ||
     (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror)) ||
     S.governors.some((g) => g.province === id && g.power === p && S.turn >= g.from);
   const passed: string[] = [];
@@ -626,7 +633,8 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   const who = ceded ? `its king ceded its capital, ${capital.name}, to ${taker}` : taker !== null ? `${taker} took its capital, ${capital.name}` : `its capital, ${capital.name}, was taken`;
   // Word of the fall travels (item 7b): a court that sees the capital hears at once, the rest when word reaches them.
   const seeing = alive(S).filter((x) => x === conqueror || Views.sight(S, this.map, x).has(capital.id));
-  logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${conqueror !== null ? `, and its land passes to ${conqueror}` : ""}.`, [p, ...seeing], null);
+  const parts = conqueror === null ? "" : ceded ? `, and its land passes to ${conqueror}` : `, and ${conqueror} holds it${passed.length > 0 ? ` with ${passed.map((x) => this.map.get(x).name).join(", ")}` : ""}`;
+  logEvent(S, "fall", `The kingdom of ${land(p)} has fallen: ${who}${parts}${!ceded && lawless.length > 0 ? `; the rest has fallen lawless` : ""}.`, [p, ...seeing], null);
   for (const other of alive(S).filter((x) => x !== conqueror)) {
     const text = `Word spreads that the kingdom of ${land(p)} is no more: ${who}.`;
     if (seeing.includes(other)) {

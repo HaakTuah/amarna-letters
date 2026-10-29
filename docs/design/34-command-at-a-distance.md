@@ -65,7 +65,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 - **Standing orders belong to commanders** (`standingRuns`): each unit's part of a standing order runs only once word of it
   has reached the unit (`StandingOrder.given` and the couriers' road), with its commander or the king himself there, and on a
   move its army sees (its province and next to it); a disloyal commander may look away (twice his disloyalty under 50, in a
-  hundred), and a competent one sees through a feint (a move into troops at least as many as the mover's) his competence in a
+  hundred), and a competent one sees through a feint (a move into troops at least twice as many as the mover's) his competence in a
   hundred times.
 
 ## Distance inside the realm (`turn/couriers.ts`, `rules/court.ts`)

@@ -80,6 +80,11 @@ export interface GameConfig {
    */
   armyPace: number;
   /**
+   * Item 13 ("Distance inside your own realm"): 1, orders and reports inside a realm travel with its couriers; 0, every
+   * order reaches its place within the season and a king sees his whole realm, as before item 13 (for tests of other rules).
+   */
+  realmDistance: number;
+  /**
    * Whether a land's people resist an army that enters it where no troop stands (item 10+a, "The people defend their
    * land"): 1 on, 0 off.
    */
@@ -166,6 +171,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     siegeCatchMax: 75,
     terrainDefence: 1,
     armyPace: 100,
+    realmDistance: 1,
     peopleDefence: 1,
     seaSupply: 1,
     travelDays: 45,
@@ -216,6 +222,7 @@ export const GameConfigSchema: ObjSchema<GameConfig> = obj("GameConfig", newGame
   siegeCatchMax: I,
   terrainDefence: I,
   armyPace: I,
+  realmDistance: I,
   peopleDefence: I,
   seaSupply: I,
   travelDays: I,

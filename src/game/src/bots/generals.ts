@@ -1,7 +1,7 @@
 /**
  * A script king and his commanders (build order item 13, "Generals lead armies", "Standing orders belong to commanders",
- * "Army mandates"): he grants command of his armies away from his court to the people he has at court, keeping one for
- * his letters, the largest army farthest from him first; he gives each army he commands at a distance a mandate to fall
+ * "Army mandates"): he grants command of his armies away from his court, two a season, the largest first, to free people
+ * standing at his court and to his own people there, keeping one for his letters, the better record first; he gives each army he commands at a distance a mandate to fall
  * back on when his orders cannot reach it in time (to guard where it stands, or to press the siege it lays); and he takes
  * the command back from one whose record shows him losing. He cannot see a man's competence, only what he has done.
  */
@@ -52,20 +52,27 @@ export function commandOrders(b: Board, _brain: Brain, orders: Order[], busy: HS
   }
   // Grant command of the largest army away from the court that has nobody, to a person at court with no errand, keeping
   // at least one there for the king's letters.
-  const ready = sortBy(
+  const ours = sortBy(
     v.court.filter((c) => c.ours && c.ready && !busy.has(c.id) && (c.errandWhat === null || c.errandDone || c.errandWhat === "stay")),
     [(c: CharacterView) => c.lost - c.won, cmpNum],
     [(c: CharacterView) => c.id, cmpStr],
   );
+  // Free people standing at court, seeking a place: a command is one, with no fee (a grant of authority, not a job).
+  const free = sortBy(
+    v.known.filter((c) => c.status === "free" && c.where === "at your court" && !busy.has(c.id)),
+    [(c: CharacterView) => c.lost - c.won, cmpNum],
+    [(c: CharacterView) => c.id, cmpStr],
+  );
+  // One of his own kept at court for his letters.
+  const ready = [...free, ...ours.slice(0, Math.max(0, ours.length - 1))];
   const leaderless = sortBy(
     mine.filter((u) => u.commander === null && u.province !== court && u.men >= 500),
     [(u: UnitView) => -u.men, cmpNum],
     [(u: UnitView) => u.province, cmpStr],
   );
-  if (ready.length >= 2 && leaderless.length > 0) {
-    const c = ready[0];
-    orders.push(command(leaderless[0].province, c.id));
-    busy.add(c.id);
+  for (let i = 0; i < Math.min(2, ready.length, leaderless.length); i++) {
+    orders.push(command(leaderless[i].province, ready[i].id));
+    busy.add(ready[i].id);
   }
   // A mandate for each commanded army that has none, or whose task no longer fits: press the siege it lays, else guard where
   // it stands, engaging only with the advantage and falling back if outnumbered.

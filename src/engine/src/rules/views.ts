@@ -247,7 +247,13 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
         u.power === p
           ? newUnitView({ power: u.power, kind: u.kind, province: u.province, food: u.food, carried: unitCarried(u), hungry: u.hungry, unpaid: u.unpaid, savings: u.savings, men: u.men, ...marchOf(engine, u), commander: u.commander, commandFrom: u.commandFrom, relieving: u.relieveAt !== null, mandate: u.mandate, mandateFrom: u.mandateFrom, hiredMen: u.hiredMen, hiredUntil: u.hiredUntil, ...reportOf(engine, u) })
           : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
-      ),
+      )
+      .map((x, _i, all) => {
+        // A report never puts two troops in one province: one shown where another stands (or is shown) is shown where it is.
+        if (x.reported === 0 || !all.some((y) => y !== x && y.province === x.province)) return x;
+        const u = s.units.find((v) => v.power === p && v.trail.length > 0 && engine.shownAt(v) === x.province && engine.wordTo(p, v.province) > 0);
+        return u === undefined ? x : { ...x, province: u.province, men: u.men, reported: 0 };
+      }),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
     fallen: isAlive(s, p) ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x)) : [...s.eliminated],

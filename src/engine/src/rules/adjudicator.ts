@@ -542,7 +542,7 @@ export class Adjudicator {
           }
           // A unit that is destroyed gives no support: that is not a cut.
           const cutFrom = !given && !dislodged && this.explain ? (this.cutBy(o)?.at ?? null) : null;
-          const failed = dislodged ? "void: the supporting unit was destroyed" : cutFrom !== null ? `cut (attacked from ${cutFrom})` : "cut";
+          const failed = dislodged ? "void: the supporting unit was beaten from its place" : cutFrom !== null ? `cut (attacked from ${cutFrom})` : "cut";
           r.lines.push(
             line(o.at, o.power, `${label} supports ${o.target}${o.to === null ? " holding" : " -> " + o.to}: ${given ? "given" : failed}`, given, {
               cut: given || dislodged || !this.explain ? null : cutFrom !== null ? `the support was cut by an attack from ${cutFrom}` : "the support was cut",

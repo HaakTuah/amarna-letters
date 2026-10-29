@@ -176,7 +176,7 @@ describe("CourtAsleepTests", () => {
         return Promise.resolve(JSON.parse(`{"answers":[${answers.join(",")}],"letters":[],"reopen_orders":${this.#reopen},"ledger":[]}`)!);
       }
       let json = spec.key.includes("/orders/")
-        ? `{"notes":"Hold fast.","units":[],"letters":[],"other_orders":[]}`
+        ? `{"notes":"Hold fast.","units":[],"command":[],"letters":[],"other_orders":[]}`
         : `{"speech":"Welcome.","clauses":[],"gift_to_envoy":0,"gift_request":"","offer_service_wage":0,"seal_tablet":false,"detain_envoy":false,"send_gold_back":0,"gold_back_purity":100,"end_audience":true,"letters":[],"reopen_orders":REOPEN}`.replaceAll(
             "REOPEN",
             this.#reopen ? "true" : "false",

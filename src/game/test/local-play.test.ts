@@ -35,7 +35,7 @@ describe("LocalPlayTests", () => {
     vi.unstubAllGlobals();
   });
 
-  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
+  const HoldEverything: string = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
 
   // <summary>The bridge's endpoints, as sim/bridge.js serves them, over one temporary folder per king.</summary>
   class FakeBridge {
@@ -153,7 +153,7 @@ describe("LocalPlayTests", () => {
       bridge,
       (stem, text) =>
         stem.includes("orders")
-          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"enkomiwaters","to":""}],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
+          ? `{"notes":"Buy the copper coast.","summary":"","ledger":[],"units":[{"unit":"enkomi","order":"move","target":"enkomiwaters","to":""}],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`
           : welcomeCourt(text),
       stop.signal,
     );
@@ -356,7 +356,7 @@ describe("LocalPlayTests", () => {
       bridge,
       (stem, text) => {
         asked.push(stem);
-        return stem.includes("orders") ? `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}` : welcomeCourt(text);
+        return stem.includes("orders") ? `{"notes":"Sleep.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}` : welcomeCourt(text);
       },
       stop.signal,
     );

@@ -95,8 +95,8 @@ describe("SleepTests", () => {
     Assert.doesNotContain("wake_on", rules);
     Assert.doesNotContain("news you asked to hear", rules);
     Assert.contains("You cannot ask to be woken, at a season you name or for anything else.", rules);
-    let plain = `{"notes":"Hold.","units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
-    let asks = `{"notes":"Hold.","units":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":2,"wake_on":[{"trigger":"unit_moves","province":"ekallate"}]},"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
+    let plain = `{"notes":"Hold.","units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
+    let asks = `{"notes":"Hold.","units":[],"command":[],"letters":[],"other_orders":[],"sleep":{"wake_in_turn":2,"wake_on":[{"trigger":"unit_moves","province":"ekallate"}]},"schedule":[],"standing_orders":[],"cancel_standing":[]}`;
     Assert.equal(serialize(TurnSubmissionSchema, Parse.orders(JSON.parse(plain))), serialize(TurnSubmissionSchema, Parse.orders(JSON.parse(asks))));
 
     // Asleep after its first orders, it is not woken again in six quiet seasons: only what concerns it, or the cap, would.

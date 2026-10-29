@@ -234,7 +234,7 @@ describe("SeasonRulebookTests", () => {
     // A reply that leaves out where a unit goes, or names a power nobody knows: the king is told, the order never vanishes.
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","letters":[],
+        `{"notes":"","command":[],"letters":[],
  "units":[{"unit":"memphis","order":"move","target":"","to":""},
           {"unit":"akhetaten","order":"support","target":"","to":"sinai"},
           {"unit":"deltawaters","order":"convoy","target":"memphis","to":""}],
@@ -269,7 +269,7 @@ describe("SeasonRulebookTests", () => {
   test("A spy order with nowhere to watch is refused with the reason rather than dropped", () => {
     let sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","units":[],"letters":[],"other_orders":[{"action":"place_spy","province":"","power":"","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
+        `{"notes":"","units":[],"command":[],"letters":[],"other_orders":[{"action":"place_spy","province":"","power":"","person":"c3","amount":0,"term":0,"text":"","item":"","seals":[]}]}`,
       )!,
     );
     Assert.equal(placeSpy("c3"), Assert.single(sub.orders));
@@ -363,7 +363,7 @@ describe("ViewTextTests", () => {
   test("The schema says how to besiege a city and what each greeting flag means", () => {
     // As the king reads it: the JSON text escapes an apostrophe, which the model reads as the apostrophe.
     let schema = JSON.stringify(Schemas.leaderOrders(newGameConfig()));
-    Assert.contains('"enum":["hold","move","support","convoy","disband","settle","besiege","sally"]', schema);
+    Assert.contains('"enum":["hold","move","force_march","support","convoy","disband","settle","besiege","sally"]', schema);
     Assert.contains("sally: the province the attack on the troops within your walls comes from", schema);
     Assert.contains("besiege: an army standing within walls you do not hold besieges that city", schema);
     Assert.doesNotContain("support its walls holding", schema);
@@ -432,7 +432,7 @@ describe("ViewTextTests", () => {
     await seat.hostAudience(view, Views.for(s, "Egypt"), undefined);
 
     let user = Assert.single(recorder.specs).user;
-    Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, fleet in delta.", user);
+    Assert.contains("YOUR LAND: akhetaten, delta, gaza, memphis, nubia, sinai, sumur, thebes. YOUR TROOPS: army in memphis, army in akhetaten, army in gaza, army in sumur, fleet in delta.", user);
     Assert.contains("NEWS THIS SEASON:", user);
     Assert.contains("[Rejected] Levy failed: No army was raised in Thebes: Thebes was not empty after movement. No gold was paid.", user);
     Assert.contains("[Notice] The treasury: ", user);

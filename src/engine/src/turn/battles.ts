@@ -85,7 +85,7 @@ P.battles = function (result, sightBefore) {
     const u = unit(id);
     if (u === undefined) continue;
     const from = result.fights.filter((f) => f.defender === id && f.won).map((f) => f.from);
-    const routed = margins.getOrDefault(id, 0) >= BattleData.rout || u.men <= 0;
+    const routed = margins.getOrDefault(id, 0) >= BattleData.rout || (u.men <= 0 && lost.getOrDefault(id, 0) > 0);
     const to = routed ? null : this.fallBackTo(u, from, taken, contested);
     if (to === null) {
       destroyed.push(u);
@@ -97,7 +97,7 @@ P.battles = function (result, sightBefore) {
     logEvent(S, "fallback", `${u.power}'s ${u.kind === "Army" ? "army" : "fleet"} was driven from ${this.map.get(u.province).name} and fell back to ${this.map.get(to).name}.`, seeing([u.province, to], u.power), "fallback");
   }
   // A unit a battle left with no men is gone too, though it won or held.
-  for (const u of S.units) if (u.men <= 0 && !destroyed.includes(u) && lost.has(u.id)) destroyed.push(u);
+  for (const u of S.units) if (u.men <= 0 && !destroyed.includes(u) && lost.getOrDefault(u.id, 0) > 0) destroyed.push(u);
   // A commander whose army is destroyed may be taken by the side that beat it (first guess: half the time), else he escapes.
   const rng = this.r("commander-taken");
   for (const u of sortBy(destroyed, [(x: Unit) => x.id, cmpStr])) {

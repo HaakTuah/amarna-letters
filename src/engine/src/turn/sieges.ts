@@ -153,7 +153,9 @@ P.sieges = function (valid) {
       unit === null || unit.power !== x.power
         ? "the besieging army is gone"
         : unit.province !== x.province
-          ? "the besieging army marched out"
+          ? (this._battle?.dislodgedUnitIds.includes(unit.id) ?? false)
+            ? "the besieging army was driven out"
+            : "the besieging army marched out"
           : owner === x.power
             ? `${name} is now ${x.power}'s`
             : `the walls of ${name} are down`;

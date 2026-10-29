@@ -32,7 +32,7 @@ import { welcomeCourt } from "./io.ts";
 // Item 6b, "Call size": one call per court, conditional orders, standing answers and the compaction of requests.
 describe("CallSizeTests", () => {
   const Quiet: GameConfig = newGameConfig({ endMedian: 10000, catastropheChance: 0 });
-  const Orders = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
+  const Orders = `{"notes":"Hold fast.","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"schedule":[],"standing_orders":[],"cancel_standing":[],"standing_answers":[],"cancel_answers":[]}`;
 
   /** A model king's asker: holds at its orders, welcomes every envoy at its court, and words a phrasing call. */
   class King implements JsonAsker {
@@ -141,7 +141,7 @@ describe("CallSizeTests", () => {
   test("The reply's conditions are read in the engine's vocabulary", () => {
     const sub = Parse.orders(
       JSON.parse(
-        `{"notes":"","summary":"","ledger":[],"units":[],"letters":[],"other_orders":[],"cancel_standing":[],"standing_orders":[],"standing_answers":[],"cancel_answers":[],
+        `{"notes":"","summary":"","ledger":[],"units":[],"command":[],"letters":[],"other_orders":[],"cancel_standing":[],"standing_orders":[],"standing_answers":[],"cancel_answers":[],
  "schedule":[{"turn":5,"units":[],"other_orders":[],"conditions":[{"test":"unless","kind":"troops_in","power":"Hatti","province":"Kizzuwatna","amount":0,"person":""},
    {"test":"if","kind":"envoy_back","power":"","province":"","amount":0,"person":"C3"}]}]}`,
       ) as JsonObject,

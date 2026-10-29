@@ -50,7 +50,7 @@ export function courtMoveRefusal(v: Checking, order: CourtOrder): string | null 
  * road leads.
  */
 export function courierSeasons(s: GameState, map: WorldMap, from: string, to: string): number {
-  if (from === to) return 0;
+  if (from === to || s.config.realmDistance <= 0) return 0;
   const cost = courierPoints(map, from, seasonOfTurn(s.turn)).get(to);
   if (cost === undefined) return Infinity;
   return Math.floor(cost / (s.config.travelDays * PointsPerDay));

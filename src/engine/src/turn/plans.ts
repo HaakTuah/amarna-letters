@@ -352,10 +352,10 @@ P.standingRuns = function (p, st, o, mover, m) {
   const rng = this.r("standing-commander", `${st.id}|${u.id}`);
   // A disloyal commander may look the other way.
   if (c.traits.loyalty < 50 && rng.chance(((50 - c.traits.loyalty) * 2) / 100)) return false;
-  // A good one sees through a feint: a move that could not get through whatever stands where it goes.
+  // A good one sees through a feint: a move that could not get through what stands where it goes, half as many men or fewer.
   const mv = unitAt(S, m.unit);
   const there = unitAt(S, m.to);
-  const feint = mv !== null && there !== null && there.power !== mover && there.men >= mv.men;
+  const feint = mv !== null && there !== null && there.power !== mover && mv.men > 0 && there.men >= 2 * mv.men;
   if (feint && rng.chance((c.traits.competence * CommandData.seeThrough) / 10000)) return false;
   return true;
 };

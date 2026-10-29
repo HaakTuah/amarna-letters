@@ -358,6 +358,7 @@ export const FormerHomes: readonly (readonly [string, Power, UnitKind])[] = [
  * city-state fallen with its troops and tablets, its city its old king's without walls, and his troop standing in it.
  */
 export function formerHomes(s: GameState): GameState {
+  armiesBefore13(s);
   for (const [id, king, kind] of FormerHomes) {
     unruled(s, id);
     s.owner.set(id, king);
@@ -374,10 +375,12 @@ export function formerHomes(s: GameState): GameState {
  * The armies as they stood before item 13, for tests of the general rules written with them: every Great King's unit a
  * full levy (an army 5,000 men, a fleet's crews 2,000) where it stood then, a city-state's army 50 men for each shekel its
  * land yields (the lands without a town 250, Arwad a fleet of 20 a shekel), none of item 13's garrisons, fleets in the
- * waters or Alashiya's army; and every unit marching at a lone traveller's pace (`armyPace` 0).
+ * waters or Alashiya's army; every unit marching at a lone traveller's pace (`armyPace` 0); and every order reaching its
+ * place within the season, a king seeing his whole realm (`realmDistance` 0).
  */
 export function armiesBefore13(s: GameState): GameState {
   s.config.armyPace = 0;
+  s.config.realmDistance = 0;
   const map = WorldMap.default;
   const added = new Set(["gaza", "sumur", "apasawaters", "enkomiwaters", "ugaritwaters", "sidonwaters", "tyrewaters", "bybloswaters"]);
   s.units = s.units.filter((u) => !added.has(u.province) && !(u.power === "Alashiya" && u.kind === "Army"));

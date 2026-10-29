@@ -32,7 +32,7 @@ import {
   unitAt,
 } from "@amarna/engine";
 import { type JsonObject, LlmLeaderSeat, Parse, Replies, Schemas, leaderRules, problems, situation } from "@amarna/llm";
-import { at, str, Assert, formerHomes, last } from "../../engine/test/support.ts";
+import { at, str, Assert, commanded, formerHomes, last } from "../../engine/test/support.ts";
 import { Sleeper } from "./sleep-support.ts";
 import { Scripted } from "./sleep-support.ts";
 import { Quiet } from "./sleep-support.ts";
@@ -256,7 +256,8 @@ describe("SleepTests", () => {
     // Turn 1: Babylon gives its standing orders. Turn 2, as it sleeps: Assyria's army sets out for Arrapha; Mitanni's sets
     // out for Suhu and fails against the Assyrian army standing within its walls; Mitanni's army in Taidu sets out for
     // Nineveh, out of Babylon's sight; Babylon's own army marches to Nippur, and another sets out against its own army in Sippar.
-    let s = formerHomes(newGame(31, newGameConfig({ catastropheChance: 0 })));
+    // Item 13: Babylon's troops each with a commander, who carries out the standing orders on what his army sees.
+    let s = commanded(formerHomes(newGame(31, newGameConfig({ catastropheChance: 0 }))), "Babylonia");
     s.units.push(newUnit({ id: newId(s, "u"), power: "Assyria", kind: "Army", province: "suhu" }));
     let sleep = newSleepState();
     s.sleep.set("Babylonia", sleep);
@@ -469,7 +470,7 @@ describe("SleepTests", () => {
     Assert.contains("standing_orders", props);
     Assert.contains("cancel_standing", props);
     Assert.doesNotContain("schedule", props);
-    Assert.equal(["notes", "summary", "ledger", "units", "letters", "other_orders", "standing_orders", "cancel_standing", "standing_answers", "cancel_answers"], off.required as string[]);
+    Assert.equal(["notes", "summary", "ledger", "units", "command", "letters", "other_orders", "standing_orders", "cancel_standing", "standing_answers", "cancel_answers"], off.required as string[]);
     let described = str(off, "properties", "standing_orders", "description");
     Assert.equal(
       "New standing orders, kept until they fire or you cancel them (at most 12 in all, each with at most 24 orders). When you see the move it waits for, its orders run in that same season, once, so they meet the move: they replace your other orders for the same units or people that season, those you give then among them (cancel it to stop it). It first fires in the season after you give it. Giving one costs nothing; its orders cost what they cost when they run.",

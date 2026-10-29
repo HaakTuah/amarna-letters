@@ -174,7 +174,8 @@ describe("SiegeTests", () => {
     Assert.equal("Mitanni", unitAt(s, "suhu")?.power);
     Assert.empty(s.sieges);
     Assert.equal("Mitanni", s.owner.get("suhu"));
-    Assert.contains("Your siege of Suhu is lifted: the besieging army is gone.", notice(s, "Babylonia", SiegesTitle));
+    // Item 13: driven out, the besieging army falls back rather than being destroyed.
+    Assert.contains("Your siege of Suhu is lifted: the besieging army was driven out.", notice(s, "Babylonia", SiegesTitle));
   });
 
   test("Only an army within walls it does not hold may besiege", () => {

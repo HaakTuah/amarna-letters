@@ -497,13 +497,13 @@ function other(x: Node): Order | null {
     case "captive_take_purse":
       return captive(person, "TakePurse");
     case "grant_governorship":
-      return govern(province, person, Math.max(0, amount));
+      return govern(province, person, Math.max(0, I(x, "term")));
     case "take_back_governorship":
       return unseat(province);
     case "move_court":
       return moveCourt(province);
     case "enlist_band":
-      return enlist(province, Math.max(0, amount), I(x, "term"));
+      return enlist(province, Math.max(0, I(x, "gold")), I(x, "term"));
     case "hunt_bands":
       return hunt(province);
     case "hunt_bands_always":
