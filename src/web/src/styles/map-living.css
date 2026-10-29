@@ -1,0 +1,26 @@
+/* The living map (build order item 19): the papyrus, the seasons and the land as this game has left it (seasons.ts). */
+
+.map .papyrus { pointer-events: none; opacity: .11; }
+.map .pap-h { stroke: #7a5a2a; stroke-width: 1.7; opacity: .55; }
+.map .pap-v { stroke: #7a5a2a; stroke-width: 1.1; opacity: .28; }
+
+.map .season { pointer-events: none; }
+:is(.map, .legend) .season .dry { fill: #c08f4c; opacity: .3; }
+:is(.map, .legend) .season .green { fill: #6f9d48; opacity: .3; }
+:is(.map, .legend) .season .frost { fill: #f5f7f6; opacity: .4; }
+:is(.map, .legend) .season .ripe { fill: #dcaa2c; opacity: .34; }
+.map .sheaf { fill: none; stroke: #8a6a1c; stroke-width: .7; stroke-linecap: round; opacity: .6; }
+:is(.map, .legend) .season .sown { fill: #8db55c; opacity: .55; }
+:is(.map, .legend) .season .ripe-field { fill: #d4ab3a; opacity: .6; }
+:is(.map, .legend) .season .inundation, :is(.map, .legend) .season .flooded { fill: #6c9eb0; opacity: .8; }
+:is(.map, .legend) .season .flooded { opacity: .32; }
+.map .flood-wave { fill: none; stroke: #f4f0e2; stroke-width: .8; opacity: .8; }
+:is(.map, .legend) .season .drought { fill: #b6773a; opacity: .3; }
+.map .crack { fill: none; stroke: #5e3f1f; stroke-width: .75; stroke-linejoin: round; opacity: .55; }
+:is(.map, .legend) .season .spate { fill: none; stroke: #8a8a6e; stroke-linecap: round; stroke-linejoin: round; opacity: .5; }
+:is(.map, .legend) .season .snow { opacity: .92; }
+.map .storm-wave { fill: none; stroke: #2e4c57; stroke-width: .8; stroke-linecap: round; opacity: .22; }
+:is(.map, .legend) .season .season-name { font-size: 7.6px; letter-spacing: .24em; fill: var(--peak); text-anchor: middle; font-weight: 600; font-style: italic; }
+/* In the legend, the washes over the card's paper, a little stronger so their colour reads at that size. */
+.legend .season svg { background: var(--land); border-radius: 2px; }
+.legend .season .lg-frost { fill: #fff; opacity: .9; stroke: #8fa0a6; stroke-width: .8; }

@@ -86,7 +86,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 16 | The royal council | not started | | |
 | 17 | How cities become free | in progress (29 Oct): unrest from conditions and revolts, rulers of their own, the gate opened from within, buying or taking food; save version 37 | `item/free-cities` (#198) | [report](rounds/2026-10-29-free-cities.md) |
 | 18 | The balance pass | not started | | |
-| 19 | The living map | not started: with every feature built; may run beside 18 | | |
+| 19 | The living map | in progress (29 Oct), in passes: 1, the seasons and the land (papyrus; the Nile's flood, winter rains and snow from real elevation, harvest gold, rivers in spate, storms at sea; this game's droughts and floods as last seen) | `item/living-map` (#201) | [report](rounds/2026-10-29-living-map.md) |
 
 Side lane, a smaller default world for tests (29 Oct, #136): test games play a few seated powers among idle ones
 (`src/game/test/small-world.ts`); suite 2264 s to 955 s, a code PR's CI about 4 min 50 s to 1 min 52 s
