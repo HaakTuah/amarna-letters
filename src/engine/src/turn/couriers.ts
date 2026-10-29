@@ -12,7 +12,7 @@ import { newCourier } from "../model/command.ts";
 import { describe, newTurnSubmission, unitOf, type Order, type TurnSubmission } from "../model/orders.ts";
 import type { Power } from "../model/power.ts";
 import { newJourney, type InboxKind } from "../model/records.ts";
-import { newId, notify, unitAt, type Unit } from "../model/state.ts";
+import { logEvent, newId, notify, unitAt, type Unit } from "../model/state.ts";
 import { courierSeasons, courtOf } from "../rules/court.ts";
 import { seasonOfTurn } from "../model/map.ts";
 import { cheapestRoute, legPoints } from "../model/travel.ts";
@@ -135,10 +135,12 @@ P.sendOrders = function (p, sub) {
     const stopper = this.courierStopped(p, at.province, rng);
     if (stopper !== null) {
       lost.push(describe(o));
+      logEvent(S, "courier", `${stopper}'s men stopped a courier of ${p}'s.`, [p, stopper], "courier-stopped");
       notify(S, stopper, "Battle", "A courier stopped", `Your men stopped a courier of ${p} on the road to ${this.map.get(at.province).name}. The order he carried read: "${describe(o)}".`);
       continue;
     }
     S.couriers.push(newCourier({ power: p, plan, given: S.turn, arrives: S.turn + d }));
+    logEvent(S, "courier", `${p} sent an order by courier: ${describe(o)}.`, [p], "courier-sent");
     sent.push(`${describe(o)} (arrives in turn ${S.turn + d})`);
   }
   if (sent.length > 0) notify(S, p, "Resolution", "Orders on the road", `These orders went with your couriers to places they cannot reach this season, and are carried out when they arrive: ${sent.join("; ")}.`);

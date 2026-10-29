@@ -72,6 +72,7 @@ P.resolveSeason = function (submissions) {
   this._scheduledNow.clear();
   this._standingNow.clear();
   this._firedNow.clear();
+  this._mandatedNow.clear();
   this._marchNow.clear();
   this._cededNow.clear();
   // Each living court remembers the walls as it saw them when it gave its orders (its view's), for when it no longer sees them.

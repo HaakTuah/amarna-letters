@@ -129,6 +129,7 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
   conqueror, as before item 13.
 - A fallen kingdom coming apart only as word of its fall reaches each province: it comes apart at once.
 - Governors' false reports, and a commander keeping the gold sent for his army's food (item 17's buying by order).
-- The map drawing the king's reach around him; seizing a king who visits a foreign court by order (he is taken only by
+- A ring drawn for the king's reach: the map shows it as its fog, since a seat's sight is what a courier brings within
+  the season (`Views.sight`, which the map's frames read). Seizing a king who visits a foreign court by order (he is taken only by
   his province changing hands or on the road).
 - Model commanders and governors: all are script minds ("Models only where they matter").

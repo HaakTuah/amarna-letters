@@ -21,7 +21,7 @@ import {
   type StandingOrder,
   type StandingRequest,
 } from "../model/sleep.ts";
-import { notify, unitAt, type GameState, type Unit } from "../model/state.ts";
+import { logEvent, notify, unitAt, type GameState, type Unit } from "../model/state.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { conditionsMet, conditionsText } from "../rules/conditions.ts";
@@ -483,6 +483,8 @@ P.scheduledFailed = function (p, order, why) {
 P.afterValidation = function (p, sub, v) {
   const S = this.s;
   for (const f of this._firedNow.tryGet(p) ?? []) this.tellFired(p, f, v);
+  for (const o of (this._mandatedNow.tryGet(p) ?? []).filter((x) => x.type !== "hold"))
+    logEvent(S, "mandate", `A commander of ${p}'s led its unit by his mandate: ${describe(o)}.`, [p], "mandate-led");
   const sl = this.sleepOf(p);
   if (sl === null) {
     // A seat that plays every season keeps the standing orders and answers it gives now; the stand-in's are not the seat's.

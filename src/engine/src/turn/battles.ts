@@ -57,7 +57,10 @@ P.battles = function (result, sightBefore) {
     // Each commander's record (item 13): a good general should feel like his king's achievement, and his name grows with it.
     const wc = this.commanderOf(winner);
     const lc = this.commanderOf(loser);
-    if (wc !== null) wc.won++;
+    if (wc !== null) {
+      wc.won++;
+      logEvent(S, "battle", `${wc.name} won a battle for ${winner.power} in ${this.map.get(f.at).name}.`, [winner.power], "commander-won");
+    }
     if (lc !== null) lc.lost++;
     battleNews(this, f, a, d, x.margin, loserLost, winnerLost, seeing([f.from, f.at], a.power, d.power));
   }
