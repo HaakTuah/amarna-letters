@@ -317,3 +317,14 @@ Given in the design chat with Claude, answering the design questions of the cons
 
     Written into "The map in true geography, and its look in time" (Interface: papyrus, and the look in full), "What
     earns a place" (The world: the six cities) and build order item 11c.
+
+32. **02:35**, in the design chat, on drawing the units after the period's relics (Mesehti's soldiers at Asyut,
+    Tutankhamun's chest and model boats, the cylinder seals, Yazılıkaya, the Kassite boundary stones, the Thera fleet,
+    Meryre II's foreign delegations):
+
+    > Don't worry about copyright, we are not being taken for making a free game, where we model ancient reliqs based on
+    > photographs. Definetly be fully inspired by these relics, and be in no way afraid of making it too simular. I want
+    > what looks best and feels most authentic! And yes, ensure everything is in, expertly, and what we've previously
+    > agreed on!
+
+    Written into "The look, in time" (Interface) and build order item 19.
