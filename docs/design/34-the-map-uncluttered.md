@@ -14,7 +14,8 @@ web app's drawing and its drawing scripts only: no rule, number or save version 
   seal at 45 percent, no rings or emblem; a dark rim when troops of its stand hidden) and its counters, people and news
   give way; where even the small seal would touch, the city's mark gives way too and its province's colour says who
   holds it. Then the fleets at sea, the units destroyed this season, the travellers and the marks of the crossings, each
-  where it touches nothing placed. Then the names, as item 11c+ placed them.
+  where it touches nothing placed. Then the names, as item 11c+ placed them. The traveller or person being followed is placed first. Everything is
+  measured before any class changes, so a pass costs one layout.
 - Everything zooms back as the map is zoomed in: at the closest zoom nearly every badge is full.
 - So that a city's own markers never touch each other, the counters stand above the city clear of its outermost ring
   (`--ring`, which grows with the walls), its people in rows of three to its left and its news to its right.
@@ -25,8 +26,9 @@ web app's drawing and its drawing scripts only: no rule, number or save version 
 
 ## Borders as natural lines (`art.ts`, `naturalLine`)
 
-Each traced border (`border-data.ts`) is simplified past the steps of the grid it was traced on (0.45 board units) and its
-corners rounded (Chaikin's cutting, three times), its two ends fixed, so borders still meet at their junctions and each is
+Each traced border (`border-data.ts`) is simplified past the steps of the grid it was traced on (0.45 board units), cut
+into runs of at most two units, and its corners rounded (Chaikin's cutting, three times), its two ends fixed (so it stays
+within about half a unit of the land it was traced on; the frame's corners, off the board, are left as they are), so borders still meet at their junctions and each is
 smoothed once for both its sides. The traced data is unchanged.
 
 ## Relief (`scripts/map-relief.mjs`, `relief.jpg`, `relief-frame.ts`)
