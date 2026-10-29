@@ -2,14 +2,18 @@
 
 Build order item 12, "Languages" (`docs/intent/build-order/item-12.md`), from the languages dossier
 (`docs/history/07-languages.md`) and the doors' peoples (`docs/history/08-beyond-the-edges.md`). Branch
-`item/languages`, PR #150, pipelined from 11b++ (#137, merged during the build; `develop` merged in before review). Save
-version 27. What was built, by file: `docs/design/30-languages.md`. Weekly usage: unknown (`scripts/usage.sh` cannot
+`item/languages`, PR #150, pipelined from 11b++ (#137, merged during the build). Held, as the orchestrating session
+asked, until item 11e merged (#154), so that its measurements are on 11e's game; `develop` (11c, 11e, 11c+ and Haakon's
+#166 and #167) merged in. Save version 29. What was built, by file: `docs/design/30-languages.md`. Weekly usage: unknown (`scripts/usage.sh` cannot
 read it in this session). Effort: medium, as set. Nothing was carried over to item 12 on its row of the progress file.
 
 ## The check for changes
 
 The copy was cut from Build order revision 88, Diplomacy and intelligence 25, Characters 20, Overview 567. Asked at the
-start: nothing had changed in any of them. Asked again before the pull request: (see below).
+start: nothing had changed in any of them. Asked again before the pull request: Build order revision 89 added item 11e,
+to come before item 12's measurements; nothing else changed, and item 12's text is the same. 11c's six cities of
+Canaan (Akko, Hazor, Gezer, Ashkelon, Lachish, Hebron) were given their languages when 11c merged in (Canaanite, as the
+dossier gives Megiddo, Shechem and Jerusalem).
 
 ## The audit at the start
 
@@ -47,11 +51,49 @@ envoy's message bridged by a bent go-between, not the host's reply.
 
 ## Script players
 
-(numbers below)
+How often each feature was used, and succeeded, in 50 script games on 11e's game (seeds 1-50, after): envoys not
+understood on arrival 1,971 (then heard through a court's bridge or a go-between, gone home 496, gone home to lie 227,
+the rest still waiting or heard later); go-betweens carrying an envoy's words at a court 2,287, between two people 502;
+a court's servant bridging 189; mandates taking seasons longer 1,252; envoys who could not be sent 0; tablets waiting for
+a reader 2,067, read later 933; words bent by a bridger in someone else's pay 44, noticed 3; bridges hired by script kings
+(stay jobs) 543 against 421 before. Weaknesses found and patched: the script kings first sent the envoy who spoke the
+host's language even with gold or a tablet, where reliability matters more (patched: such missions go with the more
+reliable half), and hired a bridge for every unheard envoy at once (patched: one a season); the review found the
+script kings could hire a bridge only in an envoy's first season (patched: by the envoys standing unheard, from the seat
+view). Left: a script king sends no young servant abroad only to learn (the posts it sends learn anyway: envoys,
+residents, spies, detained envoys), and script characters do not yet choose where to seek work by their languages.
 
 ## Benchmarks and script games
 
-(numbers below)
+**Before** (`develop` with 11e, seeds 1-50) and **after** (this branch), `scripts/sim.sh --games 50 --seed 1`; after
+with `--verify-replay`: 50 of 50 replays exact. A capital fell in every game both times (560 kingdoms before, 579 after);
+the first fall came in season 5 on the median, and a kingdom fell in the first two seasons in 1 game of 50 both times.
+The Great Kings (the city-states and chiefs are in the logs):
+
+| Power | Wins before | Wins after | Growth before | Growth after | Score before | Score after |
+|---|---|---|---|---|---|---|
+| Egypt | 15 | 20 | 0.83 | 0.86 | 0.69 | 0.77 |
+| Hatti | 2 | 8 | 1.12 | 1.39 | 0.47 | 0.63 |
+| Babylonia | 25 | 17 | 1.03 | 0.99 | 0.77 | 0.73 |
+| Mitanni | 0 | 0 | 0.72 | 0.71 | 0.43 | 0.41 |
+| Assyria | 7 | 4 | 0.99 | 1.00 | 0.57 | 0.57 |
+| Arzawa | 0 | 0 | 0.82 | 0.67 | 0.36 | 0.35 |
+| Alashiya | 0 | 0 | 0.97 | 0.96 | 0.35 | 0.35 |
+
+The retired garbling: "a clause lost" in recited letters went from 497 to 88 and answers misreported from 172
+to 5; what is left comes from envoys' own motives and clauses the templates refuse. Hiring at court 11,835 to 11,407; carriers hired
+925 to 790 (a carrier must be understood where he goes).
+
+**Calibration** ("Calibrate how widely Akkadian is spoken"): envoys not understood on arrival, in a hundred of those
+that arrived, by the court that sent them: Egypt 31, Alashiya 28, Babylonia 22, Hatti 21, Ugarit 17, Assyria 14, Mitanni
+11, Arzawa 6, the Levant's cities mostly 3 to 15, the Kaska 42. Native Akkadian (Babylonia, Assyria) is no shield: their
+envoys go unheard where a court keeps few Akkadian speakers at hand (Arzawa, Alashiya, the Kaska, small cities), and
+Egypt's most, since it sends the most envoys and its own servants speak Egyptian first. Akkadian as the dossier gives it
+blocks about one envoy in five at first; most are heard within a season or two through a bridge.
+
+**How long each court's letters wait for a carrier understood where they go** (seasons, letters carried): the Great
+Kings 1.3 to 1.9 (Alashiya 1.9, Arzawa 1.3), the cities 1.0 to 2.2 (Qatna, Terqa 2.2; Carchemish, Tyre 2.1); before item
+12 they waited 1.5 on the whole.
 
 ## Readings taken
 
@@ -113,11 +155,18 @@ gold handed in the last 4 seasons. Hearing at court: × (0.25 + 0.75 × skill in
 
 ## Use against ignore
 
-Interim, before item 11e (to be measured again on 11e's game): `--language-play-half`, seeds 1-50: 0.69 growth to
-0.72, 21 wins to 29 at first; after keeping gold and tablets with the more reliable half of the envoys and one bridge a
-season, 0.69 to 0.70, 22 wins to 28. Not paying yet by wins: being understood saves seasons, which the scripts' growth
-does not yet turn into gain; re-measure after 11e and in item 18.
+`--language-play-half` (half the script kings choose envoys without regard to languages and hire no bridges), seeds
+1-50, on 11e's game: 0.75 growth to 0.75, 23 wins to 27. Before 11e: 0.69 to 0.72 and 21 to 29 at first, then 0.69 to
+0.70 and 22 to 28 after the patches above. Even, within noise: the rules of being understood bind every king alike,
+and what a king's choices add (the right envoy, a bridge) saves a season or two that the scripts' growth does not yet
+turn into gain. Re-measure with command at a distance (13) and in item 18.
 
 ## Questions for Haakon
 
-(below)
+1. **Stop for review: the balance between courts with native Akkadian and the rest.** As the dossier gives it, Akkadian
+   is spoken mostly by scribes, traders and envoys outside Babylonia and Assyria, and about one envoy in five is not
+   understood where he arrives (Egypt's 31 in a hundred, Babylonia's 22, Arzawa's 6): native Akkadian is no shield, and
+   languages block at the centre as well as at the edges. The section's "Calibration" suggests Akkadian common, scarcer at
+   the edges. Reading taken: leave it as the dossier gives it until item 18. Alternative: every court that reads
+   Akkadian keeps an Akkadian-speaking scribe at court from the start (a servant of the court's), so envoys with Akkadian
+   are heard at the centre and languages block mostly at Arzawa, Alashiya, the Kaska and the Lukka. Which do you want?
