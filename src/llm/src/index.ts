@@ -13,6 +13,8 @@ export * from "./exchange.ts";
 export * from "./bridge.ts";
 export * from "./leader-seat.ts";
 export * from "./character-mind.ts";
+export { CharacterSystem, canForge, courtOf, kingOf, offerLine, selfText, traitLine } from "./character-self.ts";
+export * from "./character-recital.ts";
 export * from "./narrator.ts";
 export * from "./seat-setup.ts";
 export * from "./spending.ts";
