@@ -30,8 +30,6 @@ Answered review points, and the rows of items 1 to 11c, are in `docs/archive/pro
 | 11c+ (#165) | None: the page and the item's words settled every reading | Readings 1-13 in `docs/rounds/2026-10-29-map-at-a-glance.md`; the drawing's disagreements with the connections listed there for the design session | Lane, no questions |
 | 11f (#169) | None: the page and the sections settled every reading | Readings 1-15 in `docs/rounds/2026-10-29-map-crossings.md`; the connections rule of the live text (revision 106) deferred to the next item that touches the connections | No questions |
 | 11b++ | None: "The game in one page" and the item's text settled every answer | Readings 1-15 in `docs/rounds/2026-10-29-answers-to-11b-plus.md` | For review, no questions |
-| 13 (#175) | Stop for review, question 1: a fallen kingdom's governor "his province's leader with a seat of his own" needs item 17's risen seats. Until then his province falls lawless with the rest; or bring risen seats forward for governors now? | Lawless until item 17 (alternative: governors' seats now) | Open |
-| 13 (#175) | Question 2: a fallen kingdom comes apart at once, or province by province as word of the fall reaches each (the item's words)? | At once, the fallen power leaving play that season (alternative: each province as it was until the news reaches it) | Open |
 
 
 ## Use against ignore

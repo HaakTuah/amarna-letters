@@ -542,3 +542,7 @@ Given in the design chat with Claude, answering the design questions of the cons
 54. **16:39**, in the design chat, on learning that a builder (Barkstreet Snakes') had stopped at the app's weekly usage
     warning: "They weren't supposed to stop before 90%. We're still at only 76%" (written into the brake under
     "Standing instructions" in `CLAUDE.md`: only the measured share counts)
+
+55. **16:42**, in the design chat, to item 13's two review questions (governors' seats now rather than lawless until
+    item 17; the realm coming apart province by province as the news arrives) and the design session's takes: "I agree
+    with all your takes." Written into build order item 13 as 13+.
