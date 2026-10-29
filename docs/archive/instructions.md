@@ -473,3 +473,13 @@ Given in the design chat with Claude, answering the design questions of the cons
     > Yes, agreed with all, expertly!
 
     Written into "Terrain" (War), "Caravans carry a kingdom's goods" (Land, people and economy) and build order item 11f.
+
+46. **09:13 and 09:15**, in the design chat: "An army eating from the actual citizens stores then should make them pretty
+    unhappy?" Then, to the design session's takes (troops taking food raise unrest by how much they take; unrest in the
+    homeland too, at a far higher bar; each army buys or takes its food, by its king's choice; a ruler whose land was
+    taken from remembers it):
+
+    > Yes, to all, expertly!
+
+    Written into "Revolt follows conditions, not dice" (War), "The land" under "Armies need food as well as pay" (Land,
+    people and economy) and build order item 17.

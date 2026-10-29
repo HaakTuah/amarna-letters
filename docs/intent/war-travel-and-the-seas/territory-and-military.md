@@ -1,4 +1,4 @@
-<!-- Generated from the design document, War, travel and the seas tab, revision 64 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, War, travel and the seas tab, revision 66 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## Territory and military
 
 **Military.**
@@ -41,10 +41,10 @@ Longer wars mean longer games; sleeping seats are what make those affordable, si
 
 **How cities become free** (decided 20 October 2026), from systems already decided: conquered land not yet absorbed may revolt and break free, when the conditions below say so ("Revolt follows conditions, not dice"); a governor who turns with the levies he raised, or a commander who keeps his army, may rule a city of his own (the new Idrimi); and a vassal that stops paying is free in practice unless its overlord comes to punish it. A fallen kingdom's land that the conqueror holds by force, or that a governor brings him, is newly conquered land, so it can revolt like any other; the rest goes as "A kingdom falls with its capital" says. Land that breaks free with nobody at its head is lawless until a ruler rises from its own people ("A head rises where men lack one", decided 21 October 2026; "Land without a ruler").
 
-**Revolt follows conditions, not dice** (decided 20 October 2026). Every province a power holds but has not fully absorbed carries an unrest level, summed from conditions the engine can see, and it revolts when unrest passes a threshold; the seeded dice only settle ties at the margin. What raises unrest:
+**Revolt follows conditions, not dice** (decided 20 October 2026). Every province a power holds carries an unrest level, summed from conditions the engine can see, and it revolts when unrest passes a threshold; the seeded dice only settle ties at the margin. The homeland too (decided 29 October 2026, build order item 17): land a power has fully absorbed starts loyal and needs far more to rise, so a home revolt is rare, but a king who keeps starving his own provinces can lose one. What raises unrest:
 
 - **How new the conquest is:** highest when just taken, falling as the land is absorbed;
-- **hardship:** famine or another catastrophe there, levies raised from it, gold taken from it;
+- **hardship:** famine or another catastrophe there, levies raised from it, gold taken from it, and troops taking its food, by how much they took, its own king's included (decided 29 October 2026);
 - **the master's weakness:** his armies beaten, his capital besieged, his troops busy elsewhere;
 - **distance:** far from the king, by the measure of item 7;
 - **a cause to rally to:** the province's old ruler alive and free, or a character of standing there who wants it;
