@@ -53,10 +53,12 @@ describe("LanguagesPlayTests", () => {
       name: "B",
       speaks: ["Egyptian (fluent)", "Hittite (good)"],
     });
-    Assert.equal("c2", envoyFor([quiet, fit], "Hatti", "Egypt", false).id);
+    const others = [newCharacterView({ id: "c3", name: "C", speaks: ["Hittite (fluent)"] }), newCharacterView({ id: "c4", name: "D" })];
+    // With gold or a tablet, only the more reliable half (the first two here) is weighed for its language.
+    Assert.equal("c2", envoyFor([quiet, fit, ...others], "Hatti", "Egypt", false).id);
     LanguagePlay.off = true;
     try {
-      Assert.equal("c1", envoyFor([quiet, fit], "Hatti", "Egypt", false).id);
+      Assert.equal("c1", envoyFor([quiet, fit, ...others], "Hatti", "Egypt", false).id);
     } finally {
       LanguagePlay.off = false;
     }
