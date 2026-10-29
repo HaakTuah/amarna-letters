@@ -81,7 +81,7 @@ export const ClimateEventSchema: ObjSchema<ClimateEvent> = obj(
   { id: S, kind: S, name: S, provinces: list(S), startTurn: I, endTurn: I, percent: I },
 );
 
-export const CURRENT_VERSION = 33;
+export const CURRENT_VERSION = 34;
 
 export const RisenPowerSchema: ObjSchema<RisenPower> = obj(
   "RisenPower",
