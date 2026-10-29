@@ -527,3 +527,10 @@ Given in the design chat with Claude, answering the design questions of the cons
 51. **13:41**, in the design chat, to finer geography loading as the map is zoomed in: "Yes, please! Expertly! When are
     we going to draw real mountains and rivers, and such?" (the first written into build order item 11c++; the second
     answered in the chat, with a question back)
+
+52. **13:45**, in the design chat, to bringing real relief, every period river, and the marshes and lakes of 1346
+    forward into item 11c++ in today's style:
+
+    > Yes, please, expertly! If it needs access to something it can't get right now, then we will get it as soon as I am home.
+
+    Written into build order item 11c++.
