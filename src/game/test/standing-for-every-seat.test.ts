@@ -440,9 +440,9 @@ describe("StandingForEverySeatTests", () => {
     // Script kings give standing orders, and in the first seeds one fires within a few seasons: its notice says what set it
     // off and the orders it gave. The game replays exactly. (Until the siege package this was seed 1's turn 3, where Arzawa
     // marched on an empty Hattusa; the walls on homelands changed that game.) In the small world (small-world.ts) the first
-    // to fire is seed 4's, in its eighth season, so the search starts there. The people do not resist here (item 11e's land
-    // defended by its men makes such blows rarer: seed 4's first came in its fifteenth season).
-    for (let seed = 4; seed <= 15; seed++) {
+    // to fire is seed 3's, in its fourth season, since item 11c's map (seed 4's before), so the search starts there. The
+    // people do not resist here (item 11e's land defended by its men makes such blows rarer).
+    for (let seed = 3; seed <= 15; seed++) {
       let state = newGame(seed, newGameConfig({ peopleDefence: 0 }));
       let runner = Object.assign(new GameRunner(state, scriptSeats(seed), new ScriptMind(), new TemplateNarrator()), { writeChronicles: false });
       await runner.prepare();
@@ -468,6 +468,6 @@ describe("StandingForEverySeatTests", () => {
       Assert.equal(hash(GameStateSchema, state), hash(GameStateSchema, replay.state));
       return;
     }
-    Assert.fail("no standing order fired in the first twelve seasons of seeds 4-15");
+    Assert.fail("no standing order fired in the first twelve seasons of seeds 3-15");
   });
 });

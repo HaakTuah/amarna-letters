@@ -2,6 +2,10 @@ import { describe, test } from "vitest";
 import {
   Adjudicator,
   AttestedKm,
+  cheapestRoute,
+  Doors,
+  StartVassals,
+  king,
   Dict,
   type GameState,
   type Order,
@@ -32,10 +36,11 @@ import { Assert, last, oldWorld } from "./support.ts";
 describe("MapAndSeasTests", () => {
   const Map = WorldMap.default;
 
-  test("The map has the provinces of the review, each coast its waters, and fifteen sea zones", () => {
-    Assert.equal(55, Map.landProvinces.length);
-    Assert.equal(15, Map.provinces.filter((p) => p.isSea).length);
-    for (const id of ["aleppo", "qatna", "alalakh", "nuhashshe", "jerusalem", "shechem", "arrapha", "sidon", "arwad", "nubia", "dilmun", "kaska", "steppe"])
+  test("The map has the provinces of the review, each coast its waters, and eighteen sea zones", () => {
+    // 55 land provinces and 15 sea zones after item 8; item 11c added six cities of Canaan, their two coasts' waters and the Red Sea.
+    Assert.equal(61, Map.landProvinces.length);
+    Assert.equal(18, Map.provinces.filter((p) => p.isSea).length);
+    for (const id of ["aleppo", "qatna", "alalakh", "nuhashshe", "jerusalem", "shechem", "arrapha", "sidon", "arwad", "nubia", "dilmun", "kaska", "steppe", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron", "redsea"])
       Assert.true(Map.exists(id), id);
     // Names of their time; Kumidi stays within Damascus's land. Ṣumur is a province of its own on Amurru's coast, and Lukka
     // a land without a king (item 8: Haakon's answers to item 7a's review).
@@ -77,7 +82,7 @@ describe("MapAndSeasTests", () => {
     // A pass is slow: the Cilician Gates at 15 km a day.
     Assert.true(connectionDays(Map, "tuwanuwa", "kizzuwatna") > connectionKm(Map, "tuwanuwa", "kizzuwatna") / 25);
     // Currents run counterclockwise: north along the Levant, so a voyage from Gaza to Tyre is quicker than back.
-    Assert.true(connectionDays(Map, "gazawaters", "tyrewaters") < connectionDays(Map, "tyrewaters", "gazawaters"));
+    Assert.true(connectionDays(Map, "gazawaters", "ashkelonwaters") < connectionDays(Map, "ashkelonwaters", "gazawaters"));
   });
 
   test("The open-sea crossings are dangerous in winter, the second season of each year, never closed", () => {
@@ -96,7 +101,7 @@ describe("MapAndSeasTests", () => {
     Assert.true(Map.sharesSea("enkomi", "ugarit"));
     Assert.false(Map.sharesSea("enkomi", "gaza"));
     Assert.true(Map.sharesSea("sumur", "arwad"));
-    Assert.true(Map.sharesSea("gaza", "tyre"));
+    Assert.true(Map.sharesSea("gaza", "ashkelon"));
   });
 
   class Board {
@@ -159,5 +164,41 @@ describe("MapAndSeasTests", () => {
     Assert.equal(1, s.sieges[0].progress);
     Assert.contains("with its harbour blockaded", last(inboxOf(s, "Egypt"), (i) => i.title === SiegesTitle).body);
     Assert.contains(s.events, (e) => e.signal === "blockade");
+  });
+
+  // Item 11c: the Red Sea and six cities of Canaan.
+  test("The Red Sea is one zone reached only from the Sinai and Thebes, over desert roads", () => {
+    Assert.equal(["sinai", "thebes"], Map.coastsOf("redsea").map((p) => p.id).sort());
+    Assert.false(Map.neighbors("redsea").some((n) => Map.get(n).isSea));
+    // The Wadi Hammamat goes at the desert's pace, not a ship's: about ten days, not three.
+    Assert.equal(210, connectionKm(Map, "thebes", "redsea"));
+    Assert.equal(10.5, connectionDays(Map, "thebes", "redsea"));
+    // From the Sinai's shore a ship sails down to Mersa Gawasis, so the empty sea joins its shores at a voyage's cost: Thebes
+    // to the Delta still goes by the Nile, and only the Sinai is nearer by the Red Sea (as the mining expeditions went).
+    Assert.equal(20, connectionDays(Map, "sinai", "redsea"));
+    const days = (x: string, y: string) => connectionDays(Map, x, y);
+    Assert.equal(["thebes", "akhetaten", "memphis", "delta"], cheapestRoute(Map, "thebes", "delta", days)!.route);
+    Assert.equal(["thebes", "redsea", "sinai"], cheapestRoute(Map, "thebes", "sinai", days)!.route);
+    // Punt is a door for newcomers through Egypt's Red Sea coast; the doors' shares are the dossier's and make a hundred.
+    Assert.equal(["thebes", "sinai"], Doors.find((d) => d.id === "redsea")!.provinces);
+    Assert.equal(100, Doors.reduce((a, d) => a + d.share, 0));
+  });
+
+  test("Six cities of Canaan are city-states under their rulers, each Egypt's vassal at the start", () => {
+    const six: [string, Power, string][] = [
+      ["akko", "Akko", "Surata"], ["hazor", "Hazor", "Abdi-Tirshi"], ["gezer", "Gezer", "Milkilu"],
+      ["ashkelon", "Ashkelon", "Yidya"], ["lachish", "Lachish", "Zimreddi"], ["hebron", "Hebron", "Shuwardata"],
+    ];
+    for (const [id, power, ruler] of six) {
+      Assert.true(Map.get(id).capital && Map.get(id).home === power, id);
+      Assert.equal(ruler, king(power));
+      Assert.true(StartVassals.some((v) => v.vassal === power && v.overlord === "Egypt"), id);
+    }
+    // Walls by the walls dossier, as item 11d set the other cities': Hazor's great rampart 3, the five it does not list 1.
+    Assert.equal([3, 1, 1, 1, 1, 1], ["hazor", "gezer", "ashkelon", "akko", "lachish", "hebron"].map((id) => StartWalls.get(id)));
+    // The road from Megiddo to Damascus runs by Hazor, and the shore from Tyre to Gaza by Akko and Ashkelon.
+    Assert.false(Map.areAdjacent("megiddo", "damascus") || Map.areAdjacent("tyre", "gaza"));
+    Assert.true(Map.areAdjacent("hazor", "megiddo") && Map.areAdjacent("hazor", "damascus") && Map.areAdjacent("akko", "tyre") && Map.areAdjacent("ashkelon", "gaza"));
+    Assert.equal(["akkowaters", "ashkelonwaters"], [Map.get("akko").waters, Map.get("ashkelon").waters]);
   });
 });

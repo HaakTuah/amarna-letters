@@ -28,7 +28,7 @@ Item 11e's two fixes, each at its cause (`docs/intent/build-order/item-11.md`, t
   not theirs; `wallMen` its men on the walls; `stormNeeds` = level + (garrison +
   men) × (1 + level). The baseline (`baseline-leader.ts`) reckons the same. The scripts' own search runs the adjudicator
   with the view's thousandths.
-- Save version 27: `Assault` and `MoveFailure` gained `people`.
+- Save version 28: `Assault` and `MoveFailure` gained `people`.
 
 ## Each power ranked against its own position (`rules/scoring.ts`, `rules/par-results.ts`)
 

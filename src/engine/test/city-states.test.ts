@@ -29,7 +29,8 @@ const Map = WorldMap.default;
 describe("City-states as powers (item 11+)", () => {
   test("Every city-state is a power holding its city as its capital, under the same rules", () => {
     const s = newGame(1);
-    Assert.equal(33, AllPowers.length);
+    // 33 powers since item 11d; item 11c added six cities of Canaan.
+    Assert.equal(39, AllPowers.length);
     Assert.equal(7, GreatKings.length);
     for (const p of AllPowers.filter((x) => !isGreatKing(x))) {
       const cap = Map.capital(p);

@@ -276,9 +276,8 @@ describe("FileSeatTests", () => {
   test("A file seat sleeps by default and replays exactly", async () => {
     // Sleeping seats are on by default: nothing here switches them on. The whole world, as script kings: in the small one no
     // envoy reaches the island in these seven seasons, and an envoy waiting is what makes a sleeping court hold audience.
-    // Seed 1 since item 11d (no envoy reached the island in these seasons of seed 8's game); seed 2 since item 11e, whose
-    // land defended by its men changed seed 1's.
-    let [runner, folder] = game(newGameConfig({ catastropheChance: 0 }), 30, AllPowers, 2);
+    // Seed 4: since item 11c no envoy reaches the island in these seasons of seed 1's game (nor, since item 11d, of seed 8's).
+    let [runner, folder] = game(newGameConfig({ catastropheChance: 0 }), 30, AllPowers, 4);
     const stop = new AbortController();
     let requests = new Dict<string, string>();
     let answering = answer(

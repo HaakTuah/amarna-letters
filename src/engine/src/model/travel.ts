@@ -136,7 +136,7 @@ export function legPoints(map: WorldMap, from: string, to: string, season: numbe
   if (company.sneaking && edgeBetween(map, from, to)!.kind !== "Sea") percent = (percent * TravelData.sneakPercent) / 100;
   // Size, load and animals (9+a); water and fodder (10+a); neutral until their items: an army's size and forced marches
   // (13), the leader (11b), roads (15), horses (the economy's second phase).
-  const dry = land && (climateOf(to).water === "Arid" || climateOf(from).water === "Arid" || crossingBetween(from, to)?.kind === "Desert");
+  const dry = (land && (climateOf(to).water === "Arid" || climateOf(from).water === "Arid")) || crossingBetween(from, to)?.kind === "Desert";
   const fed = withFodder(company, dry || (land && season === WinterSeason && climateOf(to).winter !== "Mild"));
   percent = (percent * sizeAndLoad(fed) * water(company, dry) * leader(company) * roads(company)) / 100_000_000;
   return Math.max(1, Math.round(days * PointsPerDay * (percent / 100)));

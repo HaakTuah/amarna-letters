@@ -117,7 +117,7 @@ const Regions: readonly [number, readonly string[]][] = [
   [250, ["ashur", "nineveh", "arbela", "ekallate"]],
   [300, ["apasa", "seha", "mira"]],
   [80, ["enkomi", "kalavasos"]],
-  [70, ["megiddo", "gaza", "jerusalem", "shechem"]],
+  [70, ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron"]],
   [80, ["tyre", "sidon", "byblos", "amurru", "sumur", "arwad"]],
   [35, ["ugarit"]],
   [300, ["damascus", "qadesh", "qatna", "nuhashshe", "aleppo", "alalakh", "carchemish"]],
@@ -129,7 +129,7 @@ const Regions: readonly [number, readonly string[]][] = [
   [20, ["steppe"]],
 ];
 
-const Habiru = ["megiddo", "gaza", "jerusalem", "shechem", "tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "damascus", "qadesh", "qatna", "nuhashshe"];
+const Habiru = ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron", "tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "damascus", "qadesh", "qatna", "nuhashshe"];
 
 const startCache = new WeakMap<WorldMap, Map<string, People>>();
 

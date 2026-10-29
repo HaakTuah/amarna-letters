@@ -1,7 +1,7 @@
 # Cities defended by their men, and a fair scoreboard (29 October 2026)
 
 Build order item 11e (`docs/intent/build-order/item-11.md`, the 11e part), added by Haakon's PR #151 answering item 11d's
-review. Branch `item/cities-defended`, PR #154. Save version 27. What was built, by file:
+review. Branch `item/cities-defended`, PR #154. Save version 28. What was built, by file:
 `docs/design/31-cities-defended.md`. Weekly usage: unknown (`scripts/usage.sh` cannot read it in this session). Effort:
 medium, as set.
 
