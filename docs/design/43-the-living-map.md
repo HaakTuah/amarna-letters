@@ -61,3 +61,38 @@ fields). The calendar itself shows everywhere: every court keeps the same year.
 
 **Measured.** On a phone (390 by 844, CPU slowed four times), with and without the pass: the long tasks of playing a
 season and of stepping back one on the timeline (`src/web/season-shots.mjs`), in the PR.
+
+## Pass 2: armies, characters and battles
+
+`src/web/src/map/figures.ts`: every figure is a symbol in the map's `<defs>`, drawn in one fill over its power's colour,
+so a unit is told apart by its style as well as its colour and emblem. Presentation names a power here ("Different data,
+same rules"); no rule reads it.
+
+| Style | Powers | After |
+| --- | --- | --- |
+| Egypt's companies | Egypt | Mesehti's wooden soldiers at Asyut: three spearmen in file behind tall round-topped shields |
+| The Anatolian chariot | Hatti, Arzawa, Kaska, Lukka, Seha, Mira, Isuwa, Azzi | the Hittite chariots of the Egyptian reliefs, three men in a deep car, the warrior gods' pointed caps of Yazılıkaya |
+| The Hurrian chariot | Mitanni, Assyria, Arrapha and the north Syrian cities (Carchemish, Alalakh, Aleppo, Niya, Nuhashshe, Tunip, Terqa) | their cylinder seals: a galloping horse and an archer at full draw |
+| Babylonia's standard | Babylonia, Suhu, Elam | the spade of Marduk on its pole, as the Kassite boundary stones carve it, before a spearman |
+| Canaanite foot | the Levant's cities | the sickle sword raised and the round shield |
+| The steppe's archers | the Shasu, the Suteans, Libya | archers at full draw |
+| The Aegean's shields | Alashiya | the figure-of-eight shield of the Aegean's figurines and frescoes |
+
+Fleets: Egypt's river ship (Tutankhamun's model boats: the papyriform hull, the wide sail, the steering oar); the Aegean
+galley for Alashiya and the western coast (the Thera flotilla fresco: the long hull, the stern cabin, the oars); the
+Syrian merchantman for every other (Kenamun's tomb: the deep hull between upright posts, the lookout at the masthead). A
+power risen in play takes the style of the fixed power whose capital is nearest its own: the land's own idiom.
+
+- **Envoys on the road** walk as a figure holding his tablet, after the foreign delegations in Meryre II's tomb; at a
+  court they keep their tablet chip, which reads at the smaller size.
+- **Battles.** Where an attack met troops in the field, a clash of arms (a spear across a sickle sword) in the colour of
+  the side that won it: at the arrow's head for an attack that carried, where it was stopped for one thrown back. Only
+  troops the viewer saw standing there count (`SceneMove.against`); an attack on empty land or walls keeps its burst.
+- **Siege camps.** The besieger's tents, in its colour, ring the walls of each city under a siege the viewer knows of.
+- **Bands and pirates.** A campfire below the city of each province a band works, and a pirate's ship for a crew that
+  has one, with its men and chief in the tooltip, as the engine's own view of a court shows them (in its sight, or in its
+  own land); every one in god view. They give way to more important markers as the others do.
+
+**Readings taken.** A battle is drawn only where the viewer saw the troops met (pillar 4): the same test that already
+tells it an attack from a march. The styles follow the item's list of relics; the Levantine cities, the nomads and the
+north Syrian cities, which it does not name, take the idiom of their neighbours and their own reliefs.

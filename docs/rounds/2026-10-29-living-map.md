@@ -74,3 +74,29 @@ was (a low Nile as unwatered land, a flood's water for one season, then spoiled 
 the rivers' flood seasons and winter read from the engine (`floodSeasonOf`, `WinterSeason`) rather than copied; a river
 in spate keeps the finer course when the season changes close up; storms along the open-sea crossings, where the
 engine's winter danger lies, rather than over coastless sea zones; comments and the notes' index.
+
+## Pass 2: armies, characters and battles
+
+PR #202, branch `item/living-map-figures`, stacked on pass 1.
+
+### What was built
+
+1. **Every army and fleet after the period's relics**, each culture in its own idiom (`figures.ts`; the table in the
+   design note): Egypt's spearmen after Mesehti's models, the Anatolian three-man chariot, the Hurrian chariot of the
+   seals, Babylonia's standard, Canaanite foot with the sickle sword, the steppe's archers, the Aegean's figure-of-eight
+   shields; Egypt's river ship, the Aegean galley and the Syrian merchantman.
+2. **Envoys walk the roads** as a figure with his tablet, after Meryre II's tomb.
+3. **Battles as a clash** in the winner's colour, where an attack met troops the viewer saw.
+4. **Siege camps**: the besieger's tents round the walls.
+5. **Bands' campfires and pirate crews**, as a court's own view shows them.
+6. The papyrus made finer and fainter, so it does not read as a grid close up.
+7. The legend shows every style; a scene test checks the bands a court draws against the engine's view of it, and that a
+   battle is drawn only where the court saw the troops.
+
+### Readings taken
+
+- **A battle only where the viewer saw the troops met** (pillar 4): the test the map already used to tell an attack.
+- **Bands as the engine's view shows them** (in sight, or in the court's own land: "its people tell of them").
+- **Styles for the powers the item does not name** ("Period first"): the north Syrian cities take the Hurrian chariot of
+  their seals, the Levant's cities the Canaanite foot of the Egyptian reliefs, the Shasu, Suteans and Libyans the archer;
+  a risen power the style of the nearest fixed power's land.
