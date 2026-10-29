@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Victory and the ending tab, revision 9 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Victory and the ending tab, revision 10 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## Victory, relative scoring and the random ending
 
 The winner is the power that grew most relative to where it started, and nobody knows which turn will be the last. Both choices protect the core hypothesis: relative scoring keeps weak powers in contention, and an unknown end keeps reputation valuable until the final turn.
@@ -49,7 +49,7 @@ The lines are written fresh in these voices and quote the sources where a line f
 **One scoreboard for every power** (decided 20 October 2026). Great Kings and city-states are the same kind of player: the same orders, envoys and characters, the same goal, judged on one scoreboard. A king who falls to a single city is then simply a small power, and nothing makes it pay to stay small or to avoid becoming great.
 
 - **What counts is physics, measurable and slow to turn:** the wealth of the realm, counted as held, debts left out ("The wealth of a realm"). Relations never count, since words can change in a season, and a vassal counts only through the tribute he actually pays, which leaves his realm and joins his overlord's as it arrives ("What a breach means, and to whom" under Written agreements).
-- **What changes is the comparison.** A power is measured against par for its starting position: what a power that started where it did usually achieves, from script games. A one-city power and an empire then have a comparable chance to win, and different powers emerge as winners.
+- **What changes is the comparison.** A power is measured against par for its starting position: what a power that started where it did usually achieves, from script games. A one-city power and an empire then have a comparable chance to win, and different powers emerge as winners. Each power's result is placed among the results its own starting position gets in the script games, a fall counted as the lowest, and the winner is the power whose result ranks highest among its own position's results; so every position has the same chance when played as the scripts play, and surviving where most fall still counts (decided 29 October 2026, build order item 11e: a mean with falls counted as 0 let any survivor of a fragile position win).
 - **A vassal is on the same scoreboard as its overlord,** so a vassal growing strong is a rival, and an overlord has reason to keep his vassals useful but not too strong.
 - **To design in build order item 11+ and tune in item 18:** how par is computed, and how the land weighs against gold and goods: at a fixed multiple of what it produces, or perhaps as the gold it can still produce in the seasons a game is likely to have left, though that makes land cheaper against gold as the omens darken.
 
