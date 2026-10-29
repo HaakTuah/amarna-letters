@@ -46,6 +46,8 @@ export function AudiencePanel({ a, court, structured, onAnswer }: { a: AudienceV
       <p className="muted">
         Round {a.round} of {a.maxRounds} · {a.envoy.name} of {a.envoy.origin} {a.envoy.knownFacts.length > 0 ? "· " + a.envoy.knownFacts.join(" ") : ""}
       </p>
+      {a.heardThrough !== null && <p className="muted">Nobody else here speaks with {a.envoy.name}: {a.heardThrough} carries his words to you, and yours to him.</p>}
+      {a.presented > 0 && <p className="muted">While nobody at your court understood him, he presented gifts weighing {a.presented} shekels, now in your treasury.</p>}
       {a.greeting.length > 0 ? (
         <div className="tablet">{a.greeting}</div>
       ) : (
