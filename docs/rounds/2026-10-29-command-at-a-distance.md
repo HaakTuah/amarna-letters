@@ -57,7 +57,28 @@ See `docs/design/34-command-at-a-distance.md`. In short:
 
 ## The review
 
-(Filled when the reviewer returns.)
+One reviewer (given the diff, the item's text and "The game in one page") found four blocking points and six to fix,
+all fixed in this branch:
+
+- **A grant revoked at a distance at once** (blocking): a new commander could be named while word of the old one's recall
+  was still on the road, so he left before it reached him and never had his chance to refuse. Now refused until the
+  recall reaches him (tested).
+- **Orders naming a unit known only by report** (blocking): command, recall and mandate were checked at the unit's true
+  place, and a near unit truly at a place could lose an order to a far one only reported there. One helper now names the
+  unit for every order: the one truly there within the season's reach, else the one the king's reports show there.
+- **The seat view leaking a far unit's present** (blocking): a report that clashed with another unit was shown where the
+  unit truly stood, and food, hunger and pay owed were current. Now a clashing report is shown by an older free report
+  of it (or left out), the report carries food, hunger and pay owed, and the notices of recalls, refusals, governors'
+  levies and enlisted bands travel back by courier.
+- **Governed provinces passing to the conqueror** (blocking): the section gives the governor his province with a seat of
+  his own, never to the conqueror; that seat is item 17's risen seats, so governed land now falls lawless with the rest
+  (question 1 below).
+- Also fixed: a captain rises only in an army owed pay or hungry ("an army that is paid and fed never does"); a mandate
+  needs a commander; the march notice gives the seasons left; a fallen court's road and couriers end; script commanders
+  read the game's map, not the full one; the sack notice counts the commanders' share apart; no power named in code; the
+  rulebook's HOW YOU WIN line on a kingdom's fall said all its land passed to the conqueror.
+- Raised as a question rather than changed: the fall coming apart at once rather than as the news reaches each province
+  (question 2).
 
 ## Readings taken
 
@@ -66,14 +87,17 @@ Each rests on "The game in one page", the item's sections or the dossier.
 1. **One connection a season for armies, whatever their pace** ("Distance-based marching" keeps the board's moves):
    pace decides whether a move arrives this season, never more than one province.
 2. **A governor's seat of his own waits for item 17** ("A revolt with no leader" brings risen seats): his province
-   passes to the conqueror as before. Principle: no stopgaps; the lever moves to the item that brings its consequence.
+   falls lawless with the rest, and he walks home. Principle: no stopgaps (the conqueror is never given it, which the
+   section rules out); the seat comes with the item that brings risen seats. Question 1 asks whether to bring it forward.
 3. **A fallen kingdom comes apart at once**, not as the news reaches each province: the parts' rulers are the conqueror
-   and nobody (lawless) until item 17, so timing changes nothing a king can act on.
+   and nobody (lawless) until item 17, so timing changes little a king can act on. The item's text says "once the news
+   reaches it", so this goes to Haakon as question 2.
 4. **Script commanders only** ("Models only where they matter"): a commander's mind is a script reading his mandate by
    his competence; kings write the mandates.
 5. **A commander's journey to his army is not a road journey** with interception: it takes the courier's time.
 6. **Scheduled and conditional orders read the king's knowledge**, which is now only what couriers bring ("Scheduled,
-   conditional orders").
+   conditional orders" says "what is known where they run"): a standing order fires only on what its own army sees, and
+   other conditions read what the king knows, which is the nearest the orders' triggers allow without a second view.
 7. **Realm-wide decrees (roads, tolls) take effect at once**: they are proclamations, not orders to a unit or place.
 8. **A feint fools a standing order only by twice as many men** threatening as the order's own: a probe by a few
    cannot set off a whole army.
