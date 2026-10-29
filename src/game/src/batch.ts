@@ -98,6 +98,8 @@ export interface GameSummary {
 export interface RisenMeasure {
   power: string;
   from: string;
+  /** How its ruler rose (item 17): governor, turned, revolt, chief or elder. */
+  how?: string;
   turn: number;
   /** The seasons it ruled: to its fall, or to the end. */
   seasons: number;
@@ -118,6 +120,7 @@ export function risenMeasures(s: GameState, engine: TurnEngine): RisenMeasure[] 
     return {
       power: r.power,
       from: r.from,
+      how: r.how,
       turn: r.turn,
       seasons: (fell?.turn ?? end) - r.turn,
       alive: fell === null,
@@ -133,10 +136,17 @@ export function risenMeasures(s: GameState, engine: TurnEngine): RisenMeasure[] 
 export function risenReport(games: readonly GameSummary[]): string[] {
   const all = games.flatMap((g) => g.risen ?? []);
   const rose = games.filter((g) => (g.risen ?? []).length > 0).length;
-  if (all.length === 0) return ["Governors' seats (item 13+): none rose."];
+  const sig = (k: string): number => sum(games, (g) => g.signals[k] ?? 0);
+  const free = [
+    `How cities became free (item 17): revolts ${sig("revolt-led") + sig("revolt-lawless")} (led ${sig("revolt-led")}, lawless ${sig("revolt-lawless")}; of the homeland ${sig("revolt-home")}), ${sig("revolt-crushed")} put down by troops; gates opened from within ${sig("siege-starved")}; spies stirring ${sig("stir")} seasons.`,
+    `  Armies by leave, unit-seasons: bought their food ${sig("supply-buy")}, took it ${sig("supply-take")}; commanders who kept the gold ${sig("supply-kept")}.`,
+  ];
+  if (all.length === 0) return ["Seats risen in play (items 13+ and 17): none rose.", ...free];
   const used = all.filter((r) => r.envoys > 0).length;
+  const how = ["governor", "turned", "revolt", "chief", "elder"].map((h) => `${h} ${all.filter((r) => (r.how ?? "governor") === h).length}`).join(", ");
   return [
-    `Governors' seats (item 13+): ${all.length} rose in ${rose} of ${games.length} games; ${all.filter((r) => r.alive).length} still ruled at the end, after ${fmt(mean(all.map((r) => r.seasons)), "0.0")} seasons on average; mean growth ${fmt(mean(all.map((r) => r.growth)), "0.00")} (the survivors' ${fmt(mean(all.filter((r) => r.alive).map((r) => r.growth)), "0.00")}).`,
+    ...free,
+    `Seats risen in play (items 13+ and 17; by how: ${how}): ${all.length} rose in ${rose} of ${games.length} games; ${all.filter((r) => r.alive).length} still ruled at the end, after ${fmt(mean(all.map((r) => r.seasons)), "0.0")} seasons on average; mean growth ${fmt(mean(all.map((r) => r.growth)), "0.00")} (the survivors' ${fmt(mean(all.filter((r) => r.alive).map((r) => r.growth)), "0.00")}).`,
     `  Their seats sent envoys in ${used} of ${all.length} (${sum(all, (r) => r.envoys)} envoys) and sealed ${sum(all, (r) => r.sealed)} tablets with other courts, ${sum(all, (r) => r.vassal)} of them vassal tablets.`,
   ];
 }

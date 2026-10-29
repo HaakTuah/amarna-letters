@@ -160,6 +160,7 @@ function revolt(e: TurnEngine, id: string, level: number): void {
   const holder = S.owner.getOrDefault(id, null);
   if (holder === null) return;
   const name = e.map.get(id).name;
+  if (e.map.isHome(holder, id)) logEvent(S, "revolt", `${name}, of ${holder}'s own homeland, rose (unrest ${level}).`, [], "revolt-home");
   const leader = e.wantsIt(id);
   const gov = e.governorOf(id);
   // A governor who leads it takes the levies he raised there with him; any other troops of the master there fight it.

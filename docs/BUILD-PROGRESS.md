@@ -83,7 +83,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 14 | Legends | done (29 Oct; no questions): biographies, histories of tablets and the rise and fall of courts read from the record; the record opened to every seat at the end (lies, skims, forged seals, bent words, secret masters, the drawn season); "a new Idrimi" on 13+'s risen governors; Finkel's third plea in the record and the annals, and a greedy script king's begging letter; save version 34 | `item/legends` (#189) | [report](rounds/2026-10-29-legends.md) |
 | 15 | Infrastructure and policing | in progress (29 Oct): walls, roads, relay stations, harbours, policing and water works as one rule; save version 35 | `item/infrastructure` (#192) | [report](rounds/2026-10-29-infrastructure-and-policing.md) |
 | 16 | The royal council | not started | | |
-| 17 | How cities become free | not started | | |
+| 17 | How cities become free | in progress (29 Oct): unrest from conditions and revolts, rulers of their own, the gate opened from within, buying or taking food; save version 37 | `item/free-cities` (#198) | [report](rounds/2026-10-29-free-cities.md) |
 | 18 | The balance pass | not started | | |
 | 19 | The living map | not started: with every feature built; may run beside 18 | | |
 
