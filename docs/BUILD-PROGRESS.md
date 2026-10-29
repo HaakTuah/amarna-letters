@@ -98,4 +98,8 @@ Side lane, map labels overlapping on a busy machine (29 Oct, #196): names and ma
 glide or a piece's slide really ends, not on timers guessed from their length; the smoke test waits for a still map and
 plays a game in slow motion (`docs/rounds/2026-10-29-map-label-overlap.md`).
 
+Side lane, the smoke test in CI (29 Oct, #199): a `smoke` job beside the test shards, only when a PR changes what the
+app bundles; it caught names still overlapping after #196: Chromium re-sized map text after placement, now laid out at its own size
+(`docs/rounds/2026-10-29-ci-smoke.md`).
+
 Done items 1 to 10 and the port's findings (all handled): `docs/archive/progress-done.md`.
