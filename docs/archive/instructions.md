@@ -346,3 +346,17 @@ Given in the design chat with Claude, answering the design questions of the cons
     > it is essentially game over.
 
     Written into the design document as item 11d.
+
+35. **06:57**, in the design chat, answering item 11d's review question (early falls and who wins), which Claude had
+    relayed word for word with its take (a city's men defend its walls, a scoreboard by rank within one's own starting
+    position):
+
+    > Can't really see the difference between E and F, so you pick, expertly.
+    >
+    > And agreed to all! Implement expertly!
+    >
+    > Question: didn't you say the millitary age male population will defend their city when someone storms, or? Is it
+    > still that easy to storm?
+
+    Written into the design document as item 11e, "The people defend their land" (War) and "One scoreboard for every
+    power" (Victory). (The first line is for Barkstreet Snakes' Wildcard's hair.)

@@ -15,15 +15,15 @@ the live document wins. If the docs connector is not available, go on with the c
 | Tab | Folder | Node | Revision |
 | --- | --- | --- | --- |
 | Overview | `docs/intent/overview/` | `320f0886-6acf` | 567 |
-| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 88 |
+| Build order | `docs/intent/build-order/` | `f6588701-e47a` | 89 |
 | World and history | `docs/intent/world-and-history/` | `f2f7044b-c6fa` | 35 |
 | Engine and models | `docs/intent/engine-and-models/` | `23452eff-9a74` | 56 |
 | Diplomacy and intelligence | `docs/intent/diplomacy-and-intelligence/` | `83ac9cba-81ca` | 25 |
 | Characters | `docs/intent/characters/` | `0051b400-09bd` | 20 |
 | Work, money and lending | `docs/intent/work-money-and-lending/` | `016f3c32-0e2b` | 15 |
 | Land, people and economy | `docs/intent/land-people-and-economy/` | `3dedb02f-88dd` | 29 |
-| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 60 |
-| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 9 |
+| War, travel and the seas | `docs/intent/war-travel-and-the-seas/` | `98ebd607-ce90` | 61 |
+| Victory and the ending | `docs/intent/victory-and-the-ending/` | `58b70949-2c17` | 10 |
 | Interface and the council | `docs/intent/interface-and-the-council/` | `ed35e82f-6e5a` | 15 |
 | Tests, risks and references | `docs/intent/tests-risks-and-references/` | `e10064a1-1833` | 14 |
 | Ideas | `docs/intent/ideas/` | `c1a09612-6320` | 17 |
@@ -52,7 +52,7 @@ session loads.
 | `docs/intent/build-order/item-9plus.md` | 9+. The economy, first phase | 5.1 |
 | `docs/intent/build-order/item-10.md` | 10. Characters, first package: who they are. "Errands, not roles", "Kings never  | 1.5 |
 | `docs/intent/build-order/item-10plus.md` | 10+. People of the land | 5.7 |
-| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 17.1 |
+| `docs/intent/build-order/item-11.md` | 11. Characters, second package: their lives. "A living pool", with new character | 19.3 |
 | `docs/intent/build-order/item-11plus.md` | 11+. City-states as powers | 2.4 |
 | `docs/intent/build-order/item-12.md` | 12. Languages. "Languages": skill as time, learning by living in a province, tab | 1.3 |
 | `docs/intent/build-order/item-13.md` | 13. Command at a distance. Distance inside the realm | 2.5 |
@@ -102,14 +102,14 @@ session loads.
 | `docs/intent/land-people-and-economy/the-people-of-the-land.md` | The people of the land | 7.7 |
 | `docs/intent/land-people-and-economy/land-climate-and-rivers.md` | Land, climate and rivers | 6.9 |
 | `docs/intent/war-travel-and-the-seas/front.md` | Title and what the tab holds | 0.2 |
-| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 17.1 |
+| `docs/intent/war-travel-and-the-seas/territory-and-military.md` | Territory and military | 17.5 |
 | `docs/intent/war-travel-and-the-seas/command-at-a-distance.md` | Command at a distance | 5.8 |
 | `docs/intent/war-travel-and-the-seas/commanders.md` | Commanders | 3.3 |
 | `docs/intent/war-travel-and-the-seas/seas-interception-and-outlaws.md` | Seas, interception and outlaws | 12.5 |
 | `docs/intent/war-travel-and-the-seas/travel-passage-and-distance.md` | Travel, passage and distance | 3.3 |
 | `docs/intent/war-travel-and-the-seas/bands-pirates-and-outlaws.md` | Bands, pirates and outlaws | 10.8 |
 | `docs/intent/victory-and-the-ending/front.md` | Title and what the tab holds | 0.1 |
-| `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 18.6 |
+| `docs/intent/victory-and-the-ending/victory-relative-scoring-and-the-random-ending.md` | Victory, relative scoring and the random ending | 19.0 |
 | `docs/intent/victory-and-the-ending/the-characters-ranking.md` | The characters' ranking | 1.9 |
 | `docs/intent/interface-and-the-council/front.md` | Title and what the tab holds | 0.1 |
 | `docs/intent/interface-and-the-council/spectator-mode-and-analysis.md` | Spectator mode and analysis | 11.0 |
