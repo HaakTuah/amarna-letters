@@ -30,6 +30,7 @@ import {
   unitAt,
   wallsOf,
   StartWalls,
+  courtReads,
 } from "@amarna/engine";
 import { removeAll, Assert, oldWorld } from "./support.ts";
 import { playRandom } from "./games.ts";
@@ -54,22 +55,23 @@ describe("EngineTests", () => {
   test("New game matches the starting tiers", () => {
     let s = newGame(1);
     let e = new TurnEngine(s);
-    // The Great Kings' 16 units (item 11d gave Terqa, Mira and Seha to their own rulers) and one for each of the 32
-    // city-states (item 11+, and item 11c's six of Canaan).
-    Assert.equal(48, s.units.length);
+    // The Great Kings' 16 units (item 11d gave Terqa, Mira and Seha to their own rulers) and one for each of the 40
+    // city-states (item 11+, item 11c's six of Canaan and item 11f's eight).
+    Assert.equal(56, s.units.length);
     // Walls by place: the seven Great Kings' capitals and Qatna, Qadesh and Hazor 3; the walls dossier's for the other
-    // city-states (items 11d and 11c), four fortresses 2, Sumur 1; the chiefs' lands none.
-    Assert.equal(41, s.walls.size);
+    // city-states (items 11d, 11c and 11f), four fortresses 2, Sumur and Samuha 1; the chiefs' lands none.
+    Assert.equal(48, s.walls.size);
     Assert.equal(10, count(s.walls, (w) => w[1] === 3));
     Assert.all(
       WorldMap.default.landProvinces.filter((p) => p.capital),
       (p) => Assert.equal(StartWalls.get(p.id) ?? 0, wallsOf(s, p.id)),
     );
     Assert.true(WorldMap.default.landProvinces.every((p) => p.home !== null));
-    Assert.equal(100, s.characters.length);
+    // The pool of 100 and, since item 11f, an Akkadian scribe at every court that reads Akkadian.
+    Assert.equal(100 + AllPowers.filter((p) => (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0) === 1).length, s.characters.length);
     Assert.all(AllPowers, (p) =>
       Assert.equal(
-        isGreatKing(p) ? 2 : 1,
+        (isGreatKing(p) ? 2 : 1) + (courtReads(p, WorldMap.default.capital(p).id).includes("Akkadian") ? 1 : 0),
         count(s.characters, (c) => c.employer === p),
       ),
     );

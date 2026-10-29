@@ -785,7 +785,7 @@ function approach(b: Board, brain: Brain, from: string, taken: HSet<string>, isW
       const owner = b.ownerOf(n);
       let lure = 0;
       if (!Board.Map.get(n).isSea && owner !== b.me && (owner === null || isWilling(owner))) lure = b.value(n);
-      // Desert land not ours costs an army supplies for each season it ends there.
+      // Desert land not ours feeds nobody: an army there eats its baggage, which a caravan must make good.
       if (kind === "Army") lure = Math.max(0, lure - b.desertCost(n));
       if (b.isMine(n) && threat.has(n) && !b.unitAt.has(n)) lure = Math.max(lure, b.value(n) * 0.8);
       // A friend's city besieged, as we see it or as he pleaded with us: worth marching next to it, to drive the besiegers

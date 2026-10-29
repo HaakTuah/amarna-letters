@@ -248,8 +248,11 @@ export function buildMap(): WorldMap {
     // Hatti (strong): central Anatolia. Nesa is Kanesh by its Hittite name (Kanesh mattered most in the Old Assyrian age).
     p("tuwanuwa", "Tuwanuwa", "Land", "Hatti", 30, false, 37.97, 34.68),
     p("hattusa", "Hattusa", "Land", "Hatti", 50, true, 40.02, 34.62),
-    p("sapinuwa", "Sapinuwa", "Land", "Hatti", 30, false, 40.33, 35.32),
-    p("nesa", "Nesa", "Land", "Hatti", 35, false, 38.85, 35.63),
+    p("sapinuwa", "Sapinuwa", "Land", "Hatti", 25, false, 40.33, 35.32),
+    p("nesa", "Nesa", "Land", "Hatti", 30, false, 38.85, 35.63),
+    // Samuha (Kayalıpınar on the upper Halys), in Hatti's Upper Land, where the court sat while Hattusa was overrun (item
+    // 11f, "What earns a place"), carved from Sapinuwa's and Nesa's land, each 5 less (first guesses, item 18).
+    p("samuha", "Samuha", "Land", "Hatti", 25, false, 39.61, 36.52),
     p("kizzuwatna", "Kizzuwatna", "Coast", "Hatti", 35, false, 36.92, 34.9),
 
     // Mitanni (middle): upper Khabur
@@ -289,11 +292,18 @@ export function buildMap(): WorldMap {
     // force (each has walls: see StartWalls) or by agreement, never bought. Gaza and Sumur are Egypt's own land, governed
     // by its commissioners ("Opening relations as they were"; the politics dossier).
     p("isuwa", "Isuwa", "Land", "Isuwa", 30, true, 38.67, 39.22),
+    // Item 11f ("What earns a place"): Azzi-Hayasa, the highlands beyond Isuwa under Hukkana (by Erzincan; its towns not
+    // located), new land on the map
+    p("azzi", "Azzi-Hayasa", "Land", "Azzi", 20, true, 39.75, 39.49),
     p("carchemish", "Carchemish", "Land", "Carchemish", 35, true, 36.83, 38.02),
-    p("alalakh", "Alalakh", "Land", "Alalakh", 25, true, 36.24, 36.38),
+    p("alalakh", "Alalakh", "Land", "Alalakh", 20, true, 36.24, 36.38),
     p("aleppo", "Aleppo", "Land", "Aleppo", 35, true, 36.2, 37.16),
     p("ugarit", "Ugarit", "Coast", "Ugarit", 40, true, 35.6, 35.78),
-    p("nuhashshe", "Nuhashshe", "Land", "Nuhashshe", 25, true, 35.5, 37.0),
+    p("nuhashshe", "Nuhashshe", "Land", "Nuhashshe", 20, true, 35.5, 37.0),
+    // Item 11f: two cities on the Orontes, Niya (probably Qal'at al-Mudiq, above the Ghab) from Alalakh's land and Tunip
+    // (probably Tell Acharneh) from Nuhashshe's, each of those 5 less
+    p("niya", "Niya", "Land", "Niya", 15, true, 35.42, 36.4),
+    p("tunip", "Tunip", "Land", "Tunip", 15, true, 35.29, 36.4),
     p("qatna", "Qatna", "Land", "Qatna", 30, true, 34.84, 36.86),
     p("qadesh", "Qadesh", "Land", "Qadesh", 30, true, 34.56, 36.52),
     // Amurru, the hill country behind the coast, and Ṣumur (Tell Kazel), Egypt's base on that coast, a province of its own
@@ -301,8 +311,10 @@ export function buildMap(): WorldMap {
     p("amurru", "Amurru", "Land", "Amurru", 20, true, 34.7, 36.2),
     p("sumur", "Sumur", "Coast", "Egypt", 15, false, 34.82, 35.98),
     p("arwad", "Arwad", "Coast", "Arwad", 20, true, 34.86, 35.86),
-    p("byblos", "Byblos", "Coast", "Byblos", 30, true, 34.12, 35.65),
-    p("sidon", "Sidon", "Coast", "Sidon", 25, true, 33.56, 35.37),
+    p("byblos", "Byblos", "Coast", "Byblos", 25, true, 34.12, 35.65),
+    // Beirut under Ammunira (item 11f), carved from Byblos's and Sidon's land, each 5 less
+    p("beirut", "Beirut", "Coast", "Beirut", 10, true, 33.9, 35.5),
+    p("sidon", "Sidon", "Coast", "Sidon", 20, true, 33.56, 35.37),
     p("damascus", "Damascus", "Land", "Damascus", 20, true, 33.51, 36.29),
     p("tyre", "Tyre", "Coast", "Tyre", 25, true, 33.27, 35.2),
     p("megiddo", "Megiddo", "Land", "Megiddo", 15, true, 32.58, 35.18),
@@ -318,6 +330,10 @@ export function buildMap(): WorldMap {
     p("ashkelon", "Ashkelon", "Coast", "Ashkelon", 10, true, 31.66, 34.55),
     p("lachish", "Lachish", "Land", "Lachish", 10, true, 31.56, 34.85),
     p("hebron", "Hebron Hills", "Land", "Hebron", 10, true, 31.53, 35.1),
+    // Item 11f: east of the Jordan, Pella (Pihil, Tabaqat Fahl) under Mut-Bahlu and Ashtaroth (Tell Ashtara) under Ayyab,
+    // new land on the map
+    p("pella", "Pella", "Land", "Pella", 10, true, 32.45, 35.62),
+    p("ashtaroth", "Ashtaroth", "Land", "Ashtaroth", 10, true, 32.8, 36.01),
     p("gaza", "Gaza", "Coast", "Egypt", 15, false, 31.5, 34.46),
     p("suhu", "Suhu", "Land", "Suhu", 35, true, 34.47, 41.95),
     p("arrapha", "Arrapha", "Land", "Arrapha", 30, true, 35.47, 44.39),
@@ -327,6 +343,10 @@ export function buildMap(): WorldMap {
     { ...p("lukka", "Lukka", "Coast", "Lukka", 15, true, 36.4, 29.4), kingless: true },
     { ...p("kaska", "Kaska Lands", "Land", "Kaska", 10, true, 41.1, 35.4), kingless: true },
     { ...p("steppe", "Sutean Steppe", "Land", "Suteans", 10, true, 34.55, 38.27), kingless: true },
+    // Item 11f ("The edges of the map"): Libya west of the Delta, the Tjehenu and Tjemehu, and the Shasu of the Negev and
+    // Edom, each a desert land under a chief, no town: their centres are the herders' land, not a site [G]
+    { ...p("libya", "Libya", "Land", "Libya", 10, true, 30.95, 28.6), kingless: true },
+    { ...p("shasu", "Shasu Lands", "Land", "Shasu", 10, true, 30.6, 35.3), kingless: true },
   ];
 
   // Sea zones: the waters of each coastal province (Ṣumur's shared with Arwad), the open sea at the Aegean edge, and the Gulf.
@@ -344,6 +364,7 @@ export function buildMap(): WorldMap {
     waters("ugarit", "Ugarit waters"),
     waters("sumur", "Sumur and Arwad waters"),
     waters("byblos", "Byblos waters"),
+    waters("beirut", "Beirut waters"),
     waters("sidon", "Sidon waters"),
     waters("tyre", "Tyre waters"),
     waters("akko", "Akko waters"),
@@ -382,7 +403,10 @@ export function buildMap(): WorldMap {
   coast("lukka", "kizzuwatna");
   land("tuwanuwa", "hattusa", "nesa", "kizzuwatna");
   land("hattusa", "sapinuwa", "nesa", "kaska");
-  land("sapinuwa", "nesa", "isuwa", "kaska");
+  // The road from Sapinuwa to Isuwa runs through the Upper Land, by Samuha (item 11f); Azzi beyond Samuha and Isuwa.
+  land("sapinuwa", "nesa", "samuha", "kaska");
+  land("samuha", "nesa", "isuwa", "kaska", "azzi", "hattusa");
+  land("azzi", "isuwa");
   land("nesa", "kizzuwatna", "isuwa", "carchemish");
   land("kizzuwatna", "carchemish", "alalakh");
 
@@ -407,9 +431,12 @@ export function buildMap(): WorldMap {
   land("nippur", "ur");
 
   // Northern Syria
-  land("alalakh", "aleppo", "ugarit");
+  land("alalakh", "aleppo", "ugarit", "niya");
   land("aleppo", "nuhashshe");
-  land("ugarit", "nuhashshe");
+  // Item 11f: the roads from the coast into the Orontes valley now reach Niya and Tunip, and go on to Nuhashshe from them.
+  land("ugarit", "niya");
+  land("niya", "nuhashshe", "tunip");
+  land("tunip", "nuhashshe", "qatna", "qadesh", "amurru", "sumur");
   land("nuhashshe", "qatna", "qadesh");
   land("qatna", "qadesh", "steppe");
   land("suhu", "steppe");
@@ -417,12 +444,14 @@ export function buildMap(): WorldMap {
   // The Levant
   coast("ugarit", "sumur");
   land("ugarit", "amurru");
-  land("amurru", "sumur", "qadesh", "nuhashshe", "byblos");
+  land("amurru", "sumur", "qadesh", "byblos");
   coast("sumur", "byblos");
   land("qadesh", "byblos", "damascus");
   land("steppe", "damascus");
   land("byblos", "damascus");
-  coast("byblos", "sidon");
+  coast("byblos", "beirut");
+  coast("beirut", "sidon");
+  land("beirut", "damascus");
   land("sidon", "damascus");
   coast("sidon", "tyre");
   land("tyre", "damascus", "megiddo");
@@ -441,9 +470,15 @@ export function buildMap(): WorldMap {
   land("jerusalem", "gaza", "sinai");
   land("gaza", "sinai");
   coast("gaza", "delta");
+  // East of the Jordan (item 11f): Pella across from Beth-Shan, Ashtaroth in the Bashan on the road to Damascus, and the
+  // Shasu's land south of the Dead Sea, reached from the Hebron hills, across the Sinai, and north by the King's Highway.
+  land("pella", "megiddo", "shechem", "ashtaroth", "hazor");
+  land("ashtaroth", "damascus", "hazor");
+  land("shasu", "hebron", "sinai", "ashtaroth", "gaza");
 
   // Egypt and Nubia
   land("sinai", "delta", "memphis");
+  land("libya", "delta", "memphis");
   land("delta", "memphis");
   land("memphis", "akhetaten");
   land("akhetaten", "thebes");
@@ -462,7 +497,8 @@ export function buildMap(): WorldMap {
   hop(w("ashkelon"), w("akko"), true);
   hop(w("akko"), w("tyre"), true);
   hop(w("tyre"), w("sidon"), true);
-  hop(w("sidon"), w("byblos"), true);
+  hop(w("sidon"), w("beirut"), true);
+  hop(w("beirut"), w("byblos"), true);
   hop(w("byblos"), w("sumur"), true);
   hop(w("sumur"), w("ugarit"), true);
   hop(w("ugarit"), w("kizzuwatna"), true);
@@ -502,7 +538,10 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   ["qatna", 3], ["qadesh", 3],
   ["carchemish", 2], ["aleppo", 2], ["ugarit", 2], ["arwad", 2], ["byblos", 2], ["tyre", 2], ["shechem", 2], ["susa", 2],
   ["isuwa", 1], ["alalakh", 1], ["nuhashshe", 1], ["amurru", 1], ["sidon", 1], ["damascus", 1], ["megiddo", 1],
-  ["jerusalem", 1], ["suhu", 1], ["arrapha", 1], ["seha", 1], ["mira", 1], ["terqa", 1],
+  ["jerusalem", 1], ["suhu", 1],
+  // Item 11f, by the same reading: Tunip's and Niya's, Beirut's, Pella's and Ashtaroth's towns, which the walls dossier
+  // knows nothing of, and Azzi's mountain strongholds (Aripsa, Dukkamma) 1; Libya and the Shasu, no town, none
+  ["tunip", 1], ["niya", 1], ["beirut", 1], ["pella", 1], ["ashtaroth", 1], ["azzi", 1], ["arrapha", 1], ["seha", 1], ["mira", 1], ["terqa", 1],
   // Item 11c's six cities of Canaan, by the same reading of the walls dossier: Hazor's great Middle Bronze rampart, still
   // used, 3; the five the dossier does not list 1, as the other towns it knows nothing of
   ["hazor", 3], ["akko", 1], ["gezer", 1], ["ashkelon", 1], ["lachish", 1], ["hebron", 1],
@@ -510,6 +549,8 @@ export const StartWalls: ReadonlyMap<string, number> = new Map([
   ["gaza", 2], ["memphis", 2], ["nesa", 2], ["nineveh", 2],
   // Walled towns
   ["sumur", 1],
+  // Samuha, the Upper Land's royal residence and army base (KBo VI 28), first guess 1
+  ["samuha", 1],
 ]);
 
 export interface StartUnit {

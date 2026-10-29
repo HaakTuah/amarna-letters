@@ -49,10 +49,11 @@ describe("TradeTests", () => {
     // Its grain (less what the porters ate) was sold to the free city's market, paid from its people's purse, and the
     // proceeds came home to the treasury.
     Assert.true(m.purse < purse);
-    Assert.contains("sold 81 measures of grain for", notices(s, "Hatti", "Markets and caravans"));
+    // Less what the porters ate on the longer road across the Marassantiya (item 11f).
+    Assert.contains("sold 69 measures of grain for", notices(s, "Hatti", "Markets and caravans"));
     Assert.contains("came home to Hattusa with", notices(s, "Hatti", "Markets and caravans"));
     Assert.true(s.events.some((x) => x.signal === "sale-abroad"));
-    Assert.contains("came home to Hattusa with 1 mina 25 shekels into the treasury", notices(s, "Hatti", "Markets and caravans"));
+    Assert.contains("came home to Hattusa with 1 mina 21 shekels into the treasury", notices(s, "Hatti", "Markets and caravans"));
   });
 
   test("Tolls: the most particular rate applies, and goods entering pay it in kind and in gold", () => {

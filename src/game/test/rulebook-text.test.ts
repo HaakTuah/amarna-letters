@@ -318,9 +318,9 @@ describe("StandingsAndTravelTests", () => {
 
   test("The rulebook gives the travel times the map makes", () => {
     let rules = leaderRules(true, newGameConfig());
-    Assert.doesNotContain("1 to 3 seasons each way", rules);
+    // Since item 11f the farthest courts, Elam and Libya or the Kaska, are three seasons apart, as far as any province.
     Assert.contains(
-      "Envoys take about 1 or 2 seasons each way between courts in the sailing season (ENVOY TRAVEL in your view gives each court this season; see NEWS AND TRAVEL); a spy sent to watch a distant province may take up to 3 seasons to reach it, and its reports as long to come home.",
+      "Envoys take about 1 to 3 seasons each way between courts in the sailing season (ENVOY TRAVEL in your view gives each court this season; see NEWS AND TRAVEL).",
       rules,
     );
 
@@ -328,7 +328,7 @@ describe("StandingsAndTravelTests", () => {
     let e = new TurnEngine(s);
     let courts = new HSet(AllPowers.flatMap((a) => AllPowers.filter((b) => b !== a).map((b) => e.travelTurns(a, b))));
     Assert.equal(
-      [1, 2],
+      [1, 2, 3],
       [...courts].sort((a, b) => a - b),
     );
     Assert.all(Views.for(s, "Egypt").travelTimes, (t) => Assert.matches("^[A-Za-z]+: [12] season\\(s\\) each way$", t));

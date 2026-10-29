@@ -22,7 +22,7 @@ export const SignalKinds: readonly string[] = [
   "support-kept", "claim-established",
   "winter-crossed", "winter-loss", "envoy-sealed", "repudiated", "passage-granted", "basing-granted", "grant-revoked",
   "sale", "grain-bought", "feed", "caravan-out", "caravan", "caravan-taken", "caravan-robbed", "caravan-lost", "forage", "hunger", "unpaid", "mutiny", "siege-starved", "siege-thirst",
-  "trade-out", "ship-out", "traded", "sale-abroad", "purchase-abroad", "toll-set", "toll-paid", "smuggled", "smuggler-found", "ship-lost", "food-bought", "sack",
+  "trade-out", "ship-out", "traded", "sale-abroad", "purchase-abroad", "toll-set", "toll-paid", "smuggled", "smuggler-found", "caravan-slipped", "caravan-found", "ship-lost", "food-bought", "sack",
   "false-name", "false-envoy", "impostor-exposed", "false-envoy-paid", "gift-to-person", "questioned", "questioned-truth", "questioned-lie",
   "captive-handed", "tablet-stolen",
   "tax-set", "famine", "colonists", "resisted", "drought", "flood",

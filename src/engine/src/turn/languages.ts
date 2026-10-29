@@ -98,7 +98,9 @@ function courtOfCapital(e: TurnEngine, province: string): Power | null {
 /** The servants of a court standing there, free to speak for it. */
 function servantsAt(e: TurnEngine, p: Power): Character[] {
   return sortBy(
-    e.s.characters.filter((x) => x.status === "Employed" && x.employer === p && x.at === p && x.heldBy === null && x.duty === "None"),
+    // Anyone in the court's service standing at it, whatever his errand there: a scribe, a resident envoy, anyone it pays
+    // to stay (Haakon's answer to item 12's review, built in item 11f).
+    e.s.characters.filter((x) => x.status === "Employed" && x.employer === p && x.at === p && x.heldBy === null),
     [(x: Character) => idNumber(x.id), cmpNum],
   );
 }

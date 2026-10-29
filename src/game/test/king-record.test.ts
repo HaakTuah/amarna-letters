@@ -147,10 +147,9 @@ describe("KingRecordTests", () => {
     let asker = new Scripted((_) => host("Welcome."));
     await new LlmLeaderSeat("Hatti", asker, "m", "medium", true, s.config).hostAudience(envoy(2), view(s, 2));
 
-    Assert.contains(
-      `Tablets you hold (in full those that bear the seal of the envoy's court, the others by their opening words): the tablet sealed by Egypt and Hatti, dated turn 1 [your copy k901]: "${text}"`,
-      Assert.single(asker.asked).user,
-    );
+    // Hatti also holds its vassal tablet with Azzi (item 11f), read by its opening words.
+    Assert.contains(`Tablets you hold (in full those that bear the seal of the envoy's court, the others by their opening words): `, Assert.single(asker.asked).user);
+    Assert.contains(`the tablet sealed by Egypt and Hatti, dated turn 1 [your copy k901]: "${text}"`, Assert.single(asker.asked).user);
     // A tablet that does not concern the envoy's court is read by its opening words.
     s.copies[s.copies.length - 1].tabletId = "t901";
     s.tablets.push(newTablet({ id: "t901", text: text, proposedBy: "Assyria", partner: "Hatti", seals: ["Assyria", "Hatti"], createdTurn: 1, sealedTurn: 1 }));

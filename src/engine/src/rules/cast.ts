@@ -134,13 +134,13 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
   },
   {
     court: "Megiddo",
-    origins: ["Megiddo", "Shechem", "Jerusalem", "Hazor", "Akko", "Gezer", "Lachish", "Ashkelon"],
+    origins: ["Megiddo", "Shechem", "Jerusalem", "Hazor", "Akko", "Gezer", "Lachish", "Ashkelon", "Pella", "Ashtaroth"],
     names: ["Ammu-rapi", "Hadda-yaqar", "Zimri-Baalu", "Abdi-Rasha"],
     callings: ["caravan master", "soldier", "scribe", "herdsman"],
   },
   {
     court: "Aleppo",
-    origins: ["Aleppo", "Alalakh", "Qatna", "Carchemish"],
+    origins: ["Aleppo", "Alalakh", "Qatna", "Carchemish", "Niya", "Tunip"],
     names: ["Akit-Teshup", "Kili-Teshup", "Addu-mutu", "Shatu-ili"],
     callings: ["charioteer", "merchant", "interpreter", "scribe"],
   },
@@ -185,6 +185,27 @@ export const Styles: readonly { court: Power; origins: readonly string[]; names:
     origins: ["Lukka"],
     names: ["Kuwatalla", "Zarniya"],
     callings: ["sailor", "hired fighter"],
+  },
+  // Item 11f's edges: Azzi-Hayasa by the names its treaty and Mursili II's annals give (Mariya, Anniya); the Libyans by
+  // the chiefs Egypt named a century and more later (Didi, Kaper); the Shasu, whose names do not survive, in the West
+  // Semitic style of their neighbours [G].
+  {
+    court: "Azzi",
+    origins: ["Hayasa", "Azzi"],
+    names: ["Mariya", "Anniya"],
+    callings: ["herdsman", "hired fighter"],
+  },
+  {
+    court: "Libya",
+    origins: ["the Tjehenu land", "the Tjemehu land"],
+    names: ["Didi", "Kaper"],
+    callings: ["herdsman", "hired fighter"],
+  },
+  {
+    court: "Shasu",
+    origins: ["Edom", "the Negev"],
+    names: ["Yamu-ilu", "Abdi-Qaus"],
+    callings: ["herdsman", "caravan guide"],
   },
 ];
 

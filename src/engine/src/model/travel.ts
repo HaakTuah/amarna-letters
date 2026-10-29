@@ -11,7 +11,7 @@
  * with characters who travel (11b), roads (15) and horses for messengers (the economy's second phase).
  */
 import { connectionDays, connectionKm } from "./distance.ts";
-import { Rivers, climateOf, crossingBetween } from "./geography.ts";
+import { Rivers, climateOf, crossingBetween, floodSeasonOf } from "./geography.ts";
 import { type Edge, WinterSeason, type WorldMap, dangerousInWinter } from "./map.ts";
 
 /** Points to a day on the road: progress counts in tenths of a day, so a factor worth a day or less still counts. */
@@ -120,8 +120,7 @@ export function legPoints(map: WorldMap, from: string, to: string, season: numbe
   const c = crossingBetween(from, to);
   if (c !== null && c.kind === "River") {
     days += TravelData.ferryDays;
-    const river = Rivers.find((r) => r.id === c.river);
-    if (river !== undefined && river.flood === season) days += TravelData.floodDays;
+    if (floodSeasonOf(c.river) === season) days += TravelData.floodDays;
   }
   let percent = 100;
   // Winter: a mountain pass under snow is slow going, never closed.

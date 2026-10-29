@@ -112,24 +112,30 @@ const Regions: readonly [number, readonly string[]][] = [
   [100, ["nubia"]],
   [800, ["sippar", "durkurigalzu", "babylon", "nippur", "ur"]],
   [20, ["dilmun"]],
-  [900, ["hattusa", "sapinuwa", "nesa", "tuwanuwa", "kizzuwatna"]],
+  [900, ["hattusa", "sapinuwa", "nesa", "tuwanuwa", "kizzuwatna", "samuha"]],
   [500, ["washukanni", "taidu", "harran", "terqa", "arrapha"]],
   [250, ["ashur", "nineveh", "arbela", "ekallate"]],
   [300, ["apasa", "seha", "mira"]],
   [80, ["enkomi", "kalavasos"]],
   [70, ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron"]],
-  [80, ["tyre", "sidon", "byblos", "amurru", "sumur", "arwad"]],
+  [80, ["tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "beirut"]],
   [35, ["ugarit"]],
-  [300, ["damascus", "qadesh", "qatna", "nuhashshe", "aleppo", "alalakh", "carchemish"]],
+  [300, ["damascus", "qadesh", "qatna", "nuhashshe", "aleppo", "alalakh", "carchemish", "tunip", "niya"]],
   [150, ["susa"]],
   [40, ["suhu"]],
   [40, ["isuwa"]],
   [20, ["lukka"]],
   [30, ["kaska"]],
   [20, ["steppe"]],
+  // Item 11f's edges [G]: the north-eastern highlands, Libya's herders (who came on in tens of thousands a century and
+  // more later), the Shasu of the Negev and Edom; at 20,000 each the herders' lands fell to Egypt in their first season
+  [30, ["azzi"]],
+  [15, ["pella", "ashtaroth"]],
+  [60, ["libya"]],
+  [40, ["shasu"]],
 ];
 
-const Habiru = ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron", "tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "damascus", "qadesh", "qatna", "nuhashshe"];
+const Habiru = ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron", "tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "damascus", "qadesh", "qatna", "nuhashshe", "pella", "ashtaroth", "beirut", "tunip", "niya"];
 
 const startCache = new WeakMap<WorldMap, Map<string, People>>();
 

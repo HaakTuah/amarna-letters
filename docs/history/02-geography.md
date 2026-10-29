@@ -99,6 +99,32 @@ Akhetaten two to three months, which is why envoys took a season or more each wa
   (`carchemish`-`mari`-`sippar`), the Tigris (`nineveh`-`ashur`-`babylon` region) [B]. Downstream is faster than up.
 - **Plateau:** central Anatolia (`hattusa`, `kanesh`, `tuwanuwa`, `sapinuwa`), long distances, hard winters [B].
 
+## The crossings of 1346 (item 11f)
+
+"Every pass, great river, strait or desert edge that was a real obstacle in the period, named in the sources as a road
+over mountains, a river crossed by ford or ferry, or a place armies were held" ("Terrain" under War). The game's list
+(`Crossings` in `src/engine/src/model/geography.ts`) adds these to the proposals above:
+
+| Connection (map ids) | Crossing | Evidence | Grade |
+| --- | --- | --- | --- |
+| `nesa`-`isuwa`, `samuha`-`isuwa` | the upper Euphrates | Suppiluliuma "crossed the Euphrates" into Isuwa (the Shattiwaza treaty, Beckman no. 6A) | A |
+| `hattusa`-`nesa`, `hattusa`-`tuwanuwa`, `sapinuwa`-`nesa` | the Marassantiya (Halys) | The river ringing the heartland (the table below); Hattusa and Sapinuwa within its bend, the plateau south of it, Samuha on its bank | A (the river), B (as an obstacle) |
+| `damascus`-`qadesh` | the Orontes at the ford of Shabtuna | Ramesses II's army crossed at Shabtuna south of Qadesh (the Qadesh inscriptions, 1274) | A, a lifetime later |
+| `ugarit`-`niya` | the Orontes below Niya | Amenhotep II "crossed the Orontes" and came to Niya (his Memphis and Karnak stelae) | A |
+| `hazor`-`damascus`, `hazor`-`ashtaroth` | the Jordan | The road from Megiddo to Damascus crosses it ("Jordan crossing" above), north of the Sea of Galilee | B |
+| `megiddo`-`pella`, `shechem`-`pella`, `hazor`-`pella` | the Jordan (by Beth-Shan) | Pihil's men crossed to attack Beth-Shan (Seti I's first Beth-Shan stela); the rift's fords | A, a generation later; B |
+| `beirut`-`damascus` | the Lebanon | The same range as Byblos's and Sidon's roads to the Beqaa | B |
+| `libya`-`delta`, `libya`-`memphis` | the Western Desert | The Libyans' land beyond the Delta's edge ([08-beyond-the-edges.md](08-beyond-the-edges.md)) | A (the people), G (the roads) |
+| `shasu`-`hebron`, `shasu`-`sinai`, `shasu`-`gaza` | the Negev | As `hebron`-`sinai`; Seti I fought the Shasu on the Ways of Horus | B |
+
+Checked and left out, as lesser streams or ridges that stopped no army, drawn but not crossings: the **Khabur** and the
+**Balikh** (the spine of Mitanni's heartland; no army is recorded held at them); the **Zabs** and the **Diyala**
+(Tigris tributaries; no source of the period holds an army there); the **Litani** ("short rivers, not routes"); the
+**Carmel ridge's Aruna pass** (narrow, but Thutmose III's whole army went through it to Megiddo, Annals, about 1457); the
+**Zagros edge** (no connection climbs it: the roads to Susa and Arrapha keep to the plain at its foot); the **Nile's
+cataracts** (they break the river's boats into reaches, already in the game, but no march along the bank); and no
+**strait** lies on a land connection (the sea crossings are the sea's, with their winter danger).
+
 ## Rivers
 
 | River | Ancient name | Runs through (map ids) | Note | Grade |
@@ -107,9 +133,9 @@ Akhetaten two to three months, which is why envoys took a season or more each wa
 | Euphrates | *Purattu* | `carchemish`, `mari`, `sippar`, `babylon`, `ur` | Crossed at Carchemish and Emar | A |
 | Tigris | *Idiglat* | `nineveh`, `ashur`, `babylon` region | Fast, floods in spring | A |
 | Habur and Balikh | *Habur*, *Balih* | `washukanni`, `taidu`, `harran` | The Habur triangle, Mitanni's heartland | A |
-| Orontes | *Arantu* | `qadesh`, Qatna, Mukish | Qadesh stands on it | A |
-| Halys | *Marassantiya* | `hattusa`, `sapinuwa`, `kanesh` | Rings the Hittite heartland | A |
-| Jordan, Litani | - | `megiddo`, `damascus`, `tyre` | Short rivers, not routes | B |
+| Orontes | *Arantu* | `qadesh`, `tunip`, `niya`, Mukish | Qadesh, Tunip and Niya stand on it; forded at Shabtuna (crossings above) | A |
+| Halys | *Marassantiya* | `samuha` on it; rings `hattusa` and `sapinuwa` | Rings the Hittite heartland | A |
+| Jordan, Litani | - | the Jordan between `megiddo`, `shechem`, `hazor` and `pella`, `ashtaroth`, `damascus`; the Litani by `tyre` | Short rivers, not routes; the Jordan crossed at fords in its rift | B |
 | Karun, Karkheh | - | `susa` | Elam's plain | B |
 | Lower and Upper Zab, Diyala | - | `arbela`, `ekallatum` | Tigris tributaries; the Assyrian-Babylonian border near the Diyala | B |
 

@@ -26,7 +26,8 @@ export interface GameConfig {
   /**
    * The weight of a realm's size in the final score, in percent, the rest its performance (item 11e, "One scoreboard for
    * every power": both from 0 to 1, size as a share of the largest realm's wealth, performance as its rank among its own
-   * position's results). A first guess of equal weights, set in item 18 so that every power has about the same chance of
+   * position's results). A first guess of 5 percent for size since item 11f (Haakon's answer to item 11e's review: near the
+   * fair point item 11e measured; equal weights before), set in item 18 so that every power has about the same chance of
    * first place; kings are told the goal in words until then.
    */
   sizeWeight: number;
@@ -143,7 +144,7 @@ export function newGameConfig(init: Partial<GameConfig> = {}): GameConfig {
     capMax: 100,
     openAge: false,
     provinceWeight: 10,
-    sizeWeight: 50,
+    sizeWeight: 5,
     sharedVictory: false,
     fallenSeeAll: true,
     armyCost: 100,
