@@ -238,7 +238,7 @@ export const GeoLabels: readonly { text: string; x: number; y: number; angle: nu
   geo("NILE", 26.9, 31.55, -62), geo("EUPHRATES", 35.55, 39.9, 18), geo("TIGRIS", 34.2, 43.95, 62), geo("TAURUS", 37.55, 32.6, -4),
   geo("ZAGROS", 33.8, 47.6, 55), geo("SYRIAN DESERT", 32.4, 39.3, 0), geo("SINAI", 29.4, 33.85, 0), geo("LOWER SEA", 27.4, 50.7, -50),
   geo("ARABIAN DESERT", 27.8, 41.6, 0), geo("LEBANON", 33.9, 35.65, -62), geo("KHABUR", 36.0, 40.85, 80), geo("ORONTES", 35.35, 36.95, -70),
-  geo("EASTERN DESERT", 24.9, 33.7, -62), geo("WESTERN DESERT", 25.5, 28.6, 0), geo("RED SEA", 23.5, 36.9, 58), geo("BLACK SEA", 42.05, 31.6, 0),
+  geo("EASTERN DESERT", 24.9, 33.7, -62), geo("WESTERN DESERT", 25.5, 28.6, 0), geo("BLACK SEA", 42.05, 31.6, 0),
   geo("NAIRI", 38.9, 42.3, 0), geo("PONTUS", 40.95, 38.9, -4),
 ];
 
