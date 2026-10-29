@@ -152,22 +152,22 @@ describe("TerrainTests", () => {
   });
 
   test("A landing from the sea gets no help from the ground, and rough ground still counts against it", () => {
-    // Since item 7a the blockade decides at sea: Hatti's army sails from Tyre to the Delta in its own ships, one in each
-    // waters of the way, with an army's support from Sinai: 2 against Egypt's 1, and the Delta is taken.
+    // Since item 7a the blockade decides at sea: Hatti's army sails from Ashkelon (Tyre until item 11c) to the Delta in its
+    // own ships, one in each waters of the way, with an army's support from Sinai: 2 against Egypt's 1, and the Delta is taken.
     let b = new Board()
       .a("Egypt", "delta")
-      .a("Hatti", "tyre")
+      .a("Hatti", "ashkelon")
       .a("Hatti", "sinai")
-      .f("Hatti", "tyrewaters")
+      .f("Hatti", "ashkelonwaters")
       .f("Hatti", "gazawaters")
       .f("Hatti", "deltawaters")
-      .move("tyre", "delta")
-      .convoy("tyrewaters", "tyre", "delta")
-      .convoy("gazawaters", "tyre", "delta")
-      .convoy("deltawaters", "tyre", "delta")
-      .support("sinai", "tyre", "delta");
+      .move("ashkelon", "delta")
+      .convoy("ashkelonwaters", "ashkelon", "delta")
+      .convoy("gazawaters", "ashkelon", "delta")
+      .convoy("deltawaters", "ashkelon", "delta")
+      .support("sinai", "ashkelon", "delta");
     let r = b.run();
-    Assert.equal("delta", b.where(r, "tyre"));
+    Assert.equal("delta", b.where(r, "ashkelon"));
     Assert.null(b.where(r, "delta"));
     Assert.empty(r.groundFights);
 
@@ -215,7 +215,8 @@ describe("TerrainTests", () => {
   });
 
   test("A storm must beat the ground too and an empty walled town on rough ground needs only its walls", () => {
-    // Lukka (walls 1, rough ground), held by Arzawa's army: 3 gets in (against 1 + 1) but storms only above 1 + 2.
+    // Lukka (walls 1, rough ground), held by Arzawa's army: 3 gets in (against 1 + 1) but storms only above 1 + 2 x 2, the
+    // walls doubling the defenders and the ground's help among them (item 11e).
     function lukka(supports: number): Board {
       let b = new Board().a("Arzawa", "lukka").a("Hatti", "tuwanuwa").a("Hatti", "mira").a("Hatti", "kizzuwatna").a("Hatti", "apasa");
       b.walls.set("lukka", 1);
@@ -229,7 +230,9 @@ describe("TerrainTests", () => {
     Assert.equal([3, 1, 2], [a.strength / FullUnit, a.walls / FullUnit, a.defenders / FullUnit]);
     Assert.false(stormed(a));
     Assert.equal("Rough", a.ground!.kind);
-    Assert.true(stormed(Assert.single(lukka(3).run().assaults)));
+    Assert.false(stormed(Assert.single(lukka(3).run().assaults)));
+    Assert.true(stormed({ ...a, strength: 5001 }));
+    Assert.false(stormed({ ...a, strength: 5000 }));
 
     // Empty, the town's walls alone stand: 2 storms them.
     let e = new Board().a("Hatti", "tuwanuwa").a("Hatti", "mira").move("tuwanuwa", "lukka").support("mira", "tuwanuwa", "lukka");
@@ -257,7 +260,8 @@ describe("TerrainTests", () => {
   });
 
   test("The battle report gives the grounds share and the record marks what it decided", () => {
-    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
+    // The people do not resist here, so the ground alone decides (item 11e: the land's men stand beside its troop).
+    let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0, peopleDefence: 0 })));
     // Hatti attacks Arzawa's Mira from Tuwanuwa with Lukka's support; Arzawa's army there holds.
     single(s.units, (u) => u.province === "hattusa").province = "tuwanuwa";
     single(s.units, (u) => u.province === "nesa").province = "lukka";
@@ -276,7 +280,8 @@ describe("TerrainTests", () => {
 
   test("A storm report gives the grounds share of the defenders", () => {
     let s = oldWorld(newGame(1, newGameConfig({ catastropheChance: 0 })));
-    // Hatti, with three armies round Arzawa's Isuwa (walls 1, rough ground), gets in but cannot storm it.
+    // Hatti, with three armies round Arzawa's Isuwa (walls 1, rough ground), gets in but cannot storm it: the garrison with
+    // the ground's help and the city's own men, doubled by the walls (item 11e).
     s.owner.set("isuwa", "Arzawa");
     s.units.push(newUnit({ id: "u90", power: "Arzawa", kind: "Army", province: "isuwa" }));
     s.units.push(newUnit({ id: "u91", power: "Hatti", kind: "Army", province: "carchemish" }));
@@ -291,10 +296,10 @@ describe("TerrainTests", () => {
     );
     let hatti = single(inboxOf(s, "Hatti"), (i) => i.title === "Movements last season").body;
     Assert.contains(
-      "it got within the walls of isuwa but did not storm them (strength 3 against walls 1 and defenders 2, 1 of it for the rough ground of isuwa)",
+      "it got within the walls of isuwa but did not storm them (strength 3 against walls 1 and defenders 6.6 on the walls: the garrison 2, 1 of it for the rough ground of isuwa, and the city's men 1.3, the walls making them twice as strong)",
       hatti,
     );
     let arzawa = single(inboxOf(s, "Arzawa"), (i) => i.title === "Movements last season").body;
-    Assert.contains("its strength 3 against your walls 1 and defenders 2, 1 of it for the rough ground of isuwa", arzawa);
+    Assert.contains("its strength 3 against your walls 1 and defenders 6.6 on the walls: the garrison 2, 1 of it for the rough ground of isuwa, and the city's men 1.3", arzawa);
   });
 });

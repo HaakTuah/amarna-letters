@@ -13,7 +13,9 @@ import {
   newGame,
   newTabletProposal,
   newTurnSubmission,
-  parOf,
+  finalScore,
+  max,
+  rankAmong,
   standingOf,
   clause,
   vassalBonds,
@@ -27,7 +29,8 @@ const Map = WorldMap.default;
 describe("City-states as powers (item 11+)", () => {
   test("Every city-state is a power holding its city as its capital, under the same rules", () => {
     const s = newGame(1);
-    Assert.equal(33, AllPowers.length);
+    // 33 powers since item 11d; item 11c added six cities of Canaan.
+    Assert.equal(39, AllPowers.length);
     Assert.equal(7, GreatKings.length);
     for (const p of AllPowers.filter((x) => !isGreatKing(x))) {
       const cap = Map.capital(p);
@@ -115,9 +118,33 @@ describe("City-states as powers (item 11+)", () => {
     Assert.contains("Its roads lead into the land of", byblos);
   });
 
-  test("The winner is judged by growth against par for its starting position", () => {
-    // A position with no measure has par 1; standing is growth over par.
-    for (const p of AllPowers) Assert.true(parOf(p) >= 0.1);
-    Assert.equal(1.5 / parOf("Byblos"), standingOf("Byblos", 1.5));
+  test("The winner is judged by where its result ranks among its own position's results", () => {
+    // Item 11e: four results, two of them falls. A survivor beats every fall, the middle of the results stands at par (a
+    // half, standing 1), and a result above them all approaches the top.
+    const results = [0, 0, 0.5, 1.5];
+    Assert.equal(0.25, rankAmong(results, 0));
+    Assert.true(rankAmong(results, 0.1) > 0.5 && rankAmong(results, 0.1) < 0.625);
+    Assert.equal(0.625, rankAmong(results, 0.5));
+    Assert.equal(0.75, rankAmong(results, 1));
+    Assert.equal(0.875, rankAmong(results, 1.5));
+    Assert.true(rankAmong(results, 3) > 0.875 && rankAmong(results, 3) < 1);
+    // A survivor of a position that always fell ranks above them all; a position never measured is ranked against 1.
+    Assert.equal(1, rankAmong([0, 0], 0.4));
+    Assert.true(rankAmong([0, 0], 0) < rankAmong([0, 0], 0.4));
+    for (const p of AllPowers) Assert.inRange(standingOf(p, 1e9), 1.5, 2);
+    Assert.true(standingOf("Byblos", 0) < standingOf("Byblos", 0.05));
+  });
+
+  test("The final score blends size and performance, and the highest wins", () => {
+    // Item 11e: equal weights as the first guess; size against the largest realm, performance as the rank.
+    Assert.equal(0.5, finalScore(50, 1, 0));
+    Assert.equal(0.75, finalScore(50, 0.5, 1));
+    Assert.equal(0.25, finalScore(0, 1, 0.25));
+    const e = new TurnEngine(newGame(1));
+    const scores = e.finalScores();
+    Assert.equal(AllPowers.length, scores.length);
+    Assert.equal(1, max(scores, (x) => x.size));
+    for (let i = 1; i < scores.length; i++) Assert.true(scores[i - 1].score >= scores[i].score);
+    for (const x of scores) Assert.equal(finalScore(50, x.size, x.performance), x.score);
   });
 });

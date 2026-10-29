@@ -179,17 +179,18 @@ describe("PeopleTests", () => {
   });
 
   test("The people of a land resist an army that enters it where no troop stands", () => {
-    // Rough ground counts the men twice, open plain half.
-    Assert.equal(1, resistanceOf("isuwa", 2500, 100));
-    Assert.equal(0, resistanceOf("suhu", 9000, 100));
-    Assert.equal(1, resistanceOf("suhu", 10000, 100));
-    Assert.equal(2, resistanceOf("delta", 60000, 100));
-    Assert.equal(1, resistanceOf("delta", 60000, 50));
+    // By their number, as a unit's men count (item 11e: a full army's men count one, in thousandths); rough ground counts
+    // the men twice, open plain half.
+    Assert.equal(1000, resistanceOf("isuwa", 2500, 100));
+    Assert.equal(900, resistanceOf("suhu", 9000, 100));
+    Assert.equal(1000, resistanceOf("suhu", 10000, 100));
+    Assert.equal(6000, resistanceOf("delta", 60000, 100));
+    Assert.equal(3000, resistanceOf("delta", 60000, 50));
     const s = quiet();
-    s.people.get("sapinuwa").men = 20000;
+    s.people.get("sapinuwa").men = 15000;
     s.units.push(newUnit({ id: newId(s, "u"), power: "Mitanni", kind: "Army", province: "isuwa", men: LandData.armyMen }));
     const e = new TurnEngine(s);
-    Assert.equal(1, e.resistance("sapinuwa", "Mitanni"));
+    Assert.equal(1500, e.resistance("sapinuwa", "Mitanni"));
     Assert.equal(0, e.resistance("sapinuwa", "Hatti"));
     season(s, subs({ Mitanni: { orders: [move("isuwa", "sapinuwa")] } }));
     Assert.equal("Hatti", s.owner.get("sapinuwa"));

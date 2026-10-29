@@ -18,7 +18,7 @@ import { groundText } from "../model/geography.ts";
 import { forMen, LandData, levySize, menAvailable, menOf, shareOfFull } from "../model/land.ts";
 import { Adjudicator } from "../rules/adjudicator.ts";
 import { formatMoney } from "../rules/calendar.ts";
-import { parOf, strength as scoringStrength, standingOf } from "../rules/scoring.ts";
+import { finalScore, strength as scoringStrength, standingOf, type FinalScore } from "../rules/scoring.ts";
 import { OrderValidator, type ValidationResult } from "../rules/validator.ts";
 import { Views } from "../rules/views.ts";
 import { KingdomFallsTitle, TurnEngine } from "./core.ts";
@@ -38,6 +38,8 @@ declare module "./core.ts" {
     ledgerStrength(p: Power): number;
     landYield(p: Power): number;
     growth(p: Power): number;
+    /** The final score of each living power, highest first, with its size and performance beside it (item 11e). */
+    finalScores(): FinalScore[];
     endOfTurn(): void;
     decideWinners(): void;
   }
@@ -328,7 +330,8 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
   const whose = f.power === viewer ? `your own ${kind}` : `${f.power}'s ${kind}`;
   const strengths = `; your strength ${strengthWords(f.strength)} against ${strengthWords(f.against)}`;
   // The ground that helped the unit that held it off, in the strength it had to beat.
-  const held = strengths + (f.ground !== null ? `, ${strengthWords(f.groundBonus)} of it for ${groundText(f.ground)}` : "");
+  // And the land's own men who stood beside it (item 11e).
+  const held = strengths + (f.ground !== null ? `, ${strengthWords(f.groundBonus)} of it for ${groundText(f.ground)}` : "") + (f.people > 0 ? `, ${strengthWords(f.people)} of it for the men of the land beside it` : "");
   switch (f.stop) {
     case "NoConvoy":
       return "no convoy carried it across the sea";
@@ -345,7 +348,7 @@ function whyMoveFailed(viewer: Power, from: string, to: string, f: MoveFailure, 
     case "Bounced":
       return `it met a move into ${to} from ${f.province}${seen ? ` by ${whose}` : ""}${strengths}`;
     case "Resisted":
-      return `the people of ${to} rose against it and held it off${strengths}: a land's men of fighting age resist an invader where no troop stands, more on rough ground`;
+      return `the people of ${to} rose against it and held it off${strengths}: a land's men of fighting age resist an invader by their number, more on rough ground`;
     default:
       return "it was stopped";
   }
@@ -648,18 +651,38 @@ P.endOfTurn = function () {
     S.ended = true;
     S.endReason = reason;
     this.decideWinners();
-    logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}.`);
+    // The score that decides, with size and performance beside it (item 11e): every placement counts.
+    const placings = this.finalScores().map((x, i) => `${i + 1}. ${x.power} ${fmt(x.score, "0.00")} (size ${fmt(x.size, "0.00")}, performance ${fmt(x.performance, "0.00")})`);
+    logEvent(S, "end", `The game ends after turn ${S.turn}: ${reason}. Winner: ${S.winners.join(" and ")}. Final scores: ${placings.join("; ")}.`);
     return;
   }
   S.turn++;
 };
 
+P.finalScores = function () {
+  const S = this.s;
+  const living = alive(S);
+  // Size: the realm's wealth as a share of the largest living realm's. Performance: where its growth ranks among its own
+  // starting position's results ("One scoreboard for every power", item 11e).
+  const largest = Math.max(1, ...living.map((p) => this.strength(p)));
+  const rows = living.map((p) => {
+    const size = Math.max(0, this.strength(p)) / largest;
+    const performance = standingOf(p, this.growth(p)) / 2;
+    return { power: p, score: finalScore(S.config.sizeWeight, size, performance), size, performance };
+  });
+  return sortBy(rows, [(x: FinalScore) => x.score, desc(cmpNum)], [(x: FinalScore) => x.power, cmpPower]);
+};
+
 P.decideWinners = function () {
   const S = this.s;
   const living = alive(S);
-  // Each power by its growth against par for its starting position ("One scoreboard for every power", item 11+).
-  const growth = new Dict(living.map((p) => [p, standingOf(p, this.growth(p))] as const));
-  const best = sortBy(living, [(p: Power) => growth.get(p), desc(cmpNum)], [(p: Power) => p, cmpPower])[0];
+  const scores = this.finalScores();
+  const score = new Dict(scores.map((x) => [x.power, x.score] as const));
+  if (scores.length === 0) {
+    S.winners = [];
+    return;
+  }
+  const best = scores[0].power;
 
   if (S.config.sharedVictory) {
     let bestPair: [Power, Power, number] | null = null;
@@ -667,17 +690,16 @@ P.decideWinners = function () {
       const a = t.proposedBy;
       const b = t.partner!;
       if (!isAlive(S, a) || !isAlive(S, b)) continue;
-      // The pair's growth against the par of their two positions, each weighed by its starting strength.
+      // The pair's score together: each partner's, weighed by its starting strength.
       const start = S.startStrength.get(a) + S.startStrength.get(b);
-      const par = (parOf(a) * S.startStrength.get(a) + parOf(b) * S.startStrength.get(b)) / start;
-      const combined = (this.strength(a) + this.strength(b)) / start / par;
-      const others = living.filter((p) => p !== a && p !== b).map((p) => growth.get(p));
+      const combined = (score.get(a) * S.startStrength.get(a) + score.get(b) * S.startStrength.get(b)) / start;
+      const others = living.filter((p) => p !== a && p !== b).map((p) => score.get(p));
       const rivals = others.length === 0 ? 0 : max(others, (x) => x);
       if (combined > rivals && (bestPair === null || combined > bestPair[2])) bestPair = [a, b, combined];
     }
     if (bestPair !== null) {
       S.winners = [bestPair[0], bestPair[1]];
-      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (combined growth against par ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
+      logEvent(S, "shared-victory", `${bestPair[0]} and ${bestPair[1]} share the victory under their sworn alliance (score together ${fmt(bestPair[2], "0.00")}).`, null, "shared-victory");
       return;
     }
   }

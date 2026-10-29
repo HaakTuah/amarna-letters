@@ -5,10 +5,10 @@
  * answers them with canned replies instead. Script games run side by side on worker threads; model and file games one at a
  * time, in this thread.
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { AllPowers, cmpNum, fmt, newGameConfig, sortBy, idNumber, PowerValues, type Power } from "@amarna/engine";
-import { batchReport, soloReport, versusReport, type GameSummary } from "@amarna/game";
+import { batchReport, parResultsSource, soloReport, versusReport, type GameSummary } from "@amarna/game";
 import { CostEstimate, Presets, SimulatedApi, SpendModes, newSpendingSettings, startProblem, type CharacterKind, type LeaderKind, type NarratorKind } from "@amarna/llm";
 import { FileCharacters } from "@amarna/llm/node";
 import { choicesOf, playOne, setupCheck, type BatchOptions, type PlayJob, type PlayResult, type SoloJob } from "./play.ts";
@@ -75,6 +75,8 @@ const o: BatchOptions = {
   languagePlayHalf: false,
   noSeasonPlay: false,
   seasonPlayHalf: false,
+  noWallPlay: false,
+  wallPlayHalf: false,
   clausePlay: true,
   clausePlayHalf: false,
   inventoryPlay: true,
@@ -91,6 +93,8 @@ let solo = false;
 let fileSeats: string | null = null;
 let fileCharacters: string | null = null;
 let listCharacters = false;
+/** Where to write par's results from these games (item 11e): `src/engine/src/rules/par-results.ts`'s source. */
+let parOut: string | null = null;
 
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
@@ -104,6 +108,9 @@ for (let i = 0; i < args.length; i++) {
       break;
     case "--out":
       o.outDir = next();
+      break;
+    case "--par-out":
+      parOut = next();
       break;
     case "--fingerprints":
       o.parityDir = next();
@@ -217,6 +224,13 @@ for (let i = 0; i < args.length; i++) {
       // Half the script kings leave item 12's choices alone, alternating by seed.
       o.languagePlayHalf = true;
       break;
+    case "--no-wall-play":
+      o.noWallPlay = true;
+      break;
+    case "--wall-play-half":
+      // Half the script kings reckon a storm without the city's men on its walls (item 11e), alternating by seed.
+      o.wallPlayHalf = true;
+      break;
     case "--money-play-half":
       // Half the script kings never borrow or repay (item 11a), alternating by seed.
       o.moneyPlayHalf = true;
@@ -299,6 +313,13 @@ for (let i = 0; i < args.length; i++) {
       const m = Number.parseInt(next(), 10);
       if (!(m >= 1)) throw new Error("Use --median N, in seasons.");
       o.config = { ...o.config, endMedian: m };
+      break;
+    }
+    case "--size-weight": {
+      // The weight of a realm's size in the final score, in percent (item 11e; set in item 18).
+      const w = Number.parseInt(next(), 10);
+      if (!(w >= 0 && w <= 100)) throw new Error("Use --size-weight N, in percent from 0 to 100.");
+      o.config = { ...o.config, sizeWeight: w };
       break;
     }
     case "--file-seats":
@@ -386,7 +407,7 @@ for (let i = 0; i < args.length; i++) {
     case "-h":
     case "--help":
       console.log(
-        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-season-play --season-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
+        "Options: --games N --seed S --out DIR --verify-replay --detail --preset free|budget|counsel|standard|showcase --small MODEL|off --plays small|large --characters-up MODEL|off --planning MODEL|off --pace off|limit|season|target --season-usd USD --target SHARE --audit-share SHARE --leaders script|haiku|sonnet|opus|MODEL --characters script|haiku|sonnet|MODEL --narrator template|haiku|sonnet|opus|MODEL --provider ID=URL --price MODEL=IN,OUT,CACHE --effort low|medium|high --budget USD --no-chronicles --no-primer --shared-victory --fallen-view god|kingdom --versus baseline|solo --focus POWER --sleep on|off --sleep-cap N --max-turns N --cap A-B|N|none --median SEASONS --size-weight PERCENT --file-seats DIR|map.json --file-characters DIR|map.json --list-characters --file-timeout MINUTES --fingerprints DIR --sleeping-scripts --no-plan-ahead --plan-ahead-half --no-sea-play --no-road-play --road-play-half --no-winter-play --winter-play-half --no-authority-play --authority-play-half --plain-economy --plain-economy-half --no-trade-play --trade-play-half --no-people-play --people-play-half --no-land-play --land-play-half --no-border-play --border-play-half --no-money-play --money-play-half --no-outlaw-play --outlaw-play-half --no-vassal-play --vassal-play-half --no-season-play --season-play-half --no-wall-play --wall-play-half --no-clause-play --clause-play-half --no-inventory-play --simulate-api --alternate-script",
       );
       process.exit(0);
     default:
@@ -559,6 +580,7 @@ for (const outcome of played) {
 }
 console.log();
 if (results.length > 0) console.log(batchReport(results));
+if (parOut !== null && results.length > 0) writeFileSync(parOut, parResultsSource(results, `seeds ${o.seed}-${o.seed + results.length - 1}`));
 if (o.versus && results.length > 0) console.log(versusReport(results, sides));
 if (o.roadPlayHalf && results.length > 0)
   console.log("\nScript kings that close their roads to their foes (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
@@ -574,6 +596,8 @@ if (o.borderPlayHalf && results.length > 0)
   console.log("\nScript kings that settle the loose, send back runaways they promised, deport from land they took and put out a besieged city's mouths (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.seasonPlayHalf && results.length > 0)
   console.log("\nScript kings that reckon the tax and famines by the granaries, raise smaller levies, choose how many mouths to put out, deport by safe roads, grant passage by order, post watching spies and strike by sea in winter (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
+if (o.wallPlayHalf && results.length > 0)
+  console.log("\nScript kings that reckon a storm by the city's men on its walls (\"current\") against those that reckon only the walls and the garrison (\"baseline\"):" + versusReport(results, sides));
 if (o.outlawPlayHalf && results.length > 0)
   console.log("\nScript kings that hunt the bands in their land and buy news of their foes (\"current\") against those that do not (\"baseline\"):" + versusReport(results, sides));
 if (o.vassalPlayHalf && results.length > 0)

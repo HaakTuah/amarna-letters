@@ -52,7 +52,7 @@ describe("TerrainBotTests", () => {
     // Egypt's army holds Mira, with no troop of Egypt's near; Hatti, at war with Egypt and at peace with Arzawa, has three
     // armies round it (Tuwanuwa, Lukka and the Seha River Land).
     function supports(terrain: number): number {
-      let s = oldWorld(newGame(4, newGameConfig({ catastropheChance: 0, terrainDefence: terrain })));
+      let s = oldWorld(newGame(4, newGameConfig({ catastropheChance: 0, terrainDefence: terrain, peopleDefence: 0 })));
       removeAll(s.units, (u) => u.power === "Arzawa" && u.province !== "apasa");
       s.owner.set("mira", "Egypt");
       s.units.push(newUnit({ id: "u90", power: "Egypt", kind: "Army", province: "mira" }));

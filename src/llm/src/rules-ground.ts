@@ -2,8 +2,10 @@
  * The rulebook's TERRAIN and THE SEA sections (build order items 5 and 7a), with the lists from the map data
  * (`Geography`, `WorldMap`), so the text stays true if the map changes. Only what applies in this game is said.
  */
-import { Crossings, Desert, Rough, WorldMap, groupBy, type GameConfig } from "@amarna/engine";
+import { Crossings, Desert, Rough, WorldMap, crossingBetween, groupBy, type GameConfig } from "@amarna/engine";
 import { joinS } from "./text.ts";
+
+const crossingKind = (a: string, b: string) => crossingBetween(a, b)?.kind ?? null;
 
 /**
  * TERRAIN: what rough ground and the crossings give a unit that stands its ground, and what they never do, and what the
@@ -33,7 +35,7 @@ export function terrainRules(c: GameConfig): string {
       `- The ground helps a unit that stands its ground: one that holds, besieges, supports or convoys, or whose own move fails. Against an attack it holds with ${t} more when it stands on rough ground (${rough}), or when the attack comes over a mountain pass or a great river, crossed at its fords and ferry towns (${crossings}): ${t} in all, however many of these apply. THE MAP marks the rough ground and the crossings on the links.`,
     );
     lines.push(
-      `- The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the hold strength of the defenders it beat, and the ground's help to them is part of that. A support is cut as always. Your battle report gives the ground's share wherever it counted in the strength you had to beat.`,
+      `- The ground never helps a unit that moves, nor one met head on (both are on the road), nor empty land, nor an army landing from the sea (at sea the blockade decides: see THE SEA); a unit on rough ground still has its help against a landing. It adds nothing to walls and nothing to a siege's pace; but a storm must beat the walls plus the defenders on them (see WALLS AND SIEGES), and the ground's help to the units it beat is part of that. A support is cut as always. Your battle report gives the ground's share wherever it counted in the strength you had to beat.`,
     );
   }
   lines.push(`- Some links cross the desert (${deserts}); they give no help in battle. THE MAP marks them.`);
@@ -50,11 +52,17 @@ export function seaRules(c: GameConfig): string {
     `, `,
     map.edges.filter((e) => e.open).map((e) => `${e.a}-${e.b}`),
   );
-  const shared = map.provinces.filter((p) => p.isSea && map.coastsOf(p.id).length > 1).map((p) => `${p.id} by ${joinS(` and `, map.coastsOf(p.id).map((x) => x.id))}`);
+  // A sea joined to no other by water (the Red Sea since item 11c): reached only from its own shore.
+  const closed = map.provinces.filter((p) => p.isSea && !map.edges.some((e) => e.kind === "Sea" && ((e.a === p.id && map.get(e.b).isSea) || (e.b === p.id && map.get(e.a).isSea))));
+  const shared = map.provinces.filter((p) => p.isSea && map.coastsOf(p.id).length > 1 && !closed.includes(p)).map((p) => `${p.id} by ${joinS(` and `, map.coastsOf(p.id).map((x) => x.id))}`);
   const lines: string[] = [`THE SEA`];
   lines.push(
     `- Ships keep to the coasts. Every coast has waters of its own, a sea zone off its harbour and shore (THE MAP names each coast's waters)${shared.length > 0 ? `, shared only by neighbours that share a short shore: ${joinS(`; `, shared)}` : ``}. A fleet moves between a coast and its waters, along the shore between neighbouring coasts or neighbouring waters, and across the open sea only by the open-sea crossings (${open}).`,
   );
+  if (closed.length > 0)
+    lines.push(
+      `- ${joinS(` and `, closed.map((p) => `${p.id} (reached from ${joinS(` and `, map.coastsOf(p.id).map((x) => x.id))}${map.edges.some((e) => (e.a === p.id || e.b === p.id) && crossingKind(e.a, e.b) === "Desert") ? `, by desert roads to its shore` : ``})`))} ${closed.length === 1 ? `is` : `are`} joined to no other sea: no fleet sails there from elsewhere, so the only ships on ${closed.length === 1 ? `it` : `them`} are those raised on ${closed.length === 1 ? `its` : `their`} own coasts.`,
+    );
   lines.push(
     `- An army goes to sea only by convoy: a fleet of any power in each sea zone it sails through, each ordered to convoy it, from the waters of its own coast to the waters of the coast it lands on. So an army lands only where no enemy fleet holds that coast's waters: a fleet there must first be driven out. An island is reached only this way.`,
   );

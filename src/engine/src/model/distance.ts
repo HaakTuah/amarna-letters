@@ -22,13 +22,25 @@ export interface Attested {
 
 const att = (a: string, b: string, km: number, basis: string): Attested => ({ a, b, km, basis });
 
+/**
+ * The voyage from a closed sea's far shore to its harbour, where a desert road ends on that shore (item 11c): from el-Markha
+ * on the Gulf of Suez down to Mersa Gawasis, about 350 km, half of it against the north wind that blows down the Red Sea
+ * all year, at about 35 km a day [G].
+ */
+export const ShoreVoyages: readonly { a: string; b: string; days: number; basis: string }[] = [
+  { a: "sinai", b: "redsea", days: 10, basis: "el-Markha to Mersa Gawasis by sea, against the north wind one way [G]" },
+];
+
 /** The connections whose length the sources attest, or that the dossier reckons by a known road. */
 export const AttestedKm: readonly Attested[] = [
   att("delta", "gaza", 250, "Thutmose III's army, Tjaru to Gaza in 10 days (his Annals, first campaign): the Ways of Horus"),
   att("memphis", "akhetaten", 300, "the Nile road"),
   att("akhetaten", "thebes", 400, "the Nile road"),
+  att("thebes", "redsea", 210, "Thebes by Coptos and the Wadi Hammamat to the shore at Mersa Gawasis, the road of the Punt expeditions"),
+  att("sinai", "redsea", 200, "across the Sinai to the Gulf of Suez, where the mining expeditions landed at el-Markha [G]"),
+  att("megiddo", "hazor", 60, "the road from Megiddo to Damascus by Hazor (160 km in all), its first part [G for the split]"),
+  att("hazor", "damascus", 100, "the road from Megiddo to Damascus by Hazor and the Jordan crossing, its second part [G for the split]"),
   att("gaza", "megiddo", 160, "the coast road; Thutmose III's march, Gaza to Yehem in 11 days in hostile land (his Annals)"),
-  att("megiddo", "damascus", 160, "by Hazor and the Jordan crossing"),
   att("byblos", "damascus", 120, "over the Lebanon and the Beqaa"),
   att("damascus", "qadesh", 140, "by the Beqaa"),
   att("carchemish", "harran", 110, "the Euphrates road to Harran"),
@@ -88,7 +100,11 @@ export function connectionDays(map: WorldMap, from: string, to: string): number 
   if (e === null) throw new Error(`${from} and ${to} are not neighbours.`);
   const km = connectionKm(map, from, to);
   let days: number;
-  if (e.kind === "Sea") {
+  // A desert road to a sea's shore (Thebes to the Red Sea) goes at the desert's pace, though it ends at a harbour; from a
+  // shore other than the zone's own harbour the ship then sails to it (item 11c, from the review: else the empty sea would
+  // join its two shores for nothing).
+  if (e.kind === "Sea" && crossingBetween(from, to)?.kind === "Desert") days = km / Pace.desert + (ShoreVoyages.find((v) => (v.a === from && v.b === to) || (v.a === to && v.b === from))?.days ?? 0);
+  else if (e.kind === "Sea") {
     days = km / (e.open ? Pace.openSea : Pace.coasting);
     if (e.current) days *= e.a === from ? WithCurrent : AgainstCurrent;
   } else {

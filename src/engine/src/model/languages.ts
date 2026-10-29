@@ -184,6 +184,13 @@ const ByProvince: Record<string, readonly (readonly [string, number])[]> = {
     ["Canaanite", wide],
     ["Hurrian", few],
   ],
+  // Item 11c's cities of Canaan, as the dossier gives Megiddo, Shechem and Jerusalem.
+  akko: [["Canaanite", wide], ["Hurrian", few]],
+  hazor: [["Canaanite", wide], ["Hurrian", few]],
+  gezer: [["Canaanite", wide], ["Hurrian", few]],
+  ashkelon: [["Canaanite", wide], ["Egyptian", some]],
+  lachish: [["Canaanite", wide], ["Hurrian", few]],
+  hebron: [["Canaanite", wide]],
   gaza: [
     ["Canaanite", wide],
     ["Egyptian", some],
@@ -303,7 +310,6 @@ const OriginProvince: Record<string, string> = {
   Kummanni: "kizzuwatna",
   Kition: "kalavasos",
   Beirut: "sidon",
-  Hazor: "megiddo",
   Kumidi: "damascus",
   Kanesh: "nesa",
   Tadmor: "steppe",

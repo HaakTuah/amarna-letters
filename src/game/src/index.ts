@@ -23,6 +23,7 @@ export { OutlawPlay } from "./bots/outlaws.ts";
 export { VassalPlay } from "./bots/vassals.ts";
 export { LanguagePlay } from "./bots/tongues.ts";
 export { SeasonPlay } from "./bots/land.ts";
+export { WallPlay } from "./bots/board.ts";
 export { scriptLife, handsOver, rateAsked } from "./bots/life-mind.ts";
 export { CharacterChecks } from "./character-checks.ts";
 export * from "./human-seat.ts";

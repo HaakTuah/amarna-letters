@@ -16,7 +16,6 @@ import {
   Views,
   WorldMap,
   publicWorthOf,
-  parOf,
   TurnEngine,
   distinct,
   fmt,
@@ -119,8 +118,8 @@ describe("BotTests", () => {
     let [brain, board] = egyptBuysTheLevant(true);
     // Egypt's homeland is larger since item 11+ (Gaza and Sumur), so two cities add less to it.
     Assert.true(board.landGrowth("Egypt") >= 1.15, "by land alone Egypt would seem to run away with the game");
-    // Growth as the game reckons it, against par (item 11+): its own growth is that times par.
-    Assert.inRange(board.growth("Egypt") * parOf("Egypt"), 0.95, 1.15);
+    // Its growth, before it is ranked against par's results (item 11e).
+    Assert.inRange(board.strength("Egypt") / board.startStrength("Egypt"), 0.95, 1.15);
     Assert.notEqual("Egypt", board.leader());
     Assert.equal(0, brain.belligerence.getOrDefault("Egypt", 0));
   });
@@ -135,10 +134,10 @@ describe("BotTests", () => {
     Assert.equal(0, seen.belligerence.getOrDefault("Egypt", 0));
   });
 
-  // <summary>Egypt gains Megiddo and Tyre with their walls whole (their city-states gone), seen by Hatti from an army of its in Damascus, or unseen.</summary>
+  // <summary>Egypt gains Megiddo and Tyre with their walls whole (their city-states gone), seen by Hatti from an army of its in Hazor (beside both since item 11c; Damascus before), or unseen.</summary>
   function egyptBuysTheLevant(watching: boolean): [Brain, Board] {
-    let s = unruled(newGame(3), "megiddo", "tyre", "damascus");
-    if (watching) s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "damascus" }));
+    let s = unruled(newGame(3), "megiddo", "tyre", "hazor");
+    if (watching) s.units.push(newUnit({ id: newId(s, "u"), power: "Hatti", kind: "Army", province: "hazor" }));
     let brain = new Brain("Hatti", 3);
     let first = Views.for(s, "Hatti");
     brain.learn(first, new Board(first));

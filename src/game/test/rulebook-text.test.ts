@@ -108,7 +108,7 @@ describe("RulebookTextTests", () => {
 
   test("Every court reads every power s opening troops treasury and starting strength", () => {
     Assert.contains("OPENING POSITIONS (known to every court)", Rules);
-    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 900 shekels; its land produces 928 shekels' worth a season; starting strength 19004.", Rules);
+    Assert.contains("- Egypt: armies in memphis and akhetaten, a fleet in delta; treasury 900 shekels; its land produces 913 shekels' worth a season; starting strength 18727.", Rules);
     Assert.contains("- Babylonia: armies in babylon, sippar and durkurigalzu; treasury 600 shekels;", Rules);
     Assert.contains("- Alashiya: a fleet in enkomi; treasury 400 shekels;", Rules);
 
@@ -214,7 +214,7 @@ describe("SeasonRulebookTests", () => {
       "Walls add nothing to a battle: combat resolves as above, and a unit within walls defends with 1 plus its supports like any other (and the ground's help, see TERRAIN).",
     ],
     [
-      "a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the hold strength of the defenders it beat",
+      "a move that wins its way into a walled province you do not hold takes it at once only if its strength also beats the level of the walls plus the defenders on them, multiplied by the walls",
     ],
     ["You may move your own troops into your own walled provinces. A fleet may enter walls, but never storms or besieges them"],
     [
@@ -282,7 +282,7 @@ describe("StandingsAndTravelTests", () => {
     function home(p: Power): number {
       return sum(map.homeOf(p), (x) => x.yield);
     }
-    // Egypt holds Jerusalem (yield 15); Mitanni has taken all of Assyria, which has fallen.
+    // Egypt holds Jerusalem (yield 10); Mitanni has taken all of Assyria, which has fallen.
     s.owner.set("jerusalem", "Egypt");
     for (const x of map.homeOf("Assyria")) s.owner.set(x.id, "Mitanni");
     removeAll(s.units, (u) => u.power === "Assyria");
@@ -304,7 +304,7 @@ describe("StandingsAndTravelTests", () => {
       leaderRules(true, newGameConfig()),
     );
     Assert.contains(
-      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.06 (land yield 270, at the start 255); `,
+      `Mitanni ${fmt(mitanni, "0.00")} (land yield ${home("Mitanni") + home("Assyria")}, at the start ${home("Mitanni")}); Egypt (you) 1.04 (land yield 260, at the start 250); `,
       line,
     );
     Assert.contains(`Hatti 1.00 (land yield ${home("Hatti")}, at the start ${home("Hatti")})`, line);
