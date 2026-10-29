@@ -11,6 +11,7 @@ fi
 if have node && node -e "require('playwright').chromium" >/dev/null 2>&1; then
   echo "playwright chromium: already there"
 elif have npx && [ "${SKIP_PLAYWRIGHT:-}" != "1" ]; then
+  # The version CI's smoke job installs (PLAYWRIGHT in .github/workflows/pages.yml): change both together.
   if npx -y playwright@1.49.1 install --with-deps chromium >/tmp/playwright-install.log 2>&1; then
     echo "playwright chromium: installed"
   else

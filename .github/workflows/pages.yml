@@ -48,8 +48,8 @@ jobs:
           code=$(echo "$files" | grep -v -E '^(docs/|\.claude/)|\.md$' | grep -c . || true)
           echo "code=$([ "$code" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           # What the app bundles and draws: the app, the packages it bundles (the map and its names live in the engine),
-          # and the packages' manifests; never their tests, notes or the batch runner.
-          web=$(echo "$files" | grep -E '^(src/(web|engine|game|llm)/|package(-lock)?\.json$)' | grep -v -E '^src/[^/]+/test/|\.md$' | grep -c . || true)
+          # and the root manifests and TypeScript settings; never their tests, notes or the batch runner.
+          web=$(echo "$files" | grep -E '^(src/(web|engine|game|llm)/|(package(-lock)?|tsconfig(\.base)?)\.json$)' | grep -v -E '^src/[^/]+/test/|\.md$' | grep -c . || true)
           echo "web=$([ "$web" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
   # Lint and types, beside the tests (Haakon, 29 October 2026: optimizations to development, "do all expertly").
@@ -98,7 +98,7 @@ jobs:
     permissions:
       contents: read
     env:
-      PLAYWRIGHT: 1.49.1
+      PLAYWRIGHT: 1.49.1 # the version scripts/cloud-setup.sh installs: change both together
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
