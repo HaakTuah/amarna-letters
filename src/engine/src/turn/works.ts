@@ -167,8 +167,8 @@ P.worksSeason = function () {
             work.neglect = 0;
           }
         } else work.neglect = 0;
-        // Repair under siege: walls ordered kept during the siege mend a step of its wear with the men and food inside.
-        if (kind === "Walls" && siege !== null && plan !== null && plan.since >= siege.since && plan.keep >= level && level > 0 && siege.progress > 0) {
+        // Repair under siege: walls ordered kept during the siege (not by the standing order from the start) mend a step of its wear with the men and food inside.
+        if (kind === "Walls" && siege !== null && plan !== null && plan.since > 0 && plan.since >= siege.since && plan.keep >= level && level > 0 && siege.progress > 0) {
           if (menAvailable(S, id) >= RepairData.men && this.stores(id) >= RepairData.food) {
             S.corvee.set(id, S.corvee.getOrDefault(id, 0) + RepairData.men);
             this.takeFromStores(id, RepairData.food);

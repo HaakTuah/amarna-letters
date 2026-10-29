@@ -265,7 +265,7 @@ export const holds = <T>(xs: readonly T[], x: T): boolean => xs.some((y) => JSON
 export function walled(s: GameState, province: string, level: number): GameState {
   s.walls.set(province, level);
   for (const p of AllPowers) s.wallsSeen.get(p).set(province, level);
-  return s;
+  return keepWalls(s);
 }
 
 /**
@@ -338,12 +338,20 @@ export function oldWorld(s: GameState): GameState {
   wallsBefore15(s);
   unruled(s, ...FormerFree);
   formerHomes(s);
+  keepWalls(s);
   for (const c of s.characters)
     if (c.employer !== null && s.eliminated.includes(c.employer)) {
       c.employer = null;
       c.status = "Free";
       c.contract = null;
     }
+  return s;
+}
+
+/** Each holder's standing order keeps the walls of his land as a test left them (item 15), and none elsewhere. */
+export function keepWalls(s: GameState): GameState {
+  s.works = s.works.filter((w) => w.kind !== "Walls");
+  for (const [id, level] of s.walls.entries()) if (s.owner.getOrDefault(id, null) !== null) s.works.push(newWorkPlan({ province: id, kind: "Walls", keep: level }));
   return s;
 }
 
