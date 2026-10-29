@@ -74,6 +74,7 @@ Every item adds its numbers here: on the same seeds, scripts that use the item's
 | 11d | The answers to item 11+ | done (stop for review: question in "For Haakon") | `item/answers-to-11plus` (#145) | [report](rounds/2026-10-29-answers-to-11plus.md) |
 | 11e | Cities defended by their men, and a fair scoreboard | not started: next, before item 12's measurements (`docs/intent/build-order/item-11.md`) | | |
 | 11c+ | The map read at a glance, and the newest version at once | not started: a lane beside 11e and 12, web app only (`docs/intent/build-order/item-11.md`) | | |
+| 11f | The rest of the map: its crossings and its missing places | not started: after 11e, with 11c+'s drawing (`docs/intent/build-order/item-11.md`) | | |
 | 12 | Languages | not started | | |
 | 13 | Command at a distance | not started | | |
 | 14 | Legends | not started | | |
