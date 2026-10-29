@@ -85,7 +85,18 @@ None: the page and the item's sections settled every reading.
 
 ## What was measured
 
-(to fill in)
+- **Before and after, 50 script games** (`scripts/sim.sh --games 50 --seed 1 --verify-replay`; before: item 15 merged
+  with develop; after: this branch): **identical game for game**, every one of the 50 replaying exactly. Script rulers
+  never hear a council and the omens are words, so script games are unchanged, as they must be. Games stay playable:
+  47.3 seasons on average (5 to 94); wins spread over 29 powers, the Great Kings 17 of 50 (Egypt 6, Babylonia 5,
+  Mitanni 3).
+- **The search's refactor** (the pictured seasons in a function of their own, and who holds the land after a season
+  in another, for the council's numbers): seeds 9 to 11 replayed on the final head give the same games as the "after"
+  run, line for line.
+- **Use against ignore** (`--council-play-half`): COUNCIL_NUMBERS
+- **How the council is used in a real game** can only be measured with human or model seats; model games wait until
+  the build order is done. The tests check that a seat hearing it gets four advisors, numbers behind its strikes,
+  titles from the dossier, the toggle in the log and the same game with the council on or off.
 
 ## Review
 
