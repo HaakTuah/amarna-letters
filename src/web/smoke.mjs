@@ -58,7 +58,7 @@ async function shot(p, name) {
 const seasons = (p) => p.$eval(".slider", (s) => Number(s.max));
 
 /**
- * Names give way (item 11c+): at every zoom step from the whole board to the closest, no name shown may overlap another
+ * Names give way (item 11c+), the provinces' and the land's: at every zoom step from the whole board to the closest, no name shown may overlap another
  * name or any marker (a city's badge other than its own, a counter, a ship, an envoy or other person, news, a mark).
  */
 async function namesClear(p, name) {
@@ -73,7 +73,8 @@ async function namesClear(p, name) {
       const names = [...document.querySelectorAll(".labels g[data-label]")]
         .map((g) => ({ id: g.dataset.label, t: g.querySelector("text") }))
         .filter((x) => !x.t.classList.contains("off"))
-        .map((x) => ({ id: x.id, r: x.t.getBoundingClientRect() }));
+        .map((x) => ({ id: x.id, r: x.t.getBoundingClientRect() }))
+        .concat([...document.querySelectorAll(".base text.geo:not(.off)")].map((t) => ({ id: t.textContent, r: t.getBoundingClientRect() })));
       const markers = [];
       for (const e of document.querySelectorAll(".map-upper .unit > .sym, .map-upper .traveller > .sym, .map-upper .person, .map-upper .news > .sym, .map-upper .destroyed > .sym, .xmarks .xm-bg"))
         markers.push({ own: null, what: e.closest("[class]").getAttribute("class"), r: e.getBoundingClientRect() });

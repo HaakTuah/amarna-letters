@@ -57,7 +57,7 @@ export function GameMap({
   opening: MapView | null;
   onProvince: (id: string) => void;
   onPerson: (id: string) => void;
-  onMark: (id: string) => void;
+  onMark: (id: string, province: string | null) => void;
   onBlank: () => void;
   children?: ReactNode;
   ref?: Ref<MapHandle>;
@@ -76,7 +76,7 @@ export function GameMap({
     r.mount(view.current!, {
       onProvince: (id) => handlers.current.onProvince(id),
       onPerson: (id) => handlers.current.onPerson(id),
-      onMark: (id) => handlers.current.onMark(id),
+      onMark: (id, province) => handlers.current.onMark(id, province),
       onBlank: () => handlers.current.onBlank(),
     });
     renderer.current = r;

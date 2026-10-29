@@ -5,6 +5,7 @@
  * (its log is saved after every season, so the game goes on from its last season). The app looks for a new version when
  * it starts, when it comes back to the front, and every half hour.
  */
+import { CURRENT_VERSION } from "@amarna/engine";
 import { useSyncExternalStore } from "react";
 
 const ResumeKey = "amarna-resume";
@@ -21,8 +22,8 @@ export function playing(id: string | null): void {
   if (game === null && waiting !== null) takeOver(null);
 }
 
-/** The note during a game: tapped, the new version takes over and the page reloads into the game. */
-export const reloadIntoGame = (): void => takeOver(game);
+/** The note during a game: tapped, the new version takes over and the page reloads, into the game if its rules are the same. */
+export const reloadIntoGame = (): void => takeOver(sameRules ? game : null);
 
 /** Lets the waiting version take over and reloads; with a game, the reload goes back into it. */
 export function takeOver(resume: string | null): void {
@@ -55,29 +56,55 @@ export function takeResume(): string | null {
   return id;
 }
 
-/** Whether a new version is waiting, for the note during a game. */
-export function useUpdateReady(): boolean {
+/**
+ * Whether the new version plays the game on screen under the same rules (its save version), so it can go on there; a game
+ * saved under other rules cannot be continued by the new version (GameRunner.versionProblem). Unknown counts as not.
+ */
+let sameRules = false;
+
+/** What the note during a game says: nothing waiting, a new version the game goes on in, or one it cannot. */
+export type UpdateState = "none" | "continues" | "new-rules";
+export function useUpdateState(): UpdateState {
   return useSyncExternalStore(
     (f) => {
       listeners.add(f);
       return () => listeners.delete(f);
     },
-    () => waiting !== null,
+    () => (waiting === null ? "none" : sameRules ? "continues" : "new-rules"),
   );
+}
+
+/** "Later": the note goes until the next new version is found. */
+export function dismiss(): void {
+  waiting = null;
+  notify();
 }
 
 function offer(w: ServiceWorker): void {
   waiting = w;
-  if (game === null) takeOver(null);
-  else notify();
+  if (game === null) {
+    takeOver(null);
+    return;
+  }
+  fetch("version.json", { cache: "no-store" })
+    .then((r) => r.json() as Promise<{ save?: number }>)
+    .then((v) => (sameRules = v.save === CURRENT_VERSION))
+    .catch(() => (sameRules = false))
+    .finally(notify);
 }
 
 export function registerUpdates(): void {
   if (!("serviceWorker" in navigator)) return;
   const sw = navigator.serviceWorker;
-  // Only a take-over this page asked for reloads it (the very first install also takes control, and needs no reload).
+  // Another tab's take-over: the new version is already in charge here too; reload at once if no game is on screen. (The
+  // very first install also takes control, of a page that had none: that needs no reload.)
+  const hadController = sw.controller !== null;
   sw.addEventListener("controllerchange", () => {
-    if (taking) location.reload();
+    if (taking || (hadController && game === null)) location.reload();
+    else if (waiting !== null && waiting.state !== "installed") {
+      waiting = null;
+      notify();
+    }
   });
   sw.register("service-worker.js", { updateViaCache: "none" })
     .then((reg) => {

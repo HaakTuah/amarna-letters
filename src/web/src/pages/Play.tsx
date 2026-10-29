@@ -176,8 +176,11 @@ export function Play() {
     if (carded) closeCards();
     else chosen(province);
   };
-  const markTapped = (id: string): void => {
-    if (carded) closeCards();
+  /** A mark tapped: its card; while an order is drafted, the province under it is chosen instead. */
+  const markTapped = (id: string, province: string | null): void => {
+    if (ordering) {
+      if (province !== null) chosen(province);
+    } else if (carded) closeCards();
     else setMark(id);
   };
   /** A province chosen from the list: selected as a tap on the map would, and brought into view. */

@@ -9,7 +9,7 @@ export type Keys = Record<string, string>;
 
 export type ToWorker =
   | { type: "start"; settings: GameSettings; keys: Keys }
-  | { type: "load"; text: string; continuePlay: boolean; keys: Keys; table: TableSettings | null }
+  | { type: "load"; text: string; continuePlay: boolean; keys: Keys; table: TableSettings | null; id?: string | null }
   | { type: "step" }
   | { type: "auto"; on: boolean }
   | { type: "delay"; ms: number }

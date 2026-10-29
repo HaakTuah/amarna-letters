@@ -10,6 +10,9 @@
 .mapcard-head h3 { flex: 1; margin: 0; font-size: 1.05rem; }
 .mapcard-head strong { flex: 1; }
 
+/* The names of the land give way last (svg-renderer.ts, placeNames). */
+.map .geo.off { visibility: hidden; }
+
 /* Crossings and rough ground: a mark of each kind, on a pale disc, tappable. */
 .map .xmark { cursor: pointer; }
 .map .xmark .tap-hit { fill: transparent; stroke: none; }

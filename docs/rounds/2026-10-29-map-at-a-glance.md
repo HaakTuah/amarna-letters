@@ -23,7 +23,8 @@ The four parts, the five more, and the two things Haakon found playing:
 3. **The test**: the smoke test fails if any shown name overlaps another name or a marker, at 390 and 1280 pixels, at
    all eight zoom steps from the whole board to the closest (24x), at the opening and four seasons in. It passed twice.
 4. **The newest version at once**: on the start screen a new version takes over and reloads at once; during a game a
-   note, "A new version is ready. Reload into this game", reloads into the game's last saved season.
+   note, "A new version is ready. Reload into this game", reloads into the game's last saved season (or, if the rules
+   changed, says the game cannot go on in it).
 5. **The map opens close**: a seat on its capital; god view and watching on the Levant on a phone, on the whole board on
    a wide screen; each view keeps its zoom and place within a game; one button shows the whole map and returns.
 6. **Borders along the land**: traced by a script over a fine grid from the ridges, frontier rivers and desert edges
@@ -61,11 +62,17 @@ Each with the principle it rests on ("Reason from the pillars").
    (`Rivers`: sippar, babylon, nippur, ur); the Tigris is left as Natural Earth draws it. (The period first.)
 8. **Edge names** where the sources give one (dossier 08, extended): Wilusa, Masa, Ahhiyawa, Keftiu, Tjehenu, Pala,
    Lullubi, Anshan; Arabia's deserts and the Black Sea keep their plain names.
-9. **Views are kept for the tab's life** (session storage), by game and whose eyes; a reload into a new version keeps them.
+9. **Views are kept for the tab's life** (session storage), by game and whose eyes; a reload into a new version keeps
+   them, since the resumed game keeps its id (from the review).
 10. **The phone's opening on the Levant** is zoom 4.2 centred at 33.4 N 36.1 E (Ugarit to Gaza, Cyprus to Damascus);
     "a phone" is a screen narrower than 700 pixels.
 11. **Dark mode dims the map to 88 in a hundred**, the powers' colours included, so nothing on it glares; no power's
     colour changes otherwise.
+12. **A game still running behind the start screen keeps the note** rather than being reloaded away under the player: the
+    start screen takes a new version at once only when no game runs. (Nothing happens unless someone orders it.)
+13. **A new version with new rules** cannot continue a game saved under the old ones (a save version is the rules'), so
+    during such a game the note says so and offers "Update now" or "Later", rather than promising to reload into it
+    (from the review). (Words are true.)
 
 ## Where the drawing and the connections disagree (for the design session)
 
@@ -73,6 +80,16 @@ Neither was changed. Connected by land, but their traced provinces do not touch 
 land): akko-ashkelon, amurru-nuhashshe, amurru-ugarit, arrapha-susa, ashur-terqa, babylon-durkurigalzu, byblos-damascus, damascus-tyre, delta-gaza, durkurigalzu-nippur, durkurigalzu-susa, ekallate-sippar, ekallate-terqa, gaza-jerusalem, gaza-megiddo, gaza-shechem, gezer-megiddo, hebron-sinai, isuwa-sapinuwa, jerusalem-lachish, jerusalem-sinai, megiddo-tyre, mira-tuwanuwa, nuhashshe-qadesh, nuhashshe-terqa, seha-tuwanuwa, steppe-suhu.
 
 Their traced provinces touch, but no road joins them: alalakh-nuhashshe, aleppo-steppe, amurru-qatna, arrapha-durkurigalzu, arrapha-sippar, ashur-suhu, ashur-taidu, durkurigalzu-suhu, gezer-hebron, harran-steppe, hazor-shechem, hazor-sidon, isuwa-taidu, nippur-sippar, nuhashshe-steppe, nuhashshe-sumur, qadesh-sidon, qadesh-steppe, steppe-terqa, taidu-terqa.
+
+## The review
+
+One reviewer (Opus, high) on the diff, the item's text and "The game in one page": nothing against the page; all parts
+present. Fixed: the desert line of a crossing's card said an army pays for supplies in desert land it does not hold, a
+rule since replaced (desert feeds nobody: baggage, the king's stores, caravans), and the legend said the same; the winter
+line said "up to" the base loss, which the weather can raise by half; a note promised to reload into a game a new save
+version cannot continue; a resumed game took a new id, losing its views and adding a saved game; the land's names did
+not give way; a mark took a tap meant to choose a province for an order; the convoy line and the draft arrows' unit
+kind; a direction that could be NaN; another tab's take-over; and every card now says whether winter brings danger.
 
 ## Checks
 

@@ -41,7 +41,8 @@ open ground, the ferry and the flood, winter's danger on a snowbound pass, and w
   `NameOrder`), each name is shown only where its box, measured as drawn, touches no name shown before it and no badge
   (another city's seal, walls, capital ring), counter, person, news or mark. It is placed again whenever the zoom settles
   and whenever the scene changes (and once the pieces have slid into place). Each name stands off its own city's
-  outermost ring (`--ring`, which grows with the walls the viewer knows).
+  outermost ring (`--ring`, which grows with the walls the viewer knows). The names of the land (rivers, ranges,
+  deserts, the lands beyond) give way last, to everything above.
 - **Counters gather by zoom.** A province's tokens stand in a row above its city, a token for each power's armies and
   for its fleets; where the row would not fit in the room to the nearest city at the current zoom, they gather into one
   token per power with its count, opening as the map is zoomed in.
@@ -58,13 +59,17 @@ open ground, the ferry and the flood, winter's danger on a snowbound pass, and w
   whose eyes) keeps its centre and zoom when left and come back to, for the tab's life. The ⤢ button shows the whole map;
   it then turns into ↩, which returns to where the map was.
 - **Cards** (`MapCard.tsx`: a province, a mark, the legend) keep their title and close button pinned at the top, close on
-  Escape, and close on a tap on the map outside them (that tap then does nothing else).
+  Escape, and close on a tap on the map outside them (that tap then does nothing else). While an order is drafted, a tap
+  on a mark chooses the province under it.
 - **Dark mode**: the map keeps its light colours, dimmed to 88 in a hundred; the panels and the cards over the map darken
   (`map-glance.css`).
 
 ## The newest version (`src/web/src/ui/update.ts`, `service-worker.template.js`)
 
 The app looks for a new version at start, when it comes back to the front, and every half hour. A new service worker
-waits until the page asks it to take over: at once when no game is running, and during a game when the player taps "A
-new version is ready. Reload into this game"; the page then reloads into the game's last saved season (its log is saved
-after every season), through the start page's own loading of a saved game.
+waits until the page asks it to take over: at once when no game is running, and during a game when the player taps the
+note. The build writes the rules' save version to `version.json` (never cached); if the new version plays under the same
+rules the note reads "A new version is ready. Reload into this game", and the page reloads into the game's last saved
+season (its log is saved after every season) under its own id, so its views and its entry in the saved games stay as
+they were. If the rules changed, the game cannot go on in the new version (a save version is the rules'), and the note
+says so, with "Update now" and "Later". Another tab's take-over reloads a tab with no game at once and clears its note.

@@ -5,7 +5,7 @@
  */
 import { WorldMap, crossingBetween, dateLabel, harvestOf, shortDate, taxOf, terrainOf, type Power, type Province, type UnitKind } from "@amarna/engine";
 import { powerName, provinceName, shekels } from "../ui/format.ts";
-import { F, Height, Shapes, Width, add, landClipOf, along, arc, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
+import { F, Height, Shapes, Width, add, landClipOf, along, city, len, mul, normal, roadPath, route, sub, unit, unitSpot, unitWay, wayThrough, type Pt } from "./art.ts";
 import { markGlyph, markKind } from "./crossings.ts";
 import { dash, glyphId } from "./glyphs.ts";
 import { Base, Defs, Labels, MarksMarkup, NameOrder, ringOf } from "./markup.ts";
@@ -202,7 +202,7 @@ function moves(s: MapScene): string {
   for (const m of s.moves) {
     const id = glyphId(m.power);
     if (m.style === "Convoy") {
-      sb += `<g class="mv convoy m-${id}">${title(m.text)}<path class="conv" d="${arc(unitSpot(m.from), unitSpot(m.to), 0.2)}"/></g>`;
+      sb += `<g class="mv convoy m-${id}">${title(m.text)}<path class="conv" d="${roadPath(wayThrough(unitWay("Fleet", m.from, m.to)).pts)}"/></g>`;
       continue;
     }
     const way = wayOf(m.kind, m.from, m.to);
@@ -221,7 +221,10 @@ function moves(s: MapScene): string {
       case "Bounce": {
         const part = upTo(way.pts, 0.55);
         const stop = part[part.length - 1];
-        const dir = unit(sub(stop, part[part.length - 2] ?? way.pts[0]));
+        // The direction of the last step that has a length (two rounded points of a road may coincide).
+        let back = part.length - 2;
+        while (back > 0 && len(sub(stop, part[back])) < 1e-6) back--;
+        const dir = unit(sub(stop, part[Math.max(back, 0)]));
         const n = mul(normal(dir), 8);
         const d = roadPath(part);
         sb += `<g class="mv bounce m-${id}">${title(m.text)}<path class="casing" d="${d}"/><path class="shaft" d="${d}" pathLength="1"/><path class="bar" d="M${F(stop.x + n.x)},${F(stop.y + n.y)}L${F(stop.x - n.x)},${F(stop.y - n.y)}"/>${way.extras}</g>`;
@@ -394,9 +397,8 @@ function selection(input: MapInput): string {
     sb += `<path class="selected" d="${Shapes.get(input.selected)}" clip-path="${landClipOf(input.selected)}"/><g transform="translate(${F(at.x)},${F(at.y)})"><g class="csym"><circle class="sel-ring" r="15"/></g></g>`;
   }
   if (input.arrows !== null)
-    for (const { from, to, support } of input.arrows) {
+    for (const { from, to, support, kind } of input.arrows) {
       if (from === to) continue;
-      const kind = input.scene.units.find((u) => u.province === from && !u.ghost)?.kind ?? "Army";
       const way = wayOf(kind, from, to);
       sb += `<g class="draft-way"><path class="draft${support ? " support" : ""}" d="${roadPath(trimEnd(way.pts, 12))}" marker-end="url(#ah-ink)"/>${way.extras}</g>`;
     }
@@ -462,7 +464,10 @@ export class SvgMapRenderer implements MapRenderer {
     }
     const mark = t?.closest("[data-mark]");
     if (mark !== null && mark !== undefined) {
-      this.handlers?.onMark(mark.getAttribute("data-mark")!);
+      // The province under the mark too, for a tap that chooses a province (an order being drafted).
+      const { clientX, clientY } = e as MouseEvent;
+      const under = document.elementsFromPoint(clientX, clientY).find((el) => el.closest("[data-mark]") === null && el.closest("[data-province]") !== null);
+      this.handlers?.onMark(mark.getAttribute("data-mark")!, under?.closest("[data-province]")?.getAttribute("data-province") ?? null);
       return;
     }
     const prov = t?.closest("[data-province]");
@@ -551,7 +556,7 @@ export class SvgMapRenderer implements MapRenderer {
   /**
    * Names give way to everything drawn over the land (item 11c+): in order of importance (NameOrder), a name is shown only
    * where its box, measured as drawn, touches no name shown before it and no badge, army or fleet counter, envoy or other
-   * person, news, or mark; its own city's badge it may sit beside. Batched to the next frame.
+   * person, news, or mark; its own city's badge it may sit beside. The names of the land come last. Batched to the next frame.
    */
   private placeNames(): void {
     if (this.placing !== 0 || this.view === null) return;
@@ -576,6 +581,13 @@ export class SvgMapRenderer implements MapRenderer {
         text.classList.toggle("off", !free);
         if (free) placed.push(r);
       }
+      // The names of the land (rivers, ranges, deserts, the lands beyond) give way last, to all of the above.
+      view.querySelectorAll<SVGTextElement>(".base text.geo").forEach((text) => {
+        const r = text.getBoundingClientRect();
+        const free = !placed.some((o) => touch(r, o)) && !obstacles.some((o) => touch(r, o.r));
+        text.classList.toggle("off", !free);
+        if (free) placed.push(r);
+      });
     });
   }
 

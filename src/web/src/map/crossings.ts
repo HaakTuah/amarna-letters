@@ -18,6 +18,7 @@ import {
   legPoints,
   newGameConfig,
   snowbound,
+  terrainOf,
   type Crossing,
   type GameConfig,
 } from "@amarna/engine";
@@ -85,6 +86,7 @@ export function markText(m: MapMark, config: GameConfig = newGameConfig()): { ti
       title: `${provinceName(p)}: rough ground`,
       lines: [
         `The roads in it are slow: a company makes ${Pace.rough} km a day there, against ${Pace.open} on open ground.`,
+        "Winter brings it no danger of its own, though the roads are slower in Peret where the winter is cool or hard.",
         defence > 0 ? `It helps a defender who stands: a unit holding its ground here is ${defence} stronger against any attack.` : "In this game the ground gives a defender no help.",
       ],
     };
@@ -109,9 +111,12 @@ export function markText(m: MapMark, config: GameConfig = newGameConfig()): { ti
   }
   if (snowbound(Map_, a, b, WinterSeason))
     lines.push(
-      `Winter makes it dangerous: in Peret the pass is under snow, twice as slow, and an army crossing it loses up to ${config.winterArmyLoss} in a hundred of its men to cold, hunger and desertion (half that if it carries a season's food).`,
+      `Winter makes it dangerous: in Peret the pass is under snow, twice as slow, and a full army crossing it loses about ${config.winterArmyLoss} in a hundred of its men to cold, hunger and desertion, between half that and half again as much by the weather (half as many if it carries a season's food).`,
     );
-  else if (c.kind === "Desert") lines.push("It is a desert road: no army lives off the land on it, and one in desert land its king does not hold pays for its supplies.");
+  else lines.push("Winter brings no danger on it, though the roads are slower in Peret where the winter is cool or hard.");
+  for (const end of [a, b])
+    if (terrainOf(end) === "Desert")
+      lines.push(`${provinceName(end)} is desert and feeds nobody: an army there lives on its baggage, its king's stores there if he holds it, and the caravans he sends.`);
   lines.push(
     c.kind === "Desert" || defence <= 0
       ? "It gives a defender no help."
