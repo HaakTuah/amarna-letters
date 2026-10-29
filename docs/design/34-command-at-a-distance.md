@@ -100,10 +100,11 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 
 ## A kingdom falls with its capital (`TurnEngine.fall`)
 
-- The province where the king was passes to whoever took him, and so does land where the conqueror's troops stand and land
-  the king's governors held (until risen seats, item 17); the rest falls lawless. A capital ceded by tablet passes whole,
-  as before. The fallen king's armies with a commander become the commanders' bands; one with none raises a captain from
-  its ranks (`Rose` "captain", `BandData.mutinyHead` plus a percent for each 500 men) or disbands.
+- The province where the king was passes to whoever took him, and so does land where the conqueror's troops stand; the
+  rest falls lawless, governed provinces too (the governor's seat of his own waits for risen seats, item 17), and the
+  governors walk home. A capital ceded by tablet passes whole, as before. The fallen king's armies with a commander become
+  the commanders' bands; one with none, if owed pay or hungry, raises a captain from its ranks (`Rose` "captain",
+  `BandData.mutinyHead` plus a percent for each 500 men), and any other disbands. Its court's road and couriers end.
 
 ## Hiring bands as soldiers (order `enlist`)
 
@@ -125,8 +126,8 @@ Save version 31. The report, with the readings taken and the measures, is `docs/
 ## Not built here
 
 - A governor's seat of his own when his kingdom falls (he would be "his province's leader with a seat of his own, as a
-  freed vassal is"): powers rising in play are item 17's ("A revolt with no leader"); until then his province passes to the
-  conqueror, as before item 13.
+  freed vassal is"): powers rising in play are item 17's ("A revolt with no leader"); until then his province falls
+  lawless with the rest of the realm.
 - A fallen kingdom coming apart only as word of its fall reaches each province: it comes apart at once.
 - Governors' false reports, and a commander keeping the gold sent for his army's food (item 17's buying by order).
 - A ring drawn for the king's reach: the map shows it as its fog, since a seat's sight is what a courier brings within

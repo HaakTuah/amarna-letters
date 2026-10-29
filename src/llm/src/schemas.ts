@@ -340,7 +340,7 @@ const leaderOrdersBase = (c: GameConfig | null): [string, z.ZodType][] => [
 /** One order of command (item 13): a grant, a recall, or a mandate in the fixed vocabulary. */
 const commandOrder = (): ReplySchema =>
   object(
-    ["unit", str("Province id where your unit stands now.")],
+    ["unit", str("Province id where your unit is, as YOUR TROOPS shows it (by its last report if far off).")],
     ["action", enumOf(["grant", "take_back", "mandate", "clear_mandate"])],
     ["person", str("grant: the id of the person at your court you grant the command (like c3). Otherwise empty.")],
     ["task", enumOf(["", ...MandateTaskValues], "mandate: hold where it stands; guard the target and the land around it; invade, besiege or raid into the target; support or shadow the power's troops. Otherwise empty.")],

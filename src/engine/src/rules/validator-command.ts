@@ -52,7 +52,9 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
       const why = own(order.unit);
       if (why !== null) return why;
       const u = unitAt(S, order.unit)!;
-      if (u.commander !== null && u.relieveAt === null) return `the unit in ${order.unit} already has a commander: take the command back first (relieve)`;
+      // A grant is never revoked at a distance at once: a new commander is named only once the old one has stepped down.
+      if (u.commander !== null && u.relieveAt !== null) return `the unit in ${order.unit} has a commander until word taking back his command reaches him (turn ${u.relieveAt})`;
+      if (u.commander !== null) return `the unit in ${order.unit} already has a commander: take the command back first (relieve)`;
       if (v.orders.some((o) => o !== order && o.type === "command" && o.unit === order.unit && v.orders.indexOf(o) < v.orders.indexOf(order))) return `the unit in ${order.unit} was already given a commander by an earlier order`;
       return grantee(v, order.character, "command");
     }
@@ -67,6 +69,9 @@ export function checkCommandOrder(v: Checking, order: Order): string | null | un
     case "mandate": {
       const why = own(order.unit);
       if (why !== null) return why;
+      // "No commander, no mandate": a mandate is given to the man who leads the unit.
+      const granted = v.orders.some((o) => o.type === "command" && o.unit === order.unit);
+      if (order.mandate !== null && unitAt(S, order.unit)!.commander === null && !granted) return `nobody commands the unit in ${order.unit}: grant its command first, then give it a mandate`;
       return order.mandate === null ? null : mandateRefusal(v, order.mandate);
     }
     case "govern": {

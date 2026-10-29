@@ -27,7 +27,6 @@ import {
   type Unit,
 } from "@amarna/engine";
 
-const Map_ = WorldMap.default;
 
 /** A candidate order and the commander's worth for it. */
 interface Option {
@@ -37,6 +36,7 @@ interface Option {
 
 /** The order the commander gives his unit by its mandate, or null to hold. */
 export function commanderOrder(e: TurnEngine, u: Unit, c: Character, m: Mandate): Order | null {
+  const Map_ = e.map;
   const S = e.s;
   const me = u.power;
   // What the army sees: its own province and one around.

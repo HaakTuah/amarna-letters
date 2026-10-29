@@ -29,6 +29,11 @@ declare module "./core.ts" {
     /** The own unit the king names by a province, as he sees his units. */
     unitShownAt(p: Power, province: string): Unit | null;
     /**
+     * The own unit an order of the king's names by a province: one that truly stands there within the season's reach (as
+     * he sees it now), else the one his reports show there.
+     */
+    orderedUnit(p: Power, province: string): Unit | null;
+    /**
      * A seat's orders as they leave its court: those for places beyond the season's reach set out with couriers and are
      * taken out of the season's orders; those that arrive this season are added to them, as orders given now.
      */
@@ -64,12 +69,18 @@ P.unitShownAt = function (p, province) {
   return own.find((u) => this.shownAt(u) === province) ?? null;
 };
 
+P.orderedUnit = function (p, province) {
+  const here = unitAt(this.s, province);
+  if (here !== null && here.power === p && this.wordTo(p, province) === 0) return here;
+  return this.unitShownAt(p, province) ?? (here !== null && here.power === p ? here : null);
+};
+
 /** Where an order is carried out: its unit's place (as its king names it) or the province it names; null for orders given at court. */
 function placeOf(e: TurnEngine, p: Power, o: Order): { province: string; unit: Unit | null } | null {
   const named = unitOf(o);
   if (named !== null) {
-    const u = e.unitShownAt(p, named) ?? unitAt(e.s, named);
-    return u !== null && u.power === p ? { province: u.province, unit: u } : null;
+    const u = e.orderedUnit(p, named);
+    return u !== null ? { province: u.province, unit: u } : null;
   }
   switch (o.type) {
     case "sally":
@@ -115,6 +126,13 @@ P.sendOrders = function (p, sub) {
   const lost: string[] = [];
   const rng = this.r("couriers", p);
   for (const o of sub.orders) {
+    // Command, recall and mandates carry their own delay (the man or the word travels): they name the unit where it truly
+    // stands, and are given at once.
+    if (o.type === "command" || o.type === "relieve" || o.type === "mandate") {
+      const u = this.orderedUnit(p, o.unit);
+      keep.push(u !== null && u.province !== o.unit ? { ...o, unit: u.province } : o);
+      continue;
+    }
     const at = placeOf(this, p, o);
     if (at === null || !this.map.exists(at.province)) {
       keep.push(o);
@@ -199,7 +217,7 @@ P.tell = function (p, province, kind, title, text) {
 
 P.keepTrails = function () {
   for (const u of this.s.units) {
-    u.trail.push(`${u.province}|${u.men}`);
+    u.trail.push(`${u.province}|${u.men}|${u.food}|${u.hungry}|${u.unpaid}`);
     if (u.trail.length > TrailKept) u.trail.splice(0, u.trail.length - TrailKept);
   }
 };

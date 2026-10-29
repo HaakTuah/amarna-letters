@@ -68,12 +68,14 @@ P.paceMoves = function (byProvince) {
     byProvince.set(u.province, hold(u.province));
     held.set(u.province, m);
     const days = Math.max(1, Math.ceil((need - made) / PointsPerDay));
+    const seasons = Math.max(1, Math.ceil((need - made) / season));
+    const when = seasons === 1 ? "next season" : `in ${seasons} more seasons`;
     this.tell(
       u.power,
       u.province,
       "Resolution",
       "On the march",
-      `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on the road to ${this.map.get(m.to).name}${forced ? " by forced march" : ""}: about ${days} days of road left, so it gets there next season if you order it on${forced ? "" : " (or sooner by a forced march)"}. Until then it stands where it is for any fighting.`,
+      `Your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} is on the road to ${this.map.get(m.to).name}${forced ? " by forced march" : ""}: about ${days} days of road left, so it gets there ${when} if you keep ordering it on${forced ? "" : " (or sooner by a forced march)"}. Until then it stands where it is for any fighting.`,
     );
   }
   return held;

@@ -133,7 +133,7 @@ P.commandSeason = function () {
     // below 30 and ambition above 60); the king can enforce the recall only with troops.
     const t = c.traits;
     if (t.loyalty < 30 && t.ambition > 60 && u.kind === "Army") {
-      notify(S, u.power, "Battle", "A commander refuses", `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, and keeps its ${u.men} men as his own.`, c.id);
+      this.tell(u.power, u.province, "Battle", "A commander refuses", `${c.name} refused to give up the command of your army in ${this.map.get(u.province).name}, and keeps its ${u.men} men as his own.`);
       logEvent(S, "defect", `${c.name} refused his recall by ${u.power} and kept the army in ${this.map.get(u.province).name} as his own.`, [u.power], "defect");
       this.armyToBand(u, c, "commander");
       continue;
@@ -141,7 +141,7 @@ P.commandSeason = function () {
     u.commander = null;
     u.relieveAt = null;
     remember(c, S.turn, `I gave up the command of the army in ${this.map.get(u.province).name}, as the king of ${u.power} ordered.`);
-    notify(S, u.power, "Resolution", "Command given up", `${c.name} gave up the command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} and is on the road to your court.`, c.id);
+    this.tell(u.power, u.province, "Resolution", "Command given up", `${c.name} gave up the command of your ${u.kind === "Army" ? "army" : "fleet"} in ${this.map.get(u.province).name} and is on the road to your court.`);
     this.leaveCommand(c, u.province);
   }
   // Bands enlisted whose term is over leave as their chief's band again (hiring bands as soldiers).
@@ -160,15 +160,17 @@ P.commandSeason = function () {
     chief.grantedBy = null;
     chief.watchProvince = land;
     S.bands.push(newBand({ id: newId(S, "b"), leaderId: chief.id, province: land, men, since: S.turn, rose: "outlaw" }));
-    notify(S, u.power, "Resolution", "A band's service ends", `The term of ${chief.name}'s band is over: his ${men} men left your army in ${this.map.get(land).name} as his band again.`, chief.id);
+    this.tell(u.power, land, "Resolution", "A band's service ends", `The term of ${chief.name}'s band is over: his ${men} men left your army in ${this.map.get(land).name} as his band again.`);
     if (u.men <= 0) S.units.splice(S.units.indexOf(u), 1);
   }
   // Commanders whose army is gone (destroyed, disbanded, given away, mutinied) go home.
   for (const c of sortBy(
     S.characters.filter((c) => c.duty === "Commanding" && c.status !== "Dead" && !S.units.some((u) => u.commander === c.id || u.hiredChief === c.id)),
     [(c: Character) => c.id, cmpStr],
-  ))
-    this.leaveCommand(c, c.watchProvince ?? courtOf(S, this.map, c.grantedBy ?? "Egypt"));
+  )) {
+    if (c.watchProvince !== null) this.leaveCommand(c, c.watchProvince);
+    else c.duty = "None";
+  }
 };
 
 P.leaveCommand = function (c, at) {
@@ -225,7 +227,7 @@ P.enlistBand = function (p, o) {
   const want = Math.max(bandCost(b.men), b.take) * o.term + Math.floor((bandCost(b.men) * o.term * chief.traits.greed) / 100);
   const name = this.map.get(o.province).name;
   if (o.fee < want) {
-    notify(S, p, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not serve you for ${o.fee} shekels over ${o.term} seasons. No gold was paid.`, chief.id);
+    this.tell(p, o.province, "Rejected", "Offer refused", `${chief.name}, chief of the band in ${name}, would not serve you for ${o.fee} shekels over ${o.term} seasons. No gold was paid.`);
     return;
   }
   if (!this.pay(p, o.fee, `the band of ${chief.name} in ${name}`, o, "it did not join you")) return;
@@ -244,6 +246,6 @@ P.enlistBand = function (p, o) {
     u.commandFrom = S.turn + 1;
   }
   remember(chief, S.turn, `I took ${o.fee} shekels from the king of ${p} for my band to serve in his army in ${name} for ${o.term} seasons.`);
-  notify(S, p, "Resolution", "A band enlisted", `${chief.name} took your ${o.fee} shekels: his ${b.men} men serve in your army in ${name} until turn ${u.hiredUntil}${u.commander === chief.id ? ", and he commands it" : ""}.`, chief.id);
+  this.tell(p, o.province, "Resolution", "A band enlisted", `${chief.name} took your ${o.fee} shekels: his ${b.men} men serve in your army in ${name} until turn ${u.hiredUntil}${u.commander === chief.id ? ", and he commands it" : ""}.`);
   logEvent(S, "enlisted", `${chief.name}'s band took service with ${p} in ${name}.`, [p], "band-enlisted");
 };

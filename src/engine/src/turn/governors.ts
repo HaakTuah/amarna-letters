@@ -85,13 +85,13 @@ P.governorsSeason = function () {
     S.governors = S.governors.filter((x) => x !== g);
     if (t.loyalty < 30 && t.ambition > 60 && levies.length > 0) {
       const u = levies[0];
-      notify(S, g.power, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${this.map.get(g.province).name}, and turned with the ${u.men} men he raised there.`, c!.id);
+      this.tell(g.power, g.province, "Battle", "A governor turns", `${c!.name} refused to give up the governorship of ${this.map.get(g.province).name}, and turned with the ${u.men} men he raised there.`);
       logEvent(S, "defect", `${c!.name} refused his recall by ${g.power} and turned with the levies of ${this.map.get(g.province).name}.`, [g.power], "defect");
       this.armyToBand(u, c!, "commander");
       continue;
     }
     remember(c!, S.turn, `I gave up the governorship of ${this.map.get(g.province).name}, as the king of ${g.power} ordered.`);
-    notify(S, g.power, "Resolution", "Governorship given up", `${c!.name} gave up the governorship of ${this.map.get(g.province).name} and is on the road to your court.`, c!.id);
+    this.tell(g.power, g.province, "Resolution", "Governorship given up", `${c!.name} gave up the governorship of ${this.map.get(g.province).name} and is on the road to your court.`);
     this.leaveCommand(c!, g.province);
   }
 };
@@ -109,7 +109,7 @@ P.governorsLevy = function () {
     if (S.units.length > before) {
       g.raised++;
       const c = findCharacter(S, g.character)!;
-      notify(S, g.power, "Resolution", "A governor's levy", `${c.name}, your governor of ${this.map.get(g.province).name}, raised a levy there on his own, as his mandate allows, against the foreign troops beside it (${g.raised} of ${g.levies}).`, c.id);
+      this.tell(g.power, g.province, "Resolution", "A governor's levy", `${c.name}, your governor of ${this.map.get(g.province).name}, raised a levy there on his own, as his mandate allows, against the foreign troops beside it (${g.raised} of ${g.levies}).`);
     }
   }
 };

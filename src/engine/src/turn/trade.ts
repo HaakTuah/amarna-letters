@@ -429,6 +429,7 @@ P.sack = function (province, taker, stormed = true) {
   if (loot <= 0) return;
   m.purse -= loot;
   let king = idiv(loot * TradeData.kingSharePercent, 100);
+  const soldiers = loot - king;
   // Item 13: the spoils pass through the commander's hands, and he keeps of the king's share by his greed.
   for (const u of units) {
     const c = this.commanderOf(u);
@@ -438,9 +439,10 @@ P.sack = function (province, taker, stormed = true) {
     king -= kept;
     gain(c, kept, "Loot");
   }
-  let packs = loot - idiv(loot * TradeData.kingSharePercent, 100);
+  const commanders = loot - soldiers - king;
+  let packs = soldiers;
   units.forEach((u, i) => {
-    const part = i === units.length - 1 ? packs : idiv((loot - king) * u.men, men);
+    const part = i === units.length - 1 ? packs : idiv(soldiers * u.men, men);
     u.savings += part;
     packs -= part;
   });
@@ -451,7 +453,8 @@ P.sack = function (province, taker, stormed = true) {
     taker,
     "Battle",
     "Loot",
-    `Your troops sacked ${name} and carried off ${formatMoney(loot)} from its people's purse: ${formatMoney(loot - king)} in their packs` +
+    `Your troops sacked ${name} and carried off ${formatMoney(loot)} from its people's purse: ${formatMoney(soldiers)} in their packs` +
+      (commanders > 0 ? `, ${formatMoney(commanders)} kept by their commanders` : "") +
       (king <= 0 ? "." : home ? `, and your share of ${formatMoney(king)} is on its way to your treasury.` : `, and your share of ${formatMoney(king)} is in your treasury.`),
   );
   logEvent(S, "sack", `${taker} sacked ${name}.`, [taker], "sack");

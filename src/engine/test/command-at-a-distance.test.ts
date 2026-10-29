@@ -14,6 +14,7 @@ import {
   mandateOrder,
   move,
   moveCourt,
+  relieve,
   newBand,
   newCharacter,
   newGame,
@@ -148,6 +149,23 @@ describe("CommandAtADistanceTests", () => {
     // The king sees who commands it, and its mandate.
     const v = Views.for(s, "Babylonia").units.find((x) => x.province === "sippar")!;
     Assert.equal([c.id, "hold"], [v.commander, v.mandate?.task]);
+  });
+
+  test("A grant is never revoked at a distance at once, and a mandate needs a commander to carry it", () => {
+    const s = board();
+    const [c, d] = s.characters.filter((x) => x.employer === "Babylonia" && x.at === "Babylonia");
+    // No commander, no mandate: the order is refused.
+    season(s, subs({ Babylonia: { orders: [mandateOrder("sippar", newMandate({ task: "hold" }))] } }));
+    Assert.null(unitAt(s, "sippar")!.mandate);
+    season(s, subs({ Babylonia: { orders: [command("sippar", c.id)] } }));
+    season(s, subs({ Babylonia: { orders: [relieve("sippar")] } }));
+    const u = unitAt(s, "sippar")!;
+    // Word of the recall is three seasons on the road (as to an army far off): until it reaches him nobody else may be
+    // granted the army, and he keeps it.
+    u.relieveAt = s.turn + 3;
+    season(s, subs({ Babylonia: { orders: [command("sippar", d.id)] } }));
+    Assert.equal(c.id, u.commander);
+    Assert.notEqual("Commanding", d.duty);
   });
 
   test("An order for a place beyond a season's courier goes out now and is carried out when it arrives", () => {

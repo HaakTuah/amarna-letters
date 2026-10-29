@@ -30,6 +30,7 @@ import {
   newSiegeView,
   newTabletView,
   newUnitView,
+  type UnitView,
   newLetterView,
   newProvinceEconomyView,
   newCaravanView,
@@ -250,11 +251,21 @@ function seatView(s: GameState, p: Power, map: WorldMap | null = null): SeatView
           : newUnitView({ power: u.power, kind: u.kind, province: u.province, men: u.men }),
       )
       .map((x, _i, all) => {
-        // A report never puts two troops in one province: one shown where another stands (or is shown) is shown where it is.
+        // A report never puts two troops in one province: one shown where another stands (or is shown) is shown by an
+        // older report of it whose place is free, and left out if it has none (never by where it truly is: that news has
+        // not come yet).
         if (x.reported === 0 || !all.some((y) => y !== x && y.province === x.province)) return x;
         const u = s.units.find((v) => v.power === p && v.trail.length > 0 && engine.shownAt(v) === x.province && engine.wordTo(p, v.province) > 0);
-        return u === undefined ? x : { ...x, province: u.province, men: u.men, reported: 0 };
-      }),
+        if (u === undefined) return x;
+        const taken = new HSet(all.filter((y) => y !== x).map((y) => y.province));
+        const d = engine.wordTo(p, u.province);
+        for (let i = u.trail.length - 2 - d; i >= 0; i--) {
+          const r = trailEntry(u.trail[i]);
+          if (!taken.has(r.province)) return { ...x, ...r, reported: s.turn - (u.trail.length - 1 - i) };
+        }
+        return null;
+      })
+      .filter((x): x is UnitView => x !== null),
     visible: m.provinces.filter((x) => seen.has(x.id)).map((x) => x.id),
     // The fallen kingdoms it has heard of (word of a fall travels): all of them, for a fallen court's last view.
     fallen: isAlive(s, p) ? s.eliminated.filter((x) => (s.fallsHeard.tryGet(p) ?? []).includes(x)) : [...s.eliminated],
@@ -858,9 +869,15 @@ function marchOf(engine: TurnEngine, u: Unit): { march: string | null; marchDays
  * Item 13: an own unit beyond what a courier brings within the season is shown as its last report has it: where it stood
  * and with how many men, as many seasons ago as the road from it is long.
  */
+/** One season's report of a unit: where it stood, its men, food, hunger and pay owed (older saves carry only the first two). */
+function trailEntry(t: string): { province: string; men: number; food?: number; hungry?: number; unpaid?: number } {
+  const [province, men, food, hungry, unpaid] = t.split("|");
+  return food === undefined ? { province, men: Number(men) } : { province, men: Number(men), food: Number(food), hungry: Number(hungry), unpaid: Number(unpaid) };
+}
+
 function reportOf(engine: TurnEngine, u: Unit): { province: string; men: number; reported: number } | object {
   const d = engine.wordTo(u.power, u.province);
   if (d === 0 || !Number.isFinite(d) || u.trail.length === 0) return {};
-  const [province, men] = u.trail[Math.max(0, u.trail.length - 1 - d)].split("|");
-  return { province, men: Number(men), reported: engine.s.turn - d, march: null, marchDays: 0 };
+  const i = Math.max(0, u.trail.length - 1 - d);
+  return { ...trailEntry(u.trail[i]), reported: engine.s.turn - (u.trail.length - 1 - i), march: null, marchDays: 0 };
 }

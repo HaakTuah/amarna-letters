@@ -556,16 +556,14 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   const capital = this.map.get(this.courtAt(p));
   const landHeld = ownedBy(S, p);
   // Item 13 ("A kingdom falls with its capital", revised 27 October 2026): the realm comes apart province by province. The
-  // capital passes to whoever holds it, and so does land where the conqueror's troops stand, held by force; a province
-  // with a governor of the fallen king passes to the conqueror as before item 13, until governors rise with seats of their
-  // own (item 17's risen seats); the rest, with neither, falls lawless ("Land without a ruler"). A capital ceded by
-  // sealed tablet (item 11d) passes whole with its land, as agreed.
+  // capital passes to whoever holds it, and so does land where the conqueror's troops stand, held by force; the rest falls
+  // lawless ("Land without a ruler"), governed provinces too: a governor becoming his province's leader with a seat of his
+  // own waits for item 17's risen seats. A capital ceded by sealed tablet (item 11d) passes whole with its land, as agreed.
   const passes = (id: string): boolean =>
     ceded ||
     id === capital.id ||
     (fallingCourts.get(this)?.has(id) ?? false) ||
-    (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror)) ||
-    S.governors.some((g) => g.province === id && g.power === p && S.turn >= g.from);
+    (conqueror !== null && S.units.some((u) => u.province === id && u.power === conqueror));
   const passed: string[] = [];
   const lawless: string[] = [];
   for (const id of landHeld) {
@@ -582,9 +580,12 @@ P.fall = function (p, conqueror, taker, ceded = false) {
   S.falls.push(newKingdomFall({ power: p, turn: S.turn, conqueror, capital: capital.id, land: passed }));
   S.eliminated.push(p);
   this.endSleep(p);
+  // Its court's journey and its couriers on the road end with it.
+  S.kingRoads = S.kingRoads.filter((r) => r.power !== p);
+  S.couriers = S.couriers.filter((x) => x.power !== p);
   // Item 13: its armies in the field are their commanders' to decide, each now on his own with his men as his band; an
-  // army with nobody to command it may raise a captain from its own ranks, or else disbands, its men going home with
-  // their savings (until item 13 all of them disbanded). Their sieges are lifted.
+  // army with nobody to command it may raise a captain from its own ranks if it is owed pay or hungry (one paid and fed
+  // never does), or else disbands, its men going home with their savings (until item 13 all of them disbanded). Their sieges are lifted.
   const ranks = this.r("captain", p);
   for (const u of sortBy(S.units.filter((u) => u.power === p), [(u: Unit) => u.id, cmpStr])) {
     const c = this.commanderOf(u);
@@ -593,7 +594,7 @@ P.fall = function (p, conqueror, taker, ceded = false) {
       continue;
     }
     const land = this.map.get(u.province).isSea ? (this.map.landProvinces.find((x) => x.waters === u.province)?.id ?? null) : u.province;
-    if (!ceded && u.kind === "Army" && land !== null && u.men >= BandData.least && ranks.chance(Math.min(100, BandData.mutinyHead + idiv(u.men, 500)) / 100)) {
+    if (!ceded && u.kind === "Army" && land !== null && u.men >= BandData.least && (u.unpaid > 0 || u.hungry > 0) && ranks.chance(Math.min(100, BandData.mutinyHead + idiv(u.men, 500)) / 100)) {
       S.units.splice(S.units.indexOf(u), 1);
       const b = this.headRises(land, u.men, "captain", ranks, p);
       S.loot.set(land, S.loot.getOrDefault(land, 0) + u.savings);
@@ -649,7 +650,7 @@ P.fall = function (p, conqueror, taker, ceded = false) {
     const rest = passed.filter((x) => x !== capital.id).map((x) => this.map.get(x).name);
     const gone = lawless.map((x) => this.map.get(x).name);
     const yours =
-      (rest.length === 0 ? "none of his other land is yours" : ceded ? `his land is yours: ${rest.join(", ")}` : `of his land you hold ${rest.join(", ")}, where your troops stand or his governors held it`) +
+      (rest.length === 0 ? "none of his other land is yours" : ceded ? `his land is yours: ${rest.join(", ")}` : `of his land you hold ${rest.join(", ")}, where your troops stand`) +
       (gone.length === 0 ? "." : `; the rest, ${gone.join(", ")}, has fallen lawless, held by nobody.`);
     notify(
       S,
