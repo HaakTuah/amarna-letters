@@ -397,3 +397,12 @@ Given in the design chat with Claude, answering the design questions of the cons
     > each state fulfill each aggregated to those propotions.
 
     Written into "One scoreboard for every power" (Victory): kings are told the weight once item 18 sets it.
+
+38. **08:11 to 08:23**, in the design chat, on the map as his phone showed it after item 11c went live (first the old
+    board, served by the offline cache, then the true map with its names under the badges). To the design session's
+    takes (names that give way to badges and counters too, measured from their real widths; counters gathered by zoom;
+    a test that fails on any covered name; a new version taking over at once):
+
+    > Other than that, I agree with all your takes! Make it be done expertly!
+
+    Written into build order item 11c+.
