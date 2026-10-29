@@ -1,4 +1,4 @@
-<!-- Generated from the design document, Land, people and economy tab, revision 29 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
+<!-- Generated from the design document, Land, people and economy tab, revision 31 (2026-10-29). Do not edit: see docs/intent/INDEX.md. -->
 ## The people of the land
 
 **People of the land (decided 21 October 2026).** Each province's people are counted in three groups, one number each:
