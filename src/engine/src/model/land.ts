@@ -127,11 +127,12 @@ const Regions: readonly [number, readonly string[]][] = [
   [20, ["lukka"]],
   [30, ["kaska"]],
   [20, ["steppe"]],
-  // Item 11f's edges [G]: the north-eastern highlands, Libya's herders, the Shasu of the Negev and Edom
+  // Item 11f's edges [G]: the north-eastern highlands, Libya's herders (who came on in tens of thousands a century and
+  // more later), the Shasu of the Negev and Edom; at 20,000 each the herders' lands fell to Egypt in their first season
   [30, ["azzi"]],
   [15, ["pella", "ashtaroth"]],
-  [20, ["libya"]],
-  [20, ["shasu"]],
+  [60, ["libya"]],
+  [40, ["shasu"]],
 ];
 
 const Habiru = ["megiddo", "gaza", "jerusalem", "shechem", "akko", "hazor", "gezer", "ashkelon", "lachish", "hebron", "tyre", "sidon", "byblos", "amurru", "sumur", "arwad", "damascus", "qadesh", "qatna", "nuhashshe", "pella", "ashtaroth", "beirut", "tunip", "niya"];
